@@ -8,11 +8,11 @@ Use this focused skill when a task asks whether FalkorDB, FalkorDB Legal Graph, 
 </objective>
 
 <scope>
-This skill answers M001 architecture-only and capability questions only. Product ETL/import, Legal KnowQL, Legal Nexus runtime, product graph schemas, smoke harnesses, and product pipeline code remain outside this skill's implementation scope. Treat runtime suitability as pending until S04 smoke evidence exists, and treat source-level claims as pending until S03 GitNexus/source evidence exists.
+This skill answers M001 architecture-only and capability questions only. Product ETL/import, Legal KnowQL, Legal Nexus runtime, product graph schemas, smoke harnesses, and product pipeline code remain outside this skill's implementation scope. S04 now confirms bounded FalkorDB runtime mechanics on this host; product suitability, legal retrieval quality, deployment readiness, and source-level API/control-surface claims remain bounded or pending unless the cited artifact directly proves them.
 </scope>
 
 <evidence_protocol>
-Read `references/falkordb-evidence-protocol.md` before classifying material claims. Valid claim classes are `confirmed`, `docs-backed/source-pending`, `smoke-needed`, `contradicted`, and `out-of-scope`. Current FalkorDB documentation claims are not `confirmed` by themselves; they are `docs-backed/source-pending` or `smoke-needed` until GitNexus/source and runtime smoke evidence exist.
+Read `references/falkordb-evidence-protocol.md` before classifying material claims. Valid claim classes are `confirmed`, `docs-backed/source-pending`, `smoke-needed`, `contradicted`, and `out-of-scope`. Current FalkorDB documentation claims are not `confirmed` by themselves. Runtime mechanics that appear in `.gsd/milestones/M001/slices/S04/S04-FALKORDB-CAPABILITY-SMOKE.json` may be cited as bounded `confirmed` / `confirmed-runtime`; embedding mechanics that appear in `.gsd/milestones/M001/slices/S10/S10-EMBEDDING-RUNTIME-PROOF.json` may be cited only at the exact model/dimension/status recorded there.
 </evidence_protocol>
 
 <routing>
@@ -26,7 +26,7 @@ Read `references/falkordb-evidence-protocol.md` before classifying material clai
 - Do not transfer Neo4j capabilities, Cypher extensions, procedures, Graph Data Science assumptions, full-text semantics, vector semantics, or UDF behavior to FalkorDB without FalkorDB evidence.
 - Scope GitNexus dynamically: call `gitnexus_list_repos`, choose matching vendor/reference repos discovered at runtime, and avoid hardcoding future repo names.
 - Use `/root/vendor-source/` as the expected local checkout location when GitNexus reference indexes are absent or insufficient.
-- Assign every insufficient claim to a downstream owner such as S03 source indexing or S04 runtime smoke checks.
+- Assign every insufficient claim to an owner / resolution / verification path such as S03 source indexing, S08 architecture caveats, or a later runtime/legal-quality proof; do not reopen S04 for mechanics already confirmed by its artifact.
 </required_guardrails>
 
 <failure_handling>
@@ -35,10 +35,10 @@ If GitNexus errors, times out, or returns noisy/malformed results, fall back to 
 
 <s06_evidence_refresh>
 Route refreshed FalkorDB and embedding claims through these bounded anchors:
-- `.gsd/milestones/M001/slices/S04/S04-FALKORDB-CAPABILITY-SMOKE.json` for runtime smoke evidence.
-- `.gsd/milestones/M001/slices/S09/S09-LOCAL-EMBEDDING-EVALUATION.json` for local embedding evaluation involving `deepvk/USER-bge-m3`, `1024` dimensions, and `ai-sage/Giga-Embeddings-instruct`.
-- `.gsd/milestones/M001/slices/S10/S10-EMBEDDING-RUNTIME-PROOF.json` for `GigaEmbeddings` runtime import/probe status and `blocked-environment` diagnostics.
-Keep each claim in owner / resolution / verification form. These anchors do not prove production legal retrieval quality, a direct GraphBLAS control surface, or product hybrid retrieval readiness.
+- `.gsd/milestones/M001/slices/S04/S04-FALKORDB-CAPABILITY-SMOKE.json` confirms host-specific FalkorDB and FalkorDBLite runtime mechanics for synthetic graph, UDF, procedure listing, full-text, vector index/distance, and dimension-4 vector probes; it does not prove product suitability, production scale, legal retrieval quality, or a direct LegalGraph GraphBLAS control surface.
+- `.gsd/milestones/M001/slices/S09/S09-LOCAL-EMBEDDING-EVALUATION.json` records pre-runtime candidate ordering and constraints for `deepvk/USER-bge-m3`, `1024`, `ai-sage/Giga-Embeddings-instruct`, and 2048-dimensional challenger risk under D002/D003 local/open-weight embedding decisions.
+- `.gsd/milestones/M001/slices/S10/S10-EMBEDDING-RUNTIME-PROOF.json` upgrades `deepvk/USER-bge-m3` to a bounded local/open-weight `confirmed-runtime` baseline on this host: local encode succeeded, observed vector dimension is `1024`, and live FalkorDB 1024-dimensional index/query proof exists. It keeps `GigaEmbeddings` / `ai-sage/Giga-Embeddings-instruct` and 2048-dimensional vector proof `blocked-environment` / safety-gated, not disproven and not confirmed.
+Keep every claim in owner / resolution / verification form. These anchors do not prove production legal retrieval quality, product hybrid retrieval readiness, managed embedding API suitability, or direct GraphBLAS control-surface access.
 </s06_evidence_refresh>
 
 <success_criteria>

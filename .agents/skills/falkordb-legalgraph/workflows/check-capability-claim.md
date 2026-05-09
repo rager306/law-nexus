@@ -14,23 +14,27 @@ Read `../references/falkordb-evidence-protocol.md` first so the claim is classif
 2. Split the evidence into five buckets:
    - `docs-backed`: official FalkorDB documentation or release notes describe the behavior.
    - `source-backed`: GitNexus/source evidence in matching vendor/reference repos shows the implementation or API surface.
-   - `runtime-smoke`: S04 smoke output demonstrates behavior in the target environment.
+   - `runtime-smoke`: S04 or S10 smoke output demonstrates the bounded behavior in the target environment.
    - `contradicted`: evidence shows the behavior is unavailable, unsupported, or materially different.
-   - `out-of-scope`: the claim asks for product implementation or legal-domain truth outside M001/S02.
+   - `out-of-scope`: the claim asks for product implementation or legal-domain truth outside M001 architecture-only scope.
 3. Use `gitnexus_list_repos` and scope to matching repos discovered at runtime. If a matching repo exists, use `gitnexus_query` or `gitnexus_context` for the specific capability term.
 4. If GitNexus is absent, errors, times out, or returns malformed/noisy results, inspect or point to `/root/vendor-source/` as the expected fallback and keep the class conservative.
 5. Classify the claim:
    - `confirmed` only when source-backed or runtime-smoke evidence directly proves the bounded claim.
    - `docs-backed/source-pending` when docs support the claim but S03 source evidence is missing.
-   - `smoke-needed` when behavior depends on runtime configuration, performance, persistence, UDF loading, full-text/vector query semantics, or FalkorDBLite behavior.
+   - `smoke-needed` when behavior depends on runtime configuration, performance, persistence, UDF loading, full-text/vector query semantics, FalkorDBLite behavior, product suitability, legal retrieval quality, or candidate dimensions/models not directly covered by S04/S10.
    - `contradicted` when docs/source/runtime evidence rejects the claim.
    - `out-of-scope` when it asks this skill to build product code or decide legal authority.
-6. Assign an owner. Use S03 for source/index proof, S04 for runtime smoke proof, S08 for final architecture-report caveats, or “none” only when the bounded claim is already confirmed or out of scope.
+6. Assign an owner. Use S03 for source/index proof, S04/S10 only when citing their existing runtime artifacts, S08 for final architecture-report caveats, M002/future proof for deferred embedding/runtime work, or “none” only when the bounded claim is already confirmed or out of scope.
 </process>
 
 <graphblas_rule>
-For GraphBLAS, use D004/D009 wording. “FalkorDB GraphBLAS-backed functionality/internal architecture” can be docs-backed/source-pending when evidence supports FalkorDB internals. “LegalGraph can directly control GraphBLAS through a stable FalkorDB API” is not confirmed without source/runtime proof and should normally be `smoke-needed` or `docs-backed/source-pending`.
+For GraphBLAS, preserve conservative architecture wording. “FalkorDB GraphBLAS-backed functionality/internal architecture” can be docs-backed/source-pending when evidence supports FalkorDB internals. “LegalGraph can directly control GraphBLAS through a stable FalkorDB API” is not confirmed without source/runtime proof and should normally be `smoke-needed` or `docs-backed/source-pending`.
 </graphblas_rule>
+
+<embedding_runtime_rule>
+When the claim mentions embeddings or vector dimensions, split model runtime from vector storage and legal quality. `.gsd/milestones/M001/slices/S10/S10-EMBEDDING-RUNTIME-PROOF.json` confirms `deepvk/USER-bge-m3` as a bounded local/open-weight runtime baseline on this host with `1024`-dimensional encode and FalkorDB vector proof. `GigaEmbeddings` / `ai-sage/Giga-Embeddings-instruct` and 2048-dimensional proof are `blocked-environment` / gated under current safety/runtime conditions, not disproven and not confirmed. D002/D003 allow local/open-weight candidate ordering only; they do not prove production legal retrieval quality.
+</embedding_runtime_rule>
 
 <output_format>
 Return this minimal record:
@@ -47,5 +51,6 @@ Return this minimal record:
 - Do not normalize ambiguous docs into a stronger claim.
 - Do not accept “Neo4j supports X” as FalkorDB evidence.
 - Do not treat LLM-generated summaries as source evidence.
+- Do not phrase `GigaEmbeddings` as proven or convert fixture-ID-only metrics into production legal retrieval quality.
 </failure_modes>
 </workflow>
