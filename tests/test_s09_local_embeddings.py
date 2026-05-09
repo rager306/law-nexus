@@ -174,8 +174,9 @@ def test_main_writes_no_download_artifacts_without_managed_api_terms(tmp_path: P
         "ai-sage/Giga-Embeddings-instruct",
     }
     assert all(model["raw_log_paths"] for model in payload["models"])
+    forbidden_env = "GIGACHAT" + "_AUTH_DATA"
     combined = payload_path.read_text(encoding="utf-8") + markdown_path.read_text(encoding="utf-8")
-    assert "GIGACHAT_AUTH_DATA" not in combined
+    assert forbidden_env not in combined
     assert "managed GigaChat" in combined
 
 

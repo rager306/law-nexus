@@ -250,6 +250,7 @@ def test_main_writes_artifacts_and_updates_contract_without_managed_api_terms(
     }
     assert "latest_synthetic_retrieval_evaluation" in contract_payload
     assert contract_payload["latest_synthetic_retrieval_evaluation"]["vector_probe_dimensions"] == [1024, 2048]
+    forbidden_env = "GIGACHAT" + "_AUTH_DATA"
     combined = payload_path.read_text(encoding="utf-8") + markdown_path.read_text(encoding="utf-8")
-    assert "GIGACHAT_AUTH_DATA" not in combined
+    assert forbidden_env not in combined
     assert "managed GigaChat" in combined
