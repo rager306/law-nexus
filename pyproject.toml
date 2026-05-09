@@ -1,0 +1,75 @@
+[project]
+name = "law-nexus"
+version = "0.1.0"
+description = "Architecture smoke tooling for LegalGraph Nexus."
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = []
+
+[dependency-groups]
+dev = [
+    "adaptix",
+    "hypothesis",
+    "pyrefly",
+    "pytest",
+    "pytest-xdist",
+    "ruff",
+    "ty",
+]
+
+[tool.uv]
+package = false
+
+[tool.pytest.ini_options]
+minversion = "8.0"
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+addopts = [
+    "--strict-config",
+    "--strict-markers",
+]
+
+[tool.ruff]
+target-version = "py313"
+line-length = 100
+src = ["scripts", "tests"]
+include = ["pyproject.toml", "scripts/**/*.py", "tests/**/*.py"]
+exclude = [
+    ".bg-shell",
+    ".cache",
+    ".git",
+    ".gitnexus",
+    ".gsd",
+    ".venv",
+    "Old_project",
+    "build",
+    "dist",
+    "node_modules",
+    "tmp",
+    "venv",
+]
+
+[tool.ruff.lint]
+select = ["E", "F", "I"]
+ignore = ["E501"]
+
+[tool.ruff.lint.per-file-ignores]
+"scripts/verify-s02-skills.py" = ["F401"]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+line-ending = "lf"
+
+[tool.ty.environment]
+python-version = "3.13"
+python-platform = "linux"
+
+[tool.ty.src]
+include = ["scripts", "tests"]
+exclude = [".gsd", "Old_project", ".venv"]
+
+[tool.pyrefly]
+python-version = "3.13"
+project-includes = ["scripts/**/*.py", "tests/**/*.py"]
+project-excludes = [".gsd/**", "Old_project/**", ".venv/**"]
