@@ -60,6 +60,11 @@ REQUIRED_TOP_LEVEL_FIELDS = (
     "confidence_loop",
     "raw_log_paths",
 )
+REQUIRED_FINAL_FIELDS = (
+    "verdict_matrix",
+    "downstream_guidance",
+    "source_artifacts",
+)
 REQUIRED_MODEL_FIELDS = (
     "id",
     "role",
