@@ -75,7 +75,8 @@
 ### F-002 · Несовпадение списка labels между `02_architecture.md` и `03_PRD.md`
 
 - **Severity:** MAJOR
-- **Status:** OPEN
+- **Status:** FIXED
+- **Fixed in S07/T02:** `02_architecture.md` now includes `LegalDocument` and `ContentDomain` in the authoritative label list, defines `LegalDocument` as a FalkorDB multi-label base type, and requires `document_type`. `03_PRD.md` §10 now mirrors the base-label pattern and adds the missing `LegalDocument`, `ContentDomain`, and `Reference` nodes alongside existing `KeyPhrase` and `AutoTag` nodes.
 - **Файлы:** `02_architecture.md` строки 102–125, `03_PRD.md` §10, `01_general_idea.md` §13e
 
 В `02_architecture.md` перечислены labels включая `Condition`, `Exception`, `Deadline`, `Reference`, но **отсутствует `LegalDocument`**, хотя §13e и `01_general_idea.md` объявляют его базовым типом.
@@ -96,7 +97,8 @@
 ### F-003 · Несовпадающие relationships
 
 - **Severity:** MAJOR
-- **Status:** OPEN
+- **Status:** FIXED
+- **Fixed in S07/T02:** Added `HAS_BLOCK` and `HAS_DOMAIN` to the authoritative relationship list in `02_architecture.md`; reconciled the target graph to use `HAS_BLOCK`, `HAS_DOMAIN`, and `REFERS_TO` consistently. `VERSION_OF`, `SUPERSEDES`, and `AMENDED_BY` are explicitly documented as deferred post-MVP temporal/versioning relationships until S08/later temporal modeling defines event semantics.
 - **Файлы:** `02_architecture.md` строки 129–151, `03_PRD.md` §10
 
 В `02_architecture.md` объявлен `HAS_BLOCK`, но в перечне relationships (строки 129–151) его **нет** — есть только `CONTAINS`, `DERIVED_FROM`, `HAS_CHUNK` и т.д. При этом в графе (строка 157) и в ER в `03_PRD.md` (`SourceDocument ||--o{ SourceBlock : HAS_BLOCK`) он используется.
@@ -110,7 +112,8 @@
 ### F-004 · Конфликт направления/кардинальности в ER-диаграмме `03_PRD.md` §10
 
 - **Severity:** MAJOR
-- **Status:** OPEN
+- **Status:** FIXED
+- **Fixed in S07/T02:** `03_PRD.md` §10 now uses `ActEdition }o--|| SourceDocument : DERIVED_FROM`, matching the architecture diagram semantics that an edition is derived from one source document. The surrounding text notes `Reference` resolution and multi-label document semantics separately.
 - **Файл:** `03_PRD.md` §10
 
 ```
@@ -184,16 +187,13 @@ Python методы в LegalNexus:
 ### F-008 · Roadmap vs MVP scope: embeddings
 
 - **Severity:** MAJOR
-- **Status:** OPEN
+- **Status:** FIXED
+- **Fixed in S07/T03:** Added a `FR-to-phase scope matrix` in `03_PRD.md` §7 covering FR-21 through FR-30b; marked FR-28b embeddings/FalkorDB vector index as post-MVP and research-gated; updated §13 roadmap wording so Phase 3–5 items are directional post-MVP scope rather than immediate MVP commitments. Related implementation details remain tracked separately by G-002, G-011, and R-001.
 - **Файлы:** `03_PRD.md` §7, FR-28b, §13; `02_architecture.md` §13d
 
-§7 PRD говорит, что в MVP **не входят** embeddings/vector. Но:
+§7 PRD previously said that embeddings/vector were outside MVP, while FR-28b made embeddings look mandatory and Roadmap (§13) placed embeddings/vector index in Phase 5 without a clear phase contract.
 
-- FR-28b делает embeddings обязательным требованием;
-- Roadmap (§13) ставит embeddings и FalkorDB vector index в Phase 5;
-- §13d архитектуры объявляет 1024-dim deepvk/USER-bge-m3 как часть MVP-стека.
-
-**Действие.** Либо явно пометить FR-28b как `post-MVP`, либо включить базовый embedding pipeline в MVP. В §7 добавить чёткую таблицу «FR → фаза».
+**Действие.** Keep the §7 matrix as the source of truth for MVP vs post-MVP vs candidate research. Do not promote embedding generation, FalkorDB vector index creation, or hybrid vector retrieval into MVP implementation unless a later validation milestone explicitly narrows and promotes that scope.
 
 ---
 
@@ -440,7 +440,8 @@ NS -->|SUPPORTED_BY| EV
 ### R-006 · ContentDomain — концепт без чёткого определения
 
 - **Severity:** MAJOR
-- **Status:** OPEN
+- **Status:** FIXED
+- **Fixed in S07/T02:** `02_architecture.md` and `03_PRD.md` now define `ContentDomain` as a first-class node, connected from `LegalDocument` with M:N `HAS_DOMAIN`; every document requires at least one domain and the MVP default is `normative_acts`.
 - **Файл:** `02_architecture.md` §13e
 
 В §13e architecture: `ContentDomain` — first-class, перечислены значения. Но:
@@ -460,9 +461,9 @@ NS -->|SUPPORTED_BY| EV
 - [x] **F-005** — Заменить «WordML» → «ODF/ODT» в §7 PRD MVP.
 - [x] **F-006** — Удалить дубль списка функций в FR-21.
 - [ ] **F-014** — Унифицировать KnowQL грамматику (BNF/EBNF) и зафиксировать в FR-22.
-- [ ] **F-002 / F-003** — Зафиксировать единый список node labels и relationships, синхронизированный с ER в §10 и mermaid в §1.
-- [ ] **F-002** — Решить вопрос `LegalDocument` vs `LegalAct` (multi-label или иерархия наследования).
-- [ ] **F-002 / F-004** — Расширить ER `03_PRD.md` §10: добавить `LegalDocument`, `ContentDomain`, `Reference`, `KeyPhrase`, `AutoTag`; исправить кардинальности.
+- [x] **F-002 / F-003** — Зафиксировать единый список node labels и relationships, синхронизированный с ER в §10 и mermaid в §1.
+- [x] **F-002** — Решить вопрос `LegalDocument` vs `LegalAct` (multi-label или иерархия наследования).
+- [x] **F-002 / F-004** — Расширить ER `03_PRD.md` §10: добавить `LegalDocument`, `ContentDomain`, `Reference`, `KeyPhrase`, `AutoTag`; исправить кардинальности.
 
 ### 5.2. Важные (до конца Phase 1)
 
@@ -470,11 +471,11 @@ NS -->|SUPPORTED_BY| EV
 - [ ] **F-007** — Контракт UDF API: таблица «имя / слой / контракт / возвращаемый тип».
 - [ ] **G-002 / F-015** — JSON Schema для всех 17 файлов import package, включая `12_embeddings.jsonl` и `14_validation_report.json`.
 - [ ] **F-016** — Idempotency policy: что происходит при повторном импорте.
-- [ ] **F-008** — MVP↔Roadmap matrix: таблица «FR → фаза».
+- [x] **F-008** — MVP↔Roadmap matrix: таблица «FR → фаза».
 - [ ] **F-011** — NormStatement type/modality: матрица совместимости + валидатор.
 - [ ] **F-012** — BNF citation_key + ID, регэкспы, edge-cases.
 - [ ] **R-005** — `NormStatement.extraction_method` и `verification_status`.
-- [ ] **R-006** — `ContentDomain` уточнение (label/property, кардинальность).
+- [x] **R-006** — `ContentDomain` уточнение (label/property, кардинальность).
 - [ ] **G-005** — Стратегия конфликтов между редакциями.
 - [ ] **G-009** — Стратегия для подзаконных актов / приложений.
 - [ ] **G-010** — Сноски, примечания, таблицы как `SourceBlock`.
@@ -540,3 +541,4 @@ NS -->|SUPPORTED_BY| EV
 | Дата | Автор | Действие |
 |---|---|---|
 | 2026-05-09 | AI Reviewer | Первичный ревью, создание документа |
+| 2026-05-09 | GSD S07/T03 | Закрыт F-008: добавлена FR-to-phase матрица, FR-28b и roadmap помечены как post-MVP / research-gated. |

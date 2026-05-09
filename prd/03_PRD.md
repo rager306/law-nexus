@@ -147,12 +147,34 @@ MVP должен поддерживать обработку 44-ФЗ из ODT-ф
 
 ### Не входит в MVP
 
+- production embedding generation;
+- FalkorDB vector index creation;
+- hybrid vector retrieval as a required runtime path;
 - полноценное сравнение нескольких редакций;
 - гарантия полного semantic parsing всех норм;
 - production UI;
 - юридическая экспертиза;
 - автоматическое обновление из внешних правовых систем;
 - LLM-based legal conclusion generation.
+
+### FR-to-phase scope matrix
+
+This matrix resolves F-008 by separating MVP, post-MVP, and candidate-research scope for FR-21 through FR-30b. A requirement listed as post-MVP may be designed during M001, but it is not required for the first 44-ФЗ import MVP unless a later milestone explicitly promotes it.
+
+| FR | Capability | Phase | Scope note |
+|---|---|---|---|
+| FR-21 | Legal Nexus Module | MVP specification / post-MVP runtime hardening | MVP defines the Python module contract and minimal deterministic lookup paths; production API/service hardening is post-MVP. |
+| FR-22 | Legal KnowQL DSL | MVP subset | MVP includes only the minimal query forms needed for structural lookup, status checks, requirements lookup, and reference expansion. |
+| FR-23 | Deterministic Query Planner | MVP subset | MVP planner maps supported KnowQL patterns to deterministic graph/evidence operations; broader intent planning is post-MVP. |
+| FR-24 | FalkorDB UDF Library | MVP specification / post-MVP runtime expansion | MVP specifies JS UDF vs Python LegalNexus boundaries; larger procedure coverage is post-MVP. |
+| FR-25 | GraphBLAS algorithm layer | Post-MVP | Required for target architecture, but not required for the first ODT-to-import MVP unless a proof slice promotes a narrow algorithm. |
+| FR-26 | Evidence verification | MVP | MVP must verify citation/evidence existence, edition match, temporal status where known, and no-answer behavior. |
+| FR-27 | LLM control policy | MVP | LLM remains non-authoritative from the start; optional composition is allowed only after evidence verification. |
+| FR-28 | Extensible document model | Post-MVP with MVP-compatible design | MVP may keep fields compatible with `LegalDocument`/`ContentDomain`, but only 44-ФЗ legal-act ingestion is in scope. |
+| FR-28b | Embedding pipeline | Post-MVP, gated by candidate research | `deepvk/USER-bge-m3`, 1024-dimensional embeddings, and FalkorDB vector index are target candidates for Phase 5, not MVP deliverables. |
+| FR-29 | No-answer handling | MVP | MVP must return explicit `no_answer` when evidence or verification is missing. |
+| FR-30 | Retrieval evaluation dataset | MVP skeleton / post-MVP metrics expansion | MVP creates the dataset skeleton and core citation/evidence metrics; full ranking evaluation is post-MVP. |
+| FR-30b | Candidate architecture checks | Candidate research | These checks preserve valuable architecture hypotheses, but they are not implementation scope until validated and promoted. |
 
 ## 8. Functional Requirements
 
@@ -647,19 +669,31 @@ reference_resolved
 
 Система должна поддерживать гетерогенные источники:
 
-- `LegalDocument` как базовый тип;
-- подтипы: `LegalAct`, `CaseLaw`, `PracticeDocument`;
-- `ContentDomain` как первоклассный концепт;
+- `LegalDocument` как базовый multi-label тип, который ставится на каждый документный node вместе с конкретным типом (`LegalAct`, позже `CaseLaw`, `PracticeDocument`);
+- `document_type` обязателен и принимает значения `legal_act`, `case_law`, `practice_document`;
+- `ContentDomain` как первоклассный node;
+- каждый `LegalDocument` обязан иметь минимум один `HAS_DOMAIN` к `ContentDomain`, default для MVP — `normative_acts`;
 - ETL-пайплайн параметризован: `document_type` задаётся при загрузке.
 
 ## FR-28b. Embedding pipeline
 
-Система должна генерировать embeddings:
+**Phase:** post-MVP, gated by candidate research.
+
+The target architecture may generate embeddings after MVP scope is proven, but this is not a first import-MVP requirement.
+
+Post-MVP candidate requirements:
 
 - Model: `sentence-transformers` + `deepvk/USER-bge-m3`;
 - Dimension: 1024;
-- Vector store: FalkorDB vector index (cosine similarity);
-- Каждый TextChunk связан с embedding.
+- Vector store: FalkorDB vector index (cosine similarity), subject to runtime and scale validation;
+- Каждый TextChunk связан с embedding when embeddings are enabled.
+
+Promotion criteria before implementation scope:
+
+- local/offline embedding runtime is verified for Russian legal text;
+- FalkorDB vector index behavior is verified for 1024-dimensional vectors at representative scale;
+- `12_embeddings.jsonl` schema and TextChunk linkage are specified;
+- fallback strategy is defined if FalkorDB vector indexing is insufficient.
 
 ## FR-29. No-answer handling
 
@@ -802,11 +836,17 @@ Retrieval score должен быть decomposable.
 
 ## 10. Target data model
 
+`LegalDocument` is the base label for graph document nodes. The MVP 44-ФЗ node is multi-labeled `LegalDocument` + `LegalAct`, not connected through a separate inheritance relationship. `document_type` is required and equals `legal_act` for MVP; later `case_law` and `practice_document` values reuse the same base label. `ContentDomain` is a first-class node; every `LegalDocument` must have at least one `HAS_DOMAIN` relationship, defaulting to `normative_acts` for MVP.
+
+`Reference`, `KeyPhrase`, and `AutoTag` remain explicit graph nodes in the target model. A `Reference` records the citation expression found in a legal unit and may point to a resolved target legal unit or legal document; unresolved references remain as `Reference` nodes with validation warnings.
+
 ```mermaid
 erDiagram
     SourceDocument ||--o{ SourceBlock : HAS_BLOCK
-    SourceDocument ||--o{ ActEdition : DERIVED_FROM
-    LegalAct ||--o{ ActEdition : HAS_EDITION
+    LegalDocument ||--o{ ActEdition : HAS_EDITION
+    LegalDocument }o--o{ ContentDomain : HAS_DOMAIN
+    LegalAct ||--|| LegalDocument : MULTI_LABEL_BASE
+    ActEdition }o--|| SourceDocument : DERIVED_FROM
     ActEdition ||--o{ Chapter : CONTAINS
     Chapter ||--o{ Article : CONTAINS
     Article ||--o{ Part : CONTAINS
@@ -821,6 +861,8 @@ erDiagram
     NormStatement }o--o{ Condition : HAS_CONDITION
     NormStatement }o--o{ Exception : HAS_EXCEPTION
     NormStatement }o--o{ Deadline : HAS_DEADLINE
+    Part }o--o{ Reference : REFERS_TO
+    Reference }o--o{ LegalDocument : REFERS_TO
     TextChunk }o--o{ KeyPhrase : HAS_KEYPHRASE
     TextChunk }o--o{ AutoTag : TAGGED_WITH
 ```
@@ -876,7 +918,9 @@ MVP считается успешным, если:
 
 ## 13. Roadmap
 
-The roadmap below remains directional. The following candidate checks must be researched before they are promoted into implementation scope:
+The roadmap below remains directional. MVP scope is defined by §7 and the FR-to-phase matrix; post-MVP roadmap items must not be treated as immediate implementation requirements. Embeddings, FalkorDB vector index work, broader hybrid retrieval, GraphBLAS relevance, extensible document types, and content expansion are post-MVP unless a later validation milestone explicitly promotes a narrower slice.
+
+The following candidate checks must be researched before they are promoted into implementation scope:
 
 - Temporal model check: compare full `ActEdition` snapshots with aggregation-based editions that reuse unchanged legal units.
 - Legal event graph check: evaluate `Action` nodes for amendments, repeal, publication, entry into force, expiration, and correction.
@@ -900,20 +944,20 @@ gantt
     Python LegalNexus methods         :b2, after b1, 10d
     KnowQL MVP                       :b3, after b2, 10d
     Evidence verification             :b4, after b3, 10d
-    section Phase 3: Retrieval Intelligence
+    section Phase 3: Retrieval Intelligence (post-MVP)
     Legal YAKE                       :c1, after a3, 7d
     Hybrid scoring                   :c2, after b2, 10d
     GraphBLAS relevance              :c3, after c2, 14d
-    section Phase 4: Temporal and Agentic Layer
+    section Phase 4: Temporal and Agentic Layer (post-MVP)
     Temporal reasoning               :d1, after b3, 14d
     NormStatement expansion          :d2, after d1, 14d
     LLM composer policy              :d3, after d2, 7d
-    section Phase 5: Extensibility + Content Expansion
+    section Phase 5: Extensibility + Content Expansion (post-MVP / research-gated)
     LegalDocument base type          :e1, after d3, 7d
     ContentDomain first-class        :e2, after e1, 7d
     CaseLaw + ФАС parser            :e3, after e2, 14d
-    Embeddings (sentence-transformers):e4, after e3, 14d
-    FalkorDB vector index           :e5, after e4, 7d
+    Embeddings (sentence-transformers, post-MVP):e4, after e3, 14d
+    FalkorDB vector index (research-gated):e5, after e4, 7d
 ```
 
 ## 14. Risks and mitigations

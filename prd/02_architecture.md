@@ -102,6 +102,7 @@ FalkorDB хранит authoritative legal graph.
 ```text
 SourceDocument
 SourceBlock
+LegalDocument
 LegalAct
 ActEdition
 Chapter
@@ -116,6 +117,7 @@ NormStatement
 LegalTerm
 LegalSubject
 LegalConcept
+ContentDomain
 Condition
 Exception
 Deadline
@@ -124,10 +126,14 @@ KeyPhrase
 AutoTag
 ```
 
+`LegalDocument` is the base graph label for authored legal or practice documents. In FalkorDB it is modeled as a **multi-label base type**, not as a separate inheritance node: each `LegalAct`, later `CaseLaw`, and later `PracticeDocument` node also carries `LegalDocument` and has a required `document_type` property (`legal_act`, `case_law`, `practice_document`). `ContentDomain` is a first-class node; every `LegalDocument` must have at least one `HAS_DOMAIN` relationship, defaulting to `normative_acts` for the 44-ФЗ MVP import.
+
 Основные relationships:
 
 ```text
+HAS_BLOCK
 HAS_EDITION
+HAS_DOMAIN
 DERIVED_FROM
 CONTAINS
 NEXT
@@ -150,12 +156,15 @@ SUPERSEDES
 AMENDED_BY
 ```
 
+`HAS_BLOCK`, `HAS_EDITION`, `HAS_DOMAIN`, `DERIVED_FROM`, `CONTAINS`, `SUPPORTED_BY`, `HAS_CHUNK`, `DEFINES`, `USES_TERM`, `REFERS_TO`, `APPLIES_TO`, `HAS_CONDITION`, `HAS_EXCEPTION`, `HAS_DEADLINE`, `HAS_KEYPHRASE`, `TAGGED_WITH`, and `CANDIDATE_FOR` are part of the target model below. `NEXT`, `PREVIOUS`, and `LOCATED_IN` are structural navigation relationships for linear/source ordering. `VERSION_OF`, `SUPERSEDES`, and `AMENDED_BY` are reserved for post-MVP temporal/versioning work and remain deferred until S08/later temporal modeling defines exact event semantics.
+
 ## Целевая графовая модель
 
 ```mermaid
 flowchart TB
     SD[SourceDocument] -->|HAS_BLOCK| SB[SourceBlock]
-    LA[LegalAct] -->|HAS_EDITION| ED[ActEdition]
+    LA[LegalDocument:LegalAct] -->|HAS_DOMAIN| CD[ContentDomain]
+    LA -->|HAS_EDITION| ED[ActEdition]
     ED -->|DERIVED_FROM| SD
     ED -->|CONTAINS| CH[Chapter]
     CH -->|CONTAINS| AR[Article]
@@ -176,7 +185,8 @@ flowchart TB
 
     AR -->|DEFINES| LT[LegalTerm]
     NS -->|USES_TERM| LT
-    PT -->|REFERS_TO| REF[LegalAct / LegalUnit]
+    PT -->|REFERS_TO| REF[Reference]
+    REF -->|REFERS_TO| TARGET[LegalDocument / LegalUnit]
 
     PT -->|HAS_KEYPHRASE| KP[KeyPhrase]
     TC -->|TAGGED_WITH| AT[AutoTag]
@@ -627,12 +637,15 @@ Vector store: FalkorDB vector index
 ## 13e. Extensible Graph Model
 
 ```text
-LegalDocument (base type)
+LegalDocument (base multi-label type)
   ├── LegalAct (federal law, law, decree)
   ├── CaseLaw (court decision, ruling, determination)
   └── PracticeDocument (fas_practice, audit_report, explanation)
 
-ContentDomain (first-class concept)
+Required document properties:
+  - document_type: legal_act | case_law | practice_document
+
+ContentDomain (first-class node)
   - normative_acts
   - case_law
   - fas_practice
@@ -640,9 +653,14 @@ ContentDomain (first-class concept)
   - construction
   - healthcare
   - budget_accounting
+
+Required relationship:
+  - (LegalDocument)-[:HAS_DOMAIN]->(ContentDomain)
+  - Cardinality: M:N; each document has one or more domains
+  - MVP default: normative_acts
 ```
 
-ETL параметризован: `document_type` задаётся при загрузке, ядро не требует изменений.
+ETL параметризован: `document_type` задаётся при загрузке, ядро не требует изменений. For the 44-ФЗ MVP import, document nodes are labeled `LegalDocument` and `LegalAct`, `document_type = legal_act`, and `HAS_DOMAIN` points to `normative_acts`.
 
 ## 13f. Rust Roadmap
 
