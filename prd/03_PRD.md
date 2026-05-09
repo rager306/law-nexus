@@ -131,7 +131,7 @@ MVP должен поддерживать обработку 44-ФЗ из ODT-ф
 
 ### Входит в MVP
 
-- WordML XML extraction;
+- ODF/ODT XML extraction (`content.xml` via odfpy);
 - SourceDocument и SourceBlock;
 - LegalAct и ActEdition;
 - Chapter, Article, Part, Clause;
@@ -546,16 +546,6 @@ class LegalNexus:
         # построение context для LLM
 ```
 
-- structural lookup;
-- temporal lookup;
-- citation resolution;
-- evidence retrieval;
-- reference expansion;
-- deterministic ranking;
-- graph traversal;
-- hybrid retrieval;
-- verified answer context generation.
-
 ## FR-22. Legal KnowQL DSL
 
 Система должна поддерживать DSL для юридических запросов.
@@ -809,16 +799,6 @@ Retrieval score должен быть decomposable.
 - параметризованный ETL с `document_type`;
 - JS UDF в FalkorDB для простых операций;
 - Python LegalNexus для сложной оркестрации.
-
-## 10. Target data model
-    "bm25": 0.74,
-    "vector": 0.79,
-    "yake_keyphrase": 0.88,
-    "temporal_validity": 1.0,
-    "evidence_confidence": 1.0
-  }
-}
-```
 
 ## 10. Target data model
 

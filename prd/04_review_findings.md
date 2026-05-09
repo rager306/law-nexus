@@ -52,7 +52,8 @@
 ### F-001 · Сломанная структура `03_PRD.md` §10
 
 - **Severity:** BLOCKER
-- **Status:** OPEN
+- **Status:** FIXED
+- **Fixed in S07/T01:** Removed the stray NFR-8 JSON fragment and duplicate `## 10. Target data model` heading; `03_PRD.md` now has one canonical §10 target data model section.
 - **Файл:** `03_PRD.md`, строки ~813–823
 
 Между NFR-9 и §10 вставлен фрагмент, который явно «вылез» из NFR-8 (повторение JSON-блока, дубликат заголовка `## 10. Target data model`):
@@ -127,7 +128,8 @@ SourceDocument ||--o{ ActEdition : DERIVED_FROM
 ### F-005 · MVP scope: WordML вместо ODF
 
 - **Severity:** BLOCKER
-- **Status:** OPEN
+- **Status:** FIXED
+- **Fixed in S07/T01:** Replaced MVP wording with `ODF/ODT XML extraction (content.xml via odfpy)` to match FR-2 and the Garant ODT verification target.
 - **Файл:** `03_PRD.md` §7
 
 В `03_PRD.md` §7 «Входит в MVP» написано:
@@ -142,7 +144,8 @@ SourceDocument ||--o{ ActEdition : DERIVED_FROM
 ### F-006 · FR-21 — дублирующий список функций
 
 - **Severity:** BLOCKER
-- **Status:** OPEN
+- **Status:** FIXED
+- **Fixed in S07/T01:** Removed the duplicate Legal Nexus function bullet list after the Python class example, keeping one canonical list before the example.
 - **Файл:** `03_PRD.md` FR-21, строки 514–524 и 549–557
 
 В FR-21 (Legal Nexus Module) список функций приведён **дважды** — до и после блока кода Python. Очевидно, остаток от слияния правок.
@@ -453,9 +456,9 @@ NS -->|SUPPORTED_BY| EV
 
 ### 5.1. Блокирующие (must-fix перед началом разработки)
 
-- [ ] **F-001** — Починить структуру `03_PRD.md`: удалить мусорный фрагмент в §10 и дубликат заголовка.
-- [ ] **F-005** — Заменить «WordML» → «ODF/ODT» в §7 PRD MVP.
-- [ ] **F-006** — Удалить дубль списка функций в FR-21.
+- [x] **F-001** — Починить структуру `03_PRD.md`: удалить мусорный фрагмент в §10 и дубликат заголовка.
+- [x] **F-005** — Заменить «WordML» → «ODF/ODT» в §7 PRD MVP.
+- [x] **F-006** — Удалить дубль списка функций в FR-21.
 - [ ] **F-014** — Унифицировать KnowQL грамматику (BNF/EBNF) и зафиксировать в FR-22.
 - [ ] **F-002 / F-003** — Зафиксировать единый список node labels и relationships, синхронизированный с ER в §10 и mermaid в §1.
 - [ ] **F-002** — Решить вопрос `LegalDocument` vs `LegalAct` (multi-label или иерархия наследования).
