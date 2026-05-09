@@ -62,6 +62,12 @@ def utc_now() -> str:
 
 def normalized_path(path: Path) -> str:
     resolved = path.resolve()
+    gsd_root = ROOT / ".gsd"
+    if gsd_root.exists():
+        try:
+            return f".gsd/{resolved.relative_to(gsd_root.resolve()).as_posix()}"
+        except ValueError:
+            pass
     try:
         return resolved.relative_to(ROOT).as_posix()
     except ValueError:
