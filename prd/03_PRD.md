@@ -203,6 +203,21 @@ Acceptance criteria:
 - создается ID источника;
 - source metadata входит в import package.
 
+### FR-1a. Idempotent import policy
+
+Import identity is based on `act_number`, `edition_date`, `source_system`, `source_provenance_class`, and `sha256`.
+
+Idempotent policy:
+
+| Case | Required behavior | `imported_at` behavior |
+|---|---|---|
+| Same `sha256`, same `act_number`, same `edition_date`, same source class | Treat as an idempotent replay. Do not create duplicate `SourceDocument`, `ActEdition`, legal units, EvidenceSpan, TextChunk, or relationship records. | Preserve original `imported_at`; append a separate audit event such as `last_seen_at` / `replayed_at` if runtime audit logging is later implemented. |
+| Changed `sha256`, same `act_number`, same `edition_date` | Treat as a new source revision for the same edition. Create a new `SourceDocument` revision and rerun validation before changing current graph pointers. | New source revision gets a new `imported_at`; prior `SourceDocument.imported_at` remains unchanged. |
+| New `edition_date` for the same `act_number` | Create a new `ActEdition` and link it to the new `SourceDocument`; do not mutate the prior edition. | New edition/source gets its own `imported_at`. |
+| Same `sha256` but different claimed metadata | Block import with a validation error until metadata conflict is resolved. | Do not update `imported_at`. |
+
+A repeated import must be diagnosable from SHA, source provenance class, edition date, and validation/audit records without relying on LLM interpretation.
+
 ## FR-2. ODT block extraction
 
 Система должна извлекать текстовые блоки из ODT через odfpy.
@@ -286,12 +301,38 @@ flowchart TD
 
 ```json
 {
-  "id": "ru_fz_44_edition_2025_12_28_article_31_part_1_clause_4",
-  "citation_key": "44fz:2025-12-28:art31:part1:clause4",
+  "id": "ru_fz_44__ed_2025-12-28__art_31__part_1__clause_4",
+  "citation_key": "ru-fz-44/2025-12-28/art31/part1/clause4",
   "citation_label": "п. 4 ч. 1 ст. 31 44-ФЗ",
   "path": "44-ФЗ / Статья 31 / Часть 1 / Пункт 4"
 }
 ```
+
+ID grammar and normalization contract:
+
+```ebnf
+node_id        = jurisdiction, "_", act_kind, "_", act_number_norm, "__ed_", date, { "__", unit_kind, "_", unit_number_norm } ;
+citation_key   = jurisdiction, "-", act_kind, "-", act_number_norm, "/", date, { "/", citation_segment } ;
+date           = DIGIT DIGIT DIGIT DIGIT, "-", DIGIT DIGIT, "-", DIGIT DIGIT ;
+unit_kind      = "chapter" | "art" | "part" | "clause" | "subclause" | "para" ;
+citation_segment = ("ch" | "art" | "part" | "clause" | "subclause" | "para"), unit_number_norm ;
+```
+
+Normalization requirements:
+
+- `jurisdiction` uses lowercase ISO-like tokens (`ru` for Russian federal law MVP).
+- `act_kind` uses stable lowercase ASCII tokens (`fz`, `code`, `decree`, `letter`, `regional_act`, `unknown_numbered_act`).
+- `act_number_norm` lowercases, transliterates Cyrillic legal suffixes only where needed for ASCII IDs, removes `№`, normalizes `N`/`No`, keeps semantic suffixes, and replaces unsafe separators with `-`.
+- Dates in IDs and `citation_key` always use ISO `YYYY-MM-DD`; underscores are not used inside dates.
+- `node_id` is FalkorDB-safe and filesystem/log-safe; `citation_key` is URL-path-safe and must be percent-encoded only if embedded as a query parameter.
+- Acts without a number use a deterministic slug from act type, date, jurisdiction, and a source hash prefix; the full source SHA remains in `SourceDocument`, not in every legal-unit ID.
+- Validation tests must include `44-ФЗ`, an act with a letter suffix, an act with `№`/`N`, an unnumbered act, and at least one regional-act placeholder before this grammar is considered implementation-ready.
+
+### FR-6b. Citation formatting policy
+
+MVP `citation_label` is Russian-language, human-readable, and uses compact legal order from narrowest unit to broadest unit: `п. 4 ч. 1 ст. 31 44-ФЗ`. `path` is broadest-to-narrowest navigation text: `44-ФЗ / Статья 31 / Часть 1 / Пункт 4`. Logs, tests, URLs, and deterministic lookup must use `citation_key`, not `citation_label`.
+
+International or non-Russian citation formats are deferred to a later source-family profile. Owner: future ingestion/source-profile milestone. Required tests before promotion: locale-specific label snapshots, round-trip `citation_label → citation_key` where deterministic, and no-answer behavior for unsupported locale profiles.
 
 ## FR-7. EvidenceSpan creation
 
@@ -311,6 +352,15 @@ flowchart LR
     LU --> ED[ActEdition]
     SB --> SD[SourceDocument]
 ```
+
+EvidenceSpan lifecycle contract:
+
+- EvidenceSpan identity includes `source_document_id`, `source_sha256`, `source_block_id`, span offsets/selectors, `legal_unit_id`, and `act_edition_id`.
+- Same SHA and same span mapping reuses the same EvidenceSpan; repeated import must not duplicate evidence.
+- New SHA for the same act/edition creates a new source revision and new EvidenceSpan set after validation; old spans are retained and marked `superseded_by_new_sha` rather than overwritten.
+- Parser changes that orphan old spans must be reported as validation warnings/errors with `orphaned_by_parser_change`; they must not silently relink evidence.
+- New `edition_date` creates EvidenceSpan records for the new `ActEdition`; old edition evidence remains queryable for historical/audit use.
+- `legacy_prior_art` and `generated_summary` source provenance classes cannot create authoritative EvidenceSpan records.
 
 ## FR-8. TextChunk creation
 
@@ -345,6 +395,14 @@ flowchart LR
   "temporal_confidence": "unknown"
 }
 ```
+
+Temporal glossary:
+
+- `edition_date` is the source-recorded date of the consolidated edition. It selects an `ActEdition`; it is not a substitute for legal validity dates.
+- `valid_from` / `valid_to` describe formal legal force of the unit when the source text or later event extraction supports it.
+- `effective_from` / `effective_to` describe practical applicability windows, including delayed application or transitional provisions, when those differ from formal validity.
+- `null` means unknown/not extracted, not unbounded truth. Deterministic status checks must return `unknown` or warning-bearing results when required dates are missing.
+- `temporal_confidence` records whether dates are extracted directly, inherited from edition context, inferred by deterministic rule, or unknown; LLM output cannot raise temporal confidence.
 
 ## FR-10. Temporal marker extraction
 
@@ -432,6 +490,32 @@ applies_to
 does_not_apply_to
 unknown
 ```
+
+NormStatement compatibility and verification contract:
+
+| `type` | Allowed `modality` values | Validator rule |
+|---|---|---|
+| `definition` | `is_defined_as`, `unknown` | Verified definitions must use `is_defined_as`. |
+| `requirement`, `obligation`, `procedure`, `competence` | `must`, `unknown` | Verified operational duties must use `must`. |
+| `prohibition`, `liability` | `must_not`, `must`, `unknown` | `liability` may use `must` when source imposes a sanctioning duty; verifier records rationale. |
+| `permission` | `may`, `unknown` | Verified permissions must use `may`. |
+| `exception`, `condition`, `scope` | `applies_to`, `does_not_apply_to`, `unknown` | Must link to affected statement or LegalUnit. |
+| `deadline`, `reference` | `must`, `applies_to`, `unknown` | Chosen by source wording and recorded in verification trace. |
+
+Required fields:
+
+```json
+{
+  "norm_type": "requirement",
+  "modality": "must",
+  "extraction_method": "deterministic",
+  "verification_status": "verified",
+  "source_unit_ids": ["..."],
+  "evidence_span_ids": ["..."]
+}
+```
+
+`extraction_method ∈ {deterministic, llm_candidate, manual}`. `verification_status ∈ {unverified, verified, rejected, needs_manual_review}`. LLM-generated NormStatement records are candidates only; they may support answer generation only after deterministic or manual verification sets `verification_status = verified` and preserves the supporting EvidenceSpan IDs.
 
 ## FR-15. Legal YAKE keyphrase extraction
 
@@ -572,14 +656,46 @@ class LegalNexus:
 
 Система должна поддерживать DSL для юридических запросов.
 
+Canonical MVP syntax uses command + object, `WHERE key = value` predicates, optional `IN act = value`, optional `AT "YYYY-MM-DD"`, and explicit `RETURN` fields. The parser must reject legacy illustrative forms such as `FOR subject "..."` and `AT date "..."` with structured diagnostics.
+
+EBNF sketch:
+
+```ebnf
+query          = get_query | find_query | check_query | expand_query ;
+get_query      = "GET" object where_clause [ at_clause ] [ return_clause ] ;
+find_query     = "FIND" object where_clause [ in_clause ] [ at_clause ] [ return_clause ] ;
+check_query    = "CHECK" status_object "OF" string [ at_clause ] [ return_clause ] ;
+expand_query   = "EXPAND" "references" "FROM" string [ depth_clause ] [ at_clause ] [ return_clause ] ;
+where_clause   = "WHERE" predicate { "AND" predicate } ;
+predicate      = identifier "=" value ;
+in_clause      = "IN" "act" "=" value ;
+at_clause      = "AT" date_string ;
+return_clause  = "RETURN" identifier { "," identifier } ;
+depth_clause   = "DEPTH" integer ;
+value          = string | identifier | integer ;
+date_string    = string ;  (* YYYY-MM-DD validated semantically *)
+```
+
+KnowQL error contract:
+
+```json
+{
+  "error_code": "syntax_error | unknown_identifier | unknown_legal_unit | ambiguous_reference | unsupported_pattern | execution_error",
+  "message": "human-readable diagnostic",
+  "span": { "start": 0, "end": 10 },
+  "hint": "expected WHERE predicate: key = value",
+  "candidate_citations": []
+}
+```
+
 Минимальные команды MVP:
 
 ```sql
-GET norm WHERE act="44-ФЗ" AND article="31"
-GET article WHERE act="44-ФЗ" AND article="31"
-CHECK status OF "ч. 1 ст. 31 44-ФЗ" AT "2025-12-28"
-FIND requirements FOR subject="участник закупки" IN act="44-ФЗ"
-EXPAND references FROM "ст. 93 44-ФЗ" DEPTH 2
+GET norm WHERE act = "44-ФЗ" AND article = "31" RETURN text, citation, evidence
+GET article WHERE act = "44-ФЗ" AND article = "31" RETURN text, citation, evidence
+CHECK status OF "ч. 1 ст. 31 44-ФЗ" AT "2025-12-28" RETURN status, temporal_evidence
+FIND requirements WHERE subject = "участник закупки" IN act = "44-ФЗ" AT "2025-12-28" RETURN norm, citation, evidence
+EXPAND references FROM "ст. 93 44-ФЗ" DEPTH 2 RETURN citation, evidence
 ```
 
 ## FR-23. Deterministic Query Planner
@@ -593,34 +709,29 @@ Planner должен преобразовывать запрос в план в�
   "intent": "find_requirements",
   "requires_llm": false,
   "strategy": "deterministic_graph_lookup",
-  "udf_calls": ["legal.find_requirements", "legal.active_at", "legal.verify_evidence"],
+  "js_udf_calls": ["legal.active_at"],
+  "python_legalnexus_methods": ["legal.find_requirements", "legal.verify_evidence"],
   "verification_required": true
 }
 ```
 
 ## FR-24. FalkorDB UDF Library
 
-Два уровня UDF:
+`legal.*` is the public operation namespace. MVP splits it into bounded JavaScript UDFs in FalkorDB and orchestration methods in Python LegalNexus.
 
-### JavaScript UDF в FalkorDB (простые graph-операции)
+| Operation | Layer | Implementation | Return contract |
+|---|---|---|---|
+| `legal.active_at(node_id, date)` | JavaScript UDF | FalkorDB JS UDF | `TemporalStatus { status, reason, evidence_ids[] }` |
+| `legal.format_citation(node_id)` | JavaScript UDF | FalkorDB JS UDF | `Citation { citation_label, citation_key, path }` |
+| `legal.get_norm_id(act, article, part?, clause?, date?)` | JavaScript UDF | FalkorDB JS UDF | `NormRef { node_id, citation_key, status }` or `null` |
+| `legal.resolve_citation(citation, edition_date?)` | Python LegalNexus | `LegalNexus.resolve_citation` | `CitationResolution { candidates[], selected?, ambiguity }` |
+| `legal.find_requirements(subject, act?, date?)` | Python LegalNexus | `LegalNexus.find_requirements` | `EvidencePack { norm_statements[], citations[], verification }` |
+| `legal.verify_evidence(claim, evidence_ids)` | Python LegalNexus | `LegalNexus.verify_evidence` | `VerificationResult { status, checked_at, failures[], evidence_ids[] }` |
+| `legal.build_context(query, candidates, max_scope)` | Python LegalNexus | `LegalNexus.build_context` | `AnswerContext { evidence_pack, citations, llm_allowed }` |
+| `legal.expand_references(node_id, depth, date?)` | Python LegalNexus | `LegalNexus.expand_references` | `ReferenceExpansion { nodes[], edges[], evidence_spans[] }` |
+| `legal.rank_candidates(query, candidates, date?)` | Python LegalNexus | `LegalNexus.rank_candidates` | `RankedCandidates { candidates[], scoring_trace }` |
 
-```text
-legal.active_at         // проверка temporal status
-legal.format_citation   // форматирование цитаты
-legal.get_norm_id       // быстрый lookup ID
-```
-
-Загружаются через `GRAPH.UDF LOAD`.
-
-### Python методы в LegalNexus (сложная оркестрация)
-
-```text
-legal.find_requirements   // поиск требований с орхестрацией
-legal.verify_evidence     // multi-step verification
-legal.build_context       // assembly context для LLM
-legal.expand_references   // expansion ссылок
-legal.rank_candidates     // ranking кандидатов
-```
+JS UDF constraints: no async I/O, no external calls, no unbounded traversal or large aggregation, no evidence-pack assembly, no ranking, and no LLM context construction. Breaking return-contract changes require an explicit API version bump (`api_version = v2`) and migration note; UDF v1 names remain backward-compatible or get a v2 operation name.
 
 ## FR-25. GraphBLAS algorithm layer
 
@@ -782,7 +893,7 @@ query → plan → graph operations → evidence → verification → answer
 
 ## NFR-4. Idempotency
 
-Повторный импорт одного файла не должен создавать дубликаты.
+Повторный импорт одного файла не должен создавать дубликаты. The concrete Idempotent import policy is defined in FR-1a: same SHA is a replay/no-op for graph facts, changed SHA for the same edition is a new source revision, and new `edition_date` is a new `ActEdition`. `imported_at` is immutable for the original source record; repeated import attempts must be tracked separately from source creation time.
 
 ## NFR-5. Privacy / Local-first compatibility
 

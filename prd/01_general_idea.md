@@ -170,13 +170,13 @@ Legal Nexus реализован как Python-модуль (`LegalNexus` кла
 
 UDF в FalkorDB пишутся на JavaScript (простые graph-операции), сложная оркестрация — в Python LegalNexus.
 
-Legal KnowQL — декларативный язык юридических запросов:
+Legal KnowQL — декларативный язык юридических запросов. Canonical MVP syntax is the FR-22 subset: command + object, optional `WHERE` predicates with `key = value`, optional `IN act = value`, optional `AT "YYYY-MM-DD"`, and explicit `RETURN` fields. Non-canonical natural-language examples are illustrative only.
 
 ```sql
 FIND requirements
-FOR subject "участник закупки"
-IN act "44-ФЗ"
-AT date "2025-12-28"
+WHERE subject = "участник закупки"
+IN act = "44-ФЗ"
+AT "2025-12-28"
 RETURN norm, citation, evidence
 ```
 

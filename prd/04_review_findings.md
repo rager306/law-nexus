@@ -160,8 +160,9 @@ SourceDocument ||--o{ ActEdition : DERIVED_FROM
 ### F-007 · Расхождение «UDF в JS» vs «Python методы»
 
 - **Severity:** MAJOR
-- **Status:** OPEN
-- **Файлы:** `02_architecture.md` §7, §13c; `03_PRD.md` FR-24
+- **Status:** FIXED
+- **Fixed in S07/T05:** `02_architecture.md` §7 now defines a `legal.*` operation contract table splitting JavaScript UDFs from Python LegalNexus methods, with return contracts and API-version ownership. `03_PRD.md` FR-23/FR-24 now uses `js_udf_calls` versus `python_legalnexus_methods` and mirrors the return-contract table.
+- **Файлы:** `02_architecture.md` §7, §13c; `03_PRD.md` FR-23, FR-24
 
 В FR-24 (`03_PRD.md`) написано:
 ```
@@ -214,7 +215,8 @@ Python методы в LegalNexus:
 ### F-010 · Temporal-модель: семантика `valid_*` vs `effective_*`
 
 - **Severity:** MAJOR
-- **Status:** OPEN
+- **Status:** FIXED
+- **Fixed in S07/T04:** Added temporal glossaries to `02_architecture.md` §3a and `03_PRD.md` FR-9 defining `edition_date`, `valid_from/valid_to`, `effective_from/effective_to`, `status`, and `temporal_confidence` semantics for deterministic `legal.active_at` behavior.
 - **Файлы:** `02_architecture.md` §3, `03_PRD.md` FR-9
 
 В §3 architecture и FR-9:
@@ -234,8 +236,9 @@ edition_date, valid_from, valid_to, effective_from, effective_to, status
 ### F-011 · NormStatement: модальность vs тип
 
 - **Severity:** MAJOR
-- **Status:** OPEN
-- **Файл:** `03_PRD.md` FR-14
+- **Status:** FIXED
+- **Fixed in S07/T05:** `03_PRD.md` FR-14 now defines a `type`/`modality` compatibility matrix and validator rule. `02_architecture.md` §2a adds the same semantic contract and preserves `NormStatement` as a verified semantic claim, not source authority.
+- **Файл:** `03_PRD.md` FR-14; `02_architecture.md` §2a
 
 FR-14 объявляет:
 - `type ∈ {definition, requirement, obligation, prohibition, permission, ...}`
@@ -252,7 +255,8 @@ FR-14 объявляет:
 ### F-012 · Формат идентификаторов: несовместимости
 
 - **Severity:** MAJOR
-- **Status:** OPEN
+- **Status:** FIXED
+- **Fixed in S07/T04:** Replaced the ambiguous FR-6 example with ISO-date, delimiter-safe `node_id` and URL-path-safe `citation_key`; added an EBNF grammar, normalization rules for numbered/letter-suffix/unnumbered acts, and validation-test requirements.
 - **Файл:** `03_PRD.md` FR-6
 
 ```
@@ -273,7 +277,8 @@ citation_key = "44fz:2025-12-28:art31:part1:clause4"
 ### F-013 · Citation_label: локаль и формат
 
 - **Severity:** MINOR
-- **Status:** OPEN
+- **Status:** FIXED
+- **Fixed in S07/T04:** Added FR-6b citation formatting policy: MVP Russian labels use narrow-to-broad legal order, `path` remains broad-to-narrow navigation text, deterministic systems use `citation_key`, and non-Russian/international profiles are explicitly deferred with owner and required tests.
 - **Файл:** `03_PRD.md` FR-6
 
 `"п. 4 ч. 1 ст. 31 44-ФЗ"` — это русская правовая традиция. Не описано:
@@ -290,7 +295,8 @@ citation_key = "44fz:2025-12-28:art31:part1:clause4"
 ### F-014 · KnowQL: нет грамматики, синтаксис расходится между документами
 
 - **Severity:** BLOCKER
-- **Status:** OPEN
+- **Status:** FIXED
+- **Fixed in S07/T05:** FR-22 is now the canonical MVP KnowQL source with an EBNF sketch and error contract. `01_general_idea.md` and `02_architecture.md` now use the same `WHERE key = value`, `IN act = value`, `AT "YYYY-MM-DD"`, and `RETURN ...` style; legacy/non-canonical forms are explicitly illustrative only.
 - **Файлы:** `01_general_idea.md`, `02_architecture.md` §6, `03_PRD.md` FR-22
 
 Примеры KnowQL разные в трёх документах:
@@ -324,7 +330,8 @@ FR-20 и §12 architecture перечисляют **что** проверять,
 ### F-016 · Idempotency vs SHA-256: нет политики
 
 - **Severity:** MAJOR
-- **Status:** OPEN
+- **Status:** FIXED
+- **Fixed in S07/T04:** Added FR-1a Idempotent import policy and updated NFR-4 to define same-SHA replay/no-op behavior, changed-SHA source revisions for the same edition, new `ActEdition` creation for new `edition_date`, metadata-conflict blocking, and immutable original `imported_at` behavior.
 - **Файлы:** `03_PRD.md` NFR-4, FR-1
 
 NFR-4 декларирует idempotency, FR-1 требует SHA-256. Но не описана связь:
@@ -342,23 +349,28 @@ NFR-4 декларирует idempotency, FR-1 требует SHA-256. Но не
 |---|---|---|---|---|
 | G-001 | Безопасность и доступы к FalkorDB, KnowQL endpoint, audit log read access | Новый NFR-10 | MAJOR | OPEN |
 | G-002 | Формат `12_embeddings.jsonl` — структура, как связан с TextChunk | FR-19 / FR-28b | MAJOR | OPEN |
-| G-003 | Версионирование UDF API — что если `legal.find_requirements` v1 → v2? | `02_architecture.md` §7 | MAJOR | OPEN |
+| G-003 | Версионирование UDF API — что если `legal.find_requirements` v1 → v2? | `02_architecture.md` §7 | MAJOR | FIXED in S07/T05: operation table assigns versioning owner and requires explicit `api_version = v2` or v2 operation names for breaking changes. |
 | G-004 | Migration / backfill — как добавить новое поле к 100k legal units | NFR / отдельный FR | MAJOR | OPEN |
 | G-005 | Стратегия конфликтов между редакциями (две `ActEdition` за одну дату) | `02_architecture.md` §3 | MAJOR | OPEN |
-| G-006 | Обработка ошибок KnowQL (синтаксис, неизвестная статья, неоднозначность) | FR-22 | MAJOR | OPEN |
+| G-006 | Обработка ошибок KnowQL (синтаксис, неизвестная статья, неоднозначность) | FR-22 | MAJOR | FIXED in S07/T05: FR-22 defines structured `error_code`, `message`, `span`, `hint`, and `candidate_citations`. |
 | G-007 | Метрики наблюдаемости (latency, throughput, p50/p99) для Nexus API | NFR-7 / новый NFR-11 | MINOR | OPEN |
 | G-008 | Тестовые контракты: golden tests на парсинг 44-ФЗ, baseline retrieval recall | FR-30 | MAJOR | OPEN |
 | G-009 | Стратегия для подзаконных актов и приложений (часто отсутствуют главы — только статьи) | FR-5 | MAJOR | OPEN |
 | G-010 | Сноски, примечания, табличный материал — как они становятся `SourceBlock`? | FR-2 / FR-3 | MAJOR | OPEN |
 | G-011 | Языковая политика — NFR-5 локально, но embedding-модель `deepvk/USER-bge-m3` тянет HuggingFace; offline-режим? | NFR-5 / `02_architecture.md` §13d | MINOR | OPEN |
-| G-012 | Разделение ответственности при множественных source provenance (FR-30b упоминает, но не разворачивает) | `02_architecture.md` §3 / FR-1 | MINOR | OPEN |
-| G-013 | Lifecycle EvidenceSpan при изменении источника (новая SHA → старые EvidenceSpan устаревают?) | FR-7 / NFR-4 | MAJOR | OPEN |
+| G-012 | Разделение ответственности при множественных source provenance (FR-30b упоминает, но не разворачивает) | `02_architecture.md` §3 / FR-1 | MINOR | FIXED |
+| G-013 | Lifecycle EvidenceSpan при изменении источника (новая SHA → старые EvidenceSpan устаревают?) | FR-7 / NFR-4 | MAJOR | FIXED |
 | G-014 | Чанк-стратегия — упомянут «sliding window vs clause-aligned», но MVP-чанкер не специфицирован | FR-8 / `02_architecture.md` §9b | MAJOR | OPEN |
 | G-015 | Failure modes для FalkorDBLite → Docker миграции | `02_architecture.md` §13b | MINOR | OPEN |
 
 ---
 
-## 4. Архитектурные риски
+### G-012 / G-013 · Source provenance and EvidenceSpan lifecycle
+
+- **Severity:** G-012 MINOR; G-013 MAJOR
+- **Status:** FIXED
+- **Fixed in S07/T04:** `02_architecture.md` §3c now defines `source_provenance_class` values and import lifecycle rules keyed by SHA/source class/act/edition; `02_architecture.md` §4 and `03_PRD.md` FR-7 define EvidenceSpan lifecycle statuses and behavior for same SHA, changed SHA, parser remapping, new editions, legacy prior art, and generated summaries.
+- **Файлы:** `02_architecture.md` §3c/§4, `03_PRD.md` FR-7
 
 ### R-001 · FalkorDB как vector store
 
@@ -393,8 +405,9 @@ NFR-4 декларирует idempotency, FR-1 требует SHA-256. Но не
 ### R-003 · JS UDF в FalkorDB — ограничения
 
 - **Severity:** MINOR
-- **Status:** OPEN
-- **Файл:** `02_architecture.md` §13c
+- **Status:** FIXED
+- **Fixed in S07/T05:** `02_architecture.md` §13c and `03_PRD.md` FR-24 now constrain JavaScript UDFs to bounded deterministic records/scalars and prohibit async I/O, external calls, unbounded traversal, large aggregation, evidence-pack assembly, ranking, and LLM context construction.
+- **Файл:** `02_architecture.md` §13c; `03_PRD.md` FR-24
 
 FalkorDB UDF на JS работают в sandboxed runtime — ограничены по памяти, нет async I/O. Сложные процедуры типа `legal.format_citation` с lookup нескольких узлов могут оказаться неприемлемо медленными.
 
@@ -421,8 +434,9 @@ FR-15 объявляет требования (русский, n-граммы 1-
 ### R-005 · Связь NormStatement ↔ LegalUnit неоднозначна
 
 - **Severity:** MAJOR
-- **Status:** OPEN
-- **Файл:** `02_architecture.md` §2 (граф), `03_PRD.md` FR-14, FR-27
+- **Status:** FIXED
+- **Fixed in S07/T05:** `02_architecture.md` §2a and `03_PRD.md` FR-14 now require `NormStatement.extraction_method`, `NormStatement.verification_status`, `source_unit_ids[]`, and `evidence_span_ids[]`; verification flow handles multi-unit norms and rejects LLM candidates until verified.
+- **Файл:** `02_architecture.md` §2 (граф), §2a; `03_PRD.md` FR-14, FR-27
 
 В графе:
 ```
@@ -460,43 +474,43 @@ NS -->|SUPPORTED_BY| EV
 - [x] **F-001** — Починить структуру `03_PRD.md`: удалить мусорный фрагмент в §10 и дубликат заголовка.
 - [x] **F-005** — Заменить «WordML» → «ODF/ODT» в §7 PRD MVP.
 - [x] **F-006** — Удалить дубль списка функций в FR-21.
-- [ ] **F-014** — Унифицировать KnowQL грамматику (BNF/EBNF) и зафиксировать в FR-22.
+- [x] **F-014** — Унифицировать KnowQL грамматику (BNF/EBNF) и зафиксировать в FR-22. Fixed in S07/T05.
 - [x] **F-002 / F-003** — Зафиксировать единый список node labels и relationships, синхронизированный с ER в §10 и mermaid в §1.
 - [x] **F-002** — Решить вопрос `LegalDocument` vs `LegalAct` (multi-label или иерархия наследования).
 - [x] **F-002 / F-004** — Расширить ER `03_PRD.md` §10: добавить `LegalDocument`, `ContentDomain`, `Reference`, `KeyPhrase`, `AutoTag`; исправить кардинальности.
 
 ### 5.2. Важные (до конца Phase 1)
 
-- [ ] **F-010** — Glossary temporal-полей (`valid_*` vs `effective_*`).
-- [ ] **F-007** — Контракт UDF API: таблица «имя / слой / контракт / возвращаемый тип».
+- [x] **F-010** — Glossary temporal-полей (`valid_*` vs `effective_*`).
+- [x] **F-007** — Контракт UDF API: таблица «имя / слой / контракт / возвращаемый тип». Fixed in S07/T05.
 - [ ] **G-002 / F-015** — JSON Schema для всех 17 файлов import package, включая `12_embeddings.jsonl` и `14_validation_report.json`.
-- [ ] **F-016** — Idempotency policy: что происходит при повторном импорте.
+- [x] **F-016** — Idempotency policy: что происходит при повторном импорте.
 - [x] **F-008** — MVP↔Roadmap matrix: таблица «FR → фаза».
-- [ ] **F-011** — NormStatement type/modality: матрица совместимости + валидатор.
-- [ ] **F-012** — BNF citation_key + ID, регэкспы, edge-cases.
-- [ ] **R-005** — `NormStatement.extraction_method` и `verification_status`.
+- [x] **F-011** — NormStatement type/modality: матрица совместимости + валидатор. Fixed in S07/T05.
+- [x] **F-012** — BNF citation_key + ID, регэкспы, edge-cases.
+- [x] **R-005** — `NormStatement.extraction_method` и `verification_status`. Fixed in S07/T05.
 - [x] **R-006** — `ContentDomain` уточнение (label/property, кардинальность).
 - [ ] **G-005** — Стратегия конфликтов между редакциями.
 - [ ] **G-009** — Стратегия для подзаконных актов / приложений.
 - [ ] **G-010** — Сноски, примечания, таблицы как `SourceBlock`.
-- [ ] **G-013** — Lifecycle EvidenceSpan при изменении источника.
+- [x] **G-013** — Lifecycle EvidenceSpan при изменении источника.
 - [ ] **G-014** — Чанк-стратегия для MVP.
 
 ### 5.3. Желательные (для зрелости)
 
 - [ ] **R-001** — FR-28c: параметры vector index + fallback стратегия.
 - [ ] **R-002** — §8b: GraphBLAS integration model.
-- [ ] **R-003** — Ограничения JS UDF в `02_architecture.md` §13c.
+- [x] **R-003** — Ограничения JS UDF в `02_architecture.md` §13c. Fixed in S07/T05.
 - [ ] **R-004** — FR-15a: Legal YAKE algorithmic spec.
 - [ ] **G-001** — NFR-10: Security (авторизация, audit log access).
 - [ ] **G-007** — NFR-11: Observability (Prometheus metrics, traces).
 - [ ] **G-004** — Migration/backfill policy для эволюции схемы.
-- [ ] **G-006** — Обработка ошибок KnowQL.
+- [x] **G-006** — Обработка ошибок KnowQL. Fixed in S07/T05.
 - [ ] **G-011** — Языковая политика / offline-режим для embedding-модели.
-- [ ] **G-012** — Source provenance: разворот концепции из FR-30b.
+- [x] **G-012** — Source provenance: разворот концепции из FR-30b.
 - [ ] **G-015** — Failure modes для FalkorDBLite → Docker миграции.
 - [ ] **F-009** — Пояснение веса `evidence_confidence` в формуле scoring.
-- [ ] **F-013** — FR-6b: Citation formatting policy.
+- [x] **F-013** — FR-6b: Citation formatting policy.
 
 ---
 
@@ -510,14 +524,14 @@ NS -->|SUPPORTED_BY| EV
 | F-004 | `03_PRD.md` | §10 ER | Неверное направление `DERIVED_FROM` | MAJOR |
 | F-005 | `03_PRD.md` | §7 MVP scope | «WordML» вместо ODF | BLOCKER |
 | F-006 | `03_PRD.md` | FR-21 | Дубль функций | BLOCKER |
-| F-007 | `02_architecture.md` | §7 UDF | Нет разделения JS/Python | MAJOR |
+| F-007 | `02_architecture.md` | §7 UDF | FIXED S07/T05: JS UDF vs Python LegalNexus table with return contracts | MAJOR |
 | F-008 | `03_PRD.md` | §7, FR-28b, §13 | embeddings: MVP vs Phase 5 | MAJOR |
 | F-009 | `02_architecture.md`, `03_PRD.md` | §9 / NFR-8 | `evidence_confidence` низкий вес | MINOR |
 | F-010 | `02_architecture.md`, `03_PRD.md` | §3 / FR-9 | `valid_*` vs `effective_*` неясно | MAJOR |
-| F-011 | `03_PRD.md` | FR-14 | type/modality неортогональны | MAJOR |
+| F-011 | `03_PRD.md` | FR-14 | FIXED S07/T05: compatibility matrix and validator contract | MAJOR |
 | F-012 | `03_PRD.md` | FR-6 | Нет грамматики ID/citation_key | MAJOR |
 | F-013 | `03_PRD.md` | FR-6 | Нет citation formatting policy | MINOR |
-| F-014 | все 3 файла | KnowQL | Несовместимый синтаксис | BLOCKER |
+| F-014 | все 3 файла | KnowQL | FIXED S07/T05: FR-22 EBNF/error contract and canonical examples | BLOCKER |
 | F-015 | `03_PRD.md` | FR-20 | Нет validation report schema | MAJOR |
 | F-016 | `03_PRD.md` | NFR-4 / FR-1 | Нет idempotency policy | MAJOR |
 | G-001…G-015 | разные | — | См. раздел 3 | разные |
@@ -542,3 +556,5 @@ NS -->|SUPPORTED_BY| EV
 |---|---|---|
 | 2026-05-09 | AI Reviewer | Первичный ревью, создание документа |
 | 2026-05-09 | GSD S07/T03 | Закрыт F-008: добавлена FR-to-phase матрица, FR-28b и roadmap помечены как post-MVP / research-gated. |
+| 2026-05-09 | GSD S07/T04 | Закрыты F-010, F-012, F-013, F-016, G-012, G-013: добавлены temporal glossary, ID/citation grammar, idempotent SHA import policy, source provenance classes, and EvidenceSpan lifecycle. |
+| 2026-05-09 | GSD S07/T05 | Закрыты F-007, F-011, F-014, G-003, G-006, R-003, R-005: унифицирован KnowQL MVP syntax/EBNF/error contract, разделены JavaScript UDF и Python LegalNexus contracts, добавлена NormStatement verification contract. |
