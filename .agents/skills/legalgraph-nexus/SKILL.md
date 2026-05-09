@@ -17,7 +17,7 @@ Use this compact project-local router when work touches LegalGraph Nexus archite
 </essential_terms>
 
 <scope_boundaries>
-M001 is architecture-only. Do not implement product ETL/import, a production graph schema, Legal Nexus runtime, Legal KnowQL parser, hybrid retrieval, ODT parser behavior, or any legal-answering product flow in this slice. Treat `Old_project/` as prior art only, not trusted runtime or legal evidence. Prefer GitNexus-backed source evidence, PRD text, smoke-check output, and tracked GSD artifacts over assumptions.
+M001 is architecture-only. Keep product ETL/import, a production graph schema, Legal Nexus runtime, Legal KnowQL parser, hybrid retrieval, ODT parser behavior, and any legal-answering product flow outside this slice. Treat `Old_project/` as prior art only, not trusted runtime or legal evidence. Prefer GitNexus-backed source evidence, PRD text, smoke-check output, and tracked GSD artifacts over assumptions.
 </scope_boundaries>
 
 <routing>
@@ -33,6 +33,15 @@ M001 is architecture-only. Do not implement product ETL/import, a production gra
 4. State uncertainty explicitly when FalkorDB behavior, ODT behavior, or legacy prior-art relevance has not been verified.
 5. Keep recommendations architecture-level unless a later milestone explicitly authorizes implementation.
 </workflow>
+
+<s06_evidence_refresh>
+Use S06-refresh evidence anchors when routing refreshed M001 claims:
+- FalkorDB runtime/capability anchor: `.gsd/milestones/M001/slices/S04/S04-FALKORDB-CAPABILITY-SMOKE.json`.
+- ODT parser anchor: `.gsd/milestones/M001/slices/S05/S05-ODT-PARSER-FINDINGS.md` with bounded `odfdo`, `odfpy`, and raw `content.xml` evidence.
+- Local embedding evaluation anchor: `.gsd/milestones/M001/slices/S09/S09-LOCAL-EMBEDDING-EVALUATION.json` for `deepvk/USER-bge-m3`, `1024`, and `ai-sage/Giga-Embeddings-instruct` comparisons.
+- Embedding runtime proof anchor: `.gsd/milestones/M001/slices/S10/S10-EMBEDDING-RUNTIME-PROOF.json` for `GigaEmbeddings` and `blocked-environment` diagnostics.
+Every refreshed claim should expose an owner, resolution, and verification status instead of upgrading bounded evidence into product proof.
+</s06_evidence_refresh>
 
 <success_criteria>
 A correct use of this router names the relevant focused skill, preserves M001 architecture-only scope, keeps LLM output non-authoritative, grounds legal claims in EvidenceSpan/SourceBlock-style evidence, and avoids unverified FalkorDB, GraphBLAS, ODT, or Old_project overclaims.

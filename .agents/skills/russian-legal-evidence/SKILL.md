@@ -8,7 +8,7 @@ Use this focused skill when work touches Russian legal structure, EvidenceSpan, 
 </objective>
 
 <scope>
-This skill preserves M001 architecture and evidence boundaries. It does not parse `44-fz.odt`, extract legal facts, import data into FalkorDB, decide legal authority, or bless old ConsultantPlus WordML/XML behavior. Real parser behavior proof is owned by S05, and final PRD inconsistency reporting is owned by S07/S08.
+This skill preserves M001 architecture-only and evidence boundaries. Parsing `44-fz.odt`, extracting legal facts, data import into FalkorDB, legal authority decisions, and blessing old ConsultantPlus WordML/XML behavior remain outside this skill's implementation scope. Real parser behavior proof is owned by S05, and final PRD inconsistency reporting is owned by S07/S08.
 </scope>
 
 <routing>
@@ -29,6 +29,10 @@ This skill preserves M001 architecture and evidence boundaries. It does not pars
 <failure_handling>
 If `law-source/garant/44-fz.odt` is missing, inaccessible, malformed, or not yet smoke-tested, mark parser assumptions unverified and assign S05 as owner. If `Old_project/` files are missing or stale, use the S01 classification summary and treat legacy claims as prior-art risk, not authoritative design. If many legacy candidates are reviewed, require a compact table with candidate, posture, risk, owner, and verification instead of long copied excerpts.
 </failure_handling>
+
+<s06_evidence_refresh>
+Use `.gsd/milestones/M001/slices/S05/S05-ODT-PARSER-FINDINGS.md` as the bounded parser evidence anchor. It keeps `odfdo`, `odfpy`, and raw `content.xml` evidence visible without naming any parser as sole or final. Keep `Old_project` reuse as prior-art-only and record each parser or reuse claim with owner, resolution, and verification status under the M001 architecture-only boundary.
+</s06_evidence_refresh>
 
 <success_criteria>
 A correct use of this skill keeps Russian legal evidence citation-safe, distinguishes structural vocabulary from extracted facts, preserves temporal-first and deterministic-first boundaries, rejects unverified Old_project canonization, routes parser proof to S05, routes PRD/source inconsistency reporting to S07/S08, and makes all uncertainty visible with downstream ownership.
