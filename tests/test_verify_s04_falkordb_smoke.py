@@ -290,6 +290,16 @@ def test_runtime_mode_rejects_schema_only_statuses(tmp_path: Path) -> None:
     assert any("JSON phase must be 'runtime-results'" in failure for failure in failures)
 
 
+def test_schema_only_mode_accepts_final_runtime_phase(tmp_path: Path) -> None:
+    payload = _valid_json()
+    payload["phase"] = "runtime-results"
+    markdown_path, json_path = _write_artifacts(tmp_path, payload)
+
+    failures = VERIFIER.validate_artifacts(markdown_path, json_path, VerificationMode.SCHEMA_ONLY)
+
+    assert not any("JSON phase" in failure for failure in failures)
+
+
 def test_runtime_mode_accepts_terminal_statuses_with_specific_diagnostics(tmp_path: Path) -> None:
     payload = _valid_json()
     payload["phase"] = "runtime-results"

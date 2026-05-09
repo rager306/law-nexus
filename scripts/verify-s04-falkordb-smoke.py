@@ -261,9 +261,10 @@ def check_json_structure(data: dict[str, Any], mode: VerificationMode) -> list[s
         failures.append(
             f"JSON schema_version must be {SCHEMA_VERSION!r}, got {data.get('schema_version')!r}"
         )
-    expected_phase = "schema-only" if mode == VerificationMode.SCHEMA_ONLY else "runtime-results"
-    if data.get("phase") != expected_phase:
-        failures.append(f"JSON phase must be {expected_phase!r} in {mode.value} mode")
+    if mode == VerificationMode.RUNTIME_RESULTS and data.get("phase") != "runtime-results":
+        failures.append("JSON phase must be 'runtime-results' in runtime-results mode")
+    if mode == VerificationMode.SCHEMA_ONLY and data.get("phase") not in {"schema-only", "runtime-results"}:
+        failures.append("JSON phase must be 'schema-only' or 'runtime-results' in schema-only mode")
 
     for field in ("generated_at", "cleanup_status", "log_artifact_path"):
         failures.extend(_as_non_empty_string(data.get(field), f"JSON {field}"))
