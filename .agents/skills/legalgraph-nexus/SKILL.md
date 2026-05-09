@@ -21,9 +21,9 @@ M001 is architecture-only. Keep product ETL/import, a production graph schema, L
 </scope_boundaries>
 
 <routing>
-- For FalkorDB capability, GraphBLAS positioning, Cypher, UDF, index, FalkorDBLite, driver, source-code, or smoke-check questions: load `falkordb-legalgraph` after inspecting local project context. That focused skill is created later in S02.
-- For Russian legal structure, citation units, EvidenceSpan, SourceBlock, ODT/Garant source evidence, `Old_project/` prior art, legal authority, or citation-safe retrieval questions: load `russian-legal-evidence` after inspecting local project context. That focused skill is created later in S02.
-- For broad architecture-review questions that cross both domains: use this router to preserve boundaries, then load both focused skills as needed and classify claims by evidence strength.
+- For FalkorDB capability, GraphBLAS positioning, Cypher, UDF, index, FalkorDBLite, driver, source-code, smoke-check, vector-storage, or local embedding runtime questions: load `falkordb-legalgraph` after inspecting local project context.
+- For Russian legal structure, citation units, EvidenceSpan, SourceBlock, ODT/Garant source evidence, `Old_project/` prior art, legal authority, parser/source evidence, or citation-safe retrieval questions: load `russian-legal-evidence` after inspecting local project context.
+- For broad architecture-review questions that cross FalkorDB runtime, ODT parser evidence, `Old_project` reuse, local embeddings, and citation-safe retrieval: use this router to preserve M001 boundaries, then load both focused skills and split the answer into graph runtime, parser/source evidence, Old_project reuse, embedding runtime/storage, citation-safe retrieval, legal-quality, and product-implementation claim rows.
 </routing>
 
 <workflow>
@@ -39,7 +39,8 @@ Use S06-refresh evidence anchors when routing refreshed M001 claims:
 - FalkorDB runtime/capability anchor: `.gsd/milestones/M001/slices/S04/S04-FALKORDB-CAPABILITY-SMOKE.json`.
 - ODT parser anchor: `.gsd/milestones/M001/slices/S05/S05-ODT-PARSER-FINDINGS.md` with bounded `odfdo`, `odfpy`, and raw `content.xml` evidence.
 - Local embedding evaluation anchor: `.gsd/milestones/M001/slices/S09/S09-LOCAL-EMBEDDING-EVALUATION.json` for `deepvk/USER-bge-m3`, `1024`, and `ai-sage/Giga-Embeddings-instruct` comparisons.
-- Embedding runtime proof anchor: `.gsd/milestones/M001/slices/S10/S10-EMBEDDING-RUNTIME-PROOF.json` for `GigaEmbeddings` and `blocked-environment` diagnostics.
+- Embedding runtime proof anchor: `.gsd/milestones/M001/slices/S10/S10-EMBEDDING-RUNTIME-PROOF.json` for `deepvk/USER-bge-m3` confirmed-runtime, `1024`-dimensional FalkorDB proof, `GigaEmbeddings` / `ai-sage/Giga-Embeddings-instruct`, and `blocked-environment` diagnostics.
+- Exercise/handoff anchor: `.gsd/milestones/M001/slices/S06/S06-SKILL-EVIDENCE-UPDATE.md` classifies the cross-domain question “Can LegalGraph use FalkorDB vector retrieval over Garant ODT evidence with local embeddings?” without copying raw legal text, embedding arrays, credentials, or managed API secret names.
 Every refreshed claim should expose an owner, resolution, and verification status instead of upgrading bounded evidence into product proof.
 </s06_evidence_refresh>
 
