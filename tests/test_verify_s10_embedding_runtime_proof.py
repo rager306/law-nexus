@@ -137,6 +137,32 @@ def valid_payload(root: Path) -> dict[str, Any]:
             "closed": False,
         },
         "raw_log_paths": [write_log(root, "summary.log")],
+        "verdict_matrix": [
+            {
+                "model_id": USER_MODEL_ID,
+                "role": "practical-baseline",
+                "verdict": "blocked-baseline",
+                "evidence": "Fixture starts blocked until runtime proof is supplied.",
+                "downstream_guidance": "Do not cite runtime proof yet.",
+            },
+            {
+                "model_id": GIGA_MODEL_ID,
+                "role": "quality-challenger",
+                "verdict": "not-safe-challenger",
+                "evidence": "Fixture starts behind a safety gate.",
+                "downstream_guidance": "Defer until gates close.",
+            },
+        ],
+        "downstream_guidance": {
+            "S06": "Keep bounded recommendation until runtime proof exists.",
+            "S07": "Keep vector proof blocked until FalkorDB evidence exists.",
+            "S08": "Keep challenger behind safety gate.",
+        },
+        "source_artifacts": {
+            "user_bge_m3": ".gsd/milestones/M001/slices/S10/S10-USER-BGE-M3-PROOF.json",
+            "gigaembeddings": ".gsd/milestones/M001/slices/S10/S10-GIGAEMBEDDINGS-PROOF.json",
+            "s09_pre_runtime_evaluation": ".gsd/milestones/M001/slices/S09/S09-LOCAL-EMBEDDING-EVALUATION.json",
+        },
     }
 
 
@@ -298,3 +324,21 @@ def test_require_final_demands_closed_confidence_loop(tmp_path: Path) -> None:
 
     assert any("confidence_loop.closed=true" in error for error in open_result.errors)
     assert closed_result.ok is True
+
+
+def test_require_final_demands_verdict_matrix_and_handoff(tmp_path: Path) -> None:
+    payload = valid_payload(tmp_path)
+    payload["models"][0] = proven_user_model(tmp_path)
+    payload["vector_proofs"][0] = vector_proof(tmp_path, 1024, confirmed=True)
+    payload["confidence_loop"]["closed"] = True
+    payload.pop("verdict_matrix")
+    payload["downstream_guidance"].pop("S07")
+    payload["source_artifacts"].pop("gigaembeddings")
+    verifier = load_verifier()
+
+    result = verify(payload, tmp_path, verifier.VerificationMode.REQUIRE_FINAL)
+
+    assert result.ok is False
+    assert any("verdict_matrix" in error for error in result.errors)
+    assert any("downstream_guidance.S07" in error for error in result.errors)
+    assert any("source_artifacts.gigaembeddings" in error for error in result.errors)

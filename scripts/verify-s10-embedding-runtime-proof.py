@@ -356,6 +356,41 @@ def validate_confidence_loop(payload: dict[str, Any], result: VerificationResult
         result.add("require-final mode requires confidence_loop.closed=true")
 
 
+def validate_final_fields(payload: dict[str, Any], result: VerificationResult, mode: VerificationMode) -> None:
+    if mode != VerificationMode.REQUIRE_FINAL:
+        return
+    for field_name in REQUIRED_FINAL_FIELDS:
+        if field_name not in payload:
+            result.add(f"require-final mode missing top-level field: {field_name}")
+    matrix = payload.get("verdict_matrix")
+    if not isinstance(matrix, list) or not matrix:
+        result.add("verdict_matrix must be a non-empty list in require-final mode")
+    else:
+        for index, row in enumerate(matrix):
+            if not isinstance(row, dict):
+                result.add(f"verdict_matrix[{index}] must be an object")
+                continue
+            row_obj = cast("dict[str, Any]", row)
+            for field_name in ("model_id", "role", "verdict", "evidence", "downstream_guidance"):
+                if field_name == "verdict":
+                    if row_obj.get(field_name) not in ALLOWED_VERDICTS - {"pending"}:
+                        result.add(f"verdict_matrix[{index}].verdict must be a final allowed verdict")
+                else:
+                    require_non_empty_string(row_obj.get(field_name), result, f"verdict_matrix[{index}].{field_name}")
+    downstream = payload.get("downstream_guidance")
+    if not isinstance(downstream, dict):
+        result.add("downstream_guidance must be an object in require-final mode")
+    else:
+        for slice_id in ("S06", "S07", "S08"):
+            require_non_empty_string(downstream.get(slice_id), result, f"downstream_guidance.{slice_id}")
+    sources = payload.get("source_artifacts")
+    if not isinstance(sources, dict):
+        result.add("source_artifacts must be an object in require-final mode")
+    else:
+        for field_name in ("user_bge_m3", "gigaembeddings", "s09_pre_runtime_evaluation"):
+            require_non_empty_string(sources.get(field_name), result, f"source_artifacts.{field_name}")
+
+
 def validate_mode_requirements(
     models: dict[str, dict[str, Any]],
     vectors: dict[int, dict[str, Any]],
@@ -392,6 +427,7 @@ def validate_payload(payload: dict[str, Any], result: VerificationResult, artifa
     validate_environment(payload, result)
     validate_fixture_policy(payload, result)
     validate_confidence_loop(payload, result, mode)
+    validate_final_fields(payload, result, mode)
 
     logs = payload.get("raw_log_paths")
     if not isinstance(logs, list) or not logs:
