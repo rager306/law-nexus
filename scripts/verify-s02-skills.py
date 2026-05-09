@@ -25,11 +25,16 @@ FALKOR_ARCH_WORKFLOW = Path(".agents/skills/falkordb-legalgraph/workflows/answer
 FALKOR_CAPABILITY_WORKFLOW = Path(".agents/skills/falkordb-legalgraph/workflows/check-capability-claim.md")
 FALKOR_PROTOCOL = Path(".agents/skills/falkordb-legalgraph/references/falkordb-evidence-protocol.md")
 RUSSIAN = Path(".agents/skills/russian-legal-evidence/SKILL.md")
+RUSSIAN_ODT_WORKFLOW = Path(".agents/skills/russian-legal-evidence/workflows/review-odt-parser-assumption.md")
+RUSSIAN_STRUCTURE_REF = Path(".agents/skills/russian-legal-evidence/references/russian-legal-structure.md")
+RUSSIAN_PRIOR_ART_REF = Path(".agents/skills/russian-legal-evidence/references/old-project-prior-art.md")
+RUSSIAN_EVIDENCE_TEMPLATE = Path(".agents/skills/russian-legal-evidence/templates/evidence-answer.md")
 EXERCISE = Path(".gsd/milestones/M001/slices/S02/S02-SKILL-EXERCISE.md")
 
 SKILL_PATHS = [ROUTER, FALKOR, RUSSIAN]
 FALKOR_DETAIL_PATHS = [FALKOR_ARCH_WORKFLOW, FALKOR_CAPABILITY_WORKFLOW, FALKOR_PROTOCOL]
-FINAL_REQUIRED_PATHS = [*SKILL_PATHS, *FALKOR_DETAIL_PATHS, EXERCISE]
+RUSSIAN_DETAIL_PATHS = [RUSSIAN_ODT_WORKFLOW, RUSSIAN_STRUCTURE_REF, RUSSIAN_PRIOR_ART_REF, RUSSIAN_EVIDENCE_TEMPLATE]
+FINAL_REQUIRED_PATHS = [*SKILL_PATHS, *FALKOR_DETAIL_PATHS, *RUSSIAN_DETAIL_PATHS, EXERCISE]
 
 REQUIRED_TERMS = {
     ROUTER: [
@@ -71,10 +76,15 @@ REQUIRED_TERMS = {
         "Russian legal",
         "EvidenceSpan",
         "SourceBlock",
-        "citation-safe retrieval",
-        "ODT",
+        "44-fz.odt",
         "Old_project",
         "LLM non-authoritative",
+        "citation-safe retrieval",
+        "temporal-first",
+        "deterministic-first",
+        "ODT",
+        "S05",
+        "S07/S08",
     ],
 }
 
@@ -115,6 +125,56 @@ FALKOR_DETAIL_REQUIRED_TERMS = {
         "UDF",
         "GitNexus",
         "/root/vendor-source/",
+    ],
+}
+
+RUSSIAN_DETAIL_REQUIRED_TERMS = {
+    RUSSIAN_ODT_WORKFLOW: [
+        "WordML-vs-ODT",
+        "44-fz.odt",
+        "law-source/garant/44-fz.odt",
+        "S05",
+        "S07/S08",
+        "Old_project",
+        "EvidenceSpan",
+        "SourceBlock",
+        "hypothesis-pending-S05",
+    ],
+    RUSSIAN_STRUCTURE_REF: [
+        "Russian legal",
+        "EvidenceSpan",
+        "SourceBlock",
+        "citation-safe retrieval",
+        "temporal-first",
+        "deterministic-first",
+        "law",
+        "article",
+        "part",
+        "clause",
+        "subclause",
+        "44-fz.odt",
+        "LLM non-authoritative",
+    ],
+    RUSSIAN_PRIOR_ART_REF: [
+        "Old_project",
+        "prior art",
+        "keep-as-is",
+        "adapt",
+        "defer",
+        "reject",
+        "WordML/XML",
+        "44-fz.odt",
+        "S05",
+        "S07/S08",
+    ],
+    RUSSIAN_EVIDENCE_TEMPLATE: [
+        "EvidenceSpan",
+        "SourceBlock",
+        "Claim class",
+        "source path",
+        "confidence",
+        "downstream owner",
+        "LLM non-authoritative",
     ],
 }
 
@@ -294,7 +354,7 @@ def run_checks(
     else:
         required_paths = [ROUTER, FALKOR, *FALKOR_DETAIL_PATHS]
         if not allow_missing_russian:
-            required_paths.append(RUSSIAN)
+            required_paths.extend([RUSSIAN, *RUSSIAN_DETAIL_PATHS])
         if not allow_missing_exercise_final:
             required_paths.append(EXERCISE)
         results.append(check_required_paths(required_paths, root))
@@ -306,6 +366,8 @@ def run_checks(
             results.append(CheckResult(rel(RUSSIAN), True, ["optional because --allow-missing-russian was set"]))
         else:
             results.append(check_skill(RUSSIAN, root))
+            for detail_path in RUSSIAN_DETAIL_PATHS:
+                results.append(check_text_file(detail_path, RUSSIAN_DETAIL_REQUIRED_TERMS[detail_path], root))
         results.append(check_exercise(EXERCISE, root, required=not allow_missing_exercise_final))
     return results
 
