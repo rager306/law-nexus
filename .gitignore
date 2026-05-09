@@ -18,3 +18,22 @@ dist/
 build/
 .next/
 coverage/
+
+# ── GSD baseline (auto-generated) ──
+.gsd
+.gsd-id
+.mcp.json
+Thumbs.db
+*~
+.idea/
+.vscode/
+*.code-workspace
+__pycache__/
+*.pyc
+.venv/
+venv/
+target/
+vendor/
+*.log
+.cache/
+tmp/
