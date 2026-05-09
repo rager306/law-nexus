@@ -1,24 +1,28 @@
 #!/usr/bin/env python3
 """Smoke-only raw ODT baseline probe for M001/S05.
 
-This harness intentionally uses only Python stdlib so raw source observations do not
-silently depend on odfpy, odfdo, lxml, PyYAML, network access, or product ETL code.
-It inspects an ODT as a ZIP package, parses only content.xml with ElementTree, and
-emits structured evidence/error payloads for future parser comparison tasks.
+This harness intentionally keeps raw source observations on Python stdlib so they do
+not silently depend on odfpy, odfdo, lxml, PyYAML, network access, or product ETL
+code. Optional parser probes are lazy, comparison-only observations: they diagnose
+real parser behavior against the same ODT without making either parser a hidden
+product dependency or authoritative legal evidence source.
 """
 
 from __future__ import annotations
 
 import argparse
 import hashlib
+import importlib
 import json
+import re
 import sys
+import tempfile
 import textwrap
 import zipfile
 from collections import Counter
 from datetime import UTC, datetime
 from pathlib import Path
-from typing import Any
+from typing import Any, Callable
 from xml.etree import ElementTree
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -175,6 +179,13 @@ def legal_marker_observations(blocks: list[dict[str, Any]]) -> dict[str, Any]:
     }
 
 
+def exception_payload(exc: BaseException) -> dict[str, str]:
+    return {
+        "exception_class": exc.__class__.__name__,
+        "exception_message": str(exc),
+    }
+
+
 def failure_result(
     status: str,
     source: Path,
@@ -190,12 +201,7 @@ def failure_result(
         "xml_entry": xml_entry,
     }
     if exception is not None:
-        error.update(
-            {
-                "exception_class": exception.__class__.__name__,
-                "exception_message": str(exception),
-            }
-        )
+        error.update(exception_payload(exception))
     return {
         "schema_version": SCHEMA_VERSION,
         "owner": OWNER,
@@ -329,10 +335,227 @@ def probe_raw_odt(source: Path, *, allow_fixture_source: bool = False) -> dict[s
         "raw_odt_observations": observations,
         "parser_direction_claims_authoritative": False,
         "future_direction_notes": [
-            "Raw stdlib baseline only; optional parser direction is intentionally deferred to later S05 probes."
+            "Raw stdlib baseline only; optional parser direction is comparison evidence, not product ETL proof."
         ],
         "error": None,
     }
+
+
+def optional_probe_base(parser: str, source: Path, status: str) -> dict[str, Any]:
+    return {
+        "schema_version": SCHEMA_VERSION,
+        "owner": OWNER,
+        "timestamp": utc_now(),
+        "source": {"path": normalized_path(source)},
+        "parser": parser,
+        "status": status,
+        "evidence_class": "parser-comparison-evidence",
+        "issue_ids": [f"S05-optional-{parser}-{status}"],
+        "parser_direction_claims_authoritative": False,
+        "comparison_scope": "optional-parser-smoke-only",
+    }
+
+
+def remove_xml_doctype(payload: bytes) -> tuple[bytes, bool]:
+    cleaned, count = re.subn(rb"<!DOCTYPE\s+[^>]*>\s*", b"", payload, count=1, flags=re.IGNORECASE | re.DOTALL)
+    return cleaned, count > 0
+
+
+def write_manifest_doctype_clean_copy(source: Path, target: Path) -> dict[str, Any]:
+    """Copy an ODT while removing only META-INF/manifest.xml's DOCTYPE declaration."""
+    removed_manifest_doctype = False
+    manifest_seen = False
+    with zipfile.ZipFile(source, "r") as src, zipfile.ZipFile(target, "w") as dst:
+        for info in src.infolist():
+            payload = src.read(info.filename)
+            if info.filename == "META-INF/manifest.xml":
+                manifest_seen = True
+                payload, removed_manifest_doctype = remove_xml_doctype(payload)
+            dst.writestr(info, payload)
+    return {
+        "source_path": normalized_path(source),
+        "clean_copy_path": normalized_path(target),
+        "manifest_seen": manifest_seen,
+        "removed_manifest_doctype": removed_manifest_doctype,
+        "controlled_mitigation": True,
+        "source_mutated": False,
+    }
+
+
+def odfpy_probe(source: Path) -> dict[str, Any]:
+    probe = optional_probe_base("odfpy", source, "pending")
+    try:
+        odf_open_document = importlib.import_module("odf.opendocument")
+    except ModuleNotFoundError as exc:
+        return probe | {"status": "not-installed", "issue_ids": ["S05-optional-odfpy-not-installed"], "error": exception_payload(exc)}
+
+    load = getattr(odf_open_document, "load", None)
+    if not callable(load):
+        return probe | {
+            "status": "api-incomplete",
+            "issue_ids": ["S05-optional-odfpy-api-incomplete"],
+            "observed_capabilities": {"has_load": False},
+        }
+
+    phases: dict[str, Any] = {}
+    try:
+        load(source)
+    except Exception as exc:  # noqa: BLE001 - smoke probe must serialize parser exception class/message.
+        phases["unmodified"] = {
+            "status": "failed-unmodified-load",
+            "phase": "unmodified",
+            "error": exception_payload(exc),
+        }
+    else:
+        phases["unmodified"] = {"status": "loaded-unmodified", "phase": "unmodified"}
+
+    with tempfile.TemporaryDirectory(prefix="s05-odfpy-") as temp_dir:
+        clean_path = Path(temp_dir) / source.name
+        clean_info = write_manifest_doctype_clean_copy(source, clean_path)
+        try:
+            load(clean_path)
+        except Exception as exc:  # noqa: BLE001 - smoke probe must serialize parser exception class/message.
+            phases["temp-clean-manifest"] = clean_info | {
+                "status": "failed-temp-clean-load",
+                "phase": "temp-clean-manifest",
+                "error": exception_payload(exc),
+            }
+        else:
+            phases["temp-clean-manifest"] = clean_info | {
+                "status": "loaded-temp-clean-manifest",
+                "phase": "temp-clean-manifest",
+            }
+
+    if phases["unmodified"]["status"] == "loaded-unmodified":
+        status = "loaded-unmodified"
+    elif phases["temp-clean-manifest"]["status"] == "loaded-temp-clean-manifest":
+        status = "loaded-temp-clean-manifest"
+    else:
+        status = "failed-temp-clean-load"
+    return probe | {
+        "status": status,
+        "issue_ids": [f"S05-optional-odfpy-{status}"],
+        "phases": phases,
+        "comparison_summary": {
+            "ordering_oracle": "raw-content-xml",
+            "controlled_manifest_mitigation_only": True,
+            "classified_as_final_etl_proof": False,
+        },
+    }
+
+
+def first_callable(*candidates: Any) -> Callable[..., Any] | None:
+    for candidate in candidates:
+        if callable(candidate):
+            return candidate
+    return None
+
+
+def call_optional(method: Callable[..., Any] | None) -> tuple[bool, Any]:
+    if method is None:
+        return False, None
+    try:
+        return True, method()
+    except TypeError:
+        return False, None
+    except Exception as exc:  # noqa: BLE001 - capability probing must preserve parser behavior.
+        return True, {"error": exception_payload(exc)}
+
+
+def summarize_odfdo_document(document: Any, raw_result: dict[str, Any]) -> dict[str, Any]:
+    body = getattr(document, "body", None)
+    if body is None and callable(getattr(document, "get_body", None)):
+        try:
+            body = document.get_body()
+        except Exception as exc:  # noqa: BLE001 - capability probing must preserve parser behavior.
+            body = {"error": exception_payload(exc)}
+
+    text_available, formatted_text = call_optional(
+        first_callable(getattr(body, "get_formatted_text", None), getattr(document, "get_formatted_text", None))
+    )
+    tables_available, tables = call_optional(
+        first_callable(getattr(body, "get_tables", None), getattr(document, "get_tables", None))
+    )
+    styles_attr = getattr(document, "styles", None)
+    get_styles = getattr(document, "get_styles", None)
+    styles_available = styles_attr is not None or callable(get_styles)
+
+    table_count: int | None = None
+    if isinstance(tables, (list, tuple)):
+        table_count = len(tables)
+    elif tables_available and tables is not None and not isinstance(tables, dict):
+        try:
+            table_count = len(tables)
+        except TypeError:
+            table_count = None
+
+    text_char_count: int | None = None
+    if isinstance(formatted_text, str):
+        text_char_count = len(formatted_text)
+
+    raw_observations = raw_result.get("raw_odt_observations", {})
+    return {
+        "ordering_oracle": "raw-content-xml",
+        "forbidden_ordering_oracle": "odfpy-getElementsByType(P/H)",
+        "ordered_text_available": isinstance(formatted_text, str),
+        "ordered_text_char_count": text_char_count,
+        "table_count_available": table_count is not None,
+        "table_count": table_count,
+        "style_metadata_available": styles_available,
+        "table_metadata_available": tables_available,
+        "raw_ordered_block_count": raw_observations.get("ordered_block_count"),
+        "raw_table_count": raw_observations.get("table_count"),
+    }
+
+
+def odfdo_probe(source: Path, raw_result: dict[str, Any]) -> dict[str, Any]:
+    probe = optional_probe_base("odfdo", source, "pending")
+    try:
+        odfdo_module = importlib.import_module("odfdo")
+    except ModuleNotFoundError as exc:
+        return probe | {"status": "not-installed", "issue_ids": ["S05-optional-odfdo-not-installed"], "error": exception_payload(exc)}
+
+    document_class = getattr(odfdo_module, "Document", None)
+    observed_capabilities = {
+        "has_Document": callable(document_class),
+        "module_attrs_sample": sorted(name for name in dir(odfdo_module) if not name.startswith("_"))[:20],
+    }
+    if not callable(document_class):
+        return probe | {
+            "status": "api-incomplete",
+            "issue_ids": ["S05-optional-odfdo-api-incomplete"],
+            "observed_capabilities": observed_capabilities,
+        }
+
+    try:
+        document = document_class(source)
+    except Exception as exc:  # noqa: BLE001 - smoke probe must serialize parser exception class/message.
+        return probe | {
+            "status": "failed-unmodified-load",
+            "issue_ids": ["S05-optional-odfdo-failed-unmodified-load"],
+            "phase": "unmodified",
+            "observed_capabilities": observed_capabilities,
+            "error": exception_payload(exc),
+        }
+
+    comparison_summary = summarize_odfdo_document(document, raw_result)
+    status = (
+        "loaded-unmodified"
+        if comparison_summary["ordered_text_available"] or comparison_summary["table_count_available"]
+        else "api-incomplete"
+    )
+    return probe | {
+        "status": status,
+        "issue_ids": [f"S05-optional-odfdo-{status}"],
+        "phase": "unmodified",
+        "observed_capabilities": observed_capabilities,
+        "comparison_summary": comparison_summary,
+    }
+
+
+def probe_optional_parsers(source: Path, raw_result: dict[str, Any]) -> list[dict[str, Any]]:
+    source = Path(source)
+    return [odfpy_probe(source), odfdo_probe(source, raw_result)]
 
 
 def write_json(path: Path, payload: dict[str, Any]) -> None:
@@ -340,13 +563,17 @@ def write_json(path: Path, payload: dict[str, Any]) -> None:
     path.write_text(json.dumps(payload, ensure_ascii=False, indent=2, sort_keys=True) + "\n", encoding="utf-8")
 
 
-def build_cli_payload(result: dict[str, Any]) -> dict[str, Any]:
+def build_cli_payload(result: dict[str, Any], optional_probes: list[dict[str, Any]] | None = None) -> dict[str, Any]:
+    probes = [result, *(optional_probes or [])]
+    statuses = {"raw-baseline": result["status"]}
+    statuses.update({probe["parser"]: probe["status"] for probe in optional_probes or []})
     return {
         "schema_version": SCHEMA_VERSION,
         "generated_at": utc_now(),
         "probe_log_path": None,
-        "probes": [result],
-        "statuses": {"raw-baseline": result["status"]},
+        "probe_count": len(probes),
+        "probes": probes,
+        "statuses": statuses,
     }
 
 
@@ -360,13 +587,19 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
         action="store_true",
         help="Permit non-law-source/garant/44-fz.odt sources for tests/fixtures only.",
     )
+    parser.add_argument(
+        "--include-optional-parsers",
+        action="store_true",
+        help="Run lazy odfpy/odfdo comparison probes; raw baseline remains stdlib-only.",
+    )
     return parser.parse_args(argv)
 
 
 def main(argv: list[str] | None = None) -> int:
     args = parse_args(sys.argv[1:] if argv is None else argv)
     result = probe_raw_odt(args.source, allow_fixture_source=args.allow_fixture_source)
-    payload = build_cli_payload(result)
+    optional_probes = probe_optional_parsers(args.source, result) if args.include_optional_parsers else []
+    payload = build_cli_payload(result, optional_probes)
     out_path = args.out
     write_json(out_path, payload | {"probe_log_path": normalized_path(out_path)})
     if result["status"] == "verified-source-evidence":
