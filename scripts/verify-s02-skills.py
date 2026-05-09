@@ -309,18 +309,32 @@ def check_exercise(path: Path = EXERCISE, root: Path = ROOT, required: bool = Tr
     for claim_class in CLAIM_CLASSES:
         if claim_class not in text:
             errors.append(f"missing claim class: {claim_class}")
-    placeholders = ["T04", "PLACEHOLDER", "not complete"]
-    if not any(marker in text for marker in placeholders):
-        errors.append("exercise skeleton should clearly signal pending completion for T04")
-    forbidden_completion = [
-        "exercise complete",
-        "final exercise complete",
-        "all claims verified",
+    forbidden_placeholders = ["PLACEHOLDER", "not complete", "pending completion"]
+    for marker in forbidden_placeholders:
+        if marker in text:
+            errors.append(f"exercise still contains unfinished skeleton marker: {marker}")
+    required_exercise_terms = [
+        "Skill tool limitation",
+        "direct file read fallback",
+        "GraphBLAS",
+        "UDF/procedures",
+        "vector search",
+        "full-text search",
+        "ODT parsing",
+        "Old_project",
+        "docs-backed/source-pending",
+        "smoke-needed",
+        "hypothesis-pending-S05",
+        "adapt/defer/reject",
+        "S03",
+        "S04",
+        "S05",
+        "S07/S08",
+        "R006",
     ]
-    lowered = text.lower()
-    for phrase in forbidden_completion:
-        if phrase in lowered:
-            errors.append(f"exercise skeleton overclaims completion: {phrase}")
+    for term in required_exercise_terms:
+        if term not in text:
+            errors.append(f"missing exercise evidence term: {term}")
     return CheckResult(rel(path), not errors, errors or ["ok"])
 
 
