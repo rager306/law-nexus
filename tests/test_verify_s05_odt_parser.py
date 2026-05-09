@@ -5,6 +5,7 @@ import json
 import sys
 from pathlib import Path
 from types import ModuleType
+from typing import Any
 
 ROOT = Path(__file__).resolve().parents[1]
 VERIFIER_PATH = ROOT / "scripts/verify-s05-odt-parser.py"
@@ -37,7 +38,7 @@ def write_required_old_project_files(root: Path) -> None:
         path.write_text("prior art fixture only\n", encoding="utf-8")
 
 
-def probe_payload(*, odfpy_status: str = "loaded-temp-clean-manifest", alternative_status: str = "loaded-unmodified") -> dict[str, object]:
+def probe_payload(*, odfpy_status: str = "loaded-temp-clean-manifest", alternative_status: str = "loaded-unmodified") -> dict[str, Any]:
     return {
         "schema_version": "s05-raw-odt-baseline/v1",
         "probe_log_path": ".gsd/milestones/M001/slices/S05/probe-log.json",

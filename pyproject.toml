@@ -16,6 +16,14 @@ dev = [
     "ruff",
     "ty",
 ]
+local-embeddings = [
+    "sentence-transformers>=5.1.1",
+    "torch",
+    "transformers>=4.51.0",
+]
+local-embeddings-accelerated = [
+    "flash-attn",
+]
 
 [tool.uv]
 package = false
