@@ -43,7 +43,8 @@
 - Несоответствия в графовой модели между документами.
 - Двусмысленность `LegalAct` как «базовый тип vs подтип `LegalDocument`».
 - Нечёткая граница между MVP (Scope §7) и FR-21…FR-28 (которые фактически выходят за MVP).
-- Не определены ключевые контракты: формат embedding, схемы JSONL, формат KnowQL-грамматики, версионирование UDF API.
+- Архитектурные контракты по embedding, JSONL/import schemas, KnowQL grammar and UDF/API versioning are now explicitly specified or marked post-MVP/research-gated.
+- Remaining gaps are not S07 PRD-consistency blockers; they are S08/future proof items with owners in the handoff table (§8).
 
 ---
 
@@ -353,17 +354,17 @@ NFR-4 декларирует idempotency, FR-1 требует SHA-256. Но не
 | G-002 | Формат `12_embeddings.jsonl` — структура, как связан с TextChunk | FR-19 / FR-28b | MAJOR | FIXED in S07/T06: FR-19/FR-28b require a post-MVP JSON Schema for `12_embeddings.jsonl` with TextChunk linkage before embeddings are promoted. |
 | G-003 | Версионирование UDF API — что если `legal.find_requirements` v1 → v2? | `02_architecture.md` §7 | MAJOR | FIXED in S07/T05: operation table assigns versioning owner and requires explicit `api_version = v2` or v2 operation names for breaking changes. |
 | G-004 | Migration / backfill — как добавить новое поле к 100k legal units | NFR / отдельный FR | MAJOR | FIXED in S07/T06: `03_PRD.md` NFR-12 and `02_architecture.md` §13g define migration/backfill plans, dry-runs, batching, rollback, idempotency, and post-backfill validation. |
-| G-005 | Стратегия конфликтов между редакциями (две `ActEdition` за одну дату) | `02_architecture.md` §3 | MAJOR | OPEN |
+| G-005 | Стратегия конфликтов между редакциями (две `ActEdition` за одну дату) | `02_architecture.md` §3 | MAJOR | DEFERRED to S08: FR-1a/§3c define changed-SHA and new-edition behavior, but same-date multi-edition conflict policy still needs temporal model/design ownership. Owner: S08 temporal model. |
 | G-006 | Обработка ошибок KnowQL (синтаксис, неизвестная статья, неоднозначность) | FR-22 | MAJOR | FIXED in S07/T05: FR-22 defines structured `error_code`, `message`, `span`, `hint`, and `candidate_citations`. |
 | G-007 | Метрики наблюдаемости (latency, throughput, p50/p99) для Nexus API | NFR-7 / новый NFR-11 | MINOR | FIXED in S07/T06: `03_PRD.md` NFR-11 and `02_architecture.md` §13g define observability metrics and no-raw-text logging constraints. |
-| G-008 | Тестовые контракты: golden tests на парсинг 44-ФЗ, baseline retrieval recall | FR-30 | MAJOR | OPEN |
+| G-008 | Тестовые контракты: golden tests на парсинг 44-ФЗ, baseline retrieval recall | FR-30 | MAJOR | DEFERRED to S08/proof slices: PRD now requires `16_retrieval_eval.json` skeleton and metrics, but executable golden parser and retrieval-recall tests must be authored against real tracked fixtures. Owner: S08 validation/proof planning. |
 | G-009 | Стратегия для подзаконных актов и приложений (часто отсутствуют главы — только статьи) | FR-5 | MAJOR | FIXED in S07/T06: FR-5 and architecture §13g mark sublegal acts/appendices as future source-profile work with validation reporting for MVP limitations. |
 | G-010 | Сноски, примечания, табличный материал — как они становятся `SourceBlock`? | FR-2 / FR-3 | MAJOR | FIXED in S07/T06: FR-5 and architecture §13g require footnotes/notes/tables to remain SourceBlock-addressable or be reported as preserved-but-unmodeled; silent loss is a validation error. |
-| G-011 | Языковая политика — NFR-5 локально, но embedding-модель `deepvk/USER-bge-m3` тянет HuggingFace; offline-режим? | NFR-5 / `02_architecture.md` §13d | MINOR | OPEN |
+| G-011 | Языковая политика — NFR-5 локально, но embedding-модель `deepvk/USER-bge-m3` тянет HuggingFace; offline-режим? | NFR-5 / `02_architecture.md` §13d | MINOR | DEFERRED to post-MVP embedding proof: FR-28b already gates embeddings on local/offline Russian legal runtime proof; no MVP blocker while embeddings remain out of scope. Owner: future embedding/runtime proof. |
 | G-012 | Разделение ответственности при множественных source provenance (FR-30b упоминает, но не разворачивает) | `02_architecture.md` §3 / FR-1 | MINOR | FIXED |
 | G-013 | Lifecycle EvidenceSpan при изменении источника (новая SHA → старые EvidenceSpan устаревают?) | FR-7 / NFR-4 | MAJOR | FIXED |
 | G-014 | Чанк-стратегия — упомянут «sliding window vs clause-aligned», но MVP-чанкер не специфицирован | FR-8 / `02_architecture.md` §9b | MAJOR | FIXED in S07/T06: `03_PRD.md` FR-8 and `02_architecture.md` §9a require legal-unit-aligned MVP chunking, evidence links, orphan validation, and post-MVP-only sliding overlap. |
-| G-015 | Failure modes для FalkorDBLite → Docker миграции | `02_architecture.md` §13b | MINOR | OPEN |
+| G-015 | Failure modes для FalkorDBLite → Docker миграции | `02_architecture.md` §13b | MINOR | DEFERRED to deployment proof: §13b defines the evolution path, but failure-mode runbooks for embedded-to-Docker migration require runtime/deployment evidence outside S07 PRD normalization. Owner: S08/deployment planning or later ops proof. |
 
 ---
 
@@ -495,7 +496,7 @@ NS -->|SUPPORTED_BY| EV
 - [x] **F-012** — BNF citation_key + ID, регэкспы, edge-cases.
 - [x] **R-005** — `NormStatement.extraction_method` и `verification_status`. Fixed in S07/T05.
 - [x] **R-006** — `ContentDomain` уточнение (label/property, кардинальность).
-- [ ] **G-005** — Стратегия конфликтов между редакциями.
+- [~] **G-005** — Стратегия конфликтов между редакциями. Deferred to S08 temporal model: changed-SHA/new-edition behavior is defined, but same-date conflict policy needs temporal/event design.
 - [x] **G-009** — Стратегия для подзаконных актов / приложений. Fixed in S07/T06 as future source-profile backlog with validation reporting.
 - [x] **G-010** — Сноски, примечания, таблицы как `SourceBlock`. Fixed in S07/T06 as SourceBlock preservation/reporting contract.
 - [x] **G-013** — Lifecycle EvidenceSpan при изменении источника.
@@ -511,9 +512,9 @@ NS -->|SUPPORTED_BY| EV
 - [x] **G-007** — NFR-11: Observability (Prometheus metrics, traces). Fixed in S07/T06 as a metrics/diagnostics contract.
 - [x] **G-004** — Migration/backfill policy для эволюции схемы. Fixed in S07/T06.
 - [x] **G-006** — Обработка ошибок KnowQL. Fixed in S07/T05.
-- [ ] **G-011** — Языковая политика / offline-режим для embedding-модели.
+- [~] **G-011** — Языковая политика / offline-режим для embedding-модели. Deferred to post-MVP embedding proof; FR-28b gates embedding promotion on local/offline Russian legal runtime verification.
 - [x] **G-012** — Source provenance: разворот концепции из FR-30b.
-- [ ] **G-015** — Failure modes для FalkorDBLite → Docker миграции.
+- [~] **G-015** — Failure modes для FalkorDBLite → Docker миграции. Deferred to deployment proof; §13b is a roadmap path, not a proven migration runbook.
 - [x] **F-009** — Пояснение веса `evidence_confidence` в формуле scoring. Fixed in S07/T06.
 - [x] **F-013** — FR-6b: Citation formatting policy.
 
@@ -555,7 +556,29 @@ NS -->|SUPPORTED_BY| EV
 
 ---
 
-## 8. История ревью
+## 8. S07 final status and S08 handoff
+
+S07 normalized the PRD consistency tracker: all original `BLOCKER` findings (`F-001`, `F-005`, `F-006`, `F-014`) are `FIXED`, and no `BLOCKER` remains `OPEN`. Remaining non-fixed items are deliberately `DEFERRED` because they require S08 temporal/deployment/proof planning or later runtime evidence, not more wording cleanup in S07.
+
+### S08 handoff: unresolved/deferred findings
+
+| Issue ID | Severity | Status | Owner | Recommendation | roadmap impact |
+|---|---|---|---|---|---|
+| G-005 | MAJOR | DEFERRED | S08 temporal model | Define same-date multi-edition conflict policy, including whether collisions create source revisions, competing `ActEdition` candidates, or validation-blocking conflicts. Tie this to `VERSION_OF`/`SUPERSEDES`/`AMENDED_BY` event semantics before implementation. | Blocks reliable temporal roadmap details for multi-source or conflicting consolidated editions; does not block single 44-ФЗ MVP import if validation rejects ambiguous same-date collisions. |
+| G-008 | MAJOR | DEFERRED | S08 validation/proof planning | Convert FR-30/`16_retrieval_eval.json` skeleton into tracked golden fixtures and executable tests for 44-ФЗ parsing, citation round-trips, no-answer behavior, and baseline retrieval recall. | Required before claiming parser/retrieval quality; should be scheduled before implementation milestones depend on recall metrics. |
+| G-011 | MINOR | DEFERRED | Future embedding/runtime proof | Keep embeddings post-MVP until local/offline Russian legal model loading, licensing/cache behavior, and no-network operation are proven; document fallback if HuggingFace access is unavailable. | No MVP impact while embeddings remain out of scope; affects Phase 5/vector-search readiness. |
+| G-015 | MINOR | DEFERRED | S08 deployment planning or later ops proof | Add failure-mode/runbook requirements for FalkorDBLite → Docker Compose migration: data export/import, persistence checks, rollback, port/auth config, and smoke validation. | Does not block PRD consistency; should be resolved before any deployment milestone claims safe migration from embedded to containerized graph storage. |
+
+### Final S07 status notes
+
+- Fixed blocker IDs: `F-001`, `F-005`, `F-006`, `F-014`.
+- Fixed major architecture consistency IDs include graph labels/relationships/cardinalities, temporal glossary, ID/citation grammar, KnowQL/UDF boundaries, NormStatement verification, validation/import schema backlog, chunking, evidence-scoring semantics, security/observability/migration placeholders, GraphBLAS integration model, vector fallback, Legal YAKE, and ContentDomain semantics.
+- `DEFERRED` means intentionally handed off with owner and rationale; it is not an untriaged `OPEN` PRD defect.
+- S08 should consume this section as the authoritative unresolved/deferred issue list and avoid reopening S07-fixed issues unless new source/runtime evidence contradicts the normalized PRD text.
+
+---
+
+## 9. История ревью
 
 | Дата | Автор | Действие |
 |---|---|---|
@@ -564,3 +587,4 @@ NS -->|SUPPORTED_BY| EV
 | 2026-05-09 | GSD S07/T04 | Закрыты F-010, F-012, F-013, F-016, G-012, G-013: добавлены temporal glossary, ID/citation grammar, idempotent SHA import policy, source provenance classes, and EvidenceSpan lifecycle. |
 | 2026-05-09 | GSD S07/T05 | Закрыты F-007, F-011, F-014, G-003, G-006, R-003, R-005: унифицирован KnowQL MVP syntax/EBNF/error contract, разделены JavaScript UDF и Python LegalNexus contracts, добавлена NormStatement verification contract. |
 | 2026-05-09 | GSD S07/T06 | Закрыты F-009, F-015, G-001, G-002, G-004, G-007, G-009, G-010, G-014, R-001, R-002, R-004: добавлены validation/import JSON Schema backlog, MVP chunking strategy, evidence_confidence hard-filter semantics, security/observability/migration placeholders, Legal YAKE spec, GraphBLAS integration model, and vector store fallback. |
+| 2026-05-09 | GSD S07/T07 | Финализирован S07 status pass: все BLOCKER findings подтверждены как FIXED; G-005, G-008, G-011, G-015 переведены в DEFERRED with owner/rationale; добавлена S08 handoff table with roadmap impact. |
