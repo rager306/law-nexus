@@ -207,6 +207,7 @@ def test_allow_download_user_only_marks_user_download_as_allowed(tmp_path: Path,
         return {"status": "available", "missing": [], "packages": []}
 
     monkeypatch.setattr(probe, "probe_packages", fake_package_probe)
+    monkeypatch.setattr(probe, "huggingface_cache_roots", lambda: (tmp_path / "empty-hf-cache",))
     monkeypatch.setattr(probe, "hardware_metadata", lambda: {"python": "3.13", "platform": "linux", "cpu_count": 2, "memory_mib": 4096, "no_swap": False, "gpu_probe": {"status": "absent"}, "docker_probe": {"status": "absent"}})
     exit_code = probe.main(
         ["--contract", str(contract), "--output-dir", str(output_dir), "--allow-download-user"]
