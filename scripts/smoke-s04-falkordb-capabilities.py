@@ -10,6 +10,8 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
+import platform
 import socket
 import subprocess
 import sys
@@ -29,6 +31,8 @@ OWNER = "S04"
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_OUTPUT_DIR = ROOT / ".gsd/milestones/M001/slices/S04"
 VENDOR_FALKORDB_PY = Path("/root/vendor-source/falkordb-py")
+VENDOR_FALKORDBLITE = Path("/root/vendor-source/falkordblite")
+EMBEDDING_MODEL_ID = "deepvk/USER-bge-m3"
 
 Status = Literal[
     "confirmed-runtime",
@@ -174,6 +178,7 @@ class Finding:
 
     def to_json(self) -> dict[str, object]:
         return {
+            "id": self.capability_id,
             "capability_id": self.capability_id,
             "status": self.status,
             "evidence_class": self.evidence_class,
@@ -183,6 +188,9 @@ class Finding:
             "resolution_path": self.resolution_path,
             "verification_criteria": self.verification_criteria,
             "raw_log_reference": self.raw_log_reference,
+            "runtime_evidence": self.raw_log_reference,
+            "source_evidence": None,
+            "roadmap_impact": self.resolution_path,
             "diagnostics": self.diagnostics,
         }
 
@@ -390,6 +398,80 @@ def cascade_blocker(
             root_cause,
             detail,
         )
+
+
+def falkordblite_binary_blockers(metadata: dict[str, object]) -> list[str]:
+    blockers: list[str] = []
+    if not metadata.get("redis_executable"):
+        blockers.append("missing-redis-server-binary")
+    if not metadata.get("falkordb_module"):
+        blockers.append("missing-falkordb-module")
+    return blockers
+
+
+def embedding_cache_roots() -> list[Path]:
+    roots: list[Path] = []
+    if hf_home := os.environ.get("HF_HOME"):
+        roots.append(Path(hf_home) / "hub")
+    if transformers_cache := os.environ.get("TRANSFORMERS_CACHE"):
+        roots.append(Path(transformers_cache))
+    roots.append(Path.home() / ".cache" / "huggingface" / "hub")
+    deduped: list[Path] = []
+    seen: set[Path] = set()
+    for root in roots:
+        expanded = root.expanduser()
+        if expanded not in seen:
+            deduped.append(expanded)
+            seen.add(expanded)
+    return deduped
+
+
+def embedding_model_cache_metadata(model_id: str, roots: list[Path] | None = None) -> dict[str, object]:
+    roots = roots or embedding_cache_roots()
+    model_dir_name = f"models--{model_id.replace('/', '--')}"
+    checked = [str(root / model_dir_name) for root in roots]
+    for root in roots:
+        model_dir = root / model_dir_name
+        snapshots = model_dir / "snapshots"
+        if model_dir.is_dir() and snapshots.is_dir():
+            snapshot_dirs = sorted(path.name for path in snapshots.iterdir() if path.is_dir())
+            return {
+                "model_id": model_id,
+                "present": True,
+                "path": str(model_dir),
+                "snapshots": snapshot_dirs[:5],
+                "snapshot_count": len(snapshot_dirs),
+                "checked": checked,
+            }
+    return {"model_id": model_id, "present": False, "checked": checked}
+
+
+def local_resource_metadata() -> dict[str, object]:
+    metadata: dict[str, object] = {
+        "platform": platform.platform(),
+        "machine": platform.machine(),
+        "python": sys.version.split()[0],
+        "cpu_count": os.cpu_count() or "unknown",
+    }
+    meminfo = Path("/proc/meminfo")
+    if meminfo.is_file():
+        values: dict[str, int] = {}
+        for line in meminfo.read_text(encoding="utf-8", errors="replace").splitlines():
+            key, _, raw_value = line.partition(":")
+            if key in {"MemTotal", "MemAvailable", "SwapTotal", "SwapFree"}:
+                digits = raw_value.strip().split()[0]
+                if digits.isdigit():
+                    values[key] = int(digits)
+        metadata.update(
+            {
+                "mem_total_mib": round(values.get("MemTotal", 0) / 1024, 1),
+                "mem_available_mib": round(values.get("MemAvailable", 0) / 1024, 1),
+                "swap_total_mib": round(values.get("SwapTotal", 0) / 1024, 1),
+                "swap_free_mib": round(values.get("SwapFree", 0) / 1024, 1),
+                "no_swap": values.get("SwapTotal", 0) == 0,
+            }
+        )
+    return metadata
 
 
 def mark_out_of_harness_capabilities(state: SmokeState, log_path: Path) -> None:
@@ -776,6 +858,490 @@ def run_runtime_probes(state: SmokeState, venv_path: Path, work_dir: Path) -> No
         put_finding(state, capability_id, status, "runtime-probes", result.log_path, root, detail, evidence_class)
 
 
+def write_falkordblite_probe_script(path: Path, graph_suffix: str) -> None:
+    code = f'''
+import json
+import traceback
+import redislite
+from redislite.falkordb_client import FalkorDB
+
+GRAPH_SUFFIX = {graph_suffix!r}
+results = {{}}
+metadata = {{
+    "redislite_version": getattr(redislite, "__version__", "unknown"),
+    "redis_executable": getattr(redislite, "__redis_executable__", ""),
+    "falkordb_module": getattr(redislite, "__falkordb_module__", ""),
+    "redis_server_version": getattr(redislite, "__redis_server_version__", ""),
+}}
+
+
+def ok(capability_id, detail):
+    results[capability_id] = {{"status": "confirmed-runtime", "root_cause": f"{{capability_id}}-ok", "detail": detail}}
+
+
+def bounded(capability_id, root_cause, detail):
+    results[capability_id] = {{"status": "bounded-not-product-proven", "root_cause": root_cause, "detail": detail}}
+
+
+def fail(capability_id, exc):
+    results[capability_id] = {{
+        "status": "failed-runtime",
+        "root_cause": f"{{capability_id}}-exception",
+        "detail": repr(exc),
+        "traceback": traceback.format_exc(limit=4),
+    }}
+
+
+missing = []
+if not metadata["redis_executable"]:
+    missing.append("redis-server")
+if not metadata["falkordb_module"]:
+    missing.append("falkordb.so")
+if missing:
+    print(json.dumps({{"metadata": metadata, "missing_binaries": missing, "results": results}}, sort_keys=True))
+    raise SystemExit(0)
+
+ok("falkordblite-import", f"import ok with embedded binaries: {{metadata!r}}")
+
+
+def run(capability_id, callback):
+    try:
+        callback()
+    except Exception as exc:
+        fail(capability_id, exc)
+
+
+def basic_graph():
+    db = FalkorDB()
+    try:
+        graph = db.select_graph(f"s04_lite_basic_{{GRAPH_SUFFIX}}")
+        graph.query("CREATE (:Smoke {{name:'lite', value: 2}})")
+        rows = graph.query("MATCH (n:Smoke {{name:'lite'}}) RETURN n.value").result_set
+        if rows != [[2]]:
+            raise AssertionError(f"unexpected rows: {{rows!r}}")
+        graph.delete()
+        ok("falkordblite-basic-graph", f"synthetic embedded graph query returned {{rows!r}}")
+    finally:
+        db.close()
+
+
+run("falkordblite-basic-graph", basic_graph)
+
+
+def udf_probe():
+    db = FalkorDB()
+    try:
+        db.udf_flush()
+        script = """
+        function lite_add(x, y) {{
+            return x + y;
+        }}
+        falkor.register('lite_add', lite_add);
+        """
+        loaded = db.udf_load("s04litelib", script, replace=True)
+        graph = db.select_graph(f"s04_lite_udf_{{GRAPH_SUFFIX}}")
+        rows = graph.query("RETURN s04litelib.lite_add(7, 4) AS result").result_set
+        if rows != [[11]]:
+            raise AssertionError(f"unexpected UDF rows: {{rows!r}}; loaded={{loaded!r}}")
+        db.udf_flush()
+        graph.delete()
+        ok("falkordblite-udf", f"udf load={{loaded!r}}; rows={{rows!r}}")
+    finally:
+        db.close()
+
+
+run("falkordblite-udf", udf_probe)
+
+
+def vector_fulltext_probe():
+    db = FalkorDB()
+    try:
+        graph = db.select_graph(f"s04_lite_index_{{GRAPH_SUFFIX}}")
+        fulltext_created = graph.create_node_fulltext_index("Doc", "body")
+        vector_created = graph.create_node_vector_index("Embedding", "vec", dim=4, similarity_function="euclidean")
+        listed = graph.list_indices().result_set
+        if not listed:
+            raise AssertionError("embedded indices not listed")
+        graph.delete()
+        ok(
+            "falkordblite-vector-fulltext",
+            f"fulltext={{fulltext_created.indices_created}}; vector={{vector_created.indices_created}}; indices={{listed!r}}",
+        )
+    finally:
+        db.close()
+
+
+run("falkordblite-vector-fulltext", vector_fulltext_probe)
+
+print(json.dumps({{"metadata": metadata, "missing_binaries": missing, "results": results}}, sort_keys=True))
+'''
+    path.write_text(textwrap.dedent(code).strip() + "\n", encoding="utf-8")
+
+
+def create_probe_venv(state: SmokeState, parent: Path, label: str) -> Path | None:
+    venv_path = parent / label
+    started = time.monotonic()
+    command = [sys.executable, "-m", "venv", str(venv_path)]
+    try:
+        venv.EnvBuilder(with_pip=True, clear=True).create(venv_path)
+    except Exception as exc:  # noqa: BLE001 - diagnostics must preserve unexpected venv failures.
+        log_path = write_log(
+            state.log_dir,
+            f"{label}-create",
+            f"phase: {label}-create\ntimestamp: {utc_now()}\nerror: {exc!r}\n",
+        )
+        state.command_summary[f"{label}-create"] = {
+            "command": command,
+            "exit_code": 1,
+            "duration_seconds": round(time.monotonic() - started, 3),
+            "timed_out": False,
+            "log_path": relative_for_artifact(log_path),
+        }
+        return None
+    log_path = write_log(
+        state.log_dir,
+        f"{label}-create",
+        f"phase: {label}-create\ntimestamp: {utc_now()}\ncreated: {venv_path}\n",
+    )
+    state.command_summary[f"{label}-create"] = {
+        "command": command,
+        "exit_code": 0,
+        "duration_seconds": round(time.monotonic() - started, 3),
+        "timed_out": False,
+        "log_path": relative_for_artifact(log_path),
+    }
+    return venv_path
+
+
+def run_falkordblite_probes(state: SmokeState, work_dir: Path) -> None:
+    lite_ids = ("falkordblite-import", "falkordblite-basic-graph", "falkordblite-udf", "falkordblite-vector-fulltext")
+    if not VENDOR_FALKORDBLITE.is_dir():
+        log_path = write_log(
+            state.log_dir,
+            "falkordblite-source",
+            f"phase: falkordblite-source\ntimestamp: {utc_now()}\nmissing: {VENDOR_FALKORDBLITE}\n",
+        )
+        cascade_blocker(
+            state,
+            lite_ids,
+            "falkordblite-source-missing",
+            f"Vendor source path is missing: {VENDOR_FALKORDBLITE}",
+            "falkordblite-source",
+            log_path,
+        )
+        return
+    venv_path = create_probe_venv(state, work_dir, "falkordblite-venv")
+    if venv_path is None:
+        log_path = state.log_dir / "falkordblite-venv-create.log"
+        cascade_blocker(
+            state,
+            lite_ids,
+            "falkordblite-venv-create-failed",
+            "Could not create an isolated FalkorDBLite verification venv.",
+            "falkordblite-venv-create",
+            log_path,
+        )
+        return
+    install_result = run_command(
+        [str(venv_python(venv_path)), "-m", "pip", "install", str(VENDOR_FALKORDBLITE)],
+        min(state.timeout_seconds, 240),
+        state.log_dir,
+        "falkordblite-install",
+    )
+    state.command_summary["falkordblite-install"] = summarize_command(install_result)
+    state.package_metadata["falkordblite_source"] = str(VENDOR_FALKORDBLITE)
+    state.package_metadata["falkordblite_install_log"] = relative_for_artifact(install_result.log_path)
+    if install_result.exit_code != 0 or install_result.timed_out:
+        cascade_blocker(
+            state,
+            lite_ids,
+            command_root_cause(install_result, "falkordblite-install"),
+            command_detail(install_result),
+            "falkordblite-install",
+            install_result.log_path,
+        )
+        return
+    probe_path = work_dir / "falkordblite_probes.py"
+    write_falkordblite_probe_script(probe_path, uuid.uuid4().hex[:8])
+    result = run_command(
+        [str(venv_python(venv_path)), str(probe_path)],
+        min(state.timeout_seconds, 120),
+        state.log_dir,
+        "falkordblite-probes",
+    )
+    state.command_summary["falkordblite-probes"] = summarize_command(result)
+    if result.exit_code != 0 or result.timed_out:
+        cascade_blocker(
+            state,
+            lite_ids,
+            command_root_cause(result, "falkordblite-probes"),
+            command_detail(result),
+            "falkordblite-probes",
+            result.log_path,
+        )
+        return
+    try:
+        payload = cast("dict[str, object]", json.loads(result.stdout))
+    except json.JSONDecodeError as exc:
+        cascade_blocker(
+            state,
+            lite_ids,
+            "falkordblite-probes-malformed-json",
+            f"Probe output was not JSON: {exc}; output={result.stdout[:500]!r}",
+            "falkordblite-probes",
+            result.log_path,
+        )
+        return
+    metadata = cast("dict[str, object]", payload.get("metadata", {}))
+    state.package_metadata["falkordblite"] = metadata
+    blockers = falkordblite_binary_blockers(metadata)
+    if blockers:
+        detail = f"FalkorDBLite imported but embedded binary metadata is incomplete: {', '.join(blockers)}."
+        put_finding(
+            state,
+            "falkordblite-import",
+            "blocked-environment",
+            "falkordblite-probes",
+            result.log_path,
+            "falkordblite-missing-embedded-binaries",
+            detail,
+        )
+        cascade_blocker(
+            state,
+            ("falkordblite-basic-graph", "falkordblite-udf", "falkordblite-vector-fulltext"),
+            "falkordblite-missing-embedded-binaries",
+            detail,
+            "falkordblite-probes",
+            result.log_path,
+        )
+        return
+    probe_results = cast("dict[str, dict[str, str]]", payload.get("results", {}))
+    for capability_id in lite_ids:
+        probe = probe_results.get(capability_id)
+        if probe is None:
+            put_finding(
+                state,
+                capability_id,
+                "failed-runtime",
+                "falkordblite-probes",
+                result.log_path,
+                f"{capability_id}-missing-result",
+                "FalkorDBLite probe JSON omitted this capability.",
+            )
+            continue
+        status = cast("Status", probe.get("status", "failed-runtime"))
+        evidence_class = "confirmed" if status == "confirmed-runtime" else "smoke-needed"
+        put_finding(
+            state,
+            capability_id,
+            status,
+            "falkordblite-probes",
+            result.log_path,
+            probe.get("root_cause", f"{capability_id}-unknown"),
+            probe.get("detail", "FalkorDBLite probe returned no detail."),
+            evidence_class,
+        )
+
+
+def write_embedding_probe_script(path: Path, model_id: str) -> None:
+    code = f'''
+import importlib.util
+import json
+import os
+import time
+
+MODEL_ID = {model_id!r}
+packages = {{
+    "sentence_transformers": importlib.util.find_spec("sentence_transformers") is not None,
+    "torch": importlib.util.find_spec("torch") is not None,
+    "transformers": importlib.util.find_spec("transformers") is not None,
+}}
+cache = json.loads(os.environ["S04_EMBEDDING_CACHE_METADATA"])
+results = {{}}
+missing = [name for name, available in packages.items() if not available]
+if missing:
+    results["embedding-env"] = {{
+        "status": "blocked-environment",
+        "root_cause": "embedding-packages-missing",
+        "detail": f"Missing Python packages for local embedding smoke: {{missing!r}}; cache={{cache!r}}",
+    }}
+elif not cache.get("present"):
+    results["embedding-env"] = {{
+        "status": "blocked-environment",
+        "root_cause": "embedding-model-cache-missing",
+        "detail": f"Model cache for {{MODEL_ID}} is absent; mandatory checks do not download models. checked={{cache.get('checked')}}",
+    }}
+else:
+    results["embedding-env"] = {{
+        "status": "confirmed-runtime",
+        "root_cause": "embedding-env-ok",
+        "detail": f"Required packages importable and local Hugging Face cache found for {{MODEL_ID}}: {{cache!r}}",
+    }}
+
+if not packages.get("sentence_transformers") or not packages.get("torch"):
+    results["embedding-cpu-tiny"] = {{
+        "status": "blocked-environment",
+        "root_cause": "embedding-packages-missing",
+        "detail": "Optional tiny CPU encode skipped because sentence-transformers/torch are not importable.",
+    }}
+elif not cache.get("present"):
+    results["embedding-cpu-tiny"] = {{
+        "status": "bounded-not-product-proven",
+        "root_cause": "embedding-model-cache-missing-no-download",
+        "detail": f"Optional tiny CPU encode skipped to avoid downloading {{MODEL_ID}}; embedding suitability remains unresolved.",
+    }}
+else:
+    os.environ["HF_HUB_OFFLINE"] = "1"
+    os.environ["TRANSFORMERS_OFFLINE"] = "1"
+    started = time.monotonic()
+    try:
+        from sentence_transformers import SentenceTransformer
+        try:
+            model = SentenceTransformer(MODEL_ID, device="cpu", local_files_only=True)
+        except TypeError:
+            model = SentenceTransformer(MODEL_ID, device="cpu")
+        vector = model.encode(["synthetic legal graph smoke"], normalize_embeddings=True)
+        shape = getattr(vector, "shape", None)
+        results["embedding-cpu-tiny"] = {{
+            "status": "bounded-not-product-proven",
+            "root_cause": "embedding-cpu-tiny-ok",
+            "detail": f"Local CPU encode completed in {{time.monotonic() - started:.3f}}s with shape={{shape!r}}; this is not product throughput proof.",
+        }}
+    except Exception as exc:
+        results["embedding-cpu-tiny"] = {{
+            "status": "failed-runtime",
+            "root_cause": "embedding-cpu-tiny-exception",
+            "detail": repr(exc),
+        }}
+
+print(json.dumps({{"packages": packages, "cache": cache, "results": results}}, sort_keys=True))
+'''
+    path.write_text(textwrap.dedent(code).strip() + "\n", encoding="utf-8")
+
+
+def run_embedding_probes(state: SmokeState, work_dir: Path) -> None:
+    cache_metadata = embedding_model_cache_metadata(EMBEDDING_MODEL_ID)
+    resources = local_resource_metadata()
+    state.package_metadata["embedding"] = {"model_cache": cache_metadata, "resources": resources}
+    probe_path = work_dir / "embedding_probes.py"
+    write_embedding_probe_script(probe_path, EMBEDDING_MODEL_ID)
+    env = os.environ.copy()
+    env.update(
+        {
+            "S04_EMBEDDING_CACHE_METADATA": json.dumps(cache_metadata, sort_keys=True),
+            "HF_HUB_OFFLINE": "1",
+            "TRANSFORMERS_OFFLINE": "1",
+        }
+    )
+    started = time.monotonic()
+    try:
+        completed = subprocess.run(
+            [sys.executable, str(probe_path)],
+            check=False,
+            capture_output=True,
+            text=True,
+            timeout=min(state.timeout_seconds, 90),
+            env=env,
+        )
+        duration = time.monotonic() - started
+        result = CommandResult(
+            [sys.executable, str(probe_path)],
+            completed.returncode,
+            False,
+            duration,
+            completed.stdout,
+            completed.stderr,
+            write_log(
+                state.log_dir,
+                "embedding-probes",
+                "\n".join(
+                    [
+                        "phase: embedding-probes",
+                        f"timestamp: {utc_now()}",
+                        f"command: {json.dumps([sys.executable, str(probe_path)])}",
+                        f"duration_seconds: {duration:.3f}",
+                        f"exit_code: {completed.returncode}",
+                        "timed_out: False",
+                        f"resource_metadata: {json.dumps(resources, sort_keys=True)}",
+                        "--- stdout ---",
+                        completed.stdout,
+                        "--- stderr ---",
+                        completed.stderr,
+                    ]
+                ),
+            ),
+        )
+    except subprocess.TimeoutExpired as exc:
+        duration = time.monotonic() - started
+        result = CommandResult(
+            [sys.executable, str(probe_path)],
+            None,
+            True,
+            duration,
+            exc.stdout if isinstance(exc.stdout, str) else "",
+            f"{exc.stderr if isinstance(exc.stderr, str) else ''}\nTIMEOUT after {min(state.timeout_seconds, 90)}s".strip(),
+            write_log(state.log_dir, "embedding-probes", f"phase: embedding-probes\ntimestamp: {utc_now()}\nTIMEOUT\n"),
+        )
+    state.command_summary["embedding-probes"] = summarize_command(result)
+    if result.exit_code != 0 or result.timed_out:
+        cascade_blocker(
+            state,
+            ("embedding-env", "embedding-cpu-tiny"),
+            command_root_cause(result, "embedding-probes"),
+            command_detail(result),
+            "embedding-probes",
+            result.log_path,
+        )
+        return
+    try:
+        payload = cast("dict[str, object]", json.loads(result.stdout))
+    except json.JSONDecodeError as exc:
+        cascade_blocker(
+            state,
+            ("embedding-env", "embedding-cpu-tiny"),
+            "embedding-probes-malformed-json",
+            f"Embedding probe output was not JSON: {exc}; output={result.stdout[:500]!r}",
+            "embedding-probes",
+            result.log_path,
+        )
+        return
+    embedding_metadata = cast("dict[str, object]", state.package_metadata["embedding"])
+    embedding_metadata.update(
+        {
+            "packages": payload.get("packages", {}),
+            "cache": payload.get("cache", {}),
+        }
+    )
+    probe_results = cast("dict[str, dict[str, str]]", payload.get("results", {}))
+    for capability_id in ("embedding-env", "embedding-cpu-tiny"):
+        probe = probe_results.get(capability_id)
+        if probe is None:
+            put_finding(
+                state,
+                capability_id,
+                "failed-runtime",
+                "embedding-probes",
+                result.log_path,
+                f"{capability_id}-missing-result",
+                "Embedding probe JSON omitted this capability.",
+            )
+            continue
+        status = cast("Status", probe.get("status", "failed-runtime"))
+        evidence_class = "confirmed" if status == "confirmed-runtime" else "smoke-needed"
+        if status == "bounded-not-product-proven":
+            evidence_class = "out-of-scope"
+        put_finding(
+            state,
+            capability_id,
+            status,
+            "embedding-probes",
+            result.log_path,
+            probe.get("root_cause", f"{capability_id}-unknown"),
+            probe.get("detail", "Embedding probe returned no detail."),
+            evidence_class,
+        )
+
+
 def cleanup_container(state: SmokeState) -> None:
     for index, command in enumerate(planned_cleanup_commands(state.container_name)):
         result = run_command(command, 30, state.log_dir, f"cleanup-{index + 1}")
@@ -860,6 +1426,7 @@ def write_markdown_artifact(state: SmokeState, json_path: Path) -> Path:
         lines.append(
             f"| {phase} | `{command}` | {summary.get('duration_seconds', 'N/A')} | {summary.get('exit_code', 'N/A')} | {summary.get('timed_out', 'N/A')} | `{summary.get('log_path', 'N/A')}` |"
         )
+    embedding_metadata = cast("dict[str, object]", state.package_metadata.get("embedding", {}))
     lines.extend(
         [
             "",
@@ -870,9 +1437,9 @@ def write_markdown_artifact(state: SmokeState, json_path: Path) -> Path:
             f"| Docker daemon | {state.findings['docker-daemon'].status} |",
             f"| FalkorDB image | {json.dumps(state.image_metadata, sort_keys=True)} |",
             f"| FalkorDB package | {json.dumps(state.package_metadata.get('falkordb_py_source', 'not-installed'))} |",
-            "| FalkorDBLite package | not exercised by this Docker FalkorDB harness |",
-            "| sentence-transformers / torch packages | not exercised by this Docker FalkorDB harness |",
-            "| Embedding model cache | not exercised by this Docker FalkorDB harness |",
+            f"| FalkorDBLite package | {json.dumps(state.package_metadata.get('falkordblite', state.package_metadata.get('falkordblite_source', 'not-installed')), sort_keys=True)} |",
+            f"| sentence-transformers / torch packages | {json.dumps(embedding_metadata.get('packages', 'not-checked'), sort_keys=True)} |",
+            f"| Embedding model cache | {json.dumps(embedding_metadata.get('model_cache', 'not-checked'), sort_keys=True)} |",
             f"| JSON artifact | `{relative_for_artifact(json_path)}` |",
             "",
             "## Cleanup Status",
@@ -918,6 +1485,8 @@ def run_smoke(output_dir: Path, timeout_seconds: int) -> SmokeState:
     with tempfile.TemporaryDirectory(prefix="s04-falkordb-smoke-") as temp_name:
         temp_parent = Path(temp_name)
         try:
+            run_falkordblite_probes(state, temp_parent)
+            run_embedding_probes(state, temp_parent)
             if ensure_docker(state) and ensure_image(state):
                 venv_path = create_venv(state, temp_parent)
                 if venv_path is not None and install_client(state, venv_path) and start_container(state):

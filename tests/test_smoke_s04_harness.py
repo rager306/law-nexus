@@ -96,6 +96,33 @@ def test_mark_out_of_harness_capabilities_are_terminal(tmp_path: Path) -> None:
         assert finding.diagnostics["root_cause"] == "outside-docker-falkordb-harness"
 
 
+def test_falkordblite_binary_blockers_distinguish_missing_binary_metadata() -> None:
+    harness = load_harness()
+
+    assert harness.falkordblite_binary_blockers({"redis_executable": "/tmp/redis", "falkordb_module": "/tmp/falkordb.so"}) == []
+    assert harness.falkordblite_binary_blockers({"redis_executable": "", "falkordb_module": "/tmp/falkordb.so"}) == [
+        "missing-redis-server-binary"
+    ]
+    assert harness.falkordblite_binary_blockers({"redis_executable": "/tmp/redis", "falkordb_module": ""}) == [
+        "missing-falkordb-module"
+    ]
+
+
+def test_embedding_model_cache_metadata_handles_absent_and_present_cache(tmp_path: Path) -> None:
+    harness = load_harness()
+
+    absent = harness.embedding_model_cache_metadata("deepvk/USER-bge-m3", [tmp_path / "empty"])
+    assert absent["present"] is False
+    assert "models--deepvk--USER-bge-m3" in absent["checked"][0]
+
+    model_dir = tmp_path / "hub" / "models--deepvk--USER-bge-m3" / "snapshots" / "abc123"
+    model_dir.mkdir(parents=True)
+    present = harness.embedding_model_cache_metadata("deepvk/USER-bge-m3", [tmp_path / "hub"])
+    assert present["present"] is True
+    assert present["snapshot_count"] == 1
+    assert present["snapshots"] == ["abc123"]
+
+
 def test_json_and_markdown_artifacts_include_runtime_diagnostics(tmp_path: Path) -> None:
     harness = load_harness()
     state = harness.create_state(tmp_path, 10)
@@ -124,6 +151,8 @@ def test_json_and_markdown_artifacts_include_runtime_diagnostics(tmp_path: Path)
     markdown_path = harness.write_markdown_artifact(state, json_path)
 
     payload = json_path.read_text(encoding="utf-8")
+    assert '"id": "docker-daemon"' in payload
+    assert '"runtime_evidence":' in payload
     assert '"phase": "runtime-results"' in payload
     assert '"status": "blocked-environment"' in payload
     assert '"root_cause": "docker-daemon-exit-1"' in payload

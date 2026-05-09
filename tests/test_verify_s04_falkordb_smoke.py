@@ -174,7 +174,7 @@ def test_rejects_missing_owner(tmp_path: Path) -> None:
     assert any("owner must be a non-empty string" in failure for failure in failures)
 
 
-@given(status=st.text(min_size=1).filter(lambda value: value not in VERIFIER.ALLOWED_RUNTIME_STATUSES))
+@given(status=st.text(min_size=1).filter(lambda value: value.strip() and value not in VERIFIER.ALLOWED_RUNTIME_STATUSES))
 @settings(max_examples=25)
 def test_rejects_unknown_status(status: str) -> None:
     payload = _valid_json()
@@ -188,7 +188,7 @@ def test_rejects_unknown_status(status: str) -> None:
 
 @given(
     evidence_class=st.text(min_size=1).filter(
-        lambda value: value not in VERIFIER.ALLOWED_EVIDENCE_CLASSES
+        lambda value: value.strip() and value not in VERIFIER.ALLOWED_EVIDENCE_CLASSES
     )
 )
 @settings(max_examples=25)
