@@ -229,6 +229,18 @@ flowchart LR
     R -->|unknown| W[Include with warning]
 ```
 
+## 3b. Candidate Temporal Versioning Improvements Requiring Validation
+
+The following temporal-model ideas are valuable but are **not yet confirmed implementation requirements**. They must be researched and validated during the architecture review and later proof slices before becoming product commitments:
+
+| Candidate idea | Why it may matter | Validation owner / proof needed |
+|---|---|---|
+| Act editions as aggregations rather than full document snapshots | A new `ActEdition` could reference updated legal units while reusing unchanged units, reducing duplication and improving historical traceability. | S07/S08 should classify the PRD impact; a later implementation milestone must prove stable IDs, import idempotency, and query simplicity. |
+| Action nodes for amendments, repeal, publication, entry into force, and expiration | Change events would make temporal reasoning explainable: why a norm changed, which act changed it, and when it became effective. | S07/S08 should add this to architecture findings; later parser/import work must prove event extraction and evidence links. |
+| Source provenance classes | The graph should distinguish official publication, open reconstructed corpus, commercial consolidated version, legacy prior art, and generated summaries. | S05/S07/S08 should verify source classes against real ODT evidence, PRD consistency, and future source strategy. |
+
+These ideas preserve the existing temporal-first direction, but they must not be treated as proven behavior until source/parser/runtime evidence exists.
+
 ## 4. Evidence Layer
 
 Evidence layer нужен для grounding.
@@ -418,6 +430,19 @@ flowchart TD
     TOP --> EV[Evidence verification]
     EV --> CTX[Citation-safe context]
 ```
+
+## 9b. Retrieval and Answering Improvements Requiring Validation
+
+The following retrieval and answering improvements are strong candidates for the target architecture, but they require source/runtime evaluation before they become firm implementation requirements:
+
+| Candidate idea | Why it may matter | Validation owner / proof needed |
+|---|---|---|
+| Document-level and temporal pre-filter before BM25/vector search | Legal queries should first resolve the act, edition/date, and citation scope so retrieval does not mix same-number documents, stale editions, or irrelevant chapters. | S04/S07/S08 should verify the query-flow requirement; later Legal Nexus work must prove routing accuracy. |
+| Clause/legal-unit chunking instead of sliding windows | Citation-safe retrieval depends on chunks aligned to legal units and EvidenceSpan, not arbitrary character windows that can cut conditions, exceptions, or temporal markers. | S05 must verify real ODT legal-unit boundaries; S07/S08 should classify PRD changes. |
+| Evidence Auditor after optional LLM composition | Any LLM-produced wording should be checked back against EvidenceSpan, SourceBlock, ActEdition, temporal status, and citation labels before it is accepted. | S04/S07/S08 should specify verification behavior; later implementation must prove claim-to-evidence checks. |
+| Deterministic fast-paths for citation/date/amount/deadline queries | Many legal questions can be answered through structured lookup or UDFs without LLM composition, reducing latency, cost, and hallucination risk. | S07/S08 should route this into future Legal KnowQL/Nexus planning; implementation must measure coverage and no-answer behavior. |
+
+These candidates must remain subordinate to evidence verification: retrieval candidates and LLM drafts are not legal authority.
 
 ## 10. LLM Control Policy
 

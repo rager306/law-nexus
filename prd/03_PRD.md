@@ -702,6 +702,20 @@ orphan_chunk_rate
 temporal_filter_accuracy
 ```
 
+## FR-30b. Candidate architecture checks requiring research
+
+Следующие идеи считаются ценными кандидатами для LegalGraph Nexus, но до дополнительного исследования и проверки не являются подтвержденными MVP-требованиями:
+
+| Candidate | Expected value | Required research / verification |
+|---|---|---|
+| Версии закона как aggregation, а не полные document snapshots | Снизить дублирование редакций и сохранить историю изменений на уровне legal units. | Проверить модель стабильных ID, idempotent import, query complexity и совместимость с `ActEdition`. |
+| Action nodes для поправок, отмен, публикации, вступления в силу и прекращения действия | Сделать temporal reasoning объяснимым и доказуемым через события изменения права. | Проверить, можно ли извлекать события из доступных источников и связывать их с EvidenceSpan/SourceBlock. |
+| Document-level + temporal pre-filter до vector/BM25 поиска | Предотвратить смешение одноименных актов, разных лет, редакций и нерелевантных частей документа. | Проверить routing accuracy на тестовом наборе запросов и определить fallback для неоднозначных запросов. |
+| Clause/legal-unit chunking вместо sliding windows | Сохранить юридический смысл, условия, исключения, даты и citation labels внутри evidence-safe chunks. | S05 должен проверить реальные границы legal units в `44-fz.odt`; затем нужно измерить orphan/overlap/error rates. |
+| Evidence Auditor после LLM | Не принимать LLM-формулировку, если ее claims не проходят проверку against EvidenceSpan, SourceBlock, ActEdition and temporal status. | Спроектировать claim-to-evidence checks и негативные тесты на hallucinated citations. |
+| Fast-paths для citation/date/amount/deadline запросов | Уменьшить latency/cost и повысить детерминированность для структурных юридических вопросов. | Оценить покрытие запросов, no-answer behavior и точность deterministic UDF/KnowQL lookup. |
+| Source provenance classes для official/open/commercial/legacy источников | Не смешивать официальные публикации, открытые реконструированные корпуса, коммерческие консолидированные редакции, legacy prior art и generated summaries. | S07/S08 должны классифицировать PRD/source strategy; future ingestion должен хранить source class and confidence. |
+
 ## FR-31. Quality report
 
 Система должна генерировать отчет:
@@ -881,6 +895,16 @@ MVP считается успешным, если:
 15. LLM не используется для structural lookup, citation resolution и evidence verification.
 
 ## 13. Roadmap
+
+The roadmap below remains directional. The following candidate checks must be researched before they are promoted into implementation scope:
+
+- Temporal model check: compare full `ActEdition` snapshots with aggregation-based editions that reuse unchanged legal units.
+- Legal event graph check: evaluate `Action` nodes for amendments, repeal, publication, entry into force, expiration, and correction.
+- Retrieval routing check: validate document-level and temporal pre-filters before BM25/vector search.
+- Chunking check: verify clause/legal-unit chunking against the real ODT source and reject sliding-window chunking where it breaks legal meaning.
+- Evidence Auditor check: design post-LLM claim verification against EvidenceSpan, SourceBlock, ActEdition, temporal status, and citation labels.
+- Fast-path check: estimate deterministic coverage for citation/date/amount/deadline queries before invoking LLM composition.
+- Source provenance check: classify official/open/commercial/legacy/generated sources and define confidence rules for each class.
 
 ```mermaid
 gantt
