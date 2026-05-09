@@ -1,0 +1,730 @@
+# Russian Legislation Hierarchy and Document Classification
+# Phase 0 - Constitution Amendment for Legal Document Processing
+# Version: 5.1.0 | 2025-12-30
+#
+# This file contains COMMON requirements only.
+# See registers/ for document registries.
+# See structures/ for specific law structures.
+
+# =============================================================================
+# 1. LEGISLATION HIERARCHY (Complete 14-Level System)
+# Hierarchy: higher number = lower authority (must not contradict higher)
+# =============================================================================
+legislation_hierarchy:
+  federal:
+    - level: 1
+      name: "Конституция РФ"
+      full_name: "Конституция Российской Федерации"
+      priority: 1
+      scope: "federal"
+      notes: "Highest legal force, all other acts must conform"
+
+    - level: 2
+      name: "ФКЗ"
+      full_name: "Федеральный конституционный закон"
+      priority: 2
+      scope: "federal"
+      notes: "Amends Конституция, requires 3/4 regional parliaments"
+
+    - level: 3
+      name: "ФЗ"
+      full_name: "Федеральный закон"
+      priority: 3
+      scope: "federal"
+      notes: "Primary legislative act"
+
+    - level: 4
+      name: "Указ Президента РФ"
+      full_name: "Указ Президента Российской Федерации"
+      priority: 4
+      scope: "federal"
+      notes: "Executive orders"
+
+    - level: 5
+      name: "Постановление Правительства РФ"
+      full_name: "Постановление Правительства Российской Федерации"
+      priority: 5
+      scope: "federal"
+      notes: "Regulatory acts of the Cabinet"
+
+    - level: 6
+      name: "Приказ федерального органа"
+      full_name: "Приказ федерального органа исполнительной власти"
+      priority: 6
+      scope: "federal"
+      notes: "Ministerial orders - may be non-binding if not published/registered"
+
+    - level: 7
+      name: "Письмо федерального органа"
+      full_name: "Письмо (разъяснение, информация)"
+      priority: 7
+      scope: "federal"
+      notes: "Clarifications - NOT normative acts per ПП РФ № 1009"
+
+  regional:
+    - level: 8
+      name: "Устав субъекта РФ"
+      full_name: "Устав (конституция) субъекта Российской Федерации"
+      priority: 8
+      scope: "regional"
+      notes: "Basic regional law"
+
+    - level: 9
+      name: "Закон субъекта РФ"
+      full_name: "Закон субъекта Российской Федерации"
+      priority: 9
+      scope: "regional"
+      notes: "Regional legislative acts"
+
+    - level: 10
+      name: "Приказ регионального органа"
+      full_name: "Приказ регионального органа исполнительной власти"
+      priority: 10
+      scope: "regional"
+      notes: "Regional ministerial orders - may be non-binding"
+
+  municipal:
+    - level: 11
+      name: "Устав муниципального образования"
+      full_name: "Устав муниципального образования"
+      priority: 11
+      scope: "municipal"
+      notes: "Municipal charter"
+
+    - level: 12
+      name: "Муниципальный правовой акт"
+      full_name: "Муниципальный нормативный правовой акт"
+      priority: 12
+      scope: "municipal"
+      notes: "Council/administration acts"
+
+    - level: 13
+      name: "Приказ муниципального органа"
+      full_name: "Приказ муниципального органа исполнительной власти"
+      priority: 13
+      scope: "municipal"
+      notes: "Municipal executive orders - may be non-binding if not published"
+
+  institution:
+    - level: 14
+      name: "Локальный нормативный акт"
+      full_name: "Локальный нормативный акт организации"
+      priority: 14
+      scope: "institutional"
+      notes: "Internal organization documents"
+
+# =============================================================================
+# 2. ENTRY INTO FORCE PROCEDURES (Порядок вступления в силу)
+# Key sources: ФЗ № 5-ФЗ, Указ Президента РФ № 763, Постановление Правительства РФ № 1009
+# =============================================================================
+entry_into_force:
+  federal_laws:
+    description: "Федеральные законы"
+    source: "Федеральный закон от 14.06.1994 № 5-ФЗ, ст. 6"
+    publication_required: true
+    publication_sources:
+      - "pravo.gov.ru (официальный портал)"
+      - "Российская газета"
+      - "Собрание законодательства РФ"
+    default_timing: "10 дней после официального опубликования"
+    exceptions: "Закон может установить иной порядок вступления"
+    validity_conditions:
+      - "Официальное опубликование на pravo.gov.ru"
+      - "Соответствие Конституции РФ"
+      - "Соблюдение процедуры принятия"
+    non_binding_reasons: []  # Законы всегда обязательны после публикации
+
+  presidential_decrees:
+    description: "Указы Президента РФ"
+    source: "Указ Президента РФ от 23.05.1996 № 763"
+    publication_required: true
+    publication_sources:
+      - "pravo.gov.ru (официальный портал)"
+      - "Собрание законодательства РФ"
+    default_timing: "С момента публикации или указанной даты"
+    validity_conditions:
+      - "Официальное опубликование"
+      - "Не противоречит Конституции и федеральным законам"
+    non_binding_reasons:
+      - "Не опубликован официально"
+      - "Противоречит вышестоящим актам (может быть отменён)"
+
+  government_resolutions:
+    description: "Постановления Правительства РФ"
+    source: "Указ Президента РФ от 23.05.1996 № 763"
+    publication_required: true
+    publication_sources:
+      - "pravo.gov.ru"
+      - "Российская газета"
+      - "Собрание законодательства РФ"
+    default_timing: "С момента публикации или указанной даты"
+    validity_conditions:
+      - "Официальное публикация"
+      - "Издан во исполнение федеральных законов"
+      - "Не противоречит указам Президента"
+    non_binding_reasons:
+      - "Не опубликован"
+      - "Противоречит вышестоящим актам"
+
+  ministerial_orders:
+    description: "Приказы федеральных органов исполнительной власти"
+    source: "Постановление Правительства РФ от 13.08.1997 № 1009"
+    publication_required: true
+    publication_sources:
+      - "pravo.gov.ru"
+      - "Официальный сайт органа"
+    registration_required: true
+    registration_authority: "Минюст России"
+    default_timing: "После публикации или указанной даты"
+    validity_conditions:
+      - "Официальная публикация"
+      - "Государственная регистрация в Минюсте (для нормативных)"
+      - "Не противоречит вышестоящим актам"
+    non_binding_reasons:
+      - "НЕ ОПУБЛИКОВАН официально"
+      - "НЕ ЗАРЕГИСТРИРОВАН в Минюсте (для нормативных актов)"
+      - "Минюст отказал в регистрации"
+      - "Противоречит вышестоящим актам"
+      - "Акт внутриведомственного характера (рекомендательный)"
+    registration_exceptions:
+      description: "Акты, НЕ подлежащие государственной регистрации (п. 13 ПП РФ № 1009)"
+      types:
+        - "Акты индивидуального характера (назначения, поощрения, взыскания)"
+        - "Акты однократного применения"
+        - "Акты с истёкшим сроком действия"
+        - "Оперативно-распорядительные акты (разовые поручения)"
+        - "Акты, доводящие решения вышестоящих органов"
+        - "Акты, организующие исполнение без новых норм"
+
+  letters:
+    description: "Письма и разъяснения"
+    source: "Постановление Правительства РФ № 1009"
+    publication_required: false
+    registration_required: false
+    default_timing: "С момента подписания"
+    validity_conditions: []
+    non_binding_reasons:
+      - "НЕ ЯВЛЯЮТСЯ нормативными актами по определению"
+      - "Носят информационный/разъяснительный характер"
+      - "Могут иметь 'нормативные свойства' по КС РФ, но не обязательны"
+    normative_properties_note: "Письма Минюста и ФАС могут иметь нормативные свойства, но формально не являются НПА"
+
+# =============================================================================
+# 2A. SECRET AND RESTRICTED ACTS (Секретные акты и ДСП)
+# =============================================================================
+secret_and_restricted_acts:
+  description: "Секретные и служебные акты не подлежат обязательной публикации, но имеют юридическую силу"
+
+  legal_basis:
+    - "Федеральный закон от 21.07.1993 № 5485-1 'О государственной тайне' (с изменениями)"
+    - "Указ Президента РФ от 30.11.1995 № 1203 'Об утверждении Перечня сведений, отнесённых к государственной тайне'"
+    - "Постановление Правительства РФ от 04.09.1995 № 870 'Об утверждении Правил отнесения сведений к различным степеням секретности'"
+    - "Постановление Правительства РФ от 03.11.1994 № 1233 'Об утверждении Положения о порядке обращения со служебной информацией ограниченного распространения'"
+    - "Указ Президента РФ от 23.09.2005 № 188 'Об утверждении перечня сведений конфиденциального характера'"
+    - "ГОСТ Р 51141-98 'Делопроизводство и архивное дело. Термины и определения'"
+
+  secrecy_levels:
+    - level: "особой важности"
+      russian: "Особой важности"
+      marking: "Особой важности"
+      access: "Лица, допущенные к сведениям особой важности"
+      description: "Сведения особой важности - разглашение которых нанесёт особо серьёзный ущерб интересам РФ"
+
+    - level: "secret"
+      russian: "Секретно"
+      marking: "Секретно"
+      access: "Лица, допущенные к секретным сведениям"
+      description: "Секретные сведения - разглашение которых нанесёт серьёзный ущерб интересам РФ"
+
+    - level: "top_secret"
+      russian: "Совершенно секретно"
+      marking: "Совершенно секретно"
+      access: "Лица, допущенные к совершенно секретным сведениям"
+      description: "Совершенно секретные сведения - разглашение которых нанесёт серьёзный ущерб интересам РФ"
+
+    - level: "dsp"
+      russian: "Для служебного пользования"
+      marking: "ДСП"
+      full_marking: "Для служебного пользования"
+      access: "Органы государственной власти, ограниченный круг должностных лиц"
+      description: "Служебная информация ограниченного распространения - не для публикации, но не секретно"
+
+  secrecy_markers:
+    # Грифы секретности
+    secrecy_markers:
+      - "Особой важности"
+      - "Секретно"
+      - "Совершенно секретно"
+      - "Секретная информация"
+      - "Не для печати"
+      - "Не подлежит опубликованию"
+
+    # Грифы ограниченного распространения
+    restricted_markers:
+      - "Для служебного пользования"
+      - "ДСП"
+      - "Служебное пользование"
+      - "Для служебного пользования"
+      - "Ограниченное распространение"
+      - "Не для распространения"
+      - "Не для копирования"
+
+    # Классификационные признаки
+    classification_indicators:
+      - "Отнесено к государственной тайне"
+      - "Решение о засекречивании"
+      - "Гриф секретности"
+      - "Снято с секретности"
+      - "Рассекречено"
+      - "Снять гриф"
+
+  dsp_characteristics:
+    description: "ДСП - информация ограниченного распространения, не составляющая гостайну"
+    sources:
+      - "Постановление Правительства РФ № 1233"
+      - "Приказ ФСТЭК России от 18.02.2013 № 21"
+    marking_requirements:
+      - "В правом верхнем углу первого листа документа"
+      - "На обороте последнего листа"
+      - "При наличии нескольких листов - на каждом"
+    access_rules:
+      - "Только для служебного пользования"
+      - "Не подлежит публикации в открытых источниках"
+      - "Ознакомление только в служебных целях"
+
+  secret_act_procedures:
+    entry_into_force:
+      description: "Секретные акты вступают в силу без публикации"
+      conditions:
+        - "Подписан уполномоченным лицом"
+        - "Наложен гриф секретности"
+        - "Оформлен в установленном порядке"
+        - "Доведён до сведения лиц, которым адресован"
+      binding_scope: "Обязательны для лиц, имеющих допуск и ознакомленных с актом"
+      non_public_note: "Не публикуются на pravo.gov.ru, в РГ, СЗ РФ"
+
+    dsp_entry_into_force:
+      description: "ДСП акты вступают в силу без открытой публикации"
+      conditions:
+        - "Наложен гриф 'Для служебного пользования'"
+        - "Доведён до сведения адресатов в установленном порядке"
+      binding_scope: "Обязательны для адресатов в рамках их компетенции"
+      limitations:
+        - "Не подлежат обязательному исполнению третьими лицами"
+        - "Не могут быть основанием для регулирования прав граждан"
+
+  detection_and_classification:
+    secrecy_detection:
+      markers:
+        - "Гриф в верхней части документа"
+        - "Отметка 'ДСП' или 'Для служебного пользования'"
+        - "Маркировка 'Секретно', 'Особой важности'"
+      action: "При обнаружении грифа - классифицировать как restricted_access"
+
+    access_validation:
+      - verify: "is_classified"
+        description: "Проверить наличие грифа секретности"
+      - verify: "has_valid_basis"
+        description: "Убедиться в наличии законных оснований для классификации"
+      - verify: "access_authorized"
+        description: "Проверить наличие допуска у обрабатывающего лица"
+
+    metadata_enrichment:
+      - field: "secrecy_level"
+        values: ["public", "dsp", "secret", "top_secret", "special_importance"]
+      - field: "classification_date"
+        type: "date"
+      - field: "declassification_date"
+        type: "date"
+      - field: "access_restriction_reason"
+        type: "string"
+
+  implications_for_parser:
+    note: "Акты с грифом 'ДСП' или секретным грифом НЕ путать с неопубликованными актами"
+    differences:
+      - secret_act: "Имеет юридическую силу, но НЕ подлежит публикации по закону"
+      - non_published_act: "Должен был быть опубликован, но не был - может быть признан недействительным"
+    processing_rules:
+      - "Не отклонять документы с грифом 'ДСП' - они валидны для адресатов"
+      - "Отмечать 'is_published: false' для ДСП/секретных актов"
+      - "Устанавливать 'validity_status: valid' при наличии грифа и подписи"
+
+  legal_force_summary:
+    secret_acts:
+      binding: true
+      publication: false
+      scope: "Лица с допуском"
+      source: "ФЗ № 5485-1, Указ № 1203"
+    dsp_acts:
+      binding: true
+      publication: false
+      scope: "Адресаты документа"
+      source: "ПП РФ № 1233"
+    public_acts:
+      binding: true
+      publication: true
+      scope: "Всеобщее применение"
+      source: "ФЗ № 5-ФЗ, Указ № 763"
+
+# =============================================================================
+# 3. VALIDITY STATUSES (Статусы действительности)
+# =============================================================================
+validity_statuses:
+  - name: "valid"
+    russian: "Действующий"
+    description: "Акт вступил в силу, обязателен к исполнению"
+    conditions:
+      - "Опубликован официально"
+      - "Зарегистрирован (если требуется)"
+      - "Не противоречит вышестоящим актам"
+      - "Не утратил силу"
+
+  - name: "pending"
+    russian: "Не вступил в силу"
+    description: "Акт принят, но ещё не вступил в силу"
+    conditions:
+      - "Определена дата вступления в силу в будущем"
+      - "Установлен отложенный срок"
+
+  - name: "expired"
+    russian: "Утратил силу"
+    description: "Акт или его положения утратили силу"
+    conditions:
+      - "Истёк срок действия"
+      - "Принят новый акт, отменяющий старый"
+      - "Есть прямое указание об утрате силы"
+    markers:
+      - "утратило силу"
+      - "утратил силу"
+      - "признан утратившим силу"
+      - "не применяется"
+
+  - name: "non_binding"
+    russian: "Не обязателен к исполнению"
+    description: "Акт не прошёл процедуру вступления в силу"
+    conditions:
+      - "НЕ опубликован"
+      - "НЕ зарегистрирован в Минюсте (для нормативных)"
+      - "Ведомственный характер без обязательности"
+    examples:
+      - "Внутренние инструкции без публикации"
+      - "Незарегистрированные приказы"
+      - "Письма без нормативных свойств"
+
+  - name: "invalid"
+    russian: "Недействителен"
+    description: "Акт отменён или признан недействительным"
+    conditions:
+      - "Признан противоречащим Конституции"
+      - "Отменён вышестоящим органом"
+      - "Судом признан недействующим"
+
+  - name: "restricted"
+    russian: "Ограниченный доступ"
+    description: "Акт имеет гриф секретности или ДСП - не публикуется, но обязателен для адресатов"
+    conditions:
+      - "Имеет гриф 'Секретно', 'Совершенно секретно', 'Особой важности'"
+      - "Имеет гриф 'Для служебного пользования' (ДСП)"
+      - "Оформлен в установленном порядке"
+      - "Доведён до сведения адресатов"
+    sources:
+      - "ФЗ № 5485-1 'О государственной тайне'"
+      - "ПП РФ № 1233 'О служебной информации ограниченного распространения'"
+
+# =============================================================================
+# 4. DOCUMENT TYPE CLASSIFICATION
+# =============================================================================
+document_classification:
+  categories:
+    - name: "normative_act"
+      russian: "Нормативный правовой акт"
+      description: "Устанавливает, изменяет или отменяет правовые нормы"
+      detection_required: true
+
+    - name: "individual_act"
+      russian: "Индивидуальный правовой акт"
+      description: "Решает конкретный случай, не устанавливает общих правил"
+      detection_required: true
+
+    - name: "normative_properties"
+      russian: "Акт с нормативными свойствами"
+      description: "Письма/разъяснения с общими правилами (КС РФ)"
+      detection_required: true
+
+    - name: "clarification"
+      russian: "Разъяснение"
+      description: "Пояснение существующих норм без новых правил"
+      detection_required: true
+
+    - name: "information"
+      russian: "Информационный документ"
+      description: "Информация, не содержит правовых норм"
+      detection_required: true
+
+    - name: "local_act"
+      russian: "Локальный акт организации"
+      description: "Внутренний документ организации"
+      detection_required: true
+
+    - name: "non_binding"
+      russian: "Необязательный акт"
+      description: "Акт не прошедший публикацию/регистрацию"
+      detection_required: true
+
+# =============================================================================
+# 5. NORMATIVE ACT CHARACTERISTICS (Признаки нормативности)
+# =============================================================================
+normativity_criteria:
+  primary:
+    - name: "authorized_issuance"
+      russian: "Издание в установленном порядке"
+      description: "Принят уполномоченным органом в рамках компетенции"
+      required: true
+      weight: 1.0
+
+    - name: "behavioral_rules"
+      russian: "Правила поведения для неопределённого круга лиц"
+      description: "Содержит общие правила поведения"
+      required: true
+      weight: 1.0
+
+    - name: "repeated_application"
+      russian: "Расчёт на неоднократное применение"
+      description: "Предназначен для многократного применения"
+      required: true
+      weight: 1.0
+
+    - name: "legal_regulation"
+      russian: "Направленность на урегулирование правовых отношений"
+      description: "Регулирует правовые отношения"
+      required: true
+      weight: 1.0
+
+  negative:
+    - name: "letter_format"
+      russian: "Форма письма"
+      is_negative: true
+      severity: "critical"
+      note: "Нормативные акты НЕ могут издаваться в виде писем (ПП РФ № 1009)"
+
+    - name: "single_addressee"
+      russian: "Единственный адресат"
+      is_negative: true
+      severity: "high"
+
+    - name: "specific_case"
+      russian: "Конкретный случай"
+      is_negative: true
+      severity: "high"
+
+# =============================================================================
+# 6. DETECTION ATTRIBUTES
+# =============================================================================
+detection_attributes:
+  structure:
+    - name: "document_number"
+      type: "string"
+      required: false
+    - name: "document_date"
+      type: "date"
+      required: true
+    - name: "issuer"
+      type: "string"
+      required: true
+    - name: "title"
+      type: "string"
+      required: true
+
+  type_markers:
+    federal:
+      - "Федеральный закон"
+      - "Постановление Правительства РФ"
+      - "Указ Президента"
+      - "Приказ"
+      - "Письмо"
+
+    regional:
+      - "Закон"
+      - "Устав"
+      - "Постановление Губернатора"
+      - "Приказ"  # Региональный приказ
+
+    municipal:
+      - "Приказ"  # Муниципальный приказ
+      - "Устав"
+      - "Решение"
+      - "Постановление администрации"
+      - "Распоряжение"
+
+    institutional:
+      - "Положение"
+      - "Инструкция"
+      - "Правила"
+      - "Регламент"
+      - "Должностная инструкция"
+
+  # Индикаторы для определения нормативности приказов
+  normative_indicators:
+    - "для неопределённого круга лиц"
+    - "общие правила"
+    - "устанавливает требования"
+    - "регламентирует"
+    - "утверждает порядок"
+
+  individual_indicators:
+    - "в отношении"  # конкретного лица
+    - "о предоставлении"
+    - "о назначении"
+    - "единственный адресат"
+
+  # Индикаторы обязательности/публикации
+  publication_indicators:
+    published:
+      - "опубликован"
+      - "размещён"
+      - "на официальном сайте"
+      - "зарегистрирован в Минюсте"
+    not_published:
+      - "внутренний документ"
+      - "для служебного пользования"
+      - "не подлежит опубликованию"
+
+  invalidity:
+    - "утратило силу"
+    - "не применяется"
+    - "признано утратившим силу"
+    - "утратил силу"
+
+  # Маркеры секретности и ограниченного доступа
+  secrecy_markers:
+    - "Особой важности"
+    - "Секретно"
+    - "Совершенно секретно"
+    - "Секретная информация"
+    - "Не для печати"
+    - "Не подлежит опубликованию"
+    - "Для служебного пользования"
+    - "ДСП"
+    - "Служебное пользование"
+    - "Ограниченное распространение"
+    - "Не для распространения"
+    - "Не для копирования"
+    - "Отнесено к государственной тайне"
+    - "Снято с секретности"
+    - "Рассекречено"
+
+# =============================================================================
+# 7. CLASSIFICATION DECISION TREE
+# =============================================================================
+classification_rules:
+  # Federal laws
+  - condition: "document_type IN ['ФЗ', 'Федеральный закон']"
+    result: "normative_act"
+    confidence: 0.95
+    note: "Federal laws are presumed normative and binding after publication"
+
+  # Presidential and government acts
+  - condition: "document_type IN ['Указ Президента РФ', 'Постановление Правительства РФ']"
+    result: "normative_act"
+    confidence: 0.95
+    note: "Decrees are normative if published"
+
+  # Orders (require additional checks) - federal, regional, municipal
+  - condition: "document_type IN ['Приказ федерального органа', 'Приказ регионального органа', 'Приказ муниципального органа']"
+    result: "requires_validation"
+    confidence: 0.5
+    checks:
+      - check: "is_published"
+        description: "Проверить публикацию на pravo.gov.ru"
+      - check: "is_registered"
+        description: "Для федеральных/региональных нормативных - проверить регистрацию в Минюсте"
+      - check: "has_normative_content"
+        description: "Проверить признаки нормативности vs индивидуальности"
+    outcomes:
+      - if: "published AND (not_normative OR individual)"
+        result: "individual_act"
+      - if: "published AND normative"
+        result: "normative_act"
+      - if: "NOT published"
+        result: "non_binding"
+        note: "Приказ не опубликован - может быть рекомендательным"
+
+  # Letters (never normative by form)
+  - condition: "document_type == 'Письмо'"
+    result: "non_normative"
+    confidence: 0.8
+    note: "Letters are not normative acts per ПП РФ № 1009"
+    additional_check: |
+      IF contains(general_rules_for_indefinite_persons)
+         THEN result = "normative_properties"  # May have normative properties per КС РФ
+         ELSE result = "clarification_or_information"
+
+  # Municipal acts
+  - condition: "document_type IN ['Устав муниципального', 'Решение представительного']"
+    result: "normative_act"
+    confidence: 0.95
+    note: "Municipal charters and decisions are normative"
+
+  # Institutional acts
+  - condition: "issuer_type == 'institution' AND document_type IN ['Положение', 'Инструкция', 'Правила']"
+    result: "local_act"
+    confidence: 0.9
+    note: "Local organizational acts - binding within organization"
+
+  # Invalid documents
+  - condition: "contains(invalidity_marker)"
+    result: "expired"
+    confidence: 1.0
+
+# =============================================================================
+# 8. METADATA EXPORT FIELDS
+# =============================================================================
+metadata_fields:
+  required:
+    - field: "document_id"
+      type: "string"
+    - field: "document_type"
+      type: "enum"
+      values: ["normative_act", "individual_act", "clarification", "information", "normative_properties", "local_act", "non_binding"]
+    - field: "document_number"
+      type: "string"
+    - field: "document_date"
+      type: "date"
+    - field: "issuer"
+      type: "string"
+    - field: "title"
+      type: "string"
+    - field: "hierarchy_level"
+      type: "integer"
+      range: [1, 14]
+    - field: "scope"
+      type: "enum"
+      values: ["federal", "regional", "municipal", "institutional"]
+    - field: "validity_status"
+      type: "enum"
+      values: ["valid", "pending", "expired", "non_binding", "invalid", "restricted"]
+    - field: "is_published"
+      type: "boolean"
+    - field: "is_registered"
+      type: "boolean"
+    - field: "secrecy_level"
+      type: "enum"
+      values: ["public", "dsp", "secret", "top_secret", "special_importance"]
+
+  optional:
+    - field: "effective_date"
+      type: "date"
+    - field: "expiration_date"
+      type: "date"
+    - field: "registration_number"
+      type: "string"
+    - field: "publication_source"
+      type: "string"
+    - field: "non_binding_reason"
+      type: "string"
+    - field: "classification_date"
+      type: "date"
+    - field: "declassification_date"
+      type: "date"
+    - field: "access_restriction_reason"
+      type: "string"

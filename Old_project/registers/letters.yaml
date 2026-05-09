@@ -1,0 +1,266 @@
+# Letters Registry (Письма)
+# Version: 1.0.0 | 2025-12-29
+#
+# IMPORTANT: Per Постановление Правительства РФ № 1009, normative acts
+# cannot be issued as letters. However, letters may have "нормативные свойства"
+# (normative properties) per Конституционный Суд РФ.
+#
+# Classification categories:
+# - clarification: Clarification of existing norms (not normative)
+# - methodological: Methodological guidelines (may have normative properties)
+# - information: Pure information (no normative properties)
+# - official: Official interpretations (may have normative properties)
+
+registry:
+  # Ministry of Economic Development Letters (Минэкономразвития)
+  clarifications:
+    - id: "Письмо-МЭР-Д28и-2869"
+      name: "О применении положений Федерального закона"
+      number: "Д28и-2869"
+      date: "2015-10-27"
+      issuer: "Минэкономразвития России"
+      category: "clarification"
+      parent_law: "44-ФЗ"
+      description: "Clarification on contract execution provisions"
+      has_normative_properties: false
+      topics:
+        - "contract_execution"
+        - "penalties"
+
+    - id: "Письмо-МЭР-Д28и-1639"
+      name: "О разъяснении положений о закупках у субъектов малого предпринимательства"
+      number: "Д28и-1639"
+      date: "2016-06-22"
+      issuer: "Минэкономразвития России"
+      category: "clarification"
+      parent_law: "44-ФЗ"
+      description: "SME procurement participation clarification"
+      has_normative_properties: false
+      topics:
+        - "sme_participation"
+        - "procurement_quotas"
+
+    - id: "Письмо-МЭР-Д28и-1641"
+      name: "О разъяснении порядка определения НМЦК"
+      number: "Д28и-1641"
+      date: "2016-06-22"
+      issuer: "Минэкономразвития России"
+      category: "clarification"
+      parent_law: "44-ФЗ"
+      description: "Starting price calculation methodology clarification"
+      has_normative_properties: false
+      topics:
+        - "nmck_calculation"
+        - "price_determination"
+
+    - id: "Письмо-МЭР-Д28и-3524"
+      name: "О применении штрафных санкций"
+      number: "Д28и-3524"
+      date: "2017-11-21"
+      issuer: "Минэкономразвития России"
+      category: "clarification"
+      parent_law: "44-ФЗ"
+      description: "Penalty application clarification"
+      has_normative_properties: false
+      topics:
+        - "penalties"
+        - "liability"
+
+    - id: "Письмо-МЭР-Д28и-4534"
+      name: "О разъяснении особенностей закупок в электронной форме"
+      number: "Д28и-4534"
+      date: "2018-12-19"
+      issuer: "Минэкономразвития России"
+      category: "clarification"
+      parent_law: "44-ФЗ"
+      description: "E-procurement features clarification"
+      has_normative_properties: false
+      topics:
+        - "electronic_auction"
+        - "e-procurement"
+
+  # FAS Russia Letters (ФАС России)
+  official_interpretations:
+    - id: "Письмо-ФАС-ИА/82420/20"
+      name: "О разъяснении вопросов применения законодательства о контрактной системе"
+      number: "ИА/82420/20"
+      date: "2020-11-10"
+      issuer: "ФАС России"
+      category: "official"
+      parent_law: "44-ФЗ"
+      description: "Official interpretation of procurement legislation"
+      has_normative_properties: true
+      topics:
+        - "interpretation"
+        - "dispute_resolution"
+
+    - id: "Письмо-ФАС-ИА/73559/19"
+      name: "О применении антидемпинговых мер"
+      number: "ИА/73559/19"
+      date: "2019-10-01"
+      issuer: "ФАС России"
+      category: "official"
+      parent_law: "44-ФЗ"
+      description: "Anti-dumping measures application"
+      has_normative_properties: true
+      topics:
+        - "anti_dumping"
+        - "price_protection"
+
+    - id: "Письмо-ФАС-ИА/45678/21"
+      name: "О квалификации нарушений в сфере закупок"
+      number: "ИА/45678/21"
+      date: "2021-05-15"
+      issuer: "ФАС России"
+      category: "official"
+      parent_law: "44-ФЗ"
+      description: "Procurement violation qualification"
+      has_normative_properties: true
+      topics:
+        - "violations"
+        - "classification"
+
+  # Methodological Recommendations (Методические рекомендации)
+  methodological:
+    - id: "Письмо-МЭР-ММВ20-02/05@"
+      name: "Методические рекомендации по применению методов определения НМЦК"
+      number: "ММВ20-02/05@"
+      date: "2020-05-22"
+      issuer: "Минэкономразвития России"
+      category: "methodological"
+      parent_law: "44-ФЗ"
+      description: "Methodological recommendations for starting price calculation"
+      has_normative_properties: true
+      reference: "Приказ-МЭР-567"
+      topics:
+        - "nmck_calculation"
+        - "methodology"
+        - "pricing"
+
+    - id: "Письмо-ФАС-НЯ-9365/20"
+      name: "Методические рекомендации по выявлению картелей"
+      number: "НЯ-9365/20"
+      date: "2020-08-14"
+      issuer: "ФАС России"
+      category: "methodological"
+      parent_law: "44-ФЗ"
+      description: "Methodological recommendations for cartel detection"
+      has_normative_properties: true
+      topics:
+        - "cartel_detection"
+        - "competition"
+
+    - id: "Письмо-МЭР-Д28и-АК/5876"
+      name: "Методические рекомендации по планированию закупок"
+      number: "Д28и-АК/5876"
+      date: "2019-09-20"
+      issuer: "Минэкономразвития России"
+      category: "methodological"
+      parent_law: "44-ФЗ"
+      description: "Procurement planning recommendations"
+      has_normative_properties: true
+      topics:
+        - "procurement_planning"
+        - "annual_plans"
+
+  # Information Letters (Информационные письма)
+  information:
+    - id: "Письмо-МЭР-Д28и-7890"
+      name: "О статистике закупок"
+      number: "Д28и-7890"
+      date: "2020-03-15"
+      issuer: "Минэкономразвития России"
+      category: "information"
+      parent_law: null
+      description: "Procurement statistics information"
+      has_normative_properties: false
+      topics:
+        - "statistics"
+        - "reporting"
+
+    - id: "Письмо-ФАС-ИБ/12345"
+      name: "О результатах контрольной деятельности"
+      number: "ИБ/12345"
+      date: "2021-01-30"
+      issuer: "ФАС России"
+      category: "information"
+      parent_law: null
+      description: "Control activity results"
+      has_normative_properties: false
+      topics:
+        - "audit_results"
+        - "statistics"
+
+# =============================================================================
+# CLASSIFICATION CRITERIA FOR LETTERS
+# =============================================================================
+classification_criteria:
+  normative_properties_threshold: 0.7
+
+  indicators:
+    # Negative indicators (reduces normative properties score)
+    negative:
+      - "единственный адресат"  # Single addressee
+      - "конкретный случай"     # Specific case
+      - "разовое применение"    # Single application
+
+    # Positive indicators (increases normative properties score)
+    positive:
+      - "неопределённый круг лиц"       # Indefinite persons
+      - "многократное применение"      # Multiple application
+      - "общие правила"                 # General rules
+      - "разъяснение норм права"        # Legal norm clarification
+      - "методические рекомендации"     # Methodological recommendations
+
+# =============================================================================
+# LETTER TYPE MARKERS
+# =============================================================================
+type_markers:
+  clarification:
+    - "разъяснение"
+    - "о разъяснении"
+    - "по вопросу применения"
+
+  methodological:
+    - "методические рекомендации"
+    - "методические указания"
+    - "рекомендации по применению"
+
+  official:
+    - "официальное разъяснение"
+    - "письмо Федеральной антимонопольной службы"
+    - "позиция ФАС"
+
+  information:
+    - "информационное письмо"
+    - "сообщение"
+    - "уведомление"
+    - "справка"
+
+# =============================================================================
+# TOPIC INDEX
+# =============================================================================
+by_topic:
+  nmck_calculation:
+    - "Письмо-МЭР-Д28и-1641"
+    - "Письмо-МЭР-ММВ20-02/05@"
+
+  contract_execution:
+    - "Письмо-МЭР-Д28и-2869"
+    - "Письмо-МЭР-Д28и-3524"
+
+  sme_participation:
+    - "Письмо-МЭР-Д28и-1639"
+
+  e_procurement:
+    - "Письмо-МЭР-Д28и-4534"
+
+  penalties:
+    - "Письмо-МЭР-Д28и-2869"
+    - "Письмо-МЭР-Д28и-3524"
+
+  procurement_planning:
+    - "Письмо-МЭР-Д28и-АК/5876"
+
+  cartel_detection:
+    - "Письмо-ФАС-НЯ-9365/20"

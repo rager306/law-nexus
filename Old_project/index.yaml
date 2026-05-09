@@ -1,0 +1,140 @@
+# Specs Index
+# Version: 1.0.1 | 2025-12-31
+#
+# Central index of all specification files with importance hierarchy.
+# Used for navigation, validation, and dependency resolution.
+#
+# IMPORTANT: Legislation hierarchy (spec-101) is the PRIMARY reference.
+# All other specs depend on it as the foundation.
+#
+# Importance levels:
+# - critical: Foundation (legislation hierarchy)
+# - high: Authority structures, document registries
+# - medium: Detailed structures (44-ФЗ specifics)
+# - low: Supporting documentation, guides
+
+# =============================================================================
+# FOUNDATION (CRITICAL) - PRIMARY REFERENCE
+# =============================================================================
+critical:
+  - id: "spec-101"
+    name: "Legislation Hierarchy"
+    file: "legislation_hierarchy.yaml"
+    description: "14-level hierarchy of Russian normative acts (PRIMARY)"
+    priority: 1
+    dependencies: []
+    last_updated: "2025-12-29"
+    role: "primary"
+    note: "Foundation for all document hierarchy understanding"
+
+# =============================================================================
+# AUTHORITY STRUCTURES (HIGH)
+# =============================================================================
+high:
+  - id: "spec-102"
+    name: "Federal Authorities"
+    file: "federal_authorities.yaml"
+    description: "Structure of Russian federal government bodies"
+    priority: 1
+    dependencies: ["spec-101"]
+    last_updated: "2025-12-29"
+
+  - id: "spec-301"
+    name: "Control Authorities"
+    file: "federal_control_authorities.yaml"
+    description: "Regulatory and control bodies structure"
+    priority: 2
+    dependencies: ["spec-101", "spec-102"]
+    last_updated: "2025-12-29"
+
+  - id: "spec-002"
+    name: "Federal Acts Registry"
+    file: "registers/federal_acts.yaml"
+    description: "Registry of federal laws, decrees, resolutions for procurement"
+    priority: 3
+    dependencies: ["spec-101", "spec-102"]
+    last_updated: "2025-12-29"
+
+  - id: "spec-201"
+    name: "Letters Classification"
+    file: "registers/letters.yaml"
+    description: "Classification of official letters with normative properties"
+    priority: 4
+    dependencies: ["spec-101"]
+    last_updated: "2025-12-29"
+
+# =============================================================================
+# DETAILED STRUCTURES (MEDIUM)
+# =============================================================================
+medium:
+  - id: "spec-001"
+    name: "44-ФЗ Structure"
+    file: "structures/44fz.yaml"
+    description: "Complete structure of Federal Law 44-ФЗ (contract system)"
+    priority: 1
+    dependencies: ["spec-101", "spec-002"]
+    last_updated: "2025-12-29"
+
+# =============================================================================
+# DEPENDENCY GRAPH (from → to)
+# =============================================================================
+dependencies:
+  - from: "spec-101"
+    to: ["spec-001", "spec-002", "spec-102", "spec-201", "spec-301"]
+  - from: "spec-102"
+    to: ["spec-002", "spec-301"]
+  - from: "spec-002"
+    to: ["spec-001"]
+  - from: "spec-201"
+    to: ["spec-101"]
+
+# =============================================================================
+# DOCUMENT CATEGORIES BY IMPORTANCE
+# =============================================================================
+categories:
+  foundation:
+    importance: "critical"
+    files: ["legislation_hierarchy.yaml"]
+    description: "Primary hierarchy reference"
+
+  authorities:
+    importance: "high"
+    files: ["federal_authorities.yaml", "federal_control_authorities.yaml"]
+    description: "Government and control body structures"
+
+  registries:
+    importance: "high"
+    files: ["registers/federal_acts.yaml", "registers/letters.yaml"]
+    description: "Document registries and classifications"
+
+  domain_structures:
+    importance: "medium"
+    files: ["structures/44fz.yaml"]
+    description: "Detailed structure of specific laws"
+
+# =============================================================================
+# FILE INVENTORY
+# =============================================================================
+inventory:
+  total_files: 6
+  by_importance:
+    critical: 1
+    high: 4
+    medium: 1
+    low: 0
+
+  by_directory:
+    ./: 3
+    registers/: 2
+    structures/: 1
+
+  reading_order:
+    - "legislation_hierarchy.yaml"  # START HERE
+    - "federal_authorities.yaml"
+    - "federal_control_authorities.yaml"
+    - "registers/federal_acts.yaml"
+    - "registers/letters.yaml"
+    - "structures/44fz.yaml"
+
+  last_indexed: "2026-01-04"
+  index_version: "1.0.2"

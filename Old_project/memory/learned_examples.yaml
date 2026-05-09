@@ -1,0 +1,21 @@
+# Memory Context: Learned Examples
+# Examples for few-shot learning from BootstrapFewShot
+# Version: 1.0.0
+
+version: "1.0.0"
+last_updated: null
+
+examples: []
+  # Example structure:
+  # - example_id: "LE-001"
+  #   source: "BootstrapFewShot"
+  #   confidence: 0.95
+  #   input_text: "Статья 24.1. Условия контракта"
+  #   output_text: |
+  #     {
+  #       "type": "article",
+  #       "number": "24.1",
+  #       "title": "Условия контракта"
+  #     }
+  #   level: "L1"
+  #   created_at: "2026-01-04T12:00:00Z"

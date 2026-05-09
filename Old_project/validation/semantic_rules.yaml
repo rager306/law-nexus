@@ -1,0 +1,93 @@
+# Validation Rules: Semantic
+# Rules for validating document semantics
+# Version: 1.0.0
+
+version: "1.0.0"
+
+rules:
+  # Sequential numbering
+  - id: "SEM-001"
+    name: "article_numbers_sequential"
+    description: "Article numbers should be sequential within chapter"
+    target: "article"
+    check: "sequential_within"
+    parent: "chapter"
+    field: "number"
+    severity: "error"
+
+  - id: "SEM-002"
+    name: "paragraph_numbers_sequential"
+    description: "Paragraph numbers should be sequential within article"
+    target: "paragraph"
+    check: "sequential_within"
+    parent: "article"
+    field: "number"
+    severity: "error"
+
+  - id: "SEM-003"
+    name: "chapter_numbers_sequential"
+    description: "Chapter numbers should be sequential in document"
+    target: "chapter"
+    check: "sequential_within"
+    parent: "document"
+    field: "number"
+    severity: "warning"
+
+  # Date validation
+  - id: "SEM-004"
+    name: "valid_date_format"
+    description: "Dates must be in valid format"
+    target: "date"
+    check: "date_format"
+    formats:
+      - "DD.MM.YYYY"
+      - "DD месяца YYYY года"
+    severity: "error"
+
+  - id: "SEM-005"
+    name: "date_not_future"
+    description: "Document dates should not be in the future"
+    target: "document_date"
+    check: "date_not_after"
+    reference: "today"
+    severity: "warning"
+
+  # Reference validation
+  - id: "SEM-006"
+    name: "internal_references_valid"
+    description: "Internal article references must point to existing articles"
+    target: "reference"
+    check: "reference_exists"
+    reference_type: "internal"
+    severity: "error"
+
+  - id: "SEM-007"
+    name: "external_references_format"
+    description: "External law references must have valid format"
+    target: "reference"
+    check: "matches_pattern"
+    reference_type: "external"
+    pattern: "от\\s+\\d{1,2}\\.\\d{2}\\.\\d{4}\\s+[№N]\\s*\\d+"
+    severity: "warning"
+
+  # Content validation
+  - id: "SEM-008"
+    name: "no_empty_articles"
+    description: "Articles should contain at least one paragraph"
+    target: "article"
+    check: "has_content"
+    min_length: 10
+    severity: "warning"
+
+  # Invalidity markers (44-FZ specific)
+  - id: "SEM-009"
+    name: "invalidity_marker_detected"
+    description: "Detect articles marked as invalid"
+    target: "article"
+    check: "contains_marker"
+    markers:
+      - "утратил силу"
+      - "утратила силу"
+      - "признан утратившим силу"
+    action: "flag_as_invalid"
+    severity: "info"

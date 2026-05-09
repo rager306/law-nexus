@@ -1,0 +1,18 @@
+# Memory Context: Successful Patterns
+# Patterns that improved extraction quality
+# Updated automatically by optimization pipeline
+# Version: 1.0.0
+
+version: "1.0.0"
+last_updated: null
+
+patterns: []
+  # Example pattern structure:
+  # - pattern_id: "SP-001"
+  #   level: "L1"
+  #   description: "Pattern for detecting article boundaries"
+  #   pattern_text: "^Статья\\s+\\d+(\\.\\d+)?\\."
+  #   impact: 0.85
+  #   applied_count: 12
+  #   last_applied: "2026-01-04T12:00:00Z"
+  #   dspy_optimizer: "MIPROv2"

@@ -1,0 +1,52 @@
+# L0: Source & Format Configuration
+# For: ConsultantPlus Word 2003 XML exports
+# Version: 1.0.0
+
+version: "1.0.0"
+source_id: consultant
+format_type: word2003xml
+encoding: utf-8
+
+# Preprocessing rules (applied in order)
+preprocessing_rules:
+  - strip_xml_declaration
+  - normalize_whitespace
+  - remove_proofing_errors
+  - normalize_cyrillic_quotes
+
+# Patterns to strip during preprocessing
+strip_patterns:
+  # XML comments
+  - '<!--.*?-->'
+  # Word proofing errors
+  - '<w:proofErr[^>]*/>'
+  # Revision markers
+  - '<w:rsid[^>]*/>'
+  # Empty paragraphs (optional)
+  # - '<w:p[^>]*>\s*</w:p>'
+
+# Character normalization
+character_normalization:
+  # Cyrillic quotes
+  '\u00ab': '"'  # «
+  '\u00bb': '"'  # »
+  '\u201c': '"'  # "
+  '\u201d': '"'  # "
+  # En-dash to hyphen
+  '\u2013': '-'
+  # Non-breaking space
+  '\u00a0': ' '
+
+# XML namespace mappings
+namespaces:
+  w: "http://schemas.openxmlformats.org/wordprocessingml/2006/main"
+  wp: "http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing"
+
+# Element extraction rules
+element_rules:
+  paragraph: "w:p"
+  text_run: "w:r"
+  text_content: "w:t"
+  table: "w:tbl"
+  table_row: "w:tr"
+  table_cell: "w:tc"

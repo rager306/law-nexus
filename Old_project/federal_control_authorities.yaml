@@ -1,0 +1,719 @@
+# Federal Control and Regulatory Authorities of the Russian Federation
+# Phase 0 - Constitution Amendment for Legal Document Processing
+# Version: 1.0.0 | 2025-12-30
+#
+# This file contains the complete structure of federal control/regulatory bodies.
+# These bodies exercise control, supervision, and regulatory functions.
+#
+# Source: Указ Президента РФ № 326 от 11.05.2024, ФЗ № 248-ФЗ, ведомственные акты
+#
+# Related: federal_authorities.yaml - for parent authority structure
+
+# =============================================================================
+# 1. CONTROL AUTHORITIES BY SECTOR
+# =============================================================================
+control_authorities:
+
+  # =============================================================================
+  # 1.1 FINANCIAL AND BUDGETARY CONTROL (Финансовый и бюджетный контроль)
+  # =============================================================================
+  financial_budgetary:
+    description: "Органы финансового и бюджетного контроля"
+    legal_basis: "ФЗ № 248-ФЗ, Бюджетный кодекс РФ"
+
+    authorities:
+      - name: "Счетная палата Российской Федерации"
+        abbreviation: "СП РФ"
+        english: "Accounts Chamber of the Russian Federation"
+        parent: "federal"
+        category: "external_audit"
+        legal_basis: "ФЗ 'О Счетной палате Российской Федерации'"
+        functions:
+          - "Контроль за исполнением федерального бюджета"
+          - "Экспертиза проектов федеральных законов"
+          - "Внешний государственный аудит"
+          - "Контроль за использованием государственной собственности"
+        website: "https://ach.gov.ru"
+        document_types:
+          - "Отчет Счетной палаты РФ"
+          - "Заключение Счетной палаты РФ"
+          - "Представление Счетной палаты РФ"
+          - "Информационный бюллетень"
+
+      - name: "Федеральное казначейство"
+        abbreviation: "Казначейство России"
+        english: "Federal Treasury"
+        parent: "Минфин России"
+        category: "budget_execution"
+        legal_basis: "Бюджетный кодекс РФ, Указ Президента РФ № 326"
+        functions:
+          - "Кассовое исполнение федерального бюджета"
+          - "Контроль за целевым использованием бюджетных средств"
+          - "Учет операций по счетам Федерального казначейства"
+          - "Распределение доходов между бюджетами"
+        website: "https://roskazna.gov.ru"
+        subordinate_institutions:
+          - name: "Управления Федерального казначейства по субъектам РФ"
+            abbreviation: "УФК по субъекту"
+            count: 85
+          - name: "Межрегиональные операционные управления"
+        document_types:
+          - "Приказ Казначейства России"
+          - "Распоряжение Казначейства России"
+          - "Указание Казначейства России"
+
+      - name: "Федеральная налоговая служба"
+        abbreviation: "ФНС России"
+        english: "Federal Tax Service"
+        parent: "Минфин России"
+        category: "tax_control"
+        legal_basis: "Налоговый кодекс РФ, Указ Президента РФ № 326"
+        functions:
+          - "Контроль за соблюдением налогового законодательства"
+          - "Регистрация налогоплательщиков"
+          - "Администрирование налогов и сборов"
+          - "Выдача разрешений и лицензий"
+        website: "https://www.nalog.gov.ru"
+        subordinate_institutions:
+          - name: "Управления ФНС России по субъектам РФ"
+            count: 85
+          - name: "Межрегиональные инспекции ФНС России"
+            count: 20+
+          - name: "Инспекции ФНС России по районам, районам в городах"
+            count: 700+
+        document_types:
+          - "Приказ ФНС России"
+          - "Распоряжение ФНС России"
+          - "Письмо ФНС России"
+          - "Решение по жалобе"
+          - "Требование об уплате"
+
+      - name: "Федеральная таможенная служба"
+        abbreviation: "ФТС России"
+        english: "Federal Customs Service"
+        parent: "Минфин России"
+        category: "customs_control"
+        legal_basis: "Таможенный кодекс ЕАЭС, ФЗ 'О таможенном регулировании'"
+        functions:
+          - "Таможенный контроль"
+          - "Администрирование таможенных платежей"
+          - "Обеспечение соблюдения таможенного законодательства"
+          - "Защита интеллектуальной собственности"
+        website: "https://customs.gov.ru"
+        subordinate_institutions:
+          - name: "Региональные таможенные управления"
+            count: 16
+          - name: "Таможни"
+            count: 100+
+        document_types:
+          - "Приказ ФТС России"
+          - "Распоряжение ФТС России"
+          - "Решение таможенного органа"
+          - "Постановление о возбуждении дела"
+
+      - name: "Федеральная служба по финансовому мониторингу"
+        abbreviation: "Росфинмониторинг"
+        english: "Financial Monitoring Service"
+        parent: "Минфин России"
+        category: "aml_ctf"
+        legal_basis: "ФЗ № 115-ФЗ 'О противодействии легализации доходов'"
+        functions:
+          - "Противодействие отмыванию доходов (ПОД/ФТ)"
+          - "Сбор и анализ информации о подозрительных операциях"
+          - "Включение в перечни экстремистов и террористов"
+          - "Надзор за деятельностью субъектов ПОД/ФТ"
+        website: "https://fedsfm.ru"
+        document_types:
+          - "Приказ Росфинмониторинга"
+          - "Указание Росфинмониторинга"
+          - "Предписание"
+
+      - name: "Федеральная служба по надзору в сфере страхового дела"
+        abbreviation: "Банк России"
+        english: "Bank of Russia (Insurance Supervision)"
+        category: "insurance_control"
+        parent: "Центральный банк РФ"
+        legal_basis: "ФЗ 'Об организации страхового дела в РФ'"
+        functions:
+          - "Регулирование и надзор за страховой деятельностью"
+          - "Выдача лицензий страховым организациям"
+          - "Контроль за финансовой устойчивостью страховщиков"
+        website: "https://cbr.ru"
+        document_types:
+          - "Указание Банка России"
+          - "Положение Банка России"
+          - "Приказ Банка России"
+
+  # =============================================================================
+  # 1.2 ECONOMIC AND ANTITRUST CONTROL (Экономический и антимонопольный контроль)
+  # =============================================================================
+  economic_antitrust:
+    description: "Органы экономического и антимонопольного контроля"
+
+    authorities:
+      - name: "Федеральная антимонопольная служба"
+        abbreviation: "ФАС России"
+        english: "Federal Antimonopoly Service"
+        parent: "Правительство РФ"
+        category: "antitrust"
+        legal_basis: "ФЗ № 135-ФЗ 'О защите конкуренции'"
+        functions:
+          - "Контроль за соблюдением антимонопольного законодательства"
+          - "Рассмотрение дел о нарушении антимонопольного законодательства"
+          - "Контроль за государственными закупками"
+          - "Контроль за тарифным регулированием"
+        website: "https://fas.gov.ru"
+        subordinate_institutions:
+          - name: "Территориальные управления ФАС России"
+            count: 85
+        document_types:
+          - "Приказ ФАС России"
+          - "Решение ФАС России"
+          - "Предписание ФАС России"
+          - "Постановление о наложении штрафа"
+
+      - name: "Федеральная служба по регулированию алкогольного рынка"
+        abbreviation: "Росалкогольрегулирование"
+        english: "Alcohol Market Regulation Service"
+        parent: "Минфин России"
+        category: "product_regulation"
+        legal_basis: "ФЗ № 171-ФЗ 'О государственном регулировании алкоголя'"
+        functions:
+          - "Государственное регулирование алкогольного рынка"
+          - "Контроль за производством и оборотом алкоголя"
+          - "Лицензирование деятельности в сфере алкоголя"
+        website: "https://fsrar.ru"
+        document_types:
+          - "Приказ Росалкогольрегулирования"
+          - "Лицензия"
+
+      - name: "Федеральное агентство по техническому и экспортному контролю"
+        abbreviation: "ФСТЭК России"
+        english: "Technical and Export Control Service"
+        parent: "Президент РФ"
+        category: "information_security"
+        legal_basis: "ФЗ № 149-ФЗ 'Об информации', Указ Президента РФ"
+        functions:
+          - "Контроль в сфере защиты информации"
+          - "Лицензирование деятельности в области защиты гостайны"
+          - "Экспортный контроль"
+        website: "https://fstec.ru"
+        document_types:
+          - "Приказ ФСТЭК России"
+          - "Указание ФСТЭК России"
+          - "Лицензия"
+
+  # =============================================================================
+  # 1.3 TECHNICAL AND INDUSTRIAL CONTROL (Технический и промышленный контроль)
+  # =============================================================================
+  technical_industrial:
+    description: "Органы технического и промышленного контроля"
+
+    authorities:
+      - name: "Федеральная служба по экологическому, технологическому и атомному надзору"
+        abbreviation: "Ростехнадзор"
+        english: "Ecological, Technological and Atomic Supervision Service"
+        parent: "Правительство РФ"
+        category: "technical_safety"
+        legal_basis: "ФЗ № 116-ФЗ, ПП РФ № 868"
+        functions:
+          - "Контроль за безопасным ведением работ"
+          - "Промышленная безопасность"
+          - "Экологический контроль"
+          - "Атомный надзор"
+        website: "https://gosnadzor.ru"
+        subordinate_institutions:
+          - name: "Территориальные управления Ростехнадзора"
+            count: 85+
+        document_types:
+          - "Приказ Ростехнадзора"
+          - "Распоряжение Ростехнадзора"
+          - "Предписание"
+          - "Заключение экспертизы"
+
+      - name: "Федеральная служба по надзору в сфере природопользования"
+        abbreviation: "Росприроднадзор"
+        english: "Natural Resources Supervision Service"
+        parent: "Минприроды России"
+        category: "environmental_control"
+        legal_basis: "ФЗ № 7-ФЗ 'Об охране окружающей среды'"
+        functions:
+          - "Федеральный экологический надзор"
+          - "Контроль за использованием природных ресурсов"
+          - "Лицензирование природопользования"
+        website: "https://rpn.gov.ru"
+        subordinate_institutions:
+          - name: "Межрегиональные управления Росприроднадзора"
+        document_types:
+          - "Постановление Росприроднадзора"
+          - "Приказ Росприроднадзора"
+          - "Предписание"
+
+  # =============================================================================
+  # 1.4 SOCIAL AND LABOR CONTROL (Социальный и трудовой контроль)
+  # =============================================================================
+  social_labor:
+    description: "Органы социального и трудового контроля"
+
+    authorities:
+      - name: "Федеральная служба по труду и занятости"
+        abbreviation: "Роструд"
+        english: "Federal Labor and Employment Service"
+        parent: "Минтруд России"
+        category: "labor_control"
+        legal_basis: "Трудовой кодекс РФ, Указ Президента РФ"
+        functions:
+          - "Государственный надзор за соблюдением трудового законодательства"
+          - "Контроль за занятостью населения"
+          - "Регулирование социального партнерства"
+        website: "https://rostrud.gov.ru"
+        subordinate_institutions:
+          - name: "Территориальные органы Роструда"
+            count: 85+
+          - name: "Государственные инспекции труда в субъектах РФ"
+            count: 85+
+        document_types:
+          - "Приказ Роструда"
+          - "Предписание государственной инспекции труда"
+          - "Постановление о привлечении к ответственности"
+
+      - name: "Пенсионный фонд Российской Федерации"
+        abbreviation: "СФР"
+        english: "Social Fund of Russia"
+        parent: "federal"
+        category: "social_security"
+        legal_basis: "ФЗ № 167-ФЗ 'Об обязательном пенсионном страховании'"
+        functions:
+          - "Администрирование обязательного пенсионного страхования"
+          - "Назначение и выплата пенсий"
+          - "Контроль за уплатой страховых взносов"
+        website: "https://sfr.gov.ru"
+        document_types:
+          - "Решение СФР"
+          - "Требование об уплате"
+          - "Постановление"
+
+  # =============================================================================
+  # 1.5 HEALTH AND EDUCATION CONTROL (Контроль в сфере здравоохранения и образования)
+  # =============================================================================
+  health_education:
+    description: "Органы контроля в сфере здравоохранения и образования"
+
+    authorities:
+      - name: "Федеральная служба по надзору в сфере здравоохранения"
+        abbreviation: "Росздравнадзор"
+        english: "Health Supervision Service"
+        parent: "Минздрав России"
+        category: "health_control"
+        legal_basis: "ФЗ № 323-ФЗ 'Об основах охраны здоровья'"
+        functions:
+          - "Контроль качества медицинской помощи"
+          - "Лицензирование медицинской деятельности"
+          - "Контроль за обращением лекарственных средств"
+          - "Государственный контроль в сфере медицинских изделий"
+        website: "https://roszdravnadzor.gov.ru"
+        subordinate_institutions:
+          - name: "Территориальные органы Росздравнадзора"
+            count: 85+
+        document_types:
+          - "Приказ Росздравнадзора"
+          - "Предписание"
+          - "Постановление"
+
+      - name: "Федеральная служба по надзору в сфере образования и науки"
+        abbreviation: "Рособрнадзор"
+        english: "Education and Science Supervision Service"
+        parent: "Минобрнауки России"
+        category: "education_control"
+        legal_basis: "ФЗ № 273-ФЗ 'Об образовании в РФ'"
+        functions:
+          - "Государственный контроль в сфере образования"
+          - "Аккредитация образовательной деятельности"
+          - "Надзор за научной деятельностью"
+        website: "https://obrnadzor.gov.ru"
+        document_types:
+          - "Приказ Рособрнадзора"
+          - "Распоряжение Рособрнадзора"
+          - "Свидетельство о государственной аккредитации"
+
+  # =============================================================================
+  # 1.6 CONSTRUCTION AND HOUSING CONTROL (Строительный и жилищный контроль)
+  # =============================================================================
+  construction_housing:
+    description: "Органы контроля в сфере строительства и жилищно-коммунального хозяйства"
+
+    authorities:
+      - name: "Федеральная служба по экологическому, технологическому и атомному надзору"
+        abbreviation: "Ростехнадзор"
+        category: "construction_safety"
+        functions:
+          - "Экспертиза проектной документации"
+          - "Выдача разрешений на строительство"
+          - "Государственный строительный надзор"
+
+      - name: "Государственная жилищная инспекция"
+        abbreviation: "ГЖИ"
+        category: "housing_control"
+        parent: "Субъект РФ"
+        legal_basis: "Жилищный кодекс РФ"
+        functions:
+          - "Контроль за содержанием жилищного фонда"
+          - "Надзор за коммунальными услугами"
+          - "Рассмотрение жалоб граждан"
+
+  # =============================================================================
+  # 1.7 TRANSPORT AND INFRASTRUCTURE CONTROL (Транспортный и инфраструктурный контроль)
+  # =============================================================================
+  transport_infrastructure:
+    description: "Органы контроля в сфере транспорта и инфраструктуры"
+
+    authorities:
+      - name: "Федеральная служба по надзору в сфере транспорта"
+        abbreviation: "Ространснадзор"
+        english: "Transport Supervision Service"
+        parent: "Минтранс России"
+        category: "transport_control"
+        legal_basis: "ФЗ № 196-ФЗ 'О транспортной безопасности'"
+        functions:
+          - "Контроль за соблюдением транспортного законодательства"
+          - "Надзор за безопасностью на транспорте"
+          - "Лицензирование транспортной деятельности"
+        website: "https://rostransnadzor.gov.ru"
+        document_types:
+          - "Приказ Ространснадзора"
+          - "Предписание"
+          - "Постановление"
+
+      - name: "Федеральное агентство воздушного транспорта"
+        abbreviation: "Росавиация"
+        english: "Federal Air Transport Agency"
+        parent: "Минтранс России"
+        category: "aviation_control"
+        legal_basis: "Воздушный кодекс РФ"
+        functions:
+          - "Регулирование воздушного транспорта"
+          - "Сертификация авиатехники"
+          - "Контроль за безопасностью полетов"
+        website: "https://favt.gov.ru"
+        document_types:
+          - "Приказ Росавиации"
+          - "Сертификат"
+
+  # =============================================================================
+  # 1.8 AGRICULTURAL AND VETERINARY CONTROL (Сельскохозяйственный и ветеринарный контроль)
+  # =============================================================================
+  agricultural_veterinary:
+    description: "Органы контроля в сфере сельского хозяйства и ветеринарии"
+
+    authorities:
+      - name: "Федеральная служба по ветеринарному и фитосанитарному надзору"
+        abbreviation: "Россельхознадзор"
+        english: "Agricultural Supervision Service"
+        parent: "Минсельхоз России"
+        category: "agricultural_control"
+        legal_basis: "ФЗ № 4979-1 'О ветеринарии', ФЗ № 99-ФЗ 'О карантине растений'"
+        functions:
+          - "Ветеринарный надзор"
+          - "Фитосанитарный надзор"
+          - "Контроль за качеством сельхозпродукции"
+          - "Лицензирование ветеринарной деятельности"
+        website: "https://fsvps.gov.ru"
+        subordinate_institutions:
+          - name: "Территориальные управления Россельхознадзора"
+        document_types:
+          - "Приказ Россельхознадзора"
+          - "Предписание"
+          - "Карантинный сертификат"
+
+# =============================================================================
+# 2. MINISTRY OF FINANCE SUBORDINATE INSTITUTIONS (Учреждения Минфина России)
+# =============================================================================
+minfin_subordinate_institutions:
+  description: "Федеральные казенные учреждения, подведомственные Минфину России"
+
+  institutions:
+    - name: "Федеральное казенное учреждение 'Центр экспертно-аналитических и информационных технологий Счетной палаты Российской Федерации'"
+      abbreviation: "ФКУ 'ЦЭАИТ СП'"
+      parent: "Счетная палата РФ"
+      functions:
+        - "Разработка цифровых инструментов"
+        - "Информационное сопровождение Счетной палаты"
+        - "Эксплуатация информационных систем"
+
+    - name: "Научно-исследовательский финансовый институт"
+      abbreviation: "НИФИ"
+      parent: "Минфин России"
+      functions:
+        - "Научно-исследовательская деятельность"
+        - "Разработка методологии финансовой политики"
+        - "Подготовка аналитических материалов"
+
+    - name: "Федеральное казенное учреждение 'Финансово-экономическое управление Минфина России'"
+      abbreviation: "ФКУ 'ФЭУ'"
+      parent: "Минфин России"
+      functions:
+        - "Финансовое обеспечение деятельности Минфина"
+        - "Бухгалтерский учет и отчетность"
+
+    - name: "Федеральное казенное учреждение 'Центр по обеспечению деятельности Казначейства России'"
+      abbreviation: "ФКУ 'ЦОД'"
+      parent: "Федеральное казначейство"
+      functions:
+        - "Техническое обеспечение Казначейства"
+        - "Эксплуатация информационных систем"
+
+    - name: "Федеральное казенное учреждение 'Налог-Сервис'"
+      abbreviation: "ФКУ 'Налог-Сервис'"
+      parent: "ФНС России"
+      functions:
+        - "Информационно-техническое обеспечение ФНС"
+        - "Развитие информационных систем"
+
+# =============================================================================
+# 3. CONTROL TYPES CLASSIFICATION
+# =============================================================================
+control_types:
+  - name: "external_audit"
+    russian: "Внешний государственный аудит"
+    examples: ["Счетная палата РФ"]
+    document_types: ["Отчет", "Заключение", "Представление"]
+
+  - name: "budget_execution"
+    russian: "Кассовое исполнение бюджета"
+    examples: ["Федеральное казначейство"]
+    document_types: ["Приказ", "Распоряжение"]
+
+  - name: "tax_control"
+    russian: "Налоговый контроль"
+    examples: ["ФНС России"]
+    document_types: ["Требование", "Решение", "Приказ"]
+
+  - name: "customs_control"
+    russian: "Таможенный контроль"
+    examples: ["ФТС России"]
+    document_types: ["Решение", "Постановление"]
+
+  - name: "antitrust"
+    russian: "Антимонопольный контроль"
+    examples: ["ФАС России"]
+    document_types: ["Решение", "Предписание"]
+
+  - name: "labor_control"
+    russian: "Трудовой надзор"
+    examples: ["Роструд"]
+    document_types: ["Предписание", "Постановление"]
+
+  - name: "technical_safety"
+    russian: "Технический надзор"
+    examples: ["Ростехнадзор"]
+    document_types: ["Приказ", "Предписание"]
+
+  - name: "health_control"
+    russian: "Контроль в сфере здравоохранения"
+    examples: ["Росздравнадзор"]
+    document_types: ["Приказ", "Предписание"]
+
+  - name: "environmental_control"
+    russian: "Экологический контроль"
+    examples: ["Росприроднадзор"]
+    document_types: ["Постановление", "Приказ"]
+
+  - name: "transport_control"
+    russian: "Транспортный контроль"
+    examples: ["Ространснадзор"]
+    document_types: ["Приказ", "Предписание"]
+
+# =============================================================================
+# 4. INSPECTION AGGREGATION FIELDS
+# =============================================================================
+inspection_aggregation:
+  """Fields required for aggregating control body inspection practice"""
+
+  required_fields:
+    - field: "control_authority"
+      type: "string"
+      description: "Название контрольного органа"
+
+    - field: "authority_id"
+      type: "string"
+      description: "Идентификатор органа (fas_russia, rostrud, etc.)"
+
+    - field: "control_type"
+      type: "enum"
+      values: ["external_audit", "budget_execution", "tax_control", "customs_control", "antitrust", "labor_control", "technical_safety", "health_control", "environmental_control", "transport_control"]
+
+    - field: "inspection_type"
+      type: "enum"
+      values: ["planned", " внепланововая", "документарная", "выездная", "камеральная"]
+
+    - field: "inspection_object"
+      type: "string"
+      description: "Объект проверки"
+
+    - field: "inspection_period"
+      type: "date_range"
+      description: "Период проведения проверки"
+
+    - field: "violations_found"
+      type: "array"
+      description: "Выявленные нарушения"
+
+    - field: "sanctions_applied"
+      type: "array"
+      description: "Примененные санкции"
+
+    - field: "document_references"
+      type: "array"
+      description: " Ссылки на акты проверки"
+
+  optional_fields:
+    - field: "region"
+      type: "string"
+      description: "Регион проведения проверки"
+    - field: "industry_sector"
+      type: "string"
+      description: "Отрасль экономики"
+    - field: "inspection_result"
+      type: "enum"
+      values: ["no_violations", "violations_found", "partial", "warning"]
+
+# =============================================================================
+# 5. CROSS-REFERENCE TO FEDERAL AUTHORITIES
+# =============================================================================
+authority_links:
+  """Links to parent authorities in federal_authorities.yaml"""
+
+  mappings:
+    - control_authority: "Федеральное казначейство"
+      parent_authority: "Минфин России"
+      link: "federal_authorities.yaml#executive_branchfederal_ministries[0]"
+
+    - control_authority: "Федеральная налоговая служба"
+      parent_authority: "Минфин России"
+      link: "federal_authorities.yaml#executive_branchfederal_ministries[1]"
+
+    - control_authority: "Федеральная таможенная служба"
+      parent_authority: "Минфин России"
+      link: "federal_authorities.yaml#executive_branchfederal_ministries[2]"
+
+    - control_authority: "Федеральная антимонопольная служба"
+      parent_authority: "Правительство РФ"
+      link: "federal_authorities.yaml#executive_branchfederal_ministries[0]"
+
+    - control_authority: "Роструд"
+      parent_authority: "Минтруд России"
+      link: "federal_authorities.yaml#executive_branchfederal_ministries[9]"
+
+    - control_authority: "Счетная палата Российской Федерации"
+      parent_authority: "federal"
+      link: "federal_authorities.yaml#other_federal_bodies[2]"
+
+    - control_authority: "Росздравнадзор"
+      parent_authority: "Минздрав России"
+      link: "federal_authorities.yaml#executive_branchfederal_ministries[10]"
+
+    - control_authority: "Росприроднадзор"
+      parent_authority: "Минприроды России"
+      link: "federal_authorities.yaml#executive_branchfederal_ministries[13]"
+
+    - control_authority: "Ростехнадзор"
+      parent_authority: "Правительство РФ"
+      link: "federal_authorities.yaml#executive_branchfederal_services[1]"
+
+    - control_authority: "Россельхознадзор"
+      parent_authority: "Минсельхоз России"
+      link: "federal_authorities.yaml#executive_branchfederal_agencies[4]"
+
+# =============================================================================
+# 6. DETECTION PATTERNS FOR CONTROL DOCUMENTS
+# =============================================================================
+detection_patterns:
+  authority_patterns:
+    - pattern: "(ФАС|Федеральная антимонопольная служба)"
+      authority_id: "fas_russia"
+      control_type: "antitrust"
+
+    - pattern: "(Роструд|Федеральная служба по труду)"
+      authority_id: "rostrud"
+      control_type: "labor_control"
+
+    - pattern: "(ФНС|налоговая служба)"
+      authority_id: "fns_russia"
+      control_type: "tax_control"
+
+    - pattern: "(ФТС|таможенная служба)"
+      authority_id: "fts_russia"
+      control_type: "customs_control"
+
+    - pattern: "(Росздравнадзор|служба по надзору в сфере здравоохранения)"
+      authority_id: "roszdravnadzor"
+      control_type: "health_control"
+
+    - pattern: "(Ростехнадзор|технадзор)"
+      authority_id: "rostekhnadzor"
+      control_type: "technical_safety"
+
+    - pattern: "(Росприроднадзор|природнадзор)"
+      authority_id: "rosprirodnadzor"
+      control_type: "environmental_control"
+
+    - pattern: "(Россельхознадзор|сельхознадзор)"
+      authority_id: "rosselkhoznadzor"
+      control_type: "agricultural_control"
+
+    - pattern: "(Счетная палата)"
+      authority_id: "accounts_chamber_rf"
+      control_type: "external_audit"
+
+  document_indicators:
+    - inspection: ["проверка", "ревизия", "контрольное мероприятие", "выездная проверка", "камеральная проверка"]
+    - violation: ["нарушение", "недостаток", "нарушены требования", "выявлено"]
+    - sanction: ["штраф", "предписание", "приостановление", "лишение лицензии", "предупреждение"]
+    - result: ["акт проверки", "отчет о проверке", "заключение", "решение"]
+
+# =============================================================================
+# 7. METADATA EXPORT FIELDS
+# =============================================================================
+metadata_fields:
+  required:
+    - field: "control_authority_name"
+      type: "string"
+      description: "Полное название контрольного органа"
+
+    - field: "control_authority_id"
+      type: "string"
+      description: "Идентификатор контрольного органа"
+
+    - field: "control_type"
+      type: "enum"
+      values: ["external_audit", "budget_execution", "tax_control", "customs_control", "antitrust", "labor_control", "technical_safety", "health_control", "environmental_control", "transport_control", "agricultural_control", "insurance_control"]
+
+    - field: "parent_ministry"
+      type: "string"
+      description: "Вышестоящее министерство"
+
+    - field: "website"
+      type: "string"
+      description: "Официальный сайт"
+
+  optional:
+    - field: "territorial_count"
+      type: "integer"
+      description: "Количество территориальных органов"
+    - field: "document_types"
+      type: "array"
+      description: "Типы издаваемых документов"
+    - field: "legal_basis"
+      type: "string"
+      description: "Правовая основа деятельности"
+
+# =============================================================================
+# 8. NOTES AND LIMITATIONS
+# =============================================================================
+notes:
+  - "ФЗ № 248-ФЗ 'О государственном контроле (надзоре)' регулирует все виды государственного контроля"
+  - "Контрольные органы делятся на федеральные и региональные (осуществляющие переданные полномочия)"
+  - "Многие контрольные функции осуществляются через территориальные органы в субъектах РФ"
+  - "С 2021 года действует система оценки эффективности контрольной деятельности (РИСКИ.ГосТех)"
+  - "Счетная палата РФ не входит в систему исполнительной власти (конституционный орган)"
+  - "Федеральные казенные учреждения обеспечивают техническую деятельность контрольных органов"

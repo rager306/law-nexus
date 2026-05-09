@@ -1,0 +1,204 @@
+# Federal Normative Acts Registry
+# Version: 1.0.0 | 2025-12-29
+#
+# Registry of federal laws, presidential decrees, government resolutions,
+# and ministerial orders relevant to 44-ФЗ procurement domain.
+# See: legislation_hierarchy.yaml for hierarchy structure.
+
+registry:
+  federal_laws:
+    - id: "44-ФЗ"
+      name: "О контрактной системе в сфере закупок товаров, работ, услуг для обеспечения государственных и муниципальных нужд"
+      number: "44-ФЗ"
+      date: "2013-04-05"
+      effective_date: "2014-01-01"
+      last_amendment: "2024-07-01"
+      hierarchy_level: 3
+      structure_file: "structures/44fz.yaml"
+      description: "Primary procurement law for state and municipal needs"
+      related_acts:
+        - type: "ФЗ"
+          id: "223-ФЗ"
+        - type: "ФЗ"
+          id: "275-ФЗ"
+        - type: "Постановление Правительства РФ"
+          ids: ["1044", "1009", "313"]
+
+    - id: "223-ФЗ"
+      name: "О закупках товаров, работ, услуг отдельными видами юридических лиц"
+      number: "223-ФЗ"
+      date: "2011-07-18"
+      effective_date: "2012-01-01"
+      last_amendment: "2024-08-26"
+      hierarchy_level: 3
+      description: "Procurement law for state corporations and natural monopolies"
+      related_acts:
+        - type: "Постановление Правительства РФ"
+          ids: ["908", "1352"]
+
+    - id: "275-ФЗ"
+      name: "О государственном оборонном заказе"
+      number: "275-ФЗ"
+      date: "2011-12-29"
+      effective_date: "2012-01-01"
+      last_amendment: "2023-12-04"
+      hierarchy_level: 3
+      description: "Defense procurement law"
+      related_acts:
+        - type: "Постановление Правительства РФ"
+          ids: ["574", "763"]
+
+    - id: "44-ФЗ-2020"
+      name: "О внесении изменений в отдельные законодательные акты РФ"
+      number: "44-ФЗ-2020"
+      date: "2020-04-01"
+      effective_date: "2020-04-01"
+      last_amendment: null
+      hierarchy_level: 3
+      description: "Major amendments to 44-ФЗ (single supplier provision)"
+
+  presidential_decrees:
+    - id: "Указ-608"
+      name: "О системе закупок для государственных нужд"
+      number: "608"
+      date: "1999-09-11"
+      effective_date: "1999-09-11"
+      hierarchy_level: 4
+      status: "superseded"
+      superseded_by: "44-ФЗ"
+      description: "Established procurement system framework"
+
+    - id: "Указ-890"
+      name: "О совершенствовании системы закупок"
+      number: "890"
+      date: "2008-11-14"
+      effective_date: "2008-11-14"
+      hierarchy_level: 4
+      status: "superseded"
+      superseded_by: "44-ФЗ"
+      description: "Procurement optimization measures"
+
+  government_resolutions:
+    - id: "ПП-1044"
+      name: "О реализации Федерального закона"
+      number: "1044"
+      date: "2014-10-30"
+      effective_date: "2014-10-30"
+      hierarchy_level: 5
+      parent_law: "44-ФЗ"
+      description: "44-ФЗ implementation rules"
+      last_amendment: "2024-01-15"
+
+    - id: "ПП-1009"
+      name: "Об утверждении правил подготовки нормативных правовых актов"
+      number: "1009"
+      date: "2021-06-09"
+      effective_date: "2021-06-09"
+      hierarchy_level: 5
+      description: "Regulatory act preparation rules"
+      critical_note: "Статья 10: Издание НПА в виде писем не допускается"
+
+    - id: "ПП-313"
+      name: "О внесении изменений в акты Правительства РФ"
+      number: "313"
+      date: "2014-04-15"
+      effective_date: "2014-04-15"
+      hierarchy_level: 5
+      parent_law: "44-ФЗ"
+      description: "Amendments to 44-ФЗ implementation"
+
+    - id: "ПП-908"
+      name: "Об утверждении Положения о закупке"
+      number: "908"
+      date: "2012-09-29"
+      effective_date: "2012-09-29"
+      hierarchy_level: 5
+      parent_law: "223-ФЗ"
+      description: "Procurement regulation for 223-ФЗ entities"
+
+    - id: "ПП-1352"
+      name: "Об особенностях участия субъектов малого и среднего предпринимательства"
+      number: "1352"
+      date: "2014-12-11"
+      effective_date: "2014-12-11"
+      hierarchy_level: 5
+      parent_law: "223-ФЗ"
+      description: "SME participation rules"
+
+  ministerial_orders:
+    - id: "Приказ-МЭР-678"
+      name: "Об утверждении типовых контрактов"
+      number: "678"
+      date: "2020-10-01"
+      effective_date: "2020-10-01"
+      hierarchy_level: 6
+      issuer: "Минэкономразвития России"
+      parent_law: "44-ФЗ"
+      description: "Standard contract templates"
+
+    - id: "Приказ-ФАС-1148-20"
+      name: "Об утверждении методических рекомендаций"
+      number: "1148/20"
+      date: "2020-11-19"
+      effective_date: "2020-11-19"
+      hierarchy_level: 6
+      issuer: "ФАС России"
+      parent_law: "44-ФЗ"
+      description: "Methodological recommendations for procurement"
+
+    - id: "Приказ-МЭР-567"
+      name: "Об утверждении методических рекомендаций по применению методов определения НМЦК"
+      number: "567"
+      date: "2020-05-22"
+      effective_date: "2020-05-22"
+      hierarchy_level: 6
+      issuer: "Минэкономразвития России"
+      parent_law: "44-ФЗ"
+      description: "Guidelines for starting price calculation"
+
+# =============================================================================
+# DOCUMENT RELATIONSHIPS
+# =============================================================================
+relationships:
+  parent_child:
+    - parent: "44-ФЗ"
+      children:
+        - "ПП-1044"
+        - "ПП-1009"
+        - "Приказ-МЭР-678"
+        - "Приказ-ФАС-1148-20"
+        - "Приказ-МЭР-567"
+    - parent: "223-ФЗ"
+      children:
+        - "ПП-908"
+        - "ПП-1352"
+
+  supersession:
+    - superseded: "Указ-608"
+      superseded_by: "44-ФЗ"
+      date: "2014-01-01"
+    - superseded: "Указ-890"
+      superseded_by: "44-ФЗ"
+      date: "2014-01-01"
+
+# =============================================================================
+# INDEX BY ISSUER
+# =============================================================================
+by_issuer:
+  Президент РФ:
+    - "Указ-608"
+    - "Указ-890"
+
+  Правительство РФ:
+    - "ПП-1044"
+    - "ПП-1009"
+    - "ПП-313"
+    - "ПП-908"
+    - "ПП-1352"
+
+  Минэкономразвития России:
+    - "Приказ-МЭР-678"
+    - "Приказ-МЭР-567"
+
+  ФАС России:
+    - "Приказ-ФАС-1148-20"

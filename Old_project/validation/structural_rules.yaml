@@ -1,0 +1,59 @@
+# Validation Rules: Structural
+# Rules for validating document structure
+# Version: 1.0.0
+
+version: "1.0.0"
+
+rules:
+  # Required fields validation
+  - id: "STRUCT-001"
+    name: "article_has_number"
+    description: "Every article must have a number"
+    target: "article"
+    check: "has_field"
+    field: "number"
+    severity: "error"
+
+  - id: "STRUCT-002"
+    name: "chapter_has_title"
+    description: "Every chapter should have a title"
+    target: "chapter"
+    check: "has_field"
+    field: "title"
+    severity: "warning"
+
+  # Hierarchy validation
+  - id: "STRUCT-003"
+    name: "article_in_chapter"
+    description: "Articles should be contained in chapters"
+    target: "article"
+    check: "has_parent"
+    parent_type: "chapter"
+    severity: "warning"
+
+  - id: "STRUCT-004"
+    name: "paragraph_in_article"
+    description: "Paragraphs must be contained in articles"
+    target: "paragraph"
+    check: "has_parent"
+    parent_type: "article"
+    severity: "error"
+
+  # Orphan detection
+  - id: "STRUCT-005"
+    name: "no_orphan_text"
+    description: "Text content should not be orphaned outside structure"
+    target: "text"
+    check: "has_parent"
+    parent_type: ["paragraph", "article", "chapter"]
+    severity: "warning"
+
+  # Completeness checks
+  - id: "STRUCT-006"
+    name: "document_has_articles"
+    description: "Document must contain at least one article"
+    target: "document"
+    check: "has_children"
+    child_type: "article"
+    min_count: 1
+    severity: "error"

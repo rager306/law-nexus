@@ -1,0 +1,333 @@
+# Document Structure Understanding Prompt
+
+**Version**: 0.1.0 (initial)
+**Generated**: 2025-12-31
+**Status**: Manual Verification Phase
+**Automation Level**: manual
+
+This YAML prompt captures learned knowledge about Russian legal document structure.
+Generated through DSPy GEPA/MIPROv2 optimization iterations.
+
+---
+
+## Instruction
+
+```
+You are an expert at analyzing Russian legal documents.
+Your task is to extract the document structure:
+
+1. Identify all chapters (Глава) with numbers and titles
+2. Identify all articles (Статья) with numbers and titles
+3. Extract publication date and effective date
+4. Note any amendments or revisions
+
+Output in JSON format with the following structure:
+{
+  "chapters": [{"number": "1", "title": "..."}],
+  "articles": [{"number": "1", "title": "...", "content": "..."}],
+  "publication_date": "...",
+  "effective_date": "...",
+  "confidence": 0.0-1.0
+}
+```
+
+---
+
+## Structure Markers
+
+### Chapters (Глава)
+
+```yaml
+chapters:
+  - pattern: "Глава\\s+(\\d+)\\.?\\s*(.+)"
+    description: Chapter marker with number and title
+    example: "Глава 1. ОБЩИЕ ПОЛОЖЕНИЯ"
+    required: true
+    validation:
+      - "Chapter numbers should be sequential"
+      - "Title should be in UPPERCASE"
+```
+
+### Articles (Статья)
+
+```yaml
+articles:
+  - pattern: "Статья\\s+(\\d+[\\.\\d]*)\\.?\\s*(.+)"
+    description: Article marker with number and title
+    example: "Статья 1. Цели настоящего Федерального закона"
+    required: true
+    validation:
+      - "Article numbers should be sequential within chapter"
+      - "Sub-articles use format: Статья 24.1"
+```
+
+### Parts (Часть)
+
+```yaml
+parts:
+  - pattern: "(часть|части|частью)\\s+(\\d+)"
+    description: Part marker within article
+    example: "часть 1 статьи 15"
+    required: false
+```
+
+### Items (Пункт)
+
+```yaml
+items:
+  - pattern: "^(\\d+)\\."
+    description: Item number at paragraph start
+    example: "1."
+    required: false
+```
+
+### Sub-Items (Подпункт)
+
+```yaml
+sub_items:
+  - pattern: "^(\\d+)\\)"
+    description: Sub-item marker with parenthesis
+    example: "1)"
+    required: false
+```
+
+### Paragraphs (Параграф) - Optional
+
+```yaml
+paragraphs:
+  - pattern: "&#167;\\s*(\\d+(\\.\\d+)?)\\.?\\s*(.+)"
+    description: Section/section marker with § symbol
+    example: "§ 1. Общие положения"
+    required: false
+    note: "Appears within chapters (e.g., Глава 3 has § 1-7)"
+    xml_example: "&#167; 1. Общие положения"
+    placement: "inside_chapter"
+
+  - pattern: "^(\\d+)\\.\\s+(.+)"
+    description: Numbered paragraph at line start
+    example: "1. Текст параграфа"
+    required: false
+    note: "May appear within articles"
+    placement: "inside_article"
+
+  - pattern: "^(\\d+)\\.(\\d+)\\s+(.+)"
+    description: Nested paragraph numbering
+    example: "3.1 Дополнительный раздел"
+    required: false
+    note: "Used for detailed breakdowns"
+    placement: "inside_chapter"
+```
+
+---
+
+## Temporal Markers
+
+### Publication Date
+
+```yaml
+publication_date:
+  patterns:
+    - "от\\s+(\\d{1,2}\\s+\\w+\\s+\\d{4}\\s+года)\\s+N?\\s*([\\d-ФЗ]+)"
+      example: "от 5 апреля 2013 года N 44-ФЗ"
+    - "от\\s+(\\d{2}\\.\\d{2}\\.\\d{4})"
+      example: "от 05.04.2013"
+  format: "%d %B %Y"
+  field: publication_date
+```
+
+### Effective Date
+
+```yaml
+effective_date:
+  patterns:
+    - "вступает в силу.*?с\\s+(\\d{1,2}\\s+\\w+\\s+\\d{4}\\s+года)"
+      example: "вступает в силу с 1 января 2014 года"
+    - "вступает в силу.*?(\\d{2}\\.\\d{2}\\.\\d{4})"
+  field: effective_date
+```
+
+### Amendments
+
+```yaml
+amendments:
+  patterns:
+    - "в редакции.*?от\\s+(\\d{2}\\.\\d{2}\\.\\d{4})"
+      example: "в редакции Федерального закона от 27.12.2018 N 502-ФЗ"
+    - "изменения.*?от\\s+(\\d{2}\\.\\d{2}\\.\\d{4})"
+  field: amendments
+  repeated: true
+```
+
+### Revision Marker
+
+```yaml
+revision_marker:
+  patterns:
+    - "ред\\. от\\s+(\\d{2}\\.\\d{2}\\.\\d{4})"
+      example: "ред. от 26.12.2024"
+      description: "Revision date marker"
+  field: revision_date
+  repeated: true
+```
+
+---
+
+## Confidence Thresholds
+
+```yaml
+confidence_thresholds:
+  auto_accept: 0.95
+  semi_auto: 0.80
+  manual_review: 0.0
+
+workflow:
+  auto:
+    when: "confidence >= 0.95"
+    action: "Accept without review"
+  semi_auto:
+    when: "0.80 <= confidence < 0.95"
+    action: "Flag for periodic review"
+  manual:
+    when: "confidence < 0.80"
+    action: "Full human review required"
+```
+
+---
+
+## Training Examples
+
+### Example 1: 44-FZ (Federal Law on Contract System)
+
+```yaml
+document: "44-FZ.xml"
+type: "federal_law"
+extraction_result:
+  chapters:
+    - number: "1"
+      title: "ОБЩИЕ ПОЛОЖЕНИЯ"
+    - number: "2"
+      title: "ПЛАНИРОВАНИЕ"
+    - number: "3"
+      title: "ОСУЩЕСТВЛЕНИЕ ЗАКУПОК"
+    - number: "4"
+      title: "МОНИТОРИНГ"
+    - number: "5"
+      title: "КОНТРОЛЬ"
+    - number: "6"
+      title: "ОБЖАЛОВАНИЕ"
+    - number: "7"
+      title: "ОСОБЕННОСТИ"
+    - number: "8"
+      title: "ЗАКЛЮЧИТЕЛЬНЫЕ ПОЛОЖЕНИЯ"
+  chapter_count: 8
+  article_count: 94
+  publication_date: "5 апреля 2013 года"
+  effective_date: "1 января 2014 года"
+confidence: 0.95
+verified: true
+manual_verifier: "human"
+```
+
+### Example 2: Government Decree
+
+```yaml
+document: "sample-decree.xml"
+type: "government_decree"
+extraction_result:
+  chapters: []  # Decrees may not have chapters
+  article_count: 10
+  publication_date: "26 августа 2013 года"
+confidence: 0.90
+verified: true
+manual_verifier: "human"
+```
+
+---
+
+## Error Log (for DSPy Training)
+
+```yaml
+errors:
+  # === Manual Verification 2025-12-31 ===
+
+  # Chapter and article duplicates due to amendments
+  - document: "44-FZ.xml"
+    error_type: "duplicate_marker"
+    expected: "Глава 1-8"
+    got: "Глава 1-8 appear multiple times"
+    context: "Amendments show historical versions of chapters"
+    fixed: false
+    note: "Document contains multiple versions of same chapter due to amendments"
+
+  - document: "44-FZ.xml"
+    error_type: "duplicate_marker"
+    expected: "Статья 1-94"
+    got: "Articles appear multiple times"
+    context: "Articles 14, 15, 23, 26 appear multiple times in amendments"
+    fixed: false
+    note: "Need to filter by date/version when extracting articles"
+
+  # Sub-item pattern verified
+  - document: "44-FZ.xml"
+    error_type: "sub_item_pattern"
+    expected: "1) sub_item content"
+    got: "1) followed by lowercase letter"
+    context: "Sub-items start with number and parenthesis"
+    fixed: true
+    note: "Pattern ^\\d+\\) confirmed for sub-items"
+
+  # Temporal markers confirmed
+  - document: "44-FZ.xml"
+    error_type: "temporal_marker_found"
+    expected: "publication_date pattern"
+    got: "от 05.04.2013, от 26.12.2024"
+    context: "Multiple dates found for amendments"
+    fixed: true
+    note: "Pattern for publication date works"
+
+  - document: "44-FZ.xml"
+    error_type: "temporal_marker_found"
+    expected: "revision marker pattern"
+    got: "ред. от 26.12.2024"
+    context: "Revision markers present"
+    fixed: true
+    note: "New pattern needed: ред. от ДД.ММ.ГГГГ"
+
+  - document: "44-FZ.xml"
+    error_type: "invalidity_marker_found"
+    expected: "утратила силу pattern"
+    got: "утратила силу, не применяется, утратил силу"
+    context: "Invalidity markers detected"
+    fixed: true
+    note: "Pattern for invalidity works"
+
+  # Paragraph pattern - § found in Chapter 3
+  - document: "44-FZ.xml"
+    error_type: "paragraph_pattern_verified"
+    expected: "§ pattern in Chapter 3"
+    got: "§ 1-7 found in Глава 3. ОСУЩЕСТВЛЕНИЕ ЗАКУПОК"
+    context: "§ symbol (&#167;) used for sections within chapters"
+    fixed: true
+    note: "Pattern &#167; \\d+(\\.\\d+)? confirmed in Глава 3"
+```
+
+---
+
+## Version History
+
+| Version | Date | Automation | Iterations | Notes |
+|---------|------|------------|------------|-------|
+| 0.1.0 | 2025-12-31 | manual | 0 | Initial patterns from 44-FZ analysis |
+| 0.1.1 | 2025-12-31 | manual | 1 | Added § paragraph pattern (found in Глава 3) |
+| 0.2.0 | TBD | manual | 2 | After first verification round |
+| 0.5.0 | TBD | semi_auto | 3 | After DSPy GEPA optimization |
+| 1.0.0 | TBD | auto | 5+ | Production ready |
+
+---
+
+## Next Actions
+
+1. **Manual Verification**: Run on 3+ documents, record errors
+2. **DSPy Optimization**: Run MIPROv2 with error signals
+3. **Iterate**: Improve patterns based on errors
+4. **Promote**: Move to semi_auto when accuracy >= 0.80

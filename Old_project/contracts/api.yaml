@@ -1,0 +1,318 @@
+# API Contracts: Normative Document Analysis
+
+## CLI Interface
+
+### Command: `fd-gr analyze`
+
+```yaml
+fd-gr analyze:
+  summary: Analyze a single document for structure and references
+  options:
+    --input, -i:
+      type: path
+      required: true
+      description: Path to input document (XML, PDF, DOCX)
+    --output, -o:
+      type: path
+      required: false
+      description: Path for output YAML file
+    --format:
+      type: string
+      required: false
+      default: yaml
+      enum: [yaml, json, falkordb]
+      description: Output format
+    --stage:
+      type: string
+      required: false
+      description: Run specific stage only (ingestion, preprocessing, structure, references, classification, postprocessing)
+    --dspy:
+      type: boolean
+      required: false
+      default: false
+      description: Use DSPy for extraction (slower but more accurate)
+    --checkpoint:
+      type: path
+      required: false
+      description: Checkpoint file for incremental processing
+    --verbose, -v:
+      type: boolean
+      required: false
+      default: false
+      description: Verbose output
+  examples:
+    - fd-gr analyze -i 44-FZ.xml -o result.yaml
+    - fd-gr analyze -i contract.pdf --dspy --stage structure
+```
+
+### Command: `fd-gr batch`
+
+```yaml
+fd-gr batch:
+  summary: Process multiple documents in batch
+  options:
+    --input, -i:
+      type: path
+      required: true
+      description: Path to input directory or file list
+    --output, -o:
+      type: path
+      required: true
+      description: Path for output directory
+    --parallel:
+      type: int
+      required: false
+      default: 4
+      description: Number of parallel workers
+    --format:
+      type: string
+      required: false
+      default: yaml
+      enum: [yaml, json, falkordb]
+      description: Output format
+    --dspy:
+      type: boolean
+      required: false
+      default: false
+      description: Use DSPy for extraction
+    --retry:
+      type: int
+      required: false
+      default: 3
+      description: Maximum retry attempts
+  examples:
+    - fd-gr batch -i ./documents/ -o ./results/
+    - fd-gr batch -i files.txt -o ./output/ --parallel 8
+```
+
+---
+
+## Programmatic Interface
+
+### DocumentAnalyzer
+
+```python
+from pathlib import Path
+from typing import Protocol
+
+class DocumentAnalyzer(Protocol):
+    """Protocol for document analysis service."""
+
+    async def analyze(
+        self,
+        file_path: Path,
+        use_dspy: bool = False,
+        stages: Optional[list[str]] = None,
+    ) -> ProcessingResult:
+        """Analyze document structure and references.
+
+        Args:
+            file_path: Path to document
+            use_dspy: Use DSPy for extraction
+            stages: Run specific stages only
+
+        Returns:
+            ProcessingResult with all extracted data
+        """
+        ...
+
+    async def batch_analyze(
+        self,
+        file_paths: list[Path],
+        parallel: int = 4,
+        use_dspy: bool = False,
+    ) -> list[ProcessingResult]:
+        """Analyze multiple documents.
+
+        Args:
+            file_paths: List of document paths
+            parallel: Number of parallel workers
+            use_dspy: Use DSPy for extraction
+
+        Returns:
+            List of ProcessingResult objects
+        """
+        ...
+```
+
+### DocumentExtractor
+
+```python
+from pathlib import Path
+from typing import Protocol
+
+class DocumentExtractor(Protocol):
+    """Protocol for format-specific document extractors."""
+
+    def supports_format(self, file_path: Path) -> bool:
+        """Check if extractor supports this file format."""
+        ...
+
+    async def extract(self, file_path: Path) -> Document:
+        """Extract text and metadata from document."""
+        ...
+
+    @property
+    def format_name(self) -> str:
+        """Return format identifier."""
+        ...
+```
+
+---
+
+## Processing Pipeline
+
+### Stage Interface
+
+```python
+class ProcessingStage(Protocol):
+    """Protocol for pipeline stages."""
+
+    @property
+    def name(self) -> str:
+        """Stage identifier."""
+        ...
+
+    @property
+    def dependencies(self) -> list[str]:
+        """Required previous stages."""
+        ...
+
+    async def run(
+        self,
+        input_data: dict,
+        context: PipelineContext,
+    ) -> dict:
+        """Execute stage processing.
+
+        Args:
+            input_data: Output from previous stage
+            context: Shared pipeline context
+
+        Returns:
+            Output data for next stage
+        """
+        ...
+```
+
+### Stage Output Schemas
+
+#### Stage 1: Ingestion Output
+
+```yaml
+ingestion_output:
+  type: object
+  properties:
+    document:
+      $ref: '#/components/schemas/Document'
+    format_detected:
+      type: string
+      enum: [WORD_XML, PDF, DOCX, UNKNOWN]
+```
+
+#### Stage 2: Preprocessing Output
+
+```yaml
+preprocessing_output:
+  type: object
+  properties:
+    normalized_text:
+      type: string
+    structure_markers:
+      type: array
+      items:
+        type: object
+        properties:
+          text:
+            type: string
+          position:
+            type: integer
+          likely_level:
+            type: string
+    metadata:
+      type: object
+```
+
+#### Stage 3: Structure Discovery Output
+
+```yaml
+structure_output:
+  type: object
+  properties:
+    hierarchy_tree:
+      $ref: '#/components/schemas/HierarchyTree'
+    confidence:
+      type: number
+```
+
+#### Stage 4: Reference Extraction Output
+
+```yaml
+references_output:
+  type: object
+  properties:
+    internal_links:
+      type: array
+      items:
+        $ref: '#/components/schemas/InternalLink'
+    external_references:
+      type: array
+      items:
+        $ref: '#/components/schemas/ExternalReference'
+    confidence:
+      type: number
+```
+
+#### Stage 5: Classification Output
+
+```yaml
+classification_output:
+  type: object
+  properties:
+    classification:
+      $ref: '#/components/schemas/DocumentClassification'
+    confidence:
+      type: number
+```
+
+#### Stage 6: Post-processing Output
+
+```yaml
+postprocessing_output:
+  type: object
+  properties:
+    result:
+      $ref: '#/components/schemas/ProcessingResult'
+    validation_warnings:
+      type: array
+      items:
+        type: string
+```
+
+---
+
+## Error Taxonomy
+
+| Error Code | HTTP Status | Description |
+|------------|-------------|-------------|
+| DOC001 | 400 | Unsupported file format |
+| DOC002 | 422 | Invalid document structure |
+| DOC003 | 500 | Extraction failed |
+| DOC004 | 408 | Processing timeout |
+| DOC005 | 503 | Service unavailable |
+| STG001 | 400 | Invalid stage specification |
+| STG002 | 412 | Missing dependency stage |
+| DSP001 | 500 | DSPy optimization failed |
+| DSP002 | 429 | Rate limit exceeded |
+| GRF001 | 500 | FalkorDB connection failed |
+| GRF002 | 409 | Duplicate document |
+| GRF003 | 404 | Document not found |
+
+---
+
+## Idempotency
+
+All operations are idempotent:
+- Same document input → same ProcessingResult
+- Re-running pipeline with same checkpoint → no duplicate nodes in FalkorDB
+- MERGE semantics for graph operations

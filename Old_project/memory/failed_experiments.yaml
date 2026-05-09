@@ -1,0 +1,16 @@
+# Memory Context: Failed Experiments
+# Experiments that failed to improve extraction
+# Used to avoid repeating unsuccessful approaches
+# Version: 1.0.0
+
+version: "1.0.0"
+last_updated: null
+
+experiments: []
+  # Example experiment structure:
+  # - experiment_id: "FE-001"
+  #   level: "L2"
+  #   pattern: "Pattern for detecting embedded tables"
+  #   failure_reason: "Too aggressive - matched regular paragraphs"
+  #   error_type: "ValidationError"
+  #   date: "2026-01-04T10:00:00Z"
