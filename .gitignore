@@ -1,0 +1,26 @@
+# Local/runtime agent state
+.bg-shell/
+.gsd/runtime/
+.gsd/activity/
+.gsd/exec/
+.gsd/auto.lock
+.gsd/*.db
+.gsd/*.db-*
+.gsd/notifications.jsonl
+
+# Environment / secrets
+.env
+.env.*
+!.env.example
+
+# OS/editor noise
+.DS_Store
+*.swp
+*.swo
+
+# Dependencies and build outputs
+node_modules/
+dist/
+build/
+.next/
+coverage/
