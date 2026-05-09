@@ -509,6 +509,19 @@ flowchart LR
     R --> E[Evidence verification]
 ```
 
+## 8b. GraphBLAS integration model
+
+GraphBLAS remains post-MVP unless a later proof slice promotes a narrow algorithm. The integration contract is intentionally explicit so R-002 is a future engineering task, not an unverified runtime claim.
+
+| Topic | Architecture contract |
+|---|---|
+| Binding choice | Candidate bindings are `python-graphblas` / SuiteSparse:GraphBLAS-compatible Python integration. Final library choice requires source/runtime proof before implementation. |
+| Matrix source | FalkorDB remains the authoritative graph. GraphBLAS matrices are derived caches for selected subgraphs, not a second source of truth. |
+| Export scope | MVP may export only IDs and relationship adjacency needed for a named algorithm; full graph export is post-MVP and must be benchmarked. |
+| Cache key | Matrix caches are keyed by graph schema version, relationship set, act/domain scope, and source revision watermark. |
+| Invalidation | Import, migration/backfill, changed source SHA, or relationship rebuild invalidates affected matrix caches before they can support scoring. |
+| Observability | Each GraphBLAS run must expose algorithm name, node/edge counts, cache hit/miss, export duration, compute duration, and stale-cache rejection count. |
+
 ## 9. Hybrid Retrieval Layer
 
 Retrieval состоит из нескольких источников сигналов.
@@ -523,6 +536,20 @@ final_score =
   + 0.10 * temporal_validity
   + 0.05 * evidence_confidence
 ```
+
+`evidence_confidence` is not permission to rank unsupported candidates. Evidence is a hard filter first: candidates without an EvidenceSpan/SourceBlock/ActEdition chain are rejected before scoring and must produce `no_answer` if no supported candidate remains. The `0.05 * evidence_confidence` component is only an optional bonus/penalty among already evidence-backed candidates, for example to prefer direct spans over inherited or lower-confidence parser mappings.
+
+### 9a. MVP chunking strategy
+
+MVP chunking must be citation-safe and legal-unit-aligned, not arbitrary sliding windows. The chunk builder creates one primary `TextChunk` per verified legal unit boundary (`Article`, `Part`, `Clause`, or smaller unit when parsed) and preserves the EvidenceSpan chain back to `SourceBlock`.
+
+| Rule | Contract |
+|---|---|
+| Boundary source | Legal-unit boundaries come from deterministic ODT/source parsing evidence, not LLM guesses. S05 ODT proof remains the validation owner for real 44-ФЗ boundaries. |
+| Chunk scope | A chunk may include parent citation context and immediately necessary heading text, but must not merge unrelated clauses or split conditions/exceptions away from the norm they qualify. |
+| Evidence links | Every chunk requires `source_node_id`, `legal_unit_id`, and one or more `evidence_span_ids`; orphan chunks are validation errors. |
+| Overlap policy | Sliding-window overlap is post-MVP only and may be added only as derived retrieval material that still points to legal-unit EvidenceSpan records. |
+| Metrics | Validation/quality reports must count `chunks_created`, `orphan_chunk_rate`, `legal_unit_without_chunk_count`, and `chunk_boundary_warning_count`. |
 
 ```mermaid
 flowchart TD
@@ -614,9 +641,78 @@ flowchart TD
 17_cleaned.md
 ```
 
+Each machine-readable import artifact must have a JSON Schema before production import tooling treats it as stable. This backlog closes F-015/G-002 at the architecture level: schemas are required, but embeddings remain post-MVP unless FR-28b is promoted.
+
+| Artifact | Schema requirement | MVP phase |
+|---|---|---|
+| `01_source_document.json` | Source identity, SHA-256, provenance class, source metadata, immutable import timestamp. | MVP |
+| `02_legal_act.json` | Act metadata, jurisdiction, act number normalization, edition date, document labels/domains. | MVP |
+| `03_source_blocks.jsonl` | Ordered SourceBlock records with block type, source offsets/selectors, text, style metadata. | MVP |
+| `04_structure_nodes.jsonl` | LegalUnit nodes with IDs, citation keys, hierarchy, temporal fields, parser confidence. | MVP |
+| `05_evidence_nodes.jsonl` | EvidenceSpan identity, source SHA, source block, legal unit, offsets/selectors, lifecycle status. | MVP |
+| `06_norm_nodes.jsonl` | NormStatement fields, modality/type compatibility, verification status, evidence links. | MVP skeleton / post-MVP expansion |
+| `07_entity_nodes.jsonl` | LegalSubject/LegalConcept records with source/evidence provenance. | MVP skeleton |
+| `08_term_nodes.jsonl` | LegalTerm records and definition links. | MVP |
+| `09_chunk_nodes.jsonl` | Legal-unit-aligned TextChunk records and required evidence links. | MVP |
+| `10_keyphrase_nodes.jsonl` | Legal YAKE KeyPhrase/AutoTag records with explainable feature scores. | MVP |
+| `11_relationships.jsonl` | Relationship type, from/to IDs, required endpoint existence, provenance fields. | MVP |
+| `12_embeddings.jsonl` | TextChunk embedding records with model ID, dimension, vector/checksum or external vector ID, and schema version. | Post-MVP / gated by FR-28b |
+| `13_import.cypher` | Generated Cypher script plus manifest hash and schema version comment. | MVP |
+| `14_validation_report.json` | Validation report schema defined in §12. | MVP |
+| `15_quality_report.json` | Counts, parser confidence summaries, warnings, and quality gates. | MVP |
+| `16_retrieval_eval.json` | Retrieval/golden-test dataset skeleton and metric definitions. | MVP skeleton |
+| `17_cleaned.md` | Human-inspectable cleaned text with source metadata header. | MVP |
+
 ## 12. Validation Architecture
 
 Перед импортом система должна валидировать пакет.
+
+Validation output is `14_validation_report.json` and must conform to a versioned JSON Schema. Severity levels are `ERROR`, `WARNING`, and `INFO`; any `ERROR` blocks import and returns a non-zero validation exit code. `WARNING` permits import only when the importer is run in an explicitly acknowledged mode and the warning class is non-blocking. `INFO` is diagnostic only.
+
+Minimum validation report schema sketch:
+
+```json
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "LegalGraphImportValidationReport",
+  "type": "object",
+  "required": ["schema_version", "package_id", "generated_at", "status", "summary", "checks"],
+  "properties": {
+    "schema_version": { "type": "string" },
+    "package_id": { "type": "string" },
+    "generated_at": { "type": "string", "format": "date-time" },
+    "status": { "enum": ["passed", "failed", "passed_with_warnings"] },
+    "exit_code": { "type": "integer" },
+    "summary": {
+      "type": "object",
+      "required": ["errors", "warnings", "info"],
+      "properties": {
+        "errors": { "type": "integer", "minimum": 0 },
+        "warnings": { "type": "integer", "minimum": 0 },
+        "info": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "checks": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["check_id", "severity", "status", "message"],
+        "properties": {
+          "check_id": { "type": "string" },
+          "severity": { "enum": ["ERROR", "WARNING", "INFO"] },
+          "status": { "enum": ["passed", "failed", "skipped"] },
+          "artifact": { "type": "string" },
+          "record_id": { "type": "string" },
+          "message": { "type": "string" },
+          "evidence": { "type": "object" }
+        }
+      }
+    }
+  }
+}
+```
+
+`valid Cypher` means the generated script passes static checks for declared labels/relationship names, required parameters, endpoint references, and safe statement classes. Runtime FalkorDB execution is a separate smoke/proof check; static validation must not claim runtime success without executing against FalkorDB.
 
 ```mermaid
 flowchart TD
@@ -742,8 +838,17 @@ Language: optimized for Russian
 Vector store: FalkorDB vector index
   - cosine similarity
   - dimension: 1024
-  - no external vector store required
+  - no external vector store required for the target candidate path
 ```
+
+Vector indexing is post-MVP and research-gated. The architecture must keep a vector store fallback: if FalkorDB vector indexing cannot meet representative scale, latency, or operational constraints, embeddings move to an external vector store such as Qdrant or pgvector while FalkorDB remains the source of legal graph truth. The fallback contract stores `external_vector_id`, `embedding_model_id`, `embedding_dimension`, `chunk_id`, and `source_sha256` so retrieval results can always be joined back to `TextChunk -> EvidenceSpan` before scoring or answer generation.
+
+Promotion criteria for using FalkorDB as the vector store:
+
+- runtime proof for 1024-dimensional vectors at representative chunk counts;
+- declared index parameters (for example HNSW `M`, `efConstruction`, and query `ef` if supported by the selected runtime);
+- measured ingest/query latency and memory profile;
+- rollback plan to external vector IDs without changing citation/evidence semantics.
 
 ## 13e. Extensible Graph Model
 
@@ -789,6 +894,18 @@ Post-MVP: Rust для критичных ETL-компонентов
   - PyO3 bindings
 ```
 
+## 13g. Security, observability, and migration backlog
+
+These architecture contracts close the review gaps as explicit future work without turning M001 into implementation scope.
+
+| Backlog item | Contract |
+|---|---|
+| Security/access (G-001) | Define authentication/authorization for the KnowQL endpoint, FalkorDB credentials, import package write access, and audit-log read access before exposing any service beyond local development. Legal answers must be traceable without exposing source documents to unauthorized users. |
+| Observability metrics (G-007) | Nexus/API and ETL runtimes must emit latency, throughput, p50/p95/p99, error counts, no-answer counts, validation failure counts, orphan chunk/evidence counts, and evidence-verification failure counts. Metrics must identify operation names without logging raw legal text or secrets. |
+| Migration/backfill (G-004) | Every schema change that adds a required field or relationship needs a versioned migration/backfill plan, dry-run report, idempotency key, rollback/restore point, and post-backfill validation report. |
+| Sublegal acts and appendices (G-009) | Source profiles must support acts that omit chapters, include appendices, or use article-only structures before those source families are promoted. MVP may keep 44-ФЗ hierarchy assumptions only when validation records the source profile. |
+| Footnotes/tables (G-010) | Footnotes, notes, and table cells must remain SourceBlock-addressable and either become LegalUnits/TextChunks with EvidenceSpan links or be reported as preserved-but-unmodeled blocks. Silent loss is a validation error. |
+
 ## 14. Архитектурный итог
 
 Система реализует deterministic-first legal intelligence architecture:
@@ -797,7 +914,7 @@ Post-MVP: Rust для критичных ETL-компонентов
 - FalkorDBLite → Docker Compose — deployment evolution;
 - ODT/odfpy ingestion — source format from Гарант;
 - sentence-transformers + deepvk/USER-bge-m3 — embeddings (1024-dim);
-- FalkorDB vector index — cosine similarity, no external vector store;
+- FalkorDB vector index — cosine similarity target candidate, with external vector store fallback if representative scale/runtime proof fails;
 - Legal Nexus Module — Python-класс для orchestration;
 - JS UDF в FalkorDB — простые graph-операции;
 - Python LegalNexus — сложная оркестрация;

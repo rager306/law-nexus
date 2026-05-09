@@ -283,6 +283,8 @@ Chapter → Article → Part → Clause → SubClause → Paragraph
 Chapter → Article → Part → Clause
 ```
 
+Sublegal acts, appendices, footnotes, notes, and tables are explicitly future-owned source-profile work. MVP may process 44-ФЗ using the hierarchy above, but import validation must report preserved-but-unmodeled blocks rather than silently dropping appendices, footnotes, notes, or table material.
+
 ```mermaid
 flowchart TD
     A[ActEdition] --> B[Chapter]
@@ -365,6 +367,14 @@ EvidenceSpan lifecycle contract:
 ## FR-8. TextChunk creation
 
 Система должна создавать `TextChunk` для vector search, но каждый чанк обязан быть связан с юридической единицей и evidence.
+
+MVP chunking strategy:
+
+- Primary chunks are aligned to legal-unit boundaries (`Article`, `Part`, `Clause`, or smaller parsed units), not arbitrary sliding windows.
+- A chunk may carry parent citation/headline context, but must not split conditions, exceptions, deadlines, or temporal markers away from the legal unit they qualify.
+- Boundaries must be derived from deterministic ODT/source parsing evidence; unproven LLM boundary suggestions are not accepted.
+- Sliding-window overlap is post-MVP only and must remain derived retrieval material linked back to legal-unit EvidenceSpan records.
+- Validation must fail orphan chunks and report `orphan_chunk_rate`, `legal_unit_without_chunk_count`, and `chunk_boundary_warning_count`.
 
 Обязательные поля:
 
@@ -531,6 +541,18 @@ Required fields:
 - section weight;
 - explainable feature scores.
 
+### FR-15a. Legal YAKE specification
+
+Legal YAKE is an explainable local keyphrase layer, not legal authority. Before implementation it must have a versioned specification:
+
+| Item | Requirement |
+|---|---|
+| Base algorithm | Declare the YAKE variant and scoring formula, with any legal-domain feature additions documented separately from the base algorithm. |
+| Stop-list | Store the Russian legal stop-list in a versioned tracked artifact; each entry records owner, reason, and review date. |
+| Glossary | Store legal glossary terms in a versioned tracked artifact with term, normalized form, source/evidence reference when available, and owner. |
+| Feature trace | Each KeyPhrase record stores raw YAKE score, legal glossary bonus, boilerplate penalty, section weight, final score, and source legal unit. |
+| Quality checks | Measure keyphrase precision/recall or reviewer acceptance on the retrieval evaluation dataset before using KeyPhrase as a ranking signal. |
+
 ```mermaid
 flowchart TD
     T[LegalUnit text] --> Y[Legal YAKE]
@@ -600,6 +622,8 @@ explicit_cross_reference
 17_cleaned.md
 ```
 
+Each JSON/JSONL artifact must have a versioned JSON Schema before production import treats the format as stable. MVP schemas are required for source documents, legal-act metadata, source blocks, structure nodes, evidence nodes, chunks, keyphrases, relationships, validation reports, quality reports, and retrieval-eval skeletons. `12_embeddings.jsonl` is a required post-MVP schema backlog item linked to FR-28b: it must specify `chunk_id`, `embedding_model_id`, `embedding_dimension`, vector/checksum or `external_vector_id`, source SHA, and schema version before embeddings are promoted.
+
 ## FR-20. Import package validation
 
 Перед импортом система должна проверять:
@@ -614,6 +638,36 @@ explicit_cross_reference
 - no orphan legal units;
 - no orphan evidence spans;
 - valid Cypher.
+
+### FR-20a. Validation report schema
+
+Validation output is `14_validation_report.json` and must conform to a versioned JSON Schema. Severity levels are `ERROR`, `WARNING`, and `INFO`; any `ERROR` blocks import and sets non-zero validation exit code. `WARNING` is non-blocking only when explicitly acknowledged by the importer policy. `INFO` is diagnostic.
+
+Minimum schema shape:
+
+```json
+{
+  "schema_version": "validation-report.v1",
+  "package_id": "44fz-2025-12-28",
+  "generated_at": "2026-05-09T00:00:00Z",
+  "status": "passed | failed | passed_with_warnings",
+  "exit_code": 0,
+  "summary": { "errors": 0, "warnings": 0, "info": 0 },
+  "checks": [
+    {
+      "check_id": "relationship_endpoints_exist",
+      "severity": "ERROR",
+      "status": "passed | failed | skipped",
+      "artifact": "11_relationships.jsonl",
+      "record_id": "...",
+      "message": "human-readable diagnostic",
+      "evidence": {}
+    }
+  ]
+}
+```
+
+`valid Cypher` means static checks over generated labels, relationship names, parameters, endpoint references, and allowed statement classes. Runtime execution against FalkorDB is a separate smoke/proof check and must not be claimed from static validation alone.
 
 ## FR-21. Legal Nexus Module
 
@@ -745,6 +799,8 @@ JS UDF constraints: no async I/O, no external calls, no unbounded traversal or l
 - concept-neighborhood search;
 - orphan detection.
 
+GraphBLAS integration is post-MVP until validated. The implementation backlog must choose a concrete binding, define FalkorDB-to-matrix export scope, cache keys, invalidation rules after import/migration/backfill, and observability metrics for export duration, cache hit/miss, compute duration, node/edge counts, and stale-cache rejections.
+
 ## FR-26. Evidence verification
 
 Система должна проверять, что ответ или утверждение поддержаны конкретным evidence.
@@ -805,6 +861,17 @@ Promotion criteria before implementation scope:
 - FalkorDB vector index behavior is verified for 1024-dimensional vectors at representative scale;
 - `12_embeddings.jsonl` schema and TextChunk linkage are specified;
 - fallback strategy is defined if FalkorDB vector indexing is insufficient.
+
+## FR-28c. Vector store fallback
+
+FalkorDB remains the authoritative legal graph even if vector search is externalized. If FalkorDB vector indexing fails representative scale, latency, memory, or operational tests, embeddings may be stored in Qdrant, pgvector, or another approved vector store using `external_vector_id` while FalkorDB stores the `TextChunk`, citation, temporal, and EvidenceSpan graph.
+
+Fallback requirements:
+
+- retrieval results must join back to `TextChunk -> EvidenceSpan -> SourceBlock -> ActEdition` before scoring or answer generation;
+- vector records include `chunk_id`, `embedding_model_id`, `embedding_dimension`, `source_sha256`, and schema version;
+- the fallback path must preserve `no_answer` behavior when graph/evidence verification fails;
+- operational metrics must compare FalkorDB vector index and fallback latency/recall before promotion.
 
 ## FR-29. No-answer handling
 
@@ -918,6 +985,8 @@ validation: до 30 секунд
 
 Retrieval score должен быть decomposable.
 
+Evidence is a hard filter before scoring. Candidates without verified EvidenceSpan/SourceBlock/ActEdition support are rejected and cannot be rescued by a high BM25/vector/graph score. `evidence_confidence` is a small bonus/penalty among already evidence-backed candidates, not a substitute for evidence.
+
 Пример:
 
 ```json
@@ -944,6 +1013,18 @@ Retrieval score должен быть decomposable.
 - параметризованный ETL с `document_type`;
 - JS UDF в FalkorDB для простых операций;
 - Python LegalNexus для сложной оркестрации.
+
+## NFR-10. Security and access control
+
+Before any non-local deployment, the system must define access control for FalkorDB credentials, import package generation, KnowQL/API endpoints, audit logs, and source-document artifacts. Authorization must distinguish import operators, query users, legal reviewers, and administrators. Logs and metrics must not expose raw legal text, secrets, credentials, or unmanaged source files to unauthorized users.
+
+## NFR-11. Observability metrics
+
+ETL, validation, Legal Nexus, KnowQL, retrieval, evidence verification, GraphBLAS, and vector-store components must emit agent-usable metrics and structured diagnostics. Required metric families include latency (`p50`, `p95`, `p99`), throughput, error counts, validation failure counts, `no_answer` counts, orphan chunk/evidence counts, evidence verification failures, query plan operation names, cache hit/miss rates, and migration/backfill progress. Metrics must be keyed by operation/schema/version identifiers rather than raw legal text.
+
+## NFR-12. Migration and backfill
+
+Schema evolution must be versioned and reversible. Adding required fields, labels, relationships, validation checks, vector metadata, or GraphBLAS cache inputs requires a migration/backfill plan with dry-run report, idempotency key, rollback/restore point, affected-count summary, and post-backfill validation report. Backfills over large legal-unit corpora must support batching and resume from checkpoints.
 
 ## 10. Target data model
 
