@@ -1,12 +1,6 @@
 # Local/runtime agent state
 .bg-shell/
-.gsd/runtime/
-.gsd/activity/
-.gsd/exec/
-.gsd/auto.lock
-.gsd/*.db
-.gsd/*.db-*
-.gsd/notifications.jsonl
+.gsd/
 
 # Environment / secrets
 .env
