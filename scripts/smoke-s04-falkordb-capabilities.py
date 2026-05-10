@@ -163,6 +163,13 @@ CAPABILITIES: tuple[CapabilitySpec, ...] = (
         True,
     ),
     CapabilitySpec(
+        "falkordb-algo-negative-contracts",
+        "FalkorDB algorithm negative/error contracts",
+        "Run bounded negative probes for unsupported Neo4j/GDS-style procedure and yield shapes.",
+        "Terminal runtime status proving expected rejections or exact unexpected acceptance/failure diagnostic.",
+        True,
+    ),
+    CapabilitySpec(
         "falkordblite-import",
         "FalkorDBLite import/bootstrap",
         "Install/import FalkorDBLite in an isolated runtime boundary and record package/binary metadata.",
@@ -947,7 +954,7 @@ def chain_fixture(graph):
 def betweenness_probe():
     graph = client.select_graph(f"s04_algo_betweenness_{{GRAPH_SUFFIX}}")
     chain_fixture(graph)
-    rows = graph.query("CALL algo.betweenness({{nodeLabels: ['Page'], relationshipTypes: ['LINKS']}}) YIELD node, score RETURN node.id, score ORDER BY node.id").result_set
+    rows = graph.query("CALL algo.betweenness({{nodeLabels: ['Page'], relationshipTypes: ['LINKS'], samplingSize: 3, samplingSeed: 10}}) YIELD node, score RETURN node.id, score ORDER BY node.id").result_set
     scores = {{row[0]: float(row[1]) for row in rows}}
     if scores != {{'a': 0.0, 'b': 1.0, 'c': 0.0}}:
         raise AssertionError(f"unexpected betweenness scores: {{rows!r}}")
@@ -1012,6 +1019,43 @@ def msf_probe():
     ok("falkordb-algo-msf", f"MSF returned forest node/edge counts={{rows!r}} using YIELD nodes, edges")
 
 run("falkordb-algo-msf", msf_probe)
+
+
+def negative_algorithm_contracts_probe():
+    graph = client.select_graph(f"s04_algo_negative_{{GRAPH_SUFFIX}}")
+    algorithm_fixture(graph)
+    cases = [
+        (
+            "msf_edge_weight_yield",
+            "CALL algo.MSF({{nodeLabels: ['Page'], relationshipTypes: ['LINKS'], weightAttribute: 'weight'}}) YIELD edge, weight RETURN edge, weight",
+            "does not yield output `edge`",
+        ),
+        (
+            "neo4j_gds_pagerank_stream",
+            "CALL gds.pageRank.stream('Page', {{relationshipProjection: 'LINKS'}}) YIELD nodeId, score RETURN nodeId, score",
+            "Procedure `gds.pageRank.stream` is not registered",
+        ),
+        (
+            "pagerank_nodeid_yield",
+            "CALL algo.pageRank('Page', 'LINKS') YIELD nodeId, score RETURN nodeId, score",
+            "does not yield output `nodeId`",
+        ),
+    ]
+    observed = {{}}
+    for label, query, expected_fragment in cases:
+        try:
+            rows = graph.query(query).result_set
+        except Exception as exc:  # noqa: BLE001 - negative probe records exact runtime rejection.
+            message = str(exc)
+            if expected_fragment not in message:
+                raise AssertionError(f"{{label}} rejected with unexpected message: {{message!r}}") from exc
+            observed[label] = expected_fragment
+            continue
+        raise AssertionError(f"{{label}} unexpectedly succeeded with rows={{rows!r}}")
+    graph.delete()
+    ok("falkordb-algo-negative-contracts", f"negative algorithm contracts rejected as expected={{observed!r}}")
+
+run("falkordb-algo-negative-contracts", negative_algorithm_contracts_probe)
 
 client.close()
 print(json.dumps(results, sort_keys=True))
