@@ -197,4 +197,9 @@ def test_json_and_markdown_artifacts_include_runtime_diagnostics(tmp_path: Path)
     assert "`falkordb-basic-graph`" in markdown
     assert "`falkordb-algo-pagerank`" in markdown
     assert "`falkordb-algo-wcc`" in markdown
+    assert "`falkordb-algo-bfs`" in markdown
+    assert "`falkordb-algo-betweenness`" in markdown
+    assert "`falkordb-algo-label-propagation`" in markdown
+    assert "`falkordb-algo-sp-paths`" in markdown
+    assert "`falkordb-algo-ss-paths`" in markdown
     assert "M001 architecture-only" in markdown

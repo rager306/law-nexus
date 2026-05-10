@@ -121,6 +121,41 @@ CAPABILITIES: tuple[CapabilitySpec, ...] = (
         True,
     ),
     CapabilitySpec(
+        "falkordb-algo-bfs",
+        "FalkorDB BFS algorithm output shape",
+        "Run BFS from a bounded source node and assert reachable node/edge counts.",
+        "Terminal runtime status with expected BFS counts or exact procedure/output failure.",
+        True,
+    ),
+    CapabilitySpec(
+        "falkordb-algo-betweenness",
+        "FalkorDB betweenness algorithm output shape",
+        "Run betweenness on a bounded chain graph and assert center-node score behavior.",
+        "Terminal runtime status with expected betweenness rows or exact procedure/output failure.",
+        True,
+    ),
+    CapabilitySpec(
+        "falkordb-algo-label-propagation",
+        "FalkorDB label propagation algorithm output shape",
+        "Run label propagation on a bounded synthetic graph and assert community output shape.",
+        "Terminal runtime status with expected community rows or exact procedure/output failure.",
+        True,
+    ),
+    CapabilitySpec(
+        "falkordb-algo-sp-paths",
+        "FalkorDB single-pair shortest paths output shape",
+        "Run SPpaths on a bounded synthetic graph and assert path count/weights.",
+        "Terminal runtime status with expected SPpaths rows or exact procedure/output failure.",
+        True,
+    ),
+    CapabilitySpec(
+        "falkordb-algo-ss-paths",
+        "FalkorDB single-source shortest paths output shape",
+        "Run SSpaths on a bounded synthetic graph and assert path count/weights.",
+        "Terminal runtime status with expected SSpaths rows or exact procedure/output failure.",
+        True,
+    ),
+    CapabilitySpec(
         "falkordblite-import",
         "FalkorDBLite import/bootstrap",
         "Install/import FalkorDBLite in an isolated runtime boundary and record package/binary metadata.",
@@ -846,9 +881,9 @@ run("falkordb-vector-distance", vector_distance_probe)
 
 def algorithm_fixture(graph):
     graph.query("CREATE (:Page {{id:'a'}}), (:Page {{id:'b'}}), (:Page {{id:'c'}}), (:Page {{id:'d'}})")
-    graph.query("MATCH (a:Page {{id:'a'}}), (b:Page {{id:'b'}}) CREATE (a)-[:LINKS]->(b)")
-    graph.query("MATCH (a:Page {{id:'a'}}), (c:Page {{id:'c'}}) CREATE (a)-[:LINKS]->(c)")
-    graph.query("MATCH (b:Page {{id:'b'}}), (c:Page {{id:'c'}}) CREATE (b)-[:LINKS]->(c)")
+    graph.query("MATCH (a:Page {{id:'a'}}), (b:Page {{id:'b'}}) CREATE (a)-[:LINKS {{weight: 1.0}}]->(b)")
+    graph.query("MATCH (a:Page {{id:'a'}}), (c:Page {{id:'c'}}) CREATE (a)-[:LINKS {{weight: 2.0}}]->(c)")
+    graph.query("MATCH (b:Page {{id:'b'}}), (c:Page {{id:'c'}}) CREATE (b)-[:LINKS {{weight: 1.0}}]->(c)")
 
 
 def pagerank_probe():
@@ -882,6 +917,82 @@ def wcc_probe():
     ok("falkordb-algo-wcc", f"WCC returned components={{components!r}}")
 
 run("falkordb-algo-wcc", wcc_probe)
+
+
+def bfs_probe():
+    graph = client.select_graph(f"s04_algo_bfs_{{GRAPH_SUFFIX}}")
+    algorithm_fixture(graph)
+    rows = graph.query("MATCH (a:Page {{id:'a'}}) CALL algo.bfs(a, -1, 'LINKS') YIELD nodes, edges RETURN size(nodes), size(edges)").result_set
+    if rows != [[2, 2]]:
+        raise AssertionError(f"unexpected BFS counts: {{rows!r}}")
+    graph.delete()
+    ok("falkordb-algo-bfs", f"BFS from a returned node/edge counts={{rows[0]!r}}")
+
+run("falkordb-algo-bfs", bfs_probe)
+
+
+def chain_fixture(graph):
+    graph.query("CREATE (:Page {{id:'a'}}), (:Page {{id:'b'}}), (:Page {{id:'c'}})")
+    graph.query("MATCH (a:Page {{id:'a'}}), (b:Page {{id:'b'}}) CREATE (a)-[:LINKS]->(b)")
+    graph.query("MATCH (b:Page {{id:'b'}}), (c:Page {{id:'c'}}) CREATE (b)-[:LINKS]->(c)")
+
+
+def betweenness_probe():
+    graph = client.select_graph(f"s04_algo_betweenness_{{GRAPH_SUFFIX}}")
+    chain_fixture(graph)
+    rows = graph.query("CALL algo.betweenness({{nodeLabels: ['Page'], relationshipTypes: ['LINKS']}}) YIELD node, score RETURN node.id, score ORDER BY node.id").result_set
+    scores = {{row[0]: float(row[1]) for row in rows}}
+    if scores != {{'a': 0.0, 'b': 1.0, 'c': 0.0}}:
+        raise AssertionError(f"unexpected betweenness scores: {{rows!r}}")
+    graph.delete()
+    ok("falkordb-algo-betweenness", f"betweenness returned scores={{scores!r}}")
+
+run("falkordb-algo-betweenness", betweenness_probe)
+
+
+def label_propagation_probe():
+    graph = client.select_graph(f"s04_algo_label_propagation_{{GRAPH_SUFFIX}}")
+    algorithm_fixture(graph)
+    rows = graph.query("CALL algo.labelPropagation({{nodeLabels: ['Page'], relationshipTypes: ['LINKS'], maxIterations: 5}}) YIELD node, communityId RETURN node.id, communityId ORDER BY node.id").result_set
+    communities = {{row[0]: row[1] for row in rows}}
+    if set(communities) != {{'a', 'b', 'c', 'd'}}:
+        raise AssertionError(f"unexpected label propagation ids: {{rows!r}}")
+    if len({{communities['a'], communities['b'], communities['c']}}) != 1:
+        raise AssertionError(f"linked nodes should share a label propagation community: {{rows!r}}")
+    if communities['d'] == communities['a']:
+        raise AssertionError(f"isolated node should have a distinct label propagation community: {{rows!r}}")
+    graph.delete()
+    ok("falkordb-algo-label-propagation", f"label propagation returned communities={{communities!r}}")
+
+run("falkordb-algo-label-propagation", label_propagation_probe)
+
+
+def sp_paths_probe():
+    graph = client.select_graph(f"s04_algo_sp_paths_{{GRAPH_SUFFIX}}")
+    algorithm_fixture(graph)
+    rows = graph.query("MATCH (a:Page {{id:'a'}}), (c:Page {{id:'c'}}) CALL algo.SPpaths({{sourceNode: a, targetNode: c, relTypes: ['LINKS'], maxLen: 3, pathCount: 2}}) YIELD path, pathWeight, pathCost RETURN count(path), collect(pathWeight)").result_set
+    count, weights = rows[0]
+    actual = sorted(round(float(weight), 3) for weight in weights)
+    if count != 2 or actual != [1.0, 2.0]:
+        raise AssertionError(f"unexpected SPpaths rows: {{rows!r}}")
+    graph.delete()
+    ok("falkordb-algo-sp-paths", f"SPpaths returned count={{count}}; weights={{actual!r}}")
+
+run("falkordb-algo-sp-paths", sp_paths_probe)
+
+
+def ss_paths_probe():
+    graph = client.select_graph(f"s04_algo_ss_paths_{{GRAPH_SUFFIX}}")
+    algorithm_fixture(graph)
+    rows = graph.query("MATCH (a:Page {{id:'a'}}) CALL algo.SSpaths({{sourceNode: a, relTypes: ['LINKS'], maxLen: 3, pathCount: 3}}) YIELD path, pathWeight, pathCost RETURN count(path), collect(pathWeight)").result_set
+    count, weights = rows[0]
+    actual = sorted(round(float(weight), 3) for weight in weights)
+    if count != 3 or actual != [1.0, 1.0, 2.0]:
+        raise AssertionError(f"unexpected SSpaths rows: {{rows!r}}")
+    graph.delete()
+    ok("falkordb-algo-ss-paths", f"SSpaths returned count={{count}}; weights={{actual!r}}")
+
+run("falkordb-algo-ss-paths", ss_paths_probe)
 
 client.close()
 print(json.dumps(results, sort_keys=True))
