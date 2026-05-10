@@ -13,6 +13,56 @@ Authoritative claims remain in the source documents and evidence artifacts that 
 
 Registry records in JSONL form are derived projections for graph analysis, coverage checks, generated views, and architecture fitness functions. Generated graph exports, Markdown reports, GraphML files, diagrams, and later skill/router guidance are downstream artifacts. They must be rebuilt or checked from the registry and its anchors, never hand-edited into authority over PRD/GSD/ADR evidence.
 
+## End-to-end architecture verification workflow
+
+Use this lifecycle whenever an agent changes architecture claims, architecture registry mappings, graph/report logic, verifier policy, or project guidance that summarizes architecture state:
+
+1. **Update source evidence first.** The source of truth is the PRD/GSD/ADR/source/runtime evidence listed above. Do not make the JSONL registry, NetworkX report, verifier summary, or router skill the authority for a claim that lacks anchored source evidence.
+2. **Regenerate the conservative JSONL projection.** Run:
+
+   ```bash
+   uv run python scripts/extract-prd-architecture-items.py
+   ```
+
+   This emits `prd/architecture/architecture_items.jsonl` and `prd/architecture/architecture_edges.jsonl` from curated mappings only. Treat both files as derived, non-authoritative projections. If a row is stale or wrong, fix the source anchor or extractor mapping and regenerate; do not hand-edit JSONL to make a claim appear current.
+3. **Rebuild the derived NetworkX views.** Run:
+
+   ```bash
+   uv run python scripts/build-architecture-graph.py
+   ```
+
+   This consumes the JSONL registry and rewrites `prd/architecture/architecture_graph_report.json` plus `prd/architecture/architecture_report.md`. These reports diagnose coverage, graph integrity, unresolved gates, contradictions, risk concentration, and overclaim boundaries, but they remain derived views.
+4. **Verify before claiming currency.** Run the canonical verifier:
+
+   ```bash
+   uv run python scripts/verify-architecture-graph.py
+   ```
+
+   On default paths the verifier first runs the extractor and graph builder freshness gates in read-only mode:
+
+   ```bash
+   uv run python scripts/extract-prd-architecture-items.py --check
+   uv run python scripts/build-architecture-graph.py --check
+   ```
+
+   A passing verifier means the derived artifacts satisfy the current static registry, graph, source-anchor, decision-fitness, and claim-safety rules. It does not validate product readiness, runtime behavior, parser completeness, retrieval quality, legal-answer correctness, generated-Cypher safety, FalkorDB production scale, or LLM authority.
+
+Agents must run `uv run python scripts/verify-architecture-graph.py` before saying the architecture registry, graph report, verifier policy, or router guidance is current. For narrow checks, `--check` on the extractor or graph builder is acceptable only when the claim is limited to that layer's freshness. For tests or fixtures that pass custom `--items`, `--edges`, `--report-json`, or `--report-md` paths, remember that upstream freshness checks are intentionally skipped; do not use custom-path verifier success as evidence that the tracked project architecture is current.
+
+### Failure classes and remediation hints
+
+The expected verifier failures are meant to be actionable and should include rule, record ID, field, path, and source-anchor context where available:
+
+- **Extractor freshness drift:** `extract-prd-architecture-items.py --check` reports that generated JSONL differs from the extractor output. Remediate by regenerating the JSONL after confirming the curated source mapping is correct.
+- **Graph/report freshness drift:** `build-architecture-graph.py --check` reports stale JSON or Markdown reports. Remediate by rebuilding the graph reports from current JSONL.
+- **Malformed or invalid JSONL:** malformed lines, wrong `record_kind`, duplicate IDs, missing required fields, enum violations, or invalid path/date/identifier shapes fail deterministically. Remediate the extractor mapping, schema-aware fixture, or source record that produced the bad row, then regenerate.
+- **Unsafe or stale source anchors:** absolute paths, ignored local-only paths, missing files, unbounded line ranges, or selectors/sections that no longer appear in the source fail. Remediate by updating the authoritative source document or the repository-relative anchor.
+- **Graph integrity failures:** missing edge endpoints, orphan traceability-critical records, unresolved active contradictions, and unresolved proof-gate metadata gaps fail when they would make the registry misleading. Remediate by adding anchored relationships, resolving/superseding contradictions, or documenting owner/status/verification metadata.
+- **Decision fitness failures:** active decisions without consequences, superseded decisions without successor coverage, or high/critical active decisions lacking `checked_by`/`validated_by` proof-gate coverage fail. Remediate in the source decision evidence and regenerate the registry.
+- **Positive overclaim failures:** generated artifacts or policy prose that assert unproven runtime, Legal KnowQL parser, ODT/parser completeness, retrieval-quality, FalkorDB production-scale, generated-Cypher safety, legal-answer correctness, or LLM-authority claims fail. Remediate by downgrading to source-anchored boundary language or adding the required deterministic/runtime/real-document proof before raising the claim.
+
+Negative boundary language such as “derived,” “non-authoritative,” “does not validate,” and “must not be used as legal authority” is part of the claim-safety contract, not an overclaim.
+
 ## S02 extractor contract
 
 The canonical S02 extractor is `scripts/extract-prd-architecture-items.py`. Run it from the repository root to regenerate the tracked projection files:
