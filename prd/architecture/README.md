@@ -78,6 +78,23 @@ Those findings are diagnostic handoff inputs, not automatic validation outcomes.
 
 A future agent should interpret `--check` failures as stale or inconsistent generated artifacts. A successful `--check` only proves the report is current with the present registry and graph rules; it does not prove product readiness, runtime behavior, legal correctness, parser completeness, retrieval quality, or LLM authority.
 
+## S04 verifier contract
+
+The canonical S04 verifier is `scripts/verify-architecture-graph.py`. Run it from the repository root after the S02/S03 generated outputs are expected to be current:
+
+```bash
+uv run python scripts/verify-architecture-graph.py
+```
+
+The verifier is read-only. On default paths it first composes these freshness gates before applying S04 policy checks:
+
+```bash
+uv run python scripts/extract-prd-architecture-items.py --check
+uv run python scripts/build-architecture-graph.py --check
+```
+
+Verifier output is derived and non-authoritative. Its compact JSON summary includes `non_authoritative=true`, and hard failures are deterministic diagnostics intended to identify stale upstream artifacts, malformed JSONL, duplicate IDs, wrong record kinds, missing report outputs, and later R029 decision/claim-safety drift categories. A passing verifier run means the derived artifacts satisfy the current verifier rules; it does not validate product readiness, runtime behavior, legal correctness, parser completeness, retrieval quality, or LLM authority.
+
 ## Record boundary
 
 `architecture.schema.json` validates one record at a time using `record_kind`:
