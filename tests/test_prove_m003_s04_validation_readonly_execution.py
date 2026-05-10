@@ -12,16 +12,25 @@ import pytest
 
 ROOT = Path(__file__).resolve().parents[1]
 SCRIPT_PATH = ROOT / "scripts/verify-m003-s04-validation-readonly-execution.py"
+PROOF_SCRIPT_PATH = ROOT / "scripts/prove-m003-s04-validation-readonly-execution.py"
 
 
-def load_verifier() -> ModuleType:
-    spec = importlib.util.spec_from_file_location("verify_m003_s04_validation_readonly_execution", SCRIPT_PATH)
+def load_module(name: str, path: Path) -> ModuleType:
+    spec = importlib.util.spec_from_file_location(name, path)
     assert spec is not None
     module = importlib.util.module_from_spec(spec)
     assert spec.loader is not None
     sys.modules[spec.name] = module
     spec.loader.exec_module(module)
     return module
+
+
+def load_verifier() -> ModuleType:
+    return load_module("verify_m003_s04_validation_readonly_execution", SCRIPT_PATH)
+
+
+def load_proof() -> ModuleType:
+    return load_module("prove_m003_s04_validation_readonly_execution", PROOF_SCRIPT_PATH)
 
 
 @pytest.fixture()
@@ -44,6 +53,7 @@ def base_artifact() -> dict[str, object]:
             "candidate_accepted": True,
         },
         "validation": {
+            "attempted": True,
             "accepted": True,
             "schema_version": "m002-legalgraph-cypher-safety-contract/v1",
             "rejection_codes": [],
@@ -96,6 +106,114 @@ def write_artifact(tmp_path: Path, payload: dict[str, object]) -> Path:
     return path
 
 
+def s03_payload(*, status: str = "confirmed-runtime", accepted: bool = True, text: str | None = None) -> dict[str, object]:
+    candidate: dict[str, object] = {
+        "accepted": accepted,
+        "categories": [],
+        "has_comment": False,
+        "has_markdown_fence": False,
+        "has_multi_statement": False,
+        "has_prose_prefix": False,
+        "has_prose_suffix": False,
+        "has_think_tag": False,
+        "raw_provider_body_persisted": False,
+        "root_cause": "none" if status == "confirmed-runtime" else "provider-malformed-response",
+        "sha256_12": "abc123def456" if accepted else None,
+        "starts_with": "MATCH" if accepted else None,
+        "status": status,
+        "text_length": len(text or ""),
+        "trimmed_length": len((text or "").strip()),
+    }
+    if text is not None:
+        candidate["normalized_text"] = text
+    return {
+        "schema_version": "m003-s03-reasoning-safe-candidate/v2",
+        "status": status,
+        "root_cause": "none" if status == "confirmed-runtime" else "provider-malformed-response",
+        "phase": "candidate-classification" if status == "confirmed-runtime" else "provider-response",
+        "provider_attempts": 1,
+        "candidate": candidate,
+    }
+
+
+def write_s03(tmp_path: Path, payload: dict[str, object]) -> Path:
+    path = tmp_path / "S03-REASONING-SAFE-CANDIDATE.json"
+    path.write_text(json.dumps(payload, indent=2), encoding="utf-8")
+    return path
+
+
+def test_proof_skips_current_failed_runtime_s03_without_validation_or_execution(tmp_path: Path) -> None:
+    proof = load_proof()
+    s03_path = write_s03(tmp_path, s03_payload(status="failed-runtime", accepted=False))
+
+    artifact = proof.build_artifact(s03_path, proof.DEFAULT_SCHEMA_CONTRACT)
+
+    assert artifact["status"] == "skipped"
+    assert artifact["root_cause"] == "candidate-unavailable"
+    assert artifact["s03_source"]["status"] == "failed-runtime"
+    assert artifact["s03_source"]["candidate_accepted"] is False
+    assert artifact["validation"]["attempted"] is False
+    assert artifact["validation"]["accepted"] is False
+    assert artifact["execution"]["attempted"] is False
+
+
+def test_proof_rejects_clean_s03_candidate_that_fails_m002_validation(tmp_path: Path) -> None:
+    proof = load_proof()
+    s03_path = write_s03(tmp_path, s03_payload(text="CREATE (:Article {id: $id}) RETURN 1 LIMIT 1"))
+
+    artifact = proof.build_artifact(s03_path, proof.DEFAULT_SCHEMA_CONTRACT)
+
+    assert artifact["status"] == "validation-rejected"
+    assert artifact["root_cause"] == "validation-rejected"
+    assert artifact["validation"]["attempted"] is True
+    assert artifact["validation"]["accepted"] is False
+    assert artifact["validation"]["rejection_codes"] == ["E_WRITE_OPERATION"]
+    assert artifact["execution"]["attempted"] is False
+
+
+def test_proof_accepts_evidence_return_candidate_but_skips_execution_for_t02(tmp_path: Path) -> None:
+    proof = load_proof()
+    query = """MATCH (span:EvidenceSpan)-[:SUPPORTS]->(article:Article)-[:SUPPORTED_BY]->(block:SourceBlock),
+                     (span)-[:IN_BLOCK]->(block)
+              WHERE article.id = $article_id
+              RETURN article.id, span.id, block.id, block.source_id, span.start_offset, span.end_offset
+              LIMIT 5"""
+    s03_path = write_s03(tmp_path, s03_payload(text=query))
+
+    artifact = proof.build_artifact(s03_path, proof.DEFAULT_SCHEMA_CONTRACT)
+
+    assert artifact["status"] == "validation-accepted"
+    assert artifact["root_cause"] == "none"
+    assert artifact["phase"] == "validation"
+    assert artifact["validation"]["attempted"] is True
+    assert artifact["validation"]["accepted"] is True
+    assert artifact["validation"]["query_shape_category"] == "evidence-return-readonly"
+    assert artifact["validation"]["safe_parameter_categories"] == {"article_id": "identifier"}
+    assert artifact["execution"]["attempted"] is False
+    assert artifact["execution"]["status"] == "not-attempted"
+    assert "normalized_query" not in artifact["validation"]
+
+
+def test_proof_cli_writes_verifiable_artifact_for_failed_runtime_skip(tmp_path: Path) -> None:
+    s03_path = write_s03(tmp_path, s03_payload(status="failed-runtime", accepted=False))
+    artifact_dir = tmp_path / "artifacts"
+
+    completed = subprocess.run(
+        [sys.executable, str(PROOF_SCRIPT_PATH), "--s03-artifact", str(s03_path), "--artifact-dir", str(artifact_dir)],
+        check=False,
+        text=True,
+        capture_output=True,
+    )
+
+    assert completed.returncode == 0
+    output = json.loads(completed.stdout)
+    assert output["status"] == "skipped"
+    artifact_path = artifact_dir / "S04-VALIDATION-READONLY-EXECUTION.json"
+    assert artifact_path.exists()
+    verifier = load_verifier()
+    assert verifier.verify_artifact(artifact_path)["status"] == "skipped"
+
+
 def test_accepts_current_s03_style_no_candidate_skip(verifier: ModuleType, tmp_path: Path) -> None:
     payload = base_artifact()
     payload.update({"status": "skipped", "root_cause": "candidate-unavailable", "phase": "s03-handoff"})
@@ -108,6 +226,7 @@ def test_accepts_current_s03_style_no_candidate_skip(verifier: ModuleType, tmp_p
         "candidate_accepted": False,
     }
     payload["validation"] = {
+        "attempted": False,
         "accepted": False,
         "schema_version": "m002-legalgraph-cypher-safety-contract/v1",
         "rejection_codes": ["E_CANDIDATE_UNAVAILABLE"],
@@ -136,6 +255,7 @@ def test_accepts_validation_rejection_without_execution(verifier: ModuleType, tm
     payload = base_artifact()
     payload.update({"status": "validation-rejected", "root_cause": "validation-rejected", "phase": "validation"})
     payload["validation"] = {
+        "attempted": True,
         "accepted": False,
         "schema_version": "m002-legalgraph-cypher-safety-contract/v1",
         "rejection_codes": ["E_WRITE_OPERATION"],
@@ -160,7 +280,7 @@ def test_accepts_validation_rejection_without_execution(verifier: ModuleType, tm
     assert result["execution_attempted"] is False
 
 
-def test_rejects_accepted_validation_without_execution(verifier: ModuleType, tmp_path: Path) -> None:
+def test_rejects_confirmed_runtime_without_execution(verifier: ModuleType, tmp_path: Path) -> None:
     payload = base_artifact()
     payload["execution"] = {
         "attempted": False,
@@ -172,7 +292,7 @@ def test_rejects_accepted_validation_without_execution(verifier: ModuleType, tmp
         "synthetic_identifier_categories": [],
     }
 
-    with pytest.raises(verifier.VerificationError, match="accepted validation requires execution.attempted=true"):
+    with pytest.raises(verifier.VerificationError, match="confirmed-runtime requires attempted execution"):
         verifier.verify_artifact(write_artifact(tmp_path, payload))
 
 
@@ -201,6 +321,7 @@ def test_rejects_execution_attempt_without_validation_acceptance(verifier: Modul
     payload = base_artifact()
     payload.update({"status": "validation-rejected", "root_cause": "validation-rejected", "phase": "validation"})
     payload["validation"] = {
+        "attempted": True,
         "accepted": False,
         "schema_version": "m002-legalgraph-cypher-safety-contract/v1",
         "rejection_codes": ["E_WRITE_OPERATION"],

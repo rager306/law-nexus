@@ -25,6 +25,7 @@ DEFAULT_ARTIFACT = ROOT / ".gsd/milestones/M003/slices/S04/S04-VALIDATION-READON
 STATUS_CATEGORIES = {
     "skipped",
     "validation-rejected",
+    "validation-accepted",
     "blocked-environment",
     "failed-runtime",
     "confirmed-runtime",
@@ -222,18 +223,29 @@ def validate_s03_source(payload: dict[str, Any]) -> dict[str, Any]:
 
 def validate_validation(payload: dict[str, Any]) -> dict[str, Any]:
     validation = require_dict(payload.get("validation"), "validation")
+    attempted = require_bool(require_field(validation, "attempted", "validation"), "validation.attempted")
     accepted = require_bool(require_field(validation, "accepted", "validation"), "validation.accepted")
     require(require_field(validation, "schema_version", "validation") == M002_SCHEMA_VERSION, "validation.schema_version mismatch")
     rejection_codes = require_list(require_field(validation, "rejection_codes", "validation"), "validation.rejection_codes")
     require(all(isinstance(code, str) and code for code in rejection_codes), "validation.rejection_codes must contain strings")
     evidence_returns = require_list(require_field(validation, "required_evidence_returns", "validation"), "validation.required_evidence_returns")
     require(all(isinstance(item, str) and item for item in evidence_returns), "validation.required_evidence_returns must contain strings")
+    query_shape = validation.get("query_shape_category")
+    if query_shape is not None:
+        require(isinstance(query_shape, str) and query_shape, "validation.query_shape_category must be non-empty when present")
+    safe_parameters = validation.get("safe_parameter_categories")
+    if safe_parameters is not None:
+        safe_parameters = require_dict(safe_parameters, "validation.safe_parameter_categories")
+        require(all(isinstance(key, str) and isinstance(value, str) for key, value in safe_parameters.items()), "validation.safe_parameter_categories must map strings to strings")
     if accepted:
+        require(attempted, "accepted validation requires validation.attempted=true")
         require(rejection_codes == [], "accepted validation must not include rejection codes")
         missing = sorted(REQUIRED_EXECUTION_COLUMNS - set(evidence_returns))
         require(not missing, "accepted validation missing required evidence returns: " + ", ".join(missing))
+    elif attempted:
+        require(bool(rejection_codes), "attempted rejected validation requires at least one rejection code")
     else:
-        require(bool(rejection_codes), "rejected validation requires at least one rejection code")
+        require(not accepted, "unattempted validation cannot be accepted")
     return validation
 
 
@@ -290,13 +302,14 @@ def validate_state_semantics(
     execution: dict[str, Any],
 ) -> None:
     s03_accepted = cast("bool", s03_source["candidate_accepted"])
+    validation_attempted = cast("bool", validation["attempted"])
     validation_accepted = cast("bool", validation["accepted"])
     execution_attempted = cast("bool", execution["attempted"])
 
+    if validation_accepted and not validation_attempted:
+        fail("validation.accepted requires validation.attempted=true")
     if execution_attempted and not validation_accepted:
         fail("execution cannot be attempted unless validation.accepted is true")
-    if validation_accepted and not execution_attempted:
-        fail("accepted validation requires execution.attempted=true")
     if validation_accepted and not s03_accepted:
         fail("validation.accepted requires s03_source.candidate_accepted=true")
 
@@ -304,6 +317,7 @@ def validate_state_semantics(
         require(root_cause == "candidate-unavailable", "skipped root_cause must be candidate-unavailable")
         require(phase == "s03-handoff", "skipped phase must be s03-handoff")
         require(not s03_accepted, "skipped artifact requires unaccepted S03 candidate")
+        require(not validation_attempted, "skipped artifact must not attempt validation")
         require(not validation_accepted, "skipped artifact must not accept validation")
         require(not execution_attempted, "skipped artifact must not execute")
         return
@@ -312,8 +326,18 @@ def validate_state_semantics(
         require(root_cause == "validation-rejected", "validation-rejected root_cause mismatch")
         require(phase == "validation", "validation-rejected phase must be validation")
         require(s03_accepted, "validation rejection requires accepted S03 candidate")
+        require(validation_attempted, "validation-rejected artifact requires validation.attempted=true")
         require(not validation_accepted, "validation-rejected artifact must not accept validation")
         require(not execution_attempted, "validation-rejected artifact must not execute")
+        return
+
+    if status == "validation-accepted":
+        require(root_cause == "none", "validation-accepted root_cause must be none")
+        require(phase == "validation", "validation-accepted phase must be validation")
+        require(s03_accepted, "validation acceptance requires accepted S03 candidate")
+        require(validation_attempted, "validation-accepted artifact requires validation.attempted=true")
+        require(validation_accepted, "validation-accepted artifact must accept validation")
+        require(not execution_attempted, "validation-accepted artifact must explicitly skip execution")
         return
 
     if status == "blocked-environment":
@@ -358,6 +382,7 @@ def verify_artifact(path: Path = DEFAULT_ARTIFACT) -> dict[str, Any]:
         "phase": phase,
         "s03_status": s03_source["status"],
         "s03_provider_attempts": s03_source["provider_attempts"],
+        "validation_attempted": validation["attempted"],
         "validation_accepted": validation["accepted"],
         "validation_rejection_codes": validation["rejection_codes"],
         "execution_attempted": execution["attempted"],
@@ -380,6 +405,7 @@ def failure_result(error: str) -> dict[str, Any]:
         "status": "contract-invalid",
         "root_cause": root_cause,
         "phase": "artifact-redaction" if root_cause in {"redaction-violation", "boundary-overclaim"} else "contract-readback",
+        "validation_attempted": None,
         "validation_accepted": None,
         "execution_attempted": None,
         "first_error": error,
