@@ -1,0 +1,70 @@
+{
+  "skill_name": "falkordb-index-search",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Assess whether FalkorDB vector search is safe to use for semantic retrieval and provide proof steps.",
+      "expected_output": "The falkordb-index-search skill should answer within its focused FalkorDB scope and route capability-sensitive claims through evidence classes.",
+      "files": [],
+      "expectations": [
+        "Separates docs-backed and runtime-confirmed claims.",
+        "Requires vector storage/index/query proof.",
+        "Does not claim product retrieval quality from mechanics alone.",
+        "Avoids Neo4j vector syntax carryover."
+      ],
+      "should_trigger": true,
+      "category": "should-trigger"
+    },
+    {
+      "id": 2,
+      "prompt": "Explain general Neo4j Aura provisioning steps for a managed Neo4j instance.",
+      "expected_output": "The falkordb-index-search skill should not claim FalkorDB evidence for a Neo4j Aura-specific task.",
+      "files": [],
+      "expectations": [
+        "Recognizes Neo4j Aura as outside focused FalkorDB scope.",
+        "Does not invent FalkorDB-equivalent managed Aura behavior."
+      ],
+      "should_trigger": false,
+      "category": "boundary"
+    },
+    {
+      "id": 3,
+      "category": "main-workflow",
+      "should_trigger": true,
+      "prompt": "Design FalkorDB range and full-text indexes for product search and prove they are used.",
+      "expected_output": "The skill should map indexes to query patterns and require plan/runtime proof.",
+      "files": [],
+      "expectations": [
+        "Mentions range or full-text indexes.",
+        "Maps each index to query pattern.",
+        "Uses EXPLAIN/PROFILE or smoke proof."
+      ]
+    },
+    {
+      "id": 4,
+      "category": "gotcha",
+      "should_trigger": true,
+      "prompt": "Can I copy Neo4j vector index syntax into FalkorDB and claim semantic search is production ready?",
+      "expected_output": "The skill should reject Neo4j syntax carryover and separate mechanics from quality.",
+      "files": [],
+      "expectations": [
+        "Rejects Neo4j vector syntax carryover.",
+        "Separates vector mechanics from retrieval quality.",
+        "Requires runtime proof."
+      ]
+    },
+    {
+      "id": 5,
+      "category": "output-format",
+      "should_trigger": true,
+      "prompt": "Return a vector search proof checklist for FalkorDB.",
+      "expected_output": "The skill should list proof layers from embedding through product-quality evaluation.",
+      "files": [],
+      "expectations": [
+        "Includes model encode proof.",
+        "Includes vector storage/index/query proof.",
+        "Includes product quality proof."
+      ]
+    }
+  ]
+}

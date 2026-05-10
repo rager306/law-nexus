@@ -1,0 +1,70 @@
+{
+  "skill_name": "falkordb-browser-rest",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Debug a FalkorDB Browser REST API request that fails auth and explain safe token handling.",
+      "expected_output": "The falkordb-browser-rest skill should answer within its focused FalkorDB scope and route capability-sensitive claims through evidence classes.",
+      "files": [],
+      "expectations": [
+        "Distinguishes Browser REST from core GRAPH commands.",
+        "Requires bearer token handling without logging secrets.",
+        "Mentions Browser 2.x/session/security caveats.",
+        "Includes request/response diagnostics and safe redaction."
+      ],
+      "should_trigger": true,
+      "category": "should-trigger"
+    },
+    {
+      "id": 2,
+      "prompt": "Provision and operate a Neo4j Aura instance using Aura-specific APIs.",
+      "expected_output": "The falkordb-browser-rest skill should not claim FalkorDB evidence for a Neo4j Aura-specific task.",
+      "files": [],
+      "expectations": [
+        "Recognizes Neo4j Aura as outside focused FalkorDB scope.",
+        "Does not invent FalkorDB-equivalent managed Aura behavior."
+      ],
+      "should_trigger": false,
+      "category": "boundary"
+    },
+    {
+      "id": 3,
+      "category": "main-workflow",
+      "should_trigger": true,
+      "prompt": "Call the FalkorDB Browser REST graph endpoint safely with auth and redacted diagnostics.",
+      "expected_output": "The skill should distinguish Browser REST from GRAPH commands and handle bearer auth safely.",
+      "files": [],
+      "expectations": [
+        "Mentions Browser REST.",
+        "Uses bearer token without logging secrets.",
+        "Distinguishes REST from core GRAPH commands."
+      ]
+    },
+    {
+      "id": 4,
+      "category": "gotcha",
+      "should_trigger": true,
+      "prompt": "A Browser upload/session bug appears after upgrading to Browser 2.x. What should I check?",
+      "expected_output": "The skill should use version-aware Browser 2.x/security/session caveats.",
+      "files": [],
+      "expectations": [
+        "Mentions Browser 2.x.",
+        "Mentions session or file upload caveats.",
+        "Avoids exposing credentials."
+      ]
+    },
+    {
+      "id": 5,
+      "category": "output-format",
+      "should_trigger": true,
+      "prompt": "Return a safe REST troubleshooting checklist for FalkorDB Browser auth failures.",
+      "expected_output": "The skill should include request/response diagnostics and safe redaction.",
+      "files": [],
+      "expectations": [
+        "Includes auth token handling.",
+        "Includes request/response diagnostics.",
+        "Includes redaction."
+      ]
+    }
+  ]
+}

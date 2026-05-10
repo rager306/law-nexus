@@ -1,6 +1,13 @@
 # Local/runtime agent state
 .bg-shell/
 .gsd/
+.claude/
+CLAUDE.md
+
+# Generated skill verification reports
+.agents/skills/falkordb/evals/*-report.json
+.agents/skills/falkordb/evals/*-report.md
+.agents/skills/falkordb/evals/trigger-proxy/
 
 # Environment / secrets
 .env

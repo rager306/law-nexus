@@ -1,0 +1,83 @@
+{
+  "skill_name": "falkordb",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Does FalkorDB support vector search? Can I use Neo4j vector index syntax and treat it as production-ready?",
+      "expected_output": "The skill should route to capability checking, reject Neo4j syntax carryover without FalkorDB evidence, classify the claim, and require runtime smoke proof before production use.",
+      "files": [],
+      "expectations": [
+        "Routes vector/full-text/index/procedure/UDF claims to workflows/check-capability.md.",
+        "Defines claim classes including runtime-confirmed, source-backed, docs-backed, smoke-needed, blocked-environment, neo4j-only, redisgraph-legacy, and unknown.",
+        "Warns not to carry over Neo4j vector syntax or Neo4j-only features without FalkorDB proof.",
+        "Requires separate proof for model encode, vector storage/index creation, vector query, filtering if relevant, and production quality.",
+        "Provides a capability-answer template with status, evidence, caveats, next proof, and verification criterion."
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "Design a FalkorDB graph model for customers, invoices, payments, and disputes, with query examples and indexes.",
+      "expected_output": "The skill should route to graph model design, model from queries/workload, specify labels/relationships/properties/cardinalities, map indexes to access patterns, and include verification queries.",
+      "files": [],
+      "expectations": [
+        "Routes graph schema/model tasks to workflows/design-graph-model.md.",
+        "Requires modeling from questions/workload rather than nouns alone.",
+        "Requires relationship direction and cardinality to be explicit.",
+        "Maps indexes to access patterns and verification queries.",
+        "Provides a graph-model-review template with scope, model, query coverage, indexes, risks, and verification plan."
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "Review this Neo4j Cypher query that uses APOC and convert it to a FalkorDB-safe plan.",
+      "expected_output": "The skill should route to Cypher review, flag APOC/Neo4j-only assumptions, require FalkorDB capability proof for procedures/functions, and produce a safe parameterized query/review plan.",
+      "files": [],
+      "expectations": [
+        "Routes Cypher authoring/review tasks to workflows/write-cypher.md.",
+        "Explicitly filters APOC, GDS, Aura, Neo4j GenAI, Neo4j driver APIs, and Neo4j-specific Cypher version features as Neo4j-only unless FalkorDB evidence confirms support.",
+        "Requires parameterized queries and warns against user input interpolation.",
+        "Requires schema assumptions, expected result, verification fixture, and safety review in the query template.",
+        "Routes non-core procedure/function behavior through capability checking."
+      ]
+    },
+    {
+      "id": 4,
+      "prompt": "Write Python code to connect to FalkorDB, insert a node, query it back, and make it observable enough for debugging.",
+      "expected_output": "The skill should route to Python client usage, require safe connection lifecycle, parameterized queries, no secret logging, smoke verification, and useful error context.",
+      "files": [],
+      "expectations": [
+        "Routes Python client tasks to workflows/use-python-client.md.",
+        "Requires runtime mode to be identified before coding.",
+        "Requires credentials/config not be hardcoded or logged.",
+        "Requires parameter passing rather than string interpolation.",
+        "Requires smoke query and observability fields such as graph, operation, phase, duration, and error class."
+      ]
+    },
+    {
+      "id": 5,
+      "prompt": "Can I use FalkorDBLite as a production-equivalent replacement for server FalkorDB?",
+      "expected_output": "The skill should route to FalkorDBLite guidance, distinguish embedded/local use from production server equivalence, and require separate capability proof for embedded and server runtimes.",
+      "files": [],
+      "expectations": [
+        "Routes FalkorDBLite/embedded tasks to workflows/use-falkordblite.md.",
+        "States FalkorDBLite is useful for local tests, demos, CI smoke checks, or constrained embedded workflows.",
+        "Warns not to assume embedded and server runtimes prove each other.",
+        "Requires startup/basic query/cleanup verification or blocked diagnostics.",
+        "Routes indexes/full-text/vector/UDF/procedure/persistence/concurrency/resource claims through capability checking."
+      ]
+    },
+    {
+      "id": 6,
+      "prompt": "My FalkorDB query is slow and sometimes fails in Docker. Help debug root cause instead of adding random retries.",
+      "expected_output": "The skill should route to debugging/performance, require reproduction, classify the failure, reduce to a fixture, inspect plan/index/fan-out/runtime mode, and verify one change at a time.",
+      "files": [],
+      "expectations": [
+        "Routes slow query/runtime failure tasks to workflows/debug-performance.md.",
+        "Requires narrow reproduction with graph, operation, redacted query, cardinality hints, runtime mode, and exact error/output.",
+        "Classifies failures into connection/auth, syntax, unsupported capability, missing index, fan-out, package/client, Docker/runtime, memory/resource, or unknown categories.",
+        "Requires a smallest synthetic reproducing fixture.",
+        "Requires changing one variable at a time and rerunning reproduction."
+      ]
+    }
+  ]
+}

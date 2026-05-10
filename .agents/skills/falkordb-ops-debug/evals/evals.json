@@ -1,0 +1,70 @@
+{
+  "skill_name": "falkordb-ops-debug",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Diagnose a slow FalkorDB query with high fan-out and propose an index/plan verification loop.",
+      "expected_output": "The falkordb-ops-debug skill should answer within its focused FalkorDB scope and route capability-sensitive claims through evidence classes.",
+      "files": [],
+      "expectations": [
+        "Collects graph name, query text, cardinality, runtime mode, and exact error/performance symptom.",
+        "Uses EXPLAIN/PROFILE/SLOWLOG where applicable.",
+        "Changes one variable at a time.",
+        "Includes rerun criteria."
+      ],
+      "should_trigger": true,
+      "category": "should-trigger"
+    },
+    {
+      "id": 2,
+      "prompt": "Explain general Neo4j Aura provisioning steps for a managed Neo4j instance.",
+      "expected_output": "The falkordb-ops-debug skill should not claim FalkorDB evidence for a Neo4j Aura-specific task.",
+      "files": [],
+      "expectations": [
+        "Recognizes Neo4j Aura as outside focused FalkorDB scope.",
+        "Does not invent FalkorDB-equivalent managed Aura behavior."
+      ],
+      "should_trigger": false,
+      "category": "boundary"
+    },
+    {
+      "id": 3,
+      "category": "main-workflow",
+      "should_trigger": true,
+      "prompt": "A FalkorDB query is slow after adding OPTIONAL MATCH. Build a one-variable debug plan.",
+      "expected_output": "The skill should use runtime evidence, plan/profile checks, and one-change verification.",
+      "files": [],
+      "expectations": [
+        "Collects exact query and data shape.",
+        "Uses EXPLAIN/PROFILE or SLOWLOG.",
+        "Changes one variable at a time."
+      ]
+    },
+    {
+      "id": 4,
+      "category": "gotcha",
+      "should_trigger": true,
+      "prompt": "FalkorDB over Bolt/WebSocket behaves differently after upgrade. What should I check before blaming Cypher?",
+      "expected_output": "The skill should include version-aware transport/runtime checks.",
+      "files": [],
+      "expectations": [
+        "Mentions Bolt/WebSocket hardening or version context.",
+        "Checks connection/runtime mode.",
+        "Avoids random retries as root-cause fix."
+      ]
+    },
+    {
+      "id": 5,
+      "category": "output-format",
+      "should_trigger": true,
+      "prompt": "Return an incident note template for FalkorDB memory/resource failures in Docker.",
+      "expected_output": "The skill should provide an incident/debug template with reproduction and verification.",
+      "files": [],
+      "expectations": [
+        "Includes graph name/runtime mode.",
+        "Includes memory/resource signals.",
+        "Includes rerun criteria."
+      ]
+    }
+  ]
+}

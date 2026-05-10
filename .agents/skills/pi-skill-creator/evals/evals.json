@@ -1,0 +1,39 @@
+{
+  "skill_name": "pi-skill-creator",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Create a project-local PI skill for reviewing SQL migrations, with tests that catch unsafe destructive changes.",
+      "expected_output": "The skill creator should choose project-local PI/GSD structure, ask only missing scope questions, draft router/workflow/reference files, and include eval prompts plus structural validation.",
+      "files": [],
+      "expectations": [
+        "The answer uses `.agents/skills/` for project-local scope unless the user chooses global.",
+        "The answer includes or asks for trigger conditions and expected output format.",
+        "The answer includes eval prompts or a plan to create `evals/evals.json`.",
+        "The answer runs or recommends `validate_pi_skill.py` or a project-specific verifier."
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "Adapt https://github.com/anthropics/skills/tree/main/skills/skill-creator for PI.",
+      "expected_output": "The skill creator should separate portable Anthropic process ideas from Claude Code-specific implementation details and target PI/GSD skill format.",
+      "files": [],
+      "expectations": [
+        "The answer keeps the intent/draft/eval/iterate/description-improvement loop.",
+        "The answer rejects blind copying of `.claude/commands` or `claude -p` assumptions.",
+        "The answer maps the result to PI/GSD `SKILL.md`, `workflows/`, `references/`, `templates/`, and `scripts/`."
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "Validate my existing skill and tell me whether it is actually tested or just structurally present.",
+      "expected_output": "The skill creator should run structural validation, check for evals, and distinguish structure-valid from quality/eval-validated.",
+      "files": [],
+      "expectations": [
+        "The answer distinguishes structural validation from quality validation.",
+        "The answer checks or asks for `evals/evals.json`.",
+        "The answer reports missing evals as a limitation rather than claiming the skill is fully proven."
+      ]
+    }
+  ]
+}

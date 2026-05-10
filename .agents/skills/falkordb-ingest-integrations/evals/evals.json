@@ -1,0 +1,70 @@
+{
+  "skill_name": "falkordb-ingest-integrations",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Choose between LOAD CSV, Bulk Loader, and Kafka sink for recurring customer-event ingestion into FalkorDB.",
+      "expected_output": "The falkordb-ingest-integrations skill should answer within its focused FalkorDB scope and route capability-sensitive claims through evidence classes.",
+      "files": [],
+      "expectations": [
+        "Compares ingestion options by data volume/frequency and failure mode.",
+        "Includes idempotency and batching considerations.",
+        "Requires row/node/relationship verification counts.",
+        "Avoids Neo4j-admin import assumptions."
+      ],
+      "should_trigger": true,
+      "category": "should-trigger"
+    },
+    {
+      "id": 2,
+      "prompt": "Provision and operate a Neo4j Aura instance using Aura-specific APIs.",
+      "expected_output": "The falkordb-ingest-integrations skill should not claim FalkorDB evidence for a Neo4j Aura-specific task.",
+      "files": [],
+      "expectations": [
+        "Recognizes Neo4j Aura as outside focused FalkorDB scope.",
+        "Does not invent FalkorDB-equivalent managed Aura behavior."
+      ],
+      "should_trigger": false,
+      "category": "boundary"
+    },
+    {
+      "id": 3,
+      "category": "main-workflow",
+      "should_trigger": true,
+      "prompt": "Plan recurring Kafka-to-FalkorDB ingestion for customer events with idempotent writes.",
+      "expected_output": "The skill should cover Kafka sink, batching, idempotency, and verification counts.",
+      "files": [],
+      "expectations": [
+        "Mentions Kafka.",
+        "Includes batching and idempotency.",
+        "Includes verification counts."
+      ]
+    },
+    {
+      "id": 4,
+      "category": "gotcha",
+      "should_trigger": true,
+      "prompt": "A LOAD CSV import creates duplicate nodes every run. Review the FalkorDB ingest plan.",
+      "expected_output": "The skill should identify missing idempotency keys/MERGE strategy.",
+      "files": [],
+      "expectations": [
+        "Mentions idempotency keys.",
+        "Mentions MERGE behavior.",
+        "Includes skipped/failed row accounting."
+      ]
+    },
+    {
+      "id": 5,
+      "category": "output-format",
+      "should_trigger": true,
+      "prompt": "Return an ingest decision matrix for LOAD CSV vs Bulk Loader vs Kafka Connect Sink.",
+      "expected_output": "The skill should compare options by volume, recurrence, failure mode, and verification.",
+      "files": [],
+      "expectations": [
+        "Compares LOAD CSV, Bulk Loader, and Kafka.",
+        "Mentions volume or recurrence.",
+        "Mentions failure mode and verification."
+      ]
+    }
+  ]
+}

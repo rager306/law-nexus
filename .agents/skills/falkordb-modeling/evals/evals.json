@@ -1,0 +1,70 @@
+{
+  "skill_name": "falkordb-modeling",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Design a FalkorDB model for invoices, payments, disputes, and organizations with query examples and indexes.",
+      "expected_output": "The falkordb-modeling skill should answer within its focused FalkorDB scope and route capability-sensitive claims through evidence classes.",
+      "files": [],
+      "expectations": [
+        "Starts from user questions/query patterns.",
+        "Specifies labels, relationships, properties, direction, and cardinality.",
+        "Maps indexes to query patterns.",
+        "Includes verification queries and risks."
+      ],
+      "should_trigger": true,
+      "category": "should-trigger"
+    },
+    {
+      "id": 2,
+      "prompt": "Explain general Neo4j Aura provisioning steps for a managed Neo4j instance.",
+      "expected_output": "The falkordb-modeling skill should not claim FalkorDB evidence for a Neo4j Aura-specific task.",
+      "files": [],
+      "expectations": [
+        "Recognizes Neo4j Aura as outside focused FalkorDB scope.",
+        "Does not invent FalkorDB-equivalent managed Aura behavior."
+      ],
+      "should_trigger": false,
+      "category": "boundary"
+    },
+    {
+      "id": 3,
+      "category": "main-workflow",
+      "should_trigger": true,
+      "prompt": "Model users, sessions, devices, and logins in FalkorDB for fraud queries.",
+      "expected_output": "The skill should design a query-driven graph model with labels, relationships, and indexes.",
+      "files": [],
+      "expectations": [
+        "Starts from access patterns.",
+        "Specifies labels and relationship direction.",
+        "Maps indexes to query patterns."
+      ]
+    },
+    {
+      "id": 4,
+      "category": "gotcha",
+      "should_trigger": true,
+      "prompt": "A proposed FalkorDB model creates one giant Hub node connected to every event. Review the risk.",
+      "expected_output": "The skill should identify supernode/fan-out risk and propose safer modeling options.",
+      "files": [],
+      "expectations": [
+        "Flags supernode or fan-out risk.",
+        "Mentions traversal limits or cardinality.",
+        "Provides verification query."
+      ]
+    },
+    {
+      "id": 5,
+      "category": "output-format",
+      "should_trigger": true,
+      "prompt": "Return a FalkorDB graph model review table for organizations, contracts, and invoices.",
+      "expected_output": "The skill should produce a structured model review with query coverage and risks.",
+      "files": [],
+      "expectations": [
+        "Includes query coverage.",
+        "Includes direction/cardinality.",
+        "Includes risks and verification plan."
+      ]
+    }
+  ]
+}

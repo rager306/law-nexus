@@ -1,0 +1,70 @@
+{
+  "skill_name": "falkordb-cypher",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Review a Neo4j Cypher query using APOC and convert it into a FalkorDB-safe plan with verification steps.",
+      "expected_output": "The falkordb-cypher skill should answer within its focused FalkorDB scope and route capability-sensitive claims through evidence classes.",
+      "files": [],
+      "expectations": [
+        "Rejects blind APOC carryover.",
+        "Uses FalkorDB Cypher coverage or capability-evidence checks.",
+        "Includes fixture data and verification query.",
+        "Mentions GRAPH.EXPLAIN or GRAPH.PROFILE for plan review."
+      ],
+      "should_trigger": true,
+      "category": "should-trigger"
+    },
+    {
+      "id": 2,
+      "prompt": "Explain general Neo4j Aura provisioning steps for a managed Neo4j instance.",
+      "expected_output": "The falkordb-cypher skill should not claim FalkorDB evidence for a Neo4j Aura-specific task.",
+      "files": [],
+      "expectations": [
+        "Recognizes Neo4j Aura as outside focused FalkorDB scope.",
+        "Does not invent FalkorDB-equivalent managed Aura behavior."
+      ],
+      "should_trigger": false,
+      "category": "boundary"
+    },
+    {
+      "id": 3,
+      "category": "main-workflow",
+      "should_trigger": true,
+      "prompt": "Write a FalkorDB Cypher query using parameters, then show how to verify the plan with GRAPH.EXPLAIN.",
+      "expected_output": "The skill should provide FalkorDB Cypher with parameter safety and plan verification.",
+      "files": [],
+      "expectations": [
+        "Uses parameterized values.",
+        "Mentions GRAPH.EXPLAIN or GRAPH.PROFILE.",
+        "Avoids Neo4j-only syntax."
+      ]
+    },
+    {
+      "id": 4,
+      "category": "gotcha",
+      "should_trigger": true,
+      "prompt": "A Neo4j query uses apoc.text.join and gds.pageRank.stream. Produce a FalkorDB-safe review.",
+      "expected_output": "The skill should identify APOC/GDS drift and route algorithm/capability questions correctly.",
+      "files": [],
+      "expectations": [
+        "Flags APOC as Neo4j-specific unless proven.",
+        "Does not treat Neo4j GDS as FalkorDB evidence.",
+        "Routes uncertain behavior to capability evidence."
+      ]
+    },
+    {
+      "id": 5,
+      "category": "output-format",
+      "should_trigger": true,
+      "prompt": "Review a FalkorDB DELETE query and return a safety checklist before execution.",
+      "expected_output": "The skill should return a concise safety checklist with fixture and rollback steps.",
+      "files": [],
+      "expectations": [
+        "Includes fixture or sample data.",
+        "Includes rollback or cleanup guidance.",
+        "Includes verification query."
+      ]
+    }
+  ]
+}

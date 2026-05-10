@@ -1,0 +1,70 @@
+{
+  "skill_name": "falkordb-python",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Write Python code that connects to FalkorDB, inserts parameterized data, queries it, logs safe context, and closes cleanly.",
+      "expected_output": "The falkordb-python skill should answer within its focused FalkorDB scope and route capability-sensitive claims through evidence classes.",
+      "files": [],
+      "expectations": [
+        "Uses falkordb-py rather than Neo4j drivers.",
+        "Uses parameters rather than query string interpolation.",
+        "Avoids logging credentials.",
+        "Handles close/aclose or lifecycle cleanup."
+      ],
+      "should_trigger": true,
+      "category": "should-trigger"
+    },
+    {
+      "id": 2,
+      "prompt": "Explain general Neo4j Aura provisioning steps for a managed Neo4j instance.",
+      "expected_output": "The falkordb-python skill should not claim FalkorDB evidence for a Neo4j Aura-specific task.",
+      "files": [],
+      "expectations": [
+        "Recognizes Neo4j Aura as outside focused FalkorDB scope.",
+        "Does not invent FalkorDB-equivalent managed Aura behavior."
+      ],
+      "should_trigger": false,
+      "category": "boundary"
+    },
+    {
+      "id": 3,
+      "category": "main-workflow",
+      "should_trigger": true,
+      "prompt": "Create async falkordb-py code that connects from URL, runs a parameterized query, and closes cleanly.",
+      "expected_output": "The skill should produce async Python client guidance with lifecycle and parameter safety.",
+      "files": [],
+      "expectations": [
+        "Uses falkordb-py, not Neo4j driver.",
+        "Mentions from_url or async connection.",
+        "Handles close/aclose cleanup."
+      ]
+    },
+    {
+      "id": 4,
+      "category": "gotcha",
+      "should_trigger": true,
+      "prompt": "My falkordb-py async from_url connects to localhost instead of the provided URL. What version-sensitive advice applies?",
+      "expected_output": "The skill should cite the v1.6.1 async from_url fix and advise version-aware verification.",
+      "files": [],
+      "expectations": [
+        "Mentions v1.6.1 async from_url fix.",
+        "Suggests checking installed version.",
+        "Avoids guessing credentials or logging secrets."
+      ]
+    },
+    {
+      "id": 5,
+      "category": "output-format",
+      "should_trigger": true,
+      "prompt": "Return a Python FalkorDB connection review checklist for production code.",
+      "expected_output": "The skill should return a checklist covering secrets, parameters, lifecycle, and observability.",
+      "files": [],
+      "expectations": [
+        "Includes secret handling.",
+        "Includes parameter handling.",
+        "Includes graph name/operation/error observability."
+      ]
+    }
+  ]
+}

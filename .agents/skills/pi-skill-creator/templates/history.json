@@ -1,0 +1,19 @@
+{
+  "started_at": "2026-01-15T10:30:00Z",
+  "skill_name": "example-skill",
+  "current_best": "iteration-1",
+  "iterations": [
+    {
+      "iteration": "iteration-1",
+      "parent": null,
+      "benchmark_path": "example-skill-workspace/iteration-1/benchmark.json",
+      "pass_rate": 0.0,
+      "grading_result": "baseline",
+      "description": "Current skill description",
+      "changes": [
+        "Initial draft"
+      ],
+      "is_current_best": true
+    }
+  ]
+}

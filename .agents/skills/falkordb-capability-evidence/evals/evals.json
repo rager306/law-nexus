@@ -1,0 +1,70 @@
+{
+  "skill_name": "falkordb-capability-evidence",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "A user asks if FalkorDB supports Neo4j GDS-style PageRank and vector search. Classify claims and define proof steps.",
+      "expected_output": "The falkordb-capability-evidence skill should answer within its focused FalkorDB scope and route capability-sensitive claims through evidence classes.",
+      "files": [],
+      "expectations": [
+        "Uses explicit evidence classes.",
+        "Avoids saying Neo4j GDS equivalent unless proven.",
+        "Defines source/docs/runtime smoke proof steps.",
+        "Separates algorithms, vector mechanics, and retrieval quality."
+      ],
+      "should_trigger": true,
+      "category": "should-trigger"
+    },
+    {
+      "id": 2,
+      "prompt": "Explain general Neo4j Aura provisioning steps for a managed Neo4j instance.",
+      "expected_output": "The falkordb-capability-evidence skill should not claim FalkorDB evidence for a Neo4j Aura-specific task.",
+      "files": [],
+      "expectations": [
+        "Recognizes Neo4j Aura as outside focused FalkorDB scope.",
+        "Does not invent FalkorDB-equivalent managed Aura behavior."
+      ],
+      "should_trigger": false,
+      "category": "boundary"
+    },
+    {
+      "id": 3,
+      "category": "main-workflow",
+      "should_trigger": true,
+      "prompt": "Classify whether FalkorDB supports FLEX text functions, vector indexes, and MCP server integration.",
+      "expected_output": "The skill should classify each claim separately with evidence levels.",
+      "files": [],
+      "expectations": [
+        "Uses evidence classes.",
+        "Separates UDF/FLEX, vector, and MCP claims.",
+        "Provides next proof steps."
+      ]
+    },
+    {
+      "id": 4,
+      "category": "gotcha",
+      "should_trigger": true,
+      "prompt": "A blog says FalkorDB is compatible with Neo4j GraphRAG. Can I treat that as runtime-confirmed?",
+      "expected_output": "The skill should avoid overclaiming and require source/docs/runtime evidence.",
+      "files": [],
+      "expectations": [
+        "Rejects blog-only runtime confirmation.",
+        "Uses docs-backed or smoke-needed class.",
+        "Defines verification criterion."
+      ]
+    },
+    {
+      "id": 5,
+      "category": "output-format",
+      "should_trigger": true,
+      "prompt": "Return a capability answer template for FalkorDB full-text search support.",
+      "expected_output": "The skill should use status/evidence/caveats/next-proof shape.",
+      "files": [],
+      "expectations": [
+        "Includes Status.",
+        "Includes Evidence.",
+        "Includes Caveats and Next proof."
+      ]
+    }
+  ]
+}

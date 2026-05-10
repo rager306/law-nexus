@@ -1,0 +1,70 @@
+{
+  "skill_name": "falkordb-algorithms",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Use FalkorDB PageRank on a small citation graph and explain whether Neo4j GDS examples can be copied.",
+      "expected_output": "The falkordb-algorithms skill should answer within its focused FalkorDB scope and route capability-sensitive claims through evidence classes.",
+      "files": [],
+      "expectations": [
+        "Names FalkorDB PageRank as documented FalkorDB algorithm surface.",
+        "Rejects blind Neo4j GDS API carryover.",
+        "Includes small graph fixture and expected output verification.",
+        "Separates availability from performance/quality claims."
+      ],
+      "should_trigger": true,
+      "category": "should-trigger"
+    },
+    {
+      "id": 2,
+      "prompt": "Provision and operate a Neo4j Aura instance using Aura-specific APIs.",
+      "expected_output": "The falkordb-algorithms skill should not claim FalkorDB evidence for a Neo4j Aura-specific task.",
+      "files": [],
+      "expectations": [
+        "Recognizes Neo4j Aura as outside focused FalkorDB scope.",
+        "Does not invent FalkorDB-equivalent managed Aura behavior."
+      ],
+      "should_trigger": false,
+      "category": "boundary"
+    },
+    {
+      "id": 3,
+      "category": "main-workflow",
+      "should_trigger": true,
+      "prompt": "Run FalkorDB WCC on a small component graph and describe expected output shape.",
+      "expected_output": "The skill should provide algorithm fixture and output verification.",
+      "files": [],
+      "expectations": [
+        "Mentions WCC.",
+        "Uses small fixture.",
+        "Describes output shape."
+      ]
+    },
+    {
+      "id": 4,
+      "category": "gotcha",
+      "should_trigger": true,
+      "prompt": "Can I use Neo4j GDS Node2Vec examples directly in FalkorDB algorithms?",
+      "expected_output": "The skill should reject blind GDS carryover and verify documented FalkorDB algorithms.",
+      "files": [],
+      "expectations": [
+        "Rejects Neo4j GDS carryover.",
+        "Mentions documented FalkorDB algorithms.",
+        "Routes unknown algorithms to capability evidence."
+      ]
+    },
+    {
+      "id": 5,
+      "category": "output-format",
+      "should_trigger": true,
+      "prompt": "Return a FalkorDB algorithm run checklist for PageRank.",
+      "expected_output": "The skill should include graph shape, input parameters, output columns, and verification.",
+      "files": [],
+      "expectations": [
+        "Includes graph shape.",
+        "Includes input parameters.",
+        "Includes output columns and verification."
+      ]
+    }
+  ]
+}

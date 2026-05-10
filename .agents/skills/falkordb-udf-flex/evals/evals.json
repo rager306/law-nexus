@@ -1,0 +1,70 @@
+{
+  "skill_name": "falkordb-udf-flex",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Replace a Neo4j APOC text helper with FalkorDB FLEX/text functions or a safe UDF plan.",
+      "expected_output": "The falkordb-udf-flex skill should answer within its focused FalkorDB scope and route capability-sensitive claims through evidence classes.",
+      "files": [],
+      "expectations": [
+        "Checks FLEX/text functions before custom UDF.",
+        "Rejects APOC carryover.",
+        "Mentions QuickJS/resource/security constraints.",
+        "Provides verification query or small fixture."
+      ],
+      "should_trigger": true,
+      "category": "should-trigger"
+    },
+    {
+      "id": 2,
+      "prompt": "Provision and operate a Neo4j Aura instance using Aura-specific APIs.",
+      "expected_output": "The falkordb-udf-flex skill should not claim FalkorDB evidence for a Neo4j Aura-specific task.",
+      "files": [],
+      "expectations": [
+        "Recognizes Neo4j Aura as outside focused FalkorDB scope.",
+        "Does not invent FalkorDB-equivalent managed Aura behavior."
+      ],
+      "should_trigger": false,
+      "category": "boundary"
+    },
+    {
+      "id": 3,
+      "category": "main-workflow",
+      "should_trigger": true,
+      "prompt": "Use FalkorDB FLEX text functions to normalize names without writing a custom UDF.",
+      "expected_output": "The skill should prefer built-in FLEX/text functions and provide verification.",
+      "files": [],
+      "expectations": [
+        "Mentions FLEX/text functions.",
+        "Avoids custom UDF when built-in works.",
+        "Includes verification query."
+      ]
+    },
+    {
+      "id": 4,
+      "category": "gotcha",
+      "should_trigger": true,
+      "prompt": "A custom FalkorDB UDF allocates large objects and sometimes fails. What resource constraints matter?",
+      "expected_output": "The skill should mention QuickJS stack/heap/resource constraints and security review.",
+      "files": [],
+      "expectations": [
+        "Mentions QuickJS.",
+        "Mentions resource limits.",
+        "Mentions security review."
+      ]
+    },
+    {
+      "id": 5,
+      "category": "output-format",
+      "should_trigger": true,
+      "prompt": "Return a UDF review checklist for FalkorDB graph.getNodeById usage.",
+      "expected_output": "The skill should include evidence, resource, security, and fixture checks.",
+      "files": [],
+      "expectations": [
+        "Mentions graph.getNodeById.",
+        "Includes evidence class.",
+        "Includes fixture or smoke test."
+      ]
+    }
+  ]
+}

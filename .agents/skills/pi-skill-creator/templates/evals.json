@@ -1,0 +1,26 @@
+{
+  "skill_name": "example-skill",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "A realistic user task that should trigger the skill.",
+      "expected_output": "What a successful output should contain or accomplish.",
+      "files": [],
+      "expectations": [
+        "The response follows the skill's required workflow.",
+        "The response avoids the main gotcha this skill is designed to prevent.",
+        "The output includes a concrete verification or success criterion."
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "A nearby task that should not trigger this skill.",
+      "expected_output": "The agent should use a different skill or proceed without this skill.",
+      "files": [],
+      "expectations": [
+        "The skill is not treated as applicable.",
+        "The answer does not force unrelated procedures into the task."
+      ]
+    }
+  ]
+}

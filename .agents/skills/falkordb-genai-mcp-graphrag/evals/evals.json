@@ -1,0 +1,70 @@
+{
+  "skill_name": "falkordb-genai-mcp-graphrag",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Design a FalkorDB MCP + GraphRAG evaluation plan for an agent that answers from a knowledge graph.",
+      "expected_output": "The falkordb-genai-mcp-graphrag skill should answer within its focused FalkorDB scope and route capability-sensitive claims through evidence classes.",
+      "files": [],
+      "expectations": [
+        "Separates MCP connectivity, graph retrieval, and LLM answer quality.",
+        "Names current FalkorDB GenAI/MCP surfaces as docs-backed.",
+        "Includes eval questions and trace/citation checks.",
+        "Avoids claiming quality without benchmark evidence."
+      ],
+      "should_trigger": true,
+      "category": "should-trigger"
+    },
+    {
+      "id": 2,
+      "prompt": "Provision and operate a Neo4j Aura instance using Aura-specific APIs.",
+      "expected_output": "The falkordb-genai-mcp-graphrag skill should not claim FalkorDB evidence for a Neo4j Aura-specific task.",
+      "files": [],
+      "expectations": [
+        "Recognizes Neo4j Aura as outside focused FalkorDB scope.",
+        "Does not invent FalkorDB-equivalent managed Aura behavior."
+      ],
+      "should_trigger": false,
+      "category": "boundary"
+    },
+    {
+      "id": 3,
+      "category": "main-workflow",
+      "should_trigger": true,
+      "prompt": "Design a FalkorDB MCP server evaluation for graph-backed agent retrieval.",
+      "expected_output": "The skill should separate MCP connectivity, graph retrieval, and LLM answer quality.",
+      "files": [],
+      "expectations": [
+        "Mentions MCP.",
+        "Separates connectivity from answer quality.",
+        "Includes traceability or citation checks."
+      ]
+    },
+    {
+      "id": 4,
+      "category": "gotcha",
+      "should_trigger": true,
+      "prompt": "A FalkorDB GraphRAG demo answers one question correctly. Can I claim legal retrieval quality?",
+      "expected_output": "The skill should reject quality overclaiming from a single demo.",
+      "files": [],
+      "expectations": [
+        "Rejects quality claim from one demo.",
+        "Requires benchmark or held-out questions.",
+        "Separates retrieval mechanics from generation quality."
+      ]
+    },
+    {
+      "id": 5,
+      "category": "output-format",
+      "should_trigger": true,
+      "prompt": "Return a GraphRAG evaluation rubric for FalkorDB with citation safety.",
+      "expected_output": "The skill should include retrieval, grounding, citations, and failure modes.",
+      "files": [],
+      "expectations": [
+        "Includes retrieval quality.",
+        "Includes citation or traceability.",
+        "Includes failure modes."
+      ]
+    }
+  ]
+}
