@@ -3,6 +3,7 @@
 .gsd/
 .claude/
 CLAUDE.md
+AGENTS.md
 
 # Generated skill verification reports
 .agents/skills/falkordb/evals/*-report.json
