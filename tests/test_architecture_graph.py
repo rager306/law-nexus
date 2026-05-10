@@ -385,3 +385,165 @@ def test_report_records_unresolved_gate_owner_status_and_invalid_missing_fields(
         }
     ]
     assert {finding["rule"] for finding in report["invalid_records"]} == {"missing-status"}
+
+
+def test_cli_write_mode_renders_deterministic_json_and_markdown_reports(tmp_path: Path) -> None:
+    report_json = tmp_path / "architecture_graph_report.json"
+    report_md = tmp_path / "architecture_report.md"
+
+    result = subprocess.run(
+        [
+            sys.executable,
+            str(SCRIPT_PATH),
+            "--report-json",
+            str(report_json),
+            "--report-md",
+            str(report_md),
+        ],
+        cwd=ROOT,
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+
+    assert result.returncode == 0, result.stderr
+    summary = json.loads(result.stdout)
+    assert summary["mode"] == "write"
+    assert summary["status"] == "ok"
+    assert summary["non_authoritative"] is True
+    first_json_bytes = report_json.read_bytes()
+    first_md_bytes = report_md.read_bytes()
+
+    second = subprocess.run(
+        [
+            sys.executable,
+            str(SCRIPT_PATH),
+            "--report-json",
+            str(report_json),
+            "--report-md",
+            str(report_md),
+        ],
+        cwd=ROOT,
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+
+    assert second.returncode == 0, second.stderr
+    assert report_json.read_bytes() == first_json_bytes
+    assert report_md.read_bytes() == first_md_bytes
+
+    report = json.loads(first_json_bytes)
+    markdown = first_md_bytes.decode("utf-8")
+    assert report["non_authoritative"] is True
+    assert [gate["id"] for gate in report["unresolved_proof_gates"]] == [
+        "GATE-G005",
+        "GATE-G008",
+        "GATE-G011",
+        "GATE-G015",
+    ]
+    assert report["counts"] == {"nodes": 23, "edges": 17}
+    assert "derived, non-authoritative" in markdown
+    assert "do not validate product/runtime/legal claims" in markdown
+    assert "Findings for S04" in markdown
+    assert "GATE-G005" in markdown
+    assert "REQ-R029" in markdown
+
+
+def test_cli_check_mode_detects_missing_and_stale_outputs_without_rewriting(tmp_path: Path) -> None:
+    report_json = tmp_path / "architecture_graph_report.json"
+    report_md = tmp_path / "architecture_report.md"
+
+    missing = subprocess.run(
+        [
+            sys.executable,
+            str(SCRIPT_PATH),
+            "--check",
+            "--report-json",
+            str(report_json),
+            "--report-md",
+            str(report_md),
+        ],
+        cwd=ROOT,
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+
+    assert missing.returncode == 1
+    assert "missing report output" in missing.stderr
+    assert str(report_json) in missing.stderr
+    assert not report_json.exists()
+    assert not report_md.exists()
+
+    write_result = subprocess.run(
+        [
+            sys.executable,
+            str(SCRIPT_PATH),
+            "--report-json",
+            str(report_json),
+            "--report-md",
+            str(report_md),
+        ],
+        cwd=ROOT,
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    assert write_result.returncode == 0, write_result.stderr
+    original_json = report_json.read_text(encoding="utf-8")
+    report_md.write_text("stale report\n", encoding="utf-8")
+
+    stale = subprocess.run(
+        [
+            sys.executable,
+            str(SCRIPT_PATH),
+            "--check",
+            "--report-json",
+            str(report_json),
+            "--report-md",
+            str(report_md),
+        ],
+        cwd=ROOT,
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+
+    assert stale.returncode == 1
+    assert "stale report output" in stale.stderr
+    assert str(report_md) in stale.stderr
+    assert report_json.read_text(encoding="utf-8") == original_json
+    assert report_md.read_text(encoding="utf-8") == "stale report\n"
+
+
+def test_cli_check_mode_rejects_report_wording_regression(tmp_path: Path) -> None:
+    graph_module = load_graph_module()
+    report_json = tmp_path / "architecture_graph_report.json"
+    report_md = tmp_path / "architecture_report.md"
+
+    items = graph_module.load_records(ITEMS_PATH, expected_kind="item")
+    edges = graph_module.load_records(EDGES_PATH, expected_kind="edge")
+    report = graph_module.compute_graph_report(graph_module.build_graph(items, edges), schema_path=SCHEMA_PATH)
+    report_json.write_text(graph_module.serialize_report_json(report), encoding="utf-8")
+    report_md.write_text("# Architecture Graph Report\n\nAuthoritative report.\n", encoding="utf-8")
+
+    result = subprocess.run(
+        [
+            sys.executable,
+            str(SCRIPT_PATH),
+            "--check",
+            "--report-json",
+            str(report_json),
+            "--report-md",
+            str(report_md),
+        ],
+        cwd=ROOT,
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+
+    assert result.returncode == 1
+    assert "stale report output" in result.stderr
+    assert "architecture_report.md" in result.stderr

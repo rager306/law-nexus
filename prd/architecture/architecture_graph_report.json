@@ -1,0 +1,473 @@
+{
+  "contradiction_edges": [],
+  "contradiction_pairs": [],
+  "counts": {
+    "edges": 17,
+    "nodes": 23
+  },
+  "high_risk_nodes": [
+    {
+      "id": "ASSUMP-PRD-SOURCE-TRUTH",
+      "layer": "architecture-governance",
+      "proof_level": "source-anchor",
+      "risk_level": "high",
+      "status": "active",
+      "type": "assumption"
+    },
+    {
+      "id": "CHECK-ARCHITECTURE-EXTRACTOR",
+      "layer": "workflow-governance",
+      "proof_level": "static-check",
+      "risk_level": "high",
+      "status": "active",
+      "type": "workflow_check"
+    },
+    {
+      "id": "DEC-D031",
+      "layer": "architecture-governance",
+      "proof_level": "source-anchor",
+      "risk_level": "high",
+      "status": "active",
+      "type": "decision"
+    },
+    {
+      "id": "GATE-G005",
+      "layer": "temporal-model",
+      "proof_level": "none",
+      "risk_level": "high",
+      "status": "active",
+      "type": "proof_gate"
+    },
+    {
+      "id": "GATE-G008",
+      "layer": "parser-ingestion",
+      "proof_level": "none",
+      "risk_level": "high",
+      "status": "active",
+      "type": "proof_gate"
+    },
+    {
+      "id": "GATE-G011",
+      "layer": "retrieval-embedding",
+      "proof_level": "none",
+      "risk_level": "high",
+      "status": "active",
+      "type": "proof_gate"
+    },
+    {
+      "id": "M001-ARCHITECTURE-ONLY-GUARDRAIL",
+      "layer": "architecture-governance",
+      "proof_level": "source-anchor",
+      "risk_level": "critical",
+      "status": "out-of-scope",
+      "type": "workflow_check"
+    },
+    {
+      "id": "REQ-R009",
+      "layer": "workflow-governance",
+      "proof_level": "source-anchor",
+      "risk_level": "high",
+      "status": "active",
+      "type": "requirement"
+    },
+    {
+      "id": "REQ-R017",
+      "layer": "generated-cypher",
+      "proof_level": "source-anchor",
+      "risk_level": "high",
+      "status": "active",
+      "type": "requirement"
+    },
+    {
+      "id": "REQ-R022",
+      "layer": "security-safety",
+      "proof_level": "source-anchor",
+      "risk_level": "critical",
+      "status": "active",
+      "type": "requirement"
+    },
+    {
+      "id": "REQ-R028",
+      "layer": "security-safety",
+      "proof_level": "source-anchor",
+      "risk_level": "critical",
+      "status": "out-of-scope",
+      "type": "requirement"
+    },
+    {
+      "id": "REQ-R029",
+      "layer": "architecture-governance",
+      "proof_level": "source-anchor",
+      "risk_level": "high",
+      "status": "active",
+      "type": "requirement"
+    },
+    {
+      "id": "RISK-OVERCLAIM-RUNTIME",
+      "layer": "security-safety",
+      "proof_level": "source-anchor",
+      "risk_level": "critical",
+      "status": "active",
+      "type": "risk"
+    },
+    {
+      "id": "S05-OLD-PROJECT-PRIOR-ART",
+      "layer": "parser-ingestion",
+      "proof_level": "source-anchor",
+      "risk_level": "high",
+      "status": "bounded-evidence",
+      "type": "evidence"
+    },
+    {
+      "id": "S05-PARSER-ODT-BOUNDARY",
+      "layer": "parser-ingestion",
+      "proof_level": "real-document-proof",
+      "risk_level": "high",
+      "status": "bounded-evidence",
+      "type": "evidence"
+    }
+  ],
+  "invalid_records": [],
+  "isolates": [
+    "ASSUMP-PRD-SOURCE-TRUTH",
+    "S05-OLD-PROJECT-PRIOR-ART",
+    "S10-GIGAEMBEDDINGS-CHALLENGER-BLOCKED"
+  ],
+  "layer_coverage": {
+    "counts": {
+      "api-product": 0,
+      "architecture-governance": 7,
+      "generated-cypher": 1,
+      "graph-runtime": 2,
+      "legal-evidence": 0,
+      "observability-operability": 0,
+      "parser-ingestion": 3,
+      "retrieval-embedding": 3,
+      "security-safety": 3,
+      "temporal-model": 1,
+      "workflow-governance": 3
+    },
+    "invalid_layers": [],
+    "missing_layers": [
+      "api-product",
+      "legal-evidence",
+      "observability-operability"
+    ]
+  },
+  "non_authoritative": true,
+  "non_claims_summary": {
+    "by_node": [
+      {
+        "count": 1,
+        "id": "ASSUMP-PRD-SOURCE-TRUTH",
+        "non_claims": [
+          "Does not make generated artifacts authoritative."
+        ]
+      },
+      {
+        "count": 1,
+        "id": "CHECK-ARCHITECTURE-EXTRACTOR",
+        "non_claims": [
+          "Extractor check is not product runtime proof."
+        ]
+      },
+      {
+        "count": 1,
+        "id": "DEC-D031",
+        "non_claims": [
+          "JSONL and GraphML are not source-of-truth replacements."
+        ]
+      },
+      {
+        "count": 1,
+        "id": "DEC-D032",
+        "non_claims": [
+          "The skill is guidance, not a source of truth."
+        ]
+      },
+      {
+        "count": 1,
+        "id": "GATE-G005",
+        "non_claims": [
+          "Does not validate temporal conflict resolution."
+        ]
+      },
+      {
+        "count": 2,
+        "id": "GATE-G008",
+        "non_claims": [
+          "No parser completeness claim.",
+          "No product retrieval quality claim."
+        ]
+      },
+      {
+        "count": 2,
+        "id": "GATE-G011",
+        "non_claims": [
+          "No managed embedding API fallback claim.",
+          "No product retrieval quality claim."
+        ]
+      },
+      {
+        "count": 1,
+        "id": "GATE-G015",
+        "non_claims": [
+          "No production-scale FalkorDB claim."
+        ]
+      },
+      {
+        "count": 6,
+        "id": "M001-ARCHITECTURE-ONLY-GUARDRAIL",
+        "non_claims": [
+          "No KnowQL parser.",
+          "No LegalNexus API.",
+          "No hybrid retrieval.",
+          "No legal-answering runtime.",
+          "No product ETL.",
+          "No production graph schema."
+        ]
+      },
+      {
+        "count": 7,
+        "id": "REQ-R001",
+        "non_claims": [
+          "No LLM legal authority claim.",
+          "No legal-answer correctness claim.",
+          "No managed embedding API fallback claim.",
+          "No parser completeness claim.",
+          "No product Legal KnowQL behavior claim.",
+          "No product retrieval quality claim.",
+          "No production-scale FalkorDB claim."
+        ]
+      },
+      {
+        "count": 7,
+        "id": "REQ-R009",
+        "non_claims": [
+          "No LLM legal authority claim.",
+          "No legal-answer correctness claim.",
+          "No managed embedding API fallback claim.",
+          "No parser completeness claim.",
+          "No product Legal KnowQL behavior claim.",
+          "No product retrieval quality claim.",
+          "No production-scale FalkorDB claim."
+        ]
+      },
+      {
+        "count": 7,
+        "id": "REQ-R010",
+        "non_claims": [
+          "No LLM legal authority claim.",
+          "No legal-answer correctness claim.",
+          "No managed embedding API fallback claim.",
+          "No parser completeness claim.",
+          "No product Legal KnowQL behavior claim.",
+          "No product retrieval quality claim.",
+          "No production-scale FalkorDB claim."
+        ]
+      },
+      {
+        "count": 4,
+        "id": "REQ-R017",
+        "non_claims": [
+          "No LLM legal authority claim.",
+          "No legal-answer correctness claim.",
+          "No live legal graph execution claim.",
+          "No product Legal KnowQL behavior claim."
+        ]
+      },
+      {
+        "count": 3,
+        "id": "REQ-R022",
+        "non_claims": [
+          "No credential, prompt, raw legal text, or raw row emission claim.",
+          "No legal-answer correctness claim.",
+          "No raw provider body persistence claim."
+        ]
+      },
+      {
+        "count": 3,
+        "id": "REQ-R028",
+        "non_claims": [
+          "No LLM legal authority claim.",
+          "No generated Cypher authority claim.",
+          "No legal-answer correctness claim."
+        ]
+      },
+      {
+        "count": 1,
+        "id": "REQ-R029",
+        "non_claims": [
+          "Does not itself prove product runtime behavior."
+        ]
+      },
+      {
+        "count": 1,
+        "id": "RISK-OVERCLAIM-RUNTIME",
+        "non_claims": [
+          "Risk item does not assert current product failure."
+        ]
+      },
+      {
+        "count": 3,
+        "id": "S04-FALKORDB-RUNTIME-BOUNDED",
+        "non_claims": [
+          "No direct LegalGraph GraphBLAS API/control surface claim.",
+          "No legal retrieval quality claim.",
+          "No production-scale FalkorDB claim."
+        ]
+      },
+      {
+        "count": 2,
+        "id": "S05-OLD-PROJECT-PRIOR-ART",
+        "non_claims": [
+          "No Old_project artifact accepted unchanged.",
+          "No parser completeness claim."
+        ]
+      },
+      {
+        "count": 3,
+        "id": "S05-PARSER-ODT-BOUNDARY",
+        "non_claims": [
+          "No final legal hierarchy extraction claim.",
+          "No parser completeness claim.",
+          "No production SourceBlock/EvidenceSpan creation claim."
+        ]
+      },
+      {
+        "count": 1,
+        "id": "S07-FIXED-PRD-CONSISTENCY",
+        "non_claims": [
+          "Does not prove product behavior."
+        ]
+      },
+      {
+        "count": 3,
+        "id": "S10-GIGAEMBEDDINGS-CHALLENGER-BLOCKED",
+        "non_claims": [
+          "No default promotion while blocked-environment.",
+          "No managed embedding API fallback claim.",
+          "No product retrieval quality claim."
+        ]
+      },
+      {
+        "count": 3,
+        "id": "S10-USER-BGE-M3-BASELINE",
+        "non_claims": [
+          "No managed embedding API fallback claim.",
+          "No product retrieval quality claim.",
+          "No raw embedding leakage claim beyond verifier scope."
+        ]
+      }
+    ],
+    "nodes_with_non_claims": 23,
+    "total_non_claims": 64
+  },
+  "orphan_findings": [
+    {
+      "id": "ASSUMP-PRD-SOURCE-TRUTH",
+      "rule": "isolated-node"
+    },
+    {
+      "id": "S05-OLD-PROJECT-PRIOR-ART",
+      "rule": "isolated-node"
+    },
+    {
+      "id": "S10-GIGAEMBEDDINGS-CHALLENGER-BLOCKED",
+      "rule": "isolated-node"
+    }
+  ],
+  "unresolved_proof_gates": [
+    {
+      "id": "GATE-G005",
+      "layer": "temporal-model",
+      "owner": "future-temporal-proof",
+      "proof_level": "none",
+      "risk_level": "high",
+      "status": "active",
+      "verification": "A future proof slice defines and verifies same-date/multi-edition conflict policy."
+    },
+    {
+      "id": "GATE-G008",
+      "layer": "parser-ingestion",
+      "owner": "future-parser-retrieval-proof",
+      "proof_level": "none",
+      "risk_level": "high",
+      "status": "active",
+      "verification": "Golden tests pass on real legal source fixtures and retrieval expectations."
+    },
+    {
+      "id": "GATE-G011",
+      "layer": "retrieval-embedding",
+      "owner": "future-retrieval-quality-proof",
+      "proof_level": "none",
+      "risk_level": "high",
+      "status": "active",
+      "verification": "Retrieval quality benchmark passes under local/open-weight embedding constraints."
+    },
+    {
+      "id": "GATE-G015",
+      "layer": "graph-runtime",
+      "owner": "future-runtime-migration-proof",
+      "proof_level": "none",
+      "risk_level": "medium",
+      "status": "active",
+      "verification": "Migration runbook is executed against bounded fixtures and runtime diagnostics."
+    }
+  ],
+  "weak_components": [
+    {
+      "nodes": [
+        "ASSUMP-PRD-SOURCE-TRUTH"
+      ],
+      "size": 1
+    },
+    {
+      "nodes": [
+        "CHECK-ARCHITECTURE-EXTRACTOR",
+        "DEC-D031",
+        "DEC-D032",
+        "GATE-G005",
+        "GATE-G008",
+        "GATE-G011",
+        "GATE-G015",
+        "M001-ARCHITECTURE-ONLY-GUARDRAIL",
+        "REQ-R022",
+        "REQ-R029",
+        "RISK-OVERCLAIM-RUNTIME",
+        "S04-FALKORDB-RUNTIME-BOUNDED",
+        "S05-PARSER-ODT-BOUNDARY",
+        "S10-USER-BGE-M3-BASELINE"
+      ],
+      "size": 14
+    },
+    {
+      "nodes": [
+        "REQ-R001",
+        "REQ-R009",
+        "REQ-R010",
+        "S07-FIXED-PRD-CONSISTENCY"
+      ],
+      "size": 4
+    },
+    {
+      "nodes": [
+        "REQ-R017",
+        "REQ-R028"
+      ],
+      "size": 2
+    },
+    {
+      "nodes": [
+        "S05-OLD-PROJECT-PRIOR-ART"
+      ],
+      "size": 1
+    },
+    {
+      "nodes": [
+        "S10-GIGAEMBEDDINGS-CHALLENGER-BLOCKED"
+      ],
+      "size": 1
+    }
+  ]
+}

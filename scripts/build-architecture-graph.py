@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import subprocess
 import sys
 from collections import Counter, defaultdict
 from dataclasses import dataclass
@@ -380,12 +381,199 @@ def require_record_string(record: dict[str, Any], field: str, record_label: str)
     return value
 
 
+def serialize_report_json(report: dict[str, Any]) -> str:
+    """Serialize the graph report as stable, reviewable JSON bytes."""
+    return json.dumps(report, indent=2, sort_keys=True) + "\n"
+
+
+def render_report_markdown(report: dict[str, Any]) -> str:
+    """Render a deterministic cold-reader Markdown summary of graph health."""
+    lines = [
+        "# Architecture Graph Report",
+        "",
+        "This report is derived, non-authoritative, and generated from the S02 architecture JSONL registry.",
+        "These graph/report outputs do not validate product/runtime/legal claims; PRD, GSD, ADR, source, and runtime evidence remain the source of truth.",
+        "Current orphans, unresolved proof gates, contradictions, and risk rows are findings for S04 or later verifier work, not automatic S03 build failures.",
+        "",
+        "## Summary",
+        "",
+        "| Field | Value |",
+        "| --- | --- |",
+        f"| Nodes | {report['counts']['nodes']} |",
+        f"| Edges | {report['counts']['edges']} |",
+        f"| Non-authoritative | {str(report['non_authoritative']).lower()} |",
+        f"| Missing layers | {len(report['layer_coverage']['missing_layers'])} |",
+        f"| Unresolved proof gates | {len(report['unresolved_proof_gates'])} |",
+        f"| Orphan findings | {len(report['orphan_findings'])} |",
+        f"| Contradiction edges | {len(report['contradiction_edges'])} |",
+        f"| High/critical-risk nodes | {len(report['high_risk_nodes'])} |",
+        "",
+        "## Layer Coverage",
+        "",
+        "| Layer | Node Count |",
+        "| --- | ---: |",
+    ]
+    for layer, count in report["layer_coverage"]["counts"].items():
+        lines.append(f"| {escape_md(layer)} | {count} |")
+
+    lines.extend(["", "### Missing Layers", ""])
+    lines.extend(bullet_lines(report["layer_coverage"]["missing_layers"], empty="No missing schema layers."))
+
+    lines.extend([
+        "",
+        "## Findings for S04",
+        "",
+        "### Unresolved Proof Gates",
+        "",
+        "| ID | Layer | Owner | Risk | Verification |",
+        "| --- | --- | --- | --- | --- |",
+    ])
+    for gate in report["unresolved_proof_gates"]:
+        lines.append(
+            "| "
+            f"{escape_md(gate['id'])} | {escape_md(gate['layer'])} | {escape_md(gate['owner'])} | "
+            f"{escape_md(gate['risk_level'])} | {escape_md(gate['verification'])} |"
+        )
+    if not report["unresolved_proof_gates"]:
+        lines.append("| _None_ |  |  |  |  |")
+
+    lines.extend([
+        "",
+        "### Orphan Findings",
+        "",
+        "| ID | Rule |",
+        "| --- | --- |",
+    ])
+    for finding in report["orphan_findings"]:
+        lines.append(f"| {escape_md(finding['id'])} | {escape_md(finding['rule'])} |")
+    if not report["orphan_findings"]:
+        lines.append("| _None_ |  |")
+
+    lines.extend([
+        "",
+        "### Contradictions",
+        "",
+        "| Edge ID | From | To | Status | Rationale |",
+        "| --- | --- | --- | --- | --- |",
+    ])
+    for edge in report["contradiction_edges"]:
+        lines.append(
+            "| "
+            f"{escape_md(edge['id'])} | {escape_md(edge['from'])} | {escape_md(edge['to'])} | "
+            f"{escape_md(edge['status'])} | {escape_md(edge['rationale'])} |"
+        )
+    if not report["contradiction_edges"]:
+        lines.append("| _None_ |  |  |  |  |")
+
+    lines.extend([
+        "",
+        "### High and Critical Risk Nodes",
+        "",
+        "| ID | Risk | Type | Layer | Status | Proof Level |",
+        "| --- | --- | --- | --- | --- | --- |",
+    ])
+    for node in report["high_risk_nodes"]:
+        lines.append(
+            "| "
+            f"{escape_md(node['id'])} | {escape_md(node['risk_level'])} | {escape_md(node['type'])} | "
+            f"{escape_md(node['layer'])} | {escape_md(node['status'])} | {escape_md(node['proof_level'])} |"
+        )
+    if not report["high_risk_nodes"]:
+        lines.append("| _None_ |  |  |  |  |  |")
+
+    lines.extend([
+        "",
+        "## Invalid Records",
+        "",
+        "| ID | Rule | Value |",
+        "| --- | --- | --- |",
+    ])
+    for finding in report["invalid_records"]:
+        lines.append(
+            f"| {escape_md(finding['id'])} | {escape_md(finding['rule'])} | "
+            f"{escape_md(finding.get('value', ''))} |"
+        )
+    if not report["invalid_records"]:
+        lines.append("| _None_ |  |  |")
+
+    lines.extend([
+        "",
+        "## Non-Claims Boundary",
+        "",
+        "| Field | Value |",
+        "| --- | ---: |",
+        f"| Nodes with non-claims | {report['non_claims_summary']['nodes_with_non_claims']} |",
+        f"| Total non-claims | {report['non_claims_summary']['total_non_claims']} |",
+        "",
+        "### Nodes with Non-Claims",
+        "",
+        "| ID | Count |",
+        "| --- | ---: |",
+    ])
+    for node in report["non_claims_summary"]["by_node"]:
+        lines.append(f"| {escape_md(node['id'])} | {node['count']} |")
+    if not report["non_claims_summary"]["by_node"]:
+        lines.append("| _None_ | 0 |")
+
+    return "\n".join(lines) + "\n"
+
+
+def bullet_lines(values: list[str], *, empty: str) -> list[str]:
+    if not values:
+        return [empty]
+    return [f"- {escape_md(value)}" for value in values]
+
+
+def escape_md(value: Any) -> str:
+    return str(value).replace("|", "\\|").replace("\n", " ")
+
+
+def write_report(path: Path, expected: str) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    temp_path = path.with_name(f".{path.name}.tmp")
+    temp_path.write_text(expected, encoding="utf-8")
+    temp_path.replace(path)
+
+
+def check_report_output(path: Path, expected: str) -> bool:
+    if not path.exists():
+        print(
+            f"missing report output: {path}; regenerate with `uv run python scripts/build-architecture-graph.py`",
+            file=sys.stderr,
+        )
+        return False
+    actual = path.read_text(encoding="utf-8")
+    if actual != expected:
+        print(
+            f"stale report output: {path}; regenerate with `uv run python scripts/build-architecture-graph.py` and review the diff",
+            file=sys.stderr,
+        )
+        return False
+    return True
+
+
+def run_upstream_freshness_check(items_path: Path, edges_path: Path) -> None:
+    if items_path.resolve() != DEFAULT_ITEMS_PATH.resolve() or edges_path.resolve() != DEFAULT_EDGES_PATH.resolve():
+        return
+    result = subprocess.run(
+        [sys.executable, "scripts/extract-prd-architecture-items.py", "--check"],
+        cwd=ROOT,
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    if result.returncode != 0:
+        diagnostic = (result.stderr or result.stdout).strip().splitlines()
+        message = diagnostic[0] if diagnostic else "extractor check failed without output"
+        raise ArchitectureGraphError(
+            "prd/architecture/architecture_items.jsonl:0 record_kind=<none> "
+            f"rule=upstream-s02-check message={message}"
+        )
+
+
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        description=(
-            "Build a derived, non-authoritative NetworkX architecture graph from S02 JSONL. "
-            "Report rendering and stale-output checks are completed in later S03 tasks."
-        )
+        description="Build derived, non-authoritative NetworkX architecture graph reports from S02 JSONL."
     )
     parser.add_argument("--items", type=Path, default=DEFAULT_ITEMS_PATH)
     parser.add_argument("--edges", type=Path, default=DEFAULT_EDGES_PATH)
@@ -394,7 +582,7 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser.add_argument(
         "--check",
         action="store_true",
-        help="Validate inputs and graph shape without writing outputs; stale report checks are a T03 seam.",
+        help="Compare expected graph report bytes to existing outputs without rewriting them.",
     )
     return parser.parse_args(argv)
 
@@ -402,16 +590,28 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
 def run(argv: list[str] | None = None) -> int:
     args = parse_args(argv)
     try:
+        run_upstream_freshness_check(args.items, args.edges)
         items = load_records(args.items, expected_kind="item")
         edges = load_records(args.edges, expected_kind="edge")
         graph = build_graph(items, edges)
-    except ArchitectureGraphError as exc:
+        report = compute_graph_report(graph)
+        expected_json = serialize_report_json(report)
+        expected_md = render_report_markdown(report)
+        if args.check:
+            json_ok = check_report_output(args.report_json, expected_json)
+            md_ok = check_report_output(args.report_md, expected_md)
+            if not json_ok or not md_ok:
+                return 1
+        else:
+            write_report(args.report_json, expected_json)
+            write_report(args.report_md, expected_md)
+    except (ArchitectureGraphError, OSError, UnicodeDecodeError) as exc:
         print(f"architecture graph error: {exc}", file=sys.stderr)
         return 1
 
     summary = {
         "status": "ok",
-        "mode": "check" if args.check else "build-skeleton",
+        "mode": "check" if args.check else "write",
         "nodes": graph.number_of_nodes(),
         "edges": graph.number_of_edges(),
         "report_json": str(args.report_json),
