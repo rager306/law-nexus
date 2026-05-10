@@ -45,6 +45,22 @@ def proof() -> ModuleType:
     return load_proof()
 
 
+def load_verifier() -> ModuleType:
+    verifier_path = ROOT / "scripts/verify-m003-s03-reasoning-safe-candidate.py"
+    spec = importlib.util.spec_from_file_location("verify_m003_s03_reasoning_safe_candidate", verifier_path)
+    assert spec is not None
+    module = importlib.util.module_from_spec(spec)
+    assert spec.loader is not None
+    sys.modules[spec.name] = module
+    spec.loader.exec_module(module)
+    return module
+
+
+@pytest.fixture()
+def verifier() -> ModuleType:
+    return load_verifier()
+
+
 def provider_payload(content: Any, **message_extra: Any) -> dict[str, Any]:
     return {"choices": [{"message": {"content": content, **message_extra}}]}
 
@@ -319,3 +335,98 @@ def test_script_does_not_import_graph_execution_surface() -> None:
 
     assert "Graph.ro_query" not in text
     assert "FalkorDB" not in text
+
+
+def write_verifier_artifacts(proof: ModuleType, tmp_path: Path, artifact: dict[str, Any]) -> None:
+    tmp_path.mkdir(parents=True, exist_ok=True)
+    (tmp_path / proof.JSON_ARTIFACT).write_text(
+        json.dumps(artifact, ensure_ascii=False, indent=2, sort_keys=True) + "\n",
+        encoding="utf-8",
+    )
+    try:
+        markdown = proof.render_markdown(artifact)
+    except ValueError:
+        markdown = proof.render_markdown(proof.build_blocked_credential_artifact())
+    (tmp_path / proof.MARKDOWN_ARTIFACT).write_text(markdown, encoding="utf-8")
+
+
+def test_verifier_accepts_honest_status_artifacts(proof: ModuleType, verifier: ModuleType, tmp_path: Path) -> None:
+    blocked = proof.build_blocked_credential_artifact()
+    failed_classification = proof.classify_provider_response(
+        provider_payload("<think>hidden reasoning</think> MATCH (n) RETURN n LIMIT 1")
+    )
+    failed = proof.build_failed_runtime_artifact(
+        root_cause="reasoning-contamination",
+        phase="provider-response",
+        classification=failed_classification,
+        provider_attempts=1,
+    )
+    confirmed_classification = proof.classify_provider_response(
+        provider_payload(
+            "CALL db.idx.fulltext.queryNodes('SourceBlock', $search_terms) YIELD node RETURN node.id LIMIT 5",
+            reasoning_details=[{"type": "summary", "text_length": 12}],
+        )
+    )
+    confirmed = proof.build_confirmed_runtime_artifact(classification=confirmed_classification, provider_attempts=1)
+
+    for artifact in (blocked, failed, confirmed):
+        case_dir = tmp_path / str(artifact["status"])
+        write_verifier_artifacts(proof, case_dir, artifact)
+        result = verifier.verify_artifacts(case_dir)
+        assert result["verdict"] == "pass"
+        assert result["status"] == artifact["status"]
+        assert result["provider_attempts"] == artifact["provider_attempts"]
+
+
+@pytest.mark.parametrize(
+    ("mutation", "expected"),
+    [
+        (lambda artifact: artifact.pop("candidate"), "candidate must be an object"),
+        (lambda artifact: artifact.update({"status": "mystery"}), "status must be a known category"),
+        (lambda artifact: artifact.update({"root_cause": "mystery"}), "root_cause must be a known category"),
+        (lambda artifact: artifact.update({"provider_attempts": 1}), "blocked-credential must not claim provider attempts"),
+        (lambda artifact: artifact["candidate"].update({"normalized_text": "MATCH (n) RETURN n"}), "rejected artifacts must not persist accepted candidate text"),
+        (lambda artifact: artifact.update({"raw_response": "raw_provider_body_value"}), "redaction violation"),
+        (lambda artifact: artifact["reasoning"].update({"text": "reasoning_text_value"}), "redaction violation"),
+        (lambda artifact: artifact["safety"].update({"raw_provider_body_persisted": True}), "safety.raw_provider_body_persisted must be false"),
+    ],
+)
+def test_verifier_rejects_unsafe_or_impossible_artifacts(
+    proof: ModuleType, verifier: ModuleType, tmp_path: Path, mutation: Any, expected: str
+) -> None:
+    artifact = proof.build_blocked_credential_artifact()
+    mutation(artifact)
+    write_verifier_artifacts(proof, tmp_path, artifact)
+
+    with pytest.raises(verifier.VerificationError, match=expected):
+        verifier.verify_artifacts(tmp_path)
+
+
+def test_verifier_rejects_confirmed_runtime_without_clean_candidate(
+    proof: ModuleType, verifier: ModuleType, tmp_path: Path
+) -> None:
+    artifact = proof.build_confirmed_runtime_artifact(
+        classification=proof.classify_provider_response(provider_payload("MATCH (n) RETURN n LIMIT 1")),
+        provider_attempts=1,
+    )
+    artifact["candidate"]["has_markdown_fence"] = True
+    artifact["candidate"]["categories"] = ["markdown-fence-contamination"]
+    write_verifier_artifacts(proof, tmp_path, artifact)
+
+    with pytest.raises(verifier.VerificationError, match="confirmed-runtime requires clean candidate diagnostics"):
+        verifier.verify_artifacts(tmp_path)
+
+
+def test_verifier_rejects_boundary_overclaims_in_markdown(
+    proof: ModuleType, verifier: ModuleType, tmp_path: Path
+) -> None:
+    artifact = proof.build_blocked_credential_artifact()
+    json_path, markdown_path = proof.write_artifacts(tmp_path, artifact)
+    assert json_path.exists()
+    markdown_path.write_text(
+        markdown_path.read_text(encoding="utf-8") + "\nS03 performed graph execution and deterministic validation.\n",
+        encoding="utf-8",
+    )
+
+    with pytest.raises(verifier.VerificationError, match="boundary overclaim"):
+        verifier.verify_artifacts(tmp_path)
