@@ -40,6 +40,39 @@ def test_planned_cleanup_command_targets_unique_container_name() -> None:
     assert harness.planned_cleanup_commands(name) == [["docker", "rm", "-f", name]]
 
 
+def test_wait_for_container_ready_records_ping_success(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    harness = load_harness()
+    state = harness.create_state(tmp_path, 10)
+    calls: list[list[str]] = []
+
+    def fake_run_command(command: list[str], timeout_seconds: int, log_dir: Path, phase: str):
+        calls.append(command)
+        log_path = harness.write_log(log_dir, phase, "PONG")
+        return harness.CommandResult(command, 0, False, 0.01, "PONG\n", "", log_path)
+
+    monkeypatch.setattr(harness, "run_command", fake_run_command)
+
+    assert harness.wait_for_container_ready(state) is True
+    assert calls == [["docker", "exec", state.container_name, "redis-cli", "PING"]]
+    assert state.command_summary["container-readiness"]["exit_code"] == 0
+
+
+def test_wait_for_container_ready_cascades_blocker_on_ping_failure(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    harness = load_harness()
+    state = harness.create_state(tmp_path, 1)
+
+    def fake_run_command(command: list[str], timeout_seconds: int, log_dir: Path, phase: str):
+        log_path = harness.write_log(log_dir, phase, "not ready")
+        return harness.CommandResult(command, 1, False, 0.01, "", "not ready", log_path)
+
+    monkeypatch.setattr(harness, "run_command", fake_run_command)
+    monkeypatch.setattr(harness.time, "sleep", lambda _seconds: None)
+
+    assert harness.wait_for_container_ready(state) is False
+    assert state.findings["falkordb-basic-graph"].status == "blocked-environment"
+    assert state.findings["falkordb-basic-graph"].diagnostics["root_cause"] == "docker-falkordb-readiness-exit-1"
+
+
 def test_cascade_blocker_applies_same_root_cause_and_log(tmp_path: Path) -> None:
     harness = load_harness()
     state = harness.create_state(tmp_path, 10)

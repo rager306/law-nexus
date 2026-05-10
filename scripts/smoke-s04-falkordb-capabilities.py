@@ -668,6 +668,36 @@ def install_client(state: SmokeState, venv_path: Path) -> bool:
     return False
 
 
+def wait_for_container_ready(state: SmokeState) -> bool:
+    deadline = time.monotonic() + min(state.timeout_seconds, 30)
+    last_result: CommandResult | None = None
+    while time.monotonic() < deadline:
+        last_result = run_command(
+            ["docker", "exec", state.container_name, "redis-cli", "PING"],
+            5,
+            state.log_dir,
+            "container-readiness",
+        )
+        if last_result.exit_code == 0 and "PONG" in last_result.stdout:
+            state.command_summary["container-readiness"] = summarize_command(last_result)
+            return True
+        time.sleep(0.5)
+    if last_result is None:
+        last_result = run_command(
+            ["docker", "exec", state.container_name, "redis-cli", "PING"],
+            5,
+            state.log_dir,
+            "container-readiness",
+        )
+    state.command_summary["container-readiness"] = summarize_command(last_result)
+    root = command_root_cause(last_result, "docker-falkordb-readiness")
+    if root == "docker-falkordb-readiness-ok":
+        root = "docker-falkordb-readiness-timeout"
+    detail = command_detail(last_result)
+    cascade_blocker(state, FALKORDB_CAPABILITY_IDS, root, detail, "container-readiness", last_result.log_path)
+    return False
+
+
 def start_container(state: SmokeState) -> bool:
     command = [
         "docker",
@@ -687,7 +717,7 @@ def start_container(state: SmokeState) -> bool:
         "port": state.host_port,
     }
     if result.exit_code == 0 and not result.timed_out:
-        return True
+        return wait_for_container_ready(state)
     root = command_root_cause(result, "docker-falkordb-container")
     detail = command_detail(result)
     cascade_blocker(state, FALKORDB_CAPABILITY_IDS, root, detail, "container-start", result.log_path)

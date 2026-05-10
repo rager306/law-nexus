@@ -13,6 +13,7 @@ Use FalkorDB documentation and releases current to May 2026 as the freshness bas
 - Do not import APOC function expectations.
 - Resource limits are operational constraints, not implementation details.
 - Custom UDFs need security review and minimal fixtures.
+- Local 2026-05-10 smoke evidence confirmed bounded synthetic FalkorDB Docker UDF load/list/execute/flush and FalkorDBLite UDF behavior; this does not approve arbitrary production UDF code or remove the need for security/resource review.
 
 ## Required answer shape
 

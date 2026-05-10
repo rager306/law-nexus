@@ -53,6 +53,11 @@ Use Neo4j skills as structure: when-to-use, when-not-to-use, preflight, decision
 Good proof:
 - A script creates a disposable graph, creates the target index, inserts synthetic data, runs the target query, asserts returned rows/scores, and cleans up.
 
+Local smoke harness:
+- Use `uv run python scripts/smoke-s04-falkordb-capabilities.py --output-dir .gsd/runtime-smoke/falkordb-capabilities --timeout-seconds 300`, then verify with `uv run python scripts/verify-s04-falkordb-smoke.py --markdown .gsd/runtime-smoke/falkordb-capabilities/S04-FALKORDB-CAPABILITY-SMOKE.md --json .gsd/runtime-smoke/falkordb-capabilities/S04-FALKORDB-CAPABILITY-SMOKE.json --require-runtime-results`.
+- The harness waits for container readiness with `docker exec <container> redis-cli PING` before probing. If a probe fails before readiness, classify it as `blocked-environment`, not capability contradiction.
+- A 2026-05-10 local run against `falkordb/falkordb:edge` image `sha256:4246e809a5fd74d233196e08c879885adc47bde499a8e25fa5ff83fd39644d80` confirmed synthetic Docker FalkorDB basic graph, UDF load/execute, procedure list, full-text index, vector index, and vector-distance probes, plus FalkorDBLite basic/UDF/vector/full-text probes. This confirms only the bounded synthetic runtime behavior, not LegalGraph ETL/import/product retrieval quality.
+
 Weak proof:
 - A blog says a related RedisGraph/Neo4j feature exists.
 - A query string compiles in another database.

@@ -13,6 +13,7 @@ Use FalkorDB documentation and releases current to May 2026 as the freshness bas
 - Do not call this Neo4j GDS-compatible unless a specific API/behavior is proven.
 - Documented algorithm availability is not proof of suitability for a production graph.
 - Use small fixtures to prove output shape before large graph runs.
+- Local 2026-05-10 smoke evidence confirmed GraphBLAS-backed FalkorDB startup and procedure discovery on `falkordb/falkordb:edge`, but the current smoke harness did not execute PageRank/WCC/etc. algorithm-specific output checks. Keep algorithm claims docs/source-backed or smoke-needed until those fixtures run.
 
 ## Required answer shape
 

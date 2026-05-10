@@ -14,6 +14,7 @@ Use FalkorDB documentation and releases current to May 2026 as the freshness bas
 - Distinguish embedding model quality from vector storage/query mechanics.
 - Use GRAPH.EXPLAIN/PROFILE or smoke queries to prove index usage.
 - Treat range, full-text, and vector support as docs-backed until the exact target version is runtime-confirmed.
+- Local 2026-05-10 smoke evidence confirmed synthetic full-text index, vector index, and vector-distance behavior on `falkordb/falkordb:edge` image `sha256:4246e809a5fd74d233196e08c879885adc47bde499a8e25fa5ff83fd39644d80`; cite it only as bounded synthetic runtime proof, not product retrieval quality.
 - Record separate proof for model encoding, vector storage, index creation, vector query, and product quality.
 
 ## Required answer shape
