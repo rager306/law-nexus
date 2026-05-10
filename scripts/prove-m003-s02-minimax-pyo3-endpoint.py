@@ -93,14 +93,24 @@ FORBIDDEN_TERMS = (
     "RAW_LEGAL_TEXT_SENTINEL",
 )
 
+BOUNDARY_NON_CLAIMS = (
+    "Legal KnowQL product behavior",
+    "legal-answer correctness",
+    "S03 validation",
+    "FalkorDB execution",
+    "ODT parsing",
+    "retrieval quality",
+    "production schema quality",
+)
 BOUNDARY_STATEMENT = (
     "This artifact is a focused proof harness for M003/S02 endpoint normalization and "
     "PyO3/genai routing only. It shows the MiniMax endpoint input, normalized PyO3/genai "
     "base endpoint, resolver metadata, local build/import/provider phase categories, and "
     "effective /v1/chat/completions URL. It does not prove Legal KnowQL product behavior, "
     "legal-answer correctness, S03 validation, FalkorDB execution, ODT parsing, retrieval "
-    "quality, or production schema quality. Raw provider bodies, credentials, prompts, raw "
-    "legal text, and secret-like strings are not persisted."
+    "quality, or production schema quality. Raw provider bodies, credentials, auth headers, "
+    "prompts, raw legal text, raw FalkorDB rows, reasoning-tag content, and secret-like strings "
+    "are not persisted."
 )
 
 
@@ -188,7 +198,7 @@ def sanitize(value: Any, *, sensitive_values: list[str] | None = None) -> Any:
         sanitized: dict[str, Any] = {}
         for key, item in value.items():
             lowered = str(key).lower()
-            if any(part in lowered for part in ("authorization", "api_key", "api-key", "token", "secret")):
+            if lowered in {"authorization", "api_key", "api-key", "token", "secret", "password"}:
                 sanitized[str(key)] = "<redacted>"
             else:
                 sanitized[str(key)] = sanitize(item, sensitive_values=sensitive_values)
@@ -275,6 +285,7 @@ def build_endpoint_contract_payload(*, model: str, endpoint: str, timeout: int) 
         "resolver_metadata": None,
         "runtime_workspace": None,
         "boundary_statement": BOUNDARY_STATEMENT,
+        "boundaries": boundaries_payload(),
         "safety": safety_payload(),
         "phases": default_phases(endpoint_contract),
     }
@@ -294,8 +305,13 @@ def safety_payload() -> dict[str, bool]:
         "raw_provider_body_persisted": False,
         "raw_prompt_persisted": False,
         "raw_legal_text_persisted": False,
+        "raw_falkordb_rows_persisted": False,
         "think_content_persisted": False,
     }
+
+
+def boundaries_payload() -> dict[str, list[str]]:
+    return {"does_not_prove": list(BOUNDARY_NON_CLAIMS)}
 
 
 def default_phases(endpoint_contract: dict[str, Any]) -> dict[str, Any]:
@@ -924,6 +940,7 @@ def final_payload(
         "runtime_workspace": runtime_workspace,
         "commands": commands,
         "boundary_statement": BOUNDARY_STATEMENT,
+        "boundaries": boundaries_payload(),
         "safety": safety_payload(),
         "phases": phases,
     }
@@ -954,9 +971,28 @@ def write_artifacts(artifact_dir: Path, payload: dict[str, Any]) -> tuple[Path, 
         "",
         safe_payload["boundary_statement"],
         "",
-        "## Phase categories",
+        "## Explicit non-claims",
         "",
     ]
+    for non_claim in safe_payload.get("boundaries", {}).get("does_not_prove", []):
+        lines.append(f"- Does not prove: {non_claim}")
+    lines.extend(
+        [
+            "",
+            "## Safety booleans",
+            "",
+            f"- Credentials persisted: `{safe_payload['safety'].get('credentials_persisted')}`",
+            f"- Auth headers persisted: `{safe_payload['safety'].get('auth_headers_persisted')}`",
+            f"- Raw provider body persisted: `{safe_payload['safety'].get('raw_provider_body_persisted')}`",
+            f"- Raw prompt persisted: `{safe_payload['safety'].get('raw_prompt_persisted')}`",
+            f"- Raw legal text persisted: `{safe_payload['safety'].get('raw_legal_text_persisted')}`",
+            f"- Raw FalkorDB rows persisted: `{safe_payload['safety'].get('raw_falkordb_rows_persisted')}`",
+            f"- Think content persisted: `{safe_payload['safety'].get('think_content_persisted')}`",
+            "",
+            "## Phase categories",
+            "",
+        ]
+    )
     for name, phase in safe_payload.get("phases", {}).items():
         if isinstance(phase, dict):
             lines.append(f"- `{name}`: status=`{phase.get('status')}`, root_cause=`{phase.get('root_cause')}`")

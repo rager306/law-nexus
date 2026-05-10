@@ -3,6 +3,7 @@ from __future__ import annotations
 import importlib.util
 import json
 import sys
+from collections.abc import Callable
 from pathlib import Path
 from types import ModuleType
 
@@ -10,6 +11,7 @@ import pytest
 
 ROOT = Path(__file__).resolve().parents[1]
 SCRIPT_PATH = ROOT / "scripts/prove-m003-s02-minimax-pyo3-endpoint.py"
+VERIFY_SCRIPT_PATH = ROOT / "scripts/verify-m003-s02-minimax-pyo3-endpoint.py"
 
 
 def load_harness() -> ModuleType:
@@ -317,3 +319,141 @@ def test_classify_provider_failures() -> None:
     assert harness.classify_provider_failure("missing field choices deserialize") == "minimax-openai-schema-mismatch"
     assert harness.classify_provider_failure("404 not found /chat/completions") == "endpoint-contract-lost-v1"
     assert harness.classify_provider_failure("upstream refused connection") == "minimax-provider-call-failed"
+
+
+def load_verifier() -> ModuleType:
+    spec = importlib.util.spec_from_file_location("verify_m003_s02_minimax_pyo3_endpoint", VERIFY_SCRIPT_PATH)
+    assert spec is not None
+    module = importlib.util.module_from_spec(spec)
+    assert spec.loader is not None
+    sys.modules[spec.name] = module
+    spec.loader.exec_module(module)
+    return module
+
+
+def write_s02_artifacts(tmp_path: Path, payload: dict[str, object], markdown: str | None = None) -> None:
+    (tmp_path / "S02-MINIMAX-PYO3-ENDPOINT.json").write_text(
+        json.dumps(payload, ensure_ascii=False, indent=2, sort_keys=True) + "\n",
+        encoding="utf-8",
+    )
+    (tmp_path / "S02-MINIMAX-PYO3-ENDPOINT.md").write_text(
+        markdown
+        if markdown is not None
+        else "\n".join(
+            [
+                "# S02 fixture",
+                f"Status: `{payload['status']}`",
+                f"Model: `{payload['model']}`",
+                "Effective chat URL: `https://api.minimax.io/v1/chat/completions`",
+                str(payload["boundary_statement"]),
+                "- Raw provider body persisted: `False`",
+                "- Credentials persisted: `False`",
+                "- Auth headers persisted: `False`",
+                "- Raw prompt persisted: `False`",
+                "- Raw legal text persisted: `False`",
+                "- Raw FalkorDB rows persisted: `False`",
+                "- Think content persisted: `False`",
+            ]
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+
+
+def base_verifier_payload(status: str = "blocked-credential", root_cause: str = "minimax-credential-missing") -> dict[str, object]:
+    harness = load_harness()
+    payload = harness.build_endpoint_contract_payload(
+        model=harness.DEFAULT_MODEL,
+        endpoint=harness.DEFAULT_ENDPOINT,
+        timeout=5,
+    )
+    payload["status"] = status
+    payload["root_cause"] = root_cause
+    payload["phase"] = "provider" if status == "blocked-credential" else "endpoint-contract"
+    payload["provider_attempts"] = 0 if status in {"blocked-credential", "blocked-environment", "not-run-local-only"} else 1
+    payload["phases"]["build"] = {"phase": "build", "status": "confirmed-runtime", "root_cause": "none", "category": "build"}
+    payload["phases"]["import"] = {"phase": "import", "status": "confirmed-runtime", "root_cause": "none", "category": "import"}
+    payload["phases"]["resolver"] = {"phase": "resolver", "status": "confirmed-runtime", "root_cause": "none", "category": "resolver"}
+    payload["phases"]["provider"] = {
+        "phase": "provider",
+        "status": "blocked-credential" if status == "blocked-credential" else "not-run",
+        "root_cause": root_cause if status == "blocked-credential" else "not-run",
+        "category": "credential" if status == "blocked-credential" else "not-run",
+        "raw_provider_body_persisted": False,
+    }
+    payload["resolver_metadata"] = {
+        "module": harness.MODULE_NAME,
+        "model": harness.DEFAULT_MODEL,
+        "adapter_kind": "OpenAI",
+        "normalized_endpoint_base_url": "https://api.minimax.io/v1/",
+        "provider_body_persistence": "disabled",
+    }
+    if status == "confirmed-runtime":
+        payload["root_cause"] = "none"
+        payload["provider_attempts"] = 1
+        payload["phases"]["provider"] = {
+            "phase": "provider",
+            "status": "confirmed-runtime",
+            "root_cause": "none",
+            "category": "provider",
+            "raw_provider_body_persisted": False,
+        }
+    return payload
+
+
+def test_s02_verifier_accepts_truthful_blocked_credential_fixture(tmp_path: Path) -> None:
+    verifier = load_verifier()
+    payload = base_verifier_payload()
+    write_s02_artifacts(tmp_path, payload)
+
+    result = verifier.verify_artifacts(tmp_path)
+
+    assert result["verdict"] == "pass"
+    assert result["status"] == "blocked-credential"
+    assert result["root_cause"] == "minimax-credential-missing"
+    assert result["provider_attempts"] == 0
+
+
+@pytest.mark.parametrize(
+    ("mutator", "expected_error"),
+    [
+        (lambda p: p["endpoint"].update({"effective_chat_completions_url": "https://api.minimax.io/chat/completions"}), "effective_chat_completions_url"),
+        (lambda p: p["endpoint"].update({"normalized_base_url": "https://api.minimax.io/v1"}), "normalized_base_url"),
+        (lambda p: p.update({"provider_attempts": 1}), "blocked-credential must not claim provider attempts"),
+        (lambda p: p.update({"status": "confirmed-runtime", "root_cause": "endpoint-contract-lost-v1", "provider_attempts": 1}), "confirmed-runtime root_cause"),
+        (lambda p: p.update({"unsafe": "Bearer sk-secret123456789"}), "redaction violation"),
+        (lambda p: p.update({"raw_prompt": "Return OK only"}), "unsafe field"),
+        (lambda p: p.update({"diagnostic": "<think>hidden reasoning</think>"}), "think"),
+    ],
+)
+def test_s02_verifier_rejects_endpoint_semantic_and_redaction_violations(
+    tmp_path: Path, mutator: Callable[[dict[str, object]], object], expected_error: str
+) -> None:
+    verifier = load_verifier()
+    payload = base_verifier_payload()
+    mutator(payload)
+    write_s02_artifacts(tmp_path, payload)
+
+    with pytest.raises(verifier.VerificationError, match=expected_error):
+        verifier.verify_artifacts(tmp_path)
+
+
+@pytest.mark.parametrize(
+    "overclaim",
+    [
+        "Legal KnowQL product behavior is validated",
+        "legal-answer correctness is validated",
+        "ODT parsing and retrieval quality are production ready",
+        "FalkorDB execution is proven",
+        "production schema quality is proven",
+        "raw FalkorDB rows: []",
+        "RAW_LEGAL_TEXT_SENTINEL article text",
+    ],
+)
+def test_s02_verifier_rejects_boundary_overclaims_and_unsafe_markdown(tmp_path: Path, overclaim: str) -> None:
+    verifier = load_verifier()
+    payload = base_verifier_payload()
+    write_s02_artifacts(tmp_path, payload, markdown=overclaim)
+
+    with pytest.raises(verifier.VerificationError):
+        verifier.verify_artifacts(tmp_path)
