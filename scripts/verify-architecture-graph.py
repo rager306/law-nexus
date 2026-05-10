@@ -551,6 +551,223 @@ def validate_source_anchors(records: list[LocatedRecord], result: VerificationRe
                     )
 
 
+TRACEABILITY_CRITICAL_TYPES = {"requirement", "decision", "proof_gate"}
+TRACEABILITY_EXEMPT_STATUSES = {"out-of-scope", "rejected"}
+DECISION_FITNESS_EDGE_TYPES = {"checked_by", "validated_by"}
+DECISION_FITNESS_EDGE_STATUSES = {"active", "hypothesis", "validated"}
+DECISION_FITNESS_TARGET_TYPES = {"proof_gate", "workflow_check"}
+HARD_CONTRADICTION_STATUSES = {"active", "hypothesis", "bounded-evidence"}
+
+
+@dataclass
+class GraphIndex:
+    items_by_id: dict[str, LocatedRecord]
+    edges: list[LocatedRecord]
+    incoming: dict[str, list[LocatedRecord]] = field(default_factory=dict)
+    outgoing: dict[str, list[LocatedRecord]] = field(default_factory=dict)
+
+    def connected_edges(self, record_id: str) -> list[LocatedRecord]:
+        return [*self.incoming.get(record_id, []), *self.outgoing.get(record_id, [])]
+
+
+def non_empty_string(value: Any) -> bool:
+    return isinstance(value, str) and bool(value.strip())
+
+
+def non_empty_list(value: Any) -> bool:
+    return isinstance(value, list) and bool(value)
+
+
+def build_graph_index(item_records: list[LocatedRecord], edge_records: list[LocatedRecord], result: VerificationResult) -> GraphIndex:
+    items_by_id = {
+        located.record_id: located
+        for located in item_records
+        if located.record_id != "<missing-id>" and located.record_kind == "item"
+    }
+    index = GraphIndex(items_by_id=items_by_id, edges=edge_records)
+
+    for edge in edge_records:
+        if edge.record_kind != "edge":
+            continue
+        from_id = edge.record.get("from")
+        to_id = edge.record.get("to")
+        if isinstance(from_id, str) and from_id:
+            index.outgoing.setdefault(from_id, []).append(edge)
+        if isinstance(to_id, str) and to_id:
+            index.incoming.setdefault(to_id, []).append(edge)
+        for field_name, endpoint in (("from", from_id), ("to", to_id)):
+            if isinstance(endpoint, str) and endpoint and endpoint not in items_by_id:
+                result.add(
+                    edge.diagnostic(
+                        "missing-endpoint",
+                        f"edge references absent endpoint {endpoint}",
+                        field=field_name,
+                    )
+                )
+    return index
+
+
+def item_status(located: LocatedRecord) -> str:
+    value = located.record.get("status")
+    return value if isinstance(value, str) else "<missing-status>"
+
+
+def item_type(located: LocatedRecord) -> str:
+    value = located.record.get("type")
+    return value if isinstance(value, str) else "<missing-type>"
+
+
+def item_is_traceability_exempt(located: LocatedRecord) -> bool:
+    if located.record.get("generated_draft") is True:
+        return True
+    return item_status(located) in TRACEABILITY_EXEMPT_STATUSES
+
+
+def validate_orphan_traceability(index: GraphIndex, result: VerificationResult) -> None:
+    for record_id, located in sorted(index.items_by_id.items()):
+        if item_type(located) not in TRACEABILITY_CRITICAL_TYPES:
+            continue
+        if item_is_traceability_exempt(located):
+            continue
+        if index.connected_edges(record_id):
+            continue
+        result.add(
+            located.diagnostic(
+                "orphan-traceability",
+                "traceability-critical item has no meaningful incoming or outgoing architecture edge",
+                field="id",
+            )
+        )
+
+
+def validate_proof_gate_metadata(item_records: list[LocatedRecord], result: VerificationResult) -> None:
+    for located in item_records:
+        if item_type(located) != "proof_gate":
+            continue
+        if item_status(located) != "active" or located.record.get("proof_level") != "none":
+            continue
+        required_fields = [
+            ("owner", non_empty_string(located.record.get("owner"))),
+            ("status", non_empty_string(located.record.get("status"))),
+            ("verification", non_empty_string(located.record.get("verification"))),
+            ("source_anchors", non_empty_list(located.record.get("source_anchors"))),
+        ]
+        for field_name, is_present in required_fields:
+            if not is_present:
+                result.add(
+                    located.diagnostic(
+                        "proof-gate-metadata",
+                        "active unresolved proof_gate with proof_level=none must retain owner, status, verification, and source anchors",
+                        field=field_name,
+                    )
+                )
+
+
+def decision_has_consequence(located: LocatedRecord) -> bool:
+    return non_empty_list(located.record.get("positive_consequences")) or non_empty_list(located.record.get("negative_consequences"))
+
+
+def edge_endpoint(edge: LocatedRecord, field_name: str) -> str | None:
+    value = edge.record.get(field_name)
+    return value if isinstance(value, str) and value else None
+
+
+def active_supersession_edge_exists(decision_id: str, successor_id: str, index: GraphIndex) -> bool:
+    successor = index.items_by_id.get(successor_id)
+    if successor is None or item_status(successor) != "active":
+        return False
+    for edge in index.connected_edges(decision_id):
+        if edge.record.get("status") != "active":
+            continue
+        edge_type = edge.record.get("type")
+        from_id = edge_endpoint(edge, "from")
+        to_id = edge_endpoint(edge, "to")
+        if edge_type == "supersedes" and from_id == successor_id and to_id == decision_id:
+            return True
+        if edge_type == "superseded_by" and from_id == decision_id and to_id == successor_id:
+            return True
+    return False
+
+
+def decision_has_gate_coverage(decision_id: str, index: GraphIndex) -> bool:
+    for edge in index.outgoing.get(decision_id, []):
+        if edge.record.get("type") not in DECISION_FITNESS_EDGE_TYPES:
+            continue
+        if edge.record.get("status") not in DECISION_FITNESS_EDGE_STATUSES:
+            continue
+        target_id = edge_endpoint(edge, "to")
+        if target_id is None:
+            continue
+        target = index.items_by_id.get(target_id)
+        if target is not None and item_type(target) in DECISION_FITNESS_TARGET_TYPES:
+            return True
+    return False
+
+
+def validate_decision_policies(index: GraphIndex, result: VerificationResult) -> None:
+    for record_id, located in sorted(index.items_by_id.items()):
+        if item_type(located) != "decision":
+            continue
+        status = item_status(located)
+        if status == "active" and not decision_has_consequence(located):
+            result.add(
+                located.diagnostic(
+                    "decision-consequence",
+                    "active decision must document at least one positive or negative consequence",
+                    field="positive_consequences",
+                )
+            )
+        if status == "superseded":
+            successor_id = located.record.get("superseded_by")
+            if not isinstance(successor_id, str) or not successor_id:
+                result.add(
+                    located.diagnostic(
+                        "decision-supersession",
+                        "superseded decision must name superseded_by successor and have active supersession edge coverage",
+                        field="superseded_by",
+                    )
+                )
+            elif not active_supersession_edge_exists(record_id, successor_id, index):
+                result.add(
+                    located.diagnostic(
+                        "decision-supersession",
+                        "superseded decision must have active supersession edge coverage to its active successor",
+                        field="superseded_by",
+                    )
+                )
+        if status == "active" and located.record.get("risk_level") in {"high", "critical"} and not decision_has_gate_coverage(record_id, index):
+            result.add(
+                located.diagnostic(
+                    "decision-fitness",
+                    "high or critical active decision must be checked_by or validated_by a proof_gate or workflow_check",
+                    field="risk_level",
+                )
+            )
+
+
+def validate_active_contradictions(edge_records: list[LocatedRecord], result: VerificationResult) -> None:
+    for edge in edge_records:
+        if edge.record.get("type") != "contradicts":
+            continue
+        status = edge.record.get("status")
+        if status in HARD_CONTRADICTION_STATUSES:
+            result.add(
+                edge.diagnostic(
+                    "active-contradiction",
+                    "contradicts edges in active, hypothesis, or bounded-evidence status must be resolved, rejected, or superseded",
+                    field="status",
+                )
+            )
+
+
+def validate_graph_policies(item_records: list[LocatedRecord], edge_records: list[LocatedRecord], result: VerificationResult) -> None:
+    index = build_graph_index(item_records, edge_records, result)
+    validate_orphan_traceability(index, result)
+    validate_proof_gate_metadata(item_records, result)
+    validate_decision_policies(index, result)
+    validate_active_contradictions(edge_records, result)
+
+
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description="Verify derived, non-authoritative architecture graph artifacts without rewriting them."
@@ -577,6 +794,7 @@ def run(argv: list[str] | None = None) -> int:
     if schema is not None:
         validate_schema(all_records, schema, result)
     validate_source_anchors(all_records, result)
+    validate_graph_policies(item_records, edge_records, result)
     verify_report_paths(args, result)
 
     LAST_RESULT = result

@@ -281,12 +281,12 @@ def test_anchor_line_ranges_must_be_ordered_and_in_bounds(tmp_path: Path) -> Non
 
 def test_anchor_selector_or_section_must_appear_but_path_only_json_anchor_can_pass(tmp_path: Path) -> None:
     path_only_items = tmp_path / "path-only-items.jsonl"
-    write_jsonl(
-        path_only_items,
-        [minimal_item("REQ-PATH-ONLY", [{"path": "prd/architecture/architecture.schema.json", "kind": "test-artifact"}])],
-    )
+    path_only_edges = tmp_path / "path-only-edges.jsonl"
+    anchor = [{"path": "prd/architecture/architecture.schema.json", "kind": "test-artifact"}]
+    write_jsonl(path_only_items, [minimal_item("REQ-PATH-ONLY", anchor)])
+    write_jsonl(path_only_edges, [minimal_edge("EDGE-PATH-ONLY-SELF", anchor, from_id="REQ-PATH-ONLY", to_id="REQ-PATH-ONLY")])
 
-    passing = run_cli("--items", str(path_only_items), "--edges", str(FIXTURE_DIR / "valid_edges.jsonl"))
+    passing = run_cli("--items", str(path_only_items), "--edges", str(path_only_edges))
     assert passing.returncode == 0, passing.stderr
 
     failing = run_cli(
@@ -299,3 +299,162 @@ def test_anchor_selector_or_section_must_appear_but_path_only_json_anchor_can_pa
     assert "id=REQ-SELECTOR-ANCHOR" in failing.stderr
     assert "field=source_anchors[0].selector" in failing.stderr
     assert "rule=source-anchor-token" in failing.stderr
+
+
+def decision_item(record_id: str, anchor: list[dict[str, Any]], **overrides: Any) -> dict[str, Any]:
+    record = minimal_item(record_id, anchor)
+    record.update(
+        {
+            "type": "decision",
+            "deciders": ["gsd-agent"],
+            "decision_drivers": ["Exercise verifier decision policy."],
+            "considered_options": [
+                {
+                    "id": f"OPT-{record_id}",
+                    "title": "Fixture option",
+                    "summary": "Fixture option summary.",
+                    "status": "chosen",
+                }
+            ],
+            "positive_consequences": ["Fixture consequence."],
+        }
+    )
+    record.update(overrides)
+    return record
+
+
+def proof_gate_item(record_id: str, anchor: list[dict[str, Any]], **overrides: Any) -> dict[str, Any]:
+    record = minimal_item(record_id, anchor)
+    record.update({"type": "proof_gate", "proof_level": "none", "risk_level": "high"})
+    record.update(overrides)
+    return record
+
+
+def workflow_check_item(record_id: str, anchor: list[dict[str, Any]], **overrides: Any) -> dict[str, Any]:
+    record = minimal_item(record_id, anchor)
+    record.update({"type": "workflow_check", "proof_level": "static-check", "risk_level": "medium"})
+    record.update(overrides)
+    return record
+
+
+def test_missing_edge_endpoint_is_hard_graph_failure(tmp_path: Path) -> None:
+    items_path = tmp_path / "items.jsonl"
+    edges_path = tmp_path / "edges.jsonl"
+    anchor = [{"path": "prd/architecture/architecture.schema.json", "kind": "test-artifact", "selector": "record_kind"}]
+    write_jsonl(items_path, [minimal_item("REQ-NODE-A", anchor)])
+    write_jsonl(edges_path, [minimal_edge("EDGE-MISSING-ENDPOINT", anchor, from_id="REQ-NODE-A", to_id="REQ-NODE-MISSING")])
+
+    result = run_cli("--items", str(items_path), "--edges", str(edges_path))
+
+    assert result.returncode == 1
+    assert "id=EDGE-MISSING-ENDPOINT" in result.stderr
+    assert "record_kind=edge" in result.stderr
+    assert "field=to" in result.stderr
+    assert "rule=missing-endpoint" in result.stderr
+    assert "REQ-NODE-MISSING" in result.stderr
+
+
+def test_traceability_critical_orphans_fail_but_evidence_and_assumption_isolates_do_not(tmp_path: Path) -> None:
+    orphan_result = run_cli("--items", str(FIXTURE_DIR / "invalid_orphan_requirement.jsonl"), "--edges", str(tmp_path / "empty-edges.jsonl"))
+    assert orphan_result.returncode == 1
+    assert "id=REQ-ORPHAN-TRACEABILITY" in orphan_result.stderr
+    assert "rule=orphan-traceability" in orphan_result.stderr
+
+    items_path = tmp_path / "items.jsonl"
+    edges_path = tmp_path / "empty-edges.jsonl"
+    edges_path.write_text("", encoding="utf-8")
+    anchor = [{"path": "prd/architecture/architecture.schema.json", "kind": "test-artifact", "selector": "record_kind"}]
+    evidence = minimal_item("EVID-ISOLATED", anchor)
+    evidence.update({"type": "evidence", "status": "bounded-evidence"})
+    assumption = minimal_item("ASSUMP-ISOLATED", anchor)
+    assumption.update({"type": "assumption"})
+    write_jsonl(items_path, [evidence, assumption])
+
+    nonfatal_result = run_cli("--items", str(items_path), "--edges", str(edges_path))
+
+    assert nonfatal_result.returncode == 0, nonfatal_result.stderr
+
+
+def test_active_unresolved_gate_requires_metadata_but_baseline_owned_gates_pass(tmp_path: Path) -> None:
+    result = run_cli("--items", str(FIXTURE_DIR / "invalid_gate_metadata.jsonl"), "--edges", str(tmp_path / "empty-edges.jsonl"))
+
+    assert result.returncode == 1
+    assert "id=GATE-MISSING-METADATA" in result.stderr
+    assert "rule=proof-gate-metadata" in result.stderr
+    assert "field=owner" in result.stderr
+    assert "field=verification" in result.stderr
+    assert "field=source_anchors" in result.stderr
+
+
+def test_decision_consequence_supersession_and_high_risk_gate_policies(tmp_path: Path) -> None:
+    empty_edges = tmp_path / "empty-edges.jsonl"
+    empty_edges.write_text("", encoding="utf-8")
+
+    no_consequence = run_cli("--items", str(FIXTURE_DIR / "invalid_decision_no_consequence.jsonl"), "--edges", str(empty_edges))
+    assert no_consequence.returncode == 1
+    assert "id=DEC-NO-CONSEQUENCE" in no_consequence.stderr
+    assert "rule=decision-consequence" in no_consequence.stderr
+
+    no_successor = run_cli("--items", str(FIXTURE_DIR / "invalid_superseded_no_successor.jsonl"), "--edges", str(empty_edges))
+    assert no_successor.returncode == 1
+    assert "id=DEC-SUPERSEDED-NO-SUCCESSOR" in no_successor.stderr
+    assert "rule=decision-supersession" in no_successor.stderr
+
+    no_gate = run_cli("--items", str(FIXTURE_DIR / "invalid_high_risk_no_gate.jsonl"), "--edges", str(empty_edges))
+    assert no_gate.returncode == 1
+    assert "id=DEC-HIGH-RISK-NO-GATE" in no_gate.stderr
+    assert "rule=decision-fitness" in no_gate.stderr
+
+
+def test_decision_policy_accepts_successor_and_gate_coverage(tmp_path: Path) -> None:
+    items_path = tmp_path / "items.jsonl"
+    edges_path = tmp_path / "edges.jsonl"
+    anchor = [{"path": "prd/architecture/architecture.schema.json", "kind": "test-artifact", "selector": "record_kind"}]
+    old_decision = decision_item(
+        "DEC-OLD",
+        anchor,
+        status="superseded",
+        risk_level="medium",
+        superseded_by="DEC-NEW",
+    )
+    new_decision = decision_item("DEC-NEW", anchor, risk_level="high")
+    check = workflow_check_item("CHECK-DECISION", anchor)
+    write_jsonl(items_path, [old_decision, new_decision, check])
+    write_jsonl(
+        edges_path,
+        [
+            minimal_edge("EDGE-NEW-SUPERSEDES-OLD", anchor, from_id="DEC-NEW", to_id="DEC-OLD")
+            | {"type": "supersedes"},
+            minimal_edge("EDGE-NEW-CHECKED-BY-CHECK", anchor, from_id="DEC-NEW", to_id="CHECK-DECISION")
+            | {"type": "checked_by", "status": "validated"},
+        ],
+    )
+
+    result = run_cli("--items", str(items_path), "--edges", str(edges_path))
+
+    assert result.returncode == 0, result.stderr
+
+
+def test_active_contradiction_edge_fails_but_rejected_contradiction_is_nonfatal(tmp_path: Path) -> None:
+    active_result = run_cli(
+        "--items",
+        str(FIXTURE_DIR / "valid_items.jsonl"),
+        "--edges",
+        str(FIXTURE_DIR / "invalid_active_contradiction_edges.jsonl"),
+    )
+    assert active_result.returncode == 1
+    assert "id=EDGE-ACTIVE-CONTRADICTION" in active_result.stderr
+    assert "rule=active-contradiction" in active_result.stderr
+
+    items_path = tmp_path / "items.jsonl"
+    edges_path = tmp_path / "edges.jsonl"
+    anchor = [{"path": "prd/architecture/architecture.schema.json", "kind": "test-artifact", "selector": "record_kind"}]
+    write_jsonl(items_path, [minimal_item("REQ-NODE-A", anchor), minimal_item("REQ-NODE-B", anchor)])
+    write_jsonl(
+        edges_path,
+        [minimal_edge("EDGE-REJECTED-CONTRADICTION", anchor, from_id="REQ-NODE-A", to_id="REQ-NODE-B") | {"type": "contradicts", "status": "rejected"}],
+    )
+
+    rejected_result = run_cli("--items", str(items_path), "--edges", str(edges_path))
+
+    assert rejected_result.returncode == 0, rejected_result.stderr
