@@ -273,7 +273,18 @@ def validate_execution(payload: dict[str, Any]) -> dict[str, Any]:
     else:
         require(execution.get("method") is None, "not-attempted execution.method must be null")
         require(execution.get("timeout_ms") is None, "not-attempted execution.timeout_ms must be null")
-        require(execution.get("status") == "not-attempted", "not-attempted execution.status must be not-attempted")
+        require(
+            execution.get("status") in {"not-attempted", "blocked-environment"},
+            "not-attempted execution.status must be not-attempted or blocked-environment",
+        )
+    parameter_summary = execution.get("parameter_summary", {})
+    if parameter_summary is not None:
+        parameter_summary = require_dict(parameter_summary, "execution.parameter_summary")
+        for key, value in parameter_summary.items():
+            require(isinstance(key, str) and key, "execution.parameter_summary keys must be non-empty strings")
+            item = require_dict(value, f"execution.parameter_summary.{key}")
+            require(isinstance(item.get("type_category"), str) and item["type_category"], f"execution.parameter_summary.{key}.type_category required")
+            require(isinstance(item.get("value_category"), str) and item["value_category"], f"execution.parameter_summary.{key}.value_category required")
     return execution
 
 

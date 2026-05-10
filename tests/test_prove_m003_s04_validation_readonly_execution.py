@@ -7,6 +7,7 @@ import subprocess
 import sys
 from pathlib import Path
 from types import ModuleType
+from typing import Any
 
 import pytest
 
@@ -171,26 +172,102 @@ def test_proof_rejects_clean_s03_candidate_that_fails_m002_validation(tmp_path: 
     assert artifact["execution"]["attempted"] is False
 
 
-def test_proof_accepts_evidence_return_candidate_but_skips_execution_for_t02(tmp_path: Path) -> None:
+class FakeGraph:
+    def __init__(self, result: object | None = None) -> None:
+        self.calls: list[tuple[str, dict[str, object], int]] = []
+        self.result = result if result is not None else [["article:44fz:1", "evidence:44fz:art1:span1", "sourceblock:garant:44fz:1"]]
+
+    def ro_query(self, query: str, params: dict[str, object], timeout: int) -> object:
+        self.calls.append((query, params, timeout))
+        return self.result
+
+
+def accepted_report(query: str) -> Any:
     proof = load_proof()
-    query = """MATCH (span:EvidenceSpan)-[:SUPPORTS]->(article:Article)-[:SUPPORTED_BY]->(block:SourceBlock),
+    contract = proof.load_schema_contract(proof.DEFAULT_SCHEMA_CONTRACT)
+    report = proof.validate_candidate(query, contract, query_case="unit")
+    assert report.accepted is True
+    return report
+
+
+def accepted_query() -> str:
+    return """MATCH (span:EvidenceSpan)-[:SUPPORTS]->(article:Article)-[:SUPPORTED_BY]->(block:SourceBlock),
                      (span)-[:IN_BLOCK]->(block)
               WHERE article.id = $article_id
               RETURN article.id, span.id, block.id, block.source_id, span.start_offset, span.end_offset
               LIMIT 5"""
-    s03_path = write_s03(tmp_path, s03_payload(text=query))
 
-    artifact = proof.build_artifact(s03_path, proof.DEFAULT_SCHEMA_CONTRACT)
 
-    assert artifact["status"] == "validation-accepted"
+def test_execute_validated_calls_only_ro_query_with_timeout_and_safe_params() -> None:
+    proof = load_proof()
+    query = accepted_query()
+    report = accepted_report(query)
+    graph = FakeGraph()
+
+    summary = proof.execute_validated(report, {"article_id": "article:44fz:1"}, graph)
+
+    assert graph.calls == [(report.normalized_query, {"article_id": "article:44fz:1"}, 1000)]
+    assert summary["attempted"] is True
+    assert summary["status"] == "confirmed-runtime"
+    assert summary["method"] == "Graph.ro_query"
+    assert summary["timeout_ms"] == 1000
+    assert summary["row_shape_summary"] == {
+        "row_count_category": "non-empty",
+        "column_categories": ["Article.id", "EvidenceSpan.id", "SourceBlock.id"],
+        "column_type_categories": ["identifier", "identifier", "identifier"],
+        "raw_rows_persisted": False,
+    }
+    assert summary["synthetic_identifier_categories"] == ["article_id", "evidence_span_id", "source_block_id"]
+    assert summary["parameter_summary"] == {
+        "article_id": {"type_category": "string", "value_category": "synthetic-article-id"}
+    }
+
+
+def test_execute_validated_rejects_unaccepted_validation_report_without_graph_call() -> None:
+    proof = load_proof()
+    contract = proof.load_schema_contract(proof.DEFAULT_SCHEMA_CONTRACT)
+    report = proof.validate_candidate("CREATE (:Article {id: $id}) RETURN 1 LIMIT 1", contract, query_case="unit")
+    graph = FakeGraph()
+
+    with pytest.raises(proof.ExecutionContractError, match="validation report must be accepted"):
+        proof.execute_validated(report, {"id": "article:44fz:1"}, graph)
+
+    assert graph.calls == []
+
+
+def test_execute_validated_rejects_unsafe_parameter_categories_without_graph_call() -> None:
+    proof = load_proof()
+    graph = FakeGraph()
+
+    with pytest.raises(proof.ExecutionContractError, match="unsafe parameter"):
+        proof.execute_validated(accepted_report(accepted_query()), {"article_id": "raw legal text value"}, graph)
+
+    assert graph.calls == []
+
+
+def test_proof_executes_evidence_return_candidate_with_injected_synthetic_graph(tmp_path: Path) -> None:
+    proof = load_proof()
+    s03_path = write_s03(tmp_path, s03_payload(text=accepted_query()))
+    graph = FakeGraph()
+
+    artifact = proof.build_artifact(
+        s03_path,
+        proof.DEFAULT_SCHEMA_CONTRACT,
+        graph_factory=lambda: graph,
+        setup_synthetic_graph=lambda _graph: None,
+        cleanup_synthetic_graph=lambda _graph: None,
+    )
+
+    assert artifact["status"] == "confirmed-runtime"
     assert artifact["root_cause"] == "none"
-    assert artifact["phase"] == "validation"
+    assert artifact["phase"] == "execution"
     assert artifact["validation"]["attempted"] is True
     assert artifact["validation"]["accepted"] is True
     assert artifact["validation"]["query_shape_category"] == "evidence-return-readonly"
     assert artifact["validation"]["safe_parameter_categories"] == {"article_id": "identifier"}
-    assert artifact["execution"]["attempted"] is False
-    assert artifact["execution"]["status"] == "not-attempted"
+    assert artifact["execution"]["attempted"] is True
+    assert artifact["execution"]["status"] == "confirmed-runtime"
+    assert graph.calls == [(graph.calls[0][0], {"article_id": "article:44fz:1"}, 1000)]
     assert "normalized_query" not in artifact["validation"]
 
 
@@ -209,9 +286,40 @@ def test_proof_cli_writes_verifiable_artifact_for_failed_runtime_skip(tmp_path: 
     output = json.loads(completed.stdout)
     assert output["status"] == "skipped"
     artifact_path = artifact_dir / "S04-VALIDATION-READONLY-EXECUTION.json"
+    markdown_path = artifact_dir / "S04-VALIDATION-READONLY-EXECUTION.md"
     assert artifact_path.exists()
+    assert markdown_path.exists()
+    assert "Raw rows persisted: `False`" in markdown_path.read_text(encoding="utf-8")
     verifier = load_verifier()
     assert verifier.verify_artifact(artifact_path)["status"] == "skipped"
+
+
+def test_accepts_blocked_environment_before_execution_attempt(verifier: ModuleType, tmp_path: Path) -> None:
+    payload = base_artifact()
+    payload.update({"status": "blocked-environment", "root_cause": "blocked-environment", "phase": "execution"})
+    payload["execution"] = {
+        "attempted": False,
+        "status": "blocked-environment",
+        "method": None,
+        "timeout_ms": None,
+        "graph_kind": "synthetic-legalgraph",
+        "graph_name_category": "not-run",
+        "row_shape_summary": {
+            "row_count_category": "not-run",
+            "column_categories": [],
+            "column_type_categories": [],
+            "raw_rows_persisted": False,
+        },
+        "synthetic_identifier_categories": [],
+        "parameter_summary": {},
+        "diagnostics": {"root_cause": "blocked-environment", "error_category": "ModuleNotFoundError"},
+    }
+
+    result = verifier.verify_artifact(write_artifact(tmp_path, payload))
+
+    assert result["verdict"] == "pass"
+    assert result["status"] == "blocked-environment"
+    assert result["execution_attempted"] is False
 
 
 def test_accepts_current_s03_style_no_candidate_skip(verifier: ModuleType, tmp_path: Path) -> None:
