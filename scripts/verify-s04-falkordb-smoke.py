@@ -57,6 +57,7 @@ CAPABILITIES: tuple[CapabilitySpec, ...] = (
     CapabilitySpec("falkordb-algo-label-propagation", "FalkorDB label propagation algorithm output shape", "S04"),
     CapabilitySpec("falkordb-algo-sp-paths", "FalkorDB single-pair shortest paths output shape", "S04"),
     CapabilitySpec("falkordb-algo-ss-paths", "FalkorDB single-source shortest paths output shape", "S04"),
+    CapabilitySpec("falkordb-algo-msf", "FalkorDB minimum spanning forest output shape", "S04"),
     CapabilitySpec("falkordblite-import", "FalkorDBLite import/bootstrap", "S04"),
     CapabilitySpec("falkordblite-basic-graph", "FalkorDBLite basic graph query", "S04"),
     CapabilitySpec("falkordblite-udf", "FalkorDBLite UDF behavior", "S04"),

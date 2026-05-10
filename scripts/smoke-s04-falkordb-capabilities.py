@@ -156,6 +156,13 @@ CAPABILITIES: tuple[CapabilitySpec, ...] = (
         True,
     ),
     CapabilitySpec(
+        "falkordb-algo-msf",
+        "FalkorDB minimum spanning forest output shape",
+        "Run MSF on a bounded weighted synthetic graph and assert forest node/edge counts.",
+        "Terminal runtime status with expected MSF forest rows or exact procedure/output failure.",
+        True,
+    ),
+    CapabilitySpec(
         "falkordblite-import",
         "FalkorDBLite import/bootstrap",
         "Install/import FalkorDBLite in an isolated runtime boundary and record package/binary metadata.",
@@ -993,6 +1000,18 @@ def ss_paths_probe():
     ok("falkordb-algo-ss-paths", f"SSpaths returned count={{count}}; weights={{actual!r}}")
 
 run("falkordb-algo-ss-paths", ss_paths_probe)
+
+
+def msf_probe():
+    graph = client.select_graph(f"s04_algo_msf_{{GRAPH_SUFFIX}}")
+    algorithm_fixture(graph)
+    rows = graph.query("CALL algo.MSF({{nodeLabels: ['Page'], relationshipTypes: ['LINKS'], weightAttribute: 'weight'}}) YIELD nodes, edges RETURN size(nodes), size(edges) ORDER BY size(nodes)").result_set
+    if rows != [[1, 0], [3, 2]]:
+        raise AssertionError(f"unexpected MSF forest shape: {{rows!r}}")
+    graph.delete()
+    ok("falkordb-algo-msf", f"MSF returned forest node/edge counts={{rows!r}} using YIELD nodes, edges")
+
+run("falkordb-algo-msf", msf_probe)
 
 client.close()
 print(json.dumps(results, sort_keys=True))
