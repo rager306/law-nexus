@@ -44,6 +44,40 @@ S02 extraction is deliberately conservative:
 
 Downstream ownership is separate from this extractor contract. S03/S04 may consume these files to build graph integrity and verification checks, promote only evidence-backed proof levels, and diagnose stale or unsafe records. S05 may create the architecture-verification workflow/router skill after those verifier checks exist. S02 must not create that router skill or final workflow handoff content.
 
+## S03 graph-report contract
+
+The canonical S03 graph/report generator is `scripts/build-architecture-graph.py`. Run it from the repository root after S02 JSONL projection files are current:
+
+```bash
+uv run python scripts/build-architecture-graph.py
+```
+
+The canonical read-only freshness and consistency check is:
+
+```bash
+uv run python scripts/build-architecture-graph.py --check
+```
+
+The graph/report layer consumes the S02 JSONL registry as generated input and writes these derived views:
+
+- `prd/architecture/architecture_graph_report.json`
+- `prd/architecture/architecture_report.md`
+
+These JSON and Markdown reports are derived, non-authoritative views over the JSONL registry and its anchors. The JSONL registry, JSON report, Markdown report, diagrams, and optional future GraphML exports must not be treated as source truth, legal proof, product/runtime validation, or replacements for PRD/GSD/ADR/source/runtime evidence. If a graph report disagrees with anchored evidence, fix the source mapping or graph rule and regenerate the report; do not hand-edit a derived view to make the evidence fit.
+
+S03 exposes graph health signals for maintainers and later verifier slices:
+
+- layer coverage and missing architecture layers;
+- unresolved proof gates;
+- orphan or isolated records;
+- explicit contradiction edges;
+- high-risk or critical records;
+- non-claim boundaries that prevent runtime, parser, retrieval, legal-answer, and LLM-authority overclaims.
+
+Those findings are diagnostic handoff inputs, not automatic validation outcomes. R029 requires an architecture-verification workflow/router skill with testable, evidence-backed checks; S03 advances that requirement by producing deterministic graph inputs and report surfaces, but it does not fully validate R029. S04 owns the decision and tests for which unresolved gates, orphan records, contradiction edges, report mismatches, or high-risk rows become hard architecture-verifier failures under R029. S05 may then package the verified workflow/router handoff after those hard-failure rules exist.
+
+A future agent should interpret `--check` failures as stale or inconsistent generated artifacts. A successful `--check` only proves the report is current with the present registry and graph rules; it does not prove product readiness, runtime behavior, legal correctness, parser completeness, retrieval quality, or LLM authority.
+
 ## Record boundary
 
 `architecture.schema.json` validates one record at a time using `record_kind`:
