@@ -1,21 +1,23 @@
 #!/usr/bin/env python3
-"""Local-only M003/S01 MiniMax OpenAI-compatible baseline helpers.
+"""Credential-gated M003/S01 MiniMax OpenAI-compatible baseline proof.
 
-This task pins the pure contract helpers for a later credentialed direct MiniMax
-baseline. The CLI intentionally performs no network I/O in T01; it writes a safe
-placeholder artifact that records endpoint/model/request-shape intent without
-persisting prompts, raw provider bodies, credentials, auth headers, raw legal
-text, or secret-like values.
+The CLI performs at most one direct HTTP POST when a MiniMax credential is
+available. It writes only categorical/redacted evidence: no raw provider bodies,
+request prompts, credentials, auth headers, raw legal text, or FalkorDB rows are
+persisted.
 """
 
 from __future__ import annotations
 
 import argparse
 import json
+import os
 import re
+import socket
 from datetime import UTC, datetime
 from pathlib import Path
-from typing import Any, cast
+from typing import Any, Protocol, cast
+from urllib import error, request
 from urllib.parse import urlsplit, urlunsplit
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -26,6 +28,11 @@ DEFAULT_ARTIFACT_DIR = ROOT / ".gsd/milestones/M003/slices/S01"
 JSON_ARTIFACT = "S01-MINIMAX-LIVE-BASELINE.json"
 MARKDOWN_ARTIFACT = "S01-MINIMAX-LIVE-BASELINE.md"
 DEFAULT_TIMEOUT_SECONDS = 60
+DEFAULT_API_KEY_ENV = "MINIMAX_API_KEY"
+SAFE_CYPHER_PROMPT = (
+    "Return one read-only FalkorDB Cypher query only. Use MATCH (n) RETURN n LIMIT 1. "
+    "Do not include explanations, legal advice, raw legal text, or markdown."
+)
 
 STATUS_CATEGORIES = (
     "confirmed-runtime",
@@ -36,12 +43,17 @@ STATUS_CATEGORIES = (
 )
 ROOT_CAUSE_CATEGORIES = (
     "provider-not-called-local-only",
+    "minimax-credential-missing",
+    "minimax-auth-failed",
+    "minimax-rate-limited",
+    "minimax-http-4xx",
+    "minimax-http-5xx",
+    "minimax-provider-error",
+    "provider-timeout",
     "provider-schema-mismatch",
     "reasoning-contamination",
     "non-cypher-content",
     "redaction-violation",
-    "timeout",
-    "http-status-class",
 )
 
 SECRET_PATTERNS = (
@@ -88,6 +100,10 @@ BOUNDARY_STATEMENT = (
 )
 
 
+class UrlOpen(Protocol):
+    def __call__(self, req: request.Request, *, timeout: int) -> Any: ...
+
+
 def utc_now() -> str:
     return datetime.now(UTC).replace(microsecond=0).isoformat().replace("+00:00", "Z")
 
@@ -110,7 +126,7 @@ def compose_chat_completions_url(base_url: str) -> dict[str, Any]:
 
 
 def build_request_body(*, model: str = DEFAULT_MODEL, user_prompt: str) -> dict[str, Any]:
-    """Build the direct MiniMax OpenAI-compatible request body for later live proof."""
+    """Build the direct MiniMax OpenAI-compatible request body for the live proof."""
     return {
         "model": model,
         "reasoning_split": True,
@@ -298,6 +314,8 @@ def boundary_payload() -> dict[str, list[str]]:
 def render_markdown(payload: dict[str, Any]) -> str:
     endpoint = payload.get("endpoint", {})
     response_shape = payload.get("response_shape", {})
+    request_contract = payload.get("request_contract", {})
+    provider_diagnostics = payload.get("provider_diagnostics", {})
     lines = [
         "# M003/S01 MiniMax Live Baseline",
         "",
@@ -308,12 +326,18 @@ def render_markdown(payload: dict[str, Any]) -> str:
         f"- Base URL input: `{endpoint.get('base_url_input') if isinstance(endpoint, dict) else None}`",
         f"- Effective URL: `{endpoint.get('effective_url') if isinstance(endpoint, dict) else None}`",
         f"- Preserves /v1: `{endpoint.get('preserves_v1') if isinstance(endpoint, dict) else None}`",
+        f"- Reasoning split requested: `{request_contract.get('reasoning_split_requested') if isinstance(request_contract, dict) else None}`",
+        f"- Stream requested: `{request_contract.get('stream_requested') if isinstance(request_contract, dict) else None}`",
         f"- Provider attempts: `{payload.get('provider_attempts', 0)}`",
+        f"- HTTP status class: `{provider_diagnostics.get('http_status_class') if isinstance(provider_diagnostics, dict) else None}`",
+        f"- Provider category: `{provider_diagnostics.get('category') if isinstance(provider_diagnostics, dict) else None}`",
         f"- Response root cause: `{response_shape.get('root_cause') if isinstance(response_shape, dict) else None}`",
         f"- Response content kind: `{response_shape.get('content_kind') if isinstance(response_shape, dict) else None}`",
         f"- Reasoning details present: `{response_shape.get('has_reasoning_details') if isinstance(response_shape, dict) else False}`",
         f"- Reasoning details count: `{response_shape.get('reasoning_details_count') if isinstance(response_shape, dict) else 0}`",
         f"- Think-tag contamination: `{response_shape.get('has_think_tag') if isinstance(response_shape, dict) else False}`",
+        f"- Raw body persisted: `{payload.get('safety', {}).get('raw_body_persisted') if isinstance(payload.get('safety'), dict) else None}`",
+        f"- Credential persisted: `{payload.get('safety', {}).get('credential_persisted') if isinstance(payload.get('safety'), dict) else None}`",
         "",
         BOUNDARY_STATEMENT,
         "",
@@ -339,9 +363,7 @@ def write_artifacts(
     sensitive_values: list[str] | None = None,
 ) -> tuple[Path, Path]:
     output_dir.mkdir(parents=True, exist_ok=True)
-    safe_payload = cast(
-        "dict[str, Any]", sanitize_artifact_payload(payload, sensitive_values=sensitive_values)
-    )
+    safe_payload = cast("dict[str, Any]", sanitize_artifact_payload(payload, sensitive_values=sensitive_values))
     assert_safe_payload(safe_payload)
     json_path = output_dir / JSON_ARTIFACT
     markdown_path = output_dir / MARKDOWN_ARTIFACT
@@ -355,38 +377,276 @@ def write_artifacts(
     return json_path, markdown_path
 
 
-def build_local_only_payload(*, model: str, base_url: str, timeout: int) -> dict[str, Any]:
-    _ = timeout
+def base_payload(*, model: str, base_url: str) -> dict[str, Any]:
     return {
         "schema_version": SCHEMA_VERSION,
         "generated_at": utc_now(),
-        "status": "not-run-local-only",
-        "root_cause": "provider-not-called-local-only",
         "model": model,
         "endpoint": compose_chat_completions_url(base_url),
-        "provider_attempts": 0,
-        "request_body": build_request_body(
-            model=model,
-            user_prompt="<omitted-local-only-placeholder>",
-        ),
-        "response_shape": {
-            "status": "not-run-local-only",
-            "root_cause": "provider-not-called-local-only",
-            "has_choices": False,
-            "choice_count": 0,
-            "has_message": False,
-            "has_content": False,
-            "content_kind": "not-run",
-            "candidate_prefix": None,
-            "has_think_tag": False,
-            "has_reasoning_details": False,
-            "reasoning_details_count": 0,
-            "reasoning_detail_types": [],
+        "request_contract": {
+            "reasoning_split_requested": True,
+            "stream_requested": False,
+            "message_count": 2,
+            "user_message_persisted": False,
         },
         "status_categories": list(STATUS_CATEGORIES),
         "root_cause_categories": list(ROOT_CAUSE_CATEGORIES),
         "boundaries": boundary_payload(),
+        "safety": {
+            "raw_body_persisted": False,
+            "request_body_persisted": False,
+            "credential_persisted": False,
+            "auth_header_persisted": False,
+            "raw_legal_text_persisted": False,
+            "raw_falkordb_rows_persisted": False,
+        },
     }
+
+
+def build_local_only_payload(*, model: str, base_url: str, timeout: int) -> dict[str, Any]:
+    _ = timeout
+    payload = base_payload(model=model, base_url=base_url)
+    payload.update(
+        {
+            "status": "not-run-local-only",
+            "root_cause": "provider-not-called-local-only",
+            "provider_attempts": 0,
+            "request_body": build_request_body(model=model, user_prompt="<omitted-local-only-placeholder>"),
+            "provider_diagnostics": {"category": "not-run-local-only", "http_status_class": None},
+            "response_shape": {
+                "status": "not-run-local-only",
+                "root_cause": "provider-not-called-local-only",
+                "has_choices": False,
+                "choice_count": 0,
+                "has_message": False,
+                "has_content": False,
+                "content_kind": "not-run",
+                "candidate_prefix": None,
+                "has_think_tag": False,
+                "has_reasoning_details": False,
+                "reasoning_details_count": 0,
+                "reasoning_detail_types": [],
+            },
+        }
+    )
+    return payload
+
+
+def build_missing_credential_payload(*, model: str, base_url: str, api_key_env: str) -> dict[str, Any]:
+    payload = base_payload(model=model, base_url=base_url)
+    payload.update(
+        {
+            "status": "blocked-credential",
+            "root_cause": "minimax-credential-missing",
+            "provider_attempts": 0,
+            "provider_diagnostics": {
+                "category": "credential-missing",
+                "http_status_class": None,
+                "api_key_env": api_key_env,
+                "attempted_http": False,
+            },
+            "response_shape": {
+                "status": "blocked-credential",
+                "root_cause": "minimax-credential-missing",
+                "has_choices": False,
+                "choice_count": 0,
+                "has_message": False,
+                "has_content": False,
+                "content_kind": "not-run",
+                "candidate_prefix": None,
+                "has_think_tag": False,
+                "has_reasoning_details": False,
+                "reasoning_details_count": 0,
+                "reasoning_detail_types": [],
+            },
+        }
+    )
+    return payload
+
+
+def http_status_class(status_code: int | None) -> str | None:
+    if status_code is None:
+        return None
+    return f"{status_code // 100}xx"
+
+
+def classify_http_error(status_code: int) -> str:
+    if status_code in {401, 403}:
+        return "minimax-auth-failed"
+    if status_code == 429:
+        return "minimax-rate-limited"
+    if 400 <= status_code < 500:
+        return "minimax-http-4xx"
+    if 500 <= status_code < 600:
+        return "minimax-http-5xx"
+    return "minimax-provider-error"
+
+
+def make_provider_request(
+    *,
+    url: str,
+    api_key: str,
+    body: dict[str, Any],
+    timeout: int,
+    urlopen: UrlOpen = request.urlopen,
+) -> dict[str, Any]:
+    """POST once to the provider and return categorical diagnostics plus decoded JSON."""
+    data = json.dumps(body).encode("utf-8")
+    provider_request = request.Request(
+        url,
+        data=data,
+        method="POST",
+        headers={
+            "Content-Type": "application/json",
+            "Accept": "application/json",
+            "Authorization": f"Bearer {api_key}",
+        },
+    )
+    try:
+        with urlopen(provider_request, timeout=timeout) as response:
+            status_code = int(getattr(response, "status", getattr(response, "code", 200)))
+            raw_body = response.read()
+    except error.HTTPError as exc:
+        return {
+            "ok": False,
+            "status_code": exc.code,
+            "root_cause": classify_http_error(exc.code),
+            "provider_diagnostics": {
+                "category": classify_http_error(exc.code),
+                "http_status_class": http_status_class(exc.code),
+                "attempted_http": True,
+            },
+            "decoded": None,
+        }
+    except TimeoutError:
+        return timeout_result()
+    except socket.timeout:
+        return timeout_result()
+    except OSError as exc:
+        if "timed out" in str(exc).lower():
+            return timeout_result()
+        return {
+            "ok": False,
+            "status_code": None,
+            "root_cause": "minimax-provider-error",
+            "provider_diagnostics": {
+                "category": "transport-error",
+                "http_status_class": None,
+                "attempted_http": True,
+            },
+            "decoded": None,
+        }
+
+    try:
+        decoded = json.loads(raw_body.decode("utf-8"))
+    except (UnicodeDecodeError, json.JSONDecodeError):
+        return {
+            "ok": False,
+            "status_code": status_code,
+            "root_cause": "provider-schema-mismatch",
+            "provider_diagnostics": {
+                "category": "invalid-json",
+                "http_status_class": http_status_class(status_code),
+                "attempted_http": True,
+            },
+            "decoded": None,
+        }
+
+    return {
+        "ok": True,
+        "status_code": status_code,
+        "root_cause": None,
+        "provider_diagnostics": {
+            "category": "http-success",
+            "http_status_class": http_status_class(status_code),
+            "attempted_http": True,
+        },
+        "decoded": decoded,
+    }
+
+
+def timeout_result() -> dict[str, Any]:
+    return {
+        "ok": False,
+        "status_code": None,
+        "root_cause": "provider-timeout",
+        "provider_diagnostics": {
+            "category": "timeout",
+            "http_status_class": None,
+            "attempted_http": True,
+        },
+        "decoded": None,
+    }
+
+
+def build_live_payload(
+    *,
+    model: str,
+    base_url: str,
+    timeout: int,
+    api_key_env: str,
+    environ: dict[str, str] | os._Environ[str] = os.environ,
+    urlopen: UrlOpen = request.urlopen,
+) -> tuple[dict[str, Any], list[str]]:
+    api_key = environ.get(api_key_env, "")
+    if not api_key:
+        return build_missing_credential_payload(model=model, base_url=base_url, api_key_env=api_key_env), []
+
+    payload = base_payload(model=model, base_url=base_url)
+    request_body = build_request_body(model=model, user_prompt=SAFE_CYPHER_PROMPT)
+    endpoint = cast("dict[str, Any]", payload["endpoint"])
+    result = make_provider_request(
+        url=cast("str", endpoint["effective_url"]),
+        api_key=api_key,
+        body=request_body,
+        timeout=timeout,
+        urlopen=urlopen,
+    )
+
+    response_shape = classify_response_shape(result["decoded"]) if result["decoded"] is not None else {
+        "status": "failed-runtime",
+        "root_cause": result["root_cause"],
+        "has_choices": False,
+        "choice_count": 0,
+        "has_message": False,
+        "has_content": False,
+        "content_kind": "missing",
+        "candidate_prefix": None,
+        "has_think_tag": False,
+        "has_reasoning_details": False,
+        "reasoning_details_count": 0,
+        "reasoning_detail_types": [],
+    }
+    status = response_shape["status"] if result["ok"] else "failed-runtime"
+    root_cause = response_shape["root_cause"] if result["ok"] else result["root_cause"]
+    if status == "confirmed-runtime" and not all(
+        [
+            endpoint.get("effective_url"),
+            endpoint.get("preserves_v1") is True,
+            model,
+            request_body.get("reasoning_split") is True,
+            result["provider_diagnostics"].get("attempted_http") is True,
+            response_shape.get("has_content") is True,
+            response_shape.get("candidate_prefix") in {"MATCH", "CALL"},
+            response_shape.get("has_think_tag") is False,
+        ]
+    ):
+        status = "failed-runtime"
+        root_cause = "provider-schema-mismatch"
+        response_shape["status"] = status
+        response_shape["root_cause"] = root_cause
+
+    payload.update(
+        {
+            "status": status,
+            "root_cause": root_cause,
+            "provider_attempts": 1,
+            "request_body": request_body,
+            "provider_diagnostics": result["provider_diagnostics"],
+            "response_shape": response_shape,
+        }
+    )
+    return payload, [api_key]
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -394,19 +654,28 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--model", default=DEFAULT_MODEL)
     parser.add_argument("--base-url", default=DEFAULT_BASE_URL)
     parser.add_argument("--timeout", type=int, default=DEFAULT_TIMEOUT_SECONDS)
-    parser.add_argument("--output-dir", type=Path, default=DEFAULT_ARTIFACT_DIR)
+    parser.add_argument("--artifact-dir", type=Path, default=DEFAULT_ARTIFACT_DIR)
+    parser.add_argument("--output-dir", type=Path, help="Deprecated alias for --artifact-dir")
+    parser.add_argument("--api-key-env", default=DEFAULT_API_KEY_ENV)
     return parser
 
 
 def main(argv: list[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
-    payload = build_local_only_payload(model=args.model, base_url=args.base_url, timeout=args.timeout)
-    json_path, markdown_path = write_artifacts(args.output_dir, payload)
+    artifact_dir = args.output_dir if args.output_dir is not None else args.artifact_dir
+    payload, sensitive_values = build_live_payload(
+        model=args.model,
+        base_url=args.base_url,
+        timeout=args.timeout,
+        api_key_env=args.api_key_env,
+    )
+    json_path, markdown_path = write_artifacts(artifact_dir, payload, sensitive_values=sensitive_values)
     print(
         json.dumps(
             {
                 "status": payload["status"],
                 "root_cause": payload["root_cause"],
+                "provider_attempts": payload["provider_attempts"],
                 "json_artifact": str(json_path),
                 "markdown_artifact": str(markdown_path),
             },

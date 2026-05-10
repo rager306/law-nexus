@@ -5,11 +5,28 @@ import json
 import sys
 from pathlib import Path
 from types import ModuleType
+from typing import Any
+from urllib import error
 
 import pytest
 
 ROOT = Path(__file__).resolve().parents[1]
 SCRIPT_PATH = ROOT / "scripts/prove-m003-s01-minimax-baseline.py"
+
+
+class FakeResponse:
+    def __init__(self, body: bytes, *, status: int = 200) -> None:
+        self.body = body
+        self.status = status
+
+    def __enter__(self) -> FakeResponse:
+        return self
+
+    def __exit__(self, *_args: object) -> None:
+        return None
+
+    def read(self) -> bytes:
+        return self.body
 
 
 def load_harness() -> ModuleType:
@@ -58,9 +75,7 @@ def test_response_classifier_accepts_cypher_like_match_and_call_content() -> Non
     match_shape = harness.classify_response_shape(
         {"choices": [{"message": {"content": "MATCH (n) RETURN n LIMIT 1"}}]}
     )
-    call_shape = harness.classify_response_shape(
-        {"choices": [{"message": {"content": "CALL db.labels()"}}]}
-    )
+    call_shape = harness.classify_response_shape({"choices": [{"message": {"content": "CALL db.labels()"}}]})
 
     assert match_shape["root_cause"] is None
     assert match_shape["content_kind"] == "cypher_like"
@@ -141,9 +156,194 @@ def test_response_classifier_categorizes_reasoning_details_without_values(
         assert "reasoning.trace" in serialized
 
 
-def test_artifacts_preserve_boundaries_and_never_persist_prompts_or_raw_bodies(
-    tmp_path: Path,
+def test_missing_credential_blocks_before_http_and_writes_safe_artifacts(tmp_path: Path) -> None:
+    harness = load_harness()
+    calls: list[Any] = []
+
+    def fail_if_called(*args: Any, **kwargs: Any) -> FakeResponse:
+        calls.append((args, kwargs))
+        raise AssertionError("HTTP should not be attempted without credentials")
+
+    payload, sensitive_values = harness.build_live_payload(
+        model=harness.DEFAULT_MODEL,
+        base_url=harness.DEFAULT_BASE_URL,
+        timeout=5,
+        api_key_env="MINIMAX_API_KEY",
+        environ={},
+        urlopen=fail_if_called,
+    )
+    json_path, markdown_path = harness.write_artifacts(tmp_path, payload, sensitive_values=sensitive_values)
+
+    assert calls == []
+    assert payload["status"] == "blocked-credential"
+    assert payload["root_cause"] == "minimax-credential-missing"
+    assert payload["provider_attempts"] == 0
+    persisted = json_path.read_text(encoding="utf-8") + markdown_path.read_text(encoding="utf-8")
+    assert "Bearer" not in persisted
+    assert "Return one read-only" not in persisted
+
+
+def test_live_payload_posts_once_with_reasoning_split_and_confirms_runtime(tmp_path: Path) -> None:
+    harness = load_harness()
+    calls: list[tuple[Any, int]] = []
+
+    def fake_urlopen(req: Any, *, timeout: int) -> FakeResponse:
+        calls.append((req, timeout))
+        body = json.dumps({"choices": [{"message": {"content": "MATCH (n) RETURN n LIMIT 1"}}]}).encode()
+        return FakeResponse(body, status=200)
+
+    payload, sensitive_values = harness.build_live_payload(
+        model=harness.DEFAULT_MODEL,
+        base_url=harness.DEFAULT_BASE_URL,
+        timeout=7,
+        api_key_env="MINIMAX_API_KEY",
+        environ={"MINIMAX_API_KEY": "sk-testsecret123456"},
+        urlopen=fake_urlopen,
+    )
+    json_path, markdown_path = harness.write_artifacts(tmp_path, payload, sensitive_values=sensitive_values)
+
+    assert len(calls) == 1
+    req, timeout = calls[0]
+    request_body = json.loads(req.data.decode("utf-8"))
+    assert timeout == 7
+    assert req.full_url == "https://api.minimax.io/v1/chat/completions"
+    assert req.headers["Authorization"] == "Bearer sk-testsecret123456"
+    assert request_body["reasoning_split"] is True
+    assert request_body["stream"] is False
+    assert payload["status"] == "confirmed-runtime"
+    assert payload["root_cause"] is None
+    assert payload["provider_attempts"] == 1
+    persisted = json_path.read_text(encoding="utf-8") + markdown_path.read_text(encoding="utf-8")
+    assert "MATCH (n) RETURN" not in persisted
+    assert "sk-testsecret" not in persisted
+    assert "Bearer" not in persisted
+    assert "Return one read-only" not in persisted
+
+
+@pytest.mark.parametrize(
+    ("status_code", "expected_root_cause"),
+    [
+        (401, "minimax-auth-failed"),
+        (429, "minimax-rate-limited"),
+        (500, "minimax-http-5xx"),
+    ],
+)
+def test_http_error_paths_are_categorical_and_safe(
+    tmp_path: Path, status_code: int, expected_root_cause: str
 ) -> None:
+    harness = load_harness()
+
+    def fake_urlopen(_req: Any, *, timeout: int) -> FakeResponse:
+        _ = timeout
+        raise error.HTTPError(
+            url="https://api.minimax.io/v1/chat/completions",
+            code=status_code,
+            msg="simulated RAW_LEGAL_TEXT_SENTINEL Bearer sk-testsecret123456",
+            hdrs=None,
+            fp=None,
+        )
+
+    payload, sensitive_values = harness.build_live_payload(
+        model=harness.DEFAULT_MODEL,
+        base_url=harness.DEFAULT_BASE_URL,
+        timeout=5,
+        api_key_env="MINIMAX_API_KEY",
+        environ={"MINIMAX_API_KEY": "sk-testsecret123456"},
+        urlopen=fake_urlopen,
+    )
+    json_path, markdown_path = harness.write_artifacts(tmp_path, payload, sensitive_values=sensitive_values)
+
+    assert payload["status"] == "failed-runtime"
+    assert payload["root_cause"] == expected_root_cause
+    assert payload["provider_attempts"] == 1
+    persisted = json_path.read_text(encoding="utf-8") + markdown_path.read_text(encoding="utf-8")
+    assert "RAW_LEGAL_TEXT_SENTINEL" not in persisted
+    assert "simulated" not in persisted
+    assert "sk-testsecret" not in persisted
+
+
+def test_timeout_path_is_categorical_and_attempted_once(tmp_path: Path) -> None:
+    harness = load_harness()
+
+    def fake_urlopen(_req: Any, *, timeout: int) -> FakeResponse:
+        _ = timeout
+        raise TimeoutError("timed out with raw provider detail")
+
+    payload, sensitive_values = harness.build_live_payload(
+        model=harness.DEFAULT_MODEL,
+        base_url=harness.DEFAULT_BASE_URL,
+        timeout=5,
+        api_key_env="MINIMAX_API_KEY",
+        environ={"MINIMAX_API_KEY": "sk-testsecret123456"},
+        urlopen=fake_urlopen,
+    )
+    json_path, markdown_path = harness.write_artifacts(tmp_path, payload, sensitive_values=sensitive_values)
+
+    assert payload["status"] == "failed-runtime"
+    assert payload["root_cause"] == "provider-timeout"
+    assert payload["provider_attempts"] == 1
+    persisted = json_path.read_text(encoding="utf-8") + markdown_path.read_text(encoding="utf-8")
+    assert "raw provider detail" not in persisted
+
+
+def test_invalid_json_path_is_schema_mismatch_without_raw_body(tmp_path: Path) -> None:
+    harness = load_harness()
+
+    def fake_urlopen(_req: Any, *, timeout: int) -> FakeResponse:
+        _ = timeout
+        return FakeResponse(b"not-json RAW_LEGAL_TEXT_SENTINEL Bearer sk-testsecret123456", status=200)
+
+    payload, sensitive_values = harness.build_live_payload(
+        model=harness.DEFAULT_MODEL,
+        base_url=harness.DEFAULT_BASE_URL,
+        timeout=5,
+        api_key_env="MINIMAX_API_KEY",
+        environ={"MINIMAX_API_KEY": "sk-testsecret123456"},
+        urlopen=fake_urlopen,
+    )
+    json_path, markdown_path = harness.write_artifacts(tmp_path, payload, sensitive_values=sensitive_values)
+
+    assert payload["status"] == "failed-runtime"
+    assert payload["root_cause"] == "provider-schema-mismatch"
+    persisted = json_path.read_text(encoding="utf-8") + markdown_path.read_text(encoding="utf-8")
+    assert "not-json" not in persisted
+    assert "RAW_LEGAL_TEXT_SENTINEL" not in persisted
+
+
+@pytest.mark.parametrize(
+    ("content", "expected_root_cause"),
+    [
+        ("<think>private reasoning</think> MATCH (n) RETURN n", "reasoning-contamination"),
+        ("Here is a query: MATCH (n) RETURN n", "non-cypher-content"),
+    ],
+)
+def test_provider_content_failures_are_categorical_without_content_persistence(
+    tmp_path: Path, content: str, expected_root_cause: str
+) -> None:
+    harness = load_harness()
+
+    def fake_urlopen(_req: Any, *, timeout: int) -> FakeResponse:
+        _ = timeout
+        return FakeResponse(json.dumps({"choices": [{"message": {"content": content}}]}).encode(), status=200)
+
+    payload, sensitive_values = harness.build_live_payload(
+        model=harness.DEFAULT_MODEL,
+        base_url=harness.DEFAULT_BASE_URL,
+        timeout=5,
+        api_key_env="MINIMAX_API_KEY",
+        environ={"MINIMAX_API_KEY": "sk-testsecret123456"},
+        urlopen=fake_urlopen,
+    )
+    json_path, markdown_path = harness.write_artifacts(tmp_path, payload, sensitive_values=sensitive_values)
+
+    assert payload["status"] == "failed-runtime"
+    assert payload["root_cause"] == expected_root_cause
+    persisted = json_path.read_text(encoding="utf-8") + markdown_path.read_text(encoding="utf-8")
+    assert "private reasoning" not in persisted
+    assert "Here is a query" not in persisted
+
+
+def test_artifacts_preserve_boundaries_and_never_persist_prompts_or_raw_bodies(tmp_path: Path) -> None:
     harness = load_harness()
     prompt = "RAW_LEGAL_TEXT_SENTINEL: Article 1 secret prompt"
     request_body = harness.build_request_body(user_prompt=prompt)
@@ -154,13 +354,21 @@ def test_artifacts_preserve_boundaries_and_never_persist_prompts_or_raw_bodies(
         "root_cause": None,
         "model": harness.DEFAULT_MODEL,
         "endpoint": harness.compose_chat_completions_url(harness.DEFAULT_BASE_URL),
+        "request_contract": {
+            "reasoning_split_requested": True,
+            "stream_requested": False,
+            "message_count": 2,
+            "user_message_persisted": False,
+        },
         "provider_attempts": 1,
         "request_body": request_body,
+        "provider_diagnostics": {"category": "http-success", "http_status_class": "2xx"},
         "response_shape": harness.classify_response_shape(
             {"choices": [{"message": {"content": "MATCH (n) RETURN n LIMIT 1"}}]}
         ),
         "raw_response_body": "Authorization: Bearer sk-testsecret123456 RAW_LEGAL_TEXT_SENTINEL",
         "boundaries": harness.boundary_payload(),
+        "safety": {"raw_body_persisted": False, "credential_persisted": False},
     }
 
     json_path, markdown_path = harness.write_artifacts(tmp_path, payload)
