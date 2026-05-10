@@ -25,6 +25,7 @@ DEFAULT_ITEMS_PATH = ROOT / "prd/architecture/architecture_items.jsonl"
 DEFAULT_EDGES_PATH = ROOT / "prd/architecture/architecture_edges.jsonl"
 DEFAULT_REPORT_JSON_PATH = ROOT / "prd/architecture/architecture_graph_report.json"
 DEFAULT_REPORT_MD_PATH = ROOT / "prd/architecture/architecture_report.md"
+DEFAULT_POLICY_DOC_PATH = ROOT / "prd/architecture/README.md"
 SCHEMA_PATH = ROOT / "prd/architecture/architecture.schema.json"
 RecordKind = Literal["item", "edge"]
 LAST_RESULT: VerificationResult | None = None
@@ -557,6 +558,53 @@ DECISION_FITNESS_EDGE_TYPES = {"checked_by", "validated_by"}
 DECISION_FITNESS_EDGE_STATUSES = {"active", "hypothesis", "validated"}
 DECISION_FITNESS_TARGET_TYPES = {"proof_gate", "workflow_check"}
 HARD_CONTRADICTION_STATUSES = {"active", "hypothesis", "bounded-evidence"}
+PROSE_CLAIM_FIELDS = {
+    "title",
+    "summary",
+    "verification",
+    "rationale",
+    "positive_consequences",
+    "negative_consequences",
+    "decision_drivers",
+    "assumptions",
+    "constraints",
+    "implications",
+}
+PROSE_OPTION_FIELDS = {"title", "summary", "pros", "cons"}
+OVERCLAIM_PATTERNS: tuple[tuple[str, re.Pattern[str]], ...] = (
+    (
+        "LegalGraph product promotion",
+        re.compile(r"\bLegalGraph\s+product\b[^\n.]{0,100}\b(?:production\s+ready|ready\s+for\s+production|implemented|shipped|validated|proven)\b", re.I),
+    ),
+    (
+        "Legal KnowQL runtime/parser proof",
+        re.compile(r"\bLegal\s+KnowQL\b[^\n.]{0,100}\b(?:runtime|parser)\b[^\n.]{0,100}\b(?:proven|validated|production\s+ready|complete|safe)\b", re.I),
+    ),
+    (
+        "ODT parser completeness",
+        re.compile(r"\bODT\s+parser\b[^\n.]{0,100}\b(?:complete|proven|validated|production\s+ready|authoritative)\b", re.I),
+    ),
+    (
+        "retrieval quality proof",
+        re.compile(r"\bretrieval\s+quality\b[^\n.]{0,100}\b(?:proven|validated|confirmed|production\s+ready|guaranteed)\b", re.I),
+    ),
+    (
+        "FalkorDB production scale proof",
+        re.compile(r"\bFalkorDB\b[^\n.]{0,100}\bproduction\s+scale\b[^\n.]{0,100}\b(?:proven|validated|confirmed|ready|supported)\b", re.I),
+    ),
+    (
+        "generated Cypher safety proof",
+        re.compile(r"\bgenerated\s+Cypher\b[^\n.]{0,100}\b(?:safe|safety\s+(?:is\s+)?(?:proven|validated|guaranteed)|validated|proven|guaranteed)\b", re.I),
+    ),
+    (
+        "legal answer correctness",
+        re.compile(r"\blegal\s+answers?\b[^\n.]{0,100}\b(?:correct|validated|authoritative|guaranteed|legally\s+sound)\b", re.I),
+    ),
+    (
+        "LLM authority",
+        re.compile(r"\bLLM(?:\s+output)?\b[^\n.]{0,80}\b(?:is|are|acts?\s+as|serves?\s+as|becomes?|creates?)\b[^\n.]{0,40}\b(?:authoritative|legal\s+authority|binding|legal\s+facts?)\b", re.I),
+    ),
+)
 
 
 @dataclass
@@ -760,6 +808,130 @@ def validate_active_contradictions(edge_records: list[LocatedRecord], result: Ve
             )
 
 
+def is_negated_guardrail(text: str, match: re.Match[str]) -> bool:
+    sentence_start = max(text.rfind(".", 0, match.start()), text.rfind("\n", 0, match.start())) + 1
+    next_period = text.find(".", match.end())
+    sentence_end = next_period if next_period != -1 else len(text)
+    prefix = text[sentence_start : match.start()].strip().lower()
+    sentence = text[sentence_start:sentence_end].strip().lower()
+    return (
+        prefix.endswith("no")
+        or prefix.endswith("not")
+        or prefix.endswith("never")
+        or prefix.endswith("without")
+        or sentence.startswith("no ")
+        or sentence.startswith("not ")
+        or sentence.startswith("do not ")
+        or sentence.startswith("does not ")
+        or sentence.startswith("must not ")
+        or sentence.startswith("cannot ")
+        or sentence.startswith("is not ")
+        or " is not " in sentence
+        or " are not " in sentence
+        or " must not " in sentence
+        or " does not " in sentence
+        or " do not " in sentence
+        or " cannot " in sentence
+        or " without " in sentence[:80]
+        or " no " in sentence[:80]
+    )
+
+
+def iter_string_values(field: str, value: Any) -> list[tuple[str, str]]:
+    if isinstance(value, str):
+        return [(field, value)]
+    if isinstance(value, list):
+        values: list[tuple[str, str]] = []
+        for index, item in enumerate(value):
+            item_field = f"{field}[{index}]"
+            if isinstance(item, str):
+                values.append((item_field, item))
+            elif isinstance(item, Mapping):
+                for key, nested in item.items():
+                    if key in PROSE_OPTION_FIELDS:
+                        values.extend(iter_string_values(f"{item_field}.{key}", nested))
+            # Other nested structures are intentionally ignored to avoid scanning IDs/paths.
+        return values
+    return []
+
+
+def iter_record_claim_text(located: LocatedRecord) -> list[tuple[str, str]]:
+    values: list[tuple[str, str]] = []
+    for field_name, value in located.record.items():
+        if field_name == "non_claims":
+            continue
+        if field_name in PROSE_CLAIM_FIELDS:
+            values.extend(iter_string_values(field_name, value))
+        elif field_name == "considered_options":
+            values.extend(iter_string_values(field_name, value))
+    return values
+
+
+def first_forbidden_overclaim(text: str) -> tuple[str, str] | None:
+    for label, pattern in OVERCLAIM_PATTERNS:
+        for match in pattern.finditer(text):
+            if is_negated_guardrail(text, match):
+                continue
+            snippet = " ".join(match.group(0).split())
+            return label, snippet
+    return None
+
+
+def validate_record_overclaims(records: list[LocatedRecord], result: VerificationResult) -> None:
+    for located in records:
+        for field_name, text in iter_record_claim_text(located):
+            match = first_forbidden_overclaim(text)
+            if match is None:
+                continue
+            label, snippet = match
+            result.add(
+                located.diagnostic(
+                    "forbidden-overclaim",
+                    f"positive unsafe architecture claim ({label}): {snippet}",
+                    field=field_name,
+                )
+            )
+
+
+def line_number_for_offset(text: str, offset: int) -> int:
+    return text.count("\n", 0, offset) + 1
+
+
+def validate_text_file_overclaims(path: Path, result: VerificationResult, *, record_kind: str) -> None:
+    try:
+        text = path.read_text(encoding="utf-8")
+    except FileNotFoundError:
+        return
+    except (OSError, UnicodeDecodeError) as exc:
+        result.add(Diagnostic(rule="read-claim-text", message=str(exc), path=path, record_kind=record_kind, field="text"))
+        return
+    for label, pattern in OVERCLAIM_PATTERNS:
+        for match in pattern.finditer(text):
+            if is_negated_guardrail(text, match):
+                continue
+            snippet = " ".join(match.group(0).split())
+            result.add(
+                Diagnostic(
+                    rule="forbidden-overclaim",
+                    message=f"positive unsafe architecture claim ({label}): {snippet}",
+                    path=path,
+                    line_number=line_number_for_offset(text, match.start()),
+                    record_id=display_path(path),
+                    record_kind=record_kind,
+                    field="text",
+                    source_anchor=display_path(path),
+                )
+            )
+            break
+
+
+def validate_overclaim_policies(records: list[LocatedRecord], args: argparse.Namespace, result: VerificationResult) -> None:
+    validate_record_overclaims(records, result)
+    validate_text_file_overclaims(args.report_md, result, record_kind="derived-report")
+    for policy_doc in args.policy_doc:
+        validate_text_file_overclaims(policy_doc, result, record_kind="policy-doc")
+
+
 def validate_graph_policies(item_records: list[LocatedRecord], edge_records: list[LocatedRecord], result: VerificationResult) -> None:
     index = build_graph_index(item_records, edge_records, result)
     validate_orphan_traceability(index, result)
@@ -776,6 +948,13 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser.add_argument("--edges", type=Path, default=DEFAULT_EDGES_PATH)
     parser.add_argument("--report-json", type=Path, default=DEFAULT_REPORT_JSON_PATH)
     parser.add_argument("--report-md", type=Path, default=DEFAULT_REPORT_MD_PATH)
+    parser.add_argument(
+        "--policy-doc",
+        type=Path,
+        action="append",
+        default=[DEFAULT_POLICY_DOC_PATH],
+        help="Markdown policy document to scan for positive forbidden architecture overclaims; repeatable.",
+    )
     return parser.parse_args(argv)
 
 
@@ -795,6 +974,7 @@ def run(argv: list[str] | None = None) -> int:
         validate_schema(all_records, schema, result)
     validate_source_anchors(all_records, result)
     validate_graph_policies(item_records, edge_records, result)
+    validate_overclaim_policies(all_records, args, result)
     verify_report_paths(args, result)
 
     LAST_RESULT = result

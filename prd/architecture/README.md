@@ -93,7 +93,23 @@ uv run python scripts/extract-prd-architecture-items.py --check
 uv run python scripts/build-architecture-graph.py --check
 ```
 
-Verifier output is derived and non-authoritative. Its compact JSON summary includes `non_authoritative=true`, and hard failures are deterministic diagnostics intended to identify stale upstream artifacts, malformed JSONL, duplicate IDs, wrong record kinds, missing report outputs, and later R029 decision/claim-safety drift categories. A passing verifier run means the derived artifacts satisfy the current verifier rules; it does not validate product readiness, runtime behavior, legal correctness, parser completeness, retrieval quality, or LLM authority.
+Verifier output is derived and non-authoritative. Its compact JSON summary includes `non_authoritative=true`, and hard failures are deterministic diagnostics intended to identify stale upstream artifacts, malformed JSONL, duplicate IDs, wrong record kinds, missing report outputs, and R029 decision/claim-safety drift categories. A passing verifier run means the derived artifacts satisfy the current verifier rules; it does not validate product readiness, runtime behavior, legal correctness, parser completeness, retrieval quality, generated-Cypher safety, or LLM authority.
+
+The current hard-failure policy is intentionally fail-closed and deterministic:
+
+- Upstream freshness drift: default-path verifier runs compose S02 `--check` and S03 `--check` before local policy checks.
+- Schema/shape errors: malformed JSONL, wrong record kinds, duplicate IDs, missing required schema fields, unknown fields, enum violations, and invalid date/identifier/path shapes fail with record ID and field context.
+- Stale or unsafe anchors: source anchors must be repository-relative, outside `.gsd/exec`, readable, line-range bounded, and selector/section text must still appear in the anchored file.
+- Missing endpoints: every edge endpoint must resolve to a current item record.
+- Orphan traceability-critical records: active requirement, decision, and proof-gate records must have meaningful graph connectivity unless explicitly exempted by status or generated-draft state.
+- Unresolved proof-gate metadata gaps: active proof gates with `proof_level=none` must retain owner, status, verification, and source-anchor context.
+- Decision fitness failures: active decisions need consequences; superseded decisions need successor coverage; high/critical active decisions need `checked_by` or `validated_by` proof-gate/workflow-check coverage.
+- Active contradictions: active, hypothesis, or bounded-evidence `contradicts` edges must be resolved, rejected, or superseded before the verifier passes.
+- Forbidden positive overclaims: verifier prose scanning rejects promotional upgrades that assert unproven LegalGraph product readiness, Legal KnowQL runtime/parser proof, ODT/parser completeness, retrieval-quality proof, FalkorDB production scale, generated-Cypher safety, legal-answer correctness, or LLM authority.
+
+Negative boundary language is allowed and expected. Wording such as “does not validate product/runtime/legal claims,” “must not be used as legal authority,” and `non_claims` entries is a guardrail, not an overclaim. The overclaim scanner is limited to prose claim fields and derived Markdown/policy text; it intentionally avoids treating `non_claims` as positive assertions.
+
+S05 workflow integration should package this command as the project-local architecture verification handoff for future agents. S05 should reference this README, `scripts/verify-architecture-graph.py`, and `tests/test_architecture_verifier.py`; it should not duplicate registry truth or weaken the non-authoritative boundary.
 
 ## Record boundary
 

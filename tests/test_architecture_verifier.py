@@ -458,3 +458,103 @@ def test_active_contradiction_edge_fails_but_rejected_contradiction_is_nonfatal(
     rejected_result = run_cli("--items", str(items_path), "--edges", str(edges_path))
 
     assert rejected_result.returncode == 0, rejected_result.stderr
+
+
+def test_forbidden_positive_product_overclaim_is_hard_failure(tmp_path: Path) -> None:
+    edges_path = tmp_path / "empty-edges.jsonl"
+    edges_path.write_text("", encoding="utf-8")
+
+    result = run_cli("--items", str(FIXTURE_DIR / "invalid_forbidden_overclaim.jsonl"), "--edges", str(edges_path))
+
+    assert result.returncode == 1
+    assert "id=REQ-FORBIDDEN-OVERCLAIM" in result.stderr
+    assert "record_kind=item" in result.stderr
+    assert "field=title" in result.stderr
+    assert "rule=forbidden-overclaim" in result.stderr
+    assert "production ready" in result.stderr
+
+
+def test_forbidden_overclaim_categories_fail_with_precise_fields(tmp_path: Path) -> None:
+    items_path = tmp_path / "items.jsonl"
+    edges_path = tmp_path / "edges.jsonl"
+    edges_path.write_text("", encoding="utf-8")
+    anchor = [{"path": "prd/architecture/architecture.schema.json", "kind": "test-artifact", "selector": "record_kind"}]
+    generated_cypher = minimal_item("REQ-GENERATED-CYPHER-SAFE", anchor)
+    generated_cypher["summary"] = "Generated Cypher is safe for unrestricted execution by the product."
+    retrieval = minimal_item("REQ-RETRIEVAL-QUALITY-PROVEN", anchor)
+    retrieval["verification"] = "Retrieval quality is proven for legal answers."
+    llm = minimal_item("REQ-LLM-AUTHORITY", anchor)
+    llm["implications"] = ["LLM output is authoritative legal guidance for users."]
+    legal_answer = minimal_item("REQ-LEGAL-ANSWER-CORRECT", anchor)
+    legal_answer["positive_consequences"] = ["Legal answers are correct for real matters."]
+    falkordb = minimal_item("REQ-FALKORDB-PRODUCTION-SCALE", anchor)
+    falkordb["summary"] = "FalkorDB production scale is validated for LegalGraph workloads."
+    odt = minimal_item("REQ-ODT-PARSER-COMPLETE", anchor)
+    odt["summary"] = "The ODT parser is complete and production ready."
+    knowql = minimal_item("REQ-KNOWQL-RUNTIME-PROVEN", anchor)
+    knowql["summary"] = "Legal KnowQL runtime and parser are proven for production use."
+    write_jsonl(items_path, [generated_cypher, retrieval, llm, legal_answer, falkordb, odt, knowql])
+
+    result = run_cli("--items", str(items_path), "--edges", str(edges_path))
+
+    assert result.returncode == 1
+    for record_id in (
+        "REQ-GENERATED-CYPHER-SAFE",
+        "REQ-RETRIEVAL-QUALITY-PROVEN",
+        "REQ-LLM-AUTHORITY",
+        "REQ-LEGAL-ANSWER-CORRECT",
+        "REQ-FALKORDB-PRODUCTION-SCALE",
+        "REQ-ODT-PARSER-COMPLETE",
+        "REQ-KNOWQL-RUNTIME-PROVEN",
+    ):
+        assert f"id={record_id}" in result.stderr
+    assert result.stderr.count("rule=forbidden-overclaim") >= 7
+
+
+def test_negative_guardrails_and_non_claim_boundaries_do_not_fail_overclaim_scan(tmp_path: Path) -> None:
+    items_path = tmp_path / "items.jsonl"
+    edges_path = tmp_path / "edges.jsonl"
+    anchor = [{"path": "prd/architecture/architecture.schema.json", "kind": "test-artifact", "selector": "record_kind"}]
+    guardrail = minimal_item("REQ-NEGATED-GUARDRAIL", anchor)
+    guardrail.update(
+        {
+            "summary": "This workflow does not validate product/runtime/legal claims or production retrieval quality.",
+            "verification": "No generated Cypher safety, LLM authority, legal-answer correctness, or ODT parser completeness is proven here.",
+            "non_claims": [
+                "Does not prove LegalGraph product readiness.",
+                "Does not prove FalkorDB production scale.",
+                "Does not prove Legal KnowQL runtime/parser behavior.",
+            ],
+        }
+    )
+    boundary = minimal_item("REQ-NON-CLAIM-BOUNDARY", anchor)
+    boundary.update(
+        {
+            "summary": "The architecture registry is non-authoritative and must not be used as legal authority.",
+            "negative_consequences": ["Legal answers are not correct merely because a derived verifier passes."],
+            "non_claims": ["LLM output is not authoritative legal guidance."],
+        }
+    )
+    write_jsonl(items_path, [guardrail, boundary])
+    write_jsonl(edges_path, [minimal_edge("EDGE-GUARDRAIL", anchor, from_id="REQ-NEGATED-GUARDRAIL", to_id="REQ-NON-CLAIM-BOUNDARY")])
+
+    result = run_cli("--items", str(items_path), "--edges", str(edges_path))
+
+    assert result.returncode == 0, result.stderr
+
+
+def test_report_markdown_positive_overclaim_is_hard_failure(tmp_path: Path) -> None:
+    items_path = tmp_path / "items.jsonl"
+    edges_path = tmp_path / "edges.jsonl"
+    report_path = tmp_path / "architecture_report.md"
+    anchor = [{"path": "prd/architecture/architecture.schema.json", "kind": "test-artifact", "selector": "record_kind"}]
+    write_jsonl(items_path, [minimal_item("REQ-REPORT-SCAN", anchor)])
+    write_jsonl(edges_path, [minimal_edge("EDGE-REPORT-SCAN", anchor, from_id="REQ-REPORT-SCAN", to_id="REQ-REPORT-SCAN")])
+    report_path.write_text("# Report\n\nThe LegalGraph product is production ready for legal answers.\n", encoding="utf-8")
+
+    result = run_cli("--items", str(items_path), "--edges", str(edges_path), "--report-md", str(report_path))
+
+    assert result.returncode == 1
+    assert "architecture_report.md" in result.stderr
+    assert "rule=forbidden-overclaim" in result.stderr
+    assert "record_kind=derived-report" in result.stderr
