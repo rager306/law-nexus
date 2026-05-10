@@ -17,6 +17,9 @@ from pathlib import Path
 from typing import Any
 
 SUPPORTED_SCHEMA_VERSION = "m002-legalgraph-cypher-safety-contract/v1"
+ROOT = Path(__file__).resolve().parents[1]
+DEFAULT_CONTRACT_PATH = ROOT / "prd/06_m002_cypher_safety_contract.md"
+DEFAULT_SCHEMA_PATH = ROOT / "tests/fixtures/m002_legalgraph_schema_contract.json"
 CONTRACT_REQUIRED_TERMS = (
     "Graph.ro_query",
     "read-only",
@@ -506,8 +509,8 @@ def write_markdown(path: Path, payload: dict[str, Any]) -> None:
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--contract", type=Path, required=True)
-    parser.add_argument("--schema", type=Path, required=True)
+    parser.add_argument("--contract", type=Path, default=DEFAULT_CONTRACT_PATH)
+    parser.add_argument("--schema", type=Path, default=DEFAULT_SCHEMA_PATH)
     parser.add_argument("--write-artifact", type=Path)
     parser.add_argument("--write-markdown", type=Path)
     return parser.parse_args()
