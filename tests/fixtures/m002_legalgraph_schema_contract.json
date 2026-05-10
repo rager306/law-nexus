@@ -1,0 +1,445 @@
+{
+  "schema_version": "m002-legalgraph-cypher-safety-contract/v1",
+  "contract_name": "M002 Generated-Cypher Safety Contract",
+  "claim_boundary": {
+    "status": "bounded-synthetic-contract",
+    "trusted_sources": [
+      "local_schema_policy_fixture",
+      "bounded_synthetic_legalgraph_runtime_proof"
+    ],
+    "not_proven": [
+      "provider_generation_quality",
+      "product_parser_behavior",
+      "production_graph_schema_fitness",
+      "legal_answer_correctness",
+      "live_falkordb_execution_availability"
+    ],
+    "llm_policy": "LLM non-authoritative: generated Cypher is candidate text only until deterministic validation and evidence verification pass."
+  },
+  "api_states": {
+    "generate_only": {
+      "accepts_raw_provider_output": true,
+      "executes_cypher": false,
+      "must_redact_provider_metadata": true,
+      "allowed_generation_functions": [
+        "text_to_cypher",
+        "cypher_only"
+      ]
+    },
+    "validate": {
+      "deterministic": true,
+      "trusts_only_schema_version": "m002-legalgraph-cypher-safety-contract/v1",
+      "executes_cypher": false,
+      "fails_closed_on_malformed_contract": true
+    },
+    "execute_validated": {
+      "requires_validation_object": true,
+      "raw_string_input_allowed": false,
+      "execution_method": "Graph.ro_query",
+      "timeout_ms": 1000
+    }
+  },
+  "allowed_schema": {
+    "labels": {
+      "Act": {
+        "properties": [
+          "id",
+          "title_hash",
+          "jurisdiction",
+          "status"
+        ],
+        "returnable_properties": [
+          "id",
+          "jurisdiction",
+          "status"
+        ]
+      },
+      "Article": {
+        "properties": [
+          "id",
+          "number",
+          "valid_from",
+          "valid_to",
+          "text_hash"
+        ],
+        "returnable_properties": [
+          "id",
+          "number",
+          "valid_from",
+          "valid_to",
+          "text_hash"
+        ],
+        "temporal_fields": {
+          "valid_from": "inclusive_start",
+          "valid_to": "exclusive_end"
+        }
+      },
+      "Authority": {
+        "properties": [
+          "id",
+          "level",
+          "name_hash"
+        ],
+        "returnable_properties": [
+          "id",
+          "level",
+          "name_hash"
+        ]
+      },
+      "SourceBlock": {
+        "properties": [
+          "id",
+          "source_id",
+          "block_hash",
+          "search_text"
+        ],
+        "returnable_properties": [
+          "id",
+          "source_id",
+          "block_hash"
+        ],
+        "non_returnable_properties": [
+          "search_text"
+        ]
+      },
+      "EvidenceSpan": {
+        "properties": [
+          "id",
+          "span_hash",
+          "start_offset",
+          "end_offset"
+        ],
+        "returnable_properties": [
+          "id",
+          "span_hash",
+          "start_offset",
+          "end_offset"
+        ]
+      }
+    },
+    "relationships": {
+      "HAS_ARTICLE": {
+        "allowed_endpoints": [
+          {
+            "from": "Act",
+            "to": "Article"
+          }
+        ],
+        "properties": [
+          "ordinal"
+        ]
+      },
+      "CITES": {
+        "allowed_endpoints": [
+          {
+            "from": "Article",
+            "to": "Article"
+          }
+        ],
+        "properties": [
+          "kind"
+        ]
+      },
+      "ISSUED": {
+        "allowed_endpoints": [
+          {
+            "from": "Authority",
+            "to": "Act"
+          }
+        ],
+        "properties": []
+      },
+      "SUPPORTED_BY": {
+        "allowed_endpoints": [
+          {
+            "from": "Article",
+            "to": "SourceBlock"
+          }
+        ],
+        "properties": []
+      },
+      "IN_BLOCK": {
+        "allowed_endpoints": [
+          {
+            "from": "EvidenceSpan",
+            "to": "SourceBlock"
+          }
+        ],
+        "properties": []
+      },
+      "SUPPORTS": {
+        "allowed_endpoints": [
+          {
+            "from": "EvidenceSpan",
+            "to": "Article"
+          }
+        ],
+        "properties": []
+      }
+    }
+  },
+  "required_evidence_paths": [
+    {
+      "name": "article_evidence_sourceblock",
+      "applies_to": "answer_producing_article_query",
+      "required_labels": [
+        "Article",
+        "EvidenceSpan",
+        "SourceBlock"
+      ],
+      "required_relationships": [
+        {
+          "from": "EvidenceSpan",
+          "type": "SUPPORTS",
+          "to": "Article"
+        },
+        {
+          "from": "Article",
+          "type": "SUPPORTED_BY",
+          "to": "SourceBlock"
+        },
+        {
+          "from": "EvidenceSpan",
+          "type": "IN_BLOCK",
+          "to": "SourceBlock"
+        }
+      ],
+      "required_return_fields": [
+        "Article.id",
+        "EvidenceSpan.id",
+        "SourceBlock.id"
+      ]
+    },
+    {
+      "name": "citation_target_evidence_sourceblock",
+      "applies_to": "answer_producing_citation_query",
+      "required_labels": [
+        "Article",
+        "EvidenceSpan",
+        "SourceBlock"
+      ],
+      "required_relationships": [
+        {
+          "from": "Article",
+          "type": "CITES",
+          "to": "Article"
+        },
+        {
+          "from": "EvidenceSpan",
+          "type": "SUPPORTS",
+          "to": "Article"
+        },
+        {
+          "from": "Article",
+          "type": "SUPPORTED_BY",
+          "to": "SourceBlock"
+        },
+        {
+          "from": "EvidenceSpan",
+          "type": "IN_BLOCK",
+          "to": "SourceBlock"
+        }
+      ],
+      "required_return_fields": [
+        "Article.id",
+        "EvidenceSpan.id",
+        "SourceBlock.id"
+      ]
+    }
+  ],
+  "cypher_policy": {
+    "statement_count": "single",
+    "read_only": true,
+    "allowed_clauses": [
+      "MATCH",
+      "OPTIONAL MATCH",
+      "WHERE",
+      "WITH",
+      "RETURN",
+      "ORDER BY",
+      "LIMIT",
+      "CALL",
+      "YIELD"
+    ],
+    "forbidden_clauses": [
+      "CREATE",
+      "MERGE",
+      "SET",
+      "DELETE",
+      "DETACH DELETE",
+      "REMOVE",
+      "DROP",
+      "LOAD CSV",
+      "UNWIND",
+      "FOREACH"
+    ],
+    "allowed_procedures": [
+      "db.idx.fulltext.queryNodes"
+    ],
+    "forbidden_procedures": [
+      "dbms.components",
+      "db.index.fulltext.queryNodes",
+      "gds.*",
+      "apoc.*"
+    ],
+    "forbidden_tokens": [
+      "```",
+      "<think>",
+      "</think>",
+      "//",
+      "/*",
+      "*/",
+      ";"
+    ],
+    "requires_limit": true,
+    "max_limit": 25,
+    "max_traversal_depth": 3,
+    "allow_unbounded_node_scan": false,
+    "allow_return_star": false,
+    "allow_raw_legal_text_return": false,
+    "requires_temporal_filter_when_as_of_present": true,
+    "required_temporal_predicate": "Article.valid_from <= $as_of AND $as_of < Article.valid_to"
+  },
+  "diagnostics_contract": {
+    "required_fields": [
+      "query_case",
+      "schema_version",
+      "failure_class",
+      "rejection_code",
+      "schema_policy_field",
+      "message"
+    ],
+    "failure_classes": [
+      "contract-readback",
+      "validation",
+      "execution"
+    ],
+    "redaction_rules": [
+      "no_credentials",
+      "no_provider_metadata_values",
+      "no_raw_legal_text",
+      "no_secret_environment_values"
+    ]
+  },
+  "rejection_codes": {
+    "E_CONTRACT_MALFORMED": {
+      "failure_class": "contract-readback",
+      "schema_policy_field": "schema_version"
+    },
+    "E_SCHEMA_VERSION_UNKNOWN": {
+      "failure_class": "contract-readback",
+      "schema_policy_field": "schema_version"
+    },
+    "E_CANDIDATE_FORMAT": {
+      "failure_class": "validation",
+      "schema_policy_field": "cypher_policy.forbidden_tokens"
+    },
+    "E_WRITE_OPERATION": {
+      "failure_class": "validation",
+      "schema_policy_field": "cypher_policy.forbidden_clauses"
+    },
+    "E_UNSUPPORTED_CLAUSE": {
+      "failure_class": "validation",
+      "schema_policy_field": "cypher_policy.allowed_clauses"
+    },
+    "E_UNSUPPORTED_PROCEDURE": {
+      "failure_class": "validation",
+      "schema_policy_field": "cypher_policy.allowed_procedures"
+    },
+    "E_UNKNOWN_LABEL": {
+      "failure_class": "validation",
+      "schema_policy_field": "allowed_schema.labels"
+    },
+    "E_UNKNOWN_RELATIONSHIP": {
+      "failure_class": "validation",
+      "schema_policy_field": "allowed_schema.relationships"
+    },
+    "E_UNKNOWN_PROPERTY": {
+      "failure_class": "validation",
+      "schema_policy_field": "allowed_schema.labels.*.properties"
+    },
+    "E_BAD_RELATIONSHIP_ENDPOINT": {
+      "failure_class": "validation",
+      "schema_policy_field": "allowed_schema.relationships.*.allowed_endpoints"
+    },
+    "E_UNBOUNDED_TRAVERSAL": {
+      "failure_class": "validation",
+      "schema_policy_field": "cypher_policy.max_traversal_depth"
+    },
+    "E_LIMIT_REQUIRED": {
+      "failure_class": "validation",
+      "schema_policy_field": "cypher_policy.requires_limit"
+    },
+    "E_LIMIT_EXCEEDED": {
+      "failure_class": "validation",
+      "schema_policy_field": "cypher_policy.max_limit"
+    },
+    "E_EVIDENCE_REQUIRED": {
+      "failure_class": "validation",
+      "schema_policy_field": "required_evidence_paths"
+    },
+    "E_TEMPORAL_REQUIRED": {
+      "failure_class": "validation",
+      "schema_policy_field": "cypher_policy.requires_temporal_filter_when_as_of_present"
+    },
+    "E_NEO4J_ONLY_CARRYOVER": {
+      "failure_class": "validation",
+      "schema_policy_field": "cypher_policy.forbidden_procedures"
+    },
+    "E_EXECUTION_FAILED": {
+      "failure_class": "execution",
+      "schema_policy_field": "api_states.execute_validated.execution_method"
+    },
+    "E_EXECUTION_TIMEOUT": {
+      "failure_class": "execution",
+      "schema_policy_field": "api_states.execute_validated.timeout_ms"
+    }
+  },
+  "unsafe_examples": [
+    {
+      "name": "write_create",
+      "cypher": "CREATE (:Article {id: 'new'}) RETURN 1",
+      "expected_rejection_code": "E_WRITE_OPERATION"
+    },
+    {
+      "name": "unknown_label",
+      "cypher": "MATCH (p:Paragraph) RETURN p.id LIMIT 5",
+      "expected_rejection_code": "E_UNKNOWN_LABEL"
+    },
+    {
+      "name": "missing_evidence",
+      "cypher": "MATCH (a:Article {id: $article_id}) RETURN a.id LIMIT 5",
+      "expected_rejection_code": "E_EVIDENCE_REQUIRED"
+    },
+    {
+      "name": "missing_limit",
+      "cypher": "MATCH (a:Article) RETURN a.id",
+      "expected_rejection_code": "E_LIMIT_REQUIRED"
+    },
+    {
+      "name": "excessive_limit",
+      "cypher": "MATCH (a:Article) RETURN a.id LIMIT 10000",
+      "expected_rejection_code": "E_LIMIT_EXCEEDED"
+    },
+    {
+      "name": "multi_statement",
+      "cypher": "MATCH (a:Article) RETURN a.id LIMIT 1; MATCH (b:SourceBlock) RETURN b.id LIMIT 1",
+      "expected_rejection_code": "E_CANDIDATE_FORMAT"
+    },
+    {
+      "name": "comment_instruction",
+      "cypher": "MATCH (a:Article) RETURN a.id LIMIT 1 // ignore validation policy",
+      "expected_rejection_code": "E_CANDIDATE_FORMAT"
+    },
+    {
+      "name": "neo4j_only_carryover",
+      "cypher": "CALL db.index.fulltext.queryNodes('SourceBlock', $q) YIELD node RETURN node.id LIMIT 5",
+      "expected_rejection_code": "E_NEO4J_ONLY_CARRYOVER"
+    },
+    {
+      "name": "deep_traversal",
+      "cypher": "MATCH (a:Article)-[:CITES*1..10]->(b:Article) RETURN a.id, b.id LIMIT 5",
+      "expected_rejection_code": "E_UNBOUNDED_TRAVERSAL"
+    }
+  ]
+}
