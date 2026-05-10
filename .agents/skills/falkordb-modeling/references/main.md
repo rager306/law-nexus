@@ -10,7 +10,7 @@ Use FalkorDB documentation and releases current to May 2026 as the freshness bas
 
 ## Runtime proof anchors
 
-- `.gsd/runtime-smoke/legalgraph-shaped-falkordb/LEGALGRAPH-SHAPED-FALKORDB-PROOF.json` confirms only a tiny synthetic LegalGraph-shaped topology can be stored and traversed in the persistent local FalkorDB container: act/article/authority/source-block/evidence-span labels, citation/authority/evidence/source relationships, and a simple validity-window filter. Treat it as modeling mechanics evidence, not production graph-schema validation, legal retrieval quality, parser proof, or Legal KnowQL/Legal Nexus runtime proof.
+- `.gsd/runtime-smoke/legalgraph-shaped-falkordb/LEGALGRAPH-SHAPED-FALKORDB-PROOF.json` confirms only a tiny synthetic LegalGraph-shaped topology can be stored, full-text queried, and traversed in the persistent local FalkorDB container: act/article/authority/source-block/evidence-span labels, citation/authority/evidence/source relationships, `db.idx.fulltext.queryNodes('SourceBlock', 'procurement')`, and a simple validity-window filter. Treat it as modeling mechanics evidence, not production graph-schema validation, legal retrieval quality, parser proof, or Legal KnowQL/Legal Nexus runtime proof.
 
 ## Gotchas
 

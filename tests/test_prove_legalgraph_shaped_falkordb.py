@@ -85,6 +85,7 @@ def test_markdown_preserves_bounded_claim_boundary(tmp_path: Path) -> None:
     text = path.read_text(encoding="utf-8")
 
     assert "bounded synthetic runtime evidence" in text
+    assert "full-text query" in text
     assert "does not prove ODT parsing" in text
     assert "legal-answer correctness" in text
     assert "legalgraph-evidence-chain" in text

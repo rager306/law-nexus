@@ -2,10 +2,10 @@
 """Run a bounded LegalGraph-shaped synthetic topology proof against FalkorDB.
 
 This is a runtime-mechanics proof only. It verifies that the current FalkorDB
-runtime can store and traverse a LegalGraph-like topology over synthetic nodes:
-Act, Article, Authority, SourceBlock, and EvidenceSpan. It does not prove ODT
-parser behavior, production graph schema fitness, legal retrieval quality, or any
-LLM/legal-answering product flow.
+runtime can store, full-text query, and traverse a LegalGraph-like topology over
+synthetic nodes: Act, Article, Authority, SourceBlock, and EvidenceSpan. It does
+not prove ODT parser behavior, production graph schema fitness, legal retrieval
+quality, or any LLM/legal-answering product flow.
 """
 
 from __future__ import annotations
@@ -41,6 +41,8 @@ FORBIDDEN_TERMS = (
 
 class FalkorGraph(Protocol):
     def query(self, query: str) -> Any: ...
+
+    def create_node_fulltext_index(self, label: str, attr: str, **kwargs: Any) -> Any: ...
 
 
 class FalkorClient(Protocol):
@@ -108,7 +110,7 @@ def write_markdown(path: Path, payload: Mapping[str, Any]) -> str:
         "",
         "## Boundary",
         "",
-        "This artifact is bounded synthetic runtime evidence. It proves only that this FalkorDB runtime can store and traverse a small LegalGraph-shaped topology. It does not prove ODT parsing, product ETL/import, production retrieval quality, Legal KnowQL, Legal Nexus runtime, or legal-answer correctness.",
+        "This artifact is bounded synthetic runtime evidence. It proves only that this FalkorDB runtime can store, full-text query, and traverse a small LegalGraph-shaped topology. It does not prove ODT parsing, product ETL/import, production retrieval quality, Legal KnowQL, Legal Nexus runtime, or legal-answer correctness.",
         "",
         "## Runtime",
         "",
@@ -188,10 +190,12 @@ def setup_graph(graph: FalkorGraph) -> None:
           (:Article {id:'article:44fz:1', number:'1', valid_from:'2024-01-01', valid_to:'9999-12-31', text_hash:'sha256:article-1'}),
           (:Article {id:'article:44fz:2', number:'2', valid_from:'2024-01-01', valid_to:'9999-12-31', text_hash:'sha256:article-2'}),
           (:Authority {id:'authority:minfin', level:'federal', name_hash:'sha256:authority-minfin'}),
-          (:SourceBlock {id:'sourceblock:garant:44fz:1', source_id:'garant-44fz-synthetic', block_hash:'sha256:sourceblock-1'}),
+          (:SourceBlock {id:'sourceblock:garant:44fz:1', source_id:'garant-44fz-synthetic', block_hash:'sha256:sourceblock-1', search_text:'synthetic procurement evidence anchor alpha'}),
+          (:SourceBlock {id:'sourceblock:garant:44fz:2', source_id:'garant-44fz-synthetic', block_hash:'sha256:sourceblock-2', search_text:'synthetic unrelated beta'}),
           (:EvidenceSpan {id:'evidence:44fz:art1:span1', span_hash:'sha256:evidence-1', start_offset:0, end_offset:42})
         """,
     )
+    graph.create_node_fulltext_index("SourceBlock", "search_text")
     query_result_set(
         graph,
         """
@@ -265,7 +269,7 @@ def run_query_proofs(graph: FalkorGraph) -> list[QueryProof]:
         build_proof(
             "legalgraph-node-counts",
             "label-cardinality",
-            {"acts": 1, "articles": 2, "authorities": 1, "source_blocks": 1, "evidence_spans": 1},
+            {"acts": 1, "articles": 2, "authorities": 1, "source_blocks": 2, "evidence_spans": 1},
             {
                 "acts": act_count,
                 "articles": article_count,
@@ -331,6 +335,35 @@ def run_query_proofs(graph: FalkorGraph) -> list[QueryProof]:
                 "source_block_id": "sourceblock:garant:44fz:1",
             },
             {"span_id": span_id, "article_id": article_id, "source_block_id": block_id},
+            duration,
+        )
+    )
+
+    rows, duration = query_result_set(
+        graph,
+        """
+        CALL db.idx.fulltext.queryNodes('SourceBlock', 'procurement') YIELD node, score
+        MATCH (span:EvidenceSpan)-[:IN_BLOCK]->(node)<-[:SUPPORTED_BY]-(article:Article)
+        RETURN node.id, article.id, span.id, score
+        """,
+    )
+    fulltext_block_id, fulltext_article_id, fulltext_span_id, fulltext_score = exact_row(rows)
+    proofs.append(
+        build_proof(
+            "legalgraph-fulltext-evidence-chain",
+            "fulltext-sourceblock-to-evidence-traversal",
+            {
+                "source_block_id": "sourceblock:garant:44fz:1",
+                "article_id": "article:44fz:1",
+                "span_id": "evidence:44fz:art1:span1",
+                "score_positive": True,
+            },
+            {
+                "source_block_id": fulltext_block_id,
+                "article_id": fulltext_article_id,
+                "span_id": fulltext_span_id,
+                "score_positive": float(fulltext_score) > 0,
+            },
             duration,
         )
     )
@@ -432,7 +465,7 @@ def main() -> int:
         "cleanup_status": cleanup_status,
         "query_proofs": proof_payloads,
         "claim_boundary": {
-            "confirmed_runtime": "Synthetic LegalGraph-shaped node/edge storage and traversal mechanics for this FalkorDB runtime.",
+            "confirmed_runtime": "Synthetic LegalGraph-shaped node/edge storage, full-text SourceBlock lookup, and traversal mechanics for this FalkorDB runtime.",
             "not_proven": [
                 "Garant ODT parsing behavior",
                 "production graph schema fitness",
