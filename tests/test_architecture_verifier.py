@@ -13,6 +13,7 @@ ITEMS_PATH = ROOT / "prd/architecture/architecture_items.jsonl"
 EDGES_PATH = ROOT / "prd/architecture/architecture_edges.jsonl"
 REPORT_JSON_PATH = ROOT / "prd/architecture/architecture_graph_report.json"
 REPORT_MD_PATH = ROOT / "prd/architecture/architecture_report.md"
+FIXTURE_DIR = ROOT / "tests/fixtures/architecture"
 
 
 def load_verifier_module() -> Any:
@@ -38,6 +39,41 @@ def run_cli(*args: str) -> subprocess.CompletedProcess[str]:
 
 def write_jsonl(path: Path, records: list[dict[str, Any]]) -> None:
     path.write_text("".join(json.dumps(record, sort_keys=True) + "\n" for record in records), encoding="utf-8")
+
+
+def minimal_item(record_id: str, source_anchors: list[dict[str, Any]]) -> dict[str, Any]:
+    return {
+        "schema_version": "legalgraph-architecture-registry/v1",
+        "record_kind": "item",
+        "id": record_id,
+        "type": "requirement",
+        "title": f"{record_id} title",
+        "summary": "Minimal verifier fixture record.",
+        "layer": "architecture-governance",
+        "status": "active",
+        "proof_level": "source-anchor",
+        "risk_level": "medium",
+        "source_anchors": source_anchors,
+        "owner": "M004/S04",
+        "verification": "Verified by architecture verifier tests.",
+        "generated_draft": False,
+        "non_claims": [],
+    }
+
+
+def minimal_edge(record_id: str, source_anchors: list[dict[str, Any]], *, from_id: str = "NODE-A", to_id: str = "NODE-A") -> dict[str, Any]:
+    return {
+        "schema_version": "legalgraph-architecture-registry/v1",
+        "record_kind": "edge",
+        "id": record_id,
+        "from": from_id,
+        "to": to_id,
+        "type": "depends_on",
+        "status": "active",
+        "rationale": "Minimal verifier fixture edge.",
+        "source_anchors": source_anchors,
+        "generated_draft": False,
+    }
 
 
 def test_baseline_cli_passes_with_non_authoritative_summary() -> None:
@@ -135,8 +171,9 @@ def test_missing_report_output_default_gate_becomes_upstream_s03_diagnostic(monk
 def test_custom_paths_skip_upstream_and_preserve_summary_boundary(tmp_path: Path) -> None:
     items_path = tmp_path / "items.jsonl"
     edges_path = tmp_path / "edges.jsonl"
-    write_jsonl(items_path, [{"record_kind": "item", "id": "NODE-A"}])
-    write_jsonl(edges_path, [{"record_kind": "edge", "id": "EDGE-A", "from": "NODE-A", "to": "NODE-A"}])
+    anchor = [{"path": "prd/architecture/architecture.schema.json", "kind": "test-artifact", "selector": "record_kind"}]
+    write_jsonl(items_path, [minimal_item("NODE-A", anchor)])
+    write_jsonl(edges_path, [minimal_edge("EDGE-A", anchor)])
 
     result = run_cli("--items", str(items_path), "--edges", str(edges_path))
 
@@ -146,3 +183,119 @@ def test_custom_paths_skip_upstream_and_preserve_summary_boundary(tmp_path: Path
     assert summary["non_authoritative"] is True
     assert "non-authoritative" in summary["boundary"]
     assert summary["upstream_checks"] == "skipped-custom-paths"
+
+
+def test_schema_anchor_rules_reject_missing_and_unknown_fields(tmp_path: Path) -> None:
+    items_path = tmp_path / "items.jsonl"
+    edges_path = tmp_path / "edges.jsonl"
+    missing_path = minimal_item("REQ-MISSING-PATH", [{"kind": "prd", "selector": "anything"}])
+    unknown_field = minimal_item(
+        "REQ-UNKNOWN-FIELD",
+        [{"path": "prd/architecture/architecture.schema.json", "kind": "test-artifact", "selector": "record_kind"}],
+    )
+    unknown_field["unexpected"] = True
+    bad_enum = minimal_item(
+        "REQ-BAD-ENUM",
+        [{"path": "prd/architecture/architecture.schema.json", "kind": "not-a-kind", "selector": "record_kind"}],
+    )
+    write_jsonl(items_path, [missing_path, unknown_field, bad_enum])
+    edges_path.write_text("", encoding="utf-8")
+
+    result = run_cli("--items", str(items_path), "--edges", str(edges_path))
+
+    assert result.returncode == 1
+    assert "id=REQ-MISSING-PATH" in result.stderr
+    assert "field=source_anchors[0].path" in result.stderr
+    assert "rule=required" in result.stderr
+    assert "id=REQ-UNKNOWN-FIELD" in result.stderr
+    assert "field=unexpected" in result.stderr
+    assert "rule=additionalProperties=false" in result.stderr
+    assert "id=REQ-BAD-ENUM" in result.stderr
+    assert "field=source_anchors[0].kind" in result.stderr
+    assert "rule=enum" in result.stderr
+
+
+def test_missing_anchor_fixture_is_schema_failure() -> None:
+    result = run_cli("--items", str(FIXTURE_DIR / "invalid_missing_anchor.jsonl"), "--edges", str(FIXTURE_DIR / "valid_edges.jsonl"))
+
+    assert result.returncode == 1
+    assert "id=REQ-MISSING-ANCHOR" in result.stderr
+    assert "field=source_anchors" in result.stderr
+    assert "rule=minItems=1" in result.stderr
+    assert "source_anchor=<no-source-anchor>" in result.stderr
+
+
+def test_anchor_paths_must_exist_and_stay_repository_local(tmp_path: Path) -> None:
+    items_path = tmp_path / "items.jsonl"
+    write_jsonl(
+        items_path,
+        [
+            minimal_item("REQ-ABSOLUTE-PATH", [{"path": "/tmp/architecture.md", "kind": "prd", "selector": "anything"}]),
+            minimal_item("REQ-LOCAL-EXEC-PATH", [{"path": ".gsd/exec/run.stdout", "kind": "runtime-artifact"}]),
+        ],
+    )
+
+    result = run_cli("--items", str(items_path), "--edges", str(FIXTURE_DIR / "valid_edges.jsonl"))
+
+    assert result.returncode == 1
+    assert "id=REQ-ABSOLUTE-PATH" in result.stderr
+    assert "rule=source-anchor-path-local" in result.stderr
+    assert "id=REQ-LOCAL-EXEC-PATH" in result.stderr
+    assert "rule=source-anchor-path-local" in result.stderr
+
+
+def test_stale_anchor_fixture_reports_missing_source_file() -> None:
+    result = run_cli("--items", str(FIXTURE_DIR / "invalid_stale_anchor.jsonl"), "--edges", str(FIXTURE_DIR / "valid_edges.jsonl"))
+
+    assert result.returncode == 1
+    assert "id=REQ-STALE-ANCHOR" in result.stderr
+    assert "field=source_anchors[0].path" in result.stderr
+    assert "rule=source-anchor-exists" in result.stderr
+    assert "prd/architecture/does-not-exist.md" in result.stderr
+
+
+def test_anchor_line_ranges_must_be_ordered_and_in_bounds(tmp_path: Path) -> None:
+    items_path = tmp_path / "items.jsonl"
+    write_jsonl(
+        items_path,
+        [
+            minimal_item(
+                "REQ-REVERSED-LINES",
+                [{"path": "prd/architecture/architecture.schema.json", "kind": "test-artifact", "line_start": 2, "line_end": 1}],
+            ),
+            minimal_item(
+                "REQ-OUT-OF-RANGE-LINES",
+                [{"path": "prd/architecture/architecture.schema.json", "kind": "test-artifact", "line_start": 1, "line_end": 9999}],
+            ),
+        ],
+    )
+
+    result = run_cli("--items", str(items_path), "--edges", str(FIXTURE_DIR / "valid_edges.jsonl"))
+
+    assert result.returncode == 1
+    assert "id=REQ-REVERSED-LINES" in result.stderr
+    assert "rule=source-anchor-line-range" in result.stderr
+    assert "id=REQ-OUT-OF-RANGE-LINES" in result.stderr
+    assert "line_end exceeds file length" in result.stderr
+
+
+def test_anchor_selector_or_section_must_appear_but_path_only_json_anchor_can_pass(tmp_path: Path) -> None:
+    path_only_items = tmp_path / "path-only-items.jsonl"
+    write_jsonl(
+        path_only_items,
+        [minimal_item("REQ-PATH-ONLY", [{"path": "prd/architecture/architecture.schema.json", "kind": "test-artifact"}])],
+    )
+
+    passing = run_cli("--items", str(path_only_items), "--edges", str(FIXTURE_DIR / "valid_edges.jsonl"))
+    assert passing.returncode == 0, passing.stderr
+
+    failing = run_cli(
+        "--items",
+        str(FIXTURE_DIR / "invalid_selector_anchor.jsonl"),
+        "--edges",
+        str(FIXTURE_DIR / "valid_edges.jsonl"),
+    )
+    assert failing.returncode == 1
+    assert "id=REQ-SELECTOR-ANCHOR" in failing.stderr
+    assert "field=source_anchors[0].selector" in failing.stderr
+    assert "rule=source-anchor-token" in failing.stderr

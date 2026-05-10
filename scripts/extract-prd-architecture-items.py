@@ -866,7 +866,7 @@ def build_edges() -> list[Record]:
             "checked_by",
             "active",
             "The extractor check fails closed for unsafe status/proof mappings and stale generated outputs.",
-            [anchor(".gsd/milestones/M004/slices/S02/S02-PLAN.md", "gsd-summary", section="Failure Modes")],
+            [anchor(".gsd/milestones/M004/slices/S02/S02-PLAN.md", "gsd-summary", section="Verification")],
             "M004/S02",
             verification="Extractor tests and --check mode pass.",
             confidence=0.8,
