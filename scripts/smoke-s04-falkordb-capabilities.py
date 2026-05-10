@@ -107,6 +107,20 @@ CAPABILITIES: tuple[CapabilitySpec, ...] = (
         True,
     ),
     CapabilitySpec(
+        "falkordb-algo-pagerank",
+        "FalkorDB PageRank algorithm output shape",
+        "Run PageRank on a bounded synthetic graph and assert output rows/scores.",
+        "Terminal runtime status with expected PageRank rows or exact procedure/output failure.",
+        True,
+    ),
+    CapabilitySpec(
+        "falkordb-algo-wcc",
+        "FalkorDB WCC algorithm output shape",
+        "Run WCC on a bounded synthetic graph and assert component output shape.",
+        "Terminal runtime status with expected WCC component rows or exact procedure/output failure.",
+        True,
+    ),
+    CapabilitySpec(
         "falkordblite-import",
         "FalkorDBLite import/bootstrap",
         "Install/import FalkorDBLite in an isolated runtime boundary and record package/binary metadata.",
@@ -829,6 +843,45 @@ def vector_distance_probe():
     ok("falkordb-vector-distance", f"vecf32 synthetic vector returned {{actual!r}}")
 
 run("falkordb-vector-distance", vector_distance_probe)
+
+def algorithm_fixture(graph):
+    graph.query("CREATE (:Page {{id:'a'}}), (:Page {{id:'b'}}), (:Page {{id:'c'}}), (:Page {{id:'d'}})")
+    graph.query("MATCH (a:Page {{id:'a'}}), (b:Page {{id:'b'}}) CREATE (a)-[:LINKS]->(b)")
+    graph.query("MATCH (a:Page {{id:'a'}}), (c:Page {{id:'c'}}) CREATE (a)-[:LINKS]->(c)")
+    graph.query("MATCH (b:Page {{id:'b'}}), (c:Page {{id:'c'}}) CREATE (b)-[:LINKS]->(c)")
+
+
+def pagerank_probe():
+    graph = client.select_graph(f"s04_algo_pagerank_{{GRAPH_SUFFIX}}")
+    algorithm_fixture(graph)
+    rows = graph.query("CALL algo.pageRank('Page', 'LINKS') YIELD node, score RETURN node.id, score ORDER BY node.id").result_set
+    ids = [row[0] for row in rows]
+    scores = [float(row[1]) for row in rows]
+    if ids != ['a', 'b', 'c', 'd']:
+        raise AssertionError(f"unexpected PageRank ids: {{rows!r}}")
+    if not all(score > 0 for score in scores):
+        raise AssertionError(f"unexpected PageRank scores: {{rows!r}}")
+    graph.delete()
+    ok("falkordb-algo-pagerank", f"PageRank returned ids={{ids!r}}; scores={{[round(score, 6) for score in scores]!r}}")
+
+run("falkordb-algo-pagerank", pagerank_probe)
+
+
+def wcc_probe():
+    graph = client.select_graph(f"s04_algo_wcc_{{GRAPH_SUFFIX}}")
+    algorithm_fixture(graph)
+    rows = graph.query("CALL algo.WCC({{nodeLabels: ['Page'], relationshipTypes: ['LINKS']}}) YIELD node, componentId RETURN node.id, componentId ORDER BY node.id").result_set
+    components = {{row[0]: row[1] for row in rows}}
+    if set(components) != {{'a', 'b', 'c', 'd'}}:
+        raise AssertionError(f"unexpected WCC ids: {{rows!r}}")
+    if len({{components['a'], components['b'], components['c']}}) != 1:
+        raise AssertionError(f"linked nodes should share a WCC component: {{rows!r}}")
+    if components['d'] == components['a']:
+        raise AssertionError(f"isolated node should have a distinct WCC component: {{rows!r}}")
+    graph.delete()
+    ok("falkordb-algo-wcc", f"WCC returned components={{components!r}}")
+
+run("falkordb-algo-wcc", wcc_probe)
 
 client.close()
 print(json.dumps(results, sort_keys=True))

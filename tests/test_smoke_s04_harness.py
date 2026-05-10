@@ -80,7 +80,7 @@ def test_cascade_blocker_applies_same_root_cause_and_log(tmp_path: Path) -> None
 
     harness.cascade_blocker(
         state,
-        ("falkordb-basic-graph", "falkordb-vector-node"),
+        ("falkordb-basic-graph", "falkordb-vector-node", "falkordb-algo-pagerank"),
         "docker-daemon-timeout",
         "Docker daemon did not respond before timeout.",
         "docker-daemon",
@@ -89,11 +89,14 @@ def test_cascade_blocker_applies_same_root_cause_and_log(tmp_path: Path) -> None
 
     first = state.findings["falkordb-basic-graph"]
     second = state.findings["falkordb-vector-node"]
+    third = state.findings["falkordb-algo-pagerank"]
     assert first.status == "blocked-environment"
     assert second.status == "blocked-environment"
+    assert third.status == "blocked-environment"
     assert first.diagnostics["root_cause"] == "docker-daemon-timeout"
     assert second.diagnostics["root_cause"] == "docker-daemon-timeout"
-    assert first.raw_log_reference == second.raw_log_reference
+    assert third.diagnostics["root_cause"] == "docker-daemon-timeout"
+    assert first.raw_log_reference == second.raw_log_reference == third.raw_log_reference
     assert first.raw_log_reference.endswith("logs/docker-daemon.log")
 
 
@@ -192,4 +195,6 @@ def test_json_and_markdown_artifacts_include_runtime_diagnostics(tmp_path: Path)
     markdown = markdown_path.read_text(encoding="utf-8")
     assert "## Failure Diagnostics" in markdown
     assert "`falkordb-basic-graph`" in markdown
+    assert "`falkordb-algo-pagerank`" in markdown
+    assert "`falkordb-algo-wcc`" in markdown
     assert "M001 architecture-only" in markdown

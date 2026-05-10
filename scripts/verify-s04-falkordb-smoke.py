@@ -50,6 +50,8 @@ CAPABILITIES: tuple[CapabilitySpec, ...] = (
     CapabilitySpec("falkordb-fulltext-node", "FalkorDB node full-text index/query", "S04"),
     CapabilitySpec("falkordb-vector-node", "FalkorDB node vector index/query", "S04"),
     CapabilitySpec("falkordb-vector-distance", "FalkorDB vector distance functions", "S04"),
+    CapabilitySpec("falkordb-algo-pagerank", "FalkorDB PageRank algorithm output shape", "S04"),
+    CapabilitySpec("falkordb-algo-wcc", "FalkorDB WCC algorithm output shape", "S04"),
     CapabilitySpec("falkordblite-import", "FalkorDBLite import/bootstrap", "S04"),
     CapabilitySpec("falkordblite-basic-graph", "FalkorDBLite basic graph query", "S04"),
     CapabilitySpec("falkordblite-udf", "FalkorDBLite UDF behavior", "S04"),
