@@ -13,6 +13,37 @@ Authoritative claims remain in the source documents and evidence artifacts that 
 
 Registry records in JSONL form are derived projections for graph analysis, coverage checks, generated views, and architecture fitness functions. Generated graph exports, Markdown reports, GraphML files, diagrams, and later skill/router guidance are downstream artifacts. They must be rebuilt or checked from the registry and its anchors, never hand-edited into authority over PRD/GSD/ADR evidence.
 
+## S02 extractor contract
+
+The canonical S02 extractor is `scripts/extract-prd-architecture-items.py`. Run it from the repository root to regenerate the tracked projection files:
+
+```bash
+uv run python scripts/extract-prd-architecture-items.py
+```
+
+The canonical freshness check is:
+
+```bash
+uv run python scripts/extract-prd-architecture-items.py --check
+```
+
+The extractor owns these generated JSONL projections:
+
+- `prd/architecture/architecture_items.jsonl`
+- `prd/architecture/architecture_edges.jsonl`
+
+These files are derived, non-authoritative projections over PRD, GSD, ADR, source, and smoke/proof evidence. They are stable inputs for later automation, but they do not replace the documents and artifacts named in each record's source anchors. If generated JSONL disagrees with anchored source evidence, update the source mapping or regenerate the projection; do not treat the generated row as source truth.
+
+S02 extraction is deliberately conservative:
+
+- Records come from curated mappings only; the extractor does not infer architecture truth from broad Markdown scans.
+- Every generated record must retain repository-relative source anchors that allow a future agent to inspect the claim source.
+- S02 must not emit generated `validated` status. Existing validated GSD material is projected as anchored active or hypothesis architecture context until a later verifier earns stronger proof.
+- `non_claims` must be preserved so runtime, legal-answer, parser-completeness, retrieval-quality, managed-API, production-scale, and LLM-authority overclaims stay explicit.
+- Agents must use `--check` to detect stale generated files instead of bypassing the extractor or hand-editing the JSONL output.
+
+Downstream ownership is separate from this extractor contract. S03/S04 may consume these files to build graph integrity and verification checks, promote only evidence-backed proof levels, and diagnose stale or unsafe records. S05 may create the architecture-verification workflow/router skill after those verifier checks exist. S02 must not create that router skill or final workflow handoff content.
+
 ## Record boundary
 
 `architecture.schema.json` validates one record at a time using `record_kind`:
