@@ -197,7 +197,7 @@ def test_artifact_helpers_expose_safe_runtime_signals_without_forbidden_fields(p
         assert artifact["safety"]["request_text_persisted"] is False
         assert artifact["safety"]["raw_reasoning_text_persisted"] is False
         assert artifact["safety"]["raw_legal_text_persisted"] is False
-        assert artifact["safety"]["raw_falkordb_rows_persisted"] is False
+        assert artifact["safety"]["raw_graph_rows_persisted"] is False
         proof.assert_safe_artifact(artifact)
         assert_no_forbidden_terms(artifact)
 
@@ -217,3 +217,105 @@ def test_write_artifacts_persists_safe_json_and_markdown(proof: ModuleType, tmp_
     assert_no_forbidden_terms(written)
     for term in FORBIDDEN_ARTIFACT_TERMS:
         assert term not in markdown
+
+
+def test_endpoint_normalization_preserves_v1_chat_completions(proof: ModuleType) -> None:
+    metadata = proof.normalize_minimax_endpoint("https://api.minimax.io/v1/")
+
+    assert metadata["endpoint_input"] == "https://api.minimax.io/v1/"
+    assert metadata["normalized_base_url"] == "https://api.minimax.io/v1/"
+    assert metadata["effective_chat_completions_url"] == "https://api.minimax.io/v1/chat/completions"
+    assert metadata["preserves_v1"] is True
+    assert metadata["endpoint_contract_valid"] is True
+
+
+def test_request_body_sets_reasoning_split_without_persisting_prompt(proof: ModuleType) -> None:
+    body = proof.build_minimax_chat_request("MiniMax-M2.7-highspeed")
+
+    assert body["model"] == "MiniMax-M2.7-highspeed"
+    assert body["stream"] is False
+    assert body["reasoning_split"] is True
+    assert any("EvidenceSpan" in message["content"] for message in body["messages"])
+    assert any("$article_id" in message["content"] for message in body["messages"])
+
+    artifact = proof.build_blocked_credential_artifact(
+        endpoint_metadata=proof.normalize_minimax_endpoint("https://api.minimax.io/v1"),
+        resolver_metadata={"adapter_kind": "OpenAI", "model": "MiniMax-M2.7-highspeed"},
+        commands=[],
+    )
+    serialized = json.dumps(artifact, ensure_ascii=False, sort_keys=True)
+    assert "EvidenceSpan" not in serialized
+    assert "article_id" not in serialized
+    assert artifact["request"]["reasoning_split"] is True
+    assert artifact["safety"]["request_text_persisted"] is False
+
+
+def test_run_proof_missing_credentials_is_blocked_after_resolver_without_provider_attempt(
+    proof: ModuleType, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.delenv("MINIMAX_API_KEY", raising=False)
+    monkeypatch.setattr(proof, "command_available", lambda _name: True)
+    monkeypatch.setattr(proof, "run_command", lambda *args, **kwargs: proof.CommandResult(
+        phase="fixture",
+        command=["fixture"],
+        exit_code=0,
+        timed_out=False,
+        duration_ms=1,
+        stdout_summary=proof.StreamSummary(1, 2, json.dumps({
+            "module": proof.MODULE_NAME,
+            "model": proof.DEFAULT_MODEL,
+            "adapter_kind": "OpenAI",
+            "normalized_endpoint_base_url": "https://api.minimax.io/v1/",
+            "effective_chat_completions_url": "https://api.minimax.io/v1/chat/completions",
+            "provider_body_persistence": "disabled",
+            "request_body_reasoning_split": True,
+        }), False),
+        stderr_summary=proof.StreamSummary(0, 0, "", False),
+        log_path=None,
+    ))
+
+    payload = proof.run_proof(artifact_dir=tmp_path, runtime_dir=tmp_path / "runtime", timeout_seconds=5)
+
+    assert payload["status"] == "blocked-credential"
+    assert payload["root_cause"] == "minimax-credential-missing"
+    assert payload["provider_attempts"] == 0
+    assert payload["endpoint"]["effective_chat_completions_url"].endswith("/v1/chat/completions")
+    assert payload["resolver"]["adapter_kind"] == "OpenAI"
+    assert payload["request"]["reasoning_split"] is True
+    assert payload["candidate"]["accepted"] is False
+    assert payload["candidate"]["categories"] == ["not-run"]
+    assert_no_forbidden_terms(payload)
+
+
+def test_provider_summary_routes_to_classifier_and_counts_one_attempt(proof: ModuleType, tmp_path: Path) -> None:
+    safe_summary = {
+        "status": "provider-response-received",
+        "message": {
+            "content": "MATCH (span:EvidenceSpan)-[:SUPPORTS]->(article:Article) RETURN span.id, article.id LIMIT 5",
+            "reasoning_details": [{"type": "summary", "text_length": 24, "sha256_12": "abc123abc123"}],
+        },
+        "safe_diagnostics": {"raw_provider_body_persisted": False, "raw_reasoning_text_persisted": False},
+    }
+
+    classification = proof.classify_safe_provider_summary(safe_summary)
+    artifact = proof.build_confirmed_runtime_artifact(
+        classification=classification,
+        provider_attempts=1,
+        endpoint_metadata=proof.normalize_minimax_endpoint("https://api.minimax.io/v1"),
+        resolver_metadata={"adapter_kind": "OpenAI", "model": proof.DEFAULT_MODEL},
+        commands=[],
+    )
+
+    assert classification["accepted"] is True
+    assert artifact["status"] == "confirmed-runtime"
+    assert artifact["provider_attempts"] == 1
+    assert artifact["reasoning"]["present"] is True
+    assert artifact["reasoning"]["separated"] is True
+    assert_no_forbidden_terms(artifact)
+
+
+def test_script_does_not_import_graph_execution_surface() -> None:
+    text = SCRIPT_PATH.read_text(encoding="utf-8")
+
+    assert "Graph.ro_query" not in text
+    assert "FalkorDB" not in text
