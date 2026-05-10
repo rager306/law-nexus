@@ -79,6 +79,17 @@ python .agents/skills/pi-skill-creator/scripts/generate_pi_skill_report.py <skil
 python .agents/skills/pi-skill-creator/scripts/analyze_skill_triggers.py <skill-dir> --output <skill-name>-workspace/iteration-N/trigger-proxy.json
 ```
 
+## Execution artifacts
+
+Generated executor prompts include absolute run-local output paths. This matters for `gsd --print`: if the prompt only says `outputs/answer.md`, the headless session may write to the repository root and the harness may grade stdout summaries instead of the intended artifact.
+
+`execute_pi_skill_eval.py` records `answer_source` in each `outputs/run.json`:
+
+- `executor_created_file` — preferred; the model/tool wrote the requested run-local `outputs/answer.md`.
+- `stdout_fallback` — acceptable for simple answer-only tasks; the harness created `outputs/answer.md` from stdout.
+
+Before trusting a live benchmark, confirm execution summary and at least spot-check `answer_source`. Runtime activation telemetry is still separate and remains `actual_activation: unavailable` unless PI/GSD exposes skill-read/tool-call metadata.
+
 Use optional structured assertions when substring/regex checks are needed:
 
 ```json

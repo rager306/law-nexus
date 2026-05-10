@@ -91,8 +91,13 @@ def execute_run(run_dir: Path, base_command: str, timeout: int, overwrite: bool)
     outputs.mkdir(parents=True, exist_ok=True)
     (outputs / "stdout.txt").write_text(completed.stdout, encoding="utf-8")
     (outputs / "stderr.txt").write_text(completed.stderr, encoding="utf-8")
+    answer_source = None
     if completed.returncode == 0:
-        answer.write_text(completed.stdout, encoding="utf-8")
+        if answer.is_file():
+            answer_source = "executor_created_file"
+        else:
+            answer.write_text(completed.stdout, encoding="utf-8")
+            answer_source = "stdout_fallback"
     status = {
         "status": "complete" if completed.returncode == 0 else "failed",
         "run_dir": str(run_dir),
@@ -105,6 +110,7 @@ def execute_run(run_dir: Path, base_command: str, timeout: int, overwrite: bool)
         "stdout_path": str(outputs / "stdout.txt"),
         "stderr_path": str(outputs / "stderr.txt"),
         "answer_path": str(answer) if completed.returncode == 0 else None,
+        "answer_source": answer_source,
     }
     (outputs / "run.json").write_text(json.dumps(status, indent=2), encoding="utf-8")
     (run_dir / "status.json").write_text(json.dumps(status, indent=2), encoding="utf-8")

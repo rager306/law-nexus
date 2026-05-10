@@ -39,6 +39,8 @@ Preferred PI mode: use `execute_pi_skill_eval.py` with the `gsd-print` backend t
 python .agents/skills/pi-skill-creator/scripts/execute_pi_skill_eval.py <skill-name>-workspace/iteration-N --backend gsd-print
 ```
 
+After execution, inspect `execution-summary.json` and spot-check `outputs/run.json` files. Prefer `answer_source: executor_created_file`; `stdout_fallback` is acceptable for simple answer-only tasks but weaker evidence for artifact-producing evals. The prompt must direct outputs to the run-local absolute `outputs/answer.md`, not a repository-root `outputs/` directory.
+
 For tests or custom runners, use `--backend command --command "..."`; the prompt is appended as the final argv item unless the command contains `{prompt}`.
 
 If full execution is not available, perform a dry rubric review and mark it as `dry_review`, not as benchmark proof. Manual/subagent execution is still valid if each final answer or artifact summary is saved to `outputs/answer.md`.

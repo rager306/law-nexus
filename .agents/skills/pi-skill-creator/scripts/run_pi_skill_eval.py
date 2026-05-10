@@ -52,7 +52,7 @@ def slug(text: str) -> str:
     return value or "eval"
 
 
-def write_executor_prompt(path: Path, *, skill_dir: Path, eval_item: dict[str, Any], configuration: str) -> None:
+def write_executor_prompt(path: Path, *, skill_dir: Path, eval_item: dict[str, Any], configuration: str, outputs_dir: Path) -> None:
     skill_clause = (
         f"Use this PI/GSD skill as the primary guidance: {skill_dir}\n"
         if configuration == "with_skill"
@@ -60,6 +60,8 @@ def write_executor_prompt(path: Path, *, skill_dir: Path, eval_item: dict[str, A
     )
     files = eval_item.get("files", [])
     expectations = "\n".join(f"- {item}" for item in eval_item.get("expectations", []))
+    answer_path = (outputs_dir / "answer.md").resolve()
+    metrics_path = (outputs_dir / "metrics.json").resolve()
     path.write_text(
         f"# Executor Prompt — {configuration}\n\n"
         f"{skill_clause}\n"
@@ -67,8 +69,9 @@ def write_executor_prompt(path: Path, *, skill_dir: Path, eval_item: dict[str, A
         f"Expected output:\n\n{eval_item['expected_output']}\n\n"
         f"Input files: {files if files else 'none'}\n\n"
         f"Expectations to satisfy:\n{expectations}\n\n"
-        "Save the final answer or artifact summary to `outputs/answer.md`. "
-        "If files are created, put them under `outputs/` and list them in `outputs/metrics.json`.\n",
+        f"Save the final answer or artifact summary to `{answer_path}`. "
+        f"If files are created, put them under `{outputs_dir.resolve()}/` and list them in `{metrics_path}`. "
+        "Do not write eval artifacts to the repository root `outputs/` directory.\n",
         encoding="utf-8",
     )
 
@@ -113,7 +116,13 @@ def run(skill_dir: Path, workspace: Path, iteration: int | None, baseline: str) 
             run_dir = eval_dir / configuration
             outputs_dir = run_dir / "outputs"
             outputs_dir.mkdir(parents=True)
-            write_executor_prompt(run_dir / "EXECUTOR_PROMPT.md", skill_dir=skill_dir, eval_item=item, configuration=configuration)
+            write_executor_prompt(
+                run_dir / "EXECUTOR_PROMPT.md",
+                skill_dir=skill_dir,
+                eval_item=item,
+                configuration=configuration,
+                outputs_dir=outputs_dir,
+            )
             (run_dir / "status.json").write_text(
                 json.dumps({"status": "pending", "outputs_expected": "outputs/answer.md"}, indent=2),
                 encoding="utf-8",
