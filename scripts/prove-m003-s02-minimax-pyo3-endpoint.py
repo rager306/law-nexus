@@ -228,6 +228,11 @@ def _invalid_endpoint(endpoint_input: str, reason: str) -> dict[str, Any]:
     }
 
 
+def _unsafe_endpoint(reason: str) -> dict[str, Any]:
+    """Return an invalid endpoint without persisting unsafe user-supplied URL text."""
+    return _invalid_endpoint("<rejected-unsafe-endpoint>", reason)
+
+
 def normalize_genai_base_endpoint(base_url: str) -> dict[str, Any]:
     """Normalize MiniMax endpoint input into the base URL Rust may receive."""
     endpoint_input = base_url
@@ -236,6 +241,12 @@ def normalize_genai_base_endpoint(base_url: str) -> dict[str, Any]:
         return _invalid_endpoint(endpoint_input, "empty")
 
     parts = urlsplit(stripped)
+    if parts.username or parts.password:
+        return _unsafe_endpoint("userinfo-not-allowed")
+    if parts.query:
+        return _unsafe_endpoint("query-not-allowed")
+    if parts.fragment:
+        return _unsafe_endpoint("fragment-not-allowed")
     if parts.scheme != "https":
         return _invalid_endpoint(endpoint_input, "unsupported-scheme")
     if not parts.netloc:
@@ -778,12 +789,13 @@ def run_proof(
                 "project_dir": normalized_path(project_dir),
             }
         else:
-            root = "maturin-build-timeout" if build.timed_out else f"maturin-build-exit-{build.exit_code}"
+            root = "maturin-build-timeout" if build.timed_out else "maturin-build-failed"
             phases["build"] = {
                 "phase": "build",
                 "status": "blocked-environment",
                 "root_cause": root,
                 "category": "build-timeout" if build.timed_out else "build",
+                "exit_code": build.exit_code,
                 "log_path": build.log_path,
             }
 

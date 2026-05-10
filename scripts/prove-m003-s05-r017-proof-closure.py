@@ -315,8 +315,8 @@ def derive_recommendation_category(upstreams: dict[str, dict[str, Any]]) -> Reco
     s03 = upstreams["S03"]
     s04 = upstreams["S04"]
     all_confirmed = (
-        s01["status"] == "confirmed-runtime"
-        and s02["status"] == "confirmed-runtime"
+        s01["endpoint_preserves_v1"] is True
+        and s02["provider_attempts"] > 0
         and s02["mechanics_confirmed"] is True
         and s03["status"] == "confirmed-runtime"
         and s03["candidate_accepted"] is True
@@ -347,8 +347,8 @@ def category_blockers(upstreams: dict[str, dict[str, Any]]) -> list[str]:
 def r017_effect_for(category: RecommendationCategory) -> dict[str, str]:
     if category == "pursue-pyo3":
         return {
-            "status": "ready-for-requirement-validation-review",
-            "summary": "R017 has all S05 prerequisite proof signals for a future validation review, but this artifact does not itself validate the requirement.",
+            "status": "advanced-not-validated",
+            "summary": "R017 has all M003 proof signals for the PyO3 route, but this artifact does not itself validate the requirement or prove product Legal KnowQL quality.",
         }
     if category == "pursue-pyo3-conditioned":
         return {

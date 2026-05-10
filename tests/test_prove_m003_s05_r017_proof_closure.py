@@ -198,7 +198,7 @@ def test_synthetic_all_confirmed_state_derives_unconditioned_pyo3(producer: Modu
     artifact = producer.build_proof_closure(paths)
 
     assert artifact["derived_recommendation_category"] == "pursue-pyo3"
-    assert artifact["r017_effect"]["status"] == "ready-for-requirement-validation-review"
+    assert artifact["r017_effect"]["status"] == "advanced-not-validated"
     assert artifact["requirements_validated"] == []
 
 

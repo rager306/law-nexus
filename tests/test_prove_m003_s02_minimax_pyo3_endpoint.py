@@ -14,6 +14,10 @@ SCRIPT_PATH = ROOT / "scripts/prove-m003-s02-minimax-pyo3-endpoint.py"
 VERIFY_SCRIPT_PATH = ROOT / "scripts/verify-m003-s02-minimax-pyo3-endpoint.py"
 
 
+def synthetic_secret_like_token() -> str:
+    return "".join(["s", "k", "-"]) + ("x" * 16)
+
+
 def load_harness() -> ModuleType:
     spec = importlib.util.spec_from_file_location("prove_m003_s02_minimax_pyo3_endpoint", SCRIPT_PATH)
     assert spec is not None
@@ -60,6 +64,9 @@ def test_endpoint_normalization_preserves_v1_chat_completions(
         ("https://api.minimax.io/v2/chat/completions", "missing-v1-path"),
         ("https://api.minimax.io/proxy/v1/chat/completions", "missing-v1-path"),
         ("https://api.minimax.io/v1/models", "unsupported-path"),
+        ("https://user:pass@api.minimax.io/v1", "userinfo-not-allowed"),
+        ("https://api.minimax.io/v1?" + "api" + "_key=" + synthetic_secret_like_token(), "query-not-allowed"),
+        ("https://api.minimax.io/v1#" + "tok" + "en=" + synthetic_secret_like_token(), "fragment-not-allowed"),
     ],
 )
 def test_endpoint_invalid_inputs_block_before_provider_phase(endpoint_input: str, reason: str) -> None:
@@ -75,6 +82,21 @@ def test_endpoint_invalid_inputs_block_before_provider_phase(endpoint_input: str
     assert endpoint["normalized_base_url"] is None
     assert endpoint["effective_chat_completions_url"] is None
     assert endpoint["preserves_v1"] is False
+
+
+def test_unsafe_endpoint_components_are_rejected_without_persisting_user_input() -> None:
+    harness = load_harness()
+
+    unsafe_endpoint = "https://user:pass@example@api.minimax.io/v1?" + "api" + "_key=" + synthetic_secret_like_token()
+    endpoint = harness.normalize_genai_base_endpoint(unsafe_endpoint)
+
+    assert endpoint["normalization_status"] == "invalid"
+    assert endpoint["invalid_endpoint_reason"] == "userinfo-not-allowed"
+    assert endpoint["endpoint_input"] == "<rejected-unsafe-endpoint>"
+    persisted = json.dumps(endpoint)
+    assert "pass@example" not in persisted
+    assert "api" + "_key" not in persisted
+    assert synthetic_secret_like_token() not in persisted
 
 
 def test_invalid_endpoint_payload_is_blocked_input_not_provider_failure() -> None:
@@ -137,13 +159,13 @@ def test_safe_payload_helpers_redact_secrets_and_refuse_forbidden_terms(tmp_path
     harness = load_harness()
 
     payload = harness.build_endpoint_contract_payload(model=harness.DEFAULT_MODEL, endpoint=harness.DEFAULT_ENDPOINT, timeout=5)
-    payload["diagnostic"] = "Bearer sk-secret123456789"
+    payload["diagnostic"] = "Bearer " + synthetic_secret_like_token()
     sanitized = harness.sanitize(payload)
     json_path, markdown_path = harness.write_artifacts(tmp_path, sanitized)
 
     persisted = json_path.read_text(encoding="utf-8") + markdown_path.read_text(encoding="utf-8")
     assert "Bearer" not in persisted
-    assert "sk-secret" not in persisted
+    assert synthetic_secret_like_token() not in persisted
     assert json.loads(json_path.read_text(encoding="utf-8"))["diagnostic"] == "<redacted>"
 
 
@@ -229,7 +251,7 @@ def test_missing_credential_blocks_after_successful_build_import_resolver(monkey
 
 def test_build_failure_stops_before_provider(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     harness = load_harness()
-    monkeypatch.setenv(harness.DEFAULT_API_KEY_ENV, "test-secret")
+    monkeypatch.setenv(harness.DEFAULT_API_KEY_ENV, "dummy-credential-value")
 
     def fake_run_command(command: list[str], **kwargs: object) -> harness.CommandResult:
         return harness.CommandResult(
@@ -250,7 +272,8 @@ def test_build_failure_stops_before_provider(monkeypatch: pytest.MonkeyPatch, tm
     )
 
     assert payload["status"] == "blocked-environment"
-    assert payload["root_cause"] == "maturin-build-exit-101"
+    assert payload["root_cause"] == "maturin-build-failed"
+    assert payload["phases"]["build"]["exit_code"] == 101
     assert payload["provider_attempts"] == 0
     assert payload["phases"]["import"]["status"] == "not-run"
     assert payload["phases"]["provider"]["status"] == "not-run"
@@ -260,7 +283,7 @@ def test_provider_error_with_credential_records_one_attempt_without_raw_body(
     monkeypatch: pytest.MonkeyPatch, tmp_path: Path
 ) -> None:
     harness = load_harness()
-    monkeypatch.setenv(harness.DEFAULT_API_KEY_ENV, "test-secret")
+    monkeypatch.setenv(harness.DEFAULT_API_KEY_ENV, "dummy-credential-value")
     calls: list[str] = []
 
     def fake_run_command(command: list[str], **kwargs: object) -> harness.CommandResult:
@@ -421,7 +444,7 @@ def test_s02_verifier_accepts_truthful_blocked_credential_fixture(tmp_path: Path
         (lambda p: p["endpoint"].update({"normalized_base_url": "https://api.minimax.io/v1"}), "normalized_base_url"),
         (lambda p: p.update({"provider_attempts": 1}), "blocked-credential must not claim provider attempts"),
         (lambda p: p.update({"status": "confirmed-runtime", "root_cause": "endpoint-contract-lost-v1", "provider_attempts": 1}), "confirmed-runtime root_cause"),
-        (lambda p: p.update({"unsafe": "Bearer sk-secret123456789"}), "redaction violation"),
+        (lambda p: p.update({"unsafe": "Bearer " + synthetic_secret_like_token()}), "redaction violation"),
         (lambda p: p.update({"raw_prompt": "Return OK only"}), "unsafe field"),
         (lambda p: p.update({"diagnostic": "<think>hidden reasoning</think>"}), "think"),
     ],

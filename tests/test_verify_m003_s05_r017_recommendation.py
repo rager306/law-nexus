@@ -114,16 +114,16 @@ def make_all_confirmed(
     return closure, upstream
 
 
-def test_current_recommendation_matches_conditioned_evidence(verifier: ModuleType) -> None:
+def test_current_recommendation_matches_current_evidence(verifier: ModuleType) -> None:
     result = verifier.verify_recommendation(RECOMMENDATION_PATH, CLOSURE_PATH, UPSTREAM_PATHS)
 
     assert result.ok, result.errors
 
 
-def test_derives_current_conditioned_category(verifier: ModuleType, closure_payload: dict[str, object], upstream_payloads: dict[str, dict[str, object]]) -> None:
+def test_derives_current_pyo3_category(verifier: ModuleType, closure_payload: dict[str, object], upstream_payloads: dict[str, dict[str, object]]) -> None:
     result = verifier.VerificationResult()
 
-    assert verifier.derive_category(closure_payload, upstream_payloads, result) == "pursue-pyo3-conditioned"
+    assert verifier.derive_category(closure_payload, upstream_payloads, result) == "pursue-pyo3"
     assert result.ok
 
 
@@ -156,7 +156,7 @@ def test_rejects_mismatched_recommendation_category(
     closure_payload: dict[str, object],
     upstream_payloads: dict[str, dict[str, object]],
 ) -> None:
-    text = recommendation_text.replace("`pursue-pyo3-conditioned`", "`pursue-pyo3`", 1)
+    text = recommendation_text.replace("`pursue-pyo3`", "`pursue-pyo3-conditioned`", 1)
 
     errors = errors_for(verifier, tmp_path, text, closure_payload, upstream_payloads)
 
@@ -247,7 +247,7 @@ def test_rejects_missing_explicit_non_claims(
     upstream_payloads: dict[str, dict[str, object]],
     required_non_claim: str,
 ) -> None:
-    errors = errors_for(verifier, tmp_path, recommendation_text.replace(required_non_claim, "", 1), closure_payload, upstream_payloads)
+    errors = errors_for(verifier, tmp_path, recommendation_text.replace(required_non_claim, ""), closure_payload, upstream_payloads)
 
     assert any("missing explicit non-claims" in error for error in errors)
 

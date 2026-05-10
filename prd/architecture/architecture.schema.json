@@ -1,0 +1,592 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://law-nexus.local/prd/architecture/architecture.schema.json",
+  "title": "LegalGraph Nexus Architecture Registry Record",
+  "description": "Schema for git-backed, derived architecture registry JSONL records. PRD/GSD/ADR/source/runtime evidence remains the source of truth; records validated by this schema are projections for graph analysis and architecture verification.",
+  "oneOf": [
+    {
+      "$ref": "#/$defs/item"
+    },
+    {
+      "$ref": "#/$defs/edge"
+    }
+  ],
+  "$defs": {
+    "schema_version": {
+      "type": "string",
+      "const": "legalgraph-architecture-registry/v1"
+    },
+    "non_empty_string": {
+      "type": "string",
+      "minLength": 1
+    },
+    "identifier": {
+      "type": "string",
+      "pattern": "^[A-Z][A-Z0-9_-]*-[A-Za-z0-9_.:-]+$"
+    },
+    "path_string": {
+      "type": "string",
+      "minLength": 1,
+      "not": {
+        "pattern": "^/"
+      }
+    },
+    "source_anchor": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "path",
+        "kind"
+      ],
+      "properties": {
+        "path": {
+          "$ref": "#/$defs/path_string",
+          "description": "Repository-relative path. Do not use resolved /root/.gsd/... symlink targets."
+        },
+        "kind": {
+          "type": "string",
+          "enum": [
+            "prd",
+            "gsd-requirement",
+            "gsd-decision",
+            "gsd-summary",
+            "source-code",
+            "runtime-artifact",
+            "test-artifact",
+            "external-reference",
+            "manual-note"
+          ]
+        },
+        "section": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "line_start": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "line_end": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "selector": {
+          "$ref": "#/$defs/non_empty_string",
+          "description": "Stable heading, JSON pointer, artifact ID, or grep-ready selector when line numbers are not stable."
+        },
+        "quote_hash": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{8,64}$",
+          "description": "Optional hash of a short supporting quote. Do not store raw legal text or secrets."
+        }
+      }
+    },
+    "source_anchors": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/source_anchor"
+      },
+      "uniqueItems": true
+    },
+    "layer": {
+      "type": "string",
+      "enum": [
+        "legal-evidence",
+        "temporal-model",
+        "graph-runtime",
+        "parser-ingestion",
+        "retrieval-embedding",
+        "generated-cypher",
+        "api-product",
+        "security-safety",
+        "observability-operability",
+        "workflow-governance",
+        "architecture-governance"
+      ]
+    },
+    "item_type": {
+      "type": "string",
+      "enum": [
+        "requirement",
+        "decision",
+        "assumption",
+        "risk",
+        "proof_gate",
+        "component",
+        "interface",
+        "data_entity",
+        "quality_scenario",
+        "viewpoint",
+        "evidence",
+        "workflow_check"
+      ]
+    },
+    "item_status": {
+      "type": "string",
+      "enum": [
+        "proposed",
+        "active",
+        "hypothesis",
+        "bounded-evidence",
+        "validated",
+        "deferred",
+        "blocked",
+        "rejected",
+        "superseded",
+        "out-of-scope"
+      ]
+    },
+    "edge_status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "hypothesis",
+        "bounded-evidence",
+        "validated",
+        "rejected",
+        "superseded"
+      ]
+    },
+    "proof_level": {
+      "type": "string",
+      "enum": [
+        "none",
+        "source-anchor",
+        "static-check",
+        "unit-test",
+        "integration-test",
+        "runtime-smoke",
+        "real-document-proof",
+        "production-observation"
+      ]
+    },
+    "lifecycle_state": {
+      "type": "string",
+      "enum": [
+        "initiating",
+        "researching",
+        "evaluating",
+        "implementing",
+        "maintaining",
+        "sunsetting"
+      ]
+    },
+    "risk_level": {
+      "type": "string",
+      "enum": [
+        "low",
+        "medium",
+        "high",
+        "critical"
+      ]
+    },
+    "priority": {
+      "type": "string",
+      "enum": [
+        "low",
+        "medium",
+        "high",
+        "critical"
+      ]
+    },
+    "date": {
+      "type": "string",
+      "format": "date"
+    },
+    "option": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "title",
+        "summary"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/identifier"
+        },
+        "title": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "summary": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "considered",
+            "chosen",
+            "rejected",
+            "deferred"
+          ]
+        },
+        "pros": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/non_empty_string"
+          }
+        },
+        "cons": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/non_empty_string"
+          }
+        },
+        "source_anchors": {
+          "$ref": "#/$defs/source_anchors"
+        }
+      }
+    },
+    "item": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema_version",
+        "record_kind",
+        "id",
+        "type",
+        "title",
+        "summary",
+        "layer",
+        "status",
+        "proof_level",
+        "risk_level",
+        "source_anchors",
+        "owner",
+        "verification",
+        "generated_draft",
+        "non_claims"
+      ],
+      "properties": {
+        "schema_version": {
+          "$ref": "#/$defs/schema_version"
+        },
+        "record_kind": {
+          "type": "string",
+          "const": "item"
+        },
+        "id": {
+          "$ref": "#/$defs/identifier"
+        },
+        "type": {
+          "$ref": "#/$defs/item_type"
+        },
+        "title": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "summary": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "layer": {
+          "$ref": "#/$defs/layer"
+        },
+        "status": {
+          "$ref": "#/$defs/item_status"
+        },
+        "proof_level": {
+          "$ref": "#/$defs/proof_level"
+        },
+        "risk_level": {
+          "$ref": "#/$defs/risk_level"
+        },
+        "lifecycle": {
+          "$ref": "#/$defs/lifecycle_state"
+        },
+        "source_anchors": {
+          "$ref": "#/$defs/source_anchors"
+        },
+        "owner": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "verification": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "generated_draft": {
+          "type": "boolean",
+          "description": "True only for generated draft records that have not yet been anchored to source evidence."
+        },
+        "non_claims": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/non_empty_string"
+          },
+          "uniqueItems": true
+        },
+        "deciders": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/non_empty_string"
+          },
+          "uniqueItems": true
+        },
+        "stakeholders": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/non_empty_string"
+          },
+          "uniqueItems": true
+        },
+        "priority": {
+          "$ref": "#/$defs/priority"
+        },
+        "decision_drivers": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/non_empty_string"
+          }
+        },
+        "considered_options": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/option"
+          }
+        },
+        "positive_consequences": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/non_empty_string"
+          }
+        },
+        "negative_consequences": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/non_empty_string"
+          }
+        },
+        "assumptions": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/non_empty_string"
+          }
+        },
+        "constraints": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/non_empty_string"
+          }
+        },
+        "implications": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/non_empty_string"
+          }
+        },
+        "related_requirements": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/identifier"
+          },
+          "uniqueItems": true
+        },
+        "related_decisions": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/identifier"
+          },
+          "uniqueItems": true
+        },
+        "related_artifacts": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/path_string"
+          },
+          "uniqueItems": true
+        },
+        "governed_artifacts": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/path_string"
+          },
+          "uniqueItems": true
+        },
+        "last_reviewed": {
+          "$ref": "#/$defs/date"
+        },
+        "review_due": {
+          "$ref": "#/$defs/date"
+        },
+        "superseded_by": {
+          "$ref": "#/$defs/identifier"
+        },
+        "tags": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/non_empty_string"
+          },
+          "uniqueItems": true
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "generated_draft": {
+                "const": false
+              }
+            },
+            "required": [
+              "generated_draft"
+            ]
+          },
+          "then": {
+            "properties": {
+              "source_anchors": {
+                "minItems": 1
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "status": {
+                "const": "superseded"
+              }
+            },
+            "required": [
+              "status"
+            ]
+          },
+          "then": {
+            "required": [
+              "superseded_by"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "const": "decision"
+              }
+            },
+            "required": [
+              "type"
+            ]
+          },
+          "then": {
+            "required": [
+              "deciders",
+              "decision_drivers",
+              "considered_options"
+            ]
+          }
+        }
+      ]
+    },
+    "edge_type": {
+      "type": "string",
+      "enum": [
+        "satisfies",
+        "depends_on",
+        "blocks",
+        "contradicts",
+        "refines",
+        "implements",
+        "validated_by",
+        "bounded_by",
+        "supersedes",
+        "superseded_by",
+        "risks",
+        "owned_by",
+        "evidenced_by",
+        "uses_viewpoint",
+        "checked_by",
+        "has_option",
+        "chosen_over",
+        "has_consequence",
+        "has_assumption",
+        "has_constraint",
+        "implicates",
+        "reviewed_by",
+        "governs_artifact"
+      ]
+    },
+    "edge": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema_version",
+        "record_kind",
+        "id",
+        "from",
+        "to",
+        "type",
+        "status",
+        "rationale",
+        "source_anchors",
+        "generated_draft"
+      ],
+      "properties": {
+        "schema_version": {
+          "$ref": "#/$defs/schema_version"
+        },
+        "record_kind": {
+          "type": "string",
+          "const": "edge"
+        },
+        "id": {
+          "$ref": "#/$defs/identifier"
+        },
+        "from": {
+          "$ref": "#/$defs/identifier"
+        },
+        "to": {
+          "$ref": "#/$defs/identifier"
+        },
+        "type": {
+          "$ref": "#/$defs/edge_type"
+        },
+        "status": {
+          "$ref": "#/$defs/edge_status"
+        },
+        "rationale": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "source_anchors": {
+          "$ref": "#/$defs/source_anchors"
+        },
+        "generated_draft": {
+          "type": "boolean"
+        },
+        "owner": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "verification": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "confidence": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "tags": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/non_empty_string"
+          },
+          "uniqueItems": true
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "generated_draft": {
+                "const": false
+              }
+            },
+            "required": [
+              "generated_draft"
+            ]
+          },
+          "then": {
+            "properties": {
+              "source_anchors": {
+                "minItems": 1
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

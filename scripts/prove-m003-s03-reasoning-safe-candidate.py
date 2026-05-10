@@ -284,15 +284,21 @@ def build_minimax_chat_request(model: str) -> dict[str, Any]:
                 "role": "system",
                 "content": (
                     "Return exactly one read-only Cypher candidate and no prose, markdown fences, "
-                    "comments, examples, or raw legal text. Keep reasoning separated by the provider."
+                    "comments, examples, or raw legal text. Keep reasoning separated by the provider. "
+                    "Use only the schema supplied by the user; do not invent properties or relationship directions."
                 ),
             },
             {
                 "role": "user",
                 "content": (
-                    "Generate one synthetic LegalGraph-shaped read-only query using EvidenceSpan, "
-                    "Article, SourceBlock, SUPPORTS, SUPPORTED_BY, IN_BLOCK, $article_id, $as_of, "
-                    "and LIMIT 5. Return only the Cypher text."
+                    "Generate one synthetic LegalGraph-shaped read-only query that satisfies this schema contract exactly. "
+                    "Allowed labels and properties: Article(id, number, valid_from, valid_to, text_hash), "
+                    "EvidenceSpan(id, span_hash, start_offset, end_offset), SourceBlock(id, source_id, block_hash). "
+                    "Allowed relationship directions, all required in the query: (EvidenceSpan)-[:SUPPORTS]->(Article), "
+                    "(EvidenceSpan)-[:IN_BLOCK]->(SourceBlock), and (Article)-[:SUPPORTED_BY]->(SourceBlock). "
+                    "Use WHERE a.id = $article_id. Return only a.id, es.id, and sb.id. "
+                    "Do not use articleId, asOf, unsupported relationships, reverse relationship directions, or whole-node returns. "
+                    "Return only this kind of Cypher text with LIMIT 5."
                 ),
             },
         ],
