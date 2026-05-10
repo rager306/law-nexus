@@ -12,6 +12,7 @@ import pytest
 
 ROOT = Path(__file__).resolve().parents[1]
 SCRIPT_PATH = ROOT / "scripts/prove-m003-s01-minimax-baseline.py"
+VERIFY_SCRIPT_PATH = ROOT / "scripts/verify-m003-s01-minimax-baseline.py"
 
 
 class FakeResponse:
@@ -31,6 +32,16 @@ class FakeResponse:
 
 def load_harness() -> ModuleType:
     spec = importlib.util.spec_from_file_location("prove_m003_s01_minimax_baseline", SCRIPT_PATH)
+    assert spec is not None
+    module = importlib.util.module_from_spec(spec)
+    assert spec.loader is not None
+    sys.modules[spec.name] = module
+    spec.loader.exec_module(module)
+    return module
+
+
+def load_verifier() -> ModuleType:
+    spec = importlib.util.spec_from_file_location("verify_m003_s01_minimax_baseline", VERIFY_SCRIPT_PATH)
     assert spec is not None
     module = importlib.util.module_from_spec(spec)
     assert spec.loader is not None
@@ -418,3 +429,132 @@ def test_write_artifacts_redacts_secret_like_fields_before_persisting(tmp_path: 
     assert "Authorization" not in persisted
     assert "Bearer" not in persisted
     assert "sk-testsecret" not in persisted
+
+
+def write_verifier_fixture(tmp_path: Path, payload: dict[str, Any]) -> tuple[Path, Path]:
+    harness = load_harness()
+    return harness.write_artifacts(tmp_path, payload)
+
+
+def clone_payload(payload: dict[str, Any]) -> dict[str, Any]:
+    return json.loads(json.dumps(payload))
+
+
+def blocked_credential_payload() -> dict[str, Any]:
+    harness = load_harness()
+    return harness.build_missing_credential_payload(
+        model=harness.DEFAULT_MODEL,
+        base_url=harness.DEFAULT_BASE_URL,
+        api_key_env="MINIMAX_API_KEY",
+    )
+
+
+def confirmed_runtime_payload() -> dict[str, Any]:
+    harness = load_harness()
+
+    def fake_urlopen(_req: Any, *, timeout: int) -> FakeResponse:
+        _ = timeout
+        body = json.dumps({"choices": [{"message": {"content": "MATCH (n) RETURN n LIMIT 1"}}]}).encode()
+        return FakeResponse(body, status=200)
+
+    payload, _sensitive_values = harness.build_live_payload(
+        model=harness.DEFAULT_MODEL,
+        base_url=harness.DEFAULT_BASE_URL,
+        timeout=5,
+        api_key_env="MINIMAX_API_KEY",
+        environ={"MINIMAX_API_KEY": "sk-testsecret123456"},
+        urlopen=fake_urlopen,
+    )
+    return payload
+
+
+def verify_mutated_payload_rejection(tmp_path: Path, payload: dict[str, Any], match: str) -> None:
+    verifier = load_verifier()
+    write_verifier_fixture(tmp_path, payload)
+
+    with pytest.raises(verifier.VerificationError, match=match):
+        verifier.verify_artifacts(tmp_path)
+
+
+def test_verifier_accepts_truthful_blocked_credential_artifact(tmp_path: Path) -> None:
+    verifier = load_verifier()
+    payload = blocked_credential_payload()
+    write_verifier_fixture(tmp_path, payload)
+
+    result = verifier.verify_artifacts(tmp_path)
+
+    assert result["verdict"] == "pass"
+    assert result["status"] == "blocked-credential"
+    assert result["root_cause"] == "minimax-credential-missing"
+    assert result["provider_attempts"] == 0
+
+
+def test_verifier_accepts_confirmed_runtime_only_with_candidate_like_content(tmp_path: Path) -> None:
+    verifier = load_verifier()
+    payload = confirmed_runtime_payload()
+    write_verifier_fixture(tmp_path, payload)
+
+    result = verifier.verify_artifacts(tmp_path)
+
+    assert result["verdict"] == "pass"
+    assert result["status"] == "confirmed-runtime"
+    assert result["provider_attempts"] == 1
+
+
+def test_verifier_rejects_missing_v1_chat_completions_endpoint(tmp_path: Path) -> None:
+    payload = blocked_credential_payload()
+    payload["endpoint"]["effective_url"] = "https://api.minimax.io/chat/completions"
+
+    verify_mutated_payload_rejection(tmp_path, payload, "effective_url")
+
+
+def test_verifier_rejects_missing_reasoning_split_request(tmp_path: Path) -> None:
+    payload = blocked_credential_payload()
+    del payload["request_contract"]["reasoning_split_requested"]
+
+    verify_mutated_payload_rejection(tmp_path, payload, "reasoning_split_requested")
+
+
+def test_verifier_rejects_confirmed_runtime_without_provider_attempt(tmp_path: Path) -> None:
+    payload = confirmed_runtime_payload()
+    payload["provider_attempts"] = 0
+
+    verify_mutated_payload_rejection(tmp_path, payload, "provider_attempts >= 1")
+
+
+def test_verifier_rejects_secret_like_strings_in_json_artifact(tmp_path: Path) -> None:
+    verifier = load_verifier()
+    harness = load_harness()
+    payload = blocked_credential_payload()
+    json_path, _markdown_path = write_verifier_fixture(tmp_path, payload)
+    machine = json.loads(json_path.read_text(encoding="utf-8"))
+    machine["provider_diagnostics"]["leaked_detail"] = "token=abcd1234"
+    json_path.write_text(json.dumps(machine), encoding="utf-8")
+
+    with pytest.raises(verifier.VerificationError, match="redaction violation"):
+        verifier.verify_artifacts(tmp_path)
+    assert harness.JSON_ARTIFACT in str(json_path)
+
+
+def test_verifier_rejects_raw_body_and_prompt_flags(tmp_path: Path) -> None:
+    payload = blocked_credential_payload()
+    payload["safety"]["raw_body_persisted"] = True
+
+    verify_mutated_payload_rejection(tmp_path, payload, "raw_body_persisted")
+
+
+def test_verifier_rejects_boundary_overclaims(tmp_path: Path) -> None:
+    payload = clone_payload(blocked_credential_payload())
+    payload["boundaries"]["does_not_prove"] = [
+        item for item in payload["boundaries"]["does_not_prove"] if "S03 validation" not in item
+    ]
+
+    verify_mutated_payload_rejection(tmp_path, payload, "S03 validation")
+
+
+def test_verifier_rejects_confirmed_runtime_with_think_tag_contamination(tmp_path: Path) -> None:
+    payload = confirmed_runtime_payload()
+    payload["response_shape"]["has_think_tag"] = True
+    payload["response_shape"]["root_cause"] = "reasoning-contamination"
+
+    verify_mutated_payload_rejection(tmp_path, payload, "think-tag")

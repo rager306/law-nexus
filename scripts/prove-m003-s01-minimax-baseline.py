@@ -269,6 +269,8 @@ def sanitize_artifact_payload(value: Any, *, sensitive_values: list[str] | None 
             key = str(raw_key)
             if key == "request_body":
                 sanitized[key] = "<omitted-request-body>"
+            elif key.endswith("_persisted") and isinstance(raw_item, bool):
+                sanitized[key] = raw_item
             elif _is_sensitive_key(key):
                 redacted_field_count += 1
             else:
@@ -297,8 +299,10 @@ def boundary_payload() -> dict[str, list[str]]:
         "does_not_prove": [
             "Legal KnowQL product behavior",
             "legal-answer correctness",
-            "production graph schema fitness",
+            "production graph schema fitness / production schema quality",
             "Garant ODT parsing or retrieval quality",
+            "FalkorDB execution",
+            "S03 validation",
             "PyO3/genai adapter behavior",
             "provider generation quality",
         ],
