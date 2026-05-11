@@ -33,6 +33,8 @@ DEFAULT_RELATION_CANDIDATE_RECORDS_PATH = ROOT / "prd/parser/consultant_relation
 
 NodeKind = Literal["document", "source_block", "unresolved_reference"]
 EdgeKind = Literal["contains_source_block", "relation_candidate"]
+DiagnosticSeverity = Literal["error", "warning", "info"]
+GraphBuildStatus = Literal["pass", "fail"]
 
 
 @dataclass(frozen=True)
@@ -43,6 +45,7 @@ class GraphBuildDiagnostic:
     line: int
     rule: str
     message: str
+    severity: DiagnosticSeverity = "error"
     record_id: str | None = None
     record_kind: str | None = None
     field: str = "record"
@@ -55,6 +58,7 @@ class GraphBuildDiagnostic:
             line=int(diagnostic.get("line") or 0),
             rule=str(diagnostic.get("rule") or "validation_error"),
             message=str(diagnostic.get("message") or "validation error"),
+            severity="error",
             record_id=_optional_string(diagnostic.get("record_id")),
             record_kind=_optional_string(diagnostic.get("record_kind")),
             field=str(diagnostic.get("field") or "record"),
@@ -65,10 +69,12 @@ class GraphBuildDiagnostic:
         return {
             "path": display_path(self.path),
             "line": self.line,
+            "id": self.record_id,
             "record_id": self.record_id,
             "record_kind": self.record_kind,
             "field": self.field,
             "rule": self.rule,
+            "severity": self.severity,
             "source_path": self.source_path,
             "message": self.message,
         }
@@ -92,6 +98,10 @@ class ParserStagingGraphSummary:
     relation_candidate_edge_keys: list[str]
     unresolved_reference_ids: list[str]
     diagnostic_count: int
+    error_count: int
+    warning_count: int
+    info_count: int
+    status: GraphBuildStatus
     non_authoritative: bool = True
     parser_completeness_claimed: bool = False
     legal_correctness_claimed: bool = False
@@ -105,6 +115,10 @@ class ParserStagingGraphSummary:
             "relation_candidate_edge_keys": list(self.relation_candidate_edge_keys),
             "unresolved_reference_ids": list(self.unresolved_reference_ids),
             "diagnostic_count": self.diagnostic_count,
+            "error_count": self.error_count,
+            "warning_count": self.warning_count,
+            "info_count": self.info_count,
+            "status": self.status,
             "non_authoritative": self.non_authoritative,
             "parser_completeness_claimed": self.parser_completeness_claimed,
             "legal_correctness_claimed": self.legal_correctness_claimed,
@@ -150,7 +164,7 @@ def build_staging_graph(
     ]
 
     graph = nx.MultiDiGraph(non_authoritative=True)
-    if diagnostics:
+    if has_error_diagnostics(diagnostics):
         return ParserStagingGraphResult(
             graph=graph,
             diagnostics=diagnostics,
@@ -161,8 +175,26 @@ def build_staging_graph(
     source_blocks = _typed_records(source_block_load.records, SourceBlockRecord)
     relation_candidates = _typed_records(relation_load.records, RelationCandidateRecord)
 
+    invariant_diagnostics = validate_loaded_record_invariants(documents, source_blocks, relation_candidates)
+    diagnostics.extend(invariant_diagnostics)
+    if has_error_diagnostics(invariant_diagnostics):
+        return ParserStagingGraphResult(
+            graph=graph,
+            diagnostics=diagnostics,
+            summary=summarize_graph(graph, diagnostics),
+        )
+
     build_diagnostics = populate_graph(graph, documents, source_blocks, relation_candidates)
     diagnostics.extend(build_diagnostics)
+    diagnostics.append(
+        GraphBuildDiagnostic(
+            path=relation_candidate_records_path,
+            line=0,
+            rule="no_falkordb_load_executed",
+            severity="info",
+            message="NetworkX staging graph was built only; no FalkorDB loading/runtime readiness claim is made",
+        )
+    )
     return ParserStagingGraphResult(
         graph=graph,
         diagnostics=diagnostics,
@@ -182,6 +214,7 @@ def load_records(path: Path, *, expected_kind: str) -> LoadedParserRecords:
                     path=path,
                     line=0,
                     rule="missing_file",
+                    severity="error",
                     message="required parser JSONL artifact is missing",
                     record_kind=expected_kind,
                 ),
@@ -197,6 +230,7 @@ def load_records(path: Path, *, expected_kind: str) -> LoadedParserRecords:
                     path=path,
                     line=0,
                     rule="unexpected_record_kind",
+                    severity="error",
                     message=f"expected record_kind={expected_kind}",
                     record_id=record.id,
                     record_kind=record.record_kind,
@@ -209,6 +243,50 @@ def load_records(path: Path, *, expected_kind: str) -> LoadedParserRecords:
     return LoadedParserRecords(path=path, records=tuple(sorted(records, key=record_sort_key)), diagnostics=())
 
 
+def validate_loaded_record_invariants(
+    documents: list[DocumentRecord],
+    source_blocks: list[SourceBlockRecord],
+    relation_candidates: list[RelationCandidateRecord],
+) -> list[GraphBuildDiagnostic]:
+    """Validate loaded-record invariants that do not require graph traversal."""
+
+    diagnostics: list[GraphBuildDiagnostic] = []
+    seen_ids: dict[str, ParserRecord] = {}
+    for record in sorted([*documents, *source_blocks, *relation_candidates], key=record_sort_key):
+        prior_record = seen_ids.get(record.id)
+        if prior_record is not None:
+            diagnostics.append(
+                _record_diagnostic(
+                    record,
+                    "duplicate_global_id",
+                    f"record id duplicates {prior_record.record_kind} record id",
+                    field="id",
+                    severity="error",
+                )
+            )
+            continue
+        seen_ids[record.id] = record
+
+    seen_document_identity: dict[tuple[str, str], DocumentRecord] = {}
+    for document in sorted(documents, key=record_sort_key):
+        identity = (document.source_kind, document.source_path)
+        prior_document = seen_document_identity.get(identity)
+        if prior_document is not None and prior_document.id != document.id:
+            diagnostics.append(
+                _record_diagnostic(
+                    document,
+                    "duplicate_document_identity",
+                    f"document source identity duplicates document record {prior_document.id}",
+                    field="source_path",
+                    severity="error",
+                )
+            )
+            continue
+        seen_document_identity[identity] = document
+
+    return diagnostics
+
+
 def populate_graph(
     graph: nx.MultiDiGraph,
     documents: list[DocumentRecord],
@@ -219,18 +297,13 @@ def populate_graph(
 
     diagnostics: list[GraphBuildDiagnostic] = []
     document_ids: set[str] = set()
+    source_block_ids: set[str] = {source_block.id for source_block in source_blocks}
 
     for document in sorted(documents, key=record_sort_key):
-        if document.id in graph:
-            diagnostics.append(_record_diagnostic(document, "duplicate_node", "duplicate document node id"))
-            continue
         document_ids.add(document.id)
         graph.add_node(document.id, node_kind="document", record=document, non_authoritative=True)
 
     for source_block in sorted(source_blocks, key=lambda record: (record.document_id, record.order_index, record.id)):
-        if source_block.id in graph:
-            diagnostics.append(_record_diagnostic(source_block, "duplicate_node", "duplicate source block node id"))
-            continue
         graph.add_node(source_block.id, node_kind="source_block", record=source_block, non_authoritative=True)
         if source_block.document_id not in document_ids:
             diagnostics.append(
@@ -239,6 +312,7 @@ def populate_graph(
                     "missing_document_endpoint",
                     "source block references a document record that is absent",
                     field="document_id",
+                    severity="error",
                 )
             )
             continue
@@ -252,8 +326,49 @@ def populate_graph(
         )
 
     for candidate in sorted(relation_candidates, key=record_sort_key):
+        if candidate.source_block_id not in source_block_ids:
+            diagnostics.append(
+                _record_diagnostic(
+                    candidate,
+                    "missing_source_block_record",
+                    "relation candidate source_block_id is not present in loaded source block records",
+                    field="source_block_id",
+                    severity="warning",
+                )
+            )
+        if candidate.status == "candidate":
+            diagnostics.append(
+                _record_diagnostic(
+                    candidate,
+                    "candidate_only_relation",
+                    "relation remains candidate-only and does not claim relation correctness",
+                    field="status",
+                    severity="info",
+                )
+            )
+
         subject_id = ensure_relation_endpoint_node(graph, candidate.subject_ref, candidate)
+        if graph.nodes[subject_id].get("node_kind") == "unresolved_reference":
+            diagnostics.append(
+                _record_diagnostic(
+                    candidate,
+                    "unresolved_subject_ref",
+                    "relation candidate subject_ref is not a loaded parser record id",
+                    field="subject_ref",
+                    severity="warning",
+                )
+            )
         object_id = ensure_relation_endpoint_node(graph, candidate.object_ref, candidate)
+        if graph.nodes[object_id].get("node_kind") == "unresolved_reference":
+            diagnostics.append(
+                _record_diagnostic(
+                    candidate,
+                    "unresolved_object_ref",
+                    "relation candidate object_ref is not a loaded parser record id",
+                    field="object_ref",
+                    severity="warning",
+                )
+            )
         graph.add_edge(
             subject_id,
             object_id,
@@ -269,9 +384,7 @@ def populate_graph(
     return diagnostics
 
 
-def ensure_relation_endpoint_node(
-    graph: nx.MultiDiGraph, endpoint_ref: str, candidate: RelationCandidateRecord
-) -> str:
+def ensure_relation_endpoint_node(graph: nx.MultiDiGraph, endpoint_ref: str, candidate: RelationCandidateRecord) -> str:
     """Ensure relation endpoints exist without rewriting non-DOC Consultant references."""
 
     if endpoint_ref in graph:
@@ -299,11 +412,10 @@ def ensure_relation_endpoint_node(
     return endpoint_ref
 
 
-def summarize_graph(
-    graph: nx.MultiDiGraph, diagnostics: Iterable[GraphBuildDiagnostic]
-) -> ParserStagingGraphSummary:
+def summarize_graph(graph: nx.MultiDiGraph, diagnostics: Iterable[GraphBuildDiagnostic]) -> ParserStagingGraphSummary:
     """Compute deterministic counts and bounded graph health signals."""
 
+    diagnostics_tuple = tuple(diagnostics)
     node_counts: dict[str, int] = {}
     for _, data in sorted(graph.nodes(data=True), key=lambda item: str(item[0])):
         kind = str(data.get("node_kind") or "unknown")
@@ -311,7 +423,8 @@ def summarize_graph(
 
     edge_counts: dict[str, int] = {}
     relation_candidate_edge_keys: list[str] = []
-    for _, _, key, data in sorted(graph.edges(keys=True, data=True), key=lambda item: (str(item[0]), str(item[1]), str(item[2]))):
+    edge_items = sorted(graph.edges(keys=True, data=True), key=lambda item: (str(item[0]), str(item[1]), str(item[2])))
+    for _, _, key, data in edge_items:
         kind = str(data.get("edge_kind") or "unknown")
         edge_counts[kind] = edge_counts.get(kind, 0) + 1
         if kind == "relation_candidate":
@@ -322,13 +435,26 @@ def summarize_graph(
         for node_id, data in graph.nodes(data=True)
         if data.get("node_kind") == "unresolved_reference"
     )
+    error_count = sum(1 for diagnostic in diagnostics_tuple if diagnostic.severity == "error")
+    warning_count = sum(1 for diagnostic in diagnostics_tuple if diagnostic.severity == "warning")
+    info_count = sum(1 for diagnostic in diagnostics_tuple if diagnostic.severity == "info")
     return ParserStagingGraphSummary(
         node_counts=dict(sorted(node_counts.items())),
         edge_counts=dict(sorted(edge_counts.items())),
         relation_candidate_edge_keys=sorted(relation_candidate_edge_keys),
         unresolved_reference_ids=unresolved_reference_ids,
-        diagnostic_count=sum(1 for _ in diagnostics),
+        diagnostic_count=len(diagnostics_tuple),
+        error_count=error_count,
+        warning_count=warning_count,
+        info_count=info_count,
+        status="fail" if error_count else "pass",
     )
+
+
+def has_error_diagnostics(diagnostics: Iterable[GraphBuildDiagnostic]) -> bool:
+    """Return whether any diagnostic is a hard graph-build error."""
+
+    return any(diagnostic.severity == "error" for diagnostic in diagnostics)
 
 
 def record_sort_key(record: ParserRecord) -> tuple[str, int, str]:
@@ -359,12 +485,14 @@ def _record_diagnostic(
     rule: str,
     message: str,
     *,
+    severity: DiagnosticSeverity,
     field: str = "record",
 ) -> GraphBuildDiagnostic:
     return GraphBuildDiagnostic(
         path=ROOT / record.source_path,
         line=0,
         rule=rule,
+        severity=severity,
         message=message,
         record_id=record.id,
         record_kind=record.record_kind,
