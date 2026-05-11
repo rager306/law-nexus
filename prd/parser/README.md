@@ -11,6 +11,9 @@ This directory contains the canonical source-fixture inventory for M006 parser a
 - Parser record contract check: `uv run python scripts/validate-parser-records.py --check`
 - Full S01 fixture verification: `uv run python scripts/inventory-parser-fixtures.py --check && uv run pytest -q tests/test_parser_fixture_inventory.py`
 - Full S02 parser-record verification: `uv run python scripts/validate-parser-records.py --check && test -s prd/parser/schemas/parser_record.schema.json && test -s prd/parser/parser_record_contract.md`
+- ODT smoke artifact generator/check command: `uv run python scripts/build-odt-smoke-records.py --check`
+- ODT smoke document validation: `uv run python scripts/validate-parser-records.py --kind document prd/parser/odt_document_records.jsonl`
+- ODT smoke source-block validation: `uv run python scripts/validate-parser-records.py --kind source_block prd/parser/odt_source_block_records.jsonl`
 
 ## Canonical source paths
 
@@ -41,6 +44,19 @@ Generated parser record artifacts live alongside the fixture inventory and are c
 | `prd/parser/examples/source_block_records.jsonl` | Positive source-block examples with bounded placeholder excerpts, not legal evidence. |
 | `prd/parser/examples/relation_candidate_records.jsonl` | Positive relation-candidate examples using the Consultant WordML fixture as prior-art/candidate evidence only. |
 | `prd/parser/parser_record_contract.md` | Human-readable contract report, CLI usage, downstream notes, diagnostics, and explicit non-claims. |
+
+## ODT smoke parser artifacts
+
+S03 adds deterministic smoke artifacts for only the two canonical Garant ODT fixtures. The generator reads raw `content.xml` heading/paragraph traversal order, emits bounded `DocumentRecord` and `SourceBlockRecord` JSONL that validates against the S02 parser-record CLI, and writes a compact JSON/Markdown report with schema version, generator name, status, cap, per-document raw/emitted counts, source hashes, table counts, truncation state, first/last emitted excerpt hashes, non-claims, and artifact freshness diagnostics.
+
+| Path | Contract |
+|---|---|
+| `prd/parser/odt_document_records.jsonl` | S02-valid non-authoritative `DocumentRecord` rows for the canonical Garant ODT documents. |
+| `prd/parser/odt_source_block_records.jsonl` | S02-valid non-authoritative `SourceBlockRecord` rows capped per document and ordered by raw `content.xml` selectors. |
+| `prd/parser/odt_smoke_records.json` | Machine-readable S03 report for downstream staging/debug checks, including stale-artifact diagnostics from `--check`. |
+| `prd/parser/odt_smoke_records.md` | Human-readable S03 report with the same bounded counts, hashes, truncation, and non-claim boundaries. |
+
+S03 advances only the ODT portion of R031 by proving that the canonical Garant ODT fixtures can produce deterministic, bounded parser-record smoke artifacts. It does not prove parser completeness, legal correctness, product ETL readiness, FalkorDB readiness, legal answer generation, or citation-safe retrieval. S05 may consume these validated records as NetworkX/FalkorDB staging/debug inputs, but S05 still owns graph compatibility proof and any later narrowing of these non-claims.
 
 ## Consumer boundary for S03/S04/S05
 

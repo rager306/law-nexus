@@ -422,6 +422,28 @@ def load_inventory(root: Path = ROOT) -> tuple[list[tuple[str, str, str]], list[
     return selected, diagnostics
 
 
+def fixture_report_row(fixture: FixtureResult) -> dict[str, Any]:
+    """Return deterministic per-fixture report diagnostics."""
+
+    first_hash = None
+    last_hash = None
+    if fixture.source_block_records:
+        first_hash = fixture.source_block_records[0]["excerpt_sha256"]
+        last_hash = fixture.source_block_records[-1]["excerpt_sha256"]
+    return {
+        "id": fixture.document_id,
+        "source_path": fixture.source_path,
+        "status": fixture.status,
+        "source_sha256": fixture.source_sha256,
+        "raw_block_count": fixture.raw_block_count,
+        "emitted_block_count": fixture.emitted_block_count,
+        "table_count": fixture.table_count,
+        "truncated": fixture.truncated,
+        "first_emitted_excerpt_sha256": first_hash,
+        "last_emitted_excerpt_sha256": last_hash,
+    }
+
+
 def build_report(fixtures: list[FixtureResult], artifact_freshness: dict[str, Any] | None = None) -> dict[str, Any]:
     """Create a deterministic compact report for CLI and JSON artifact output."""
 
@@ -442,19 +464,7 @@ def build_report(fixtures: list[FixtureResult], artifact_freshness: dict[str, An
         "max_blocks_per_document": MAX_BLOCKS_PER_DOCUMENT,
         "artifact_freshness": freshness,
         "diagnostics": diagnostics,
-        "documents": [
-            {
-                "id": fixture.document_id,
-                "source_path": fixture.source_path,
-                "status": fixture.status,
-                "source_sha256": fixture.source_sha256,
-                "raw_block_count": fixture.raw_block_count,
-                "emitted_block_count": fixture.emitted_block_count,
-                "table_count": fixture.table_count,
-                "truncated": fixture.truncated,
-            }
-            for fixture in fixtures
-        ],
+        "documents": [fixture_report_row(fixture) for fixture in fixtures],
         "non_authoritative": True,
         "non_claims": NON_CLAIMS,
         "downstream_boundary": "S03 emits bounded smoke parser records only; S05 owns later NetworkX/FalkorDB compatibility proof.",
@@ -478,12 +488,12 @@ def render_markdown(report: dict[str, Any]) -> str:
         "",
         "## Documents",
         "",
-        "| ID | Source path | Status | Raw blocks | Emitted blocks | Tables | Truncated |",
-        "| --- | --- | --- | ---: | ---: | ---: | --- |",
+        "| ID | Source path | Status | Raw blocks | Emitted blocks | Tables | Truncated | First emitted hash | Last emitted hash |",
+        "| --- | --- | --- | ---: | ---: | ---: | --- | --- | --- |",
     ]
     for document in report["documents"]:
         lines.append(
-            "| {id} | `{source_path}` | `{status}` | {raw_block_count} | {emitted_block_count} | {table_count} | {truncated} |".format(
+            "| {id} | `{source_path}` | `{status}` | {raw_block_count} | {emitted_block_count} | {table_count} | {truncated} | `{first_emitted_excerpt_sha256}` | `{last_emitted_excerpt_sha256}` |".format(
                 **document
             )
         )
@@ -493,6 +503,8 @@ def render_markdown(report: dict[str, Any]) -> str:
         [
             "",
             "These artifacts are deterministic fixture-integration evidence only. They do not prove parser completeness, legal correctness, product ETL readiness, FalkorDB readiness, legal answers, or citation-safe retrieval.",
+            "",
+            "S05 may consume these records as bounded staging/debug inputs, but S05 owns later NetworkX/FalkorDB compatibility proof and any claim narrowing.",
             "",
             "## Diagnostics",
             "",

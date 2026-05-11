@@ -1,0 +1,47 @@
+{
+  "artifact_freshness": {
+    "stale_paths": [],
+    "status": "not-checked"
+  },
+  "diagnostics": [],
+  "document_count": 2,
+  "documents": [
+    {
+      "emitted_block_count": 24,
+      "first_emitted_excerpt_sha256": "e133d6d5749ca198f1f40619522ef9e03576accb83e565b37bd0659572ee4abb",
+      "id": "DOC-44-FZ",
+      "last_emitted_excerpt_sha256": "332544f064d21d42508029a92faae2e6b7b5f6d45fa3c3d8043fe98eb0808932",
+      "raw_block_count": 5244,
+      "source_path": "law-source/garant/44-fz.odt",
+      "source_sha256": "73777d4741fa1b65229a8b22b97eb2cff4c5180105affb79b058d7007e3e4337",
+      "status": "pass",
+      "table_count": 1,
+      "truncated": true
+    },
+    {
+      "emitted_block_count": 24,
+      "first_emitted_excerpt_sha256": "1a2d2fb44581f6eba5224b8bab3156c83aeea5c4b2f54738f793d87ce12d0b69",
+      "id": "DOC-PP-60",
+      "last_emitted_excerpt_sha256": "0bc8faaaadac16d121c82230bb8ab05e7ab1d98a80d5d6c9b02932606cb432de",
+      "raw_block_count": 2189,
+      "source_path": "law-source/garant/PP_60_27-01-2022.odt",
+      "source_sha256": "f083c903beadc243a842516e955471bc942d9a65a115694441876f1543335d4c",
+      "status": "pass",
+      "table_count": 3,
+      "truncated": true
+    }
+  ],
+  "downstream_boundary": "S03 emits bounded smoke parser records only; S05 owns later NetworkX/FalkorDB compatibility proof.",
+  "generated_by": "scripts/build-odt-smoke-records.py",
+  "max_blocks_per_document": 24,
+  "non_authoritative": true,
+  "non_claims": [
+    "This S03 smoke record does not claim parser completeness.",
+    "This S03 smoke record does not claim legal correctness or authoritative legal interpretation.",
+    "This S03 smoke record does not claim product ETL readiness.",
+    "This S03 smoke record does not claim FalkorDB readiness or legal-answer support."
+  ],
+  "schema_version": "legalgraph-odt-smoke-records/v1",
+  "source_block_count": 48,
+  "status": "pass"
+}

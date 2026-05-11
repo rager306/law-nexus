@@ -60,7 +60,15 @@ def test_real_fixtures_build_s02_valid_bounded_records_with_raw_order() -> None:
     assert [record["id"] for record in result.document_records] == ["DOC-44-FZ", "DOC-PP-60"]
     assert result.report["document_count"] == 2
     assert result.report["source_block_count"] == len(result.source_block_records)
+    assert result.report["downstream_boundary"].startswith("S03 emits bounded smoke parser records only")
+    assert result.markdown.count("parser completeness") >= 1
+    assert "First emitted hash" in result.markdown
     assert 0 < result.report["source_block_count"] <= module.MAX_BLOCKS_PER_DOCUMENT * 2
+    for document in result.report["documents"]:
+        assert document["emitted_block_count"] <= module.MAX_BLOCKS_PER_DOCUMENT
+        assert document["raw_block_count"] >= document["emitted_block_count"]
+        assert document["first_emitted_excerpt_sha256"]
+        assert document["last_emitted_excerpt_sha256"]
     for record in [*result.document_records, *result.source_block_records]:
         assert record["non_authoritative"] is True
         assert record["non_claims"]
@@ -95,6 +103,49 @@ def test_check_prints_compact_report_and_detects_stale_outputs(tmp_path: Path) -
     assert stale_report["status"] == "fail"
     assert stale_report["diagnostics"][0]["rule"] == "stale-artifact"
     assert stale_report["diagnostics"][0]["path"].endswith("odt_document_records.jsonl")
+
+
+def test_tracked_artifacts_and_readme_expose_t02_boundaries() -> None:
+    module = load_module()
+    artifact_paths = [
+        ROOT / "prd/parser/odt_document_records.jsonl",
+        ROOT / "prd/parser/odt_source_block_records.jsonl",
+        ROOT / "prd/parser/odt_smoke_records.json",
+        ROOT / "prd/parser/odt_smoke_records.md",
+    ]
+    for path in artifact_paths:
+        assert path.exists(), path
+        assert path.read_text(encoding="utf-8")
+
+    report = json.loads((ROOT / "prd/parser/odt_smoke_records.json").read_text(encoding="utf-8"))
+    assert report["status"] == "pass"
+    assert report["generated_by"] == "scripts/build-odt-smoke-records.py"
+    assert report["max_blocks_per_document"] == module.MAX_BLOCKS_PER_DOCUMENT
+    assert report["document_count"] == 2
+    assert report["source_block_count"] <= module.MAX_BLOCKS_PER_DOCUMENT * 2
+    for document in report["documents"]:
+        assert document["source_sha256"]
+        assert document["table_count"] >= 0
+        assert document["first_emitted_excerpt_sha256"]
+        assert document["last_emitted_excerpt_sha256"]
+
+    docs = "\n".join(
+        [
+            (ROOT / "prd/parser/README.md").read_text(encoding="utf-8"),
+            (ROOT / "prd/parser/odt_smoke_records.md").read_text(encoding="utf-8"),
+        ]
+    )
+    for phrase in [
+        "R031",
+        "parser completeness",
+        "legal correctness",
+        "product ETL",
+        "FalkorDB readiness",
+        "non-authoritative",
+        "content.xml",
+        "citation-safe retrieval",
+    ]:
+        assert phrase in docs
 
 
 def test_fixture_failure_diagnostics_cover_missing_path_invalid_zip_missing_member_and_bad_xml(tmp_path: Path) -> None:
