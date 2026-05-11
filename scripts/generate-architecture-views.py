@@ -635,7 +635,8 @@ def render_claims_ledger(
                 f"| {escape_md(record.get('layer', ''))} "
                 f"| {escape_md(record.get('risk_level', ''))} "
                 f"| {escape_md(record.get('proof_level', ''))} "
-                f"| {ver[:60]}... |"
+                f"| {ver[:60]}... "
+                f"| {nc_cell} |"
                 if len(ver) > 60
                 else f"| `{rid}` | {escape_md(record.get('title', ''))} "
                      f"| {escape_md(record.get('layer', ''))} "

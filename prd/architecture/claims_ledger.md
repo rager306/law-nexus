@@ -47,11 +47,11 @@
 
 | ID | Title | Layer | Risk | Proof Level | Verification | Non-Claims |
 | --- | --- | --- | --- | --- | --- | --- |
-| `GATE-G005` | Temporal same-date multi-edition conflict policy | temporal-model | high | none | A future proof slice defines and verifies same-date/multi-ed... |
-| `GATE-G008` | Executable parser and retrieval golden tests | parser-ingestion | high | none | Golden tests pass on real legal source fixtures and retrieva... |
-| `GATE-G011` | Local embedding quality proof | retrieval-embedding | high | none | Retrieval quality benchmark passes under local/open-weight e... |
-| `GATE-G015` | FalkorDBLite to Docker migration runbook | graph-runtime | medium | none | Migration runbook is executed against bounded fixtures and r... |
-| `S10-GIGAEMBEDDINGS-CHALLENGER-BLOCKED` | GigaEmbeddings challenger blocked by environment and safety gates | retrieval-embedding | medium | none | Challenger proof records gate approvals, runtime status, vec... |
+| `GATE-G005` | Temporal same-date multi-edition conflict policy | temporal-model | high | none | A future proof slice defines and verifies same-date/multi-ed... | ❌ Does not validate temporal conflict resolution. |
+| `GATE-G008` | Executable parser and retrieval golden tests | parser-ingestion | high | none | Golden tests pass on real legal source fixtures and retrieva... | ❌ No parser completeness claim.; ❌ No product retrieval quality claim. |
+| `GATE-G011` | Local embedding quality proof | retrieval-embedding | high | none | Retrieval quality benchmark passes under local/open-weight e... | ❌ No product retrieval quality claim.; ❌ No managed embedding API fallback claim. |
+| `GATE-G015` | FalkorDBLite to Docker migration runbook | graph-runtime | medium | none | Migration runbook is executed against bounded fixtures and r... | ❌ No production-scale FalkorDB claim. |
+| `S10-GIGAEMBEDDINGS-CHALLENGER-BLOCKED` | GigaEmbeddings challenger blocked by environment and safety gates | retrieval-embedding | medium | none | Challenger proof records gate approvals, runtime status, vec... | ❌ No managed embedding API fallback claim.; ❌ No default promotion while blocked-environment. |
 
 ---
 

@@ -790,6 +790,20 @@ def _load_claims_content() -> str:
     return CLAIMS_MD_PATH.read_text(encoding="utf-8")
 
 
+def _claims_section(content: str, heading: str) -> str:
+    """Return a claims ledger section by heading."""
+    section_start = content.find(f"## {heading}")
+    assert section_start >= 0, f"Missing claims ledger section: {heading}"
+    section_end = content.find("\n## ", section_start + 1)
+    return content[section_start:section_end if section_end >= 0 else None]
+
+
+def _markdown_table_column_count(row: str) -> int:
+    """Count markdown table columns in a pipe-delimited row."""
+    assert row.startswith("|"), f"Not a markdown table row: {row}"
+    return len(row.split("|")[1:-1])
+
+
 def test_claims_ledger_exists() -> None:
     """Claims ledger file must exist."""
     _load_claims_content()
@@ -997,12 +1011,37 @@ def test_claims_ledger_bounded_items_have_proof_level() -> None:
 def test_claims_ledger_blocked_items_have_verification() -> None:
     """Blocked/open rows must include a Verification column."""
     content = _load_claims_content()
-    section_start = content.find("## blocked/open")
-    section_end = content.find("\n## ", section_start + 1)
-    blocked_section = content[section_start:section_end]
+    blocked_section = _claims_section(content, "blocked/open")
     assert "| Verification |" in blocked_section, (
         "Blocked/open table must have a Verification column"
     )
+
+
+def test_claims_ledger_tables_have_consistent_column_counts() -> None:
+    """Every claims ledger data row must match its section table header column count."""
+    content = _load_claims_content()
+    for heading in ["safe-to-say", "bounded", "blocked/open", "unsafe-to-assert"]:
+        section = _claims_section(content, heading)
+        header = next(line for line in section.splitlines() if line.startswith("| ID |"))
+        header_columns = _markdown_table_column_count(header)
+        data_rows = [line for line in section.splitlines() if line.startswith("| `")]
+        assert data_rows, f"Section {heading} must contain at least one data row"
+        for row in data_rows:
+            assert _markdown_table_column_count(row) == header_columns, (
+                f"Claims ledger section {heading} has malformed row: {row}"
+            )
+
+
+def test_claims_ledger_blocked_items_preserve_non_claims_column() -> None:
+    """Blocked/open rows with long verification text must still include Non-Claims content."""
+    content = _load_claims_content()
+    blocked_section = _claims_section(content, "blocked/open")
+    data_rows = [line for line in blocked_section.splitlines() if line.startswith("| `")]
+    assert data_rows, "Blocked/open section must contain data rows"
+    for row in data_rows:
+        assert "❌" in row or row.rstrip().endswith("| — |"), (
+            f"Blocked/open row lost its Non-Claims column: {row}"
+        )
 
 
 def test_claims_ledger_safe_items_contain_non_claims_content() -> None:
