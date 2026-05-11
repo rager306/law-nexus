@@ -1,0 +1,72 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "Document-level parser boundary record.",
+  "properties": {
+    "id": {
+      "pattern": "^DOC-.+",
+      "title": "Id",
+      "type": "string"
+    },
+    "non_authoritative": {
+      "const": true,
+      "default": true,
+      "title": "Non Authoritative",
+      "type": "boolean"
+    },
+    "non_claims": {
+      "items": {
+        "type": "string"
+      },
+      "minItems": 1,
+      "title": "Non Claims",
+      "type": "array"
+    },
+    "record_kind": {
+      "const": "document",
+      "title": "Record Kind",
+      "type": "string"
+    },
+    "schema_version": {
+      "const": "legalgraph-parser-record/v1",
+      "default": "legalgraph-parser-record/v1",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "source_kind": {
+      "enum": [
+        "garant-odt",
+        "consultant-wordml-xml"
+      ],
+      "title": "Source Kind",
+      "type": "string"
+    },
+    "source_path": {
+      "minLength": 1,
+      "title": "Source Path",
+      "type": "string"
+    },
+    "source_sha256": {
+      "pattern": "^[a-f0-9]{64}$",
+      "title": "Source Sha256",
+      "type": "string"
+    },
+    "title": {
+      "maxLength": 240,
+      "minLength": 1,
+      "title": "Title",
+      "type": "string"
+    }
+  },
+  "required": [
+    "id",
+    "source_kind",
+    "source_path",
+    "source_sha256",
+    "non_claims",
+    "record_kind",
+    "title"
+  ],
+  "title": "DocumentRecord",
+  "type": "object"
+}

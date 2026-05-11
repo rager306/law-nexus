@@ -1,0 +1,355 @@
+{
+  "$defs": {
+    "DocumentRecord": {
+      "additionalProperties": false,
+      "description": "Document-level parser boundary record.",
+      "properties": {
+        "id": {
+          "pattern": "^DOC-.+",
+          "title": "Id",
+          "type": "string"
+        },
+        "non_authoritative": {
+          "const": true,
+          "default": true,
+          "title": "Non Authoritative",
+          "type": "boolean"
+        },
+        "non_claims": {
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Non Claims",
+          "type": "array"
+        },
+        "record_kind": {
+          "const": "document",
+          "title": "Record Kind",
+          "type": "string"
+        },
+        "schema_version": {
+          "const": "legalgraph-parser-record/v1",
+          "default": "legalgraph-parser-record/v1",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "source_kind": {
+          "enum": [
+            "garant-odt",
+            "consultant-wordml-xml"
+          ],
+          "title": "Source Kind",
+          "type": "string"
+        },
+        "source_path": {
+          "minLength": 1,
+          "title": "Source Path",
+          "type": "string"
+        },
+        "source_sha256": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Source Sha256",
+          "type": "string"
+        },
+        "title": {
+          "maxLength": 240,
+          "minLength": 1,
+          "title": "Title",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "source_kind",
+        "source_path",
+        "source_sha256",
+        "non_claims",
+        "record_kind",
+        "title"
+      ],
+      "title": "DocumentRecord",
+      "type": "object"
+    },
+    "LocationRecord": {
+      "additionalProperties": false,
+      "description": "Bounded locator for a source block within a parser source.",
+      "properties": {
+        "label": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Label"
+        },
+        "selector": {
+          "minLength": 1,
+          "title": "Selector",
+          "type": "string"
+        }
+      },
+      "required": [
+        "selector"
+      ],
+      "title": "LocationRecord",
+      "type": "object"
+    },
+    "RelationCandidateRecord": {
+      "additionalProperties": false,
+      "description": "Candidate-only relation record from bounded source evidence.",
+      "properties": {
+        "evidence_excerpt": {
+          "maxLength": 500,
+          "minLength": 1,
+          "title": "Evidence Excerpt",
+          "type": "string"
+        },
+        "evidence_sha256": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Evidence Sha256",
+          "type": "string"
+        },
+        "id": {
+          "pattern": "^REL-.+",
+          "title": "Id",
+          "type": "string"
+        },
+        "non_authoritative": {
+          "const": true,
+          "default": true,
+          "title": "Non Authoritative",
+          "type": "boolean"
+        },
+        "non_claims": {
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Non Claims",
+          "type": "array"
+        },
+        "object_ref": {
+          "minLength": 1,
+          "title": "Object Ref",
+          "type": "string"
+        },
+        "record_kind": {
+          "const": "relation_candidate",
+          "title": "Record Kind",
+          "type": "string"
+        },
+        "relation_type": {
+          "minLength": 1,
+          "title": "Relation Type",
+          "type": "string"
+        },
+        "schema_version": {
+          "const": "legalgraph-parser-record/v1",
+          "default": "legalgraph-parser-record/v1",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "source_block_id": {
+          "pattern": "^BLOCK-.+",
+          "title": "Source Block Id",
+          "type": "string"
+        },
+        "source_kind": {
+          "enum": [
+            "garant-odt",
+            "consultant-wordml-xml"
+          ],
+          "title": "Source Kind",
+          "type": "string"
+        },
+        "source_member": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Source Member"
+        },
+        "source_path": {
+          "minLength": 1,
+          "title": "Source Path",
+          "type": "string"
+        },
+        "source_sha256": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Source Sha256",
+          "type": "string"
+        },
+        "status": {
+          "enum": [
+            "candidate",
+            "needs-review",
+            "rejected"
+          ],
+          "title": "Status",
+          "type": "string"
+        },
+        "subject_ref": {
+          "minLength": 1,
+          "title": "Subject Ref",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "source_kind",
+        "source_path",
+        "source_sha256",
+        "non_claims",
+        "record_kind",
+        "source_block_id",
+        "subject_ref",
+        "object_ref",
+        "relation_type",
+        "status",
+        "evidence_excerpt",
+        "evidence_sha256"
+      ],
+      "title": "RelationCandidateRecord",
+      "type": "object"
+    },
+    "SourceBlockRecord": {
+      "additionalProperties": false,
+      "description": "Bounded source block extracted from a canonical parser fixture.",
+      "properties": {
+        "document_id": {
+          "pattern": "^DOC-.+",
+          "title": "Document Id",
+          "type": "string"
+        },
+        "excerpt": {
+          "maxLength": 500,
+          "minLength": 1,
+          "title": "Excerpt",
+          "type": "string"
+        },
+        "excerpt_sha256": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Excerpt Sha256",
+          "type": "string"
+        },
+        "id": {
+          "pattern": "^BLOCK-.+",
+          "title": "Id",
+          "type": "string"
+        },
+        "location": {
+          "$ref": "#/$defs/LocationRecord"
+        },
+        "non_authoritative": {
+          "const": true,
+          "default": true,
+          "title": "Non Authoritative",
+          "type": "boolean"
+        },
+        "non_claims": {
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Non Claims",
+          "type": "array"
+        },
+        "order_index": {
+          "minimum": 0,
+          "title": "Order Index",
+          "type": "integer"
+        },
+        "record_kind": {
+          "const": "source_block",
+          "title": "Record Kind",
+          "type": "string"
+        },
+        "schema_version": {
+          "const": "legalgraph-parser-record/v1",
+          "default": "legalgraph-parser-record/v1",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "source_kind": {
+          "enum": [
+            "garant-odt",
+            "consultant-wordml-xml"
+          ],
+          "title": "Source Kind",
+          "type": "string"
+        },
+        "source_member": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Source Member"
+        },
+        "source_path": {
+          "minLength": 1,
+          "title": "Source Path",
+          "type": "string"
+        },
+        "source_sha256": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Source Sha256",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "source_kind",
+        "source_path",
+        "source_sha256",
+        "non_claims",
+        "record_kind",
+        "document_id",
+        "order_index",
+        "location",
+        "excerpt",
+        "excerpt_sha256"
+      ],
+      "title": "SourceBlockRecord",
+      "type": "object"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "description": "Generated JSON Schema for ParserRecord.",
+  "discriminator": {
+    "mapping": {
+      "document": "#/$defs/DocumentRecord",
+      "relation_candidate": "#/$defs/RelationCandidateRecord",
+      "source_block": "#/$defs/SourceBlockRecord"
+    },
+    "propertyName": "record_kind"
+  },
+  "oneOf": [
+    {
+      "$ref": "#/$defs/DocumentRecord"
+    },
+    {
+      "$ref": "#/$defs/SourceBlockRecord"
+    },
+    {
+      "$ref": "#/$defs/RelationCandidateRecord"
+    }
+  ]
+}

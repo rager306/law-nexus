@@ -1,0 +1,125 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "Candidate-only relation record from bounded source evidence.",
+  "properties": {
+    "evidence_excerpt": {
+      "maxLength": 500,
+      "minLength": 1,
+      "title": "Evidence Excerpt",
+      "type": "string"
+    },
+    "evidence_sha256": {
+      "pattern": "^[a-f0-9]{64}$",
+      "title": "Evidence Sha256",
+      "type": "string"
+    },
+    "id": {
+      "pattern": "^REL-.+",
+      "title": "Id",
+      "type": "string"
+    },
+    "non_authoritative": {
+      "const": true,
+      "default": true,
+      "title": "Non Authoritative",
+      "type": "boolean"
+    },
+    "non_claims": {
+      "items": {
+        "type": "string"
+      },
+      "minItems": 1,
+      "title": "Non Claims",
+      "type": "array"
+    },
+    "object_ref": {
+      "minLength": 1,
+      "title": "Object Ref",
+      "type": "string"
+    },
+    "record_kind": {
+      "const": "relation_candidate",
+      "title": "Record Kind",
+      "type": "string"
+    },
+    "relation_type": {
+      "minLength": 1,
+      "title": "Relation Type",
+      "type": "string"
+    },
+    "schema_version": {
+      "const": "legalgraph-parser-record/v1",
+      "default": "legalgraph-parser-record/v1",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "source_block_id": {
+      "pattern": "^BLOCK-.+",
+      "title": "Source Block Id",
+      "type": "string"
+    },
+    "source_kind": {
+      "enum": [
+        "garant-odt",
+        "consultant-wordml-xml"
+      ],
+      "title": "Source Kind",
+      "type": "string"
+    },
+    "source_member": {
+      "anyOf": [
+        {
+          "minLength": 1,
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Source Member"
+    },
+    "source_path": {
+      "minLength": 1,
+      "title": "Source Path",
+      "type": "string"
+    },
+    "source_sha256": {
+      "pattern": "^[a-f0-9]{64}$",
+      "title": "Source Sha256",
+      "type": "string"
+    },
+    "status": {
+      "enum": [
+        "candidate",
+        "needs-review",
+        "rejected"
+      ],
+      "title": "Status",
+      "type": "string"
+    },
+    "subject_ref": {
+      "minLength": 1,
+      "title": "Subject Ref",
+      "type": "string"
+    }
+  },
+  "required": [
+    "id",
+    "source_kind",
+    "source_path",
+    "source_sha256",
+    "non_claims",
+    "record_kind",
+    "source_block_id",
+    "subject_ref",
+    "object_ref",
+    "relation_type",
+    "status",
+    "evidence_excerpt",
+    "evidence_sha256"
+  ],
+  "title": "RelationCandidateRecord",
+  "type": "object"
+}
