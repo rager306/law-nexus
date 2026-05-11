@@ -205,22 +205,34 @@ def test_tracked_artifacts_validate_and_markdown_repeats_non_claims() -> None:
     assert report["candidate_count"] == 1
     assert report["non_authoritative"] is True
 
-    docs = "\n".join(
-        [
-            (ROOT / "prd/parser/README.md").read_text(encoding="utf-8"),
-            (ROOT / "prd/parser/consultant_relation_candidates.md").read_text(encoding="utf-8"),
-        ]
-    )
+    readme = (ROOT / "prd/parser/README.md").read_text(encoding="utf-8")
+    markdown_report = (ROOT / "prd/parser/consultant_relation_candidates.md").read_text(encoding="utf-8")
+    docs = "\n".join([readme, markdown_report])
     for phrase in [
         "parser completeness",
         "legal correctness",
         "product ETL",
+        "FalkorDB product runtime readiness",
         "FalkorDB loading/runtime readiness",
         "Consultant WordML",
         "non-authoritative",
         "relation correctness",
     ]:
         assert phrase in docs
+
+    for phrase in [
+        "prd/parser/consultant_relation_candidates.jsonl",
+        "prd/parser/consultant_relation_candidates.json",
+        "prd/parser/consultant_relation_candidates.md",
+        "uv run python scripts/build-consultant-relation-candidates.py --write",
+        "uv run python scripts/build-consultant-relation-candidates.py --check",
+        "uv run python scripts/validate-parser-records.py --kind relation_candidate prd/parser/consultant_relation_candidates.jsonl",
+        "LAW:179581@11.05.2026",
+        "No ODT endpoint match",
+        "endpoint matching to S03 ODT document IDs is deferred to S05",
+        "NetworkX graph invariants",
+    ]:
+        assert phrase in readme
 
 
 def test_fixture_diagnostics_cover_missing_sha_mismatch_malformed_xml_and_no_hyperlinks(tmp_path: Path) -> None:

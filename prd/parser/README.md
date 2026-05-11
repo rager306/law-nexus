@@ -58,6 +58,26 @@ S03 adds deterministic smoke artifacts for only the two canonical Garant ODT fix
 
 S03 advances only the ODT portion of R031 by proving that the canonical Garant ODT fixtures can produce deterministic, bounded parser-record smoke artifacts. It does not prove parser completeness, legal correctness, product ETL readiness, FalkorDB readiness, legal answer generation, or citation-safe retrieval. S05 may consume these validated records as NetworkX/FalkorDB staging/debug inputs, but S05 still owns graph compatibility proof and any later narrowing of these non-claims.
 
+## Consultant WordML relation candidate artifacts
+
+S04 adds deterministic Consultant WordML relation-candidate artifacts for future S05 consumers. These artifacts are generated only from the canonical prior-art fixture `law-source/consultant/Список документов (5).xml`; future consumers should use the tracked outputs below instead of reparsing or globbing Consultant XML directly.
+
+| Path | Contract |
+|---|---|
+| `prd/parser/consultant_relation_candidates.jsonl` | S02-valid `RelationCandidateRecord` JSONL with candidate-level status and bounded evidence excerpts/hashes. |
+| `prd/parser/consultant_relation_candidates.json` | Machine-readable S04 report with status, candidate count, artifact freshness, diagnostics, and `non_authoritative`. |
+| `prd/parser/consultant_relation_candidates.md` | Human-readable S04 report with the same current fixture result, artifact freshness state, diagnostics, and non-claim boundaries. |
+
+S04 commands:
+
+- Generate/update artifacts: `uv run python scripts/build-consultant-relation-candidates.py --write`
+- Check tracked artifact freshness: `uv run python scripts/build-consultant-relation-candidates.py --check`
+- Validate relation-candidate JSONL: `uv run python scripts/validate-parser-records.py --kind relation_candidate prd/parser/consultant_relation_candidates.jsonl`
+
+Current fixture result: the canonical Consultant WordML fixture currently yields one candidate relation record preserving `LAW:179581@11.05.2026` as `consultant:LAW:179581@11.05.2026`. No ODT endpoint match is asserted or fabricated in S04; S04 does not assert that the Consultant WordML target is authoritative legal evidence, and does not resolve this candidate to S03 ODT `DocumentRecord` identifiers; endpoint matching to S03 ODT document IDs is deferred to S05.
+
+S04 remains non-authoritative. It does not claim parser completeness, legal correctness, product ETL readiness, FalkorDB product runtime readiness, FalkorDB loading/runtime readiness, Consultant WordML legal authority, relation correctness, NetworkX graph invariants, ODT endpoint resolution, or product graph truth.
+
 ## Consumer boundary for S03/S04/S05
 
 - S03 ODT parsing should emit `DocumentRecord` and `SourceBlockRecord` JSONL that validates with `uv run python scripts/validate-parser-records.py --kind <kind> <file>` and preserves `non_authoritative: true`.
