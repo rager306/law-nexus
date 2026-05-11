@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import importlib.util
 import json
+import subprocess
 import sys
 from pathlib import Path
 from typing import Any
@@ -247,3 +248,146 @@ def test_candidate_only_status_and_no_falkordb_load_are_info_not_readiness_claim
     assert result.summary.product_etl_claimed is False
     assert result.summary.falkordb_loading_runtime_readiness_claimed is False
     assert all("ready" not in diagnostic.message.lower() for diagnostic in result.diagnostics)
+
+
+def run_cli(*args: str) -> subprocess.CompletedProcess[str]:
+    return subprocess.run(
+        [sys.executable, str(MODULE_PATH), *args],
+        cwd=ROOT,
+        text=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        check=False,
+    )
+
+
+def parse_stdout_json(result: subprocess.CompletedProcess[str]) -> dict[str, Any]:
+    assert result.stdout, result.stderr
+    return json.loads(result.stdout)
+
+
+def test_write_then_check_generates_deterministic_staging_reports(tmp_path: Path):
+    builder = load_builder_module()
+    output_dir = tmp_path / "parser"
+    result = builder.build_default_staging_graph()
+
+    builder.write_outputs(result, output_dir)
+
+    expected = builder.output_contents(result)
+    assert sorted(expected) == ["parser_staging_graph.json", "parser_staging_graph.md"]
+    for name, content in expected.items():
+        assert (output_dir / name).read_text(encoding="utf-8") == content
+
+    check = run_cli("--check", "--output-dir", str(output_dir))
+    assert check.returncode == 0, check.stdout + check.stderr
+    summary = parse_stdout_json(check)
+    assert summary["status"] == "pass"
+    assert summary["artifact_freshness"]["status"] == "pass"
+    assert summary["document_count"] == 2
+    assert summary["source_block_count"] == 48
+    assert summary["relation_candidate_count"] == 1
+    assert summary["keyed_relation_edges"] == ["REL-CONS-0001"]
+    assert summary["error_count"] == 0
+    assert summary["warning_count"] == 3
+    assert {diagnostic["rule"] for diagnostic in summary["diagnostics"]} >= {
+        "missing_source_block_record",
+        "unresolved_object_ref",
+        "unresolved_subject_ref",
+        "no_falkordb_load_executed",
+    }
+
+
+def test_check_reports_missing_and_stale_staging_reports(tmp_path: Path):
+    builder = load_builder_module()
+    output_dir = tmp_path / "parser"
+    builder.write_outputs(builder.build_default_staging_graph(), output_dir)
+
+    (output_dir / "parser_staging_graph.json").write_text("stale\n", encoding="utf-8")
+    (output_dir / "parser_staging_graph.md").unlink()
+
+    result = run_cli("--check", "--output-dir", str(output_dir))
+
+    assert result.returncode == 1
+    summary = parse_stdout_json(result)
+    assert summary["status"] == "fail"
+    freshness = summary["artifact_freshness"]
+    assert freshness["status"] == "stale"
+    stale_paths = set(freshness["stale_paths"])
+    assert any(path.endswith("parser_staging_graph.json") for path in stale_paths)
+    assert any(path.endswith("parser_staging_graph.md") for path in stale_paths)
+    assert all(diagnostic["rule"] == "stale-artifact" for diagnostic in freshness["diagnostics"])
+
+
+def test_tracked_staging_reports_preserve_counts_warnings_and_non_claims():
+    builder = load_builder_module()
+    expected_contents = builder.output_contents(builder.build_default_staging_graph())
+    for name, expected in expected_contents.items():
+        assert (ROOT / "prd/parser" / name).read_text(encoding="utf-8") == expected
+
+    report = json.loads((ROOT / "prd/parser/parser_staging_graph.json").read_text(encoding="utf-8"))
+    markdown = (ROOT / "prd/parser/parser_staging_graph.md").read_text(encoding="utf-8")
+
+    assert report["status"] == "pass"
+    assert report["document_count"] == 2
+    assert report["source_block_count"] == 48
+    assert report["relation_candidate_count"] == 1
+    assert report["keyed_relation_edges"] == ["REL-CONS-0001"]
+    assert report["error_count"] == 0
+    assert report["warning_count"] == 3
+    assert report["non_authoritative"] is True
+    assert report["parser_completeness_claimed"] is False
+    assert report["legal_correctness_claimed"] is False
+    assert report["product_etl_claimed"] is False
+    assert report["falkordb_loading_runtime_readiness_claimed"] is False
+    assert report["relation_correctness_claimed"] is False
+
+    for phrase in [
+        "NetworkX",
+        "MultiDiGraph",
+        "keyed",
+        "unresolved",
+        "non-authoritative",
+        "parser completeness",
+        "legal correctness",
+        "product ETL",
+        "FalkorDB loading/runtime readiness",
+        "relation correctness",
+        "R031",
+    ]:
+        assert phrase in markdown
+
+
+def test_readme_documents_s05_contract_and_avoids_positive_claims():
+    readme = (ROOT / "prd/parser/README.md").read_text(encoding="utf-8")
+    markdown = (ROOT / "prd/parser/parser_staging_graph.md").read_text(encoding="utf-8")
+    docs = "\n".join([readme, markdown])
+
+    for phrase in [
+        "NetworkX",
+        "MultiDiGraph",
+        "keyed",
+        "unresolved",
+        "non-authoritative",
+        "parser completeness",
+        "legal correctness",
+        "product ETL",
+        "FalkorDB loading/runtime readiness",
+        "relation correctness",
+        "R031",
+    ]:
+        assert phrase in docs
+
+    forbidden_positive_claims = [
+        "claims parser completeness",
+        "claims legal correctness",
+        "claims product ETL readiness",
+        "claims FalkorDB loading/runtime readiness",
+        "claims relation correctness",
+        "is FalkorDB-ready",
+        "is product-ready",
+        "is legally authoritative",
+    ]
+    lower_docs = docs.lower()
+    for phrase in forbidden_positive_claims:
+        assert phrase.lower() not in lower_docs
+

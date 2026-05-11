@@ -1,0 +1,110 @@
+{
+  "artifact_freshness": {
+    "diagnostics": [],
+    "stale_paths": [],
+    "status": "not-checked"
+  },
+  "diagnostic_count": 5,
+  "diagnostics": [
+    {
+      "field": "status",
+      "id": "REL-CONS-0001",
+      "line": 0,
+      "message": "relation remains candidate-only and does not claim relation correctness",
+      "path": "law-source/consultant/Список документов (5).xml",
+      "record_id": "REL-CONS-0001",
+      "record_kind": "relation_candidate",
+      "rule": "candidate_only_relation",
+      "severity": "info",
+      "source_path": "law-source/consultant/Список документов (5).xml"
+    },
+    {
+      "field": "record",
+      "id": null,
+      "line": 0,
+      "message": "NetworkX staging graph was built only; no FalkorDB loading/runtime readiness claim is made",
+      "path": "prd/parser/consultant_relation_candidates.jsonl",
+      "record_id": null,
+      "record_kind": null,
+      "rule": "no_falkordb_load_executed",
+      "severity": "info",
+      "source_path": null
+    },
+    {
+      "field": "source_block_id",
+      "id": "REL-CONS-0001",
+      "line": 0,
+      "message": "relation candidate source_block_id is not present in loaded source block records",
+      "path": "law-source/consultant/Список документов (5).xml",
+      "record_id": "REL-CONS-0001",
+      "record_kind": "relation_candidate",
+      "rule": "missing_source_block_record",
+      "severity": "warning",
+      "source_path": "law-source/consultant/Список документов (5).xml"
+    },
+    {
+      "field": "object_ref",
+      "id": "REL-CONS-0001",
+      "line": 0,
+      "message": "relation candidate object_ref is not a loaded parser record id",
+      "path": "law-source/consultant/Список документов (5).xml",
+      "record_id": "REL-CONS-0001",
+      "record_kind": "relation_candidate",
+      "rule": "unresolved_object_ref",
+      "severity": "warning",
+      "source_path": "law-source/consultant/Список документов (5).xml"
+    },
+    {
+      "field": "subject_ref",
+      "id": "REL-CONS-0001",
+      "line": 0,
+      "message": "relation candidate subject_ref is not a loaded parser record id",
+      "path": "law-source/consultant/Список документов (5).xml",
+      "record_id": "REL-CONS-0001",
+      "record_kind": "relation_candidate",
+      "rule": "unresolved_subject_ref",
+      "severity": "warning",
+      "source_path": "law-source/consultant/Список документов (5).xml"
+    }
+  ],
+  "document_count": 2,
+  "edge_counts": {
+    "contains_source_block": 48,
+    "relation_candidate": 1
+  },
+  "error_count": 0,
+  "falkordb_loading_runtime_readiness_claimed": false,
+  "generated_by": "scripts/build-parser-staging-graph.py",
+  "graph_status": "pass",
+  "info_count": 2,
+  "keyed_relation_edges": [
+    "REL-CONS-0001"
+  ],
+  "legal_correctness_claimed": false,
+  "node_counts": {
+    "document": 2,
+    "source_block": 48,
+    "unresolved_reference": 2
+  },
+  "non_authoritative": true,
+  "non_claims": [
+    "This NetworkX MultiDiGraph staging report does not claim parser completeness.",
+    "This NetworkX MultiDiGraph staging report does not claim legal correctness or authoritative legal interpretation.",
+    "This NetworkX MultiDiGraph staging report does not claim product ETL readiness.",
+    "This NetworkX MultiDiGraph staging report does not claim FalkorDB loading/runtime readiness.",
+    "This NetworkX MultiDiGraph staging report does not claim relation correctness."
+  ],
+  "parser_completeness_claimed": false,
+  "product_etl_claimed": false,
+  "r031_advancement": "R031 is advanced only for deterministic NetworkX MultiDiGraph staging invariants over S02-valid S03/S04 parser records.",
+  "relation_candidate_count": 1,
+  "relation_correctness_claimed": false,
+  "schema_version": "legalgraph-parser-staging-graph/v1",
+  "source_block_count": 48,
+  "status": "pass",
+  "unresolved_reference_ids": [
+    "consultant-list:law-source/consultant/Список документов (5).xml",
+    "consultant:LAW:179581@11.05.2026"
+  ],
+  "warning_count": 3
+}
