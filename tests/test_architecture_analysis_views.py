@@ -744,3 +744,770 @@ def test_blockers_report_next_proof_work_section_present() -> None:
     assert "Next Proof Work" in content, (
         "Blocker report must include 'Next Proof Work' sections"
     )
+
+
+# ---------------------------------------------------------------------------
+# Claims ledger — content and structure
+# ---------------------------------------------------------------------------
+
+CLAIMS_MD_PATH = ROOT / "prd/architecture/claims_ledger.md"
+
+ALL_23_IDS = {
+    "ASSUMP-PRD-SOURCE-TRUTH", "CHECK-ARCHITECTURE-EXTRACTOR", "DEC-D031",
+    "DEC-D032", "GATE-G005", "GATE-G008", "GATE-G011", "GATE-G015",
+    "M001-ARCHITECTURE-ONLY-GUARDRAIL", "REQ-R001", "REQ-R009", "REQ-R010",
+    "REQ-R017", "REQ-R022", "REQ-R028", "REQ-R029",
+    "RISK-OVERCLAIM-RUNTIME", "S04-FALKORDB-RUNTIME-BOUNDED",
+    "S05-OLD-PROJECT-PRIOR-ART", "S05-PARSER-ODT-BOUNDARY", "S07-FIXED-PRD-CONSISTENCY",
+    "S10-GIGAEMBEDDINGS-CHALLENGER-BLOCKED", "S10-USER-BGE-M3-BASELINE",
+}
+
+SAFE_IDS = {
+    "ASSUMP-PRD-SOURCE-TRUTH", "CHECK-ARCHITECTURE-EXTRACTOR", "DEC-D031",
+    "DEC-D032", "REQ-R001", "REQ-R009", "REQ-R010", "REQ-R017",
+    "REQ-R022", "REQ-R029", "RISK-OVERCLAIM-RUNTIME",
+}
+
+BOUNDED_IDS = {
+    "S04-FALKORDB-RUNTIME-BOUNDED", "S05-OLD-PROJECT-PRIOR-ART",
+    "S05-PARSER-ODT-BOUNDARY", "S07-FIXED-PRD-CONSISTENCY", "S10-USER-BGE-M3-BASELINE",
+}
+
+BLOCKED_IDS = {
+    "GATE-G005", "GATE-G008", "GATE-G011", "GATE-G015",
+    "S10-GIGAEMBEDDINGS-CHALLENGER-BLOCKED",
+}
+
+UNSAFE_IDS = {"M001-ARCHITECTURE-ONLY-GUARDRAIL", "REQ-R028"}
+
+
+def _load_claims_content() -> str:
+    """Load claims ledger content, fail with clear message if missing."""
+    assert CLAIMS_MD_PATH.exists(), (
+        f"Claims ledger not found at {CLAIMS_MD_PATH}. "
+        "Run: uv run python scripts/generate-architecture-views.py"
+    )
+    return CLAIMS_MD_PATH.read_text(encoding="utf-8")
+
+
+def test_claims_ledger_exists() -> None:
+    """Claims ledger file must exist."""
+    _load_claims_content()
+
+
+def test_claims_ledger_has_required_sections() -> None:
+    """Claims ledger must contain all four classification sections."""
+    content = _load_claims_content()
+    required = [
+        "## safe-to-say",
+        "## bounded",
+        "## blocked/open",
+        "## unsafe-to-assert",
+    ]
+    for section in required:
+        assert section in content, f"Missing required section: {section}"
+
+
+def test_claims_ledger_has_classification_guide() -> None:
+    """Claims ledger must include a classification guide table."""
+    content = _load_claims_content()
+    assert "## Classification Guide" in content, (
+        "Claims ledger must include a Classification Guide"
+    )
+    assert "| **safe-to-say**" in content
+    assert "| **bounded**" in content
+    assert "| **blocked/open**" in content
+    assert "| **unsafe-to-assert**" in content
+
+
+def test_claims_ledger_scope_disclaimer_present() -> None:
+    """Claims ledger must include a scope disclaimer."""
+    content = _load_claims_content()
+    assert "non-authoritative" in content.lower(), (
+        "Claims ledger must declare itself non-authoritative"
+    )
+
+
+def test_claims_ledger_non_authoritative_footer_present() -> None:
+    """Claims ledger must have a non-authoritative footer."""
+    content = _load_claims_content()
+    assert "derived, non-authoritative planning artifact" in content, (
+        "Claims ledger must have non-authoritative footer"
+    )
+
+
+# ---------------------------------------------------------------------------
+# Claims ledger — all 23 items appear
+# ---------------------------------------------------------------------------
+
+def test_claims_ledger_covers_all_23_items() -> None:
+    """Every architecture item ID must appear in the claims ledger somewhere."""
+    content = _load_claims_content()
+    missing = [rid for rid in sorted(ALL_23_IDS) if rid not in content]
+    assert not missing, f"Claims ledger is missing item IDs: {missing}"
+
+
+def test_claims_ledger_all_safe_items_present() -> None:
+    """All 11 safe-to-say items must appear in the safe-to-say section."""
+    content = _load_claims_content()
+    section_start = content.find("## safe-to-say")
+    section_end = content.find("\n## ", section_start + 1)
+    safe_section = content[section_start:section_end]
+    missing = [rid for rid in sorted(SAFE_IDS) if rid not in safe_section]
+    assert not missing, f"safe-to-say section is missing: {missing}"
+
+
+def test_claims_ledger_all_bounded_items_present() -> None:
+    """All 5 bounded items must appear in the bounded section."""
+    content = _load_claims_content()
+    section_start = content.find("## bounded")
+    section_end = content.find("\n## ", section_start + 1)
+    bounded_section = content[section_start:section_end]
+    missing = [rid for rid in sorted(BOUNDED_IDS) if rid not in bounded_section]
+    assert not missing, f"bounded section is missing: {missing}"
+
+
+def test_claims_ledger_all_blocked_items_present() -> None:
+    """All 5 blocked/open items must appear in the blocked/open section."""
+    content = _load_claims_content()
+    section_start = content.find("## blocked/open")
+    section_end = content.find("\n## ", section_start + 1)
+    blocked_section = content[section_start:section_end]
+    missing = [rid for rid in sorted(BLOCKED_IDS) if rid not in blocked_section]
+    assert not missing, f"blocked/open section is missing: {missing}"
+
+
+def test_claims_ledger_all_unsafe_items_present() -> None:
+    """All 2 unsafe-to-assert items must appear in the unsafe-to-assert section."""
+    content = _load_claims_content()
+    section_start = content.find("## unsafe-to-assert")
+    section_end = len(content)
+    unsafe_section = content[section_start:section_end]
+    missing = [rid for rid in sorted(UNSAFE_IDS) if rid not in unsafe_section]
+    assert not missing, f"unsafe-to-assert section is missing: {missing}"
+
+
+def test_claims_ledger_total_count_is_23() -> None:
+    """The ledger must account for all 23 architecture items across four classes."""
+    content = _load_claims_content()
+    safe_count = content.count("## safe-to-say")  # section header
+    bounded_count = content.count("## bounded")
+    blocked_count = content.count("## blocked/open")
+    unsafe_count = content.count("## unsafe-to-assert")
+    # All four class markers must appear exactly once each
+    assert safe_count == 1
+    assert bounded_count == 1
+    assert blocked_count == 1
+    assert unsafe_count == 1
+    # Total unique IDs across all sections must be 23
+    all_found = sum(1 for rid in ALL_23_IDS if rid in content)
+    assert all_found == 23, f"Expected 23 items, found {all_found}"
+
+
+def test_claims_ledger_no_duplicate_item_ids() -> None:
+    """No item ID should appear in more than one classification section."""
+    content = _load_claims_content()
+    for rid in sorted(ALL_23_IDS):
+        # Find all occurrences
+        start = 0
+        positions = []
+        while True:
+            idx = content.find(rid, start)
+            if idx == -1:
+                break
+            positions.append(idx)
+            start = idx + 1
+        # Should appear exactly once
+        assert len(positions) == 1, (
+            f"Item {rid} appears {len(positions)} times — each item must be "
+            f"classified into exactly one section"
+        )
+
+
+# ---------------------------------------------------------------------------
+# Claims ledger — required known unsafe items
+# ---------------------------------------------------------------------------
+
+def test_claims_ledger_includes_m001_guardrail() -> None:
+    """M001 architecture-only guardrail must appear as unsafe-to-assert."""
+    content = _load_claims_content()
+    assert "M001-ARCHITECTURE-ONLY-GUARDRAIL" in content
+    # Must appear in the unsafe-to-assert section, not any other
+    section_start = content.find("## unsafe-to-assert")
+    assert section_start >= 0
+    section_end = len(content)
+    unsafe_section = content[section_start:section_end]
+    assert "M001-ARCHITECTURE-ONLY-GUARDRAIL" in unsafe_section
+
+
+def test_claims_ledger_includes_r028_llm_not_legal_authority() -> None:
+    """REQ-R028 (LLM not legal authority) must appear as unsafe-to-assert."""
+    content = _load_claims_content()
+    assert "REQ-R028" in content
+    # Must appear in the unsafe-to-assert section
+    section_start = content.find("## unsafe-to-assert")
+    section_end = len(content)
+    unsafe_section = content[section_start:section_end]
+    assert "REQ-R028" in unsafe_section
+
+
+def test_claims_ledger_unsafe_items_have_out_of_scope_status() -> None:
+    """Both unsafe-to-assert items must show 'out-of-scope' status in the ledger."""
+    content = _load_claims_content()
+    section_start = content.find("## unsafe-to-assert")
+    section_end = len(content)
+    unsafe_section = content[section_start:section_end]
+    for rid in UNSAFE_IDS:
+        assert rid in unsafe_section
+        # The row should contain "| out-of-scope |" for these items
+        rid_pos = unsafe_section.find(rid)
+        # Check the next ~200 chars after the ID contains "| out-of-scope |"
+        row_snippet = unsafe_section[rid_pos:rid_pos + 300]
+        assert "out-of-scope" in row_snippet, (
+            f"{rid} should show 'out-of-scope' status in the unsafe-to-assert table"
+        )
+
+
+# ---------------------------------------------------------------------------
+# Claims ledger — evidence / non-claims
+# ---------------------------------------------------------------------------
+
+def test_claims_ledger_safe_items_have_non_claims_column() -> None:
+    """Safe-to-say rows must include a Non-Claims column."""
+    content = _load_claims_content()
+    section_start = content.find("## safe-to-say")
+    section_end = content.find("\n## ", section_start + 1)
+    safe_section = content[section_start:section_end]
+    assert "| Non-Claims |" in safe_section, (
+        "Safe-to-say table must have a Non-Claims column"
+    )
+
+
+def test_claims_ledger_bounded_items_have_proof_level() -> None:
+    """Bounded rows must include a Proof Level column."""
+    content = _load_claims_content()
+    section_start = content.find("## bounded")
+    section_end = content.find("\n## ", section_start + 1)
+    bounded_section = content[section_start:section_end]
+    assert "| Proof Level |" in bounded_section, (
+        "Bounded table must have a Proof Level column"
+    )
+
+
+def test_claims_ledger_blocked_items_have_verification() -> None:
+    """Blocked/open rows must include a Verification column."""
+    content = _load_claims_content()
+    section_start = content.find("## blocked/open")
+    section_end = content.find("\n## ", section_start + 1)
+    blocked_section = content[section_start:section_end]
+    assert "| Verification |" in blocked_section, (
+        "Blocked/open table must have a Verification column"
+    )
+
+
+def test_claims_ledger_safe_items_contain_non_claims_content() -> None:
+    """Safe-to-say rows must contain actual non-claims text (❌ markers or text)."""
+    content = _load_claims_content()
+    section_start = content.find("## safe-to-say")
+    section_end = content.find("\n## ", section_start + 1)
+    safe_section = content[section_start:section_end]
+    # At least ASSUMP-PRD-SOURCE-TRUTH has a non-claim
+    assert "❌" in safe_section or "Does not make generated artifacts authoritative" in safe_section
+
+
+def test_claims_ledger_bounded_items_show_specific_proof_levels() -> None:
+    """Bounded items must show the correct proof_level from the JSONL."""
+    content = _load_claims_content()
+    # S05-OLD-PROJECT-PRIOR-ART has proof_level=source-anchor
+    assert "S05-OLD-PROJECT-PRIOR-ART" in content
+    # S05-PARSER-ODT-BOUNDARY has proof_level=real-document-proof
+    assert "S05-PARSER-ODT-BOUNDARY" in content
+    # S10-USER-BGE-M3-BASELINE has proof_level=runtime-smoke
+    assert "S10-USER-BGE-M3-BASELINE" in content
+
+
+def test_claims_ledger_blocked_gates_have_no_proof() -> None:
+    """Blocked/open items with proof_level=none must show 'none' in their row."""
+    content = _load_claims_content()
+    for gate_id in ["GATE-G005", "GATE-G008", "GATE-G011", "GATE-G015"]:
+        section_start = content.find("## blocked/open")
+        section_end = content.find("\n## ", section_start + 1)
+        blocked_section = content[section_start:section_end]
+        assert gate_id in blocked_section
+        pos = blocked_section.find(gate_id)
+        row_snippet = blocked_section[pos:pos + 300]
+        # The proof_level column should contain "none" for these gates
+        assert "none" in row_snippet, (
+            f"{gate_id} should show 'none' proof level in the blocked/open table"
+        )
+
+
+# ---------------------------------------------------------------------------
+# Claims ledger — forbidden overclaim wording
+# ---------------------------------------------------------------------------
+
+def test_claims_ledger_does_not_claim_product_ready() -> None:
+    """Claims ledger must NOT claim product readiness."""
+    content = _load_claims_content()
+    content_lower = content.lower()
+    overclaims = [
+        "product ready",
+        "product-ready",
+        "production ready",
+        "production-ready",
+        "shippable",
+    ]
+    for phrase in overclaims:
+        assert phrase not in content_lower, (
+            f"Claims ledger must NOT contain '{phrase}'"
+        )
+
+
+def test_claims_ledger_does_not_claim_legal_answer_correctness() -> None:
+    """Claims ledger must NOT claim legal-answer correctness."""
+    content = _load_claims_content()
+    content_lower = content.lower()
+    overclaims = [
+        "legal answer correct",
+        "legally correct",
+        "correct legal answer",
+        "guarantees legal accuracy",
+    ]
+    for phrase in overclaims:
+        assert phrase not in content_lower, (
+            f"Claims ledger must NOT contain '{phrase}'"
+        )
+
+
+def test_claims_ledger_does_not_claim_llm_legal_authority() -> None:
+    """Claims ledger must NOT claim LLM has legal authority."""
+    content = _load_claims_content()
+    content_lower = content.lower()
+    overclaims = [
+        "llm has legal authority",
+        "llm is legally authoritative",
+    ]
+    for phrase in overclaims:
+        assert phrase not in content_lower, (
+            f"Claims ledger must NOT contain '{phrase}'"
+        )
+
+
+def test_claims_ledger_does_not_claim_parser_complete() -> None:
+    """Claims ledger must NOT assert the parser is complete."""
+    content = _load_claims_content()
+    content_lower = content.lower()
+    overclaims = [
+        "parser is complete",
+        "parser is production",
+        "parser is ready",
+    ]
+    for phrase in overclaims:
+        assert phrase not in content_lower, (
+            f"Claims ledger must NOT contain '{phrase}'"
+        )
+
+
+def test_claims_ledger_does_not_claim_etl_production() -> None:
+    """Claims ledger must NOT assert ETL is production-ready."""
+    content = _load_claims_content()
+    content_lower = content.lower()
+    overclaims = [
+        "etl is production",
+        "etl is ready",
+        "etl is complete",
+    ]
+    for phrase in overclaims:
+        assert phrase not in content_lower, (
+            f"Claims ledger must NOT contain '{phrase}'"
+        )
+
+
+def test_claims_ledger_does_not_claim_knowql_works() -> None:
+    """Claims ledger must NOT claim Legal KnowQL works."""
+    content = _load_claims_content()
+    content_lower = content.lower()
+    overclaims = [
+        "knowql works",
+        "legal knowql works",
+        "knowql is production",
+    ]
+    for phrase in overclaims:
+        assert phrase not in content_lower, (
+            f"Claims ledger must NOT contain '{phrase}'"
+        )
+
+
+def test_claims_ledger_does_not_claim_falkordb_production_scale() -> None:
+    """Claims ledger must NOT claim FalkorDB is production-scale."""
+    content = _load_claims_content()
+    content_lower = content.lower()
+    overclaims = [
+        "production-scale falkordb",  # "No production-scale FalkorDB claim" is fine; "is production-scale" is not
+    ]
+    # Check for the affirmative form only (not the non-claim "No production-scale")
+    assert "is production-scale falkordb" not in content_lower
+    assert "falkordb is production" not in content_lower
+
+
+# ---------------------------------------------------------------------------
+# Claims ledger — classification function unit tests
+# ---------------------------------------------------------------------------
+
+def test_classify_safe_source_anchor_active() -> None:
+    """source-anchor proof + active status → safe-to-say."""
+    module = load_generator()
+    record = {
+        "id": "TEST-SAFE-001",
+        "status": "active",
+        "proof_level": "source-anchor",
+        "non_claims": ["does not assert X."],
+    }
+    assert module._classify_record(record) == "safe-to-say"
+
+
+def test_classify_safe_static_check_active() -> None:
+    """static-check proof + active status → safe-to-say."""
+    module = load_generator()
+    record = {
+        "id": "TEST-SAFE-002",
+        "status": "active",
+        "proof_level": "static-check",
+        "non_claims": [],
+    }
+    assert module._classify_record(record) == "safe-to-say"
+
+
+def test_classify_bounded_runtime_smoke_active() -> None:
+    """runtime-smoke proof + active status → bounded."""
+    module = load_generator()
+    record = {
+        "id": "TEST-BOUNDED-001",
+        "status": "active",
+        "proof_level": "runtime-smoke",
+        "non_claims": [],
+    }
+    assert module._classify_record(record) == "bounded"
+
+
+def test_classify_bounded_real_document_proof_active() -> None:
+    """real-document-proof + active status → bounded."""
+    module = load_generator()
+    record = {
+        "id": "TEST-BOUNDED-002",
+        "status": "active",
+        "proof_level": "real-document-proof",
+        "non_claims": [],
+    }
+    assert module._classify_record(record) == "bounded"
+
+
+def test_classify_bounded_status() -> None:
+    """bounded-evidence status → bounded regardless of proof_level."""
+    module = load_generator()
+    record = {
+        "id": "TEST-BOUNDED-003",
+        "status": "bounded-evidence",
+        "proof_level": "source-anchor",
+        "non_claims": [],
+    }
+    assert module._classify_record(record) == "bounded"
+
+
+def test_classify_blocked_explicit_status() -> None:
+    """blocked status → blocked/open."""
+    module = load_generator()
+    record = {
+        "id": "TEST-BLOCKED-001",
+        "status": "blocked",
+        "proof_level": "source-anchor",
+        "non_claims": [],
+    }
+    assert module._classify_record(record) == "blocked/open"
+
+
+def test_classify_blocked_none_proof_active() -> None:
+    """proof_level=none + active → blocked/open."""
+    module = load_generator()
+    record = {
+        "id": "TEST-BLOCKED-002",
+        "status": "active",
+        "proof_level": "none",
+        "non_claims": [],
+    }
+    assert module._classify_record(record) == "blocked/open"
+
+
+def test_classify_unsafe_out_of_scope() -> None:
+    """out-of-scope status → unsafe-to-assert."""
+    module = load_generator()
+    record = {
+        "id": "TEST-UNSAFE-001",
+        "status": "out-of-scope",
+        "proof_level": "source-anchor",
+        "non_claims": [],
+    }
+    assert module._classify_record(record) == "unsafe-to-assert"
+
+
+def test_classify_unsafe_unknown_proof_and_status() -> None:
+    """Unknown proof_level + active → unsafe-to-assert."""
+    module = load_generator()
+    record = {
+        "id": "TEST-UNSAFE-002",
+        "status": "active",
+        "proof_level": "unknown",
+        "non_claims": [],
+    }
+    assert module._classify_record(record) == "unsafe-to-assert"
+
+
+# ---------------------------------------------------------------------------
+# Claims ledger — determinism
+# ---------------------------------------------------------------------------
+
+def test_claims_ledger_generator_is_deterministic() -> None:
+    """Claims ledger generator is deterministic for the same items_lookup + report."""
+    module = load_generator()
+    report = load_report()
+    items_lookup = module._load_items_lookup(REPORT_JSON_PATH.parent / "architecture_items.jsonl")
+    first = module.render_claims_ledger(items_lookup, report)
+    second = module.render_claims_ledger(items_lookup, report)
+    assert first == second, "Claims ledger generator is non-deterministic"
+
+
+def test_claims_ledger_matches_stored_file() -> None:
+    """Stored claims ledger must match current generator output."""
+    module = load_generator()
+    report = load_report()
+    items_lookup = module._load_items_lookup(REPORT_JSON_PATH.parent / "architecture_items.jsonl")
+    expected = module.render_claims_ledger(items_lookup, report)
+    actual = CLAIMS_MD_PATH.read_text(encoding="utf-8")
+    assert actual == expected, (
+        "Stored claims ledger is stale. Run:\n"
+        f"  uv run python {GENERATE_SCRIPT_PATH}"
+    )
+
+
+def test_check_claims_ledger_output_function_detects_stale(tmp_path: Path) -> None:
+    """check_claims_ledger_output must detect stale content."""
+    module = load_generator()
+    report = load_report()
+    items_lookup = module._load_items_lookup(REPORT_JSON_PATH.parent / "architecture_items.jsonl")
+    fresh = module.render_claims_ledger(items_lookup, report)
+    claims_path = tmp_path / "claims.md"
+    claims_path.write_text(fresh, encoding="utf-8")
+    assert module.check_claims_ledger_output(claims_path, fresh) is True
+    stale = fresh + "\n\n<!-- stale -->"
+    assert module.check_claims_ledger_output(claims_path, stale) is False
+
+
+def test_check_claims_ledger_output_function_detects_missing(tmp_path: Path) -> None:
+    """check_claims_ledger_output must detect missing files."""
+    module = load_generator()
+    missing = tmp_path / "nonexistent.md"
+    assert module.check_claims_ledger_output(missing, "any") is False
+
+
+# ---------------------------------------------------------------------------
+# Blockers report — determinism
+# ---------------------------------------------------------------------------
+
+def test_blockers_report_generator_is_deterministic() -> None:
+    """Blockers report generator is deterministic for the same report + items_lookup."""
+    module = load_generator()
+    report = load_report()
+    items_lookup = module._load_items_lookup(REPORT_JSON_PATH.parent / "architecture_items.jsonl")
+    first = module.render_blockers_report(report, items_lookup)
+    second = module.render_blockers_report(report, items_lookup)
+    assert first == second, "Blockers report generator is non-deterministic"
+
+
+def test_blockers_report_matches_stored_file() -> None:
+    """Stored blockers report must match current generator output."""
+    module = load_generator()
+    report = load_report()
+    items_lookup = module._load_items_lookup(REPORT_JSON_PATH.parent / "architecture_items.jsonl")
+    expected = module.render_blockers_report(report, items_lookup)
+    actual = BLOCKERS_MD_PATH.read_text(encoding="utf-8")
+    assert actual == expected, (
+        "Stored blockers report is stale. Run:\n"
+        f"  uv run python {GENERATE_SCRIPT_PATH}"
+    )
+
+
+def test_check_blockers_output_function_detects_stale(tmp_path: Path) -> None:
+    """check_blockers_output must detect stale content."""
+    module = load_generator()
+    report = load_report()
+    items_lookup = module._load_items_lookup(REPORT_JSON_PATH.parent / "architecture_items.jsonl")
+    fresh = module.render_blockers_report(report, items_lookup)
+    blockers_path = tmp_path / "blockers.md"
+    blockers_path.write_text(fresh, encoding="utf-8")
+    assert module.check_blockers_output(blockers_path, fresh) is True
+    stale = fresh + "\n\n<!-- stale -->"
+    assert module.check_blockers_output(blockers_path, stale) is False
+
+
+def test_check_blockers_output_function_detects_missing(tmp_path: Path) -> None:
+    """check_blockers_output must detect missing files."""
+    module = load_generator()
+    missing = tmp_path / "nonexistent.md"
+    assert module.check_blockers_output(missing, "any") is False
+
+
+# ---------------------------------------------------------------------------
+# Full view generator — --check mode integration
+# ---------------------------------------------------------------------------
+
+def test_generate_script_supports_check_flag() -> None:
+    """The generator script must support --check and exit 0 when all views are fresh."""
+    import subprocess
+    result = subprocess.run(
+        [sys.executable, str(GENERATE_SCRIPT_PATH), "--check"],
+        capture_output=True,
+        text=True,
+    )
+    assert result.returncode == 0, (
+        f"generate-architecture-views.py --check failed:\n"
+        f"stdout: {result.stdout}\nstderr: {result.stderr}"
+    )
+
+
+def test_generate_script_check_reports_all_three_views() -> None:
+    """--check mode must process all three views (health, blockers, claims)."""
+    import subprocess
+    result = subprocess.run(
+        [sys.executable, str(GENERATE_SCRIPT_PATH), "--check"],
+        capture_output=True,
+        text=True,
+    )
+    output = result.stdout + result.stderr
+    assert "health" in output.lower() or "architecture_health" in output.lower() or "ok" in output.lower()
+
+
+def test_generate_script_write_produces_all_three_views(tmp_path: Path) -> None:
+    """Write mode must produce all three .md files."""
+    import subprocess
+    health = tmp_path / "health.md"
+    blockers = tmp_path / "blockers.md"
+    claims = tmp_path / "claims.md"
+    result = subprocess.run(
+        [
+            sys.executable, str(GENERATE_SCRIPT_PATH),
+            "--health-md", str(health),
+            "--blockers-md", str(blockers),
+            "--claims-ledger-md", str(claims),
+        ],
+        capture_output=True,
+        text=True,
+    )
+    assert result.returncode == 0, f"Generator failed: {result.stderr}"
+    assert health.exists(), "Health dashboard not written"
+    assert blockers.exists(), "Blockers report not written"
+    assert claims.exists(), "Claims ledger not written"
+    # Spot-check content
+    assert health.read_text().startswith("# Architecture Health Dashboard")
+    assert blockers.read_text().startswith("# Product Readiness Blockers Report")
+    assert claims.read_text().startswith("# Claims Ledger")
+
+
+def test_generate_script_check_fails_on_stale_health(tmp_path: Path) -> None:
+    """--check must fail if the health dashboard is stale."""
+    import subprocess
+    stale_health = tmp_path / "health.md"
+    stale_health.write_text("# stale", encoding="utf-8")
+    result = subprocess.run(
+        [
+            sys.executable, str(GENERATE_SCRIPT_PATH),
+            "--health-md", str(stale_health),
+            "--check",
+        ],
+        capture_output=True,
+        text=True,
+    )
+    assert result.returncode != 0, (
+        "--check should fail on stale health dashboard"
+    )
+    assert "stale" in result.stderr.lower() or "stale" in result.stdout.lower()
+
+
+def test_generate_script_check_fails_on_stale_blockers(tmp_path: Path) -> None:
+    """--check must fail if the blockers report is stale."""
+    import subprocess
+    stale_blockers = tmp_path / "blockers.md"
+    stale_blockers.write_text("# stale", encoding="utf-8")
+    result = subprocess.run(
+        [
+            sys.executable, str(GENERATE_SCRIPT_PATH),
+            "--blockers-md", str(stale_blockers),
+            "--check",
+        ],
+        capture_output=True,
+        text=True,
+    )
+    assert result.returncode != 0, (
+        "--check should fail on stale blockers report"
+    )
+
+
+def test_generate_script_check_fails_on_stale_claims(tmp_path: Path) -> None:
+    """--check must fail if the claims ledger is stale."""
+    import subprocess
+    stale_claims = tmp_path / "claims.md"
+    stale_claims.write_text("# stale", encoding="utf-8")
+    result = subprocess.run(
+        [
+            sys.executable, str(GENERATE_SCRIPT_PATH),
+            "--claims-ledger-md", str(stale_claims),
+            "--check",
+        ],
+        capture_output=True,
+        text=True,
+    )
+    assert result.returncode != 0, (
+        "--check should fail on stale claims ledger"
+    )
+
+
+def test_generate_script_check_fails_on_missing_report() -> None:
+    """Generator must fail gracefully if the report JSON is missing."""
+    import subprocess
+    result = subprocess.run(
+        [
+            sys.executable, str(GENERATE_SCRIPT_PATH),
+            "--report-json", "/nonexistent/report.json",
+        ],
+        capture_output=True,
+        text=True,
+    )
+    assert result.returncode != 0, (
+        "Generator should exit non-zero when report JSON is missing"
+    )
+
+
+def test_all_three_views_use_non_authoritative_disclaimer() -> None:
+    """All three generated views must include a non-authoritative or scope disclaimer."""
+    health = HEALTH_MD_PATH.read_text(encoding="utf-8")
+    blockers = BLOCKERS_MD_PATH.read_text(encoding="utf-8")
+    claims = CLAIMS_MD_PATH.read_text(encoding="utf-8")
+
+    # Health dashboard uses "**Non-Authoritative:**" in bold
+    assert "Non-Authoritative" in health or "non-authoritative" in health.lower(), (
+        "health view must include a non-authoritative disclaimer"
+    )
+
+    # Blockers report uses "planning artifact" scope disclaimer + "Source-of-truth"
+    blockers_lower = blockers.lower()
+    assert ("planning artifact" in blockers_lower
+            or "non-authoritative" in blockers_lower), (
+        "blockers view must include a scope disclaimer"
+    )
+    assert "source-of-truth" in blockers_lower, (
+        "blockers view must reference source-of-truth boundaries"
+    )
+
+    # Claims ledger uses "non-authoritative planning artifact" in footer
+    assert "non-authoritative" in claims.lower(), (
+        "claims ledger must include a non-authoritative disclaimer"
+    )
