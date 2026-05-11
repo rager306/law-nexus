@@ -1,0 +1,105 @@
+{
+  "canonical_path_decision": {
+    "consultant_wordml_relation_fixture": "law-source/consultant/Список документов (5).xml",
+    "rationale": "The consultant-folder XML is the canonical relation fixture; the root-level XML duplicate was byte-identical and removed to avoid path ambiguity.",
+    "removed_duplicate_path": "law-source/Список документов (5).xml"
+  },
+  "canonical_paths": [
+    "law-source/garant/44-fz.odt",
+    "law-source/garant/PP_60_27-01-2022.odt",
+    "law-source/consultant/Список документов (5).xml"
+  ],
+  "duplicate_check": {
+    "canonical_path": "law-source/consultant/Список документов (5).xml",
+    "classification": "removed-root-level-byte-identical-duplicate-must-remain-absent",
+    "duplicate_absent": true,
+    "removed_duplicate_path": "law-source/Список документов (5).xml"
+  },
+  "fixture_count": 3,
+  "fixtures": [
+    {
+      "canonical": true,
+      "exists": true,
+      "odt_shape": {
+        "content_xml": {
+          "direct_child_count": 3,
+          "root_tag": "{urn:oasis:names:tc:opendocument:xmlns:office:1.0}document-content",
+          "well_formed": true
+        },
+        "member_count": 8,
+        "meta_xml": {
+          "direct_child_count": 1,
+          "root_tag": "{urn:oasis:names:tc:opendocument:xmlns:office:1.0}document-meta",
+          "well_formed": true
+        },
+        "required_members": {
+          "content.xml": true,
+          "meta.xml": true
+        },
+        "required_members_present": true,
+        "zip_valid": true
+      },
+      "path": "law-source/garant/44-fz.odt",
+      "role": "odt-document-fixture",
+      "sha256": "73777d4741fa1b65229a8b22b97eb2cff4c5180105affb79b058d7007e3e4337",
+      "size_bytes": 247971,
+      "source_kind": "garant-odt",
+      "xml_shape": null
+    },
+    {
+      "canonical": true,
+      "exists": true,
+      "odt_shape": {
+        "content_xml": {
+          "direct_child_count": 3,
+          "root_tag": "{urn:oasis:names:tc:opendocument:xmlns:office:1.0}document-content",
+          "well_formed": true
+        },
+        "member_count": 8,
+        "meta_xml": {
+          "direct_child_count": 1,
+          "root_tag": "{urn:oasis:names:tc:opendocument:xmlns:office:1.0}document-meta",
+          "well_formed": true
+        },
+        "required_members": {
+          "content.xml": true,
+          "meta.xml": true
+        },
+        "required_members_present": true,
+        "zip_valid": true
+      },
+      "path": "law-source/garant/PP_60_27-01-2022.odt",
+      "role": "odt-document-fixture",
+      "sha256": "f083c903beadc243a842516e955471bc942d9a65a115694441876f1543335d4c",
+      "size_bytes": 102041,
+      "source_kind": "garant-odt",
+      "xml_shape": null
+    },
+    {
+      "canonical": true,
+      "exists": true,
+      "odt_shape": null,
+      "path": "law-source/consultant/Список документов (5).xml",
+      "role": "relation-fixture-prior-art-evidence",
+      "sha256": "0694587f4a907faf2e4cbaccb27b166e34a8380e9afc17642769b5ac54d5ede3",
+      "size_bytes": 5093,
+      "source_kind": "consultant-wordml-xml",
+      "xml_shape": {
+        "direct_child_count": 4,
+        "root_tag": "{http://schemas.microsoft.com/office/word/2003/wordml}wordDocument",
+        "well_formed": true
+      }
+    }
+  ],
+  "generated_by": "scripts/inventory-parser-fixtures.py",
+  "non_authoritative": true,
+  "non_claims": [
+    "This inventory does not claim parser completeness.",
+    "This inventory does not claim legal correctness or authoritative legal interpretation.",
+    "This inventory does not claim product ETL readiness.",
+    "This inventory does not claim FalkorDB product runtime readiness.",
+    "Consultant WordML XML is classified only as a relation fixture / prior-art evidence source until later validation proves candidate relations."
+  ],
+  "schema_version": "parser-source-fixture-inventory/v1",
+  "status": "pass"
+}
