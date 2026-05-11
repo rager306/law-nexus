@@ -3,7 +3,7 @@
 
 Reads the derived S03/S04 graph report (architecture_graph_report.json) and
 produces compact human-readable views for health status, layer coverage, risk,
-and non-authoritative boundary documentation.
+non-authoritative boundary documentation, and a claims safety ledger.
 """
 
 from __future__ import annotations
@@ -19,6 +19,7 @@ DEFAULT_REPORT_JSON_PATH = ROOT / "prd/architecture/architecture_graph_report.js
 DEFAULT_ITEMS_JSONL_PATH = ROOT / "prd/architecture/architecture_items.jsonl"
 DEFAULT_HEALTH_MD_PATH = ROOT / "prd/architecture/architecture_health.md"
 DEFAULT_BLOCKERS_MD_PATH = ROOT / "prd/architecture/product_readiness_blockers.md"
+DEFAULT_CLAIMS_MD_PATH = ROOT / "prd/architecture/claims_ledger.md"
 
 
 def escape_md(value: Any) -> str:
@@ -494,6 +495,217 @@ def render_blockers_report(
     return "\n".join(lines) + "\n"
 
 
+# ── Claims ledger ───────────────────────────────────────────────────────────────
+
+ClaimClassification = str  # Literal["safe-to-say", "bounded", "blocked/open", "unsafe-to-assert", "non-claim"]
+
+
+def _classify_record(record: dict[str, Any]) -> ClaimClassification:
+    """Classify a single architecture item into a claims safety class.
+
+    Classification rules (applied in order):
+    1. blocked  → blocked/open
+    2. proof_level == "none" and status == "active" → blocked/open
+    3. out-of-scope  → unsafe-to-assert  (guardrail items are themselves safe to assert as non-claims,
+       but the items they reference are unsafe-to-assert)
+    4. status == "bounded-evidence" → bounded
+    5. proof_level in ("source-anchor", "static-check") and status == "active" → safe-to-say
+    6. proof_level in ("runtime-smoke", "real-document-proof") and status == "active" → bounded
+    7. otherwise → unsafe-to-assert
+    """
+    status = record.get("status", "")
+    proof_level = record.get("proof_level", "")
+    non_claims: list[str] = record.get("non_claims", [])
+
+    if status == "blocked":
+        return "blocked/open"
+    if proof_level == "none" and status == "active":
+        return "blocked/open"
+    if status == "out-of-scope":
+        # Guardrail items: the item itself says "no X" — treat as non-claim framing
+        return "unsafe-to-assert"
+    if status == "bounded-evidence":
+        return "bounded"
+    if proof_level in ("source-anchor", "static-check") and status == "active":
+        return "safe-to-say"
+    if proof_level in ("runtime-smoke", "real-document-proof") and status == "active":
+        return "bounded"
+    return "unsafe-to-assert"
+
+
+def render_claims_ledger(
+    items_lookup: dict[str, dict[str, Any]],
+    report: dict[str, Any],
+) -> str:
+    """Render a concise claims ledger classifying every architecture item.
+
+    Classifications:
+    - safe-to-say      : source-anchor / static-check proof, active status
+    - bounded          : bounded-evidence status OR runtime-smoke / real-document-proof
+    - blocked/open     : proof_level==none + active OR explicit blocked status
+    - unsafe-to-assert : out-of-scope guardrails and items without sufficient proof
+
+    The ledger makes overclaim risk visible for architecture reviews and planning.
+    """
+    # Build sorted list of (id, record, classification)
+    rows: list[tuple[str, dict[str, Any], ClaimClassification]] = []
+    for record_id, record in sorted(items_lookup.items()):
+        classification = _classify_record(record)
+        rows.append((record_id, record, classification))
+
+    # Group by classification
+    safe_items = [(rid, r) for rid, r, c in rows if c == "safe-to-say"]
+    bounded_items = [(rid, r) for rid, r, c in rows if c == "bounded"]
+    blocked_items = [(rid, r) for rid, r, c in rows if c == "blocked/open"]
+    unsafe_items = [(rid, r) for rid, r, c in rows if c == "unsafe-to-assert"]
+
+    lines: list[str] = [
+        "# Claims Ledger",
+        "",
+        "> **Scope:** This ledger classifies each architecture registry item by the safety "
+        "of asserting its claims in future planning, PRDs, or agent handoffs. "
+        "It is a derived, non-authoritative planning artifact — do not use it as proof. "
+        "Always cite source anchors, runtime artifacts, and real-document evidence.",
+        "",
+        "## Classification Guide",
+        "",
+        "| Class | Meaning | When to use |",
+        "| --- | --- | --- |",
+        "| **safe-to-say** | Source-anchor or static-check proof; active status. | Use freely with source anchor citation. |",
+        "| **bounded** | Bounded-evidence, runtime-smoke, or real-document-proof; product-scale unproven. | Cite scope; do not extrapolate. |",
+        "| **blocked/open** | Unresolved proof gate (proof_level=none) or blocked status. | Do not assert; resolve proof gate first. |",
+        "| **unsafe-to-assert** | Out-of-scope guardrail, or item without sufficient proof. | Do not assert without independent evidence. |",
+        "",
+        "---",
+        "",
+        "## safe-to-say",
+        "",
+    ]
+
+    if safe_items:
+        lines.extend([
+            "| ID | Title | Layer | Risk | Non-Claims |",
+            "| --- | --- | --- | --- | --- |",
+        ])
+        for rid, record in safe_items:
+            ncs = record.get("non_claims", [])
+            nc_cell = "; ".join(f"❌ {escape_md(nc)}" for nc in ncs[:2]) if ncs else "—"
+            lines.append(
+                f"| `{rid}` | {escape_md(record.get('title', ''))} "
+                f"| {escape_md(record.get('layer', ''))} "
+                f"| {escape_md(record.get('risk_level', ''))} "
+                f"| {nc_cell} |"
+            )
+    else:
+        lines.append("No items classified as safe-to-say.")
+
+    lines.extend(["", "---", "", "## bounded", ""])
+
+    if bounded_items:
+        lines.extend([
+            "| ID | Title | Layer | Risk | Proof Level | Non-Claims |",
+            "| --- | --- | --- | --- | --- | --- |",
+        ])
+        for rid, record in bounded_items:
+            ncs = record.get("non_claims", [])
+            nc_cell = "; ".join(f"❌ {escape_md(nc)}" for nc in ncs[:2]) if ncs else "—"
+            lines.append(
+                f"| `{rid}` | {escape_md(record.get('title', ''))} "
+                f"| {escape_md(record.get('layer', ''))} "
+                f"| {escape_md(record.get('risk_level', ''))} "
+                f"| {escape_md(record.get('proof_level', ''))} "
+                f"| {nc_cell} |"
+            )
+    else:
+        lines.append("No items classified as bounded.")
+
+    lines.extend(["", "---", "", "## blocked/open", ""])
+
+    if blocked_items:
+        lines.extend([
+            "| ID | Title | Layer | Risk | Proof Level | Verification | Non-Claims |",
+            "| --- | --- | --- | --- | --- | --- | --- |",
+        ])
+        for rid, record in blocked_items:
+            ncs = record.get("non_claims", [])
+            nc_cell = "; ".join(f"❌ {escape_md(nc)}" for nc in ncs[:2]) if ncs else "—"
+            ver = escape_md(record.get("verification", "") or "")
+            lines.append(
+                f"| `{rid}` | {escape_md(record.get('title', ''))} "
+                f"| {escape_md(record.get('layer', ''))} "
+                f"| {escape_md(record.get('risk_level', ''))} "
+                f"| {escape_md(record.get('proof_level', ''))} "
+                f"| {ver[:60]}... |"
+                if len(ver) > 60
+                else f"| `{rid}` | {escape_md(record.get('title', ''))} "
+                     f"| {escape_md(record.get('layer', ''))} "
+                     f"| {escape_md(record.get('risk_level', ''))} "
+                     f"| {escape_md(record.get('proof_level', ''))} "
+                     f"| {ver} |"
+                     f"| {nc_cell} |"
+            )
+    else:
+        lines.append("No items classified as blocked/open.")
+
+    lines.extend(["", "---", "", "## unsafe-to-assert", ""])
+
+    if unsafe_items:
+        lines.extend([
+            "| ID | Title | Layer | Risk | Status | Non-Claims |",
+            "| --- | --- | --- | --- | --- | --- |",
+        ])
+        for rid, record in unsafe_items:
+            ncs = record.get("non_claims", [])
+            nc_cell = "; ".join(f"❌ {escape_md(nc)}" for nc in ncs[:2]) if ncs else "—"
+            lines.append(
+                f"| `{rid}` | {escape_md(record.get('title', ''))} "
+                f"| {escape_md(record.get('layer', ''))} "
+                f"| {escape_md(record.get('risk_level', ''))} "
+                f"| {escape_md(record.get('status', ''))} "
+                f"| {nc_cell} |"
+            )
+    else:
+        lines.append("No items classified as unsafe-to-assert.")
+
+    # Non-authoritative footer
+    lines.extend([
+        "",
+        "---",
+        "",
+        "*Claims ledger generated from `prd/architecture/architecture_items.jsonl` and "
+        "`prd/architecture/architecture_graph_report.json`. This is a derived, "
+        "non-authoritative planning artifact. Source-of-truth remains with PRD, GSD, ADR, "
+        "and source anchor evidence.*",
+    ])
+
+    return "\n".join(lines) + "\n"
+
+
+def check_claims_ledger_output(path: Path, expected: str) -> bool:
+    """Return True if the claims ledger is up to date."""
+    if not path.exists():
+        print(
+            f"missing claims ledger: {path}; regenerate with `uv run python scripts/generate-architecture-views.py`",
+            file=sys.stderr,
+        )
+        return False
+    actual = path.read_text(encoding="utf-8")
+    if actual != expected:
+        print(
+            f"stale claims ledger: {path}; regenerate with `uv run python scripts/generate-architecture-views.py` and review the diff",
+            file=sys.stderr,
+        )
+        return False
+    return True
+
+
+def write_claims_ledger(path: Path, content: str) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    temp_path = path.with_name(f".{path.name}.tmp")
+    temp_path.write_text(content, encoding="utf-8")
+    temp_path.replace(path)
+
+
 def check_health_output(path: Path, expected: str) -> bool:
     """Return True if the health dashboard is up to date."""
     if not path.exists():
@@ -546,12 +758,13 @@ def write_blockers(path: Path, content: str) -> None:
 
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        description="Generate derived, non-authoritative architecture health dashboard and blockers report from graph report."
+        description="Generate derived, non-authoritative architecture health dashboard, blockers report, and claims ledger from graph report."
     )
     parser.add_argument("--report-json", type=Path, default=DEFAULT_REPORT_JSON_PATH)
     parser.add_argument("--items-jsonl", type=Path, default=DEFAULT_ITEMS_JSONL_PATH)
     parser.add_argument("--health-md", type=Path, default=DEFAULT_HEALTH_MD_PATH)
     parser.add_argument("--blockers-md", type=Path, default=DEFAULT_BLOCKERS_MD_PATH)
+    parser.add_argument("--claims-ledger-md", type=Path, default=DEFAULT_CLAIMS_MD_PATH)
     parser.add_argument(
         "--check",
         action="store_true",
@@ -578,21 +791,26 @@ def run(argv: list[str] | None = None) -> int:
     expected_health = render_health_dashboard(report)
     items_lookup = _load_items_lookup(args.items_jsonl)
     expected_blockers = render_blockers_report(report, items_lookup=items_lookup)
+    expected_claims = render_claims_ledger(items_lookup, report)
 
     if args.check:
         if not check_health_output(args.health_md, expected_health):
             return 1
         if not check_blockers_output(args.blockers_md, expected_blockers):
             return 1
+        if not check_claims_ledger_output(args.claims_ledger_md, expected_claims):
+            return 1
     else:
         write_health(args.health_md, expected_health)
         write_blockers(args.blockers_md, expected_blockers)
+        write_claims_ledger(args.claims_ledger_md, expected_claims)
 
     summary = {
         "status": "ok",
         "mode": "check" if args.check else "write",
         "health_md": str(args.health_md),
         "blockers_md": str(args.blockers_md),
+        "claims_ledger_md": str(args.claims_ledger_md),
         "non_authoritative": True,
     }
     print(json.dumps(summary, sort_keys=True))
