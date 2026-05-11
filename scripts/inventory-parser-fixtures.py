@@ -25,6 +25,8 @@ JSON_OUTPUT = Path("prd/parser/source_fixture_inventory.json")
 MARKDOWN_OUTPUT = Path("prd/parser/source_fixture_inventory.md")
 REMOVED_DUPLICATE_PATH = "law-source/Список документов (5).xml"
 CANONICAL_CONSULTANT_XML_PATH = "law-source/consultant/Список документов (5).xml"
+STATED_PP_FIXTURE_PATH = "law-source/garant/PP_60_27-02-2022.odt"
+OBSERVED_PP_FIXTURE_PATH = "law-source/garant/PP_60_27-01-2022.odt"
 
 NON_CLAIMS = (
     "This inventory does not claim parser completeness.",
@@ -42,7 +44,7 @@ EXPECTED_FIXTURES = (
         "role": "odt-document-fixture",
     },
     {
-        "path": "law-source/garant/PP_60_27-01-2022.odt",
+        "path": OBSERVED_PP_FIXTURE_PATH,
         "source_kind": "garant-odt",
         "canonical": True,
         "role": "odt-document-fixture",
@@ -194,13 +196,59 @@ def fixture_ok(fixture: dict[str, Any]) -> bool:
     return bool(isinstance(xml_shape, dict) and xml_shape.get("well_formed") is True)
 
 
+def build_fixture_hygiene(root: Path, duplicate_absent: bool) -> dict[str, Any]:
+    stated_pp_path = root / STATED_PP_FIXTURE_PATH
+    observed_pp_path = root / OBSERVED_PP_FIXTURE_PATH
+    stated_pp_exists = stated_pp_path.exists()
+    observed_pp_exists = observed_pp_path.exists()
+    unexpected_duplicate_paths = []
+    if not duplicate_absent:
+        unexpected_duplicate_paths.append(REMOVED_DUPLICATE_PATH)
+    if stated_pp_exists:
+        unexpected_duplicate_paths.append(STATED_PP_FIXTURE_PATH)
+    return {
+        "canonical_path_decisions": {
+            "garant_pp_fixture": {
+                "canonical_path": OBSERVED_PP_FIXTURE_PATH,
+                "observed_path": OBSERVED_PP_FIXTURE_PATH,
+                "stated_path": STATED_PP_FIXTURE_PATH,
+                "classification": "observed-filename-is-canonical-unless-renamed-by-later-human-instruction",
+                "diagnostic": "Human/task context mentioned PP_60_27-02-2022.odt, but the repository fixture currently observed is PP_60_27-01-2022.odt; inventory uses the observed filename and fails if the stated alternate path appears unexpectedly.",
+            },
+            "consultant_wordml_relation_fixture": {
+                "canonical_path": CANONICAL_CONSULTANT_XML_PATH,
+                "removed_duplicate_path": REMOVED_DUPLICATE_PATH,
+                "classification": "consultant-folder-xml-is-canonical-root-level-byte-identical-duplicate-must-remain-absent",
+                "diagnostic": "The root-level Consultant XML duplicate was removed after hash verification and must not be silently consumed if it reappears.",
+            },
+        },
+        "removed_duplicate_status": {
+            "path": REMOVED_DUPLICATE_PATH,
+            "absent": duplicate_absent,
+            "failure_if_present": True,
+        },
+        "pp_filename_mismatch": {
+            "stated_path": STATED_PP_FIXTURE_PATH,
+            "observed_path": OBSERVED_PP_FIXTURE_PATH,
+            "stated_exists": stated_pp_exists,
+            "observed_exists": observed_pp_exists,
+            "canonical_path": OBSERVED_PP_FIXTURE_PATH,
+            "mismatch_visible": True,
+            "failure_if_stated_path_reappears": True,
+        },
+        "unexpected_duplicate_paths": unexpected_duplicate_paths,
+    }
+
+
 def build_inventory(root: Path) -> dict[str, Any]:
     fixtures = [inspect_fixture(root, spec) for spec in EXPECTED_FIXTURES]
     duplicate_path = root / REMOVED_DUPLICATE_PATH
     duplicate_absent = not duplicate_path.exists()
+    fixture_hygiene = build_fixture_hygiene(root, duplicate_absent)
+    no_unexpected_duplicates = not fixture_hygiene["unexpected_duplicate_paths"]
     all_expected_exist = all(fixture.get("exists") is True for fixture in fixtures)
     all_shapes_valid = all(fixture_ok(fixture) for fixture in fixtures)
-    status = "pass" if all_expected_exist and all_shapes_valid and duplicate_absent else "fail"
+    status = "pass" if all_expected_exist and all_shapes_valid and no_unexpected_duplicates else "fail"
     return {
         "schema_version": SCHEMA_VERSION,
         "generated_by": SCRIPT_PATH,
@@ -214,6 +262,7 @@ def build_inventory(root: Path) -> dict[str, Any]:
             "duplicate_absent": duplicate_absent,
             "classification": "removed-root-level-byte-identical-duplicate-must-remain-absent",
         },
+        "fixture_hygiene": fixture_hygiene,
         "canonical_path_decision": {
             "consultant_wordml_relation_fixture": CANONICAL_CONSULTANT_XML_PATH,
             "removed_duplicate_path": REMOVED_DUPLICATE_PATH,
@@ -243,6 +292,18 @@ def render_markdown(manifest: dict[str, Any]) -> str:
         f"- Canonical Consultant WordML relation fixture: `{manifest['canonical_path_decision']['consultant_wordml_relation_fixture']}`",
         f"- Removed duplicate path that must remain absent: `{manifest['canonical_path_decision']['removed_duplicate_path']}`",
         f"- Rationale: {manifest['canonical_path_decision']['rationale']}",
+        "",
+        "## Fixture hygiene",
+        "",
+        f"- PP fixture stated path: `{manifest['fixture_hygiene']['pp_filename_mismatch']['stated_path']}`",
+        f"- PP fixture observed/canonical path: `{manifest['fixture_hygiene']['pp_filename_mismatch']['observed_path']}`",
+        f"- PP filename mismatch visible: `{str(manifest['fixture_hygiene']['pp_filename_mismatch']['mismatch_visible']).lower()}`",
+        f"- PP stated path currently exists: `{str(manifest['fixture_hygiene']['pp_filename_mismatch']['stated_exists']).lower()}`",
+        f"- PP hygiene classification: `{manifest['fixture_hygiene']['canonical_path_decisions']['garant_pp_fixture']['classification']}`",
+        f"- PP diagnostic: {manifest['fixture_hygiene']['canonical_path_decisions']['garant_pp_fixture']['diagnostic']}",
+        f"- Consultant XML hygiene classification: `{manifest['fixture_hygiene']['canonical_path_decisions']['consultant_wordml_relation_fixture']['classification']}`",
+        f"- Removed duplicate status: `absent={str(manifest['fixture_hygiene']['removed_duplicate_status']['absent']).lower()}`; failure_if_present=`{str(manifest['fixture_hygiene']['removed_duplicate_status']['failure_if_present']).lower()}`",
+        f"- Unexpected duplicate paths: `{', '.join(manifest['fixture_hygiene']['unexpected_duplicate_paths']) if manifest['fixture_hygiene']['unexpected_duplicate_paths'] else 'none'}`",
         "",
         "## Fixture inventory",
         "",
@@ -333,6 +394,8 @@ def observability_summary(manifest: dict[str, Any]) -> dict[str, Any]:
         "status": manifest["status"],
         "fixture_count": manifest["fixture_count"],
         "duplicate_absent": manifest["duplicate_check"]["duplicate_absent"],
+        "pp_filename_mismatch": manifest["fixture_hygiene"]["pp_filename_mismatch"],
+        "unexpected_duplicate_paths": manifest["fixture_hygiene"]["unexpected_duplicate_paths"],
         "canonical_paths": manifest["canonical_paths"],
         "non_authoritative": manifest["non_authoritative"],
     }

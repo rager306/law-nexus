@@ -16,6 +16,38 @@
     "removed_duplicate_path": "law-source/Список документов (5).xml"
   },
   "fixture_count": 3,
+  "fixture_hygiene": {
+    "canonical_path_decisions": {
+      "consultant_wordml_relation_fixture": {
+        "canonical_path": "law-source/consultant/Список документов (5).xml",
+        "classification": "consultant-folder-xml-is-canonical-root-level-byte-identical-duplicate-must-remain-absent",
+        "diagnostic": "The root-level Consultant XML duplicate was removed after hash verification and must not be silently consumed if it reappears.",
+        "removed_duplicate_path": "law-source/Список документов (5).xml"
+      },
+      "garant_pp_fixture": {
+        "canonical_path": "law-source/garant/PP_60_27-01-2022.odt",
+        "classification": "observed-filename-is-canonical-unless-renamed-by-later-human-instruction",
+        "diagnostic": "Human/task context mentioned PP_60_27-02-2022.odt, but the repository fixture currently observed is PP_60_27-01-2022.odt; inventory uses the observed filename and fails if the stated alternate path appears unexpectedly.",
+        "observed_path": "law-source/garant/PP_60_27-01-2022.odt",
+        "stated_path": "law-source/garant/PP_60_27-02-2022.odt"
+      }
+    },
+    "pp_filename_mismatch": {
+      "canonical_path": "law-source/garant/PP_60_27-01-2022.odt",
+      "failure_if_stated_path_reappears": true,
+      "mismatch_visible": true,
+      "observed_exists": true,
+      "observed_path": "law-source/garant/PP_60_27-01-2022.odt",
+      "stated_exists": false,
+      "stated_path": "law-source/garant/PP_60_27-02-2022.odt"
+    },
+    "removed_duplicate_status": {
+      "absent": true,
+      "failure_if_present": true,
+      "path": "law-source/Список документов (5).xml"
+    },
+    "unexpected_duplicate_paths": []
+  },
   "fixtures": [
     {
       "canonical": true,

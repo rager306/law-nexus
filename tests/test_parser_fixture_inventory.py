@@ -48,6 +48,12 @@ def test_build_inventory_records_expected_fixture_shapes(tmp_path: Path) -> None
     assert manifest["duplicate_check"]["duplicate_absent"] is True
     assert manifest["non_authoritative"] is True
     assert "law-source/consultant/Список документов (5).xml" in manifest["canonical_paths"]
+    hygiene = manifest["fixture_hygiene"]
+    assert hygiene["pp_filename_mismatch"]["canonical_path"] == "law-source/garant/PP_60_27-01-2022.odt"
+    assert hygiene["pp_filename_mismatch"]["stated_path"] == "law-source/garant/PP_60_27-02-2022.odt"
+    assert hygiene["pp_filename_mismatch"]["mismatch_visible"] is True
+    assert hygiene["pp_filename_mismatch"]["stated_exists"] is False
+    assert hygiene["unexpected_duplicate_paths"] == []
     odt = manifest["fixtures"][0]
     assert odt["odt_shape"]["zip_valid"] is True
     assert odt["odt_shape"]["required_members_present"] is True
@@ -67,6 +73,23 @@ def test_build_inventory_fails_when_removed_duplicate_reappears(tmp_path: Path) 
 
     assert manifest["status"] == "fail"
     assert manifest["duplicate_check"]["duplicate_absent"] is False
+    assert manifest["fixture_hygiene"]["removed_duplicate_status"]["absent"] is False
+    assert "law-source/Список документов (5).xml" in manifest["fixture_hygiene"]["unexpected_duplicate_paths"]
+
+
+def test_build_inventory_fails_when_stated_pp_mismatch_path_reappears(tmp_path: Path) -> None:
+    module = load_inventory_module()
+    write_expected_fixture_tree(tmp_path)
+    write_minimal_odt(tmp_path / "law-source/garant/PP_60_27-02-2022.odt")
+
+    manifest = module.build_inventory(tmp_path)
+
+    assert manifest["status"] == "fail"
+    mismatch = manifest["fixture_hygiene"]["pp_filename_mismatch"]
+    assert mismatch["observed_path"] == "law-source/garant/PP_60_27-01-2022.odt"
+    assert mismatch["stated_path"] == "law-source/garant/PP_60_27-02-2022.odt"
+    assert mismatch["stated_exists"] is True
+    assert "law-source/garant/PP_60_27-02-2022.odt" in manifest["fixture_hygiene"]["unexpected_duplicate_paths"]
 
 
 def test_check_outputs_detects_stale_artifacts(tmp_path: Path) -> None:
@@ -99,3 +122,6 @@ def test_repository_outputs_are_current_and_report_non_claims() -> None:
     assert "This inventory does not claim parser completeness." in markdown
     assert "This inventory does not claim legal correctness" in markdown
     assert "Consultant WordML XML is classified only as a relation fixture" in markdown
+    assert "## Fixture hygiene" in markdown
+    assert "PP_60_27-02-2022.odt" in markdown
+    assert "PP_60_27-01-2022.odt" in markdown
