@@ -352,6 +352,18 @@ def load_fixture(document_id: str, source_path: str, expected_sha256: str, root:
     result.raw_block_count = len(raw_blocks)
     result.table_count = count_tables(root_element)
     non_empty_blocks = [block for block in raw_blocks if block.text]
+    if not non_empty_blocks:
+        result.status = "empty-extracted-text"
+        result.diagnostics.append(
+            diagnostic(
+                source_path,
+                "empty-extracted-text",
+                "content.xml has no non-empty heading or paragraph text to emit as SourceBlockRecord rows.",
+                source_member=CONTENT_MEMBER,
+                raw_block_count=result.raw_block_count,
+            )
+        )
+        return result
     emitted_blocks = non_empty_blocks[:MAX_BLOCKS_PER_DOCUMENT]
     result.emitted_block_count = len(emitted_blocks)
     result.truncated = len(non_empty_blocks) > len(emitted_blocks)
