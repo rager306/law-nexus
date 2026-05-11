@@ -465,3 +465,282 @@ def test_high_risk_table_has_all_required_columns() -> None:
     ]
     for col in required_columns:
         assert col in table, f"Missing column: {col}"
+
+
+# ---------------------------------------------------------------------------
+# Product-readiness blockers report guardrails
+# ---------------------------------------------------------------------------
+
+BLOCKERS_MD_PATH = ROOT / "prd/architecture/product_readiness_blockers.md"
+
+
+def _load_blockers_content() -> str:
+    """Load blocker report content, fail with clear message if missing."""
+    assert BLOCKERS_MD_PATH.exists(), (
+        f"Blocker report not found at {BLOCKERS_MD_PATH}. "
+        "Run: uv run python scripts/generate-architecture-views.py"
+    )
+    return BLOCKERS_MD_PATH.read_text(encoding="utf-8")
+
+
+def test_blockers_report_exists() -> None:
+    """Blocker report file must exist."""
+    _load_blockers_content()
+
+
+def test_blockers_report_scope_disclaimer_present() -> None:
+    """Blocker report must include a scope disclaimer that it is a planning artifact."""
+    content = _load_blockers_content()
+    assert "planning artifact" in content.lower(), (
+        "Blocker report must contain 'planning artifact' disclaimer"
+    )
+
+
+def test_blockers_report_does_not_claim_product_ready() -> None:
+    """Blocker report must NOT contain language claiming product readiness."""
+    content = _load_blockers_content()
+    content_lower = content.lower()
+    overclaims = [
+        "product ready",
+        "product-ready",
+        "production ready",
+        "production-ready",
+        "shippable",
+    ]
+    for phrase in overclaims:
+        assert phrase not in content_lower, (
+            f"Blocker report must NOT contain '{phrase}' — it is a planning artifact only"
+        )
+
+
+def test_blockers_report_does_not_claim_legal_answer_correctness() -> None:
+    """Blocker report must NOT claim legal-answer correctness."""
+    content = _load_blockers_content()
+    content_lower = content.lower()
+    # These phrases would overclaim legal-answer quality
+    overclaims = [
+        "legal answer correct",
+        "legally correct",
+        "correct legal answer",
+        "guarantees legal accuracy",
+        "legal answer is correct",
+    ]
+    for phrase in overclaims:
+        assert phrase not in content_lower, (
+            f"Blocker report must NOT claim '{phrase}'"
+        )
+
+
+def test_blockers_report_includes_gate_g005() -> None:
+    """Blocker report must cite GATE-G005 (temporal model)."""
+    content = _load_blockers_content()
+    assert "GATE-G005" in content, (
+        "Blocker report must include GATE-G005 for temporal same-date conflict policy"
+    )
+
+
+def test_blockers_report_includes_gate_g008() -> None:
+    """Blocker report must cite GATE-G008 (parser + retrieval golden tests)."""
+    content = _load_blockers_content()
+    assert "GATE-G008" in content, (
+        "Blocker report must include GATE-G008 for executable parser and retrieval golden tests"
+    )
+
+
+def test_blockers_report_includes_gate_g011() -> None:
+    """Blocker report must cite GATE-G011 (local embedding quality proof)."""
+    content = _load_blockers_content()
+    assert "GATE-G011" in content, (
+        "Blocker report must include GATE-G011 for local embedding quality proof"
+    )
+
+
+def test_blockers_report_includes_gate_g015() -> None:
+    """Blocker report must cite GATE-G015 (FalkorDBLite to Docker migration)."""
+    content = _load_blockers_content()
+    assert "GATE-G015" in content, (
+        "Blocker report must include GATE-G015 for FalkorDBLite to Docker migration runbook"
+    )
+
+
+def test_blockers_report_includes_all_four_gates() -> None:
+    """Blocker report must cite all four required gates G005, G008, G011, G015."""
+    content = _load_blockers_content()
+    required_gates = ["GATE-G005", "GATE-G008", "GATE-G011", "GATE-G015"]
+    missing = [g for g in required_gates if g not in content]
+    assert not missing, f"Blocker report is missing gates: {missing}"
+
+
+def test_blockers_report_includes_non_claim_no_parser_completeness() -> None:
+    """Blocker report must include 'No parser completeness claim' non-claim."""
+    content = _load_blockers_content()
+    assert "No parser completeness claim" in content, (
+        "Blocker report must include the 'No parser completeness claim' non-claim"
+    )
+
+
+def test_blockers_report_includes_non_claim_no_retrieval_quality() -> None:
+    """Blocker report must include 'No product retrieval quality claim' non-claim."""
+    content = _load_blockers_content()
+    assert "No product retrieval quality claim" in content, (
+        "Blocker report must include the 'No product retrieval quality claim' non-claim"
+    )
+
+
+def test_blockers_report_includes_non_claim_no_production_falkordb() -> None:
+    """Blocker report must include 'No production-scale FalkorDB claim' non-claim."""
+    content = _load_blockers_content()
+    assert "No production-scale FalkorDB claim" in content, (
+        "Blocker report must include the 'No production-scale FalkorDB claim' non-claim"
+    )
+
+
+def test_blockers_report_includes_non_claim_no_legal_answer_correctness() -> None:
+    """Blocker report must include 'No legal-answer correctness claim' non-claim."""
+    content = _load_blockers_content()
+    assert "No legal-answer correctness claim" in content, (
+        "Blocker report must include the 'No legal-answer correctness claim' non-claim"
+    )
+
+
+def test_blockers_report_does_not_claim_etl_is_complete() -> None:
+    """Blocker report must not assert ETL is complete or production-ready."""
+    content = _load_blockers_content()
+    content_lower = content.lower()
+    overclaims = [
+        "etl is complete",
+        "etl is production",
+        "etl is ready",
+        "parser is complete",
+        "parser is production",
+        "parser is ready",
+    ]
+    for phrase in overclaims:
+        assert phrase not in content_lower, (
+            f"Blocker report must NOT claim '{phrase}'"
+        )
+
+
+def test_blockers_report_does_not_claim_legal_knowql_works() -> None:
+    """Blocker report must not claim Legal KnowQL works in production."""
+    content = _load_blockers_content()
+    content_lower = content.lower()
+    overclaims = [
+        "knowql works",
+        "knowql is production",
+        "knowql is ready",
+        "legal knowql works",
+        "legal knowql is production",
+    ]
+    for phrase in overclaims:
+        assert phrase not in content_lower, (
+            f"Blocker report must NOT claim '{phrase}'"
+        )
+
+
+def test_blockers_report_has_summary_table() -> None:
+    """Blocker report must have a Summary Table mapping capability areas to gate counts."""
+    content = _load_blockers_content()
+    assert "| Capability Area | Gate Count |" in content, (
+        "Blocker report must include a Summary Table with capability areas"
+    )
+
+
+def test_blockers_report_lists_etl_parser_area() -> None:
+    """Blocker report must list the ETL / Parser capability area."""
+    content = _load_blockers_content()
+    assert "ETL / Parser" in content, (
+        "Blocker report must include the ETL / Parser capability area"
+    )
+
+
+def test_blockers_report_lists_retrieval_embedding_area() -> None:
+    """Blocker report must list the Retrieval / Embedding capability area."""
+    content = _load_blockers_content()
+    assert "Retrieval / Embedding" in content, (
+        "Blocker report must include the Retrieval / Embedding capability area"
+    )
+
+
+def test_blockers_report_lists_temporal_model_area() -> None:
+    """Blocker report must list the Temporal Model capability area."""
+    content = _load_blockers_content()
+    assert "Temporal Model" in content, (
+        "Blocker report must include the Temporal Model capability area"
+    )
+
+
+def test_blockers_report_lists_graph_runtime_area() -> None:
+    """Blocker report must list the Graph Runtime capability area."""
+    content = _load_blockers_content()
+    assert "Graph Runtime" in content, (
+        "Blocker report must include the Graph Runtime capability area"
+    )
+
+
+def test_blockers_report_does_not_claim_runtime_migration_complete() -> None:
+    """Blocker report must not assert runtime migration is complete."""
+    content = _load_blockers_content()
+    content_lower = content.lower()
+    overclaims = [
+        "migration is complete",
+        "migration is done",
+        "migration is successful",
+        "runtime migration is complete",
+    ]
+    for phrase in overclaims:
+        assert phrase not in content_lower, (
+            f"Blocker report must NOT claim '{phrase}'"
+        )
+
+
+def test_blockers_report_includes_global_non_claims_summary() -> None:
+    """Blocker report must include a Global Non-Claims Summary section."""
+    content = _load_blockers_content()
+    assert "Global Non-Claims Summary" in content, (
+        "Blocker report must include a Global Non-Claims Summary section"
+    )
+
+
+def test_blockers_report_non_claims_cite_architecture_ids() -> None:
+    """Blocker report non-claim rows must cite architecture record IDs."""
+    content = _load_blockers_content()
+    # The Global Non-Claims Summary should cite specific record IDs like GATE-G008, REQ-R001, etc.
+    assert "GATE-G" in content, (
+        "Blocker report must cite gate IDs in the Global Non-Claims Summary"
+    )
+    assert "REQ-R" in content, (
+        "Blocker report must cite requirement IDs in the Global Non-Claims Summary"
+    )
+
+
+def test_blockers_report_does_not_contain_llm_authority_claim() -> None:
+    """Blocker report must not assert LLM has legal authority."""
+    content = _load_blockers_content()
+    content_lower = content.lower()
+    overclaims = [
+        "llm has legal authority",
+        "llm is legally authoritative",
+        "llm provides legal authority",
+    ]
+    for phrase in overclaims:
+        assert phrase not in content_lower, (
+            f"Blocker report must NOT claim '{phrase}'"
+        )
+
+
+def test_blockers_report_blocked_evidence_cites_architecture_ids() -> None:
+    """Blocked evidence rows must cite architecture record IDs (e.g. S05-OLD-PROJECT-PRIOR-ART)."""
+    content = _load_blockers_content()
+    assert "S05-OLD-PROJECT-PRIOR-ART" in content, (
+        "Blocker report must include S05-OLD-PROJECT-PRIOR-ART in blocked evidence"
+    )
+
+
+def test_blockers_report_next_proof_work_section_present() -> None:
+    """Each capability area must have a 'Next Proof Work' section."""
+    content = _load_blockers_content()
+    # Check that at least one area has "Next Proof Work"
+    assert "Next Proof Work" in content, (
+        "Blocker report must include 'Next Proof Work' sections"
+    )
