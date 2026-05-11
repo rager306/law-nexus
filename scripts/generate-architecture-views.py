@@ -16,7 +16,9 @@ from typing import Any
 
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_REPORT_JSON_PATH = ROOT / "prd/architecture/architecture_graph_report.json"
+DEFAULT_ITEMS_JSONL_PATH = ROOT / "prd/architecture/architecture_items.jsonl"
 DEFAULT_HEALTH_MD_PATH = ROOT / "prd/architecture/architecture_health.md"
+DEFAULT_BLOCKERS_MD_PATH = ROOT / "prd/architecture/product_readiness_blockers.md"
 
 
 def escape_md(value: Any) -> str:
@@ -246,6 +248,252 @@ def render_health_dashboard(report: dict[str, Any]) -> str:
     return "\n".join(lines) + "\n"
 
 
+def _load_items_lookup(items_path: Path) -> dict[str, dict[str, Any]]:
+    """Load architecture items JSONL and build an id→record lookup for enrichment."""
+    if not items_path.exists():
+        return {}
+    lookup: dict[str, dict[str, Any]] = {}
+    for line in items_path.read_text(encoding="utf-8").splitlines():
+        line = line.strip()
+        if not line:
+            continue
+        try:
+            record = json.loads(line)
+            lookup[record.get("id", "")] = record
+        except json.JSONDecodeError:
+            continue
+    return lookup
+
+
+def render_blockers_report(
+    report: dict[str, Any],
+    items_lookup: dict[str, dict[str, Any]] | None = None,
+) -> str:
+    """Render a product-readiness blockers report mapping gates/non-claims to proof work.
+
+    This is a planning artifact for future milestone work. It does NOT assert
+    product readiness; it makes next proof obligations visible.
+
+    Args:
+        report: The architecture graph report dict.
+        items_lookup: Optional id→record lookup for enriching rows with title/owner/verification.
+    """
+    items_lookup = items_lookup or {}
+    # ── Layer → capability-area mapping ─────────────────────────────────────────
+    LAYER_MAP: dict[str, str] = {
+        "parser-ingestion": "ETL / Parser",
+        "temporal-model": "Temporal Model",
+        "retrieval-embedding": "Retrieval / Embedding",
+        "generated-cypher": "Legal KnowQL / Generated Cypher",
+        "graph-runtime": "Graph Runtime",
+        "security-safety": "Legal Answering",
+    }
+
+    def area_of(layer: str) -> str:
+        return LAYER_MAP.get(layer, layer)
+
+    # ── Collect unresolved gates ─────────────────────────────────────────────────
+    unresolved_gates = report.get("unresolved_proof_gates", [])
+    gate_ids: set[str] = {g["id"] for g in unresolved_gates}
+
+    # ── Collect high-risk blocked/bounded evidence ───────────────────────────────
+    high_risk_nodes = report.get("high_risk_nodes", [])
+    blocked_nodes: list[dict[str, Any]] = [
+        n for n in high_risk_nodes
+        if n.get("id", "") not in gate_ids
+        and n.get("status", "") in ("blocked", "bounded-evidence")
+    ]
+
+    # ── Build per-area gate/blocker lists (sorted for deterministic output) ─────
+    CAPABILITY_AREAS = sorted(LAYER_MAP.values())  # deterministic order
+
+    gates_by_area: dict[str, list[dict[str, Any]]] = {a: [] for a in CAPABILITY_AREAS}
+    for gate in unresolved_gates:
+        gates_by_area[area_of(gate.get("layer", ""))].append(gate)
+
+    blocked_by_area: dict[str, list[dict[str, Any]]] = {a: [] for a in CAPABILITY_AREAS}
+    for node in blocked_nodes:
+        blocked_by_area[area_of(node.get("layer", ""))].append(node)
+
+    # ── Helpers ─────────────────────────────────────────────────────────────────
+    non_claims_summary = report.get("non_claims_summary", {})
+    _nc_by_id: dict[str, list[str]] = {}
+    for entry in non_claims_summary.get("by_node", []):
+        _nc_by_id[entry["id"]] = entry.get("non_claims", [])
+
+    def gate_ncs(gate_id: str) -> list[str]:
+        return _nc_by_id.get(gate_id, [])
+
+    def node_ncs(node_id: str) -> list[str]:
+        return _nc_by_id.get(node_id, [])
+
+    def _full_title(record_id: str) -> str:
+        return escape_md(items_lookup.get(record_id, {}).get("title", "") or "")
+
+    def _full_owner(record_id: str) -> str:
+        return escape_md(items_lookup.get(record_id, {}).get("owner", "") or "")
+
+    def _full_verification(record_id: str) -> str:
+        return escape_md(items_lookup.get(record_id, {}).get("verification", "") or "")
+
+    def render_gate_rows(gate: dict[str, Any]) -> list[str]:
+        nid = gate.get("id", "")
+        # Prefer graph-report field; fall back to items_lookup for title
+        title = gate.get("title") or _full_title(nid)
+        owner = gate.get("owner") or _full_owner(nid)
+        ver = gate.get("verification") or _full_verification(nid)
+        rows = [
+            f"| `{nid}` | {title} "
+            f"| {escape_md(gate.get('risk_level', ''))} "
+            f"| {ver} "
+            f"| {owner} |"
+        ]
+        for nc in gate_ncs(nid):
+            rows.append(f"|  | {escape_md(nc)} | — | — | — |")
+        return rows
+
+    def render_node_rows(node: dict[str, Any]) -> list[str]:
+        nid = node.get("id", "")
+        # Enrich from items_lookup for title/owner/verification
+        title = _full_title(nid)
+        owner = _full_owner(nid)
+        ver = _full_verification(nid)
+        rows = [
+            f"| `{nid}` | {title} "
+            f"| {escape_md(node.get('risk_level', ''))} "
+            f"| {ver} "
+            f"| {owner} |"
+        ]
+        for nc in node_ncs(nid):
+            rows.append(f"|  | {escape_md(nc)} | — | — | — |")
+        return rows
+
+    # ── Summary table ───────────────────────────────────────────────────────────
+    lines: list[str] = [
+        "# Product Readiness Blockers Report",
+        "",
+        "> **Scope:** This report maps active proof gates, blocked evidence, and non-claims "
+        "to the six capability areas required for LegalGraph Nexus product readiness. "
+        "It is a planning artifact only — it does **not** assert product readiness and "
+        "does not validate runtime behavior, retrieval quality, parser completeness, "
+        "generated-Cypher safety, FalkorDB production scale, or legal-answer correctness.",
+        "",
+        "---",
+        "",
+        "## Summary Table",
+        "",
+        "| Capability Area | Gate Count | Blocked / Bounded Count |",
+        "| --- | ---: | ---: |",
+    ]
+    for area in CAPABILITY_AREAS:
+        lines.append(
+            f"| {area} | {len(gates_by_area[area])} | {len(blocked_by_area[area])} |"
+        )
+
+    # ── Per-area sections ───────────────────────────────────────────────────────
+    for area in CAPABILITY_AREAS:
+        gate_list = gates_by_area[area]
+        blocked_list = blocked_by_area[area]
+
+        lines.extend(["", f"## {area}", ""])
+
+        if gate_list or blocked_list:
+            lines.extend([
+                "### Proof Gates",
+                "",
+                "| ID | Title | Risk | Verification | Owner |",
+                "| --- | --- | --- | --- | --- |",
+            ])
+            for gate in gate_list:
+                lines.extend(render_gate_rows(gate))
+
+            if blocked_list:
+                lines.extend([
+                    "",
+                    "### Blocked / Bounded Evidence",
+                    "",
+                    "| ID | Title | Risk | Verification | Owner |",
+                    "| --- | --- | --- | --- | --- |",
+                ])
+                for node in blocked_list:
+                    lines.extend(render_node_rows(node))
+
+            # What this area does NOT prove
+            seen_nc: set[str] = set()
+            lines.extend([
+                "",
+                "### What This Area Does Not Prove",
+                "",
+                "_Below non-claims are drawn directly from architecture registry records. "
+                "They are not exhaustive._",
+                "",
+                "| Non-Claim |",
+                "| --- |",
+            ])
+            for nid in [g["id"] for g in gate_list] + [n["id"] for n in blocked_list]:
+                for nc in _nc_by_id.get(nid, []):
+                    if nc not in seen_nc:
+                        seen_nc.add(nc)
+                        lines.append(f"| {escape_md(nc)} |")
+
+            lines.extend([
+                "",
+                "### Next Proof Work",
+                "",
+                "Proof work for this area should:",
+                "",
+            ])
+            for gate in gate_list:
+                lines.append(
+                    f"- Address [`{gate.get('id', '')}`](#proof-gates): "
+                    f"{gate.get('verification') or _full_verification(gate.get('id', ''))}"
+                )
+            for node in blocked_list:
+                nid = node.get("id", "")
+                lines.append(
+                    f"- Resolve [`{nid}`](#blocked--bounded-evidence): "
+                    f"{_full_verification(nid)}"
+                )
+        else:
+            lines.extend([
+                "No active proof gates or blocked evidence for this area in the current architecture registry.",
+                "",
+            ])
+
+    # ── Global non-claims summary ───────────────────────────────────────────────
+    lines.extend([
+        "",
+        "---",
+        "",
+        "## Global Non-Claims Summary",
+        "",
+        "_The following statements appear across one or more architecture records and "
+        "collectively define what this architecture does NOT validate:_",
+        "",
+        "| Non-Claim | Appears In |",
+        "| --- | --- |",
+    ])
+
+    seen_nc_global: set[str] = set()
+    for entry in non_claims_summary.get("by_node", []):
+        nid = entry.get("id", "")
+        for nc in entry.get("non_claims", []):
+            if nc not in seen_nc_global:
+                seen_nc_global.add(nc)
+                lines.append(f"| {escape_md(nc)} | `{nid}` |")
+
+    lines.extend([
+        "",
+        "---",
+        "",
+        "*Blockers report generated from `prd/architecture/architecture_graph_report.json`. "
+        "This is a planning artifact — it makes next proof work visible without asserting "
+        "product readiness. Source-of-truth remains with PRD, GSD, ADR, and source anchor evidence.*",
+    ])
+
+    return "\n".join(lines) + "\n"
+
+
 def check_health_output(path: Path, expected: str) -> bool:
     """Return True if the health dashboard is up to date."""
     if not path.exists():
@@ -271,16 +519,43 @@ def write_health(path: Path, content: str) -> None:
     temp_path.replace(path)
 
 
+def check_blockers_output(path: Path, expected: str) -> bool:
+    """Return True if the blockers report is up to date."""
+    if not path.exists():
+        print(
+            f"missing blockers report: {path}; regenerate with `uv run python scripts/generate-architecture-views.py`",
+            file=sys.stderr,
+        )
+        return False
+    actual = path.read_text(encoding="utf-8")
+    if actual != expected:
+        print(
+            f"stale blockers report: {path}; regenerate with `uv run python scripts/generate-architecture-views.py` and review the diff",
+            file=sys.stderr,
+        )
+        return False
+    return True
+
+
+def write_blockers(path: Path, content: str) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    temp_path = path.with_name(f".{path.name}.tmp")
+    temp_path.write_text(content, encoding="utf-8")
+    temp_path.replace(path)
+
+
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        description="Generate derived, non-authoritative architecture health dashboard from graph report."
+        description="Generate derived, non-authoritative architecture health dashboard and blockers report from graph report."
     )
     parser.add_argument("--report-json", type=Path, default=DEFAULT_REPORT_JSON_PATH)
+    parser.add_argument("--items-jsonl", type=Path, default=DEFAULT_ITEMS_JSONL_PATH)
     parser.add_argument("--health-md", type=Path, default=DEFAULT_HEALTH_MD_PATH)
+    parser.add_argument("--blockers-md", type=Path, default=DEFAULT_BLOCKERS_MD_PATH)
     parser.add_argument(
         "--check",
         action="store_true",
-        help="Compare expected health dashboard to existing output without rewriting.",
+        help="Compare expected outputs to existing files without rewriting.",
     )
     return parser.parse_args(argv)
 
@@ -301,17 +576,23 @@ def run(argv: list[str] | None = None) -> int:
         return 1
 
     expected_health = render_health_dashboard(report)
+    items_lookup = _load_items_lookup(args.items_jsonl)
+    expected_blockers = render_blockers_report(report, items_lookup=items_lookup)
 
     if args.check:
         if not check_health_output(args.health_md, expected_health):
             return 1
+        if not check_blockers_output(args.blockers_md, expected_blockers):
+            return 1
     else:
         write_health(args.health_md, expected_health)
+        write_blockers(args.blockers_md, expected_blockers)
 
     summary = {
         "status": "ok",
         "mode": "check" if args.check else "write",
         "health_md": str(args.health_md),
+        "blockers_md": str(args.blockers_md),
         "non_authoritative": True,
     }
     print(json.dumps(summary, sort_keys=True))
