@@ -125,3 +125,10 @@ def test_repository_outputs_are_current_and_report_non_claims() -> None:
     assert "## Fixture hygiene" in markdown
     assert "PP_60_27-02-2022.odt" in markdown
     assert "PP_60_27-01-2022.odt" in markdown
+    readme = (ROOT / "prd/parser/README.md").read_text(encoding="utf-8")
+    assert "uv run python scripts/inventory-parser-fixtures.py --check" in readme
+    assert "law-source/consultant/Список документов (5).xml" in readme
+    assert "law-source/Список документов (5).xml" in readme
+    assert "does not claim parser completeness" in readme
+    assert "legal correctness" in readme
+    assert "FalkorDB product runtime readiness" in readme
