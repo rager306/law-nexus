@@ -1,0 +1,37 @@
+{
+  "artifact_freshness": {
+    "diagnostics": [],
+    "stale_paths": [],
+    "status": "not-checked"
+  },
+  "candidate_count": 1,
+  "candidates": [
+    {
+      "base": "LAW",
+      "date": "11.05.2026",
+      "demo": "2",
+      "id": "REL-CONS-0001",
+      "n": "179581",
+      "object_ref": "consultant:LAW:179581@11.05.2026",
+      "selector": "wordml:hlink[1]",
+      "source_block_id": "BLOCK-CONSULTANT-XML-0001",
+      "status": "candidate"
+    }
+  ],
+  "diagnostic_count": 0,
+  "diagnostics": [],
+  "generated_by": "scripts/build-consultant-relation-candidates.py",
+  "non_authoritative": true,
+  "non_claims": [
+    "This Consultant WordML relation candidate does not claim parser completeness.",
+    "This Consultant WordML relation candidate does not claim legal correctness or authoritative legal interpretation.",
+    "This Consultant WordML relation candidate does not claim product ETL readiness.",
+    "This Consultant WordML relation candidate does not claim FalkorDB loading/runtime readiness.",
+    "This Consultant WordML relation candidate does not claim Consultant WordML legal authority.",
+    "This Consultant WordML relation candidate does not claim relation correctness."
+  ],
+  "schema_version": "legalgraph-consultant-relation-candidates/v1",
+  "source_path": "law-source/consultant/Список документов (5).xml",
+  "source_sha256": "0694587f4a907faf2e4cbaccb27b166e34a8380e9afc17642769b5ac54d5ede3",
+  "status": "pass"
+}
