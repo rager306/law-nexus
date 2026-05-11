@@ -67,6 +67,6 @@ S03 advances only the ODT portion of R031 by proving that the canonical Garant O
 
 ## Non-claims and boundary
 
-This fixture and parser-record contract is non-authoritative. It does not claim parser completeness, legal correctness, product ETL readiness, or FalkorDB loading/runtime readiness. The Consultant WordML legal-authority non-claims mean the Consultant WordML XML fixture may only propose bounded relation-candidate evidence until later validation proves candidate relations.
+This fixture and parser-record contract is non-authoritative. It does not claim parser completeness, legal correctness, product ETL readiness, FalkorDB product runtime readiness, or FalkorDB loading/runtime readiness. The Consultant WordML legal-authority non-claims mean the Consultant WordML XML fixture may only propose bounded relation-candidate evidence until later validation proves candidate relations.
 
 Downstream parser, graph, or FalkorDB load work must preserve these non-claims in generated reports unless a later slice adds explicit proof for a narrower claim.
