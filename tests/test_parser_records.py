@@ -1,6 +1,9 @@
 from __future__ import annotations
 
 import importlib.util
+import json
+import os
+import subprocess
 import sys
 from pathlib import Path
 from types import ModuleType
@@ -10,6 +13,9 @@ from pydantic import ValidationError
 
 ROOT = Path(__file__).resolve().parents[1]
 SCRIPT_PATH = ROOT / "scripts/parser_records.py"
+CLI_PATH = ROOT / "scripts/validate-parser-records.py"
+CONTRACT_REPORT_PATH = ROOT / "prd/parser/parser_record_contract.md"
+README_PATH = ROOT / "prd/parser/README.md"
 VALID_SHA = "a" * 64
 
 
@@ -21,6 +27,24 @@ def load_parser_records_module() -> ModuleType:
     sys.modules[spec.name] = module
     spec.loader.exec_module(module)
     return module
+
+
+def run_contract_cli(*args: str) -> subprocess.CompletedProcess[str]:
+    env = os.environ.copy()
+    env.setdefault("PYTHONUTF8", "1")
+    return subprocess.run(
+        [sys.executable, str(CLI_PATH), *args],
+        cwd=ROOT,
+        env=env,
+        text=True,
+        capture_output=True,
+        check=False,
+    )
+
+
+def parse_cli_summary(result: subprocess.CompletedProcess[str]) -> dict[str, object]:
+    assert result.stdout, result.stderr
+    return json.loads(result.stdout)
 
 
 def document_payload() -> dict[str, object]:
@@ -192,9 +216,120 @@ def test_jsonl_validation_diagnostics_include_file_line_record_and_field(tmp_pat
     assert malformed["file"] == str(jsonl)
     assert malformed["line"] == 1
     assert malformed["rule"] == "json_invalid"
+    assert malformed["message"]
     assert invalid["file"] == str(jsonl)
     assert invalid["line"] == 2
     assert invalid["record_id"] == "BAD-44-FZ"
     assert invalid["record_kind"] == "document"
     assert invalid["field"] == "id"
+    assert invalid["rule"] == "string_pattern_mismatch"
     assert invalid["source_path"] == "law-source/garant/44-fz.odt"
+    assert invalid["message"]
+
+
+def test_cli_check_reports_fresh_artifacts_counts_and_non_authoritative_status() -> None:
+    result = run_contract_cli("--check")
+
+    assert result.returncode == 0, result.stdout + result.stderr
+    summary = parse_cli_summary(result)
+    assert summary["status"] == "pass"
+    assert summary["non_authoritative"] is True
+    assert summary["counts"] == {
+        "document": 2,
+        "source_block": 1,
+        "relation_candidate": 1,
+    }
+    artifact_status = summary["artifact_status"]
+    assert isinstance(artifact_status, dict)
+    assert artifact_status
+    assert all(status == "fresh" for status in artifact_status.values())
+    assert summary["diagnostic_count"] == 0
+
+
+def test_cli_check_reports_stale_schema_or_report_with_targeted_diagnostic() -> None:
+    original = CONTRACT_REPORT_PATH.read_text(encoding="utf-8")
+    try:
+        CONTRACT_REPORT_PATH.write_text(original + "\n", encoding="utf-8")
+        result = run_contract_cli("--check")
+    finally:
+        CONTRACT_REPORT_PATH.write_text(original, encoding="utf-8")
+
+    assert result.returncode == 1
+    summary = parse_cli_summary(result)
+    assert summary["status"] == "fail"
+    assert summary["artifact_status"]["prd/parser/parser_record_contract.md"] == "stale"
+    diagnostics = summary["diagnostics"]
+    assert diagnostics
+    assert any(
+        diagnostic["file"] == "prd/parser/parser_record_contract.md"
+        and diagnostic["field"] == "artifact"
+        and diagnostic["rule"] == "artifact_stale"
+        and "run --write" in diagnostic["message"]
+        for diagnostic in diagnostics
+    )
+
+
+def test_cli_malformed_jsonl_diagnostics_are_actionable_and_provenance_safe(tmp_path: Path) -> None:
+    module = load_parser_records_module()
+    bad_jsonl = tmp_path / "bad-records.jsonl"
+    bad_jsonl.write_text(
+        "{not json}\n"
+        + module.dumps_jsonl_record({**document_payload(), "source_sha256": "A" * 64})
+        + "\n",
+        encoding="utf-8",
+    )
+
+    result = run_contract_cli(str(bad_jsonl))
+
+    assert result.returncode == 1
+    summary = parse_cli_summary(result)
+    assert summary["status"] == "fail"
+    malformed, invalid = summary["diagnostics"]
+    assert malformed["file"] == str(bad_jsonl)
+    assert malformed["line"] == 1
+    assert malformed["record_id"] is None
+    assert malformed["record_kind"] is None
+    assert malformed["field"] == "record"
+    assert malformed["rule"] == "json_invalid"
+    assert malformed["source_path"] is None
+    assert malformed["message"]
+    assert invalid["file"] == str(bad_jsonl)
+    assert invalid["line"] == 2
+    assert invalid["record_id"] == "DOC-44-FZ"
+    assert invalid["record_kind"] == "document"
+    assert invalid["field"] == "source_sha256"
+    assert invalid["rule"] == "string_pattern_mismatch"
+    assert invalid["source_path"] == "law-source/garant/44-fz.odt"
+    assert invalid["message"]
+    assert "44-FZ bounded fixture" not in result.stdout
+
+
+def test_cli_expected_kind_mismatch_reports_record_context() -> None:
+    result = run_contract_cli("--kind", "document", "prd/parser/examples/relation_candidate_records.jsonl")
+
+    assert result.returncode == 1
+    summary = parse_cli_summary(result)
+    assert summary["status"] == "fail"
+    diagnostic = summary["diagnostics"][0]
+    assert diagnostic["file"].endswith("prd/parser/examples/relation_candidate_records.jsonl")
+    assert diagnostic["record_id"] == "REL-CONS-0001"
+    assert diagnostic["record_kind"] == "relation_candidate"
+    assert diagnostic["field"] == "record_kind"
+    assert diagnostic["rule"] == "unexpected_record_kind"
+    assert diagnostic["source_path"] == "law-source/consultant/Список документов (5).xml"
+    assert "expected record kind 'document'" in diagnostic["message"]
+
+
+def test_parser_contract_docs_preserve_explicit_non_claim_wording() -> None:
+    combined = README_PATH.read_text(encoding="utf-8") + "\n" + CONTRACT_REPORT_PATH.read_text(encoding="utf-8")
+
+    for phrase in [
+        "parser completeness",
+        "legal correctness",
+        "product ETL",
+        "FalkorDB loading/runtime readiness",
+        "Consultant WordML legal-authority non-claims",
+        "non-authoritative",
+        "authoritative",
+    ]:
+        assert phrase in combined
