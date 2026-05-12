@@ -25,6 +25,7 @@ JSON_OUTPUT = Path("prd/parser/source_fixture_inventory.json")
 MARKDOWN_OUTPUT = Path("prd/parser/source_fixture_inventory.md")
 REMOVED_DUPLICATE_PATH = "law-source/Список документов (5).xml"
 CANONICAL_CONSULTANT_XML_PATH = "law-source/consultant/Список документов (5).xml"
+CONSULTANT_FULL_ACT_XML_PATH = "law-source/consultant/44-FZ-2026.xml"
 STATED_PP_FIXTURE_PATH = "law-source/garant/PP_60_27-02-2022.odt"
 OBSERVED_PP_FIXTURE_PATH = "law-source/garant/PP_60_27-01-2022.odt"
 
@@ -33,7 +34,8 @@ NON_CLAIMS = (
     "This inventory does not claim legal correctness or authoritative legal interpretation.",
     "This inventory does not claim product ETL readiness.",
     "This inventory does not claim FalkorDB product runtime readiness.",
-    "Consultant WordML XML is classified only as a relation fixture / prior-art evidence source until later validation proves candidate relations.",
+    "Consultant document-list WordML XML is classified only as a relation fixture / prior-art evidence source until later validation proves candidate relations.",
+    "Consultant full-act WordML XML is a canonical source-shape fixture only; this inventory does not claim parsed legal semantics from it.",
 )
 
 EXPECTED_FIXTURES = (
@@ -54,6 +56,14 @@ EXPECTED_FIXTURES = (
         "source_kind": "consultant-wordml-xml",
         "canonical": True,
         "role": "relation-fixture-prior-art-evidence",
+        "source_role": "document-list-prior-art",
+    },
+    {
+        "path": CONSULTANT_FULL_ACT_XML_PATH,
+        "source_kind": "consultant-wordml-xml",
+        "canonical": True,
+        "role": "full-act-source-shape-fixture",
+        "source_role": "full-normative-act",
     },
 )
 
@@ -78,11 +88,21 @@ def sha256_file(path: Path) -> str | None:
     return digest.hexdigest()
 
 
+def xml_name_observations(tag: str | None) -> dict[str, str | None]:
+    if not tag:
+        return {"root_namespace": None, "root_local_name": None}
+    if tag.startswith("{") and "}" in tag:
+        namespace, local_name = tag[1:].split("}", 1)
+        return {"root_namespace": namespace, "root_local_name": local_name}
+    return {"root_namespace": None, "root_local_name": tag}
+
+
 def xml_summary_from_bytes(data: bytes) -> dict[str, Any]:
     root = ET.fromstring(data)
     return {
         "well_formed": True,
         "root_tag": root.tag,
+        **xml_name_observations(root.tag),
         "direct_child_count": len(list(root)),
     }
 
@@ -95,11 +115,14 @@ def xml_summary_from_file(path: Path) -> dict[str, Any]:
             "well_formed": False,
             "parse_error": str(exc),
             "root_tag": None,
+            "root_namespace": None,
+            "root_local_name": None,
             "direct_child_count": None,
         }
     return {
         "well_formed": True,
         "root_tag": root.tag,
+        **xml_name_observations(root.tag),
         "direct_child_count": len(list(root)),
     }
 
@@ -114,11 +137,15 @@ def inspect_odt(path: Path) -> dict[str, Any]:
         "content_xml": {
             "well_formed": False,
             "root_tag": None,
+            "root_namespace": None,
+            "root_local_name": None,
             "direct_child_count": None,
         },
         "meta_xml": {
             "well_formed": False,
             "root_tag": None,
+            "root_namespace": None,
+            "root_local_name": None,
             "direct_child_count": None,
         },
     }
@@ -147,6 +174,8 @@ def inspect_odt(path: Path) -> dict[str, Any]:
                             "well_formed": False,
                             "parse_error": str(exc),
                             "root_tag": None,
+                            "root_namespace": None,
+                            "root_local_name": None,
                             "direct_child_count": None,
                         }
     except zipfile.BadZipFile as exc:
@@ -154,18 +183,20 @@ def inspect_odt(path: Path) -> dict[str, Any]:
     return diagnostics
 
 
-def inspect_fixture(root: Path, spec: dict[str, str | bool]) -> dict[str, Any]:
+def inspect_fixture(root: Path, spec: dict[str, Any]) -> dict[str, Any]:
     relative_path = str(spec["path"])
     path = root / relative_path
     exists = path.is_file()
+    sha256 = sha256_file(path)
     fixture: dict[str, Any] = {
         "path": relative_path,
         "source_kind": spec["source_kind"],
         "role": spec["role"],
+        "source_role": spec.get("source_role", spec["role"]),
         "canonical": bool(spec["canonical"]),
         "exists": exists,
         "size_bytes": path.stat().st_size if exists else None,
-        "sha256": sha256_file(path),
+        "sha256": sha256,
     }
     if relative_path.endswith(".odt"):
         fixture["odt_shape"] = inspect_odt(path)
@@ -175,6 +206,8 @@ def inspect_fixture(root: Path, spec: dict[str, str | bool]) -> dict[str, Any]:
         fixture["xml_shape"] = xml_summary_from_file(path) if exists else {
             "well_formed": False,
             "root_tag": None,
+            "root_namespace": None,
+            "root_local_name": None,
             "direct_child_count": None,
         }
     return fixture
@@ -221,6 +254,11 @@ def build_fixture_hygiene(root: Path, duplicate_absent: bool) -> dict[str, Any]:
                 "classification": "consultant-folder-xml-is-canonical-root-level-byte-identical-duplicate-must-remain-absent",
                 "diagnostic": "The root-level Consultant XML duplicate was removed after hash verification and must not be silently consumed if it reappears.",
             },
+            "consultant_full_act_fixture": {
+                "canonical_path": CONSULTANT_FULL_ACT_XML_PATH,
+                "classification": "canonical-full-act-wordml-source-shape-fixture",
+                "diagnostic": "The full Consultant 44-ФЗ WordML file is inventoried as source-shape evidence with hash and XML diagnostics; it does not supersede Garant ODT fixtures or assert parsed legal semantics.",
+            },
         },
         "removed_duplicate_status": {
             "path": REMOVED_DUPLICATE_PATH,
@@ -265,9 +303,15 @@ def build_inventory(root: Path) -> dict[str, Any]:
         "fixture_hygiene": fixture_hygiene,
         "canonical_path_decision": {
             "consultant_wordml_relation_fixture": CANONICAL_CONSULTANT_XML_PATH,
+            "consultant_wordml_full_act_fixture": CONSULTANT_FULL_ACT_XML_PATH,
             "removed_duplicate_path": REMOVED_DUPLICATE_PATH,
-            "rationale": "The consultant-folder XML is the canonical relation fixture; the root-level XML duplicate was byte-identical and removed to avoid path ambiguity.",
+            "rationale": "The consultant-folder document-list XML remains the canonical relation fixture; the full 44-ФЗ XML is a separate canonical source-shape fixture. Neither Consultant fixture supersedes Garant ODT parser fixtures or creates parser-completeness/legal-correctness claims.",
         },
+        "source_priority_notes": [
+            "Garant ODT fixtures remain parser source fixtures for current ODT work.",
+            "Consultant document-list WordML is prior-art relation evidence only.",
+            "Consultant full-act WordML is canonical source-shape evidence for a complete normative act and must be referenced by its own path and hash.",
+        ],
         "non_claims": list(NON_CLAIMS),
         "fixtures": fixtures,
     }
@@ -290,11 +334,19 @@ def render_markdown(manifest: dict[str, Any]) -> str:
         "## Canonical path decision",
         "",
         f"- Canonical Consultant WordML relation fixture: `{manifest['canonical_path_decision']['consultant_wordml_relation_fixture']}`",
+        f"- Canonical Consultant WordML full-act fixture: `{manifest['canonical_path_decision']['consultant_wordml_full_act_fixture']}`",
         f"- Removed duplicate path that must remain absent: `{manifest['canonical_path_decision']['removed_duplicate_path']}`",
         f"- Rationale: {manifest['canonical_path_decision']['rationale']}",
         "",
-        "## Fixture hygiene",
+        "## Source priority notes",
         "",
+    ]
+    lines.extend(f"- {note}" for note in manifest["source_priority_notes"])
+    lines.extend(
+        [
+            "",
+            "## Fixture hygiene",
+            "",
         f"- PP fixture stated path: `{manifest['fixture_hygiene']['pp_filename_mismatch']['stated_path']}`",
         f"- PP fixture observed/canonical path: `{manifest['fixture_hygiene']['pp_filename_mismatch']['observed_path']}`",
         f"- PP filename mismatch visible: `{str(manifest['fixture_hygiene']['pp_filename_mismatch']['mismatch_visible']).lower()}`",
@@ -302,14 +354,17 @@ def render_markdown(manifest: dict[str, Any]) -> str:
         f"- PP hygiene classification: `{manifest['fixture_hygiene']['canonical_path_decisions']['garant_pp_fixture']['classification']}`",
         f"- PP diagnostic: {manifest['fixture_hygiene']['canonical_path_decisions']['garant_pp_fixture']['diagnostic']}",
         f"- Consultant XML hygiene classification: `{manifest['fixture_hygiene']['canonical_path_decisions']['consultant_wordml_relation_fixture']['classification']}`",
+        f"- Consultant full-act hygiene classification: `{manifest['fixture_hygiene']['canonical_path_decisions']['consultant_full_act_fixture']['classification']}`",
+        f"- Consultant full-act diagnostic: {manifest['fixture_hygiene']['canonical_path_decisions']['consultant_full_act_fixture']['diagnostic']}",
         f"- Removed duplicate status: `absent={str(manifest['fixture_hygiene']['removed_duplicate_status']['absent']).lower()}`; failure_if_present=`{str(manifest['fixture_hygiene']['removed_duplicate_status']['failure_if_present']).lower()}`",
         f"- Unexpected duplicate paths: `{', '.join(manifest['fixture_hygiene']['unexpected_duplicate_paths']) if manifest['fixture_hygiene']['unexpected_duplicate_paths'] else 'none'}`",
         "",
         "## Fixture inventory",
         "",
-        "| Path | Kind | Role | Exists | Shape diagnostics | SHA-256 |",
-        "|---|---|---|---|---|---|",
-    ]
+        "| Path | Kind | Source role | Role | Exists | Shape diagnostics | SHA-256 |",
+        "|---|---|---|---|---|---|---|",
+        ]
+    )
     for fixture in manifest["fixtures"]:
         if fixture["source_kind"] == "garant-odt":
             odt_shape = fixture["odt_shape"]
@@ -317,9 +372,11 @@ def render_markdown(manifest: dict[str, Any]) -> str:
                 f"zip={str(odt_shape['zip_valid']).lower()}; "
                 f"content.xml={str(odt_shape['required_members']['content.xml']).lower()} "
                 f"root={odt_shape['content_xml']['root_tag']} "
+                f"namespace={odt_shape['content_xml'].get('root_namespace')} "
                 f"children={odt_shape['content_xml']['direct_child_count']}; "
                 f"meta.xml={str(odt_shape['required_members']['meta.xml']).lower()} "
                 f"root={odt_shape['meta_xml']['root_tag']} "
+                f"namespace={odt_shape['meta_xml'].get('root_namespace')} "
                 f"children={odt_shape['meta_xml']['direct_child_count']}"
             )
         else:
@@ -327,6 +384,8 @@ def render_markdown(manifest: dict[str, Any]) -> str:
             shape = (
                 f"xml_well_formed={str(xml_shape['well_formed']).lower()}; "
                 f"root={xml_shape['root_tag']}; "
+                f"namespace={xml_shape.get('root_namespace')}; "
+                f"local={xml_shape.get('root_local_name')}; "
                 f"children={xml_shape['direct_child_count']}"
             )
         lines.append(
@@ -335,6 +394,7 @@ def render_markdown(manifest: dict[str, Any]) -> str:
                 [
                     f"`{fixture['path']}`",
                     str(fixture["source_kind"]),
+                    str(fixture["source_role"]),
                     str(fixture["role"]),
                     str(fixture["exists"]).lower(),
                     shape.replace("|", "\\|"),
@@ -369,6 +429,26 @@ def write_outputs(root: Path, manifest: dict[str, Any]) -> None:
     markdown_path.write_text(render_markdown(manifest), encoding="utf-8")
 
 
+def artifact_sha_mismatch_errors(actual_text: str, manifest: dict[str, Any]) -> list[str]:
+    try:
+        actual_manifest = json.loads(actual_text)
+    except json.JSONDecodeError:
+        return []
+    actual_by_path = {
+        fixture.get("path"): fixture.get("sha256")
+        for fixture in actual_manifest.get("fixtures", [])
+        if isinstance(fixture, dict)
+    }
+    errors: list[str] = []
+    for fixture in manifest["fixtures"]:
+        path = fixture["path"]
+        if path in actual_by_path and actual_by_path[path] != fixture.get("sha256"):
+            errors.append(
+                f"SHA mismatch for {path}: generated={fixture.get('sha256')} artifact={actual_by_path[path]}"
+            )
+    return errors
+
+
 def check_outputs(root: Path, manifest: dict[str, Any]) -> list[str]:
     errors: list[str] = []
     expected_json = json.dumps(manifest, ensure_ascii=False, indent=2, sort_keys=True) + "\n"
@@ -384,6 +464,8 @@ def check_outputs(root: Path, manifest: dict[str, Any]) -> list[str]:
         actual = path.read_text(encoding="utf-8")
         if actual != expected:
             errors.append(f"Generated artifact is stale: {relative_path}")
+            if relative_path == JSON_OUTPUT:
+                errors.extend(artifact_sha_mismatch_errors(actual, manifest))
     if manifest["status"] != "pass":
         errors.append("Inventory status is not pass")
     return errors
@@ -397,6 +479,9 @@ def observability_summary(manifest: dict[str, Any]) -> dict[str, Any]:
         "pp_filename_mismatch": manifest["fixture_hygiene"]["pp_filename_mismatch"],
         "unexpected_duplicate_paths": manifest["fixture_hygiene"]["unexpected_duplicate_paths"],
         "canonical_paths": manifest["canonical_paths"],
+        "source_roles": {
+            fixture["path"]: fixture["source_role"] for fixture in manifest["fixtures"]
+        },
         "non_authoritative": manifest["non_authoritative"],
     }
 

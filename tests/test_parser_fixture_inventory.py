@@ -35,6 +35,8 @@ def write_expected_fixture_tree(root: Path) -> None:
     xml_path = root / "law-source/consultant/Список документов (5).xml"
     xml_path.parent.mkdir(parents=True, exist_ok=True)
     xml_path.write_text("<wordDocument><doc /><rels /><tail /></wordDocument>", encoding="utf-8")
+    full_act_path = root / "law-source/consultant/44-FZ-2026.xml"
+    full_act_path.write_text("<wordDocument><section /><body /><tail /></wordDocument>", encoding="utf-8")
 
 
 def test_build_inventory_records_expected_fixture_shapes(tmp_path: Path) -> None:
@@ -44,10 +46,11 @@ def test_build_inventory_records_expected_fixture_shapes(tmp_path: Path) -> None
     manifest = module.build_inventory(tmp_path)
 
     assert manifest["status"] == "pass"
-    assert manifest["fixture_count"] == 3
+    assert manifest["fixture_count"] == 4
     assert manifest["duplicate_check"]["duplicate_absent"] is True
     assert manifest["non_authoritative"] is True
     assert "law-source/consultant/Список документов (5).xml" in manifest["canonical_paths"]
+    assert "law-source/consultant/44-FZ-2026.xml" in manifest["canonical_paths"]
     hygiene = manifest["fixture_hygiene"]
     assert hygiene["pp_filename_mismatch"]["canonical_path"] == "law-source/garant/PP_60_27-01-2022.odt"
     assert hygiene["pp_filename_mismatch"]["stated_path"] == "law-source/garant/PP_60_27-02-2022.odt"
@@ -59,8 +62,15 @@ def test_build_inventory_records_expected_fixture_shapes(tmp_path: Path) -> None
     assert odt["odt_shape"]["required_members_present"] is True
     assert odt["odt_shape"]["content_xml"]["direct_child_count"] == 2
     xml_fixture = manifest["fixtures"][2]
+    assert xml_fixture["source_role"] == "document-list-prior-art"
     assert xml_fixture["xml_shape"]["well_formed"] is True
     assert xml_fixture["xml_shape"]["direct_child_count"] == 3
+    full_act_fixture = manifest["fixtures"][3]
+    assert full_act_fixture["path"] == "law-source/consultant/44-FZ-2026.xml"
+    assert full_act_fixture["source_role"] == "full-normative-act"
+    assert full_act_fixture["role"] == "full-act-source-shape-fixture"
+    assert full_act_fixture["xml_shape"]["well_formed"] is True
+    assert full_act_fixture["xml_shape"]["root_local_name"] == "wordDocument"
 
 
 def test_build_inventory_fails_when_removed_duplicate_reappears(tmp_path: Path) -> None:
@@ -121,7 +131,10 @@ def test_repository_outputs_are_current_and_report_non_claims() -> None:
     markdown = (ROOT / "prd/parser/source_fixture_inventory.md").read_text(encoding="utf-8")
     assert "This inventory does not claim parser completeness." in markdown
     assert "This inventory does not claim legal correctness" in markdown
-    assert "Consultant WordML XML is classified only as a relation fixture" in markdown
+    assert "Consultant document-list WordML XML is classified only as a relation fixture" in markdown
+    assert "Consultant full-act WordML XML is a canonical source-shape fixture" in markdown
+    assert "law-source/consultant/44-FZ-2026.xml" in markdown
+    assert "full-normative-act" in markdown
     assert "## Fixture hygiene" in markdown
     assert "PP_60_27-02-2022.odt" in markdown
     assert "PP_60_27-01-2022.odt" in markdown

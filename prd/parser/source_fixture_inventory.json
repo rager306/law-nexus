@@ -1,13 +1,15 @@
 {
   "canonical_path_decision": {
+    "consultant_wordml_full_act_fixture": "law-source/consultant/44-FZ-2026.xml",
     "consultant_wordml_relation_fixture": "law-source/consultant/Список документов (5).xml",
-    "rationale": "The consultant-folder XML is the canonical relation fixture; the root-level XML duplicate was byte-identical and removed to avoid path ambiguity.",
+    "rationale": "The consultant-folder document-list XML remains the canonical relation fixture; the full 44-ФЗ XML is a separate canonical source-shape fixture. Neither Consultant fixture supersedes Garant ODT parser fixtures or creates parser-completeness/legal-correctness claims.",
     "removed_duplicate_path": "law-source/Список документов (5).xml"
   },
   "canonical_paths": [
     "law-source/garant/44-fz.odt",
     "law-source/garant/PP_60_27-01-2022.odt",
-    "law-source/consultant/Список документов (5).xml"
+    "law-source/consultant/Список документов (5).xml",
+    "law-source/consultant/44-FZ-2026.xml"
   ],
   "duplicate_check": {
     "canonical_path": "law-source/consultant/Список документов (5).xml",
@@ -15,9 +17,14 @@
     "duplicate_absent": true,
     "removed_duplicate_path": "law-source/Список документов (5).xml"
   },
-  "fixture_count": 3,
+  "fixture_count": 4,
   "fixture_hygiene": {
     "canonical_path_decisions": {
+      "consultant_full_act_fixture": {
+        "canonical_path": "law-source/consultant/44-FZ-2026.xml",
+        "classification": "canonical-full-act-wordml-source-shape-fixture",
+        "diagnostic": "The full Consultant 44-ФЗ WordML file is inventoried as source-shape evidence with hash and XML diagnostics; it does not supersede Garant ODT fixtures or assert parsed legal semantics."
+      },
       "consultant_wordml_relation_fixture": {
         "canonical_path": "law-source/consultant/Список документов (5).xml",
         "classification": "consultant-folder-xml-is-canonical-root-level-byte-identical-duplicate-must-remain-absent",
@@ -55,12 +62,16 @@
       "odt_shape": {
         "content_xml": {
           "direct_child_count": 3,
+          "root_local_name": "document-content",
+          "root_namespace": "urn:oasis:names:tc:opendocument:xmlns:office:1.0",
           "root_tag": "{urn:oasis:names:tc:opendocument:xmlns:office:1.0}document-content",
           "well_formed": true
         },
         "member_count": 8,
         "meta_xml": {
           "direct_child_count": 1,
+          "root_local_name": "document-meta",
+          "root_namespace": "urn:oasis:names:tc:opendocument:xmlns:office:1.0",
           "root_tag": "{urn:oasis:names:tc:opendocument:xmlns:office:1.0}document-meta",
           "well_formed": true
         },
@@ -76,6 +87,7 @@
       "sha256": "73777d4741fa1b65229a8b22b97eb2cff4c5180105affb79b058d7007e3e4337",
       "size_bytes": 247971,
       "source_kind": "garant-odt",
+      "source_role": "odt-document-fixture",
       "xml_shape": null
     },
     {
@@ -84,12 +96,16 @@
       "odt_shape": {
         "content_xml": {
           "direct_child_count": 3,
+          "root_local_name": "document-content",
+          "root_namespace": "urn:oasis:names:tc:opendocument:xmlns:office:1.0",
           "root_tag": "{urn:oasis:names:tc:opendocument:xmlns:office:1.0}document-content",
           "well_formed": true
         },
         "member_count": 8,
         "meta_xml": {
           "direct_child_count": 1,
+          "root_local_name": "document-meta",
+          "root_namespace": "urn:oasis:names:tc:opendocument:xmlns:office:1.0",
           "root_tag": "{urn:oasis:names:tc:opendocument:xmlns:office:1.0}document-meta",
           "well_formed": true
         },
@@ -105,6 +121,7 @@
       "sha256": "f083c903beadc243a842516e955471bc942d9a65a115694441876f1543335d4c",
       "size_bytes": 102041,
       "source_kind": "garant-odt",
+      "source_role": "odt-document-fixture",
       "xml_shape": null
     },
     {
@@ -116,8 +133,29 @@
       "sha256": "0694587f4a907faf2e4cbaccb27b166e34a8380e9afc17642769b5ac54d5ede3",
       "size_bytes": 5093,
       "source_kind": "consultant-wordml-xml",
+      "source_role": "document-list-prior-art",
       "xml_shape": {
         "direct_child_count": 4,
+        "root_local_name": "wordDocument",
+        "root_namespace": "http://schemas.microsoft.com/office/word/2003/wordml",
+        "root_tag": "{http://schemas.microsoft.com/office/word/2003/wordml}wordDocument",
+        "well_formed": true
+      }
+    },
+    {
+      "canonical": true,
+      "exists": true,
+      "odt_shape": null,
+      "path": "law-source/consultant/44-FZ-2026.xml",
+      "role": "full-act-source-shape-fixture",
+      "sha256": "69df0b9d9e2bcce6164fc4e3c74fb9bebfff36ae6b053c68917c804be4b52a86",
+      "size_bytes": 5235817,
+      "source_kind": "consultant-wordml-xml",
+      "source_role": "full-normative-act",
+      "xml_shape": {
+        "direct_child_count": 4,
+        "root_local_name": "wordDocument",
+        "root_namespace": "http://schemas.microsoft.com/office/word/2003/wordml",
         "root_tag": "{http://schemas.microsoft.com/office/word/2003/wordml}wordDocument",
         "well_formed": true
       }
@@ -130,8 +168,14 @@
     "This inventory does not claim legal correctness or authoritative legal interpretation.",
     "This inventory does not claim product ETL readiness.",
     "This inventory does not claim FalkorDB product runtime readiness.",
-    "Consultant WordML XML is classified only as a relation fixture / prior-art evidence source until later validation proves candidate relations."
+    "Consultant document-list WordML XML is classified only as a relation fixture / prior-art evidence source until later validation proves candidate relations.",
+    "Consultant full-act WordML XML is a canonical source-shape fixture only; this inventory does not claim parsed legal semantics from it."
   ],
   "schema_version": "parser-source-fixture-inventory/v1",
+  "source_priority_notes": [
+    "Garant ODT fixtures remain parser source fixtures for current ODT work.",
+    "Consultant document-list WordML is prior-art relation evidence only.",
+    "Consultant full-act WordML is canonical source-shape evidence for a complete normative act and must be referenced by its own path and hash."
+  ],
   "status": "pass"
 }
