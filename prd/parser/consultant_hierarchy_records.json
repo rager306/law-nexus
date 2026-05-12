@@ -1,0 +1,46 @@
+{
+  "artifact_freshness": null,
+  "artifact_paths": {
+    "json": "prd/parser/consultant_hierarchy_records.json",
+    "jsonl": "prd/parser/consultant_hierarchy_records.jsonl",
+    "report": "prd/parser/consultant_hierarchy_records.md"
+  },
+  "diagnostics_bounded": true,
+  "emitted_counts_by_level": {
+    "article": 94,
+    "chapter": 8,
+    "clause": 997,
+    "document": 1,
+    "part": 793,
+    "section": 9,
+    "subclause": 283
+  },
+  "malformed_xml": null,
+  "namespace_detected": "http://schemas.microsoft.com/office/word/2003/wordml",
+  "namespace_observations": {
+    "http://schemas.microsoft.com/aml/2001/core": 1534,
+    "http://schemas.microsoft.com/office/word/2003/auxHint": 32,
+    "http://schemas.microsoft.com/office/word/2003/wordml": 75179,
+    "urn:schemas-microsoft-com:office:office": 4,
+    "urn:schemas-microsoft-com:vml": 2
+  },
+  "non_authoritative": true,
+  "paragraph_count": 3601,
+  "phase": "consultant_wordml_hierarchy_build",
+  "skipped_empty_paragraphs": 439,
+  "skipped_marker_counts": {},
+  "source": {
+    "inventory_hash_matches": true,
+    "inventory_sha256": "69df0b9d9e2bcce6164fc4e3c74fb9bebfff36ae6b053c68917c804be4b52a86",
+    "path": "law-source/consultant/44-FZ-2026.xml",
+    "sha256": "69df0b9d9e2bcce6164fc4e3c74fb9bebfff36ae6b053c68917c804be4b52a86"
+  },
+  "style_observations": {
+    "0": 3268,
+    "2": 131,
+    "5": 3,
+    "<none>": 199
+  },
+  "validation_error_count": 0,
+  "validation_errors": []
+}
