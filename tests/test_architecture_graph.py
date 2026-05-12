@@ -37,8 +37,8 @@ def test_builds_current_registry_as_keyed_multidigraph() -> None:
     edges = graph_module.load_records(EDGES_PATH, expected_kind="edge")
     graph = graph_module.build_graph(items, edges)
 
-    assert graph.number_of_nodes() == 23
-    assert graph.number_of_edges() == 17
+    assert graph.number_of_nodes() == 36
+    assert graph.number_of_edges() == 33
     assert graph.is_multigraph()
 
     edge = edges[0]
@@ -171,30 +171,34 @@ def test_report_current_registry_exposes_baseline_graph_health() -> None:
     graph = graph_module.build_graph(items, edges)
     report = graph_module.compute_graph_report(graph, schema_path=SCHEMA_PATH)
 
-    assert report["counts"] == {"nodes": 23, "edges": 17}
-    assert report["layer_coverage"]["missing_layers"] == [
-        "api-product",
-        "legal-evidence",
-        "observability-operability",
-    ]
+    assert report["counts"] == {"nodes": 36, "edges": 33}
+    assert report["layer_coverage"]["missing_layers"] == []
+    assert report["layer_coverage"]["counts"]["api-product"] == 1
+    assert report["layer_coverage"]["counts"]["legal-evidence"] == 1
+    assert report["layer_coverage"]["counts"]["observability-operability"] == 1
     assert report["layer_coverage"]["counts"]["architecture-governance"] == 7
     assert [gate["id"] for gate in report["unresolved_proof_gates"]] == [
+        "GATE-EMBEDDING-SUPPLY-CHAIN",
         "GATE-G005",
         "GATE-G008",
         "GATE-G011",
         "GATE-G015",
+        "GATE-GENERATED-CYPHER-SAFETY",
+        "GATE-LEGAL-NEXUS-ACCESS-CONTROL",
     ]
     assert report["contradiction_edges"] == []
     assert report["contradiction_pairs"] == []
     assert report["invalid_records"] == []
-    assert [node["id"] for node in report["high_risk_nodes"]][:3] == [
+    assert [node["id"] for node in report["high_risk_nodes"]][:5] == [
         "ASSUMP-PRD-SOURCE-TRUTH",
         "CHECK-ARCHITECTURE-EXTRACTOR",
-        "DEC-D031",
+        "COMP-LEGAL-NEXUS-ORCHESTRATOR",
+        "DATA-LEGAL-EVIDENCE-CORE",
+        "DATA-TEMPORAL-PROPERTY-BUNDLE",
     ]
-    assert len(report["high_risk_nodes"]) == 15
-    assert report["non_claims_summary"]["nodes_with_non_claims"] == 23
-    assert report["non_claims_summary"]["total_non_claims"] > 23
+    assert len(report["high_risk_nodes"]) == 23
+    assert report["non_claims_summary"]["nodes_with_non_claims"] == 36
+    assert report["non_claims_summary"]["total_non_claims"] > 36
 
 
 def test_report_handles_empty_graph_with_schema_layer_contract() -> None:
@@ -437,12 +441,15 @@ def test_cli_write_mode_renders_deterministic_json_and_markdown_reports(tmp_path
     markdown = first_md_bytes.decode("utf-8")
     assert report["non_authoritative"] is True
     assert [gate["id"] for gate in report["unresolved_proof_gates"]] == [
+        "GATE-EMBEDDING-SUPPLY-CHAIN",
         "GATE-G005",
         "GATE-G008",
         "GATE-G011",
         "GATE-G015",
+        "GATE-GENERATED-CYPHER-SAFETY",
+        "GATE-LEGAL-NEXUS-ACCESS-CONTROL",
     ]
-    assert report["counts"] == {"nodes": 23, "edges": 17}
+    assert report["counts"] == {"nodes": 36, "edges": 33}
     assert "derived, non-authoritative" in markdown
     assert "do not validate product/runtime/legal claims" in markdown
     assert "Findings for S04" in markdown

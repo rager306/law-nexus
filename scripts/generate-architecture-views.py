@@ -533,6 +533,21 @@ def _classify_record(record: dict[str, Any]) -> ClaimClassification:
     return "unsafe-to-assert"
 
 
+def _claim_domain(record: dict[str, Any]) -> str:
+    """Return the claim domain that future readers must not over-broaden."""
+    layer = str(record.get("layer", ""))
+    record_type = str(record.get("type", ""))
+    if layer in {"architecture-governance", "workflow-governance"}:
+        return "registry/process"
+    if layer in {"legal-evidence", "temporal-model", "api-product", "generated-cypher"}:
+        return "product/legal-runtime"
+    if layer in {"parser-ingestion", "retrieval-embedding", "graph-runtime"}:
+        return "bounded-technical-proof"
+    if record_type == "proof_gate":
+        return "open-proof-gate"
+    return "architecture-planning"
+
+
 def render_claims_ledger(
     items_lookup: dict[str, dict[str, Any]],
     report: dict[str, Any],
@@ -584,8 +599,8 @@ def render_claims_ledger(
 
     if safe_items:
         lines.extend([
-            "| ID | Title | Layer | Risk | Non-Claims |",
-            "| --- | --- | --- | --- | --- |",
+            "| ID | Title | Layer | Claim Domain | Risk | Non-Claims |",
+            "| --- | --- | --- | --- | --- | --- |",
         ])
         for rid, record in safe_items:
             ncs = record.get("non_claims", [])
@@ -593,6 +608,7 @@ def render_claims_ledger(
             lines.append(
                 f"| `{rid}` | {escape_md(record.get('title', ''))} "
                 f"| {escape_md(record.get('layer', ''))} "
+                f"| {escape_md(_claim_domain(record))} "
                 f"| {escape_md(record.get('risk_level', ''))} "
                 f"| {nc_cell} |"
             )
@@ -603,8 +619,8 @@ def render_claims_ledger(
 
     if bounded_items:
         lines.extend([
-            "| ID | Title | Layer | Risk | Proof Level | Non-Claims |",
-            "| --- | --- | --- | --- | --- | --- |",
+            "| ID | Title | Layer | Claim Domain | Risk | Proof Level | Non-Claims |",
+            "| --- | --- | --- | --- | --- | --- | --- |",
         ])
         for rid, record in bounded_items:
             ncs = record.get("non_claims", [])
@@ -612,6 +628,7 @@ def render_claims_ledger(
             lines.append(
                 f"| `{rid}` | {escape_md(record.get('title', ''))} "
                 f"| {escape_md(record.get('layer', ''))} "
+                f"| {escape_md(_claim_domain(record))} "
                 f"| {escape_md(record.get('risk_level', ''))} "
                 f"| {escape_md(record.get('proof_level', ''))} "
                 f"| {nc_cell} |"
@@ -623,8 +640,8 @@ def render_claims_ledger(
 
     if blocked_items:
         lines.extend([
-            "| ID | Title | Layer | Risk | Proof Level | Verification | Non-Claims |",
-            "| --- | --- | --- | --- | --- | --- | --- |",
+            "| ID | Title | Layer | Claim Domain | Risk | Proof Level | Verification | Non-Claims |",
+            "| --- | --- | --- | --- | --- | --- | --- | --- |",
         ])
         for rid, record in blocked_items:
             ncs = record.get("non_claims", [])
@@ -633,6 +650,7 @@ def render_claims_ledger(
             lines.append(
                 f"| `{rid}` | {escape_md(record.get('title', ''))} "
                 f"| {escape_md(record.get('layer', ''))} "
+                f"| {escape_md(_claim_domain(record))} "
                 f"| {escape_md(record.get('risk_level', ''))} "
                 f"| {escape_md(record.get('proof_level', ''))} "
                 f"| {ver[:60]}... "
@@ -640,6 +658,7 @@ def render_claims_ledger(
                 if len(ver) > 60
                 else f"| `{rid}` | {escape_md(record.get('title', ''))} "
                      f"| {escape_md(record.get('layer', ''))} "
+                     f"| {escape_md(_claim_domain(record))} "
                      f"| {escape_md(record.get('risk_level', ''))} "
                      f"| {escape_md(record.get('proof_level', ''))} "
                      f"| {ver} |"
@@ -652,8 +671,8 @@ def render_claims_ledger(
 
     if unsafe_items:
         lines.extend([
-            "| ID | Title | Layer | Risk | Status | Non-Claims |",
-            "| --- | --- | --- | --- | --- | --- |",
+            "| ID | Title | Layer | Claim Domain | Risk | Status | Non-Claims |",
+            "| --- | --- | --- | --- | --- | --- | --- |",
         ])
         for rid, record in unsafe_items:
             ncs = record.get("non_claims", [])
@@ -661,6 +680,7 @@ def render_claims_ledger(
             lines.append(
                 f"| `{rid}` | {escape_md(record.get('title', ''))} "
                 f"| {escape_md(record.get('layer', ''))} "
+                f"| {escape_md(_claim_domain(record))} "
                 f"| {escape_md(record.get('risk_level', ''))} "
                 f"| {escape_md(record.get('status', ''))} "
                 f"| {nc_cell} |"

@@ -8,36 +8,34 @@ Current orphans, unresolved proof gates, contradictions, and risk rows are findi
 
 | Field | Value |
 | --- | --- |
-| Nodes | 23 |
-| Edges | 17 |
+| Nodes | 36 |
+| Edges | 33 |
 | Non-authoritative | true |
-| Missing layers | 3 |
-| Unresolved proof gates | 4 |
-| Orphan findings | 3 |
+| Missing layers | 0 |
+| Unresolved proof gates | 7 |
+| Orphan findings | 1 |
 | Contradiction edges | 0 |
-| High/critical-risk nodes | 15 |
+| High/critical-risk nodes | 23 |
 
 ## Layer Coverage
 
 | Layer | Node Count |
 | --- | ---: |
-| api-product | 0 |
+| api-product | 1 |
 | architecture-governance | 7 |
-| generated-cypher | 1 |
+| generated-cypher | 2 |
 | graph-runtime | 2 |
-| legal-evidence | 0 |
-| observability-operability | 0 |
-| parser-ingestion | 3 |
+| legal-evidence | 1 |
+| observability-operability | 1 |
+| parser-ingestion | 8 |
 | retrieval-embedding | 3 |
-| security-safety | 3 |
-| temporal-model | 1 |
+| security-safety | 5 |
+| temporal-model | 3 |
 | workflow-governance | 3 |
 
 ### Missing Layers
 
-- api-product
-- legal-evidence
-- observability-operability
+No missing schema layers.
 
 ## Findings for S04
 
@@ -45,18 +43,19 @@ Current orphans, unresolved proof gates, contradictions, and risk rows are findi
 
 | ID | Layer | Owner | Risk | Verification |
 | --- | --- | --- | --- | --- |
+| GATE-EMBEDDING-SUPPLY-CHAIN | security-safety | future-embedding-supply-chain-proof | high | Future embedding proof records model source, checksum or revision, local runtime envelope, vector dimension, and no-secret/no-raw-vector leakage checks. |
 | GATE-G005 | temporal-model | future-temporal-proof | high | A future proof slice defines and verifies same-date/multi-edition conflict policy. |
 | GATE-G008 | parser-ingestion | future-parser-retrieval-proof | high | Golden tests pass on real legal source fixtures and retrieval expectations. |
 | GATE-G011 | retrieval-embedding | future-retrieval-quality-proof | high | Retrieval quality benchmark passes under local/open-weight embedding constraints. |
 | GATE-G015 | graph-runtime | future-runtime-migration-proof | medium | Migration runbook is executed against bounded fixtures and runtime diagnostics. |
+| GATE-GENERATED-CYPHER-SAFETY | generated-cypher | future-generated-cypher-safety-proof | critical | A future product proof demonstrates validator acceptance/rejection behavior across representative Legal KnowQL tasks and live graph schemas. |
+| GATE-LEGAL-NEXUS-ACCESS-CONTROL | security-safety | future-api-security-proof | high | Future security proof defines caller boundaries, authorization policy, audit logging, and denial diagnostics for Legal Nexus operations. |
 
 ### Orphan Findings
 
 | ID | Rule |
 | --- | --- |
-| ASSUMP-PRD-SOURCE-TRUTH | isolated-node |
-| S05-OLD-PROJECT-PRIOR-ART | isolated-node |
-| S10-GIGAEMBEDDINGS-CHALLENGER-BLOCKED | isolated-node |
+| QS-OBSERVABILITY-OPERABILITY-BASELINE | isolated-node |
 
 ### Contradictions
 
@@ -70,16 +69,24 @@ Current orphans, unresolved proof gates, contradictions, and risk rows are findi
 | --- | --- | --- | --- | --- | --- |
 | ASSUMP-PRD-SOURCE-TRUTH | high | assumption | architecture-governance | active | source-anchor |
 | CHECK-ARCHITECTURE-EXTRACTOR | high | workflow_check | workflow-governance | active | static-check |
+| COMP-LEGAL-NEXUS-ORCHESTRATOR | high | component | api-product | active | source-anchor |
+| DATA-LEGAL-EVIDENCE-CORE | high | data_entity | legal-evidence | active | source-anchor |
+| DATA-TEMPORAL-PROPERTY-BUNDLE | high | data_entity | temporal-model | active | source-anchor |
 | DEC-D031 | high | decision | architecture-governance | active | source-anchor |
+| EVID-PARSER-ODT-SMOKE | high | evidence | parser-ingestion | bounded-evidence | real-document-proof |
+| GATE-EMBEDDING-SUPPLY-CHAIN | high | proof_gate | security-safety | active | none |
 | GATE-G005 | high | proof_gate | temporal-model | active | none |
 | GATE-G008 | high | proof_gate | parser-ingestion | active | none |
 | GATE-G011 | high | proof_gate | retrieval-embedding | active | none |
+| GATE-GENERATED-CYPHER-SAFETY | critical | proof_gate | generated-cypher | active | none |
+| GATE-LEGAL-NEXUS-ACCESS-CONTROL | high | proof_gate | security-safety | active | none |
 | M001-ARCHITECTURE-ONLY-GUARDRAIL | critical | workflow_check | architecture-governance | out-of-scope | source-anchor |
 | REQ-R009 | high | requirement | workflow-governance | active | source-anchor |
 | REQ-R017 | high | requirement | generated-cypher | active | source-anchor |
 | REQ-R022 | critical | requirement | security-safety | active | source-anchor |
 | REQ-R028 | critical | requirement | security-safety | out-of-scope | source-anchor |
 | REQ-R029 | high | requirement | architecture-governance | active | source-anchor |
+| REQ-TEMPORAL-STATUS-SEMANTICS | high | requirement | temporal-model | active | source-anchor |
 | RISK-OVERCLAIM-RUNTIME | critical | risk | security-safety | active | source-anchor |
 | S05-OLD-PROJECT-PRIOR-ART | high | evidence | parser-ingestion | bounded-evidence | source-anchor |
 | S05-PARSER-ODT-BOUNDARY | high | evidence | parser-ingestion | bounded-evidence | real-document-proof |
@@ -94,8 +101,8 @@ Current orphans, unresolved proof gates, contradictions, and risk rows are findi
 
 | Field | Value |
 | --- | ---: |
-| Nodes with non-claims | 23 |
-| Total non-claims | 64 |
+| Nodes with non-claims | 36 |
+| Total non-claims | 96 |
 
 ### Nodes with Non-Claims
 
@@ -103,13 +110,25 @@ Current orphans, unresolved proof gates, contradictions, and risk rows are findi
 | --- | ---: |
 | ASSUMP-PRD-SOURCE-TRUTH | 1 |
 | CHECK-ARCHITECTURE-EXTRACTOR | 1 |
+| COMP-LEGAL-NEXUS-ORCHESTRATOR | 3 |
+| DATA-LEGAL-EVIDENCE-CORE | 3 |
+| DATA-TEMPORAL-PROPERTY-BUNDLE | 2 |
 | DEC-D031 | 1 |
 | DEC-D032 | 1 |
+| EVID-PARSER-CONSULTANT-CANDIDATES | 2 |
+| EVID-PARSER-ODT-SMOKE | 2 |
+| EVID-PARSER-RECORD-CONTRACT | 2 |
+| EVID-PARSER-SOURCE-FIXTURE-INVENTORY | 2 |
+| EVID-PARSER-STAGING-GRAPH | 2 |
+| GATE-EMBEDDING-SUPPLY-CHAIN | 3 |
 | GATE-G005 | 1 |
 | GATE-G008 | 2 |
 | GATE-G011 | 2 |
 | GATE-G015 | 1 |
+| GATE-GENERATED-CYPHER-SAFETY | 3 |
+| GATE-LEGAL-NEXUS-ACCESS-CONTROL | 3 |
 | M001-ARCHITECTURE-ONLY-GUARDRAIL | 6 |
+| QS-OBSERVABILITY-OPERABILITY-BASELINE | 3 |
 | REQ-R001 | 7 |
 | REQ-R009 | 7 |
 | REQ-R010 | 7 |
@@ -117,6 +136,7 @@ Current orphans, unresolved proof gates, contradictions, and risk rows are findi
 | REQ-R022 | 3 |
 | REQ-R028 | 3 |
 | REQ-R029 | 1 |
+| REQ-TEMPORAL-STATUS-SEMANTICS | 2 |
 | RISK-OVERCLAIM-RUNTIME | 1 |
 | S04-FALKORDB-RUNTIME-BOUNDED | 3 |
 | S05-OLD-PROJECT-PRIOR-ART | 2 |

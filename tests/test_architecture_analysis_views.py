@@ -200,15 +200,16 @@ def test_high_risk_count_matches_report() -> None:
 # Missing layers
 # ---------------------------------------------------------------------------
 
-def test_missing_layers_appear_in_dashboard() -> None:
-    """Missing schema layers must be documented in the dashboard."""
+def test_all_schema_layers_are_covered_in_dashboard() -> None:
+    """Dashboard must document that every schema layer has at least one architecture record."""
     report = load_report()
     missing = report.get("layer_coverage", {}).get("missing_layers", [])
-    assert len(missing) > 0, "Test requires at least one missing layer"
+    assert missing == []
 
     content = HEALTH_MD_PATH.read_text(encoding="utf-8")
-    for layer in missing:
-        assert layer in content, f"Missing layer '{layer}' not in dashboard"
+    assert "### ✅  All Schema Layers Covered" in content
+    for layer in ["api-product", "legal-evidence", "observability-operability"]:
+        assert layer in content, f"Covered layer '{layer}' not in dashboard"
 
 
 def test_missing_layers_count_matches_report() -> None:
@@ -220,10 +221,10 @@ def test_missing_layers_count_matches_report() -> None:
     assert f"| Missing Layers | {expected_count} |" in content
 
 
-def test_missing_layers_section_has_warning_header() -> None:
-    """Missing layers section must have a warning indicator."""
+def test_all_layers_covered_section_has_success_header() -> None:
+    """Covered layer state must have a success indicator."""
     content = HEALTH_MD_PATH.read_text(encoding="utf-8")
-    assert "### ⚠️  Missing Layers" in content
+    assert "### ✅  All Schema Layers Covered" in content
 
 
 # ---------------------------------------------------------------------------
@@ -1006,6 +1007,15 @@ def test_claims_ledger_bounded_items_have_proof_level() -> None:
     assert "| Proof Level |" in bounded_section, (
         "Bounded table must have a Proof Level column"
     )
+
+
+def test_claims_ledger_rows_have_claim_domain_column() -> None:
+    """Claims ledger rows must separate registry/process claims from product/runtime/legal claim domains."""
+    content = _load_claims_content()
+    assert "| Claim Domain |" in content
+    assert "registry/process" in content
+    assert "product/legal-runtime" in content
+    assert "bounded-technical-proof" in content
 
 
 def test_claims_ledger_blocked_items_have_verification() -> None:

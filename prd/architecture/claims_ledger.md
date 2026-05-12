@@ -15,52 +15,65 @@
 
 ## safe-to-say
 
-| ID | Title | Layer | Risk | Non-Claims |
-| --- | --- | --- | --- | --- |
-| `ASSUMP-PRD-SOURCE-TRUTH` | PRD and GSD artifacts remain source of truth | architecture-governance | high | ❌ Does not make generated artifacts authoritative. |
-| `CHECK-ARCHITECTURE-EXTRACTOR` | Deterministic architecture extractor check | workflow-governance | high | ❌ Extractor check is not product runtime proof. |
-| `DEC-D031` | Use docs-as-code architecture registry | architecture-governance | high | ❌ JSONL and GraphML are not source-of-truth replacements. |
-| `DEC-D032` | Add architecture verification router skill in S05 | workflow-governance | medium | ❌ The skill is guidance, not a source of truth. |
-| `REQ-R001` | Architecture review finding classification | architecture-governance | medium | ❌ No legal-answer correctness claim.; ❌ No product Legal KnowQL behavior claim. |
-| `REQ-R009` | Architecture findings require owner and verification criteria | workflow-governance | high | ❌ No legal-answer correctness claim.; ❌ No product Legal KnowQL behavior claim. |
-| `REQ-R010` | Machine-readable architecture findings path | architecture-governance | medium | ❌ No legal-answer correctness claim.; ❌ No product Legal KnowQL behavior claim. |
-| `REQ-R017` | Assess FalkorDB text-to-cypher PyO3 route | generated-cypher | high | ❌ No product Legal KnowQL behavior claim.; ❌ No legal-answer correctness claim. |
-| `REQ-R022` | Proof artifacts remain redacted and categorical | security-safety | critical | ❌ No raw provider body persistence claim.; ❌ No credential, prompt, raw legal text, or raw row emission claim. |
-| `REQ-R029` | Executable architecture verification workflow | architecture-governance | high | ❌ Does not itself prove product runtime behavior. |
-| `RISK-OVERCLAIM-RUNTIME` | Runtime and legal overclaim risk | security-safety | critical | ❌ Risk item does not assert current product failure. |
+| ID | Title | Layer | Claim Domain | Risk | Non-Claims |
+| --- | --- | --- | --- | --- | --- |
+| `ASSUMP-PRD-SOURCE-TRUTH` | PRD and GSD artifacts remain source of truth | architecture-governance | registry/process | high | ❌ Does not make generated artifacts authoritative. |
+| `CHECK-ARCHITECTURE-EXTRACTOR` | Deterministic architecture extractor check | workflow-governance | registry/process | high | ❌ Extractor check is not product runtime proof. |
+| `COMP-LEGAL-NEXUS-ORCHESTRATOR` | Legal Nexus orchestrator component boundary | api-product | product/legal-runtime | high | ❌ Does not implement Legal Nexus runtime behavior.; ❌ Does not prove product Legal KnowQL behavior. |
+| `DATA-LEGAL-EVIDENCE-CORE` | Core legal evidence entities | legal-evidence | product/legal-runtime | high | ❌ Does not assert final legal graph schema completeness.; ❌ Does not prove legal-answer correctness. |
+| `DATA-TEMPORAL-PROPERTY-BUNDLE` | Temporal property bundle | temporal-model | product/legal-runtime | high | ❌ Does not specify temporal storage implementation.; ❌ Does not validate temporal conflict resolution. |
+| `DEC-D031` | Use docs-as-code architecture registry | architecture-governance | registry/process | high | ❌ JSONL and GraphML are not source-of-truth replacements. |
+| `DEC-D032` | Add architecture verification router skill in S05 | workflow-governance | registry/process | medium | ❌ The skill is guidance, not a source of truth. |
+| `QS-OBSERVABILITY-OPERABILITY-BASELINE` | Deterministic observability and auditability baseline | observability-operability | architecture-planning | medium | ❌ Does not prove runtime SLOs.; ❌ Does not prove production observability. |
+| `REQ-R001` | Architecture review finding classification | architecture-governance | registry/process | medium | ❌ No legal-answer correctness claim.; ❌ No product Legal KnowQL behavior claim. |
+| `REQ-R009` | Architecture findings require owner and verification criteria | workflow-governance | registry/process | high | ❌ No legal-answer correctness claim.; ❌ No product Legal KnowQL behavior claim. |
+| `REQ-R010` | Machine-readable architecture findings path | architecture-governance | registry/process | medium | ❌ No legal-answer correctness claim.; ❌ No product Legal KnowQL behavior claim. |
+| `REQ-R017` | Assess FalkorDB text-to-cypher PyO3 route | generated-cypher | product/legal-runtime | high | ❌ No product Legal KnowQL behavior claim.; ❌ No legal-answer correctness claim. |
+| `REQ-R022` | Proof artifacts remain redacted and categorical | security-safety | architecture-planning | critical | ❌ No raw provider body persistence claim.; ❌ No credential, prompt, raw legal text, or raw row emission claim. |
+| `REQ-R029` | Executable architecture verification workflow | architecture-governance | registry/process | high | ❌ Does not itself prove product runtime behavior. |
+| `REQ-TEMPORAL-STATUS-SEMANTICS` | Temporal status semantics remain explicit | temporal-model | product/legal-runtime | high | ❌ Does not prove import runtime behavior.; ❌ Does not validate same-date conflict policy. |
+| `RISK-OVERCLAIM-RUNTIME` | Runtime and legal overclaim risk | security-safety | architecture-planning | critical | ❌ Risk item does not assert current product failure. |
 
 ---
 
 ## bounded
 
-| ID | Title | Layer | Risk | Proof Level | Non-Claims |
-| --- | --- | --- | --- | --- | --- |
-| `S04-FALKORDB-RUNTIME-BOUNDED` | FalkorDB runtime mechanics smoke boundary | graph-runtime | medium | runtime-smoke | ❌ No production-scale FalkorDB claim.; ❌ No legal retrieval quality claim. |
-| `S05-OLD-PROJECT-PRIOR-ART` | Old_project artifacts remain prior art | parser-ingestion | high | source-anchor | ❌ No Old_project artifact accepted unchanged.; ❌ No parser completeness claim. |
-| `S05-PARSER-ODT-BOUNDARY` | Real ODT parser evidence boundary | parser-ingestion | high | real-document-proof | ❌ No final legal hierarchy extraction claim.; ❌ No parser completeness claim. |
-| `S07-FIXED-PRD-CONSISTENCY` | S07 PRD consistency closure | architecture-governance | low | source-anchor | ❌ Does not prove product behavior. |
-| `S10-USER-BGE-M3-BASELINE` | USER-bge-m3 bounded local embedding baseline | retrieval-embedding | medium | runtime-smoke | ❌ No product retrieval quality claim.; ❌ No managed embedding API fallback claim. |
+| ID | Title | Layer | Claim Domain | Risk | Proof Level | Non-Claims |
+| --- | --- | --- | --- | --- | --- | --- |
+| `EVID-PARSER-CONSULTANT-CANDIDATES` | Consultant relation-candidate evidence | parser-ingestion | bounded-technical-proof | medium | static-check | ❌ Does not prove Consultant relation correctness.; ❌ Does not prove parser completeness. |
+| `EVID-PARSER-ODT-SMOKE` | Bounded ODT smoke-record evidence | parser-ingestion | bounded-technical-proof | high | real-document-proof | ❌ No final legal hierarchy extraction claim.; ❌ No parser completeness claim. |
+| `EVID-PARSER-RECORD-CONTRACT` | Parser record contract evidence | parser-ingestion | bounded-technical-proof | medium | static-check | ❌ Does not prove product ETL readiness.; ❌ Does not prove parser completeness. |
+| `EVID-PARSER-SOURCE-FIXTURE-INVENTORY` | Parser source fixture inventory evidence | parser-ingestion | bounded-technical-proof | medium | static-check | ❌ Does not prove parser completeness.; ❌ Does not prove legal correctness. |
+| `EVID-PARSER-STAGING-GRAPH` | Parser NetworkX staging graph evidence | parser-ingestion | bounded-technical-proof | medium | static-check | ❌ Does not prove FalkorDB loading/runtime behavior.; ❌ Does not prove legal-answer correctness. |
+| `S04-FALKORDB-RUNTIME-BOUNDED` | FalkorDB runtime mechanics smoke boundary | graph-runtime | bounded-technical-proof | medium | runtime-smoke | ❌ No production-scale FalkorDB claim.; ❌ No legal retrieval quality claim. |
+| `S05-OLD-PROJECT-PRIOR-ART` | Old_project artifacts remain prior art | parser-ingestion | bounded-technical-proof | high | source-anchor | ❌ No Old_project artifact accepted unchanged.; ❌ No parser completeness claim. |
+| `S05-PARSER-ODT-BOUNDARY` | Real ODT parser evidence boundary | parser-ingestion | bounded-technical-proof | high | real-document-proof | ❌ No final legal hierarchy extraction claim.; ❌ No parser completeness claim. |
+| `S07-FIXED-PRD-CONSISTENCY` | S07 PRD consistency closure | architecture-governance | registry/process | low | source-anchor | ❌ Does not prove product behavior. |
+| `S10-USER-BGE-M3-BASELINE` | USER-bge-m3 bounded local embedding baseline | retrieval-embedding | bounded-technical-proof | medium | runtime-smoke | ❌ No product retrieval quality claim.; ❌ No managed embedding API fallback claim. |
 
 ---
 
 ## blocked/open
 
-| ID | Title | Layer | Risk | Proof Level | Verification | Non-Claims |
-| --- | --- | --- | --- | --- | --- | --- |
-| `GATE-G005` | Temporal same-date multi-edition conflict policy | temporal-model | high | none | A future proof slice defines and verifies same-date/multi-ed... | ❌ Does not validate temporal conflict resolution. |
-| `GATE-G008` | Executable parser and retrieval golden tests | parser-ingestion | high | none | Golden tests pass on real legal source fixtures and retrieva... | ❌ No parser completeness claim.; ❌ No product retrieval quality claim. |
-| `GATE-G011` | Local embedding quality proof | retrieval-embedding | high | none | Retrieval quality benchmark passes under local/open-weight e... | ❌ No product retrieval quality claim.; ❌ No managed embedding API fallback claim. |
-| `GATE-G015` | FalkorDBLite to Docker migration runbook | graph-runtime | medium | none | Migration runbook is executed against bounded fixtures and r... | ❌ No production-scale FalkorDB claim. |
-| `S10-GIGAEMBEDDINGS-CHALLENGER-BLOCKED` | GigaEmbeddings challenger blocked by environment and safety gates | retrieval-embedding | medium | none | Challenger proof records gate approvals, runtime status, vec... | ❌ No managed embedding API fallback claim.; ❌ No default promotion while blocked-environment. |
+| ID | Title | Layer | Claim Domain | Risk | Proof Level | Verification | Non-Claims |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| `GATE-EMBEDDING-SUPPLY-CHAIN` | Embedding model supply-chain integrity gate | security-safety | open-proof-gate | high | none | Future embedding proof records model source, checksum or rev... | ❌ Does not promote any embedding model to product default.; ❌ Does not allow managed embedding API fallback. |
+| `GATE-G005` | Temporal same-date multi-edition conflict policy | temporal-model | product/legal-runtime | high | none | A future proof slice defines and verifies same-date/multi-ed... | ❌ Does not validate temporal conflict resolution. |
+| `GATE-G008` | Executable parser and retrieval golden tests | parser-ingestion | bounded-technical-proof | high | none | Golden tests pass on real legal source fixtures and retrieva... | ❌ No parser completeness claim.; ❌ No product retrieval quality claim. |
+| `GATE-G011` | Local embedding quality proof | retrieval-embedding | bounded-technical-proof | high | none | Retrieval quality benchmark passes under local/open-weight e... | ❌ No product retrieval quality claim.; ❌ No managed embedding API fallback claim. |
+| `GATE-G015` | FalkorDBLite to Docker migration runbook | graph-runtime | bounded-technical-proof | medium | none | Migration runbook is executed against bounded fixtures and r... | ❌ No production-scale FalkorDB claim. |
+| `GATE-GENERATED-CYPHER-SAFETY` | Generated-Cypher safety and validation gate | generated-cypher | product/legal-runtime | critical | none | A future product proof demonstrates validator acceptance/rej... | ❌ Does not prove provider generation quality.; ❌ Does not prove production Legal KnowQL behavior. |
+| `GATE-LEGAL-NEXUS-ACCESS-CONTROL` | Legal Nexus access-control proof gate | security-safety | open-proof-gate | high | none | Future security proof defines caller boundaries, authorizati... | ❌ Does not assert current product is insecure.; ❌ Does not prove access-control enforcement. |
+| `S10-GIGAEMBEDDINGS-CHALLENGER-BLOCKED` | GigaEmbeddings challenger blocked by environment and safety gates | retrieval-embedding | bounded-technical-proof | medium | none | Challenger proof records gate approvals, runtime status, vec... | ❌ No managed embedding API fallback claim.; ❌ No default promotion while blocked-environment. |
 
 ---
 
 ## unsafe-to-assert
 
-| ID | Title | Layer | Risk | Status | Non-Claims |
-| --- | --- | --- | --- | --- | --- |
-| `M001-ARCHITECTURE-ONLY-GUARDRAIL` | M001 architecture-only guardrail | architecture-governance | critical | out-of-scope | ❌ No product ETL.; ❌ No production graph schema. |
-| `REQ-R028` | LLM output is not legal authority | security-safety | critical | out-of-scope | ❌ No LLM legal authority claim.; ❌ No legal-answer correctness claim. |
+| ID | Title | Layer | Claim Domain | Risk | Status | Non-Claims |
+| --- | --- | --- | --- | --- | --- | --- |
+| `M001-ARCHITECTURE-ONLY-GUARDRAIL` | M001 architecture-only guardrail | architecture-governance | registry/process | critical | out-of-scope | ❌ No product ETL.; ❌ No production graph schema. |
+| `REQ-R028` | LLM output is not legal authority | security-safety | architecture-planning | critical | out-of-scope | ❌ No LLM legal authority claim.; ❌ No legal-answer correctness claim. |
 
 ---
 

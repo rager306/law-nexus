@@ -9,17 +9,17 @@
 
 | Metric | Count |
 | --- | ---: |
-| Total Nodes | 23 |
-| Total Edges | 17 |
+| Total Nodes | 36 |
+| Total Edges | 33 |
 | Schema Layers | 11 |
-| Missing Layers | 3 |
+| Missing Layers | 0 |
 | Invalid Layer Records | 0 |
-| Unresolved Proof Gates | 4 |
-| Orphan Findings | 3 |
+| Unresolved Proof Gates | 7 |
+| Orphan Findings | 1 |
 | Contradiction Edges | 0 |
-| High/Critical Risk Nodes | 15 (4 critical, 11 high) |
-| Nodes with Non-Claims | 23 |
-| Total Non-Claims | 64 |
+| High/Critical Risk Nodes | 23 (5 critical, 18 high) |
+| Nodes with Non-Claims | 36 |
+| Total Non-Claims | 96 |
 
 ---
 
@@ -27,25 +27,21 @@
 
 | Layer | Node Count |
 | --- | ---: |
-| api-product ⚠️ | 0 |
+| api-product  | 1 |
 | architecture-governance  | 7 |
-| generated-cypher  | 1 |
+| generated-cypher  | 2 |
 | graph-runtime  | 2 |
-| legal-evidence ⚠️ | 0 |
-| observability-operability ⚠️ | 0 |
-| parser-ingestion  | 3 |
+| legal-evidence  | 1 |
+| observability-operability  | 1 |
+| parser-ingestion  | 8 |
 | retrieval-embedding  | 3 |
-| security-safety  | 3 |
-| temporal-model  | 1 |
+| security-safety  | 5 |
+| temporal-model  | 3 |
 | workflow-governance  | 3 |
 
-### ⚠️  Missing Layers
+### ✅  All Schema Layers Covered
 
-The following schema layers have no architecture records:
-
-- api-product
-- legal-evidence
-- observability-operability
+Every defined schema layer has at least one architecture record.
 
 ---
 
@@ -53,10 +49,13 @@ The following schema layers have no architecture records:
 
 | ID | Layer | Owner | Risk | Verification |
 | --- | --- | --- | --- | --- |
+| GATE-EMBEDDING-SUPPLY-CHAIN | security-safety | future-embedding-supply-chain-proof | high | Future embedding proof records model source, checksum or rev... |
 | GATE-G005 | temporal-model | future-temporal-proof | high | A future proof slice defines and verifies same-date/multi-ed... |
 | GATE-G008 | parser-ingestion | future-parser-retrieval-proof | high | Golden tests pass on real legal source fixtures and retrieva... |
 | GATE-G011 | retrieval-embedding | future-retrieval-quality-proof | high | Retrieval quality benchmark passes under local/open-weight e... |
 | GATE-G015 | graph-runtime | future-runtime-migration-proof | medium | Migration runbook is executed against bounded fixtures and r... |
+| GATE-GENERATED-CYPHER-SAFETY | generated-cypher | future-generated-cypher-safety-proof | critical | A future product proof demonstrates validator acceptance/rej... |
+| GATE-LEGAL-NEXUS-ACCESS-CONTROL | security-safety | future-api-security-proof | high | Future security proof defines caller boundaries, authorizati... |
 
 ---
 
@@ -66,16 +65,24 @@ The following schema layers have no architecture records:
 | --- | --- | --- | --- | --- | --- |
 | ASSUMP-PRD-SOURCE-TRUTH | high | assumption | architecture-governance | active | source-anchor |
 | CHECK-ARCHITECTURE-EXTRACTOR | high | workflow_check | workflow-governance | active | static-check |
+| COMP-LEGAL-NEXUS-ORCHESTRATOR | high | component | api-product | active | source-anchor |
+| DATA-LEGAL-EVIDENCE-CORE | high | data_entity | legal-evidence | active | source-anchor |
+| DATA-TEMPORAL-PROPERTY-BUNDLE | high | data_entity | temporal-model | active | source-anchor |
 | DEC-D031 | high | decision | architecture-governance | active | source-anchor |
+| EVID-PARSER-ODT-SMOKE | high | evidence | parser-ingestion | bounded-evidence | real-document-proof |
+| GATE-EMBEDDING-SUPPLY-CHAIN | high | proof_gate | security-safety | active | none |
 | GATE-G005 | high | proof_gate | temporal-model | active | none |
 | GATE-G008 | high | proof_gate | parser-ingestion | active | none |
 | GATE-G011 | high | proof_gate | retrieval-embedding | active | none |
+| GATE-GENERATED-CYPHER-SAFETY | critical | proof_gate | generated-cypher | active | none |
+| GATE-LEGAL-NEXUS-ACCESS-CONTROL | high | proof_gate | security-safety | active | none |
 | M001-ARCHITECTURE-ONLY-GUARDRAIL | critical | workflow_check | architecture-governance | out-of-scope | source-anchor |
 | REQ-R009 | high | requirement | workflow-governance | active | source-anchor |
 | REQ-R017 | high | requirement | generated-cypher | active | source-anchor |
 | REQ-R022 | critical | requirement | security-safety | active | source-anchor |
 | REQ-R028 | critical | requirement | security-safety | out-of-scope | source-anchor |
 | REQ-R029 | high | requirement | architecture-governance | active | source-anchor |
+| REQ-TEMPORAL-STATUS-SEMANTICS | high | requirement | temporal-model | active | source-anchor |
 | RISK-OVERCLAIM-RUNTIME | critical | risk | security-safety | active | source-anchor |
 | S05-OLD-PROJECT-PRIOR-ART | high | evidence | parser-ingestion | bounded-evidence | source-anchor |
 | S05-PARSER-ODT-BOUNDARY | high | evidence | parser-ingestion | bounded-evidence | real-document-proof |
@@ -88,9 +95,32 @@ This architecture graph and derived reports **do not** establish or validate:
 
 | Non-Claim |
 | --- |
+| Does not allow managed embedding API fallback. |
+| Does not assert current product is insecure. |
+| Does not assert final legal graph schema completeness. |
+| Does not authorize executing raw generated Cypher. |
+| Does not define a production API surface. |
+| Does not implement Legal Nexus runtime behavior. |
 | Does not itself prove product runtime behavior. |
 | Does not make generated artifacts authoritative. |
+| Does not promote any embedding model to product default. |
+| Does not prove Consultant relation correctness. |
+| Does not prove FalkorDB loading/runtime behavior. |
+| Does not prove access-control enforcement. |
+| Does not prove import runtime behavior. |
+| Does not prove legal correctness. |
+| Does not prove legal-answer correctness. |
+| Does not prove parser completeness. |
+| Does not prove product ETL readiness. |
+| Does not prove product Legal KnowQL behavior. |
 | Does not prove product behavior. |
+| Does not prove product retrieval quality. |
+| Does not prove production Legal KnowQL behavior. |
+| Does not prove production observability. |
+| Does not prove provider generation quality. |
+| Does not prove runtime SLOs. |
+| Does not specify temporal storage implementation. |
+| Does not validate same-date conflict policy. |
 | Does not validate temporal conflict resolution. |
 | Extractor check is not product runtime proof. |
 | JSONL and GraphML are not source-of-truth replacements. |
@@ -127,9 +157,7 @@ This architecture graph and derived reports **do not** establish or validate:
 
 | ID | Rule |
 | --- | --- |
-| ASSUMP-PRD-SOURCE-TRUTH | isolated-node |
-| S05-OLD-PROJECT-PRIOR-ART | isolated-node |
-| S10-GIGAEMBEDDINGS-CHALLENGER-BLOCKED | isolated-node |
+| QS-OBSERVABILITY-OPERABILITY-BASELINE | isolated-node |
 
 ---
 
@@ -137,11 +165,8 @@ This architecture graph and derived reports **do not** establish or validate:
 
 | Size | Node Count |
 | --- | ---: |
-| 14 | 14 |
+| 31 | 31 |
 | 4 | 4 |
-| 2 | 2 |
-| 1 | 1 |
-| 1 | 1 |
 | 1 | 1 |
 
 ---

@@ -8,10 +8,10 @@
 
 | Capability Area | Gate Count | Blocked / Bounded Count |
 | --- | ---: | ---: |
-| ETL / Parser | 1 | 2 |
+| ETL / Parser | 1 | 3 |
 | Graph Runtime | 1 | 0 |
-| Legal Answering | 0 | 0 |
-| Legal KnowQL / Generated Cypher | 0 | 0 |
+| Legal Answering | 2 | 0 |
+| Legal KnowQL / Generated Cypher | 1 | 0 |
 | Retrieval / Embedding | 1 | 0 |
 | Temporal Model | 1 | 0 |
 
@@ -29,6 +29,9 @@
 
 | ID | Title | Risk | Verification | Owner |
 | --- | --- | --- | --- | --- |
+| `EVID-PARSER-ODT-SMOKE` | Bounded ODT smoke-record evidence | high | `uv run python scripts/build-odt-smoke-records.py --check` verifies ODT smoke artifact freshness. | M006/S03 |
+|  | No final legal hierarchy extraction claim. | — | — | — |
+|  | No parser completeness claim. | — | — | — |
 | `S05-OLD-PROJECT-PRIOR-ART` | Old_project artifacts remain prior art | high | Downstream designs classify legacy reuse as prior art and avoid blessing ConsultantPlus behavior for Garant ODT. | S08 final architecture review / future parser owners |
 |  | No Old_project artifact accepted unchanged. | — | — | — |
 |  | No parser completeness claim. | — | — | — |
@@ -45,8 +48,8 @@ _Below non-claims are drawn directly from architecture registry records. They ar
 | --- |
 | No parser completeness claim. |
 | No product retrieval quality claim. |
-| No Old_project artifact accepted unchanged. |
 | No final legal hierarchy extraction claim. |
+| No Old_project artifact accepted unchanged. |
 | No production SourceBlock/EvidenceSpan creation claim. |
 
 ### Next Proof Work
@@ -54,6 +57,7 @@ _Below non-claims are drawn directly from architecture registry records. They ar
 Proof work for this area should:
 
 - Address [`GATE-G008`](#proof-gates): Golden tests pass on real legal source fixtures and retrieval expectations.
+- Resolve [`EVID-PARSER-ODT-SMOKE`](#blocked--bounded-evidence): `uv run python scripts/build-odt-smoke-records.py --check` verifies ODT smoke artifact freshness.
 - Resolve [`S05-OLD-PROJECT-PRIOR-ART`](#blocked--bounded-evidence): Downstream designs classify legacy reuse as prior art and avoid blessing ConsultantPlus behavior for Garant ODT.
 - Resolve [`S05-PARSER-ODT-BOUNDARY`](#blocked--bounded-evidence): S05 verifier passes; future parser tests prove final extraction behavior before promotion.
 
@@ -82,13 +86,65 @@ Proof work for this area should:
 
 ## Legal Answering
 
-No active proof gates or blocked evidence for this area in the current architecture registry.
+### Proof Gates
 
+| ID | Title | Risk | Verification | Owner |
+| --- | --- | --- | --- | --- |
+| `GATE-EMBEDDING-SUPPLY-CHAIN` | Embedding model supply-chain integrity gate | high | Future embedding proof records model source, checksum or revision, local runtime envelope, vector dimension, and no-secret/no-raw-vector leakage checks. | future-embedding-supply-chain-proof |
+|  | Does not allow managed embedding API fallback. | — | — | — |
+|  | Does not promote any embedding model to product default. | — | — | — |
+|  | Does not prove product retrieval quality. | — | — | — |
+| `GATE-LEGAL-NEXUS-ACCESS-CONTROL` | Legal Nexus access-control proof gate | high | Future security proof defines caller boundaries, authorization policy, audit logging, and denial diagnostics for Legal Nexus operations. | future-api-security-proof |
+|  | Does not assert current product is insecure. | — | — | — |
+|  | Does not define a production API surface. | — | — | — |
+|  | Does not prove access-control enforcement. | — | — | — |
+
+### What This Area Does Not Prove
+
+_Below non-claims are drawn directly from architecture registry records. They are not exhaustive._
+
+| Non-Claim |
+| --- |
+| Does not allow managed embedding API fallback. |
+| Does not promote any embedding model to product default. |
+| Does not prove product retrieval quality. |
+| Does not assert current product is insecure. |
+| Does not define a production API surface. |
+| Does not prove access-control enforcement. |
+
+### Next Proof Work
+
+Proof work for this area should:
+
+- Address [`GATE-EMBEDDING-SUPPLY-CHAIN`](#proof-gates): Future embedding proof records model source, checksum or revision, local runtime envelope, vector dimension, and no-secret/no-raw-vector leakage checks.
+- Address [`GATE-LEGAL-NEXUS-ACCESS-CONTROL`](#proof-gates): Future security proof defines caller boundaries, authorization policy, audit logging, and denial diagnostics for Legal Nexus operations.
 
 ## Legal KnowQL / Generated Cypher
 
-No active proof gates or blocked evidence for this area in the current architecture registry.
+### Proof Gates
 
+| ID | Title | Risk | Verification | Owner |
+| --- | --- | --- | --- | --- |
+| `GATE-GENERATED-CYPHER-SAFETY` | Generated-Cypher safety and validation gate | critical | A future product proof demonstrates validator acceptance/rejection behavior across representative Legal KnowQL tasks and live graph schemas. | future-generated-cypher-safety-proof |
+|  | Does not authorize executing raw generated Cypher. | — | — | — |
+|  | Does not prove production Legal KnowQL behavior. | — | — | — |
+|  | Does not prove provider generation quality. | — | — | — |
+
+### What This Area Does Not Prove
+
+_Below non-claims are drawn directly from architecture registry records. They are not exhaustive._
+
+| Non-Claim |
+| --- |
+| Does not authorize executing raw generated Cypher. |
+| Does not prove production Legal KnowQL behavior. |
+| Does not prove provider generation quality. |
+
+### Next Proof Work
+
+Proof work for this area should:
+
+- Address [`GATE-GENERATED-CYPHER-SAFETY`](#proof-gates): A future product proof demonstrates validator acceptance/rejection behavior across representative Legal KnowQL tasks and live graph schemas.
 
 ## Retrieval / Embedding
 
@@ -148,19 +204,41 @@ _The following statements appear across one or more architecture records and col
 | --- | --- |
 | Does not make generated artifacts authoritative. | `ASSUMP-PRD-SOURCE-TRUTH` |
 | Extractor check is not product runtime proof. | `CHECK-ARCHITECTURE-EXTRACTOR` |
+| Does not implement Legal Nexus runtime behavior. | `COMP-LEGAL-NEXUS-ORCHESTRATOR` |
+| Does not prove access-control enforcement. | `COMP-LEGAL-NEXUS-ORCHESTRATOR` |
+| Does not prove product Legal KnowQL behavior. | `COMP-LEGAL-NEXUS-ORCHESTRATOR` |
+| Does not assert final legal graph schema completeness. | `DATA-LEGAL-EVIDENCE-CORE` |
+| Does not prove legal-answer correctness. | `DATA-LEGAL-EVIDENCE-CORE` |
+| Does not prove parser completeness. | `DATA-LEGAL-EVIDENCE-CORE` |
+| Does not specify temporal storage implementation. | `DATA-TEMPORAL-PROPERTY-BUNDLE` |
+| Does not validate temporal conflict resolution. | `DATA-TEMPORAL-PROPERTY-BUNDLE` |
 | JSONL and GraphML are not source-of-truth replacements. | `DEC-D031` |
 | The skill is guidance, not a source of truth. | `DEC-D032` |
-| Does not validate temporal conflict resolution. | `GATE-G005` |
-| No parser completeness claim. | `GATE-G008` |
+| Does not prove Consultant relation correctness. | `EVID-PARSER-CONSULTANT-CANDIDATES` |
+| No final legal hierarchy extraction claim. | `EVID-PARSER-ODT-SMOKE` |
+| No parser completeness claim. | `EVID-PARSER-ODT-SMOKE` |
+| Does not prove product ETL readiness. | `EVID-PARSER-RECORD-CONTRACT` |
+| Does not prove legal correctness. | `EVID-PARSER-SOURCE-FIXTURE-INVENTORY` |
+| Does not prove FalkorDB loading/runtime behavior. | `EVID-PARSER-STAGING-GRAPH` |
+| Does not allow managed embedding API fallback. | `GATE-EMBEDDING-SUPPLY-CHAIN` |
+| Does not promote any embedding model to product default. | `GATE-EMBEDDING-SUPPLY-CHAIN` |
+| Does not prove product retrieval quality. | `GATE-EMBEDDING-SUPPLY-CHAIN` |
 | No product retrieval quality claim. | `GATE-G008` |
 | No managed embedding API fallback claim. | `GATE-G011` |
 | No production-scale FalkorDB claim. | `GATE-G015` |
+| Does not authorize executing raw generated Cypher. | `GATE-GENERATED-CYPHER-SAFETY` |
+| Does not prove production Legal KnowQL behavior. | `GATE-GENERATED-CYPHER-SAFETY` |
+| Does not prove provider generation quality. | `GATE-GENERATED-CYPHER-SAFETY` |
+| Does not assert current product is insecure. | `GATE-LEGAL-NEXUS-ACCESS-CONTROL` |
+| Does not define a production API surface. | `GATE-LEGAL-NEXUS-ACCESS-CONTROL` |
 | No KnowQL parser. | `M001-ARCHITECTURE-ONLY-GUARDRAIL` |
 | No LegalNexus API. | `M001-ARCHITECTURE-ONLY-GUARDRAIL` |
 | No hybrid retrieval. | `M001-ARCHITECTURE-ONLY-GUARDRAIL` |
 | No legal-answering runtime. | `M001-ARCHITECTURE-ONLY-GUARDRAIL` |
 | No product ETL. | `M001-ARCHITECTURE-ONLY-GUARDRAIL` |
 | No production graph schema. | `M001-ARCHITECTURE-ONLY-GUARDRAIL` |
+| Does not prove production observability. | `QS-OBSERVABILITY-OPERABILITY-BASELINE` |
+| Does not prove runtime SLOs. | `QS-OBSERVABILITY-OPERABILITY-BASELINE` |
 | No LLM legal authority claim. | `REQ-R001` |
 | No legal-answer correctness claim. | `REQ-R001` |
 | No product Legal KnowQL behavior claim. | `REQ-R001` |
@@ -169,11 +247,12 @@ _The following statements appear across one or more architecture records and col
 | No raw provider body persistence claim. | `REQ-R022` |
 | No generated Cypher authority claim. | `REQ-R028` |
 | Does not itself prove product runtime behavior. | `REQ-R029` |
+| Does not prove import runtime behavior. | `REQ-TEMPORAL-STATUS-SEMANTICS` |
+| Does not validate same-date conflict policy. | `REQ-TEMPORAL-STATUS-SEMANTICS` |
 | Risk item does not assert current product failure. | `RISK-OVERCLAIM-RUNTIME` |
 | No direct LegalGraph GraphBLAS API/control surface claim. | `S04-FALKORDB-RUNTIME-BOUNDED` |
 | No legal retrieval quality claim. | `S04-FALKORDB-RUNTIME-BOUNDED` |
 | No Old_project artifact accepted unchanged. | `S05-OLD-PROJECT-PRIOR-ART` |
-| No final legal hierarchy extraction claim. | `S05-PARSER-ODT-BOUNDARY` |
 | No production SourceBlock/EvidenceSpan creation claim. | `S05-PARSER-ODT-BOUNDARY` |
 | Does not prove product behavior. | `S07-FIXED-PRD-CONSISTENCY` |
 | No default promotion while blocked-environment. | `S10-GIGAEMBEDDINGS-CHALLENGER-BLOCKED` |

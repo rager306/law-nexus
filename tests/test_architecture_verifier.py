@@ -85,8 +85,8 @@ def test_baseline_cli_passes_with_non_authoritative_summary() -> None:
     assert summary["failure_count"] == 0
     assert summary["non_authoritative"] is True
     assert "non-authoritative" in summary["boundary"]
-    assert summary["items"] == 23
-    assert summary["edges"] == 17
+    assert summary["items"] == 36
+    assert summary["edges"] == 33
 
 
 def test_upstream_check_nonzero_is_stable_diagnostic_without_rewriting(tmp_path: Path, monkeypatch: Any) -> None:

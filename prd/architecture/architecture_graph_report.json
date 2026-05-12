@@ -2,8 +2,8 @@
   "contradiction_edges": [],
   "contradiction_pairs": [],
   "counts": {
-    "edges": 17,
-    "nodes": 23
+    "edges": 33,
+    "nodes": 36
   },
   "high_risk_nodes": [
     {
@@ -23,12 +23,52 @@
       "type": "workflow_check"
     },
     {
+      "id": "COMP-LEGAL-NEXUS-ORCHESTRATOR",
+      "layer": "api-product",
+      "proof_level": "source-anchor",
+      "risk_level": "high",
+      "status": "active",
+      "type": "component"
+    },
+    {
+      "id": "DATA-LEGAL-EVIDENCE-CORE",
+      "layer": "legal-evidence",
+      "proof_level": "source-anchor",
+      "risk_level": "high",
+      "status": "active",
+      "type": "data_entity"
+    },
+    {
+      "id": "DATA-TEMPORAL-PROPERTY-BUNDLE",
+      "layer": "temporal-model",
+      "proof_level": "source-anchor",
+      "risk_level": "high",
+      "status": "active",
+      "type": "data_entity"
+    },
+    {
       "id": "DEC-D031",
       "layer": "architecture-governance",
       "proof_level": "source-anchor",
       "risk_level": "high",
       "status": "active",
       "type": "decision"
+    },
+    {
+      "id": "EVID-PARSER-ODT-SMOKE",
+      "layer": "parser-ingestion",
+      "proof_level": "real-document-proof",
+      "risk_level": "high",
+      "status": "bounded-evidence",
+      "type": "evidence"
+    },
+    {
+      "id": "GATE-EMBEDDING-SUPPLY-CHAIN",
+      "layer": "security-safety",
+      "proof_level": "none",
+      "risk_level": "high",
+      "status": "active",
+      "type": "proof_gate"
     },
     {
       "id": "GATE-G005",
@@ -49,6 +89,22 @@
     {
       "id": "GATE-G011",
       "layer": "retrieval-embedding",
+      "proof_level": "none",
+      "risk_level": "high",
+      "status": "active",
+      "type": "proof_gate"
+    },
+    {
+      "id": "GATE-GENERATED-CYPHER-SAFETY",
+      "layer": "generated-cypher",
+      "proof_level": "none",
+      "risk_level": "critical",
+      "status": "active",
+      "type": "proof_gate"
+    },
+    {
+      "id": "GATE-LEGAL-NEXUS-ACCESS-CONTROL",
+      "layer": "security-safety",
       "proof_level": "none",
       "risk_level": "high",
       "status": "active",
@@ -103,6 +159,14 @@
       "type": "requirement"
     },
     {
+      "id": "REQ-TEMPORAL-STATUS-SEMANTICS",
+      "layer": "temporal-model",
+      "proof_level": "source-anchor",
+      "risk_level": "high",
+      "status": "active",
+      "type": "requirement"
+    },
+    {
       "id": "RISK-OVERCLAIM-RUNTIME",
       "layer": "security-safety",
       "proof_level": "source-anchor",
@@ -129,30 +193,24 @@
   ],
   "invalid_records": [],
   "isolates": [
-    "ASSUMP-PRD-SOURCE-TRUTH",
-    "S05-OLD-PROJECT-PRIOR-ART",
-    "S10-GIGAEMBEDDINGS-CHALLENGER-BLOCKED"
+    "QS-OBSERVABILITY-OPERABILITY-BASELINE"
   ],
   "layer_coverage": {
     "counts": {
-      "api-product": 0,
+      "api-product": 1,
       "architecture-governance": 7,
-      "generated-cypher": 1,
+      "generated-cypher": 2,
       "graph-runtime": 2,
-      "legal-evidence": 0,
-      "observability-operability": 0,
-      "parser-ingestion": 3,
+      "legal-evidence": 1,
+      "observability-operability": 1,
+      "parser-ingestion": 8,
       "retrieval-embedding": 3,
-      "security-safety": 3,
-      "temporal-model": 1,
+      "security-safety": 5,
+      "temporal-model": 3,
       "workflow-governance": 3
     },
     "invalid_layers": [],
-    "missing_layers": [
-      "api-product",
-      "legal-evidence",
-      "observability-operability"
-    ]
+    "missing_layers": []
   },
   "non_authoritative": true,
   "non_claims_summary": {
@@ -172,6 +230,32 @@
         ]
       },
       {
+        "count": 3,
+        "id": "COMP-LEGAL-NEXUS-ORCHESTRATOR",
+        "non_claims": [
+          "Does not implement Legal Nexus runtime behavior.",
+          "Does not prove access-control enforcement.",
+          "Does not prove product Legal KnowQL behavior."
+        ]
+      },
+      {
+        "count": 3,
+        "id": "DATA-LEGAL-EVIDENCE-CORE",
+        "non_claims": [
+          "Does not assert final legal graph schema completeness.",
+          "Does not prove legal-answer correctness.",
+          "Does not prove parser completeness."
+        ]
+      },
+      {
+        "count": 2,
+        "id": "DATA-TEMPORAL-PROPERTY-BUNDLE",
+        "non_claims": [
+          "Does not specify temporal storage implementation.",
+          "Does not validate temporal conflict resolution."
+        ]
+      },
+      {
         "count": 1,
         "id": "DEC-D031",
         "non_claims": [
@@ -183,6 +267,55 @@
         "id": "DEC-D032",
         "non_claims": [
           "The skill is guidance, not a source of truth."
+        ]
+      },
+      {
+        "count": 2,
+        "id": "EVID-PARSER-CONSULTANT-CANDIDATES",
+        "non_claims": [
+          "Does not prove Consultant relation correctness.",
+          "Does not prove parser completeness."
+        ]
+      },
+      {
+        "count": 2,
+        "id": "EVID-PARSER-ODT-SMOKE",
+        "non_claims": [
+          "No final legal hierarchy extraction claim.",
+          "No parser completeness claim."
+        ]
+      },
+      {
+        "count": 2,
+        "id": "EVID-PARSER-RECORD-CONTRACT",
+        "non_claims": [
+          "Does not prove parser completeness.",
+          "Does not prove product ETL readiness."
+        ]
+      },
+      {
+        "count": 2,
+        "id": "EVID-PARSER-SOURCE-FIXTURE-INVENTORY",
+        "non_claims": [
+          "Does not prove legal correctness.",
+          "Does not prove parser completeness."
+        ]
+      },
+      {
+        "count": 2,
+        "id": "EVID-PARSER-STAGING-GRAPH",
+        "non_claims": [
+          "Does not prove FalkorDB loading/runtime behavior.",
+          "Does not prove legal-answer correctness."
+        ]
+      },
+      {
+        "count": 3,
+        "id": "GATE-EMBEDDING-SUPPLY-CHAIN",
+        "non_claims": [
+          "Does not allow managed embedding API fallback.",
+          "Does not promote any embedding model to product default.",
+          "Does not prove product retrieval quality."
         ]
       },
       {
@@ -216,6 +349,24 @@
         ]
       },
       {
+        "count": 3,
+        "id": "GATE-GENERATED-CYPHER-SAFETY",
+        "non_claims": [
+          "Does not authorize executing raw generated Cypher.",
+          "Does not prove production Legal KnowQL behavior.",
+          "Does not prove provider generation quality."
+        ]
+      },
+      {
+        "count": 3,
+        "id": "GATE-LEGAL-NEXUS-ACCESS-CONTROL",
+        "non_claims": [
+          "Does not assert current product is insecure.",
+          "Does not define a production API surface.",
+          "Does not prove access-control enforcement."
+        ]
+      },
+      {
         "count": 6,
         "id": "M001-ARCHITECTURE-ONLY-GUARDRAIL",
         "non_claims": [
@@ -225,6 +376,15 @@
           "No legal-answering runtime.",
           "No product ETL.",
           "No production graph schema."
+        ]
+      },
+      {
+        "count": 3,
+        "id": "QS-OBSERVABILITY-OPERABILITY-BASELINE",
+        "non_claims": [
+          "Does not prove legal-answer correctness.",
+          "Does not prove production observability.",
+          "Does not prove runtime SLOs."
         ]
       },
       {
@@ -302,6 +462,14 @@
         ]
       },
       {
+        "count": 2,
+        "id": "REQ-TEMPORAL-STATUS-SEMANTICS",
+        "non_claims": [
+          "Does not prove import runtime behavior.",
+          "Does not validate same-date conflict policy."
+        ]
+      },
+      {
         "count": 1,
         "id": "RISK-OVERCLAIM-RUNTIME",
         "non_claims": [
@@ -360,24 +528,25 @@
         ]
       }
     ],
-    "nodes_with_non_claims": 23,
-    "total_non_claims": 64
+    "nodes_with_non_claims": 36,
+    "total_non_claims": 96
   },
   "orphan_findings": [
     {
-      "id": "ASSUMP-PRD-SOURCE-TRUTH",
-      "rule": "isolated-node"
-    },
-    {
-      "id": "S05-OLD-PROJECT-PRIOR-ART",
-      "rule": "isolated-node"
-    },
-    {
-      "id": "S10-GIGAEMBEDDINGS-CHALLENGER-BLOCKED",
+      "id": "QS-OBSERVABILITY-OPERABILITY-BASELINE",
       "rule": "isolated-node"
     }
   ],
   "unresolved_proof_gates": [
+    {
+      "id": "GATE-EMBEDDING-SUPPLY-CHAIN",
+      "layer": "security-safety",
+      "owner": "future-embedding-supply-chain-proof",
+      "proof_level": "none",
+      "risk_level": "high",
+      "status": "active",
+      "verification": "Future embedding proof records model source, checksum or revision, local runtime envelope, vector dimension, and no-secret/no-raw-vector leakage checks."
+    },
     {
       "id": "GATE-G005",
       "layer": "temporal-model",
@@ -413,33 +582,68 @@
       "risk_level": "medium",
       "status": "active",
       "verification": "Migration runbook is executed against bounded fixtures and runtime diagnostics."
+    },
+    {
+      "id": "GATE-GENERATED-CYPHER-SAFETY",
+      "layer": "generated-cypher",
+      "owner": "future-generated-cypher-safety-proof",
+      "proof_level": "none",
+      "risk_level": "critical",
+      "status": "active",
+      "verification": "A future product proof demonstrates validator acceptance/rejection behavior across representative Legal KnowQL tasks and live graph schemas."
+    },
+    {
+      "id": "GATE-LEGAL-NEXUS-ACCESS-CONTROL",
+      "layer": "security-safety",
+      "owner": "future-api-security-proof",
+      "proof_level": "none",
+      "risk_level": "high",
+      "status": "active",
+      "verification": "Future security proof defines caller boundaries, authorization policy, audit logging, and denial diagnostics for Legal Nexus operations."
     }
   ],
   "weak_components": [
     {
       "nodes": [
-        "ASSUMP-PRD-SOURCE-TRUTH"
-      ],
-      "size": 1
-    },
-    {
-      "nodes": [
+        "ASSUMP-PRD-SOURCE-TRUTH",
         "CHECK-ARCHITECTURE-EXTRACTOR",
+        "COMP-LEGAL-NEXUS-ORCHESTRATOR",
+        "DATA-LEGAL-EVIDENCE-CORE",
+        "DATA-TEMPORAL-PROPERTY-BUNDLE",
         "DEC-D031",
         "DEC-D032",
+        "EVID-PARSER-CONSULTANT-CANDIDATES",
+        "EVID-PARSER-ODT-SMOKE",
+        "EVID-PARSER-RECORD-CONTRACT",
+        "EVID-PARSER-SOURCE-FIXTURE-INVENTORY",
+        "EVID-PARSER-STAGING-GRAPH",
+        "GATE-EMBEDDING-SUPPLY-CHAIN",
         "GATE-G005",
         "GATE-G008",
         "GATE-G011",
         "GATE-G015",
+        "GATE-GENERATED-CYPHER-SAFETY",
+        "GATE-LEGAL-NEXUS-ACCESS-CONTROL",
         "M001-ARCHITECTURE-ONLY-GUARDRAIL",
+        "REQ-R017",
         "REQ-R022",
+        "REQ-R028",
         "REQ-R029",
+        "REQ-TEMPORAL-STATUS-SEMANTICS",
         "RISK-OVERCLAIM-RUNTIME",
         "S04-FALKORDB-RUNTIME-BOUNDED",
+        "S05-OLD-PROJECT-PRIOR-ART",
         "S05-PARSER-ODT-BOUNDARY",
+        "S10-GIGAEMBEDDINGS-CHALLENGER-BLOCKED",
         "S10-USER-BGE-M3-BASELINE"
       ],
-      "size": 14
+      "size": 31
+    },
+    {
+      "nodes": [
+        "QS-OBSERVABILITY-OPERABILITY-BASELINE"
+      ],
+      "size": 1
     },
     {
       "nodes": [
@@ -449,25 +653,6 @@
         "S07-FIXED-PRD-CONSISTENCY"
       ],
       "size": 4
-    },
-    {
-      "nodes": [
-        "REQ-R017",
-        "REQ-R028"
-      ],
-      "size": 2
-    },
-    {
-      "nodes": [
-        "S05-OLD-PROJECT-PRIOR-ART"
-      ],
-      "size": 1
-    },
-    {
-      "nodes": [
-        "S10-GIGAEMBEDDINGS-CHALLENGER-BLOCKED"
-      ],
-      "size": 1
     }
   ]
 }
