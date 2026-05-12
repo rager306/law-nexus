@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<w:wordDocument xmlns:w="http://schemas.microsoft.com/office/word/2003/wordml">
+  <w:body>
+    <w:p><w:r><w:t>Федеральный закон</w:t></w:r></w:p>
+    <w:p><w:r><w:t>1. Context-free preamble number that looks like a part but is outside any article</w:t></w:r></w:p>
+    <w:p><w:r><w:t>1) Context-free preamble number that looks like a clause but is outside any article</w:t></w:r></w:p>
+    <w:p><w:r><w:t>а) Context-free preamble letter that looks like a subclause but is outside any article</w:t></w:r></w:p>
+    <w:p><w:r><w:t>Глава 1. ОБЩИЕ ПОЛОЖЕНИЯ</w:t></w:r></w:p>
+    <w:p><w:r><w:t>2. Chapter-level numbered text before an article must stay outside valid part context</w:t></w:r></w:p>
+    <w:p><w:r><w:t>Статья 1. Предмет регулирования</w:t></w:r></w:p>
+    <w:p><w:r><w:t>1. Valid part inside article</w:t></w:r></w:p>
+    <w:p><w:r><w:t>1) Valid clause inside article context</w:t></w:r></w:p>
+    <w:p><w:r><w:t>а) Valid subclause inside article context</w:t></w:r></w:p>
+  </w:body>
+</w:wordDocument>

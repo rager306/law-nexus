@@ -29,6 +29,8 @@
   "non_authoritative": true,
   "paragraph_count": 3601,
   "phase": "consultant_wordml_hierarchy_build",
+  "rejected_context_marker_count": 0,
+  "rejected_context_markers": [],
   "skipped_empty_paragraphs": 439,
   "skipped_marker_counts": {},
   "source": {

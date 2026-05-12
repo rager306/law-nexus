@@ -18,6 +18,7 @@ JSONL_PATH = ROOT / "prd" / "parser" / "consultant_hierarchy_records.jsonl"
 JSON_PATH = ROOT / "prd" / "parser" / "consultant_hierarchy_records.json"
 REPORT_PATH = ROOT / "prd" / "parser" / "consultant_hierarchy_records.md"
 SOURCE_PATH = ROOT / "law-source" / "consultant" / "44-FZ-2026.xml"
+CONTEXT_FALSE_POSITIVE_FIXTURE = ROOT / "tests" / "fixtures" / "consultant_wordml_context_false_positive.xml"
 
 
 def load_builder_module():
@@ -122,6 +123,33 @@ def test_marker_entity_decoding_and_boundary_resets_on_inline_fixture():
     assert by_title["Статья 2. Новая статья"]["parent_id"] == by_title["§ 1. Планирование"]["id"]
     assert by_title["1) пункт без новой части"]["parent_id"] == by_title["Статья 2. Новая статья"]["id"]
 
+
+def test_context_false_positive_fixture_rejects_markers_outside_article_context():
+    module = load_builder_module()
+    paragraphs, stream_diagnostics = module.stream_wordml_paragraphs(CONTEXT_FALSE_POSITIVE_FIXTURE)
+
+    records, diagnostics = module.hierarchy_records(paragraphs, "d" * 64)
+    payloads = [parse_parser_record(record).model_dump(mode="json") for record in records]
+    titles = {payload["title"] for payload in payloads}
+    rejected = diagnostics["rejected_context_markers"]
+
+    assert stream_diagnostics["malformed_xml"] is None
+    assert diagnostics["skipped_marker_counts"] == {
+        "clause_outside_article": 1,
+        "part_outside_article": 2,
+        "subclause_outside_article": 1,
+    }
+    assert diagnostics["rejected_context_marker_count"] == 4
+    assert diagnostics["structural_error_count"] == 3
+    assert [payload["level"] for payload in payloads] == ["document", "chapter", "article", "part", "clause", "subclause"]
+    assert all("Context-free" not in title and "Chapter-level" not in title for title in titles)
+    assert all(item["rule_id"] == "hierarchical_parsing_required" for item in rejected)
+    assert {item["reason"] for item in rejected} == {
+        "clause_outside_article",
+        "part_outside_article",
+        "subclause_outside_article",
+    }
+    assert all(item["source_excerpt"] and len(item["source_excerpt_sha256"]) == 64 for item in rejected)
 
 def write_wordml(path: Path, paragraphs: list[str]) -> None:
     body = "".join(f"<w:p><w:r><w:t>{text}</w:t></w:r></w:p>" for text in paragraphs)

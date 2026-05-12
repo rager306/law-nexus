@@ -317,6 +317,7 @@ def hierarchy_records(paragraphs: list[Paragraph], source_sha256: str) -> tuple[
     records: list[dict[str, Any]] = []
     counters: Counter[str] = Counter()
     skipped: Counter[str] = Counter()
+    rejected_context_markers: list[dict[str, Any]] = []
     validation_errors: list[dict[str, Any]] = []
     context: dict[str, str | None] = {
         "document": DOCUMENT_HIERARCHY_ID,
@@ -347,10 +348,36 @@ def hierarchy_records(paragraphs: list[Paragraph], source_sha256: str) -> tuple[
             continue
         if marker.level in {"part", "clause", "subclause"} and context["article"] is None:
             skipped[f"{marker.level}_outside_article"] += 1
+            if len(rejected_context_markers) < MAX_DIAGNOSTICS:
+                excerpt = truncate(paragraph.text, 240)
+                rejected_context_markers.append(
+                    {
+                        "paragraph_index": paragraph.index,
+                        "level": marker.level,
+                        "marker": marker.raw,
+                        "rule_id": "hierarchical_parsing_required",
+                        "reason": f"{marker.level}_outside_article",
+                        "source_excerpt": excerpt,
+                        "source_excerpt_sha256": sha256_text(excerpt),
+                    }
+                )
             continue
         parent_id = parent_for_level(marker.level, context)
         if parent_id is None:
             skipped[f"{marker.level}_without_parent"] += 1
+            if len(rejected_context_markers) < MAX_DIAGNOSTICS:
+                excerpt = truncate(paragraph.text, 240)
+                rejected_context_markers.append(
+                    {
+                        "paragraph_index": paragraph.index,
+                        "level": marker.level,
+                        "marker": marker.raw,
+                        "rule_id": "hierarchical_parsing_required",
+                        "reason": f"{marker.level}_without_parent",
+                        "source_excerpt": excerpt,
+                        "source_excerpt_sha256": sha256_text(excerpt),
+                    }
+                )
             continue
         record_id = next_record_id(counters, marker.level)
         try:
@@ -394,6 +421,8 @@ def hierarchy_records(paragraphs: list[Paragraph], source_sha256: str) -> tuple[
     diagnostics = {
         "emitted_counts_by_level": dict(sorted(emitted_counts.items())),
         "skipped_marker_counts": dict(sorted(skipped.items())),
+        "rejected_context_marker_count": len(rejected_context_markers),
+        "rejected_context_markers": rejected_context_markers,
         "structural_errors": structural_errors[:MAX_DIAGNOSTICS],
         "structural_error_count": len(structural_errors),
         "validation_errors": validation_errors,
@@ -433,6 +462,8 @@ def build() -> BuildResult:
         else ([], {
             "emitted_counts_by_level": {},
             "skipped_marker_counts": {},
+            "rejected_context_marker_count": 0,
+            "rejected_context_markers": [],
             "structural_errors": [],
             "structural_error_count": 0,
             "validation_errors": [],
@@ -510,6 +541,7 @@ def render_report(summary: dict[str, Any], records: list[dict[str, Any]]) -> str
             f"- Malformed XML: `{summary.get('malformed_xml')}`",
             f"- Validation errors: `{summary.get('validation_error_count', 0)}`",
             f"- Structural errors: `{summary.get('structural_error_count', 0)}`",
+            f"- Rejected context markers: `{summary.get('rejected_context_marker_count', 0)}`",
             f"- Fatal errors: `{summary.get('fatal_error_count', 0)}`",
             f"- Skipped marker counts: `{json.dumps(summary.get('skipped_marker_counts', {}), ensure_ascii=False, sort_keys=True)}`",
             f"- Style observations: `{json.dumps(summary.get('style_observations', {}), ensure_ascii=False, sort_keys=True)}`",
