@@ -1,0 +1,348 @@
+{
+  "future_tracks": [
+    {
+      "gate_ids": [
+        "GATE-GENERATED-CYPHER-SAFETY"
+      ],
+      "non_claims": [
+        "Does not prove provider generation quality.",
+        "Does not authorize executing raw generated Cypher.",
+        "Does not validate product Legal KnowQL readiness."
+      ],
+      "proof_artifact": "Validator suite report covering read-only enforcement, schema grounding, evidence-returning queries, injection rejection, and unsafe write rejection.",
+      "recommended_next_unit": "Future generated-Cypher safety proof slice before R017 validation.",
+      "title": "Generated-Cypher validator safety proof",
+      "track_id": "TRACK-GENERATED-CYPHER-SAFETY",
+      "track_status": "planned-proof"
+    },
+    {
+      "gate_ids": [
+        "GATE-G008"
+      ],
+      "non_claims": [
+        "Does not prove parser completeness.",
+        "Does not prove citation-safe retrieval.",
+        "Does not prove legal-answer correctness."
+      ],
+      "proof_artifact": "Golden-test suite over tracked parser records with expected no-answer and non-claim cases.",
+      "recommended_next_unit": "Future parser/retrieval proof slice using M006 artifacts.",
+      "title": "Parser/retrieval golden-test proof",
+      "track_id": "TRACK-PARSER-RETRIEVAL-GOLDEN",
+      "track_status": "planned-proof"
+    },
+    {
+      "gate_ids": [
+        "GATE-G005"
+      ],
+      "non_claims": [
+        "Does not specify temporal storage implementation.",
+        "Does not validate temporal conflict resolution yet.",
+        "Does not prove import runtime behavior."
+      ],
+      "proof_artifact": "Temporal policy decision plus fixture tests for idempotent replay, source revision, new edition, and metadata conflict cases.",
+      "recommended_next_unit": "Future temporal semantics decision/proof slice.",
+      "title": "Temporal conflict semantics decision and tests",
+      "track_id": "TRACK-TEMPORAL-SEMANTICS",
+      "track_status": "needs-product-decision"
+    },
+    {
+      "gate_ids": [
+        "GATE-LEGAL-NEXUS-ACCESS-CONTROL"
+      ],
+      "non_claims": [
+        "Does not assert current product is insecure.",
+        "Does not prove access-control enforcement.",
+        "Does not define a production API surface."
+      ],
+      "proof_artifact": "Access-control decision record and negative-test plan for import operators, query users, reviewers, and administrators.",
+      "recommended_next_unit": "Future Legal Nexus API/access-control design slice.",
+      "title": "Legal Nexus access-control boundary",
+      "track_id": "TRACK-LEGAL-NEXUS-ACCESS-CONTROL",
+      "track_status": "needs-product-decision"
+    },
+    {
+      "gate_ids": [
+        "GATE-EMBEDDING-SUPPLY-CHAIN",
+        "GATE-G011"
+      ],
+      "non_claims": [
+        "Does not promote any embedding model to product default.",
+        "Does not allow managed embedding API fallback.",
+        "Does not prove product retrieval quality or FalkorDB vector scale."
+      ],
+      "proof_artifact": "Local embedding/retrieval experiment report with model provenance, revision/checksum, resource envelope, dataset skeleton, metrics, and leakage checks.",
+      "recommended_next_unit": "Future retrieval/embedding experiment slice.",
+      "title": "Retrieval quality and local embedding experiment",
+      "track_id": "TRACK-RETRIEVAL-EMBEDDING-EXPERIMENT",
+      "track_status": "needs-runtime-experiment"
+    },
+    {
+      "gate_ids": [
+        "GATE-G015"
+      ],
+      "non_claims": [
+        "Does not prove FalkorDB production loading behavior.",
+        "Does not prove production scale.",
+        "Does not prove product ETL readiness."
+      ],
+      "proof_artifact": "Runtime migration smoke report with import package, graph load shape, rollback/failure diagnostics, and explicit non-production boundary.",
+      "recommended_next_unit": "Future runtime migration smoke slice.",
+      "title": "Runtime migration/import smoke proof",
+      "track_id": "TRACK-RUNTIME-MIGRATION-SMOKE",
+      "track_status": "needs-runtime-experiment"
+    }
+  ],
+  "m007_closure_statement": "M007 closes R04 architecture governance triage, coverage, matrix, and track-split planning; it does not close product/runtime proof gates.",
+  "milestone_id": "M007",
+  "non_authoritative": true,
+  "non_claims": [
+    "M007 closure does not prove product readiness.",
+    "M007 closure does not retire generated-Cypher, access-control, parser/retrieval, temporal, embedding, or runtime migration proof gates.",
+    "M007 closure does not prove legal-answer correctness, parser completeness, retrieval quality, FalkorDB production behavior, or LLM legal authority.",
+    "Future tracks are planning destinations, not completed implementation slices."
+  ],
+  "recommendation_rows": [
+    {
+      "final_bucket": "completed-in-m007",
+      "id": "R04-REC-001",
+      "m007_status": "implemented-s01",
+      "next": "Keep as coverage baseline; do not treat one record per layer as completeness.",
+      "non_claims": [
+        "Does not assert that one record per empty layer makes the layer complete.",
+        "Does not assert that the added records prove product behavior."
+      ],
+      "priority": "blocker",
+      "title": "Populate three empty schema layers"
+    },
+    {
+      "final_bucket": "completed-in-m007",
+      "id": "R04-REC-002",
+      "m007_status": "implemented-s01",
+      "next": "Keep connectivity visible in graph report; reassess if new orphan findings appear.",
+      "non_claims": [
+        "Does not assert that current orphans contain incorrect content.",
+        "Does not require using unused edge types as a goal in itself."
+      ],
+      "priority": "blocker",
+      "title": "Connect orphan nodes via existing edge types"
+    },
+    {
+      "final_bucket": "completed-in-m007-with-open-gates",
+      "id": "R04-REC-003",
+      "m007_status": "implemented-s01-open-gates",
+      "next": "Use proof-gate rows to split concrete product/runtime proof work.",
+      "non_claims": [
+        "Does not assert these surfaces are currently unsafe.",
+        "Does not commit to implementing the underlying controls in M004."
+      ],
+      "priority": "blocker",
+      "title": "Add explicit proof gates for critical product surfaces with no records"
+    },
+    {
+      "final_bucket": "future-proof-track",
+      "id": "R04-REC-004",
+      "m007_status": "downstream-s03",
+      "next": "Project FR/NFR coverage only after S02 matrix classifies current gates and deferrals.",
+      "non_claims": [
+        "Does not assert that 100% PRD projection equals readiness.",
+        "Does not require implementing every FR."
+      ],
+      "priority": "major",
+      "title": "Project source PRDs into requirement records"
+    },
+    {
+      "final_bucket": "completed-in-m007",
+      "id": "R04-REC-005",
+      "m007_status": "implemented-s01",
+      "next": "Use parser bridge records as inputs for parser/retrieval golden-test proof.",
+      "non_claims": [
+        "Does not assert prd/parser/ files are authoritative.",
+        "Does not duplicate their content into the registry."
+      ],
+      "priority": "major",
+      "title": "Bridge architecture registry to prd/parser/ evidence"
+    },
+    {
+      "final_bucket": "completed-in-m007",
+      "id": "R04-REC-006",
+      "m007_status": "implemented-s01",
+      "next": "Use temporal records as inputs for temporal conflict policy and fixture tests.",
+      "non_claims": [
+        "Does not specify temporal storage implementation.",
+        "Does not commit to a complete temporal model in M004."
+      ],
+      "priority": "major",
+      "title": "Add temporal data_entity and temporal requirement records"
+    },
+    {
+      "final_bucket": "deferred-minor",
+      "id": "R04-REC-007",
+      "m007_status": "defer-s04",
+      "next": "Handle anchor line ranges/quote hashes as a minor hardening pass.",
+      "non_claims": [
+        "Does not assert current selectors fail today.",
+        "Does not require removing the selector field."
+      ],
+      "priority": "minor",
+      "title": "Tighten anchor stability with line ranges or quote_hash"
+    },
+    {
+      "final_bucket": "deferred-minor",
+      "id": "R04-REC-008",
+      "m007_status": "defer-s04",
+      "next": "Document schema evolution policy after blocker/major proof tracks are split.",
+      "non_claims": [
+        "Does not require immediate v2 schema.",
+        "Does not propose specific v2 fields."
+      ],
+      "priority": "minor",
+      "title": "Document schema evolution policy"
+    },
+    {
+      "final_bucket": "completed-in-m007",
+      "id": "R04-REC-009",
+      "m007_status": "implemented-s01",
+      "next": "Claims ledger now includes claim-domain separation.",
+      "non_claims": [
+        "Does not assert current ledger entries are misclassified by safety level.",
+        "Does not require ledger schema redesign."
+      ],
+      "priority": "minor",
+      "title": "Disambiguate claims ledger by claim domain"
+    },
+    {
+      "final_bucket": "deferred-minor",
+      "id": "R04-REC-010",
+      "m007_status": "defer-s04",
+      "next": "Decide report/dashboard roles in minor recommendation disposition.",
+      "non_claims": [
+        "Does not require deletion of either file.",
+        "Does not propose specific section partitioning."
+      ],
+      "priority": "minor",
+      "title": "Consolidate or differentiate health dashboard and architecture report"
+    },
+    {
+      "final_bucket": "deferred-minor",
+      "id": "R04-REC-011",
+      "m007_status": "defer-s04",
+      "next": "Document edge confidence semantics or schedule schema v2 work.",
+      "non_claims": [
+        "Does not assert current confidence values are wrong.",
+        "Does not require immediate removal."
+      ],
+      "priority": "minor",
+      "title": "Document edge confidence semantics or remove the field"
+    },
+    {
+      "final_bucket": "deferred-minor",
+      "id": "R04-REC-012",
+      "m007_status": "defer-s04",
+      "next": "Document CI/regenerate hook recipe after matrix/check workflow stabilizes.",
+      "non_claims": [
+        "Does not require a specific CI provider.",
+        "Does not commit to a specific hook scope."
+      ],
+      "priority": "minor",
+      "title": "Add CI/regenerate hook documentation"
+    },
+    {
+      "final_bucket": "deferred-minor",
+      "id": "R04-REC-013",
+      "m007_status": "defer-s04",
+      "next": "Decide schema-level versus extractor-level ID prefix enforcement.",
+      "non_claims": [
+        "Does not assert current IDs are misclassified.",
+        "Does not require renaming existing records."
+      ],
+      "priority": "minor",
+      "title": "Strengthen identifier conventions per record kind"
+    },
+    {
+      "final_bucket": "future-proof-track",
+      "id": "R04-REC-014",
+      "m007_status": "downstream-s03",
+      "next": "Use coverage metrics only with explicit non-readiness caveat.",
+      "non_claims": [
+        "Does not assert that 100% coverage is the right goal.",
+        "Does not assert that coverage equals readiness."
+      ],
+      "priority": "minor",
+      "title": "Add coverage metrics to views generator"
+    },
+    {
+      "final_bucket": "partial-follow-up",
+      "id": "R04-REC-015",
+      "m007_status": "partially-implemented-s01",
+      "next": "S04 should decide whether additional risks edges are necessary or whether current coverage is sufficient.",
+      "non_claims": [
+        "Does not assert exhaustive surface inventory.",
+        "Does not require linking to every record."
+      ],
+      "priority": "minor",
+      "title": "Connect RISK-OVERCLAIM-RUNTIME to threatened records via risks edges"
+    },
+    {
+      "final_bucket": "deferred-minor",
+      "id": "R04-REC-016",
+      "m007_status": "defer-s04",
+      "next": "Fixture-test contradiction/supersession branches without adding fake production edges.",
+      "non_claims": [
+        "Does not require introducing real contradictions or supersession in the production registry.",
+        "Does not assert that absence of these edges is a current bug."
+      ],
+      "priority": "minor",
+      "title": "Either populate or fixture-test contradicts and supersedes branches"
+    },
+    {
+      "final_bucket": "partial-follow-up",
+      "id": "R04-REC-017",
+      "m007_status": "partially-implemented-s01",
+      "next": "Verifier summary has a non-authoritative boundary; S04 can decide whether to add a longer CLI prose card.",
+      "non_claims": [
+        "Does not change verifier scope.",
+        "Does not assert any current overclaim by maintainers."
+      ],
+      "priority": "minor",
+      "title": "Make verifier output state what success does not mean"
+    },
+    {
+      "final_bucket": "deferred-minor",
+      "id": "R04-REC-018",
+      "m007_status": "defer-s04",
+      "next": "Document .gsd path stability assumption or path-mapping response procedure.",
+      "non_claims": [
+        "Does not require building a path-mapping layer.",
+        "Does not assert .gsd/ will be renamed."
+      ],
+      "priority": "minor",
+      "title": "Document .gsd/ stability assumption or introduce a path-mapping layer"
+    }
+  ],
+  "record_kind": "derived-architecture-closure-roadmap",
+  "review_id": "R04",
+  "schema_version": "legalgraph-architecture-closure-roadmap/v1",
+  "source_inputs": [
+    "prd/architecture/remediation_matrix.json",
+    "prd/architecture/major_track_split.json"
+  ],
+  "summary": {
+    "assigned_gate_count": 7,
+    "bucket_counts": {
+      "completed-in-m007": 5,
+      "completed-in-m007-with-open-gates": 1,
+      "deferred-minor": 8,
+      "future-proof-track": 2,
+      "partial-follow-up": 2
+    },
+    "recommendation_count": 18,
+    "status_counts": {
+      "defer-s04": 8,
+      "downstream-s03": 2,
+      "implemented-s01": 5,
+      "implemented-s01-open-gates": 1,
+      "partially-implemented-s01": 2
+    },
+    "track_count": 6
+  }
+}
