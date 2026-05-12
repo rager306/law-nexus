@@ -1,13 +1,13 @@
 # Consultant Parser Proof Package
 
-This package assembles the Consultant-only parser proof chain for the 44-ФЗ tracer. It links the S01 fixture/prior-art inventory, S02 hierarchy records, and S03 prior-art comparison without making Garant a completion gate.
+This package assembles the Consultant-only parser proof chain for the 44-ФЗ tracer. Consultant Plus is the primary active parser priority for M009. The package links the S01 fixture/prior-art inventory, S02 hierarchy records, and S03 prior-art comparison without making Garant a completion gate.
 
 ## Scope
 
 - Package scope: Consultant 44-FZ tracer proof package only
 - Source kind: `consultant-wordml-xml`
 - Document id: `DOC-CONS-44-FZ`
-- Completion boundary: Consultant-only; Garant is deferred separately.
+- Completion boundary: Consultant-only; Garant is deferred separately, remains lower-priority/deferred, and no M009 success criterion requires Garant regression proof.
 
 ## Commands
 
@@ -88,6 +88,7 @@ Canonical Consultant fixture:
 - Does not claim legal correctness or authoritative legal interpretation.
 - Does not claim parser completeness beyond the recorded Consultant hierarchy artifacts.
 - Does not claim product ETL, FalkorDB load readiness, or multi-source parser readiness.
+- Does not claim retrieval readiness, relation correctness, or legal-answer correctness.
 - Does not wire Garant ODT parsing into this proof package as a completion gate; Garant remains deferred for separate verification.
 
 ## Diagnostics Summary
