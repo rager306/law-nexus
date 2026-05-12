@@ -1,0 +1,1542 @@
+{
+  "artifact_freshness": null,
+  "artifact_paths": {
+    "json": "prd/parser/consultant_hierarchy_prior_art_comparison.json",
+    "report": "prd/parser/consultant_hierarchy_prior_art_comparison.md"
+  },
+  "blocked_check_count": 0,
+  "checks": [
+    {
+      "check_id": "COUNT-CHAPTER",
+      "classification": "major-count",
+      "evidence_anchors": [
+        {
+          "excerpt": "Глава 1. ОБЩИЕ ПОЛОЖЕНИЯ",
+          "excerpt_sha256": "246b161464b9c9919d4a40b45d04936426fb3c437d4cca2c906f024d0d2801e6",
+          "level": "chapter",
+          "marker": "1",
+          "order_index": 75,
+          "parent_id": "HIER-CONS-DOCUMENT",
+          "record_id": "HIER-CONS-CHAPTER-0001",
+          "source_path": "law-source/consultant/44-FZ-2026.xml",
+          "source_sha256": "69df0b9d9e2bcce6164fc4e3c74fb9bebfff36ae6b053c68917c804be4b52a86"
+        },
+        {
+          "excerpt": "Глава 8. ЗАКЛЮЧИТЕЛЬНЫЕ ПОЛОЖЕНИЯ",
+          "excerpt_sha256": "48f9df0efb6d9a96fb0371f06b81ebcac78a519c22afc42a5e0797f33be0eb93",
+          "level": "chapter",
+          "marker": "8",
+          "order_index": 3422,
+          "parent_id": "HIER-CONS-DOCUMENT",
+          "record_id": "HIER-CONS-CHAPTER-0008",
+          "source_path": "law-source/consultant/44-FZ-2026.xml",
+          "source_sha256": "69df0b9d9e2bcce6164fc4e3c74fb9bebfff36ae6b053c68917c804be4b52a86"
+        }
+      ],
+      "expected": 8,
+      "observed": 8,
+      "rationale": "Major chapter/article counts must match prior-art structure safeguards exactly.",
+      "rule_ids": [
+        "STRUCT-002"
+      ],
+      "status": "pass"
+    },
+    {
+      "check_id": "COUNT-ARTICLE",
+      "classification": "major-count",
+      "evidence_anchors": [
+        {
+          "excerpt": "Статья 1. Сфера применения настоящего Федерального закона",
+          "excerpt_sha256": "82d0072d6346a9cfd9cf81dbeca76dfbd21851a1970f5abdd24fdd031d12ff57",
+          "level": "article",
+          "marker": "1",
+          "order_index": 77,
+          "parent_id": "HIER-CONS-CHAPTER-0001",
+          "record_id": "HIER-CONS-ARTICLE-0001",
+          "source_path": "law-source/consultant/44-FZ-2026.xml",
+          "source_sha256": "69df0b9d9e2bcce6164fc4e3c74fb9bebfff36ae6b053c68917c804be4b52a86"
+        },
+        {
+          "excerpt": "Статья 114. Порядок вступления в силу настоящего Федерального закона",
+          "excerpt_sha256": "de2f0e842f499444d6a1337996d596b3983cd128c8a6a02452d615e7f42ef631",
+          "level": "article",
+          "marker": "114",
+          "order_index": 3571,
+          "parent_id": "HIER-CONS-CHAPTER-0008",
+          "record_id": "HIER-CONS-ARTICLE-0094",
+          "source_path": "law-source/consultant/44-FZ-2026.xml",
+          "source_sha256": "69df0b9d9e2bcce6164fc4e3c74fb9bebfff36ae6b053c68917c804be4b52a86"
+        }
+      ],
+      "expected": 94,
+      "observed": 94,
+      "rationale": "Major chapter/article counts must match prior-art structure safeguards exactly.",
+      "rule_ids": [
+        "STRUCT-006"
+      ],
+      "status": "pass"
+    },
+    {
+      "check_id": "COUNT-PART",
+      "classification": "granular-count",
+      "evidence_anchors": [
+        {
+          "excerpt": "1. Настоящий Федеральный закон регулирует отношения, направленные на обеспечение государственных и муниципальных нужд в целях повышения эффективности, результативности осуществлен…",
+          "excerpt_sha256": "29a4e4203d89deda196f30928c350197ec50571f7a922f9c1d0fd1f7add4b4d2",
+          "level": "part",
+          "marker": "1",
+          "order_index": 79,
+          "parent_id": "HIER-CONS-ARTICLE-0001",
+          "record_id": "HIER-CONS-PART-0001",
+          "source_path": "law-source/consultant/44-FZ-2026.xml",
+          "source_sha256": "69df0b9d9e2bcce6164fc4e3c74fb9bebfff36ae6b053c68917c804be4b52a86"
+        },
+        {
+          "excerpt": "4. Утратил силу. - Федеральный закон от 31.12.2014 N 498-ФЗ.",
+          "excerpt_sha256": "a8be4bef5e2747e8013de01595eb7905f642af8d63c170cf780f32d991d90f40",
+          "level": "part",
+          "marker": "4",
+          "order_index": 3582,
+          "parent_id": "HIER-CONS-ARTICLE-0094",
+          "record_id": "HIER-CONS-PART-0793",
+          "source_path": "law-source/consultant/44-FZ-2026.xml",
+          "source_sha256": "69df0b9d9e2bcce6164fc4e3c74fb9bebfff36ae6b053c68917c804be4b52a86"
+        }
+      ],
+      "expected": 668,
+      "observed": 793,
+      "rationale": "Granular drift is accepted as provider-boundary evidence: Consultant hierarchy records preserve more structural markers than compact prior-art article JSONL.",
+      "rule_ids": [
+        "STRUCT-004"
+      ],
+      "status": "accepted"
+    },
+    {
+      "check_id": "COUNT-CLAUSE",
+      "classification": "granular-count",
+      "evidence_anchors": [
+        {
+          "excerpt": "1) планирования закупок товаров, работ, услуг;",
+          "excerpt_sha256": "48c1a3625d2c7ebae40edfadd29c138726076fd671dab5dce0f7aea12c1526c5",
+          "level": "clause",
+          "marker": "1",
+          "order_index": 80,
+          "parent_id": "HIER-CONS-PART-0001",
+          "record_id": "HIER-CONS-CLAUSE-0001",
+          "source_path": "law-source/consultant/44-FZ-2026.xml",
+          "source_sha256": "69df0b9d9e2bcce6164fc4e3c74fb9bebfff36ae6b053c68917c804be4b52a86"
+        },
+        {
+          "excerpt": "31) статью 7 Федерального закона от 30 декабря 2012 года N 318-ФЗ \"О внесении изменений в Градостроительный кодекс Российской Федерации и отдельные законодательные акты Российской…",
+          "excerpt_sha256": "9e64ceeb2440a433face7b11bdb1b677d545e077a7eb88a973a5c13c70d7ee65",
+          "level": "clause",
+          "marker": "31",
+          "order_index": 3569,
+          "parent_id": "HIER-CONS-ARTICLE-0093",
+          "record_id": "HIER-CONS-CLAUSE-0997",
+          "source_path": "law-source/consultant/44-FZ-2026.xml",
+          "source_sha256": "69df0b9d9e2bcce6164fc4e3c74fb9bebfff36ae6b053c68917c804be4b52a86"
+        }
+      ],
+      "expected": 912,
+      "observed": 997,
+      "rationale": "Granular drift is accepted as provider-boundary evidence: Consultant hierarchy records preserve more structural markers than compact prior-art article JSONL.",
+      "rule_ids": [
+        "STRUCT-004"
+      ],
+      "status": "accepted"
+    },
+    {
+      "check_id": "COUNT-SUBCLAUSE",
+      "classification": "granular-count",
+      "evidence_anchors": [
+        {
+          "excerpt": "а) требования к технологическим и лингвистическим средствам, обеспечивающим сбор, обработку, хранение и использование информации, содержащейся в указанной системе;",
+          "excerpt_sha256": "16f1d509bc4f643c4676b9215fd71084d404baa88a9f0163fc4e2ddd1850c201",
+          "level": "subclause",
+          "marker": "а",
+          "order_index": 258,
+          "parent_id": "HIER-CONS-CLAUSE-0081",
+          "record_id": "HIER-CONS-SUBCLAUSE-0001",
+          "source_path": "law-source/consultant/44-FZ-2026.xml",
+          "source_sha256": "69df0b9d9e2bcce6164fc4e3c74fb9bebfff36ae6b053c68917c804be4b52a86"
+        },
+        {
+          "excerpt": "в) при выполнении работ по строительству, реконструкции и (или) капитальному ремонту объекта капитального строительства в целях увеличения сроков исполнения контракта в случаях, п…",
+          "excerpt_sha256": "93e3f1c8ca4fe398b467694fbce8b53c4aea80df2be035e0df7012446172e998",
+          "level": "subclause",
+          "marker": "в",
+          "order_index": 3490,
+          "parent_id": "HIER-CONS-CLAUSE-0961",
+          "record_id": "HIER-CONS-SUBCLAUSE-0283",
+          "source_path": "law-source/consultant/44-FZ-2026.xml",
+          "source_sha256": "69df0b9d9e2bcce6164fc4e3c74fb9bebfff36ae6b053c68917c804be4b52a86"
+        }
+      ],
+      "expected": 272,
+      "observed": 283,
+      "rationale": "Granular drift is accepted as provider-boundary evidence: Consultant hierarchy records preserve more structural markers than compact prior-art article JSONL.",
+      "rule_ids": [
+        "STRUCT-004"
+      ],
+      "status": "accepted"
+    },
+    {
+      "check_id": "COUNT-SECTION",
+      "classification": "granular-count",
+      "evidence_anchors": [
+        {
+          "excerpt": "§ 1. Общие положения",
+          "excerpt_sha256": "0f0dfcddb2da59f6459d1f3efb2a7772257789c71524306f53c23b631844e176",
+          "level": "section",
+          "marker": "1",
+          "order_index": 584,
+          "parent_id": "HIER-CONS-CHAPTER-0003",
+          "record_id": "HIER-CONS-SECTION-0001",
+          "source_path": "law-source/consultant/44-FZ-2026.xml",
+          "source_sha256": "69df0b9d9e2bcce6164fc4e3c74fb9bebfff36ae6b053c68917c804be4b52a86"
+        },
+        {
+          "excerpt": "§ 7. Исполнение, изменение, расторжение контракта",
+          "excerpt_sha256": "5696dcfe8a2c3f01320f56ca3cc95767ff011143f03dfbbe414c35b29fe527e1",
+          "level": "section",
+          "marker": "7",
+          "order_index": 2432,
+          "parent_id": "HIER-CONS-CHAPTER-0003",
+          "record_id": "HIER-CONS-SECTION-0009",
+          "source_path": "law-source/consultant/44-FZ-2026.xml",
+          "source_sha256": "69df0b9d9e2bcce6164fc4e3c74fb9bebfff36ae6b053c68917c804be4b52a86"
+        }
+      ],
+      "expected": 0,
+      "observed": 9,
+      "rationale": "Granular drift is accepted as provider-boundary evidence: Consultant hierarchy records preserve more structural markers than compact prior-art article JSONL.",
+      "rule_ids": [
+        "STRUCT-005"
+      ],
+      "status": "accepted"
+    },
+    {
+      "check_id": "ORDER-CHAPTER-ARTICLE-COUNTS",
+      "classification": "order-and-parentage",
+      "evidence_anchors": [
+        {
+          "excerpt": "Статья 1. Сфера применения настоящего Федерального закона",
+          "excerpt_sha256": "82d0072d6346a9cfd9cf81dbeca76dfbd21851a1970f5abdd24fdd031d12ff57",
+          "level": "article",
+          "marker": "1",
+          "order_index": 77,
+          "parent_id": "HIER-CONS-CHAPTER-0001",
+          "record_id": "HIER-CONS-ARTICLE-0001",
+          "source_path": "law-source/consultant/44-FZ-2026.xml",
+          "source_sha256": "69df0b9d9e2bcce6164fc4e3c74fb9bebfff36ae6b053c68917c804be4b52a86"
+        },
+        {
+          "excerpt": "Статья 114. Порядок вступления в силу настоящего Федерального закона",
+          "excerpt_sha256": "de2f0e842f499444d6a1337996d596b3983cd128c8a6a02452d615e7f42ef631",
+          "level": "article",
+          "marker": "114",
+          "order_index": 3571,
+          "parent_id": "HIER-CONS-CHAPTER-0008",
+          "record_id": "HIER-CONS-ARTICLE-0094",
+          "source_path": "law-source/consultant/44-FZ-2026.xml",
+          "source_sha256": "69df0b9d9e2bcce6164fc4e3c74fb9bebfff36ae6b053c68917c804be4b52a86"
+        }
+      ],
+      "expected": {
+        "1": 15,
+        "2": 8,
+        "3": 47,
+        "4": 2,
+        "5": 6,
+        "6": 3,
+        "7": 10,
+        "8": 3
+      },
+      "observed": {
+        "1": 15,
+        "2": 8,
+        "3": 47,
+        "4": 2,
+        "5": 6,
+        "6": 3,
+        "7": 10,
+        "8": 3
+      },
+      "rationale": "Articles must map to the same chapter-count distribution even when sections are present.",
+      "rule_ids": [
+        "STRUCT-003",
+        "STRUCT-006"
+      ],
+      "status": "pass"
+    },
+    {
+      "check_id": "ORDER-FIRST-LAST-ARTICLES",
+      "classification": "order-and-boundary-samples",
+      "evidence_anchors": [
+        {
+          "excerpt": "Статья 1. Сфера применения настоящего Федерального закона",
+          "excerpt_sha256": "82d0072d6346a9cfd9cf81dbeca76dfbd21851a1970f5abdd24fdd031d12ff57",
+          "level": "article",
+          "marker": "1",
+          "order_index": 77,
+          "parent_id": "HIER-CONS-CHAPTER-0001",
+          "record_id": "HIER-CONS-ARTICLE-0001",
+          "source_path": "law-source/consultant/44-FZ-2026.xml",
+          "source_sha256": "69df0b9d9e2bcce6164fc4e3c74fb9bebfff36ae6b053c68917c804be4b52a86"
+        },
+        {
+          "excerpt": "Статья 114. Порядок вступления в силу настоящего Федерального закона",
+          "excerpt_sha256": "de2f0e842f499444d6a1337996d596b3983cd128c8a6a02452d615e7f42ef631",
+          "level": "article",
+          "marker": "114",
+          "order_index": 3571,
+          "parent_id": "HIER-CONS-CHAPTER-0008",
+          "record_id": "HIER-CONS-ARTICLE-0094",
+          "source_path": "law-source/consultant/44-FZ-2026.xml",
+          "source_sha256": "69df0b9d9e2bcce6164fc4e3c74fb9bebfff36ae6b053c68917c804be4b52a86"
+        }
+      ],
+      "expected": {
+        "first": [
+          "1",
+          "2",
+          "3",
+          "4",
+          "5"
+        ],
+        "last": [
+          "111.3",
+          "111.4",
+          "112",
+          "113",
+          "114"
+        ]
+      },
+      "observed": {
+        "first": [
+          "1",
+          "2",
+          "3",
+          "4",
+          "5"
+        ],
+        "last": [
+          "111.3",
+          "111.4",
+          "112",
+          "113",
+          "114"
+        ]
+      },
+      "rationale": "First/last article marker order is the bounded sample for full order drift.",
+      "rule_ids": [
+        "STRUCT-001",
+        "STRUCT-003"
+      ],
+      "status": "pass"
+    },
+    {
+      "check_id": "STRUCT-PARENTS-AND-ORDER",
+      "classification": "structural-rules",
+      "evidence_anchors": [
+        {
+          "excerpt": "Статья 1. Сфера применения настоящего Федерального закона",
+          "excerpt_sha256": "82d0072d6346a9cfd9cf81dbeca76dfbd21851a1970f5abdd24fdd031d12ff57",
+          "level": "article",
+          "marker": "1",
+          "order_index": 77,
+          "parent_id": "HIER-CONS-CHAPTER-0001",
+          "record_id": "HIER-CONS-ARTICLE-0001",
+          "source_path": "law-source/consultant/44-FZ-2026.xml",
+          "source_sha256": "69df0b9d9e2bcce6164fc4e3c74fb9bebfff36ae6b053c68917c804be4b52a86"
+        }
+      ],
+      "expected": {
+        "duplicate_id_count": 0,
+        "missing_parent_count": 0,
+        "non_monotonic_order_count": 0
+      },
+      "observed": {
+        "duplicate_id_count": 0,
+        "missing_parent_count": 0,
+        "non_monotonic_order_count": 0
+      },
+      "rationale": "Comparable structural rules require non-orphaned hierarchy records, deterministic IDs, and monotonic source order.",
+      "rule_ids": [
+        "STRUCT-003",
+        "STRUCT-004",
+        "STRUCT-005",
+        "STRUCT-006"
+      ],
+      "status": "pass"
+    },
+    {
+      "check_id": "INVALIDITY-MARKER-SAMPLES",
+      "classification": "advisory-invalidity-marker",
+      "evidence_anchors": [
+        {
+          "excerpt": "2. Настоящий Федеральный закон не применяется к отношениям, связанным с:",
+          "excerpt_sha256": "7aba756862a9d67bfb0e2a039897c2b091c691a6f7c2bb26d524ef513684e40a",
+          "level": "part",
+          "marker": "2",
+          "order_index": 88,
+          "parent_id": "HIER-CONS-ARTICLE-0001",
+          "record_id": "HIER-CONS-PART-0002",
+          "source_path": "law-source/consultant/44-FZ-2026.xml",
+          "source_sha256": "69df0b9d9e2bcce6164fc4e3c74fb9bebfff36ae6b053c68917c804be4b52a86"
+        },
+        {
+          "excerpt": "8) не применяется с 31 июля 2018 года. - Федеральный закон от 03.07.2016 N 266-ФЗ; утратил силу. - Федеральный закон от 08.08.2024 N 318-ФЗ;",
+          "excerpt_sha256": "7a60b67b509aff5dc8f0f8f28f2f5903d31551bbb3fd1d3f3e5798208e0494c3",
+          "level": "clause",
+          "marker": "8",
+          "order_index": 101,
+          "parent_id": "HIER-CONS-PART-0002",
+          "record_id": "HIER-CONS-CLAUSE-0015",
+          "source_path": "law-source/consultant/44-FZ-2026.xml",
+          "source_sha256": "69df0b9d9e2bcce6164fc4e3c74fb9bebfff36ae6b053c68917c804be4b52a86"
+        },
+        {
+          "excerpt": "2. Утратил силу с 1 января 2022 года. - Федеральный закон от 02.07.2021 N 360-ФЗ.",
+          "excerpt_sha256": "573ed029615741051e59ee424cf698c05793bddae47580a3f84efdf849187be9",
+          "level": "part",
+          "marker": "2",
+          "order_index": 179,
+          "parent_id": "HIER-CONS-ARTICLE-0003",
+          "record_id": "HIER-CONS-PART-0012",
+          "source_path": "law-source/consultant/44-FZ-2026.xml",
+          "source_sha256": "69df0b9d9e2bcce6164fc4e3c74fb9bebfff36ae6b053c68917c804be4b52a86"
+        },
+        {
+          "excerpt": "4) утратил силу с 1 июля 2018 года. - Федеральный закон от 31.12.2017 N 504-ФЗ.",
+          "excerpt_sha256": "fdb381a5b873938052e3c10c80f7e5e4293d0a557b39dcc4a163e33771690766",
+          "level": "clause",
+          "marker": "4",
+          "order_index": 189,
+          "parent_id": "HIER-CONS-PART-0013",
+          "record_id": "HIER-CONS-CLAUSE-0051",
+          "source_path": "law-source/consultant/44-FZ-2026.xml",
+          "source_sha256": "69df0b9d9e2bcce6164fc4e3c74fb9bebfff36ae6b053c68917c804be4b52a86"
+        },
+        {
+          "excerpt": "1) утратил силу с 1 октября 2019 года. - Федеральный закон от 01.05.2019 N 71-ФЗ;",
+          "excerpt_sha256": "8c1235f79cfd256ab42ec93ecfece0b9145ff9c7c0845d78d98b49244972c18a",
+          "level": "clause",
+          "marker": "1",
+          "order_index": 193,
+          "parent_id": "HIER-CONS-PART-0015",
+          "record_id": "HIER-CONS-CLAUSE-0052",
+          "source_path": "law-source/consultant/44-FZ-2026.xml",
+          "source_sha256": "69df0b9d9e2bcce6164fc4e3c74fb9bebfff36ae6b053c68917c804be4b52a86"
+        },
+        {
+          "excerpt": "4) утратил силу с 1 января 2025 года. - Федеральный закон от 08.08.2024 N 318-ФЗ;",
+          "excerpt_sha256": "da63b7ef60880fee6386c77390a7d76789098299ecff435591e00bc7cf57fabc",
+          "level": "clause",
+          "marker": "4",
+          "order_index": 197,
+          "parent_id": "HIER-CONS-PART-0015",
+          "record_id": "HIER-CONS-CLAUSE-0055",
+          "source_path": "law-source/consultant/44-FZ-2026.xml",
+          "source_sha256": "69df0b9d9e2bcce6164fc4e3c74fb9bebfff36ae6b053c68917c804be4b52a86"
+        },
+        {
+          "excerpt": "Статья 13. Утратила силу с 1 октября 2019 года. - Федеральный закон от 27.06.2019 N 152-ФЗ.",
+          "excerpt_sha256": "f3ed2d6ac15f912052d9e1263f73fa88cdbf8263c9d8db4aba876ad778ec56a7",
+          "level": "article",
+          "marker": "13",
+          "order_index": 325,
+          "parent_id": "HIER-CONS-CHAPTER-0001",
+          "record_id": "HIER-CONS-ARTICLE-0013",
+          "source_path": "law-source/consultant/44-FZ-2026.xml",
+          "source_sha256": "69df0b9d9e2bcce6164fc4e3c74fb9bebfff36ae6b053c68917c804be4b52a86"
+        },
+        {
+          "excerpt": "4.1. Утратил силу с 1 января 2025 года. - Федеральный закон от 29.05.2024 N 124-ФЗ.",
+          "excerpt_sha256": "3babd369541965e9d011922bc4eb80fa68ff3bed8d408369a224c97e93946ee3",
+          "level": "part",
+          "marker": "4.1",
+          "order_index": 391,
+          "parent_id": "HIER-CONS-ARTICLE-0015",
+          "record_id": "HIER-CONS-PART-0059",
+          "source_path": "law-source/consultant/44-FZ-2026.xml",
+          "source_sha256": "69df0b9d9e2bcce6164fc4e3c74fb9bebfff36ae6b053c68917c804be4b52a86"
+        },
+        {
+          "excerpt": "5. Утратил силу с 1 января 2025 года. - Федеральный закон от 29.05.2024 N 124-ФЗ.",
+          "excerpt_sha256": "e61fb62f185c644da05039a84301d91c2586007753ab3db6acd26f361ba734f7",
+          "level": "part",
+          "marker": "5",
+          "order_index": 398,
+          "parent_id": "HIER-CONS-ARTICLE-0015",
+          "record_id": "HIER-CONS-PART-0063",
+          "source_path": "law-source/consultant/44-FZ-2026.xml",
+          "source_sha256": "69df0b9d9e2bcce6164fc4e3c74fb9bebfff36ae6b053c68917c804be4b52a86"
+        },
+        {
+          "excerpt": "10. Утратил силу с 1 января 2022 года. - Федеральный закон от 02.07.2021 N 360-ФЗ.",
+          "excerpt_sha256": "c91c6f41d371c098b42ab995061ef7789dd2f3c780d1dd9c4b19d4bbac9799c8",
+          "level": "part",
+          "marker": "10",
+          "order_index": 437,
+          "parent_id": "HIER-CONS-ARTICLE-0016",
+          "record_id": "HIER-CONS-PART-0075",
+          "source_path": "law-source/consultant/44-FZ-2026.xml",
+          "source_sha256": "69df0b9d9e2bcce6164fc4e3c74fb9bebfff36ae6b053c68917c804be4b52a86"
+        }
+      ],
+      "expected": {
+        "article": 11,
+        "clause": 17,
+        "part": 41,
+        "subclause": 1
+      },
+      "observed": {
+        "article": 10,
+        "clause": 19,
+        "part": 40,
+        "subclause": 1
+      },
+      "rationale": "Invalidity wording is compared as advisory marker evidence only; it does not determine amendment legal effect.",
+      "rule_ids": [
+        "SEM-009"
+      ],
+      "status": "needs-review"
+    },
+    {
+      "check_id": "INPUT-VALIDATION",
+      "classification": "freshness-and-schema",
+      "evidence_anchors": [],
+      "expected": {
+        "parse_diagnostic_count": 0
+      },
+      "observed": {
+        "parse_diagnostic_count": 0,
+        "samples": []
+      },
+      "rationale": "Comparison fails closed on malformed hierarchy JSONL records.",
+      "rule_ids": [
+        "STRUCT-001",
+        "STRUCT-002",
+        "STRUCT-003",
+        "STRUCT-004",
+        "STRUCT-005",
+        "STRUCT-006"
+      ],
+      "status": "pass"
+    }
+  ],
+  "classification_counts": {
+    "accepted": 4,
+    "needs-review": 1,
+    "pass": 6
+  },
+  "diagnostics_bounded": true,
+  "fatal_error_count": 0,
+  "fatal_errors": [],
+  "needs_review_check_count": 1,
+  "non_authoritative": true,
+  "non_claims": [
+    "Consultant hierarchy prior-art comparison is a deterministic safeguard only.",
+    "Comparison results do not claim legal correctness or authoritative legal interpretation.",
+    "Comparison results do not claim parser completeness.",
+    "Prior-art mismatches are evidence anchors for review, not legal conclusions."
+  ],
+  "observed": {
+    "article_markers_first": [
+      "1",
+      "2",
+      "3",
+      "4",
+      "5"
+    ],
+    "article_markers_last": [
+      "111.3",
+      "111.4",
+      "112",
+      "113",
+      "114"
+    ],
+    "chapter_article_counts": {
+      "1": 15,
+      "2": 8,
+      "3": 47,
+      "4": 2,
+      "5": 6,
+      "6": 3,
+      "7": 10,
+      "8": 3
+    },
+    "counts_by_level": {
+      "article": 94,
+      "chapter": 8,
+      "clause": 997,
+      "document": 1,
+      "part": 793,
+      "section": 9,
+      "subclause": 283
+    },
+    "duplicate_ids": [],
+    "first_by_level": {
+      "article": {
+        "excerpt": "Статья 1. Сфера применения настоящего Федерального закона",
+        "excerpt_sha256": "82d0072d6346a9cfd9cf81dbeca76dfbd21851a1970f5abdd24fdd031d12ff57",
+        "level": "article",
+        "marker": "1",
+        "order_index": 77,
+        "parent_id": "HIER-CONS-CHAPTER-0001",
+        "record_id": "HIER-CONS-ARTICLE-0001",
+        "source_path": "law-source/consultant/44-FZ-2026.xml",
+        "source_sha256": "69df0b9d9e2bcce6164fc4e3c74fb9bebfff36ae6b053c68917c804be4b52a86"
+      },
+      "chapter": {
+        "excerpt": "Глава 1. ОБЩИЕ ПОЛОЖЕНИЯ",
+        "excerpt_sha256": "246b161464b9c9919d4a40b45d04936426fb3c437d4cca2c906f024d0d2801e6",
+        "level": "chapter",
+        "marker": "1",
+        "order_index": 75,
+        "parent_id": "HIER-CONS-DOCUMENT",
+        "record_id": "HIER-CONS-CHAPTER-0001",
+        "source_path": "law-source/consultant/44-FZ-2026.xml",
+        "source_sha256": "69df0b9d9e2bcce6164fc4e3c74fb9bebfff36ae6b053c68917c804be4b52a86"
+      },
+      "clause": {
+        "excerpt": "1) планирования закупок товаров, работ, услуг;",
+        "excerpt_sha256": "48c1a3625d2c7ebae40edfadd29c138726076fd671dab5dce0f7aea12c1526c5",
+        "level": "clause",
+        "marker": "1",
+        "order_index": 80,
+        "parent_id": "HIER-CONS-PART-0001",
+        "record_id": "HIER-CONS-CLAUSE-0001",
+        "source_path": "law-source/consultant/44-FZ-2026.xml",
+        "source_sha256": "69df0b9d9e2bcce6164fc4e3c74fb9bebfff36ae6b053c68917c804be4b52a86"
+      },
+      "document": {
+        "excerpt": "Федеральный закон от 05.04.2013 N 44-ФЗ(ред. от 28.12.2025)\"О контрактной системе в сфере закупок товаров, работ, услуг для обеспечения государственных и муниципальных нужд\"(с изм…",
+        "excerpt_sha256": "71c705d2e4b443fb7cf435c957de07786058ba57ec79a252324736e377467029",
+        "level": "document",
+        "marker": null,
+        "order_index": 2,
+        "parent_id": null,
+        "record_id": "HIER-CONS-DOCUMENT",
+        "source_path": "law-source/consultant/44-FZ-2026.xml",
+        "source_sha256": "69df0b9d9e2bcce6164fc4e3c74fb9bebfff36ae6b053c68917c804be4b52a86"
+      },
+      "part": {
+        "excerpt": "1. Настоящий Федеральный закон регулирует отношения, направленные на обеспечение государственных и муниципальных нужд в целях повышения эффективности, результативности осуществлен…",
+        "excerpt_sha256": "29a4e4203d89deda196f30928c350197ec50571f7a922f9c1d0fd1f7add4b4d2",
+        "level": "part",
+        "marker": "1",
+        "order_index": 79,
+        "parent_id": "HIER-CONS-ARTICLE-0001",
+        "record_id": "HIER-CONS-PART-0001",
+        "source_path": "law-source/consultant/44-FZ-2026.xml",
+        "source_sha256": "69df0b9d9e2bcce6164fc4e3c74fb9bebfff36ae6b053c68917c804be4b52a86"
+      },
+      "section": {
+        "excerpt": "§ 1. Общие положения",
+        "excerpt_sha256": "0f0dfcddb2da59f6459d1f3efb2a7772257789c71524306f53c23b631844e176",
+        "level": "section",
+        "marker": "1",
+        "order_index": 584,
+        "parent_id": "HIER-CONS-CHAPTER-0003",
+        "record_id": "HIER-CONS-SECTION-0001",
+        "source_path": "law-source/consultant/44-FZ-2026.xml",
+        "source_sha256": "69df0b9d9e2bcce6164fc4e3c74fb9bebfff36ae6b053c68917c804be4b52a86"
+      },
+      "subclause": {
+        "excerpt": "а) требования к технологическим и лингвистическим средствам, обеспечивающим сбор, обработку, хранение и использование информации, содержащейся в указанной системе;",
+        "excerpt_sha256": "16f1d509bc4f643c4676b9215fd71084d404baa88a9f0163fc4e2ddd1850c201",
+        "level": "subclause",
+        "marker": "а",
+        "order_index": 258,
+        "parent_id": "HIER-CONS-CLAUSE-0081",
+        "record_id": "HIER-CONS-SUBCLAUSE-0001",
+        "source_path": "law-source/consultant/44-FZ-2026.xml",
+        "source_sha256": "69df0b9d9e2bcce6164fc4e3c74fb9bebfff36ae6b053c68917c804be4b52a86"
+      }
+    },
+    "invalidity_marker_counts_by_level": {
+      "article": 10,
+      "clause": 19,
+      "part": 40,
+      "subclause": 1
+    },
+    "invalidity_marker_samples": [
+      {
+        "excerpt": "2. Настоящий Федеральный закон не применяется к отношениям, связанным с:",
+        "excerpt_sha256": "7aba756862a9d67bfb0e2a039897c2b091c691a6f7c2bb26d524ef513684e40a",
+        "level": "part",
+        "marker": "2",
+        "order_index": 88,
+        "parent_id": "HIER-CONS-ARTICLE-0001",
+        "record_id": "HIER-CONS-PART-0002",
+        "source_path": "law-source/consultant/44-FZ-2026.xml",
+        "source_sha256": "69df0b9d9e2bcce6164fc4e3c74fb9bebfff36ae6b053c68917c804be4b52a86"
+      },
+      {
+        "excerpt": "8) не применяется с 31 июля 2018 года. - Федеральный закон от 03.07.2016 N 266-ФЗ; утратил силу. - Федеральный закон от 08.08.2024 N 318-ФЗ;",
+        "excerpt_sha256": "7a60b67b509aff5dc8f0f8f28f2f5903d31551bbb3fd1d3f3e5798208e0494c3",
+        "level": "clause",
+        "marker": "8",
+        "order_index": 101,
+        "parent_id": "HIER-CONS-PART-0002",
+        "record_id": "HIER-CONS-CLAUSE-0015",
+        "source_path": "law-source/consultant/44-FZ-2026.xml",
+        "source_sha256": "69df0b9d9e2bcce6164fc4e3c74fb9bebfff36ae6b053c68917c804be4b52a86"
+      },
+      {
+        "excerpt": "2. Утратил силу с 1 января 2022 года. - Федеральный закон от 02.07.2021 N 360-ФЗ.",
+        "excerpt_sha256": "573ed029615741051e59ee424cf698c05793bddae47580a3f84efdf849187be9",
+        "level": "part",
+        "marker": "2",
+        "order_index": 179,
+        "parent_id": "HIER-CONS-ARTICLE-0003",
+        "record_id": "HIER-CONS-PART-0012",
+        "source_path": "law-source/consultant/44-FZ-2026.xml",
+        "source_sha256": "69df0b9d9e2bcce6164fc4e3c74fb9bebfff36ae6b053c68917c804be4b52a86"
+      },
+      {
+        "excerpt": "4) утратил силу с 1 июля 2018 года. - Федеральный закон от 31.12.2017 N 504-ФЗ.",
+        "excerpt_sha256": "fdb381a5b873938052e3c10c80f7e5e4293d0a557b39dcc4a163e33771690766",
+        "level": "clause",
+        "marker": "4",
+        "order_index": 189,
+        "parent_id": "HIER-CONS-PART-0013",
+        "record_id": "HIER-CONS-CLAUSE-0051",
+        "source_path": "law-source/consultant/44-FZ-2026.xml",
+        "source_sha256": "69df0b9d9e2bcce6164fc4e3c74fb9bebfff36ae6b053c68917c804be4b52a86"
+      },
+      {
+        "excerpt": "1) утратил силу с 1 октября 2019 года. - Федеральный закон от 01.05.2019 N 71-ФЗ;",
+        "excerpt_sha256": "8c1235f79cfd256ab42ec93ecfece0b9145ff9c7c0845d78d98b49244972c18a",
+        "level": "clause",
+        "marker": "1",
+        "order_index": 193,
+        "parent_id": "HIER-CONS-PART-0015",
+        "record_id": "HIER-CONS-CLAUSE-0052",
+        "source_path": "law-source/consultant/44-FZ-2026.xml",
+        "source_sha256": "69df0b9d9e2bcce6164fc4e3c74fb9bebfff36ae6b053c68917c804be4b52a86"
+      },
+      {
+        "excerpt": "4) утратил силу с 1 января 2025 года. - Федеральный закон от 08.08.2024 N 318-ФЗ;",
+        "excerpt_sha256": "da63b7ef60880fee6386c77390a7d76789098299ecff435591e00bc7cf57fabc",
+        "level": "clause",
+        "marker": "4",
+        "order_index": 197,
+        "parent_id": "HIER-CONS-PART-0015",
+        "record_id": "HIER-CONS-CLAUSE-0055",
+        "source_path": "law-source/consultant/44-FZ-2026.xml",
+        "source_sha256": "69df0b9d9e2bcce6164fc4e3c74fb9bebfff36ae6b053c68917c804be4b52a86"
+      },
+      {
+        "excerpt": "Статья 13. Утратила силу с 1 октября 2019 года. - Федеральный закон от 27.06.2019 N 152-ФЗ.",
+        "excerpt_sha256": "f3ed2d6ac15f912052d9e1263f73fa88cdbf8263c9d8db4aba876ad778ec56a7",
+        "level": "article",
+        "marker": "13",
+        "order_index": 325,
+        "parent_id": "HIER-CONS-CHAPTER-0001",
+        "record_id": "HIER-CONS-ARTICLE-0013",
+        "source_path": "law-source/consultant/44-FZ-2026.xml",
+        "source_sha256": "69df0b9d9e2bcce6164fc4e3c74fb9bebfff36ae6b053c68917c804be4b52a86"
+      },
+      {
+        "excerpt": "4.1. Утратил силу с 1 января 2025 года. - Федеральный закон от 29.05.2024 N 124-ФЗ.",
+        "excerpt_sha256": "3babd369541965e9d011922bc4eb80fa68ff3bed8d408369a224c97e93946ee3",
+        "level": "part",
+        "marker": "4.1",
+        "order_index": 391,
+        "parent_id": "HIER-CONS-ARTICLE-0015",
+        "record_id": "HIER-CONS-PART-0059",
+        "source_path": "law-source/consultant/44-FZ-2026.xml",
+        "source_sha256": "69df0b9d9e2bcce6164fc4e3c74fb9bebfff36ae6b053c68917c804be4b52a86"
+      },
+      {
+        "excerpt": "5. Утратил силу с 1 января 2025 года. - Федеральный закон от 29.05.2024 N 124-ФЗ.",
+        "excerpt_sha256": "e61fb62f185c644da05039a84301d91c2586007753ab3db6acd26f361ba734f7",
+        "level": "part",
+        "marker": "5",
+        "order_index": 398,
+        "parent_id": "HIER-CONS-ARTICLE-0015",
+        "record_id": "HIER-CONS-PART-0063",
+        "source_path": "law-source/consultant/44-FZ-2026.xml",
+        "source_sha256": "69df0b9d9e2bcce6164fc4e3c74fb9bebfff36ae6b053c68917c804be4b52a86"
+      },
+      {
+        "excerpt": "10. Утратил силу с 1 января 2022 года. - Федеральный закон от 02.07.2021 N 360-ФЗ.",
+        "excerpt_sha256": "c91c6f41d371c098b42ab995061ef7789dd2f3c780d1dd9c4b19d4bbac9799c8",
+        "level": "part",
+        "marker": "10",
+        "order_index": 437,
+        "parent_id": "HIER-CONS-ARTICLE-0016",
+        "record_id": "HIER-CONS-PART-0075",
+        "source_path": "law-source/consultant/44-FZ-2026.xml",
+        "source_sha256": "69df0b9d9e2bcce6164fc4e3c74fb9bebfff36ae6b053c68917c804be4b52a86"
+      },
+      {
+        "excerpt": "Статья 17. Утратила силу с 1 октября 2019 года. - Федеральный закон от 01.05.2019 N 71-ФЗ.",
+        "excerpt_sha256": "aa93f9c71b0aee29f53dca9b9a159c6c68907690663bc5c429edc13c16e3a10c",
+        "level": "article",
+        "marker": "17",
+        "order_index": 440,
+        "parent_id": "HIER-CONS-CHAPTER-0002",
+        "record_id": "HIER-CONS-ARTICLE-0017",
+        "source_path": "law-source/consultant/44-FZ-2026.xml",
+        "source_sha256": "69df0b9d9e2bcce6164fc4e3c74fb9bebfff36ae6b053c68917c804be4b52a86"
+      },
+      {
+        "excerpt": "7. Утратил силу с 1 октября 2019 года. - Федеральный закон от 01.05.2019 N 71-ФЗ.",
+        "excerpt_sha256": "382bcdca7d01f77553bba06127e1e148349a33f3034862259ae4c30ebbbaa463",
+        "level": "part",
+        "marker": "7",
+        "order_index": 452,
+        "parent_id": "HIER-CONS-ARTICLE-0018",
+        "record_id": "HIER-CONS-PART-0081",
+        "source_path": "law-source/consultant/44-FZ-2026.xml",
+        "source_sha256": "69df0b9d9e2bcce6164fc4e3c74fb9bebfff36ae6b053c68917c804be4b52a86"
+      },
+      {
+        "excerpt": "Статья 21. Утратила силу с 1 октября 2019 года. - Федеральный закон от 01.05.2019 N 71-ФЗ.",
+        "excerpt_sha256": "95fc601ff45293de0a99efccb4786b0be1082a4d50c84e4789a453cf6e14709f",
+        "level": "article",
+        "marker": "21",
+        "order_index": 494,
+        "parent_id": "HIER-CONS-CHAPTER-0002",
+        "record_id": "HIER-CONS-ARTICLE-0021",
+        "source_path": "law-source/consultant/44-FZ-2026.xml",
+        "source_sha256": "69df0b9d9e2bcce6164fc4e3c74fb9bebfff36ae6b053c68917c804be4b52a86"
+      },
+      {
+        "excerpt": "4. Утратил силу с 1 июля 2019 года. - Федеральный закон от 01.05.2019 N 71-ФЗ.",
+        "excerpt_sha256": "3ff96ed848f1652f7d9710ee3314c66b81b375c0d19224d364f4c44aca87fd87",
+        "level": "part",
+        "marker": "4",
+        "order_index": 578,
+        "parent_id": "HIER-CONS-ARTICLE-0023",
+        "record_id": "HIER-CONS-PART-0132",
+        "source_path": "law-source/consultant/44-FZ-2026.xml",
+        "source_sha256": "69df0b9d9e2bcce6164fc4e3c74fb9bebfff36ae6b053c68917c804be4b52a86"
+      },
+      {
+        "excerpt": "8. Утратил силу с 1 мая 2022 года. - Федеральный закон от 16.04.2022 N 104-ФЗ.",
+        "excerpt_sha256": "950d142ed458290dea524a2ac1d0993a79f796167ee6c628636816f6c4700372",
+        "level": "part",
+        "marker": "8",
+        "order_index": 863,
+        "parent_id": "HIER-CONS-ARTICLE-0032",
+        "record_id": "HIER-CONS-PART-0210",
+        "source_path": "law-source/consultant/44-FZ-2026.xml",
+        "source_sha256": "69df0b9d9e2bcce6164fc4e3c74fb9bebfff36ae6b053c68917c804be4b52a86"
+      },
+      {
+        "excerpt": "Статья 30.1. Утратила силу с 1 января 2025 года. - Федеральный закон от 08.08.2024 N 318-ФЗ.",
+        "excerpt_sha256": "7feab9fe5f7c0b33acf61e873aff919fcc442e3d94ce3922caa0ffc569158738",
+        "level": "article",
+        "marker": "30.1",
+        "order_index": 865,
+        "parent_id": "HIER-CONS-SECTION-0001",
+        "record_id": "HIER-CONS-ARTICLE-0033",
+        "source_path": "law-source/consultant/44-FZ-2026.xml",
+        "source_sha256": "69df0b9d9e2bcce6164fc4e3c74fb9bebfff36ae6b053c68917c804be4b52a86"
+      },
+      {
+        "excerpt": "2) утратил силу. - Федеральный закон от 04.06.2014 N 140-ФЗ;",
+        "excerpt_sha256": "bc63039da1331222fcdb62d31b71fdace4d8ce980c81e55c4511abd3b17d7334",
+        "level": "clause",
+        "marker": "2",
+        "order_index": 872,
+        "parent_id": "HIER-CONS-PART-0211",
+        "record_id": "HIER-CONS-CLAUSE-0192",
+        "source_path": "law-source/consultant/44-FZ-2026.xml",
+        "source_sha256": "69df0b9d9e2bcce6164fc4e3c74fb9bebfff36ae6b053c68917c804be4b52a86"
+      },
+      {
+        "excerpt": "6) утратил силу с 1 января 2014 года. - Федеральный закон от 28.12.2013 N 396-ФЗ;",
+        "excerpt_sha256": "a5b249faaaca224b87e14690f6f510d4b20dfdf0c726879055af24a3b7018f86",
+        "level": "clause",
+        "marker": "6",
+        "order_index": 877,
+        "parent_id": "HIER-CONS-PART-0211",
+        "record_id": "HIER-CONS-CLAUSE-0196",
+        "source_path": "law-source/consultant/44-FZ-2026.xml",
+        "source_sha256": "69df0b9d9e2bcce6164fc4e3c74fb9bebfff36ae6b053c68917c804be4b52a86"
+      },
+      {
+        "excerpt": "8.1. Утратил силу с 1 июля 2018 года. - Федеральный закон от 31.12.2017 N 504-ФЗ.",
+        "excerpt_sha256": "6d609ab3bb83caf9faa4bd65b66c75a2ac272783068d53053da1121edb6880d8",
+        "level": "part",
+        "marker": "8.1",
+        "order_index": 914,
+        "parent_id": "HIER-CONS-ARTICLE-0034",
+        "record_id": "HIER-CONS-PART-0221",
+        "source_path": "law-source/consultant/44-FZ-2026.xml",
+        "source_sha256": "69df0b9d9e2bcce6164fc4e3c74fb9bebfff36ae6b053c68917c804be4b52a86"
+      },
+      {
+        "excerpt": "8.2. Утратил силу с 1 января 2022 года. - Федеральный закон от 02.07.2021 N 360-ФЗ.",
+        "excerpt_sha256": "8eafb5a69bb4c8f72b26647559c05e43565caece2e7c6135c4f362877d316787",
+        "level": "part",
+        "marker": "8.2",
+        "order_index": 915,
+        "parent_id": "HIER-CONS-ARTICLE-0034",
+        "record_id": "HIER-CONS-PART-0222",
+        "source_path": "law-source/consultant/44-FZ-2026.xml",
+        "source_sha256": "69df0b9d9e2bcce6164fc4e3c74fb9bebfff36ae6b053c68917c804be4b52a86"
+      },
+      {
+        "excerpt": "2. Утратил силу. - Федеральный закон от 03.08.2018 N 311-ФЗ.",
+        "excerpt_sha256": "374e64e862f7590676c14f682a63269233de1bb38205c34c70508b0c8088f87b",
+        "level": "part",
+        "marker": "2",
+        "order_index": 938,
+        "parent_id": "HIER-CONS-ARTICLE-0035",
+        "record_id": "HIER-CONS-PART-0229",
+        "source_path": "law-source/consultant/44-FZ-2026.xml",
+        "source_sha256": "69df0b9d9e2bcce6164fc4e3c74fb9bebfff36ae6b053c68917c804be4b52a86"
+      },
+      {
+        "excerpt": "6.1. Утратил силу с 1 января 2017 года. - Федеральный закон от 29.12.2015 N 390-ФЗ.",
+        "excerpt_sha256": "2b7269561838a0ad8e96e56850b4addf61f5036232904e4b9521b1eae60dcbda",
+        "level": "part",
+        "marker": "6.1",
+        "order_index": 1016,
+        "parent_id": "HIER-CONS-ARTICLE-0037",
+        "record_id": "HIER-CONS-PART-0250",
+        "source_path": "law-source/consultant/44-FZ-2026.xml",
+        "source_sha256": "69df0b9d9e2bcce6164fc4e3c74fb9bebfff36ae6b053c68917c804be4b52a86"
+      },
+      {
+        "excerpt": "18. Утратил силу с 1 января 2022 года. - Федеральный закон от 02.07.2021 N 360-ФЗ.",
+        "excerpt_sha256": "7445558c0028cd13aac4bfe3408bd9822cd38f1a07b96ef511b0ffd589b99ea2",
+        "level": "part",
+        "marker": "18",
+        "order_index": 1071,
+        "parent_id": "HIER-CONS-ARTICLE-0037",
+        "record_id": "HIER-CONS-PART-0267",
+        "source_path": "law-source/consultant/44-FZ-2026.xml",
+        "source_sha256": "69df0b9d9e2bcce6164fc4e3c74fb9bebfff36ae6b053c68917c804be4b52a86"
+      },
+      {
+        "excerpt": "1) утратил силу с 1 октября 2019 года. - Федеральный закон от 01.05.2019 N 71-ФЗ;",
+        "excerpt_sha256": "8c1235f79cfd256ab42ec93ecfece0b9145ff9c7c0845d78d98b49244972c18a",
+        "level": "clause",
+        "marker": "1",
+        "order_index": 1153,
+        "parent_id": "HIER-CONS-PART-0300",
+        "record_id": "HIER-CONS-CLAUSE-0251",
+        "source_path": "law-source/consultant/44-FZ-2026.xml",
+        "source_sha256": "69df0b9d9e2bcce6164fc4e3c74fb9bebfff36ae6b053c68917c804be4b52a86"
+      },
+      {
+        "excerpt": "5) утратил силу с 1 января 2022 года. - Федеральный закон от 02.07.2021 N 360-ФЗ;",
+        "excerpt_sha256": "ff3085245c1973253d25860f919d4d2a4ae01d4c6d0207d54f2e72676b0ff2a5",
+        "level": "clause",
+        "marker": "5",
+        "order_index": 1536,
+        "parent_id": "HIER-CONS-PART-0381",
+        "record_id": "HIER-CONS-CLAUSE-0365",
+        "source_path": "law-source/consultant/44-FZ-2026.xml",
+        "source_sha256": "69df0b9d9e2bcce6164fc4e3c74fb9bebfff36ae6b053c68917c804be4b52a86"
+      },
+      {
+        "excerpt": "10. Утратил силу с 1 апреля 2015 года. - Федеральный закон от 31.12.2014 N 498-ФЗ.",
+        "excerpt_sha256": "90d524da9748fd64e96a992ba58ae95eaf9d7ef9b46d866bfe66cc9ec53ce9da",
+        "level": "part",
+        "marker": "10",
+        "order_index": 1539,
+        "parent_id": "HIER-CONS-ARTICLE-0048",
+        "record_id": "HIER-CONS-PART-0382",
+        "source_path": "law-source/consultant/44-FZ-2026.xml",
+        "source_sha256": "69df0b9d9e2bcce6164fc4e3c74fb9bebfff36ae6b053c68917c804be4b52a86"
+      },
+      {
+        "excerpt": "г) утратил силу с 1 января 2023 года. - Федеральный закон от 16.04.2022 N 104-ФЗ.",
+        "excerpt_sha256": "24a95665bf7521096b35d96efcaf58127d82832912cd7edad5483c322c425a1d",
+        "level": "subclause",
+        "marker": "г",
+        "order_index": 1690,
+        "parent_id": "HIER-CONS-CLAUSE-0429",
+        "record_id": "HIER-CONS-SUBCLAUSE-0126",
+        "source_path": "law-source/consultant/44-FZ-2026.xml",
+        "source_sha256": "69df0b9d9e2bcce6164fc4e3c74fb9bebfff36ae6b053c68917c804be4b52a86"
+      },
+      {
+        "excerpt": "Статья 60. Утратила силу с 1 июля 2018 года. - Федеральный закон от 31.12.2017 N 504-ФЗ.",
+        "excerpt_sha256": "2071d7b1d17c9bcf136298ec346f53bd183d74845b7571b31fb628c8c885683f",
+        "level": "article",
+        "marker": "60",
+        "order_index": 1831,
+        "parent_id": "HIER-CONS-SECTION-0002",
+        "record_id": "HIER-CONS-ARTICLE-0056",
+        "source_path": "law-source/consultant/44-FZ-2026.xml",
+        "source_sha256": "69df0b9d9e2bcce6164fc4e3c74fb9bebfff36ae6b053c68917c804be4b52a86"
+      },
+      {
+        "excerpt": "Статья 61. Утратила силу с 1 января 2019 года. - Федеральный закон от 31.12.2017 N 504-ФЗ.",
+        "excerpt_sha256": "f2606b68c8057bb25bc22a9898e811ce86d250a9461e5c2efc5b4d8baa9b0a91",
+        "level": "article",
+        "marker": "61",
+        "order_index": 1833,
+        "parent_id": "HIER-CONS-SECTION-0002",
+        "record_id": "HIER-CONS-ARTICLE-0057",
+        "source_path": "law-source/consultant/44-FZ-2026.xml",
+        "source_sha256": "69df0b9d9e2bcce6164fc4e3c74fb9bebfff36ae6b053c68917c804be4b52a86"
+      },
+      {
+        "excerpt": "Статья 62. Утратила силу с 1 января 2020 года. - Федеральный закон от 31.12.2017 N 504-ФЗ.",
+        "excerpt_sha256": "80e32e50b00e07748ea9a3cface7e37d19b0279b402a43c9d34a571f2f4e7c0c",
+        "level": "article",
+        "marker": "62",
+        "order_index": 1835,
+        "parent_id": "HIER-CONS-SECTION-0002",
+        "record_id": "HIER-CONS-ARTICLE-0058",
+        "source_path": "law-source/consultant/44-FZ-2026.xml",
+        "source_sha256": "69df0b9d9e2bcce6164fc4e3c74fb9bebfff36ae6b053c68917c804be4b52a86"
+      },
+      {
+        "excerpt": "Статья 70. Утратила силу с 1 июля 2018 года. - Федеральный закон от 31.12.2017 N 504-ФЗ.",
+        "excerpt_sha256": "5336d55721e56428835bd20091356447f3ce8f0b9bbfc45ef639674ed006990f",
+        "level": "article",
+        "marker": "70",
+        "order_index": 1839,
+        "parent_id": "HIER-CONS-SECTION-0002",
+        "record_id": "HIER-CONS-ARTICLE-0059",
+        "source_path": "law-source/consultant/44-FZ-2026.xml",
+        "source_sha256": "69df0b9d9e2bcce6164fc4e3c74fb9bebfff36ae6b053c68917c804be4b52a86"
+      },
+      {
+        "excerpt": "Статья 71. Утратила силу с 1 января 2022 года. - Федеральный закон от 02.07.2021 N 360-ФЗ.",
+        "excerpt_sha256": "edc5afde78c5eddf3ac1eb96f2643159de4882c04a90b6826610d322c874fa33",
+        "level": "article",
+        "marker": "71",
+        "order_index": 1841,
+        "parent_id": "HIER-CONS-SECTION-0002",
+        "record_id": "HIER-CONS-ARTICLE-0060",
+        "source_path": "law-source/consultant/44-FZ-2026.xml",
+        "source_sha256": "69df0b9d9e2bcce6164fc4e3c74fb9bebfff36ae6b053c68917c804be4b52a86"
+      },
+      {
+        "excerpt": "5.1) - 5.2) не применяются. - Федеральный закон от 08.03.2022 N 46-ФЗ; утратили силу. - Федеральный закон от 08.08.2024 N 318-ФЗ;",
+        "excerpt_sha256": "d1ebc20252c71e1aff983a06a90715dd6649a88cdc0e1d0f0db05acee1374b04",
+        "level": "clause",
+        "marker": "5.1",
+        "order_index": 2172,
+        "parent_id": "HIER-CONS-PART-0494",
+        "record_id": "HIER-CONS-CLAUSE-0601",
+        "source_path": "law-source/consultant/44-FZ-2026.xml",
+        "source_sha256": "69df0b9d9e2bcce6164fc4e3c74fb9bebfff36ae6b053c68917c804be4b52a86"
+      },
+      {
+        "excerpt": "25.1) - 25.3) утратили силу с 1 июля 2020 года. - Федеральный закон от 27.12.2019 N 449-ФЗ;",
+        "excerpt_sha256": "babe0ff114dc998a2a4590f6c54a2be4c7f2b4239e130819edcdd6677d0a3a94",
+        "level": "clause",
+        "marker": "25.1",
+        "order_index": 2208,
+        "parent_id": "HIER-CONS-PART-0494",
+        "record_id": "HIER-CONS-CLAUSE-0623",
+        "source_path": "law-source/consultant/44-FZ-2026.xml",
+        "source_sha256": "69df0b9d9e2bcce6164fc4e3c74fb9bebfff36ae6b053c68917c804be4b52a86"
+      },
+      {
+        "excerpt": "27) утратил силу с 1 января 2014 года. - Федеральный закон от 28.12.2013 N 396-ФЗ;",
+        "excerpt_sha256": "44c6e3842a6cdb9b7da48c38eeda6c10776d536e675c4383dcd4b3c3b358f259",
+        "level": "clause",
+        "marker": "27",
+        "order_index": 2211,
+        "parent_id": "HIER-CONS-PART-0494",
+        "record_id": "HIER-CONS-CLAUSE-0625",
+        "source_path": "law-source/consultant/44-FZ-2026.xml",
+        "source_sha256": "69df0b9d9e2bcce6164fc4e3c74fb9bebfff36ae6b053c68917c804be4b52a86"
+      },
+      {
+        "excerpt": "28.1) не применяется. - Федеральный закон от 08.03.2022 N 46-ФЗ; утратил силу. - Федеральный закон от 08.08.2024 N 318-ФЗ;",
+        "excerpt_sha256": "57dcdead74c84164f2f45bc17d154cd1b363892ec226c1d82d2b5778c2a831d1",
+        "level": "clause",
+        "marker": "28.1",
+        "order_index": 2220,
+        "parent_id": "HIER-CONS-PART-0494",
+        "record_id": "HIER-CONS-CLAUSE-0627",
+        "source_path": "law-source/consultant/44-FZ-2026.xml",
+        "source_sha256": "69df0b9d9e2bcce6164fc4e3c74fb9bebfff36ae6b053c68917c804be4b52a86"
+      },
+      {
+        "excerpt": "30.1) не применяется с 1 января 2021 года. - Федеральный закон от 27.02.2020 N 27-ФЗ; утратил силу. - Федеральный закон от 08.08.2024 N 318-ФЗ;",
+        "excerpt_sha256": "9ee0d6f39e9c3d8153dbd1d1fdb50b7f73b99b8cb46a25c7a8528756e09eb86f",
+        "level": "clause",
+        "marker": "30.1",
+        "order_index": 2225,
+        "parent_id": "HIER-CONS-PART-0494",
+        "record_id": "HIER-CONS-CLAUSE-0630",
+        "source_path": "law-source/consultant/44-FZ-2026.xml",
+        "source_sha256": "69df0b9d9e2bcce6164fc4e3c74fb9bebfff36ae6b053c68917c804be4b52a86"
+      },
+      {
+        "excerpt": "43) утратил силу с 31 декабря 2017 года. - Федеральный закон от 31.12.2017 N 503-ФЗ;",
+        "excerpt_sha256": "8bbcc57e2c393d8e48d68fa81ff28813ad5b9e4b3825781632b713abc33c2197",
+        "level": "clause",
+        "marker": "43",
+        "order_index": 2256,
+        "parent_id": "HIER-CONS-PART-0494",
+        "record_id": "HIER-CONS-CLAUSE-0643",
+        "source_path": "law-source/consultant/44-FZ-2026.xml",
+        "source_sha256": "69df0b9d9e2bcce6164fc4e3c74fb9bebfff36ae6b053c68917c804be4b52a86"
+      },
+      {
+        "excerpt": "4. Утратил силу. - Федеральный закон от 01.05.2019 N 71-ФЗ.",
+        "excerpt_sha256": "a056159df1ebc5e3def933f4554fc09b02d0a18d3b9135ab71fbbcaa53dbd251",
+        "level": "part",
+        "marker": "4",
+        "order_index": 2446,
+        "parent_id": "HIER-CONS-ARTICLE-0068",
+        "record_id": "HIER-CONS-PART-0512",
+        "source_path": "law-source/consultant/44-FZ-2026.xml",
+        "source_sha256": "69df0b9d9e2bcce6164fc4e3c74fb9bebfff36ae6b053c68917c804be4b52a86"
+      },
+      {
+        "excerpt": "1) утратил силу с 1 января 2022 года. - Федеральный закон от 02.07.2021 N 360-ФЗ;",
+        "excerpt_sha256": "b98f6166caa489a678505bae10a97a7d3ede7e70bcbcdccd34816a90f9a890b4",
+        "level": "clause",
+        "marker": "1",
+        "order_index": 2493,
+        "parent_id": "HIER-CONS-PART-0524",
+        "record_id": "HIER-CONS-CLAUSE-0699",
+        "source_path": "law-source/consultant/44-FZ-2026.xml",
+        "source_sha256": "69df0b9d9e2bcce6164fc4e3c74fb9bebfff36ae6b053c68917c804be4b52a86"
+      },
+      {
+        "excerpt": "1.1. Утратил силу с 1 января 2017 года. - Федеральный закон от 29.12.2015 N 390-ФЗ.",
+        "excerpt_sha256": "aba5efdad28250d711192a5df5ef405366a654d68b30183fc3752f5e372ec485",
+        "level": "part",
+        "marker": "1.1",
+        "order_index": 2525,
+        "parent_id": "HIER-CONS-ARTICLE-0069",
+        "record_id": "HIER-CONS-PART-0525",
+        "source_path": "law-source/consultant/44-FZ-2026.xml",
+        "source_sha256": "69df0b9d9e2bcce6164fc4e3c74fb9bebfff36ae6b053c68917c804be4b52a86"
+      },
+      {
+        "excerpt": "12. Утратил силу с 1 января 2022 года. - Федеральный закон от 02.07.2021 N 360-ФЗ.",
+        "excerpt_sha256": "fcff4166e784476538d1e2d2b09b58486dede1c4a49e343f00d0ece79182f9d6",
+        "level": "part",
+        "marker": "12",
+        "order_index": 2563,
+        "parent_id": "HIER-CONS-ARTICLE-0069",
+        "record_id": "HIER-CONS-PART-0543",
+        "source_path": "law-source/consultant/44-FZ-2026.xml",
+        "source_sha256": "69df0b9d9e2bcce6164fc4e3c74fb9bebfff36ae6b053c68917c804be4b52a86"
+      },
+      {
+        "excerpt": "20. Утратил силу с 1 января 2022 года. - Федеральный закон от 02.07.2021 N 360-ФЗ.",
+        "excerpt_sha256": "ad67533b489657a4a6c3e18111e04ea0c5a226fb8bc9cd74da7d87162a2ec493",
+        "level": "part",
+        "marker": "20",
+        "order_index": 2621,
+        "parent_id": "HIER-CONS-ARTICLE-0069",
+        "record_id": "HIER-CONS-PART-0557",
+        "source_path": "law-source/consultant/44-FZ-2026.xml",
+        "source_sha256": "69df0b9d9e2bcce6164fc4e3c74fb9bebfff36ae6b053c68917c804be4b52a86"
+      },
+      {
+        "excerpt": "24. Утратил силу с 1 июля 2019 года. - Федеральный закон от 01.05.2019 N 71-ФЗ.",
+        "excerpt_sha256": "b6547ef3f763fdd80340e8354282307eaefa041bec1307d7cebefc64da15e474",
+        "level": "part",
+        "marker": "24",
+        "order_index": 2639,
+        "parent_id": "HIER-CONS-ARTICLE-0069",
+        "record_id": "HIER-CONS-PART-0565",
+        "source_path": "law-source/consultant/44-FZ-2026.xml",
+        "source_sha256": "69df0b9d9e2bcce6164fc4e3c74fb9bebfff36ae6b053c68917c804be4b52a86"
+      },
+      {
+        "excerpt": "26. Утратил силу с 1 июля 2018 года. - Федеральный закон от 31.12.2017 N 504-ФЗ.",
+        "excerpt_sha256": "6aa8847c1d420219976121f86cd5f7939dc7e2a68bbb2d3a34879b4bfb6439b8",
+        "level": "part",
+        "marker": "26",
+        "order_index": 2641,
+        "parent_id": "HIER-CONS-ARTICLE-0069",
+        "record_id": "HIER-CONS-PART-0567",
+        "source_path": "law-source/consultant/44-FZ-2026.xml",
+        "source_sha256": "69df0b9d9e2bcce6164fc4e3c74fb9bebfff36ae6b053c68917c804be4b52a86"
+      },
+      {
+        "excerpt": "2.1. Утратил силу с 1 января 2017 года. - Федеральный закон от 29.12.2015 N 390-ФЗ.",
+        "excerpt_sha256": "bfbfc8a865021d30e6f254d3074451c0cd9e587f24b2a2fd136658bc9bdca011",
+        "level": "part",
+        "marker": "2.1",
+        "order_index": 2658,
+        "parent_id": "HIER-CONS-ARTICLE-0070",
+        "record_id": "HIER-CONS-PART-0571",
+        "source_path": "law-source/consultant/44-FZ-2026.xml",
+        "source_sha256": "69df0b9d9e2bcce6164fc4e3c74fb9bebfff36ae6b053c68917c804be4b52a86"
+      },
+      {
+        "excerpt": "9. Утратил силу с 1 января 2022 года. - Федеральный закон от 02.07.2021 N 360-ФЗ.",
+        "excerpt_sha256": "75e563513459b34a531880ae63c7d95bb34cac12d931102fada7d824f330cca7",
+        "level": "part",
+        "marker": "9",
+        "order_index": 2736,
+        "parent_id": "HIER-CONS-ARTICLE-0070",
+        "record_id": "HIER-CONS-PART-0586",
+        "source_path": "law-source/consultant/44-FZ-2026.xml",
+        "source_sha256": "69df0b9d9e2bcce6164fc4e3c74fb9bebfff36ae6b053c68917c804be4b52a86"
+      },
+      {
+        "excerpt": "11. Утратил силу с 1 января 2017 года. - Федеральный закон от 29.12.2015 N 390-ФЗ.",
+        "excerpt_sha256": "a54003249bded04736c06ccfd68c1ec1c6f2ecfbc93064a18bfc09dbededde62",
+        "level": "part",
+        "marker": "11",
+        "order_index": 2738,
+        "parent_id": "HIER-CONS-ARTICLE-0070",
+        "record_id": "HIER-CONS-PART-0588",
+        "source_path": "law-source/consultant/44-FZ-2026.xml",
+        "source_sha256": "69df0b9d9e2bcce6164fc4e3c74fb9bebfff36ae6b053c68917c804be4b52a86"
+      },
+      {
+        "excerpt": "2. Утратил силу с 1 октября 2019 года. - Федеральный закон от 01.05.2019 N 71-ФЗ.",
+        "excerpt_sha256": "ff8de7fdcb6e8bd9947536bff6f894252eaf8493a63232138f96c810118b16ca",
+        "level": "part",
+        "marker": "2",
+        "order_index": 2746,
+        "parent_id": "HIER-CONS-ARTICLE-0071",
+        "record_id": "HIER-CONS-PART-0590",
+        "source_path": "law-source/consultant/44-FZ-2026.xml",
+        "source_sha256": "69df0b9d9e2bcce6164fc4e3c74fb9bebfff36ae6b053c68917c804be4b52a86"
+      },
+      {
+        "excerpt": "10. Утратил силу. - Федеральный закон от 04.06.2014 N 140-ФЗ.",
+        "excerpt_sha256": "d17f9e9fc856aa117fc6be50b80dcfcb923f2cc725868eb87cfa61fdf4fa91de",
+        "level": "part",
+        "marker": "10",
+        "order_index": 2757,
+        "parent_id": "HIER-CONS-ARTICLE-0071",
+        "record_id": "HIER-CONS-PART-0598",
+        "source_path": "law-source/consultant/44-FZ-2026.xml",
+        "source_sha256": "69df0b9d9e2bcce6164fc4e3c74fb9bebfff36ae6b053c68917c804be4b52a86"
+      },
+      {
+        "excerpt": "1) утратил силу с 1 октября 2019 года. - Федеральный закон от 01.05.2019 N 71-ФЗ;",
+        "excerpt_sha256": "8c1235f79cfd256ab42ec93ecfece0b9145ff9c7c0845d78d98b49244972c18a",
+        "level": "clause",
+        "marker": "1",
+        "order_index": 2830,
+        "parent_id": "HIER-CONS-PART-0614",
+        "record_id": "HIER-CONS-CLAUSE-0763",
+        "source_path": "law-source/consultant/44-FZ-2026.xml",
+        "source_sha256": "69df0b9d9e2bcce6164fc4e3c74fb9bebfff36ae6b053c68917c804be4b52a86"
+      },
+      {
+        "excerpt": "4) утратил силу с 1 января 2020 года. - Федеральный закон от 27.12.2019 N 449-ФЗ;",
+        "excerpt_sha256": "d1cddb8bfbce4393c03598e9b072bc3157d8611334fcc8fdb6cfc63ad94ef035",
+        "level": "clause",
+        "marker": "4",
+        "order_index": 2835,
+        "parent_id": "HIER-CONS-PART-0614",
+        "record_id": "HIER-CONS-CLAUSE-0766",
+        "source_path": "law-source/consultant/44-FZ-2026.xml",
+        "source_sha256": "69df0b9d9e2bcce6164fc4e3c74fb9bebfff36ae6b053c68917c804be4b52a86"
+      },
+      {
+        "excerpt": "6) утратил силу с 1 января 2020 года. - Федеральный закон от 27.12.2019 N 449-ФЗ;",
+        "excerpt_sha256": "60c40612f879ad890a396de6edd0c3fff749341939493fb3720c573389213534",
+        "level": "clause",
+        "marker": "6",
+        "order_index": 2838,
+        "parent_id": "HIER-CONS-PART-0614",
+        "record_id": "HIER-CONS-CLAUSE-0768",
+        "source_path": "law-source/consultant/44-FZ-2026.xml",
+        "source_sha256": "69df0b9d9e2bcce6164fc4e3c74fb9bebfff36ae6b053c68917c804be4b52a86"
+      },
+      {
+        "excerpt": "27. Утратил силу с 1 января 2020 года. - Федеральный закон от 27.12.2019 N 449-ФЗ.",
+        "excerpt_sha256": "8a10b4b7133847dc6a2ff9afc4c8110ce95e5016db788229dc7d6aa650013eb3",
+        "level": "part",
+        "marker": "27",
+        "order_index": 2906,
+        "parent_id": "HIER-CONS-ARTICLE-0073",
+        "record_id": "HIER-CONS-PART-0634",
+        "source_path": "law-source/consultant/44-FZ-2026.xml",
+        "source_sha256": "69df0b9d9e2bcce6164fc4e3c74fb9bebfff36ae6b053c68917c804be4b52a86"
+      },
+      {
+        "excerpt": "6) утратил силу с 1 января 2022 года. - Федеральный закон от 02.07.2021 N 360-ФЗ;",
+        "excerpt_sha256": "8d5d81534250479fefa1ade295dbb675b498dda06f0ea3949cffbc763746677b",
+        "level": "clause",
+        "marker": "6",
+        "order_index": 3041,
+        "parent_id": "HIER-CONS-PART-0659",
+        "record_id": "HIER-CONS-CLAUSE-0820",
+        "source_path": "law-source/consultant/44-FZ-2026.xml",
+        "source_sha256": "69df0b9d9e2bcce6164fc4e3c74fb9bebfff36ae6b053c68917c804be4b52a86"
+      },
+      {
+        "excerpt": "Статья 109. Утратила силу с 1 января 2022 года. - Федеральный закон от 02.07.2021 N 360-ФЗ.",
+        "excerpt_sha256": "e31cbb51031d666f342b790ce223e6250c48e18b76e6edfc2cdb12e11c25321a",
+        "level": "article",
+        "marker": "109",
+        "order_index": 3205,
+        "parent_id": "HIER-CONS-CHAPTER-0007",
+        "record_id": "HIER-CONS-ARTICLE-0083",
+        "source_path": "law-source/consultant/44-FZ-2026.xml",
+        "source_sha256": "69df0b9d9e2bcce6164fc4e3c74fb9bebfff36ae6b053c68917c804be4b52a86"
+      },
+      {
+        "excerpt": "3. Утратил силу с 1 января 2022 года. - Федеральный закон от 02.07.2021 N 360-ФЗ.",
+        "excerpt_sha256": "85a0ed61cc6b4846ff5c155c38b15ec051d95379a4a9a68fa42676eba37a43d2",
+        "level": "part",
+        "marker": "3",
+        "order_index": 3278,
+        "parent_id": "HIER-CONS-ARTICLE-0088",
+        "record_id": "HIER-CONS-PART-0726",
+        "source_path": "law-source/consultant/44-FZ-2026.xml",
+        "source_sha256": "69df0b9d9e2bcce6164fc4e3c74fb9bebfff36ae6b053c68917c804be4b52a86"
+      },
+      {
+        "excerpt": "5.2. Утратил силу с 1 июля 2018 года. - Федеральный закон от 31.12.2017 N 504-ФЗ.",
+        "excerpt_sha256": "f008a509771e51417cf5180fa623438ada5187063d05180de277851f2af70bd6",
+        "level": "part",
+        "marker": "5.2",
+        "order_index": 3429,
+        "parent_id": "HIER-CONS-ARTICLE-0092",
+        "record_id": "HIER-CONS-PART-0744",
+        "source_path": "law-source/consultant/44-FZ-2026.xml",
+        "source_sha256": "69df0b9d9e2bcce6164fc4e3c74fb9bebfff36ae6b053c68917c804be4b52a86"
+      },
+      {
+        "excerpt": "10. Утратил силу с 1 июля 2018 года. - Федеральный закон от 31.12.2017 N 504-ФЗ.",
+        "excerpt_sha256": "a020949d573d70e53f34235e495dfb0ced216081c477d0425f1869350a352858",
+        "level": "part",
+        "marker": "10",
+        "order_index": 3434,
+        "parent_id": "HIER-CONS-ARTICLE-0092",
+        "record_id": "HIER-CONS-PART-0746",
+        "source_path": "law-source/consultant/44-FZ-2026.xml",
+        "source_sha256": "69df0b9d9e2bcce6164fc4e3c74fb9bebfff36ae6b053c68917c804be4b52a86"
+      },
+      {
+        "excerpt": "10.1. Утратил силу с 1 января 2022 года. - Федеральный закон от 02.07.2021 N 360-ФЗ.",
+        "excerpt_sha256": "efc4a246e4b170c2aabf5894e2079747e140c4b1f5e879978112ba7f75dbe8f6",
+        "level": "part",
+        "marker": "10.1",
+        "order_index": 3435,
+        "parent_id": "HIER-CONS-ARTICLE-0092",
+        "record_id": "HIER-CONS-PART-0747",
+        "source_path": "law-source/consultant/44-FZ-2026.xml",
+        "source_sha256": "69df0b9d9e2bcce6164fc4e3c74fb9bebfff36ae6b053c68917c804be4b52a86"
+      },
+      {
+        "excerpt": "26. Утратил силу с 1 января 2017 года. - Федеральный закон от 03.07.2016 N 321-ФЗ.",
+        "excerpt_sha256": "0fe9f64069a20311cf3667cf8bddd0611a0ee04943ffa82cbf892b9a02a772cb",
+        "level": "part",
+        "marker": "26",
+        "order_index": 3442,
+        "parent_id": "HIER-CONS-ARTICLE-0092",
+        "record_id": "HIER-CONS-PART-0750",
+        "source_path": "law-source/consultant/44-FZ-2026.xml",
+        "source_sha256": "69df0b9d9e2bcce6164fc4e3c74fb9bebfff36ae6b053c68917c804be4b52a86"
+      },
+      {
+        "excerpt": "33. Утратил силу. - Федеральный закон от 04.04.2020 N 107-ФЗ.",
+        "excerpt_sha256": "f06a1bcc927138da161d025ed6d6e7779765a10ef8a93b2a2a50e8180fb3cf5b",
+        "level": "part",
+        "marker": "33",
+        "order_index": 3448,
+        "parent_id": "HIER-CONS-ARTICLE-0092",
+        "record_id": "HIER-CONS-PART-0753",
+        "source_path": "law-source/consultant/44-FZ-2026.xml",
+        "source_sha256": "69df0b9d9e2bcce6164fc4e3c74fb9bebfff36ae6b053c68917c804be4b52a86"
+      },
+      {
+        "excerpt": "39. Утратил силу. - Федеральный закон от 04.04.2020 N 107-ФЗ.",
+        "excerpt_sha256": "4a68677593370be052b0d6f8b98d6ad5caa1809dfc4d454e6c32f26306698840",
+        "level": "part",
+        "marker": "39",
+        "order_index": 3453,
+        "parent_id": "HIER-CONS-ARTICLE-0092",
+        "record_id": "HIER-CONS-PART-0755",
+        "source_path": "law-source/consultant/44-FZ-2026.xml",
+        "source_sha256": "69df0b9d9e2bcce6164fc4e3c74fb9bebfff36ae6b053c68917c804be4b52a86"
+      },
+      {
+        "excerpt": "54. Утратил силу с 1 января 2022 года. - Федеральный закон от 02.07.2021 N 360-ФЗ.",
+        "excerpt_sha256": "346c82c7cd8c8db53a5d46dbef75a4243a493bdb636e2a3196a860be5023643d",
+        "level": "part",
+        "marker": "54",
+        "order_index": 3460,
+        "parent_id": "HIER-CONS-ARTICLE-0092",
+        "record_id": "HIER-CONS-PART-0758",
+        "source_path": "law-source/consultant/44-FZ-2026.xml",
+        "source_sha256": "69df0b9d9e2bcce6164fc4e3c74fb9bebfff36ae6b053c68917c804be4b52a86"
+      },
+      {
+        "excerpt": "55. Утратил силу. - Федеральный закон от 16.04.2022 N 104-ФЗ.",
+        "excerpt_sha256": "60d5cbaa6f6627397b4ecae01c0ed04295954e523160fd9b693d257318016f68",
+        "level": "part",
+        "marker": "55",
+        "order_index": 3461,
+        "parent_id": "HIER-CONS-ARTICLE-0092",
+        "record_id": "HIER-CONS-PART-0759",
+        "source_path": "law-source/consultant/44-FZ-2026.xml",
+        "source_sha256": "69df0b9d9e2bcce6164fc4e3c74fb9bebfff36ae6b053c68917c804be4b52a86"
+      },
+      {
+        "excerpt": "64. Утратил силу. - Федеральный закон от 16.04.2022 N 104-ФЗ.",
+        "excerpt_sha256": "d63fcb9d86a8fa861dcc3fe2b3ca255374418e6adbfaa15b74f2f7a510a3b324",
+        "level": "part",
+        "marker": "64",
+        "order_index": 3500,
+        "parent_id": "HIER-CONS-ARTICLE-0092",
+        "record_id": "HIER-CONS-PART-0770",
+        "source_path": "law-source/consultant/44-FZ-2026.xml",
+        "source_sha256": "69df0b9d9e2bcce6164fc4e3c74fb9bebfff36ae6b053c68917c804be4b52a86"
+      },
+      {
+        "excerpt": "65. Утратил силу. - Федеральный закон от 16.04.2022 N 104-ФЗ.",
+        "excerpt_sha256": "20c775dcea3d6a1d0c90411777622c8d424f38ba5bab1a8fa4cceb128ad067fc",
+        "level": "part",
+        "marker": "65",
+        "order_index": 3503,
+        "parent_id": "HIER-CONS-ARTICLE-0092",
+        "record_id": "HIER-CONS-PART-0772",
+        "source_path": "law-source/consultant/44-FZ-2026.xml",
+        "source_sha256": "69df0b9d9e2bcce6164fc4e3c74fb9bebfff36ae6b053c68917c804be4b52a86"
+      },
+      {
+        "excerpt": "68. Утратил силу с 1 января 2022 года. - Федеральный закон от 02.07.2021 N 360-ФЗ.",
+        "excerpt_sha256": "6c842a3b8e347c5bd93298e3b1d09bd482d71fcab652aa47a2159260580a38c4",
+        "level": "part",
+        "marker": "68",
+        "order_index": 3514,
+        "parent_id": "HIER-CONS-ARTICLE-0092",
+        "record_id": "HIER-CONS-PART-0778",
+        "source_path": "law-source/consultant/44-FZ-2026.xml",
+        "source_sha256": "69df0b9d9e2bcce6164fc4e3c74fb9bebfff36ae6b053c68917c804be4b52a86"
+      },
+      {
+        "excerpt": "74. До 31 декабря 2024 года настоящий Федеральный закон не применяется к отношениям, связанным с закупкой товаров, работ, услуг избирательными комиссиями, находящимися на территор…",
+        "excerpt_sha256": "53791c1ebfa29f9b30f7514b0d63a43f026b6fb305b70d8cef22a9328e70cb40",
+        "level": "part",
+        "marker": "74",
+        "order_index": 3525,
+        "parent_id": "HIER-CONS-ARTICLE-0092",
+        "record_id": "HIER-CONS-PART-0784",
+        "source_path": "law-source/consultant/44-FZ-2026.xml",
+        "source_sha256": "69df0b9d9e2bcce6164fc4e3c74fb9bebfff36ae6b053c68917c804be4b52a86"
+      },
+      {
+        "excerpt": "4. Утратил силу. - Федеральный закон от 31.12.2014 N 498-ФЗ.",
+        "excerpt_sha256": "a8be4bef5e2747e8013de01595eb7905f642af8d63c170cf780f32d991d90f40",
+        "level": "part",
+        "marker": "4",
+        "order_index": 3582,
+        "parent_id": "HIER-CONS-ARTICLE-0094",
+        "record_id": "HIER-CONS-PART-0793",
+        "source_path": "law-source/consultant/44-FZ-2026.xml",
+        "source_sha256": "69df0b9d9e2bcce6164fc4e3c74fb9bebfff36ae6b053c68917c804be4b52a86"
+      }
+    ],
+    "last_by_level": {
+      "article": {
+        "excerpt": "Статья 114. Порядок вступления в силу настоящего Федерального закона",
+        "excerpt_sha256": "de2f0e842f499444d6a1337996d596b3983cd128c8a6a02452d615e7f42ef631",
+        "level": "article",
+        "marker": "114",
+        "order_index": 3571,
+        "parent_id": "HIER-CONS-CHAPTER-0008",
+        "record_id": "HIER-CONS-ARTICLE-0094",
+        "source_path": "law-source/consultant/44-FZ-2026.xml",
+        "source_sha256": "69df0b9d9e2bcce6164fc4e3c74fb9bebfff36ae6b053c68917c804be4b52a86"
+      },
+      "chapter": {
+        "excerpt": "Глава 8. ЗАКЛЮЧИТЕЛЬНЫЕ ПОЛОЖЕНИЯ",
+        "excerpt_sha256": "48f9df0efb6d9a96fb0371f06b81ebcac78a519c22afc42a5e0797f33be0eb93",
+        "level": "chapter",
+        "marker": "8",
+        "order_index": 3422,
+        "parent_id": "HIER-CONS-DOCUMENT",
+        "record_id": "HIER-CONS-CHAPTER-0008",
+        "source_path": "law-source/consultant/44-FZ-2026.xml",
+        "source_sha256": "69df0b9d9e2bcce6164fc4e3c74fb9bebfff36ae6b053c68917c804be4b52a86"
+      },
+      "clause": {
+        "excerpt": "31) статью 7 Федерального закона от 30 декабря 2012 года N 318-ФЗ \"О внесении изменений в Градостроительный кодекс Российской Федерации и отдельные законодательные акты Российской…",
+        "excerpt_sha256": "9e64ceeb2440a433face7b11bdb1b677d545e077a7eb88a973a5c13c70d7ee65",
+        "level": "clause",
+        "marker": "31",
+        "order_index": 3569,
+        "parent_id": "HIER-CONS-ARTICLE-0093",
+        "record_id": "HIER-CONS-CLAUSE-0997",
+        "source_path": "law-source/consultant/44-FZ-2026.xml",
+        "source_sha256": "69df0b9d9e2bcce6164fc4e3c74fb9bebfff36ae6b053c68917c804be4b52a86"
+      },
+      "document": {
+        "excerpt": "Федеральный закон от 05.04.2013 N 44-ФЗ(ред. от 28.12.2025)\"О контрактной системе в сфере закупок товаров, работ, услуг для обеспечения государственных и муниципальных нужд\"(с изм…",
+        "excerpt_sha256": "71c705d2e4b443fb7cf435c957de07786058ba57ec79a252324736e377467029",
+        "level": "document",
+        "marker": null,
+        "order_index": 2,
+        "parent_id": null,
+        "record_id": "HIER-CONS-DOCUMENT",
+        "source_path": "law-source/consultant/44-FZ-2026.xml",
+        "source_sha256": "69df0b9d9e2bcce6164fc4e3c74fb9bebfff36ae6b053c68917c804be4b52a86"
+      },
+      "part": {
+        "excerpt": "4. Утратил силу. - Федеральный закон от 31.12.2014 N 498-ФЗ.",
+        "excerpt_sha256": "a8be4bef5e2747e8013de01595eb7905f642af8d63c170cf780f32d991d90f40",
+        "level": "part",
+        "marker": "4",
+        "order_index": 3582,
+        "parent_id": "HIER-CONS-ARTICLE-0094",
+        "record_id": "HIER-CONS-PART-0793",
+        "source_path": "law-source/consultant/44-FZ-2026.xml",
+        "source_sha256": "69df0b9d9e2bcce6164fc4e3c74fb9bebfff36ae6b053c68917c804be4b52a86"
+      },
+      "section": {
+        "excerpt": "§ 7. Исполнение, изменение, расторжение контракта",
+        "excerpt_sha256": "5696dcfe8a2c3f01320f56ca3cc95767ff011143f03dfbbe414c35b29fe527e1",
+        "level": "section",
+        "marker": "7",
+        "order_index": 2432,
+        "parent_id": "HIER-CONS-CHAPTER-0003",
+        "record_id": "HIER-CONS-SECTION-0009",
+        "source_path": "law-source/consultant/44-FZ-2026.xml",
+        "source_sha256": "69df0b9d9e2bcce6164fc4e3c74fb9bebfff36ae6b053c68917c804be4b52a86"
+      },
+      "subclause": {
+        "excerpt": "в) при выполнении работ по строительству, реконструкции и (или) капитальному ремонту объекта капитального строительства в целях увеличения сроков исполнения контракта в случаях, п…",
+        "excerpt_sha256": "93e3f1c8ca4fe398b467694fbce8b53c4aea80df2be035e0df7012446172e998",
+        "level": "subclause",
+        "marker": "в",
+        "order_index": 3490,
+        "parent_id": "HIER-CONS-CLAUSE-0961",
+        "record_id": "HIER-CONS-SUBCLAUSE-0283",
+        "source_path": "law-source/consultant/44-FZ-2026.xml",
+        "source_sha256": "69df0b9d9e2bcce6164fc4e3c74fb9bebfff36ae6b053c68917c804be4b52a86"
+      }
+    },
+    "missing_parent_count": 0,
+    "missing_parent_samples": [],
+    "non_monotonic_order_count": 0,
+    "non_monotonic_order_samples": [],
+    "record_count": 2185,
+    "source_hashes": [
+      "69df0b9d9e2bcce6164fc4e3c74fb9bebfff36ae6b053c68917c804be4b52a86"
+    ]
+  },
+  "overall_status": "needs-review",
+  "phase": "consultant_hierarchy_prior_art_comparison",
+  "sources": [
+    {
+      "exists": true,
+      "path": "prd/parser/consultant_hierarchy_records.jsonl",
+      "sha256": "b8c5f810c96da71a3f6517bb88aa93133d07949e0f538f25ecf9b0591e92e708",
+      "size_bytes": 4175013
+    },
+    {
+      "exists": true,
+      "path": "prd/parser/consultant_prior_art_expectations.json",
+      "sha256": "31955d8bc6d7ae30d769aeb09cebbcf51a4d0811d6839b34f014c0a0fb1e82b0",
+      "size_bytes": 13537
+    }
+  ]
+}
