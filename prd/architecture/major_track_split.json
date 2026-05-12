@@ -1,0 +1,435 @@
+{
+  "non_authoritative": true,
+  "non_claims": [
+    "This track split is planning evidence only.",
+    "Track assignment does not retire proof gates.",
+    "Track assignment does not prove product readiness, legal correctness, parser completeness, retrieval quality, generated-Cypher safety, FalkorDB production behavior, or LLM authority."
+  ],
+  "record_kind": "derived-major-track-split",
+  "schema_version": "legalgraph-architecture-major-track-split/v1",
+  "source_matrix": "prd/architecture/remediation_matrix.json",
+  "summary": {
+    "assigned_gate_count": 7,
+    "source_gate_count": 7,
+    "track_count": 6
+  },
+  "tracks": [
+    {
+      "acceptance_criteria": [
+        "Unsafe write/mutation Cypher candidates are rejected deterministically.",
+        "Queries must be schema-grounded and evidence-returning before execution is allowed.",
+        "Negative tests cover prompt-injection and non-evidence answer paths."
+      ],
+      "gate_dispositions": [
+        "proof-now"
+      ],
+      "gate_ids": [
+        "GATE-GENERATED-CYPHER-SAFETY"
+      ],
+      "non_claims": [
+        "Does not prove provider generation quality.",
+        "Does not authorize executing raw generated Cypher.",
+        "Does not validate product Legal KnowQL readiness."
+      ],
+      "proof_artifact": "Validator suite report covering read-only enforcement, schema grounding, evidence-returning queries, injection rejection, and unsafe write rejection.",
+      "r04_links": [
+        "R017",
+        "R04-REC-003"
+      ],
+      "recommended_next_unit": "Future generated-Cypher safety proof slice before R017 validation.",
+      "required_inputs": [
+        "prd/06_m002_cypher_safety_contract.md",
+        "R017 active requirement context",
+        "Current architecture generated-Cypher proof gate"
+      ],
+      "risk_levels": [
+        "critical"
+      ],
+      "scope_boundary": "Design and verify deterministic generated-Cypher validator behavior before any product Legal KnowQL readiness claim.",
+      "source_gates": [
+        {
+          "disposition": "proof-now",
+          "gate_id": "GATE-GENERATED-CYPHER-SAFETY",
+          "layer": "generated-cypher",
+          "next_proof_artifact": "Generated-Cypher validator suite covering read-only enforcement, schema grounding, evidence-returning queries, injection rejection, and unsafe write rejection.",
+          "non_claims": [
+            "Does not prove provider generation quality.",
+            "Does not authorize executing raw generated Cypher.",
+            "Does not validate product Legal KnowQL readiness."
+          ],
+          "owner_scope": "future-generated-cypher-safety-proof",
+          "r04_links": [
+            "R04-REC-003",
+            "R017"
+          ],
+          "rationale": "Generated-Cypher safety is the highest-risk explicit gate and should be retired by deterministic validator tests before any Legal KnowQL product-readiness claim.",
+          "risk_level": "critical",
+          "source_anchors": [
+            {
+              "kind": "prd",
+              "path": "prd/06_m002_cypher_safety_contract.md",
+              "selector": "Generated-Cypher Safety Contract"
+            }
+          ],
+          "target_track": "M007/S03 generated-cypher track",
+          "title": "Generated-Cypher safety and validation gate"
+        }
+      ],
+      "title": "Generated-Cypher validator safety proof",
+      "track_id": "TRACK-GENERATED-CYPHER-SAFETY",
+      "track_status": "planned-proof"
+    },
+    {
+      "acceptance_criteria": [
+        "Golden tests consume tracked parser artifacts rather than rescanning undocumented sources.",
+        "Expected evidence/citation rows are asserted for bounded fixtures.",
+        "No-answer and candidate-only relation behavior is explicitly tested."
+      ],
+      "gate_dispositions": [
+        "proof-now"
+      ],
+      "gate_ids": [
+        "GATE-G008"
+      ],
+      "non_claims": [
+        "Does not prove parser completeness.",
+        "Does not prove citation-safe retrieval.",
+        "Does not prove legal-answer correctness."
+      ],
+      "proof_artifact": "Golden-test suite over tracked parser records with expected no-answer and non-claim cases.",
+      "r04_links": [
+        "R04-REC-005"
+      ],
+      "recommended_next_unit": "Future parser/retrieval proof slice using M006 artifacts.",
+      "required_inputs": [
+        "prd/parser/parser_record_contract.md",
+        "prd/parser/odt_smoke_records.md",
+        "prd/parser/consultant_relation_candidates.md",
+        "prd/parser/parser_staging_graph.md"
+      ],
+      "risk_levels": [
+        "high"
+      ],
+      "scope_boundary": "Turn bounded M006 parser artifacts into executable golden tests without claiming parser completeness or retrieval quality.",
+      "source_gates": [
+        {
+          "disposition": "proof-now",
+          "gate_id": "GATE-G008",
+          "layer": "parser-ingestion",
+          "next_proof_artifact": "Parser/retrieval golden-test suite using tracked parser records and explicit no-answer/non-claim cases.",
+          "non_claims": [
+            "Does not prove parser completeness.",
+            "Does not prove citation-safe retrieval.",
+            "Does not prove legal-answer correctness."
+          ],
+          "owner_scope": "future-parser-retrieval-proof",
+          "r04_links": [
+            "R04-REC-005"
+          ],
+          "rationale": "Parser and retrieval proof already has bounded M006 artifacts; the next useful step is executable golden tests over real parser outputs and expected retrieval/evidence behavior.",
+          "risk_level": "high",
+          "source_anchors": [
+            {
+              "kind": "prd",
+              "path": "prd/04_review_findings.md",
+              "selector": "G-008"
+            }
+          ],
+          "target_track": "M007/S03 parser-retrieval track",
+          "title": "Executable parser and retrieval golden tests"
+        }
+      ],
+      "title": "Parser/retrieval golden-test proof",
+      "track_id": "TRACK-PARSER-RETRIEVAL-GOLDEN",
+      "track_status": "planned-proof"
+    },
+    {
+      "acceptance_criteria": [
+        "Policy distinguishes same hash replay, changed hash same edition, new edition date, and metadata conflict.",
+        "Tests preserve prior source/edition records rather than mutating historical evidence.",
+        "Diagnostics expose temporal conflict state without LLM interpretation."
+      ],
+      "gate_dispositions": [
+        "product-decision"
+      ],
+      "gate_ids": [
+        "GATE-G005"
+      ],
+      "non_claims": [
+        "Does not specify temporal storage implementation.",
+        "Does not validate temporal conflict resolution yet.",
+        "Does not prove import runtime behavior."
+      ],
+      "proof_artifact": "Temporal policy decision plus fixture tests for idempotent replay, source revision, new edition, and metadata conflict cases.",
+      "r04_links": [
+        "R04-REC-006"
+      ],
+      "recommended_next_unit": "Future temporal semantics decision/proof slice.",
+      "required_inputs": [
+        "prd/03_PRD.md temporal/idempotent import policy",
+        "DATA-TEMPORAL-PROPERTY-BUNDLE",
+        "REQ-TEMPORAL-STATUS-SEMANTICS"
+      ],
+      "risk_levels": [
+        "high"
+      ],
+      "scope_boundary": "Resolve same-date/source-revision/new-edition semantics before runtime import behavior is treated as valid.",
+      "source_gates": [
+        {
+          "disposition": "product-decision",
+          "gate_id": "GATE-G005",
+          "layer": "temporal-model",
+          "next_proof_artifact": "Temporal conflict policy plus fixture-backed same-date/new-edition/source-revision tests.",
+          "non_claims": [
+            "Does not specify temporal storage implementation.",
+            "Does not validate temporal conflict resolution.",
+            "Does not prove import runtime behavior."
+          ],
+          "owner_scope": "future-temporal-proof",
+          "r04_links": [
+            "R04-REC-006"
+          ],
+          "rationale": "Same-date temporal conflict behavior is a product semantics decision before runtime fixture proof can be meaningful.",
+          "risk_level": "high",
+          "source_anchors": [
+            {
+              "kind": "prd",
+              "path": "prd/04_review_findings.md",
+              "selector": "G-005"
+            }
+          ],
+          "target_track": "M007/S03 temporal-model track",
+          "title": "Temporal same-date multi-edition conflict policy"
+        }
+      ],
+      "title": "Temporal conflict semantics decision and tests",
+      "track_id": "TRACK-TEMPORAL-SEMANTICS",
+      "track_status": "needs-product-decision"
+    },
+    {
+      "acceptance_criteria": [
+        "Role/capability matrix is explicit before API implementation claims.",
+        "Denied operations have deterministic diagnostics and audit expectations.",
+        "Logs and metrics boundaries exclude secrets and unauthorized raw legal text exposure."
+      ],
+      "gate_dispositions": [
+        "product-decision"
+      ],
+      "gate_ids": [
+        "GATE-LEGAL-NEXUS-ACCESS-CONTROL"
+      ],
+      "non_claims": [
+        "Does not assert current product is insecure.",
+        "Does not prove access-control enforcement.",
+        "Does not define a production API surface."
+      ],
+      "proof_artifact": "Access-control decision record and negative-test plan for import operators, query users, reviewers, and administrators.",
+      "r04_links": [
+        "R04-REC-003"
+      ],
+      "recommended_next_unit": "Future Legal Nexus API/access-control design slice.",
+      "required_inputs": [
+        "prd/03_PRD.md Legal Nexus Module",
+        "COMP-LEGAL-NEXUS-ORCHESTRATOR",
+        "GATE-LEGAL-NEXUS-ACCESS-CONTROL"
+      ],
+      "risk_levels": [
+        "high"
+      ],
+      "scope_boundary": "Define caller roles, API boundary, authorization policy, and denial diagnostics before non-local Legal Nexus/API promotion.",
+      "source_gates": [
+        {
+          "disposition": "product-decision",
+          "gate_id": "GATE-LEGAL-NEXUS-ACCESS-CONTROL",
+          "layer": "security-safety",
+          "next_proof_artifact": "Legal Nexus access-control decision and negative-test plan defining caller roles, authorization boundaries, audit logging, and denied-operation diagnostics.",
+          "non_claims": [
+            "Does not assert current product is insecure.",
+            "Does not prove access-control enforcement.",
+            "Does not define a production API surface."
+          ],
+          "owner_scope": "future-api-security-proof",
+          "r04_links": [
+            "R04-REC-003"
+          ],
+          "rationale": "Access-control proof needs a product API/caller boundary decision before meaningful authz tests can be specified.",
+          "risk_level": "high",
+          "source_anchors": [
+            {
+              "kind": "prd",
+              "path": "prd/03_PRD.md",
+              "selector": "Legal Nexus Module"
+            }
+          ],
+          "target_track": "M007/S03 api-product/security track",
+          "title": "Legal Nexus access-control proof gate"
+        }
+      ],
+      "title": "Legal Nexus access-control boundary",
+      "track_id": "TRACK-LEGAL-NEXUS-ACCESS-CONTROL",
+      "track_status": "needs-product-decision"
+    },
+    {
+      "acceptance_criteria": [
+        "Only local/open-weight embedding candidates are considered.",
+        "Model provenance and vector dimensions are recorded.",
+        "Retrieval metrics are reported as experiment results, not product readiness."
+      ],
+      "gate_dispositions": [
+        "runtime-experiment"
+      ],
+      "gate_ids": [
+        "GATE-EMBEDDING-SUPPLY-CHAIN",
+        "GATE-G011"
+      ],
+      "non_claims": [
+        "Does not promote any embedding model to product default.",
+        "Does not allow managed embedding API fallback.",
+        "Does not prove product retrieval quality or FalkorDB vector scale."
+      ],
+      "proof_artifact": "Local embedding/retrieval experiment report with model provenance, revision/checksum, resource envelope, dataset skeleton, metrics, and leakage checks.",
+      "r04_links": [
+        "R04-REC-003",
+        "R04-REC-004",
+        "R04-REC-014"
+      ],
+      "recommended_next_unit": "Future retrieval/embedding experiment slice.",
+      "required_inputs": [
+        "prd/03_PRD.md FR-28b embedding pipeline",
+        "GATE-EMBEDDING-SUPPLY-CHAIN",
+        "GATE-G011",
+        "Human decision excluding managed GigaChat/GigaChat API embedding paths"
+      ],
+      "risk_levels": [
+        "high"
+      ],
+      "scope_boundary": "Evaluate local/open-weight embedding and retrieval quality candidates without managed embedding fallback or product retrieval claims.",
+      "source_gates": [
+        {
+          "disposition": "runtime-experiment",
+          "gate_id": "GATE-EMBEDDING-SUPPLY-CHAIN",
+          "layer": "security-safety",
+          "next_proof_artifact": "Embedding supply-chain experiment report with model revision/checksum, local runtime envelope, vector dimensions, and no-secret/no-raw-vector leakage checks.",
+          "non_claims": [
+            "Does not promote any embedding model to product default.",
+            "Does not allow managed embedding API fallback.",
+            "Does not prove retrieval quality."
+          ],
+          "owner_scope": "future-embedding-supply-chain-proof",
+          "r04_links": [
+            "R04-REC-003"
+          ],
+          "rationale": "Embedding candidates need local model provenance, integrity, resource, and leakage checks before promotion.",
+          "risk_level": "high",
+          "source_anchors": [
+            {
+              "kind": "prd",
+              "path": "prd/03_PRD.md",
+              "selector": "FR-28b"
+            },
+            {
+              "kind": "gsd-summary",
+              "path": ".gsd/PROJECT.md",
+              "selector": "embedding"
+            }
+          ],
+          "target_track": "M007/S03 retrieval-embedding track",
+          "title": "Embedding model supply-chain integrity gate"
+        },
+        {
+          "disposition": "runtime-experiment",
+          "gate_id": "GATE-G011",
+          "layer": "retrieval-embedding",
+          "next_proof_artifact": "Retrieval quality and migration experiment report with dataset skeleton, metrics, fallback boundaries, and explicit non-readiness result states.",
+          "non_claims": [
+            "Does not prove product retrieval quality.",
+            "Does not commit to a vector store topology.",
+            "Does not validate FalkorDB production scale."
+          ],
+          "owner_scope": "future-retrieval-quality-proof",
+          "r04_links": [
+            "R04-REC-004",
+            "R04-REC-014"
+          ],
+          "rationale": "Retrieval quality and migration strategy need measured runtime/evaluation evidence rather than registry-only assertions.",
+          "risk_level": "high",
+          "source_anchors": [
+            {
+              "kind": "prd",
+              "path": "prd/04_review_findings.md",
+              "selector": "G-011"
+            }
+          ],
+          "target_track": "M007/S03 retrieval-embedding track",
+          "title": "Local embedding quality proof"
+        }
+      ],
+      "title": "Retrieval quality and local embedding experiment",
+      "track_id": "TRACK-RETRIEVAL-EMBEDDING-EXPERIMENT",
+      "track_status": "needs-runtime-experiment"
+    },
+    {
+      "acceptance_criteria": [
+        "Smoke proof uses bounded fixture data and reports exact graph load shape.",
+        "Failure diagnostics include phase, last error, and rollback/remediation guidance.",
+        "The result remains non-production unless scale and operational checks are separately proven."
+      ],
+      "gate_dispositions": [
+        "runtime-experiment"
+      ],
+      "gate_ids": [
+        "GATE-G015"
+      ],
+      "non_claims": [
+        "Does not prove FalkorDB production loading behavior.",
+        "Does not prove production scale.",
+        "Does not prove product ETL readiness."
+      ],
+      "proof_artifact": "Runtime migration smoke report with import package, graph load shape, rollback/failure diagnostics, and explicit non-production boundary.",
+      "r04_links": [
+        "R04-REC-004"
+      ],
+      "recommended_next_unit": "Future runtime migration smoke slice.",
+      "required_inputs": [
+        "Current parser staging graph artifacts",
+        "Future FalkorDB load-shape recommendation",
+        "GATE-G015"
+      ],
+      "risk_levels": [
+        "medium"
+      ],
+      "scope_boundary": "Prove a bounded import/load/migration smoke path with diagnostics before runtime migration readiness is claimed.",
+      "source_gates": [
+        {
+          "disposition": "runtime-experiment",
+          "gate_id": "GATE-G015",
+          "layer": "graph-runtime",
+          "next_proof_artifact": "Runtime migration smoke proof with import package, graph load shape, rollback/failure diagnostics, and non-production boundary.",
+          "non_claims": [
+            "Does not prove FalkorDB production loading behavior.",
+            "Does not prove production scale.",
+            "Does not prove product ETL readiness."
+          ],
+          "owner_scope": "future-runtime-migration-proof",
+          "r04_links": [
+            "R04-REC-004"
+          ],
+          "rationale": "Runtime migration/readiness claims require executable import/load/migration smoke evidence, not registry coverage alone.",
+          "risk_level": "medium",
+          "source_anchors": [
+            {
+              "kind": "prd",
+              "path": "prd/04_review_findings.md",
+              "selector": "G-015"
+            }
+          ],
+          "target_track": "M007/S03 graph-runtime track",
+          "title": "FalkorDBLite to Docker migration runbook"
+        }
+      ],
+      "title": "Runtime migration/import smoke proof",
+      "track_id": "TRACK-RUNTIME-MIGRATION-SMOKE",
+      "track_status": "needs-runtime-experiment"
+    }
+  ]
+}
