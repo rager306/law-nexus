@@ -120,6 +120,16 @@ S02 commands:
 
 Current canonical S02 golden-case result: five bounded cases, one for each allowed class (`evidence-present`, `no-answer`, `candidate-only`, `unresolved-reference`, and `non-authoritative`). These artifacts are evaluator inputs only. A passing golden-case check does not claim parser completeness, retrieval quality, legal-answer correctness, citation-safe retrieval readiness, product ETL readiness, FalkorDB loading/runtime readiness, Consultant WordML legal authority, relation correctness, or product graph truth.
 
+## Parser golden-case evaluator
+
+S03 adds an executable evaluator for the tracked golden cases. Use `uv run python scripts/build-parser-golden-cases.py --check` first to verify that `prd/parser/golden_cases.json` is fresh against the tracked parser artifacts, then use `uv run python scripts/evaluate-parser-golden-cases.py --check` to evaluate the bounded case outcomes against those artifacts.
+
+The evaluator reads only tracked local inputs under `prd/parser/`: `golden_cases.json`, `odt_document_records.jsonl`, `odt_source_block_records.jsonl`, `consultant_relation_candidates.jsonl`, and `parser_staging_graph.json`. It does not rescan raw legal sources, call FalkorDB, invoke an LLM, use embeddings, or require network access.
+
+`evaluate-parser-golden-cases.py --check` prints compact JSON diagnostics to stdout for agent/operator inspection. The report includes `status`, `case_count`, `evaluated_case_count`, `severity_counts`, `blocked_claims`, `non_authoritative`, and path-qualified `diagnostics[]` entries with `case_id`, `case_class`, `rule`, `artifact_path`, `expected_state`, `actual_state`, and `message` fields. Diagnostics use record ids, paths, hashes, statuses, and bounded excerpts already present in tracked artifacts; they must not print raw full legal text.
+
+Current canonical S03 evaluator scope: it verifies the required evidence-present, no-answer, candidate-only, unresolved-reference, and non-authoritative outcomes for the current tracked M006/S02 parser artifacts. A passing evaluator run does not claim product retrieval readiness, citation-safe answer readiness, parser completeness, relation correctness, FalkorDB runtime readiness, legal-answer correctness, Consultant WordML legal authority, or product graph truth.
+
 ## Consumer boundary for S03/S04/S05
 
 - S03 ODT parsing should emit `DocumentRecord` and `SourceBlockRecord` JSONL that validates with `uv run python scripts/validate-parser-records.py --kind <kind> <file>` and preserves `non_authoritative: true`.
