@@ -10,6 +10,7 @@ This directory contains the canonical source-fixture inventory for M006 parser a
 - Parser record schema/example/report generator: `uv run python scripts/validate-parser-records.py --write`
 - Parser record contract check: `uv run python scripts/validate-parser-records.py --check`
 - Golden-test contract term check: `rg -n "evidence-present|no-answer|candidate-only|unresolved-reference|non-authoritative|parser completeness|retrieval quality|legal-answer correctness" prd/parser/golden_test_contract.md`
+- Golden-case generator/check command: `uv run python scripts/build-parser-golden-cases.py --check`
 - Full S01 fixture verification: `uv run python scripts/inventory-parser-fixtures.py --check && uv run pytest -q tests/test_parser_fixture_inventory.py`
 - Full S02 parser-record verification: `uv run python scripts/validate-parser-records.py --check && test -s prd/parser/schemas/parser_record.schema.json && test -s prd/parser/parser_record_contract.md`
 - ODT smoke artifact generator/check command: `uv run python scripts/build-odt-smoke-records.py --check`
@@ -101,6 +102,23 @@ S05 advances R031 only for deterministic NetworkX `MultiDiGraph` staging invaria
 ## Parser/retrieval golden-test contract
 
 M008 adds `prd/parser/golden_test_contract.md` as the static contract for future parser/retrieval golden tests over tracked M006 parser artifacts and R032. The contract defines the allowed case classes (`evidence-present`, `no-answer`, `candidate-only`, `unresolved-reference`, and `non-authoritative`), required evaluator result/diagnostic fields, source-anchor rules, allowed non-claims, and explicit out-of-scope claims. It is implementation-ready for later executable tests, but it does not itself prove parser completeness, retrieval quality, legal-answer correctness, citation-safe retrieval, product ETL readiness, or FalkorDB loading/runtime readiness.
+
+## Parser golden-case artifacts
+
+S02 adds deterministic generated golden-case artifacts for future S03 evaluator work. The generator consumes only tracked M006 parser artifacts under `prd/parser/` and the static golden-test contract; future agents should use these tracked outputs instead of rescanning `law-source/`, reparsing raw ODT/XML fixtures, or globbing source directories to assemble golden tests.
+
+| Path | Contract |
+|---|---|
+| `prd/parser/golden_cases.json` | Machine-readable S02 report with `status`, `artifact_freshness`, `case_count`, `case_class_counts`, `source_artifacts`, `stale_paths`, source anchors, blocked claims, and S01-shaped diagnostics. |
+| `prd/parser/golden_cases.md` | Human-readable S02 report exposing case inventory, source anchors, source artifact hashes, diagnostics, and explicit non-claim boundaries. |
+
+S02 commands:
+
+- Generate/update artifacts: `uv run python scripts/build-parser-golden-cases.py --write`
+- Check tracked artifact freshness: `uv run python scripts/build-parser-golden-cases.py --check`
+- Full bounded parser/golden verification: `uv run python scripts/validate-parser-records.py --check && uv run python scripts/build-odt-smoke-records.py --check && uv run python scripts/build-consultant-relation-candidates.py --check && uv run python scripts/build-parser-staging-graph.py --check && uv run python scripts/build-parser-golden-cases.py --check && uv run pytest -q tests/test_parser_golden_contract.py tests/test_parser_golden_cases.py && uv run ruff check scripts/build-parser-golden-cases.py tests/test_parser_golden_cases.py`
+
+Current canonical S02 golden-case result: five bounded cases, one for each allowed class (`evidence-present`, `no-answer`, `candidate-only`, `unresolved-reference`, and `non-authoritative`). These artifacts are evaluator inputs only. A passing golden-case check does not claim parser completeness, retrieval quality, legal-answer correctness, citation-safe retrieval readiness, product ETL readiness, FalkorDB loading/runtime readiness, Consultant WordML legal authority, relation correctness, or product graph truth.
 
 ## Consumer boundary for S03/S04/S05
 
