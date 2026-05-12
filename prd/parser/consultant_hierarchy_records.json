@@ -15,6 +15,8 @@
     "section": 9,
     "subclause": 283
   },
+  "fatal_error_count": 0,
+  "fatal_errors": [],
   "malformed_xml": null,
   "namespace_detected": "http://schemas.microsoft.com/office/word/2003/wordml",
   "namespace_observations": {
@@ -35,6 +37,8 @@
     "path": "law-source/consultant/44-FZ-2026.xml",
     "sha256": "69df0b9d9e2bcce6164fc4e3c74fb9bebfff36ae6b053c68917c804be4b52a86"
   },
+  "structural_error_count": 0,
+  "structural_errors": [],
   "style_observations": {
     "0": 3268,
     "2": 131,

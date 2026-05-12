@@ -26,6 +26,8 @@ This artifact is deterministic parser evidence only. It is non-authoritative and
 
 - Malformed XML: `None`
 - Validation errors: `0`
+- Structural errors: `0`
+- Fatal errors: `0`
 - Skipped marker counts: `{}`
 - Style observations: `{"0": 3268, "2": 131, "5": 3, "<none>": 199}`
 

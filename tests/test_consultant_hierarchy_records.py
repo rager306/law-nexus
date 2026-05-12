@@ -115,8 +115,105 @@ def test_marker_entity_decoding_and_boundary_resets_on_inline_fixture():
     by_title = {payload["title"]: payload for payload in payloads}
 
     assert diagnostics["validation_error_count"] == 0
+    assert diagnostics["structural_error_count"] == 0
     assert by_title["§ 1. Планирование"]["level"] == "section"
     assert by_title["§ 1. Планирование"]["parent_id"] == by_title["Глава 1. ОБЩИЕ ПОЛОЖЕНИЯ"]["id"]
     assert by_title["Статья 1. Предмет"]["parent_id"] == by_title["§ 1. Планирование"]["id"]
     assert by_title["Статья 2. Новая статья"]["parent_id"] == by_title["§ 1. Планирование"]["id"]
     assert by_title["1) пункт без новой части"]["parent_id"] == by_title["Статья 2. Новая статья"]["id"]
+
+
+def write_wordml(path: Path, paragraphs: list[str]) -> None:
+    body = "".join(f"<w:p><w:r><w:t>{text}</w:t></w:r></w:p>" for text in paragraphs)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(
+        f'<?xml version="1.0" encoding="UTF-8"?><w:wordDocument xmlns:w="http://schemas.microsoft.com/office/word/2003/wordml"><w:body>{body}</w:body></w:wordDocument>',
+        encoding="utf-8",
+    )
+
+
+def configure_temp_builder(module, monkeypatch, tmp_path: Path, source_texts: list[str] | None, inventory_sha256: str | None = None):
+    monkeypatch.setattr(module, "ROOT", tmp_path)
+    monkeypatch.setattr(module, "SOURCE_PATH", Path("fixture.xml"))
+    monkeypatch.setattr(module, "INVENTORY_PATH", Path("inventory.json"))
+    monkeypatch.setattr(module, "JSONL_PATH", Path("out.jsonl"))
+    monkeypatch.setattr(module, "JSON_PATH", Path("out.json"))
+    monkeypatch.setattr(module, "REPORT_PATH", Path("out.md"))
+    source_path = tmp_path / "fixture.xml"
+    if source_texts is not None:
+        write_wordml(source_path, source_texts)
+    sha256 = hashlib.sha256(source_path.read_bytes()).hexdigest() if source_path.exists() else "0" * 64
+    inventory = {"fixtures": [{"path": "fixture.xml", "sha256": inventory_sha256 or sha256}]}
+    (tmp_path / "inventory.json").write_text(json.dumps(inventory), encoding="utf-8")
+    return source_path
+
+
+def test_cli_fail_closed_for_missing_source_fixture(monkeypatch, tmp_path, capsys):
+    module = load_builder_module()
+    configure_temp_builder(module, monkeypatch, tmp_path, source_texts=None)
+
+    assert module.main(["--check"]) == 1
+    payload = json.loads(capsys.readouterr().out)
+    assert payload["fatal_error_count"] == 1
+    assert payload["fatal_errors"][0]["kind"] == "missing_source"
+    assert payload["source"]["inventory_hash_matches"] is False
+    assert payload["non_authoritative"] is True
+
+
+def test_cli_fail_closed_for_sha_mismatch(monkeypatch, tmp_path, capsys):
+    module = load_builder_module()
+    configure_temp_builder(module, monkeypatch, tmp_path, ["Федеральный закон", "Статья 1. Предмет"], inventory_sha256="b" * 64)
+
+    assert module.main(["--check"]) == 1
+    payload = json.loads(capsys.readouterr().out)
+    assert payload["source"]["inventory_hash_matches"] is False
+    assert payload["fatal_error_count"] == 0
+    assert payload["malformed_xml"] is None
+
+
+def test_cli_fail_closed_for_malformed_xml(monkeypatch, tmp_path, capsys):
+    module = load_builder_module()
+    monkeypatch.setattr(module, "ROOT", tmp_path)
+    monkeypatch.setattr(module, "SOURCE_PATH", Path("fixture.xml"))
+    monkeypatch.setattr(module, "INVENTORY_PATH", Path("inventory.json"))
+    monkeypatch.setattr(module, "JSONL_PATH", Path("out.jsonl"))
+    monkeypatch.setattr(module, "JSON_PATH", Path("out.json"))
+    monkeypatch.setattr(module, "REPORT_PATH", Path("out.md"))
+    source_path = tmp_path / "fixture.xml"
+    source_path.write_text("<w:wordDocument><w:body><w:p>", encoding="utf-8")
+    sha256 = hashlib.sha256(source_path.read_bytes()).hexdigest()
+    (tmp_path / "inventory.json").write_text(json.dumps({"fixtures": [{"path": "fixture.xml", "sha256": sha256}]}), encoding="utf-8")
+
+    assert module.main(["--check"]) == 1
+    payload = json.loads(capsys.readouterr().out)
+    assert payload["malformed_xml"] is not None
+    assert payload["emitted_counts_by_level"] == {}
+    assert payload["diagnostics_bounded"] is True
+
+
+def test_hierarchy_diagnostics_for_missing_article_heading_and_context_break():
+    module = load_builder_module()
+    paragraphs = [
+        module.Paragraph(index=1, text="Федеральный закон", style="5"),
+        module.Paragraph(index=2, text="Глава 1. ОБЩИЕ ПОЛОЖЕНИЯ", style="2"),
+        module.Paragraph(index=3, text="1. Часть без статьи", style="0"),
+        module.Paragraph(index=4, text="1) пункт без статьи", style="0"),
+    ]
+
+    records, diagnostics = module.hierarchy_records(paragraphs, "c" * 64)
+    assert [record["level"] for record in records] == ["document", "chapter"]
+    assert diagnostics["skipped_marker_counts"] == {"clause_outside_article": 1, "part_outside_article": 1}
+    assert diagnostics["structural_error_count"] == 3
+    assert diagnostics["structural_errors"][0]["kind"] == "missing_article_heading"
+    assert {error["kind"] for error in diagnostics["structural_errors"][1:]} == {"context_break"}
+
+
+def test_cli_fail_closed_for_missing_article_heading(monkeypatch, tmp_path, capsys):
+    module = load_builder_module()
+    configure_temp_builder(module, monkeypatch, tmp_path, ["Федеральный закон", "Глава 1. Общие", "1. Часть без статьи"])
+
+    assert module.main(["--check"]) == 1
+    payload = json.loads(capsys.readouterr().out)
+    assert payload["structural_error_count"] >= 1
+    assert payload["structural_errors"][0]["kind"] == "missing_article_heading"
+    assert payload["validation_error_count"] == 0

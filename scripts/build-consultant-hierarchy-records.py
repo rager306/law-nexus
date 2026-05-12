@@ -196,14 +196,30 @@ def stream_wordml_paragraphs(path: Path) -> tuple[list[Paragraph], dict[str, Any
     return paragraphs, diagnostics
 
 
-def load_inventory_fixture() -> dict[str, Any]:
+def compact_error(kind: str, message: str, **extra: Any) -> dict[str, Any]:
+    """Return a bounded deterministic diagnostic error."""
+
+    payload = {"kind": kind, "message": truncate(str(message), 240)}
+    payload.update(extra)
+    return payload
+
+
+def load_inventory_fixture() -> tuple[dict[str, Any] | None, list[dict[str, Any]]]:
     """Load the canonical inventory entry for the Consultant full-act fixture."""
 
-    payload = json.loads((ROOT / INVENTORY_PATH).read_text(encoding="utf-8"))
+    inventory_path = ROOT / INVENTORY_PATH
+    if not inventory_path.exists():
+        return None, [compact_error("missing_inventory", f"inventory file missing: {INVENTORY_PATH}", path=str(INVENTORY_PATH))]
+
+    try:
+        payload = json.loads(inventory_path.read_text(encoding="utf-8"))
+    except json.JSONDecodeError as exc:
+        return None, [compact_error("malformed_inventory_json", exc, path=str(INVENTORY_PATH))]
+
     for fixture in payload.get("fixtures", []):
         if fixture.get("path") == str(SOURCE_PATH):
-            return fixture
-    raise ValueError(f"canonical inventory fixture missing: {SOURCE_PATH}")
+            return fixture, []
+    return None, [compact_error("missing_inventory_fixture", f"canonical inventory fixture missing: {SOURCE_PATH}", path=str(SOURCE_PATH))]
 
 
 def next_record_id(counters: Counter[str], level: Level) -> str:
@@ -329,12 +345,12 @@ def hierarchy_records(paragraphs: list[Paragraph], source_sha256: str) -> tuple[
         marker = marker_for_text(paragraph.text)
         if marker is None:
             continue
+        if marker.level in {"part", "clause", "subclause"} and context["article"] is None:
+            skipped[f"{marker.level}_outside_article"] += 1
+            continue
         parent_id = parent_for_level(marker.level, context)
         if parent_id is None:
             skipped[f"{marker.level}_without_parent"] += 1
-            continue
-        if marker.level in {"part", "clause", "subclause"} and context["article"] is None:
-            skipped[f"{marker.level}_outside_article"] += 1
             continue
         record_id = next_record_id(counters, marker.level)
         try:
@@ -360,9 +376,26 @@ def hierarchy_records(paragraphs: list[Paragraph], source_sha256: str) -> tuple[
         records.append(record)
         update_context(marker.level, record_id, context)
 
+    emitted_counts = Counter(record["level"] for record in records)
+    structural_errors: list[dict[str, Any]] = []
+    if counters and emitted_counts.get("article", 0) == 0:
+        structural_errors.append(
+            compact_error(
+                "missing_article_heading",
+                "hierarchy markers were detected but no article heading was emitted; lower-level legal context is unsafe",
+                emitted_counts_by_level=dict(sorted(emitted_counts.items())),
+                skipped_marker_counts=dict(sorted(skipped.items())),
+            )
+        )
+    if skipped:
+        for kind, count in sorted(skipped.items()):
+            structural_errors.append(compact_error("context_break", f"{kind}: {count}", count=count))
+
     diagnostics = {
-        "emitted_counts_by_level": dict(sorted(Counter(record["level"] for record in records).items())),
+        "emitted_counts_by_level": dict(sorted(emitted_counts.items())),
         "skipped_marker_counts": dict(sorted(skipped.items())),
+        "structural_errors": structural_errors[:MAX_DIAGNOSTICS],
+        "structural_error_count": len(structural_errors),
         "validation_errors": validation_errors,
         "validation_error_count": len(validation_errors),
     }
@@ -373,13 +406,41 @@ def build() -> BuildResult:
     """Build all Consultant hierarchy artifacts in memory."""
 
     source = ROOT / SOURCE_PATH
-    inventory_fixture = load_inventory_fixture()
-    source_sha256 = sha256_bytes(source)
-    inventory_sha256 = inventory_fixture.get("sha256")
-    paragraphs, stream_diagnostics = stream_wordml_paragraphs(source)
-    records, hierarchy_diagnostics = hierarchy_records(paragraphs, source_sha256) if stream_diagnostics["malformed_xml"] is None else ([], {})
+    fatal_errors: list[dict[str, Any]] = []
+    inventory_fixture, inventory_errors = load_inventory_fixture()
+    fatal_errors.extend(inventory_errors)
 
-    inventory_hash_matches = source_sha256 == inventory_sha256
+    if source.exists():
+        source_sha256 = sha256_bytes(source)
+        paragraphs, stream_diagnostics = stream_wordml_paragraphs(source)
+    else:
+        source_sha256 = None
+        paragraphs = []
+        stream_diagnostics = {
+            "malformed_xml": None,
+            "namespace_detected": None,
+            "namespace_observations": {},
+            "paragraph_count": 0,
+            "style_observations": {},
+            "skipped_empty_paragraphs": 0,
+        }
+        fatal_errors.append(compact_error("missing_source", f"source fixture missing: {SOURCE_PATH}", path=str(SOURCE_PATH)))
+
+    inventory_sha256 = None if inventory_fixture is None else inventory_fixture.get("sha256")
+    records, hierarchy_diagnostics = (
+        hierarchy_records(paragraphs, source_sha256 or "0" * 64)
+        if not fatal_errors and stream_diagnostics["malformed_xml"] is None
+        else ([], {
+            "emitted_counts_by_level": {},
+            "skipped_marker_counts": {},
+            "structural_errors": [],
+            "structural_error_count": 0,
+            "validation_errors": [],
+            "validation_error_count": 0,
+        })
+    )
+
+    inventory_hash_matches = source_sha256 == inventory_sha256 if source_sha256 is not None and inventory_sha256 is not None else False
     jsonl = "".join(dumps_jsonl_record(record) + "\n" for record in records)
     summary = {
         "artifact_paths": {
@@ -389,6 +450,8 @@ def build() -> BuildResult:
         },
         "artifact_freshness": None,
         "diagnostics_bounded": True,
+        "fatal_errors": fatal_errors[:MAX_DIAGNOSTICS],
+        "fatal_error_count": len(fatal_errors),
         "non_authoritative": True,
         "phase": "consultant_wordml_hierarchy_build",
         "source": {
@@ -446,6 +509,8 @@ def render_report(summary: dict[str, Any], records: list[dict[str, Any]]) -> str
             "",
             f"- Malformed XML: `{summary.get('malformed_xml')}`",
             f"- Validation errors: `{summary.get('validation_error_count', 0)}`",
+            f"- Structural errors: `{summary.get('structural_error_count', 0)}`",
+            f"- Fatal errors: `{summary.get('fatal_error_count', 0)}`",
             f"- Skipped marker counts: `{json.dumps(summary.get('skipped_marker_counts', {}), ensure_ascii=False, sort_keys=True)}`",
             f"- Style observations: `{json.dumps(summary.get('style_observations', {}), ensure_ascii=False, sort_keys=True)}`",
             "",
@@ -487,10 +552,16 @@ def main(argv: list[str] | None = None) -> int:
     args = parser.parse_args(argv)
 
     result = build()
+    if result.diagnostics.get("fatal_error_count", 0):
+        print(result.summary_json, end="")
+        return 1
     if result.diagnostics.get("malformed_xml") is not None:
         print(result.summary_json, end="")
         return 1
     if result.diagnostics["source"]["inventory_hash_matches"] is not True:
+        print(result.summary_json, end="")
+        return 1
+    if result.diagnostics.get("structural_error_count", 0):
         print(result.summary_json, end="")
         return 1
     if result.diagnostics.get("validation_error_count", 0):
