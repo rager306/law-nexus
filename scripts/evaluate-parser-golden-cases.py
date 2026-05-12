@@ -368,12 +368,33 @@ def case_expected_state(case: dict[str, Any]) -> str | None:
 def evaluate_evidence_present(
     case: dict[str, Any], *, source_blocks: list[SourceBlockRecord], source_blocks_path: Path
 ) -> list[dict[str, Any]]:
-    """Verify all required evidence record ids remain present."""
+    """Verify all required evidence record ids and bounded anchors remain present."""
 
     diagnostics: list[dict[str, Any]] = []
-    ids = {record.id for record in source_blocks}
+    by_id = {record.id: record for record in source_blocks}
+    raw_anchors = case.get("anchors")
+    anchors = raw_anchors if isinstance(raw_anchors, list) else []
+    if not anchors:
+        diagnostics.append(
+            diagnostic(
+                case_id=str(case.get("case_id")),
+                case_class="evidence-present",
+                severity="error",
+                rule="evidence_anchor_missing",
+                artifact_path=display_path(source_blocks_path),
+                record_kind="source_block",
+                expected_state="bounded-anchor-present",
+                actual_state="missing",
+                message="Evidence-present cases must keep at least one bounded source-block anchor.",
+            )
+        )
+    anchors_by_record_id: dict[str, list[dict[str, Any]]] = {}
+    for anchor in anchors:
+        if isinstance(anchor, dict):
+            anchors_by_record_id.setdefault(str(anchor.get("record_id") or ""), []).append(anchor)
     for record_id in expected_list(case, "required_record_ids"):
-        if record_id not in ids:
+        record = by_id.get(record_id)
+        if record is None:
             diagnostics.append(
                 diagnostic(
                     case_id=str(case.get("case_id")),
@@ -388,6 +409,59 @@ def evaluate_evidence_present(
                     message="Required evidence source-block id is absent from parser records.",
                 )
             )
+            continue
+        record_anchors = anchors_by_record_id.get(record_id, [])
+        if not record_anchors:
+            diagnostics.append(
+                diagnostic(
+                    case_id=str(case.get("case_id")),
+                    case_class="evidence-present",
+                    severity="error",
+                    rule="evidence_anchor_missing",
+                    artifact_path=display_path(source_blocks_path),
+                    record_id=record_id,
+                    record_kind="source_block",
+                    expected_state="bounded-anchor-present",
+                    actual_state="missing",
+                    message="Required evidence source-block id has no matching golden anchor.",
+                )
+            )
+            continue
+        for anchor in record_anchors:
+            expected_source_sha = str(anchor.get("source_sha256") or "")
+            expected_excerpt_sha = str(anchor.get("excerpt_sha256") or "")
+            if expected_source_sha and expected_source_sha != record.source_sha256:
+                diagnostics.append(
+                    diagnostic(
+                        case_id=str(case.get("case_id")),
+                        case_class="evidence-present",
+                        severity="error",
+                        rule="evidence_anchor_hash_mismatch",
+                        artifact_path=display_path(source_blocks_path),
+                        record_id=record_id,
+                        record_kind="source_block",
+                        source_path=record.source_path,
+                        expected_state="source_sha256-matches-anchor",
+                        actual_state="source_sha256-mismatch",
+                        message="Evidence source_sha256 drifted from the golden anchor.",
+                    )
+                )
+            if expected_excerpt_sha and expected_excerpt_sha != record.excerpt_sha256:
+                diagnostics.append(
+                    diagnostic(
+                        case_id=str(case.get("case_id")),
+                        case_class="evidence-present",
+                        severity="error",
+                        rule="evidence_anchor_hash_mismatch",
+                        artifact_path=display_path(source_blocks_path),
+                        record_id=record_id,
+                        record_kind="source_block",
+                        source_path=record.source_path,
+                        expected_state="excerpt_sha256-matches-anchor",
+                        actual_state="excerpt_sha256-mismatch",
+                        message="Evidence excerpt_sha256 drifted from the golden anchor.",
+                    )
+                )
     return diagnostics
 
 
