@@ -1,0 +1,385 @@
+{
+  "artifact_freshness": null,
+  "artifact_paths": {
+    "json": "prd/parser/consultant_prior_art_expectations.json",
+    "report": "prd/parser/consultant_prior_art_expectations.md"
+  },
+  "diagnostics_bounded": true,
+  "expectations": {
+    "comparable_counts": {
+      "articles": {
+        "chapter_article_counts": {
+          "1": 15,
+          "2": 8,
+          "3": 47,
+          "4": 2,
+          "5": 6,
+          "6": 3,
+          "7": 10,
+          "8": 3
+        },
+        "classification": "comparable",
+        "counts": {
+          "article_invalid_false_count": 83,
+          "article_invalid_true_count": 11,
+          "article_record_count": 94,
+          "articles_without_parts": 18,
+          "clause_amendments_count": 0,
+          "clause_count": 912,
+          "clause_invalid_true_count": 17,
+          "clause_references_count": 0,
+          "part_amendments_count": 0,
+          "part_count": 668,
+          "part_invalid_true_count": 41,
+          "part_references_count": 0,
+          "subclause_count": 272,
+          "subclause_invalid_true_count": 1
+        },
+        "expectation_id": "EXP-CPA-ARTICLE-COUNTS",
+        "first_article_ids": [
+          "1",
+          "2",
+          "3",
+          "4",
+          "5"
+        ],
+        "last_article_ids": [
+          "111.3",
+          "111.4",
+          "112",
+          "113",
+          "114"
+        ],
+        "skipped_fields": [
+          "title",
+          "text",
+          "amendment legal effect",
+          "reference legal validity"
+        ]
+      },
+      "structure": {
+        "chapter_summaries": [
+          {
+            "article_refs": 15,
+            "chapter": 1,
+            "paragraphs": 0,
+            "title_excerpt": "ОБЩИЕ ПОЛОЖЕНИЯ"
+          },
+          {
+            "article_refs": 8,
+            "chapter": 2,
+            "paragraphs": 0,
+            "title_excerpt": "ПЛАНИРОВАНИЕ"
+          },
+          {
+            "article_refs": 0,
+            "chapter": 3,
+            "paragraphs": 9,
+            "title_excerpt": "ОСУЩЕСТВЛЕНИЕ ЗАКУПОК"
+          },
+          {
+            "article_refs": 2,
+            "chapter": 4,
+            "paragraphs": 0,
+            "title_excerpt": "МОНИТОРИНГ ЗАКУПОК И АУДИТ В СФЕРЕ ЗАКУПОК"
+          },
+          {
+            "article_refs": 6,
+            "chapter": 5,
+            "paragraphs": 0,
+            "title_excerpt": "КОНТРОЛЬ В СФЕРЕ ЗАКУПОК"
+          },
+          {
+            "article_refs": 3,
+            "chapter": 6,
+            "paragraphs": 0,
+            "title_excerpt": "ОБЖАЛОВАНИЕ ДЕЙСТВИЙ (БЕЗДЕЙСТВИЯ)"
+          },
+          {
+            "article_refs": 10,
+            "chapter": 7,
+            "paragraphs": 0,
+            "title_excerpt": "ОСОБЕННОСТИ ОСУЩЕСТВЛЕНИЯ ОТДЕЛЬНЫХ ВИДОВ ЗАКУПОК"
+          },
+          {
+            "article_refs": 3,
+            "chapter": 8,
+            "paragraphs": 0,
+            "title_excerpt": "ЗАКЛЮЧИТЕЛЬНЫЕ ПОЛОЖЕНИЯ"
+          }
+        ],
+        "classification": "comparable",
+        "counts": {
+          "all_references_count": 0,
+          "chapter_article_refs_total": 47,
+          "chapter_count": 8,
+          "chapter_paragraphs_total": 9,
+          "chapters_with_article_refs": 7,
+          "chapters_with_paragraphs": 1,
+          "definitions_count": 0,
+          "external_laws_count": 0,
+          "key_dates_count": 0,
+          "metadata_field_count": 7
+        },
+        "expectation_id": "EXP-CPA-STRUCTURE-COUNTS",
+        "skipped_fields": [
+          "metadata legal dates as semantics",
+          "article/reference text payloads"
+        ]
+      }
+    },
+    "skipped_fields": [
+      {
+        "field": "article.title/text and part/clause/subclause text",
+        "reason": "text copied from prior-art output is source/provider-specific and not a compact structure expectation"
+      },
+      {
+        "field": "semantic legal meaning and internal-reference validity",
+        "reason": "requires citation-safe deterministic evidence beyond context-free count comparison"
+      },
+      {
+        "field": "amendment/invalidation legal effect",
+        "reason": "prior-art markers are advisory until temporal/legal evidence rules are verified separately"
+      }
+    ],
+    "validation_rules": {
+      "classification": "mixed",
+      "counts": {
+        "advisory_rule_count": 9,
+        "comparable_rule_count": 6,
+        "validation_file_count": 2,
+        "validation_rule_count": 15
+      },
+      "expectation_id": "EXP-CPA-VALIDATION-RULES",
+      "files": [
+        {
+          "path": "/root/law-parser/prompt_domain_44fz/validation/semantic_rules.yaml",
+          "rule_count": 9,
+          "sha256": "c53121270fe4e1436bc28879dc6b465b0ea71f29cda90d96beb50d637d62714c",
+          "version": "1.0.0"
+        },
+        {
+          "path": "/root/law-parser/prompt_domain_44fz/validation/structural_rules.yaml",
+          "rule_count": 6,
+          "sha256": "a38b25b7dfb7523b86e6a9042f4bed14f9fa1d13b5b82d5e22b55d218a8d8a37",
+          "version": "1.0.0"
+        }
+      ],
+      "rules": [
+        {
+          "check": "sequential_within",
+          "classification": "advisory",
+          "file": "semantic_rules.yaml",
+          "name": "article_numbers_sequential",
+          "rule_id": "SEM-001",
+          "severity": "error",
+          "source_excerpt": "Article numbers should be sequential within chapter",
+          "target": "article"
+        },
+        {
+          "check": "sequential_within",
+          "classification": "advisory",
+          "file": "semantic_rules.yaml",
+          "name": "paragraph_numbers_sequential",
+          "rule_id": "SEM-002",
+          "severity": "error",
+          "source_excerpt": "Paragraph numbers should be sequential within article",
+          "target": "paragraph"
+        },
+        {
+          "check": "sequential_within",
+          "classification": "advisory",
+          "file": "semantic_rules.yaml",
+          "name": "chapter_numbers_sequential",
+          "rule_id": "SEM-003",
+          "severity": "warning",
+          "source_excerpt": "Chapter numbers should be sequential in document",
+          "target": "chapter"
+        },
+        {
+          "check": "date_format",
+          "classification": "advisory",
+          "file": "semantic_rules.yaml",
+          "name": "valid_date_format",
+          "rule_id": "SEM-004",
+          "severity": "error",
+          "source_excerpt": "Dates must be in valid format",
+          "target": "date"
+        },
+        {
+          "check": "date_not_after",
+          "classification": "advisory",
+          "file": "semantic_rules.yaml",
+          "name": "date_not_future",
+          "rule_id": "SEM-005",
+          "severity": "warning",
+          "source_excerpt": "Document dates should not be in the future",
+          "target": "document_date"
+        },
+        {
+          "check": "reference_exists",
+          "classification": "advisory",
+          "file": "semantic_rules.yaml",
+          "name": "internal_references_valid",
+          "rule_id": "SEM-006",
+          "severity": "error",
+          "source_excerpt": "Internal article references must point to existing articles",
+          "target": "reference"
+        },
+        {
+          "check": "matches_pattern",
+          "classification": "advisory",
+          "file": "semantic_rules.yaml",
+          "name": "external_references_format",
+          "rule_id": "SEM-007",
+          "severity": "warning",
+          "source_excerpt": "External law references must have valid format",
+          "target": "reference"
+        },
+        {
+          "check": "has_content",
+          "classification": "advisory",
+          "file": "semantic_rules.yaml",
+          "name": "no_empty_articles",
+          "rule_id": "SEM-008",
+          "severity": "warning",
+          "source_excerpt": "Articles should contain at least one paragraph",
+          "target": "article"
+        },
+        {
+          "check": "contains_marker",
+          "classification": "advisory",
+          "file": "semantic_rules.yaml",
+          "name": "invalidity_marker_detected",
+          "rule_id": "SEM-009",
+          "severity": "info",
+          "source_excerpt": "Detect articles marked as invalid",
+          "target": "article"
+        },
+        {
+          "check": "has_field",
+          "classification": "comparable",
+          "file": "structural_rules.yaml",
+          "name": "article_has_number",
+          "rule_id": "STRUCT-001",
+          "severity": "error",
+          "source_excerpt": "Every article must have a number",
+          "target": "article"
+        },
+        {
+          "check": "has_field",
+          "classification": "comparable",
+          "file": "structural_rules.yaml",
+          "name": "chapter_has_title",
+          "rule_id": "STRUCT-002",
+          "severity": "warning",
+          "source_excerpt": "Every chapter should have a title",
+          "target": "chapter"
+        },
+        {
+          "check": "has_parent",
+          "classification": "comparable",
+          "file": "structural_rules.yaml",
+          "name": "article_in_chapter",
+          "rule_id": "STRUCT-003",
+          "severity": "warning",
+          "source_excerpt": "Articles should be contained in chapters",
+          "target": "article"
+        },
+        {
+          "check": "has_parent",
+          "classification": "comparable",
+          "file": "structural_rules.yaml",
+          "name": "paragraph_in_article",
+          "rule_id": "STRUCT-004",
+          "severity": "error",
+          "source_excerpt": "Paragraphs must be contained in articles",
+          "target": "paragraph"
+        },
+        {
+          "check": "has_parent",
+          "classification": "comparable",
+          "file": "structural_rules.yaml",
+          "name": "no_orphan_text",
+          "rule_id": "STRUCT-005",
+          "severity": "warning",
+          "source_excerpt": "Text content should not be orphaned outside structure",
+          "target": "text"
+        },
+        {
+          "check": "has_children",
+          "classification": "comparable",
+          "file": "structural_rules.yaml",
+          "name": "document_has_articles",
+          "rule_id": "STRUCT-006",
+          "severity": "error",
+          "source_excerpt": "Document must contain at least one article",
+          "target": "document"
+        }
+      ],
+      "skipped_fields": [
+        "rule implementation semantics",
+        "LLM prompt behavior",
+        "legal interpretation"
+      ]
+    }
+  },
+  "fatal_error_count": 0,
+  "fatal_errors": [],
+  "hash_drift_count": 0,
+  "hash_drifts": [],
+  "non_authoritative": true,
+  "non_claims": [
+    "Prior-art expectations are deterministic comparison safeguards only.",
+    "Prior-art expectations do not claim legal correctness or authoritative legal interpretation.",
+    "Prior-art expectations do not claim parser completeness.",
+    "Prior-art expectations do not make LLM output authoritative."
+  ],
+  "phase": "consultant_prior_art_expectations_build",
+  "sources": [
+    {
+      "asset_id": "CPA-002",
+      "classification": "adapt",
+      "comparable_boundary": "Adapt field ideas and structural examples only after re-deriving from canonical fixtures; do not import as authoritative parsed output.",
+      "exists": true,
+      "expected_sha256": "da41e6c23f4449da39c79548c0b270d2747d7a50852f796b980c4b38742dbc5a",
+      "hash_matches_expected": true,
+      "path": "/root/law-parser/doc_domain_44fz/cons/44-FZ/44-FZ-2026-structure.json",
+      "sha256": "da41e6c23f4449da39c79548c0b270d2747d7a50852f796b980c4b38742dbc5a",
+      "size_bytes": 2884322
+    },
+    {
+      "asset_id": "CPA-003",
+      "classification": "adapt",
+      "comparable_boundary": "Adapt record-shape ideas and count expectations only; do not copy article text or assert article parsing correctness from this prior-art output.",
+      "exists": true,
+      "expected_sha256": "de03cda6b266085a9b1f2376afcb9dffbb00fec922dee1f1553cadcfb6d03869",
+      "hash_matches_expected": true,
+      "path": "/root/law-parser/doc_domain_44fz/cons/44-FZ/44-FZ-2026-articles.jsonl",
+      "sha256": "de03cda6b266085a9b1f2376afcb9dffbb00fec922dee1f1553cadcfb6d03869",
+      "size_bytes": 2552931
+    },
+    {
+      "asset_id": "CPA-008",
+      "classification": "defer",
+      "comparable_boundary": "Defer semantic rules until deterministic parser records and citation-safe evidence can support them.",
+      "exists": true,
+      "expected_sha256": "c53121270fe4e1436bc28879dc6b465b0ea71f29cda90d96beb50d637d62714c",
+      "hash_matches_expected": true,
+      "path": "/root/law-parser/prompt_domain_44fz/validation/semantic_rules.yaml",
+      "sha256": "c53121270fe4e1436bc28879dc6b465b0ea71f29cda90d96beb50d637d62714c",
+      "size_bytes": 2539
+    },
+    {
+      "asset_id": "CPA-007",
+      "classification": "adapt",
+      "comparable_boundary": "Adapt structural rule candidates into deterministic tests before relying on them.",
+      "exists": true,
+      "expected_sha256": "a38b25b7dfb7523b86e6a9042f4bed14f9fa1d13b5b82d5e22b55d218a8d8a37",
+      "hash_matches_expected": true,
+      "path": "/root/law-parser/prompt_domain_44fz/validation/structural_rules.yaml",
+      "sha256": "a38b25b7dfb7523b86e6a9042f4bed14f9fa1d13b5b82d5e22b55d218a8d8a37",
+      "size_bytes": 1497
+    }
+  ]
+}
