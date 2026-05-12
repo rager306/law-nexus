@@ -9,6 +9,7 @@ This directory contains the canonical source-fixture inventory for M006 parser a
 - Fixture generator/check command: `uv run python scripts/inventory-parser-fixtures.py --check`
 - Parser record schema/example/report generator: `uv run python scripts/validate-parser-records.py --write`
 - Parser record contract check: `uv run python scripts/validate-parser-records.py --check`
+- Golden-test contract term check: `rg -n "evidence-present|no-answer|candidate-only|unresolved-reference|non-authoritative|parser completeness|retrieval quality|legal-answer correctness" prd/parser/golden_test_contract.md`
 - Full S01 fixture verification: `uv run python scripts/inventory-parser-fixtures.py --check && uv run pytest -q tests/test_parser_fixture_inventory.py`
 - Full S02 parser-record verification: `uv run python scripts/validate-parser-records.py --check && test -s prd/parser/schemas/parser_record.schema.json && test -s prd/parser/parser_record_contract.md`
 - ODT smoke artifact generator/check command: `uv run python scripts/build-odt-smoke-records.py --check`
@@ -96,6 +97,10 @@ S05 commands:
 Current canonical S05 result: `document_count=2`, `source_block_count=48`, `relation_candidate_count=1`, keyed relation edge `REL-CONS-0001`, and zero graph-build errors. The current warning set is expected: unresolved Consultant subject/object references and missing Consultant source-block provenance remain warnings so the keyed relation candidate stays visible without asserting relation correctness.
 
 S05 advances R031 only for deterministic NetworkX `MultiDiGraph` staging invariants over the current validated parser-record artifacts. It does not claim parser completeness, legal correctness, product ETL readiness, FalkorDB loading/runtime readiness, relation correctness, legal answer generation, citation-safe retrieval, or product graph truth.
+
+## Parser/retrieval golden-test contract
+
+M008 adds `prd/parser/golden_test_contract.md` as the static contract for future parser/retrieval golden tests over tracked M006 parser artifacts and R032. The contract defines the allowed case classes (`evidence-present`, `no-answer`, `candidate-only`, `unresolved-reference`, and `non-authoritative`), required evaluator result/diagnostic fields, source-anchor rules, allowed non-claims, and explicit out-of-scope claims. It is implementation-ready for later executable tests, but it does not itself prove parser completeness, retrieval quality, legal-answer correctness, citation-safe retrieval, product ETL readiness, or FalkorDB loading/runtime readiness.
 
 ## Consumer boundary for S03/S04/S05
 
