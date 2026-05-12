@@ -17,13 +17,20 @@ This directory contains the canonical source-fixture inventory for M006 parser a
 - ODT smoke document validation: `uv run python scripts/validate-parser-records.py --kind document prd/parser/odt_document_records.jsonl`
 - ODT smoke source-block validation: `uv run python scripts/validate-parser-records.py --kind source_block prd/parser/odt_source_block_records.jsonl`
 
+## Source priority for M009
+
+M009 treats Consultant Plus WordML as the primary source contract for full normative-act source-shape evidence. The canonical full-act fixture is `law-source/consultant/44-FZ-2026.xml`, and the canonical Consultant document-list fixture remains prior-art relation evidence only. Garant ODT work is lower-priority/deferred from M009; earlier ODT smoke/parser-record artifacts remain bounded evidence surfaces and must not be read as M009 multi-source readiness.
+
+The tracked inventory and prior-art reports expose hashes, shape diagnostics, missing-file/hash-drift diagnostics, source-priority notes, and explicit non-claims. Passing checks do not claim parser completeness, legal correctness, Consultant WordML legal authority, product ETL readiness, FalkorDB loading/runtime readiness, citation-safe retrieval readiness, or multi-source parser readiness.
+
 ## Canonical source paths
 
 | Path | Source kind | Contract |
 |---|---|---|
-| `law-source/garant/44-fz.odt` | `garant-odt` | Canonical ODT document fixture with valid ZIP, `content.xml`, and `meta.xml` shape diagnostics in the manifest. |
-| `law-source/garant/PP_60_27-01-2022.odt` | `garant-odt` | Canonical observed PP fixture. The earlier stated filename `law-source/garant/PP_60_27-02-2022.odt` is documented as a mismatch and must not silently reappear. |
+| `law-source/garant/44-fz.odt` | `garant-odt` | Deferred/lower-priority M009 fixture retained from earlier ODT work with valid ZIP, `content.xml`, and `meta.xml` shape diagnostics in the manifest; not M009 source priority. |
+| `law-source/garant/PP_60_27-01-2022.odt` | `garant-odt` | Deferred/lower-priority M009 PP fixture retained from earlier ODT work. The earlier stated filename `law-source/garant/PP_60_27-02-2022.odt` is documented as a mismatch and must not silently reappear. |
 | `law-source/consultant/Список документов (5).xml` | `consultant-wordml-xml` | Canonical Consultant WordML relation fixture / prior-art evidence source. It is not an authoritative legal source. |
+| `law-source/consultant/44-FZ-2026.xml` | `consultant-wordml-xml` | M009 primary Consultant Plus full normative-act WordML source-shape fixture. It is a hash/shape anchor only and does not prove parsed legal semantics, parser completeness, or multi-source readiness. |
 
 ## Removed duplicate status
 
@@ -165,6 +172,6 @@ S04/R032 validation is bounded to executable golden tests over tracked artifacts
 
 ## Non-claims and boundary
 
-This fixture and parser-record contract is non-authoritative. It does not claim parser completeness, legal correctness, product ETL readiness, FalkorDB product runtime readiness, or FalkorDB loading/runtime readiness. The Consultant WordML legal-authority non-claims mean the Consultant WordML XML fixture may only propose bounded relation-candidate evidence until later validation proves candidate relations.
+This fixture and parser-record contract is non-authoritative. It does not claim parser completeness, legal correctness, product ETL readiness, FalkorDB product runtime readiness, FalkorDB loading/runtime readiness, citation-safe retrieval readiness, or multi-source parser readiness. The Consultant Plus full-act WordML fixture is M009 primary only for full normative-act source-shape/hash evidence; it does not prove parsed legal semantics or Consultant WordML legal authority. The Consultant document-list WordML legal-authority non-claims mean the Consultant WordML XML fixture may only propose bounded relation-candidate evidence until later validation proves candidate relations. Garant ODT work is deferred/lower-priority from M009 and remains limited to earlier bounded ODT smoke/parser-record evidence.
 
 Downstream parser, graph, or FalkorDB load work must preserve these non-claims in generated reports unless a later slice adds explicit proof for a narrower claim.

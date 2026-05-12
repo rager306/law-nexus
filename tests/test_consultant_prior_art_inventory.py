@@ -61,6 +61,8 @@ def test_prior_art_inventory_diagnostics_and_classification_counts_are_consisten
     assert inventory["diagnostics"]["classification_count_total"] == inventory["asset_count"]
     assert inventory["diagnostics"]["missing_prior_art_files"] == []
     assert inventory["diagnostics"]["hash_drift_paths"] == []
+    assert "Consultant Plus WordML is primary for M009 full normative-act source-shape evidence." in inventory["diagnostics"]["source_priority_notes"]
+    assert "Garant ODT work is lower-priority/deferred from M009; prior ODT artifacts remain bounded evidence, not multi-source readiness." in inventory["diagnostics"]["source_priority_notes"]
     assert "law-parser derived JSON/JSONL outputs are not imported as authoritative parsed legal data." in inventory["diagnostics"]["source_priority_notes"]
 
     blocked_claims = set(inventory["blocked_claims"])
@@ -68,6 +70,7 @@ def test_prior_art_inventory_diagnostics_and_classification_counts_are_consisten
     assert "legal correctness" in blocked_claims
     assert "Consultant WordML legal authority" in blocked_claims
     assert "FalkorDB loading/runtime readiness" in blocked_claims
+    assert "multi-source parser readiness" in blocked_claims
 
 
 def test_full_fixture_hash_matches_canonical_source_fixture_inventory() -> None:
@@ -104,6 +107,8 @@ def test_prior_art_markdown_is_non_empty_and_cold_reader_visible() -> None:
     assert "/root/law-parser/doc_domain_44fz/cons/44-FZ/44-FZ-2026-articles.jsonl" in markdown
     assert "/root/law-parser/prompt_domain_44fz/sources/consultant_word2003xml.yaml" in markdown
     assert "/root/law-parser/prompt_domain_44fz/validation/structural_rules.yaml" in markdown
+    assert "Consultant Plus WordML is primary for M009" in markdown
+    assert "Garant ODT work is lower-priority/deferred from M009" in markdown
     assert "This inventory does not claim parser completeness." in markdown
     assert "This inventory does not claim legal correctness." in markdown
     assert "No raw full legal text is embedded" in markdown

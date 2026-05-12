@@ -35,7 +35,8 @@ NON_CLAIMS = (
     "This inventory does not claim product ETL readiness.",
     "This inventory does not claim FalkorDB product runtime readiness.",
     "Consultant document-list WordML XML is classified only as a relation fixture / prior-art evidence source until later validation proves candidate relations.",
-    "Consultant full-act WordML XML is a canonical source-shape fixture only; this inventory does not claim parsed legal semantics from it.",
+    "Consultant full-act WordML XML is the M009 primary source fixture for full normative-act source-shape evidence only; this inventory does not claim parsed legal semantics from it.",
+    "Garant ODT work is lower-priority/deferred from M009 and remains covered only by earlier bounded ODT smoke/parser-record evidence.",
 )
 
 EXPECTED_FIXTURES = (
@@ -257,7 +258,7 @@ def build_fixture_hygiene(root: Path, duplicate_absent: bool) -> dict[str, Any]:
             "consultant_full_act_fixture": {
                 "canonical_path": CONSULTANT_FULL_ACT_XML_PATH,
                 "classification": "canonical-full-act-wordml-source-shape-fixture",
-                "diagnostic": "The full Consultant 44-ФЗ WordML file is inventoried as source-shape evidence with hash and XML diagnostics; it does not supersede Garant ODT fixtures or assert parsed legal semantics.",
+                "diagnostic": "The full Consultant 44-ФЗ WordML file is inventoried as the M009 primary source-shape fixture with hash and XML diagnostics; it does not assert parsed legal semantics, parser completeness, or multi-source readiness. Garant ODT work is lower-priority/deferred from M009.",
             },
         },
         "removed_duplicate_status": {
@@ -305,12 +306,13 @@ def build_inventory(root: Path) -> dict[str, Any]:
             "consultant_wordml_relation_fixture": CANONICAL_CONSULTANT_XML_PATH,
             "consultant_wordml_full_act_fixture": CONSULTANT_FULL_ACT_XML_PATH,
             "removed_duplicate_path": REMOVED_DUPLICATE_PATH,
-            "rationale": "The consultant-folder document-list XML remains the canonical relation fixture; the full 44-ФЗ XML is a separate canonical source-shape fixture. Neither Consultant fixture supersedes Garant ODT parser fixtures or creates parser-completeness/legal-correctness claims.",
+            "rationale": "The consultant-folder document-list XML remains the canonical relation fixture; the full 44-ФЗ XML is the M009 primary full normative-act source-shape fixture. Garant ODT work is lower-priority/deferred from M009, and no fixture creates parser-completeness, legal-correctness, or multi-source-readiness claims.",
         },
         "source_priority_notes": [
-            "Garant ODT fixtures remain parser source fixtures for current ODT work.",
-            "Consultant document-list WordML is prior-art relation evidence only.",
-            "Consultant full-act WordML is canonical source-shape evidence for a complete normative act and must be referenced by its own path and hash.",
+            "Consultant Plus WordML is primary for M009 full normative-act source-shape evidence.",
+            "Consultant document-list WordML remains prior-art relation evidence only.",
+            "Garant ODT fixtures are lower-priority/deferred from M009; earlier ODT smoke/parser-record artifacts remain bounded evidence, not M009 source priority.",
+            "No current inventory artifact claims parser completeness, legal correctness, or multi-source readiness.",
         ],
         "non_claims": list(NON_CLAIMS),
         "fixtures": fixtures,

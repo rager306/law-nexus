@@ -13,8 +13,9 @@ This maintained report catalogs the reusable law-parser prior-art assets inspect
 
 ## Reuse boundaries
 
-- Garant ODT fixtures remain the parser proof source for current ODT work.
+- Consultant Plus WordML is primary for M009 full normative-act source-shape evidence.
 - Consultant WordML prior art is reusable only as source-shape, taxonomy, prompt, or rule hypothesis evidence.
+- Garant ODT work is lower-priority/deferred from M009; prior ODT artifacts remain bounded evidence, not multi-source readiness.
 - law-parser derived JSON/JSONL outputs are not imported as authoritative parsed legal data.
 
 ## Blocked claims
@@ -25,15 +26,16 @@ This maintained report catalogs the reusable law-parser prior-art assets inspect
 - This inventory does not claim product ETL readiness.
 - This inventory does not claim FalkorDB loading/runtime readiness.
 - This inventory does not claim citation-safe retrieval readiness.
+- This inventory does not claim multi-source parser readiness.
 
 ## Asset catalog
 
 | ID | Classification | Type | Path | SHA-256 | Boundary |
 |---|---|---|---|---|---|
-| `CPA-001` | `keep` | `full-fixture` | `law-source/consultant/44-FZ-2026.xml` | `69df0b9d9e2bcce6164fc4e3c74fb9bebfff36ae6b053c68917c804be4b52a86` | Keep as the canonical tracked Consultant WordML source-shape fixture and hash anchor only; do not treat as parsed legal semantics. |
+| `CPA-001` | `keep` | `full-fixture` | `law-source/consultant/44-FZ-2026.xml` | `69df0b9d9e2bcce6164fc4e3c74fb9bebfff36ae6b053c68917c804be4b52a86` | Keep as the canonical tracked Consultant Plus WordML source-shape fixture and hash anchor only; do not treat as parsed legal semantics or multi-source readiness. |
 | `CPA-002` | `adapt` | `structure-json` | `/root/law-parser/doc_domain_44fz/cons/44-FZ/44-FZ-2026-structure.json` | `da41e6c23f4449da39c79548c0b270d2747d7a50852f796b980c4b38742dbc5a` | Adapt field ideas and structural examples only after re-deriving from canonical fixtures; do not import as authoritative parsed output. |
 | `CPA-003` | `adapt` | `articles-jsonl` | `/root/law-parser/doc_domain_44fz/cons/44-FZ/44-FZ-2026-articles.jsonl` | `de03cda6b266085a9b1f2376afcb9dffbb00fec922dee1f1553cadcfb6d03869` | Adapt record-shape ideas and count expectations only; do not copy article text or assert article parsing correctness from this prior-art output. |
-| `CPA-004` | `adapt` | `source-format-yaml` | `/root/law-parser/prompt_domain_44fz/sources/consultant_word2003xml.yaml` | `a09d953eca7219ec38bc435e3376901ea48ee1b31f844dbd234ee2f8d666e89a` | Adapt source-format observations for WordML diagnostics; keep separate from Garant ODT parsing assumptions. |
+| `CPA-004` | `adapt` | `source-format-yaml` | `/root/law-parser/prompt_domain_44fz/sources/consultant_word2003xml.yaml` | `a09d953eca7219ec38bc435e3376901ea48ee1b31f844dbd234ee2f8d666e89a` | Adapt source-format observations for Consultant WordML diagnostics; do not mix them into deferred/lower-priority Garant ODT assumptions. |
 | `CPA-005` | `adapt` | `structure-yaml` | `/root/law-parser/prompt_domain_44fz/structures/44fz.yaml` | `94c0be4d64c0fd44e369dea852bd397490cfc06c7ee5e672fa875f88136cd507` | Adapt hierarchy vocabulary and validation hypotheses only after testing against canonical fixtures. |
 | `CPA-006` | `adapt` | `parsing-prompt-yaml` | `/root/law-parser/prompt_domain_44fz/parsing_prompt.yaml` | `5324c64554e4fb5eb8c0bb04231b6a6c46b8cdf1e255db01746daa801758d99f` | Adapt prompt taxonomy as documentation/prior art only; LLM output remains non-authoritative and cannot replace deterministic parser evidence. |
 | `CPA-007` | `adapt` | `structural-rules-yaml` | `/root/law-parser/prompt_domain_44fz/validation/structural_rules.yaml` | `a38b25b7dfb7523b86e6a9042f4bed14f9fa1d13b5b82d5e22b55d218a8d8a37` | Adapt structural rule candidates into deterministic tests before relying on them. |

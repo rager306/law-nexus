@@ -132,7 +132,8 @@ def test_repository_outputs_are_current_and_report_non_claims() -> None:
     assert "This inventory does not claim parser completeness." in markdown
     assert "This inventory does not claim legal correctness" in markdown
     assert "Consultant document-list WordML XML is classified only as a relation fixture" in markdown
-    assert "Consultant full-act WordML XML is a canonical source-shape fixture" in markdown
+    assert "Consultant full-act WordML XML is the M009 primary source fixture" in markdown
+    assert "Garant ODT work is lower-priority/deferred from M009" in markdown
     assert "law-source/consultant/44-FZ-2026.xml" in markdown
     assert "full-normative-act" in markdown
     assert "## Fixture hygiene" in markdown
@@ -144,4 +145,6 @@ def test_repository_outputs_are_current_and_report_non_claims() -> None:
     assert "law-source/Список документов (5).xml" in readme
     assert "does not claim parser completeness" in readme
     assert "legal correctness" in readme
-    assert "FalkorDB product runtime readiness" in readme
+    assert "Consultant Plus WordML as the primary source contract" in readme
+    assert "Garant ODT work is lower-priority/deferred from M009" in readme
+    assert "multi-source parser readiness" in readme
