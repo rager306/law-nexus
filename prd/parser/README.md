@@ -47,6 +47,7 @@ Generated parser record artifacts live alongside the fixture inventory and are c
 |---|---|
 | `prd/parser/schemas/document_record.schema.json` | Strict JSON Schema for `DocumentRecord`; rejects unexpected properties and requires provenance/non-claim fields. |
 | `prd/parser/schemas/source_block_record.schema.json` | Strict JSON Schema for `SourceBlockRecord`; ODT examples must remain `content.xml`-scoped with bounded excerpts and hashes. |
+| `prd/parser/schemas/consultant_hierarchy_record.schema.json` | Strict JSON Schema for `ConsultantHierarchyRecord`; Consultant WordML hierarchy/source records must preserve stable IDs, parent references, level enum, marker metadata, source hashes, excerpt hashes, and non-authoritative non-claims. |
 | `prd/parser/schemas/relation_candidate_record.schema.json` | Strict JSON Schema for candidate-only `RelationCandidateRecord`; no authoritative/product-ready statuses are valid. |
 | `prd/parser/schemas/parser_record.schema.json` | Discriminated union schema over `record_kind`. |
 | `prd/parser/examples/document_records.jsonl` | Positive document examples seeded only from canonical manifest paths and hashes. |

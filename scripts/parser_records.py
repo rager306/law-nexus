@@ -28,6 +28,17 @@ MAX_DIAGNOSTICS_PER_FILE = 100
 
 SourceKind: TypeAlias = Literal["garant-odt", "consultant-wordml-xml"]
 RelationCandidateStatus: TypeAlias = Literal["candidate", "needs-review", "rejected"]
+ConsultantHierarchyLevel: TypeAlias = Literal[
+    "document",
+    "section",
+    "chapter",
+    "article",
+    "part",
+    "clause",
+    "subclause",
+    "paragraph",
+    "unknown",
+]
 Sha256 = Annotated[str, Field(pattern=r"^[a-f0-9]{64}$")]
 
 
@@ -100,6 +111,40 @@ class SourceBlockRecord(ParserRecordBase):
         return self
 
 
+class MarkerMetadataRecord(StrictRecordModel):
+    """Normalized marker metadata for one Consultant hierarchy paragraph."""
+
+    raw: str = Field(min_length=1, max_length=120)
+    normalized: str = Field(min_length=1, max_length=120)
+    kind: str = Field(min_length=1, max_length=60)
+
+
+class ConsultantHierarchyRecord(ParserRecordBase):
+    """Deterministic non-authoritative Consultant WordML hierarchy/source record."""
+
+    record_kind: Literal["consultant_hierarchy"]
+    id: str = Field(pattern=r"^HIER-CONS-.+")
+    document_id: str = Field(pattern=r"^DOC-.+")
+    source_kind: Literal["consultant-wordml-xml"]
+    source_member: str | None = Field(default=None, min_length=1)
+    order_index: int = Field(ge=0)
+    parent_id: str | None = Field(default=None, pattern=r"^HIER-CONS-.+")
+    level: ConsultantHierarchyLevel
+    marker: MarkerMetadataRecord | None = None
+    title: str = Field(min_length=1, max_length=240)
+    location: LocationRecord
+    excerpt: str = Field(min_length=1, max_length=MAX_EXCERPT_CHARS)
+    excerpt_sha256: Sha256
+
+    @model_validator(mode="after")
+    def validate_marker_for_known_levels(self) -> ConsultantHierarchyRecord:
+        if self.level != "document" and self.level != "unknown" and self.marker is None:
+            raise ValueError("known non-document hierarchy levels must include marker metadata")
+        if self.level == "document" and self.parent_id is not None:
+            raise ValueError("document-level hierarchy records must not have a parent_id")
+        return self
+
+
 class RelationCandidateRecord(ParserRecordBase):
     """Candidate-only relation record from bounded source evidence."""
 
@@ -116,7 +161,7 @@ class RelationCandidateRecord(ParserRecordBase):
 
 
 ParserRecord: TypeAlias = Annotated[
-    DocumentRecord | SourceBlockRecord | RelationCandidateRecord,
+    DocumentRecord | SourceBlockRecord | ConsultantHierarchyRecord | RelationCandidateRecord,
     Field(discriminator="record_kind"),
 ]
 PARSER_RECORD_ADAPTER = TypeAdapter(ParserRecord)
@@ -140,7 +185,7 @@ def validation_error_to_diagnostic(
     """Convert one Pydantic error into a compact deterministic diagnostic."""
 
     location = [str(part) for part in error.get("loc", ()) if str(part) not in {"tagged-union"}]
-    if location and location[0] in {"document", "source_block", "relation_candidate"}:
+    if location and location[0] in {"document", "source_block", "consultant_hierarchy", "relation_candidate"}:
         location = location[1:]
     field = ".".join(location) if location else "record"
     return {
@@ -148,6 +193,8 @@ def validation_error_to_diagnostic(
         "line": line_number,
         "record_id": payload.get("id"),
         "record_kind": payload.get("record_kind"),
+        "level": payload.get("level"),
+        "parent_id": payload.get("parent_id"),
         "field": field,
         "rule": error.get("type", "validation_error"),
         "source_path": payload.get("source_path"),
@@ -163,6 +210,8 @@ def json_error_to_diagnostic(*, file_path: Path, line_number: int, message: str)
         "line": line_number,
         "record_id": None,
         "record_kind": None,
+        "level": None,
+        "parent_id": None,
         "field": "record",
         "rule": "json_invalid",
         "source_path": None,
@@ -200,6 +249,8 @@ def load_jsonl_records(path: Path, *, max_diagnostics: int = MAX_DIAGNOSTICS_PER
                         "line": line_number,
                         "record_id": None,
                         "record_kind": None,
+                        "level": None,
+                        "parent_id": None,
                         "field": "record",
                         "rule": "json_type",
                         "source_path": None,

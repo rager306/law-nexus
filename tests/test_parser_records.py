@@ -80,6 +80,29 @@ def source_block_payload() -> dict[str, object]:
     }
 
 
+def consultant_hierarchy_payload() -> dict[str, object]:
+    return {
+        "record_kind": "consultant_hierarchy",
+        "schema_version": "legalgraph-parser-record/v1",
+        "id": "HIER-CONS-44-FZ-0002",
+        "document_id": "DOC-CONS-44-FZ-2026",
+        "source_kind": "consultant-wordml-xml",
+        "source_path": "law-source/consultant/44-FZ-2026.xml",
+        "source_sha256": VALID_SHA,
+        "source_member": None,
+        "order_index": 1,
+        "parent_id": "HIER-CONS-44-FZ-0001",
+        "level": "article",
+        "marker": {"raw": "Статья 1", "normalized": "article:1", "kind": "article"},
+        "title": "Bounded hierarchy heading only",
+        "location": {"selector": "/w:wordDocument/w:body/w:p[2]", "label": "WordML paragraph 2"},
+        "excerpt": "Bounded Consultant hierarchy excerpt, not a legal answer.",
+        "excerpt_sha256": "d" * 64,
+        "non_authoritative": True,
+        "non_claims": ["Hierarchy shape only; not Consultant WordML legal authority."],
+    }
+
+
 def relation_payload() -> dict[str, object]:
     return {
         "record_kind": "relation_candidate",
@@ -106,13 +129,17 @@ def test_models_accept_one_valid_record_per_kind() -> None:
 
     document = module.DocumentRecord.model_validate(document_payload())
     block = module.SourceBlockRecord.model_validate(source_block_payload())
+    hierarchy = module.ConsultantHierarchyRecord.model_validate(consultant_hierarchy_payload())
     relation = module.RelationCandidateRecord.model_validate(relation_payload())
 
     assert document.id == "DOC-44-FZ"
     assert block.order_index == 0
+    assert hierarchy.level == "article"
+    assert hierarchy.parent_id == "HIER-CONS-44-FZ-0001"
     assert relation.status == "candidate"
     assert document.non_authoritative is True
     assert block.non_claims
+    assert hierarchy.non_claims
     assert relation.non_claims
 
 
@@ -121,6 +148,7 @@ def test_models_accept_one_valid_record_per_kind() -> None:
     [
         (document_payload, "document"),
         (source_block_payload, "source_block"),
+        (consultant_hierarchy_payload, "consultant_hierarchy"),
         (relation_payload, "relation_candidate"),
     ],
 )
@@ -172,6 +200,39 @@ def test_source_block_requires_odt_content_xml_member_and_non_negative_order() -
     assert "order_index" in str(negative_order_error.value)
 
 
+def test_consultant_hierarchy_contract_requires_level_parent_marker_and_hash_boundaries() -> None:
+    module = load_parser_records_module()
+    valid = consultant_hierarchy_payload()
+    record = module.ConsultantHierarchyRecord.model_validate(valid)
+    assert record.source_kind == "consultant-wordml-xml"
+    assert record.level == "article"
+    assert record.marker.normalized == "article:1"
+
+    wrong_source = consultant_hierarchy_payload()
+    wrong_source["source_kind"] = "garant-odt"
+    with pytest.raises(ValidationError) as wrong_source_error:
+        module.ConsultantHierarchyRecord.model_validate(wrong_source)
+    assert "consultant-wordml-xml" in str(wrong_source_error.value)
+
+    missing_marker = consultant_hierarchy_payload()
+    missing_marker["marker"] = None
+    with pytest.raises(ValidationError) as missing_marker_error:
+        module.ConsultantHierarchyRecord.model_validate(missing_marker)
+    assert "marker" in str(missing_marker_error.value)
+
+    bad_parent = consultant_hierarchy_payload()
+    bad_parent["parent_id"] = "BLOCK-CONS-0001"
+    with pytest.raises(ValidationError) as bad_parent_error:
+        module.ConsultantHierarchyRecord.model_validate(bad_parent)
+    assert "parent_id" in str(bad_parent_error.value)
+
+    bad_excerpt_hash = consultant_hierarchy_payload()
+    bad_excerpt_hash["excerpt_sha256"] = "D" * 64
+    with pytest.raises(ValidationError) as bad_hash_error:
+        module.ConsultantHierarchyRecord.model_validate(bad_excerpt_hash)
+    assert "excerpt_sha256" in str(bad_hash_error.value)
+
+
 def test_relation_candidate_rejects_authoritative_or_product_ready_statuses() -> None:
     module = load_parser_records_module()
     payload = relation_payload()
@@ -221,10 +282,33 @@ def test_jsonl_validation_diagnostics_include_file_line_record_and_field(tmp_pat
     assert invalid["line"] == 2
     assert invalid["record_id"] == "BAD-44-FZ"
     assert invalid["record_kind"] == "document"
+    assert invalid["level"] is None
+    assert invalid["parent_id"] is None
     assert invalid["field"] == "id"
     assert invalid["rule"] == "string_pattern_mismatch"
     assert invalid["source_path"] == "law-source/garant/44-fz.odt"
     assert invalid["message"]
+
+
+def test_consultant_hierarchy_jsonl_diagnostics_include_level_and_parent_context(tmp_path: Path) -> None:
+    module = load_parser_records_module()
+    jsonl = tmp_path / "hierarchy.jsonl"
+    payload = consultant_hierarchy_payload()
+    payload["excerpt_sha256"] = "D" * 64
+    jsonl.write_text(module.dumps_jsonl_record(payload) + "\n", encoding="utf-8")
+
+    records, diagnostics = module.load_jsonl_records(jsonl)
+
+    assert records == []
+    assert len(diagnostics) == 1
+    diagnostic = diagnostics[0]
+    assert diagnostic["record_id"] == "HIER-CONS-44-FZ-0002"
+    assert diagnostic["record_kind"] == "consultant_hierarchy"
+    assert diagnostic["source_path"] == "law-source/consultant/44-FZ-2026.xml"
+    assert diagnostic["level"] == "article"
+    assert diagnostic["parent_id"] == "HIER-CONS-44-FZ-0001"
+    assert diagnostic["field"] == "excerpt_sha256"
+    assert "Bounded Consultant hierarchy excerpt" not in str(diagnostic)
 
 
 def test_cli_check_reports_fresh_artifacts_counts_and_non_authoritative_status() -> None:
@@ -237,6 +321,7 @@ def test_cli_check_reports_fresh_artifacts_counts_and_non_authoritative_status()
     assert summary["counts"] == {
         "document": 2,
         "source_block": 1,
+        "consultant_hierarchy": 0,
         "relation_candidate": 1,
     }
     artifact_status = summary["artifact_status"]
@@ -297,6 +382,8 @@ def test_cli_malformed_jsonl_diagnostics_are_actionable_and_provenance_safe(tmp_
     assert invalid["line"] == 2
     assert invalid["record_id"] == "DOC-44-FZ"
     assert invalid["record_kind"] == "document"
+    assert invalid["level"] is None
+    assert invalid["parent_id"] is None
     assert invalid["field"] == "source_sha256"
     assert invalid["rule"] == "string_pattern_mismatch"
     assert invalid["source_path"] == "law-source/garant/44-fz.odt"
