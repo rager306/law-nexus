@@ -1,0 +1,419 @@
+{
+  "artifact_freshness": {
+    "diagnostics": [],
+    "stale_paths": [],
+    "status": "not-checked"
+  },
+  "blocked_claims": [
+    "parser completeness",
+    "retrieval quality",
+    "legal-answer correctness",
+    "citation-safe retrieval readiness",
+    "product ETL readiness",
+    "FalkorDB loading/runtime readiness",
+    "Consultant WordML legal authority",
+    "relation correctness",
+    "product graph truth"
+  ],
+  "case_class_counts": {
+    "candidate-only": 1,
+    "evidence-present": 1,
+    "no-answer": 1,
+    "non-authoritative": 1,
+    "unresolved-reference": 1
+  },
+  "case_count": 5,
+  "cases": [
+    {
+      "anchors": [
+        {
+          "artifact_path": "prd/parser/odt_source_block_records.jsonl",
+          "document_id": "DOC-44-FZ",
+          "excerpt_sha256": "e133d6d5749ca198f1f40619522ef9e03576accb83e565b37bd0659572ee4abb",
+          "location": {
+            "label": "heading; outline=1; style=s3",
+            "selector": "content.xml#block[0]"
+          },
+          "non_authoritative": true,
+          "record_id": "BLOCK-44-FZ-000",
+          "record_kind": "source_block",
+          "source_member": "content.xml",
+          "source_path": "law-source/garant/44-fz.odt",
+          "source_sha256": "73777d4741fa1b65229a8b22b97eb2cff4c5180105affb79b058d7007e3e4337"
+        }
+      ],
+      "case_class": "evidence-present",
+      "case_id": "GT-001",
+      "description": "Bounded evidence exists for a tracked Garant ODT source block.",
+      "diagnostics": [],
+      "expected": {
+        "answer_state": "evidence-present",
+        "forbidden_claims": [
+          "parser completeness",
+          "retrieval quality",
+          "legal-answer correctness"
+        ],
+        "matched": true,
+        "required_record_ids": [
+          "BLOCK-44-FZ-000"
+        ]
+      },
+      "non_authoritative": true,
+      "non_claims": [
+        "This S03 smoke record does not claim parser completeness.",
+        "This S03 smoke record does not claim legal correctness or authoritative legal interpretation.",
+        "This S03 smoke record does not claim product ETL readiness.",
+        "This S03 smoke record does not claim FalkorDB readiness or legal-answer support."
+      ],
+      "source_artifacts": [
+        "prd/parser/odt_source_block_records.jsonl"
+      ]
+    },
+    {
+      "anchors": [],
+      "case_class": "no-answer",
+      "case_id": "GT-002",
+      "description": "An intentionally absent target id must remain no-answer without fabricated evidence.",
+      "diagnostics": [
+        {
+          "actual_state": "no-answer",
+          "artifact_path": "prd/parser/odt_source_block_records.jsonl",
+          "case_class": "no-answer",
+          "case_id": "GT-002",
+          "expected_state": "no-answer",
+          "message": "Golden no-answer target is intentionally absent from tracked parser artifacts.",
+          "non_authoritative": true,
+          "record_id": "DOC-ABSENT-GOLDEN-NO-ANSWER",
+          "record_kind": "result",
+          "rule": "intentionally_absent_target",
+          "severity": "info",
+          "source_path": null
+        }
+      ],
+      "expected": {
+        "answer_state": "no-answer",
+        "expected_match_count": 0,
+        "forbidden_claims": [
+          "parser completeness",
+          "retrieval quality",
+          "legal-answer correctness"
+        ],
+        "inspected_artifact_paths": [
+          "prd/parser/odt_document_records.jsonl",
+          "prd/parser/odt_source_block_records.jsonl",
+          "prd/parser/consultant_relation_candidates.jsonl"
+        ],
+        "matched": false,
+        "missing_target_id": "DOC-ABSENT-GOLDEN-NO-ANSWER"
+      },
+      "non_authoritative": true,
+      "non_claims": [
+        "No-answer behavior does not prove recall, parser completeness, or product retrieval quality."
+      ],
+      "source_artifacts": [
+        "prd/parser/odt_document_records.jsonl",
+        "prd/parser/odt_source_block_records.jsonl",
+        "prd/parser/consultant_relation_candidates.jsonl"
+      ]
+    },
+    {
+      "anchors": [
+        {
+          "artifact_path": "prd/parser/consultant_relation_candidates.jsonl",
+          "evidence_sha256": "1f9f163bcfa3a429a11b228707313b6e02c713ffb16f4a2ab7842a5af9a6279d",
+          "non_authoritative": true,
+          "object_ref": "consultant:LAW:179581@11.05.2026",
+          "record_id": "REL-CONS-0001",
+          "record_kind": "relation_candidate",
+          "relation_status": "candidate",
+          "relation_type": "consultant-list-entry",
+          "source_block_id": "BLOCK-CONSULTANT-XML-0001",
+          "source_path": "law-source/consultant/Список документов (5).xml",
+          "source_sha256": "0694587f4a907faf2e4cbaccb27b166e34a8380e9afc17642769b5ac54d5ede3",
+          "subject_ref": "consultant-list:law-source/consultant/Список документов (5).xml"
+        }
+      ],
+      "case_class": "candidate-only",
+      "case_id": "GT-003",
+      "description": "Consultant relation candidate remains visible only as status:candidate.",
+      "diagnostics": [],
+      "expected": {
+        "answer_state": "candidate-only",
+        "forbidden_claims": [
+          "relation correctness",
+          "Consultant WordML legal authority",
+          "product graph truth"
+        ],
+        "matched": true,
+        "required_record_ids": [
+          "REL-CONS-0001"
+        ],
+        "required_relation_status": "candidate",
+        "required_staging_edge_key": "REL-CONS-0001"
+      },
+      "non_authoritative": true,
+      "non_claims": [
+        "This Consultant WordML relation candidate does not claim parser completeness.",
+        "This Consultant WordML relation candidate does not claim legal correctness or authoritative legal interpretation.",
+        "This Consultant WordML relation candidate does not claim product ETL readiness.",
+        "This Consultant WordML relation candidate does not claim FalkorDB loading/runtime readiness.",
+        "This Consultant WordML relation candidate does not claim Consultant WordML legal authority.",
+        "This Consultant WordML relation candidate does not claim relation correctness."
+      ],
+      "source_artifacts": [
+        "prd/parser/consultant_relation_candidates.jsonl",
+        "prd/parser/parser_staging_graph.json"
+      ]
+    },
+    {
+      "anchors": [
+        {
+          "artifact_path": "prd/parser/parser_staging_graph.json",
+          "non_authoritative": true,
+          "record_id": "consultant-list:law-source/consultant/Список документов (5).xml",
+          "record_kind": "unresolved_reference",
+          "source_path": null,
+          "source_sha256": null
+        },
+        {
+          "artifact_path": "prd/parser/parser_staging_graph.json",
+          "non_authoritative": true,
+          "record_id": "consultant:LAW:179581@11.05.2026",
+          "record_kind": "unresolved_reference",
+          "source_path": null,
+          "source_sha256": null
+        }
+      ],
+      "case_class": "unresolved-reference",
+      "case_id": "GT-004",
+      "description": "Staging unresolved references stay explicit and are not rewritten to ODT ids.",
+      "diagnostics": [
+        {
+          "actual_state": "unresolved-reference",
+          "artifact_path": "prd/parser/parser_staging_graph.json",
+          "case_class": "unresolved-reference",
+          "case_id": "GT-004",
+          "expected_state": "unresolved-reference",
+          "field": "object_ref",
+          "message": "relation candidate object_ref is not a loaded parser record id",
+          "non_authoritative": true,
+          "record_id": "REL-CONS-0001",
+          "record_kind": "unresolved_reference",
+          "rule": "unresolved_object_ref",
+          "severity": "warning",
+          "source_path": "law-source/consultant/Список документов (5).xml"
+        },
+        {
+          "actual_state": "unresolved-reference",
+          "artifact_path": "prd/parser/parser_staging_graph.json",
+          "case_class": "unresolved-reference",
+          "case_id": "GT-004",
+          "expected_state": "unresolved-reference",
+          "field": "subject_ref",
+          "message": "relation candidate subject_ref is not a loaded parser record id",
+          "non_authoritative": true,
+          "record_id": "REL-CONS-0001",
+          "record_kind": "unresolved_reference",
+          "rule": "unresolved_subject_ref",
+          "severity": "warning",
+          "source_path": "law-source/consultant/Список документов (5).xml"
+        }
+      ],
+      "expected": {
+        "answer_state": "unresolved-reference",
+        "forbidden_claims": [
+          "endpoint resolution",
+          "FalkorDB loading/runtime readiness",
+          "citation-safe retrieval readiness"
+        ],
+        "matched": true,
+        "required_reference_ids": [
+          "consultant-list:law-source/consultant/Список документов (5).xml",
+          "consultant:LAW:179581@11.05.2026"
+        ]
+      },
+      "non_authoritative": true,
+      "non_claims": [
+        "This NetworkX MultiDiGraph staging report does not claim parser completeness.",
+        "This NetworkX MultiDiGraph staging report does not claim legal correctness or authoritative legal interpretation.",
+        "This NetworkX MultiDiGraph staging report does not claim product ETL readiness.",
+        "This NetworkX MultiDiGraph staging report does not claim FalkorDB loading/runtime readiness.",
+        "This NetworkX MultiDiGraph staging report does not claim relation correctness."
+      ],
+      "source_artifacts": [
+        "prd/parser/parser_staging_graph.json"
+      ]
+    },
+    {
+      "anchors": [
+        {
+          "artifact_path": "prd/parser/golden_test_contract.md",
+          "non_authoritative": true,
+          "record_id": "golden-test-contract",
+          "record_kind": "result",
+          "source_path": null,
+          "source_sha256": "db97e0c880b83f22e84f7ce1a3831103379bb9b8730eb32e7a8aa726766ca7d4"
+        }
+      ],
+      "case_class": "non-authoritative",
+      "case_id": "GT-005",
+      "description": "Parser/staging non-claim metadata blocks legal-answer and retrieval-quality claims.",
+      "diagnostics": [
+        {
+          "actual_state": "non-authoritative-boundary",
+          "artifact_path": "prd/parser/golden_test_contract.md",
+          "case_class": "non-authoritative",
+          "case_id": "GT-005",
+          "expected_state": "non-authoritative-boundary",
+          "message": "Golden cases preserve parser/retrieval/legal-answer blocked-claim labels.",
+          "non_authoritative": true,
+          "record_id": "blocked-claims",
+          "record_kind": "result",
+          "rule": "claims_blocked",
+          "severity": "info",
+          "source_path": null
+        }
+      ],
+      "expected": {
+        "answer_state": "non-authoritative-boundary",
+        "blocked_claims": [
+          "parser completeness",
+          "retrieval quality",
+          "legal-answer correctness",
+          "citation-safe retrieval readiness",
+          "product ETL readiness",
+          "FalkorDB loading/runtime readiness",
+          "Consultant WordML legal authority",
+          "relation correctness",
+          "product graph truth"
+        ],
+        "matched": true,
+        "required_non_claim_fragments": [
+          "parser completeness",
+          "retrieval quality",
+          "legal-answer correctness"
+        ]
+      },
+      "non_authoritative": true,
+      "non_claims": [
+        "This Consultant WordML relation candidate does not claim Consultant WordML legal authority.",
+        "This Consultant WordML relation candidate does not claim FalkorDB loading/runtime readiness.",
+        "This Consultant WordML relation candidate does not claim legal correctness or authoritative legal interpretation.",
+        "This Consultant WordML relation candidate does not claim parser completeness.",
+        "This Consultant WordML relation candidate does not claim product ETL readiness.",
+        "This Consultant WordML relation candidate does not claim relation correctness.",
+        "This NetworkX MultiDiGraph staging report does not claim FalkorDB loading/runtime readiness.",
+        "This NetworkX MultiDiGraph staging report does not claim legal correctness or authoritative legal interpretation.",
+        "This NetworkX MultiDiGraph staging report does not claim parser completeness.",
+        "This NetworkX MultiDiGraph staging report does not claim product ETL readiness.",
+        "This NetworkX MultiDiGraph staging report does not claim relation correctness.",
+        "This S03 smoke record does not claim FalkorDB readiness or legal-answer support.",
+        "This S03 smoke record does not claim legal correctness or authoritative legal interpretation.",
+        "This S03 smoke record does not claim parser completeness.",
+        "This S03 smoke record does not claim product ETL readiness."
+      ],
+      "source_artifacts": [
+        "prd/parser/golden_test_contract.md",
+        "prd/parser/odt_document_records.jsonl",
+        "prd/parser/odt_source_block_records.jsonl",
+        "prd/parser/consultant_relation_candidates.jsonl",
+        "prd/parser/parser_staging_graph.json"
+      ]
+    }
+  ],
+  "diagnostic_count": 4,
+  "diagnostics": [
+    {
+      "actual_state": "non-authoritative-boundary",
+      "artifact_path": "prd/parser/golden_test_contract.md",
+      "case_class": "non-authoritative",
+      "case_id": "GT-005",
+      "expected_state": "non-authoritative-boundary",
+      "message": "Golden cases preserve parser/retrieval/legal-answer blocked-claim labels.",
+      "non_authoritative": true,
+      "record_id": "blocked-claims",
+      "record_kind": "result",
+      "rule": "claims_blocked",
+      "severity": "info",
+      "source_path": null
+    },
+    {
+      "actual_state": "no-answer",
+      "artifact_path": "prd/parser/odt_source_block_records.jsonl",
+      "case_class": "no-answer",
+      "case_id": "GT-002",
+      "expected_state": "no-answer",
+      "message": "Golden no-answer target is intentionally absent from tracked parser artifacts.",
+      "non_authoritative": true,
+      "record_id": "DOC-ABSENT-GOLDEN-NO-ANSWER",
+      "record_kind": "result",
+      "rule": "intentionally_absent_target",
+      "severity": "info",
+      "source_path": null
+    },
+    {
+      "actual_state": "unresolved-reference",
+      "artifact_path": "prd/parser/parser_staging_graph.json",
+      "case_class": "unresolved-reference",
+      "case_id": "GT-004",
+      "expected_state": "unresolved-reference",
+      "field": "object_ref",
+      "message": "relation candidate object_ref is not a loaded parser record id",
+      "non_authoritative": true,
+      "record_id": "REL-CONS-0001",
+      "record_kind": "unresolved_reference",
+      "rule": "unresolved_object_ref",
+      "severity": "warning",
+      "source_path": "law-source/consultant/Список документов (5).xml"
+    },
+    {
+      "actual_state": "unresolved-reference",
+      "artifact_path": "prd/parser/parser_staging_graph.json",
+      "case_class": "unresolved-reference",
+      "case_id": "GT-004",
+      "expected_state": "unresolved-reference",
+      "field": "subject_ref",
+      "message": "relation candidate subject_ref is not a loaded parser record id",
+      "non_authoritative": true,
+      "record_id": "REL-CONS-0001",
+      "record_kind": "unresolved_reference",
+      "rule": "unresolved_subject_ref",
+      "severity": "warning",
+      "source_path": "law-source/consultant/Список документов (5).xml"
+    }
+  ],
+  "error_count": 0,
+  "generated_by": "scripts/build-parser-golden-cases.py",
+  "info_count": 2,
+  "non_authoritative": true,
+  "schema_version": "legalgraph-parser-golden-cases/v1",
+  "source_artifacts": [
+    {
+      "exists": true,
+      "path": "prd/parser/golden_test_contract.md",
+      "sha256": "db97e0c880b83f22e84f7ce1a3831103379bb9b8730eb32e7a8aa726766ca7d4"
+    },
+    {
+      "exists": true,
+      "path": "prd/parser/odt_document_records.jsonl",
+      "sha256": "d1924c4b6c39bfdbacd74f8bf89c646bdb3621c10f14f0252efaa5521571eb72"
+    },
+    {
+      "exists": true,
+      "path": "prd/parser/odt_source_block_records.jsonl",
+      "sha256": "17abff3024695fed1fa533aca4a0ae805d33ebe71ea1d00b6264364c2a9df266"
+    },
+    {
+      "exists": true,
+      "path": "prd/parser/consultant_relation_candidates.jsonl",
+      "sha256": "e03e1ea513bc0d391628b65b6b6d73dd686024c88f4ab87c5cc2ee74f0f52889"
+    },
+    {
+      "exists": true,
+      "path": "prd/parser/parser_staging_graph.json",
+      "sha256": "c0921cacf238de9df32a122f2f9e858f0ff05375794230eb8070c87e3f6f8a53"
+    }
+  ],
+  "status": "pass",
+  "warning_count": 2
+}
