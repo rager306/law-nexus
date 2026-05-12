@@ -130,6 +130,31 @@ The evaluator reads only tracked local inputs under `prd/parser/`: `golden_cases
 
 Current canonical S03 evaluator scope: it verifies the required evidence-present, no-answer, candidate-only, unresolved-reference, and non-authoritative outcomes for the current tracked M006/S02 parser artifacts. A passing evaluator run does not claim product retrieval readiness, citation-safe answer readiness, parser completeness, relation correctness, FalkorDB runtime readiness, legal-answer correctness, Consultant WordML legal authority, or product graph truth.
 
+## Parser golden-test closure proof and S04 handoff
+
+S04 closes the M008/R032 golden-test proof chain with `prd/parser/golden_test_proof_report.md`, a cold-reader inspection surface over the tracked parser golden-case artifacts and executable local checks. Use it as the handoff report that records the current command evidence, observed public evaluator fields, required case coverage, blocked claims, and downstream limitations without echoing raw full legal text or introducing runtime/network dependencies.
+
+Final bounded command chain:
+
+```bash
+uv run python scripts/validate-parser-records.py --check
+uv run python scripts/build-odt-smoke-records.py --check
+uv run python scripts/build-consultant-relation-candidates.py --check
+uv run python scripts/build-parser-staging-graph.py --check
+uv run python scripts/build-parser-golden-cases.py --check
+uv run python scripts/evaluate-parser-golden-cases.py --check
+uv run pytest -q tests/test_parser_golden_contract.py tests/test_parser_golden_cases.py tests/test_parser_golden_evaluator.py tests/test_parser_golden_proof_report.py
+uv run ruff check tests/test_parser_golden_proof_report.py
+```
+
+The three golden-test surfaces are intentionally separate:
+
+- Generator freshness: `uv run python scripts/build-parser-golden-cases.py --check` verifies that `prd/parser/golden_cases.json` and `prd/parser/golden_cases.md` are fresh against the tracked parser artifacts and golden-test contract.
+- Evaluator behavior: `uv run python scripts/evaluate-parser-golden-cases.py --check` evaluates the bounded `evidence-present`, `no-answer`, `candidate-only`, `unresolved-reference`, and `non-authoritative` cases and emits compact JSON diagnostics with path-qualified artifact references.
+- Closure proof/handoff: `prd/parser/golden_test_proof_report.md` summarizes the passing command evidence, case coverage, blocked claims, and limitations for cold-reader M008/R032 closure review.
+
+S04/R032 validation is bounded to executable golden tests over tracked artifacts. It does not validate parser completeness, product retrieval quality, citation-safe retrieval readiness, legal-answer correctness, relation correctness, Consultant WordML legal authority, FalkorDB loading/runtime readiness, product ETL readiness, or product graph truth. R031 remains the separate M006 parser proof/staging gate, R017 remains the separate Legal KnowQL/generated-Cypher proof gate, and future retrieval/product/FalkorDB work must provide its own proof before narrowing any of these non-claims.
+
 ## Consumer boundary for S03/S04/S05
 
 - S03 ODT parsing should emit `DocumentRecord` and `SourceBlockRecord` JSONL that validates with `uv run python scripts/validate-parser-records.py --kind <kind> <file>` and preserves `non_authoritative: true`.
