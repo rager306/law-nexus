@@ -1,0 +1,321 @@
+{
+  "schema_version": "legalgraph-review-findings/v1",
+  "review_id": "R04",
+  "section_id": "03_inconsistencies",
+  "title": "Inconsistencies and registry-quality issues",
+  "non_authoritative": true,
+  "items": [
+    {
+      "id": "R04-INC-001",
+      "title": "Three schema layers have zero records",
+      "severity": "major",
+      "layer": "architecture-governance",
+      "status": "active",
+      "proof_level": "static-check",
+      "risk_level": "high",
+      "observation": "architecture_graph_report.json reports node_count=0 for api-product, legal-evidence, and observability-operability. legal-evidence is the core PRD concept (Evidence-first principle); api-product covers Legal Nexus API surface; observability-operability covers latency/throughput/audit metrics.",
+      "evidence": [
+        {"path": "prd/architecture/architecture_graph_report.json", "selector": "layer_coverage"},
+        {"path": "prd/architecture/architecture_health.md", "selector": "Missing Layers"},
+        {"path": "prd/architecture/architecture_report.md", "selector": "Missing Layers"}
+      ],
+      "implication": "Verifier success does not imply coverage of legal-evidence, api-product, or observability-operability. Downstream agents could read green verifier output as full architectural coverage.",
+      "verification": "Add at least one anchored item record per empty layer (requirement, proof_gate, or evidence) and rerun S02/S03/S04.",
+      "non_claims": [
+        "Does not assert that empty layers indicate missing product capability.",
+        "Does not promote any specific record into the registry."
+      ]
+    },
+    {
+      "id": "R04-INC-002",
+      "title": "65% of nodes are high or critical risk",
+      "severity": "major",
+      "layer": "architecture-governance",
+      "status": "active",
+      "proof_level": "static-check",
+      "risk_level": "medium",
+      "observation": "15 of 23 nodes (11 high, 4 critical) carry high or critical risk_level. Distribution is concentrated in governance and security-safety layers (M001-ARCHITECTURE-ONLY-GUARDRAIL, REQ-R022, REQ-R028, RISK-OVERCLAIM-RUNTIME).",
+      "evidence": [
+        {"path": "prd/architecture/architecture_graph_report.json", "selector": "high_risk_nodes"},
+        {"path": "prd/architecture/architecture_health.md", "selector": "High-Risk Nodes"}
+      ],
+      "implication": "High-risk concentration in non-product layers signals that the registry currently documents its own governance, not product architecture. Product layers contain only 6 of 23 nodes.",
+      "verification": "After adding product-layer records, recompute high/critical share and confirm risk distribution reflects actual product surface.",
+      "non_claims": [
+        "Does not assert that high-risk classification is incorrect.",
+        "Does not assert current product runtime failure."
+      ]
+    },
+    {
+      "id": "R04-INC-003",
+      "title": "Three orphan nodes with no edges",
+      "severity": "major",
+      "layer": "architecture-governance",
+      "status": "active",
+      "proof_level": "static-check",
+      "risk_level": "high",
+      "observation": "architecture_graph_report.json lists ASSUMP-PRD-SOURCE-TRUTH, S05-OLD-PROJECT-PRIOR-ART, and S10-GIGAEMBEDDINGS-CHALLENGER-BLOCKED as isolated-node orphans. ASSUMP-PRD-SOURCE-TRUTH is a foundational assumption that should be linked to DEC-D031 via has_assumption.",
+      "evidence": [
+        {"path": "prd/architecture/architecture_graph_report.json", "selector": "orphan_findings"},
+        {"path": "prd/architecture/architecture_health.md", "selector": "Orphan Findings"},
+        {"path": "prd/architecture/architecture_items.jsonl", "selector": "ASSUMP-PRD-SOURCE-TRUTH"}
+      ],
+      "implication": "Schema enforces edge endpoint resolution but does not enforce minimum connectivity. Orphan critical records weaken traceability and decision-fitness coverage.",
+      "verification": "Add edges: EDGE-DEC-D031-HAS-ASSUMPTION-PRD-SOURCE-TRUTH (has_assumption), and equivalent traceability edges for the other two orphans.",
+      "non_claims": [
+        "Does not assert that orphan nodes should be deleted.",
+        "Does not assert that connectivity proves correctness."
+      ]
+    },
+    {
+      "id": "R04-INC-004",
+      "title": "Six weakly connected components in a 23-node graph",
+      "severity": "major",
+      "layer": "architecture-governance",
+      "status": "active",
+      "proof_level": "static-check",
+      "risk_level": "medium",
+      "observation": "Graph contains components of size 14, 4, 2, 1, 1, 1. A mature registry typically converges on 1–2 components with explicit justification.",
+      "evidence": [
+        {"path": "prd/architecture/architecture_graph_report.json", "selector": "weakly_connected_components"},
+        {"path": "prd/architecture/architecture_health.md", "selector": "Weakly Connected Components"}
+      ],
+      "implication": "Fragmented graph reduces the usefulness of graph-distance, centrality, and reachability analyses planned by downstream slices.",
+      "verification": "Reduce component count to ≤2 by adding evidence/traceability edges across the size-4 and size-2 clusters.",
+      "non_claims": [
+        "Does not assert a target component count is the only acceptable shape.",
+        "Does not assert that connectivity equals product readiness."
+      ]
+    },
+    {
+      "id": "R04-INC-005",
+      "title": "generated-cypher layer has only one record",
+      "severity": "major",
+      "layer": "generated-cypher",
+      "status": "active",
+      "proof_level": "static-check",
+      "risk_level": "high",
+      "observation": "Layer generated-cypher contains only REQ-R017. This layer corresponds to one of the highest-risk capability surfaces (LLM-generated Cypher safety, injection risk, KnowQL boundary). It should host proof gates, risks, interfaces, and workflow checks.",
+      "evidence": [
+        {"path": "prd/architecture/architecture_graph_report.json", "selector": "layer_coverage[generated-cypher]"},
+        {"path": "prd/architecture/architecture_items.jsonl", "selector": "REQ-R017"}
+      ],
+      "implication": "Critical-risk surface is under-modeled. Verifier cannot enforce overclaim or proof gates that do not exist as records.",
+      "verification": "Add at least proof_gate for generated-Cypher safety, risk for injection, and a workflow_check for Cypher linter.",
+      "non_claims": [
+        "Does not assert that generated-Cypher behavior is currently unsafe.",
+        "Does not specify implementation of a Cypher linter."
+      ]
+    },
+    {
+      "id": "R04-INC-006",
+      "title": "Decision fitness gap: high-risk decision lacks checked_by/validated_by coverage",
+      "severity": "major",
+      "layer": "architecture-governance",
+      "status": "active",
+      "proof_level": "static-check",
+      "risk_level": "high",
+      "observation": "README states that high/critical active decisions must carry checked_by or validated_by edges to a proof gate or workflow check. DEC-D031 (risk_level=high) has EDGE-DEC-D031-CHECKED-BY-CHECK-ARCHITECTURE-EXTRACTOR present, but DEC-D032 (risk_level=medium) has none. If DEC-D032 is later upgraded to high, the rule would trip.",
+      "evidence": [
+        {"path": "prd/architecture/architecture_items.jsonl", "selector": "DEC-D032"},
+        {"path": "prd/architecture/architecture_edges.jsonl", "kind": "registry-edges"},
+        {"path": "prd/architecture/README.md", "selector": "Decision fitness failures"}
+      ],
+      "implication": "Latent fitness failure if risk_level is reclassified upward without simultaneous edge addition.",
+      "verification": "Either add an explicit checked_by edge for DEC-D032 referencing CHECK-ARCHITECTURE-EXTRACTOR or S05 skill consistency check, or document why medium-risk decisions are exempt.",
+      "non_claims": [
+        "Does not assert DEC-D032 must be upgraded.",
+        "Does not assert current verifier failure."
+      ]
+    },
+    {
+      "id": "R04-INC-007",
+      "title": "Duplicated non_claims across multiple requirement records",
+      "severity": "minor",
+      "layer": "architecture-governance",
+      "status": "active",
+      "proof_level": "static-check",
+      "risk_level": "low",
+      "observation": "REQ-R001, REQ-R009, and REQ-R010 each carry an identical seven-entry non_claims list (No legal-answer correctness claim, No product Legal KnowQL behavior claim, No parser completeness claim, No product retrieval quality claim, No managed embedding API fallback claim, No production-scale FalkorDB claim, No LLM legal authority claim).",
+      "evidence": [
+        {"path": "prd/architecture/architecture_items.jsonl", "selector": "REQ-R001"},
+        {"path": "prd/architecture/architecture_items.jsonl", "selector": "REQ-R009"},
+        {"path": "prd/architecture/architecture_items.jsonl", "selector": "REQ-R010"}
+      ],
+      "implication": "Boilerplate non_claims dilute their per-record value and increase maintenance cost when the global baseline shifts.",
+      "verification": "Either move the shared seven into a registry-wide non_claims baseline (with schema support) and keep only record-specific deltas, or document why per-record duplication is intentional.",
+      "non_claims": [
+        "Does not assert that current non_claims are incorrect.",
+        "Does not propose a specific schema change."
+      ]
+    },
+    {
+      "id": "R04-INC-008",
+      "title": "Source anchors to selector-only without line ranges",
+      "severity": "minor",
+      "layer": "architecture-governance",
+      "status": "active",
+      "proof_level": "static-check",
+      "risk_level": "medium",
+      "observation": "GATE-G005, GATE-G008, GATE-G011, GATE-G015 anchor to prd/04_review_findings.md via selector only (G-005, G-008, G-011, G-015) without line_start/line_end or quote_hash. README S04 verifier states it checks that selector text still appears in the anchored file, but reformatting can change selector visibility.",
+      "evidence": [
+        {"path": "prd/architecture/architecture_items.jsonl", "selector": "GATE-G005"},
+        {"path": "prd/architecture/architecture_items.jsonl", "selector": "GATE-G008"},
+        {"path": "prd/architecture/architecture_items.jsonl", "selector": "GATE-G011"},
+        {"path": "prd/architecture/architecture_items.jsonl", "selector": "GATE-G015"},
+        {"path": "prd/architecture/README.md", "selector": "Stale or unsafe anchors"}
+      ],
+      "implication": "Anchor fragility under upstream reformatting; selector-only anchors are convenient but fail silently if the selector text is rewritten.",
+      "verification": "Add line_start/line_end ranges, or quote_hash, to anchors that currently rely on selectors only.",
+      "non_claims": [
+        "Does not assert current selectors are broken.",
+        "Does not require deletion of selector field."
+      ]
+    },
+    {
+      "id": "R04-INC-009",
+      "title": "Confidence semantics on edges versus item proof_level",
+      "severity": "minor",
+      "layer": "architecture-governance",
+      "status": "active",
+      "proof_level": "static-check",
+      "risk_level": "low",
+      "observation": "Edge schema defines confidence (0..1) but item schema does not. Combination semantics are not documented: if an edge with confidence 0.75 connects two high-risk active items with proof_level=source-anchor, the composite trust score is unspecified.",
+      "evidence": [
+        {"path": "prd/architecture/architecture.schema.json", "selector": "$defs.edge.properties.confidence"},
+        {"path": "prd/architecture/architecture_edges.jsonl", "kind": "registry-edges"}
+      ],
+      "implication": "Risk that downstream consumers interpret confidence inconsistently (probability vs evidence strength vs reviewer subjective belief).",
+      "verification": "Document the meaning of edge.confidence in README and either remove or align it with proof_level semantics for items.",
+      "non_claims": [
+        "Does not assert that current confidence values are incorrect.",
+        "Does not propose a specific composition formula."
+      ]
+    },
+    {
+      "id": "R04-INC-010",
+      "title": "Health dashboard and architecture report duplicate content",
+      "severity": "minor",
+      "layer": "workflow-governance",
+      "status": "active",
+      "proof_level": "static-check",
+      "risk_level": "low",
+      "observation": "architecture_health.md and architecture_report.md present the same Layer Coverage, Open Proof Gates, High-Risk Nodes, and Orphan Findings tables. They differ mainly in emoji markers and headings.",
+      "evidence": [
+        {"path": "prd/architecture/architecture_health.md", "selector": "Layer Coverage"},
+        {"path": "prd/architecture/architecture_report.md", "selector": "Layer Coverage"}
+      ],
+      "implication": "Two derived files drift independently and double the maintenance surface for the views generator.",
+      "verification": "Either consolidate into one human-facing view, or redefine each: report = S03 technical snapshot, dashboard = planning-oriented quick stats.",
+      "non_claims": [
+        "Does not assert that both views should be deleted.",
+        "Does not specify which file is canonical."
+      ]
+    },
+    {
+      "id": "R04-INC-011",
+      "title": "Ten edge types defined but never used",
+      "severity": "minor",
+      "layer": "architecture-governance",
+      "status": "active",
+      "proof_level": "static-check",
+      "risk_level": "low",
+      "observation": "Edge type enum contains 22 values; architecture_edges.jsonl uses only checked_by, satisfies, depends_on, blocks, bounded_by, evidenced_by (6 types). Unused: implements, refines, contradicts, supersedes, superseded_by, risks, owned_by, uses_viewpoint, has_option, chosen_over, has_consequence, has_assumption, has_constraint, implicates, reviewed_by, governs_artifact.",
+      "evidence": [
+        {"path": "prd/architecture/architecture.schema.json", "selector": "$defs.edge_type.enum"},
+        {"path": "prd/architecture/architecture_edges.jsonl", "kind": "registry-edges"}
+      ],
+      "implication": "Schema permits more semantic richness than the current registry uses. Some unused edges (has_assumption, has_consequence) would directly resolve R04-INC-003 orphan findings.",
+      "verification": "Either populate the missing edge types where applicable (especially has_assumption for ASSUMP-PRD-SOURCE-TRUTH), or document why they remain reserved for later milestones.",
+      "non_claims": [
+        "Does not assert that all enum values must be used now.",
+        "Does not propose schema reduction."
+      ]
+    },
+    {
+      "id": "R04-INC-012",
+      "title": "Schema-version locked at v1 with no migration policy",
+      "severity": "minor",
+      "layer": "architecture-governance",
+      "status": "active",
+      "proof_level": "static-check",
+      "risk_level": "medium",
+      "observation": "architecture.schema.json defines schema_version as const 'legalgraph-architecture-registry/v1'. No documented strategy for evolving to v2 (new enum values, new required fields, deprecation handling).",
+      "evidence": [
+        {"path": "prd/architecture/architecture.schema.json", "selector": "$defs.schema_version"},
+        {"path": "prd/architecture/README.md"}
+      ],
+      "implication": "Any backward-incompatible change to enums or required fields requires either silent rollover or a coordinated migration that is currently undefined.",
+      "verification": "Add a 'Schema evolution' section to README describing the v1→v2 path: parallel acceptance window, extractor migration, verifier behavior on mixed schema_version, and deprecation log.",
+      "non_claims": [
+        "Does not propose a specific v2 schema.",
+        "Does not require immediate version change."
+      ]
+    },
+    {
+      "id": "R04-INC-013",
+      "title": "Claims ledger mixes registry-mechanics claims with product claims",
+      "severity": "minor",
+      "layer": "workflow-governance",
+      "status": "active",
+      "proof_level": "static-check",
+      "risk_level": "low",
+      "observation": "CHECK-ARCHITECTURE-EXTRACTOR is classified as safe-to-say in claims_ledger.md alongside requirement records. It is a workflow_check about the extractor, not a product claim. The ledger does not distinguish 'safe to say about the registry' from 'safe to say about the product'.",
+      "evidence": [
+        {"path": "prd/architecture/claims_ledger.md", "selector": "safe-to-say"},
+        {"path": "prd/architecture/architecture_items.jsonl", "selector": "CHECK-ARCHITECTURE-EXTRACTOR"}
+      ],
+      "implication": "Future agents may quote registry-mechanics claims as if they were product-readiness claims.",
+      "verification": "Add a 'claim domain' column (registry vs product) to claims_ledger.md, or split the ledger into two derived views.",
+      "non_claims": [
+        "Does not assert that the current classification is wrong.",
+        "Does not require ledger schema redesign."
+      ]
+    },
+    {
+      "id": "R04-INC-014",
+      "title": "Three derived planning views share generator and freshness gate",
+      "severity": "minor",
+      "layer": "workflow-governance",
+      "status": "active",
+      "proof_level": "static-check",
+      "risk_level": "low",
+      "observation": "architecture_health.md, product_readiness_blockers.md, and claims_ledger.md are all generated by scripts/generate-architecture-views.py with a single --check gate. A partial regeneration is not supported.",
+      "evidence": [
+        {"path": "prd/architecture/README.md", "selector": "Architecture Health Dashboard"},
+        {"path": "prd/architecture/README.md", "selector": "Product Readiness Blockers Report"},
+        {"path": "prd/architecture/README.md", "selector": "Claims Ledger"}
+      ],
+      "implication": "Any edit to one view triggers regeneration semantics for all three; isolated regeneration for testing is not part of the contract.",
+      "verification": "Document whether per-view --check flags are supported, or accept that the bundle is atomic by design.",
+      "non_claims": [
+        "Does not assert per-view isolation is required.",
+        "Does not propose splitting the generator."
+      ]
+    },
+    {
+      "id": "R04-INC-015",
+      "title": "Layer enum lacks a finance/cost-control layer",
+      "severity": "minor",
+      "layer": "architecture-governance",
+      "status": "active",
+      "proof_level": "static-check",
+      "risk_level": "low",
+      "observation": "Schema layer enum covers legal-evidence, temporal-model, graph-runtime, parser-ingestion, retrieval-embedding, generated-cypher, api-product, security-safety, observability-operability, workflow-governance, architecture-governance. There is no layer for cost/quota concerns (embedding-API spend, FalkorDB resource limits, LLM token budget).",
+      "evidence": [
+        {"path": "prd/architecture/architecture.schema.json", "selector": "$defs.layer.enum"}
+      ],
+      "implication": "Cost/quota proof gates currently have no canonical layer; they would default to observability-operability or security-safety, blurring those layers.",
+      "verification": "Either extend the layer enum (requires v2 schema, see R04-INC-012) or document the chosen home for cost/quota records.",
+      "non_claims": [
+        "Does not assert that cost layer must be added.",
+        "Does not propose specific cost gates."
+      ]
+    }
+  ],
+  "non_claims": [
+    "Inconsistencies are observations of the registry's current shape, not failures of the underlying product.",
+    "Does not assert that verifier currently fails on any item above.",
+    "Does not promote any item into architecture_items.jsonl."
+  ]
+}

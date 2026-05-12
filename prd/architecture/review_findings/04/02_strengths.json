@@ -1,0 +1,98 @@
+{
+  "schema_version": "legalgraph-review-findings/v1",
+  "review_id": "R04",
+  "section_id": "02_strengths",
+  "title": "Strengths to preserve",
+  "non_authoritative": true,
+  "items": [
+    {
+      "id": "R04-STR-001",
+      "title": "Non-claims as a first-class field",
+      "summary": "Every item record carries explicit non_claims (64 entries across 23 nodes). This guards downstream prose and LLM composition against silent overclaim drift.",
+      "evidence": [
+        {"path": "prd/architecture/architecture.schema.json", "selector": "$defs.item.required[non_claims]"},
+        {"path": "prd/architecture/architecture_items.jsonl", "kind": "registry-items"},
+        {"path": "prd/architecture/architecture_health.md", "selector": "Non-Authoritative Boundary"}
+      ],
+      "preserve_because": "Removes a major risk class (positive overclaim by omission) at schema level, not at policy level.",
+      "regression_signal_if_lost": "non_claims becoming optional, deduplicated only globally, or stripped from derived views."
+    },
+    {
+      "id": "R04-STR-002",
+      "title": "Eight-level proof_level ladder",
+      "summary": "proof_level enum (none → source-anchor → static-check → unit-test → integration-test → runtime-smoke → real-document-proof → production-observation) forces claims to declare the highest currently earned evidence, not aspirational level.",
+      "evidence": [
+        {"path": "prd/architecture/architecture.schema.json", "selector": "$defs.proof_level.enum"},
+        {"path": "prd/architecture/README.md", "selector": "Proof levels and claim discipline"}
+      ],
+      "preserve_because": "Makes proof granularity machine-readable and forces honest downgrades when evidence is bounded.",
+      "regression_signal_if_lost": "Records marked validated without matching runtime/real-document proof, or collapsed ladder."
+    },
+    {
+      "id": "R04-STR-003",
+      "title": "ADR-style decision metadata enforced by schema",
+      "summary": "Schema requires deciders, decision_drivers, and considered_options for any item.type=decision via allOf/if-then. DEC-D031 and DEC-D032 fully populate pros/cons, consequences, assumptions, constraints, implications.",
+      "evidence": [
+        {"path": "prd/architecture/architecture.schema.json", "selector": "$defs.item.allOf[2]"},
+        {"path": "prd/architecture/architecture_items.jsonl", "selector": "DEC-D031"},
+        {"path": "prd/architecture/architecture_items.jsonl", "selector": "DEC-D032"}
+      ],
+      "preserve_because": "Prevents context-free decisions and supports later review/supersession traceability.",
+      "regression_signal_if_lost": "Decision records without consequences or considered_options passing the schema."
+    },
+    {
+      "id": "R04-STR-004",
+      "title": "Fail-closed verifier policy with deterministic diagnostics",
+      "summary": "scripts/verify-architecture-graph.py composes S02 --check and S03 --check, then applies schema, anchor freshness, missing-endpoint, orphan, gate-metadata, decision-fitness, contradiction, and overclaim-scan rules. Failures are fail-closed and report rule + record ID + field.",
+      "evidence": [
+        {"path": "prd/architecture/README.md", "selector": "S04 verifier contract"},
+        {"path": "prd/architecture/README.md", "selector": "Failure classes and remediation hints"}
+      ],
+      "preserve_because": "Deterministic, diagnostic-friendly default for an artifact class that must not silently drift.",
+      "regression_signal_if_lost": "Verifier downgraded to warnings, custom-path runs treated as evidence, or overclaim scan removed."
+    },
+    {
+      "id": "R04-STR-005",
+      "title": "Schema-level safeguards against unsafe content",
+      "summary": "path_string forbids absolute paths via not.pattern=^/; identifier enforces uppercase-prefixed pattern; quote_hash uses hex regex; superseded items must point at superseded_by; minItems=1 for source_anchors when generated_draft is false.",
+      "evidence": [
+        {"path": "prd/architecture/architecture.schema.json", "selector": "$defs.path_string"},
+        {"path": "prd/architecture/architecture.schema.json", "selector": "$defs.item.allOf[0]"},
+        {"path": "prd/architecture/architecture.schema.json", "selector": "$defs.item.allOf[1]"}
+      ],
+      "preserve_because": "Catches whole classes of authoring errors (absolute paths, missing anchors, dangling supersession) before any graph rule fires.",
+      "regression_signal_if_lost": "Loosened required arrays, removed regex constraints, or weakened allOf branches."
+    },
+    {
+      "id": "R04-STR-006",
+      "title": "Source-of-truth boundary repeated in every derived view",
+      "summary": "README, architecture_report.md, architecture_health.md, product_readiness_blockers.md, and claims_ledger.md each explicitly state that they are derived, non-authoritative projections and that PRD/GSD/ADR/source/runtime evidence remains authoritative.",
+      "evidence": [
+        {"path": "prd/architecture/README.md", "selector": "Source-of-truth boundary"},
+        {"path": "prd/architecture/architecture_report.md", "line_start": 1, "line_end": 6},
+        {"path": "prd/architecture/architecture_health.md", "line_start": 1, "line_end": 4},
+        {"path": "prd/architecture/product_readiness_blockers.md", "line_start": 1, "line_end": 4},
+        {"path": "prd/architecture/claims_ledger.md", "line_start": 1, "line_end": 4}
+      ],
+      "preserve_because": "Boundary discipline is repeated at every consumption point, reducing the chance that a downstream agent treats a derived view as authority.",
+      "regression_signal_if_lost": "Derived view introducing positive product claims, or removing the non-authoritative disclaimer."
+    },
+    {
+      "id": "R04-STR-007",
+      "title": "Separation of pipeline stages S02 / S03 / S04 / views",
+      "summary": "Extractor, graph builder, verifier, and views generator are independent scripts with explicit --check freshness modes. Each stage owns specific output paths and contracts.",
+      "evidence": [
+        {"path": "prd/architecture/README.md", "selector": "End-to-end architecture verification workflow"},
+        {"path": "prd/architecture/README.md", "selector": "S02 extractor contract"},
+        {"path": "prd/architecture/README.md", "selector": "S03 graph-report contract"},
+        {"path": "prd/architecture/README.md", "selector": "S04 verifier contract"}
+      ],
+      "preserve_because": "Allows independent evolution and isolates the failure cause when a stage drifts.",
+      "regression_signal_if_lost": "Stages merging into a single script, or views generated without freshness gate."
+    }
+  ],
+  "non_claims": [
+    "Strengths describe registry mechanics, not product architecture quality.",
+    "Preserving these strengths does not validate runtime behavior."
+  ]
+}

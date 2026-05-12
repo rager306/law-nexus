@@ -1,0 +1,176 @@
+{
+  "schema_version": "legalgraph-review-findings/v1",
+  "review_id": "R04",
+  "section_id": "04_risks",
+  "title": "Architectural risks of the registry itself",
+  "non_authoritative": true,
+  "items": [
+    {
+      "id": "R04-RSK-001",
+      "title": "Registry documents governance rather than product architecture",
+      "severity": "major",
+      "layer": "architecture-governance",
+      "status": "active",
+      "proof_level": "static-check",
+      "risk_level": "high",
+      "observation": "17 of 23 nodes belong to architecture-governance, security-safety, or workflow-governance. Only 6 nodes describe product capability layers (parser-ingestion, retrieval-embedding, graph-runtime, temporal-model, generated-cypher). The registry currently describes itself more than the product.",
+      "evidence": [
+        {"path": "prd/architecture/architecture_items.jsonl", "kind": "registry-items"},
+        {"path": "prd/architecture/architecture_graph_report.json", "selector": "layer_coverage"}
+      ],
+      "implication": "Successful S04 verifier runs cannot be read as product-architecture validation; they validate that the registry validates itself.",
+      "mitigation": "Add product-layer items (requirements, components, interfaces, data entities) sourced from prd/01_general_idea.md, prd/02_architecture.md, prd/03_PRD.md so product surface is at least minimally represented.",
+      "non_claims": [
+        "Does not assert governance records should be removed.",
+        "Does not assert that product coverage will fix verifier scope."
+      ]
+    },
+    {
+      "id": "R04-RSK-002",
+      "title": "Heavy coupling to .gsd/ paths outside prd/architecture/",
+      "severity": "major",
+      "layer": "architecture-governance",
+      "status": "active",
+      "proof_level": "static-check",
+      "risk_level": "high",
+      "observation": "Most source anchors point into .gsd/milestones/M001/slices/S0*/..., .gsd/REQUIREMENTS.md, .gsd/DECISIONS.md. If .gsd/ is reorganized, renamed, or moved, the majority of records will fail anchor freshness checks simultaneously.",
+      "evidence": [
+        {"path": "prd/architecture/architecture_items.jsonl", "kind": "registry-items"},
+        {"path": "prd/architecture/README.md", "selector": "Stale or unsafe anchors"}
+      ],
+      "implication": "The registry depends on the stability of an external directory whose lifecycle is not described in the architecture contract.",
+      "mitigation": "Document .gsd/ path stability assumptions in README, or add a path-mapping layer that survives renames. Consider treating .gsd/* as 'external-reference' with mirrored selectors.",
+      "non_claims": [
+        "Does not assert .gsd/ will be renamed.",
+        "Does not propose a specific path-mapping mechanism."
+      ]
+    },
+    {
+      "id": "R04-RSK-003",
+      "title": "Verifier success creates a false sense of architectural correctness",
+      "severity": "major",
+      "layer": "workflow-governance",
+      "status": "active",
+      "proof_level": "static-check",
+      "risk_level": "high",
+      "observation": "scripts/verify-architecture-graph.py is read-only by design and explicitly does not validate product readiness, runtime behavior, parser completeness, retrieval quality, legal-answer correctness, generated-Cypher safety, FalkorDB production scale, or LLM authority. The README states this, but consumers may still equate 'verifier passes' with 'architecture is correct'.",
+      "evidence": [
+        {"path": "prd/architecture/README.md", "selector": "S04 verifier contract"}
+      ],
+      "implication": "Risk that downstream agents quote verifier success as proof of architectural quality, despite the explicit boundary.",
+      "mitigation": "Add a 'what verifier success means' versus 'what it does not mean' summary card to the verifier CLI output and to claims_ledger.md.",
+      "non_claims": [
+        "Does not assert verifier scope must change.",
+        "Does not assert any current overclaim by maintainers."
+      ]
+    },
+    {
+      "id": "R04-RSK-004",
+      "title": "Schema v1 has no documented evolution path",
+      "severity": "minor",
+      "layer": "architecture-governance",
+      "status": "active",
+      "proof_level": "static-check",
+      "risk_level": "medium",
+      "observation": "schema_version is locked at legalgraph-architecture-registry/v1 with no migration policy. Future additions (new layers, new edge types, new required fields, see R04-INC-011, R04-INC-015) currently have no rollover plan.",
+      "evidence": [
+        {"path": "prd/architecture/architecture.schema.json", "selector": "$defs.schema_version"},
+        {"path": "prd/architecture/README.md"}
+      ],
+      "implication": "Either breaking changes silently land (corrupting older records), or any non-trivial schema upgrade is blocked behind ad-hoc migrations.",
+      "mitigation": "Define a schema evolution policy: parallel-version acceptance window, extractor migration step, verifier behavior on mixed schema_version, deprecation log location.",
+      "non_claims": [
+        "Does not require immediate v2.",
+        "Does not propose a specific compat policy."
+      ]
+    },
+    {
+      "id": "R04-RSK-005",
+      "title": "Traceability gap to prd/parser/ artifacts",
+      "severity": "major",
+      "layer": "parser-ingestion",
+      "status": "active",
+      "proof_level": "static-check",
+      "risk_level": "high",
+      "observation": "The sibling directory prd/parser/ contains concrete parser smoke records, ODT smoke records, consultant relation candidates, source-fixture inventory, and schemas. The architecture registry has no evidence or component records anchored to these artifacts. S05-PARSER-ODT-BOUNDARY anchors only to .gsd/ summaries.",
+      "evidence": [
+        {"path": "prd/architecture/architecture_items.jsonl", "selector": "S05-PARSER-ODT-BOUNDARY"},
+        {"path": "prd/parser/parser_record_contract.md", "kind": "manual-note"},
+        {"path": "prd/parser/odt_smoke_records.md", "kind": "manual-note"}
+      ],
+      "implication": "Parser evidence is duplicated between .gsd/ summaries and prd/parser/ artifacts without a registry-side bridge, weakening traceability of parser claims.",
+      "mitigation": "Add evidence items anchored to prd/parser/odt_smoke_records.md, prd/parser/parser_staging_graph.md, prd/parser/consultant_relation_candidates.md and link them via evidenced_by to existing parser records.",
+      "non_claims": [
+        "Does not assert prd/parser/ files are authoritative.",
+        "Does not require duplicating their content into the registry."
+      ]
+    },
+    {
+      "id": "R04-RSK-006",
+      "title": "Critical product surfaces depend on records that do not exist yet",
+      "severity": "major",
+      "layer": "generated-cypher",
+      "status": "active",
+      "proof_level": "static-check",
+      "risk_level": "high",
+      "observation": "Critical-risk surfaces — generated-Cypher safety, legal-evidence grounding, api-product surface — have proof gates only by absence. The registry can pass verification while leaving these surfaces unmodeled.",
+      "evidence": [
+        {"path": "prd/architecture/architecture_graph_report.json", "selector": "layer_coverage"},
+        {"path": "prd/architecture/architecture_items.jsonl", "kind": "registry-items"}
+      ],
+      "implication": "A 'no records, no gate, no failure' loophole: surfaces with the highest risk can be implicitly accepted because the registry does not assert anything about them.",
+      "mitigation": "Add explicit proof_gate records (proof_level=none, status=active, risk=high/critical) for each critical surface that lacks coverage, so verifier and views surface the gaps.",
+      "non_claims": [
+        "Does not assert these surfaces are currently unsafe.",
+        "Does not require implementation of the surfaces themselves."
+      ]
+    },
+    {
+      "id": "R04-RSK-007",
+      "title": "Generated views can drift independently from each other",
+      "severity": "minor",
+      "layer": "workflow-governance",
+      "status": "active",
+      "proof_level": "static-check",
+      "risk_level": "medium",
+      "observation": "architecture_health.md, product_readiness_blockers.md, and claims_ledger.md are produced by a single generator but are evaluated by humans independently. If one view is regenerated and another is not, contradictions can appear without a verifier failure if the bundle freshness gate is bypassed via custom paths.",
+      "evidence": [
+        {"path": "prd/architecture/README.md", "selector": "Architecture Health Dashboard"},
+        {"path": "prd/architecture/README.md", "selector": "Product Readiness Blockers Report"},
+        {"path": "prd/architecture/README.md", "selector": "Claims Ledger"}
+      ],
+      "implication": "Custom-path runs of the views generator are not strictly invalid but are not registry-current proof; the README warns about this for verifier, less so for views.",
+      "mitigation": "Add an explicit 'views freshness' note in the README clarifying that custom --output-dir runs are diagnostic only and not authoritative.",
+      "non_claims": [
+        "Does not assert that drift currently exists.",
+        "Does not require disabling custom-path runs."
+      ]
+    },
+    {
+      "id": "R04-RSK-008",
+      "title": "Identifier pattern allows shadow IDs across record kinds",
+      "severity": "minor",
+      "layer": "architecture-governance",
+      "status": "active",
+      "proof_level": "static-check",
+      "risk_level": "low",
+      "observation": "Schema identifier pattern ^[A-Z][A-Z0-9_-]*-[A-Za-z0-9_.:-]+$ does not separate item IDs from edge IDs by prefix. Current convention (REQ-, DEC-, GATE-, RISK-, EDGE-, ASSUMP-, CHECK-, M00*-, S0*-) is by author discipline only.",
+      "evidence": [
+        {"path": "prd/architecture/architecture.schema.json", "selector": "$defs.identifier"},
+        {"path": "prd/architecture/architecture_items.jsonl", "kind": "registry-items"},
+        {"path": "prd/architecture/architecture_edges.jsonl", "kind": "registry-edges"}
+      ],
+      "implication": "If a future author creates an item with EDGE- prefix or an edge with REQ- prefix, schema validation will not reject it; downstream tooling that filters by prefix could silently misclassify records.",
+      "mitigation": "Either enforce prefix-by-kind in the schema (with a pattern union) or document the prefix convention as a hard contract and add an extractor check.",
+      "non_claims": [
+        "Does not assert that the current registry contains misclassified records.",
+        "Does not require schema change as the only path."
+      ]
+    }
+  ],
+  "non_claims": [
+    "Risks describe the registry's exposure surface, not current product runtime failure.",
+    "Mitigations are candidate actions, not committed work.",
+    "Does not promote any record into architecture_items.jsonl."
+  ]
+}

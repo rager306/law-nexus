@@ -1,0 +1,112 @@
+{
+  "schema_version": "legalgraph-review-findings/v1",
+  "review_id": "R04",
+  "section_id": "01_summary",
+  "title": "Registry summary and structural metrics",
+  "non_authoritative": true,
+  "artifacts": [
+    {
+      "path": "prd/architecture/README.md",
+      "kind": "contract-doc",
+      "size_bytes": 29668,
+      "purpose": "Contracts for S02 extractor, S03 graph/report, S04 verifier, derived views; source-of-truth boundary; proof-level discipline; failure classes."
+    },
+    {
+      "path": "prd/architecture/architecture.schema.json",
+      "kind": "json-schema",
+      "size_bytes": 13607,
+      "purpose": "Per-record validation for item/edge JSONL records (oneOf item|edge)."
+    },
+    {
+      "path": "prd/architecture/architecture_items.jsonl",
+      "kind": "registry-items",
+      "size_bytes": 23092,
+      "record_count": 23
+    },
+    {
+      "path": "prd/architecture/architecture_edges.jsonl",
+      "kind": "registry-edges",
+      "size_bytes": 9274,
+      "record_count": 17
+    },
+    {
+      "path": "prd/architecture/architecture_graph_report.json",
+      "kind": "derived-graph-report",
+      "size_bytes": 12166
+    },
+    {
+      "path": "prd/architecture/architecture_report.md",
+      "kind": "derived-markdown-report",
+      "size_bytes": 4428
+    },
+    {
+      "path": "prd/architecture/architecture_health.md",
+      "kind": "derived-dashboard",
+      "size_bytes": 5341
+    },
+    {
+      "path": "prd/architecture/product_readiness_blockers.md",
+      "kind": "derived-planning",
+      "size_bytes": 8141
+    },
+    {
+      "path": "prd/architecture/claims_ledger.md",
+      "kind": "derived-classification",
+      "size_bytes": 6029
+    }
+  ],
+  "metrics": {
+    "nodes": 23,
+    "edges": 17,
+    "schema_layers_total": 11,
+    "missing_layers": 3,
+    "unresolved_proof_gates": 4,
+    "orphan_findings": 3,
+    "contradiction_edges": 0,
+    "high_risk_nodes": 11,
+    "critical_risk_nodes": 4,
+    "high_or_critical_risk_share": "15/23 ≈ 65%",
+    "nodes_with_non_claims": 23,
+    "total_non_claims": 64,
+    "weakly_connected_components": [
+      {"size": 14, "count": 1},
+      {"size": 4, "count": 1},
+      {"size": 2, "count": 1},
+      {"size": 1, "count": 3}
+    ]
+  },
+  "layer_coverage": [
+    {"layer": "architecture-governance", "node_count": 7},
+    {"layer": "parser-ingestion", "node_count": 3},
+    {"layer": "retrieval-embedding", "node_count": 3},
+    {"layer": "security-safety", "node_count": 3},
+    {"layer": "workflow-governance", "node_count": 3},
+    {"layer": "graph-runtime", "node_count": 2},
+    {"layer": "generated-cypher", "node_count": 1},
+    {"layer": "temporal-model", "node_count": 1},
+    {"layer": "api-product", "node_count": 0},
+    {"layer": "legal-evidence", "node_count": 0},
+    {"layer": "observability-operability", "node_count": 0}
+  ],
+  "pipeline_stages": {
+    "S02_extractor": "scripts/extract-prd-architecture-items.py → architecture_items.jsonl + architecture_edges.jsonl",
+    "S03_graph_builder": "scripts/build-architecture-graph.py → architecture_graph_report.json + architecture_report.md",
+    "S04_verifier": "scripts/verify-architecture-graph.py (read-only, fail-closed)",
+    "views_generator": "scripts/generate-architecture-views.py → architecture_health.md + product_readiness_blockers.md + claims_ledger.md"
+  },
+  "posture": {
+    "headline": "Mature contracts and safeguards; very narrow content coverage.",
+    "observation": "Registry is well-formed and policy-disciplined, but 65% of nodes are governance/safety oriented; only 6 of 23 nodes describe product capability layers (parser-ingestion, retrieval-embedding, graph-runtime, temporal-model, generated-cypher). Three schema layers are empty (api-product, legal-evidence, observability-operability).",
+    "implication": "Verifier success cannot be interpreted as product-architecture coverage; it only attests to the current static registry shape."
+  },
+  "source_anchors": [
+    {"path": "prd/architecture/architecture_graph_report.json", "kind": "runtime-artifact"},
+    {"path": "prd/architecture/architecture_health.md", "kind": "manual-note"},
+    {"path": "prd/architecture/architecture_report.md", "kind": "manual-note"}
+  ],
+  "non_claims": [
+    "Does not validate registry runtime behavior.",
+    "Does not assert that the metrics imply product architecture completeness.",
+    "Does not replace S02/S03/S04 output as authoritative."
+  ]
+}

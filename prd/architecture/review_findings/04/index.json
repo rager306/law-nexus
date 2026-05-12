@@ -1,0 +1,83 @@
+{
+  "schema_version": "legalgraph-review-findings/v1",
+  "review_id": "R04",
+  "review_target": "prd/architecture/",
+  "review_date": "2026-05-11",
+  "non_authoritative": true,
+  "scope_note": "Findings classify the architecture registry (prd/architecture/) only. Source-of-truth remains with PRD/GSD/ADR/source/runtime evidence. Findings are derived observations, not proof.",
+  "id_convention": {
+    "prefix": "R04-",
+    "format": "R04-<SECTION>-<NNN>",
+    "section_codes": {
+      "SUM": "summary metrics",
+      "STR": "strengths",
+      "INC": "inconsistencies",
+      "RSK": "architectural risks",
+      "GAP": "missing items",
+      "REC": "recommendations"
+    }
+  },
+  "field_alignment": {
+    "schema_ref": "prd/architecture/architecture.schema.json",
+    "compatible_fields": [
+      "id",
+      "title",
+      "summary",
+      "layer",
+      "status",
+      "proof_level",
+      "risk_level",
+      "source_anchors",
+      "non_claims",
+      "verification",
+      "owner",
+      "generated_draft"
+    ],
+    "note": "Findings use a subset of architecture.schema.json fields so they can be promoted into architecture_items.jsonl as proof_gate / risk / evidence records later."
+  },
+  "sections": [
+    {
+      "id": "01_summary",
+      "title": "Registry summary and structural metrics",
+      "file": "01_summary.json",
+      "description": "Overview of artifacts in prd/architecture/, node/edge counts, layer coverage, and high-level posture."
+    },
+    {
+      "id": "02_strengths",
+      "title": "Strengths to preserve",
+      "file": "02_strengths.json",
+      "description": "Mature patterns in the registry that should not regress (non_claims discipline, proof_level ladder, ADR metadata, fail-closed verifier, schema safeguards)."
+    },
+    {
+      "id": "03_inconsistencies",
+      "title": "Inconsistencies and registry-quality issues",
+      "file": "03_inconsistencies.json",
+      "description": "Concrete defects in items/edges/views: missing layers, orphan nodes, low coverage, weakly connected components, duplicated non_claims, schema-version drift risk."
+    },
+    {
+      "id": "04_risks",
+      "title": "Architectural risks of the registry itself",
+      "file": "04_risks.json",
+      "description": "Higher-order risks: governance-vs-product imbalance, .gsd path coupling, verifier scope, schema version evolution, traceability gap to prd/parser/."
+    },
+    {
+      "id": "05_gaps",
+      "title": "Missing record classes and coverage gaps",
+      "file": "05_gaps.json",
+      "description": "Record kinds and content that should exist in the registry but are absent (interface, data_entity, component, quality_scenario, viewpoint, FR-coverage, edge type usage)."
+    },
+    {
+      "id": "06_recommendations",
+      "title": "Action plan by priority",
+      "file": "06_recommendations.json",
+      "description": "BLOCKER / MAJOR / MINOR action items with explicit linkage to the inconsistency, risk, or gap they resolve."
+    }
+  ],
+  "non_claims": [
+    "Does not validate registry runtime behavior.",
+    "Does not assert product readiness for LegalGraph Nexus.",
+    "Does not replace PRD/GSD/ADR/source/runtime evidence.",
+    "Does not promote any finding into an architecture_items.jsonl record automatically.",
+    "Does not assert that resolving these findings is sufficient for product proof."
+  ]
+}

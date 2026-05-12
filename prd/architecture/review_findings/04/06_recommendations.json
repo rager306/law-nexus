@@ -1,0 +1,346 @@
+{
+  "schema_version": "legalgraph-review-findings/v1",
+  "review_id": "R04",
+  "section_id": "06_recommendations",
+  "title": "Action plan by priority",
+  "non_authoritative": true,
+  "priority_definitions": {
+    "blocker": "Must be resolved before any downstream slice consumes the registry as authoritative coverage of product layers.",
+    "major": "Should be resolved within the current milestone to bring registry coverage in line with the declared schema layers and source PRD scope.",
+    "minor": "Quality-of-life improvements; resolve opportunistically or after BLOCKER/MAJOR items."
+  },
+  "items": [
+    {
+      "id": "R04-REC-001",
+      "title": "Populate three empty schema layers",
+      "priority": "blocker",
+      "resolves": ["R04-INC-001", "R04-RSK-001", "R04-RSK-006", "R04-GAP-002", "R04-GAP-003", "R04-GAP-004"],
+      "layer": "architecture-governance",
+      "owner": "M004 registry maintainers",
+      "verification": "After regeneration, architecture_graph_report.json reports node_count >= 1 for api-product, legal-evidence, observability-operability; S04 verifier passes.",
+      "action": [
+        "Add at least one data_entity record under legal-evidence (e.g., LegalAct, EvidenceSpan, NormStatement).",
+        "Add at least one component record under api-product (e.g., Legal Nexus orchestrator).",
+        "Add at least one quality_scenario record under observability-operability (e.g., NFR-7 performance target)."
+      ],
+      "non_claims": [
+        "Does not assert that one record per empty layer makes the layer complete.",
+        "Does not assert that the added records prove product behavior."
+      ]
+    },
+    {
+      "id": "R04-REC-002",
+      "title": "Connect orphan nodes via existing edge types",
+      "priority": "blocker",
+      "resolves": ["R04-INC-003", "R04-INC-004", "R04-INC-011"],
+      "layer": "architecture-governance",
+      "owner": "M004 registry maintainers",
+      "verification": "Orphan findings count drops to 0 in architecture_graph_report.json; weakly_connected_components reduces to <= 2.",
+      "action": [
+        "Add EDGE-DEC-D031-HAS-ASSUMPTION-ASSUMP-PRD-SOURCE-TRUTH (has_assumption).",
+        "Connect S05-OLD-PROJECT-PRIOR-ART via bounded_by to GATE-G008 or risks to RISK-OVERCLAIM-RUNTIME.",
+        "Connect S10-GIGAEMBEDDINGS-CHALLENGER-BLOCKED via bounded_by to GATE-G011."
+      ],
+      "non_claims": [
+        "Does not assert that current orphans contain incorrect content.",
+        "Does not require using unused edge types as a goal in itself."
+      ]
+    },
+    {
+      "id": "R04-REC-003",
+      "title": "Add explicit proof gates for critical product surfaces with no records",
+      "priority": "blocker",
+      "resolves": ["R04-RSK-006", "R04-INC-005", "R04-GAP-001", "R04-GAP-013"],
+      "layer": "generated-cypher",
+      "owner": "M004 registry maintainers",
+      "verification": "architecture_graph_report.json shows new proof_gate records with proof_level=none for generated-Cypher safety, access control, and embedding-model supply chain.",
+      "action": [
+        "Add proof_gate for generated-Cypher safety (no unsafe Cypher execution).",
+        "Add proof_gate for access control on Legal Nexus API surface.",
+        "Add proof_gate for embedding-model supply-chain integrity.",
+        "Link each gate via blocks to REQ-R029 or the corresponding requirement."
+      ],
+      "non_claims": [
+        "Does not assert these surfaces are currently unsafe.",
+        "Does not commit to implementing the underlying controls in M004."
+      ]
+    },
+    {
+      "id": "R04-REC-004",
+      "title": "Project source PRDs into requirement records",
+      "priority": "major",
+      "resolves": ["R04-GAP-006", "R04-GAP-007", "R04-RSK-001"],
+      "layer": "architecture-governance",
+      "owner": "M004/S02 extractor mapping maintainers",
+      "verification": "Each FR/NFR section in prd/01_general_idea.md, prd/02_architecture.md, prd/03_PRD.md has either a requirement record or an explicit out-of-scope mapping; extractor --check passes.",
+      "action": [
+        "Extend scripts/extract-prd-architecture-items.py mappings to project FR-1..FR-31 and NFR-1..NFR-9.",
+        "For each, decide layer placement and add non_claims aligned with R04-INC-007 baseline.",
+        "Add evidence records for sibling planning docs (prd/05..10) or document why they are intentionally out-of-scope."
+      ],
+      "non_claims": [
+        "Does not assert that 100% PRD projection equals readiness.",
+        "Does not require implementing every FR."
+      ]
+    },
+    {
+      "id": "R04-REC-005",
+      "title": "Bridge architecture registry to prd/parser/ evidence",
+      "priority": "major",
+      "resolves": ["R04-RSK-005", "R04-GAP-007"],
+      "layer": "parser-ingestion",
+      "owner": "M004/S05 parser evidence consolidation",
+      "verification": "At least one evidence record per artifact in prd/parser/ that S05-PARSER-ODT-BOUNDARY currently references only via .gsd/ summaries.",
+      "action": [
+        "Add evidence records anchored to prd/parser/odt_smoke_records.md, prd/parser/parser_staging_graph.md, prd/parser/consultant_relation_candidates.md, prd/parser/source_fixture_inventory.md.",
+        "Link via evidenced_by from S05-PARSER-ODT-BOUNDARY and via bounded_by to GATE-G008."
+      ],
+      "non_claims": [
+        "Does not assert prd/parser/ files are authoritative.",
+        "Does not duplicate their content into the registry."
+      ]
+    },
+    {
+      "id": "R04-REC-006",
+      "title": "Add temporal data_entity and temporal requirement records",
+      "priority": "major",
+      "resolves": ["R04-GAP-014"],
+      "layer": "temporal-model",
+      "owner": "future-temporal-proof",
+      "verification": "temporal-model layer has at least one data_entity record plus the existing GATE-G005; node_count for temporal-model >= 2.",
+      "action": [
+        "Add data_entity record for the temporal property bundle (edition_date, valid_from, valid_to, effective_from, effective_to, status, temporal_confidence).",
+        "Add requirement records for temporal status semantics anchored to prd/02_architecture.md temporal section.",
+        "Link via depends_on from GATE-G005 to the new data_entity."
+      ],
+      "non_claims": [
+        "Does not specify temporal storage implementation.",
+        "Does not commit to a complete temporal model in M004."
+      ]
+    },
+    {
+      "id": "R04-REC-007",
+      "title": "Tighten anchor stability with line ranges or quote_hash",
+      "priority": "minor",
+      "resolves": ["R04-INC-008"],
+      "layer": "architecture-governance",
+      "owner": "M004/S02 extractor mapping maintainers",
+      "verification": "All source_anchors with selector field also carry either line_start/line_end or quote_hash; S04 verifier anchor freshness rules pass.",
+      "action": [
+        "For each GATE-G* record anchored to prd/04_review_findings.md, add line_start/line_end based on current content, or quote_hash of the supporting fragment."
+      ],
+      "non_claims": [
+        "Does not assert current selectors fail today.",
+        "Does not require removing the selector field."
+      ]
+    },
+    {
+      "id": "R04-REC-008",
+      "title": "Document schema evolution policy",
+      "priority": "minor",
+      "resolves": ["R04-INC-012", "R04-RSK-004"],
+      "layer": "architecture-governance",
+      "owner": "M004 registry maintainers",
+      "verification": "README contains a 'Schema evolution' section that specifies parallel acceptance window, extractor migration, verifier behavior on mixed schema_version, and deprecation log location.",
+      "action": [
+        "Add the section to prd/architecture/README.md.",
+        "Define how schema_version v2 would be introduced without breaking v1 records during the migration window."
+      ],
+      "non_claims": [
+        "Does not require immediate v2 schema.",
+        "Does not propose specific v2 fields."
+      ]
+    },
+    {
+      "id": "R04-REC-009",
+      "title": "Disambiguate claims ledger by claim domain",
+      "priority": "minor",
+      "resolves": ["R04-INC-013"],
+      "layer": "workflow-governance",
+      "owner": "views generator maintainers",
+      "verification": "claims_ledger.md adds a 'claim domain' column (registry-mechanics vs product) or is split into two derived views.",
+      "action": [
+        "Extend scripts/generate-architecture-views.py to classify each record's claim domain.",
+        "Update claims_ledger.md template accordingly."
+      ],
+      "non_claims": [
+        "Does not assert current ledger entries are misclassified by safety level.",
+        "Does not require ledger schema redesign."
+      ]
+    },
+    {
+      "id": "R04-REC-010",
+      "title": "Consolidate or differentiate health dashboard and architecture report",
+      "priority": "minor",
+      "resolves": ["R04-INC-010", "R04-RSK-007"],
+      "layer": "workflow-governance",
+      "owner": "views generator maintainers",
+      "verification": "Either architecture_health.md and architecture_report.md have non-overlapping sections, or one is removed with an explicit deprecation note in README.",
+      "action": [
+        "Decide canonical role for each file (technical snapshot vs planning quick-stats).",
+        "Update README and the views generator to reflect the decision."
+      ],
+      "non_claims": [
+        "Does not require deletion of either file.",
+        "Does not propose specific section partitioning."
+      ]
+    },
+    {
+      "id": "R04-REC-011",
+      "title": "Document edge confidence semantics or remove the field",
+      "priority": "minor",
+      "resolves": ["R04-INC-009"],
+      "layer": "architecture-governance",
+      "owner": "schema maintainers",
+      "verification": "README contains an explicit definition of edge.confidence and its relationship (or non-relationship) to item.proof_level.",
+      "action": [
+        "Add a 'Confidence semantics' subsection to README.",
+        "If confidence is intended as a separate scalar, document its composition rules with proof_level.",
+        "If confidence is redundant, schedule its removal in the v2 schema."
+      ],
+      "non_claims": [
+        "Does not assert current confidence values are wrong.",
+        "Does not require immediate removal."
+      ]
+    },
+    {
+      "id": "R04-REC-012",
+      "title": "Add CI/regenerate hook documentation",
+      "priority": "minor",
+      "resolves": ["R04-GAP-010"],
+      "layer": "workflow-governance",
+      "owner": "M004 workflow maintainers",
+      "verification": "README contains a 'Continuous integration' section listing the recommended hook (pre-commit, GitHub Action) and the exact commands.",
+      "action": [
+        "Document the hook recipe in README.",
+        "Reference scripts/extract-prd-architecture-items.py --check, scripts/build-architecture-graph.py --check, scripts/verify-architecture-graph.py, scripts/generate-architecture-views.py --check as the gate set."
+      ],
+      "non_claims": [
+        "Does not require a specific CI provider.",
+        "Does not commit to a specific hook scope."
+      ]
+    },
+    {
+      "id": "R04-REC-013",
+      "title": "Strengthen identifier conventions per record kind",
+      "priority": "minor",
+      "resolves": ["R04-RSK-008"],
+      "layer": "architecture-governance",
+      "owner": "schema maintainers",
+      "verification": "Either the schema enforces prefix-by-kind via patternProperties or oneOf with kind-specific pattern, or README documents the prefix convention as a hard contract and the extractor enforces it.",
+      "action": [
+        "Decide between schema-level and extractor-level enforcement.",
+        "Add a corresponding test to tests/test_architecture_registry_schema.py."
+      ],
+      "non_claims": [
+        "Does not assert current IDs are misclassified.",
+        "Does not require renaming existing records."
+      ]
+    },
+    {
+      "id": "R04-REC-014",
+      "title": "Add coverage metrics to views generator",
+      "priority": "minor",
+      "resolves": ["R04-GAP-011"],
+      "layer": "workflow-governance",
+      "owner": "views generator maintainers",
+      "verification": "architecture_health.md gains a 'Coverage' section showing per-source-file projected/total counts with explicit non_claims that high coverage is not a product readiness signal.",
+      "action": [
+        "Extend scripts/generate-architecture-views.py to compute coverage ratios.",
+        "Add non_claims to the new section to prevent overclaim."
+      ],
+      "non_claims": [
+        "Does not assert that 100% coverage is the right goal.",
+        "Does not assert that coverage equals readiness."
+      ]
+    },
+    {
+      "id": "R04-REC-015",
+      "title": "Connect RISK-OVERCLAIM-RUNTIME to threatened records via risks edges",
+      "priority": "minor",
+      "resolves": ["R04-GAP-012"],
+      "layer": "security-safety",
+      "owner": "M004 registry maintainers",
+      "verification": "RISK-OVERCLAIM-RUNTIME has at least one outbound risks edge to each record class it threatens (parser, retrieval, generated-Cypher, temporal).",
+      "action": [
+        "Add risks edges from RISK-OVERCLAIM-RUNTIME to the corresponding records.",
+        "Use rationale field to explain the surface threatened."
+      ],
+      "non_claims": [
+        "Does not assert exhaustive surface inventory.",
+        "Does not require linking to every record."
+      ]
+    },
+    {
+      "id": "R04-REC-016",
+      "title": "Either populate or fixture-test contradicts and supersedes branches",
+      "priority": "minor",
+      "resolves": ["R04-GAP-008", "R04-GAP-009"],
+      "layer": "architecture-governance",
+      "owner": "schema/verifier maintainers",
+      "verification": "Either at least one production contradicts/supersedes edge exists with explicit rationale, or tests/fixtures cover both verifier branches with negative and positive cases.",
+      "action": [
+        "Add fixture cases in tests/fixtures/architecture/ for contradicts and supersedes branches.",
+        "Confirm verifier behavior matches README documented rules."
+      ],
+      "non_claims": [
+        "Does not require introducing real contradictions or supersession in the production registry.",
+        "Does not assert that absence of these edges is a current bug."
+      ]
+    },
+    {
+      "id": "R04-REC-017",
+      "title": "Make verifier output state what success does not mean",
+      "priority": "minor",
+      "resolves": ["R04-RSK-003"],
+      "layer": "workflow-governance",
+      "owner": "M004/S04 verifier maintainers",
+      "verification": "scripts/verify-architecture-graph.py prints, on success, an explicit 'what this does not validate' summary derived from the README boundary statement.",
+      "action": [
+        "Add a final summary block to the verifier CLI output enumerating the surfaces it does not validate.",
+        "Mirror the same statement in claims_ledger.md."
+      ],
+      "non_claims": [
+        "Does not change verifier scope.",
+        "Does not assert any current overclaim by maintainers."
+      ]
+    },
+    {
+      "id": "R04-REC-018",
+      "title": "Document .gsd/ stability assumption or introduce a path-mapping layer",
+      "priority": "minor",
+      "resolves": ["R04-RSK-002"],
+      "layer": "architecture-governance",
+      "owner": "M004 registry maintainers",
+      "verification": "README contains an explicit assumption record (or section) about .gsd/ path stability, plus a documented response procedure if .gsd/ is renamed.",
+      "action": [
+        "Add an assumption record (assumption type) anchored to README that .gsd/ paths remain stable for the M004 milestone.",
+        "Document the migration response if .gsd/ moves."
+      ],
+      "non_claims": [
+        "Does not require building a path-mapping layer.",
+        "Does not assert .gsd/ will be renamed."
+      ]
+    }
+  ],
+  "summary_counts": {
+    "blocker": 3,
+    "major": 3,
+    "minor": 12,
+    "total": 18
+  },
+  "execution_order_hint": [
+    "R04-REC-001 (populate empty layers) -> unblocks R04-REC-003, R04-REC-004",
+    "R04-REC-002 (connect orphans) -> independent, fast to apply",
+    "R04-REC-003 (add critical-surface gates) -> depends on R04-REC-001",
+    "R04-REC-004 (FR/NFR projection) -> larger extractor work, depends on R04-REC-001",
+    "R04-REC-005, R04-REC-006 -> parallelizable with R04-REC-004",
+    "Remaining minor items -> opportunistic"
+  ],
+  "non_claims": [
+    "Recommendations are candidate actions, not committed work.",
+    "Resolving all items does not constitute product readiness.",
+    "Does not assert that the proposed records or edges are exhaustive.",
+    "Does not promote any item into architecture_items.jsonl."
+  ]
+}

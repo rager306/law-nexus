@@ -1,0 +1,297 @@
+{
+  "schema_version": "legalgraph-review-findings/v1",
+  "review_id": "R04",
+  "section_id": "05_gaps",
+  "title": "Missing record classes and coverage gaps",
+  "non_authoritative": true,
+  "items": [
+    {
+      "id": "R04-GAP-001",
+      "title": "No interface records for UDF API surface",
+      "severity": "major",
+      "layer": "generated-cypher",
+      "status": "active",
+      "proof_level": "none",
+      "risk_level": "high",
+      "observation": "The schema defines item_type=interface, but architecture_items.jsonl contains zero interface records. UDF/procedure surfaces (legal.active_at, legal.resolve_citation, legal.verify_evidence, legal.find_requirements) are not modeled as interfaces.",
+      "evidence": [
+        {"path": "prd/architecture/architecture.schema.json", "selector": "$defs.item_type.enum"},
+        {"path": "prd/architecture/architecture_items.jsonl", "kind": "registry-items"}
+      ],
+      "verification": "Add interface records per documented UDF/procedure with input/output type fields captured in summary or governed_artifacts.",
+      "non_claims": [
+        "Does not specify UDF implementation.",
+        "Does not require runtime contracts beyond record fields."
+      ]
+    },
+    {
+      "id": "R04-GAP-002",
+      "title": "No data_entity records for core legal graph types",
+      "severity": "major",
+      "layer": "legal-evidence",
+      "status": "active",
+      "proof_level": "none",
+      "risk_level": "high",
+      "observation": "Schema supports item_type=data_entity. LegalAct, ActEdition, EvidenceSpan, LegalUnit, NormStatement, TextChunk, SourceDocument, SourceBlock are referenced extensively in source PRDs but absent as registry records. The layer legal-evidence has zero nodes.",
+      "evidence": [
+        {"path": "prd/architecture/architecture.schema.json", "selector": "$defs.item_type.enum"},
+        {"path": "prd/architecture/architecture_items.jsonl", "kind": "registry-items"},
+        {"path": "prd/architecture/architecture_graph_report.json", "selector": "layer_coverage[legal-evidence]"}
+      ],
+      "verification": "Add data_entity records anchored to the corresponding PRD sections; link them via evidenced_by and depends_on to existing parser/temporal items.",
+      "non_claims": [
+        "Does not assert specific schema property names.",
+        "Does not require implementation of these entities."
+      ]
+    },
+    {
+      "id": "R04-GAP-003",
+      "title": "No component records for runtime services",
+      "severity": "major",
+      "layer": "api-product",
+      "status": "active",
+      "proof_level": "none",
+      "risk_level": "high",
+      "observation": "Schema supports item_type=component. Legal Nexus orchestrator, ETL pipeline, FalkorDB store, Embedding service, KnowQL planner, Evidence verifier are referenced as services but not modeled as component records. The layer api-product has zero nodes.",
+      "evidence": [
+        {"path": "prd/architecture/architecture.schema.json", "selector": "$defs.item_type.enum"},
+        {"path": "prd/architecture/architecture_graph_report.json", "selector": "layer_coverage[api-product]"}
+      ],
+      "verification": "Add component records for each named service with governed_artifacts pointing at scripts/* or future module paths; link via implements edges to the corresponding requirements.",
+      "non_claims": [
+        "Does not commit to building these services in M004.",
+        "Does not require specific deployment topology."
+      ]
+    },
+    {
+      "id": "R04-GAP-004",
+      "title": "No quality_scenario records for NFRs",
+      "severity": "major",
+      "layer": "observability-operability",
+      "status": "active",
+      "proof_level": "none",
+      "risk_level": "medium",
+      "observation": "Schema supports item_type=quality_scenario. NFRs such as determinism, auditability, idempotency, performance target, legal precision, explainability, scalability, privacy/local-first compatibility are referenced in PRD but not represented as registry records. The layer observability-operability has zero nodes.",
+      "evidence": [
+        {"path": "prd/architecture/architecture.schema.json", "selector": "$defs.item_type.enum"},
+        {"path": "prd/architecture/architecture_graph_report.json", "selector": "layer_coverage[observability-operability]"}
+      ],
+      "verification": "Add quality_scenario records for each NFR with measurable verification text and proof_gate links where bounded.",
+      "non_claims": [
+        "Does not set specific SLOs.",
+        "Does not require runtime measurement in M004."
+      ]
+    },
+    {
+      "id": "R04-GAP-005",
+      "title": "No viewpoint records for stakeholder perspectives",
+      "severity": "minor",
+      "layer": "architecture-governance",
+      "status": "active",
+      "proof_level": "none",
+      "risk_level": "low",
+      "observation": "Schema supports item_type=viewpoint. PRD describes target users (Legal Data Engineer, AI/RAG Engineer, Legal Expert, AI Agent) but no viewpoint records exist. uses_viewpoint edge type is unused.",
+      "evidence": [
+        {"path": "prd/architecture/architecture.schema.json", "selector": "$defs.item_type.enum"},
+        {"path": "prd/architecture/architecture.schema.json", "selector": "$defs.edge_type.enum"}
+      ],
+      "verification": "Add viewpoint records for each stakeholder role; use uses_viewpoint edges to attach the perspective to relevant requirements or quality scenarios.",
+      "non_claims": [
+        "Does not assert that viewpoint records are required for M004 acceptance.",
+        "Does not propose a specific viewpoint catalog."
+      ]
+    },
+    {
+      "id": "R04-GAP-006",
+      "title": "FR-by-FR coverage of source PRDs is absent",
+      "severity": "major",
+      "layer": "architecture-governance",
+      "status": "active",
+      "proof_level": "none",
+      "risk_level": "high",
+      "observation": "The registry contains no per-FR records anchored to prd/01_general_idea.md, prd/02_architecture.md, prd/03_PRD.md. Coverage of FR-1..FR-31 and NFR-1..NFR-9 cannot be measured from the current registry alone.",
+      "evidence": [
+        {"path": "prd/architecture/architecture_items.jsonl", "kind": "registry-items"}
+      ],
+      "verification": "Add at least requirement records for each FR and quality_scenario records for each NFR with source_anchors pointing at the corresponding PRD section.",
+      "non_claims": [
+        "Does not require all FRs to be implemented.",
+        "Does not assert that each FR must be a separate record."
+      ]
+    },
+    {
+      "id": "R04-GAP-007",
+      "title": "No coverage of derived PRD planning documents",
+      "severity": "minor",
+      "layer": "architecture-governance",
+      "status": "active",
+      "proof_level": "none",
+      "risk_level": "medium",
+      "observation": "Sibling planning documents (prd/05_final_architecture_review.md, prd/06_m002_cypher_safety_contract.md, prd/07_m002_text_to_cypher_recommendation.md, prd/08_m003_minimax_pyo3_functioning_proof.md, prd/09_architecture_planning_verification_research.md, prd/10_m006_parser_graph_staging_recommendation.md) are referenced from at most a couple of source_anchors. There is no systematic evidence record for each.",
+      "evidence": [
+        {"path": "prd/architecture/architecture_items.jsonl", "kind": "registry-items"}
+      ],
+      "verification": "For each sibling planning doc, decide whether to add an evidence record or document why it is intentionally not registered.",
+      "non_claims": [
+        "Does not require duplicating doc content into the registry.",
+        "Does not assert all sibling docs are equally important."
+      ]
+    },
+    {
+      "id": "R04-GAP-008",
+      "title": "No supersession edges, despite explicit schema support",
+      "severity": "minor",
+      "layer": "architecture-governance",
+      "status": "active",
+      "proof_level": "none",
+      "risk_level": "low",
+      "observation": "Schema defines supersedes and superseded_by edge types and a required superseded_by field for items with status=superseded. The current registry contains no superseded records and no supersession edges.",
+      "evidence": [
+        {"path": "prd/architecture/architecture.schema.json", "selector": "$defs.edge_type.enum"},
+        {"path": "prd/architecture/architecture.schema.json", "selector": "$defs.item.allOf[1]"},
+        {"path": "prd/architecture/architecture_items.jsonl", "kind": "registry-items"}
+      ],
+      "verification": "Either confirm that no records have been superseded yet (acceptable in early milestone state), or document a worked example of supersession to validate the schema branch and verifier rule end-to-end.",
+      "non_claims": [
+        "Does not assert that supersession is required now.",
+        "Does not propose specific records to supersede."
+      ]
+    },
+    {
+      "id": "R04-GAP-009",
+      "title": "No contradicts edges, despite contradiction handling in verifier",
+      "severity": "minor",
+      "layer": "architecture-governance",
+      "status": "active",
+      "proof_level": "none",
+      "risk_level": "low",
+      "observation": "S04 verifier policy treats active/hypothesis/bounded-evidence contradicts edges as hard failures. The current edges file contains zero contradiction edges; this branch of verifier behavior is untested by the registry itself.",
+      "evidence": [
+        {"path": "prd/architecture/README.md", "selector": "Active contradictions"},
+        {"path": "prd/architecture/architecture_edges.jsonl", "kind": "registry-edges"}
+      ],
+      "verification": "Either confirm absence is by design, or add a fixture-only contradiction edge in tests/ to validate the verifier branch.",
+      "non_claims": [
+        "Does not require introducing contradictions in the production registry.",
+        "Does not assert that absence indicates incorrect behavior."
+      ]
+    },
+    {
+      "id": "R04-GAP-010",
+      "title": "No CI hook or regenerate-on-change automation documented",
+      "severity": "minor",
+      "layer": "workflow-governance",
+      "status": "active",
+      "proof_level": "none",
+      "risk_level": "medium",
+      "observation": "README documents the manual workflow (extract → build → verify → views) but not whether a CI hook enforces it on every commit that touches PRD/GSD/architecture/scripts.",
+      "evidence": [
+        {"path": "prd/architecture/README.md", "selector": "End-to-end architecture verification workflow"}
+      ],
+      "verification": "Add a CI-integration section to README describing the recommended hook (pre-commit, GitHub Action, or both) and the exact commands.",
+      "non_claims": [
+        "Does not require a specific CI provider.",
+        "Does not commit to a particular hook scope."
+      ]
+    },
+    {
+      "id": "R04-GAP-011",
+      "title": "No coverage metric ratio (FR-records / FR-source-count)",
+      "severity": "minor",
+      "layer": "workflow-governance",
+      "status": "active",
+      "proof_level": "none",
+      "risk_level": "low",
+      "observation": "Derived views report node counts per layer but no measure of how completely PRD FRs/NFRs are projected into the registry. There is no 'covered / total' ratio for source PRD requirements.",
+      "evidence": [
+        {"path": "prd/architecture/architecture_health.md", "selector": "Quick Stats"}
+      ],
+      "verification": "Extend the views generator with a coverage section that counts FR/NFR anchors per source file versus the total references in the file, with an explicit non-claim that 100% projection is not a product readiness signal.",
+      "non_claims": [
+        "Does not assert that 100% coverage is the right goal.",
+        "Does not assert that registry coverage equals product completeness."
+      ]
+    },
+    {
+      "id": "R04-GAP-012",
+      "title": "No risks edges connecting risk records to dependent items",
+      "severity": "minor",
+      "layer": "architecture-governance",
+      "status": "active",
+      "proof_level": "none",
+      "risk_level": "low",
+      "observation": "Schema defines edge type risks. RISK-OVERCLAIM-RUNTIME has one inbound checked_by edge but no outbound risks edges to the records it threatens (parser, retrieval, generated-Cypher records).",
+      "evidence": [
+        {"path": "prd/architecture/architecture.schema.json", "selector": "$defs.edge_type.enum"},
+        {"path": "prd/architecture/architecture_edges.jsonl", "kind": "registry-edges"},
+        {"path": "prd/architecture/architecture_items.jsonl", "selector": "RISK-OVERCLAIM-RUNTIME"}
+      ],
+      "verification": "Add risks edges from RISK-OVERCLAIM-RUNTIME to the records that would be affected, so graph queries can answer 'what does this risk threaten?'.",
+      "non_claims": [
+        "Does not require linking the risk to every record.",
+        "Does not propose a specific risk surface inventory."
+      ]
+    },
+    {
+      "id": "R04-GAP-013",
+      "title": "No security-safety records beyond redaction and LLM authority",
+      "severity": "minor",
+      "layer": "security-safety",
+      "status": "active",
+      "proof_level": "none",
+      "risk_level": "medium",
+      "observation": "security-safety layer has 3 nodes: REQ-R022 (redaction), REQ-R028 (LLM non-authoritative), RISK-OVERCLAIM-RUNTIME. There are no records for access control, authentication, audit log integrity, secret handling beyond redaction, or supply-chain safety for embedding models / FalkorDB binaries.",
+      "evidence": [
+        {"path": "prd/architecture/architecture_items.jsonl", "kind": "registry-items"},
+        {"path": "prd/architecture/architecture_graph_report.json", "selector": "layer_coverage[security-safety]"}
+      ],
+      "verification": "Add at least proof_gate or requirement records for access control, audit log integrity, and embedding-model supply chain, anchored to PRD or GSD evidence.",
+      "non_claims": [
+        "Does not assert current product is insecure.",
+        "Does not commit to specific security mechanisms."
+      ]
+    },
+    {
+      "id": "R04-GAP-014",
+      "title": "No temporal-model records beyond a single proof gate",
+      "severity": "major",
+      "layer": "temporal-model",
+      "status": "active",
+      "proof_level": "none",
+      "risk_level": "high",
+      "observation": "temporal-model layer contains only GATE-G005 (same-date multi-edition conflict). PRD defines edition_date, valid_from, valid_to, effective_from, effective_to, status, temporal_confidence as central temporal semantics, none represented as data_entity or requirement records.",
+      "evidence": [
+        {"path": "prd/architecture/architecture_graph_report.json", "selector": "layer_coverage[temporal-model]"},
+        {"path": "prd/architecture/architecture_items.jsonl", "selector": "GATE-G005"}
+      ],
+      "verification": "Add data_entity record for temporal property bundle and requirement records for temporal status semantics, anchored to PRD sections.",
+      "non_claims": [
+        "Does not specify implementation of temporal storage.",
+        "Does not require a complete temporal model in M004."
+      ]
+    },
+    {
+      "id": "R04-GAP-015",
+      "title": "No assumptions modeled beyond one orphan",
+      "severity": "minor",
+      "layer": "architecture-governance",
+      "status": "active",
+      "proof_level": "none",
+      "risk_level": "low",
+      "observation": "Only one assumption record exists (ASSUMP-PRD-SOURCE-TRUTH, orphan per R04-INC-003). PRD and architecture documents rely on multiple unstated assumptions (e.g., ODT format stability from Гарант, FalkorDBLite parity with Docker FalkorDB, embedding model availability, Russian-language tokenization quality).",
+      "evidence": [
+        {"path": "prd/architecture/architecture_items.jsonl", "selector": "ASSUMP-PRD-SOURCE-TRUTH"}
+      ],
+      "verification": "Add assumption records for the most load-bearing implicit assumptions and link them via has_assumption from the records that depend on them.",
+      "non_claims": [
+        "Does not assert each assumption needs an explicit record.",
+        "Does not enumerate every implicit assumption."
+      ]
+    }
+  ],
+  "non_claims": [
+    "Gaps describe what the registry does not project, not what the product lacks.",
+    "Filling a gap with a record does not validate the underlying claim.",
+    "Does not promote any record into architecture_items.jsonl."
+  ]
+}
