@@ -1,0 +1,450 @@
+{
+  "artifact_freshness": {
+    "rule": "tests/test_consultant_parser_proof.py recomputes input sha256/size and fails if proof input_artifacts drift.",
+    "stale_artifact_count": 0,
+    "stale_artifacts": [],
+    "status": "fresh-at-generation"
+  },
+  "deferred_boundaries": {
+    "garant": "Deferred: Garant ODT parsing is not a completion gate for this Consultant-only proof package.",
+    "graph_loading": "Not claimed: this package does not establish FalkorDB/product ETL load readiness.",
+    "multi_source": "Not claimed: this package does not establish multi-source parser readiness or Consultant/Garant parity."
+  },
+  "document_id": "DOC-CONS-44-FZ",
+  "fixture_inventory": {
+    "asset_count": 28,
+    "asset_type_counts": {
+      "articles-jsonl": 1,
+      "full-fixture": 1,
+      "parsing-prompt-yaml": 1,
+      "semantic-rules-yaml": 1,
+      "source-format-yaml": 1,
+      "structural-rules-yaml": 1,
+      "structure-json": 1,
+      "structure-yaml": 1,
+      "supporting-yaml": 20
+    },
+    "classification_counts": {
+      "adapt": 13,
+      "defer": 13,
+      "keep": 1,
+      "reject": 1
+    },
+    "consultant_fixture_assets": [
+      {
+        "asset_id": "CPA-001",
+        "classification": "keep",
+        "reuse_boundary": "Keep as the canonical tracked Consultant Plus WordML source-shape fixture and hash anchor only; do not treat as parsed legal semantics or multi-source readiness.",
+        "sha256": "69df0b9d9e2bcce6164fc4e3c74fb9bebfff36ae6b053c68917c804be4b52a86",
+        "size_bytes": 5235817,
+        "source_path": "law-source/consultant/44-FZ-2026.xml",
+        "title": "Canonical Consultant full normative-act WordML fixture"
+      }
+    ],
+    "hash_mismatches": [],
+    "missing_assets": [],
+    "source_path": "prd/parser/consultant_prior_art_inventory.json"
+  },
+  "hierarchy_artifacts": {
+    "counts_by_level": {
+      "article": 94,
+      "chapter": 8,
+      "clause": 997,
+      "document": 1,
+      "part": 793,
+      "section": 9,
+      "subclause": 283
+    },
+    "duplicate_ids": [],
+    "first_by_level": {
+      "article": {
+        "excerpt_sha256": "82d0072d6346a9cfd9cf81dbeca76dfbd21851a1970f5abdd24fdd031d12ff57",
+        "level": "article",
+        "marker": "статья 1.",
+        "order_index": 77,
+        "parent_id": "HIER-CONS-CHAPTER-0001",
+        "record_id": "HIER-CONS-ARTICLE-0001"
+      },
+      "chapter": {
+        "excerpt_sha256": "246b161464b9c9919d4a40b45d04936426fb3c437d4cca2c906f024d0d2801e6",
+        "level": "chapter",
+        "marker": "глава 1.",
+        "order_index": 75,
+        "parent_id": "HIER-CONS-DOCUMENT",
+        "record_id": "HIER-CONS-CHAPTER-0001"
+      },
+      "clause": {
+        "excerpt_sha256": "48c1a3625d2c7ebae40edfadd29c138726076fd671dab5dce0f7aea12c1526c5",
+        "level": "clause",
+        "marker": "1",
+        "order_index": 80,
+        "parent_id": "HIER-CONS-PART-0001",
+        "record_id": "HIER-CONS-CLAUSE-0001"
+      },
+      "document": {
+        "excerpt_sha256": "71c705d2e4b443fb7cf435c957de07786058ba57ec79a252324736e377467029",
+        "level": "document",
+        "marker": null,
+        "order_index": 2,
+        "parent_id": null,
+        "record_id": "HIER-CONS-DOCUMENT"
+      },
+      "part": {
+        "excerpt_sha256": "29a4e4203d89deda196f30928c350197ec50571f7a922f9c1d0fd1f7add4b4d2",
+        "level": "part",
+        "marker": "1",
+        "order_index": 79,
+        "parent_id": "HIER-CONS-ARTICLE-0001",
+        "record_id": "HIER-CONS-PART-0001"
+      },
+      "section": {
+        "excerpt_sha256": "0f0dfcddb2da59f6459d1f3efb2a7772257789c71524306f53c23b631844e176",
+        "level": "section",
+        "marker": "§1",
+        "order_index": 584,
+        "parent_id": "HIER-CONS-CHAPTER-0003",
+        "record_id": "HIER-CONS-SECTION-0001"
+      },
+      "subclause": {
+        "excerpt_sha256": "16f1d509bc4f643c4676b9215fd71084d404baa88a9f0163fc4e2ddd1850c201",
+        "level": "subclause",
+        "marker": "а",
+        "order_index": 258,
+        "parent_id": "HIER-CONS-CLAUSE-0081",
+        "record_id": "HIER-CONS-SUBCLAUSE-0001"
+      }
+    },
+    "last_by_level": {
+      "article": {
+        "excerpt_sha256": "de2f0e842f499444d6a1337996d596b3983cd128c8a6a02452d615e7f42ef631",
+        "level": "article",
+        "marker": "статья 114.",
+        "order_index": 3571,
+        "parent_id": "HIER-CONS-CHAPTER-0008",
+        "record_id": "HIER-CONS-ARTICLE-0094"
+      },
+      "chapter": {
+        "excerpt_sha256": "48f9df0efb6d9a96fb0371f06b81ebcac78a519c22afc42a5e0797f33be0eb93",
+        "level": "chapter",
+        "marker": "глава 8.",
+        "order_index": 3422,
+        "parent_id": "HIER-CONS-DOCUMENT",
+        "record_id": "HIER-CONS-CHAPTER-0008"
+      },
+      "clause": {
+        "excerpt_sha256": "9e64ceeb2440a433face7b11bdb1b677d545e077a7eb88a973a5c13c70d7ee65",
+        "level": "clause",
+        "marker": "31",
+        "order_index": 3569,
+        "parent_id": "HIER-CONS-ARTICLE-0093",
+        "record_id": "HIER-CONS-CLAUSE-0997"
+      },
+      "document": {
+        "excerpt_sha256": "71c705d2e4b443fb7cf435c957de07786058ba57ec79a252324736e377467029",
+        "level": "document",
+        "marker": null,
+        "order_index": 2,
+        "parent_id": null,
+        "record_id": "HIER-CONS-DOCUMENT"
+      },
+      "part": {
+        "excerpt_sha256": "a8be4bef5e2747e8013de01595eb7905f642af8d63c170cf780f32d991d90f40",
+        "level": "part",
+        "marker": "4",
+        "order_index": 3582,
+        "parent_id": "HIER-CONS-ARTICLE-0094",
+        "record_id": "HIER-CONS-PART-0793"
+      },
+      "section": {
+        "excerpt_sha256": "5696dcfe8a2c3f01320f56ca3cc95767ff011143f03dfbbe414c35b29fe527e1",
+        "level": "section",
+        "marker": "§7",
+        "order_index": 2432,
+        "parent_id": "HIER-CONS-CHAPTER-0003",
+        "record_id": "HIER-CONS-SECTION-0009"
+      },
+      "subclause": {
+        "excerpt_sha256": "93e3f1c8ca4fe398b467694fbce8b53c4aea80df2be035e0df7012446172e998",
+        "level": "subclause",
+        "marker": "в",
+        "order_index": 3490,
+        "parent_id": "HIER-CONS-CLAUSE-0961",
+        "record_id": "HIER-CONS-SUBCLAUSE-0283"
+      }
+    },
+    "non_authoritative_false_count": 0,
+    "record_count": 2185,
+    "record_kind_counts": {
+      "consultant_hierarchy": 2185
+    },
+    "source_path": "prd/parser/consultant_hierarchy_records.jsonl",
+    "source_paths": {
+      "law-source/consultant/44-FZ-2026.xml": 2185
+    },
+    "source_sha256_counts": {
+      "69df0b9d9e2bcce6164fc4e3c74fb9bebfff36ae6b053c68917c804be4b52a86": 2185
+    }
+  },
+  "input_artifacts": [
+    {
+      "exists": true,
+      "path": "prd/parser/consultant_prior_art_inventory.json",
+      "sha256": "e781c7e483809b51e19da1888c99d6211b3a8b1498d71891d0f3b97d145cb170",
+      "size_bytes": 33820
+    },
+    {
+      "exists": true,
+      "path": "prd/parser/consultant_hierarchy_records.jsonl",
+      "sha256": "b8c5f810c96da71a3f6517bb88aa93133d07949e0f538f25ecf9b0591e92e708",
+      "size_bytes": 4175013
+    },
+    {
+      "exists": true,
+      "path": "prd/parser/consultant_hierarchy_prior_art_comparison.json",
+      "sha256": "2649dbdca8826d1fd127d37fb97aca998174aef261d340a0dfaf3d2d81070e0d",
+      "size_bytes": 75239
+    }
+  ],
+  "non_claims": [
+    "Consultant parser proof is a deterministic evidence package for the Consultant 44-FZ tracer only.",
+    "Does not claim legal correctness or authoritative legal interpretation.",
+    "Does not claim parser completeness beyond the recorded Consultant hierarchy artifacts.",
+    "Does not claim product ETL, FalkorDB load readiness, or multi-source parser readiness.",
+    "Does not wire Garant ODT parsing into this proof package as a completion gate; Garant remains deferred for separate verification."
+  ],
+  "package_scope": "Consultant 44-FZ tracer proof package only",
+  "prior_art_comparison": {
+    "blocked_check_count": 0,
+    "check_count": 11,
+    "checks": [
+      {
+        "check_id": "COUNT-CHAPTER",
+        "classification": "major-count",
+        "expected": 8,
+        "observed": 8,
+        "rationale": "Major chapter/article counts must match prior-art structure safeguards exactly.",
+        "rule_ids": [
+          "STRUCT-002"
+        ],
+        "status": "pass"
+      },
+      {
+        "check_id": "COUNT-ARTICLE",
+        "classification": "major-count",
+        "expected": 94,
+        "observed": 94,
+        "rationale": "Major chapter/article counts must match prior-art structure safeguards exactly.",
+        "rule_ids": [
+          "STRUCT-006"
+        ],
+        "status": "pass"
+      },
+      {
+        "check_id": "COUNT-PART",
+        "classification": "granular-count",
+        "expected": 668,
+        "observed": 793,
+        "rationale": "Granular drift is accepted as provider-boundary evidence: Consultant hierarchy records preserve more structural markers than compact prior-art article JSONL.",
+        "rule_ids": [
+          "STRUCT-004"
+        ],
+        "status": "accepted"
+      },
+      {
+        "check_id": "COUNT-CLAUSE",
+        "classification": "granular-count",
+        "expected": 912,
+        "observed": 997,
+        "rationale": "Granular drift is accepted as provider-boundary evidence: Consultant hierarchy records preserve more structural markers than compact prior-art article JSONL.",
+        "rule_ids": [
+          "STRUCT-004"
+        ],
+        "status": "accepted"
+      },
+      {
+        "check_id": "COUNT-SUBCLAUSE",
+        "classification": "granular-count",
+        "expected": 272,
+        "observed": 283,
+        "rationale": "Granular drift is accepted as provider-boundary evidence: Consultant hierarchy records preserve more structural markers than compact prior-art article JSONL.",
+        "rule_ids": [
+          "STRUCT-004"
+        ],
+        "status": "accepted"
+      },
+      {
+        "check_id": "COUNT-SECTION",
+        "classification": "granular-count",
+        "expected": 0,
+        "observed": 9,
+        "rationale": "Granular drift is accepted as provider-boundary evidence: Consultant hierarchy records preserve more structural markers than compact prior-art article JSONL.",
+        "rule_ids": [
+          "STRUCT-005"
+        ],
+        "status": "accepted"
+      },
+      {
+        "check_id": "ORDER-CHAPTER-ARTICLE-COUNTS",
+        "classification": "order-and-parentage",
+        "expected": {
+          "1": 15,
+          "2": 8,
+          "3": 47,
+          "4": 2,
+          "5": 6,
+          "6": 3,
+          "7": 10,
+          "8": 3
+        },
+        "observed": {
+          "1": 15,
+          "2": 8,
+          "3": 47,
+          "4": 2,
+          "5": 6,
+          "6": 3,
+          "7": 10,
+          "8": 3
+        },
+        "rationale": "Articles must map to the same chapter-count distribution even when sections are present.",
+        "rule_ids": [
+          "STRUCT-003",
+          "STRUCT-006"
+        ],
+        "status": "pass"
+      },
+      {
+        "check_id": "ORDER-FIRST-LAST-ARTICLES",
+        "classification": "order-and-boundary-samples",
+        "expected": {
+          "first": [
+            "1",
+            "2",
+            "3",
+            "4",
+            "5"
+          ],
+          "last": [
+            "111.3",
+            "111.4",
+            "112",
+            "113",
+            "114"
+          ]
+        },
+        "observed": {
+          "first": [
+            "1",
+            "2",
+            "3",
+            "4",
+            "5"
+          ],
+          "last": [
+            "111.3",
+            "111.4",
+            "112",
+            "113",
+            "114"
+          ]
+        },
+        "rationale": "First/last article marker order is the bounded sample for full order drift.",
+        "rule_ids": [
+          "STRUCT-001",
+          "STRUCT-003"
+        ],
+        "status": "pass"
+      },
+      {
+        "check_id": "STRUCT-PARENTS-AND-ORDER",
+        "classification": "structural-rules",
+        "expected": {
+          "duplicate_id_count": 0,
+          "missing_parent_count": 0,
+          "non_monotonic_order_count": 0
+        },
+        "observed": {
+          "duplicate_id_count": 0,
+          "missing_parent_count": 0,
+          "non_monotonic_order_count": 0
+        },
+        "rationale": "Comparable structural rules require non-orphaned hierarchy records, deterministic IDs, and monotonic source order.",
+        "rule_ids": [
+          "STRUCT-003",
+          "STRUCT-004",
+          "STRUCT-005",
+          "STRUCT-006"
+        ],
+        "status": "pass"
+      },
+      {
+        "check_id": "INVALIDITY-MARKER-SAMPLES",
+        "classification": "advisory-invalidity-marker",
+        "expected": {
+          "article": 11,
+          "clause": 17,
+          "part": 41,
+          "subclause": 1
+        },
+        "observed": {
+          "article": 10,
+          "clause": 19,
+          "part": 40,
+          "subclause": 1
+        },
+        "rationale": "Invalidity wording is compared as advisory marker evidence only; it does not determine amendment legal effect.",
+        "rule_ids": [
+          "SEM-009"
+        ],
+        "status": "needs-review"
+      },
+      {
+        "check_id": "INPUT-VALIDATION",
+        "classification": "freshness-and-schema",
+        "expected": {
+          "parse_diagnostic_count": 0
+        },
+        "observed": {
+          "parse_diagnostic_count": 0,
+          "samples": []
+        },
+        "rationale": "Comparison fails closed on malformed hierarchy JSONL records.",
+        "rule_ids": [
+          "STRUCT-001",
+          "STRUCT-002",
+          "STRUCT-003",
+          "STRUCT-004",
+          "STRUCT-005",
+          "STRUCT-006"
+        ],
+        "status": "pass"
+      }
+    ],
+    "classification_counts": {
+      "advisory-invalidity-marker": 1,
+      "freshness-and-schema": 1,
+      "granular-count": 4,
+      "major-count": 2,
+      "order-and-boundary-samples": 1,
+      "order-and-parentage": 1,
+      "structural-rules": 1
+    },
+    "diagnostics_bounded": true,
+    "fatal_error_count": 0,
+    "needs_review_check_count": 1,
+    "non_authoritative": true,
+    "overall_status": "needs-review",
+    "source_path": "prd/parser/consultant_hierarchy_prior_art_comparison.json",
+    "status_counts": {
+      "accepted": 4,
+      "needs-review": 1,
+      "pass": 6
+    }
+  },
+  "schema_version": "legalgraph-consultant-parser-proof/v1",
+  "source_kind": "consultant-wordml-xml",
+  "verification_commands": [
+    ".venv/bin/python3 -m pytest tests/test_consultant_parser_proof.py",
+    "test -s prd/parser/consultant_parser_proof.md"
+  ]
+}
