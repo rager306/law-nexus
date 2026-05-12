@@ -1,0 +1,494 @@
+{
+  "allowed_dispositions": [
+    "defer",
+    "product-decision",
+    "proof-now",
+    "runtime-experiment"
+  ],
+  "gate_rows": [
+    {
+      "disposition": "runtime-experiment",
+      "gate_id": "GATE-EMBEDDING-SUPPLY-CHAIN",
+      "layer": "security-safety",
+      "next_proof_artifact": "Embedding supply-chain experiment report with model revision/checksum, local runtime envelope, vector dimensions, and no-secret/no-raw-vector leakage checks.",
+      "non_claims": [
+        "Does not promote any embedding model to product default.",
+        "Does not allow managed embedding API fallback.",
+        "Does not prove retrieval quality."
+      ],
+      "owner_scope": "future-embedding-supply-chain-proof",
+      "r04_links": [
+        "R04-REC-003"
+      ],
+      "rationale": "Embedding candidates need local model provenance, integrity, resource, and leakage checks before promotion.",
+      "risk_level": "high",
+      "source_anchors": [
+        {
+          "kind": "prd",
+          "path": "prd/03_PRD.md",
+          "selector": "FR-28b"
+        },
+        {
+          "kind": "gsd-summary",
+          "path": ".gsd/PROJECT.md",
+          "selector": "embedding"
+        }
+      ],
+      "target_track": "M007/S03 retrieval-embedding track",
+      "title": "Embedding model supply-chain integrity gate"
+    },
+    {
+      "disposition": "product-decision",
+      "gate_id": "GATE-G005",
+      "layer": "temporal-model",
+      "next_proof_artifact": "Temporal conflict policy plus fixture-backed same-date/new-edition/source-revision tests.",
+      "non_claims": [
+        "Does not specify temporal storage implementation.",
+        "Does not validate temporal conflict resolution.",
+        "Does not prove import runtime behavior."
+      ],
+      "owner_scope": "future-temporal-proof",
+      "r04_links": [
+        "R04-REC-006"
+      ],
+      "rationale": "Same-date temporal conflict behavior is a product semantics decision before runtime fixture proof can be meaningful.",
+      "risk_level": "high",
+      "source_anchors": [
+        {
+          "kind": "prd",
+          "path": "prd/04_review_findings.md",
+          "selector": "G-005"
+        }
+      ],
+      "target_track": "M007/S03 temporal-model track",
+      "title": "Temporal same-date multi-edition conflict policy"
+    },
+    {
+      "disposition": "proof-now",
+      "gate_id": "GATE-G008",
+      "layer": "parser-ingestion",
+      "next_proof_artifact": "Parser/retrieval golden-test suite using tracked parser records and explicit no-answer/non-claim cases.",
+      "non_claims": [
+        "Does not prove parser completeness.",
+        "Does not prove citation-safe retrieval.",
+        "Does not prove legal-answer correctness."
+      ],
+      "owner_scope": "future-parser-retrieval-proof",
+      "r04_links": [
+        "R04-REC-005"
+      ],
+      "rationale": "Parser and retrieval proof already has bounded M006 artifacts; the next useful step is executable golden tests over real parser outputs and expected retrieval/evidence behavior.",
+      "risk_level": "high",
+      "source_anchors": [
+        {
+          "kind": "prd",
+          "path": "prd/04_review_findings.md",
+          "selector": "G-008"
+        }
+      ],
+      "target_track": "M007/S03 parser-retrieval track",
+      "title": "Executable parser and retrieval golden tests"
+    },
+    {
+      "disposition": "runtime-experiment",
+      "gate_id": "GATE-G011",
+      "layer": "retrieval-embedding",
+      "next_proof_artifact": "Retrieval quality and migration experiment report with dataset skeleton, metrics, fallback boundaries, and explicit non-readiness result states.",
+      "non_claims": [
+        "Does not prove product retrieval quality.",
+        "Does not commit to a vector store topology.",
+        "Does not validate FalkorDB production scale."
+      ],
+      "owner_scope": "future-retrieval-quality-proof",
+      "r04_links": [
+        "R04-REC-004",
+        "R04-REC-014"
+      ],
+      "rationale": "Retrieval quality and migration strategy need measured runtime/evaluation evidence rather than registry-only assertions.",
+      "risk_level": "high",
+      "source_anchors": [
+        {
+          "kind": "prd",
+          "path": "prd/04_review_findings.md",
+          "selector": "G-011"
+        }
+      ],
+      "target_track": "M007/S03 retrieval-embedding track",
+      "title": "Local embedding quality proof"
+    },
+    {
+      "disposition": "runtime-experiment",
+      "gate_id": "GATE-G015",
+      "layer": "graph-runtime",
+      "next_proof_artifact": "Runtime migration smoke proof with import package, graph load shape, rollback/failure diagnostics, and non-production boundary.",
+      "non_claims": [
+        "Does not prove FalkorDB production loading behavior.",
+        "Does not prove production scale.",
+        "Does not prove product ETL readiness."
+      ],
+      "owner_scope": "future-runtime-migration-proof",
+      "r04_links": [
+        "R04-REC-004"
+      ],
+      "rationale": "Runtime migration/readiness claims require executable import/load/migration smoke evidence, not registry coverage alone.",
+      "risk_level": "medium",
+      "source_anchors": [
+        {
+          "kind": "prd",
+          "path": "prd/04_review_findings.md",
+          "selector": "G-015"
+        }
+      ],
+      "target_track": "M007/S03 graph-runtime track",
+      "title": "FalkorDBLite to Docker migration runbook"
+    },
+    {
+      "disposition": "proof-now",
+      "gate_id": "GATE-GENERATED-CYPHER-SAFETY",
+      "layer": "generated-cypher",
+      "next_proof_artifact": "Generated-Cypher validator suite covering read-only enforcement, schema grounding, evidence-returning queries, injection rejection, and unsafe write rejection.",
+      "non_claims": [
+        "Does not prove provider generation quality.",
+        "Does not authorize executing raw generated Cypher.",
+        "Does not validate product Legal KnowQL readiness."
+      ],
+      "owner_scope": "future-generated-cypher-safety-proof",
+      "r04_links": [
+        "R04-REC-003",
+        "R017"
+      ],
+      "rationale": "Generated-Cypher safety is the highest-risk explicit gate and should be retired by deterministic validator tests before any Legal KnowQL product-readiness claim.",
+      "risk_level": "critical",
+      "source_anchors": [
+        {
+          "kind": "prd",
+          "path": "prd/06_m002_cypher_safety_contract.md",
+          "selector": "Generated-Cypher Safety Contract"
+        }
+      ],
+      "target_track": "M007/S03 generated-cypher track",
+      "title": "Generated-Cypher safety and validation gate"
+    },
+    {
+      "disposition": "product-decision",
+      "gate_id": "GATE-LEGAL-NEXUS-ACCESS-CONTROL",
+      "layer": "security-safety",
+      "next_proof_artifact": "Legal Nexus access-control decision and negative-test plan defining caller roles, authorization boundaries, audit logging, and denied-operation diagnostics.",
+      "non_claims": [
+        "Does not assert current product is insecure.",
+        "Does not prove access-control enforcement.",
+        "Does not define a production API surface."
+      ],
+      "owner_scope": "future-api-security-proof",
+      "r04_links": [
+        "R04-REC-003"
+      ],
+      "rationale": "Access-control proof needs a product API/caller boundary decision before meaningful authz tests can be specified.",
+      "risk_level": "high",
+      "source_anchors": [
+        {
+          "kind": "prd",
+          "path": "prd/03_PRD.md",
+          "selector": "Legal Nexus Module"
+        }
+      ],
+      "target_track": "M007/S03 api-product/security track",
+      "title": "Legal Nexus access-control proof gate"
+    }
+  ],
+  "non_authoritative": true,
+  "non_claims": [
+    "This matrix is a planning artifact, not product readiness evidence.",
+    "Disposition classes prioritize proof work; they do not validate runtime behavior.",
+    "Open proof gates remain unresolved until their next_proof_artifact is produced and verified.",
+    "Resolving all R04 recommendations does not prove legal-answer correctness, parser completeness, retrieval quality, generated-Cypher safety, FalkorDB production behavior, or LLM legal authority."
+  ],
+  "recommendation_rows": [
+    {
+      "id": "R04-REC-001",
+      "next": "Keep as coverage baseline; do not treat one record per layer as completeness.",
+      "non_claims": [
+        "Does not assert that one record per empty layer makes the layer complete.",
+        "Does not assert that the added records prove product behavior."
+      ],
+      "priority": "blocker",
+      "resolves": [
+        "R04-INC-001",
+        "R04-RSK-001",
+        "R04-RSK-006",
+        "R04-GAP-002",
+        "R04-GAP-003",
+        "R04-GAP-004"
+      ],
+      "status": "implemented-s01",
+      "title": "Populate three empty schema layers"
+    },
+    {
+      "id": "R04-REC-002",
+      "next": "Keep connectivity visible in graph report; reassess if new orphan findings appear.",
+      "non_claims": [
+        "Does not assert that current orphans contain incorrect content.",
+        "Does not require using unused edge types as a goal in itself."
+      ],
+      "priority": "blocker",
+      "resolves": [
+        "R04-INC-003",
+        "R04-INC-004",
+        "R04-INC-011"
+      ],
+      "status": "implemented-s01",
+      "title": "Connect orphan nodes via existing edge types"
+    },
+    {
+      "id": "R04-REC-003",
+      "next": "Use proof-gate rows to split concrete product/runtime proof work.",
+      "non_claims": [
+        "Does not assert these surfaces are currently unsafe.",
+        "Does not commit to implementing the underlying controls in M004."
+      ],
+      "priority": "blocker",
+      "resolves": [
+        "R04-RSK-006",
+        "R04-INC-005",
+        "R04-GAP-001",
+        "R04-GAP-013"
+      ],
+      "status": "implemented-s01-open-gates",
+      "title": "Add explicit proof gates for critical product surfaces with no records"
+    },
+    {
+      "id": "R04-REC-004",
+      "next": "Project FR/NFR coverage only after S02 matrix classifies current gates and deferrals.",
+      "non_claims": [
+        "Does not assert that 100% PRD projection equals readiness.",
+        "Does not require implementing every FR."
+      ],
+      "priority": "major",
+      "resolves": [
+        "R04-GAP-006",
+        "R04-GAP-007",
+        "R04-RSK-001"
+      ],
+      "status": "downstream-s03",
+      "title": "Project source PRDs into requirement records"
+    },
+    {
+      "id": "R04-REC-005",
+      "next": "Use parser bridge records as inputs for parser/retrieval golden-test proof.",
+      "non_claims": [
+        "Does not assert prd/parser/ files are authoritative.",
+        "Does not duplicate their content into the registry."
+      ],
+      "priority": "major",
+      "resolves": [
+        "R04-RSK-005",
+        "R04-GAP-007"
+      ],
+      "status": "implemented-s01",
+      "title": "Bridge architecture registry to prd/parser/ evidence"
+    },
+    {
+      "id": "R04-REC-006",
+      "next": "Use temporal records as inputs for temporal conflict policy and fixture tests.",
+      "non_claims": [
+        "Does not specify temporal storage implementation.",
+        "Does not commit to a complete temporal model in M004."
+      ],
+      "priority": "major",
+      "resolves": [
+        "R04-GAP-014"
+      ],
+      "status": "implemented-s01",
+      "title": "Add temporal data_entity and temporal requirement records"
+    },
+    {
+      "id": "R04-REC-007",
+      "next": "Handle anchor line ranges/quote hashes as a minor hardening pass.",
+      "non_claims": [
+        "Does not assert current selectors fail today.",
+        "Does not require removing the selector field."
+      ],
+      "priority": "minor",
+      "resolves": [
+        "R04-INC-008"
+      ],
+      "status": "defer-s04",
+      "title": "Tighten anchor stability with line ranges or quote_hash"
+    },
+    {
+      "id": "R04-REC-008",
+      "next": "Document schema evolution policy after blocker/major proof tracks are split.",
+      "non_claims": [
+        "Does not require immediate v2 schema.",
+        "Does not propose specific v2 fields."
+      ],
+      "priority": "minor",
+      "resolves": [
+        "R04-INC-012",
+        "R04-RSK-004"
+      ],
+      "status": "defer-s04",
+      "title": "Document schema evolution policy"
+    },
+    {
+      "id": "R04-REC-009",
+      "next": "Claims ledger now includes claim-domain separation.",
+      "non_claims": [
+        "Does not assert current ledger entries are misclassified by safety level.",
+        "Does not require ledger schema redesign."
+      ],
+      "priority": "minor",
+      "resolves": [
+        "R04-INC-013"
+      ],
+      "status": "implemented-s01",
+      "title": "Disambiguate claims ledger by claim domain"
+    },
+    {
+      "id": "R04-REC-010",
+      "next": "Decide report/dashboard roles in minor recommendation disposition.",
+      "non_claims": [
+        "Does not require deletion of either file.",
+        "Does not propose specific section partitioning."
+      ],
+      "priority": "minor",
+      "resolves": [
+        "R04-INC-010",
+        "R04-RSK-007"
+      ],
+      "status": "defer-s04",
+      "title": "Consolidate or differentiate health dashboard and architecture report"
+    },
+    {
+      "id": "R04-REC-011",
+      "next": "Document edge confidence semantics or schedule schema v2 work.",
+      "non_claims": [
+        "Does not assert current confidence values are wrong.",
+        "Does not require immediate removal."
+      ],
+      "priority": "minor",
+      "resolves": [
+        "R04-INC-009"
+      ],
+      "status": "defer-s04",
+      "title": "Document edge confidence semantics or remove the field"
+    },
+    {
+      "id": "R04-REC-012",
+      "next": "Document CI/regenerate hook recipe after matrix/check workflow stabilizes.",
+      "non_claims": [
+        "Does not require a specific CI provider.",
+        "Does not commit to a specific hook scope."
+      ],
+      "priority": "minor",
+      "resolves": [
+        "R04-GAP-010"
+      ],
+      "status": "defer-s04",
+      "title": "Add CI/regenerate hook documentation"
+    },
+    {
+      "id": "R04-REC-013",
+      "next": "Decide schema-level versus extractor-level ID prefix enforcement.",
+      "non_claims": [
+        "Does not assert current IDs are misclassified.",
+        "Does not require renaming existing records."
+      ],
+      "priority": "minor",
+      "resolves": [
+        "R04-RSK-008"
+      ],
+      "status": "defer-s04",
+      "title": "Strengthen identifier conventions per record kind"
+    },
+    {
+      "id": "R04-REC-014",
+      "next": "Use coverage metrics only with explicit non-readiness caveat.",
+      "non_claims": [
+        "Does not assert that 100% coverage is the right goal.",
+        "Does not assert that coverage equals readiness."
+      ],
+      "priority": "minor",
+      "resolves": [
+        "R04-GAP-011"
+      ],
+      "status": "downstream-s03",
+      "title": "Add coverage metrics to views generator"
+    },
+    {
+      "id": "R04-REC-015",
+      "next": "S04 should decide whether additional risks edges are necessary or whether current coverage is sufficient.",
+      "non_claims": [
+        "Does not assert exhaustive surface inventory.",
+        "Does not require linking to every record."
+      ],
+      "priority": "minor",
+      "resolves": [
+        "R04-GAP-012"
+      ],
+      "status": "partially-implemented-s01",
+      "title": "Connect RISK-OVERCLAIM-RUNTIME to threatened records via risks edges"
+    },
+    {
+      "id": "R04-REC-016",
+      "next": "Fixture-test contradiction/supersession branches without adding fake production edges.",
+      "non_claims": [
+        "Does not require introducing real contradictions or supersession in the production registry.",
+        "Does not assert that absence of these edges is a current bug."
+      ],
+      "priority": "minor",
+      "resolves": [
+        "R04-GAP-008",
+        "R04-GAP-009"
+      ],
+      "status": "defer-s04",
+      "title": "Either populate or fixture-test contradicts and supersedes branches"
+    },
+    {
+      "id": "R04-REC-017",
+      "next": "Verifier summary has a non-authoritative boundary; S04 can decide whether to add a longer CLI prose card.",
+      "non_claims": [
+        "Does not change verifier scope.",
+        "Does not assert any current overclaim by maintainers."
+      ],
+      "priority": "minor",
+      "resolves": [
+        "R04-RSK-003"
+      ],
+      "status": "partially-implemented-s01",
+      "title": "Make verifier output state what success does not mean"
+    },
+    {
+      "id": "R04-REC-018",
+      "next": "Document .gsd path stability assumption or path-mapping response procedure.",
+      "non_claims": [
+        "Does not require building a path-mapping layer.",
+        "Does not assert .gsd/ will be renamed."
+      ],
+      "priority": "minor",
+      "resolves": [
+        "R04-RSK-002"
+      ],
+      "status": "defer-s04",
+      "title": "Document .gsd/ stability assumption or introduce a path-mapping layer"
+    }
+  ],
+  "record_kind": "derived-remediation-matrix",
+  "review_id": "R04",
+  "schema_version": "legalgraph-architecture-remediation-matrix/v1",
+  "source_inputs": [
+    "prd/architecture/architecture_graph_report.json",
+    "prd/architecture/architecture_items.jsonl",
+    "prd/architecture/review_findings/04/06_recommendations.json"
+  ],
+  "summary": {
+    "gate_counts_by_disposition": {
+      "defer": 0,
+      "product-decision": 2,
+      "proof-now": 2,
+      "runtime-experiment": 3
+    },
+    "r04_recommendation_count": 18,
+    "unresolved_gate_count": 7
+  }
+}
