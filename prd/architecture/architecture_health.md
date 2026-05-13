@@ -9,17 +9,17 @@
 
 | Metric | Count |
 | --- | ---: |
-| Total Nodes | 40 |
-| Total Edges | 47 |
+| Total Nodes | 42 |
+| Total Edges | 52 |
 | Schema Layers | 11 |
 | Missing Layers | 0 |
 | Invalid Layer Records | 0 |
 | Unresolved Proof Gates | 7 |
 | Orphan Findings | 0 |
 | Contradiction Edges | 0 |
-| High/Critical Risk Nodes | 25 (5 critical, 20 high) |
-| Nodes with Non-Claims | 40 |
-| Total Non-Claims | 116 |
+| High/Critical Risk Nodes | 27 (5 critical, 22 high) |
+| Nodes with Non-Claims | 42 |
+| Total Non-Claims | 130 |
 
 ---
 
@@ -34,7 +34,7 @@
 | legal-evidence  | 1 |
 | observability-operability  | 1 |
 | parser-ingestion  | 10 |
-| retrieval-embedding  | 5 |
+| retrieval-embedding  | 7 |
 | security-safety  | 5 |
 | temporal-model  | 3 |
 | workflow-governance  | 3 |
@@ -72,6 +72,7 @@ Every defined schema layer has at least one architecture record.
 | EVID-PARSER-ODT-SMOKE | high | evidence | parser-ingestion | bounded-evidence | real-document-proof |
 | EVID-RESEARCH-GRAPHRAG-MATH-ANALYSIS | high | evidence | retrieval-embedding | bounded-evidence | source-anchor |
 | EVID-RESEARCH-HABR-LEGAL-RAG-ITERATION-SCALING | high | evidence | retrieval-embedding | bounded-evidence | source-anchor |
+| EVID-RETRIEVAL-OUTPUT-ID-VALIDATOR-PROOF | high | evidence | retrieval-embedding | bounded-evidence | unit-test |
 | GATE-EMBEDDING-SUPPLY-CHAIN | high | proof_gate | security-safety | active | none |
 | GATE-G005 | high | proof_gate | temporal-model | active | none |
 | GATE-G008 | high | proof_gate | parser-ingestion | active | none |
@@ -84,6 +85,7 @@ Every defined schema layer has at least one architecture record.
 | REQ-R022 | critical | requirement | security-safety | active | source-anchor |
 | REQ-R028 | critical | requirement | security-safety | out-of-scope | source-anchor |
 | REQ-R029 | high | requirement | architecture-governance | active | source-anchor |
+| REQ-R034 | high | requirement | retrieval-embedding | active | source-anchor |
 | REQ-TEMPORAL-STATUS-SEMANTICS | high | requirement | temporal-model | active | source-anchor |
 | RISK-OVERCLAIM-RUNTIME | critical | risk | security-safety | active | source-anchor |
 | S05-OLD-PROJECT-PRIOR-ART | high | evidence | parser-ingestion | bounded-evidence | source-anchor |
@@ -105,7 +107,10 @@ This architecture graph and derived reports **do not** establish or validate:
 | Does not define a production API surface. |
 | Does not implement Legal Nexus runtime behavior. |
 | Does not itself prove product runtime behavior. |
+| Does not make LLM output legal authority. |
+| Does not make fixture IDs production IDs. |
 | Does not make generated artifacts authoritative. |
+| Does not promote D045 research into validated product behavior. |
 | Does not promote any embedding model to product default. |
 | Does not prove Consultant relation correctness. |
 | Does not prove FalkorDB loading/runtime behavior. |
@@ -124,9 +129,11 @@ This architecture graph and derived reports **do not** establish or validate:
 | Does not prove product Legal KnowQL behavior. |
 | Does not prove product behavior. |
 | Does not prove product retrieval quality. |
+| Does not prove production FalkorDB runtime behavior. |
 | Does not prove production Legal KnowQL behavior. |
 | Does not prove production observability. |
 | Does not prove provider generation quality. |
+| Does not prove raw legal text evidence quality. |
 | Does not prove runtime SLOs. |
 | Does not specify temporal storage implementation. |
 | Does not validate benchmark, cost, or latency claims. |
@@ -174,7 +181,7 @@ No orphan findings.
 
 | Size | Node Count |
 | --- | ---: |
-| 36 | 36 |
+| 38 | 38 |
 | 4 | 4 |
 
 ---

@@ -31,6 +31,7 @@
 | `REQ-R017` | Assess FalkorDB text-to-cypher PyO3 route | generated-cypher | product/legal-runtime | high | ❌ No product Legal KnowQL behavior claim.; ❌ No legal-answer correctness claim. |
 | `REQ-R022` | Proof artifacts remain redacted and categorical | security-safety | architecture-planning | critical | ❌ No raw provider body persistence claim.; ❌ No credential, prompt, raw legal text, or raw row emission claim. |
 | `REQ-R029` | Executable architecture verification workflow | architecture-governance | registry/process | high | ❌ Does not itself prove product runtime behavior. |
+| `REQ-R034` | Retrieval output evidence identifiers fail closed | retrieval-embedding | bounded-technical-proof | high | ❌ Does not prove product retrieval quality.; ❌ Does not prove legal-answer correctness. |
 | `REQ-TEMPORAL-STATUS-SEMANTICS` | Temporal status semantics remain explicit | temporal-model | product/legal-runtime | high | ❌ Does not prove import runtime behavior.; ❌ Does not validate same-date conflict policy. |
 | `RISK-OVERCLAIM-RUNTIME` | Runtime and legal overclaim risk | security-safety | architecture-planning | critical | ❌ Risk item does not assert current product failure. |
 
@@ -49,6 +50,7 @@
 | `EVID-PARSER-STAGING-GRAPH` | Parser NetworkX staging graph evidence | parser-ingestion | bounded-technical-proof | medium | static-check | ❌ Does not prove FalkorDB loading/runtime behavior.; ❌ Does not prove legal-answer correctness. |
 | `EVID-RESEARCH-GRAPHRAG-MATH-ANALYSIS` | GraphRAG/FalkorDB mathematical analysis research input | retrieval-embedding | bounded-technical-proof | high | source-anchor | ❌ Does not prove product retrieval quality.; ❌ Does not prove FalkorDB production-scale behavior. |
 | `EVID-RESEARCH-HABR-LEGAL-RAG-ITERATION-SCALING` | Habr Legal RAG iteration and scaling research input | retrieval-embedding | bounded-technical-proof | high | source-anchor | ❌ Does not prove product retrieval quality.; ❌ Does not prove parser completeness. |
+| `EVID-RETRIEVAL-OUTPUT-ID-VALIDATOR-PROOF` | Retrieval output ID validator bounded proof | retrieval-embedding | bounded-technical-proof | high | unit-test | ❌ Does not prove product retrieval quality.; ❌ Does not prove legal-answer correctness. |
 | `S04-FALKORDB-RUNTIME-BOUNDED` | FalkorDB runtime mechanics smoke boundary | graph-runtime | bounded-technical-proof | medium | runtime-smoke | ❌ No production-scale FalkorDB claim.; ❌ No legal retrieval quality claim. |
 | `S05-OLD-PROJECT-PRIOR-ART` | Old_project artifacts remain prior art | parser-ingestion | bounded-technical-proof | high | source-anchor | ❌ No Old_project artifact accepted unchanged.; ❌ No parser completeness claim. |
 | `S05-PARSER-ODT-BOUNDARY` | Real ODT parser evidence boundary | parser-ingestion | bounded-technical-proof | high | real-document-proof | ❌ No final legal hierarchy extraction claim.; ❌ No parser completeness claim. |

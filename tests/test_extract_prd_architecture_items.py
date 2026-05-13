@@ -27,6 +27,7 @@ REQUIRED_ITEM_IDS = {
     "REQ-R022",
     "REQ-R028",
     "REQ-R029",
+    "REQ-R034",
     "DEC-D031",
     "DEC-D032",
     "GATE-G005",
@@ -46,6 +47,7 @@ REQUIRED_ITEM_IDS = {
     "EVID-PARSER-GOLDEN-TEST-PROOF",
     "EVID-PARSER-CONSULTANT-HIERARCHY-PROOF",
     "EVID-RESEARCH-GRAPHRAG-MATH-ANALYSIS",
+    "EVID-RETRIEVAL-OUTPUT-ID-VALIDATOR-PROOF",
 }
 REQUIRED_EDGE_IDS = {
     "EDGE-DEC-D031-CHECKED-BY-CHECK-ARCHITECTURE-EXTRACTOR",
@@ -63,6 +65,11 @@ REQUIRED_EDGE_IDS = {
     "EDGE-EVID-RESEARCH-GRAPHRAG-MATH-ANALYSIS-BOUNDED-BY-GATE-G015",
     "EDGE-EVID-RESEARCH-GRAPHRAG-MATH-ANALYSIS-BOUNDED-BY-GATE-G005",
     "EDGE-EVID-RESEARCH-GRAPHRAG-MATH-ANALYSIS-BOUNDED-BY-GATE-GENERATED-CYPHER-SAFETY",
+    "EDGE-EVID-RETRIEVAL-OUTPUT-ID-VALIDATOR-PROOF-SATISFIES-REQ-R034",
+    "EDGE-EVID-RETRIEVAL-OUTPUT-ID-VALIDATOR-PROOF-BOUNDED-BY-GATE-G008",
+    "EDGE-EVID-RETRIEVAL-OUTPUT-ID-VALIDATOR-PROOF-BOUNDED-BY-GATE-G011",
+    "EDGE-EVID-RETRIEVAL-OUTPUT-ID-VALIDATOR-PROOF-DEPENDS-ON-DATA-LEGAL-EVIDENCE-CORE",
+    "EDGE-EVID-RETRIEVAL-OUTPUT-ID-VALIDATOR-PROOF-CHECKED-BY-CHECK-ARCHITECTURE-EXTRACTOR",
     "EDGE-S10-USER-BGE-M3-BASELINE-BOUNDED-BY-GATE-G011",
     "EDGE-M001-ARCHITECTURE-ONLY-GUARDRAIL-BOUNDS-REQ-R029",
 }
@@ -132,6 +139,19 @@ EXPECTED_CONSERVATIVE_RECORDS = {
         "proof_level": "source-anchor",
         "risk_level": "high",
         "non_claims": ["Does not prove product retrieval quality.", "Does not prove GraphRAG-SDK compatibility."],
+    },
+    "EVID-RETRIEVAL-OUTPUT-ID-VALIDATOR-PROOF": {
+        "status": "bounded-evidence",
+        "proof_level": "unit-test",
+        "risk_level": "high",
+        "non_claims": [
+            "Does not prove product retrieval quality.",
+            "Does not prove legal-answer correctness.",
+            "Does not prove parser completeness.",
+            "Does not prove production FalkorDB runtime behavior.",
+            "Does not make LLM output legal authority.",
+            "Does not promote D045 research into validated product behavior.",
+        ],
     },
     "M001-ARCHITECTURE-ONLY-GUARDRAIL": {
         "status": "out-of-scope",

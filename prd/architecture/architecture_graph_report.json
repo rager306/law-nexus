@@ -2,8 +2,8 @@
   "contradiction_edges": [],
   "contradiction_pairs": [],
   "counts": {
-    "edges": 47,
-    "nodes": 40
+    "edges": 52,
+    "nodes": 42
   },
   "high_risk_nodes": [
     {
@@ -74,6 +74,14 @@
       "id": "EVID-RESEARCH-HABR-LEGAL-RAG-ITERATION-SCALING",
       "layer": "retrieval-embedding",
       "proof_level": "source-anchor",
+      "risk_level": "high",
+      "status": "bounded-evidence",
+      "type": "evidence"
+    },
+    {
+      "id": "EVID-RETRIEVAL-OUTPUT-ID-VALIDATOR-PROOF",
+      "layer": "retrieval-embedding",
+      "proof_level": "unit-test",
       "risk_level": "high",
       "status": "bounded-evidence",
       "type": "evidence"
@@ -175,6 +183,14 @@
       "type": "requirement"
     },
     {
+      "id": "REQ-R034",
+      "layer": "retrieval-embedding",
+      "proof_level": "source-anchor",
+      "risk_level": "high",
+      "status": "active",
+      "type": "requirement"
+    },
+    {
       "id": "REQ-TEMPORAL-STATUS-SEMANTICS",
       "layer": "temporal-model",
       "proof_level": "source-anchor",
@@ -218,7 +234,7 @@
       "legal-evidence": 1,
       "observability-operability": 1,
       "parser-ingestion": 10,
-      "retrieval-embedding": 5,
+      "retrieval-embedding": 7,
       "security-safety": 5,
       "temporal-model": 3,
       "workflow-governance": 3
@@ -365,6 +381,20 @@
           "Does not prove legal-answer correctness.",
           "Does not prove parser completeness.",
           "Does not prove product retrieval quality."
+        ]
+      },
+      {
+        "count": 8,
+        "id": "EVID-RETRIEVAL-OUTPUT-ID-VALIDATOR-PROOF",
+        "non_claims": [
+          "Does not make LLM output legal authority.",
+          "Does not make fixture IDs production IDs.",
+          "Does not promote D045 research into validated product behavior.",
+          "Does not prove legal-answer correctness.",
+          "Does not prove parser completeness.",
+          "Does not prove product retrieval quality.",
+          "Does not prove production FalkorDB runtime behavior.",
+          "Does not prove raw legal text evidence quality."
         ]
       },
       {
@@ -520,6 +550,18 @@
         ]
       },
       {
+        "count": 6,
+        "id": "REQ-R034",
+        "non_claims": [
+          "Does not make fixture IDs production IDs.",
+          "Does not promote D045 research into validated product behavior.",
+          "Does not prove legal-answer correctness.",
+          "Does not prove parser completeness.",
+          "Does not prove product retrieval quality.",
+          "Does not prove production FalkorDB runtime behavior."
+        ]
+      },
+      {
         "count": 2,
         "id": "REQ-TEMPORAL-STATUS-SEMANTICS",
         "non_claims": [
@@ -586,8 +628,8 @@
         ]
       }
     ],
-    "nodes_with_non_claims": 40,
-    "total_non_claims": 116
+    "nodes_with_non_claims": 42,
+    "total_non_claims": 130
   },
   "orphan_findings": [],
   "unresolved_proof_gates": [
@@ -674,6 +716,7 @@
         "EVID-PARSER-STAGING-GRAPH",
         "EVID-RESEARCH-GRAPHRAG-MATH-ANALYSIS",
         "EVID-RESEARCH-HABR-LEGAL-RAG-ITERATION-SCALING",
+        "EVID-RETRIEVAL-OUTPUT-ID-VALIDATOR-PROOF",
         "GATE-EMBEDDING-SUPPLY-CHAIN",
         "GATE-G005",
         "GATE-G008",
@@ -687,6 +730,7 @@
         "REQ-R022",
         "REQ-R028",
         "REQ-R029",
+        "REQ-R034",
         "REQ-TEMPORAL-STATUS-SEMANTICS",
         "RISK-OVERCLAIM-RUNTIME",
         "S04-FALKORDB-RUNTIME-BOUNDED",
@@ -695,7 +739,7 @@
         "S10-GIGAEMBEDDINGS-CHALLENGER-BLOCKED",
         "S10-USER-BGE-M3-BASELINE"
       ],
-      "size": 36
+      "size": 38
     },
     {
       "nodes": [

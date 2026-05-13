@@ -8,14 +8,14 @@ Current orphans, unresolved proof gates, contradictions, and risk rows are findi
 
 | Field | Value |
 | --- | --- |
-| Nodes | 40 |
-| Edges | 47 |
+| Nodes | 42 |
+| Edges | 52 |
 | Non-authoritative | true |
 | Missing layers | 0 |
 | Unresolved proof gates | 7 |
 | Orphan findings | 0 |
 | Contradiction edges | 0 |
-| High/critical-risk nodes | 25 |
+| High/critical-risk nodes | 27 |
 
 ## Layer Coverage
 
@@ -28,7 +28,7 @@ Current orphans, unresolved proof gates, contradictions, and risk rows are findi
 | legal-evidence | 1 |
 | observability-operability | 1 |
 | parser-ingestion | 10 |
-| retrieval-embedding | 5 |
+| retrieval-embedding | 7 |
 | security-safety | 5 |
 | temporal-model | 3 |
 | workflow-governance | 3 |
@@ -76,6 +76,7 @@ No missing schema layers.
 | EVID-PARSER-ODT-SMOKE | high | evidence | parser-ingestion | bounded-evidence | real-document-proof |
 | EVID-RESEARCH-GRAPHRAG-MATH-ANALYSIS | high | evidence | retrieval-embedding | bounded-evidence | source-anchor |
 | EVID-RESEARCH-HABR-LEGAL-RAG-ITERATION-SCALING | high | evidence | retrieval-embedding | bounded-evidence | source-anchor |
+| EVID-RETRIEVAL-OUTPUT-ID-VALIDATOR-PROOF | high | evidence | retrieval-embedding | bounded-evidence | unit-test |
 | GATE-EMBEDDING-SUPPLY-CHAIN | high | proof_gate | security-safety | active | none |
 | GATE-G005 | high | proof_gate | temporal-model | active | none |
 | GATE-G008 | high | proof_gate | parser-ingestion | active | none |
@@ -88,6 +89,7 @@ No missing schema layers.
 | REQ-R022 | critical | requirement | security-safety | active | source-anchor |
 | REQ-R028 | critical | requirement | security-safety | out-of-scope | source-anchor |
 | REQ-R029 | high | requirement | architecture-governance | active | source-anchor |
+| REQ-R034 | high | requirement | retrieval-embedding | active | source-anchor |
 | REQ-TEMPORAL-STATUS-SEMANTICS | high | requirement | temporal-model | active | source-anchor |
 | RISK-OVERCLAIM-RUNTIME | critical | risk | security-safety | active | source-anchor |
 | S05-OLD-PROJECT-PRIOR-ART | high | evidence | parser-ingestion | bounded-evidence | source-anchor |
@@ -103,8 +105,8 @@ No missing schema layers.
 
 | Field | Value |
 | --- | ---: |
-| Nodes with non-claims | 40 |
-| Total non-claims | 116 |
+| Nodes with non-claims | 42 |
+| Total non-claims | 130 |
 
 ### Nodes with Non-Claims
 
@@ -126,6 +128,7 @@ No missing schema layers.
 | EVID-PARSER-STAGING-GRAPH | 2 |
 | EVID-RESEARCH-GRAPHRAG-MATH-ANALYSIS | 5 |
 | EVID-RESEARCH-HABR-LEGAL-RAG-ITERATION-SCALING | 5 |
+| EVID-RETRIEVAL-OUTPUT-ID-VALIDATOR-PROOF | 8 |
 | GATE-EMBEDDING-SUPPLY-CHAIN | 3 |
 | GATE-G005 | 1 |
 | GATE-G008 | 2 |
@@ -142,6 +145,7 @@ No missing schema layers.
 | REQ-R022 | 3 |
 | REQ-R028 | 3 |
 | REQ-R029 | 1 |
+| REQ-R034 | 6 |
 | REQ-TEMPORAL-STATUS-SEMANTICS | 2 |
 | RISK-OVERCLAIM-RUNTIME | 1 |
 | S04-FALKORDB-RUNTIME-BOUNDED | 3 |

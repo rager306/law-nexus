@@ -12,7 +12,7 @@
 | Graph Runtime | 1 | 0 |
 | Legal Answering | 2 | 0 |
 | Legal KnowQL / Generated Cypher | 1 | 0 |
-| Retrieval / Embedding | 1 | 2 |
+| Retrieval / Embedding | 1 | 3 |
 | Temporal Model | 1 | 0 |
 
 ## ETL / Parser
@@ -172,6 +172,15 @@ Proof work for this area should:
 |  | Does not prove legal-answer correctness. | — | — | — |
 |  | Does not prove parser completeness. | — | — | — |
 |  | Does not prove product retrieval quality. | — | — | — |
+| `EVID-RETRIEVAL-OUTPUT-ID-VALIDATOR-PROOF` | Retrieval output ID validator bounded proof | high | `uv run python scripts/verify-retrieval-output-validator.py` and `uv run pytest tests/test_retrieval_output_validator.py -q` prove fixture/unit/CLI behavior for required M012 diagnostic cases only. | M012/S02 |
+|  | Does not make LLM output legal authority. | — | — | — |
+|  | Does not make fixture IDs production IDs. | — | — | — |
+|  | Does not promote D045 research into validated product behavior. | — | — | — |
+|  | Does not prove legal-answer correctness. | — | — | — |
+|  | Does not prove parser completeness. | — | — | — |
+|  | Does not prove product retrieval quality. | — | — | — |
+|  | Does not prove production FalkorDB runtime behavior. | — | — | — |
+|  | Does not prove raw legal text evidence quality. | — | — | — |
 
 ### What This Area Does Not Prove
 
@@ -189,6 +198,11 @@ _Below non-claims are drawn directly from architecture registry records. They ar
 | Does not authorize generated Cypher execution. |
 | Does not prove FalkorDB runtime/vector/full-text/rerank behavior. |
 | Does not prove parser completeness. |
+| Does not make LLM output legal authority. |
+| Does not make fixture IDs production IDs. |
+| Does not promote D045 research into validated product behavior. |
+| Does not prove production FalkorDB runtime behavior. |
+| Does not prove raw legal text evidence quality. |
 
 ### Next Proof Work
 
@@ -197,6 +211,7 @@ Proof work for this area should:
 - Address [`GATE-G011`](#proof-gates): Retrieval quality benchmark passes under local/open-weight embedding constraints.
 - Resolve [`EVID-RESEARCH-GRAPHRAG-MATH-ANALYSIS`](#blocked--bounded-evidence): Assessment classifies ideas into applicable-now principles, proof-gated candidates, and deferred/not-adopted claims; future proof must validate any runtime, SDK, benchmark, or retrieval-quality claim.
 - Resolve [`EVID-RESEARCH-HABR-LEGAL-RAG-ITERATION-SCALING`](#blocked--bounded-evidence): Human-reviewed JSON comparison classifies all transferable ideas as requiring project-specific verification before adoption; future proof must validate retrieval IDs, evidence precision, no-answer behavior, scale/noise degradation, and any runtime or model claim.
+- Resolve [`EVID-RETRIEVAL-OUTPUT-ID-VALIDATOR-PROOF`](#blocked--bounded-evidence): `uv run python scripts/verify-retrieval-output-validator.py` and `uv run pytest tests/test_retrieval_output_validator.py -q` prove fixture/unit/CLI behavior for required M012 diagnostic cases only.
 
 ## Temporal Model
 
@@ -256,6 +271,11 @@ _The following statements appear across one or more architecture records and col
 | Does not validate benchmark, cost, or latency claims. | `EVID-RESEARCH-GRAPHRAG-MATH-ANALYSIS` |
 | Does not authorize generated Cypher execution. | `EVID-RESEARCH-HABR-LEGAL-RAG-ITERATION-SCALING` |
 | Does not prove FalkorDB runtime/vector/full-text/rerank behavior. | `EVID-RESEARCH-HABR-LEGAL-RAG-ITERATION-SCALING` |
+| Does not make LLM output legal authority. | `EVID-RETRIEVAL-OUTPUT-ID-VALIDATOR-PROOF` |
+| Does not make fixture IDs production IDs. | `EVID-RETRIEVAL-OUTPUT-ID-VALIDATOR-PROOF` |
+| Does not promote D045 research into validated product behavior. | `EVID-RETRIEVAL-OUTPUT-ID-VALIDATOR-PROOF` |
+| Does not prove production FalkorDB runtime behavior. | `EVID-RETRIEVAL-OUTPUT-ID-VALIDATOR-PROOF` |
+| Does not prove raw legal text evidence quality. | `EVID-RETRIEVAL-OUTPUT-ID-VALIDATOR-PROOF` |
 | Does not allow managed embedding API fallback. | `GATE-EMBEDDING-SUPPLY-CHAIN` |
 | Does not promote any embedding model to product default. | `GATE-EMBEDDING-SUPPLY-CHAIN` |
 | No product retrieval quality claim. | `GATE-G008` |
