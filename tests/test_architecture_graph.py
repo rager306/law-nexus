@@ -37,8 +37,8 @@ def test_builds_current_registry_as_keyed_multidigraph() -> None:
     edges = graph_module.load_records(EDGES_PATH, expected_kind="edge")
     graph = graph_module.build_graph(items, edges)
 
-    assert graph.number_of_nodes() == 42
-    assert graph.number_of_edges() == 52
+    assert graph.number_of_nodes() == 44
+    assert graph.number_of_edges() == 59
     assert graph.is_multigraph()
 
     edge = edges[0]
@@ -171,13 +171,13 @@ def test_report_current_registry_exposes_baseline_graph_health() -> None:
     graph = graph_module.build_graph(items, edges)
     report = graph_module.compute_graph_report(graph, schema_path=SCHEMA_PATH)
 
-    assert report["counts"] == {"nodes": 42, "edges": 52}
+    assert report["counts"] == {"nodes": 44, "edges": 59}
     assert report["layer_coverage"]["missing_layers"] == []
     assert report["layer_coverage"]["counts"]["api-product"] == 1
     assert report["layer_coverage"]["counts"]["legal-evidence"] == 1
     assert report["layer_coverage"]["counts"]["observability-operability"] == 1
     assert report["layer_coverage"]["counts"]["parser-ingestion"] == 10
-    assert report["layer_coverage"]["counts"]["retrieval-embedding"] == 7
+    assert report["layer_coverage"]["counts"]["retrieval-embedding"] == 9
     assert report["layer_coverage"]["counts"]["architecture-governance"] == 7
     assert [gate["id"] for gate in report["unresolved_proof_gates"]] == [
         "GATE-EMBEDDING-SUPPLY-CHAIN",
@@ -198,8 +198,8 @@ def test_report_current_registry_exposes_baseline_graph_health() -> None:
         "DATA-LEGAL-EVIDENCE-CORE",
         "DATA-TEMPORAL-PROPERTY-BUNDLE",
     ]
-    assert len(report["high_risk_nodes"]) == 27
-    assert report["non_claims_summary"]["nodes_with_non_claims"] == 42
+    assert len(report["high_risk_nodes"]) == 29
+    assert report["non_claims_summary"]["nodes_with_non_claims"] == 44
     assert report["non_claims_summary"]["total_non_claims"] > 36
 
 
@@ -216,6 +216,7 @@ def test_report_exposes_r034_validator_proof_traceability_edges() -> None:
     node_ids = {node["id"] for node in report["high_risk_nodes"]}
     assert "REQ-R034" in node_ids
     assert "EVID-RETRIEVAL-OUTPUT-ID-VALIDATOR-PROOF" in node_ids
+    assert "EVID-REAL-ARTIFACT-RETRIEVAL-PROOF" in node_ids
 
     edge_index = {(edge["from"], edge["type"], edge["to"]): edge for edge in report["traceability_edges"]}
     assert (
@@ -223,9 +224,16 @@ def test_report_exposes_r034_validator_proof_traceability_edges() -> None:
         "satisfies",
         "REQ-R034",
     ) in edge_index
+    assert (
+        "EVID-REAL-ARTIFACT-RETRIEVAL-PROOF",
+        "satisfies",
+        "REQ-R034",
+    ) in edge_index
     for gate_id in ("GATE-G008", "GATE-G011"):
         edge = edge_index[("EVID-RETRIEVAL-OUTPUT-ID-VALIDATOR-PROOF", "bounded_by", gate_id)]
         assert edge["status"] == "active"
+        real_artifact_edge = edge_index[("EVID-REAL-ARTIFACT-RETRIEVAL-PROOF", "bounded_by", gate_id)]
+        assert real_artifact_edge["status"] == "active"
     assert (
         "EVID-RETRIEVAL-OUTPUT-ID-VALIDATOR-PROOF",
         "depends_on",
@@ -241,6 +249,12 @@ def test_report_exposes_r034_validator_proof_traceability_edges() -> None:
     )["non_claims"]
     assert "Does not prove product retrieval quality." in proof_non_claims
     assert "Does not prove legal-answer correctness." in proof_non_claims
+    real_artifact_non_claims = next(
+        node for node in report["non_claims_summary"]["by_node"]
+        if node["id"] == "EVID-REAL-ARTIFACT-RETRIEVAL-PROOF"
+    )["non_claims"]
+    assert "Does not close GATE-G008." in real_artifact_non_claims
+    assert "Does not close GATE-G011." in real_artifact_non_claims
 
 
 def test_report_handles_empty_graph_with_schema_layer_contract() -> None:
@@ -491,16 +505,21 @@ def test_cli_write_mode_renders_deterministic_json_and_markdown_reports(tmp_path
         "GATE-GENERATED-CYPHER-SAFETY",
         "GATE-LEGAL-NEXUS-ACCESS-CONTROL",
     ]
-    assert report["counts"] == {"nodes": 42, "edges": 52}
+    assert report["counts"] == {"nodes": 44, "edges": 59}
     assert "derived, non-authoritative" in markdown
     assert "do not validate product/runtime/legal claims" in markdown
     assert "Findings for S04" in markdown
     assert "GATE-G005" in markdown
     assert "REQ-R029" in markdown
     assert "EVID-RETRIEVAL-OUTPUT-ID-VALIDATOR-PROOF" in markdown
+    assert "EVID-REAL-ARTIFACT-RETRIEVAL-PROOF" in markdown
+    assert "EVID-OFFLINE-CITATION-RETRIEVAL-PROOF" in markdown
     assert "REQ-R034" in markdown
     assert "EDGE-EVID-RETRIEVAL-OUTPUT-ID-VALIDATOR-PROOF-BOUNDED-BY-GATE-G008" in markdown
     assert "EDGE-EVID-RETRIEVAL-OUTPUT-ID-VALIDATOR-PROOF-BOUNDED-BY-GATE-G011" in markdown
+    assert "EDGE-EVID-REAL-ARTIFACT-RETRIEVAL-PROOF-BOUNDED-BY-GATE-G008" in markdown
+    assert "EDGE-EVID-REAL-ARTIFACT-RETRIEVAL-PROOF-BOUNDED-BY-GATE-G011" in markdown
+    assert "EDGE-EVID-OFFLINE-CITATION-RETRIEVAL-PROOF-BOUNDED-BY-GATE-G008" in markdown
 
 
 def test_cli_check_mode_detects_missing_and_stale_outputs_without_rewriting(tmp_path: Path) -> None:

@@ -95,15 +95,15 @@ _FORBIDDEN_FIELD_NAMES = frozenset(
     }
 )
 _ID_PREFIXES = {
-    "retrieval_output_id": ("RET-M012-",),
-    "scope_id": ("SCOPE-M012-",),
-    "citation_key": ("CIT-M012-",),
-    "evidence_span_id": ("EV-M012-",),
-    "source_block_id": ("SB-M012-",),
-    "source_document_id": ("SD-M012-",),
-    "legal_unit_id": ("LU-M012-",),
-    "act_edition_id": ("ED-M012-",),
-    "answer_claim_id": ("AC-M012-",),
+    "retrieval_output_id": ("RET-M012-", "RET-M013-", "RET-M014-"),
+    "scope_id": ("SCOPE-M012-", "SCOPE-M013-", "SCOPE-M014-"),
+    "citation_key": ("CIT-M012-", "CIT-M013-", "CIT-M014-"),
+    "evidence_span_id": ("EV-M012-", "EV-M013-", "EV-M014-"),
+    "source_block_id": ("SB-M012-", "SB-M013-", "SB-M014-"),
+    "source_document_id": ("SD-M012-", "SD-M013-", "SD-M014-"),
+    "legal_unit_id": ("LU-M012-", "LU-M013-", "LU-M014-"),
+    "act_edition_id": ("ED-M012-", "ED-M013-", "ED-M014-"),
+    "answer_claim_id": ("AC-M012-", "AC-M013-", "AC-M014-"),
 }
 
 

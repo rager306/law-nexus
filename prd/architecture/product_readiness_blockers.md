@@ -12,7 +12,7 @@
 | Graph Runtime | 1 | 0 |
 | Legal Answering | 2 | 0 |
 | Legal KnowQL / Generated Cypher | 1 | 0 |
-| Retrieval / Embedding | 1 | 3 |
+| Retrieval / Embedding | 1 | 5 |
 | Temporal Model | 1 | 0 |
 
 ## ETL / Parser
@@ -160,6 +160,28 @@ Proof work for this area should:
 
 | ID | Title | Risk | Verification | Owner |
 | --- | --- | --- | --- | --- |
+| `EVID-OFFLINE-CITATION-RETRIEVAL-PROOF` | Offline citation-safe retrieval proof | high | `uv run python scripts/verify-offline-citation-retrieval-proof.py` proves 6 offline citation retrieval cases with selected_count=2, scoped_no_answer_count=1, rejected_count=3, validator_accepted_count=3, validator_rejected_count=1, and mismatch_count=0. | M014/S02 |
+|  | Does not close GATE-G008. | — | — | — |
+|  | Does not close GATE-G011. | — | — | — |
+|  | Does not make LLM output legal authority. | — | — | — |
+|  | Does not make proof-local IDs production IDs. | — | — | — |
+|  | Does not prove legal-answer correctness. | — | — | — |
+|  | Does not prove local embedding quality. | — | — | — |
+|  | Does not prove parser completeness. | — | — | — |
+|  | Does not prove product retrieval quality. | — | — | — |
+|  | Does not prove production FalkorDB runtime behavior. | — | — | — |
+|  | Does not prove production graph schema readiness. | — | — | — |
+| `EVID-REAL-ARTIFACT-RETRIEVAL-PROOF` | Real-artifact retrieval output ID proof | high | `uv run python scripts/verify-real-artifact-retrieval-proof.py` proves 7 real-artifact-derived cases with 2 accepted, 5 rejected, and mismatch_count=0; M012 validator regression remains green. | M013/S02 |
+|  | Does not close GATE-G008. | — | — | — |
+|  | Does not close GATE-G011. | — | — | — |
+|  | Does not make LLM output legal authority. | — | — | — |
+|  | Does not make proof-local IDs production IDs. | — | — | — |
+|  | Does not prove legal-answer correctness. | — | — | — |
+|  | Does not prove local embedding quality. | — | — | — |
+|  | Does not prove parser completeness. | — | — | — |
+|  | Does not prove product retrieval quality. | — | — | — |
+|  | Does not prove production FalkorDB runtime behavior. | — | — | — |
+|  | Does not prove production graph schema readiness. | — | — | — |
 | `EVID-RESEARCH-GRAPHRAG-MATH-ANALYSIS` | GraphRAG/FalkorDB mathematical analysis research input | high | Assessment classifies ideas into applicable-now principles, proof-gated candidates, and deferred/not-adopted claims; future proof must validate any runtime, SDK, benchmark, or retrieval-quality claim. | M011/S01 |
 |  | Does not prove FalkorDB production-scale behavior. | — | — | — |
 |  | Does not prove GraphRAG-SDK compatibility. | — | — | — |
@@ -190,18 +212,23 @@ _Below non-claims are drawn directly from architecture registry records. They ar
 | --- |
 | No managed embedding API fallback claim. |
 | No product retrieval quality claim. |
+| Does not close GATE-G008. |
+| Does not close GATE-G011. |
+| Does not make LLM output legal authority. |
+| Does not make proof-local IDs production IDs. |
+| Does not prove legal-answer correctness. |
+| Does not prove local embedding quality. |
+| Does not prove parser completeness. |
+| Does not prove product retrieval quality. |
+| Does not prove production FalkorDB runtime behavior. |
+| Does not prove production graph schema readiness. |
 | Does not prove FalkorDB production-scale behavior. |
 | Does not prove GraphRAG-SDK compatibility. |
-| Does not prove legal-answer correctness. |
-| Does not prove product retrieval quality. |
 | Does not validate benchmark, cost, or latency claims. |
 | Does not authorize generated Cypher execution. |
 | Does not prove FalkorDB runtime/vector/full-text/rerank behavior. |
-| Does not prove parser completeness. |
-| Does not make LLM output legal authority. |
 | Does not make fixture IDs production IDs. |
 | Does not promote D045 research into validated product behavior. |
-| Does not prove production FalkorDB runtime behavior. |
 | Does not prove raw legal text evidence quality. |
 
 ### Next Proof Work
@@ -209,6 +236,8 @@ _Below non-claims are drawn directly from architecture registry records. They ar
 Proof work for this area should:
 
 - Address [`GATE-G011`](#proof-gates): Retrieval quality benchmark passes under local/open-weight embedding constraints.
+- Resolve [`EVID-OFFLINE-CITATION-RETRIEVAL-PROOF`](#blocked--bounded-evidence): `uv run python scripts/verify-offline-citation-retrieval-proof.py` proves 6 offline citation retrieval cases with selected_count=2, scoped_no_answer_count=1, rejected_count=3, validator_accepted_count=3, validator_rejected_count=1, and mismatch_count=0.
+- Resolve [`EVID-REAL-ARTIFACT-RETRIEVAL-PROOF`](#blocked--bounded-evidence): `uv run python scripts/verify-real-artifact-retrieval-proof.py` proves 7 real-artifact-derived cases with 2 accepted, 5 rejected, and mismatch_count=0; M012 validator regression remains green.
 - Resolve [`EVID-RESEARCH-GRAPHRAG-MATH-ANALYSIS`](#blocked--bounded-evidence): Assessment classifies ideas into applicable-now principles, proof-gated candidates, and deferred/not-adopted claims; future proof must validate any runtime, SDK, benchmark, or retrieval-quality claim.
 - Resolve [`EVID-RESEARCH-HABR-LEGAL-RAG-ITERATION-SCALING`](#blocked--bounded-evidence): Human-reviewed JSON comparison classifies all transferable ideas as requiring project-specific verification before adoption; future proof must validate retrieval IDs, evidence precision, no-answer behavior, scale/noise degradation, and any runtime or model claim.
 - Resolve [`EVID-RETRIEVAL-OUTPUT-ID-VALIDATOR-PROOF`](#blocked--bounded-evidence): `uv run python scripts/verify-retrieval-output-validator.py` and `uv run pytest tests/test_retrieval_output_validator.py -q` prove fixture/unit/CLI behavior for required M012 diagnostic cases only.
@@ -256,13 +285,20 @@ _The following statements appear across one or more architecture records and col
 | Does not validate temporal conflict resolution. | `DATA-TEMPORAL-PROPERTY-BUNDLE` |
 | JSONL and GraphML are not source-of-truth replacements. | `DEC-D031` |
 | The skill is guidance, not a source of truth. | `DEC-D032` |
+| Does not close GATE-G008. | `EVID-OFFLINE-CITATION-RETRIEVAL-PROOF` |
+| Does not close GATE-G011. | `EVID-OFFLINE-CITATION-RETRIEVAL-PROOF` |
+| Does not make LLM output legal authority. | `EVID-OFFLINE-CITATION-RETRIEVAL-PROOF` |
+| Does not make proof-local IDs production IDs. | `EVID-OFFLINE-CITATION-RETRIEVAL-PROOF` |
+| Does not prove local embedding quality. | `EVID-OFFLINE-CITATION-RETRIEVAL-PROOF` |
+| Does not prove product retrieval quality. | `EVID-OFFLINE-CITATION-RETRIEVAL-PROOF` |
+| Does not prove production FalkorDB runtime behavior. | `EVID-OFFLINE-CITATION-RETRIEVAL-PROOF` |
+| Does not prove production graph schema readiness. | `EVID-OFFLINE-CITATION-RETRIEVAL-PROOF` |
 | Does not prove Consultant relation correctness. | `EVID-PARSER-CONSULTANT-CANDIDATES` |
 | Does not prove FalkorDB loading/runtime behavior. | `EVID-PARSER-CONSULTANT-HIERARCHY-PROOF` |
 | Does not prove Garant ODT parser regression. | `EVID-PARSER-CONSULTANT-HIERARCHY-PROOF` |
 | Does not prove multi-document Consultant expansion. | `EVID-PARSER-CONSULTANT-HIERARCHY-PROOF` |
 | Does not prove product ETL readiness. | `EVID-PARSER-CONSULTANT-HIERARCHY-PROOF` |
 | Does not prove citation-safe retrieval readiness. | `EVID-PARSER-GOLDEN-TEST-PROOF` |
-| Does not prove product retrieval quality. | `EVID-PARSER-GOLDEN-TEST-PROOF` |
 | No final legal hierarchy extraction claim. | `EVID-PARSER-ODT-SMOKE` |
 | No parser completeness claim. | `EVID-PARSER-ODT-SMOKE` |
 | Does not prove legal correctness. | `EVID-PARSER-SOURCE-FIXTURE-INVENTORY` |
@@ -271,10 +307,8 @@ _The following statements appear across one or more architecture records and col
 | Does not validate benchmark, cost, or latency claims. | `EVID-RESEARCH-GRAPHRAG-MATH-ANALYSIS` |
 | Does not authorize generated Cypher execution. | `EVID-RESEARCH-HABR-LEGAL-RAG-ITERATION-SCALING` |
 | Does not prove FalkorDB runtime/vector/full-text/rerank behavior. | `EVID-RESEARCH-HABR-LEGAL-RAG-ITERATION-SCALING` |
-| Does not make LLM output legal authority. | `EVID-RETRIEVAL-OUTPUT-ID-VALIDATOR-PROOF` |
 | Does not make fixture IDs production IDs. | `EVID-RETRIEVAL-OUTPUT-ID-VALIDATOR-PROOF` |
 | Does not promote D045 research into validated product behavior. | `EVID-RETRIEVAL-OUTPUT-ID-VALIDATOR-PROOF` |
-| Does not prove production FalkorDB runtime behavior. | `EVID-RETRIEVAL-OUTPUT-ID-VALIDATOR-PROOF` |
 | Does not prove raw legal text evidence quality. | `EVID-RETRIEVAL-OUTPUT-ID-VALIDATOR-PROOF` |
 | Does not allow managed embedding API fallback. | `GATE-EMBEDDING-SUPPLY-CHAIN` |
 | Does not promote any embedding model to product default. | `GATE-EMBEDDING-SUPPLY-CHAIN` |

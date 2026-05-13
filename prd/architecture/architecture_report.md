@@ -8,14 +8,14 @@ Current orphans, unresolved proof gates, contradictions, and risk rows are findi
 
 | Field | Value |
 | --- | --- |
-| Nodes | 42 |
-| Edges | 52 |
+| Nodes | 44 |
+| Edges | 59 |
 | Non-authoritative | true |
 | Missing layers | 0 |
 | Unresolved proof gates | 7 |
 | Orphan findings | 0 |
 | Contradiction edges | 0 |
-| High/critical-risk nodes | 27 |
+| High/critical-risk nodes | 29 |
 
 ## Layer Coverage
 
@@ -28,7 +28,7 @@ Current orphans, unresolved proof gates, contradictions, and risk rows are findi
 | legal-evidence | 1 |
 | observability-operability | 1 |
 | parser-ingestion | 10 |
-| retrieval-embedding | 7 |
+| retrieval-embedding | 9 |
 | security-safety | 5 |
 | temporal-model | 3 |
 | workflow-governance | 3 |
@@ -75,8 +75,15 @@ These edge summaries expose bounded proof, requirement, gate, and data-boundary 
 | EDGE-DEC-D031-HAS-ASSUMPTION-ASSUMP-PRD-SOURCE-TRUTH | DEC-D031 | has_assumption | ASSUMP-PRD-SOURCE-TRUTH | active | The architecture registry decision assumes PRD/GSD/ADR/source/runtime evidence remains authoritative and generated registry artifacts remain derived projections. |
 | EDGE-DEC-D031-SATISFIES-REQ-R029 | DEC-D031 | satisfies | REQ-R029 | active | The docs-as-code architecture registry decision is the chosen approach for executable architecture verification. |
 | EDGE-DEC-D032-DEPENDS-ON-DEC-D031 | DEC-D032 | depends_on | DEC-D031 | active | The architecture verification skill should be created only after the registry contract and verifier workflow exist. |
+| EDGE-EVID-OFFLINE-CITATION-RETRIEVAL-PROOF-BOUNDED-BY-GATE-G008 | EVID-OFFLINE-CITATION-RETRIEVAL-PROOF | bounded_by | GATE-G008 | active | The M014 proof validates deterministic offline citation-safe retrieval behavior over a bounded tracked corpus, but remains bounded by the broader product parser/retrieval readiness gate. |
+| EDGE-EVID-OFFLINE-CITATION-RETRIEVAL-PROOF-CHECKED-BY-CHECK-ARCHITECTURE-EXTRACTOR | EVID-OFFLINE-CITATION-RETRIEVAL-PROOF | checked_by | CHECK-ARCHITECTURE-EXTRACTOR | active | The deterministic architecture extractor keeps the M014 offline citation proof anchors, status, proof level, and non-claims visible in generated registry outputs. |
+| EDGE-EVID-OFFLINE-CITATION-RETRIEVAL-PROOF-DEPENDS-ON-DATA-LEGAL-EVIDENCE-CORE | EVID-OFFLINE-CITATION-RETRIEVAL-PROOF | depends_on | DATA-LEGAL-EVIDENCE-CORE | active | The offline citation proof depends on source/evidence/legal-unit/edition ID path concepts from the legal evidence core while remaining a proof-local fixture, not production graph data. |
 | EDGE-EVID-PARSER-CONSULTANT-HIERARCHY-PROOF-BOUNDED-BY-GATE-G008 | EVID-PARSER-CONSULTANT-HIERARCHY-PROOF | bounded_by | GATE-G008 | active | M009 proves a bounded single-document Consultant hierarchy path but remains bounded by the product parser/retrieval readiness gate. |
 | EDGE-EVID-PARSER-GOLDEN-TEST-PROOF-BOUNDED-BY-GATE-G008 | EVID-PARSER-GOLDEN-TEST-PROOF | bounded_by | GATE-G008 | active | M008 proves a bounded golden-test harness but remains bounded by the product parser/retrieval readiness gate. |
+| EDGE-EVID-REAL-ARTIFACT-RETRIEVAL-PROOF-BOUNDED-BY-GATE-G008 | EVID-REAL-ARTIFACT-RETRIEVAL-PROOF | bounded_by | GATE-G008 | active | The M013 proof validates real-artifact output IDs and diagnostics but remains bounded by the product parser/retrieval readiness gate. |
+| EDGE-EVID-REAL-ARTIFACT-RETRIEVAL-PROOF-BOUNDED-BY-GATE-G011 | EVID-REAL-ARTIFACT-RETRIEVAL-PROOF | bounded_by | GATE-G011 | active | The M013 proof validates fail-closed output IDs but does not measure local embedding or product retrieval quality. |
+| EDGE-EVID-REAL-ARTIFACT-RETRIEVAL-PROOF-CHECKED-BY-CHECK-ARCHITECTURE-EXTRACTOR | EVID-REAL-ARTIFACT-RETRIEVAL-PROOF | checked_by | CHECK-ARCHITECTURE-EXTRACTOR | active | The deterministic architecture extractor keeps the M013 real-artifact proof anchors, status, proof level, and non-claims visible in generated registry outputs. |
+| EDGE-EVID-REAL-ARTIFACT-RETRIEVAL-PROOF-SATISFIES-REQ-R034 | EVID-REAL-ARTIFACT-RETRIEVAL-PROOF | satisfies | REQ-R034 | active | The M013 real-artifact proof provides executable evidence that retrieval output IDs derived from tracked parser artifacts can fail closed through source, legal-unit, and edition paths without promoting product retrieval quality or legal-answer claims. |
 | EDGE-EVID-RESEARCH-GRAPHRAG-MATH-ANALYSIS-BOUNDED-BY-GATE-G005 | EVID-RESEARCH-GRAPHRAG-MATH-ANALYSIS | bounded_by | GATE-G005 | active | Research ideas about temporal legal graph reasoning remain bounded by the unresolved temporal same-date conflict policy gate. |
 | EDGE-EVID-RESEARCH-GRAPHRAG-MATH-ANALYSIS-BOUNDED-BY-GATE-G008 | EVID-RESEARCH-GRAPHRAG-MATH-ANALYSIS | bounded_by | GATE-G008 | active | Research ideas about graph pre-filtering and GraphRAG retrieval remain bounded by product parser/retrieval readiness proof. |
 | EDGE-EVID-RESEARCH-GRAPHRAG-MATH-ANALYSIS-BOUNDED-BY-GATE-G011 | EVID-RESEARCH-GRAPHRAG-MATH-ANALYSIS | bounded_by | GATE-G011 | active | Research ideas about ranking, embeddings, and hybrid retrieval remain bounded by local embedding quality proof. |
@@ -132,7 +139,9 @@ These edge summaries expose bounded proof, requirement, gate, and data-boundary 
 | DATA-LEGAL-EVIDENCE-CORE | high | data_entity | legal-evidence | active | source-anchor |
 | DATA-TEMPORAL-PROPERTY-BUNDLE | high | data_entity | temporal-model | active | source-anchor |
 | DEC-D031 | high | decision | architecture-governance | active | source-anchor |
+| EVID-OFFLINE-CITATION-RETRIEVAL-PROOF | high | evidence | retrieval-embedding | bounded-evidence | unit-test |
 | EVID-PARSER-ODT-SMOKE | high | evidence | parser-ingestion | bounded-evidence | real-document-proof |
+| EVID-REAL-ARTIFACT-RETRIEVAL-PROOF | high | evidence | retrieval-embedding | bounded-evidence | unit-test |
 | EVID-RESEARCH-GRAPHRAG-MATH-ANALYSIS | high | evidence | retrieval-embedding | bounded-evidence | source-anchor |
 | EVID-RESEARCH-HABR-LEGAL-RAG-ITERATION-SCALING | high | evidence | retrieval-embedding | bounded-evidence | source-anchor |
 | EVID-RETRIEVAL-OUTPUT-ID-VALIDATOR-PROOF | high | evidence | retrieval-embedding | bounded-evidence | unit-test |
@@ -164,8 +173,8 @@ These edge summaries expose bounded proof, requirement, gate, and data-boundary 
 
 | Field | Value |
 | --- | ---: |
-| Nodes with non-claims | 42 |
-| Total non-claims | 130 |
+| Nodes with non-claims | 44 |
+| Total non-claims | 150 |
 
 ### Nodes with Non-Claims
 
@@ -178,6 +187,7 @@ These edge summaries expose bounded proof, requirement, gate, and data-boundary 
 | DATA-TEMPORAL-PROPERTY-BUNDLE | 2 |
 | DEC-D031 | 1 |
 | DEC-D032 | 1 |
+| EVID-OFFLINE-CITATION-RETRIEVAL-PROOF | 10 |
 | EVID-PARSER-CONSULTANT-CANDIDATES | 2 |
 | EVID-PARSER-CONSULTANT-HIERARCHY-PROOF | 5 |
 | EVID-PARSER-GOLDEN-TEST-PROOF | 5 |
@@ -185,6 +195,7 @@ These edge summaries expose bounded proof, requirement, gate, and data-boundary 
 | EVID-PARSER-RECORD-CONTRACT | 2 |
 | EVID-PARSER-SOURCE-FIXTURE-INVENTORY | 2 |
 | EVID-PARSER-STAGING-GRAPH | 2 |
+| EVID-REAL-ARTIFACT-RETRIEVAL-PROOF | 10 |
 | EVID-RESEARCH-GRAPHRAG-MATH-ANALYSIS | 5 |
 | EVID-RESEARCH-HABR-LEGAL-RAG-ITERATION-SCALING | 5 |
 | EVID-RETRIEVAL-OUTPUT-ID-VALIDATOR-PROOF | 8 |

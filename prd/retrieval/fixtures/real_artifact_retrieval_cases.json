@@ -1,0 +1,425 @@
+{
+  "cases": [
+    {
+      "case_class": "valid_real_artifact_path",
+      "case_id": "CASE-M013-VALID-REAL-ARTIFACT",
+      "expected_diagnostic_codes": [],
+      "expected_result": "accepted",
+      "output": {
+        "answer_claims": [],
+        "citations": [
+          {
+            "act_edition_id": "ED-M013-44FZ-2026-01-01",
+            "citation_key": "CIT-M013-HIER-CONS-ARTICLE-0001",
+            "evidence_span_id": "EV-M013-HIER-CONS-ARTICLE-0001",
+            "legal_unit_id": "LU-M013-HIER-CONS-ARTICLE-0001",
+            "retrieval_output_id": "RET-M013-REAL-ARTIFACT-001",
+            "source_block_id": "SB-M013-HIER-CONS-ARTICLE-0001",
+            "source_document_id": "SD-M013-DOC-CONS-44FZ"
+          }
+        ],
+        "output_kind": "retrieval_candidate",
+        "retrieval_output_id": "RET-M013-REAL-ARTIFACT-001",
+        "scope": {
+          "as_of_date": "2026-01-01",
+          "query_id": "QUERY-M013-REAL-ARTIFACT-001",
+          "retrieval_run_id": "RUN-M013-REAL-ARTIFACT-001",
+          "scope_id": "SCOPE-M013-CONSULTANT-44FZ-2026-001",
+          "source_corpus_id": "CORPUS-M013-CONSULTANT-44FZ",
+          "validator_contract_version": "retrieval-output-validator/v1"
+        }
+      },
+      "source_record_ids": [
+        "HIER-CONS-ARTICLE-0001"
+      ]
+    },
+    {
+      "case_class": "missing_evidence_id",
+      "case_id": "CASE-M013-MISSING-EVIDENCE-ID",
+      "expected_diagnostic_codes": [
+        "missing_required_field"
+      ],
+      "expected_result": "rejected",
+      "output": {
+        "answer_claims": [],
+        "citations": [
+          {
+            "act_edition_id": "ED-M013-44FZ-2026-01-01",
+            "citation_key": "CIT-M013-HIER-CONS-ARTICLE-0001",
+            "legal_unit_id": "LU-M013-HIER-CONS-ARTICLE-0001",
+            "retrieval_output_id": "RET-M013-REAL-ARTIFACT-001",
+            "source_block_id": "SB-M013-HIER-CONS-ARTICLE-0001",
+            "source_document_id": "SD-M013-DOC-CONS-44FZ"
+          }
+        ],
+        "output_kind": "retrieval_candidate",
+        "retrieval_output_id": "RET-M013-REAL-ARTIFACT-001",
+        "scope": {
+          "as_of_date": "2026-01-01",
+          "query_id": "QUERY-M013-REAL-ARTIFACT-001",
+          "retrieval_run_id": "RUN-M013-REAL-ARTIFACT-001",
+          "scope_id": "SCOPE-M013-CONSULTANT-44FZ-2026-001",
+          "source_corpus_id": "CORPUS-M013-CONSULTANT-44FZ",
+          "validator_contract_version": "retrieval-output-validator/v1"
+        }
+      },
+      "source_record_ids": [
+        "HIER-CONS-ARTICLE-0001"
+      ]
+    },
+    {
+      "case_class": "unresolved_source_block",
+      "case_id": "CASE-M013-UNRESOLVED-SOURCE-BLOCK",
+      "expected_diagnostic_codes": [
+        "id_path_mismatch",
+        "orphaned_source_path"
+      ],
+      "expected_result": "rejected",
+      "output": {
+        "answer_claims": [],
+        "citations": [
+          {
+            "act_edition_id": "ED-M013-44FZ-2026-01-01",
+            "citation_key": "CIT-M013-HIER-CONS-ARTICLE-0001",
+            "evidence_span_id": "EV-M013-ORPHAN-SOURCE",
+            "legal_unit_id": "LU-M013-HIER-CONS-ARTICLE-0001",
+            "retrieval_output_id": "RET-M013-REAL-ARTIFACT-001",
+            "source_block_id": "SB-M013-MISSING-SOURCE-BLOCK",
+            "source_document_id": "SD-M013-DOC-CONS-44FZ"
+          }
+        ],
+        "output_kind": "retrieval_candidate",
+        "retrieval_output_id": "RET-M013-REAL-ARTIFACT-001",
+        "scope": {
+          "as_of_date": "2026-01-01",
+          "query_id": "QUERY-M013-REAL-ARTIFACT-001",
+          "retrieval_run_id": "RUN-M013-REAL-ARTIFACT-001",
+          "scope_id": "SCOPE-M013-CONSULTANT-44FZ-2026-001",
+          "source_corpus_id": "CORPUS-M013-CONSULTANT-44FZ",
+          "validator_contract_version": "retrieval-output-validator/v1"
+        }
+      },
+      "source_record_ids": [
+        "HIER-CONS-ARTICLE-0001"
+      ]
+    },
+    {
+      "case_class": "ambiguous_citation_key",
+      "case_id": "CASE-M013-AMBIGUOUS-CITATION",
+      "expected_diagnostic_codes": [
+        "ambiguous_citation_key"
+      ],
+      "expected_result": "rejected",
+      "output": {
+        "answer_claims": [],
+        "citations": [
+          {
+            "act_edition_id": "ED-M013-44FZ-2026-01-01",
+            "citation_key": "CIT-M013-AMBIG",
+            "evidence_span_id": "EV-M013-HIER-CONS-ARTICLE-0001",
+            "legal_unit_id": "LU-M013-HIER-CONS-ARTICLE-0001",
+            "retrieval_output_id": "RET-M013-REAL-ARTIFACT-001",
+            "source_block_id": "SB-M013-HIER-CONS-ARTICLE-0001",
+            "source_document_id": "SD-M013-DOC-CONS-44FZ"
+          }
+        ],
+        "output_kind": "retrieval_candidate",
+        "retrieval_output_id": "RET-M013-REAL-ARTIFACT-001",
+        "scope": {
+          "as_of_date": "2026-01-01",
+          "query_id": "QUERY-M013-REAL-ARTIFACT-001",
+          "retrieval_run_id": "RUN-M013-REAL-ARTIFACT-001",
+          "scope_id": "SCOPE-M013-CONSULTANT-44FZ-2026-001",
+          "source_corpus_id": "CORPUS-M013-CONSULTANT-44FZ",
+          "validator_contract_version": "retrieval-output-validator/v1"
+        }
+      },
+      "source_record_ids": [
+        "HIER-CONS-ARTICLE-0001"
+      ]
+    },
+    {
+      "case_class": "wrong_edition_proxy",
+      "case_id": "CASE-M013-WRONG-EDITION-PROXY",
+      "expected_diagnostic_codes": [
+        "wrong_edition"
+      ],
+      "expected_result": "rejected",
+      "output": {
+        "answer_claims": [],
+        "citations": [
+          {
+            "act_edition_id": "ED-M013-44FZ-1900-01-01",
+            "citation_key": "CIT-M013-HIER-CONS-ARTICLE-0001",
+            "evidence_span_id": "EV-M013-HIER-CONS-ARTICLE-0001",
+            "legal_unit_id": "LU-M013-HIER-CONS-ARTICLE-0001",
+            "retrieval_output_id": "RET-M013-REAL-ARTIFACT-001",
+            "source_block_id": "SB-M013-HIER-CONS-ARTICLE-0001",
+            "source_document_id": "SD-M013-DOC-CONS-44FZ"
+          }
+        ],
+        "output_kind": "retrieval_candidate",
+        "retrieval_output_id": "RET-M013-REAL-ARTIFACT-001",
+        "scope": {
+          "as_of_date": "2026-01-01",
+          "query_id": "QUERY-M013-REAL-ARTIFACT-001",
+          "retrieval_run_id": "RUN-M013-REAL-ARTIFACT-001",
+          "scope_id": "SCOPE-M013-CONSULTANT-44FZ-2026-001",
+          "source_corpus_id": "CORPUS-M013-CONSULTANT-44FZ",
+          "validator_contract_version": "retrieval-output-validator/v1"
+        }
+      },
+      "source_record_ids": [
+        "HIER-CONS-ARTICLE-0001"
+      ]
+    },
+    {
+      "case_class": "scoped_no_answer",
+      "case_id": "CASE-M013-SCOPED-NO-ANSWER",
+      "expected_diagnostic_codes": [
+        "scoped_no_answer"
+      ],
+      "expected_result": "accepted_scoped_no_answer",
+      "output": {
+        "answer_claims": [],
+        "citations": [],
+        "output_kind": "scoped_no_answer",
+        "retrieval_output_id": "RET-M013-SCOPED-NO-ANSWER",
+        "scope": {
+          "as_of_date": "2026-01-01",
+          "query_id": "QUERY-M013-REAL-ARTIFACT-001",
+          "retrieval_run_id": "RUN-M013-REAL-ARTIFACT-001",
+          "scope_id": "SCOPE-M013-CONSULTANT-44FZ-2026-001",
+          "source_corpus_id": "CORPUS-M013-CONSULTANT-44FZ",
+          "validator_contract_version": "retrieval-output-validator/v1"
+        }
+      },
+      "source_record_ids": []
+    },
+    {
+      "case_class": "unsafe_no_answer_with_citation",
+      "case_id": "CASE-M013-UNSAFE-NO-ANSWER-WITH-CITATION",
+      "expected_diagnostic_codes": [
+        "unsafe_no_answer_shape"
+      ],
+      "expected_result": "rejected",
+      "output": {
+        "answer_claims": [],
+        "citations": [
+          {
+            "act_edition_id": "ED-M013-44FZ-2026-01-01",
+            "citation_key": "CIT-M013-HIER-CONS-ARTICLE-0001",
+            "evidence_span_id": "EV-M013-HIER-CONS-ARTICLE-0001",
+            "legal_unit_id": "LU-M013-HIER-CONS-ARTICLE-0001",
+            "retrieval_output_id": "RET-M013-UNSAFE-NO-ANSWER-WITH-CITATION",
+            "source_block_id": "SB-M013-HIER-CONS-ARTICLE-0001",
+            "source_document_id": "SD-M013-DOC-CONS-44FZ"
+          }
+        ],
+        "output_kind": "scoped_no_answer",
+        "retrieval_output_id": "RET-M013-UNSAFE-NO-ANSWER-WITH-CITATION",
+        "scope": {
+          "as_of_date": "2026-01-01",
+          "query_id": "QUERY-M013-REAL-ARTIFACT-001",
+          "retrieval_run_id": "RUN-M013-REAL-ARTIFACT-001",
+          "scope_id": "SCOPE-M013-CONSULTANT-44FZ-2026-001",
+          "source_corpus_id": "CORPUS-M013-CONSULTANT-44FZ",
+          "validator_contract_version": "retrieval-output-validator/v1"
+        }
+      },
+      "source_record_ids": [
+        "HIER-CONS-ARTICLE-0001"
+      ]
+    }
+  ],
+  "contract_version": "retrieval-output-validator/v1",
+  "derived_fixture_graph": {
+    "act_editions": [
+      {
+        "act_edition_id": "ED-M013-44FZ-2026-01-01",
+        "legal_act_id": "LA-M013-44FZ",
+        "proof_boundary": "bounded_source_snapshot_proxy",
+        "source_sha256": "69df0b9d9e2bcce6164fc4e3c74fb9bebfff36ae6b053c68917c804be4b52a86",
+        "status": "active",
+        "valid_from": "2026-01-01",
+        "valid_to": null
+      }
+    ],
+    "citation_bindings": [
+      {
+        "binding_role": "unique",
+        "citation_key": "CIT-M013-HIER-CONS-ARTICLE-0001",
+        "evidence_span_id": "EV-M013-HIER-CONS-ARTICLE-0001",
+        "scope_id": "SCOPE-M013-CONSULTANT-44FZ-2026-001"
+      },
+      {
+        "binding_role": "ambiguous",
+        "citation_key": "CIT-M013-AMBIG",
+        "evidence_span_id": "EV-M013-HIER-CONS-ARTICLE-0001",
+        "scope_id": "SCOPE-M013-CONSULTANT-44FZ-2026-001"
+      },
+      {
+        "binding_role": "ambiguous",
+        "citation_key": "CIT-M013-AMBIG",
+        "evidence_span_id": "EV-M013-HIER-CONS-ARTICLE-0001",
+        "scope_id": "SCOPE-M013-CONSULTANT-44FZ-2026-001"
+      }
+    ],
+    "evidence_spans": [
+      {
+        "act_edition_id": "ED-M013-44FZ-2026-01-01",
+        "evidence_span_id": "EV-M013-HIER-CONS-ARTICLE-0001",
+        "excerpt_sha256": "82d0072d6346a9cfd9cf81dbeca76dfbd21851a1970f5abdd24fdd031d12ff57",
+        "legal_unit_id": "LU-M013-HIER-CONS-ARTICLE-0001",
+        "source_block_id": "SB-M013-HIER-CONS-ARTICLE-0001",
+        "source_document_id": "SD-M013-DOC-CONS-44FZ",
+        "source_hierarchy_id": "HIER-CONS-ARTICLE-0001",
+        "status": "active"
+      },
+      {
+        "act_edition_id": "ED-M013-44FZ-2026-01-01",
+        "evidence_span_id": "EV-M013-ORPHAN-SOURCE",
+        "excerpt_sha256": "82d0072d6346a9cfd9cf81dbeca76dfbd21851a1970f5abdd24fdd031d12ff57",
+        "legal_unit_id": "LU-M013-HIER-CONS-ARTICLE-0001",
+        "source_block_id": "SB-M013-MISSING-SOURCE-BLOCK",
+        "source_document_id": "SD-M013-DOC-CONS-44FZ",
+        "source_hierarchy_id": "HIER-CONS-ARTICLE-0001",
+        "status": "orphan_fixture"
+      }
+    ],
+    "legal_acts": [
+      {
+        "legal_act_id": "LA-M013-44FZ",
+        "source_path": "law-source/consultant/44-FZ-2026.xml",
+        "source_record_id": "HIER-CONS-DOCUMENT",
+        "source_sha256": "69df0b9d9e2bcce6164fc4e3c74fb9bebfff36ae6b053c68917c804be4b52a86",
+        "status": "bounded_proxy"
+      }
+    ],
+    "legal_units": [
+      {
+        "act_edition_id": "ED-M013-44FZ-2026-01-01",
+        "legal_act_id": "LA-M013-44FZ",
+        "legal_unit_id": "LU-M013-HIER-CONS-ARTICLE-0001",
+        "level": "article",
+        "parent_id": "HIER-CONS-CHAPTER-0001",
+        "source_hierarchy_id": "HIER-CONS-ARTICLE-0001",
+        "status": "bounded_hierarchy_proxy"
+      }
+    ],
+    "source_blocks": [
+      {
+        "excerpt_sha256": "82d0072d6346a9cfd9cf81dbeca76dfbd21851a1970f5abdd24fdd031d12ff57",
+        "location": {
+          "label": "WordML paragraph 77 style 2",
+          "selector": "/w:wordDocument/w:body/w:p[77]"
+        },
+        "source_block_id": "SB-M013-HIER-CONS-ARTICLE-0001",
+        "source_document_id": "SD-M013-DOC-CONS-44FZ",
+        "source_hierarchy_id": "HIER-CONS-ARTICLE-0001",
+        "status": "active"
+      }
+    ],
+    "source_documents": [
+      {
+        "source_corpus_id": "CORPUS-M013-CONSULTANT-44FZ",
+        "source_document_id": "SD-M013-DOC-CONS-44FZ",
+        "source_path": "law-source/consultant/44-FZ-2026.xml",
+        "source_record_id": "HIER-CONS-DOCUMENT",
+        "source_sha256": "69df0b9d9e2bcce6164fc4e3c74fb9bebfff36ae6b053c68917c804be4b52a86",
+        "status": "active"
+      }
+    ]
+  },
+  "expected_diagnostics": {
+    "CASE-M013-AMBIGUOUS-CITATION": [
+      "ambiguous_citation_key"
+    ],
+    "CASE-M013-MISSING-EVIDENCE-ID": [
+      "missing_required_field"
+    ],
+    "CASE-M013-SCOPED-NO-ANSWER": [
+      "scoped_no_answer"
+    ],
+    "CASE-M013-UNRESOLVED-SOURCE-BLOCK": [
+      "id_path_mismatch",
+      "orphaned_source_path"
+    ],
+    "CASE-M013-UNSAFE-NO-ANSWER-WITH-CITATION": [
+      "unsafe_no_answer_shape"
+    ],
+    "CASE-M013-VALID-REAL-ARTIFACT": [],
+    "CASE-M013-WRONG-EDITION-PROXY": [
+      "wrong_edition"
+    ]
+  },
+  "fixture_artifact": "prd/retrieval/fixtures/real_artifact_retrieval_cases.json",
+  "fixture_boundaries": {
+    "embedding_quality_measured": false,
+    "excerpt_hashes_only": true,
+    "falkordb_runtime_executed": false,
+    "proof_only": true,
+    "real_artifact_derived": true,
+    "source_text_persisted": false
+  },
+  "generated_by": "scripts/build-real-artifact-retrieval-cases.py",
+  "namespace_strategy": {
+    "current_validator_prefixes": [
+      "*-M012-*",
+      "*-M013-*"
+    ],
+    "implemented_s02_option": "safe_namespace_extension",
+    "proposed_m013_prefixes": [
+      "RET-M013-*",
+      "CIT-M013-*",
+      "EV-M013-*",
+      "SB-M013-*",
+      "SD-M013-*",
+      "LU-M013-*",
+      "ED-M013-*",
+      "AC-M013-*"
+    ],
+    "status": "safe_namespace_extension_selected"
+  },
+  "non_authoritative": true,
+  "non_claims": [
+    "Does not prove product retrieval quality.",
+    "Does not prove parser completeness.",
+    "Does not prove legal-answer correctness.",
+    "Does not prove legal interpretation authority.",
+    "Does not prove production FalkorDB runtime behavior.",
+    "Does not prove production graph schema readiness.",
+    "Does not prove local embedding quality.",
+    "Does not close GATE-G008.",
+    "Does not close GATE-G011.",
+    "Does not make LLM output legal authority.",
+    "Does not make proof-local IDs production IDs."
+  ],
+  "requirement": "R034",
+  "schema_version": "real-artifact-retrieval-cases/v1",
+  "source_artifacts": [
+    {
+      "path": "prd/parser/consultant_hierarchy_records.json",
+      "sha256": "df14061fccedf5023a008d8ab7de77cc829459d54b4683fab08bababf26d7f95"
+    },
+    {
+      "path": "prd/parser/consultant_hierarchy_records.jsonl",
+      "sha256": "b8c5f810c96da71a3f6517bb88aa93133d07949e0f538f25ecf9b0591e92e708"
+    },
+    {
+      "path": "prd/parser/parser_staging_graph.json",
+      "sha256": "c0921cacf238de9df32a122f2f9e858f0ff05375794230eb8070c87e3f6f8a53"
+    },
+    {
+      "path": "prd/retrieval/real_artifact_evidence_mapping.md",
+      "sha256": "3b029b4fccde2304917cfba04449246e9516199816b75f5c0def889250e4eeed"
+    }
+  ],
+  "source_summary": {
+    "hierarchy_record_count": 2185,
+    "source_path": "law-source/consultant/44-FZ-2026.xml",
+    "source_sha256": "69df0b9d9e2bcce6164fc4e3c74fb9bebfff36ae6b053c68917c804be4b52a86",
+    "staging_graph_diagnostic_count": 5,
+    "staging_graph_status": "pass"
+  }
+}

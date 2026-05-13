@@ -790,6 +790,7 @@ ALL_TRACKED_IDS = {
     "S05-OLD-PROJECT-PRIOR-ART", "S05-PARSER-ODT-BOUNDARY", "S07-FIXED-PRD-CONSISTENCY",
     "S10-GIGAEMBEDDINGS-CHALLENGER-BLOCKED", "S10-USER-BGE-M3-BASELINE",
     "EVID-RESEARCH-GRAPHRAG-MATH-ANALYSIS", "EVID-RETRIEVAL-OUTPUT-ID-VALIDATOR-PROOF",
+    "EVID-REAL-ARTIFACT-RETRIEVAL-PROOF",
 }
 
 ALL_26_IDS = ALL_TRACKED_IDS
@@ -805,6 +806,7 @@ BOUNDED_IDS = {
     "S05-PARSER-ODT-BOUNDARY", "S07-FIXED-PRD-CONSISTENCY", "S10-USER-BGE-M3-BASELINE",
     "EVID-PARSER-GOLDEN-TEST-PROOF", "EVID-PARSER-CONSULTANT-HIERARCHY-PROOF",
     "EVID-RESEARCH-GRAPHRAG-MATH-ANALYSIS", "EVID-RETRIEVAL-OUTPUT-ID-VALIDATOR-PROOF",
+    "EVID-REAL-ARTIFACT-RETRIEVAL-PROOF",
 }
 
 BLOCKED_IDS = {
@@ -967,9 +969,9 @@ def test_claims_ledger_total_count_is_28() -> None:
     assert bounded_count == 1
     assert blocked_count == 1
     assert unsafe_count == 1
-    # Total unique tracked IDs across all sections must be 28
+    # Total unique tracked IDs across all sections must be 29
     all_found = sum(1 for rid in ALL_TRACKED_IDS if rid in content)
-    assert all_found == 28, f"Expected 28 tracked items, found {all_found}"
+    assert all_found == 29, f"Expected 29 tracked items, found {all_found}"
 
 
 def test_claims_ledger_no_duplicate_item_ids() -> None:

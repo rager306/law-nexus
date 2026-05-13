@@ -41,6 +41,7 @@
 
 | ID | Title | Layer | Claim Domain | Risk | Proof Level | Non-Claims |
 | --- | --- | --- | --- | --- | --- | --- |
+| `EVID-OFFLINE-CITATION-RETRIEVAL-PROOF` | Offline citation-safe retrieval proof | retrieval-embedding | bounded-technical-proof | high | unit-test | ❌ Does not prove product retrieval quality.; ❌ Does not prove legal-answer correctness. |
 | `EVID-PARSER-CONSULTANT-CANDIDATES` | Consultant relation-candidate evidence | parser-ingestion | bounded-technical-proof | medium | static-check | ❌ Does not prove Consultant relation correctness.; ❌ Does not prove parser completeness. |
 | `EVID-PARSER-CONSULTANT-HIERARCHY-PROOF` | Consultant full-act hierarchy parser proof | parser-ingestion | bounded-technical-proof | medium | real-document-proof | ❌ Does not prove multi-document Consultant expansion.; ❌ Does not prove Garant ODT parser regression. |
 | `EVID-PARSER-GOLDEN-TEST-PROOF` | Bounded parser/retrieval golden-test proof | parser-ingestion | bounded-technical-proof | medium | unit-test | ❌ Does not prove parser completeness.; ❌ Does not prove product retrieval quality. |
@@ -48,6 +49,7 @@
 | `EVID-PARSER-RECORD-CONTRACT` | Parser record contract evidence | parser-ingestion | bounded-technical-proof | medium | static-check | ❌ Does not prove product ETL readiness.; ❌ Does not prove parser completeness. |
 | `EVID-PARSER-SOURCE-FIXTURE-INVENTORY` | Parser source fixture inventory evidence | parser-ingestion | bounded-technical-proof | medium | static-check | ❌ Does not prove parser completeness.; ❌ Does not prove legal correctness. |
 | `EVID-PARSER-STAGING-GRAPH` | Parser NetworkX staging graph evidence | parser-ingestion | bounded-technical-proof | medium | static-check | ❌ Does not prove FalkorDB loading/runtime behavior.; ❌ Does not prove legal-answer correctness. |
+| `EVID-REAL-ARTIFACT-RETRIEVAL-PROOF` | Real-artifact retrieval output ID proof | retrieval-embedding | bounded-technical-proof | high | unit-test | ❌ Does not prove product retrieval quality.; ❌ Does not prove legal-answer correctness. |
 | `EVID-RESEARCH-GRAPHRAG-MATH-ANALYSIS` | GraphRAG/FalkorDB mathematical analysis research input | retrieval-embedding | bounded-technical-proof | high | source-anchor | ❌ Does not prove product retrieval quality.; ❌ Does not prove FalkorDB production-scale behavior. |
 | `EVID-RESEARCH-HABR-LEGAL-RAG-ITERATION-SCALING` | Habr Legal RAG iteration and scaling research input | retrieval-embedding | bounded-technical-proof | high | source-anchor | ❌ Does not prove product retrieval quality.; ❌ Does not prove parser completeness. |
 | `EVID-RETRIEVAL-OUTPUT-ID-VALIDATOR-PROOF` | Retrieval output ID validator bounded proof | retrieval-embedding | bounded-technical-proof | high | unit-test | ❌ Does not prove product retrieval quality.; ❌ Does not prove legal-answer correctness. |

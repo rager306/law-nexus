@@ -2,8 +2,8 @@
   "contradiction_edges": [],
   "contradiction_pairs": [],
   "counts": {
-    "edges": 52,
-    "nodes": 42
+    "edges": 59,
+    "nodes": 44
   },
   "high_risk_nodes": [
     {
@@ -55,9 +55,25 @@
       "type": "decision"
     },
     {
+      "id": "EVID-OFFLINE-CITATION-RETRIEVAL-PROOF",
+      "layer": "retrieval-embedding",
+      "proof_level": "unit-test",
+      "risk_level": "high",
+      "status": "bounded-evidence",
+      "type": "evidence"
+    },
+    {
       "id": "EVID-PARSER-ODT-SMOKE",
       "layer": "parser-ingestion",
       "proof_level": "real-document-proof",
+      "risk_level": "high",
+      "status": "bounded-evidence",
+      "type": "evidence"
+    },
+    {
+      "id": "EVID-REAL-ARTIFACT-RETRIEVAL-PROOF",
+      "layer": "retrieval-embedding",
+      "proof_level": "unit-test",
       "risk_level": "high",
       "status": "bounded-evidence",
       "type": "evidence"
@@ -234,7 +250,7 @@
       "legal-evidence": 1,
       "observability-operability": 1,
       "parser-ingestion": 10,
-      "retrieval-embedding": 7,
+      "retrieval-embedding": 9,
       "security-safety": 5,
       "temporal-model": 3,
       "workflow-governance": 3
@@ -300,6 +316,22 @@
         ]
       },
       {
+        "count": 10,
+        "id": "EVID-OFFLINE-CITATION-RETRIEVAL-PROOF",
+        "non_claims": [
+          "Does not close GATE-G008.",
+          "Does not close GATE-G011.",
+          "Does not make LLM output legal authority.",
+          "Does not make proof-local IDs production IDs.",
+          "Does not prove legal-answer correctness.",
+          "Does not prove local embedding quality.",
+          "Does not prove parser completeness.",
+          "Does not prove product retrieval quality.",
+          "Does not prove production FalkorDB runtime behavior.",
+          "Does not prove production graph schema readiness."
+        ]
+      },
+      {
         "count": 2,
         "id": "EVID-PARSER-CONSULTANT-CANDIDATES",
         "non_claims": [
@@ -359,6 +391,22 @@
         "non_claims": [
           "Does not prove FalkorDB loading/runtime behavior.",
           "Does not prove legal-answer correctness."
+        ]
+      },
+      {
+        "count": 10,
+        "id": "EVID-REAL-ARTIFACT-RETRIEVAL-PROOF",
+        "non_claims": [
+          "Does not close GATE-G008.",
+          "Does not close GATE-G011.",
+          "Does not make LLM output legal authority.",
+          "Does not make proof-local IDs production IDs.",
+          "Does not prove legal-answer correctness.",
+          "Does not prove local embedding quality.",
+          "Does not prove parser completeness.",
+          "Does not prove product retrieval quality.",
+          "Does not prove production FalkorDB runtime behavior.",
+          "Does not prove production graph schema readiness."
         ]
       },
       {
@@ -628,8 +676,8 @@
         ]
       }
     ],
-    "nodes_with_non_claims": 42,
-    "total_non_claims": 130
+    "nodes_with_non_claims": 44,
+    "total_non_claims": 150
   },
   "orphan_findings": [],
   "traceability_edges": [
@@ -682,6 +730,30 @@
       "type": "depends_on"
     },
     {
+      "from": "EVID-OFFLINE-CITATION-RETRIEVAL-PROOF",
+      "id": "EDGE-EVID-OFFLINE-CITATION-RETRIEVAL-PROOF-BOUNDED-BY-GATE-G008",
+      "rationale": "The M014 proof validates deterministic offline citation-safe retrieval behavior over a bounded tracked corpus, but remains bounded by the broader product parser/retrieval readiness gate.",
+      "status": "active",
+      "to": "GATE-G008",
+      "type": "bounded_by"
+    },
+    {
+      "from": "EVID-OFFLINE-CITATION-RETRIEVAL-PROOF",
+      "id": "EDGE-EVID-OFFLINE-CITATION-RETRIEVAL-PROOF-CHECKED-BY-CHECK-ARCHITECTURE-EXTRACTOR",
+      "rationale": "The deterministic architecture extractor keeps the M014 offline citation proof anchors, status, proof level, and non-claims visible in generated registry outputs.",
+      "status": "active",
+      "to": "CHECK-ARCHITECTURE-EXTRACTOR",
+      "type": "checked_by"
+    },
+    {
+      "from": "EVID-OFFLINE-CITATION-RETRIEVAL-PROOF",
+      "id": "EDGE-EVID-OFFLINE-CITATION-RETRIEVAL-PROOF-DEPENDS-ON-DATA-LEGAL-EVIDENCE-CORE",
+      "rationale": "The offline citation proof depends on source/evidence/legal-unit/edition ID path concepts from the legal evidence core while remaining a proof-local fixture, not production graph data.",
+      "status": "active",
+      "to": "DATA-LEGAL-EVIDENCE-CORE",
+      "type": "depends_on"
+    },
+    {
       "from": "EVID-PARSER-CONSULTANT-HIERARCHY-PROOF",
       "id": "EDGE-EVID-PARSER-CONSULTANT-HIERARCHY-PROOF-BOUNDED-BY-GATE-G008",
       "rationale": "M009 proves a bounded single-document Consultant hierarchy path but remains bounded by the product parser/retrieval readiness gate.",
@@ -696,6 +768,38 @@
       "status": "active",
       "to": "GATE-G008",
       "type": "bounded_by"
+    },
+    {
+      "from": "EVID-REAL-ARTIFACT-RETRIEVAL-PROOF",
+      "id": "EDGE-EVID-REAL-ARTIFACT-RETRIEVAL-PROOF-BOUNDED-BY-GATE-G008",
+      "rationale": "The M013 proof validates real-artifact output IDs and diagnostics but remains bounded by the product parser/retrieval readiness gate.",
+      "status": "active",
+      "to": "GATE-G008",
+      "type": "bounded_by"
+    },
+    {
+      "from": "EVID-REAL-ARTIFACT-RETRIEVAL-PROOF",
+      "id": "EDGE-EVID-REAL-ARTIFACT-RETRIEVAL-PROOF-BOUNDED-BY-GATE-G011",
+      "rationale": "The M013 proof validates fail-closed output IDs but does not measure local embedding or product retrieval quality.",
+      "status": "active",
+      "to": "GATE-G011",
+      "type": "bounded_by"
+    },
+    {
+      "from": "EVID-REAL-ARTIFACT-RETRIEVAL-PROOF",
+      "id": "EDGE-EVID-REAL-ARTIFACT-RETRIEVAL-PROOF-CHECKED-BY-CHECK-ARCHITECTURE-EXTRACTOR",
+      "rationale": "The deterministic architecture extractor keeps the M013 real-artifact proof anchors, status, proof level, and non-claims visible in generated registry outputs.",
+      "status": "active",
+      "to": "CHECK-ARCHITECTURE-EXTRACTOR",
+      "type": "checked_by"
+    },
+    {
+      "from": "EVID-REAL-ARTIFACT-RETRIEVAL-PROOF",
+      "id": "EDGE-EVID-REAL-ARTIFACT-RETRIEVAL-PROOF-SATISFIES-REQ-R034",
+      "rationale": "The M013 real-artifact proof provides executable evidence that retrieval output IDs derived from tracked parser artifacts can fail closed through source, legal-unit, and edition paths without promoting product retrieval quality or legal-answer claims.",
+      "status": "active",
+      "to": "REQ-R034",
+      "type": "satisfies"
     },
     {
       "from": "EVID-RESEARCH-GRAPHRAG-MATH-ANALYSIS",
@@ -1125,6 +1229,7 @@
         "DATA-TEMPORAL-PROPERTY-BUNDLE",
         "DEC-D031",
         "DEC-D032",
+        "EVID-OFFLINE-CITATION-RETRIEVAL-PROOF",
         "EVID-PARSER-CONSULTANT-CANDIDATES",
         "EVID-PARSER-CONSULTANT-HIERARCHY-PROOF",
         "EVID-PARSER-GOLDEN-TEST-PROOF",
@@ -1132,6 +1237,7 @@
         "EVID-PARSER-RECORD-CONTRACT",
         "EVID-PARSER-SOURCE-FIXTURE-INVENTORY",
         "EVID-PARSER-STAGING-GRAPH",
+        "EVID-REAL-ARTIFACT-RETRIEVAL-PROOF",
         "EVID-RESEARCH-GRAPHRAG-MATH-ANALYSIS",
         "EVID-RESEARCH-HABR-LEGAL-RAG-ITERATION-SCALING",
         "EVID-RETRIEVAL-OUTPUT-ID-VALIDATOR-PROOF",
@@ -1157,7 +1263,7 @@
         "S10-GIGAEMBEDDINGS-CHALLENGER-BLOCKED",
         "S10-USER-BGE-M3-BASELINE"
       ],
-      "size": 38
+      "size": 40
     },
     {
       "nodes": [
