@@ -264,6 +264,20 @@ S02 may adapt field names locally, but the fixture should preserve these concept
 }
 ```
 
+## S02 Handoff Checklist
+
+Expected S02 test file: `tests/test_retrieval_output_validator.py`. Expected fixture file, if not kept inline for unit-test minimalism: `prd/retrieval/fixtures/retrieval_output_validator_cases.json`. Validator module path candidates are `scripts/retrieval_output_validator.py`, `scripts/verify-retrieval-output-validator.py`, or `legalgraph/retrieval/output_validator.py` if that package namespace exists when S02 starts.
+
+The implementation must assert the contract diagnostic codes, not only scenario names. Scenario labels from R034/S01 map to diagnostics as: `missing_id` -> `missing_required_field`, `unresolved_evidence` -> `unresolved_evidence_span`, `ambiguous_citation` -> `ambiguous_citation_key`, `orphan_source_block` -> `orphaned_source_path`, `superseded_evidence` -> `superseded_evidence`, `wrong_edition` -> `wrong_edition`, and `scoped_no_answer` -> `scoped_no_answer`.
+
+S02 proof language must preserve these non-claims exactly:
+
+- Does not prove product retrieval quality.
+- Does not prove parser completeness.
+- Does not prove FalkorDB runtime behavior.
+- Does not prove generated-Cypher safety.
+- Does not prove legal-answer correctness.
+
 ## S02 Acceptance Checklist
 
 S02 implementation can treat the fixture taxonomy as satisfied when tests prove all of the following over tracked or inline fixtures:

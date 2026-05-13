@@ -382,6 +382,28 @@ This contract does not prove or claim:
 - Final production ID format or final graph schema.
 - Multi-document Consultant expansion, Garant regression, or multi-source readiness.
 
+## S02 Implementation Handoff
+
+S02 should implement the validator as a small deterministic module plus tests over tracked or inline fixtures. Preferred path candidates, in order of least surprise for the current repository layout, are:
+
+1. `scripts/retrieval_output_validator.py` with tests in `tests/test_retrieval_output_validator.py`.
+2. `scripts/verify-retrieval-output-validator.py` as a proof/check CLI with tests in `tests/test_retrieval_output_validator.py`.
+3. `legalgraph/retrieval/output_validator.py` with tests in `tests/test_retrieval_output_validator.py`, only if a package namespace already exists when S02 starts.
+
+Expected fixture source is `prd/retrieval/fixtures/retrieval_output_validator_cases.json` unless S02 deliberately keeps smaller inline fixtures in the test file. Runtime fixtures must be git-tracked project files; `.gsd/` artifacts are planning evidence only, not runtime inputs.
+
+S02 must preserve these stable diagnostic codes from this contract: `missing_required_field`, `malformed_output_shape`, `unknown_id_namespace`, `unresolved_citation_key`, `ambiguous_citation_key`, `unresolved_evidence_span`, `orphaned_source_path`, `orphaned_legal_unit_path`, `id_path_mismatch`, `superseded_evidence`, `wrong_edition`, `answer_claim_without_evidence`, `unsafe_no_answer_shape`, `forbidden_payload_field`, and `scoped_no_answer`.
+
+For handoff/search compatibility with the R034 validation text and S01 verification command, the required scenario keywords are: `missing_id`, `unresolved_evidence`, `ambiguous_citation`, `orphan_source_block`, `superseded_evidence`, `wrong_edition`, and `scoped_no_answer`. These are scenario labels, not replacement diagnostic codes; map them as follows: `missing_id` -> `missing_required_field`, `unresolved_evidence` -> `unresolved_evidence_span`, `ambiguous_citation` -> `ambiguous_citation_key`, and `orphan_source_block` -> `orphaned_source_path`.
+
+Non-claims to carry into S02 proof artifacts:
+
+- Does not prove product retrieval quality.
+- Does not prove parser completeness.
+- Does not prove FalkorDB runtime behavior.
+- Does not prove generated-Cypher safety.
+- Does not prove legal-answer correctness.
+
 ## S02 Implementation Notes
 
 - Use tracked fixtures under `prd/retrieval/` or another git-tracked project path; do not depend on `.gsd/` as a runtime fixture source.
