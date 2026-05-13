@@ -1,14 +1,37 @@
 from __future__ import annotations
 
 import copy
+import importlib.util
 import json
+import sys
 from collections import Counter
 from pathlib import Path
+from types import ModuleType
 
 import pytest
 
 ROOT = Path(__file__).resolve().parents[1]
 FIXTURE_PATH = ROOT / "prd/retrieval/fixtures/retrieval_output_validator_cases.json"
+VALIDATOR_PATH = ROOT / "scripts/retrieval_output_validator.py"
+
+
+def load_validator() -> ModuleType:
+    spec = importlib.util.spec_from_file_location("retrieval_output_validator", VALIDATOR_PATH)
+    assert spec is not None
+    module = importlib.util.module_from_spec(spec)
+    assert spec.loader is not None
+    sys.modules[spec.name] = module
+    spec.loader.exec_module(module)
+    return module
+
+
+validator_module = load_validator()
+KNOWN_DIAGNOSTIC_CODES = validator_module.KNOWN_DIAGNOSTIC_CODES
+SAFE_DIAGNOSTIC_FIELDS = validator_module.SAFE_DIAGNOSTIC_FIELDS
+ValidationResult = validator_module.ValidationResult
+load_fixture_file = validator_module.load_fixture_file
+validate_case = validator_module.validate_case
+validate_output = validator_module.validate_output
 
 EXPECTED_DIAGNOSTIC_CODES = {
     "missing_required_field",
@@ -97,6 +120,21 @@ def load_fixture() -> dict:
         return json.load(fixture_file)
 
 
+def assert_safe_validation_result(result: ValidationResult, *, case_id: str) -> None:
+    assert result.result in {"accepted", "accepted_scoped_no_answer", "rejected"}
+    for diagnostic in result.diagnostics:
+        payload = diagnostic.to_dict()
+        assert set(payload) <= SAFE_DIAGNOSTIC_FIELDS
+        assert payload["case_id"] == case_id
+        assert payload["code"] in EXPECTED_DIAGNOSTIC_CODES
+        assert payload["code"] in KNOWN_DIAGNOSTIC_CODES
+        assert payload["severity"] in {"error", "warning", "info"}
+        assert payload["result"] in {"accepted", "accepted_scoped_no_answer", "rejected"}
+        serialized = json.dumps(payload, ensure_ascii=False)
+        for forbidden in FORBIDDEN_CONTENT_SNIPPETS:
+            assert forbidden not in serialized
+
+
 def assert_retrieval_fixture_inventory(data: dict) -> None:
     required_top_level = {
         "schema_version",
@@ -175,6 +213,66 @@ def test_fixture_file_inventory_is_bounded_and_complete() -> None:
     data = load_fixture()
 
     assert_retrieval_fixture_inventory(data)
+
+
+def test_validator_diagnostic_code_inventory_matches_contract() -> None:
+    assert KNOWN_DIAGNOSTIC_CODES == EXPECTED_DIAGNOSTIC_CODES
+
+
+def test_validator_executes_all_fixture_cases_with_expected_results_and_codes() -> None:
+    data = load_fixture()
+    fixture = load_fixture_file(FIXTURE_PATH)
+
+    for case in data["cases"]:
+        result = validate_case(case, fixture)
+
+        assert result.result == case["expected_result"], case["case_id"]
+        assert [diagnostic.code for diagnostic in result.diagnostics] == case["expected_diagnostic_codes"], case["case_id"]
+        assert_safe_validation_result(result, case_id=case["case_id"])
+        if case["expected_result"] == "accepted":
+            assert not result.diagnostics
+        elif case["expected_result"] == "accepted_scoped_no_answer":
+            assert [diagnostic.severity for diagnostic in result.diagnostics] == ["info"]
+        else:
+            assert any(diagnostic.severity == "error" for diagnostic in result.diagnostics)
+
+
+def test_validator_rejects_malformed_ad_hoc_envelopes_fail_closed() -> None:
+    fixture = load_fixture_file(FIXTURE_PATH)
+
+    non_object = validate_output(["not", "an", "object"], fixture, case_id="ADHOC-NON-OBJECT")
+    assert non_object.result == "rejected"
+    assert [diagnostic.code for diagnostic in non_object.diagnostics] == ["malformed_output_shape"]
+    assert_safe_validation_result(non_object, case_id="ADHOC-NON-OBJECT")
+
+    missing_fields = validate_output({}, fixture, case_id="ADHOC-MISSING-FIELDS")
+    assert missing_fields.result == "rejected"
+    assert "missing_required_field" in [diagnostic.code for diagnostic in missing_fields.diagnostics]
+    assert "malformed_output_shape" in [diagnostic.code for diagnostic in missing_fields.diagnostics]
+    assert_safe_validation_result(missing_fields, case_id="ADHOC-MISSING-FIELDS")
+
+
+def test_validator_redacts_forbidden_payload_values_from_diagnostics() -> None:
+    data = load_fixture()
+    fixture = load_fixture_file(FIXTURE_PATH)
+    output = copy.deepcopy(data["cases"][0]["output"])
+    output["raw_legal_text"] = "according to the law: legal advice: BEGIN PRIVATE KEY"
+    output["provider_payload"] = {"body": "provider response body", "vector": "embedding_vector"}
+
+    result = validate_output(output, fixture, case_id="ADHOC-FORBIDDEN-PAYLOAD")
+
+    assert result.result == "rejected"
+    assert [diagnostic.code for diagnostic in result.diagnostics] == [
+        "forbidden_payload_field",
+        "forbidden_payload_field",
+        "forbidden_payload_field",
+    ]
+    assert_safe_validation_result(result, case_id="ADHOC-FORBIDDEN-PAYLOAD")
+    serialized = json.dumps(result.to_dict(), ensure_ascii=False)
+    assert "raw_legal_text" in serialized
+    assert "provider_payload" in serialized
+    for forbidden in FORBIDDEN_CONTENT_SNIPPETS:
+        assert forbidden not in serialized
 
 
 def test_fixture_graph_contains_required_static_resolution_records() -> None:
