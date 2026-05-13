@@ -9,17 +9,17 @@
 
 | Metric | Count |
 | --- | ---: |
-| Total Nodes | 36 |
-| Total Edges | 33 |
+| Total Nodes | 40 |
+| Total Edges | 47 |
 | Schema Layers | 11 |
 | Missing Layers | 0 |
 | Invalid Layer Records | 0 |
 | Unresolved Proof Gates | 7 |
-| Orphan Findings | 1 |
+| Orphan Findings | 0 |
 | Contradiction Edges | 0 |
-| High/Critical Risk Nodes | 23 (5 critical, 18 high) |
-| Nodes with Non-Claims | 36 |
-| Total Non-Claims | 96 |
+| High/Critical Risk Nodes | 25 (5 critical, 20 high) |
+| Nodes with Non-Claims | 40 |
+| Total Non-Claims | 116 |
 
 ---
 
@@ -33,8 +33,8 @@
 | graph-runtime  | 2 |
 | legal-evidence  | 1 |
 | observability-operability  | 1 |
-| parser-ingestion  | 8 |
-| retrieval-embedding  | 3 |
+| parser-ingestion  | 10 |
+| retrieval-embedding  | 5 |
 | security-safety  | 5 |
 | temporal-model  | 3 |
 | workflow-governance  | 3 |
@@ -51,7 +51,7 @@ Every defined schema layer has at least one architecture record.
 | --- | --- | --- | --- | --- |
 | GATE-EMBEDDING-SUPPLY-CHAIN | security-safety | future-embedding-supply-chain-proof | high | Future embedding proof records model source, checksum or rev... |
 | GATE-G005 | temporal-model | future-temporal-proof | high | A future proof slice defines and verifies same-date/multi-ed... |
-| GATE-G008 | parser-ingestion | future-parser-retrieval-proof | high | Golden tests pass on real legal source fixtures and retrieva... |
+| GATE-G008 | parser-ingestion | future-product-parser-retrieval-proof | high | Future product proof demonstrates parser completeness bounda... |
 | GATE-G011 | retrieval-embedding | future-retrieval-quality-proof | high | Retrieval quality benchmark passes under local/open-weight e... |
 | GATE-G015 | graph-runtime | future-runtime-migration-proof | medium | Migration runbook is executed against bounded fixtures and r... |
 | GATE-GENERATED-CYPHER-SAFETY | generated-cypher | future-generated-cypher-safety-proof | critical | A future product proof demonstrates validator acceptance/rej... |
@@ -70,6 +70,8 @@ Every defined schema layer has at least one architecture record.
 | DATA-TEMPORAL-PROPERTY-BUNDLE | high | data_entity | temporal-model | active | source-anchor |
 | DEC-D031 | high | decision | architecture-governance | active | source-anchor |
 | EVID-PARSER-ODT-SMOKE | high | evidence | parser-ingestion | bounded-evidence | real-document-proof |
+| EVID-RESEARCH-GRAPHRAG-MATH-ANALYSIS | high | evidence | retrieval-embedding | bounded-evidence | source-anchor |
+| EVID-RESEARCH-HABR-LEGAL-RAG-ITERATION-SCALING | high | evidence | retrieval-embedding | bounded-evidence | source-anchor |
 | GATE-EMBEDDING-SUPPLY-CHAIN | high | proof_gate | security-safety | active | none |
 | GATE-G005 | high | proof_gate | temporal-model | active | none |
 | GATE-G008 | high | proof_gate | parser-ingestion | active | none |
@@ -99,6 +101,7 @@ This architecture graph and derived reports **do not** establish or validate:
 | Does not assert current product is insecure. |
 | Does not assert final legal graph schema completeness. |
 | Does not authorize executing raw generated Cypher. |
+| Does not authorize generated Cypher execution. |
 | Does not define a production API surface. |
 | Does not implement Legal Nexus runtime behavior. |
 | Does not itself prove product runtime behavior. |
@@ -106,10 +109,16 @@ This architecture graph and derived reports **do not** establish or validate:
 | Does not promote any embedding model to product default. |
 | Does not prove Consultant relation correctness. |
 | Does not prove FalkorDB loading/runtime behavior. |
+| Does not prove FalkorDB production-scale behavior. |
+| Does not prove FalkorDB runtime/vector/full-text/rerank behavior. |
+| Does not prove Garant ODT parser regression. |
+| Does not prove GraphRAG-SDK compatibility. |
 | Does not prove access-control enforcement. |
+| Does not prove citation-safe retrieval readiness. |
 | Does not prove import runtime behavior. |
 | Does not prove legal correctness. |
 | Does not prove legal-answer correctness. |
+| Does not prove multi-document Consultant expansion. |
 | Does not prove parser completeness. |
 | Does not prove product ETL readiness. |
 | Does not prove product Legal KnowQL behavior. |
@@ -120,6 +129,7 @@ This architecture graph and derived reports **do not** establish or validate:
 | Does not prove provider generation quality. |
 | Does not prove runtime SLOs. |
 | Does not specify temporal storage implementation. |
+| Does not validate benchmark, cost, or latency claims. |
 | Does not validate same-date conflict policy. |
 | Does not validate temporal conflict resolution. |
 | Extractor check is not product runtime proof. |
@@ -155,9 +165,8 @@ This architecture graph and derived reports **do not** establish or validate:
 
 ## Orphan Findings
 
-| ID | Rule |
-| --- | --- |
-| QS-OBSERVABILITY-OPERABILITY-BASELINE | isolated-node |
+No orphan findings.
+
 
 ---
 
@@ -165,9 +174,8 @@ This architecture graph and derived reports **do not** establish or validate:
 
 | Size | Node Count |
 | --- | ---: |
-| 31 | 31 |
+| 36 | 36 |
 | 4 | 4 |
-| 1 | 1 |
 
 ---
 

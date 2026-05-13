@@ -8,14 +8,14 @@ Current orphans, unresolved proof gates, contradictions, and risk rows are findi
 
 | Field | Value |
 | --- | --- |
-| Nodes | 36 |
-| Edges | 33 |
+| Nodes | 40 |
+| Edges | 47 |
 | Non-authoritative | true |
 | Missing layers | 0 |
 | Unresolved proof gates | 7 |
-| Orphan findings | 1 |
+| Orphan findings | 0 |
 | Contradiction edges | 0 |
-| High/critical-risk nodes | 23 |
+| High/critical-risk nodes | 25 |
 
 ## Layer Coverage
 
@@ -27,8 +27,8 @@ Current orphans, unresolved proof gates, contradictions, and risk rows are findi
 | graph-runtime | 2 |
 | legal-evidence | 1 |
 | observability-operability | 1 |
-| parser-ingestion | 8 |
-| retrieval-embedding | 3 |
+| parser-ingestion | 10 |
+| retrieval-embedding | 5 |
 | security-safety | 5 |
 | temporal-model | 3 |
 | workflow-governance | 3 |
@@ -45,7 +45,7 @@ No missing schema layers.
 | --- | --- | --- | --- | --- |
 | GATE-EMBEDDING-SUPPLY-CHAIN | security-safety | future-embedding-supply-chain-proof | high | Future embedding proof records model source, checksum or revision, local runtime envelope, vector dimension, and no-secret/no-raw-vector leakage checks. |
 | GATE-G005 | temporal-model | future-temporal-proof | high | A future proof slice defines and verifies same-date/multi-edition conflict policy. |
-| GATE-G008 | parser-ingestion | future-parser-retrieval-proof | high | Golden tests pass on real legal source fixtures and retrieval expectations. |
+| GATE-G008 | parser-ingestion | future-product-parser-retrieval-proof | high | Future product proof demonstrates parser completeness boundaries, citation-safe retrieval behavior, and retrieval quality over real legal source fixtures. |
 | GATE-G011 | retrieval-embedding | future-retrieval-quality-proof | high | Retrieval quality benchmark passes under local/open-weight embedding constraints. |
 | GATE-G015 | graph-runtime | future-runtime-migration-proof | medium | Migration runbook is executed against bounded fixtures and runtime diagnostics. |
 | GATE-GENERATED-CYPHER-SAFETY | generated-cypher | future-generated-cypher-safety-proof | critical | A future product proof demonstrates validator acceptance/rejection behavior across representative Legal KnowQL tasks and live graph schemas. |
@@ -55,7 +55,7 @@ No missing schema layers.
 
 | ID | Rule |
 | --- | --- |
-| QS-OBSERVABILITY-OPERABILITY-BASELINE | isolated-node |
+| _None_ |  |
 
 ### Contradictions
 
@@ -74,6 +74,8 @@ No missing schema layers.
 | DATA-TEMPORAL-PROPERTY-BUNDLE | high | data_entity | temporal-model | active | source-anchor |
 | DEC-D031 | high | decision | architecture-governance | active | source-anchor |
 | EVID-PARSER-ODT-SMOKE | high | evidence | parser-ingestion | bounded-evidence | real-document-proof |
+| EVID-RESEARCH-GRAPHRAG-MATH-ANALYSIS | high | evidence | retrieval-embedding | bounded-evidence | source-anchor |
+| EVID-RESEARCH-HABR-LEGAL-RAG-ITERATION-SCALING | high | evidence | retrieval-embedding | bounded-evidence | source-anchor |
 | GATE-EMBEDDING-SUPPLY-CHAIN | high | proof_gate | security-safety | active | none |
 | GATE-G005 | high | proof_gate | temporal-model | active | none |
 | GATE-G008 | high | proof_gate | parser-ingestion | active | none |
@@ -101,8 +103,8 @@ No missing schema layers.
 
 | Field | Value |
 | --- | ---: |
-| Nodes with non-claims | 36 |
-| Total non-claims | 96 |
+| Nodes with non-claims | 40 |
+| Total non-claims | 116 |
 
 ### Nodes with Non-Claims
 
@@ -116,10 +118,14 @@ No missing schema layers.
 | DEC-D031 | 1 |
 | DEC-D032 | 1 |
 | EVID-PARSER-CONSULTANT-CANDIDATES | 2 |
+| EVID-PARSER-CONSULTANT-HIERARCHY-PROOF | 5 |
+| EVID-PARSER-GOLDEN-TEST-PROOF | 5 |
 | EVID-PARSER-ODT-SMOKE | 2 |
 | EVID-PARSER-RECORD-CONTRACT | 2 |
 | EVID-PARSER-SOURCE-FIXTURE-INVENTORY | 2 |
 | EVID-PARSER-STAGING-GRAPH | 2 |
+| EVID-RESEARCH-GRAPHRAG-MATH-ANALYSIS | 5 |
+| EVID-RESEARCH-HABR-LEGAL-RAG-ITERATION-SCALING | 5 |
 | GATE-EMBEDDING-SUPPLY-CHAIN | 3 |
 | GATE-G005 | 1 |
 | GATE-G008 | 2 |

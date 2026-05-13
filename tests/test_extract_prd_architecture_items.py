@@ -43,6 +43,9 @@ REQUIRED_ITEM_IDS = {
     "ASSUMP-PRD-SOURCE-TRUTH",
     "RISK-OVERCLAIM-RUNTIME",
     "CHECK-ARCHITECTURE-EXTRACTOR",
+    "EVID-PARSER-GOLDEN-TEST-PROOF",
+    "EVID-PARSER-CONSULTANT-HIERARCHY-PROOF",
+    "EVID-RESEARCH-GRAPHRAG-MATH-ANALYSIS",
 }
 REQUIRED_EDGE_IDS = {
     "EDGE-DEC-D031-CHECKED-BY-CHECK-ARCHITECTURE-EXTRACTOR",
@@ -52,6 +55,14 @@ REQUIRED_EDGE_IDS = {
     "EDGE-GATE-G015-BLOCKS-RUNTIME-MIGRATION-CLAIMS",
     "EDGE-S04-FALKORDB-RUNTIME-BOUNDED-BOUNDED-BY-RISK-OVERCLAIM-RUNTIME",
     "EDGE-S05-PARSER-ODT-BOUNDARY-BOUNDED-BY-GATE-G008",
+    "EDGE-EVID-PARSER-GOLDEN-TEST-PROOF-BOUNDED-BY-GATE-G008",
+    "EDGE-EVID-PARSER-CONSULTANT-HIERARCHY-PROOF-BOUNDED-BY-GATE-G008",
+    "EDGE-QS-OBSERVABILITY-BASELINE-CHECKED-BY-CHECK-ARCHITECTURE-EXTRACTOR",
+    "EDGE-EVID-RESEARCH-GRAPHRAG-MATH-ANALYSIS-BOUNDED-BY-GATE-G008",
+    "EDGE-EVID-RESEARCH-GRAPHRAG-MATH-ANALYSIS-BOUNDED-BY-GATE-G011",
+    "EDGE-EVID-RESEARCH-GRAPHRAG-MATH-ANALYSIS-BOUNDED-BY-GATE-G015",
+    "EDGE-EVID-RESEARCH-GRAPHRAG-MATH-ANALYSIS-BOUNDED-BY-GATE-G005",
+    "EDGE-EVID-RESEARCH-GRAPHRAG-MATH-ANALYSIS-BOUNDED-BY-GATE-GENERATED-CYPHER-SAFETY",
     "EDGE-S10-USER-BGE-M3-BASELINE-BOUNDED-BY-GATE-G011",
     "EDGE-M001-ARCHITECTURE-ONLY-GUARDRAIL-BOUNDS-REQ-R029",
 }
@@ -103,6 +114,24 @@ EXPECTED_CONSERVATIVE_RECORDS = {
         "proof_level": "none",
         "risk_level": "medium",
         "non_claims": ["No managed embedding API fallback claim.", "No default promotion while blocked-environment."],
+    },
+    "EVID-PARSER-GOLDEN-TEST-PROOF": {
+        "status": "bounded-evidence",
+        "proof_level": "unit-test",
+        "risk_level": "medium",
+        "non_claims": ["Does not prove parser completeness.", "Does not prove product retrieval quality."],
+    },
+    "EVID-PARSER-CONSULTANT-HIERARCHY-PROOF": {
+        "status": "bounded-evidence",
+        "proof_level": "real-document-proof",
+        "risk_level": "medium",
+        "non_claims": ["Does not prove multi-document Consultant expansion.", "Does not prove parser completeness."],
+    },
+    "EVID-RESEARCH-GRAPHRAG-MATH-ANALYSIS": {
+        "status": "bounded-evidence",
+        "proof_level": "source-anchor",
+        "risk_level": "high",
+        "non_claims": ["Does not prove product retrieval quality.", "Does not prove GraphRAG-SDK compatibility."],
     },
     "M001-ARCHITECTURE-ONLY-GUARDRAIL": {
         "status": "out-of-scope",

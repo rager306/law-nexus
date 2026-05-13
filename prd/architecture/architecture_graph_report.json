@@ -2,8 +2,8 @@
   "contradiction_edges": [],
   "contradiction_pairs": [],
   "counts": {
-    "edges": 33,
-    "nodes": 36
+    "edges": 47,
+    "nodes": 40
   },
   "high_risk_nodes": [
     {
@@ -58,6 +58,22 @@
       "id": "EVID-PARSER-ODT-SMOKE",
       "layer": "parser-ingestion",
       "proof_level": "real-document-proof",
+      "risk_level": "high",
+      "status": "bounded-evidence",
+      "type": "evidence"
+    },
+    {
+      "id": "EVID-RESEARCH-GRAPHRAG-MATH-ANALYSIS",
+      "layer": "retrieval-embedding",
+      "proof_level": "source-anchor",
+      "risk_level": "high",
+      "status": "bounded-evidence",
+      "type": "evidence"
+    },
+    {
+      "id": "EVID-RESEARCH-HABR-LEGAL-RAG-ITERATION-SCALING",
+      "layer": "retrieval-embedding",
+      "proof_level": "source-anchor",
       "risk_level": "high",
       "status": "bounded-evidence",
       "type": "evidence"
@@ -192,9 +208,7 @@
     }
   ],
   "invalid_records": [],
-  "isolates": [
-    "QS-OBSERVABILITY-OPERABILITY-BASELINE"
-  ],
+  "isolates": [],
   "layer_coverage": {
     "counts": {
       "api-product": 1,
@@ -203,8 +217,8 @@
       "graph-runtime": 2,
       "legal-evidence": 1,
       "observability-operability": 1,
-      "parser-ingestion": 8,
-      "retrieval-embedding": 3,
+      "parser-ingestion": 10,
+      "retrieval-embedding": 5,
       "security-safety": 5,
       "temporal-model": 3,
       "workflow-governance": 3
@@ -278,6 +292,28 @@
         ]
       },
       {
+        "count": 5,
+        "id": "EVID-PARSER-CONSULTANT-HIERARCHY-PROOF",
+        "non_claims": [
+          "Does not prove FalkorDB loading/runtime behavior.",
+          "Does not prove Garant ODT parser regression.",
+          "Does not prove multi-document Consultant expansion.",
+          "Does not prove parser completeness.",
+          "Does not prove product ETL readiness."
+        ]
+      },
+      {
+        "count": 5,
+        "id": "EVID-PARSER-GOLDEN-TEST-PROOF",
+        "non_claims": [
+          "Does not prove FalkorDB loading/runtime behavior.",
+          "Does not prove citation-safe retrieval readiness.",
+          "Does not prove legal-answer correctness.",
+          "Does not prove parser completeness.",
+          "Does not prove product retrieval quality."
+        ]
+      },
+      {
         "count": 2,
         "id": "EVID-PARSER-ODT-SMOKE",
         "non_claims": [
@@ -307,6 +343,28 @@
         "non_claims": [
           "Does not prove FalkorDB loading/runtime behavior.",
           "Does not prove legal-answer correctness."
+        ]
+      },
+      {
+        "count": 5,
+        "id": "EVID-RESEARCH-GRAPHRAG-MATH-ANALYSIS",
+        "non_claims": [
+          "Does not prove FalkorDB production-scale behavior.",
+          "Does not prove GraphRAG-SDK compatibility.",
+          "Does not prove legal-answer correctness.",
+          "Does not prove product retrieval quality.",
+          "Does not validate benchmark, cost, or latency claims."
+        ]
+      },
+      {
+        "count": 5,
+        "id": "EVID-RESEARCH-HABR-LEGAL-RAG-ITERATION-SCALING",
+        "non_claims": [
+          "Does not authorize generated Cypher execution.",
+          "Does not prove FalkorDB runtime/vector/full-text/rerank behavior.",
+          "Does not prove legal-answer correctness.",
+          "Does not prove parser completeness.",
+          "Does not prove product retrieval quality."
         ]
       },
       {
@@ -528,15 +586,10 @@
         ]
       }
     ],
-    "nodes_with_non_claims": 36,
-    "total_non_claims": 96
+    "nodes_with_non_claims": 40,
+    "total_non_claims": 116
   },
-  "orphan_findings": [
-    {
-      "id": "QS-OBSERVABILITY-OPERABILITY-BASELINE",
-      "rule": "isolated-node"
-    }
-  ],
+  "orphan_findings": [],
   "unresolved_proof_gates": [
     {
       "id": "GATE-EMBEDDING-SUPPLY-CHAIN",
@@ -559,11 +612,11 @@
     {
       "id": "GATE-G008",
       "layer": "parser-ingestion",
-      "owner": "future-parser-retrieval-proof",
+      "owner": "future-product-parser-retrieval-proof",
       "proof_level": "none",
       "risk_level": "high",
       "status": "active",
-      "verification": "Golden tests pass on real legal source fixtures and retrieval expectations."
+      "verification": "Future product proof demonstrates parser completeness boundaries, citation-safe retrieval behavior, and retrieval quality over real legal source fixtures."
     },
     {
       "id": "GATE-G011",
@@ -613,10 +666,14 @@
         "DEC-D031",
         "DEC-D032",
         "EVID-PARSER-CONSULTANT-CANDIDATES",
+        "EVID-PARSER-CONSULTANT-HIERARCHY-PROOF",
+        "EVID-PARSER-GOLDEN-TEST-PROOF",
         "EVID-PARSER-ODT-SMOKE",
         "EVID-PARSER-RECORD-CONTRACT",
         "EVID-PARSER-SOURCE-FIXTURE-INVENTORY",
         "EVID-PARSER-STAGING-GRAPH",
+        "EVID-RESEARCH-GRAPHRAG-MATH-ANALYSIS",
+        "EVID-RESEARCH-HABR-LEGAL-RAG-ITERATION-SCALING",
         "GATE-EMBEDDING-SUPPLY-CHAIN",
         "GATE-G005",
         "GATE-G008",
@@ -625,6 +682,7 @@
         "GATE-GENERATED-CYPHER-SAFETY",
         "GATE-LEGAL-NEXUS-ACCESS-CONTROL",
         "M001-ARCHITECTURE-ONLY-GUARDRAIL",
+        "QS-OBSERVABILITY-OPERABILITY-BASELINE",
         "REQ-R017",
         "REQ-R022",
         "REQ-R028",
@@ -637,13 +695,7 @@
         "S10-GIGAEMBEDDINGS-CHALLENGER-BLOCKED",
         "S10-USER-BGE-M3-BASELINE"
       ],
-      "size": 31
-    },
-    {
-      "nodes": [
-        "QS-OBSERVABILITY-OPERABILITY-BASELINE"
-      ],
-      "size": 1
+      "size": 36
     },
     {
       "nodes": [

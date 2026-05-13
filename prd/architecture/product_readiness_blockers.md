@@ -12,7 +12,7 @@
 | Graph Runtime | 1 | 0 |
 | Legal Answering | 2 | 0 |
 | Legal KnowQL / Generated Cypher | 1 | 0 |
-| Retrieval / Embedding | 1 | 0 |
+| Retrieval / Embedding | 1 | 2 |
 | Temporal Model | 1 | 0 |
 
 ## ETL / Parser
@@ -21,7 +21,7 @@
 
 | ID | Title | Risk | Verification | Owner |
 | --- | --- | --- | --- | --- |
-| `GATE-G008` | Executable parser and retrieval golden tests | high | Golden tests pass on real legal source fixtures and retrieval expectations. | future-parser-retrieval-proof |
+| `GATE-G008` | Product parser and retrieval readiness gate | high | Future product proof demonstrates parser completeness boundaries, citation-safe retrieval behavior, and retrieval quality over real legal source fixtures. | future-product-parser-retrieval-proof |
 |  | No parser completeness claim. | — | — | — |
 |  | No product retrieval quality claim. | — | — | — |
 
@@ -56,7 +56,7 @@ _Below non-claims are drawn directly from architecture registry records. They ar
 
 Proof work for this area should:
 
-- Address [`GATE-G008`](#proof-gates): Golden tests pass on real legal source fixtures and retrieval expectations.
+- Address [`GATE-G008`](#proof-gates): Future product proof demonstrates parser completeness boundaries, citation-safe retrieval behavior, and retrieval quality over real legal source fixtures.
 - Resolve [`EVID-PARSER-ODT-SMOKE`](#blocked--bounded-evidence): `uv run python scripts/build-odt-smoke-records.py --check` verifies ODT smoke artifact freshness.
 - Resolve [`S05-OLD-PROJECT-PRIOR-ART`](#blocked--bounded-evidence): Downstream designs classify legacy reuse as prior art and avoid blessing ConsultantPlus behavior for Garant ODT.
 - Resolve [`S05-PARSER-ODT-BOUNDARY`](#blocked--bounded-evidence): S05 verifier passes; future parser tests prove final extraction behavior before promotion.
@@ -156,6 +156,23 @@ Proof work for this area should:
 |  | No managed embedding API fallback claim. | — | — | — |
 |  | No product retrieval quality claim. | — | — | — |
 
+### Blocked / Bounded Evidence
+
+| ID | Title | Risk | Verification | Owner |
+| --- | --- | --- | --- | --- |
+| `EVID-RESEARCH-GRAPHRAG-MATH-ANALYSIS` | GraphRAG/FalkorDB mathematical analysis research input | high | Assessment classifies ideas into applicable-now principles, proof-gated candidates, and deferred/not-adopted claims; future proof must validate any runtime, SDK, benchmark, or retrieval-quality claim. | M011/S01 |
+|  | Does not prove FalkorDB production-scale behavior. | — | — | — |
+|  | Does not prove GraphRAG-SDK compatibility. | — | — | — |
+|  | Does not prove legal-answer correctness. | — | — | — |
+|  | Does not prove product retrieval quality. | — | — | — |
+|  | Does not validate benchmark, cost, or latency claims. | — | — | — |
+| `EVID-RESEARCH-HABR-LEGAL-RAG-ITERATION-SCALING` | Habr Legal RAG iteration and scaling research input | high | Human-reviewed JSON comparison classifies all transferable ideas as requiring project-specific verification before adoption; future proof must validate retrieval IDs, evidence precision, no-answer behavior, scale/noise degradation, and any runtime or model claim. | D045 / future-retrieval-quality-proof |
+|  | Does not authorize generated Cypher execution. | — | — | — |
+|  | Does not prove FalkorDB runtime/vector/full-text/rerank behavior. | — | — | — |
+|  | Does not prove legal-answer correctness. | — | — | — |
+|  | Does not prove parser completeness. | — | — | — |
+|  | Does not prove product retrieval quality. | — | — | — |
+
 ### What This Area Does Not Prove
 
 _Below non-claims are drawn directly from architecture registry records. They are not exhaustive._
@@ -164,12 +181,22 @@ _Below non-claims are drawn directly from architecture registry records. They ar
 | --- |
 | No managed embedding API fallback claim. |
 | No product retrieval quality claim. |
+| Does not prove FalkorDB production-scale behavior. |
+| Does not prove GraphRAG-SDK compatibility. |
+| Does not prove legal-answer correctness. |
+| Does not prove product retrieval quality. |
+| Does not validate benchmark, cost, or latency claims. |
+| Does not authorize generated Cypher execution. |
+| Does not prove FalkorDB runtime/vector/full-text/rerank behavior. |
+| Does not prove parser completeness. |
 
 ### Next Proof Work
 
 Proof work for this area should:
 
 - Address [`GATE-G011`](#proof-gates): Retrieval quality benchmark passes under local/open-weight embedding constraints.
+- Resolve [`EVID-RESEARCH-GRAPHRAG-MATH-ANALYSIS`](#blocked--bounded-evidence): Assessment classifies ideas into applicable-now principles, proof-gated candidates, and deferred/not-adopted claims; future proof must validate any runtime, SDK, benchmark, or retrieval-quality claim.
+- Resolve [`EVID-RESEARCH-HABR-LEGAL-RAG-ITERATION-SCALING`](#blocked--bounded-evidence): Human-reviewed JSON comparison classifies all transferable ideas as requiring project-specific verification before adoption; future proof must validate retrieval IDs, evidence precision, no-answer behavior, scale/noise degradation, and any runtime or model claim.
 
 ## Temporal Model
 
@@ -215,14 +242,22 @@ _The following statements appear across one or more architecture records and col
 | JSONL and GraphML are not source-of-truth replacements. | `DEC-D031` |
 | The skill is guidance, not a source of truth. | `DEC-D032` |
 | Does not prove Consultant relation correctness. | `EVID-PARSER-CONSULTANT-CANDIDATES` |
+| Does not prove FalkorDB loading/runtime behavior. | `EVID-PARSER-CONSULTANT-HIERARCHY-PROOF` |
+| Does not prove Garant ODT parser regression. | `EVID-PARSER-CONSULTANT-HIERARCHY-PROOF` |
+| Does not prove multi-document Consultant expansion. | `EVID-PARSER-CONSULTANT-HIERARCHY-PROOF` |
+| Does not prove product ETL readiness. | `EVID-PARSER-CONSULTANT-HIERARCHY-PROOF` |
+| Does not prove citation-safe retrieval readiness. | `EVID-PARSER-GOLDEN-TEST-PROOF` |
+| Does not prove product retrieval quality. | `EVID-PARSER-GOLDEN-TEST-PROOF` |
 | No final legal hierarchy extraction claim. | `EVID-PARSER-ODT-SMOKE` |
 | No parser completeness claim. | `EVID-PARSER-ODT-SMOKE` |
-| Does not prove product ETL readiness. | `EVID-PARSER-RECORD-CONTRACT` |
 | Does not prove legal correctness. | `EVID-PARSER-SOURCE-FIXTURE-INVENTORY` |
-| Does not prove FalkorDB loading/runtime behavior. | `EVID-PARSER-STAGING-GRAPH` |
+| Does not prove FalkorDB production-scale behavior. | `EVID-RESEARCH-GRAPHRAG-MATH-ANALYSIS` |
+| Does not prove GraphRAG-SDK compatibility. | `EVID-RESEARCH-GRAPHRAG-MATH-ANALYSIS` |
+| Does not validate benchmark, cost, or latency claims. | `EVID-RESEARCH-GRAPHRAG-MATH-ANALYSIS` |
+| Does not authorize generated Cypher execution. | `EVID-RESEARCH-HABR-LEGAL-RAG-ITERATION-SCALING` |
+| Does not prove FalkorDB runtime/vector/full-text/rerank behavior. | `EVID-RESEARCH-HABR-LEGAL-RAG-ITERATION-SCALING` |
 | Does not allow managed embedding API fallback. | `GATE-EMBEDDING-SUPPLY-CHAIN` |
 | Does not promote any embedding model to product default. | `GATE-EMBEDDING-SUPPLY-CHAIN` |
-| Does not prove product retrieval quality. | `GATE-EMBEDDING-SUPPLY-CHAIN` |
 | No product retrieval quality claim. | `GATE-G008` |
 | No managed embedding API fallback claim. | `GATE-G011` |
 | No production-scale FalkorDB claim. | `GATE-G015` |

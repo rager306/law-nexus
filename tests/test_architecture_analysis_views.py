@@ -753,14 +753,16 @@ def test_blockers_report_next_proof_work_section_present() -> None:
 
 CLAIMS_MD_PATH = ROOT / "prd/architecture/claims_ledger.md"
 
-ALL_23_IDS = {
+ALL_26_IDS = {
     "ASSUMP-PRD-SOURCE-TRUTH", "CHECK-ARCHITECTURE-EXTRACTOR", "DEC-D031",
-    "DEC-D032", "GATE-G005", "GATE-G008", "GATE-G011", "GATE-G015",
+    "DEC-D032", "EVID-PARSER-CONSULTANT-HIERARCHY-PROOF", "EVID-PARSER-GOLDEN-TEST-PROOF",
+    "GATE-G005", "GATE-G008", "GATE-G011", "GATE-G015",
     "M001-ARCHITECTURE-ONLY-GUARDRAIL", "REQ-R001", "REQ-R009", "REQ-R010",
     "REQ-R017", "REQ-R022", "REQ-R028", "REQ-R029",
     "RISK-OVERCLAIM-RUNTIME", "S04-FALKORDB-RUNTIME-BOUNDED",
     "S05-OLD-PROJECT-PRIOR-ART", "S05-PARSER-ODT-BOUNDARY", "S07-FIXED-PRD-CONSISTENCY",
     "S10-GIGAEMBEDDINGS-CHALLENGER-BLOCKED", "S10-USER-BGE-M3-BASELINE",
+    "EVID-RESEARCH-GRAPHRAG-MATH-ANALYSIS",
 }
 
 SAFE_IDS = {
@@ -772,6 +774,8 @@ SAFE_IDS = {
 BOUNDED_IDS = {
     "S04-FALKORDB-RUNTIME-BOUNDED", "S05-OLD-PROJECT-PRIOR-ART",
     "S05-PARSER-ODT-BOUNDARY", "S07-FIXED-PRD-CONSISTENCY", "S10-USER-BGE-M3-BASELINE",
+    "EVID-PARSER-GOLDEN-TEST-PROOF", "EVID-PARSER-CONSULTANT-HIERARCHY-PROOF",
+    "EVID-RESEARCH-GRAPHRAG-MATH-ANALYSIS",
 }
 
 BLOCKED_IDS = {
@@ -852,13 +856,13 @@ def test_claims_ledger_non_authoritative_footer_present() -> None:
 
 
 # ---------------------------------------------------------------------------
-# Claims ledger — all 23 items appear
+# Claims ledger — selected tracked items appear
 # ---------------------------------------------------------------------------
 
-def test_claims_ledger_covers_all_23_items() -> None:
-    """Every architecture item ID must appear in the claims ledger somewhere."""
+def test_claims_ledger_covers_all_26_tracked_items() -> None:
+    """Every tracked architecture item ID must appear in the claims ledger somewhere."""
     content = _load_claims_content()
-    missing = [rid for rid in sorted(ALL_23_IDS) if rid not in content]
+    missing = [rid for rid in sorted(ALL_26_IDS) if rid not in content]
     assert not missing, f"Claims ledger is missing item IDs: {missing}"
 
 
@@ -873,7 +877,7 @@ def test_claims_ledger_all_safe_items_present() -> None:
 
 
 def test_claims_ledger_all_bounded_items_present() -> None:
-    """All 5 bounded items must appear in the bounded section."""
+    """All tracked bounded items must appear in the bounded section."""
     content = _load_claims_content()
     section_start = content.find("## bounded")
     section_end = content.find("\n## ", section_start + 1)
@@ -902,8 +906,8 @@ def test_claims_ledger_all_unsafe_items_present() -> None:
     assert not missing, f"unsafe-to-assert section is missing: {missing}"
 
 
-def test_claims_ledger_total_count_is_23() -> None:
-    """The ledger must account for all 23 architecture items across four classes."""
+def test_claims_ledger_total_count_is_26() -> None:
+    """The ledger must account for all 26 tracked architecture items across four classes."""
     content = _load_claims_content()
     safe_count = content.count("## safe-to-say")  # section header
     bounded_count = content.count("## bounded")
@@ -914,15 +918,15 @@ def test_claims_ledger_total_count_is_23() -> None:
     assert bounded_count == 1
     assert blocked_count == 1
     assert unsafe_count == 1
-    # Total unique IDs across all sections must be 23
-    all_found = sum(1 for rid in ALL_23_IDS if rid in content)
-    assert all_found == 23, f"Expected 23 items, found {all_found}"
+    # Total unique tracked IDs across all sections must be 26
+    all_found = sum(1 for rid in ALL_26_IDS if rid in content)
+    assert all_found == 26, f"Expected 26 tracked items, found {all_found}"
 
 
 def test_claims_ledger_no_duplicate_item_ids() -> None:
     """No item ID should appear in more than one classification section."""
     content = _load_claims_content()
-    for rid in sorted(ALL_23_IDS):
+    for rid in sorted(ALL_26_IDS):
         # Find all occurrences
         start = 0
         positions = []
