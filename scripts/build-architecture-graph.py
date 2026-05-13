@@ -259,6 +259,7 @@ def compute_graph_report(
 
     contradiction_edges = collect_contradiction_edges(edge_records)
     contradiction_pairs = collect_contradiction_pairs(contradiction_edges)
+    traceability_edges = collect_traceability_edges(edge_records)
 
     return {
         "non_authoritative": True,
@@ -273,6 +274,7 @@ def compute_graph_report(
         "weak_components": collect_weak_components(graph),
         "contradiction_edges": contradiction_edges,
         "contradiction_pairs": contradiction_pairs,
+        "traceability_edges": traceability_edges,
         "high_risk_nodes": sorted(high_risk_nodes, key=lambda item: item["id"]),
         "orphan_findings": sorted(orphan_findings, key=lambda item: (item["id"], item["rule"])),
         "invalid_records": sorted(invalid_records, key=lambda item: (item["id"], item["rule"])),
@@ -330,6 +332,25 @@ def collect_weak_components(graph: nx.MultiDiGraph) -> list[dict[str, Any]]:
         sorted_nodes = sorted(str(node) for node in nodes)
         components.append({"size": len(sorted_nodes), "nodes": sorted_nodes})
     return sorted(components, key=lambda item: (item["nodes"][0] if item["nodes"] else "", item["size"]))
+
+
+def collect_traceability_edges(
+    edge_records: list[tuple[str, str, str, dict[str, Any]]],
+) -> list[dict[str, str]]:
+    """Return deterministic edge summaries for proof/requirement/gate visibility."""
+    traceability_edges = []
+    for edge_id, from_id, to_id, record in edge_records:
+        traceability_edges.append(
+            {
+                "id": edge_id,
+                "from": from_id,
+                "to": to_id,
+                "type": string_or_placeholder(record.get("type"), "<missing-type>"),
+                "status": string_or_placeholder(record.get("status"), "<missing-status>"),
+                "rationale": string_or_placeholder(record.get("rationale"), "<missing-rationale>"),
+            }
+        )
+    return traceability_edges
 
 
 def collect_contradiction_edges(
@@ -464,6 +485,24 @@ def render_report_markdown(report: dict[str, Any]) -> str:
         )
     if not report["contradiction_edges"]:
         lines.append("| _None_ |  |  |  |  |")
+
+    lines.extend([
+        "",
+        "### Traceability Edges",
+        "",
+        "These edge summaries expose bounded proof, requirement, gate, and data-boundary relationships without asserting product readiness.",
+        "",
+        "| Edge ID | From | Type | To | Status | Rationale |",
+        "| --- | --- | --- | --- | --- | --- |",
+    ])
+    for edge in report.get("traceability_edges", []):
+        lines.append(
+            "| "
+            f"{escape_md(edge['id'])} | {escape_md(edge['from'])} | {escape_md(edge['type'])} | "
+            f"{escape_md(edge['to'])} | {escape_md(edge['status'])} | {escape_md(edge['rationale'])} |"
+        )
+    if not report.get("traceability_edges", []):
+        lines.append("| _None_ |  |  |  |  |  |")
 
     lines.extend([
         "",

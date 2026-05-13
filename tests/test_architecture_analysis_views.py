@@ -196,6 +196,20 @@ def test_high_risk_count_matches_report() -> None:
     assert expected_line in content, f"Expected risk count line in Quick Stats"
 
 
+def test_health_dashboard_surfaces_r034_validator_proof_and_open_gates() -> None:
+    """Health dashboard must show R034/proof visibility while G008/G011 remain open."""
+    content = HEALTH_MD_PATH.read_text(encoding="utf-8")
+    assert "REQ-R034" in content
+    assert "EVID-RETRIEVAL-OUTPUT-ID-VALIDATOR-PROOF" in content
+    assert "bounded-evidence" in content
+    assert "unit-test" in content
+    for gate_id in ("GATE-G008", "GATE-G011"):
+        assert f"| {gate_id} |" in content
+        assert f"| {gate_id} | high | proof_gate |" in content
+        gate_pos = content.find(f"| {gate_id} | high | proof_gate |")
+        assert "| active | none |" in content[gate_pos:gate_pos + 240]
+
+
 # ---------------------------------------------------------------------------
 # Missing layers
 # ---------------------------------------------------------------------------
@@ -556,6 +570,19 @@ def test_blockers_report_includes_gate_g011() -> None:
     )
 
 
+def test_blockers_report_includes_r034_validator_proof_as_bounded_evidence() -> None:
+    """Blocker report must surface the validator proof without closing retrieval gates."""
+    content = _load_blockers_content()
+    assert "EVID-RETRIEVAL-OUTPUT-ID-VALIDATOR-PROOF" in content
+    assert "Retrieval output ID validator bounded proof" in content
+    assert "Blocked / Bounded Evidence" in content
+    assert "unit/CLI behavior for required M012 diagnostic cases only" in content
+    assert "Does not prove product retrieval quality." in content
+    assert "Does not prove legal-answer correctness." in content
+    assert "GATE-G008" in content
+    assert "GATE-G011" in content
+
+
 def test_blockers_report_includes_gate_g015() -> None:
     """Blocker report must cite GATE-G015 (FalkorDBLite to Docker migration)."""
     content = _load_blockers_content()
@@ -753,29 +780,31 @@ def test_blockers_report_next_proof_work_section_present() -> None:
 
 CLAIMS_MD_PATH = ROOT / "prd/architecture/claims_ledger.md"
 
-ALL_26_IDS = {
+ALL_TRACKED_IDS = {
     "ASSUMP-PRD-SOURCE-TRUTH", "CHECK-ARCHITECTURE-EXTRACTOR", "DEC-D031",
     "DEC-D032", "EVID-PARSER-CONSULTANT-HIERARCHY-PROOF", "EVID-PARSER-GOLDEN-TEST-PROOF",
     "GATE-G005", "GATE-G008", "GATE-G011", "GATE-G015",
     "M001-ARCHITECTURE-ONLY-GUARDRAIL", "REQ-R001", "REQ-R009", "REQ-R010",
-    "REQ-R017", "REQ-R022", "REQ-R028", "REQ-R029",
+    "REQ-R017", "REQ-R022", "REQ-R028", "REQ-R029", "REQ-R034",
     "RISK-OVERCLAIM-RUNTIME", "S04-FALKORDB-RUNTIME-BOUNDED",
     "S05-OLD-PROJECT-PRIOR-ART", "S05-PARSER-ODT-BOUNDARY", "S07-FIXED-PRD-CONSISTENCY",
     "S10-GIGAEMBEDDINGS-CHALLENGER-BLOCKED", "S10-USER-BGE-M3-BASELINE",
-    "EVID-RESEARCH-GRAPHRAG-MATH-ANALYSIS",
+    "EVID-RESEARCH-GRAPHRAG-MATH-ANALYSIS", "EVID-RETRIEVAL-OUTPUT-ID-VALIDATOR-PROOF",
 }
+
+ALL_26_IDS = ALL_TRACKED_IDS
 
 SAFE_IDS = {
     "ASSUMP-PRD-SOURCE-TRUTH", "CHECK-ARCHITECTURE-EXTRACTOR", "DEC-D031",
     "DEC-D032", "REQ-R001", "REQ-R009", "REQ-R010", "REQ-R017",
-    "REQ-R022", "REQ-R029", "RISK-OVERCLAIM-RUNTIME",
+    "REQ-R022", "REQ-R029", "REQ-R034", "RISK-OVERCLAIM-RUNTIME",
 }
 
 BOUNDED_IDS = {
     "S04-FALKORDB-RUNTIME-BOUNDED", "S05-OLD-PROJECT-PRIOR-ART",
     "S05-PARSER-ODT-BOUNDARY", "S07-FIXED-PRD-CONSISTENCY", "S10-USER-BGE-M3-BASELINE",
     "EVID-PARSER-GOLDEN-TEST-PROOF", "EVID-PARSER-CONSULTANT-HIERARCHY-PROOF",
-    "EVID-RESEARCH-GRAPHRAG-MATH-ANALYSIS",
+    "EVID-RESEARCH-GRAPHRAG-MATH-ANALYSIS", "EVID-RETRIEVAL-OUTPUT-ID-VALIDATOR-PROOF",
 }
 
 BLOCKED_IDS = {
@@ -859,10 +888,10 @@ def test_claims_ledger_non_authoritative_footer_present() -> None:
 # Claims ledger — selected tracked items appear
 # ---------------------------------------------------------------------------
 
-def test_claims_ledger_covers_all_26_tracked_items() -> None:
+def test_claims_ledger_covers_all_28_tracked_items() -> None:
     """Every tracked architecture item ID must appear in the claims ledger somewhere."""
     content = _load_claims_content()
-    missing = [rid for rid in sorted(ALL_26_IDS) if rid not in content]
+    missing = [rid for rid in sorted(ALL_TRACKED_IDS) if rid not in content]
     assert not missing, f"Claims ledger is missing item IDs: {missing}"
 
 
@@ -886,6 +915,26 @@ def test_claims_ledger_all_bounded_items_present() -> None:
     assert not missing, f"bounded section is missing: {missing}"
 
 
+def test_claims_ledger_classifies_r034_and_validator_proof_conservatively() -> None:
+    """R034 is safe source-anchor scope; validator proof is bounded unit-test evidence only."""
+    content = _load_claims_content()
+    safe_section = _claims_section(content, "safe-to-say")
+    bounded_section = _claims_section(content, "bounded")
+    blocked_section = _claims_section(content, "blocked/open")
+
+    assert "REQ-R034" in safe_section
+    assert "Retrieval output evidence identifiers fail closed" in safe_section
+    assert "EVID-RETRIEVAL-OUTPUT-ID-VALIDATOR-PROOF" in bounded_section
+    assert "| unit-test |" in bounded_section
+    assert "Does not prove product retrieval quality." in bounded_section
+    assert "Does not prove legal-answer correctness." in bounded_section
+    assert "GATE-G008" in blocked_section
+    assert "GATE-G011" in blocked_section
+    for gate_id in ("GATE-G008", "GATE-G011"):
+        gate_pos = blocked_section.find(gate_id)
+        assert "| none |" in blocked_section[gate_pos:gate_pos + 320]
+
+
 def test_claims_ledger_all_blocked_items_present() -> None:
     """All 5 blocked/open items must appear in the blocked/open section."""
     content = _load_claims_content()
@@ -906,8 +955,8 @@ def test_claims_ledger_all_unsafe_items_present() -> None:
     assert not missing, f"unsafe-to-assert section is missing: {missing}"
 
 
-def test_claims_ledger_total_count_is_26() -> None:
-    """The ledger must account for all 26 tracked architecture items across four classes."""
+def test_claims_ledger_total_count_is_28() -> None:
+    """The ledger must account for all 28 tracked architecture items across four classes."""
     content = _load_claims_content()
     safe_count = content.count("## safe-to-say")  # section header
     bounded_count = content.count("## bounded")
@@ -918,15 +967,15 @@ def test_claims_ledger_total_count_is_26() -> None:
     assert bounded_count == 1
     assert blocked_count == 1
     assert unsafe_count == 1
-    # Total unique tracked IDs across all sections must be 26
-    all_found = sum(1 for rid in ALL_26_IDS if rid in content)
-    assert all_found == 26, f"Expected 26 tracked items, found {all_found}"
+    # Total unique tracked IDs across all sections must be 28
+    all_found = sum(1 for rid in ALL_TRACKED_IDS if rid in content)
+    assert all_found == 28, f"Expected 28 tracked items, found {all_found}"
 
 
 def test_claims_ledger_no_duplicate_item_ids() -> None:
     """No item ID should appear in more than one classification section."""
     content = _load_claims_content()
-    for rid in sorted(ALL_26_IDS):
+    for rid in sorted(ALL_TRACKED_IDS):
         # Find all occurrences
         start = 0
         positions = []

@@ -632,6 +632,424 @@
     "total_non_claims": 130
   },
   "orphan_findings": [],
+  "traceability_edges": [
+    {
+      "from": "COMP-LEGAL-NEXUS-ORCHESTRATOR",
+      "id": "EDGE-COMP-LEGAL-NEXUS-DEPENDS-ON-DATA-LEGAL-EVIDENCE-CORE",
+      "rationale": "Legal Nexus orchestration depends on source-backed legal-evidence entities before answer or query behavior can be validated.",
+      "status": "active",
+      "to": "DATA-LEGAL-EVIDENCE-CORE",
+      "type": "depends_on"
+    },
+    {
+      "from": "DATA-LEGAL-EVIDENCE-CORE",
+      "id": "EDGE-DATA-LEGAL-EVIDENCE-EVIDENCED-BY-PARSER-RECORD-CONTRACT",
+      "rationale": "Parser record contracts provide bounded evidence for SourceDocument/SourceBlock-related legal-evidence record shapes.",
+      "status": "active",
+      "to": "EVID-PARSER-RECORD-CONTRACT",
+      "type": "evidenced_by"
+    },
+    {
+      "from": "DEC-D031",
+      "id": "EDGE-DEC-D031-CHECKED-BY-CHECK-ARCHITECTURE-EXTRACTOR",
+      "rationale": "The high-risk architecture registry decision is checked by the deterministic extractor drift check in S02.",
+      "status": "active",
+      "to": "CHECK-ARCHITECTURE-EXTRACTOR",
+      "type": "checked_by"
+    },
+    {
+      "from": "DEC-D031",
+      "id": "EDGE-DEC-D031-HAS-ASSUMPTION-ASSUMP-PRD-SOURCE-TRUTH",
+      "rationale": "The architecture registry decision assumes PRD/GSD/ADR/source/runtime evidence remains authoritative and generated registry artifacts remain derived projections.",
+      "status": "active",
+      "to": "ASSUMP-PRD-SOURCE-TRUTH",
+      "type": "has_assumption"
+    },
+    {
+      "from": "DEC-D031",
+      "id": "EDGE-DEC-D031-SATISFIES-REQ-R029",
+      "rationale": "The docs-as-code architecture registry decision is the chosen approach for executable architecture verification.",
+      "status": "active",
+      "to": "REQ-R029",
+      "type": "satisfies"
+    },
+    {
+      "from": "DEC-D032",
+      "id": "EDGE-DEC-D032-DEPENDS-ON-DEC-D031",
+      "rationale": "The architecture verification skill should be created only after the registry contract and verifier workflow exist.",
+      "status": "active",
+      "to": "DEC-D031",
+      "type": "depends_on"
+    },
+    {
+      "from": "EVID-PARSER-CONSULTANT-HIERARCHY-PROOF",
+      "id": "EDGE-EVID-PARSER-CONSULTANT-HIERARCHY-PROOF-BOUNDED-BY-GATE-G008",
+      "rationale": "M009 proves a bounded single-document Consultant hierarchy path but remains bounded by the product parser/retrieval readiness gate.",
+      "status": "active",
+      "to": "GATE-G008",
+      "type": "bounded_by"
+    },
+    {
+      "from": "EVID-PARSER-GOLDEN-TEST-PROOF",
+      "id": "EDGE-EVID-PARSER-GOLDEN-TEST-PROOF-BOUNDED-BY-GATE-G008",
+      "rationale": "M008 proves a bounded golden-test harness but remains bounded by the product parser/retrieval readiness gate.",
+      "status": "active",
+      "to": "GATE-G008",
+      "type": "bounded_by"
+    },
+    {
+      "from": "EVID-RESEARCH-GRAPHRAG-MATH-ANALYSIS",
+      "id": "EDGE-EVID-RESEARCH-GRAPHRAG-MATH-ANALYSIS-BOUNDED-BY-GATE-G005",
+      "rationale": "Research ideas about temporal legal graph reasoning remain bounded by the unresolved temporal same-date conflict policy gate.",
+      "status": "active",
+      "to": "GATE-G005",
+      "type": "bounded_by"
+    },
+    {
+      "from": "EVID-RESEARCH-GRAPHRAG-MATH-ANALYSIS",
+      "id": "EDGE-EVID-RESEARCH-GRAPHRAG-MATH-ANALYSIS-BOUNDED-BY-GATE-G008",
+      "rationale": "Research ideas about graph pre-filtering and GraphRAG retrieval remain bounded by product parser/retrieval readiness proof.",
+      "status": "active",
+      "to": "GATE-G008",
+      "type": "bounded_by"
+    },
+    {
+      "from": "EVID-RESEARCH-GRAPHRAG-MATH-ANALYSIS",
+      "id": "EDGE-EVID-RESEARCH-GRAPHRAG-MATH-ANALYSIS-BOUNDED-BY-GATE-G011",
+      "rationale": "Research ideas about ranking, embeddings, and hybrid retrieval remain bounded by local embedding quality proof.",
+      "status": "active",
+      "to": "GATE-G011",
+      "type": "bounded_by"
+    },
+    {
+      "from": "EVID-RESEARCH-GRAPHRAG-MATH-ANALYSIS",
+      "id": "EDGE-EVID-RESEARCH-GRAPHRAG-MATH-ANALYSIS-BOUNDED-BY-GATE-G015",
+      "rationale": "Research performance and FalkorDB runtime claims remain bounded by runtime migration/load proof.",
+      "status": "active",
+      "to": "GATE-G015",
+      "type": "bounded_by"
+    },
+    {
+      "from": "EVID-RESEARCH-GRAPHRAG-MATH-ANALYSIS",
+      "id": "EDGE-EVID-RESEARCH-GRAPHRAG-MATH-ANALYSIS-BOUNDED-BY-GATE-GENERATED-CYPHER-SAFETY",
+      "rationale": "Research ideas about LLM agent orchestration and generated queries remain bounded by generated-Cypher product safety proof.",
+      "status": "active",
+      "to": "GATE-GENERATED-CYPHER-SAFETY",
+      "type": "bounded_by"
+    },
+    {
+      "from": "EVID-RESEARCH-HABR-LEGAL-RAG-ITERATION-SCALING",
+      "id": "EDGE-EVID-RESEARCH-HABR-LEGAL-RAG-BOUNDED-BY-GATE-EMBEDDING-SUPPLY-CHAIN",
+      "rationale": "Habr Legal RAG local retrieval and reranker model ideas remain bounded by embedding model provenance, integrity, local runtime, and leakage checks.",
+      "status": "active",
+      "to": "GATE-EMBEDDING-SUPPLY-CHAIN",
+      "type": "bounded_by"
+    },
+    {
+      "from": "EVID-RESEARCH-HABR-LEGAL-RAG-ITERATION-SCALING",
+      "id": "EDGE-EVID-RESEARCH-HABR-LEGAL-RAG-BOUNDED-BY-GATE-G005",
+      "rationale": "Habr Legal RAG scale/disambiguation lessons reinforce temporal routing but remain bounded by unresolved same-date and multi-edition conflict policy.",
+      "status": "active",
+      "to": "GATE-G005",
+      "type": "bounded_by"
+    },
+    {
+      "from": "EVID-RESEARCH-HABR-LEGAL-RAG-ITERATION-SCALING",
+      "id": "EDGE-EVID-RESEARCH-HABR-LEGAL-RAG-BOUNDED-BY-GATE-G008",
+      "rationale": "Habr Legal RAG ideas about format-first validation, citation precision, and scoped no-answer behavior remain bounded by product parser/retrieval readiness proof.",
+      "status": "active",
+      "to": "GATE-G008",
+      "type": "bounded_by"
+    },
+    {
+      "from": "EVID-RESEARCH-HABR-LEGAL-RAG-ITERATION-SCALING",
+      "id": "EDGE-EVID-RESEARCH-HABR-LEGAL-RAG-BOUNDED-BY-GATE-G011",
+      "rationale": "Habr Legal RAG ideas about hybrid retrieval, evidence precision, reranking, and scale/noise evaluation remain bounded by local embedding quality proof.",
+      "status": "active",
+      "to": "GATE-G011",
+      "type": "bounded_by"
+    },
+    {
+      "from": "EVID-RESEARCH-HABR-LEGAL-RAG-ITERATION-SCALING",
+      "id": "EDGE-EVID-RESEARCH-HABR-LEGAL-RAG-BOUNDED-BY-GATE-G015",
+      "rationale": "Habr Legal RAG scale/noise degradation lessons remain bounded by future FalkorDBLite-to-Docker runtime migration and load proof.",
+      "status": "active",
+      "to": "GATE-G015",
+      "type": "bounded_by"
+    },
+    {
+      "from": "EVID-RESEARCH-HABR-LEGAL-RAG-ITERATION-SCALING",
+      "id": "EDGE-EVID-RESEARCH-HABR-LEGAL-RAG-BOUNDED-BY-GATE-GENERATED-CYPHER-SAFETY",
+      "rationale": "Habr Legal RAG post-LLM verification lessons support generated-output caution but remain bounded by generated-Cypher safety proof.",
+      "status": "active",
+      "to": "GATE-GENERATED-CYPHER-SAFETY",
+      "type": "bounded_by"
+    },
+    {
+      "from": "EVID-RETRIEVAL-OUTPUT-ID-VALIDATOR-PROOF",
+      "id": "EDGE-EVID-RETRIEVAL-OUTPUT-ID-VALIDATOR-PROOF-BOUNDED-BY-GATE-G008",
+      "rationale": "The validator proof checks output IDs and diagnostics but remains bounded by the product parser/retrieval readiness gate.",
+      "status": "active",
+      "to": "GATE-G008",
+      "type": "bounded_by"
+    },
+    {
+      "from": "EVID-RETRIEVAL-OUTPUT-ID-VALIDATOR-PROOF",
+      "id": "EDGE-EVID-RETRIEVAL-OUTPUT-ID-VALIDATOR-PROOF-BOUNDED-BY-GATE-G011",
+      "rationale": "The validator proof can reject unresolved IDs but does not measure local embedding or product retrieval quality.",
+      "status": "active",
+      "to": "GATE-G011",
+      "type": "bounded_by"
+    },
+    {
+      "from": "EVID-RETRIEVAL-OUTPUT-ID-VALIDATOR-PROOF",
+      "id": "EDGE-EVID-RETRIEVAL-OUTPUT-ID-VALIDATOR-PROOF-CHECKED-BY-CHECK-ARCHITECTURE-EXTRACTOR",
+      "rationale": "The deterministic architecture extractor keeps the M012 validator proof anchors, status, proof level, and non-claims visible in generated registry outputs.",
+      "status": "active",
+      "to": "CHECK-ARCHITECTURE-EXTRACTOR",
+      "type": "checked_by"
+    },
+    {
+      "from": "EVID-RETRIEVAL-OUTPUT-ID-VALIDATOR-PROOF",
+      "id": "EDGE-EVID-RETRIEVAL-OUTPUT-ID-VALIDATOR-PROOF-DEPENDS-ON-DATA-LEGAL-EVIDENCE-CORE",
+      "rationale": "The validator proof resolves citation and evidence IDs through bounded SourceBlock, SourceDocument, LegalUnit, and ActEdition fixture paths derived from the legal-evidence core concept.",
+      "status": "active",
+      "to": "DATA-LEGAL-EVIDENCE-CORE",
+      "type": "depends_on"
+    },
+    {
+      "from": "EVID-RETRIEVAL-OUTPUT-ID-VALIDATOR-PROOF",
+      "id": "EDGE-EVID-RETRIEVAL-OUTPUT-ID-VALIDATOR-PROOF-SATISFIES-REQ-R034",
+      "rationale": "The M012 validator proof provides bounded executable evidence for R034 fail-closed output identifier checks without promoting product retrieval or legal-answer claims.",
+      "status": "active",
+      "to": "REQ-R034",
+      "type": "satisfies"
+    },
+    {
+      "from": "GATE-EMBEDDING-SUPPLY-CHAIN",
+      "id": "EDGE-GATE-EMBEDDING-SUPPLY-CHAIN-BOUNDS-S10-USER-BGE-M3",
+      "rationale": "USER-bge-m3 remains a bounded local/open-weight baseline until model provenance and supply-chain gates are formalized for product use.",
+      "status": "active",
+      "to": "S10-USER-BGE-M3-BASELINE",
+      "type": "bounded_by"
+    },
+    {
+      "from": "GATE-G005",
+      "id": "EDGE-GATE-G005-BLOCKS-TEMPORAL-VALIDATION",
+      "rationale": "Unresolved temporal conflict policy must remain visible in architecture verification outputs.",
+      "status": "active",
+      "to": "REQ-R029",
+      "type": "blocks"
+    },
+    {
+      "from": "GATE-G005",
+      "id": "EDGE-GATE-G005-DEPENDS-ON-DATA-TEMPORAL-PROPERTY-BUNDLE",
+      "rationale": "Same-date conflict policy depends on explicit temporal fields and status semantics being modeled before validation.",
+      "status": "active",
+      "to": "DATA-TEMPORAL-PROPERTY-BUNDLE",
+      "type": "depends_on"
+    },
+    {
+      "from": "GATE-G008",
+      "id": "EDGE-GATE-G008-BLOCKS-PARSER-RETRIEVAL-PROOF",
+      "rationale": "Product parser/retrieval readiness gaps must remain explicit even after M008 bounded golden-test harness proof.",
+      "status": "active",
+      "to": "REQ-R029",
+      "type": "blocks"
+    },
+    {
+      "from": "GATE-G011",
+      "id": "EDGE-GATE-G011-BLOCKS-RETRIEVAL-QUALITY-CLAIMS",
+      "rationale": "Local embedding evidence remains bounded and cannot validate product retrieval quality without benchmarks.",
+      "status": "active",
+      "to": "REQ-R029",
+      "type": "blocks"
+    },
+    {
+      "from": "GATE-G015",
+      "id": "EDGE-GATE-G015-BLOCKS-RUNTIME-MIGRATION-CLAIMS",
+      "rationale": "FalkorDBLite to Docker migration remains an explicit deployment proof gate.",
+      "status": "active",
+      "to": "REQ-R029",
+      "type": "blocks"
+    },
+    {
+      "from": "GATE-GENERATED-CYPHER-SAFETY",
+      "id": "EDGE-GATE-GENERATED-CYPHER-SAFETY-BLOCKS-REQ-R017",
+      "rationale": "R017 cannot be validated for product Legal KnowQL until generated-Cypher safety is proven beyond M003 route/proof-harness evidence.",
+      "status": "active",
+      "to": "REQ-R017",
+      "type": "blocks"
+    },
+    {
+      "from": "GATE-LEGAL-NEXUS-ACCESS-CONTROL",
+      "id": "EDGE-GATE-LEGAL-NEXUS-ACCESS-CONTROL-BLOCKS-COMP-LEGAL-NEXUS",
+      "rationale": "Legal Nexus component claims remain bounded until access-control behavior is specified and verified.",
+      "status": "active",
+      "to": "COMP-LEGAL-NEXUS-ORCHESTRATOR",
+      "type": "blocks"
+    },
+    {
+      "from": "M001-ARCHITECTURE-ONLY-GUARDRAIL",
+      "id": "EDGE-M001-ARCHITECTURE-ONLY-GUARDRAIL-BOUNDS-REQ-R029",
+      "rationale": "Architecture registry verification must preserve architecture-only/product non-claim guardrails.",
+      "status": "active",
+      "to": "REQ-R029",
+      "type": "bounded_by"
+    },
+    {
+      "from": "QS-OBSERVABILITY-OPERABILITY-BASELINE",
+      "id": "EDGE-QS-OBSERVABILITY-BASELINE-CHECKED-BY-CHECK-ARCHITECTURE-EXTRACTOR",
+      "rationale": "The deterministic architecture extractor/check workflow keeps observability and auditability boundary records visible in derived planning views.",
+      "status": "active",
+      "to": "CHECK-ARCHITECTURE-EXTRACTOR",
+      "type": "checked_by"
+    },
+    {
+      "from": "REQ-R001",
+      "id": "EDGE-REQ-R001-EVIDENCED-BY-S07-FIXED-PRD-CONSISTENCY",
+      "rationale": "S07/S08 final report evidence supports architecture finding classification within M001 scope.",
+      "status": "active",
+      "to": "S07-FIXED-PRD-CONSISTENCY",
+      "type": "evidenced_by"
+    },
+    {
+      "from": "REQ-R009",
+      "id": "EDGE-REQ-R009-EVIDENCED-BY-S08-FINDINGS",
+      "rationale": "S08 findings rows preserve owner, resolution path, verification criteria, and roadmap effect for architecture issues.",
+      "status": "active",
+      "to": "S07-FIXED-PRD-CONSISTENCY",
+      "type": "evidenced_by"
+    },
+    {
+      "from": "REQ-R010",
+      "id": "EDGE-REQ-R010-EVIDENCED-BY-S08-FINDINGS",
+      "rationale": "S08 produced a machine-readable findings path and schema proposal consumed by this extractor.",
+      "status": "active",
+      "to": "S07-FIXED-PRD-CONSISTENCY",
+      "type": "evidenced_by"
+    },
+    {
+      "from": "REQ-R017",
+      "id": "EDGE-REQ-R017-BOUNDED-BY-R028",
+      "rationale": "Generated Cypher proof work remains bounded by the non-authoritative LLM/legal authority guardrail.",
+      "status": "active",
+      "to": "REQ-R028",
+      "type": "bounded_by"
+    },
+    {
+      "from": "REQ-R022",
+      "id": "EDGE-REQ-R022-BOUNDS-S04-FALKORDB-RUNTIME-BOUNDED",
+      "rationale": "Runtime proof artifacts must remain categorical and avoid raw sensitive/provider/legal payloads.",
+      "status": "active",
+      "to": "S04-FALKORDB-RUNTIME-BOUNDED",
+      "type": "bounded_by"
+    },
+    {
+      "from": "REQ-TEMPORAL-STATUS-SEMANTICS",
+      "id": "EDGE-REQ-TEMPORAL-STATUS-SEMANTICS-DEPENDS-ON-DATA-TEMPORAL-PROPERTY-BUNDLE",
+      "rationale": "Temporal status semantics depend on a stable temporal property bundle contract.",
+      "status": "active",
+      "to": "DATA-TEMPORAL-PROPERTY-BUNDLE",
+      "type": "depends_on"
+    },
+    {
+      "from": "RISK-OVERCLAIM-RUNTIME",
+      "id": "EDGE-RISK-OVERCLAIM-CHECKED-BY-CHECK-ARCHITECTURE-EXTRACTOR",
+      "rationale": "The extractor check fails closed for unsafe status/proof mappings and stale generated outputs.",
+      "status": "active",
+      "to": "CHECK-ARCHITECTURE-EXTRACTOR",
+      "type": "checked_by"
+    },
+    {
+      "from": "RISK-OVERCLAIM-RUNTIME",
+      "id": "EDGE-RISK-OVERCLAIM-RISKS-DATA-LEGAL-EVIDENCE-CORE",
+      "rationale": "Legal-evidence entity records can be overclaimed as implemented schema or legal correctness if non-claims are ignored.",
+      "status": "active",
+      "to": "DATA-LEGAL-EVIDENCE-CORE",
+      "type": "risks"
+    },
+    {
+      "from": "RISK-OVERCLAIM-RUNTIME",
+      "id": "EDGE-RISK-OVERCLAIM-RISKS-GATE-GENERATED-CYPHER-SAFETY",
+      "rationale": "Generated-Cypher proof gates are threatened by overclaiming draft LLM output as executable or legally authoritative behavior.",
+      "status": "active",
+      "to": "GATE-GENERATED-CYPHER-SAFETY",
+      "type": "risks"
+    },
+    {
+      "from": "S04-FALKORDB-RUNTIME-BOUNDED",
+      "id": "EDGE-S04-FALKORDB-RUNTIME-BOUNDED-BOUNDED-BY-RISK-OVERCLAIM-RUNTIME",
+      "rationale": "S04 smoke evidence must not be upgraded to product suitability, production scale, or legal-quality proof.",
+      "status": "active",
+      "to": "RISK-OVERCLAIM-RUNTIME",
+      "type": "bounded_by"
+    },
+    {
+      "from": "S05-OLD-PROJECT-PRIOR-ART",
+      "id": "EDGE-S05-OLD-PROJECT-PRIOR-ART-BOUNDED-BY-GATE-G008",
+      "rationale": "Old_project prior art remains bounded by executable parser/retrieval golden-test proof before any legacy assumption is promoted.",
+      "status": "active",
+      "to": "GATE-G008",
+      "type": "bounded_by"
+    },
+    {
+      "from": "S05-PARSER-ODT-BOUNDARY",
+      "id": "EDGE-S05-PARSER-ODT-BOUNDARY-BOUNDED-BY-GATE-G008",
+      "rationale": "S05 parser smoke guides investigation but product parser/retrieval readiness remains behind GATE-G008.",
+      "status": "active",
+      "to": "GATE-G008",
+      "type": "bounded_by"
+    },
+    {
+      "from": "S05-PARSER-ODT-BOUNDARY",
+      "id": "EDGE-S05-PARSER-ODT-BOUNDARY-EVIDENCED-BY-PARSER-CONSULTANT-CANDIDATES",
+      "rationale": "Consultant relation candidates are tracked prior-art relation evidence but remain non-authoritative candidate records.",
+      "status": "active",
+      "to": "EVID-PARSER-CONSULTANT-CANDIDATES",
+      "type": "evidenced_by"
+    },
+    {
+      "from": "S05-PARSER-ODT-BOUNDARY",
+      "id": "EDGE-S05-PARSER-ODT-BOUNDARY-EVIDENCED-BY-PARSER-ODT-SMOKE",
+      "rationale": "Bounded ODT smoke records are tracked real-document parser evidence for current parser staging scope.",
+      "status": "active",
+      "to": "EVID-PARSER-ODT-SMOKE",
+      "type": "evidenced_by"
+    },
+    {
+      "from": "S05-PARSER-ODT-BOUNDARY",
+      "id": "EDGE-S05-PARSER-ODT-BOUNDARY-EVIDENCED-BY-PARSER-SOURCE-FIXTURE-INVENTORY",
+      "rationale": "M006 fixture inventory is tracked parser evidence that supersedes ad hoc source-path assumptions for downstream parser planning.",
+      "status": "active",
+      "to": "EVID-PARSER-SOURCE-FIXTURE-INVENTORY",
+      "type": "evidenced_by"
+    },
+    {
+      "from": "S05-PARSER-ODT-BOUNDARY",
+      "id": "EDGE-S05-PARSER-ODT-BOUNDARY-EVIDENCED-BY-PARSER-STAGING-GRAPH",
+      "rationale": "NetworkX staging graph evidence preserves parser JSONL and relation-candidate invariants without claiming FalkorDB runtime loading.",
+      "status": "active",
+      "to": "EVID-PARSER-STAGING-GRAPH",
+      "type": "evidenced_by"
+    },
+    {
+      "from": "S10-GIGAEMBEDDINGS-CHALLENGER-BLOCKED",
+      "id": "EDGE-S10-GIGAEMBEDDINGS-CHALLENGER-BOUNDED-BY-GATE-G011",
+      "rationale": "Blocked GigaEmbeddings challenger evidence remains behind local embedding quality proof and cannot become managed fallback or default retrieval model.",
+      "status": "active",
+      "to": "GATE-G011",
+      "type": "bounded_by"
+    },
+    {
+      "from": "S10-USER-BGE-M3-BASELINE",
+      "id": "EDGE-S10-USER-BGE-M3-BASELINE-BOUNDED-BY-GATE-G011",
+      "rationale": "USER-bge-m3 runtime proof is a local baseline, not product retrieval quality proof.",
+      "status": "active",
+      "to": "GATE-G011",
+      "type": "bounded_by"
+    }
+  ],
   "unresolved_proof_gates": [
     {
       "id": "GATE-EMBEDDING-SUPPLY-CHAIN",
