@@ -3,6 +3,7 @@ from __future__ import annotations
 import copy
 import importlib.util
 import json
+import subprocess
 import sys
 from collections import Counter
 from pathlib import Path
@@ -13,6 +14,7 @@ import pytest
 ROOT = Path(__file__).resolve().parents[1]
 FIXTURE_PATH = ROOT / "prd/retrieval/fixtures/retrieval_output_validator_cases.json"
 VALIDATOR_PATH = ROOT / "scripts/retrieval_output_validator.py"
+CLI_PATH = ROOT / "scripts/verify-retrieval-output-validator.py"
 
 
 def load_validator() -> ModuleType:
@@ -113,6 +115,45 @@ FORBIDDEN_CONTENT_SNIPPETS = {
     "GRAPH.QUERY row",
     "legal advice:",
 }
+
+
+def run_cli(fixtures: Path) -> subprocess.CompletedProcess[str]:
+    return subprocess.run(
+        [sys.executable, str(CLI_PATH), "--fixtures", str(fixtures)],
+        check=False,
+        text=True,
+        capture_output=True,
+    )
+
+
+def assert_safe_cli_summary(summary: dict) -> None:
+    serialized = json.dumps(summary, ensure_ascii=False)
+    for forbidden in FORBIDDEN_CONTENT_SNIPPETS:
+        assert forbidden not in serialized
+    assert summary["schema_version"] == "retrieval-output-validator-proof/v1"
+    assert isinstance(summary["fixture_path"], str)
+    assert isinstance(summary["total_cases"], int)
+    assert isinstance(summary["accepted_count"], int)
+    assert isinstance(summary["rejected_count"], int)
+    assert isinstance(summary["mismatch_count"], int)
+    assert isinstance(summary["diagnostic_code_inventory"], list)
+    for mismatch in summary.get("mismatches", []):
+        assert set(mismatch) <= {
+            "phase",
+            "code",
+            "fixture_path",
+            "detail",
+            "field_path",
+            "case_id",
+            "expected_result",
+            "actual_result",
+            "expected_codes",
+            "actual_codes",
+        }
+        for bounded_field in ("field_path", "case_id", "fixture_path"):
+            if bounded_field in mismatch:
+                assert isinstance(mismatch[bounded_field], str)
+                assert len(mismatch[bounded_field]) <= 160
 
 
 def load_fixture() -> dict:
@@ -392,3 +433,77 @@ def test_inventory_rejects_missing_expected_result_or_codes() -> None:
 
     with pytest.raises(AssertionError, match="missing expected_diagnostic_codes list"):
         assert_retrieval_fixture_inventory(missing_codes)
+
+
+def test_cli_proof_accepts_tracked_fixture_corpus() -> None:
+    completed = run_cli(FIXTURE_PATH)
+
+    assert completed.returncode == 0, completed.stderr
+    assert completed.stderr == ""
+    summary = json.loads(completed.stdout)
+    assert_safe_cli_summary(summary)
+    assert summary["fixture_path"] == "prd/retrieval/fixtures/retrieval_output_validator_cases.json"
+    assert summary["total_cases"] == len(load_fixture()["cases"])
+    assert summary["accepted_count"] == 3
+    assert summary["rejected_count"] == summary["total_cases"] - 3
+    assert summary["mismatch_count"] == 0
+    assert set(summary["diagnostic_code_inventory"]) == EXPECTED_DIAGNOSTIC_CODES
+    assert "mismatches" not in summary
+
+
+def test_cli_proof_rejects_missing_fixture_path(tmp_path: Path) -> None:
+    missing_path = tmp_path / "missing-retrieval-output-fixtures.json"
+
+    completed = run_cli(missing_path)
+
+    assert completed.returncode != 0
+    summary = json.loads(completed.stdout)
+    assert_safe_cli_summary(summary)
+    assert summary["mismatch_count"] == 1
+    assert summary["mismatches"] == [
+        {
+            "phase": "fixture_load",
+            "code": "fixture_not_found",
+            "fixture_path": str(missing_path)[:160],
+            "detail": summary["mismatches"][0]["detail"],
+        }
+    ]
+
+
+def test_cli_proof_rejects_expectation_mismatch(tmp_path: Path) -> None:
+    broken = load_fixture()
+    broken["cases"][0]["expected_result"] = "rejected"
+    mismatch_path = tmp_path / "retrieval-output-mismatch.json"
+    mismatch_path.write_text(json.dumps(broken, ensure_ascii=False), encoding="utf-8")
+
+    completed = run_cli(mismatch_path)
+
+    assert completed.returncode == 1
+    summary = json.loads(completed.stdout)
+    assert_safe_cli_summary(summary)
+    assert summary["mismatch_count"] == 1
+    assert summary["mismatches"] == [
+        {
+            "phase": "case_expectation",
+            "case_id": "CASE-M012-VALID-RETRIEVAL",
+            "code": "expectation_mismatch",
+            "expected_result": "rejected",
+            "actual_result": "accepted",
+            "expected_codes": [],
+            "actual_codes": [],
+        }
+    ]
+
+
+def test_cli_proof_rejects_malformed_fixture_json(tmp_path: Path) -> None:
+    malformed_path = tmp_path / "malformed-retrieval-output-fixtures.json"
+    malformed_path.write_text('{"schema_version": ', encoding="utf-8")
+
+    completed = run_cli(malformed_path)
+
+    assert completed.returncode != 0
+    summary = json.loads(completed.stdout)
+    assert_safe_cli_summary(summary)
+    assert summary["mismatch_count"] == 1
+    assert summary["mismatches"][0]["phase"] == "fixture_load"
+    assert summary["mismatches"][0]["code"] == "malformed_fixture_json"
