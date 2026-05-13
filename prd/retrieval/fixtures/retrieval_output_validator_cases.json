@@ -1,0 +1,994 @@
+{
+  "schema_version": "retrieval-output-validator-fixtures/v1",
+  "non_authoritative": true,
+  "contract_version": "retrieval-output-validator/v1",
+  "requirement": "R034",
+  "source_contract": "prd/retrieval/retrieval_output_validator_contract.md",
+  "source_taxonomy": "prd/retrieval/retrieval_output_validator_fixtures.md",
+  "fixture_artifact": "prd/retrieval/fixtures/retrieval_output_validator_cases.json",
+  "fixture_boundaries": {
+    "proof_only": true,
+    "synthetic_labels_only": true,
+    "excluded_payload_classes": [
+      "raw legal text",
+      "source excerpts",
+      "prompts",
+      "provider bodies",
+      "secrets",
+      "PII",
+      "vectors",
+      "FalkorDB rows",
+      "generated answer prose",
+      "legal advice"
+    ]
+  },
+  "non_claims": [
+    "Does not prove product retrieval quality.",
+    "Does not prove parser completeness.",
+    "Does not prove FalkorDB runtime behavior.",
+    "Does not prove generated-Cypher safety.",
+    "Does not prove legal-answer correctness.",
+    "Product retrieval quality.",
+    "Parser completeness.",
+    "Citation-safe retrieval readiness for production.",
+    "Legal-answer correctness.",
+    "LLM legal authority.",
+    "Generated-Cypher execution authorization or generated-Cypher safety closure.",
+    "FalkorDB loading, runtime, vector, full-text, reranking, or production-scale behavior.",
+    "Production temporal graph completeness or amendment/legal-effect modeling.",
+    "Final production ID format or final graph schema.",
+    "Multi-document Consultant expansion, Garant regression, or multi-source readiness."
+  ],
+  "diagnostic_inventory": [
+    {"code": "missing_required_field", "severity": "error", "result": "rejected"},
+    {"code": "malformed_output_shape", "severity": "error", "result": "rejected"},
+    {"code": "unknown_id_namespace", "severity": "error", "result": "rejected"},
+    {"code": "unresolved_citation_key", "severity": "error", "result": "rejected"},
+    {"code": "ambiguous_citation_key", "severity": "error", "result": "rejected"},
+    {"code": "unresolved_evidence_span", "severity": "error", "result": "rejected"},
+    {"code": "orphaned_source_path", "severity": "error", "result": "rejected"},
+    {"code": "orphaned_legal_unit_path", "severity": "error", "result": "rejected"},
+    {"code": "id_path_mismatch", "severity": "error", "result": "rejected"},
+    {"code": "superseded_evidence", "severity": "error", "result": "rejected"},
+    {"code": "wrong_edition", "severity": "error", "result": "rejected"},
+    {"code": "answer_claim_without_evidence", "severity": "error", "result": "rejected"},
+    {"code": "citation_without_evidence", "severity": "error", "result": "rejected", "source": "R034-only coverage constant"},
+    {"code": "unsafe_no_answer_shape", "severity": "error", "result": "rejected"},
+    {"code": "forbidden_payload_field", "severity": "error", "result": "rejected"},
+    {"code": "scoped_no_answer", "severity": "info", "result": "accepted_scoped_no_answer"}
+  ],
+  "fixture_graph": {
+    "legal_acts": [
+      {
+        "legal_act_id": "LA-M012-44FZ",
+        "act_key": "fixture-act-44fz",
+        "fixture_label": "Synthetic M012 legal act anchor"
+      }
+    ],
+    "act_editions": [
+      {
+        "act_edition_id": "ED-M012-44FZ-2024-01-01",
+        "legal_act_id": "LA-M012-44FZ",
+        "valid_from": "2024-01-01",
+        "valid_to": null,
+        "status": "active"
+      },
+      {
+        "act_edition_id": "ED-M012-44FZ-2023-01-01",
+        "legal_act_id": "LA-M012-44FZ",
+        "valid_from": "2023-01-01",
+        "valid_to": "2023-12-31",
+        "status": "superseded"
+      }
+    ],
+    "legal_units": [
+      {
+        "legal_unit_id": "LU-M012-44FZ-ART-001",
+        "act_edition_id": "ED-M012-44FZ-2024-01-01",
+        "legal_act_id": "LA-M012-44FZ",
+        "unit_key": "fixture-unit-art-001-current",
+        "status": "active"
+      },
+      {
+        "legal_unit_id": "LU-M012-44FZ-ART-001-OLD",
+        "act_edition_id": "ED-M012-44FZ-2023-01-01",
+        "legal_act_id": "LA-M012-44FZ",
+        "unit_key": "fixture-unit-art-001-old",
+        "status": "superseded"
+      }
+    ],
+    "source_documents": [
+      {
+        "source_document_id": "SD-M012-44FZ-CONSULTANT",
+        "source_corpus_id": "CORPUS-M012-FIXTURE",
+        "fixture_label": "Synthetic source document anchor A",
+        "status": "active"
+      },
+      {
+        "source_document_id": "SD-M012-44FZ-GARANT",
+        "source_corpus_id": "CORPUS-M012-FIXTURE",
+        "fixture_label": "Synthetic source document anchor B",
+        "status": "active"
+      }
+    ],
+    "source_blocks": [
+      {
+        "source_block_id": "SB-M012-001",
+        "source_document_id": "SD-M012-44FZ-CONSULTANT",
+        "block_key": "fixture-block-001",
+        "status": "active"
+      },
+      {
+        "source_block_id": "SB-M012-002",
+        "source_document_id": "SD-M012-44FZ-GARANT",
+        "block_key": "fixture-block-002",
+        "status": "active"
+      },
+      {
+        "source_block_id": "SB-M012-ORPHAN",
+        "source_document_id": "SD-M012-MISSING-DOCUMENT",
+        "block_key": "fixture-block-orphan-source",
+        "status": "orphan_fixture"
+      }
+    ],
+    "evidence_spans": [
+      {
+        "evidence_span_id": "EV-M012-001",
+        "source_block_id": "SB-M012-001",
+        "source_document_id": "SD-M012-44FZ-CONSULTANT",
+        "legal_unit_id": "LU-M012-44FZ-ART-001",
+        "act_edition_id": "ED-M012-44FZ-2024-01-01",
+        "status": "active"
+      },
+      {
+        "evidence_span_id": "EV-M012-002",
+        "source_block_id": "SB-M012-002",
+        "source_document_id": "SD-M012-44FZ-GARANT",
+        "legal_unit_id": "LU-M012-44FZ-ART-001",
+        "act_edition_id": "ED-M012-44FZ-2024-01-01",
+        "status": "active"
+      },
+      {
+        "evidence_span_id": "EV-M012-SUPERSEDED",
+        "source_block_id": "SB-M012-001",
+        "source_document_id": "SD-M012-44FZ-CONSULTANT",
+        "legal_unit_id": "LU-M012-44FZ-ART-001-OLD",
+        "act_edition_id": "ED-M012-44FZ-2023-01-01",
+        "status": "superseded",
+        "superseded_by": "EV-M012-001"
+      },
+      {
+        "evidence_span_id": "EV-M012-ORPHAN-SOURCE",
+        "source_block_id": "SB-M012-ORPHAN",
+        "source_document_id": "SD-M012-MISSING-DOCUMENT",
+        "legal_unit_id": "LU-M012-44FZ-ART-001",
+        "act_edition_id": "ED-M012-44FZ-2024-01-01",
+        "status": "orphan_fixture"
+      },
+      {
+        "evidence_span_id": "EV-M012-ORPHAN-LEGAL",
+        "source_block_id": "SB-M012-002",
+        "source_document_id": "SD-M012-44FZ-GARANT",
+        "legal_unit_id": "LU-M012-MISSING-UNIT",
+        "act_edition_id": "ED-M012-44FZ-2024-01-01",
+        "status": "orphan_fixture"
+      }
+    ],
+    "citation_bindings": [
+      {
+        "citation_key": "CIT-M012-001",
+        "scope_id": "SCOPE-M012-44FZ-2024-001",
+        "evidence_span_id": "EV-M012-001",
+        "binding_role": "unique"
+      },
+      {
+        "citation_key": "CIT-M012-002",
+        "scope_id": "SCOPE-M012-44FZ-2024-001",
+        "evidence_span_id": "EV-M012-002",
+        "binding_role": "unique"
+      },
+      {
+        "citation_key": "CIT-M012-AMBIG",
+        "scope_id": "SCOPE-M012-44FZ-2024-001",
+        "evidence_span_id": "EV-M012-001",
+        "binding_role": "ambiguous"
+      },
+      {
+        "citation_key": "CIT-M012-AMBIG",
+        "scope_id": "SCOPE-M012-44FZ-2024-001",
+        "evidence_span_id": "EV-M012-002",
+        "binding_role": "ambiguous"
+      },
+      {
+        "citation_key": "CIT-M012-SUPERSEDED",
+        "scope_id": "SCOPE-M012-44FZ-2024-001",
+        "evidence_span_id": "EV-M012-SUPERSEDED",
+        "binding_role": "superseded"
+      },
+      {
+        "citation_key": "CIT-M012-ORPHAN-SOURCE",
+        "scope_id": "SCOPE-M012-44FZ-2024-001",
+        "evidence_span_id": "EV-M012-ORPHAN-SOURCE",
+        "binding_role": "orphan_source"
+      },
+      {
+        "citation_key": "CIT-M012-ORPHAN-LEGAL",
+        "scope_id": "SCOPE-M012-44FZ-2024-001",
+        "evidence_span_id": "EV-M012-ORPHAN-LEGAL",
+        "binding_role": "orphan_legal"
+      }
+    ]
+  },
+  "shared_scopes": [
+    {
+      "scope_id": "SCOPE-M012-44FZ-2024-001",
+      "query_id": "Q-M012-FIXTURE-001",
+      "retrieval_run_id": "RUN-M012-FIXTURE-001",
+      "as_of_date": "2024-01-01",
+      "source_corpus_id": "CORPUS-M012-FIXTURE",
+      "validator_contract_version": "retrieval-output-validator/v1"
+    },
+    {
+      "scope_id": "SCOPE-M012-44FZ-2023-001",
+      "query_id": "Q-M012-FIXTURE-OLD-001",
+      "retrieval_run_id": "RUN-M012-FIXTURE-OLD-001",
+      "as_of_date": "2023-01-01",
+      "source_corpus_id": "CORPUS-M012-FIXTURE",
+      "validator_contract_version": "retrieval-output-validator/v1"
+    }
+  ],
+  "cases": [
+    {
+      "case_id": "CASE-M012-VALID-RETRIEVAL",
+      "description": "Valid retrieval candidate with exact source and legal-unit paths.",
+      "scenario_label": "valid_retrieval",
+      "output": {
+        "retrieval_output_id": "RET-M012-VALID-001",
+        "output_kind": "retrieval_candidate",
+        "scope": {
+          "scope_id": "SCOPE-M012-44FZ-2024-001",
+          "query_id": "Q-M012-VALID-001",
+          "retrieval_run_id": "RUN-M012-001",
+          "as_of_date": "2024-01-01",
+          "source_corpus_id": "CORPUS-M012-FIXTURE",
+          "validator_contract_version": "retrieval-output-validator/v1"
+        },
+        "citations": [
+          {
+            "retrieval_output_id": "RET-M012-VALID-001",
+            "citation_key": "CIT-M012-001",
+            "evidence_span_id": "EV-M012-001",
+            "source_block_id": "SB-M012-001",
+            "source_document_id": "SD-M012-44FZ-CONSULTANT",
+            "legal_unit_id": "LU-M012-44FZ-ART-001",
+            "act_edition_id": "ED-M012-44FZ-2024-01-01"
+          }
+        ],
+        "answer_claims": []
+      },
+      "expected_result": "accepted",
+      "expected_diagnostic_codes": []
+    },
+    {
+      "case_id": "CASE-M012-VALID-ANSWER-CLAIM",
+      "description": "Valid answer claim references a resolved citation and matching answer claim ID.",
+      "scenario_label": "valid_answer_claim",
+      "output": {
+        "retrieval_output_id": "RET-M012-ANSWER-001",
+        "output_kind": "answer_claim",
+        "scope": {
+          "scope_id": "SCOPE-M012-44FZ-2024-001",
+          "query_id": "Q-M012-ANSWER-001",
+          "retrieval_run_id": "RUN-M012-002",
+          "as_of_date": "2024-01-01",
+          "source_corpus_id": "CORPUS-M012-FIXTURE",
+          "validator_contract_version": "retrieval-output-validator/v1"
+        },
+        "answer_claims": [
+          {
+            "answer_claim_id": "AC-M012-001",
+            "retrieval_output_id": "RET-M012-ANSWER-001",
+            "claim_kind": "norm_reference",
+            "scope_id": "SCOPE-M012-44FZ-2024-001",
+            "supported_citation_keys": ["CIT-M012-001"]
+          }
+        ],
+        "citations": [
+          {
+            "retrieval_output_id": "RET-M012-ANSWER-001",
+            "answer_claim_id": "AC-M012-001",
+            "citation_key": "CIT-M012-001",
+            "evidence_span_id": "EV-M012-001",
+            "source_block_id": "SB-M012-001",
+            "source_document_id": "SD-M012-44FZ-CONSULTANT",
+            "legal_unit_id": "LU-M012-44FZ-ART-001",
+            "act_edition_id": "ED-M012-44FZ-2024-01-01"
+          }
+        ]
+      },
+      "expected_result": "accepted",
+      "expected_diagnostic_codes": []
+    },
+    {
+      "case_id": "CASE-M012-SCOPED-NOANSWER",
+      "description": "Explicit scoped empty result with complete scope and no citations or claims.",
+      "scenario_label": "scoped_no_answer",
+      "output": {
+        "retrieval_output_id": "RET-M012-NOANSWER-001",
+        "output_kind": "scoped_no_answer",
+        "scope": {
+          "scope_id": "SCOPE-M012-44FZ-2024-001",
+          "query_id": "Q-M012-NOANSWER-001",
+          "retrieval_run_id": "RUN-M012-003",
+          "as_of_date": "2024-01-01",
+          "source_corpus_id": "CORPUS-M012-FIXTURE",
+          "validator_contract_version": "retrieval-output-validator/v1"
+        },
+        "citations": [],
+        "answer_claims": [],
+        "diagnostics": [
+          {
+            "code": "scoped_no_answer",
+            "severity": "info",
+            "result": "accepted_scoped_no_answer",
+            "field_path": "citations",
+            "retrieval_output_id": "RET-M012-NOANSWER-001",
+            "scope_id": "SCOPE-M012-44FZ-2024-001",
+            "case_id": "CASE-M012-SCOPED-NOANSWER"
+          }
+        ]
+      },
+      "expected_result": "accepted_scoped_no_answer",
+      "expected_diagnostic_codes": ["scoped_no_answer"]
+    },
+    {
+      "case_id": "CASE-M012-MISSING-EVIDENCE-SPAN-ID",
+      "description": "Citation is missing evidence_span_id.",
+      "scenario_label": "missing_id",
+      "output": {
+        "retrieval_output_id": "RET-M012-BAD-MISSING-EV",
+        "output_kind": "retrieval_candidate",
+        "scope": {
+          "scope_id": "SCOPE-M012-44FZ-2024-001",
+          "query_id": "Q-M012-BAD-MISSING-EV",
+          "retrieval_run_id": "RUN-M012-BAD-001",
+          "as_of_date": "2024-01-01",
+          "source_corpus_id": "CORPUS-M012-FIXTURE",
+          "validator_contract_version": "retrieval-output-validator/v1"
+        },
+        "citations": [
+          {
+            "retrieval_output_id": "RET-M012-BAD-MISSING-EV",
+            "citation_key": "CIT-M012-001",
+            "source_block_id": "SB-M012-001",
+            "source_document_id": "SD-M012-44FZ-CONSULTANT",
+            "legal_unit_id": "LU-M012-44FZ-ART-001",
+            "act_edition_id": "ED-M012-44FZ-2024-01-01"
+          }
+        ],
+        "answer_claims": []
+      },
+      "expected_result": "rejected",
+      "expected_diagnostic_codes": ["missing_required_field"]
+    },
+    {
+      "case_id": "CASE-M012-MALFORMED-CITATIONS-SHAPE",
+      "description": "Citations field is not an array.",
+      "scenario_label": "malformed_output_shape",
+      "output": {
+        "retrieval_output_id": "RET-M012-BAD-MALFORMED",
+        "output_kind": "retrieval_candidate",
+        "scope": {
+          "scope_id": "SCOPE-M012-44FZ-2024-001",
+          "query_id": "Q-M012-BAD-MALFORMED",
+          "retrieval_run_id": "RUN-M012-BAD-002",
+          "as_of_date": "2024-01-01",
+          "source_corpus_id": "CORPUS-M012-FIXTURE",
+          "validator_contract_version": "retrieval-output-validator/v1"
+        },
+        "citations": {"citation_key": "CIT-M012-001"},
+        "answer_claims": []
+      },
+      "expected_result": "rejected",
+      "expected_diagnostic_codes": ["malformed_output_shape"]
+    },
+    {
+      "case_id": "CASE-M012-UNKNOWN-ID-NAMESPACE",
+      "description": "Evidence span uses an ID namespace outside the proof fixture contract.",
+      "scenario_label": "unknown_id_namespace",
+      "output": {
+        "retrieval_output_id": "RET-M012-BAD-UNKNOWN-NS",
+        "output_kind": "retrieval_candidate",
+        "scope": {
+          "scope_id": "SCOPE-M012-44FZ-2024-001",
+          "query_id": "Q-M012-BAD-UNKNOWN-NS",
+          "retrieval_run_id": "RUN-M012-BAD-003",
+          "as_of_date": "2024-01-01",
+          "source_corpus_id": "CORPUS-M012-FIXTURE",
+          "validator_contract_version": "retrieval-output-validator/v1"
+        },
+        "citations": [
+          {
+            "retrieval_output_id": "RET-M012-BAD-UNKNOWN-NS",
+            "citation_key": "CIT-M012-001",
+            "evidence_span_id": "MODEL-SAYS-ARTICLE-1",
+            "source_block_id": "SB-M012-001",
+            "source_document_id": "SD-M012-44FZ-CONSULTANT",
+            "legal_unit_id": "LU-M012-44FZ-ART-001",
+            "act_edition_id": "ED-M012-44FZ-2024-01-01"
+          }
+        ],
+        "answer_claims": []
+      },
+      "expected_result": "rejected",
+      "expected_diagnostic_codes": ["unknown_id_namespace"]
+    },
+    {
+      "case_id": "CASE-M012-UNRESOLVED-CITATION-KEY",
+      "description": "Citation key is absent from fixture binding rows.",
+      "scenario_label": "unresolved_citation",
+      "output": {
+        "retrieval_output_id": "RET-M012-BAD-UNRESOLVED-CIT",
+        "output_kind": "retrieval_candidate",
+        "scope": {
+          "scope_id": "SCOPE-M012-44FZ-2024-001",
+          "query_id": "Q-M012-BAD-UNRESOLVED-CIT",
+          "retrieval_run_id": "RUN-M012-BAD-004",
+          "as_of_date": "2024-01-01",
+          "source_corpus_id": "CORPUS-M012-FIXTURE",
+          "validator_contract_version": "retrieval-output-validator/v1"
+        },
+        "citations": [
+          {
+            "retrieval_output_id": "RET-M012-BAD-UNRESOLVED-CIT",
+            "citation_key": "CIT-M012-DOES-NOT-EXIST",
+            "evidence_span_id": "EV-M012-001",
+            "source_block_id": "SB-M012-001",
+            "source_document_id": "SD-M012-44FZ-CONSULTANT",
+            "legal_unit_id": "LU-M012-44FZ-ART-001",
+            "act_edition_id": "ED-M012-44FZ-2024-01-01"
+          }
+        ],
+        "answer_claims": []
+      },
+      "expected_result": "rejected",
+      "expected_diagnostic_codes": ["unresolved_citation_key"]
+    },
+    {
+      "case_id": "CASE-M012-AMBIGUOUS-CITATION-KEY",
+      "description": "Citation key resolves to more than one fixture binding.",
+      "scenario_label": "ambiguous_citation",
+      "output": {
+        "retrieval_output_id": "RET-M012-BAD-AMBIG-CIT",
+        "output_kind": "retrieval_candidate",
+        "scope": {
+          "scope_id": "SCOPE-M012-44FZ-2024-001",
+          "query_id": "Q-M012-BAD-AMBIG-CIT",
+          "retrieval_run_id": "RUN-M012-BAD-005",
+          "as_of_date": "2024-01-01",
+          "source_corpus_id": "CORPUS-M012-FIXTURE",
+          "validator_contract_version": "retrieval-output-validator/v1"
+        },
+        "citations": [
+          {
+            "retrieval_output_id": "RET-M012-BAD-AMBIG-CIT",
+            "citation_key": "CIT-M012-AMBIG",
+            "evidence_span_id": "EV-M012-001",
+            "source_block_id": "SB-M012-001",
+            "source_document_id": "SD-M012-44FZ-CONSULTANT",
+            "legal_unit_id": "LU-M012-44FZ-ART-001",
+            "act_edition_id": "ED-M012-44FZ-2024-01-01"
+          }
+        ],
+        "answer_claims": []
+      },
+      "expected_result": "rejected",
+      "expected_diagnostic_codes": ["ambiguous_citation_key"]
+    },
+    {
+      "case_id": "CASE-M012-UNRESOLVED-EVIDENCE-SPAN-ID",
+      "description": "Evidence span ID is in namespace but absent from fixture rows.",
+      "scenario_label": "unresolved_evidence",
+      "output": {
+        "retrieval_output_id": "RET-M012-BAD-UNRESOLVED-EV",
+        "output_kind": "retrieval_candidate",
+        "scope": {
+          "scope_id": "SCOPE-M012-44FZ-2024-001",
+          "query_id": "Q-M012-BAD-UNRESOLVED-EV",
+          "retrieval_run_id": "RUN-M012-BAD-006",
+          "as_of_date": "2024-01-01",
+          "source_corpus_id": "CORPUS-M012-FIXTURE",
+          "validator_contract_version": "retrieval-output-validator/v1"
+        },
+        "citations": [
+          {
+            "retrieval_output_id": "RET-M012-BAD-UNRESOLVED-EV",
+            "citation_key": "CIT-M012-001",
+            "evidence_span_id": "EV-M012-DOES-NOT-EXIST",
+            "source_block_id": "SB-M012-001",
+            "source_document_id": "SD-M012-44FZ-CONSULTANT",
+            "legal_unit_id": "LU-M012-44FZ-ART-001",
+            "act_edition_id": "ED-M012-44FZ-2024-01-01"
+          }
+        ],
+        "answer_claims": []
+      },
+      "expected_result": "rejected",
+      "expected_diagnostic_codes": ["unresolved_evidence_span"]
+    },
+    {
+      "case_id": "CASE-M012-ORPHANED-SOURCE-BLOCK",
+      "description": "Evidence path cannot traverse to a declared source document.",
+      "scenario_label": "orphan_source_block",
+      "output": {
+        "retrieval_output_id": "RET-M012-BAD-ORPHAN-SOURCE",
+        "output_kind": "retrieval_candidate",
+        "scope": {
+          "scope_id": "SCOPE-M012-44FZ-2024-001",
+          "query_id": "Q-M012-BAD-ORPHAN-SOURCE",
+          "retrieval_run_id": "RUN-M012-BAD-007",
+          "as_of_date": "2024-01-01",
+          "source_corpus_id": "CORPUS-M012-FIXTURE",
+          "validator_contract_version": "retrieval-output-validator/v1"
+        },
+        "citations": [
+          {
+            "retrieval_output_id": "RET-M012-BAD-ORPHAN-SOURCE",
+            "citation_key": "CIT-M012-ORPHAN-SOURCE",
+            "evidence_span_id": "EV-M012-ORPHAN-SOURCE",
+            "source_block_id": "SB-M012-ORPHAN",
+            "source_document_id": "SD-M012-MISSING-DOCUMENT",
+            "legal_unit_id": "LU-M012-44FZ-ART-001",
+            "act_edition_id": "ED-M012-44FZ-2024-01-01"
+          }
+        ],
+        "answer_claims": []
+      },
+      "expected_result": "rejected",
+      "expected_diagnostic_codes": ["orphaned_source_path"]
+    },
+    {
+      "case_id": "CASE-M012-ORPHANED-LEGAL-UNIT",
+      "description": "Evidence path cannot traverse to a declared legal unit.",
+      "scenario_label": "orphaned_legal_unit",
+      "output": {
+        "retrieval_output_id": "RET-M012-BAD-ORPHAN-LEGAL",
+        "output_kind": "retrieval_candidate",
+        "scope": {
+          "scope_id": "SCOPE-M012-44FZ-2024-001",
+          "query_id": "Q-M012-BAD-ORPHAN-LEGAL",
+          "retrieval_run_id": "RUN-M012-BAD-008",
+          "as_of_date": "2024-01-01",
+          "source_corpus_id": "CORPUS-M012-FIXTURE",
+          "validator_contract_version": "retrieval-output-validator/v1"
+        },
+        "citations": [
+          {
+            "retrieval_output_id": "RET-M012-BAD-ORPHAN-LEGAL",
+            "citation_key": "CIT-M012-ORPHAN-LEGAL",
+            "evidence_span_id": "EV-M012-ORPHAN-LEGAL",
+            "source_block_id": "SB-M012-002",
+            "source_document_id": "SD-M012-44FZ-GARANT",
+            "legal_unit_id": "LU-M012-MISSING-UNIT",
+            "act_edition_id": "ED-M012-44FZ-2024-01-01"
+          }
+        ],
+        "answer_claims": []
+      },
+      "expected_result": "rejected",
+      "expected_diagnostic_codes": ["orphaned_legal_unit_path"]
+    },
+    {
+      "case_id": "CASE-M012-SOURCE-PATH-MISMATCH",
+      "description": "Explicit source block disagrees with fixture traversal from evidence span.",
+      "scenario_label": "id_path_mismatch",
+      "output": {
+        "retrieval_output_id": "RET-M012-BAD-PATH-MISMATCH",
+        "output_kind": "retrieval_candidate",
+        "scope": {
+          "scope_id": "SCOPE-M012-44FZ-2024-001",
+          "query_id": "Q-M012-BAD-PATH-MISMATCH",
+          "retrieval_run_id": "RUN-M012-BAD-009",
+          "as_of_date": "2024-01-01",
+          "source_corpus_id": "CORPUS-M012-FIXTURE",
+          "validator_contract_version": "retrieval-output-validator/v1"
+        },
+        "citations": [
+          {
+            "retrieval_output_id": "RET-M012-BAD-PATH-MISMATCH",
+            "citation_key": "CIT-M012-001",
+            "evidence_span_id": "EV-M012-001",
+            "source_block_id": "SB-M012-002",
+            "source_document_id": "SD-M012-44FZ-GARANT",
+            "legal_unit_id": "LU-M012-44FZ-ART-001",
+            "act_edition_id": "ED-M012-44FZ-2024-01-01"
+          }
+        ],
+        "answer_claims": []
+      },
+      "expected_result": "rejected",
+      "expected_diagnostic_codes": ["id_path_mismatch"]
+    },
+    {
+      "case_id": "CASE-M012-SUPERSEDED-EVIDENCE-SPAN",
+      "description": "Citation resolves to superseded evidence for the active scope.",
+      "scenario_label": "superseded_evidence",
+      "output": {
+        "retrieval_output_id": "RET-M012-BAD-SUPERSEDED",
+        "output_kind": "retrieval_candidate",
+        "scope": {
+          "scope_id": "SCOPE-M012-44FZ-2024-001",
+          "query_id": "Q-M012-BAD-SUPERSEDED",
+          "retrieval_run_id": "RUN-M012-BAD-010",
+          "as_of_date": "2024-01-01",
+          "source_corpus_id": "CORPUS-M012-FIXTURE",
+          "validator_contract_version": "retrieval-output-validator/v1"
+        },
+        "citations": [
+          {
+            "retrieval_output_id": "RET-M012-BAD-SUPERSEDED",
+            "citation_key": "CIT-M012-SUPERSEDED",
+            "evidence_span_id": "EV-M012-SUPERSEDED",
+            "source_block_id": "SB-M012-001",
+            "source_document_id": "SD-M012-44FZ-CONSULTANT",
+            "legal_unit_id": "LU-M012-44FZ-ART-001-OLD",
+            "act_edition_id": "ED-M012-44FZ-2023-01-01"
+          }
+        ],
+        "answer_claims": []
+      },
+      "expected_result": "rejected",
+      "expected_diagnostic_codes": ["superseded_evidence"]
+    },
+    {
+      "case_id": "CASE-M012-WRONG-ACT-EDITION",
+      "description": "Explicit act edition is not valid for the active scoped date.",
+      "scenario_label": "wrong_edition",
+      "output": {
+        "retrieval_output_id": "RET-M012-BAD-EDITION",
+        "output_kind": "retrieval_candidate",
+        "scope": {
+          "scope_id": "SCOPE-M012-44FZ-2024-001",
+          "query_id": "Q-M012-BAD-EDITION",
+          "retrieval_run_id": "RUN-M012-BAD-011",
+          "as_of_date": "2024-01-01",
+          "source_corpus_id": "CORPUS-M012-FIXTURE",
+          "validator_contract_version": "retrieval-output-validator/v1"
+        },
+        "citations": [
+          {
+            "retrieval_output_id": "RET-M012-BAD-EDITION",
+            "citation_key": "CIT-M012-001",
+            "evidence_span_id": "EV-M012-001",
+            "source_block_id": "SB-M012-001",
+            "source_document_id": "SD-M012-44FZ-CONSULTANT",
+            "legal_unit_id": "LU-M012-44FZ-ART-001",
+            "act_edition_id": "ED-M012-44FZ-2023-01-01"
+          }
+        ],
+        "answer_claims": []
+      },
+      "expected_result": "rejected",
+      "expected_diagnostic_codes": ["wrong_edition"]
+    },
+    {
+      "case_id": "CASE-M012-ANSWER-CLAIM-WITHOUT-EVIDENCE",
+      "description": "Answer claim has no supporting citation keys.",
+      "scenario_label": "answer_claim_without_evidence",
+      "output": {
+        "retrieval_output_id": "RET-M012-BAD-CLAIM-NO-EVIDENCE",
+        "output_kind": "answer_claim",
+        "scope": {
+          "scope_id": "SCOPE-M012-44FZ-2024-001",
+          "query_id": "Q-M012-BAD-CLAIM-NO-EVIDENCE",
+          "retrieval_run_id": "RUN-M012-BAD-012",
+          "as_of_date": "2024-01-01",
+          "source_corpus_id": "CORPUS-M012-FIXTURE",
+          "validator_contract_version": "retrieval-output-validator/v1"
+        },
+        "answer_claims": [
+          {
+            "answer_claim_id": "AC-M012-NO-EVIDENCE",
+            "retrieval_output_id": "RET-M012-BAD-CLAIM-NO-EVIDENCE",
+            "claim_kind": "norm_reference",
+            "scope_id": "SCOPE-M012-44FZ-2024-001",
+            "supported_citation_keys": []
+          }
+        ],
+        "citations": []
+      },
+      "expected_result": "rejected",
+      "expected_diagnostic_codes": ["answer_claim_without_evidence"]
+    },
+    {
+      "case_id": "CASE-M012-CITATION-WITHOUT-EVIDENCE",
+      "description": "Citation carries no evidence support for R034-only fail-closed coverage.",
+      "scenario_label": "citation_without_evidence",
+      "output": {
+        "retrieval_output_id": "RET-M012-BAD-CITATION-NO-EVIDENCE",
+        "output_kind": "retrieval_candidate",
+        "scope": {
+          "scope_id": "SCOPE-M012-44FZ-2024-001",
+          "query_id": "Q-M012-BAD-CITATION-NO-EVIDENCE",
+          "retrieval_run_id": "RUN-M012-BAD-013",
+          "as_of_date": "2024-01-01",
+          "source_corpus_id": "CORPUS-M012-FIXTURE",
+          "validator_contract_version": "retrieval-output-validator/v1"
+        },
+        "citations": [
+          {
+            "retrieval_output_id": "RET-M012-BAD-CITATION-NO-EVIDENCE",
+            "citation_key": "CIT-M012-001",
+            "evidence_span_id": null,
+            "source_block_id": "SB-M012-001",
+            "source_document_id": "SD-M012-44FZ-CONSULTANT",
+            "legal_unit_id": "LU-M012-44FZ-ART-001",
+            "act_edition_id": "ED-M012-44FZ-2024-01-01"
+          }
+        ],
+        "answer_claims": []
+      },
+      "expected_result": "rejected",
+      "expected_diagnostic_codes": ["citation_without_evidence"]
+    },
+    {
+      "case_id": "CASE-M012-UNSAFE-NOANSWER-WITH-CITATION",
+      "description": "Scoped no-answer contains a citation and must reject.",
+      "scenario_label": "unsafe_no_answer_shape",
+      "output": {
+        "retrieval_output_id": "RET-M012-BAD-NOANSWER-CITATION",
+        "output_kind": "scoped_no_answer",
+        "scope": {
+          "scope_id": "SCOPE-M012-44FZ-2024-001",
+          "query_id": "Q-M012-BAD-NOANSWER-CITATION",
+          "retrieval_run_id": "RUN-M012-BAD-014",
+          "as_of_date": "2024-01-01",
+          "source_corpus_id": "CORPUS-M012-FIXTURE",
+          "validator_contract_version": "retrieval-output-validator/v1"
+        },
+        "citations": [
+          {
+            "retrieval_output_id": "RET-M012-BAD-NOANSWER-CITATION",
+            "citation_key": "CIT-M012-001",
+            "evidence_span_id": "EV-M012-001",
+            "source_block_id": "SB-M012-001",
+            "source_document_id": "SD-M012-44FZ-CONSULTANT",
+            "legal_unit_id": "LU-M012-44FZ-ART-001",
+            "act_edition_id": "ED-M012-44FZ-2024-01-01"
+          }
+        ],
+        "answer_claims": []
+      },
+      "expected_result": "rejected",
+      "expected_diagnostic_codes": ["unsafe_no_answer_shape"]
+    },
+    {
+      "case_id": "CASE-M012-FORBIDDEN-RAW-TEXT-FIELD",
+      "description": "Envelope contains a forbidden raw payload field name and bounded sentinel value.",
+      "scenario_label": "forbidden_payload_field",
+      "output": {
+        "retrieval_output_id": "RET-M012-BAD-FORBIDDEN-FIELD",
+        "output_kind": "retrieval_candidate",
+        "scope": {
+          "scope_id": "SCOPE-M012-44FZ-2024-001",
+          "query_id": "Q-M012-BAD-FORBIDDEN-FIELD",
+          "retrieval_run_id": "RUN-M012-BAD-015",
+          "as_of_date": "2024-01-01",
+          "source_corpus_id": "CORPUS-M012-FIXTURE",
+          "validator_contract_version": "retrieval-output-validator/v1"
+        },
+        "citations": [
+          {
+            "retrieval_output_id": "RET-M012-BAD-FORBIDDEN-FIELD",
+            "citation_key": "CIT-M012-001",
+            "evidence_span_id": "EV-M012-001",
+            "source_block_id": "SB-M012-001",
+            "source_document_id": "SD-M012-44FZ-CONSULTANT",
+            "legal_unit_id": "LU-M012-44FZ-ART-001",
+            "act_edition_id": "ED-M012-44FZ-2024-01-01"
+          }
+        ],
+        "answer_claims": [],
+        "raw_legal_text": "FORBIDDEN-SENTINEL-NO-RAW-CONTENT"
+      },
+      "expected_result": "rejected",
+      "expected_diagnostic_codes": ["forbidden_payload_field"]
+    }
+  ],
+  "expected_diagnostics": {
+    "CASE-M012-VALID-RETRIEVAL": [],
+    "CASE-M012-VALID-ANSWER-CLAIM": [],
+    "CASE-M012-SCOPED-NOANSWER": [
+      {
+        "code": "scoped_no_answer",
+        "severity": "info",
+        "result": "accepted_scoped_no_answer",
+        "field_path": "citations",
+        "retrieval_output_id": "RET-M012-NOANSWER-001",
+        "scope_id": "SCOPE-M012-44FZ-2024-001",
+        "case_id": "CASE-M012-SCOPED-NOANSWER"
+      }
+    ],
+    "CASE-M012-MISSING-EVIDENCE-SPAN-ID": [
+      {
+        "code": "missing_required_field",
+        "severity": "error",
+        "result": "rejected",
+        "field_path": "citations[0].evidence_span_id",
+        "retrieval_output_id": "RET-M012-BAD-MISSING-EV",
+        "scope_id": "SCOPE-M012-44FZ-2024-001",
+        "case_id": "CASE-M012-MISSING-EVIDENCE-SPAN-ID"
+      }
+    ],
+    "CASE-M012-MALFORMED-CITATIONS-SHAPE": [
+      {
+        "code": "malformed_output_shape",
+        "severity": "error",
+        "result": "rejected",
+        "field_path": "citations",
+        "retrieval_output_id": "RET-M012-BAD-MALFORMED",
+        "scope_id": "SCOPE-M012-44FZ-2024-001",
+        "case_id": "CASE-M012-MALFORMED-CITATIONS-SHAPE"
+      }
+    ],
+    "CASE-M012-UNKNOWN-ID-NAMESPACE": [
+      {
+        "code": "unknown_id_namespace",
+        "severity": "error",
+        "result": "rejected",
+        "field_path": "citations[0].evidence_span_id",
+        "retrieval_output_id": "RET-M012-BAD-UNKNOWN-NS",
+        "scope_id": "SCOPE-M012-44FZ-2024-001",
+        "case_id": "CASE-M012-UNKNOWN-ID-NAMESPACE",
+        "safe_id_value": "MODEL-SAYS-ARTICLE-1"
+      }
+    ],
+    "CASE-M012-UNRESOLVED-CITATION-KEY": [
+      {
+        "code": "unresolved_citation_key",
+        "severity": "error",
+        "result": "rejected",
+        "field_path": "citations[0].citation_key",
+        "retrieval_output_id": "RET-M012-BAD-UNRESOLVED-CIT",
+        "scope_id": "SCOPE-M012-44FZ-2024-001",
+        "case_id": "CASE-M012-UNRESOLVED-CITATION-KEY",
+        "safe_id_value": "CIT-M012-DOES-NOT-EXIST"
+      }
+    ],
+    "CASE-M012-AMBIGUOUS-CITATION-KEY": [
+      {
+        "code": "ambiguous_citation_key",
+        "severity": "error",
+        "result": "rejected",
+        "field_path": "citations[0].citation_key",
+        "retrieval_output_id": "RET-M012-BAD-AMBIG-CIT",
+        "scope_id": "SCOPE-M012-44FZ-2024-001",
+        "case_id": "CASE-M012-AMBIGUOUS-CITATION-KEY",
+        "safe_id_value": "CIT-M012-AMBIG"
+      }
+    ],
+    "CASE-M012-UNRESOLVED-EVIDENCE-SPAN-ID": [
+      {
+        "code": "unresolved_evidence_span",
+        "severity": "error",
+        "result": "rejected",
+        "field_path": "citations[0].evidence_span_id",
+        "retrieval_output_id": "RET-M012-BAD-UNRESOLVED-EV",
+        "scope_id": "SCOPE-M012-44FZ-2024-001",
+        "case_id": "CASE-M012-UNRESOLVED-EVIDENCE-SPAN-ID",
+        "safe_id_value": "EV-M012-DOES-NOT-EXIST",
+        "fixture_artifact": "prd/retrieval/fixtures/retrieval_output_validator_cases.json"
+      }
+    ],
+    "CASE-M012-ORPHANED-SOURCE-BLOCK": [
+      {
+        "code": "orphaned_source_path",
+        "severity": "error",
+        "result": "rejected",
+        "field_path": "citations[0].source_document_id",
+        "retrieval_output_id": "RET-M012-BAD-ORPHAN-SOURCE",
+        "scope_id": "SCOPE-M012-44FZ-2024-001",
+        "case_id": "CASE-M012-ORPHANED-SOURCE-BLOCK",
+        "safe_id_value": "EV-M012-ORPHAN-SOURCE",
+        "expected_id": "SD-M012-44FZ-CONSULTANT",
+        "resolved_id": "SD-M012-MISSING-DOCUMENT"
+      }
+    ],
+    "CASE-M012-ORPHANED-LEGAL-UNIT": [
+      {
+        "code": "orphaned_legal_unit_path",
+        "severity": "error",
+        "result": "rejected",
+        "field_path": "citations[0].legal_unit_id",
+        "retrieval_output_id": "RET-M012-BAD-ORPHAN-LEGAL",
+        "scope_id": "SCOPE-M012-44FZ-2024-001",
+        "case_id": "CASE-M012-ORPHANED-LEGAL-UNIT",
+        "safe_id_value": "LU-M012-MISSING-UNIT"
+      }
+    ],
+    "CASE-M012-SOURCE-PATH-MISMATCH": [
+      {
+        "code": "id_path_mismatch",
+        "severity": "error",
+        "result": "rejected",
+        "field_path": "citations[0].source_block_id",
+        "retrieval_output_id": "RET-M012-BAD-PATH-MISMATCH",
+        "scope_id": "SCOPE-M012-44FZ-2024-001",
+        "case_id": "CASE-M012-SOURCE-PATH-MISMATCH",
+        "expected_id": "SB-M012-001",
+        "resolved_id": "SB-M012-002"
+      }
+    ],
+    "CASE-M012-SUPERSEDED-EVIDENCE-SPAN": [
+      {
+        "code": "superseded_evidence",
+        "severity": "error",
+        "result": "rejected",
+        "field_path": "citations[0].evidence_span_id",
+        "retrieval_output_id": "RET-M012-BAD-SUPERSEDED",
+        "scope_id": "SCOPE-M012-44FZ-2024-001",
+        "case_id": "CASE-M012-SUPERSEDED-EVIDENCE-SPAN",
+        "safe_id_value": "EV-M012-SUPERSEDED",
+        "expected_id": "EV-M012-001"
+      }
+    ],
+    "CASE-M012-WRONG-ACT-EDITION": [
+      {
+        "code": "wrong_edition",
+        "severity": "error",
+        "result": "rejected",
+        "field_path": "citations[0].act_edition_id",
+        "retrieval_output_id": "RET-M012-BAD-EDITION",
+        "scope_id": "SCOPE-M012-44FZ-2024-001",
+        "case_id": "CASE-M012-WRONG-ACT-EDITION",
+        "safe_id_value": "ED-M012-44FZ-2023-01-01",
+        "expected_id": "ED-M012-44FZ-2024-01-01"
+      }
+    ],
+    "CASE-M012-ANSWER-CLAIM-WITHOUT-EVIDENCE": [
+      {
+        "code": "answer_claim_without_evidence",
+        "severity": "error",
+        "result": "rejected",
+        "field_path": "answer_claims[0].supported_citation_keys",
+        "retrieval_output_id": "RET-M012-BAD-CLAIM-NO-EVIDENCE",
+        "scope_id": "SCOPE-M012-44FZ-2024-001",
+        "case_id": "CASE-M012-ANSWER-CLAIM-WITHOUT-EVIDENCE"
+      }
+    ],
+    "CASE-M012-CITATION-WITHOUT-EVIDENCE": [
+      {
+        "code": "citation_without_evidence",
+        "severity": "error",
+        "result": "rejected",
+        "field_path": "citations[0].evidence_span_id",
+        "retrieval_output_id": "RET-M012-BAD-CITATION-NO-EVIDENCE",
+        "scope_id": "SCOPE-M012-44FZ-2024-001",
+        "case_id": "CASE-M012-CITATION-WITHOUT-EVIDENCE"
+      }
+    ],
+    "CASE-M012-UNSAFE-NOANSWER-WITH-CITATION": [
+      {
+        "code": "unsafe_no_answer_shape",
+        "severity": "error",
+        "result": "rejected",
+        "field_path": "citations",
+        "retrieval_output_id": "RET-M012-BAD-NOANSWER-CITATION",
+        "scope_id": "SCOPE-M012-44FZ-2024-001",
+        "case_id": "CASE-M012-UNSAFE-NOANSWER-WITH-CITATION"
+      }
+    ],
+    "CASE-M012-FORBIDDEN-RAW-TEXT-FIELD": [
+      {
+        "code": "forbidden_payload_field",
+        "severity": "error",
+        "result": "rejected",
+        "field_path": "raw_legal_text",
+        "retrieval_output_id": "RET-M012-BAD-FORBIDDEN-FIELD",
+        "scope_id": "SCOPE-M012-44FZ-2024-001",
+        "case_id": "CASE-M012-FORBIDDEN-RAW-TEXT-FIELD",
+        "safe_id_value": "raw_legal_text"
+      }
+    ]
+  }
+}
