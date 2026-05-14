@@ -1,0 +1,622 @@
+{
+  "candidate_references": [
+    {
+      "evidence_path_ids": {
+        "act_edition_id": "ED-M013-44FZ-2026-01-01",
+        "citation_key": "CIT-M013-HIER-CONS-ARTICLE-0001",
+        "evidence_span_id": "EV-M013-HIER-CONS-ARTICLE-0001",
+        "legal_unit_id": "LU-M013-HIER-CONS-ARTICLE-0001",
+        "source_block_id": "SB-M013-HIER-CONS-ARTICLE-0001",
+        "source_document_id": "SD-M013-DOC-CONS-44FZ"
+      },
+      "excerpt_sha256": "bd7ca77cc505d237f70e05fd91351b3e235a7b6f678d52db877e90f8f9e517ef",
+      "provenance": {
+        "derivation": "bounded M013 retrieval validator case reference; no source excerpt persisted",
+        "parser_source_artifact": "prd/parser/consultant_hierarchy_records.json",
+        "parser_source_sha256": "df14061fccedf5023a008d8ab7de77cc829459d54b4683fab08bababf26d7f95",
+        "source_case_id": "CASE-M013-VALID-REAL-ARTIFACT",
+        "source_fixture_path": "prd/retrieval/fixtures/real_artifact_retrieval_cases.json"
+      },
+      "redaction": {
+        "absolute_path_persisted": false,
+        "generated_legal_advice_persisted": false,
+        "provider_payload_persisted": false,
+        "raw_falkordb_row_persisted": false,
+        "raw_legal_text_persisted": false,
+        "raw_prompt_persisted": false,
+        "raw_query_text_persisted": false,
+        "raw_vector_persisted": false
+      },
+      "reference_id": "RC-M016-001",
+      "reference_role": "relevant",
+      "source_artifact": "prd/retrieval/fixtures/real_artifact_retrieval_cases.json",
+      "source_family": "consultant_wordml",
+      "source_record_ids": [
+        "HIER-CONS-ARTICLE-0001"
+      ],
+      "source_sha256": "9f1a815a84f79c00ea5b5416c4285826930ae43646e7152dc283ce99f1bd62a7"
+    },
+    {
+      "evidence_path_ids": {
+        "act_edition_id": "ED-M013-44FZ-1900-01-01",
+        "citation_key": "CIT-M013-HIER-CONS-ARTICLE-0001",
+        "evidence_span_id": "EV-M013-HIER-CONS-ARTICLE-0001",
+        "legal_unit_id": "LU-M013-HIER-CONS-ARTICLE-0001",
+        "source_block_id": "SB-M013-HIER-CONS-ARTICLE-0001",
+        "source_document_id": "SD-M013-DOC-CONS-44FZ"
+      },
+      "excerpt_sha256": "9bce49ceb449f263902e830a61bfc8271f4a122cfd886a4d73140e318029e8b0",
+      "provenance": {
+        "derivation": "bounded M013 retrieval validator case reference; no source excerpt persisted",
+        "parser_source_artifact": "prd/parser/consultant_hierarchy_records.json",
+        "parser_source_sha256": "df14061fccedf5023a008d8ab7de77cc829459d54b4683fab08bababf26d7f95",
+        "source_case_id": "CASE-M013-WRONG-EDITION-PROXY",
+        "source_fixture_path": "prd/retrieval/fixtures/real_artifact_retrieval_cases.json"
+      },
+      "redaction": {
+        "absolute_path_persisted": false,
+        "generated_legal_advice_persisted": false,
+        "provider_payload_persisted": false,
+        "raw_falkordb_row_persisted": false,
+        "raw_legal_text_persisted": false,
+        "raw_prompt_persisted": false,
+        "raw_query_text_persisted": false,
+        "raw_vector_persisted": false
+      },
+      "reference_id": "RC-M016-002",
+      "reference_role": "edition_mismatch",
+      "source_artifact": "prd/retrieval/fixtures/real_artifact_retrieval_cases.json",
+      "source_family": "consultant_wordml",
+      "source_record_ids": [
+        "HIER-CONS-ARTICLE-0001"
+      ],
+      "source_sha256": "9f1a815a84f79c00ea5b5416c4285826930ae43646e7152dc283ce99f1bd62a7"
+    },
+    {
+      "evidence_path_ids": {},
+      "excerpt_sha256": "fe5341d3adf0e372f0f67e27606af8be79f9ae90aca006290f526a6db1e86484",
+      "provenance": {
+        "derivation": "bounded M013 retrieval validator case reference; no source excerpt persisted",
+        "parser_source_artifact": "prd/parser/consultant_hierarchy_records.json",
+        "parser_source_sha256": "df14061fccedf5023a008d8ab7de77cc829459d54b4683fab08bababf26d7f95",
+        "source_case_id": "CASE-M013-SCOPED-NO-ANSWER",
+        "source_fixture_path": "prd/retrieval/fixtures/real_artifact_retrieval_cases.json"
+      },
+      "redaction": {
+        "absolute_path_persisted": false,
+        "generated_legal_advice_persisted": false,
+        "provider_payload_persisted": false,
+        "raw_falkordb_row_persisted": false,
+        "raw_legal_text_persisted": false,
+        "raw_prompt_persisted": false,
+        "raw_query_text_persisted": false,
+        "raw_vector_persisted": false
+      },
+      "reference_id": "RC-M016-003",
+      "reference_role": "no_answer_boundary",
+      "source_artifact": "prd/retrieval/fixtures/real_artifact_retrieval_cases.json",
+      "source_family": "consultant_wordml",
+      "source_record_ids": [],
+      "source_sha256": "9f1a815a84f79c00ea5b5416c4285826930ae43646e7152dc283ce99f1bd62a7"
+    },
+    {
+      "evidence_path_ids": {
+        "act_edition_id": "ED-M013-44FZ-2026-01-01",
+        "citation_key": "CIT-M013-AMBIG",
+        "evidence_span_id": "EV-M013-HIER-CONS-ARTICLE-0001",
+        "legal_unit_id": "LU-M013-HIER-CONS-ARTICLE-0001",
+        "source_block_id": "SB-M013-HIER-CONS-ARTICLE-0001",
+        "source_document_id": "SD-M013-DOC-CONS-44FZ"
+      },
+      "excerpt_sha256": "a97fe6e8663ac6179c61cd1719496209d82bdf4d33d955de9654729ca09f6d5e",
+      "provenance": {
+        "derivation": "bounded M013 retrieval validator case reference; no source excerpt persisted",
+        "parser_source_artifact": "prd/parser/consultant_hierarchy_records.json",
+        "parser_source_sha256": "df14061fccedf5023a008d8ab7de77cc829459d54b4683fab08bababf26d7f95",
+        "source_case_id": "CASE-M013-AMBIGUOUS-CITATION",
+        "source_fixture_path": "prd/retrieval/fixtures/real_artifact_retrieval_cases.json"
+      },
+      "redaction": {
+        "absolute_path_persisted": false,
+        "generated_legal_advice_persisted": false,
+        "provider_payload_persisted": false,
+        "raw_falkordb_row_persisted": false,
+        "raw_legal_text_persisted": false,
+        "raw_prompt_persisted": false,
+        "raw_query_text_persisted": false,
+        "raw_vector_persisted": false
+      },
+      "reference_id": "RC-M016-004",
+      "reference_role": "ambiguous",
+      "source_artifact": "prd/retrieval/fixtures/real_artifact_retrieval_cases.json",
+      "source_family": "consultant_wordml",
+      "source_record_ids": [
+        "HIER-CONS-ARTICLE-0001"
+      ],
+      "source_sha256": "9f1a815a84f79c00ea5b5416c4285826930ae43646e7152dc283ce99f1bd62a7"
+    },
+    {
+      "evidence_path_ids": {
+        "act_edition_id": "ED-M013-44FZ-2026-01-01",
+        "citation_key": "CIT-M013-HIER-CONS-ARTICLE-0001",
+        "evidence_span_id": "EV-M013-HIER-CONS-ARTICLE-0001",
+        "legal_unit_id": "LU-M013-HIER-CONS-ARTICLE-0001",
+        "source_block_id": "SB-M013-HIER-CONS-ARTICLE-0001",
+        "source_document_id": "SD-M013-DOC-CONS-44FZ"
+      },
+      "excerpt_sha256": "4b9856cfe9755e43219786edbb30d2c193ce7859a5c122d3f3a59de9374645f5",
+      "provenance": {
+        "derivation": "bounded M013 retrieval validator case reference; no source excerpt persisted",
+        "parser_source_artifact": "prd/parser/consultant_hierarchy_records.json",
+        "parser_source_sha256": "df14061fccedf5023a008d8ab7de77cc829459d54b4683fab08bababf26d7f95",
+        "source_case_id": "CASE-M013-UNSAFE-NO-ANSWER-WITH-CITATION",
+        "source_fixture_path": "prd/retrieval/fixtures/real_artifact_retrieval_cases.json"
+      },
+      "redaction": {
+        "absolute_path_persisted": false,
+        "generated_legal_advice_persisted": false,
+        "provider_payload_persisted": false,
+        "raw_falkordb_row_persisted": false,
+        "raw_legal_text_persisted": false,
+        "raw_prompt_persisted": false,
+        "raw_query_text_persisted": false,
+        "raw_vector_persisted": false
+      },
+      "reference_id": "RC-M016-005",
+      "reference_role": "unsafe",
+      "source_artifact": "prd/retrieval/fixtures/real_artifact_retrieval_cases.json",
+      "source_family": "consultant_wordml",
+      "source_record_ids": [
+        "HIER-CONS-ARTICLE-0001"
+      ],
+      "source_sha256": "9f1a815a84f79c00ea5b5416c4285826930ae43646e7152dc283ce99f1bd62a7"
+    },
+    {
+      "evidence_path_ids": {},
+      "excerpt_sha256": "c87e01a53cc7842c322099249e76e616b295e9e10ccfef7103fd13471e5693ba",
+      "provenance": {
+        "derivation": "bounded M014 offline citation case reference; no query or answer text persisted",
+        "source_case_id": "CASE-M014-VALID-MARKER-LEVEL-CANDIDATE",
+        "source_contract": "prd/retrieval/offline_citation_retrieval_contract.md",
+        "source_contract_sha256": "5f5563113589e7f1e647d9049977414fe013d8a545feb346c8dae30c083c1c88",
+        "source_fixture_path": "prd/retrieval/fixtures/offline_citation_retrieval_cases.json"
+      },
+      "redaction": {
+        "absolute_path_persisted": false,
+        "generated_legal_advice_persisted": false,
+        "provider_payload_persisted": false,
+        "raw_falkordb_row_persisted": false,
+        "raw_legal_text_persisted": false,
+        "raw_prompt_persisted": false,
+        "raw_query_text_persisted": false,
+        "raw_vector_persisted": false
+      },
+      "reference_id": "RC-M016-006",
+      "reference_role": "distractor",
+      "source_artifact": "prd/retrieval/fixtures/offline_citation_retrieval_cases.json",
+      "source_family": "consultant_wordml",
+      "source_record_ids": [
+        "HIER-CONS-ARTICLE-0001"
+      ],
+      "source_sha256": "d087b68da758a4cdb3c3af693797266b6eb001428c6be86f1e19d44530732d77"
+    },
+    {
+      "evidence_path_ids": {
+        "source_fixture_path": "law-source/garant/44-fz.odt",
+        "source_kind": "garant-odt",
+        "source_role": "odt-document-fixture"
+      },
+      "excerpt_sha256": "73777d4741fa1b65229a8b22b97eb2cff4c5180105affb79b058d7007e3e4337",
+      "provenance": {
+        "derivation": "Garant ODT metadata boundary only; no parsed-content or retrieval-quality claim",
+        "inventory_fixture_path": "law-source/garant/44-fz.odt",
+        "inventory_fixture_sha256": "73777d4741fa1b65229a8b22b97eb2cff4c5180105affb79b058d7007e3e4337",
+        "source_fixture_path": "prd/parser/source_fixture_inventory.json"
+      },
+      "redaction": {
+        "absolute_path_persisted": false,
+        "generated_legal_advice_persisted": false,
+        "provider_payload_persisted": false,
+        "raw_falkordb_row_persisted": false,
+        "raw_legal_text_persisted": false,
+        "raw_prompt_persisted": false,
+        "raw_query_text_persisted": false,
+        "raw_vector_persisted": false
+      },
+      "reference_id": "RC-M016-007",
+      "reference_role": "environment_boundary",
+      "source_artifact": "prd/parser/source_fixture_inventory.json",
+      "source_family": "garant_odt_metadata",
+      "source_record_ids": [
+        "law-source/garant/44-fz.odt"
+      ],
+      "source_sha256": "8680fd75add13a9d3f9347f1ff2cff1670324b34470a147e5ce64ddfdc474427"
+    }
+  ],
+  "corpus_id": "CORPUS-M016-REPRESENTATIVE-V1",
+  "coverage_classes": [
+    {
+      "class_name": "source_family_consultant_wordml",
+      "coverage_class_id": "COV-M016-001",
+      "description": "Consultant WordML/XML-derived parser and retrieval proof artifacts represented by IDs, selectors, and hashes only.",
+      "proof_boundary": "redacted_static_manifest"
+    },
+    {
+      "class_name": "source_family_garant_odt_metadata",
+      "coverage_class_id": "COV-M016-002",
+      "description": "Garant ODT source fixture metadata represented by repository-relative inventory path, source hash, and ODT shape metadata only.",
+      "proof_boundary": "redacted_static_manifest"
+    },
+    {
+      "class_name": "legal_unit_path_coverage",
+      "coverage_class_id": "COV-M016-003",
+      "description": "Source document, source block, evidence span, legal unit, act edition, and legal act path IDs are represented where available.",
+      "proof_boundary": "redacted_static_manifest"
+    },
+    {
+      "class_name": "positive_retrieval",
+      "coverage_class_id": "COV-M016-004",
+      "description": "At least one bounded query label expects relevant references.",
+      "proof_boundary": "redacted_static_manifest"
+    },
+    {
+      "class_name": "distractor_retrieval",
+      "coverage_class_id": "COV-M016-005",
+      "description": "At least one bounded query label includes a distractor reference that must not outrank relevant evidence.",
+      "proof_boundary": "redacted_static_manifest"
+    },
+    {
+      "class_name": "scoped_no_answer",
+      "coverage_class_id": "COV-M016-006",
+      "description": "At least one bounded query label expects no answer inside an explicit proof scope.",
+      "proof_boundary": "redacted_static_manifest"
+    },
+    {
+      "class_name": "ambiguous_rejection",
+      "coverage_class_id": "COV-M016-007",
+      "description": "At least one bounded query label is intentionally ambiguous and must fail closed.",
+      "proof_boundary": "redacted_static_manifest"
+    },
+    {
+      "class_name": "unsafe_rejection",
+      "coverage_class_id": "COV-M016-008",
+      "description": "At least one bounded query label represents forbidden payload shape by labels only and must be rejected.",
+      "proof_boundary": "redacted_static_manifest"
+    },
+    {
+      "class_name": "edition_path_mismatch",
+      "coverage_class_id": "COV-M016-009",
+      "description": "At least one bounded query label exercises wrong-edition or path mismatch rejection.",
+      "proof_boundary": "redacted_static_manifest"
+    },
+    {
+      "class_name": "environment_runtime_handoff_boundary",
+      "coverage_class_id": "COV-M016-010",
+      "description": "S03 gets local/open-weight runtime boundary metadata without managed API or production-readiness assumptions.",
+      "proof_boundary": "redacted_static_manifest"
+    }
+  ],
+  "created_by": "scripts/build_representative_retrieval_corpus_manifest.py",
+  "diagnostic_code_inventory": [
+    "missing_source_artifact",
+    "manifest_schema_mismatch",
+    "unsafe_payload_field",
+    "coverage_class_missing",
+    "source_family_missing",
+    "query_label_mismatch",
+    "candidate_reference_mismatch",
+    "edition_path_mismatch",
+    "managed_api_forbidden",
+    "raw_vector_forbidden",
+    "raw_falkordb_row_forbidden",
+    "gate_overclaim_forbidden"
+  ],
+  "diagnostics": [],
+  "explicit_limits": {
+    "consultant_real_artifact_evidence_bounded": true,
+    "falkordb_runtime_executed": false,
+    "garant_odt_metadata_only": true,
+    "garant_parsed_content_claimed": false,
+    "garant_retrieval_quality_claimed": false,
+    "managed_api_used": false,
+    "runtime_metrics_computed": false
+  },
+  "fixture_artifact": "prd/retrieval/fixtures/representative_retrieval_corpus_manifest.json",
+  "gate": "GATE-G011",
+  "generated_by": "scripts/build_representative_retrieval_corpus_manifest.py",
+  "non_authoritative": true,
+  "non_claims": [
+    "does not prove product retrieval quality",
+    "does not prove parser completeness",
+    "does not prove legal-answer correctness",
+    "does not prove legal interpretation authority",
+    "does not prove production FalkorDB runtime behavior",
+    "does not prove production graph schema readiness",
+    "does not prove local embedding quality",
+    "does not compute runtime benchmark metrics",
+    "does not allow managed GigaChat API fallback",
+    "does not allow managed embedding API fallback",
+    "does not persist raw legal text, raw query prompts, vectors, provider payloads, raw FalkorDB rows, or generated legal advice",
+    "does not close GATE-G011",
+    "does not close GATE-G008",
+    "does not make LLM output legal authority",
+    "does not make proof-local IDs production IDs"
+  ],
+  "query_labels": [
+    {
+      "as_of_date": "2026-01-01",
+      "coverage_class_ids": [
+        "COV-M016-001",
+        "COV-M016-003",
+        "COV-M016-004"
+      ],
+      "expected_relevant_reference_ids": [
+        "RC-M016-001"
+      ],
+      "expected_result": "metrics_candidate",
+      "query_kind": "positive_retrieval",
+      "query_label_id": "QRL-M016-001",
+      "query_label_sha256": "654fbf10c39de0e9ac44a910c954139aabb98874172e72eaf2a690f7aaa0b7fb",
+      "redaction": {
+        "absolute_path_persisted": false,
+        "generated_legal_advice_persisted": false,
+        "provider_payload_persisted": false,
+        "raw_falkordb_row_persisted": false,
+        "raw_legal_text_persisted": false,
+        "raw_prompt_persisted": false,
+        "raw_query_text_persisted": false,
+        "raw_vector_persisted": false
+      },
+      "scope_id": "SCOPE-M016-REPRESENTATIVE-RETRIEVAL-CORPUS",
+      "source_case_ids": [
+        "CASE-M013-VALID-REAL-ARTIFACT",
+        "CASE-M015-POSITIVE-EXACT-RELEVANCE"
+      ]
+    },
+    {
+      "as_of_date": "2026-01-01",
+      "coverage_class_ids": [
+        "COV-M016-001",
+        "COV-M016-005"
+      ],
+      "expected_relevant_reference_ids": [
+        "RC-M016-001"
+      ],
+      "expected_result": "metrics_candidate",
+      "query_kind": "distractor_retrieval",
+      "query_label_id": "QRL-M016-002",
+      "query_label_sha256": "9df25a509be59451768a1343cf0c22d96b14fa2bf56a7da9f42f06ea397d60d4",
+      "redaction": {
+        "absolute_path_persisted": false,
+        "generated_legal_advice_persisted": false,
+        "provider_payload_persisted": false,
+        "raw_falkordb_row_persisted": false,
+        "raw_legal_text_persisted": false,
+        "raw_prompt_persisted": false,
+        "raw_query_text_persisted": false,
+        "raw_vector_persisted": false
+      },
+      "scope_id": "SCOPE-M016-REPRESENTATIVE-RETRIEVAL-CORPUS",
+      "source_case_ids": [
+        "CASE-M014-VALID-MARKER-LEVEL-CANDIDATE",
+        "CASE-M015-POSITIVE-WITH-DISTRACTOR"
+      ]
+    },
+    {
+      "as_of_date": null,
+      "coverage_class_ids": [
+        "COV-M016-001",
+        "COV-M016-006"
+      ],
+      "expected_relevant_reference_ids": [],
+      "expected_result": "scoped_no_answer",
+      "query_kind": "scoped_no_answer",
+      "query_label_id": "QRL-M016-003",
+      "query_label_sha256": "d9f2364a6fcabf9b14bd42ca48c3caa5807c2ab42bfca0fb322108db9f8b6b93",
+      "redaction": {
+        "absolute_path_persisted": false,
+        "generated_legal_advice_persisted": false,
+        "provider_payload_persisted": false,
+        "raw_falkordb_row_persisted": false,
+        "raw_legal_text_persisted": false,
+        "raw_prompt_persisted": false,
+        "raw_query_text_persisted": false,
+        "raw_vector_persisted": false
+      },
+      "scope_id": "SCOPE-M016-REPRESENTATIVE-RETRIEVAL-CORPUS",
+      "source_case_ids": [
+        "CASE-M013-SCOPED-NO-ANSWER",
+        "CASE-M014-SCOPED-NO-CANDIDATE",
+        "CASE-M015-SCOPED-NO-ANSWER-QUALITY"
+      ]
+    },
+    {
+      "as_of_date": null,
+      "coverage_class_ids": [
+        "COV-M016-001",
+        "COV-M016-007"
+      ],
+      "expected_relevant_reference_ids": [],
+      "expected_result": "rejected",
+      "query_kind": "ambiguous_rejection",
+      "query_label_id": "QRL-M016-004",
+      "query_label_sha256": "96556ac538f7c8bdca26002e074b5a7bd1ce2368a8cae66fadb01c2c54ce3ae2",
+      "redaction": {
+        "absolute_path_persisted": false,
+        "generated_legal_advice_persisted": false,
+        "provider_payload_persisted": false,
+        "raw_falkordb_row_persisted": false,
+        "raw_legal_text_persisted": false,
+        "raw_prompt_persisted": false,
+        "raw_query_text_persisted": false,
+        "raw_vector_persisted": false
+      },
+      "scope_id": "SCOPE-M016-REPRESENTATIVE-RETRIEVAL-CORPUS",
+      "source_case_ids": [
+        "CASE-M013-AMBIGUOUS-CITATION",
+        "CASE-M014-AMBIGUOUS-CANDIDATE-SET",
+        "CASE-M015-AMBIGUOUS-RETRIEVAL-REJECTED"
+      ]
+    },
+    {
+      "as_of_date": null,
+      "coverage_class_ids": [
+        "COV-M016-001",
+        "COV-M016-008"
+      ],
+      "expected_relevant_reference_ids": [],
+      "expected_result": "rejected",
+      "query_kind": "unsafe_rejection",
+      "query_label_id": "QRL-M016-005",
+      "query_label_sha256": "650861c862f43ddf7ed11ca3d177f36f6ba0deac0b9db3f63a064feb7b0347be",
+      "redaction": {
+        "absolute_path_persisted": false,
+        "generated_legal_advice_persisted": false,
+        "provider_payload_persisted": false,
+        "raw_falkordb_row_persisted": false,
+        "raw_legal_text_persisted": false,
+        "raw_prompt_persisted": false,
+        "raw_query_text_persisted": false,
+        "raw_vector_persisted": false
+      },
+      "scope_id": "SCOPE-M016-REPRESENTATIVE-RETRIEVAL-CORPUS",
+      "source_case_ids": [
+        "CASE-M013-UNSAFE-NO-ANSWER-WITH-CITATION",
+        "CASE-M014-UNSAFE-CANDIDATE-PAYLOAD",
+        "CASE-M015-UNSAFE-PAYLOAD-REJECTED"
+      ]
+    },
+    {
+      "as_of_date": "1900-01-01",
+      "coverage_class_ids": [
+        "COV-M016-001",
+        "COV-M016-003",
+        "COV-M016-009"
+      ],
+      "expected_relevant_reference_ids": [],
+      "expected_result": "rejected",
+      "query_kind": "edition_path_mismatch",
+      "query_label_id": "QRL-M016-006",
+      "query_label_sha256": "400b511fdc05e0b3aae5d1d35a73c04de5028d2ade35c7bd9ee62e910b8bae02",
+      "redaction": {
+        "absolute_path_persisted": false,
+        "generated_legal_advice_persisted": false,
+        "provider_payload_persisted": false,
+        "raw_falkordb_row_persisted": false,
+        "raw_legal_text_persisted": false,
+        "raw_prompt_persisted": false,
+        "raw_query_text_persisted": false,
+        "raw_vector_persisted": false
+      },
+      "scope_id": "SCOPE-M016-REPRESENTATIVE-RETRIEVAL-CORPUS",
+      "source_case_ids": [
+        "CASE-M013-WRONG-EDITION-PROXY"
+      ]
+    },
+    {
+      "as_of_date": null,
+      "coverage_class_ids": [
+        "COV-M016-002",
+        "COV-M016-010"
+      ],
+      "expected_relevant_reference_ids": [
+        "RC-M016-007"
+      ],
+      "expected_result": "environment_boundary",
+      "query_kind": "environment_runtime_handoff_boundary",
+      "query_label_id": "QRL-M016-007",
+      "query_label_sha256": "46d1de7db95667ac88b1330bf3ea2252cabc17353afa8e30a37a12f493ab2e5d",
+      "redaction": {
+        "absolute_path_persisted": false,
+        "generated_legal_advice_persisted": false,
+        "provider_payload_persisted": false,
+        "raw_falkordb_row_persisted": false,
+        "raw_legal_text_persisted": false,
+        "raw_prompt_persisted": false,
+        "raw_query_text_persisted": false,
+        "raw_vector_persisted": false
+      },
+      "scope_id": "SCOPE-M016-REPRESENTATIVE-RETRIEVAL-CORPUS",
+      "source_case_ids": [
+        "prd/parser/source_fixture_inventory.json",
+        "CASE-M015-ENVIRONMENT-BOUNDARY"
+      ]
+    }
+  ],
+  "redaction_boundaries": {
+    "absolute_path_persisted": false,
+    "durable_payloads_allowed": [
+      "stable IDs",
+      "bounded enums",
+      "repository-relative paths",
+      "SHA-256 hashes",
+      "counts",
+      "diagnostic codes"
+    ],
+    "generated_legal_advice_persisted": false,
+    "provider_payload_persisted": false,
+    "raw_falkordb_row_persisted": false,
+    "raw_legal_text_persisted": false,
+    "raw_prompt_persisted": false,
+    "raw_query_text_persisted": false,
+    "raw_vector_persisted": false
+  },
+  "requirement": "R034",
+  "runtime_handoff": {
+    "allowed_runtime_model_boundary": {
+      "expected_baseline_model_id": "deepvk/USER-bge-m3",
+      "quality_boundary": "S03 must produce runtime evidence; S02 only hands off redacted static labels and references.",
+      "runtime_class": "local_open_weight_only"
+    },
+    "builder_check_command": "uv run python scripts/build-representative-retrieval-corpus.py --check",
+    "canonical_builder_check_command": "uv run python scripts/build_representative_retrieval_corpus_manifest.py --check",
+    "corpus_id": "CORPUS-M016-REPRESENTATIVE-V1",
+    "gate_g011_status": "open",
+    "managed_api_allowed": false,
+    "managed_embedding_api_fallback_allowed": false,
+    "manifest_path": "prd/retrieval/fixtures/representative_retrieval_corpus_manifest.json",
+    "quality_claim_scope": "manifest-readiness only; not product retrieval quality",
+    "raw_payload_persistence_allowed": false,
+    "schema_version": "representative-retrieval-corpus/v1"
+  },
+  "s03_handoff": {
+    "allowed_runtime_model_boundary": {
+      "expected_baseline_model_id": "deepvk/USER-bge-m3",
+      "quality_boundary": "S03 must produce runtime evidence; S02 only hands off redacted static labels and references.",
+      "runtime_class": "local_open_weight_only"
+    },
+    "builder_check_command": "uv run python scripts/build-representative-retrieval-corpus.py --check",
+    "canonical_builder_check_command": "uv run python scripts/build_representative_retrieval_corpus_manifest.py --check",
+    "corpus_id": "CORPUS-M016-REPRESENTATIVE-V1",
+    "gate_g011_status": "open",
+    "managed_api_allowed": false,
+    "managed_embedding_api_fallback_allowed": false,
+    "manifest_path": "prd/retrieval/fixtures/representative_retrieval_corpus_manifest.json",
+    "quality_claim_scope": "manifest-readiness only; not product retrieval quality",
+    "raw_payload_persistence_allowed": false,
+    "schema_version": "representative-retrieval-corpus/v1"
+  },
+  "schema_version": "representative-retrieval-corpus/v1",
+  "source_artifacts": [
+    {
+      "path": "prd/parser/source_fixture_inventory.json",
+      "sha256": "8680fd75add13a9d3f9347f1ff2cff1670324b34470a147e5ce64ddfdc474427"
+    },
+    {
+      "path": "prd/retrieval/fixtures/local_retrieval_quality_benchmark.json",
+      "sha256": "1e568c9960e57da65af6ac7a18bf4e37eea7f0af30f829017a87947b07e29cec"
+    },
+    {
+      "path": "prd/retrieval/fixtures/offline_citation_retrieval_cases.json",
+      "sha256": "d087b68da758a4cdb3c3af693797266b6eb001428c6be86f1e19d44530732d77"
+    },
+    {
+      "path": "prd/retrieval/fixtures/real_artifact_retrieval_cases.json",
+      "sha256": "9f1a815a84f79c00ea5b5416c4285826930ae43646e7152dc283ce99f1bd62a7"
+    },
+    {
+      "path": "prd/retrieval/representative_retrieval_corpus_contract.md",
+      "sha256": "a74ba46d34dc7614bf4bcbf47e1c46c9e6b6712bfe2bc80f43b08c6745e48e26"
+    }
+  ]
+}
