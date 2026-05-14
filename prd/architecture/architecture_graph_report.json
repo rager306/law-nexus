@@ -2,8 +2,8 @@
   "contradiction_edges": [],
   "contradiction_pairs": [],
   "counts": {
-    "edges": 59,
-    "nodes": 44
+    "edges": 62,
+    "nodes": 45
   },
   "high_risk_nodes": [
     {
@@ -53,6 +53,14 @@
       "risk_level": "high",
       "status": "active",
       "type": "decision"
+    },
+    {
+      "id": "EVID-LOCAL-RETRIEVAL-QUALITY-BENCHMARK-PROOF",
+      "layer": "retrieval-embedding",
+      "proof_level": "unit-test",
+      "risk_level": "high",
+      "status": "bounded-evidence",
+      "type": "evidence"
     },
     {
       "id": "EVID-OFFLINE-CITATION-RETRIEVAL-PROOF",
@@ -250,7 +258,7 @@
       "legal-evidence": 1,
       "observability-operability": 1,
       "parser-ingestion": 10,
-      "retrieval-embedding": 9,
+      "retrieval-embedding": 10,
       "security-safety": 5,
       "temporal-model": 3,
       "workflow-governance": 3
@@ -313,6 +321,23 @@
         "id": "DEC-D032",
         "non_claims": [
           "The skill is guidance, not a source of truth."
+        ]
+      },
+      {
+        "count": 11,
+        "id": "EVID-LOCAL-RETRIEVAL-QUALITY-BENCHMARK-PROOF",
+        "non_claims": [
+          "Does not allow managed embedding API fallback.",
+          "Does not close GATE-G008.",
+          "Does not close GATE-G011.",
+          "Does not make LLM output legal authority.",
+          "Does not make proof-local fixture metrics production metrics.",
+          "Does not promote GigaEmbeddings.",
+          "Does not prove legal-answer correctness.",
+          "Does not prove parser completeness.",
+          "Does not prove product retrieval quality.",
+          "Does not prove production FalkorDB runtime behavior.",
+          "Does not prove production graph schema readiness."
         ]
       },
       {
@@ -676,8 +701,8 @@
         ]
       }
     ],
-    "nodes_with_non_claims": 44,
-    "total_non_claims": 150
+    "nodes_with_non_claims": 45,
+    "total_non_claims": 161
   },
   "orphan_findings": [],
   "traceability_edges": [
@@ -727,6 +752,30 @@
       "rationale": "The architecture verification skill should be created only after the registry contract and verifier workflow exist.",
       "status": "active",
       "to": "DEC-D031",
+      "type": "depends_on"
+    },
+    {
+      "from": "EVID-LOCAL-RETRIEVAL-QUALITY-BENCHMARK-PROOF",
+      "id": "EDGE-EVID-LOCAL-RETRIEVAL-QUALITY-BENCHMARK-PROOF-BOUNDED-BY-GATE-G011",
+      "rationale": "The M015 proof validates deterministic seed-fixture retrieval quality metrics under local/open-weight USER-bge-m3 boundary metadata, but remains bounded by the broader local embedding quality gate.",
+      "status": "active",
+      "to": "GATE-G011",
+      "type": "bounded_by"
+    },
+    {
+      "from": "EVID-LOCAL-RETRIEVAL-QUALITY-BENCHMARK-PROOF",
+      "id": "EDGE-EVID-LOCAL-RETRIEVAL-QUALITY-BENCHMARK-PROOF-CHECKED-BY-CHECK-ARCHITECTURE-EXTRACTOR",
+      "rationale": "The deterministic architecture extractor keeps the M015 benchmark proof anchors, status, proof level, and non-claims visible in generated registry outputs.",
+      "status": "active",
+      "to": "CHECK-ARCHITECTURE-EXTRACTOR",
+      "type": "checked_by"
+    },
+    {
+      "from": "EVID-LOCAL-RETRIEVAL-QUALITY-BENCHMARK-PROOF",
+      "id": "EDGE-EVID-LOCAL-RETRIEVAL-QUALITY-BENCHMARK-PROOF-DEPENDS-ON-EVID-OFFLINE-CITATION-RETRIEVAL-PROOF",
+      "rationale": "The M015 seed benchmark reuses M014 offline citation retrieval fixture provenance while adding fixture-level quality metrics and S10 model boundary metadata.",
+      "status": "active",
+      "to": "EVID-OFFLINE-CITATION-RETRIEVAL-PROOF",
       "type": "depends_on"
     },
     {
@@ -1229,6 +1278,7 @@
         "DATA-TEMPORAL-PROPERTY-BUNDLE",
         "DEC-D031",
         "DEC-D032",
+        "EVID-LOCAL-RETRIEVAL-QUALITY-BENCHMARK-PROOF",
         "EVID-OFFLINE-CITATION-RETRIEVAL-PROOF",
         "EVID-PARSER-CONSULTANT-CANDIDATES",
         "EVID-PARSER-CONSULTANT-HIERARCHY-PROOF",
@@ -1263,7 +1313,7 @@
         "S10-GIGAEMBEDDINGS-CHALLENGER-BLOCKED",
         "S10-USER-BGE-M3-BASELINE"
       ],
-      "size": 40
+      "size": 41
     },
     {
       "nodes": [

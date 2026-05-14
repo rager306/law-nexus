@@ -41,6 +41,7 @@
 
 | ID | Title | Layer | Claim Domain | Risk | Proof Level | Non-Claims |
 | --- | --- | --- | --- | --- | --- | --- |
+| `EVID-LOCAL-RETRIEVAL-QUALITY-BENCHMARK-PROOF` | Local retrieval quality benchmark proof | retrieval-embedding | bounded-technical-proof | high | unit-test | ❌ Does not prove product retrieval quality.; ❌ Does not prove legal-answer correctness. |
 | `EVID-OFFLINE-CITATION-RETRIEVAL-PROOF` | Offline citation-safe retrieval proof | retrieval-embedding | bounded-technical-proof | high | unit-test | ❌ Does not prove product retrieval quality.; ❌ Does not prove legal-answer correctness. |
 | `EVID-PARSER-CONSULTANT-CANDIDATES` | Consultant relation-candidate evidence | parser-ingestion | bounded-technical-proof | medium | static-check | ❌ Does not prove Consultant relation correctness.; ❌ Does not prove parser completeness. |
 | `EVID-PARSER-CONSULTANT-HIERARCHY-PROOF` | Consultant full-act hierarchy parser proof | parser-ingestion | bounded-technical-proof | medium | real-document-proof | ❌ Does not prove multi-document Consultant expansion.; ❌ Does not prove Garant ODT parser regression. |

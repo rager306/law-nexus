@@ -50,6 +50,7 @@ REQUIRED_ITEM_IDS = {
     "EVID-RETRIEVAL-OUTPUT-ID-VALIDATOR-PROOF",
     "EVID-REAL-ARTIFACT-RETRIEVAL-PROOF",
     "EVID-OFFLINE-CITATION-RETRIEVAL-PROOF",
+    "EVID-LOCAL-RETRIEVAL-QUALITY-BENCHMARK-PROOF",
 }
 REQUIRED_EDGE_IDS = {
     "EDGE-DEC-D031-CHECKED-BY-CHECK-ARCHITECTURE-EXTRACTOR",
@@ -79,6 +80,9 @@ REQUIRED_EDGE_IDS = {
     "EDGE-EVID-OFFLINE-CITATION-RETRIEVAL-PROOF-BOUNDED-BY-GATE-G008",
     "EDGE-EVID-OFFLINE-CITATION-RETRIEVAL-PROOF-DEPENDS-ON-DATA-LEGAL-EVIDENCE-CORE",
     "EDGE-EVID-OFFLINE-CITATION-RETRIEVAL-PROOF-CHECKED-BY-CHECK-ARCHITECTURE-EXTRACTOR",
+    "EDGE-EVID-LOCAL-RETRIEVAL-QUALITY-BENCHMARK-PROOF-BOUNDED-BY-GATE-G011",
+    "EDGE-EVID-LOCAL-RETRIEVAL-QUALITY-BENCHMARK-PROOF-DEPENDS-ON-EVID-OFFLINE-CITATION-RETRIEVAL-PROOF",
+    "EDGE-EVID-LOCAL-RETRIEVAL-QUALITY-BENCHMARK-PROOF-CHECKED-BY-CHECK-ARCHITECTURE-EXTRACTOR",
     "EDGE-S10-USER-BGE-M3-BASELINE-BOUNDED-BY-GATE-G011",
     "EDGE-M001-ARCHITECTURE-ONLY-GUARDRAIL-BOUNDS-REQ-R029",
 }
@@ -189,6 +193,22 @@ EXPECTED_CONSERVATIVE_RECORDS = {
             "Does not prove local embedding quality.",
             "Does not close GATE-G008.",
             "Does not close GATE-G011.",
+            "Does not make LLM output legal authority.",
+        ],
+    },
+    "EVID-LOCAL-RETRIEVAL-QUALITY-BENCHMARK-PROOF": {
+        "status": "bounded-evidence",
+        "proof_level": "unit-test",
+        "risk_level": "high",
+        "non_claims": [
+            "Does not prove product retrieval quality.",
+            "Does not prove legal-answer correctness.",
+            "Does not prove parser completeness.",
+            "Does not prove production FalkorDB runtime behavior.",
+            "Does not allow managed embedding API fallback.",
+            "Does not promote GigaEmbeddings.",
+            "Does not close GATE-G011.",
+            "Does not close GATE-G008.",
             "Does not make LLM output legal authority.",
         ],
     },

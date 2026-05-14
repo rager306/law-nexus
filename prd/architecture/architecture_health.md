@@ -9,17 +9,17 @@
 
 | Metric | Count |
 | --- | ---: |
-| Total Nodes | 44 |
-| Total Edges | 59 |
+| Total Nodes | 45 |
+| Total Edges | 62 |
 | Schema Layers | 11 |
 | Missing Layers | 0 |
 | Invalid Layer Records | 0 |
 | Unresolved Proof Gates | 7 |
 | Orphan Findings | 0 |
 | Contradiction Edges | 0 |
-| High/Critical Risk Nodes | 29 (5 critical, 24 high) |
-| Nodes with Non-Claims | 44 |
-| Total Non-Claims | 150 |
+| High/Critical Risk Nodes | 30 (5 critical, 25 high) |
+| Nodes with Non-Claims | 45 |
+| Total Non-Claims | 161 |
 
 ---
 
@@ -34,7 +34,7 @@
 | legal-evidence  | 1 |
 | observability-operability  | 1 |
 | parser-ingestion  | 10 |
-| retrieval-embedding  | 9 |
+| retrieval-embedding  | 10 |
 | security-safety  | 5 |
 | temporal-model  | 3 |
 | workflow-governance  | 3 |
@@ -69,6 +69,7 @@ Every defined schema layer has at least one architecture record.
 | DATA-LEGAL-EVIDENCE-CORE | high | data_entity | legal-evidence | active | source-anchor |
 | DATA-TEMPORAL-PROPERTY-BUNDLE | high | data_entity | temporal-model | active | source-anchor |
 | DEC-D031 | high | decision | architecture-governance | active | source-anchor |
+| EVID-LOCAL-RETRIEVAL-QUALITY-BENCHMARK-PROOF | high | evidence | retrieval-embedding | bounded-evidence | unit-test |
 | EVID-OFFLINE-CITATION-RETRIEVAL-PROOF | high | evidence | retrieval-embedding | bounded-evidence | unit-test |
 | EVID-PARSER-ODT-SMOKE | high | evidence | parser-ingestion | bounded-evidence | real-document-proof |
 | EVID-REAL-ARTIFACT-RETRIEVAL-PROOF | high | evidence | retrieval-embedding | bounded-evidence | unit-test |
@@ -115,7 +116,9 @@ This architecture graph and derived reports **do not** establish or validate:
 | Does not make fixture IDs production IDs. |
 | Does not make generated artifacts authoritative. |
 | Does not make proof-local IDs production IDs. |
+| Does not make proof-local fixture metrics production metrics. |
 | Does not promote D045 research into validated product behavior. |
+| Does not promote GigaEmbeddings. |
 | Does not promote any embedding model to product default. |
 | Does not prove Consultant relation correctness. |
 | Does not prove FalkorDB loading/runtime behavior. |
@@ -188,7 +191,7 @@ No orphan findings.
 
 | Size | Node Count |
 | --- | ---: |
-| 40 | 40 |
+| 41 | 41 |
 | 4 | 4 |
 
 ---

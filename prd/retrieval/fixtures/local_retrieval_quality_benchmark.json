@@ -1,0 +1,327 @@
+{
+  "allowed_relevance_labels": [
+    "relevant",
+    "distractor",
+    "ambiguous",
+    "no_answer",
+    "unsafe"
+  ],
+  "cases": [
+    {
+      "benchmark_case_id": "CASE-M015-POSITIVE-EXACT-RELEVANCE",
+      "candidates": [
+        {
+          "candidate_id": "BQ-M015-ARTICLE-0001-EXACT",
+          "deterministic_score": 1.0,
+          "rank": 1,
+          "relevance_label": "relevant",
+          "score_input_id": "SCORE-M015-ARTICLE-0001-EXACT",
+          "source_artifact": "prd/retrieval/fixtures/offline_citation_retrieval_cases.json",
+          "source_case_id": "CASE-M014-VALID-EXACT-RECORD-CANDIDATE",
+          "source_record_ids": [
+            "HIER-CONS-ARTICLE-0001"
+          ]
+        }
+      ],
+      "case_class": "positive_exact_relevance",
+      "diagnostics": [],
+      "expected_diagnostic_codes": [],
+      "expected_metrics": {
+        "mrr": 1.0,
+        "recall_at_1": 1.0,
+        "recall_at_3": 1.0
+      },
+      "non_authoritative": true,
+      "query": {
+        "benchmark_query_id": "QR-M015-POSITIVE-EXACT-001",
+        "expected_relevant_candidate_ids": [
+          "BQ-M015-ARTICLE-0001-EXACT"
+        ],
+        "expected_result": "metrics_pass",
+        "query_kind": "positive_retrieval",
+        "query_text_sha256": "fc951669942876e247d4555197ed3789d97fd2c9c861e62b8f8e6b222108bee2",
+        "scope_id": "SCOPE-M015-LOCAL-RETRIEVAL-QUALITY-001"
+      }
+    },
+    {
+      "benchmark_case_id": "CASE-M015-POSITIVE-WITH-DISTRACTOR",
+      "candidates": [
+        {
+          "candidate_id": "BQ-M015-ARTICLE-0001-MARKER",
+          "deterministic_score": 0.95,
+          "rank": 1,
+          "relevance_label": "relevant",
+          "score_input_id": "SCORE-M015-ARTICLE-0001-MARKER",
+          "source_artifact": "prd/retrieval/fixtures/offline_citation_retrieval_cases.json",
+          "source_case_id": "CASE-M014-VALID-MARKER-LEVEL-CANDIDATE",
+          "source_record_ids": [
+            "HIER-CONS-ARTICLE-0001"
+          ]
+        },
+        {
+          "candidate_id": "BQ-M015-ARTICLE-0001-DISTRACTOR",
+          "deterministic_score": 0.15,
+          "rank": 2,
+          "relevance_label": "distractor",
+          "score_input_id": "SCORE-M015-ARTICLE-0001-DISTRACTOR",
+          "source_artifact": "prd/retrieval/fixtures/offline_citation_retrieval_cases.json",
+          "source_case_id": "CASE-M014-VALID-EXACT-RECORD-CANDIDATE",
+          "source_record_ids": [
+            "HIER-CONS-ARTICLE-0001"
+          ]
+        }
+      ],
+      "case_class": "positive_with_distractor",
+      "diagnostics": [],
+      "expected_diagnostic_codes": [],
+      "expected_metrics": {
+        "mrr": 1.0,
+        "recall_at_1": 1.0,
+        "recall_at_3": 1.0
+      },
+      "non_authoritative": true,
+      "query": {
+        "benchmark_query_id": "QR-M015-POSITIVE-DISTRACTOR-001",
+        "expected_relevant_candidate_ids": [
+          "BQ-M015-ARTICLE-0001-MARKER"
+        ],
+        "expected_result": "metrics_pass",
+        "query_kind": "distractor_retrieval",
+        "query_text_sha256": "e09502533572220a7e10c9210013587cd20865ba2818cc39b36bae103c42bff1",
+        "scope_id": "SCOPE-M015-LOCAL-RETRIEVAL-QUALITY-001"
+      }
+    },
+    {
+      "benchmark_case_id": "CASE-M015-SCOPED-NO-ANSWER-QUALITY",
+      "candidates": [],
+      "case_class": "scoped_no_answer_quality",
+      "diagnostics": [
+        {
+          "benchmark_case_id": "CASE-M015-SCOPED-NO-ANSWER-QUALITY",
+          "benchmark_query_id": "QR-M015-SCOPED-NO-ANSWER-001",
+          "code": "scoped_no_answer",
+          "metric": "no_answer_accuracy",
+          "proof_artifact": "prd/retrieval/fixtures/local_retrieval_quality_benchmark.json",
+          "severity": "info"
+        }
+      ],
+      "expected_diagnostic_codes": [
+        "scoped_no_answer"
+      ],
+      "expected_metrics": {
+        "no_answer_accuracy": 1.0
+      },
+      "non_authoritative": true,
+      "query": {
+        "benchmark_query_id": "QR-M015-SCOPED-NO-ANSWER-001",
+        "expected_relevant_candidate_ids": [],
+        "expected_result": "scoped_no_answer",
+        "query_kind": "scoped_no_answer",
+        "query_text_sha256": "760b4d799faa5d29530630e735671727ac6ef3ca339f2341020e659113b8e440",
+        "scope_id": "SCOPE-M015-LOCAL-RETRIEVAL-QUALITY-001"
+      }
+    },
+    {
+      "benchmark_case_id": "CASE-M015-AMBIGUOUS-RETRIEVAL-REJECTED",
+      "candidates": [
+        {
+          "candidate_id": "BQ-M015-AMBIGUOUS-0001",
+          "deterministic_score": null,
+          "rank": null,
+          "relevance_label": "ambiguous",
+          "score_input_id": "SCORE-M015-AMBIGUOUS-0001",
+          "source_artifact": "prd/retrieval/fixtures/offline_citation_retrieval_cases.json",
+          "source_case_id": "CASE-M014-AMBIGUOUS-CANDIDATE-SET",
+          "source_record_ids": [
+            "HIER-CONS-CLAUSE-0001",
+            "HIER-CONS-CLAUSE-0002"
+          ]
+        },
+        {
+          "candidate_id": "BQ-M015-AMBIGUOUS-0002",
+          "deterministic_score": null,
+          "rank": null,
+          "relevance_label": "ambiguous",
+          "score_input_id": "SCORE-M015-AMBIGUOUS-0002",
+          "source_artifact": "prd/retrieval/fixtures/offline_citation_retrieval_cases.json",
+          "source_case_id": "CASE-M014-AMBIGUOUS-CANDIDATE-SET",
+          "source_record_ids": [
+            "HIER-CONS-CLAUSE-0001",
+            "HIER-CONS-CLAUSE-0002"
+          ]
+        }
+      ],
+      "case_class": "ambiguous_retrieval_rejected",
+      "diagnostics": [
+        {
+          "benchmark_case_id": "CASE-M015-AMBIGUOUS-RETRIEVAL-REJECTED",
+          "benchmark_query_id": "QR-M015-AMBIGUOUS-001",
+          "code": "ambiguous_rejected",
+          "metric": "ambiguous_rejection_rate",
+          "proof_artifact": "prd/retrieval/fixtures/local_retrieval_quality_benchmark.json",
+          "severity": "warning"
+        }
+      ],
+      "expected_diagnostic_codes": [
+        "ambiguous_rejected"
+      ],
+      "expected_metrics": {
+        "ambiguous_rejection_rate": 1.0
+      },
+      "non_authoritative": true,
+      "query": {
+        "benchmark_query_id": "QR-M015-AMBIGUOUS-001",
+        "expected_relevant_candidate_ids": [],
+        "expected_result": "rejected",
+        "query_kind": "ambiguous_retrieval",
+        "query_text_sha256": "d6dffb9a25e5748e0535c8bef7dc9e287d3b7184ef8f032e0d36555c92e0cd72",
+        "scope_id": "SCOPE-M015-LOCAL-RETRIEVAL-QUALITY-001"
+      }
+    },
+    {
+      "benchmark_case_id": "CASE-M015-UNSAFE-PAYLOAD-REJECTED",
+      "candidates": [
+        {
+          "candidate_id": "BQ-M015-UNSAFE-0001",
+          "deterministic_score": null,
+          "rank": null,
+          "relevance_label": "unsafe",
+          "score_input_id": "SCORE-M015-UNSAFE-0001",
+          "source_artifact": "prd/retrieval/fixtures/offline_citation_retrieval_cases.json",
+          "source_case_id": "CASE-M014-UNSAFE-CANDIDATE-PAYLOAD",
+          "source_record_ids": [
+            "HIER-CONS-CHAPTER-0001"
+          ]
+        }
+      ],
+      "case_class": "unsafe_payload_rejected",
+      "diagnostics": [
+        {
+          "benchmark_case_id": "CASE-M015-UNSAFE-PAYLOAD-REJECTED",
+          "benchmark_query_id": "QR-M015-UNSAFE-001",
+          "candidate_id": "BQ-M015-UNSAFE-0001",
+          "code": "unsafe_payload_rejected",
+          "metric": "unsafe_rejection_rate",
+          "proof_artifact": "prd/retrieval/fixtures/local_retrieval_quality_benchmark.json",
+          "severity": "error"
+        }
+      ],
+      "expected_diagnostic_codes": [
+        "unsafe_payload_rejected"
+      ],
+      "expected_metrics": {
+        "unsafe_rejection_rate": 1.0
+      },
+      "non_authoritative": true,
+      "query": {
+        "benchmark_query_id": "QR-M015-UNSAFE-001",
+        "expected_relevant_candidate_ids": [],
+        "expected_result": "rejected",
+        "query_kind": "unsafe_payload",
+        "query_text_sha256": "3bf9f7ac8e2dd593dc08aee1925983918e3d71ed6821af0aa3dc2807f473844f",
+        "scope_id": "SCOPE-M015-LOCAL-RETRIEVAL-QUALITY-001"
+      }
+    },
+    {
+      "benchmark_case_id": "CASE-M015-ENVIRONMENT-BOUNDARY",
+      "candidates": [],
+      "case_class": "environment_boundary",
+      "diagnostics": [
+        {
+          "benchmark_case_id": "CASE-M015-ENVIRONMENT-BOUNDARY",
+          "benchmark_query_id": "QR-M015-ENVIRONMENT-001",
+          "code": "model_runtime_available",
+          "metric": "environment",
+          "proof_artifact": "prd/retrieval/fixtures/local_retrieval_quality_benchmark.json",
+          "severity": "info"
+        }
+      ],
+      "expected_diagnostic_codes": [
+        "model_runtime_available"
+      ],
+      "expected_metrics": {},
+      "non_authoritative": true,
+      "query": {
+        "benchmark_query_id": "QR-M015-ENVIRONMENT-001",
+        "expected_relevant_candidate_ids": [],
+        "expected_result": "metrics_pass",
+        "query_kind": "positive_retrieval",
+        "query_text_sha256": "3b613851b6d45be7bef544865e6edc757870e299d74ccf9be0dabf62efd2b05c",
+        "scope_id": "SCOPE-M015-LOCAL-RETRIEVAL-QUALITY-001"
+      }
+    }
+  ],
+  "contract": "prd/retrieval/local_retrieval_quality_benchmark_contract.md",
+  "fixture_artifact": "prd/retrieval/fixtures/local_retrieval_quality_benchmark.json",
+  "forbidden_payload_fields": [
+    "raw_legal_text",
+    "raw_text",
+    "source_excerpt",
+    "source_excerpts",
+    "prompt",
+    "user_prompt",
+    "provider_payload",
+    "provider_response_body",
+    "secret",
+    "secrets",
+    "pii",
+    "vector",
+    "embedding_vector",
+    "embedding",
+    "falkordb_row",
+    "runtime_row",
+    "generated_answer_prose",
+    "legal_advice",
+    "llm_reasoning"
+  ],
+  "gate": "GATE-G011",
+  "generated_by": "scripts/build-local-retrieval-quality-benchmark.py",
+  "model_boundary": {
+    "cache_status": "available",
+    "managed_api_used": false,
+    "model_id": "deepvk/USER-bge-m3",
+    "model_status": "available",
+    "observed_vector_dimension": 1024,
+    "package_status": "available",
+    "quality_boundary": "Fixture-ID-only retrieval metrics prove runtime mechanics, not production Russian legal retrieval quality.",
+    "raw_vectors_persisted": false,
+    "runtime_evidence_source": ".gsd/milestones/M001/slices/S10/S10-EMBEDDING-RUNTIME-PROOF.json"
+  },
+  "non_authoritative": true,
+  "non_claims": [
+    "Does not prove product retrieval quality.",
+    "Does not prove parser completeness.",
+    "Does not prove legal-answer correctness.",
+    "Does not prove legal interpretation authority.",
+    "Does not prove production FalkorDB runtime behavior.",
+    "Does not prove production graph schema readiness.",
+    "Does not allow managed embedding API fallback.",
+    "Does not promote GigaEmbeddings.",
+    "Does not close GATE-G011 unless final milestone validation explicitly confirms full gate criteria.",
+    "Does not close GATE-G008.",
+    "Does not make LLM output legal authority."
+  ],
+  "schema_version": "local-retrieval-quality-benchmark/v1",
+  "source_artifacts": [
+    {
+      "path": "prd/retrieval/local_retrieval_quality_benchmark_contract.md",
+      "sha256": "2b39c4e74be1bc6d8780f4c91d5c4e92ee224e56842161628144896597bde4ef"
+    },
+    {
+      "path": "prd/retrieval/fixtures/offline_citation_retrieval_cases.json",
+      "sha256": "d087b68da758a4cdb3c3af693797266b6eb001428c6be86f1e19d44530732d77"
+    },
+    {
+      "path": ".gsd/milestones/M001/slices/S10/S10-EMBEDDING-RUNTIME-PROOF.json",
+      "sha256": "5e4dd925e812e243f46b3da8469897ad1de0fde859dc2ad39780ec89d9b85fce"
+    }
+  ],
+  "thresholds": {
+    "ambiguous_rejection_rate": 1.0,
+    "mrr": 1.0,
+    "no_answer_accuracy": 1.0,
+    "recall_at_1": 1.0,
+    "recall_at_3": 1.0,
+    "unsafe_rejection_rate": 1.0
+  }
+}
