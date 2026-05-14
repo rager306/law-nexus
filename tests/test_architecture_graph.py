@@ -37,8 +37,10 @@ def test_builds_current_registry_as_keyed_multidigraph() -> None:
     edges = graph_module.load_records(EDGES_PATH, expected_kind="edge")
     graph = graph_module.build_graph(items, edges)
 
-    assert graph.number_of_nodes() == 45
-    assert graph.number_of_edges() == 62
+    # M016 S04 representative runtime benchmark evidence adds one bounded-evidence node
+    # and four traceability edges without closing GATE-G011.
+    assert graph.number_of_nodes() == 46
+    assert graph.number_of_edges() == 66
     assert graph.is_multigraph()
 
     edge = edges[0]
@@ -171,13 +173,13 @@ def test_report_current_registry_exposes_baseline_graph_health() -> None:
     graph = graph_module.build_graph(items, edges)
     report = graph_module.compute_graph_report(graph, schema_path=SCHEMA_PATH)
 
-    assert report["counts"] == {"nodes": 45, "edges": 62}
+    assert report["counts"] == {"nodes": 46, "edges": 66}
     assert report["layer_coverage"]["missing_layers"] == []
     assert report["layer_coverage"]["counts"]["api-product"] == 1
     assert report["layer_coverage"]["counts"]["legal-evidence"] == 1
     assert report["layer_coverage"]["counts"]["observability-operability"] == 1
     assert report["layer_coverage"]["counts"]["parser-ingestion"] == 10
-    assert report["layer_coverage"]["counts"]["retrieval-embedding"] == 10
+    assert report["layer_coverage"]["counts"]["retrieval-embedding"] == 11
     assert report["layer_coverage"]["counts"]["architecture-governance"] == 7
     assert [gate["id"] for gate in report["unresolved_proof_gates"]] == [
         "GATE-EMBEDDING-SUPPLY-CHAIN",
@@ -198,8 +200,8 @@ def test_report_current_registry_exposes_baseline_graph_health() -> None:
         "DATA-LEGAL-EVIDENCE-CORE",
         "DATA-TEMPORAL-PROPERTY-BUNDLE",
     ]
-    assert len(report["high_risk_nodes"]) == 30
-    assert report["non_claims_summary"]["nodes_with_non_claims"] == 45
+    assert len(report["high_risk_nodes"]) == 31
+    assert report["non_claims_summary"]["nodes_with_non_claims"] == 46
     assert report["non_claims_summary"]["total_non_claims"] > 36
 
 
@@ -255,6 +257,42 @@ def test_report_exposes_r034_validator_proof_traceability_edges() -> None:
     )["non_claims"]
     assert "Does not close GATE-G008." in real_artifact_non_claims
     assert "Does not close GATE-G011." in real_artifact_non_claims
+
+
+def test_report_exposes_m016_representative_runtime_benchmark_boundary() -> None:
+    """Graph report must expose M016 bounded runtime evidence while GATE-G011 remains open."""
+    graph_module = load_graph_module()
+
+    items = graph_module.load_records(ITEMS_PATH, expected_kind="item")
+    edges = graph_module.load_records(EDGES_PATH, expected_kind="edge")
+    report = graph_module.compute_graph_report(
+        graph_module.build_graph(items, edges), schema_path=SCHEMA_PATH
+    )
+
+    m016_id = "EVID-REPRESENTATIVE-RETRIEVAL-RUNTIME-BENCHMARK-PROOF"
+    high_risk = {node["id"]: node for node in report["high_risk_nodes"]}
+    assert m016_id in high_risk
+    assert high_risk[m016_id]["status"] == "bounded-evidence"
+    assert high_risk[m016_id]["proof_level"] == "runtime-smoke"
+
+    edge_index = {(edge["from"], edge["type"], edge["to"]): edge for edge in report["traceability_edges"]}
+    assert edge_index[(m016_id, "bounded_by", "GATE-G011")]["status"] == "active"
+    assert edge_index[(m016_id, "depends_on", "EVID-LOCAL-RETRIEVAL-QUALITY-BENCHMARK-PROOF")]["status"] == "active"
+    assert edge_index[(m016_id, "depends_on", "S10-USER-BGE-M3-BASELINE")]["status"] == "active"
+    assert edge_index[(m016_id, "checked_by", "CHECK-ARCHITECTURE-EXTRACTOR")]["status"] == "validated"
+
+    unresolved_ids = {gate["id"] for gate in report["unresolved_proof_gates"]}
+    assert "GATE-G011" in unresolved_ids
+
+    m016_non_claims = next(
+        node for node in report["non_claims_summary"]["by_node"]
+        if node["id"] == m016_id
+    )["non_claims"]
+    assert "Does not prove product retrieval quality." in m016_non_claims
+    assert "Does not prove legal-answer correctness." in m016_non_claims
+    assert "Does not prove parser completeness." in m016_non_claims
+    assert "Does not allow managed embedding API fallback." in m016_non_claims
+    assert "Does not close GATE-G011." in m016_non_claims
 
 
 def test_report_handles_empty_graph_with_schema_layer_contract() -> None:

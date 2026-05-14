@@ -51,6 +51,7 @@ REQUIRED_ITEM_IDS = {
     "EVID-REAL-ARTIFACT-RETRIEVAL-PROOF",
     "EVID-OFFLINE-CITATION-RETRIEVAL-PROOF",
     "EVID-LOCAL-RETRIEVAL-QUALITY-BENCHMARK-PROOF",
+    "EVID-REPRESENTATIVE-RETRIEVAL-RUNTIME-BENCHMARK-PROOF",
 }
 REQUIRED_EDGE_IDS = {
     "EDGE-DEC-D031-CHECKED-BY-CHECK-ARCHITECTURE-EXTRACTOR",
@@ -83,6 +84,10 @@ REQUIRED_EDGE_IDS = {
     "EDGE-EVID-LOCAL-RETRIEVAL-QUALITY-BENCHMARK-PROOF-BOUNDED-BY-GATE-G011",
     "EDGE-EVID-LOCAL-RETRIEVAL-QUALITY-BENCHMARK-PROOF-DEPENDS-ON-EVID-OFFLINE-CITATION-RETRIEVAL-PROOF",
     "EDGE-EVID-LOCAL-RETRIEVAL-QUALITY-BENCHMARK-PROOF-CHECKED-BY-CHECK-ARCHITECTURE-EXTRACTOR",
+    "EDGE-EVID-REPRESENTATIVE-RETRIEVAL-RUNTIME-BENCHMARK-PROOF-BOUNDED-BY-GATE-G011",
+    "EDGE-EVID-REPRESENTATIVE-RETRIEVAL-RUNTIME-BENCHMARK-PROOF-DEPENDS-ON-EVID-LOCAL-RETRIEVAL-QUALITY-BENCHMARK-PROOF",
+    "EDGE-EVID-REPRESENTATIVE-RETRIEVAL-RUNTIME-BENCHMARK-PROOF-DEPENDS-ON-S10-USER-BGE-M3-BASELINE",
+    "EDGE-EVID-REPRESENTATIVE-RETRIEVAL-RUNTIME-BENCHMARK-PROOF-CHECKED-BY-CHECK-ARCHITECTURE-EXTRACTOR",
     "EDGE-S10-USER-BGE-M3-BASELINE-BOUNDED-BY-GATE-G011",
     "EDGE-M001-ARCHITECTURE-ONLY-GUARDRAIL-BOUNDS-REQ-R029",
 }
@@ -212,6 +217,19 @@ EXPECTED_CONSERVATIVE_RECORDS = {
             "Does not make LLM output legal authority.",
         ],
     },
+    "EVID-REPRESENTATIVE-RETRIEVAL-RUNTIME-BENCHMARK-PROOF": {
+        "status": "bounded-evidence",
+        "proof_level": "runtime-smoke",
+        "risk_level": "high",
+        "non_claims": [
+            "Does not prove product retrieval quality.",
+            "Does not prove legal-answer correctness.",
+            "Does not prove parser completeness.",
+            "Does not allow managed embedding API fallback.",
+            "Does not persist raw legal text, raw query text, raw prompts, vectors, provider payloads, managed-API evidence, raw FalkorDB rows, secrets, or generated legal advice.",
+            "Does not close GATE-G011.",
+        ],
+    },
     "M001-ARCHITECTURE-ONLY-GUARDRAIL": {
         "status": "out-of-scope",
         "proof_level": "source-anchor",
@@ -312,6 +330,16 @@ def test_generated_records_are_conservative_and_anchored() -> None:
         assert isinstance(non_claims, list), f"id={record_id} field=non_claims expected list"
         for claim in expectations["non_claims"]:
             assert claim in non_claims, f"id={record_id} field=non_claims missing {claim!r}"
+
+    m016_anchor_paths = {
+        anchor["path"]
+        for anchor in item_by_id["EVID-REPRESENTATIVE-RETRIEVAL-RUNTIME-BENCHMARK-PROOF"]["source_anchors"]
+    }
+    assert {
+        "prd/retrieval/representative_retrieval_runtime_benchmark_proof.md",
+        "prd/retrieval/representative_retrieval_runtime_benchmark_contract.md",
+        "prd/retrieval/fixtures/representative_retrieval_corpus_manifest.json",
+    } <= m016_anchor_paths
 
     for record in [*items, *edges]:
         anchors = record.get("source_anchors")

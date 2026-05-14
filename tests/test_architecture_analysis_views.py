@@ -210,6 +210,20 @@ def test_health_dashboard_surfaces_r034_validator_proof_and_open_gates() -> None
         assert "| active | none |" in content[gate_pos:gate_pos + 240]
 
 
+def test_health_dashboard_surfaces_m016_runtime_benchmark_and_open_gate_g011() -> None:
+    """Health dashboard must show M016 bounded runtime evidence without closing GATE-G011."""
+    content = HEALTH_MD_PATH.read_text(encoding="utf-8")
+    m016_id = "EVID-REPRESENTATIVE-RETRIEVAL-RUNTIME-BENCHMARK-PROOF"
+    assert m016_id in content
+    evidence_pos = content.find(m016_id)
+    assert "bounded-evidence" in content[evidence_pos:evidence_pos + 360]
+    assert "runtime-smoke" in content[evidence_pos:evidence_pos + 360]
+
+    assert "| GATE-G011 | high | proof_gate |" in content
+    gate_pos = content.find("| GATE-G011 | high | proof_gate |")
+    assert "| active | none |" in content[gate_pos:gate_pos + 240]
+
+
 # ---------------------------------------------------------------------------
 # Missing layers
 # ---------------------------------------------------------------------------
@@ -583,6 +597,21 @@ def test_blockers_report_includes_r034_validator_proof_as_bounded_evidence() -> 
     assert "GATE-G011" in content
 
 
+def test_blockers_report_includes_m016_runtime_benchmark_as_bounded_evidence() -> None:
+    """Blocker report must surface M016 runtime evidence while GATE-G011 stays open."""
+    content = _load_blockers_content()
+    assert "EVID-REPRESENTATIVE-RETRIEVAL-RUNTIME-BENCHMARK-PROOF" in content
+    assert "Representative retrieval runtime benchmark" in content
+    assert "Blocked / Bounded Evidence" in content
+    assert "runtime-smoke" in content
+    assert "Does not prove product retrieval quality." in content
+    assert "Does not prove legal-answer correctness." in content
+    assert "Does not prove parser completeness." in content
+    assert "Does not allow managed embedding API fallback." in content
+    assert "Does not close GATE-G011." in content
+    assert "GATE-G011" in content
+
+
 def test_blockers_report_includes_gate_g015() -> None:
     """Blocker report must cite GATE-G015 (FalkorDBLite to Docker migration)."""
     content = _load_blockers_content()
@@ -790,7 +819,7 @@ ALL_TRACKED_IDS = {
     "S05-OLD-PROJECT-PRIOR-ART", "S05-PARSER-ODT-BOUNDARY", "S07-FIXED-PRD-CONSISTENCY",
     "S10-GIGAEMBEDDINGS-CHALLENGER-BLOCKED", "S10-USER-BGE-M3-BASELINE",
     "EVID-RESEARCH-GRAPHRAG-MATH-ANALYSIS", "EVID-RETRIEVAL-OUTPUT-ID-VALIDATOR-PROOF",
-    "EVID-REAL-ARTIFACT-RETRIEVAL-PROOF",
+    "EVID-REAL-ARTIFACT-RETRIEVAL-PROOF", "EVID-REPRESENTATIVE-RETRIEVAL-RUNTIME-BENCHMARK-PROOF",
 }
 
 ALL_26_IDS = ALL_TRACKED_IDS
@@ -806,7 +835,7 @@ BOUNDED_IDS = {
     "S05-PARSER-ODT-BOUNDARY", "S07-FIXED-PRD-CONSISTENCY", "S10-USER-BGE-M3-BASELINE",
     "EVID-PARSER-GOLDEN-TEST-PROOF", "EVID-PARSER-CONSULTANT-HIERARCHY-PROOF",
     "EVID-RESEARCH-GRAPHRAG-MATH-ANALYSIS", "EVID-RETRIEVAL-OUTPUT-ID-VALIDATOR-PROOF",
-    "EVID-REAL-ARTIFACT-RETRIEVAL-PROOF",
+    "EVID-REAL-ARTIFACT-RETRIEVAL-PROOF", "EVID-REPRESENTATIVE-RETRIEVAL-RUNTIME-BENCHMARK-PROOF",
 }
 
 BLOCKED_IDS = {
@@ -890,7 +919,7 @@ def test_claims_ledger_non_authoritative_footer_present() -> None:
 # Claims ledger — selected tracked items appear
 # ---------------------------------------------------------------------------
 
-def test_claims_ledger_covers_all_28_tracked_items() -> None:
+def test_claims_ledger_covers_all_30_tracked_items() -> None:
     """Every tracked architecture item ID must appear in the claims ledger somewhere."""
     content = _load_claims_content()
     missing = [rid for rid in sorted(ALL_TRACKED_IDS) if rid not in content]
@@ -937,6 +966,30 @@ def test_claims_ledger_classifies_r034_and_validator_proof_conservatively() -> N
         assert "| none |" in blocked_section[gate_pos:gate_pos + 320]
 
 
+def test_claims_ledger_classifies_m016_runtime_benchmark_as_bounded_evidence() -> None:
+    """M016 runtime benchmark proof is bounded evidence and does not close GATE-G011."""
+    content = _load_claims_content()
+    bounded_section = _claims_section(content, "bounded")
+    blocked_section = _claims_section(content, "blocked/open")
+
+    m016_id = "EVID-REPRESENTATIVE-RETRIEVAL-RUNTIME-BENCHMARK-PROOF"
+    assert m016_id in bounded_section
+    m016_pos = bounded_section.find(m016_id)
+    m016_row = bounded_section[m016_pos:bounded_section.find("\n", m016_pos)]
+    assert "| runtime-smoke |" in m016_row
+    assert "bounded-technical-proof" in m016_row
+    assert "Does not prove product retrieval quality." in m016_row
+    assert "Does not prove legal-answer correctness." in m016_row
+    assert "Does not prove parser completeness." in m016_row
+    assert "Does not allow managed embedding API fallback." in m016_row
+    assert "Does not close GATE-G011." in m016_row
+
+    assert "GATE-G011" in blocked_section
+    gate_pos = blocked_section.find("GATE-G011")
+    assert "| active |" in blocked_section[gate_pos:gate_pos + 320]
+    assert "| none |" in blocked_section[gate_pos:gate_pos + 320]
+
+
 def test_claims_ledger_all_blocked_items_present() -> None:
     """All 5 blocked/open items must appear in the blocked/open section."""
     content = _load_claims_content()
@@ -957,8 +1010,8 @@ def test_claims_ledger_all_unsafe_items_present() -> None:
     assert not missing, f"unsafe-to-assert section is missing: {missing}"
 
 
-def test_claims_ledger_total_count_is_28() -> None:
-    """The ledger must account for all 28 tracked architecture items across four classes."""
+def test_claims_ledger_total_count_is_30() -> None:
+    """The ledger must account for all 30 tracked architecture items across four classes."""
     content = _load_claims_content()
     safe_count = content.count("## safe-to-say")  # section header
     bounded_count = content.count("## bounded")
@@ -969,9 +1022,9 @@ def test_claims_ledger_total_count_is_28() -> None:
     assert bounded_count == 1
     assert blocked_count == 1
     assert unsafe_count == 1
-    # Total unique tracked IDs across all sections must be 29
+    # Total unique tracked IDs across all sections must be 30
     all_found = sum(1 for rid in ALL_TRACKED_IDS if rid in content)
-    assert all_found == 29, f"Expected 29 tracked items, found {all_found}"
+    assert all_found == 30, f"Expected 30 tracked items, found {all_found}"
 
 
 def test_claims_ledger_no_duplicate_item_ids() -> None:
