@@ -543,7 +543,7 @@ def test_cli_write_mode_renders_deterministic_json_and_markdown_reports(tmp_path
         "GATE-GENERATED-CYPHER-SAFETY",
         "GATE-LEGAL-NEXUS-ACCESS-CONTROL",
     ]
-    assert report["counts"] == {"nodes": 45, "edges": 62}
+    assert report["counts"] == {"nodes": 46, "edges": 66}
     assert "derived, non-authoritative" in markdown
     assert "do not validate product/runtime/legal claims" in markdown
     assert "Findings for S04" in markdown

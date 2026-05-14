@@ -9,17 +9,17 @@
 
 | Metric | Count |
 | --- | ---: |
-| Total Nodes | 45 |
-| Total Edges | 62 |
+| Total Nodes | 46 |
+| Total Edges | 66 |
 | Schema Layers | 11 |
 | Missing Layers | 0 |
 | Invalid Layer Records | 0 |
 | Unresolved Proof Gates | 7 |
 | Orphan Findings | 0 |
 | Contradiction Edges | 0 |
-| High/Critical Risk Nodes | 30 (5 critical, 25 high) |
-| Nodes with Non-Claims | 45 |
-| Total Non-Claims | 161 |
+| High/Critical Risk Nodes | 31 (5 critical, 26 high) |
+| Nodes with Non-Claims | 46 |
+| Total Non-Claims | 172 |
 
 ---
 
@@ -34,7 +34,7 @@
 | legal-evidence  | 1 |
 | observability-operability  | 1 |
 | parser-ingestion  | 10 |
-| retrieval-embedding  | 10 |
+| retrieval-embedding  | 11 |
 | security-safety  | 5 |
 | temporal-model  | 3 |
 | workflow-governance  | 3 |
@@ -73,6 +73,7 @@ Every defined schema layer has at least one architecture record.
 | EVID-OFFLINE-CITATION-RETRIEVAL-PROOF | high | evidence | retrieval-embedding | bounded-evidence | unit-test |
 | EVID-PARSER-ODT-SMOKE | high | evidence | parser-ingestion | bounded-evidence | real-document-proof |
 | EVID-REAL-ARTIFACT-RETRIEVAL-PROOF | high | evidence | retrieval-embedding | bounded-evidence | unit-test |
+| EVID-REPRESENTATIVE-RETRIEVAL-RUNTIME-BENCHMARK-PROOF | high | evidence | retrieval-embedding | bounded-evidence | runtime-smoke |
 | EVID-RESEARCH-GRAPHRAG-MATH-ANALYSIS | high | evidence | retrieval-embedding | bounded-evidence | source-anchor |
 | EVID-RESEARCH-HABR-LEGAL-RAG-ITERATION-SCALING | high | evidence | retrieval-embedding | bounded-evidence | source-anchor |
 | EVID-RETRIEVAL-OUTPUT-ID-VALIDATOR-PROOF | high | evidence | retrieval-embedding | bounded-evidence | unit-test |
@@ -105,6 +106,7 @@ This architecture graph and derived reports **do not** establish or validate:
 | Does not allow managed embedding API fallback. |
 | Does not assert current product is insecure. |
 | Does not assert final legal graph schema completeness. |
+| Does not authorize GigaChat or GigaEmbeddings runtime use. |
 | Does not authorize executing raw generated Cypher. |
 | Does not authorize generated Cypher execution. |
 | Does not close GATE-G008. |
@@ -117,6 +119,7 @@ This architecture graph and derived reports **do not** establish or validate:
 | Does not make generated artifacts authoritative. |
 | Does not make proof-local IDs production IDs. |
 | Does not make proof-local fixture metrics production metrics. |
+| Does not persist raw legal text, raw query text, raw prompts, vectors, provider payloads, managed-API evidence, raw FalkorDB rows, secrets, or generated legal advice. |
 | Does not promote D045 research into validated product behavior. |
 | Does not promote GigaEmbeddings. |
 | Does not promote any embedding model to product default. |
@@ -142,6 +145,7 @@ This architecture graph and derived reports **do not** establish or validate:
 | Does not prove production Legal KnowQL behavior. |
 | Does not prove production graph schema readiness. |
 | Does not prove production observability. |
+| Does not prove production ranker quality. |
 | Does not prove provider generation quality. |
 | Does not prove raw legal text evidence quality. |
 | Does not prove runtime SLOs. |
@@ -191,7 +195,7 @@ No orphan findings.
 
 | Size | Node Count |
 | --- | ---: |
-| 41 | 41 |
+| 42 | 42 |
 | 4 | 4 |
 
 ---

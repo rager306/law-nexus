@@ -362,6 +362,7 @@ def render_blockers_report(
         rows = [
             f"| `{nid}` | {title} "
             f"| {escape_md(node.get('risk_level', ''))} "
+            f"| {escape_md(node.get('proof_level', ''))} "
             f"| {ver} "
             f"| {owner} |"
         ]
@@ -413,8 +414,8 @@ def render_blockers_report(
                     "",
                     "### Blocked / Bounded Evidence",
                     "",
-                    "| ID | Title | Risk | Verification | Owner |",
-                    "| --- | --- | --- | --- | --- |",
+                    "| ID | Title | Risk | Proof Level | Verification | Owner |",
+                    "| --- | --- | --- | --- | --- | --- |",
                 ])
                 for node in blocked_list:
                     lines.extend(render_node_rows(node))
@@ -624,7 +625,7 @@ def render_claims_ledger(
         ])
         for rid, record in bounded_items:
             ncs = record.get("non_claims", [])
-            nc_cell = "; ".join(f"❌ {escape_md(nc)}" for nc in ncs[:2]) if ncs else "—"
+            nc_cell = "; ".join(f"❌ {escape_md(nc)}" for nc in ncs) if ncs else "—"
             lines.append(
                 f"| `{rid}` | {escape_md(record.get('title', ''))} "
                 f"| {escape_md(record.get('layer', ''))} "
@@ -640,8 +641,8 @@ def render_claims_ledger(
 
     if blocked_items:
         lines.extend([
-            "| ID | Title | Layer | Claim Domain | Risk | Proof Level | Verification | Non-Claims |",
-            "| --- | --- | --- | --- | --- | --- | --- | --- |",
+            "| ID | Title | Layer | Claim Domain | Risk | Status | Proof Level | Verification | Non-Claims |",
+            "| --- | --- | --- | --- | --- | --- | --- | --- | --- |",
         ])
         for rid, record in blocked_items:
             ncs = record.get("non_claims", [])
@@ -652,6 +653,7 @@ def render_claims_ledger(
                 f"| {escape_md(record.get('layer', ''))} "
                 f"| {escape_md(_claim_domain(record))} "
                 f"| {escape_md(record.get('risk_level', ''))} "
+                f"| {escape_md(record.get('status', ''))} "
                 f"| {escape_md(record.get('proof_level', ''))} "
                 f"| {ver[:60]}... "
                 f"| {nc_cell} |"
@@ -660,6 +662,7 @@ def render_claims_ledger(
                      f"| {escape_md(record.get('layer', ''))} "
                      f"| {escape_md(_claim_domain(record))} "
                      f"| {escape_md(record.get('risk_level', ''))} "
+                     f"| {escape_md(record.get('status', ''))} "
                      f"| {escape_md(record.get('proof_level', ''))} "
                      f"| {ver} |"
                      f"| {nc_cell} |"

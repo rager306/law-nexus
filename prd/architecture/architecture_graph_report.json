@@ -2,8 +2,8 @@
   "contradiction_edges": [],
   "contradiction_pairs": [],
   "counts": {
-    "edges": 62,
-    "nodes": 45
+    "edges": 66,
+    "nodes": 46
   },
   "high_risk_nodes": [
     {
@@ -82,6 +82,14 @@
       "id": "EVID-REAL-ARTIFACT-RETRIEVAL-PROOF",
       "layer": "retrieval-embedding",
       "proof_level": "unit-test",
+      "risk_level": "high",
+      "status": "bounded-evidence",
+      "type": "evidence"
+    },
+    {
+      "id": "EVID-REPRESENTATIVE-RETRIEVAL-RUNTIME-BENCHMARK-PROOF",
+      "layer": "retrieval-embedding",
+      "proof_level": "runtime-smoke",
       "risk_level": "high",
       "status": "bounded-evidence",
       "type": "evidence"
@@ -258,7 +266,7 @@
       "legal-evidence": 1,
       "observability-operability": 1,
       "parser-ingestion": 10,
-      "retrieval-embedding": 10,
+      "retrieval-embedding": 11,
       "security-safety": 5,
       "temporal-model": 3,
       "workflow-governance": 3
@@ -432,6 +440,23 @@
           "Does not prove product retrieval quality.",
           "Does not prove production FalkorDB runtime behavior.",
           "Does not prove production graph schema readiness."
+        ]
+      },
+      {
+        "count": 11,
+        "id": "EVID-REPRESENTATIVE-RETRIEVAL-RUNTIME-BENCHMARK-PROOF",
+        "non_claims": [
+          "Does not allow managed embedding API fallback.",
+          "Does not authorize GigaChat or GigaEmbeddings runtime use.",
+          "Does not close GATE-G011.",
+          "Does not make proof-local IDs production IDs.",
+          "Does not persist raw legal text, raw query text, raw prompts, vectors, provider payloads, managed-API evidence, raw FalkorDB rows, secrets, or generated legal advice.",
+          "Does not prove legal-answer correctness.",
+          "Does not prove parser completeness.",
+          "Does not prove product retrieval quality.",
+          "Does not prove production FalkorDB runtime behavior.",
+          "Does not prove production graph schema readiness.",
+          "Does not prove production ranker quality."
         ]
       },
       {
@@ -701,8 +726,8 @@
         ]
       }
     ],
-    "nodes_with_non_claims": 45,
-    "total_non_claims": 161
+    "nodes_with_non_claims": 46,
+    "total_non_claims": 172
   },
   "orphan_findings": [],
   "traceability_edges": [
@@ -849,6 +874,38 @@
       "status": "active",
       "to": "REQ-R034",
       "type": "satisfies"
+    },
+    {
+      "from": "EVID-REPRESENTATIVE-RETRIEVAL-RUNTIME-BENCHMARK-PROOF",
+      "id": "EDGE-EVID-REPRESENTATIVE-RETRIEVAL-RUNTIME-BENCHMARK-PROOF-BOUNDED-BY-GATE-G011",
+      "rationale": "The M016 representative runtime benchmark confirms proof-local metrics and local/open-weight runtime boundary, but remains bounded by the broader GATE-G011 product retrieval quality disposition.",
+      "status": "active",
+      "to": "GATE-G011",
+      "type": "bounded_by"
+    },
+    {
+      "from": "EVID-REPRESENTATIVE-RETRIEVAL-RUNTIME-BENCHMARK-PROOF",
+      "id": "EDGE-EVID-REPRESENTATIVE-RETRIEVAL-RUNTIME-BENCHMARK-PROOF-CHECKED-BY-CHECK-ARCHITECTURE-EXTRACTOR",
+      "rationale": "The deterministic architecture extractor and regression tests keep the M016 representative runtime benchmark anchors, bounded status, proof level, redaction boundary, and open GATE-G011 disposition visible in generated registry outputs.",
+      "status": "validated",
+      "to": "CHECK-ARCHITECTURE-EXTRACTOR",
+      "type": "checked_by"
+    },
+    {
+      "from": "EVID-REPRESENTATIVE-RETRIEVAL-RUNTIME-BENCHMARK-PROOF",
+      "id": "EDGE-EVID-REPRESENTATIVE-RETRIEVAL-RUNTIME-BENCHMARK-PROOF-DEPENDS-ON-EVID-LOCAL-RETRIEVAL-QUALITY-BENCHMARK-PROOF",
+      "rationale": "The M016 representative runtime benchmark extends the M015 local retrieval benchmark pattern from seed fixtures to the representative manifest while preserving bounded, local/open-weight evidence scope.",
+      "status": "active",
+      "to": "EVID-LOCAL-RETRIEVAL-QUALITY-BENCHMARK-PROOF",
+      "type": "depends_on"
+    },
+    {
+      "from": "EVID-REPRESENTATIVE-RETRIEVAL-RUNTIME-BENCHMARK-PROOF",
+      "id": "EDGE-EVID-REPRESENTATIVE-RETRIEVAL-RUNTIME-BENCHMARK-PROOF-DEPENDS-ON-S10-USER-BGE-M3-BASELINE",
+      "rationale": "The M016 representative runtime benchmark depends on the bounded USER-bge-m3 local/open-weight runtime baseline and repeats the no-managed-API boundary in its proof output.",
+      "status": "active",
+      "to": "S10-USER-BGE-M3-BASELINE",
+      "type": "depends_on"
     },
     {
       "from": "EVID-RESEARCH-GRAPHRAG-MATH-ANALYSIS",
@@ -1288,6 +1345,7 @@
         "EVID-PARSER-SOURCE-FIXTURE-INVENTORY",
         "EVID-PARSER-STAGING-GRAPH",
         "EVID-REAL-ARTIFACT-RETRIEVAL-PROOF",
+        "EVID-REPRESENTATIVE-RETRIEVAL-RUNTIME-BENCHMARK-PROOF",
         "EVID-RESEARCH-GRAPHRAG-MATH-ANALYSIS",
         "EVID-RESEARCH-HABR-LEGAL-RAG-ITERATION-SCALING",
         "EVID-RETRIEVAL-OUTPUT-ID-VALIDATOR-PROOF",
@@ -1313,7 +1371,7 @@
         "S10-GIGAEMBEDDINGS-CHALLENGER-BLOCKED",
         "S10-USER-BGE-M3-BASELINE"
       ],
-      "size": 41
+      "size": 42
     },
     {
       "nodes": [

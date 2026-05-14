@@ -1031,16 +1031,16 @@ def test_claims_ledger_no_duplicate_item_ids() -> None:
     """No item ID should appear in more than one classification section."""
     content = _load_claims_content()
     for rid in sorted(ALL_TRACKED_IDS):
-        # Find all occurrences
+        needle = f"`{rid}`"
         start = 0
         positions = []
         while True:
-            idx = content.find(rid, start)
+            idx = content.find(needle, start)
             if idx == -1:
                 break
             positions.append(idx)
             start = idx + 1
-        # Should appear exactly once
+        # Should appear exactly once as a classified ID cell; non-claim text may cite gates.
         assert len(positions) == 1, (
             f"Item {rid} appears {len(positions)} times — each item must be "
             f"classified into exactly one section"
