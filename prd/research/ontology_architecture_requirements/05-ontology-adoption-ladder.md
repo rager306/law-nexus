@@ -20,6 +20,10 @@ Central rule:
 
 > Keep the project-local LegalGraph core as the internal contract. Promote external standards only through explicit evidence, non-claims, and promotion criteria.
 
+Source-priority boundary:
+
+> The current source priority remains Consultant-first under D040, D041, and D042. Garant remains a deferred/supporting source path, not a co-primary driver for current parser or ontology planning. RusLawOD is reference/future-corpus material only: it is not the primary corpus, does not supersede Consultant-first evidence, and must not change corpus priority unless a future explicit human decision and named proof gate promote it.
+
 ## 2. Adoption levels
 
 | Level | Name | Meaning | Typical status |
@@ -123,18 +127,20 @@ Central rule:
 | Standard or claim | Ladder level | Rationale | Caveats / required proof |
 |---|---|---|---|
 | Project-local LegalGraph core (`SourceDocument`, `SourceBlock`, `LegalUnit`, `ActEdition`, `EvidenceSpan`) | L0 core contract | Matches current evidence-first architecture direction and preserves source/provenance boundaries. | Still planning/runtime-bounded; product completeness requires implementation proof. |
-| Akoma Ntoso / LegalDocML | L1 compatibility projection | Useful as a structural target/export shape without replacing parser records. | Needs representative projection tests and documented loss/caveat behavior. |
-| FRBR legal identity | L2 reference identity layer | Clarifies Work/Expression/Manifestation/Item separation for act, edition, source file, and source instance. | Needs Russian legal identity edge-case tests before becoming core semantics. |
-| LKIF / deontic ontology | L3 candidate semantic layer | Relevant for obligations, permissions, prohibitions, negation, and legal-role semantics. | Requires source-span provenance, evaluation, negation tests, and legal review gates. |
-| RusLegalCore | L3 candidate semantic layer | Useful working name for Russian legal hierarchy, competence, interpretation, and collision semantics. | Scope must be bounded; must not imply legal correctness or authority. |
+| Akoma Ntoso | L1 compatibility projection | Useful as a structural normalization/export shape while preserving the current parser records as the internal source of truth. | Needs representative projection tests, documented loss/caveat fields, and proof that source identifiers and evidence spans survive the projection. |
+| FRBR | L2 reference identity layer | Clarifies Work/Expression/Manifestation/Item separation for act, edition, source file, and source instance without forcing full conformance. | Needs Russian legal identity edge-case tests and stable ID rules before becoming core semantics. |
+| LKIF | L3 candidate semantic layer | Relevant for obligations, permissions, prohibitions, negation, and legal-role semantics around candidate norm statements. | Requires source-span provenance, extraction evaluation, negation tests, ambiguity handling, and legal review gates. |
+| RusLegalCore | L3 candidate semantic layer | Useful working name for Russian legal hierarchy, competence, judicial interpretation, and domain-specific legal classes. | Scope must be bounded; must not imply legal correctness, authoritative reasoning, or complete Russian-law coverage. |
+| BFO | L4 formal alignment layer | Valuable as a formal category review lens and long-term interoperability target once the evidence-first core is stable. | Must be verified against primary sources; should not block current parser/retrieval proofs or be treated as MVP conformance. |
+| GOST R 59798-2021 | L4 formal alignment layer | Potential Russian standards alignment reference for ontology engineering and formal terminology. | Requires primary-source review and scoped conformance claims before it influences architecture gates. |
+| OWL 2 | L4 formal alignment layer | Possible formal ontology/interchange layer for a future bounded subset of LegalGraph semantics. | Requires tool/runtime proof, conformance subset definition, and rollback if reasoning conflicts with source-backed legal evidence. |
+| Common Logic | L4 formal alignment layer | Possible high-rigor formal logic interchange or review layer for future interoperability. | Requires primary-source verification, executable examples, and proof that it is not an immediate implementation blocker. |
 | Legal collision maxims (`lex superior`, `lex specialis`, `lex posterior`) | L3 candidate semantic layer | Extends temporal conflict handling into explainable norm-priority reasoning. | Requires explicit conflict-policy gate and examples; cannot silently decide legal outcomes. |
-| BFO / GOST R 59798-2021 | L4 formal alignment layer | Valuable as a formal review lens and long-term interoperability target. | Must be verified against primary sources; should not block current parser/retrieval proofs. |
-| OWL 2 / Common Logic | L4 formal alignment layer | Possible formal reasoning/interchange layer. | Requires tool/runtime proof and scoped conformance; no current reasoning claim. |
-| Ontology-driven GraphRAG | L5 deferred proof area | Directionally aligned with graph-constrained retrieval, but quality and runtime behavior are unproven. | Needs retrieval benchmarks, inactive-version filtering tests, citation checks, and failure diagnostics. |
-| FalkorDB graph-vector/HNSW/single-transaction behavior | L5 deferred proof area / L6 as stated for single-transaction guarantees | Depends on actual database capability and runtime proof. | Must not be claimed from research text alone; verify with FalkorDB-specific evidence. |
-| 1,000-document pilot readiness | L5 deferred proof area | Useful readiness target beyond current bounded fixtures. | Requires corpus definition, run logs, SLA metrics, and failure triage. |
-| RusLawOD as primary corpus | L6 rejected as-is assumption | Conflicts with current source-priority posture and Consultant/Garant bounded evidence path. | May re-enter as reference/future corpus if source priority is explicitly changed. |
-| RuBERT-CRF as required extractor | L6 rejected as-is assumption | Too implementation-specific before evaluation and conflicts with deterministic-first proof posture. | May re-enter as candidate extractor after benchmark design and source-span evaluation. |
+| Ontology GraphRAG | L5 deferred proof area | Directionally aligned with graph-constrained retrieval, but retrieval quality, inactive-version filtering, and runtime behavior are unproven. | Needs retrieval benchmarks, citation checks, failure diagnostics, and generated-answer non-authority checks. |
+| HNSW/vector claims | L5 deferred proof area / L6 as stated for unverified graph-vector guarantees | Depends on actual database capability, index behavior, and runtime proof rather than ontology research text alone. | Must be verified with FalkorDB-specific evidence before claiming graph-vector execution, HNSW behavior, or transaction guarantees. |
+| RuBERT-CRF | L6 rejected as-is assumption | Too implementation-specific before extractor evaluation and conflicts with deterministic-first, proof-gated adoption posture. | May re-enter as a candidate extractor after benchmark design, source-span evaluation, and failure-mode diagnostics. |
+| RusLawOD | L6 rejected as-is assumption | Conflicts with current Consultant-first source-priority decisions when framed as the immediate primary corpus; Garant remains deferred/supporting, and RusLawOD is reference/future-corpus material only. | Does not supersede Consultant-first evidence and is not primary corpus unless a future explicit human decision changes source priority and a named proof gate proves source compatibility, corpus quality, and downstream evidence preservation. |
+| 1000-document pilot | L5 deferred proof area | Useful readiness target beyond current bounded fixtures and tracer proofs. | Requires corpus definition, run logs, SLA metrics, parser anomaly triage, and repeatable success/failure criteria. |
 
 ## 5. Promotion workflow
 
