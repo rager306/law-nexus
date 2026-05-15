@@ -140,3 +140,50 @@ Generate these only after every endpoint item exists in the registry. Use `hypot
 - If an existing endpoint named in planned edges is absent or superseded when the extractor is updated, either update the edge target to the current equivalent item or omit the edge rather than producing an unresolved endpoint.
 - Keep all candidate statuses at `proposed`, `hypothesis`, or `bounded-evidence`; keep proof level at `source-anchor` unless tests, runtime smoke, real-document proof, or production observation are added as separate anchored evidence.
 - Run `uv run python scripts/extract-prd-architecture-items.py`, `uv run python scripts/build-architecture-graph.py`, and `uv run python scripts/verify-architecture-graph.py` after implementation, but this T02 plan intentionally does not regenerate registry artifacts.
+
+## Chosen registry integration path
+
+**Decision:** defer registry emission to a follow-up extractor implementation milestone/task. T03 does not edit `architecture_items.jsonl`, `architecture_edges.jsonl`, or the generator scripts.
+
+### Why not implement in this task
+
+The current extractor is an explicit curated mapping surface. `scripts/extract-prd-architecture-items.py` does not yet include `prd/research/ontology_architecture_requirements/05-architecture-gap-analysis-against-current-registry.md`, `prd/research/ontology_architecture_requirements/05-registry-integration-plan.md`, or candidate IDs such as `EVID-RESEARCH-ONTOLOGY-AKOMA-LKIF-BFO`. Adding M017 records safely therefore requires a code/test/regeneration change set, not a hand edit to derived JSONL and not a planning-only one-file task.
+
+### Follow-up implementation scope
+
+Owner: architecture registry owner with architecture/legal-evidence/parser/retrieval owners for domain review of candidate semantics.
+
+Resolution path:
+
+1. Update source mappings in `scripts/extract-prd-architecture-items.py` by adding a dedicated M017 ontology mapping section or helper functions that emit the candidate item and edge records from the source anchors listed above.
+2. Add the M017 source files to the extractor's required source checks when records depend on them:
+   - `prd/research/ontology_architecture_requirements/05-architecture-gap-analysis-against-current-registry.md`
+   - `prd/research/ontology_architecture_requirements/05-registry-integration-plan.md`
+3. Generate candidate items only with `proposed`, `hypothesis`, or `bounded-evidence` status and `source-anchor` proof level unless separate runtime/test/real-document evidence is added.
+4. Generate candidate edges only when both endpoints are present in the current registry. Omit or retarget edges to absent/superseded endpoints rather than producing unresolved endpoint diagnostics.
+5. Regenerate derived artifacts through the normal workflow; never hand-edit `prd/architecture/architecture_items.jsonl`, `prd/architecture/architecture_edges.jsonl`, `prd/architecture/architecture_graph_report.json`, or `prd/architecture/architecture_report.md`.
+
+Target scripts/tests for implementation:
+
+- `scripts/extract-prd-architecture-items.py` — add curated M017 ontology item/edge mappings and source requirements.
+- `scripts/build-architecture-graph.py` — no expected code change; run after regeneration to rebuild reports and catch missing endpoints.
+- `scripts/verify-architecture-graph.py` — no expected code change unless verifier policy needs a new ontology-specific guardrail; default expectation is to reuse existing source-anchor, endpoint, proof-level, and overclaim checks.
+- `tests/test_architecture_registry_extractor.py` or the closest existing extractor/architecture-registry test file — add assertions for M017 candidate IDs, source anchors, proof ceilings, and edge endpoint resolution if such a tracked test surface exists.
+- `tests/fixtures/architecture/valid_items.jsonl` and `tests/fixtures/architecture/valid_edges.jsonl` — update only if the test suite uses these fixtures to cover the new valid record shapes.
+
+Expected verification commands for the follow-up:
+
+```bash
+uv run python scripts/extract-prd-architecture-items.py
+uv run python scripts/extract-prd-architecture-items.py --check
+uv run python scripts/build-architecture-graph.py
+uv run python scripts/build-architecture-graph.py --check
+uv run python scripts/verify-architecture-graph.py
+uv run pytest tests/test_architecture_registry_extractor.py
+```
+
+If `tests/test_architecture_registry_extractor.py` does not exist at implementation time, create or update the nearest tracked architecture-registry test module instead and record the exact replacement command in the follow-up summary.
+
+### Deferral criteria and verification to unblock
+
+The deferral is resolved only when the follow-up implementation produces regenerated JSONL/report artifacts through the extractor/build workflow and `uv run python scripts/verify-architecture-graph.py` exits successfully with zero unresolved endpoints, zero forbidden ontology/runtime/legal overclaims, and preserved source-anchor proof ceilings for M017 ontology candidates.
