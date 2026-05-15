@@ -105,7 +105,7 @@ def test_run_command_records_timeout_classification(tmp_path: Path) -> None:
     log_dir = tmp_path / "logs"
 
     result = harness.run_command(
-        ["python", "-c", "import time; time.sleep(2)"],
+        [sys.executable, "-c", "import time; time.sleep(2)"],
         1,
         log_dir,
         "slow-command",

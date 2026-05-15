@@ -3,8 +3,8 @@
 from __future__ import annotations
 
 import importlib
-import importlib.metadata
-import sys
+import json
+import subprocess
 import tomllib
 from pathlib import Path
 from typing import Any, cast
@@ -43,8 +43,28 @@ def _read_pyproject(path: Path = PYPROJECT) -> dict[str, Any]:
     return tomllib.loads(path.read_text(encoding="utf-8"))
 
 
+def _uv_python() -> Path:
+    python = PROJECT_ROOT / ".venv" / "bin" / "python"
+    assert python.is_file(), "uv-managed .venv Python is required for S04 tooling checks"
+    return python
+
+
+def _run_uv_python(script: str) -> str:
+    result = subprocess.run(
+        [str(_uv_python()), "-c", script],
+        cwd=PROJECT_ROOT,
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    assert result.returncode == 0, result.stdout + result.stderr
+    return result.stdout.strip()
+
+
 def test_uv_environment_uses_python_313_or_newer() -> None:
-    assert sys.version_info >= (3, 13), sys.version
+    version = tuple(json.loads(_run_uv_python("import json, sys; print(json.dumps(sys.version_info[:2]))")))
+
+    assert version >= (3, 13), version
 
 
 def test_python_version_pin_is_present_and_targets_python_313() -> None:
@@ -83,14 +103,20 @@ def test_pyproject_reader_fails_when_metadata_is_absent(tmp_path: Path) -> None:
 
 
 def test_required_tooling_distributions_are_installed() -> None:
-    missing = []
-    for distribution in sorted(REQUIRED_DISTRIBUTIONS):
-        try:
-            importlib.metadata.version(distribution)
-        except importlib.metadata.PackageNotFoundError:
-            missing.append(distribution)
+    script = """
+import importlib.metadata
+import json
+required = {required!r}
+missing = []
+for distribution in sorted(required):
+    try:
+        importlib.metadata.version(distribution)
+    except importlib.metadata.PackageNotFoundError:
+        missing.append(distribution)
+print(json.dumps(missing))
+""".format(required=sorted(REQUIRED_DISTRIBUTIONS))
 
-    assert missing == []
+    assert json.loads(_run_uv_python(script)) == []
 
 
 @pytest.mark.parametrize("module_name", REQUIRED_IMPORT_MODULES)

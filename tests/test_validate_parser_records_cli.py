@@ -49,6 +49,7 @@ def test_write_then_check_generates_fresh_contract_artifacts() -> None:
     assert check_summary["counts"] == {
         "document": 2,
         "source_block": 1,
+        "consultant_hierarchy": 0,
         "relation_candidate": 1,
     }
     assert all(status == "fresh" for status in check_summary["artifact_status"].values())

@@ -141,17 +141,29 @@ def load_consultant_fixture_manifest(root: Path = ROOT) -> tuple[dict[str, Any] 
     if not isinstance(fixtures, list):
         return None, [diagnostic(str(INVENTORY_PATH), "inventory-shape-invalid", "Inventory fixtures must be a list.")]
 
-    matches = [
+    preferred_matches = [
         fixture
         for fixture in fixtures
-        if isinstance(fixture, dict) and fixture.get("source_kind") == SOURCE_KIND and fixture.get("canonical") is True
+        if isinstance(fixture, dict)
+        and fixture.get("source_kind") == SOURCE_KIND
+        and fixture.get("canonical") is True
+        and fixture.get("source_role") == "document-list-prior-art"
     ]
+    legacy_matches = [
+        fixture
+        for fixture in fixtures
+        if isinstance(fixture, dict)
+        and fixture.get("source_kind") == SOURCE_KIND
+        and fixture.get("canonical") is True
+        and "source_role" not in fixture
+    ]
+    matches = preferred_matches or legacy_matches
     if len(matches) != 1:
         return None, [
             diagnostic(
                 str(INVENTORY_PATH),
                 "consultant-manifest-shape-invalid",
-                "Inventory must contain exactly one canonical consultant-wordml-xml fixture.",
+                "Inventory must contain exactly one canonical Consultant document-list prior-art fixture.",
                 actual_count=len(matches),
             )
         ]

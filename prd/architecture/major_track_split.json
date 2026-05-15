@@ -136,7 +136,7 @@
             }
           ],
           "target_track": "M007/S03 parser-retrieval track",
-          "title": "Executable parser and retrieval golden tests"
+          "title": "Product parser and retrieval readiness gate"
         }
       ],
       "title": "Parser/retrieval golden-test proof",

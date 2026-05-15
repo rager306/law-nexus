@@ -19,7 +19,7 @@ This directory contains the canonical source-fixture inventory for M006 parser a
 
 ## Source priority for M009
 
-M009 treats Consultant Plus WordML as the primary source contract and active parser priority for full normative-act source-shape evidence. The canonical full-act fixture is `law-source/consultant/44-FZ-2026.xml`, and the canonical Consultant document-list fixture remains prior-art relation evidence only. Garant ODT work remains supported but lower-priority/deferred from M009; no M009 success criterion requires fresh Garant regression proof. Earlier ODT smoke/parser-record artifacts remain bounded evidence surfaces and must not be read as M009 multi-source readiness.
+M009 treats Consultant Plus WordML as the primary source contract and active parser priority for full normative-act source-shape evidence. The canonical full-act fixture is `law-source/consultant/44-FZ-2026.xml`, and the canonical Consultant document-list fixture remains prior-art relation evidence only. Garant ODT work is lower-priority/deferred from M009; no M009 success criterion requires fresh Garant regression proof. Earlier ODT smoke/parser-record artifacts remain bounded evidence surfaces and must not be read as M009 multi-source readiness.
 
 The tracked inventory and prior-art reports expose hashes, shape diagnostics, missing-file/hash-drift diagnostics, source-priority notes, and explicit non-claims. Passing checks do not claim parser completeness, legal correctness, Consultant WordML legal authority, product ETL readiness, FalkorDB loading/runtime readiness, citation-safe retrieval readiness, or multi-source parser readiness; they also do not prove retrieval readiness, relation correctness, or legal-answer correctness.
 

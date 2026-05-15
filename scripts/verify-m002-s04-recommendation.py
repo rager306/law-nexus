@@ -198,11 +198,20 @@ def expected_category(proof: dict[str, Any], result: VerificationResult) -> Reco
 
     if status == "confirmed-runtime" and provider_attempts > 0 and validation_accepted and execution_status == "confirmed-runtime":
         return "pursue-pyo3"
-    if status == "blocked-credential" and build_confirmed and route_confirmed and validation_accepted and execution_status == "confirmed-runtime" and live_status == "blocked-credential":
+    if (
+        status in {"blocked-credential", "failed-runtime"}
+        and build_confirmed
+        and route_confirmed
+        and validation_accepted
+        and execution_status == "confirmed-runtime"
+        and live_status in {"blocked-credential", "failed-runtime"}
+    ):
         return "pursue-pyo3-conditioned"
-    if status in {"blocked-credential", "blocked-environment"} and validation_accepted:
+    if status == "failed-runtime" and execution_status == "failed-runtime":
+        return "defer"
+    if status in {"blocked-credential", "blocked-environment", "failed-runtime"} and validation_accepted:
         return "validator-only"
-    if status in {"blocked-environment", "failed-runtime"}:
+    if status == "blocked-environment":
         return "defer"
     result.add(f"Proof status combination is unsupported for recommendation: status={status!r}")
     return None
