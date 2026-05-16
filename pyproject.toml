@@ -12,6 +12,7 @@ dependencies = [
 [dependency-groups]
 dev = [
     "adaptix",
+    "basedpyright>=1.39.4",
     "hypothesis",
     "pyrefly",
     "pytest",
@@ -87,3 +88,12 @@ exclude = [".gsd", "Old_project", ".venv"]
 python-version = "3.13"
 project-includes = ["scripts/**/*.py", "tests/**/*.py"]
 project-excludes = [".gsd/**", "Old_project/**", ".venv/**"]
+
+[tool.basedpyright]
+pythonVersion = "3.13"
+typeCheckingMode = "basic"
+include = ["scripts", "tests"]
+exclude = [".gsd", ".venv", "Old_project", "law-source", "node_modules", "tmp"]
+reportExplicitAny = false
+reportAny = false
+reportUnusedCallResult = false

@@ -1,0 +1,26 @@
+{
+  "servers": {
+    "basedpyright": {
+      "command": "basedpyright-langserver",
+      "args": ["--stdio"],
+      "fileTypes": [".py", ".pyi"],
+      "rootMarkers": ["pyproject.toml", ".python-version"],
+      "settings": {
+        "basedpyright": {
+          "analysis": {
+            "autoSearchPaths": true,
+            "diagnosticMode": "workspace",
+            "useLibraryCodeForTypes": true
+          }
+        }
+      }
+    },
+    "ruff": {
+      "command": "ruff",
+      "args": ["server"],
+      "fileTypes": [".py", ".pyi"],
+      "rootMarkers": ["pyproject.toml", "ruff.toml", ".ruff.toml"],
+      "isLinter": true
+    }
+  }
+}
