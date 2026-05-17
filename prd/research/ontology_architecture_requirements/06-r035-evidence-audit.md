@@ -118,14 +118,14 @@ The following decisions/proofs are still missing before R035 can be validated or
 
 S02 should detect the exact drift class that made R035 look complete in milestone state while still active/unmapped in source evidence. Required drift signals:
 
-1. **Active requirement with completed owning milestones:** R035 is still Active even though M017/M018 are complete or summarized as complete.
+1. **Active requirement not owned by an in-progress milestone:** R035 is still Active even though M017/M018 are complete or summarized as complete, so drift tooling must flag an active requirement not owned by an in-progress milestone.
 2. **Registry-mapping absence:** a requirement that says ontology requirements must be converted into registry mappings has no corresponding current registry items for the planned candidate IDs.
 3. **Missing named proof gate:** at least `GATE-AKOMA-FRBR-NORMALIZATION` is required by source/verifier policy but absent from `architecture_items.jsonl`.
-4. **Incomplete R035 gate-status view:** `claims_ledger.md` contains `## R035 Gate Status` but does not enumerate the planned M017 ontology candidate gates/data items.
-5. **Verifier-policy-only false positive:** `scripts/verify-architecture-graph.py` mentions a gate ID in `ONTOLOGY_PROMOTION_RULES`, but that mention is not a registry item and must not count as proof.
+4. **Stale or empty derived views:** `claims_ledger.md` contains `## R035 Gate Status` but does not enumerate the planned M017 ontology candidate gates/data items, so S02 should treat the R035 view as stale or empty for the M017 candidate set.
+5. **Enforced verifier rules with missing registry endpoints:** `scripts/verify-architecture-graph.py` mentions a gate ID in `ONTOLOGY_PROMOTION_RULES`, but that mention is not a registry item and must not count as proof when the required registry endpoints are missing.
 6. **Candidate-vs-current mismatch:** `05-registry-integration-plan.md` lists 12 candidate items and 9 edge mappings, while derived JSONL lacks those candidates.
 7. **Gate ID drift:** verifier policy and planning docs disagree on one or more gate IDs, such as `GATE-DEONTIC-MAPPING-PROOF` / `GATE-LKIF-DEONTIC-BENCHMARK` or `GATE-1000-DOC-PILOT` / `GATE-PILOT-SCALE-READINESS`.
-8. **Unsafe lifecycle language:** any document, requirement update, or view says R035 is validated merely because M017/M018 completed, without proving regenerated registry presence and verifier/view coverage.
+8. **Unsafe lifecycle language:** S02 must flag any document, requirement update, or view that would say R035 is validated merely because M017/M018 completed, because safe lifecycle wording must not validate R035 without proving regenerated registry presence and verifier/view coverage.
 
 ## S03 Handoff
 
@@ -138,13 +138,13 @@ S03 should implement the deferred registry integration, not validate R035 by ass
 5. Reconcile gate ID names before emission or document aliases explicitly in source evidence and tests.
 6. Regenerate derived artifacts through the normal workflow: extractor, architecture graph build, verifier, and claims-ledger/view generation.
 7. Verify that `GATE-AKOMA-FRBR-NORMALIZATION` and the other planned candidates appear in derived registry outputs with safe statuses and proof levels.
-8. Only after those checks pass, use GSD requirement tooling to update R035 lifecycle status. If any proof obligation remains outside registry mapping, split or defer that obligation instead of marking all of R035 validated.
+8. Only after those checks pass, use GSD requirement tooling to update R035 lifecycle status. If any proof obligation remains outside registry mapping, split or defer that obligation and do not mark all of R035 validated.
 
 ## Non-Claims
 
 This audit does **not** claim any of the following:
 
-- R035 is validated.
+- This audit does **not** claim that R035 is validated.
 - M017 or M018 completion proves registry integration.
 - `GATE-AKOMA-FRBR-NORMALIZATION` or any other M017 ontology gate exists in the current registry.
 - Any ontology gate is satisfied.
