@@ -152,3 +152,7 @@ This audit does **not** claim any of the following:
 - Parser completeness, legal correctness, legal-answer authority, retrieval quality, FalkorDB production behavior, graph-vector/HNSW behavior, generated-Cypher safety, or 1,000-document readiness is proven.
 - Derived JSONL, graph reports, claims ledger, or verifier output are authoritative source evidence.
 - Manual JSONL/view edits are an acceptable substitute for extractor integration and regeneration.
+- Extractor mappings for the 12 candidate items from `05-registry-integration-plan.md` are complete and correct in the current extractor state.
+- Source anchors to the gap analysis and integration plan are valid provenance for positive proof claims.
+- Gate ID aliases (e.g. `GATE-DEONTIC-MAPPING-PROOF` / `GATE-LKIF-DEONTIC-BENCHMARK`) are reconciled and documented in the registry emission state.
+- Regenerated derived artifacts (JSONL, graph reports, claims ledger, verifier output) reflect the post-extractor-integration state and are not stale.
