@@ -1,6 +1,6 @@
 # Product Readiness Blockers Report
 
-> **Scope:** This report maps active proof gates, blocked evidence, and non-claims to the six capability areas required for LegalGraph Nexus product readiness. It is a planning artifact only — it does **not** assert product readiness and does not validate runtime behavior, retrieval quality, parser completeness, generated-Cypher safety, FalkorDB production scale, or legal-answer correctness.
+> **Scope:** This report maps active proof gates, blocked evidence, and non-claims to the six capability areas required for LegalGraph Nexus product readiness. It is a derived, non-authoritative planning artifact only — it does **not** assert product readiness and does not validate runtime behavior, retrieval quality, parser completeness, generated-Cypher safety, FalkorDB production scale, or legal-answer correctness.
 
 ---
 
@@ -15,30 +15,41 @@
 | Retrieval / Embedding | 1 | 7 |
 | Temporal Model | 1 | 0 |
 
+## Priority Snapshot
+
+This snapshot is a triage view only; priority does not prove readiness or promote claims.
+
+| Priority | Count | Representative Blockers |
+| --- | ---: | --- |
+| P0 | 1 | `GATE-GENERATED-CYPHER-SAFETY` |
+| P1 | 15 | `EVID-LOCAL-RETRIEVAL-QUALITY-BENCHMARK-PROOF`, `EVID-OFFLINE-CITATION-RETRIEVAL-PROOF`, `EVID-PARSER-ODT-SMOKE`, `EVID-REAL-ARTIFACT-RETRIEVAL-PROOF`, `EVID-REPRESENTATIVE-RETRIEVAL-RUNTIME-BENCHMARK-PROOF` |
+| P2 | 1 | `GATE-G015` |
+| P3 | 0 | — |
+
 ## ETL / Parser
 
 ### Proof Gates
 
-| ID | Title | Risk | Verification | Owner |
-| --- | --- | --- | --- | --- |
-| `GATE-G008` | Product parser and retrieval readiness gate | high | Future product proof demonstrates parser completeness boundaries, citation-safe retrieval behavior, and retrieval quality over real legal source fixtures. | future-product-parser-retrieval-proof |
-|  | No parser completeness claim. | — | — | — |
-|  | No product retrieval quality claim. | — | — | — |
+| ID | Title | Priority | Status | Risk | Verification | Owner |
+| --- | --- | --- | --- | --- | --- | --- |
+| `GATE-G008` | Product parser and retrieval readiness gate | P1 / high-priority-blocker | active | high | Future product proof demonstrates parser completeness boundaries, citation-safe retrieval behavior, and retrieval quality over real legal source fixtures. | future-product-parser-retrieval-proof |
+|  | No parser completeness claim. | — | — | — | — | — |
+|  | No product retrieval quality claim. | — | — | — | — | — |
 
 ### Blocked / Bounded Evidence
 
-| ID | Title | Risk | Proof Level | Verification | Owner |
-| --- | --- | --- | --- | --- | --- |
-| `EVID-PARSER-ODT-SMOKE` | Bounded ODT smoke-record evidence | high | real-document-proof | `uv run python scripts/build-odt-smoke-records.py --check` verifies ODT smoke artifact freshness. | M006/S03 |
-|  | No final legal hierarchy extraction claim. | — | — | — |
-|  | No parser completeness claim. | — | — | — |
-| `S05-OLD-PROJECT-PRIOR-ART` | Old_project artifacts remain prior art | high | source-anchor | Downstream designs classify legacy reuse as prior art and avoid blessing ConsultantPlus behavior for Garant ODT. | S08 final architecture review / future parser owners |
-|  | No Old_project artifact accepted unchanged. | — | — | — |
-|  | No parser completeness claim. | — | — | — |
-| `S05-PARSER-ODT-BOUNDARY` | Real ODT parser evidence boundary | high | real-document-proof | S05 verifier passes; future parser tests prove final extraction behavior before promotion. | S05/S08 parser evidence consolidation |
-|  | No final legal hierarchy extraction claim. | — | — | — |
-|  | No parser completeness claim. | — | — | — |
-|  | No production SourceBlock/EvidenceSpan creation claim. | — | — | — |
+| ID | Title | Priority | Status | Risk | Proof Level | Verification | Owner |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| `EVID-PARSER-ODT-SMOKE` | Bounded ODT smoke-record evidence | P1 / high-priority-blocker | bounded-evidence | high | real-document-proof | `uv run python scripts/build-odt-smoke-records.py --check` verifies ODT smoke artifact freshness. | M006/S03 |
+|  | No final legal hierarchy extraction claim. | — | — | — | — | — | — |
+|  | No parser completeness claim. | — | — | — | — | — | — |
+| `S05-OLD-PROJECT-PRIOR-ART` | Old_project artifacts remain prior art | P1 / high-priority-blocker | bounded-evidence | high | source-anchor | Downstream designs classify legacy reuse as prior art and avoid blessing ConsultantPlus behavior for Garant ODT. | S08 final architecture review / future parser owners |
+|  | No Old_project artifact accepted unchanged. | — | — | — | — | — | — |
+|  | No parser completeness claim. | — | — | — | — | — | — |
+| `S05-PARSER-ODT-BOUNDARY` | Real ODT parser evidence boundary | P1 / high-priority-blocker | bounded-evidence | high | real-document-proof | S05 verifier passes; future parser tests prove final extraction behavior before promotion. | S05/S08 parser evidence consolidation |
+|  | No final legal hierarchy extraction claim. | — | — | — | — | — | — |
+|  | No parser completeness claim. | — | — | — | — | — | — |
+|  | No production SourceBlock/EvidenceSpan creation claim. | — | — | — | — | — | — |
 
 ### What This Area Does Not Prove
 
@@ -65,10 +76,10 @@ Proof work for this area should:
 
 ### Proof Gates
 
-| ID | Title | Risk | Verification | Owner |
-| --- | --- | --- | --- | --- |
-| `GATE-G015` | FalkorDBLite to Docker migration runbook | medium | Migration runbook is executed against bounded fixtures and runtime diagnostics. | future-runtime-migration-proof |
-|  | No production-scale FalkorDB claim. | — | — | — |
+| ID | Title | Priority | Status | Risk | Verification | Owner |
+| --- | --- | --- | --- | --- | --- | --- |
+| `GATE-G015` | FalkorDBLite to Docker migration runbook | P2 / medium-diagnostic | active | medium | Migration runbook is executed against bounded fixtures and runtime diagnostics. | future-runtime-migration-proof |
+|  | No production-scale FalkorDB claim. | — | — | — | — | — |
 
 ### What This Area Does Not Prove
 
@@ -88,16 +99,16 @@ Proof work for this area should:
 
 ### Proof Gates
 
-| ID | Title | Risk | Verification | Owner |
-| --- | --- | --- | --- | --- |
-| `GATE-EMBEDDING-SUPPLY-CHAIN` | Embedding model supply-chain integrity gate | high | Future embedding proof records model source, checksum or revision, local runtime envelope, vector dimension, and no-secret/no-raw-vector leakage checks. | future-embedding-supply-chain-proof |
-|  | Does not allow managed embedding API fallback. | — | — | — |
-|  | Does not promote any embedding model to product default. | — | — | — |
-|  | Does not prove product retrieval quality. | — | — | — |
-| `GATE-LEGAL-NEXUS-ACCESS-CONTROL` | Legal Nexus access-control proof gate | high | Future security proof defines caller boundaries, authorization policy, audit logging, and denial diagnostics for Legal Nexus operations. | future-api-security-proof |
-|  | Does not assert current product is insecure. | — | — | — |
-|  | Does not define a production API surface. | — | — | — |
-|  | Does not prove access-control enforcement. | — | — | — |
+| ID | Title | Priority | Status | Risk | Verification | Owner |
+| --- | --- | --- | --- | --- | --- | --- |
+| `GATE-EMBEDDING-SUPPLY-CHAIN` | Embedding model supply-chain integrity gate | P1 / high-priority-blocker | active | high | Future embedding proof records model source, checksum or revision, local runtime envelope, vector dimension, and no-secret/no-raw-vector leakage checks. | future-embedding-supply-chain-proof |
+|  | Does not allow managed embedding API fallback. | — | — | — | — | — |
+|  | Does not promote any embedding model to product default. | — | — | — | — | — |
+|  | Does not prove product retrieval quality. | — | — | — | — | — |
+| `GATE-LEGAL-NEXUS-ACCESS-CONTROL` | Legal Nexus access-control proof gate | P1 / high-priority-blocker | active | high | Future security proof defines caller boundaries, authorization policy, audit logging, and denial diagnostics for Legal Nexus operations. | future-api-security-proof |
+|  | Does not assert current product is insecure. | — | — | — | — | — |
+|  | Does not define a production API surface. | — | — | — | — | — |
+|  | Does not prove access-control enforcement. | — | — | — | — | — |
 
 ### What This Area Does Not Prove
 
@@ -123,12 +134,12 @@ Proof work for this area should:
 
 ### Proof Gates
 
-| ID | Title | Risk | Verification | Owner |
-| --- | --- | --- | --- | --- |
-| `GATE-GENERATED-CYPHER-SAFETY` | Generated-Cypher safety and validation gate | critical | A future product proof demonstrates validator acceptance/rejection behavior across representative Legal KnowQL tasks and live graph schemas. | future-generated-cypher-safety-proof |
-|  | Does not authorize executing raw generated Cypher. | — | — | — |
-|  | Does not prove production Legal KnowQL behavior. | — | — | — |
-|  | Does not prove provider generation quality. | — | — | — |
+| ID | Title | Priority | Status | Risk | Verification | Owner |
+| --- | --- | --- | --- | --- | --- | --- |
+| `GATE-GENERATED-CYPHER-SAFETY` | Generated-Cypher safety and validation gate | P0 / critical-gate | active | critical | A future product proof demonstrates validator acceptance/rejection behavior across representative Legal KnowQL tasks and live graph schemas. | future-generated-cypher-safety-proof |
+|  | Does not authorize executing raw generated Cypher. | — | — | — | — | — |
+|  | Does not prove production Legal KnowQL behavior. | — | — | — | — | — |
+|  | Does not prove provider generation quality. | — | — | — | — | — |
 
 ### What This Area Does Not Prove
 
@@ -150,83 +161,83 @@ Proof work for this area should:
 
 ### Proof Gates
 
-| ID | Title | Risk | Verification | Owner |
-| --- | --- | --- | --- | --- |
-| `GATE-G011` | Local embedding quality proof | high | Retrieval quality benchmark passes under local/open-weight embedding constraints. | future-retrieval-quality-proof |
-|  | No managed embedding API fallback claim. | — | — | — |
-|  | No product retrieval quality claim. | — | — | — |
+| ID | Title | Priority | Status | Risk | Verification | Owner |
+| --- | --- | --- | --- | --- | --- | --- |
+| `GATE-G011` | Local embedding quality proof | P1 / high-priority-blocker | active | high | Retrieval quality benchmark passes under local/open-weight embedding constraints. | future-retrieval-quality-proof |
+|  | No managed embedding API fallback claim. | — | — | — | — | — |
+|  | No product retrieval quality claim. | — | — | — | — | — |
 
 ### Blocked / Bounded Evidence
 
-| ID | Title | Risk | Proof Level | Verification | Owner |
-| --- | --- | --- | --- | --- | --- |
-| `EVID-LOCAL-RETRIEVAL-QUALITY-BENCHMARK-PROOF` | Local retrieval quality benchmark proof | high | unit-test | `uv run python scripts/verify-local-retrieval-quality-benchmark.py` proves 6 seed benchmark cases with positive_query_count=2, all fixture metrics=1.0, threshold_passed=true, model_id=deepvk/USER-bge-m3, managed_api_used=false, raw_vectors_persisted=false, and mismatch_count=0. | M015/S02 |
-|  | Does not allow managed embedding API fallback. | — | — | — |
-|  | Does not close GATE-G008. | — | — | — |
-|  | Does not close GATE-G011. | — | — | — |
-|  | Does not make LLM output legal authority. | — | — | — |
-|  | Does not make proof-local fixture metrics production metrics. | — | — | — |
-|  | Does not promote GigaEmbeddings. | — | — | — |
-|  | Does not prove legal-answer correctness. | — | — | — |
-|  | Does not prove parser completeness. | — | — | — |
-|  | Does not prove product retrieval quality. | — | — | — |
-|  | Does not prove production FalkorDB runtime behavior. | — | — | — |
-|  | Does not prove production graph schema readiness. | — | — | — |
-| `EVID-OFFLINE-CITATION-RETRIEVAL-PROOF` | Offline citation-safe retrieval proof | high | unit-test | `uv run python scripts/verify-offline-citation-retrieval-proof.py` proves 6 offline citation retrieval cases with selected_count=2, scoped_no_answer_count=1, rejected_count=3, validator_accepted_count=3, validator_rejected_count=1, and mismatch_count=0. | M014/S02 |
-|  | Does not close GATE-G008. | — | — | — |
-|  | Does not close GATE-G011. | — | — | — |
-|  | Does not make LLM output legal authority. | — | — | — |
-|  | Does not make proof-local IDs production IDs. | — | — | — |
-|  | Does not prove legal-answer correctness. | — | — | — |
-|  | Does not prove local embedding quality. | — | — | — |
-|  | Does not prove parser completeness. | — | — | — |
-|  | Does not prove product retrieval quality. | — | — | — |
-|  | Does not prove production FalkorDB runtime behavior. | — | — | — |
-|  | Does not prove production graph schema readiness. | — | — | — |
-| `EVID-REAL-ARTIFACT-RETRIEVAL-PROOF` | Real-artifact retrieval output ID proof | high | unit-test | `uv run python scripts/verify-real-artifact-retrieval-proof.py` proves 7 real-artifact-derived cases with 2 accepted, 5 rejected, and mismatch_count=0; M012 validator regression remains green. | M013/S02 |
-|  | Does not close GATE-G008. | — | — | — |
-|  | Does not close GATE-G011. | — | — | — |
-|  | Does not make LLM output legal authority. | — | — | — |
-|  | Does not make proof-local IDs production IDs. | — | — | — |
-|  | Does not prove legal-answer correctness. | — | — | — |
-|  | Does not prove local embedding quality. | — | — | — |
-|  | Does not prove parser completeness. | — | — | — |
-|  | Does not prove product retrieval quality. | — | — | — |
-|  | Does not prove production FalkorDB runtime behavior. | — | — | — |
-|  | Does not prove production graph schema readiness. | — | — | — |
-| `EVID-REPRESENTATIVE-RETRIEVAL-RUNTIME-BENCHMARK-PROOF` | Representative retrieval runtime benchmark proof | high | runtime-smoke | `uv run python scripts/verify-representative-retrieval-runtime-benchmark.py --allow-runtime-blocker` records metrics_confirmed with mrr=1.0, recall_at_1=1.0, recall_at_3=1.0, no_answer_accuracy=1.0, rejection metrics=1.0, runtime_boundary_confirmed=true, managed_api_used=false, and GATE-G011 status=open. | M016/S03 |
-|  | Does not allow managed embedding API fallback. | — | — | — |
-|  | Does not authorize GigaChat or GigaEmbeddings runtime use. | — | — | — |
-|  | Does not close GATE-G011. | — | — | — |
-|  | Does not make proof-local IDs production IDs. | — | — | — |
-|  | Does not persist raw legal text, raw query text, raw prompts, vectors, provider payloads, managed-API evidence, raw FalkorDB rows, secrets, or generated legal advice. | — | — | — |
-|  | Does not prove legal-answer correctness. | — | — | — |
-|  | Does not prove parser completeness. | — | — | — |
-|  | Does not prove product retrieval quality. | — | — | — |
-|  | Does not prove production FalkorDB runtime behavior. | — | — | — |
-|  | Does not prove production graph schema readiness. | — | — | — |
-|  | Does not prove production ranker quality. | — | — | — |
-| `EVID-RESEARCH-GRAPHRAG-MATH-ANALYSIS` | GraphRAG/FalkorDB mathematical analysis research input | high | source-anchor | Assessment classifies ideas into applicable-now principles, proof-gated candidates, and deferred/not-adopted claims; future proof must validate any runtime, SDK, benchmark, or retrieval-quality claim. | M011/S01 |
-|  | Does not prove FalkorDB production-scale behavior. | — | — | — |
-|  | Does not prove GraphRAG-SDK compatibility. | — | — | — |
-|  | Does not prove legal-answer correctness. | — | — | — |
-|  | Does not prove product retrieval quality. | — | — | — |
-|  | Does not validate benchmark, cost, or latency claims. | — | — | — |
-| `EVID-RESEARCH-HABR-LEGAL-RAG-ITERATION-SCALING` | Habr Legal RAG iteration and scaling research input | high | source-anchor | Human-reviewed JSON comparison classifies all transferable ideas as requiring project-specific verification before adoption; future proof must validate retrieval IDs, evidence precision, no-answer behavior, scale/noise degradation, and any runtime or model claim. | D045 / future-retrieval-quality-proof |
-|  | Does not authorize generated Cypher execution. | — | — | — |
-|  | Does not prove FalkorDB runtime/vector/full-text/rerank behavior. | — | — | — |
-|  | Does not prove legal-answer correctness. | — | — | — |
-|  | Does not prove parser completeness. | — | — | — |
-|  | Does not prove product retrieval quality. | — | — | — |
-| `EVID-RETRIEVAL-OUTPUT-ID-VALIDATOR-PROOF` | Retrieval output ID validator bounded proof | high | unit-test | `uv run python scripts/verify-retrieval-output-validator.py` and `uv run pytest tests/test_retrieval_output_validator.py -q` prove fixture/unit/CLI behavior for required M012 diagnostic cases only. | M012/S02 |
-|  | Does not make LLM output legal authority. | — | — | — |
-|  | Does not make fixture IDs production IDs. | — | — | — |
-|  | Does not promote D045 research into validated product behavior. | — | — | — |
-|  | Does not prove legal-answer correctness. | — | — | — |
-|  | Does not prove parser completeness. | — | — | — |
-|  | Does not prove product retrieval quality. | — | — | — |
-|  | Does not prove production FalkorDB runtime behavior. | — | — | — |
-|  | Does not prove raw legal text evidence quality. | — | — | — |
+| ID | Title | Priority | Status | Risk | Proof Level | Verification | Owner |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| `EVID-LOCAL-RETRIEVAL-QUALITY-BENCHMARK-PROOF` | Local retrieval quality benchmark proof | P1 / high-priority-blocker | bounded-evidence | high | unit-test | `uv run python scripts/verify-local-retrieval-quality-benchmark.py` proves 6 seed benchmark cases with positive_query_count=2, all fixture metrics=1.0, threshold_passed=true, model_id=deepvk/USER-bge-m3, managed_api_used=false, raw_vectors_persisted=false, and mismatch_count=0. | M015/S02 |
+|  | Does not allow managed embedding API fallback. | — | — | — | — | — | — |
+|  | Does not close GATE-G008. | — | — | — | — | — | — |
+|  | Does not close GATE-G011. | — | — | — | — | — | — |
+|  | Does not make LLM output legal authority. | — | — | — | — | — | — |
+|  | Does not make proof-local fixture metrics production metrics. | — | — | — | — | — | — |
+|  | Does not promote GigaEmbeddings. | — | — | — | — | — | — |
+|  | Does not prove legal-answer correctness. | — | — | — | — | — | — |
+|  | Does not prove parser completeness. | — | — | — | — | — | — |
+|  | Does not prove product retrieval quality. | — | — | — | — | — | — |
+|  | Does not prove production FalkorDB runtime behavior. | — | — | — | — | — | — |
+|  | Does not prove production graph schema readiness. | — | — | — | — | — | — |
+| `EVID-OFFLINE-CITATION-RETRIEVAL-PROOF` | Offline citation-safe retrieval proof | P1 / high-priority-blocker | bounded-evidence | high | unit-test | `uv run python scripts/verify-offline-citation-retrieval-proof.py` proves 6 offline citation retrieval cases with selected_count=2, scoped_no_answer_count=1, rejected_count=3, validator_accepted_count=3, validator_rejected_count=1, and mismatch_count=0. | M014/S02 |
+|  | Does not close GATE-G008. | — | — | — | — | — | — |
+|  | Does not close GATE-G011. | — | — | — | — | — | — |
+|  | Does not make LLM output legal authority. | — | — | — | — | — | — |
+|  | Does not make proof-local IDs production IDs. | — | — | — | — | — | — |
+|  | Does not prove legal-answer correctness. | — | — | — | — | — | — |
+|  | Does not prove local embedding quality. | — | — | — | — | — | — |
+|  | Does not prove parser completeness. | — | — | — | — | — | — |
+|  | Does not prove product retrieval quality. | — | — | — | — | — | — |
+|  | Does not prove production FalkorDB runtime behavior. | — | — | — | — | — | — |
+|  | Does not prove production graph schema readiness. | — | — | — | — | — | — |
+| `EVID-REAL-ARTIFACT-RETRIEVAL-PROOF` | Real-artifact retrieval output ID proof | P1 / high-priority-blocker | bounded-evidence | high | unit-test | `uv run python scripts/verify-real-artifact-retrieval-proof.py` proves 7 real-artifact-derived cases with 2 accepted, 5 rejected, and mismatch_count=0; M012 validator regression remains green. | M013/S02 |
+|  | Does not close GATE-G008. | — | — | — | — | — | — |
+|  | Does not close GATE-G011. | — | — | — | — | — | — |
+|  | Does not make LLM output legal authority. | — | — | — | — | — | — |
+|  | Does not make proof-local IDs production IDs. | — | — | — | — | — | — |
+|  | Does not prove legal-answer correctness. | — | — | — | — | — | — |
+|  | Does not prove local embedding quality. | — | — | — | — | — | — |
+|  | Does not prove parser completeness. | — | — | — | — | — | — |
+|  | Does not prove product retrieval quality. | — | — | — | — | — | — |
+|  | Does not prove production FalkorDB runtime behavior. | — | — | — | — | — | — |
+|  | Does not prove production graph schema readiness. | — | — | — | — | — | — |
+| `EVID-REPRESENTATIVE-RETRIEVAL-RUNTIME-BENCHMARK-PROOF` | Representative retrieval runtime benchmark proof | P1 / high-priority-blocker | bounded-evidence | high | runtime-smoke | `uv run python scripts/verify-representative-retrieval-runtime-benchmark.py --allow-runtime-blocker` records metrics_confirmed with mrr=1.0, recall_at_1=1.0, recall_at_3=1.0, no_answer_accuracy=1.0, rejection metrics=1.0, runtime_boundary_confirmed=true, managed_api_used=false, and GATE-G011 status=open. | M016/S03 |
+|  | Does not allow managed embedding API fallback. | — | — | — | — | — | — |
+|  | Does not authorize GigaChat or GigaEmbeddings runtime use. | — | — | — | — | — | — |
+|  | Does not close GATE-G011. | — | — | — | — | — | — |
+|  | Does not make proof-local IDs production IDs. | — | — | — | — | — | — |
+|  | Does not persist raw legal text, raw query text, raw prompts, vectors, provider payloads, managed-API evidence, raw FalkorDB rows, secrets, or generated legal advice. | — | — | — | — | — | — |
+|  | Does not prove legal-answer correctness. | — | — | — | — | — | — |
+|  | Does not prove parser completeness. | — | — | — | — | — | — |
+|  | Does not prove product retrieval quality. | — | — | — | — | — | — |
+|  | Does not prove production FalkorDB runtime behavior. | — | — | — | — | — | — |
+|  | Does not prove production graph schema readiness. | — | — | — | — | — | — |
+|  | Does not prove production ranker quality. | — | — | — | — | — | — |
+| `EVID-RESEARCH-GRAPHRAG-MATH-ANALYSIS` | GraphRAG/FalkorDB mathematical analysis research input | P1 / high-priority-blocker | bounded-evidence | high | source-anchor | Assessment classifies ideas into applicable-now principles, proof-gated candidates, and deferred/not-adopted claims; future proof must validate any runtime, SDK, benchmark, or retrieval-quality claim. | M011/S01 |
+|  | Does not prove FalkorDB production-scale behavior. | — | — | — | — | — | — |
+|  | Does not prove GraphRAG-SDK compatibility. | — | — | — | — | — | — |
+|  | Does not prove legal-answer correctness. | — | — | — | — | — | — |
+|  | Does not prove product retrieval quality. | — | — | — | — | — | — |
+|  | Does not validate benchmark, cost, or latency claims. | — | — | — | — | — | — |
+| `EVID-RESEARCH-HABR-LEGAL-RAG-ITERATION-SCALING` | Habr Legal RAG iteration and scaling research input | P1 / high-priority-blocker | bounded-evidence | high | source-anchor | Human-reviewed JSON comparison classifies all transferable ideas as requiring project-specific verification before adoption; future proof must validate retrieval IDs, evidence precision, no-answer behavior, scale/noise degradation, and any runtime or model claim. | D045 / future-retrieval-quality-proof |
+|  | Does not authorize generated Cypher execution. | — | — | — | — | — | — |
+|  | Does not prove FalkorDB runtime/vector/full-text/rerank behavior. | — | — | — | — | — | — |
+|  | Does not prove legal-answer correctness. | — | — | — | — | — | — |
+|  | Does not prove parser completeness. | — | — | — | — | — | — |
+|  | Does not prove product retrieval quality. | — | — | — | — | — | — |
+| `EVID-RETRIEVAL-OUTPUT-ID-VALIDATOR-PROOF` | Retrieval output ID validator bounded proof | P1 / high-priority-blocker | bounded-evidence | high | unit-test | `uv run python scripts/verify-retrieval-output-validator.py` and `uv run pytest tests/test_retrieval_output_validator.py -q` prove fixture/unit/CLI behavior for required M012 diagnostic cases only. | M012/S02 |
+|  | Does not make LLM output legal authority. | — | — | — | — | — | — |
+|  | Does not make fixture IDs production IDs. | — | — | — | — | — | — |
+|  | Does not promote D045 research into validated product behavior. | — | — | — | — | — | — |
+|  | Does not prove legal-answer correctness. | — | — | — | — | — | — |
+|  | Does not prove parser completeness. | — | — | — | — | — | — |
+|  | Does not prove product retrieval quality. | — | — | — | — | — | — |
+|  | Does not prove production FalkorDB runtime behavior. | — | — | — | — | — | — |
+|  | Does not prove raw legal text evidence quality. | — | — | — | — | — | — |
 
 ### What This Area Does Not Prove
 
@@ -278,10 +289,10 @@ Proof work for this area should:
 
 ### Proof Gates
 
-| ID | Title | Risk | Verification | Owner |
-| --- | --- | --- | --- | --- |
-| `GATE-G005` | Temporal same-date multi-edition conflict policy | high | A future proof slice defines and verifies same-date/multi-edition conflict policy. | future-temporal-proof |
-|  | Does not validate temporal conflict resolution. | — | — | — |
+| ID | Title | Priority | Status | Risk | Verification | Owner |
+| --- | --- | --- | --- | --- | --- | --- |
+| `GATE-G005` | Temporal same-date multi-edition conflict policy | P1 / high-priority-blocker | active | high | A future proof slice defines and verifies same-date/multi-edition conflict policy. | future-temporal-proof |
+|  | Does not validate temporal conflict resolution. | — | — | — | — | — |
 
 ### What This Area Does Not Prove
 
@@ -386,4 +397,4 @@ _The following statements appear across one or more architecture records and col
 
 ---
 
-*Blockers report generated from `prd/architecture/architecture_graph_report.json`. This is a planning artifact — it makes next proof work visible without asserting product readiness. Source-of-truth remains with PRD, GSD, ADR, and source anchor evidence.*
+*Blockers report generated from `prd/architecture/architecture_graph_report.json`. This is a derived, non-authoritative planning artifact — it makes next proof work visible without asserting product readiness. Source-of-truth remains with PRD, GSD, ADR, and source anchor evidence.*

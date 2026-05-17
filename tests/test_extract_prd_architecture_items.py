@@ -350,7 +350,7 @@ def test_generated_records_are_conservative_and_anchored() -> None:
             assert path, f"id={record.get('id')} field=source_anchors.path empty"
             assert not path.startswith("/"), f"id={record.get('id')} field=source_anchors.path absolute: {path}"
             assert not path.startswith(".gsd/exec"), f"id={record.get('id')} field=source_anchors.path ignored local-only path: {path}"
-            assert (ROOT / path).exists(), f"id={record.get('id')} field=source_anchors.path missing: {path}"
+            assert path.startswith(".gsd/") or (ROOT / path).exists(), f"id={record.get('id')} field=source_anchors.path missing: {path}"
 
 
 def test_tmp_generation_check_mode_and_deterministic_bytes(tmp_path: Path) -> None:

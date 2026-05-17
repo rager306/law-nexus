@@ -23,6 +23,45 @@
 
 ---
 
+## GSD Validation Snapshot
+
+Priority and gate rows below are compact triage metadata only. They do not promote claims, prove product readiness, or replace source anchors.
+
+| Bucket | Diagnostic Class | Count |
+| --- | --- | ---: |
+| P0 | critical-gate | 8 |
+| P1 | high-priority-blocker | 25 |
+| P2 | medium-diagnostic | 12 |
+| P3 | backlog-only-signal | 1 |
+
+### Critical Blockers
+
+| ID | Status | Proof Level | Remediation Class |
+| --- | --- | --- | --- |
+| `GATE-GENERATED-CYPHER-SAFETY` | active | none | add-proof-gate |
+
+### High-Priority Validator Failures
+
+| ID | Status | Proof Level | Remediation Class |
+| --- | --- | --- | --- |
+| `GATE-EMBEDDING-SUPPLY-CHAIN` | active | none | add-proof-gate |
+| `GATE-G005` | active | none | add-proof-gate |
+| `GATE-G008` | active | none | add-proof-gate |
+| `GATE-G011` | active | none | add-proof-gate |
+| `GATE-LEGAL-NEXUS-ACCESS-CONTROL` | active | none | add-proof-gate |
+
+### Deferred Candidates
+
+No deferred or proposed backlog candidates in the generated registry view.
+
+### Non-Authoritative Warnings
+
+- Non-claim statements visible in registry: 172.
+- Reports must not include raw legal text, secrets, provider payloads, vectors, prompts, or local-only execution artifact paths.
+- A passing generated view check is not product/runtime/legal validation.
+
+---
+
 ## Layer Coverage
 
 | Layer | Node Count |

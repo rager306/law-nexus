@@ -11,6 +11,14 @@
 | **blocked/open** | Unresolved proof gate (proof_level=none) or blocked status. | Do not assert; resolve proof gate first. |
 | **unsafe-to-assert** | Out-of-scope guardrail, or item without sufficient proof. | Do not assert without independent evidence. |
 
+## R035 Gate Status
+
+Ontology, external-standard, GraphRAG, graph-vector, and pilot-scale rows are guardrails only. They do not validate the referenced standard or product behavior.
+
+| ID | Trigger | Current Safe Bucket | Required Gate | Minimum Proof | Status | Missing Requirements | Remediation Class |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| `EVID-RESEARCH-GRAPHRAG-MATH-ANALYSIS` | GraphRAG | proof-gated integration candidate | GATE-ONTOLOGY-GRAPHRAG-INTEGRATION | integration-test | bounded-evidence | missing gate GATE-ONTOLOGY-GRAPHRAG-INTEGRATION; proof_level<integration-test | add-proof-gate |
+
 ---
 
 ## safe-to-say

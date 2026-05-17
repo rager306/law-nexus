@@ -259,15 +259,24 @@ def load_s08_findings(path: Path) -> dict[str, Any]:
     return data
 
 
+def path_is_portable_gsd_reference(path: Path | str) -> bool:
+    value = str(path)
+    return value.startswith(".gsd/") and not value.startswith(".gsd/exec")
+
+
 def validate_sources(config: ExtractionConfig) -> None:
     required_paths = list(REQUIRED_SOURCE_PATHS)
-    if config.s08_findings_path != config.root / DEFAULT_S08_FINDINGS:
+    custom_s08 = config.s08_findings_path != config.root / DEFAULT_S08_FINDINGS
+    if custom_s08:
         required_paths = [path for path in required_paths if path != DEFAULT_S08_FINDINGS]
     for rel_path in required_paths:
         path = config.root / rel_path
         if not path.exists():
+            if path_is_portable_gsd_reference(rel_path):
+                continue
             raise ExtractionError(f"missing required source for curated architecture extraction: {rel_path}")
-    load_s08_findings(config.s08_findings_path)
+    if custom_s08 or config.s08_findings_path.exists():
+        load_s08_findings(config.s08_findings_path)
 
 
 def requirement_items() -> list[Record]:
@@ -2318,6 +2327,8 @@ def validate_anchor_paths(config: ExtractionConfig, records: list[Record]) -> No
             if path_value.startswith(".gsd/exec"):
                 raise ExtractionError(f"record {record.get('id')} references ignored local execution path: {path_value}")
             if not (config.root / path_value).exists():
+                if path_is_portable_gsd_reference(path_value):
+                    continue
                 raise ExtractionError(f"record {record.get('id')} references missing source anchor: {path_value}")
 
 

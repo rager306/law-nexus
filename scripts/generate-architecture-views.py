@@ -3,7 +3,10 @@
 
 Reads the derived S03/S04 graph report (architecture_graph_report.json) and
 produces compact human-readable views for health status, layer coverage, risk,
-non-authoritative boundary documentation, and a claims safety ledger.
+non-authoritative boundary documentation, and a claims safety ledger. The GSD
+validation contract stays intentionally small: priority buckets, promotion
+blockers, typed drift classes, and R035 gate status only; no dashboard or
+interactive graph UI is implied by these generated views.
 """
 
 from __future__ import annotations
@@ -26,8 +29,193 @@ def escape_md(value: Any) -> str:
     return str(value).replace("|", "\\|").replace("\n", " ")
 
 
-def render_health_dashboard(report: dict[str, Any]) -> str:
+def drift_counts_from_report(report: dict[str, Any]) -> dict[str, int]:
+    """Extract optional verifier drift counts from a report-like payload.
+
+    The canonical S03 graph report does not contain verifier failures when the
+    registry is healthy. Tests and future diagnostic integrations can pass either
+    a top-level ``drift_counts`` map, a nested ``verifier.drift_counts`` map, or
+    a ``diagnostics`` list with ``drift_kind`` values. This helper keeps the view
+    diagnostics-only: it counts categories but never implies repair or proof.
+    """
+    raw_counts = report.get("drift_counts")
+    if not isinstance(raw_counts, dict):
+        verifier = report.get("verifier")
+        raw_counts = verifier.get("drift_counts") if isinstance(verifier, dict) else None
+
+    counts: dict[str, int] = {}
+    if isinstance(raw_counts, dict):
+        for drift_kind, count in raw_counts.items():
+            if isinstance(drift_kind, str) and isinstance(count, int) and count > 0:
+                counts[drift_kind] = count
+
+    diagnostics = report.get("diagnostics", [])
+    if isinstance(diagnostics, list):
+        for diagnostic in diagnostics:
+            if not isinstance(diagnostic, dict):
+                continue
+            drift_kind = diagnostic.get("drift_kind")
+            if isinstance(drift_kind, str) and drift_kind:
+                counts[drift_kind] = counts.get(drift_kind, 0) + 1
+
+    return dict(sorted(counts.items()))
+
+
+PRIORITY_BUCKETS: dict[str, tuple[str, str]] = {
+    "critical": ("P0", "critical-gate"),
+    "high": ("P1", "high-priority-blocker"),
+    "medium": ("P2", "medium-diagnostic"),
+    "low": ("P3", "backlog-only-signal"),
+}
+
+R035_RULES: tuple[dict[str, Any], ...] = (
+    {
+        "terms": ("Akoma Ntoso", "LegalDocML", "FRBR"),
+        "safe_bucket": "compatibility/reference projection only",
+        "gate": "GATE-AKOMA-FRBR-NORMALIZATION",
+        "minimum_proof_level": "static-check",
+    },
+    {
+        "terms": ("LKIF", "deontic mapping"),
+        "safe_bucket": "proof-gated candidate",
+        "gate": "GATE-LKIF-DEONTIC-BENCHMARK",
+        "minimum_proof_level": "unit-test",
+    },
+    {
+        "terms": ("RusLegalCore",),
+        "safe_bucket": "proof-gated domain-scope candidate",
+        "gate": "GATE-RUSLEGALCORE-SCOPE",
+        "minimum_proof_level": "static-check",
+    },
+    {
+        "terms": ("BFO", "GOST", "GOST R 59798-2021", "OWL", "OWL 2", "Common Logic"),
+        "safe_bucket": "deferred formal-alignment review",
+        "gate": "GATE-BFO-GOST-ALIGNMENT",
+        "minimum_proof_level": "static-check",
+    },
+    {
+        "terms": ("Ontology GraphRAG", "ontology-aware GraphRAG", "ontology-driven GraphRAG"),
+        "safe_bucket": "proof-gated integration candidate",
+        "gate": "GATE-ONTOLOGY-GRAPHRAG-INTEGRATION",
+        "minimum_proof_level": "integration-test",
+    },
+    {
+        "terms": ("GraphRAG",),
+        "safe_bucket": "proof-gated integration candidate",
+        "gate": "GATE-ONTOLOGY-GRAPHRAG-INTEGRATION",
+        "minimum_proof_level": "integration-test",
+    },
+    {
+        "terms": ("graph-vector", "HNSW", "hybrid retrieval"),
+        "safe_bucket": "deferred runtime behavior claim",
+        "gate": "GATE-G015 or GATE-ONTOLOGY-GRAPHRAG-INTEGRATION",
+        "minimum_proof_level": "runtime-smoke",
+    },
+    {
+        "terms": ("pilot-scale", "1000-document", "1,000-document"),
+        "safe_bucket": "deferred readiness proof",
+        "gate": "GATE-PILOT-SCALE-READINESS",
+        "minimum_proof_level": "integration-test",
+    },
+)
+
+PROOF_LEVEL_ORDER = {
+    "none": 0,
+    "source-anchor": 1,
+    "static-check": 2,
+    "unit-test": 3,
+    "integration-test": 4,
+    "runtime-smoke": 5,
+    "real-document-proof": 6,
+    "production-observation": 7,
+}
+
+
+def priority_bucket_for_record(record: dict[str, Any]) -> tuple[str, str]:
+    """Return the compact GSD priority bucket for an architecture record."""
+    priority = str(record.get("priority") or record.get("risk_level") or "").lower()
+    return PRIORITY_BUCKETS.get(priority, ("P3", "backlog-only-signal"))
+
+
+def priority_summary(items_lookup: dict[str, dict[str, Any]]) -> dict[str, list[dict[str, Any]]]:
+    """Group records into P0-P3 buckets for compact validation views."""
+    grouped: dict[str, list[dict[str, Any]]] = {"P0": [], "P1": [], "P2": [], "P3": []}
+    for record in items_lookup.values():
+        bucket, _ = priority_bucket_for_record(record)
+        grouped[bucket].append(record)
+    for records in grouped.values():
+        records.sort(key=lambda item: str(item.get("id", "")))
+    return grouped
+
+
+def is_promotion_blocker(record: dict[str, Any]) -> bool:
+    """Return True when a record blocks safe promotion rather than proving readiness."""
+    status = str(record.get("status", ""))
+    proof_level = str(record.get("proof_level", ""))
+    record_type = str(record.get("type", ""))
+    bucket, _ = priority_bucket_for_record(record)
+    return (
+        record_type == "proof_gate"
+        or status == "blocked"
+        or (bucket in {"P0", "P1"} and proof_level == "none")
+    )
+
+
+def deferred_candidates(items_lookup: dict[str, dict[str, Any]]) -> list[dict[str, Any]]:
+    """Return low-urgency records that should remain backlog/candidate material."""
+    candidates = [
+        record
+        for record in items_lookup.values()
+        if str(record.get("status", "")) in {"deferred", "proposed"}
+        or str(record.get("lifecycle", "")) in {"deferred", "proposed", "researching"}
+        and priority_bucket_for_record(record)[0] == "P3"
+    ]
+    return sorted(candidates, key=lambda item: str(item.get("id", "")))
+
+
+def r035_gate_rows(items_lookup: dict[str, dict[str, Any]]) -> list[dict[str, str]]:
+    """Return compact R035 ontology/external-standard guardrail rows."""
+    rows: list[dict[str, str]] = []
+    ids = set(items_lookup)
+    for record_id, record in sorted(items_lookup.items()):
+        haystack = " ".join(str(record.get(field, "")) for field in ("id", "title", "summary"))
+        for rule in R035_RULES:
+            matched_terms = [term for term in rule["terms"] if term.lower() in haystack.lower()]
+            if not matched_terms:
+                continue
+            gate_expr = str(rule["gate"])
+            required_gates = [part.strip() for part in gate_expr.split(" or ")]
+            missing: list[str] = []
+            if not any(gate in ids for gate in required_gates):
+                missing.append(f"missing gate {gate_expr}")
+            proof_level = str(record.get("proof_level", "none"))
+            minimum = str(rule["minimum_proof_level"])
+            if PROOF_LEVEL_ORDER.get(proof_level, -1) < PROOF_LEVEL_ORDER.get(minimum, 999):
+                missing.append(f"proof_level<{minimum}")
+            if not record.get("owner"):
+                missing.append("missing owner")
+            if not record.get("status"):
+                missing.append("missing status")
+            rows.append({
+                "id": str(record_id),
+                "trigger": ", ".join(matched_terms),
+                "safe_bucket": str(rule["safe_bucket"]),
+                "required_gate": gate_expr,
+                "minimum_proof_level": minimum,
+                "current_status": str(record.get("status", "")),
+                "missing": "; ".join(missing) if missing else "none",
+                "remediation_class": "add-proof-gate" if missing else "none",
+            })
+            break
+    return rows
+
+
+def render_health_dashboard(
+    report: dict[str, Any],
+    items_lookup: dict[str, dict[str, Any]] | None = None,
+) -> str:
     """Render a compact health status dashboard from the graph report."""
+    items_lookup = items_lookup or {}
     counts = report.get("counts", {})
     layer_coverage = report.get("layer_coverage", {})
     missing_layers = layer_coverage.get("missing_layers", [])
@@ -37,6 +225,8 @@ def render_health_dashboard(report: dict[str, Any]) -> str:
     high_risk_nodes = report.get("high_risk_nodes", [])
     contradiction_edges = report.get("contradiction_edges", [])
     non_claims_summary = report.get("non_claims_summary", {})
+    drift_counts = drift_counts_from_report(report)
+    total_drift_findings = sum(drift_counts.values())
 
     # Determine overall health status
     health_issues = []
@@ -78,12 +268,96 @@ def render_health_dashboard(report: dict[str, Any]) -> str:
         f"| High/Critical Risk Nodes | {len(high_risk_nodes)} ({critical_count} critical, {high_count} high) |",
         f"| Nodes with Non-Claims | {non_claims_summary.get('nodes_with_non_claims', 0)} |",
         f"| Total Non-Claims | {non_claims_summary.get('total_non_claims', 0)} |",
+    ]
+
+    if drift_counts:
+        lines.append(f"| Drift Diagnostics | {total_drift_findings} |")
+
+    lines.extend([
         "",
         "---",
         "",
+    ])
+
+    if items_lookup:
+        buckets = priority_summary(items_lookup)
+        blockers = [record for record in items_lookup.values() if is_promotion_blocker(record)]
+        critical_blockers = sorted(
+            [record for record in blockers if priority_bucket_for_record(record)[0] == "P0"],
+            key=lambda item: str(item.get("id", "")),
+        )
+        high_priority_failures = sorted(
+            [record for record in blockers if priority_bucket_for_record(record)[0] == "P1"],
+            key=lambda item: str(item.get("id", "")),
+        )
+        deferred = deferred_candidates(items_lookup)
+        lines.extend([
+            "## GSD Validation Snapshot",
+            "",
+            "Priority and gate rows below are compact triage metadata only. They do not promote claims, prove product readiness, or replace source anchors.",
+            "",
+            "| Bucket | Diagnostic Class | Count |",
+            "| --- | --- | ---: |",
+        ])
+        for priority, label in (("P0", "critical-gate"), ("P1", "high-priority-blocker"), ("P2", "medium-diagnostic"), ("P3", "backlog-only-signal")):
+            lines.append(f"| {priority} | {label} | {len(buckets[priority])} |")
+        lines.extend(["", "### Critical Blockers", ""])
+        if critical_blockers:
+            lines.extend(["| ID | Status | Proof Level | Remediation Class |", "| --- | --- | --- | --- |"])
+            for record in critical_blockers[:10]:
+                remediation = "add-proof-gate" if str(record.get("proof_level", "")) == "none" else "downgrade-claim"
+                lines.append(f"| `{escape_md(record.get('id', ''))}` | {escape_md(record.get('status', ''))} | {escape_md(record.get('proof_level', ''))} | {remediation} |")
+        else:
+            lines.append("No P0 promotion blockers in the generated registry view.")
+        lines.extend(["", "### High-Priority Validator Failures", ""])
+        if high_priority_failures:
+            lines.extend(["| ID | Status | Proof Level | Remediation Class |", "| --- | --- | --- | --- |"])
+            for record in high_priority_failures[:10]:
+                remediation = "add-proof-gate" if str(record.get("proof_level", "")) == "none" else "add-evidence-class"
+                lines.append(f"| `{escape_md(record.get('id', ''))}` | {escape_md(record.get('status', ''))} | {escape_md(record.get('proof_level', ''))} | {remediation} |")
+        else:
+            lines.append("No P1 promotion blockers in the generated registry view.")
+        lines.extend(["", "### Deferred Candidates", ""])
+        if deferred:
+            lines.extend(["| ID | Priority | Status | Safe Handling |", "| --- | --- | --- | --- |"])
+            for record in deferred[:10]:
+                bucket, label = priority_bucket_for_record(record)
+                lines.append(f"| `{escape_md(record.get('id', ''))}` | {bucket} / {label} | {escape_md(record.get('status', ''))} | defer-to-backlog |")
+        else:
+            lines.append("No deferred or proposed backlog candidates in the generated registry view.")
+        lines.extend([
+            "",
+            "### Non-Authoritative Warnings",
+            "",
+            f"- Non-claim statements visible in registry: {non_claims_summary.get('total_non_claims', 0)}.",
+            "- Reports must not include raw legal text, secrets, provider payloads, vectors, prompts, or local-only execution artifact paths.",
+            "- A passing generated view check is not product/runtime/legal validation.",
+            "",
+            "---",
+            "",
+        ])
+
+    if drift_counts:
+        lines.extend([
+            "## Drift Diagnostics",
+            "",
+            "These verifier findings are non-authoritative diagnostics only. They do not prove product readiness, repair authoritative sources, or imply that derived projection regeneration is safe unless the verifier explicitly marks that drift class as safe to regenerate.",
+            "",
+            "| Drift Kind | Count |",
+            "| --- | ---: |",
+        ])
+        for drift_kind, count in drift_counts.items():
+            lines.append(f"| {escape_md(drift_kind)} | {count} |")
+        lines.extend([
+            "",
+            "---",
+            "",
+        ])
+
+    lines.extend([
         "## Layer Coverage",
         "",
-    ]
+    ])
 
     layer_counts = layer_coverage.get("counts", {})
     if layer_counts:
@@ -323,10 +597,10 @@ def render_blockers_report(
         _nc_by_id[entry["id"]] = entry.get("non_claims", [])
 
     def gate_ncs(gate_id: str) -> list[str]:
-        return _nc_by_id.get(gate_id, [])
+        return _nc_by_id.get(gate_id) or list(items_lookup.get(gate_id, {}).get("non_claims", []))
 
     def node_ncs(node_id: str) -> list[str]:
-        return _nc_by_id.get(node_id, [])
+        return _nc_by_id.get(node_id) or list(items_lookup.get(node_id, {}).get("non_claims", []))
 
     def _full_title(record_id: str) -> str:
         return escape_md(items_lookup.get(record_id, {}).get("title", "") or "")
@@ -343,31 +617,41 @@ def render_blockers_report(
         title = gate.get("title") or _full_title(nid)
         owner = gate.get("owner") or _full_owner(nid)
         ver = gate.get("verification") or _full_verification(nid)
+        source_record = items_lookup.get(nid, gate)
+        bucket, diagnostic_class = priority_bucket_for_record(source_record)
+        status = escape_md(source_record.get("status", gate.get("status", "")))
         rows = [
             f"| `{nid}` | {title} "
+            f"| {bucket} / {diagnostic_class} "
+            f"| {status} "
             f"| {escape_md(gate.get('risk_level', ''))} "
             f"| {ver} "
             f"| {owner} |"
         ]
         for nc in gate_ncs(nid):
-            rows.append(f"|  | {escape_md(nc)} | — | — | — |")
+            rows.append(f"|  | {escape_md(nc)} | — | — | — | — | — |")
         return rows
 
     def render_node_rows(node: dict[str, Any]) -> list[str]:
         nid = node.get("id", "")
         # Enrich from items_lookup for title/owner/verification
+        source_record = items_lookup.get(nid, node)
         title = _full_title(nid)
         owner = _full_owner(nid)
         ver = _full_verification(nid)
+        bucket, diagnostic_class = priority_bucket_for_record(source_record)
+        status = escape_md(source_record.get("status", node.get("status", "")))
         rows = [
             f"| `{nid}` | {title} "
+            f"| {bucket} / {diagnostic_class} "
+            f"| {status} "
             f"| {escape_md(node.get('risk_level', ''))} "
             f"| {escape_md(node.get('proof_level', ''))} "
             f"| {ver} "
             f"| {owner} |"
         ]
         for nc in node_ncs(nid):
-            rows.append(f"|  | {escape_md(nc)} | — | — | — |")
+            rows.append(f"|  | {escape_md(nc)} | — | — | — | — | — | — |")
         return rows
 
     # ── Summary table ───────────────────────────────────────────────────────────
@@ -376,7 +660,7 @@ def render_blockers_report(
         "",
         "> **Scope:** This report maps active proof gates, blocked evidence, and non-claims "
         "to the six capability areas required for LegalGraph Nexus product readiness. "
-        "It is a planning artifact only — it does **not** assert product readiness and "
+        "It is a derived, non-authoritative planning artifact only — it does **not** assert product readiness and "
         "does not validate runtime behavior, retrieval quality, parser completeness, "
         "generated-Cypher safety, FalkorDB production scale, or legal-answer correctness.",
         "",
@@ -392,6 +676,28 @@ def render_blockers_report(
             f"| {area} | {len(gates_by_area[area])} | {len(blocked_by_area[area])} |"
         )
 
+    all_blockers = [*unresolved_gates, *blocked_nodes]
+    if all_blockers:
+        lines.extend([
+            "",
+            "## Priority Snapshot",
+            "",
+            "This snapshot is a triage view only; priority does not prove readiness or promote claims.",
+            "",
+            "| Priority | Count | Representative Blockers |",
+            "| --- | ---: | --- |",
+        ])
+        by_bucket: dict[str, list[str]] = {"P0": [], "P1": [], "P2": [], "P3": []}
+        for blocker in all_blockers:
+            record_id = str(blocker.get("id", ""))
+            source_record = items_lookup.get(record_id, blocker)
+            bucket, _ = priority_bucket_for_record(source_record)
+            by_bucket[bucket].append(record_id)
+        for bucket in ("P0", "P1", "P2", "P3"):
+            ids = sorted(by_bucket[bucket])
+            representatives = ", ".join(f"`{escape_md(record_id)}`" for record_id in ids[:5]) if ids else "—"
+            lines.append(f"| {bucket} | {len(ids)} | {representatives} |")
+
     # ── Per-area sections ───────────────────────────────────────────────────────
     for area in CAPABILITY_AREAS:
         gate_list = gates_by_area[area]
@@ -403,8 +709,8 @@ def render_blockers_report(
             lines.extend([
                 "### Proof Gates",
                 "",
-                "| ID | Title | Risk | Verification | Owner |",
-                "| --- | --- | --- | --- | --- |",
+                "| ID | Title | Priority | Status | Risk | Verification | Owner |",
+                "| --- | --- | --- | --- | --- | --- | --- |",
             ])
             for gate in gate_list:
                 lines.extend(render_gate_rows(gate))
@@ -414,8 +720,8 @@ def render_blockers_report(
                     "",
                     "### Blocked / Bounded Evidence",
                     "",
-                    "| ID | Title | Risk | Proof Level | Verification | Owner |",
-                    "| --- | --- | --- | --- | --- | --- |",
+                    "| ID | Title | Priority | Status | Risk | Proof Level | Verification | Owner |",
+                    "| --- | --- | --- | --- | --- | --- | --- | --- |",
                 ])
                 for node in blocked_list:
                     lines.extend(render_node_rows(node))
@@ -489,7 +795,7 @@ def render_blockers_report(
         "---",
         "",
         "*Blockers report generated from `prd/architecture/architecture_graph_report.json`. "
-        "This is a planning artifact — it makes next proof work visible without asserting "
+        "This is a derived, non-authoritative planning artifact — it makes next proof work visible without asserting "
         "product readiness. Source-of-truth remains with PRD, GSD, ADR, and source anchor evidence.*",
     ])
 
@@ -592,11 +898,40 @@ def render_claims_ledger(
         "| **blocked/open** | Unresolved proof gate (proof_level=none) or blocked status. | Do not assert; resolve proof gate first. |",
         "| **unsafe-to-assert** | Out-of-scope guardrail, or item without sufficient proof. | Do not assert without independent evidence. |",
         "",
+    ]
+
+    ontology_rows = r035_gate_rows(items_lookup)
+    lines.extend([
+        "## R035 Gate Status",
+        "",
+        "Ontology, external-standard, GraphRAG, graph-vector, and pilot-scale rows are guardrails only. They do not validate the referenced standard or product behavior.",
+        "",
+    ])
+    if ontology_rows:
+        lines.extend([
+            "| ID | Trigger | Current Safe Bucket | Required Gate | Minimum Proof | Status | Missing Requirements | Remediation Class |",
+            "| --- | --- | --- | --- | --- | --- | --- | --- |",
+        ])
+        for row in ontology_rows:
+            lines.append(
+                f"| `{escape_md(row['id'])}` | {escape_md(row['trigger'])} "
+                f"| {escape_md(row['safe_bucket'])} "
+                f"| {escape_md(row['required_gate'])} "
+                f"| {escape_md(row['minimum_proof_level'])} "
+                f"| {escape_md(row['current_status'])} "
+                f"| {escape_md(row['missing'])} "
+                f"| {escape_md(row['remediation_class'])} |"
+            )
+    else:
+        lines.append("No R035-triggered ontology or external-standard rows in the generated registry view.")
+
+    lines.extend([
+        "",
         "---",
         "",
         "## safe-to-say",
         "",
-    ]
+    ])
 
     if safe_items:
         lines.extend([
@@ -812,8 +1147,8 @@ def run(argv: list[str] | None = None) -> int:
         print(f"invalid JSON in {args.report_json}: {exc}", file=sys.stderr)
         return 1
 
-    expected_health = render_health_dashboard(report)
     items_lookup = _load_items_lookup(args.items_jsonl)
+    expected_health = render_health_dashboard(report, items_lookup=items_lookup)
     expected_blockers = render_blockers_report(report, items_lookup=items_lookup)
     expected_claims = render_claims_ledger(items_lookup, report)
 

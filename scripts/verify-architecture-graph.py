@@ -28,7 +28,110 @@ DEFAULT_REPORT_MD_PATH = ROOT / "prd/architecture/architecture_report.md"
 DEFAULT_POLICY_DOC_PATH = ROOT / "prd/architecture/README.md"
 SCHEMA_PATH = ROOT / "prd/architecture/architecture.schema.json"
 RecordKind = Literal["item", "edge"]
+DriftKind = Literal[
+    "freshness-drift",
+    "source-anchor-drift",
+    "graph-integrity-drift",
+    "decision-fitness-drift",
+    "proof-gate-drift",
+    "contradiction-drift",
+    "overclaim-drift",
+]
 LAST_RESULT: VerificationResult | None = None
+
+
+@dataclass(frozen=True)
+class DriftDiagnosticPolicy:
+    drift_kind: DriftKind
+    remediation_hint: str
+    safe_to_regenerate: bool = False
+
+
+FRESHNESS_DRIFT_RULES = {"upstream-s02-check", "upstream-s03-check", "report-json", "report-md"}
+SOURCE_ANCHOR_DRIFT_RULES = {
+    "source-anchor-path-local",
+    "source-anchor-resolved-local",
+    "source-anchor-exists",
+    "source-anchor-line-range",
+    "source-anchor-token",
+}
+GRAPH_INTEGRITY_DRIFT_RULES = {
+    "read-jsonl",
+    "malformed-jsonl",
+    "jsonl-object",
+    "record-id",
+    "duplicate-id",
+    "record-kind",
+    "schema-malformed-json",
+    "schema-read",
+    "schema-object",
+    "schema-validator",
+    "missing-endpoint",
+    "orphan-traceability",
+    "read-claim-text",
+}
+DECISION_FITNESS_DRIFT_RULES = {"decision-consequence", "decision-supersession", "decision-fitness"}
+PROOF_GATE_DRIFT_RULES = {"proof-gate-metadata", "evidence-class-boundary", "claim-lifecycle", "ontology-promotion-gate"}
+CONTRADICTION_DRIFT_RULES = {"active-contradiction"}
+OVERCLAIM_DRIFT_RULES = {"forbidden-overclaim"}
+SCHEMA_RULE_FRAGMENTS = (
+    "required",
+    "additionalProperties",
+    "enum",
+    "const",
+    "oneOf",
+    "type=",
+    "pattern=",
+    "minLength",
+    "minimum=",
+    "maximum=",
+    "minItems=",
+    "uniqueItems",
+    "format=date",
+)
+
+
+def drift_policy_for_rule(rule: str, field: str = "<none>") -> DriftDiagnosticPolicy:
+    if rule in FRESHNESS_DRIFT_RULES:
+        return DriftDiagnosticPolicy(
+            "freshness-drift",
+            "regenerate-derived-artifact-after-confirming-source-evidence-is-current",
+            safe_to_regenerate=True,
+        )
+    if rule in SOURCE_ANCHOR_DRIFT_RULES or field.startswith("source_anchors"):
+        return DriftDiagnosticPolicy(
+            "source-anchor-drift",
+            "edit-authoritative-source-anchor-or-source-evidence-then-regenerate-derived-projections",
+        )
+    if rule in DECISION_FITNESS_DRIFT_RULES:
+        return DriftDiagnosticPolicy(
+            "decision-fitness-drift",
+            "update-source-decision-evidence-consequences-supersession-or-proof-gate-coverage",
+        )
+    if rule in PROOF_GATE_DRIFT_RULES:
+        return DriftDiagnosticPolicy(
+            "proof-gate-drift",
+            "add-required-evidence-class-proof-gate-owner-or-downgrade-the-claim-in-source-evidence",
+        )
+    if rule in CONTRADICTION_DRIFT_RULES:
+        return DriftDiagnosticPolicy(
+            "contradiction-drift",
+            "resolve-reject-or-supersede-the-contradiction-in-source-evidence",
+        )
+    if rule in OVERCLAIM_DRIFT_RULES:
+        return DriftDiagnosticPolicy(
+            "overclaim-drift",
+            "downgrade-positive-claim-to-bounded-non-authoritative-language-or-add-required-proof",
+        )
+    if rule in GRAPH_INTEGRITY_DRIFT_RULES or any(fragment in rule for fragment in SCHEMA_RULE_FRAGMENTS):
+        return DriftDiagnosticPolicy(
+            "graph-integrity-drift",
+            "fix-schema-or-graph-integrity-source-mapping-then-regenerate-derived-projections",
+        )
+    return DriftDiagnosticPolicy(
+        "graph-integrity-drift",
+        "inspect-verifier-rule-and-repair-source-mapping-without-auto-changing-authoritative-sources",
+    )
 
 
 @dataclass(frozen=True)
@@ -42,11 +145,18 @@ class Diagnostic:
     field: str = "<none>"
     source_anchor: str = "<none>"
 
+    @property
+    def drift_policy(self) -> DriftDiagnosticPolicy:
+        return drift_policy_for_rule(self.rule, self.field)
+
     def format(self) -> str:
+        policy = self.drift_policy
         return (
             f"{display_path(self.path)}:{self.line_number} "
-            f"id={self.record_id} record_kind={self.record_kind} field={self.field} "
-            f"rule={self.rule} source_anchor={self.source_anchor} message={self.message}"
+            f"drift_kind={policy.drift_kind} id={self.record_id} record_kind={self.record_kind} "
+            f"field={self.field} affected_field={self.field} rule={self.rule} source_anchor={self.source_anchor} "
+            f"safe_to_regenerate={str(policy.safe_to_regenerate).lower()} "
+            f"remediation_hint={policy.remediation_hint} message={self.message}"
         )
 
 
@@ -105,6 +215,13 @@ class VerificationResult:
     def add(self, diagnostic: Diagnostic) -> None:
         self.diagnostics.append(diagnostic)
 
+    def drift_counts(self) -> dict[str, int]:
+        counts: dict[str, int] = {}
+        for diagnostic in self.diagnostics:
+            drift_kind = diagnostic.drift_policy.drift_kind
+            counts[drift_kind] = counts.get(drift_kind, 0) + 1
+        return counts
+
     def summary(self) -> dict[str, Any]:
         return {
             "status": "ok" if self.ok else "fail",
@@ -112,6 +229,7 @@ class VerificationResult:
             "items": self.items,
             "edges": self.edges,
             "upstream_checks": self.upstream_checks,
+            "drift_counts": self.drift_counts(),
             "non_authoritative": True,
             "boundary": "Verifier output is derived and non-authoritative; source evidence remains authoritative.",
         }
@@ -459,6 +577,36 @@ def source_anchor_path_is_local(anchor_path: str) -> bool:
     return not (len(parts) >= 2 and parts[0] == ".gsd" and parts[1] == "exec")
 
 
+def source_anchor_kind(anchor: Mapping[str, Any]) -> str:
+    kind = anchor.get("kind")
+    return kind if isinstance(kind, str) and kind else "<missing-kind>"
+
+
+def source_anchor_failure_message(anchor_path: str, anchor_kind: str, failure_class: str, remediation_class: str, remediation: str) -> str:
+    return (
+        f"anchor_path={anchor_path} anchor_kind={anchor_kind} failure_class={failure_class} "
+        f"remediation_class={remediation_class} remediation={remediation}"
+    )
+
+
+def source_anchor_resolves_inside_gsd(anchor_path: str) -> bool:
+    """Reject repository-relative symlinks that resolve into local `.gsd` state.
+
+    Lexical `.gsd/...` source anchors remain allowed by `source_anchor_is_portable_gsd_reference`
+    when they are not `.gsd/exec`; this check only catches non-`.gsd` paths whose
+    resolved target would smuggle local GSD state into source evidence.
+    """
+
+    if anchor_path.startswith(".gsd/"):
+        return False
+    try:
+        resolved_path = (ROOT / anchor_path).resolve(strict=True)
+        gsd_root = (ROOT / ".gsd").resolve(strict=False)
+    except OSError:
+        return False
+    return resolved_path == gsd_root or gsd_root in resolved_path.parents
+
+
 def read_anchor_lines(anchor_path: str, cache: dict[str, tuple[Path, list[str]]]) -> tuple[Path, list[str]] | None:
     if anchor_path in cache:
         return cache[anchor_path]
@@ -469,6 +617,19 @@ def read_anchor_lines(anchor_path: str, cache: dict[str, tuple[Path, list[str]]]
         return None
     cache[anchor_path] = (full_path, lines)
     return cache[anchor_path]
+
+
+def source_anchor_is_portable_gsd_reference(anchor_path: str) -> bool:
+    """Return True for non-local GSD evidence that may be absent in slice worktrees.
+
+    Auto-mode worktrees carry the current `.gsd` state, not every historical GSD
+    source artifact referenced by the architecture registry. These anchors remain
+    valid source-truth references, but the verifier must not make isolated
+    worktree portability depend on copying old `.gsd` files into the task tree.
+    `.gsd/exec` stays forbidden by `source_anchor_path_is_local`.
+    """
+
+    return anchor_path.startswith(".gsd/") and not anchor_path.startswith(".gsd/exec")
 
 
 def validate_source_anchors(records: list[LocatedRecord], result: VerificationResult) -> None:
@@ -484,21 +645,51 @@ def validate_source_anchors(records: list[LocatedRecord], result: VerificationRe
             raw_path = anchor.get("path")
             if not isinstance(raw_path, str) or not raw_path:
                 continue
+            anchor_kind = source_anchor_kind(anchor)
             if not source_anchor_path_is_local(raw_path):
                 result.add(
                     located.diagnostic(
                         "source-anchor-path-local",
-                        "source anchor path must be repository-relative and outside .gsd/exec",
+                        source_anchor_failure_message(
+                            raw_path,
+                            anchor_kind,
+                            "unsafe-anchor-path",
+                            "add-source-anchor",
+                            "use-repository-relative-non-exec-anchor",
+                        ),
+                        field=f"{field_prefix}.path",
+                    )
+                )
+                continue
+            if source_anchor_resolves_inside_gsd(raw_path):
+                result.add(
+                    located.diagnostic(
+                        "source-anchor-resolved-local",
+                        source_anchor_failure_message(
+                            raw_path,
+                            anchor_kind,
+                            "unsafe-resolved-gsd-target",
+                            "add-source-anchor",
+                            "replace-symlink-with-stable-source-anchor",
+                        ),
                         field=f"{field_prefix}.path",
                     )
                 )
                 continue
             cached = read_anchor_lines(raw_path, cache)
             if cached is None:
+                if source_anchor_is_portable_gsd_reference(raw_path):
+                    continue
                 result.add(
                     located.diagnostic(
                         "source-anchor-exists",
-                        "source anchor file is missing or unreadable",
+                        source_anchor_failure_message(
+                            raw_path,
+                            anchor_kind,
+                            "missing-anchor-file",
+                            "add-source-anchor",
+                            "point-to-existing-repository-evidence",
+                        ),
                         field=f"{field_prefix}.path",
                     )
                 )
@@ -506,12 +697,34 @@ def validate_source_anchors(records: list[LocatedRecord], result: VerificationRe
             _, lines = cached
             line_start = anchor.get("line_start")
             line_end = anchor.get("line_end")
-            if isinstance(line_start, int) and isinstance(line_end, int):
+            has_line_start = isinstance(line_start, int)
+            has_line_end = isinstance(line_end, int)
+            if has_line_start != has_line_end:
+                result.add(
+                    located.diagnostic(
+                        "source-anchor-line-range",
+                        source_anchor_failure_message(
+                            raw_path,
+                            anchor_kind,
+                            "unbounded-line-range",
+                            "add-source-anchor",
+                            "provide-both-line_start-and-line_end-or-use-selector",
+                        ),
+                        field=f"{field_prefix}.line_start" if has_line_start else f"{field_prefix}.line_end",
+                    )
+                )
+            elif has_line_start and has_line_end:
                 if line_start > line_end:
                     result.add(
                         located.diagnostic(
                             "source-anchor-line-range",
-                            "line_start must be less than or equal to line_end",
+                            source_anchor_failure_message(
+                                raw_path,
+                                anchor_kind,
+                                "reversed-line-range",
+                                "add-source-anchor",
+                                "make-line_start-less-than-or-equal-to-line_end",
+                            ),
                             field=f"{field_prefix}.line_start",
                         )
                     )
@@ -519,26 +732,16 @@ def validate_source_anchors(records: list[LocatedRecord], result: VerificationRe
                     result.add(
                         located.diagnostic(
                             "source-anchor-line-range",
-                            f"line_end exceeds file length {len(lines)}",
+                            source_anchor_failure_message(
+                                raw_path,
+                                anchor_kind,
+                                "line-range-out-of-bounds",
+                                "add-source-anchor",
+                                f"line_end-must-be-at-most-{len(lines)}",
+                            ),
                             field=f"{field_prefix}.line_end",
                         )
                     )
-            elif isinstance(line_start, int) and line_start > len(lines):
-                result.add(
-                    located.diagnostic(
-                        "source-anchor-line-range",
-                        f"line_start exceeds file length {len(lines)}",
-                        field=f"{field_prefix}.line_start",
-                    )
-                )
-            elif isinstance(line_end, int) and line_end > len(lines):
-                result.add(
-                    located.diagnostic(
-                        "source-anchor-line-range",
-                        f"line_end exceeds file length {len(lines)}",
-                        field=f"{field_prefix}.line_end",
-                    )
-                )
             text = "\n".join(lines)
             for token_field in ("selector", "section"):
                 token = anchor.get(token_field)
@@ -546,7 +749,13 @@ def validate_source_anchors(records: list[LocatedRecord], result: VerificationRe
                     result.add(
                         located.diagnostic(
                             "source-anchor-token",
-                            f"{token_field} text does not appear in anchored file",
+                            source_anchor_failure_message(
+                                raw_path,
+                                anchor_kind,
+                                "stale-anchor-token",
+                                "add-source-anchor",
+                                f"update-{token_field}-to-current-source-text",
+                            ),
                             field=f"{field_prefix}.{token_field}",
                         )
                     )
@@ -554,6 +763,33 @@ def validate_source_anchors(records: list[LocatedRecord], result: VerificationRe
 
 TRACEABILITY_CRITICAL_TYPES = {"requirement", "decision", "proof_gate"}
 TRACEABILITY_EXEMPT_STATUSES = {"out-of-scope", "rejected"}
+PROOF_USING_EDGE_TYPES = {"satisfies", "validated_by", "checked_by", "evidenced_by", "bounded_by"}
+PROOF_FORBIDDEN_STATUSES = {"deferred", "rejected"}
+VALIDATED_MINIMUM_PROOF_LEVELS = {
+    "static-check",
+    "unit-test",
+    "integration-test",
+    "runtime-smoke",
+    "real-document-proof",
+    "production-observation",
+}
+PROOF_LEVEL_REQUIRED_EVIDENCE_CLASSES = {
+    "static-check": {"source-code", "test-artifact", "gsd-summary"},
+    "unit-test": {"test-artifact"},
+    "integration-test": {"test-artifact"},
+    "runtime-smoke": {"runtime-artifact"},
+    "real-document-proof": {"runtime-artifact", "gsd-summary"},
+    "production-observation": {"runtime-artifact", "external-reference", "gsd-summary"},
+}
+DERIVED_NON_AUTHORITATIVE_PATH_PATTERNS = (
+    "prd/architecture/architecture_graph_report.json",
+    "prd/architecture/architecture_report.md",
+    "prd/architecture/architecture_health.md",
+    "prd/architecture/product_readiness_blockers.md",
+    "prd/architecture/claims_ledger.md",
+    ".agents/skills/",
+    ".claude/skills/",
+)
 DECISION_FITNESS_EDGE_TYPES = {"checked_by", "validated_by"}
 DECISION_FITNESS_EDGE_STATUSES = {"active", "hypothesis", "validated"}
 DECISION_FITNESS_TARGET_TYPES = {"proof_gate", "workflow_check"}
@@ -604,6 +840,84 @@ OVERCLAIM_PATTERNS: tuple[tuple[str, re.Pattern[str]], ...] = (
         "LLM authority",
         re.compile(r"\bLLM(?:\s+output)?\b[^\n.]{0,80}\b(?:is|are|acts?\s+as|serves?\s+as|becomes?|creates?)\b[^\n.]{0,40}\b(?:authoritative|legal\s+authority|binding|legal\s+facts?)\b", re.I),
     ),
+)
+
+PROOF_LEVEL_ORDER = {
+    "none": 0,
+    "source-anchor": 1,
+    "static-check": 2,
+    "unit-test": 3,
+    "integration-test": 4,
+    "runtime-smoke": 5,
+    "real-document-proof": 6,
+    "production-observation": 7,
+}
+ONTOLOGY_PROMOTION_GATE_EDGE_TYPES = {"checked_by", "validated_by", "bounded_by"}
+ONTOLOGY_PROMOTION_GATE_TARGET_TYPES = {"proof_gate", "workflow_check"}
+ONTOLOGY_PROMOTION_GATE_EDGE_STATUSES = {"active", "bounded-evidence", "validated"}
+ONTOLOGY_RESEARCH_STATUSES = {"proposed", "hypothesis", "bounded-evidence", "deferred", "blocked"}
+ONTOLOGY_BOUNDARY_TERMS = (
+    "non-authoritative",
+    "does not prove",
+    "does not validate",
+    "must not",
+    "cannot",
+    "bounded",
+    "candidate",
+    "defer",
+    "proof-gated",
+    "no ",
+    "not ",
+)
+ONTOLOGY_PROMOTION_RULES: tuple[dict[str, Any], ...] = (
+    {
+        "label": "Akoma Ntoso / LegalDocML compatibility projection",
+        "trigger_terms": ("Akoma Ntoso", "LegalDocML"),
+        "required_gate_ids": ("GATE-AKOMA-FRBR-NORMALIZATION",),
+        "minimum_proof_level": "static-check",
+    },
+    {
+        "label": "FRBR legal identity reference layer",
+        "trigger_terms": ("FRBR",),
+        "required_gate_ids": ("GATE-AKOMA-FRBR-NORMALIZATION",),
+        "minimum_proof_level": "static-check",
+    },
+    {
+        "label": "LKIF / deontic mapping proof gate",
+        "trigger_terms": ("LKIF", "deontic"),
+        "required_gate_ids": ("GATE-LKIF-DEONTIC-BENCHMARK",),
+        "minimum_proof_level": "unit-test",
+    },
+    {
+        "label": "RusLegalCore domain ontology scope gate",
+        "trigger_terms": ("RusLegalCore",),
+        "required_gate_ids": ("GATE-RUSLEGALCORE-SCOPE",),
+        "minimum_proof_level": "static-check",
+    },
+    {
+        "label": "BFO / GOST / OWL / Common Logic formal alignment",
+        "trigger_terms": ("BFO", "GOST", "GOST R 59798-2021", "OWL", "OWL 2", "Common Logic"),
+        "required_gate_ids": ("GATE-BFO-GOST-ALIGNMENT",),
+        "minimum_proof_level": "static-check",
+    },
+    {
+        "label": "Ontology GraphRAG integration proof",
+        "trigger_terms": ("Ontology GraphRAG", "ontology-aware GraphRAG", "ontology-driven GraphRAG"),
+        "required_gate_ids": ("GATE-ONTOLOGY-GRAPHRAG-INTEGRATION",),
+        "minimum_proof_level": "integration-test",
+    },
+    {
+        "label": "graph-vector / HNSW / FalkorDB graph-vector behavior",
+        "trigger_terms": ("graph-vector", "HNSW", "hybrid retrieval"),
+        "required_gate_ids": ("GATE-G015", "GATE-ONTOLOGY-GRAPHRAG-INTEGRATION"),
+        "minimum_proof_level": "runtime-smoke",
+    },
+    {
+        "label": "pilot-scale / 1000-document readiness",
+        "trigger_terms": ("pilot-scale", "1000-document", "1,000-document", "1000 document", "1,000 document"),
+        "required_gate_ids": ("GATE-PILOT-SCALE-READINESS",),
+        "minimum_proof_level": "integration-test",
+    },
 )
 
 
@@ -808,6 +1122,363 @@ def validate_active_contradictions(edge_records: list[LocatedRecord], result: Ve
             )
 
 
+def claim_priority(located: LocatedRecord) -> str:
+    priority = located.record.get("priority")
+    if isinstance(priority, str) and priority:
+        return priority
+    risk_level = located.record.get("risk_level")
+    return risk_level if isinstance(risk_level, str) and risk_level else "unspecified"
+
+
+def anchor_evidence_classes(located: LocatedRecord) -> set[str]:
+    anchors = located.record.get("source_anchors")
+    if not isinstance(anchors, list):
+        return set()
+    classes: set[str] = set()
+    for anchor in anchors:
+        if not isinstance(anchor, Mapping):
+            continue
+        kind = anchor.get("kind")
+        if isinstance(kind, str) and kind:
+            classes.add(kind)
+    return classes
+
+
+def anchor_paths(located: LocatedRecord) -> list[str]:
+    anchors = located.record.get("source_anchors")
+    if not isinstance(anchors, list):
+        return []
+    paths: list[str] = []
+    for anchor in anchors:
+        if not isinstance(anchor, Mapping):
+            continue
+        path = anchor.get("path")
+        if isinstance(path, str) and path:
+            paths.append(path)
+    return paths
+
+
+def is_derived_non_authoritative_path(anchor_path: str) -> bool:
+    return any(pattern in anchor_path for pattern in DERIVED_NON_AUTHORITATIVE_PATH_PATTERNS)
+
+
+def evidence_class_message(
+    *,
+    proof_level: str,
+    current_classes: set[str],
+    required_classes: set[str],
+    failure_class: str,
+    anchor_path: str | None = None,
+) -> str:
+    current = ",".join(sorted(current_classes)) if current_classes else "<none>"
+    required = ",".join(sorted(required_classes)) if required_classes else "<non-authoritative-derived-artifact>"
+    path_context = f" anchor_path={anchor_path}" if anchor_path else ""
+    return (
+        f"proof_level={proof_level} current_evidence_classes={current} "
+        f"required_evidence_class={required} failure_class={failure_class}{path_context} "
+        "remediation_class=add-evidence-class remediation=add-proof-level-matching-evidence-or-downgrade-claim"
+    )
+
+
+def validate_evidence_class_boundaries(item_records: list[LocatedRecord], result: VerificationResult) -> None:
+    for located in item_records:
+        proof_level = located.record.get("proof_level")
+        if not isinstance(proof_level, str) or proof_level == "none":
+            continue
+        current_classes = anchor_evidence_classes(located)
+        for anchor_path in anchor_paths(located):
+            if is_derived_non_authoritative_path(anchor_path):
+                result.add(
+                    located.diagnostic(
+                        "evidence-class-boundary",
+                        evidence_class_message(
+                            proof_level=proof_level,
+                            current_classes=current_classes,
+                            required_classes=set(),
+                            failure_class="derived-artifact-used-as-proof",
+                            anchor_path=anchor_path,
+                        ),
+                        field="source_anchors",
+                    )
+                )
+        if item_status(located) != "validated":
+            continue
+        required_classes = PROOF_LEVEL_REQUIRED_EVIDENCE_CLASSES.get(proof_level)
+        if not required_classes:
+            continue
+        if current_classes.isdisjoint(required_classes):
+            result.add(
+                located.diagnostic(
+                    "evidence-class-boundary",
+                    evidence_class_message(
+                        proof_level=proof_level,
+                        current_classes=current_classes,
+                        required_classes=required_classes,
+                        failure_class="proof-level-evidence-class-mismatch",
+                    ),
+                    field="source_anchors",
+                )
+            )
+
+
+def validate_claim_lifecycle(index: GraphIndex, result: VerificationResult) -> None:
+    for record_id, located in sorted(index.items_by_id.items()):
+        status = item_status(located)
+        proof_level = located.record.get("proof_level")
+        priority = claim_priority(located)
+        if status == "validated" and proof_level not in VALIDATED_MINIMUM_PROOF_LEVELS:
+            result.add(
+                located.diagnostic(
+                    "claim-lifecycle",
+                    (
+                        f"record={record_id} priority={priority} lifecycle_status={status} current_status={status} proof_level={proof_level} "
+                        "failure_class=unsafe-promotion forbidden_transition=unverified-to-validated "
+                        "remediation_class=add-evidence-or-downgrade remediation=add-evidence-class-or-downgrade-claim"
+                    ),
+                    field="status",
+                )
+            )
+
+    for edge in index.edges:
+        edge_type = edge.record.get("type")
+        edge_status = edge.record.get("status")
+        if edge_type not in PROOF_USING_EDGE_TYPES or edge_status not in {"active", "bounded-evidence", "validated"}:
+            continue
+        for endpoint_field in ("from", "to"):
+            endpoint_id = edge_endpoint(edge, endpoint_field)
+            if endpoint_id is None:
+                continue
+            endpoint = index.items_by_id.get(endpoint_id)
+            if endpoint is None:
+                continue
+            endpoint_status = item_status(endpoint)
+            if endpoint_status not in PROOF_FORBIDDEN_STATUSES:
+                continue
+            endpoint_priority = claim_priority(endpoint)
+            result.add(
+                edge.diagnostic(
+                    "claim-lifecycle",
+                    (
+                        f"record={edge.record_id} endpoint={endpoint_id} priority={endpoint_priority} "
+                        f"lifecycle_status={endpoint_status} current_status={endpoint_status} "
+                        "failure_class=proof-from-backlog "
+                        f"forbidden_transition={endpoint_status}-claim-used-as-proof "
+                        "remediation_class=supersede-reject-or-downgrade remediation=supersede-or-reject-edge-or-downgrade-claim"
+                    ),
+                    field=endpoint_field,
+                )
+            )
+
+
+def lower_claim_text(located: LocatedRecord) -> str:
+    values = [text for _, text in iter_record_claim_text(located)]
+    non_claims = located.record.get("non_claims")
+    if isinstance(non_claims, list):
+        values.extend(item for item in non_claims if isinstance(item, str))
+    return "\n".join(values).lower()
+
+
+def matched_ontology_rules(located: LocatedRecord) -> list[tuple[dict[str, Any], str]]:
+    text = lower_claim_text(located)
+    matches: list[tuple[dict[str, Any], str]] = []
+    for rule in ONTOLOGY_PROMOTION_RULES:
+        for term in rule["trigger_terms"]:
+            if str(term).lower() in text:
+                matches.append((rule, str(term)))
+                break
+    return matches
+
+
+def anchor_has_bounded_source_mapping(anchor: Mapping[str, Any]) -> bool:
+    if not isinstance(anchor.get("path"), str) or not anchor.get("path"):
+        return False
+    if isinstance(anchor.get("selector"), str) and anchor.get("selector"):
+        return True
+    if isinstance(anchor.get("section"), str) and anchor.get("section"):
+        return True
+    return isinstance(anchor.get("line_start"), int) and isinstance(anchor.get("line_end"), int)
+
+
+def has_bounded_source_mapping(located: LocatedRecord) -> bool:
+    anchors = located.record.get("source_anchors")
+    if not isinstance(anchors, list):
+        return False
+    for anchor in anchors:
+        if not isinstance(anchor, Mapping):
+            continue
+        anchor_path = anchor.get("path")
+        if isinstance(anchor_path, str) and is_derived_non_authoritative_path(anchor_path):
+            continue
+        if anchor_has_bounded_source_mapping(anchor):
+            return True
+    return False
+
+
+def proof_level_at_least(current: Any, required: str) -> bool:
+    if not isinstance(current, str):
+        return False
+    return PROOF_LEVEL_ORDER.get(current, -1) >= PROOF_LEVEL_ORDER[required]
+
+
+def ontology_gate_ids_for(record_id: str, index: GraphIndex) -> set[str]:
+    gate_ids: set[str] = set()
+    for edge in index.outgoing.get(record_id, []):
+        if edge.record.get("type") not in ONTOLOGY_PROMOTION_GATE_EDGE_TYPES:
+            continue
+        if edge.record.get("status") not in ONTOLOGY_PROMOTION_GATE_EDGE_STATUSES:
+            continue
+        target_id = edge_endpoint(edge, "to")
+        if target_id is None:
+            continue
+        target = index.items_by_id.get(target_id)
+        if target is None or item_type(target) not in ONTOLOGY_PROMOTION_GATE_TARGET_TYPES:
+            continue
+        gate_ids.add(target_id)
+    return gate_ids
+
+
+def has_research_boundary_language(located: LocatedRecord) -> bool:
+    text = lower_claim_text(located)
+    return any(term in text for term in ONTOLOGY_BOUNDARY_TERMS)
+
+
+def ontology_promotion_message(*, trigger_term: str, label: str, failure_class: str, remediation_class: str, remediation: str, detail: str) -> str:
+    return (
+        f"r035_trigger={trigger_term} ontology_rule={label} failure_class={failure_class} {detail} "
+        f"remediation_class={remediation_class} remediation={remediation}"
+    )
+
+
+def validate_ontology_promotion_gates(index: GraphIndex, result: VerificationResult) -> None:
+    for record_id, located in sorted(index.items_by_id.items()):
+        matches = matched_ontology_rules(located)
+        if not matches:
+            continue
+        status = item_status(located)
+        if status == "<missing-status>":
+            rule, trigger_term = matches[0]
+            result.add(
+                located.diagnostic(
+                    "ontology-promotion-gate",
+                    ontology_promotion_message(
+                        trigger_term=trigger_term,
+                        label=str(rule["label"]),
+                        failure_class="missing-status",
+                        remediation_class="downgrade-claim",
+                        remediation="record-status-before-validated-ontology-promotion",
+                        detail="current_status=<missing-status>",
+                    ),
+                    field="status",
+                )
+            )
+            continue
+        if status in ONTOLOGY_RESEARCH_STATUSES:
+            if not has_research_boundary_language(located):
+                rule, trigger_term = matches[0]
+                result.add(
+                    located.diagnostic(
+                        "ontology-promotion-gate",
+                        ontology_promotion_message(
+                            trigger_term=trigger_term,
+                            label=str(rule["label"]),
+                            failure_class="status-overreach",
+                            remediation_class="downgrade-claim",
+                            remediation="add-non-authoritative-boundary-language-or-downgrade-claim",
+                            detail=f"current_status={status}",
+                        ),
+                        field="status",
+                    )
+                )
+            continue
+        if status != "validated":
+            continue
+
+        if not non_empty_string(located.record.get("owner")):
+            rule, trigger_term = matches[0]
+            result.add(
+                located.diagnostic(
+                    "ontology-promotion-gate",
+                    ontology_promotion_message(
+                        trigger_term=trigger_term,
+                        label=str(rule["label"]),
+                        failure_class="missing-owner",
+                        remediation_class="add-source-anchor",
+                        remediation="record-owner-before-validated-ontology-promotion",
+                        detail=f"current_status={status}",
+                    ),
+                    field="owner",
+                )
+            )
+        if not non_empty_string(located.record.get("status")):
+            rule, trigger_term = matches[0]
+            result.add(
+                located.diagnostic(
+                    "ontology-promotion-gate",
+                    ontology_promotion_message(
+                        trigger_term=trigger_term,
+                        label=str(rule["label"]),
+                        failure_class="missing-status",
+                        remediation_class="downgrade-claim",
+                        remediation="record-status-before-validated-ontology-promotion",
+                        detail="current_status=<missing-status>",
+                    ),
+                    field="status",
+                )
+            )
+        if not has_bounded_source_mapping(located):
+            rule, trigger_term = matches[0]
+            result.add(
+                located.diagnostic(
+                    "ontology-promotion-gate",
+                    ontology_promotion_message(
+                        trigger_term=trigger_term,
+                        label=str(rule["label"]),
+                        failure_class="missing-source-mapping",
+                        remediation_class="add-source-anchor",
+                        remediation="add-bounded-selector-section-or-line-range-source-mapping",
+                        detail=f"current_status={status}",
+                    ),
+                    field="source_anchors",
+                )
+            )
+
+        linked_gate_ids = ontology_gate_ids_for(record_id, index)
+        for rule, trigger_term in matches:
+            required_gate_ids = set(rule["required_gate_ids"])
+            if linked_gate_ids.isdisjoint(required_gate_ids):
+                result.add(
+                    located.diagnostic(
+                        "ontology-promotion-gate",
+                        ontology_promotion_message(
+                            trigger_term=trigger_term,
+                            label=str(rule["label"]),
+                            failure_class="missing-proof-gate",
+                            remediation_class="add-proof-gate",
+                            remediation="link-claim-to-required-proof-gate-before-validation",
+                            detail=f"required_gate_ids={','.join(sorted(required_gate_ids))} linked_gate_ids={','.join(sorted(linked_gate_ids)) or '<none>'}",
+                        ),
+                        field="id",
+                    )
+                )
+            required_proof_level = str(rule["minimum_proof_level"])
+            current_proof_level = located.record.get("proof_level")
+            if not proof_level_at_least(current_proof_level, required_proof_level):
+                result.add(
+                    located.diagnostic(
+                        "ontology-promotion-gate",
+                        ontology_promotion_message(
+                            trigger_term=trigger_term,
+                            label=str(rule["label"]),
+                            failure_class="proof-level-overreach",
+                            remediation_class="add-evidence-class",
+                            remediation="add-required-proof-level-evidence-or-downgrade-claim",
+                            detail=f"current_proof_level={current_proof_level} required_proof_level={required_proof_level}",
+                        ),
+                        field="proof_level",
+                    )
+                )
+
+
 def is_negated_guardrail(text: str, match: re.Match[str]) -> bool:
     sentence_start = max(text.rfind(".", 0, match.start()), text.rfind("\n", 0, match.start())) + 1
     next_period = text.find(".", match.end())
@@ -938,6 +1609,9 @@ def validate_graph_policies(item_records: list[LocatedRecord], edge_records: lis
     validate_proof_gate_metadata(item_records, result)
     validate_decision_policies(index, result)
     validate_active_contradictions(edge_records, result)
+    validate_evidence_class_boundaries(item_records, result)
+    validate_claim_lifecycle(index, result)
+    validate_ontology_promotion_gates(index, result)
 
 
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:

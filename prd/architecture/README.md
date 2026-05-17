@@ -61,6 +61,95 @@ Use this lifecycle whenever an agent changes architecture claims, architecture r
 
 Agents must run `uv run python scripts/verify-architecture-graph.py` before saying the architecture registry, graph report, verifier policy, or router guidance is current. For narrow checks, `--check` on the extractor or graph builder is acceptable only when the claim is limited to that layer's freshness. For tests or fixtures that pass custom `--items`, `--edges`, `--report-json`, or `--report-md` paths, remember that upstream freshness checks are intentionally skipped; do not use custom-path verifier success as evidence that the tracked project architecture is current.
 
+## Validator priority taxonomy
+
+The architecture validator preserves every GSD-derived validator idea, but it must separate implementation urgency from long-term usefulness. Use this priority taxonomy when adding verifier rules, generated-view fields, architecture drift diagnostics, or backlog entries:
+
+| Priority | Meaning | Project importance | Implementation priority | Diagnostic wording |
+|---|---|---|---|---|
+| `P0` | Critical safety gate | Prevents false authority, unsafe claim promotion, or loss of source-truth boundaries. | Implement as a hard verifier failure before relying on the affected architecture claim. | `critical-gate` |
+| `P1` | High-priority blocker | Protects R035/R029 proof boundaries or blocks validated architecture status when evidence is missing. | Implement as a hard verifier failure in the owning slice before promotion is allowed. | `high-priority-blocker` |
+| `P2` | Medium diagnostic | Detects drift, stale generated artifacts, or remediation needs without changing authoritative sources. | Implement after P0/P1 gates; report actionable diagnostics without auto-repair. | `medium-diagnostic` |
+| `P3` | Backlog-only signal | Useful future validator or reporting idea with no current milestone-blocking proof obligation. | Preserve with trigger conditions and proof requirements; do not fail the verifier until promoted by a future decision. | `backlog-only-signal` |
+
+Diagnostics that reference this taxonomy should also name the lifecycle status and remediation class. The minimum diagnostic shape is: record or artifact ID, `priority`, lifecycle status, failure class, remediation class, and source anchor when available. Do not emit raw legal text, credentials, provider bodies, or local-only `.gsd/exec` paths.
+
+### Claim lifecycle statuses
+
+Architecture claims and validator ideas move through an append-only lifecycle. Later evidence may supersede, reject, or promote a record; it must not silently rewrite earlier evidence.
+
+| Lifecycle status | Use when | Promotion rule |
+|---|---|---|
+| `proposed` | A useful idea or architecture claim exists, but no sufficient source mapping or proof gate exists yet. | May be preserved as `P2` or `P3`; cannot be asserted as validated architecture. |
+| `bounded` | Evidence exists, but only within a stated scope such as source-anchor, static-check, runtime-smoke, or real-document proof. | May be cited with scope caveats; promotion requires matching proof level, source anchors, and gate coverage. |
+| `blocked` | A claim or idea is strategically relevant but missing required evidence, owner, source mapping, or proof gate. | Must remain `P0`/`P1` failure or blocker until the missing evidence is added and verified. |
+| `deferred` | The idea is valuable but intentionally out of current milestone scope. | Preserve as `P3` backlog with trigger/proof metadata; do not fail the verifier. |
+| `validated` | Deterministic checks and required evidence support the claim at the stated proof level. | May be asserted only within the proof scope and non-claim boundary. |
+| `rejected` or `superseded` | Later evidence invalidates or replaces the claim. | Keep traceability to the successor or rejection rationale; do not delete the old record. |
+
+### Claim lifecycle invariants
+
+Lifecycle status is not a cosmetic label. Validator policy must preserve these invariants whenever a registry row, edge, generated view, or future workflow check relies on a claim as proof:
+
+- **Validated claims are append-only.** A `validated` record must have earned at least static or executable proof (`static-check`, `unit-test`, `integration-test`, `runtime-smoke`, `real-document-proof`, or `production-observation`). Later changes must supersede, reject, or add new evidence instead of silently downgrading or rewriting the validated claim in place.
+- **Proposed and bounded ideas remain preservable.** `proposed`, `hypothesis`, `bounded-evidence`, and `blocked` records may stay in the registry when they are explicitly scoped and do not masquerade as validated architecture.
+- **Deferred and rejected records are not proof.** Active proof-carrying edges such as `satisfies`, `evidenced_by`, `validated_by`, `checked_by`, or `bounded_by` must not use records in `deferred` or `rejected` status as positive support. Remediate by superseding the edge, rejecting it, or downgrading the dependent claim.
+- **Diagnostics must name the lifecycle failure.** Lifecycle failures should include the record ID, current status, forbidden transition or proof use, and remediation class so another agent can repair the exact source mapping without promoting evidence automatically.
+
+### Remediation classes
+
+Use remediation classes to keep failures actionable without letting diagnostics mutate source truth:
+
+| Remediation class | Safe action |
+|---|---|
+| `regenerate-derived-artifact` | Re-run the extractor, graph builder, or generated-view command when a derived artifact is stale. |
+| `add-source-anchor` | Add or correct repository-relative source anchors in the authoritative source mapping. |
+| `add-evidence-class` | Record the earned proof level and bounded evidence class before promotion. |
+| `add-proof-gate` | Link the claim or decision to a proof gate or workflow check that can validate it. |
+| `downgrade-claim` | Reword or reclassify positive overclaims into bounded, proposed, blocked, or non-claim language. |
+| `defer-to-backlog` | Preserve a non-blocking future idea with trigger conditions and proof requirements. |
+
+### Validator idea inventory
+
+The current M018/D047-D048-derived inventory is classified as follows:
+
+| Validator idea | Priority | Lifecycle status | Why it matters | Implementation priority / owner slice |
+|---|---|---|---|---|
+| Keep the registry derived from PRD/GSD/ADR/source/runtime anchors rather than prose authority. | `P0` | `validated` for current source-truth policy; still continuously checked. | Prevents generated reports, skills, or summaries from becoming authoritative proof. | Existing verifier/readme contract; preserve in every slice. |
+| Make validated architecture claims append-only through supersession, rejection, or new evidence rather than silent rewrite. | `P0` | `blocked` until lifecycle transition rules are executable. | Protects auditability of architecture claims and decisions. | S01 defines; later S01/S02 verifier work enforces. |
+| Require source mapping, evidence class, proof gate, and verifier coverage before promotion to architecture. | `P0` | `blocked` until all required gates exist. | Prevents R035 and future research claims from being promoted on aspiration alone. | S01 taxonomy plus S02/S03 enforcement. |
+| Convert prompt-only guardrails that protect R035 into executable verifier checks. | `P0` | `blocked` until hard checks exist. | Critical ontology/external-standard boundaries must not depend on agent memory. | S02/S03 hard gates. |
+| Enforce status and proof-level transition rules. | `P1` | `proposed` in this taxonomy; pending executable tests. | Keeps `validated`, `bounded`, `blocked`, and `deferred` from being used interchangeably. | S01/S02. |
+| Harden source-anchor and evidence-class distinctions. | `P1` | `blocked` until unsafe anchors and evidence misuse fail deterministically. | Required for credible source-traceable architecture validation. | S02. |
+| Add R035 ontology and external-standard promotion gates. | `P1` | `blocked` until bounded evidence, proof gates, and source mappings are present. | R035 remains active and must protect Akoma Ntoso, FRBR, LKIF, RusLegalCore, BFO, GOST, OWL, Common Logic, graph-vector, and pilot-scale claims. | S03. |
+| Detect unsafe positive overclaims across generated views and guidance. | `P1` | `bounded` by existing S04 overclaim scanning; extend only with evidence. | Prevents runtime, parser, retrieval, legal-answer, FalkorDB-scale, generated-Cypher, and LLM-authority overclaims. | Existing verifier plus S02/S03 refinements. |
+| Add typed architecture drift diagnostics following derive, detect, repair-or-block, re-derive. | `P2` | `proposed` diagnostics-only. | Helps future agents remediate stale or inconsistent architecture projections without changing sources automatically. | S04. |
+| Produce actionable remediation classes without auto-promoting evidence. | `P2` | `proposed` diagnostics-only. | Makes failures fixable while preserving source-of-truth boundaries. | S04. |
+| Limit deterministic repair to generated projection freshness where safe. | `P2` | `deferred` unless a future slice explicitly implements repair. | Avoids accidental edits to PRD/GSD/ADR/source evidence. | S04 diagnostics only; no automatic source repair. |
+| Preserve code import-boundary checks, richer graph visualization, live activation telemetry, interactive dashboards, and cross-repo architecture comparisons. | `P3` | `deferred` backlog-only. | These ideas may be useful later but are not required for current R035 proof safety. | S06 backlog; no verifier failure until promoted by a future decision. |
+
+### R035 ontology and external-standard promotion gates
+
+R035-triggered ontology or external-standard claims may remain in the registry as `proposed`, `hypothesis`, `bounded-evidence`, `blocked`, or `deferred` research only when the claim text keeps non-authoritative boundary language such as `candidate`, `bounded`, `proof-gated`, `does not prove`, or `does not validate`. A trigger-matched claim may reach `validated` only after the architecture verifier can see all of the following on the same record:
+
+- bounded source mapping through a repository-relative source anchor with a selector, section, or explicit line range;
+- owner and status metadata on the promoted claim;
+- an outgoing `checked_by`, `validated_by`, or `bounded_by` edge to the required proof gate or workflow check;
+- a proof level at or above the rule-specific minimum proof level; and
+- evidence classes that satisfy the general proof-level boundary rules.
+
+| R035 trigger terms | Current safe bucket | Required promotion gate | Minimum validated proof level |
+|---|---|---|---|
+| Akoma Ntoso, LegalDocML, FRBR | Compatibility/reference projection only | `GATE-AKOMA-FRBR-NORMALIZATION` | `static-check` |
+| LKIF, deontic mapping | Proof-gated candidate | `GATE-LKIF-DEONTIC-BENCHMARK` | `unit-test` |
+| RusLegalCore | Proof-gated domain-scope candidate | `GATE-RUSLEGALCORE-SCOPE` | `static-check` |
+| BFO, GOST, GOST R 59798-2021, OWL, OWL 2, Common Logic | Deferred formal-alignment review | `GATE-BFO-GOST-ALIGNMENT` | `static-check` |
+| Ontology GraphRAG, ontology-aware GraphRAG, ontology-driven GraphRAG | Proof-gated integration candidate | `GATE-ONTOLOGY-GRAPHRAG-INTEGRATION` | `integration-test` |
+| graph-vector, HNSW, hybrid retrieval | Deferred runtime behavior claim | `GATE-G015` or `GATE-ONTOLOGY-GRAPHRAG-INTEGRATION` | `runtime-smoke` |
+| pilot-scale, 1000-document, 1,000-document | Deferred readiness proof | `GATE-PILOT-SCALE-READINESS` | `integration-test` |
+
+Verifier diagnostics for this gate use `rule=ontology-promotion-gate` and name the matched `r035_trigger`, the ontology rule, the missing source mapping, proof gate, owner, status, or proof-level requirement, plus a remediation class.
+
 ### Failure classes and remediation hints
 
 The expected verifier failures are meant to be actionable and should include rule, record ID, field, path, and source-anchor context where available:
@@ -74,6 +163,20 @@ The expected verifier failures are meant to be actionable and should include rul
 - **Positive overclaim failures:** generated artifacts or policy prose that assert unproven runtime, Legal KnowQL parser, ODT/parser completeness, retrieval-quality, FalkorDB production-scale, generated-Cypher safety, legal-answer correctness, or LLM-authority claims fail. Remediate by downgrading to source-anchored boundary language or adding the required deterministic/runtime/real-document proof before raising the claim.
 
 Negative boundary language such as “derived,” “non-authoritative,” “does not validate,” and “must not be used as legal authority” is part of the claim-safety contract, not an overclaim.
+
+### Typed drift diagnostics
+
+Verifier hard failures include a stable `drift_kind`, affected record ID, affected field, source-anchor context, safe remediation hint, and `safe_to_regenerate` flag. These diagnostics are read-only triage signals: only freshness failures for derived projections are marked safe to fix by regeneration, while source-truth changes require explicit source-evidence edits.
+
+| Drift kind | Typical rules | Safe remediation boundary |
+|---|---|---|
+| `freshness-drift` | Upstream extractor/report `--check` failures and missing derived reports | Regenerate derived projection artifacts after confirming source evidence is current. |
+| `source-anchor-drift` | Unsafe paths, missing anchor files, unbounded/stale selector anchors, source-anchor schema gaps | Edit repository-relative source anchors or authoritative source evidence; then regenerate projections. |
+| `graph-integrity-drift` | Malformed JSONL, duplicate IDs, wrong record kinds, schema shape errors, missing endpoints, orphan traceability records | Fix schema or graph source mapping; do not hand-edit generated truth into existence. |
+| `decision-fitness-drift` | Missing decision consequences, supersession coverage, or proof-gate coverage for high-risk decisions | Update source decision evidence and its proof-gate/workflow-check links. |
+| `proof-gate-drift` | Unresolved proof-gate metadata, evidence-class mismatch, unsafe lifecycle promotion, ontology promotion gaps | Add earned proof evidence, owner/gate metadata, or downgrade the claim in source evidence. |
+| `contradiction-drift` | Active/hypothesis/bounded `contradicts` edges | Resolve, reject, or supersede the contradiction in source evidence. |
+| `overclaim-drift` | Positive unproven product/runtime/parser/retrieval/legal/FalkorDB/Cypher/LLM authority claims | Downgrade to bounded non-authoritative language or add required proof before promotion. |
 
 ## S02 extractor contract
 
@@ -172,6 +275,28 @@ The current hard-failure policy is intentionally fail-closed and deterministic:
 Negative boundary language is allowed and expected. Wording such as “does not validate product/runtime/legal claims,” “must not be used as legal authority,” and `non_claims` entries is a guardrail, not an overclaim. The overclaim scanner is limited to prose claim fields and derived Markdown/policy text; it intentionally avoids treating `non_claims` as positive assertions.
 
 S05 workflow integration should package this command as the project-local architecture verification handoff for future agents. S05 should reference this README, `scripts/verify-architecture-graph.py`, and `tests/test_architecture_verifier.py`; it should not duplicate registry truth or weaken the non-authoritative boundary.
+
+## Minimal GSD validation report contract
+
+GSD milestone validation may cite the architecture verifier and generated views only as derived evidence that the registry projection is current, claim-safe, and actionable for planning. The generated report surface must stay compact and non-authoritative: it is a validation handoff, not a dashboard, interactive graph UI, or broad visualization project.
+
+The minimal report fields are:
+
+| Field family | Required surface | Purpose for GSD validation | Non-authoritative boundary |
+|---|---|---|---|
+| Priority buckets | Counts and short lists for `P0`, `P1`, `P2`, and `P3` validator findings when available. | Let validation distinguish critical safety gates and high-priority blockers from diagnostics and backlog-only ideas. | Priority is triage metadata; it does not promote a claim or prove product readiness. |
+| Promotion blockers | Open proof gates, blocked/open claim classifications, missing source anchors, missing proof gates, missing owner/status, and evidence-class mismatches. | Show what prevents a claim from being cited as validated architecture. | Blocker rows are repair guidance only; source evidence must be updated before promotion. |
+| Typed drift classes | Compact counts and actionable rows keyed by `freshness-drift`, `source-anchor-drift`, `graph-integrity-drift`, `decision-fitness-drift`, `proof-gate-drift`, `contradiction-drift`, and `overclaim-drift`. | Let GSD validation identify whether the safe next action is regeneration, source-anchor repair, proof-gate work, contradiction resolution, or claim downgrade. | Only drift explicitly marked safe to regenerate may be fixed by rebuilding derived artifacts; all source-truth changes require authoritative evidence edits. |
+| R035 gate status | Trigger term, current safe bucket, required promotion gate, minimum validated proof level, missing requirement(s), and remediation class for ontology/external-standard claims. | Keep ontology, external-standard, graph-vector, and pilot-scale claims from being promoted without the required gate and proof level. | R035 rows are guardrails around assertion safety; they do not validate Akoma Ntoso, LKIF, RusLegalCore, BFO/GOST/OWL/Common Logic, GraphRAG, graph-vector, or pilot-scale behavior by themselves. |
+| Claim-safety buckets | Counts and short lists for `safe-to-say`, `bounded`, `blocked/open`, `unsafe-to-assert`, plus non-claims. | Give future agents a concise cite/do-not-cite handoff. | Even `safe-to-say` records must be cited with source anchors and proof scope; generated reports remain derived planning artifacts. |
+
+Generated view ownership stays split:
+
+- `architecture_health.md` should show global counts, typed drift counts, open proof gates, high/critical risks, non-claims, and later priority bucket summaries.
+- `product_readiness_blockers.md` should show promotion blockers by capability area, including proof-gate status and next proof work.
+- `claims_ledger.md` should show claim-safety buckets and, when implemented, the R035 gate status needed before ontology or external-standard claims can move out of bounded/proposed/deferred language.
+
+Do not add raw legal text, provider payloads, credentials, local-only `.gsd/exec` paths, live telemetry dashboards, graph exploration widgets, or product-readiness assertions to these reports. Milestone validation should cite `uv run python scripts/verify-architecture-graph.py` for currentness proof and then use the generated views only to explain what is current, blocked, deferred, and unsafe to assert.
 
 ## Architecture Health Dashboard
 
