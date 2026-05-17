@@ -15,6 +15,8 @@ non_authoritative: true
 
 R035 remains **Active / not validated**.
 
+S03 synchronization update: R035 owner: M019-v10cgp/S03 for the active bounded-evidence and requirement-sync work. This owner marker only resolves the lifecycle ownership drift signal; it does not validate ontology runtime behavior or any product/legal-answer claim.
+
 M017 and M018 provide bounded planning, proof-gate, verifier-policy, and claims-ledger evidence for ontology architecture proof boundaries, but they do **not** prove that R035 has been converted into current architecture registry source mappings. The honest current state is:
 
 - `prd/research/ontology_architecture_requirements/05-registry-integration-plan.md` defines the planned registry integration surface: 12 candidate item mappings and 9 candidate edge mappings.

@@ -19,9 +19,7 @@ EXPECTED_DIAGNOSTIC_IDS = {
     "DRIFT-R035-GATE-ID-DRIFT",
     "DRIFT-R035-UNSAFE-LIFECYCLE-LANGUAGE",
 }
-EXPECTED_CURRENT_FAILURES = {
-    "DRIFT-R035-ACTIVE-UNOWNED",
-}
+EXPECTED_CURRENT_FAILURES = set()
 
 
 def load_check_module():
@@ -57,6 +55,8 @@ def test_build_diagnostics_emits_expected_current_r035_drift_ids():
         assert diagnostic.remediation_owner
         assert diagnostic.non_claim_boundary
 
+    assert by_id["DRIFT-R035-ACTIVE-UNOWNED"].status == "OK"
+    assert "explicit in-progress owner marker found" in by_id["DRIFT-R035-ACTIVE-UNOWNED"].observed
     assert "alias reconciliation evidence present" in by_id["DRIFT-R035-GATE-ID-DRIFT"].observed
     assert "canonical candidate count=12" in by_id["DRIFT-R035-CANDIDATE-CURRENT-MISMATCH"].observed
 
@@ -91,9 +91,9 @@ def test_command_json_smoke_reports_drift_without_validating_r035():
     assert completed.returncode == 0
     payload = json.loads(completed.stdout)
     assert payload["check"] == "gsd-sync-drift-r035"
-    assert payload["status"] == "DRIFT"
+    assert payload["status"] == "OK"
     assert payload["failed_count"] == len(EXPECTED_CURRENT_FAILURES)
-    assert payload["failed_count"] == 1
+    assert payload["failed_count"] == 0
     assert "does not validate" in payload["non_claim"]
     assert {diagnostic["diagnostic_id"] for diagnostic in payload["diagnostics"]} == EXPECTED_DIAGNOSTIC_IDS
 
@@ -107,8 +107,8 @@ def test_strict_exit_code_is_available_for_fail_fast_callers():
         check=False,
     )
 
-    assert completed.returncode == 1
-    assert "status=DRIFT" in completed.stdout
-    assert "DRIFT-R035-ACTIVE-UNOWNED status=ERROR" in completed.stdout
+    assert completed.returncode == 0
+    assert "status=OK" in completed.stdout
+    assert "DRIFT-R035-ACTIVE-UNOWNED status=OK" in completed.stdout
     assert "DRIFT-R035-STALE-GATE-VIEW status=OK" in completed.stdout
     assert "DRIFT-R035-REGISTRY-MAPPING-ABSENT status=OK" in completed.stdout

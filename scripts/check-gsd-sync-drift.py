@@ -262,6 +262,11 @@ def build_diagnostics() -> list[DiagnosticResult]:
     audit_says_active = bool(re.search(r"R035 remains \*\*Active / not validated\*\*", audit_text))
     audit_says_completed_prior_milestones = "M017 and M018" in audit_text and "do **not** prove" in audit_text
     explicit_followup_owner = bool(re.search(r"R035[^\n]*(?:owned by|owner:)\s*(?:M019|S03|in-progress)", audit_text, re.IGNORECASE))
+    active_owner_observed = (
+        "audit states R035 remains Active/not validated while M017/M018 completion is non-validation evidence; explicit in-progress owner marker found"
+        if explicit_followup_owner
+        else "audit states R035 remains Active/not validated while M017/M018 completion is non-validation evidence; no explicit in-progress owner marker found"
+    )
 
     return [
         make_result(
@@ -272,7 +277,7 @@ def build_diagnostics() -> list[DiagnosticResult]:
             "Assign explicit in-progress milestone/follow-up ownership or keep this drift visible until lifecycle state is reconciled.",
             "DRIFT-R035-ACTIVE-UNOWNED: R035 remains Active but is not visibly owned by an in-progress milestone or explicit follow-up owner.",
             "R035 active ownership is visibly reconciled.",
-            "audit states R035 remains Active/not validated while M017/M018 completion is non-validation evidence; no explicit in-progress owner marker found",
+            active_owner_observed,
             "Does not claim M017/M018 failed; only flags lifecycle ownership drift.",
         ),
         make_result(
