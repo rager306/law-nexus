@@ -37,10 +37,9 @@ def test_builds_current_registry_as_keyed_multidigraph() -> None:
     edges = graph_module.load_records(EDGES_PATH, expected_kind="edge")
     graph = graph_module.build_graph(items, edges)
 
-    # M016 S04 representative runtime benchmark evidence adds one bounded-evidence node
-    # and four traceability edges without closing GATE-G011.
-    assert graph.number_of_nodes() == 46
-    assert graph.number_of_edges() == 66
+    # M019 S03 adds the bounded R035 ontology candidate layer and traceability edges.
+    assert graph.number_of_nodes() == 58
+    assert graph.number_of_edges() == 91
     assert graph.is_multigraph()
 
     edge = edges[0]
@@ -173,14 +172,14 @@ def test_report_current_registry_exposes_baseline_graph_health() -> None:
     graph = graph_module.build_graph(items, edges)
     report = graph_module.compute_graph_report(graph, schema_path=SCHEMA_PATH)
 
-    assert report["counts"] == {"nodes": 46, "edges": 66}
+    assert report["counts"] == {"nodes": 58, "edges": 91}
     assert report["layer_coverage"]["missing_layers"] == []
     assert report["layer_coverage"]["counts"]["api-product"] == 1
-    assert report["layer_coverage"]["counts"]["legal-evidence"] == 1
-    assert report["layer_coverage"]["counts"]["observability-operability"] == 1
-    assert report["layer_coverage"]["counts"]["parser-ingestion"] == 10
-    assert report["layer_coverage"]["counts"]["retrieval-embedding"] == 11
-    assert report["layer_coverage"]["counts"]["architecture-governance"] == 7
+    assert report["layer_coverage"]["counts"]["legal-evidence"] == 7
+    assert report["layer_coverage"]["counts"]["observability-operability"] == 2
+    assert report["layer_coverage"]["counts"]["parser-ingestion"] == 11
+    assert report["layer_coverage"]["counts"]["retrieval-embedding"] == 12
+    assert report["layer_coverage"]["counts"]["architecture-governance"] == 9
     assert [gate["id"] for gate in report["unresolved_proof_gates"]] == [
         "GATE-EMBEDDING-SUPPLY-CHAIN",
         "GATE-G005",
@@ -197,12 +196,12 @@ def test_report_current_registry_exposes_baseline_graph_health() -> None:
         "ASSUMP-PRD-SOURCE-TRUTH",
         "CHECK-ARCHITECTURE-EXTRACTOR",
         "COMP-LEGAL-NEXUS-ORCHESTRATOR",
+        "DATA-LEGAL-DOCUMENT-IDENTITY-FRBR",
         "DATA-LEGAL-EVIDENCE-CORE",
-        "DATA-TEMPORAL-PROPERTY-BUNDLE",
     ]
-    assert len(report["high_risk_nodes"]) == 31
-    assert report["non_claims_summary"]["nodes_with_non_claims"] == 46
-    assert report["non_claims_summary"]["total_non_claims"] > 36
+    assert len(report["high_risk_nodes"]) == 42
+    assert report["non_claims_summary"]["nodes_with_non_claims"] == 58
+    assert report["non_claims_summary"]["total_non_claims"] > 290
 
 
 def test_report_exposes_r034_validator_proof_traceability_edges() -> None:
@@ -543,7 +542,7 @@ def test_cli_write_mode_renders_deterministic_json_and_markdown_reports(tmp_path
         "GATE-GENERATED-CYPHER-SAFETY",
         "GATE-LEGAL-NEXUS-ACCESS-CONTROL",
     ]
-    assert report["counts"] == {"nodes": 46, "edges": 66}
+    assert report["counts"] == {"nodes": 58, "edges": 91}
     assert "derived, non-authoritative" in markdown
     assert "do not validate product/runtime/legal claims" in markdown
     assert "Findings for S04" in markdown

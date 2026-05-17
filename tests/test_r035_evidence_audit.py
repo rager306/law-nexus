@@ -90,10 +90,10 @@ def test_r035_evidence_audit_has_required_sections() -> None:
 def test_r035_evidence_audit_preserves_active_not_validated_verdict() -> None:
     text = read_audit()
 
-    assert "R035 remains **Active / not validated**" in text
+    assert "R035 remains **Active / not runtime-validated**" in text
     assert "Completion of M017/M018" in text
-    assert "is **not** evidence that R035 can be marked validated" in text
-    assert "until extractor integration regenerates the derived registry" in text
+    assert "is still **not** validation evidence for R035" in text
+    assert "registry/view synchronization only" in text
 
 
 def test_r035_evidence_audit_names_candidate_items_and_missing_registry_evidence() -> None:
@@ -102,16 +102,20 @@ def test_r035_evidence_audit_names_candidate_items_and_missing_registry_evidence
     registry_ids = architecture_item_ids()
     claims_ledger = read_text(CLAIMS_LEDGER_PATH)
 
+    canonical_aliases = {
+        "GATE-DEONTIC-MAPPING-PROOF": "GATE-LKIF-DEONTIC-BENCHMARK",
+        "GATE-1000-DOC-PILOT": "GATE-PILOT-SCALE-READINESS",
+    }
     for candidate_id in CANDIDATE_ITEMS:
         assert candidate_id in integration_plan
         assert candidate_id in text
-        assert candidate_id not in registry_ids
+        assert canonical_aliases.get(candidate_id, candidate_id) in registry_ids
 
-    assert "GATE-AKOMA-FRBR-NORMALIZATION" not in registry_ids
+    assert "GATE-AKOMA-FRBR-NORMALIZATION" in registry_ids
     assert "architecture_items.jsonl" in text
     assert "claims_ledger.md" in text
-    assert "missing `GATE-ONTOLOGY-GRAPHRAG-INTEGRATION`" in text
-    assert "missing gate GATE-ONTOLOGY-GRAPHRAG-INTEGRATION" in claims_ledger
+    assert "R035 Gate Status" in claims_ledger
+    assert "GATE-ONTOLOGY-GRAPHRAG-INTEGRATION" in claims_ledger
 
 
 def test_r035_evidence_audit_tracks_verifier_policy_without_counting_it_as_proof() -> None:
@@ -122,7 +126,7 @@ def test_r035_evidence_audit_tracks_verifier_policy_without_counting_it_as_proof
     assert "ONTOLOGY_PROMOTION_RULES" in verifier
     assert "validate_ontology_promotion_gates" in verifier
     assert "This is only **verifier-policy evidence**" in text
-    assert "must not be cited as proof that those gates exist in the registry" in text
+    assert "must not be cited as proof that those gates are satisfied" in text
     assert "policy names `GATE-AKOMA-FRBR-NORMALIZATION`" in text
 
 
@@ -133,10 +137,10 @@ def test_r035_evidence_audit_lists_exact_s02_drift_signals() -> None:
         assert signal in text
 
     assert "R035 is still Active" in text
-    assert "active requirement not owned by an in-progress milestone" in text
-    assert "required by source/verifier policy but absent from `architecture_items.jsonl`" in text
-    assert "required registry endpoints are missing" in text
-    assert "stale or empty for the M017 candidate set" in text
+    assert "Active requirement not owned by an in-progress milestone" in text
+    assert "resolved for current registry existence of `GATE-AKOMA-FRBR-NORMALIZATION`" in text
+    assert "resolved for current ontology verifier-policy gate endpoints" in text
+    assert "resolved for current claims-ledger R035 gate-status coverage" in text
 
 
 def test_r035_evidence_audit_rejects_unsafe_final_validation_language() -> None:

@@ -98,8 +98,8 @@ def test_baseline_cli_passes_with_non_authoritative_summary() -> None:
     assert summary["upstream_checks"] == "passed"
     assert summary["non_authoritative"] is True
     assert "non-authoritative" in summary["boundary"]
-    assert summary["items"] == 46
-    assert summary["edges"] == 66
+    assert summary["items"] == 58
+    assert summary["edges"] == 91
 
 
 def test_gsd_report_contract_documents_minimal_non_authoritative_fields() -> None:

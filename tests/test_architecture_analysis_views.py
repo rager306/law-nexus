@@ -406,7 +406,8 @@ def test_generated_output_matches_stored_file() -> None:
     """The stored health dashboard must match current generator output."""
     module = load_generator()
     report = load_report()
-    expected = module.render_health_dashboard(report)
+    items_lookup = module._load_items_lookup(REPORT_JSON_PATH.parent / "architecture_items.jsonl")
+    expected = module.render_health_dashboard(report, items_lookup)
 
     actual = HEALTH_MD_PATH.read_text(encoding="utf-8")
     assert actual == expected, (
@@ -1030,20 +1031,24 @@ def test_claims_ledger_total_count_is_30() -> None:
 def test_claims_ledger_no_duplicate_item_ids() -> None:
     """No item ID should appear in more than one classification section."""
     content = _load_claims_content()
+    classification_start = content.find("## safe-to-say")
+    assert classification_start >= 0, "Missing first classification section"
+    classification_content = content[classification_start:]
     for rid in sorted(ALL_TRACKED_IDS):
         needle = f"`{rid}`"
         start = 0
         positions = []
         while True:
-            idx = content.find(needle, start)
+            idx = classification_content.find(needle, start)
             if idx == -1:
                 break
             positions.append(idx)
             start = idx + 1
-        # Should appear exactly once as a classified ID cell; non-claim text may cite gates.
+        # Should appear exactly once as a classified ID cell. Auxiliary tables
+        # such as R035 Gate Status may cite the same IDs outside classifications.
         assert len(positions) == 1, (
-            f"Item {rid} appears {len(positions)} times — each item must be "
-            f"classified into exactly one section"
+            f"Item {rid} appears {len(positions)} times in classification sections — "
+            "each item must be classified into exactly one section"
         )
 
 
