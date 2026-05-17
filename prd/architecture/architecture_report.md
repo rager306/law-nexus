@@ -8,29 +8,29 @@ Current orphans, unresolved proof gates, contradictions, and risk rows are findi
 
 | Field | Value |
 | --- | --- |
-| Nodes | 46 |
-| Edges | 66 |
+| Nodes | 58 |
+| Edges | 91 |
 | Non-authoritative | true |
 | Missing layers | 0 |
 | Unresolved proof gates | 7 |
 | Orphan findings | 0 |
 | Contradiction edges | 0 |
-| High/critical-risk nodes | 31 |
+| High/critical-risk nodes | 42 |
 
 ## Layer Coverage
 
 | Layer | Node Count |
 | --- | ---: |
 | api-product | 1 |
-| architecture-governance | 7 |
+| architecture-governance | 9 |
 | generated-cypher | 2 |
 | graph-runtime | 2 |
-| legal-evidence | 1 |
-| observability-operability | 1 |
-| parser-ingestion | 10 |
-| retrieval-embedding | 11 |
+| legal-evidence | 7 |
+| observability-operability | 2 |
+| parser-ingestion | 11 |
+| retrieval-embedding | 12 |
 | security-safety | 5 |
-| temporal-model | 3 |
+| temporal-model | 4 |
 | workflow-governance | 3 |
 
 ### Missing Layers
@@ -70,7 +70,18 @@ These edge summaries expose bounded proof, requirement, gate, and data-boundary 
 | Edge ID | From | Type | To | Status | Rationale |
 | --- | --- | --- | --- | --- | --- |
 | EDGE-COMP-LEGAL-NEXUS-DEPENDS-ON-DATA-LEGAL-EVIDENCE-CORE | COMP-LEGAL-NEXUS-ORCHESTRATOR | depends_on | DATA-LEGAL-EVIDENCE-CORE | active | Legal Nexus orchestration depends on source-backed legal-evidence entities before answer or query behavior can be validated. |
+| EDGE-DATA-LEGAL-DOCUMENT-IDENTITY-FRBR-BOUNDED-BY-GATE-AKOMA-FRBR-NORMALIZATION | DATA-LEGAL-DOCUMENT-IDENTITY-FRBR | bounded_by | GATE-AKOMA-FRBR-NORMALIZATION | hypothesis | FRBR-like identity remains bounded by parser/normalization proof before canonical legal-unit projection claims. |
+| EDGE-DATA-LEGAL-DOCUMENT-IDENTITY-FRBR-EVIDENCED-BY-EVID-RESEARCH-ONTOLOGY-AKOMA-LKIF-BFO | DATA-LEGAL-DOCUMENT-IDENTITY-FRBR | evidenced_by | EVID-RESEARCH-ONTOLOGY-AKOMA-LKIF-BFO | bounded-evidence | The M017 ontology research and gap-analysis plan is bounded source-anchor evidence for this conservative ontology candidate; it does not upgrade proof beyond source-anchor. |
+| EDGE-DATA-LEGAL-DOCUMENT-IDENTITY-FRBR-REFINES-DATA-TEMPORAL-PROPERTY-BUNDLE | DATA-LEGAL-DOCUMENT-IDENTITY-FRBR | refines | DATA-TEMPORAL-PROPERTY-BUNDLE | hypothesis | The FRBR-like candidate refines existing temporal property bundle concepts without replacing current parser records. |
+| EDGE-DATA-LEGAL-DOCUMENT-IDENTITY-FRBR-REFINES-REQ-TEMPORAL-STATUS-SEMANTICS | DATA-LEGAL-DOCUMENT-IDENTITY-FRBR | refines | REQ-TEMPORAL-STATUS-SEMANTICS | hypothesis | The identity candidate refines existing temporal status semantics and remains source-anchor-only until examples and proof exist. |
 | EDGE-DATA-LEGAL-EVIDENCE-EVIDENCED-BY-PARSER-RECORD-CONTRACT | DATA-LEGAL-EVIDENCE-CORE | evidenced_by | EVID-PARSER-RECORD-CONTRACT | active | Parser record contracts provide bounded evidence for SourceDocument/SourceBlock-related legal-evidence record shapes. |
+| EDGE-DATA-LEGAL-SOURCE-HIERARCHY-EVIDENCED-BY-EVID-RESEARCH-ONTOLOGY-AKOMA-LKIF-BFO | DATA-LEGAL-SOURCE-HIERARCHY | evidenced_by | EVID-RESEARCH-ONTOLOGY-AKOMA-LKIF-BFO | bounded-evidence | The M017 ontology research and gap-analysis plan is bounded source-anchor evidence for this conservative ontology candidate; it does not upgrade proof beyond source-anchor. |
+| EDGE-DATA-LKIF-DEONTIC-MAPPING-BOUNDED-BY-GATE-LKIF-DEONTIC-BENCHMARK | DATA-LKIF-DEONTIC-MAPPING | bounded_by | GATE-LKIF-DEONTIC-BENCHMARK | hypothesis | LKIF/deontic mapping must remain proof-gated by the canonical verifier-policy benchmark gate before use as semantic/legal evidence. |
+| EDGE-DATA-LKIF-DEONTIC-MAPPING-DEPENDS-ON-DATA-LEGAL-EVIDENCE-CORE | DATA-LKIF-DEONTIC-MAPPING | depends_on | DATA-LEGAL-EVIDENCE-CORE | hypothesis | Deontic extraction candidates depend on source-backed legal evidence and evidence-span concepts. |
+| EDGE-DATA-LKIF-DEONTIC-MAPPING-EVIDENCED-BY-EVID-RESEARCH-ONTOLOGY-AKOMA-LKIF-BFO | DATA-LKIF-DEONTIC-MAPPING | evidenced_by | EVID-RESEARCH-ONTOLOGY-AKOMA-LKIF-BFO | bounded-evidence | The M017 ontology research and gap-analysis plan is bounded source-anchor evidence for this conservative ontology candidate; it does not upgrade proof beyond source-anchor. |
+| EDGE-DATA-RUSLEGALCORE-DOMAIN-ONTOLOGY-BOUNDED-BY-GATE-RUSLEGALCORE-SCOPE | DATA-RUSLEGALCORE-DOMAIN-ONTOLOGY | bounded_by | GATE-RUSLEGALCORE-SCOPE | hypothesis | RusLegalCore must be scoped before it can become an active domain-ontology contract. |
+| EDGE-DATA-RUSLEGALCORE-DOMAIN-ONTOLOGY-DEPENDS-ON-DATA-LEGAL-SOURCE-HIERARCHY | DATA-RUSLEGALCORE-DOMAIN-ONTOLOGY | depends_on | DATA-LEGAL-SOURCE-HIERARCHY | hypothesis | The Russian legal domain ontology candidate depends on explicit legal-force and source hierarchy concepts before collision-policy use. |
+| EDGE-DATA-RUSLEGALCORE-DOMAIN-ONTOLOGY-EVIDENCED-BY-EVID-RESEARCH-ONTOLOGY-AKOMA-LKIF-BFO | DATA-RUSLEGALCORE-DOMAIN-ONTOLOGY | evidenced_by | EVID-RESEARCH-ONTOLOGY-AKOMA-LKIF-BFO | bounded-evidence | The M017 ontology research and gap-analysis plan is bounded source-anchor evidence for this conservative ontology candidate; it does not upgrade proof beyond source-anchor. |
 | EDGE-DEC-D031-CHECKED-BY-CHECK-ARCHITECTURE-EXTRACTOR | DEC-D031 | checked_by | CHECK-ARCHITECTURE-EXTRACTOR | active | The high-risk architecture registry decision is checked by the deterministic extractor drift check in S02. |
 | EDGE-DEC-D031-HAS-ASSUMPTION-ASSUMP-PRD-SOURCE-TRUTH | DEC-D031 | has_assumption | ASSUMP-PRD-SOURCE-TRUTH | active | The architecture registry decision assumes PRD/GSD/ADR/source/runtime evidence remains authoritative and generated registry artifacts remain derived projections. |
 | EDGE-DEC-D031-SATISFIES-REQ-R029 | DEC-D031 | satisfies | REQ-R029 | active | The docs-as-code architecture registry decision is the chosen approach for executable architecture verification. |
@@ -102,11 +113,15 @@ These edge summaries expose bounded proof, requirement, gate, and data-boundary 
 | EDGE-EVID-RESEARCH-HABR-LEGAL-RAG-BOUNDED-BY-GATE-G011 | EVID-RESEARCH-HABR-LEGAL-RAG-ITERATION-SCALING | bounded_by | GATE-G011 | active | Habr Legal RAG ideas about hybrid retrieval, evidence precision, reranking, and scale/noise evaluation remain bounded by local embedding quality proof. |
 | EDGE-EVID-RESEARCH-HABR-LEGAL-RAG-BOUNDED-BY-GATE-G015 | EVID-RESEARCH-HABR-LEGAL-RAG-ITERATION-SCALING | bounded_by | GATE-G015 | active | Habr Legal RAG scale/noise degradation lessons remain bounded by future FalkorDBLite-to-Docker runtime migration and load proof. |
 | EDGE-EVID-RESEARCH-HABR-LEGAL-RAG-BOUNDED-BY-GATE-GENERATED-CYPHER-SAFETY | EVID-RESEARCH-HABR-LEGAL-RAG-ITERATION-SCALING | bounded_by | GATE-GENERATED-CYPHER-SAFETY | active | Habr Legal RAG post-LLM verification lessons support generated-output caution but remain bounded by generated-Cypher safety proof. |
+| EDGE-EVID-RESEARCH-ONTOLOGY-AKOMA-LKIF-BFO-BOUNDED-BY-RISK-OVERCLAIM-RUNTIME | EVID-RESEARCH-ONTOLOGY-AKOMA-LKIF-BFO | bounded_by | RISK-OVERCLAIM-RUNTIME | bounded-evidence | Ontology intake evidence remains bounded by the project-wide runtime/legal overclaim risk until specific gates earn stronger proof. |
 | EDGE-EVID-RETRIEVAL-OUTPUT-ID-VALIDATOR-PROOF-BOUNDED-BY-GATE-G008 | EVID-RETRIEVAL-OUTPUT-ID-VALIDATOR-PROOF | bounded_by | GATE-G008 | active | The validator proof checks output IDs and diagnostics but remains bounded by the product parser/retrieval readiness gate. |
 | EDGE-EVID-RETRIEVAL-OUTPUT-ID-VALIDATOR-PROOF-BOUNDED-BY-GATE-G011 | EVID-RETRIEVAL-OUTPUT-ID-VALIDATOR-PROOF | bounded_by | GATE-G011 | active | The validator proof can reject unresolved IDs but does not measure local embedding or product retrieval quality. |
 | EDGE-EVID-RETRIEVAL-OUTPUT-ID-VALIDATOR-PROOF-CHECKED-BY-CHECK-ARCHITECTURE-EXTRACTOR | EVID-RETRIEVAL-OUTPUT-ID-VALIDATOR-PROOF | checked_by | CHECK-ARCHITECTURE-EXTRACTOR | active | The deterministic architecture extractor keeps the M012 validator proof anchors, status, proof level, and non-claims visible in generated registry outputs. |
 | EDGE-EVID-RETRIEVAL-OUTPUT-ID-VALIDATOR-PROOF-DEPENDS-ON-DATA-LEGAL-EVIDENCE-CORE | EVID-RETRIEVAL-OUTPUT-ID-VALIDATOR-PROOF | depends_on | DATA-LEGAL-EVIDENCE-CORE | active | The validator proof resolves citation and evidence IDs through bounded SourceBlock, SourceDocument, LegalUnit, and ActEdition fixture paths derived from the legal-evidence core concept. |
 | EDGE-EVID-RETRIEVAL-OUTPUT-ID-VALIDATOR-PROOF-SATISFIES-REQ-R034 | EVID-RETRIEVAL-OUTPUT-ID-VALIDATOR-PROOF | satisfies | REQ-R034 | active | The M012 validator proof provides bounded executable evidence for R034 fail-closed output identifier checks without promoting product retrieval or legal-answer claims. |
+| EDGE-GATE-AKOMA-FRBR-NORMALIZATION-EVIDENCED-BY-EVID-RESEARCH-ONTOLOGY-AKOMA-LKIF-BFO | GATE-AKOMA-FRBR-NORMALIZATION | evidenced_by | EVID-RESEARCH-ONTOLOGY-AKOMA-LKIF-BFO | bounded-evidence | The M017 ontology research and gap-analysis plan is bounded source-anchor evidence for this conservative ontology candidate; it does not upgrade proof beyond source-anchor. |
+| EDGE-GATE-AKOMA-FRBR-NORMALIZATION-REFINES-EVID-PARSER-RECORD-CONTRACT | GATE-AKOMA-FRBR-NORMALIZATION | refines | EVID-PARSER-RECORD-CONTRACT | hypothesis | The normalization gate refines current parser record contract evidence into a possible canonical/projection layer only if proof is later added. |
+| EDGE-GATE-BFO-GOST-ALIGNMENT-EVIDENCED-BY-EVID-RESEARCH-ONTOLOGY-AKOMA-LKIF-BFO | GATE-BFO-GOST-ALIGNMENT | evidenced_by | EVID-RESEARCH-ONTOLOGY-AKOMA-LKIF-BFO | bounded-evidence | The M017 ontology research and gap-analysis plan is bounded source-anchor evidence for this conservative ontology candidate; it does not upgrade proof beyond source-anchor. |
 | EDGE-GATE-EMBEDDING-SUPPLY-CHAIN-BOUNDS-S10-USER-BGE-M3 | GATE-EMBEDDING-SUPPLY-CHAIN | bounded_by | S10-USER-BGE-M3-BASELINE | active | USER-bge-m3 remains a bounded local/open-weight baseline until model provenance and supply-chain gates are formalized for product use. |
 | EDGE-GATE-G005-BLOCKS-TEMPORAL-VALIDATION | GATE-G005 | blocks | REQ-R029 | active | Unresolved temporal conflict policy must remain visible in architecture verification outputs. |
 | EDGE-GATE-G005-DEPENDS-ON-DATA-TEMPORAL-PROPERTY-BUNDLE | GATE-G005 | depends_on | DATA-TEMPORAL-PROPERTY-BUNDLE | active | Same-date conflict policy depends on explicit temporal fields and status semantics being modeled before validation. |
@@ -114,7 +129,17 @@ These edge summaries expose bounded proof, requirement, gate, and data-boundary 
 | EDGE-GATE-G011-BLOCKS-RETRIEVAL-QUALITY-CLAIMS | GATE-G011 | blocks | REQ-R029 | active | Local embedding evidence remains bounded and cannot validate product retrieval quality without benchmarks. |
 | EDGE-GATE-G015-BLOCKS-RUNTIME-MIGRATION-CLAIMS | GATE-G015 | blocks | REQ-R029 | active | FalkorDBLite to Docker migration remains an explicit deployment proof gate. |
 | EDGE-GATE-GENERATED-CYPHER-SAFETY-BLOCKS-REQ-R017 | GATE-GENERATED-CYPHER-SAFETY | blocks | REQ-R017 | active | R017 cannot be validated for product Legal KnowQL until generated-Cypher safety is proven beyond M003 route/proof-harness evidence. |
+| EDGE-GATE-LEGAL-COLLISION-POLICY-DEPENDS-ON-DATA-LEGAL-SOURCE-HIERARCHY | GATE-LEGAL-COLLISION-POLICY | depends_on | DATA-LEGAL-SOURCE-HIERARCHY | hypothesis | Collision policy needs explicit hierarchy and supersession inputs before priority behavior can be tested. |
+| EDGE-GATE-LEGAL-COLLISION-POLICY-EVIDENCED-BY-EVID-RESEARCH-ONTOLOGY-AKOMA-LKIF-BFO | GATE-LEGAL-COLLISION-POLICY | evidenced_by | EVID-RESEARCH-ONTOLOGY-AKOMA-LKIF-BFO | bounded-evidence | The M017 ontology research and gap-analysis plan is bounded source-anchor evidence for this conservative ontology candidate; it does not upgrade proof beyond source-anchor. |
+| EDGE-GATE-LEGAL-COLLISION-POLICY-REFINES-GATE-G005 | GATE-LEGAL-COLLISION-POLICY | refines | GATE-G005 | hypothesis | Full legal collision policy broadens the existing temporal same-date/multi-edition conflict gate without closing it. |
 | EDGE-GATE-LEGAL-NEXUS-ACCESS-CONTROL-BLOCKS-COMP-LEGAL-NEXUS | GATE-LEGAL-NEXUS-ACCESS-CONTROL | blocks | COMP-LEGAL-NEXUS-ORCHESTRATOR | active | Legal Nexus component claims remain bounded until access-control behavior is specified and verified. |
+| EDGE-GATE-LKIF-DEONTIC-BENCHMARK-EVIDENCED-BY-EVID-RESEARCH-ONTOLOGY-AKOMA-LKIF-BFO | GATE-LKIF-DEONTIC-BENCHMARK | evidenced_by | EVID-RESEARCH-ONTOLOGY-AKOMA-LKIF-BFO | bounded-evidence | The M017 ontology research and gap-analysis plan is bounded source-anchor evidence for this conservative ontology candidate; it does not upgrade proof beyond source-anchor. |
+| EDGE-GATE-ONTOLOGY-GRAPHRAG-INTEGRATION-BOUNDED-BY-REQ-R034 | GATE-ONTOLOGY-GRAPHRAG-INTEGRATION | bounded_by | REQ-R034 | hypothesis | Ontology GraphRAG integration inherits citation/evidence identifier fail-closed boundaries from R034. |
+| EDGE-GATE-ONTOLOGY-GRAPHRAG-INTEGRATION-EVIDENCED-BY-EVID-RESEARCH-ONTOLOGY-AKOMA-LKIF-BFO | GATE-ONTOLOGY-GRAPHRAG-INTEGRATION | evidenced_by | EVID-RESEARCH-ONTOLOGY-AKOMA-LKIF-BFO | bounded-evidence | The M017 ontology research and gap-analysis plan is bounded source-anchor evidence for this conservative ontology candidate; it does not upgrade proof beyond source-anchor. |
+| EDGE-GATE-ONTOLOGY-GRAPHRAG-INTEGRATION-REFINES-GATE-G008 | GATE-ONTOLOGY-GRAPHRAG-INTEGRATION | refines | GATE-G008 | hypothesis | Ontology GraphRAG retrieval ideas refine product parser/retrieval readiness proof needs without closing parser completeness gates. |
+| EDGE-GATE-ONTOLOGY-GRAPHRAG-INTEGRATION-REFINES-GATE-G011 | GATE-ONTOLOGY-GRAPHRAG-INTEGRATION | refines | GATE-G011 | hypothesis | Ontology GraphRAG retrieval ideas refine local retrieval quality proof needs without claiming retrieval quality. |
+| EDGE-GATE-PILOT-SCALE-READINESS-EVIDENCED-BY-EVID-RESEARCH-ONTOLOGY-AKOMA-LKIF-BFO | GATE-PILOT-SCALE-READINESS | evidenced_by | EVID-RESEARCH-ONTOLOGY-AKOMA-LKIF-BFO | bounded-evidence | The M017 ontology research and gap-analysis plan is bounded source-anchor evidence for this conservative ontology candidate; it does not upgrade proof beyond source-anchor. |
+| EDGE-GATE-RUSLEGALCORE-SCOPE-EVIDENCED-BY-EVID-RESEARCH-ONTOLOGY-AKOMA-LKIF-BFO | GATE-RUSLEGALCORE-SCOPE | evidenced_by | EVID-RESEARCH-ONTOLOGY-AKOMA-LKIF-BFO | bounded-evidence | The M017 ontology research and gap-analysis plan is bounded source-anchor evidence for this conservative ontology candidate; it does not upgrade proof beyond source-anchor. |
 | EDGE-M001-ARCHITECTURE-ONLY-GUARDRAIL-BOUNDS-REQ-R029 | M001-ARCHITECTURE-ONLY-GUARDRAIL | bounded_by | REQ-R029 | active | Architecture registry verification must preserve architecture-only/product non-claim guardrails. |
 | EDGE-QS-OBSERVABILITY-BASELINE-CHECKED-BY-CHECK-ARCHITECTURE-EXTRACTOR | QS-OBSERVABILITY-OPERABILITY-BASELINE | checked_by | CHECK-ARCHITECTURE-EXTRACTOR | active | The deterministic architecture extractor/check workflow keeps observability and auditability boundary records visible in derived planning views. |
 | EDGE-REQ-R001-EVIDENCED-BY-S07-FIXED-PRD-CONSISTENCY | REQ-R001 | evidenced_by | S07-FIXED-PRD-CONSISTENCY | active | S07/S08 final report evidence supports architecture finding classification within M001 scope. |
@@ -143,7 +168,11 @@ These edge summaries expose bounded proof, requirement, gate, and data-boundary 
 | ASSUMP-PRD-SOURCE-TRUTH | high | assumption | architecture-governance | active | source-anchor |
 | CHECK-ARCHITECTURE-EXTRACTOR | high | workflow_check | workflow-governance | active | static-check |
 | COMP-LEGAL-NEXUS-ORCHESTRATOR | high | component | api-product | active | source-anchor |
+| DATA-LEGAL-DOCUMENT-IDENTITY-FRBR | high | data_entity | temporal-model | hypothesis | source-anchor |
 | DATA-LEGAL-EVIDENCE-CORE | high | data_entity | legal-evidence | active | source-anchor |
+| DATA-LEGAL-SOURCE-HIERARCHY | high | data_entity | legal-evidence | hypothesis | source-anchor |
+| DATA-LKIF-DEONTIC-MAPPING | high | data_entity | legal-evidence | hypothesis | source-anchor |
+| DATA-RUSLEGALCORE-DOMAIN-ONTOLOGY | high | data_entity | legal-evidence | hypothesis | source-anchor |
 | DATA-TEMPORAL-PROPERTY-BUNDLE | high | data_entity | temporal-model | active | source-anchor |
 | DEC-D031 | high | decision | architecture-governance | active | source-anchor |
 | EVID-LOCAL-RETRIEVAL-QUALITY-BENCHMARK-PROOF | high | evidence | retrieval-embedding | bounded-evidence | unit-test |
@@ -153,13 +182,20 @@ These edge summaries expose bounded proof, requirement, gate, and data-boundary 
 | EVID-REPRESENTATIVE-RETRIEVAL-RUNTIME-BENCHMARK-PROOF | high | evidence | retrieval-embedding | bounded-evidence | runtime-smoke |
 | EVID-RESEARCH-GRAPHRAG-MATH-ANALYSIS | high | evidence | retrieval-embedding | bounded-evidence | source-anchor |
 | EVID-RESEARCH-HABR-LEGAL-RAG-ITERATION-SCALING | high | evidence | retrieval-embedding | bounded-evidence | source-anchor |
+| EVID-RESEARCH-ONTOLOGY-AKOMA-LKIF-BFO | high | evidence | architecture-governance | bounded-evidence | source-anchor |
 | EVID-RETRIEVAL-OUTPUT-ID-VALIDATOR-PROOF | high | evidence | retrieval-embedding | bounded-evidence | unit-test |
+| GATE-AKOMA-FRBR-NORMALIZATION | high | proof_gate | parser-ingestion | proposed | source-anchor |
 | GATE-EMBEDDING-SUPPLY-CHAIN | high | proof_gate | security-safety | active | none |
 | GATE-G005 | high | proof_gate | temporal-model | active | none |
 | GATE-G008 | high | proof_gate | parser-ingestion | active | none |
 | GATE-G011 | high | proof_gate | retrieval-embedding | active | none |
 | GATE-GENERATED-CYPHER-SAFETY | critical | proof_gate | generated-cypher | active | none |
+| GATE-LEGAL-COLLISION-POLICY | high | proof_gate | legal-evidence | proposed | source-anchor |
 | GATE-LEGAL-NEXUS-ACCESS-CONTROL | high | proof_gate | security-safety | active | none |
+| GATE-LKIF-DEONTIC-BENCHMARK | high | proof_gate | legal-evidence | proposed | source-anchor |
+| GATE-ONTOLOGY-GRAPHRAG-INTEGRATION | high | proof_gate | retrieval-embedding | proposed | source-anchor |
+| GATE-PILOT-SCALE-READINESS | high | proof_gate | observability-operability | proposed | source-anchor |
+| GATE-RUSLEGALCORE-SCOPE | high | proof_gate | legal-evidence | proposed | source-anchor |
 | M001-ARCHITECTURE-ONLY-GUARDRAIL | critical | workflow_check | architecture-governance | out-of-scope | source-anchor |
 | REQ-R009 | high | requirement | workflow-governance | active | source-anchor |
 | REQ-R017 | high | requirement | generated-cypher | active | source-anchor |
@@ -182,8 +218,8 @@ These edge summaries expose bounded proof, requirement, gate, and data-boundary 
 
 | Field | Value |
 | --- | ---: |
-| Nodes with non-claims | 46 |
-| Total non-claims | 172 |
+| Nodes with non-claims | 58 |
+| Total non-claims | 294 |
 
 ### Nodes with Non-Claims
 
@@ -192,7 +228,11 @@ These edge summaries expose bounded proof, requirement, gate, and data-boundary 
 | ASSUMP-PRD-SOURCE-TRUTH | 1 |
 | CHECK-ARCHITECTURE-EXTRACTOR | 1 |
 | COMP-LEGAL-NEXUS-ORCHESTRATOR | 3 |
+| DATA-LEGAL-DOCUMENT-IDENTITY-FRBR | 10 |
 | DATA-LEGAL-EVIDENCE-CORE | 3 |
+| DATA-LEGAL-SOURCE-HIERARCHY | 10 |
+| DATA-LKIF-DEONTIC-MAPPING | 10 |
+| DATA-RUSLEGALCORE-DOMAIN-ONTOLOGY | 10 |
 | DATA-TEMPORAL-PROPERTY-BUNDLE | 2 |
 | DEC-D031 | 1 |
 | DEC-D032 | 1 |
@@ -209,14 +249,22 @@ These edge summaries expose bounded proof, requirement, gate, and data-boundary 
 | EVID-REPRESENTATIVE-RETRIEVAL-RUNTIME-BENCHMARK-PROOF | 11 |
 | EVID-RESEARCH-GRAPHRAG-MATH-ANALYSIS | 5 |
 | EVID-RESEARCH-HABR-LEGAL-RAG-ITERATION-SCALING | 5 |
+| EVID-RESEARCH-ONTOLOGY-AKOMA-LKIF-BFO | 11 |
 | EVID-RETRIEVAL-OUTPUT-ID-VALIDATOR-PROOF | 8 |
+| GATE-AKOMA-FRBR-NORMALIZATION | 10 |
+| GATE-BFO-GOST-ALIGNMENT | 10 |
 | GATE-EMBEDDING-SUPPLY-CHAIN | 3 |
 | GATE-G005 | 1 |
 | GATE-G008 | 2 |
 | GATE-G011 | 2 |
 | GATE-G015 | 1 |
 | GATE-GENERATED-CYPHER-SAFETY | 3 |
+| GATE-LEGAL-COLLISION-POLICY | 10 |
 | GATE-LEGAL-NEXUS-ACCESS-CONTROL | 3 |
+| GATE-LKIF-DEONTIC-BENCHMARK | 10 |
+| GATE-ONTOLOGY-GRAPHRAG-INTEGRATION | 10 |
+| GATE-PILOT-SCALE-READINESS | 12 |
+| GATE-RUSLEGALCORE-SCOPE | 9 |
 | M001-ARCHITECTURE-ONLY-GUARDRAIL | 6 |
 | QS-OBSERVABILITY-OPERABILITY-BASELINE | 3 |
 | REQ-R001 | 7 |

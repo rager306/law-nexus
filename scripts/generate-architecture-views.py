@@ -94,6 +94,12 @@ R035_RULES: tuple[dict[str, Any], ...] = (
         "minimum_proof_level": "static-check",
     },
     {
+        "terms": ("legal source hierarchy", "source hierarchy", "legal collision policy", "collision policy", "lex superior", "lex specialis", "lex posterior", "supersession"),
+        "safe_bucket": "proof-gated legal-priority candidate",
+        "gate": "GATE-LEGAL-COLLISION-POLICY",
+        "minimum_proof_level": "static-check",
+    },
+    {
         "terms": ("Ontology GraphRAG", "ontology-aware GraphRAG", "ontology-driven GraphRAG"),
         "safe_bucket": "proof-gated integration candidate",
         "gate": "GATE-ONTOLOGY-GRAPHRAG-INTEGRATION",
@@ -580,7 +586,14 @@ def render_blockers_report(
     ]
 
     # ── Build per-area gate/blocker lists (sorted for deterministic output) ─────
-    CAPABILITY_AREAS = sorted(LAYER_MAP.values())  # deterministic order
+    # Include report-provided layers in addition to the curated display buckets so
+    # new registry layers fail verifier policy, not markdown rendering.
+    report_areas = {
+        area_of(record.get("layer", ""))
+        for record in [*unresolved_gates, *blocked_nodes]
+        if record.get("layer", "")
+    }
+    CAPABILITY_AREAS = sorted(set(LAYER_MAP.values()) | report_areas)  # deterministic order
 
     gates_by_area: dict[str, list[dict[str, Any]]] = {a: [] for a in CAPABILITY_AREAS}
     for gate in unresolved_gates:

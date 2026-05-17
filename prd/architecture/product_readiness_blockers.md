@@ -14,6 +14,7 @@
 | Legal KnowQL / Generated Cypher | 1 | 0 |
 | Retrieval / Embedding | 1 | 7 |
 | Temporal Model | 1 | 0 |
+| architecture-governance | 0 | 1 |
 
 ## Priority Snapshot
 
@@ -22,7 +23,7 @@ This snapshot is a triage view only; priority does not prove readiness or promot
 | Priority | Count | Representative Blockers |
 | --- | ---: | --- |
 | P0 | 1 | `GATE-GENERATED-CYPHER-SAFETY` |
-| P1 | 15 | `EVID-LOCAL-RETRIEVAL-QUALITY-BENCHMARK-PROOF`, `EVID-OFFLINE-CITATION-RETRIEVAL-PROOF`, `EVID-PARSER-ODT-SMOKE`, `EVID-REAL-ARTIFACT-RETRIEVAL-PROOF`, `EVID-REPRESENTATIVE-RETRIEVAL-RUNTIME-BENCHMARK-PROOF` |
+| P1 | 16 | `EVID-LOCAL-RETRIEVAL-QUALITY-BENCHMARK-PROOF`, `EVID-OFFLINE-CITATION-RETRIEVAL-PROOF`, `EVID-PARSER-ODT-SMOKE`, `EVID-REAL-ARTIFACT-RETRIEVAL-PROOF`, `EVID-REPRESENTATIVE-RETRIEVAL-RUNTIME-BENCHMARK-PROOF` |
 | P2 | 1 | `GATE-G015` |
 | P3 | 0 | — |
 
@@ -308,6 +309,54 @@ Proof work for this area should:
 
 - Address [`GATE-G005`](#proof-gates): A future proof slice defines and verifies same-date/multi-edition conflict policy.
 
+## architecture-governance
+
+### Proof Gates
+
+| ID | Title | Priority | Status | Risk | Verification | Owner |
+| --- | --- | --- | --- | --- | --- | --- |
+
+### Blocked / Bounded Evidence
+
+| ID | Title | Priority | Status | Risk | Proof Level | Verification | Owner |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| `EVID-RESEARCH-ONTOLOGY-AKOMA-LKIF-BFO` | Ontology architecture intake research evidence | P1 / high-priority-blocker | bounded-evidence | high | source-anchor | Keep as bounded source-anchor evidence until primary-source, benchmark, runtime, or real-document proof exists and verifier gates pass. | architecture registry owner / M017 ontology intake |
+|  | Does not make LLM output legal authority. | — | — | — | — | — | — |
+|  | Does not prove FalkorDB graph-vector/runtime capability. | — | — | — | — | — | — |
+|  | Does not prove GOST/BFO source correctness. | — | — | — | — | — | — |
+|  | Does not prove LKIF/deontic extraction correctness. | — | — | — | — | — | — |
+|  | Does not prove RusLawOD corpus priority. | — | — | — | — | — | — |
+|  | Does not prove legal-answer correctness. | — | — | — | — | — | — |
+|  | Does not prove ontology GraphRAG retrieval quality. | — | — | — | — | — | — |
+|  | Does not prove ontology benchmark quality. | — | — | — | — | — | — |
+|  | Does not prove parser completeness. | — | — | — | — | — | — |
+|  | Does not prove pilot-scale readiness. | — | — | — | — | — | — |
+|  | Does not prove product Legal KnowQL behavior. | — | — | — | — | — | — |
+
+### What This Area Does Not Prove
+
+_Below non-claims are drawn directly from architecture registry records. They are not exhaustive._
+
+| Non-Claim |
+| --- |
+| Does not make LLM output legal authority. |
+| Does not prove FalkorDB graph-vector/runtime capability. |
+| Does not prove GOST/BFO source correctness. |
+| Does not prove LKIF/deontic extraction correctness. |
+| Does not prove RusLawOD corpus priority. |
+| Does not prove legal-answer correctness. |
+| Does not prove ontology GraphRAG retrieval quality. |
+| Does not prove ontology benchmark quality. |
+| Does not prove parser completeness. |
+| Does not prove pilot-scale readiness. |
+| Does not prove product Legal KnowQL behavior. |
+
+### Next Proof Work
+
+Proof work for this area should:
+
+- Resolve [`EVID-RESEARCH-ONTOLOGY-AKOMA-LKIF-BFO`](#blocked--bounded-evidence): Keep as bounded source-anchor evidence until primary-source, benchmark, runtime, or real-document proof exists and verifier gates pass.
+
 ---
 
 ## Global Non-Claims Summary
@@ -321,9 +370,25 @@ _The following statements appear across one or more architecture records and col
 | Does not implement Legal Nexus runtime behavior. | `COMP-LEGAL-NEXUS-ORCHESTRATOR` |
 | Does not prove access-control enforcement. | `COMP-LEGAL-NEXUS-ORCHESTRATOR` |
 | Does not prove product Legal KnowQL behavior. | `COMP-LEGAL-NEXUS-ORCHESTRATOR` |
+| Does not make LLM output legal authority. | `DATA-LEGAL-DOCUMENT-IDENTITY-FRBR` |
+| Does not prove FalkorDB graph-vector/runtime capability. | `DATA-LEGAL-DOCUMENT-IDENTITY-FRBR` |
+| Does not prove amendment aggregation or inactive-version filtering. | `DATA-LEGAL-DOCUMENT-IDENTITY-FRBR` |
+| Does not prove compatibility with Consultant, Garant, RusLawOD, or Akoma Ntoso sources. | `DATA-LEGAL-DOCUMENT-IDENTITY-FRBR` |
+| Does not prove correct FRBR implementation. | `DATA-LEGAL-DOCUMENT-IDENTITY-FRBR` |
+| Does not prove legal-answer correctness. | `DATA-LEGAL-DOCUMENT-IDENTITY-FRBR` |
+| Does not prove ontology benchmark quality. | `DATA-LEGAL-DOCUMENT-IDENTITY-FRBR` |
+| Does not prove parser completeness. | `DATA-LEGAL-DOCUMENT-IDENTITY-FRBR` |
+| Does not prove pilot-scale readiness. | `DATA-LEGAL-DOCUMENT-IDENTITY-FRBR` |
 | Does not assert final legal graph schema completeness. | `DATA-LEGAL-EVIDENCE-CORE` |
-| Does not prove legal-answer correctness. | `DATA-LEGAL-EVIDENCE-CORE` |
-| Does not prove parser completeness. | `DATA-LEGAL-EVIDENCE-CORE` |
+| Does not authorize automated legal conclusions. | `DATA-LEGAL-SOURCE-HIERARCHY` |
+| Does not decide legal priority. | `DATA-LEGAL-SOURCE-HIERARCHY` |
+| Does not prove automated legal collision resolution. | `DATA-LEGAL-SOURCE-HIERARCHY` |
+| Does not make ML/NER outputs authoritative assertions. | `DATA-LKIF-DEONTIC-MAPPING` |
+| Does not prove extraction precision or recall. | `DATA-LKIF-DEONTIC-MAPPING` |
+| Does not prove negation handling or modal-verb interpretation. | `DATA-LKIF-DEONTIC-MAPPING` |
+| Does not define final ontology scope. | `DATA-RUSLEGALCORE-DOMAIN-ONTOLOGY` |
+| Does not prove Russian-law completeness. | `DATA-RUSLEGALCORE-DOMAIN-ONTOLOGY` |
+| Does not replace project-local LegalGraph core contracts. | `DATA-RUSLEGALCORE-DOMAIN-ONTOLOGY` |
 | Does not specify temporal storage implementation. | `DATA-TEMPORAL-PROPERTY-BUNDLE` |
 | Does not validate temporal conflict resolution. | `DATA-TEMPORAL-PROPERTY-BUNDLE` |
 | JSONL and GraphML are not source-of-truth replacements. | `DEC-D031` |
@@ -331,7 +396,6 @@ _The following statements appear across one or more architecture records and col
 | Does not allow managed embedding API fallback. | `EVID-LOCAL-RETRIEVAL-QUALITY-BENCHMARK-PROOF` |
 | Does not close GATE-G008. | `EVID-LOCAL-RETRIEVAL-QUALITY-BENCHMARK-PROOF` |
 | Does not close GATE-G011. | `EVID-LOCAL-RETRIEVAL-QUALITY-BENCHMARK-PROOF` |
-| Does not make LLM output legal authority. | `EVID-LOCAL-RETRIEVAL-QUALITY-BENCHMARK-PROOF` |
 | Does not make proof-local fixture metrics production metrics. | `EVID-LOCAL-RETRIEVAL-QUALITY-BENCHMARK-PROOF` |
 | Does not promote GigaEmbeddings. | `EVID-LOCAL-RETRIEVAL-QUALITY-BENCHMARK-PROOF` |
 | Does not prove product retrieval quality. | `EVID-LOCAL-RETRIEVAL-QUALITY-BENCHMARK-PROOF` |
@@ -356,9 +420,19 @@ _The following statements appear across one or more architecture records and col
 | Does not validate benchmark, cost, or latency claims. | `EVID-RESEARCH-GRAPHRAG-MATH-ANALYSIS` |
 | Does not authorize generated Cypher execution. | `EVID-RESEARCH-HABR-LEGAL-RAG-ITERATION-SCALING` |
 | Does not prove FalkorDB runtime/vector/full-text/rerank behavior. | `EVID-RESEARCH-HABR-LEGAL-RAG-ITERATION-SCALING` |
+| Does not prove GOST/BFO source correctness. | `EVID-RESEARCH-ONTOLOGY-AKOMA-LKIF-BFO` |
+| Does not prove LKIF/deontic extraction correctness. | `EVID-RESEARCH-ONTOLOGY-AKOMA-LKIF-BFO` |
+| Does not prove RusLawOD corpus priority. | `EVID-RESEARCH-ONTOLOGY-AKOMA-LKIF-BFO` |
+| Does not prove ontology GraphRAG retrieval quality. | `EVID-RESEARCH-ONTOLOGY-AKOMA-LKIF-BFO` |
 | Does not make fixture IDs production IDs. | `EVID-RETRIEVAL-OUTPUT-ID-VALIDATOR-PROOF` |
 | Does not promote D045 research into validated product behavior. | `EVID-RETRIEVAL-OUTPUT-ID-VALIDATOR-PROOF` |
 | Does not prove raw legal text evidence quality. | `EVID-RETRIEVAL-OUTPUT-ID-VALIDATOR-PROOF` |
+| Does not make Akoma Ntoso canonical. | `GATE-AKOMA-FRBR-NORMALIZATION` |
+| Does not prove export compatibility. | `GATE-AKOMA-FRBR-NORMALIZATION` |
+| Does not require replacing current parser record contracts. | `GATE-AKOMA-FRBR-NORMALIZATION` |
+| Does not assert BFO conformance. | `GATE-BFO-GOST-ALIGNMENT` |
+| Does not assert Common Logic necessity or OWL reasoning support. | `GATE-BFO-GOST-ALIGNMENT` |
+| Does not assert GOST requirements. | `GATE-BFO-GOST-ALIGNMENT` |
 | Does not promote any embedding model to product default. | `GATE-EMBEDDING-SUPPLY-CHAIN` |
 | No product retrieval quality claim. | `GATE-G008` |
 | No managed embedding API fallback claim. | `GATE-G011` |
@@ -366,8 +440,22 @@ _The following statements appear across one or more architecture records and col
 | Does not authorize executing raw generated Cypher. | `GATE-GENERATED-CYPHER-SAFETY` |
 | Does not prove production Legal KnowQL behavior. | `GATE-GENERATED-CYPHER-SAFETY` |
 | Does not prove provider generation quality. | `GATE-GENERATED-CYPHER-SAFETY` |
+| Does not produce legally binding answers. | `GATE-LEGAL-COLLISION-POLICY` |
+| Does not prove court interpretation correctness. | `GATE-LEGAL-COLLISION-POLICY` |
 | Does not assert current product is insecure. | `GATE-LEGAL-NEXUS-ACCESS-CONTROL` |
 | Does not define a production API surface. | `GATE-LEGAL-NEXUS-ACCESS-CONTROL` |
+| Does not prove ML model fitness. | `GATE-LKIF-DEONTIC-BENCHMARK` |
+| Does not prove semantic extraction. | `GATE-LKIF-DEONTIC-BENCHMARK` |
+| Planning alias GATE-DEONTIC-MAPPING-PROOF is not emitted as an authoritative gate. | `GATE-LKIF-DEONTIC-BENCHMARK` |
+| Does not prove HNSW behavior or single-transaction graph+vector semantics. | `GATE-ONTOLOGY-GRAPHRAG-INTEGRATION` |
+| Does not prove vector/full-text/FalkorDB runtime capability. | `GATE-ONTOLOGY-GRAPHRAG-INTEGRATION` |
+| Does not claim that 1,000 representative documents have been processed. | `GATE-PILOT-SCALE-READINESS` |
+| Does not invalidate existing bounded proofs. | `GATE-PILOT-SCALE-READINESS` |
+| Does not prove production scale. | `GATE-PILOT-SCALE-READINESS` |
+| Does not prove production-scale FalkorDB claim. | `GATE-PILOT-SCALE-READINESS` |
+| Planning alias GATE-1000-DOC-PILOT is not emitted as an authoritative gate. | `GATE-PILOT-SCALE-READINESS` |
+| Does not prove implementation readiness. | `GATE-RUSLEGALCORE-SCOPE` |
+| Does not prove ontology completeness. | `GATE-RUSLEGALCORE-SCOPE` |
 | No KnowQL parser. | `M001-ARCHITECTURE-ONLY-GUARDRAIL` |
 | No LegalNexus API. | `M001-ARCHITECTURE-ONLY-GUARDRAIL` |
 | No hybrid retrieval. | `M001-ARCHITECTURE-ONLY-GUARDRAIL` |
