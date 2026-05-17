@@ -21,7 +21,6 @@ EXPECTED_DIAGNOSTIC_IDS = {
 }
 EXPECTED_CURRENT_FAILURES = {
     "DRIFT-R035-ACTIVE-UNOWNED",
-    "DRIFT-R035-STALE-GATE-VIEW",
 }
 
 
@@ -94,7 +93,7 @@ def test_command_json_smoke_reports_drift_without_validating_r035():
     assert payload["check"] == "gsd-sync-drift-r035"
     assert payload["status"] == "DRIFT"
     assert payload["failed_count"] == len(EXPECTED_CURRENT_FAILURES)
-    assert payload["failed_count"] == 2
+    assert payload["failed_count"] == 1
     assert "does not validate" in payload["non_claim"]
     assert {diagnostic["diagnostic_id"] for diagnostic in payload["diagnostics"]} == EXPECTED_DIAGNOSTIC_IDS
 
@@ -110,5 +109,6 @@ def test_strict_exit_code_is_available_for_fail_fast_callers():
 
     assert completed.returncode == 1
     assert "status=DRIFT" in completed.stdout
-    assert "DRIFT-R035-STALE-GATE-VIEW status=ERROR" in completed.stdout
+    assert "DRIFT-R035-ACTIVE-UNOWNED status=ERROR" in completed.stdout
+    assert "DRIFT-R035-STALE-GATE-VIEW status=OK" in completed.stdout
     assert "DRIFT-R035-REGISTRY-MAPPING-ABSENT status=OK" in completed.stdout

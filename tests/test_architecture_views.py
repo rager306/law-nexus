@@ -151,6 +151,40 @@ def test_blockers_report_adds_priority_snapshot_without_raw_payloads() -> None:
     assert ".gsd/exec" not in content
 
 
+def test_blockers_report_includes_report_layers_outside_curated_area_map() -> None:
+    generator = load_view_generator_module()
+    report = minimal_report()
+    report["high_risk_nodes"].append(
+        {
+            "id": "REQ-GOVERNANCE-BLOCKED",
+            "risk_level": "high",
+            "type": "requirement",
+            "layer": "architecture-governance",
+            "status": "bounded-evidence",
+            "proof_level": "source-anchor",
+        }
+    )
+    items = {
+        "REQ-GOVERNANCE-BLOCKED": item(
+            "REQ-GOVERNANCE-BLOCKED",
+            title="Architecture governance blocker",
+            status="bounded-evidence",
+            risk_level="high",
+            priority="high",
+            layer="architecture-governance",
+            verification="Verify through architecture registry generation.",
+            non_claims=["Does not prove architecture governance drift is resolved."],
+        )
+    }
+
+    content = generator.render_blockers_report(report, items_lookup=items)
+
+    assert "| architecture-governance | 0 | 1 |" in content
+    assert "## architecture-governance" in content
+    assert "`REQ-GOVERNANCE-BLOCKED`" in content
+    assert "Does not prove architecture governance drift is resolved." in content
+
+
 def test_claims_ledger_surfaces_r035_gate_status_as_guardrail_only() -> None:
     generator = load_view_generator_module()
     items = {
@@ -178,6 +212,43 @@ def test_claims_ledger_surfaces_r035_gate_status_as_guardrail_only() -> None:
     assert "add-proof-gate" in content
     assert "do not validate the referenced standard or product behavior" in content
     assert "production ready" not in content.lower()
+
+
+def test_claims_ledger_r035_gate_status_lists_legal_hierarchy_and_collision_policy() -> None:
+    generator = load_view_generator_module()
+    items = {
+        "DATA-LEGAL-SOURCE-HIERARCHY": item(
+            "DATA-LEGAL-SOURCE-HIERARCHY",
+            title="Legal source hierarchy candidate",
+            summary="Candidate hierarchy model for legal force, federal competence, supersession, and lex maxim inputs.",
+            record_type="data_entity",
+            status="hypothesis",
+            proof_level="source-anchor",
+            risk_level="high",
+            priority="high",
+            layer="legal-evidence",
+            non_claims=["Does not decide legal priority."],
+        ),
+        "GATE-LEGAL-COLLISION-POLICY": item(
+            "GATE-LEGAL-COLLISION-POLICY",
+            title="Legal collision policy proof gate",
+            summary="Proof gate for lex superior, lex specialis, lex posterior, supersession, and explainable norm-priority behavior.",
+            record_type="proof_gate",
+            status="proposed",
+            proof_level="source-anchor",
+            risk_level="high",
+            priority="high",
+            layer="legal-evidence",
+            non_claims=["Does not prove automated legal collision resolution."],
+        ),
+    }
+
+    content = generator.render_claims_ledger(items, minimal_report())
+
+    assert "`DATA-LEGAL-SOURCE-HIERARCHY`" in content
+    assert "`GATE-LEGAL-COLLISION-POLICY`" in content
+    assert "GATE-LEGAL-COLLISION-POLICY" in content
+    assert "do not validate the referenced standard or product behavior" in content
 
 
 REPORT_PATHS = (

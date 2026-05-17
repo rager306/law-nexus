@@ -2,8 +2,8 @@
   "contradiction_edges": [],
   "contradiction_pairs": [],
   "counts": {
-    "edges": 66,
-    "nodes": 46
+    "edges": 91,
+    "nodes": 58
   },
   "high_risk_nodes": [
     {
@@ -31,11 +31,43 @@
       "type": "component"
     },
     {
+      "id": "DATA-LEGAL-DOCUMENT-IDENTITY-FRBR",
+      "layer": "temporal-model",
+      "proof_level": "source-anchor",
+      "risk_level": "high",
+      "status": "hypothesis",
+      "type": "data_entity"
+    },
+    {
       "id": "DATA-LEGAL-EVIDENCE-CORE",
       "layer": "legal-evidence",
       "proof_level": "source-anchor",
       "risk_level": "high",
       "status": "active",
+      "type": "data_entity"
+    },
+    {
+      "id": "DATA-LEGAL-SOURCE-HIERARCHY",
+      "layer": "legal-evidence",
+      "proof_level": "source-anchor",
+      "risk_level": "high",
+      "status": "hypothesis",
+      "type": "data_entity"
+    },
+    {
+      "id": "DATA-LKIF-DEONTIC-MAPPING",
+      "layer": "legal-evidence",
+      "proof_level": "source-anchor",
+      "risk_level": "high",
+      "status": "hypothesis",
+      "type": "data_entity"
+    },
+    {
+      "id": "DATA-RUSLEGALCORE-DOMAIN-ONTOLOGY",
+      "layer": "legal-evidence",
+      "proof_level": "source-anchor",
+      "risk_level": "high",
+      "status": "hypothesis",
       "type": "data_entity"
     },
     {
@@ -111,12 +143,28 @@
       "type": "evidence"
     },
     {
+      "id": "EVID-RESEARCH-ONTOLOGY-AKOMA-LKIF-BFO",
+      "layer": "architecture-governance",
+      "proof_level": "source-anchor",
+      "risk_level": "high",
+      "status": "bounded-evidence",
+      "type": "evidence"
+    },
+    {
       "id": "EVID-RETRIEVAL-OUTPUT-ID-VALIDATOR-PROOF",
       "layer": "retrieval-embedding",
       "proof_level": "unit-test",
       "risk_level": "high",
       "status": "bounded-evidence",
       "type": "evidence"
+    },
+    {
+      "id": "GATE-AKOMA-FRBR-NORMALIZATION",
+      "layer": "parser-ingestion",
+      "proof_level": "source-anchor",
+      "risk_level": "high",
+      "status": "proposed",
+      "type": "proof_gate"
     },
     {
       "id": "GATE-EMBEDDING-SUPPLY-CHAIN",
@@ -159,11 +207,51 @@
       "type": "proof_gate"
     },
     {
+      "id": "GATE-LEGAL-COLLISION-POLICY",
+      "layer": "legal-evidence",
+      "proof_level": "source-anchor",
+      "risk_level": "high",
+      "status": "proposed",
+      "type": "proof_gate"
+    },
+    {
       "id": "GATE-LEGAL-NEXUS-ACCESS-CONTROL",
       "layer": "security-safety",
       "proof_level": "none",
       "risk_level": "high",
       "status": "active",
+      "type": "proof_gate"
+    },
+    {
+      "id": "GATE-LKIF-DEONTIC-BENCHMARK",
+      "layer": "legal-evidence",
+      "proof_level": "source-anchor",
+      "risk_level": "high",
+      "status": "proposed",
+      "type": "proof_gate"
+    },
+    {
+      "id": "GATE-ONTOLOGY-GRAPHRAG-INTEGRATION",
+      "layer": "retrieval-embedding",
+      "proof_level": "source-anchor",
+      "risk_level": "high",
+      "status": "proposed",
+      "type": "proof_gate"
+    },
+    {
+      "id": "GATE-PILOT-SCALE-READINESS",
+      "layer": "observability-operability",
+      "proof_level": "source-anchor",
+      "risk_level": "high",
+      "status": "proposed",
+      "type": "proof_gate"
+    },
+    {
+      "id": "GATE-RUSLEGALCORE-SCOPE",
+      "layer": "legal-evidence",
+      "proof_level": "source-anchor",
+      "risk_level": "high",
+      "status": "proposed",
       "type": "proof_gate"
     },
     {
@@ -260,15 +348,15 @@
   "layer_coverage": {
     "counts": {
       "api-product": 1,
-      "architecture-governance": 7,
+      "architecture-governance": 9,
       "generated-cypher": 2,
       "graph-runtime": 2,
-      "legal-evidence": 1,
-      "observability-operability": 1,
-      "parser-ingestion": 10,
-      "retrieval-embedding": 11,
+      "legal-evidence": 7,
+      "observability-operability": 2,
+      "parser-ingestion": 11,
+      "retrieval-embedding": 12,
       "security-safety": 5,
-      "temporal-model": 3,
+      "temporal-model": 4,
       "workflow-governance": 3
     },
     "invalid_layers": [],
@@ -301,12 +389,76 @@
         ]
       },
       {
+        "count": 10,
+        "id": "DATA-LEGAL-DOCUMENT-IDENTITY-FRBR",
+        "non_claims": [
+          "Does not make LLM output legal authority.",
+          "Does not prove FalkorDB graph-vector/runtime capability.",
+          "Does not prove amendment aggregation or inactive-version filtering.",
+          "Does not prove compatibility with Consultant, Garant, RusLawOD, or Akoma Ntoso sources.",
+          "Does not prove correct FRBR implementation.",
+          "Does not prove legal-answer correctness.",
+          "Does not prove ontology benchmark quality.",
+          "Does not prove parser completeness.",
+          "Does not prove pilot-scale readiness.",
+          "Does not prove product Legal KnowQL behavior."
+        ]
+      },
+      {
         "count": 3,
         "id": "DATA-LEGAL-EVIDENCE-CORE",
         "non_claims": [
           "Does not assert final legal graph schema completeness.",
           "Does not prove legal-answer correctness.",
           "Does not prove parser completeness."
+        ]
+      },
+      {
+        "count": 10,
+        "id": "DATA-LEGAL-SOURCE-HIERARCHY",
+        "non_claims": [
+          "Does not authorize automated legal conclusions.",
+          "Does not decide legal priority.",
+          "Does not make LLM output legal authority.",
+          "Does not prove FalkorDB graph-vector/runtime capability.",
+          "Does not prove automated legal collision resolution.",
+          "Does not prove legal-answer correctness.",
+          "Does not prove ontology benchmark quality.",
+          "Does not prove parser completeness.",
+          "Does not prove pilot-scale readiness.",
+          "Does not prove product Legal KnowQL behavior."
+        ]
+      },
+      {
+        "count": 10,
+        "id": "DATA-LKIF-DEONTIC-MAPPING",
+        "non_claims": [
+          "Does not make LLM output legal authority.",
+          "Does not make ML/NER outputs authoritative assertions.",
+          "Does not prove FalkorDB graph-vector/runtime capability.",
+          "Does not prove extraction precision or recall.",
+          "Does not prove legal-answer correctness.",
+          "Does not prove negation handling or modal-verb interpretation.",
+          "Does not prove ontology benchmark quality.",
+          "Does not prove parser completeness.",
+          "Does not prove pilot-scale readiness.",
+          "Does not prove product Legal KnowQL behavior."
+        ]
+      },
+      {
+        "count": 10,
+        "id": "DATA-RUSLEGALCORE-DOMAIN-ONTOLOGY",
+        "non_claims": [
+          "Does not define final ontology scope.",
+          "Does not make LLM output legal authority.",
+          "Does not prove FalkorDB graph-vector/runtime capability.",
+          "Does not prove Russian-law completeness.",
+          "Does not prove legal-answer correctness.",
+          "Does not prove ontology benchmark quality.",
+          "Does not prove parser completeness.",
+          "Does not prove pilot-scale readiness.",
+          "Does not prove product Legal KnowQL behavior.",
+          "Does not replace project-local LegalGraph core contracts."
         ]
       },
       {
@@ -482,6 +634,23 @@
         ]
       },
       {
+        "count": 11,
+        "id": "EVID-RESEARCH-ONTOLOGY-AKOMA-LKIF-BFO",
+        "non_claims": [
+          "Does not make LLM output legal authority.",
+          "Does not prove FalkorDB graph-vector/runtime capability.",
+          "Does not prove GOST/BFO source correctness.",
+          "Does not prove LKIF/deontic extraction correctness.",
+          "Does not prove RusLawOD corpus priority.",
+          "Does not prove legal-answer correctness.",
+          "Does not prove ontology GraphRAG retrieval quality.",
+          "Does not prove ontology benchmark quality.",
+          "Does not prove parser completeness.",
+          "Does not prove pilot-scale readiness.",
+          "Does not prove product Legal KnowQL behavior."
+        ]
+      },
+      {
         "count": 8,
         "id": "EVID-RETRIEVAL-OUTPUT-ID-VALIDATOR-PROOF",
         "non_claims": [
@@ -493,6 +662,38 @@
           "Does not prove product retrieval quality.",
           "Does not prove production FalkorDB runtime behavior.",
           "Does not prove raw legal text evidence quality."
+        ]
+      },
+      {
+        "count": 10,
+        "id": "GATE-AKOMA-FRBR-NORMALIZATION",
+        "non_claims": [
+          "Does not make Akoma Ntoso canonical.",
+          "Does not make LLM output legal authority.",
+          "Does not prove FalkorDB graph-vector/runtime capability.",
+          "Does not prove export compatibility.",
+          "Does not prove legal-answer correctness.",
+          "Does not prove ontology benchmark quality.",
+          "Does not prove parser completeness.",
+          "Does not prove pilot-scale readiness.",
+          "Does not prove product Legal KnowQL behavior.",
+          "Does not require replacing current parser record contracts."
+        ]
+      },
+      {
+        "count": 10,
+        "id": "GATE-BFO-GOST-ALIGNMENT",
+        "non_claims": [
+          "Does not assert BFO conformance.",
+          "Does not assert Common Logic necessity or OWL reasoning support.",
+          "Does not assert GOST requirements.",
+          "Does not make LLM output legal authority.",
+          "Does not prove FalkorDB graph-vector/runtime capability.",
+          "Does not prove legal-answer correctness.",
+          "Does not prove ontology benchmark quality.",
+          "Does not prove parser completeness.",
+          "Does not prove pilot-scale readiness.",
+          "Does not prove product Legal KnowQL behavior."
         ]
       },
       {
@@ -544,12 +745,93 @@
         ]
       },
       {
+        "count": 10,
+        "id": "GATE-LEGAL-COLLISION-POLICY",
+        "non_claims": [
+          "Does not make LLM output legal authority.",
+          "Does not produce legally binding answers.",
+          "Does not prove FalkorDB graph-vector/runtime capability.",
+          "Does not prove automated legal collision resolution.",
+          "Does not prove court interpretation correctness.",
+          "Does not prove legal-answer correctness.",
+          "Does not prove ontology benchmark quality.",
+          "Does not prove parser completeness.",
+          "Does not prove pilot-scale readiness.",
+          "Does not prove product Legal KnowQL behavior."
+        ]
+      },
+      {
         "count": 3,
         "id": "GATE-LEGAL-NEXUS-ACCESS-CONTROL",
         "non_claims": [
           "Does not assert current product is insecure.",
           "Does not define a production API surface.",
           "Does not prove access-control enforcement."
+        ]
+      },
+      {
+        "count": 10,
+        "id": "GATE-LKIF-DEONTIC-BENCHMARK",
+        "non_claims": [
+          "Does not make LLM output legal authority.",
+          "Does not prove FalkorDB graph-vector/runtime capability.",
+          "Does not prove ML model fitness.",
+          "Does not prove legal-answer correctness.",
+          "Does not prove ontology benchmark quality.",
+          "Does not prove parser completeness.",
+          "Does not prove pilot-scale readiness.",
+          "Does not prove product Legal KnowQL behavior.",
+          "Does not prove semantic extraction.",
+          "Planning alias GATE-DEONTIC-MAPPING-PROOF is not emitted as an authoritative gate."
+        ]
+      },
+      {
+        "count": 10,
+        "id": "GATE-ONTOLOGY-GRAPHRAG-INTEGRATION",
+        "non_claims": [
+          "Does not make LLM output legal authority.",
+          "Does not prove FalkorDB graph-vector/runtime capability.",
+          "Does not prove HNSW behavior or single-transaction graph+vector semantics.",
+          "Does not prove legal-answer correctness.",
+          "Does not prove ontology benchmark quality.",
+          "Does not prove parser completeness.",
+          "Does not prove pilot-scale readiness.",
+          "Does not prove product Legal KnowQL behavior.",
+          "Does not prove product retrieval quality.",
+          "Does not prove vector/full-text/FalkorDB runtime capability."
+        ]
+      },
+      {
+        "count": 12,
+        "id": "GATE-PILOT-SCALE-READINESS",
+        "non_claims": [
+          "Does not claim that 1,000 representative documents have been processed.",
+          "Does not invalidate existing bounded proofs.",
+          "Does not make LLM output legal authority.",
+          "Does not prove FalkorDB graph-vector/runtime capability.",
+          "Does not prove legal-answer correctness.",
+          "Does not prove ontology benchmark quality.",
+          "Does not prove parser completeness.",
+          "Does not prove pilot-scale readiness.",
+          "Does not prove product Legal KnowQL behavior.",
+          "Does not prove production scale.",
+          "Does not prove production-scale FalkorDB claim.",
+          "Planning alias GATE-1000-DOC-PILOT is not emitted as an authoritative gate."
+        ]
+      },
+      {
+        "count": 9,
+        "id": "GATE-RUSLEGALCORE-SCOPE",
+        "non_claims": [
+          "Does not make LLM output legal authority.",
+          "Does not prove FalkorDB graph-vector/runtime capability.",
+          "Does not prove implementation readiness.",
+          "Does not prove legal-answer correctness.",
+          "Does not prove ontology benchmark quality.",
+          "Does not prove ontology completeness.",
+          "Does not prove parser completeness.",
+          "Does not prove pilot-scale readiness.",
+          "Does not prove product Legal KnowQL behavior."
         ]
       },
       {
@@ -726,8 +1008,8 @@
         ]
       }
     ],
-    "nodes_with_non_claims": 46,
-    "total_non_claims": 172
+    "nodes_with_non_claims": 58,
+    "total_non_claims": 294
   },
   "orphan_findings": [],
   "traceability_edges": [
@@ -740,11 +1022,99 @@
       "type": "depends_on"
     },
     {
+      "from": "DATA-LEGAL-DOCUMENT-IDENTITY-FRBR",
+      "id": "EDGE-DATA-LEGAL-DOCUMENT-IDENTITY-FRBR-BOUNDED-BY-GATE-AKOMA-FRBR-NORMALIZATION",
+      "rationale": "FRBR-like identity remains bounded by parser/normalization proof before canonical legal-unit projection claims.",
+      "status": "hypothesis",
+      "to": "GATE-AKOMA-FRBR-NORMALIZATION",
+      "type": "bounded_by"
+    },
+    {
+      "from": "DATA-LEGAL-DOCUMENT-IDENTITY-FRBR",
+      "id": "EDGE-DATA-LEGAL-DOCUMENT-IDENTITY-FRBR-EVIDENCED-BY-EVID-RESEARCH-ONTOLOGY-AKOMA-LKIF-BFO",
+      "rationale": "The M017 ontology research and gap-analysis plan is bounded source-anchor evidence for this conservative ontology candidate; it does not upgrade proof beyond source-anchor.",
+      "status": "bounded-evidence",
+      "to": "EVID-RESEARCH-ONTOLOGY-AKOMA-LKIF-BFO",
+      "type": "evidenced_by"
+    },
+    {
+      "from": "DATA-LEGAL-DOCUMENT-IDENTITY-FRBR",
+      "id": "EDGE-DATA-LEGAL-DOCUMENT-IDENTITY-FRBR-REFINES-DATA-TEMPORAL-PROPERTY-BUNDLE",
+      "rationale": "The FRBR-like candidate refines existing temporal property bundle concepts without replacing current parser records.",
+      "status": "hypothesis",
+      "to": "DATA-TEMPORAL-PROPERTY-BUNDLE",
+      "type": "refines"
+    },
+    {
+      "from": "DATA-LEGAL-DOCUMENT-IDENTITY-FRBR",
+      "id": "EDGE-DATA-LEGAL-DOCUMENT-IDENTITY-FRBR-REFINES-REQ-TEMPORAL-STATUS-SEMANTICS",
+      "rationale": "The identity candidate refines existing temporal status semantics and remains source-anchor-only until examples and proof exist.",
+      "status": "hypothesis",
+      "to": "REQ-TEMPORAL-STATUS-SEMANTICS",
+      "type": "refines"
+    },
+    {
       "from": "DATA-LEGAL-EVIDENCE-CORE",
       "id": "EDGE-DATA-LEGAL-EVIDENCE-EVIDENCED-BY-PARSER-RECORD-CONTRACT",
       "rationale": "Parser record contracts provide bounded evidence for SourceDocument/SourceBlock-related legal-evidence record shapes.",
       "status": "active",
       "to": "EVID-PARSER-RECORD-CONTRACT",
+      "type": "evidenced_by"
+    },
+    {
+      "from": "DATA-LEGAL-SOURCE-HIERARCHY",
+      "id": "EDGE-DATA-LEGAL-SOURCE-HIERARCHY-EVIDENCED-BY-EVID-RESEARCH-ONTOLOGY-AKOMA-LKIF-BFO",
+      "rationale": "The M017 ontology research and gap-analysis plan is bounded source-anchor evidence for this conservative ontology candidate; it does not upgrade proof beyond source-anchor.",
+      "status": "bounded-evidence",
+      "to": "EVID-RESEARCH-ONTOLOGY-AKOMA-LKIF-BFO",
+      "type": "evidenced_by"
+    },
+    {
+      "from": "DATA-LKIF-DEONTIC-MAPPING",
+      "id": "EDGE-DATA-LKIF-DEONTIC-MAPPING-BOUNDED-BY-GATE-LKIF-DEONTIC-BENCHMARK",
+      "rationale": "LKIF/deontic mapping must remain proof-gated by the canonical verifier-policy benchmark gate before use as semantic/legal evidence.",
+      "status": "hypothesis",
+      "to": "GATE-LKIF-DEONTIC-BENCHMARK",
+      "type": "bounded_by"
+    },
+    {
+      "from": "DATA-LKIF-DEONTIC-MAPPING",
+      "id": "EDGE-DATA-LKIF-DEONTIC-MAPPING-DEPENDS-ON-DATA-LEGAL-EVIDENCE-CORE",
+      "rationale": "Deontic extraction candidates depend on source-backed legal evidence and evidence-span concepts.",
+      "status": "hypothesis",
+      "to": "DATA-LEGAL-EVIDENCE-CORE",
+      "type": "depends_on"
+    },
+    {
+      "from": "DATA-LKIF-DEONTIC-MAPPING",
+      "id": "EDGE-DATA-LKIF-DEONTIC-MAPPING-EVIDENCED-BY-EVID-RESEARCH-ONTOLOGY-AKOMA-LKIF-BFO",
+      "rationale": "The M017 ontology research and gap-analysis plan is bounded source-anchor evidence for this conservative ontology candidate; it does not upgrade proof beyond source-anchor.",
+      "status": "bounded-evidence",
+      "to": "EVID-RESEARCH-ONTOLOGY-AKOMA-LKIF-BFO",
+      "type": "evidenced_by"
+    },
+    {
+      "from": "DATA-RUSLEGALCORE-DOMAIN-ONTOLOGY",
+      "id": "EDGE-DATA-RUSLEGALCORE-DOMAIN-ONTOLOGY-BOUNDED-BY-GATE-RUSLEGALCORE-SCOPE",
+      "rationale": "RusLegalCore must be scoped before it can become an active domain-ontology contract.",
+      "status": "hypothesis",
+      "to": "GATE-RUSLEGALCORE-SCOPE",
+      "type": "bounded_by"
+    },
+    {
+      "from": "DATA-RUSLEGALCORE-DOMAIN-ONTOLOGY",
+      "id": "EDGE-DATA-RUSLEGALCORE-DOMAIN-ONTOLOGY-DEPENDS-ON-DATA-LEGAL-SOURCE-HIERARCHY",
+      "rationale": "The Russian legal domain ontology candidate depends on explicit legal-force and source hierarchy concepts before collision-policy use.",
+      "status": "hypothesis",
+      "to": "DATA-LEGAL-SOURCE-HIERARCHY",
+      "type": "depends_on"
+    },
+    {
+      "from": "DATA-RUSLEGALCORE-DOMAIN-ONTOLOGY",
+      "id": "EDGE-DATA-RUSLEGALCORE-DOMAIN-ONTOLOGY-EVIDENCED-BY-EVID-RESEARCH-ONTOLOGY-AKOMA-LKIF-BFO",
+      "rationale": "The M017 ontology research and gap-analysis plan is bounded source-anchor evidence for this conservative ontology candidate; it does not upgrade proof beyond source-anchor.",
+      "status": "bounded-evidence",
+      "to": "EVID-RESEARCH-ONTOLOGY-AKOMA-LKIF-BFO",
       "type": "evidenced_by"
     },
     {
@@ -996,6 +1366,14 @@
       "type": "bounded_by"
     },
     {
+      "from": "EVID-RESEARCH-ONTOLOGY-AKOMA-LKIF-BFO",
+      "id": "EDGE-EVID-RESEARCH-ONTOLOGY-AKOMA-LKIF-BFO-BOUNDED-BY-RISK-OVERCLAIM-RUNTIME",
+      "rationale": "Ontology intake evidence remains bounded by the project-wide runtime/legal overclaim risk until specific gates earn stronger proof.",
+      "status": "bounded-evidence",
+      "to": "RISK-OVERCLAIM-RUNTIME",
+      "type": "bounded_by"
+    },
+    {
       "from": "EVID-RETRIEVAL-OUTPUT-ID-VALIDATOR-PROOF",
       "id": "EDGE-EVID-RETRIEVAL-OUTPUT-ID-VALIDATOR-PROOF-BOUNDED-BY-GATE-G008",
       "rationale": "The validator proof checks output IDs and diagnostics but remains bounded by the product parser/retrieval readiness gate.",
@@ -1034,6 +1412,30 @@
       "status": "active",
       "to": "REQ-R034",
       "type": "satisfies"
+    },
+    {
+      "from": "GATE-AKOMA-FRBR-NORMALIZATION",
+      "id": "EDGE-GATE-AKOMA-FRBR-NORMALIZATION-EVIDENCED-BY-EVID-RESEARCH-ONTOLOGY-AKOMA-LKIF-BFO",
+      "rationale": "The M017 ontology research and gap-analysis plan is bounded source-anchor evidence for this conservative ontology candidate; it does not upgrade proof beyond source-anchor.",
+      "status": "bounded-evidence",
+      "to": "EVID-RESEARCH-ONTOLOGY-AKOMA-LKIF-BFO",
+      "type": "evidenced_by"
+    },
+    {
+      "from": "GATE-AKOMA-FRBR-NORMALIZATION",
+      "id": "EDGE-GATE-AKOMA-FRBR-NORMALIZATION-REFINES-EVID-PARSER-RECORD-CONTRACT",
+      "rationale": "The normalization gate refines current parser record contract evidence into a possible canonical/projection layer only if proof is later added.",
+      "status": "hypothesis",
+      "to": "EVID-PARSER-RECORD-CONTRACT",
+      "type": "refines"
+    },
+    {
+      "from": "GATE-BFO-GOST-ALIGNMENT",
+      "id": "EDGE-GATE-BFO-GOST-ALIGNMENT-EVIDENCED-BY-EVID-RESEARCH-ONTOLOGY-AKOMA-LKIF-BFO",
+      "rationale": "The M017 ontology research and gap-analysis plan is bounded source-anchor evidence for this conservative ontology candidate; it does not upgrade proof beyond source-anchor.",
+      "status": "bounded-evidence",
+      "to": "EVID-RESEARCH-ONTOLOGY-AKOMA-LKIF-BFO",
+      "type": "evidenced_by"
     },
     {
       "from": "GATE-EMBEDDING-SUPPLY-CHAIN",
@@ -1092,12 +1494,92 @@
       "type": "blocks"
     },
     {
+      "from": "GATE-LEGAL-COLLISION-POLICY",
+      "id": "EDGE-GATE-LEGAL-COLLISION-POLICY-DEPENDS-ON-DATA-LEGAL-SOURCE-HIERARCHY",
+      "rationale": "Collision policy needs explicit hierarchy and supersession inputs before priority behavior can be tested.",
+      "status": "hypothesis",
+      "to": "DATA-LEGAL-SOURCE-HIERARCHY",
+      "type": "depends_on"
+    },
+    {
+      "from": "GATE-LEGAL-COLLISION-POLICY",
+      "id": "EDGE-GATE-LEGAL-COLLISION-POLICY-EVIDENCED-BY-EVID-RESEARCH-ONTOLOGY-AKOMA-LKIF-BFO",
+      "rationale": "The M017 ontology research and gap-analysis plan is bounded source-anchor evidence for this conservative ontology candidate; it does not upgrade proof beyond source-anchor.",
+      "status": "bounded-evidence",
+      "to": "EVID-RESEARCH-ONTOLOGY-AKOMA-LKIF-BFO",
+      "type": "evidenced_by"
+    },
+    {
+      "from": "GATE-LEGAL-COLLISION-POLICY",
+      "id": "EDGE-GATE-LEGAL-COLLISION-POLICY-REFINES-GATE-G005",
+      "rationale": "Full legal collision policy broadens the existing temporal same-date/multi-edition conflict gate without closing it.",
+      "status": "hypothesis",
+      "to": "GATE-G005",
+      "type": "refines"
+    },
+    {
       "from": "GATE-LEGAL-NEXUS-ACCESS-CONTROL",
       "id": "EDGE-GATE-LEGAL-NEXUS-ACCESS-CONTROL-BLOCKS-COMP-LEGAL-NEXUS",
       "rationale": "Legal Nexus component claims remain bounded until access-control behavior is specified and verified.",
       "status": "active",
       "to": "COMP-LEGAL-NEXUS-ORCHESTRATOR",
       "type": "blocks"
+    },
+    {
+      "from": "GATE-LKIF-DEONTIC-BENCHMARK",
+      "id": "EDGE-GATE-LKIF-DEONTIC-BENCHMARK-EVIDENCED-BY-EVID-RESEARCH-ONTOLOGY-AKOMA-LKIF-BFO",
+      "rationale": "The M017 ontology research and gap-analysis plan is bounded source-anchor evidence for this conservative ontology candidate; it does not upgrade proof beyond source-anchor.",
+      "status": "bounded-evidence",
+      "to": "EVID-RESEARCH-ONTOLOGY-AKOMA-LKIF-BFO",
+      "type": "evidenced_by"
+    },
+    {
+      "from": "GATE-ONTOLOGY-GRAPHRAG-INTEGRATION",
+      "id": "EDGE-GATE-ONTOLOGY-GRAPHRAG-INTEGRATION-BOUNDED-BY-REQ-R034",
+      "rationale": "Ontology GraphRAG integration inherits citation/evidence identifier fail-closed boundaries from R034.",
+      "status": "hypothesis",
+      "to": "REQ-R034",
+      "type": "bounded_by"
+    },
+    {
+      "from": "GATE-ONTOLOGY-GRAPHRAG-INTEGRATION",
+      "id": "EDGE-GATE-ONTOLOGY-GRAPHRAG-INTEGRATION-EVIDENCED-BY-EVID-RESEARCH-ONTOLOGY-AKOMA-LKIF-BFO",
+      "rationale": "The M017 ontology research and gap-analysis plan is bounded source-anchor evidence for this conservative ontology candidate; it does not upgrade proof beyond source-anchor.",
+      "status": "bounded-evidence",
+      "to": "EVID-RESEARCH-ONTOLOGY-AKOMA-LKIF-BFO",
+      "type": "evidenced_by"
+    },
+    {
+      "from": "GATE-ONTOLOGY-GRAPHRAG-INTEGRATION",
+      "id": "EDGE-GATE-ONTOLOGY-GRAPHRAG-INTEGRATION-REFINES-GATE-G008",
+      "rationale": "Ontology GraphRAG retrieval ideas refine product parser/retrieval readiness proof needs without closing parser completeness gates.",
+      "status": "hypothesis",
+      "to": "GATE-G008",
+      "type": "refines"
+    },
+    {
+      "from": "GATE-ONTOLOGY-GRAPHRAG-INTEGRATION",
+      "id": "EDGE-GATE-ONTOLOGY-GRAPHRAG-INTEGRATION-REFINES-GATE-G011",
+      "rationale": "Ontology GraphRAG retrieval ideas refine local retrieval quality proof needs without claiming retrieval quality.",
+      "status": "hypothesis",
+      "to": "GATE-G011",
+      "type": "refines"
+    },
+    {
+      "from": "GATE-PILOT-SCALE-READINESS",
+      "id": "EDGE-GATE-PILOT-SCALE-READINESS-EVIDENCED-BY-EVID-RESEARCH-ONTOLOGY-AKOMA-LKIF-BFO",
+      "rationale": "The M017 ontology research and gap-analysis plan is bounded source-anchor evidence for this conservative ontology candidate; it does not upgrade proof beyond source-anchor.",
+      "status": "bounded-evidence",
+      "to": "EVID-RESEARCH-ONTOLOGY-AKOMA-LKIF-BFO",
+      "type": "evidenced_by"
+    },
+    {
+      "from": "GATE-RUSLEGALCORE-SCOPE",
+      "id": "EDGE-GATE-RUSLEGALCORE-SCOPE-EVIDENCED-BY-EVID-RESEARCH-ONTOLOGY-AKOMA-LKIF-BFO",
+      "rationale": "The M017 ontology research and gap-analysis plan is bounded source-anchor evidence for this conservative ontology candidate; it does not upgrade proof beyond source-anchor.",
+      "status": "bounded-evidence",
+      "to": "EVID-RESEARCH-ONTOLOGY-AKOMA-LKIF-BFO",
+      "type": "evidenced_by"
     },
     {
       "from": "M001-ARCHITECTURE-ONLY-GUARDRAIL",
@@ -1331,7 +1813,11 @@
         "ASSUMP-PRD-SOURCE-TRUTH",
         "CHECK-ARCHITECTURE-EXTRACTOR",
         "COMP-LEGAL-NEXUS-ORCHESTRATOR",
+        "DATA-LEGAL-DOCUMENT-IDENTITY-FRBR",
         "DATA-LEGAL-EVIDENCE-CORE",
+        "DATA-LEGAL-SOURCE-HIERARCHY",
+        "DATA-LKIF-DEONTIC-MAPPING",
+        "DATA-RUSLEGALCORE-DOMAIN-ONTOLOGY",
         "DATA-TEMPORAL-PROPERTY-BUNDLE",
         "DEC-D031",
         "DEC-D032",
@@ -1348,14 +1834,22 @@
         "EVID-REPRESENTATIVE-RETRIEVAL-RUNTIME-BENCHMARK-PROOF",
         "EVID-RESEARCH-GRAPHRAG-MATH-ANALYSIS",
         "EVID-RESEARCH-HABR-LEGAL-RAG-ITERATION-SCALING",
+        "EVID-RESEARCH-ONTOLOGY-AKOMA-LKIF-BFO",
         "EVID-RETRIEVAL-OUTPUT-ID-VALIDATOR-PROOF",
+        "GATE-AKOMA-FRBR-NORMALIZATION",
+        "GATE-BFO-GOST-ALIGNMENT",
         "GATE-EMBEDDING-SUPPLY-CHAIN",
         "GATE-G005",
         "GATE-G008",
         "GATE-G011",
         "GATE-G015",
         "GATE-GENERATED-CYPHER-SAFETY",
+        "GATE-LEGAL-COLLISION-POLICY",
         "GATE-LEGAL-NEXUS-ACCESS-CONTROL",
+        "GATE-LKIF-DEONTIC-BENCHMARK",
+        "GATE-ONTOLOGY-GRAPHRAG-INTEGRATION",
+        "GATE-PILOT-SCALE-READINESS",
+        "GATE-RUSLEGALCORE-SCOPE",
         "M001-ARCHITECTURE-ONLY-GUARDRAIL",
         "QS-OBSERVABILITY-OPERABILITY-BASELINE",
         "REQ-R017",
@@ -1371,7 +1865,7 @@
         "S10-GIGAEMBEDDINGS-CHALLENGER-BLOCKED",
         "S10-USER-BGE-M3-BASELINE"
       ],
-      "size": 42
+      "size": 54
     },
     {
       "nodes": [
