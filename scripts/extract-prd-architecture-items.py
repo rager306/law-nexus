@@ -70,7 +70,9 @@ REQUIRED_SOURCE_PATHS = [
     Path("tests/test_representative_retrieval_runtime_benchmark_cli.py"),
     Path("tests/test_representative_retrieval_runtime_benchmark_report.py"),
     Path("prd/retrieval/representative_retrieval_corpus_contract.md"),
-    Path("prd/retrieval/fixtures/representative_retrieval_corpus_manifest.json"),
+    Path("prd/research/ontology_architecture_requirements/05-registry-integration-plan.md"),
+    Path("prd/research/ontology_architecture_requirements/05-architecture-gap-analysis-against-current-registry.md"),
+    Path("prd/research/ontology_architecture_requirements/06-r035-evidence-audit.md"),
 ]
 REQUIRED_S08_IDS = {
     "S07-FIXED-PRD-CONSISTENCY",
@@ -131,6 +133,18 @@ REQUIRED_ITEM_IDS = {
     "EVID-REPRESENTATIVE-RETRIEVAL-RUNTIME-BENCHMARK-PROOF",
     "QS-OBSERVABILITY-OPERABILITY-BASELINE",
     "REQ-TEMPORAL-STATUS-SEMANTICS",
+    "EVID-RESEARCH-ONTOLOGY-AKOMA-LKIF-BFO",
+    "DATA-LEGAL-DOCUMENT-IDENTITY-FRBR",
+    "DATA-LKIF-DEONTIC-MAPPING",
+    "DATA-RUSLEGALCORE-DOMAIN-ONTOLOGY",
+    "DATA-LEGAL-SOURCE-HIERARCHY",
+    "GATE-AKOMA-FRBR-NORMALIZATION",
+    "GATE-LKIF-DEONTIC-BENCHMARK",
+    "GATE-RUSLEGALCORE-SCOPE",
+    "GATE-BFO-GOST-ALIGNMENT",
+    "GATE-LEGAL-COLLISION-POLICY",
+    "GATE-ONTOLOGY-GRAPHRAG-INTEGRATION",
+    "GATE-PILOT-SCALE-READINESS",
 }
 COMMON_NON_CLAIMS = [
     "No legal-answer correctness claim.",
@@ -140,6 +154,15 @@ COMMON_NON_CLAIMS = [
     "No managed embedding API fallback claim.",
     "No production-scale FalkorDB claim.",
     "No LLM legal authority claim.",
+]
+ONTOLOGY_NON_CLAIMS = [
+    "Does not prove legal-answer correctness.",
+    "Does not prove product Legal KnowQL behavior.",
+    "Does not prove parser completeness.",
+    "Does not prove ontology benchmark quality.",
+    "Does not prove pilot-scale readiness.",
+    "Does not prove FalkorDB graph-vector/runtime capability.",
+    "Does not make LLM output legal authority.",
 ]
 
 
@@ -1225,6 +1248,275 @@ def product_coverage_items() -> list[Record]:
     ]
 
 
+def ontology_candidate_items() -> list[Record]:
+    gap = "prd/research/ontology_architecture_requirements/05-architecture-gap-analysis-against-current-registry.md"
+    plan = "prd/research/ontology_architecture_requirements/05-registry-integration-plan.md"
+    audit = "prd/research/ontology_architecture_requirements/06-r035-evidence-audit.md"
+
+    def ontology_anchor(section: str) -> list[Record]:
+        return [
+            anchor(gap, "manual-note", section=section),
+            anchor(plan, "manual-note", section="Candidate registry mapping records"),
+            anchor(audit, "manual-note", section="S03 Handoff"),
+        ]
+
+    return [
+        item(
+            "EVID-RESEARCH-ONTOLOGY-AKOMA-LKIF-BFO",
+            "evidence",
+            "Ontology architecture intake research evidence",
+            "Bounded M017 research-planning evidence for Akoma Ntoso/FRBR, LKIF/deontic mapping, BFO/GOST alignment, legal collision policy, ontology GraphRAG, and pilot-readiness gates.",
+            "architecture-governance",
+            "bounded-evidence",
+            "source-anchor",
+            "high",
+            ontology_anchor("6.1 Add a research evidence item"),
+            "architecture registry owner / M017 ontology intake",
+            "Keep as bounded source-anchor evidence until primary-source, benchmark, runtime, or real-document proof exists and verifier gates pass.",
+            ONTOLOGY_NON_CLAIMS + [
+                "Does not prove GOST/BFO source correctness.",
+                "Does not prove LKIF/deontic extraction correctness.",
+                "Does not prove ontology GraphRAG retrieval quality.",
+                "Does not prove RusLawOD corpus priority.",
+            ],
+            lifecycle="researching",
+            priority="high",
+            related_requirements=["REQ-R035"],
+            related_artifacts=[gap, plan, audit],
+            tags=["M017", "R035", "ontology", "bounded", "Akoma", "LKIF", "BFO"],
+        ),
+        item(
+            "DATA-LEGAL-DOCUMENT-IDENTITY-FRBR",
+            "data_entity",
+            "FRBR-like legal document identity candidate",
+            "Candidate identity model separates legal act/work, edition/expression, source manifestation, and file/item boundaries without replacing current parser records.",
+            "temporal-model",
+            "hypothesis",
+            "source-anchor",
+            "high",
+            ontology_anchor("Gap A — No formal legal document identity model"),
+            "architecture + parser owners",
+            "Verify with source-backed identity examples before upgrading beyond hypothesis.",
+            ONTOLOGY_NON_CLAIMS + [
+                "Does not prove correct FRBR implementation.",
+                "Does not prove amendment aggregation or inactive-version filtering.",
+                "Does not prove compatibility with Consultant, Garant, RusLawOD, or Akoma Ntoso sources.",
+            ],
+            lifecycle="researching",
+            priority="high",
+            tags=["M017", "R035", "FRBR", "identity", "candidate"],
+        ),
+        item(
+            "DATA-LKIF-DEONTIC-MAPPING",
+            "data_entity",
+            "LKIF-inspired deontic mapping candidate",
+            "Candidate semantic model for obligation, permission, prohibition, negation, and LKIF-inspired deontic classes.",
+            "legal-evidence",
+            "hypothesis",
+            "source-anchor",
+            "high",
+            ontology_anchor("Gap D — No deontic extraction proof gate"),
+            "architecture + legal-evidence owners",
+            "Verify against source spans, benchmark cases, negative cases, and ambiguous modality before activation.",
+            ONTOLOGY_NON_CLAIMS + [
+                "Does not prove extraction precision or recall.",
+                "Does not prove negation handling or modal-verb interpretation.",
+                "Does not make ML/NER outputs authoritative assertions.",
+            ],
+            lifecycle="researching",
+            priority="high",
+            tags=["M017", "R035", "LKIF", "deontic", "candidate"],
+        ),
+        item(
+            "DATA-RUSLEGALCORE-DOMAIN-ONTOLOGY",
+            "data_entity",
+            "RusLegalCore domain ontology candidate",
+            "Working-name candidate for a Russian legal domain ontology layer covering legal-force hierarchy, competence, interpretation, and source-backed legal concepts.",
+            "legal-evidence",
+            "hypothesis",
+            "source-anchor",
+            "high",
+            ontology_anchor("Gap B — No explicit ontology/domain layer"),
+            "architecture + legal domain owners",
+            "Verify bounded class list, excluded scope, source classes, and non-goals before active status.",
+            ONTOLOGY_NON_CLAIMS + [
+                "Does not define final ontology scope.",
+                "Does not prove Russian-law completeness.",
+                "Does not replace project-local LegalGraph core contracts.",
+            ],
+            lifecycle="researching",
+            priority="high",
+            tags=["M017", "R035", "RusLegalCore", "domain-ontology", "candidate"],
+        ),
+        item(
+            "DATA-LEGAL-SOURCE-HIERARCHY",
+            "data_entity",
+            "Legal source hierarchy candidate",
+            "Candidate hierarchy model for legal force, federal competence, supersession, and lex maxim inputs used by collision-policy gates.",
+            "legal-evidence",
+            "hypothesis",
+            "source-anchor",
+            "high",
+            ontology_anchor("Gap C — Legal collision policy is too narrow"),
+            "architecture + legal domain owners",
+            "Verify explicit hierarchy source anchors and examples before relying on collision-policy behavior.",
+            ONTOLOGY_NON_CLAIMS + [
+                "Does not decide legal priority.",
+                "Does not prove automated legal collision resolution.",
+                "Does not authorize automated legal conclusions.",
+            ],
+            lifecycle="researching",
+            priority="high",
+            tags=["M017", "R035", "source-hierarchy", "collision-policy", "candidate"],
+        ),
+        item(
+            "GATE-AKOMA-FRBR-NORMALIZATION",
+            "proof_gate",
+            "Akoma/FRBR normalization proof gate",
+            "Proof gate for source-specific parser records to canonical LegalUnit/ActEdition/EvidenceSpan and optional Akoma Ntoso/FRBR projection.",
+            "parser-ingestion",
+            "proposed",
+            "source-anchor",
+            "high",
+            ontology_anchor("6.2 Add proof gates rather than immediate implementation claims"),
+            "parser + architecture owners",
+            "Verify generated fixtures or real-document proof before validation; keep Akoma/FRBR as optional projection until proven.",
+            ONTOLOGY_NON_CLAIMS + [
+                "Does not make Akoma Ntoso canonical.",
+                "Does not prove export compatibility.",
+                "Does not require replacing current parser record contracts.",
+            ],
+            lifecycle="researching",
+            priority="high",
+            tags=["M017", "R035", "Akoma", "FRBR", "proof-gate"],
+        ),
+        item(
+            "GATE-LKIF-DEONTIC-BENCHMARK",
+            "proof_gate",
+            "LKIF deontic benchmark proof gate",
+            "Verifier-policy canonical proof gate for source-span provenance and benchmark evaluation of obligation, permission, prohibition, negation, and ambiguous modality.",
+            "legal-evidence",
+            "proposed",
+            "source-anchor",
+            "high",
+            ontology_anchor("Gap D — No deontic extraction proof gate"),
+            "legal-evidence + extraction owners",
+            "Verify benchmark metrics, negative cases, source-span provenance, and ambiguous-modality diagnostics before validation.",
+            ONTOLOGY_NON_CLAIMS + [
+                "Does not prove semantic extraction.",
+                "Does not prove ML model fitness.",
+                "Planning alias GATE-DEONTIC-MAPPING-PROOF is not emitted as an authoritative gate.",
+            ],
+            lifecycle="researching",
+            priority="high",
+            tags=["M017", "R035", "LKIF", "deontic", "benchmark", "proof-gate", "alias-GATE-DEONTIC-MAPPING-PROOF"],
+        ),
+        item(
+            "GATE-RUSLEGALCORE-SCOPE",
+            "proof_gate",
+            "RusLegalCore scope proof gate",
+            "Proof gate for defining the minimum and excluded scope of any RusLegalCore/domain-ontology layer.",
+            "legal-evidence",
+            "proposed",
+            "source-anchor",
+            "high",
+            ontology_anchor("Gap B — No explicit ontology/domain layer"),
+            "architecture + legal domain owners",
+            "Verify bounded class list, non-goals, source anchors, and excluded claims before promotion.",
+            ONTOLOGY_NON_CLAIMS + ["Does not prove ontology completeness.", "Does not prove implementation readiness."],
+            lifecycle="researching",
+            priority="high",
+            tags=["M017", "R035", "RusLegalCore", "scope", "proof-gate"],
+        ),
+        item(
+            "GATE-BFO-GOST-ALIGNMENT",
+            "proof_gate",
+            "BFO/GOST alignment proof gate",
+            "Proof gate for checking whether BFO, GOST, OWL/Common Logic, or formal-logic claims are supported by primary or reliable source evidence before adoption.",
+            "architecture-governance",
+            "proposed",
+            "source-anchor",
+            "medium",
+            ontology_anchor("Gap E — No BFO/GOST proof boundary"),
+            "architecture owner",
+            "Verify external references and conformance criteria before promoting beyond proposed planning status.",
+            ONTOLOGY_NON_CLAIMS + [
+                "Does not assert GOST requirements.",
+                "Does not assert BFO conformance.",
+                "Does not assert Common Logic necessity or OWL reasoning support.",
+            ],
+            lifecycle="researching",
+            priority="medium",
+            tags=["M017", "R035", "BFO", "GOST", "proof-gate"],
+        ),
+        item(
+            "GATE-LEGAL-COLLISION-POLICY",
+            "proof_gate",
+            "Legal collision policy proof gate",
+            "Proof gate for lex superior, lex specialis, lex posterior, supersession, and explainable norm-priority behavior beyond same-date temporal conflict.",
+            "legal-evidence",
+            "proposed",
+            "source-anchor",
+            "high",
+            ontology_anchor("Gap C — Legal collision policy is too narrow"),
+            "architecture + legal domain owners",
+            "Verify explicit legal maxims, source hierarchy, source anchors, and explainability examples before validation.",
+            ONTOLOGY_NON_CLAIMS + [
+                "Does not prove automated legal collision resolution.",
+                "Does not prove court interpretation correctness.",
+                "Does not produce legally binding answers.",
+            ],
+            lifecycle="researching",
+            priority="high",
+            tags=["M017", "R035", "collision-policy", "proof-gate"],
+        ),
+        item(
+            "GATE-ONTOLOGY-GRAPHRAG-INTEGRATION",
+            "proof_gate",
+            "Ontology GraphRAG integration proof gate",
+            "Proof gate for integrating ontology filters with graph/vector retrieval while preserving citation-bound, non-authoritative answer behavior.",
+            "retrieval-embedding",
+            "proposed",
+            "source-anchor",
+            "high",
+            ontology_anchor("6.2 Add proof gates rather than immediate implementation claims"),
+            "retrieval + architecture owners",
+            "Verify with integration tests or runtime smoke only after an implemented retrieval path exists.",
+            ONTOLOGY_NON_CLAIMS + [
+                "Does not prove product retrieval quality.",
+                "Does not prove vector/full-text/FalkorDB runtime capability.",
+                "Does not prove HNSW behavior or single-transaction graph+vector semantics.",
+            ],
+            lifecycle="researching",
+            priority="high",
+            tags=["M017", "R035", "GraphRAG", "retrieval", "proof-gate"],
+        ),
+        item(
+            "GATE-PILOT-SCALE-READINESS",
+            "proof_gate",
+            "Pilot-scale readiness proof gate",
+            "Verifier-policy canonical proof gate for a future 1,000-document parser/ontology/retrieval validation run with repeatable manifest, metrics, failures, and real-document proof artifacts.",
+            "observability-operability",
+            "proposed",
+            "source-anchor",
+            "high",
+            ontology_anchor("Gap F — No 1000-document pilot requirement"),
+            "architecture + operability owners",
+            "Verify repeatable manifest, metrics, failure taxonomy, and real-document/runtime evidence before pilot-readiness claims.",
+            ONTOLOGY_NON_CLAIMS + [
+                "Does not invalidate existing bounded proofs.",
+                "Does not prove production scale.",
+                "Does not claim that 1,000 representative documents have been processed.",
+                "Does not prove production-scale FalkorDB claim.",
+                "Planning alias GATE-1000-DOC-PILOT is not emitted as an authoritative gate.",
+            ],
+            lifecycle="researching",
+            priority="high",
+            tags=["M017", "R035", "pilot-scale", "readiness", "proof-gate", "alias-GATE-1000-DOC-PILOT"],
+        ),
+    ]
+
+
 def evidence_and_governance_items() -> list[Record]:
     s08 = anchor(".gsd/milestones/M001/slices/S08/S08-FINDINGS.json", "gsd-summary")
     return [
@@ -1399,7 +1691,14 @@ def evidence_and_governance_items() -> list[Record]:
 
 
 def build_items() -> list[Record]:
-    records = requirement_items() + decision_items() + proof_gate_items() + product_coverage_items() + evidence_and_governance_items()
+    records = (
+        requirement_items()
+        + decision_items()
+        + proof_gate_items()
+        + product_coverage_items()
+        + ontology_candidate_items()
+        + evidence_and_governance_items()
+    )
     ids = {record["id"] for record in records}
     missing = sorted(REQUIRED_ITEM_IDS - ids)
     if missing:
@@ -1408,6 +1707,221 @@ def build_items() -> list[Record]:
         bad = sorted(record["id"] for record in records if record["status"] == "validated")
         raise ExtractionError(f"unsafe status/proof mapping: extractor must not emit validated items: {', '.join(bad)}")
     return sorted(records, key=lambda record: str(record["id"]))
+
+
+def ontology_candidate_edges() -> list[Record]:
+    gap = "prd/research/ontology_architecture_requirements/05-architecture-gap-analysis-against-current-registry.md"
+    plan = "prd/research/ontology_architecture_requirements/05-registry-integration-plan.md"
+    audit = "prd/research/ontology_architecture_requirements/06-r035-evidence-audit.md"
+    ontology_sources = [
+        anchor(plan, "manual-note", section="Candidate edge mappings"),
+        anchor(audit, "manual-note", section="S03 Handoff"),
+    ]
+
+    records: list[Record] = []
+    for target_id in [
+        "DATA-LEGAL-DOCUMENT-IDENTITY-FRBR",
+        "DATA-LKIF-DEONTIC-MAPPING",
+        "DATA-RUSLEGALCORE-DOMAIN-ONTOLOGY",
+        "DATA-LEGAL-SOURCE-HIERARCHY",
+        "GATE-AKOMA-FRBR-NORMALIZATION",
+        "GATE-LKIF-DEONTIC-BENCHMARK",
+        "GATE-RUSLEGALCORE-SCOPE",
+        "GATE-BFO-GOST-ALIGNMENT",
+        "GATE-LEGAL-COLLISION-POLICY",
+        "GATE-ONTOLOGY-GRAPHRAG-INTEGRATION",
+        "GATE-PILOT-SCALE-READINESS",
+    ]:
+        records.append(
+            edge(
+                f"EDGE-{target_id}-EVIDENCED-BY-EVID-RESEARCH-ONTOLOGY-AKOMA-LKIF-BFO",
+                target_id,
+                "EVID-RESEARCH-ONTOLOGY-AKOMA-LKIF-BFO",
+                "evidenced_by",
+                "bounded-evidence",
+                "The M017 ontology research and gap-analysis plan is bounded source-anchor evidence for this conservative ontology candidate; it does not upgrade proof beyond source-anchor.",
+                ontology_sources,
+                "architecture registry owner / M017 ontology intake",
+                verification="Generated endpoint IDs must resolve and candidate records must remain proposed/hypothesis/bounded-evidence with source-anchor proof.",
+                confidence=0.75,
+                tags=["M017", "R035", "ontology", "bounded"],
+            )
+        )
+
+    records.extend(
+        [
+            edge(
+                "EDGE-EVID-RESEARCH-ONTOLOGY-AKOMA-LKIF-BFO-BOUNDED-BY-RISK-OVERCLAIM-RUNTIME",
+                "EVID-RESEARCH-ONTOLOGY-AKOMA-LKIF-BFO",
+                "RISK-OVERCLAIM-RUNTIME",
+                "bounded_by",
+                "bounded-evidence",
+                "Ontology intake evidence remains bounded by the project-wide runtime/legal overclaim risk until specific gates earn stronger proof.",
+                ontology_sources,
+                "architecture registry owner",
+                verification="Extractor and verifier preserve non-claims for ontology, runtime, retrieval, legal-answer, and pilot-scale claims.",
+                confidence=0.85,
+                tags=["M017", "R035", "overclaim", "bounded"],
+            ),
+            edge(
+                "EDGE-DATA-LEGAL-DOCUMENT-IDENTITY-FRBR-REFINES-DATA-TEMPORAL-PROPERTY-BUNDLE",
+                "DATA-LEGAL-DOCUMENT-IDENTITY-FRBR",
+                "DATA-TEMPORAL-PROPERTY-BUNDLE",
+                "refines",
+                "hypothesis",
+                "The FRBR-like candidate refines existing temporal property bundle concepts without replacing current parser records.",
+                [anchor(gap, "manual-note", section="Gap A — No formal legal document identity model")],
+                "architecture + parser owners",
+                confidence=0.7,
+                tags=["M017", "FRBR", "temporal"],
+            ),
+            edge(
+                "EDGE-DATA-LEGAL-DOCUMENT-IDENTITY-FRBR-REFINES-REQ-TEMPORAL-STATUS-SEMANTICS",
+                "DATA-LEGAL-DOCUMENT-IDENTITY-FRBR",
+                "REQ-TEMPORAL-STATUS-SEMANTICS",
+                "refines",
+                "hypothesis",
+                "The identity candidate refines existing temporal status semantics and remains source-anchor-only until examples and proof exist.",
+                [anchor(gap, "manual-note", section="Gap A — No formal legal document identity model")],
+                "architecture + parser owners",
+                confidence=0.7,
+                tags=["M017", "FRBR", "temporal"],
+            ),
+            edge(
+                "EDGE-DATA-LEGAL-DOCUMENT-IDENTITY-FRBR-BOUNDED-BY-GATE-AKOMA-FRBR-NORMALIZATION",
+                "DATA-LEGAL-DOCUMENT-IDENTITY-FRBR",
+                "GATE-AKOMA-FRBR-NORMALIZATION",
+                "bounded_by",
+                "hypothesis",
+                "FRBR-like identity remains bounded by parser/normalization proof before canonical legal-unit projection claims.",
+                ontology_sources,
+                "architecture + parser owners",
+                confidence=0.8,
+                tags=["M017", "FRBR", "proof-gate"],
+            ),
+            edge(
+                "EDGE-GATE-AKOMA-FRBR-NORMALIZATION-REFINES-EVID-PARSER-RECORD-CONTRACT",
+                "GATE-AKOMA-FRBR-NORMALIZATION",
+                "EVID-PARSER-RECORD-CONTRACT",
+                "refines",
+                "hypothesis",
+                "The normalization gate refines current parser record contract evidence into a possible canonical/projection layer only if proof is later added.",
+                ontology_sources,
+                "parser + architecture owners",
+                confidence=0.7,
+                tags=["M017", "parser", "FRBR"],
+            ),
+            edge(
+                "EDGE-DATA-LKIF-DEONTIC-MAPPING-BOUNDED-BY-GATE-LKIF-DEONTIC-BENCHMARK",
+                "DATA-LKIF-DEONTIC-MAPPING",
+                "GATE-LKIF-DEONTIC-BENCHMARK",
+                "bounded_by",
+                "hypothesis",
+                "LKIF/deontic mapping must remain proof-gated by the canonical verifier-policy benchmark gate before use as semantic/legal evidence.",
+                ontology_sources,
+                "legal-evidence + extraction owners",
+                confidence=0.85,
+                tags=["M017", "LKIF", "deontic", "canonical-gate"],
+            ),
+            edge(
+                "EDGE-DATA-LKIF-DEONTIC-MAPPING-DEPENDS-ON-DATA-LEGAL-EVIDENCE-CORE",
+                "DATA-LKIF-DEONTIC-MAPPING",
+                "DATA-LEGAL-EVIDENCE-CORE",
+                "depends_on",
+                "hypothesis",
+                "Deontic extraction candidates depend on source-backed legal evidence and evidence-span concepts.",
+                [anchor(gap, "manual-note", section="Gap D — No deontic extraction proof gate")],
+                "legal-evidence + extraction owners",
+                confidence=0.75,
+                tags=["M017", "LKIF", "legal-evidence"],
+            ),
+            edge(
+                "EDGE-DATA-RUSLEGALCORE-DOMAIN-ONTOLOGY-BOUNDED-BY-GATE-RUSLEGALCORE-SCOPE",
+                "DATA-RUSLEGALCORE-DOMAIN-ONTOLOGY",
+                "GATE-RUSLEGALCORE-SCOPE",
+                "bounded_by",
+                "hypothesis",
+                "RusLegalCore must be scoped before it can become an active domain-ontology contract.",
+                ontology_sources,
+                "architecture + legal domain owners",
+                confidence=0.8,
+                tags=["M017", "RusLegalCore", "scope"],
+            ),
+            edge(
+                "EDGE-DATA-RUSLEGALCORE-DOMAIN-ONTOLOGY-DEPENDS-ON-DATA-LEGAL-SOURCE-HIERARCHY",
+                "DATA-RUSLEGALCORE-DOMAIN-ONTOLOGY",
+                "DATA-LEGAL-SOURCE-HIERARCHY",
+                "depends_on",
+                "hypothesis",
+                "The Russian legal domain ontology candidate depends on explicit legal-force and source hierarchy concepts before collision-policy use.",
+                [anchor(gap, "manual-note", section="Gap B — No explicit ontology/domain layer")],
+                "architecture + legal domain owners",
+                confidence=0.7,
+                tags=["M017", "RusLegalCore", "source-hierarchy"],
+            ),
+            edge(
+                "EDGE-GATE-LEGAL-COLLISION-POLICY-DEPENDS-ON-DATA-LEGAL-SOURCE-HIERARCHY",
+                "GATE-LEGAL-COLLISION-POLICY",
+                "DATA-LEGAL-SOURCE-HIERARCHY",
+                "depends_on",
+                "hypothesis",
+                "Collision policy needs explicit hierarchy and supersession inputs before priority behavior can be tested.",
+                [anchor(gap, "manual-note", section="Gap C — Legal collision policy is too narrow")],
+                "architecture + legal domain owners",
+                confidence=0.8,
+                tags=["M017", "collision-policy", "source-hierarchy"],
+            ),
+            edge(
+                "EDGE-GATE-LEGAL-COLLISION-POLICY-REFINES-GATE-G005",
+                "GATE-LEGAL-COLLISION-POLICY",
+                "GATE-G005",
+                "refines",
+                "hypothesis",
+                "Full legal collision policy broadens the existing temporal same-date/multi-edition conflict gate without closing it.",
+                [anchor(gap, "manual-note", section="Gap C — Legal collision policy is too narrow")],
+                "architecture + legal domain owners",
+                confidence=0.75,
+                tags=["M017", "collision-policy", "G-005"],
+            ),
+            edge(
+                "EDGE-GATE-ONTOLOGY-GRAPHRAG-INTEGRATION-BOUNDED-BY-REQ-R034",
+                "GATE-ONTOLOGY-GRAPHRAG-INTEGRATION",
+                "REQ-R034",
+                "bounded_by",
+                "hypothesis",
+                "Ontology GraphRAG integration inherits citation/evidence identifier fail-closed boundaries from R034.",
+                ontology_sources,
+                "retrieval + architecture owners",
+                confidence=0.8,
+                tags=["M017", "GraphRAG", "R034", "bounded"],
+            ),
+            edge(
+                "EDGE-GATE-ONTOLOGY-GRAPHRAG-INTEGRATION-REFINES-GATE-G011",
+                "GATE-ONTOLOGY-GRAPHRAG-INTEGRATION",
+                "GATE-G011",
+                "refines",
+                "hypothesis",
+                "Ontology GraphRAG retrieval ideas refine local retrieval quality proof needs without claiming retrieval quality.",
+                ontology_sources,
+                "retrieval + architecture owners",
+                confidence=0.75,
+                tags=["M017", "GraphRAG", "G-011"],
+            ),
+            edge(
+                "EDGE-GATE-ONTOLOGY-GRAPHRAG-INTEGRATION-REFINES-GATE-G008",
+                "GATE-ONTOLOGY-GRAPHRAG-INTEGRATION",
+                "GATE-G008",
+                "refines",
+                "hypothesis",
+                "Ontology GraphRAG retrieval ideas refine product parser/retrieval readiness proof needs without closing parser completeness gates.",
+                ontology_sources,
+                "retrieval + architecture owners",
+                confidence=0.75,
+                tags=["M017", "GraphRAG", "G-008"],
+            ),
+        ]
+    )
+    return records
 
 
 def build_edges() -> list[Record]:
@@ -2301,6 +2815,7 @@ def build_edges() -> list[Record]:
             tags=["api-product", "legal-evidence"],
         ),
     ]
+    edges.extend(ontology_candidate_edges())
     item_ids = {record["id"] for record in build_items()}
     for record in edges:
         if record["from"] not in item_ids or record["to"] not in item_ids:

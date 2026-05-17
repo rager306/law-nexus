@@ -52,6 +52,22 @@ REQUIRED_ITEM_IDS = {
     "EVID-OFFLINE-CITATION-RETRIEVAL-PROOF",
     "EVID-LOCAL-RETRIEVAL-QUALITY-BENCHMARK-PROOF",
     "EVID-REPRESENTATIVE-RETRIEVAL-RUNTIME-BENCHMARK-PROOF",
+    "EVID-RESEARCH-ONTOLOGY-AKOMA-LKIF-BFO",
+    "DATA-LEGAL-DOCUMENT-IDENTITY-FRBR",
+    "DATA-LKIF-DEONTIC-MAPPING",
+    "DATA-RUSLEGALCORE-DOMAIN-ONTOLOGY",
+    "DATA-LEGAL-SOURCE-HIERARCHY",
+    "GATE-AKOMA-FRBR-NORMALIZATION",
+    "GATE-LKIF-DEONTIC-BENCHMARK",
+    "GATE-RUSLEGALCORE-SCOPE",
+    "GATE-BFO-GOST-ALIGNMENT",
+    "GATE-LEGAL-COLLISION-POLICY",
+    "GATE-ONTOLOGY-GRAPHRAG-INTEGRATION",
+    "GATE-PILOT-SCALE-READINESS",
+}
+FORBIDDEN_ONTOLOGY_ALIAS_ITEM_IDS = {
+    "GATE-DEONTIC-MAPPING-PROOF",
+    "GATE-1000-DOC-PILOT",
 }
 REQUIRED_EDGE_IDS = {
     "EDGE-DEC-D031-CHECKED-BY-CHECK-ARCHITECTURE-EXTRACTOR",
@@ -90,6 +106,31 @@ REQUIRED_EDGE_IDS = {
     "EDGE-EVID-REPRESENTATIVE-RETRIEVAL-RUNTIME-BENCHMARK-PROOF-CHECKED-BY-CHECK-ARCHITECTURE-EXTRACTOR",
     "EDGE-S10-USER-BGE-M3-BASELINE-BOUNDED-BY-GATE-G011",
     "EDGE-M001-ARCHITECTURE-ONLY-GUARDRAIL-BOUNDS-REQ-R029",
+    "EDGE-DATA-LEGAL-DOCUMENT-IDENTITY-FRBR-EVIDENCED-BY-EVID-RESEARCH-ONTOLOGY-AKOMA-LKIF-BFO",
+    "EDGE-DATA-LKIF-DEONTIC-MAPPING-EVIDENCED-BY-EVID-RESEARCH-ONTOLOGY-AKOMA-LKIF-BFO",
+    "EDGE-DATA-RUSLEGALCORE-DOMAIN-ONTOLOGY-EVIDENCED-BY-EVID-RESEARCH-ONTOLOGY-AKOMA-LKIF-BFO",
+    "EDGE-DATA-LEGAL-SOURCE-HIERARCHY-EVIDENCED-BY-EVID-RESEARCH-ONTOLOGY-AKOMA-LKIF-BFO",
+    "EDGE-GATE-AKOMA-FRBR-NORMALIZATION-EVIDENCED-BY-EVID-RESEARCH-ONTOLOGY-AKOMA-LKIF-BFO",
+    "EDGE-GATE-LKIF-DEONTIC-BENCHMARK-EVIDENCED-BY-EVID-RESEARCH-ONTOLOGY-AKOMA-LKIF-BFO",
+    "EDGE-GATE-RUSLEGALCORE-SCOPE-EVIDENCED-BY-EVID-RESEARCH-ONTOLOGY-AKOMA-LKIF-BFO",
+    "EDGE-GATE-BFO-GOST-ALIGNMENT-EVIDENCED-BY-EVID-RESEARCH-ONTOLOGY-AKOMA-LKIF-BFO",
+    "EDGE-GATE-LEGAL-COLLISION-POLICY-EVIDENCED-BY-EVID-RESEARCH-ONTOLOGY-AKOMA-LKIF-BFO",
+    "EDGE-GATE-ONTOLOGY-GRAPHRAG-INTEGRATION-EVIDENCED-BY-EVID-RESEARCH-ONTOLOGY-AKOMA-LKIF-BFO",
+    "EDGE-GATE-PILOT-SCALE-READINESS-EVIDENCED-BY-EVID-RESEARCH-ONTOLOGY-AKOMA-LKIF-BFO",
+    "EDGE-EVID-RESEARCH-ONTOLOGY-AKOMA-LKIF-BFO-BOUNDED-BY-RISK-OVERCLAIM-RUNTIME",
+    "EDGE-DATA-LEGAL-DOCUMENT-IDENTITY-FRBR-REFINES-DATA-TEMPORAL-PROPERTY-BUNDLE",
+    "EDGE-DATA-LEGAL-DOCUMENT-IDENTITY-FRBR-REFINES-REQ-TEMPORAL-STATUS-SEMANTICS",
+    "EDGE-DATA-LEGAL-DOCUMENT-IDENTITY-FRBR-BOUNDED-BY-GATE-AKOMA-FRBR-NORMALIZATION",
+    "EDGE-GATE-AKOMA-FRBR-NORMALIZATION-REFINES-EVID-PARSER-RECORD-CONTRACT",
+    "EDGE-DATA-LKIF-DEONTIC-MAPPING-BOUNDED-BY-GATE-LKIF-DEONTIC-BENCHMARK",
+    "EDGE-DATA-LKIF-DEONTIC-MAPPING-DEPENDS-ON-DATA-LEGAL-EVIDENCE-CORE",
+    "EDGE-DATA-RUSLEGALCORE-DOMAIN-ONTOLOGY-BOUNDED-BY-GATE-RUSLEGALCORE-SCOPE",
+    "EDGE-DATA-RUSLEGALCORE-DOMAIN-ONTOLOGY-DEPENDS-ON-DATA-LEGAL-SOURCE-HIERARCHY",
+    "EDGE-GATE-LEGAL-COLLISION-POLICY-DEPENDS-ON-DATA-LEGAL-SOURCE-HIERARCHY",
+    "EDGE-GATE-LEGAL-COLLISION-POLICY-REFINES-GATE-G005",
+    "EDGE-GATE-ONTOLOGY-GRAPHRAG-INTEGRATION-BOUNDED-BY-REQ-R034",
+    "EDGE-GATE-ONTOLOGY-GRAPHRAG-INTEGRATION-REFINES-GATE-G011",
+    "EDGE-GATE-ONTOLOGY-GRAPHRAG-INTEGRATION-REFINES-GATE-G008",
 }
 EXPECTED_CONSERVATIVE_RECORDS = {
     "GATE-G005": {
@@ -230,6 +271,84 @@ EXPECTED_CONSERVATIVE_RECORDS = {
             "Does not close GATE-G011.",
         ],
     },
+    "EVID-RESEARCH-ONTOLOGY-AKOMA-LKIF-BFO": {
+        "status": "bounded-evidence",
+        "proof_level": "source-anchor",
+        "risk_level": "high",
+        "non_claims": [
+            "Does not prove parser completeness.",
+            "Does not prove legal-answer correctness.",
+            "Does not prove product Legal KnowQL behavior.",
+            "Does not prove ontology benchmark quality.",
+            "Does not prove pilot-scale readiness.",
+        ],
+    },
+    "DATA-LEGAL-DOCUMENT-IDENTITY-FRBR": {
+        "status": "hypothesis",
+        "proof_level": "source-anchor",
+        "risk_level": "high",
+        "non_claims": ["Does not prove parser completeness.", "Does not prove legal-answer correctness."],
+    },
+    "DATA-LKIF-DEONTIC-MAPPING": {
+        "status": "hypothesis",
+        "proof_level": "source-anchor",
+        "risk_level": "high",
+        "non_claims": ["Does not prove product Legal KnowQL behavior.", "Does not prove ontology benchmark quality."],
+    },
+    "DATA-RUSLEGALCORE-DOMAIN-ONTOLOGY": {
+        "status": "hypothesis",
+        "proof_level": "source-anchor",
+        "risk_level": "high",
+        "non_claims": ["Does not prove legal-answer correctness.", "Does not prove ontology benchmark quality."],
+    },
+    "DATA-LEGAL-SOURCE-HIERARCHY": {
+        "status": "hypothesis",
+        "proof_level": "source-anchor",
+        "risk_level": "high",
+        "non_claims": ["Does not prove automated legal collision resolution.", "Does not prove legal-answer correctness."],
+    },
+    "GATE-AKOMA-FRBR-NORMALIZATION": {
+        "status": "proposed",
+        "proof_level": "source-anchor",
+        "risk_level": "high",
+        "non_claims": ["Does not prove parser completeness.", "Does not make Akoma Ntoso canonical."],
+    },
+    "GATE-LKIF-DEONTIC-BENCHMARK": {
+        "status": "proposed",
+        "proof_level": "source-anchor",
+        "risk_level": "high",
+        "non_claims": ["Does not prove ontology benchmark quality.", "Does not prove product Legal KnowQL behavior."],
+    },
+    "GATE-RUSLEGALCORE-SCOPE": {
+        "status": "proposed",
+        "proof_level": "source-anchor",
+        "risk_level": "high",
+        "non_claims": ["Does not prove ontology completeness.", "Does not prove legal-answer correctness."],
+    },
+    "GATE-BFO-GOST-ALIGNMENT": {
+        "status": "proposed",
+        "proof_level": "source-anchor",
+        "risk_level": "medium",
+        "non_claims": ["Does not assert GOST requirements.", "Does not prove ontology benchmark quality."],
+    },
+    "GATE-LEGAL-COLLISION-POLICY": {
+        "status": "proposed",
+        "proof_level": "source-anchor",
+        "risk_level": "high",
+        "non_claims": ["Does not prove automated legal collision resolution.", "Does not prove legal-answer correctness."],
+    },
+    "GATE-ONTOLOGY-GRAPHRAG-INTEGRATION": {
+        "status": "proposed",
+        "proof_level": "source-anchor",
+        "risk_level": "high",
+        "non_claims": ["Does not prove product retrieval quality.", "Does not prove legal-answer correctness."],
+    },
+    "GATE-PILOT-SCALE-READINESS": {
+        "status": "proposed",
+        "proof_level": "source-anchor",
+        "risk_level": "high",
+        "non_claims": ["Does not prove pilot-scale readiness.", "Does not prove production-scale FalkorDB claim."],
+    },
     "M001-ARCHITECTURE-ONLY-GUARDRAIL": {
         "status": "out-of-scope",
         "proof_level": "source-anchor",
@@ -310,6 +429,7 @@ def test_check_mode_matches_generated_outputs_and_required_ids() -> None:
     edge_by_id = records_by_id(read_jsonl(EDGES), EDGES)
 
     assert REQUIRED_ITEM_IDS <= set(item_by_id), "missing required item IDs: " + ", ".join(sorted(REQUIRED_ITEM_IDS - set(item_by_id)))
+    assert not (FORBIDDEN_ONTOLOGY_ALIAS_ITEM_IDS & set(item_by_id)), "forbidden ontology alias item IDs emitted: " + ", ".join(sorted(FORBIDDEN_ONTOLOGY_ALIAS_ITEM_IDS & set(item_by_id)))
     assert REQUIRED_EDGE_IDS <= set(edge_by_id), "missing required edge IDs: " + ", ".join(sorted(REQUIRED_EDGE_IDS - set(edge_by_id)))
     assert ITEMS.read_text(encoding="utf-8").endswith("\n"), f"{ITEMS}: missing trailing newline"
     assert EDGES.read_text(encoding="utf-8").endswith("\n"), f"{EDGES}: missing trailing newline"
