@@ -46,6 +46,12 @@ KNOWN_GATE_ID_DRIFT_PAIRS = (
     ("GATE-1000-DOC-PILOT", "GATE-PILOT-SCALE-READINESS"),
 )
 
+CANONICAL_R035_CANDIDATE_ID_BY_ALIAS = dict(KNOWN_GATE_ID_DRIFT_PAIRS)
+PLANNED_R035_CANONICAL_CANDIDATE_IDS = tuple(
+    CANONICAL_R035_CANDIDATE_ID_BY_ALIAS.get(candidate_id, candidate_id)
+    for candidate_id in PLANNED_R035_CANDIDATE_IDS
+)
+
 Status = Literal["ERROR", "OK"]
 
 
@@ -80,8 +86,8 @@ def read_text(path: Path) -> str:
         raise SystemExit(f"unable to read {display_path(path)}: {exc}") from exc
 
 
-def load_jsonl_ids(path: Path) -> set[str]:
-    ids: set[str] = set()
+def load_jsonl_records(path: Path) -> dict[str, dict[str, Any]]:
+    records: dict[str, dict[str, Any]] = {}
     try:
         lines = path.read_text(encoding="utf-8").splitlines()
     except OSError as exc:
@@ -95,8 +101,38 @@ def load_jsonl_ids(path: Path) -> set[str]:
             raise SystemExit(f"malformed JSONL in {display_path(path)}:{line_number}: {exc}") from exc
         record_id = record.get("id")
         if isinstance(record_id, str) and record_id:
-            ids.add(record_id)
-    return ids
+            records[record_id] = record
+    return records
+
+
+def load_jsonl_ids(path: Path) -> set[str]:
+    return set(load_jsonl_records(path))
+
+
+def has_alias_reconciliation_evidence(record: dict[str, Any] | None, planning_alias: str) -> bool:
+    if not record:
+        return False
+    alias_tag = f"alias-{planning_alias}"
+    tags = record.get("tags")
+    if isinstance(tags, list) and alias_tag in tags:
+        return True
+    non_claims = record.get("non_claims")
+    if isinstance(non_claims, list) and any(planning_alias in str(non_claim) for non_claim in non_claims):
+        return True
+    return False
+
+
+def unresolved_candidate_ids(registry_records: dict[str, dict[str, Any]]) -> tuple[list[str], list[str]]:
+    missing_candidates: list[str] = []
+    missing_alias_evidence: list[str] = []
+    for candidate_id in PLANNED_R035_CANDIDATE_IDS:
+        canonical_id = CANONICAL_R035_CANDIDATE_ID_BY_ALIAS.get(candidate_id, candidate_id)
+        record = registry_records.get(canonical_id)
+        if record is None:
+            missing_candidates.append(candidate_id if canonical_id == candidate_id else f"{candidate_id}->{canonical_id}")
+        elif canonical_id != candidate_id and not has_alias_reconciliation_evidence(record, candidate_id):
+            missing_alias_evidence.append(f"{candidate_id}->{canonical_id}")
+    return missing_candidates, missing_alias_evidence
 
 
 def extract_required_gate_ids_from_verifier(verifier_text: str) -> set[str]:
@@ -187,17 +223,33 @@ def build_diagnostics() -> list[DiagnosticResult]:
     integration_plan_text = read_text(INTEGRATION_PLAN_PATH)
     claims_ledger_text = read_text(CLAIMS_LEDGER_PATH)
     verifier_text = read_text(VERIFIER_PATH)
-    registry_ids = load_jsonl_ids(ARCHITECTURE_ITEMS_PATH)
+    registry_records = load_jsonl_records(ARCHITECTURE_ITEMS_PATH)
+    registry_ids = set(registry_records)
     verifier_gate_ids = extract_required_gate_ids_from_verifier(verifier_text)
 
-    missing_candidates = [candidate_id for candidate_id in PLANNED_R035_CANDIDATE_IDS if candidate_id not in registry_ids]
+    missing_candidates, missing_alias_evidence = unresolved_candidate_ids(registry_records)
+    alias_reconciliations = [
+        f"{planned}->{policy}"
+        for planned, policy in KNOWN_GATE_ID_DRIFT_PAIRS
+        if has_alias_reconciliation_evidence(registry_records.get(policy), planned)
+    ]
     gate_status_section = r035_gate_status_section(claims_ledger_text)
-    gate_view_missing = [candidate_id for candidate_id in PLANNED_R035_CANDIDATE_IDS if candidate_id not in gate_status_section]
-    missing_verifier_gates = sorted(gate_id for gate_id in verifier_gate_ids if gate_id not in registry_ids)
+    gate_view_missing = [
+        candidate_id
+        for candidate_id in PLANNED_R035_CANDIDATE_IDS
+        if CANONICAL_R035_CANDIDATE_ID_BY_ALIAS.get(candidate_id, candidate_id) not in gate_status_section
+    ]
+    r035_verifier_gate_ids = verifier_gate_ids.intersection(PLANNED_R035_CANONICAL_CANDIDATE_IDS)
+    missing_verifier_gates = sorted(gate_id for gate_id in r035_verifier_gate_ids if gate_id not in registry_ids)
     drift_pairs = [
         f"{planned} vs {policy}"
         for planned, policy in KNOWN_GATE_ID_DRIFT_PAIRS
-        if planned in integration_plan_text and policy in verifier_text and planned not in verifier_text
+        if (
+            planned in integration_plan_text
+            and policy in verifier_text
+            and planned not in verifier_text
+            and not has_alias_reconciliation_evidence(registry_records.get(policy), planned)
+        )
     ]
     unsafe_lines = unsafe_lifecycle_lines(
         (
@@ -225,13 +277,13 @@ def build_diagnostics() -> list[DiagnosticResult]:
         ),
         make_result(
             "DRIFT-R035-REGISTRY-MAPPING-ABSENT",
-            bool(missing_candidates),
+            bool(missing_candidates or missing_alias_evidence),
             ARCHITECTURE_ITEMS_PATH,
             "Extractor / registry integration owner",
             "Implement the deferred extractor mapping and regenerate derived registry artifacts; do not hand-edit JSONL.",
-            "DRIFT-R035-REGISTRY-MAPPING-ABSENT: planned R035 ontology candidate IDs are absent from architecture_items.jsonl.",
-            "All planned R035 ontology candidate IDs are present in architecture_items.jsonl.",
-            f"missing {len(missing_candidates)}/12 planned candidates: {', '.join(missing_candidates)}",
+            "DRIFT-R035-REGISTRY-MAPPING-ABSENT: planned R035 ontology candidate IDs are absent from architecture_items.jsonl or lack explicit alias reconciliation evidence.",
+            "All planned R035 ontology candidate IDs resolve to current registry items, including canonical verifier-policy aliases.",
+            f"missing {len(missing_candidates)}/12 canonicalized candidates: {', '.join(missing_candidates) or 'none'}; missing alias evidence: {', '.join(missing_alias_evidence) or 'none'}; reconciled aliases: {', '.join(alias_reconciliations) or 'none'}",
             "Does not assert which mappings are correct; only detects absence of planned candidates in current derived registry.",
         ),
         make_result(
@@ -253,7 +305,7 @@ def build_diagnostics() -> list[DiagnosticResult]:
             "Regenerate claims-ledger/view artifacts from registry outputs after extractor integration emits the planned candidates.",
             "DRIFT-R035-STALE-GATE-VIEW: claims_ledger.md has an R035 Gate Status section but does not enumerate the planned M017 ontology candidate set.",
             "R035 Gate Status enumerates the planned M017 ontology candidate set.",
-            f"R035 Gate Status present={bool(gate_status_section)}; missing from view {len(gate_view_missing)}/12 candidates: {', '.join(gate_view_missing)}",
+            f"R035 Gate Status present={bool(gate_status_section)}; missing from view {len(gate_view_missing)}/12 canonicalized candidates: {', '.join(gate_view_missing)}",
             "Does not treat claims ledger as authoritative source evidence; it only checks view freshness against tracked source expectations.",
         ),
         make_result(
@@ -269,13 +321,13 @@ def build_diagnostics() -> list[DiagnosticResult]:
         ),
         make_result(
             "DRIFT-R035-CANDIDATE-CURRENT-MISMATCH",
-            bool(missing_candidates),
+            bool(missing_candidates or missing_alias_evidence),
             INTEGRATION_PLAN_PATH,
             "Extractor / architecture registry owner",
             "Resolve the source-plan/current-registry mismatch by extractor implementation and regeneration, or keep R035 Active/unmapped.",
-            "DRIFT-R035-CANDIDATE-CURRENT-MISMATCH: source plan lists 12 candidate items and 9 edge mapping classes, but current derived registry outputs do not contain the candidate set.",
-            "Current derived registry contains the planned candidate set from the source plan.",
-            f"source plan candidate count=12 edge mapping class count=9; current registry missing candidate count={len(missing_candidates)}",
+            "DRIFT-R035-CANDIDATE-CURRENT-MISMATCH: source plan lists 12 candidate items and 9 edge mapping classes, but current derived registry outputs do not contain the canonicalized candidate set with alias reconciliation evidence.",
+            "Current derived registry contains the planned candidate set from the source plan using verifier-policy canonical IDs where aliases are explicitly reconciled.",
+            f"source plan candidate count=12 edge mapping class count=9; canonical candidate count=12; current registry missing candidate count={len(missing_candidates)}; missing alias evidence count={len(missing_alias_evidence)}",
             "Does not validate candidate correctness, edge endpoints, source anchors, or proof levels.",
         ),
         make_result(
@@ -286,7 +338,7 @@ def build_diagnostics() -> list[DiagnosticResult]:
             "Reconcile aliases or choose canonical gate IDs in source evidence before registry emission.",
             "DRIFT-R035-GATE-ID-DRIFT: planned gate IDs and verifier-policy gate IDs disagree and have not been reconciled as registry aliases or chosen canonical IDs.",
             "Known planned gate IDs and verifier-policy gate IDs are reconciled.",
-            f"unreconciled pairs: {', '.join(drift_pairs)}",
+            f"unreconciled pairs: {', '.join(drift_pairs) or 'none'}; alias reconciliation evidence present: {', '.join(alias_reconciliations) or 'none'}",
             "Does not choose canonical IDs; it only reports unresolved naming drift.",
         ),
         make_result(
