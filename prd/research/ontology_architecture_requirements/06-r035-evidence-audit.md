@@ -20,6 +20,8 @@ S03 synchronization update: R035 owner: M019-v10cgp/S03 for the active bounded-e
 
 M020 lifecycle update: R035 owner: M020-ujbffl/S05 for the active bounded-evidence lifecycle update after the ontology GraphRAG proof spine. M020 produced bounded fixture-backed integration evidence for only the `GATE-ONTOLOGY-GRAPHRAG-INTEGRATION` subset: ontology and temporal filters over proof-local source-backed cases, citation/evidence ID preservation, scoped no-answer behavior, fail-closed diagnostics, redaction safety, generated-query execution avoided, and overclaim guardrails. R035 remains Active; this does not validate R035 broadly, satisfy the full gate, prove product retrieval quality, legal-answer correctness, parser completeness, FalkorDB production behavior, graph-vector/HNSW behavior, formal ontology conformance, or pilot-scale readiness.
 
+M020/S07-S08 runtime remediation update: `prd/research/ontology_architecture_requirements/13-r035-runtime-integration-remediation.md` and `prd/research/ontology_architecture_requirements/ontology_graphrag_runtime_integration_proof.json` are the bounded runtime remediation surface for the same narrow gate subset. S08 persistence adds graph-route, local/open-weight embedding candidate ranking, deterministic evidence-ID, stale-evidence diagnostics, and S01-to-S02 handoff clarification for cold-reader inspection. They may show either a passing local open-weight embedding plus local FalkorDB fixture proof or an explicit blocked-runtime rescope; in both cases the disposition is bounded runtime remediation or prerequisite diagnostics only. R035 remains Active and the S07/S08 artifacts do not validate broad ontology behavior, formal standards conformance, graph-vector/HNSW behavior, FalkorDB production behavior, parser completeness, product retrieval quality, legal-answer correctness, or pilot readiness.
+
 M017 and M018 provide bounded planning, proof-gate, verifier-policy, and claims-ledger evidence for ontology architecture proof boundaries. M019-v10cgp/S03 converted the planned M017 ontology candidate layer into current generated architecture registry source mappings and views using conservative statuses, source anchors, proof ceilings, and canonical verifier-policy gate IDs where planning aliases were reconciled.
 
 Current derived-state evidence now shows:
@@ -31,7 +33,7 @@ Current derived-state evidence now shows:
 - `prd/architecture/claims_ledger.md` contains an `R035 Gate Status` view that enumerates the planned ontology candidate set using canonical IDs where aliases are explicitly reconciled.
 - `scripts/check-gsd-sync-drift.py --strict-exit-code` reports `status=OK diagnostics=8 failed=0` for the R035 active/unmapped contradiction class.
 
-Completion of M017/M018 and S03 registry synchronization is registry/view synchronization only and is still **not** validation evidence for R035. M020's ontology GraphRAG proof spine adds bounded fixture-backed integration evidence for a narrow subset of `GATE-ONTOLOGY-GRAPHRAG-INTEGRATION`, but it is still **not** broad validation evidence for R035 and does not satisfy the full gate. R035 is still Active and remains Active until later proof owners produce runtime, benchmark, real-document, legal-answer, parser-completeness, ontology-quality, graph-vector, formal-conformance, or pilot-scale evidence as applicable.
+Completion of M017/M018 and S03 registry synchronization is registry/view synchronization only and is still **not** validation evidence for R035. M020's ontology GraphRAG proof spine adds bounded fixture-backed integration evidence for a narrow subset of `GATE-ONTOLOGY-GRAPHRAG-INTEGRATION`, and M020/S07-S08 adds only bounded runtime remediation evidence or blocked prerequisite diagnostics for that same narrow subset. These artifacts are still **not** broad validation evidence for R035 and do not satisfy the full gate. R035 is still Active and remains Active until later proof owners produce runtime, benchmark, real-document, legal-answer, parser-completeness, ontology-quality, graph-vector, formal-conformance, or pilot-scale evidence as applicable.
 
 ## Requirement Clause Matrix
 
@@ -42,7 +44,7 @@ Completion of M017/M018 and S03 registry synchronization is registry/view synchr
 | Stage adoption rather than replacing the LegalGraph core | `05-ontology-adoption-ladder.md`, candidate registry statuses, claims-ledger non-claims | Adoption remains staged as candidate/bounded evidence rather than promoted product architecture. | No product adoption level above bounded candidate mapping is validated. | Active / planning taxonomy evidence |
 | Prevent validated ontology claims without named proof gates | `scripts/verify-architecture-graph.py`, `check-gsd-sync-drift.py` | Verifier and drift checks reject or surface unsafe promotion and stale mapping states. | Policy and static checks do not prove runtime/legal correctness or benchmark quality. | Active / verifier-policy evidence only |
 | Provide a current R035 gate-status view | `prd/architecture/claims_ledger.md`, section `R035 Gate Status` | The derived view enumerates the R035 ontology candidate set and missing proof classes. | The view is non-authoritative and cannot validate R035 by itself. | Active / drift reconciled for registry/view coverage |
-| Keep derived artifacts non-authoritative | Source hierarchy in M017 docs and claims-ledger scope note | Generated JSONL/report/view artifacts remain derived diagnostics. | Nothing in derived-state evidence can upgrade R035 without separate proof evidence. | Satisfied as guardrail, not validation |
+| Keep derived artifacts non-authoritative | Source hierarchy in M017 docs, claims-ledger scope note, S07/S08 runtime remediation redaction flags | Generated JSONL/report/view artifacts and S07 diagnostic artifacts remain derived diagnostics. | Nothing in derived-state or bounded runtime remediation evidence can upgrade R035 without separate proof evidence. | Satisfied as guardrail, not validation |
 
 ## Evidence Inventory
 
@@ -106,13 +108,13 @@ Current local inspection of `prd/architecture/architecture_items.jsonl` shows th
 - `DATA-RUSLEGALCORE-DOMAIN-ONTOLOGY`;
 - `DATA-LEGAL-SOURCE-HIERARCHY`.
 
-Current `prd/architecture/claims_ledger.md` has an `R035 Gate Status` section that lists the canonicalized ontology candidate set. This is a freshness and traceability signal only; it does not prove any gate is satisfied.
+Current `prd/architecture/claims_ledger.md` has an `R035 Gate Status` section that lists the canonicalized ontology candidate set and points reviewers to the S07/S08 runtime remediation proof/rescope artifacts as bounded evidence only. This is a freshness and traceability signal only; it does not prove any gate is satisfied.
 
 ## Missing Proof Decisions
 
 The following decisions/proofs are still missing before R035 can be validated or split safely:
 
-1. **Runtime and benchmark proof decision:** produce or defer ontology benchmark evidence, Legal KnowQL product behavior evidence, legal-answer correctness evidence, graph-vector/runtime evidence, and pilot-scale readiness evidence.
+1. **Runtime and benchmark proof decision:** produce or defer ontology benchmark evidence, Legal KnowQL product behavior evidence, legal-answer correctness evidence, graph-vector/runtime evidence beyond the S07 local fixture path, and pilot-scale readiness evidence.
 2. **Gate satisfaction decision:** decide which current gate items have accepted proof evidence and which remain active blockers.
 3. **Alias governance decision:** preserve the documented alias mapping for `GATE-DEONTIC-MAPPING-PROOF` → `GATE-LKIF-DEONTIC-BENCHMARK` and `GATE-1000-DOC-PILOT` → `GATE-PILOT-SCALE-READINESS` in future extractor/verifier updates.
 4. **Requirement lifecycle decision:** after proof gates receive evidence, decide whether R035 becomes validated, remains active for further proof, or is split into smaller requirements for mapping, verifier policy, runtime quality, and legal proof.
@@ -137,7 +139,7 @@ S03 implemented the deferred registry integration and synchronized R035/R036 lif
 1. Treat the 58-item / 91-edge architecture registry as the current generated baseline for M019-v10cgp.
 2. Keep `scripts/extract-prd-architecture-items.py`, `scripts/check-gsd-sync-drift.py`, generated architecture views, and architecture pytest expectations synchronized in the root checkout after worktree migration.
 3. Preserve source anchors to the gap analysis and integration plan; do not anchor positive proof claims to generated JSONL or claims-ledger views.
-4. Preserve non-claims for parser completeness, legal correctness, ontology conformance, retrieval quality, FalkorDB production behavior, graph-vector/HNSW behavior, generated-Cypher safety, pilot readiness, and LLM authority.
+4. Preserve non-claims for parser completeness, legal correctness, ontology conformance, retrieval quality, FalkorDB production behavior, graph-vector/HNSW behavior, generated-Cypher safety, pilot readiness, local runtime remediation breadth beyond S07/S08 fixtures, and LLM authority.
 5. Use canonical verifier-policy gate IDs in generated registry records; keep planning aliases documented as aliases only.
 6. Verify root-flow commands after migration: extractor check, graph build check, generated views check, architecture verifier, drift check, and architecture pytest suite.
 7. Do not mark all of R035 validated until proof obligations beyond registry mapping are explicitly accepted.

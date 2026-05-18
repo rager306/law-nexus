@@ -209,6 +209,12 @@ def test_claims_ledger_surfaces_r035_gate_status_as_guardrail_only() -> None:
     assert "not standard, runtime, product behavior, retrieval quality, FalkorDB runtime, or R035 validation" in content
     assert "`EVID-GRAPHRAG-CANDIDATE`" in content
     assert "GATE-ONTOLOGY-GRAPHRAG-INTEGRATION" in content
+    assert "S07/S08 runtime remediation reference" in content
+    assert "ontology_graphrag_runtime_integration_proof.json" in content
+    assert "13-r035-runtime-integration-remediation.md" in content
+    assert "bounded runtime remediation or blocked prerequisite diagnostics only" in content
+    assert "R035 remains Active" in content
+    assert "formal standard conformance" in content
     assert "proof_level<integration-test" in content
     assert "add-proof-gate" in content
     assert "do not validate the referenced standard or product behavior" not in content
@@ -317,6 +323,9 @@ def test_generated_reports_preserve_minimal_non_authoritative_disclaimers() -> N
         "do not use it as proof",
         "registry/view synchronization-only guardrails",
         "not standard, runtime, product behavior, retrieval quality, FalkorDB runtime, or R035 validation",
+        "S07/S08 runtime remediation reference",
+        "bounded runtime remediation or blocked prerequisite diagnostics only",
+        "R035 remains Active",
         "Always cite source anchors",
     ):
         assert_contains_boundary(claims, boundary)

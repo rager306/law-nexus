@@ -23,6 +23,8 @@ DEFAULT_ITEMS_JSONL_PATH = ROOT / "prd/architecture/architecture_items.jsonl"
 DEFAULT_HEALTH_MD_PATH = ROOT / "prd/architecture/architecture_health.md"
 DEFAULT_BLOCKERS_MD_PATH = ROOT / "prd/architecture/product_readiness_blockers.md"
 DEFAULT_CLAIMS_MD_PATH = ROOT / "prd/architecture/claims_ledger.md"
+R035_RUNTIME_PROOF_PATH = "prd/research/ontology_architecture_requirements/ontology_graphrag_runtime_integration_proof.json"
+R035_RUNTIME_REMEDIATION_PATH = "prd/research/ontology_architecture_requirements/13-r035-runtime-integration-remediation.md"
 
 
 def escape_md(value: Any) -> str:
@@ -918,6 +920,8 @@ def render_claims_ledger(
         "## R035 Gate Status",
         "",
         "Ontology, external-standard, GraphRAG, graph-vector, and pilot-scale rows are registry/view synchronization-only guardrails. They are not standard, runtime, product behavior, retrieval quality, FalkorDB runtime, or R035 validation.",
+        "",
+        f"S07/S08 runtime remediation reference: review `{R035_RUNTIME_PROOF_PATH}` and `{R035_RUNTIME_REMEDIATION_PATH}` as bounded runtime remediation or blocked prerequisite diagnostics only. R035 remains Active; these artifacts do not validate broad ontology behavior, formal standard conformance, graph-vector/HNSW behavior, FalkorDB production behavior, parser completeness, product retrieval quality, legal-answer correctness, or pilot readiness.",
         "",
     ])
     if ontology_rows:

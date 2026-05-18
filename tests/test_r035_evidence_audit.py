@@ -13,6 +13,12 @@ CLAIMS_LEDGER_PATH = Path("prd/architecture/claims_ledger.md")
 LIFECYCLE_RECOMMENDATION_PATH = Path(
     "prd/research/ontology_architecture_requirements/12-r035-m020-lifecycle-recommendation.md"
 )
+RUNTIME_REMEDIATION_PATH = Path(
+    "prd/research/ontology_architecture_requirements/13-r035-runtime-integration-remediation.md"
+)
+RUNTIME_PROOF_PATH = Path(
+    "prd/research/ontology_architecture_requirements/ontology_graphrag_runtime_integration_proof.json"
+)
 
 
 REQUIRED_SECTIONS = [
@@ -150,14 +156,55 @@ def test_r035_lifecycle_recommendation_documents_runtime_prerequisite_boundary()
     text = read_text(LIFECYCLE_RECOMMENDATION_PATH)
 
     assert "## Runtime Prerequisite Diagnostics" in text
+    assert "S07/S08 composed local proof command" in text
     assert "separate boundary checks" in text
     assert "do **not** promote R035" in text
-    assert "`confirmed_runtime`" in text
+    assert "`confirmed_runtime` or explicit blocked prerequisite diagnostic" in text
     assert "Bounded prerequisite diagnostic only" in text
     assert "does not validate R035" in text
-    assert "`blocked/follow-up` prerequisite" in text
+    assert "`confirmed-runtime` bounded synthetic runtime proof or explicit blocked prerequisite diagnostic" in text
     assert "blocked/unavailable status is not negative R035 evidence and not R035 validation" in text
     assert "must not persist secrets, provider payloads, raw legal text, raw queries, raw vectors" in text
+    assert "ontology_graphrag_runtime_integration_proof.json" in text
+    assert "13-r035-runtime-integration-remediation.md" in text
+    assert "bounded runtime remediation or blocked prerequisite diagnostics only" in text
+
+
+def test_r035_runtime_remediation_artifact_keeps_s07_bounded_and_active() -> None:
+    text = read_text(RUNTIME_REMEDIATION_PATH)
+    proof = json.loads(read_text(RUNTIME_PROOF_PATH))
+
+    assert "R035 remains Active" in text
+    assert "bounded runtime remediation evidence or blocked prerequisite diagnostics" in text
+    assert "do not close the gate and do not move R035 out of Active" in text
+    assert proof["r035_lifecycle_disposition"] == "remains_active_bounded_runtime_evidence_only"
+    assert proof["gate_disposition"].startswith("gate_remains_open")
+    assert set(proof["phases"]) == {
+        "embedding_runtime",
+        "falkordb_runtime",
+        "fixture_materialization",
+        "ontology_temporal_query",
+        "citation_evidence_validation",
+        "query_safety",
+        "overclaim_safety",
+        "r035_lifecycle_disposition",
+    }
+    assert "Does not satisfy broad ontology" in " ".join(proof["non_claims"])
+    for forbidden in ("raw legal text", "raw queries", "raw vectors", ".gsd/exec", "/root/"):
+        assert forbidden not in json.dumps(proof, ensure_ascii=False)
+
+
+def test_r035_evidence_audit_points_to_s07_runtime_remediation_without_broad_validation() -> None:
+    text = read_audit()
+
+    assert "M020/S07-S08 runtime remediation update" in text
+    assert "graph-route, local/open-weight embedding candidate ranking, deterministic evidence-ID, stale-evidence diagnostics" in text
+    assert "13-r035-runtime-integration-remediation.md" in text
+    assert "ontology_graphrag_runtime_integration_proof.json" in text
+    assert "bounded runtime remediation or prerequisite diagnostics only" in text
+    assert "R035 remains Active" in text
+    assert "do not validate broad ontology behavior" in text
+    assert "FalkorDB production behavior" in text
 
 
 def test_claims_ledger_r035_status_is_synchronization_only_not_runtime_validation() -> None:

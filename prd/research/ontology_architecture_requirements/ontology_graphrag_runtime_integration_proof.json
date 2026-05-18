@@ -5,7 +5,48 @@
     "mode": "auto",
     "status": "skipped_falkordb_runtime"
   },
+  "deterministic_evidence_id_diagnostics": {
+    "accepted_cases_checked": 2,
+    "diagnostic_codes": [],
+    "missing_id_negative_cases_detected": true,
+    "raw_text_excluded": true,
+    "status": "passed"
+  },
+  "embedding_candidate_ranking": {
+    "candidates": [
+      {
+        "act_edition_id": "ED-M014-44FZ-2026-01-01",
+        "candidate_id": "CAND-M020-OG-VALID-CURRENT-001",
+        "citation_key": "CIT-M014-HIER-CONS-ARTICLE-0001",
+        "evidence_span_id": "EV-M014-HIER-CONS-ARTICLE-0001",
+        "rank": 1,
+        "selection_result": "accepted",
+        "source_record_id": "HIER-CONS-ARTICLE-0001"
+      }
+    ],
+    "diagnostic_codes": [],
+    "embedding_runtime": "confirmed_runtime",
+    "managed_provider_used": false,
+    "model_boundary": "local_open_weight",
+    "raw_text_excluded": true,
+    "selected_candidate_id": "CAND-M020-OG-VALID-CURRENT-001",
+    "selected_rank": 1,
+    "status": "available_safe_ids_only",
+    "vector_values_excluded": true
+  },
   "gate_disposition": "gate_remains_open_blocked_runtime",
+  "graph_route": {
+    "candidate_query_execution_performed": false,
+    "diagnostic_codes": [
+      "RIP_FALKORDB_RUNTIME_NOT_AVAILABLE"
+    ],
+    "falkordb_runtime_status": "missing",
+    "positive_falkordb_validation_claim": false,
+    "real_artifact_graph_querying_proven": false,
+    "route_class": "unavailable_without_falkordb_runtime",
+    "status": "blocked_runtime_rescope"
+  },
+  "milestone_id": "M020-ujbffl",
   "non_authoritative": true,
   "non_claims": [
     "Does not validate R035 broadly; R035 remains Active.",
@@ -75,9 +116,15 @@
     "source_text_excluded": true,
     "vector_values_excluded": true
   },
+  "remediation_scope": "M020 S07/S08 runtime proof persistence for R035 only",
+  "remediation_slice_ids": [
+    "S07",
+    "S08"
+  ],
   "report_path": "prd/research/ontology_architecture_requirements/ontology_graphrag_runtime_integration_proof.json",
   "requirement": "R035",
   "runtime_disposition": "blocked_runtime_rescope",
+  "s08_contract_version": "runtime-proof-s08-diagnostics/v1",
   "schema_version": "ontology-graphrag-runtime-integration-proof/v1",
   "source_artifacts": [
     "scripts/verify-ontology-graphrag-integration-proof.py",
@@ -85,5 +132,12 @@
     "scripts/prove-legalgraph-shaped-falkordb.py",
     "prd/research/ontology_architecture_requirements/ontology_graphrag_proof_cases.json"
   ],
-  "source_fixture_path": "prd/research/ontology_architecture_requirements/ontology_graphrag_proof_cases.json"
+  "source_fixture_path": "prd/research/ontology_architecture_requirements/ontology_graphrag_proof_cases.json",
+  "stale_evidence_diagnostics": {
+    "diagnostic_codes": [],
+    "inactive_or_wrong_edition_exclusion_present": true,
+    "raw_text_excluded": true,
+    "status": "passed",
+    "temporal_excluded_count": 1
+  }
 }

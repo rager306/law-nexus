@@ -15,6 +15,8 @@
 
 Ontology, external-standard, GraphRAG, graph-vector, and pilot-scale rows are registry/view synchronization-only guardrails. They are not standard, runtime, product behavior, retrieval quality, FalkorDB runtime, or R035 validation.
 
+S07/S08 runtime remediation reference: review `prd/research/ontology_architecture_requirements/ontology_graphrag_runtime_integration_proof.json` and `prd/research/ontology_architecture_requirements/13-r035-runtime-integration-remediation.md` as bounded runtime remediation or blocked prerequisite diagnostics only. R035 remains Active; these artifacts do not validate broad ontology behavior, formal standard conformance, graph-vector/HNSW behavior, FalkorDB production behavior, parser completeness, product retrieval quality, legal-answer correctness, or pilot readiness.
+
 | ID | Trigger | Current Safe Bucket | Required Gate | Minimum Proof | Status | Missing Requirements | Remediation Class |
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | `DATA-LEGAL-DOCUMENT-IDENTITY-FRBR` | FRBR | compatibility/reference projection only | GATE-AKOMA-FRBR-NORMALIZATION | static-check | hypothesis | proof_level<static-check | add-proof-gate |

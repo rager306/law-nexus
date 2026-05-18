@@ -606,7 +606,7 @@ def write_markdown_report(path: Path, summary: Mapping[str, Any]) -> None:
     lines = [
         "# R035 Runtime Integration Remediation",
         "",
-        "This is a bounded M020/S07 runtime remediation artifact. R035 remains Active.",
+        "This is a bounded M020/S07-S08 runtime remediation artifact. R035 remains Active.",
         "It records bounded runtime remediation evidence or blocked prerequisite diagnostics; these do not close the gate and do not move R035 out of Active.",
         "",
         "## Disposition",
@@ -614,6 +614,7 @@ def write_markdown_report(path: Path, summary: Mapping[str, Any]) -> None:
         f"- Runtime disposition: `{summary['runtime_disposition']}`",
         f"- Gate disposition: `{summary['gate_disposition']}`",
         f"- R035 lifecycle: `{summary['r035_lifecycle_disposition']}`",
+        f"- Remediation scope: `{summary.get('remediation_scope', 'M020 S07/S08 runtime proof persistence for R035 only')}`",
         f"- Cleanup status: `{summary.get('cleanup_status', 'not_needed')}`",
         "",
         "## Phase statuses",
@@ -626,18 +627,39 @@ def write_markdown_report(path: Path, summary: Mapping[str, Any]) -> None:
             status = phase_payload.get("status", "<missing>") if isinstance(phase_payload, Mapping) else "<malformed>"
             codes = phase_payload.get("diagnostic_codes", []) if isinstance(phase_payload, Mapping) else []
             lines.append(f"- `{name}`: `{status}`; diagnostics: `{','.join(codes) if codes else 'none'}`")
+    graph_route = summary.get('graph_route', {})
+    embedding_ranking = summary.get('embedding_candidate_ranking', {})
+    evidence_ids = summary.get('deterministic_evidence_id_diagnostics', {})
+    stale_evidence = summary.get('stale_evidence_diagnostics', {})
     lines.extend([
         "",
         "## Container/runtime",
         "",
         f"- Container runtime: `{json.dumps(summary.get('container_runtime', {}), ensure_ascii=False, sort_keys=True)}`",
         "",
-        "## S08 diagnostics",
+        "## Graph route",
         "",
-        f"- Graph route: `{json.dumps(summary.get('graph_route', {}), ensure_ascii=False, sort_keys=True)}`",
-        f"- Embedding candidate ranking: `{json.dumps(summary.get('embedding_candidate_ranking', {}), ensure_ascii=False, sort_keys=True)}`",
-        f"- Deterministic evidence IDs: `{json.dumps(summary.get('deterministic_evidence_id_diagnostics', {}), ensure_ascii=False, sort_keys=True)}`",
-        f"- Stale evidence diagnostics: `{json.dumps(summary.get('stale_evidence_diagnostics', {}), ensure_ascii=False, sort_keys=True)}`",
+        f"- Route summary: `{json.dumps(graph_route, ensure_ascii=False, sort_keys=True)}`",
+        "- Boundary: this is a local synthetic route or blocked-runtime rescope only; real artifact graph querying and positive FalkorDB validation are not claimed.",
+        "",
+        "## Local/open-weight embedding ranking summary",
+        "",
+        f"- Ranking summary: `{json.dumps(embedding_ranking, ensure_ascii=False, sort_keys=True)}`",
+        "- Boundary: candidate IDs and ranks are safe fixture-derived diagnostics only; vectors, raw legal text, provider payloads, and managed API details are excluded.",
+        "",
+        "## Deterministic evidence-ID validation",
+        "",
+        f"- Evidence-ID diagnostics: `{json.dumps(evidence_ids, ensure_ascii=False, sort_keys=True)}`",
+        "- Boundary: this checks citation/evidence identifier preservation and missing-ID negative coverage for the M020 proof fixture only.",
+        "",
+        "## Stale-evidence diagnostics",
+        "",
+        f"- Stale-evidence diagnostics: `{json.dumps(stale_evidence, ensure_ascii=False, sort_keys=True)}`",
+        "- Boundary: this records inactive or wrong-edition exclusion diagnostics without persisting raw legal text.",
+        "",
+        "## S01-to-S02 handoff clarification",
+        "",
+        "S01 and S02 remain handoff/source-preparation evidence only. S08 persists the bounded runtime proof or blocked-runtime rescope for R035; it does not reinterpret S01/S02 as legal-answer, parser-completeness, product-retrieval, formal-ontology, graph-vector/HNSW, FalkorDB production, or pilot-readiness validation.",
         "",
         "## Non-claims",
         "",

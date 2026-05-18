@@ -19,7 +19,7 @@ The requirement may receive only a narrow M020 lifecycle note: M020 produced bou
 
 Recommended lifecycle wording for the later `.gsd/REQUIREMENTS.md` update:
 
-> M020-ujbffl produced bounded fixture-backed integration evidence for the `GATE-ONTOLOGY-GRAPHRAG-INTEGRATION` subset: ontology and temporal filters over proof-local source-backed cases, citation/evidence ID preservation, scoped no-answer behavior, fail-closed diagnostics, redaction safety, generated-query execution avoided, and overclaim guardrails. R035 remains active; this does not validate R035 broadly, satisfy the full gate, prove product retrieval quality, legal-answer correctness, parser completeness, FalkorDB production behavior, graph-vector/HNSW behavior, generated-Cypher runtime safety, formal ontology conformance, or pilot-scale readiness.
+> M020-ujbffl produced bounded fixture-backed integration evidence for the `GATE-ONTOLOGY-GRAPHRAG-INTEGRATION` subset: ontology and temporal filters over proof-local source-backed cases, citation/evidence ID preservation, scoped no-answer behavior, fail-closed diagnostics, redaction safety, generated-query execution avoided, and overclaim guardrails. M020/S07-S08 additionally produced `prd/research/ontology_architecture_requirements/ontology_graphrag_runtime_integration_proof.json` and `prd/research/ontology_architecture_requirements/13-r035-runtime-integration-remediation.md` as bounded runtime remediation evidence or blocked prerequisite diagnostics only for the same subset. R035 remains active; this does not validate R035 broadly, satisfy the full gate, prove product retrieval quality, legal-answer correctness, parser completeness, FalkorDB production behavior, graph-vector/HNSW behavior, generated-Cypher runtime safety, formal ontology conformance, or pilot-scale readiness.
 
 ## Evidence Used
 
@@ -32,6 +32,8 @@ Recommended lifecycle wording for the later `.gsd/REQUIREMENTS.md` update:
 | `prd/research/ontology_architecture_requirements/10-ontology-graphrag-integration-proof-design.md` | Defines the S03 proof ceiling as fixture-backed integration proof for ontology filters, temporal filters, citation/evidence preservation, scoped no-answer handling, and fail-closed diagnostics. | Explicitly does not validate R035 or satisfy the full gate by itself. |
 | `prd/research/ontology_architecture_requirements/11-ontology-graphrag-negative-coverage-audit.md` | Confirms required negative cases are covered or bounded before lifecycle wording changes and forbids broad promotion language. | Residual risks remain because the proof spine is fixture-backed and non-authoritative. |
 | `prd/research/ontology_architecture_requirements/ontology_graphrag_integration_proof.json` | Records `proof_level=fixture-backed integration proof`, `gate_disposition=bounded_fixture_integration_passed_gate_remains_open`, `r035_lifecycle_disposition=remains_active_bounded_s03_evidence_only`, `non_authoritative=true`, `redaction_ok=true`, and `generated_query_execution_avoided=true`. | Counts and diagnostics prove only the bounded proof fixture/report behavior. |
+| `prd/research/ontology_architecture_requirements/ontology_graphrag_runtime_integration_proof.json` | Records the S07/S08 composed local runtime proof or blocked-runtime rescope, including graph-route, local/open-weight embedding ranking, deterministic evidence-ID, and stale-evidence diagnostics with phase-level statuses for `embedding_runtime`, `falkordb_runtime`, `fixture_materialization`, `ontology_temporal_query`, `citation_evidence_validation`, `query_safety`, `overclaim_safety`, and `r035_lifecycle_disposition`. | Bounded runtime remediation or prerequisite diagnostics only; it does not prove broad ontology behavior, graph-vector/HNSW behavior, FalkorDB production behavior, product retrieval quality, parser completeness, legal-answer correctness, formal ontology conformance, or pilot readiness. |
+| `prd/research/ontology_architecture_requirements/13-r035-runtime-integration-remediation.md` | Provides the reviewer-facing S08 disposition summary for the same runtime proof/rescope artifact and keeps R035 Active. | Derived summary only; if prerequisites are blocked, it is not negative R035 evidence, and if local runtime passes, it remains fixture-bounded runtime evidence only. |
 
 ## Proof Level
 
@@ -41,12 +43,12 @@ This is stronger than a static research note or isolated unit assertion because 
 
 ## Runtime Prerequisite Diagnostics
 
-Runtime prerequisite diagnostics are separate boundary checks. They may inform future proof readiness, but they do **not** promote R035, close `GATE-ONTOLOGY-GRAPHRAG-INTEGRATION`, validate product retrieval quality, validate parser completeness, prove legal-answer correctness, or prove FalkorDB production behavior.
+Runtime prerequisite diagnostics are separate boundary checks. The S07/S08 composed local proof command records them in `ontology_graphrag_runtime_integration_proof.json` and summarizes reviewer-facing disposition in `13-r035-runtime-integration-remediation.md`. They may inform future proof readiness, but they do **not** promote R035, close `GATE-ONTOLOGY-GRAPHRAG-INTEGRATION`, validate product retrieval quality, validate parser completeness, prove legal-answer correctness, or prove FalkorDB production behavior.
 
 | Diagnostic | Current disposition | Boundary |
 | --- | --- | --- |
-| Local retrieval / embedding runtime prerequisite | `confirmed_runtime` for the approved local/open-weight retrieval runtime boundary, recorded only as a non-secret status class. | Bounded prerequisite diagnostic only; it does not validate R035, product retrieval quality, representative corpus quality, parser completeness, legal-answer correctness, production FalkorDB behavior, or `GATE-G011`. It must not persist secrets, provider payloads, raw legal text, raw queries, raw vectors, or environment-specific absolute paths. |
-| LegalGraph-shaped FalkorDB local runtime proof | `blocked/follow-up` prerequisite in this environment unless a fresh local smoke proof is obtained and reviewed separately. | Separate FalkorDB runtime-smoke work only; blocked/unavailable status is not negative R035 evidence and not R035 validation. A future passing smoke may prove only bounded synthetic graph mechanics unless explicitly backed by stronger product/runtime evidence. |
+| Local retrieval / embedding runtime prerequisite | `confirmed_runtime` or explicit blocked prerequisite diagnostic for the approved local/open-weight retrieval runtime boundary, recorded only as a non-secret status class. | Bounded prerequisite diagnostic only; it does not validate R035, product retrieval quality, representative corpus quality, parser completeness, legal-answer correctness, production FalkorDB behavior, or `GATE-G011`. It must not persist secrets, provider payloads, raw legal text, raw queries, raw vectors, or environment-specific absolute paths. |
+| LegalGraph-shaped FalkorDB local runtime proof | `confirmed-runtime` bounded synthetic runtime proof or explicit blocked prerequisite diagnostic, depending on local prerequisites. | Bounded FalkorDB runtime-smoke work only; blocked/unavailable status is not negative R035 evidence and not R035 validation. A passing local smoke proves only bounded synthetic graph mechanics unless explicitly backed by stronger product/runtime evidence. |
 
 ## Non-Claims
 
@@ -92,6 +94,10 @@ The update should include these terms or equivalents:
 - `citation/evidence ID preservation`
 - `generated-query execution avoided`
 - `overclaim guardrails`
+- `ontology_graphrag_runtime_integration_proof.json`
+- `13-r035-runtime-integration-remediation.md`
+- `M020/S07-S08`
+- `bounded runtime remediation or blocked prerequisite diagnostics only`
 - `R035 remains active`
 - explicit non-claims for product retrieval quality, legal correctness, parser completeness, FalkorDB production behavior, graph-vector/HNSW behavior, formal ontology conformance, and pilot-scale readiness
 

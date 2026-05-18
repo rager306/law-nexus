@@ -468,5 +468,11 @@ def test_markdown_report_is_safe_and_keeps_r035_active(tmp_path: Path) -> None:
     text = report.read_text(encoding="utf-8")
     assert "R035 remains Active" in text
     assert "bounded_runtime_proof_passed" in text
+    assert "## Graph route" in text
+    assert "## Local/open-weight embedding ranking summary" in text
+    assert "## Deterministic evidence-ID validation" in text
+    assert "## Stale-evidence diagnostics" in text
+    assert "## S01-to-S02 handoff clarification" in text
+    assert "does not reinterpret S01/S02 as legal-answer" in text
     for forbidden in FORBIDDEN_SNIPPETS:
         assert forbidden not in text
