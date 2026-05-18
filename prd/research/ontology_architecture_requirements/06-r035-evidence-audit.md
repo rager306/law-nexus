@@ -18,6 +18,8 @@ R035 remains **Active / not runtime-validated**.
 
 S03 synchronization update: R035 owner: M019-v10cgp/S03 for the active bounded-evidence and requirement-sync work. This owner marker resolves the lifecycle ownership drift signal; it does not validate ontology runtime behavior, ontology benchmark success, Legal KnowQL product behavior, legal-answer correctness, parser completeness, or pilot-scale readiness.
 
+M020 lifecycle update: R035 owner: M020-ujbffl/S05 for the active bounded-evidence lifecycle update after the ontology GraphRAG proof spine. M020 produced bounded fixture-backed integration evidence for only the `GATE-ONTOLOGY-GRAPHRAG-INTEGRATION` subset: ontology and temporal filters over proof-local source-backed cases, citation/evidence ID preservation, scoped no-answer behavior, fail-closed diagnostics, redaction safety, generated-query execution avoided, and overclaim guardrails. R035 remains Active; this does not validate R035 broadly, satisfy the full gate, prove product retrieval quality, legal-answer correctness, parser completeness, FalkorDB production behavior, graph-vector/HNSW behavior, formal ontology conformance, or pilot-scale readiness.
+
 M017 and M018 provide bounded planning, proof-gate, verifier-policy, and claims-ledger evidence for ontology architecture proof boundaries. M019-v10cgp/S03 converted the planned M017 ontology candidate layer into current generated architecture registry source mappings and views using conservative statuses, source anchors, proof ceilings, and canonical verifier-policy gate IDs where planning aliases were reconciled.
 
 Current derived-state evidence now shows:
@@ -29,7 +31,7 @@ Current derived-state evidence now shows:
 - `prd/architecture/claims_ledger.md` contains an `R035 Gate Status` view that enumerates the planned ontology candidate set using canonical IDs where aliases are explicitly reconciled.
 - `scripts/check-gsd-sync-drift.py --strict-exit-code` reports `status=OK diagnostics=8 failed=0` for the R035 active/unmapped contradiction class.
 
-Completion of M017/M018 and S03 registry synchronization is still **not** validation evidence for R035. It proves registry/view synchronization only. R035 is still Active and remains Active until later proof owners produce runtime, benchmark, real-document, legal-answer, parser-completeness, ontology-quality, graph-vector, or pilot-scale evidence as applicable.
+Completion of M017/M018 and S03 registry synchronization is still **not** validation evidence for R035. M020's ontology GraphRAG proof spine adds bounded fixture-backed integration evidence for a narrow subset of `GATE-ONTOLOGY-GRAPHRAG-INTEGRATION`, but it is still **not** broad validation evidence for R035 and does not satisfy the full gate. R035 is still Active and remains Active until later proof owners produce runtime, benchmark, real-document, legal-answer, parser-completeness, ontology-quality, graph-vector, formal-conformance, or pilot-scale evidence as applicable.
 
 ## Requirement Clause Matrix
 
