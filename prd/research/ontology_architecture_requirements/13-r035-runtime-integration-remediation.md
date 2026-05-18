@@ -1,6 +1,7 @@
 # R035 Runtime Integration Remediation
 
 This is a bounded M020/S07 runtime remediation artifact. R035 remains Active.
+It records bounded runtime remediation evidence or blocked prerequisite diagnostics; these do not close the gate and do not move R035 out of Active.
 
 ## Disposition
 
