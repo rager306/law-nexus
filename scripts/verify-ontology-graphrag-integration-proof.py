@@ -19,6 +19,29 @@ PROOF_ID = "OG-M020-S03-CITATION-BOUND-INTEGRATION-PROOF"
 GATE_ID = "GATE-ONTOLOGY-GRAPHRAG-INTEGRATION"
 
 _SAFE_FIELD_LIMIT = 160
+_REDACTED_FIELD_PATH = "<redacted_forbidden_field_path>"
+_FORBIDDEN_FIELD_NAMES = frozenset(
+    {
+        "raw_legal_text",
+        "raw_text",
+        "source_excerpt",
+        "source_excerpts",
+        "prompt",
+        "user_prompt",
+        "provider_payload",
+        "provider_response_body",
+        "secret",
+        "secrets",
+        "pii",
+        "vector",
+        "embedding_vector",
+        "falkordb_row",
+        "runtime_row",
+        "generated_answer_prose",
+        "legal_advice",
+        "llm_reasoning",
+    }
+)
 
 
 class IntegrationProofError(Exception):
@@ -46,6 +69,29 @@ def _safe(value: Any) -> str:
     if isinstance(value, str) and value:
         return value[:_SAFE_FIELD_LIMIT]
     return "<missing>"
+
+
+def _redact_forbidden_field_path(value: str) -> str:
+    path_parts = [part.strip("[]0123456789'").lower() for part in value.replace("[", ".").replace("]", "").split(".")]
+    if any(part in _FORBIDDEN_FIELD_NAMES for part in path_parts):
+        return _REDACTED_FIELD_PATH
+    return value[:_SAFE_FIELD_LIMIT]
+
+
+def _safe_summary_payload(value: Any) -> Any:
+    if isinstance(value, Mapping):
+        safe: dict[str, Any] = {}
+        for key, nested in value.items():
+            if str(key).lower() == "field_path" and isinstance(nested, str):
+                safe[str(key)] = _redact_forbidden_field_path(nested)
+            else:
+                safe[str(key)] = _safe_summary_payload(nested)
+        return safe
+    if isinstance(value, list):
+        return [_safe_summary_payload(item) for item in value]
+    if isinstance(value, str):
+        return _redact_forbidden_field_path(value)
+    return value
 
 
 def _load_json(path: Path) -> Mapping[str, Any]:
@@ -183,7 +229,7 @@ def _build_summary(fixtures: Path, report_output: Path) -> tuple[int, dict[str, 
         ],
     }
     if s02_summary.get("mismatches"):
-        summary["mismatches"] = s02_summary["mismatches"]
+        summary["mismatches"] = _safe_summary_payload(s02_summary["mismatches"])
     return (0 if passed else 1), summary
 
 
