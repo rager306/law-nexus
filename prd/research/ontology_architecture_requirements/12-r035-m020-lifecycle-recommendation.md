@@ -39,6 +39,15 @@ The exact supported proof level is **fixture-backed integration proof** for the 
 
 This is stronger than a static research note or isolated unit assertion because S03 consumes the proof cases, validates citation/evidence identifiers, reports gate disposition, and preserves negative diagnostics. It is weaker than runtime-smoke, benchmark validation, production observation, legal-answer quality validation, parser completeness validation, FalkorDB production validation, or pilot-scale validation.
 
+## Runtime Prerequisite Diagnostics
+
+Runtime prerequisite diagnostics are separate boundary checks. They may inform future proof readiness, but they do **not** promote R035, close `GATE-ONTOLOGY-GRAPHRAG-INTEGRATION`, validate product retrieval quality, validate parser completeness, prove legal-answer correctness, or prove FalkorDB production behavior.
+
+| Diagnostic | Current disposition | Boundary |
+| --- | --- | --- |
+| Local retrieval / embedding runtime prerequisite | `confirmed_runtime` for the approved local/open-weight retrieval runtime boundary, recorded only as a non-secret status class. | Bounded prerequisite diagnostic only; it does not validate R035, product retrieval quality, representative corpus quality, parser completeness, legal-answer correctness, production FalkorDB behavior, or `GATE-G011`. It must not persist secrets, provider payloads, raw legal text, raw queries, raw vectors, or environment-specific absolute paths. |
+| LegalGraph-shaped FalkorDB local runtime proof | `blocked/follow-up` prerequisite in this environment unless a fresh local smoke proof is obtained and reviewed separately. | Separate FalkorDB runtime-smoke work only; blocked/unavailable status is not negative R035 evidence and not R035 validation. A future passing smoke may prove only bounded synthetic graph mechanics unless explicitly backed by stronger product/runtime evidence. |
+
 ## Non-Claims
 
 This recommendation does **not** claim any of the following:

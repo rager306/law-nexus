@@ -205,12 +205,14 @@ def test_claims_ledger_surfaces_r035_gate_status_as_guardrail_only() -> None:
     content = generator.render_claims_ledger(items, minimal_report())
 
     assert "## R035 Gate Status" in content
-    assert "Ontology, external-standard, GraphRAG, graph-vector, and pilot-scale rows are guardrails only" in content
+    assert "Ontology, external-standard, GraphRAG, graph-vector, and pilot-scale rows are registry/view synchronization-only guardrails" in content
+    assert "not standard, runtime, product behavior, retrieval quality, FalkorDB runtime, or R035 validation" in content
     assert "`EVID-GRAPHRAG-CANDIDATE`" in content
     assert "GATE-ONTOLOGY-GRAPHRAG-INTEGRATION" in content
     assert "proof_level<integration-test" in content
     assert "add-proof-gate" in content
-    assert "do not validate the referenced standard or product behavior" in content
+    assert "do not validate the referenced standard or product behavior" not in content
+    assert "not standard, runtime, product behavior, retrieval quality, FalkorDB runtime, or R035 validation" in content
     assert "production ready" not in content.lower()
 
 
@@ -248,7 +250,8 @@ def test_claims_ledger_r035_gate_status_lists_legal_hierarchy_and_collision_poli
     assert "`DATA-LEGAL-SOURCE-HIERARCHY`" in content
     assert "`GATE-LEGAL-COLLISION-POLICY`" in content
     assert "GATE-LEGAL-COLLISION-POLICY" in content
-    assert "do not validate the referenced standard or product behavior" in content
+    assert "registry/view synchronization-only guardrails" in content
+    assert "not standard, runtime, product behavior, retrieval quality, FalkorDB runtime, or R035 validation" in content
 
 
 REPORT_PATHS = (
@@ -312,7 +315,8 @@ def test_generated_reports_preserve_minimal_non_authoritative_disclaimers() -> N
     claims = (ROOT / "prd/architecture/claims_ledger.md").read_text(encoding="utf-8")
     for boundary in (
         "do not use it as proof",
-        "do not validate the referenced standard or product behavior",
+        "registry/view synchronization-only guardrails",
+        "not standard, runtime, product behavior, retrieval quality, FalkorDB runtime, or R035 validation",
         "Always cite source anchors",
     ):
         assert_contains_boundary(claims, boundary)

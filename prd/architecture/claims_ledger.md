@@ -13,7 +13,7 @@
 
 ## R035 Gate Status
 
-Ontology, external-standard, GraphRAG, graph-vector, and pilot-scale rows are guardrails only. They do not validate the referenced standard or product behavior.
+Ontology, external-standard, GraphRAG, graph-vector, and pilot-scale rows are registry/view synchronization-only guardrails. They are not standard, runtime, product behavior, retrieval quality, FalkorDB runtime, or R035 validation.
 
 | ID | Trigger | Current Safe Bucket | Required Gate | Minimum Proof | Status | Missing Requirements | Remediation Class |
 | --- | --- | --- | --- | --- | --- | --- | --- |

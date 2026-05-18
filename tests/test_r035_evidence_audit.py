@@ -10,6 +10,9 @@ INTEGRATION_PLAN_PATH = Path(
 VERIFIER_PATH = Path("scripts/verify-architecture-graph.py")
 ARCHITECTURE_ITEMS_PATH = Path("prd/architecture/architecture_items.jsonl")
 CLAIMS_LEDGER_PATH = Path("prd/architecture/claims_ledger.md")
+LIFECYCLE_RECOMMENDATION_PATH = Path(
+    "prd/research/ontology_architecture_requirements/12-r035-m020-lifecycle-recommendation.md"
+)
 
 
 REQUIRED_SECTIONS = [
@@ -141,6 +144,28 @@ def test_r035_evidence_audit_lists_exact_s02_drift_signals() -> None:
     assert "resolved for current registry existence of `GATE-AKOMA-FRBR-NORMALIZATION`" in text
     assert "resolved for current ontology verifier-policy gate endpoints" in text
     assert "resolved for current claims-ledger R035 gate-status coverage" in text
+
+
+def test_r035_lifecycle_recommendation_documents_runtime_prerequisite_boundary() -> None:
+    text = read_text(LIFECYCLE_RECOMMENDATION_PATH)
+
+    assert "## Runtime Prerequisite Diagnostics" in text
+    assert "separate boundary checks" in text
+    assert "do **not** promote R035" in text
+    assert "`confirmed_runtime`" in text
+    assert "Bounded prerequisite diagnostic only" in text
+    assert "does not validate R035" in text
+    assert "`blocked/follow-up` prerequisite" in text
+    assert "blocked/unavailable status is not negative R035 evidence and not R035 validation" in text
+    assert "must not persist secrets, provider payloads, raw legal text, raw queries, raw vectors" in text
+
+
+def test_claims_ledger_r035_status_is_synchronization_only_not_runtime_validation() -> None:
+    claims_ledger = read_text(CLAIMS_LEDGER_PATH)
+
+    assert "registry/view synchronization-only guardrails" in claims_ledger
+    assert "not standard, runtime, product behavior, retrieval quality, FalkorDB runtime, or R035 validation" in claims_ledger
+    assert "do not validate the referenced standard or product behavior" not in claims_ledger
 
 
 def test_r035_evidence_audit_rejects_unsafe_final_validation_language() -> None:
