@@ -101,6 +101,38 @@ def runner_for(summary: dict[str, Any]):
     return run
 
 
+
+class FakeFalkorResult:
+    def __init__(self, rows: list[list[Any]]) -> None:
+        self.result_set = rows
+
+
+class FakeSourceBackedGraph:
+    def __init__(self, *, negative_count: int = 0) -> None:
+        self.queries: list[str] = []
+        self.negative_count = negative_count
+
+    def query(self, query: str) -> FakeFalkorResult:
+        self.queries.append(query)
+        if "RETURN candidate.id, edition.id, block.id, span.id, binding.citation_key" in query:
+            return FakeFalkorResult(
+                [[
+                    "CAND-M020-OG-VALID-CURRENT-001",
+                    "ED-M014-44FZ-2026-01-01",
+                    "SB-M014-HIER-CONS-ARTICLE-0001",
+                    "EV-M014-HIER-CONS-ARTICLE-0001",
+                    "CIT-M014-HIER-CONS-ARTICLE-0001",
+                ]]
+            )
+        if "RETURN count(candidate)" in query:
+            return FakeFalkorResult([[self.negative_count]])
+        return FakeFalkorResult([])
+
+
+def source_backed_route_report(module: ModuleType, *, negative_count: int = 0) -> dict[str, Any]:
+    return module.build_source_backed_fixture_route_report(FakeSourceBackedGraph(negative_count=negative_count))
+
+
 def assert_runtime_summary_is_safe(module: ModuleType, summary: dict[str, Any]) -> None:
     module.assert_safe_payload(summary)
     serialized = json.dumps(summary, ensure_ascii=False)
@@ -229,6 +261,101 @@ def test_s08_contract_exposes_metadata_graph_route_ranking_and_diagnostics(tmp_p
         "diagnostic_codes": [],
     }
     assert_runtime_summary_is_safe(module, summary)
+
+
+
+def test_source_backed_fixture_route_executes_positive_and_negative_reads() -> None:
+    module = load_module("runtime_integration_source_route_direct")
+    graph = FakeSourceBackedGraph()
+
+    report = module.build_source_backed_fixture_route_report(graph)
+
+    assert report["status"] == "passed"
+    assert report["route_class"] == "local_falkordb_source_backed_fixture_route"
+    assert report["candidate_query_execution_performed"] is True
+    assert report["read_only_route_execution_performed"] is True
+    assert report["materialized_safe_fields_only"] is True
+    assert report["selected_safe_ids"] == {
+        "candidate_id": "CAND-M020-OG-VALID-CURRENT-001",
+        "source_record_id": "HIER-CONS-ARTICLE-0001",
+        "act_edition_id": "ED-M014-44FZ-2026-01-01",
+        "source_block_id": "SB-M014-HIER-CONS-ARTICLE-0001",
+        "evidence_span_id": "EV-M014-HIER-CONS-ARTICLE-0001",
+        "citation_key": "CIT-M014-HIER-CONS-ARTICLE-0001",
+    }
+    assert report["positive_route"]["status"] == "passed"
+    assert report["positive_route"]["ontology_gate_preserved"] is True
+    assert report["positive_route"]["temporal_current_edition_preserved"] is True
+    assert report["positive_route"]["sourceblock_evidencespan_binding_preserved"] is True
+    assert report["positive_route"]["citation_binding_preserved"] is True
+    assert report["negative_route"]["status"] == "passed"
+    assert report["negative_route"]["wrong_edition_or_inactive_selected_count"] == 0
+    serialized = json.dumps(report, ensure_ascii=False)
+    for forbidden in FORBIDDEN_SNIPPETS:
+        assert forbidden not in serialized
+    assert any("CREATE" in query for query in graph.queries)
+    assert any("RETURN candidate.id" in query for query in graph.queries)
+    assert any("RETURN count(candidate)" in query for query in graph.queries)
+
+
+def test_source_backed_summary_promotes_only_bounded_fixture_route(tmp_path: Path) -> None:
+    module = load_module("runtime_integration_source_route_summary")
+
+    exit_code, summary = module.build_summary(
+        report_output=tmp_path / "runtime-proof.json",
+        allow_blocked_runtime=False,
+        embedding_report=confirmed_embedding(module),
+        falkordb_report={"status": "confirmed-runtime", "query_proofs": [{"query_class": "synthetic_traversal"}]},
+        source_backed_route_report=source_backed_route_report(module),
+        integration_runner=runner_for(good_integration_summary()),
+    )
+
+    assert exit_code == 0
+    assert summary["runtime_disposition"] == "bounded_runtime_proof_passed"
+    assert summary["graph_route"]["status"] == "confirmed_source_backed_local_route"
+    assert summary["graph_route"]["route_class"] == "local_falkordb_source_backed_fixture_route"
+    assert summary["graph_route"]["candidate_query_execution_performed"] is True
+    assert summary["graph_route"]["real_artifact_graph_querying_proven"] is True
+    assert summary["graph_route"]["selected_safe_ids"]["candidate_id"] == "CAND-M020-OG-VALID-CURRENT-001"
+    assert summary["graph_route"]["positive_route"]["citation_binding_preserved"] is True
+    assert summary["graph_route"]["negative_route"]["wrong_edition_or_inactive_selected_count"] == 0
+    assert summary["r035_lifecycle_disposition"] == "remains_active_bounded_runtime_evidence_only"
+    assert summary["gate_disposition"] == "gate_remains_open_bounded_runtime_evidence_only"
+    assert_runtime_summary_is_safe(module, summary)
+
+
+def test_source_backed_wrong_edition_leak_fails_closed(tmp_path: Path) -> None:
+    module = load_module("runtime_integration_source_route_negative_leak")
+
+    exit_code, summary = module.build_summary(
+        report_output=tmp_path / "runtime-proof.json",
+        allow_blocked_runtime=False,
+        embedding_report=confirmed_embedding(module),
+        falkordb_report={"status": "confirmed-runtime"},
+        source_backed_route_report=source_backed_route_report(module, negative_count=1),
+        integration_runner=runner_for(good_integration_summary()),
+    )
+
+    assert exit_code == 1
+    assert summary["runtime_disposition"] == "failed_closed"
+    assert summary["graph_route"]["status"] == "failed_closed"
+    assert summary["graph_route"]["real_artifact_graph_querying_proven"] is False
+    assert summary["graph_route"]["positive_falkordb_validation_claim"] is False
+    assert summary["graph_route"]["diagnostic_codes"] == ["RIP_SOURCE_BACKED_NEGATIVE_ROUTE_LEAK"]
+    assert_runtime_summary_is_safe(module, summary)
+
+
+def test_source_backed_route_rejects_malformed_fixture_ids_before_runtime_query() -> None:
+    module = load_module("runtime_integration_source_route_malformed")
+    data = json.loads(module.FIXTURE_PATH.read_text(encoding="utf-8"))
+    data["cases"][0]["candidate_set"][0]["candidate_id"] = "CAND/UNSAFE"
+
+    try:
+        module.build_source_backed_fixture_route_report(FakeSourceBackedGraph(), data)
+    except module.RuntimeIntegrationProofError as exc:
+        assert "unsafe or missing source-backed route id" in str(exc)
+    else:
+        raise AssertionError("malformed fixture IDs must fail before runtime query")
 
 
 def test_s08_blocked_mode_preserves_diagnostic_slots_without_positive_runtime_claim(tmp_path: Path) -> None:
