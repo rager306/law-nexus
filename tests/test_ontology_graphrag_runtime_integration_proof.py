@@ -167,6 +167,133 @@ def test_blocked_runtime_rescope_is_explicit_and_keeps_r035_active(tmp_path: Pat
     assert_runtime_summary_is_safe(module, summary)
 
 
+
+
+def test_s08_contract_exposes_metadata_graph_route_ranking_and_diagnostics(tmp_path: Path) -> None:
+    module = load_module("runtime_integration_s08_contract")
+
+    exit_code, summary = module.build_summary(
+        report_output=tmp_path / "runtime-proof.json",
+        allow_blocked_runtime=False,
+        embedding_report=confirmed_embedding(module),
+        falkordb_report={"status": "confirmed-runtime", "query_proofs": [{"query_class": "synthetic_traversal"}]},
+        integration_runner=runner_for(good_integration_summary()),
+    )
+
+    assert exit_code == 0
+    assert summary["milestone_id"] == "M020-ujbffl"
+    assert summary["remediation_slice_ids"] == ["S07", "S08"]
+    assert summary["s08_contract_version"] == "runtime-proof-s08-diagnostics/v1"
+
+    assert summary["graph_route"] == {
+        "status": "confirmed_synthetic_local_route",
+        "route_class": "local_falkordb_synthetic_legalgraph_shape",
+        "falkordb_runtime_status": "confirmed-runtime",
+        "real_artifact_graph_querying_proven": False,
+        "candidate_query_execution_performed": False,
+        "positive_falkordb_validation_claim": False,
+        "diagnostic_codes": [],
+    }
+
+    ranking = summary["embedding_candidate_ranking"]
+    assert ranking["status"] == "available_safe_ids_only"
+    assert ranking["embedding_runtime"] == "confirmed_runtime"
+    assert ranking["model_boundary"] == "local_open_weight"
+    assert ranking["managed_provider_used"] is False
+    assert ranking["vector_values_excluded"] is True
+    assert ranking["raw_text_excluded"] is True
+    assert ranking["selected_rank"] == 1
+    assert ranking["selected_candidate_id"].startswith("CAND-")
+    assert ranking["candidates"][0] == {
+        "rank": 1,
+        "candidate_id": "CAND-M020-OG-VALID-CURRENT-001",
+        "source_record_id": "HIER-CONS-ARTICLE-0001",
+        "citation_key": "CIT-M014-HIER-CONS-ARTICLE-0001",
+        "evidence_span_id": "EV-M014-HIER-CONS-ARTICLE-0001",
+        "act_edition_id": "ED-M014-44FZ-2026-01-01",
+        "selection_result": "accepted",
+    }
+
+    evidence = summary["deterministic_evidence_id_diagnostics"]
+    assert evidence["status"] == "passed"
+    assert evidence["accepted_cases_checked"] >= 1
+    assert evidence["missing_id_negative_cases_detected"] is True
+    assert evidence["raw_text_excluded"] is True
+
+    stale = summary["stale_evidence_diagnostics"]
+    assert stale == {
+        "status": "passed",
+        "temporal_excluded_count": 1,
+        "inactive_or_wrong_edition_exclusion_present": True,
+        "raw_text_excluded": True,
+        "diagnostic_codes": [],
+    }
+    assert_runtime_summary_is_safe(module, summary)
+
+
+def test_s08_blocked_mode_preserves_diagnostic_slots_without_positive_runtime_claim(tmp_path: Path) -> None:
+    module = load_module("runtime_integration_s08_blocked_slots")
+
+    exit_code, summary = module.build_summary(
+        report_output=tmp_path / "blocked-runtime-proof.json",
+        allow_blocked_runtime=True,
+        embedding_report=blocked_embedding(module),
+        falkordb_report=None,
+        integration_runner=runner_for(good_integration_summary()),
+    )
+
+    assert exit_code == 0
+    assert summary["runtime_disposition"] == "blocked_runtime_rescope"
+    assert summary["graph_route"] == {
+        "status": "blocked_runtime_rescope",
+        "route_class": "unavailable_without_falkordb_runtime",
+        "falkordb_runtime_status": "missing",
+        "real_artifact_graph_querying_proven": False,
+        "candidate_query_execution_performed": False,
+        "positive_falkordb_validation_claim": False,
+        "diagnostic_codes": ["RIP_FALKORDB_RUNTIME_NOT_AVAILABLE"],
+    }
+    ranking = summary["embedding_candidate_ranking"]
+    assert ranking["status"] == "unavailable_blocked_runtime"
+    assert ranking["embedding_runtime"] == "blocked_model_unavailable"
+    assert ranking["selected_rank"] is None
+    assert ranking["candidates"] == []
+    assert ranking["vector_values_excluded"] is True
+    assert summary["deterministic_evidence_id_diagnostics"]["status"] == "passed"
+    assert summary["stale_evidence_diagnostics"]["status"] == "passed"
+    assert_runtime_summary_is_safe(module, summary)
+
+
+def test_s08_deterministic_evidence_ids_fail_closed_when_accepted_ids_are_missing(tmp_path: Path) -> None:
+    module = load_module("runtime_integration_s08_missing_ids")
+    bad_summary = good_integration_summary()
+    bad_summary["citation_validation_status"] = {
+        "validated_count": 0,
+        "failed_count": 0,
+        "skipped_count": 0,
+        "missing_citation_or_evidence_count": 0,
+        "status": "check_diagnostics",
+    }
+
+    exit_code, summary = module.build_summary(
+        report_output=tmp_path / "missing-ids.json",
+        allow_blocked_runtime=True,
+        embedding_report=confirmed_embedding(module),
+        falkordb_report={"status": "confirmed-runtime"},
+        integration_runner=runner_for(bad_summary),
+    )
+
+    assert exit_code == 1
+    assert summary["deterministic_evidence_id_diagnostics"] == {
+        "status": "failed_closed",
+        "accepted_cases_checked": 0,
+        "missing_id_negative_cases_detected": False,
+        "raw_text_excluded": True,
+        "diagnostic_codes": ["RIP_DETERMINISTIC_EVIDENCE_IDS_MISSING"],
+    }
+    assert summary["phases"]["citation_evidence_validation"]["status"] == "failed_closed"
+    assert_runtime_summary_is_safe(module, summary)
+
 def test_falkordb_unavailable_without_explicit_blocked_mode_fails_closed(tmp_path: Path) -> None:
     module = load_module("runtime_integration_falkordb_required")
 

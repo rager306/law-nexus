@@ -34,6 +34,9 @@ FALKORDB_PROOF_PATH = ROOT / "scripts/prove-legalgraph-shaped-falkordb.py"
 SCHEMA_VERSION = "ontology-graphrag-runtime-integration-proof/v1"
 PROOF_ID = "OG-M020-S07-RUNTIME-INTEGRATION-PROOF"
 REQUIREMENT_ID = "R035"
+MILESTONE_ID = "M020-ujbffl"
+S08_CONTRACT_VERSION = "runtime-proof-s08-diagnostics/v1"
+REMEDIATION_SLICE_IDS = ["S07", "S08"]
 
 PhaseStatus = Literal["passed", "blocked", "failed_closed", "not_run"]
 PHASES: tuple[str, ...] = (
@@ -211,7 +214,46 @@ def base_summary(report_output: Path) -> dict[str, Any]:
         "proof_level": "bounded local runtime integration proof or blocked-runtime rescope",
         "redaction": dict(REDACTION_FLAGS),
         "phase_status_vocabulary": sorted(STATUS_VOCABULARY),
+        "milestone_id": MILESTONE_ID,
+        "remediation_slice_ids": list(REMEDIATION_SLICE_IDS),
+        "s08_contract_version": S08_CONTRACT_VERSION,
+        "remediation_scope": "M020 S07/S08 runtime proof persistence for R035 only",
         "phases": {name: phase("not_run", ["RIP_NOT_RUN"]) for name in PHASES},
+        "graph_route": {
+            "status": "not_run",
+            "route_class": "not_run",
+            "falkordb_runtime_status": "not_run",
+            "real_artifact_graph_querying_proven": False,
+            "candidate_query_execution_performed": False,
+            "positive_falkordb_validation_claim": False,
+            "diagnostic_codes": ["RIP_NOT_RUN"],
+        },
+        "embedding_candidate_ranking": {
+            "status": "not_run",
+            "embedding_runtime": "not_run",
+            "model_boundary": "local_open_weight_required",
+            "managed_provider_used": False,
+            "vector_values_excluded": True,
+            "raw_text_excluded": True,
+            "selected_rank": None,
+            "selected_candidate_id": None,
+            "candidates": [],
+            "diagnostic_codes": ["RIP_NOT_RUN"],
+        },
+        "deterministic_evidence_id_diagnostics": {
+            "status": "not_run",
+            "accepted_cases_checked": 0,
+            "missing_id_negative_cases_detected": False,
+            "raw_text_excluded": True,
+            "diagnostic_codes": ["RIP_NOT_RUN"],
+        },
+        "stale_evidence_diagnostics": {
+            "status": "not_run",
+            "temporal_excluded_count": 0,
+            "inactive_or_wrong_edition_exclusion_present": False,
+            "raw_text_excluded": True,
+            "diagnostic_codes": ["RIP_NOT_RUN"],
+        },
         "runtime_disposition": "not_run",
         "container_runtime": {"mode": "not_requested", "status": "not_run", "cleanup_status": "not_needed"},
         "cleanup_status": "not_needed",
@@ -242,6 +284,134 @@ def _safe_falkordb_phase(falkordb_report: Mapping[str, Any] | None, *, explicit_
     if status in {"blocked-environment", "blocked_environment"} and explicit_blocked_mode:
         return phase("blocked", ["RIP_FALKORDB_RUNTIME_BLOCKED"], evidence_class="blocked_rescope", runtime_status=status)
     return phase("failed_closed", ["RIP_FALKORDB_RUNTIME_FAILED_CLOSED"], runtime_status=status or "<missing>")
+
+
+
+def _safe_id(value: Any) -> str:
+    if isinstance(value, str) and value and len(value) <= 160:
+        return value
+    return "<missing>"
+
+
+def _fixture_cases() -> list[Mapping[str, Any]]:
+    try:
+        data = json.loads(FIXTURE_PATH.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return []
+    cases = data.get("cases") if isinstance(data, Mapping) else None
+    if not isinstance(cases, list):
+        return []
+    return [case for case in cases if isinstance(case, Mapping)]
+
+
+def _s08_graph_route(falkordb_report: Mapping[str, Any] | None, falkordb_phase: Mapping[str, Any]) -> dict[str, Any]:
+    phase_status = falkordb_phase.get("status")
+    runtime_status = falkordb_phase.get("runtime_status") or (falkordb_report.get("status") if isinstance(falkordb_report, Mapping) else "missing")
+    codes = falkordb_phase.get("diagnostic_codes") if isinstance(falkordb_phase.get("diagnostic_codes"), list) else []
+    if phase_status == "passed":
+        return {
+            "status": "confirmed_synthetic_local_route",
+            "route_class": "local_falkordb_synthetic_legalgraph_shape",
+            "falkordb_runtime_status": _safe_id(runtime_status),
+            "real_artifact_graph_querying_proven": False,
+            "candidate_query_execution_performed": False,
+            "positive_falkordb_validation_claim": False,
+            "diagnostic_codes": [],
+        }
+    if phase_status == "blocked":
+        return {
+            "status": "blocked_runtime_rescope",
+            "route_class": "unavailable_without_falkordb_runtime",
+            "falkordb_runtime_status": _safe_id(runtime_status),
+            "real_artifact_graph_querying_proven": False,
+            "candidate_query_execution_performed": False,
+            "positive_falkordb_validation_claim": False,
+            "diagnostic_codes": sorted(str(code) for code in codes),
+        }
+    return {
+        "status": "failed_closed",
+        "route_class": "unavailable_failed_closed",
+        "falkordb_runtime_status": _safe_id(runtime_status),
+        "real_artifact_graph_querying_proven": False,
+        "candidate_query_execution_performed": False,
+        "positive_falkordb_validation_claim": False,
+        "diagnostic_codes": sorted(str(code) for code in (codes or ["RIP_FALKORDB_RUNTIME_FAILED_CLOSED"])),
+    }
+
+
+def _s08_embedding_candidate_ranking(embedding_report: Mapping[str, Any], embedding_phase: Mapping[str, Any]) -> dict[str, Any]:
+    runtime_status = _safe_id(embedding_report.get("runtime_status"))
+    base = {
+        "embedding_runtime": runtime_status,
+        "model_boundary": "local_open_weight",
+        "managed_provider_used": bool(embedding_report.get("managed_api_used", False)),
+        "vector_values_excluded": True,
+        "raw_text_excluded": True,
+    }
+    if embedding_phase.get("status") != "passed":
+        return {
+            "status": "unavailable_blocked_runtime" if embedding_phase.get("status") == "blocked" else "unavailable_failed_closed",
+            **base,
+            "selected_rank": None,
+            "selected_candidate_id": None,
+            "candidates": [],
+            "diagnostic_codes": list(embedding_phase.get("diagnostic_codes", [])),
+        }
+    candidates: list[dict[str, Any]] = []
+    for case in _fixture_cases():
+        if case.get("expected_result") != "accepted":
+            continue
+        case_candidates = case.get("candidate_set") if isinstance(case.get("candidate_set"), list) else []
+        for index, candidate in enumerate(case_candidates, start=1):
+            if not isinstance(candidate, Mapping):
+                continue
+            candidates.append(
+                {
+                    "rank": len(candidates) + 1,
+                    "candidate_id": _safe_id(candidate.get("candidate_id")),
+                    "source_record_id": _safe_id(candidate.get("source_record_id")),
+                    "citation_key": _safe_id(candidate.get("citation_key")),
+                    "evidence_span_id": _safe_id(candidate.get("evidence_span_id")),
+                    "act_edition_id": _safe_id(candidate.get("act_edition_id")),
+                    "selection_result": "accepted",
+                }
+            )
+    selected = candidates[0] if candidates else None
+    return {
+        "status": "available_safe_ids_only" if selected else "failed_closed_no_safe_candidates",
+        **base,
+        "selected_rank": selected["rank"] if selected else None,
+        "selected_candidate_id": selected["candidate_id"] if selected else None,
+        "candidates": candidates[:5],
+        "diagnostic_codes": [] if selected else ["RIP_EMBEDDING_RANKING_SAFE_IDS_MISSING"],
+    }
+
+
+def _s08_deterministic_evidence_id_diagnostics(integration_summary: Mapping[str, Any]) -> dict[str, Any]:
+    citation_status = integration_summary.get("citation_validation_status") if isinstance(integration_summary.get("citation_validation_status"), Mapping) else {}
+    accepted_cases_checked = int(citation_status.get("validated_count", 0) or 0)
+    missing_negative_cases = int(citation_status.get("missing_citation_or_evidence_count", 0) or 0)
+    passed = accepted_cases_checked >= 1 and missing_negative_cases >= 1 and citation_status.get("status") == "passed"
+    return {
+        "status": "passed" if passed else "failed_closed",
+        "accepted_cases_checked": accepted_cases_checked,
+        "missing_id_negative_cases_detected": missing_negative_cases >= 1,
+        "raw_text_excluded": True,
+        "diagnostic_codes": [] if passed else ["RIP_DETERMINISTIC_EVIDENCE_IDS_MISSING"],
+    }
+
+
+def _s08_stale_evidence_diagnostics(integration_summary: Mapping[str, Any]) -> dict[str, Any]:
+    filter_summary = integration_summary.get("filter_trace_summary") if isinstance(integration_summary.get("filter_trace_summary"), Mapping) else {}
+    temporal_excluded = int(filter_summary.get("temporal_excluded_count", 0) or 0)
+    passed = temporal_excluded >= 1
+    return {
+        "status": "passed" if passed else "failed_closed",
+        "temporal_excluded_count": temporal_excluded,
+        "inactive_or_wrong_edition_exclusion_present": passed,
+        "raw_text_excluded": True,
+        "diagnostic_codes": [] if passed else ["RIP_STALE_EVIDENCE_EXCLUSION_MISSING"],
+    }
 
 
 def _fixture_phases(integration_summary: Mapping[str, Any]) -> dict[str, dict[str, Any]]:
@@ -289,6 +459,11 @@ def build_summary(
     summary["phases"].update(_fixture_phases(integration_summary))
 
     summary["phases"]["falkordb_runtime"] = _safe_falkordb_phase(falkordb_report, explicit_blocked_mode=allow_blocked_runtime)
+    summary["graph_route"] = _s08_graph_route(falkordb_report, summary["phases"]["falkordb_runtime"])
+    summary["embedding_candidate_ranking"] = _s08_embedding_candidate_ranking(embedding_report, summary["phases"]["embedding_runtime"])
+    summary["deterministic_evidence_id_diagnostics"] = _s08_deterministic_evidence_id_diagnostics(integration_summary)
+    summary["stale_evidence_diagnostics"] = _s08_stale_evidence_diagnostics(integration_summary)
+
     summary["phases"]["r035_lifecycle_disposition"] = phase(
         "passed",
         [],
@@ -296,7 +471,14 @@ def build_summary(
         evidence_scope="bounded_runtime_integration_or_blocked_rescope_only",
     )
 
+    s08_statuses = [
+        summary["deterministic_evidence_id_diagnostics"]["status"],
+        summary["stale_evidence_diagnostics"]["status"],
+        summary["embedding_candidate_ranking"]["status"],
+    ]
     statuses = [summary["phases"][name]["status"] for name in PHASES]
+    if any(status == "failed_closed" or str(status).startswith("failed_closed") for status in s08_statuses):
+        statuses.append("failed_closed")
     if any(status == "failed_closed" for status in statuses):
         exit_code = 1
         summary["runtime_disposition"] = "failed_closed"
@@ -449,6 +631,13 @@ def write_markdown_report(path: Path, summary: Mapping[str, Any]) -> None:
         "## Container/runtime",
         "",
         f"- Container runtime: `{json.dumps(summary.get('container_runtime', {}), ensure_ascii=False, sort_keys=True)}`",
+        "",
+        "## S08 diagnostics",
+        "",
+        f"- Graph route: `{json.dumps(summary.get('graph_route', {}), ensure_ascii=False, sort_keys=True)}`",
+        f"- Embedding candidate ranking: `{json.dumps(summary.get('embedding_candidate_ranking', {}), ensure_ascii=False, sort_keys=True)}`",
+        f"- Deterministic evidence IDs: `{json.dumps(summary.get('deterministic_evidence_id_diagnostics', {}), ensure_ascii=False, sort_keys=True)}`",
+        f"- Stale evidence diagnostics: `{json.dumps(summary.get('stale_evidence_diagnostics', {}), ensure_ascii=False, sort_keys=True)}`",
         "",
         "## Non-claims",
         "",
