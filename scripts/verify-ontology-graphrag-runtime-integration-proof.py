@@ -891,29 +891,37 @@ def _cleanup_container(container_id: str | None, diagnostic: dict[str, Any]) -> 
         diagnostic["diagnostic_codes"] = sorted(set(diagnostic.get("diagnostic_codes", []) + ["RIP_FALKORDB_CONTAINER_CLEANUP_FAILED"]))
 
 
-def run_falkordb_subprocess(args: argparse.Namespace) -> tuple[Mapping[str, Any] | None, dict[str, Any]]:
+def prepare_falkordb_runtime(args: argparse.Namespace) -> tuple[Mapping[str, Any] | None, dict[str, Any], str | None]:
     container_diag = {"mode": args.container, "status": "not_run", "cleanup_status": "not_needed"}
     if args.skip_falkordb_runtime:
         container_diag["status"] = "skipped_falkordb_runtime"
-        return None, container_diag
+        return None, container_diag, None
 
     first_report = _run_falkordb_proof(args)
     if first_report.get("status") in {"confirmed-runtime", "confirmed_runtime"}:
         container_diag["status"] = "not_needed_existing_runtime"
-        return first_report, container_diag
+        return first_report, container_diag, None
     if args.container == "never":
         container_diag["status"] = "skipped_by_flag"
-        return first_report, container_diag
+        return first_report, container_diag, None
 
     container_id: str | None = None
     try:
         container_id, container_diag = _start_falkordb_container(args)
         if container_id is None:
-            return first_report, container_diag
+            return first_report, container_diag, None
         second_report = _run_falkordb_proof(args)
-        return second_report, container_diag
-    finally:
+        return second_report, container_diag, container_id
+    except Exception:
         _cleanup_container(container_id, container_diag)
+        raise
+
+
+
+def run_falkordb_subprocess(args: argparse.Namespace) -> tuple[Mapping[str, Any] | None, dict[str, Any]]:
+    falkordb_report, container_diag, container_id = prepare_falkordb_runtime(args)
+    _cleanup_container(container_id, container_diag)
+    return falkordb_report, container_diag
 
 
 
@@ -1036,9 +1044,13 @@ def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
 
 def main(argv: Sequence[str] | None = None) -> int:
     args = parse_args(argv)
+    container_id: str | None = None
+    container_diag: dict[str, Any] = {"mode": args.container, "status": "not_run", "cleanup_status": "not_needed"}
     try:
-        falkordb_report, container_diag = run_falkordb_subprocess(args)
+        falkordb_report, container_diag, container_id = prepare_falkordb_runtime(args)
         source_backed_route_report = run_source_backed_route(args, falkordb_report)
+        _cleanup_container(container_id, container_diag)
+        container_id = None
         exit_code, summary = build_summary(
             report_output=args.report_output,
             allow_blocked_runtime=args.allow_blocked_runtime,
@@ -1049,7 +1061,10 @@ def main(argv: Sequence[str] | None = None) -> int:
         summary["cleanup_status"] = container_diag.get("cleanup_status", "not_needed")
         assert_safe_payload(summary)
     except Exception:
+        _cleanup_container(container_id, container_diag)
         summary = base_summary(args.report_output)
+        summary["container_runtime"] = container_diag
+        summary["cleanup_status"] = container_diag.get("cleanup_status", "not_needed")
         summary["phases"]["r035_lifecycle_disposition"] = phase("passed", [], disposition="remains_active")
         summary["runtime_disposition"] = "failed_closed"
         summary["gate_disposition"] = "gate_remains_open_failed_closed"

@@ -5,16 +5,16 @@ It records bounded runtime remediation evidence or blocked prerequisite diagnost
 
 ## Disposition
 
-- Runtime disposition: `blocked_runtime_rescope`
-- Gate disposition: `gate_remains_open_blocked_runtime`
+- Runtime disposition: `bounded_runtime_proof_passed`
+- Gate disposition: `gate_remains_open_bounded_runtime_evidence_only`
 - R035 lifecycle: `remains_active_bounded_runtime_evidence_only`
 - Remediation scope: `M020 S07/S08 runtime proof persistence for R035 only`
-- Cleanup status: `not_needed`
+- Cleanup status: `deleted`
 
 ## Phase statuses
 
 - `embedding_runtime`: `passed`; diagnostics: `none`
-- `falkordb_runtime`: `blocked`; diagnostics: `RIP_FALKORDB_RUNTIME_NOT_AVAILABLE`
+- `falkordb_runtime`: `passed`; diagnostics: `none`
 - `fixture_materialization`: `passed`; diagnostics: `none`
 - `ontology_temporal_query`: `passed`; diagnostics: `none`
 - `citation_evidence_validation`: `passed`; diagnostics: `none`
@@ -24,12 +24,12 @@ It records bounded runtime remediation evidence or blocked prerequisite diagnost
 
 ## Container/runtime
 
-- Container runtime: `{"cleanup_status": "not_needed", "mode": "auto", "status": "skipped_falkordb_runtime"}`
+- Container runtime: `{"cleanup_status": "deleted", "container_id_hash": "len:64", "image_reference": "falkordb/falkordb:edge", "mode": "auto", "status": "started"}`
 
 ## Graph route
 
-- Route summary: `{"candidate_query_execution_performed": false, "diagnostic_codes": ["RIP_FALKORDB_RUNTIME_NOT_AVAILABLE"], "falkordb_runtime_status": "missing", "positive_falkordb_validation_claim": false, "real_artifact_graph_querying_proven": false, "route_class": "unavailable_without_falkordb_runtime", "status": "blocked_runtime_rescope"}`
-- Boundary: this is a local synthetic route or blocked-runtime rescope only; real artifact graph querying and positive FalkorDB validation are not claimed.
+- Route summary: `{"candidate_query_execution_performed": true, "diagnostic_codes": [], "falkordb_runtime_status": "confirmed-runtime", "negative_route": {"duration_ms": 1.4, "status": "passed", "wrong_edition_or_inactive_candidate_id": "CAND-M020-OG-INACTIVE-001", "wrong_edition_or_inactive_selected_count": 0}, "positive_falkordb_validation_claim": true, "positive_route": {"citation_binding_preserved": true, "duration_ms": 2.29, "ontology_gate_preserved": true, "sourceblock_evidencespan_binding_preserved": true, "status": "passed", "temporal_current_edition_preserved": true}, "real_artifact_graph_querying_proven": true, "route_class": "local_falkordb_source_backed_fixture_route", "selected_safe_ids": {"act_edition_id": "ED-M014-44FZ-2026-01-01", "candidate_id": "CAND-M020-OG-VALID-CURRENT-001", "citation_key": "CIT-M014-HIER-CONS-ARTICLE-0001", "evidence_span_id": "EV-M014-HIER-CONS-ARTICLE-0001", "source_block_id": "SB-M014-HIER-CONS-ARTICLE-0001", "source_record_id": "HIER-CONS-ARTICLE-0001"}, "status": "confirmed_source_backed_local_route"}`
+- Boundary: source-backed fixture routes prove only safe-ID local graph querying for the bounded M020 fixture; synthetic routes and blocked-runtime rescopes do not claim real artifact graph querying.
 
 ## Local/open-weight embedding ranking summary
 

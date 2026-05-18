@@ -527,6 +527,46 @@ def test_overclaim_wording_fails_closed_before_artifact_write() -> None:
         raise AssertionError("overclaim wording must be rejected")
 
 
+def test_main_keeps_ephemeral_container_until_source_route(monkeypatch, tmp_path: Path, capsys) -> None:
+    module = load_module("runtime_integration_container_lifecycle")
+    events: list[str] = []
+
+    def fake_prepare(_args: Any) -> tuple[dict[str, Any], dict[str, Any], str]:
+        events.append("prepare")
+        return {"status": "confirmed-runtime"}, {"mode": "auto", "status": "started", "cleanup_status": "pending"}, "container-1"
+
+    def fake_route(_args: Any, falkordb_report: dict[str, Any]) -> dict[str, Any]:
+        assert falkordb_report["status"] == "confirmed-runtime"
+        assert events == ["prepare"]
+        events.append("route")
+        return {"status": "passed", "diagnostic_codes": []}
+
+    def fake_cleanup(container_id: str | None, diagnostic: dict[str, Any]) -> None:
+        events.append(f"cleanup:{container_id}")
+        diagnostic["cleanup_status"] = "deleted"
+
+    def fake_build_summary(**kwargs: Any) -> tuple[int, dict[str, Any]]:
+        assert events == ["prepare", "route", "cleanup:container-1"]
+        events.append("build")
+        summary = module.base_summary(kwargs["report_output"])
+        summary["runtime_disposition"] = "bounded_runtime_proof_passed"
+        summary["gate_disposition"] = "gate_remains_open_bounded_runtime_evidence_only"
+        summary["r035_lifecycle_disposition"] = "remains_active_bounded_runtime_evidence_only"
+        return 0, summary
+
+    monkeypatch.setattr(module, "prepare_falkordb_runtime", fake_prepare)
+    monkeypatch.setattr(module, "run_source_backed_route", fake_route)
+    monkeypatch.setattr(module, "_cleanup_container", fake_cleanup)
+    monkeypatch.setattr(module, "build_summary", fake_build_summary)
+
+    exit_code = module.main(["--no-write", "--report-output", str(tmp_path / "runtime-proof.json")])
+
+    assert exit_code == 0
+    assert events == ["prepare", "route", "cleanup:container-1", "build"]
+    summary = json.loads(capsys.readouterr().out)
+    assert summary["container_runtime"]["cleanup_status"] == "deleted"
+
+
 def test_cli_blocked_mode_writes_safe_rescope_artifact(tmp_path: Path) -> None:
     report = tmp_path / "cli-blocked-runtime.json"
     completed = subprocess.run(

@@ -1,9 +1,11 @@
 {
-  "cleanup_status": "not_needed",
+  "cleanup_status": "deleted",
   "container_runtime": {
-    "cleanup_status": "not_needed",
+    "cleanup_status": "deleted",
+    "container_id_hash": "len:64",
+    "image_reference": "falkordb/falkordb:edge",
     "mode": "auto",
-    "status": "skipped_falkordb_runtime"
+    "status": "started"
   },
   "deterministic_evidence_id_diagnostics": {
     "accepted_cases_checked": 2,
@@ -34,17 +36,37 @@
     "status": "available_safe_ids_only",
     "vector_values_excluded": true
   },
-  "gate_disposition": "gate_remains_open_blocked_runtime",
+  "gate_disposition": "gate_remains_open_bounded_runtime_evidence_only",
   "graph_route": {
-    "candidate_query_execution_performed": false,
-    "diagnostic_codes": [
-      "RIP_FALKORDB_RUNTIME_NOT_AVAILABLE"
-    ],
-    "falkordb_runtime_status": "missing",
-    "positive_falkordb_validation_claim": false,
-    "real_artifact_graph_querying_proven": false,
-    "route_class": "unavailable_without_falkordb_runtime",
-    "status": "blocked_runtime_rescope"
+    "candidate_query_execution_performed": true,
+    "diagnostic_codes": [],
+    "falkordb_runtime_status": "confirmed-runtime",
+    "negative_route": {
+      "duration_ms": 1.4,
+      "status": "passed",
+      "wrong_edition_or_inactive_candidate_id": "CAND-M020-OG-INACTIVE-001",
+      "wrong_edition_or_inactive_selected_count": 0
+    },
+    "positive_falkordb_validation_claim": true,
+    "positive_route": {
+      "citation_binding_preserved": true,
+      "duration_ms": 2.29,
+      "ontology_gate_preserved": true,
+      "sourceblock_evidencespan_binding_preserved": true,
+      "status": "passed",
+      "temporal_current_edition_preserved": true
+    },
+    "real_artifact_graph_querying_proven": true,
+    "route_class": "local_falkordb_source_backed_fixture_route",
+    "selected_safe_ids": {
+      "act_edition_id": "ED-M014-44FZ-2026-01-01",
+      "candidate_id": "CAND-M020-OG-VALID-CURRENT-001",
+      "citation_key": "CIT-M014-HIER-CONS-ARTICLE-0001",
+      "evidence_span_id": "EV-M014-HIER-CONS-ARTICLE-0001",
+      "source_block_id": "SB-M014-HIER-CONS-ARTICLE-0001",
+      "source_record_id": "HIER-CONS-ARTICLE-0001"
+    },
+    "status": "confirmed_source_backed_local_route"
   },
   "milestone_id": "M020-ujbffl",
   "non_authoritative": true,
@@ -73,11 +95,10 @@
       "status": "passed"
     },
     "falkordb_runtime": {
-      "diagnostic_codes": [
-        "RIP_FALKORDB_RUNTIME_NOT_AVAILABLE"
-      ],
-      "evidence_class": "blocked_rescope",
-      "status": "blocked"
+      "diagnostic_codes": [],
+      "evidence_class": "synthetic_runtime",
+      "runtime_status": "confirmed-runtime",
+      "status": "passed"
     },
     "fixture_materialization": {
       "diagnostic_codes": [],
@@ -123,7 +144,7 @@
   ],
   "report_path": "prd/research/ontology_architecture_requirements/ontology_graphrag_runtime_integration_proof.json",
   "requirement": "R035",
-  "runtime_disposition": "blocked_runtime_rescope",
+  "runtime_disposition": "bounded_runtime_proof_passed",
   "s08_contract_version": "runtime-proof-s08-diagnostics/v1",
   "schema_version": "ontology-graphrag-runtime-integration-proof/v1",
   "source_artifacts": [

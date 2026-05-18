@@ -78,6 +78,7 @@ VALIDATION_COVERAGE_REQUIRED_SECTIONS = [
     "## Requirement coverage",
     "## S01-to-S02 handoff clarification",
     "## Runtime/rescope boundary",
+    "## S10 addendum",
     "## Verification commands",
     "## Non-claims",
     "## Redaction and non-authoritative boundary",
@@ -187,6 +188,46 @@ def test_r035_m020_validation_coverage_keeps_runtime_rescope_non_validating() ->
     assert "FalkorDB production behavior" in text
     assert "GATE-ONTOLOGY-GRAPHRAG-INTEGRATION" in text
     assert "It does not close that gate" in text
+
+
+def test_r035_m020_validation_coverage_records_s10_bounded_runtime_outcome_without_scope_widening() -> None:
+    text = read_text(VALIDATION_COVERAGE_PATH)
+    proof = json.loads(read_text(RUNTIME_PROOF_PATH))
+
+    assert "## S10 addendum" in text
+    assert "S10 records the final runtime-remediation outcome" in text
+    assert "without changing the S09 coverage contract" in text
+    assert "runtime_disposition: bounded_runtime_proof_passed" in text
+    assert "gate_disposition: gate_remains_open_bounded_runtime_evidence_only" in text
+    assert "graph_route.status: confirmed_source_backed_local_route" in text
+    assert "graph_route.route_class: local_falkordb_source_backed_fixture_route" in text
+    for safe_id_name in (
+        "candidate_id",
+        "source_record_id",
+        "act_edition_id",
+        "source_block_id",
+        "evidence_span_id",
+        "citation_key",
+    ):
+        assert safe_id_name in text
+    assert "bounded source-backed fixture runtime evidence only" in text
+    assert "deterministic evidence-ID and stale-evidence diagnostics intact" in text
+    assert "clean up the local FalkorDB container" in text
+    assert "leaves R035 Active" in text
+    assert "does not broadly validate R035" in text
+    assert "close `GATE-ONTOLOGY-GRAPHRAG-INTEGRATION`" in text
+    assert "product retrieval quality" in text
+    assert "legal-answer correctness" in text
+    assert "parser completeness" in text
+    assert "FalkorDB production behavior" in text
+    assert "graph-vector/HNSW behavior" in text
+    assert "formal ontology conformance" in text
+    assert "generated-query runtime safety" in text
+    assert "pilot readiness" in text
+    assert proof["runtime_disposition"] == "bounded_runtime_proof_passed"
+    assert proof["graph_route"]["status"] == "confirmed_source_backed_local_route"
+    assert proof["graph_route"]["route_class"] == "local_falkordb_source_backed_fixture_route"
+    assert proof["r035_lifecycle_disposition"] == "remains_active_bounded_runtime_evidence_only"
 
 
 def test_r035_m020_validation_coverage_rejects_unsafe_final_validation_language() -> None:

@@ -47,6 +47,16 @@ These artifacts can record bounded local runtime remediation evidence or blocked
 
 The current proof/rescope boundary supports only the statement that M020 produced bounded evidence or explicit blocked-runtime rescope diagnostics for the R035 `GATE-ONTOLOGY-GRAPHRAG-INTEGRATION` subset. It does not close that gate.
 
+## S10 addendum
+
+S10 records the final runtime-remediation outcome for this milestone without changing the S09 coverage contract or the completed S01-S02 history above.
+
+The current S10 runtime proof surface records `runtime_disposition: bounded_runtime_proof_passed`, `gate_disposition: gate_remains_open_bounded_runtime_evidence_only`, `graph_route.status: confirmed_source_backed_local_route`, and `graph_route.route_class: local_falkordb_source_backed_fixture_route`. The route selected only safe fixture identifiers (`candidate_id`, `source_record_id`, `act_edition_id`, `source_block_id`, `evidence_span_id`, and `citation_key`) from the source-backed M020 fixture; it persisted no raw legal text, generated queries, vectors, provider payloads, secrets, environment-specific absolute paths, or local execution artifact paths.
+
+The S10 outcome is bounded source-backed fixture runtime evidence only. It confirms that the local verifier could materialize and query the M020 fixture route with deterministic evidence-ID and stale-evidence diagnostics intact, then clean up the local FalkorDB container. It still leaves R035 Active and does not broadly validate R035, close `GATE-ONTOLOGY-GRAPHRAG-INTEGRATION`, prove product retrieval quality, legal-answer correctness, parser completeness, FalkorDB production behavior, graph-vector/HNSW behavior, formal ontology conformance, generated-query runtime safety, or pilot readiness.
+
+If a later environment cannot exercise the local FalkorDB route and records `blocked_runtime_rescope` instead, that blocked state remains an accepted non-validating runtime rescope only; it must not be treated as negative evidence against unrelated requirements or as completion evidence for R035.
+
 ## Verification commands
 
 Final S09 validation is expected to use these commands exactly:
