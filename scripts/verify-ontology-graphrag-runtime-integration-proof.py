@@ -14,8 +14,10 @@ from __future__ import annotations
 import argparse
 import importlib.util
 import json
+import shutil
 import subprocess
 import sys
+import time
 from collections.abc import Callable, Mapping, Sequence
 from pathlib import Path
 from types import ModuleType
@@ -24,6 +26,7 @@ from typing import Any, Literal, cast
 ROOT = Path(__file__).resolve().parents[1]
 FIXTURE_PATH = ROOT / "prd/research/ontology_architecture_requirements/ontology_graphrag_proof_cases.json"
 DEFAULT_REPORT = ROOT / "prd/research/ontology_architecture_requirements/ontology_graphrag_runtime_integration_proof.json"
+DEFAULT_MARKDOWN_REPORT = ROOT / "prd/research/ontology_architecture_requirements/13-r035-runtime-integration-remediation.md"
 INTEGRATION_PROOF_PATH = ROOT / "scripts/verify-ontology-graphrag-integration-proof.py"
 RUNTIME_CHECK_PATH = ROOT / "scripts/check-local-retrieval-runtime.py"
 FALKORDB_PROOF_PATH = ROOT / "scripts/prove-legalgraph-shaped-falkordb.py"
@@ -210,6 +213,8 @@ def base_summary(report_output: Path) -> dict[str, Any]:
         "phase_status_vocabulary": sorted(STATUS_VOCABULARY),
         "phases": {name: phase("not_run", ["RIP_NOT_RUN"]) for name in PHASES},
         "runtime_disposition": "not_run",
+        "container_runtime": {"mode": "not_requested", "status": "not_run", "cleanup_status": "not_needed"},
+        "cleanup_status": "not_needed",
         "r035_lifecycle_disposition": "remains_active_runtime_contract_only",
         "gate_disposition": "gate_remains_open",
         "non_claims": list(NON_CLAIMS),
@@ -309,37 +314,167 @@ def build_summary(
     return exit_code, summary
 
 
-def run_falkordb_subprocess(args: argparse.Namespace) -> Mapping[str, Any] | None:
-    if args.skip_falkordb_runtime:
-        return None
-    command = [
+def _falkordb_command(args: argparse.Namespace) -> list[str]:
+    return [
         sys.executable,
         str(FALKORDB_PROOF_PATH),
         "--host",
-        args.falkordb_host,
+        args.host,
         "--port",
-        str(args.falkordb_port),
+        str(args.port),
         "--readiness-timeout",
-        str(args.falkordb_readiness_timeout),
+        str(args.readiness_timeout),
     ]
-    completed = subprocess.run(command, cwd=ROOT, check=False, text=True, capture_output=True)  # noqa: S603 - fixed local script path and args
-    if completed.returncode != 0:
-        return {"status": "blocked-environment"}
+
+
+def _load_falkordb_artifact() -> Mapping[str, Any]:
     artifact = ROOT / ".gsd/runtime-smoke/legalgraph-shaped-falkordb/LEGALGRAPH-SHAPED-FALKORDB-PROOF.json"
     if not artifact.is_file():
-        return {"status": "failed-runtime"}
+        return {"status": "failed-runtime", "diagnostic_codes": ["RIP_FALKORDB_ARTIFACT_MISSING"]}
     data = json.loads(artifact.read_text(encoding="utf-8"))
-    return data if isinstance(data, Mapping) else {"status": "failed-runtime"}
+    return data if isinstance(data, Mapping) else {"status": "failed-runtime", "diagnostic_codes": ["RIP_FALKORDB_ARTIFACT_MALFORMED"]}
+
+
+def _run_falkordb_proof(args: argparse.Namespace) -> Mapping[str, Any]:
+    completed = subprocess.run(_falkordb_command(args), cwd=ROOT, check=False, text=True, capture_output=True)  # noqa: S603 - fixed local script path and args
+    if completed.returncode != 0:
+        return {"status": "blocked-environment", "diagnostic_codes": ["RIP_FALKORDB_PROOF_COMMAND_BLOCKED"]}
+    return _load_falkordb_artifact()
+
+
+def _docker_available() -> bool:
+    return shutil.which("docker") is not None
+
+
+def _local_image_present(image: str) -> bool:
+    if not _docker_available():
+        return False
+    completed = subprocess.run(["docker", "image", "inspect", image], cwd=ROOT, check=False, text=True, capture_output=True)  # noqa: S603 - fixed docker executable and args
+    return completed.returncode == 0
+
+
+def _start_falkordb_container(args: argparse.Namespace) -> tuple[str | None, dict[str, Any]]:
+    mode = args.container
+    image = args.container_image
+    diagnostic = {"mode": mode, "status": "not_started", "cleanup_status": "not_needed", "image_reference": image}
+    if mode == "never":
+        diagnostic["status"] = "skipped_by_flag"
+        return None, diagnostic
+    if not _local_image_present(image):
+        diagnostic["status"] = "blocked_image_absent"
+        diagnostic["diagnostic_codes"] = ["RIP_FALKORDB_CONTAINER_IMAGE_ABSENT"]
+        return None, diagnostic
+    command = [
+        "docker",
+        "run",
+        "--rm",
+        "-d",
+        "-p",
+        f"127.0.0.1:{args.port}:6379",
+        image,
+    ]
+    completed = subprocess.run(command, cwd=ROOT, check=False, text=True, capture_output=True)  # noqa: S603 - fixed docker executable and args
+    if completed.returncode != 0:
+        diagnostic["status"] = "blocked_start_failed"
+        diagnostic["diagnostic_codes"] = ["RIP_FALKORDB_CONTAINER_START_BLOCKED"]
+        return None, diagnostic
+    container_id = completed.stdout.strip()[:128]
+    diagnostic["status"] = "started"
+    diagnostic["container_id_hash"] = f"len:{len(container_id)}"
+    diagnostic["cleanup_status"] = "pending"
+    time.sleep(1)
+    return container_id, diagnostic
+
+
+def _cleanup_container(container_id: str | None, diagnostic: dict[str, Any]) -> None:
+    if not container_id:
+        return
+    completed = subprocess.run(["docker", "rm", "-f", container_id], cwd=ROOT, check=False, text=True, capture_output=True)  # noqa: S603 - fixed docker executable and args
+    diagnostic["cleanup_status"] = "deleted" if completed.returncode == 0 else "cleanup_failed"
+    if completed.returncode != 0:
+        diagnostic["diagnostic_codes"] = sorted(set(diagnostic.get("diagnostic_codes", []) + ["RIP_FALKORDB_CONTAINER_CLEANUP_FAILED"]))
+
+
+def run_falkordb_subprocess(args: argparse.Namespace) -> tuple[Mapping[str, Any] | None, dict[str, Any]]:
+    container_diag = {"mode": args.container, "status": "not_run", "cleanup_status": "not_needed"}
+    if args.skip_falkordb_runtime:
+        container_diag["status"] = "skipped_falkordb_runtime"
+        return None, container_diag
+
+    first_report = _run_falkordb_proof(args)
+    if first_report.get("status") in {"confirmed-runtime", "confirmed_runtime"}:
+        container_diag["status"] = "not_needed_existing_runtime"
+        return first_report, container_diag
+    if args.container == "never":
+        container_diag["status"] = "skipped_by_flag"
+        return first_report, container_diag
+
+    container_id: str | None = None
+    try:
+        container_id, container_diag = _start_falkordb_container(args)
+        if container_id is None:
+            return first_report, container_diag
+        second_report = _run_falkordb_proof(args)
+        return second_report, container_diag
+    finally:
+        _cleanup_container(container_id, container_diag)
+
+
+def write_markdown_report(path: Path, summary: Mapping[str, Any]) -> None:
+    lines = [
+        "# R035 Runtime Integration Remediation",
+        "",
+        "This is a bounded M020/S07 runtime remediation artifact. R035 remains Active.",
+        "",
+        "## Disposition",
+        "",
+        f"- Runtime disposition: `{summary['runtime_disposition']}`",
+        f"- Gate disposition: `{summary['gate_disposition']}`",
+        f"- R035 lifecycle: `{summary['r035_lifecycle_disposition']}`",
+        f"- Cleanup status: `{summary.get('cleanup_status', 'not_needed')}`",
+        "",
+        "## Phase statuses",
+        "",
+    ]
+    phases = summary.get("phases", {})
+    if isinstance(phases, Mapping):
+        for name in PHASES:
+            phase_payload = phases.get(name, {})
+            status = phase_payload.get("status", "<missing>") if isinstance(phase_payload, Mapping) else "<malformed>"
+            codes = phase_payload.get("diagnostic_codes", []) if isinstance(phase_payload, Mapping) else []
+            lines.append(f"- `{name}`: `{status}`; diagnostics: `{','.join(codes) if codes else 'none'}`")
+    lines.extend([
+        "",
+        "## Container/runtime",
+        "",
+        f"- Container runtime: `{json.dumps(summary.get('container_runtime', {}), ensure_ascii=False, sort_keys=True)}`",
+        "",
+        "## Non-claims",
+        "",
+    ])
+    for claim in summary.get("non_claims", []):
+        lines.append(f"- {claim}")
+    markdown_payload = "\n".join(lines) + "\n"
+    for fragment in FORBIDDEN_OUTPUT_FRAGMENTS:
+        if fragment.lower() in markdown_payload.lower():
+            raise RuntimeIntegrationProofError("unsafe markdown fragment detected")
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(markdown_payload, encoding="utf-8")
 
 
 def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--report-output", type=Path, default=DEFAULT_REPORT)
-    parser.add_argument("--allow-blocked-runtime", action="store_true", help="Emit a passing blocked-runtime rescope when local runtime prerequisites are unavailable.")
-    parser.add_argument("--skip-falkordb-runtime", action="store_true", help="Do not launch FalkorDB proof; requires --allow-blocked-runtime for exit 0.")
-    parser.add_argument("--falkordb-host", default="127.0.0.1")
-    parser.add_argument("--falkordb-port", type=int, default=6380)
-    parser.add_argument("--falkordb-readiness-timeout", type=int, default=5)
+    parser.add_argument("--markdown-output", type=Path, default=DEFAULT_MARKDOWN_REPORT)
+    parser.add_argument("--allow-blocked", "--allow-blocked-runtime", dest="allow_blocked_runtime", action="store_true", help="Emit exit 0 for a safe blocked-runtime rescope when local prerequisites are unavailable.")
+    parser.add_argument("--skip-falkordb-runtime", action="store_true", help="Do not launch FalkorDB proof; requires --allow-blocked for exit 0.")
+    parser.add_argument("--host", "--falkordb-host", dest="host", default="127.0.0.1")
+    parser.add_argument("--port", "--falkordb-port", dest="port", type=int, default=6380)
+    parser.add_argument("--readiness-timeout", "--falkordb-readiness-timeout", dest="readiness_timeout", type=int, default=5)
+    parser.add_argument("--container", choices=("auto", "always", "never"), default="auto", help="Use an already-present local FalkorDB container image when needed; never pulls images.")
+    parser.add_argument("--container-image", default="falkordb/falkordb:edge")
+    parser.add_argument("--use-container", action="store_const", const="always", dest="container", help="Require an already-present local container image if no runtime is listening.")
+    parser.add_argument("--no-container", action="store_const", const="never", dest="container", help="Never start an ephemeral container.")
     parser.add_argument("--no-write", action="store_true")
     return parser.parse_args(argv)
 
@@ -347,12 +482,15 @@ def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
 def main(argv: Sequence[str] | None = None) -> int:
     args = parse_args(argv)
     try:
-        falkordb_report = run_falkordb_subprocess(args)
+        falkordb_report, container_diag = run_falkordb_subprocess(args)
         exit_code, summary = build_summary(
             report_output=args.report_output,
             allow_blocked_runtime=args.allow_blocked_runtime,
             falkordb_report=falkordb_report,
         )
+        summary["container_runtime"] = container_diag
+        summary["cleanup_status"] = container_diag.get("cleanup_status", "not_needed")
+        assert_safe_payload(summary)
     except Exception:
         summary = base_summary(args.report_output)
         summary["phases"]["r035_lifecycle_disposition"] = phase("passed", [], disposition="remains_active")
@@ -364,6 +502,7 @@ def main(argv: Sequence[str] | None = None) -> int:
     if not args.no_write:
         args.report_output.parent.mkdir(parents=True, exist_ok=True)
         args.report_output.write_text(json.dumps(summary, ensure_ascii=False, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+        write_markdown_report(args.markdown_output, summary)
     print(json.dumps(summary, ensure_ascii=False, sort_keys=True, separators=(",", ":")))
     return exit_code
 

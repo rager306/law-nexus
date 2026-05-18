@@ -1,0 +1,90 @@
+{
+  "cleanup_status": "deleted",
+  "container_runtime": {
+    "cleanup_status": "deleted",
+    "container_id_hash": "len:64",
+    "image_reference": "falkordb/falkordb:edge",
+    "mode": "auto",
+    "status": "started"
+  },
+  "gate_disposition": "gate_remains_open_bounded_runtime_evidence_only",
+  "non_authoritative": true,
+  "non_claims": [
+    "Does not validate R035 broadly; R035 remains Active.",
+    "Does not satisfy broad ontology, product retrieval, graph-vector, parser, legal-answer, FalkorDB production, or pilot-readiness gates.",
+    "Does not prove product retrieval quality, representative corpus quality, parser completeness, or legal-answer correctness.",
+    "Does not prove generated-query quality, graph-vector behavior, HNSW behavior, hybrid retrieval quality, or LLM authority."
+  ],
+  "phase_status_vocabulary": [
+    "blocked",
+    "failed_closed",
+    "not_run",
+    "passed"
+  ],
+  "phases": {
+    "citation_evidence_validation": {
+      "diagnostic_codes": [],
+      "status": "passed"
+    },
+    "embedding_runtime": {
+      "diagnostic_codes": [],
+      "execution_mode": "local_open_weight",
+      "model_id": "deepvk/USER-bge-m3",
+      "runtime_status": "confirmed_runtime",
+      "status": "passed"
+    },
+    "falkordb_runtime": {
+      "diagnostic_codes": [],
+      "evidence_class": "synthetic_runtime",
+      "runtime_status": "confirmed-runtime",
+      "status": "passed"
+    },
+    "fixture_materialization": {
+      "diagnostic_codes": [],
+      "status": "passed",
+      "total_cases": 7
+    },
+    "ontology_temporal_query": {
+      "diagnostic_codes": [],
+      "status": "passed"
+    },
+    "overclaim_safety": {
+      "diagnostic_codes": [],
+      "status": "passed"
+    },
+    "query_safety": {
+      "diagnostic_codes": [],
+      "status": "passed"
+    },
+    "r035_lifecycle_disposition": {
+      "diagnostic_codes": [],
+      "disposition": "remains_active",
+      "evidence_scope": "bounded_runtime_integration_or_blocked_rescope_only",
+      "status": "passed"
+    }
+  },
+  "proof_id": "OG-M020-S07-RUNTIME-INTEGRATION-PROOF",
+  "proof_level": "bounded local runtime integration proof or blocked-runtime rescope",
+  "r035_lifecycle_disposition": "remains_active_bounded_runtime_evidence_only",
+  "redaction": {
+    "absolute_paths_excluded": true,
+    "gsd_exec_paths_excluded": true,
+    "legal_opinion_excluded": true,
+    "managed_provider_details_excluded": true,
+    "query_text_excluded": true,
+    "secrets_excluded": true,
+    "source_text_excluded": true,
+    "vector_values_excluded": true
+  },
+  "report_path": "prd/research/ontology_architecture_requirements/ontology_graphrag_runtime_integration_proof.json",
+  "requirement": "R035",
+  "runtime_disposition": "bounded_runtime_proof_passed",
+  "schema_version": "ontology-graphrag-runtime-integration-proof/v1",
+  "source_artifacts": [
+    "scripts/verify-ontology-graphrag-integration-proof.py",
+    "scripts/check-local-retrieval-runtime.py",
+    "scripts/prove-legalgraph-shaped-falkordb.py",
+    "prd/research/ontology_architecture_requirements/ontology_graphrag_proof_cases.json"
+  ],
+  "source_fixture_path": "prd/research/ontology_architecture_requirements/ontology_graphrag_proof_cases.json"
+}

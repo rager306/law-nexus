@@ -298,3 +298,48 @@ def test_cli_blocked_mode_writes_safe_rescope_artifact(tmp_path: Path) -> None:
     assert summary["r035_lifecycle_disposition"] == "remains_active_bounded_runtime_evidence_only"
     for forbidden in FORBIDDEN_SNIPPETS:
         assert forbidden not in completed.stdout
+
+
+def test_cli_accepts_required_t02_flag_aliases() -> None:
+    module = load_module("runtime_integration_cli_flags")
+
+    args = module.parse_args([
+        "--allow-blocked",
+        "--host",
+        "127.0.0.1",
+        "--port",
+        "6391",
+        "--readiness-timeout",
+        "2",
+        "--no-container",
+        "--no-write",
+    ])
+
+    assert args.allow_blocked_runtime is True
+    assert args.host == "127.0.0.1"
+    assert args.port == 6391
+    assert args.readiness_timeout == 2
+    assert args.container == "never"
+    assert args.no_write is True
+
+
+def test_markdown_report_is_safe_and_keeps_r035_active(tmp_path: Path) -> None:
+    module = load_module("runtime_integration_markdown")
+    _, summary = module.build_summary(
+        report_output=tmp_path / "runtime-proof.json",
+        allow_blocked_runtime=False,
+        embedding_report=confirmed_embedding(module),
+        falkordb_report={"status": "confirmed-runtime", "query_proofs": []},
+        integration_runner=runner_for(good_integration_summary()),
+    )
+    summary["container_runtime"] = {"mode": "never", "status": "skipped_by_flag", "cleanup_status": "not_needed"}
+    summary["cleanup_status"] = "not_needed"
+    report = tmp_path / "13-r035-runtime-integration-remediation.md"
+
+    module.write_markdown_report(report, summary)
+
+    text = report.read_text(encoding="utf-8")
+    assert "R035 remains Active" in text
+    assert "bounded_runtime_proof_passed" in text
+    for forbidden in FORBIDDEN_SNIPPETS:
+        assert forbidden not in text
