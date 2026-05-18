@@ -1,0 +1,228 @@
+{
+  "accepted_count": 2,
+  "blocked_count": 1,
+  "case_traces": [
+    {
+      "actual_result": "accepted",
+      "candidate_count": 1,
+      "case_class": "valid_ontology_temporal_citation",
+      "case_id": "CASE-M020-OG-VALID-ONTOLOGY-TEMPORAL-CITATION",
+      "citation_count": 1,
+      "citation_validation_result": "accepted",
+      "diagnostic_codes": [
+        "ontology_filter_matched"
+      ],
+      "expected_result": "accepted",
+      "ontology_filter": {
+        "filter_id": "OF-M020-LEGAL-EVIDENCE-CORE",
+        "filter_kind": "legal_evidence_core",
+        "requested_value": "DATA-LEGAL-EVIDENCE-CORE",
+        "result": "matched"
+      },
+      "temporal_filter": {
+        "as_of_date": "2026-01-01",
+        "mode": "current_only",
+        "result": "included"
+      }
+    },
+    {
+      "actual_result": "rejected",
+      "candidate_count": 1,
+      "case_class": "inactive_or_wrong_edition_excluded",
+      "case_id": "CASE-M020-OG-INACTIVE-OR-WRONG-EDITION-EXCLUDED",
+      "citation_count": 1,
+      "citation_validation_result": "rejected",
+      "diagnostic_codes": [
+        "temporal_filter_excluded",
+        "wrong_edition"
+      ],
+      "expected_result": "rejected",
+      "ontology_filter": {
+        "filter_id": "OF-M020-CURRENT-VERSION",
+        "filter_kind": "temporal_status",
+        "requested_value": "current_version",
+        "result": "matched"
+      },
+      "temporal_filter": {
+        "as_of_date": "2026-01-01",
+        "mode": "current_only",
+        "result": "wrong_edition"
+      }
+    },
+    {
+      "actual_result": "blocked_unsupported_filter",
+      "candidate_count": 0,
+      "case_class": "unsupported_ontology_filter",
+      "case_id": "CASE-M020-OG-UNSUPPORTED-ONTOLOGY-FILTER",
+      "citation_count": 0,
+      "citation_validation_result": "not_applicable",
+      "diagnostic_codes": [
+        "unsupported_ontology_filter"
+      ],
+      "expected_result": "blocked_unsupported_filter",
+      "ontology_filter": {
+        "filter_id": "OF-M020-UNSUPPORTED-GATE",
+        "filter_kind": "unsupported_gate",
+        "requested_value": "UNSUPPORTED-ONTOLOGY-GATE",
+        "result": "unsupported"
+      },
+      "temporal_filter": {
+        "as_of_date": "2026-01-01",
+        "mode": "not_applicable",
+        "result": "not_applicable"
+      }
+    },
+    {
+      "actual_result": "rejected",
+      "candidate_count": 1,
+      "case_class": "missing_citation_or_evidence_id",
+      "case_id": "CASE-M020-OG-MISSING-CITATION-OR-EVIDENCE-ID",
+      "citation_count": 1,
+      "citation_validation_result": "rejected",
+      "diagnostic_codes": [
+        "missing_required_field"
+      ],
+      "expected_result": "rejected",
+      "ontology_filter": {
+        "filter_id": "OF-M020-MISSING-EVIDENCE",
+        "filter_kind": "legal_evidence_core",
+        "requested_value": "DATA-LEGAL-EVIDENCE-CORE",
+        "result": "matched"
+      },
+      "temporal_filter": {
+        "as_of_date": "2026-01-01",
+        "mode": "current_only",
+        "result": "included"
+      }
+    },
+    {
+      "actual_result": "rejected",
+      "candidate_count": 2,
+      "case_class": "ambiguous_candidate_set",
+      "case_id": "CASE-M020-OG-AMBIGUOUS-CANDIDATE-SET",
+      "citation_count": 0,
+      "citation_validation_result": "not_applicable",
+      "diagnostic_codes": [
+        "ambiguous_candidate_set"
+      ],
+      "expected_result": "rejected",
+      "ontology_filter": {
+        "filter_id": "OF-M020-AMBIGUOUS",
+        "filter_kind": "legal_evidence_core",
+        "requested_value": "DATA-LEGAL-EVIDENCE-CORE",
+        "result": "matched"
+      },
+      "temporal_filter": {
+        "as_of_date": "2026-01-01",
+        "mode": "current_only",
+        "result": "included"
+      }
+    },
+    {
+      "actual_result": "accepted_scoped_no_answer",
+      "candidate_count": 0,
+      "case_class": "scoped_no_answer",
+      "case_id": "CASE-M020-OG-SCOPED-NO-ANSWER",
+      "citation_count": 0,
+      "citation_validation_result": "accepted_scoped_no_answer",
+      "diagnostic_codes": [
+        "scoped_no_answer"
+      ],
+      "expected_result": "accepted_scoped_no_answer",
+      "ontology_filter": {
+        "filter_id": "OF-M020-SCOPED-NO-ANSWER",
+        "filter_kind": "legal_evidence_core",
+        "requested_value": "DATA-LEGAL-EVIDENCE-CORE",
+        "result": "matched"
+      },
+      "temporal_filter": {
+        "as_of_date": "2026-01-01",
+        "mode": "not_applicable",
+        "result": "not_applicable"
+      }
+    },
+    {
+      "actual_result": "rejected",
+      "candidate_count": 0,
+      "case_class": "forbidden_payload_field",
+      "case_id": "CASE-M020-OG-FORBIDDEN-PAYLOAD-FIELD",
+      "citation_count": 0,
+      "citation_validation_result": "not_applicable",
+      "diagnostic_codes": [
+        "forbidden_payload_field"
+      ],
+      "expected_result": "rejected",
+      "ontology_filter": {
+        "filter_id": "OF-M020-FORBIDDEN-PAYLOAD",
+        "filter_kind": "legal_evidence_core",
+        "requested_value": "DATA-LEGAL-EVIDENCE-CORE",
+        "result": "matched"
+      },
+      "temporal_filter": {
+        "as_of_date": "2026-01-01",
+        "mode": "not_applicable",
+        "result": "not_applicable"
+      }
+    }
+  ],
+  "citation_validation_status": {
+    "failed_count": 2,
+    "missing_citation_or_evidence_count": 1,
+    "skipped_count": 3,
+    "status": "passed",
+    "validated_count": 2
+  },
+  "diagnostic_code_inventory": [
+    "ambiguous_candidate_set",
+    "forbidden_payload_field",
+    "missing_required_field",
+    "ontology_filter_matched",
+    "scoped_no_answer",
+    "temporal_filter_excluded",
+    "unsupported_ontology_filter",
+    "wrong_edition"
+  ],
+  "filter_trace_summary": {
+    "ambiguous_candidate_count": 1,
+    "forbidden_payload_count": 1,
+    "ontology_matched_count": 1,
+    "scoped_no_answer_count": 1,
+    "temporal_excluded_count": 1,
+    "unsupported_ontology_filter_count": 1
+  },
+  "gate": "GATE-ONTOLOGY-GRAPHRAG-INTEGRATION",
+  "gate_disposition": "bounded_fixture_integration_passed_gate_remains_open",
+  "mismatch_count": 0,
+  "non_authoritative": true,
+  "non_claims": [
+    "Does not validate R035 broadly.",
+    "Does not satisfy the full GATE-ONTOLOGY-GRAPHRAG-INTEGRATION by itself.",
+    "Does not prove product retrieval quality or legal-answer correctness.",
+    "Does not prove parser completeness or FalkorDB production behavior.",
+    "Does not prove graph-vector, HNSW, hybrid retrieval, or generated-Cypher generation quality.",
+    "Does not make LLM output legal authority."
+  ],
+  "proof_id": "OG-M020-S03-CITATION-BOUND-INTEGRATION-PROOF",
+  "proof_level": "fixture-backed integration proof",
+  "query_safety": {
+    "execution_like_step_performed": false,
+    "future_generated_query_requirement": "Validate through prd/06_m002_cypher_safety_contract.md before any execution-like step.",
+    "generated_query_candidates_present": false,
+    "generated_query_execution_avoided": true
+  },
+  "r035_lifecycle_disposition": "remains_active_bounded_s03_evidence_only",
+  "redaction_ok": true,
+  "rejected_count": 4,
+  "report_path": "prd/research/ontology_architecture_requirements/ontology_graphrag_integration_proof.json",
+  "requirement": "R035",
+  "result_states": {
+    "accepted": 1,
+    "accepted_scoped_no_answer": 1,
+    "blocked_unsupported_filter": 1,
+    "rejected": 4
+  },
+  "schema_version": "ontology-graphrag-integration-proof/v1",
+  "source_fixture_path": "prd/research/ontology_architecture_requirements/ontology_graphrag_proof_cases.json",
+  "source_verifier_path": "scripts/verify-ontology-graphrag-proof.py",
+  "total_cases": 7
+}
