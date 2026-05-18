@@ -31,7 +31,7 @@ Current derived-state evidence now shows:
 - `prd/architecture/claims_ledger.md` contains an `R035 Gate Status` view that enumerates the planned ontology candidate set using canonical IDs where aliases are explicitly reconciled.
 - `scripts/check-gsd-sync-drift.py --strict-exit-code` reports `status=OK diagnostics=8 failed=0` for the R035 active/unmapped contradiction class.
 
-Completion of M017/M018 and S03 registry synchronization is still **not** validation evidence for R035. M020's ontology GraphRAG proof spine adds bounded fixture-backed integration evidence for a narrow subset of `GATE-ONTOLOGY-GRAPHRAG-INTEGRATION`, but it is still **not** broad validation evidence for R035 and does not satisfy the full gate. R035 is still Active and remains Active until later proof owners produce runtime, benchmark, real-document, legal-answer, parser-completeness, ontology-quality, graph-vector, formal-conformance, or pilot-scale evidence as applicable.
+Completion of M017/M018 and S03 registry synchronization is registry/view synchronization only and is still **not** validation evidence for R035. M020's ontology GraphRAG proof spine adds bounded fixture-backed integration evidence for a narrow subset of `GATE-ONTOLOGY-GRAPHRAG-INTEGRATION`, but it is still **not** broad validation evidence for R035 and does not satisfy the full gate. R035 is still Active and remains Active until later proof owners produce runtime, benchmark, real-document, legal-answer, parser-completeness, ontology-quality, graph-vector, formal-conformance, or pilot-scale evidence as applicable.
 
 ## Requirement Clause Matrix
 
