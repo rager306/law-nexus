@@ -42,6 +42,25 @@ _FORBIDDEN_FIELD_NAMES = frozenset(
         "llm_reasoning",
     }
 )
+_GENERATED_QUERY_WRITE_TOKENS = frozenset({"CREATE", "MERGE", "DELETE", "DETACH", "SET", "REMOVE", "LOAD CSV", "DROP", "CALL DBMS"})
+_FORBIDDEN_OVERCLAIM_PHRASES = frozenset(
+    {
+        "r035 validated",
+        "validates r035",
+        "r035 is validated",
+        "gate-ontology-graphrag-integration satisfied",
+        "satisfies gate-ontology-graphrag-integration",
+        "product retrieval quality proven",
+        "proves product retrieval quality",
+        "legal correctness proven",
+        "parser completeness proven",
+        "falkordb production behavior proven",
+        "graph-vector behavior proven",
+        "hnsw behavior proven",
+        "pilot readiness proven",
+        "llm output is legal authority",
+    }
+)
 
 
 class IntegrationProofError(Exception):
@@ -144,6 +163,71 @@ def _case_trace(case: Mapping[str, Any], *, s02: ModuleType, validator: ModuleTy
     }
 
 
+def _generated_query_diagnostics(data: Mapping[str, Any]) -> tuple[dict[str, Any], list[str]]:
+    candidates = data.get("generated_query_candidates")
+    if not candidates:
+        return (
+            {
+                "generated_query_execution_avoided": True,
+                "generated_query_candidates_present": False,
+                "execution_like_step_performed": False,
+                "future_generated_query_requirement": "Validate through prd/06_m002_cypher_safety_contract.md before any execution-like step.",
+            },
+            [],
+        )
+    diagnostics: list[dict[str, str]] = []
+    if not isinstance(candidates, list):
+        diagnostics.append({"case_id": "<generated_query_candidates>", "code": "E_CANDIDATE_FORMAT", "rule": "generated_query_candidates_list"})
+    else:
+        for index, candidate in enumerate(candidates):
+            case_id = _safe(candidate.get("case_id") if isinstance(candidate, Mapping) else f"<index:{index}>")
+            query = candidate.get("query") if isinstance(candidate, Mapping) else None
+            requires_as_of = bool(candidate.get("requires_as_of", True)) if isinstance(candidate, Mapping) else True
+            query_upper = query.upper() if isinstance(query, str) else ""
+            if not isinstance(query, str) or not query.strip() or "```" in query or ";" in query.strip().rstrip(";"):
+                diagnostics.append({"case_id": case_id, "code": "E_CANDIDATE_FORMAT", "rule": "single_statement_query_only"})
+                continue
+            if any(token in query_upper for token in _GENERATED_QUERY_WRITE_TOKENS):
+                diagnostics.append({"case_id": case_id, "code": "E_WRITE_OPERATION", "rule": "read_only_generated_query"})
+            if "LIMIT" not in query_upper:
+                diagnostics.append({"case_id": case_id, "code": "E_LIMIT_REQUIRED", "rule": "bounded_query_results"})
+            if not all(token in query for token in ("EvidenceSpan", "SourceBlock")):
+                diagnostics.append({"case_id": case_id, "code": "E_EVIDENCE_REQUIRED", "rule": "evidence_span_source_block_path"})
+            if requires_as_of and not all(token in query for token in ("valid_from", "valid_to", "$as_of")):
+                diagnostics.append({"case_id": case_id, "code": "E_TEMPORAL_REQUIRED", "rule": "as_of_temporal_constraint"})
+    status = "passed" if not diagnostics else "failed_closed"
+    return (
+        {
+            "generated_query_execution_avoided": True,
+            "generated_query_candidates_present": True,
+            "execution_like_step_performed": False,
+            "status": status,
+            "rejection_codes": sorted({diagnostic["code"] for diagnostic in diagnostics}),
+            "future_generated_query_requirement": "Validate through prd/06_m002_cypher_safety_contract.md before any execution-like step.",
+        },
+        [diagnostic["code"] for diagnostic in diagnostics],
+    )
+
+
+def _overclaim_safety(data: Mapping[str, Any]) -> tuple[dict[str, Any], bool]:
+    claims = data.get("proof_report_claims", [])
+    if isinstance(claims, str):
+        claims = [claims]
+    if not isinstance(claims, list):
+        return {"status": "failed_closed", "diagnostic_codes": ["overclaim_wording_detected"]}, False
+    hits: list[str] = []
+    for claim in claims:
+        if not isinstance(claim, str):
+            hits.append("non_string_claim")
+            continue
+        normalized = " ".join(claim.lower().split())
+        if any(phrase in normalized for phrase in _FORBIDDEN_OVERCLAIM_PHRASES):
+            hits.append("forbidden_positive_claim")
+    if hits:
+        return {"status": "failed_closed", "diagnostic_codes": ["overclaim_wording_detected"], "claim_count": len(claims)}, False
+    return {"status": "passed", "claim_count": len(claims)}, True
+
+
 def _build_summary(fixtures: Path, report_output: Path) -> tuple[int, dict[str, Any]]:
     s02 = _load_module(S02_VERIFIER_PATH, "ontology_graphrag_s02_verifier")
     validator = s02._load_validator()
@@ -174,7 +258,21 @@ def _build_summary(fixtures: Path, report_output: Path) -> tuple[int, dict[str, 
     validator_skipped = sum(1 for trace in traces if trace["citation_validation_result"] == "not_applicable")
     validator_validated = sum(1 for trace in traces if trace["citation_validation_result"] in {"accepted", "accepted_scoped_no_answer"})
 
-    passed = s02_exit_code == 0 and bool(traces) and s02_summary.get("mismatch_count") == 0 and s02_summary.get("non_authoritative") is True and s02_summary.get("redaction_ok") is True
+    query_safety, query_diagnostic_codes = _generated_query_diagnostics(data)
+    overclaim_safety, overclaim_ok = _overclaim_safety(data)
+    diagnostic_inventory.update(query_diagnostic_codes)
+    if not overclaim_ok:
+        diagnostic_inventory.update(overclaim_safety["diagnostic_codes"])
+
+    passed = (
+        s02_exit_code == 0
+        and bool(traces)
+        and s02_summary.get("mismatch_count") == 0
+        and s02_summary.get("non_authoritative") is True
+        and s02_summary.get("redaction_ok") is True
+        and not query_diagnostic_codes
+        and overclaim_ok
+    )
     gate_disposition = "bounded_fixture_integration_passed_gate_remains_open" if passed else "bounded_fixture_integration_failed_gate_remains_open"
 
     summary: dict[str, Any] = {
@@ -208,12 +306,8 @@ def _build_summary(fixtures: Path, report_output: Path) -> tuple[int, dict[str, 
             "missing_citation_or_evidence_count": missing_citation,
             "status": "passed" if passed and validator_failed >= 1 and validator_validated >= 1 else "check_diagnostics",
         },
-        "query_safety": {
-            "generated_query_execution_avoided": True,
-            "generated_query_candidates_present": False,
-            "execution_like_step_performed": False,
-            "future_generated_query_requirement": "Validate through prd/06_m002_cypher_safety_contract.md before any execution-like step.",
-        },
+        "query_safety": query_safety,
+        "overclaim_safety": overclaim_safety,
         "diagnostic_code_inventory": sorted(diagnostic_inventory),
         "redaction_ok": s02_summary.get("redaction_ok") is True,
         "gate_disposition": gate_disposition,

@@ -202,6 +202,10 @@
     "Does not prove graph-vector, HNSW, hybrid retrieval, or generated-Cypher generation quality.",
     "Does not make LLM output legal authority."
   ],
+  "overclaim_safety": {
+    "claim_count": 0,
+    "status": "passed"
+  },
   "proof_id": "OG-M020-S03-CITATION-BOUND-INTEGRATION-PROOF",
   "proof_level": "fixture-backed integration proof",
   "query_safety": {
