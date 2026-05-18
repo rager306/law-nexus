@@ -1,0 +1,558 @@
+{
+  "cases": [
+    {
+      "candidate_set": [
+        {
+          "act_edition_id": "ED-M014-44FZ-2026-01-01",
+          "candidate_id": "CAND-M020-OG-VALID-CURRENT-001",
+          "citation_key": "CIT-M014-HIER-CONS-ARTICLE-0001",
+          "evidence_span_id": "EV-M014-HIER-CONS-ARTICLE-0001",
+          "ontology_values": [
+            "DATA-LEGAL-EVIDENCE-CORE",
+            "GATE-ONTOLOGY-GRAPHRAG-INTEGRATION",
+            "current_version"
+          ],
+          "selection_reason": "ontology_and_temporal_match",
+          "source_record_id": "HIER-CONS-ARTICLE-0001"
+        }
+      ],
+      "case_class": "valid_ontology_temporal_citation",
+      "case_id": "CASE-M020-OG-VALID-ONTOLOGY-TEMPORAL-CITATION",
+      "expected_diagnostic_codes": [
+        "ontology_filter_matched"
+      ],
+      "expected_result": "accepted",
+      "non_authoritative": true,
+      "ontology_filter": {
+        "allowed_values": [
+          "DATA-LEGAL-EVIDENCE-CORE",
+          "GATE-ONTOLOGY-GRAPHRAG-INTEGRATION",
+          "current_version"
+        ],
+        "expected_filter_result": "matched",
+        "filter_id": "OF-M020-LEGAL-EVIDENCE-CORE",
+        "filter_kind": "legal_evidence_core",
+        "requested_value": "DATA-LEGAL-EVIDENCE-CORE"
+      },
+      "output": {
+        "answer_claims": [],
+        "citations": [
+          {
+            "act_edition_id": "ED-M014-44FZ-2026-01-01",
+            "citation_key": "CIT-M014-HIER-CONS-ARTICLE-0001",
+            "evidence_span_id": "EV-M014-HIER-CONS-ARTICLE-0001",
+            "legal_unit_id": "LU-M014-HIER-CONS-ARTICLE-0001",
+            "retrieval_output_id": "RET-M014-EXACT-ARTICLE-0001",
+            "source_block_id": "SB-M014-HIER-CONS-ARTICLE-0001",
+            "source_document_id": "SD-M014-DOC-CONS-44FZ"
+          }
+        ],
+        "output_kind": "retrieval_candidate",
+        "retrieval_output_id": "RET-M014-EXACT-ARTICLE-0001",
+        "scope": {
+          "as_of_date": "2026-01-01",
+          "query_id": "QUERY-M014-EXACT-ARTICLE-0001",
+          "retrieval_run_id": "RUN-M014-OFFLINE-CITATION-001",
+          "scope_id": "SCOPE-M014-CONSULTANT-44FZ-2026-001",
+          "source_corpus_id": "CORPUS-M014-CONSULTANT-44FZ",
+          "validator_contract_version": "retrieval-output-validator/v1"
+        }
+      },
+      "query": {
+        "query_id": "QUERY-M020-OG-VALID-001",
+        "query_kind": "ontology_filter_lookup",
+        "scope_id": "SCOPE-M014-CONSULTANT-44FZ-2026-001",
+        "target_level": "article",
+        "target_record_id": "HIER-CONS-ARTICLE-0001"
+      },
+      "source_case_ids": [
+        "CASE-M014-VALID-EXACT-RECORD-CANDIDATE"
+      ],
+      "temporal_filter": {
+        "as_of_date": "2026-01-01",
+        "evidence_edition_id": "ED-M014-44FZ-2026-01-01",
+        "expected_temporal_result": "included",
+        "mode": "current_only"
+      }
+    },
+    {
+      "candidate_set": [
+        {
+          "act_edition_id": "ED-M014-44FZ-1900-01-01",
+          "candidate_id": "CAND-M020-OG-INACTIVE-001",
+          "citation_key": "CIT-M014-HIER-CONS-ARTICLE-0001",
+          "evidence_span_id": "EV-M014-HIER-CONS-ARTICLE-0001",
+          "ontology_values": [
+            "DATA-LEGAL-EVIDENCE-CORE",
+            "GATE-ONTOLOGY-GRAPHRAG-INTEGRATION"
+          ],
+          "selection_reason": "inactive_version_excluded",
+          "source_record_id": "HIER-CONS-ARTICLE-0001"
+        }
+      ],
+      "case_class": "inactive_or_wrong_edition_excluded",
+      "case_id": "CASE-M020-OG-INACTIVE-OR-WRONG-EDITION-EXCLUDED",
+      "expected_diagnostic_codes": [
+        "temporal_filter_excluded",
+        "wrong_edition"
+      ],
+      "expected_result": "rejected",
+      "non_authoritative": true,
+      "ontology_filter": {
+        "allowed_values": [
+          "DATA-LEGAL-EVIDENCE-CORE",
+          "GATE-ONTOLOGY-GRAPHRAG-INTEGRATION",
+          "current_version"
+        ],
+        "expected_filter_result": "matched",
+        "filter_id": "OF-M020-CURRENT-VERSION",
+        "filter_kind": "temporal_status",
+        "requested_value": "current_version"
+      },
+      "output": {
+        "answer_claims": [],
+        "citations": [
+          {
+            "act_edition_id": "ED-M014-44FZ-1900-01-01",
+            "citation_key": "CIT-M014-HIER-CONS-ARTICLE-0001",
+            "evidence_span_id": "EV-M014-HIER-CONS-ARTICLE-0001",
+            "legal_unit_id": "LU-M014-HIER-CONS-ARTICLE-0001",
+            "retrieval_output_id": "RET-M014-EXACT-ARTICLE-0001",
+            "source_block_id": "SB-M014-HIER-CONS-ARTICLE-0001",
+            "source_document_id": "SD-M014-DOC-CONS-44FZ"
+          }
+        ],
+        "output_kind": "retrieval_candidate",
+        "retrieval_output_id": "RET-M014-EXACT-ARTICLE-0001",
+        "scope": {
+          "as_of_date": "2026-01-01",
+          "query_id": "QUERY-M014-EXACT-ARTICLE-0001",
+          "retrieval_run_id": "RUN-M014-OFFLINE-CITATION-001",
+          "scope_id": "SCOPE-M014-CONSULTANT-44FZ-2026-001",
+          "source_corpus_id": "CORPUS-M014-CONSULTANT-44FZ",
+          "validator_contract_version": "retrieval-output-validator/v1"
+        }
+      },
+      "query": {
+        "query_id": "QUERY-M020-OG-TEMPORAL-001",
+        "query_kind": "current_status_lookup",
+        "scope_id": "SCOPE-M014-CONSULTANT-44FZ-2026-001",
+        "target_level": "article",
+        "target_record_id": "HIER-CONS-ARTICLE-0001"
+      },
+      "source_case_ids": [
+        "CASE-M013-WRONG-EDITION-PROXY",
+        "CASE-M014-VALID-EXACT-RECORD-CANDIDATE"
+      ],
+      "temporal_filter": {
+        "as_of_date": "2026-01-01",
+        "evidence_edition_id": "ED-M014-44FZ-2026-01-01",
+        "expected_temporal_result": "wrong_edition",
+        "mode": "current_only"
+      }
+    },
+    {
+      "candidate_set": [],
+      "case_class": "unsupported_ontology_filter",
+      "case_id": "CASE-M020-OG-UNSUPPORTED-ONTOLOGY-FILTER",
+      "expected_diagnostic_codes": [
+        "unsupported_ontology_filter"
+      ],
+      "expected_result": "blocked_unsupported_filter",
+      "non_authoritative": true,
+      "ontology_filter": {
+        "allowed_values": [
+          "DATA-LEGAL-EVIDENCE-CORE",
+          "GATE-ONTOLOGY-GRAPHRAG-INTEGRATION"
+        ],
+        "expected_filter_result": "unsupported",
+        "filter_id": "OF-M020-UNSUPPORTED-GATE",
+        "filter_kind": "unsupported_gate",
+        "requested_value": "UNSUPPORTED-ONTOLOGY-GATE"
+      },
+      "query": {
+        "query_id": "QUERY-M020-OG-UNSUPPORTED-001",
+        "query_kind": "negative_guardrail",
+        "scope_id": "SCOPE-M014-CONSULTANT-44FZ-2026-001"
+      },
+      "source_case_ids": [],
+      "temporal_filter": {
+        "as_of_date": "2026-01-01",
+        "expected_temporal_result": "not_applicable",
+        "mode": "not_applicable"
+      }
+    },
+    {
+      "candidate_set": [
+        {
+          "act_edition_id": "ED-M014-44FZ-2026-01-01",
+          "candidate_id": "CAND-M020-OG-VALID-CURRENT-001",
+          "citation_key": "CIT-M014-HIER-CONS-ARTICLE-0001",
+          "evidence_span_id": "EV-M014-HIER-CONS-ARTICLE-0001",
+          "ontology_values": [
+            "DATA-LEGAL-EVIDENCE-CORE",
+            "GATE-ONTOLOGY-GRAPHRAG-INTEGRATION",
+            "current_version"
+          ],
+          "selection_reason": "ontology_and_temporal_match",
+          "source_record_id": "HIER-CONS-ARTICLE-0001"
+        }
+      ],
+      "case_class": "missing_citation_or_evidence_id",
+      "case_id": "CASE-M020-OG-MISSING-CITATION-OR-EVIDENCE-ID",
+      "expected_diagnostic_codes": [
+        "missing_required_field"
+      ],
+      "expected_result": "rejected",
+      "non_authoritative": true,
+      "ontology_filter": {
+        "allowed_values": [
+          "DATA-LEGAL-EVIDENCE-CORE",
+          "GATE-ONTOLOGY-GRAPHRAG-INTEGRATION",
+          "current_version"
+        ],
+        "expected_filter_result": "matched",
+        "filter_id": "OF-M020-MISSING-EVIDENCE",
+        "filter_kind": "legal_evidence_core",
+        "requested_value": "DATA-LEGAL-EVIDENCE-CORE"
+      },
+      "output": {
+        "answer_claims": [],
+        "citations": [
+          {
+            "act_edition_id": "ED-M014-44FZ-2026-01-01",
+            "citation_key": "CIT-M014-HIER-CONS-ARTICLE-0001",
+            "legal_unit_id": "LU-M014-HIER-CONS-ARTICLE-0001",
+            "retrieval_output_id": "RET-M014-EXACT-ARTICLE-0001",
+            "source_block_id": "SB-M014-HIER-CONS-ARTICLE-0001",
+            "source_document_id": "SD-M014-DOC-CONS-44FZ"
+          }
+        ],
+        "output_kind": "retrieval_candidate",
+        "retrieval_output_id": "RET-M014-EXACT-ARTICLE-0001",
+        "scope": {
+          "as_of_date": "2026-01-01",
+          "query_id": "QUERY-M014-EXACT-ARTICLE-0001",
+          "retrieval_run_id": "RUN-M014-OFFLINE-CITATION-001",
+          "scope_id": "SCOPE-M014-CONSULTANT-44FZ-2026-001",
+          "source_corpus_id": "CORPUS-M014-CONSULTANT-44FZ",
+          "validator_contract_version": "retrieval-output-validator/v1"
+        }
+      },
+      "query": {
+        "query_id": "QUERY-M020-OG-MISSING-EVIDENCE-001",
+        "query_kind": "ontology_filter_lookup",
+        "scope_id": "SCOPE-M014-CONSULTANT-44FZ-2026-001",
+        "target_level": "article",
+        "target_record_id": "HIER-CONS-ARTICLE-0001"
+      },
+      "source_case_ids": [
+        "CASE-M013-MISSING-EVIDENCE-ID",
+        "CASE-M014-VALID-EXACT-RECORD-CANDIDATE"
+      ],
+      "temporal_filter": {
+        "as_of_date": "2026-01-01",
+        "evidence_edition_id": "ED-M014-44FZ-2026-01-01",
+        "expected_temporal_result": "included",
+        "mode": "current_only"
+      }
+    },
+    {
+      "candidate_set": [
+        {
+          "act_edition_id": "ED-M014-44FZ-2026-01-01",
+          "candidate_id": "CAND-M020-OG-VALID-CURRENT-001",
+          "citation_key": "CIT-M014-HIER-CONS-ARTICLE-0001",
+          "evidence_span_id": "EV-M014-HIER-CONS-ARTICLE-0001",
+          "ontology_values": [
+            "DATA-LEGAL-EVIDENCE-CORE",
+            "GATE-ONTOLOGY-GRAPHRAG-INTEGRATION",
+            "current_version"
+          ],
+          "selection_reason": "ontology_and_temporal_match",
+          "source_record_id": "HIER-CONS-ARTICLE-0001"
+        },
+        {
+          "act_edition_id": "ED-M014-44FZ-2026-01-01",
+          "candidate_id": "CAND-M020-OG-AMBIGUOUS-002",
+          "citation_key": "CIT-M014-HIER-CONS-ARTICLE-0001",
+          "evidence_span_id": "EV-M014-HIER-CONS-ARTICLE-0001",
+          "ontology_values": [
+            "DATA-LEGAL-EVIDENCE-CORE",
+            "GATE-ONTOLOGY-GRAPHRAG-INTEGRATION",
+            "current_version"
+          ],
+          "selection_reason": "ontology_and_temporal_match",
+          "source_record_id": "HIER-CONS-ARTICLE-0001"
+        }
+      ],
+      "case_class": "ambiguous_candidate_set",
+      "case_id": "CASE-M020-OG-AMBIGUOUS-CANDIDATE-SET",
+      "expected_diagnostic_codes": [
+        "ambiguous_candidate_set"
+      ],
+      "expected_result": "rejected",
+      "non_authoritative": true,
+      "ontology_filter": {
+        "allowed_values": [
+          "DATA-LEGAL-EVIDENCE-CORE",
+          "GATE-ONTOLOGY-GRAPHRAG-INTEGRATION",
+          "current_version"
+        ],
+        "expected_filter_result": "matched",
+        "filter_id": "OF-M020-AMBIGUOUS",
+        "filter_kind": "legal_evidence_core",
+        "requested_value": "DATA-LEGAL-EVIDENCE-CORE"
+      },
+      "query": {
+        "query_id": "QUERY-M020-OG-AMBIGUOUS-001",
+        "query_kind": "ontology_filter_lookup",
+        "scope_id": "SCOPE-M014-CONSULTANT-44FZ-2026-001",
+        "target_level": "article",
+        "target_record_id": "HIER-CONS-ARTICLE-0001"
+      },
+      "source_case_ids": [
+        "CASE-M014-AMBIGUOUS-CANDIDATES"
+      ],
+      "temporal_filter": {
+        "as_of_date": "2026-01-01",
+        "evidence_edition_id": "ED-M014-44FZ-2026-01-01",
+        "expected_temporal_result": "included",
+        "mode": "current_only"
+      }
+    },
+    {
+      "candidate_set": [],
+      "case_class": "scoped_no_answer",
+      "case_id": "CASE-M020-OG-SCOPED-NO-ANSWER",
+      "expected_diagnostic_codes": [
+        "scoped_no_answer"
+      ],
+      "expected_result": "accepted_scoped_no_answer",
+      "non_authoritative": true,
+      "ontology_filter": {
+        "allowed_values": [
+          "DATA-LEGAL-EVIDENCE-CORE",
+          "GATE-ONTOLOGY-GRAPHRAG-INTEGRATION",
+          "current_version"
+        ],
+        "expected_filter_result": "matched",
+        "filter_id": "OF-M020-SCOPED-NO-ANSWER",
+        "filter_kind": "legal_evidence_core",
+        "requested_value": "DATA-LEGAL-EVIDENCE-CORE"
+      },
+      "output": {
+        "answer_claims": [],
+        "citations": [],
+        "output_kind": "scoped_no_answer",
+        "retrieval_output_id": "RET-M014-SCOPED-NO-CANDIDATE-001",
+        "scope": {
+          "as_of_date": "2026-01-01",
+          "query_id": "QUERY-M014-SCOPED-NO-CANDIDATE-001",
+          "retrieval_run_id": "RUN-M014-OFFLINE-CITATION-001",
+          "scope_id": "SCOPE-M014-CONSULTANT-44FZ-2026-001",
+          "source_corpus_id": "CORPUS-M014-CONSULTANT-44FZ",
+          "validator_contract_version": "retrieval-output-validator/v1"
+        }
+      },
+      "query": {
+        "query_id": "QUERY-M020-OG-SCOPED-NO-ANSWER-001",
+        "query_kind": "scoped_no_answer",
+        "scope_id": "SCOPE-M014-CONSULTANT-44FZ-2026-001",
+        "target_level": "article",
+        "target_record_id": "HIER-CONS-NOT-PRESENT"
+      },
+      "source_case_ids": [
+        "CASE-M014-SCOPED-NO-CANDIDATE"
+      ],
+      "temporal_filter": {
+        "as_of_date": "2026-01-01",
+        "expected_temporal_result": "not_applicable",
+        "mode": "not_applicable"
+      }
+    },
+    {
+      "candidate_set": [],
+      "case_class": "forbidden_payload_field",
+      "case_id": "CASE-M020-OG-FORBIDDEN-PAYLOAD-FIELD",
+      "expected_diagnostic_codes": [
+        "forbidden_payload_field"
+      ],
+      "expected_result": "rejected",
+      "non_authoritative": true,
+      "ontology_filter": {
+        "allowed_values": [
+          "DATA-LEGAL-EVIDENCE-CORE",
+          "GATE-ONTOLOGY-GRAPHRAG-INTEGRATION",
+          "current_version"
+        ],
+        "expected_filter_result": "matched",
+        "filter_id": "OF-M020-FORBIDDEN-PAYLOAD",
+        "filter_kind": "legal_evidence_core",
+        "requested_value": "DATA-LEGAL-EVIDENCE-CORE"
+      },
+      "query": {
+        "query_id": "QUERY-M020-OG-FORBIDDEN-PAYLOAD-001",
+        "query_kind": "negative_guardrail",
+        "scope_id": "SCOPE-M014-CONSULTANT-44FZ-2026-001"
+      },
+      "safety_probe": {
+        "field_path": "output.disallowed_payload",
+        "payload_class": "unsafe_external_payload"
+      },
+      "source_case_ids": [],
+      "temporal_filter": {
+        "as_of_date": "2026-01-01",
+        "expected_temporal_result": "not_applicable",
+        "mode": "not_applicable"
+      }
+    }
+  ],
+  "fixture_artifact": "prd/research/ontology_architecture_requirements/ontology_graphrag_proof_cases.json",
+  "gate": "GATE-ONTOLOGY-GRAPHRAG-INTEGRATION",
+  "generated_by": "scripts/build-ontology-graphrag-proof-cases.py",
+  "non_authoritative": true,
+  "non_claims": [
+    "Does not validate R035.",
+    "Does not satisfy GATE-ONTOLOGY-GRAPHRAG-INTEGRATION.",
+    "Does not prove product retrieval quality.",
+    "Does not prove legal-answer correctness.",
+    "Does not prove parser completeness.",
+    "Does not prove FalkorDB production behavior.",
+    "Does not prove graph-vector, HNSW, or hybrid retrieval behavior.",
+    "Does not prove generated-Cypher safety.",
+    "Does not prove BFO, GOST, OWL, Common Logic, LKIF, RusLegalCore, Akoma Ntoso, LegalDocML, or FRBR conformance.",
+    "Does not prove 1000-document or pilot-scale readiness.",
+    "Does not make LLM output legal authority."
+  ],
+  "proof_id": "OG-M020-S02-FIXTURE-PROOF",
+  "redaction": {
+    "forbidden_payload_classes": [
+      "raw legal text",
+      "raw query text",
+      "raw prompts",
+      "generated legal advice",
+      "raw vectors",
+      "provider payloads",
+      "raw FalkorDB rows",
+      "secrets",
+      "absolute local paths",
+      ".gsd/exec proof paths"
+    ],
+    "forbidden_payload_classes_absent": true,
+    "safe_summary_only": true
+  },
+  "requirement": "R035",
+  "schema_version": "ontology-graphrag-proof-cases/v1",
+  "source_inputs": [
+    "prd/research/ontology_architecture_requirements/09-ontology-graphrag-fixture-contract.md",
+    "prd/retrieval/fixtures/offline_citation_retrieval_cases.json",
+    "prd/retrieval/fixtures/real_artifact_retrieval_cases.json",
+    "scripts/retrieval_output_validator.py"
+  ],
+  "source_summary": {
+    "offline_case_count": 6,
+    "real_artifact_case_count": 7,
+    "source_backed_evidence_span_ids": [
+      "EV-M014-HIER-CONS-ARTICLE-0001"
+    ]
+  },
+  "validator_fixture_graph": {
+    "act_editions": [
+      {
+        "act_edition_id": "ED-M014-44FZ-2026-01-01",
+        "legal_act_id": "LA-M014-44FZ",
+        "proof_boundary": "bounded_source_snapshot_proxy",
+        "source_sha256": "69df0b9d9e2bcce6164fc4e3c74fb9bebfff36ae6b053c68917c804be4b52a86",
+        "status": "active",
+        "valid_from": "2026-01-01",
+        "valid_to": null
+      }
+    ],
+    "citation_bindings": [
+      {
+        "binding_role": "unique",
+        "citation_key": "CIT-M014-HIER-CONS-ARTICLE-0001",
+        "evidence_span_id": "EV-M014-HIER-CONS-ARTICLE-0001",
+        "scope_id": "SCOPE-M014-CONSULTANT-44FZ-2026-001"
+      },
+      {
+        "binding_role": "ambiguous",
+        "citation_key": "CIT-M014-AMBIG",
+        "evidence_span_id": "EV-M014-HIER-CONS-ARTICLE-0001",
+        "scope_id": "SCOPE-M014-CONSULTANT-44FZ-2026-001"
+      },
+      {
+        "binding_role": "ambiguous",
+        "citation_key": "CIT-M014-AMBIG",
+        "evidence_span_id": "EV-M014-HIER-CONS-ARTICLE-0001",
+        "scope_id": "SCOPE-M014-CONSULTANT-44FZ-2026-001"
+      }
+    ],
+    "evidence_spans": [
+      {
+        "act_edition_id": "ED-M014-44FZ-2026-01-01",
+        "evidence_span_id": "EV-M014-HIER-CONS-ARTICLE-0001",
+        "excerpt_sha256": "82d0072d6346a9cfd9cf81dbeca76dfbd21851a1970f5abdd24fdd031d12ff57",
+        "legal_unit_id": "LU-M014-HIER-CONS-ARTICLE-0001",
+        "source_block_id": "SB-M014-HIER-CONS-ARTICLE-0001",
+        "source_document_id": "SD-M014-DOC-CONS-44FZ",
+        "source_hierarchy_id": "HIER-CONS-ARTICLE-0001",
+        "status": "active"
+      },
+      {
+        "act_edition_id": "ED-M014-44FZ-2026-01-01",
+        "evidence_span_id": "EV-M014-ORPHAN-SOURCE",
+        "excerpt_sha256": "82d0072d6346a9cfd9cf81dbeca76dfbd21851a1970f5abdd24fdd031d12ff57",
+        "legal_unit_id": "LU-M014-HIER-CONS-ARTICLE-0001",
+        "source_block_id": "SB-M014-MISSING-SOURCE-BLOCK",
+        "source_document_id": "SD-M014-DOC-CONS-44FZ",
+        "source_hierarchy_id": "HIER-CONS-ARTICLE-0001",
+        "status": "orphan_fixture"
+      }
+    ],
+    "legal_acts": [
+      {
+        "legal_act_id": "LA-M014-44FZ",
+        "source_path": "law-source/consultant/44-FZ-2026.xml",
+        "source_record_id": "HIER-CONS-DOCUMENT",
+        "source_sha256": "69df0b9d9e2bcce6164fc4e3c74fb9bebfff36ae6b053c68917c804be4b52a86",
+        "status": "bounded_proxy"
+      }
+    ],
+    "legal_units": [
+      {
+        "act_edition_id": "ED-M014-44FZ-2026-01-01",
+        "legal_act_id": "LA-M014-44FZ",
+        "legal_unit_id": "LU-M014-HIER-CONS-ARTICLE-0001",
+        "level": "article",
+        "parent_id": "HIER-CONS-CHAPTER-0001",
+        "source_hierarchy_id": "HIER-CONS-ARTICLE-0001",
+        "status": "bounded_hierarchy_proxy"
+      }
+    ],
+    "source_blocks": [
+      {
+        "excerpt_sha256": "82d0072d6346a9cfd9cf81dbeca76dfbd21851a1970f5abdd24fdd031d12ff57",
+        "location": {
+          "label": "WordML paragraph 77 style 2",
+          "selector": "/w:wordDocument/w:body/w:p[77]"
+        },
+        "source_block_id": "SB-M014-HIER-CONS-ARTICLE-0001",
+        "source_document_id": "SD-M014-DOC-CONS-44FZ",
+        "source_hierarchy_id": "HIER-CONS-ARTICLE-0001",
+        "status": "active"
+      }
+    ],
+    "source_documents": [
+      {
+        "source_corpus_id": "CORPUS-M014-CONSULTANT-44FZ",
+        "source_document_id": "SD-M014-DOC-CONS-44FZ",
+        "source_path": "law-source/consultant/44-FZ-2026.xml",
+        "source_record_id": "HIER-CONS-DOCUMENT",
+        "source_sha256": "69df0b9d9e2bcce6164fc4e3c74fb9bebfff36ae6b053c68917c804be4b52a86",
+        "status": "active"
+      }
+    ]
+  }
+}
