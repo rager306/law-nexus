@@ -1,0 +1,60 @@
+{
+  "forbidden_as_descriptor_input": true,
+  "label_count": 6,
+  "labels": [
+    {
+      "case_id": "CASE-M027-MAT-001",
+      "expected_candidate_ids": [
+        "DESC-CAND-M027-001"
+      ],
+      "metric_scope": "post_scoring_only",
+      "non_authoritative": true
+    },
+    {
+      "case_id": "CASE-M027-MAT-002",
+      "expected_candidate_ids": [
+        "DESC-CAND-M027-002"
+      ],
+      "metric_scope": "post_scoring_only",
+      "non_authoritative": true
+    },
+    {
+      "case_id": "CASE-M027-MAT-003",
+      "expected_candidate_ids": [
+        "DESC-CAND-M027-003"
+      ],
+      "metric_scope": "post_scoring_only",
+      "non_authoritative": true
+    },
+    {
+      "case_id": "CASE-M027-MAT-004",
+      "expected_candidate_ids": [
+        "DESC-CAND-M027-004"
+      ],
+      "metric_scope": "post_scoring_only",
+      "non_authoritative": true
+    },
+    {
+      "case_id": "CASE-M027-MAT-005",
+      "expected_candidate_ids": [
+        "DESC-CAND-M027-005"
+      ],
+      "metric_scope": "post_scoring_only",
+      "non_authoritative": true
+    },
+    {
+      "case_id": "CASE-M027-MAT-006",
+      "expected_candidate_ids": [
+        "DESC-CAND-M027-006"
+      ],
+      "metric_scope": "post_scoring_only",
+      "non_authoritative": true
+    }
+  ],
+  "milestone_id": "M027-vxdy7c",
+  "non_authoritative": true,
+  "non_claim_boundary": "Labels are post-scoring-only evaluation inputs; they are forbidden as descriptor or scoring-generation inputs and do not validate R035.",
+  "post_scoring_only": true,
+  "schema_version": "materialized-descriptor-evaluation-labels/v1",
+  "slice_id": "S04"
+}
