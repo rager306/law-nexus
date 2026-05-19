@@ -1,0 +1,84 @@
+{
+  "descriptor_inputs": "prd/research/ontology_architecture_requirements/fixtures/held_out_semantic_descriptor_inputs.json",
+  "descriptor_inputs_sha256": "2b2dd453f86d0a8bc6dd5f894159e75b56696719226c7ada80147bfa0ac63fbb",
+  "forbidden_as_descriptor_input": true,
+  "label_count": 5,
+  "labels": [
+    {
+      "case_id": "CASE-M026-001-HELDOUT-POSITIVE-CLAUSE",
+      "expected_candidate_ids": [
+        "CAND-M026-001-HELDOUT-POSITIVE-CLAUSE-A"
+      ],
+      "expected_rejected_candidate_ids": [
+        "CAND-M026-001-HELDOUT-POSITIVE-CLAUSE-B"
+      ],
+      "metric_scope": "post_scoring_only",
+      "non_authoritative": true,
+      "query_id": "QUERY-M026-001-HELDOUT-POSITIVE-CLAUSE"
+    },
+    {
+      "case_id": "CASE-M026-002-HELDOUT-SOURCE-BLOCK",
+      "expected_candidate_ids": [
+        "CAND-M026-002-HELDOUT-SOURCE-BLOCK-A"
+      ],
+      "expected_rejected_candidate_ids": [
+        "CAND-M026-002-HELDOUT-SOURCE-BLOCK-B"
+      ],
+      "metric_scope": "post_scoring_only",
+      "non_authoritative": true,
+      "query_id": "QUERY-M026-002-HELDOUT-SOURCE-BLOCK"
+    },
+    {
+      "case_id": "CASE-M026-003-HELDOUT-TEMPORAL",
+      "expected_candidate_ids": [
+        "CAND-M026-003-HELDOUT-TEMPORAL-A"
+      ],
+      "expected_rejected_candidate_ids": [
+        "CAND-M026-003-HELDOUT-TEMPORAL-B"
+      ],
+      "metric_scope": "post_scoring_only",
+      "non_authoritative": true,
+      "query_id": "QUERY-M026-003-HELDOUT-TEMPORAL"
+    },
+    {
+      "case_id": "CASE-M026-004-HELDOUT-SCOPED-ABSENCE",
+      "expected_candidate_ids": [
+        "CAND-M026-004-HELDOUT-SCOPED-ABSENCE-A"
+      ],
+      "expected_rejected_candidate_ids": [
+        "CAND-M026-004-HELDOUT-SCOPED-ABSENCE-B"
+      ],
+      "metric_scope": "post_scoring_only",
+      "non_authoritative": true,
+      "query_id": "QUERY-M026-004-HELDOUT-SCOPED-ABSENCE"
+    },
+    {
+      "case_id": "CASE-M026-005-HELDOUT-SAFETY-BOUNDARY",
+      "expected_candidate_ids": [
+        "CAND-M026-005-HELDOUT-SAFETY-BOUNDARY-A"
+      ],
+      "expected_rejected_candidate_ids": [
+        "CAND-M026-005-HELDOUT-SAFETY-BOUNDARY-B"
+      ],
+      "metric_scope": "post_scoring_only",
+      "non_authoritative": true,
+      "query_id": "QUERY-M026-005-HELDOUT-SAFETY-BOUNDARY"
+    }
+  ],
+  "milestone_id": "M026-1uqmzc",
+  "non_authoritative": true,
+  "non_claim_boundary": "Held-out evaluation labels are post-scoring metric inputs only; they do not prove semantic retrieval quality or validate R035.",
+  "post_scoring_only": true,
+  "redaction": {
+    "absolute_paths_excluded": true,
+    "external_payloads_excluded": true,
+    "generated_answer_prose_excluded": true,
+    "generated_query_excluded": true,
+    "gsd_exec_paths_excluded": true,
+    "query_text_excluded": true,
+    "raw_vectors_excluded": true,
+    "source_text_excluded": true
+  },
+  "schema_version": "held-out-semantic-descriptor-evaluation-labels/v1",
+  "slice_id": "S03"
+}

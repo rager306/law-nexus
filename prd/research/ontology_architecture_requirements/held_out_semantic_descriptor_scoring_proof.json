@@ -1,0 +1,215 @@
+{
+  "descriptor_input_summary": {
+    "candidate_descriptor_count": 10,
+    "diagnostic_codes": [
+      "held_out_semantic_descriptors_verified"
+    ],
+    "held_out_case_independence_required": true,
+    "non_authoritative": true,
+    "non_claim_boundary": "Held-out safe descriptor inputs only; does not prove semantic retrieval quality or validate R035.",
+    "query_descriptor_count": 5,
+    "representation_kind": "safe_semantic_descriptor_v1",
+    "schema_version": "held-out-semantic-descriptor-inputs-verification/v1",
+    "status": "ok"
+  },
+  "diagnostic_codes": [
+    "held_out_descriptor_scoring_completed",
+    "held_out_semantic_descriptors_verified",
+    "runtime_confirmed"
+  ],
+  "evaluation_label_boundary": {
+    "forbidden_as_descriptor_input": true,
+    "labels_artifact": "prd/research/ontology_architecture_requirements/fixtures/held_out_semantic_descriptor_evaluation_labels.json",
+    "post_scoring_only": true
+  },
+  "m024_baseline_metrics": {
+    "mrr": 0.875,
+    "recall_at_1": 0.75,
+    "recall_at_3": 1.0,
+    "runtime_boundary_confirmed": 1.0
+  },
+  "m025_bounded_result_metrics": {
+    "mrr": 1.0,
+    "recall_at_1": 1.0,
+    "recall_at_3": 1.0,
+    "runtime_boundary_confirmed": 1.0
+  },
+  "metric_deltas_vs_m024": {
+    "delta_vs_m024_mrr": 0.125,
+    "delta_vs_m024_recall_at_1": 0.25,
+    "delta_vs_m024_recall_at_3": 0.0,
+    "delta_vs_m024_runtime_boundary_confirmed": 0.0
+  },
+  "metric_deltas_vs_m025": {
+    "delta_vs_m025_mrr": 0.0,
+    "delta_vs_m025_recall_at_1": 0.0,
+    "delta_vs_m025_recall_at_3": 0.0,
+    "delta_vs_m025_runtime_boundary_confirmed": 0.0
+  },
+  "metrics": {
+    "mrr": 1.0,
+    "recall_at_1": 1.0,
+    "recall_at_3": 1.0,
+    "runtime_boundary_confirmed": 1.0
+  },
+  "milestone_id": "M026-1uqmzc",
+  "non_authoritative": true,
+  "non_claims": [
+    "Does not validate R035.",
+    "Does not prove held-out semantic retrieval quality.",
+    "Does not prove product retrieval quality.",
+    "Does not prove legal-answer correctness.",
+    "Does not persist raw vectors."
+  ],
+  "redaction": {
+    "absolute_paths_excluded": true,
+    "external_payloads_excluded": true,
+    "generated_answer_prose_excluded": true,
+    "generated_query_excluded": true,
+    "gsd_exec_paths_excluded": true,
+    "query_text_excluded": true,
+    "raw_vectors_excluded": true,
+    "source_text_excluded": true
+  },
+  "runtime_boundary": {
+    "confirmed": true,
+    "diagnostic_codes": [
+      "runtime_confirmed"
+    ],
+    "expected_vector_dimension": 1024,
+    "failure_class": "none",
+    "managed_api_used": false,
+    "model_id": "deepvk/USER-bge-m3",
+    "network_used": false,
+    "observed_vector_dimension": 1024,
+    "raw_vectors_persisted": false,
+    "runtime_status": "confirmed_runtime"
+  },
+  "schema_version": "held-out-semantic-descriptor-scoring-proof/v1",
+  "score_count": 10,
+  "scores": [
+    {
+      "candidate_id": "CAND-M026-001-HELDOUT-POSITIVE-CLAUSE-A",
+      "case_id": "CASE-M026-001-HELDOUT-POSITIVE-CLAUSE",
+      "descriptor_input_ref": "HO-DESCC-M026-001-A",
+      "diagnostic_codes": [],
+      "non_authoritative": true,
+      "observation_status": "scored",
+      "observed_rank": 1,
+      "observed_similarity_score": 0.974723,
+      "query_id": "QUERY-M026-001-HELDOUT-POSITIVE-CLAUSE",
+      "scoring_mode": "local_user_bge_m3_held_out_descriptor_similarity_v1"
+    },
+    {
+      "candidate_id": "CAND-M026-001-HELDOUT-POSITIVE-CLAUSE-B",
+      "case_id": "CASE-M026-001-HELDOUT-POSITIVE-CLAUSE",
+      "descriptor_input_ref": "HO-DESCC-M026-001-B",
+      "diagnostic_codes": [],
+      "non_authoritative": true,
+      "observation_status": "scored",
+      "observed_rank": 2,
+      "observed_similarity_score": 0.969768,
+      "query_id": "QUERY-M026-001-HELDOUT-POSITIVE-CLAUSE",
+      "scoring_mode": "local_user_bge_m3_held_out_descriptor_similarity_v1"
+    },
+    {
+      "candidate_id": "CAND-M026-002-HELDOUT-SOURCE-BLOCK-A",
+      "case_id": "CASE-M026-002-HELDOUT-SOURCE-BLOCK",
+      "descriptor_input_ref": "HO-DESCC-M026-002-A",
+      "diagnostic_codes": [],
+      "non_authoritative": true,
+      "observation_status": "scored",
+      "observed_rank": 1,
+      "observed_similarity_score": 0.968392,
+      "query_id": "QUERY-M026-002-HELDOUT-SOURCE-BLOCK",
+      "scoring_mode": "local_user_bge_m3_held_out_descriptor_similarity_v1"
+    },
+    {
+      "candidate_id": "CAND-M026-002-HELDOUT-SOURCE-BLOCK-B",
+      "case_id": "CASE-M026-002-HELDOUT-SOURCE-BLOCK",
+      "descriptor_input_ref": "HO-DESCC-M026-002-B",
+      "diagnostic_codes": [],
+      "non_authoritative": true,
+      "observation_status": "scored",
+      "observed_rank": 2,
+      "observed_similarity_score": 0.946829,
+      "query_id": "QUERY-M026-002-HELDOUT-SOURCE-BLOCK",
+      "scoring_mode": "local_user_bge_m3_held_out_descriptor_similarity_v1"
+    },
+    {
+      "candidate_id": "CAND-M026-003-HELDOUT-TEMPORAL-A",
+      "case_id": "CASE-M026-003-HELDOUT-TEMPORAL",
+      "descriptor_input_ref": "HO-DESCC-M026-003-A",
+      "diagnostic_codes": [],
+      "non_authoritative": true,
+      "observation_status": "scored",
+      "observed_rank": 1,
+      "observed_similarity_score": 0.967235,
+      "query_id": "QUERY-M026-003-HELDOUT-TEMPORAL",
+      "scoring_mode": "local_user_bge_m3_held_out_descriptor_similarity_v1"
+    },
+    {
+      "candidate_id": "CAND-M026-003-HELDOUT-TEMPORAL-B",
+      "case_id": "CASE-M026-003-HELDOUT-TEMPORAL",
+      "descriptor_input_ref": "HO-DESCC-M026-003-B",
+      "diagnostic_codes": [],
+      "non_authoritative": true,
+      "observation_status": "scored",
+      "observed_rank": 2,
+      "observed_similarity_score": 0.955893,
+      "query_id": "QUERY-M026-003-HELDOUT-TEMPORAL",
+      "scoring_mode": "local_user_bge_m3_held_out_descriptor_similarity_v1"
+    },
+    {
+      "candidate_id": "CAND-M026-004-HELDOUT-SCOPED-ABSENCE-A",
+      "case_id": "CASE-M026-004-HELDOUT-SCOPED-ABSENCE",
+      "descriptor_input_ref": "HO-DESCC-M026-004-A",
+      "diagnostic_codes": [],
+      "non_authoritative": true,
+      "observation_status": "scored",
+      "observed_rank": 1,
+      "observed_similarity_score": 0.972559,
+      "query_id": "QUERY-M026-004-HELDOUT-SCOPED-ABSENCE",
+      "scoring_mode": "local_user_bge_m3_held_out_descriptor_similarity_v1"
+    },
+    {
+      "candidate_id": "CAND-M026-004-HELDOUT-SCOPED-ABSENCE-B",
+      "case_id": "CASE-M026-004-HELDOUT-SCOPED-ABSENCE",
+      "descriptor_input_ref": "HO-DESCC-M026-004-B",
+      "diagnostic_codes": [],
+      "non_authoritative": true,
+      "observation_status": "scored",
+      "observed_rank": 2,
+      "observed_similarity_score": 0.956923,
+      "query_id": "QUERY-M026-004-HELDOUT-SCOPED-ABSENCE",
+      "scoring_mode": "local_user_bge_m3_held_out_descriptor_similarity_v1"
+    },
+    {
+      "candidate_id": "CAND-M026-005-HELDOUT-SAFETY-BOUNDARY-A",
+      "case_id": "CASE-M026-005-HELDOUT-SAFETY-BOUNDARY",
+      "descriptor_input_ref": "HO-DESCC-M026-005-A",
+      "diagnostic_codes": [],
+      "non_authoritative": true,
+      "observation_status": "scored",
+      "observed_rank": 1,
+      "observed_similarity_score": 0.967395,
+      "query_id": "QUERY-M026-005-HELDOUT-SAFETY-BOUNDARY",
+      "scoring_mode": "local_user_bge_m3_held_out_descriptor_similarity_v1"
+    },
+    {
+      "candidate_id": "CAND-M026-005-HELDOUT-SAFETY-BOUNDARY-B",
+      "case_id": "CASE-M026-005-HELDOUT-SAFETY-BOUNDARY",
+      "descriptor_input_ref": "HO-DESCC-M026-005-B",
+      "diagnostic_codes": [],
+      "non_authoritative": true,
+      "observation_status": "scored",
+      "observed_rank": 2,
+      "observed_similarity_score": 0.954969,
+      "query_id": "QUERY-M026-005-HELDOUT-SAFETY-BOUNDARY",
+      "scoring_mode": "local_user_bge_m3_held_out_descriptor_similarity_v1"
+    }
+  ],
+  "scoring_mode": "local_user_bge_m3_held_out_descriptor_similarity_v1",
+  "slice_id": "S03",
+  "status": "completed"
+}
