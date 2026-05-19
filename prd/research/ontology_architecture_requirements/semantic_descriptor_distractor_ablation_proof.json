@@ -1,0 +1,128 @@
+{
+  "ablated_distractor_rows": [
+    {
+      "candidate_id": "CAND-M022-003-RELEVANT-MARKER",
+      "case_id": "CASE-M022-003-POSITIVE-WITH-DISTRACTOR",
+      "descriptor_input_ref": "DESCC-M025-003-01",
+      "diagnostic_codes": [],
+      "non_authoritative": true,
+      "observation_status": "scored",
+      "observed_rank": 1,
+      "observed_similarity_score": 0.966202,
+      "query_id": "QUERY-M022-003-POSITIVE-WITH-DISTRACTOR",
+      "scoring_mode": "local_user_bge_m3_safe_descriptor_similarity_v1"
+    },
+    {
+      "candidate_id": "CAND-M022-003-DISTRACTOR-ARTICLE",
+      "case_id": "CASE-M022-003-POSITIVE-WITH-DISTRACTOR",
+      "descriptor_input_ref": "DESCC-M025-003-02",
+      "diagnostic_codes": [],
+      "non_authoritative": true,
+      "observation_status": "scored",
+      "observed_rank": 2,
+      "observed_similarity_score": 0.942107,
+      "query_id": "QUERY-M022-003-POSITIVE-WITH-DISTRACTOR",
+      "scoring_mode": "local_user_bge_m3_safe_descriptor_similarity_v1"
+    }
+  ],
+  "ablated_distractor_top_candidate": "CAND-M022-003-RELEVANT-MARKER",
+  "ablated_metrics": {
+    "mrr": 1.0,
+    "positive_with_distractor_relevant_first": 1.0,
+    "recall_at_1": 1.0,
+    "recall_at_3": 1.0,
+    "runtime_boundary_confirmed": 1.0
+  },
+  "ablation_provenance": {
+    "candidate_descriptors_changed": false,
+    "changed_fields": [
+      {
+        "case_id": "CASE-M022-003-POSITIVE-WITH-DISTRACTOR",
+        "descriptor_input_id": "DESCQ-M025-003",
+        "field": "query_intent",
+        "from": "resolve_granularity_conflict",
+        "to": "locate_source_block_marker"
+      }
+    ],
+    "fixture_changed": false,
+    "metrics_policy_changed": false,
+    "only_query_descriptor_changed": true,
+    "temporary_manifest_persisted": false,
+    "unchanged_expected_vector_dimension": 1024,
+    "unchanged_runtime_model": "deepvk/USER-bge-m3",
+    "unchanged_scoring_mode": "local_user_bge_m3_safe_descriptor_similarity_v1"
+  },
+  "ablation_scope": "positive_with_distractor_query_intent_only",
+  "changed_descriptor_inputs": [
+    "DESCQ-M025-003"
+  ],
+  "current_distractor_rows": [
+    {
+      "candidate_id": "CAND-M022-003-RELEVANT-MARKER",
+      "case_id": "CASE-M022-003-POSITIVE-WITH-DISTRACTOR",
+      "descriptor_input_ref": "DESCC-M025-003-01",
+      "diagnostic_codes": [],
+      "non_authoritative": true,
+      "observation_status": "scored",
+      "observed_rank": 1,
+      "observed_similarity_score": 0.960175,
+      "query_id": "QUERY-M022-003-POSITIVE-WITH-DISTRACTOR",
+      "scoring_mode": "local_user_bge_m3_safe_descriptor_similarity_v1"
+    },
+    {
+      "candidate_id": "CAND-M022-003-DISTRACTOR-ARTICLE",
+      "case_id": "CASE-M022-003-POSITIVE-WITH-DISTRACTOR",
+      "descriptor_input_ref": "DESCC-M025-003-02",
+      "diagnostic_codes": [],
+      "non_authoritative": true,
+      "observation_status": "scored",
+      "observed_rank": 2,
+      "observed_similarity_score": 0.938157,
+      "query_id": "QUERY-M022-003-POSITIVE-WITH-DISTRACTOR",
+      "scoring_mode": "local_user_bge_m3_safe_descriptor_similarity_v1"
+    }
+  ],
+  "current_distractor_top_candidate": "CAND-M022-003-RELEVANT-MARKER",
+  "current_metrics": {
+    "mrr": 1.0,
+    "positive_with_distractor_relevant_first": 1.0,
+    "recall_at_1": 1.0,
+    "recall_at_3": 1.0,
+    "runtime_boundary_confirmed": 1.0
+  },
+  "current_scoring_proof": "prd/research/ontology_architecture_requirements/semantic_descriptor_scoring_proof.json",
+  "current_scoring_proof_sha256": "bb736c29cee0e387386ae9600ca49742f22263a942d1a84398f72b8bec331349",
+  "dependency_diagnosis": "distractor_success_survives_query_intent_ablation",
+  "metric_deltas_after_ablation": {
+    "mrr": 0.0,
+    "positive_with_distractor_relevant_first": 0.0,
+    "recall_at_1": 0.0,
+    "recall_at_3": 0.0,
+    "runtime_boundary_confirmed": 0.0
+  },
+  "milestone_id": "M025-50be7n",
+  "neutralization": {
+    "field": "query_intent",
+    "from": "resolve_granularity_conflict",
+    "to": "locate_source_block_marker"
+  },
+  "non_authoritative": true,
+  "non_claim_boundary": "Distractor ablation proof only; does not prove product retrieval quality or validate R035.",
+  "redaction": {
+    "expected_answer_fields_excluded": true,
+    "external_payloads_excluded": true,
+    "query_text_excluded": true,
+    "raw_vectors_excluded": true,
+    "source_text_excluded": true
+  },
+  "schema_version": "semantic-descriptor-distractor-ablation-proof/v1",
+  "score_digest": {
+    "ablated_scores_sha256": "5c105aeceaefceda8e9e835d821cd8fef0168e4f29d437e7188ddafd3b48932f",
+    "current_scores_sha256": "1c9d9a6aae295522592dc918be72b8a3040f85f366d7f9cd879a1c08134527e4"
+  },
+  "scoring_mode": "local_user_bge_m3_safe_descriptor_similarity_v1",
+  "slice_id": "S05",
+  "source_descriptor_manifest": "prd/research/ontology_architecture_requirements/fixtures/semantic_descriptor_inputs.json",
+  "source_descriptor_manifest_sha256": "88a9c70042ce11ec6665dee498532071afed5bf7665f575f75381c417688698a",
+  "status": "ok"
+}

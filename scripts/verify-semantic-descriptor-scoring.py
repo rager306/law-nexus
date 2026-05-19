@@ -344,7 +344,7 @@ def build_report(
     report = {
         "schema_version": SCHEMA_VERSION,
         "milestone_id": "M025-50be7n",
-        "slice_id": "S03",
+        "slice_id": "S05",
         "status": scoring_status,
         "scoring_mode": SCORING_MODE,
         "descriptor_input_summary": descriptor_summary,

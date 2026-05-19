@@ -1,0 +1,59 @@
+{
+  "builder": "scripts/build-semantic-descriptor-inputs.py",
+  "descriptor_manifest": "prd/research/ontology_architecture_requirements/fixtures/semantic_descriptor_inputs.json",
+  "forbidden_derivation_fields": [
+    "expected_candidate_ids",
+    "expected_diagnostic_codes",
+    "expected_label",
+    "expected_rejected_candidate_ids",
+    "rank",
+    "selection_reason"
+  ],
+  "forbidden_field_perturbation": {
+    "descriptor_projection_stable": true,
+    "mutated_fields": [
+      "expected_candidate_ids",
+      "expected_diagnostic_codes",
+      "expected_label",
+      "expected_rejected_candidate_ids",
+      "rank",
+      "selection_reason",
+      "expected_result"
+    ],
+    "original_projection_sha256": "58effac41a32f3cb421f92548fd5493b327418d3c52f47d110e8e6e71e864a40",
+    "perturbed_projection_sha256": "58effac41a32f3cb421f92548fd5493b327418d3c52f47d110e8e6e71e864a40"
+  },
+  "milestone_id": "M025-50be7n",
+  "neutral_enum_replacements": {
+    "present": [
+      "ambiguity_resolution_required",
+      "scope_outside_supported_corpus",
+      "scoped_absence_check_required",
+      "resolve_granularity_conflict"
+    ],
+    "removed": [
+      "ambiguous_candidates_expected",
+      "unsupported_scope_expected",
+      "no_answer_expected",
+      "prefer_granular_marker_over_broad_unit"
+    ]
+  },
+  "non_authoritative": true,
+  "non_claim_boundary": "Derivation independence proof only; does not prove semantic retrieval quality or validate R035.",
+  "redaction": {
+    "expected_answer_fields_excluded": true,
+    "external_payloads_excluded": true,
+    "query_text_excluded": true,
+    "raw_vectors_excluded": true,
+    "source_text_excluded": true
+  },
+  "schema_version": "semantic-descriptor-derivation-remediation-proof/v1",
+  "slice_id": "S05",
+  "source_fixture": "prd/research/ontology_architecture_requirements/fixtures/representative_evidence_span_retrieval_corpus.json",
+  "status": "ok",
+  "structural_control": {
+    "changed_field": "cases[2].candidates[0].candidate_id",
+    "structural_change_detected": true,
+    "structural_projection_sha256": "9c8e9343218a60d487d76d2cee405039582f4406a86ede00836d56fe6e8fa248"
+  }
+}

@@ -107,7 +107,7 @@
       "non_authoritative": true,
       "observation_status": "scored",
       "observed_rank": 1,
-      "observed_similarity_score": 0.947787,
+      "observed_similarity_score": 0.960175,
       "query_id": "QUERY-M022-003-POSITIVE-WITH-DISTRACTOR",
       "scoring_mode": "local_user_bge_m3_safe_descriptor_similarity_v1"
     },
@@ -119,7 +119,7 @@
       "non_authoritative": true,
       "observation_status": "scored",
       "observed_rank": 2,
-      "observed_similarity_score": 0.926114,
+      "observed_similarity_score": 0.938157,
       "query_id": "QUERY-M022-003-POSITIVE-WITH-DISTRACTOR",
       "scoring_mode": "local_user_bge_m3_safe_descriptor_similarity_v1"
     },
@@ -143,7 +143,7 @@
       "non_authoritative": true,
       "observation_status": "scored",
       "observed_rank": 1,
-      "observed_similarity_score": 0.975575,
+      "observed_similarity_score": 0.977428,
       "query_id": "QUERY-M022-005-AMBIGUOUS-CANDIDATE-SET",
       "scoring_mode": "local_user_bge_m3_safe_descriptor_similarity_v1"
     },
@@ -155,7 +155,7 @@
       "non_authoritative": true,
       "observation_status": "scored",
       "observed_rank": 2,
-      "observed_similarity_score": 0.975575,
+      "observed_similarity_score": 0.977428,
       "query_id": "QUERY-M022-005-AMBIGUOUS-CANDIDATE-SET",
       "scoring_mode": "local_user_bge_m3_safe_descriptor_similarity_v1"
     },
@@ -167,7 +167,7 @@
       "non_authoritative": true,
       "observation_status": "scored",
       "observed_rank": 1,
-      "observed_similarity_score": 0.968554,
+      "observed_similarity_score": 0.972645,
       "query_id": "QUERY-M022-008-CITATION-PRESERVATION-BOUNDARY",
       "scoring_mode": "local_user_bge_m3_safe_descriptor_similarity_v1"
     },
@@ -179,7 +179,7 @@
       "non_authoritative": true,
       "observation_status": "scored",
       "observed_rank": 1,
-      "observed_similarity_score": 0.966874,
+      "observed_similarity_score": 0.964139,
       "query_id": "QUERY-M022-009-EDITION-MISMATCH-NEGATIVE",
       "scoring_mode": "local_user_bge_m3_safe_descriptor_similarity_v1"
     },
@@ -191,13 +191,13 @@
       "non_authoritative": true,
       "observation_status": "scored",
       "observed_rank": 1,
-      "observed_similarity_score": 0.962655,
+      "observed_similarity_score": 0.960483,
       "query_id": "QUERY-M022-010-UNSAFE-PAYLOAD-BOUNDARY",
       "scoring_mode": "local_user_bge_m3_safe_descriptor_similarity_v1"
     }
   ],
   "scoring_mode": "local_user_bge_m3_safe_descriptor_similarity_v1",
-  "slice_id": "S03",
+  "slice_id": "S05",
   "status": "completed",
   "threshold_failures": [],
   "thresholds": {

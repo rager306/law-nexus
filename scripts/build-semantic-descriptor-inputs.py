@@ -155,6 +155,13 @@ def sha256_path(path: Path) -> str:
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
+def portable_path(path: Path) -> str:
+    try:
+        return str(path.relative_to(ROOT))
+    except ValueError:
+        return f"external-test-fixture:{path.name}"
+
+
 def ensure_no_forbidden_fields(value: Any) -> None:
     if isinstance(value, Mapping):
         forbidden = set(value) & FORBIDDEN_DERIVATION_FIELDS
@@ -315,9 +322,9 @@ def build_manifest(fixture_path: Path = DEFAULT_FIXTURE, contract_path: Path = D
         "milestone_id": "M025-50be7n",
         "slice_id": "S05",
         "representation_kind": REPRESENTATION_KIND,
-        "contract": str(contract_path.relative_to(ROOT)),
+        "contract": portable_path(contract_path),
         "contract_sha256": sha256_path(contract_path),
-        "source_fixture": str(fixture_path.relative_to(ROOT)),
+        "source_fixture": portable_path(fixture_path),
         "source_fixture_sha256": sha256_path(fixture_path),
         "allowed_descriptor_fields": {field: sorted(values) for field, values in sorted(allowed_descriptor_fields.items())},
         "query_descriptor_count": len(query_descriptors),
