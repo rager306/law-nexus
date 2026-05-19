@@ -1,0 +1,210 @@
+{
+  "descriptor_input_summary": {
+    "candidate_descriptor_count": 10,
+    "diagnostic_codes": [
+      "semantic_descriptors_verified"
+    ],
+    "non_authoritative": true,
+    "non_claim_boundary": "Safe descriptor inputs only; does not prove semantic retrieval quality or validate R035.",
+    "query_descriptor_count": 10,
+    "representation_kind": "safe_semantic_descriptor_v1",
+    "schema_version": "semantic-descriptor-inputs-verification/v1",
+    "status": "ok"
+  },
+  "diagnostic_codes": [
+    "baseline_delta_positive",
+    "descriptor_scoring_completed",
+    "runtime_confirmed",
+    "semantic_descriptors_verified"
+  ],
+  "disposition_hint": "accept_candidate_pending_review",
+  "m024_baseline_metrics": {
+    "mrr": 0.875,
+    "positive_with_distractor_relevant_first": 0.0,
+    "recall_at_1": 0.75,
+    "recall_at_3": 1.0,
+    "runtime_boundary_confirmed": 1.0
+  },
+  "metric_deltas": {
+    "delta_mrr": 0.125,
+    "delta_positive_with_distractor_relevant_first": 1.0,
+    "delta_recall_at_1": 0.25,
+    "delta_recall_at_3": 0.0,
+    "delta_runtime_boundary_confirmed": 0.0
+  },
+  "metrics": {
+    "mrr": 1.0,
+    "positive_with_distractor_relevant_first": 1.0,
+    "recall_at_1": 1.0,
+    "recall_at_3": 1.0,
+    "runtime_boundary_confirmed": 1.0
+  },
+  "milestone_id": "M025-50be7n",
+  "non_authoritative": true,
+  "non_claims": [
+    "Does not validate R035.",
+    "Does not prove product retrieval quality.",
+    "Does not prove legal-answer correctness.",
+    "Does not prove graph-vector or HNSW behavior.",
+    "Does not persist raw vectors."
+  ],
+  "redaction": {
+    "absolute_paths_excluded": true,
+    "external_payloads_excluded": true,
+    "generated_answer_prose_excluded": true,
+    "generated_query_excluded": true,
+    "gsd_exec_paths_excluded": true,
+    "query_text_excluded": true,
+    "raw_vectors_excluded": true,
+    "source_text_excluded": true
+  },
+  "runtime_boundary": {
+    "confirmed": true,
+    "diagnostic_codes": [
+      "runtime_confirmed"
+    ],
+    "expected_vector_dimension": 1024,
+    "failure_class": "none",
+    "managed_api_used": false,
+    "model_id": "deepvk/USER-bge-m3",
+    "network_used": false,
+    "observed_vector_dimension": 1024,
+    "raw_vectors_persisted": false,
+    "runtime_status": "confirmed_runtime"
+  },
+  "schema_version": "semantic-descriptor-scoring-proof/v1",
+  "score_count": 10,
+  "scores": [
+    {
+      "candidate_id": "CAND-M022-001-EV-ARTICLE-0001",
+      "case_id": "CASE-M022-001-POSITIVE-EVIDENCE-SPAN",
+      "descriptor_input_ref": "DESCC-M025-001-01",
+      "diagnostic_codes": [],
+      "non_authoritative": true,
+      "observation_status": "scored",
+      "observed_rank": 1,
+      "observed_similarity_score": 0.968365,
+      "query_id": "QUERY-M022-001-POSITIVE-EVIDENCE-SPAN",
+      "scoring_mode": "local_user_bge_m3_safe_descriptor_similarity_v1"
+    },
+    {
+      "candidate_id": "CAND-M022-002-SB-ARTICLE-0001",
+      "case_id": "CASE-M022-002-POSITIVE-SOURCE-BLOCK-MARKER",
+      "descriptor_input_ref": "DESCC-M025-002-01",
+      "diagnostic_codes": [],
+      "non_authoritative": true,
+      "observation_status": "scored",
+      "observed_rank": 1,
+      "observed_similarity_score": 0.966202,
+      "query_id": "QUERY-M022-002-POSITIVE-SOURCE-BLOCK-MARKER",
+      "scoring_mode": "local_user_bge_m3_safe_descriptor_similarity_v1"
+    },
+    {
+      "candidate_id": "CAND-M022-003-RELEVANT-MARKER",
+      "case_id": "CASE-M022-003-POSITIVE-WITH-DISTRACTOR",
+      "descriptor_input_ref": "DESCC-M025-003-01",
+      "diagnostic_codes": [],
+      "non_authoritative": true,
+      "observation_status": "scored",
+      "observed_rank": 1,
+      "observed_similarity_score": 0.947787,
+      "query_id": "QUERY-M022-003-POSITIVE-WITH-DISTRACTOR",
+      "scoring_mode": "local_user_bge_m3_safe_descriptor_similarity_v1"
+    },
+    {
+      "candidate_id": "CAND-M022-003-DISTRACTOR-ARTICLE",
+      "case_id": "CASE-M022-003-POSITIVE-WITH-DISTRACTOR",
+      "descriptor_input_ref": "DESCC-M025-003-02",
+      "diagnostic_codes": [],
+      "non_authoritative": true,
+      "observation_status": "scored",
+      "observed_rank": 2,
+      "observed_similarity_score": 0.926114,
+      "query_id": "QUERY-M022-003-POSITIVE-WITH-DISTRACTOR",
+      "scoring_mode": "local_user_bge_m3_safe_descriptor_similarity_v1"
+    },
+    {
+      "candidate_id": "CAND-M022-004-STALE-WRONG-EDITION",
+      "case_id": "CASE-M022-004-STALE-TEMPORAL-NEGATIVE",
+      "descriptor_input_ref": "DESCC-M025-004-01",
+      "diagnostic_codes": [],
+      "non_authoritative": true,
+      "observation_status": "scored",
+      "observed_rank": 1,
+      "observed_similarity_score": 0.95948,
+      "query_id": "QUERY-M022-004-STALE-TEMPORAL-NEGATIVE",
+      "scoring_mode": "local_user_bge_m3_safe_descriptor_similarity_v1"
+    },
+    {
+      "candidate_id": "CAND-M022-005-AMBIG-CLAUSE-0001",
+      "case_id": "CASE-M022-005-AMBIGUOUS-CANDIDATE-SET",
+      "descriptor_input_ref": "DESCC-M025-005-01",
+      "diagnostic_codes": [],
+      "non_authoritative": true,
+      "observation_status": "scored",
+      "observed_rank": 1,
+      "observed_similarity_score": 0.975575,
+      "query_id": "QUERY-M022-005-AMBIGUOUS-CANDIDATE-SET",
+      "scoring_mode": "local_user_bge_m3_safe_descriptor_similarity_v1"
+    },
+    {
+      "candidate_id": "CAND-M022-005-AMBIG-CLAUSE-0002",
+      "case_id": "CASE-M022-005-AMBIGUOUS-CANDIDATE-SET",
+      "descriptor_input_ref": "DESCC-M025-005-02",
+      "diagnostic_codes": [],
+      "non_authoritative": true,
+      "observation_status": "scored",
+      "observed_rank": 2,
+      "observed_similarity_score": 0.975575,
+      "query_id": "QUERY-M022-005-AMBIGUOUS-CANDIDATE-SET",
+      "scoring_mode": "local_user_bge_m3_safe_descriptor_similarity_v1"
+    },
+    {
+      "candidate_id": "CAND-M022-008-CITATION-PRESERVED",
+      "case_id": "CASE-M022-008-CITATION-PRESERVATION-BOUNDARY",
+      "descriptor_input_ref": "DESCC-M025-008-01",
+      "diagnostic_codes": [],
+      "non_authoritative": true,
+      "observation_status": "scored",
+      "observed_rank": 1,
+      "observed_similarity_score": 0.968554,
+      "query_id": "QUERY-M022-008-CITATION-PRESERVATION-BOUNDARY",
+      "scoring_mode": "local_user_bge_m3_safe_descriptor_similarity_v1"
+    },
+    {
+      "candidate_id": "CAND-M022-009-EDITION-MISMATCH",
+      "case_id": "CASE-M022-009-EDITION-MISMATCH-NEGATIVE",
+      "descriptor_input_ref": "DESCC-M025-009-01",
+      "diagnostic_codes": [],
+      "non_authoritative": true,
+      "observation_status": "scored",
+      "observed_rank": 1,
+      "observed_similarity_score": 0.966874,
+      "query_id": "QUERY-M022-009-EDITION-MISMATCH-NEGATIVE",
+      "scoring_mode": "local_user_bge_m3_safe_descriptor_similarity_v1"
+    },
+    {
+      "candidate_id": "CAND-M022-010-UNSAFE-BOUNDARY",
+      "case_id": "CASE-M022-010-UNSAFE-PAYLOAD-BOUNDARY",
+      "descriptor_input_ref": "DESCC-M025-010-01",
+      "diagnostic_codes": [],
+      "non_authoritative": true,
+      "observation_status": "scored",
+      "observed_rank": 1,
+      "observed_similarity_score": 0.962655,
+      "query_id": "QUERY-M022-010-UNSAFE-PAYLOAD-BOUNDARY",
+      "scoring_mode": "local_user_bge_m3_safe_descriptor_similarity_v1"
+    }
+  ],
+  "scoring_mode": "local_user_bge_m3_safe_descriptor_similarity_v1",
+  "slice_id": "S03",
+  "status": "completed",
+  "threshold_failures": [],
+  "thresholds": {
+    "mrr": 1.0,
+    "positive_with_distractor_relevant_first": 1.0,
+    "recall_at_1": 1.0,
+    "recall_at_3": 1.0,
+    "runtime_boundary_confirmed": 1.0
+  }
+}

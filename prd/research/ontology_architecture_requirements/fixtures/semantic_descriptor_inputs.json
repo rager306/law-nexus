@@ -1,0 +1,797 @@
+{
+  "allowed_descriptor_fields": {
+    "actor_role": [
+      "retrieval_system"
+    ],
+    "ambiguity_handling": [
+      "ambiguous_candidates_expected",
+      "no_answer_expected",
+      "not_applicable",
+      "unsupported_scope_expected"
+    ],
+    "candidate_role": [
+      "candidate_document_unit"
+    ],
+    "citation_binding_status": [
+      "complete_citation_binding",
+      "incomplete_citation_binding"
+    ],
+    "citation_granularity": [
+      "act_edition",
+      "article_or_evidence_span",
+      "clause",
+      "complete_citation_binding",
+      "document_unit",
+      "incomplete_citation_binding",
+      "safety_boundary",
+      "source_block_marker"
+    ],
+    "document_scope": [
+      "act_edition",
+      "article_or_evidence_span",
+      "citation_binding",
+      "clause_set",
+      "evidence_span",
+      "safety_boundary",
+      "scope_absence",
+      "source_block",
+      "unsupported_scope"
+    ],
+    "obligation_type": [
+      "retrieval_selection",
+      "temporal_filtering",
+      "ambiguity_resolution",
+      "scope_rejection",
+      "citation_preservation",
+      "safety_rejection"
+    ],
+    "procurement_phase": [
+      "general_44fz_retrieval"
+    ],
+    "query_intent": [
+      "apply_temporal_scope",
+      "detect_ambiguous_candidates",
+      "detect_scoped_absence",
+      "locate_evidence_span",
+      "locate_source_block_marker",
+      "prefer_granular_marker_over_broad_unit",
+      "preserve_citation_binding",
+      "reject_edition_mismatch",
+      "reject_unsafe_payload_boundary",
+      "reject_unsupported_scope"
+    ],
+    "safety_boundary": [
+      "not_applicable",
+      "unsafe_payload_boundary"
+    ],
+    "temporal_status": [
+      "as_of_date_required",
+      "current_edition",
+      "edition_consistency_required",
+      "not_applicable",
+      "stale_or_mismatched_edition"
+    ],
+    "topic_class": [
+      "procurement_contracting"
+    ]
+  },
+  "candidate_descriptor_count": 10,
+  "candidate_descriptors": [
+    {
+      "candidate_id": "CAND-M022-001-EV-ARTICLE-0001",
+      "case_id": "CASE-M022-001-POSITIVE-EVIDENCE-SPAN",
+      "descriptor_input_id": "DESCC-M025-001-01",
+      "descriptor_tokens": [
+        "actor_role:retrieval_system",
+        "ambiguity_handling:not_applicable",
+        "candidate_role:candidate_document_unit",
+        "citation_binding_status:complete_citation_binding",
+        "citation_granularity:article_or_evidence_span",
+        "document_scope:article_or_evidence_span",
+        "obligation_type:retrieval_selection",
+        "procurement_phase:general_44fz_retrieval",
+        "safety_boundary:not_applicable",
+        "temporal_status:current_edition",
+        "topic_class:procurement_contracting"
+      ],
+      "descriptors": {
+        "actor_role": "retrieval_system",
+        "ambiguity_handling": "not_applicable",
+        "candidate_role": "candidate_document_unit",
+        "citation_binding_status": "complete_citation_binding",
+        "citation_granularity": "article_or_evidence_span",
+        "document_scope": "article_or_evidence_span",
+        "obligation_type": "retrieval_selection",
+        "procurement_phase": "general_44fz_retrieval",
+        "safety_boundary": "not_applicable",
+        "temporal_status": "current_edition",
+        "topic_class": "procurement_contracting"
+      },
+      "non_authoritative": true,
+      "query_id": "QUERY-M022-001-POSITIVE-EVIDENCE-SPAN",
+      "representation_kind": "safe_semantic_descriptor_v1",
+      "source_record_ids": [
+        "HIER-CONS-ARTICLE-0001"
+      ]
+    },
+    {
+      "candidate_id": "CAND-M022-002-SB-ARTICLE-0001",
+      "case_id": "CASE-M022-002-POSITIVE-SOURCE-BLOCK-MARKER",
+      "descriptor_input_id": "DESCC-M025-002-01",
+      "descriptor_tokens": [
+        "actor_role:retrieval_system",
+        "ambiguity_handling:not_applicable",
+        "candidate_role:candidate_document_unit",
+        "citation_binding_status:complete_citation_binding",
+        "citation_granularity:source_block_marker",
+        "document_scope:source_block",
+        "obligation_type:retrieval_selection",
+        "procurement_phase:general_44fz_retrieval",
+        "safety_boundary:not_applicable",
+        "temporal_status:current_edition",
+        "topic_class:procurement_contracting"
+      ],
+      "descriptors": {
+        "actor_role": "retrieval_system",
+        "ambiguity_handling": "not_applicable",
+        "candidate_role": "candidate_document_unit",
+        "citation_binding_status": "complete_citation_binding",
+        "citation_granularity": "source_block_marker",
+        "document_scope": "source_block",
+        "obligation_type": "retrieval_selection",
+        "procurement_phase": "general_44fz_retrieval",
+        "safety_boundary": "not_applicable",
+        "temporal_status": "current_edition",
+        "topic_class": "procurement_contracting"
+      },
+      "non_authoritative": true,
+      "query_id": "QUERY-M022-002-POSITIVE-SOURCE-BLOCK-MARKER",
+      "representation_kind": "safe_semantic_descriptor_v1",
+      "source_record_ids": [
+        "HIER-CONS-ARTICLE-0001"
+      ]
+    },
+    {
+      "candidate_id": "CAND-M022-003-RELEVANT-MARKER",
+      "case_id": "CASE-M022-003-POSITIVE-WITH-DISTRACTOR",
+      "descriptor_input_id": "DESCC-M025-003-01",
+      "descriptor_tokens": [
+        "actor_role:retrieval_system",
+        "ambiguity_handling:not_applicable",
+        "candidate_role:candidate_document_unit",
+        "citation_binding_status:complete_citation_binding",
+        "citation_granularity:source_block_marker",
+        "document_scope:source_block",
+        "obligation_type:retrieval_selection",
+        "procurement_phase:general_44fz_retrieval",
+        "safety_boundary:not_applicable",
+        "temporal_status:current_edition",
+        "topic_class:procurement_contracting"
+      ],
+      "descriptors": {
+        "actor_role": "retrieval_system",
+        "ambiguity_handling": "not_applicable",
+        "candidate_role": "candidate_document_unit",
+        "citation_binding_status": "complete_citation_binding",
+        "citation_granularity": "source_block_marker",
+        "document_scope": "source_block",
+        "obligation_type": "retrieval_selection",
+        "procurement_phase": "general_44fz_retrieval",
+        "safety_boundary": "not_applicable",
+        "temporal_status": "current_edition",
+        "topic_class": "procurement_contracting"
+      },
+      "non_authoritative": true,
+      "query_id": "QUERY-M022-003-POSITIVE-WITH-DISTRACTOR",
+      "representation_kind": "safe_semantic_descriptor_v1",
+      "source_record_ids": [
+        "HIER-CONS-ARTICLE-0001"
+      ]
+    },
+    {
+      "candidate_id": "CAND-M022-003-DISTRACTOR-ARTICLE",
+      "case_id": "CASE-M022-003-POSITIVE-WITH-DISTRACTOR",
+      "descriptor_input_id": "DESCC-M025-003-02",
+      "descriptor_tokens": [
+        "actor_role:retrieval_system",
+        "ambiguity_handling:not_applicable",
+        "candidate_role:candidate_document_unit",
+        "citation_binding_status:complete_citation_binding",
+        "citation_granularity:article_or_evidence_span",
+        "document_scope:article_or_evidence_span",
+        "obligation_type:retrieval_selection",
+        "procurement_phase:general_44fz_retrieval",
+        "safety_boundary:not_applicable",
+        "temporal_status:current_edition",
+        "topic_class:procurement_contracting"
+      ],
+      "descriptors": {
+        "actor_role": "retrieval_system",
+        "ambiguity_handling": "not_applicable",
+        "candidate_role": "candidate_document_unit",
+        "citation_binding_status": "complete_citation_binding",
+        "citation_granularity": "article_or_evidence_span",
+        "document_scope": "article_or_evidence_span",
+        "obligation_type": "retrieval_selection",
+        "procurement_phase": "general_44fz_retrieval",
+        "safety_boundary": "not_applicable",
+        "temporal_status": "current_edition",
+        "topic_class": "procurement_contracting"
+      },
+      "non_authoritative": true,
+      "query_id": "QUERY-M022-003-POSITIVE-WITH-DISTRACTOR",
+      "representation_kind": "safe_semantic_descriptor_v1",
+      "source_record_ids": [
+        "HIER-CONS-ARTICLE-0001"
+      ]
+    },
+    {
+      "candidate_id": "CAND-M022-004-STALE-WRONG-EDITION",
+      "case_id": "CASE-M022-004-STALE-TEMPORAL-NEGATIVE",
+      "descriptor_input_id": "DESCC-M025-004-01",
+      "descriptor_tokens": [
+        "actor_role:retrieval_system",
+        "ambiguity_handling:not_applicable",
+        "candidate_role:candidate_document_unit",
+        "citation_binding_status:complete_citation_binding",
+        "citation_granularity:act_edition",
+        "document_scope:act_edition",
+        "obligation_type:temporal_filtering",
+        "procurement_phase:general_44fz_retrieval",
+        "safety_boundary:not_applicable",
+        "temporal_status:stale_or_mismatched_edition",
+        "topic_class:procurement_contracting"
+      ],
+      "descriptors": {
+        "actor_role": "retrieval_system",
+        "ambiguity_handling": "not_applicable",
+        "candidate_role": "candidate_document_unit",
+        "citation_binding_status": "complete_citation_binding",
+        "citation_granularity": "act_edition",
+        "document_scope": "act_edition",
+        "obligation_type": "temporal_filtering",
+        "procurement_phase": "general_44fz_retrieval",
+        "safety_boundary": "not_applicable",
+        "temporal_status": "stale_or_mismatched_edition",
+        "topic_class": "procurement_contracting"
+      },
+      "non_authoritative": true,
+      "query_id": "QUERY-M022-004-STALE-TEMPORAL-NEGATIVE",
+      "representation_kind": "safe_semantic_descriptor_v1",
+      "source_record_ids": [
+        "HIER-CONS-ARTICLE-0001"
+      ]
+    },
+    {
+      "candidate_id": "CAND-M022-005-AMBIG-CLAUSE-0001",
+      "case_id": "CASE-M022-005-AMBIGUOUS-CANDIDATE-SET",
+      "descriptor_input_id": "DESCC-M025-005-01",
+      "descriptor_tokens": [
+        "actor_role:retrieval_system",
+        "ambiguity_handling:ambiguous_candidates_expected",
+        "candidate_role:candidate_document_unit",
+        "citation_binding_status:complete_citation_binding",
+        "citation_granularity:clause",
+        "document_scope:clause_set",
+        "obligation_type:ambiguity_resolution",
+        "procurement_phase:general_44fz_retrieval",
+        "safety_boundary:not_applicable",
+        "temporal_status:current_edition",
+        "topic_class:procurement_contracting"
+      ],
+      "descriptors": {
+        "actor_role": "retrieval_system",
+        "ambiguity_handling": "ambiguous_candidates_expected",
+        "candidate_role": "candidate_document_unit",
+        "citation_binding_status": "complete_citation_binding",
+        "citation_granularity": "clause",
+        "document_scope": "clause_set",
+        "obligation_type": "ambiguity_resolution",
+        "procurement_phase": "general_44fz_retrieval",
+        "safety_boundary": "not_applicable",
+        "temporal_status": "current_edition",
+        "topic_class": "procurement_contracting"
+      },
+      "non_authoritative": true,
+      "query_id": "QUERY-M022-005-AMBIGUOUS-CANDIDATE-SET",
+      "representation_kind": "safe_semantic_descriptor_v1",
+      "source_record_ids": [
+        "HIER-CONS-CLAUSE-0001"
+      ]
+    },
+    {
+      "candidate_id": "CAND-M022-005-AMBIG-CLAUSE-0002",
+      "case_id": "CASE-M022-005-AMBIGUOUS-CANDIDATE-SET",
+      "descriptor_input_id": "DESCC-M025-005-02",
+      "descriptor_tokens": [
+        "actor_role:retrieval_system",
+        "ambiguity_handling:ambiguous_candidates_expected",
+        "candidate_role:candidate_document_unit",
+        "citation_binding_status:complete_citation_binding",
+        "citation_granularity:clause",
+        "document_scope:clause_set",
+        "obligation_type:ambiguity_resolution",
+        "procurement_phase:general_44fz_retrieval",
+        "safety_boundary:not_applicable",
+        "temporal_status:current_edition",
+        "topic_class:procurement_contracting"
+      ],
+      "descriptors": {
+        "actor_role": "retrieval_system",
+        "ambiguity_handling": "ambiguous_candidates_expected",
+        "candidate_role": "candidate_document_unit",
+        "citation_binding_status": "complete_citation_binding",
+        "citation_granularity": "clause",
+        "document_scope": "clause_set",
+        "obligation_type": "ambiguity_resolution",
+        "procurement_phase": "general_44fz_retrieval",
+        "safety_boundary": "not_applicable",
+        "temporal_status": "current_edition",
+        "topic_class": "procurement_contracting"
+      },
+      "non_authoritative": true,
+      "query_id": "QUERY-M022-005-AMBIGUOUS-CANDIDATE-SET",
+      "representation_kind": "safe_semantic_descriptor_v1",
+      "source_record_ids": [
+        "HIER-CONS-CLAUSE-0002"
+      ]
+    },
+    {
+      "candidate_id": "CAND-M022-008-CITATION-PRESERVED",
+      "case_id": "CASE-M022-008-CITATION-PRESERVATION-BOUNDARY",
+      "descriptor_input_id": "DESCC-M025-008-01",
+      "descriptor_tokens": [
+        "actor_role:retrieval_system",
+        "ambiguity_handling:not_applicable",
+        "candidate_role:candidate_document_unit",
+        "citation_binding_status:complete_citation_binding",
+        "citation_granularity:document_unit",
+        "document_scope:evidence_span",
+        "obligation_type:citation_preservation",
+        "procurement_phase:general_44fz_retrieval",
+        "safety_boundary:not_applicable",
+        "temporal_status:current_edition",
+        "topic_class:procurement_contracting"
+      ],
+      "descriptors": {
+        "actor_role": "retrieval_system",
+        "ambiguity_handling": "not_applicable",
+        "candidate_role": "candidate_document_unit",
+        "citation_binding_status": "complete_citation_binding",
+        "citation_granularity": "document_unit",
+        "document_scope": "evidence_span",
+        "obligation_type": "citation_preservation",
+        "procurement_phase": "general_44fz_retrieval",
+        "safety_boundary": "not_applicable",
+        "temporal_status": "current_edition",
+        "topic_class": "procurement_contracting"
+      },
+      "non_authoritative": true,
+      "query_id": "QUERY-M022-008-CITATION-PRESERVATION-BOUNDARY",
+      "representation_kind": "safe_semantic_descriptor_v1",
+      "source_record_ids": [
+        "HIER-CONS-ARTICLE-0001"
+      ]
+    },
+    {
+      "candidate_id": "CAND-M022-009-EDITION-MISMATCH",
+      "case_id": "CASE-M022-009-EDITION-MISMATCH-NEGATIVE",
+      "descriptor_input_id": "DESCC-M025-009-01",
+      "descriptor_tokens": [
+        "actor_role:retrieval_system",
+        "ambiguity_handling:not_applicable",
+        "candidate_role:candidate_document_unit",
+        "citation_binding_status:complete_citation_binding",
+        "citation_granularity:act_edition",
+        "document_scope:act_edition",
+        "obligation_type:temporal_filtering",
+        "procurement_phase:general_44fz_retrieval",
+        "safety_boundary:not_applicable",
+        "temporal_status:stale_or_mismatched_edition",
+        "topic_class:procurement_contracting"
+      ],
+      "descriptors": {
+        "actor_role": "retrieval_system",
+        "ambiguity_handling": "not_applicable",
+        "candidate_role": "candidate_document_unit",
+        "citation_binding_status": "complete_citation_binding",
+        "citation_granularity": "act_edition",
+        "document_scope": "act_edition",
+        "obligation_type": "temporal_filtering",
+        "procurement_phase": "general_44fz_retrieval",
+        "safety_boundary": "not_applicable",
+        "temporal_status": "stale_or_mismatched_edition",
+        "topic_class": "procurement_contracting"
+      },
+      "non_authoritative": true,
+      "query_id": "QUERY-M022-009-EDITION-MISMATCH-NEGATIVE",
+      "representation_kind": "safe_semantic_descriptor_v1",
+      "source_record_ids": [
+        "HIER-CONS-ARTICLE-0001"
+      ]
+    },
+    {
+      "candidate_id": "CAND-M022-010-UNSAFE-BOUNDARY",
+      "case_id": "CASE-M022-010-UNSAFE-PAYLOAD-BOUNDARY",
+      "descriptor_input_id": "DESCC-M025-010-01",
+      "descriptor_tokens": [
+        "actor_role:retrieval_system",
+        "ambiguity_handling:not_applicable",
+        "candidate_role:candidate_document_unit",
+        "citation_binding_status:complete_citation_binding",
+        "citation_granularity:safety_boundary",
+        "document_scope:safety_boundary",
+        "obligation_type:safety_rejection",
+        "procurement_phase:general_44fz_retrieval",
+        "safety_boundary:unsafe_payload_boundary",
+        "temporal_status:current_edition",
+        "topic_class:procurement_contracting"
+      ],
+      "descriptors": {
+        "actor_role": "retrieval_system",
+        "ambiguity_handling": "not_applicable",
+        "candidate_role": "candidate_document_unit",
+        "citation_binding_status": "complete_citation_binding",
+        "citation_granularity": "safety_boundary",
+        "document_scope": "safety_boundary",
+        "obligation_type": "safety_rejection",
+        "procurement_phase": "general_44fz_retrieval",
+        "safety_boundary": "unsafe_payload_boundary",
+        "temporal_status": "current_edition",
+        "topic_class": "procurement_contracting"
+      },
+      "non_authoritative": true,
+      "query_id": "QUERY-M022-010-UNSAFE-PAYLOAD-BOUNDARY",
+      "representation_kind": "safe_semantic_descriptor_v1",
+      "source_record_ids": [
+        "HIER-CONS-ARTICLE-0001"
+      ]
+    }
+  ],
+  "contract": "prd/research/ontology_architecture_requirements/44-local-semantic-scoring-iteration-contract.md",
+  "contract_sha256": "38fddd47a260a2d047e657efe0e98aff32c284fbea08bfde2efb34796faf2ab6",
+  "milestone_id": "M025-50be7n",
+  "non_authoritative": true,
+  "non_claim_boundary": "Safe descriptor inputs only; no scoring result, no retrieval-quality validation, and no R035 validation.",
+  "query_descriptor_count": 10,
+  "query_descriptors": [
+    {
+      "case_id": "CASE-M022-001-POSITIVE-EVIDENCE-SPAN",
+      "descriptor_input_id": "DESCQ-M025-001",
+      "descriptor_tokens": [
+        "actor_role:retrieval_system",
+        "ambiguity_handling:not_applicable",
+        "citation_granularity:article_or_evidence_span",
+        "document_scope:evidence_span",
+        "obligation_type:retrieval_selection",
+        "procurement_phase:general_44fz_retrieval",
+        "query_intent:locate_evidence_span",
+        "safety_boundary:not_applicable",
+        "temporal_status:not_applicable",
+        "topic_class:procurement_contracting"
+      ],
+      "descriptors": {
+        "actor_role": "retrieval_system",
+        "ambiguity_handling": "not_applicable",
+        "citation_granularity": "article_or_evidence_span",
+        "document_scope": "evidence_span",
+        "obligation_type": "retrieval_selection",
+        "procurement_phase": "general_44fz_retrieval",
+        "query_intent": "locate_evidence_span",
+        "safety_boundary": "not_applicable",
+        "temporal_status": "not_applicable",
+        "topic_class": "procurement_contracting"
+      },
+      "non_authoritative": true,
+      "query_hash_ref": "eb047020dfd5e6370bf1d1174de9e60dda2b2b0655f69eae340f609265dda9c8",
+      "query_id": "QUERY-M022-001-POSITIVE-EVIDENCE-SPAN",
+      "representation_kind": "safe_semantic_descriptor_v1"
+    },
+    {
+      "case_id": "CASE-M022-002-POSITIVE-SOURCE-BLOCK-MARKER",
+      "descriptor_input_id": "DESCQ-M025-002",
+      "descriptor_tokens": [
+        "actor_role:retrieval_system",
+        "ambiguity_handling:not_applicable",
+        "citation_granularity:source_block_marker",
+        "document_scope:source_block",
+        "obligation_type:retrieval_selection",
+        "procurement_phase:general_44fz_retrieval",
+        "query_intent:locate_source_block_marker",
+        "safety_boundary:not_applicable",
+        "temporal_status:not_applicable",
+        "topic_class:procurement_contracting"
+      ],
+      "descriptors": {
+        "actor_role": "retrieval_system",
+        "ambiguity_handling": "not_applicable",
+        "citation_granularity": "source_block_marker",
+        "document_scope": "source_block",
+        "obligation_type": "retrieval_selection",
+        "procurement_phase": "general_44fz_retrieval",
+        "query_intent": "locate_source_block_marker",
+        "safety_boundary": "not_applicable",
+        "temporal_status": "not_applicable",
+        "topic_class": "procurement_contracting"
+      },
+      "non_authoritative": true,
+      "query_hash_ref": "eceee3c31173ce8b368db8d3759d7930f1855ff4693fcd85c7bb4fa8dc04d43a",
+      "query_id": "QUERY-M022-002-POSITIVE-SOURCE-BLOCK-MARKER",
+      "representation_kind": "safe_semantic_descriptor_v1"
+    },
+    {
+      "case_id": "CASE-M022-003-POSITIVE-WITH-DISTRACTOR",
+      "descriptor_input_id": "DESCQ-M025-003",
+      "descriptor_tokens": [
+        "actor_role:retrieval_system",
+        "ambiguity_handling:not_applicable",
+        "citation_granularity:source_block_marker",
+        "document_scope:source_block",
+        "obligation_type:retrieval_selection",
+        "procurement_phase:general_44fz_retrieval",
+        "query_intent:prefer_granular_marker_over_broad_unit",
+        "safety_boundary:not_applicable",
+        "temporal_status:not_applicable",
+        "topic_class:procurement_contracting"
+      ],
+      "descriptors": {
+        "actor_role": "retrieval_system",
+        "ambiguity_handling": "not_applicable",
+        "citation_granularity": "source_block_marker",
+        "document_scope": "source_block",
+        "obligation_type": "retrieval_selection",
+        "procurement_phase": "general_44fz_retrieval",
+        "query_intent": "prefer_granular_marker_over_broad_unit",
+        "safety_boundary": "not_applicable",
+        "temporal_status": "not_applicable",
+        "topic_class": "procurement_contracting"
+      },
+      "non_authoritative": true,
+      "query_hash_ref": "2c1db0cd61e9842e77926880f28cca4e7a78205d36d263addcb398ec04ded941",
+      "query_id": "QUERY-M022-003-POSITIVE-WITH-DISTRACTOR",
+      "representation_kind": "safe_semantic_descriptor_v1"
+    },
+    {
+      "case_id": "CASE-M022-004-STALE-TEMPORAL-NEGATIVE",
+      "descriptor_input_id": "DESCQ-M025-004",
+      "descriptor_tokens": [
+        "actor_role:retrieval_system",
+        "ambiguity_handling:not_applicable",
+        "citation_granularity:document_unit",
+        "document_scope:act_edition",
+        "obligation_type:temporal_filtering",
+        "procurement_phase:general_44fz_retrieval",
+        "query_intent:apply_temporal_scope",
+        "safety_boundary:not_applicable",
+        "temporal_status:as_of_date_required",
+        "topic_class:procurement_contracting"
+      ],
+      "descriptors": {
+        "actor_role": "retrieval_system",
+        "ambiguity_handling": "not_applicable",
+        "citation_granularity": "document_unit",
+        "document_scope": "act_edition",
+        "obligation_type": "temporal_filtering",
+        "procurement_phase": "general_44fz_retrieval",
+        "query_intent": "apply_temporal_scope",
+        "safety_boundary": "not_applicable",
+        "temporal_status": "as_of_date_required",
+        "topic_class": "procurement_contracting"
+      },
+      "non_authoritative": true,
+      "query_hash_ref": "ab43c509fdb24cf119eb537a60411cdbb996e88fdc581bdc32182cb65f7128bc",
+      "query_id": "QUERY-M022-004-STALE-TEMPORAL-NEGATIVE",
+      "representation_kind": "safe_semantic_descriptor_v1"
+    },
+    {
+      "case_id": "CASE-M022-005-AMBIGUOUS-CANDIDATE-SET",
+      "descriptor_input_id": "DESCQ-M025-005",
+      "descriptor_tokens": [
+        "actor_role:retrieval_system",
+        "ambiguity_handling:ambiguous_candidates_expected",
+        "citation_granularity:document_unit",
+        "document_scope:clause_set",
+        "obligation_type:ambiguity_resolution",
+        "procurement_phase:general_44fz_retrieval",
+        "query_intent:detect_ambiguous_candidates",
+        "safety_boundary:not_applicable",
+        "temporal_status:not_applicable",
+        "topic_class:procurement_contracting"
+      ],
+      "descriptors": {
+        "actor_role": "retrieval_system",
+        "ambiguity_handling": "ambiguous_candidates_expected",
+        "citation_granularity": "document_unit",
+        "document_scope": "clause_set",
+        "obligation_type": "ambiguity_resolution",
+        "procurement_phase": "general_44fz_retrieval",
+        "query_intent": "detect_ambiguous_candidates",
+        "safety_boundary": "not_applicable",
+        "temporal_status": "not_applicable",
+        "topic_class": "procurement_contracting"
+      },
+      "non_authoritative": true,
+      "query_hash_ref": "f00a9e977ff5f7880af3eab979ae156ab982824b21b5216181a21059346ad3c9",
+      "query_id": "QUERY-M022-005-AMBIGUOUS-CANDIDATE-SET",
+      "representation_kind": "safe_semantic_descriptor_v1"
+    },
+    {
+      "case_id": "CASE-M022-006-UNSUPPORTED-SCOPE",
+      "descriptor_input_id": "DESCQ-M025-006",
+      "descriptor_tokens": [
+        "actor_role:retrieval_system",
+        "ambiguity_handling:unsupported_scope_expected",
+        "citation_granularity:document_unit",
+        "document_scope:unsupported_scope",
+        "obligation_type:scope_rejection",
+        "procurement_phase:general_44fz_retrieval",
+        "query_intent:reject_unsupported_scope",
+        "safety_boundary:not_applicable",
+        "temporal_status:not_applicable",
+        "topic_class:procurement_contracting"
+      ],
+      "descriptors": {
+        "actor_role": "retrieval_system",
+        "ambiguity_handling": "unsupported_scope_expected",
+        "citation_granularity": "document_unit",
+        "document_scope": "unsupported_scope",
+        "obligation_type": "scope_rejection",
+        "procurement_phase": "general_44fz_retrieval",
+        "query_intent": "reject_unsupported_scope",
+        "safety_boundary": "not_applicable",
+        "temporal_status": "not_applicable",
+        "topic_class": "procurement_contracting"
+      },
+      "non_authoritative": true,
+      "query_hash_ref": "53e65e0027c2891f32628c2d6ac225d9f8f8a512d490fa4b15ba2181921c84c1",
+      "query_id": "QUERY-M022-006-UNSUPPORTED-SCOPE",
+      "representation_kind": "safe_semantic_descriptor_v1"
+    },
+    {
+      "case_id": "CASE-M022-007-SCOPED-NO-ANSWER",
+      "descriptor_input_id": "DESCQ-M025-007",
+      "descriptor_tokens": [
+        "actor_role:retrieval_system",
+        "ambiguity_handling:no_answer_expected",
+        "citation_granularity:document_unit",
+        "document_scope:scope_absence",
+        "obligation_type:scope_rejection",
+        "procurement_phase:general_44fz_retrieval",
+        "query_intent:detect_scoped_absence",
+        "safety_boundary:not_applicable",
+        "temporal_status:not_applicable",
+        "topic_class:procurement_contracting"
+      ],
+      "descriptors": {
+        "actor_role": "retrieval_system",
+        "ambiguity_handling": "no_answer_expected",
+        "citation_granularity": "document_unit",
+        "document_scope": "scope_absence",
+        "obligation_type": "scope_rejection",
+        "procurement_phase": "general_44fz_retrieval",
+        "query_intent": "detect_scoped_absence",
+        "safety_boundary": "not_applicable",
+        "temporal_status": "not_applicable",
+        "topic_class": "procurement_contracting"
+      },
+      "non_authoritative": true,
+      "query_hash_ref": "7ae3802d2f1c5311af41cd6c5d149553e62a820f867991cfdfede97446945715",
+      "query_id": "QUERY-M022-007-SCOPED-NO-ANSWER",
+      "representation_kind": "safe_semantic_descriptor_v1"
+    },
+    {
+      "case_id": "CASE-M022-008-CITATION-PRESERVATION-BOUNDARY",
+      "descriptor_input_id": "DESCQ-M025-008",
+      "descriptor_tokens": [
+        "actor_role:retrieval_system",
+        "ambiguity_handling:not_applicable",
+        "citation_granularity:complete_citation_binding",
+        "document_scope:citation_binding",
+        "obligation_type:citation_preservation",
+        "procurement_phase:general_44fz_retrieval",
+        "query_intent:preserve_citation_binding",
+        "safety_boundary:not_applicable",
+        "temporal_status:not_applicable",
+        "topic_class:procurement_contracting"
+      ],
+      "descriptors": {
+        "actor_role": "retrieval_system",
+        "ambiguity_handling": "not_applicable",
+        "citation_granularity": "complete_citation_binding",
+        "document_scope": "citation_binding",
+        "obligation_type": "citation_preservation",
+        "procurement_phase": "general_44fz_retrieval",
+        "query_intent": "preserve_citation_binding",
+        "safety_boundary": "not_applicable",
+        "temporal_status": "not_applicable",
+        "topic_class": "procurement_contracting"
+      },
+      "non_authoritative": true,
+      "query_hash_ref": "3cac5fd0cb7b415264a3fb80901fec78b29dea3bce71bc028d5c58519f7a32aa",
+      "query_id": "QUERY-M022-008-CITATION-PRESERVATION-BOUNDARY",
+      "representation_kind": "safe_semantic_descriptor_v1"
+    },
+    {
+      "case_id": "CASE-M022-009-EDITION-MISMATCH-NEGATIVE",
+      "descriptor_input_id": "DESCQ-M025-009",
+      "descriptor_tokens": [
+        "actor_role:retrieval_system",
+        "ambiguity_handling:not_applicable",
+        "citation_granularity:document_unit",
+        "document_scope:act_edition",
+        "obligation_type:temporal_filtering",
+        "procurement_phase:general_44fz_retrieval",
+        "query_intent:reject_edition_mismatch",
+        "safety_boundary:not_applicable",
+        "temporal_status:edition_consistency_required",
+        "topic_class:procurement_contracting"
+      ],
+      "descriptors": {
+        "actor_role": "retrieval_system",
+        "ambiguity_handling": "not_applicable",
+        "citation_granularity": "document_unit",
+        "document_scope": "act_edition",
+        "obligation_type": "temporal_filtering",
+        "procurement_phase": "general_44fz_retrieval",
+        "query_intent": "reject_edition_mismatch",
+        "safety_boundary": "not_applicable",
+        "temporal_status": "edition_consistency_required",
+        "topic_class": "procurement_contracting"
+      },
+      "non_authoritative": true,
+      "query_hash_ref": "48f0dec6c541be65a9578708299bf5d0e8bc37f24f42c40f68abe43f1fcd1533",
+      "query_id": "QUERY-M022-009-EDITION-MISMATCH-NEGATIVE",
+      "representation_kind": "safe_semantic_descriptor_v1"
+    },
+    {
+      "case_id": "CASE-M022-010-UNSAFE-PAYLOAD-BOUNDARY",
+      "descriptor_input_id": "DESCQ-M025-010",
+      "descriptor_tokens": [
+        "actor_role:retrieval_system",
+        "ambiguity_handling:not_applicable",
+        "citation_granularity:document_unit",
+        "document_scope:safety_boundary",
+        "obligation_type:safety_rejection",
+        "procurement_phase:general_44fz_retrieval",
+        "query_intent:reject_unsafe_payload_boundary",
+        "safety_boundary:unsafe_payload_boundary",
+        "temporal_status:not_applicable",
+        "topic_class:procurement_contracting"
+      ],
+      "descriptors": {
+        "actor_role": "retrieval_system",
+        "ambiguity_handling": "not_applicable",
+        "citation_granularity": "document_unit",
+        "document_scope": "safety_boundary",
+        "obligation_type": "safety_rejection",
+        "procurement_phase": "general_44fz_retrieval",
+        "query_intent": "reject_unsafe_payload_boundary",
+        "safety_boundary": "unsafe_payload_boundary",
+        "temporal_status": "not_applicable",
+        "topic_class": "procurement_contracting"
+      },
+      "non_authoritative": true,
+      "query_hash_ref": "d4e1dd49928ecfe504995a0ffd2c69ce42acdc124fa95665ba6e49cc27236dfe",
+      "query_id": "QUERY-M022-010-UNSAFE-PAYLOAD-BOUNDARY",
+      "representation_kind": "safe_semantic_descriptor_v1"
+    }
+  ],
+  "redaction": {
+    "absolute_paths_excluded": true,
+    "answer_fields_excluded_from_scoring_inputs": true,
+    "answer_labels_excluded": true,
+    "answer_ranks_excluded": true,
+    "external_payloads_excluded": true,
+    "generated_answer_prose_excluded": true,
+    "generated_query_excluded": true,
+    "gsd_exec_paths_excluded": true,
+    "query_text_excluded": true,
+    "raw_vectors_excluded": true,
+    "source_text_excluded": true
+  },
+  "representation_kind": "safe_semantic_descriptor_v1",
+  "schema_version": "semantic-descriptor-inputs/v1",
+  "slice_id": "S02",
+  "source_fixture": "prd/research/ontology_architecture_requirements/fixtures/representative_evidence_span_retrieval_corpus.json",
+  "source_fixture_sha256": "db487faf546ac17486a332182163e2c074bb02c8e90d6563f5debb83c4b64896"
+}
