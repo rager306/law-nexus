@@ -1,0 +1,103 @@
+{
+  "ablated_metrics": {
+    "mrr": 1.0,
+    "recall_at_1": 1.0,
+    "recall_at_3": 1.0,
+    "runtime_boundary_confirmed": 1.0
+  },
+  "ablation_scope": "held_out_query_intent_only",
+  "changed_fields": [
+    {
+      "case_id": "CASE-M026-002-HELDOUT-SOURCE-BLOCK",
+      "descriptor_input_id": "HO-DESCQ-M026-002",
+      "field": "query_intent",
+      "from": "locate_source_block_marker",
+      "to": "locate_evidence_span"
+    },
+    {
+      "case_id": "CASE-M026-003-HELDOUT-TEMPORAL",
+      "descriptor_input_id": "HO-DESCQ-M026-003",
+      "field": "query_intent",
+      "from": "apply_temporal_scope",
+      "to": "locate_evidence_span"
+    },
+    {
+      "case_id": "CASE-M026-004-HELDOUT-SCOPED-ABSENCE",
+      "descriptor_input_id": "HO-DESCQ-M026-004",
+      "field": "query_intent",
+      "from": "detect_scoped_absence",
+      "to": "locate_evidence_span"
+    },
+    {
+      "case_id": "CASE-M026-005-HELDOUT-SAFETY-BOUNDARY",
+      "descriptor_input_id": "HO-DESCQ-M026-005",
+      "field": "query_intent",
+      "from": "reject_unsafe_payload_boundary",
+      "to": "locate_evidence_span"
+    }
+  ],
+  "current_metrics": {
+    "mrr": 1.0,
+    "recall_at_1": 1.0,
+    "recall_at_3": 1.0,
+    "runtime_boundary_confirmed": 1.0
+  },
+  "current_scoring_status": "completed",
+  "dependency_diagnosis": "held_out_success_survives_ablation",
+  "descriptor_verification_summary": {
+    "candidate_descriptor_count": 10,
+    "diagnostic_codes": [
+      "held_out_semantic_descriptors_verified"
+    ],
+    "held_out_case_independence_required": true,
+    "non_authoritative": true,
+    "non_claim_boundary": "Held-out safe descriptor inputs only; does not prove semantic retrieval quality or validate R035.",
+    "query_descriptor_count": 5,
+    "representation_kind": "safe_semantic_descriptor_v1",
+    "schema_version": "held-out-semantic-descriptor-inputs-verification/v1",
+    "status": "ok"
+  },
+  "evaluation_labels": "prd/research/ontology_architecture_requirements/fixtures/held_out_semantic_descriptor_evaluation_labels.json",
+  "evaluation_labels_sha256": "d0b1803e21046638bc2dcdfa9e78c01b78d6c35aaa3964d74b16e6941e9f935b",
+  "fixed_invariants": {
+    "ablation_changes_one_signal_at_a_time": true,
+    "candidate_descriptors_fixed": true,
+    "changed_signal": "query_intent",
+    "evaluation_labels_fixed": true,
+    "expected_vector_dimension_fixed": 1024,
+    "metrics_policy_fixed": true,
+    "runtime_model_fixed": "deepvk/USER-bge-m3",
+    "scoring_mode_fixed": "local_user_bge_m3_held_out_descriptor_similarity_v1",
+    "temporary_manifest_persisted": false
+  },
+  "metric_deltas_after_ablation": {
+    "mrr": 0.0,
+    "recall_at_1": 0.0,
+    "recall_at_3": 0.0,
+    "runtime_boundary_confirmed": 0.0
+  },
+  "milestone_id": "M026-1uqmzc",
+  "non_authoritative": true,
+  "non_claim_boundary": "Held-out ablation proof only; does not prove product retrieval quality or validate R035.",
+  "redaction": {
+    "absolute_paths_excluded": true,
+    "external_payloads_excluded": true,
+    "generated_answer_prose_excluded": true,
+    "generated_query_excluded": true,
+    "gsd_exec_paths_excluded": true,
+    "query_text_excluded": true,
+    "raw_vectors_excluded": true,
+    "source_text_excluded": true
+  },
+  "schema_version": "held-out-semantic-descriptor-ablation-proof/v1",
+  "score_digest": {
+    "ablated_scores_sha256": "0bce71ce0368b81cbb182fb91602d43c88e0508fa8537b773f68daa1e1d7d1ac",
+    "current_scores_sha256": "5053b7b508d7105eecc00a72f5302f48c6365dc7b9a5ec4778d882153f29fc3b"
+  },
+  "slice_id": "S04",
+  "source_descriptor_manifest": "prd/research/ontology_architecture_requirements/fixtures/held_out_semantic_descriptor_inputs.json",
+  "source_descriptor_manifest_sha256": "2b2dd453f86d0a8bc6dd5f894159e75b56696719226c7ada80147bfa0ac63fbb",
+  "source_scoring_proof": "prd/research/ontology_architecture_requirements/held_out_semantic_descriptor_scoring_proof.json",
+  "source_scoring_proof_sha256": "78b5785d3fed86679fa4d5657a8661015f5f8b3748b431c6c82302390ba2d627",
+  "status": "ok"
+}
