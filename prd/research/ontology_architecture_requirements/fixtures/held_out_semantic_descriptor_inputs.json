@@ -1,0 +1,644 @@
+{
+  "allowed_descriptor_fields": {
+    "actor_role": [
+      "retrieval_system"
+    ],
+    "ambiguity_handling": [
+      "ambiguity_resolution_required",
+      "not_applicable",
+      "scope_outside_supported_corpus",
+      "scoped_absence_check_required"
+    ],
+    "candidate_role": [
+      "candidate_document_unit"
+    ],
+    "citation_binding_status": [
+      "complete_citation_binding"
+    ],
+    "citation_granularity": [
+      "act_edition",
+      "article_or_evidence_span",
+      "clause",
+      "complete_citation_binding",
+      "document_unit",
+      "safety_boundary",
+      "source_block_marker"
+    ],
+    "document_scope": [
+      "act_edition",
+      "article_or_evidence_span",
+      "citation_binding",
+      "clause_set",
+      "evidence_span",
+      "safety_boundary",
+      "scope_absence",
+      "source_block",
+      "unsupported_scope"
+    ],
+    "obligation_type": [
+      "ambiguity_resolution",
+      "citation_preservation",
+      "retrieval_selection",
+      "safety_rejection",
+      "scope_rejection",
+      "temporal_filtering"
+    ],
+    "procurement_phase": [
+      "general_44fz_retrieval"
+    ],
+    "query_intent": [
+      "apply_temporal_scope",
+      "detect_ambiguous_candidates",
+      "detect_scoped_absence",
+      "locate_evidence_span",
+      "locate_source_block_marker",
+      "preserve_citation_binding",
+      "reject_edition_mismatch",
+      "reject_unsafe_payload_boundary",
+      "reject_unsupported_scope",
+      "resolve_granularity_conflict"
+    ],
+    "safety_boundary": [
+      "not_applicable",
+      "unsafe_payload_boundary"
+    ],
+    "temporal_status": [
+      "as_of_date_required",
+      "current_edition",
+      "edition_consistency_required",
+      "not_applicable",
+      "stale_or_mismatched_edition"
+    ],
+    "topic_class": [
+      "procurement_contracting"
+    ]
+  },
+  "candidate_descriptor_count": 10,
+  "candidate_descriptors": [
+    {
+      "candidate_id": "CAND-M026-001-HELDOUT-POSITIVE-CLAUSE-A",
+      "case_id": "CASE-M026-001-HELDOUT-POSITIVE-CLAUSE",
+      "descriptor_input_id": "HO-DESCC-M026-001-A",
+      "descriptor_tokens": [
+        "actor_role:retrieval_system",
+        "ambiguity_handling:not_applicable",
+        "candidate_role:candidate_document_unit",
+        "citation_binding_status:complete_citation_binding",
+        "citation_granularity:clause",
+        "document_scope:clause_set",
+        "obligation_type:retrieval_selection",
+        "procurement_phase:general_44fz_retrieval",
+        "safety_boundary:not_applicable",
+        "temporal_status:current_edition",
+        "topic_class:procurement_contracting"
+      ],
+      "descriptors": {
+        "actor_role": "retrieval_system",
+        "ambiguity_handling": "not_applicable",
+        "candidate_role": "candidate_document_unit",
+        "citation_binding_status": "complete_citation_binding",
+        "citation_granularity": "clause",
+        "document_scope": "clause_set",
+        "obligation_type": "retrieval_selection",
+        "procurement_phase": "general_44fz_retrieval",
+        "safety_boundary": "not_applicable",
+        "temporal_status": "current_edition",
+        "topic_class": "procurement_contracting"
+      },
+      "non_authoritative": true,
+      "query_id": "QUERY-M026-001-HELDOUT-POSITIVE-CLAUSE",
+      "representation_kind": "safe_semantic_descriptor_v1",
+      "source_hash_ref": "sha256:3aaf017ce0121032d89a27827704c07189e9d7b318bdc99a0b025759921c2230",
+      "source_record_ids": [
+        "HELDOUT-SRC-M026-001-A"
+      ]
+    },
+    {
+      "candidate_id": "CAND-M026-001-HELDOUT-POSITIVE-CLAUSE-B",
+      "case_id": "CASE-M026-001-HELDOUT-POSITIVE-CLAUSE",
+      "descriptor_input_id": "HO-DESCC-M026-001-B",
+      "descriptor_tokens": [
+        "actor_role:retrieval_system",
+        "ambiguity_handling:not_applicable",
+        "candidate_role:candidate_document_unit",
+        "citation_binding_status:complete_citation_binding",
+        "citation_granularity:article_or_evidence_span",
+        "document_scope:article_or_evidence_span",
+        "obligation_type:retrieval_selection",
+        "procurement_phase:general_44fz_retrieval",
+        "safety_boundary:not_applicable",
+        "temporal_status:current_edition",
+        "topic_class:procurement_contracting"
+      ],
+      "descriptors": {
+        "actor_role": "retrieval_system",
+        "ambiguity_handling": "not_applicable",
+        "candidate_role": "candidate_document_unit",
+        "citation_binding_status": "complete_citation_binding",
+        "citation_granularity": "article_or_evidence_span",
+        "document_scope": "article_or_evidence_span",
+        "obligation_type": "retrieval_selection",
+        "procurement_phase": "general_44fz_retrieval",
+        "safety_boundary": "not_applicable",
+        "temporal_status": "current_edition",
+        "topic_class": "procurement_contracting"
+      },
+      "non_authoritative": true,
+      "query_id": "QUERY-M026-001-HELDOUT-POSITIVE-CLAUSE",
+      "representation_kind": "safe_semantic_descriptor_v1",
+      "source_hash_ref": "sha256:2ddcba8aa68ba4d0e8650d61304eff9247b6496d741f1ea5f97f0dc09a94e092",
+      "source_record_ids": [
+        "HELDOUT-SRC-M026-001-B"
+      ]
+    },
+    {
+      "candidate_id": "CAND-M026-002-HELDOUT-SOURCE-BLOCK-A",
+      "case_id": "CASE-M026-002-HELDOUT-SOURCE-BLOCK",
+      "descriptor_input_id": "HO-DESCC-M026-002-A",
+      "descriptor_tokens": [
+        "actor_role:retrieval_system",
+        "ambiguity_handling:not_applicable",
+        "candidate_role:candidate_document_unit",
+        "citation_binding_status:complete_citation_binding",
+        "citation_granularity:source_block_marker",
+        "document_scope:source_block",
+        "obligation_type:citation_preservation",
+        "procurement_phase:general_44fz_retrieval",
+        "safety_boundary:not_applicable",
+        "temporal_status:current_edition",
+        "topic_class:procurement_contracting"
+      ],
+      "descriptors": {
+        "actor_role": "retrieval_system",
+        "ambiguity_handling": "not_applicable",
+        "candidate_role": "candidate_document_unit",
+        "citation_binding_status": "complete_citation_binding",
+        "citation_granularity": "source_block_marker",
+        "document_scope": "source_block",
+        "obligation_type": "citation_preservation",
+        "procurement_phase": "general_44fz_retrieval",
+        "safety_boundary": "not_applicable",
+        "temporal_status": "current_edition",
+        "topic_class": "procurement_contracting"
+      },
+      "non_authoritative": true,
+      "query_id": "QUERY-M026-002-HELDOUT-SOURCE-BLOCK",
+      "representation_kind": "safe_semantic_descriptor_v1",
+      "source_hash_ref": "sha256:d96ff0931e2c973acfd4dcdbb7af5da04fc2e3252e2ea7c45b4eaaea5aae4c27",
+      "source_record_ids": [
+        "HELDOUT-SRC-M026-002-A"
+      ]
+    },
+    {
+      "candidate_id": "CAND-M026-002-HELDOUT-SOURCE-BLOCK-B",
+      "case_id": "CASE-M026-002-HELDOUT-SOURCE-BLOCK",
+      "descriptor_input_id": "HO-DESCC-M026-002-B",
+      "descriptor_tokens": [
+        "actor_role:retrieval_system",
+        "ambiguity_handling:not_applicable",
+        "candidate_role:candidate_document_unit",
+        "citation_binding_status:complete_citation_binding",
+        "citation_granularity:article_or_evidence_span",
+        "document_scope:article_or_evidence_span",
+        "obligation_type:citation_preservation",
+        "procurement_phase:general_44fz_retrieval",
+        "safety_boundary:not_applicable",
+        "temporal_status:current_edition",
+        "topic_class:procurement_contracting"
+      ],
+      "descriptors": {
+        "actor_role": "retrieval_system",
+        "ambiguity_handling": "not_applicable",
+        "candidate_role": "candidate_document_unit",
+        "citation_binding_status": "complete_citation_binding",
+        "citation_granularity": "article_or_evidence_span",
+        "document_scope": "article_or_evidence_span",
+        "obligation_type": "citation_preservation",
+        "procurement_phase": "general_44fz_retrieval",
+        "safety_boundary": "not_applicable",
+        "temporal_status": "current_edition",
+        "topic_class": "procurement_contracting"
+      },
+      "non_authoritative": true,
+      "query_id": "QUERY-M026-002-HELDOUT-SOURCE-BLOCK",
+      "representation_kind": "safe_semantic_descriptor_v1",
+      "source_hash_ref": "sha256:ecc4d848eeb33d3981b0d007e52bbb985bec8386ac42f0edacfd350b5c2272f2",
+      "source_record_ids": [
+        "HELDOUT-SRC-M026-002-B"
+      ]
+    },
+    {
+      "candidate_id": "CAND-M026-003-HELDOUT-TEMPORAL-A",
+      "case_id": "CASE-M026-003-HELDOUT-TEMPORAL",
+      "descriptor_input_id": "HO-DESCC-M026-003-A",
+      "descriptor_tokens": [
+        "actor_role:retrieval_system",
+        "ambiguity_handling:not_applicable",
+        "candidate_role:candidate_document_unit",
+        "citation_binding_status:complete_citation_binding",
+        "citation_granularity:act_edition",
+        "document_scope:act_edition",
+        "obligation_type:temporal_filtering",
+        "procurement_phase:general_44fz_retrieval",
+        "safety_boundary:not_applicable",
+        "temporal_status:as_of_date_required",
+        "topic_class:procurement_contracting"
+      ],
+      "descriptors": {
+        "actor_role": "retrieval_system",
+        "ambiguity_handling": "not_applicable",
+        "candidate_role": "candidate_document_unit",
+        "citation_binding_status": "complete_citation_binding",
+        "citation_granularity": "act_edition",
+        "document_scope": "act_edition",
+        "obligation_type": "temporal_filtering",
+        "procurement_phase": "general_44fz_retrieval",
+        "safety_boundary": "not_applicable",
+        "temporal_status": "as_of_date_required",
+        "topic_class": "procurement_contracting"
+      },
+      "non_authoritative": true,
+      "query_id": "QUERY-M026-003-HELDOUT-TEMPORAL",
+      "representation_kind": "safe_semantic_descriptor_v1",
+      "source_hash_ref": "sha256:6801d4288c0dd12f9f97f677914167b1e2453d13e708966c1475148616569839",
+      "source_record_ids": [
+        "HELDOUT-SRC-M026-003-A"
+      ]
+    },
+    {
+      "candidate_id": "CAND-M026-003-HELDOUT-TEMPORAL-B",
+      "case_id": "CASE-M026-003-HELDOUT-TEMPORAL",
+      "descriptor_input_id": "HO-DESCC-M026-003-B",
+      "descriptor_tokens": [
+        "actor_role:retrieval_system",
+        "ambiguity_handling:not_applicable",
+        "candidate_role:candidate_document_unit",
+        "citation_binding_status:complete_citation_binding",
+        "citation_granularity:article_or_evidence_span",
+        "document_scope:article_or_evidence_span",
+        "obligation_type:temporal_filtering",
+        "procurement_phase:general_44fz_retrieval",
+        "safety_boundary:not_applicable",
+        "temporal_status:as_of_date_required",
+        "topic_class:procurement_contracting"
+      ],
+      "descriptors": {
+        "actor_role": "retrieval_system",
+        "ambiguity_handling": "not_applicable",
+        "candidate_role": "candidate_document_unit",
+        "citation_binding_status": "complete_citation_binding",
+        "citation_granularity": "article_or_evidence_span",
+        "document_scope": "article_or_evidence_span",
+        "obligation_type": "temporal_filtering",
+        "procurement_phase": "general_44fz_retrieval",
+        "safety_boundary": "not_applicable",
+        "temporal_status": "as_of_date_required",
+        "topic_class": "procurement_contracting"
+      },
+      "non_authoritative": true,
+      "query_id": "QUERY-M026-003-HELDOUT-TEMPORAL",
+      "representation_kind": "safe_semantic_descriptor_v1",
+      "source_hash_ref": "sha256:7a27c5b4cfb18e407a0c5176eb7f6484c39aeaab33c8ed915d0eabdc30481200",
+      "source_record_ids": [
+        "HELDOUT-SRC-M026-003-B"
+      ]
+    },
+    {
+      "candidate_id": "CAND-M026-004-HELDOUT-SCOPED-ABSENCE-A",
+      "case_id": "CASE-M026-004-HELDOUT-SCOPED-ABSENCE",
+      "descriptor_input_id": "HO-DESCC-M026-004-A",
+      "descriptor_tokens": [
+        "actor_role:retrieval_system",
+        "ambiguity_handling:scoped_absence_check_required",
+        "candidate_role:candidate_document_unit",
+        "citation_binding_status:complete_citation_binding",
+        "citation_granularity:document_unit",
+        "document_scope:scope_absence",
+        "obligation_type:scope_rejection",
+        "procurement_phase:general_44fz_retrieval",
+        "safety_boundary:not_applicable",
+        "temporal_status:not_applicable",
+        "topic_class:procurement_contracting"
+      ],
+      "descriptors": {
+        "actor_role": "retrieval_system",
+        "ambiguity_handling": "scoped_absence_check_required",
+        "candidate_role": "candidate_document_unit",
+        "citation_binding_status": "complete_citation_binding",
+        "citation_granularity": "document_unit",
+        "document_scope": "scope_absence",
+        "obligation_type": "scope_rejection",
+        "procurement_phase": "general_44fz_retrieval",
+        "safety_boundary": "not_applicable",
+        "temporal_status": "not_applicable",
+        "topic_class": "procurement_contracting"
+      },
+      "non_authoritative": true,
+      "query_id": "QUERY-M026-004-HELDOUT-SCOPED-ABSENCE",
+      "representation_kind": "safe_semantic_descriptor_v1",
+      "source_hash_ref": "sha256:298fdfd3b1f24e876509ca96efb7af65e9016c4ec5f63a4327ad826ed5cdb7e3",
+      "source_record_ids": [
+        "HELDOUT-SRC-M026-004-A"
+      ]
+    },
+    {
+      "candidate_id": "CAND-M026-004-HELDOUT-SCOPED-ABSENCE-B",
+      "case_id": "CASE-M026-004-HELDOUT-SCOPED-ABSENCE",
+      "descriptor_input_id": "HO-DESCC-M026-004-B",
+      "descriptor_tokens": [
+        "actor_role:retrieval_system",
+        "ambiguity_handling:scoped_absence_check_required",
+        "candidate_role:candidate_document_unit",
+        "citation_binding_status:complete_citation_binding",
+        "citation_granularity:article_or_evidence_span",
+        "document_scope:article_or_evidence_span",
+        "obligation_type:scope_rejection",
+        "procurement_phase:general_44fz_retrieval",
+        "safety_boundary:not_applicable",
+        "temporal_status:not_applicable",
+        "topic_class:procurement_contracting"
+      ],
+      "descriptors": {
+        "actor_role": "retrieval_system",
+        "ambiguity_handling": "scoped_absence_check_required",
+        "candidate_role": "candidate_document_unit",
+        "citation_binding_status": "complete_citation_binding",
+        "citation_granularity": "article_or_evidence_span",
+        "document_scope": "article_or_evidence_span",
+        "obligation_type": "scope_rejection",
+        "procurement_phase": "general_44fz_retrieval",
+        "safety_boundary": "not_applicable",
+        "temporal_status": "not_applicable",
+        "topic_class": "procurement_contracting"
+      },
+      "non_authoritative": true,
+      "query_id": "QUERY-M026-004-HELDOUT-SCOPED-ABSENCE",
+      "representation_kind": "safe_semantic_descriptor_v1",
+      "source_hash_ref": "sha256:b20327d8f70d4bb9617f430c5445d53096af7d92fa645dc0bc6147f0152cad64",
+      "source_record_ids": [
+        "HELDOUT-SRC-M026-004-B"
+      ]
+    },
+    {
+      "candidate_id": "CAND-M026-005-HELDOUT-SAFETY-BOUNDARY-A",
+      "case_id": "CASE-M026-005-HELDOUT-SAFETY-BOUNDARY",
+      "descriptor_input_id": "HO-DESCC-M026-005-A",
+      "descriptor_tokens": [
+        "actor_role:retrieval_system",
+        "ambiguity_handling:not_applicable",
+        "candidate_role:candidate_document_unit",
+        "citation_binding_status:complete_citation_binding",
+        "citation_granularity:safety_boundary",
+        "document_scope:safety_boundary",
+        "obligation_type:safety_rejection",
+        "procurement_phase:general_44fz_retrieval",
+        "safety_boundary:unsafe_payload_boundary",
+        "temporal_status:not_applicable",
+        "topic_class:procurement_contracting"
+      ],
+      "descriptors": {
+        "actor_role": "retrieval_system",
+        "ambiguity_handling": "not_applicable",
+        "candidate_role": "candidate_document_unit",
+        "citation_binding_status": "complete_citation_binding",
+        "citation_granularity": "safety_boundary",
+        "document_scope": "safety_boundary",
+        "obligation_type": "safety_rejection",
+        "procurement_phase": "general_44fz_retrieval",
+        "safety_boundary": "unsafe_payload_boundary",
+        "temporal_status": "not_applicable",
+        "topic_class": "procurement_contracting"
+      },
+      "non_authoritative": true,
+      "query_id": "QUERY-M026-005-HELDOUT-SAFETY-BOUNDARY",
+      "representation_kind": "safe_semantic_descriptor_v1",
+      "source_hash_ref": "sha256:48c9253f30684f3edfc912d7212661dad6e48a1f72218b2279107e0dc536129b",
+      "source_record_ids": [
+        "HELDOUT-SRC-M026-005-A"
+      ]
+    },
+    {
+      "candidate_id": "CAND-M026-005-HELDOUT-SAFETY-BOUNDARY-B",
+      "case_id": "CASE-M026-005-HELDOUT-SAFETY-BOUNDARY",
+      "descriptor_input_id": "HO-DESCC-M026-005-B",
+      "descriptor_tokens": [
+        "actor_role:retrieval_system",
+        "ambiguity_handling:not_applicable",
+        "candidate_role:candidate_document_unit",
+        "citation_binding_status:complete_citation_binding",
+        "citation_granularity:article_or_evidence_span",
+        "document_scope:article_or_evidence_span",
+        "obligation_type:safety_rejection",
+        "procurement_phase:general_44fz_retrieval",
+        "safety_boundary:unsafe_payload_boundary",
+        "temporal_status:not_applicable",
+        "topic_class:procurement_contracting"
+      ],
+      "descriptors": {
+        "actor_role": "retrieval_system",
+        "ambiguity_handling": "not_applicable",
+        "candidate_role": "candidate_document_unit",
+        "citation_binding_status": "complete_citation_binding",
+        "citation_granularity": "article_or_evidence_span",
+        "document_scope": "article_or_evidence_span",
+        "obligation_type": "safety_rejection",
+        "procurement_phase": "general_44fz_retrieval",
+        "safety_boundary": "unsafe_payload_boundary",
+        "temporal_status": "not_applicable",
+        "topic_class": "procurement_contracting"
+      },
+      "non_authoritative": true,
+      "query_id": "QUERY-M026-005-HELDOUT-SAFETY-BOUNDARY",
+      "representation_kind": "safe_semantic_descriptor_v1",
+      "source_hash_ref": "sha256:1111155b77b67a735ef6c5429ae2ed582b7e5cacd50c9a746b70b2cf257a278f",
+      "source_record_ids": [
+        "HELDOUT-SRC-M026-005-B"
+      ]
+    }
+  ],
+  "contract": "prd/research/ontology_architecture_requirements/52-held-out-semantic-descriptor-evaluation-contract.md",
+  "contract_sha256": "256f8a97ec9ad48681c953bf4f86fbbaa70e3c1496df8f24aa4c092dd04a0962",
+  "held_out_case_independence_required": true,
+  "m022_acceptance_case_reuse_forbidden": true,
+  "m025_design_case_reuse_forbidden": true,
+  "milestone_id": "M026-1uqmzc",
+  "non_authoritative": true,
+  "non_claim_boundary": "Held-out safe descriptor inputs only; does not prove semantic retrieval quality or validate R035.",
+  "query_descriptor_count": 5,
+  "query_descriptors": [
+    {
+      "case_id": "CASE-M026-001-HELDOUT-POSITIVE-CLAUSE",
+      "descriptor_input_id": "HO-DESCQ-M026-001",
+      "descriptor_tokens": [
+        "actor_role:retrieval_system",
+        "ambiguity_handling:not_applicable",
+        "citation_granularity:clause",
+        "document_scope:clause_set",
+        "obligation_type:retrieval_selection",
+        "procurement_phase:general_44fz_retrieval",
+        "query_intent:locate_evidence_span",
+        "safety_boundary:not_applicable",
+        "temporal_status:current_edition",
+        "topic_class:procurement_contracting"
+      ],
+      "descriptors": {
+        "actor_role": "retrieval_system",
+        "ambiguity_handling": "not_applicable",
+        "citation_granularity": "clause",
+        "document_scope": "clause_set",
+        "obligation_type": "retrieval_selection",
+        "procurement_phase": "general_44fz_retrieval",
+        "query_intent": "locate_evidence_span",
+        "safety_boundary": "not_applicable",
+        "temporal_status": "current_edition",
+        "topic_class": "procurement_contracting"
+      },
+      "non_authoritative": true,
+      "query_hash_ref": "sha256:55d740ebd26b9d62f0bbd852e2642ecb73c53ce02dc194ea7b8ebe95189b5c47",
+      "query_id": "QUERY-M026-001-HELDOUT-POSITIVE-CLAUSE",
+      "representation_kind": "safe_semantic_descriptor_v1"
+    },
+    {
+      "case_id": "CASE-M026-002-HELDOUT-SOURCE-BLOCK",
+      "descriptor_input_id": "HO-DESCQ-M026-002",
+      "descriptor_tokens": [
+        "actor_role:retrieval_system",
+        "ambiguity_handling:not_applicable",
+        "citation_granularity:source_block_marker",
+        "document_scope:source_block",
+        "obligation_type:citation_preservation",
+        "procurement_phase:general_44fz_retrieval",
+        "query_intent:locate_source_block_marker",
+        "safety_boundary:not_applicable",
+        "temporal_status:current_edition",
+        "topic_class:procurement_contracting"
+      ],
+      "descriptors": {
+        "actor_role": "retrieval_system",
+        "ambiguity_handling": "not_applicable",
+        "citation_granularity": "source_block_marker",
+        "document_scope": "source_block",
+        "obligation_type": "citation_preservation",
+        "procurement_phase": "general_44fz_retrieval",
+        "query_intent": "locate_source_block_marker",
+        "safety_boundary": "not_applicable",
+        "temporal_status": "current_edition",
+        "topic_class": "procurement_contracting"
+      },
+      "non_authoritative": true,
+      "query_hash_ref": "sha256:cd41369dc6a93cd983c956458754be364737e40379e237767714b8b65c132549",
+      "query_id": "QUERY-M026-002-HELDOUT-SOURCE-BLOCK",
+      "representation_kind": "safe_semantic_descriptor_v1"
+    },
+    {
+      "case_id": "CASE-M026-003-HELDOUT-TEMPORAL",
+      "descriptor_input_id": "HO-DESCQ-M026-003",
+      "descriptor_tokens": [
+        "actor_role:retrieval_system",
+        "ambiguity_handling:not_applicable",
+        "citation_granularity:act_edition",
+        "document_scope:act_edition",
+        "obligation_type:temporal_filtering",
+        "procurement_phase:general_44fz_retrieval",
+        "query_intent:apply_temporal_scope",
+        "safety_boundary:not_applicable",
+        "temporal_status:as_of_date_required",
+        "topic_class:procurement_contracting"
+      ],
+      "descriptors": {
+        "actor_role": "retrieval_system",
+        "ambiguity_handling": "not_applicable",
+        "citation_granularity": "act_edition",
+        "document_scope": "act_edition",
+        "obligation_type": "temporal_filtering",
+        "procurement_phase": "general_44fz_retrieval",
+        "query_intent": "apply_temporal_scope",
+        "safety_boundary": "not_applicable",
+        "temporal_status": "as_of_date_required",
+        "topic_class": "procurement_contracting"
+      },
+      "non_authoritative": true,
+      "query_hash_ref": "sha256:6df4e53f93fa6dfa413c7b6bc46d8d58d0c33719e4abc8f8f179e1bb3d92b477",
+      "query_id": "QUERY-M026-003-HELDOUT-TEMPORAL",
+      "representation_kind": "safe_semantic_descriptor_v1"
+    },
+    {
+      "case_id": "CASE-M026-004-HELDOUT-SCOPED-ABSENCE",
+      "descriptor_input_id": "HO-DESCQ-M026-004",
+      "descriptor_tokens": [
+        "actor_role:retrieval_system",
+        "ambiguity_handling:scoped_absence_check_required",
+        "citation_granularity:document_unit",
+        "document_scope:scope_absence",
+        "obligation_type:scope_rejection",
+        "procurement_phase:general_44fz_retrieval",
+        "query_intent:detect_scoped_absence",
+        "safety_boundary:not_applicable",
+        "temporal_status:not_applicable",
+        "topic_class:procurement_contracting"
+      ],
+      "descriptors": {
+        "actor_role": "retrieval_system",
+        "ambiguity_handling": "scoped_absence_check_required",
+        "citation_granularity": "document_unit",
+        "document_scope": "scope_absence",
+        "obligation_type": "scope_rejection",
+        "procurement_phase": "general_44fz_retrieval",
+        "query_intent": "detect_scoped_absence",
+        "safety_boundary": "not_applicable",
+        "temporal_status": "not_applicable",
+        "topic_class": "procurement_contracting"
+      },
+      "non_authoritative": true,
+      "query_hash_ref": "sha256:c21c167931768867994368ca46bc33f65fc1febb61854725d32002149bebc28e",
+      "query_id": "QUERY-M026-004-HELDOUT-SCOPED-ABSENCE",
+      "representation_kind": "safe_semantic_descriptor_v1"
+    },
+    {
+      "case_id": "CASE-M026-005-HELDOUT-SAFETY-BOUNDARY",
+      "descriptor_input_id": "HO-DESCQ-M026-005",
+      "descriptor_tokens": [
+        "actor_role:retrieval_system",
+        "ambiguity_handling:not_applicable",
+        "citation_granularity:safety_boundary",
+        "document_scope:safety_boundary",
+        "obligation_type:safety_rejection",
+        "procurement_phase:general_44fz_retrieval",
+        "query_intent:reject_unsafe_payload_boundary",
+        "safety_boundary:unsafe_payload_boundary",
+        "temporal_status:not_applicable",
+        "topic_class:procurement_contracting"
+      ],
+      "descriptors": {
+        "actor_role": "retrieval_system",
+        "ambiguity_handling": "not_applicable",
+        "citation_granularity": "safety_boundary",
+        "document_scope": "safety_boundary",
+        "obligation_type": "safety_rejection",
+        "procurement_phase": "general_44fz_retrieval",
+        "query_intent": "reject_unsafe_payload_boundary",
+        "safety_boundary": "unsafe_payload_boundary",
+        "temporal_status": "not_applicable",
+        "topic_class": "procurement_contracting"
+      },
+      "non_authoritative": true,
+      "query_hash_ref": "sha256:373c9bc146f03a2c5eef306dbd9e85764a2150037e46606d11f0c928a6594570",
+      "query_id": "QUERY-M026-005-HELDOUT-SAFETY-BOUNDARY",
+      "representation_kind": "safe_semantic_descriptor_v1"
+    }
+  ],
+  "redaction": {
+    "absolute_paths_excluded": true,
+    "expected_answer_fields_excluded_from_descriptor_inputs": true,
+    "external_payloads_excluded": true,
+    "generated_answer_prose_excluded": true,
+    "generated_query_excluded": true,
+    "gsd_exec_paths_excluded": true,
+    "query_text_excluded": true,
+    "raw_vectors_excluded": true,
+    "source_text_excluded": true
+  },
+  "representation_kind": "safe_semantic_descriptor_v1",
+  "schema_version": "held-out-semantic-descriptor-inputs/v1",
+  "slice_id": "S02"
+}
