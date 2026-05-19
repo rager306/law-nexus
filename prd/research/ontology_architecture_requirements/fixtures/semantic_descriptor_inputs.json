@@ -4,17 +4,16 @@
       "retrieval_system"
     ],
     "ambiguity_handling": [
-      "ambiguous_candidates_expected",
-      "no_answer_expected",
+      "ambiguity_resolution_required",
       "not_applicable",
-      "unsupported_scope_expected"
+      "scope_outside_supported_corpus",
+      "scoped_absence_check_required"
     ],
     "candidate_role": [
       "candidate_document_unit"
     ],
     "citation_binding_status": [
-      "complete_citation_binding",
-      "incomplete_citation_binding"
+      "complete_citation_binding"
     ],
     "citation_granularity": [
       "act_edition",
@@ -22,7 +21,6 @@
       "clause",
       "complete_citation_binding",
       "document_unit",
-      "incomplete_citation_binding",
       "safety_boundary",
       "source_block_marker"
     ],
@@ -38,12 +36,12 @@
       "unsupported_scope"
     ],
     "obligation_type": [
-      "retrieval_selection",
-      "temporal_filtering",
       "ambiguity_resolution",
-      "scope_rejection",
       "citation_preservation",
-      "safety_rejection"
+      "retrieval_selection",
+      "safety_rejection",
+      "scope_rejection",
+      "temporal_filtering"
     ],
     "procurement_phase": [
       "general_44fz_retrieval"
@@ -54,11 +52,11 @@
       "detect_scoped_absence",
       "locate_evidence_span",
       "locate_source_block_marker",
-      "prefer_granular_marker_over_broad_unit",
       "preserve_citation_binding",
       "reject_edition_mismatch",
       "reject_unsafe_payload_boundary",
-      "reject_unsupported_scope"
+      "reject_unsupported_scope",
+      "resolve_granularity_conflict"
     ],
     "safety_boundary": [
       "not_applicable",
@@ -268,7 +266,7 @@
       "descriptor_input_id": "DESCC-M025-005-01",
       "descriptor_tokens": [
         "actor_role:retrieval_system",
-        "ambiguity_handling:ambiguous_candidates_expected",
+        "ambiguity_handling:ambiguity_resolution_required",
         "candidate_role:candidate_document_unit",
         "citation_binding_status:complete_citation_binding",
         "citation_granularity:clause",
@@ -281,7 +279,7 @@
       ],
       "descriptors": {
         "actor_role": "retrieval_system",
-        "ambiguity_handling": "ambiguous_candidates_expected",
+        "ambiguity_handling": "ambiguity_resolution_required",
         "candidate_role": "candidate_document_unit",
         "citation_binding_status": "complete_citation_binding",
         "citation_granularity": "clause",
@@ -305,7 +303,7 @@
       "descriptor_input_id": "DESCC-M025-005-02",
       "descriptor_tokens": [
         "actor_role:retrieval_system",
-        "ambiguity_handling:ambiguous_candidates_expected",
+        "ambiguity_handling:ambiguity_resolution_required",
         "candidate_role:candidate_document_unit",
         "citation_binding_status:complete_citation_binding",
         "citation_granularity:clause",
@@ -318,7 +316,7 @@
       ],
       "descriptors": {
         "actor_role": "retrieval_system",
-        "ambiguity_handling": "ambiguous_candidates_expected",
+        "ambiguity_handling": "ambiguity_resolution_required",
         "candidate_role": "candidate_document_unit",
         "citation_binding_status": "complete_citation_binding",
         "citation_granularity": "clause",
@@ -345,8 +343,8 @@
         "ambiguity_handling:not_applicable",
         "candidate_role:candidate_document_unit",
         "citation_binding_status:complete_citation_binding",
-        "citation_granularity:document_unit",
-        "document_scope:evidence_span",
+        "citation_granularity:article_or_evidence_span",
+        "document_scope:article_or_evidence_span",
         "obligation_type:citation_preservation",
         "procurement_phase:general_44fz_retrieval",
         "safety_boundary:not_applicable",
@@ -358,8 +356,8 @@
         "ambiguity_handling": "not_applicable",
         "candidate_role": "candidate_document_unit",
         "citation_binding_status": "complete_citation_binding",
-        "citation_granularity": "document_unit",
-        "document_scope": "evidence_span",
+        "citation_granularity": "article_or_evidence_span",
+        "document_scope": "article_or_evidence_span",
         "obligation_type": "citation_preservation",
         "procurement_phase": "general_44fz_retrieval",
         "safety_boundary": "not_applicable",
@@ -529,7 +527,7 @@
         "document_scope:source_block",
         "obligation_type:retrieval_selection",
         "procurement_phase:general_44fz_retrieval",
-        "query_intent:prefer_granular_marker_over_broad_unit",
+        "query_intent:resolve_granularity_conflict",
         "safety_boundary:not_applicable",
         "temporal_status:not_applicable",
         "topic_class:procurement_contracting"
@@ -541,7 +539,7 @@
         "document_scope": "source_block",
         "obligation_type": "retrieval_selection",
         "procurement_phase": "general_44fz_retrieval",
-        "query_intent": "prefer_granular_marker_over_broad_unit",
+        "query_intent": "resolve_granularity_conflict",
         "safety_boundary": "not_applicable",
         "temporal_status": "not_applicable",
         "topic_class": "procurement_contracting"
@@ -588,7 +586,7 @@
       "descriptor_input_id": "DESCQ-M025-005",
       "descriptor_tokens": [
         "actor_role:retrieval_system",
-        "ambiguity_handling:ambiguous_candidates_expected",
+        "ambiguity_handling:ambiguity_resolution_required",
         "citation_granularity:document_unit",
         "document_scope:clause_set",
         "obligation_type:ambiguity_resolution",
@@ -600,7 +598,7 @@
       ],
       "descriptors": {
         "actor_role": "retrieval_system",
-        "ambiguity_handling": "ambiguous_candidates_expected",
+        "ambiguity_handling": "ambiguity_resolution_required",
         "citation_granularity": "document_unit",
         "document_scope": "clause_set",
         "obligation_type": "ambiguity_resolution",
@@ -620,7 +618,7 @@
       "descriptor_input_id": "DESCQ-M025-006",
       "descriptor_tokens": [
         "actor_role:retrieval_system",
-        "ambiguity_handling:unsupported_scope_expected",
+        "ambiguity_handling:scope_outside_supported_corpus",
         "citation_granularity:document_unit",
         "document_scope:unsupported_scope",
         "obligation_type:scope_rejection",
@@ -632,7 +630,7 @@
       ],
       "descriptors": {
         "actor_role": "retrieval_system",
-        "ambiguity_handling": "unsupported_scope_expected",
+        "ambiguity_handling": "scope_outside_supported_corpus",
         "citation_granularity": "document_unit",
         "document_scope": "unsupported_scope",
         "obligation_type": "scope_rejection",
@@ -652,7 +650,7 @@
       "descriptor_input_id": "DESCQ-M025-007",
       "descriptor_tokens": [
         "actor_role:retrieval_system",
-        "ambiguity_handling:no_answer_expected",
+        "ambiguity_handling:scoped_absence_check_required",
         "citation_granularity:document_unit",
         "document_scope:scope_absence",
         "obligation_type:scope_rejection",
@@ -664,7 +662,7 @@
       ],
       "descriptors": {
         "actor_role": "retrieval_system",
-        "ambiguity_handling": "no_answer_expected",
+        "ambiguity_handling": "scoped_absence_check_required",
         "citation_granularity": "document_unit",
         "document_scope": "scope_absence",
         "obligation_type": "scope_rejection",
@@ -717,7 +715,7 @@
       "descriptor_tokens": [
         "actor_role:retrieval_system",
         "ambiguity_handling:not_applicable",
-        "citation_granularity:document_unit",
+        "citation_granularity:act_edition",
         "document_scope:act_edition",
         "obligation_type:temporal_filtering",
         "procurement_phase:general_44fz_retrieval",
@@ -729,7 +727,7 @@
       "descriptors": {
         "actor_role": "retrieval_system",
         "ambiguity_handling": "not_applicable",
-        "citation_granularity": "document_unit",
+        "citation_granularity": "act_edition",
         "document_scope": "act_edition",
         "obligation_type": "temporal_filtering",
         "procurement_phase": "general_44fz_retrieval",
@@ -749,7 +747,7 @@
       "descriptor_tokens": [
         "actor_role:retrieval_system",
         "ambiguity_handling:not_applicable",
-        "citation_granularity:document_unit",
+        "citation_granularity:safety_boundary",
         "document_scope:safety_boundary",
         "obligation_type:safety_rejection",
         "procurement_phase:general_44fz_retrieval",
@@ -761,7 +759,7 @@
       "descriptors": {
         "actor_role": "retrieval_system",
         "ambiguity_handling": "not_applicable",
-        "citation_granularity": "document_unit",
+        "citation_granularity": "safety_boundary",
         "document_scope": "safety_boundary",
         "obligation_type": "safety_rejection",
         "procurement_phase": "general_44fz_retrieval",
@@ -791,7 +789,7 @@
   },
   "representation_kind": "safe_semantic_descriptor_v1",
   "schema_version": "semantic-descriptor-inputs/v1",
-  "slice_id": "S02",
+  "slice_id": "S05",
   "source_fixture": "prd/research/ontology_architecture_requirements/fixtures/representative_evidence_span_retrieval_corpus.json",
   "source_fixture_sha256": "db487faf546ac17486a332182163e2c074bb02c8e90d6563f5debb83c4b64896"
 }
