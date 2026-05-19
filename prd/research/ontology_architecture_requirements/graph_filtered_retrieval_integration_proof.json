@@ -1,0 +1,239 @@
+{
+  "baseline_metrics": {
+    "metrics": {
+      "ambiguous_rejection_rate": 1.0,
+      "mrr": 1.0,
+      "no_answer_accuracy": 1.0,
+      "recall_at_1": 1.0,
+      "recall_at_3": 1.0,
+      "runtime_boundary_confirmed": 1.0,
+      "stale_rejection_rate": 1.0,
+      "unsupported_scope_accuracy": 1.0
+    },
+    "mismatch_count": 0,
+    "threshold_passed": true
+  },
+  "citation_preservation": {
+    "diagnostic_codes": [
+      "citation_binding_preserved"
+    ],
+    "preserved_bindings": [
+      {
+        "act_edition_id": "ED-M014-44FZ-2026-01-01",
+        "candidate_id": "CAND-M021-S04-EV-ARTICLE-0001",
+        "citation_key": "CIT-M014-HIER-CONS-ARTICLE-0001",
+        "evidence_span_id": "EV-M014-HIER-CONS-ARTICLE-0001",
+        "source_block_id": "SB-M014-HIER-CONS-ARTICLE-0001"
+      },
+      {
+        "act_edition_id": "ED-M014-44FZ-2026-01-01",
+        "candidate_id": "CAND-M021-S04-SB-ARTICLE-0001-MARKER",
+        "citation_key": "CIT-M014-HIER-CONS-ARTICLE-0001",
+        "evidence_span_id": "EV-M014-HIER-CONS-ARTICLE-0001",
+        "source_block_id": "SB-M014-HIER-CONS-ARTICLE-0001"
+      }
+    ],
+    "status": "passed"
+  },
+  "container_runtime": {
+    "cleanup_status": "deleted",
+    "container_id_hash": "len:64",
+    "image_reference": "falkordb/falkordb:edge",
+    "mode": "auto",
+    "status": "started"
+  },
+  "diagnostic_codes": [
+    "ambiguous_candidate_preserved",
+    "baseline_comparison_passed",
+    "citation_binding_preserved",
+    "graph_runtime_confirmed",
+    "positive_filter_passed",
+    "scoped_no_answer_preserved",
+    "stale_temporal_candidate_rejected",
+    "unsupported_scope_preserved"
+  ],
+  "graph_name_hash": "len:34",
+  "materialized_counts": {
+    "act_edition_count": 2,
+    "candidate_count": 5,
+    "evidence_span_count": 4,
+    "legal_unit_count": 3,
+    "scope_count": 6,
+    "source_block_count": 4
+  },
+  "milestone_id": "M021-qk4lze",
+  "non_authoritative": true,
+  "non_claims": [
+    "Does not validate R035.",
+    "Does not prove product retrieval quality.",
+    "Does not prove graph-vector or HNSW behavior.",
+    "Does not prove hybrid vector search quality.",
+    "Does not prove parser completeness.",
+    "Does not prove legal-answer correctness.",
+    "Does not prove legal interpretation authority.",
+    "Does not prove production FalkorDB readiness.",
+    "Does not prove bulk-loader production readiness.",
+    "Does not prove pilot or 1000-document readiness."
+  ],
+  "phases": {
+    "baseline_comparison": {
+      "diagnostic_codes": [
+        "baseline_comparison_passed"
+      ],
+      "status": "passed"
+    },
+    "citation_preservation": {
+      "diagnostic_codes": [
+        "citation_binding_preserved"
+      ],
+      "status": "passed"
+    },
+    "cleanup": {
+      "diagnostic_codes": [],
+      "status": "passed"
+    },
+    "graph_materialization": {
+      "diagnostic_codes": [],
+      "status": "passed"
+    },
+    "graph_runtime": {
+      "diagnostic_codes": [
+        "graph_runtime_confirmed"
+      ],
+      "runtime_status": "confirmed-runtime",
+      "status": "passed"
+    },
+    "negative_routes": {
+      "diagnostic_codes": [
+        "ambiguous_candidate_preserved",
+        "scoped_no_answer_preserved",
+        "unsupported_scope_preserved"
+      ],
+      "status": "passed"
+    },
+    "ontology_temporal_filter": {
+      "diagnostic_codes": [
+        "positive_filter_passed",
+        "stale_temporal_candidate_rejected"
+      ],
+      "status": "passed"
+    },
+    "overclaim_safety": {
+      "diagnostic_codes": [
+        "overclaim_rejected"
+      ],
+      "status": "passed"
+    },
+    "s04_fixture_verification": {
+      "candidate_count": 5,
+      "case_count": 6,
+      "diagnostic_codes": [],
+      "status": "passed"
+    },
+    "s05_baseline_verification": {
+      "diagnostic_codes": [],
+      "mismatch_count": 0,
+      "status": "passed",
+      "threshold_passed": true
+    }
+  },
+  "redaction": {
+    "absolute_paths_excluded": true,
+    "external_payloads_excluded": true,
+    "generated_answer_excluded": true,
+    "generated_query_excluded": true,
+    "gsd_exec_paths_excluded": true,
+    "query_text_excluded": true,
+    "runtime_rows_excluded": true,
+    "secrets_excluded": true,
+    "source_text_excluded": true,
+    "temporary_paths_excluded": true,
+    "vector_values_excluded": true
+  },
+  "routes": [
+    {
+      "diagnostic_codes": [
+        "positive_filter_passed"
+      ],
+      "duration_ms": 0.75,
+      "expected_candidate_ids": [
+        "CAND-M021-S04-EV-ARTICLE-0001"
+      ],
+      "route": "positive_evidence_span_filter",
+      "selected_candidate_ids": [
+        "CAND-M021-S04-EV-ARTICLE-0001"
+      ],
+      "status": "passed"
+    },
+    {
+      "diagnostic_codes": [
+        "positive_filter_passed"
+      ],
+      "duration_ms": 0.58,
+      "expected_candidate_ids": [
+        "CAND-M021-S04-SB-ARTICLE-0001-MARKER"
+      ],
+      "route": "positive_source_block_filter",
+      "selected_candidate_ids": [
+        "CAND-M021-S04-SB-ARTICLE-0001-MARKER"
+      ],
+      "status": "passed"
+    },
+    {
+      "diagnostic_codes": [
+        "stale_temporal_candidate_rejected"
+      ],
+      "duration_ms": 0.35,
+      "expected_candidate_ids": [],
+      "route": "stale_temporal_filter",
+      "selected_candidate_ids": [],
+      "status": "passed"
+    },
+    {
+      "diagnostic_codes": [
+        "ambiguous_candidate_preserved"
+      ],
+      "duration_ms": 0.41,
+      "expected_candidate_ids": [
+        "CAND-M021-S04-AMBIG-CLAUSE-0001",
+        "CAND-M021-S04-AMBIG-CLAUSE-0002"
+      ],
+      "route": "ambiguous_candidate_filter",
+      "selected_candidate_ids": [
+        "CAND-M021-S04-AMBIG-CLAUSE-0001",
+        "CAND-M021-S04-AMBIG-CLAUSE-0002"
+      ],
+      "status": "passed"
+    },
+    {
+      "diagnostic_codes": [
+        "unsupported_scope_preserved"
+      ],
+      "duration_ms": 0.42,
+      "expected_candidate_ids": [
+        "CASE-M021-S04-UNSUPPORTED-SCOPE-001"
+      ],
+      "route": "unsupported_scope_filter",
+      "selected_candidate_ids": [
+        "CASE-M021-S04-UNSUPPORTED-SCOPE-001"
+      ],
+      "status": "passed"
+    },
+    {
+      "diagnostic_codes": [
+        "scoped_no_answer_preserved"
+      ],
+      "duration_ms": 0.46,
+      "expected_candidate_ids": [
+        "CASE-M021-S04-SCOPED-NO-ANSWER-001"
+      ],
+      "route": "scoped_no_answer_filter",
+      "selected_candidate_ids": [
+        "CASE-M021-S04-SCOPED-NO-ANSWER-001"
+      ],
+      "status": "passed"
+    }
+  ],
+  "schema_version": "graph-filtered-retrieval-integration-proof/v1",
+  "slice_id": "S06"
+}

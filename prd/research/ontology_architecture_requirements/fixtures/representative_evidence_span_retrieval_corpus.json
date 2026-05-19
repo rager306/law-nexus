@@ -1,0 +1,588 @@
+{
+  "allowed_expected_results": [
+    "selected",
+    "rejected",
+    "ambiguous",
+    "unsupported",
+    "no_answer",
+    "boundary_rejected"
+  ],
+  "cases": [
+    {
+      "candidates": [
+        {
+          "act_edition_id": "ED-M014-44FZ-2026-01-01",
+          "candidate_id": "CAND-M022-001-EV-ARTICLE-0001",
+          "citation_key": "CIT-M014-HIER-CONS-ARTICLE-0001",
+          "evidence_span_id": "EV-M014-HIER-CONS-ARTICLE-0001",
+          "expected_label": "relevant",
+          "rank": 1,
+          "selection_reason": "exact_evidence_span_match",
+          "source_artifact": "prd/retrieval/fixtures/offline_citation_retrieval_cases.json",
+          "source_block_id": "SB-M014-HIER-CONS-ARTICLE-0001",
+          "source_case_id": "CASE-M014-VALID-EXACT-RECORD-CANDIDATE",
+          "source_record_ids": [
+            "HIER-CONS-ARTICLE-0001"
+          ]
+        }
+      ],
+      "case_class": "positive_evidence_span",
+      "case_id": "CASE-M022-001-POSITIVE-EVIDENCE-SPAN",
+      "citation_requirements": {
+        "requires_act_edition_id": true,
+        "requires_citation_key": true,
+        "requires_evidence_span_id": true,
+        "requires_source_block_id": true
+      },
+      "expected_candidate_ids": [
+        "CAND-M022-001-EV-ARTICLE-0001"
+      ],
+      "expected_diagnostic_codes": [],
+      "expected_rejected_candidate_ids": [],
+      "non_authoritative": true,
+      "query": {
+        "as_of_date": "2026-01-01",
+        "expected_result": "selected",
+        "query_id": "QUERY-M022-001-POSITIVE-EVIDENCE-SPAN",
+        "query_kind": "evidence_span_lookup",
+        "query_text_sha256": "eb047020dfd5e6370bf1d1174de9e60dda2b2b0655f69eae340f609265dda9c8",
+        "scope_id": "SCOPE-M022-REPRESENTATIVE-001"
+      },
+      "source_artifact_refs": [
+        "prd/research/ontology_architecture_requirements/fixtures/evidence_span_golden_retrieval_cases.json"
+      ],
+      "source_record_ids": [
+        "HIER-CONS-ARTICLE-0001"
+      ]
+    },
+    {
+      "candidates": [
+        {
+          "act_edition_id": "ED-M014-44FZ-2026-01-01",
+          "candidate_id": "CAND-M022-002-SB-ARTICLE-0001",
+          "citation_key": "CIT-M014-HIER-CONS-ARTICLE-0001",
+          "evidence_span_id": "EV-M014-HIER-CONS-ARTICLE-0001",
+          "expected_label": "relevant",
+          "rank": 1,
+          "selection_reason": "source_block_marker_match",
+          "source_artifact": "prd/retrieval/fixtures/offline_citation_retrieval_cases.json",
+          "source_block_id": "SB-M014-HIER-CONS-ARTICLE-0001",
+          "source_case_id": "CASE-M014-VALID-MARKER-LEVEL-CANDIDATE",
+          "source_record_ids": [
+            "HIER-CONS-ARTICLE-0001"
+          ]
+        }
+      ],
+      "case_class": "positive_source_block_marker",
+      "case_id": "CASE-M022-002-POSITIVE-SOURCE-BLOCK-MARKER",
+      "citation_requirements": {
+        "requires_act_edition_id": true,
+        "requires_citation_key": true,
+        "requires_evidence_span_id": true,
+        "requires_source_block_id": true
+      },
+      "expected_candidate_ids": [
+        "CAND-M022-002-SB-ARTICLE-0001"
+      ],
+      "expected_diagnostic_codes": [],
+      "expected_rejected_candidate_ids": [],
+      "non_authoritative": true,
+      "query": {
+        "as_of_date": "2026-01-01",
+        "expected_result": "selected",
+        "query_id": "QUERY-M022-002-POSITIVE-SOURCE-BLOCK-MARKER",
+        "query_kind": "source_block_marker_lookup",
+        "query_text_sha256": "eceee3c31173ce8b368db8d3759d7930f1855ff4693fcd85c7bb4fa8dc04d43a",
+        "scope_id": "SCOPE-M022-REPRESENTATIVE-001"
+      },
+      "source_artifact_refs": [
+        "prd/research/ontology_architecture_requirements/fixtures/evidence_span_golden_retrieval_cases.json"
+      ],
+      "source_record_ids": [
+        "HIER-CONS-ARTICLE-0001"
+      ]
+    },
+    {
+      "candidates": [
+        {
+          "act_edition_id": "ED-M014-44FZ-2026-01-01",
+          "candidate_id": "CAND-M022-003-RELEVANT-MARKER",
+          "citation_key": "CIT-M014-HIER-CONS-ARTICLE-0001",
+          "evidence_span_id": "EV-M014-HIER-CONS-ARTICLE-0001",
+          "expected_label": "relevant",
+          "rank": 1,
+          "selection_reason": "relevant_marker_ranked_first",
+          "source_artifact": "prd/retrieval/fixtures/offline_citation_retrieval_cases.json",
+          "source_block_id": "SB-M014-HIER-CONS-ARTICLE-0001",
+          "source_case_id": "CASE-M014-VALID-MARKER-LEVEL-CANDIDATE",
+          "source_record_ids": [
+            "HIER-CONS-ARTICLE-0001"
+          ]
+        },
+        {
+          "act_edition_id": "ED-M014-44FZ-2026-01-01",
+          "candidate_id": "CAND-M022-003-DISTRACTOR-ARTICLE",
+          "citation_key": "CIT-M014-HIER-CONS-ARTICLE-0001",
+          "evidence_span_id": "EV-M014-HIER-CONS-ARTICLE-0001",
+          "expected_label": "distractor",
+          "rank": 2,
+          "selection_reason": "lower_rank_valid_but_not_best",
+          "source_artifact": "prd/retrieval/fixtures/offline_citation_retrieval_cases.json",
+          "source_block_id": "SB-M014-HIER-CONS-ARTICLE-0001",
+          "source_case_id": "CASE-M014-VALID-EXACT-RECORD-CANDIDATE",
+          "source_record_ids": [
+            "HIER-CONS-ARTICLE-0001"
+          ]
+        }
+      ],
+      "case_class": "positive_with_distractor",
+      "case_id": "CASE-M022-003-POSITIVE-WITH-DISTRACTOR",
+      "citation_requirements": {
+        "requires_act_edition_id": true,
+        "requires_citation_key": true,
+        "requires_evidence_span_id": true,
+        "requires_source_block_id": true
+      },
+      "expected_candidate_ids": [
+        "CAND-M022-003-RELEVANT-MARKER"
+      ],
+      "expected_diagnostic_codes": [],
+      "expected_rejected_candidate_ids": [
+        "CAND-M022-003-DISTRACTOR-ARTICLE"
+      ],
+      "non_authoritative": true,
+      "query": {
+        "as_of_date": "2026-01-01",
+        "expected_result": "selected",
+        "query_id": "QUERY-M022-003-POSITIVE-WITH-DISTRACTOR",
+        "query_kind": "distractor_retrieval",
+        "query_text_sha256": "2c1db0cd61e9842e77926880f28cca4e7a78205d36d263addcb398ec04ded941",
+        "scope_id": "SCOPE-M022-REPRESENTATIVE-001"
+      },
+      "source_artifact_refs": [
+        "prd/research/ontology_architecture_requirements/fixtures/evidence_span_golden_retrieval_cases.json"
+      ],
+      "source_record_ids": [
+        "HIER-CONS-ARTICLE-0001"
+      ]
+    },
+    {
+      "candidates": [
+        {
+          "act_edition_id": "ED-M013-44FZ-1900-01-01",
+          "candidate_id": "CAND-M022-004-STALE-WRONG-EDITION",
+          "citation_key": "CIT-M013-HIER-CONS-ARTICLE-0001",
+          "evidence_span_id": "EV-M013-HIER-CONS-ARTICLE-0001",
+          "expected_label": "stale",
+          "rank": 1,
+          "selection_reason": "wrong_edition_temporal_rejection",
+          "source_artifact": "prd/retrieval/fixtures/real_artifact_retrieval_cases.json",
+          "source_block_id": "SB-M013-HIER-CONS-ARTICLE-0001",
+          "source_case_id": "CASE-M013-WRONG-EDITION-PROXY",
+          "source_record_ids": [
+            "HIER-CONS-ARTICLE-0001"
+          ]
+        }
+      ],
+      "case_class": "stale_temporal_negative",
+      "case_id": "CASE-M022-004-STALE-TEMPORAL-NEGATIVE",
+      "citation_requirements": {
+        "requires_act_edition_id": true,
+        "requires_citation_key": true,
+        "requires_evidence_span_id": true,
+        "requires_source_block_id": true
+      },
+      "expected_candidate_ids": [],
+      "expected_diagnostic_codes": [
+        "stale_temporal_candidate"
+      ],
+      "expected_rejected_candidate_ids": [
+        "CAND-M022-004-STALE-WRONG-EDITION"
+      ],
+      "non_authoritative": true,
+      "query": {
+        "as_of_date": "2026-01-01",
+        "expected_result": "rejected",
+        "query_id": "QUERY-M022-004-STALE-TEMPORAL-NEGATIVE",
+        "query_kind": "temporal_scoped_lookup",
+        "query_text_sha256": "ab43c509fdb24cf119eb537a60411cdbb996e88fdc581bdc32182cb65f7128bc",
+        "scope_id": "SCOPE-M022-REPRESENTATIVE-001"
+      },
+      "source_artifact_refs": [
+        "prd/research/ontology_architecture_requirements/fixtures/evidence_span_golden_retrieval_cases.json"
+      ],
+      "source_record_ids": [
+        "HIER-CONS-ARTICLE-0001"
+      ]
+    },
+    {
+      "candidates": [
+        {
+          "act_edition_id": "ED-M014-44FZ-2026-01-01",
+          "candidate_id": "CAND-M022-005-AMBIG-CLAUSE-0001",
+          "citation_key": "CIT-M014-HIER-CONS-CLAUSE-0001",
+          "evidence_span_id": "EV-M014-HIER-CONS-CLAUSE-0001",
+          "expected_label": "ambiguous",
+          "rank": 1,
+          "selection_reason": "ambiguous_candidate_set",
+          "source_artifact": "prd/retrieval/fixtures/offline_citation_retrieval_cases.json",
+          "source_block_id": "SB-M014-HIER-CONS-CLAUSE-0001",
+          "source_case_id": "CASE-M014-AMBIGUOUS-CANDIDATE-SET",
+          "source_record_ids": [
+            "HIER-CONS-CLAUSE-0001"
+          ]
+        },
+        {
+          "act_edition_id": "ED-M014-44FZ-2026-01-01",
+          "candidate_id": "CAND-M022-005-AMBIG-CLAUSE-0002",
+          "citation_key": "CIT-M014-HIER-CONS-CLAUSE-0002",
+          "evidence_span_id": "EV-M014-HIER-CONS-CLAUSE-0002",
+          "expected_label": "ambiguous",
+          "rank": 1,
+          "selection_reason": "ambiguous_candidate_set",
+          "source_artifact": "prd/retrieval/fixtures/offline_citation_retrieval_cases.json",
+          "source_block_id": "SB-M014-HIER-CONS-CLAUSE-0002",
+          "source_case_id": "CASE-M014-AMBIGUOUS-CANDIDATE-SET",
+          "source_record_ids": [
+            "HIER-CONS-CLAUSE-0002"
+          ]
+        }
+      ],
+      "case_class": "ambiguous_candidate_set",
+      "case_id": "CASE-M022-005-AMBIGUOUS-CANDIDATE-SET",
+      "citation_requirements": {
+        "requires_act_edition_id": true,
+        "requires_citation_key": true,
+        "requires_evidence_span_id": true,
+        "requires_source_block_id": true
+      },
+      "expected_candidate_ids": [
+        "CAND-M022-005-AMBIG-CLAUSE-0001",
+        "CAND-M022-005-AMBIG-CLAUSE-0002"
+      ],
+      "expected_diagnostic_codes": [
+        "ambiguous_candidate_set"
+      ],
+      "expected_rejected_candidate_ids": [],
+      "non_authoritative": true,
+      "query": {
+        "as_of_date": "2026-01-01",
+        "expected_result": "ambiguous",
+        "query_id": "QUERY-M022-005-AMBIGUOUS-CANDIDATE-SET",
+        "query_kind": "ambiguous_clause_lookup",
+        "query_text_sha256": "f00a9e977ff5f7880af3eab979ae156ab982824b21b5216181a21059346ad3c9",
+        "scope_id": "SCOPE-M022-REPRESENTATIVE-001"
+      },
+      "source_artifact_refs": [
+        "prd/research/ontology_architecture_requirements/fixtures/evidence_span_golden_retrieval_cases.json"
+      ],
+      "source_record_ids": [
+        "HIER-CONS-CLAUSE-0001",
+        "HIER-CONS-CLAUSE-0002"
+      ]
+    },
+    {
+      "candidates": [],
+      "case_class": "unsupported_scope",
+      "case_id": "CASE-M022-006-UNSUPPORTED-SCOPE",
+      "citation_requirements": {
+        "requires_act_edition_id": true,
+        "requires_citation_key": true,
+        "requires_evidence_span_id": true,
+        "requires_source_block_id": true
+      },
+      "expected_candidate_ids": [],
+      "expected_diagnostic_codes": [
+        "unsupported_scope"
+      ],
+      "expected_rejected_candidate_ids": [],
+      "non_authoritative": true,
+      "query": {
+        "as_of_date": "2026-01-01",
+        "expected_result": "unsupported",
+        "query_id": "QUERY-M022-006-UNSUPPORTED-SCOPE",
+        "query_kind": "unsupported_scope_lookup",
+        "query_text_sha256": "53e65e0027c2891f32628c2d6ac225d9f8f8a512d490fa4b15ba2181921c84c1",
+        "scope_id": "SCOPE-M022-UNVERIFIED-001"
+      },
+      "source_artifact_refs": [
+        "prd/research/ontology_architecture_requirements/28-representative-retrieval-quality-contract.md"
+      ],
+      "source_record_ids": []
+    },
+    {
+      "candidates": [],
+      "case_class": "scoped_no_answer",
+      "case_id": "CASE-M022-007-SCOPED-NO-ANSWER",
+      "citation_requirements": {
+        "requires_act_edition_id": true,
+        "requires_citation_key": true,
+        "requires_evidence_span_id": true,
+        "requires_source_block_id": true
+      },
+      "expected_candidate_ids": [],
+      "expected_diagnostic_codes": [
+        "scoped_no_answer"
+      ],
+      "expected_rejected_candidate_ids": [],
+      "non_authoritative": true,
+      "query": {
+        "as_of_date": "2026-01-01",
+        "expected_result": "no_answer",
+        "query_id": "QUERY-M022-007-SCOPED-NO-ANSWER",
+        "query_kind": "scoped_no_answer",
+        "query_text_sha256": "7ae3802d2f1c5311af41cd6c5d149553e62a820f867991cfdfede97446945715",
+        "scope_id": "SCOPE-M022-REPRESENTATIVE-001"
+      },
+      "source_artifact_refs": [
+        "prd/retrieval/fixtures/real_artifact_retrieval_cases.json"
+      ],
+      "source_record_ids": []
+    },
+    {
+      "candidates": [
+        {
+          "act_edition_id": "ED-M014-44FZ-2026-01-01",
+          "candidate_id": "CAND-M022-008-CITATION-PRESERVED",
+          "citation_key": "CIT-M014-HIER-CONS-ARTICLE-0001",
+          "evidence_span_id": "EV-M014-HIER-CONS-ARTICLE-0001",
+          "expected_label": "relevant",
+          "rank": 1,
+          "selection_reason": "citation_binding_preserved",
+          "source_artifact": "prd/retrieval/fixtures/offline_citation_retrieval_cases.json",
+          "source_block_id": "SB-M014-HIER-CONS-ARTICLE-0001",
+          "source_case_id": "CASE-M014-VALID-EXACT-RECORD-CANDIDATE",
+          "source_record_ids": [
+            "HIER-CONS-ARTICLE-0001"
+          ]
+        }
+      ],
+      "case_class": "citation_preservation_boundary",
+      "case_id": "CASE-M022-008-CITATION-PRESERVATION-BOUNDARY",
+      "citation_requirements": {
+        "requires_act_edition_id": true,
+        "requires_citation_key": true,
+        "requires_evidence_span_id": true,
+        "requires_source_block_id": true
+      },
+      "expected_candidate_ids": [
+        "CAND-M022-008-CITATION-PRESERVED"
+      ],
+      "expected_diagnostic_codes": [],
+      "expected_rejected_candidate_ids": [],
+      "non_authoritative": true,
+      "query": {
+        "as_of_date": "2026-01-01",
+        "expected_result": "selected",
+        "query_id": "QUERY-M022-008-CITATION-PRESERVATION-BOUNDARY",
+        "query_kind": "citation_binding_check",
+        "query_text_sha256": "3cac5fd0cb7b415264a3fb80901fec78b29dea3bce71bc028d5c58519f7a32aa",
+        "scope_id": "SCOPE-M022-REPRESENTATIVE-001"
+      },
+      "source_artifact_refs": [
+        "prd/research/ontology_architecture_requirements/fixtures/evidence_span_golden_retrieval_cases.json"
+      ],
+      "source_record_ids": [
+        "HIER-CONS-ARTICLE-0001"
+      ]
+    },
+    {
+      "candidates": [
+        {
+          "act_edition_id": "ED-M013-44FZ-1900-01-01",
+          "candidate_id": "CAND-M022-009-EDITION-MISMATCH",
+          "citation_key": "CIT-M013-HIER-CONS-ARTICLE-0001",
+          "evidence_span_id": "EV-M013-HIER-CONS-ARTICLE-0001",
+          "expected_label": "stale",
+          "rank": 1,
+          "selection_reason": "edition_mismatch_rejection",
+          "source_artifact": "prd/retrieval/fixtures/real_artifact_retrieval_cases.json",
+          "source_block_id": "SB-M013-HIER-CONS-ARTICLE-0001",
+          "source_case_id": "CASE-M013-WRONG-EDITION-PROXY",
+          "source_record_ids": [
+            "HIER-CONS-ARTICLE-0001"
+          ]
+        }
+      ],
+      "case_class": "edition_mismatch_negative",
+      "case_id": "CASE-M022-009-EDITION-MISMATCH-NEGATIVE",
+      "citation_requirements": {
+        "requires_act_edition_id": true,
+        "requires_citation_key": true,
+        "requires_evidence_span_id": true,
+        "requires_source_block_id": true
+      },
+      "expected_candidate_ids": [],
+      "expected_diagnostic_codes": [
+        "stale_temporal_candidate"
+      ],
+      "expected_rejected_candidate_ids": [
+        "CAND-M022-009-EDITION-MISMATCH"
+      ],
+      "non_authoritative": true,
+      "query": {
+        "as_of_date": "2026-01-01",
+        "expected_result": "rejected",
+        "query_id": "QUERY-M022-009-EDITION-MISMATCH-NEGATIVE",
+        "query_kind": "edition_mismatch_lookup",
+        "query_text_sha256": "48f0dec6c541be65a9578708299bf5d0e8bc37f24f42c40f68abe43f1fcd1533",
+        "scope_id": "SCOPE-M022-REPRESENTATIVE-001"
+      },
+      "source_artifact_refs": [
+        "prd/research/ontology_architecture_requirements/fixtures/evidence_span_golden_retrieval_cases.json"
+      ],
+      "source_record_ids": [
+        "HIER-CONS-ARTICLE-0001"
+      ]
+    },
+    {
+      "candidates": [
+        {
+          "act_edition_id": "ED-M014-44FZ-2026-01-01",
+          "candidate_id": "CAND-M022-010-UNSAFE-BOUNDARY",
+          "citation_key": "CIT-M014-HIER-CONS-ARTICLE-0001",
+          "evidence_span_id": "EV-M014-HIER-CONS-ARTICLE-0001",
+          "expected_label": "unsafe",
+          "rank": 1,
+          "selection_reason": "unsafe_payload_rejected",
+          "source_artifact": "prd/retrieval/fixtures/offline_citation_retrieval_cases.json",
+          "source_block_id": "SB-M014-HIER-CONS-ARTICLE-0001",
+          "source_case_id": "CASE-M014-VALID-EXACT-RECORD-CANDIDATE",
+          "source_record_ids": [
+            "HIER-CONS-ARTICLE-0001"
+          ]
+        }
+      ],
+      "case_class": "unsafe_payload_boundary",
+      "case_id": "CASE-M022-010-UNSAFE-PAYLOAD-BOUNDARY",
+      "citation_requirements": {
+        "requires_act_edition_id": true,
+        "requires_citation_key": true,
+        "requires_evidence_span_id": true,
+        "requires_source_block_id": true
+      },
+      "expected_candidate_ids": [],
+      "expected_diagnostic_codes": [
+        "unsafe_payload_rejected"
+      ],
+      "expected_rejected_candidate_ids": [
+        "CAND-M022-010-UNSAFE-BOUNDARY"
+      ],
+      "non_authoritative": true,
+      "query": {
+        "as_of_date": "2026-01-01",
+        "expected_result": "boundary_rejected",
+        "query_id": "QUERY-M022-010-UNSAFE-PAYLOAD-BOUNDARY",
+        "query_kind": "unsafe_boundary_check",
+        "query_text_sha256": "d4e1dd49928ecfe504995a0ffd2c69ce42acdc124fa95665ba6e49cc27236dfe",
+        "scope_id": "SCOPE-M022-REPRESENTATIVE-001"
+      },
+      "source_artifact_refs": [
+        "prd/research/ontology_architecture_requirements/fixtures/evidence_span_golden_retrieval_cases.json"
+      ],
+      "source_record_ids": [
+        "HIER-CONS-ARTICLE-0001"
+      ]
+    }
+  ],
+  "contract": "prd/research/ontology_architecture_requirements/28-representative-retrieval-quality-contract.md",
+  "diagnostic_taxonomy": [
+    "representative_fixture_verified",
+    "runtime_confirmed",
+    "runtime_blocked",
+    "threshold_mismatch",
+    "metric_mismatch",
+    "distractor_rank_violation",
+    "stale_temporal_candidate",
+    "ambiguous_candidate_set",
+    "unsupported_scope",
+    "scoped_no_answer",
+    "citation_binding_missing",
+    "unsafe_payload_rejected",
+    "source_anchor_missing",
+    "invalid_expected_candidate_reference",
+    "mutable_source_hash_refresh_required",
+    "overclaim_rejected"
+  ],
+  "fixture_artifact": "prd/research/ontology_architecture_requirements/fixtures/representative_evidence_span_retrieval_corpus.json",
+  "generated_by": "M022/S02",
+  "milestone_id": "M022-5t4bzn",
+  "non_authoritative": true,
+  "non_claims": [
+    "Does not validate R035.",
+    "Does not validate R037.",
+    "Does not prove product retrieval quality.",
+    "Does not prove parser completeness.",
+    "Does not prove legal-answer correctness.",
+    "Does not prove legal interpretation authority.",
+    "Does not prove graph-vector or HNSW behavior.",
+    "Does not prove hybrid retrieval quality.",
+    "Does not prove production FalkorDB readiness.",
+    "Does not prove bulk-loader production readiness.",
+    "Does not prove pilot or 1000-document readiness.",
+    "Does not authorize managed embedding API fallback."
+  ],
+  "redaction": {
+    "absolute_paths_excluded": true,
+    "external_payloads_excluded": true,
+    "generated_answer_excluded": true,
+    "generated_query_excluded": true,
+    "gsd_exec_paths_excluded": true,
+    "query_text_excluded": true,
+    "runtime_rows_excluded": true,
+    "secrets_excluded": true,
+    "source_text_excluded": true,
+    "temporary_paths_excluded": true,
+    "vector_values_excluded": true
+  },
+  "required_case_classes": [
+    "positive_evidence_span",
+    "positive_source_block_marker",
+    "positive_with_distractor",
+    "stale_temporal_negative",
+    "ambiguous_candidate_set",
+    "unsupported_scope",
+    "scoped_no_answer",
+    "citation_preservation_boundary",
+    "edition_mismatch_negative",
+    "unsafe_payload_boundary"
+  ],
+  "requirement": "R035",
+  "schema_version": "representative-evidence-span-retrieval-corpus/v1",
+  "slice_id": "S02",
+  "source_anchor_policy": {
+    "gsd_exec_paths_forbidden": true,
+    "mutable_runtime_hashes_avoided": true,
+    "stable_sources_preferred": true
+  },
+  "source_artifacts": [
+    {
+      "path": "prd/research/ontology_architecture_requirements/28-representative-retrieval-quality-contract.md",
+      "sha256": "b9478fbbfc36dd6a6a97ed29544428eb9739b0e99a276bfe2f6859eff4ab4a9e"
+    },
+    {
+      "path": "prd/research/ontology_architecture_requirements/27-m021-final-verification-report.md",
+      "sha256": "16ea78a00961a18c77407f4a7bb7f68d8644664e2adc468c0bbfd3124d594aff"
+    },
+    {
+      "path": "prd/research/ontology_architecture_requirements/fixtures/evidence_span_golden_retrieval_cases.json",
+      "sha256": "92c6bf764aa0fd6bc6bdef4dd848642b99e86f1461ac1ff0799a79a806e8a01e"
+    },
+    {
+      "path": "prd/retrieval/fixtures/representative_retrieval_corpus_manifest.json",
+      "sha256": "8391de412467d03e52fe09cb3fffe66bd01f35e9564fef302af82f4e54616ec8"
+    },
+    {
+      "path": "prd/retrieval/fixtures/offline_citation_retrieval_cases.json",
+      "sha256": "d087b68da758a4cdb3c3af693797266b6eb001428c6be86f1e19d44530732d77"
+    },
+    {
+      "path": "prd/retrieval/fixtures/real_artifact_retrieval_cases.json",
+      "sha256": "9f1a815a84f79c00ea5b5416c4285826930ae43646e7152dc283ce99f1bd62a7"
+    },
+    {
+      "path": "prd/retrieval/fixtures/local_retrieval_quality_benchmark.json",
+      "sha256": "1e568c9960e57da65af6ac7a18bf4e37eea7f0af30f829017a87947b07e29cec"
+    }
+  ]
+}

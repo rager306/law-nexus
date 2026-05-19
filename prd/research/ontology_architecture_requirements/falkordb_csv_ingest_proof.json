@@ -1,0 +1,79 @@
+{
+  "container_runtime": {
+    "cleanup_status": "deleted",
+    "container_id_hash": "len:64",
+    "image_reference": "falkordb/falkordb:edge",
+    "import_mount": "fixture_dir_to_container_import",
+    "mode": "auto",
+    "status": "started"
+  },
+  "diagnostic_codes": [],
+  "expected_counts": {
+    "expected_current_nodes": 3,
+    "expected_inactive_nodes": 1,
+    "expected_node_count": 4,
+    "expected_relationship_count": 3,
+    "expected_source_node_rows": 4,
+    "expected_source_relationship_rows": 3
+  },
+  "file_access": {
+    "container_import_folder": "/data",
+    "host_path_persisted": false,
+    "mode": "docker_import_mount"
+  },
+  "graph_counts": {
+    "current_nodes": 3,
+    "inactive_nodes": 1,
+    "node_count": 4,
+    "relationship_count": 3
+  },
+  "graph_name_hash": "len:26",
+  "idempotency": {
+    "duplicate_nodes_created": 0,
+    "duplicate_relationships_created": 0,
+    "mode": "MERGE rerun",
+    "status": "passed"
+  },
+  "load_durations_ms": {
+    "cleanup_before_load_ms": 0.95,
+    "load_nodes_first_ms": 1.38,
+    "load_nodes_rerun_ms": 1.25,
+    "load_relationships_first_ms": 1.76,
+    "load_relationships_rerun_ms": 0.77
+  },
+  "loader": {
+    "mechanism": "LOAD CSV",
+    "raw_query_text_persisted": false,
+    "type_conversion_checked": true,
+    "with_headers": true
+  },
+  "milestone_id": "M021-qk4lze",
+  "non_authoritative": true,
+  "non_claims": [
+    "Does not validate R037 broadly; this is a bounded CSV ingest smoke.",
+    "Does not validate R035 broadly; R035 remains Active.",
+    "Does not prove retrieval quality, parser completeness, legal-answer correctness, graph-vector/HNSW behavior, FalkorDB production readiness, or pilot readiness.",
+    "Does not prove bulk-loader scale readiness; S03 owns that separate assessment."
+  ],
+  "redaction": {
+    "absolute_paths_excluded": true,
+    "external_payloads_excluded": true,
+    "gsd_exec_paths_excluded": true,
+    "raw_vectors_excluded": true,
+    "secrets_excluded": true,
+    "source_text_excluded": true
+  },
+  "related_requirement": "R035",
+  "requirement": "R037",
+  "runtime_disposition": "load_csv_passed",
+  "schema_version": "falkordb-csv-ingest-proof/v1",
+  "slice_id": "S02",
+  "source_counts": {
+    "node_rows": 4,
+    "relationship_rows": 3
+  },
+  "source_fixture_paths": [
+    "prd/research/ontology_architecture_requirements/fixtures/falkordb_ingest/legal_units.csv",
+    "prd/research/ontology_architecture_requirements/fixtures/falkordb_ingest/legal_unit_edges.csv"
+  ]
+}

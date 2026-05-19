@@ -1,0 +1,306 @@
+{
+  "entries": [
+    {
+      "as_of_date": "2026-01-01",
+      "case_class": "positive_evidence_span",
+      "case_id": "CASE-M022-001-POSITIVE-EVIDENCE-SPAN",
+      "controlled_terms": [
+        "positive_evidence_span",
+        "evidence_span_lookup",
+        "selected"
+      ],
+      "expected_result": "selected",
+      "hash_algorithm": "sha256",
+      "non_authoritative": true,
+      "normalization_profile": "sha256-normalized-redacted-query-v1",
+      "query_hash": "eb047020dfd5e6370bf1d1174de9e60dda2b2b0655f69eae340f609265dda9c8",
+      "query_hash_field": "query_text_sha256",
+      "query_id": "QUERY-M022-001-POSITIVE-EVIDENCE-SPAN",
+      "query_id_field": "query_id",
+      "query_kind": "evidence_span_lookup",
+      "redacted_template_id": "QTMPL-M023-POSITIVE-EVIDENCE-SPAN",
+      "registry_entry_id": "QPROV-M023-001",
+      "scope_id": "SCOPE-M022-REPRESENTATIVE-001",
+      "source_artifact_refs": [
+        "prd/research/ontology_architecture_requirements/fixtures/evidence_span_golden_retrieval_cases.json"
+      ],
+      "source_record_ids": [
+        "HIER-CONS-ARTICLE-0001"
+      ]
+    },
+    {
+      "as_of_date": "2026-01-01",
+      "case_class": "positive_source_block_marker",
+      "case_id": "CASE-M022-002-POSITIVE-SOURCE-BLOCK-MARKER",
+      "controlled_terms": [
+        "positive_source_block_marker",
+        "source_block_marker_lookup",
+        "selected"
+      ],
+      "expected_result": "selected",
+      "hash_algorithm": "sha256",
+      "non_authoritative": true,
+      "normalization_profile": "sha256-normalized-redacted-query-v1",
+      "query_hash": "eceee3c31173ce8b368db8d3759d7930f1855ff4693fcd85c7bb4fa8dc04d43a",
+      "query_hash_field": "query_text_sha256",
+      "query_id": "QUERY-M022-002-POSITIVE-SOURCE-BLOCK-MARKER",
+      "query_id_field": "query_id",
+      "query_kind": "source_block_marker_lookup",
+      "redacted_template_id": "QTMPL-M023-POSITIVE-SOURCE-BLOCK-MARKER",
+      "registry_entry_id": "QPROV-M023-002",
+      "scope_id": "SCOPE-M022-REPRESENTATIVE-001",
+      "source_artifact_refs": [
+        "prd/research/ontology_architecture_requirements/fixtures/evidence_span_golden_retrieval_cases.json"
+      ],
+      "source_record_ids": [
+        "HIER-CONS-ARTICLE-0001"
+      ]
+    },
+    {
+      "as_of_date": "2026-01-01",
+      "case_class": "positive_with_distractor",
+      "case_id": "CASE-M022-003-POSITIVE-WITH-DISTRACTOR",
+      "controlled_terms": [
+        "positive_with_distractor",
+        "distractor_retrieval",
+        "selected"
+      ],
+      "expected_result": "selected",
+      "hash_algorithm": "sha256",
+      "non_authoritative": true,
+      "normalization_profile": "sha256-normalized-redacted-query-v1",
+      "query_hash": "2c1db0cd61e9842e77926880f28cca4e7a78205d36d263addcb398ec04ded941",
+      "query_hash_field": "query_text_sha256",
+      "query_id": "QUERY-M022-003-POSITIVE-WITH-DISTRACTOR",
+      "query_id_field": "query_id",
+      "query_kind": "distractor_retrieval",
+      "redacted_template_id": "QTMPL-M023-POSITIVE-WITH-DISTRACTOR",
+      "registry_entry_id": "QPROV-M023-003",
+      "scope_id": "SCOPE-M022-REPRESENTATIVE-001",
+      "source_artifact_refs": [
+        "prd/research/ontology_architecture_requirements/fixtures/evidence_span_golden_retrieval_cases.json"
+      ],
+      "source_record_ids": [
+        "HIER-CONS-ARTICLE-0001"
+      ]
+    },
+    {
+      "as_of_date": "2026-01-01",
+      "case_class": "stale_temporal_negative",
+      "case_id": "CASE-M022-004-STALE-TEMPORAL-NEGATIVE",
+      "controlled_terms": [
+        "stale_temporal_negative",
+        "temporal_scoped_lookup",
+        "rejected"
+      ],
+      "expected_result": "rejected",
+      "hash_algorithm": "sha256",
+      "non_authoritative": true,
+      "normalization_profile": "sha256-normalized-redacted-query-v1",
+      "query_hash": "ab43c509fdb24cf119eb537a60411cdbb996e88fdc581bdc32182cb65f7128bc",
+      "query_hash_field": "query_text_sha256",
+      "query_id": "QUERY-M022-004-STALE-TEMPORAL-NEGATIVE",
+      "query_id_field": "query_id",
+      "query_kind": "temporal_scoped_lookup",
+      "redacted_template_id": "QTMPL-M023-STALE-TEMPORAL-NEGATIVE",
+      "registry_entry_id": "QPROV-M023-004",
+      "scope_id": "SCOPE-M022-REPRESENTATIVE-001",
+      "source_artifact_refs": [
+        "prd/research/ontology_architecture_requirements/fixtures/evidence_span_golden_retrieval_cases.json"
+      ],
+      "source_record_ids": [
+        "HIER-CONS-ARTICLE-0001"
+      ]
+    },
+    {
+      "as_of_date": "2026-01-01",
+      "case_class": "ambiguous_candidate_set",
+      "case_id": "CASE-M022-005-AMBIGUOUS-CANDIDATE-SET",
+      "controlled_terms": [
+        "ambiguous_candidate_set",
+        "ambiguous_clause_lookup",
+        "ambiguous"
+      ],
+      "expected_result": "ambiguous",
+      "hash_algorithm": "sha256",
+      "non_authoritative": true,
+      "normalization_profile": "sha256-normalized-redacted-query-v1",
+      "query_hash": "f00a9e977ff5f7880af3eab979ae156ab982824b21b5216181a21059346ad3c9",
+      "query_hash_field": "query_text_sha256",
+      "query_id": "QUERY-M022-005-AMBIGUOUS-CANDIDATE-SET",
+      "query_id_field": "query_id",
+      "query_kind": "ambiguous_clause_lookup",
+      "redacted_template_id": "QTMPL-M023-AMBIGUOUS-CANDIDATE-SET",
+      "registry_entry_id": "QPROV-M023-005",
+      "scope_id": "SCOPE-M022-REPRESENTATIVE-001",
+      "source_artifact_refs": [
+        "prd/research/ontology_architecture_requirements/fixtures/evidence_span_golden_retrieval_cases.json"
+      ],
+      "source_record_ids": [
+        "HIER-CONS-CLAUSE-0001",
+        "HIER-CONS-CLAUSE-0002"
+      ]
+    },
+    {
+      "as_of_date": "2026-01-01",
+      "case_class": "unsupported_scope",
+      "case_id": "CASE-M022-006-UNSUPPORTED-SCOPE",
+      "controlled_terms": [
+        "unsupported_scope",
+        "unsupported_scope_lookup",
+        "unsupported"
+      ],
+      "expected_result": "unsupported",
+      "hash_algorithm": "sha256",
+      "non_authoritative": true,
+      "normalization_profile": "sha256-normalized-redacted-query-v1",
+      "query_hash": "53e65e0027c2891f32628c2d6ac225d9f8f8a512d490fa4b15ba2181921c84c1",
+      "query_hash_field": "query_text_sha256",
+      "query_id": "QUERY-M022-006-UNSUPPORTED-SCOPE",
+      "query_id_field": "query_id",
+      "query_kind": "unsupported_scope_lookup",
+      "redacted_template_id": "QTMPL-M023-UNSUPPORTED-SCOPE",
+      "registry_entry_id": "QPROV-M023-006",
+      "scope_id": "SCOPE-M022-UNVERIFIED-001",
+      "source_artifact_refs": [
+        "prd/research/ontology_architecture_requirements/28-representative-retrieval-quality-contract.md"
+      ],
+      "source_record_ids": []
+    },
+    {
+      "as_of_date": "2026-01-01",
+      "case_class": "scoped_no_answer",
+      "case_id": "CASE-M022-007-SCOPED-NO-ANSWER",
+      "controlled_terms": [
+        "scoped_no_answer",
+        "scoped_no_answer",
+        "no_answer"
+      ],
+      "expected_result": "no_answer",
+      "hash_algorithm": "sha256",
+      "non_authoritative": true,
+      "normalization_profile": "sha256-normalized-redacted-query-v1",
+      "query_hash": "7ae3802d2f1c5311af41cd6c5d149553e62a820f867991cfdfede97446945715",
+      "query_hash_field": "query_text_sha256",
+      "query_id": "QUERY-M022-007-SCOPED-NO-ANSWER",
+      "query_id_field": "query_id",
+      "query_kind": "scoped_no_answer",
+      "redacted_template_id": "QTMPL-M023-SCOPED-NO-ANSWER",
+      "registry_entry_id": "QPROV-M023-007",
+      "scope_id": "SCOPE-M022-REPRESENTATIVE-001",
+      "source_artifact_refs": [
+        "prd/retrieval/fixtures/real_artifact_retrieval_cases.json"
+      ],
+      "source_record_ids": []
+    },
+    {
+      "as_of_date": "2026-01-01",
+      "case_class": "citation_preservation_boundary",
+      "case_id": "CASE-M022-008-CITATION-PRESERVATION-BOUNDARY",
+      "controlled_terms": [
+        "citation_preservation_boundary",
+        "citation_binding_check",
+        "selected"
+      ],
+      "expected_result": "selected",
+      "hash_algorithm": "sha256",
+      "non_authoritative": true,
+      "normalization_profile": "sha256-normalized-redacted-query-v1",
+      "query_hash": "3cac5fd0cb7b415264a3fb80901fec78b29dea3bce71bc028d5c58519f7a32aa",
+      "query_hash_field": "query_text_sha256",
+      "query_id": "QUERY-M022-008-CITATION-PRESERVATION-BOUNDARY",
+      "query_id_field": "query_id",
+      "query_kind": "citation_binding_check",
+      "redacted_template_id": "QTMPL-M023-CITATION-PRESERVATION-BOUNDARY",
+      "registry_entry_id": "QPROV-M023-008",
+      "scope_id": "SCOPE-M022-REPRESENTATIVE-001",
+      "source_artifact_refs": [
+        "prd/research/ontology_architecture_requirements/fixtures/evidence_span_golden_retrieval_cases.json"
+      ],
+      "source_record_ids": [
+        "HIER-CONS-ARTICLE-0001"
+      ]
+    },
+    {
+      "as_of_date": "2026-01-01",
+      "case_class": "edition_mismatch_negative",
+      "case_id": "CASE-M022-009-EDITION-MISMATCH-NEGATIVE",
+      "controlled_terms": [
+        "edition_mismatch_negative",
+        "edition_mismatch_lookup",
+        "rejected"
+      ],
+      "expected_result": "rejected",
+      "hash_algorithm": "sha256",
+      "non_authoritative": true,
+      "normalization_profile": "sha256-normalized-redacted-query-v1",
+      "query_hash": "48f0dec6c541be65a9578708299bf5d0e8bc37f24f42c40f68abe43f1fcd1533",
+      "query_hash_field": "query_text_sha256",
+      "query_id": "QUERY-M022-009-EDITION-MISMATCH-NEGATIVE",
+      "query_id_field": "query_id",
+      "query_kind": "edition_mismatch_lookup",
+      "redacted_template_id": "QTMPL-M023-EDITION-MISMATCH-NEGATIVE",
+      "registry_entry_id": "QPROV-M023-009",
+      "scope_id": "SCOPE-M022-REPRESENTATIVE-001",
+      "source_artifact_refs": [
+        "prd/research/ontology_architecture_requirements/fixtures/evidence_span_golden_retrieval_cases.json"
+      ],
+      "source_record_ids": [
+        "HIER-CONS-ARTICLE-0001"
+      ]
+    },
+    {
+      "as_of_date": "2026-01-01",
+      "case_class": "unsafe_payload_boundary",
+      "case_id": "CASE-M022-010-UNSAFE-PAYLOAD-BOUNDARY",
+      "controlled_terms": [
+        "unsafe_payload_boundary",
+        "unsafe_boundary_check",
+        "boundary_rejected"
+      ],
+      "expected_result": "boundary_rejected",
+      "hash_algorithm": "sha256",
+      "non_authoritative": true,
+      "normalization_profile": "sha256-normalized-redacted-query-v1",
+      "query_hash": "d4e1dd49928ecfe504995a0ffd2c69ce42acdc124fa95665ba6e49cc27236dfe",
+      "query_hash_field": "query_text_sha256",
+      "query_id": "QUERY-M022-010-UNSAFE-PAYLOAD-BOUNDARY",
+      "query_id_field": "query_id",
+      "query_kind": "unsafe_boundary_check",
+      "redacted_template_id": "QTMPL-M023-UNSAFE-PAYLOAD-BOUNDARY",
+      "registry_entry_id": "QPROV-M023-010",
+      "scope_id": "SCOPE-M022-REPRESENTATIVE-001",
+      "source_artifact_refs": [
+        "prd/research/ontology_architecture_requirements/fixtures/evidence_span_golden_retrieval_cases.json"
+      ],
+      "source_record_ids": [
+        "HIER-CONS-ARTICLE-0001"
+      ]
+    }
+  ],
+  "entry_count": 10,
+  "milestone_id": "M023-9rfkrs",
+  "non_authoritative": true,
+  "non_claims": [
+    "Does not validate R035.",
+    "Does not prove product retrieval quality.",
+    "Does not prove observed retrieval ranking by itself."
+  ],
+  "redaction": {
+    "absolute_paths_excluded": true,
+    "external_payloads_excluded": true,
+    "generated_answer_excluded": true,
+    "generated_query_excluded": true,
+    "gsd_exec_paths_excluded": true,
+    "query_text_excluded": true,
+    "runtime_rows_excluded": true,
+    "secrets_excluded": true,
+    "source_text_excluded": true,
+    "temporary_paths_excluded": true,
+    "vector_values_excluded": true
+  },
+  "schema_version": "observed-retrieval-query-provenance-registry/v1",
+  "slice_id": "S02",
+  "source_fixture": "prd/research/ontology_architecture_requirements/fixtures/representative_evidence_span_retrieval_corpus.json",
+  "source_fixture_sha256": "db487faf546ac17486a332182163e2c074bb02c8e90d6563f5debb83c4b64896"
+}

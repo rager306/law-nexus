@@ -1,0 +1,545 @@
+{
+  "allowed_representation_kinds": [
+    "safe_query_token_bag_v1",
+    "safe_candidate_token_bag_v1"
+  ],
+  "candidate_input_count": 10,
+  "candidate_inputs": [
+    {
+      "act_edition_id": "ED-M014-44FZ-2026-01-01",
+      "as_of_date": "2026-01-01",
+      "candidate_id": "CAND-M022-001-EV-ARTICLE-0001",
+      "candidate_source_ref": "observed_retrieval_source_provenance_manifest/v1",
+      "case_class": "positive_evidence_span",
+      "case_id": "CASE-M022-001-POSITIVE-EVIDENCE-SPAN",
+      "citation_key": "CIT-M014-HIER-CONS-ARTICLE-0001",
+      "evidence_span_id": "EV-M014-HIER-CONS-ARTICLE-0001",
+      "non_authoritative": true,
+      "query_id": "QUERY-M022-001-POSITIVE-EVIDENCE-SPAN",
+      "query_kind": "evidence_span_lookup",
+      "representation_kind": "safe_candidate_token_bag_v1",
+      "representation_tokens": [
+        "candidate:CAND-M022-001-EV-ARTICLE-0001",
+        "source_record:HIER-CONS-ARTICLE-0001",
+        "evidence_span:EV-M014-HIER-CONS-ARTICLE-0001",
+        "source_block:SB-M014-HIER-CONS-ARTICLE-0001",
+        "citation:CIT-M014-HIER-CONS-ARTICLE-0001",
+        "edition:ED-M014-44FZ-2026-01-01",
+        "case_class:positive_evidence_span"
+      ],
+      "scope_id": "SCOPE-M022-REPRESENTATIVE-001",
+      "semantic_input_id": "SEMC-M024-001-01",
+      "source_block_id": "SB-M014-HIER-CONS-ARTICLE-0001",
+      "source_provenance_ref": "CAND-M022-001-EV-ARTICLE-0001",
+      "source_record_ids": [
+        "HIER-CONS-ARTICLE-0001"
+      ]
+    },
+    {
+      "act_edition_id": "ED-M014-44FZ-2026-01-01",
+      "as_of_date": "2026-01-01",
+      "candidate_id": "CAND-M022-002-SB-ARTICLE-0001",
+      "candidate_source_ref": "observed_retrieval_source_provenance_manifest/v1",
+      "case_class": "positive_source_block_marker",
+      "case_id": "CASE-M022-002-POSITIVE-SOURCE-BLOCK-MARKER",
+      "citation_key": "CIT-M014-HIER-CONS-ARTICLE-0001",
+      "evidence_span_id": "EV-M014-HIER-CONS-ARTICLE-0001",
+      "non_authoritative": true,
+      "query_id": "QUERY-M022-002-POSITIVE-SOURCE-BLOCK-MARKER",
+      "query_kind": "source_block_marker_lookup",
+      "representation_kind": "safe_candidate_token_bag_v1",
+      "representation_tokens": [
+        "candidate:CAND-M022-002-SB-ARTICLE-0001",
+        "source_record:HIER-CONS-ARTICLE-0001",
+        "evidence_span:EV-M014-HIER-CONS-ARTICLE-0001",
+        "source_block:SB-M014-HIER-CONS-ARTICLE-0001",
+        "citation:CIT-M014-HIER-CONS-ARTICLE-0001",
+        "edition:ED-M014-44FZ-2026-01-01",
+        "case_class:positive_source_block_marker"
+      ],
+      "scope_id": "SCOPE-M022-REPRESENTATIVE-001",
+      "semantic_input_id": "SEMC-M024-002-01",
+      "source_block_id": "SB-M014-HIER-CONS-ARTICLE-0001",
+      "source_provenance_ref": "CAND-M022-002-SB-ARTICLE-0001",
+      "source_record_ids": [
+        "HIER-CONS-ARTICLE-0001"
+      ]
+    },
+    {
+      "act_edition_id": "ED-M014-44FZ-2026-01-01",
+      "as_of_date": "2026-01-01",
+      "candidate_id": "CAND-M022-003-RELEVANT-MARKER",
+      "candidate_source_ref": "observed_retrieval_source_provenance_manifest/v1",
+      "case_class": "positive_with_distractor",
+      "case_id": "CASE-M022-003-POSITIVE-WITH-DISTRACTOR",
+      "citation_key": "CIT-M014-HIER-CONS-ARTICLE-0001",
+      "evidence_span_id": "EV-M014-HIER-CONS-ARTICLE-0001",
+      "non_authoritative": true,
+      "query_id": "QUERY-M022-003-POSITIVE-WITH-DISTRACTOR",
+      "query_kind": "distractor_retrieval",
+      "representation_kind": "safe_candidate_token_bag_v1",
+      "representation_tokens": [
+        "candidate:CAND-M022-003-RELEVANT-MARKER",
+        "source_record:HIER-CONS-ARTICLE-0001",
+        "evidence_span:EV-M014-HIER-CONS-ARTICLE-0001",
+        "source_block:SB-M014-HIER-CONS-ARTICLE-0001",
+        "citation:CIT-M014-HIER-CONS-ARTICLE-0001",
+        "edition:ED-M014-44FZ-2026-01-01",
+        "case_class:positive_with_distractor"
+      ],
+      "scope_id": "SCOPE-M022-REPRESENTATIVE-001",
+      "semantic_input_id": "SEMC-M024-003-01",
+      "source_block_id": "SB-M014-HIER-CONS-ARTICLE-0001",
+      "source_provenance_ref": "CAND-M022-003-RELEVANT-MARKER",
+      "source_record_ids": [
+        "HIER-CONS-ARTICLE-0001"
+      ]
+    },
+    {
+      "act_edition_id": "ED-M014-44FZ-2026-01-01",
+      "as_of_date": "2026-01-01",
+      "candidate_id": "CAND-M022-003-DISTRACTOR-ARTICLE",
+      "candidate_source_ref": "observed_retrieval_source_provenance_manifest/v1",
+      "case_class": "positive_with_distractor",
+      "case_id": "CASE-M022-003-POSITIVE-WITH-DISTRACTOR",
+      "citation_key": "CIT-M014-HIER-CONS-ARTICLE-0001",
+      "evidence_span_id": "EV-M014-HIER-CONS-ARTICLE-0001",
+      "non_authoritative": true,
+      "query_id": "QUERY-M022-003-POSITIVE-WITH-DISTRACTOR",
+      "query_kind": "distractor_retrieval",
+      "representation_kind": "safe_candidate_token_bag_v1",
+      "representation_tokens": [
+        "candidate:CAND-M022-003-DISTRACTOR-ARTICLE",
+        "source_record:HIER-CONS-ARTICLE-0001",
+        "evidence_span:EV-M014-HIER-CONS-ARTICLE-0001",
+        "source_block:SB-M014-HIER-CONS-ARTICLE-0001",
+        "citation:CIT-M014-HIER-CONS-ARTICLE-0001",
+        "edition:ED-M014-44FZ-2026-01-01",
+        "case_class:positive_with_distractor"
+      ],
+      "scope_id": "SCOPE-M022-REPRESENTATIVE-001",
+      "semantic_input_id": "SEMC-M024-003-02",
+      "source_block_id": "SB-M014-HIER-CONS-ARTICLE-0001",
+      "source_provenance_ref": "CAND-M022-003-DISTRACTOR-ARTICLE",
+      "source_record_ids": [
+        "HIER-CONS-ARTICLE-0001"
+      ]
+    },
+    {
+      "act_edition_id": "ED-M013-44FZ-1900-01-01",
+      "as_of_date": "2026-01-01",
+      "candidate_id": "CAND-M022-004-STALE-WRONG-EDITION",
+      "candidate_source_ref": "observed_retrieval_source_provenance_manifest/v1",
+      "case_class": "stale_temporal_negative",
+      "case_id": "CASE-M022-004-STALE-TEMPORAL-NEGATIVE",
+      "citation_key": "CIT-M013-HIER-CONS-ARTICLE-0001",
+      "evidence_span_id": "EV-M013-HIER-CONS-ARTICLE-0001",
+      "non_authoritative": true,
+      "query_id": "QUERY-M022-004-STALE-TEMPORAL-NEGATIVE",
+      "query_kind": "temporal_scoped_lookup",
+      "representation_kind": "safe_candidate_token_bag_v1",
+      "representation_tokens": [
+        "candidate:CAND-M022-004-STALE-WRONG-EDITION",
+        "source_record:HIER-CONS-ARTICLE-0001",
+        "evidence_span:EV-M013-HIER-CONS-ARTICLE-0001",
+        "source_block:SB-M013-HIER-CONS-ARTICLE-0001",
+        "citation:CIT-M013-HIER-CONS-ARTICLE-0001",
+        "edition:ED-M013-44FZ-1900-01-01",
+        "case_class:stale_temporal_negative"
+      ],
+      "scope_id": "SCOPE-M022-REPRESENTATIVE-001",
+      "semantic_input_id": "SEMC-M024-004-01",
+      "source_block_id": "SB-M013-HIER-CONS-ARTICLE-0001",
+      "source_provenance_ref": "CAND-M022-004-STALE-WRONG-EDITION",
+      "source_record_ids": [
+        "HIER-CONS-ARTICLE-0001"
+      ]
+    },
+    {
+      "act_edition_id": "ED-M014-44FZ-2026-01-01",
+      "as_of_date": "2026-01-01",
+      "candidate_id": "CAND-M022-005-AMBIG-CLAUSE-0001",
+      "candidate_source_ref": "observed_retrieval_source_provenance_manifest/v1",
+      "case_class": "ambiguous_candidate_set",
+      "case_id": "CASE-M022-005-AMBIGUOUS-CANDIDATE-SET",
+      "citation_key": "CIT-M014-HIER-CONS-CLAUSE-0001",
+      "evidence_span_id": "EV-M014-HIER-CONS-CLAUSE-0001",
+      "non_authoritative": true,
+      "query_id": "QUERY-M022-005-AMBIGUOUS-CANDIDATE-SET",
+      "query_kind": "ambiguous_clause_lookup",
+      "representation_kind": "safe_candidate_token_bag_v1",
+      "representation_tokens": [
+        "candidate:CAND-M022-005-AMBIG-CLAUSE-0001",
+        "source_record:HIER-CONS-CLAUSE-0001",
+        "evidence_span:EV-M014-HIER-CONS-CLAUSE-0001",
+        "source_block:SB-M014-HIER-CONS-CLAUSE-0001",
+        "citation:CIT-M014-HIER-CONS-CLAUSE-0001",
+        "edition:ED-M014-44FZ-2026-01-01",
+        "case_class:ambiguous_candidate_set"
+      ],
+      "scope_id": "SCOPE-M022-REPRESENTATIVE-001",
+      "semantic_input_id": "SEMC-M024-005-01",
+      "source_block_id": "SB-M014-HIER-CONS-CLAUSE-0001",
+      "source_provenance_ref": "CAND-M022-005-AMBIG-CLAUSE-0001",
+      "source_record_ids": [
+        "HIER-CONS-CLAUSE-0001"
+      ]
+    },
+    {
+      "act_edition_id": "ED-M014-44FZ-2026-01-01",
+      "as_of_date": "2026-01-01",
+      "candidate_id": "CAND-M022-005-AMBIG-CLAUSE-0002",
+      "candidate_source_ref": "observed_retrieval_source_provenance_manifest/v1",
+      "case_class": "ambiguous_candidate_set",
+      "case_id": "CASE-M022-005-AMBIGUOUS-CANDIDATE-SET",
+      "citation_key": "CIT-M014-HIER-CONS-CLAUSE-0002",
+      "evidence_span_id": "EV-M014-HIER-CONS-CLAUSE-0002",
+      "non_authoritative": true,
+      "query_id": "QUERY-M022-005-AMBIGUOUS-CANDIDATE-SET",
+      "query_kind": "ambiguous_clause_lookup",
+      "representation_kind": "safe_candidate_token_bag_v1",
+      "representation_tokens": [
+        "candidate:CAND-M022-005-AMBIG-CLAUSE-0002",
+        "source_record:HIER-CONS-CLAUSE-0002",
+        "evidence_span:EV-M014-HIER-CONS-CLAUSE-0002",
+        "source_block:SB-M014-HIER-CONS-CLAUSE-0002",
+        "citation:CIT-M014-HIER-CONS-CLAUSE-0002",
+        "edition:ED-M014-44FZ-2026-01-01",
+        "case_class:ambiguous_candidate_set"
+      ],
+      "scope_id": "SCOPE-M022-REPRESENTATIVE-001",
+      "semantic_input_id": "SEMC-M024-005-02",
+      "source_block_id": "SB-M014-HIER-CONS-CLAUSE-0002",
+      "source_provenance_ref": "CAND-M022-005-AMBIG-CLAUSE-0002",
+      "source_record_ids": [
+        "HIER-CONS-CLAUSE-0002"
+      ]
+    },
+    {
+      "act_edition_id": "ED-M014-44FZ-2026-01-01",
+      "as_of_date": "2026-01-01",
+      "candidate_id": "CAND-M022-008-CITATION-PRESERVED",
+      "candidate_source_ref": "observed_retrieval_source_provenance_manifest/v1",
+      "case_class": "citation_preservation_boundary",
+      "case_id": "CASE-M022-008-CITATION-PRESERVATION-BOUNDARY",
+      "citation_key": "CIT-M014-HIER-CONS-ARTICLE-0001",
+      "evidence_span_id": "EV-M014-HIER-CONS-ARTICLE-0001",
+      "non_authoritative": true,
+      "query_id": "QUERY-M022-008-CITATION-PRESERVATION-BOUNDARY",
+      "query_kind": "citation_binding_check",
+      "representation_kind": "safe_candidate_token_bag_v1",
+      "representation_tokens": [
+        "candidate:CAND-M022-008-CITATION-PRESERVED",
+        "source_record:HIER-CONS-ARTICLE-0001",
+        "evidence_span:EV-M014-HIER-CONS-ARTICLE-0001",
+        "source_block:SB-M014-HIER-CONS-ARTICLE-0001",
+        "citation:CIT-M014-HIER-CONS-ARTICLE-0001",
+        "edition:ED-M014-44FZ-2026-01-01",
+        "case_class:citation_preservation_boundary"
+      ],
+      "scope_id": "SCOPE-M022-REPRESENTATIVE-001",
+      "semantic_input_id": "SEMC-M024-008-01",
+      "source_block_id": "SB-M014-HIER-CONS-ARTICLE-0001",
+      "source_provenance_ref": "CAND-M022-008-CITATION-PRESERVED",
+      "source_record_ids": [
+        "HIER-CONS-ARTICLE-0001"
+      ]
+    },
+    {
+      "act_edition_id": "ED-M013-44FZ-1900-01-01",
+      "as_of_date": "2026-01-01",
+      "candidate_id": "CAND-M022-009-EDITION-MISMATCH",
+      "candidate_source_ref": "observed_retrieval_source_provenance_manifest/v1",
+      "case_class": "edition_mismatch_negative",
+      "case_id": "CASE-M022-009-EDITION-MISMATCH-NEGATIVE",
+      "citation_key": "CIT-M013-HIER-CONS-ARTICLE-0001",
+      "evidence_span_id": "EV-M013-HIER-CONS-ARTICLE-0001",
+      "non_authoritative": true,
+      "query_id": "QUERY-M022-009-EDITION-MISMATCH-NEGATIVE",
+      "query_kind": "edition_mismatch_lookup",
+      "representation_kind": "safe_candidate_token_bag_v1",
+      "representation_tokens": [
+        "candidate:CAND-M022-009-EDITION-MISMATCH",
+        "source_record:HIER-CONS-ARTICLE-0001",
+        "evidence_span:EV-M013-HIER-CONS-ARTICLE-0001",
+        "source_block:SB-M013-HIER-CONS-ARTICLE-0001",
+        "citation:CIT-M013-HIER-CONS-ARTICLE-0001",
+        "edition:ED-M013-44FZ-1900-01-01",
+        "case_class:edition_mismatch_negative"
+      ],
+      "scope_id": "SCOPE-M022-REPRESENTATIVE-001",
+      "semantic_input_id": "SEMC-M024-009-01",
+      "source_block_id": "SB-M013-HIER-CONS-ARTICLE-0001",
+      "source_provenance_ref": "CAND-M022-009-EDITION-MISMATCH",
+      "source_record_ids": [
+        "HIER-CONS-ARTICLE-0001"
+      ]
+    },
+    {
+      "act_edition_id": "ED-M014-44FZ-2026-01-01",
+      "as_of_date": "2026-01-01",
+      "candidate_id": "CAND-M022-010-UNSAFE-BOUNDARY",
+      "candidate_source_ref": "observed_retrieval_source_provenance_manifest/v1",
+      "case_class": "unsafe_payload_boundary",
+      "case_id": "CASE-M022-010-UNSAFE-PAYLOAD-BOUNDARY",
+      "citation_key": "CIT-M014-HIER-CONS-ARTICLE-0001",
+      "evidence_span_id": "EV-M014-HIER-CONS-ARTICLE-0001",
+      "non_authoritative": true,
+      "query_id": "QUERY-M022-010-UNSAFE-PAYLOAD-BOUNDARY",
+      "query_kind": "unsafe_boundary_check",
+      "representation_kind": "safe_candidate_token_bag_v1",
+      "representation_tokens": [
+        "candidate:CAND-M022-010-UNSAFE-BOUNDARY",
+        "source_record:HIER-CONS-ARTICLE-0001",
+        "evidence_span:EV-M014-HIER-CONS-ARTICLE-0001",
+        "source_block:SB-M014-HIER-CONS-ARTICLE-0001",
+        "citation:CIT-M014-HIER-CONS-ARTICLE-0001",
+        "edition:ED-M014-44FZ-2026-01-01",
+        "case_class:unsafe_payload_boundary"
+      ],
+      "scope_id": "SCOPE-M022-REPRESENTATIVE-001",
+      "semantic_input_id": "SEMC-M024-010-01",
+      "source_block_id": "SB-M014-HIER-CONS-ARTICLE-0001",
+      "source_provenance_ref": "CAND-M022-010-UNSAFE-BOUNDARY",
+      "source_record_ids": [
+        "HIER-CONS-ARTICLE-0001"
+      ]
+    }
+  ],
+  "contract": "prd/research/ontology_architecture_requirements/39-semantic-observed-retrieval-scoring-contract.md",
+  "milestone_id": "M024-eb6mo4",
+  "non_authoritative": true,
+  "non_claims": [
+    "Does not validate R035.",
+    "Does not prove semantic retrieval quality by itself.",
+    "Does not prove product retrieval quality.",
+    "Does not prove legal-answer correctness."
+  ],
+  "query_input_count": 10,
+  "query_inputs": [
+    {
+      "as_of_date": "2026-01-01",
+      "case_class": "positive_evidence_span",
+      "case_id": "CASE-M022-001-POSITIVE-EVIDENCE-SPAN",
+      "non_authoritative": true,
+      "query_hash": "eb047020dfd5e6370bf1d1174de9e60dda2b2b0655f69eae340f609265dda9c8",
+      "query_id": "QUERY-M022-001-POSITIVE-EVIDENCE-SPAN",
+      "query_kind": "evidence_span_lookup",
+      "query_provenance_ref": "QPROV-M023-001",
+      "representation_kind": "safe_query_token_bag_v1",
+      "representation_tokens": [
+        "case_class:positive_evidence_span",
+        "query_kind:evidence_span_lookup",
+        "scope:SCOPE-M022-REPRESENTATIVE-001",
+        "as_of:2026-01-01",
+        "query_hash:eb047020dfd5e637"
+      ],
+      "scope_id": "SCOPE-M022-REPRESENTATIVE-001",
+      "semantic_input_id": "SEMQ-M024-001"
+    },
+    {
+      "as_of_date": "2026-01-01",
+      "case_class": "positive_source_block_marker",
+      "case_id": "CASE-M022-002-POSITIVE-SOURCE-BLOCK-MARKER",
+      "non_authoritative": true,
+      "query_hash": "eceee3c31173ce8b368db8d3759d7930f1855ff4693fcd85c7bb4fa8dc04d43a",
+      "query_id": "QUERY-M022-002-POSITIVE-SOURCE-BLOCK-MARKER",
+      "query_kind": "source_block_marker_lookup",
+      "query_provenance_ref": "QPROV-M023-002",
+      "representation_kind": "safe_query_token_bag_v1",
+      "representation_tokens": [
+        "case_class:positive_source_block_marker",
+        "query_kind:source_block_marker_lookup",
+        "scope:SCOPE-M022-REPRESENTATIVE-001",
+        "as_of:2026-01-01",
+        "query_hash:eceee3c31173ce8b"
+      ],
+      "scope_id": "SCOPE-M022-REPRESENTATIVE-001",
+      "semantic_input_id": "SEMQ-M024-002"
+    },
+    {
+      "as_of_date": "2026-01-01",
+      "case_class": "positive_with_distractor",
+      "case_id": "CASE-M022-003-POSITIVE-WITH-DISTRACTOR",
+      "non_authoritative": true,
+      "query_hash": "2c1db0cd61e9842e77926880f28cca4e7a78205d36d263addcb398ec04ded941",
+      "query_id": "QUERY-M022-003-POSITIVE-WITH-DISTRACTOR",
+      "query_kind": "distractor_retrieval",
+      "query_provenance_ref": "QPROV-M023-003",
+      "representation_kind": "safe_query_token_bag_v1",
+      "representation_tokens": [
+        "case_class:positive_with_distractor",
+        "query_kind:distractor_retrieval",
+        "scope:SCOPE-M022-REPRESENTATIVE-001",
+        "as_of:2026-01-01",
+        "query_hash:2c1db0cd61e9842e"
+      ],
+      "scope_id": "SCOPE-M022-REPRESENTATIVE-001",
+      "semantic_input_id": "SEMQ-M024-003"
+    },
+    {
+      "as_of_date": "2026-01-01",
+      "case_class": "stale_temporal_negative",
+      "case_id": "CASE-M022-004-STALE-TEMPORAL-NEGATIVE",
+      "non_authoritative": true,
+      "query_hash": "ab43c509fdb24cf119eb537a60411cdbb996e88fdc581bdc32182cb65f7128bc",
+      "query_id": "QUERY-M022-004-STALE-TEMPORAL-NEGATIVE",
+      "query_kind": "temporal_scoped_lookup",
+      "query_provenance_ref": "QPROV-M023-004",
+      "representation_kind": "safe_query_token_bag_v1",
+      "representation_tokens": [
+        "case_class:stale_temporal_negative",
+        "query_kind:temporal_scoped_lookup",
+        "scope:SCOPE-M022-REPRESENTATIVE-001",
+        "as_of:2026-01-01",
+        "query_hash:ab43c509fdb24cf1"
+      ],
+      "scope_id": "SCOPE-M022-REPRESENTATIVE-001",
+      "semantic_input_id": "SEMQ-M024-004"
+    },
+    {
+      "as_of_date": "2026-01-01",
+      "case_class": "ambiguous_candidate_set",
+      "case_id": "CASE-M022-005-AMBIGUOUS-CANDIDATE-SET",
+      "non_authoritative": true,
+      "query_hash": "f00a9e977ff5f7880af3eab979ae156ab982824b21b5216181a21059346ad3c9",
+      "query_id": "QUERY-M022-005-AMBIGUOUS-CANDIDATE-SET",
+      "query_kind": "ambiguous_clause_lookup",
+      "query_provenance_ref": "QPROV-M023-005",
+      "representation_kind": "safe_query_token_bag_v1",
+      "representation_tokens": [
+        "case_class:ambiguous_candidate_set",
+        "query_kind:ambiguous_clause_lookup",
+        "scope:SCOPE-M022-REPRESENTATIVE-001",
+        "as_of:2026-01-01",
+        "query_hash:f00a9e977ff5f788"
+      ],
+      "scope_id": "SCOPE-M022-REPRESENTATIVE-001",
+      "semantic_input_id": "SEMQ-M024-005"
+    },
+    {
+      "as_of_date": "2026-01-01",
+      "case_class": "unsupported_scope",
+      "case_id": "CASE-M022-006-UNSUPPORTED-SCOPE",
+      "non_authoritative": true,
+      "query_hash": "53e65e0027c2891f32628c2d6ac225d9f8f8a512d490fa4b15ba2181921c84c1",
+      "query_id": "QUERY-M022-006-UNSUPPORTED-SCOPE",
+      "query_kind": "unsupported_scope_lookup",
+      "query_provenance_ref": "QPROV-M023-006",
+      "representation_kind": "safe_query_token_bag_v1",
+      "representation_tokens": [
+        "case_class:unsupported_scope",
+        "query_kind:unsupported_scope_lookup",
+        "scope:SCOPE-M022-UNVERIFIED-001",
+        "as_of:2026-01-01",
+        "query_hash:53e65e0027c2891f"
+      ],
+      "scope_id": "SCOPE-M022-UNVERIFIED-001",
+      "semantic_input_id": "SEMQ-M024-006"
+    },
+    {
+      "as_of_date": "2026-01-01",
+      "case_class": "scoped_no_answer",
+      "case_id": "CASE-M022-007-SCOPED-NO-ANSWER",
+      "non_authoritative": true,
+      "query_hash": "7ae3802d2f1c5311af41cd6c5d149553e62a820f867991cfdfede97446945715",
+      "query_id": "QUERY-M022-007-SCOPED-NO-ANSWER",
+      "query_kind": "scoped_no_answer",
+      "query_provenance_ref": "QPROV-M023-007",
+      "representation_kind": "safe_query_token_bag_v1",
+      "representation_tokens": [
+        "case_class:scoped_no_answer",
+        "query_kind:scoped_no_answer",
+        "scope:SCOPE-M022-REPRESENTATIVE-001",
+        "as_of:2026-01-01",
+        "query_hash:7ae3802d2f1c5311"
+      ],
+      "scope_id": "SCOPE-M022-REPRESENTATIVE-001",
+      "semantic_input_id": "SEMQ-M024-007"
+    },
+    {
+      "as_of_date": "2026-01-01",
+      "case_class": "citation_preservation_boundary",
+      "case_id": "CASE-M022-008-CITATION-PRESERVATION-BOUNDARY",
+      "non_authoritative": true,
+      "query_hash": "3cac5fd0cb7b415264a3fb80901fec78b29dea3bce71bc028d5c58519f7a32aa",
+      "query_id": "QUERY-M022-008-CITATION-PRESERVATION-BOUNDARY",
+      "query_kind": "citation_binding_check",
+      "query_provenance_ref": "QPROV-M023-008",
+      "representation_kind": "safe_query_token_bag_v1",
+      "representation_tokens": [
+        "case_class:citation_preservation_boundary",
+        "query_kind:citation_binding_check",
+        "scope:SCOPE-M022-REPRESENTATIVE-001",
+        "as_of:2026-01-01",
+        "query_hash:3cac5fd0cb7b4152"
+      ],
+      "scope_id": "SCOPE-M022-REPRESENTATIVE-001",
+      "semantic_input_id": "SEMQ-M024-008"
+    },
+    {
+      "as_of_date": "2026-01-01",
+      "case_class": "edition_mismatch_negative",
+      "case_id": "CASE-M022-009-EDITION-MISMATCH-NEGATIVE",
+      "non_authoritative": true,
+      "query_hash": "48f0dec6c541be65a9578708299bf5d0e8bc37f24f42c40f68abe43f1fcd1533",
+      "query_id": "QUERY-M022-009-EDITION-MISMATCH-NEGATIVE",
+      "query_kind": "edition_mismatch_lookup",
+      "query_provenance_ref": "QPROV-M023-009",
+      "representation_kind": "safe_query_token_bag_v1",
+      "representation_tokens": [
+        "case_class:edition_mismatch_negative",
+        "query_kind:edition_mismatch_lookup",
+        "scope:SCOPE-M022-REPRESENTATIVE-001",
+        "as_of:2026-01-01",
+        "query_hash:48f0dec6c541be65"
+      ],
+      "scope_id": "SCOPE-M022-REPRESENTATIVE-001",
+      "semantic_input_id": "SEMQ-M024-009"
+    },
+    {
+      "as_of_date": "2026-01-01",
+      "case_class": "unsafe_payload_boundary",
+      "case_id": "CASE-M022-010-UNSAFE-PAYLOAD-BOUNDARY",
+      "non_authoritative": true,
+      "query_hash": "d4e1dd49928ecfe504995a0ffd2c69ce42acdc124fa95665ba6e49cc27236dfe",
+      "query_id": "QUERY-M022-010-UNSAFE-PAYLOAD-BOUNDARY",
+      "query_kind": "unsafe_boundary_check",
+      "query_provenance_ref": "QPROV-M023-010",
+      "representation_kind": "safe_query_token_bag_v1",
+      "representation_tokens": [
+        "case_class:unsafe_payload_boundary",
+        "query_kind:unsafe_boundary_check",
+        "scope:SCOPE-M022-REPRESENTATIVE-001",
+        "as_of:2026-01-01",
+        "query_hash:d4e1dd49928ecfe5"
+      ],
+      "scope_id": "SCOPE-M022-REPRESENTATIVE-001",
+      "semantic_input_id": "SEMQ-M024-010"
+    }
+  ],
+  "query_registry": "prd/research/ontology_architecture_requirements/fixtures/observed_retrieval_query_provenance_registry.json",
+  "query_registry_sha256": "3ddf3a2f2dc00dda0a76e620a66b98f84f5e5623834e2b22bcd2822cd503b384",
+  "redaction": {
+    "absolute_paths_excluded": true,
+    "answer_fields_excluded_from_scoring_inputs": true,
+    "answer_labels_excluded": true,
+    "answer_ranks_excluded": true,
+    "external_payloads_excluded": true,
+    "generated_answer_excluded": true,
+    "generated_query_excluded": true,
+    "gsd_exec_paths_excluded": true,
+    "query_text_excluded": true,
+    "runtime_rows_excluded": true,
+    "secrets_excluded": true,
+    "source_text_excluded": true,
+    "temporary_paths_excluded": true,
+    "vector_values_excluded": true
+  },
+  "schema_version": "semantic-retrieval-safe-inputs/v1",
+  "slice_id": "S02",
+  "source_fixture": "prd/research/ontology_architecture_requirements/fixtures/representative_evidence_span_retrieval_corpus.json",
+  "source_fixture_sha256": "db487faf546ac17486a332182163e2c074bb02c8e90d6563f5debb83c4b64896",
+  "source_provenance_manifest": "prd/research/ontology_architecture_requirements/fixtures/observed_retrieval_source_provenance_manifest.json",
+  "source_provenance_manifest_sha256": "26aa069d3062c6e01bb94ad195f447531d1945e85fadd8477f21dd0d4a94f862"
+}

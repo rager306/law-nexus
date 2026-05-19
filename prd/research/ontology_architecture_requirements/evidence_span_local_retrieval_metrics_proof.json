@@ -1,0 +1,89 @@
+{
+  "diagnostic_codes": [
+    "ambiguous_candidate_set",
+    "runtime_confirmed",
+    "scoped_no_answer",
+    "stale_temporal_candidate",
+    "unsupported_scope"
+  ],
+  "fixture_artifact": "prd/research/ontology_architecture_requirements/fixtures/evidence_span_golden_retrieval_cases.json",
+  "fixture_schema_version": "evidence-span-golden-retrieval-cases/v1",
+  "fixture_summary": {
+    "candidate_count": 5,
+    "case_classes": [
+      "ambiguous_candidate_set",
+      "positive_evidence_span",
+      "positive_source_block_marker",
+      "scoped_no_answer",
+      "stale_temporal_negative",
+      "unsupported_scope"
+    ],
+    "case_count": 6
+  },
+  "metrics": {
+    "ambiguous_rejection_rate": 1.0,
+    "mrr": 1.0,
+    "no_answer_accuracy": 1.0,
+    "recall_at_1": 1.0,
+    "recall_at_3": 1.0,
+    "runtime_boundary_confirmed": 1.0,
+    "stale_rejection_rate": 1.0,
+    "unsupported_scope_accuracy": 1.0
+  },
+  "milestone_id": "M021-qk4lze",
+  "mismatch_count": 0,
+  "mismatches": [],
+  "non_authoritative": true,
+  "non_claims": [
+    "Does not prove product retrieval quality.",
+    "Does not prove graph-filtered retrieval quality.",
+    "Does not prove production FalkorDB readiness.",
+    "Does not prove parser completeness.",
+    "Does not prove legal-answer correctness.",
+    "Does not prove legal interpretation authority.",
+    "Does not prove final legal hierarchy correctness.",
+    "Does not prove graph-vector/HNSW behavior.",
+    "Does not prove pilot or 1000-document readiness.",
+    "Does not authorize managed embedding API fallback.",
+    "Does not validate R035."
+  ],
+  "redaction": {
+    "absolute_paths_excluded": true,
+    "external_payloads_excluded": true,
+    "generated_legal_answer_excluded": true,
+    "gsd_exec_paths_excluded": true,
+    "query_text_excluded": true,
+    "raw_vectors_excluded": true,
+    "runtime_rows_excluded": true,
+    "secrets_excluded": true,
+    "source_text_excluded": true,
+    "temporary_paths_excluded": true
+  },
+  "runtime_boundary": {
+    "confirmed": true,
+    "diagnostic_codes": [
+      "runtime_confirmed"
+    ],
+    "expected_vector_dimension": 1024,
+    "failure_class": "none",
+    "managed_api_used": false,
+    "model_id": "deepvk/USER-bge-m3",
+    "network_used": false,
+    "observed_vector_dimension": 1024,
+    "raw_vectors_persisted": false,
+    "runtime_status": "confirmed_runtime"
+  },
+  "schema_version": "evidence-span-local-retrieval-metrics-proof/v1",
+  "slice_id": "S05",
+  "threshold_passed": true,
+  "thresholds": {
+    "ambiguous_rejection_rate": 1.0,
+    "mrr": 1.0,
+    "no_answer_accuracy": 1.0,
+    "recall_at_1": 1.0,
+    "recall_at_3": 1.0,
+    "runtime_boundary_confirmed": 1.0,
+    "stale_rejection_rate": 1.0,
+    "unsupported_scope_accuracy": 1.0
+  }
+}

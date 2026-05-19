@@ -1,0 +1,244 @@
+{
+  "entries": [
+    {
+      "candidate_source_ref": "observed_retrieval_source_provenance_manifest/v1",
+      "case_id": "CASE-M022-001-POSITIVE-EVIDENCE-SPAN",
+      "derived_from_expected_fixture_fields": false,
+      "non_authoritative": true,
+      "observation_status": "observed",
+      "observation_trace_codes": [
+        "safe_id_provenance_candidate_selected",
+        "citation_binding_preserved"
+      ],
+      "observed_diagnostic_codes": [],
+      "observed_ranked_candidate_ids": [
+        "CAND-M022-001-EV-ARTICLE-0001"
+      ],
+      "observed_rejected_candidate_ids": [],
+      "query_id": "QUERY-M022-001-POSITIVE-EVIDENCE-SPAN",
+      "query_provenance_ref": "QPROV-M023-001",
+      "retrieval_mode": "safe_id_provenance_rule_retrieval_v1",
+      "runtime_boundary_ref": "deepvk/USER-bge-m3-local-open-weight-boundary"
+    },
+    {
+      "candidate_source_ref": "observed_retrieval_source_provenance_manifest/v1",
+      "case_id": "CASE-M022-002-POSITIVE-SOURCE-BLOCK-MARKER",
+      "derived_from_expected_fixture_fields": false,
+      "non_authoritative": true,
+      "observation_status": "observed",
+      "observation_trace_codes": [
+        "safe_id_provenance_candidate_selected",
+        "citation_binding_preserved"
+      ],
+      "observed_diagnostic_codes": [],
+      "observed_ranked_candidate_ids": [
+        "CAND-M022-002-SB-ARTICLE-0001"
+      ],
+      "observed_rejected_candidate_ids": [],
+      "query_id": "QUERY-M022-002-POSITIVE-SOURCE-BLOCK-MARKER",
+      "query_provenance_ref": "QPROV-M023-002",
+      "retrieval_mode": "safe_id_provenance_rule_retrieval_v1",
+      "runtime_boundary_ref": "deepvk/USER-bge-m3-local-open-weight-boundary"
+    },
+    {
+      "candidate_source_ref": "observed_retrieval_source_provenance_manifest/v1",
+      "case_id": "CASE-M022-003-POSITIVE-WITH-DISTRACTOR",
+      "derived_from_expected_fixture_fields": false,
+      "non_authoritative": true,
+      "observation_status": "observed",
+      "observation_trace_codes": [
+        "safe_id_provenance_candidate_selected",
+        "lower_priority_candidate_rejected"
+      ],
+      "observed_diagnostic_codes": [],
+      "observed_ranked_candidate_ids": [
+        "CAND-M022-003-RELEVANT-MARKER"
+      ],
+      "observed_rejected_candidate_ids": [
+        "CAND-M022-003-DISTRACTOR-ARTICLE"
+      ],
+      "query_id": "QUERY-M022-003-POSITIVE-WITH-DISTRACTOR",
+      "query_provenance_ref": "QPROV-M023-003",
+      "retrieval_mode": "safe_id_provenance_rule_retrieval_v1",
+      "runtime_boundary_ref": "deepvk/USER-bge-m3-local-open-weight-boundary"
+    },
+    {
+      "candidate_source_ref": "observed_retrieval_source_provenance_manifest/v1",
+      "case_id": "CASE-M022-004-STALE-TEMPORAL-NEGATIVE",
+      "derived_from_expected_fixture_fields": false,
+      "non_authoritative": true,
+      "observation_status": "rejected",
+      "observation_trace_codes": [
+        "as_of_date_conflict_detected",
+        "candidate_rejected"
+      ],
+      "observed_diagnostic_codes": [
+        "stale_temporal_candidate"
+      ],
+      "observed_ranked_candidate_ids": [],
+      "observed_rejected_candidate_ids": [
+        "CAND-M022-004-STALE-WRONG-EDITION"
+      ],
+      "query_id": "QUERY-M022-004-STALE-TEMPORAL-NEGATIVE",
+      "query_provenance_ref": "QPROV-M023-004",
+      "retrieval_mode": "safe_id_provenance_rule_retrieval_v1",
+      "runtime_boundary_ref": "deepvk/USER-bge-m3-local-open-weight-boundary"
+    },
+    {
+      "candidate_source_ref": "observed_retrieval_source_provenance_manifest/v1",
+      "case_id": "CASE-M022-005-AMBIGUOUS-CANDIDATE-SET",
+      "derived_from_expected_fixture_fields": false,
+      "non_authoritative": true,
+      "observation_status": "ambiguous",
+      "observation_trace_codes": [
+        "multiple_candidate_bindings_detected",
+        "selection_deferred"
+      ],
+      "observed_diagnostic_codes": [
+        "ambiguous_candidate_set"
+      ],
+      "observed_ranked_candidate_ids": [],
+      "observed_rejected_candidate_ids": [],
+      "query_id": "QUERY-M022-005-AMBIGUOUS-CANDIDATE-SET",
+      "query_provenance_ref": "QPROV-M023-005",
+      "retrieval_mode": "safe_id_provenance_rule_retrieval_v1",
+      "runtime_boundary_ref": "deepvk/USER-bge-m3-local-open-weight-boundary"
+    },
+    {
+      "candidate_source_ref": "observed_retrieval_source_provenance_manifest/v1",
+      "case_id": "CASE-M022-006-UNSUPPORTED-SCOPE",
+      "derived_from_expected_fixture_fields": false,
+      "non_authoritative": true,
+      "observation_status": "unsupported",
+      "observation_trace_codes": [
+        "scope_not_supported",
+        "no_candidate_selection"
+      ],
+      "observed_diagnostic_codes": [
+        "unsupported_scope"
+      ],
+      "observed_ranked_candidate_ids": [],
+      "observed_rejected_candidate_ids": [],
+      "query_id": "QUERY-M022-006-UNSUPPORTED-SCOPE",
+      "query_provenance_ref": "QPROV-M023-006",
+      "retrieval_mode": "safe_id_provenance_rule_retrieval_v1",
+      "runtime_boundary_ref": "deepvk/USER-bge-m3-local-open-weight-boundary"
+    },
+    {
+      "candidate_source_ref": "observed_retrieval_source_provenance_manifest/v1",
+      "case_id": "CASE-M022-007-SCOPED-NO-ANSWER",
+      "derived_from_expected_fixture_fields": false,
+      "non_authoritative": true,
+      "observation_status": "no_answer",
+      "observation_trace_codes": [
+        "scope_checked",
+        "no_candidate_available"
+      ],
+      "observed_diagnostic_codes": [
+        "scoped_no_answer"
+      ],
+      "observed_ranked_candidate_ids": [],
+      "observed_rejected_candidate_ids": [],
+      "query_id": "QUERY-M022-007-SCOPED-NO-ANSWER",
+      "query_provenance_ref": "QPROV-M023-007",
+      "retrieval_mode": "safe_id_provenance_rule_retrieval_v1",
+      "runtime_boundary_ref": "deepvk/USER-bge-m3-local-open-weight-boundary"
+    },
+    {
+      "candidate_source_ref": "observed_retrieval_source_provenance_manifest/v1",
+      "case_id": "CASE-M022-008-CITATION-PRESERVATION-BOUNDARY",
+      "derived_from_expected_fixture_fields": false,
+      "non_authoritative": true,
+      "observation_status": "observed",
+      "observation_trace_codes": [
+        "safe_id_provenance_candidate_selected",
+        "citation_binding_preserved"
+      ],
+      "observed_diagnostic_codes": [],
+      "observed_ranked_candidate_ids": [
+        "CAND-M022-008-CITATION-PRESERVED"
+      ],
+      "observed_rejected_candidate_ids": [],
+      "query_id": "QUERY-M022-008-CITATION-PRESERVATION-BOUNDARY",
+      "query_provenance_ref": "QPROV-M023-008",
+      "retrieval_mode": "safe_id_provenance_rule_retrieval_v1",
+      "runtime_boundary_ref": "deepvk/USER-bge-m3-local-open-weight-boundary"
+    },
+    {
+      "candidate_source_ref": "observed_retrieval_source_provenance_manifest/v1",
+      "case_id": "CASE-M022-009-EDITION-MISMATCH-NEGATIVE",
+      "derived_from_expected_fixture_fields": false,
+      "non_authoritative": true,
+      "observation_status": "rejected",
+      "observation_trace_codes": [
+        "act_edition_mismatch_detected",
+        "candidate_rejected"
+      ],
+      "observed_diagnostic_codes": [
+        "stale_temporal_candidate"
+      ],
+      "observed_ranked_candidate_ids": [],
+      "observed_rejected_candidate_ids": [
+        "CAND-M022-009-EDITION-MISMATCH"
+      ],
+      "query_id": "QUERY-M022-009-EDITION-MISMATCH-NEGATIVE",
+      "query_provenance_ref": "QPROV-M023-009",
+      "retrieval_mode": "safe_id_provenance_rule_retrieval_v1",
+      "runtime_boundary_ref": "deepvk/USER-bge-m3-local-open-weight-boundary"
+    },
+    {
+      "candidate_source_ref": "observed_retrieval_source_provenance_manifest/v1",
+      "case_id": "CASE-M022-010-UNSAFE-PAYLOAD-BOUNDARY",
+      "derived_from_expected_fixture_fields": false,
+      "non_authoritative": true,
+      "observation_status": "boundary_rejected",
+      "observation_trace_codes": [
+        "unsafe_payload_boundary_detected",
+        "candidate_rejected"
+      ],
+      "observed_diagnostic_codes": [
+        "unsafe_payload_rejected"
+      ],
+      "observed_ranked_candidate_ids": [],
+      "observed_rejected_candidate_ids": [
+        "CAND-M022-010-UNSAFE-BOUNDARY"
+      ],
+      "query_id": "QUERY-M022-010-UNSAFE-PAYLOAD-BOUNDARY",
+      "query_provenance_ref": "QPROV-M023-010",
+      "retrieval_mode": "safe_id_provenance_rule_retrieval_v1",
+      "runtime_boundary_ref": "deepvk/USER-bge-m3-local-open-weight-boundary"
+    }
+  ],
+  "entry_count": 10,
+  "milestone_id": "M023-9rfkrs",
+  "non_authoritative": true,
+  "non_claims": [
+    "Does not validate R035.",
+    "Does not prove product retrieval quality.",
+    "Does not prove legal-answer correctness.",
+    "Does not prove graph-vector or HNSW behavior.",
+    "Does not prove model semantic retrieval quality; observed outputs are safe-ID rule retrieval outputs."
+  ],
+  "query_registry": "prd/research/ontology_architecture_requirements/fixtures/observed_retrieval_query_provenance_registry.json",
+  "query_registry_sha256": "3ddf3a2f2dc00dda0a76e620a66b98f84f5e5623834e2b22bcd2822cd503b384",
+  "redaction": {
+    "absolute_paths_excluded": true,
+    "external_payloads_excluded": true,
+    "generated_answer_excluded": true,
+    "generated_query_excluded": true,
+    "gsd_exec_paths_excluded": true,
+    "query_text_excluded": true,
+    "runtime_rows_excluded": true,
+    "secrets_excluded": true,
+    "source_text_excluded": true,
+    "temporary_paths_excluded": true,
+    "vector_values_excluded": true
+  },
+  "retrieval_mode": "safe_id_provenance_rule_retrieval_v1",
+  "schema_version": "observed-retrieval-outputs/v1",
+  "slice_id": "S03",
+  "source_fixture": "prd/research/ontology_architecture_requirements/fixtures/representative_evidence_span_retrieval_corpus.json",
+  "source_fixture_sha256": "db487faf546ac17486a332182163e2c074bb02c8e90d6563f5debb83c4b64896",
+  "source_provenance_manifest": "prd/research/ontology_architecture_requirements/fixtures/observed_retrieval_source_provenance_manifest.json",
+  "source_provenance_manifest_sha256": "26aa069d3062c6e01bb94ad195f447531d1945e85fadd8477f21dd0d4a94f862"
+}

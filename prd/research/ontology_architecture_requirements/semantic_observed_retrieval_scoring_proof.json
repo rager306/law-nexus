@@ -1,0 +1,198 @@
+{
+  "diagnostic_codes": [
+    "metric_mismatch",
+    "runtime_confirmed",
+    "semantic_inputs_verified",
+    "semantic_scoring_completed"
+  ],
+  "metrics": {
+    "mrr": 0.875,
+    "positive_with_distractor_relevant_first": 0.0,
+    "recall_at_1": 0.75,
+    "recall_at_3": 1.0,
+    "runtime_boundary_confirmed": 1.0
+  },
+  "milestone_id": "M024-eb6mo4",
+  "non_authoritative": true,
+  "non_claims": [
+    "Does not validate R035.",
+    "Does not prove product retrieval quality.",
+    "Does not prove legal-answer correctness.",
+    "Does not prove graph-vector or HNSW behavior.",
+    "Does not persist raw vectors."
+  ],
+  "redaction": {
+    "absolute_paths_excluded": true,
+    "external_payloads_excluded": true,
+    "generated_answer_prose_excluded": true,
+    "generated_query_excluded": true,
+    "gsd_exec_paths_excluded": true,
+    "query_text_excluded": true,
+    "raw_vectors_excluded": true,
+    "source_text_excluded": true
+  },
+  "runtime_boundary": {
+    "confirmed": true,
+    "diagnostic_codes": [
+      "runtime_confirmed"
+    ],
+    "expected_vector_dimension": 1024,
+    "failure_class": "none",
+    "managed_api_used": false,
+    "model_id": "deepvk/USER-bge-m3",
+    "network_used": false,
+    "observed_vector_dimension": 1024,
+    "raw_vectors_persisted": false,
+    "runtime_status": "confirmed_runtime"
+  },
+  "safe_input_summary": {
+    "candidate_input_count": 10,
+    "diagnostic_codes": [
+      "semantic_inputs_verified"
+    ],
+    "non_authoritative": true,
+    "non_claim_boundary": "Safe semantic inputs only; does not prove semantic retrieval quality or validate R035.",
+    "query_input_count": 10,
+    "schema_version": "semantic-retrieval-safe-inputs-verification/v1",
+    "status": "ok"
+  },
+  "schema_version": "semantic-observed-retrieval-scoring-proof/v1",
+  "score_count": 10,
+  "scores": [
+    {
+      "candidate_id": "CAND-M022-001-EV-ARTICLE-0001",
+      "case_id": "CASE-M022-001-POSITIVE-EVIDENCE-SPAN",
+      "diagnostic_codes": [],
+      "non_authoritative": true,
+      "observation_status": "scored",
+      "observed_rank": 1,
+      "observed_similarity_score": 0.75629,
+      "query_id": "QUERY-M022-001-POSITIVE-EVIDENCE-SPAN",
+      "scoring_mode": "local_user_bge_m3_safe_token_similarity_v1",
+      "semantic_input_ref": "SEMC-M024-001-01"
+    },
+    {
+      "candidate_id": "CAND-M022-002-SB-ARTICLE-0001",
+      "case_id": "CASE-M022-002-POSITIVE-SOURCE-BLOCK-MARKER",
+      "diagnostic_codes": [],
+      "non_authoritative": true,
+      "observation_status": "scored",
+      "observed_rank": 1,
+      "observed_similarity_score": 0.76236,
+      "query_id": "QUERY-M022-002-POSITIVE-SOURCE-BLOCK-MARKER",
+      "scoring_mode": "local_user_bge_m3_safe_token_similarity_v1",
+      "semantic_input_ref": "SEMC-M024-002-01"
+    },
+    {
+      "candidate_id": "CAND-M022-003-DISTRACTOR-ARTICLE",
+      "case_id": "CASE-M022-003-POSITIVE-WITH-DISTRACTOR",
+      "diagnostic_codes": [],
+      "non_authoritative": true,
+      "observation_status": "scored",
+      "observed_rank": 1,
+      "observed_similarity_score": 0.821883,
+      "query_id": "QUERY-M022-003-POSITIVE-WITH-DISTRACTOR",
+      "scoring_mode": "local_user_bge_m3_safe_token_similarity_v1",
+      "semantic_input_ref": "SEMC-M024-003-02"
+    },
+    {
+      "candidate_id": "CAND-M022-003-RELEVANT-MARKER",
+      "case_id": "CASE-M022-003-POSITIVE-WITH-DISTRACTOR",
+      "diagnostic_codes": [],
+      "non_authoritative": true,
+      "observation_status": "scored",
+      "observed_rank": 2,
+      "observed_similarity_score": 0.796917,
+      "query_id": "QUERY-M022-003-POSITIVE-WITH-DISTRACTOR",
+      "scoring_mode": "local_user_bge_m3_safe_token_similarity_v1",
+      "semantic_input_ref": "SEMC-M024-003-01"
+    },
+    {
+      "candidate_id": "CAND-M022-004-STALE-WRONG-EDITION",
+      "case_id": "CASE-M022-004-STALE-TEMPORAL-NEGATIVE",
+      "diagnostic_codes": [],
+      "non_authoritative": true,
+      "observation_status": "scored",
+      "observed_rank": 1,
+      "observed_similarity_score": 0.748727,
+      "query_id": "QUERY-M022-004-STALE-TEMPORAL-NEGATIVE",
+      "scoring_mode": "local_user_bge_m3_safe_token_similarity_v1",
+      "semantic_input_ref": "SEMC-M024-004-01"
+    },
+    {
+      "candidate_id": "CAND-M022-005-AMBIG-CLAUSE-0002",
+      "case_id": "CASE-M022-005-AMBIGUOUS-CANDIDATE-SET",
+      "diagnostic_codes": [],
+      "non_authoritative": true,
+      "observation_status": "scored",
+      "observed_rank": 1,
+      "observed_similarity_score": 0.766629,
+      "query_id": "QUERY-M022-005-AMBIGUOUS-CANDIDATE-SET",
+      "scoring_mode": "local_user_bge_m3_safe_token_similarity_v1",
+      "semantic_input_ref": "SEMC-M024-005-02"
+    },
+    {
+      "candidate_id": "CAND-M022-005-AMBIG-CLAUSE-0001",
+      "case_id": "CASE-M022-005-AMBIGUOUS-CANDIDATE-SET",
+      "diagnostic_codes": [],
+      "non_authoritative": true,
+      "observation_status": "scored",
+      "observed_rank": 2,
+      "observed_similarity_score": 0.754223,
+      "query_id": "QUERY-M022-005-AMBIGUOUS-CANDIDATE-SET",
+      "scoring_mode": "local_user_bge_m3_safe_token_similarity_v1",
+      "semantic_input_ref": "SEMC-M024-005-01"
+    },
+    {
+      "candidate_id": "CAND-M022-008-CITATION-PRESERVED",
+      "case_id": "CASE-M022-008-CITATION-PRESERVATION-BOUNDARY",
+      "diagnostic_codes": [],
+      "non_authoritative": true,
+      "observation_status": "scored",
+      "observed_rank": 1,
+      "observed_similarity_score": 0.757591,
+      "query_id": "QUERY-M022-008-CITATION-PRESERVATION-BOUNDARY",
+      "scoring_mode": "local_user_bge_m3_safe_token_similarity_v1",
+      "semantic_input_ref": "SEMC-M024-008-01"
+    },
+    {
+      "candidate_id": "CAND-M022-009-EDITION-MISMATCH",
+      "case_id": "CASE-M022-009-EDITION-MISMATCH-NEGATIVE",
+      "diagnostic_codes": [],
+      "non_authoritative": true,
+      "observation_status": "scored",
+      "observed_rank": 1,
+      "observed_similarity_score": 0.762366,
+      "query_id": "QUERY-M022-009-EDITION-MISMATCH-NEGATIVE",
+      "scoring_mode": "local_user_bge_m3_safe_token_similarity_v1",
+      "semantic_input_ref": "SEMC-M024-009-01"
+    },
+    {
+      "candidate_id": "CAND-M022-010-UNSAFE-BOUNDARY",
+      "case_id": "CASE-M022-010-UNSAFE-PAYLOAD-BOUNDARY",
+      "diagnostic_codes": [],
+      "non_authoritative": true,
+      "observation_status": "scored",
+      "observed_rank": 1,
+      "observed_similarity_score": 0.79781,
+      "query_id": "QUERY-M022-010-UNSAFE-PAYLOAD-BOUNDARY",
+      "scoring_mode": "local_user_bge_m3_safe_token_similarity_v1",
+      "semantic_input_ref": "SEMC-M024-010-01"
+    }
+  ],
+  "scoring_mode": "local_user_bge_m3_safe_token_similarity_v1",
+  "slice_id": "S03",
+  "status": "completed",
+  "threshold_failures": [
+    "mrr",
+    "recall_at_1",
+    "positive_with_distractor_relevant_first"
+  ],
+  "thresholds": {
+    "mrr": 1.0,
+    "positive_with_distractor_relevant_first": 1.0,
+    "recall_at_1": 1.0,
+    "recall_at_3": 1.0,
+    "runtime_boundary_confirmed": 1.0
+  }
+}

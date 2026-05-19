@@ -1,0 +1,5 @@
+id,kind,source_record_id,act_edition_id,ontology_class,temporal_status,rank
+LU-M021-001,LegalUnit,HIER-CONS-ARTICLE-0001,ED-M014-44FZ-2026-01-01,procurement_rule,current,1
+SB-M021-001,SourceBlock,HIER-CONS-ARTICLE-0001,ED-M014-44FZ-2026-01-01,citation_evidence,current,2
+EV-M021-001,EvidenceSpan,HIER-CONS-ARTICLE-0001,ED-M014-44FZ-2026-01-01,evidence_span,current,3
+LU-M021-OLD-001,LegalUnit,HIER-CONS-ARTICLE-0001,ED-M014-44FZ-2024-01-01,procurement_rule,inactive,4

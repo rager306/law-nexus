@@ -1,0 +1,86 @@
+{
+  "diagnostic_codes": [
+    "metric_comparison_verified",
+    "query_registry_verified",
+    "runtime_confirmed",
+    "source_provenance_verified"
+  ],
+  "metrics": {
+    "ambiguous_preservation_rate": 1.0,
+    "citation_preservation_rate": 1.0,
+    "distractor_rejection_rate": 1.0,
+    "mrr": 1.0,
+    "no_answer_accuracy": 1.0,
+    "recall_at_1": 1.0,
+    "recall_at_3": 1.0,
+    "runtime_boundary_confirmed": 1.0,
+    "stale_rejection_rate": 1.0,
+    "unsafe_rejection_rate": 1.0,
+    "unsupported_scope_accuracy": 1.0
+  },
+  "milestone_id": "M023-9rfkrs",
+  "non_authoritative": true,
+  "non_claims": [
+    "Does not validate R035.",
+    "Does not validate R037.",
+    "Does not prove product retrieval quality.",
+    "Does not prove legal-answer correctness.",
+    "Does not prove graph-vector or HNSW behavior.",
+    "Does not prove model semantic retrieval quality; observed outputs are safe-ID rule retrieval outputs."
+  ],
+  "observed_output_artifact": "prd/research/ontology_architecture_requirements/fixtures/observed_retrieval_outputs.json",
+  "provenance_summary": {
+    "candidate_count": 10,
+    "diagnostic_codes": [
+      "query_registry_verified",
+      "source_provenance_verified"
+    ],
+    "non_authoritative": true,
+    "non_claim_boundary": "Provenance verification only; does not prove observed retrieval ranking or validate R035.",
+    "query_count": 10,
+    "schema_version": "observed-retrieval-provenance-verification/v1",
+    "status": "ok"
+  },
+  "redaction": {
+    "absolute_paths_excluded": true,
+    "external_payloads_excluded": true,
+    "generated_answer_prose_excluded": true,
+    "generated_cypher_excluded": true,
+    "gsd_exec_paths_excluded": true,
+    "query_text_excluded": true,
+    "raw_vectors_excluded": true,
+    "source_text_excluded": true
+  },
+  "retrieval_mode": "safe_id_provenance_rule_retrieval_v1",
+  "runtime_boundary": {
+    "confirmed": true,
+    "diagnostic_codes": [
+      "runtime_confirmed"
+    ],
+    "expected_vector_dimension": 1024,
+    "failure_class": "none",
+    "managed_api_used": false,
+    "model_id": "deepvk/USER-bge-m3",
+    "network_used": false,
+    "observed_vector_dimension": 1024,
+    "raw_vectors_persisted": false,
+    "runtime_status": "confirmed_runtime"
+  },
+  "schema_version": "observed-retrieval-output-metrics-proof/v1",
+  "slice_id": "S03",
+  "status": "passed",
+  "threshold_failures": [],
+  "thresholds": {
+    "ambiguous_preservation_rate": 1.0,
+    "citation_preservation_rate": 1.0,
+    "distractor_rejection_rate": 1.0,
+    "mrr": 1.0,
+    "no_answer_accuracy": 1.0,
+    "recall_at_1": 1.0,
+    "recall_at_3": 1.0,
+    "runtime_boundary_confirmed": 1.0,
+    "stale_rejection_rate": 1.0,
+    "unsafe_rejection_rate": 1.0,
+    "unsupported_scope_accuracy": 1.0
+  }
+}

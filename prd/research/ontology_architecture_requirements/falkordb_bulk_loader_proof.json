@@ -1,0 +1,67 @@
+{
+  "container_runtime": {
+    "cleanup_status": "deleted",
+    "container_id_hash": "len:64",
+    "image_reference": "falkordb/falkordb:edge",
+    "mode": "auto",
+    "status": "started"
+  },
+  "diagnostic_codes": [],
+  "expected_counts": {
+    "expected_current_nodes": 3,
+    "expected_inactive_nodes": 1,
+    "expected_node_count": 4,
+    "expected_relationship_count": 3,
+    "expected_source_node_rows": 4,
+    "expected_source_relationship_rows": 3
+  },
+  "graph_counts": {
+    "current_nodes": 3,
+    "inactive_nodes": 1,
+    "node_count": 4,
+    "relationship_count": 3
+  },
+  "graph_name_hash": "len:27",
+  "loader": {
+    "command": "falkordb-bulk-insert",
+    "create_new_graph_semantics": true,
+    "enforce_schema": true,
+    "id_type": "STRING",
+    "idempotent_update_claimed": false,
+    "invocation": "uvx --from falkordb-bulk-loader",
+    "mechanism": "falkordb-bulk-loader",
+    "uses_graph_bulk": true
+  },
+  "loader_duration_ms": 236.7,
+  "loader_output_class": "ok",
+  "milestone_id": "M021-qk4lze",
+  "non_authoritative": true,
+  "non_claims": [
+    "Does not validate R037 broadly; this is a tiny bulk-loader smoke.",
+    "Does not validate R035; R035 remains Active.",
+    "Does not prove production FalkorDB readiness, retrieval quality, parser completeness, legal-answer correctness, graph-vector/HNSW behavior, or pilot readiness.",
+    "Does not prove idempotent update/upsert semantics for GRAPH.BULK; this smoke uses a unique graph name."
+  ],
+  "redaction": {
+    "absolute_paths_excluded": true,
+    "external_payloads_excluded": true,
+    "gsd_exec_paths_excluded": true,
+    "raw_vectors_excluded": true,
+    "secrets_excluded": true,
+    "source_text_excluded": true,
+    "temporary_csv_paths_excluded": true
+  },
+  "related_requirement": "R035",
+  "requirement": "R037",
+  "runtime_disposition": "bulk_loader_passed",
+  "schema_version": "falkordb-bulk-loader-proof/v1",
+  "slice_id": "S03",
+  "source_counts": {
+    "node_rows": 4,
+    "relationship_rows": 3
+  },
+  "source_fixture_paths": [
+    "prd/research/ontology_architecture_requirements/fixtures/falkordb_ingest/legal_units.csv",
+    "prd/research/ontology_architecture_requirements/fixtures/falkordb_ingest/legal_unit_edges.csv"
+  ]
+}

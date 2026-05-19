@@ -1,0 +1,357 @@
+{
+  "allowed_expected_results": [
+    "selected",
+    "rejected",
+    "ambiguous",
+    "unsupported",
+    "no_answer"
+  ],
+  "cases": [
+    {
+      "candidates": [
+        {
+          "act_edition_id": "ED-M014-44FZ-2026-01-01",
+          "candidate_id": "CAND-M021-S04-EV-ARTICLE-0001",
+          "citation_key": "CIT-M014-HIER-CONS-ARTICLE-0001",
+          "evidence_span_id": "EV-M014-HIER-CONS-ARTICLE-0001",
+          "expected_label": "relevant",
+          "selection_reason": "exact_evidence_span_match",
+          "source_artifact": "prd/retrieval/fixtures/offline_citation_retrieval_cases.json",
+          "source_block_id": "SB-M014-HIER-CONS-ARTICLE-0001",
+          "source_case_id": "CASE-M014-VALID-EXACT-RECORD-CANDIDATE",
+          "source_record_ids": [
+            "HIER-CONS-ARTICLE-0001"
+          ]
+        }
+      ],
+      "case_class": "positive_evidence_span",
+      "case_id": "CASE-M021-S04-POSITIVE-EVIDENCE-SPAN-001",
+      "citation_requirements": {
+        "requires_act_edition_id": true,
+        "requires_citation_key": true,
+        "requires_evidence_span_id": true,
+        "requires_source_block_id": true
+      },
+      "expected_candidate_ids": [
+        "CAND-M021-S04-EV-ARTICLE-0001"
+      ],
+      "expected_diagnostic_codes": [],
+      "expected_rejected_candidate_ids": [],
+      "non_authoritative": true,
+      "query": {
+        "as_of_date": "2026-01-01",
+        "expected_result": "selected",
+        "query_id": "QUERY-M021-S04-POSITIVE-EVIDENCE-SPAN-001",
+        "query_kind": "evidence_span_lookup",
+        "query_text_sha256": "adb178ae7a1569c7285f38d066417739d9fe61e1a8edb67ca0b0fe446b0cc607",
+        "scope_id": "SCOPE-M021-S04-CONSULTANT-44FZ-2026-001"
+      },
+      "source_artifact_refs": [
+        "prd/retrieval/fixtures/offline_citation_retrieval_cases.json",
+        "prd/retrieval/fixtures/real_artifact_retrieval_cases.json"
+      ],
+      "source_record_ids": [
+        "HIER-CONS-ARTICLE-0001"
+      ]
+    },
+    {
+      "candidates": [
+        {
+          "act_edition_id": "ED-M014-44FZ-2026-01-01",
+          "candidate_id": "CAND-M021-S04-SB-ARTICLE-0001-MARKER",
+          "citation_key": "CIT-M014-HIER-CONS-ARTICLE-0001",
+          "evidence_span_id": "EV-M014-HIER-CONS-ARTICLE-0001",
+          "expected_label": "relevant",
+          "selection_reason": "source_block_marker_match",
+          "source_artifact": "prd/retrieval/fixtures/offline_citation_retrieval_cases.json",
+          "source_block_id": "SB-M014-HIER-CONS-ARTICLE-0001",
+          "source_case_id": "CASE-M014-VALID-MARKER-LEVEL-CANDIDATE",
+          "source_record_ids": [
+            "HIER-CONS-ARTICLE-0001"
+          ]
+        }
+      ],
+      "case_class": "positive_source_block_marker",
+      "case_id": "CASE-M021-S04-POSITIVE-SOURCE-BLOCK-001",
+      "citation_requirements": {
+        "requires_act_edition_id": true,
+        "requires_citation_key": true,
+        "requires_evidence_span_id": true,
+        "requires_source_block_id": true
+      },
+      "expected_candidate_ids": [
+        "CAND-M021-S04-SB-ARTICLE-0001-MARKER"
+      ],
+      "expected_diagnostic_codes": [],
+      "expected_rejected_candidate_ids": [],
+      "non_authoritative": true,
+      "query": {
+        "as_of_date": "2026-01-01",
+        "expected_result": "selected",
+        "query_id": "QUERY-M021-S04-POSITIVE-SOURCE-BLOCK-001",
+        "query_kind": "source_block_marker_lookup",
+        "query_text_sha256": "36190ee5178899ad99b4d56f16bd13e9662aea300c5ded6f5427d6dc6735155f",
+        "scope_id": "SCOPE-M021-S04-CONSULTANT-44FZ-2026-001"
+      },
+      "source_artifact_refs": [
+        "prd/retrieval/fixtures/offline_citation_retrieval_cases.json"
+      ],
+      "source_record_ids": [
+        "HIER-CONS-ARTICLE-0001"
+      ]
+    },
+    {
+      "candidates": [
+        {
+          "act_edition_id": "ED-M013-44FZ-1900-01-01",
+          "candidate_id": "CAND-M021-S04-STALE-WRONG-EDITION-001",
+          "citation_key": "CIT-M013-HIER-CONS-ARTICLE-0001",
+          "evidence_span_id": "EV-M013-HIER-CONS-ARTICLE-0001",
+          "expected_label": "stale",
+          "selection_reason": "wrong_edition_temporal_rejection",
+          "source_artifact": "prd/retrieval/fixtures/real_artifact_retrieval_cases.json",
+          "source_block_id": "SB-M013-HIER-CONS-ARTICLE-0001",
+          "source_case_id": "CASE-M013-WRONG-EDITION-PROXY",
+          "source_record_ids": [
+            "HIER-CONS-ARTICLE-0001"
+          ]
+        }
+      ],
+      "case_class": "stale_temporal_negative",
+      "case_id": "CASE-M021-S04-STALE-TEMPORAL-NEGATIVE-001",
+      "citation_requirements": {
+        "requires_act_edition_id": true,
+        "requires_citation_key": true,
+        "requires_evidence_span_id": true,
+        "requires_source_block_id": true
+      },
+      "expected_candidate_ids": [],
+      "expected_diagnostic_codes": [
+        "stale_temporal_candidate"
+      ],
+      "expected_rejected_candidate_ids": [
+        "CAND-M021-S04-STALE-WRONG-EDITION-001"
+      ],
+      "non_authoritative": true,
+      "query": {
+        "as_of_date": "2026-01-01",
+        "expected_result": "rejected",
+        "query_id": "QUERY-M021-S04-STALE-TEMPORAL-NEGATIVE-001",
+        "query_kind": "temporal_scoped_lookup",
+        "query_text_sha256": "15a7c906ce4b1479bf05f357f2e3fcf74608573827bab9377d15414e0982c5e1",
+        "scope_id": "SCOPE-M021-S04-CONSULTANT-44FZ-2026-001"
+      },
+      "source_artifact_refs": [
+        "prd/retrieval/fixtures/real_artifact_retrieval_cases.json"
+      ],
+      "source_record_ids": [
+        "HIER-CONS-ARTICLE-0001"
+      ]
+    },
+    {
+      "candidates": [
+        {
+          "act_edition_id": "ED-M014-44FZ-2026-01-01",
+          "candidate_id": "CAND-M021-S04-AMBIG-CLAUSE-0001",
+          "citation_key": "CIT-M014-HIER-CONS-CLAUSE-0001",
+          "evidence_span_id": "EV-M014-HIER-CONS-CLAUSE-0001",
+          "expected_label": "ambiguous",
+          "selection_reason": "ambiguous_candidate_set",
+          "source_artifact": "prd/retrieval/fixtures/offline_citation_retrieval_cases.json",
+          "source_block_id": "SB-M014-HIER-CONS-CLAUSE-0001",
+          "source_case_id": "CASE-M014-AMBIGUOUS-CANDIDATE-SET",
+          "source_record_ids": [
+            "HIER-CONS-CLAUSE-0001"
+          ]
+        },
+        {
+          "act_edition_id": "ED-M014-44FZ-2026-01-01",
+          "candidate_id": "CAND-M021-S04-AMBIG-CLAUSE-0002",
+          "citation_key": "CIT-M014-HIER-CONS-CLAUSE-0002",
+          "evidence_span_id": "EV-M014-HIER-CONS-CLAUSE-0002",
+          "expected_label": "ambiguous",
+          "selection_reason": "ambiguous_candidate_set",
+          "source_artifact": "prd/retrieval/fixtures/offline_citation_retrieval_cases.json",
+          "source_block_id": "SB-M014-HIER-CONS-CLAUSE-0002",
+          "source_case_id": "CASE-M014-AMBIGUOUS-CANDIDATE-SET",
+          "source_record_ids": [
+            "HIER-CONS-CLAUSE-0002"
+          ]
+        }
+      ],
+      "case_class": "ambiguous_candidate_set",
+      "case_id": "CASE-M021-S04-AMBIGUOUS-CANDIDATE-SET-001",
+      "citation_requirements": {
+        "requires_act_edition_id": true,
+        "requires_citation_key": true,
+        "requires_evidence_span_id": true,
+        "requires_source_block_id": true
+      },
+      "expected_candidate_ids": [
+        "CAND-M021-S04-AMBIG-CLAUSE-0001",
+        "CAND-M021-S04-AMBIG-CLAUSE-0002"
+      ],
+      "expected_diagnostic_codes": [
+        "ambiguous_candidate_set"
+      ],
+      "expected_rejected_candidate_ids": [],
+      "non_authoritative": true,
+      "query": {
+        "as_of_date": "2026-01-01",
+        "expected_result": "ambiguous",
+        "query_id": "QUERY-M021-S04-AMBIGUOUS-CANDIDATE-SET-001",
+        "query_kind": "ambiguous_clause_lookup",
+        "query_text_sha256": "3cd040ee3311f393d90f803a6a267dc0d39665210a8e7dcbace40d776d11e92d",
+        "scope_id": "SCOPE-M021-S04-CONSULTANT-44FZ-2026-001"
+      },
+      "source_artifact_refs": [
+        "prd/retrieval/fixtures/offline_citation_retrieval_cases.json"
+      ],
+      "source_record_ids": [
+        "HIER-CONS-CLAUSE-0001",
+        "HIER-CONS-CLAUSE-0002"
+      ]
+    },
+    {
+      "candidates": [],
+      "case_class": "unsupported_scope",
+      "case_id": "CASE-M021-S04-UNSUPPORTED-SCOPE-001",
+      "citation_requirements": {
+        "requires_act_edition_id": true,
+        "requires_citation_key": true,
+        "requires_evidence_span_id": true,
+        "requires_source_block_id": true
+      },
+      "expected_candidate_ids": [],
+      "expected_diagnostic_codes": [
+        "unsupported_scope"
+      ],
+      "expected_rejected_candidate_ids": [],
+      "non_authoritative": true,
+      "query": {
+        "as_of_date": "2026-01-01",
+        "expected_result": "unsupported",
+        "query_id": "QUERY-M021-S04-UNSUPPORTED-SCOPE-001",
+        "query_kind": "unsupported_scope_lookup",
+        "query_text_sha256": "15b51f078b3557fb5d5e612af1e6fd82b4a7bd2161f11ec52e5bca64fbc2b6bb",
+        "scope_id": "SCOPE-M021-S04-UNVERIFIED-CORPUS-001"
+      },
+      "source_artifact_refs": [
+        "prd/retrieval/fixtures/local_retrieval_quality_benchmark.json"
+      ],
+      "source_record_ids": []
+    },
+    {
+      "candidates": [],
+      "case_class": "scoped_no_answer",
+      "case_id": "CASE-M021-S04-SCOPED-NO-ANSWER-001",
+      "citation_requirements": {
+        "requires_act_edition_id": true,
+        "requires_citation_key": true,
+        "requires_evidence_span_id": true,
+        "requires_source_block_id": true
+      },
+      "expected_candidate_ids": [],
+      "expected_diagnostic_codes": [
+        "scoped_no_answer"
+      ],
+      "expected_rejected_candidate_ids": [],
+      "non_authoritative": true,
+      "query": {
+        "as_of_date": "2026-01-01",
+        "expected_result": "no_answer",
+        "query_id": "QUERY-M021-S04-SCOPED-NO-ANSWER-001",
+        "query_kind": "scoped_no_answer",
+        "query_text_sha256": "7add5184984011935cda7b64638fa7dbcfed9c75ee863bee53100fe5cae8bca2",
+        "scope_id": "SCOPE-M021-S04-CONSULTANT-44FZ-2026-001"
+      },
+      "source_artifact_refs": [
+        "prd/retrieval/fixtures/real_artifact_retrieval_cases.json"
+      ],
+      "source_record_ids": []
+    }
+  ],
+  "contract": "prd/research/ontology_architecture_requirements/20-evidence-span-golden-retrieval-contract.md",
+  "diagnostic_taxonomy": [
+    "stale_temporal_candidate",
+    "ambiguous_candidate_set",
+    "unsupported_scope",
+    "scoped_no_answer",
+    "unsafe_payload_rejected",
+    "missing_evidence_span",
+    "missing_source_block",
+    "source_anchor_missing",
+    "invalid_expected_candidate_reference",
+    "unsafe_fixture_payload"
+  ],
+  "fixture_artifact": "prd/research/ontology_architecture_requirements/fixtures/evidence_span_golden_retrieval_cases.json",
+  "generated_by": "M021/S04",
+  "milestone_id": "M021-qk4lze",
+  "non_authoritative": true,
+  "non_claims": [
+    "Does not prove product retrieval quality.",
+    "Does not prove local embedding quality.",
+    "Does not prove graph-filtered retrieval quality.",
+    "Does not prove production FalkorDB readiness.",
+    "Does not prove parser completeness.",
+    "Does not prove legal-answer correctness.",
+    "Does not prove final legal hierarchy correctness.",
+    "Does not prove graph-vector/HNSW behavior.",
+    "Does not prove pilot or 1000-document readiness.",
+    "Does not validate R035."
+  ],
+  "redaction": {
+    "absolute_paths_excluded": true,
+    "external_payloads_excluded": true,
+    "generated_legal_answer_excluded": true,
+    "gsd_exec_paths_excluded": true,
+    "raw_vectors_excluded": true,
+    "runtime_rows_excluded": true,
+    "source_text_excluded": true,
+    "temporary_paths_excluded": true
+  },
+  "required_case_classes": [
+    "positive_evidence_span",
+    "positive_source_block_marker",
+    "stale_temporal_negative",
+    "ambiguous_candidate_set",
+    "unsupported_scope",
+    "scoped_no_answer"
+  ],
+  "schema_version": "evidence-span-golden-retrieval-cases/v1",
+  "slice_id": "S04",
+  "source_artifacts": [
+    {
+      "path": "prd/research/ontology_architecture_requirements/20-evidence-span-golden-retrieval-contract.md",
+      "sha256": "bf9a5398057f47a0ef81e58c59b0452910948e5c00694abb385c8f93a7dabab9"
+    },
+    {
+      "path": "prd/retrieval/fixtures/offline_citation_retrieval_cases.json",
+      "sha256": "d087b68da758a4cdb3c3af693797266b6eb001428c6be86f1e19d44530732d77"
+    },
+    {
+      "path": "prd/retrieval/fixtures/local_retrieval_quality_benchmark.json",
+      "sha256": "1e568c9960e57da65af6ac7a18bf4e37eea7f0af30f829017a87947b07e29cec"
+    },
+    {
+      "path": "prd/retrieval/fixtures/real_artifact_retrieval_cases.json",
+      "sha256": "9f1a815a84f79c00ea5b5416c4285826930ae43646e7152dc283ce99f1bd62a7"
+    },
+    {
+      "path": "prd/parser/consultant_hierarchy_records.json",
+      "sha256": "df14061fccedf5023a008d8ab7de77cc829459d54b4683fab08bababf26d7f95"
+    },
+    {
+      "path": "prd/parser/parser_staging_graph.json",
+      "sha256": "c0921cacf238de9df32a122f2f9e858f0ff05375794230eb8070c87e3f6f8a53"
+    },
+    {
+      "path": "prd/research/ontology_architecture_requirements/falkordb_csv_ingest_proof.json",
+      "sha256": "cbfb4fa1bd75620fcf492300e2dc927a687bb762cafc78b633d6678095bba2ca"
+    },
+    {
+      "path": "prd/research/ontology_architecture_requirements/falkordb_bulk_loader_proof.json",
+      "sha256": "ff4e1558f5d03e0adf78c5a310fb9361d5e8eed1abd7d33eefc5ab4e5f7b77c8"
+    }
+  ]
+}
