@@ -1,0 +1,467 @@
+{
+  "allowed_descriptor_fields": {
+    "candidate_kind": [
+      "evidence_span",
+      "source_block",
+      "citation_boundary",
+      "temporal_scope_marker",
+      "blocked_candidate"
+    ],
+    "citation_granularity": [
+      "act_edition",
+      "article_or_evidence_span",
+      "clause",
+      "source_block_marker",
+      "temporal_marker",
+      "unknown_granularity"
+    ],
+    "content_role": [
+      "retrieval_candidate",
+      "citation_boundary",
+      "scope_boundary",
+      "temporal_boundary",
+      "blocked_unsafe"
+    ],
+    "materialization_method": [
+      "odt_structure_smoke",
+      "content_xml_order_anchor",
+      "parser_blocked"
+    ],
+    "source_order_index_bucket": [
+      "early_source_order",
+      "middle_source_order",
+      "late_source_order"
+    ],
+    "structural_unit_kind": [
+      "document",
+      "article",
+      "clause",
+      "paragraph",
+      "table",
+      "list_item",
+      "unknown_structural_unit"
+    ],
+    "temporal_status": [
+      "current_edition",
+      "as_of_date_required",
+      "edition_consistency_required",
+      "unknown_temporal_status"
+    ]
+  },
+  "candidate_descriptor_count": 6,
+  "candidate_descriptors": [
+    {
+      "candidate_id": "DESC-CAND-M027-001",
+      "case_id": "CASE-M027-MAT-001",
+      "descriptor_input_id": "MAT-DESCC-M027-001",
+      "descriptor_tokens": [
+        "candidate_kind:source_block",
+        "structural_unit_kind:article",
+        "citation_granularity:article_or_evidence_span",
+        "content_role:scope_boundary",
+        "temporal_status:unknown_temporal_status",
+        "materialization_method:content_xml_order_anchor",
+        "source_order_index_bucket:early_source_order"
+      ],
+      "descriptors": {
+        "candidate_kind": "source_block",
+        "citation_granularity": "article_or_evidence_span",
+        "content_role": "scope_boundary",
+        "materialization_method": "content_xml_order_anchor",
+        "source_order_index_bucket": "early_source_order",
+        "structural_unit_kind": "article",
+        "temporal_status": "unknown_temporal_status"
+      },
+      "materialized_candidate_ref": "MAT-M027-001-SOURCE-BLOCK",
+      "non_authoritative": true,
+      "query_id": "QUERY-M027-MAT-001",
+      "representation_kind": "safe_materialized_descriptor_v1",
+      "source_anchor_ref": "SRC-M027-001-ARTICLE",
+      "source_anchor_sha256": "sha256:d0f1b0e15b15c5522100fa93cdc0413e5c7cf4ddec1f381e9393403f9b6bd002",
+      "source_record_ids": [
+        "MAT-M027-001-SOURCE-BLOCK"
+      ]
+    },
+    {
+      "candidate_id": "DESC-CAND-M027-002",
+      "case_id": "CASE-M027-MAT-002",
+      "descriptor_input_id": "MAT-DESCC-M027-002",
+      "descriptor_tokens": [
+        "candidate_kind:evidence_span",
+        "structural_unit_kind:paragraph",
+        "citation_granularity:article_or_evidence_span",
+        "content_role:retrieval_candidate",
+        "temporal_status:unknown_temporal_status",
+        "materialization_method:content_xml_order_anchor",
+        "source_order_index_bucket:middle_source_order"
+      ],
+      "descriptors": {
+        "candidate_kind": "evidence_span",
+        "citation_granularity": "article_or_evidence_span",
+        "content_role": "retrieval_candidate",
+        "materialization_method": "content_xml_order_anchor",
+        "source_order_index_bucket": "middle_source_order",
+        "structural_unit_kind": "paragraph",
+        "temporal_status": "unknown_temporal_status"
+      },
+      "materialized_candidate_ref": "MAT-M027-002-EVIDENCE-SPAN",
+      "non_authoritative": true,
+      "query_id": "QUERY-M027-MAT-002",
+      "representation_kind": "safe_materialized_descriptor_v1",
+      "source_anchor_ref": "SRC-M027-002-PARAGRAPH",
+      "source_anchor_sha256": "sha256:478470b7a43d141e00d54ac4ac026eca1c45ddc8d3cb3a473b5817fef1994ec9",
+      "source_record_ids": [
+        "MAT-M027-002-EVIDENCE-SPAN"
+      ]
+    },
+    {
+      "candidate_id": "DESC-CAND-M027-003",
+      "case_id": "CASE-M027-MAT-003",
+      "descriptor_input_id": "MAT-DESCC-M027-003",
+      "descriptor_tokens": [
+        "candidate_kind:evidence_span",
+        "structural_unit_kind:paragraph",
+        "citation_granularity:article_or_evidence_span",
+        "content_role:retrieval_candidate",
+        "temporal_status:unknown_temporal_status",
+        "materialization_method:content_xml_order_anchor",
+        "source_order_index_bucket:middle_source_order"
+      ],
+      "descriptors": {
+        "candidate_kind": "evidence_span",
+        "citation_granularity": "article_or_evidence_span",
+        "content_role": "retrieval_candidate",
+        "materialization_method": "content_xml_order_anchor",
+        "source_order_index_bucket": "middle_source_order",
+        "structural_unit_kind": "paragraph",
+        "temporal_status": "unknown_temporal_status"
+      },
+      "materialized_candidate_ref": "MAT-M027-003-EVIDENCE-SPAN",
+      "non_authoritative": true,
+      "query_id": "QUERY-M027-MAT-003",
+      "representation_kind": "safe_materialized_descriptor_v1",
+      "source_anchor_ref": "SRC-M027-003-PARAGRAPH",
+      "source_anchor_sha256": "sha256:cc5de022a70657b3171f62a2a5cef5b2ab5e4f3de9a7cc8210af790c480cfb9a",
+      "source_record_ids": [
+        "MAT-M027-003-EVIDENCE-SPAN"
+      ]
+    },
+    {
+      "candidate_id": "DESC-CAND-M027-004",
+      "case_id": "CASE-M027-MAT-004",
+      "descriptor_input_id": "MAT-DESCC-M027-004",
+      "descriptor_tokens": [
+        "candidate_kind:evidence_span",
+        "structural_unit_kind:paragraph",
+        "citation_granularity:article_or_evidence_span",
+        "content_role:retrieval_candidate",
+        "temporal_status:unknown_temporal_status",
+        "materialization_method:content_xml_order_anchor",
+        "source_order_index_bucket:middle_source_order"
+      ],
+      "descriptors": {
+        "candidate_kind": "evidence_span",
+        "citation_granularity": "article_or_evidence_span",
+        "content_role": "retrieval_candidate",
+        "materialization_method": "content_xml_order_anchor",
+        "source_order_index_bucket": "middle_source_order",
+        "structural_unit_kind": "paragraph",
+        "temporal_status": "unknown_temporal_status"
+      },
+      "materialized_candidate_ref": "MAT-M027-004-EVIDENCE-SPAN",
+      "non_authoritative": true,
+      "query_id": "QUERY-M027-MAT-004",
+      "representation_kind": "safe_materialized_descriptor_v1",
+      "source_anchor_ref": "SRC-M027-004-PARAGRAPH",
+      "source_anchor_sha256": "sha256:4d945f10191194503a6ce4448694173a5f528f421da8bab3d6b25b2a29eedc11",
+      "source_record_ids": [
+        "MAT-M027-004-EVIDENCE-SPAN"
+      ]
+    },
+    {
+      "candidate_id": "DESC-CAND-M027-005",
+      "case_id": "CASE-M027-MAT-005",
+      "descriptor_input_id": "MAT-DESCC-M027-005",
+      "descriptor_tokens": [
+        "candidate_kind:evidence_span",
+        "structural_unit_kind:paragraph",
+        "citation_granularity:article_or_evidence_span",
+        "content_role:retrieval_candidate",
+        "temporal_status:unknown_temporal_status",
+        "materialization_method:content_xml_order_anchor",
+        "source_order_index_bucket:middle_source_order"
+      ],
+      "descriptors": {
+        "candidate_kind": "evidence_span",
+        "citation_granularity": "article_or_evidence_span",
+        "content_role": "retrieval_candidate",
+        "materialization_method": "content_xml_order_anchor",
+        "source_order_index_bucket": "middle_source_order",
+        "structural_unit_kind": "paragraph",
+        "temporal_status": "unknown_temporal_status"
+      },
+      "materialized_candidate_ref": "MAT-M027-005-EVIDENCE-SPAN",
+      "non_authoritative": true,
+      "query_id": "QUERY-M027-MAT-005",
+      "representation_kind": "safe_materialized_descriptor_v1",
+      "source_anchor_ref": "SRC-M027-005-PARAGRAPH",
+      "source_anchor_sha256": "sha256:ed83307b42de776ca97631db08a840b7fbef339833792097eae835212caf3cb6",
+      "source_record_ids": [
+        "MAT-M027-005-EVIDENCE-SPAN"
+      ]
+    },
+    {
+      "candidate_id": "DESC-CAND-M027-006",
+      "case_id": "CASE-M027-MAT-006",
+      "descriptor_input_id": "MAT-DESCC-M027-006",
+      "descriptor_tokens": [
+        "candidate_kind:evidence_span",
+        "structural_unit_kind:paragraph",
+        "citation_granularity:article_or_evidence_span",
+        "content_role:retrieval_candidate",
+        "temporal_status:unknown_temporal_status",
+        "materialization_method:content_xml_order_anchor",
+        "source_order_index_bucket:late_source_order"
+      ],
+      "descriptors": {
+        "candidate_kind": "evidence_span",
+        "citation_granularity": "article_or_evidence_span",
+        "content_role": "retrieval_candidate",
+        "materialization_method": "content_xml_order_anchor",
+        "source_order_index_bucket": "late_source_order",
+        "structural_unit_kind": "paragraph",
+        "temporal_status": "unknown_temporal_status"
+      },
+      "materialized_candidate_ref": "MAT-M027-006-EVIDENCE-SPAN",
+      "non_authoritative": true,
+      "query_id": "QUERY-M027-MAT-006",
+      "representation_kind": "safe_materialized_descriptor_v1",
+      "source_anchor_ref": "SRC-M027-006-PARAGRAPH",
+      "source_anchor_sha256": "sha256:183f8122f7c0e831d1e0d30e13549fdf9d19b2130ade40119d7e67812c767d2d",
+      "source_record_ids": [
+        "MAT-M027-006-EVIDENCE-SPAN"
+      ]
+    }
+  ],
+  "derivation_fields": [
+    "candidate_kind",
+    "structural_unit_kind",
+    "citation_granularity",
+    "content_role",
+    "temporal_status",
+    "materialization_method",
+    "source_order_index_bucket"
+  ],
+  "materialization_source": "prd/research/ontology_architecture_requirements/parser_evidence_span_materialization.json",
+  "materialization_source_sha256": "sha256:2fd58d14834c7c1fe5b11df64333b0308625c354e603fd342a4d1ddec538f5ef",
+  "materialization_verification_summary": {
+    "artifact_status": "ok",
+    "blocked_reason": "none",
+    "diagnostic_codes": [
+      "parser_evidence_span_materialization_verified"
+    ],
+    "materialized_candidate_count": 6,
+    "non_authoritative": true,
+    "non_claim_boundary": "Materialization verification only; does not prove parser completeness or validate R035.",
+    "representation_kind": "safe_materialized_evidence_candidates_v1",
+    "safe_source_anchors_verified": true,
+    "schema_version": "parser-evidence-span-materialization-verification/v1",
+    "status": "ok"
+  },
+  "milestone_id": "M027-vxdy7c",
+  "non_authoritative": true,
+  "non_claim_boundary": "Descriptor bridge from materialized structural records only; does not validate R035 or prove retrieval quality.",
+  "query_descriptor_count": 6,
+  "query_descriptors": [
+    {
+      "case_id": "CASE-M027-MAT-001",
+      "descriptor_input_id": "MAT-DESCQ-M027-001",
+      "descriptor_tokens": [
+        "candidate_kind:source_block",
+        "structural_unit_kind:article",
+        "citation_granularity:article_or_evidence_span",
+        "content_role:scope_boundary",
+        "temporal_status:unknown_temporal_status",
+        "materialization_method:content_xml_order_anchor",
+        "source_order_index_bucket:early_source_order"
+      ],
+      "descriptors": {
+        "candidate_kind": "source_block",
+        "citation_granularity": "article_or_evidence_span",
+        "content_role": "scope_boundary",
+        "materialization_method": "content_xml_order_anchor",
+        "source_order_index_bucket": "early_source_order",
+        "structural_unit_kind": "article",
+        "temporal_status": "unknown_temporal_status"
+      },
+      "materialized_candidate_ref": "MAT-M027-001-SOURCE-BLOCK",
+      "non_authoritative": true,
+      "query_hash_ref": "sha256:06909e3acdc1b198fcfb06c8e107f69f3a7e5fca3e91a1c5b6b9509a04622a77",
+      "query_id": "QUERY-M027-MAT-001",
+      "representation_kind": "safe_materialized_descriptor_v1",
+      "source_anchor_ref": "SRC-M027-001-ARTICLE",
+      "source_anchor_sha256": "sha256:d0f1b0e15b15c5522100fa93cdc0413e5c7cf4ddec1f381e9393403f9b6bd002"
+    },
+    {
+      "case_id": "CASE-M027-MAT-002",
+      "descriptor_input_id": "MAT-DESCQ-M027-002",
+      "descriptor_tokens": [
+        "candidate_kind:evidence_span",
+        "structural_unit_kind:paragraph",
+        "citation_granularity:article_or_evidence_span",
+        "content_role:retrieval_candidate",
+        "temporal_status:unknown_temporal_status",
+        "materialization_method:content_xml_order_anchor",
+        "source_order_index_bucket:middle_source_order"
+      ],
+      "descriptors": {
+        "candidate_kind": "evidence_span",
+        "citation_granularity": "article_or_evidence_span",
+        "content_role": "retrieval_candidate",
+        "materialization_method": "content_xml_order_anchor",
+        "source_order_index_bucket": "middle_source_order",
+        "structural_unit_kind": "paragraph",
+        "temporal_status": "unknown_temporal_status"
+      },
+      "materialized_candidate_ref": "MAT-M027-002-EVIDENCE-SPAN",
+      "non_authoritative": true,
+      "query_hash_ref": "sha256:5f5a9f90dc19dac14b7040c2d5c9c332d9177746d14288db1cde21ce433e579a",
+      "query_id": "QUERY-M027-MAT-002",
+      "representation_kind": "safe_materialized_descriptor_v1",
+      "source_anchor_ref": "SRC-M027-002-PARAGRAPH",
+      "source_anchor_sha256": "sha256:478470b7a43d141e00d54ac4ac026eca1c45ddc8d3cb3a473b5817fef1994ec9"
+    },
+    {
+      "case_id": "CASE-M027-MAT-003",
+      "descriptor_input_id": "MAT-DESCQ-M027-003",
+      "descriptor_tokens": [
+        "candidate_kind:evidence_span",
+        "structural_unit_kind:paragraph",
+        "citation_granularity:article_or_evidence_span",
+        "content_role:retrieval_candidate",
+        "temporal_status:unknown_temporal_status",
+        "materialization_method:content_xml_order_anchor",
+        "source_order_index_bucket:middle_source_order"
+      ],
+      "descriptors": {
+        "candidate_kind": "evidence_span",
+        "citation_granularity": "article_or_evidence_span",
+        "content_role": "retrieval_candidate",
+        "materialization_method": "content_xml_order_anchor",
+        "source_order_index_bucket": "middle_source_order",
+        "structural_unit_kind": "paragraph",
+        "temporal_status": "unknown_temporal_status"
+      },
+      "materialized_candidate_ref": "MAT-M027-003-EVIDENCE-SPAN",
+      "non_authoritative": true,
+      "query_hash_ref": "sha256:5f3d5378848b8acb1a5170dfbe7e341a5d0f609efe6f301deddef94e86dea864",
+      "query_id": "QUERY-M027-MAT-003",
+      "representation_kind": "safe_materialized_descriptor_v1",
+      "source_anchor_ref": "SRC-M027-003-PARAGRAPH",
+      "source_anchor_sha256": "sha256:cc5de022a70657b3171f62a2a5cef5b2ab5e4f3de9a7cc8210af790c480cfb9a"
+    },
+    {
+      "case_id": "CASE-M027-MAT-004",
+      "descriptor_input_id": "MAT-DESCQ-M027-004",
+      "descriptor_tokens": [
+        "candidate_kind:evidence_span",
+        "structural_unit_kind:paragraph",
+        "citation_granularity:article_or_evidence_span",
+        "content_role:retrieval_candidate",
+        "temporal_status:unknown_temporal_status",
+        "materialization_method:content_xml_order_anchor",
+        "source_order_index_bucket:middle_source_order"
+      ],
+      "descriptors": {
+        "candidate_kind": "evidence_span",
+        "citation_granularity": "article_or_evidence_span",
+        "content_role": "retrieval_candidate",
+        "materialization_method": "content_xml_order_anchor",
+        "source_order_index_bucket": "middle_source_order",
+        "structural_unit_kind": "paragraph",
+        "temporal_status": "unknown_temporal_status"
+      },
+      "materialized_candidate_ref": "MAT-M027-004-EVIDENCE-SPAN",
+      "non_authoritative": true,
+      "query_hash_ref": "sha256:7181027f8012c6934189439dd9a82ff24154496fe1f479e766b326e56d42b351",
+      "query_id": "QUERY-M027-MAT-004",
+      "representation_kind": "safe_materialized_descriptor_v1",
+      "source_anchor_ref": "SRC-M027-004-PARAGRAPH",
+      "source_anchor_sha256": "sha256:4d945f10191194503a6ce4448694173a5f528f421da8bab3d6b25b2a29eedc11"
+    },
+    {
+      "case_id": "CASE-M027-MAT-005",
+      "descriptor_input_id": "MAT-DESCQ-M027-005",
+      "descriptor_tokens": [
+        "candidate_kind:evidence_span",
+        "structural_unit_kind:paragraph",
+        "citation_granularity:article_or_evidence_span",
+        "content_role:retrieval_candidate",
+        "temporal_status:unknown_temporal_status",
+        "materialization_method:content_xml_order_anchor",
+        "source_order_index_bucket:middle_source_order"
+      ],
+      "descriptors": {
+        "candidate_kind": "evidence_span",
+        "citation_granularity": "article_or_evidence_span",
+        "content_role": "retrieval_candidate",
+        "materialization_method": "content_xml_order_anchor",
+        "source_order_index_bucket": "middle_source_order",
+        "structural_unit_kind": "paragraph",
+        "temporal_status": "unknown_temporal_status"
+      },
+      "materialized_candidate_ref": "MAT-M027-005-EVIDENCE-SPAN",
+      "non_authoritative": true,
+      "query_hash_ref": "sha256:bdfd294db8d46cbdc29c6d0a3eb857b7150c2671d025933c323371c99d5f0468",
+      "query_id": "QUERY-M027-MAT-005",
+      "representation_kind": "safe_materialized_descriptor_v1",
+      "source_anchor_ref": "SRC-M027-005-PARAGRAPH",
+      "source_anchor_sha256": "sha256:ed83307b42de776ca97631db08a840b7fbef339833792097eae835212caf3cb6"
+    },
+    {
+      "case_id": "CASE-M027-MAT-006",
+      "descriptor_input_id": "MAT-DESCQ-M027-006",
+      "descriptor_tokens": [
+        "candidate_kind:evidence_span",
+        "structural_unit_kind:paragraph",
+        "citation_granularity:article_or_evidence_span",
+        "content_role:retrieval_candidate",
+        "temporal_status:unknown_temporal_status",
+        "materialization_method:content_xml_order_anchor",
+        "source_order_index_bucket:late_source_order"
+      ],
+      "descriptors": {
+        "candidate_kind": "evidence_span",
+        "citation_granularity": "article_or_evidence_span",
+        "content_role": "retrieval_candidate",
+        "materialization_method": "content_xml_order_anchor",
+        "source_order_index_bucket": "late_source_order",
+        "structural_unit_kind": "paragraph",
+        "temporal_status": "unknown_temporal_status"
+      },
+      "materialized_candidate_ref": "MAT-M027-006-EVIDENCE-SPAN",
+      "non_authoritative": true,
+      "query_hash_ref": "sha256:34cabb556cfcc8bf8a7ae8bb7cc00060b10742abe68f9cd00e21bb539c6b57bb",
+      "query_id": "QUERY-M027-MAT-006",
+      "representation_kind": "safe_materialized_descriptor_v1",
+      "source_anchor_ref": "SRC-M027-006-PARAGRAPH",
+      "source_anchor_sha256": "sha256:183f8122f7c0e831d1e0d30e13549fdf9d19b2130ade40119d7e67812c767d2d"
+    }
+  ],
+  "r035_non_validation_declared": true,
+  "r038_review_required": true,
+  "redaction": {
+    "absolute_paths_excluded": true,
+    "expected_answer_fields_excluded_from_descriptor_inputs": true,
+    "external_payloads_excluded": true,
+    "generated_answer_prose_excluded": true,
+    "generated_query_excluded": true,
+    "gsd_exec_paths_excluded": true,
+    "query_text_excluded": true,
+    "raw_vectors_excluded": true,
+    "source_text_excluded": true
+  },
+  "representation_kind": "safe_materialized_descriptor_v1",
+  "schema_version": "materialized-descriptor-inputs/v1",
+  "slice_id": "S03"
+}
