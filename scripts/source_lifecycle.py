@@ -54,6 +54,9 @@ CANDIDATE_VERIFIER_DECISION_SCHEMA_VERSION = "m032.s05.candidate-verifier-decisi
 CANDIDATE_REVIEW_QUEUE_SCHEMA_VERSION = "m032.s05.candidate-review-queue-item.v1"
 CANDIDATE_REJECTION_SCHEMA_VERSION = "m032.s05.candidate-rejection-reason.v1"
 EXTERNAL_REVIEW_PACK_SCHEMA_VERSION = "m032.s06.external-review-pack.v1"
+GRAPH_CONTEXT_STAGING_SCHEMA_VERSION = "m033.s01.graph-context-staging.v1"
+GRAPH_CONTEXT_DIAGNOSTIC_SCHEMA_VERSION = "m033.s01.graph-context-diagnostic.v1"
+GRAPH_CONTEXT_SUMMARY_SCHEMA_VERSION = "m033.s01.graph-context-summary.v1"
 KNOWN_CANDIDATE_KINDS = {
     "source_pattern_observation",
     "artifact_candidate",
@@ -61,6 +64,7 @@ KNOWN_CANDIDATE_KINDS = {
     "relationship_candidate",
     "graph_context_signal",
 }
+GRAPH_CONTEXT_RECORD_KINDS = set(KNOWN_CANDIDATE_KINDS)
 
 
 class SourceLifecycleError(Exception):
@@ -1186,6 +1190,213 @@ def candidate_to_verifier_proposal(candidate: dict[str, Any]) -> tuple[dict[str,
         ],
     }
     return proposal, []
+
+
+def _graph_context_diagnostic(
+    *,
+    run_id: str,
+    candidate_id: str | None,
+    decision_id: str | None,
+    reason_codes: list[str],
+    safe_summary: str = "candidate was not staged",
+) -> dict[str, Any]:
+    """Return a safe graph-context staging diagnostic row."""
+
+    safe_candidate_id = candidate_id if isinstance(candidate_id, str) and re_match_safe_id(candidate_id) else "unknown-candidate"
+    safe_decision_id = decision_id if isinstance(decision_id, str) and re_match_safe_id(decision_id) else "unknown-decision"
+    return {
+        "schema_version": GRAPH_CONTEXT_DIAGNOSTIC_SCHEMA_VERSION,
+        "diagnostic_id": stable_discovery_id("GCTXDIAG", run_id, safe_candidate_id, safe_decision_id, *sorted(set(reason_codes))),
+        "run_id": run_id,
+        "candidate_id": candidate_id if isinstance(candidate_id, str) and re_match_safe_id(candidate_id) else None,
+        "decision_id": decision_id if isinstance(decision_id, str) and re_match_safe_id(decision_id) else None,
+        "diagnostic_status": "skipped",
+        "reason_codes": sorted(set(reason_codes)),
+        "safe_summary": safe_summary,
+        "non_authoritative": True,
+    }
+
+
+def graph_context_candidate_to_record(
+    candidate: dict[str, Any],
+    decision: dict[str, Any],
+    *,
+    run_id: str,
+    review_pack_refs: list[str] | None = None,
+) -> dict[str, Any]:
+    """Convert one accepted candidate and verifier decision into a graph-context staging row.
+
+    Non-accepted or unsafe inputs return a diagnostic row instead of raising, so
+    downstream export can preserve skipped-candidate visibility.
+    """
+
+    candidate_id = candidate.get("candidate_id")
+    decision_id = decision.get("decision_id")
+    candidate_kind = candidate.get("candidate_kind")
+    if not run_id.startswith("RUN-") or not re_match_safe_id(run_id):
+        raise SourceLifecycleError("run_id must be a safe RUN- identifier")
+    reason_codes: list[str] = []
+    if not isinstance(candidate_id, str) or not candidate_id.startswith("CAND-") or not re_match_safe_id(candidate_id):
+        reason_codes.append("candidate-id-invalid")
+    if not isinstance(decision_id, str) or not decision_id.startswith("DECISION-") or not re_match_safe_id(decision_id):
+        reason_codes.append("decision-id-invalid")
+    if decision.get("verifier_status") != "accepted":
+        reason_codes.append("verifier-status-not-accepted")
+    if not isinstance(candidate_kind, str) or candidate_kind not in GRAPH_CONTEXT_RECORD_KINDS:
+        reason_codes.append("unsupported-record-kind")
+    candidate_source_refs = candidate.get("source_refs")
+    decision_evidence_refs = decision.get("acceptance_evidence_refs")
+    if not isinstance(candidate_source_refs, list):
+        candidate_source_refs = []
+        reason_codes.append("source-refs-missing")
+    if not isinstance(decision_evidence_refs, list):
+        decision_evidence_refs = []
+    source_refs = _safe_verifier_refs([ref for ref in candidate_source_refs if isinstance(ref, str)])
+    evidence_refs = _safe_verifier_refs([ref for ref in decision_evidence_refs if isinstance(ref, str)])
+    if len(source_refs) != len([ref for ref in candidate_source_refs if isinstance(ref, str)]):
+        reason_codes.append("unsafe-source-ref")
+    if not source_refs and not evidence_refs:
+        reason_codes.append("source-refs-missing")
+    if reason_codes or not isinstance(candidate_id, str) or not isinstance(decision_id, str) or not isinstance(candidate_kind, str):
+        return _graph_context_diagnostic(
+            run_id=run_id,
+            candidate_id=candidate_id if isinstance(candidate_id, str) else None,
+            decision_id=decision_id if isinstance(decision_id, str) else None,
+            reason_codes=reason_codes,
+        )
+    trajectory_refs = [ref for ref in candidate.get("trajectory_refs", []) if isinstance(ref, str) and ref.startswith("trajectory:STEP-")]
+    attempt_refs = [ref for ref in candidate.get("attempt_refs", []) if isinstance(ref, str) and ref.startswith("attempt:ATTEMPT-")]
+    review_refs = [ref for ref in review_pack_refs or [] if isinstance(ref, str) and not ref.startswith("/") and ".." not in Path(ref).parts]
+    safe_summary = str(candidate.get("candidate_summary") or candidate_id)[:240]
+    return {
+        "schema_version": GRAPH_CONTEXT_STAGING_SCHEMA_VERSION,
+        "graph_context_id": stable_discovery_id("GCTX", run_id, candidate_id, decision_id, candidate_kind),
+        "run_id": run_id,
+        "record_kind": candidate_kind,
+        "candidate_id": candidate_id,
+        "decision_id": decision_id,
+        "staging_status": "staged",
+        "safe_summary": safe_summary,
+        "confidence_bucket": candidate.get("confidence_bucket") if candidate.get("confidence_bucket") in {"low", "medium", "high"} else "unknown",
+        "candidate_refs": [f"candidate:{candidate_id}"],
+        "verifier_refs": [f"decision:{decision_id}"],
+        "trajectory_refs": trajectory_refs,
+        "source_refs": source_refs or evidence_refs,
+        "attempt_refs": attempt_refs,
+        "review_pack_refs": review_refs,
+        "non_authoritative": True,
+        "non_claims": [
+            "graph_context staging does not claim legal correctness",
+            "graph_context staging does not claim parser completeness",
+            "graph_context staging does not validate R035",
+            "graph_context staging does not validate R037",
+            "graph_context staging does not validate R038",
+        ],
+    }
+
+
+def graph_context_directory(workspace_root: Path, run_id: str) -> Path:
+    """Return the run-scoped graph-context staging output directory."""
+
+    if not run_id.startswith("RUN-") or not re_match_safe_id(run_id):
+        raise SourceLifecycleError("run_id must be a safe RUN- identifier")
+    return workspace_root / "runtime" / "graph-context" / run_id
+
+
+def export_graph_context_staging(
+    workspace_root: Path,
+    *,
+    run_id: str,
+    candidate_rows: list[dict[str, Any]] | None = None,
+    decision_rows: list[dict[str, Any]] | None = None,
+    review_pack_refs: list[str] | None = None,
+) -> dict[str, Any]:
+    """Write graph-context staging, diagnostics, and summary artifacts for one run."""
+
+    if not run_id.startswith("RUN-") or not re_match_safe_id(run_id):
+        raise SourceLifecycleError("run_id must be a safe RUN- identifier")
+    if candidate_rows is None:
+        candidate_rows = read_jsonl(discovery_directory(workspace_root, run_id) / "candidate_hypotheses.jsonl")
+    if decision_rows is None:
+        decision_rows = read_jsonl(verifier_directory(workspace_root, run_id) / "verifier_decisions.jsonl")
+    decisions_by_candidate: dict[str, dict[str, Any]] = {}
+    for decision in decision_rows:
+        candidate_id = decision.get("candidate_id")
+        if isinstance(candidate_id, str) and candidate_id not in decisions_by_candidate:
+            decisions_by_candidate[candidate_id] = decision
+    staging_rows: list[dict[str, Any]] = []
+    diagnostic_rows: list[dict[str, Any]] = []
+    seen_candidate_ids: set[str] = set()
+    for candidate in candidate_rows:
+        candidate_id = candidate.get("candidate_id")
+        if isinstance(candidate_id, str):
+            seen_candidate_ids.add(candidate_id)
+        decision = decisions_by_candidate.get(candidate_id) if isinstance(candidate_id, str) else None
+        if decision is None:
+            diagnostic_rows.append(
+                _graph_context_diagnostic(
+                    run_id=run_id,
+                    candidate_id=candidate_id if isinstance(candidate_id, str) else None,
+                    decision_id=None,
+                    reason_codes=["missing-verifier-decision"],
+                )
+            )
+            continue
+        row = graph_context_candidate_to_record(
+            candidate,
+            decision,
+            run_id=run_id,
+            review_pack_refs=review_pack_refs,
+        )
+        if row["schema_version"] == GRAPH_CONTEXT_STAGING_SCHEMA_VERSION:
+            staging_rows.append(row)
+        else:
+            diagnostic_rows.append(row)
+    for decision in decision_rows:
+        candidate_id = decision.get("candidate_id")
+        if isinstance(candidate_id, str) and candidate_id not in seen_candidate_ids:
+            diagnostic_rows.append(
+                _graph_context_diagnostic(
+                    run_id=run_id,
+                    candidate_id=candidate_id,
+                    decision_id=decision.get("decision_id") if isinstance(decision.get("decision_id"), str) else None,
+                    reason_codes=["missing-candidate-row"],
+                )
+            )
+    output_dir = graph_context_directory(workspace_root, run_id)
+    staging_path = output_dir / "graph_context_staging.jsonl"
+    diagnostics_path = output_dir / "graph_context_diagnostics.jsonl"
+    summary_path = output_dir / "graph_context_summary.json"
+    write_jsonl(staging_path, staging_rows)
+    write_jsonl(diagnostics_path, diagnostic_rows)
+    accepted = sum(1 for decision in decision_rows if decision.get("verifier_status") == "accepted")
+    summary = {
+        "schema_version": GRAPH_CONTEXT_SUMMARY_SCHEMA_VERSION,
+        "run_id": run_id,
+        "status": "graph_context_staging_exported",
+        "accepted": accepted,
+        "staged": len(staging_rows),
+        "skipped": len(diagnostic_rows),
+        "diagnostics": len(diagnostic_rows),
+        "staging_ref": safe_output_ref(staging_path, workspace_root),
+        "diagnostics_ref": safe_output_ref(diagnostics_path, workspace_root),
+        "summary_ref": safe_output_ref(summary_path, workspace_root),
+        "output_refs": [
+            safe_output_ref(staging_path, workspace_root),
+            safe_output_ref(diagnostics_path, workspace_root),
+            safe_output_ref(summary_path, workspace_root),
+        ],
+        "non_authoritative": True,
+        "non_claims": [
+            "graph_context staging export does not claim legal correctness",
+            "graph_context staging export does not claim parser completeness",
+            "graph_context staging export does not validate R035",
+            "graph_context staging export does not validate R037",
+            "graph_context staging export does not validate R038",
+        ],
+    }
+    write_json(summary_path, summary)
+    return summary
 
 
 def verify_discovery_candidates(

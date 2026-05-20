@@ -14,6 +14,7 @@ from source_lifecycle import (
     build_review_pack,
     classify_batch,
     discover_with_minimax,
+    export_graph_context_staging,
     lifecycle_status,
     process_batch,
     register_batch,
@@ -98,6 +99,13 @@ def build_parser() -> argparse.ArgumentParser:
     )
     external_review.add_argument("run_id", help="Safe RUN- id to package for external review.")
     external_review.set_defaults(handler=run_external_review_pack)
+
+    graph_context = subparsers.add_parser(
+        "graph-context-stage",
+        help="Export accepted verified discovery candidates into graph-context staging artifacts.",
+    )
+    graph_context.add_argument("run_id", help="Safe RUN- id to stage for graph context.")
+    graph_context.set_defaults(handler=run_graph_context_stage)
     return parser
 
 
@@ -171,6 +179,14 @@ def run_external_review_pack(args: argparse.Namespace) -> int:
     """Write an external GPT-5.5 review pack for a discovery run."""
 
     result = build_external_review_pack(args.workspace, args.run_id)
+    print(json.dumps(result, ensure_ascii=False, sort_keys=True))
+    return 0
+
+
+def run_graph_context_stage(args: argparse.Namespace) -> int:
+    """Export accepted verified discovery candidates into graph-context staging artifacts."""
+
+    result = export_graph_context_staging(args.workspace, run_id=args.run_id)
     print(json.dumps(result, ensure_ascii=False, sort_keys=True))
     return 0
 
