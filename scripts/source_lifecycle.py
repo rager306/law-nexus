@@ -1124,6 +1124,24 @@ def _verifier_hypothesis_kind(candidate_kind: str) -> str | None:
     return mapping.get(candidate_kind)
 
 
+def _graph_context_signal_support_reasons(candidate: dict[str, Any]) -> list[str]:
+    """Return evidence-shape reasons for weak graph-context signal candidates."""
+
+    if candidate.get("candidate_kind") != "graph_context_signal":
+        return []
+    reasons: list[str] = []
+    confidence = candidate.get("confidence_bucket")
+    supporting_context = str(candidate.get("supporting_context") or "").strip()
+    candidate_summary = str(candidate.get("candidate_summary") or "").strip()
+    if confidence == "low":
+        reasons.append("graph-context-signal-weak-evidence-shape")
+        if len(supporting_context) < 40:
+            reasons.append("graph-context-signal-inherited-refs-only")
+    if len(candidate_summary) < 20:
+        reasons.append("graph-context-signal-needs-review")
+    return sorted(set(reasons))
+
+
 def candidate_to_verifier_proposal(candidate: dict[str, Any]) -> tuple[dict[str, Any] | None, list[str]]:
     """Adapt one S04 candidate into the legacy verifier proposal contract."""
 
@@ -1155,7 +1173,13 @@ def candidate_to_verifier_proposal(candidate: dict[str, Any]) -> tuple[dict[str,
     if not isinstance(source_refs, list):
         source_refs = []
         reasons.append("source_refs_missing")
+    reasons.extend(_graph_context_signal_support_reasons(candidate))
     safe_refs = _safe_verifier_refs(source_refs)
+    ambiguous_graph_signal = (
+        candidate_kind == "graph_context_signal"
+        and not reasons
+        and len(str(candidate.get("supporting_context") or "").strip()) < 40
+    )
     confidence = candidate.get("confidence_bucket")
     if confidence not in {"low", "medium", "high"}:
         confidence = "low"
@@ -1178,7 +1202,7 @@ def candidate_to_verifier_proposal(candidate: dict[str, Any]) -> tuple[dict[str,
             "selector": f"candidate:{candidate_id}",
             "safe_rule_id": stable_discovery_id("RULE", candidate_id, summary),
             "confidence_bucket": confidence,
-            "evidence_refs": safe_refs,
+            "evidence_refs": [] if ambiguous_graph_signal else safe_refs,
         },
         "verifier_status": "pending",
         "non_authoritative": True,

@@ -13,8 +13,10 @@ from source_lifecycle import (  # noqa: E402
     GRAPH_CONTEXT_DIAGNOSTIC_SCHEMA_VERSION,
     GRAPH_CONTEXT_RECORD_KINDS,
     GRAPH_CONTEXT_STAGING_SCHEMA_VERSION,
+    build_external_review_pack,
     export_graph_context_staging,
     graph_context_candidate_to_record,
+    verify_discovery_candidates,
 )
 
 
@@ -256,3 +258,154 @@ def test_export_graph_context_staging_diagnoses_unmatched_candidates(tmp_path: P
     ]
     assert diagnostics[0]["candidate_id"] == "CAND-abc123def456"
     assert "missing-verifier-decision" in diagnostics[0]["reason_codes"]
+
+
+def verifier_candidate(
+    *,
+    candidate_id: str,
+    candidate_kind: str,
+    candidate_summary: str,
+    confidence_bucket: str = "medium",
+    supporting_context: str | None = "Open legal/source context explains the repeated structure.",
+) -> dict[str, object]:
+    row: dict[str, object] = {
+        "schema_version": "m032.s04.graph-context-candidate.v1",
+        "candidate_id": candidate_id,
+        "run_id": "RUN-abc123def456",
+        "attempt_id": "ATTEMPT-abc123def456",
+        "candidate_kind": candidate_kind,
+        "candidate_summary": candidate_summary,
+        "confidence_bucket": confidence_bucket,
+        "lifecycle_status": "proposed",
+        "trajectory_refs": ["trajectory:STEP-abc123def456"],
+        "attempt_refs": ["attempt:ATTEMPT-abc123def456"],
+        "source_refs": ["processed/consultant-wordml-v1/CORPUS/source_inventory.safe.jsonl"],
+        "model_claims_ignored": [],
+        "non_authoritative": True,
+    }
+    if supporting_context is not None:
+        row["supporting_context"] = supporting_context
+    return row
+
+
+def test_weak_graph_context_signal_is_not_silently_accepted_on_inherited_refs(tmp_path: Path) -> None:
+    relationship = verifier_candidate(
+        candidate_id="CAND-abc123def456",
+        candidate_kind="relationship_candidate",
+        candidate_summary="Repeated amendment-reference structure suggests a bounded relationship candidate.",
+        confidence_bucket="medium",
+    )
+    weak_signal = verifier_candidate(
+        candidate_id="CAND-def456abc123",
+        candidate_kind="graph_context_signal",
+        candidate_summary="weak signal",
+        confidence_bucket="low",
+        supporting_context=None,
+    )
+
+    result = verify_discovery_candidates(
+        tmp_path,
+        run_id="RUN-abc123def456",
+        candidate_rows=[relationship, weak_signal],
+    )
+
+    assert result["status_counts"]["accepted"] == 1
+    assert result["status_counts"]["needs_review"] + result["status_counts"]["rejected"] == 1
+    decisions = [
+        json.loads(line)
+        for line in (tmp_path / "runtime/verifier/RUN-abc123def456/verifier_decisions.jsonl").read_text(encoding="utf-8").splitlines()
+        if line.strip()
+    ]
+    weak_decision = next(row for row in decisions if row["candidate_id"] == "CAND-def456abc123")
+    assert weak_decision["verifier_status"] in {"needs_review", "rejected"}
+    assert any("graph-context-signal" in reason for reason in weak_decision["rejection_reasons"] + weak_decision["decision_notes"])
+
+
+def test_supported_relationship_candidate_still_accepts_and_stages_after_hardening(tmp_path: Path) -> None:
+    candidate = verifier_candidate(
+        candidate_id="CAND-abc123def456",
+        candidate_kind="relationship_candidate",
+        candidate_summary="Repeated amendment-reference structure suggests a bounded relationship candidate.",
+    )
+    verify_discovery_candidates(tmp_path, run_id="RUN-abc123def456", candidate_rows=[candidate])
+    decisions = [
+        json.loads(line)
+        for line in (tmp_path / "runtime/verifier/RUN-abc123def456/verifier_decisions.jsonl").read_text(encoding="utf-8").splitlines()
+        if line.strip()
+    ]
+
+    result = export_graph_context_staging(
+        tmp_path,
+        run_id="RUN-abc123def456",
+        candidate_rows=[candidate],
+        decision_rows=decisions,
+    )
+
+    assert result["staged"] == 1
+    assert result["skipped"] == 0
+
+
+def test_branch_coverage_populates_rejections_review_queue_pack_and_staging(tmp_path: Path) -> None:
+    accepted = verifier_candidate(
+        candidate_id="CAND-abc123def456",
+        candidate_kind="relationship_candidate",
+        candidate_summary="Repeated amendment-reference structure suggests a bounded relationship candidate.",
+    )
+    rejected = verifier_candidate(
+        candidate_id="CAND-def456abc123",
+        candidate_kind="graph_context_signal",
+        candidate_summary="weak signal",
+        confidence_bucket="low",
+        supporting_context=None,
+    )
+    review = verifier_candidate(
+        candidate_id="CAND-fed456abc123",
+        candidate_kind="graph_context_signal",
+        candidate_summary="Ambiguous graph context signal needs deterministic review queue handling.",
+        confidence_bucket="medium",
+        supporting_context="Needs review fixture.",
+    )
+
+    result = verify_discovery_candidates(
+        tmp_path,
+        run_id="RUN-abc123def456",
+        candidate_rows=[accepted, rejected, review],
+    )
+
+    assert result["status_counts"] == {"accepted": 1, "rejected": 1, "needs_review": 1}
+    rejection_path = tmp_path / "runtime/verifier/RUN-abc123def456/rejection_reasons.jsonl"
+    review_queue_path = tmp_path / "runtime/verifier/RUN-abc123def456/review_queue_items.jsonl"
+    assert rejection_path.is_file()
+    assert review_queue_path.is_file()
+    rejections = [json.loads(line) for line in rejection_path.read_text(encoding="utf-8").splitlines() if line.strip()]
+    review_items = [json.loads(line) for line in review_queue_path.read_text(encoding="utf-8").splitlines() if line.strip()]
+    assert len(rejections) == 1
+    assert len(review_items) == 1
+
+    pack_result = build_external_review_pack(tmp_path, "RUN-abc123def456")
+    pack = json.loads((tmp_path / pack_result["review_pack_json_ref"]).read_text(encoding="utf-8"))
+    assert pack["rejected_branch_summary"]["rejected_count"] == 1
+    assert pack["review_queue_summary"]["needs_review_count"] == 1
+    assert "rejections" not in pack["missing_sections"]
+    assert "review_queue" not in pack["missing_sections"]
+
+    decisions = [
+        json.loads(line)
+        for line in (tmp_path / "runtime/verifier/RUN-abc123def456/verifier_decisions.jsonl").read_text(encoding="utf-8").splitlines()
+        if line.strip()
+    ]
+    stage = export_graph_context_staging(
+        tmp_path,
+        run_id="RUN-abc123def456",
+        candidate_rows=[accepted, rejected, review],
+        decision_rows=decisions,
+    )
+    assert stage["staged"] == 1
+    assert stage["skipped"] == 2
+    diagnostics = [
+        json.loads(line)
+        for line in (tmp_path / stage["diagnostics_ref"]).read_text(encoding="utf-8").splitlines()
+        if line.strip()
+    ]
+    assert len(diagnostics) == 2
+    assert all("verifier-status-not-accepted" in row["reason_codes"] for row in diagnostics)
