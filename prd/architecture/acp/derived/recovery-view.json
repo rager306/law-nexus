@@ -1,0 +1,254 @@
+{
+  "allowed_next_actions": [
+    "Run deterministic ACP validator before promoting any decision candidate.",
+    "Generate or check the derived recovery view from source records.",
+    "Keep runtime dashboard and registry integration blocked until proof gate evidence exists.",
+    "Implement S02 validator/exporter evidence for PG-0001."
+  ],
+  "blocked_actions": [
+    {
+      "action": "Promote DC-0001 to accepted decision.",
+      "blocked_by": "AHF-0001",
+      "reason": "The ACP fixture chain exists, but runtime/dashboard/registry integration must stay blocked until validator and recovery-export evidence exist.",
+      "record_kind": "architecture_health_finding"
+    },
+    {
+      "action": "Add runtime dashboard integration.",
+      "blocked_by": "AHF-0001",
+      "reason": "The ACP fixture chain exists, but runtime/dashboard/registry integration must stay blocked until validator and recovery-export evidence exist.",
+      "record_kind": "architecture_health_finding"
+    },
+    {
+      "action": "Feed ACP records into the current architecture registry.",
+      "blocked_by": "AHF-0001",
+      "reason": "The ACP fixture chain exists, but runtime/dashboard/registry integration must stay blocked until validator and recovery-export evidence exist.",
+      "record_kind": "architecture_health_finding"
+    },
+    {
+      "action": "Promote DC-0001 to accepted decision.",
+      "blocked_by": "PG-0001",
+      "reason": "Missing validator/exporter evidence leaves ACP runtime adoption blocked.",
+      "record_kind": "proof_gate"
+    },
+    {
+      "action": "Add runtime dashboard integration.",
+      "blocked_by": "PG-0001",
+      "reason": "Missing validator/exporter evidence leaves ACP runtime adoption blocked.",
+      "record_kind": "proof_gate"
+    },
+    {
+      "action": "Feed ACP records into the current architecture registry.",
+      "blocked_by": "PG-0001",
+      "reason": "Missing validator/exporter evidence leaves ACP runtime adoption blocked.",
+      "record_kind": "proof_gate"
+    }
+  ],
+  "boundary": "Derived recovery view only; ACP source records remain authoritative.",
+  "edges": [
+    {
+      "relationship": "affects",
+      "source": "AHF-0001",
+      "target": "DC-0001"
+    },
+    {
+      "relationship": "affects",
+      "source": "AHF-0001",
+      "target": "PG-0001"
+    },
+    {
+      "relationship": "originPromptRecord",
+      "source": "APR-0001",
+      "target": "AP-0001"
+    },
+    {
+      "relationship": "suggestedDecision",
+      "source": "AP-0001",
+      "target": "DC-0001"
+    },
+    {
+      "relationship": "producedProposal",
+      "source": "APR-0001",
+      "target": "AP-0001"
+    },
+    {
+      "relationship": "originProposal",
+      "source": "AP-0001",
+      "target": "DC-0001"
+    },
+    {
+      "relationship": "requiresProof",
+      "source": "DC-0001",
+      "target": "PG-0001"
+    }
+  ],
+  "kind": "acp_recovery_view",
+  "records": [
+    {
+      "id": "AHF-0001",
+      "path": "prd/architecture/acp/fixtures/minimal-chain/AHF-0001.md",
+      "record_kind": "architecture_health_finding",
+      "safety": {
+        "claims_falkordb_ingestion": false,
+        "claims_legal_correctness": false,
+        "claims_parser_completeness": false,
+        "claims_product_readiness": false,
+        "claims_r035_validated": false,
+        "claims_r037_validated": false,
+        "claims_r038_validated": false,
+        "contains_local_absolute_paths": false,
+        "contains_provider_payloads": false,
+        "contains_raw_vectors": false,
+        "contains_secrets": false,
+        "contains_unnecessary_raw_legal_text": false
+      },
+      "source_refs": [
+        {
+          "note": "Candidate blocked by this finding.",
+          "path": "prd/architecture/acp/fixtures/minimal-chain/DC-0001.md",
+          "role": "affected-decision-candidate"
+        },
+        {
+          "note": "Proof gate that must pass before promotion.",
+          "path": "prd/architecture/acp/fixtures/minimal-chain/PG-0001.md",
+          "role": "blocking-proof-gate"
+        }
+      ],
+      "status": "open",
+      "title": "ACP runtime adoption is blocked until fixture validation exists"
+    },
+    {
+      "id": "AP-0001",
+      "path": "prd/architecture/acp/fixtures/minimal-chain/AP-0001.md",
+      "record_kind": "architecture_proposal",
+      "safety": {
+        "claims_falkordb_ingestion": false,
+        "claims_legal_correctness": false,
+        "claims_parser_completeness": false,
+        "claims_product_readiness": false,
+        "claims_r035_validated": false,
+        "claims_r037_validated": false,
+        "claims_r038_validated": false,
+        "contains_local_absolute_paths": false,
+        "contains_provider_payloads": false,
+        "contains_raw_vectors": false,
+        "contains_secrets": false,
+        "contains_unnecessary_raw_legal_text": false
+      },
+      "source_refs": [
+        {
+          "note": "Defines ACP core records and lifecycle.",
+          "path": "prd/research/architecture/architecture-control-plane-contract.md",
+          "role": "reusable-acp-contract"
+        },
+        {
+          "note": "Defines the first safe fixture-chain proof plan.",
+          "path": "prd/research/architecture/law-nexus-acp-profile-and-first-proof-plan.md",
+          "role": "law-nexus-profile"
+        }
+      ],
+      "status": "complete",
+      "title": "Validate ACP minimal fixture chain before broader tooling"
+    },
+    {
+      "id": "APR-0001",
+      "path": "prd/architecture/acp/fixtures/minimal-chain/APR-0001.md",
+      "record_kind": "architecture_prompt_record",
+      "safety": {
+        "claims_falkordb_ingestion": false,
+        "claims_legal_correctness": false,
+        "claims_parser_completeness": false,
+        "claims_product_readiness": false,
+        "claims_r035_validated": false,
+        "claims_r037_validated": false,
+        "claims_r038_validated": false,
+        "contains_local_absolute_paths": false,
+        "contains_provider_payloads": false,
+        "contains_raw_vectors": false,
+        "contains_secrets": false,
+        "contains_unnecessary_raw_legal_text": false
+      },
+      "source_refs": [
+        {
+          "note": "Defines the first minimal ACP fixture-chain proof scope.",
+          "path": "prd/research/architecture/law-nexus-acp-profile-and-first-proof-plan.md",
+          "role": "profile-plan"
+        }
+      ],
+      "status": "policy_checked",
+      "title": "Capture ACP minimal fixture validation intent"
+    },
+    {
+      "id": "DC-0001",
+      "path": "prd/architecture/acp/fixtures/minimal-chain/DC-0001.md",
+      "record_kind": "decision_candidate",
+      "safety": {
+        "claims_falkordb_ingestion": false,
+        "claims_legal_correctness": false,
+        "claims_parser_completeness": false,
+        "claims_product_readiness": false,
+        "claims_r035_validated": false,
+        "claims_r037_validated": false,
+        "claims_r038_validated": false,
+        "contains_local_absolute_paths": false,
+        "contains_provider_payloads": false,
+        "contains_raw_vectors": false,
+        "contains_secrets": false,
+        "contains_unnecessary_raw_legal_text": false
+      },
+      "source_refs": [
+        {
+          "note": "Defines decision candidate and proof gate lifecycle.",
+          "path": "prd/research/architecture/architecture-control-plane-contract.md",
+          "role": "reusable-acp-contract"
+        },
+        {
+          "note": "Proposal that produced this decision candidate.",
+          "path": "prd/architecture/acp/fixtures/minimal-chain/AP-0001.md",
+          "role": "origin-proposal"
+        }
+      ],
+      "status": "candidate",
+      "title": "Require fixture validation before ACP runtime adoption"
+    },
+    {
+      "id": "PG-0001",
+      "path": "prd/architecture/acp/fixtures/minimal-chain/PG-0001.md",
+      "record_kind": "proof_gate",
+      "safety": {
+        "claims_falkordb_ingestion": false,
+        "claims_legal_correctness": false,
+        "claims_parser_completeness": false,
+        "claims_product_readiness": false,
+        "claims_r035_validated": false,
+        "claims_r037_validated": false,
+        "claims_r038_validated": false,
+        "contains_local_absolute_paths": false,
+        "contains_provider_payloads": false,
+        "contains_raw_vectors": false,
+        "contains_secrets": false,
+        "contains_unnecessary_raw_legal_text": false
+      },
+      "source_refs": [
+        {
+          "note": "Schema contract for S01 fixture records.",
+          "path": "prd/architecture/acp/schema.json",
+          "role": "minimal-schema"
+        },
+        {
+          "note": "Fixture scope and safety policy.",
+          "path": "prd/architecture/acp/README.md",
+          "role": "fixture-readme"
+        }
+      ],
+      "status": "blocking",
+      "title": "Minimal ACP fixture validation gate"
+    }
+  ],
+  "source_fixture_dir": "prd/architecture/acp/fixtures/minimal-chain",
+  "validation": {
+    "diagnostic_count": 0,
+    "record_count": 5,
+    "status": "ok"
+  },
+  "version": "0.1.0"
+}
