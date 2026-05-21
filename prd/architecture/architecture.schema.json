@@ -116,7 +116,11 @@
         "quality_scenario",
         "viewpoint",
         "evidence",
-        "workflow_check"
+        "workflow_check",
+        "prompt_record",
+        "proposal",
+        "decision_candidate",
+        "health_finding"
       ]
     },
     "item_status": {
@@ -406,6 +410,61 @@
         "superseded_by": {
           "$ref": "#/$defs/identifier"
         },
+        "acp_record_kind": {
+          "$ref": "#/$defs/non_empty_string",
+          "description": "Original ACP record kind for ACP-aware architecture-governance records. Presence does not make the record source-of-truth."
+        },
+        "acp_source_record_id": {
+          "$ref": "#/$defs/non_empty_string",
+          "description": "Original ACP source record identifier for traceability."
+        },
+        "capture_mode": {
+          "type": "string",
+          "enum": [
+            "verbatim",
+            "redacted-verbatim",
+            "summarized-with-quotes",
+            "metadata-only"
+          ],
+          "description": "Prompt provenance capture policy for ACP prompt records."
+        },
+        "redaction_status": {
+          "type": "string",
+          "enum": [
+            "checked",
+            "redacted",
+            "not-required"
+          ],
+          "description": "Safety review state for captured prompt provenance."
+        },
+        "authority_required": {
+          "type": "boolean",
+          "description": "True when a candidate record requires human or governance authority before being treated as accepted."
+        },
+        "blocked_actions": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/non_empty_string"
+          },
+          "uniqueItems": true,
+          "description": "ACP workflow actions blocked by this governance item."
+        },
+        "allowed_next_actions": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/non_empty_string"
+          },
+          "uniqueItems": true,
+          "description": "ACP workflow actions allowed after this governance item is considered."
+        },
+        "acp_non_mappable": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/non_empty_string"
+          },
+          "uniqueItems": true,
+          "description": "ACP source fields intentionally not represented as canonical architecture semantics."
+        },
         "tags": {
           "type": "array",
           "items": {
@@ -497,7 +556,13 @@
         "has_constraint",
         "implicates",
         "reviewed_by",
-        "governs_artifact"
+        "governs_artifact",
+        "produced_proposal",
+        "origin_prompt_record",
+        "suggested_decision",
+        "origin_proposal",
+        "requires_proof",
+        "affects"
       ]
     },
     "edge": {
@@ -557,6 +622,14 @@
           "type": "number",
           "minimum": 0,
           "maximum": 1
+        },
+        "acp_relationship": {
+          "$ref": "#/$defs/non_empty_string",
+          "description": "Original ACP relationship name when a canonical edge carries ACP provenance."
+        },
+        "acp_source_record_id": {
+          "$ref": "#/$defs/non_empty_string",
+          "description": "Optional ACP source record identifier for relationship provenance."
         },
         "tags": {
           "type": "array",

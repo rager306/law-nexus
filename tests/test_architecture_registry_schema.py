@@ -339,3 +339,167 @@ def test_invalid_architecture_fixtures_fail_with_observable_diagnostics() -> Non
         assert "field=" in diagnostics
         assert "rule=" in diagnostics
         assert "source_anchor=" in diagnostics
+
+
+def test_acp_canonical_schema_accepts_additive_item_types_and_fields() -> None:
+    schema = load_schema()
+    records = [
+        LocatedRecord(
+            path=SCHEMA_PATH,
+            line_number=1,
+            record={
+                "schema_version": "legalgraph-architecture-registry/v1",
+                "record_kind": "item",
+                "id": "ACP-SCHEMA-APR-0001",
+                "type": "prompt_record",
+                "title": "ACP prompt provenance fixture",
+                "summary": "Prompt provenance record used to test ACP schema extension fields.",
+                "layer": "architecture-governance",
+                "status": "bounded-evidence",
+                "proof_level": "source-anchor",
+                "risk_level": "medium",
+                "source_anchors": [
+                    {
+                        "path": "prd/architecture/acp/fixtures/minimal-chain/APR-0001.md",
+                        "kind": "manual-note",
+                        "selector": "APR-0001",
+                    }
+                ],
+                "owner": "architecture-control-plane",
+                "verification": "uv run python scripts/verify-acp-schema-extension-fixtures.py",
+                "generated_draft": True,
+                "non_claims": [
+                    "Prompt provenance is not implementation proof.",
+                    "Does not validate R035, R037, or R038.",
+                ],
+                "acp_record_kind": "architecture_prompt_record",
+                "acp_source_record_id": "APR-0001",
+                "capture_mode": "summarized-with-quotes",
+                "redaction_status": "checked",
+                "acp_non_mappable": ["raw prompt text intentionally omitted"],
+            },
+        ),
+        LocatedRecord(
+            path=SCHEMA_PATH,
+            line_number=2,
+            record={
+                "schema_version": "legalgraph-architecture-registry/v1",
+                "record_kind": "item",
+                "id": "ACP-SCHEMA-DC-0001",
+                "type": "decision_candidate",
+                "title": "ACP decision candidate fixture",
+                "summary": "Decision candidate record used to test authority-required semantics.",
+                "layer": "architecture-governance",
+                "status": "proposed",
+                "proof_level": "source-anchor",
+                "risk_level": "medium",
+                "source_anchors": [
+                    {
+                        "path": "prd/architecture/acp/fixtures/minimal-chain/DC-0001.md",
+                        "kind": "manual-note",
+                        "selector": "DC-0001",
+                    }
+                ],
+                "owner": "architecture-control-plane",
+                "verification": "uv run python scripts/verify-acp-schema-extension-fixtures.py",
+                "generated_draft": True,
+                "non_claims": ["Decision candidate is not accepted doctrine."],
+                "acp_record_kind": "decision_candidate",
+                "acp_source_record_id": "DC-0001",
+                "authority_required": True,
+            },
+        ),
+        LocatedRecord(
+            path=SCHEMA_PATH,
+            line_number=3,
+            record={
+                "schema_version": "legalgraph-architecture-registry/v1",
+                "record_kind": "item",
+                "id": "ACP-SCHEMA-AHF-0001",
+                "type": "health_finding",
+                "title": "ACP health finding fixture",
+                "summary": "Health finding record used to test blocked and allowed action fields.",
+                "layer": "architecture-governance",
+                "status": "blocked",
+                "proof_level": "static-check",
+                "risk_level": "high",
+                "source_anchors": [
+                    {
+                        "path": "prd/architecture/acp/fixtures/minimal-chain/AHF-0001.md",
+                        "kind": "manual-note",
+                        "selector": "AHF-0001",
+                    }
+                ],
+                "owner": "architecture-control-plane",
+                "verification": "uv run python scripts/verify-acp-schema-extension-fixtures.py",
+                "generated_draft": True,
+                "non_claims": ["Health finding is not product readiness evidence."],
+                "acp_record_kind": "architecture_health_finding",
+                "acp_source_record_id": "AHF-0001",
+                "blocked_actions": ["canonical registry mutation"],
+                "allowed_next_actions": ["use custom-path fixture proof"],
+            },
+        ),
+    ]
+
+    errors = validate_schema_records(records, schema)
+
+    assert not errors, format_errors(errors)
+
+
+def test_acp_canonical_schema_accepts_additive_edge_relations() -> None:
+    schema = load_schema()
+    records = [
+        LocatedRecord(
+            path=SCHEMA_PATH,
+            line_number=1,
+            record={
+                "schema_version": "legalgraph-architecture-registry/v1",
+                "record_kind": "edge",
+                "id": "ACP-SCHEMA-EDGE-0001",
+                "from": "ACP-SCHEMA-APR-0001",
+                "to": "ACP-SCHEMA-AP-0001",
+                "type": "produced_proposal",
+                "status": "bounded-evidence",
+                "rationale": "Prompt provenance produced the proposal fixture.",
+                "source_anchors": [
+                    {
+                        "path": "prd/architecture/acp/fixtures/schema-extension/custom-edges.jsonl",
+                        "kind": "manual-note",
+                        "selector": "ACP-SCHEMA-EDGE-0001",
+                    }
+                ],
+                "generated_draft": True,
+                "acp_relationship": "producedProposal",
+                "acp_source_record_id": "APR-0001",
+            },
+        ),
+        LocatedRecord(
+            path=SCHEMA_PATH,
+            line_number=2,
+            record={
+                "schema_version": "legalgraph-architecture-registry/v1",
+                "record_kind": "edge",
+                "id": "ACP-SCHEMA-EDGE-0005",
+                "from": "ACP-SCHEMA-DC-0001",
+                "to": "ACP-SCHEMA-PG-0001",
+                "type": "requires_proof",
+                "status": "active",
+                "rationale": "Decision candidate requires proof gate before acceptance.",
+                "source_anchors": [
+                    {
+                        "path": "prd/architecture/acp/fixtures/schema-extension/custom-edges.jsonl",
+                        "kind": "manual-note",
+                        "selector": "ACP-SCHEMA-EDGE-0005",
+                    }
+                ],
+                "generated_draft": True,
+                "acp_relationship": "requiresProof",
+                "acp_source_record_id": "DC-0001",
+            },
+        ),
+    ]
+
+    errors = validate_schema_records(records, schema)
+
+    assert not errors, format_errors(errors)
