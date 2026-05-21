@@ -1,0 +1,283 @@
+{
+  "blocked_canonical_mutations": [
+    "write prd/architecture/architecture_items.jsonl",
+    "write prd/architecture/architecture_edges.jsonl",
+    "change prd/architecture/architecture.schema.json",
+    "change scripts/extract-prd-architecture-items.py",
+    "change scripts/build-architecture-graph.py",
+    "promote DC-0001 to accepted decision",
+    "project ACP preview items as validated product architecture"
+  ],
+  "boundary": "Preview only; canonical architecture registry files are unchanged.",
+  "canonical_registry_files": [
+    "prd/architecture/architecture_items.jsonl",
+    "prd/architecture/architecture_edges.jsonl"
+  ],
+  "edges": [
+    {
+      "mapping_notes": [
+        "Preview edge only; not written to canonical architecture_edges.jsonl."
+      ],
+      "preview_id": "ACP-PREVIEW-EDGE-AHF-0001-affects-DC-0001",
+      "relationship": "affects",
+      "source_preview_id": "ACP-PREVIEW-AHF-0001",
+      "suggested_edge_type": "blocks",
+      "suggested_status": "active",
+      "target_preview_id": "ACP-PREVIEW-DC-0001"
+    },
+    {
+      "mapping_notes": [
+        "Preview edge only; not written to canonical architecture_edges.jsonl."
+      ],
+      "preview_id": "ACP-PREVIEW-EDGE-AHF-0001-affects-PG-0001",
+      "relationship": "affects",
+      "source_preview_id": "ACP-PREVIEW-AHF-0001",
+      "suggested_edge_type": "blocks",
+      "suggested_status": "active",
+      "target_preview_id": "ACP-PREVIEW-PG-0001"
+    },
+    {
+      "mapping_notes": [
+        "Preview edge only; not written to canonical architecture_edges.jsonl."
+      ],
+      "preview_id": "ACP-PREVIEW-EDGE-AP-0001-originProposal-DC-0001",
+      "relationship": "originProposal",
+      "source_preview_id": "ACP-PREVIEW-AP-0001",
+      "suggested_edge_type": "informs",
+      "suggested_status": "hypothesis",
+      "target_preview_id": "ACP-PREVIEW-DC-0001"
+    },
+    {
+      "mapping_notes": [
+        "Preview edge only; not written to canonical architecture_edges.jsonl."
+      ],
+      "preview_id": "ACP-PREVIEW-EDGE-AP-0001-suggestedDecision-DC-0001",
+      "relationship": "suggestedDecision",
+      "source_preview_id": "ACP-PREVIEW-AP-0001",
+      "suggested_edge_type": "informs",
+      "suggested_status": "hypothesis",
+      "target_preview_id": "ACP-PREVIEW-DC-0001"
+    },
+    {
+      "mapping_notes": [
+        "Preview edge only; not written to canonical architecture_edges.jsonl."
+      ],
+      "preview_id": "ACP-PREVIEW-EDGE-APR-0001-originPromptRecord-AP-0001",
+      "relationship": "originPromptRecord",
+      "source_preview_id": "ACP-PREVIEW-APR-0001",
+      "suggested_edge_type": "informs",
+      "suggested_status": "bounded-evidence",
+      "target_preview_id": "ACP-PREVIEW-AP-0001"
+    },
+    {
+      "mapping_notes": [
+        "Preview edge only; not written to canonical architecture_edges.jsonl."
+      ],
+      "preview_id": "ACP-PREVIEW-EDGE-APR-0001-producedProposal-AP-0001",
+      "relationship": "producedProposal",
+      "source_preview_id": "ACP-PREVIEW-APR-0001",
+      "suggested_edge_type": "informs",
+      "suggested_status": "bounded-evidence",
+      "target_preview_id": "ACP-PREVIEW-AP-0001"
+    },
+    {
+      "mapping_notes": [
+        "Preview edge only; not written to canonical architecture_edges.jsonl."
+      ],
+      "preview_id": "ACP-PREVIEW-EDGE-DC-0001-requiresProof-PG-0001",
+      "relationship": "requiresProof",
+      "source_preview_id": "ACP-PREVIEW-DC-0001",
+      "suggested_edge_type": "checked_by",
+      "suggested_status": "active",
+      "target_preview_id": "ACP-PREVIEW-PG-0001"
+    }
+  ],
+  "items": [
+    {
+      "mapping_notes": [
+        "Health/blocker signal; not architecture proof.",
+        "blocked actions remain ACP recovery data until registry schema is extended."
+      ],
+      "non_claims": [
+        "Does not validate R035.",
+        "Does not validate R037.",
+        "Does not validate R038.",
+        "Does not prove parser completeness.",
+        "Does not prove legal correctness.",
+        "Does not prove FalkorDB ingestion or runtime loading.",
+        "Does not prove graph-vector retrieval quality.",
+        "Does not prove production readiness.",
+        "Does not prove independent external review."
+      ],
+      "preview_id": "ACP-PREVIEW-AHF-0001",
+      "source_anchors": [
+        {
+          "kind": "prd",
+          "path": "prd/architecture/acp/fixtures/minimal-chain/DC-0001.md",
+          "selector": "acp-role:affected-decision-candidate; Candidate blocked by this finding."
+        },
+        {
+          "kind": "prd",
+          "path": "prd/architecture/acp/fixtures/minimal-chain/PG-0001.md",
+          "selector": "acp-role:blocking-proof-gate; Proof gate that must pass before promotion."
+        }
+      ],
+      "source_record_id": "AHF-0001",
+      "source_record_kind": "architecture_health_finding",
+      "suggested_layer": "architecture-governance",
+      "suggested_proof_level": "source-anchor",
+      "suggested_status": "blocked",
+      "suggested_type": "risk",
+      "summary": "ACP architecture_health_finding AHF-0001 projected as preview only. Canonical architecture registry files are unchanged.",
+      "title": "ACP runtime adoption is blocked until fixture validation exists"
+    },
+    {
+      "mapping_notes": [
+        "Proposal quality artifact; not accepted doctrine."
+      ],
+      "non_claims": [
+        "Does not validate R035.",
+        "Does not validate R037.",
+        "Does not validate R038.",
+        "Does not prove parser completeness.",
+        "Does not prove legal correctness.",
+        "Does not prove FalkorDB ingestion or runtime loading.",
+        "Does not prove graph-vector retrieval quality.",
+        "Does not prove production readiness.",
+        "Does not prove independent external review."
+      ],
+      "preview_id": "ACP-PREVIEW-AP-0001",
+      "source_anchors": [
+        {
+          "kind": "prd",
+          "path": "prd/research/architecture/architecture-control-plane-contract.md",
+          "selector": "acp-role:reusable-acp-contract; Defines ACP core records and lifecycle."
+        },
+        {
+          "kind": "prd",
+          "path": "prd/research/architecture/law-nexus-acp-profile-and-first-proof-plan.md",
+          "selector": "acp-role:law-nexus-profile; Defines the first safe fixture-chain proof plan."
+        }
+      ],
+      "source_record_id": "AP-0001",
+      "source_record_kind": "architecture_proposal",
+      "suggested_layer": "architecture-governance",
+      "suggested_proof_level": "source-anchor",
+      "suggested_status": "bounded-evidence",
+      "suggested_type": "viewpoint",
+      "summary": "ACP architecture_proposal AP-0001 projected as preview only. Canonical architecture registry files are unchanged.",
+      "title": "Validate ACP minimal fixture chain before broader tooling"
+    },
+    {
+      "mapping_notes": [
+        "Provenance only; not decision or implementation proof.",
+        "capture_mode and redaction_status remain ACP-only in M037 preview."
+      ],
+      "non_claims": [
+        "Does not validate R035.",
+        "Does not validate R037.",
+        "Does not validate R038.",
+        "Does not prove parser completeness.",
+        "Does not prove legal correctness.",
+        "Does not prove FalkorDB ingestion or runtime loading.",
+        "Does not prove graph-vector retrieval quality.",
+        "Does not prove production readiness.",
+        "Does not prove independent external review."
+      ],
+      "preview_id": "ACP-PREVIEW-APR-0001",
+      "source_anchors": [
+        {
+          "kind": "prd",
+          "path": "prd/research/architecture/law-nexus-acp-profile-and-first-proof-plan.md",
+          "selector": "acp-role:profile-plan; Defines the first minimal ACP fixture-chain proof scope."
+        }
+      ],
+      "source_record_id": "APR-0001",
+      "source_record_kind": "architecture_prompt_record",
+      "suggested_layer": "architecture-governance",
+      "suggested_proof_level": "source-anchor",
+      "suggested_status": "bounded-evidence",
+      "suggested_type": "evidence",
+      "summary": "ACP architecture_prompt_record APR-0001 projected as preview only. Canonical architecture registry files are unchanged.",
+      "title": "Capture ACP minimal fixture validation intent"
+    },
+    {
+      "mapping_notes": [
+        "Candidate only; requires authority and proof gates before acceptance."
+      ],
+      "non_claims": [
+        "Does not validate R035.",
+        "Does not validate R037.",
+        "Does not validate R038.",
+        "Does not prove parser completeness.",
+        "Does not prove legal correctness.",
+        "Does not prove FalkorDB ingestion or runtime loading.",
+        "Does not prove graph-vector retrieval quality.",
+        "Does not prove production readiness.",
+        "Does not prove independent external review."
+      ],
+      "preview_id": "ACP-PREVIEW-DC-0001",
+      "source_anchors": [
+        {
+          "kind": "prd",
+          "path": "prd/research/architecture/architecture-control-plane-contract.md",
+          "selector": "acp-role:reusable-acp-contract; Defines decision candidate and proof gate lifecycle."
+        },
+        {
+          "kind": "prd",
+          "path": "prd/architecture/acp/fixtures/minimal-chain/AP-0001.md",
+          "selector": "acp-role:origin-proposal; Proposal that produced this decision candidate."
+        }
+      ],
+      "source_record_id": "DC-0001",
+      "source_record_kind": "decision_candidate",
+      "suggested_layer": "architecture-governance",
+      "suggested_proof_level": "source-anchor",
+      "suggested_status": "hypothesis",
+      "suggested_type": "decision",
+      "summary": "ACP decision_candidate DC-0001 projected as preview only. Canonical architecture registry files are unchanged.",
+      "title": "Require fixture validation before ACP runtime adoption"
+    },
+    {
+      "mapping_notes": [
+        "Defines evidence requirement; static-check applies only to ACP mechanics."
+      ],
+      "non_claims": [
+        "Does not validate R035.",
+        "Does not validate R037.",
+        "Does not validate R038.",
+        "Does not prove parser completeness.",
+        "Does not prove legal correctness.",
+        "Does not prove FalkorDB ingestion or runtime loading.",
+        "Does not prove graph-vector retrieval quality.",
+        "Does not prove production readiness.",
+        "Does not prove independent external review."
+      ],
+      "preview_id": "ACP-PREVIEW-PG-0001",
+      "source_anchors": [
+        {
+          "kind": "prd",
+          "path": "prd/architecture/acp/schema.json",
+          "selector": "acp-role:minimal-schema; Schema contract for S01 fixture records."
+        },
+        {
+          "kind": "prd",
+          "path": "prd/architecture/acp/README.md",
+          "selector": "acp-role:fixture-readme; Fixture scope and safety policy."
+        }
+      ],
+      "source_record_id": "PG-0001",
+      "source_record_kind": "proof_gate",
+      "suggested_layer": "architecture-governance",
+      "suggested_proof_level": "static-check",
+      "suggested_status": "blocked",
+      "suggested_type": "proof_gate",
+      "summary": "ACP proof_gate PG-0001 projected as preview only. Canonical architecture registry files are unchanged.",
+      "title": "Minimal ACP fixture validation gate"
+    }
+  ],
+  "kind": "acp_architecture_projection_preview",
+  "non_mappable": [],
+  "source": "prd/architecture/acp/derived/recovery-view.json",
+  "version": "0.1.0"
+}
