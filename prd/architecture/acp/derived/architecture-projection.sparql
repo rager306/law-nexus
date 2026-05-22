@@ -1,0 +1,42 @@
+PREFIX lgarch: <urn:law-nexus:vocab:architecture:>
+PREFIX acp: <urn:law-nexus:vocab:acp:>
+
+# Count architecture registry items.
+SELECT (COUNT(?item) AS ?itemCount)
+WHERE { ?item a lgarch:ArchitectureItem . }
+
+# Count architecture registry edges.
+SELECT (COUNT(?edge) AS ?edgeCount)
+WHERE { ?edge a lgarch:ArchitectureEdge . }
+
+# List ACP governance rows.
+SELECT ?item ?type ?status
+WHERE {
+  ?item a lgarch:ArchitectureItem ;
+        lgarch:itemType ?type ;
+        lgarch:status ?status .
+  FILTER(STRSTARTS(STR(?item), "urn:law-nexus:architecture:ACP-"))
+}
+
+# List explicit R035/R037/R038 non-claims.
+SELECT ?item ?claim
+WHERE {
+  ?item lgarch:nonClaim ?claim .
+  FILTER(?claim IN ("Does not validate R035.", "Does not validate R037.", "Does not validate R038."))
+}
+
+# List proof gates and their status.
+SELECT ?gate ?status
+WHERE {
+  ?gate a lgarch:ArchitectureItem ;
+        lgarch:itemType "proof_gate" ;
+        lgarch:status ?status .
+}
+
+# List high and critical risk records.
+SELECT ?item ?risk
+WHERE {
+  ?item a lgarch:ArchitectureItem ;
+        lgarch:riskLevel ?risk .
+  FILTER(?risk IN ("high", "critical"))
+}

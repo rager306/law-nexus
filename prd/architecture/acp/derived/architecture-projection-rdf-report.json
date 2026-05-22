@@ -1,0 +1,55 @@
+{
+  "counts": {
+    "acp_edges": 7,
+    "acp_items": 5,
+    "edges": 98,
+    "items": 63,
+    "rdf_resources": 161,
+    "statements": 422
+  },
+  "diagnostic_count": 0,
+  "diagnostics": [],
+  "inputs": {
+    "edges": "prd/architecture/architecture_edges.jsonl",
+    "items": "prd/architecture/architecture_items.jsonl"
+  },
+  "mode": "custom",
+  "non_authoritative": true,
+  "non_claims": [
+    "This RDF/SHACL/SPARQL projection is derived and non-authoritative.",
+    "This projection does not validate R035.",
+    "This projection does not validate R037.",
+    "This projection does not validate R038.",
+    "This projection does not prove parser completeness, legal correctness, FalkorDB ingestion, retrieval quality, production readiness, independent external review, ontology correctness, RDF completeness, SHACL completeness, SPARQL engine correctness, or product Legal KnowQL behavior."
+  ],
+  "outputs": {
+    "report": "prd/architecture/acp/derived/architecture-projection-rdf-report.json",
+    "shacl": "prd/architecture/acp/derived/architecture-projection.shacl.ttl",
+    "sparql": "prd/architecture/acp/derived/architecture-projection.sparql",
+    "ttl": "prd/architecture/acp/derived/architecture-projection.ttl"
+  },
+  "shape_smoke": {
+    "checked_rules": [
+      "item-required-fields",
+      "edge-endpoints",
+      "source-anchor-safety",
+      "acp-non-claims",
+      "decision-candidate-authority-required"
+    ],
+    "engine": "deterministic-structural-check",
+    "status": "ok"
+  },
+  "sparql_smoke": {
+    "engine": "not-executed",
+    "handoff_queries": [
+      "count-items",
+      "count-edges",
+      "list-acp-governance-rows",
+      "list-r035-r037-r038-non-claims",
+      "list-proof-gates",
+      "list-high-critical-records"
+    ],
+    "status": "ok"
+  },
+  "status": "ok"
+}

@@ -1,0 +1,24 @@
+@prefix lgarch: <urn:law-nexus:vocab:architecture:> .
+@prefix acp: <urn:law-nexus:vocab:acp:> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+lgarch:ArchitectureItemShape a sh:NodeShape ;
+  sh:targetClass lgarch:ArchitectureItem ;
+  sh:property [ sh:path lgarch:recordId ; sh:minCount 1 ] ;
+  sh:property [ sh:path lgarch:itemType ; sh:minCount 1 ] ;
+  sh:property [ sh:path lgarch:status ; sh:minCount 1 ] ;
+  sh:property [ sh:path lgarch:layer ; sh:minCount 1 ] ;
+  sh:property [ sh:path lgarch:proofLevel ; sh:minCount 1 ] ;
+  sh:property [ sh:path lgarch:sourceAnchor ; sh:minCount 1 ] .
+
+lgarch:ArchitectureEdgeShape a sh:NodeShape ;
+  sh:targetClass lgarch:ArchitectureEdge ;
+  sh:property [ sh:path lgarch:recordId ; sh:minCount 1 ] ;
+  sh:property [ sh:path lgarch:edgeType ; sh:minCount 1 ] ;
+  sh:property [ sh:path lgarch:from ; sh:minCount 1 ] ;
+  sh:property [ sh:path lgarch:to ; sh:minCount 1 ] .
+
+acp:DecisionCandidateShape a sh:NodeShape ;
+  sh:targetClass lgarch:DecisionCandidate ;
+  sh:property [ sh:path acp:authorityRequired ; sh:hasValue true ] .
