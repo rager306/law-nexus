@@ -102,9 +102,9 @@ def test_acp_integrated_registry_fixture_rejects_duplicate_ids(tmp_path: Path) -
     duplicate_items.write_text(ACP_ITEMS.read_text(encoding="utf-8"), encoding="utf-8")
     duplicate_edges.write_text(ACP_EDGES.read_text(encoding="utf-8"), encoding="utf-8")
 
-    first_canonical = load_jsonl(CANONICAL_ITEMS)[0]
     acp_records = load_jsonl(duplicate_items)
-    acp_records[0]["id"] = first_canonical["id"]
+    acp_records[0]["id"] = "ACP-DUPLICATE-FIXTURE"
+    acp_records[1]["id"] = "ACP-DUPLICATE-FIXTURE"
     duplicate_items.write_text(
         "".join(json.dumps(record, ensure_ascii=False, sort_keys=True) + "\n" for record in acp_records),
         encoding="utf-8",

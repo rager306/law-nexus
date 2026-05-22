@@ -69,13 +69,13 @@ These edge summaries expose bounded proof, requirement, gate, and data-boundary 
 
 | Edge ID | From | Type | To | Status | Rationale |
 | --- | --- | --- | --- | --- | --- |
-| ACP-EDGE-AHF-0001-affects-DC-0001 | ACP-AHF-0001 | blocks | ACP-DC-0001 | active | ACP affects relationship projected as canonical-shaped custom output only. |
-| ACP-EDGE-AHF-0001-affects-PG-0001 | ACP-AHF-0001 | affects | ACP-PG-0001 | active | ACP affects relationship projected as canonical-shaped custom output only. |
-| ACP-EDGE-AP-0001-originProposal-DC-0001 | ACP-AP-0001 | origin_proposal | ACP-DC-0001 | hypothesis | ACP originProposal relationship projected as canonical-shaped custom output only. |
-| ACP-EDGE-AP-0001-suggestedDecision-DC-0001 | ACP-AP-0001 | suggested_decision | ACP-DC-0001 | hypothesis | ACP suggestedDecision relationship projected as canonical-shaped custom output only. |
-| ACP-EDGE-APR-0001-originPromptRecord-AP-0001 | ACP-APR-0001 | origin_prompt_record | ACP-AP-0001 | bounded-evidence | ACP originPromptRecord relationship projected as canonical-shaped custom output only. |
-| ACP-EDGE-APR-0001-producedProposal-AP-0001 | ACP-APR-0001 | produced_proposal | ACP-AP-0001 | bounded-evidence | ACP producedProposal relationship projected as canonical-shaped custom output only. |
-| ACP-EDGE-DC-0001-requiresProof-PG-0001 | ACP-DC-0001 | requires_proof | ACP-PG-0001 | active | ACP requiresProof relationship projected as canonical-shaped custom output only. |
+| ACP-EDGE-AHF-0001-affects-DC-0001 | ACP-AHF-0001 | blocks | ACP-DC-0001 | active | ACP health finding blocks promotion of the decision candidate until fixture validation evidence exists. |
+| ACP-EDGE-AHF-0001-affects-PG-0001 | ACP-AHF-0001 | affects | ACP-PG-0001 | active | ACP health finding affects the proof gate that must pass before decision promotion. |
+| ACP-EDGE-AP-0001-originProposal-DC-0001 | ACP-AP-0001 | origin_proposal | ACP-DC-0001 | hypothesis | ACP proposal is the origin proposal for the decision candidate. |
+| ACP-EDGE-AP-0001-suggestedDecision-DC-0001 | ACP-AP-0001 | suggested_decision | ACP-DC-0001 | hypothesis | ACP proposal suggested the decision candidate but did not accept it. |
+| ACP-EDGE-APR-0001-originPromptRecord-AP-0001 | ACP-APR-0001 | origin_prompt_record | ACP-AP-0001 | bounded-evidence | ACP prompt record is provenance for the architecture proposal. |
+| ACP-EDGE-APR-0001-producedProposal-AP-0001 | ACP-APR-0001 | produced_proposal | ACP-AP-0001 | bounded-evidence | ACP prompt record produced the proposal as bounded governance context. |
+| ACP-EDGE-DC-0001-requiresProof-PG-0001 | ACP-DC-0001 | requires_proof | ACP-PG-0001 | active | ACP decision candidate requires the proof gate before any later acceptance workflow can promote it. |
 | EDGE-COMP-LEGAL-NEXUS-DEPENDS-ON-DATA-LEGAL-EVIDENCE-CORE | COMP-LEGAL-NEXUS-ORCHESTRATOR | depends_on | DATA-LEGAL-EVIDENCE-CORE | active | Legal Nexus orchestration depends on source-backed legal-evidence entities before answer or query behavior can be validated. |
 | EDGE-DATA-LEGAL-DOCUMENT-IDENTITY-FRBR-BOUNDED-BY-GATE-AKOMA-FRBR-NORMALIZATION | DATA-LEGAL-DOCUMENT-IDENTITY-FRBR | bounded_by | GATE-AKOMA-FRBR-NORMALIZATION | hypothesis | FRBR-like identity remains bounded by parser/normalization proof before canonical legal-unit projection claims. |
 | EDGE-DATA-LEGAL-DOCUMENT-IDENTITY-FRBR-EVIDENCED-BY-EVID-RESEARCH-ONTOLOGY-AKOMA-LKIF-BFO | DATA-LEGAL-DOCUMENT-IDENTITY-FRBR | evidenced_by | EVID-RESEARCH-ONTOLOGY-AKOMA-LKIF-BFO | bounded-evidence | The M017 ontology research and gap-analysis plan is bounded source-anchor evidence for this conservative ontology candidate; it does not upgrade proof beyond source-anchor. |

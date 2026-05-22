@@ -16,9 +16,13 @@
   "owner": "ACP composition staging",
   "record_counts": {
     "acp_edge_count": 7,
+    "acp_edges_added_count": 0,
+    "acp_edges_already_integrated_count": 7,
     "acp_item_count": 5,
-    "canonical_edge_count": 91,
-    "canonical_item_count": 58,
+    "acp_items_added_count": 0,
+    "acp_items_already_integrated_count": 5,
+    "canonical_edge_count": 98,
+    "canonical_item_count": 63,
     "composed_edge_count": 98,
     "composed_item_count": 63
   },

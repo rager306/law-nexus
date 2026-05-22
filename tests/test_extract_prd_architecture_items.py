@@ -473,6 +473,56 @@ def test_generated_records_are_conservative_and_anchored() -> None:
             assert path.startswith(".gsd/") or (ROOT / path).exists(), f"id={record.get('id')} field=source_anchors.path missing: {path}"
 
 
+def test_default_extractor_emits_bounded_acp_governance_rows() -> None:
+    items = read_jsonl(ITEMS)
+    edges = read_jsonl(EDGES)
+    item_by_id = records_by_id(items, ITEMS)
+    edge_by_id = records_by_id(edges, EDGES)
+
+    expected_items = {
+        "ACP-AHF-0001": "health_finding",
+        "ACP-AP-0001": "proposal",
+        "ACP-APR-0001": "prompt_record",
+        "ACP-DC-0001": "decision_candidate",
+        "ACP-PG-0001": "proof_gate",
+    }
+    expected_edges = {
+        "ACP-EDGE-AHF-0001-affects-DC-0001": "blocks",
+        "ACP-EDGE-AHF-0001-affects-PG-0001": "affects",
+        "ACP-EDGE-AP-0001-originProposal-DC-0001": "origin_proposal",
+        "ACP-EDGE-AP-0001-suggestedDecision-DC-0001": "suggested_decision",
+        "ACP-EDGE-APR-0001-originPromptRecord-AP-0001": "origin_prompt_record",
+        "ACP-EDGE-APR-0001-producedProposal-AP-0001": "produced_proposal",
+        "ACP-EDGE-DC-0001-requiresProof-PG-0001": "requires_proof",
+    }
+
+    assert set(expected_items) <= set(item_by_id)
+    assert set(expected_edges) <= set(edge_by_id)
+
+    for record_id, item_type in expected_items.items():
+        record = item_by_id[record_id]
+        assert record["type"] == item_type
+        assert record["layer"] == "architecture-governance"
+        assert record["generated_draft"] is False
+        non_claims = record["non_claims"]
+        for claim in ["Does not validate R035.", "Does not validate R037.", "Does not validate R038."]:
+            assert claim in non_claims
+        assert not any(anchor["path"].startswith("prd/architecture/acp/derived/") for anchor in record["source_anchors"])
+
+    assert item_by_id["ACP-DC-0001"]["authority_required"] is True
+    assert item_by_id["ACP-DC-0001"]["type"] != "decision"
+    assert item_by_id["ACP-PG-0001"]["type"] == "proof_gate"
+    assert item_by_id["ACP-PG-0001"]["status"] == "active"
+
+    for record_id, edge_type in expected_edges.items():
+        record = edge_by_id[record_id]
+        assert record["type"] == edge_type
+        assert record["from"] in item_by_id
+        assert record["to"] in item_by_id
+        assert record["type"] not in {"satisfies", "validated_by"}
+        assert not any(anchor["path"].startswith("prd/architecture/acp/derived/") for anchor in record["source_anchors"])
+
+
 def test_tmp_generation_check_mode_and_deterministic_bytes(tmp_path: Path) -> None:
     item_out = tmp_path / "architecture_items.jsonl"
     edge_out = tmp_path / "architecture_edges.jsonl"

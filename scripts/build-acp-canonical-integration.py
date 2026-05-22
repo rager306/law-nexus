@@ -226,13 +226,25 @@ def build_records(args: argparse.Namespace) -> tuple[list[dict[str, Any]], list[
         acp_edges, acp_edge_diagnostics = load_jsonl(args.acp_edges)
         diagnostics.extend(acp_item_diagnostics)
         diagnostics.extend(acp_edge_diagnostics)
-    items = sorted([*canonical_items, *acp_items], key=lambda record: str(record.get("id", "")))
-    edges = sorted([*canonical_edges, *acp_edges], key=lambda record: str(record.get("id", "")))
+    canonical_item_ids = {str(record.get("id", "")) for record in canonical_items}
+    canonical_edge_ids = {str(record.get("id", "")) for record in canonical_edges}
+    acp_item_ids = {str(record.get("id", "")) for record in acp_items}
+    _, acp_item_validation = validate_items(acp_items, args.acp_items)
+    diagnostics.extend(acp_item_validation)
+    diagnostics.extend(validate_edges(acp_edges, canonical_item_ids | acp_item_ids, args.acp_edges))
+    acp_items_to_add = [record for record in acp_items if str(record.get("id", "")) not in canonical_item_ids]
+    acp_edges_to_add = [record for record in acp_edges if str(record.get("id", "")) not in canonical_edge_ids]
+    items = sorted([*canonical_items, *acp_items_to_add], key=lambda record: str(record.get("id", "")))
+    edges = sorted([*canonical_edges, *acp_edges_to_add], key=lambda record: str(record.get("id", "")))
     counts = {
         "canonical_item_count": len(canonical_items),
         "canonical_edge_count": len(canonical_edges),
         "acp_item_count": len(acp_items),
         "acp_edge_count": len(acp_edges),
+        "acp_items_added_count": len(acp_items_to_add),
+        "acp_edges_added_count": len(acp_edges_to_add),
+        "acp_items_already_integrated_count": len(acp_items) - len(acp_items_to_add),
+        "acp_edges_already_integrated_count": len(acp_edges) - len(acp_edges_to_add),
         "integration_item_count": len(items),
         "integration_edge_count": len(edges),
     }

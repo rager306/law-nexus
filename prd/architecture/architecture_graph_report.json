@@ -2,10 +2,18 @@
   "contradiction_edges": [],
   "contradiction_pairs": [],
   "counts": {
-    "edges": 91,
-    "nodes": 58
+    "edges": 98,
+    "nodes": 63
   },
   "high_risk_nodes": [
+    {
+      "id": "ACP-AHF-0001",
+      "layer": "architecture-governance",
+      "proof_level": "static-check",
+      "risk_level": "high",
+      "status": "blocked",
+      "type": "health_finding"
+    },
     {
       "id": "ASSUMP-PRD-SOURCE-TRUTH",
       "layer": "architecture-governance",
@@ -348,7 +356,7 @@
   "layer_coverage": {
     "counts": {
       "api-product": 1,
-      "architecture-governance": 9,
+      "architecture-governance": 14,
       "generated-cypher": 2,
       "graph-runtime": 2,
       "legal-evidence": 7,
@@ -365,6 +373,86 @@
   "non_authoritative": true,
   "non_claims_summary": {
     "by_node": [
+      {
+        "count": 10,
+        "id": "ACP-AHF-0001",
+        "non_claims": [
+          "Does not prove FalkorDB ingestion or runtime loading.",
+          "Does not prove graph-vector retrieval quality.",
+          "Does not prove independent external review.",
+          "Does not prove legal correctness.",
+          "Does not prove parser completeness.",
+          "Does not prove production readiness.",
+          "Does not validate R035.",
+          "Does not validate R037.",
+          "Does not validate R038.",
+          "Health finding is a governance blocker, not product readiness evidence."
+        ]
+      },
+      {
+        "count": 10,
+        "id": "ACP-AP-0001",
+        "non_claims": [
+          "Does not prove FalkorDB ingestion or runtime loading.",
+          "Does not prove graph-vector retrieval quality.",
+          "Does not prove independent external review.",
+          "Does not prove legal correctness.",
+          "Does not prove parser completeness.",
+          "Does not prove production readiness.",
+          "Does not validate R035.",
+          "Does not validate R037.",
+          "Does not validate R038.",
+          "Proposal is not an accepted architecture decision."
+        ]
+      },
+      {
+        "count": 10,
+        "id": "ACP-APR-0001",
+        "non_claims": [
+          "Does not prove FalkorDB ingestion or runtime loading.",
+          "Does not prove graph-vector retrieval quality.",
+          "Does not prove independent external review.",
+          "Does not prove legal correctness.",
+          "Does not prove parser completeness.",
+          "Does not prove production readiness.",
+          "Does not validate R035.",
+          "Does not validate R037.",
+          "Does not validate R038.",
+          "Prompt provenance is not implementation proof."
+        ]
+      },
+      {
+        "count": 10,
+        "id": "ACP-DC-0001",
+        "non_claims": [
+          "Decision candidate is not accepted architecture doctrine.",
+          "Does not prove FalkorDB ingestion or runtime loading.",
+          "Does not prove graph-vector retrieval quality.",
+          "Does not prove independent external review.",
+          "Does not prove legal correctness.",
+          "Does not prove parser completeness.",
+          "Does not prove production readiness.",
+          "Does not validate R035.",
+          "Does not validate R037.",
+          "Does not validate R038."
+        ]
+      },
+      {
+        "count": 10,
+        "id": "ACP-PG-0001",
+        "non_claims": [
+          "Does not prove FalkorDB ingestion or runtime loading.",
+          "Does not prove graph-vector retrieval quality.",
+          "Does not prove independent external review.",
+          "Does not prove legal correctness.",
+          "Does not prove parser completeness.",
+          "Does not prove production readiness.",
+          "Does not validate R035.",
+          "Does not validate R037.",
+          "Does not validate R038.",
+          "Proof gate fixture does not satisfy the gated product claim."
+        ]
+      },
       {
         "count": 1,
         "id": "ASSUMP-PRD-SOURCE-TRUTH",
@@ -1008,11 +1096,67 @@
         ]
       }
     ],
-    "nodes_with_non_claims": 58,
-    "total_non_claims": 294
+    "nodes_with_non_claims": 63,
+    "total_non_claims": 344
   },
   "orphan_findings": [],
   "traceability_edges": [
+    {
+      "from": "ACP-AHF-0001",
+      "id": "ACP-EDGE-AHF-0001-affects-DC-0001",
+      "rationale": "ACP health finding blocks promotion of the decision candidate until fixture validation evidence exists.",
+      "status": "active",
+      "to": "ACP-DC-0001",
+      "type": "blocks"
+    },
+    {
+      "from": "ACP-AHF-0001",
+      "id": "ACP-EDGE-AHF-0001-affects-PG-0001",
+      "rationale": "ACP health finding affects the proof gate that must pass before decision promotion.",
+      "status": "active",
+      "to": "ACP-PG-0001",
+      "type": "affects"
+    },
+    {
+      "from": "ACP-AP-0001",
+      "id": "ACP-EDGE-AP-0001-originProposal-DC-0001",
+      "rationale": "ACP proposal is the origin proposal for the decision candidate.",
+      "status": "hypothesis",
+      "to": "ACP-DC-0001",
+      "type": "origin_proposal"
+    },
+    {
+      "from": "ACP-AP-0001",
+      "id": "ACP-EDGE-AP-0001-suggestedDecision-DC-0001",
+      "rationale": "ACP proposal suggested the decision candidate but did not accept it.",
+      "status": "hypothesis",
+      "to": "ACP-DC-0001",
+      "type": "suggested_decision"
+    },
+    {
+      "from": "ACP-APR-0001",
+      "id": "ACP-EDGE-APR-0001-originPromptRecord-AP-0001",
+      "rationale": "ACP prompt record is provenance for the architecture proposal.",
+      "status": "bounded-evidence",
+      "to": "ACP-AP-0001",
+      "type": "origin_prompt_record"
+    },
+    {
+      "from": "ACP-APR-0001",
+      "id": "ACP-EDGE-APR-0001-producedProposal-AP-0001",
+      "rationale": "ACP prompt record produced the proposal as bounded governance context.",
+      "status": "bounded-evidence",
+      "to": "ACP-AP-0001",
+      "type": "produced_proposal"
+    },
+    {
+      "from": "ACP-DC-0001",
+      "id": "ACP-EDGE-DC-0001-requiresProof-PG-0001",
+      "rationale": "ACP decision candidate requires the proof gate before any later acceptance workflow can promote it.",
+      "status": "active",
+      "to": "ACP-PG-0001",
+      "type": "requires_proof"
+    },
     {
       "from": "COMP-LEGAL-NEXUS-ORCHESTRATOR",
       "id": "EDGE-COMP-LEGAL-NEXUS-DEPENDS-ON-DATA-LEGAL-EVIDENCE-CORE",
@@ -1808,6 +1952,16 @@
     }
   ],
   "weak_components": [
+    {
+      "nodes": [
+        "ACP-AHF-0001",
+        "ACP-AP-0001",
+        "ACP-APR-0001",
+        "ACP-DC-0001",
+        "ACP-PG-0001"
+      ],
+      "size": 5
+    },
     {
       "nodes": [
         "ASSUMP-PRD-SOURCE-TRUTH",

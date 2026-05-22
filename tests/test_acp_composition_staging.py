@@ -71,10 +71,14 @@ def test_acp_composition_staging_outputs_are_current() -> None:
     assert payload["owner"] == "ACP composition staging"
     assert payload["diagnostic_count"] == 0
     assert payload["record_counts"] == {
-        "canonical_item_count": 58,
-        "canonical_edge_count": 91,
+        "canonical_item_count": 63,
+        "canonical_edge_count": 98,
         "acp_item_count": 5,
         "acp_edge_count": 7,
+        "acp_items_added_count": 0,
+        "acp_edges_added_count": 0,
+        "acp_items_already_integrated_count": 5,
+        "acp_edges_already_integrated_count": 7,
         "composed_item_count": 63,
         "composed_edge_count": 98,
     }
@@ -107,7 +111,8 @@ def test_acp_composition_staging_rejects_duplicate_ids(tmp_path: Path) -> None:
     duplicate_items = tmp_path / "acp-items.jsonl"
     duplicate_edges = tmp_path / "acp-edges.jsonl"
     acp_records = load_jsonl(ACP_ITEMS)
-    acp_records[0]["id"] = load_jsonl(CANONICAL_ITEMS)[0]["id"]
+    acp_records[0]["id"] = "ACP-DUPLICATE-FIXTURE"
+    acp_records[1]["id"] = "ACP-DUPLICATE-FIXTURE"
     write_jsonl(duplicate_items, acp_records)
     duplicate_edges.write_text(ACP_EDGES.read_text(encoding="utf-8"), encoding="utf-8")
 

@@ -207,8 +207,13 @@ def build_integrated_fixture(
     diagnostics.extend(edge_diagnostics)
     diagnostics.extend(acp_item_diagnostics)
     diagnostics.extend(acp_edge_diagnostics)
-    items = sorted([*canonical_items, *acp_items], key=lambda record: str(record.get("id", "")))
-    edges = sorted([*canonical_edges, *acp_edges], key=lambda record: str(record.get("id", "")))
+    diagnostics.extend(validate_integrated_fixture(acp_items, acp_edges, acp_items_path, acp_edges_path))
+    canonical_item_ids = {str(record.get("id", "")) for record in canonical_items}
+    canonical_edge_ids = {str(record.get("id", "")) for record in canonical_edges}
+    acp_items_to_add = [record for record in acp_items if str(record.get("id", "")) not in canonical_item_ids]
+    acp_edges_to_add = [record for record in acp_edges if str(record.get("id", "")) not in canonical_edge_ids]
+    items = sorted([*canonical_items, *acp_items_to_add], key=lambda record: str(record.get("id", "")))
+    edges = sorted([*canonical_edges, *acp_edges_to_add], key=lambda record: str(record.get("id", "")))
     return items, edges, diagnostics
 
 
