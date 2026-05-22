@@ -1,0 +1,38 @@
+{
+  "boundary": "ACP canonical integration is opt-in and non-authoritative; default tracked architecture registry currentness remains verifier-owned.",
+  "diagnostic_count": 0,
+  "diagnostics": [],
+  "graph_summary": {
+    "edges": 98,
+    "mode": "custom",
+    "nodes": 63,
+    "non_authoritative": true,
+    "report_json": "prd/architecture/acp/derived/canonical-integration-graph-report.json",
+    "report_md": "prd/architecture/acp/derived/canonical-integration-graph-report.md",
+    "status": "ok"
+  },
+  "inputs": {
+    "acp_edges": "prd/architecture/acp/derived/canonical-projection.edges.jsonl",
+    "acp_items": "prd/architecture/acp/derived/canonical-projection.items.jsonl",
+    "canonical_edges": "prd/architecture/architecture_edges.jsonl",
+    "canonical_items": "prd/architecture/architecture_items.jsonl"
+  },
+  "mode": "enabled",
+  "outputs": {
+    "edges": "prd/architecture/acp/derived/canonical-integration.edges.jsonl",
+    "graph_report_json": "prd/architecture/acp/derived/canonical-integration-graph-report.json",
+    "graph_report_md": "prd/architecture/acp/derived/canonical-integration-graph-report.md",
+    "items": "prd/architecture/acp/derived/canonical-integration.items.jsonl",
+    "report": "prd/architecture/acp/derived/canonical-integration-report.json"
+  },
+  "owner": "opt-in architecture-build composition",
+  "record_counts": {
+    "acp_edge_count": 7,
+    "acp_item_count": 5,
+    "canonical_edge_count": 91,
+    "canonical_item_count": 58,
+    "integration_edge_count": 98,
+    "integration_item_count": 63
+  },
+  "status": "ok"
+}

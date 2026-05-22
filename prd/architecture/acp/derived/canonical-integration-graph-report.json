@@ -1,0 +1,2034 @@
+{
+  "contradiction_edges": [],
+  "contradiction_pairs": [],
+  "counts": {
+    "edges": 98,
+    "nodes": 63
+  },
+  "high_risk_nodes": [
+    {
+      "id": "ACP-AHF-0001",
+      "layer": "architecture-governance",
+      "proof_level": "static-check",
+      "risk_level": "high",
+      "status": "blocked",
+      "type": "health_finding"
+    },
+    {
+      "id": "ASSUMP-PRD-SOURCE-TRUTH",
+      "layer": "architecture-governance",
+      "proof_level": "source-anchor",
+      "risk_level": "high",
+      "status": "active",
+      "type": "assumption"
+    },
+    {
+      "id": "CHECK-ARCHITECTURE-EXTRACTOR",
+      "layer": "workflow-governance",
+      "proof_level": "static-check",
+      "risk_level": "high",
+      "status": "active",
+      "type": "workflow_check"
+    },
+    {
+      "id": "COMP-LEGAL-NEXUS-ORCHESTRATOR",
+      "layer": "api-product",
+      "proof_level": "source-anchor",
+      "risk_level": "high",
+      "status": "active",
+      "type": "component"
+    },
+    {
+      "id": "DATA-LEGAL-DOCUMENT-IDENTITY-FRBR",
+      "layer": "temporal-model",
+      "proof_level": "source-anchor",
+      "risk_level": "high",
+      "status": "hypothesis",
+      "type": "data_entity"
+    },
+    {
+      "id": "DATA-LEGAL-EVIDENCE-CORE",
+      "layer": "legal-evidence",
+      "proof_level": "source-anchor",
+      "risk_level": "high",
+      "status": "active",
+      "type": "data_entity"
+    },
+    {
+      "id": "DATA-LEGAL-SOURCE-HIERARCHY",
+      "layer": "legal-evidence",
+      "proof_level": "source-anchor",
+      "risk_level": "high",
+      "status": "hypothesis",
+      "type": "data_entity"
+    },
+    {
+      "id": "DATA-LKIF-DEONTIC-MAPPING",
+      "layer": "legal-evidence",
+      "proof_level": "source-anchor",
+      "risk_level": "high",
+      "status": "hypothesis",
+      "type": "data_entity"
+    },
+    {
+      "id": "DATA-RUSLEGALCORE-DOMAIN-ONTOLOGY",
+      "layer": "legal-evidence",
+      "proof_level": "source-anchor",
+      "risk_level": "high",
+      "status": "hypothesis",
+      "type": "data_entity"
+    },
+    {
+      "id": "DATA-TEMPORAL-PROPERTY-BUNDLE",
+      "layer": "temporal-model",
+      "proof_level": "source-anchor",
+      "risk_level": "high",
+      "status": "active",
+      "type": "data_entity"
+    },
+    {
+      "id": "DEC-D031",
+      "layer": "architecture-governance",
+      "proof_level": "source-anchor",
+      "risk_level": "high",
+      "status": "active",
+      "type": "decision"
+    },
+    {
+      "id": "EVID-LOCAL-RETRIEVAL-QUALITY-BENCHMARK-PROOF",
+      "layer": "retrieval-embedding",
+      "proof_level": "unit-test",
+      "risk_level": "high",
+      "status": "bounded-evidence",
+      "type": "evidence"
+    },
+    {
+      "id": "EVID-OFFLINE-CITATION-RETRIEVAL-PROOF",
+      "layer": "retrieval-embedding",
+      "proof_level": "unit-test",
+      "risk_level": "high",
+      "status": "bounded-evidence",
+      "type": "evidence"
+    },
+    {
+      "id": "EVID-PARSER-ODT-SMOKE",
+      "layer": "parser-ingestion",
+      "proof_level": "real-document-proof",
+      "risk_level": "high",
+      "status": "bounded-evidence",
+      "type": "evidence"
+    },
+    {
+      "id": "EVID-REAL-ARTIFACT-RETRIEVAL-PROOF",
+      "layer": "retrieval-embedding",
+      "proof_level": "unit-test",
+      "risk_level": "high",
+      "status": "bounded-evidence",
+      "type": "evidence"
+    },
+    {
+      "id": "EVID-REPRESENTATIVE-RETRIEVAL-RUNTIME-BENCHMARK-PROOF",
+      "layer": "retrieval-embedding",
+      "proof_level": "runtime-smoke",
+      "risk_level": "high",
+      "status": "bounded-evidence",
+      "type": "evidence"
+    },
+    {
+      "id": "EVID-RESEARCH-GRAPHRAG-MATH-ANALYSIS",
+      "layer": "retrieval-embedding",
+      "proof_level": "source-anchor",
+      "risk_level": "high",
+      "status": "bounded-evidence",
+      "type": "evidence"
+    },
+    {
+      "id": "EVID-RESEARCH-HABR-LEGAL-RAG-ITERATION-SCALING",
+      "layer": "retrieval-embedding",
+      "proof_level": "source-anchor",
+      "risk_level": "high",
+      "status": "bounded-evidence",
+      "type": "evidence"
+    },
+    {
+      "id": "EVID-RESEARCH-ONTOLOGY-AKOMA-LKIF-BFO",
+      "layer": "architecture-governance",
+      "proof_level": "source-anchor",
+      "risk_level": "high",
+      "status": "bounded-evidence",
+      "type": "evidence"
+    },
+    {
+      "id": "EVID-RETRIEVAL-OUTPUT-ID-VALIDATOR-PROOF",
+      "layer": "retrieval-embedding",
+      "proof_level": "unit-test",
+      "risk_level": "high",
+      "status": "bounded-evidence",
+      "type": "evidence"
+    },
+    {
+      "id": "GATE-AKOMA-FRBR-NORMALIZATION",
+      "layer": "parser-ingestion",
+      "proof_level": "source-anchor",
+      "risk_level": "high",
+      "status": "proposed",
+      "type": "proof_gate"
+    },
+    {
+      "id": "GATE-EMBEDDING-SUPPLY-CHAIN",
+      "layer": "security-safety",
+      "proof_level": "none",
+      "risk_level": "high",
+      "status": "active",
+      "type": "proof_gate"
+    },
+    {
+      "id": "GATE-G005",
+      "layer": "temporal-model",
+      "proof_level": "none",
+      "risk_level": "high",
+      "status": "active",
+      "type": "proof_gate"
+    },
+    {
+      "id": "GATE-G008",
+      "layer": "parser-ingestion",
+      "proof_level": "none",
+      "risk_level": "high",
+      "status": "active",
+      "type": "proof_gate"
+    },
+    {
+      "id": "GATE-G011",
+      "layer": "retrieval-embedding",
+      "proof_level": "none",
+      "risk_level": "high",
+      "status": "active",
+      "type": "proof_gate"
+    },
+    {
+      "id": "GATE-GENERATED-CYPHER-SAFETY",
+      "layer": "generated-cypher",
+      "proof_level": "none",
+      "risk_level": "critical",
+      "status": "active",
+      "type": "proof_gate"
+    },
+    {
+      "id": "GATE-LEGAL-COLLISION-POLICY",
+      "layer": "legal-evidence",
+      "proof_level": "source-anchor",
+      "risk_level": "high",
+      "status": "proposed",
+      "type": "proof_gate"
+    },
+    {
+      "id": "GATE-LEGAL-NEXUS-ACCESS-CONTROL",
+      "layer": "security-safety",
+      "proof_level": "none",
+      "risk_level": "high",
+      "status": "active",
+      "type": "proof_gate"
+    },
+    {
+      "id": "GATE-LKIF-DEONTIC-BENCHMARK",
+      "layer": "legal-evidence",
+      "proof_level": "source-anchor",
+      "risk_level": "high",
+      "status": "proposed",
+      "type": "proof_gate"
+    },
+    {
+      "id": "GATE-ONTOLOGY-GRAPHRAG-INTEGRATION",
+      "layer": "retrieval-embedding",
+      "proof_level": "source-anchor",
+      "risk_level": "high",
+      "status": "proposed",
+      "type": "proof_gate"
+    },
+    {
+      "id": "GATE-PILOT-SCALE-READINESS",
+      "layer": "observability-operability",
+      "proof_level": "source-anchor",
+      "risk_level": "high",
+      "status": "proposed",
+      "type": "proof_gate"
+    },
+    {
+      "id": "GATE-RUSLEGALCORE-SCOPE",
+      "layer": "legal-evidence",
+      "proof_level": "source-anchor",
+      "risk_level": "high",
+      "status": "proposed",
+      "type": "proof_gate"
+    },
+    {
+      "id": "M001-ARCHITECTURE-ONLY-GUARDRAIL",
+      "layer": "architecture-governance",
+      "proof_level": "source-anchor",
+      "risk_level": "critical",
+      "status": "out-of-scope",
+      "type": "workflow_check"
+    },
+    {
+      "id": "REQ-R009",
+      "layer": "workflow-governance",
+      "proof_level": "source-anchor",
+      "risk_level": "high",
+      "status": "active",
+      "type": "requirement"
+    },
+    {
+      "id": "REQ-R017",
+      "layer": "generated-cypher",
+      "proof_level": "source-anchor",
+      "risk_level": "high",
+      "status": "active",
+      "type": "requirement"
+    },
+    {
+      "id": "REQ-R022",
+      "layer": "security-safety",
+      "proof_level": "source-anchor",
+      "risk_level": "critical",
+      "status": "active",
+      "type": "requirement"
+    },
+    {
+      "id": "REQ-R028",
+      "layer": "security-safety",
+      "proof_level": "source-anchor",
+      "risk_level": "critical",
+      "status": "out-of-scope",
+      "type": "requirement"
+    },
+    {
+      "id": "REQ-R029",
+      "layer": "architecture-governance",
+      "proof_level": "source-anchor",
+      "risk_level": "high",
+      "status": "active",
+      "type": "requirement"
+    },
+    {
+      "id": "REQ-R034",
+      "layer": "retrieval-embedding",
+      "proof_level": "source-anchor",
+      "risk_level": "high",
+      "status": "active",
+      "type": "requirement"
+    },
+    {
+      "id": "REQ-TEMPORAL-STATUS-SEMANTICS",
+      "layer": "temporal-model",
+      "proof_level": "source-anchor",
+      "risk_level": "high",
+      "status": "active",
+      "type": "requirement"
+    },
+    {
+      "id": "RISK-OVERCLAIM-RUNTIME",
+      "layer": "security-safety",
+      "proof_level": "source-anchor",
+      "risk_level": "critical",
+      "status": "active",
+      "type": "risk"
+    },
+    {
+      "id": "S05-OLD-PROJECT-PRIOR-ART",
+      "layer": "parser-ingestion",
+      "proof_level": "source-anchor",
+      "risk_level": "high",
+      "status": "bounded-evidence",
+      "type": "evidence"
+    },
+    {
+      "id": "S05-PARSER-ODT-BOUNDARY",
+      "layer": "parser-ingestion",
+      "proof_level": "real-document-proof",
+      "risk_level": "high",
+      "status": "bounded-evidence",
+      "type": "evidence"
+    }
+  ],
+  "invalid_records": [],
+  "isolates": [],
+  "layer_coverage": {
+    "counts": {
+      "api-product": 1,
+      "architecture-governance": 14,
+      "generated-cypher": 2,
+      "graph-runtime": 2,
+      "legal-evidence": 7,
+      "observability-operability": 2,
+      "parser-ingestion": 11,
+      "retrieval-embedding": 12,
+      "security-safety": 5,
+      "temporal-model": 4,
+      "workflow-governance": 3
+    },
+    "invalid_layers": [],
+    "missing_layers": []
+  },
+  "non_authoritative": true,
+  "non_claims_summary": {
+    "by_node": [
+      {
+        "count": 10,
+        "id": "ACP-AHF-0001",
+        "non_claims": [
+          "Does not prove FalkorDB ingestion or runtime loading.",
+          "Does not prove graph-vector retrieval quality.",
+          "Does not prove independent external review.",
+          "Does not prove legal correctness.",
+          "Does not prove parser completeness.",
+          "Does not prove production readiness.",
+          "Does not validate R035.",
+          "Does not validate R037.",
+          "Does not validate R038.",
+          "Health finding is a governance blocker, not product readiness evidence."
+        ]
+      },
+      {
+        "count": 10,
+        "id": "ACP-AP-0001",
+        "non_claims": [
+          "Does not prove FalkorDB ingestion or runtime loading.",
+          "Does not prove graph-vector retrieval quality.",
+          "Does not prove independent external review.",
+          "Does not prove legal correctness.",
+          "Does not prove parser completeness.",
+          "Does not prove production readiness.",
+          "Does not validate R035.",
+          "Does not validate R037.",
+          "Does not validate R038.",
+          "Proposal is not an accepted architecture decision."
+        ]
+      },
+      {
+        "count": 10,
+        "id": "ACP-APR-0001",
+        "non_claims": [
+          "Does not prove FalkorDB ingestion or runtime loading.",
+          "Does not prove graph-vector retrieval quality.",
+          "Does not prove independent external review.",
+          "Does not prove legal correctness.",
+          "Does not prove parser completeness.",
+          "Does not prove production readiness.",
+          "Does not validate R035.",
+          "Does not validate R037.",
+          "Does not validate R038.",
+          "Prompt provenance is not implementation proof."
+        ]
+      },
+      {
+        "count": 10,
+        "id": "ACP-DC-0001",
+        "non_claims": [
+          "Decision candidate is not accepted architecture doctrine.",
+          "Does not prove FalkorDB ingestion or runtime loading.",
+          "Does not prove graph-vector retrieval quality.",
+          "Does not prove independent external review.",
+          "Does not prove legal correctness.",
+          "Does not prove parser completeness.",
+          "Does not prove production readiness.",
+          "Does not validate R035.",
+          "Does not validate R037.",
+          "Does not validate R038."
+        ]
+      },
+      {
+        "count": 10,
+        "id": "ACP-PG-0001",
+        "non_claims": [
+          "Does not prove FalkorDB ingestion or runtime loading.",
+          "Does not prove graph-vector retrieval quality.",
+          "Does not prove independent external review.",
+          "Does not prove legal correctness.",
+          "Does not prove parser completeness.",
+          "Does not prove production readiness.",
+          "Does not validate R035.",
+          "Does not validate R037.",
+          "Does not validate R038.",
+          "Proof gate fixture does not satisfy the gated product claim."
+        ]
+      },
+      {
+        "count": 1,
+        "id": "ASSUMP-PRD-SOURCE-TRUTH",
+        "non_claims": [
+          "Does not make generated artifacts authoritative."
+        ]
+      },
+      {
+        "count": 1,
+        "id": "CHECK-ARCHITECTURE-EXTRACTOR",
+        "non_claims": [
+          "Extractor check is not product runtime proof."
+        ]
+      },
+      {
+        "count": 3,
+        "id": "COMP-LEGAL-NEXUS-ORCHESTRATOR",
+        "non_claims": [
+          "Does not implement Legal Nexus runtime behavior.",
+          "Does not prove access-control enforcement.",
+          "Does not prove product Legal KnowQL behavior."
+        ]
+      },
+      {
+        "count": 10,
+        "id": "DATA-LEGAL-DOCUMENT-IDENTITY-FRBR",
+        "non_claims": [
+          "Does not make LLM output legal authority.",
+          "Does not prove FalkorDB graph-vector/runtime capability.",
+          "Does not prove amendment aggregation or inactive-version filtering.",
+          "Does not prove compatibility with Consultant, Garant, RusLawOD, or Akoma Ntoso sources.",
+          "Does not prove correct FRBR implementation.",
+          "Does not prove legal-answer correctness.",
+          "Does not prove ontology benchmark quality.",
+          "Does not prove parser completeness.",
+          "Does not prove pilot-scale readiness.",
+          "Does not prove product Legal KnowQL behavior."
+        ]
+      },
+      {
+        "count": 3,
+        "id": "DATA-LEGAL-EVIDENCE-CORE",
+        "non_claims": [
+          "Does not assert final legal graph schema completeness.",
+          "Does not prove legal-answer correctness.",
+          "Does not prove parser completeness."
+        ]
+      },
+      {
+        "count": 10,
+        "id": "DATA-LEGAL-SOURCE-HIERARCHY",
+        "non_claims": [
+          "Does not authorize automated legal conclusions.",
+          "Does not decide legal priority.",
+          "Does not make LLM output legal authority.",
+          "Does not prove FalkorDB graph-vector/runtime capability.",
+          "Does not prove automated legal collision resolution.",
+          "Does not prove legal-answer correctness.",
+          "Does not prove ontology benchmark quality.",
+          "Does not prove parser completeness.",
+          "Does not prove pilot-scale readiness.",
+          "Does not prove product Legal KnowQL behavior."
+        ]
+      },
+      {
+        "count": 10,
+        "id": "DATA-LKIF-DEONTIC-MAPPING",
+        "non_claims": [
+          "Does not make LLM output legal authority.",
+          "Does not make ML/NER outputs authoritative assertions.",
+          "Does not prove FalkorDB graph-vector/runtime capability.",
+          "Does not prove extraction precision or recall.",
+          "Does not prove legal-answer correctness.",
+          "Does not prove negation handling or modal-verb interpretation.",
+          "Does not prove ontology benchmark quality.",
+          "Does not prove parser completeness.",
+          "Does not prove pilot-scale readiness.",
+          "Does not prove product Legal KnowQL behavior."
+        ]
+      },
+      {
+        "count": 10,
+        "id": "DATA-RUSLEGALCORE-DOMAIN-ONTOLOGY",
+        "non_claims": [
+          "Does not define final ontology scope.",
+          "Does not make LLM output legal authority.",
+          "Does not prove FalkorDB graph-vector/runtime capability.",
+          "Does not prove Russian-law completeness.",
+          "Does not prove legal-answer correctness.",
+          "Does not prove ontology benchmark quality.",
+          "Does not prove parser completeness.",
+          "Does not prove pilot-scale readiness.",
+          "Does not prove product Legal KnowQL behavior.",
+          "Does not replace project-local LegalGraph core contracts."
+        ]
+      },
+      {
+        "count": 2,
+        "id": "DATA-TEMPORAL-PROPERTY-BUNDLE",
+        "non_claims": [
+          "Does not specify temporal storage implementation.",
+          "Does not validate temporal conflict resolution."
+        ]
+      },
+      {
+        "count": 1,
+        "id": "DEC-D031",
+        "non_claims": [
+          "JSONL and GraphML are not source-of-truth replacements."
+        ]
+      },
+      {
+        "count": 1,
+        "id": "DEC-D032",
+        "non_claims": [
+          "The skill is guidance, not a source of truth."
+        ]
+      },
+      {
+        "count": 11,
+        "id": "EVID-LOCAL-RETRIEVAL-QUALITY-BENCHMARK-PROOF",
+        "non_claims": [
+          "Does not allow managed embedding API fallback.",
+          "Does not close GATE-G008.",
+          "Does not close GATE-G011.",
+          "Does not make LLM output legal authority.",
+          "Does not make proof-local fixture metrics production metrics.",
+          "Does not promote GigaEmbeddings.",
+          "Does not prove legal-answer correctness.",
+          "Does not prove parser completeness.",
+          "Does not prove product retrieval quality.",
+          "Does not prove production FalkorDB runtime behavior.",
+          "Does not prove production graph schema readiness."
+        ]
+      },
+      {
+        "count": 10,
+        "id": "EVID-OFFLINE-CITATION-RETRIEVAL-PROOF",
+        "non_claims": [
+          "Does not close GATE-G008.",
+          "Does not close GATE-G011.",
+          "Does not make LLM output legal authority.",
+          "Does not make proof-local IDs production IDs.",
+          "Does not prove legal-answer correctness.",
+          "Does not prove local embedding quality.",
+          "Does not prove parser completeness.",
+          "Does not prove product retrieval quality.",
+          "Does not prove production FalkorDB runtime behavior.",
+          "Does not prove production graph schema readiness."
+        ]
+      },
+      {
+        "count": 2,
+        "id": "EVID-PARSER-CONSULTANT-CANDIDATES",
+        "non_claims": [
+          "Does not prove Consultant relation correctness.",
+          "Does not prove parser completeness."
+        ]
+      },
+      {
+        "count": 5,
+        "id": "EVID-PARSER-CONSULTANT-HIERARCHY-PROOF",
+        "non_claims": [
+          "Does not prove FalkorDB loading/runtime behavior.",
+          "Does not prove Garant ODT parser regression.",
+          "Does not prove multi-document Consultant expansion.",
+          "Does not prove parser completeness.",
+          "Does not prove product ETL readiness."
+        ]
+      },
+      {
+        "count": 5,
+        "id": "EVID-PARSER-GOLDEN-TEST-PROOF",
+        "non_claims": [
+          "Does not prove FalkorDB loading/runtime behavior.",
+          "Does not prove citation-safe retrieval readiness.",
+          "Does not prove legal-answer correctness.",
+          "Does not prove parser completeness.",
+          "Does not prove product retrieval quality."
+        ]
+      },
+      {
+        "count": 2,
+        "id": "EVID-PARSER-ODT-SMOKE",
+        "non_claims": [
+          "No final legal hierarchy extraction claim.",
+          "No parser completeness claim."
+        ]
+      },
+      {
+        "count": 2,
+        "id": "EVID-PARSER-RECORD-CONTRACT",
+        "non_claims": [
+          "Does not prove parser completeness.",
+          "Does not prove product ETL readiness."
+        ]
+      },
+      {
+        "count": 2,
+        "id": "EVID-PARSER-SOURCE-FIXTURE-INVENTORY",
+        "non_claims": [
+          "Does not prove legal correctness.",
+          "Does not prove parser completeness."
+        ]
+      },
+      {
+        "count": 2,
+        "id": "EVID-PARSER-STAGING-GRAPH",
+        "non_claims": [
+          "Does not prove FalkorDB loading/runtime behavior.",
+          "Does not prove legal-answer correctness."
+        ]
+      },
+      {
+        "count": 10,
+        "id": "EVID-REAL-ARTIFACT-RETRIEVAL-PROOF",
+        "non_claims": [
+          "Does not close GATE-G008.",
+          "Does not close GATE-G011.",
+          "Does not make LLM output legal authority.",
+          "Does not make proof-local IDs production IDs.",
+          "Does not prove legal-answer correctness.",
+          "Does not prove local embedding quality.",
+          "Does not prove parser completeness.",
+          "Does not prove product retrieval quality.",
+          "Does not prove production FalkorDB runtime behavior.",
+          "Does not prove production graph schema readiness."
+        ]
+      },
+      {
+        "count": 11,
+        "id": "EVID-REPRESENTATIVE-RETRIEVAL-RUNTIME-BENCHMARK-PROOF",
+        "non_claims": [
+          "Does not allow managed embedding API fallback.",
+          "Does not authorize GigaChat or GigaEmbeddings runtime use.",
+          "Does not close GATE-G011.",
+          "Does not make proof-local IDs production IDs.",
+          "Does not persist raw legal text, raw query text, raw prompts, vectors, provider payloads, managed-API evidence, raw FalkorDB rows, secrets, or generated legal advice.",
+          "Does not prove legal-answer correctness.",
+          "Does not prove parser completeness.",
+          "Does not prove product retrieval quality.",
+          "Does not prove production FalkorDB runtime behavior.",
+          "Does not prove production graph schema readiness.",
+          "Does not prove production ranker quality."
+        ]
+      },
+      {
+        "count": 5,
+        "id": "EVID-RESEARCH-GRAPHRAG-MATH-ANALYSIS",
+        "non_claims": [
+          "Does not prove FalkorDB production-scale behavior.",
+          "Does not prove GraphRAG-SDK compatibility.",
+          "Does not prove legal-answer correctness.",
+          "Does not prove product retrieval quality.",
+          "Does not validate benchmark, cost, or latency claims."
+        ]
+      },
+      {
+        "count": 5,
+        "id": "EVID-RESEARCH-HABR-LEGAL-RAG-ITERATION-SCALING",
+        "non_claims": [
+          "Does not authorize generated Cypher execution.",
+          "Does not prove FalkorDB runtime/vector/full-text/rerank behavior.",
+          "Does not prove legal-answer correctness.",
+          "Does not prove parser completeness.",
+          "Does not prove product retrieval quality."
+        ]
+      },
+      {
+        "count": 11,
+        "id": "EVID-RESEARCH-ONTOLOGY-AKOMA-LKIF-BFO",
+        "non_claims": [
+          "Does not make LLM output legal authority.",
+          "Does not prove FalkorDB graph-vector/runtime capability.",
+          "Does not prove GOST/BFO source correctness.",
+          "Does not prove LKIF/deontic extraction correctness.",
+          "Does not prove RusLawOD corpus priority.",
+          "Does not prove legal-answer correctness.",
+          "Does not prove ontology GraphRAG retrieval quality.",
+          "Does not prove ontology benchmark quality.",
+          "Does not prove parser completeness.",
+          "Does not prove pilot-scale readiness.",
+          "Does not prove product Legal KnowQL behavior."
+        ]
+      },
+      {
+        "count": 8,
+        "id": "EVID-RETRIEVAL-OUTPUT-ID-VALIDATOR-PROOF",
+        "non_claims": [
+          "Does not make LLM output legal authority.",
+          "Does not make fixture IDs production IDs.",
+          "Does not promote D045 research into validated product behavior.",
+          "Does not prove legal-answer correctness.",
+          "Does not prove parser completeness.",
+          "Does not prove product retrieval quality.",
+          "Does not prove production FalkorDB runtime behavior.",
+          "Does not prove raw legal text evidence quality."
+        ]
+      },
+      {
+        "count": 10,
+        "id": "GATE-AKOMA-FRBR-NORMALIZATION",
+        "non_claims": [
+          "Does not make Akoma Ntoso canonical.",
+          "Does not make LLM output legal authority.",
+          "Does not prove FalkorDB graph-vector/runtime capability.",
+          "Does not prove export compatibility.",
+          "Does not prove legal-answer correctness.",
+          "Does not prove ontology benchmark quality.",
+          "Does not prove parser completeness.",
+          "Does not prove pilot-scale readiness.",
+          "Does not prove product Legal KnowQL behavior.",
+          "Does not require replacing current parser record contracts."
+        ]
+      },
+      {
+        "count": 10,
+        "id": "GATE-BFO-GOST-ALIGNMENT",
+        "non_claims": [
+          "Does not assert BFO conformance.",
+          "Does not assert Common Logic necessity or OWL reasoning support.",
+          "Does not assert GOST requirements.",
+          "Does not make LLM output legal authority.",
+          "Does not prove FalkorDB graph-vector/runtime capability.",
+          "Does not prove legal-answer correctness.",
+          "Does not prove ontology benchmark quality.",
+          "Does not prove parser completeness.",
+          "Does not prove pilot-scale readiness.",
+          "Does not prove product Legal KnowQL behavior."
+        ]
+      },
+      {
+        "count": 3,
+        "id": "GATE-EMBEDDING-SUPPLY-CHAIN",
+        "non_claims": [
+          "Does not allow managed embedding API fallback.",
+          "Does not promote any embedding model to product default.",
+          "Does not prove product retrieval quality."
+        ]
+      },
+      {
+        "count": 1,
+        "id": "GATE-G005",
+        "non_claims": [
+          "Does not validate temporal conflict resolution."
+        ]
+      },
+      {
+        "count": 2,
+        "id": "GATE-G008",
+        "non_claims": [
+          "No parser completeness claim.",
+          "No product retrieval quality claim."
+        ]
+      },
+      {
+        "count": 2,
+        "id": "GATE-G011",
+        "non_claims": [
+          "No managed embedding API fallback claim.",
+          "No product retrieval quality claim."
+        ]
+      },
+      {
+        "count": 1,
+        "id": "GATE-G015",
+        "non_claims": [
+          "No production-scale FalkorDB claim."
+        ]
+      },
+      {
+        "count": 3,
+        "id": "GATE-GENERATED-CYPHER-SAFETY",
+        "non_claims": [
+          "Does not authorize executing raw generated Cypher.",
+          "Does not prove production Legal KnowQL behavior.",
+          "Does not prove provider generation quality."
+        ]
+      },
+      {
+        "count": 10,
+        "id": "GATE-LEGAL-COLLISION-POLICY",
+        "non_claims": [
+          "Does not make LLM output legal authority.",
+          "Does not produce legally binding answers.",
+          "Does not prove FalkorDB graph-vector/runtime capability.",
+          "Does not prove automated legal collision resolution.",
+          "Does not prove court interpretation correctness.",
+          "Does not prove legal-answer correctness.",
+          "Does not prove ontology benchmark quality.",
+          "Does not prove parser completeness.",
+          "Does not prove pilot-scale readiness.",
+          "Does not prove product Legal KnowQL behavior."
+        ]
+      },
+      {
+        "count": 3,
+        "id": "GATE-LEGAL-NEXUS-ACCESS-CONTROL",
+        "non_claims": [
+          "Does not assert current product is insecure.",
+          "Does not define a production API surface.",
+          "Does not prove access-control enforcement."
+        ]
+      },
+      {
+        "count": 10,
+        "id": "GATE-LKIF-DEONTIC-BENCHMARK",
+        "non_claims": [
+          "Does not make LLM output legal authority.",
+          "Does not prove FalkorDB graph-vector/runtime capability.",
+          "Does not prove ML model fitness.",
+          "Does not prove legal-answer correctness.",
+          "Does not prove ontology benchmark quality.",
+          "Does not prove parser completeness.",
+          "Does not prove pilot-scale readiness.",
+          "Does not prove product Legal KnowQL behavior.",
+          "Does not prove semantic extraction.",
+          "Planning alias GATE-DEONTIC-MAPPING-PROOF is not emitted as an authoritative gate."
+        ]
+      },
+      {
+        "count": 10,
+        "id": "GATE-ONTOLOGY-GRAPHRAG-INTEGRATION",
+        "non_claims": [
+          "Does not make LLM output legal authority.",
+          "Does not prove FalkorDB graph-vector/runtime capability.",
+          "Does not prove HNSW behavior or single-transaction graph+vector semantics.",
+          "Does not prove legal-answer correctness.",
+          "Does not prove ontology benchmark quality.",
+          "Does not prove parser completeness.",
+          "Does not prove pilot-scale readiness.",
+          "Does not prove product Legal KnowQL behavior.",
+          "Does not prove product retrieval quality.",
+          "Does not prove vector/full-text/FalkorDB runtime capability."
+        ]
+      },
+      {
+        "count": 12,
+        "id": "GATE-PILOT-SCALE-READINESS",
+        "non_claims": [
+          "Does not claim that 1,000 representative documents have been processed.",
+          "Does not invalidate existing bounded proofs.",
+          "Does not make LLM output legal authority.",
+          "Does not prove FalkorDB graph-vector/runtime capability.",
+          "Does not prove legal-answer correctness.",
+          "Does not prove ontology benchmark quality.",
+          "Does not prove parser completeness.",
+          "Does not prove pilot-scale readiness.",
+          "Does not prove product Legal KnowQL behavior.",
+          "Does not prove production scale.",
+          "Does not prove production-scale FalkorDB claim.",
+          "Planning alias GATE-1000-DOC-PILOT is not emitted as an authoritative gate."
+        ]
+      },
+      {
+        "count": 9,
+        "id": "GATE-RUSLEGALCORE-SCOPE",
+        "non_claims": [
+          "Does not make LLM output legal authority.",
+          "Does not prove FalkorDB graph-vector/runtime capability.",
+          "Does not prove implementation readiness.",
+          "Does not prove legal-answer correctness.",
+          "Does not prove ontology benchmark quality.",
+          "Does not prove ontology completeness.",
+          "Does not prove parser completeness.",
+          "Does not prove pilot-scale readiness.",
+          "Does not prove product Legal KnowQL behavior."
+        ]
+      },
+      {
+        "count": 6,
+        "id": "M001-ARCHITECTURE-ONLY-GUARDRAIL",
+        "non_claims": [
+          "No KnowQL parser.",
+          "No LegalNexus API.",
+          "No hybrid retrieval.",
+          "No legal-answering runtime.",
+          "No product ETL.",
+          "No production graph schema."
+        ]
+      },
+      {
+        "count": 3,
+        "id": "QS-OBSERVABILITY-OPERABILITY-BASELINE",
+        "non_claims": [
+          "Does not prove legal-answer correctness.",
+          "Does not prove production observability.",
+          "Does not prove runtime SLOs."
+        ]
+      },
+      {
+        "count": 7,
+        "id": "REQ-R001",
+        "non_claims": [
+          "No LLM legal authority claim.",
+          "No legal-answer correctness claim.",
+          "No managed embedding API fallback claim.",
+          "No parser completeness claim.",
+          "No product Legal KnowQL behavior claim.",
+          "No product retrieval quality claim.",
+          "No production-scale FalkorDB claim."
+        ]
+      },
+      {
+        "count": 7,
+        "id": "REQ-R009",
+        "non_claims": [
+          "No LLM legal authority claim.",
+          "No legal-answer correctness claim.",
+          "No managed embedding API fallback claim.",
+          "No parser completeness claim.",
+          "No product Legal KnowQL behavior claim.",
+          "No product retrieval quality claim.",
+          "No production-scale FalkorDB claim."
+        ]
+      },
+      {
+        "count": 7,
+        "id": "REQ-R010",
+        "non_claims": [
+          "No LLM legal authority claim.",
+          "No legal-answer correctness claim.",
+          "No managed embedding API fallback claim.",
+          "No parser completeness claim.",
+          "No product Legal KnowQL behavior claim.",
+          "No product retrieval quality claim.",
+          "No production-scale FalkorDB claim."
+        ]
+      },
+      {
+        "count": 4,
+        "id": "REQ-R017",
+        "non_claims": [
+          "No LLM legal authority claim.",
+          "No legal-answer correctness claim.",
+          "No live legal graph execution claim.",
+          "No product Legal KnowQL behavior claim."
+        ]
+      },
+      {
+        "count": 3,
+        "id": "REQ-R022",
+        "non_claims": [
+          "No credential, prompt, raw legal text, or raw row emission claim.",
+          "No legal-answer correctness claim.",
+          "No raw provider body persistence claim."
+        ]
+      },
+      {
+        "count": 3,
+        "id": "REQ-R028",
+        "non_claims": [
+          "No LLM legal authority claim.",
+          "No generated Cypher authority claim.",
+          "No legal-answer correctness claim."
+        ]
+      },
+      {
+        "count": 1,
+        "id": "REQ-R029",
+        "non_claims": [
+          "Does not itself prove product runtime behavior."
+        ]
+      },
+      {
+        "count": 6,
+        "id": "REQ-R034",
+        "non_claims": [
+          "Does not make fixture IDs production IDs.",
+          "Does not promote D045 research into validated product behavior.",
+          "Does not prove legal-answer correctness.",
+          "Does not prove parser completeness.",
+          "Does not prove product retrieval quality.",
+          "Does not prove production FalkorDB runtime behavior."
+        ]
+      },
+      {
+        "count": 2,
+        "id": "REQ-TEMPORAL-STATUS-SEMANTICS",
+        "non_claims": [
+          "Does not prove import runtime behavior.",
+          "Does not validate same-date conflict policy."
+        ]
+      },
+      {
+        "count": 1,
+        "id": "RISK-OVERCLAIM-RUNTIME",
+        "non_claims": [
+          "Risk item does not assert current product failure."
+        ]
+      },
+      {
+        "count": 3,
+        "id": "S04-FALKORDB-RUNTIME-BOUNDED",
+        "non_claims": [
+          "No direct LegalGraph GraphBLAS API/control surface claim.",
+          "No legal retrieval quality claim.",
+          "No production-scale FalkorDB claim."
+        ]
+      },
+      {
+        "count": 2,
+        "id": "S05-OLD-PROJECT-PRIOR-ART",
+        "non_claims": [
+          "No Old_project artifact accepted unchanged.",
+          "No parser completeness claim."
+        ]
+      },
+      {
+        "count": 3,
+        "id": "S05-PARSER-ODT-BOUNDARY",
+        "non_claims": [
+          "No final legal hierarchy extraction claim.",
+          "No parser completeness claim.",
+          "No production SourceBlock/EvidenceSpan creation claim."
+        ]
+      },
+      {
+        "count": 1,
+        "id": "S07-FIXED-PRD-CONSISTENCY",
+        "non_claims": [
+          "Does not prove product behavior."
+        ]
+      },
+      {
+        "count": 3,
+        "id": "S10-GIGAEMBEDDINGS-CHALLENGER-BLOCKED",
+        "non_claims": [
+          "No default promotion while blocked-environment.",
+          "No managed embedding API fallback claim.",
+          "No product retrieval quality claim."
+        ]
+      },
+      {
+        "count": 3,
+        "id": "S10-USER-BGE-M3-BASELINE",
+        "non_claims": [
+          "No managed embedding API fallback claim.",
+          "No product retrieval quality claim.",
+          "No raw embedding leakage claim beyond verifier scope."
+        ]
+      }
+    ],
+    "nodes_with_non_claims": 63,
+    "total_non_claims": 344
+  },
+  "orphan_findings": [],
+  "traceability_edges": [
+    {
+      "from": "ACP-AHF-0001",
+      "id": "ACP-EDGE-AHF-0001-affects-DC-0001",
+      "rationale": "ACP affects relationship projected as canonical-shaped custom output only.",
+      "status": "active",
+      "to": "ACP-DC-0001",
+      "type": "blocks"
+    },
+    {
+      "from": "ACP-AHF-0001",
+      "id": "ACP-EDGE-AHF-0001-affects-PG-0001",
+      "rationale": "ACP affects relationship projected as canonical-shaped custom output only.",
+      "status": "active",
+      "to": "ACP-PG-0001",
+      "type": "affects"
+    },
+    {
+      "from": "ACP-AP-0001",
+      "id": "ACP-EDGE-AP-0001-originProposal-DC-0001",
+      "rationale": "ACP originProposal relationship projected as canonical-shaped custom output only.",
+      "status": "hypothesis",
+      "to": "ACP-DC-0001",
+      "type": "origin_proposal"
+    },
+    {
+      "from": "ACP-AP-0001",
+      "id": "ACP-EDGE-AP-0001-suggestedDecision-DC-0001",
+      "rationale": "ACP suggestedDecision relationship projected as canonical-shaped custom output only.",
+      "status": "hypothesis",
+      "to": "ACP-DC-0001",
+      "type": "suggested_decision"
+    },
+    {
+      "from": "ACP-APR-0001",
+      "id": "ACP-EDGE-APR-0001-originPromptRecord-AP-0001",
+      "rationale": "ACP originPromptRecord relationship projected as canonical-shaped custom output only.",
+      "status": "bounded-evidence",
+      "to": "ACP-AP-0001",
+      "type": "origin_prompt_record"
+    },
+    {
+      "from": "ACP-APR-0001",
+      "id": "ACP-EDGE-APR-0001-producedProposal-AP-0001",
+      "rationale": "ACP producedProposal relationship projected as canonical-shaped custom output only.",
+      "status": "bounded-evidence",
+      "to": "ACP-AP-0001",
+      "type": "produced_proposal"
+    },
+    {
+      "from": "ACP-DC-0001",
+      "id": "ACP-EDGE-DC-0001-requiresProof-PG-0001",
+      "rationale": "ACP requiresProof relationship projected as canonical-shaped custom output only.",
+      "status": "active",
+      "to": "ACP-PG-0001",
+      "type": "requires_proof"
+    },
+    {
+      "from": "COMP-LEGAL-NEXUS-ORCHESTRATOR",
+      "id": "EDGE-COMP-LEGAL-NEXUS-DEPENDS-ON-DATA-LEGAL-EVIDENCE-CORE",
+      "rationale": "Legal Nexus orchestration depends on source-backed legal-evidence entities before answer or query behavior can be validated.",
+      "status": "active",
+      "to": "DATA-LEGAL-EVIDENCE-CORE",
+      "type": "depends_on"
+    },
+    {
+      "from": "DATA-LEGAL-DOCUMENT-IDENTITY-FRBR",
+      "id": "EDGE-DATA-LEGAL-DOCUMENT-IDENTITY-FRBR-BOUNDED-BY-GATE-AKOMA-FRBR-NORMALIZATION",
+      "rationale": "FRBR-like identity remains bounded by parser/normalization proof before canonical legal-unit projection claims.",
+      "status": "hypothesis",
+      "to": "GATE-AKOMA-FRBR-NORMALIZATION",
+      "type": "bounded_by"
+    },
+    {
+      "from": "DATA-LEGAL-DOCUMENT-IDENTITY-FRBR",
+      "id": "EDGE-DATA-LEGAL-DOCUMENT-IDENTITY-FRBR-EVIDENCED-BY-EVID-RESEARCH-ONTOLOGY-AKOMA-LKIF-BFO",
+      "rationale": "The M017 ontology research and gap-analysis plan is bounded source-anchor evidence for this conservative ontology candidate; it does not upgrade proof beyond source-anchor.",
+      "status": "bounded-evidence",
+      "to": "EVID-RESEARCH-ONTOLOGY-AKOMA-LKIF-BFO",
+      "type": "evidenced_by"
+    },
+    {
+      "from": "DATA-LEGAL-DOCUMENT-IDENTITY-FRBR",
+      "id": "EDGE-DATA-LEGAL-DOCUMENT-IDENTITY-FRBR-REFINES-DATA-TEMPORAL-PROPERTY-BUNDLE",
+      "rationale": "The FRBR-like candidate refines existing temporal property bundle concepts without replacing current parser records.",
+      "status": "hypothesis",
+      "to": "DATA-TEMPORAL-PROPERTY-BUNDLE",
+      "type": "refines"
+    },
+    {
+      "from": "DATA-LEGAL-DOCUMENT-IDENTITY-FRBR",
+      "id": "EDGE-DATA-LEGAL-DOCUMENT-IDENTITY-FRBR-REFINES-REQ-TEMPORAL-STATUS-SEMANTICS",
+      "rationale": "The identity candidate refines existing temporal status semantics and remains source-anchor-only until examples and proof exist.",
+      "status": "hypothesis",
+      "to": "REQ-TEMPORAL-STATUS-SEMANTICS",
+      "type": "refines"
+    },
+    {
+      "from": "DATA-LEGAL-EVIDENCE-CORE",
+      "id": "EDGE-DATA-LEGAL-EVIDENCE-EVIDENCED-BY-PARSER-RECORD-CONTRACT",
+      "rationale": "Parser record contracts provide bounded evidence for SourceDocument/SourceBlock-related legal-evidence record shapes.",
+      "status": "active",
+      "to": "EVID-PARSER-RECORD-CONTRACT",
+      "type": "evidenced_by"
+    },
+    {
+      "from": "DATA-LEGAL-SOURCE-HIERARCHY",
+      "id": "EDGE-DATA-LEGAL-SOURCE-HIERARCHY-EVIDENCED-BY-EVID-RESEARCH-ONTOLOGY-AKOMA-LKIF-BFO",
+      "rationale": "The M017 ontology research and gap-analysis plan is bounded source-anchor evidence for this conservative ontology candidate; it does not upgrade proof beyond source-anchor.",
+      "status": "bounded-evidence",
+      "to": "EVID-RESEARCH-ONTOLOGY-AKOMA-LKIF-BFO",
+      "type": "evidenced_by"
+    },
+    {
+      "from": "DATA-LKIF-DEONTIC-MAPPING",
+      "id": "EDGE-DATA-LKIF-DEONTIC-MAPPING-BOUNDED-BY-GATE-LKIF-DEONTIC-BENCHMARK",
+      "rationale": "LKIF/deontic mapping must remain proof-gated by the canonical verifier-policy benchmark gate before use as semantic/legal evidence.",
+      "status": "hypothesis",
+      "to": "GATE-LKIF-DEONTIC-BENCHMARK",
+      "type": "bounded_by"
+    },
+    {
+      "from": "DATA-LKIF-DEONTIC-MAPPING",
+      "id": "EDGE-DATA-LKIF-DEONTIC-MAPPING-DEPENDS-ON-DATA-LEGAL-EVIDENCE-CORE",
+      "rationale": "Deontic extraction candidates depend on source-backed legal evidence and evidence-span concepts.",
+      "status": "hypothesis",
+      "to": "DATA-LEGAL-EVIDENCE-CORE",
+      "type": "depends_on"
+    },
+    {
+      "from": "DATA-LKIF-DEONTIC-MAPPING",
+      "id": "EDGE-DATA-LKIF-DEONTIC-MAPPING-EVIDENCED-BY-EVID-RESEARCH-ONTOLOGY-AKOMA-LKIF-BFO",
+      "rationale": "The M017 ontology research and gap-analysis plan is bounded source-anchor evidence for this conservative ontology candidate; it does not upgrade proof beyond source-anchor.",
+      "status": "bounded-evidence",
+      "to": "EVID-RESEARCH-ONTOLOGY-AKOMA-LKIF-BFO",
+      "type": "evidenced_by"
+    },
+    {
+      "from": "DATA-RUSLEGALCORE-DOMAIN-ONTOLOGY",
+      "id": "EDGE-DATA-RUSLEGALCORE-DOMAIN-ONTOLOGY-BOUNDED-BY-GATE-RUSLEGALCORE-SCOPE",
+      "rationale": "RusLegalCore must be scoped before it can become an active domain-ontology contract.",
+      "status": "hypothesis",
+      "to": "GATE-RUSLEGALCORE-SCOPE",
+      "type": "bounded_by"
+    },
+    {
+      "from": "DATA-RUSLEGALCORE-DOMAIN-ONTOLOGY",
+      "id": "EDGE-DATA-RUSLEGALCORE-DOMAIN-ONTOLOGY-DEPENDS-ON-DATA-LEGAL-SOURCE-HIERARCHY",
+      "rationale": "The Russian legal domain ontology candidate depends on explicit legal-force and source hierarchy concepts before collision-policy use.",
+      "status": "hypothesis",
+      "to": "DATA-LEGAL-SOURCE-HIERARCHY",
+      "type": "depends_on"
+    },
+    {
+      "from": "DATA-RUSLEGALCORE-DOMAIN-ONTOLOGY",
+      "id": "EDGE-DATA-RUSLEGALCORE-DOMAIN-ONTOLOGY-EVIDENCED-BY-EVID-RESEARCH-ONTOLOGY-AKOMA-LKIF-BFO",
+      "rationale": "The M017 ontology research and gap-analysis plan is bounded source-anchor evidence for this conservative ontology candidate; it does not upgrade proof beyond source-anchor.",
+      "status": "bounded-evidence",
+      "to": "EVID-RESEARCH-ONTOLOGY-AKOMA-LKIF-BFO",
+      "type": "evidenced_by"
+    },
+    {
+      "from": "DEC-D031",
+      "id": "EDGE-DEC-D031-CHECKED-BY-CHECK-ARCHITECTURE-EXTRACTOR",
+      "rationale": "The high-risk architecture registry decision is checked by the deterministic extractor drift check in S02.",
+      "status": "active",
+      "to": "CHECK-ARCHITECTURE-EXTRACTOR",
+      "type": "checked_by"
+    },
+    {
+      "from": "DEC-D031",
+      "id": "EDGE-DEC-D031-HAS-ASSUMPTION-ASSUMP-PRD-SOURCE-TRUTH",
+      "rationale": "The architecture registry decision assumes PRD/GSD/ADR/source/runtime evidence remains authoritative and generated registry artifacts remain derived projections.",
+      "status": "active",
+      "to": "ASSUMP-PRD-SOURCE-TRUTH",
+      "type": "has_assumption"
+    },
+    {
+      "from": "DEC-D031",
+      "id": "EDGE-DEC-D031-SATISFIES-REQ-R029",
+      "rationale": "The docs-as-code architecture registry decision is the chosen approach for executable architecture verification.",
+      "status": "active",
+      "to": "REQ-R029",
+      "type": "satisfies"
+    },
+    {
+      "from": "DEC-D032",
+      "id": "EDGE-DEC-D032-DEPENDS-ON-DEC-D031",
+      "rationale": "The architecture verification skill should be created only after the registry contract and verifier workflow exist.",
+      "status": "active",
+      "to": "DEC-D031",
+      "type": "depends_on"
+    },
+    {
+      "from": "EVID-LOCAL-RETRIEVAL-QUALITY-BENCHMARK-PROOF",
+      "id": "EDGE-EVID-LOCAL-RETRIEVAL-QUALITY-BENCHMARK-PROOF-BOUNDED-BY-GATE-G011",
+      "rationale": "The M015 proof validates deterministic seed-fixture retrieval quality metrics under local/open-weight USER-bge-m3 boundary metadata, but remains bounded by the broader local embedding quality gate.",
+      "status": "active",
+      "to": "GATE-G011",
+      "type": "bounded_by"
+    },
+    {
+      "from": "EVID-LOCAL-RETRIEVAL-QUALITY-BENCHMARK-PROOF",
+      "id": "EDGE-EVID-LOCAL-RETRIEVAL-QUALITY-BENCHMARK-PROOF-CHECKED-BY-CHECK-ARCHITECTURE-EXTRACTOR",
+      "rationale": "The deterministic architecture extractor keeps the M015 benchmark proof anchors, status, proof level, and non-claims visible in generated registry outputs.",
+      "status": "active",
+      "to": "CHECK-ARCHITECTURE-EXTRACTOR",
+      "type": "checked_by"
+    },
+    {
+      "from": "EVID-LOCAL-RETRIEVAL-QUALITY-BENCHMARK-PROOF",
+      "id": "EDGE-EVID-LOCAL-RETRIEVAL-QUALITY-BENCHMARK-PROOF-DEPENDS-ON-EVID-OFFLINE-CITATION-RETRIEVAL-PROOF",
+      "rationale": "The M015 seed benchmark reuses M014 offline citation retrieval fixture provenance while adding fixture-level quality metrics and S10 model boundary metadata.",
+      "status": "active",
+      "to": "EVID-OFFLINE-CITATION-RETRIEVAL-PROOF",
+      "type": "depends_on"
+    },
+    {
+      "from": "EVID-OFFLINE-CITATION-RETRIEVAL-PROOF",
+      "id": "EDGE-EVID-OFFLINE-CITATION-RETRIEVAL-PROOF-BOUNDED-BY-GATE-G008",
+      "rationale": "The M014 proof validates deterministic offline citation-safe retrieval behavior over a bounded tracked corpus, but remains bounded by the broader product parser/retrieval readiness gate.",
+      "status": "active",
+      "to": "GATE-G008",
+      "type": "bounded_by"
+    },
+    {
+      "from": "EVID-OFFLINE-CITATION-RETRIEVAL-PROOF",
+      "id": "EDGE-EVID-OFFLINE-CITATION-RETRIEVAL-PROOF-CHECKED-BY-CHECK-ARCHITECTURE-EXTRACTOR",
+      "rationale": "The deterministic architecture extractor keeps the M014 offline citation proof anchors, status, proof level, and non-claims visible in generated registry outputs.",
+      "status": "active",
+      "to": "CHECK-ARCHITECTURE-EXTRACTOR",
+      "type": "checked_by"
+    },
+    {
+      "from": "EVID-OFFLINE-CITATION-RETRIEVAL-PROOF",
+      "id": "EDGE-EVID-OFFLINE-CITATION-RETRIEVAL-PROOF-DEPENDS-ON-DATA-LEGAL-EVIDENCE-CORE",
+      "rationale": "The offline citation proof depends on source/evidence/legal-unit/edition ID path concepts from the legal evidence core while remaining a proof-local fixture, not production graph data.",
+      "status": "active",
+      "to": "DATA-LEGAL-EVIDENCE-CORE",
+      "type": "depends_on"
+    },
+    {
+      "from": "EVID-PARSER-CONSULTANT-HIERARCHY-PROOF",
+      "id": "EDGE-EVID-PARSER-CONSULTANT-HIERARCHY-PROOF-BOUNDED-BY-GATE-G008",
+      "rationale": "M009 proves a bounded single-document Consultant hierarchy path but remains bounded by the product parser/retrieval readiness gate.",
+      "status": "active",
+      "to": "GATE-G008",
+      "type": "bounded_by"
+    },
+    {
+      "from": "EVID-PARSER-GOLDEN-TEST-PROOF",
+      "id": "EDGE-EVID-PARSER-GOLDEN-TEST-PROOF-BOUNDED-BY-GATE-G008",
+      "rationale": "M008 proves a bounded golden-test harness but remains bounded by the product parser/retrieval readiness gate.",
+      "status": "active",
+      "to": "GATE-G008",
+      "type": "bounded_by"
+    },
+    {
+      "from": "EVID-REAL-ARTIFACT-RETRIEVAL-PROOF",
+      "id": "EDGE-EVID-REAL-ARTIFACT-RETRIEVAL-PROOF-BOUNDED-BY-GATE-G008",
+      "rationale": "The M013 proof validates real-artifact output IDs and diagnostics but remains bounded by the product parser/retrieval readiness gate.",
+      "status": "active",
+      "to": "GATE-G008",
+      "type": "bounded_by"
+    },
+    {
+      "from": "EVID-REAL-ARTIFACT-RETRIEVAL-PROOF",
+      "id": "EDGE-EVID-REAL-ARTIFACT-RETRIEVAL-PROOF-BOUNDED-BY-GATE-G011",
+      "rationale": "The M013 proof validates fail-closed output IDs but does not measure local embedding or product retrieval quality.",
+      "status": "active",
+      "to": "GATE-G011",
+      "type": "bounded_by"
+    },
+    {
+      "from": "EVID-REAL-ARTIFACT-RETRIEVAL-PROOF",
+      "id": "EDGE-EVID-REAL-ARTIFACT-RETRIEVAL-PROOF-CHECKED-BY-CHECK-ARCHITECTURE-EXTRACTOR",
+      "rationale": "The deterministic architecture extractor keeps the M013 real-artifact proof anchors, status, proof level, and non-claims visible in generated registry outputs.",
+      "status": "active",
+      "to": "CHECK-ARCHITECTURE-EXTRACTOR",
+      "type": "checked_by"
+    },
+    {
+      "from": "EVID-REAL-ARTIFACT-RETRIEVAL-PROOF",
+      "id": "EDGE-EVID-REAL-ARTIFACT-RETRIEVAL-PROOF-SATISFIES-REQ-R034",
+      "rationale": "The M013 real-artifact proof provides executable evidence that retrieval output IDs derived from tracked parser artifacts can fail closed through source, legal-unit, and edition paths without promoting product retrieval quality or legal-answer claims.",
+      "status": "active",
+      "to": "REQ-R034",
+      "type": "satisfies"
+    },
+    {
+      "from": "EVID-REPRESENTATIVE-RETRIEVAL-RUNTIME-BENCHMARK-PROOF",
+      "id": "EDGE-EVID-REPRESENTATIVE-RETRIEVAL-RUNTIME-BENCHMARK-PROOF-BOUNDED-BY-GATE-G011",
+      "rationale": "The M016 representative runtime benchmark confirms proof-local metrics and local/open-weight runtime boundary, but remains bounded by the broader GATE-G011 product retrieval quality disposition.",
+      "status": "active",
+      "to": "GATE-G011",
+      "type": "bounded_by"
+    },
+    {
+      "from": "EVID-REPRESENTATIVE-RETRIEVAL-RUNTIME-BENCHMARK-PROOF",
+      "id": "EDGE-EVID-REPRESENTATIVE-RETRIEVAL-RUNTIME-BENCHMARK-PROOF-CHECKED-BY-CHECK-ARCHITECTURE-EXTRACTOR",
+      "rationale": "The deterministic architecture extractor and regression tests keep the M016 representative runtime benchmark anchors, bounded status, proof level, redaction boundary, and open GATE-G011 disposition visible in generated registry outputs.",
+      "status": "validated",
+      "to": "CHECK-ARCHITECTURE-EXTRACTOR",
+      "type": "checked_by"
+    },
+    {
+      "from": "EVID-REPRESENTATIVE-RETRIEVAL-RUNTIME-BENCHMARK-PROOF",
+      "id": "EDGE-EVID-REPRESENTATIVE-RETRIEVAL-RUNTIME-BENCHMARK-PROOF-DEPENDS-ON-EVID-LOCAL-RETRIEVAL-QUALITY-BENCHMARK-PROOF",
+      "rationale": "The M016 representative runtime benchmark extends the M015 local retrieval benchmark pattern from seed fixtures to the representative manifest while preserving bounded, local/open-weight evidence scope.",
+      "status": "active",
+      "to": "EVID-LOCAL-RETRIEVAL-QUALITY-BENCHMARK-PROOF",
+      "type": "depends_on"
+    },
+    {
+      "from": "EVID-REPRESENTATIVE-RETRIEVAL-RUNTIME-BENCHMARK-PROOF",
+      "id": "EDGE-EVID-REPRESENTATIVE-RETRIEVAL-RUNTIME-BENCHMARK-PROOF-DEPENDS-ON-S10-USER-BGE-M3-BASELINE",
+      "rationale": "The M016 representative runtime benchmark depends on the bounded USER-bge-m3 local/open-weight runtime baseline and repeats the no-managed-API boundary in its proof output.",
+      "status": "active",
+      "to": "S10-USER-BGE-M3-BASELINE",
+      "type": "depends_on"
+    },
+    {
+      "from": "EVID-RESEARCH-GRAPHRAG-MATH-ANALYSIS",
+      "id": "EDGE-EVID-RESEARCH-GRAPHRAG-MATH-ANALYSIS-BOUNDED-BY-GATE-G005",
+      "rationale": "Research ideas about temporal legal graph reasoning remain bounded by the unresolved temporal same-date conflict policy gate.",
+      "status": "active",
+      "to": "GATE-G005",
+      "type": "bounded_by"
+    },
+    {
+      "from": "EVID-RESEARCH-GRAPHRAG-MATH-ANALYSIS",
+      "id": "EDGE-EVID-RESEARCH-GRAPHRAG-MATH-ANALYSIS-BOUNDED-BY-GATE-G008",
+      "rationale": "Research ideas about graph pre-filtering and GraphRAG retrieval remain bounded by product parser/retrieval readiness proof.",
+      "status": "active",
+      "to": "GATE-G008",
+      "type": "bounded_by"
+    },
+    {
+      "from": "EVID-RESEARCH-GRAPHRAG-MATH-ANALYSIS",
+      "id": "EDGE-EVID-RESEARCH-GRAPHRAG-MATH-ANALYSIS-BOUNDED-BY-GATE-G011",
+      "rationale": "Research ideas about ranking, embeddings, and hybrid retrieval remain bounded by local embedding quality proof.",
+      "status": "active",
+      "to": "GATE-G011",
+      "type": "bounded_by"
+    },
+    {
+      "from": "EVID-RESEARCH-GRAPHRAG-MATH-ANALYSIS",
+      "id": "EDGE-EVID-RESEARCH-GRAPHRAG-MATH-ANALYSIS-BOUNDED-BY-GATE-G015",
+      "rationale": "Research performance and FalkorDB runtime claims remain bounded by runtime migration/load proof.",
+      "status": "active",
+      "to": "GATE-G015",
+      "type": "bounded_by"
+    },
+    {
+      "from": "EVID-RESEARCH-GRAPHRAG-MATH-ANALYSIS",
+      "id": "EDGE-EVID-RESEARCH-GRAPHRAG-MATH-ANALYSIS-BOUNDED-BY-GATE-GENERATED-CYPHER-SAFETY",
+      "rationale": "Research ideas about LLM agent orchestration and generated queries remain bounded by generated-Cypher product safety proof.",
+      "status": "active",
+      "to": "GATE-GENERATED-CYPHER-SAFETY",
+      "type": "bounded_by"
+    },
+    {
+      "from": "EVID-RESEARCH-HABR-LEGAL-RAG-ITERATION-SCALING",
+      "id": "EDGE-EVID-RESEARCH-HABR-LEGAL-RAG-BOUNDED-BY-GATE-EMBEDDING-SUPPLY-CHAIN",
+      "rationale": "Habr Legal RAG local retrieval and reranker model ideas remain bounded by embedding model provenance, integrity, local runtime, and leakage checks.",
+      "status": "active",
+      "to": "GATE-EMBEDDING-SUPPLY-CHAIN",
+      "type": "bounded_by"
+    },
+    {
+      "from": "EVID-RESEARCH-HABR-LEGAL-RAG-ITERATION-SCALING",
+      "id": "EDGE-EVID-RESEARCH-HABR-LEGAL-RAG-BOUNDED-BY-GATE-G005",
+      "rationale": "Habr Legal RAG scale/disambiguation lessons reinforce temporal routing but remain bounded by unresolved same-date and multi-edition conflict policy.",
+      "status": "active",
+      "to": "GATE-G005",
+      "type": "bounded_by"
+    },
+    {
+      "from": "EVID-RESEARCH-HABR-LEGAL-RAG-ITERATION-SCALING",
+      "id": "EDGE-EVID-RESEARCH-HABR-LEGAL-RAG-BOUNDED-BY-GATE-G008",
+      "rationale": "Habr Legal RAG ideas about format-first validation, citation precision, and scoped no-answer behavior remain bounded by product parser/retrieval readiness proof.",
+      "status": "active",
+      "to": "GATE-G008",
+      "type": "bounded_by"
+    },
+    {
+      "from": "EVID-RESEARCH-HABR-LEGAL-RAG-ITERATION-SCALING",
+      "id": "EDGE-EVID-RESEARCH-HABR-LEGAL-RAG-BOUNDED-BY-GATE-G011",
+      "rationale": "Habr Legal RAG ideas about hybrid retrieval, evidence precision, reranking, and scale/noise evaluation remain bounded by local embedding quality proof.",
+      "status": "active",
+      "to": "GATE-G011",
+      "type": "bounded_by"
+    },
+    {
+      "from": "EVID-RESEARCH-HABR-LEGAL-RAG-ITERATION-SCALING",
+      "id": "EDGE-EVID-RESEARCH-HABR-LEGAL-RAG-BOUNDED-BY-GATE-G015",
+      "rationale": "Habr Legal RAG scale/noise degradation lessons remain bounded by future FalkorDBLite-to-Docker runtime migration and load proof.",
+      "status": "active",
+      "to": "GATE-G015",
+      "type": "bounded_by"
+    },
+    {
+      "from": "EVID-RESEARCH-HABR-LEGAL-RAG-ITERATION-SCALING",
+      "id": "EDGE-EVID-RESEARCH-HABR-LEGAL-RAG-BOUNDED-BY-GATE-GENERATED-CYPHER-SAFETY",
+      "rationale": "Habr Legal RAG post-LLM verification lessons support generated-output caution but remain bounded by generated-Cypher safety proof.",
+      "status": "active",
+      "to": "GATE-GENERATED-CYPHER-SAFETY",
+      "type": "bounded_by"
+    },
+    {
+      "from": "EVID-RESEARCH-ONTOLOGY-AKOMA-LKIF-BFO",
+      "id": "EDGE-EVID-RESEARCH-ONTOLOGY-AKOMA-LKIF-BFO-BOUNDED-BY-RISK-OVERCLAIM-RUNTIME",
+      "rationale": "Ontology intake evidence remains bounded by the project-wide runtime/legal overclaim risk until specific gates earn stronger proof.",
+      "status": "bounded-evidence",
+      "to": "RISK-OVERCLAIM-RUNTIME",
+      "type": "bounded_by"
+    },
+    {
+      "from": "EVID-RETRIEVAL-OUTPUT-ID-VALIDATOR-PROOF",
+      "id": "EDGE-EVID-RETRIEVAL-OUTPUT-ID-VALIDATOR-PROOF-BOUNDED-BY-GATE-G008",
+      "rationale": "The validator proof checks output IDs and diagnostics but remains bounded by the product parser/retrieval readiness gate.",
+      "status": "active",
+      "to": "GATE-G008",
+      "type": "bounded_by"
+    },
+    {
+      "from": "EVID-RETRIEVAL-OUTPUT-ID-VALIDATOR-PROOF",
+      "id": "EDGE-EVID-RETRIEVAL-OUTPUT-ID-VALIDATOR-PROOF-BOUNDED-BY-GATE-G011",
+      "rationale": "The validator proof can reject unresolved IDs but does not measure local embedding or product retrieval quality.",
+      "status": "active",
+      "to": "GATE-G011",
+      "type": "bounded_by"
+    },
+    {
+      "from": "EVID-RETRIEVAL-OUTPUT-ID-VALIDATOR-PROOF",
+      "id": "EDGE-EVID-RETRIEVAL-OUTPUT-ID-VALIDATOR-PROOF-CHECKED-BY-CHECK-ARCHITECTURE-EXTRACTOR",
+      "rationale": "The deterministic architecture extractor keeps the M012 validator proof anchors, status, proof level, and non-claims visible in generated registry outputs.",
+      "status": "active",
+      "to": "CHECK-ARCHITECTURE-EXTRACTOR",
+      "type": "checked_by"
+    },
+    {
+      "from": "EVID-RETRIEVAL-OUTPUT-ID-VALIDATOR-PROOF",
+      "id": "EDGE-EVID-RETRIEVAL-OUTPUT-ID-VALIDATOR-PROOF-DEPENDS-ON-DATA-LEGAL-EVIDENCE-CORE",
+      "rationale": "The validator proof resolves citation and evidence IDs through bounded SourceBlock, SourceDocument, LegalUnit, and ActEdition fixture paths derived from the legal-evidence core concept.",
+      "status": "active",
+      "to": "DATA-LEGAL-EVIDENCE-CORE",
+      "type": "depends_on"
+    },
+    {
+      "from": "EVID-RETRIEVAL-OUTPUT-ID-VALIDATOR-PROOF",
+      "id": "EDGE-EVID-RETRIEVAL-OUTPUT-ID-VALIDATOR-PROOF-SATISFIES-REQ-R034",
+      "rationale": "The M012 validator proof provides bounded executable evidence for R034 fail-closed output identifier checks without promoting product retrieval or legal-answer claims.",
+      "status": "active",
+      "to": "REQ-R034",
+      "type": "satisfies"
+    },
+    {
+      "from": "GATE-AKOMA-FRBR-NORMALIZATION",
+      "id": "EDGE-GATE-AKOMA-FRBR-NORMALIZATION-EVIDENCED-BY-EVID-RESEARCH-ONTOLOGY-AKOMA-LKIF-BFO",
+      "rationale": "The M017 ontology research and gap-analysis plan is bounded source-anchor evidence for this conservative ontology candidate; it does not upgrade proof beyond source-anchor.",
+      "status": "bounded-evidence",
+      "to": "EVID-RESEARCH-ONTOLOGY-AKOMA-LKIF-BFO",
+      "type": "evidenced_by"
+    },
+    {
+      "from": "GATE-AKOMA-FRBR-NORMALIZATION",
+      "id": "EDGE-GATE-AKOMA-FRBR-NORMALIZATION-REFINES-EVID-PARSER-RECORD-CONTRACT",
+      "rationale": "The normalization gate refines current parser record contract evidence into a possible canonical/projection layer only if proof is later added.",
+      "status": "hypothesis",
+      "to": "EVID-PARSER-RECORD-CONTRACT",
+      "type": "refines"
+    },
+    {
+      "from": "GATE-BFO-GOST-ALIGNMENT",
+      "id": "EDGE-GATE-BFO-GOST-ALIGNMENT-EVIDENCED-BY-EVID-RESEARCH-ONTOLOGY-AKOMA-LKIF-BFO",
+      "rationale": "The M017 ontology research and gap-analysis plan is bounded source-anchor evidence for this conservative ontology candidate; it does not upgrade proof beyond source-anchor.",
+      "status": "bounded-evidence",
+      "to": "EVID-RESEARCH-ONTOLOGY-AKOMA-LKIF-BFO",
+      "type": "evidenced_by"
+    },
+    {
+      "from": "GATE-EMBEDDING-SUPPLY-CHAIN",
+      "id": "EDGE-GATE-EMBEDDING-SUPPLY-CHAIN-BOUNDS-S10-USER-BGE-M3",
+      "rationale": "USER-bge-m3 remains a bounded local/open-weight baseline until model provenance and supply-chain gates are formalized for product use.",
+      "status": "active",
+      "to": "S10-USER-BGE-M3-BASELINE",
+      "type": "bounded_by"
+    },
+    {
+      "from": "GATE-G005",
+      "id": "EDGE-GATE-G005-BLOCKS-TEMPORAL-VALIDATION",
+      "rationale": "Unresolved temporal conflict policy must remain visible in architecture verification outputs.",
+      "status": "active",
+      "to": "REQ-R029",
+      "type": "blocks"
+    },
+    {
+      "from": "GATE-G005",
+      "id": "EDGE-GATE-G005-DEPENDS-ON-DATA-TEMPORAL-PROPERTY-BUNDLE",
+      "rationale": "Same-date conflict policy depends on explicit temporal fields and status semantics being modeled before validation.",
+      "status": "active",
+      "to": "DATA-TEMPORAL-PROPERTY-BUNDLE",
+      "type": "depends_on"
+    },
+    {
+      "from": "GATE-G008",
+      "id": "EDGE-GATE-G008-BLOCKS-PARSER-RETRIEVAL-PROOF",
+      "rationale": "Product parser/retrieval readiness gaps must remain explicit even after M008 bounded golden-test harness proof.",
+      "status": "active",
+      "to": "REQ-R029",
+      "type": "blocks"
+    },
+    {
+      "from": "GATE-G011",
+      "id": "EDGE-GATE-G011-BLOCKS-RETRIEVAL-QUALITY-CLAIMS",
+      "rationale": "Local embedding evidence remains bounded and cannot validate product retrieval quality without benchmarks.",
+      "status": "active",
+      "to": "REQ-R029",
+      "type": "blocks"
+    },
+    {
+      "from": "GATE-G015",
+      "id": "EDGE-GATE-G015-BLOCKS-RUNTIME-MIGRATION-CLAIMS",
+      "rationale": "FalkorDBLite to Docker migration remains an explicit deployment proof gate.",
+      "status": "active",
+      "to": "REQ-R029",
+      "type": "blocks"
+    },
+    {
+      "from": "GATE-GENERATED-CYPHER-SAFETY",
+      "id": "EDGE-GATE-GENERATED-CYPHER-SAFETY-BLOCKS-REQ-R017",
+      "rationale": "R017 cannot be validated for product Legal KnowQL until generated-Cypher safety is proven beyond M003 route/proof-harness evidence.",
+      "status": "active",
+      "to": "REQ-R017",
+      "type": "blocks"
+    },
+    {
+      "from": "GATE-LEGAL-COLLISION-POLICY",
+      "id": "EDGE-GATE-LEGAL-COLLISION-POLICY-DEPENDS-ON-DATA-LEGAL-SOURCE-HIERARCHY",
+      "rationale": "Collision policy needs explicit hierarchy and supersession inputs before priority behavior can be tested.",
+      "status": "hypothesis",
+      "to": "DATA-LEGAL-SOURCE-HIERARCHY",
+      "type": "depends_on"
+    },
+    {
+      "from": "GATE-LEGAL-COLLISION-POLICY",
+      "id": "EDGE-GATE-LEGAL-COLLISION-POLICY-EVIDENCED-BY-EVID-RESEARCH-ONTOLOGY-AKOMA-LKIF-BFO",
+      "rationale": "The M017 ontology research and gap-analysis plan is bounded source-anchor evidence for this conservative ontology candidate; it does not upgrade proof beyond source-anchor.",
+      "status": "bounded-evidence",
+      "to": "EVID-RESEARCH-ONTOLOGY-AKOMA-LKIF-BFO",
+      "type": "evidenced_by"
+    },
+    {
+      "from": "GATE-LEGAL-COLLISION-POLICY",
+      "id": "EDGE-GATE-LEGAL-COLLISION-POLICY-REFINES-GATE-G005",
+      "rationale": "Full legal collision policy broadens the existing temporal same-date/multi-edition conflict gate without closing it.",
+      "status": "hypothesis",
+      "to": "GATE-G005",
+      "type": "refines"
+    },
+    {
+      "from": "GATE-LEGAL-NEXUS-ACCESS-CONTROL",
+      "id": "EDGE-GATE-LEGAL-NEXUS-ACCESS-CONTROL-BLOCKS-COMP-LEGAL-NEXUS",
+      "rationale": "Legal Nexus component claims remain bounded until access-control behavior is specified and verified.",
+      "status": "active",
+      "to": "COMP-LEGAL-NEXUS-ORCHESTRATOR",
+      "type": "blocks"
+    },
+    {
+      "from": "GATE-LKIF-DEONTIC-BENCHMARK",
+      "id": "EDGE-GATE-LKIF-DEONTIC-BENCHMARK-EVIDENCED-BY-EVID-RESEARCH-ONTOLOGY-AKOMA-LKIF-BFO",
+      "rationale": "The M017 ontology research and gap-analysis plan is bounded source-anchor evidence for this conservative ontology candidate; it does not upgrade proof beyond source-anchor.",
+      "status": "bounded-evidence",
+      "to": "EVID-RESEARCH-ONTOLOGY-AKOMA-LKIF-BFO",
+      "type": "evidenced_by"
+    },
+    {
+      "from": "GATE-ONTOLOGY-GRAPHRAG-INTEGRATION",
+      "id": "EDGE-GATE-ONTOLOGY-GRAPHRAG-INTEGRATION-BOUNDED-BY-REQ-R034",
+      "rationale": "Ontology GraphRAG integration inherits citation/evidence identifier fail-closed boundaries from R034.",
+      "status": "hypothesis",
+      "to": "REQ-R034",
+      "type": "bounded_by"
+    },
+    {
+      "from": "GATE-ONTOLOGY-GRAPHRAG-INTEGRATION",
+      "id": "EDGE-GATE-ONTOLOGY-GRAPHRAG-INTEGRATION-EVIDENCED-BY-EVID-RESEARCH-ONTOLOGY-AKOMA-LKIF-BFO",
+      "rationale": "The M017 ontology research and gap-analysis plan is bounded source-anchor evidence for this conservative ontology candidate; it does not upgrade proof beyond source-anchor.",
+      "status": "bounded-evidence",
+      "to": "EVID-RESEARCH-ONTOLOGY-AKOMA-LKIF-BFO",
+      "type": "evidenced_by"
+    },
+    {
+      "from": "GATE-ONTOLOGY-GRAPHRAG-INTEGRATION",
+      "id": "EDGE-GATE-ONTOLOGY-GRAPHRAG-INTEGRATION-REFINES-GATE-G008",
+      "rationale": "Ontology GraphRAG retrieval ideas refine product parser/retrieval readiness proof needs without closing parser completeness gates.",
+      "status": "hypothesis",
+      "to": "GATE-G008",
+      "type": "refines"
+    },
+    {
+      "from": "GATE-ONTOLOGY-GRAPHRAG-INTEGRATION",
+      "id": "EDGE-GATE-ONTOLOGY-GRAPHRAG-INTEGRATION-REFINES-GATE-G011",
+      "rationale": "Ontology GraphRAG retrieval ideas refine local retrieval quality proof needs without claiming retrieval quality.",
+      "status": "hypothesis",
+      "to": "GATE-G011",
+      "type": "refines"
+    },
+    {
+      "from": "GATE-PILOT-SCALE-READINESS",
+      "id": "EDGE-GATE-PILOT-SCALE-READINESS-EVIDENCED-BY-EVID-RESEARCH-ONTOLOGY-AKOMA-LKIF-BFO",
+      "rationale": "The M017 ontology research and gap-analysis plan is bounded source-anchor evidence for this conservative ontology candidate; it does not upgrade proof beyond source-anchor.",
+      "status": "bounded-evidence",
+      "to": "EVID-RESEARCH-ONTOLOGY-AKOMA-LKIF-BFO",
+      "type": "evidenced_by"
+    },
+    {
+      "from": "GATE-RUSLEGALCORE-SCOPE",
+      "id": "EDGE-GATE-RUSLEGALCORE-SCOPE-EVIDENCED-BY-EVID-RESEARCH-ONTOLOGY-AKOMA-LKIF-BFO",
+      "rationale": "The M017 ontology research and gap-analysis plan is bounded source-anchor evidence for this conservative ontology candidate; it does not upgrade proof beyond source-anchor.",
+      "status": "bounded-evidence",
+      "to": "EVID-RESEARCH-ONTOLOGY-AKOMA-LKIF-BFO",
+      "type": "evidenced_by"
+    },
+    {
+      "from": "M001-ARCHITECTURE-ONLY-GUARDRAIL",
+      "id": "EDGE-M001-ARCHITECTURE-ONLY-GUARDRAIL-BOUNDS-REQ-R029",
+      "rationale": "Architecture registry verification must preserve architecture-only/product non-claim guardrails.",
+      "status": "active",
+      "to": "REQ-R029",
+      "type": "bounded_by"
+    },
+    {
+      "from": "QS-OBSERVABILITY-OPERABILITY-BASELINE",
+      "id": "EDGE-QS-OBSERVABILITY-BASELINE-CHECKED-BY-CHECK-ARCHITECTURE-EXTRACTOR",
+      "rationale": "The deterministic architecture extractor/check workflow keeps observability and auditability boundary records visible in derived planning views.",
+      "status": "active",
+      "to": "CHECK-ARCHITECTURE-EXTRACTOR",
+      "type": "checked_by"
+    },
+    {
+      "from": "REQ-R001",
+      "id": "EDGE-REQ-R001-EVIDENCED-BY-S07-FIXED-PRD-CONSISTENCY",
+      "rationale": "S07/S08 final report evidence supports architecture finding classification within M001 scope.",
+      "status": "active",
+      "to": "S07-FIXED-PRD-CONSISTENCY",
+      "type": "evidenced_by"
+    },
+    {
+      "from": "REQ-R009",
+      "id": "EDGE-REQ-R009-EVIDENCED-BY-S08-FINDINGS",
+      "rationale": "S08 findings rows preserve owner, resolution path, verification criteria, and roadmap effect for architecture issues.",
+      "status": "active",
+      "to": "S07-FIXED-PRD-CONSISTENCY",
+      "type": "evidenced_by"
+    },
+    {
+      "from": "REQ-R010",
+      "id": "EDGE-REQ-R010-EVIDENCED-BY-S08-FINDINGS",
+      "rationale": "S08 produced a machine-readable findings path and schema proposal consumed by this extractor.",
+      "status": "active",
+      "to": "S07-FIXED-PRD-CONSISTENCY",
+      "type": "evidenced_by"
+    },
+    {
+      "from": "REQ-R017",
+      "id": "EDGE-REQ-R017-BOUNDED-BY-R028",
+      "rationale": "Generated Cypher proof work remains bounded by the non-authoritative LLM/legal authority guardrail.",
+      "status": "active",
+      "to": "REQ-R028",
+      "type": "bounded_by"
+    },
+    {
+      "from": "REQ-R022",
+      "id": "EDGE-REQ-R022-BOUNDS-S04-FALKORDB-RUNTIME-BOUNDED",
+      "rationale": "Runtime proof artifacts must remain categorical and avoid raw sensitive/provider/legal payloads.",
+      "status": "active",
+      "to": "S04-FALKORDB-RUNTIME-BOUNDED",
+      "type": "bounded_by"
+    },
+    {
+      "from": "REQ-TEMPORAL-STATUS-SEMANTICS",
+      "id": "EDGE-REQ-TEMPORAL-STATUS-SEMANTICS-DEPENDS-ON-DATA-TEMPORAL-PROPERTY-BUNDLE",
+      "rationale": "Temporal status semantics depend on a stable temporal property bundle contract.",
+      "status": "active",
+      "to": "DATA-TEMPORAL-PROPERTY-BUNDLE",
+      "type": "depends_on"
+    },
+    {
+      "from": "RISK-OVERCLAIM-RUNTIME",
+      "id": "EDGE-RISK-OVERCLAIM-CHECKED-BY-CHECK-ARCHITECTURE-EXTRACTOR",
+      "rationale": "The extractor check fails closed for unsafe status/proof mappings and stale generated outputs.",
+      "status": "active",
+      "to": "CHECK-ARCHITECTURE-EXTRACTOR",
+      "type": "checked_by"
+    },
+    {
+      "from": "RISK-OVERCLAIM-RUNTIME",
+      "id": "EDGE-RISK-OVERCLAIM-RISKS-DATA-LEGAL-EVIDENCE-CORE",
+      "rationale": "Legal-evidence entity records can be overclaimed as implemented schema or legal correctness if non-claims are ignored.",
+      "status": "active",
+      "to": "DATA-LEGAL-EVIDENCE-CORE",
+      "type": "risks"
+    },
+    {
+      "from": "RISK-OVERCLAIM-RUNTIME",
+      "id": "EDGE-RISK-OVERCLAIM-RISKS-GATE-GENERATED-CYPHER-SAFETY",
+      "rationale": "Generated-Cypher proof gates are threatened by overclaiming draft LLM output as executable or legally authoritative behavior.",
+      "status": "active",
+      "to": "GATE-GENERATED-CYPHER-SAFETY",
+      "type": "risks"
+    },
+    {
+      "from": "S04-FALKORDB-RUNTIME-BOUNDED",
+      "id": "EDGE-S04-FALKORDB-RUNTIME-BOUNDED-BOUNDED-BY-RISK-OVERCLAIM-RUNTIME",
+      "rationale": "S04 smoke evidence must not be upgraded to product suitability, production scale, or legal-quality proof.",
+      "status": "active",
+      "to": "RISK-OVERCLAIM-RUNTIME",
+      "type": "bounded_by"
+    },
+    {
+      "from": "S05-OLD-PROJECT-PRIOR-ART",
+      "id": "EDGE-S05-OLD-PROJECT-PRIOR-ART-BOUNDED-BY-GATE-G008",
+      "rationale": "Old_project prior art remains bounded by executable parser/retrieval golden-test proof before any legacy assumption is promoted.",
+      "status": "active",
+      "to": "GATE-G008",
+      "type": "bounded_by"
+    },
+    {
+      "from": "S05-PARSER-ODT-BOUNDARY",
+      "id": "EDGE-S05-PARSER-ODT-BOUNDARY-BOUNDED-BY-GATE-G008",
+      "rationale": "S05 parser smoke guides investigation but product parser/retrieval readiness remains behind GATE-G008.",
+      "status": "active",
+      "to": "GATE-G008",
+      "type": "bounded_by"
+    },
+    {
+      "from": "S05-PARSER-ODT-BOUNDARY",
+      "id": "EDGE-S05-PARSER-ODT-BOUNDARY-EVIDENCED-BY-PARSER-CONSULTANT-CANDIDATES",
+      "rationale": "Consultant relation candidates are tracked prior-art relation evidence but remain non-authoritative candidate records.",
+      "status": "active",
+      "to": "EVID-PARSER-CONSULTANT-CANDIDATES",
+      "type": "evidenced_by"
+    },
+    {
+      "from": "S05-PARSER-ODT-BOUNDARY",
+      "id": "EDGE-S05-PARSER-ODT-BOUNDARY-EVIDENCED-BY-PARSER-ODT-SMOKE",
+      "rationale": "Bounded ODT smoke records are tracked real-document parser evidence for current parser staging scope.",
+      "status": "active",
+      "to": "EVID-PARSER-ODT-SMOKE",
+      "type": "evidenced_by"
+    },
+    {
+      "from": "S05-PARSER-ODT-BOUNDARY",
+      "id": "EDGE-S05-PARSER-ODT-BOUNDARY-EVIDENCED-BY-PARSER-SOURCE-FIXTURE-INVENTORY",
+      "rationale": "M006 fixture inventory is tracked parser evidence that supersedes ad hoc source-path assumptions for downstream parser planning.",
+      "status": "active",
+      "to": "EVID-PARSER-SOURCE-FIXTURE-INVENTORY",
+      "type": "evidenced_by"
+    },
+    {
+      "from": "S05-PARSER-ODT-BOUNDARY",
+      "id": "EDGE-S05-PARSER-ODT-BOUNDARY-EVIDENCED-BY-PARSER-STAGING-GRAPH",
+      "rationale": "NetworkX staging graph evidence preserves parser JSONL and relation-candidate invariants without claiming FalkorDB runtime loading.",
+      "status": "active",
+      "to": "EVID-PARSER-STAGING-GRAPH",
+      "type": "evidenced_by"
+    },
+    {
+      "from": "S10-GIGAEMBEDDINGS-CHALLENGER-BLOCKED",
+      "id": "EDGE-S10-GIGAEMBEDDINGS-CHALLENGER-BOUNDED-BY-GATE-G011",
+      "rationale": "Blocked GigaEmbeddings challenger evidence remains behind local embedding quality proof and cannot become managed fallback or default retrieval model.",
+      "status": "active",
+      "to": "GATE-G011",
+      "type": "bounded_by"
+    },
+    {
+      "from": "S10-USER-BGE-M3-BASELINE",
+      "id": "EDGE-S10-USER-BGE-M3-BASELINE-BOUNDED-BY-GATE-G011",
+      "rationale": "USER-bge-m3 runtime proof is a local baseline, not product retrieval quality proof.",
+      "status": "active",
+      "to": "GATE-G011",
+      "type": "bounded_by"
+    }
+  ],
+  "unresolved_proof_gates": [
+    {
+      "id": "GATE-EMBEDDING-SUPPLY-CHAIN",
+      "layer": "security-safety",
+      "owner": "future-embedding-supply-chain-proof",
+      "proof_level": "none",
+      "risk_level": "high",
+      "status": "active",
+      "verification": "Future embedding proof records model source, checksum or revision, local runtime envelope, vector dimension, and no-secret/no-raw-vector leakage checks."
+    },
+    {
+      "id": "GATE-G005",
+      "layer": "temporal-model",
+      "owner": "future-temporal-proof",
+      "proof_level": "none",
+      "risk_level": "high",
+      "status": "active",
+      "verification": "A future proof slice defines and verifies same-date/multi-edition conflict policy."
+    },
+    {
+      "id": "GATE-G008",
+      "layer": "parser-ingestion",
+      "owner": "future-product-parser-retrieval-proof",
+      "proof_level": "none",
+      "risk_level": "high",
+      "status": "active",
+      "verification": "Future product proof demonstrates parser completeness boundaries, citation-safe retrieval behavior, and retrieval quality over real legal source fixtures."
+    },
+    {
+      "id": "GATE-G011",
+      "layer": "retrieval-embedding",
+      "owner": "future-retrieval-quality-proof",
+      "proof_level": "none",
+      "risk_level": "high",
+      "status": "active",
+      "verification": "Retrieval quality benchmark passes under local/open-weight embedding constraints."
+    },
+    {
+      "id": "GATE-G015",
+      "layer": "graph-runtime",
+      "owner": "future-runtime-migration-proof",
+      "proof_level": "none",
+      "risk_level": "medium",
+      "status": "active",
+      "verification": "Migration runbook is executed against bounded fixtures and runtime diagnostics."
+    },
+    {
+      "id": "GATE-GENERATED-CYPHER-SAFETY",
+      "layer": "generated-cypher",
+      "owner": "future-generated-cypher-safety-proof",
+      "proof_level": "none",
+      "risk_level": "critical",
+      "status": "active",
+      "verification": "A future product proof demonstrates validator acceptance/rejection behavior across representative Legal KnowQL tasks and live graph schemas."
+    },
+    {
+      "id": "GATE-LEGAL-NEXUS-ACCESS-CONTROL",
+      "layer": "security-safety",
+      "owner": "future-api-security-proof",
+      "proof_level": "none",
+      "risk_level": "high",
+      "status": "active",
+      "verification": "Future security proof defines caller boundaries, authorization policy, audit logging, and denial diagnostics for Legal Nexus operations."
+    }
+  ],
+  "weak_components": [
+    {
+      "nodes": [
+        "ACP-AHF-0001",
+        "ACP-AP-0001",
+        "ACP-APR-0001",
+        "ACP-DC-0001",
+        "ACP-PG-0001"
+      ],
+      "size": 5
+    },
+    {
+      "nodes": [
+        "ASSUMP-PRD-SOURCE-TRUTH",
+        "CHECK-ARCHITECTURE-EXTRACTOR",
+        "COMP-LEGAL-NEXUS-ORCHESTRATOR",
+        "DATA-LEGAL-DOCUMENT-IDENTITY-FRBR",
+        "DATA-LEGAL-EVIDENCE-CORE",
+        "DATA-LEGAL-SOURCE-HIERARCHY",
+        "DATA-LKIF-DEONTIC-MAPPING",
+        "DATA-RUSLEGALCORE-DOMAIN-ONTOLOGY",
+        "DATA-TEMPORAL-PROPERTY-BUNDLE",
+        "DEC-D031",
+        "DEC-D032",
+        "EVID-LOCAL-RETRIEVAL-QUALITY-BENCHMARK-PROOF",
+        "EVID-OFFLINE-CITATION-RETRIEVAL-PROOF",
+        "EVID-PARSER-CONSULTANT-CANDIDATES",
+        "EVID-PARSER-CONSULTANT-HIERARCHY-PROOF",
+        "EVID-PARSER-GOLDEN-TEST-PROOF",
+        "EVID-PARSER-ODT-SMOKE",
+        "EVID-PARSER-RECORD-CONTRACT",
+        "EVID-PARSER-SOURCE-FIXTURE-INVENTORY",
+        "EVID-PARSER-STAGING-GRAPH",
+        "EVID-REAL-ARTIFACT-RETRIEVAL-PROOF",
+        "EVID-REPRESENTATIVE-RETRIEVAL-RUNTIME-BENCHMARK-PROOF",
+        "EVID-RESEARCH-GRAPHRAG-MATH-ANALYSIS",
+        "EVID-RESEARCH-HABR-LEGAL-RAG-ITERATION-SCALING",
+        "EVID-RESEARCH-ONTOLOGY-AKOMA-LKIF-BFO",
+        "EVID-RETRIEVAL-OUTPUT-ID-VALIDATOR-PROOF",
+        "GATE-AKOMA-FRBR-NORMALIZATION",
+        "GATE-BFO-GOST-ALIGNMENT",
+        "GATE-EMBEDDING-SUPPLY-CHAIN",
+        "GATE-G005",
+        "GATE-G008",
+        "GATE-G011",
+        "GATE-G015",
+        "GATE-GENERATED-CYPHER-SAFETY",
+        "GATE-LEGAL-COLLISION-POLICY",
+        "GATE-LEGAL-NEXUS-ACCESS-CONTROL",
+        "GATE-LKIF-DEONTIC-BENCHMARK",
+        "GATE-ONTOLOGY-GRAPHRAG-INTEGRATION",
+        "GATE-PILOT-SCALE-READINESS",
+        "GATE-RUSLEGALCORE-SCOPE",
+        "M001-ARCHITECTURE-ONLY-GUARDRAIL",
+        "QS-OBSERVABILITY-OPERABILITY-BASELINE",
+        "REQ-R017",
+        "REQ-R022",
+        "REQ-R028",
+        "REQ-R029",
+        "REQ-R034",
+        "REQ-TEMPORAL-STATUS-SEMANTICS",
+        "RISK-OVERCLAIM-RUNTIME",
+        "S04-FALKORDB-RUNTIME-BOUNDED",
+        "S05-OLD-PROJECT-PRIOR-ART",
+        "S05-PARSER-ODT-BOUNDARY",
+        "S10-GIGAEMBEDDINGS-CHALLENGER-BLOCKED",
+        "S10-USER-BGE-M3-BASELINE"
+      ],
+      "size": 54
+    },
+    {
+      "nodes": [
+        "REQ-R001",
+        "REQ-R009",
+        "REQ-R010",
+        "S07-FIXED-PRD-CONSISTENCY"
+      ],
+      "size": 4
+    }
+  ]
+}
