@@ -53,6 +53,61 @@ FORBIDDEN_MARKERS = (
     "/root/",
     ".gsd/exec",
 )
+DIAGNOSTIC_METADATA = {
+    "missing-file": ("error", "input", "Regenerate or provide the expected generated registry input."),
+    "jsonl-parse": ("error", "input", "Fix the generating source or regenerated JSONL line."),
+    "jsonl-record": ("error", "input", "Ensure every JSONL line is an object record."),
+    "duplicate-id": ("error", "shape", "Fix source mapping or generator ID derivation."),
+    "record-kind": ("error", "shape", "Fix source mapping or generator output partitioning."),
+    "shape-smoke": ("error", "shape", "Add the missing generated registry field from source evidence."),
+    "source-anchor": ("error", "safety", "Add safe tracked source anchors."),
+    "unsafe-source-anchor": ("error", "safety", "Replace with a safe repository-relative tracked anchor."),
+    "missing-non-claim": ("error", "authority", "Add explicit R035/R037/R038 non-claims in source-owned ACP records."),
+    "authority-required": ("error", "authority", "Set authority_required to true for decision candidates."),
+    "missing-endpoint": ("error", "shape", "Fix the edge endpoint or add the missing item through source generation."),
+    "forbidden-marker": ("error", "output", "Remove the secret, local path, or overclaim from generated inputs or templates."),
+    "stale-output": ("error", "freshness", "Run the exporter in write mode after reviewing expected changes."),
+}
+VOCABULARY = {
+    "boundary": "Custom projection vocabulary only; not ontology completeness, SHACL engine proof, SPARQL execution proof, or architecture authority.",
+    "namespaces": {
+        "lgarch": "urn:law-nexus:vocab:architecture:",
+        "acp": "urn:law-nexus:vocab:acp:",
+    },
+    "classes": [
+        "lgarch:ArchitectureItem",
+        "lgarch:ArchitectureEdge",
+        "lgarch:SourceAnchor",
+        "lgarch:DecisionCandidate",
+        "lgarch:ProofGate",
+    ],
+    "predicates": [
+        "lgarch:recordId",
+        "lgarch:recordKind",
+        "lgarch:itemType",
+        "lgarch:edgeType",
+        "lgarch:status",
+        "lgarch:layer",
+        "lgarch:proofLevel",
+        "lgarch:riskLevel",
+        "lgarch:nonClaim",
+        "lgarch:sourceAnchor",
+        "lgarch:from",
+        "lgarch:to",
+        "acp:recordKind",
+        "acp:sourceRecordId",
+        "acp:captureMode",
+        "acp:redactionStatus",
+        "acp:authorityRequired",
+        "acp:allowedNextAction",
+        "acp:blockedAction",
+    ],
+}
+SAFETY_BOUNDARY = (
+    "Derived, custom-only ACP projection. Do not use as source truth, legal truth, product runtime proof, "
+    "requirement validation, RDF completeness proof, SHACL engine proof, SPARQL execution proof, "
+    "FalkorDB ingestion proof, or git-lex compatibility proof."
+)
 
 
 @dataclass(frozen=True)
@@ -64,12 +119,19 @@ class Diagnostic:
     field: str = "<none>"
 
     def to_json(self) -> dict[str, str]:
+        severity, category, remediation = DIAGNOSTIC_METADATA.get(
+            self.rule,
+            ("error", "output", "Inspect the diagnostic rule and repair the generated source or projection output."),
+        )
         return {
             "rule": self.rule,
+            "severity": severity,
+            "category": category,
             "message": self.message,
             "path": display_path(self.path),
             "record_id": self.record_id,
             "field": self.field,
+            "remediation": remediation,
         }
 
 
@@ -449,6 +511,62 @@ def check_output(path: Path, expected: str) -> tuple[bool, str]:
     return True, "output file is current"
 
 
+def sha256_text(text: str) -> str:
+    return hashlib.sha256(text.encode("utf-8")).hexdigest()
+
+
+def output_state(path: Path, expected: str) -> dict[str, Any]:
+    expected_hash = sha256_text(expected)
+    state: dict[str, Any] = {
+        "path": display_path(path),
+        "state": "missing",
+        "expected_bytes": len(expected.encode("utf-8")),
+        "expected_sha256": expected_hash,
+    }
+    if not path.exists():
+        return state
+    current = path.read_text(encoding="utf-8")
+    current_hash = sha256_text(current)
+    state.update(
+        {
+            "state": "current" if current == expected else "stale",
+            "current_bytes": len(current.encode("utf-8")),
+            "current_sha256": current_hash,
+        }
+    )
+    return state
+
+
+def diagnostic_summary(diagnostics: list[Diagnostic]) -> dict[str, dict[str, int]]:
+    summary: dict[str, dict[str, int]] = {"by_rule": {}, "by_category": {}, "by_severity": {}}
+    for diagnostic in diagnostics:
+        severity, category, _remediation = DIAGNOSTIC_METADATA.get(diagnostic.rule, ("error", "output", ""))
+        summary["by_rule"][diagnostic.rule] = summary["by_rule"].get(diagnostic.rule, 0) + 1
+        summary["by_category"][category] = summary["by_category"].get(category, 0) + 1
+        summary["by_severity"][severity] = summary["by_severity"].get(severity, 0) + 1
+    return {key: dict(sorted(value.items())) for key, value in summary.items()}
+
+
+def apply_diagnostics(report: dict[str, Any], diagnostics: list[Diagnostic]) -> None:
+    report["status"] = "ok" if not diagnostics else "failed"
+    report["shape_smoke"]["status"] = "ok" if not diagnostics else "failed"
+    report["diagnostic_count"] = len(diagnostics)
+    report["diagnostics"] = [diagnostic.to_json() for diagnostic in diagnostics]
+    report["diagnostic_summary"] = diagnostic_summary(diagnostics)
+
+
+def build_diff(output_pairs: list[tuple[Path, str]]) -> dict[str, Any]:
+    outputs = {label: output_state(path, expected) for label, (path, expected) in zip(("ttl", "shacl", "sparql", "report"), output_pairs, strict=True)}
+    states = sorted({value["state"] for value in outputs.values()})
+    return {
+        "mode": "diff",
+        "non_writing": True,
+        "status": "current" if states == ["current"] else "changed",
+        "states": states,
+        "outputs": outputs,
+    }
+
+
 def count_statements(ttl_text: str) -> int:
     return sum(1 for line in ttl_text.splitlines() if line.strip().endswith("."))
 
@@ -516,15 +634,15 @@ def build_outputs(args: argparse.Namespace) -> tuple[dict[str, str], dict[str, A
         },
         "diagnostic_count": len(diagnostics),
         "diagnostics": [diagnostic.to_json() for diagnostic in diagnostics],
+        "diagnostic_summary": diagnostic_summary(diagnostics),
+        "vocabulary": VOCABULARY,
+        "safety_boundary": SAFETY_BOUNDARY,
         "non_claims": list(NON_CLAIMS),
     }
     report_text = json.dumps(report, ensure_ascii=False, indent=2, sort_keys=True) + "\n"
     diagnostics.extend(validate_generated_text(args.report_output, report_text))
     if diagnostics:
-        report["status"] = "failed"
-        report["shape_smoke"]["status"] = "failed"
-        report["diagnostic_count"] = len(diagnostics)
-        report["diagnostics"] = [diagnostic.to_json() for diagnostic in diagnostics]
+        apply_diagnostics(report, diagnostics)
         report_text = json.dumps(report, ensure_ascii=False, indent=2, sort_keys=True) + "\n"
     return {"ttl": ttl_text, "shacl": shacl_text, "sparql": sparql_text, "report": report_text}, report, diagnostics
 
@@ -547,23 +665,26 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
         (args.report_output, outputs["report"]),
     ]
 
+    if args.diff:
+        if diagnostics:
+            apply_diagnostics(report, diagnostics)
+            return report
+        report["diff"] = build_diff(output_pairs)
+        return report
+
     if args.check:
         for path, expected in output_pairs:
             ok, message = check_output(path, expected)
             if not ok:
                 diagnostics.append(Diagnostic("stale-output", message, path))
         if diagnostics:
-            report["status"] = "failed"
-            report["diagnostic_count"] = len(diagnostics)
-            report["diagnostics"] = [diagnostic.to_json() for diagnostic in diagnostics]
+            apply_diagnostics(report, diagnostics)
     elif not diagnostics:
         for path, text in output_pairs:
             write_output(path, text)
 
     if diagnostics and not args.check:
-        report["status"] = "failed"
-        report["diagnostic_count"] = len(diagnostics)
-        report["diagnostics"] = [diagnostic.to_json() for diagnostic in diagnostics]
+        apply_diagnostics(report, diagnostics)
 
     return report
 
@@ -577,7 +698,11 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
     parser.add_argument("--sparql-output", type=Path, default=DEFAULT_SPARQL_OUTPUT)
     parser.add_argument("--report-output", type=Path, default=DEFAULT_REPORT_OUTPUT)
     parser.add_argument("--check", action="store_true")
-    return parser.parse_args(argv)
+    parser.add_argument("--diff", action="store_true", help="Report output freshness without writing files.")
+    args = parser.parse_args(argv)
+    if args.check and args.diff:
+        parser.error("--check and --diff are mutually exclusive")
+    return args
 
 
 def main(argv: list[str] | None = None) -> int:

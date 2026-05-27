@@ -8,6 +8,11 @@
     "statements": 422
   },
   "diagnostic_count": 0,
+  "diagnostic_summary": {
+    "by_category": {},
+    "by_rule": {},
+    "by_severity": {}
+  },
   "diagnostics": [],
   "inputs": {
     "edges": "prd/architecture/architecture_edges.jsonl",
@@ -28,6 +33,7 @@
     "sparql": "prd/architecture/acp/derived/architecture-projection.sparql",
     "ttl": "prd/architecture/acp/derived/architecture-projection.ttl"
   },
+  "safety_boundary": "Derived, custom-only ACP projection. Do not use as source truth, legal truth, product runtime proof, requirement validation, RDF completeness proof, SHACL engine proof, SPARQL execution proof, FalkorDB ingestion proof, or git-lex compatibility proof.",
   "shape_smoke": {
     "checked_rules": [
       "item-required-fields",
@@ -51,5 +57,40 @@
     ],
     "status": "ok"
   },
-  "status": "ok"
+  "status": "ok",
+  "vocabulary": {
+    "boundary": "Custom projection vocabulary only; not ontology completeness, SHACL engine proof, SPARQL execution proof, or architecture authority.",
+    "classes": [
+      "lgarch:ArchitectureItem",
+      "lgarch:ArchitectureEdge",
+      "lgarch:SourceAnchor",
+      "lgarch:DecisionCandidate",
+      "lgarch:ProofGate"
+    ],
+    "namespaces": {
+      "acp": "urn:law-nexus:vocab:acp:",
+      "lgarch": "urn:law-nexus:vocab:architecture:"
+    },
+    "predicates": [
+      "lgarch:recordId",
+      "lgarch:recordKind",
+      "lgarch:itemType",
+      "lgarch:edgeType",
+      "lgarch:status",
+      "lgarch:layer",
+      "lgarch:proofLevel",
+      "lgarch:riskLevel",
+      "lgarch:nonClaim",
+      "lgarch:sourceAnchor",
+      "lgarch:from",
+      "lgarch:to",
+      "acp:recordKind",
+      "acp:sourceRecordId",
+      "acp:captureMode",
+      "acp:redactionStatus",
+      "acp:authorityRequired",
+      "acp:allowedNextAction",
+      "acp:blockedAction"
+    ]
+  }
 }

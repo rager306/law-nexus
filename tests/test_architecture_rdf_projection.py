@@ -59,6 +59,14 @@ def test_architecture_rdf_projection_outputs_are_current() -> None:
     assert payload["non_authoritative"] is True
     assert payload["mode"] == "custom"
     assert payload["diagnostic_count"] == 0
+    assert payload["diagnostic_summary"] == {"by_category": {}, "by_rule": {}, "by_severity": {}}
+    assert payload["safety_boundary"].startswith("Derived, custom-only ACP projection")
+    assert payload["vocabulary"]["namespaces"] == {
+        "acp": "urn:law-nexus:vocab:acp:",
+        "lgarch": "urn:law-nexus:vocab:architecture:",
+    }
+    assert "lgarch:ArchitectureItem" in payload["vocabulary"]["classes"]
+    assert "acp:authorityRequired" in payload["vocabulary"]["predicates"]
     assert payload["counts"] == {
         "items": 63,
         "edges": 98,
@@ -111,6 +119,10 @@ def test_architecture_rdf_projection_artifact_content_boundaries() -> None:
     assert "Does not validate R038." in sparql
 
     assert report["non_authoritative"] is True
+    assert report["diagnostic_summary"] == {"by_category": {}, "by_rule": {}, "by_severity": {}}
+    assert report["vocabulary"]["boundary"].startswith("Custom projection vocabulary only")
+    assert "lgarch:recordId" in report["vocabulary"]["predicates"]
+    assert report["safety_boundary"].startswith("Derived, custom-only ACP projection")
     assert "This projection does not validate R035." in report["non_claims"]
     assert "This projection does not validate R037." in report["non_claims"]
     assert "This projection does not validate R038." in report["non_claims"]
@@ -153,7 +165,14 @@ def test_architecture_rdf_projection_detects_stale_outputs(tmp_path: Path) -> No
     assert result.returncode == 1
     payload = json.loads(result.stdout)
     assert payload["status"] == "failed"
-    stale_paths = {diagnostic["path"] for diagnostic in payload["diagnostics"] if diagnostic["rule"] == "stale-output"}
+    assert payload["diagnostic_summary"]["by_rule"] == {"stale-output": 4}
+    assert payload["diagnostic_summary"]["by_category"] == {"freshness": 4}
+    assert payload["diagnostic_summary"]["by_severity"] == {"error": 4}
+    stale_diagnostics = [diagnostic for diagnostic in payload["diagnostics"] if diagnostic["rule"] == "stale-output"]
+    assert all(diagnostic["severity"] == "error" for diagnostic in stale_diagnostics)
+    assert all(diagnostic["category"] == "freshness" for diagnostic in stale_diagnostics)
+    assert all("Run the exporter in write mode" in diagnostic["remediation"] for diagnostic in stale_diagnostics)
+    stale_paths = {diagnostic["path"] for diagnostic in stale_diagnostics}
     assert stale_paths == {
         str(tmp_path / "projection.ttl"),
         str(tmp_path / "projection.shacl.ttl"),
@@ -184,7 +203,10 @@ def test_architecture_rdf_projection_rejects_duplicate_ids(tmp_path: Path) -> No
 
     assert result.returncode == 1
     payload = json.loads(result.stdout)
-    assert any(diagnostic["rule"] == "duplicate-id" for diagnostic in payload["diagnostics"])
+    duplicate = next(diagnostic for diagnostic in payload["diagnostics"] if diagnostic["rule"] == "duplicate-id")
+    assert duplicate["category"] == "shape"
+    assert duplicate["severity"] == "error"
+    assert "generator ID derivation" in duplicate["remediation"]
 
 
 def test_architecture_rdf_projection_rejects_missing_endpoint(tmp_path: Path) -> None:
@@ -197,7 +219,9 @@ def test_architecture_rdf_projection_rejects_missing_endpoint(tmp_path: Path) ->
 
     assert result.returncode == 1
     payload = json.loads(result.stdout)
-    assert any(diagnostic["rule"] == "missing-endpoint" for diagnostic in payload["diagnostics"])
+    missing_endpoint = next(diagnostic for diagnostic in payload["diagnostics"] if diagnostic["rule"] == "missing-endpoint")
+    assert missing_endpoint["category"] == "shape"
+    assert "Fix the edge endpoint" in missing_endpoint["remediation"]
 
 
 def test_architecture_rdf_projection_rejects_unsafe_source_anchor(tmp_path: Path) -> None:
@@ -210,7 +234,9 @@ def test_architecture_rdf_projection_rejects_unsafe_source_anchor(tmp_path: Path
 
     assert result.returncode == 1
     payload = json.loads(result.stdout)
-    assert any(diagnostic["rule"] == "unsafe-source-anchor" for diagnostic in payload["diagnostics"])
+    unsafe_anchor = next(diagnostic for diagnostic in payload["diagnostics"] if diagnostic["rule"] == "unsafe-source-anchor")
+    assert unsafe_anchor["category"] == "safety"
+    assert "safe repository-relative" in unsafe_anchor["remediation"]
 
 
 def test_architecture_rdf_projection_rejects_missing_acp_non_claim(tmp_path: Path) -> None:
@@ -225,7 +251,9 @@ def test_architecture_rdf_projection_rejects_missing_acp_non_claim(tmp_path: Pat
 
     assert result.returncode == 1
     payload = json.loads(result.stdout)
-    assert any(diagnostic["rule"] == "missing-non-claim" for diagnostic in payload["diagnostics"])
+    missing_non_claim = next(diagnostic for diagnostic in payload["diagnostics"] if diagnostic["rule"] == "missing-non-claim")
+    assert missing_non_claim["category"] == "authority"
+    assert "R035/R037/R038 non-claims" in missing_non_claim["remediation"]
 
 
 def test_architecture_rdf_projection_rejects_missing_authority_requirement(tmp_path: Path) -> None:
@@ -240,4 +268,44 @@ def test_architecture_rdf_projection_rejects_missing_authority_requirement(tmp_p
 
     assert result.returncode == 1
     payload = json.loads(result.stdout)
-    assert any(diagnostic["rule"] == "authority-required" for diagnostic in payload["diagnostics"])
+    authority_required = next(diagnostic for diagnostic in payload["diagnostics"] if diagnostic["rule"] == "authority-required")
+    assert authority_required["category"] == "authority"
+    assert "authority_required to true" in authority_required["remediation"]
+
+
+def test_architecture_rdf_projection_diff_mode_is_non_writing_and_current() -> None:
+    before = {path: path.read_text(encoding="utf-8") for path in (TTL_OUTPUT, SHACL_OUTPUT, SPARQL_OUTPUT, REPORT_OUTPUT)}
+
+    result = run_exporter("--diff")
+
+    assert result.returncode == 0, result.stdout + result.stderr
+    payload = json.loads(result.stdout)
+    assert payload["status"] == "ok"
+    assert payload["non_authoritative"] is True
+    assert payload["diff"]["mode"] == "diff"
+    assert payload["diff"]["non_writing"] is True
+    assert payload["diff"]["status"] == "current"
+    assert payload["diff"]["states"] == ["current"]
+    assert set(payload["diff"]["outputs"]) == {"ttl", "shacl", "sparql", "report"}
+    for output in payload["diff"]["outputs"].values():
+        assert output["state"] == "current"
+        assert output["current_sha256"] == output["expected_sha256"]
+        assert output["current_bytes"] == output["expected_bytes"]
+    assert before == {path: path.read_text(encoding="utf-8") for path in before}
+
+
+def test_architecture_rdf_projection_diff_mode_reports_missing_without_writing(tmp_path: Path) -> None:
+    args = temp_output_args(tmp_path)
+
+    result = run_exporter(*args, "--diff")
+
+    assert result.returncode == 0, result.stdout + result.stderr
+    payload = json.loads(result.stdout)
+    assert payload["status"] == "ok"
+    assert payload["diff"]["status"] == "changed"
+    assert payload["diff"]["states"] == ["missing"]
+    assert all(output["state"] == "missing" for output in payload["diff"]["outputs"].values())
+    assert not (tmp_path / "projection.ttl").exists()
+    assert not (tmp_path / "projection.shacl.ttl").exists()
+    assert not (tmp_path / "projection.sparql").exists()
+    assert not (tmp_path / "projection-report.json").exists()
