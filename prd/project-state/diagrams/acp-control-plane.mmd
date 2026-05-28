@@ -1,0 +1,21 @@
+flowchart LR
+    APR["ArchitecturePromptRecord<br/>captures architecture-relevant intent"]
+    AP["ArchitectureProposal<br/>structures a proposed change"]
+    DC["DecisionCandidate<br/>not accepted doctrine"]
+    PG["ProofGate<br/>required evidence before promotion"]
+    AHF["ArchitectureHealthFinding<br/>blocked action / drift / overclaim risk"]
+    Lifecycle["Decision lifecycle workflow<br/>accepted / deferred / rejected / superseded<br/>not started"]
+    Evidence["Tracked evidence<br/>source anchors / tests / runtime proof when needed"]
+    Review["Independent review gate<br/>R038 remains active"]
+
+    APR --> AP --> DC
+    DC -->|requires proof| PG
+    PG -->|may surface| AHF
+    PG -->|must be satisfied by| Evidence
+    DC -->|future workflow controls| Lifecycle
+    Review -->|future proof-heavy gate| Lifecycle
+
+    DC -. "candidate only" .-> Lifecycle
+    PG -. "gate row is not gate satisfaction" .-> Evidence
+    AHF -. "diagnostic, not product proof" .-> Evidence
+    Lifecycle -. "future workflow, not authority yet" .-> Evidence

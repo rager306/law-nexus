@@ -1,0 +1,48 @@
+flowchart TD
+    LegalSources["Legal source files<br/>Consultant XML / other source streams"]
+    SourceCLI["Source structuring CLI<br/>bounded inventories and review packs"]
+    ParserArtifacts["Parser/source artifacts<br/>bounded evidence only"]
+    SourceEvidence["Authoritative source evidence<br/>PRD / GSD / ADR / source / tests"]
+
+    Extractor["Architecture extractor<br/>curated generated registry"]
+    Items["architecture_items.jsonl<br/>derived"]
+    Edges["architecture_edges.jsonl<br/>derived"]
+    GraphBuilder["Architecture graph builder"]
+    GraphReport["Graph report<br/>derived diagnostics"]
+    Verifier["Architecture verifier<br/>static gate"]
+
+    ACP["ACP records<br/>governance rows"]
+    Recovery["ACP recovery/projection views<br/>derived"]
+    RDFExporter["RDF projection exporter<br/>custom-only"]
+    TTL["Turtle"]
+    SHACL["SHACL smoke"]
+    SPARQL["SPARQL handoff"]
+    RDFReport["RDF report<br/>diagnostics / vocabulary / diff"]
+    Docs["Project-state docs<br/>JSON + Mermaid + Markdown"]
+
+    LegalSources --> SourceCLI --> ParserArtifacts --> SourceEvidence
+    SourceEvidence --> Extractor
+    Extractor --> Items
+    Extractor --> Edges
+    Items --> GraphBuilder
+    Edges --> GraphBuilder
+    GraphBuilder --> GraphReport --> Verifier
+
+    Items --> ACP
+    Edges --> ACP
+    ACP --> Recovery
+    Items --> RDFExporter
+    Edges --> RDFExporter
+    RDFExporter --> TTL
+    RDFExporter --> SHACL
+    RDFExporter --> SPARQL
+    RDFExporter --> RDFReport
+
+    GraphReport --> Docs
+    Verifier --> Docs
+    Recovery --> Docs
+    RDFReport --> Docs
+
+    Items -. "generated, not authority" .-> SourceEvidence
+    RDFReport -. "diagnostic, not authority" .-> SourceEvidence
+    Docs -. "summary, not authority" .-> SourceEvidence

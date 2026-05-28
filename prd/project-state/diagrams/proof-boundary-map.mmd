@@ -1,0 +1,28 @@
+flowchart TD
+    Static["Verified static checks"]
+    ArchOK["Architecture registry current<br/>63 items / 98 edges"]
+    ACPRows["ACP fixture/default rows present<br/>5 items / 7 edges"]
+    RDFOK["Custom RDF projection current<br/>161 resources / 422 statements<br/>0 diagnostics"]
+
+    R035["R035 active<br/>ontology proof gates not closed"]
+    R037["R037 active<br/>FalkorDB ingest path not fully validated"]
+    R038["R038 active<br/>standing independent review gate"]
+    Product["Product readiness<br/>not proven"]
+    Legal["Legal correctness<br/>not proven"]
+    Parser["Parser completeness<br/>not proven"]
+    Engines["RDF / SHACL / SPARQL engine correctness<br/>not proven"]
+
+    Static --> ArchOK
+    Static --> ACPRows
+    Static --> RDFOK
+
+    ArchOK -. "does not validate" .-> Product
+    ArchOK -. "does not validate" .-> Legal
+    ArchOK -. "does not validate" .-> Parser
+    ACPRows -. "does not validate" .-> R035
+    ACPRows -. "does not validate" .-> R037
+    ACPRows -. "does not validate" .-> R038
+    RDFOK -. "does not prove" .-> Engines
+    RDFOK -. "does not validate" .-> R035
+
+    R038 -->|should shape S05 review| Future["Future proof-heavy milestones"]

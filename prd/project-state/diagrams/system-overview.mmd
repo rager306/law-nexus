@@ -1,0 +1,23 @@
+flowchart TD
+    Evidence["Authoritative evidence<br/>PRD / GSD / ADR / source / tests / runtime / real documents"]
+    SourceWork["Legal source structuring<br/>bounded parser/source proof"]
+    Registry["Architecture registry JSONL<br/>generated derived projection<br/>63 items / 98 edges"]
+    Verifier["Architecture verifier<br/>static checks / source anchors / claim safety"]
+    ACP["Architecture Control Plane<br/>5 ACP items / 7 ACP edges"]
+    RDF["Custom RDF / SHACL / SPARQL projection<br/>161 resources / 422 statements"]
+    Docs["Project-state docs<br/>Markdown / JSON / Mermaid derived summaries"]
+    Next["Next recommended milestone<br/>ACP Decision Lifecycle Workflow"]
+
+    Evidence -->|curated extraction| Registry
+    SourceWork -->|bounded evidence feeds| Evidence
+    Registry -->|static verification| Verifier
+    Registry -->|governance rows| ACP
+    Registry -->|custom derived export| RDF
+    Verifier -->|status summary| Docs
+    ACP -->|concept and state summary| Docs
+    RDF -->|diagnostics and diff state| Docs
+    Docs -->|cold-reader next action| Next
+
+    Registry -. "derived, not source truth" .-> Evidence
+    RDF -. "custom-only, non-authoritative" .-> Evidence
+    Docs -. "summary, not proof" .-> Evidence
