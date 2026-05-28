@@ -1,0 +1,53 @@
+{
+  "project": "law-nexus",
+  "working_name": "LegalGraph Nexus",
+  "current_phase": "project-state documentation pack in progress after ACP RDF projection hardening",
+  "last_completed_milestone": {
+    "id": "M046-x5gmog",
+    "title": "ACP RDF Projection Hardening",
+    "status": "complete",
+    "summary": "Hardened the custom ACP RDF projection diagnostics, report metadata, and non-writing diff mode without changing its authority level."
+  },
+  "active_milestone": {
+    "id": "M047-igv5e2",
+    "title": "law-nexus Project State Documentation Pack",
+    "status": "active"
+  },
+  "recommended_next_milestone": {
+    "title": "ACP Decision Lifecycle Workflow",
+    "purpose": "Add safe lifecycle governance for decision candidates, including accepted/deferred/rejected/superseded transitions, authority checks, proof-gate checks, blocked-action enforcement, source-anchor safety, and non-claim preservation."
+  },
+  "requirements_snapshot": {
+    "active": 3,
+    "validated": 30,
+    "deferred": 3,
+    "out_of_scope": 3,
+    "active_ids": ["R035", "R037", "R038"]
+  },
+  "source_of_truth_policy": {
+    "authoritative": [
+      "PRD and research notes",
+      "GSD requirements, decisions, plans, summaries, validations, and handoff artifacts",
+      "accepted decision artifacts",
+      "source code and tests",
+      "runtime proof artifacts where a claim requires runtime evidence",
+      "real-document evidence where a claim requires legal-source evidence"
+    ],
+    "derived_non_authoritative": [
+      "architecture JSONL registry projections",
+      "architecture graph reports and generated views",
+      "ACP recovery and projection outputs",
+      "RDF/SHACL/SPARQL projection outputs",
+      "project-state JSON summaries and Mermaid diagrams"
+    ],
+    "rule": "If this JSON conflicts with PRD, GSD, ADR, source, test, runtime, or real-document evidence, the authoritative evidence wins and this JSON must be corrected."
+  },
+  "safe_entry_points": [
+    "prd/project-state/README.md",
+    "prd/project-state/DOCUMENTATION-CONTRACT.md",
+    ".gsd/STATE.md",
+    ".gsd/milestones/M046-x5gmog/M046-x5gmog-SUMMARY.md",
+    "prd/architecture/README.md",
+    "prd/architecture/acp/README.md"
+  ]
+}

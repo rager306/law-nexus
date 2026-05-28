@@ -1,0 +1,84 @@
+{
+  "layers": [
+    {
+      "id": "source-evidence",
+      "name": "Source evidence",
+      "authority": "authoritative",
+      "description": "PRD, GSD, ADR/decision artifacts, source code, tests, runtime proof, and real-document evidence."
+    },
+    {
+      "id": "legal-source-structuring",
+      "name": "Legal source structuring",
+      "authority": "bounded evidence",
+      "description": "Consultant XML/source structuring and parser-related proof artifacts."
+    },
+    {
+      "id": "architecture-registry",
+      "name": "Architecture registry JSONL",
+      "authority": "generated-derived",
+      "description": "Generated architecture item and edge projections used for graph checks and generated views."
+    },
+    {
+      "id": "architecture-verifier",
+      "name": "Architecture verifier",
+      "authority": "static-check",
+      "description": "Checks registry freshness, graph integrity, source anchors, decision fitness, and claim-safety boundaries."
+    },
+    {
+      "id": "acp",
+      "name": "Architecture Control Plane",
+      "authority": "governance-derived",
+      "description": "Reusable architecture-governance layer for prompt records, proposals, decision candidates, proof gates, health findings, allowed/blocked actions, and recovery views."
+    },
+    {
+      "id": "rdf-projection",
+      "name": "RDF/SHACL/SPARQL projection",
+      "authority": "custom-derived",
+      "description": "Custom-only ACP projection for diagnostics, recovery, and interoperability; not RDF engine proof, SHACL engine proof, or SPARQL execution proof."
+    },
+    {
+      "id": "project-state-docs",
+      "name": "Project state documentation pack",
+      "authority": "derived-summary",
+      "description": "Markdown, JSON, and Mermaid summaries for cold-reader orientation."
+    }
+  ],
+  "flows": [
+    {
+      "from": "source-evidence",
+      "to": "architecture-registry",
+      "relationship": "curated extraction into generated JSONL"
+    },
+    {
+      "from": "architecture-registry",
+      "to": "architecture-verifier",
+      "relationship": "static verification"
+    },
+    {
+      "from": "architecture-registry",
+      "to": "acp",
+      "relationship": "ACP governance rows included in default registry"
+    },
+    {
+      "from": "architecture-registry",
+      "to": "rdf-projection",
+      "relationship": "custom derived projection"
+    },
+    {
+      "from": "acp",
+      "to": "project-state-docs",
+      "relationship": "summarized concept and current state"
+    },
+    {
+      "from": "architecture-verifier",
+      "to": "project-state-docs",
+      "relationship": "summarized verification status"
+    }
+  ],
+  "source_of_truth_boundary": {
+    "authoritative": ["source-evidence"],
+    "static_check": ["architecture-verifier"],
+    "derived": ["architecture-registry", "acp", "rdf-projection", "project-state-docs"],
+    "rule": "Derived layers diagnose, summarize, or project architecture state; they do not replace source evidence."
+  }
+}

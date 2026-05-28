@@ -1,0 +1,102 @@
+{
+  "checks": [
+    {
+      "name": "Architecture verifier",
+      "command": "uv run python scripts/verify-architecture-graph.py",
+      "current_status": "passed in latest M047/S01 verification",
+      "proves": [
+        "default architecture registry freshness",
+        "static graph integrity",
+        "source-anchor safety checks",
+        "decision-fitness checks",
+        "claim-safety checks"
+      ],
+      "does_not_prove": [
+        "product readiness",
+        "runtime behavior",
+        "parser completeness",
+        "retrieval quality",
+        "legal-answer correctness",
+        "FalkorDB production scale",
+        "LLM legal authority"
+      ]
+    },
+    {
+      "name": "ACP record verifier",
+      "command": "uv run python scripts/verify-acp-records.py",
+      "current_status": "passed in latest M046 handoff verification",
+      "proves": [
+        "ACP fixture record mechanics",
+        "bounded ACP safety checks for the current fixture chain"
+      ],
+      "does_not_prove": [
+        "full ACP decision lifecycle workflow",
+        "accepted architecture decision promotion",
+        "independent external review"
+      ]
+    },
+    {
+      "name": "RDF projection freshness check",
+      "command": "uv run python scripts/export-architecture-rdf-projection.py --check",
+      "current_status": "passed in latest M046 handoff verification",
+      "proves": [
+        "custom derived RDF/SHACL/SPARQL projection outputs are current",
+        "projection diagnostics report zero current diagnostics"
+      ],
+      "does_not_prove": [
+        "RDF engine correctness",
+        "SHACL engine validation",
+        "SPARQL execution correctness",
+        "ontology completeness",
+        "architecture source truth"
+      ]
+    },
+    {
+      "name": "RDF projection non-writing diff",
+      "command": "uv run python scripts/export-architecture-rdf-projection.py --diff",
+      "current_status": "passed in latest M046 handoff verification",
+      "proves": [
+        "projection outputs are current without writing files",
+        "per-output byte and SHA-256 freshness metadata can be produced"
+      ],
+      "does_not_prove": [
+        "semantic RDF correctness",
+        "SPARQL runtime behavior",
+        "SHACL runtime behavior"
+      ]
+    },
+    {
+      "name": "Focused RDF projection tests",
+      "command": "uv run pytest tests/test_architecture_rdf_projection.py",
+      "current_status": "12 passed in latest M046 handoff verification",
+      "proves": [
+        "focused exporter/report/diff regression coverage",
+        "negative checks for duplicate IDs, missing endpoints, unsafe anchors, missing non-claims, and authority-required boundaries"
+      ],
+      "does_not_prove": [
+        "broad product runtime correctness",
+        "legal correctness",
+        "retrieval quality"
+      ]
+    }
+  ],
+  "last_fresh_verification": {
+    "context": "handoff verification after M046 and before M047 planning",
+    "results": {
+      "projection_check": "passed",
+      "projection_diff": "passed",
+      "focused_tests": "12 passed",
+      "architecture_verifier": "passed",
+      "acp_verifier": "passed",
+      "ruff": "passed",
+      "lsp": "no diagnostics",
+      "gitnexus_detect_changes": "risk none"
+    }
+  },
+  "non_claims": [
+    "Verification matrix entries are derived summaries, not source-truth replacements.",
+    "Passing static checks does not validate legal correctness or product readiness.",
+    "RDF/SHACL/SPARQL projection checks do not validate RDF completeness, SHACL completeness, or SPARQL engine correctness.",
+    "R035, R037, and R038 remain active unless separate proof validates them."
+  ]
+}

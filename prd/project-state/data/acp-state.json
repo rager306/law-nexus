@@ -1,0 +1,52 @@
+{
+  "concept": "Architecture Control Plane",
+  "purpose": "A reusable architecture-governance layer for architecture construction, drift detection, decision candidates, proof gates, health findings, allowed/blocked actions, recovery views, and projection diagnostics.",
+  "current_state": {
+    "fixture_chain": "complete",
+    "schema_extension": "complete",
+    "canonical_registry_projection": "complete",
+    "default_registry_integration": "complete for current bounded ACP governance rows",
+    "recovery_view": "complete",
+    "architecture_projection_preview": "complete",
+    "rdf_shacl_sparql_projection": "custom-only complete",
+    "rdf_projection_hardening": "complete",
+    "decision_lifecycle_workflow": "not_started",
+    "ci_quality_gate": "not_started",
+    "external_package_split": "not_started",
+    "runtime_dashboard": "not_started"
+  },
+  "current_counts": {
+    "architecture_items": 63,
+    "architecture_edges": 98,
+    "acp_items": 5,
+    "acp_edges": 7,
+    "rdf_resources": 161,
+    "turtle_statements": 422,
+    "rdf_diagnostics": 0
+  },
+  "outputs": {
+    "contract": "prd/architecture/acp/M046-RDF-PROJECTION-HARDENING-CONTRACT.md",
+    "decision": "prd/architecture/acp/M046-RDF-PROJECTION-HARDENING-DECISION.md",
+    "recovery_view": "prd/architecture/acp/derived/recovery-view.json",
+    "architecture_projection_preview": "prd/architecture/acp/derived/architecture-projection.preview.json",
+    "rdf_turtle": "prd/architecture/acp/derived/architecture-projection.ttl",
+    "rdf_shacl": "prd/architecture/acp/derived/architecture-projection.shacl.ttl",
+    "rdf_sparql": "prd/architecture/acp/derived/architecture-projection.sparql",
+    "rdf_report": "prd/architecture/acp/derived/architecture-projection-rdf-report.json"
+  },
+  "remaining_gaps": [
+    "decision lifecycle workflow for accepted/deferred/rejected/superseded transitions",
+    "independent review gate application for future proof-heavy ACP milestones",
+    "optional RDF engine execution proof if later needed",
+    "optional SHACL engine validation proof if later needed",
+    "isolated git-lex alignment proof if later needed",
+    "dashboard/recovery UI if later needed",
+    "externalizable ACP core/profile split"
+  ],
+  "non_claims": [
+    "ACP fixtures and projections do not validate R035, R037, or R038.",
+    "ACP decision_candidate rows are not accepted decisions.",
+    "ACP proof_gate rows are not proof-gate satisfaction.",
+    "ACP projections do not prove product readiness, legal correctness, parser completeness, FalkorDB runtime loading, retrieval quality, or RDF/SHACL/SPARQL engine correctness."
+  ]
+}

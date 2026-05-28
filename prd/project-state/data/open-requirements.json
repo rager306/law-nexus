@@ -1,0 +1,34 @@
+{
+  "active": [
+    {
+      "id": "R035",
+      "class": "quality-attribute",
+      "summary": "Ontology architecture research must become bounded evidence, proof gates, and registry source mappings before ontology, graph-vector, or pilot-scale claims are promoted into product architecture.",
+      "status": "active",
+      "current_boundary": "Not validated by ACP projection or M047 documentation work.",
+      "why_open": "Imported ontology research remains strategically relevant but includes unverified standards, corpus, formal logic, graph-vector, and scale assumptions."
+    },
+    {
+      "id": "R037",
+      "class": "integration",
+      "summary": "FalkorDB graph ingestion proof requires verified loading path, explicit source shape, idempotency, counts, constraints, error handling, and cleanup before larger retrieval or pilot claims rely on loaded graph data.",
+      "status": "active",
+      "current_boundary": "Partially evidenced by earlier bounded ingest work, but not fully validated.",
+      "why_open": "Larger corpus ingest, failed/skipped row accounting, resource profile, update/upsert semantics, production loading policy, and recovery remain open."
+    },
+    {
+      "id": "R038",
+      "class": "quality-attribute",
+      "summary": "Proof-heavy GSD milestones must include an independent review gate that inspects test substance and bare result artifacts without relying on the implementation under test.",
+      "status": "active",
+      "current_boundary": "Standing review gate for future proof cycles; M047 should apply or explicitly scope independent review before closeout.",
+      "why_open": "Prior proof work showed passing tests can be misleading when tests are empty, over-mocked, or only verify the implementation's own claims."
+    }
+  ],
+  "deferred": [
+    "Production Legal KnowQL API wrapper around MiniMax/PyO3",
+    "Russian legal terminology quality evaluation for provider-generated Cypher",
+    "Production schema grounding beyond the synthetic LegalGraph-shaped fixture"
+  ],
+  "out_of_scope_note": "Out-of-scope and deferred requirements remain outside this documentation pack unless future GSD milestones explicitly reopen them."
+}

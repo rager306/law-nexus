@@ -1,0 +1,57 @@
+{
+  "completed_milestone_groups": [
+    {
+      "range": "M001-M010",
+      "theme": "Architecture review, PRD consistency, parser direction, and baseline architecture verification",
+      "status": "complete",
+      "boundary": "Establishes architecture and parser proof foundations, not production legal-answering readiness."
+    },
+    {
+      "range": "M011-M030",
+      "theme": "GraphRAG, FalkorDB, retrieval, ontology, evidence, and semantic scoring proof cycles",
+      "status": "complete",
+      "boundary": "Provides bounded proof cycles and diagnostics, not final product retrieval quality or ontology/product readiness."
+    },
+    {
+      "range": "M031-M034",
+      "theme": "Consultant XML source structuring, MiniMax-assisted discovery, graph context staging, and workline recovery",
+      "status": "complete",
+      "boundary": "Establishes bounded Consultant XML/source workflow evidence, not parser completeness for all legal sources."
+    },
+    {
+      "range": "M035-M046",
+      "theme": "Reusable Architecture Control Plane construction, default registry integration, RDF projection proof, and projection hardening",
+      "status": "complete",
+      "boundary": "Establishes ACP governance/projection mechanics, not full decision lifecycle governance or RDF/SHACL/SPARQL engine proof."
+    }
+  ],
+  "current_milestone": {
+    "id": "M047-igv5e2",
+    "title": "law-nexus Project State Documentation Pack",
+    "status": "active",
+    "goal": "Create a cold-reader documentation package with Markdown docs, parseable JSON summaries, and Mermaid diagrams while preserving source/projection and proof boundaries."
+  },
+  "recommended_next": {
+    "title": "ACP Decision Lifecycle Workflow",
+    "priority": 1,
+    "why": "ACP has prompt/proposal/candidate/gate/finding records and hardened projection diagnostics; the next control-plane gap is safe decision promotion governance."
+  },
+  "alternatives": [
+    {
+      "title": "RDF engine spike",
+      "why": "Only if engine-executed RDF/SPARQL proof becomes valuable."
+    },
+    {
+      "title": "SHACL engine spike",
+      "why": "Only if pySHACL-style validation becomes valuable."
+    },
+    {
+      "title": "Isolated git-lex alignment spike",
+      "why": "Only if identity/provenance compatibility becomes priority; do not run git-lex initialization in the main repository."
+    },
+    {
+      "title": "ACP recovery/dashboard views",
+      "why": "Only if operator navigation becomes a higher priority than lifecycle governance."
+    }
+  ]
+}

@@ -1,0 +1,55 @@
+{
+  "recommended": [
+    {
+      "title": "ACP Decision Lifecycle Workflow",
+      "priority": 1,
+      "why": "ACP now has fixture records, default registry inclusion, recovery/export surfaces, hardened RDF projection diagnostics, and a non-writing diff mode. The next control-plane gap is safe lifecycle governance for decisions.",
+      "expected_outputs": [
+        "decision lifecycle contract",
+        "safe promotion verifier or workflow check",
+        "tests for accepted/deferred/rejected/superseded transitions",
+        "authority-required enforcement",
+        "proof-gate coverage enforcement",
+        "blocked-action and non-claim preservation checks",
+        "source-anchor safety checks",
+        "R038-aware independent review evidence"
+      ],
+      "must_preserve": [
+        "R035, R037, and R038 remain active unless separately proven",
+        "decision candidates are not accepted decisions until workflow checks pass",
+        "proof gate records are not proof gate satisfaction",
+        "derived projections remain non-authoritative"
+      ]
+    }
+  ],
+  "alternatives": [
+    {
+      "title": "RDF engine spike",
+      "when_to_choose": "Choose only if engine-executed RDF/SPARQL proof becomes valuable for ACP interoperability or recovery work.",
+      "boundary": "A spike must not promote RDF output to architecture source truth."
+    },
+    {
+      "title": "SHACL engine spike",
+      "when_to_choose": "Choose only if actual SHACL engine validation becomes valuable beyond deterministic structural smoke.",
+      "boundary": "A spike must not claim ontology correctness without separate proof."
+    },
+    {
+      "title": "Isolated git-lex alignment spike",
+      "when_to_choose": "Choose only if identity/provenance alignment with git-lex becomes the priority.",
+      "boundary": "Do not initialize git-lex in the main repository during the spike."
+    },
+    {
+      "title": "ACP recovery/dashboard views",
+      "when_to_choose": "Choose if human/operator navigation becomes more urgent than lifecycle governance.",
+      "boundary": "Dashboard or recovery views remain derived diagnostics."
+    }
+  ],
+  "planning_constraints": [
+    "Use GSD milestone/slice/task tools for planning and closeout.",
+    "Run GitNexus impact before editing code symbols.",
+    "Run GitNexus detect changes before commits.",
+    "Use tracked relative source anchors only.",
+    "Avoid ignored execution-log anchors and absolute local paths.",
+    "Keep product/legal/runtime/parser/FalkorDB/retrieval claims bounded unless separate proof exists."
+  ]
+}

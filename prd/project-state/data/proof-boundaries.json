@@ -1,0 +1,51 @@
+{
+  "not_validated": [
+    "R035",
+    "R037",
+    "R038",
+    "parser completeness",
+    "legal correctness",
+    "FalkorDB ingestion/runtime loading",
+    "retrieval quality",
+    "production readiness",
+    "independent external review",
+    "ontology correctness",
+    "RDF completeness",
+    "SHACL completeness",
+    "SPARQL engine correctness",
+    "git-lex compatibility",
+    "product Legal KnowQL behavior"
+  ],
+  "blocked_claims": [
+    "Projection artifacts are architecture source truth.",
+    "Generated RDF validates requirements.",
+    "SHACL smoke output validates ontology correctness.",
+    "SPARQL handoff queries validate product runtime behavior.",
+    "ACP decision_candidate rows are accepted decisions.",
+    "ACP proof_gate rows mean proof gates have passed.",
+    "Static architecture verifier success is production readiness proof."
+  ],
+  "allowed_claims": [
+    "The current architecture verifier passed static checks at 63 items and 98 edges.",
+    "ACP default registry inclusion currently contributes 5 governance items and 7 governance edges.",
+    "The custom RDF projection is current and non-authoritative with 161 RDF resources and 422 Turtle statements.",
+    "The hardened RDF projection report has zero current diagnostics.",
+    "R035, R037, and R038 remain active and not validated by ACP projection work."
+  ],
+  "source_truth_policy": {
+    "authoritative_sources": [
+      "PRD/GSD/ADR/decision artifacts",
+      "source code and tests",
+      "runtime proof where runtime behavior is claimed",
+      "real-document evidence where legal-source behavior is claimed"
+    ],
+    "derived_sources": [
+      "architecture JSONL registry projections",
+      "architecture graph reports",
+      "ACP recovery/projection outputs",
+      "RDF/SHACL/SPARQL outputs",
+      "project-state JSON and Mermaid summaries"
+    ],
+    "rule": "Use derived artifacts for diagnostics and navigation; verify claims against authoritative evidence before promotion."
+  }
+}
