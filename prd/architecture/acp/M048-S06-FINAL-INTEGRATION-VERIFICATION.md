@@ -61,7 +61,7 @@ S06 consumes these tracked M048 artifacts:
 - `prd/architecture/acp/M048-S02-SOURCE-RECORD-MODEL.md` — ACP source-record and evidence-anchor model, including allowed/blocked anchor rules.
 - `prd/architecture/acp/M048-S03-LIFECYCLE-HEALTH-MODEL.md` — lifecycle, health finding, proof-gate, blocked-action, and profile-boundary contract.
 - `prd/architecture/acp/M048-S04-GIT-LEX-ISOLATED-PROOF.md` — bounded isolated proof: deterministic fixture mechanics pass; runtime git-lex is blocked; main `.lex` remains absent.
-- `prd/architecture/acp/M048-S05-GIT-LEX-INTEGRATION-DECISION.md` — adopted decision to defer runtime git-lex adoption and keep deterministic ACP mechanics only.
+- `prd/architecture/acp/M048-S05-GIT-LEX-INTEGRATION-DECISION.md` — adopted decision to defer runtime git-lex adoption and keep deterministic ACP mechanics only (`defer_runtime_adoption_keep_deterministic_acp_mechanics_only`).
 - `prd/architecture/acp/M048-S05-GIT-LEX-WORKFLOW-REPORT.md` — executable workflow diagnostic contract, mutation guard, requirement boundary, and S06 handoff.
 
 S06 also consumes the S06 research baseline as planning context, but durable proof must remain in tracked PRD/source/test artifacts and fresh command output rather than transient execution logs.
