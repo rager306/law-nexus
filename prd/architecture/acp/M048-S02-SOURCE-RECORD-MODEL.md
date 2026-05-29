@@ -213,6 +213,7 @@ An `EvidenceAnchor` must not use:
 - raw provider payloads;
 - secrets, tokens, credentials, or raw vectors;
 - unnecessary raw legal text;
+- external URLs as the sole proof for an authoritative claim;
 - ACP derived JSONL/RDF/recovery/projection files as the sole source for an authoritative claim;
 - stale `prd/project-state/*` current-state fields as current M048 authority;
 - current ACP fixtures as proof of product, parser, FalkorDB, retrieval, legal, or R035/R037/R038 readiness.
@@ -266,7 +267,7 @@ These assertions are intentionally human- and test-readable.
 6. A `ProofGate` definition does not satisfy the proof gate.
 7. A `DecisionCandidate` is not an accepted `ArchitectureDecision`.
 8. `ArchitecturePromptRecord` and external AI context are provenance/context, not authority or proof.
-9. `EvidenceAnchor` values must be repository-relative and durable; `.gsd/exec`, absolute paths, ignored paths, raw provider payloads, raw vectors, secrets, and unnecessary raw legal text are blocked.
+9. `EvidenceAnchor` values must be repository-relative and durable; `.gsd/exec`, absolute paths, ignored paths, external URLs as sole proof, raw provider payloads, raw vectors, secrets, and unnecessary raw legal text are blocked.
 10. Main-repo `git lex init` and `.lex` state creation remain blocked until S04 isolated proof and later accepted adoption evidence allow them.
 11. ACP core stays reusable; law-nexus legal/FalkorDB/parser/LLM/GSD constraints stay in `ProfileConstraint` and profile adapters.
 12. This contract does not validate `R035`, `R037`, or `R038`.
