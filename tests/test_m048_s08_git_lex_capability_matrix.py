@@ -52,6 +52,21 @@ FAILURE_CATEGORIES = [
     "InsufficientEvidence",
 ]
 
+REQUIRED_ROW_LANGUAGE = {
+    "Typed records": ["source category", "lifecycle state", "schema version", "round-tripped"],
+    "Schema/frontmatter validation": ["negative validation fixtures", "invalid status", "invalid disposition"],
+    "Evidence anchors": ["repo-relative", "resolvable", "broken or local-only anchors are rejected"],
+    "Lifecycle transitions": ["candidate", "accepted", "blocked/deferred", "invalid transitions fail"],
+    "Transition history": ["previous state", "new state", "rationale", "evidence anchor"],
+    "Proof gates": ["proof command/result evidence", "failed proof cannot promote acceptance"],
+    "Derived projection boundary": ["marked derived", "non-authoritative", "source records"],
+    "Query/recovery": ["authority chain", "blocked findings", "fluent summary text"],
+    "Health findings and blocked diagnostics": ["typed", "durable", "queryable", "proof summaries"],
+    "Git semantics beyond ordinary git": ["ordinary git", "record-aware", "branding"],
+    "Isolation and mutation guard": ["outside the main checkout", "no main-repo `.lex`", "rollback/delete path"],
+    "Profile adapters": ["Core/profile boundary", "law-nexus-only", "reusable core"],
+}
+
 FORBIDDEN_OVERCLAIMS = [
     "full runtime git-lex adoption is approved",
     "full acp git-lex runtime adoption is approved",
@@ -79,6 +94,23 @@ def section(text: str, heading: str) -> str:
     if next_heading == -1:
         return text[start:]
     return text[start:next_heading]
+
+
+def table_rows(table_text: str) -> list[list[str]]:
+    rows = []
+    for line in table_text.splitlines():
+        if not line.startswith("|") or "---" in line:
+            continue
+        cells = [cell.strip() for cell in line.strip("|").split("|")]
+        rows.append(cells)
+    return rows
+
+
+def capability_row(matrix: str, capability: str) -> list[str]:
+    for row in table_rows(matrix):
+        if len(row) >= 8 and row[1] == capability:
+            return row
+    raise AssertionError(f"Missing capability row: {capability}")
 
 
 def test_matrix_exists_and_has_required_sections() -> None:
@@ -121,13 +153,47 @@ def test_capability_matrix_contains_all_required_capabilities_and_columns() -> N
     assert expected_header in matrix
 
     for capability in REQUIRED_CAPABILITIES:
-        assert f"| {capability} |" in matrix, f"Missing capability row: {capability}"
+        row = capability_row(matrix, capability)
+        assert len(row) == 8, f"Capability row should have all contract columns: {capability}"
+        assert row[2], f"Priority must be populated: {capability}"
+        assert row[4], f"Proof method must be populated: {capability}"
+        assert row[5], f"Pass condition must be populated: {capability}"
+        assert row[6], f"Fail consequence must be populated: {capability}"
+        assert row[7], f"Allowed disposition must be populated: {capability}"
+        assert any(disposition in row[7] for disposition in ALLOWED_DISPOSITIONS), (
+            f"Allowed disposition must use approved status vocabulary: {capability}"
+        )
+        for required_phrase in REQUIRED_ROW_LANGUAGE[capability]:
+            assert required_phrase.casefold() in " | ".join(row).casefold(), (
+                f"Capability row is missing required proof-contract language for {capability}: "
+                f"{required_phrase}"
+            )
 
     for priority in ["P0 required", "P1 high", "P2 conditional"]:
         assert priority in matrix
 
     for category in FAILURE_CATEGORIES:
         assert category in matrix, f"Capability rows should reference failure category: {category}"
+
+
+def test_every_p0_capability_has_pass_fail_and_blocking_semantics() -> None:
+    matrix = section(matrix_text(), "Capability Matrix")
+
+    for capability in REQUIRED_CAPABILITIES:
+        row = capability_row(matrix, capability)
+        priority, proof_method, pass_condition, fail_consequence = row[2], row[4], row[5], row[6]
+        if priority != "P0 required":
+            continue
+
+        assert proof_method, f"P0 capability requires a proof method: {capability}"
+        assert pass_condition, f"P0 capability requires a pass condition: {capability}"
+        assert any(category in fail_consequence for category in FAILURE_CATEGORIES), (
+            f"P0 fail consequence must name an explicit failure category: {capability}"
+        )
+        assert any(
+            blocking_word in fail_consequence.casefold()
+            for blocking_word in ["reject", "blocked", "cannot", "fail closed"]
+        ), f"P0 fail consequence must prevent silent adoption: {capability}"
 
 
 def test_proof_contract_covers_required_scenarios_and_boundaries() -> None:
@@ -148,6 +214,25 @@ def test_proof_contract_covers_required_scenarios_and_boundaries() -> None:
     assert "no `.lex`" in scenarios
     assert "rollback/delete path" in scenarios
     assert "git semantics" in section(text, "Capability Matrix").casefold()
+
+
+def test_no_main_repository_mutation_constraints_are_required() -> None:
+    text = matrix_text()
+    capability = " | ".join(capability_row(section(text, "Capability Matrix"), "Isolation and mutation guard"))
+    scenarios = section(text, "Proof Scenarios")
+    failure_modes = section(text, "Failure Modes")
+
+    for required in [
+        "outside the main checkout",
+        "no main-repo `.lex`",
+        "rollback/delete path",
+        "fails closed",
+    ]:
+        assert required in capability
+
+    assert "verify no `.lex` or runtime state mutation in main checkout" in scenarios
+    assert "blind `git lex init`" in text
+    assert "fail closed" in failure_modes
 
 
 def test_matrix_preserves_runtime_adoption_and_requirement_non_validation_boundaries() -> None:

@@ -38,6 +38,8 @@ FAILURE_CATEGORIES = [
     "InsufficientEvidence",
 ]
 
+RESULT_STATES = ["pass", "blocked", "fail", "not_applicable"]
+
 FORBIDDEN_OVERCLAIMS = [
     "full runtime git-lex adoption is approved",
     "full acp git-lex runtime adoption is approved",
@@ -67,6 +69,23 @@ def section(text: str, heading: str) -> str:
     return text[start:next_heading]
 
 
+def table_rows(table_text: str) -> list[list[str]]:
+    rows = []
+    for line in table_text.splitlines():
+        if not line.startswith("|") or "---" in line:
+            continue
+        cells = [cell.strip() for cell in line.strip("|").split("|")]
+        rows.append(cells)
+    return rows
+
+
+def scenario_row(scenarios: str, scenario: str) -> list[str]:
+    for row in table_rows(scenarios):
+        if len(row) >= 5 and row[0] == f"`{scenario}`":
+            return row
+    raise AssertionError(f"Missing scenario row: {scenario}")
+
+
 def test_contract_exists_and_has_required_sections() -> None:
     text = contract_text()
 
@@ -92,7 +111,14 @@ def test_scenario_matrix_covers_required_s09_proof_scenarios() -> None:
     assert expected_header in scenarios
 
     for scenario in REQUIRED_SCENARIOS:
-        assert f"`{scenario}`" in scenarios, f"Missing scenario row: {scenario}"
+        row = scenario_row(scenarios, scenario)
+        assert row[1], f"Scenario priority must be populated: {scenario}"
+        assert row[2], f"Required capability focus must be populated: {scenario}"
+        assert row[3], f"Minimum passing evidence must be populated: {scenario}"
+        assert row[4], f"Blocked/fail interpretation must be populated: {scenario}"
+        assert any(category in row[4] for category in FAILURE_CATEGORIES) or scenario == "git-semantics", (
+            f"Blocked/fail interpretation should name a failure category: {scenario}"
+        )
 
     assert "Create a representative ACP source record" in scenarios
     assert "proof fail or runtime probe unavailable" in scenarios
@@ -103,6 +129,21 @@ def test_scenario_matrix_covers_required_s09_proof_scenarios() -> None:
 
     for category in FAILURE_CATEGORIES:
         assert category in text, f"Missing failure category in proof contract: {category}"
+
+
+def test_pass_block_fail_rules_define_allowed_dispositions_without_binary_adoption() -> None:
+    rules = section(contract_text(), "Pass, Block, and Fail Rules")
+
+    for state in RESULT_STATES:
+        assert f"`{state}`" in rules, f"Missing result state: {state}"
+
+    assert "Capability may inform a later explicit adoption/implementation decision" in rules
+    assert "Keep runtime adoption blocked/deferred" in rules
+    assert "Fail closed" in rules
+    assert "Do not cite as coverage" in rules
+    assert "A single `fail` in `isolation-safety` or `projection-boundary` blocks runtime adoption" in rules
+    assert "`yes`" not in rules.casefold()
+    assert "`no`" not in rules.casefold()
 
 
 def test_workspace_constraints_and_no_main_lex_guard_are_explicit() -> None:
@@ -157,7 +198,7 @@ def test_diagnostic_artifacts_and_blocked_runtime_semantics_are_bounded() -> Non
     assert "not a test pass and not an adoption claim" in blocked
     assert "must not trigger unplanned clone/install/download/build behavior" in blocked
     assert "a later successful runtime probe is not enough for full adoption" in blocked
-    assert "blocked", "blocked semantics should be explicit"
+    assert "blocked" in blocked.casefold()
 
     for field in [
         "scenario id",
@@ -171,6 +212,38 @@ def test_diagnostic_artifacts_and_blocked_runtime_semantics_are_bounded() -> Non
         "allowed next action",
     ]:
         assert field in observability
+
+
+def test_no_main_repository_mutation_constraints_are_executable_contract_terms() -> None:
+    text = contract_text()
+    workspace = section(text, "Workspace Constraints")
+    guard = section(text, "No-Main-Repo `.lex` Guard")
+    steps = section(text, "Required S09 Proof Steps")
+    failure_modes = section(text, "Failure Modes")
+
+    for required in [
+        "Main checkout is read-only for git-lex runtime state",
+        "Do not run `git lex init`",
+        "create `.lex`",
+        "isolated workspace",
+        "No hidden acquisition",
+        "Rollback is mandatory",
+    ]:
+        assert required in workspace
+
+    for required in [
+        "`test ! -e .lex` before proof in main checkout",
+        "No command equivalent to blind `git lex init` in main checkout",
+        "Runtime/projection state created only in isolated workspace",
+        "Isolated workspace rollback/delete path recorded",
+        "`test ! -e .lex` after proof in main checkout",
+    ]:
+        assert required in guard
+
+    assert "assert main `.lex` absence" in steps
+    assert "Clean up isolated workspace and re-check main `.lex` absence" in steps
+    assert "main checkout gains `.lex`" in failure_modes
+    assert "fail closed" in failure_modes
 
 
 def test_contract_preserves_runtime_adoption_and_requirement_boundaries() -> None:
