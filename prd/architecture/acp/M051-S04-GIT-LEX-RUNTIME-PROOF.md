@@ -131,3 +131,34 @@ Negative runtime tests were not executable, but the negative diagnostic surface 
 | Missing bundled `subtext` executable | Preserve JSON-LD/SPARQL/RDF claims as not upgraded. | Same diagnostic reports `subtext_platform_executable_count=0`. |
 | Main repo mutation risk | Do not create or use `/root/law-nexus/.lex`. | Same diagnostic reports `main_lex_exists=no`. |
 | Unsupported command surface unknowns | Do not infer quoted triple, RDF 1.2, SPARQL-star, JSON-LD, or history support from source-only understanding. | Semantic web runtime checks table marks each area `not upgraded`. |
+
+## Final cleanup and main repo safety status
+
+Final status: **blocked runtime proof, passed cleanup and no-main-repo safety checks**.
+
+- Main repo safety: `/root/law-nexus/.lex` remains absent (`no-main-repo .lex`).
+- Main repo mutation scope: no `git-lex` or `subtext` runtime command was executed against `/root/law-nexus`; this artifact is the only intended main-repo update for S04 runtime proof documentation.
+- Isolated workspace cleanup state: `/tmp/law-nexus-git-lex-proof-20260530T081850Z` remains present for follow-up diagnostics, and its `.lex` path remains absent because no runtime command successfully initialized it.
+- Cleanup decision: the temp workspace was intentionally retained rather than deleted so future reruns can inspect the exact isolated workspace path recorded by T01-T03; there are no active background processes or generated runtime stores to clean up.
+- Final diagnostic evidence: `.gsd/exec/8fc45c01-cc6f-4b67-8082-899e7acbec33.stdout` reports `main_lex_exists=no`, `workspace_state=present`, and `workspace_lex_exists=no`.
+
+### T04 Failure Modes
+
+| Dependency | Failure mode | Observed path | Handling / diagnostic |
+|---|---|---|---|
+| Main repo filesystem path `/root/law-nexus/.lex` | Accidental runtime initialization or leftover cleanup artifact in the main checkout. | T04 diagnostic reported `main_lex_exists=no`. | Passed safety check; no remediation needed. |
+| Isolated workspace `/tmp/law-nexus-git-lex-proof-20260530T081850Z` | Workspace deleted too early, making previous diagnostics harder to reproduce. | T04 diagnostic reported `workspace_state=present`. | Retained intentionally as diagnostic state; no main-repo mutation. |
+| Isolated workspace `.lex` path | Runtime initialized partial state despite blocked binary proof. | T04 diagnostic reported `workspace_lex_exists=no`. | Confirms no hidden initialized runtime store exists in the isolated workspace. |
+| Artifact evidence grep | Missing final cleanup/no-main-repo status would make audit incomplete. | T04 diagnostic counted cleanup/safety tokens before update; final section added explicit status. | Verification requires final status and cleanup/main repo/no-main-repo evidence. |
+
+### T04 Load Profile
+
+T04 has no runtime load dimension: it performs constant-time filesystem existence checks and a bounded grep over one markdown artifact. The first 10x breakpoint would still be human/audit noise in the proof artifact, not CPU, memory, network, or subprocess saturation; no pooling, rate limiting, pagination, or caching is applicable.
+
+### T04 Negative Tests
+
+| Negative scenario | Expected behavior | Evidence |
+|---|---|---|
+| Main checkout `.lex` exists | Verification must fail instead of claiming no-main-repo safety. | Final verification uses `test ! -e .lex`. |
+| Proof artifact lacks cleanup/final status text | Verification must fail so the audit trail cannot close without documented cleanup state. | Final verification greps for `cleanup|main repo|no-main-repo|final status`. |
+| Isolated workspace state is ambiguous | Artifact must explicitly document whether workspace was retained or removed. | Final section records `workspace_state=present` and the retention rationale. |
