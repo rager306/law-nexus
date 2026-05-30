@@ -97,20 +97,74 @@ It is not sufficient as the primary semantic proof mechanism because:
 4. Whether broker SQLite location and cleanup behavior are acceptable for repeatable CI-style proof.
 5. Whether hook configuration is desirable for ACP proof or should be disabled to avoid ambient side effects.
 
-## Code-map-derived proof checklist for downstream task input
+## Runtime proof checklist for downstream task input
 
-This is a handoff checklist for the waiting proof task; it is not marked complete here.
+This is the S04 runtime proof checklist derived from the T01/T02 code map. It is not runtime evidence by itself; every command below must run in an isolated disposable fixture and record stdout/stderr, exit code, mutated files, and cleanup results.
 
-1. Create a temp git repository fixture outside `/root/law-nexus`; assert `/root/law-nexus/.lex` remains absent.
-2. Verify direct CLI acquisition: `git lex --help`, `git lex init --kit <known-kit>`, and installed `.lex/repo.yml`/ontology files.
-3. Create a minimal markdown document via `cmd_create`; inspect generated frontmatter.
-4. Run `git lex extract`; assert `.spo` sidecars/`.lex/extract` outputs and non-zero behavior on malformed frontmatter.
-5. Commit fixture content, run `git lex sync`, then query via `git lex query --json` for expected triples.
-6. Run `git lex validate` with one valid and one invalid document; prove whether invalid shape constraints fail hard.
-7. Run `git lex history-verify` after at least one content change; capture symmetric-difference output.
-8. Run `git lex serve viz` only after proving `git-lex-serve` binary exists; capture port/process cleanup.
-9. For Raw mirror, configure synthetic harness path only in fixture, run `git lex save` or `raw backfill`, and assert copied Raw files plus state behavior.
-10. For `subtext-mcp`, separately verify `setupHostBinaries` platform dir, symlink activation, Bun availability, broker lifecycle, MCP `start_viz`, and cleanup via CLI or process kill.
+### Fixture and binary preflight
+
+1. Create a disposable git repository outside `/root/law-nexus` and before/after assert the project working tree still has no runtime state at `/root/law-nexus/.lex`.
+2. Record binary paths and versions before mutation:
+   - `command -v git` and `git --version`.
+   - `command -v git-lex || command -v git` plus `git lex --help`.
+   - `git lex --version` if supported; if it exits non-zero, record the exact unsupported-version behavior rather than treating it as fatal.
+   - `command -v git-lex-serve` before any `git lex serve viz` proof.
+   - For the MCP wrapper path, record `command -v bun`, `node --version`, `bun --version`, and any plugin-provided binary path under `subtext-mcp/bin/` or `bin/.platforms/<target>/`.
+3. Stop immediately if the command under test resolves to a binary outside the intended fixture/package path and that path cannot be explained in the proof log.
+
+### Direct `git lex` command proof
+
+| Proof target | Exact command surface | Expected files or state | Required checks |
+|---|---|---|---|
+| Help surface | `git lex --help` | No `.lex` mutation in either fixture or `/root/law-nexus`. | Output lists at least `init`, `sync`, `query`, `extract`, `validate`, and `kit-update` or the equivalent current command names. |
+| Version surface | `git lex --version` | No repo mutation. | Capture version if available; otherwise capture stable non-zero behavior as a packaging gap. |
+| Init | `git lex init --kit <known-local-or-network-safe-kit>` from the temp repo | `.lex/`, `.lex/repo.yml`, ontology/kit files, scaffold files if generated. | Assert `.lex` exists only in the fixture; inspect kit/source fields in `.lex/repo.yml`; record any network/cache access. |
+| Create/frontmatter | `git lex create <class-or-template> ...` or the narrowest available create command discovered from `--help` | A markdown document with YAML frontmatter. | Confirm required frontmatter keys, deterministic IDs/subjects if present, and no malformed YAML. |
+| Extract/RDF sidecars | `git lex extract` | `.lex/extract/` plus emitted `.spo`, Turtle, N-Quads, or equivalent RDF sidecars documented by the current binary. | Inspect generated triples for the document subject, frontmatter predicates, datatype/object predicate handling, and wikilink triples. |
+| Sync/Oxigraph store | `git add . && git commit -m fixture && git lex sync` | Persistent graph/store state under the fixture-local git/lex location and sync metadata for current `HEAD`. | Re-run `git lex sync` once to prove already-synced idempotence; record created store path and graph names if printed. |
+| Query/SPARQL | `git lex query --json '<SPARQL>'` and the same query without `--json` if supported | Query reads either persistent store after `sync` or in-memory fallback before sync. | Use a minimal SPARQL query for the created document subject and at least one frontmatter predicate; validate JSON is parseable when `--json` is requested. |
+| Validate/SHACL | `git lex validate` against one valid and one invalid fixture document | Validation output and exit codes for both cases. | Prove whether invalid shape/frontmatter constraints fail hard; if setup errors are logged but skipped, record this as a blocker for enforcement claims. |
+| History invariant | Make a second commit, run `git lex sync`, then `git lex history-verify` | History graph and symmetric-difference report. | Expect clean verification for unchanged current state; record exact diff output for an intentional mismatch if one is feasible without corrupting fixture state. |
+| Serve/viz | `git lex serve viz --port <free-port>` or current help-approved equivalent | Running `git-lex-serve` child process and HTTP listener. | Only run after `command -v git-lex-serve`; capture URL/port, then kill the child process and prove the port is closed. |
+| Kit update | `git lex kit-update --help`, then a safe pinned/local `git lex kit-update ...` only if fixture kit source is controlled | Updated kit files or explicit no-op. | Distinguish runtime update behavior from network acquisition; stop if it would fetch unpinned remote content. |
+| Raw mirror | Configure synthetic harness input path in fixture `.lex/repo.yml`, then run the narrowest safe `git lex raw backfill` or `git lex save` proof | `Raw/<harness>/...` copies and mirror state in `.lex`. | Verify byte-for-byte copy, first-seen metadata, and no reads from real harness paths. |
+
+### `subtext-mcp` wrapper proof
+
+1. From the `subtext-mcp` package checkout or installed plugin root, inspect `bin/.platforms/<target>/` and prove whether both `git-lex` and `git-lex-serve` binaries exist for the current OS/architecture.
+2. Run the wrapper startup with `CLAUDE_PLUGIN_ROOT` pointing at a disposable copy if possible; confirm `setupHostBinaries` creates or refreshes only plugin-local symlinks in `bin/`.
+3. Start the broker through the package script or CLI, then verify `127.0.0.1:7901` health/status, peer registration, and SQLite state location.
+4. Exercise MCP `start_viz` only against the fixture git repo: expected behavior is `git lex sync` if the graph store is absent, then `git lex serve viz` with a returned localhost URL.
+5. Cleanup must run `subtext-mcp` CLI `kill-broker` if available; otherwise kill only the recorded broker PID and viz PID, remove the disposable plugin copy, and prove no listener remains on `127.0.0.1:7901` or the viz port.
+
+### Cleanup rules
+
+- Never run `init`, `sync`, `query`, `extract`, `save`, `raw backfill`, `serve`, or MCP `start_viz` from `/root/law-nexus`.
+- Remove the temp repository, temp plugin copy, generated `.lex` state, broker SQLite file, and any child processes after each proof attempt.
+- After cleanup, assert `/root/law-nexus/.lex` is still absent and no `git-lex-serve`, `bun broker.ts`, or orphaned `subtext-mcp` process remains from the proof.
+- Keep proof logs outside ignored local runtime directories if the result must be committed; do not rely on `.gsd/` as the only evidence location for S04.
+
+### Blockers to stop on
+
+- `git lex init` mutates `/root/law-nexus` or any non-fixture repository.
+- `git lex --help` does not expose the command surfaces mapped in T01 (`init`, `extract`, `sync`, `query`, `validate`) and the mismatch cannot be explained by version drift.
+- `git lex sync` cannot operate after a real fixture commit, or silently drops frontmatter triples needed for the SPARQL proof.
+- Invalid frontmatter or invalid SHACL constraints exit successfully without an explicit documented warning that downstream ACP can tolerate.
+- `git-lex-serve` is missing, resolves to an unexpected binary path, or leaves an unkillable listener.
+- `setupHostBinaries` reports unsupported platform or missing binaries while MCP startup still appears successful.
+- Broker startup requires ambient user state, real Claude plugin state, or a global SQLite location that cannot be isolated and cleaned.
+
+### Failure Modes
+
+External dependencies for S04 proof are filesystem mutation, git subprocesses, git-lex/git-lex-serve binaries, optional kit network/cache access, Oxigraph store creation, Bun/Node for `subtext-mcp`, localhost ports, and broker SQLite state. Expected failure paths: missing binary, unsupported `--version`, malformed frontmatter parse errors, invalid SHACL shape handling, no git `HEAD`, remote kit fetch timeout, port collision, detached broker orphaning, and unexpected global state reads. The proof must either show each failure bubbles with non-zero exit/status or record a blocker when the implementation logs-and-continues in a way that would make ACP adoption claims unsafe.
+
+### Load Profile
+
+The runtime proof is single-fixture and not a throughput benchmark, so no 10x production load breakpoint is claimed here. The first likely saturation points at 10x fixture size are recursive markdown/RDF extraction under `.lex/extract`, Oxigraph store rebuild/sync, and broker polling/SQLite queue growth. S04 should keep the fixture intentionally small, record file counts and store size, and defer any caching, pagination, or pool-sizing claims until a dedicated load slice exists.
+
+### Negative Tests
+
+S04 should include at least these negative proof cases: malformed YAML frontmatter during `git lex extract`; missing git `HEAD` before `sync`; invalid SHACL/frontmatter shape during `validate`; unsupported or missing `git-lex-serve` before `serve viz`; occupied broker port `7901`; missing Bun for `subtext-mcp`; unsupported `bin/.platforms/<target>` for `setupHostBinaries`; and Raw mirror config pointing at a nonexistent synthetic path. There are no committed automated test files in T03 because this task only updates the runtime proof plan; the negative cases must become executable proof commands in S04.
 
 ## Bottom-line ACP implications
 
