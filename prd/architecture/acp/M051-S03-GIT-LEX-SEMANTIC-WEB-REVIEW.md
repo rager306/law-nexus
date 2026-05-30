@@ -116,6 +116,82 @@ The goal is to separate reusable semantic-kit assets from domain-specific or run
 5. Run SHACL validation on both valid and intentionally invalid fixtures.
 6. Record exact graph URIs, N-Quads samples, and query outputs before promoting any claim to ACP architecture fact.
 
+## T03: ACP semantic web claim matrix
+
+Status vocabulary for ACP follow-up:
+
+- **supported**: sufficient source/file evidence exists for the narrow statement, and ACP may reference it as source-reviewed fact.
+- **partially supported**: source evidence exists, but the ACP claim must include a runtime-proof qualifier.
+- **unproven**: no source/runtime evidence in this review is sufficient for ACP adoption claims.
+- **blocked**: cannot be upgraded without a missing dependency, failing command, or explicit runtime gap being resolved.
+- **not applicable**: the capability is demonstrational, UI-only, or outside ACP's current semantic evidence needs.
+
+### Claim matrix
+
+| Claim | Status | Evidence class | What ACP may say now | Forbidden inference | Exact S04 runtime checks needed to upgrade |
+|---|---|---|---|---|---|
+| Base `lex:` OWL/Turtle ontology exists and defines generic document, decision, reference, relation, mention, and provenance terms. | supported | File-proven ontology files in base kit and main git-lex ontology tree. | ACP may cite `lex:` as a reviewed reusable vocabulary candidate. | Do not infer extraction accuracy, SHACL enforcement, or queryability from ontology files alone. | Run `git lex init --kit base`; verify copied ontology paths; query `SELECT ?c WHERE { ?c a owl:Class }`; preserve output showing `lex:Document`, `lex:Decision`, and `lex:Reference`. |
+| Base `git:` OWL/Turtle ontology exists for commits, actors, blobs, refs, changesets, and files. | supported | File-proven ontology files. | ACP may cite `git:` as source-reviewed git provenance vocabulary. | Do not infer complete repository history ingestion, blame correctness, or rename handling. | Run `git lex sync` in a scratch git repo; query `git:Commit`, `git:Blob`, `git:Changeset`, `git:File`; compare counts with `git log` and tracked files. |
+| Base `fm:` ontology exists for frontmatter-like metadata. | supported | File-proven ontology files. | ACP may cite `fm:` as a lightweight metadata vocabulary candidate. | Do not infer ACP frontmatter values are parsed, typed, normalized, or validated. | Add fixture markdown with title/date/tags/status; run sync; query frontmatter named graph for `fm:title`, `fm:date`, `fm:tags`, `fm:status`; record literal values and datatypes. |
+| Squad kit ontology and content harness exist. | supported | File-proven squad `kit.yml`, ontology, and harness files. | ACP may treat squad kit as domain prior art and packaging example. | Do not infer squad concepts are ACP-native, production-safe, or required for ACP. | Run `git lex init --kit squad` in a scratch repo; verify folder layout and ontology loading; query `squad:Task`, `squad:Decision`, and `squad:Brief` only as migration candidates. |
+| Oxigraph-backed RDF store is used by git-lex. | partially supported | Code-backed dependency and source references. | ACP may say source code is written around Oxigraph and `.git/lex/oxigraph`. | Do not claim local build success, store durability, query performance, or deployed compatibility. | Build with locked dependencies; run `git lex --help`; run init/sync/query; capture `.git/lex/oxigraph` creation and successful query output. |
+| SPARQL SELECT query surface exists in CLI/server/UI code. | partially supported | Code-backed CLI/API/UI references. | ACP may say SPARQL query paths are implemented in source. | Do not claim arbitrary SPARQL coverage, API stability, auth behavior, or result correctness. | Execute CLI `git lex query 'SELECT ...'`; if server is in scope, run local server and POST `/api/query`; compare result rows against fixture triples. |
+| SHACL shape generation from ontology exists. | partially supported | Code-backed `src/shacl.rs` and init/update references. | ACP may say shape-generation code exists. | Do not claim generated shapes are complete, strict enough, or ACP-validating. | Run init/update on fixture ontologies; inspect generated SHACL output; verify required classes/properties appear; save exact generated shape snippets. |
+| SHACL validation path exists. | partially supported | Code-backed validation imports and main execution path. | ACP may say validation code path exists but is runtime-sensitive. | Do not claim invalid ACP documents are rejected or valid documents accepted. | Create one valid and one intentionally invalid fixture; run validation path; record pass/fail output and the failing constraint ID. |
+| N-Quads generation/loading path exists. | partially supported | Code-backed `src/nquad.rs`, `RdfFormat::NQuads`, and sync docs. | ACP may say graph materialization appears N-Quads-based. | Do not infer graph partitioning, stable serialization, or complete sidecar ingestion. | Run sync; export or inspect generated N-Quads; verify named graph column is present; compare sample triples with source sidecars/documents. |
+| Named graph support exists in source and visualization queries. | partially supported | Code-backed `GraphName` handling and UI query scoping. | ACP may say named graphs are implemented as a candidate isolation mechanism. | Do not claim graph URI names, lifecycle, isolation, or union semantics are stable. | Query graph inventory with `SELECT DISTINCT ?g WHERE { GRAPH ?g { ?s ?p ?o } }`; query default union and specific graphs; record URI inventory and row counts. |
+| RDF 1.2 quoted/triple-term history annotations appear in source. | partially supported | Code-backed `rdf-12` feature and `rdf:reifies <<( s p o )>>` construction. | ACP may say quoted-triple support is a candidate history-annotation mechanism. | Do not claim SPARQL-star compatibility or Oxigraph runtime acceptance until executed. | Run history fixture; query `rdf:reifies <<( ?s ?p ?o )>>`; run `history-verify`; capture parser/evaluator success or exact error. |
+| History graph incremental reconstruction exists in source comments/code paths. | partially supported | Code-backed history ingest/verify source. | ACP may say history graph support is implemented in source but unproven. | Do not claim complete temporal provenance, merge handling, or deterministic replay. | Create multiple commits changing sidecars/docs; run sync and history verification; query before/after events; compare event count to commit diff expectations. |
+| Visualization shows semantic graph data. | not applicable | UI-only files and JavaScript queries. | ACP may use it for inspection/demo if runtime data exists. | Do not treat visual rendering as semantic correctness, validation, provenance, or completeness evidence. | Optional S04 demo check only: run UI against a proven store and verify it does not contradict CLI query results. |
+| JSON query-result surfaces exist. | partially supported | Code/UI surfaces returning JSON results, not JSON-LD. | ACP may say some query APIs return JSON-shaped results if runtime proves it. | Do not infer JSON-LD import/export, JSON-LD context handling, framing, compaction, or expansion. | Run CLI/API query and inspect JSON response if supported; separately search/execute JSON-LD import/export commands before making any JSON-LD claim. |
+| JSON-LD import/export support exists. | unproven | No file-backed implementation found in this review. | ACP should say JSON-LD support is not established. | Do not infer JSON-LD from JSON API responses, RDF support, Turtle files, or web UI serialization. | S04 may upgrade only after finding an explicit JSON-LD parser/serializer dependency/path and executing import/export round trip with a JSON-LD fixture. |
+| SPARQL-star compatibility exists. | unproven | Source uses RDF 1.2 triple terms, not a proven SPARQL-star compatibility contract. | ACP should say SPARQL-star support is not established. | Do not equate RDF 1.2 quoted triples, Oxigraph `rdf-12`, or `rdf:reifies` syntax with general SPARQL-star support. | Execute a SPARQL-star-specific fixture/query if ACP needs this; otherwise keep out of ACP claims. |
+| ACP production readiness of git-lex semantic stack. | blocked | Runtime proof absent for build, init, sync, validation, query, history, and graph inventory. | ACP may only describe git-lex as a source-reviewed candidate. | Do not state ACP can rely on it operationally, at scale, or with legal evidence until S04 passes. | Complete S04 smoke suite: locked build, scratch init, sync, graph inventory, positive/negative SHACL, quoted triple query, named graph isolation, history verification, and captured outputs. |
+
+### Forbidden inference checklist
+
+- Ontology files prove vocabulary existence, not extraction behavior, validation behavior, or graph completeness.
+- Cargo dependencies and source references prove implementation intent, not a working local runtime.
+- JSON response bodies do not prove JSON-LD support.
+- RDF 1.2 quoted triple code does not prove broad SPARQL-star compatibility.
+- Visualization assets do not prove semantic correctness.
+- Squad kit prior art does not make `squad:` an ACP domain model.
+- Source-reviewed git provenance terms do not prove complete, deterministic, or legally sufficient evidence lineage.
+
+### S04 upgrade checks
+
+S04 should only upgrade a claim after recording command output, fixture inputs, and exact query results for the relevant row in the matrix. Minimum shared checks:
+
+1. Build/run check: `cargo run --locked -- --help` or the project-supported equivalent from the git-lex checkout.
+2. Kit install check: scratch repository `git lex init --kit base` and `git lex init --kit squad` where applicable.
+3. Sync check: create fixture markdown/sidecar/git history, run `git lex sync`, and prove store creation.
+4. Query check: run class inventory, git provenance, frontmatter, named graph inventory, and history annotation queries.
+5. Validation check: run SHACL against one valid fixture and one intentionally invalid fixture.
+6. Serialization check: capture N-Quads samples and any JSON response surfaces separately; require explicit parser/serializer proof for JSON-LD.
+7. Regression check: keep negative fixtures for unsupported JSON-LD/SPARQL-star in S04 so unsupported claims fail closed rather than silently becoming marketing claims.
+
+### Failure Modes
+
+| Dependency | Failure path | Handling/expected evidence |
+|---|---|---|
+| Local filesystem artifact `prd/architecture/acp/M051-S03-GIT-LEX-SEMANTIC-WEB-REVIEW.md` | Missing or unreadable file prevents updating the matrix. | This task verified the file existed and extended it in place; verification grep fails loudly if the file is absent. |
+| Source-review evidence from prior T01/T02 summaries and existing document sections | Malformed or incomplete prior evidence could overstate support. | Matrix keeps runtime-sensitive claims at `partially supported`, `unproven`, or `blocked` unless previous sections give file/source evidence. |
+| Shell/grep verification | Bad pattern, missing file, or malformed content returns non-zero. | Planned grep command is the close-gate check and bubbles failure directly. |
+
+### Load Profile
+
+This task has no runtime load dimension. The generated matrix is static documentation; S04 runtime work must establish load or scale limits separately if ACP intends to operationalize git-lex.
+
+### Negative Tests
+
+| Negative surface | Guard in this artifact |
+|---|---|
+| Marketing drift from file evidence to runtime support | Claim matrix separates `supported`, `partially supported`, `unproven`, `blocked`, and `not applicable`. |
+| JSON API response misread as JSON-LD | JSON-LD row is `unproven`, with an explicit forbidden inference and required round-trip check. |
+| RDF 1.2 triple-term code misread as SPARQL-star support | SPARQL-star row is `unproven`, with a specific compatibility check required only if ACP needs the claim. |
+| UI visualization misread as semantic correctness | Visualization row is `not applicable` for core ACP capability proof. |
+| Squad kit prior art imported as ACP-native model | Squad row restricts current use to source-reviewed prior art and packaging evidence. |
+
 ## Preliminary ACP recommendation
 
 - Treat `lex:`, `git:`, and selected `fm:` terms as the most reusable base substrate for ACP semantic evidence.
