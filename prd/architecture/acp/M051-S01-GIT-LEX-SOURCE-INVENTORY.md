@@ -22,7 +22,16 @@ The code repositories needed for downstream GitNexus analysis are indexed and th
 
 No GitNexus indexes were required for `git-lex-kit-base` or `git-lex-kit-squad` in this task because they were classified as semantic kit content rather than primary code repositories for code-flow analysis.
 
+## Main repository `.lex` guard
+
+Result: `no-main-repo` guard passed on 2026-05-30. `/root/law-nexus/.lex` does not exist, so this milestone has not mutated or reused a main-repository Lex runtime/state directory before downstream runtime proof tasks.
+
+Guard command: `test ! -e .lex` from `/root/law-nexus`.
+
+Failure policy: if `/root/law-nexus/.lex` appears later, stop before mutation and treat it as a blocker requiring explicit review, because this slice is only allowed to inventory upstream sources and preserve the main repository safety boundary.
+
 ## Reproduction notes
 
 - Vendor anchor evidence command: `gsd_exec` run `56d41e0c-362c-4cbd-bf5f-6bfb6a32c597` (`/root/law-nexus/.gsd/exec/56d41e0c-362c-4cbd-bf5f-6bfb6a32c597.stdout`).
 - GitNexus index evidence command: `gsd_exec` run `0b2fde55-8ab2-47b5-92d3-0b50dcddb24e` (`/root/law-nexus/.gsd/exec/0b2fde55-8ab2-47b5-92d3-0b50dcddb24e.stdout`).
+- Main repository `.lex` guard evidence command: `gsd_exec` run `e09eeb85-40d7-4c53-9864-7db4cae62293` (`/root/law-nexus/.gsd/exec/e09eeb85-40d7-4c53-9864-7db4cae62293.stdout`).
