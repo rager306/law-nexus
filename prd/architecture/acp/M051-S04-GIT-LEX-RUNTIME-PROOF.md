@@ -80,3 +80,54 @@ Diagnostic conclusion: S04 has proof that the current local environment cannot y
 - No `/root/law-nexus/.lex` directory was created by these checks.
 - No core operation was run against `/root/law-nexus`.
 - All attempted runtime preparation happened either in `/tmp/law-nexus-git-lex-proof-20260530T081850Z` or `/root/vendor-source/git-lex` build diagnostics.
+
+## Semantic web runtime checks
+
+T03 attempted to determine whether semantic-web behavior could be exercised through a real `git-lex` or bundled `subtext` runtime. No executable runtime was available, so no ACP-native simulation was substituted and no claim is upgraded from S03 source understanding to S04 runtime proof.
+
+| Claim area | Intended runtime check | Exit code | Result | S03 upgrade status |
+|---|---|---:|---|---|
+| RDF graph generation | Create/extract a sample record and inspect generated RDF graph output. | not run | blocked: no runnable `git-lex` or `subtext` executable candidate. | not upgraded |
+| N-Quads shape | Export or inspect extracted N-Quads and verify subject/predicate/object/graph shape. | not run | blocked: runtime unavailable. | not upgraded |
+| SPARQL query behavior | Run a positive query and at least one empty-result query over the extracted store. | not run | blocked: runtime unavailable, query command support could not be probed. | not upgraded |
+| frontmatter extraction | Create a markdown/sidecar sample with frontmatter and verify extracted triples/properties. | not run | blocked: runtime unavailable. | not upgraded |
+| quoted triples / RDF 1.2 / SPARQL-star | Probe quoted-triple parse/query support only if exposed by runtime help or query engine. | not run | blocked: runtime unavailable and help/version support could not be inspected. | not upgraded |
+| JSON-LD export/import | Probe JSON-LD export/import commands if present in runtime help. | not run | blocked: runtime unavailable and command surface could not be inspected. | not upgraded |
+| history graph behavior | Save two revisions and query/inspect temporal or provenance graph behavior. | not run | blocked: runtime unavailable; no history graph was produced. | not upgraded |
+
+Diagnostic command evidence:
+
+| Command | Exit code | Result |
+|---|---:|---|
+| `gsd_exec` purpose `T03 semantic runtime availability and blocker diagnostics for git-lex/subtext` | `0` | Confirmed all checked `git-lex` / `git-lex-serve` candidate paths were non-executable or missing, `subtext_platform_executable_count=0`, isolated workspace still present, and `/root/law-nexus/.lex` still absent. |
+
+Persisted diagnostics:
+
+- `.gsd/exec/0e80065b-dff4-4aff-a3c6-315f8b525fe5.stdout` — semantic runtime availability and blocked diagnostics for RDF, N-Quads, SPARQL, frontmatter, quoted triples, JSON-LD, and history behavior.
+
+## Failure Modes
+
+External dependencies for this task were local filesystem paths, local subprocess/runtime availability, and the previously attempted Cargo/native toolchain build path. No network or external API dependency was used.
+
+| Dependency | Failure mode | Observed path | Handling / diagnostic |
+|---|---|---|---|
+| `/root/vendor-source/git-lex/target/*` runtime candidates | Missing or non-executable binary. | Observed for `target/debug/git-lex`, `target/release/git-lex`, `target/debug/git-lex-serve`, and `target/release/git-lex-serve`. | Bubbled as blocked diagnostics; no semantic command was run or simulated. |
+| `/root/vendor-source/subtext-mcp/platforms/*` bundled runtime candidates | Missing directory or no executable platform binary. | Observed `subtext_platform_executable_count=0`. | Bubbled as blocked diagnostics; JSON-LD/SPARQL/RDF behavior not upgraded. |
+| Local Cargo/native build path | Native dependency compilation failure. | Prior T01 locked build failed in `oxrocksdb-sys` because `stdbool.h` was missing. | Preserved as binary provenance blocker; T03 did not rerun a known failing build without new evidence. |
+| Main repo filesystem safety | Accidental mutation of `/root/law-nexus/.lex`. | T03 diagnostic reported `main_lex_exists=no`. | Confirmed no main repo `.lex` was created. |
+| Isolated workspace availability | Workspace missing before semantic proof. | T03 diagnostic reported workspace state `present`. | Kept available for future reruns once a runtime exists. |
+
+## Load Profile
+
+T03 has no executable runtime load profile because no semantic runtime could be started. The first saturating resource remains binary/toolchain availability, not RDF store size, SPARQL complexity, JSON-LD import volume, or history depth. A 10x semantic load breakpoint cannot be claimed until a runnable binary exists and can generate/query a store in the isolated workspace.
+
+## Negative Tests
+
+Negative runtime tests were not executable, but the negative diagnostic surface was covered:
+
+| Negative scenario | Expected behavior | Evidence |
+|---|---|---|
+| Missing `git-lex` binary | Mark RDF/N-Quads/SPARQL/frontmatter/quoted/JSON-LD/history checks as blocked, not passed. | `.gsd/exec/0e80065b-dff4-4aff-a3c6-315f8b525fe5.stdout` reports `runtime_found=no` and `semantic_runtime_checks=blocked`. |
+| Missing bundled `subtext` executable | Preserve JSON-LD/SPARQL/RDF claims as not upgraded. | Same diagnostic reports `subtext_platform_executable_count=0`. |
+| Main repo mutation risk | Do not create or use `/root/law-nexus/.lex`. | Same diagnostic reports `main_lex_exists=no`. |
+| Unsupported command surface unknowns | Do not infer quoted triple, RDF 1.2, SPARQL-star, JSON-LD, or history support from source-only understanding. | Semantic web runtime checks table marks each area `not upgraded`. |
