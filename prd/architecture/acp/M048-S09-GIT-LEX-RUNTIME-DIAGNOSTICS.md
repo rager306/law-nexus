@@ -21,7 +21,7 @@
 
 | Command | Exit code | Timed out | Duration | Preview |
 | --- | ---: | --- | ---: | --- |
-| `git lex --help` | 1 | False | 5 ms | `git: 'lex' is not a git command. See 'git --help'.
+| `git lex --help` | 1 | False | 6 ms | `git: 'lex' is not a git command. See 'git --help'.
 
 The most similar command is
 	help` |
