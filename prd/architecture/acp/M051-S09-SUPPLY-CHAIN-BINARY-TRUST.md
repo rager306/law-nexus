@@ -265,14 +265,63 @@ The `subtext-mcp` repository demonstrates a plausible local interaction model fo
 
 Therefore, S09 may use `subtext-mcp` as research evidence for how git-lex tools can be surfaced to agents, but not as LegalGraph ACP adoption evidence or binary trust evidence.
 
-## Acquisition and binary trust recommendations for downstream tasks
+## T04: Acquisition policy and trust gates
 
-1. Treat the bundled `subtext-mcp` binaries as untrusted prebuilt artifacts unless an adoption policy explicitly allows them.
-2. Prefer source builds from a pinned full `git-lex` commit using `cargo build --release --locked` in a controlled builder.
-3. Require a binary manifest for any accepted prebuilt artifacts. Minimum fields: platform, binary name, sha256, size, mode, full source commit, Cargo.lock hash, workflow run id, builder OS image, Rust toolchain, creation timestamp, and signer/attestation reference.
-4. Add or require `git-lex --version` and `git-lex-serve --version` to print version and source commit before relying on runtime identity checks.
-5. Do not enable the `subtext-mcp` plugin/MCP automatically in LegalGraph workflows. Its startup hooks can spawn a broker, write `${HOME}/.subtext.db`, symlink binaries, and expose peer messaging and visualization tools.
-6. Resolve the missing `subtext-mcp` license before redistribution or operational adoption.
+This is the ACP git-lex acquisition policy for the evidence reviewed in S09. It separates research-only inspection from adapter/runtime adoption so future LegalGraph work does not promote unverified binaries, hidden wrapper behavior, or repository-local `.lex` side effects into architecture proof.
+
+### Allowed acquisition modes
+
+| Mode | Allowed use | Required evidence | Prohibited use |
+|---|---|---|---|
+| Source build from `git-lex` | Preferred path for any adapter/runtime adoption candidate | Pin a full `git-lex` commit, preserve `Cargo.lock`, build with `cargo build --release --locked` in a controlled builder, record builder OS/image, Rust toolchain, command transcript, binary `sha256`, binary size/mode, and source commit in a manifest | Cannot validate ACP architecture fitness, LegalGraph semantics, parser behavior, or requirements R035/R037/R038 by itself |
+| Prebuilt `subtext-mcp` bundled binaries | Research-only evidence for CLI help text, platform inventory, wrapper behavior, and local interaction-model exploration | Record platform, binary name, size, mode, sha256, local snapshot commit, and the exact command executed; execute only safe native help/version-style commands unless separately approved | Must not be used as adapter proof, runtime adoption proof, release artifact, CI dependency, or production LegalGraph dependency |
+| `subtext-mcp` MCP/plugin wrapper | Research-only evidence for how git-lex may be surfaced to agents through MCP tools | Record plugin commit, license status, startup hooks, dependency install behavior, broker/database paths, binary symlink behavior, MCP tools, and subprocesses | Must not be treated as binary provenance proof, ACP integration proof, or evidence that git-lex graph output is legally/citation safe |
+
+### Version pinning and provenance requirements
+
+Before any ACP adapter or runtime adoption decision, the candidate must be pinned and reproducible:
+
+1. Pin by full immutable commit, not branch, tag name alone, short SHA, commit message, or locally copied binary path.
+2. Keep the reviewed `Cargo.lock` with the source build and record its hash in the acquisition manifest.
+3. Build in a controlled environment with a recorded Rust toolchain and target triple; any native dependency build inputs such as vendored OpenSSL/libgit2 and RocksDB surfaces must be captured as part of the builder record.
+4. Store binary identity as `sha256`, size, mode, target triple, source commit, Cargo.lock hash, build command, build timestamp, builder identity, and attestation/signature reference if available.
+5. Runtime identity checks must not rely on current `--version` output because the reviewed binaries do not implement it. A future promotion gate should require `git-lex --version` and `git-lex-serve --version` or an equivalent machine-readable manifest that exposes source commit and build identity.
+6. Cross-repository sync messages such as `binaries: sync git-lex @ <short-sha>` are provenance hints only; they are not sufficient proof gates.
+
+### Proof gates before adapter/runtime adoption
+
+ACP adapter/runtime adoption remains blocked until all of these proof gates are satisfied with project-local evidence:
+
+1. **Source-build gate:** build `git-lex` and `git-lex-serve` from a pinned full commit with `cargo build --release --locked`; record manifest fields above and compare resulting binaries to any proposed prebuilt artifacts if prebuilt use is requested.
+2. **License gate:** confirm `git-lex` Unlicense/public-domain dedication is acceptable for the intended use and resolve the missing explicit `subtext-mcp` license before redistribution or operational plugin use.
+3. **Dependency gate:** review Rust and Bun lockfiles, native dependency surfaces, and GitHub workflow/sync privileges; no hidden dependency-install hook may run in LegalGraph automation without explicit approval.
+4. **Wrapper gate:** document the exact wrapper behavior used by ACP: PATH/bin layout, symlinks, broker startup, SQLite path, localhost ports, MCP tools, subprocesses, detached visualization servers, and browser opening behavior.
+5. **Repository-state gate:** enforce a no-main-repo-.lex guard. Research runs must not create or mutate `.lex/`, `.lex/oxigraph`, or detached `git lex serve viz` state in the main `/root/law-nexus` repository. Any exploratory `.lex` state must be created only in an isolated throwaway clone or fixture and deleted after evidence capture.
+6. **Runtime safety gate:** define failure handling for missing binaries, unsupported platforms, broker/database failure, subprocess timeout, malformed output, port conflicts, and cleanup of detached processes before enabling agent workflows.
+7. **LegalGraph validation gate:** separately validate graph correctness, citation safety, Russian legal source parsing, temporal semantics, and ACP architecture fitness with LegalGraph-specific tests. S09 supply-chain evidence does not validate R035, R037, or R038.
+
+### Blocked uses
+
+The following remain blocked after S09 unless a later milestone supplies the proof gates above:
+
+- Using bundled `subtext-mcp` prebuilt binaries as ACP adapter or runtime adoption evidence.
+- Adding `subtext-mcp` plugin startup, hooks, broker, or bundled binaries to default LegalGraph workflows.
+- Running `git lex sync` or `git lex serve viz` against the main `/root/law-nexus` working tree or relying on main-repository `.lex` state; this is the explicit no-main-repo guard.
+- Treating CLI `--help`, binary hashes, or wrapper MCP behavior as proof that git-lex output satisfies LegalGraph requirements.
+- Claiming S09 evidence validates R035, R037, or R038. Those requirements need their own architecture/runtime/legal-evidence validation and remain outside this supply-chain review boundary.
+- Redistributing or operationally adopting `subtext-mcp` while its license remains missing from local evidence.
+
+### Failure Modes
+
+This policy task writes documentation only, so it introduces no new runtime dependency. The policy itself requires future acquisition work to handle and document these external failure paths before promotion: source-build failure, lockfile mismatch, unsupported platform, malformed or missing provenance manifest, missing license grant, unavailable dependency registry, broker/SQLite failure, git subprocess failure, detached process cleanup failure, and accidental `.lex` mutation in the main repository. The current outcome explicitly bubbles these as adoption blockers rather than silently accepting the binaries.
+
+### Load Profile
+
+This policy task has no runtime load dimension. For future wrapper/runtime adoption, the policy requires a separate load review before promotion because the observed `subtext-mcp` design can saturate first on local SQLite writes, one-second MCP polling, unpaginated peer/message listings, and detached visualization processes.
+
+### Negative Tests
+
+No executable code changed in this task. Negative coverage required before adoption is policy-level: attempts to use an unpinned commit, a short SHA, a missing manifest, a mismatched binary hash, a prebuilt binary as adapter proof, a missing `subtext-mcp` license, and any run that would create `.lex` in the main repository must fail the acquisition checklist. These checks should be implemented in a future tracked test or review checklist before any adapter/runtime adoption work starts.
 
 ## Verification commands
 
