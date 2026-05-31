@@ -148,6 +148,123 @@ The `/root/vendor-source/git-lex/target/` tree contains debug build artifacts an
 - macOS binaries were not executed on this Linux host; their hashes and metadata were recorded only.
 - The cross-repository sync workflow's commit message includes a short git-lex SHA, but short SHA in a commit message is not sufficient binary provenance for LegalGraph adoption.
 
+## T03: `subtext-mcp` interaction model, failure modes, and non-proof boundary
+
+### Interaction model overview
+
+Evidence reviewed: `/root/vendor-source/subtext-mcp/server.ts`, `broker.ts`, `cli.ts`, `lib/host-binaries.ts`, `hooks/hooks.json`, `.mcp.json`, `.claude-plugin/plugin.json`, `shared/summarize.ts`, and `shared/types.ts`.
+
+`subtext-mcp` is best understood as an MCP wrapper and peer-messaging coordinator around locally installed `git-lex` tooling, not as direct evidence that `git-lex` is safe or fit for LegalGraph ACP integration. The main runtime path is:
+
+1. Claude Code/plugin metadata starts `bun ${CLAUDE_PLUGIN_ROOT}/server.ts` over MCP stdio with `NODE_PATH=${CLAUDE_PLUGIN_DATA}/node_modules`.
+2. The `SessionStart` hook in `hooks/hooks.json` compares plugin `bun.lock` with `${CLAUDE_PLUGIN_DATA}/bun.lock`; if they differ, it copies `package.json` and `bun.lock` into plugin data and runs `bun install --silent` there.
+3. `server.ts` startup calls `setupHostBinaries(pluginRoot)` when `CLAUDE_PLUGIN_ROOT` is present.
+4. `setupHostBinaries` maps `process.platform/process.arch` to a Rust target triple, then symlinks `bin/.platforms/<target>/*` into top-level `bin/*` so Claude Code's top-level plugin `bin/` PATH augmentation can expose `git-lex` and `git-lex-serve`.
+5. `server.ts` checks broker health at `http://127.0.0.1:${SUBTEXT_PORT:-7901}/health`; if absent, it spawns `bun broker.ts`, unreferences it, and waits up to about 6 seconds.
+6. `server.ts` discovers context from `process.cwd()`, `git rev-parse --show-toplevel`, parent-process TTY via `ps -o tty= -p <ppid>`, optional git branch/recent files, and optional OpenAI-generated summary.
+7. The MCP server registers with the broker and exposes tools over stdio: `list_peers`, `send_message`, `set_summary`, `check_messages`, and `start_viz`.
+8. A polling loop calls `/poll-messages` every second and forwards messages as `notifications/claude/channel`; a heartbeat loop updates `/heartbeat` every 15 seconds; signal handlers attempt `/unregister` before exit.
+
+### Broker behavior
+
+`broker.ts` is a singleton localhost HTTP daemon on `127.0.0.1:${SUBTEXT_PORT:-7901}` backed by Bun SQLite at `${SUBTEXT_DB:-$HOME/.subtext.db}`. It enables WAL mode and a 3000ms busy timeout, creates `peers` and `messages`, and supports these endpoints:
+
+- `GET /health`: returns status and peer count.
+- `POST /register`: generates an 8-character peer id, removes prior registration for the same PID, and inserts cwd/git root/TTY/summary metadata.
+- `POST /heartbeat`: updates `last_seen`.
+- `POST /set-summary`: updates the peer summary.
+- `POST /list-peers`: filters by `machine`, exact `directory`, or `repo` git root, with directory fallback when no git root exists.
+- `POST /send-message`: verifies the target peer id exists, then inserts an undelivered message.
+- `POST /poll-messages`: returns undelivered messages for a peer and marks them delivered.
+- `POST /unregister`: removes the peer row.
+
+The broker cleans stale peers on startup and every 30 seconds by checking `process.kill(pid, 0)`, and removes undelivered messages addressed to dead peers during startup cleanup. This creates a local peer registry and message queue, not a distributed or authenticated network.
+
+### `server.ts` tools and git-lex invocation
+
+The exposed MCP tools mostly interact with the broker, but `start_viz` invokes git-lex-family commands in the current git root:
+
+- If `myGitRoot` is absent, `start_viz` returns an MCP `isError` response explaining that git-lex visualization needs a repo with `.lex/` initialized.
+- If `${gitRoot}/.lex/oxigraph` is absent, it runs `git lex sync` in `myGitRoot` before serving visualization.
+- It then spawns `git lex serve viz`, waits up to 5 seconds for stdout containing `127.0.0.1:<port>`, and returns `http://localhost:<port>/`.
+- It attempts to open the URL via `open`, `start`, or `xdg-open`, but browser-open failure is logged and does not fail the MCP tool.
+
+This shows the interaction model expected by the plugin: `git lex` and `git lex serve` are expected to be available on PATH via host-binary symlinks or another installation, and `git lex sync` may create/update repository-local `.lex/oxigraph` state. It does not prove the correctness, safety, or ACP suitability of the underlying `git-lex` indexing, RDF/SHACL model, visualization server, or generated graph content.
+
+### `cli.ts` helper commands
+
+`cli.ts` is an operator/debug helper, not the MCP integration path. It talks to the same broker URL with a 3000ms fetch timeout and provides:
+
+- `status`: read `/health`, then list machine peers.
+- `peers`: list machine peers.
+- `send <peer-id> <message>`: send from synthetic `from_id: "cli"`.
+- `kill-broker`: run `lsof -ti :${SUBTEXT_PORT}` and send `SIGTERM` to matching PIDs.
+
+The CLI reinforces that the subtext model is localhost process coordination plus message passing. It is not an ACP runtime contract and should not be used as integration proof for git-lex behavior.
+
+### Hooks, logging, and error behavior
+
+- Hooks: `hooks/hooks.json` can run `bun install --silent` during Claude Code `SessionStart` when the plugin data lockfile differs from the plugin root lockfile. This is a dependency-install side effect and must be part of any supply-chain review.
+- Logging: `server.ts` logs with `[subtext]` to stderr because MCP stdio stdout is reserved for protocol messages. `broker.ts` logs its listen address and database path to stderr. `setupHostBinaries` logs platform activation/warnings/errors to stderr.
+- Error handling: most MCP tool handlers catch broker or subprocess failures and return `isError: true` with text. `brokerFetch` throws on non-2xx broker responses. Polling/heartbeat/autosummary/browser-open failures are treated as non-critical and logged or ignored. `ensureBroker` is fatal if the broker does not become healthy within about 6 seconds. Top-level `main().catch` logs `Fatal` and exits with code 1.
+- TTY and git root: `getTty` best-effort reads the parent TTY via `ps`; missing/unknown TTY is tolerated. `getGitRoot` uses `git rev-parse --show-toplevel`; failure produces `null`, with repo-scoped peer listing falling back to directory matching and `start_viz` failing closed.
+
+### Process lifecycle
+
+`server.ts` is per-Claude-instance MCP stdio process. `broker.ts` is a local daemon that may survive MCP server exit because it is spawned with ignored stdin/stdout, inherited stderr, and `unref()`. The MCP process unregisters on `SIGINT`/`SIGTERM`, but unexpected process death is handled later by broker stale-peer cleanup. `start_viz` spawns `git lex serve viz` and unreferences it, so visualization server lifecycle is also detached from the tool call after the port is discovered.
+
+### Failure Modes
+
+External dependency and failure-path evidence from the reviewed files:
+
+| Dependency | Failure path | Observed handling |
+|---|---|---|
+| Plugin filesystem (`CLAUDE_PLUGIN_ROOT`, `bin/.platforms`, top-level `bin`) | Missing env var, unsupported platform, no platform binaries, symlink/unlink failure | Missing plugin root skips setup with stderr warning; unsupported/missing platform logs warning and continues; individual symlink failures log to stderr. This avoids startup crash but may leave `git lex` unavailable. |
+| Bun dependency install hook | `bun.lock` differs, copy/install fails, network/package registry unavailable | Hook command has no explicit recovery in `hooks/hooks.json`; hook failure behavior depends on Claude Code plugin hook execution. This is a supply-chain and availability risk, not ACP proof. |
+| Broker HTTP service | Broker down, non-2xx response, malformed/unreachable localhost response, startup timeout | `isBrokerAlive` returns false on fetch errors; `ensureBroker` spawns broker and waits up to about 6 seconds, then throws fatal error; tool handlers catch brokerFetch failures and return MCP `isError`. |
+| Broker SQLite database | `${SUBTEXT_DB}` or `$HOME/.subtext.db` unavailable, locked beyond busy timeout, schema/write failure | Broker startup/request handler can throw; request handler returns HTTP 500 JSON. There is no migration/repair logic beyond `CREATE TABLE IF NOT EXISTS`, WAL, and busy timeout. |
+| Peer processes | Registered PID exits or becomes inaccessible | Broker cleans stale peers at startup and every 30s; list-peers also filters dead PIDs; undelivered messages to dead peers are deleted during startup cleanup only. |
+| OpenAI summary API | `OPENAI_API_KEY` missing, request timeout, non-OK response, malformed response | `generateSummary` returns `null`; server logs auto-summary failure as non-critical and proceeds. |
+| Git commands for cwd context | Not a git repo, git missing, command errors | Git root/branch/recent-file helpers catch failures and return `null`/`[]`; `start_viz` fails closed when no git root exists. |
+| `git lex sync` | Missing git-lex command, sync failure, malformed repository state | `start_viz` returns MCP `isError` with sync exit code and stderr. |
+| `git lex serve viz` | Missing command, server exits early, no port announcement within 5s | `start_viz` returns MCP `isError` saying the viz server did not announce a port, including stderr when available. |
+| Browser opener | `open`/`start`/`xdg-open` missing or fails | Failure is logged to stderr and does not fail the tool after the viz URL is known. |
+
+### Load Profile
+
+The reviewed `subtext-mcp` code has a runtime load dimension even though this task did not execute it. Expected load is a small number of local Claude Code peers on one machine. At 10x peer/message volume, the likely first saturation points are:
+
+- Broker SQLite writes/updates: `/heartbeat`, `/send-message`, `/poll-messages`, and peer cleanup all share one local SQLite database with WAL and `busy_timeout = 3000`. There is no connection pool, queue backpressure, pagination, retention policy, or message-size limit in the reviewed code.
+- MCP polling cadence: every server polls `/poll-messages` once per second and heartbeats every 15 seconds, so broker request rate grows linearly with number of peers.
+- Message listing: `/list-peers` and CLI status return full peer rows without pagination.
+- Visualization: each `start_viz` can spawn a detached `git lex serve viz`; the code relies on git-lex choosing a free port and does not apply process caps or cleanup.
+
+Protection observed: localhost-only bind address, process-alive stale-peer cleanup, SQLite WAL, 3000ms busy timeout, and brokerFetch timeouts in `cli.ts`/health checks. Missing protection: rate limiting, authentication, message size bounds, pagination, queue retention cleanup, broker single-instance locking beyond port binding, and detached viz process lifecycle management.
+
+### Negative Tests
+
+No test files were found or executed for this documentation-only task, and the task did not modify executable code. Negative surfaces identified from source review that should be covered before promoting this to an ACP integration are:
+
+- `setupHostBinaries`: unsupported `process.platform/process.arch`, missing platform directory, stale top-level symlink/file replacement failure, and symlink creation failure.
+- `server.ts` broker path: broker unavailable, broker non-2xx response, malformed broker JSON, startup timeout, and not-registered states for `send_message`, `set_summary`, and `check_messages`.
+- `server.ts` git-lex path: non-git cwd, missing `.lex/oxigraph`, failing `git lex sync`, missing/failing `git lex serve viz`, no stdout port within 5 seconds, and browser opener failure.
+- `broker.ts`: malformed JSON body, unknown endpoint, missing/invalid peer ids, dead PID cleanup, SQLite lock/write errors, and message delivery idempotency.
+- `cli.ts`: broker down, missing `send` arguments, unknown peer id, and `lsof`/SIGTERM failure in `kill-broker`.
+
+Because the implementation has no checked-in negative tests for these cases in the reviewed snapshot, these findings are review requirements rather than pass evidence.
+
+### Boundary: interaction model, not integration proof
+
+The `subtext-mcp` repository demonstrates a plausible local interaction model for exposing git-lex commands to Claude Code through MCP: host binary surfacing, peer discovery, message passing, optional visualization startup, and best-effort context summary. It must not be promoted to ACP integration proof because:
+
+- It wraps prebuilt binaries whose provenance is not established by this slice.
+- It uses a missing-license plugin repository with runtime hook and dependency-install side effects.
+- It exercises `git lex sync` and `git lex serve viz` only indirectly and does not validate git-lex graph correctness, legal-domain semantics, citation safety, parser behavior, or ACP architecture fit.
+- It creates local state (`$HOME/.subtext.db`, repo `.lex/oxigraph`, detached viz processes) and localhost services that need explicit operational policy.
+- It has no local authentication, rate limits, message-size controls, or documented production hardening.
+
+Therefore, S09 may use `subtext-mcp` as research evidence for how git-lex tools can be surfaced to agents, but not as LegalGraph ACP adoption evidence or binary trust evidence.
+
 ## Acquisition and binary trust recommendations for downstream tasks
 
 1. Treat the bundled `subtext-mcp` binaries as untrusted prebuilt artifacts unless an adoption policy explicitly allows them.
@@ -161,3 +278,4 @@ The `/root/vendor-source/git-lex/target/` tree contains debug build artifacts an
 
 - `test -f prd/architecture/acp/M051-S09-SUPPLY-CHAIN-BINARY-TRUST.md && grep -E 'LICENSE|Cargo.lock|package.json|bun.lock|dependency|workflow|hook|plugin|MCP' prd/architecture/acp/M051-S09-SUPPLY-CHAIN-BINARY-TRUST.md`
 - `grep -E 'sha256|platforms|git-lex-serve|git-lex|version|help|trust gap|prebuilt' prd/architecture/acp/M051-S09-SUPPLY-CHAIN-BINARY-TRUST.md`
+- `grep -E 'setupHostBinaries|server.ts|broker|cli.ts|hooks|logging|error|TTY|git root|interaction model|not integration proof' prd/architecture/acp/M051-S09-SUPPLY-CHAIN-BINARY-TRUST.md`
