@@ -1,0 +1,294 @@
+@prefix acp: <urn:law-nexus:acp:prototype:m051:> .
+@prefix lex: <https://repolex.ai/ontology/git-lex/lex/> .
+@prefix git: <https://repolex.ai/ontology/git-lex/git/> .
+@prefix fm: <https://repolex.ai/ontology/git-lex/fm/> .
+@prefix squad: <https://repolex.ai/ontology/kit/squad/> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+<urn:law-nexus:acp:prototype:m051>
+    a owl:Ontology ;
+    rdfs:label "M051 proposed ACP git-lex semantic prototype" ;
+    rdfs:comment "Proposed, non-authoritative ACP ontology prototype for S08. It borrows selected git-lex vocabulary patterns while preserving ACP-native source authority, proof gates, and non-validation boundaries." ;
+    owl:versionInfo "0.1-proposed" ;
+    acp:nonAuthoritative true ;
+    acp:sourceArtifact "prd/architecture/acp/M051-S10-GIT-LEX-BINARY-RUNTIME-GATE.md" ;
+    acp:blockedRequirementValidation "R035" , "R037" , "R038" .
+
+# -----------------------------------------------------------------------------
+# Core ACP source and governance classes
+# -----------------------------------------------------------------------------
+
+acp:SourceRecord
+    a owl:Class ;
+    rdfs:subClassOf lex:Document ;
+    rdfs:label "Source record" ;
+    rdfs:comment "ACP-native authoritative source record. Authority comes from lifecycle state, evidence anchors, and proof gates, not from RDF shape alone." .
+
+acp:Requirement
+    a owl:Class ;
+    rdfs:subClassOf acp:SourceRecord ;
+    rdfs:label "Requirement" ;
+    rdfs:comment "Capability, constraint, quality, or anti-feature requirement tracked by ACP." .
+
+acp:Decision
+    a owl:Class ;
+    rdfs:subClassOf acp:SourceRecord , lex:Decision ;
+    rdfs:label "Decision" ;
+    rdfs:comment "Accepted or candidate decision with rationale, consequences, and proof links." .
+
+acp:EvidenceAnchor
+    a owl:Class ;
+    rdfs:subClassOf lex:Reference ;
+    rdfs:label "Evidence anchor" ;
+    rdfs:comment "Repository-relative proof anchor. Must not be an absolute path, ignored local-only path, .gsd/exec artifact, raw secret, raw vector, or raw legal text dump." .
+
+acp:ProofGate
+    a owl:Class ;
+    rdfs:subClassOf lex:Process ;
+    rdfs:label "Proof gate" ;
+    rdfs:comment "Named verification gate that can block, support, or validate a claim only when executed evidence exists." .
+
+acp:HealthFinding
+    a owl:Class ;
+    rdfs:subClassOf lex:Information ;
+    rdfs:label "Health finding" ;
+    rdfs:comment "Blocked, unsafe, stale, insufficient-evidence, or drift diagnostic captured as ACP evidence." .
+
+acp:Projection
+    a owl:Class ;
+    rdfs:subClassOf lex:Information ;
+    rdfs:label "Projection" ;
+    rdfs:comment "Derived non-authoritative RDF, SHACL, SPARQL, JSON-LD, dashboard, or recovery surface." .
+
+acp:LifecycleState
+    a owl:Class ;
+    rdfs:subClassOf lex:Concept ;
+    rdfs:label "Lifecycle state" ;
+    rdfs:comment "ACP state such as candidate, accepted, blocked, deferred, rejected, stale, active, validated, or superseded." .
+
+acp:AuthorityClass
+    a owl:Class ;
+    rdfs:subClassOf lex:Concept ;
+    rdfs:label "Authority class" ;
+    rdfs:comment "Classification of whether a record is source, derived, diagnostic, runtime-smoke, or non-authoritative." .
+
+acp:ValidationClaim
+    a owl:Class ;
+    rdfs:subClassOf lex:Information ;
+    rdfs:label "Validation claim" ;
+    rdfs:comment "Claim that a proof gate validates, advances, blocks, or explicitly does not validate a requirement or decision." .
+
+acp:ProfileConstraint
+    a owl:Class ;
+    rdfs:subClassOf lex:Concept ;
+    rdfs:label "Profile constraint" ;
+    rdfs:comment "Project-specific constraint layered over reusable ACP core, such as law-nexus Russian legal evidence, FalkorDB, parser, or citation-safe retrieval boundaries." .
+
+acp:RuntimeAdapter
+    a owl:Class ;
+    rdfs:subClassOf lex:Process ;
+    rdfs:label "Runtime adapter" ;
+    rdfs:comment "Optional runtime integration candidate such as git-lex. It is not ACP authority unless separately adopted through explicit proof gates." .
+
+# -----------------------------------------------------------------------------
+# Lifecycle and authority individuals
+# -----------------------------------------------------------------------------
+
+acp:proposed
+    a acp:LifecycleState ;
+    rdfs:label "proposed" .
+
+acp:accepted
+    a acp:LifecycleState ;
+    rdfs:label "accepted" .
+
+acp:blocked
+    a acp:LifecycleState ;
+    rdfs:label "blocked" .
+
+acp:deferred
+    a acp:LifecycleState ;
+    rdfs:label "deferred" .
+
+acp:nonAuthoritativeProjection
+    a acp:AuthorityClass ;
+    rdfs:label "non-authoritative projection" .
+
+acp:sourceAuthority
+    a acp:AuthorityClass ;
+    rdfs:label "source authority" .
+
+acp:runtimeSmokeEvidence
+    a acp:AuthorityClass ;
+    rdfs:label "runtime-smoke evidence" .
+
+# -----------------------------------------------------------------------------
+# Core object properties
+# -----------------------------------------------------------------------------
+
+acp:hasEvidenceAnchor
+    a owl:ObjectProperty ;
+    rdfs:subPropertyOf lex:relatedTo ;
+    rdfs:domain acp:SourceRecord ;
+    rdfs:range acp:EvidenceAnchor ;
+    rdfs:label "has evidence anchor" .
+
+acp:requiresProofGate
+    a owl:ObjectProperty ;
+    rdfs:subPropertyOf lex:dependsOn ;
+    rdfs:domain acp:SourceRecord ;
+    rdfs:range acp:ProofGate ;
+    rdfs:label "requires proof gate" .
+
+acp:satisfiesProofGate
+    a owl:ObjectProperty ;
+    rdfs:subPropertyOf lex:supports ;
+    rdfs:domain acp:EvidenceAnchor ;
+    rdfs:range acp:ProofGate ;
+    rdfs:label "satisfies proof gate" .
+
+acp:blocksClaim
+    a owl:ObjectProperty ;
+    rdfs:subPropertyOf lex:opposes ;
+    rdfs:domain acp:HealthFinding ;
+    rdfs:range acp:ValidationClaim ;
+    rdfs:label "blocks claim" .
+
+acp:validatesRequirement
+    a owl:ObjectProperty ;
+    rdfs:subPropertyOf lex:supports ;
+    rdfs:domain acp:ValidationClaim ;
+    rdfs:range acp:Requirement ;
+    rdfs:label "validates requirement" ;
+    rdfs:comment "Use only when an accepted proof gate has matching executed evidence. Projection shape alone is insufficient." .
+
+acp:doesNotValidateRequirement
+    a owl:ObjectProperty ;
+    rdfs:subPropertyOf lex:opposes ;
+    rdfs:domain acp:ValidationClaim ;
+    rdfs:range acp:Requirement ;
+    rdfs:label "does not validate requirement" .
+
+acp:derivedFrom
+    a owl:ObjectProperty ;
+    rdfs:subPropertyOf lex:derivedFrom ;
+    rdfs:domain acp:Projection ;
+    rdfs:range acp:SourceRecord ;
+    rdfs:label "derived from" .
+
+acp:hasLifecycleState
+    a owl:ObjectProperty ;
+    rdfs:domain acp:SourceRecord ;
+    rdfs:range acp:LifecycleState ;
+    rdfs:label "has lifecycle state" .
+
+acp:hasAuthorityClass
+    a owl:ObjectProperty ;
+    rdfs:domain lex:Information ;
+    rdfs:range acp:AuthorityClass ;
+    rdfs:label "has authority class" .
+
+acp:constrainedByProfile
+    a owl:ObjectProperty ;
+    rdfs:subPropertyOf lex:relatedTo ;
+    rdfs:domain acp:SourceRecord ;
+    rdfs:range acp:ProfileConstraint ;
+    rdfs:label "constrained by profile" .
+
+acp:implementedByAdapter
+    a owl:ObjectProperty ;
+    rdfs:subPropertyOf lex:relatedTo ;
+    rdfs:domain acp:Projection ;
+    rdfs:range acp:RuntimeAdapter ;
+    rdfs:label "implemented by adapter" .
+
+acp:observedInCommit
+    a owl:ObjectProperty ;
+    rdfs:subPropertyOf lex:relatedTo ;
+    rdfs:domain acp:EvidenceAnchor ;
+    rdfs:range git:Commit ;
+    rdfs:label "observed in commit" .
+
+# -----------------------------------------------------------------------------
+# Datatype properties and metadata
+# -----------------------------------------------------------------------------
+
+acp:identifier
+    a owl:DatatypeProperty ;
+    rdfs:subPropertyOf fm:title ;
+    rdfs:range xsd:string ;
+    rdfs:label "identifier" .
+
+acp:sourcePath
+    a owl:DatatypeProperty ;
+    rdfs:subPropertyOf fm:path ;
+    rdfs:domain acp:EvidenceAnchor ;
+    rdfs:range xsd:string ;
+    rdfs:label "source path" .
+
+acp:selector
+    a owl:DatatypeProperty ;
+    rdfs:domain acp:EvidenceAnchor ;
+    rdfs:range xsd:string ;
+    rdfs:label "selector" .
+
+acp:nonAuthoritative
+    a owl:DatatypeProperty ;
+    rdfs:domain lex:Information ;
+    rdfs:range xsd:boolean ;
+    rdfs:label "non-authoritative" .
+
+acp:blockedRequirementValidation
+    a owl:DatatypeProperty ;
+    rdfs:range xsd:string ;
+    rdfs:label "blocked requirement validation" .
+
+acp:allowedNextAction
+    a owl:DatatypeProperty ;
+    rdfs:range xsd:string ;
+    rdfs:label "allowed next action" .
+
+acp:blockedAction
+    a owl:DatatypeProperty ;
+    rdfs:range xsd:string ;
+    rdfs:label "blocked action" .
+
+acp:proofLevel
+    a owl:DatatypeProperty ;
+    rdfs:subPropertyOf fm:status ;
+    rdfs:range xsd:string ;
+    rdfs:label "proof level" .
+
+acp:verdict
+    a owl:DatatypeProperty ;
+    rdfs:subPropertyOf fm:status ;
+    rdfs:range xsd:string ;
+    rdfs:label "verdict" .
+
+acp:sourceArtifact
+    a owl:DatatypeProperty ;
+    rdfs:subPropertyOf fm:path ;
+    rdfs:range xsd:string ;
+    rdfs:label "source artifact" .
+
+# -----------------------------------------------------------------------------
+# Runtime adapter candidate individuals
+# -----------------------------------------------------------------------------
+
+acp:gitLexRuntimeAdapter
+    a acp:RuntimeAdapter ;
+    rdfs:label "git-lex runtime adapter candidate" ;
+    acp:hasLifecycleState acp:deferred ;
+    acp:hasAuthorityClass acp:runtimeSmokeEvidence ;
+    acp:blockedAction "mutate /root/law-nexus/.lex" ;
+    acp:blockedAction "validate R035/R037/R038 from git-lex output" ;
+    acp:allowedNextAction "run isolated adapter proof in /tmp or a dedicated worktree" ;
+    rdfs:comment "Candidate adapter backed by M051/S10 runtime smoke only. Not accepted as ACP core runtime." .
+
+acp:lawNexusProfile
+    a acp:ProfileConstraint ;
+    rdfs:label "law-nexus profile constraints" ;
+    rdfs:comment "Russian legal evidence, FalkorDB runtime, parser completeness, citation safety, R035, R037, and R038 require profile-specific proof outside reusable ACP core." .

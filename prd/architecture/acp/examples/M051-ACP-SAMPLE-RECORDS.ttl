@@ -1,0 +1,137 @@
+@prefix acp: <urn:law-nexus:acp:prototype:m051:> .
+@prefix ex: <urn:law-nexus:acp:sample:m051:> .
+@prefix lex: <https://repolex.ai/ontology/git-lex/lex/> .
+@prefix git: <https://repolex.ai/ontology/git-lex/git/> .
+@prefix fm: <https://repolex.ai/ontology/git-lex/fm/> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+# Proposed non-authoritative sample records for M051/S08.
+# These examples are deliberately small and policy-focused. They are not source
+# truth and do not validate R035, R037, or R038.
+
+ex:req-r035
+    a acp:Requirement ;
+    acp:identifier "R035" ;
+    rdfs:label "R035 architecture registry proof boundary" ;
+    acp:hasLifecycleState acp:blocked ;
+    acp:hasAuthorityClass acp:sourceAuthority ;
+    acp:requiresProofGate ex:gate-r035-real-proof ;
+    acp:hasEvidenceAnchor ex:anchor-s10-runtime-gate ;
+    acp:constrainedByProfile acp:lawNexusProfile ;
+    rdfs:comment "Sample requirement boundary: ACP/git-lex/projection evidence alone does not validate R035." .
+
+ex:decision-keep-acp-native
+    a acp:Decision ;
+    acp:identifier "M051-S05" ;
+    rdfs:label "Keep ACP source authority ACP-native" ;
+    acp:hasLifecycleState acp:accepted ;
+    acp:hasEvidenceAnchor ex:anchor-s05-decision ;
+    acp:requiresProofGate ex:gate-no-main-lex ;
+    rdfs:comment "Accepted decision sample: git-lex remains source-reviewed prior art and optional adapter candidate, not ACP core runtime." .
+
+ex:anchor-s05-decision
+    a acp:EvidenceAnchor ;
+    acp:sourcePath "prd/architecture/acp/M051-S05-GIT-LEX-ACP-INTEGRATION-DECISION.md" ;
+    acp:selector "## Decision" ;
+    acp:proofLevel "source-anchor" ;
+    rdfs:label "S05 integration decision source anchor" .
+
+ex:anchor-s10-runtime-gate
+    a acp:EvidenceAnchor ;
+    acp:sourcePath "prd/architecture/acp/M051-S10-GIT-LEX-BINARY-RUNTIME-GATE.md" ;
+    acp:selector "## T11: Final S10 runtime gate outcome for S08" ;
+    acp:proofLevel "runtime-smoke" ;
+    rdfs:label "S10 runtime gate source anchor" .
+
+ex:anchor-prototype-ontology
+    a acp:EvidenceAnchor ;
+    acp:sourcePath "prd/architecture/acp/ontology/M051-ACP-GIT-LEX-PROTOTYPE.ttl" ;
+    acp:selector "<urn:law-nexus:acp:prototype:m051>" ;
+    acp:proofLevel "static-check" ;
+    rdfs:label "Prototype ontology source anchor" .
+
+ex:gate-no-main-lex
+    a acp:ProofGate ;
+    rdfs:label "No main repository .lex mutation" ;
+    acp:verdict "passed" ;
+    acp:hasAuthorityClass acp:runtimeSmokeEvidence ;
+    acp:allowedNextAction "continue S08 prototype without /root/law-nexus/.lex" ;
+    rdfs:comment "Gate passes only when /root/law-nexus/.lex remains absent before and after runtime proof." .
+
+ex:gate-r035-real-proof
+    a acp:ProofGate ;
+    rdfs:label "R035 requires independent real proof" ;
+    acp:verdict "blocked" ;
+    acp:blockedAction "validate R035 from projection shape" ;
+    acp:blockedAction "validate R035 from git-lex runtime smoke" ;
+    rdfs:comment "R035 requires accepted architecture/source/runtime evidence beyond ACP projection or git-lex smoke." .
+
+ex:finding-negative-validation-unproven
+    a acp:HealthFinding ;
+    rdfs:label "Negative validation remains unproven" ;
+    acp:blocksClaim ex:claim-negative-validation-supported ;
+    acp:hasEvidenceAnchor ex:anchor-s10-runtime-gate ;
+    acp:verdict "unproven" ;
+    rdfs:comment "M051/S10 malformed negative fixture did not fail validation; do not claim negative SHACL support." .
+
+ex:projection-s08-samples
+    a acp:Projection ;
+    rdfs:label "S08 derived sample record projection" ;
+    acp:derivedFrom ex:req-r035 , ex:decision-keep-acp-native ;
+    acp:hasAuthorityClass acp:nonAuthoritativeProjection ;
+    acp:nonAuthoritative true ;
+    acp:hasEvidenceAnchor ex:anchor-prototype-ontology ;
+    rdfs:comment "Derived sample projection for audit-query prototyping only." .
+
+ex:adapter-git-lex-blocked
+    a acp:RuntimeAdapter ;
+    rdfs:label "git-lex runtime adapter remains deferred" ;
+    acp:hasLifecycleState acp:deferred ;
+    acp:blockedAction "mutate /root/law-nexus/.lex" ;
+    acp:blockedAction "treat .git/lex/oxigraph as ACP authority" ;
+    acp:blockedAction "validate R035/R037/R038 from git-lex output" ;
+    acp:allowedNextAction "run isolated adapter proof with tracked source anchors" ;
+    acp:hasEvidenceAnchor ex:anchor-s10-runtime-gate ;
+    rdfs:comment "Sample blocked runtime adapter record preserving S05/S10 adoption boundary." .
+
+ex:claim-negative-validation-supported
+    a acp:ValidationClaim ;
+    rdfs:label "Negative validation supported" ;
+    acp:verdict "blocked" ;
+    rdfs:comment "Intentionally blocked sample claim. S10 did not prove negative validation support." .
+
+ex:claim-r035-non-validation
+    a acp:ValidationClaim ;
+    rdfs:label "R035 non-validation boundary" ;
+    acp:doesNotValidateRequirement ex:req-r035 ;
+    acp:verdict "non-validation" ;
+    acp:hasEvidenceAnchor ex:anchor-s10-runtime-gate ;
+    rdfs:comment "Explicit non-validation: git-lex runtime smoke and ACP projection do not validate R035." .
+
+ex:req-r037
+    a acp:Requirement ;
+    acp:identifier "R037" ;
+    acp:hasLifecycleState acp:blocked ;
+    acp:constrainedByProfile acp:lawNexusProfile ;
+    rdfs:label "R037 FalkorDB runtime proof boundary" .
+
+ex:req-r038
+    a acp:Requirement ;
+    acp:identifier "R038" ;
+    acp:hasLifecycleState acp:blocked ;
+    acp:constrainedByProfile acp:lawNexusProfile ;
+    rdfs:label "R038 independent proof review boundary" .
+
+ex:claim-r037-non-validation
+    a acp:ValidationClaim ;
+    acp:doesNotValidateRequirement ex:req-r037 ;
+    acp:verdict "non-validation" ;
+    rdfs:comment "Explicit non-validation: ACP/git-lex projection is not FalkorDB runtime proof." .
+
+ex:claim-r038-non-validation
+    a acp:ValidationClaim ;
+    acp:doesNotValidateRequirement ex:req-r038 ;
+    acp:verdict "non-validation" ;
+    rdfs:comment "Explicit non-validation: ACP/git-lex projection is not independent proof review." .

@@ -1,0 +1,60 @@
+@prefix acp: <urn:law-nexus:acp:prototype:m051:> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+
+# Proposed minimal SHACL shapes for M051/S08 ACP prototype.
+# Non-authoritative static-check layer only. These shapes are not proof that the
+# ontology is complete and are not git-lex runtime adoption.
+
+acp:EvidenceAnchorShape
+    a sh:NodeShape ;
+    sh:targetClass acp:EvidenceAnchor ;
+    sh:property [
+        sh:path acp:sourcePath ;
+        sh:datatype xsd:string ;
+        sh:minCount 1 ;
+        sh:message "EvidenceAnchor must carry a repository-relative source path."
+    ] ;
+    sh:property [
+        sh:path acp:proofLevel ;
+        sh:datatype xsd:string ;
+        sh:minCount 1 ;
+        sh:message "EvidenceAnchor must state its proof level."
+    ] .
+
+acp:SourceRecordShape
+    a sh:NodeShape ;
+    sh:targetClass acp:SourceRecord ;
+    sh:property [
+        sh:path acp:hasLifecycleState ;
+        sh:nodeKind sh:IRI ;
+        sh:minCount 1 ;
+        sh:message "SourceRecord must have an ACP lifecycle state."
+    ] .
+
+acp:ProjectionShape
+    a sh:NodeShape ;
+    sh:targetClass acp:Projection ;
+    sh:property [
+        sh:path acp:nonAuthoritative ;
+        sh:datatype xsd:boolean ;
+        sh:minCount 1 ;
+        sh:message "Projection must explicitly be marked non-authoritative."
+    ] ;
+    sh:property [
+        sh:path acp:derivedFrom ;
+        sh:nodeKind sh:IRI ;
+        sh:minCount 1 ;
+        sh:message "Projection must identify source records it derives from."
+    ] .
+
+acp:RuntimeAdapterShape
+    a sh:NodeShape ;
+    sh:targetClass acp:RuntimeAdapter ;
+    sh:property [
+        sh:path acp:hasLifecycleState ;
+        sh:nodeKind sh:IRI ;
+        sh:minCount 1 ;
+        sh:message "RuntimeAdapter must have a lifecycle state such as deferred or accepted."
+    ] .

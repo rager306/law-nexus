@@ -1,0 +1,15 @@
+PREFIX acp: <urn:law-nexus:acp:prototype:m051:>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+
+# Risk detected: a requirement is claimed as validated only by a derived
+# projection, without a direct proof gate/evidence path. ACP projections are
+# non-authoritative and must not validate requirements by shape alone.
+SELECT ?claim ?requirement ?projection
+WHERE {
+  ?claim a acp:ValidationClaim ;
+         acp:validatesRequirement ?requirement .
+  ?projection a acp:Projection ;
+              acp:derivedFrom ?requirement .
+  FILTER NOT EXISTS { ?claim acp:hasEvidenceAnchor ?anchor . }
+  FILTER NOT EXISTS { ?claim acp:requiresProofGate ?gate . }
+}

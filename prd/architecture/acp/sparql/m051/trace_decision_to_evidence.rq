@@ -1,0 +1,18 @@
+PREFIX acp: <urn:law-nexus:acp:prototype:m051:>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+
+# Risk investigated: trace an ACP decision to the evidence anchors and proof
+# gates that support or constrain it. This is a recovery query for cold readers
+# and a guard against decisions becoming authority without inspectable evidence.
+SELECT ?decision ?label ?proofGate ?anchor ?sourcePath ?selector
+WHERE {
+  ?decision a acp:Decision .
+  OPTIONAL { ?decision rdfs:label ?label . }
+  OPTIONAL { ?decision acp:requiresProofGate ?proofGate . }
+  OPTIONAL {
+    ?decision acp:hasEvidenceAnchor ?anchor .
+    OPTIONAL { ?anchor acp:sourcePath ?sourcePath . }
+    OPTIONAL { ?anchor acp:selector ?selector . }
+  }
+}
+ORDER BY ?decision ?anchor ?proofGate

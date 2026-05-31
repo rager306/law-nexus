@@ -1,0 +1,164 @@
+{
+  "@context": {
+    "acp": "urn:law-nexus:acp:prototype:m051:",
+    "ex": "urn:law-nexus:acp:sample:m051:",
+    "lex": "https://repolex.ai/ontology/git-lex/lex/",
+    "git": "https://repolex.ai/ontology/git-lex/git/",
+    "fm": "https://repolex.ai/ontology/git-lex/fm/",
+    "rdfs": "http://www.w3.org/2000/01/rdf-schema#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#",
+    "id": "acp:identifier",
+    "label": "rdfs:label",
+    "comment": "rdfs:comment",
+    "sourcePath": "acp:sourcePath",
+    "selector": "acp:selector",
+    "proofLevel": "acp:proofLevel",
+    "verdict": "acp:verdict",
+    "nonAuthoritative": {
+      "@id": "acp:nonAuthoritative",
+      "@type": "xsd:boolean"
+    },
+    "hasLifecycleState": {
+      "@id": "acp:hasLifecycleState",
+      "@type": "@id"
+    },
+    "hasAuthorityClass": {
+      "@id": "acp:hasAuthorityClass",
+      "@type": "@id"
+    },
+    "hasEvidenceAnchor": {
+      "@id": "acp:hasEvidenceAnchor",
+      "@type": "@id"
+    },
+    "requiresProofGate": {
+      "@id": "acp:requiresProofGate",
+      "@type": "@id"
+    },
+    "doesNotValidateRequirement": {
+      "@id": "acp:doesNotValidateRequirement",
+      "@type": "@id"
+    },
+    "derivedFrom": {
+      "@id": "acp:derivedFrom",
+      "@type": "@id"
+    },
+    "blockedAction": "acp:blockedAction",
+    "allowedNextAction": "acp:allowedNextAction"
+  },
+  "@graph": [
+    {
+      "@id": "ex:req-r035",
+      "@type": "acp:Requirement",
+      "id": "R035",
+      "label": "R035 architecture registry proof boundary",
+      "hasLifecycleState": "acp:blocked",
+      "hasAuthorityClass": "acp:sourceAuthority",
+      "requiresProofGate": "ex:gate-r035-real-proof",
+      "hasEvidenceAnchor": "ex:anchor-s10-runtime-gate",
+      "comment": "ACP/git-lex/projection evidence alone does not validate R035."
+    },
+    {
+      "@id": "ex:decision-keep-acp-native",
+      "@type": "acp:Decision",
+      "id": "M051-S05",
+      "label": "Keep ACP source authority ACP-native",
+      "hasLifecycleState": "acp:accepted",
+      "hasEvidenceAnchor": "ex:anchor-s05-decision",
+      "requiresProofGate": "ex:gate-no-main-lex"
+    },
+    {
+      "@id": "ex:anchor-s05-decision",
+      "@type": "acp:EvidenceAnchor",
+      "sourcePath": "prd/architecture/acp/M051-S05-GIT-LEX-ACP-INTEGRATION-DECISION.md",
+      "selector": "## Decision",
+      "proofLevel": "source-anchor"
+    },
+    {
+      "@id": "ex:anchor-s10-runtime-gate",
+      "@type": "acp:EvidenceAnchor",
+      "sourcePath": "prd/architecture/acp/M051-S10-GIT-LEX-BINARY-RUNTIME-GATE.md",
+      "selector": "## T11: Final S10 runtime gate outcome for S08",
+      "proofLevel": "runtime-smoke"
+    },
+    {
+      "@id": "ex:gate-no-main-lex",
+      "@type": "acp:ProofGate",
+      "label": "No main repository .lex mutation",
+      "verdict": "passed",
+      "allowedNextAction": "continue S08 prototype without /root/law-nexus/.lex"
+    },
+    {
+      "@id": "ex:gate-r035-real-proof",
+      "@type": "acp:ProofGate",
+      "label": "R035 requires independent real proof",
+      "verdict": "blocked",
+      "blockedAction": [
+        "validate R035 from projection shape",
+        "validate R035 from git-lex runtime smoke"
+      ]
+    },
+    {
+      "@id": "ex:finding-negative-validation-unproven",
+      "@type": "acp:HealthFinding",
+      "label": "Negative validation remains unproven",
+      "verdict": "unproven",
+      "hasEvidenceAnchor": "ex:anchor-s10-runtime-gate"
+    },
+    {
+      "@id": "ex:projection-s08-samples",
+      "@type": "acp:Projection",
+      "label": "S08 derived sample record projection",
+      "derivedFrom": [
+        "ex:req-r035",
+        "ex:decision-keep-acp-native"
+      ],
+      "hasAuthorityClass": "acp:nonAuthoritativeProjection",
+      "nonAuthoritative": true
+    },
+    {
+      "@id": "ex:adapter-git-lex-blocked",
+      "@type": "acp:RuntimeAdapter",
+      "label": "git-lex runtime adapter remains deferred",
+      "hasLifecycleState": "acp:deferred",
+      "blockedAction": [
+        "mutate /root/law-nexus/.lex",
+        "treat .git/lex/oxigraph as ACP authority",
+        "validate R035/R037/R038 from git-lex output"
+      ],
+      "allowedNextAction": "run isolated adapter proof with tracked source anchors"
+    },
+    {
+      "@id": "ex:claim-r035-non-validation",
+      "@type": "acp:ValidationClaim",
+      "label": "R035 non-validation boundary",
+      "doesNotValidateRequirement": "ex:req-r035",
+      "verdict": "non-validation"
+    },
+    {
+      "@id": "ex:req-r037",
+      "@type": "acp:Requirement",
+      "id": "R037",
+      "label": "R037 FalkorDB runtime proof boundary",
+      "hasLifecycleState": "acp:blocked"
+    },
+    {
+      "@id": "ex:req-r038",
+      "@type": "acp:Requirement",
+      "id": "R038",
+      "label": "R038 independent proof review boundary",
+      "hasLifecycleState": "acp:blocked"
+    },
+    {
+      "@id": "ex:claim-r037-non-validation",
+      "@type": "acp:ValidationClaim",
+      "doesNotValidateRequirement": "ex:req-r037",
+      "verdict": "non-validation"
+    },
+    {
+      "@id": "ex:claim-r038-non-validation",
+      "@type": "acp:ValidationClaim",
+      "doesNotValidateRequirement": "ex:req-r038",
+      "verdict": "non-validation"
+    }
+  ]
+}

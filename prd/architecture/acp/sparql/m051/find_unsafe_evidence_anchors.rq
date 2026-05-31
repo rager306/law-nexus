@@ -1,0 +1,20 @@
+PREFIX acp: <urn:law-nexus:acp:prototype:m051:>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+
+# Risk detected: an EvidenceAnchor points to an unsafe or non-portable location.
+# Durable ACP proof anchors must be tracked repository-relative paths and must
+# not use absolute local paths, .gsd/exec diagnostics, secrets, raw vectors,
+# provider payloads, or ignored local-only artifacts.
+SELECT ?anchor ?sourcePath
+WHERE {
+  ?anchor a acp:EvidenceAnchor ;
+          acp:sourcePath ?sourcePath .
+  FILTER(
+    STRSTARTS(STR(?sourcePath), "/") ||
+    CONTAINS(STR(?sourcePath), ".gsd/exec") ||
+    CONTAINS(LCASE(STR(?sourcePath)), "secret") ||
+    CONTAINS(LCASE(STR(?sourcePath)), "provider-payload") ||
+    CONTAINS(LCASE(STR(?sourcePath)), "raw-vector") ||
+    CONTAINS(LCASE(STR(?sourcePath)), "raw-legal-text")
+  )
+}

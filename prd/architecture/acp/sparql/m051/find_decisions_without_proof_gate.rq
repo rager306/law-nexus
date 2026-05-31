@@ -1,0 +1,11 @@
+PREFIX acp: <urn:law-nexus:acp:prototype:m051:>
+
+# Risk detected: an accepted decision lacks a proof gate. Accepted ACP decisions
+# that affect authority, runtime adoption, or validation boundaries must retain
+# explicit proof-gate linkage so downstream agents know what evidence was used.
+SELECT ?decision
+WHERE {
+  ?decision a acp:Decision ;
+            acp:hasLifecycleState acp:accepted .
+  FILTER NOT EXISTS { ?decision acp:requiresProofGate ?proofGate . }
+}

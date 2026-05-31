@@ -1,0 +1,15 @@
+PREFIX acp: <urn:law-nexus:acp:prototype:m051:>
+
+# Risk detected: a RuntimeAdapter is treated as accepted or authority-bearing
+# while still carrying blocked actions or missing explicit adoption proof. This
+# catches accidental promotion of git-lex runtime smoke into ACP runtime adoption.
+SELECT ?adapter ?state ?blockedAction
+WHERE {
+  ?adapter a acp:RuntimeAdapter .
+  OPTIONAL { ?adapter acp:hasLifecycleState ?state . }
+  OPTIONAL { ?adapter acp:blockedAction ?blockedAction . }
+  FILTER(
+    ?state = acp:accepted ||
+    BOUND(?blockedAction)
+  )
+}

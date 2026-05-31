@@ -1,0 +1,17 @@
+PREFIX acp: <urn:law-nexus:acp:prototype:m051:>
+
+# Risk detected: R035/R037/R038 are claimed as validated without an explicit
+# non-projection proof boundary. These law-nexus requirements require their own
+# architecture/runtime/review proof and must not be validated from ACP/git-lex
+# projection evidence alone.
+SELECT ?claim ?requirement ?rid
+WHERE {
+  ?requirement a acp:Requirement ;
+               acp:identifier ?rid .
+  ?claim a acp:ValidationClaim ;
+         acp:validatesRequirement ?requirement .
+  FILTER(?rid IN ("R035", "R037", "R038"))
+  FILTER NOT EXISTS { ?claim acp:verdict "real-document-proof" . }
+  FILTER NOT EXISTS { ?claim acp:verdict "runtime-proof" . }
+  FILTER NOT EXISTS { ?claim acp:verdict "independent-review" . }
+}
