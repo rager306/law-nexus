@@ -328,3 +328,5 @@ No executable code changed in this task. Negative coverage required before adopt
 - `test -f prd/architecture/acp/M051-S09-SUPPLY-CHAIN-BINARY-TRUST.md && grep -E 'LICENSE|Cargo.lock|package.json|bun.lock|dependency|workflow|hook|plugin|MCP' prd/architecture/acp/M051-S09-SUPPLY-CHAIN-BINARY-TRUST.md`
 - `grep -E 'sha256|platforms|git-lex-serve|git-lex|version|help|trust gap|prebuilt' prd/architecture/acp/M051-S09-SUPPLY-CHAIN-BINARY-TRUST.md`
 - `grep -E 'setupHostBinaries|server.ts|broker|cli.ts|hooks|logging|error|TTY|git root|interaction model|not integration proof' prd/architecture/acp/M051-S09-SUPPLY-CHAIN-BINARY-TRUST.md`
+
+## Q8: Operational Readiness
