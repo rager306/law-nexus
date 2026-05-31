@@ -34,3 +34,26 @@ Keep `acp:` reusable. Keep `lgn:` profile-specific. Do not put law-nexus legal/r
 - Detect stale evidence anchors after file changes.
 - Preserve multi-agent claim provenance without making LLM output authoritative.
 - Build recovery dashboards and inspection UIs over non-authoritative projections.
+
+
+## M051 S08 prototype mapping
+
+S08 created `prd/architecture/acp/ontology/M051-ACP-GIT-LEX-PROTOTYPE.ttl` as a proposed, non-authoritative static scaffold.
+
+| ACP prototype surface | git-lex mapping | Boundary |
+|---|---|---|
+| `acp:SourceRecord` | `rdfs:subClassOf lex:Document` | Source authority still requires lifecycle + evidence anchor + proof gate. |
+| `acp:Decision` | `rdfs:subClassOf lex:Decision` | Decision authority comes from accepted ACP decision evidence, not RDF shape. |
+| `acp:EvidenceAnchor` | `rdfs:subClassOf lex:Reference`; source path resembles `fm:path` usage | Must remain tracked repository-relative; no `.gsd/exec`, absolute paths, secrets, raw legal text, provider payloads, or vectors. |
+| `acp:ProofGate` | `rdfs:subClassOf lex:Process` | Gate definition is not gate satisfaction. |
+| `acp:Projection` | `rdfs:subClassOf lex:Information` | Derived/non-authoritative unless explicitly tied back to source/proof. |
+| `acp:RuntimeAdapter` | `rdfs:subClassOf lex:Process` | git-lex adapter remains deferred until explicit adoption proof. |
+
+S08 also created JSON-LD and SHACL files, but only as static-check scaffolds. JSON-LD expansion/roundtrip, RDF/SPARQL engine execution, SHACL engine validation, and OWL entailment remain unproven.
+
+## M051 S10 query semantics
+
+- Use `git-lex list --json` for runtime class discovery.
+- Use SPARQL `GRAPH ?g { ?s ?p ?o }` for named graph inventory after committed `sync` in an isolated repo.
+- Use `query --json` for SELECT/ASK machine parsing only; do not rely on CONSTRUCT/DESCRIBE JSON.
+- Treat `owl:Class` and `sh:targetClass` graph queries as expected-empty unless ontology/shape triples are explicitly loaded.

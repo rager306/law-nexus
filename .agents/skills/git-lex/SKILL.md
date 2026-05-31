@@ -14,6 +14,8 @@ Start from the local vendor checkouts and GitNexus indexes, not memory or market
 /root/vendor-source/git-lex                    # Rust CLI/server; GitNexus repo: git-lex-reference
 /root/vendor-source/git-lex-kit-base           # base semantic kit: lex/git/fm ontologies + web UI
 /root/vendor-source/git-lex-kit-squad          # squad domain kit: content + squad ontology
+/root/vendor-source/git-lex-kit-soul           # soul domain kit: prompt-handled personal/agent memory ontology + harness prior art
+/root/vendor-source/git-lex-kit-autoknow       # autoknow adaptive Source/Entity kit + subagent extraction prior art
 /root/vendor-source/subtext-mcp                # TypeScript MCP/CLI wrapper; GitNexus repo: subtext-mcp-reference
 ```
 
@@ -32,6 +34,8 @@ For semantic-kit evidence, inspect:
 /root/vendor-source/git-lex-kit-base/ontology/git/git.ttl
 /root/vendor-source/git-lex-kit-base/ontology/fm/fm.ttl
 /root/vendor-source/git-lex-kit-squad/ontology/squad/squad.ttl
+/root/vendor-source/git-lex-kit-soul/ontology/soul/soul.ttl
+/root/vendor-source/git-lex-kit-autoknow/ontology/autoknow/autoknow.ttl
 ```
 
 Then compare any ACP adoption claim against the current project boundaries:
@@ -40,6 +44,10 @@ Then compare any ACP adoption claim against the current project boundaries:
 prd/architecture/acp/M045-RDF-PROJECTION-CONTRACT.md
 prd/architecture/acp/M048-S08-GIT-LEX-CAPABILITY-MATRIX.md
 prd/architecture/acp/M048-S10-GIT-LEX-ADOPTION-DECISION.md
+prd/architecture/acp/M051-S05-GIT-LEX-ACP-INTEGRATION-DECISION.md
+prd/architecture/acp/M051-S08-ACP-ONTOLOGY-PROTOTYPE.md
+prd/architecture/acp/M051-S09-SUPPLY-CHAIN-BINARY-TRUST.md
+prd/architecture/acp/M051-S10-GIT-LEX-BINARY-RUNTIME-GATE.md
 ```
 
 If the request is broad or unfamiliar, first use GitNexus on `git-lex-reference`/`subtext-mcp-reference`, then follow `workflows/inspect-base-kit.md`; if it asks whether a claim is safe, follow `workflows/review-acp-claim.md`.
@@ -109,14 +117,31 @@ Proven in isolated runtime smoke:
 Still unproven after M051/S10 smoke:
 
 - SPARQL `owl:Class` inventory returned 0 rows, even though `git-lex list` listed squad classes from installed shapes. Do not claim ontology class triples are queryable with that query shape without further proof.
-- Negative SHACL validation was not tested; only a positive validate pass is proven.
+- Negative SHACL validation remains unproven; a later malformed fixture did not trigger failure.
 - JSON-LD import/export support remains unproven.
-- SPARQL-star compatibility remains unproven.
-- `history-verify` and history equivalence semantics remain unproven, despite sync emitting history events/annotations.
+- Explicit user-facing SPARQL-star query compatibility remains unproven.
+- `history-verify` was later proven only as bounded isolated smoke in corrected committed/synced base/squad/soul/autoknow repos.
 - Production readiness, LegalGraph semantic correctness, parser behavior, FalkorDB ingestion, ACP runtime adoption, and R035/R037/R038 validation remain unproven.
 
 Operational note: init by absolute binary path emitted a non-fatal warning that `git-lex` was not on `PATH` or in the subtext plugin cache. For follow-up runtime proofs, set `PATH=/root/vendor-source/git-lex/target/debug:$PATH` before running commands that may trigger hooks or subprocesses.
 </runtime_smoke_findings>
+
+<final_m051_runtime_matrix>
+Refined by M051/S10 T08-T11 after the initial smoke above:
+
+- `git-lex list --json` is the supported runtime class-discovery surface. It reads installed SHACL shape files, not Oxigraph `owl:Class` triples.
+- `git-lex query` uses Oxigraph data with default named-graph union semantics. Prefix injection (`lex:`, `git:`, `fm:`, `owl:`, `xsd:`, and kit prefix) does not load ontology facts into the store.
+- `SELECT ?c WHERE { ?c a owl:Class }` and `SELECT ?c WHERE { ?shape sh:targetClass ?c }` are expected-empty by default unless ontology/shapes are explicitly loaded as graph facts.
+- Corrected isolated runtime matrix passed for `base`, `squad`, `soul`, and `autoknow`: init, committed `sync`, graph inventory, `query --json` SELECT/ASK, git/frontmatter/probe queryability, `.spo` sidecars, `dump`, and `history-verify` equivalence.
+- `autoknow` emitted `Adaptive shapes: 1 built, 0 failed`; treat that as isolated adaptive-shape smoke, not ACP adoption or authority for `_ontology/` mutation.
+- Negative validation remains unproven: a malformed fixture failed to fail, so future claims need a stronger shape-specific invalid fixture and non-zero `git-lex validate` result.
+- JSON-LD import/export and explicit user-facing SPARQL-star query compatibility remain unproven.
+- S08 created a proposed ACP ontology/static-check scaffold and JSON-LD sample; it is non-authoritative and does not prove git-lex JSON-LD support.
+</final_m051_runtime_matrix>
+
+<knowledge_delta_contract>
+For M051/S06 and S07, do not merely restate conclusions. Record a knowledge-delta ledger entry whenever the skill or synthesis changes a git-lex claim. Each entry should include: prior assumption/open question, evidence anchor, proof class, updated conclusion, remaining boundary, and downstream implication. This implements requirement R058.
+</knowledge_delta_contract>
 
 <routing>
 - If the user asks what git-lex base contains, what `git-lex-kit-base` proves, or how RDF/OWL/SPARQL is represented, follow `workflows/inspect-base-kit.md` and read `references/source-inventory.md` plus `references/ontology-map.md`.

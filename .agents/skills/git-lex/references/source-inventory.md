@@ -7,6 +7,8 @@
 | `repolex-ai/git-lex` | `/root/vendor-source/git-lex` | `eaa4b24` | runtime/code source | Rust CLI/server implementation. GitNexus index: `git-lex-reference` with 970 nodes, 1,904 edges, 84 flows. |
 | `repolex-ai/git-lex-kit-base` | `/root/vendor-source/git-lex-kit-base` | `b835c78` | semantic-kit source | Base kit shipping system ontologies and web UI, with no content folders installed. |
 | `repolex-ai/git-lex-kit-squad` | `/root/vendor-source/git-lex-kit-squad` | `3298b9a` | domain-kit source | Squad domain kit with `ontology/squad/squad.ttl`, content guidance, and harness breadcrumb. |
+| `repolex-ai/git-lex-kit-soul` | `/root/vendor-source/git-lex-kit-soul` | `5617ea7e4d99340fe905d04dc0f290e074247078` | domain-kit source/runtime prior art | Soul kit with prompt-handled init (`agent_name`), `ontology/soul/soul.ttl`, content scaffold, and Claude harness files. |
+| `repolex-ai/git-lex-kit-autoknow` | `/root/vendor-source/git-lex-kit-autoknow` | `adba199028588d9e2ba6ad48aebf8074ecce182b` | adaptive domain-kit source/runtime prior art | AutoKnow kit with `adaptive: true`, Source/Entity modeling, `_autoknow` subagents, and isolated adaptive-shape smoke in S10. |
 | `repolex-ai/subtext-mcp` | `/root/vendor-source/subtext-mcp` | `bac5529` | MCP/wrapper code source | TypeScript MCP/CLI wrapper with bundled host binaries. GitNexus index: `subtext-mcp-reference` with 173 nodes, 228 edges, 5 flows. |
 
 ## GitNexus starting points
@@ -48,6 +50,10 @@ Known indexed entry points:
 | `prd/architecture/acp/M045-RDF-PROJECTION-CONTRACT.md` | Existing contract that RDF/SHACL/SPARQL outputs are derived, non-authoritative projection/recovery aids. |
 | `prd/architecture/acp/M048-S08-GIT-LEX-CAPABILITY-MATRIX.md` | M048 capability matrix for required git-lex/ACP capabilities and dispositions. |
 | `prd/architecture/acp/M048-S10-GIT-LEX-ADOPTION-DECISION.md` | M048 closure decision: do not adopt runtime git-lex as ACP core backend from M048 evidence; preserve ACP-native implementation and optional future adapter path. |
+| `prd/architecture/acp/M051-S05-GIT-LEX-ACP-INTEGRATION-DECISION.md` | M051 integration decision: ACP-native authority remains; git-lex is prior art and optional adapter candidate. |
+| `prd/architecture/acp/M051-S08-ACP-ONTOLOGY-PROTOTYPE.md` | Proposed non-authoritative ACP ontology/static-check scaffold, sample records, SPARQL audit pack, JSON-LD sample, minimal SHACL layer. |
+| `prd/architecture/acp/M051-S09-SUPPLY-CHAIN-BINARY-TRUST.md` | Supply-chain and binary trust review for git-lex/subtext-mcp, including license/provenance/bundled binary limits. |
+| `prd/architecture/acp/M051-S10-GIT-LEX-BINARY-RUNTIME-GATE.md` | Source-build/runtime gate, corrected isolated matrix, SPARQL/query requirements, and S08 runtime-backed/source-only split. |
 
 ## Evidence status summary
 
@@ -58,3 +64,12 @@ Known indexed entry points:
 - SPARQL query assumptions are present in docs/UI/code and must be traced in `git-lex-reference`.
 - JSON-LD support remains unproven until main repo docs/code prove context/export/import behavior.
 - Main-repo `.lex` safety remains unproven until isolated smoke tests pass and an explicit adoption decision exists.
+
+
+## M051 refined evidence status
+
+- Source-built debug `git-lex`/`git-lex-serve` binaries exist under `/root/vendor-source/git-lex/target/debug` after clang/cmake remediation; this is runtime-smoke evidence only.
+- Base, squad, soul, and autoknow kits initialized and synced in isolated `/tmp` repos during S10; `/root/law-nexus/.lex` stayed absent.
+- `git-lex list --json` is shape-driven class discovery; `owl:Class` and `sh:targetClass` SPARQL graph inventory are expected-empty by default.
+- `history-verify` equivalence passed in corrected committed/synced isolated repos.
+- Negative validation, git-lex JSON-LD import/export, explicit user-facing SPARQL-star queries, production fitness, ACP adoption, and R035/R037/R038 validation remain unproven.
