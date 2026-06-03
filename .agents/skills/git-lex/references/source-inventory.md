@@ -73,3 +73,42 @@ Known indexed entry points:
 - `git-lex list --json` is shape-driven class discovery; `owl:Class` and `sh:targetClass` SPARQL graph inventory are expected-empty by default.
 - `history-verify` equivalence passed in corrected committed/synced isolated repos.
 - Negative validation, git-lex JSON-LD import/export, explicit user-facing SPARQL-star queries, production fitness, ACP adoption, and R035/R037/R038 validation remain unproven.
+
+## M052 capability-hardening status
+
+M052 refines the M051 evidence boundaries; full synthesis lives in `prd/architecture/acp/M052-S07-GIT-LEX-CAPABILITY-HARDENING-SYNTHESIS.md`.
+
+Updated status:
+
+- SHACL negative validation is runtime-backed only for shape-derived valid-frontmatter violations; adapter use still requires wrapper gates because setup/parser/processor paths can fail open or skip files.
+- JSON-LD RDF import/export is not observed in current git-lex runtime; ACP JSON-LD remains ACP-native static interchange/prototype evidence.
+- SPARQL-star is runtime-backed only for narrow history-graph `rdf:reifies <<( ?s ?p ?o )>>` SELECT/ASK patterns; broad RDF-star parity remains unproven.
+- `git-lex-serve viz` has local browser/API smoke evidence, but `/api/store-info` returns 404 and production hardening is unproven.
+- `listen` works under short-kit config but standard `git-lex init --kit squad` compatibility is blocked by kit-string mismatch.
+- Remaining CLI commands have command-by-command matrix evidence; minimal adapter candidates are `init`, `sync`, `query`, `list --json`, and `validate` behind wrapper gates. `nuke`, `kit-update`, `join`, `raw backfill`, `save`, and `create` are excluded from unattended ACP automation by default.
+- Production readiness remains blocked: no release artifact provenance, attestations, SBOM/signature, reproducible release build, runtime version identity, or complete rollback/security gate exists.
+- Main-repo `.lex` adoption remains not approved.
+
+## M051 S11 expanded corpus anchors
+
+S11 expanded the corpus from the user's `tmp/deep-research-report.md`. Full details live in `prd/architecture/acp/M051-S11-GIT-LEX-EXPANDED-CORPUS.md`; keep this source inventory compact and use the S11 report for the full ledger.
+
+Additional cloned repositories under `/root/vendor-source`:
+
+| Repo | Path | Commit observed | Evidence class | Notes |
+|---|---|---:|---|---|
+| `repolex-ai/squad-explorer` | `/root/vendor-source/squad-explorer` | `0dba67f2ee400b8e3ca87c601e0f48c0ef077328` | UX/SPARQL source-navigation evidence | GitNexus index: `git-lex-squad-explorer-reference`; visualization/query UI candidate, not source truth. |
+| `repolex-ai/git-lex-plugins` | `/root/vendor-source/git-lex-plugins` | `0af28825698211b2d1f44a9a8743b348fce04875` | plugin metadata/docs pending | Agent CLI/plugin distribution surface; no proof yet. |
+| `repolex-ai/code-ontology-spec` | `/root/vendor-source/code-ontology-spec` | `6b0494a820171e750632acd94ff1de7fc0d61506` | ontology/spec source | Code-KG architecture direction; not runtime proof. |
+| `repolex-ai/lex-o-seed` | `/root/vendor-source/lex-o-seed` | `851891d107ea9ef698400444b12b88ac3dac1d34` | ontology evolution prior art | Branch-native ontology evolution candidate. |
+| `repolex-ai/git-lex-kit-familiar` | `/root/vendor-source/git-lex-kit-familiar` | `8043ce75ef281776ee3677a7656fdbd00f16510a` | kit/ontology source | Agent-memory/privacy/relationship prior art. |
+| `repolex-ai/git-lex-kit-lab` | `/root/vendor-source/git-lex-kit-lab` | `2ba6e747a53c5cc100eeff5b31c9fe7192924bf2` | kit/ontology source | Research/experiment kit prior art. |
+| `repolex-ai/git-lex-kit-collab` | `/root/vendor-source/git-lex-kit-collab` | `8769580c93c2114fe781228a9caaae5940170080` | kit/ontology source | Collaboration/ideation kit prior art. |
+| `repolex-ai/git-lex-kit-claude-code` | `/root/vendor-source/git-lex-kit-claude-code` | `95f5f515977869029650e229550a2d6034e32dc2` | agent CLI harness prior art | Treat Claude Code as concrete agent CLI/GSD-like harness target. |
+| `repolex-ai/git-lex-kit-claude-export` | `/root/vendor-source/git-lex-kit-claude-export` | `fc201b4f90b1c21ee846239a8b4f756bdeab59b9` | agent CLI export prior art | Inspect before import/export claims. |
+| `repolex-ai/forx` | `/root/vendor-source/forx` | `60fc55aa459ed556930ed3a99ae2d143dc9a5ab8` | extraction/code-analysis source-navigation evidence | GitNexus index: `repolex-forx-reference`. |
+| `repolex-ai/forxq` | `/root/vendor-source/forxq` | unavailable | stale/noise | Empty repository at clone time. |
+| `repolex-ai/repolex-forx-tools` | `/root/vendor-source/repolex-forx-tools` | `cddc651c5231a926e4d621a2e925dc1f6a89d7d0` | workflow/tooling source-navigation evidence | GitNexus index: `repolex-forx-tools-reference`. |
+| `repolex-ai/semanticstate` | `/root/vendor-source/semanticstate` | `4110c9f787af12a94e2eeda6c731baedde30f8f0` | code-to-ontology source-navigation evidence | GitNexus index: `repolex-semanticstate-reference`. |
+
+Claude/Claude Code references in these repos should be interpreted as concrete agent CLI/harness targets analogous to GSD/pi, not vendor-only noise. They remain process/UX/runtime-integration evidence until portable behavior and ACP authority boundaries are proven.

@@ -2,6 +2,7 @@
 .bg-shell/
 .gsd/
 .claude/
+.artifacts/
 CLAUDE.md
 AGENTS.md
 

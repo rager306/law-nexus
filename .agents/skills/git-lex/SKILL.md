@@ -139,6 +139,40 @@ Refined by M051/S10 T08-T11 after the initial smoke above:
 - S08 created a proposed ACP ontology/static-check scaffold and JSON-LD sample; it is non-authoritative and does not prove git-lex JSON-LD support.
 </final_m051_runtime_matrix>
 
+<claude_logs_to_git_feature_boundary>
+M053/S05 verified an interesting git-lex/Claude Code harness feature, but classified it as ACP-nonfit by default.
+
+Runtime-backed in isolated smoke:
+
+- `git lex save` resolves agent identity from `GIT_AUTHOR_NAME` / `GIT_AUTHOR_EMAIL` or `.claude/settings.json`.
+- `git lex save` calls `harness::sync(root, "claude")`, then `raw_mirror::run(root)`, then `git add -A`, then `git commit --author ...`.
+- With explicit `raw-mirror` config, sanitized fake Claude/session `*.jsonl` files were copied byte-faithfully into `Raw/ClaudeCodeSessionLog/<date>-<session>.jsonl` and committed with agent identity in an isolated `/tmp` repo.
+- The mirror uses per-machine state (`$XDG_STATE_HOME/git-lex/raw-mirror-state.json` or `~/.local/share/git-lex/...`) for first-seen dates.
+
+ACP boundary:
+
+- Treat this as git-lex/harness prior art and skill knowledge, not ACP capability evidence by default.
+- Raw session logs may contain prompts, tool outputs, provider payloads, secrets, personal data, and machine-local paths; do not use them as durable ACP proof anchors unless a later explicit human decision approves a redaction/proof policy.
+- `git lex save` stages broadly with `git add -A` and commits; it is not an ACP-safe adapter primitive without a scoped staging/rollback design.
+- This feature does not validate ACP source truth, LegalGraph requirements, Russian legal evidence, parser quality, FalkorDB behavior, R035/R037/R038, or production adoption.
+
+Safe wording:
+
+```text
+git-lex has a runtime-backed Claude Code/session Raw mirroring feature for harness workflows, proven only in isolated smoke with sanitized fake logs.
+```
+
+Unsafe wording:
+
+```text
+Claude Code logs are ACP proof evidence by default.
+```
+
+```text
+git lex save is ACP-safe without scoped staging, redaction, and proof-anchor policy.
+```
+</claude_logs_to_git_feature_boundary>
+
 <knowledge_delta_contract>
 For M051/S06 and S07, do not merely restate conclusions. Record a knowledge-delta ledger entry whenever the skill or synthesis changes a git-lex claim. Each entry should include: prior assumption/open question, evidence anchor, proof class, updated conclusion, remaining boundary, and downstream implication. This implements requirement R058.
 </knowledge_delta_contract>

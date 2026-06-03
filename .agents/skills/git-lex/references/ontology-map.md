@@ -57,3 +57,58 @@ S08 also created JSON-LD and SHACL files, but only as static-check scaffolds. JS
 - Use SPARQL `GRAPH ?g { ?s ?p ?o }` for named graph inventory after committed `sync` in an isolated repo.
 - Use `query --json` for SELECT/ASK machine parsing only; do not rely on CONSTRUCT/DESCRIBE JSON.
 - Treat `owl:Class` and `sh:targetClass` graph queries as expected-empty unless ontology/shape triples are explicitly loaded.
+
+## M052 S02 JSON-LD runtime boundary
+
+M052/S02 rechecked the JSON-LD claim and found no git-lex runtime RDF import/export surface.
+
+Safe ACP wording:
+
+```text
+ACP may maintain JSON-LD static interchange/prototype artifacts independently of git-lex, but current git-lex runtime JSON-LD RDF import/export is unsupported/not observed.
+```
+
+Unsafe ACP wording:
+
+```text
+git-lex supports JSON-LD import/export or roundtrip for ACP records.
+```
+
+Boundary:
+
+- A `.jsonld` file can be recorded as a file with language metadata.
+- That does not mean git-lex parses JSON-LD into RDF graph facts or exports graph facts as JSON-LD.
+- Transitive JSON-LD-related crates are not proof unless a source call path and runtime behavior are demonstrated.
+
+## M052 S03 SPARQL-star query boundary
+
+M052/S03 upgraded one narrow SPARQL-star capability from unproven to runtime-backed:
+
+```sparql
+SELECT ?ann ?s ?p ?o WHERE {
+  ?ann <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> <<( ?s ?p ?o )>> .
+}
+LIMIT 10
+```
+
+In an isolated synced repo with history annotations, `git-lex query` accepted explicit `<<( ?s ?p ?o )>>` syntax; SELECT returned rows and ASK returned `true`. `query --json` also returned `Term::Triple` bindings as a non-standard `{ "type": "triple" }` shape.
+
+Safe ACP wording:
+
+```text
+git-lex user-facing SPARQL-star support is runtime-backed for history-graph
+`rdf:reifies <<( ?s ?p ?o )>>` SELECT/ASK patterns in the observed build.
+```
+
+Unsafe ACP wording:
+
+```text
+git-lex has full RDF-star/SPARQL-star feature parity.
+```
+
+Still not proven:
+
+- broad RDF-star/SPARQL-star parity;
+- quoted-triple subject storage semantics;
+- production compatibility guarantees beyond the observed source-built debug binary;
+- SPARQL-star support outside git-lex history graph annotations.
