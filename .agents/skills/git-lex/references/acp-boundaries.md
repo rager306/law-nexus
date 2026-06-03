@@ -137,6 +137,51 @@ Evidence anchors:
 - `prd/architecture/acp/M055-S04-GIT-LEX-REMAINING-ADOPTION-GATES.md`
 - `prd/architecture/acp/M055-S05-GIT-LEX-BACKEND-NEXT-DECISION.md`
 
+## ACP-kit semantic integration boundary
+
+M049/S05 adds the corrected roadmap for tighter ACP integration through an ACP semantic kit:
+
+```text
+M051 S08 static ACP ontology prototype
+→ ACP-kit v0 over git-lex-kit-base
+→ isolated ACP-kit runtime proof
+→ M049 binding projection through ACP-kit records
+→ L2 operational diagnostics
+→ only later: main .lex rehearsal, source-truth migration, production/provenance
+```
+
+ACP-kit may be cited for this narrow planned claim:
+
+```text
+ACP-kit is the next semantic integration step: a git-lex-compatible kit that packages ACP core source/proof/projection vocabulary while preserving ACP-native authority.
+```
+
+ACP-kit may not be cited for:
+
+```text
+ACP source truth transfer
+main repository .lex approval
+L2 operational backend readiness by itself
+production runtime readiness
+JSON-LD git-lex runtime support
+broad SPARQL-star/RDF-star parity
+R035/R037/R038 validation
+Russian legal evidence correctness
+Garant ODT parser completeness
+FalkorDB runtime behavior
+```
+
+Design defaults for ACP-kit v0:
+
+- build a deterministic domain kit over `git-lex-kit-base` rather than mutating base;
+- use a `squad`-style kit shape (`install folders: true`, `folder base: ACP`, `folder ontology: acp.ttl`);
+- do not use AutoKnow-style `adaptive: true` until ontology mutation has a separate ACP authority and rollback policy;
+- keep law-nexus profile constraints out of reusable ACP core.
+
+Evidence anchor:
+
+- `prd/architecture/acp/M049-S05-GIT-LEX-ACP-KIT-INTEGRATION-ROADMAP.md`
+
 ## law-nexus profile boundary
 
 Reusable ACP may define generic source records, lifecycle states, evidence anchors, proof gates, health findings, projections, and claim boundaries. law-nexus profile work owns Russian legal evidence, FalkorDB-specific runtime claims, ODT/Garant parser proof, citation-safe retrieval, and R035/R037/R038 substantive validation.

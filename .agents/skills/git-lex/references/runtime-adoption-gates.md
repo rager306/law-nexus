@@ -42,6 +42,8 @@ Runtime adoption means using git-lex executable behavior, store behavior, extrac
 
 Use ACP-native records, ACP-native validation/lifecycle/proof/recovery, ordinary git, and derived semantic projections. Treat git-lex runtime as optional adapter-later until gates pass.
 
+ACP-kit packaging is not runtime adoption by itself. Creating `git-lex-kit-acp` files, ontology, shapes, content folders, examples, and static verifiers is a semantic-kit implementation track. Runtime adoption gates begin when ACP-kit is initialized, synced, queried, validated, or served through a git-lex executable in an isolated workspace.
+
 
 ## M051 S10 refined gate outcomes
 

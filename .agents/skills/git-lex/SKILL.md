@@ -48,6 +48,8 @@ prd/architecture/acp/M051-S05-GIT-LEX-ACP-INTEGRATION-DECISION.md
 prd/architecture/acp/M051-S08-ACP-ONTOLOGY-PROTOTYPE.md
 prd/architecture/acp/M051-S09-SUPPLY-CHAIN-BINARY-TRUST.md
 prd/architecture/acp/M051-S10-GIT-LEX-BINARY-RUNTIME-GATE.md
+prd/architecture/acp/M055-S05-GIT-LEX-BACKEND-NEXT-DECISION.md
+prd/architecture/acp/M049-S05-GIT-LEX-ACP-KIT-INTEGRATION-ROADMAP.md
 ```
 
 If the request is broad or unfamiliar, first use GitNexus on `git-lex-reference`/`subtext-mcp-reference`, then follow `workflows/inspect-base-kit.md`; if it asks whether a claim is safe, follow `workflows/review-acp-claim.md`.
@@ -59,6 +61,7 @@ If the request is broad or unfamiliar, first use GitNexus on `git-lex-reference`
 - RDF, OWL, SHACL, SPARQL, JSON-LD, JSONL, dashboards, and recovery views are derived governance/recovery surfaces unless tied to an accepted ACP source category, lifecycle state, evidence anchor, and proof gate or accepted decision.
 - Do not validate R035, R037, or R038 from ACP/git-lex/projection evidence alone.
 - Treat git-lex as a strong semantic substrate candidate for ACP, not as accepted core backend, until runtime acquisition, isolated operations, rollback, and `.lex` state policy are proven.
+- Treat ACP-kit as the next semantic-kit integration track, not as backend/source-truth promotion: ACP-kit v0 packages ACP core vocabulary over `git-lex-kit-base`, remains derived/non-authoritative, and should precede L2 operational diagnostic integration.
 - Keep reusable ACP ontology separate from law-nexus profile constraints; Russian legal evidence, FalkorDB runtime, parser completeness, citation safety, and retrieval quality require their own proof paths.
 </essential_guardrails>
 
@@ -182,7 +185,8 @@ For M051/S06 and S07, do not merely restate conclusions. Record a knowledge-delt
 - If the user asks whether wording like “git-lex proves ACP” or “semantic web stack validates the requirement” is safe, follow `workflows/review-acp-claim.md` and use `templates/claim-review.md`.
 - If the user asks to adopt git-lex runtime, use `.lex`, initialize a repo, build an adapter, or run CLI proof, follow `workflows/plan-adapter-spike.md`.
 - If the user provides an artifact and asks what it can prove, follow `workflows/classify-evidence.md`.
-- For general ACP registry/verifier/proof-level questions not specific to git-lex, route to `legalgraph-architecture-verification` after preserving the git-lex boundaries above.
+- If the user asks to design or maintain ACP-native source truth, proof gates, ACP-kit, ACP lifecycle states, or ACP/law-nexus profile boundaries, route to the project-local `acp` skill when available; keep this `git-lex` skill for git-lex runtime, semantic-kit evidence, RDF/SPARQL/JSON-LD claim safety, and `.lex` adoption boundaries.
+- For general ACP registry/verifier/proof-level questions not specific to git-lex and before the `acp` skill is available, route to `legalgraph-architecture-verification` after preserving the git-lex boundaries above.
 </routing>
 
 <reference_index>
