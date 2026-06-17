@@ -30,8 +30,8 @@ It does **NOT**:
 
 - run the git-lex generator (no binary is installed in this tree; git-lex is an
   external vendor dependency and is not executed here),
-- reference or modify any path outside `/root/law-nexus`,
-- validate R035/R037/R038, promote any record to ACP source truth, or approve
+- reference or modify any path outside this repository,
+- does not validate R035/R037/R038, does not promote any record to ACP source truth, and does not approve
   main-`.lex` / production adoption.
 
 **Empirical regenerate-and-inspect proof is S03's scope, not T01's.** The causal

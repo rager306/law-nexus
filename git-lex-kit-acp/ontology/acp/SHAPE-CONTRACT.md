@@ -22,7 +22,7 @@ This contract is a **static design document** grounded in:
 - the current text of `acp.ttl` (`owl:versionInfo "0.1.0"`),
 - the proven reference template `git-lex-kit-law-nexus/ontology/law-nexus/law-nexus.ttl`, and
 - the git-lex generator's **documented** domain-driven emission rule (established
-  in `S01-RESEARCH.md` from a read of `/root/vendor-source/git-lex/src/shacl.rs`,
+  in `S01-RESEARCH.md` from a read of the git-lex generator source (shacl.rs),
   `ontology.rs`, `extraction.rs`).
 
 It does **NOT**:
@@ -30,13 +30,12 @@ It does **NOT**:
 - run the git-lex generator (git-lex is an external vendor dependency; empirical
   regenerate-and-inspect proof is **S03's** scope, not T02's),
 - edit `acp.ttl` (that is **S02's** scope),
-- reference or modify any path outside `/root/law-nexus`,
-- validate R035/R037/R038, promote any record to ACP source truth, approve
-  main-`.lex` / production adoption, or approve authority-model enforcement.
+- reference or modify any path outside this repository,
+- does not validate R035/R037/R038, does not promote any record to ACP source truth, does not approve
+  main-`.lex` / production adoption, and does not approve authority-model enforcement.
 
 The strengthened `acp.ttl` and its generated SHACL shapes remain **derived /
-non-authoritative** (R046). Strengthening constraints does **not** make the
-ontology ACP source truth.
+non-authoritative** (R046). Strengthening constraints does not make the ontology ACP source truth.
 
 ## Skills applied (locked from research)
 
@@ -63,7 +62,7 @@ Four approaches were contrasted in `S01-RESEARCH.md`. Condensed:
 | **A — Minimal (domains only)** | Add `rdfs:domain` to underconstrained props; rely on existing enums + xsd ranges. | Loses: produces `sh:datatype` + `sh:in` but **no `sh:minCount`** → the `acp-missing-source-artifact` true-negative (one of the 5 target probes) cannot be built. Insufficient for the 5-probe target. |
 | **B — Domain + OWL Restrictions** ✅ | A **plus** `owl:Restriction`/`owl:minCardinality 1` on selected authority fields, mirroring law-nexus.ttl. | **WINS — chosen (D085).** Only approach that (a) produces all three constraint kinds via the generator, (b) stays inside acp.ttl (S02 scope), (c) matches a proven local template, (d) keeps acp.ttl universally reusable (R048). |
 | **C — Hand-author SHACL / bypass generator** | Ship a hand-written `acp-shapes.ttl`. | Loses: **defeats M064's purpose** — the milestone goal is that the *generated* shapes (the path `git lex kit-update` actually regenerates) are meaningful. Hand-authored shapes silently diverge on regen and violate R046. Rejected; named only to rule it out. |
-| **D — Modify the generator** | Edit `/root/vendor-source/git-lex/src/shacl.rs`. | Loses: out of scope (external vendor dependency; D084 Stage 2); affects every kit (R048); supply-chain/binary-trust concerns. Possible future hardening once git-lex is pinned. |
+| **D — Modify the generator** | Edit the git-lex generator source (shacl.rs). | Loses: out of scope (external vendor dependency; D084 Stage 2); affects every kit (R048); supply-chain/binary-trust concerns. Possible future hardening once git-lex is pinned. |
 
 **Why B wins:** it is the only approach that yields `sh:datatype` + `sh:in` +
 `sh:minCount` *through the generator*, from ontology axioms S02 owns, matching a
@@ -313,8 +312,7 @@ claimed as validated:
   this explicitly). Strengthened acp.ttl does not validate profile-owned
   requirements.
 - **`acp.ttl` remains derived / non-authoritative (R046).** Constraint
-  strengthening does not promote the ontology (or its generated shapes) to ACP
-  source truth.
+  strengthening does not promote the ontology (or its generated shapes) to ACP source truth.
 - **NO law-nexus-specific constraints enter `acp.ttl` (R048).** FalkorDB, parser,
   Russian-legal-evidence, retrieval, citation, generated-Cypher, and
   R035/R037/R038 constraints belong in `law-nexus.ttl`, not the reusable core.
@@ -406,7 +404,7 @@ network, or subprocess work. Its dependencies and their failure paths:
   any drift surfaces there.
 - **Generator-behavior assumption (external vendor dependency).** The contract's
   emission predictions rest on the git-lex generator's **documented**
-  domain-driven rule (read from `/root/vendor-source/git-lex/src/shacl.rs`). If
+  domain-driven rule (read from the git-lex generator source, shacl.rs). If
   the installed/pinned git-lex behaves differently (namespace detection, Query 2
   change, `xsd:string` guard removed), S02 would "implement constraints" that
   still produce empty shapes — reproducing the MEM541 trap. **Mitigation:** §9
