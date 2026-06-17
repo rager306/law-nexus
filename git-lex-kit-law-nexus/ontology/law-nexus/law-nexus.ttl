@@ -1,0 +1,144 @@
+@prefix lawNexus: <https://repolex.ai/ontology/kit/law-nexus/> .
+@prefix owl:      <http://www.w3.org/2002/07/owl#> .
+@prefix rdf:      <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs:     <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:      <http://www.w3.org/2001/XMLSchema#> .
+
+lawNexus:LegalDocument a owl:Class ;
+  rdfs:label "LegalDocument" ;
+  rdfs:comment "Synthetic legal-document metadata record for diagnostic proof only." .
+
+lawNexus:SourceProvider a owl:Class ;
+  rdfs:label "SourceProvider" ;
+  rdfs:comment "Synthetic source/provider category metadata." .
+
+lawNexus:ParserRun a owl:Class ;
+  rdfs:label "ParserRun" ;
+  rdfs:comment "Synthetic or observed parser-run metadata; runtime proof required for non-synthetic claims." .
+
+lawNexus:SourceBlock a owl:Class ;
+  rdfs:label "SourceBlock" ;
+  rdfs:comment "Bounded source block reference without raw legal text." .
+
+lawNexus:EvidenceSpan a owl:Class ;
+  rdfs:label "EvidenceSpan" ;
+  rdfs:comment "Citation-safe selector/span metadata." .
+
+lawNexus:Citation a owl:Class ;
+  rdfs:label "Citation" ;
+  rdfs:comment "Citation metadata for synthetic answer fixtures." .
+
+lawNexus:RetrievalQuery a owl:Class ;
+  rdfs:label "RetrievalQuery" ;
+  rdfs:comment "Synthetic retrieval query/test case." .
+
+lawNexus:RetrievalAnswer a owl:Class ;
+  rdfs:label "RetrievalAnswer" ;
+  rdfs:comment "Synthetic non-authoritative retrieval answer fixture." .
+
+lawNexus:FalkorDBGraphObservation a owl:Class ;
+  rdfs:label "FalkorDBGraphObservation" ;
+  rdfs:comment "Synthetic or observed graph-state metadata; not a capability proof by itself." .
+
+lawNexus:CypherSafetyCheck a owl:Class ;
+  rdfs:label "CypherSafetyCheck" ;
+  rdfs:comment "Synthetic Cypher safety check metadata." .
+
+lawNexus:ACPBoundaryLink a owl:Class ;
+  rdfs:label "ACPBoundaryLink" ;
+  rdfs:comment "Diagnostic link to ACP proof/source/decision concepts; navigation only." .
+
+lawNexus:ProofStatus a rdfs:Datatype ;
+  owl:oneOf ( "example-only" "observed-runtime" "blocked" ) .
+
+lawNexus:synthetic a owl:DatatypeProperty ;
+  rdfs:domain lawNexus:LegalDocument, lawNexus:SourceProvider, lawNexus:ParserRun, lawNexus:SourceBlock, lawNexus:EvidenceSpan, lawNexus:Citation, lawNexus:RetrievalQuery, lawNexus:RetrievalAnswer, lawNexus:FalkorDBGraphObservation, lawNexus:CypherSafetyCheck, lawNexus:ACPBoundaryLink ;
+  rdfs:range xsd:boolean ;
+  rdfs:comment "True for v0 synthetic fixtures." .
+
+lawNexus:nonAuthoritative a owl:DatatypeProperty ;
+  rdfs:domain lawNexus:LegalDocument, lawNexus:SourceProvider, lawNexus:ParserRun, lawNexus:SourceBlock, lawNexus:EvidenceSpan, lawNexus:Citation, lawNexus:RetrievalQuery, lawNexus:RetrievalAnswer, lawNexus:FalkorDBGraphObservation, lawNexus:CypherSafetyCheck, lawNexus:ACPBoundaryLink ;
+  rdfs:range xsd:boolean ;
+  rdfs:comment "True unless a future accepted proof says otherwise." .
+
+lawNexus:proofStatus a owl:DatatypeProperty ;
+  rdfs:domain lawNexus:LegalDocument, lawNexus:SourceProvider, lawNexus:ParserRun, lawNexus:SourceBlock, lawNexus:EvidenceSpan, lawNexus:Citation, lawNexus:RetrievalQuery, lawNexus:RetrievalAnswer, lawNexus:FalkorDBGraphObservation, lawNexus:CypherSafetyCheck, lawNexus:ACPBoundaryLink ;
+  rdfs:range lawNexus:ProofStatus ;
+  rdfs:comment "Bounded proof status for synthetic or observed records." .
+
+lawNexus:sourcePath a owl:DatatypeProperty ;
+  rdfs:domain lawNexus:LegalDocument, lawNexus:ParserRun, lawNexus:SourceBlock, lawNexus:EvidenceSpan ;
+  rdfs:range xsd:string ;
+  rdfs:comment "Repository-relative safe source path or synthetic fixture path." .
+
+lawNexus:documentId a owl:DatatypeProperty ;
+  rdfs:domain lawNexus:LegalDocument ;
+  rdfs:range xsd:string ;
+  rdfs:comment "Synthetic local document identifier." .
+
+lawNexus:observedAt a owl:DatatypeProperty ;
+  rdfs:domain lawNexus:ParserRun, lawNexus:FalkorDBGraphObservation, lawNexus:CypherSafetyCheck ;
+  rdfs:range xsd:dateTime ;
+  rdfs:comment "Runtime observation timestamp if proven." .
+
+lawNexus:parserName a owl:DatatypeProperty ;
+  rdfs:domain lawNexus:ParserRun ;
+  rdfs:range xsd:string ;
+  rdfs:comment "Synthetic or observed parser name." .
+
+lawNexus:selector a owl:DatatypeProperty ;
+  rdfs:domain lawNexus:SourceBlock, lawNexus:EvidenceSpan, lawNexus:Citation ;
+  rdfs:range xsd:string ;
+  rdfs:comment "Small synthetic selector or citation selector." .
+
+lawNexus:queryText a owl:DatatypeProperty ;
+  rdfs:domain lawNexus:RetrievalQuery ;
+  rdfs:range xsd:string ;
+  rdfs:comment "Synthetic retrieval query text." .
+
+lawNexus:answerSummary a owl:DatatypeProperty ;
+  rdfs:domain lawNexus:RetrievalAnswer ;
+  rdfs:range xsd:string ;
+  rdfs:comment "Short synthetic answer summary, not legal advice." .
+
+lawNexus:checkName a owl:DatatypeProperty ;
+  rdfs:domain lawNexus:CypherSafetyCheck ;
+  rdfs:range xsd:string ;
+  rdfs:comment "Synthetic safety check name." .
+
+lawNexus:provider a owl:ObjectProperty ;
+  rdfs:domain lawNexus:LegalDocument, lawNexus:ParserRun ;
+  rdfs:range lawNexus:SourceProvider ;
+  rdfs:comment "Diagnostic link to a synthetic SourceProvider." .
+
+lawNexus:sourceBlock a owl:ObjectProperty ;
+  rdfs:domain lawNexus:EvidenceSpan, lawNexus:Citation ;
+  rdfs:range lawNexus:SourceBlock ;
+  rdfs:comment "Diagnostic link to a synthetic SourceBlock." .
+
+lawNexus:cites a owl:ObjectProperty ;
+  rdfs:domain lawNexus:RetrievalAnswer ;
+  rdfs:range lawNexus:Citation ;
+  rdfs:comment "Synthetic citation link." .
+
+lawNexus:answersQuery a owl:ObjectProperty ;
+  rdfs:domain lawNexus:RetrievalAnswer ;
+  rdfs:range lawNexus:RetrievalQuery ;
+  rdfs:comment "Synthetic query-answer link." .
+
+lawNexus:supportsAcpGate a owl:ObjectProperty ;
+  rdfs:domain lawNexus:ParserRun, lawNexus:EvidenceSpan, lawNexus:CypherSafetyCheck, lawNexus:FalkorDBGraphObservation ;
+  rdfs:range lawNexus:ACPBoundaryLink ;
+  rdfs:comment "Diagnostic support link only; ACP artifacts remain authoritative." .
+
+lawNexus:LegalDocument rdfs:subClassOf [
+  a owl:Restriction ;
+  owl:onProperty lawNexus:synthetic ;
+  owl:minCardinality 1
+] .
+
+lawNexus:ParserRun rdfs:subClassOf [
+  a owl:Restriction ;
+  owl:onProperty lawNexus:observedAt ;
+  owl:minCardinality 1
+] .

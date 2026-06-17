@@ -1,0 +1,264 @@
+@prefix acp: <https://repolex.ai/ontology/kit/acp/> .
+@prefix lex-o: <https://repolex.ai/ontology/lex-upper/> .
+@prefix git: <https://repolex.ai/ontology/git-lex/git/> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+# =============================================================================
+# ACP KIT ONTOLOGY V0
+# =============================================================================
+# Deterministic ACP core semantic kit for git-lex-compatible packaging.
+#
+# This ontology is derived semantic packaging only. It is not ACP source truth,
+# not a runtime adoption decision, not production evidence, and not validation
+# evidence for profile-owned requirements such as R035/R037/R038.
+#
+# Authority rule: an ACP validation claim needs source category, lifecycle state,
+# tracked evidence anchor, and proof gate or accepted decision. RDF/OWL/SHACL,
+# SPARQL, JSON-LD, generated shapes, dashboards, and git-lex projections remain
+# derived unless tied to accepted ACP proof machinery.
+#
+# Upper-ontology note: this v0 scaffold follows the inspected git-lex domain-kit
+# convention (`lex-o:`) used by squad/soul/autoknow. Runtime compatibility must
+# still be verified in an isolated workspace before any runtime claim.
+# =============================================================================
+
+<https://repolex.ai/ontology/kit/acp> a owl:Ontology ;
+    rdfs:label "ACP Kit Ontology" ;
+    rdfs:comment "Reusable ACP source/proof/projection governance vocabulary. Derived and non-authoritative until ACP proof gates accept specific records." ;
+    owl:versionInfo "0.1.0" .
+
+# =============================================================================
+# ENUM-LIKE DATATYPES
+# =============================================================================
+
+acp:LifecycleStateValue a rdfs:Datatype ;
+    owl:oneOf ("proposed" "active" "validated" "deferred" "blocked" "rejected" "superseded") .
+
+acp:AuthorityClassValue a rdfs:Datatype ;
+    owl:oneOf ("source" "derived" "diagnostic" "runtime-smoke" "profile-proof" "blocked") .
+
+acp:VerdictValue a rdfs:Datatype ;
+    owl:oneOf ("pass" "fail" "needs-attention" "needs-remediation" "blocked" "not-applicable") .
+
+# =============================================================================
+# CORE CLASSES
+# =============================================================================
+
+acp:SourceRecord a owl:Class ;
+    rdfs:subClassOf lex-o:Information ;
+    rdfs:label "Source record" ;
+    rdfs:comment "A tracked ACP record or source artifact. Authority requires lifecycle state, evidence anchor, and proof gate or accepted decision." .
+
+acp:Requirement a owl:Class ;
+    rdfs:subClassOf acp:SourceRecord ;
+    rdfs:label "Requirement" ;
+    rdfs:comment "An ACP requirement record. Validation is explicit and proof-gated, not inferred from projection shape." .
+
+acp:Decision a owl:Class ;
+    rdfs:subClassOf acp:SourceRecord, lex-o:Decision ;
+    rdfs:label "Decision" ;
+    rdfs:comment "An ACP decision record. Acceptance depends on accepted decision source and evidence." .
+
+acp:EvidenceAnchor a owl:Class ;
+    rdfs:subClassOf lex-o:Reference ;
+    rdfs:label "Evidence anchor" ;
+    rdfs:comment "A tracked repository-relative source or proof pointer. Local, ignored, raw, secret, provider-payload, or vector anchors are invalid for durable ACP proof." .
+
+acp:ProofGate a owl:Class ;
+    rdfs:subClassOf lex-o:Process ;
+    rdfs:label "Proof gate" ;
+    rdfs:comment "An executable or checkable proof process, or an accepted decision gate. Placeholder gates are not proof." .
+
+acp:HealthFinding a owl:Class ;
+    rdfs:subClassOf lex-o:Information ;
+    rdfs:label "Health finding" ;
+    rdfs:comment "A diagnostic finding that may block unsafe claims. It does not validate requirements by itself." .
+
+acp:Projection a owl:Class ;
+    rdfs:subClassOf lex-o:Information ;
+    rdfs:label "Projection" ;
+    rdfs:comment "A derived representation such as RDF, OWL, SHACL, SPARQL, JSON-LD, JSONL, dashboard, or recovery view." .
+
+acp:LifecycleState a owl:Class ;
+    rdfs:subClassOf lex-o:Concept ;
+    rdfs:label "Lifecycle state" ;
+    rdfs:comment "A state category for proposed, active, validated, deferred, blocked, rejected, or superseded ACP records. Labels do not transition records without accepted evidence policy." .
+
+acp:AuthorityClass a owl:Class ;
+    rdfs:subClassOf lex-o:Concept ;
+    rdfs:label "Authority class" ;
+    rdfs:comment "A classification distinguishing source, derived, diagnostic, runtime-smoke, profile-proof, and blocked authority." .
+
+acp:ValidationClaim a owl:Class ;
+    rdfs:subClassOf lex-o:Information ;
+    rdfs:label "Validation claim" ;
+    rdfs:comment "An explicit claim linking a requirement, proof context, evidence, lifecycle, and verdict. It is never inferred from shape alone." .
+
+acp:ProfileConstraint a owl:Class ;
+    rdfs:subClassOf lex-o:Concept ;
+    rdfs:label "Profile constraint" ;
+    rdfs:comment "A generic profile boundary marker. Substantive law-nexus proof, including legal evidence, parser, FalkorDB, retrieval, citation, generated-Cypher, and R035/R037/R038 validation, remains profile-owned." .
+
+acp:RuntimeAdapter a owl:Class ;
+    rdfs:subClassOf lex-o:Process ;
+    rdfs:label "Runtime adapter" ;
+    rdfs:comment "An optional diagnostic adapter model. This class does not approve main .lex state, L2 integration, ACP source-truth migration, or production use." .
+
+# =============================================================================
+# OBJECT PROPERTIES
+# =============================================================================
+
+acp:hasEvidenceAnchor a owl:ObjectProperty ;
+    rdfs:label "has evidence anchor" ;
+    rdfs:comment "Links a source record or claim to an evidence anchor. The anchor must still satisfy durable anchor policy." ;
+    rdfs:range acp:EvidenceAnchor .
+
+acp:requiresProofGate a owl:ObjectProperty ;
+    rdfs:label "requires proof gate" ;
+    rdfs:comment "Links a source record or claim to a required proof gate. Requirement is not proof until satisfied." ;
+    rdfs:range acp:ProofGate .
+
+acp:satisfiesProofGate a owl:ObjectProperty ;
+    rdfs:label "satisfies proof gate" ;
+    rdfs:comment "Links evidence or result records to a proof gate. Must be tied to actual proof evidence before validating a claim." ;
+    rdfs:range acp:ProofGate .
+
+acp:blocksClaim a owl:ObjectProperty ;
+    rdfs:label "blocks claim" ;
+    rdfs:comment "Links a health finding to a validation claim it blocks. Blocking unsafe closure is not validation proof." ;
+    rdfs:domain acp:HealthFinding ;
+    rdfs:range acp:ValidationClaim .
+
+acp:validatesRequirement a owl:ObjectProperty ;
+    rdfs:label "validates requirement" ;
+    rdfs:comment "Links a proof-gated validation claim to a requirement. Safe only with lifecycle, evidence anchor, proof gate, and accepted verdict." ;
+    rdfs:domain acp:ValidationClaim ;
+    rdfs:range acp:Requirement .
+
+acp:doesNotValidateRequirement a owl:ObjectProperty ;
+    rdfs:label "does not validate requirement" ;
+    rdfs:comment "Links a non-validation or insufficient-evidence claim to a requirement." ;
+    rdfs:domain acp:ValidationClaim ;
+    rdfs:range acp:Requirement .
+
+acp:derivedFrom a owl:ObjectProperty ;
+    rdfs:label "derived from" ;
+    rdfs:comment "Links a projection or diagnostic to its source record or artifact while preserving derived status." .
+
+acp:hasLifecycleState a owl:ObjectProperty ;
+    rdfs:label "has lifecycle state" ;
+    rdfs:comment "Classifies a record or claim by lifecycle state." ;
+    rdfs:range acp:LifecycleState .
+
+acp:hasAuthorityClass a owl:ObjectProperty ;
+    rdfs:label "has authority class" ;
+    rdfs:comment "Classifies a record, claim, finding, or projection by authority class." ;
+    rdfs:range acp:AuthorityClass .
+
+acp:constrainedByProfile a owl:ObjectProperty ;
+    rdfs:label "constrained by profile" ;
+    rdfs:comment "Links an ACP core record to a profile constraint. The profile owns substantive proof." ;
+    rdfs:range acp:ProfileConstraint .
+
+acp:implementedByAdapter a owl:ObjectProperty ;
+    rdfs:label "implemented by adapter" ;
+    rdfs:comment "Links a diagnostic process or record to a runtime adapter. Adapter relation is not adoption proof." ;
+    rdfs:range acp:RuntimeAdapter .
+
+# Optional git provenance helper. It must not replace evidence anchors.
+acp:observedInCommit a owl:ObjectProperty ;
+    rdfs:label "observed in commit" ;
+    rdfs:comment "Optional git commit provenance link. It does not replace ACP evidence anchors or proof gates." ;
+    rdfs:range git:Commit .
+
+# =============================================================================
+# DATATYPE PROPERTIES
+# =============================================================================
+
+acp:identifier a owl:DatatypeProperty ;
+    rdfs:range xsd:string ;
+    rdfs:label "identifier" ;
+    rdfs:comment "Stable local identifier. Not proof by itself." .
+
+acp:sourcePath a owl:DatatypeProperty ;
+    rdfs:range xsd:string ;
+    rdfs:label "source path" ;
+    rdfs:comment "Repository-relative source path. When used as evidence, it must be tracked and policy-checked." .
+
+acp:selector a owl:DatatypeProperty ;
+    rdfs:range xsd:string ;
+    rdfs:label "selector" ;
+    rdfs:comment "Optional selector into a source artifact. Not proof by itself." .
+
+acp:nonAuthoritative a owl:DatatypeProperty ;
+    rdfs:range xsd:boolean ;
+    rdfs:label "non-authoritative" ;
+    rdfs:comment "Explicit marker for examples, projections, prototypes, and other non-authoritative records." .
+
+acp:blockedRequirementValidation a owl:DatatypeProperty ;
+    rdfs:range xsd:string ;
+    rdfs:label "blocked requirement validation" ;
+    rdfs:comment "Requirement identifier whose validation is explicitly blocked or not proven by this record." .
+
+acp:proofLevel a owl:DatatypeProperty ;
+    rdfs:range xsd:string ;
+    rdfs:label "proof level" ;
+    rdfs:comment "Proof class or level description. Proof still requires evidence." .
+
+acp:verdict a owl:DatatypeProperty ;
+    rdfs:range acp:VerdictValue ;
+    rdfs:label "verdict" ;
+    rdfs:comment "Gate or claim verdict. Requires proof context before becoming validation evidence." .
+
+acp:sourceArtifact a owl:DatatypeProperty ;
+    rdfs:range xsd:string ;
+    rdfs:label "source artifact" ;
+    rdfs:comment "Tracked repository-relative source artifact reference." .
+
+acp:allowedNextAction a owl:DatatypeProperty ;
+    rdfs:range xsd:string ;
+    rdfs:label "allowed next action" ;
+    rdfs:comment "Explicit next action allowed by a blocked/deferred record. It is not approval beyond the stated action." .
+
+acp:blockedAction a owl:DatatypeProperty ;
+    rdfs:range xsd:string ;
+    rdfs:label "blocked action" ;
+    rdfs:comment "Explicit blocked action such as main checkout runtime state, source-truth migration, production use, or profile validation without proof." .
+
+# =============================================================================
+# OPTIONAL INDIVIDUALS FOR EXAMPLES
+# =============================================================================
+
+acp:SourceAuthority a acp:AuthorityClass ;
+    rdfs:label "source authority" ;
+    rdfs:comment "Accepted source/proof machinery." .
+
+acp:DerivedAuthority a acp:AuthorityClass ;
+    rdfs:label "derived authority" ;
+    rdfs:comment "Derived projections or generated views." .
+
+acp:DiagnosticAuthority a acp:AuthorityClass ;
+    rdfs:label "diagnostic authority" ;
+    rdfs:comment "Diagnostics and health findings." .
+
+acp:RuntimeSmokeAuthority a acp:AuthorityClass ;
+    rdfs:label "runtime smoke authority" ;
+    rdfs:comment "Isolated runtime-smoke evidence." .
+
+acp:ProfileProofAuthority a acp:AuthorityClass ;
+    rdfs:label "profile proof authority" ;
+    rdfs:comment "Profile-owned proof class." .
+
+acp:BlockedAuthority a acp:AuthorityClass ;
+    rdfs:label "blocked authority" ;
+    rdfs:comment "Explicitly blocked or insufficient evidence." .
+
+acp:ProposedState a acp:LifecycleState ; rdfs:label "proposed" .
+acp:ActiveState a acp:LifecycleState ; rdfs:label "active" .
+acp:ValidatedState a acp:LifecycleState ; rdfs:label "validated" .
+acp:DeferredState a acp:LifecycleState ; rdfs:label "deferred" .
+acp:BlockedState a acp:LifecycleState ; rdfs:label "blocked" .
+acp:RejectedState a acp:LifecycleState ; rdfs:label "rejected" .
+acp:SupersededState a acp:LifecycleState ; rdfs:label "superseded" .

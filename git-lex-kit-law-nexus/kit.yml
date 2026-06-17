@@ -1,0 +1,4 @@
+name: law-nexus
+install folders: true
+folder base: LawNexus
+folder ontology: law-nexus.ttl

@@ -1,0 +1,133 @@
+@prefix acp: <https://repolex.ai/ontology/kit/acp/> .
+@prefix lawNexus: <https://repolex.ai/ontology/kit/law-nexus/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+# M061/S04 generated-style composed proof profile.
+# Diagnostic runtime-smoke shape only; not ACP source truth or production packaging.
+
+acp:ValidationClaimShape a sh:NodeShape ;
+  sh:targetClass acp:ValidationClaim ;
+  sh:property [
+    sh:path acp:nonAuthoritative ;
+    sh:datatype xsd:boolean ;
+    sh:minCount 1 ;
+  ] ;
+  sh:property [
+    sh:path acp:verdict ;
+    sh:in ("pass" "fail" "needs-attention" "needs-remediation" "blocked" "not-applicable") ;
+    sh:minCount 1 ;
+  ] ;
+  sh:property [
+    sh:path acp:hasLifecycleState ;
+    sh:minCount 1 ;
+  ] ;
+  sh:property [
+    sh:path acp:hasAuthorityClass ;
+    sh:minCount 1 ;
+  ] .
+
+acp:ProofGateShape a sh:NodeShape ;
+  sh:targetClass acp:ProofGate ;
+  sh:property [
+    sh:path acp:nonAuthoritative ;
+    sh:datatype xsd:boolean ;
+    sh:minCount 1 ;
+  ] ;
+  sh:property [
+    sh:path acp:sourceArtifact ;
+    sh:datatype xsd:string ;
+    sh:minCount 1 ;
+  ] .
+
+acp:EvidenceAnchorShape a sh:NodeShape ;
+  sh:targetClass acp:EvidenceAnchor ;
+  sh:property [
+    sh:path acp:sourceArtifact ;
+    sh:datatype xsd:string ;
+    sh:minCount 1 ;
+  ] ;
+  sh:property [
+    sh:path acp:nonAuthoritative ;
+    sh:datatype xsd:boolean ;
+    sh:minCount 1 ;
+  ] .
+
+lawNexus:ParserRunShape a sh:NodeShape ;
+  sh:targetClass lawNexus:ParserRun ;
+  sh:property [
+    sh:path lawNexus:synthetic ;
+    sh:datatype xsd:boolean ;
+    sh:minCount 1 ;
+  ] ;
+  sh:property [
+    sh:path lawNexus:nonAuthoritative ;
+    sh:datatype xsd:boolean ;
+    sh:minCount 1 ;
+  ] ;
+  sh:property [
+    sh:path lawNexus:proofStatus ;
+    sh:in ("example-only" "observed-runtime" "blocked") ;
+    sh:minCount 1 ;
+  ] ;
+  sh:property [
+    sh:path lawNexus:observedAt ;
+    sh:datatype xsd:dateTime ;
+    sh:minCount 1 ;
+  ] ;
+  sh:property [
+    sh:path lawNexus:parserName ;
+    sh:datatype xsd:string ;
+    sh:minCount 1 ;
+  ] ;
+  sh:property [
+    sh:path lawNexus:sourcePath ;
+    sh:datatype xsd:string ;
+    sh:minCount 1 ;
+  ] .
+
+lawNexus:LegalDocumentShape a sh:NodeShape ;
+  sh:targetClass lawNexus:LegalDocument ;
+  sh:property [
+    sh:path lawNexus:synthetic ;
+    sh:datatype xsd:boolean ;
+    sh:minCount 1 ;
+  ] ;
+  sh:property [
+    sh:path lawNexus:nonAuthoritative ;
+    sh:datatype xsd:boolean ;
+    sh:minCount 1 ;
+  ] ;
+  sh:property [
+    sh:path lawNexus:proofStatus ;
+    sh:in ("example-only" "observed-runtime" "blocked") ;
+    sh:minCount 1 ;
+  ] ;
+  sh:property [
+    sh:path lawNexus:sourcePath ;
+    sh:datatype xsd:string ;
+    sh:minCount 1 ;
+  ] .
+
+lawNexus:ACPBoundaryLinkShape a sh:NodeShape ;
+  sh:targetClass lawNexus:ACPBoundaryLink ;
+  sh:property [
+    sh:path lawNexus:synthetic ;
+    sh:datatype xsd:boolean ;
+    sh:minCount 1 ;
+  ] ;
+  sh:property [
+    sh:path lawNexus:nonAuthoritative ;
+    sh:datatype xsd:boolean ;
+    sh:minCount 1 ;
+  ] ;
+  sh:property [
+    sh:path lawNexus:proofStatus ;
+    sh:in ("example-only" "observed-runtime" "blocked") ;
+    sh:minCount 1 ;
+  ] ;
+  sh:property [
+    sh:path lawNexus:sourcePath ;
+    sh:datatype xsd:string ;
+    sh:minCount 1 ;
+  ] .

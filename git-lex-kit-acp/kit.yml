@@ -1,0 +1,8 @@
+# git-lex ACP kit
+# Deterministic ACP core semantic kit.
+# Derived/non-authoritative until ACP proof gates accept specific records.
+
+name: acp
+install folders: true
+folder base: ACP
+folder ontology: acp.ttl

@@ -17,6 +17,13 @@ prd/architecture/acp/M048-S10-ACP-CLOSURE-PACKAGE.md
 prd/architecture/acp/M051-S08-ACP-ONTOLOGY-PROTOTYPE.md
 prd/architecture/acp/M049-S05-GIT-LEX-ACP-KIT-INTEGRATION-ROADMAP.md
 prd/architecture/acp/M049-S05-FINAL-BINDING-SYNTHESIS.md
+prd/architecture/acp/M056-S01-BASE-DOMAIN-KIT-INSPECTION.md
+prd/architecture/acp/M056-S02-ACP-ONTOLOGY-EXTRACTION.md
+prd/architecture/acp/M056-S05-ISOLATED-RUNTIME-PROOF.md
+prd/architecture/acp/M056-S06-ACP-KIT-FINAL-SYNTHESIS.md
+git-lex-kit-acp/kit.yml
+git-lex-kit-acp/ontology/acp/acp.ttl
+git-lex-kit-acp/content/AGENTS.md
 ```
 
 For law-nexus binding work, also read:
@@ -73,16 +80,24 @@ Treat ACP-kit as a controlled packaging of ACP core semantics:
 
 ```text
 K0 static ontology prototype: M051/S08 done
-K1 ACP-kit v0 package: next recommended implementation
-K2 isolated ACP-kit runtime proof: future proof
-K3 M049 binding projection through ACP-kit records: future proof
-K4 L2 operational diagnostics: future follow-up
+K1 ACP-kit v0 package: static scaffold ready with verifier
+K2 isolated ACP-kit runtime proof: use explicit `rager306/git-lex-kit-acp` kit spec; short `--kit acp` is not canonical
+K3 M049 binding projection through ACP-kit records: future proof after ACP runtime semantics gate
+K4 L2 operational diagnostics: blocked if it depends on ACP-kit runtime behavior
 K5 main .lex rehearsal: blocked until explicit decision
 K6 source-truth migration: blocked
 K7 production/provenance: blocked
 ```
 
-ACP-kit v0 should be deterministic, non-adaptive, reusable ACP core. Do not put law-nexus legal/parser/FalkorDB/retrieval proof into ACP core ontology.
+ACP-kit v0 should be deterministic, non-adaptive, reusable ACP core. The current scaffold lives in:
+
+```text
+git-lex-kit-acp/kit.yml
+git-lex-kit-acp/ontology/acp/acp.ttl
+git-lex-kit-acp/content/AGENTS.md
+```
+
+The scaffold is static package evidence only and not runtime proof. Canonical ACP-kit runtime invocation must use the explicit repository spec: `git-lex init --kit rager306/git-lex-kit-acp <target-repo>`. Do not use short `--kit acp` as the project rule; it follows git-lex short-name resolution and may target `repolex-ai/git-lex-kit-acp`. Current status: full-spec init succeeds in a disposable workspace, but runtime semantics still need proof for class discovery, sync/query/validate, and negative validation. Do not claim main `.lex` safety, source-truth migration, production adoption, L2 runtime diagnostics readiness, or R035/R037/R038 validation from M056.
 </acp_kit_rule>
 
 <verification>
@@ -90,6 +105,7 @@ For ACP artifacts, verify the narrowest relevant surface:
 
 ```text
 uv run python scripts/verify-m049-binding.py          # when M049 binding artifacts are affected
+uv run python scripts/verify-m056-acp-kit.py          # when ACP-kit scaffold or guidance is affected
 python3 -m py_compile <new verifier/test scripts>     # when scripts are added
 uv run pytest <targeted tests>                        # when tests exist
 test ! -e .lex && test ! -e Squad && test ! -e Raw && test ! -e .artifacts
