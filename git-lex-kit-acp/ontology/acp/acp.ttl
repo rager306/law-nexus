@@ -22,12 +22,18 @@
 # Upper-ontology note: this v0 scaffold follows the inspected git-lex domain-kit
 # convention (`lex-o:`) used by squad/soul/autoknow. Runtime compatibility must
 # still be verified in an isolated workspace before any runtime claim.
+#
+# v0.2.0 constraint set (D085 Design B): enumerated class domain lists on
+# datatype and object properties drive generated SHACL (sh:datatype, sh:in,
+# sh:nodeKind sh:IRI); two OWL cardinality restrictions (verdict on ProofGate,
+# sourceArtifact on EvidenceAnchor) drive generated sh:minCount. The ontology
+# remains derived / non-authoritative packaging.
 # =============================================================================
 
 <https://repolex.ai/ontology/kit/acp> a owl:Ontology ;
     rdfs:label "ACP Kit Ontology" ;
     rdfs:comment "Reusable ACP source/proof/projection governance vocabulary. Derived and non-authoritative until ACP proof gates accept specific records." ;
-    owl:versionInfo "0.1.0" .
+    owl:versionInfo "0.2.0" .
 
 # =============================================================================
 # ENUM-LIKE DATATYPES
@@ -111,16 +117,19 @@ acp:RuntimeAdapter a owl:Class ;
 # =============================================================================
 
 acp:hasEvidenceAnchor a owl:ObjectProperty ;
+    rdfs:domain acp:SourceRecord, acp:ValidationClaim ;
     rdfs:label "has evidence anchor" ;
     rdfs:comment "Links a source record or claim to an evidence anchor. The anchor must still satisfy durable anchor policy." ;
     rdfs:range acp:EvidenceAnchor .
 
 acp:requiresProofGate a owl:ObjectProperty ;
+    rdfs:domain acp:Requirement, acp:ValidationClaim ;
     rdfs:label "requires proof gate" ;
     rdfs:comment "Links a source record or claim to a required proof gate. Requirement is not proof until satisfied." ;
     rdfs:range acp:ProofGate .
 
 acp:satisfiesProofGate a owl:ObjectProperty ;
+    rdfs:domain acp:EvidenceAnchor, acp:ValidationClaim ;
     rdfs:label "satisfies proof gate" ;
     rdfs:comment "Links evidence or result records to a proof gate. Must be tied to actual proof evidence before validating a claim." ;
     rdfs:range acp:ProofGate .
@@ -144,31 +153,37 @@ acp:doesNotValidateRequirement a owl:ObjectProperty ;
     rdfs:range acp:Requirement .
 
 acp:derivedFrom a owl:ObjectProperty ;
+    rdfs:domain acp:Projection ;
     rdfs:label "derived from" ;
     rdfs:comment "Links a projection or diagnostic to its source record or artifact while preserving derived status." .
 
 acp:hasLifecycleState a owl:ObjectProperty ;
+    rdfs:domain acp:SourceRecord, acp:ValidationClaim, acp:HealthFinding ;
     rdfs:label "has lifecycle state" ;
     rdfs:comment "Classifies a record or claim by lifecycle state." ;
     rdfs:range acp:LifecycleState .
 
 acp:hasAuthorityClass a owl:ObjectProperty ;
+    rdfs:domain acp:SourceRecord, acp:ValidationClaim, acp:HealthFinding, acp:Projection ;
     rdfs:label "has authority class" ;
     rdfs:comment "Classifies a record, claim, finding, or projection by authority class." ;
     rdfs:range acp:AuthorityClass .
 
 acp:constrainedByProfile a owl:ObjectProperty ;
+    rdfs:domain acp:SourceRecord ;
     rdfs:label "constrained by profile" ;
     rdfs:comment "Links an ACP core record to a profile constraint. The profile owns substantive proof." ;
     rdfs:range acp:ProfileConstraint .
 
 acp:implementedByAdapter a owl:ObjectProperty ;
+    rdfs:domain acp:HealthFinding ;
     rdfs:label "implemented by adapter" ;
     rdfs:comment "Links a diagnostic process or record to a runtime adapter. Adapter relation is not adoption proof." ;
     rdfs:range acp:RuntimeAdapter .
 
 # Optional git provenance helper. It must not replace evidence anchors.
 acp:observedInCommit a owl:ObjectProperty ;
+    rdfs:domain acp:SourceRecord, acp:Requirement, acp:Decision, acp:EvidenceAnchor, acp:ProofGate ;
     rdfs:label "observed in commit" ;
     rdfs:comment "Optional git commit provenance link. It does not replace ACP evidence anchors or proof gates." ;
     rdfs:range git:Commit .
@@ -178,54 +193,84 @@ acp:observedInCommit a owl:ObjectProperty ;
 # =============================================================================
 
 acp:identifier a owl:DatatypeProperty ;
+    rdfs:domain acp:SourceRecord, acp:Requirement, acp:Decision ;
     rdfs:range xsd:string ;
     rdfs:label "identifier" ;
     rdfs:comment "Stable local identifier. Not proof by itself." .
 
 acp:sourcePath a owl:DatatypeProperty ;
+    rdfs:domain acp:EvidenceAnchor, acp:SourceRecord ;
     rdfs:range xsd:string ;
     rdfs:label "source path" ;
     rdfs:comment "Repository-relative source path. When used as evidence, it must be tracked and policy-checked." .
 
 acp:selector a owl:DatatypeProperty ;
+    rdfs:domain acp:EvidenceAnchor ;
     rdfs:range xsd:string ;
     rdfs:label "selector" ;
     rdfs:comment "Optional selector into a source artifact. Not proof by itself." .
 
 acp:nonAuthoritative a owl:DatatypeProperty ;
+    rdfs:domain acp:SourceRecord, acp:Requirement, acp:Decision, acp:EvidenceAnchor, acp:ProofGate, acp:ValidationClaim, acp:HealthFinding, acp:Projection ;
     rdfs:range xsd:boolean ;
     rdfs:label "non-authoritative" ;
     rdfs:comment "Explicit marker for examples, projections, prototypes, and other non-authoritative records." .
 
 acp:blockedRequirementValidation a owl:DatatypeProperty ;
+    rdfs:domain acp:HealthFinding, acp:ValidationClaim ;
     rdfs:range xsd:string ;
     rdfs:label "blocked requirement validation" ;
     rdfs:comment "Requirement identifier whose validation is explicitly blocked or not proven by this record." .
 
 acp:proofLevel a owl:DatatypeProperty ;
+    rdfs:domain acp:ProofGate ;
     rdfs:range xsd:string ;
     rdfs:label "proof level" ;
     rdfs:comment "Proof class or level description. Proof still requires evidence." .
 
 acp:verdict a owl:DatatypeProperty ;
+    rdfs:domain acp:ProofGate, acp:ValidationClaim ;
     rdfs:range acp:VerdictValue ;
     rdfs:label "verdict" ;
     rdfs:comment "Gate or claim verdict. Requires proof context before becoming validation evidence." .
 
 acp:sourceArtifact a owl:DatatypeProperty ;
+    rdfs:domain acp:EvidenceAnchor, acp:ProofGate ;
     rdfs:range xsd:string ;
     rdfs:label "source artifact" ;
     rdfs:comment "Tracked repository-relative source artifact reference." .
 
 acp:allowedNextAction a owl:DatatypeProperty ;
+    rdfs:domain acp:HealthFinding ;
     rdfs:range xsd:string ;
     rdfs:label "allowed next action" ;
     rdfs:comment "Explicit next action allowed by a blocked/deferred record. It is not approval beyond the stated action." .
 
 acp:blockedAction a owl:DatatypeProperty ;
+    rdfs:domain acp:HealthFinding ;
     rdfs:range xsd:string ;
     rdfs:label "blocked action" ;
     rdfs:comment "Explicit blocked action such as main checkout runtime state, source-truth migration, production use, or profile validation without proof." .
+
+# =============================================================================
+# OWL CARDINALITY RESTRICTIONS (sh:minCount producers)
+# =============================================================================
+# Two conservative cardinality-1 restrictions mirror the law-nexus template:
+# verdict on ProofGate and sourceArtifact on EvidenceAnchor. These are the only
+# required-cardinality restrictions in this ontology; full authority-model
+# cardinality is deferred. Generated SHACL emits sh:minCount 1 for each.
+
+acp:ProofGate rdfs:subClassOf [
+    a owl:Restriction ;
+    owl:onProperty acp:verdict ;
+    owl:minCardinality 1
+] .
+
+acp:EvidenceAnchor rdfs:subClassOf [
+    a owl:Restriction ;
+    owl:onProperty acp:sourceArtifact ;
+    owl:minCardinality 1
+] .
 
 # =============================================================================
 # OPTIONAL INDIVIDUALS FOR EXAMPLES
