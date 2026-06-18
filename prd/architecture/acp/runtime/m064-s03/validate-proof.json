@@ -1,0 +1,37 @@
+{
+  "schema_version": "m064-s03-validate-proof/v1",
+  "timestamp": "2026-06-18T05:42:30.777556+00:00",
+  "purpose": "M064-S03-T02 runtime reject-proof: git-lex validate exits !=0 on exactly the 2 true-negative fixtures (EvidenceAnchor sh:minCount, ProofGate sh:in) and accepts the positive EvidenceAnchor fixture, after S02-strengthened acp.ttl v0.2.0 reaches enforcement via the adaptive overlay.",
+  "git_lex": {
+    "binary": "/root/vendor-source/git-lex/target/debug/git-lex",
+    "version": null,
+    "binary_mtime": "2026-05-31 16:58:28",
+    "version_note": "git-lex exposes no --version flag or version subcommand; binary path + mtime are the version surrogate."
+  },
+  "kit_spec": "rager306/git-lex-kit-acp",
+  "ontology_version": "0.2.0",
+  "overlay_mechanic": "adaptive ontology at _ontology/acp/acp.ttl; git-lex sync regenerates _ontology/acp/acp-shapes.ttl; git-lex validate merges adaptive shapes into the enforcement graph (main.rs cmd_validate).",
+  "validate_exit_code": 1,
+  "validate_expected_exit_code": "non-zero (reject path)",
+  "summary_line": "Validated 3 files in 48.7ms \u2014 2 violation(s) in 2 file(s)",
+  "fixtures": {
+    "positive": {
+      "relpath": "ACP/EvidenceAnchor/example-evidence-anchor.md",
+      "verdict": "pass",
+      "note": "carries acp.EvidenceAnchor.sourceArtifact; not present in the violation block."
+    },
+    "ea_negative": {
+      "relpath": "ACP/EvidenceAnchor/example-evidence-anchor-missing-source-artifact.md",
+      "verdict": "reject-MinCount",
+      "constraint": "sh:minCount 1 on EvidenceAnchor.sourceArtifact",
+      "violation_message_marker": "MinCount(1) not satisfied"
+    },
+    "pg_negative": {
+      "relpath": "ACP/ProofGate/example-proof-gate-invalid-verdict.md",
+      "verdict": "reject-sh:in",
+      "constraint": "sh:in on ProofGate.verdict (VerdictValue enum)",
+      "violation_message_marker": "In constraint not satisfied. Expected one of:"
+    }
+  },
+  "baseline_contrast": "M061/S04 diagnostics.jsonl showed git-lex validate exit 0 ('all pass') with 'pass-with-shape-violation' classification under the v0.1.0 static-only shapes (no constraints to violate). This proof shows the strengthened v0.2.0 adaptive overlay closes that gap: validate now exits 1 naming the 2 negatives."
+}
