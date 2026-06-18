@@ -142,6 +142,101 @@ Refined by M051/S10 T08-T11 after the initial smoke above:
 - S08 created a proposed ACP ontology/static-check scaffold and JSON-LD sample; it is non-authoritative and does not prove git-lex JSON-LD support.
 </final_m051_runtime_matrix>
 
+<m064_shacl_validate_internals>
+M064 (ACP-kit SHACL strengthening, M058 root-cause closeout) read the git-lex
+Rust source directly and ran isolated `/tmp` runtime recon. These are durable
+git-lex behavioral facts (source-anchored, `main.rs`/`extraction.rs`/`ontology.rs`/
+`shacl.rs`), valid for the source-built debug binary at
+`/root/vendor-source/git-lex/target/debug/git-lex`. They RESOLVE the M051 open
+item "Negative validation remains unproven: a malformed fixture failed to fail."
+
+**cmd_validate shape loading is additive over static + adaptive (the linchpin).**
+`cmd_validate` (main.rs ~1216+) collects SHACL from BOTH the static kit shapes
+`.lex/ontology/{short}/{short}-shapes.ttl` AND every `_ontology/{name}/{name}-shapes.ttl`
+(any `*-shapes.ttl` under `_ontology/`), `join("\n")` into ONE shapes graph, and
+compiles via `ShaclSchemaIR::compile`. SHACL validates a node against ALL shapes
+that target it, so adding adaptive shapes only TIGHTENS. Consequence: a
+strengthened ontology seeded as an adaptive ontology is enforced on top of the
+(published) static shapes — no generator change or static-overlay fight needed.
+
+**Detection reads STATIC shapes; enforcement reads static+adaptive — a version
+mismatch.** `frontmatter_to_turtle` (extraction.rs ~160-275) classifies each
+property value using `get_object_properties`/`get_property_datatypes`, which
+read shapes via `read_kit_shapes`/`all_shape_files` (ontology.rs ~27-38): these
+walk `.lex/ontology/` FIRST then `_ontology/`, sorted, returning the FIRST match
+→ the STATIC (published) shapes govern DETECTION. But `cmd_validate` ENFORCEMENT
+concatenates static + adaptive. So if an adaptive ontology adds a `sh:datatype`
+the static shapes lack, extraction still emits an UNTYPED literal while validate
+rejects it → SPURIOUS violation. CONCRETE (M064 S03, MEM551): the strengthened
+`acp.ttl` v0.2.0 emits `sh:datatype xsd:boolean` for `nonAuthoritative` on the
+adaptive shapes, but extraction reads static v0.1.0 (no datatype) and emits
+`nonAuthoritative` as a plain string `"true"` → EVERY record with
+`nonAuthoritative: true` gets a spurious "Expected datatype: xsd:boolean"
+violation under the overlay. Boolean/dateTime false-positives follow the same
+mechanic. **Do not assume detection and enforcement read the same shapes file.**
+
+**`git-lex sync` MUST run before `git-lex validate` for adaptive constraints.**
+The only `build_adaptive_shapes()` call is at the top of `cmd_sync`
+(main.rs ~1605-1614); `cmd_validate` only reads pre-built `_ontology/*/*-shapes.ttl`.
+If those files are absent at validate time, validate silently falls back to
+static-only shapes → every adaptive-only negative PASSES (silent failure, exit 0).
+Always run `sync` between seeding an adaptive ontology and `validate`.
+
+**cmd_validate document walk + exit-code mapping.** `walk_md` (main.rs ~1283)
+recurses ALL `.md` files in the git root, SKIPPING dot-prefixed directories.
+Class-template files shipped by kits (`__{Class}.md`) have EMPTY frontmatter
+(`---\n---`) → emit no typed subject → never produce violations (safe to leave).
+`cmd_validate` returns `bool`: `true` on all-pass, `false` on ≥1 violation; the
+CLI maps `false` → NON-ZERO exit. "all pass" stderr: `Validated N files in Xms —
+all pass ✓`; violation stderr: `Validated N files in Xms — V violation(s) in F
+file(s)`, then per-file `  {relpath} — {n} violation(s):` and per-result `    → {message}`.
+
+**Data graph is parsed `ReaderMode::Strict` → ill-typed literals are SKIPPED, not
+flagged.** An ill-typed literal like `"xyz"^^xsd:boolean` or `"not-a-date"^^xsd:dateTime`
+is parse-rejected by oxigraph Strict mode → the file is `continue`-skipped
+(main.rs ~1348) → its violations never count → exit 0. So a parse-error skip is
+INDISTINGUISHABLE from a pass in the exit code. Therefore datatype-ill-typed
+literals are NOT usable as true-negatives; they silently pass.
+
+**Which true-negatives actually reject (proven M064 S03, disposable `/tmp`).**
+Given the detection/enforcement mismatch + Strict parsing, only TWO negative
+kinds reliably produce a non-zero exit under the adaptive-overlay path:
+  - ENUM (`sh:in`): a value outside the enum emitted as a plain string literal.
+    (Detection does not read `sh:in`, so the generator's `sh:in` for an enum
+    datatype still emits the value untyped → `sh:in` rejects it.) Example:
+    `acp.ProofGate.verdict: "totally-bogus"` → `In constraint not satisfied`.
+  - MINCOUNT (`sh:minCount 1`): a required field simply ABSENT. Example: an
+    `EvidenceAnchor` with NO `sourceArtifact` → `MinCount(1) not satisfied`.
+The following do NOT work as true-negatives: object-property links
+(`frontmatter_to_turtle` normalizes them to `urn:entity:{slug}` IRIs that satisfy
+`sh:nodeKind sh:IRI` → pass); xsd:string-only properties (no `sh:datatype`, no
+constraint); boolean/dateTime ill-typed literals (Strict-parse skipped → exit 0).
+
+**The proven clean proof mechanic (M064 S02/S03, MEM549).** To prove an ontology
+change reaches generated shapes AND validate rejects negatives, in a disposable
+`/tmp` git repo: (1) `git-lex init --kit {owner}/{repo}` (downloads published
+kit; uses the FULL owner/repo spec — short aliases still resolve to the default
+owner); (2) seed the strengthened `{short}.ttl` as an ADAPTIVE ontology at
+`_ontology/{short}/{short}.ttl` — agent-owned, NEVER force-clobbered (init/
+kit-update ALWAYS clobber the STATIC ontology at `.lex/ontology/{short}/{short}.ttl`
+from the freshly-fetched tarball, ignoring `--force`; sync only regenerates
+ADAPTIVE shapes, never static); (3) `git add -A && git commit --no-verify` to
+seed HEAD (init's auto-commit fails because its pre-commit hook can't find
+`git-lex` on PATH — use `--no-verify`); (4) `git-lex sync` (regenerates
+`_ontology/{short}/{short}-shapes.ttl`); (5) `git-lex validate`. To keep the
+proof isolated from detection/enforcement-mismatch noise, the proof workspace
+may delete published records that carry a boolean/dateTime field the adaptive
+shapes newly constrain. Always assert no main-repo `.lex`/`Squad`/`Raw`/`.artifacts`
+residue before AND after.
+
+**Boundary.** These facts describe git-lex's generation/validate mechanics under
+the source-built debug binary and the adaptive-overlay path. They do NOT prove
+ACP source truth, runtime/production adoption, main-`.lex` safety, object-link
+correctness, general SHACL conformance, or R035/R037/R038 validation. The
+boolean extraction/enforcement mismatch is an open git-lex behavior, not an
+ACP-validated mechanism.
+</m064_shacl_validate_internals>
+
 <claude_logs_to_git_feature_boundary>
 M053/S05 verified an interesting git-lex/Claude Code harness feature, but classified it as ACP-nonfit by default.
 
