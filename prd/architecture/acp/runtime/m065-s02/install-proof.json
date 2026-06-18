@@ -1,0 +1,78 @@
+{
+  "schema_version": "m065-s02-install-proof/v1",
+  "timestamp": "2026-06-18T12:16:28Z",
+  "purpose": "Stage-2 cold-PATH install proof: proves the release-installed git-lex and git-lex-serve resolve through an explicit cold PATH (no vendor-dir) from /tmp, the git 'lex' subcommand dispatches to the installed git-lex binary, --version exits 2 (version gap, no version claim), and the main law-nexus checkout has no R047 residue before or after. Second empirical install-proof (resolution through PATH; binary identity is T01's install-manifest.json).",
+  "cold_path_definition": {
+    "path": "/root/.cargo/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+    "cwd": "/tmp",
+    "invocation": "env -i HOME=/root PATH=<cold-path> <command>  (run from /tmp)",
+    "vendor_dir_excluded": true,
+    "note": "explicit cold PATH containing ~/.cargo/bin and standard system dirs; does NOT contain /root/vendor-source/git-lex, /root/vendor-source/git-lex/target/debug, or any source/target path"
+  },
+  "proofs": {
+    "path_resolution": {
+      "git_lex_command_v_rc": 0,
+      "git_lex_resolved_path": "/root/.cargo/bin/git-lex",
+      "git_lex_serve_command_v_rc": 0,
+      "git_lex_serve_resolved_path": "/root/.cargo/bin/git-lex-serve",
+      "evidence": "command -v under cold env resolves both binaries to the cargo bin dir, matching the T01 install-manifest.json binary paths"
+    },
+    "git_lex_direct_help": {
+      "command": "git-lex --help",
+      "exit_code": 0,
+      "banner_marker": "Git extensions for knowledge graphs",
+      "banner_found": true,
+      "evidence": "direct binary resolution through cold PATH; the installed git-lex ran and printed its banner"
+    },
+    "git_lex_serve_help": {
+      "command": "git-lex-serve --help",
+      "exit_code": 0,
+      "banner_marker": "Servers for git-lex knowledge graphs",
+      "banner_found": true,
+      "evidence": "direct binary resolution through cold PATH (S01 contract section 5 item 3 satisfied)"
+    },
+    "git_lex_help_via_dispatch": {
+      "command": "git lex --help",
+      "exit_code": 16,
+      "observed_output": "No manual entry for git-lex",
+      "is_gate": false,
+      "note": "git intercepts --help for EXTERNAL subcommands and routes it to man(1); with no man page installed, this prints 'No manual entry for git-lex' and exits non-zero (observed rc=16). This is git's documented external-subcommand help-dispatch behavior, NOT an install defect, and it proves git recognizes 'lex' as a dispatchable subcommand (a non-existent subcommand yields rc=1 'is not a git command' — see contrast). The banner is NOT shown via this path because git never passes --help to the external binary. Contract section 5 item 2 ('git lex --help exits 0') assumed pass-through; the actual git dispatch routes --help to man. The cold-PATH resolution + dispatch INTENT is proven by git_lex_direct_help + git_subcommand_dispatch."
+    },
+    "git_subcommand_dispatch": {
+      "primary_command": "git lex",
+      "primary_exit_code": 2,
+      "primary_banner_marker": "Git extensions for knowledge graphs",
+      "primary_banner_found": true,
+      "primary_evidence": "git found git-lex via cold-PATH lookup and dispatched the 'lex' subcommand; git-lex ran with no args, so clap printed the banner + usage and exited 2 (missing required subcommand). Banner presence proves the installed git-lex binary executed (S01 contract section 5 item 4 satisfied).",
+      "secondary_command": "git lex --version",
+      "secondary_exit_code": 2,
+      "secondary_evidence": "clap error 'unexpected argument --version found ... Usage: git-lex <COMMAND>' references git-lex, proving the dispatched binary was the installed git-lex.",
+      "contrast_command": "git __nosuchcmd_xyz__ --help",
+      "contrast_exit_code": 1,
+      "contrast_evidence": "non-existent subcommand -> rc=1 'is not a git command'; 'lex' dispatches (rc=2, banner present), confirming lex IS a resolved subcommand, not a not-found case."
+    },
+    "version_gap": {
+      "git_lex_version_command": "git lex --version",
+      "git_lex_version_rc": 2,
+      "git_lex_serve_version_command": "git-lex-serve --version",
+      "git_lex_serve_version_rc": 2,
+      "version_gap_confirmed": true,
+      "note": "contract prohibits version claim; --version exits 2 per M051/S09 and re-proven here. No version number is parsed or asserted."
+    }
+  },
+  "residue_guard": {
+    "before": {".lex": "absent", "Squad": "absent", "Raw": "absent", ".artifacts": "absent"},
+    "after": {".lex": "absent", "Squad": "absent", "Raw": "absent", ".artifacts": "absent"},
+    "r047_contract_phase": "honored"
+  },
+  "cli_install_only_boundary": {
+    "wont": [
+      "no main .lex init",
+      "no R035/R037/R038 validation",
+      "no ACP-kit source truth",
+      "no single-repo/Stage-3 .lex adoption",
+      "no serve/viz/listen server exposure",
+      "no nuke/kit-update/save/create/join/raw mutating surfaces"
+    ]
+  }
+}
