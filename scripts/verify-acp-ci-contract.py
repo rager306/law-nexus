@@ -20,10 +20,10 @@ MAIN_STATE_RESIDUE = (".lex", "Squad", "Raw", ".artifacts")
 
 REQUIRED_M058_TERMS = (
     "validate/query representation mismatch",
-    "current generated ACP shapes are too underconstrained",
-    "Do not use `git-lex validate` as a hard ACP proof gate yet",
     "does not validate R035, R037, or R038",
-    "ontology domains/restrictions or generator changes",
+    "M058 root cause closed for the ACP-kit generated-shape gate",
+    "true-negative probes",
+    "Stage 2",
 )
 
 FORBIDDEN_M058_CLAIMS = (

@@ -4,6 +4,16 @@
 
 M058 correction complete. The M057/S04-S05 validation conclusion was too broad and is corrected here.
 
+## Closure (M064 / S04, 2026-06)
+
+M058 root cause closed for the ACP-kit generated-shape gate. The underconstrained generated SHACL shapes identified in M058/S02 have been strengthened (S02, `acp.ttl` v0.2.0) and re-proven (S03) via the adaptive overlay. This is a bounded advance: it does not validate R035, R037, or R038, does not approve main `.lex` state or production adoption, and does not change the ACP source-truth boundary.
+
+- S02 strengthened `acp.ttl` to v0.2.0: added `rdfs:domain` lists and two `owl:Restriction`/`owl:minCardinality` constraints so datatype/enum/required fields attach to class shapes, including `acp:sourceArtifact` minCount on `acp:EvidenceAnchor`.
+- S03 proved `git-lex validate` exits 1 on exactly the two true-negative probes (EvidenceAnchor missing `sourceArtifact` -> `sh:minCount`; ProofGate out-of-enum `verdict` -> `sh:in`) and accepts the positive EvidenceAnchor, recorded at `prd/architecture/acp/runtime/m064-s03/validate-proof.json` (schema_version `m064-s03-validate-proof/v1`, `validate_exit_code` 1, summary "Validated 3 files in 66.9ms — 2 violation(s) in 2 file(s)").
+- Bounded enforcement truth: reject enforcement is proven for the 2 contracted true-negative probes via the v0.2.0 adaptive overlay; full authority enforcement is not proven. Full anti-imitation enforcement (mandatory lifecycle + evidence + proof-gate on all authoritative records) is deferred to D084 Stage 5 / D072.
+
+The historical body below (M057 erratum, M058/S01 and M058/S02 findings) remains accurate as the record of how the closure was reached; the underconstrained-shape audit describes the pre-v0.2.0 state.
+
 ## Scope and authority boundary
 
 This artifact is a corrective diagnostic synthesis. It does not rewrite historical M057 artifacts; it supersedes the over-broad interpretation for future planning. It does not make git-lex or ACP-kit the ACP source-truth store, does not approve main `.lex` state, does not approve production adoption, and does not validate R035, R037, or R038.
@@ -144,40 +154,42 @@ Also avoid this wording:
 ACP-kit validation enforcement is proven.
 ```
 
-## Updated downstream recommendation
+## Updated downstream recommendation (post-closure, bounded)
 
-Proceed with constrained L2 diagnostics, but refine the M057 recommendation as follows.
+Proceed with constrained L2 diagnostics. After M064/S02-S03 the generated-shape gate is closed (bounded); the recommendation is refined as follows.
+
+Done (S02/S03):
+
+- S02 added `rdfs:domain` lists and two `owl:Restriction`/`owl:minCardinality` constraints so datatype/enum/required fields attach to class shapes (`acp.ttl` v0.2.0), including `acp:sourceArtifact` minCount on `acp:EvidenceAnchor`.
+- S02 regenerated the ACP shapes; the v0.2.0 adaptive overlay emits `sh:minCount`, `sh:in`, and `sh:datatype` where intended.
+- S03 built the two true-negative fixtures that survive `frontmatter_to_turtle` normalization (missing `acp.sourceArtifact`; out-of-enum `acp.ProofGate.verdict`).
+- S03 proved `git-lex validate` exits non-zero (exit 1) with actionable diagnostics for those fixtures, recorded at `prd/architecture/acp/runtime/m064-s03/validate-proof.json`.
 
 Allowed:
 
 - Use ACP-kit/git-lex in disposable workspaces for diagnostic projection, class discovery, positive sync, and query.
-- Treat positive `git-lex validate` results as acceptance smoke for currently generated shapes.
+- Treat positive `git-lex validate` results as acceptance smoke for the v0.2.0 adaptive shapes.
+- Use the v0.2.0 adaptive overlay as a CANDIDATE hard proof gate for the ACP-kit generated-shape surface (bounded: the 2 contracted true-negative probes; full authority enforcement is not proven).
 - Use query surfaces as derived diagnostic views, not source truth.
-- Use M058 findings to plan validation-strengthening work.
 
 Blocked:
 
-- Do not use `git-lex validate` as a hard ACP proof gate yet.
-- Do not claim negative validation enforcement for current ACP generated shapes.
+- Do not claim full-authority negative enforcement for the ACP generated shapes; only the 2 contracted true-negative probes are covered by the proof.
 - Do not claim ACP-kit or git-lex validates R035, R037, or R038.
 - Do not initialize main checkout `.lex`.
 - Do not migrate ACP source truth into git-lex or `.lex`.
 - Do not approve production adoption.
 
-Required before validation-gate adoption:
+Stage 2 (D084, future milestone):
 
-- Add `rdfs:domain` or OWL restrictions so datatype/enum/required fields attach to class shapes, or change the generator to emit intended constraints.
-- Regenerate ACP shapes and verify they include `sh:datatype`, `sh:in`, or `sh:minCount` where intended.
-- Build true negative fixtures that survive `frontmatter_to_turtle` normalization.
-- Prove `git-lex validate` exits non-zero with actionable diagnostics for those fixtures.
-- Only then consider `git-lex validate` as a candidate ACP proof gate.
+- Install the v0.2.0 ACP-kit/git-lex candidate gate and adopt it for a single repo as the bounded handoff before broader law-nexus binding; full anti-imitation enforcement (mandatory lifecycle + evidence + proof-gate on all authoritative records) is deferred to D084 Stage 5 / D072.
 
 ## Final corrected conclusion
 
-M058 does not reduce the ACP/git-lex progress from M057. It makes the blocker precise.
+M058 does not reduce the ACP/git-lex progress from M057. After M064/S02-S03 the original blocker is resolved for the generated-shape surface.
 
-Correct final position:
+Correct final position (post-closure, bounded):
 
 ```text
-ACP-kit/git-lex is usable today as a diagnostic positive runtime/query surface in disposable workspaces. Current ACP validation is not ready as a hard proof gate because generated ACP shapes are underconstrained and validate/query representations differ for object properties. This is fixable by strengthening shape generation and rerunning negative proof.
+ACP-kit/git-lex is now a CANDIDATE hard proof gate for the ACP-kit generated-shape surface, bounded: the strengthened v0.2.0 adaptive overlay proves reject enforcement for the 2 contracted true-negative probes (EvidenceAnchor missing sourceArtifact, ProofGate out-of-enum verdict) and accepts the positive, while full authority enforcement is not proven. This is bounded to the ACP-kit generated-shape gate; it does not validate R035, R037, or R038 and does not approve main `.lex`, source-truth migration, or production adoption. Stage 2 (D084, future milestone) is the install + single-repo adoption handoff.
 ```

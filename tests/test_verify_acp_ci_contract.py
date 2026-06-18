@@ -32,10 +32,10 @@ def valid_m058_text() -> str:
     return "\n".join(
         [
             "validate/query representation mismatch",
-            "current generated ACP shapes are too underconstrained",
-            "Do not use `git-lex validate` as a hard ACP proof gate yet",
             "This artifact does not validate R035, R037, or R038.",
-            "Strengthening requires ontology domains/restrictions or generator changes.",
+            "M058 root cause closed for the ACP-kit generated-shape gate.",
+            "reject enforcement is proven for the 2 contracted true-negative probes.",
+            "Stage 2 (D084, future milestone) is the install + single-repo adoption handoff.",
         ]
     )
 
