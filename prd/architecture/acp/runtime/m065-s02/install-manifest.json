@@ -1,0 +1,53 @@
+{
+  "schema_version": "m065-s02-install-manifest/v1",
+  "timestamp": "2026-06-18T10:55:02Z",
+  "purpose": "Stage 2 release-install manifest for git-lex + git-lex-serve. Records installed-binary identity and builder/toolchain record as the manifest-continuation of M051/S09 \u00a7T04 source-build manifest. This is an install-proof, not an install-claim.",
+  "source": {
+    "source_remote": "https://github.com/repolex-ai/git-lex",
+    "source_commit": "eaa4b24d144a78a8b8e4969404d74cf22267df1f",
+    "cargo_toml_sha256": "2746659bd6a0441f2873fb59b4cc69434a0ac28b0d1ee76b9c15a5022d67a7a6",
+    "cargo_lock_sha256": "3fbb6976b85c003fa50f6918f0aaa844665fd2d721dc2a6d7d5526fbbce793d7",
+    "provenance_reused_from": [
+      "M051-S09",
+      "M051-S10",
+      "M052-S06",
+      "M054-S01 D077",
+      "S01 D089"
+    ]
+  },
+  "install": {
+    "command": "cargo install --path . --locked",
+    "profile": "release",
+    "build_dir": "/root/vendor-source/git-lex",
+    "rustc_version": "rustc 1.94.1 (e408947bf 2026-03-25)",
+    "cargo_version": "cargo 1.94.1 (29ea6fb6a 2026-03-24)",
+    "os": "Linux-6.8.0-117-generic-x86_64-with-glibc2.39",
+    "duration_ms": 252914,
+    "install_rc": 0
+  },
+  "binaries": {
+    "git-lex": {
+      "name": "git-lex",
+      "path": "/root/.cargo/bin/git-lex",
+      "sha256": "0d31536a9babd6e50ccabf3d8cb5b4fd6ac800afc29d772e5c6cb88bfe3b95c7",
+      "size_bytes": 31266688,
+      "mode": "0o755",
+      "mtime": 1781780031,
+      "profile": "release"
+    },
+    "git-lex-serve": {
+      "name": "git-lex-serve",
+      "path": "/root/.cargo/bin/git-lex-serve",
+      "sha256": "d0419a1ae5cf825346c361cd668c58088b2a36826467d3b0e16b412841c5443e",
+      "size_bytes": 22485696,
+      "mode": "0o755",
+      "mtime": 1781780031,
+      "profile": "release"
+    }
+  },
+  "version_gap": {
+    "note": "git-lex exposes no --version flag; binary identity (sha256) is the version surrogate (reused M051-S09 + M064-S03 convention). version_flag_rc is filled in T02's install-proof.",
+    "version_flag_rc": null
+  },
+  "manifest_continuation_of": "M051-S09 \u00a7T04 source-build manifest"
+}
