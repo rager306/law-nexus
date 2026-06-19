@@ -1,0 +1,7 @@
+created_at | hasValue | 2026-05-19
+decision | hasValue | accept_bounded
+milestone | hasValue | M025-50be7n
+non_authoritative | hasValue | true
+slice | hasValue | S06
+status | hasValue | final-cycle-closeout
+task | hasValue | T02

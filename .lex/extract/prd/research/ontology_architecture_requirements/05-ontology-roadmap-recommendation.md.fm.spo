@@ -1,0 +1,7 @@
+source_adoption_ladder | hasValue | prd/research/ontology_architecture_requirements/05-ontology-adoption-ladder.md
+source_evidence_intake | hasValue | prd/research/ontology_architecture_requirements/05-bounded-evidence-intake.md
+source_gap_analysis | hasValue | prd/research/ontology_architecture_requirements/05-architecture-gap-analysis-against-current-registry.md
+source_proof_gates | hasValue | prd/research/ontology_architecture_requirements/05-ontology-proof-gates.md
+source_registry_plan | hasValue | prd/research/ontology_architecture_requirements/05-registry-integration-plan.md
+status | hasValue | roadmap recommendation; implementation deferred until proof gates are accepted
+verification_note | hasValue | This roadmap is an architecture-review artifact. It does not validate parser completeness, legal correctness, ontology conformance, FalkorDB production behavior, graph-vector behavior, retrieval quality, generated-Cypher safety, or LLM authority.

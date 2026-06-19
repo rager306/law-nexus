@@ -1,0 +1,6 @@
+created_at | hasValue | 2026-05-17
+gate | hasValue | GATE-ONTOLOGY-GRAPHRAG-INTEGRATION
+non_authoritative | hasValue | true
+owner | hasValue | M020-ujbffl/S01
+requirement | hasValue | R035
+status | hasValue | proof-contract-draft

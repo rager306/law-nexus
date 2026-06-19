@@ -1,0 +1,11 @@
+created_at | hasValue | 2026-05-13
+decision_inputs | hasValue | D045
+non_authoritative | hasValue | true
+owner | hasValue | M012/S01
+requirement | hasValue | R034
+source_inputs | hasValue | .gsd/DECISIONS.md#D045
+source_inputs | hasValue | .gsd/REQUIREMENTS.md#R034
+source_inputs | hasValue | prd/architecture/architecture_items.jsonl#DATA-LEGAL-EVIDENCE-CORE
+source_inputs | hasValue | prd/research/habr_legal_rag_processed_architecture_json_comparison.md
+status | hasValue | contract-draft
+title | hasValue | Retrieval Output Validator Contract

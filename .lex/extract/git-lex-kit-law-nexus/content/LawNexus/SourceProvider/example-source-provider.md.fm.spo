@@ -1,0 +1,4 @@
+law-nexus.SourceProvider.nonAuthoritative | hasValue | true
+law-nexus.SourceProvider.proofStatus | hasValue | example-only
+law-nexus.SourceProvider.synthetic | hasValue | true
+title | hasValue | Synthetic Source Provider

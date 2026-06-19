@@ -1,0 +1,7 @@
+created_at | hasValue | 2026-05-14
+gate | hasValue | GATE-G011
+non_authoritative | hasValue | true
+owner | hasValue | M016/S01
+proof_level | hasValue | runtime-boundary-proof
+status | hasValue | runtime-observed
+title | hasValue | Local Retrieval Runtime Boundary Proof

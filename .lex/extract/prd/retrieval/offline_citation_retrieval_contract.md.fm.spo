@@ -1,0 +1,10 @@
+created_at | hasValue | 2026-05-13
+gate | hasValue | GATE-G008
+non_authoritative | hasValue | true
+owner | hasValue | M014/S01
+source_inputs | hasValue | prd/parser/consultant_hierarchy_records.jsonl
+source_inputs | hasValue | prd/parser/parser_staging_graph.json
+source_inputs | hasValue | prd/retrieval/real_artifact_evidence_mapping.md
+source_inputs | hasValue | prd/retrieval/real_artifact_retrieval_proof.md
+status | hasValue | contract-draft
+title | hasValue | Offline Citation Retrieval Contract

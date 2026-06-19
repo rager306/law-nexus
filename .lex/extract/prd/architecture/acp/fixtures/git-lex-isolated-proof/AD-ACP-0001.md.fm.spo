@@ -1,0 +1,27 @@
+accepted_by_or_source | hasValue | prd/architecture/acp/M048-S03-LIFECYCLE-HEALTH-MODEL.md#s04-isolated-git-lex-mechanic-checklist
+date | hasValue | 2026-05-27
+decision | hasValue | ACP git-lex mechanics may be represented as isolated source fixtures, but main-repo git-lex adoption remains blocked.
+id | hasValue | AD-ACP-0001
+non_claims | hasValue | falkordb-ingestion
+non_claims | hasValue | independent-review-satisfaction
+non_claims | hasValue | legal-correctness
+non_claims | hasValue | parser-completeness
+non_claims | hasValue | product-readiness
+proof_gates | hasValue | PG-ACP-0001
+rationale | hasValue | The project needs deterministic mechanics evidence without confusing source records, derived projections, and runtime adoption readiness.
+record_kind | hasValue | architecture_decision
+safety.claims_falkordb_ingestion | hasValue | false
+safety.claims_legal_correctness | hasValue | false
+safety.claims_parser_completeness | hasValue | false
+safety.claims_product_readiness | hasValue | false
+safety.claims_r035_validated | hasValue | false
+safety.claims_r037_validated | hasValue | false
+safety.claims_r038_validated | hasValue | false
+safety.contains_local_absolute_paths | hasValue | false
+safety.contains_provider_payloads | hasValue | false
+safety.contains_raw_vectors | hasValue | false
+safety.contains_secrets | hasValue | false
+safety.contains_unnecessary_raw_legal_text | hasValue | false
+source_ref | hasValue | EA-ACP-0001
+status | hasValue | requires_proof
+title | hasValue | Keep S04 fixture proof isolated and non-adoptive

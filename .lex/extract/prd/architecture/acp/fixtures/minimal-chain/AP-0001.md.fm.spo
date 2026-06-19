@@ -1,0 +1,23 @@
+decision_candidates | hasValue | DC-0001
+id | hasValue | AP-0001
+non_goals | hasValue | Do not change current architecture registry integration.
+non_goals | hasValue | Do not initialize git-lex or Understand-Anything runtime in the main repository.
+non_goals | hasValue | Do not resume parser roadmap work.
+origin_prompt_record | hasValue | APR-0001
+record_kind | hasValue | architecture_proposal
+safety.claims_falkordb_ingestion | hasValue | false
+safety.claims_legal_correctness | hasValue | false
+safety.claims_parser_completeness | hasValue | false
+safety.claims_product_readiness | hasValue | false
+safety.claims_r035_validated | hasValue | false
+safety.claims_r037_validated | hasValue | false
+safety.claims_r038_validated | hasValue | false
+safety.contains_local_absolute_paths | hasValue | false
+safety.contains_provider_payloads | hasValue | false
+safety.contains_raw_vectors | hasValue | false
+safety.contains_secrets | hasValue | false
+safety.contains_unnecessary_raw_legal_text | hasValue | false
+scope | hasValue | Define a tiny ACP fixture chain and later validate/export it as a mechanics proof only.
+status | hasValue | complete
+title | hasValue | Validate ACP minimal fixture chain before broader tooling
+validation_plan | hasValue | Use S02 tooling to validate fixture shape, safety fields, relationship links, source refs, and derived recovery output.

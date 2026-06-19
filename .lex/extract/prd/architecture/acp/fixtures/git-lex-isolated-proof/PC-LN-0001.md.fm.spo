@@ -1,0 +1,26 @@
+blocked_claim_patterns | hasValue | Marking R035 as validated from ACP docs, fixture proof, git-lex mechanics, or projections alone.
+blocked_claim_patterns | hasValue | Marking R037 as validated from graph-context staging, dashboard output, or source-record existence alone.
+blocked_claim_patterns | hasValue | Marking R038 as satisfied by internal review packs, LLM review, or ACP summaries.
+blocked_claim_patterns | hasValue | Treating GSD operational quirks as reusable ACP core taxonomy.
+blocked_claim_patterns | hasValue | Treating Russian legal evidence, FalkorDB, parser, LLM, or GSD-specific rules as generic ACP core taxonomy.
+constraint_scope | hasValue | legalgraph-proof-boundary
+id | hasValue | PC-LN-0001
+profile_id | hasValue | law-nexus
+rationale | hasValue | Reusable ACP core should model generic governance mechanics; project-specific legal and runtime proof boundaries belong to profile adapters and profile records.
+record_kind | hasValue | profile_constraint
+required_proof_gates | hasValue | PG-ACP-0001
+rule | hasValue | Russian legal evidence, FalkorDB, parser completeness, LLM authority, GSD operational quirks, and R035/R037/R038 proof boundaries must remain law-nexus profile constraints and must not be baked into reusable ACP core fields.
+safety.claims_falkordb_ingestion | hasValue | false
+safety.claims_legal_correctness | hasValue | false
+safety.claims_parser_completeness | hasValue | false
+safety.claims_product_readiness | hasValue | false
+safety.claims_r035_validated | hasValue | false
+safety.claims_r037_validated | hasValue | false
+safety.claims_r038_validated | hasValue | false
+safety.contains_local_absolute_paths | hasValue | false
+safety.contains_provider_payloads | hasValue | false
+safety.contains_raw_vectors | hasValue | false
+safety.contains_secrets | hasValue | false
+safety.contains_unnecessary_raw_legal_text | hasValue | false
+status | hasValue | active
+title | hasValue | law-nexus proof boundaries stay in profile layer

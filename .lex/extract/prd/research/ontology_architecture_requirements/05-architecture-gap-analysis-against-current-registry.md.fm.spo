@@ -1,0 +1,5 @@
+source_registry | hasValue | prd/architecture/architecture_edges.jsonl
+source_registry | hasValue | prd/architecture/architecture_items.jsonl
+source_registry | hasValue | prd/architecture/architecture_report.md
+source_requirements_dir | hasValue | prd/research/ontology_architecture_requirements
+verification_note | hasValue | Registry verifier passed, but registry remains derived and non-authoritative; this analysis compares planning artifacts, not working product code.

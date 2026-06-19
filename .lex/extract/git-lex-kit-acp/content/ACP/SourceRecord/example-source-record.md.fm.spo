@@ -1,0 +1,6 @@
+acp.SourceRecord.blockedRequirementValidation | hasValue | R035
+acp.SourceRecord.blockedRequirementValidation | hasValue | R037
+acp.SourceRecord.blockedRequirementValidation | hasValue | R038
+acp.SourceRecord.identifier | hasValue | example-source-record
+acp.SourceRecord.nonAuthoritative | hasValue | true
+acp.SourceRecord.sourcePath | hasValue | prd/architecture/acp/M049-S05-FINAL-BINDING-SYNTHESIS.md

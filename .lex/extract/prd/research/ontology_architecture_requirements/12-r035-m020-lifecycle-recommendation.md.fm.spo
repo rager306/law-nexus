@@ -1,0 +1,8 @@
+created_at | hasValue | 2026-05-17
+gate | hasValue | GATE-ONTOLOGY-GRAPHRAG-INTEGRATION
+milestone | hasValue | M020-ujbffl
+non_authoritative | hasValue | true
+recommendation | hasValue | remains-active-with-bounded-m020-note
+requirement | hasValue | R035
+slice | hasValue | S05
+status | hasValue | lifecycle-recommendation

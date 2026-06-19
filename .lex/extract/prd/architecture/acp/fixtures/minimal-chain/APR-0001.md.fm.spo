@@ -1,0 +1,22 @@
+capture_mode | hasValue | summarized-with-quotes
+id | hasValue | APR-0001
+outcome | hasValue | Produced the first source record in a minimal ACP fixture chain.
+produced_proposal | hasValue | AP-0001
+record_kind | hasValue | architecture_prompt_record
+redaction_status | hasValue | checked
+response_snapshot | hasValue | The agent should create schema-backed fixture records and later validate/export them without changing product architecture claims.
+safety.claims_falkordb_ingestion | hasValue | false
+safety.claims_legal_correctness | hasValue | false
+safety.claims_parser_completeness | hasValue | false
+safety.claims_product_readiness | hasValue | false
+safety.claims_r035_validated | hasValue | false
+safety.claims_r037_validated | hasValue | false
+safety.claims_r038_validated | hasValue | false
+safety.contains_local_absolute_paths | hasValue | false
+safety.contains_provider_payloads | hasValue | false
+safety.contains_raw_vectors | hasValue | false
+safety.contains_secrets | hasValue | false
+safety.contains_unnecessary_raw_legal_text | hasValue | false
+status | hasValue | policy_checked
+title | hasValue | Capture ACP minimal fixture validation intent
+user_intent | hasValue | Prove ACP mechanics with a tiny safe fixture chain before broader runtime dashboard or registry integration.

@@ -1,0 +1,5 @@
+law-nexus.RetrievalQuery.nonAuthoritative | hasValue | true
+law-nexus.RetrievalQuery.proofStatus | hasValue | example-only
+law-nexus.RetrievalQuery.queryText | hasValue | synthetic query about scaffold proof boundaries
+law-nexus.RetrievalQuery.synthetic | hasValue | true
+title | hasValue | Synthetic Retrieval Query

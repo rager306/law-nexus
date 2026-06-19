@@ -1,0 +1,8 @@
+contract_version | hasValue | representative-retrieval-runtime-benchmark-proof/v1
+created_at | hasValue | 2026-05-14
+gate | hasValue | GATE-G011
+non_authoritative | hasValue | true
+owner | hasValue | M016/S03
+proof_level | hasValue | runtime-benchmark-contract
+status | hasValue | contract-draft
+title | hasValue | Representative Retrieval Runtime Benchmark Contract

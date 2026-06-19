@@ -1,0 +1,8 @@
+current_registry | hasValue | prd/architecture/architecture_edges.jsonl
+current_registry | hasValue | prd/architecture/architecture_items.jsonl
+current_registry | hasValue | prd/architecture/claims_ledger.md
+date | hasValue | 2026-05-17
+non_authoritative | hasValue | true
+primary_source | hasValue | prd/research/ontology_architecture_requirements/05-registry-integration-plan.md
+requirement | hasValue | R035
+status | hasValue | verifier-safe evidence audit

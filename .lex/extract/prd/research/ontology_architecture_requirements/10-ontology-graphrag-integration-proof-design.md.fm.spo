@@ -1,0 +1,9 @@
+created_at | hasValue | 2026-05-18
+gate | hasValue | GATE-ONTOLOGY-GRAPHRAG-INTEGRATION
+non_authoritative | hasValue | true
+owner | hasValue | M020-ujbffl/S03
+requirement | hasValue | R035
+source_contracts | hasValue | prd/06_m002_cypher_safety_contract.md
+source_contracts | hasValue | prd/research/ontology_architecture_requirements/08-ontology-graphrag-proof-contract.md
+source_contracts | hasValue | prd/research/ontology_architecture_requirements/09-ontology-graphrag-fixture-contract.md
+status | hasValue | integration-proof-design

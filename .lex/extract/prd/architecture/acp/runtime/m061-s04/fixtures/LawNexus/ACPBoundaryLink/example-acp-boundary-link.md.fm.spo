@@ -1,0 +1,7 @@
+law-nexus.ACPBoundaryLink.diagnostic | hasValue | profile-overlay-boundary-only
+law-nexus.ACPBoundaryLink.nonAuthoritative | hasValue | true
+law-nexus.ACPBoundaryLink.proofStatus | hasValue | example-only
+law-nexus.ACPBoundaryLink.sourcePath | hasValue | prd/architecture/acp/M061-S03-ACP-PROFILE-OVERLAY-SHACL-MECHANICS.md
+law-nexus.ACPBoundaryLink.supportsAcpGate | hasValue | example-profile-proof-gate
+law-nexus.ACPBoundaryLink.synthetic | hasValue | true
+title | hasValue | Example ACP Boundary Link

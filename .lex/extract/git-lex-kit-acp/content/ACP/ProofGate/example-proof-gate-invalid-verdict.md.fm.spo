@@ -1,0 +1,3 @@
+acp.ProofGate.identifier | hasValue | example-proof-gate-invalid-verdict
+acp.ProofGate.proofLevel | hasValue | synthetic-example
+acp.ProofGate.verdict | hasValue | totally-bogus

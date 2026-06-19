@@ -1,0 +1,7 @@
+law-nexus.CypherSafetyCheck.checkName | hasValue | synthetic-cypher-safety-check
+law-nexus.CypherSafetyCheck.nonAuthoritative | hasValue | true
+law-nexus.CypherSafetyCheck.observedAt | hasValue | 2026-06-04T00:00:00Z
+law-nexus.CypherSafetyCheck.proofStatus | hasValue | example-only
+law-nexus.CypherSafetyCheck.supportsAcpGate | hasValue | example-acp-boundary-link
+law-nexus.CypherSafetyCheck.synthetic | hasValue | true
+title | hasValue | Synthetic Cypher Safety Check

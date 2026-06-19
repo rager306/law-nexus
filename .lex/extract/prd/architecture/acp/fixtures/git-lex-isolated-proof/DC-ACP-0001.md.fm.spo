@@ -1,0 +1,30 @@
+alternatives | hasValue | First validate an isolated ACP fixture pack and defer main-repo adoption.
+alternatives | hasValue | Initialize git-lex in the main repository immediately.
+alternatives | hasValue | Keep git-lex as research only.
+authority_required | hasValue | true
+cluster | hasValue | acp-git-lex-mechanics
+conflicts | hasValue | BA-ACP-0001
+consequences | hasValue | Main-repo git-lex adoption remains blocked until proof and a later accepted decision exist.
+consequences | hasValue | The fixture can demonstrate mechanics without changing product authority.
+id | hasValue | DC-ACP-0001
+origin_prompt_record | hasValue | APR-ACP-0001
+origin_proposal | hasValue | AP-ACP-0001
+record_kind | hasValue | decision_candidate
+required_proof_gates | hasValue | PG-ACP-0001
+safety.claims_falkordb_ingestion | hasValue | false
+safety.claims_legal_correctness | hasValue | false
+safety.claims_parser_completeness | hasValue | false
+safety.claims_product_readiness | hasValue | false
+safety.claims_r035_validated | hasValue | false
+safety.claims_r037_validated | hasValue | false
+safety.claims_r038_validated | hasValue | false
+safety.contains_local_absolute_paths | hasValue | false
+safety.contains_provider_payloads | hasValue | false
+safety.contains_raw_vectors | hasValue | false
+safety.contains_secrets | hasValue | false
+safety.contains_unnecessary_raw_legal_text | hasValue | false
+significance | hasValue | adoption-boundary
+significance | hasValue | proof-burden
+significance | hasValue | source-projection-separation
+status | hasValue | requires_proof
+title | hasValue | Require isolated fixture proof before git-lex adoption

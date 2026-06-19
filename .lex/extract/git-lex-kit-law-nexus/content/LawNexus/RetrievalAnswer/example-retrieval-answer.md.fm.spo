@@ -1,0 +1,7 @@
+law-nexus.RetrievalAnswer.answerSummary | hasValue | synthetic bounded answer summary
+law-nexus.RetrievalAnswer.answersQuery | hasValue | example-retrieval-query
+law-nexus.RetrievalAnswer.cites | hasValue | example-citation
+law-nexus.RetrievalAnswer.nonAuthoritative | hasValue | true
+law-nexus.RetrievalAnswer.proofStatus | hasValue | example-only
+law-nexus.RetrievalAnswer.synthetic | hasValue | true
+title | hasValue | Synthetic Retrieval Answer

@@ -1,0 +1,3 @@
+acp.Decision.identifier | hasValue | example-decision
+acp.Decision.nonAuthoritative | hasValue | true
+acp.Decision.sourcePath | hasValue | prd/architecture/acp/M049-S05-GIT-LEX-ACP-KIT-INTEGRATION-ROADMAP.md

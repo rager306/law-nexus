@@ -1,0 +1,7 @@
+acp.ValidationClaim.hasAuthorityClass | hasValue | profile-proof
+acp.ValidationClaim.hasLifecycleState | hasValue | example-validated-runtime-smoke
+acp.ValidationClaim.identifier | hasValue | example-profile-validation-claim
+acp.ValidationClaim.nonAuthoritative | hasValue | true
+acp.ValidationClaim.sourceArtifact | hasValue | prd/architecture/acp/runtime/m061-s04/diagnostics.jsonl
+acp.ValidationClaim.verdict | hasValue | pass
+title | hasValue | Example Profile Validation Claim

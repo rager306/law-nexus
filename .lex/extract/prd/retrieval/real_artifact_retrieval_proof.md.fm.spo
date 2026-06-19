@@ -1,0 +1,11 @@
+created_at | hasValue | 2026-05-13
+non_authoritative | hasValue | true
+owner | hasValue | M013/S02
+proof_level | hasValue | unit-test + CLI proof
+requirement | hasValue | R034
+source_inputs | hasValue | prd/retrieval/fixtures/real_artifact_retrieval_cases.json
+source_inputs | hasValue | prd/retrieval/real_artifact_evidence_mapping.md
+source_inputs | hasValue | scripts/retrieval_output_validator.py
+source_inputs | hasValue | scripts/verify-real-artifact-retrieval-proof.py
+status | hasValue | bounded-proof
+title | hasValue | Real Artifact Retrieval Proof

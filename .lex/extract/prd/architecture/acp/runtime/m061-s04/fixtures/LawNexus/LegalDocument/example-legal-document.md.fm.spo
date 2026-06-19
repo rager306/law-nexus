@@ -1,0 +1,7 @@
+law-nexus.LegalDocument.documentId | hasValue | synthetic-profile-doc-001
+law-nexus.LegalDocument.nonAuthoritative | hasValue | true
+law-nexus.LegalDocument.proofStatus | hasValue | example-only
+law-nexus.LegalDocument.provider | hasValue | synthetic-profile-provider
+law-nexus.LegalDocument.sourcePath | hasValue | prd/architecture/acp/M061-S03-ACP-PROFILE-OVERLAY-SHACL-MECHANICS.md
+law-nexus.LegalDocument.synthetic | hasValue | true
+title | hasValue | Example Legal Document

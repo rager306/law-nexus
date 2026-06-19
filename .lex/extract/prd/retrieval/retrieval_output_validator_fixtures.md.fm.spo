@@ -1,0 +1,8 @@
+contract | hasValue | prd/retrieval/retrieval_output_validator_contract.md
+created_at | hasValue | 2026-05-13
+non_authoritative | hasValue | true
+owner | hasValue | M012/S01
+source_inputs | hasValue | prd/architecture/architecture_items.jsonl#DATA-LEGAL-EVIDENCE-CORE
+source_inputs | hasValue | prd/retrieval/retrieval_output_validator_contract.md
+status | hasValue | fixture-taxonomy-draft
+title | hasValue | Retrieval Output Validator Fixture Taxonomy

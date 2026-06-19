@@ -1,0 +1,6 @@
+md.internalLink | hasValue | prd/research/ontology_architecture_requirements/05-01-structural-normalization-akoma-ntoso.md
+md.internalLink | hasValue | prd/research/ontology_architecture_requirements/05-02-entity-extraction-deontic-mapping.md
+md.internalLink | hasValue | prd/research/ontology_architecture_requirements/05-03-ruslegalcore-domain-ontology-collisions.md
+md.internalLink | hasValue | prd/research/ontology_architecture_requirements/05-04-bfo-gost-alignment-formal-logic.md
+md.internalLink | hasValue | prd/research/ontology_architecture_requirements/05-05-ontology-driven-graphrag-storage.md
+md.internalLink | hasValue | prd/research/ontology_architecture_requirements/05-06-validation-scalability-sla.md

@@ -1,0 +1,9 @@
+law-nexus.ParserRun.nonAuthoritative | hasValue | true
+law-nexus.ParserRun.observedAt | hasValue | 2026-06-15T00:00:00Z
+law-nexus.ParserRun.parserName | hasValue | synthetic-profile-parser
+law-nexus.ParserRun.proofStatus | hasValue | example-only
+law-nexus.ParserRun.provider | hasValue | synthetic-profile-provider
+law-nexus.ParserRun.sourcePath | hasValue | prd/architecture/acp/M061-S03-ACP-PROFILE-OVERLAY-SHACL-MECHANICS.md
+law-nexus.ParserRun.supportsAcpGate | hasValue | example-profile-proof-gate
+law-nexus.ParserRun.synthetic | hasValue | true
+title | hasValue | Example Parser Run

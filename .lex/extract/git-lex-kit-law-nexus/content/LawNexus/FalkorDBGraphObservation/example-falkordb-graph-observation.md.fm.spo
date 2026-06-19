@@ -1,0 +1,6 @@
+law-nexus.FalkorDBGraphObservation.nonAuthoritative | hasValue | true
+law-nexus.FalkorDBGraphObservation.observedAt | hasValue | 2026-06-04T00:00:00Z
+law-nexus.FalkorDBGraphObservation.proofStatus | hasValue | example-only
+law-nexus.FalkorDBGraphObservation.supportsAcpGate | hasValue | example-acp-boundary-link
+law-nexus.FalkorDBGraphObservation.synthetic | hasValue | true
+title | hasValue | Synthetic FalkorDB Graph Observation

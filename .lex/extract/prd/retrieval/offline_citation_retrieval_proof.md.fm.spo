@@ -1,0 +1,7 @@
+created_at | hasValue | 2026-05-13
+gate | hasValue | GATE-G008
+non_authoritative | hasValue | true
+owner | hasValue | M014/S02
+proof_level | hasValue | unit-test + CLI proof
+status | hasValue | bounded-evidence
+title | hasValue | Offline Citation Retrieval Proof

@@ -1,0 +1,10 @@
+created_at | hasValue | 2026-05-13
+non_authoritative | hasValue | true
+owner | hasValue | M013/S01
+requirement | hasValue | R034
+source_inputs | hasValue | prd/parser/consultant_hierarchy_records.json
+source_inputs | hasValue | prd/parser/consultant_hierarchy_records.jsonl
+source_inputs | hasValue | prd/parser/parser_staging_graph.json
+source_inputs | hasValue | prd/retrieval/retrieval_output_validator_contract.md
+status | hasValue | contract-draft
+title | hasValue | Real Artifact Retrieval Evidence Mapping

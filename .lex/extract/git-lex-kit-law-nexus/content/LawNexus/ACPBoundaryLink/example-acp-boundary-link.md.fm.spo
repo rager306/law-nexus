@@ -1,0 +1,5 @@
+law-nexus.ACPBoundaryLink.nonAuthoritative | hasValue | true
+law-nexus.ACPBoundaryLink.proofStatus | hasValue | example-only
+law-nexus.ACPBoundaryLink.sourcePath | hasValue | prd/architecture/acp/M060-S01-SCAFFOLD-CONTRACT-FIXTURE-DESIGN.md
+law-nexus.ACPBoundaryLink.synthetic | hasValue | true
+title | hasValue | Synthetic ACP Boundary Link

@@ -1,0 +1,26 @@
+allowed_next_actions | hasValue | Extract non-authoritative derived projection references from source records.
+allowed_next_actions | hasValue | Reassess adoption only after proof and a separate accepted decision.
+allowed_next_actions | hasValue | Run deterministic fixture validation.
+blocked_actions | hasValue | BA-ACP-0001
+description | hasValue | The isolated fixture can exercise ACP mechanics, but main-repo git-lex adoption and .lex state creation remain blocked until separate proof and adoption authority exist.
+finding_type | hasValue | blocked_adoption
+id | hasValue | AHF-ACP-0001
+recommended_fix | hasValue | Keep proof fixtures source-controlled and isolated; do not run git lex init or create .lex in the main repository.
+record_kind | hasValue | architecture_health_finding
+related_proof_gates | hasValue | PG-ACP-0001
+safety.claims_falkordb_ingestion | hasValue | false
+safety.claims_legal_correctness | hasValue | false
+safety.claims_parser_completeness | hasValue | false
+safety.claims_product_readiness | hasValue | false
+safety.claims_r035_validated | hasValue | false
+safety.claims_r037_validated | hasValue | false
+safety.claims_r038_validated | hasValue | false
+safety.contains_local_absolute_paths | hasValue | false
+safety.contains_provider_payloads | hasValue | false
+safety.contains_raw_vectors | hasValue | false
+safety.contains_secrets | hasValue | false
+safety.contains_unnecessary_raw_legal_text | hasValue | false
+severity | hasValue | critical
+status | hasValue | blocked
+surface | hasValue | git-lex main-repo state
+title | hasValue | Main-repo git-lex adoption remains blocked

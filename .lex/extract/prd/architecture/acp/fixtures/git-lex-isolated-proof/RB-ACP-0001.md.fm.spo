@@ -1,0 +1,28 @@
+allowed_acp_use | hasValue | expose required proof gates
+allowed_acp_use | hasValue | link blocked validation paths
+allowed_acp_use | hasValue | show downstream lifecycle status
+binding_scope | hasValue | ACP governance mechanics fixture only
+blocked_acp_use | hasValue | change requirement status
+blocked_acp_use | hasValue | infer active requirements from stale project-state outputs
+blocked_acp_use | hasValue | validate requirements from projection evidence alone
+id | hasValue | RB-ACP-0001
+profile_constraints | hasValue | PC-LN-0001
+proof_gates | hasValue | PG-ACP-0001
+record_kind | hasValue | requirement_binding
+requirement_id | hasValue | R040
+requirement_status | hasValue | not-validated-by-this-fixture
+safety.claims_falkordb_ingestion | hasValue | false
+safety.claims_legal_correctness | hasValue | false
+safety.claims_parser_completeness | hasValue | false
+safety.claims_product_readiness | hasValue | false
+safety.claims_r035_validated | hasValue | false
+safety.claims_r037_validated | hasValue | false
+safety.claims_r038_validated | hasValue | false
+safety.contains_local_absolute_paths | hasValue | false
+safety.contains_provider_payloads | hasValue | false
+safety.contains_raw_vectors | hasValue | false
+safety.contains_secrets | hasValue | false
+safety.contains_unnecessary_raw_legal_text | hasValue | false
+source_ref | hasValue | EA-ACP-0001
+status | hasValue | active
+title | hasValue | Bind ACP isolated proof to M048 mechanics requirement context

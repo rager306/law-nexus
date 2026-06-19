@@ -1,0 +1,7 @@
+created_at | hasValue | 2026-05-13
+gate | hasValue | GATE-G011
+non_authoritative | hasValue | true
+owner | hasValue | M015/S01
+proof_level | hasValue | static-check
+status | hasValue | contract-draft
+title | hasValue | Local Retrieval Quality Benchmark Contract

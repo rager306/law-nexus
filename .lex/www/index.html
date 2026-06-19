@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>git-lex viz</title>
+    <link rel="stylesheet" href="/css/main.css">
+</head>
+<body>
+    <aside id="sidebar-left">
+        <div class="brand">git-<span class="accent">lex</span> viz</div>
+        <nav class="modes">
+            <a href="#activity" class="mode-link" data-mode="activity">Recent Activity</a>
+            <a href="#graph" class="mode-link" data-mode="graph">Repo Graph</a>
+            <a href="#interactive" class="mode-link" data-mode="interactive">Interactive</a>
+            <a href="#history" class="mode-link" data-mode="history">History</a>
+        </nav>
+        <div class="sidebar-footer">
+            <button class="sync-btn" id="sync-btn" title="Run git lex sync to refresh the store">sync</button>
+            <div class="status" id="status">connecting…</div>
+            <div class="store-snapshot" id="store-snapshot" title="Data snapshot taken when the server started. Any writes since then won't show until reload." hidden>
+                <span class="store-snapshot-dot"></span>
+                <span class="store-snapshot-label">snapshot</span>
+                <span class="store-snapshot-age" id="store-snapshot-age">—</span>
+            </div>
+        </div>
+    </aside>
+
+    <main id="main">
+        <!-- Recent Activity (landing) -->
+        <section id="view-activity" class="view">
+            <div class="view-loading">Loading repository…</div>
+        </section>
+
+        <!-- Repo Graph -->
+        <section id="view-graph" class="view" hidden>
+            <canvas id="graph-canvas"></canvas>
+            <div class="graph-detail" id="graph-detail" hidden></div>
+            <div class="graph-md-viewer" id="graph-md-viewer" hidden></div>
+        </section>
+
+        <!-- Interactive (push) -->
+        <section id="view-interactive" class="view" hidden>
+            <div class="push-empty">
+                <h2>Waiting for push…</h2>
+                <p>An agent can push a visualization with:</p>
+                <pre><code>git lex viz display "&lt;sparql construct&gt;"</code></pre>
+                <p class="hint">When a push arrives, the SPARQL appears on the left and the rendering on the right.</p>
+            </div>
+            <div class="push-content" id="push-content" hidden>
+                <div class="push-source">
+                    <div class="push-source-header">
+                        <span class="label">SPARQL</span>
+                        <span class="push-time" id="push-time"></span>
+                    </div>
+                    <pre id="push-query"></pre>
+                </div>
+                <div class="push-render" id="push-render"></div>
+            </div>
+        </section>
+
+        <!-- History (animated knowledge graph through time) -->
+        <section id="view-history" class="view" hidden>
+            <div class="history-controls" id="history-controls">
+                <button id="hist-play">play</button>
+                <button id="hist-step">step</button>
+                <button id="hist-reset">reset</button>
+                <select id="hist-speed">
+                    <option value="2000">slow</option>
+                    <option value="800" selected>medium</option>
+                    <option value="300">fast</option>
+                    <option value="80">turbo</option>
+                </select>
+            </div>
+            <div class="history-info" id="history-info">
+                <span class="hist-counter" id="hist-counter">0 / 0</span>
+                <span class="hist-sha" id="hist-sha">—</span>
+                <span class="hist-msg" id="hist-msg">loading commits…</span>
+                <span class="hist-date" id="hist-date"></span>
+            </div>
+            <div class="history-stats" id="history-stats">
+                <span>nodes: <strong id="hist-nodes">0</strong></span>
+                <span>edges: <strong id="hist-edges">0</strong></span>
+                <span class="hist-add">+<strong id="hist-adds">0</strong></span>
+                <span class="hist-remove">-<strong id="hist-removes">0</strong></span>
+            </div>
+            <canvas id="history-canvas"></canvas>
+            <div class="history-progress"><div class="history-progress-bar" id="hist-progress"></div></div>
+        </section>
+    </main>
+
+    <aside id="sidebar-right" hidden>
+        <div class="sidebar-section-title">Classes</div>
+        <div class="graph-classes" id="graph-classes"></div>
+        <div class="sidebar-section-title">Predicates</div>
+        <div class="graph-predicates" id="graph-predicates"></div>
+        <div class="sidebar-section-title">Stats</div>
+        <div class="graph-meta" id="graph-meta"></div>
+    </aside>
+
+    <script src="/js/main.js"></script>
+</body>
+</html>

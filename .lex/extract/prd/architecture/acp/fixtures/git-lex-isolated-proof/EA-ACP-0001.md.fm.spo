@@ -1,0 +1,32 @@
+allowed_acp_use | hasValue | lifecycle model reference
+allowed_acp_use | hasValue | proof checklist reference
+allowed_acp_use | hasValue | source model reference
+anchor_kind | hasValue | tracked-prd-contract
+blocked_acp_use | hasValue | domain completeness proof
+blocked_acp_use | hasValue | falkordb runtime proof
+blocked_acp_use | hasValue | independent review satisfaction
+blocked_acp_use | hasValue | legal correctness proof
+blocked_acp_use | hasValue | product validation
+claim_scope | hasValue | ACP governance mechanics only
+durability | hasValue | tracked-source-artifact
+evidence_role | hasValue | source-record-model-contract
+id | hasValue | EA-ACP-0001
+record_kind | hasValue | evidence_anchor
+repo_relative_path | hasValue | prd/architecture/acp/M048-S02-SOURCE-RECORD-MODEL.md
+safety.claims_falkordb_ingestion | hasValue | false
+safety.claims_legal_correctness | hasValue | false
+safety.claims_parser_completeness | hasValue | false
+safety.claims_product_readiness | hasValue | false
+safety.claims_r035_validated | hasValue | false
+safety.claims_r037_validated | hasValue | false
+safety.claims_r038_validated | hasValue | false
+safety.contains_local_absolute_paths | hasValue | false
+safety.contains_provider_payloads | hasValue | false
+safety.contains_raw_vectors | hasValue | false
+safety.contains_secrets | hasValue | false
+safety.contains_unnecessary_raw_legal_text | hasValue | false
+safety_classification | hasValue | safe-repository-relative-source
+secondary_repo_relative_paths | hasValue | prd/architecture/acp/M048-S03-LIFECYCLE-HEALTH-MODEL.md
+section_or_line_hint | hasValue | ACP Core Record Categories
+status | hasValue | active
+title | hasValue | ACP source-record and lifecycle model evidence

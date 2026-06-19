@@ -1,0 +1,10 @@
+md.externalLink | hasValue | http://data.europa.eu/eli/ontology#
+md.externalLink | hasValue | http://example.org/legal/
+md.externalLink | hasValue | http://www.w3.org/2001/XMLSchema#
+md.externalLink | hasValue | http://www.w3.org/2006/time#
+md.externalLink | hasValue | http://www.w3.org/ns/shacl#
+md.externalLink | hasValue | https://example.org/rf-legal#
+md.externalLink | hasValue | https://purl.org/archimate#
+md.externalLink | hasValue | https://repolex.ai/lex-o#
+md.externalLink | hasValue | https://repolex.ai/squad#
+md.externalLink | hasValue | https://www.dobryakov.com/howto/book-as-context.html

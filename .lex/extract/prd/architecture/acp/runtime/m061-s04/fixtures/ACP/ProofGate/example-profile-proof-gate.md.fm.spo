@@ -1,0 +1,6 @@
+acp.ProofGate.identifier | hasValue | example-profile-proof-gate
+acp.ProofGate.nonAuthoritative | hasValue | true
+acp.ProofGate.proofLevel | hasValue | runtime-smoke
+acp.ProofGate.sourceArtifact | hasValue | prd/architecture/acp/M061-S03-ACP-PROFILE-OVERLAY-SHACL-MECHANICS.md
+acp.ProofGate.verdict | hasValue | not-applicable
+title | hasValue | Example Profile Proof Gate

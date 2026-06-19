@@ -1,0 +1,34 @@
+acceptance_criteria | hasValue | all required record kinds are present exactly once
+acceptance_criteria | hasValue | blocked actions prevent main-repo git-lex adoption and .lex creation
+acceptance_criteria | hasValue | derived projections are non-authoritative
+acceptance_criteria | hasValue | profile-specific constraints appear only in ProfileConstraint records
+acceptance_criteria | hasValue | relationship references resolve to fixture records or durable repository-relative source artifacts
+acceptance_criteria | hasValue | requirement validation is not claimed by fixture or projection proof
+blocked_claims | hasValue | domain runtime validation
+blocked_claims | hasValue | external review validation
+blocked_claims | hasValue | git-lex adoption readiness
+blocked_claims | hasValue | product runtime readiness
+blocks | hasValue | BA-ACP-0001
+blocks | hasValue | DC-ACP-0001
+claim_or_requirement | hasValue | Isolated fixtures cover ACP typed records, validation, extraction/projection, query/recovery, lifecycle/proof-gate, source/projection boundary, and blocked-action mechanics.
+evidence_anchors | hasValue | EA-ACP-0001
+id | hasValue | PG-ACP-0001
+record_kind | hasValue | proof_gate
+required_evidence | hasValue | deterministic pytest validation of fixture shape and links
+required_evidence | hasValue | explicit main-repo mutation and .lex absence checks
+required_evidence | hasValue | explicit source-versus-derived authority assertions
+safety.claims_falkordb_ingestion | hasValue | false
+safety.claims_legal_correctness | hasValue | false
+safety.claims_parser_completeness | hasValue | false
+safety.claims_product_readiness | hasValue | false
+safety.claims_r035_validated | hasValue | false
+safety.claims_r037_validated | hasValue | false
+safety.claims_r038_validated | hasValue | false
+safety.contains_local_absolute_paths | hasValue | false
+safety.contains_provider_payloads | hasValue | false
+safety.contains_raw_vectors | hasValue | false
+safety.contains_secrets | hasValue | false
+safety.contains_unnecessary_raw_legal_text | hasValue | false
+status | hasValue | pending_evidence
+title | hasValue | Isolated ACP git-lex fixture mechanics gate
+verification_commands | hasValue | uv run pytest tests/test_m048_s04_git_lex_isolated_fixtures.py

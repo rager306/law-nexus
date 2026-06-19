@@ -1,0 +1,7 @@
+created_at | hasValue | 2026-05-13
+gate | hasValue | GATE-G011
+non_authoritative | hasValue | true
+owner | hasValue | M015/S02
+proof_level | hasValue | unit-test + CLI proof
+status | hasValue | bounded-evidence
+title | hasValue | Local Retrieval Quality Benchmark Proof

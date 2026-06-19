@@ -1,0 +1,8 @@
+law-nexus.EvidenceSpan.nonAuthoritative | hasValue | true
+law-nexus.EvidenceSpan.proofStatus | hasValue | example-only
+law-nexus.EvidenceSpan.selector | hasValue | section:positive-runtime-proof-gates
+law-nexus.EvidenceSpan.sourceBlock | hasValue | example-source-block
+law-nexus.EvidenceSpan.sourcePath | hasValue | prd/architecture/acp/M060-S01-SCAFFOLD-CONTRACT-FIXTURE-DESIGN.md
+law-nexus.EvidenceSpan.supportsAcpGate | hasValue | example-acp-boundary-link
+law-nexus.EvidenceSpan.synthetic | hasValue | true
+title | hasValue | Synthetic Evidence Span

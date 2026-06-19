@@ -1,0 +1,25 @@
+affected_records | hasValue | DC-0001
+affected_records | hasValue | PG-0001
+blocked_actions | hasValue | Add runtime dashboard integration.
+blocked_actions | hasValue | Feed ACP records into the current architecture registry.
+blocked_actions | hasValue | Promote DC-0001 to accepted decision.
+category | hasValue | missing-evidence
+finding | hasValue | The ACP fixture chain exists, but runtime/dashboard/registry integration must stay blocked until validator and recovery-export evidence exist.
+id | hasValue | AHF-0001
+recommended_fix | hasValue | Implement the S02 validator and recovery exporter, then rerun focused tests and the canonical architecture verifier.
+record_kind | hasValue | architecture_health_finding
+safety.claims_falkordb_ingestion | hasValue | false
+safety.claims_legal_correctness | hasValue | false
+safety.claims_parser_completeness | hasValue | false
+safety.claims_product_readiness | hasValue | false
+safety.claims_r035_validated | hasValue | false
+safety.claims_r037_validated | hasValue | false
+safety.claims_r038_validated | hasValue | false
+safety.contains_local_absolute_paths | hasValue | false
+safety.contains_provider_payloads | hasValue | false
+safety.contains_raw_vectors | hasValue | false
+safety.contains_secrets | hasValue | false
+safety.contains_unnecessary_raw_legal_text | hasValue | false
+severity | hasValue | blocking
+status | hasValue | open
+title | hasValue | ACP runtime adoption is blocked until fixture validation exists

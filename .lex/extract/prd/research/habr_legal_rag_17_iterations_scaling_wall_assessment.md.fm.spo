@@ -1,0 +1,7 @@
+created_at | hasValue | 2026-05-13T06:03:00+00:00
+non_authoritative | hasValue | true
+notes | hasValue | This assessment classifies transferable ideas for LegalGraph Nexus architecture. It does not validate product retrieval quality, legal-answer correctness, FalkorDB runtime behavior, parser completeness, or generated-Cypher safety.
+source | hasValue | Assessment of imported Habr article
+source_document | hasValue | prd/research/habr_legal_rag_17_iterations_scaling_wall.md
+source_url | hasValue | https://habr.com/ru/articles/1014758/
+status | hasValue | research-assessment

@@ -1,0 +1,34 @@
+data_or_state_impacts | hasValue | Adds no runtime telemetry and no git-lex state.
+data_or_state_impacts | hasValue | Adds tracked fixture source records only.
+decision_candidates | hasValue | DC-ACP-0001
+dependencies | hasValue | APR-ACP-0001
+id | hasValue | AP-ACP-0001
+interfaces | hasValue | Markdown frontmatter source records
+interfaces | hasValue | deterministic pytest fixture validation
+nfrs | hasValue | deterministic offline inspection
+nfrs | hasValue | profile-specific constraints remain outside reusable core fields
+nfrs | hasValue | repository-relative durable anchors only
+non_goals | hasValue | Do not create .lex state.
+non_goals | hasValue | Do not run git lex init in the main repository.
+non_goals | hasValue | Do not validate product, domain-specific runtime, parser, or review readiness.
+operational_impacts | hasValue | Future extraction, projection, query, and recovery checks can consume the records.
+origin_prompt_record | hasValue | APR-ACP-0001
+record_kind | hasValue | architecture_proposal
+risks | hasValue | Letting profile-specific proof boundaries leak into reusable core record definitions.
+risks | hasValue | Mistaking derived projection references for source authority.
+safety.claims_falkordb_ingestion | hasValue | false
+safety.claims_legal_correctness | hasValue | false
+safety.claims_parser_completeness | hasValue | false
+safety.claims_product_readiness | hasValue | false
+safety.claims_r035_validated | hasValue | false
+safety.claims_r037_validated | hasValue | false
+safety.claims_r038_validated | hasValue | false
+safety.contains_local_absolute_paths | hasValue | false
+safety.contains_provider_payloads | hasValue | false
+safety.contains_raw_vectors | hasValue | false
+safety.contains_secrets | hasValue | false
+safety.contains_unnecessary_raw_legal_text | hasValue | false
+scope | hasValue | Model reusable ACP records as source-controlled git-lex-style Markdown/frontmatter files without initializing git-lex.
+status | hasValue | candidate_extracted
+title | hasValue | Build isolated ACP typed-record fixture pack
+validation_plan | hasValue | Validate record identity uniqueness, typed coverage, relationship references, lifecycle and proof-gate chain coverage, source/projection authority separation, profile boundary fields, blocked actions, and non-claim flags.

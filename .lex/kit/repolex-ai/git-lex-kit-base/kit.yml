@@ -1,0 +1,5 @@
+# git-lex base kit
+# Ships system ontologies and web UI. No content folders.
+
+name: base
+install folders: false

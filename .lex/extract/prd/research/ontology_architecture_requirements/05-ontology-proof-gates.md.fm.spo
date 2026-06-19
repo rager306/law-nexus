@@ -1,0 +1,4 @@
+source_adoption_ladder | hasValue | prd/research/ontology_architecture_requirements/05-ontology-adoption-ladder.md
+source_gap_analysis | hasValue | prd/research/ontology_architecture_requirements/05-architecture-gap-analysis-against-current-registry.md
+status | hasValue | proof-gate contract
+verification_note | hasValue | This file defines gate contracts only. No gate listed here is satisfied by this document. Satisfaction requires future named evidence and verification.

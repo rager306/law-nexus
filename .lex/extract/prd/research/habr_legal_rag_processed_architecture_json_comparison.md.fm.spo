@@ -1,0 +1,15 @@
+created_at | hasValue | 2026-05-13T06:20:00+00:00
+human_review_decision | hasValue | D045
+non_authoritative | hasValue | true
+notes | hasValue | This artifact compares Habr Legal RAG ideas to processed architecture JSON/JSONL records. It does not use architecture Markdown as the comparison baseline and does not validate product behavior. Human review confirmed that transferable ideas require project-specific verification before adoption.
+prior_assessment | hasValue | prd/research/habr_legal_rag_17_iterations_scaling_wall_assessment.md
+prior_mapping | hasValue | prd/research/habr_legal_rag_graph_query_architecture_mapping.md
+processed_architecture_inputs | hasValue | .gsd/milestones/M001/slices/S08/S08-FINDINGS.json
+processed_architecture_inputs | hasValue | prd/architecture/architecture_edges.jsonl
+processed_architecture_inputs | hasValue | prd/architecture/architecture_graph_report.json
+processed_architecture_inputs | hasValue | prd/architecture/architecture_items.jsonl
+requires_project_verification_before_adoption | hasValue | true
+reviewed_at | hasValue | 2026-05-13T06:24:00+00:00
+source | hasValue | JSON-based comparison of Habr Legal RAG article against processed LegalGraph architecture state
+source_document | hasValue | prd/research/habr_legal_rag_17_iterations_scaling_wall.md
+status | hasValue | research-json-comparison

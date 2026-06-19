@@ -1,0 +1,6 @@
+law-nexus.SourceBlock.nonAuthoritative | hasValue | true
+law-nexus.SourceBlock.proofStatus | hasValue | example-only
+law-nexus.SourceBlock.selector | hasValue | section:S01-contract
+law-nexus.SourceBlock.sourcePath | hasValue | prd/architecture/acp/M060-S01-SCAFFOLD-CONTRACT-FIXTURE-DESIGN.md
+law-nexus.SourceBlock.synthetic | hasValue | true
+title | hasValue | Synthetic Source Block

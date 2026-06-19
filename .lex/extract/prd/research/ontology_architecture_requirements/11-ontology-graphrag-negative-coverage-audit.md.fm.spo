@@ -1,0 +1,7 @@
+created_at | hasValue | 2026-05-18
+gate | hasValue | GATE-ONTOLOGY-GRAPHRAG-INTEGRATION
+non_authoritative | hasValue | true
+owner | hasValue | M020-ujbffl/S04
+requirement | hasValue | R035
+source_contract | hasValue | prd/research/ontology_architecture_requirements/08-ontology-graphrag-proof-contract.md
+status | hasValue | negative-coverage-audit

@@ -1,0 +1,24 @@
+capture_mode | hasValue | summarized-no-raw-payload
+id | hasValue | APR-ACP-0001
+outcome_summary | hasValue | Produced a source-backed fixture chain for typed records, validation, extraction, projection, query, recovery, lifecycle, proof-gate, boundary, and blocked-action semantics.
+policy_checked | hasValue | true
+produced_proposal | hasValue | AP-ACP-0001
+profile_id | hasValue | reusable-acp-core
+record_kind | hasValue | architecture_prompt_record
+redaction_status | hasValue | checked
+safety.claims_falkordb_ingestion | hasValue | false
+safety.claims_legal_correctness | hasValue | false
+safety.claims_parser_completeness | hasValue | false
+safety.claims_product_readiness | hasValue | false
+safety.claims_r035_validated | hasValue | false
+safety.claims_r037_validated | hasValue | false
+safety.claims_r038_validated | hasValue | false
+safety.contains_local_absolute_paths | hasValue | false
+safety.contains_provider_payloads | hasValue | false
+safety.contains_raw_vectors | hasValue | false
+safety.contains_secrets | hasValue | false
+safety.contains_unnecessary_raw_legal_text | hasValue | false
+stage | hasValue | s04-isolated-proof
+status | hasValue | linked
+title | hasValue | Capture isolated git-lex ACP proof intent
+user_intent_summary | hasValue | Exercise ACP source-record mechanics in an isolated git-lex-style fixture pack before any runtime or main-repo adoption claim.

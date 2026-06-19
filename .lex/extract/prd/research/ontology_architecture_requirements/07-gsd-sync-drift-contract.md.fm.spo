@@ -1,0 +1,6 @@
+date | hasValue | 2026-05-17
+inputs | hasValue | .gsd/milestones/M019-v10cgp/slices/S01/S01-SUMMARY.md
+inputs | hasValue | prd/research/ontology_architecture_requirements/06-r035-evidence-audit.md
+non_authoritative | hasValue | true
+status | hasValue | S02 diagnostic contract
+title | hasValue | GSD Sync Drift Diagnostic Contract

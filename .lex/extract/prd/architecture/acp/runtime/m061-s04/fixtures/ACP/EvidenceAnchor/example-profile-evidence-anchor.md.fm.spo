@@ -1,0 +1,4 @@
+acp.EvidenceAnchor.identifier | hasValue | example-profile-evidence-anchor
+acp.EvidenceAnchor.nonAuthoritative | hasValue | true
+acp.EvidenceAnchor.sourceArtifact | hasValue | prd/architecture/acp/runtime/m061-s04/diagnostics.jsonl
+title | hasValue | Example Profile Evidence Anchor

@@ -1,0 +1,25 @@
+alternatives | hasValue | First validate a minimal fixture chain, then decide on runtime adoption.
+alternatives | hasValue | Implement broad ACP runtime immediately.
+alternatives | hasValue | Keep ACP as research documents only.
+authority_required | hasValue | true
+id | hasValue | DC-0001
+origin_proposal | hasValue | AP-0001
+record_kind | hasValue | decision_candidate
+requires_proof_gate | hasValue | PG-0001
+safety.claims_falkordb_ingestion | hasValue | false
+safety.claims_legal_correctness | hasValue | false
+safety.claims_parser_completeness | hasValue | false
+safety.claims_product_readiness | hasValue | false
+safety.claims_r035_validated | hasValue | false
+safety.claims_r037_validated | hasValue | false
+safety.claims_r038_validated | hasValue | false
+safety.contains_local_absolute_paths | hasValue | false
+safety.contains_provider_payloads | hasValue | false
+safety.contains_raw_vectors | hasValue | false
+safety.contains_secrets | hasValue | false
+safety.contains_unnecessary_raw_legal_text | hasValue | false
+significance | hasValue | agent-drift-risk
+significance | hasValue | integration-boundary
+significance | hasValue | proof-burden
+status | hasValue | candidate
+title | hasValue | Require fixture validation before ACP runtime adoption

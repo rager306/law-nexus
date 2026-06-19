@@ -1,0 +1,9 @@
+law-nexus.ParserRun.nonAuthoritative | hasValue | true
+law-nexus.ParserRun.observedAt | hasValue | 2026-06-04T00:00:00Z
+law-nexus.ParserRun.parserName | hasValue | synthetic-parser
+law-nexus.ParserRun.proofStatus | hasValue | example-only
+law-nexus.ParserRun.provider | hasValue | example-source-provider
+law-nexus.ParserRun.sourcePath | hasValue | prd/architecture/acp/M060-S01-SCAFFOLD-CONTRACT-FIXTURE-DESIGN.md
+law-nexus.ParserRun.supportsAcpGate | hasValue | example-acp-boundary-link
+law-nexus.ParserRun.synthetic | hasValue | true
+title | hasValue | Synthetic Parser Run

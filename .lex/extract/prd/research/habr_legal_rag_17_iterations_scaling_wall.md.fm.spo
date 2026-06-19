@@ -1,0 +1,8 @@
+import_reader_url | hasValue | https://r.jina.ai/http://habr.com/ru/articles/1014758/
+imported_at | hasValue | 2026-05-13T05:58:02.274209+00:00
+non_authoritative | hasValue | true
+notes | hasValue | Imported from public article reader; claims are not project-verified.
+source | hasValue | Habr article via Jina Reader
+source_url | hasValue | https://habr.com/ru/articles/1014758/
+status | hasValue | raw-research-import
+title | hasValue | От 0.034 до 0.791 и обратно: Legal RAG, 17 итераций и стена масштабирования

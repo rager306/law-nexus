@@ -1,0 +1,31 @@
+allowed_acp_use | hasValue | diagnose extraction shape
+allowed_acp_use | hasValue | guide regeneration from source records
+allowed_acp_use | hasValue | support query/recovery smoke checks
+authority_status | hasValue | non_authoritative
+blocked_acp_use | hasValue | become canonical architecture rows by copying
+blocked_acp_use | hasValue | override source records
+blocked_acp_use | hasValue | serve as sole source anchor
+blocked_acp_use | hasValue | validate requirements
+derived_from | hasValue | AP-ACP-0001
+derived_from | hasValue | APR-ACP-0001
+derived_from | hasValue | DC-ACP-0001
+derived_from | hasValue | PG-ACP-0001
+freshness_status | hasValue | not-generated-fixture-reference-only
+id | hasValue | DPR-ACP-0001
+projection_kind | hasValue | recovery-json
+record_kind | hasValue | derived_projection_reference
+repo_relative_path | hasValue | prd/architecture/acp/derived/git-lex-isolated-proof-recovery.json
+safety.claims_falkordb_ingestion | hasValue | false
+safety.claims_legal_correctness | hasValue | false
+safety.claims_parser_completeness | hasValue | false
+safety.claims_product_readiness | hasValue | false
+safety.claims_r035_validated | hasValue | false
+safety.claims_r037_validated | hasValue | false
+safety.claims_r038_validated | hasValue | false
+safety.contains_local_absolute_paths | hasValue | false
+safety.contains_provider_payloads | hasValue | false
+safety.contains_raw_vectors | hasValue | false
+safety.contains_secrets | hasValue | false
+safety.contains_unnecessary_raw_legal_text | hasValue | false
+status | hasValue | registered
+title | hasValue | Example non-authoritative ACP recovery projection

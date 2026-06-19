@@ -1,0 +1,5 @@
+proposed_proof_level | hasValue | source-anchor
+proposed_registry_status | hasValue | bounded-evidence
+registry_write_status | hasValue | candidate-only; do not hand-edit derived JSONL
+schema_reference | hasValue | prd/architecture/architecture.schema.json
+source_document | hasValue | prd/research/ontology_architecture_requirements/05-architecture-gap-analysis-against-current-registry.md

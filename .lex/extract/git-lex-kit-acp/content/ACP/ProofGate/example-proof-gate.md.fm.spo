@@ -1,0 +1,7 @@
+acp.ProofGate.blockedAction | hasValue | main runtime state adoption
+acp.ProofGate.blockedAction | hasValue | profile requirement validation
+acp.ProofGate.blockedAction | hasValue | source-truth migration
+acp.ProofGate.identifier | hasValue | example-proof-gate
+acp.ProofGate.nonAuthoritative | hasValue | true
+acp.ProofGate.proofLevel | hasValue | synthetic-example
+acp.ProofGate.verdict | hasValue | not-applicable

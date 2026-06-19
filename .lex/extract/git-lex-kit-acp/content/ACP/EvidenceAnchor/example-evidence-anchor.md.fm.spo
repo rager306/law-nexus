@@ -1,0 +1,2 @@
+acp.EvidenceAnchor.identifier | hasValue | example-evidence-anchor
+acp.EvidenceAnchor.sourceArtifact | hasValue | git-lex-kit-acp/ontology/acp/SHAPE-CONTRACT.md

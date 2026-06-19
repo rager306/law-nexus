@@ -1,0 +1,5 @@
+milestone | hasValue | M020-ujbffl
+non_authoritative | hasValue | true
+requirement_scope | hasValue | R035-only
+slice | hasValue | S09
+status | hasValue | validation-coverage-remediation

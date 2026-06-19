@@ -1,0 +1,6 @@
+source_gap_analysis | hasValue | prd/research/ontology_architecture_requirements/05-architecture-gap-analysis-against-current-registry.md
+source_registry | hasValue | prd/architecture/architecture_edges.jsonl
+source_registry | hasValue | prd/architecture/architecture_items.jsonl
+source_registry | hasValue | prd/architecture/architecture_report.md
+status | hasValue | planning taxonomy
+verification_note | hasValue | This ladder is a planning and proof-gating artifact. It does not validate parser completeness, legal correctness, ontology conformance, FalkorDB production behavior, retrieval quality, or LLM authority.

@@ -1,0 +1,6 @@
+law-nexus.Citation.nonAuthoritative | hasValue | true
+law-nexus.Citation.proofStatus | hasValue | example-only
+law-nexus.Citation.selector | hasValue | citation:synthetic-section
+law-nexus.Citation.sourceBlock | hasValue | example-source-block
+law-nexus.Citation.synthetic | hasValue | true
+title | hasValue | Synthetic Citation

@@ -1,0 +1,25 @@
+action | hasValue | Run git lex init or create .lex state in the main repository.
+blocked_until | hasValue | Separate isolated proof evidence and a later accepted adoption decision exist.
+id | hasValue | BA-ACP-0001
+proof_gates | hasValue | PG-ACP-0001
+reason | hasValue | Isolated fixture proof is not adoption authority and does not prove runtime compatibility or project readiness.
+record_kind | hasValue | blocked_action
+related_findings | hasValue | AHF-ACP-0001
+required_unblock_evidence | hasValue | A separate architecture decision explicitly accepts main-repo git-lex adoption.
+required_unblock_evidence | hasValue | PG-ACP-0001 satisfied by durable tracked evidence.
+safety.claims_falkordb_ingestion | hasValue | false
+safety.claims_legal_correctness | hasValue | false
+safety.claims_parser_completeness | hasValue | false
+safety.claims_product_readiness | hasValue | false
+safety.claims_r035_validated | hasValue | false
+safety.claims_r037_validated | hasValue | false
+safety.claims_r038_validated | hasValue | false
+safety.contains_local_absolute_paths | hasValue | false
+safety.contains_provider_payloads | hasValue | false
+safety.contains_raw_vectors | hasValue | false
+safety.contains_secrets | hasValue | false
+safety.contains_unnecessary_raw_legal_text | hasValue | false
+severity | hasValue | critical
+status | hasValue | active
+surface | hasValue | main-repo-git-lex-state
+title | hasValue | Do not initialize git-lex in main repository
