@@ -1,0 +1,83 @@
+{
+  "schema_version": "m065-s03-workflow-proof/v1",
+  "timestamp": "2026-06-19T04:42:29Z",
+  "purpose": "Stage-2 isolated install-rehearsal workflow proof: the release-installed git lex command (S02 ~/.cargo/bin) executes a full init/sync/validate/query/list lifecycle in a separate disposable git repository (mktemp /tmp, OUTSIDE /root/law-nexus) under an explicit cold PATH with no vendor-dir. MEM549 inversion: with git-lex on cold PATH, git lex init's auto-commit LANDS because the installed pre-commit hook resolves git-lex via PATH lookup and runs extract+validate (inverting M064, where the hook could not find git-lex and HEAD stayed empty).",
+  "cold_path_definition": {
+    "path": "/root/.cargo/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+    "env": "env -i HOME=/root PATH=<cold-path> GIT_TERMINAL_PROMPT=0  (each git-lex invocation)",
+    "cwd_invocation": "every cold invocation runs from the disposable repo via ( cd $DISPOSABLE && env -i ... ); stdin redirected from /dev/null to absorb any interactive prompt",
+    "vendor_dir_excluded": true,
+    "note": "explicit cold PATH containing ~/.cargo/bin and standard system dirs; does NOT contain /root/vendor-source/git-lex, /root/vendor-source/git-lex/target/debug, or any source/target path"
+  },
+  "disposable_repo": {
+    "path": "/tmp/s03-workflow-NZ80Me",
+    "is_inside_main_law_nexus": false,
+    "git_init_rc": 0,
+    "trap_rm_on_exit": true,
+    "git_identity": "local neutral identity (s03-workflow-proof@local) — PII mitigation"
+  },
+  "stages": {
+    "init": {
+      "command": "git lex init",
+      "exit_code": 0,
+      "auto_commit_landed": true,
+      "init_commit_count": 1,
+      "lex_dir_created": true,
+      "hook_installed": true,
+      "hook_marker": "# --- git-lex managed (do not edit this section) ---",
+      "evidence": "git lex init (default base kit repolex-ai/git-lex-kit-base, GitHub fetch) exited 0; the installed pre-commit hook resolved git-lex via cold-PATH lookup (command -v git-lex) and ran git-lex hook pre-commit (extract + validate), so init's auto-commit ('git lex init') landed — the MEM549 inversion vs M064 (where the hook could not find git-lex and HEAD stayed empty)."
+    },
+    "content_seed_commit": {
+      "command": "git add notes/hello.md && git commit -m 'add note'",
+      "exit_code": 0,
+      "hook_extracted_spo": true,
+      "spo_total": 1,
+      "hook_validate_passed": true,
+      "note": "plain git commit (NOT git lex save / git lex create — both on the denylist) triggers the pre-commit hook, which extracts notes/hello.md frontmatter into a .spo sidecar and validates it. exit_code 0 means the hook's extract+validate passed."
+    },
+    "sync": {
+      "command": "git lex sync",
+      "exit_code": 0,
+      "output_marker": "  History: walking 4 commit(s) . done",
+      "evidence": "git lex sync built the SPARQL store (.git/lex/oxigraph) from git history + .spo sidecars; exit 0."
+    },
+    "query": {
+      "command": "git lex query --json \"SELECT ?c WHERE { ?c a git:Commit }\"",
+      "exit_code": 0,
+      "commit_results_count": 4,
+      "proof_strength": "operational-runtime",
+      "evidence": "after init + content commits and sync, the installed git lex query returned >=1 git:Commit binding, proving the store is built and queryable through the installed command (git: prefix is injected; git:Commit data triples are in the store)."
+    },
+    "validate": {
+      "command": "git lex validate",
+      "exit_code": 0,
+      "output_marker": "No SHACL shapes found for kit 'repolex-ai/git-lex-kit-base' — skipping validation.",
+      "evidence": "git lex validate exited 0 in the base-kit disposable repo (one fm doc fm.title/fm.tags; base kit has install folders:false so no type-folder content; no adaptive overlay)."
+    },
+    "list": {
+      "command": "git lex list --json",
+      "exit_code": 0,
+      "classes_count": 0,
+      "evidence": "git lex list --json exited 0; classes_count is the discovered-class array length (base kit install folders:false -> may be 0 content classes; only rc 0 is gated)."
+    }
+  },
+  "residue_guard": {
+    "before": {".lex": "absent", "Squad": "absent", "Raw": "absent", ".artifacts": "absent"},
+    "after": {".lex": "absent", "Squad": "absent", "Raw": "absent", ".artifacts": "absent"},
+    "r047_contract_phase": "honored"
+  },
+  "cli_install_only_boundary": {
+    "wont": [
+      "no main .lex init",
+      "no R035/R037/R038 validation",
+      "no ACP-kit source truth",
+      "no single-repo/Stage-3 .lex adoption",
+      "no serve/viz/listen server exposure",
+      "no nuke/kit-update/save/create/join/raw mutating surfaces"
+    ]
+  },
+  "known_out_of_checkout_side_effects": {
+    "machine_registry": "~/.lex/repos (global git-lex per-machine registry, mutated by every init; lives in HOME, NOT in the law-nexus checkout; not R047 residue)",
+    "note": "the disposable repo and its .lex/.git state are trap-rm'd on exit. The only durable out-of-checkout side effect is the global ~/.lex/repos registry entry, which is expected git-lex behavior and is not R047 residue."
+  }
+}
