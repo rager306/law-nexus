@@ -1,0 +1,22 @@
+{
+  "schema_version": "m065-s04-closure-review/v1",
+  "timestamp": "2026-06-19T05:55:47Z",
+  "per_verifier_rc": {
+    "s01": 0,
+    "s02": 0,
+    "s03": 0
+  },
+  "overclaim_scan": {
+    "status": "clean",
+    "hits": 0,
+    "patterns_scanned": 2
+  },
+  "live_residue": {
+    ".lex": "absent",
+    "Squad": "absent",
+    "Raw": "absent",
+    ".artifacts": "absent"
+  },
+  "boundary_markers_present": true,
+  "closure_verdict": "stage2_closed"
+}

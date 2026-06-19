@@ -1,6 +1,6 @@
 {
   "schema_version": "m065-s03-workflow-proof/v1",
-  "timestamp": "2026-06-19T04:42:29Z",
+  "timestamp": "2026-06-19T05:06:57Z",
   "purpose": "Stage-2 isolated install-rehearsal workflow proof: the release-installed git lex command (S02 ~/.cargo/bin) executes a full init/sync/validate/query/list lifecycle in a separate disposable git repository (mktemp /tmp, OUTSIDE /root/law-nexus) under an explicit cold PATH with no vendor-dir. MEM549 inversion: with git-lex on cold PATH, git lex init's auto-commit LANDS because the installed pre-commit hook resolves git-lex via PATH lookup and runs extract+validate (inverting M064, where the hook could not find git-lex and HEAD stayed empty).",
   "cold_path_definition": {
     "path": "/root/.cargo/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
@@ -10,7 +10,7 @@
     "note": "explicit cold PATH containing ~/.cargo/bin and standard system dirs; does NOT contain /root/vendor-source/git-lex, /root/vendor-source/git-lex/target/debug, or any source/target path"
   },
   "disposable_repo": {
-    "path": "/tmp/s03-workflow-NZ80Me",
+    "path": "/tmp/s03-workflow-YJkSpl",
     "is_inside_main_law_nexus": false,
     "git_init_rc": 0,
     "trap_rm_on_exit": true,
