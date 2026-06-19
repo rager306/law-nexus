@@ -1,6 +1,6 @@
 {
   "schema_version": "m065-s02-install-proof/v1",
-  "timestamp": "2026-06-18T12:16:28Z",
+  "timestamp": "2026-06-19T03:56:44Z",
   "purpose": "Stage-2 cold-PATH install proof: proves the release-installed git-lex and git-lex-serve resolve through an explicit cold PATH (no vendor-dir) from /tmp, the git 'lex' subcommand dispatches to the installed git-lex binary, --version exits 2 (version gap, no version claim), and the main law-nexus checkout has no R047 residue before or after. Second empirical install-proof (resolution through PATH; binary identity is T01's install-manifest.json).",
   "cold_path_definition": {
     "path": "/root/.cargo/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",

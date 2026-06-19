@@ -66,7 +66,9 @@ If the request is broad or unfamiliar, first use GitNexus on `git-lex-reference`
 </essential_guardrails>
 
 <runtime_build_playbook>
-When work needs a local `git-lex` / `git-lex-serve` binary, use this order before claiming runtime availability:
+When work needs a local `git-lex` / `git-lex-serve` binary, use this order before claiming runtime availability.
+
+**Two runtime levels now exist:** the M051/S10 DEBUG source-build at `target/debug/` (steps below) for source-build recon, and the M065/S02 RELEASE install at `~/.cargo/bin/` on PATH — the preferred runtime path for S03/S04 rehearsal proofs (see `<m065_stage2_release_install>`). The release install already exists; prefer it for any PATH-resolved runtime claim.
 
 1. Check upstream first: inspect `repolex-ai/git-lex` issues/releases/README/workflows and relevant dependency issues for `oxrocksdb-sys`, RocksDB, `stdbool.h`, clang/sysroot, C++20, and locked Cargo build failures.
 2. Run read-only local diagnostics before remediation: record `rustc -vV`, `cargo --version`, `cc/gcc/g++/clang/clang++/cmake/make/pkg-config` availability, `stdbool.h` locations, and whether both `cc` and `clang` can preprocess `#include <stdbool.h>`.
@@ -101,6 +103,8 @@ M051/S10 source-built debug anchors: `git-lex` at commit `eaa4b24d144a78a8b8e496
 </runtime_build_playbook>
 
 <runtime_smoke_findings>
+NOTE: these M051/S10 findings used the source-built DEBUG binary at `target/debug/`. M065/S02 later shipped a RELEASE install to `~/.cargo/bin/` on PATH — see `<m065_stage2_release_install>` for the current cold-PATH install proof (incl. the `git lex --help` rc=16 man-dispatch gotcha). The release install is the preferred runtime path for future proofs.
+
 M051/S10 upgraded several previously blocked git-lex runtime claims using source-built debug binaries in isolated `/tmp` repositories. These findings are smoke evidence only; keep ACP authority and main-repo `.lex` adoption separate.
 
 Proven in isolated runtime smoke:
@@ -236,6 +240,30 @@ correctness, general SHACL conformance, or R035/R037/R038 validation. The
 boolean extraction/enforcement mismatch is an open git-lex behavior, not an
 ACP-validated mechanism.
 </m064_shacl_validate_internals>
+
+<m065_stage2_release_install>
+M065/S02 (Stage 2 of D084) promoted git-lex from a source-built DEBUG binary (M051/S10) to a RELEASE install on PATH. Re-verified by fresh cold-PATH run (env -i, /tmp, no vendor-dir); all rc below match install-proof.json byte-for-byte.
+
+**Install (T01, manifest-continuation of M051/S09 §T04):**
+- `cargo install --path . --locked` from pinned `/root/vendor-source/git-lex` (commit `eaa4b24d144a78a8b8e4969404d74cf22267df1f`) installs BOTH `git-lex` + `git-lex-serve` to `~/.cargo/bin/` with `install.profile = release`, `install_rc = 0`.
+- `--locked` is MANDATORY (rudof sibling-crate API coupling); an unlocked install / lockfile patch / silent debug-binary fallback = BLOCKER (S01 §1).
+- `prd/architecture/acp/runtime/m065-s02/install-manifest.json` = binary identity anchor (sha256/size/mode/mtime + builder/toolchain record).
+- `prd/architecture/acp/runtime/m065-s02/install-proof.json` = cold-PATH proof anchor.
+
+**Cold-PATH proof (T02) — anchor on these, NOT on `git lex --help`:**
+`git lex --help` exits **rc=16** with "No manual entry for git-lex": git intercepts `--help` for EXTERNAL subcommands (git-foo on PATH) and routes it to man(1) instead of pass-through. The proven cold-PATH help resolution rc=0 is the DIRECT binary:
+- `git-lex --help`       → rc=0 + banner "Git extensions for knowledge graphs" (git_lex_direct_help)
+- `git-lex-serve --help` → rc=0 + banner "Servers for git-lex knowledge graphs"
+- `git lex` (no-args)    → rc=2 + banner (git found git-lex via cold PATH and dispatched 'lex' — dispatch PROVEN; clap printed banner+usage, missing required subcommand)
+- `git lex --version` / `git-lex-serve --version` → rc=2 (version gap: git-lex exposes NO --version; binary sha256 is the version surrogate. NEVER claim/assert a version number)
+A nonexistent subcommand (`git __nosuchcmd_xyz__ --help`) → rc=1 "is not a git command", proving git distinguishes a resolved 'lex' from not-found.
+
+**Deterministic verifier (T03):** `scripts/verify-m065-s02-release-install.py` — stdlib-only inspection surface. Deliberately imports NO subprocess (cannot run git lex / build / mutate). Re-asserts: both binaries present + executable (X_OK) + sha256 byte-for-byte vs install-manifest.json (binary_identity_drift on mismatch), install-proof.json gate fields (git_lex_direct_help rc=0+banner, git_lex_serve_help rc=0+banner, git_subcommand_dispatch rc=2+banner, version_gap_confirmed true + git_lex_version_rc==2 + git_lex_serve_version_rc==2, residue_guard before/after all absent, cli_install_only_boundary.wont non-empty), S01 install-contract continuity (prd/.../m065-s01/install-contract.md), and R047 main-checkout residue guard (.lex/Squad/Raw/.artifacts absent). Checks the REAL key `git_lex_direct_help`, NOT a nonexistent `git_lex_help` (would falsely fail every correct install). Companion: `scripts/verify-m065-s01-install-contract.py` (S01 contract verifier, still green).
+
+**Skill-use implication:** for any future runtime/rehearsal proof (S03/S04), the preferred `git-lex`/`git-lex-serve` on PATH is the Stage-2 RELEASE install at `~/.cargo/bin/` — not the M051/S10 debug binary at `target/debug/`. The cold-PATH dispatch proof anchors on `git lex` no-args (rc=2 + banner) and `git lex --version` (rc=2), never on `git lex --help`.
+
+**Boundary (CLI-install-only, preserved):** no main-repo `.lex` initialization (R047), no R035/R037/R038 validation, no ACP-kit source truth, no single-repo/Stage-3 `.lex` adoption, no `serve`/`viz`/`listen` server exposure, no `nuke`/`kit-update`/`save`/`create`/`join`/`raw` mutating surfaces. This is an install-proof, not a production-readiness or capability claim.
+</m065_stage2_release_install>
 
 <claude_logs_to_git_feature_boundary>
 M053/S05 verified an interesting git-lex/Claude Code harness feature, but classified it as ACP-nonfit by default.
