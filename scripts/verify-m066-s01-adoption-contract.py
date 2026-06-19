@@ -33,9 +33,13 @@ MAIN_STATE_RESIDUE = (".lex", "Squad", "Raw", ".artifacts")
 
 # The two prior M065 verifiers that must stay green (Stage 2 evidence must not
 # regress). Each is a (verifier_key, ROOT-relative script path) pair.
+# The prior M065 install-contract verifier that must stay green (Stage 2
+# install-contract precondition). The composite M065 S04 stage2-closure verifier
+# is intentionally NOT re-run here: it cascades to M065 S01/S02/S03 residue-absent
+# checks that regress post-S02 by design. The M066 S03 closure verifier covers
+# M065 S01/S02/S03 directly with --skip-residue.
 PRIOR_VERIFIER_SCRIPTS: tuple[tuple[str, Path], ...] = (
     ("m065_s01_install_contract", ROOT / "scripts" / "verify-m065-s01-install-contract.py"),
-    ("m065_s04_stage2_closure", ROOT / "scripts" / "verify-m065-s04-stage2-closure.py"),
 )
 
 # All six contract sections must be present.
@@ -164,14 +168,22 @@ def _default_runner(cmd: list[str], *, timeout: int = 180) -> subprocess.Complet
     return subprocess.run(cmd, cwd=str(ROOT), capture_output=True, text=True, timeout=timeout)
 
 
-def check_prior_verifiers(runner: Callable[[list[str]], Any] | None = None) -> tuple[dict[str, int], list[Diagnostic]]:
-    """Re-run the prior M065 verifiers fresh and assert each exits 0."""
+def check_prior_verifiers(runner: Callable[[list[str]], Any] | None = None, *, skip_residue_children: bool = False) -> tuple[dict[str, int], list[Diagnostic]]:
+    """Re-run the prior M065 verifiers fresh and assert each exits 0.
+
+    When ``skip_residue_children`` is True, ``--skip-residue`` is forwarded to
+    each child verifier. This is required in a post-S02 context where ``.lex`` is
+    expected present (operational adoption): the M065 residue-absent checks
+    regress by design, but their sections/provenance/boundary checks remain
+    valid and are what this verifier re-asserts.
+    """
     if runner is None:
         runner = _default_runner
     diagnostics: list[Diagnostic] = []
     per_rc: dict[str, int] = {}
+    extra_args = ["--skip-residue"] if skip_residue_children else []
     for name, script in PRIOR_VERIFIER_SCRIPTS:
-        cmd = ["uv", "run", "python", str(script)]
+        cmd = ["uv", "run", "python", str(script), *extra_args]
         try:
             result = runner(cmd)
         except Exception as exc:  # timeout / file-not-found / env error
@@ -252,7 +264,7 @@ def verify(
 
     diagnostics.extend(check_decision_recorded(decisions))
 
-    per_rc, rc_diags = check_prior_verifiers(runner=runner)
+    per_rc, rc_diags = check_prior_verifiers(runner=runner, skip_residue_children=not check_residue)
     diagnostics.extend(rc_diags)
 
     if check_residue:

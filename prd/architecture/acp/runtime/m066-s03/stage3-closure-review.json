@@ -1,0 +1,24 @@
+{
+  "schema_version": "m066-s03-closure-review/v1",
+  "timestamp": "2026-06-19T11:11:35Z",
+  "per_verifier_rc": {
+    "m066_s01_adoption_contract": 0,
+    "m066_s02_main_repo_adoption": 0,
+    "m065_s01_install_contract": 0,
+    "m065_s02_release_install": 0,
+    "m065_s03_workflow_proof": 0
+  },
+  "overclaim_scan": {
+    "status": "clean",
+    "hits": 0,
+    "patterns_scanned": 2
+  },
+  "live_residue_transition": {
+    ".lex": "present",
+    "Squad": "absent",
+    "Raw": "absent",
+    ".artifacts": "absent"
+  },
+  "boundary_markers_present": true,
+  "closure_verdict": "stage3_closed"
+}
