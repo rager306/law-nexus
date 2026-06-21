@@ -1,10 +1,65 @@
 ---
 name: acp
-description: Guides law-nexus agents through ACP-native architecture governance, source truth, lifecycle states, evidence anchors, proof gates, ACP-kit planning, profile boundaries, and verifier-safe synthesis. Use when work mentions ACP source records, proof gates, architecture binding, ACP-kit, lifecycle/health findings, source-truth boundaries, profile constraints, or validation claims.
+description: law-nexus PROFILE OVERRIDE of the generic ACP skill. Applies law-nexus-specific constraints (R035/R037/R038 profile-owned requirements, Russian legal evidence, FalkorDB, Garant ODT parser, citation-safe retrieval, generated-Cypher safety, legalgraph-architecture-verification routing) on top of the generic ACP governance guidance. Generic guidance (ACP record rule, ACP-kit rule K0-K7, source-truth hierarchy) lives in the external reusable core at /root/git-lex-kit-acp/skills/acp/SKILL.md. Use when work mentions ACP source records, proof gates, architecture binding, ACP-kit, lifecycle/health findings, source-truth boundaries, profile constraints, or validation claims in the law-nexus context.
 ---
 
+<profile_override_binding>
+This is the **law-nexus profile override** of the generic ACP skill.
+
+- **Generic ACP guidance** (ACP record rule: source category + lifecycle state +
+  evidence anchor + proof gate + projection status; ACP-kit rule K0-K7 roadmap;
+  source-truth hierarchy; ACP→git-lex routing) is **authoritative in the external
+  reusable core**: `/root/git-lex-kit-acp/skills/acp/SKILL.md`. Load it for
+  generic ACP governance mechanics.
+- This override applies **law-nexus-specific constraints**: profile-owned
+  requirements (R035/R037/R038 and other law-nexus R-IDs), domain-specific
+  evidence (Russian legal / Garant ODT / FalkorDB / citation-safe retrieval /
+  generated-Cypher safety), project-specific routing
+  (`legalgraph-architecture-verification`), and project-specific verification
+  (`verify-m0xx-*.py`, `gitnexus` repo `law-nexus`).
+- ACP stays **bound to git-lex**: route git-lex runtime and `.lex` adoption
+  questions to the law-nexus `git-lex` profile override (which references the
+  external generic git-lex skill).
+- See `prd/architecture/PROFILE-ADAPTER.md` for the full binding contract.
+- **Drift discipline:** generic guidance is referenced, not duplicated.
+</profile_override_binding>
+
+<anti_drift_enforcement>
+**D098 — anti-drift enforcement role.** ACP exists to PREVENT project drift, not
+to build endless infrastructure. See `prd/architecture/PROFILE-ADAPTER.md` §
+Anti-drift enforcement role.
+
+**Mandatory lifecycle tagging in state claims.** When stating the status of any
+artifact/capability/milestone/requirement, TAG the lifecycle state explicitly:
+
+```text
+[bounded]   — bounded proof on a narrow fixture/scope, NOT production
+[smoke]     — runtime/mechanics smoke only, NOT quality/correctness
+[validated] — met a proof gate with durable evidence (cite it)
+[proposed]  — planned/contracted, not yet executed
+[deferred]  — explicitly deferred to a later milestone
+```
+
+NEVER smooth a bounded/smoke proof into "validated" or "ready". If you cannot
+cite a durable evidence anchor + proof gate for a `[validated]` claim, it is
+`[bounded]` or `[smoke]`, not `[validated]`.
+
+**Record rule on architectural/requirement/state claims** (the ACP record rule
+itself): source category + lifecycle + evidence anchor + proof gate. Not
+prose-only. This is the ACP record rule from the generic skill, applied as
+anti-drift enforcement.
+
+**Meta-work budget:** ACP/git-lex is FROZEN until parser data is ready (M034
+Consultant XML Parser Hardening executed). Do not propose ACP expansion unless
+drift is detected+logged OR the user explicitly directs it. "ACP could be
+extended" is the meta-drift pattern to prevent.
+
+**Checkpoint, not gate:** detect+log+flag drift (via ACP HealthFinding); do NOT
+block product work.
+</anti_drift_enforcement>
+
 <objective>
-Use this project-local skill for ACP-native architecture governance and ACP-kit work. Keep ACP source truth, lifecycle states, evidence anchors, proof gates, validation claims, health findings, projections, and profile boundaries explicit. Route git-lex runtime and `.lex` adoption questions to the `git-lex` skill, but keep ACP-kit semantic design here.
+Use this law-nexus profile override for ACP-native architecture governance and ACP-kit work **in the law-nexus context**. For generic ACP mechanics (record rule, kit rule, source-truth hierarchy), first load the external generic skill at `/root/git-lex-kit-acp/skills/acp/SKILL.md`; then apply the law-nexus-specific constraints below. Keep ACP source truth, lifecycle states, evidence anchors, proof gates, validation claims, health findings, projections, and law-nexus profile boundaries explicit. Route git-lex runtime and `.lex` adoption questions to the law-nexus `git-lex` skill, but keep ACP-kit semantic design here.
 </objective>
 
 <quick_start>

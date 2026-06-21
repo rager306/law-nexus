@@ -1,10 +1,64 @@
 ---
 name: git-lex
-description: Guides law-nexus agents through git-lex semantic-kit inspection, ACP mapping, RDF/OWL/SPARQL/JSON-LD claim review, runtime-adoption boundaries, and overclaim prevention. Use when work mentions git-lex, git-lex-kit-base, semantic kits, ontology projection, ACP RDF/OWL/SPARQL/JSON-LD, .lex state, or git-lex runtime adoption.
+description: law-nexus PROFILE OVERRIDE of the generic git-lex skill. Applies law-nexus-specific constraints (R035/R037/R038, Russian legal evidence, FalkorDB, Garant ODT parser, citation-safe retrieval, generated-Cypher safety) on top of the generic git-lex guidance. Generic guidance (runtime findings, workflows, claim-language) lives in the external reusable core at /root/git-lex-kit-acp/skills/git-lex/SKILL.md. Use when work mentions git-lex, git-lex-kit-base, semantic kits, ontology projection, ACP RDF/OWL/SPARQL/JSON-LD, .lex state, or git-lex runtime adoption in the law-nexus context.
 ---
 
+<profile_override_binding>
+This is the **law-nexus profile override** of the generic git-lex skill.
+
+- **Generic git-lex guidance** (runtime findings M051/S10 smoke, M064 SHACL
+  internals, M065 release install, 4 workflows inspect-base-kit/classify-evidence/
+  review-acp-claim/plan-adapter-spike, claim-language safe/unsafe wording,
+  claim-review template, claude-logs boundary, knowledge-delta contract,
+  runtime-adoption-gates generic mechanics, ontology-map, source-inventory generic,
+  acp-boundaries generic rules) is **authoritative in the external reusable core**:
+  `/root/git-lex-kit-acp/skills/git-lex/SKILL.md`. Load it for generic git-lex
+  behavior.
+- This override applies **law-nexus-specific constraints** on top: profile-owned
+  requirements (R035/R037/R038), domain-specific evidence (Russian legal / Garant
+  ODT / FalkorDB / citation-safe retrieval / generated-Cypher safety),
+  project-specific routing (`legalgraph-architecture-verification`), and
+  project-specific verification (`verify-m0xx-*.py`, `gitnexus` repo `law-nexus`).
+- See `prd/architecture/PROFILE-ADAPTER.md` for the full binding contract.
+- **Drift discipline:** generic guidance is referenced, not duplicated. If the
+  external generic changes, law-nexus inherits it.
+</profile_override_binding>
+
+<anti_drift_enforcement>
+**D098 — anti-drift enforcement role.** This skill (and ACP/git-lex overall)
+exists to PREVENT project drift, not to build endless infrastructure. See
+`prd/architecture/PROFILE-ADAPTER.md` § Anti-drift enforcement role.
+
+**Mandatory lifecycle tagging in state claims.** When stating the status of any
+artifact/capability/milestone/requirement, TAG the lifecycle state explicitly:
+
+```text
+[bounded]   — bounded proof on a narrow fixture/scope, NOT production
+[smoke]     — runtime/mechanics smoke only, NOT quality/correctness
+[validated] — met a proof gate with durable evidence (cite it)
+[proposed]  — planned/contracted, not yet executed
+[deferred]  — explicitly deferred to a later milestone
+```
+
+NEVER smooth a bounded/smoke proof into "validated" or "ready". The exact drift
+pattern this prevents: calling bounded retrieval "validated" when the evidence
+is mechanics-only. If you cannot cite a durable evidence anchor + proof gate for
+a `[validated]` claim, it is `[bounded]` or `[smoke]`, not `[validated]`.
+
+**Record rule on architectural/requirement/state claims** (not every prose
+statement): source category + lifecycle + evidence anchor + proof gate. Not
+prose-only.
+
+**Meta-work budget:** ACP/git-lex is FROZEN until parser data is ready (M034
+Consultant XML Parser Hardening executed). Do not propose ACP/git-lex expansion
+unless drift is detected+logged OR the user explicitly directs it. "ACP could be
+extended" is the meta-drift pattern to prevent.
+
+**Checkpoint, not gate:** detect+log+flag drift; do NOT block product work.
+</anti_drift_enforcement>
+
 <objective>
-Use this project-local router when work touches git-lex, `git-lex-kit-base`, semantic kits, RDF/OWL/SPARQL/JSON-LD interoperability claims, `.lex` repository state, or ACP integration decisions. The goal is to advance git-lex for ACP through real source evidence while preserving the boundary between semantic-kit evidence, derived projections, runtime proof, and authoritative ACP/product/legal proof.
+Use this law-nexus profile override when work touches git-lex, `git-lex-kit-base`, semantic kits, RDF/OWL/SPARQL/JSON-LD interoperability claims, `.lex` repository state, or ACP integration decisions **in the law-nexus context**. For generic git-lex behavior (runtime mechanics, claim language, workflows), first load the external generic skill at `/root/git-lex-kit-acp/skills/git-lex/SKILL.md`; then apply the law-nexus-specific constraints below. The goal is to advance git-lex for ACP through real source evidence while preserving the boundary between semantic-kit evidence, derived projections, runtime proof, and authoritative law-nexus product/legal proof.
 </objective>
 
 <quick_start>
