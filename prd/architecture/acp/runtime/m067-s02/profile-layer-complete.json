@@ -1,0 +1,16 @@
+{
+  "schema_version": "m067-s02-profile-layer-complete/v1",
+  "milestone": "M067-538uby",
+  "slice": "S02",
+  "profile_adapter": "prd/architecture/PROFILE-ADAPTER.md",
+  "skills_reframed": [
+    ".agents/skills/git-lex/SKILL.md",
+    ".agents/skills/acp/SKILL.md"
+  ],
+  "generic_only_files_deleted": 6,
+  "law_nexus_specific_references_kept": 6,
+  "acp_bound_to_git_lex": true,
+  "agents_md_updated": true,
+  "verifier": "scripts/verify-m067-s02-profile-layer.py",
+  "external_no_regression": true
+}

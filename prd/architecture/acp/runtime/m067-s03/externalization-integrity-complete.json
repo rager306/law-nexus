@@ -1,0 +1,13 @@
+{
+  "schema_version": "m067-s03-externalization-integrity/v1",
+  "milestone": "M067-538uby",
+  "slice": "S03",
+  "verdict": "m067_restructuring_complete",
+  "checks": {
+    "s01_externalization": "verify-m067-s01-externalization.py (external publication-ready, 0 leaks)",
+    "s02_profile_layer": "verify-m067-s02-profile-layer.py (law-nexus profile layer healthy)",
+    "project_md_revised": "ACP externalized section + profile layer + product focus + D097",
+    "profile_adapter_present": "prd/architecture/PROFILE-ADAPTER.md"
+  },
+  "m067_summary": "ACP/git-lex externalized to /root/git-lex-kit-acp/ (publication-ready); law-nexus restructured \u043a\u0430\u043a profile consumer; PROJECT.md revised \u0434\u043b\u044f product refocus. Closes ACP-inline era."
+}

@@ -1,0 +1,18 @@
+{
+  "schema_version": "m067-s01-externalization-complete/v1",
+  "milestone": "M067-538uby",
+  "slice": "S01",
+  "external_repo": "/root/git-lex-kit-acp",
+  "remote": "https://github.com/rager306/git-lex-kit-acp.git",
+  "acp_ttl_version": "0.2.0",
+  "acp_bound_to_git_lex": true,
+  "deliverables": {
+    "kit_content": "ontology/acp/acp.ttl v0.2.0 + 6 examples (incl 2 true-negatives) + kit.yml + content/AGENTS.md v0.2.0",
+    "skills": "skills/git-lex/ (10 files) + skills/acp/ (3 files), generic-adapted, ACP bound to git-lex",
+    "docs": "docs/ SHAPE-CONTRACT, SHAPE-BASELINE, ONTOLOGY-DESIGN, CAPABILITY-MATRIX, APPLYING, BOUNDARIES",
+    "readme": "README.md v0.2.0 (layout, install, profile pattern, versioning)"
+  },
+  "verifier": "scripts/verify-m067-s01-externalization.py (law-nexus-side, diagnostics=0, publication-ready, 0 leaks)",
+  "leak_exclusion": "rager306/git-lex-kit-acp (kit's own canonical identity)",
+  "push_status": "NOT pushed (push is outward-facing \u2014 separate confirm)"
+}

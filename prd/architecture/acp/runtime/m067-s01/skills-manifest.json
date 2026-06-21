@@ -1,0 +1,83 @@
+{
+  "schema_version": "m067-s01-skills-manifest/v1",
+  "milestone": "M067-538uby",
+  "slice": "S01",
+  "task": "T02",
+  "external_repo": "/root/git-lex-kit-acp/skills",
+  "skills": {
+    "git-lex": {
+      "files": 10,
+      "generic_adapted": true
+    },
+    "acp": {
+      "files": 3,
+      "generic_adapted": true,
+      "routes_git_lex_runtime_to_git_lex_skill": true
+    }
+  },
+  "acp_bound_to_git_lex": true,
+  "total_replacements_applied": "162 (109 first-pass + 53 second-pass prd-refs + manual residual fixes)",
+  "total_post_adaptation_leaks": 0,
+  "leak_scan_excludes": [
+    "rager306/git-lex-kit-acp (kit's own canonical name \u2014 identity, not leak)"
+  ],
+  "files": {
+    "acp/SKILL.md": {
+      "bytes": 7295,
+      "leaks": 0
+    },
+    "acp/references/acp-kit-roadmap.md": {
+      "bytes": 9617,
+      "leaks": 0
+    },
+    "acp/references/source-truth-and-proof-gates.md": {
+      "bytes": 4478,
+      "leaks": 0
+    },
+    "git-lex/SKILL.md": {
+      "bytes": 26702,
+      "leaks": 0
+    },
+    "git-lex/references/acp-boundaries.md": {
+      "bytes": 7160,
+      "leaks": 0
+    },
+    "git-lex/references/claim-language.md": {
+      "bytes": 1903,
+      "leaks": 0
+    },
+    "git-lex/references/ontology-map.md": {
+      "bytes": 6717,
+      "leaks": 0
+    },
+    "git-lex/references/runtime-adoption-gates.md": {
+      "bytes": 16187,
+      "leaks": 0
+    },
+    "git-lex/references/source-inventory.md": {
+      "bytes": 11972,
+      "leaks": 0
+    },
+    "git-lex/templates/claim-review.md": {
+      "bytes": 485,
+      "leaks": 0
+    },
+    "git-lex/workflows/classify-evidence.md": {
+      "bytes": 1060,
+      "leaks": 0
+    },
+    "git-lex/workflows/inspect-base-kit.md": {
+      "bytes": 1655,
+      "leaks": 0
+    },
+    "git-lex/workflows/plan-adapter-spike.md": {
+      "bytes": 1508,
+      "leaks": 0
+    },
+    "git-lex/workflows/review-acp-claim.md": {
+      "bytes": 1491,
+      "leaks": 0
+    }
+  },
+  "recorded_at": "2026-06-20T05:37:02Z"
+}

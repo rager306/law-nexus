@@ -1,0 +1,64 @@
+{
+  "schema_version": "m067-s01-kit-content-manifest/v1",
+  "milestone": "M067-538uby",
+  "slice": "S01",
+  "task": "T01",
+  "external_repo": "/root/git-lex-kit-acp",
+  "acp_ttl_version": "0.2.0",
+  "example_inventory": {
+    "total": 6,
+    "true_negatives": [
+      "content/ACP/ProofGate/example-proof-gate-invalid-verdict.md (sh:in enum)",
+      "content/ACP/EvidenceAnchor/example-evidence-anchor-missing-source-artifact.md (sh:minCount)"
+    ]
+  },
+  "files": {
+    "ontology/acp/acp.ttl": {
+      "present": true,
+      "sha256": "f1b4f3eeb1dc5ff95e6bf62f35212945a213f7ea3ea7d2646410c76bf19eaeb7",
+      "bytes": 14727
+    },
+    "content/AGENTS.md": {
+      "present": true,
+      "sha256": "257d2552dae22d05e082fa8f0c7df9195c8e45560f3d24d39b455b41b0abf239",
+      "bytes": 3694
+    },
+    "content/ACP/Decision/example-decision.md": {
+      "present": true,
+      "sha256": "9e70bb290485123ec14a12e97f5a71f83836d1503eadcd1385ba4d27b91482f1",
+      "bytes": 538
+    },
+    "content/ACP/ProofGate/example-proof-gate.md": {
+      "present": true,
+      "sha256": "0a93236473f430fe168e8fa84e3e5e451087c333bb05761f5c8e4aa6b37e495c",
+      "bytes": 647
+    },
+    "content/ACP/ProofGate/example-proof-gate-invalid-verdict.md": {
+      "present": true,
+      "sha256": "77a8ffe75530f72d80405deac67e28a637895d65b4dbab67798f8350c95b66e0",
+      "bytes": 544
+    },
+    "content/ACP/SourceRecord/example-source-record.md": {
+      "present": true,
+      "sha256": "a189f0ddb2805c9ec7cea0eaea3af09ed17e6f37a73b125118d7dd0092a7540d",
+      "bytes": 678
+    },
+    "content/ACP/EvidenceAnchor/example-evidence-anchor.md": {
+      "present": true,
+      "sha256": "c01cec30e7ccb70b1ffdc95b8e428548a051e5a77d1f73c06896e97a100bb688",
+      "bytes": 509
+    },
+    "content/ACP/EvidenceAnchor/example-evidence-anchor-missing-source-artifact.md": {
+      "present": true,
+      "sha256": "e13d008b2ca17c4ca733292ad78dcc5fd56f167547409d7bcaeb27905b1c0e0a",
+      "bytes": 489
+    },
+    "kit.yml": {
+      "present": true,
+      "sha256": "3d621442d8b09ff3866e7cd68fd5d2dca524db38f0f01e7279e530975ccdf451",
+      "bytes": 207
+    }
+  },
+  "agents_md_version": "v0.2.0 (genericized: law-nexus-specific \u2192 consuming-project profile)",
+  "recorded_at": "2026-06-20T05:33:05Z"
+}
