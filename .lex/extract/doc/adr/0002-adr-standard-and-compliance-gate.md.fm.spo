@@ -1,0 +1,10 @@
+date | hasValue | 2026-06-21
+id | hasValue | ADR-0002
+lifecycle | hasValue | [validated] (standard + policy distinction); gate tooling [proposed]/[deferred] to S03
+related | hasValue | ADR-0001
+related | hasValue | D035
+related | hasValue | D097
+related | hasValue | D098
+status | hasValue | Accepted
+supersedes | hasValue | none
+title | hasValue | ADR standard and the compliance-gate / ACP-checkpoint split
