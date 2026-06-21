@@ -184,4 +184,4 @@ viable, state why explicitly rather than omitting the section.>
 
 | ADR | Title | Status | Lifecycle |
 |---|---|---|---|
-| _ADRs are listed here as they are created._ | | | |
+| [ADR-0001](0001-onion-package-structure.md) | Onion package structure for src/law_nexus | Accepted | [validated] (structure) |

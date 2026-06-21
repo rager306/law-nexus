@@ -1,0 +1,11 @@
+date | hasValue | 2026-06-21
+id | hasValue | ADR-0001
+lifecycle | hasValue | [validated]
+related | hasValue | D035
+related | hasValue | D046
+related | hasValue | D097
+related | hasValue | D098
+related | hasValue | M068-xi4034
+status | hasValue | Accepted
+superseds | hasValue | none
+title | hasValue | Onion package structure for src/law_nexus
