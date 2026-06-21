@@ -13,7 +13,7 @@ It records bounded runtime remediation evidence or blocked prerequisite diagnost
 
 ## Phase statuses
 
-- `embedding_runtime`: `passed`; diagnostics: `none`
+- `embedding_runtime`: `blocked`; diagnostics: `LRR_DEPENDENCY_MISSING`
 - `falkordb_runtime`: `blocked`; diagnostics: `RIP_FALKORDB_RUNTIME_NOT_AVAILABLE`
 - `fixture_materialization`: `passed`; diagnostics: `none`
 - `ontology_temporal_query`: `passed`; diagnostics: `none`
@@ -33,7 +33,7 @@ It records bounded runtime remediation evidence or blocked prerequisite diagnost
 
 ## Local/open-weight embedding ranking summary
 
-- Ranking summary: `{"candidates": [{"act_edition_id": "ED-M014-44FZ-2026-01-01", "candidate_id": "CAND-M020-OG-VALID-CURRENT-001", "citation_key": "CIT-M014-HIER-CONS-ARTICLE-0001", "evidence_span_id": "EV-M014-HIER-CONS-ARTICLE-0001", "rank": 1, "selection_result": "accepted", "source_record_id": "HIER-CONS-ARTICLE-0001"}], "diagnostic_codes": [], "embedding_runtime": "confirmed_runtime", "managed_provider_used": false, "model_boundary": "local_open_weight", "raw_text_excluded": true, "selected_candidate_id": "CAND-M020-OG-VALID-CURRENT-001", "selected_rank": 1, "status": "available_safe_ids_only", "vector_values_excluded": true}`
+- Ranking summary: `{"candidates": [], "diagnostic_codes": ["LRR_DEPENDENCY_MISSING"], "embedding_runtime": "blocked_environment", "managed_provider_used": false, "model_boundary": "local_open_weight", "raw_text_excluded": true, "selected_candidate_id": null, "selected_rank": null, "status": "unavailable_blocked_runtime", "vector_values_excluded": true}`
 - Boundary: candidate IDs and ranks are safe fixture-derived diagnostics only; vectors, raw legal text, provider payloads, and managed API details are excluded.
 
 ## Deterministic evidence-ID validation
