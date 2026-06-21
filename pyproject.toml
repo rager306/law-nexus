@@ -1,5 +1,5 @@
 [project]
-name = "law-nexus"
+name = "law_nexus"
 version = "0.1.0"
 description = "Architecture smoke tooling for LegalGraph Nexus."
 readme = "README.md"
@@ -33,7 +33,7 @@ local-embeddings-accelerated = [
 ]
 
 [tool.uv]
-package = false
+package = true
 
 [tool.pytest.ini_options]
 minversion = "8.0"
@@ -47,8 +47,8 @@ addopts = [
 [tool.ruff]
 target-version = "py313"
 line-length = 100
-src = ["scripts", "tests"]
-include = ["pyproject.toml", "scripts/**/*.py", "tests/**/*.py"]
+src = ["scripts", "tests", "src"]
+include = ["pyproject.toml", "scripts/**/*.py", "tests/**/*.py", "src/**/*.py"]
 exclude = [
     ".bg-shell",
     ".cache",
@@ -81,18 +81,18 @@ python-version = "3.13"
 python-platform = "linux"
 
 [tool.ty.src]
-include = ["scripts", "tests"]
+include = ["scripts", "tests", "src"]
 exclude = [".gsd", "Old_project", ".venv"]
 
 [tool.pyrefly]
 python-version = "3.13"
-project-includes = ["scripts/**/*.py", "tests/**/*.py"]
+project-includes = ["scripts/**/*.py", "tests/**/*.py", "src/**/*.py"]
 project-excludes = [".gsd/**", "Old_project/**", ".venv/**"]
 
 [tool.basedpyright]
 pythonVersion = "3.13"
 typeCheckingMode = "basic"
-include = ["scripts", "tests"]
+include = ["scripts", "tests", "src"]
 exclude = [".gsd", ".venv", "Old_project", "law-source", "node_modules", "tmp"]
 reportExplicitAny = false
 reportAny = false
