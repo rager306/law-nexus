@@ -14,6 +14,7 @@ dev = [
     "adaptix",
     "basedpyright>=1.39.4",
     "hypothesis",
+    "import-linter",
     "pyrefly",
     "pytest",
     "pytest-xdist",
@@ -97,3 +98,59 @@ exclude = [".gsd", ".venv", "Old_project", "law-source", "node_modules", "tmp"]
 reportExplicitAny = false
 reportAny = false
 reportUnusedCallResult = false
+
+[tool.importlinter]
+# Enforces the onion package structure mandated by ADR-0001
+# (doc/adr/0001-onion-package-structure.md). Dependencies point inward only:
+# composition (outermost wiring) -> application / adapters -> ports -> domain.
+# Each layer may only import layers below it in the `layers` contract, and the
+# forbidden contracts name the specific high-risk directions explicitly.
+root_package = "law_nexus"
+
+[[tool.importlinter.contracts]]
+# Domain is the innermost layer: it must not import any other project layer.
+name = "Domain has no outbound layer imports"
+type = "forbidden"
+source_modules = ["law_nexus.domain"]
+forbidden_modules = [
+    "law_nexus.adapters",
+    "law_nexus.application",
+    "law_nexus.composition",
+    "law_nexus.ports",
+]
+
+[[tool.importlinter.contracts]]
+# Ports are interface contracts: they may only depend on domain.
+name = "Ports have no outbound layer imports"
+type = "forbidden"
+source_modules = ["law_nexus.ports"]
+forbidden_modules = [
+    "law_nexus.adapters",
+    "law_nexus.application",
+    "law_nexus.composition",
+]
+
+[[tool.importlinter.contracts]]
+# Application depends on ports + domain, NEVER on concrete adapters or the
+# composition root. Adapters are wired in only at the composition root.
+name = "Application must not import adapters or composition"
+type = "forbidden"
+source_modules = ["law_nexus.application"]
+forbidden_modules = ["law_nexus.adapters", "law_nexus.composition"]
+
+[[tool.importlinter.contracts]]
+# Declarative onion layering: each layer may only import layers below it.
+# composition is the outermost root (may import all); domain is innermost.
+# Note: `application` and `adapters` sit in the same middle ring and must not
+# import each other. The `Application must not import adapters` contract above
+# covers application -> adapters; the layers order below forbids adapters ->
+# application (application sits above adapters).
+name = "Onion dependency layers"
+type = "layers"
+layers = [
+    "law_nexus.composition",
+    "law_nexus.application",
+    "law_nexus.adapters",
+    "law_nexus.ports",
+    "law_nexus.domain",
+]
