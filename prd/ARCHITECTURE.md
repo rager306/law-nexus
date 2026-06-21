@@ -42,6 +42,19 @@ M067 ACP/git-lex externalization  [validated]
 
 ## Current layer (where work happens now)
 
+**`src/law_nexus` onion package** — `[bounded]` foundation (ADR-0001). The
+deterministic-first package surface that M068 hardened into an explicit
+dependency-directed onion: `domain/` (SourceDocument, SourceBlock, ActEdition,
+EvidenceSpan, NormStatement, LegalUnit, Citation, SourceHierarchy), `ports/`
+(Parser, GraphStore, Embedder, LLMClient protocols), `adapters/parsers/`
+(ConsultantWordMLParser — document-level seam only, empty SourceBlock list),
+`application/` (Ingest use case), `composition.py` (factory root). ADR-0002
+adds the compliance gate (import-linter layer contracts + verify-adr-conformance
+lifecycle/ADR checks); D098 keeps ACP as a checkpoint, not a gate. The package is
+a `[bounded]` document-level seam — structural hierarchy, graph writes, temporal
+UDFs, and retrieval are still `[proposed]`/`[deferred]` (see `prd/02_architecture.md`
+per-layer tags).
+
 **Consultant XML parser hardening** — `[proposed]` (M034 roadmap, never executed).
 7 proof-gated slices: S01 baseline lock, S02 lxml eval, S03 structural rules,
 S04 semantic diagnostics, S05 razdel/pymorphy3 eval, S06 source-span/stable-ID,

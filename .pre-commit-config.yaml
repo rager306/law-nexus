@@ -1,0 +1,68 @@
+# Compliance gate per ADR-0002 ("ADR standard and the compliance-gate /
+# ACP-checkpoint split").
+#
+# These hooks are the STRUCTURAL, HARD-FAIL half of the split. A commit is
+# rejected when it violates a structural invariant of the code architecture.
+# Per ADR-0002's table, the gate protects *code architecture* (layer direction
+# per ADR-0001, and the ADR/claim standard per the README), and is one-time +
+# checkable. The plan's own scope statement: "commit/CI не проходит при layer
+# violation или untagged architectural claims".
+#
+# Gate != ACP (D098). The ACP checkpoint (detect+log+flag, NON-blocking,
+# behavioural drift) is a deliberately SEPARATE mechanism and is NOT wired here.
+# Do not route a behavioural concern through this gate, and do not route a
+# structural check through the ACP. See ADR-0002 for the anti-substitution
+# rationale.
+#
+# Hooks (all hard-fail):
+#
+#   ruff check / ruff format --check  -- structural lint + format of the
+#       architectural package (src/law_nexus). Scoped to src/ to mirror the
+#       import-linter root_package (law_nexus.*): the gate enforces the code
+#       *architecture*, which lives in src/. The historical scripts/ and tests/
+#       trees carry pre-existing ruff drift (format + a few real lint findings)
+#       that is codebase-hygiene debt, not architectural compliance, and is
+#       tracked separately.
+#   lint-imports        -- import-linter onion-layer contracts (ADR-0001, the
+#       layer direction the gate exists to enforce).
+#   verify-adr-conformance -- D098 lifecycle-tag + ADR-reference conformance of
+#       architectural claim files (ADR-0002's ADR-standard half).
+#
+# All hooks are local `language: system` hooks invoking `uv run <tool>` so tool
+# versions come from pyproject.toml / uv.lock (single source of truth), matching
+# the documented dev workflow (`uv run ruff`, `uv run lint-imports`,
+# `uv run python scripts/verify-adr-conformance.py`).
+#
+# Install the git hook once per clone:  uv run pre-commit install
+# Run on demand:                         uv run pre-commit run --all-files
+
+repos:
+  - repo: local
+    hooks:
+      - id: ruff-check-src
+        name: ruff check src/ (ADR-0002 structural gate)
+        entry: uv run ruff check src/
+        language: system
+        pass_filenames: false
+        always_run: true
+
+      - id: ruff-format-src
+        name: ruff format --check src/ (ADR-0002 structural gate)
+        entry: uv run ruff format --check src/
+        language: system
+        pass_filenames: false
+        always_run: true
+
+      - id: import-linter
+        name: import-linter onion layers (ADR-0001, ADR-0002 structural gate)
+        entry: uv run lint-imports
+        language: system
+        pass_filenames: false
+        always_run: true
+
+      - id: verify-adr-conformance
+        name: verify-adr-conformance D098 tags + ADR refs (ADR-0002 structural gate)
+        entry: uv run python scripts/verify-adr-conformance.py
+        language: system
+        pass_filenames: false
+        always_run: true
