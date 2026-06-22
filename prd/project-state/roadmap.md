@@ -8,11 +8,11 @@
 ## Where we are now
 
 ```
-[STRUCTURAL FOUNDATION — M069 DONE, M068 PENDING VALIDATION]
+[STRUCTURAL FOUNDATION — COMPLETE (locally + CI enforceable)]
   M068 (onion package src/law_nexus + ADR-0001 + MADR ADR standard ADR-0002
-        + compliance gate)                 🟡 needs-attention (NOT complete;
-        'pre-commit+CI wire' only half-met — pre-commit wired, CI not)
+        + compliance gate: pre-commit hooks AND .github/workflows CI)  ✅ complete
   M069 (ADR-0003 library-boundary contract + gate-green standing tree)  ✅ complete
+  M070 (roadmap freshness guard — pytest parsing .gsd/STATE.md)        ✅ complete
 
 [PRODUCT TRACK — RESUMES HERE]
   Consultant XML Parser Hardening (M034 corrected roadmap)   ← NEXT
@@ -25,12 +25,10 @@
   R035 / R037 / R038 validation
 ```
 
-**Pending validation:** M068-xi4034 is `active` / `blocked` — its validation is
-`needs-attention` (the S03 "pre-commit+CI wire" success criterion is only
-half-met: pre-commit is wired and green, but `.github/workflows` CI is not).
-Resolve by wiring CI OR rescoping the criterion, then re-run
-`gsd_validate_milestone` to pass and complete M068. M069 is complete
-independently.
+The structural foundation is fully enforceable now — both locally (pre-commit)
+and in CI (`.github/workflows/compliance-gate.yml` runs the same 4 hard-fail
+checks on push/PR). Future code cannot drift from ADR-0001 (onion layers),
+ADR-0002 (gate≠ACP), or D098 (lifecycle tags).
 
 The ACP/git-lex era (M035–M067) is **CLOSED**: the reusable core was
 externalized to `/root/git-lex-kit-acp/` and law-nexus became a profile consumer
@@ -47,7 +45,7 @@ milestone.
 | M011-M030 | GraphRAG, FalkorDB, retrieval, ontology, evidence, and semantic scoring proof cycles | Bounded proof cycles, not final retrieval quality or ontology/product readiness. |
 | M031-M034 | Consultant XML source structuring, MiniMax-assisted discovery, graph context staging, and workline recovery | Source workflow evidence, not parser completeness for all sources. |
 | M035-M067 | ACP / git-lex reusable-core era — construction, registry, RDF projection, then **externalization** | **CLOSED.** Core externalized (M067, D097); law-nexus is a profile consumer. This era was itself meta-drift (D098); ACP is frozen to checkpoint mode. Not source truth, not the next milestone. |
-| M068-M070 | Structural foundation crystallization + roadmap freshness guard — onion package, ADR standard, compliance gate, library-boundary contract, anti-drift guard | Anti-drift infrastructure only. M069 **complete**, M070 **complete**; M068 **needs-attention** (pre-commit+CI wire half-met). Repo is now a package (`src/law_nexus`). Does NOT validate R035/R037/R038, does NOT harden the parser, does NOT introduce FalkorDB/graph/retrieval. |
+| M068-M070 | Structural foundation crystallization + roadmap freshness guard — onion package, ADR standard, compliance gate (pre-commit + CI), library-boundary contract | Anti-drift infrastructure, now fully enforceable locally AND in CI (push/PR). Repo is a package (`src/law_nexus`). M068/M069/M070 all complete. Does NOT validate R035/R037/R038, does NOT harden the parser, does NOT introduce FalkorDB/graph/retrieval. |
 
 See `prd/project-state/diagrams/milestone-timeline.mmd` for the compressed
 timeline (note: the diagram predates M068-M069 and should be refreshed when the
@@ -63,9 +61,9 @@ D098) to the truthful trajectory and added a pytest freshness-guard
 source of truth so the roadmap cannot silently drift again. The guard fails if
 the roadmap's `current_milestone` lags the latest GSD milestone.
 
-> **Note:** M068-xi4034 precedes this milestone and is **not yet complete** —
-> its validation is `needs-attention` (pre-commit+CI wire half-met). See
-> "Pending validation" below.
+> **Note:** M068 is now complete — round-0 needs-attention was resolved in
+> round 1 by adding the CI compliance-gate workflow (S04) and by M069 closing
+> the standing pre-commit rc=1 (Decision-section exempt-rule).
 
 ## Recommended next milestone
 

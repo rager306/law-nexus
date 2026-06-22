@@ -30,9 +30,9 @@
     },
     {
       "range": "M068-M070",
-      "theme": "Structural foundation crystallization + roadmap freshness guard — onion package, ADR standard, compliance gate, library-boundary contract, anti-drift freshness guard",
-      "status": "partial",
-      "boundary": "Anti-drift infrastructure only. M068 turned the repo into the src/law_nexus onion package (ADR-0001) with a MADR ADR standard + compliance gate (ADR-0002); M069 recorded the library boundary (ADR-0003) and made the standing tree gate-green; M070 fixed the stale project-state roadmap and added a pytest freshness-guard that parses .gsd/STATE.md so the roadmap cannot silently drift again. M069 and M070 are COMPLETE; M068 is needs-attention (validation: pre-commit+CI wire is only half-met — pre-commit wired, CI .github/workflows not). Does NOT validate R035/R037/R038, does NOT harden the parser, does NOT introduce FalkorDB/graph/retrieval."
+      "theme": "Structural foundation crystallization + roadmap freshness guard — onion package, ADR standard, compliance gate (pre-commit + CI), library-boundary contract, anti-drift freshness guard",
+      "status": "complete",
+      "boundary": "Anti-drift infrastructure only, now fully enforceable locally AND in CI. M068 turned the repo into the src/law_nexus onion package (ADR-0001) with a MADR ADR standard + compliance gate (ADR-0002: import-linter + verify-adr-conformance, wired as hard-fail pre-commit hooks AND as a GitHub Actions CI workflow on push/PR); M069 recorded the library boundary (ADR-0003) and made the standing tree gate-green; M070 fixed the stale project-state roadmap and added a pytest freshness-guard. Does NOT validate R035/R037/R038, does NOT harden the parser, does NOT introduce FalkorDB/graph/retrieval."
     }
   ],
   "current_milestone": {
@@ -40,12 +40,6 @@
     "title": "Roadmap freshness guard",
     "status": "complete",
     "goal": "Fixed the stale project-state roadmap (was current=M047, next=ACP — contradicting D098) to the truthful trajectory (M069 complete, M068 needs-attention, parser-hardening next, ACP frozen) and added a pytest freshness-guard parsing .gsd/STATE.md so the roadmap cannot silently drift again."
-  },
-  "pending_validation": {
-    "id": "M068-xi4034",
-    "status": "active",
-    "phase": "blocked",
-    "note": "M068 validation = needs-attention: the 'pre-commit+CI wire' S03 success criterion is only half-met (pre-commit wired and green; .github/workflows CI not wired). Resolve by wiring CI OR rescoping the criterion, then re-run gsd_validate_milestone to pass and complete M068."
   },
   "recommended_next": {
     "title": "Consultant XML Parser Hardening from M009 baseline (M034 corrected roadmap)",
