@@ -1,0 +1,11 @@
+md.externalLink | hasValue | https://docs.astral.sh/uv/
+md.externalLink | hasValue | https://github.com/rager306/git-lex-kit-acp
+md.externalLink | hasValue | https://github.com/rager306/law-nexus/actions/workflows/compliance-gate.yml
+md.internalLink | hasValue | doc/adr/0001-onion-package-structure.md
+md.internalLink | hasValue | doc/adr/0002-adr-standard-and-compliance-gate.md
+md.internalLink | hasValue | doc/adr/0003-library-boundary-contract.md
+md.internalLink | hasValue | doc/adr/README.md
+md.internalLink | hasValue | prd/ARCHITECTURE.md
+md.internalLink | hasValue | prd/project-state/roadmap.md
+md.internalLink | hasValue | prd/research/source_structuring/25-corrected-consultant-xml-parser-roadmap.md
+md.unresolvedLink | hasValue | doc/adr/

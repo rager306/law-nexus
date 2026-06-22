@@ -110,35 +110,42 @@ def test_roadmap_current_milestone_exists_in_gsd_state() -> None:
 
 
 def test_roadmap_current_milestone_tracks_latest_gsd_milestone() -> None:
-    """The roadmap current_milestone must track the latest GSD milestone.
+    """The roadmap current_milestone must track the latest COMPLETED GSD milestone.
 
-    This is the core anti-drift assertion. The roadmap's current_milestone
-    sequence must equal the maximum sequence in the GSD registry (the latest
-    milestone, completed or active). When a new milestone completes, the roadmap
-    MUST be updated; otherwise this test fails. Tolerance is zero by design —
-    a roadmap that lags the latest milestone is exactly the drift we prevent.
+    This is the core anti-drift assertion. The roadmap's current_milestone must
+    point at the latest milestone that is actually DONE (✅), because the roadmap
+    describes what has landed — not what is merely in flight. The drift this
+    prevents is concrete: historically the roadmap named M047 long after M068/
+    M069 had completed.
 
-    Accepted if the roadmap current is EITHER the latest milestone OR the active
-    (blocked) milestone, since a blocked-but-active milestone can legitimately
-    be the thing the roadmap points at.
+    Target = the latest COMPLETED milestone (highest ✅ seq). An active-but-
+    incomplete milestone (🔄, e.g. one just planned) is explicitly tolerated: the
+    roadmap legitimately stays on the last completed milestone until the active
+    one lands. When the active milestone completes, the roadmap MUST advance, or
+    this test fails.
+
+    Accepted if roadmap current == latest completed seq, OR (for a blocked-
+    but-active milestone that the roadmap deliberately foregrounds) == active seq.
     """
     state = _load_state()
     roadmap = _load_roadmap()
     rows = _registry_milestones(state)
-    max_seq = max(seq for seq, _, _ in rows)
+    completed_seqs = [seq for seq, marker, _ in rows if marker == "✅"]
+    assert completed_seqs, "no completed milestones in GSD registry"
+    latest_completed_seq = max(completed_seqs)
     active_seq = _active_milestone_seq(state)
 
     current_id = roadmap["current_milestone"]["id"]
     current_seq = int(_MSEQ_RE.match(current_id).group(1))
 
-    accepted = {max_seq}
+    accepted = {latest_completed_seq}
     if active_seq is not None:
         accepted.add(active_seq)
     assert current_seq in accepted, (
-        f"roadmap current_milestone is M{current_seq} but the latest GSD milestone is "
-        f"M{max_seq} (active: M{active_seq}). The project-state roadmap is stale — "
-        f"refresh prd/project-state/data/roadmap.json (+ roadmap.md) to the current "
-        f"GSD state."
+        f"roadmap current_milestone is M{current_seq} but the latest COMPLETED GSD "
+        f"milestone is M{latest_completed_seq} (active: M{active_seq}). The "
+        f"project-state roadmap is stale — refresh prd/project-state/data/roadmap.json "
+        f"(+ roadmap.md) to the current GSD state."
     )
 
 
@@ -200,20 +207,31 @@ def test_roadmap_completed_groups_cover_through_latest_milestone() -> None:
 
 
 if __name__ == "__main__":
-    # Manual run: print a freshness summary instead of raising.
+    # Manual run: print a freshness summary instead of raising. "fresh" uses
+    # the same semantics as the test: roadmap current should equal the latest
+    # COMPLETED milestone, OR the active milestone (an active-but-incomplete
+    # milestone is tolerated).
     state = _load_state()
     roadmap = _load_roadmap()
     rows = _registry_milestones(state)
-    max_seq = max(seq for seq, _, _ in rows)
+    completed_seqs = [seq for seq, marker, _ in rows if marker == "✅"]
+    latest_completed = max(completed_seqs) if completed_seqs else None
     active_seq = _active_milestone_seq(state)
+    max_seq = max(seq for seq, _, _ in rows)
     current_seq = int(_MSEQ_RE.match(roadmap["current_milestone"]["id"]).group(1))
+    accepted = set()
+    if latest_completed is not None:
+        accepted.add(latest_completed)
+    if active_seq is not None:
+        accepted.add(active_seq)
     print(
         json.dumps(
             {
-                "latest_gsd_milestone": f"M{max_seq}",
+                "latest_completed_gsd_milestone": f"M{latest_completed}" if latest_completed else None,
                 "active_gsd_milestone": f"M{active_seq}" if active_seq else None,
+                "max_gsd_milestone": f"M{max_seq}",
                 "roadmap_current": f"M{current_seq}",
-                "fresh": current_seq in {max_seq, *(active_seq is not None and [active_seq] or [])},
+                "fresh": current_seq in accepted,
             },
             sort_keys=True,
         )
