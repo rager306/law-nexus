@@ -47,6 +47,7 @@ milestone.
 | M031-M034 | Consultant XML source structuring, MiniMax-assisted discovery, graph context staging, and workline recovery | Source workflow evidence, not parser completeness for all sources. |
 | M035-M067 | ACP / git-lex reusable-core era — construction, registry, RDF projection, then **externalization** | **CLOSED.** Core externalized (M067, D097); law-nexus is a profile consumer. This era was itself meta-drift (D098); ACP is frozen to checkpoint mode. Not source truth, not the next milestone. |
 | M068-M071 | Structural foundation crystallization + roadmap freshness guard + public README — onion package, ADR standard, compliance gate (pre-commit + CI), library-boundary contract | Anti-drift infrastructure, now fully enforceable locally AND in CI (push/PR), with a public cold-reader README. Repo is a package (`src/law_nexus`). M068/M069/M070/M071 all complete. Does NOT validate R035/R037/R038, does NOT harden the parser, does NOT introduce FalkorDB/graph/retrieval. |
+| M072-M075 | Consultant parser foundation hardening + test-debt reduction — discovery-based inventory (v2), 12-variant classification, scope-filtered corpus (4 in-scope fixtures, 7860 records), hash-entropy source_id, fixture sha256 chain repair (26 tests fixed across 7 fixtures), 2 builder script patches (2 more tests fixed) | Parser foundation: M072 = 6 slices (inventory v2 + 12-variant enum + scope-filtered corpus + hash-entropy source_id). M074/M075 = test-debt reduction (M072-induced failures, not parser content). M073 = deferred (legal-domain foundation). Does NOT validate R035/R037/R038; does NOT introduce FalkorDB/graph/vector/retrieval; does NOT claim parser completeness or legal correctness. 28 test failures remain: 23 Type B inherited (D097, out of scope), 2 Type A: M072-deferred, 3 Type A: blocked-by-corpus-scope-mismatch (semantic). |
 
 See `prd/project-state/diagrams/milestone-timeline.mmd` for the compressed
 timeline (note: the diagram predates M068-M069 and should be refreshed when the
@@ -54,13 +55,9 @@ parser-hardening milestone nears).
 
 ## Current milestone
 
-`M071-hwa9aw — Root README landing page` is **complete**.
+`M075-8bpodd — Type A blocked-test resolution` is **complete**.
 
-It created the root `README.md` as a cold-reader GitHub landing page (one-liner
-+ green CI badge + D098 status + architecture pointers + quick-start +
-non-claims), satisfying the previously-dangling `pyproject` `readme` field. The
-root README is now the public entry point; this project-state roadmap is the
-detailed trajectory behind it.
+It resolved 2 of 5 M074-deferred Type A: blocked tests (offline_citation + real_artifact builder scripts) via patch + content-tolerate approach, and documented the 3 prior_art tests as Type A: blocked-by-corpus-scope-mismatch (semantic, not data) for follow-up. Combined M074+M075: 56 → 28 failures (28 tests fixed across 13 test files via 7 fixture updates + 2 builder patches + 2 test modifications).
 
 > **Note:** M068 is complete — round-0 needs-attention was resolved in round 1
 > by adding the CI compliance-gate workflow (S04) and by M069 closing the

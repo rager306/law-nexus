@@ -33,13 +33,19 @@
       "theme": "Structural foundation crystallization + roadmap freshness guard + public README — onion package, ADR standard, compliance gate (pre-commit + CI), library-boundary contract, anti-drift freshness guard, landing page",
       "status": "complete",
       "boundary": "Anti-drift infrastructure only, now fully enforceable locally AND in CI, with a public cold-reader README. M068 (onion package ADR-0001 + compliance gate ADR-0002: pre-commit + .github/workflows CI); M069 (library boundary ADR-0003 + gate-green tree); M070 (roadmap freshness guard); M071 (root README landing + CI badge). Does NOT validate R035/R037/R038, does NOT harden the parser, does NOT introduce FalkorDB/graph/retrieval."
+    },
+    {
+      "range": "M072-M075",
+      "theme": "Consultant parser foundation hardening + test-debt reduction — discovery-based inventory (v2), 12-variant classification, scope-filtered corpus (4 in-scope fixtures, 7860 records), hash-entropy source_id, fixture sha256 chain repair (26 tests fixed across 7 fixtures), 2 builder script patches (2 more tests fixed)",
+      "status": "complete",
+      "boundary": "Parser foundation: M072 = 6 slices (inventory v2 + 12-variant enum + scope-filtered corpus + hash-entropy source_id). M074/M075 = test-debt reduction (M072-induced failures, not parser content). M073 = deferred (legal-domain foundation). Does NOT validate R035/R037/R038; does NOT introduce FalkorDB/graph/vector/retrieval; does NOT claim parser completeness or legal correctness. 28 test failures remain: 23 Type B inherited (D097, out of scope), 2 Type A: M072-deferred, 3 Type A: blocked-by-corpus-scope-mismatch (semantic)."
     }
   ],
   "current_milestone": {
-    "id": "M071-hwa9aw",
-    "title": "Root README landing page",
+    "id": "M075-8bpodd",
+    "title": "Type A blocked-test resolution",
     "status": "complete",
-    "goal": "Created the root README.md as a cold-reader GitHub landing page (one-liner + CI badge + D098 status + architecture pointers + quick-start + non-claims), satisfying the previously-dangling pyproject `readme` field; refined the roadmap freshness-guard assertion to track the latest COMPLETED milestone (tolerate active-but-incomplete)."
+    "goal": "Resolved 2 of 5 M074-deferred Type A: blocked tests via patch + content-tolerate approach; documented 3 prior_art tests as Type A: blocked-by-corpus-scope-mismatch (semantic, not data) for follow-up. Combined M074+M075: 56 → 28 failures (28 tests fixed)."
   },
   "recommended_next": {
     "title": "Consultant XML Parser Hardening from M009 baseline (M034 corrected roadmap)",
