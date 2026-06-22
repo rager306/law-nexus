@@ -173,8 +173,8 @@ def _probe_one(
     out["parser_outcome"] = (
         "success-classified"
         if (
-            inventory_document_type == "federal_law"
-            and derived.value == "federal_law"
+            isinstance(inventory_document_type, str)
+            and inventory_document_type == derived.value
         )
         else "success-as-other"
     )

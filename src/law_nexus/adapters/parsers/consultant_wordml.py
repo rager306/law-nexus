@@ -73,13 +73,28 @@ _SHA_CHUNK = 1024 * 1024
 class ConsultantDocumentType(str, Enum):
     """Coarse document-type classification derived from the Consultant title.
 
-    Only the act kinds that appear in the project fixtures are enumerated;
-    unknown kinds fall through to ``other``. The classification drives the
-    ``SourceProvenanceClass`` and future source-level mapping.
+    Enumerated act kinds that appear in the project fixtures; unknown kinds
+    fall through to :attr:`other`. The classification drives the
+    :class:`SourceProvenanceClass` and future source-level mapping.
+
+    Variants are grounded in the M072 S02 probe of the expanded fixture
+    corpus (41 Consultant XML fixtures). Adding a new variant here requires
+    a matching pattern matcher in :func:`_classify_document_type` and a
+    per-variant test using REAL fixture title text (M072 S04).
     """
 
     federal_law = "federal_law"
-    other = "other"
+    code = "code"
+    code_amendment_overview = "code_amendment_overview"
+    court_practice_review = "court_practice_review"
+    fas_review = "fas_review"
+    government_resolution = "government_resolution"
+    constitutional_court_ruling = "constitutional_court_ruling"
+    supreme_court_ruling = "supreme_court_ruling"
+    lower_court_ruling = "lower_court_ruling"
+    antimonopoly_decision = "antimonopoly_decision"
+    document_list = "document_list"
+    other_document = "other_document"
 
 
 class ConsultantParseError(ValueError):
@@ -101,18 +116,106 @@ def _sha256_of_file(path: Path) -> str:
     return digest.hexdigest()
 
 
+#: Pattern matchers for Consultant title classification. Each entry is
+#: (ConsultantDocumentType, compiled regex). Order matters: more specific
+#: patterns come first so they win against shorter generic matches (e.g.
+#: ``Конституционного Суда`` before generic ``Суда``). Patterns are tested
+#: against the first non-empty line of the Consultant ``<o:Title>``.
+_DOCUMENT_TYPE_PATTERNS: tuple[tuple[ConsultantDocumentType, re.Pattern[str]], ...] = (
+    (
+        ConsultantDocumentType.constitutional_court_ruling,
+        re.compile(
+            r"(Постановление|Определение)\s+Конституционного\s+Суда", re.IGNORECASE | re.UNICODE
+        ),
+    ),
+    (
+        ConsultantDocumentType.supreme_court_ruling,
+        re.compile(r"(Постановление|Определение)\s+Верховного\s+Суда", re.IGNORECASE | re.UNICODE),
+    ),
+    (
+        ConsultantDocumentType.lower_court_ruling,
+        re.compile(r"Постановление.*(?:арбитражн|кассацион)", re.IGNORECASE | re.UNICODE),
+    ),
+    (
+        ConsultantDocumentType.antimonopoly_decision,
+        re.compile(r"(Решение|Приказ)\s+(ФАС|УФАС)", re.IGNORECASE | re.UNICODE),
+    ),
+    (
+        ConsultantDocumentType.government_resolution,
+        re.compile(r"Постановление\s+Правительства", re.IGNORECASE | re.UNICODE),
+    ),
+    (
+        ConsultantDocumentType.court_practice_review,
+        re.compile(r"Обзор\s+судебной\s+практики", re.IGNORECASE | re.UNICODE),
+    ),
+    (
+        ConsultantDocumentType.code_amendment_overview,
+        re.compile(r"Обзор\s+изменений.*\bКодекс", re.IGNORECASE | re.UNICODE),
+    ),
+    (
+        ConsultantDocumentType.fas_review,
+        re.compile(r"Обзор.*\b(ФАС|Казначейств)", re.IGNORECASE | re.UNICODE),
+    ),
+    (
+        ConsultantDocumentType.code,
+        re.compile(r"\bКодекс\b", re.IGNORECASE | re.UNICODE),
+    ),
+    (
+        ConsultantDocumentType.federal_law,
+        re.compile(r"Федеральн[ыы]й\s+закон", re.IGNORECASE | re.UNICODE),
+    ),
+    (
+        ConsultantDocumentType.document_list,
+        re.compile(r"Список\s+документов", re.IGNORECASE | re.UNICODE),
+    ),
+)
+
+
 def _classify_document_type(title: str) -> ConsultantDocumentType:
     """Classify the document kind from the first line of ``<o:Title>``.
 
     Consultant titles begin with the act kind, e.g.
-    ``Федеральный закон от 05.04.2013 N 44-ФЗ``. Only ``Федеральный закон`` is
-    recognised here; everything else is ``other``.
+    ``Федеральный закон от 05.04.2013 N 44-ФЗ`` or ``Постановление
+    Конституционного Суда РФ от 18.03.2021 N 7-П``. Pattern matchers in
+    :data:`_DOCUMENT_TYPE_PATTERNS` are tried in declared priority order;
+    the first match wins. If no pattern matches, :attr:`ConsultantDocumentType.other`
+    is returned.
+
+    Classification is title-pattern matching only and is NOT a parser
+    assertion (see :class:`ConsultantWordMLParser` and the explicit
+    non-claims block in :file:`prd/parser/source_fixture_inventory.md`).
     """
 
     first_line = title.splitlines()[0] if title else ""
-    if "Федеральный закон" in first_line or "Федеральн" in first_line:
-        return ConsultantDocumentType.federal_law
-    return ConsultantDocumentType.other
+    for doc_type, pattern in _DOCUMENT_TYPE_PATTERNS:
+        if pattern.search(first_line):
+            return doc_type
+    return ConsultantDocumentType.other_document
+
+
+def _extract_consultant_title_first_line(path: Path) -> str | None:
+    """Return the first non-empty line of the Consultant ``<o:Title>`` or ``None``.
+
+    Uses stdlib ``iterparse`` to avoid loading the entire XML tree into memory
+    — Consultant fixtures can be tens of MB. The function is exposed (no
+    underscore) because downstream tooling (probe, tests, future ingest
+    pipelines) reuses the same title extraction logic.
+    """
+
+    title_tag = f"{{{_OFFICE_NS}}}Title"
+    try:
+        for _, elem in ET.iterparse(path, events=("start",)):
+            if elem.tag != title_tag:
+                continue
+            text = elem.text
+            elem.clear()
+            if not text:
+                return None
+            first_line = text.strip().splitlines()[0] if text.strip() else ""
+            return first_line or None
+    except ET.ParseError:
+        return None
+    return None
 
 
 def _extract_act_number(title: str) -> str | None:
@@ -272,10 +375,16 @@ def _derive_source_id(act_number: str | None, filename: str) -> str:
 def _provenance_for(doc_type: ConsultantDocumentType) -> SourceProvenanceClass:
     """Map a Consultant document kind to its provenance class.
 
-    Consultant is a commercial consolidated legal database, so every
-    recognised act kind maps to :attr:`commercial_consolidated`.
+    Consultant Plus is a commercial consolidated legal database (a paid
+    subscription product bundling primary law, secondary law, court
+    practice, and editorial materials). Every recognised act kind —
+    including federal laws, codes, court reviews, antimonopoly decisions,
+    constitutional and other court rulings, government resolutions, and
+    document lists — is sourced through the same commercial consolidated
+    pipeline, so all variants map to
+    :attr:`SourceProvenanceClass.commercial_consolidated`. This is a
+    provenance provenance invariant per D046, not a per-variant policy
+    decision.
     """
 
-    if doc_type is ConsultantDocumentType.federal_law:
-        return SourceProvenanceClass.commercial_consolidated
     return SourceProvenanceClass.commercial_consolidated
