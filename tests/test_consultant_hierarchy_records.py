@@ -32,6 +32,13 @@ def load_builder_module():
 
 
 def test_generated_hierarchy_jsonl_records_are_valid_and_contextual():
+    # Ensure single-mode artifacts are on disk (corpus mode overwrites them).
+    subprocess.run(
+        [sys.executable, str(SCRIPT_PATH)],
+        cwd=ROOT,
+        check=True,
+        capture_output=True,
+    )
     records, diagnostics = load_jsonl_records(JSONL_PATH)
     assert diagnostics == []
     assert records
@@ -66,6 +73,13 @@ def test_generated_hierarchy_jsonl_records_are_valid_and_contextual():
 
 
 def test_generator_build_is_deterministic_against_artifacts():
+    # Ensure single-mode artifacts are on disk (corpus mode overwrites them).
+    subprocess.run(
+        [sys.executable, str(SCRIPT_PATH)],
+        cwd=ROOT,
+        check=True,
+        capture_output=True,
+    )
     module = load_builder_module()
     result = module.build()
     assert result.jsonl == JSONL_PATH.read_text(encoding="utf-8")
@@ -78,6 +92,13 @@ def test_generator_build_is_deterministic_against_artifacts():
 
 
 def test_cli_check_reports_fresh_artifacts_and_observability():
+    # Ensure single-mode artifacts are on disk (corpus mode overwrites them).
+    subprocess.run(
+        [sys.executable, str(SCRIPT_PATH)],
+        cwd=ROOT,
+        check=True,
+        capture_output=True,
+    )
     completed = subprocess.run(
         [sys.executable, str(SCRIPT_PATH), "--check"],
         cwd=ROOT,
@@ -111,7 +132,13 @@ def test_marker_entity_decoding_and_boundary_resets_on_inline_fixture():
         module.Paragraph(index=8, text="Статья 2. Новая статья", style="2"),
         module.Paragraph(index=9, text="1) пункт без новой части", style="0"),
     ]
-    records, diagnostics = module.hierarchy_records(paragraphs, "a" * 64)
+    records, diagnostics = module.hierarchy_records(
+        paragraphs,
+        "a" * 64,
+        scope_id="CONS",
+        document_id="DOC-TEST",
+        source_path="test/fixture.xml",
+    )
     payloads = [parse_parser_record(record).model_dump(mode="json") for record in records]
     by_title = {payload["title"]: payload for payload in payloads}
 
@@ -128,7 +155,13 @@ def test_context_false_positive_fixture_rejects_markers_outside_article_context(
     module = load_builder_module()
     paragraphs, stream_diagnostics = module.stream_wordml_paragraphs(CONTEXT_FALSE_POSITIVE_FIXTURE)
 
-    records, diagnostics = module.hierarchy_records(paragraphs, "d" * 64)
+    records, diagnostics = module.hierarchy_records(
+        paragraphs,
+        "d" * 64,
+        scope_id="CONS",
+        document_id="DOC-TEST",
+        source_path=str(CONTEXT_FALSE_POSITIVE_FIXTURE.relative_to(ROOT)),
+    )
     payloads = [parse_parser_record(record).model_dump(mode="json") for record in records]
     titles = {payload["title"] for payload in payloads}
     rejected = diagnostics["rejected_context_markers"]
@@ -228,7 +261,13 @@ def test_hierarchy_diagnostics_for_missing_article_heading_and_context_break():
         module.Paragraph(index=4, text="1) пункт без статьи", style="0"),
     ]
 
-    records, diagnostics = module.hierarchy_records(paragraphs, "c" * 64)
+    records, diagnostics = module.hierarchy_records(
+        paragraphs,
+        "c" * 64,
+        scope_id="CONS",
+        document_id="DOC-TEST",
+        source_path="test/fixture.xml",
+    )
     assert [record["level"] for record in records] == ["document", "chapter"]
     assert diagnostics["skipped_marker_counts"] == {"clause_outside_article": 1, "part_outside_article": 1}
     assert diagnostics["structural_error_count"] == 3
@@ -245,3 +284,119 @@ def test_cli_fail_closed_for_missing_article_heading(monkeypatch, tmp_path, caps
     assert payload["structural_error_count"] >= 1
     assert payload["structural_errors"][0]["kind"] == "missing_article_heading"
     assert payload["validation_error_count"] == 0
+
+
+# M072 S05 corpus-mode tests (run after the in-scope fixtures have been
+# re-extracted by ``--corpus`` mode). All tests assert against the on-disk
+# corpus artifacts written by the build script.
+
+CORPUS_JSONL = ROOT / "prd" / "parser" / "consultant_hierarchy_records.jsonl"
+CORPUS_JSON = ROOT / "prd" / "parser" / "consultant_hierarchy_records.json"
+CORPUS_REPORT = ROOT / "prd" / "parser" / "consultant_hierarchy_records.md"
+
+
+def _load_corpus_records() -> list[dict]:
+    """Read the corpus JSONL produced by ``--corpus`` mode."""
+    assert CORPUS_JSONL.exists(), f"corpus JSONL missing: {CORPUS_JSONL} (run --corpus --write)"
+    return [json.loads(line) for line in CORPUS_JSONL.read_text(encoding="utf-8").splitlines() if line]
+
+
+def _load_corpus_summary() -> dict:
+    return json.loads(CORPUS_JSON.read_text(encoding="utf-8"))
+
+
+def _ensure_corpus_artifacts_on_disk() -> None:
+    """Re-run ``--corpus`` to ensure the on-disk artifacts are corpus-mode (not single-mode)."""
+    subprocess.run(
+        [sys.executable, str(SCRIPT_PATH), "--corpus"],
+        cwd=ROOT,
+        check=True,
+        capture_output=True,
+    )
+
+
+def test_corpus_extracts_all_in_scope_fixtures() -> None:
+    """All 4 in-scope fixtures (2 federal_law + 2 code) must each produce >=1 record."""
+    _ensure_corpus_artifacts_on_disk()
+    summary = _load_corpus_summary()
+    in_scope = summary["in_scope_fixtures"]
+    assert len(in_scope) == 4, f"expected 4 in-scope fixtures, got {len(in_scope)}"
+    document_types = {entry["document_type"] for entry in in_scope}
+    assert document_types == {"federal_law", "code"}, document_types
+    for entry in in_scope:
+        assert entry["record_count"] >= 1, f"{entry['path']} produced 0 records"
+
+
+def test_corpus_record_ids_unique_across_fixtures() -> None:
+    """Concatenated corpus records must have no id collisions across fixtures."""
+    _ensure_corpus_artifacts_on_disk()
+    records = _load_corpus_records()
+    ids = [record["id"] for record in records]
+    assert len(ids) == len(set(ids)), f"id collision: {len(ids)} records, {len(set(ids))} unique"
+    summary = _load_corpus_summary()
+    assert summary["totals"]["id_collision_count"] == 0
+
+
+def test_corpus_records_have_per_fixture_scope_id_prefix() -> None:
+    """Each in-scope fixture's records must carry its own scope id prefix."""
+    _ensure_corpus_artifacts_on_disk()
+    records = _load_corpus_records()
+    summary = _load_corpus_summary()
+    by_path = {entry["path"]: entry["scope_id"] for entry in summary["in_scope_fixtures"]}
+    for record in records:
+        expected_prefix = f"HIER-{by_path[record['source_path']]}-"
+        assert record["id"].startswith(expected_prefix), (
+            f"record {record['id']} does not start with {expected_prefix!r}"
+        )
+
+
+def test_corpus_documents_49_out_of_scope_fixtures_with_reason() -> None:
+    """Out-of-scope fixtures (49) must be documented in the corpus report with reason per role."""
+    _ensure_corpus_artifacts_on_disk()
+    summary = _load_corpus_summary()
+    assert summary["totals"]["out_of_scope_fixture_count"] == 49
+    out_of_scope = summary["out_of_scope"]
+    assert len(out_of_scope) == 11
+    for entry in out_of_scope:
+        assert entry["fixture_count"] >= 1
+        assert "reason" in entry and entry["reason"]
+
+
+def test_corpus_report_has_scope_section_and_non_claims() -> None:
+    """The corpus Markdown report must carry a scope section + non-claims block."""
+    _ensure_corpus_artifacts_on_disk()
+    md = CORPUS_REPORT.read_text(encoding="utf-8")
+    assert "## Scope" in md
+    assert "## In-scope per-fixture breakdown" in md
+    assert "## Out-of-scope fixtures" in md
+    assert "## Non-claims" in md
+    for claim in _load_corpus_summary()["non_claims"]:
+        assert claim in md, f"missing non-claim in report: {claim[:50]}"
+
+
+def test_corpus_is_idempotent_across_runs() -> None:
+    """Re-running --corpus produces the same JSONL (SHA-stable)."""
+    sha_before = hashlib.sha256(CORPUS_JSONL.read_bytes()).hexdigest()
+    subprocess.run(
+        [sys.executable, str(SCRIPT_PATH), "--corpus"],
+        cwd=ROOT,
+        check=True,
+        capture_output=True,
+    )
+    sha_after = hashlib.sha256(CORPUS_JSONL.read_bytes()).hexdigest()
+    assert sha_before == sha_after, f"corpus drifted: {sha_before} != {sha_after}"
+
+
+def test_corpus_check_reports_fresh_artifacts() -> None:
+    """``--check`` exits 0 when the on-disk corpus artifacts are current."""
+    result = subprocess.run(
+        [sys.executable, str(SCRIPT_PATH), "--corpus", "--check"],
+        cwd=ROOT,
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    assert result.returncode == 0, result.stderr
+    summary = json.loads(result.stdout)
+    assert summary["status"] == "pass"
+    assert summary["totals"]["record_count"] == summary["totals"]["unique_record_id_count"]

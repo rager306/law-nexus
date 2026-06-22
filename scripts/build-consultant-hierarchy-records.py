@@ -29,9 +29,13 @@ JSONL_PATH = Path("prd/parser/consultant_hierarchy_records.jsonl")
 JSON_PATH = Path("prd/parser/consultant_hierarchy_records.json")
 REPORT_PATH = Path("prd/parser/consultant_hierarchy_records.md")
 WORDML_NS = "http://schemas.microsoft.com/office/word/2003/wordml"
-DOCUMENT_ID = "DOC-CONS-44-FZ"
-DOCUMENT_HIERARCHY_ID = "HIER-CONS-DOCUMENT"
 MAX_DIAGNOSTICS = 100
+#: In-scope document types for M072 S05 hierarchy extraction. These are the
+#: source-roles that have a normative-act structure (full-federal-law + code).
+#: Other source-roles (court decisions, antimonopoly decisions, government
+#: resolutions, lists, reviews, ODT) are out-of-scope and get a documented
+#: 'no hierarchy' statement in the corpus report.
+IN_SCOPE_DOCUMENT_TYPES: tuple[str, ...] = ("federal_law", "code")
 NON_CLAIMS = [
     "Consultant hierarchy records are deterministic parser-source records only.",
     "Consultant hierarchy records do not claim legal correctness or authoritative legal interpretation.",
@@ -204,8 +208,36 @@ def compact_error(kind: str, message: str, **extra: Any) -> dict[str, Any]:
     return payload
 
 
-def load_inventory_fixture() -> tuple[dict[str, Any] | None, list[dict[str, Any]]]:
-    """Load the canonical inventory entry for the Consultant full-act fixture."""
+def _derive_scope_id(path: str) -> str:
+    """Derive a deterministic ASCII-safe scope id from a fixture path.
+
+    The scope id prefixes all hierarchy record ids emitted for that fixture
+    (e.g. ``CONS-FL-44-FZ-2026``, ``CONS-CODE-BK-145-FZ``). It must be unique
+    across the in-scope corpus so that concatenated JSONL output has no id
+    collisions.
+    """
+
+    stem = Path(path).stem
+    ascii_safe = re.sub(r"[^A-Za-z0-9]+", "-", stem).strip("-")[:24]
+    if not ascii_safe:
+        ascii_safe = re.sub(r"[^A-Za-z0-9]+", "-", Path(path).name).strip("-")[:24]
+    return f"CONS-{ascii_safe}" if ascii_safe else "CONS-UNKNOWN"
+
+
+def _document_id(scope_id: str) -> str:
+    """Stable document record id derived from the per-fixture scope id."""
+
+    return f"DOC-{scope_id}"
+
+
+def _document_hierarchy_id(scope_id: str) -> str:
+    """Stable document-hierarchy (root) record id for a fixture."""
+
+    return f"HIER-{scope_id}-DOCUMENT"
+
+
+def load_inventory_fixture(target_path: str = str(SOURCE_PATH)) -> tuple[dict[str, Any] | None, list[dict[str, Any]]]:
+    """Load the canonical inventory entry for the given target fixture path."""
 
     inventory_path = ROOT / INVENTORY_PATH
     if not inventory_path.exists():
@@ -217,18 +249,28 @@ def load_inventory_fixture() -> tuple[dict[str, Any] | None, list[dict[str, Any]
         return None, [compact_error("malformed_inventory_json", exc, path=str(INVENTORY_PATH))]
 
     for fixture in payload.get("fixtures", []):
-        if fixture.get("path") == str(SOURCE_PATH):
+        if fixture.get("path") == target_path:
             return fixture, []
-    return None, [compact_error("missing_inventory_fixture", f"canonical inventory fixture missing: {SOURCE_PATH}", path=str(SOURCE_PATH))]
+    return None, [
+        compact_error(
+            "missing_inventory_fixture",
+            f"canonical inventory fixture missing: {target_path}",
+            path=target_path,
+        )
+    ]
 
 
-def next_record_id(counters: Counter[str], level: Level) -> str:
-    """Return a stable record id for a hierarchy level occurrence."""
+def next_record_id(scope_id: str, counters: Counter[str], level: Level) -> str:
+    """Return a stable record id for a hierarchy level occurrence.
+
+    IDs are prefixed with the per-fixture scope id (e.g. ``HIER-CONS-44-FZ-2026-CHAPTER-0001``)
+    so concatenated records from multiple fixtures do not collide.
+    """
 
     if level == "document":
-        return DOCUMENT_HIERARCHY_ID
+        return _document_hierarchy_id(scope_id)
     counters[level] += 1
-    return f"HIER-CONS-{level.upper()}-{counters[level]:04d}"
+    return f"HIER-{scope_id}-{level.upper()}-{counters[level]:04d}"
 
 
 def parent_for_level(level: Level, context: dict[str, str | None]) -> str | None:
@@ -278,6 +320,9 @@ def build_record(
     marker: Marker | None,
     parent_id: str | None,
     source_sha256: str,
+    scope_id: str,
+    document_id: str,
+    source_path: str,
 ) -> dict[str, Any]:
     """Build and validate one Consultant hierarchy parser record."""
 
@@ -286,9 +331,9 @@ def build_record(
         "record_kind": "consultant_hierarchy",
         "schema_version": "legalgraph-parser-record/v1",
         "id": record_id,
-        "document_id": DOCUMENT_ID,
+        "document_id": document_id,
         "source_kind": "consultant-wordml-xml",
-        "source_path": str(SOURCE_PATH),
+        "source_path": source_path,
         "source_sha256": source_sha256,
         "source_member": None,
         "order_index": paragraph.index,
@@ -311,16 +356,24 @@ def build_record(
     return payload
 
 
-def hierarchy_records(paragraphs: list[Paragraph], source_sha256: str) -> tuple[list[dict[str, Any]], dict[str, Any]]:
+def hierarchy_records(
+    paragraphs: list[Paragraph],
+    source_sha256: str,
+    *,
+    scope_id: str,
+    document_id: str,
+    source_path: str,
+) -> tuple[list[dict[str, Any]], dict[str, Any]]:
     """Extract hierarchy records using current-context boundaries, not global regex."""
 
+    document_hierarchy_id = _document_hierarchy_id(scope_id)
     records: list[dict[str, Any]] = []
     counters: Counter[str] = Counter()
     skipped: Counter[str] = Counter()
     rejected_context_markers: list[dict[str, Any]] = []
     validation_errors: list[dict[str, Any]] = []
     context: dict[str, str | None] = {
-        "document": DOCUMENT_HIERARCHY_ID,
+        "document": document_hierarchy_id,
         "chapter": None,
         "section": None,
         "article": None,
@@ -333,12 +386,15 @@ def hierarchy_records(paragraphs: list[Paragraph], source_sha256: str) -> tuple[
     document_paragraph = Paragraph(index=first_title.index, text=first_title.text, style=first_title.style)
     records.append(
         build_record(
-            record_id=DOCUMENT_HIERARCHY_ID,
+            record_id=document_hierarchy_id,
             level="document",
             paragraph=document_paragraph,
             marker=None,
             parent_id=None,
             source_sha256=source_sha256,
+            scope_id=scope_id,
+            document_id=document_id,
+            source_path=source_path,
         )
     )
 
@@ -379,7 +435,7 @@ def hierarchy_records(paragraphs: list[Paragraph], source_sha256: str) -> tuple[
                     }
                 )
             continue
-        record_id = next_record_id(counters, marker.level)
+        record_id = next_record_id(scope_id, counters, marker.level)
         try:
             record = build_record(
                 record_id=record_id,
@@ -388,6 +444,9 @@ def hierarchy_records(paragraphs: list[Paragraph], source_sha256: str) -> tuple[
                 marker=marker,
                 parent_id=parent_id,
                 source_sha256=source_sha256,
+                scope_id=scope_id,
+                document_id=document_id,
+                source_path=source_path,
             )
         except Exception as exc:  # compact diagnostics; continue to bound failures deterministically
             if len(validation_errors) < MAX_DIAGNOSTICS:
@@ -431,12 +490,18 @@ def hierarchy_records(paragraphs: list[Paragraph], source_sha256: str) -> tuple[
     return records, diagnostics
 
 
-def build() -> BuildResult:
-    """Build all Consultant hierarchy artifacts in memory."""
+def build_for_fixture(source_path: Path, scope_id: str) -> BuildResult:
+    """Build all Consultant hierarchy artifacts in memory for a single fixture.
 
-    source = ROOT / SOURCE_PATH
+    ``source_path`` is the repo-relative path to the Consultant WordML
+    fixture; ``scope_id`` is the per-fixture id prefix (see :func:`_derive_scope_id`).
+    The returned :class:`BuildResult` carries records, jsonl text, summary
+    json, report markdown, and diagnostics for that fixture only.
+    """
+
+    source = ROOT / source_path
     fatal_errors: list[dict[str, Any]] = []
-    inventory_fixture, inventory_errors = load_inventory_fixture()
+    inventory_fixture, inventory_errors = load_inventory_fixture(target_path=str(source_path))
     fatal_errors.extend(inventory_errors)
 
     if source.exists():
@@ -453,11 +518,18 @@ def build() -> BuildResult:
             "style_observations": {},
             "skipped_empty_paragraphs": 0,
         }
-        fatal_errors.append(compact_error("missing_source", f"source fixture missing: {SOURCE_PATH}", path=str(SOURCE_PATH)))
+        fatal_errors.append(compact_error("missing_source", f"source fixture missing: {source_path}", path=str(source_path)))
 
     inventory_sha256 = None if inventory_fixture is None else inventory_fixture.get("sha256")
+    document_id = _document_id(scope_id)
     records, hierarchy_diagnostics = (
-        hierarchy_records(paragraphs, source_sha256 or "0" * 64)
+        hierarchy_records(
+            paragraphs,
+            source_sha256 or "0" * 64,
+            scope_id=scope_id,
+            document_id=document_id,
+            source_path=str(source_path),
+        )
         if not fatal_errors and stream_diagnostics["malformed_xml"] is None
         else ([], {
             "emitted_counts_by_level": {},
@@ -474,6 +546,8 @@ def build() -> BuildResult:
     inventory_hash_matches = source_sha256 == inventory_sha256 if source_sha256 is not None and inventory_sha256 is not None else False
     jsonl = "".join(dumps_jsonl_record(record) + "\n" for record in records)
     summary = {
+        "scope_id": scope_id,
+        "document_id": document_id,
         "artifact_paths": {
             "json": str(JSON_PATH),
             "jsonl": str(JSONL_PATH),
@@ -488,7 +562,7 @@ def build() -> BuildResult:
         "source": {
             "inventory_hash_matches": inventory_hash_matches,
             "inventory_sha256": inventory_sha256,
-            "path": str(SOURCE_PATH),
+            "path": str(source_path),
             "sha256": source_sha256,
         },
         **stream_diagnostics,
@@ -497,6 +571,265 @@ def build() -> BuildResult:
     summary_json = stable_json(summary)
     report_md = render_report(summary, records)
     return BuildResult(records=records, jsonl=jsonl, summary_json=summary_json, report_md=report_md, diagnostics=summary)
+
+
+def build() -> BuildResult:
+    """Build all Consultant hierarchy artifacts in memory for the canonical fixture.
+
+    Convenience wrapper that delegates to :func:`build_for_fixture` with the
+    legacy ``CONS`` scope id so existing tests, downstream consumers, and the
+    documented default behaviour (44-FZ-2026 only) are preserved.
+    """
+
+    return build_for_fixture(SOURCE_PATH, "CONS")
+
+
+def build_corpus() -> BuildResult:
+    """Build Consultant hierarchy records for all in-scope fixtures in the corpus.
+
+    In-scope is defined by :data:`IN_SCOPE_DOCUMENT_TYPES` (currently
+    ``federal_law`` and ``code`` — the source-roles with normative-act
+    structure). Other roles (court decisions, antimonopoly decisions,
+    government resolutions, lists, reviews, ODT) are documented as
+    out-of-scope in the corpus report. The returned :class:`BuildResult`
+    carries concatenated records across all in-scope fixtures plus a
+    per-fixture summary and a scope statement.
+    """
+
+    inventory_path = ROOT / INVENTORY_PATH
+    if not inventory_path.exists():
+        return _corpus_fatal(("missing_inventory", f"inventory file missing: {INVENTORY_PATH}", str(INVENTORY_PATH)))
+
+    try:
+        payload = json.loads(inventory_path.read_text(encoding="utf-8"))
+    except json.JSONDecodeError as exc:
+        return _corpus_fatal(("malformed_inventory_json", exc, str(INVENTORY_PATH)))
+
+    fixtures = payload.get("fixtures", [])
+    if not isinstance(fixtures, list):
+        return _corpus_fatal(("inventory_shape_invalid", "Inventory fixtures must be a list.", str(INVENTORY_PATH)))
+
+    in_scope_fixtures: list[dict[str, Any]] = []
+    out_of_scope_by_role: dict[str, list[dict[str, Any]]] = {}
+    for fixture in fixtures:
+        if not isinstance(fixture, dict):
+            continue
+        doc_type = fixture.get("document_type")
+        if doc_type in IN_SCOPE_DOCUMENT_TYPES:
+            in_scope_fixtures.append(fixture)
+        else:
+            out_of_scope_by_role.setdefault(doc_type or "unknown", []).append(fixture)
+
+    all_records: list[dict[str, Any]] = []
+    per_fixture_summaries: list[dict[str, Any]] = []
+    fatal_errors: list[dict[str, Any]] = []
+
+    for fixture in in_scope_fixtures:
+        path_str = str(fixture.get("path", ""))
+        scope_id = _derive_scope_id(path_str)
+        fixture_result = build_for_fixture(Path(path_str), scope_id)
+        if fixture_result.diagnostics.get("fatal_error_count", 0) > 0:
+            fatal_errors.extend(fixture_result.diagnostics["fatal_errors"])
+            continue
+        if fixture_result.diagnostics.get("malformed_xml") is not None:
+            fatal_errors.append(
+                compact_error(
+                    "fixture_malformed",
+                    f"fixture {path_str} produced malformed XML",
+                    path=path_str,
+                )
+            )
+            continue
+        all_records.extend(fixture_result.records)
+        per_fixture_summaries.append(
+            {
+                "scope_id": scope_id,
+                "path": path_str,
+                "document_type": fixture.get("document_type"),
+                "record_count": len(fixture_result.records),
+                "emitted_counts_by_level": fixture_result.diagnostics.get("emitted_counts_by_level", {}),
+                "source_sha256": fixture_result.diagnostics.get("source", {}).get("sha256"),
+                "structural_error_count": fixture_result.diagnostics.get("structural_error_count", 0),
+            }
+        )
+
+    # Verify id uniqueness across the concatenated corpus.
+    record_ids = [record["id"] for record in all_records]
+    id_collisions: list[dict[str, Any]] = []
+    if len(record_ids) != len(set(record_ids)):
+        seen: set[str] = set()
+        for record_id in record_ids:
+            if record_id in seen and record_id not in {c["id"] for c in id_collisions}:
+                id_collisions.append({"id": record_id})
+            seen.add(record_id)
+
+    out_of_scope_breakdown = [
+        {
+            "document_type": doc_type,
+            "fixture_count": len(roles_fixtures),
+            "reason": _scope_reason_for(doc_type),
+        }
+        for doc_type, roles_fixtures in sorted(out_of_scope_by_role.items())
+    ]
+
+    corpus_jsonl = "".join(dumps_jsonl_record(record) + "\n" for record in all_records)
+    corpus_summary = {
+        "schema_version": "consultant-hierarchy-corpus/v1",
+        "phase": "consultant_wordml_hierarchy_corpus_build",
+        "non_authoritative": True,
+        "non_claims": [
+            "Consultant hierarchy corpus records are deterministic parser-source records only.",
+            "The corpus does not claim legal correctness or authoritative legal interpretation.",
+            "The corpus does not claim parser completeness for non-in-scope document kinds.",
+            "The corpus does not claim product ETL or FalkorDB load readiness.",
+            "Out-of-scope fixtures are documented but not silently skipped — they remain on disk awaiting a later scope expansion.",
+        ],
+        "in_scope_document_types": list(IN_SCOPE_DOCUMENT_TYPES),
+        "in_scope_fixtures": per_fixture_summaries,
+        "out_of_scope": out_of_scope_breakdown,
+        "totals": {
+            "in_scope_fixture_count": len(per_fixture_summaries),
+            "out_of_scope_fixture_count": sum(item["fixture_count"] for item in out_of_scope_breakdown),
+            "record_count": len(all_records),
+            "unique_record_id_count": len(set(record_ids)),
+            "id_collision_count": len(id_collisions),
+        },
+        "id_collisions": id_collisions[:MAX_DIAGNOSTICS],
+        "artifact_paths": {
+            "json": str(JSON_PATH),
+            "jsonl": str(JSONL_PATH),
+            "report": str(REPORT_PATH),
+        },
+        "fatal_errors": fatal_errors[:MAX_DIAGNOSTICS],
+        "fatal_error_count": len(fatal_errors),
+    }
+    corpus_json = stable_json(corpus_summary)
+    corpus_md = render_corpus_report(corpus_summary, all_records, per_fixture_summaries)
+    return BuildResult(
+        records=all_records,
+        jsonl=corpus_jsonl,
+        summary_json=corpus_json,
+        report_md=corpus_md,
+        diagnostics=corpus_summary,
+    )
+
+
+def _scope_reason_for(document_type: str) -> str:
+    """Return a one-line human-readable reason for a document_type being out of scope."""
+
+    out_of_scope_reasons = {
+        "code_amendment_overview": "Amendment overview; not a full normative-act source-shape.",
+        "court_practice_review": "Court practice review; not a full normative-act source-shape.",
+        "fas_review": "FAS / Treasury review; not a full normative-act source-shape.",
+        "government_resolution": "Government resolution; structure is non-hierarchical for M072 S05 scope.",
+        "constitutional_court_ruling": "Court ruling; treated as citation-evidence, not a full hierarchy.",
+        "supreme_court_ruling": "Court ruling; treated as citation-evidence, not a full hierarchy.",
+        "lower_court_ruling": "Lower court ruling; treated as citation-evidence, not a full hierarchy.",
+        "antimonopoly_decision": "Antimonopoly decision; non-hierarchical structure for S05 scope.",
+        "document_list": "Document list (relation candidate, not hierarchy).",
+        "other_document": "Unclassified title; not a full normative-act source-shape.",
+        "odt_document": "Garant ODT fixture; covered by separate ODT smoke path, not by Consultant parser.",
+    }
+    return out_of_scope_reasons.get(
+        document_type,
+        "Out of scope for hierarchy extraction; reserved for a later scope expansion.",
+    )
+
+
+def _corpus_fatal(error_payload: tuple) -> BuildResult:
+    """Build a fatal-only :class:`BuildResult` for a corpus that cannot even start."""
+
+    fatal_error_count = 1
+    fatal_errors = [compact_error(*error_payload)]
+    summary = {
+        "schema_version": "consultant-hierarchy-corpus/v1",
+        "phase": "consultant_wordml_hierarchy_corpus_build",
+        "non_authoritative": True,
+        "in_scope_document_types": list(IN_SCOPE_DOCUMENT_TYPES),
+        "in_scope_fixtures": [],
+        "out_of_scope": [],
+        "totals": {
+            "in_scope_fixture_count": 0,
+            "out_of_scope_fixture_count": 0,
+            "record_count": 0,
+            "unique_record_id_count": 0,
+            "id_collision_count": 0,
+        },
+        "id_collisions": [],
+        "artifact_paths": {
+            "json": str(JSON_PATH),
+            "jsonl": str(JSONL_PATH),
+            "report": str(REPORT_PATH),
+        },
+        "fatal_errors": fatal_errors,
+        "fatal_error_count": fatal_error_count,
+    }
+    return BuildResult(
+        records=[],
+        jsonl="",
+        summary_json=stable_json(summary),
+        report_md="",
+        diagnostics=summary,
+    )
+
+
+def render_corpus_report(
+    summary: dict[str, Any],
+    records: list[dict[str, Any]],
+    per_fixture_summaries: list[dict[str, Any]],
+) -> str:
+    """Render a compact deterministic Markdown report for the corpus build."""
+
+    totals = summary.get("totals", {})
+    lines = [
+        "# Consultant WordML Hierarchy Corpus (M072 S05)",
+        "",
+        "This artifact is deterministic parser evidence only. It is non-authoritative and does not claim legal correctness, parser completeness, product ETL readiness, or FalkorDB load readiness. Out-of-scope fixtures are documented below; they remain on disk awaiting a later scope expansion (no silent skipping).",
+        "",
+        "## Scope",
+        "",
+        f"- In-scope document types: `{', '.join(summary.get('in_scope_document_types', []))}`",
+        f"- In-scope fixtures: `{totals.get('in_scope_fixture_count', 0)}`",
+        f"- Out-of-scope fixtures: `{totals.get('out_of_scope_fixture_count', 0)}`",
+        f"- Total records emitted: `{totals.get('record_count', 0)}`",
+        f"- Unique record ids: `{totals.get('unique_record_id_count', 0)}`",
+        f"- ID collisions: `{totals.get('id_collision_count', 0)}`",
+        f"- Fatal errors: `{summary.get('fatal_error_count', 0)}`",
+        "",
+        "## In-scope per-fixture breakdown",
+        "",
+        "| Scope id | Source path | Document type | Records | Levels | SHA-256 |",
+        "| --- | --- | --- | ---: | --- | --- |",
+    ]
+    for entry in per_fixture_summaries:
+        levels = entry.get("emitted_counts_by_level", {}) or {}
+        levels_compact = ", ".join(f"{k}={v}" for k, v in sorted(levels.items()))
+        lines.append(
+            f"| `{entry.get('scope_id')}` | `{entry.get('path')}` | `{entry.get('document_type')}` | {entry.get('record_count', 0)} | {levels_compact} | `{entry.get('source_sha256')}` |"
+        )
+    lines.extend(
+        [
+            "",
+            "## Out-of-scope fixtures (documented, not silently skipped)",
+            "",
+            "| Document type | Fixture count | Reason |",
+            "| --- | ---: | --- |",
+        ]
+    )
+    for entry in summary.get("out_of_scope", []):
+        lines.append(
+            f"| `{entry['document_type']}` | {entry['fixture_count']} | {entry['reason']} |"
+        )
+    lines.extend(
+        [
+            "",
+            "## Non-claims",
+            "",
+        ]
+    )
+    lines.extend(f"- {claim}" for claim in summary.get("non_claims", []))
+    lines.append("")
+    return "\n".join(lines)
 
 
 def freshness_map(expected: dict[Path, str]) -> dict[str, bool]:
@@ -581,24 +914,42 @@ def main(argv: list[str] | None = None) -> int:
 
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--check", action="store_true", help="verify generated artifacts are fresh without writing")
+    parser.add_argument(
+        "--corpus",
+        action="store_true",
+        help="build hierarchy records for all in-scope fixtures in the corpus (federal_law + code); default is the canonical 44-FZ-2026 fixture only.",
+    )
     args = parser.parse_args(argv)
 
-    result = build()
+    if args.corpus:
+        result = build_corpus()
+    else:
+        result = build()
     if result.diagnostics.get("fatal_error_count", 0):
         print(result.summary_json, end="")
         return 1
-    if result.diagnostics.get("malformed_xml") is not None:
-        print(result.summary_json, end="")
-        return 1
-    if result.diagnostics["source"]["inventory_hash_matches"] is not True:
-        print(result.summary_json, end="")
-        return 1
-    if result.diagnostics.get("structural_error_count", 0):
-        print(result.summary_json, end="")
-        return 1
-    if result.diagnostics.get("validation_error_count", 0):
-        print(result.summary_json, end="")
-        return 1
+    if not args.corpus:
+        # Single-fixture path keeps the legacy fail-closed checks; corpus
+        # path only fails on fatal errors.
+        if result.diagnostics.get("malformed_xml") is not None:
+            print(result.summary_json, end="")
+            return 1
+        if result.diagnostics["source"]["inventory_hash_matches"] is not True:
+            print(result.summary_json, end="")
+            return 1
+        if result.diagnostics.get("structural_error_count", 0):
+            print(result.summary_json, end="")
+            return 1
+        if result.diagnostics.get("validation_error_count", 0):
+            print(result.summary_json, end="")
+            return 1
+    else:
+        if result.diagnostics.get("totals", {}).get("id_collision_count", 0) > 0:
+            print(result.summary_json, end="")
+            return 1
+        if result.diagnostics.get("totals", {}).get("in_scope_fixture_count", 0) == 0:
+            print(result.summary_json, end="")
+            return 1
 
     if args.check:
         fresh = check_artifacts(result)

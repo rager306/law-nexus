@@ -1,52 +1,153 @@
 {
-  "artifact_freshness": null,
   "artifact_paths": {
     "json": "prd/parser/consultant_hierarchy_records.json",
     "jsonl": "prd/parser/consultant_hierarchy_records.jsonl",
     "report": "prd/parser/consultant_hierarchy_records.md"
   },
-  "diagnostics_bounded": true,
-  "emitted_counts_by_level": {
-    "article": 94,
-    "chapter": 8,
-    "clause": 997,
-    "document": 1,
-    "part": 793,
-    "section": 9,
-    "subclause": 283
-  },
   "fatal_error_count": 0,
   "fatal_errors": [],
-  "malformed_xml": null,
-  "namespace_detected": "http://schemas.microsoft.com/office/word/2003/wordml",
-  "namespace_observations": {
-    "http://schemas.microsoft.com/aml/2001/core": 1534,
-    "http://schemas.microsoft.com/office/word/2003/auxHint": 32,
-    "http://schemas.microsoft.com/office/word/2003/wordml": 75179,
-    "urn:schemas-microsoft-com:office:office": 4,
-    "urn:schemas-microsoft-com:vml": 2
-  },
+  "id_collisions": [],
+  "in_scope_document_types": [
+    "federal_law",
+    "code"
+  ],
+  "in_scope_fixtures": [
+    {
+      "document_type": "federal_law",
+      "emitted_counts_by_level": {
+        "article": 94,
+        "chapter": 8,
+        "clause": 997,
+        "document": 1,
+        "part": 793,
+        "section": 9,
+        "subclause": 283
+      },
+      "path": "law-source/consultant/44-FZ-2026.xml",
+      "record_count": 2185,
+      "scope_id": "CONS-44-FZ-2026",
+      "source_sha256": "69df0b9d9e2bcce6164fc4e3c74fb9bebfff36ae6b053c68917c804be4b52a86",
+      "structural_error_count": 0
+    },
+    {
+      "document_type": "code",
+      "emitted_counts_by_level": {
+        "article": 396,
+        "chapter": 41,
+        "clause": 597,
+        "document": 1,
+        "part": 1481
+      },
+      "path": "law-source/consultant/Бюджетный кодекс Российской Федерации  от 31.07.1998 N 145-Ф.xml",
+      "record_count": 2516,
+      "scope_id": "CONS-31-07-1998-N-145",
+      "source_sha256": "141d0463ccea5ac1f1e1d672a05cce9c39df288c23c824ced86740cd075c0215",
+      "structural_error_count": 0
+    },
+    {
+      "document_type": "code",
+      "emitted_counts_by_level": {
+        "article": 591,
+        "chapter": 32,
+        "clause": 220,
+        "document": 1,
+        "part": 1704,
+        "section": 24
+      },
+      "path": "law-source/consultant/Гражданский кодекс Российской Федерации (часть первая)  от 3.xml",
+      "record_count": 2572,
+      "scope_id": "CONS-3",
+      "source_sha256": "4398e60096787b8b75acd5235b4eb988851a67dfa6b9298fd01eda5ee294a210",
+      "structural_error_count": 1
+    },
+    {
+      "document_type": "federal_law",
+      "emitted_counts_by_level": {
+        "article": 21,
+        "clause": 253,
+        "document": 1,
+        "part": 241,
+        "subclause": 71
+      },
+      "path": "law-source/consultant/Федеральный закон от 18.07.2011 N 223-ФЗ (ред. от 08.08.2024.xml",
+      "record_count": 587,
+      "scope_id": "CONS-18-07-2011-N-223-08-08-2",
+      "source_sha256": "dfc8314207faf37bd4bad1acbec7189db502a161a350a0969da08b6e653f4ece",
+      "structural_error_count": 0
+    }
+  ],
   "non_authoritative": true,
-  "paragraph_count": 3601,
-  "phase": "consultant_wordml_hierarchy_build",
-  "rejected_context_marker_count": 0,
-  "rejected_context_markers": [],
-  "skipped_empty_paragraphs": 439,
-  "skipped_marker_counts": {},
-  "source": {
-    "inventory_hash_matches": true,
-    "inventory_sha256": "69df0b9d9e2bcce6164fc4e3c74fb9bebfff36ae6b053c68917c804be4b52a86",
-    "path": "law-source/consultant/44-FZ-2026.xml",
-    "sha256": "69df0b9d9e2bcce6164fc4e3c74fb9bebfff36ae6b053c68917c804be4b52a86"
-  },
-  "structural_error_count": 0,
-  "structural_errors": [],
-  "style_observations": {
-    "0": 3268,
-    "2": 131,
-    "5": 3,
-    "<none>": 199
-  },
-  "validation_error_count": 0,
-  "validation_errors": []
+  "non_claims": [
+    "Consultant hierarchy corpus records are deterministic parser-source records only.",
+    "The corpus does not claim legal correctness or authoritative legal interpretation.",
+    "The corpus does not claim parser completeness for non-in-scope document kinds.",
+    "The corpus does not claim product ETL or FalkorDB load readiness.",
+    "Out-of-scope fixtures are documented but not silently skipped — they remain on disk awaiting a later scope expansion."
+  ],
+  "out_of_scope": [
+    {
+      "document_type": "antimonopoly_decision",
+      "fixture_count": 5,
+      "reason": "Antimonopoly decision; non-hierarchical structure for S05 scope."
+    },
+    {
+      "document_type": "code_amendment_overview",
+      "fixture_count": 5,
+      "reason": "Amendment overview; not a full normative-act source-shape."
+    },
+    {
+      "document_type": "constitutional_court_ruling",
+      "fixture_count": 3,
+      "reason": "Court ruling; treated as citation-evidence, not a full hierarchy."
+    },
+    {
+      "document_type": "court_practice_review",
+      "fixture_count": 4,
+      "reason": "Court practice review; not a full normative-act source-shape."
+    },
+    {
+      "document_type": "document_list",
+      "fixture_count": 2,
+      "reason": "Document list (relation candidate, not hierarchy)."
+    },
+    {
+      "document_type": "fas_review",
+      "fixture_count": 3,
+      "reason": "FAS / Treasury review; not a full normative-act source-shape."
+    },
+    {
+      "document_type": "government_resolution",
+      "fixture_count": 1,
+      "reason": "Government resolution; structure is non-hierarchical for M072 S05 scope."
+    },
+    {
+      "document_type": "lower_court_ruling",
+      "fixture_count": 4,
+      "reason": "Lower court ruling; treated as citation-evidence, not a full hierarchy."
+    },
+    {
+      "document_type": "odt_document",
+      "fixture_count": 12,
+      "reason": "Garant ODT fixture; covered by separate ODT smoke path, not by Consultant parser."
+    },
+    {
+      "document_type": "other_document",
+      "fixture_count": 4,
+      "reason": "Unclassified title; not a full normative-act source-shape."
+    },
+    {
+      "document_type": "supreme_court_ruling",
+      "fixture_count": 6,
+      "reason": "Court ruling; treated as citation-evidence, not a full hierarchy."
+    }
+  ],
+  "phase": "consultant_wordml_hierarchy_corpus_build",
+  "schema_version": "consultant-hierarchy-corpus/v1",
+  "totals": {
+    "id_collision_count": 0,
+    "in_scope_fixture_count": 4,
+    "out_of_scope_fixture_count": 49,
+    "record_count": 7860,
+    "unique_record_id_count": 7860
+  }
 }
