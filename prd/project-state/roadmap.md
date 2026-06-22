@@ -47,7 +47,7 @@ milestone.
 | M011-M030 | GraphRAG, FalkorDB, retrieval, ontology, evidence, and semantic scoring proof cycles | Bounded proof cycles, not final retrieval quality or ontology/product readiness. |
 | M031-M034 | Consultant XML source structuring, MiniMax-assisted discovery, graph context staging, and workline recovery | Source workflow evidence, not parser completeness for all sources. |
 | M035-M067 | ACP / git-lex reusable-core era — construction, registry, RDF projection, then **externalization** | **CLOSED.** Core externalized (M067, D097); law-nexus is a profile consumer. This era was itself meta-drift (D098); ACP is frozen to checkpoint mode. Not source truth, not the next milestone. |
-| M068-M069 | Structural foundation crystallization — onion package, ADR standard, compliance gate, library-boundary contract | Anti-drift infrastructure only. M069 **complete**; M068 **needs-attention** (pre-commit+CI wire half-met). Repo is now a package (`src/law_nexus`). Does NOT validate R035/R037/R038, does NOT harden the parser, does NOT introduce FalkorDB/graph/retrieval. |
+| M068-M070 | Structural foundation crystallization + roadmap freshness guard — onion package, ADR standard, compliance gate, library-boundary contract, anti-drift guard | Anti-drift infrastructure only. M069 **complete**, M070 **complete**; M068 **needs-attention** (pre-commit+CI wire half-met). Repo is now a package (`src/law_nexus`). Does NOT validate R035/R037/R038, does NOT harden the parser, does NOT introduce FalkorDB/graph/retrieval. |
 
 See `prd/project-state/diagrams/milestone-timeline.mmd` for the compressed
 timeline (note: the diagram predates M068-M069 and should be refreshed when the
@@ -55,17 +55,17 @@ parser-hardening milestone nears).
 
 ## Current milestone
 
-`M069-sl591m — Architecture boundary contracts` is **complete**.
+`M070-rqcvnx — Roadmap freshness guard` is **complete**.
 
-It recorded the Pydantic/Adaptix/dataclass library boundary as ADR-0003 (+ oracle
-lines) and closed the standing `pre-commit run --all-files` rc=1 follow-up from
-M068 via a narrow Decision-section exempt-rule. The standing tree is now fully
-gate-green (`pre-commit run --all-files` exit 0; `verify-adr-conformance`
-finding_count=0; R029 no-regression).
+It fixed the stale project-state roadmap (was current=M047, next=ACP — contradicting
+D098) to the truthful trajectory and added a pytest freshness-guard
+(`tests/test_project_state_roadmap_freshness.py`) that parses `.gsd/STATE.md` as
+source of truth so the roadmap cannot silently drift again. The guard fails if
+the roadmap's `current_milestone` lags the latest GSD milestone.
 
 > **Note:** M068-xi4034 precedes this milestone and is **not yet complete** —
 > its validation is `needs-attention` (pre-commit+CI wire half-met). See
-> "Pending validation" above.
+> "Pending validation" below.
 
 ## Recommended next milestone
 

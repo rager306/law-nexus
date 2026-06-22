@@ -29,17 +29,17 @@
       "boundary": "CLOSED. The reusable core was externalized to /root/git-lex-kit-acp/ (published github.com/rager306/git-lex-kit-acp v0.2.0) and law-nexus became a profile consumer (M067, D097). Per D098, this era was itself meta-drift (ACP enforcement ran M035-M063 while the product track stalled); D098 now freezes ACP to checkpoint mode (detect+log+flag, non-blocking) until parser data is ready. Do NOT treat ACP/RDF/SHACL/SPARQL/dashboards as source truth or as the next product milestone."
     },
     {
-      "range": "M068-M069",
-      "theme": "Structural foundation crystallization — onion package, ADR standard, compliance gate, library-boundary contract",
+      "range": "M068-M070",
+      "theme": "Structural foundation crystallization + roadmap freshness guard — onion package, ADR standard, compliance gate, library-boundary contract, anti-drift freshness guard",
       "status": "partial",
-      "boundary": "Anti-drift infrastructure only. M068 turned the repo into the src/law_nexus onion package (ADR-0001) with a MADR ADR standard + compliance gate (ADR-0002); M069 recorded the library boundary (ADR-0003: Pydantic = domain forms + parser boundary records; stdlib dataclass = verifier records; Adaptix = [deferred] mapping) and made the standing tree gate-green. M069 is COMPLETE; M068 is needs-attention (validation: pre-commit+CI wire is only half-met — pre-commit wired, CI .github/workflows not). Does NOT validate R035/R037/R038, does NOT harden the parser, does NOT introduce FalkorDB/graph/retrieval."
+      "boundary": "Anti-drift infrastructure only. M068 turned the repo into the src/law_nexus onion package (ADR-0001) with a MADR ADR standard + compliance gate (ADR-0002); M069 recorded the library boundary (ADR-0003) and made the standing tree gate-green; M070 fixed the stale project-state roadmap and added a pytest freshness-guard that parses .gsd/STATE.md so the roadmap cannot silently drift again. M069 and M070 are COMPLETE; M068 is needs-attention (validation: pre-commit+CI wire is only half-met — pre-commit wired, CI .github/workflows not). Does NOT validate R035/R037/R038, does NOT harden the parser, does NOT introduce FalkorDB/graph/retrieval."
     }
   ],
   "current_milestone": {
-    "id": "M069-sl591m",
-    "title": "Architecture boundary contracts",
+    "id": "M070-rqcvnx",
+    "title": "Roadmap freshness guard",
     "status": "complete",
-    "goal": "Recorded the Pydantic/Adaptix/dataclass library boundary as ADR-0003 + oracle lines, and closed the standing pre-commit-rc=1 follow-up via a narrow Decision-section exempt-rule. Standing tree is now fully gate-green."
+    "goal": "Fixed the stale project-state roadmap (was current=M047, next=ACP — contradicting D098) to the truthful trajectory (M069 complete, M068 needs-attention, parser-hardening next, ACP frozen) and added a pytest freshness-guard parsing .gsd/STATE.md so the roadmap cannot silently drift again."
   },
   "pending_validation": {
     "id": "M068-xi4034",
