@@ -46,6 +46,63 @@ Document-type taxonomy (v2 — see `manifest.document_type_taxonomy`):
 Future slices (M072 S02 probe, S03 enum extension) consume this taxonomy as
 ground truth. Downstream parser work that wants to assert legal document kinds
 must run against the parser, not the inventory.
+
+## Consultant parser probe (M072 S02)
+
+M072 S02 runs the existing `ConsultantWordMLParser` (M009 baseline seam)
+against every fixture from the inventory and categorises the per-fixture
+outcome. The probe reads `source_fixture_inventory.json` and never globs
+`law-source/` directly.
+
+Commands:
+
+- Generate/update: `uv run python scripts/probe-consultant-parser.py`
+- Check freshness: `uv run python scripts/probe-consultant-parser.py --check`
+- Show SHA of generated JSON: `uv run python scripts/probe-consultant-parser.py --show-sha`
+
+Outcomes (per-fixture):
+
+- `success-classified` — parser succeeded AND its `ConsultantDocumentType`
+  matches the inventory document_type (currently only `federal_law` is
+  recognised by the parser; that count is expected to grow as S03 adds
+  variants).
+- `success-as-other` — parser succeeded but fell through to
+  `ConsultantDocumentType.other`; the inventory shows a known document_type
+  the parser does not yet cover. S03 uses the classification gap table to
+  decide which variants to add.
+- `fail-by-design` — the fixture is an ODT (or otherwise non-Consultant XML)
+  and the parser correctly rejects it. Expected and bounded.
+- `fail` — any other failure, categorised by `failure_mode`.
+
+Failure modes (bounded taxonomy):
+
+- `missing-document-properties` — no `<o:DocumentProperties>` block.
+- `missing-title` — DocumentProperties present but no `<o:Title>`.
+- `wrong-namespace` — root is not in the WordML namespace (most ODTs).
+- `malformed-xml` — XML parse error.
+- `path-traversal` — path escaped the trusted root.
+- `file-not-found` — file disappeared between inventory and probe.
+- `other-exception` — unexpected error; surfaced for triage.
+
+The probe is idempotent: re-running it against the same inputs produces a
+byte-identical JSON. `elapsed_ms` is intentionally not stored in the durable
+artifact (perf is a separate observability concern).
+
+Real-corpus current snapshot (53 fixtures):
+
+- 2 `success-classified` (`44-FZ-2026.xml`, `223-ФЗ.xml`)
+- 39 `success-as-other` — the parser's regex only knows `Федеральный закон`;
+  everything else (codes, court decisions, antimonopoly decisions,
+  resolutions, lists, ...) falls through to `other`. This is the S03 gap.
+- 12 `fail-by-design` (Garant ODT fixtures — parser correctly rejects
+  non-WordML input).
+- 0 unhandled exceptions; classification gap is the entire reason S03
+  exists.
+
+NON-CLAIMS: the probe does not validate parser completeness, legal
+correctness, R035/R037/R038, FalkorDB, retrieval, or multi-source readiness.
+It is observability of the existing document-level seam against the
+expanded corpus, and its output is the input to S03 extension work.
 - Parser record schema/example/report generator: `uv run python scripts/validate-parser-records.py --write`
 - Parser record contract check: `uv run python scripts/validate-parser-records.py --check`
 - Golden-test contract term check: `rg -n "evidence-present|no-answer|candidate-only|unresolved-reference|non-authoritative|parser completeness|retrieval quality|legal-answer correctness" prd/parser/golden_test_contract.md`
