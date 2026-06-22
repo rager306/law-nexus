@@ -342,7 +342,7 @@ class ConsultantWordMLParser:
         edition_date = _extract_edition_date(title)
         sha256 = _sha256_of_file(target)
 
-        source_id = _derive_source_id(act_number, target.name)
+        source_id = _derive_source_id(act_number, target.name, sha256 or "0" * 64)
 
         document = SourceDocument(
             source_id=source_id,
@@ -360,16 +360,23 @@ class ConsultantWordMLParser:
         return document, []
 
 
-def _derive_source_id(act_number: str | None, filename: str) -> str:
-    """Return a stable, deterministic ``source_id`` for a Consultant document.
+def _derive_source_id(act_number: str | None, filename: str, file_hash: str) -> str:
+    """Return a stable, deterministic, corpus-unique ``source_id`` for a Consultant document.
 
-    Prefers the act number (e.g. ``44-ФЗ``); falls back to the stem of the
-    filename so re-importing the same file is idempotent.
+    Format: ``consultant:{act_number or stem}-{file_hash[:8]}``. The act
+    number (e.g. ``44-ФЗ``) is preferred; the filename stem is the fallback
+    when the title yields no act number. The 8-character SHA-256 entropy
+    suffix guarantees uniqueness across the corpus — without it, fixtures
+    that share an act number (e.g. ``Обзор_Практика ФАС по Закону N 44-ФЗ``
+    and ``44-FZ-2026.xml``) would collide on ``consultant:44-ФЗ``. Including
+    the file hash in the suffix makes the source_id a function of the file
+    contents, so re-importing the same file is idempotent and different
+    files with the same act number are distinguishable.
     """
 
-    if act_number:
-        return f"consultant:{act_number}"
-    return f"consultant:{Path(filename).stem}"
+    head = act_number or Path(filename).stem
+    short_hash = (file_hash or "0" * 64)[:8]
+    return f"consultant:{head}-{short_hash}"
 
 
 def _provenance_for(doc_type: ConsultantDocumentType) -> SourceProvenanceClass:

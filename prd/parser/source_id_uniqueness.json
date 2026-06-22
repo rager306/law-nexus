@@ -1,0 +1,280 @@
+{
+  "duplicate_groups": [
+    {
+      "paths": [
+        "law-source/consultant/Постановление Семнадцатого арбитражного апелляционного суда (1).xml",
+        "law-source/consultant/Постановление Семнадцатого арбитражного апелляционного суда (2).xml"
+      ],
+      "source_id": "consultant:17АП-9951/2025-ГК-c614c72f"
+    },
+    {
+      "paths": [
+        "law-source/consultant/Обзор изменений  Кодекса Российской Федерации об администрат (1).xml",
+        "law-source/consultant/Обзор изменений  Кодекса Российской Федерации об администрат.xml"
+      ],
+      "source_id": "consultant:195-ФЗ-cd8f6088"
+    }
+  ],
+  "matrix": [
+    {
+      "act_number": "44-ФЗ",
+      "parser_outcome": "success-classified",
+      "path": "law-source/consultant/44-FZ-2026.xml",
+      "source_id": "consultant:44-ФЗ-69df0b9d"
+    },
+    {
+      "act_number": null,
+      "parser_outcome": "success-classified",
+      "path": "law-source/consultant/List-44-FZ-connected documents.xml",
+      "source_id": "consultant:List-44-FZ-connected documents-9104d5ba"
+    },
+    {
+      "act_number": "145-ФЗ",
+      "parser_outcome": "success-classified",
+      "path": "law-source/consultant/Бюджетный кодекс Российской Федерации  от 31.07.1998 N 145-Ф.xml",
+      "source_id": "consultant:145-ФЗ-141d0463"
+    },
+    {
+      "act_number": "51-ФЗ",
+      "parser_outcome": "success-classified",
+      "path": "law-source/consultant/Гражданский кодекс Российской Федерации (часть первая)  от 3.xml",
+      "source_id": "consultant:51-ФЗ-4398e600"
+    },
+    {
+      "act_number": "95-ФЗ",
+      "parser_outcome": "success-classified",
+      "path": "law-source/consultant/Обзор изменений  Арбитражного процессуального кодекса Россий.xml",
+      "source_id": "consultant:95-ФЗ-7af1d9c5"
+    },
+    {
+      "act_number": "145-ФЗ",
+      "parser_outcome": "success-classified",
+      "path": "law-source/consultant/Обзор изменений  Бюджетного кодекса Российской Федерации  от.xml",
+      "source_id": "consultant:145-ФЗ-0217aa49"
+    },
+    {
+      "act_number": "51-ФЗ",
+      "parser_outcome": "success-classified",
+      "path": "law-source/consultant/Обзор изменений  Гражданского кодекса Российской Федерации (.xml",
+      "source_id": "consultant:51-ФЗ-4021334c"
+    },
+    {
+      "act_number": "195-ФЗ",
+      "parser_outcome": "success-classified",
+      "path": "law-source/consultant/Обзор изменений  Кодекса Российской Федерации об администрат (1).xml",
+      "source_id": "consultant:195-ФЗ-cd8f6088"
+    },
+    {
+      "act_number": "195-ФЗ",
+      "parser_outcome": "success-classified",
+      "path": "law-source/consultant/Обзор изменений  Кодекса Российской Федерации об администрат.xml",
+      "source_id": "consultant:195-ФЗ-cd8f6088"
+    },
+    {
+      "act_number": null,
+      "parser_outcome": "success-classified",
+      "path": "law-source/consultant/Обзор недостатков и нарушений, выявленных Федеральным казнач.xml",
+      "source_id": "consultant:Обзор недостатков и нарушений, выявленных Федеральным казнач-41b0ff31"
+    },
+    {
+      "act_number": null,
+      "parser_outcome": "success-classified",
+      "path": "law-source/consultant/Обзор результатов осуществления Федеральным казначейством ко.xml",
+      "source_id": "consultant:Обзор результатов осуществления Федеральным казначейством ко-b302f695"
+    },
+    {
+      "act_number": "1",
+      "parser_outcome": "success-classified",
+      "path": "law-source/consultant/Обзор судебной практики Верховного Суда Российской Федерации (1).xml",
+      "source_id": "consultant:1-208cd76b"
+    },
+    {
+      "act_number": "3",
+      "parser_outcome": "success-classified",
+      "path": "law-source/consultant/Обзор судебной практики Верховного Суда Российской Федерации (2).xml",
+      "source_id": "consultant:3-eacd37af"
+    },
+    {
+      "act_number": "2",
+      "parser_outcome": "success-classified",
+      "path": "law-source/consultant/Обзор судебной практики Верховного Суда Российской Федерации.xml",
+      "source_id": "consultant:2-d28af4cc"
+    },
+    {
+      "act_number": null,
+      "parser_outcome": "success-classified",
+      "path": "law-source/consultant/Обзор судебной практики, связанной с привлечением к админист.xml",
+      "source_id": "consultant:Обзор судебной практики, связанной с привлечением к админист-ec898f2c"
+    },
+    {
+      "act_number": "44-ФЗ",
+      "parser_outcome": "success-classified",
+      "path": "law-source/consultant/Обзор_  Практика ФАС по Закону N 44-ФЗ_ какие ошибки отметил.xml",
+      "source_id": "consultant:44-ФЗ-8e81a6cb"
+    },
+    {
+      "act_number": "310-ЭС21-27414",
+      "parser_outcome": "success-classified",
+      "path": "law-source/consultant/Определение Верховного Суда РФ от 05.12.2025 N 310-ЭС21-2741.xml",
+      "source_id": "consultant:310-ЭС21-27414-3933a0f6"
+    },
+    {
+      "act_number": "305-ЭС25-11651",
+      "parser_outcome": "success-classified",
+      "path": "law-source/consultant/Определение Верховного Суда РФ от 08.12.2025 N 305-ЭС25-1165.xml",
+      "source_id": "consultant:305-ЭС25-11651-cf687d7e"
+    },
+    {
+      "act_number": "1123-О",
+      "parser_outcome": "success-classified",
+      "path": "law-source/consultant/Определение Конституционного Суда РФ от 28.05.2020 N 1123-О.xml",
+      "source_id": "consultant:1123-О-04a63c7c"
+    },
+    {
+      "act_number": "2837-О",
+      "parser_outcome": "success-classified",
+      "path": "law-source/consultant/Определение Конституционного Суда РФ от 30.10.2025 N 2837-О.xml",
+      "source_id": "consultant:2837-О-11fc270b"
+    },
+    {
+      "act_number": "38-АД25-9-К1",
+      "parser_outcome": "success-classified",
+      "path": "law-source/consultant/Постановление Верховного Суда РФ от 09.10.2025 N 38-АД25-9-К.xml",
+      "source_id": "consultant:38-АД25-9-К1-fd425d97"
+    },
+    {
+      "act_number": "59-АД25-9-К9",
+      "parser_outcome": "success-classified",
+      "path": "law-source/consultant/Постановление Верховного Суда РФ от 10.11.2025 N 59-АД25-9-К.xml",
+      "source_id": "consultant:59-АД25-9-К9-e6a8f61a"
+    },
+    {
+      "act_number": "16-АД25-12-К4",
+      "parser_outcome": "success-classified",
+      "path": "law-source/consultant/Постановление Верховного Суда РФ от 13.11.2025 N 16-АД25-12-.xml",
+      "source_id": "consultant:16-АД25-12-К4-7beb295a"
+    },
+    {
+      "act_number": "48-АД25-13-К7",
+      "parser_outcome": "success-classified",
+      "path": "law-source/consultant/Постановление Верховного Суда РФ от 20.11.2025 N 48-АД25-13-.xml",
+      "source_id": "consultant:48-АД25-13-К7-25661f9a"
+    },
+    {
+      "act_number": "16-1034/2023",
+      "parser_outcome": "success-classified",
+      "path": "law-source/consultant/Постановление Девятого кассационного суда общей юрисдикции о.xml",
+      "source_id": "consultant:16-1034/2023-c445112b"
+    },
+    {
+      "act_number": "7-П",
+      "parser_outcome": "success-classified",
+      "path": "law-source/consultant/Постановление Конституционного Суда РФ от 18.03.2021 N 7-П.xml",
+      "source_id": "consultant:7-П-028e6bbb"
+    },
+    {
+      "act_number": "2571",
+      "parser_outcome": "success-classified",
+      "path": "law-source/consultant/Постановление Правительства РФ от 29.12.2021 N 2571 (ред. от.xml",
+      "source_id": "consultant:2571-2ebda3f3"
+    },
+    {
+      "act_number": "17АП-9951/2025-ГК",
+      "parser_outcome": "success-classified",
+      "path": "law-source/consultant/Постановление Семнадцатого арбитражного апелляционного суда (1).xml",
+      "source_id": "consultant:17АП-9951/2025-ГК-c614c72f"
+    },
+    {
+      "act_number": "17АП-9951/2025-ГК",
+      "parser_outcome": "success-classified",
+      "path": "law-source/consultant/Постановление Семнадцатого арбитражного апелляционного суда (2).xml",
+      "source_id": "consultant:17АП-9951/2025-ГК-c614c72f"
+    },
+    {
+      "act_number": "17АП-8755/2025-ГК",
+      "parser_outcome": "success-classified",
+      "path": "law-source/consultant/Постановление Семнадцатого арбитражного апелляционного суда.xml",
+      "source_id": "consultant:17АП-8755/2025-ГК-303439f9"
+    },
+    {
+      "act_number": "339",
+      "parser_outcome": "success-classified",
+      "path": "law-source/consultant/Приказ ФАС России от 25.05.2012 N 339 (ред. от 16.02.2016).xml",
+      "source_id": "consultant:339-d68facbc"
+    },
+    {
+      "act_number": "024/06/106-3334/2025",
+      "parser_outcome": "success-classified",
+      "path": "law-source/consultant/Решение Красноярского УФАС России от 07.11.2025 N 024_06_106.xml",
+      "source_id": "consultant:024/06/106-3334/2025-88b1555c"
+    },
+    {
+      "act_number": "066/06/104-2953/2025",
+      "parser_outcome": "success-classified",
+      "path": "law-source/consultant/Решение Свердловского УФАС России от 29.10.2025 N 066_06_104.xml",
+      "source_id": "consultant:066/06/104-2953/2025-c9fb46e3"
+    },
+    {
+      "act_number": "А263-11/225",
+      "parser_outcome": "success-classified",
+      "path": "law-source/consultant/Решение Северо-Осетинского УФАС России от 06.11.2025 по делу.xml",
+      "source_id": "consultant:А263-11/225-648dceff"
+    },
+    {
+      "act_number": "28/06/105-4409/2025",
+      "parser_outcome": "success-classified",
+      "path": "law-source/consultant/Решение ФАС России от 06.11.2025 по делу N 28_06_105-4409_20.xml",
+      "source_id": "consultant:28/06/105-4409/2025-9ec79db9"
+    },
+    {
+      "act_number": "28/06/105-4463/2025",
+      "parser_outcome": "success-classified",
+      "path": "law-source/consultant/Решение ФАС России от 06.11.2025 по делу N 28_06_105-4463_20.xml",
+      "source_id": "consultant:28/06/105-4463/2025-43c218ca"
+    },
+    {
+      "act_number": "28/06/105-4466/2025",
+      "parser_outcome": "success-classified",
+      "path": "law-source/consultant/Решение ФАС России от 06.11.2025 по делу N 28_06_105-4466_20.xml",
+      "source_id": "consultant:28/06/105-4466/2025-7fed3982"
+    },
+    {
+      "act_number": "25/44/104/516",
+      "parser_outcome": "success-classified",
+      "path": "law-source/consultant/Решение ФАС России от 07.11.2025 по делу N 25_44_104_516 Обс.xml",
+      "source_id": "consultant:25/44/104/516-5f10e645"
+    },
+    {
+      "act_number": "РНП-399",
+      "parser_outcome": "success-classified",
+      "path": "law-source/consultant/Решение Хабаровского УФАС России от 06.11.2025 N РНП-399 по.xml",
+      "source_id": "consultant:РНП-399-b98e1a61"
+    },
+    {
+      "act_number": null,
+      "parser_outcome": "success-classified",
+      "path": "law-source/consultant/Список документов (5).xml",
+      "source_id": "consultant:Список документов (5)-0694587f"
+    },
+    {
+      "act_number": "223-ФЗ",
+      "parser_outcome": "success-classified",
+      "path": "law-source/consultant/Федеральный закон от 18.07.2011 N 223-ФЗ (ред. от 08.08.2024.xml",
+      "source_id": "consultant:223-ФЗ-dfc83142"
+    }
+  ],
+  "non_authoritative": true,
+  "non_claims": [
+    "This matrix does not claim parser completeness.",
+    "This matrix does not validate downstream citation, evidence-span, or FalkorDB usage.",
+    "Byte-identical duplicates sharing the same source_id are intentional and surface-level only; removal is a separate user-directed decision."
+  ],
+  "schema_version": "parser-source-id-uniqueness/v1",
+  "source_path": "prd/parser/probe_results.json",
+  "summary": {
+    "duplicates": 2,
+    "duplicates_are_byte_identical": true,
+    "total_fixtures": 41,
+    "unique_source_ids": 39
+  }
+}
