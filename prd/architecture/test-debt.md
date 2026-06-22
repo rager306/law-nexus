@@ -5,8 +5,9 @@ milestone** and are deferred to out-of-scope resolution. New failures should
 be added here; closed items should be moved to a "Resolved" section with the
 fix milestone.
 
-Last re-investigation: **M074 S02** (30 failures remaining; was 56 at start
-of M074 S02, 37 at M072 closeout, 25 at end of M003 era).
+Last re-investigation: **M075 S01** (28 failures remaining; was 30 at start
+of M075 S01, 56 at start of M074 S02, 37 at M072 closeout, 25 at end of
+M003 era).
 
 ## Bounded scope rule (D098 anti-smoothing)
 
@@ -99,9 +100,16 @@ blocked (require external data or substantive script refactor).
   in 7 fixture files. (Cascade: 7 fixture updates restored tests in 12
   test files because some scripts call sub-verifiers that were also
   failing transitively.)
-- **Type A: blocked (5)**: requires either external law-parser data
-  (#1-3) or substantive script refactor (#4-5). Out of M074 scope;
-  follow-up milestone proposed.
+- **Type A: blocked (3)**: requires updating the prior-art
+  expectations to reflect the M072 S05 corpus scope (4 in-scope
+  fixtures, 7860 records, 81 chapters observed vs 8 expected). The
+  comparison script refuses to write when status="blocked" by design;
+  updating expectations is a semantic decision about what counts are
+  "right" for the new scope. Out of M075 scope; follow-up milestone
+  proposed.
+- **Type A: blocked — M075 S01 fixed (2)**: M075 S01 patched the
+  builder scripts and content-tolerated the test assertions (see fix
+  log).
 - **Type A: M072-deferred (2)**: requires cross-cutting fix on
   `representative_retrieval_corpus_manifest.json` and the four downstream
   tests. Out of M074 scope; follow-up milestone proposed.
