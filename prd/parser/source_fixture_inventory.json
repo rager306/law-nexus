@@ -6,18 +6,41 @@
     "removed_duplicate_path": "law-source/Список документов (5).xml"
   },
   "canonical_paths": [
-    "law-source/garant/44-fz.odt",
-    "law-source/garant/PP_60_27-01-2022.odt",
-    "law-source/consultant/Список документов (5).xml",
-    "law-source/consultant/44-FZ-2026.xml"
+    "law-source/consultant/44-FZ-2026.xml",
+    "law-source/consultant/Список документов (5).xml"
+  ],
+  "document_type_taxonomy": [
+    "federal_law",
+    "code_amendment_overview",
+    "code",
+    "court_practice_review",
+    "fas_review",
+    "government_resolution",
+    "constitutional_court_ruling",
+    "supreme_court_ruling",
+    "lower_court_ruling",
+    "antimonopoly_decision",
+    "document_list",
+    "list_related",
+    "other_document"
   ],
   "duplicate_check": {
     "canonical_path": "law-source/consultant/Список документов (5).xml",
     "classification": "removed-root-level-byte-identical-duplicate-must-remain-absent",
     "duplicate_absent": true,
+    "internal_duplicate_pairs": [
+      [
+        "law-source/consultant/Обзор изменений  Кодекса Российской Федерации об администрат (1).xml",
+        "law-source/consultant/Обзор изменений  Кодекса Российской Федерации об администрат.xml"
+      ],
+      [
+        "law-source/consultant/Постановление Семнадцатого арбитражного апелляционного суда (1).xml",
+        "law-source/consultant/Постановление Семнадцатого арбитражного апелляционного суда (2).xml"
+      ]
+    ],
     "removed_duplicate_path": "law-source/Список документов (5).xml"
   },
-  "fixture_count": 4,
+  "fixture_count": 53,
   "fixture_hygiene": {
     "canonical_path_decisions": {
       "consultant_full_act_fixture": {
@@ -39,6 +62,16 @@
         "stated_path": "law-source/garant/PP_60_27-02-2022.odt"
       }
     },
+    "internal_duplicate_pairs": [
+      [
+        "law-source/consultant/Обзор изменений  Кодекса Российской Федерации об администрат (1).xml",
+        "law-source/consultant/Обзор изменений  Кодекса Российской Федерации об администрат.xml"
+      ],
+      [
+        "law-source/consultant/Постановление Семнадцатого арбитражного апелляционного суда (1).xml",
+        "law-source/consultant/Постановление Семнадцатого арбитражного апелляционного суда (2).xml"
+      ]
+    ],
     "pp_filename_mismatch": {
       "canonical_path": "law-source/garant/PP_60_27-01-2022.odt",
       "failure_if_stated_path_reappears": true,
@@ -57,7 +90,786 @@
   },
   "fixtures": [
     {
-      "canonical": true,
+      "document_type": "federal_law",
+      "exists": true,
+      "odt_shape": null,
+      "path": "law-source/consultant/44-FZ-2026.xml",
+      "sha256": "69df0b9d9e2bcce6164fc4e3c74fb9bebfff36ae6b053c68917c804be4b52a86",
+      "size_bytes": 5235817,
+      "source_kind": "consultant-wordml-xml",
+      "source_role": "full-normative-act",
+      "source_role_v2": "full-normative-act",
+      "title_first_line": "Федеральный закон от 05.04.2013 N 44-ФЗ",
+      "xml_shape": {
+        "direct_child_count": 4,
+        "root_local_name": "wordDocument",
+        "root_namespace": "http://schemas.microsoft.com/office/word/2003/wordml",
+        "root_tag": "{http://schemas.microsoft.com/office/word/2003/wordml}wordDocument",
+        "well_formed": true
+      }
+    },
+    {
+      "document_type": "document_list",
+      "exists": true,
+      "odt_shape": null,
+      "path": "law-source/consultant/List-44-FZ-connected documents.xml",
+      "sha256": "9104d5ba8ce59afb83eb8363f9182b37026bb39a99facc630f7caeda71a3470a",
+      "size_bytes": 5092,
+      "source_kind": "consultant-wordml-xml",
+      "source_role": "document-list",
+      "source_role_v2": "document-list",
+      "title_first_line": "Список документов",
+      "xml_shape": {
+        "direct_child_count": 4,
+        "root_local_name": "wordDocument",
+        "root_namespace": "http://schemas.microsoft.com/office/word/2003/wordml",
+        "root_tag": "{http://schemas.microsoft.com/office/word/2003/wordml}wordDocument",
+        "well_formed": true
+      }
+    },
+    {
+      "document_type": "code",
+      "exists": true,
+      "odt_shape": null,
+      "path": "law-source/consultant/Бюджетный кодекс Российской Федерации  от 31.07.1998 N 145-Ф.xml",
+      "sha256": "141d0463ccea5ac1f1e1d672a05cce9c39df288c23c824ced86740cd075c0215",
+      "size_bytes": 10003153,
+      "source_kind": "consultant-wordml-xml",
+      "source_role": "code",
+      "source_role_v2": "code",
+      "title_first_line": "\"Бюджетный кодекс Российской Федерации\" от 31.07.1998 N 145-ФЗ",
+      "xml_shape": {
+        "direct_child_count": 4,
+        "root_local_name": "wordDocument",
+        "root_namespace": "http://schemas.microsoft.com/office/word/2003/wordml",
+        "root_tag": "{http://schemas.microsoft.com/office/word/2003/wordml}wordDocument",
+        "well_formed": true
+      }
+    },
+    {
+      "document_type": "code",
+      "exists": true,
+      "odt_shape": null,
+      "path": "law-source/consultant/Гражданский кодекс Российской Федерации (часть первая)  от 3.xml",
+      "sha256": "4398e60096787b8b75acd5235b4eb988851a67dfa6b9298fd01eda5ee294a210",
+      "size_bytes": 4351440,
+      "source_kind": "consultant-wordml-xml",
+      "source_role": "code",
+      "source_role_v2": "code",
+      "title_first_line": "\"Гражданский кодекс Российской Федерации (часть первая)\" от 30.11.1994 N 51-ФЗ",
+      "xml_shape": {
+        "direct_child_count": 4,
+        "root_local_name": "wordDocument",
+        "root_namespace": "http://schemas.microsoft.com/office/word/2003/wordml",
+        "root_tag": "{http://schemas.microsoft.com/office/word/2003/wordml}wordDocument",
+        "well_formed": true
+      }
+    },
+    {
+      "document_type": "code_amendment_overview",
+      "exists": true,
+      "odt_shape": null,
+      "path": "law-source/consultant/Обзор изменений  Арбитражного процессуального кодекса Россий.xml",
+      "sha256": "7af1d9c5c15f4e1650b4b01c25b20c0e53cd886c8061384cc42d02f5b74d101f",
+      "size_bytes": 4942786,
+      "source_kind": "consultant-wordml-xml",
+      "source_role": "code-amendment-overview",
+      "source_role_v2": "code-amendment-overview",
+      "title_first_line": "Обзор изменений \"Арбитражного процессуального кодекса Российской Федерации\" от 24.07.2002 N 95-ФЗ",
+      "xml_shape": {
+        "direct_child_count": 4,
+        "root_local_name": "wordDocument",
+        "root_namespace": "http://schemas.microsoft.com/office/word/2003/wordml",
+        "root_tag": "{http://schemas.microsoft.com/office/word/2003/wordml}wordDocument",
+        "well_formed": true
+      }
+    },
+    {
+      "document_type": "code_amendment_overview",
+      "exists": true,
+      "odt_shape": null,
+      "path": "law-source/consultant/Обзор изменений  Бюджетного кодекса Российской Федерации  от.xml",
+      "sha256": "0217aa49eea4e1d49b36e890279fd8674886415ab5c978269089233579d791b7",
+      "size_bytes": 16464176,
+      "source_kind": "consultant-wordml-xml",
+      "source_role": "code-amendment-overview",
+      "source_role_v2": "code-amendment-overview",
+      "title_first_line": "Обзор изменений \"Бюджетного кодекса Российской Федерации\" от 31.07.1998 N 145-ФЗ",
+      "xml_shape": {
+        "direct_child_count": 4,
+        "root_local_name": "wordDocument",
+        "root_namespace": "http://schemas.microsoft.com/office/word/2003/wordml",
+        "root_tag": "{http://schemas.microsoft.com/office/word/2003/wordml}wordDocument",
+        "well_formed": true
+      }
+    },
+    {
+      "document_type": "code_amendment_overview",
+      "exists": true,
+      "odt_shape": null,
+      "path": "law-source/consultant/Обзор изменений  Гражданского кодекса Российской Федерации (.xml",
+      "sha256": "4021334c41457718b52a9d8c7f01d1836e37e101b5eff5d9d1d6f3f92e0711a9",
+      "size_bytes": 4246399,
+      "source_kind": "consultant-wordml-xml",
+      "source_role": "code-amendment-overview",
+      "source_role_v2": "code-amendment-overview",
+      "title_first_line": "Обзор изменений \"Гражданского кодекса Российской Федерации (часть первая)\" от 30.11.1994 N 51-ФЗ",
+      "xml_shape": {
+        "direct_child_count": 4,
+        "root_local_name": "wordDocument",
+        "root_namespace": "http://schemas.microsoft.com/office/word/2003/wordml",
+        "root_tag": "{http://schemas.microsoft.com/office/word/2003/wordml}wordDocument",
+        "well_formed": true
+      }
+    },
+    {
+      "document_type": "code_amendment_overview",
+      "exists": true,
+      "odt_shape": null,
+      "path": "law-source/consultant/Обзор изменений  Кодекса Российской Федерации об администрат (1).xml",
+      "sha256": "cd8f6088966d3c60b1f946931e87ace0894158edb376d0f921eeb725773e25ab",
+      "size_bytes": 40390058,
+      "source_kind": "consultant-wordml-xml",
+      "source_role": "code-amendment-overview",
+      "source_role_v2": "code-amendment-overview",
+      "title_first_line": "Обзор изменений \"Кодекса Российской Федерации об административных правонарушениях\" от 30.12.2001 N 195-ФЗ",
+      "xml_shape": {
+        "direct_child_count": 4,
+        "root_local_name": "wordDocument",
+        "root_namespace": "http://schemas.microsoft.com/office/word/2003/wordml",
+        "root_tag": "{http://schemas.microsoft.com/office/word/2003/wordml}wordDocument",
+        "well_formed": true
+      }
+    },
+    {
+      "document_type": "code_amendment_overview",
+      "exists": true,
+      "odt_shape": null,
+      "path": "law-source/consultant/Обзор изменений  Кодекса Российской Федерации об администрат.xml",
+      "sha256": "cd8f6088966d3c60b1f946931e87ace0894158edb376d0f921eeb725773e25ab",
+      "size_bytes": 40390058,
+      "source_kind": "consultant-wordml-xml",
+      "source_role": "code-amendment-overview",
+      "source_role_v2": "code-amendment-overview",
+      "title_first_line": "Обзор изменений \"Кодекса Российской Федерации об административных правонарушениях\" от 30.12.2001 N 195-ФЗ",
+      "xml_shape": {
+        "direct_child_count": 4,
+        "root_local_name": "wordDocument",
+        "root_namespace": "http://schemas.microsoft.com/office/word/2003/wordml",
+        "root_tag": "{http://schemas.microsoft.com/office/word/2003/wordml}wordDocument",
+        "well_formed": true
+      }
+    },
+    {
+      "document_type": "fas_review",
+      "exists": true,
+      "odt_shape": null,
+      "path": "law-source/consultant/Обзор недостатков и нарушений, выявленных Федеральным казнач.xml",
+      "sha256": "41b0ff3144728169c7bd3a912929aa074828306885d099583f1236eadddcebc0",
+      "size_bytes": 189867,
+      "source_kind": "consultant-wordml-xml",
+      "source_role": "fas-review",
+      "source_role_v2": "fas-review",
+      "title_first_line": "\"Обзор недостатков и нарушений, выявленных Федеральным казначейством в ходе осуществления контроля в финансово-бюджетной сфере в субъектах Российской Федерации, а также положительной практики, направленной на предупреждение нарушений в финансово-бюджетной сфере, во втором полугодии 2024 года\"",
+      "xml_shape": {
+        "direct_child_count": 4,
+        "root_local_name": "wordDocument",
+        "root_namespace": "http://schemas.microsoft.com/office/word/2003/wordml",
+        "root_tag": "{http://schemas.microsoft.com/office/word/2003/wordml}wordDocument",
+        "well_formed": true
+      }
+    },
+    {
+      "document_type": "fas_review",
+      "exists": true,
+      "odt_shape": null,
+      "path": "law-source/consultant/Обзор результатов осуществления Федеральным казначейством ко.xml",
+      "sha256": "b302f69531cbc7661d3cba2fcea5f24a492c26dbc9eddad49b64c280a3c879f6",
+      "size_bytes": 253053,
+      "source_kind": "consultant-wordml-xml",
+      "source_role": "fas-review",
+      "source_role_v2": "fas-review",
+      "title_first_line": "\"Обзор результатов осуществления Федеральным казначейством контрольной деятельности в финансово-бюджетной сфере в отношении главных распорядителей средств федерального бюджета, распорядителей, получателей средств федерального бюджета и органов управления государственными внебюджетными фондами, выявленных системных и систематических недостатков и нарушений, а также положительной практики, направленной на предупреждение нарушений в финансово-бюджетной сфере, во втором полугодии 2024 года\"",
+      "xml_shape": {
+        "direct_child_count": 4,
+        "root_local_name": "wordDocument",
+        "root_namespace": "http://schemas.microsoft.com/office/word/2003/wordml",
+        "root_tag": "{http://schemas.microsoft.com/office/word/2003/wordml}wordDocument",
+        "well_formed": true
+      }
+    },
+    {
+      "document_type": "court_practice_review",
+      "exists": true,
+      "odt_shape": null,
+      "path": "law-source/consultant/Обзор судебной практики Верховного Суда Российской Федерации (1).xml",
+      "sha256": "208cd76b7d33263c6e0b5af5b077cacd3f735193fd102ec8cebf5bae1eeb5df2",
+      "size_bytes": 1583466,
+      "source_kind": "consultant-wordml-xml",
+      "source_role": "court-practice-review",
+      "source_role_v2": "court-practice-review",
+      "title_first_line": "\"Обзор судебной практики Верховного Суда Российской Федерации N 1 (2018)\"",
+      "xml_shape": {
+        "direct_child_count": 4,
+        "root_local_name": "wordDocument",
+        "root_namespace": "http://schemas.microsoft.com/office/word/2003/wordml",
+        "root_tag": "{http://schemas.microsoft.com/office/word/2003/wordml}wordDocument",
+        "well_formed": true
+      }
+    },
+    {
+      "document_type": "court_practice_review",
+      "exists": true,
+      "odt_shape": null,
+      "path": "law-source/consultant/Обзор судебной практики Верховного Суда Российской Федерации (2).xml",
+      "sha256": "eacd37af5d26498497be9bca48494db6da4bf89d4824361ab4bf93d9a2ca31c6",
+      "size_bytes": 1767922,
+      "source_kind": "consultant-wordml-xml",
+      "source_role": "court-practice-review",
+      "source_role_v2": "court-practice-review",
+      "title_first_line": "\"Обзор судебной практики Верховного Суда Российской Федерации N 3 (2025)\"",
+      "xml_shape": {
+        "direct_child_count": 4,
+        "root_local_name": "wordDocument",
+        "root_namespace": "http://schemas.microsoft.com/office/word/2003/wordml",
+        "root_tag": "{http://schemas.microsoft.com/office/word/2003/wordml}wordDocument",
+        "well_formed": true
+      }
+    },
+    {
+      "document_type": "court_practice_review",
+      "exists": true,
+      "odt_shape": null,
+      "path": "law-source/consultant/Обзор судебной практики Верховного Суда Российской Федерации.xml",
+      "sha256": "d28af4ccbfeb74de4422e1f428adc15b2c826e044b04782f151e59b32a9b356e",
+      "size_bytes": 1112327,
+      "source_kind": "consultant-wordml-xml",
+      "source_role": "court-practice-review",
+      "source_role_v2": "court-practice-review",
+      "title_first_line": "\"Обзор судебной практики Верховного Суда Российской Федерации N 2 (2025)\"",
+      "xml_shape": {
+        "direct_child_count": 4,
+        "root_local_name": "wordDocument",
+        "root_namespace": "http://schemas.microsoft.com/office/word/2003/wordml",
+        "root_tag": "{http://schemas.microsoft.com/office/word/2003/wordml}wordDocument",
+        "well_formed": true
+      }
+    },
+    {
+      "document_type": "court_practice_review",
+      "exists": true,
+      "odt_shape": null,
+      "path": "law-source/consultant/Обзор судебной практики, связанной с привлечением к админист.xml",
+      "sha256": "ec898f2c5c2524673347eb5ab52b45b20939966b4d3c907ad9baa4e376d9ae64",
+      "size_bytes": 734896,
+      "source_kind": "consultant-wordml-xml",
+      "source_role": "court-practice-review",
+      "source_role_v2": "court-practice-review",
+      "title_first_line": "\"Обзор судебной практики, связанной с привлечением к административной ответственности за нарушения антимонопольного законодательства\"",
+      "xml_shape": {
+        "direct_child_count": 4,
+        "root_local_name": "wordDocument",
+        "root_namespace": "http://schemas.microsoft.com/office/word/2003/wordml",
+        "root_tag": "{http://schemas.microsoft.com/office/word/2003/wordml}wordDocument",
+        "well_formed": true
+      }
+    },
+    {
+      "document_type": "fas_review",
+      "exists": true,
+      "odt_shape": null,
+      "path": "law-source/consultant/Обзор_  Практика ФАС по Закону N 44-ФЗ_ какие ошибки отметил.xml",
+      "sha256": "8e81a6cb3625839104908431a54c9a2fd6fe2ba1c70efaec9e7455becfc88560",
+      "size_bytes": 69222,
+      "source_kind": "consultant-wordml-xml",
+      "source_role": "fas-review",
+      "source_role_v2": "fas-review",
+      "title_first_line": "Обзор: \"Практика ФАС по Закону N 44-ФЗ: какие ошибки отметила служба в обзорах за сентябрь 2025 года\"",
+      "xml_shape": {
+        "direct_child_count": 4,
+        "root_local_name": "wordDocument",
+        "root_namespace": "http://schemas.microsoft.com/office/word/2003/wordml",
+        "root_tag": "{http://schemas.microsoft.com/office/word/2003/wordml}wordDocument",
+        "well_formed": true
+      }
+    },
+    {
+      "document_type": "supreme_court_ruling",
+      "exists": true,
+      "odt_shape": null,
+      "path": "law-source/consultant/Определение Верховного Суда РФ от 05.12.2025 N 310-ЭС21-2741.xml",
+      "sha256": "3933a0f6a4d4b58eb3f4d36d18b4b017b9253ab21726ddb746c752e536ea5fef",
+      "size_bytes": 53954,
+      "source_kind": "consultant-wordml-xml",
+      "source_role": "supreme-court-ruling",
+      "source_role_v2": "supreme-court-ruling",
+      "title_first_line": "Определение Верховного Суда РФ от 05.12.2025 N 310-ЭС21-27414(8) по делу N А36-13113/2018",
+      "xml_shape": {
+        "direct_child_count": 4,
+        "root_local_name": "wordDocument",
+        "root_namespace": "http://schemas.microsoft.com/office/word/2003/wordml",
+        "root_tag": "{http://schemas.microsoft.com/office/word/2003/wordml}wordDocument",
+        "well_formed": true
+      }
+    },
+    {
+      "document_type": "supreme_court_ruling",
+      "exists": true,
+      "odt_shape": null,
+      "path": "law-source/consultant/Определение Верховного Суда РФ от 08.12.2025 N 305-ЭС25-1165.xml",
+      "sha256": "cf687d7ea049928be862cd3cbfba63330eea33621c54c1599f71c4615c4e6337",
+      "size_bytes": 49581,
+      "source_kind": "consultant-wordml-xml",
+      "source_role": "supreme-court-ruling",
+      "source_role_v2": "supreme-court-ruling",
+      "title_first_line": "Определение Верховного Суда РФ от 08.12.2025 N 305-ЭС25-11651(2) по делу N А41-37973/2024",
+      "xml_shape": {
+        "direct_child_count": 4,
+        "root_local_name": "wordDocument",
+        "root_namespace": "http://schemas.microsoft.com/office/word/2003/wordml",
+        "root_tag": "{http://schemas.microsoft.com/office/word/2003/wordml}wordDocument",
+        "well_formed": true
+      }
+    },
+    {
+      "document_type": "constitutional_court_ruling",
+      "exists": true,
+      "odt_shape": null,
+      "path": "law-source/consultant/Определение Конституционного Суда РФ от 28.05.2020 N 1123-О.xml",
+      "sha256": "04a63c7cd3f4255bf9b9eec7311d91f0534be57bd60c77641dd772fb7ba34a27",
+      "size_bytes": 95726,
+      "source_kind": "consultant-wordml-xml",
+      "source_role": "constitutional-court-ruling",
+      "source_role_v2": "constitutional-court-ruling",
+      "title_first_line": "Определение Конституционного Суда РФ от 28.05.2020 N 1123-О",
+      "xml_shape": {
+        "direct_child_count": 4,
+        "root_local_name": "wordDocument",
+        "root_namespace": "http://schemas.microsoft.com/office/word/2003/wordml",
+        "root_tag": "{http://schemas.microsoft.com/office/word/2003/wordml}wordDocument",
+        "well_formed": true
+      }
+    },
+    {
+      "document_type": "constitutional_court_ruling",
+      "exists": true,
+      "odt_shape": null,
+      "path": "law-source/consultant/Определение Конституционного Суда РФ от 30.10.2025 N 2837-О.xml",
+      "sha256": "11fc270bc074dd8d5387069ca046337a78677d5e0a1104fb422e9bd5b27a03ab",
+      "size_bytes": 78004,
+      "source_kind": "consultant-wordml-xml",
+      "source_role": "constitutional-court-ruling",
+      "source_role_v2": "constitutional-court-ruling",
+      "title_first_line": "Определение Конституционного Суда РФ от 30.10.2025 N 2837-О",
+      "xml_shape": {
+        "direct_child_count": 4,
+        "root_local_name": "wordDocument",
+        "root_namespace": "http://schemas.microsoft.com/office/word/2003/wordml",
+        "root_tag": "{http://schemas.microsoft.com/office/word/2003/wordml}wordDocument",
+        "well_formed": true
+      }
+    },
+    {
+      "document_type": "supreme_court_ruling",
+      "exists": true,
+      "odt_shape": null,
+      "path": "law-source/consultant/Постановление Верховного Суда РФ от 09.10.2025 N 38-АД25-9-К.xml",
+      "sha256": "fd425d970f10335ab3967a73bb3da4d2025ca820db992a6c08eedc552242479b",
+      "size_bytes": 104841,
+      "source_kind": "consultant-wordml-xml",
+      "source_role": "supreme-court-ruling",
+      "source_role_v2": "supreme-court-ruling",
+      "title_first_line": "Постановление Верховного Суда РФ от 09.10.2025 N 38-АД25-9-К1",
+      "xml_shape": {
+        "direct_child_count": 4,
+        "root_local_name": "wordDocument",
+        "root_namespace": "http://schemas.microsoft.com/office/word/2003/wordml",
+        "root_tag": "{http://schemas.microsoft.com/office/word/2003/wordml}wordDocument",
+        "well_formed": true
+      }
+    },
+    {
+      "document_type": "supreme_court_ruling",
+      "exists": true,
+      "odt_shape": null,
+      "path": "law-source/consultant/Постановление Верховного Суда РФ от 10.11.2025 N 59-АД25-9-К.xml",
+      "sha256": "e6a8f61af7c137b53a62bd836889c0d2091e8ac6be3841f36056b0498357d22d",
+      "size_bytes": 88924,
+      "source_kind": "consultant-wordml-xml",
+      "source_role": "supreme-court-ruling",
+      "source_role_v2": "supreme-court-ruling",
+      "title_first_line": "Постановление Верховного Суда РФ от 10.11.2025 N 59-АД25-9-К9",
+      "xml_shape": {
+        "direct_child_count": 4,
+        "root_local_name": "wordDocument",
+        "root_namespace": "http://schemas.microsoft.com/office/word/2003/wordml",
+        "root_tag": "{http://schemas.microsoft.com/office/word/2003/wordml}wordDocument",
+        "well_formed": true
+      }
+    },
+    {
+      "document_type": "supreme_court_ruling",
+      "exists": true,
+      "odt_shape": null,
+      "path": "law-source/consultant/Постановление Верховного Суда РФ от 13.11.2025 N 16-АД25-12-.xml",
+      "sha256": "7beb295a739e1be66fc111995b18e791fb009aa5ed7626557ad9cb1a444def25",
+      "size_bytes": 138519,
+      "source_kind": "consultant-wordml-xml",
+      "source_role": "supreme-court-ruling",
+      "source_role_v2": "supreme-court-ruling",
+      "title_first_line": "Постановление Верховного Суда РФ от 13.11.2025 N 16-АД25-12-К4",
+      "xml_shape": {
+        "direct_child_count": 4,
+        "root_local_name": "wordDocument",
+        "root_namespace": "http://schemas.microsoft.com/office/word/2003/wordml",
+        "root_tag": "{http://schemas.microsoft.com/office/word/2003/wordml}wordDocument",
+        "well_formed": true
+      }
+    },
+    {
+      "document_type": "supreme_court_ruling",
+      "exists": true,
+      "odt_shape": null,
+      "path": "law-source/consultant/Постановление Верховного Суда РФ от 20.11.2025 N 48-АД25-13-.xml",
+      "sha256": "25661f9a6a0fe50e3294cb8eeeb8fafb7b5ddc74f10428c4d9c7c83b1eda42c9",
+      "size_bytes": 110742,
+      "source_kind": "consultant-wordml-xml",
+      "source_role": "supreme-court-ruling",
+      "source_role_v2": "supreme-court-ruling",
+      "title_first_line": "Постановление Верховного Суда РФ от 20.11.2025 N 48-АД25-13-К7",
+      "xml_shape": {
+        "direct_child_count": 4,
+        "root_local_name": "wordDocument",
+        "root_namespace": "http://schemas.microsoft.com/office/word/2003/wordml",
+        "root_tag": "{http://schemas.microsoft.com/office/word/2003/wordml}wordDocument",
+        "well_formed": true
+      }
+    },
+    {
+      "document_type": "lower_court_ruling",
+      "exists": true,
+      "odt_shape": null,
+      "path": "law-source/consultant/Постановление Девятого кассационного суда общей юрисдикции о.xml",
+      "sha256": "c445112b04cc0097faba1e9b9d97faa76f10de3af4b8be605e1ee3101a95acd3",
+      "size_bytes": 80170,
+      "source_kind": "consultant-wordml-xml",
+      "source_role": "lower-court-ruling",
+      "source_role_v2": "lower-court-ruling",
+      "title_first_line": "Постановление Девятого кассационного суда общей юрисдикции от 19.06.2023 по делу N 16-1034/2023 (УИД 28MS0019-01-2021-004104-08)",
+      "xml_shape": {
+        "direct_child_count": 4,
+        "root_local_name": "wordDocument",
+        "root_namespace": "http://schemas.microsoft.com/office/word/2003/wordml",
+        "root_tag": "{http://schemas.microsoft.com/office/word/2003/wordml}wordDocument",
+        "well_formed": true
+      }
+    },
+    {
+      "document_type": "constitutional_court_ruling",
+      "exists": true,
+      "odt_shape": null,
+      "path": "law-source/consultant/Постановление Конституционного Суда РФ от 18.03.2021 N 7-П.xml",
+      "sha256": "028e6bbb4fffcdcdb9fe8b13ced9fd368059d55412550303443c63ed900e2cbf",
+      "size_bytes": 164270,
+      "source_kind": "consultant-wordml-xml",
+      "source_role": "constitutional-court-ruling",
+      "source_role_v2": "constitutional-court-ruling",
+      "title_first_line": "Постановление Конституционного Суда РФ от 18.03.2021 N 7-П",
+      "xml_shape": {
+        "direct_child_count": 4,
+        "root_local_name": "wordDocument",
+        "root_namespace": "http://schemas.microsoft.com/office/word/2003/wordml",
+        "root_tag": "{http://schemas.microsoft.com/office/word/2003/wordml}wordDocument",
+        "well_formed": true
+      }
+    },
+    {
+      "document_type": "government_resolution",
+      "exists": true,
+      "odt_shape": null,
+      "path": "law-source/consultant/Постановление Правительства РФ от 29.12.2021 N 2571 (ред. от.xml",
+      "sha256": "2ebda3f3db5b9549702b4a41f9f2875eece855bd526ea7ea20c256d0b5d049c5",
+      "size_bytes": 793172,
+      "source_kind": "consultant-wordml-xml",
+      "source_role": "government-resolution",
+      "source_role_v2": "government-resolution",
+      "title_first_line": "Постановление Правительства РФ от 29.12.2021 N 2571",
+      "xml_shape": {
+        "direct_child_count": 4,
+        "root_local_name": "wordDocument",
+        "root_namespace": "http://schemas.microsoft.com/office/word/2003/wordml",
+        "root_tag": "{http://schemas.microsoft.com/office/word/2003/wordml}wordDocument",
+        "well_formed": true
+      }
+    },
+    {
+      "document_type": "lower_court_ruling",
+      "exists": true,
+      "odt_shape": null,
+      "path": "law-source/consultant/Постановление Семнадцатого арбитражного апелляционного суда (1).xml",
+      "sha256": "c614c72f5d2976491bc66c29b12f4d46cb05804ba2df35d8700eba81e081e2cf",
+      "size_bytes": 130365,
+      "source_kind": "consultant-wordml-xml",
+      "source_role": "lower-court-ruling",
+      "source_role_v2": "lower-court-ruling",
+      "title_first_line": "Постановление Семнадцатого арбитражного апелляционного суда от 15.12.2025 N 17АП-9951/2025-ГК по делу N А71-800/2024",
+      "xml_shape": {
+        "direct_child_count": 4,
+        "root_local_name": "wordDocument",
+        "root_namespace": "http://schemas.microsoft.com/office/word/2003/wordml",
+        "root_tag": "{http://schemas.microsoft.com/office/word/2003/wordml}wordDocument",
+        "well_formed": true
+      }
+    },
+    {
+      "document_type": "lower_court_ruling",
+      "exists": true,
+      "odt_shape": null,
+      "path": "law-source/consultant/Постановление Семнадцатого арбитражного апелляционного суда (2).xml",
+      "sha256": "c614c72f5d2976491bc66c29b12f4d46cb05804ba2df35d8700eba81e081e2cf",
+      "size_bytes": 130365,
+      "source_kind": "consultant-wordml-xml",
+      "source_role": "lower-court-ruling",
+      "source_role_v2": "lower-court-ruling",
+      "title_first_line": "Постановление Семнадцатого арбитражного апелляционного суда от 15.12.2025 N 17АП-9951/2025-ГК по делу N А71-800/2024",
+      "xml_shape": {
+        "direct_child_count": 4,
+        "root_local_name": "wordDocument",
+        "root_namespace": "http://schemas.microsoft.com/office/word/2003/wordml",
+        "root_tag": "{http://schemas.microsoft.com/office/word/2003/wordml}wordDocument",
+        "well_formed": true
+      }
+    },
+    {
+      "document_type": "lower_court_ruling",
+      "exists": true,
+      "odt_shape": null,
+      "path": "law-source/consultant/Постановление Семнадцатого арбитражного апелляционного суда.xml",
+      "sha256": "303439f9aaf59a3515a808c1e81546505340e164b8bee479a546af9d1c9c1a4e",
+      "size_bytes": 88920,
+      "source_kind": "consultant-wordml-xml",
+      "source_role": "lower-court-ruling",
+      "source_role_v2": "lower-court-ruling",
+      "title_first_line": "Постановление Семнадцатого арбитражного апелляционного суда от 16.12.2025 N 17АП-8755/2025-ГК по делу N А71-4739/2025",
+      "xml_shape": {
+        "direct_child_count": 4,
+        "root_local_name": "wordDocument",
+        "root_namespace": "http://schemas.microsoft.com/office/word/2003/wordml",
+        "root_tag": "{http://schemas.microsoft.com/office/word/2003/wordml}wordDocument",
+        "well_formed": true
+      }
+    },
+    {
+      "document_type": "antimonopoly_decision",
+      "exists": true,
+      "odt_shape": null,
+      "path": "law-source/consultant/Приказ ФАС России от 25.05.2012 N 339 (ред. от 16.02.2016).xml",
+      "sha256": "d68facbcfc1c2f189c91bd54d57abbdab3ce2eaeacfc4a37361a5878b0f99927",
+      "size_bytes": 808161,
+      "source_kind": "consultant-wordml-xml",
+      "source_role": "antimonopoly-decision",
+      "source_role_v2": "antimonopoly-decision",
+      "title_first_line": "Приказ ФАС России от 25.05.2012 N 339",
+      "xml_shape": {
+        "direct_child_count": 4,
+        "root_local_name": "wordDocument",
+        "root_namespace": "http://schemas.microsoft.com/office/word/2003/wordml",
+        "root_tag": "{http://schemas.microsoft.com/office/word/2003/wordml}wordDocument",
+        "well_formed": true
+      }
+    },
+    {
+      "document_type": "other_document",
+      "exists": true,
+      "odt_shape": null,
+      "path": "law-source/consultant/Решение Красноярского УФАС России от 07.11.2025 N 024_06_106.xml",
+      "sha256": "88b1555c2db90257050945cc049a60bd6cda9b201e1a4f72042bab789a1803a2",
+      "size_bytes": 118365,
+      "source_kind": "consultant-wordml-xml",
+      "source_role": "other-document",
+      "source_role_v2": "other-document",
+      "title_first_line": "Решение Красноярского УФАС России от 07.11.2025 N 024/06/106-3334/2025",
+      "xml_shape": {
+        "direct_child_count": 4,
+        "root_local_name": "wordDocument",
+        "root_namespace": "http://schemas.microsoft.com/office/word/2003/wordml",
+        "root_tag": "{http://schemas.microsoft.com/office/word/2003/wordml}wordDocument",
+        "well_formed": true
+      }
+    },
+    {
+      "document_type": "other_document",
+      "exists": true,
+      "odt_shape": null,
+      "path": "law-source/consultant/Решение Свердловского УФАС России от 29.10.2025 N 066_06_104.xml",
+      "sha256": "c9fb46e3c90e8958ae2a068bc1ade96a65ebde9dab871404c7ba3e0e1d4d6378",
+      "size_bytes": 120522,
+      "source_kind": "consultant-wordml-xml",
+      "source_role": "other-document",
+      "source_role_v2": "other-document",
+      "title_first_line": "Решение Свердловского УФАС России от 29.10.2025 N 066/06/104-2953/2025",
+      "xml_shape": {
+        "direct_child_count": 4,
+        "root_local_name": "wordDocument",
+        "root_namespace": "http://schemas.microsoft.com/office/word/2003/wordml",
+        "root_tag": "{http://schemas.microsoft.com/office/word/2003/wordml}wordDocument",
+        "well_formed": true
+      }
+    },
+    {
+      "document_type": "other_document",
+      "exists": true,
+      "odt_shape": null,
+      "path": "law-source/consultant/Решение Северо-Осетинского УФАС России от 06.11.2025 по делу.xml",
+      "sha256": "648dceff5350d0a27e7af53b722d0e04f722aafad4461d9b53cab653f4132951",
+      "size_bytes": 130671,
+      "source_kind": "consultant-wordml-xml",
+      "source_role": "other-document",
+      "source_role_v2": "other-document",
+      "title_first_line": "Решение Северо-Осетинского УФАС России от 06.11.2025 по делу N А263-11/225(015/06/99-755/2025)",
+      "xml_shape": {
+        "direct_child_count": 4,
+        "root_local_name": "wordDocument",
+        "root_namespace": "http://schemas.microsoft.com/office/word/2003/wordml",
+        "root_tag": "{http://schemas.microsoft.com/office/word/2003/wordml}wordDocument",
+        "well_formed": true
+      }
+    },
+    {
+      "document_type": "antimonopoly_decision",
+      "exists": true,
+      "odt_shape": null,
+      "path": "law-source/consultant/Решение ФАС России от 06.11.2025 по делу N 28_06_105-4409_20.xml",
+      "sha256": "9ec79db9082df6c62e16f803bd78e39d9bd8de670912feda6cc754d937fdfd69",
+      "size_bytes": 106823,
+      "source_kind": "consultant-wordml-xml",
+      "source_role": "antimonopoly-decision",
+      "source_role_v2": "antimonopoly-decision",
+      "title_first_line": "Решение ФАС России от 06.11.2025 по делу N 28/06/105-4409/2025",
+      "xml_shape": {
+        "direct_child_count": 4,
+        "root_local_name": "wordDocument",
+        "root_namespace": "http://schemas.microsoft.com/office/word/2003/wordml",
+        "root_tag": "{http://schemas.microsoft.com/office/word/2003/wordml}wordDocument",
+        "well_formed": true
+      }
+    },
+    {
+      "document_type": "antimonopoly_decision",
+      "exists": true,
+      "odt_shape": null,
+      "path": "law-source/consultant/Решение ФАС России от 06.11.2025 по делу N 28_06_105-4463_20.xml",
+      "sha256": "43c218ca2f85fc249636c60a48bf13111004f783c891cde6caa1c0093cbb4d31",
+      "size_bytes": 82925,
+      "source_kind": "consultant-wordml-xml",
+      "source_role": "antimonopoly-decision",
+      "source_role_v2": "antimonopoly-decision",
+      "title_first_line": "Решение ФАС России от 06.11.2025 по делу N 28/06/105-4463/2025",
+      "xml_shape": {
+        "direct_child_count": 4,
+        "root_local_name": "wordDocument",
+        "root_namespace": "http://schemas.microsoft.com/office/word/2003/wordml",
+        "root_tag": "{http://schemas.microsoft.com/office/word/2003/wordml}wordDocument",
+        "well_formed": true
+      }
+    },
+    {
+      "document_type": "antimonopoly_decision",
+      "exists": true,
+      "odt_shape": null,
+      "path": "law-source/consultant/Решение ФАС России от 06.11.2025 по делу N 28_06_105-4466_20.xml",
+      "sha256": "7fed3982081ca01707c77602745c2264b66fcb8753f790b9b9d13fe56d820b91",
+      "size_bytes": 73387,
+      "source_kind": "consultant-wordml-xml",
+      "source_role": "antimonopoly-decision",
+      "source_role_v2": "antimonopoly-decision",
+      "title_first_line": "Решение ФАС России от 06.11.2025 по делу N 28/06/105-4466/2025",
+      "xml_shape": {
+        "direct_child_count": 4,
+        "root_local_name": "wordDocument",
+        "root_namespace": "http://schemas.microsoft.com/office/word/2003/wordml",
+        "root_tag": "{http://schemas.microsoft.com/office/word/2003/wordml}wordDocument",
+        "well_formed": true
+      }
+    },
+    {
+      "document_type": "antimonopoly_decision",
+      "exists": true,
+      "odt_shape": null,
+      "path": "law-source/consultant/Решение ФАС России от 07.11.2025 по делу N 25_44_104_516 Обс.xml",
+      "sha256": "5f10e645a36bb22784c251edecb696e78d426417bad342db7c3f3fce6ada198a",
+      "size_bytes": 76808,
+      "source_kind": "consultant-wordml-xml",
+      "source_role": "antimonopoly-decision",
+      "source_role_v2": "antimonopoly-decision",
+      "title_first_line": "Решение ФАС России от 07.11.2025 по делу N 25/44/104/516",
+      "xml_shape": {
+        "direct_child_count": 4,
+        "root_local_name": "wordDocument",
+        "root_namespace": "http://schemas.microsoft.com/office/word/2003/wordml",
+        "root_tag": "{http://schemas.microsoft.com/office/word/2003/wordml}wordDocument",
+        "well_formed": true
+      }
+    },
+    {
+      "document_type": "other_document",
+      "exists": true,
+      "odt_shape": null,
+      "path": "law-source/consultant/Решение Хабаровского УФАС России от 06.11.2025 N РНП-399 по.xml",
+      "sha256": "b98e1a6168a74b361292b63b9a7f1a3eb5d334d6f76ba296d61e135a7374d3bf",
+      "size_bytes": 138102,
+      "source_kind": "consultant-wordml-xml",
+      "source_role": "other-document",
+      "source_role_v2": "other-document",
+      "title_first_line": "Решение Хабаровского УФАС России от 06.11.2025 N РНП-399 по делу N 7-3/623",
+      "xml_shape": {
+        "direct_child_count": 4,
+        "root_local_name": "wordDocument",
+        "root_namespace": "http://schemas.microsoft.com/office/word/2003/wordml",
+        "root_tag": "{http://schemas.microsoft.com/office/word/2003/wordml}wordDocument",
+        "well_formed": true
+      }
+    },
+    {
+      "document_type": "document_list",
+      "exists": true,
+      "odt_shape": null,
+      "path": "law-source/consultant/Список документов (5).xml",
+      "sha256": "0694587f4a907faf2e4cbaccb27b166e34a8380e9afc17642769b5ac54d5ede3",
+      "size_bytes": 5093,
+      "source_kind": "consultant-wordml-xml",
+      "source_role": "document-list-prior-art",
+      "source_role_v2": "document-list-prior-art",
+      "title_first_line": "Список документов",
+      "xml_shape": {
+        "direct_child_count": 4,
+        "root_local_name": "wordDocument",
+        "root_namespace": "http://schemas.microsoft.com/office/word/2003/wordml",
+        "root_tag": "{http://schemas.microsoft.com/office/word/2003/wordml}wordDocument",
+        "well_formed": true
+      }
+    },
+    {
+      "document_type": "federal_law",
+      "exists": true,
+      "odt_shape": null,
+      "path": "law-source/consultant/Федеральный закон от 18.07.2011 N 223-ФЗ (ред. от 08.08.2024.xml",
+      "sha256": "dfc8314207faf37bd4bad1acbec7189db502a161a350a0969da08b6e653f4ece",
+      "size_bytes": 1256827,
+      "source_kind": "consultant-wordml-xml",
+      "source_role": "federal-law",
+      "source_role_v2": "federal-law",
+      "title_first_line": "Федеральный закон от 18.07.2011 N 223-ФЗ",
+      "xml_shape": {
+        "direct_child_count": 4,
+        "root_local_name": "wordDocument",
+        "root_namespace": "http://schemas.microsoft.com/office/word/2003/wordml",
+        "root_tag": "{http://schemas.microsoft.com/office/word/2003/wordml}wordDocument",
+        "well_formed": true
+      }
+    },
+    {
+      "document_type": "odt_document",
       "exists": true,
       "odt_shape": {
         "content_xml": {
@@ -83,15 +895,16 @@
         "zip_valid": true
       },
       "path": "law-source/garant/44-fz.odt",
-      "role": "odt-document-fixture",
       "sha256": "73777d4741fa1b65229a8b22b97eb2cff4c5180105affb79b058d7007e3e4337",
       "size_bytes": 247971,
       "source_kind": "garant-odt",
       "source_role": "odt-document-fixture",
+      "source_role_v2": "odt-document-fixture",
+      "title_first_line": null,
       "xml_shape": null
     },
     {
-      "canonical": true,
+      "document_type": "odt_document",
       "exists": true,
       "odt_shape": {
         "content_xml": {
@@ -117,48 +930,363 @@
         "zip_valid": true
       },
       "path": "law-source/garant/PP_60_27-01-2022.odt",
-      "role": "odt-document-fixture",
       "sha256": "f083c903beadc243a842516e955471bc942d9a65a115694441876f1543335d4c",
       "size_bytes": 102041,
       "source_kind": "garant-odt",
       "source_role": "odt-document-fixture",
+      "source_role_v2": "odt-document-fixture",
+      "title_first_line": null,
       "xml_shape": null
     },
     {
-      "canonical": true,
+      "document_type": "odt_document",
       "exists": true,
-      "odt_shape": null,
-      "path": "law-source/consultant/Список документов (5).xml",
-      "role": "relation-fixture-prior-art-evidence",
-      "sha256": "0694587f4a907faf2e4cbaccb27b166e34a8380e9afc17642769b5ac54d5ede3",
-      "size_bytes": 5093,
-      "source_kind": "consultant-wordml-xml",
-      "source_role": "document-list-prior-art",
-      "xml_shape": {
-        "direct_child_count": 4,
-        "root_local_name": "wordDocument",
-        "root_namespace": "http://schemas.microsoft.com/office/word/2003/wordml",
-        "root_tag": "{http://schemas.microsoft.com/office/word/2003/wordml}wordDocument",
-        "well_formed": true
-      }
+      "odt_shape": {
+        "content_xml": {
+          "direct_child_count": 3,
+          "root_local_name": "document-content",
+          "root_namespace": "urn:oasis:names:tc:opendocument:xmlns:office:1.0",
+          "root_tag": "{urn:oasis:names:tc:opendocument:xmlns:office:1.0}document-content",
+          "well_formed": true
+        },
+        "member_count": 8,
+        "meta_xml": {
+          "direct_child_count": 1,
+          "root_local_name": "document-meta",
+          "root_namespace": "urn:oasis:names:tc:opendocument:xmlns:office:1.0",
+          "root_tag": "{urn:oasis:names:tc:opendocument:xmlns:office:1.0}document-meta",
+          "well_formed": true
+        },
+        "required_members": {
+          "content.xml": true,
+          "meta.xml": true
+        },
+        "required_members_present": true,
+        "zip_valid": true
+      },
+      "path": "law-source/garant/Постановление Правительства РФ от 15 октября 2022 г N 1838 Об изменении существе.odt",
+      "sha256": "124ebed6e8e5e557178c410c4db82de19c7bd46fba92da0e3c62f6688b41f414",
+      "size_bytes": 10922,
+      "source_kind": "garant-odt",
+      "source_role": "odt-document-fixture",
+      "source_role_v2": "odt-document-fixture",
+      "title_first_line": null,
+      "xml_shape": null
     },
     {
-      "canonical": true,
+      "document_type": "odt_document",
       "exists": true,
-      "odt_shape": null,
-      "path": "law-source/consultant/44-FZ-2026.xml",
-      "role": "full-act-source-shape-fixture",
-      "sha256": "69df0b9d9e2bcce6164fc4e3c74fb9bebfff36ae6b053c68917c804be4b52a86",
-      "size_bytes": 5235817,
-      "source_kind": "consultant-wordml-xml",
-      "source_role": "full-normative-act",
-      "xml_shape": {
-        "direct_child_count": 4,
-        "root_local_name": "wordDocument",
-        "root_namespace": "http://schemas.microsoft.com/office/word/2003/wordml",
-        "root_tag": "{http://schemas.microsoft.com/office/word/2003/wordml}wordDocument",
-        "well_formed": true
-      }
+      "odt_shape": {
+        "content_xml": {
+          "direct_child_count": 3,
+          "root_local_name": "document-content",
+          "root_namespace": "urn:oasis:names:tc:opendocument:xmlns:office:1.0",
+          "root_tag": "{urn:oasis:names:tc:opendocument:xmlns:office:1.0}document-content",
+          "well_formed": true
+        },
+        "member_count": 8,
+        "meta_xml": {
+          "direct_child_count": 1,
+          "root_local_name": "document-meta",
+          "root_namespace": "urn:oasis:names:tc:opendocument:xmlns:office:1.0",
+          "root_tag": "{urn:oasis:names:tc:opendocument:xmlns:office:1.0}document-meta",
+          "well_formed": true
+        },
+        "required_members": {
+          "content.xml": true,
+          "meta.xml": true
+        },
+        "required_members_present": true,
+        "zip_valid": true
+      },
+      "path": "law-source/garant/Постановление Правительства РФ от 23 января 2024 г N 50 О приостановлении действ.odt",
+      "sha256": "e21dcb1414c12e02bde6b8fe16ec16d7ce5e928b7fb03b3bc0d7afeeb893257c",
+      "size_bytes": 9205,
+      "source_kind": "garant-odt",
+      "source_role": "odt-document-fixture",
+      "source_role_v2": "odt-document-fixture",
+      "title_first_line": null,
+      "xml_shape": null
+    },
+    {
+      "document_type": "odt_document",
+      "exists": true,
+      "odt_shape": {
+        "content_xml": {
+          "direct_child_count": 3,
+          "root_local_name": "document-content",
+          "root_namespace": "urn:oasis:names:tc:opendocument:xmlns:office:1.0",
+          "root_tag": "{urn:oasis:names:tc:opendocument:xmlns:office:1.0}document-content",
+          "well_formed": true
+        },
+        "member_count": 8,
+        "meta_xml": {
+          "direct_child_count": 1,
+          "root_local_name": "document-meta",
+          "root_namespace": "urn:oasis:names:tc:opendocument:xmlns:office:1.0",
+          "root_tag": "{urn:oasis:names:tc:opendocument:xmlns:office:1.0}document-meta",
+          "well_formed": true
+        },
+        "required_members": {
+          "content.xml": true,
+          "meta.xml": true
+        },
+        "required_members_present": true,
+        "zip_valid": true
+      },
+      "path": "law-source/garant/Постановление Правительства РФ от 24 декабря 2022 г N 2411 Об авансировании дого.odt",
+      "sha256": "7e0a82dafe83b17bf0a5b6f834dffa23e741c764e2b5a8fda21958005fa37a9c",
+      "size_bytes": 11121,
+      "source_kind": "garant-odt",
+      "source_role": "odt-document-fixture",
+      "source_role_v2": "odt-document-fixture",
+      "title_first_line": null,
+      "xml_shape": null
+    },
+    {
+      "document_type": "odt_document",
+      "exists": true,
+      "odt_shape": {
+        "content_xml": {
+          "direct_child_count": 3,
+          "root_local_name": "document-content",
+          "root_namespace": "urn:oasis:names:tc:opendocument:xmlns:office:1.0",
+          "root_tag": "{urn:oasis:names:tc:opendocument:xmlns:office:1.0}document-content",
+          "well_formed": true
+        },
+        "member_count": 8,
+        "meta_xml": {
+          "direct_child_count": 1,
+          "root_local_name": "document-meta",
+          "root_namespace": "urn:oasis:names:tc:opendocument:xmlns:office:1.0",
+          "root_tag": "{urn:oasis:names:tc:opendocument:xmlns:office:1.0}document-meta",
+          "well_formed": true
+        },
+        "required_members": {
+          "content.xml": true,
+          "meta.xml": true
+        },
+        "required_members_present": true,
+        "zip_valid": true
+      },
+      "path": "law-source/garant/Постановление Правительства РФ от 29 декабря 2023 г N 2368 О внесении изменений .odt",
+      "sha256": "2b32e71ed0f77ad2c32efa280accd7c81dda853c9ceb3835b92d6cc04513880e",
+      "size_bytes": 6932,
+      "source_kind": "garant-odt",
+      "source_role": "odt-document-fixture",
+      "source_role_v2": "odt-document-fixture",
+      "title_first_line": null,
+      "xml_shape": null
+    },
+    {
+      "document_type": "odt_document",
+      "exists": true,
+      "odt_shape": {
+        "content_xml": {
+          "direct_child_count": 3,
+          "root_local_name": "document-content",
+          "root_namespace": "urn:oasis:names:tc:opendocument:xmlns:office:1.0",
+          "root_tag": "{urn:oasis:names:tc:opendocument:xmlns:office:1.0}document-content",
+          "well_formed": true
+        },
+        "member_count": 8,
+        "meta_xml": {
+          "direct_child_count": 1,
+          "root_local_name": "document-meta",
+          "root_namespace": "urn:oasis:names:tc:opendocument:xmlns:office:1.0",
+          "root_tag": "{urn:oasis:names:tc:opendocument:xmlns:office:1.0}document-meta",
+          "well_formed": true
+        },
+        "required_members": {
+          "content.xml": true,
+          "meta.xml": true
+        },
+        "required_members_present": true,
+        "zip_valid": true
+      },
+      "path": "law-source/garant/Постановление Правительства РФ от 30 сентября 2019 г N 1279 О планах графиках за.odt",
+      "sha256": "67627cf7557fc06de959e67dab5d01cf5e89a17e537e6f6805c93a3a097f881e",
+      "size_bytes": 20906,
+      "source_kind": "garant-odt",
+      "source_role": "odt-document-fixture",
+      "source_role_v2": "odt-document-fixture",
+      "title_first_line": null,
+      "xml_shape": null
+    },
+    {
+      "document_type": "odt_document",
+      "exists": true,
+      "odt_shape": {
+        "content_xml": {
+          "direct_child_count": 3,
+          "root_local_name": "document-content",
+          "root_namespace": "urn:oasis:names:tc:opendocument:xmlns:office:1.0",
+          "root_tag": "{urn:oasis:names:tc:opendocument:xmlns:office:1.0}document-content",
+          "well_formed": true
+        },
+        "member_count": 8,
+        "meta_xml": {
+          "direct_child_count": 1,
+          "root_local_name": "document-meta",
+          "root_namespace": "urn:oasis:names:tc:opendocument:xmlns:office:1.0",
+          "root_tag": "{urn:oasis:names:tc:opendocument:xmlns:office:1.0}document-meta",
+          "well_formed": true
+        },
+        "required_members": {
+          "content.xml": true,
+          "meta.xml": true
+        },
+        "required_members_present": true,
+        "zip_valid": true
+      },
+      "path": "law-source/garant/Постановление Правительства Российской Федерации от 17 марта 2026 г 277 Об утвер.odt",
+      "sha256": "a132ce43d5ad9cbafe553713336c77973cba04ed342727e8e6ba4e97496bdc52",
+      "size_bytes": 13638,
+      "source_kind": "garant-odt",
+      "source_role": "odt-document-fixture",
+      "source_role_v2": "odt-document-fixture",
+      "title_first_line": null,
+      "xml_shape": null
+    },
+    {
+      "document_type": "odt_document",
+      "exists": true,
+      "odt_shape": {
+        "content_xml": {
+          "direct_child_count": 3,
+          "root_local_name": "document-content",
+          "root_namespace": "urn:oasis:names:tc:opendocument:xmlns:office:1.0",
+          "root_tag": "{urn:oasis:names:tc:opendocument:xmlns:office:1.0}document-content",
+          "well_formed": true
+        },
+        "member_count": 8,
+        "meta_xml": {
+          "direct_child_count": 1,
+          "root_local_name": "document-meta",
+          "root_namespace": "urn:oasis:names:tc:opendocument:xmlns:office:1.0",
+          "root_tag": "{urn:oasis:names:tc:opendocument:xmlns:office:1.0}document-meta",
+          "well_formed": true
+        },
+        "required_members": {
+          "content.xml": true,
+          "meta.xml": true
+        },
+        "required_members_present": true,
+        "zip_valid": true
+      },
+      "path": "law-source/garant/Постановление Правительства Российской Федерации от 19 октября 2024 г N 1404 О с.odt",
+      "sha256": "94363718f03a2baba2ab145c4cccaae722b2032976adbe2ac1268e35269835b3",
+      "size_bytes": 8407,
+      "source_kind": "garant-odt",
+      "source_role": "odt-document-fixture",
+      "source_role_v2": "odt-document-fixture",
+      "title_first_line": null,
+      "xml_shape": null
+    },
+    {
+      "document_type": "odt_document",
+      "exists": true,
+      "odt_shape": {
+        "content_xml": {
+          "direct_child_count": 3,
+          "root_local_name": "document-content",
+          "root_namespace": "urn:oasis:names:tc:opendocument:xmlns:office:1.0",
+          "root_tag": "{urn:oasis:names:tc:opendocument:xmlns:office:1.0}document-content",
+          "well_formed": true
+        },
+        "member_count": 10,
+        "meta_xml": {
+          "direct_child_count": 1,
+          "root_local_name": "document-meta",
+          "root_namespace": "urn:oasis:names:tc:opendocument:xmlns:office:1.0",
+          "root_tag": "{urn:oasis:names:tc:opendocument:xmlns:office:1.0}document-meta",
+          "well_formed": true
+        },
+        "required_members": {
+          "content.xml": true,
+          "meta.xml": true
+        },
+        "required_members_present": true,
+        "zip_valid": true
+      },
+      "path": "law-source/garant/Постановление Правительства Российской Федерации от 23 декабря 2024 г N 1875 О м.odt",
+      "sha256": "701a8b9e43362a3a1ed2b0e63b293cbab28c31a58b7c6d57bebdf1c541f53cb9",
+      "size_bytes": 102427,
+      "source_kind": "garant-odt",
+      "source_role": "odt-document-fixture",
+      "source_role_v2": "odt-document-fixture",
+      "title_first_line": null,
+      "xml_shape": null
+    },
+    {
+      "document_type": "odt_document",
+      "exists": true,
+      "odt_shape": {
+        "content_xml": {
+          "direct_child_count": 3,
+          "root_local_name": "document-content",
+          "root_namespace": "urn:oasis:names:tc:opendocument:xmlns:office:1.0",
+          "root_tag": "{urn:oasis:names:tc:opendocument:xmlns:office:1.0}document-content",
+          "well_formed": true
+        },
+        "member_count": 8,
+        "meta_xml": {
+          "direct_child_count": 1,
+          "root_local_name": "document-meta",
+          "root_namespace": "urn:oasis:names:tc:opendocument:xmlns:office:1.0",
+          "root_tag": "{urn:oasis:names:tc:opendocument:xmlns:office:1.0}document-meta",
+          "well_formed": true
+        },
+        "required_members": {
+          "content.xml": true,
+          "meta.xml": true
+        },
+        "required_members_present": true,
+        "zip_valid": true
+      },
+      "path": "law-source/garant/Федеральный закон от 25 декабря 2023 г N 624 ФЗ О внесении изменений в отдельные.odt",
+      "sha256": "6da6725b60bbfb72447fde81a452a83d07bb1920afc6ebf7baa4d3c2043cd252",
+      "size_bytes": 12447,
+      "source_kind": "garant-odt",
+      "source_role": "odt-document-fixture",
+      "source_role_v2": "odt-document-fixture",
+      "title_first_line": null,
+      "xml_shape": null
+    },
+    {
+      "document_type": "odt_document",
+      "exists": true,
+      "odt_shape": {
+        "content_xml": {
+          "direct_child_count": 3,
+          "root_local_name": "document-content",
+          "root_namespace": "urn:oasis:names:tc:opendocument:xmlns:office:1.0",
+          "root_tag": "{urn:oasis:names:tc:opendocument:xmlns:office:1.0}document-content",
+          "well_formed": true
+        },
+        "member_count": 8,
+        "meta_xml": {
+          "direct_child_count": 1,
+          "root_local_name": "document-meta",
+          "root_namespace": "urn:oasis:names:tc:opendocument:xmlns:office:1.0",
+          "root_tag": "{urn:oasis:names:tc:opendocument:xmlns:office:1.0}document-meta",
+          "well_formed": true
+        },
+        "required_members": {
+          "content.xml": true,
+          "meta.xml": true
+        },
+        "required_members_present": true,
+        "zip_valid": true
+      },
+      "path": "law-source/garant/Федеральный закон от 28 декабря 2025 г 507 ФЗ О внесении изменений в Градостроит.odt",
+      "sha256": "d8d09541ef62d8933537e389d0b9bef7642d7b018e91375e6b7f96acc1383fbc",
+      "size_bytes": 13183,
+      "source_kind": "garant-odt",
+      "source_role": "odt-document-fixture",
+      "source_role_v2": "odt-document-fixture",
+      "title_first_line": null,
+      "xml_shape": null
     }
   ],
   "generated_by": "scripts/inventory-parser-fixtures.py",
@@ -168,16 +1296,19 @@
     "This inventory does not claim legal correctness or authoritative legal interpretation.",
     "This inventory does not claim product ETL readiness.",
     "This inventory does not claim FalkorDB product runtime readiness.",
+    "This inventory does not classify documents beyond first-line title pattern matching; classification is NOT a parser assertion.",
+    "Internal duplicates (two tracked fixtures sharing a SHA-256) are surfaced for visibility only — they do NOT fail the inventory by themselves; removal or dedup is a separate user-directed decision.",
     "Consultant document-list WordML XML is classified only as a relation fixture / prior-art evidence source until later validation proves candidate relations.",
     "Consultant full-act WordML XML is the M009 primary source fixture for full normative-act source-shape evidence only; this inventory does not claim parsed legal semantics from it.",
     "Garant ODT work is lower-priority/deferred from M009 and remains covered only by earlier bounded ODT smoke/parser-record evidence."
   ],
-  "schema_version": "parser-source-fixture-inventory/v1",
+  "schema_version": "parser-source-fixture-inventory/v2",
   "source_priority_notes": [
     "Consultant Plus WordML is primary for M009 full normative-act source-shape evidence.",
     "Consultant document-list WordML remains prior-art relation evidence only.",
     "Garant ODT fixtures are lower-priority/deferred from M009; earlier ODT smoke/parser-record artifacts remain bounded evidence, not M009 source priority.",
-    "No current inventory artifact claims parser completeness, legal correctness, or multi-source readiness."
+    "No current inventory artifact claims parser completeness, legal correctness, or multi-source readiness.",
+    "M072 S01 extends the inventory to discovery-based coverage of all 54 fixtures and adds a first-line-title classification taxonomy for Consultant XML; classification is NOT a parser assertion."
   ],
   "status": "pass"
 }

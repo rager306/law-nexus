@@ -4,9 +4,48 @@ This directory contains the canonical source-fixture inventory for M006 parser a
 
 ## Canonical artifacts
 
-- Manifest: `prd/parser/source_fixture_inventory.json`
+- Manifest: `prd/parser/source_fixture_inventory.json` (schema `parser-source-fixture-inventory/v2`, M072 — discovery-based, extended source-role taxonomy)
 - Human report: `prd/parser/source_fixture_inventory.md`
 - Fixture generator/check command: `uv run python scripts/inventory-parser-fixtures.py --check`
+
+## Source discovery and document-type taxonomy (M072)
+
+M072 S01 converted the fixture inventory from a hardcoded 4-fixture expectation
+list to **discovery-based** scanning:
+
+- Every `law-source/consultant/*.xml` is discovered (no manual list).
+- Every `law-source/garant/*.odt` is discovered.
+- Each fixture gets a SHA-256, shape diagnostics, and a `document_type`
+  classification derived from the first line of the Consultant `<o:Title>` (ODT
+  fixtures retain `odt_document`).
+- Internal duplicate pairs (tracked fixtures sharing a SHA-256) are surfaced
+  in `internal_duplicate_pairs` for visibility; they do not fail the inventory.
+- The two pre-existing guards remain: the removed root-level
+  `law-source/Список документов (5).xml` must remain absent, and the PP
+  filename mismatch (`PP_60_27-02-2022.odt` stated vs `PP_60_27-01-2022.odt`
+  observed) must remain visible.
+
+Document-type taxonomy (v2 — see `manifest.document_type_taxonomy`):
+
+- `federal_law` — `Федеральный закон ...`
+- `code` — `Кодекс ...`
+- `code_amendment_overview` — `Обзор изменений ... Кодекс ...`
+- `court_practice_review` — `Обзор судебной практики ...`
+- `fas_review` — `Обзор ... (ФАС|Казначейств) ...`
+- `government_resolution` — `Постановление Правительства ...`
+- `constitutional_court_ruling` — `(Постановление|Определение) Конституционного Суда ...`
+- `supreme_court_ruling` — `(Постановление|Определение) Верховного Суда ...`
+- `lower_court_ruling` — `Постановление ... (арбитражн|кассацион) ...`
+- `antimonopoly_decision` — `(Решение|Приказ) (ФАС|УФАС) ...`
+- `document_list` — `Список документов ...`
+- `list_related` — `List-...`
+- `odt_document` — every `*.odt` fixture
+- `other_document` — title matches no pattern; visible but not failing.
+
+**Classification is title-pattern matching only; it is NOT a parser assertion.**
+Future slices (M072 S02 probe, S03 enum extension) consume this taxonomy as
+ground truth. Downstream parser work that wants to assert legal document kinds
+must run against the parser, not the inventory.
 - Parser record schema/example/report generator: `uv run python scripts/validate-parser-records.py --write`
 - Parser record contract check: `uv run python scripts/validate-parser-records.py --check`
 - Golden-test contract term check: `rg -n "evidence-present|no-answer|candidate-only|unresolved-reference|non-authoritative|parser completeness|retrieval quality|legal-answer correctness" prd/parser/golden_test_contract.md`
