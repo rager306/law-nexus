@@ -1,4 +1,8 @@
 {
+  "schema_version": "law-nexus-project-state-roadmap/v2",
+  "generated_at": "2026-06-22",
+  "non_authoritative": true,
+  "source_of_truth": "prd/ARCHITECTURE.md (living truth oracle) and .gsd/milestones/* (GSD state). This roadmap is a derived cold-reader summary; when it disagrees with the oracle or GSD state, those win.",
   "completed_milestone_groups": [
     {
       "range": "M001-M010",
@@ -19,39 +23,91 @@
       "boundary": "Establishes bounded Consultant XML/source workflow evidence, not parser completeness for all legal sources."
     },
     {
-      "range": "M035-M046",
-      "theme": "Reusable Architecture Control Plane construction, default registry integration, RDF projection proof, and projection hardening",
+      "range": "M035-M067",
+      "theme": "ACP / git-lex reusable-core era — construction, registry integration, RDF projection, then externalization",
       "status": "complete",
-      "boundary": "Establishes ACP governance/projection mechanics, not full decision lifecycle governance or RDF/SHACL/SPARQL engine proof."
+      "boundary": "CLOSED. The reusable core was externalized to /root/git-lex-kit-acp/ (published github.com/rager306/git-lex-kit-acp v0.2.0) and law-nexus became a profile consumer (M067, D097). Per D098, this era was itself meta-drift (ACP enforcement ran M035-M063 while the product track stalled); D098 now freezes ACP to checkpoint mode (detect+log+flag, non-blocking) until parser data is ready. Do NOT treat ACP/RDF/SHACL/SPARQL/dashboards as source truth or as the next product milestone."
+    },
+    {
+      "range": "M068-M069",
+      "theme": "Structural foundation crystallization — onion package, ADR standard, compliance gate, library-boundary contract",
+      "status": "partial",
+      "boundary": "Anti-drift infrastructure only. M068 turned the repo into the src/law_nexus onion package (ADR-0001) with a MADR ADR standard + compliance gate (ADR-0002); M069 recorded the library boundary (ADR-0003: Pydantic = domain forms + parser boundary records; stdlib dataclass = verifier records; Adaptix = [deferred] mapping) and made the standing tree gate-green. M069 is COMPLETE; M068 is needs-attention (validation: pre-commit+CI wire is only half-met — pre-commit wired, CI .github/workflows not). Does NOT validate R035/R037/R038, does NOT harden the parser, does NOT introduce FalkorDB/graph/retrieval."
     }
   ],
   "current_milestone": {
-    "id": "M047-igv5e2",
-    "title": "law-nexus Project State Documentation Pack",
+    "id": "M069-sl591m",
+    "title": "Architecture boundary contracts",
+    "status": "complete",
+    "goal": "Recorded the Pydantic/Adaptix/dataclass library boundary as ADR-0003 + oracle lines, and closed the standing pre-commit-rc=1 follow-up via a narrow Decision-section exempt-rule. Standing tree is now fully gate-green."
+  },
+  "pending_validation": {
+    "id": "M068-xi4034",
     "status": "active",
-    "goal": "Create a cold-reader documentation package with Markdown docs, parseable JSON summaries, and Mermaid diagrams while preserving source/projection and proof boundaries."
+    "phase": "blocked",
+    "note": "M068 validation = needs-attention: the 'pre-commit+CI wire' S03 success criterion is only half-met (pre-commit wired and green; .github/workflows CI not wired). Resolve by wiring CI OR rescoping the criterion, then re-run gsd_validate_milestone to pass and complete M068."
   },
   "recommended_next": {
-    "title": "ACP Decision Lifecycle Workflow",
+    "title": "Consultant XML Parser Hardening from M009 baseline (M034 corrected roadmap)",
     "priority": 1,
-    "why": "ACP has prompt/proposal/candidate/gate/finding records and hardened projection diagnostics; the next control-plane gap is safe decision promotion governance."
+    "why": "Per D098 and the M034 corrected roadmap, the product track resumes at parser hardening. The structural foundation (M068/M069) is laid; the next value is a proof-gated Consultant XML parser on top of the M009 baseline, BEFORE graph/retrieval/R035-R038 work (all of which are downstream-blocked on parsed data).",
+    "plan_reference": "prd/research/source_structuring/25-corrected-consultant-xml-parser-roadmap.md",
+    "slices": "S01 baseline lock → S02 lxml equivalence eval → S03 structural rules → S04 semantic diagnostics → S05 razdel/pymorphy3 eval → S06 source-span/stable-ID → S07 final proof package",
+    "non_validation": "Does NOT validate R035/R037/R038; does NOT introduce FalkorDB/graph/vector/retrieval; does NOT claim parser completeness or legal correctness."
   },
+  "downstream_blocked": [
+    {
+      "capability": "FalkorDB legal graph (production)",
+      "blocker": "needs materialized graph from parsed corpus",
+      "current_status": "[bounded] synthetic smoke"
+    },
+    {
+      "capability": "Retrieval / citation-safe answers",
+      "blocker": "needs real EvidenceSpan/SourceBlock fixtures from parsed corpus",
+      "current_status": "[bounded] smoke only"
+    },
+    {
+      "capability": "R035 (ontology architecture)",
+      "blocker": "needs registry extractor integration + accepted proof-gate evidence (documentation-only is insufficient)",
+      "current_status": "[proposed] active, not validated"
+    },
+    {
+      "capability": "R037 (FalkorDB ingest/runtime)",
+      "blocker": "needs production ingest from real corpus",
+      "current_status": "[bounded] active, partially evidenced"
+    },
+    {
+      "capability": "R038 (independent review)",
+      "blocker": "standing review gate",
+      "current_status": "[bounded] active"
+    }
+  ],
   "alternatives": [
     {
-      "title": "RDF engine spike",
-      "why": "Only if engine-executed RDF/SPARQL proof becomes valuable."
+      "title": "FalkorDB graph materialization",
+      "why": "Only after parser proof yields a stable record stream; would then exercise the graph-store port and EvidenceSpan fail-closed contract.",
+      "constraint": "Do not start before parser-hardening proof; no R037 claim from synthetic smoke."
     },
     {
-      "title": "SHACL engine spike",
-      "why": "Only if pySHACL-style validation becomes valuable."
+      "title": "Adaptix boundary-record↔domain-form mapping",
+      "why": "ADR-0003 reserves this as [deferred]; activates only when the parser product wires the boundary-record stream into the domain and mappings become non-trivial.",
+      "constraint": "Premature until parser-hardening produces the consumer."
     },
     {
-      "title": "Isolated git-lex alignment spike",
-      "why": "Only if identity/provenance compatibility becomes priority; do not run git-lex initialization in the main repository."
-    },
-    {
-      "title": "ACP recovery/dashboard views",
-      "why": "Only if operator navigation becomes a higher priority than lifecycle governance."
+      "title": "ACP unfreeze (observational only)",
+      "why": "Only if a concrete drift is detected+logged OR the user explicitly directs it; D098 keeps ACP as checkpoint (non-blocking), never a gate.",
+      "constraint": "ACP expands ONLY observation, never into a blocking gate; do not re-enter the M035-M063 meta-drift."
     }
+  ],
+  "frozen": {
+    "acp": "checkpoint mode (detect+log+flag) until parser data ready (D098). Not a milestone track, not a gate.",
+    "r035_r037_r038_validation": "not validatable from documentation/projection evidence alone; deferred to downstream product-data milestones."
+  },
+  "planning_constraints": [
+    "Use GSD milestone/slice/task tools.",
+    "Run GitNexus impact before editing code symbols; run GitNexus detect_changes before commits.",
+    "Use tracked relative source anchors only (no .gsd/exec, absolute, ignored, or raw-payload anchors).",
+    "Keep product/legal/runtime/parser/FalkorDB/retrieval claims bounded unless separate proof exists.",
+    "Apply D098 lifecycle tags ([proposed]/[bounded]/[smoke]/[validated]/[deferred]) on architectural/state claims; never smooth a bounded/proposed claim up to validated."
   ]
 }
