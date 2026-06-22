@@ -412,7 +412,7 @@ def load_inventory(root: Path = ROOT) -> tuple[list[tuple[str, str, str]], list[
 
     by_path: dict[str, dict[str, Any]] = {}
     for fixture in fixtures:
-        if isinstance(fixture, dict) and fixture.get("source_kind") == "garant-odt" and fixture.get("canonical") is True:
+        if isinstance(fixture, dict) and fixture.get("source_kind") == "garant-odt":
             path_value = fixture.get("path")
             if isinstance(path_value, str):
                 by_path[path_value] = fixture

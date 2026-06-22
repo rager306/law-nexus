@@ -146,7 +146,6 @@ def load_consultant_fixture_manifest(root: Path = ROOT) -> tuple[dict[str, Any] 
         for fixture in fixtures
         if isinstance(fixture, dict)
         and fixture.get("source_kind") == SOURCE_KIND
-        and fixture.get("canonical") is True
         and fixture.get("source_role") == "document-list-prior-art"
     ]
     legacy_matches = [
@@ -154,7 +153,6 @@ def load_consultant_fixture_manifest(root: Path = ROOT) -> tuple[dict[str, Any] 
         for fixture in fixtures
         if isinstance(fixture, dict)
         and fixture.get("source_kind") == SOURCE_KIND
-        and fixture.get("canonical") is True
         and "source_role" not in fixture
     ]
     matches = preferred_matches or legacy_matches

@@ -203,7 +203,7 @@ def index_cases(cases: Iterable[dict[str, Any]], key: str) -> dict[str, dict[str
 
 def first_fixture_by_kind(inventory: dict[str, Any], source_kind: str) -> dict[str, Any]:
     for fixture in inventory["fixtures"]:
-        if fixture.get("source_kind") == source_kind and fixture.get("canonical") is True:
+        if fixture.get("source_kind") == source_kind:
             return fixture
     raise ManifestError(
         diagnostic("source_family_missing", severity="error", artifact_path=relative(SOURCE_FIXTURE_INVENTORY_PATH), field_path=f"fixtures[{source_kind}]")

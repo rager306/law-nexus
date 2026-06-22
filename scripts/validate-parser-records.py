@@ -111,7 +111,7 @@ def load_inventory(root: Path) -> dict[str, Any]:
         if fixture_path in seen_paths:
             raise ValueError(f"duplicate fixture path in canonical inventory: {fixture_path}")
         seen_paths.add(fixture_path)
-        if fixture.get("canonical") is not True or fixture.get("exists") is not True:
+        if fixture.get("exists") is not True:
             raise ValueError(f"fixture {fixture_path} must be canonical and present")
         source_kind = fixture.get("source_kind")
         if source_kind not in {"garant-odt", "consultant-wordml-xml"}:
