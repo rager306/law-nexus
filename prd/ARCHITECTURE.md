@@ -55,6 +55,13 @@ a `[bounded]` document-level seam — structural hierarchy, graph writes, tempor
 UDFs, and retrieval are still `[proposed]`/`[deferred]` (see `prd/02_architecture.md`
 per-layer tags).
 
+**Library boundary (ADR-0003):** domain forms and parser I/O boundary-records
+are Pydantic v2 (`[validated]` for the M006 records, `[proposed]` for the domain
+forms); verifier/extractor records are stdlib `@dataclass`; the
+boundary-record↔domain-form mapping is Adaptix `[deferred]` until the parser
+product wires it. The contracted pairs are `DocumentRecord`↔`SourceDocument` and
+`SourceBlockRecord`↔`SourceBlock` (ADR-0003).
+
 **Consultant XML parser hardening** — `[proposed]` (M034 roadmap, never executed).
 7 proof-gated slices: S01 baseline lock, S02 lxml eval, S03 structural rules,
 S04 semantic diagnostics, S05 razdel/pymorphy3 eval, S06 source-span/stable-ID,

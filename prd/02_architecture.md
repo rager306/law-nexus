@@ -93,6 +93,15 @@ flowchart TD
     M --> N
 ```
 
+**Library boundary (ADR-0003):** normalized records at this layer's I/O boundary
+(`DocumentRecord`, `SourceBlockRecord`, `RelationCandidateRecord`) and the
+domain forms they map into (`SourceDocument`, `SourceBlock`) are Pydantic v2
+models (`[validated]` for the boundary records, `[proposed]` for the domain
+forms); verifier and extractor internal records use stdlib `@dataclass`. The
+boundary-record↔domain-form mapping is an Adaptix converter `[deferred]` until
+the parser product wires it (contracted pairs: `DocumentRecord`↔`SourceDocument`,
+`SourceBlockRecord`↔`SourceBlock`; ADR-0003).
+
 ### 2. Authoritative Graph Layer `[bounded]`
 
 FalkorDB хранит authoritative legal graph.

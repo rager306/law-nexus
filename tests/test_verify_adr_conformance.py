@@ -224,7 +224,7 @@ def test_lowercase_targets_and_prose_are_not_false_positives() -> None:
         assert findings == [], f"prose falsely flagged as claim: {line!r}"
 
 
-def test_imperative_decision_claim_is_detected() -> None:
+def test_imperative_decision_claim_in_adr_decision_is_exempt() -> None:
     verifier = load_verifier_module()
     text = (
         "---\n"
@@ -238,13 +238,69 @@ def test_imperative_decision_claim_is_detected() -> None:
     )
     findings = verifier.find_claim_findings("doc/adr/0001-example.md", text)
 
-    # Imperative decision claim in a Decision section is flagged (untagged).
-    # It is inside an ADR file, so no missing-adr-ref is raised.
+    # An imperative decision-claim inside an ADR file's own ## Decision section
+    # is EXEMPT from the untagged-claim check: the Decision section is the
+    # binding decision itself; its lifecycle is the ADR Status line plus the
+    # per-claim lifecycle tags in the Decision's subsections. No findings.
+    assert findings == []
+
+
+def test_imperative_decision_claim_in_adr_context_is_still_flagged() -> None:
+    verifier = load_verifier_module()
+    text = (
+        "---\n"
+        "id: ADR-0001\n"
+        "title: Example\n"
+        "status: Accepted\n"
+        'lifecycle: "[validated]"\n'
+        "---\n\n"
+        "## Context\n\n"
+        "Adopt a dependency-directed onion package structure.\n"
+    )
+    findings = verifier.find_claim_findings("doc/adr/0001-example.md", text)
+
+    # The Decision-section exempt is scoped to ## Decision only. The same
+    # imperative in ## Context (or any non-Decision section) is still flagged.
     untagged = [f for f in findings if f.kind == "untagged-claim"]
     assert len(untagged) == 1
-    assert untagged[0].line == 10
     assert "onion package structure" in untagged[0].snippet
     assert all(f.kind != "missing-adr-ref" for f in findings)
+
+
+def test_imperative_decision_claim_in_non_adr_file_is_still_flagged() -> None:
+    verifier = load_verifier_module()
+    text = "## Decision\n\nAdopt a dependency-directed onion structure.\n"
+    findings = verifier.find_claim_findings("prd/ARCHITECTURE.md", text)
+
+    # The Decision-section exempt applies only to ADR files (file_adr_id is not
+    # None). A non-ADR file has no ADR Status line to carry the decision's
+    # lifecycle, so a ## Decision imperative there is still an untagged claim
+    # (and a missing-adr-ref claim, since it is a non-ADR claim file).
+    untagged = [f for f in findings if f.kind == "untagged-claim"]
+    assert len(untagged) == 1
+    assert "onion structure" in untagged[0].snippet
+
+
+def test_claim_verb_in_adr_decision_is_still_flagged() -> None:
+    verifier = load_verifier_module()
+    text = (
+        "---\n"
+        "id: ADR-0001\n"
+        "title: Example\n"
+        "status: Accepted\n"
+        'lifecycle: "[validated]"\n'
+        "---\n\n"
+        "## Decision\n\n"
+        "We adopt Pydantic v2 for the domain forms.\n"
+    )
+    findings = verifier.find_claim_findings("doc/adr/0001-example.md", text)
+
+    # The Decision-section exempt covers only imperative decision-verbs
+    # ("Adopt ...", "Establish ..."). A CLAIM_VERB prose-adoption claim
+    # ("We adopt Pydantic") inside ## Decision is still an untagged claim.
+    untagged = [f for f in findings if f.kind == "untagged-claim"]
+    assert len(untagged) == 1
+    assert "adopt Pydantic" in untagged[0].snippet
 
 
 def test_imperative_claim_tagged_is_clean() -> None:
@@ -287,7 +343,7 @@ def test_rejected_alternatives_are_not_flagged_as_claims() -> None:
     assert findings == []
 
 
-def test_untagged_imperative_in_decision_is_flagged_but_alternatives_are_not() -> None:
+def test_adr_decision_imperative_exempt_and_alternatives_not_flagged() -> None:
     verifier = load_verifier_module()
     text = (
         "---\n"
@@ -303,10 +359,11 @@ def test_untagged_imperative_in_decision_is_flagged_but_alternatives_are_not() -
     )
     findings = verifier.find_claim_findings("doc/adr/0001-example.md", text)
 
-    untagged = [f for f in findings if f.kind == "untagged-claim"]
-    assert len(untagged) == 1
-    # The Decision imperative on the last line is the only finding.
-    assert untagged[0].snippet.startswith("Establish two distinct")
+    # The Decision imperative is exempt (it lives in the ADR's own ## Decision,
+    # whose lifecycle is the ADR Status line + per-claim subsection tags), and
+    # every line inside the Alternatives Considered section plus the Option
+    # header is not a current-architecture claim. No findings.
+    assert findings == []
 
 
 # ---------------------------------------------------------------------------

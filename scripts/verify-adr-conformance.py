@@ -116,7 +116,13 @@ CLAIM_VERB_RE = re.compile("|".join(_CLAIM_VERB_ALTERNATIVES), re.IGNORECASE)
 # ("Adopt a ...", "Use ...", "Establish ..."). These appear in ADR Decision /
 # Consequences sections. They are claims only outside "Alternatives Considered"
 # (rejected options are not current architecture) and when the line is not an
-# alternative header ("Option A: ..."). See find_claim_findings.
+# alternative header ("Option A: ..."). An imperative that lives inside an
+# ADR file's own ## Decision section is EXEMPT from the untagged-claim check:
+# the Decision section is the binding decision itself, and its lifecycle is
+# carried by the ADR Status line plus the per-claim lifecycle tags in the
+# Decision's subsections (mirroring how ADR-internal claims are already exempt
+# from the missing-adr-ref check). Imperatives elsewhere (Context/Consequences,
+# or any non-ADR file) are still checked. See find_claim_findings.
 _IMPERATIVE_LEAD = r"^(?:>\s*)?(?:[-*]\s+)?(?:Adopt|Use|Establish|Build|Implement|Choose|Avoid)\b"
 IMPERATIVE_CLAIM_RE = re.compile(_IMPERATIVE_LEAD, re.IGNORECASE)
 
@@ -229,6 +235,7 @@ def find_claim_findings(name: str, text: str) -> list[Finding]:
 
     in_fence = False
     in_alternatives = False
+    in_decision = False
     for index, raw in enumerate(lines):
         stripped = raw.strip()
 
@@ -237,10 +244,15 @@ def find_claim_findings(name: str, text: str) -> list[Finding]:
             continue
 
         # Track the current level-2 section so claims inside "Alternatives
-        # Considered" (rejected options) are not flagged as current architecture.
+        # Considered" (rejected options) are not flagged as current architecture,
+        # and so imperative Decision-claims inside an ADR's own ## Decision are
+        # exempt (the Decision section IS the binding decision; its lifecycle is
+        # the ADR Status line + per-claim lifecycle tags in its subsections).
         heading = SECTION_HEADING_RE.match(raw)
         if heading:
-            in_alternatives = "alternative" in heading.group(1).lower()
+            heading_text = heading.group(1).strip().lower()
+            in_alternatives = "alternative" in heading_text
+            in_decision = heading_text == "decision"
             continue
 
         # Track fenced code blocks; never treat code as a claim.
@@ -262,8 +274,23 @@ def find_claim_findings(name: str, text: str) -> list[Finding]:
             continue
 
         is_claim = bool(CLAIM_VERB_RE.search(raw))
+        # An imperative Decision-claim ("Adopt ...", "Establish ...") inside an
+        # ADR file's own ## Decision section is exempt from the untagged-claim
+        # check: the Decision section is the binding decision itself, and its
+        # lifecycle is carried by the ADR Status line and the per-claim
+        # lifecycle tags in the Decision's subsections (the same logic by which
+        # ADR-internal claims are already exempt from the missing-adr-ref check).
+        # Imperatives elsewhere (Context/Consequences, or any non-ADR file) are
+        # still subject to the tag check. CLAIM_VERB prose-adoption claims are
+        # never exempt here — only imperative decision-verbs are.
+        decision_imperative_exempt = (
+            file_adr_id is not None and in_decision and IMPERATIVE_CLAIM_RE.match(raw)
+        )
         if not is_claim and not in_alternatives and IMPERATIVE_CLAIM_RE.match(raw):
-            is_claim = True
+            if decision_imperative_exempt:
+                is_claim = False
+            else:
+                is_claim = True
         if not is_claim:
             continue
 

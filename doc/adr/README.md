@@ -186,3 +186,4 @@ viable, state why explicitly rather than omitting the section.>
 |---|---|---|---|
 | [ADR-0001](0001-onion-package-structure.md) | Onion package structure for src/law_nexus | Accepted | [validated] (structure) |
 | [ADR-0002](0002-adr-standard-and-compliance-gate.md) | ADR standard + compliance-gate/ACP-checkpoint split | Accepted | [validated] (standard + policy); gate tooling [proposed]/[deferred] |
+| [ADR-0003](0003-library-boundary-contract.md) | Library boundary — Pydantic, Adaptix, and stdlib dataclasses | Accepted | [validated] (boundary-records + dataclass usage); domain-forms [proposed]; Adaptix mapping [deferred] |

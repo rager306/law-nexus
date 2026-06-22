@@ -1,0 +1,11 @@
+date | hasValue | 2026-06-22
+id | hasValue | ADR-0003
+lifecycle | hasValue | [validated] (boundary-records Pydantic + stdlib dataclass usage); domain-forms [proposed] (ADR-0001); Adaptix mapping [deferred]
+related | hasValue | ADR-0001
+related | hasValue | D001
+related | hasValue | D035
+related | hasValue | D037
+related | hasValue | D046
+status | hasValue | Accepted
+supersedes | hasValue | none
+title | hasValue | Library boundary — Pydantic, Adaptix, and stdlib dataclasses
