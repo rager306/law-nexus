@@ -109,6 +109,10 @@ def record_by_id(records: list[dict[str, Any]], record_id: str) -> dict[str, Any
     return next(record for record in records if record["id"] == record_id)
 
 
+def first_record_by_level(records: list[dict[str, Any]], level: str) -> dict[str, Any]:
+    return next(record for record in records if record.get("level") == level)
+
+
 def base_scope(query_id: str) -> dict[str, str]:
     return {
         "scope_id": SCOPE_ID,
@@ -214,10 +218,13 @@ def case(
 def build_payload() -> dict[str, Any]:
     real_cases = load_json(REAL_CASES_PATH)
     records = load_jsonl(HIERARCHY_JSONL_PATH)
-    article = record_by_id(records, "HIER-CONS-ARTICLE-0001")
-    chapter = record_by_id(records, "HIER-CONS-CHAPTER-0001")
-    clause_1 = record_by_id(records, "HIER-CONS-CLAUSE-0001")
-    clause_2 = record_by_id(records, "HIER-CONS-CLAUSE-0002")
+    article = first_record_by_level(records, "article")
+    chapter = first_record_by_level(records, "chapter")
+    clause_1 = first_record_by_level(records, "clause")
+    clause_2 = next(
+        record for record in records
+        if record.get("level") == "clause" and record["id"] != clause_1["id"]
+    )
 
     derived_graph = replace_m013_with_m014(deepcopy(real_cases["derived_fixture_graph"]))
 

@@ -64,8 +64,8 @@ def relative(path: Path) -> str:
 
 
 def select_records(records: list[dict[str, Any]]) -> tuple[dict[str, Any], dict[str, Any]]:
-    document = next(record for record in records if record["id"] == "HIER-CONS-DOCUMENT")
-    article = next(record for record in records if record["id"] == "HIER-CONS-ARTICLE-0001")
+    document = next(record for record in records if record.get("level") == "document")
+    article = next(record for record in records if record.get("level") == "article")
     return document, article
 
 
