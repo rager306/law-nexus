@@ -13,6 +13,7 @@
         + compliance gate: pre-commit hooks AND .github/workflows CI)  ✅ complete
   M069 (ADR-0003 library-boundary contract + gate-green standing tree)  ✅ complete
   M070 (roadmap freshness guard — pytest parsing .gsd/STATE.md)        ✅ complete
+  M071 (root README landing page + CI badge)                            ✅ complete
 
 [PRODUCT TRACK — RESUMES HERE]
   Consultant XML Parser Hardening (M034 corrected roadmap)   ← NEXT
@@ -45,7 +46,7 @@ milestone.
 | M011-M030 | GraphRAG, FalkorDB, retrieval, ontology, evidence, and semantic scoring proof cycles | Bounded proof cycles, not final retrieval quality or ontology/product readiness. |
 | M031-M034 | Consultant XML source structuring, MiniMax-assisted discovery, graph context staging, and workline recovery | Source workflow evidence, not parser completeness for all sources. |
 | M035-M067 | ACP / git-lex reusable-core era — construction, registry, RDF projection, then **externalization** | **CLOSED.** Core externalized (M067, D097); law-nexus is a profile consumer. This era was itself meta-drift (D098); ACP is frozen to checkpoint mode. Not source truth, not the next milestone. |
-| M068-M070 | Structural foundation crystallization + roadmap freshness guard — onion package, ADR standard, compliance gate (pre-commit + CI), library-boundary contract | Anti-drift infrastructure, now fully enforceable locally AND in CI (push/PR). Repo is a package (`src/law_nexus`). M068/M069/M070 all complete. Does NOT validate R035/R037/R038, does NOT harden the parser, does NOT introduce FalkorDB/graph/retrieval. |
+| M068-M071 | Structural foundation crystallization + roadmap freshness guard + public README — onion package, ADR standard, compliance gate (pre-commit + CI), library-boundary contract | Anti-drift infrastructure, now fully enforceable locally AND in CI (push/PR), with a public cold-reader README. Repo is a package (`src/law_nexus`). M068/M069/M070/M071 all complete. Does NOT validate R035/R037/R038, does NOT harden the parser, does NOT introduce FalkorDB/graph/retrieval. |
 
 See `prd/project-state/diagrams/milestone-timeline.mmd` for the compressed
 timeline (note: the diagram predates M068-M069 and should be refreshed when the
@@ -53,17 +54,17 @@ parser-hardening milestone nears).
 
 ## Current milestone
 
-`M070-rqcvnx — Roadmap freshness guard` is **complete**.
+`M071-hwa9aw — Root README landing page` is **complete**.
 
-It fixed the stale project-state roadmap (was current=M047, next=ACP — contradicting
-D098) to the truthful trajectory and added a pytest freshness-guard
-(`tests/test_project_state_roadmap_freshness.py`) that parses `.gsd/STATE.md` as
-source of truth so the roadmap cannot silently drift again. The guard fails if
-the roadmap's `current_milestone` lags the latest GSD milestone.
+It created the root `README.md` as a cold-reader GitHub landing page (one-liner
++ green CI badge + D098 status + architecture pointers + quick-start +
+non-claims), satisfying the previously-dangling `pyproject` `readme` field. The
+root README is now the public entry point; this project-state roadmap is the
+detailed trajectory behind it.
 
-> **Note:** M068 is now complete — round-0 needs-attention was resolved in
-> round 1 by adding the CI compliance-gate workflow (S04) and by M069 closing
-> the standing pre-commit rc=1 (Decision-section exempt-rule).
+> **Note:** M068 is complete — round-0 needs-attention was resolved in round 1
+> by adding the CI compliance-gate workflow (S04) and by M069 closing the
+> standing pre-commit rc=1 (Decision-section exempt-rule).
 
 ## Recommended next milestone
 

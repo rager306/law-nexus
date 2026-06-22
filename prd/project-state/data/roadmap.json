@@ -29,17 +29,17 @@
       "boundary": "CLOSED. The reusable core was externalized to /root/git-lex-kit-acp/ (published github.com/rager306/git-lex-kit-acp v0.2.0) and law-nexus became a profile consumer (M067, D097). Per D098, this era was itself meta-drift (ACP enforcement ran M035-M063 while the product track stalled); D098 now freezes ACP to checkpoint mode (detect+log+flag, non-blocking) until parser data is ready. Do NOT treat ACP/RDF/SHACL/SPARQL/dashboards as source truth or as the next product milestone."
     },
     {
-      "range": "M068-M070",
-      "theme": "Structural foundation crystallization + roadmap freshness guard — onion package, ADR standard, compliance gate (pre-commit + CI), library-boundary contract, anti-drift freshness guard",
+      "range": "M068-M071",
+      "theme": "Structural foundation crystallization + roadmap freshness guard + public README — onion package, ADR standard, compliance gate (pre-commit + CI), library-boundary contract, anti-drift freshness guard, landing page",
       "status": "complete",
-      "boundary": "Anti-drift infrastructure only, now fully enforceable locally AND in CI. M068 turned the repo into the src/law_nexus onion package (ADR-0001) with a MADR ADR standard + compliance gate (ADR-0002: import-linter + verify-adr-conformance, wired as hard-fail pre-commit hooks AND as a GitHub Actions CI workflow on push/PR); M069 recorded the library boundary (ADR-0003) and made the standing tree gate-green; M070 fixed the stale project-state roadmap and added a pytest freshness-guard. Does NOT validate R035/R037/R038, does NOT harden the parser, does NOT introduce FalkorDB/graph/retrieval."
+      "boundary": "Anti-drift infrastructure only, now fully enforceable locally AND in CI, with a public cold-reader README. M068 (onion package ADR-0001 + compliance gate ADR-0002: pre-commit + .github/workflows CI); M069 (library boundary ADR-0003 + gate-green tree); M070 (roadmap freshness guard); M071 (root README landing + CI badge). Does NOT validate R035/R037/R038, does NOT harden the parser, does NOT introduce FalkorDB/graph/retrieval."
     }
   ],
   "current_milestone": {
-    "id": "M070-rqcvnx",
-    "title": "Roadmap freshness guard",
+    "id": "M071-hwa9aw",
+    "title": "Root README landing page",
     "status": "complete",
-    "goal": "Fixed the stale project-state roadmap (was current=M047, next=ACP — contradicting D098) to the truthful trajectory (M069 complete, M068 needs-attention, parser-hardening next, ACP frozen) and added a pytest freshness-guard parsing .gsd/STATE.md so the roadmap cannot silently drift again."
+    "goal": "Created the root README.md as a cold-reader GitHub landing page (one-liner + CI badge + D098 status + architecture pointers + quick-start + non-claims), satisfying the previously-dangling pyproject `readme` field; refined the roadmap freshness-guard assertion to track the latest COMPLETED milestone (tolerate active-but-incomplete)."
   },
   "recommended_next": {
     "title": "Consultant XML Parser Hardening from M009 baseline (M034 corrected roadmap)",
