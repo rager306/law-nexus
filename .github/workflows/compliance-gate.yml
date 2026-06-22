@@ -1,7 +1,7 @@
 # Compliance gate — CI half of the ADR-0002 structural gate.
 #
 # This workflow mirrors the local `.pre-commit-config.yaml` compliance gate: it
-# runs the same four HARD-FAIL structural checks that protect the code
+# runs the same four HARD-FAIL structural checks that protect the code (plus three HARD-FAIL type checks: basedpyright / ty / pyrefly)
 # architecture. Per ADR-0002 ("ADR standard and the compliance-gate /
 # ACP-checkpoint split") this is the structural, one-time, hard-fail half of the
 # gate/ACP separation. A push or PR that violates a structural invariant
@@ -62,6 +62,15 @@ jobs:
 
       - name: import-linter onion layers (ADR-0001 layer direction)
         run: uv run lint-imports
+
+      - name: basedpyright src/ (type check, basic mode)
+        run: uv run basedpyright src/
+
+      - name: ty check src/ (Astral type checker)
+        run: uv run ty check src/
+
+      - name: pyrefly check src/ (Meta type checker)
+        run: uv run pyrefly check src/
 
       - name: verify-adr-conformance D098 tags + ADR refs
         run: uv run python scripts/verify-adr-conformance.py
