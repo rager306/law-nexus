@@ -220,7 +220,7 @@
     "Does not prove model semantic retrieval quality; observed outputs are safe-ID rule retrieval outputs."
   ],
   "query_registry": "prd/research/ontology_architecture_requirements/fixtures/observed_retrieval_query_provenance_registry.json",
-  "query_registry_sha256": "3ddf3a2f2dc00dda0a76e620a66b98f84f5e5623834e2b22bcd2822cd503b384",
+  "query_registry_sha256": "e877abf06b5e9655822f43a56094a9cdba5d7677ed7535b3c850949171a25e98",
   "redaction": {
     "absolute_paths_excluded": true,
     "external_payloads_excluded": true,
@@ -238,7 +238,7 @@
   "schema_version": "observed-retrieval-outputs/v1",
   "slice_id": "S03",
   "source_fixture": "prd/research/ontology_architecture_requirements/fixtures/representative_evidence_span_retrieval_corpus.json",
-  "source_fixture_sha256": "db487faf546ac17486a332182163e2c074bb02c8e90d6563f5debb83c4b64896",
+  "source_fixture_sha256": "401af883331b11d5e7cffa61c9ab07983a344f9d0ff07bc7a408ffb02ac40f89",
   "source_provenance_manifest": "prd/research/ontology_architecture_requirements/fixtures/observed_retrieval_source_provenance_manifest.json",
   "source_provenance_manifest_sha256": "26aa069d3062c6e01bb94ad195f447531d1945e85fadd8477f21dd0d4a94f862"
 }

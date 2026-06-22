@@ -566,7 +566,7 @@
     },
     {
       "path": "prd/research/ontology_architecture_requirements/fixtures/evidence_span_golden_retrieval_cases.json",
-      "sha256": "92c6bf764aa0fd6bc6bdef4dd848642b99e86f1461ac1ff0799a79a806e8a01e"
+      "sha256": "fc33cd26591a09934a0967a59e8d72fc6c3bd64ede43ac65422af7626b4b4fc9"
     },
     {
       "path": "prd/retrieval/fixtures/representative_retrieval_corpus_manifest.json",

@@ -302,5 +302,5 @@
   "schema_version": "observed-retrieval-query-provenance-registry/v1",
   "slice_id": "S02",
   "source_fixture": "prd/research/ontology_architecture_requirements/fixtures/representative_evidence_span_retrieval_corpus.json",
-  "source_fixture_sha256": "db487faf546ac17486a332182163e2c074bb02c8e90d6563f5debb83c4b64896"
+  "source_fixture_sha256": "401af883331b11d5e7cffa61c9ab07983a344f9d0ff07bc7a408ffb02ac40f89"
 }

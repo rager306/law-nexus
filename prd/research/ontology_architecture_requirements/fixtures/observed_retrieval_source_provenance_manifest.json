@@ -301,7 +301,7 @@
     {
       "parseable_json": true,
       "path": "prd/research/ontology_architecture_requirements/fixtures/evidence_span_golden_retrieval_cases.json",
-      "sha256": "92c6bf764aa0fd6bc6bdef4dd848642b99e86f1461ac1ff0799a79a806e8a01e"
+      "sha256": "fc33cd26591a09934a0967a59e8d72fc6c3bd64ede43ac65422af7626b4b4fc9"
     },
     {
       "parseable_json": true,
@@ -325,7 +325,7 @@
     }
   ],
   "source_fixture": "prd/research/ontology_architecture_requirements/fixtures/representative_evidence_span_retrieval_corpus.json",
-  "source_fixture_sha256": "db487faf546ac17486a332182163e2c074bb02c8e90d6563f5debb83c4b64896",
+  "source_fixture_sha256": "401af883331b11d5e7cffa61c9ab07983a344f9d0ff07bc7a408ffb02ac40f89",
   "source_index_summary": {
     "prd/retrieval/fixtures/offline_citation_retrieval_cases.json": {
       "act_edition_ids": 1,
