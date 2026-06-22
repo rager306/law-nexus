@@ -1,0 +1,67 @@
+# Compliance gate — CI half of the ADR-0002 structural gate.
+#
+# This workflow mirrors the local `.pre-commit-config.yaml` compliance gate: it
+# runs the same four HARD-FAIL structural checks that protect the code
+# architecture. Per ADR-0002 ("ADR standard and the compliance-gate /
+# ACP-checkpoint split") this is the structural, one-time, hard-fail half of the
+# gate/ACP separation. A push or PR that violates a structural invariant
+# (onion layer direction per ADR-0001, or ADR/claim D098 conformance) is rejected.
+#
+# Gate != ACP (D098). The ACP checkpoint (detect+log+flag, NON-blocking,
+# behavioural drift) is a deliberately SEPARATE mechanism and is NOT run here.
+# Do not route a behavioural concern through this gate, and do not route a
+# structural check through the ACP. See ADR-0002 for the anti-substitution
+# rationale.
+#
+# All checks run via `uv run <tool>` so tool versions come from pyproject.toml /
+# uv.lock (single source of truth), matching the local pre-commit hooks and the
+# documented dev workflow. CI does NOT depend on `pre-commit install` — it
+# catches violations for contributors who have not installed the local hooks.
+#
+# Local equivalent:  uv run pre-commit run --all-files
+
+name: compliance-gate
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: compliance-gate-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  structural-gate:
+    name: ADR-0002 structural compliance gate
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+          cache-dependency-glob: uv.lock
+
+      - name: Set up Python
+        run: uv python install 3.13
+
+      - name: Install dependencies
+        run: uv sync --frozen
+
+      - name: ruff check src/ (structural lint of the architecture package)
+        run: uv run ruff check src/
+
+      - name: ruff format --check src/ (structural format of the architecture package)
+        run: uv run ruff format --check src/
+
+      - name: import-linter onion layers (ADR-0001 layer direction)
+        run: uv run lint-imports
+
+      - name: verify-adr-conformance D098 tags + ADR refs
+        run: uv run python scripts/verify-adr-conformance.py
