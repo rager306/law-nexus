@@ -8,10 +8,16 @@ from law_nexus.adapters.sources.filesystem_inventory import (
     InventoryError,
     build_parser_fixture_inventory,
 )
+from law_nexus.adapters.sources.glossary_candidates import (
+    RegexGlossaryCandidateExtractor,
+    normalize_glossary_term,
+)
 
 __all__ = [
     "ConsultantHierarchyRecordBuilder",
     "FilesystemParserFixtureInventory",
     "InventoryError",
+    "RegexGlossaryCandidateExtractor",
     "build_parser_fixture_inventory",
+    "normalize_glossary_term",
 ]

@@ -21,10 +21,13 @@ from law_nexus.adapters.parsers import ConsultantWordMLParser
 from law_nexus.adapters.sources import (
     ConsultantHierarchyRecordBuilder,
     FilesystemParserFixtureInventory,
+    RegexGlossaryCandidateExtractor,
 )
+from law_nexus.application.glossary_candidates import GlossaryCandidateUseCase
 from law_nexus.application.ingest import Ingest
 from law_nexus.application.parser_inventory import ParserInventoryUseCase
 from law_nexus.application.source_hierarchy import SourceHierarchyUseCase
+from law_nexus.ports.glossary_candidates import GlossaryCandidateExtractor
 from law_nexus.ports.parser import Parser
 from law_nexus.ports.source_hierarchy import SourceHierarchyBuilder
 from law_nexus.ports.source_inventory import ParserFixtureInventoryBuilder
@@ -61,3 +64,10 @@ def make_consultant_hierarchy_use_case() -> SourceHierarchyUseCase:
 
     builder: SourceHierarchyBuilder = ConsultantHierarchyRecordBuilder()
     return SourceHierarchyUseCase(builder=builder)
+
+
+def make_glossary_candidate_use_case() -> GlossaryCandidateUseCase:
+    """Wire the glossary candidate use case with the regex source adapter."""
+
+    extractor: GlossaryCandidateExtractor = RegexGlossaryCandidateExtractor()
+    return GlossaryCandidateUseCase(extractor=extractor)
