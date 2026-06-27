@@ -18,8 +18,11 @@ from __future__ import annotations
 from pathlib import Path
 
 from law_nexus.adapters.parsers import ConsultantWordMLParser
+from law_nexus.adapters.sources import FilesystemParserFixtureInventory
 from law_nexus.application.ingest import Ingest
+from law_nexus.application.parser_inventory import ParserInventoryUseCase
 from law_nexus.ports.parser import Parser
+from law_nexus.ports.source_inventory import ParserFixtureInventoryBuilder
 
 
 def make_consultant_parser(source_root: str | Path = "law-source") -> ConsultantWordMLParser:
@@ -39,3 +42,10 @@ def make_default_ingest(source_root: str | Path = "law-source") -> Ingest:
 
     parser: Parser = make_consultant_parser(source_root=source_root)
     return Ingest(parser)
+
+
+def make_parser_inventory_use_case() -> ParserInventoryUseCase:
+    """Wire the parser fixture inventory use case with the filesystem adapter."""
+
+    builder: ParserFixtureInventoryBuilder = FilesystemParserFixtureInventory()
+    return ParserInventoryUseCase(builder=builder)
