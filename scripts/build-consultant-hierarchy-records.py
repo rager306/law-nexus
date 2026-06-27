@@ -20,6 +20,8 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Literal
 
+from law_nexus.composition import make_consultant_hierarchy_use_case
+from law_nexus.ports.source_hierarchy import SourceHierarchyParagraph, SourceHierarchyRequest
 from parser_records import dumps_jsonl_record, parse_parser_record
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -364,130 +366,22 @@ def hierarchy_records(
     document_id: str,
     source_path: str,
 ) -> tuple[list[dict[str, Any]], dict[str, Any]]:
-    """Extract hierarchy records using current-context boundaries, not global regex."""
+    """Extract hierarchy records using the package-level Consultant builder seam."""
 
-    document_hierarchy_id = _document_hierarchy_id(scope_id)
-    records: list[dict[str, Any]] = []
-    counters: Counter[str] = Counter()
-    skipped: Counter[str] = Counter()
-    rejected_context_markers: list[dict[str, Any]] = []
-    validation_errors: list[dict[str, Any]] = []
-    context: dict[str, str | None] = {
-        "document": document_hierarchy_id,
-        "chapter": None,
-        "section": None,
-        "article": None,
-        "part": None,
-        "clause": None,
-        "subclause": None,
-    }
-
-    first_title = next((p for p in paragraphs if p.style == "5" and not p.text.startswith("iVBOR")), paragraphs[0])
-    document_paragraph = Paragraph(index=first_title.index, text=first_title.text, style=first_title.style)
-    records.append(
-        build_record(
-            record_id=document_hierarchy_id,
-            level="document",
-            paragraph=document_paragraph,
-            marker=None,
-            parent_id=None,
-            source_sha256=source_sha256,
-            scope_id=scope_id,
-            document_id=document_id,
-            source_path=source_path,
-        )
+    request = SourceHierarchyRequest(
+        paragraphs=[
+            SourceHierarchyParagraph(index=paragraph.index, text=paragraph.text, style=paragraph.style)
+            for paragraph in paragraphs
+        ],
+        source_sha256=source_sha256,
+        scope_id=scope_id,
+        document_id=document_id,
+        source_path=source_path,
     )
-
-    for paragraph in paragraphs:
-        marker = marker_for_text(paragraph.text)
-        if marker is None:
-            continue
-        if marker.level in {"part", "clause", "subclause"} and context["article"] is None:
-            skipped[f"{marker.level}_outside_article"] += 1
-            if len(rejected_context_markers) < MAX_DIAGNOSTICS:
-                excerpt = truncate(paragraph.text, 240)
-                rejected_context_markers.append(
-                    {
-                        "paragraph_index": paragraph.index,
-                        "level": marker.level,
-                        "marker": marker.raw,
-                        "rule_id": "hierarchical_parsing_required",
-                        "reason": f"{marker.level}_outside_article",
-                        "source_excerpt": excerpt,
-                        "source_excerpt_sha256": sha256_text(excerpt),
-                    }
-                )
-            continue
-        parent_id = parent_for_level(marker.level, context)
-        if parent_id is None:
-            skipped[f"{marker.level}_without_parent"] += 1
-            if len(rejected_context_markers) < MAX_DIAGNOSTICS:
-                excerpt = truncate(paragraph.text, 240)
-                rejected_context_markers.append(
-                    {
-                        "paragraph_index": paragraph.index,
-                        "level": marker.level,
-                        "marker": marker.raw,
-                        "rule_id": "hierarchical_parsing_required",
-                        "reason": f"{marker.level}_without_parent",
-                        "source_excerpt": excerpt,
-                        "source_excerpt_sha256": sha256_text(excerpt),
-                    }
-                )
-            continue
-        record_id = next_record_id(scope_id, counters, marker.level)
-        try:
-            record = build_record(
-                record_id=record_id,
-                level=marker.level,
-                paragraph=paragraph,
-                marker=marker,
-                parent_id=parent_id,
-                source_sha256=source_sha256,
-                scope_id=scope_id,
-                document_id=document_id,
-                source_path=source_path,
-            )
-        except Exception as exc:  # compact diagnostics; continue to bound failures deterministically
-            if len(validation_errors) < MAX_DIAGNOSTICS:
-                validation_errors.append(
-                    {
-                        "paragraph_index": paragraph.index,
-                        "level": marker.level,
-                        "marker": marker.raw,
-                        "message": str(exc),
-                    }
-                )
-            continue
-        records.append(record)
-        update_context(marker.level, record_id, context)
-
-    emitted_counts = Counter(record["level"] for record in records)
-    structural_errors: list[dict[str, Any]] = []
-    if counters and emitted_counts.get("article", 0) == 0:
-        structural_errors.append(
-            compact_error(
-                "missing_article_heading",
-                "hierarchy markers were detected but no article heading was emitted; lower-level legal context is unsafe",
-                emitted_counts_by_level=dict(sorted(emitted_counts.items())),
-                skipped_marker_counts=dict(sorted(skipped.items())),
-            )
-        )
-    if skipped:
-        for kind, count in sorted(skipped.items()):
-            structural_errors.append(compact_error("context_break", f"{kind}: {count}", count=count))
-
-    diagnostics = {
-        "emitted_counts_by_level": dict(sorted(emitted_counts.items())),
-        "skipped_marker_counts": dict(sorted(skipped.items())),
-        "rejected_context_marker_count": len(rejected_context_markers),
-        "rejected_context_markers": rejected_context_markers,
-        "structural_errors": structural_errors[:MAX_DIAGNOSTICS],
-        "structural_error_count": len(structural_errors),
-        "validation_errors": validation_errors,
-        "validation_error_count": len(validation_errors),
-    }
-    return records, diagnostics
+    result = make_consultant_hierarchy_use_case().build_records(request)
+    for record in result.records:
+        parse_parser_record(record)
+    return result.records, result.diagnostics
 
 
 def build_for_fixture(source_path: Path, scope_id: str) -> BuildResult:

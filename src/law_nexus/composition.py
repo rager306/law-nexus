@@ -18,10 +18,15 @@ from __future__ import annotations
 from pathlib import Path
 
 from law_nexus.adapters.parsers import ConsultantWordMLParser
-from law_nexus.adapters.sources import FilesystemParserFixtureInventory
+from law_nexus.adapters.sources import (
+    ConsultantHierarchyRecordBuilder,
+    FilesystemParserFixtureInventory,
+)
 from law_nexus.application.ingest import Ingest
 from law_nexus.application.parser_inventory import ParserInventoryUseCase
+from law_nexus.application.source_hierarchy import SourceHierarchyUseCase
 from law_nexus.ports.parser import Parser
+from law_nexus.ports.source_hierarchy import SourceHierarchyBuilder
 from law_nexus.ports.source_inventory import ParserFixtureInventoryBuilder
 
 
@@ -49,3 +54,10 @@ def make_parser_inventory_use_case() -> ParserInventoryUseCase:
 
     builder: ParserFixtureInventoryBuilder = FilesystemParserFixtureInventory()
     return ParserInventoryUseCase(builder=builder)
+
+
+def make_consultant_hierarchy_use_case() -> SourceHierarchyUseCase:
+    """Wire the Consultant source hierarchy use case with its record builder."""
+
+    builder: SourceHierarchyBuilder = ConsultantHierarchyRecordBuilder()
+    return SourceHierarchyUseCase(builder=builder)
