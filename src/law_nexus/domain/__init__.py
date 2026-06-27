@@ -16,6 +16,14 @@ from __future__ import annotations
 from law_nexus.domain.act_edition import ActEdition, ActStatus, TemporalConfidence
 from law_nexus.domain.citation import Citation
 from law_nexus.domain.evidence_span import EvidenceLifecycle, EvidenceSpan
+from law_nexus.domain.jurisdiction import (
+    JURISDICTION_LEVELS,
+    JURISDICTION_NON_CLAIMS,
+    RUSSIAN_FEDERATION_JURISDICTION,
+    Jurisdiction,
+    JurisdictionLevel,
+    is_subordinate_jurisdiction_level,
+)
 from law_nexus.domain.legal_taxonomy import (
     LEGAL_TAXONOMY_NON_CLAIMS,
     LEGAL_UNIT_ALLOWED_PARENTS,
@@ -52,6 +60,13 @@ __all__ = [
     # evidence_span
     "EvidenceLifecycle",
     "EvidenceSpan",
+    # jurisdiction
+    "JURISDICTION_LEVELS",
+    "JURISDICTION_NON_CLAIMS",
+    "RUSSIAN_FEDERATION_JURISDICTION",
+    "Jurisdiction",
+    "JurisdictionLevel",
+    "is_subordinate_jurisdiction_level",
     # legal_taxonomy
     "LEGAL_TAXONOMY_NON_CLAIMS",
     "LEGAL_UNIT_ALLOWED_PARENTS",
