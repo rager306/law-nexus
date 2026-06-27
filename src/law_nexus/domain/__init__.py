@@ -16,6 +16,14 @@ from __future__ import annotations
 from law_nexus.domain.act_edition import ActEdition, ActStatus, TemporalConfidence
 from law_nexus.domain.citation import Citation
 from law_nexus.domain.evidence_span import EvidenceLifecycle, EvidenceSpan
+from law_nexus.domain.legal_taxonomy import (
+    LEGAL_TAXONOMY_NON_CLAIMS,
+    LEGAL_UNIT_ALLOWED_PARENTS,
+    LEGAL_UNIT_HIERARCHY,
+    SOURCE_LEVELS_BY_FORCE,
+    is_allowed_legal_unit_parent,
+    is_higher_legal_force,
+)
 from law_nexus.domain.legal_unit import LegalUnit, LegalUnitType
 from law_nexus.domain.norm_statement import (
     ExtractionMethod,
@@ -44,6 +52,13 @@ __all__ = [
     # evidence_span
     "EvidenceLifecycle",
     "EvidenceSpan",
+    # legal_taxonomy
+    "LEGAL_TAXONOMY_NON_CLAIMS",
+    "LEGAL_UNIT_ALLOWED_PARENTS",
+    "LEGAL_UNIT_HIERARCHY",
+    "SOURCE_LEVELS_BY_FORCE",
+    "is_allowed_legal_unit_parent",
+    "is_higher_legal_force",
     # legal_unit
     "LegalUnit",
     "LegalUnitType",
