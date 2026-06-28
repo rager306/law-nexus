@@ -11,7 +11,6 @@ behavior, legal-answer correctness, or pilot readiness.
 from __future__ import annotations
 
 import argparse
-import csv
 import importlib
 import json
 import shutil
@@ -21,6 +20,19 @@ import uuid
 from collections.abc import Mapping, Sequence
 from pathlib import Path
 from typing import Any, Literal, Protocol, cast
+
+from law_nexus.adapters.graph.falkordb_csv_loader import (
+    FALKORDB_CSV_INGEST_NON_CLAIMS,
+    FalkorCsvIngestRequest,
+    build_base_report,
+    build_load_csv_query_plan,
+    compare_graph_counts,
+    expected_counts_from_rows,
+    validate_safe_report,
+)
+from law_nexus.adapters.graph.falkordb_csv_loader import (
+    read_csv_rows as adapter_read_csv_rows,
+)
 
 ROOT = Path(__file__).resolve().parents[1]
 FIXTURE_DIR = ROOT / "prd/research/ontology_architecture_requirements/fixtures/falkordb_ingest"
@@ -51,12 +63,7 @@ FORBIDDEN_OUTPUT_FRAGMENTS = (
     "/tmp/",
 )
 
-NON_CLAIMS = (
-    "Does not validate R037 broadly; this is a bounded CSV ingest smoke.",
-    "Does not validate R035 broadly; R035 remains Active.",
-    "Does not prove retrieval quality, parser completeness, legal-answer correctness, graph-vector/HNSW behavior, FalkorDB production readiness, or pilot readiness.",
-    "Does not prove bulk-loader scale readiness; S03 owns that separate assessment.",
-)
+NON_CLAIMS = FALKORDB_CSV_INGEST_NON_CLAIMS
 
 
 class FalkorResult(Protocol):
@@ -80,28 +87,17 @@ def bounded_path(path: Path) -> str:
 
 
 def read_csv_rows(path: Path) -> list[dict[str, str]]:
-    with path.open(newline="", encoding="utf-8") as handle:
-        return list(csv.DictReader(handle))
+    return adapter_read_csv_rows(path)
 
 
 def expected_counts() -> dict[str, int]:
     units = read_csv_rows(UNITS_CSV)
     edges = read_csv_rows(EDGES_CSV)
-    return {
-        "expected_source_node_rows": len(units),
-        "expected_source_relationship_rows": len(edges),
-        "expected_node_count": len(units),
-        "expected_relationship_count": len(edges),
-        "expected_current_nodes": sum(1 for row in units if row.get("temporal_status") == "current"),
-        "expected_inactive_nodes": sum(1 for row in units if row.get("temporal_status") == "inactive"),
-    }
+    return expected_counts_from_rows(units, edges)
 
 
 def assert_safe_payload(payload: Mapping[str, Any]) -> None:
-    serialized = json.dumps(payload, ensure_ascii=False, sort_keys=True)
-    for fragment in FORBIDDEN_OUTPUT_FRAGMENTS:
-        if fragment.lower() in serialized.lower():
-            raise ValueError(f"unsafe proof output fragment detected: {fragment}")
+    validate_safe_report(payload)
 
 
 def query_rows(graph: FalkorGraph, query: str) -> tuple[list[list[Any]], float]:
@@ -205,57 +201,8 @@ def cleanup_container(container_id: str | None, diagnostic: dict[str, Any]) -> N
 
 def load_csv_queries(graph: FalkorGraph) -> dict[str, float]:
     durations: dict[str, float] = {}
-    _rows, durations["cleanup_before_load_ms"] = query_rows(graph, "MATCH (n) DETACH DELETE n")
-    _rows, durations["load_nodes_first_ms"] = query_rows(
-        graph,
-        """
-        LOAD CSV WITH HEADERS FROM 'file:///legal_units.csv' AS row
-        MERGE (u:LegalUnit {id: row['id']})
-        SET u.kind = row['kind'],
-            u.source_record_id = row['source_record_id'],
-            u.act_edition_id = row['act_edition_id'],
-            u.ontology_class = row['ontology_class'],
-            u.temporal_status = row['temporal_status'],
-            u.rank = toInteger(row['rank'])
-        """,
-    )
-    _rows, durations["load_relationships_first_ms"] = query_rows(
-        graph,
-        """
-        LOAD CSV WITH HEADERS FROM 'file:///legal_unit_edges.csv' AS row
-        MATCH (source:LegalUnit {id: row['source_id']}),
-              (target:LegalUnit {id: row['target_id']})
-        MERGE (source)-[r:LINKS_TO {source_id: row['source_id'], target_id: row['target_id'], type: row['type']}]->(target)
-        SET r.evidence_span_id = row['evidence_span_id'],
-            r.citation_key = row['citation_key'],
-            r.rank = toInteger(row['rank'])
-        """,
-    )
-    _rows, durations["load_nodes_rerun_ms"] = query_rows(
-        graph,
-        """
-        LOAD CSV WITH HEADERS FROM 'file:///legal_units.csv' AS row
-        MERGE (u:LegalUnit {id: row['id']})
-        SET u.kind = row['kind'],
-            u.source_record_id = row['source_record_id'],
-            u.act_edition_id = row['act_edition_id'],
-            u.ontology_class = row['ontology_class'],
-            u.temporal_status = row['temporal_status'],
-            u.rank = toInteger(row['rank'])
-        """,
-    )
-    _rows, durations["load_relationships_rerun_ms"] = query_rows(
-        graph,
-        """
-        LOAD CSV WITH HEADERS FROM 'file:///legal_unit_edges.csv' AS row
-        MATCH (source:LegalUnit {id: row['source_id']}),
-              (target:LegalUnit {id: row['target_id']})
-        MERGE (source)-[r:LINKS_TO {source_id: row['source_id'], target_id: row['target_id'], type: row['type']}]->(target)
-        SET r.evidence_span_id = row['evidence_span_id'],
-            r.citation_key = row['citation_key'],
-            r.rank = toInteger(row['rank'])
-        """,
-    )
+    for step in build_load_csv_query_plan().steps:
+        _rows, durations[f"{step.name}_ms"] = query_rows(graph, step.cypher)
     return durations
 
 
@@ -269,71 +216,21 @@ def graph_counts(graph: FalkorGraph) -> dict[str, int]:
 
 
 def base_report(args: argparse.Namespace, disposition: RuntimeDisposition, diagnostic_codes: Sequence[str]) -> dict[str, Any]:
-    counts = expected_counts()
-    return {
-        "schema_version": SCHEMA_VERSION,
-        "milestone_id": MILESTONE_ID,
-        "slice_id": SLICE_ID,
-        "runtime_disposition": disposition,
-        "loader": {
-            "mechanism": "LOAD CSV",
-            "with_headers": True,
-            "type_conversion_checked": True,
-            "raw_query_text_persisted": False,
-        },
-        "source_fixture_paths": [bounded_path(UNITS_CSV), bounded_path(EDGES_CSV)],
-        "source_counts": {
-            "node_rows": counts["expected_source_node_rows"],
-            "relationship_rows": counts["expected_source_relationship_rows"],
-        },
-        "expected_counts": counts,
-        "graph_counts": {},
-        "idempotency": {
-            "mode": "MERGE rerun",
-            "status": "not_run",
-            "duplicate_nodes_created": None,
-            "duplicate_relationships_created": None,
-        },
-        "file_access": {
-            "mode": "docker_import_mount",
-            "container_import_folder": CONTAINER_IMPORT_DIR,
-            "host_path_persisted": False,
-        },
-        "container_runtime": {
-            "mode": args.container,
-            "status": "not_run",
-            "cleanup_status": "not_needed",
-            "image_reference": args.container_image,
-        },
-        "diagnostic_codes": sorted(set(diagnostic_codes)),
-        "redaction": {
-            "source_text_excluded": True,
-            "raw_vectors_excluded": True,
-            "secrets_excluded": True,
-            "external_payloads_excluded": True,
-            "absolute_paths_excluded": True,
-            "gsd_exec_paths_excluded": True,
-        },
-        "non_authoritative": True,
-        "requirement": "R037",
-        "related_requirement": "R035",
-        "non_claims": list(NON_CLAIMS),
-    }
+    request = FalkorCsvIngestRequest.from_args(
+        args,
+        source_units_path=bounded_path(UNITS_CSV),
+        source_edges_path=bounded_path(EDGES_CSV),
+    )
+    return build_base_report(
+        request,
+        expected_counts=expected_counts(),
+        disposition=disposition,
+        diagnostic_codes=diagnostic_codes,
+    )
 
 
 def compare_counts(report: dict[str, Any]) -> list[str]:
-    expected = report["expected_counts"]
-    graph = report["graph_counts"]
-    diagnostics: list[str] = []
-    if graph.get("node_count") != expected["expected_node_count"]:
-        diagnostics.append("LOAD_CSV_COUNTS_MISMATCH")
-    if graph.get("relationship_count") != expected["expected_relationship_count"]:
-        diagnostics.append("LOAD_CSV_COUNTS_MISMATCH")
-    if graph.get("current_nodes") != expected["expected_current_nodes"]:
-        diagnostics.append("LOAD_CSV_COUNTS_MISMATCH")
-    if graph.get("inactive_nodes") != expected["expected_inactive_nodes"]:
-        diagnostics.append("LOAD_CSV_COUNTS_MISMATCH")
-    return sorted(set(diagnostics))
+    return compare_graph_counts(report["expected_counts"], report["graph_counts"])
 
 
 def run_proof(args: argparse.Namespace) -> tuple[int, dict[str, Any]]:
