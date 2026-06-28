@@ -10,8 +10,6 @@ explicitly satisfied by later tasks.
 from __future__ import annotations
 
 import argparse
-import importlib.metadata
-import importlib.util
 import json
 import os
 import platform
@@ -21,6 +19,29 @@ from collections.abc import Iterable, Mapping, Sequence
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
+
+from law_nexus.adapters.embeddings.proof_environment import (
+    huggingface_cache_roots as _proof_huggingface_cache_roots,
+)
+from law_nexus.adapters.embeddings.proof_environment import (
+    import_name_for_requirement as _proof_import_name_for_requirement,
+)
+from law_nexus.adapters.embeddings.proof_environment import (
+    model_cache_name as _proof_model_cache_name,
+)
+from law_nexus.adapters.embeddings.proof_environment import (
+    normalized_path as _proof_normalized_path,
+)
+from law_nexus.adapters.embeddings.proof_environment import (
+    probe_package_availability,
+    write_json_log,
+)
+from law_nexus.adapters.embeddings.proof_environment import (
+    requirement_package_name as _proof_requirement_package_name,
+)
+from law_nexus.adapters.embeddings.proof_environment import (
+    unique_paths as _proof_unique_paths,
+)
 
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_OUTPUT_DIR = ROOT / ".gsd/milestones/M001/slices/S10"
@@ -47,83 +68,36 @@ def utc_now() -> str:
 
 
 def normalized_path(path: Path) -> str:
-    resolved = path.resolve()
-    try:
-        return resolved.relative_to(ROOT).as_posix()
-    except ValueError:
-        return resolved.as_posix()
+    return _proof_normalized_path(path, root=ROOT)
 
 
 def write_log(log_dir: Path, name: str, payload: Mapping[str, Any]) -> str:
-    log_dir.mkdir(parents=True, exist_ok=True)
-    safe_name = name.replace("/", "__")
-    path = log_dir / f"{safe_name}.log"
-    text = json.dumps(payload, ensure_ascii=False, indent=2, sort_keys=True) + "\n"
-    for term in FORBIDDEN_TERMS:
-        if term in text:
-            raise ValueError(f"refusing to write forbidden term in log {safe_name}")
-    path.write_text(text, encoding="utf-8")
+    path = write_json_log(log_dir, name, payload, forbidden_terms=FORBIDDEN_TERMS)
     return normalized_path(path)
 
 
 def model_cache_name(model_id: str) -> str:
-    return "models--" + model_id.replace("/", "--")
+    return _proof_model_cache_name(model_id)
 
 
 def unique_paths(paths: Iterable[Path]) -> tuple[Path, ...]:
-    seen: set[Path] = set()
-    result: list[Path] = []
-    for path in paths:
-        expanded = path.expanduser()
-        if expanded in seen:
-            continue
-        seen.add(expanded)
-        result.append(expanded)
-    return tuple(result)
+    return _proof_unique_paths(paths)
 
 
 def huggingface_cache_roots(env: Mapping[str, str] | None = None) -> tuple[Path, ...]:
-    active_env = env or os.environ
-    paths: list[Path] = []
-    if hub_cache := active_env.get("HUGGINGFACE_HUB_CACHE"):
-        paths.append(Path(hub_cache))
-    if hf_home := active_env.get("HF_HOME"):
-        paths.append(Path(hf_home) / "hub")
-    if transformers_cache := active_env.get("TRANSFORMERS_CACHE"):
-        paths.append(Path(transformers_cache))
-    paths.append(Path.home() / ".cache/huggingface/hub")
-    return unique_paths(paths)
+    return _proof_huggingface_cache_roots(env, include_transformers_cache=True)
 
 
 def requirement_package_name(requirement: str) -> str:
-    for separator in ("<", ">", "=", "!", "~", ";", "["):
-        if separator in requirement:
-            return requirement.split(separator, maxsplit=1)[0].strip()
-    return requirement.strip()
+    return _proof_requirement_package_name(requirement)
 
 
 def import_name_for_requirement(requirement: str) -> str:
-    package = requirement_package_name(requirement)
-    return PACKAGE_IMPORTS.get(package, package.replace("-", "_"))
+    return _proof_import_name_for_requirement(requirement, PACKAGE_IMPORTS)
 
 
 def probe_package(requirement: str) -> dict[str, Any]:
-    package = requirement_package_name(requirement)
-    import_name = import_name_for_requirement(requirement)
-    available = importlib.util.find_spec(import_name) is not None
-    version: str | None = None
-    if available:
-        try:
-            version = importlib.metadata.version(package)
-        except importlib.metadata.PackageNotFoundError:
-            version = None
-    return {
-        "package": requirement,
-        "distribution": package,
-        "import_name": import_name,
-        "status": "available" if available else "absent",
-        "version": version,
-    }
+    return probe_package_availability(requirement, package_imports=PACKAGE_IMPORTS).to_json()
 
 
 def probe_packages(requirements: Sequence[str]) -> dict[str, Any]:

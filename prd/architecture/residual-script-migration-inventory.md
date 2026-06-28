@@ -109,7 +109,7 @@ Caveats: use file-qualified UIDs for ambiguous names such as `main`, `run`, and 
 | 44 | `scripts/inventory-parser-fixtures.py` | 117 | 2 | 0 | yes | thin wrapper | low | retain wrapper around existing package seam |
 | 45 | `scripts/parser_records.py` | 52 | 0 | 0 | yes | thin wrapper | low | S03 moved parser record contracts to `src/law_nexus.adapters.sources.parser_records`; script remains compatibility re-export wrapper |
 | 46 | `scripts/probe-consultant-parser.py` | 400 | 12 | 1 | yes | migrate logic | medium | thin existing package-backed script further |
-| 47 | `scripts/probe-s10-embedding-runtime-env.py` | 512 | 28 | 0 | no | migrate logic | high | new package seam required before wrapper thinning |
+| 47 | `scripts/probe-s10-embedding-runtime-env.py` | 512 | 28 | 0 | yes | migrate logic | high | S05 extracted shared local embedding proof environment helpers; wrapper still owns S10 runtime readiness semantics |
 | 48 | `scripts/prove-legalgraph-shaped-falkordb.py` | 486 | 19 | 3 | no | proof runtime wrapper | medium | retain runtime proof entrypoint, review helper extraction |
 | 49 | `scripts/prove-m002-s04-minimax-pyo3.py` | 1104 | 39 | 5 | no | migrate logic | high | new package seam required before wrapper thinning |
 | 50 | `scripts/prove-m003-s01-minimax-baseline.py` | 693 | 24 | 1 | no | migrate logic | high | new package seam required before wrapper thinning |
@@ -126,7 +126,7 @@ Caveats: use file-qualified UIDs for ambiguous names such as `main`, `run`, and 
 | 61 | `scripts/smoke-m002-text-to-cypher-pyo3.py` | 454 | 13 | 2 | no | proof runtime wrapper | medium | retain runtime proof entrypoint, review helper extraction |
 | 62 | `scripts/smoke-s04-falkordb-capabilities.py` | 1784 | 43 | 4 | no | migrate logic | high | new package seam required before wrapper thinning |
 | 63 | `scripts/smoke-s05-odt-parser.py` | 652 | 29 | 0 | no | migrate logic | high | new package seam required before wrapper thinning |
-| 64 | `scripts/smoke-s09-local-embeddings.py` | 564 | 28 | 2 | no | migrate logic | high | new package seam required before wrapper thinning |
+| 64 | `scripts/smoke-s09-local-embeddings.py` | 564 | 28 | 2 | yes | migrate logic | high | S05 extracted shared local embedding proof environment helpers; wrapper still owns S09 smoke/encode semantics |
 | 65 | `scripts/source_cli.py` | 207 | 11 | 0 | no | deferred | medium | needs manual review after high-priority migrations |
 | 66 | `scripts/source_hypothesis_verifier.py` | 318 | 16 | 1 | no | deferred | medium | needs manual review after high-priority migrations |
 | 67 | `scripts/source_lifecycle.py` | 2259 | 80 | 3 | no | migrate logic | high | new package seam required before wrapper thinning |

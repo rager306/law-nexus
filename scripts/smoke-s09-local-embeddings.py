@@ -12,19 +12,36 @@ from __future__ import annotations
 
 import argparse
 import importlib
-import importlib.metadata
-import importlib.util
 import json
 import os
 import platform
-import re
 import sys
 import time
 from collections.abc import Iterable, Mapping, Sequence
 from dataclasses import dataclass
 from datetime import UTC, datetime
 from pathlib import Path
-from typing import Any, Literal
+from typing import Any, Literal, cast
+
+from law_nexus.adapters.embeddings.proof_environment import (
+    huggingface_cache_roots as _proof_huggingface_cache_roots,
+)
+from law_nexus.adapters.embeddings.proof_environment import (
+    model_cache_name as _proof_model_cache_name,
+)
+from law_nexus.adapters.embeddings.proof_environment import (
+    normalized_path as _proof_normalized_path,
+)
+from law_nexus.adapters.embeddings.proof_environment import (
+    probe_package_availability,
+    write_json_log,
+)
+from law_nexus.adapters.embeddings.proof_environment import (
+    requirement_package_name as _proof_requirement_package_name,
+)
+from law_nexus.adapters.embeddings.proof_environment import (
+    unique_paths as _proof_unique_paths,
+)
 
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_OUTPUT_DIR = ROOT / ".gsd/milestones/M001/slices/S09"
@@ -105,62 +122,28 @@ def utc_now() -> str:
 
 
 def normalized_path(path: Path) -> str:
-    resolved = path.resolve()
-    gsd_root = ROOT / ".gsd"
-    if gsd_root.exists():
-        try:
-            return f".gsd/{resolved.relative_to(gsd_root.resolve()).as_posix()}"
-        except ValueError:
-            pass
-    try:
-        return resolved.relative_to(ROOT).as_posix()
-    except ValueError:
-        return resolved.as_posix()
+    return _proof_normalized_path(path, root=ROOT, prefer_gsd_root=True)
 
 
 def model_cache_name(model_id: str) -> str:
-    return "models--" + model_id.replace("/", "--")
+    return _proof_model_cache_name(model_id)
 
 
 def unique_paths(paths: Iterable[Path]) -> tuple[Path, ...]:
-    seen: set[Path] = set()
-    result: list[Path] = []
-    for path in paths:
-        expanded = path.expanduser()
-        if expanded in seen:
-            continue
-        seen.add(expanded)
-        result.append(expanded)
-    return tuple(result)
+    return _proof_unique_paths(paths)
 
 
 def huggingface_cache_roots(env: Mapping[str, str] | None = None) -> tuple[Path, ...]:
-    active_env = env or os.environ
-    paths: list[Path] = []
-    hub_cache = active_env.get("HUGGINGFACE_HUB_CACHE")
-    hf_home = active_env.get("HF_HOME")
-    if hub_cache:
-        paths.append(Path(hub_cache))
-    if hf_home:
-        paths.append(Path(hf_home) / "hub")
-    paths.append(Path.home() / ".cache/huggingface/hub")
-    return unique_paths(paths)
+    return _proof_huggingface_cache_roots(env)
 
 
 def requirement_package_name(requirement: str) -> str:
-    return re.split(r"[<>=!~;\[]", requirement, maxsplit=1)[0].strip()
+    return _proof_requirement_package_name(requirement)
 
 
 def probe_package(package: str) -> PackageProbe:
-    distribution_name = requirement_package_name(package)
-    import_name = PACKAGE_IMPORTS.get(distribution_name, distribution_name.replace("-", "_"))
-    if importlib.util.find_spec(import_name) is None:
-        return PackageProbe(package, import_name, "absent", None)
-    try:
-        version = importlib.metadata.version(distribution_name)
-    except importlib.metadata.PackageNotFoundError:
-        version = None
-    return PackageProbe(package, import_name, "available", version)
+    availability = probe_package_availability(package, package_imports=PACKAGE_IMPORTS)
+    return PackageProbe(package, availability.import_name, cast(ProbeStatus, availability.status), availability.version)
 
 
 def probe_required_packages(packages: Sequence[str]) -> dict[str, Any]:
@@ -237,11 +220,7 @@ def configured_candidates(contract: Mapping[str, Any]) -> list[dict[str, Any]]:
 
 
 def write_log(log_dir: Path, name: str, payload: Mapping[str, Any]) -> Path:
-    log_dir.mkdir(parents=True, exist_ok=True)
-    safe_name = name.replace("/", "__")
-    path = log_dir / f"{safe_name}.log"
-    path.write_text(json.dumps(payload, ensure_ascii=False, indent=2, sort_keys=True) + "\n", encoding="utf-8")
-    return path
+    return write_json_log(log_dir, name, payload)
 
 
 def download_status(cache_present: bool, allow_download: bool) -> ProbeStatus:
