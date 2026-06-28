@@ -9,13 +9,21 @@ from pathlib import Path
 from types import ModuleType
 from typing import Any, Mapping, Sequence
 
+from law_nexus.adapters.retrieval.proof_helpers import (
+    BOUNDED_DIAGNOSTIC_FIELDS,
+    MAX_SAFE_FIELD_LENGTH,
+    bounded_path,
+    diagnostic_codes,
+    diagnostic_payloads,
+    error_summary,
+    safe_payload_errors,
+)
+
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_FIXTURES = ROOT / "prd/retrieval/fixtures/retrieval_output_validator_cases.json"
 VALIDATOR_PATH = ROOT / "scripts/retrieval_output_validator.py"
 SUMMARY_SCHEMA_VERSION = "retrieval-output-validator-proof/v1"
-_ALLOWED_RESULT_STATES = frozenset({"accepted", "accepted_scoped_no_answer", "rejected"})
-_BOUNDED_FIELDS = frozenset({"field_path", "case_id", "retrieval_output_id", "scope_id"})
-_MAX_SAFE_FIELD_LENGTH = 160
+_MAX_SAFE_FIELD_LENGTH = MAX_SAFE_FIELD_LENGTH
 
 
 def _load_validator() -> ModuleType:
@@ -29,38 +37,26 @@ def _load_validator() -> ModuleType:
 
 
 def _bounded_path(path: Path) -> str:
-    try:
-        return path.resolve().relative_to(ROOT).as_posix()
-    except ValueError:
-        return str(path)[:_MAX_SAFE_FIELD_LENGTH]
+    return bounded_path(path, root=ROOT)
 
 
 def _error_summary(*, fixtures: Path, phase: str, code: str, detail: str | None = None) -> dict[str, Any]:
-    error: dict[str, Any] = {
-        "phase": phase,
-        "code": code,
-        "fixture_path": _bounded_path(fixtures),
-    }
-    if detail:
-        error["detail"] = detail[:_MAX_SAFE_FIELD_LENGTH]
-    return {
-        "schema_version": SUMMARY_SCHEMA_VERSION,
-        "fixture_path": _bounded_path(fixtures),
-        "total_cases": 0,
-        "accepted_count": 0,
-        "rejected_count": 0,
-        "mismatch_count": 1,
-        "diagnostic_code_inventory": [],
-        "mismatches": [error],
-    }
+    return error_summary(
+        fixtures=fixtures,
+        root=ROOT,
+        schema_version=SUMMARY_SCHEMA_VERSION,
+        phase=phase,
+        code=code,
+        detail=detail,
+    )
 
 
 def _diagnostic_codes(result: Any) -> list[str]:
-    return [diagnostic.code for diagnostic in result.diagnostics]
+    return diagnostic_codes(result)
 
 
 def _diagnostic_payloads(result: Any) -> list[Mapping[str, Any]]:
-    return [diagnostic.to_dict() for diagnostic in result.diagnostics]
+    return diagnostic_payloads(result)
 
 
 def _safe_payload_errors(
@@ -70,52 +66,14 @@ def _safe_payload_errors(
     safe_fields: set[str],
     known_codes: set[str],
 ) -> list[dict[str, Any]]:
-    errors: list[dict[str, Any]] = []
-    if result.result not in _ALLOWED_RESULT_STATES:
-        errors.append(
-            {
-                "phase": "diagnostic_safety",
-                "case_id": case_id,
-                "code": "malformed_output_shape",
-                "field_path": "result",
-                "actual_result": str(result.result)[:_MAX_SAFE_FIELD_LENGTH],
-            }
-        )
-    for index, payload in enumerate(_diagnostic_payloads(result)):
-        extra_fields = sorted(set(payload) - safe_fields)
-        if extra_fields:
-            errors.append(
-                {
-                    "phase": "diagnostic_safety",
-                    "case_id": case_id,
-                    "code": "unsafe_diagnostic_field",
-                    "field_path": f"diagnostics[{index}]",
-                    "actual_codes": extra_fields,
-                }
-            )
-        diagnostic_code = payload.get("code")
-        if diagnostic_code not in known_codes:
-            errors.append(
-                {
-                    "phase": "diagnostic_safety",
-                    "case_id": case_id,
-                    "code": "unknown_diagnostic_code",
-                    "field_path": f"diagnostics[{index}].code",
-                    "actual_codes": [str(diagnostic_code)[:_MAX_SAFE_FIELD_LENGTH]],
-                }
-            )
-        for field in _BOUNDED_FIELDS:
-            value = payload.get(field)
-            if not isinstance(value, str) or len(value) > _MAX_SAFE_FIELD_LENGTH:
-                errors.append(
-                    {
-                        "phase": "diagnostic_safety",
-                        "case_id": case_id,
-                        "code": "malformed_output_shape",
-                        "field_path": f"diagnostics[{index}].{field}",
-                    }
-                )
-    return errors
+    return safe_payload_errors(
+        case_id=case_id,
+        result=result,
+        safe_fields=safe_fields,
+        known_codes=known_codes,
+        bounded_fields=BOUNDED_DIAGNOSTIC_FIELDS,
+        max_length=MAX_SAFE_FIELD_LENGTH,
+    )
 
 
 def _case_mismatch(
@@ -172,7 +130,8 @@ def run_proof(fixtures: Path) -> tuple[int, dict[str, Any]]:
                 }
             )
             continue
-        case_id = case.get("case_id") if isinstance(case.get("case_id"), str) else f"<index:{index}>"
+        raw_case_id = case.get("case_id")
+        case_id = raw_case_id if isinstance(raw_case_id, str) else f"<index:{index}>"
         result = validator.validate_case(case, fixture)
         actual_codes = _diagnostic_codes(result)
         result_counts[result.result] += 1

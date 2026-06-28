@@ -182,11 +182,11 @@ Caveats: use file-qualified UIDs for ambiguous names such as `main`, `run`, and 
 | 117 | `scripts/verify-ontology-graphrag-proof.py` | 383 | 16 | 1 | no | proof runtime wrapper | medium | retain runtime proof entrypoint, review helper extraction |
 | 118 | `scripts/verify-ontology-graphrag-runtime-integration-proof.py` | 1083 | 41 | 2 | no | migrate logic | high | new package seam required before wrapper thinning |
 | 119 | `scripts/verify-parser-evidence-span-materialization.py` | 303 | 10 | 1 | no | proof runtime wrapper | medium | retain runtime proof entrypoint, review helper extraction |
-| 120 | `scripts/verify-real-artifact-retrieval-proof.py` | 263 | 11 | 0 | no | proof runtime wrapper | medium | retain runtime proof entrypoint, review helper extraction |
+| 120 | `scripts/verify-real-artifact-retrieval-proof.py` | 263 | 11 | 0 | yes | proof runtime wrapper | medium | S04 extracted shared retrieval proof helpers; wrapper and case-specific proof logic remain script-owned |
 | 121 | `scripts/verify-representative-evidence-span-retrieval-corpus.py` | 332 | 13 | 1 | no | proof runtime wrapper | medium | retain runtime proof entrypoint, review helper extraction |
 | 122 | `scripts/verify-representative-evidence-span-retrieval-metrics.py` | 284 | 14 | 1 | no | proof runtime wrapper | medium | retain runtime proof entrypoint, review helper extraction |
 | 123 | `scripts/verify-representative-retrieval-runtime-benchmark.py` | 714 | 19 | 1 | no | migrate logic | high | new package seam required before wrapper thinning |
-| 124 | `scripts/verify-retrieval-output-validator.py` | 234 | 9 | 0 | no | proof runtime wrapper | medium | retain runtime proof entrypoint, review helper extraction |
+| 124 | `scripts/verify-retrieval-output-validator.py` | 234 | 9 | 0 | yes | proof runtime wrapper | medium | S04 extracted shared retrieval proof helpers; wrapper and validator-specific proof logic remain script-owned |
 | 125 | `scripts/verify-s02-skills.py` | 484 | 11 | 1 | no | proof runtime wrapper | medium | retain runtime proof entrypoint, review helper extraction |
 | 126 | `scripts/verify-s03-reference-sources.py` | 282 | 11 | 2 | no | proof runtime wrapper | medium | retain runtime proof entrypoint, review helper extraction |
 | 127 | `scripts/verify-s04-falkordb-smoke.py` | 391 | 11 | 3 | no | proof runtime wrapper | medium | retain runtime proof entrypoint, review helper extraction |
