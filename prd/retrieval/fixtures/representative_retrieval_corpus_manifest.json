@@ -1,19 +1,14 @@
 {
   "candidate_references": [
     {
-      "evidence_path_ids": {
-        "act_edition_id": "ED-M013-44FZ-2026-01-01",
-        "citation_key": "CIT-M013-HIER-CONS-ARTICLE-0001",
-        "evidence_span_id": "EV-M013-HIER-CONS-ARTICLE-0001",
-        "legal_unit_id": "LU-M013-HIER-CONS-ARTICLE-0001",
-        "source_block_id": "SB-M013-HIER-CONS-ARTICLE-0001",
-        "source_document_id": "SD-M013-DOC-CONS-44FZ"
-      },
-      "excerpt_sha256": "bd7ca77cc505d237f70e05fd91351b3e235a7b6f678d52db877e90f8f9e517ef",
+      "case_class": "valid_real_artifact_path",
+      "evidence_path_ids": {},
+      "excerpt_sha256": "aa6e2792e128a5ea31b984fa110b9862ebdcebf1c9ef5266d8891a5da9b4c5bd",
+      "expected_diagnostic_codes": [],
+      "expected_result": "accepted",
+      "non_authoritative": true,
       "provenance": {
         "derivation": "bounded M013 retrieval validator case reference; no source excerpt persisted",
-        "parser_source_artifact": "prd/parser/consultant_hierarchy_records.json",
-        "parser_source_sha256": "df14061fccedf5023a008d8ab7de77cc829459d54b4683fab08bababf26d7f95",
         "source_case_id": "CASE-M013-VALID-REAL-ARTIFACT",
         "source_fixture_path": "prd/retrieval/fixtures/real_artifact_retrieval_cases.json"
       },
@@ -29,27 +24,23 @@
       },
       "reference_id": "RC-M016-001",
       "reference_role": "relevant",
-      "source_artifact": "prd/retrieval/fixtures/real_artifact_retrieval_cases.json",
+      "source_case_id": "CASE-M013-VALID-REAL-ARTIFACT",
       "source_family": "consultant_wordml",
       "source_record_ids": [
         "HIER-CONS-ARTICLE-0001"
-      ],
-      "source_sha256": "9f1a815a84f79c00ea5b5416c4285826930ae43646e7152dc283ce99f1bd62a7"
+      ]
     },
     {
-      "evidence_path_ids": {
-        "act_edition_id": "ED-M013-44FZ-1900-01-01",
-        "citation_key": "CIT-M013-HIER-CONS-ARTICLE-0001",
-        "evidence_span_id": "EV-M013-HIER-CONS-ARTICLE-0001",
-        "legal_unit_id": "LU-M013-HIER-CONS-ARTICLE-0001",
-        "source_block_id": "SB-M013-HIER-CONS-ARTICLE-0001",
-        "source_document_id": "SD-M013-DOC-CONS-44FZ"
-      },
-      "excerpt_sha256": "9bce49ceb449f263902e830a61bfc8271f4a122cfd886a4d73140e318029e8b0",
+      "case_class": "wrong_edition_proxy",
+      "evidence_path_ids": {},
+      "excerpt_sha256": "2522ecb9636a6dbaacdeb5c12a8ff169be4f1b79918d6df497eba85a4c1b21b2",
+      "expected_diagnostic_codes": [
+        "wrong_edition"
+      ],
+      "expected_result": "rejected",
+      "non_authoritative": true,
       "provenance": {
-        "derivation": "bounded M013 retrieval validator case reference; no source excerpt persisted",
-        "parser_source_artifact": "prd/parser/consultant_hierarchy_records.json",
-        "parser_source_sha256": "df14061fccedf5023a008d8ab7de77cc829459d54b4683fab08bababf26d7f95",
+        "derivation": "bounded M013 wrong-edition diagnostic reference; no source excerpt persisted",
         "source_case_id": "CASE-M013-WRONG-EDITION-PROXY",
         "source_fixture_path": "prd/retrieval/fixtures/real_artifact_retrieval_cases.json"
       },
@@ -65,20 +56,23 @@
       },
       "reference_id": "RC-M016-002",
       "reference_role": "edition_mismatch",
-      "source_artifact": "prd/retrieval/fixtures/real_artifact_retrieval_cases.json",
+      "source_case_id": "CASE-M013-WRONG-EDITION-PROXY",
       "source_family": "consultant_wordml",
       "source_record_ids": [
         "HIER-CONS-ARTICLE-0001"
-      ],
-      "source_sha256": "9f1a815a84f79c00ea5b5416c4285826930ae43646e7152dc283ce99f1bd62a7"
+      ]
     },
     {
+      "case_class": "scoped_no_answer",
       "evidence_path_ids": {},
-      "excerpt_sha256": "fe5341d3adf0e372f0f67e27606af8be79f9ae90aca006290f526a6db1e86484",
+      "excerpt_sha256": "86729d5f01223bb081406ca6ac5131a7a6881791474e189e5175a42c8f00fe03",
+      "expected_diagnostic_codes": [
+        "scoped_no_answer"
+      ],
+      "expected_result": "accepted_scoped_no_answer",
+      "non_authoritative": true,
       "provenance": {
-        "derivation": "bounded M013 retrieval validator case reference; no source excerpt persisted",
-        "parser_source_artifact": "prd/parser/consultant_hierarchy_records.json",
-        "parser_source_sha256": "df14061fccedf5023a008d8ab7de77cc829459d54b4683fab08bababf26d7f95",
+        "derivation": "bounded M013 scoped no-answer diagnostic reference; no source excerpt persisted",
         "source_case_id": "CASE-M013-SCOPED-NO-ANSWER",
         "source_fixture_path": "prd/retrieval/fixtures/real_artifact_retrieval_cases.json"
       },
@@ -94,25 +88,21 @@
       },
       "reference_id": "RC-M016-003",
       "reference_role": "no_answer_boundary",
-      "source_artifact": "prd/retrieval/fixtures/real_artifact_retrieval_cases.json",
+      "source_case_id": "CASE-M013-SCOPED-NO-ANSWER",
       "source_family": "consultant_wordml",
-      "source_record_ids": [],
-      "source_sha256": "9f1a815a84f79c00ea5b5416c4285826930ae43646e7152dc283ce99f1bd62a7"
+      "source_record_ids": []
     },
     {
-      "evidence_path_ids": {
-        "act_edition_id": "ED-M013-44FZ-2026-01-01",
-        "citation_key": "CIT-M013-AMBIG",
-        "evidence_span_id": "EV-M013-HIER-CONS-ARTICLE-0001",
-        "legal_unit_id": "LU-M013-HIER-CONS-ARTICLE-0001",
-        "source_block_id": "SB-M013-HIER-CONS-ARTICLE-0001",
-        "source_document_id": "SD-M013-DOC-CONS-44FZ"
-      },
-      "excerpt_sha256": "a97fe6e8663ac6179c61cd1719496209d82bdf4d33d955de9654729ca09f6d5e",
+      "case_class": "ambiguous_citation_key",
+      "evidence_path_ids": {},
+      "excerpt_sha256": "6d611df9ede3aaf73ad8bd68286b089f8f6c99d30e20f03466a43d140ba9e981",
+      "expected_diagnostic_codes": [
+        "ambiguous_citation_key"
+      ],
+      "expected_result": "rejected",
+      "non_authoritative": true,
       "provenance": {
-        "derivation": "bounded M013 retrieval validator case reference; no source excerpt persisted",
-        "parser_source_artifact": "prd/parser/consultant_hierarchy_records.json",
-        "parser_source_sha256": "df14061fccedf5023a008d8ab7de77cc829459d54b4683fab08bababf26d7f95",
+        "derivation": "bounded M013 ambiguous-citation diagnostic reference; no source excerpt persisted",
         "source_case_id": "CASE-M013-AMBIGUOUS-CITATION",
         "source_fixture_path": "prd/retrieval/fixtures/real_artifact_retrieval_cases.json"
       },
@@ -128,29 +118,25 @@
       },
       "reference_id": "RC-M016-004",
       "reference_role": "ambiguous",
-      "source_artifact": "prd/retrieval/fixtures/real_artifact_retrieval_cases.json",
+      "source_case_id": "CASE-M013-AMBIGUOUS-CITATION",
       "source_family": "consultant_wordml",
       "source_record_ids": [
         "HIER-CONS-ARTICLE-0001"
-      ],
-      "source_sha256": "9f1a815a84f79c00ea5b5416c4285826930ae43646e7152dc283ce99f1bd62a7"
+      ]
     },
     {
-      "evidence_path_ids": {
-        "act_edition_id": "ED-M013-44FZ-2026-01-01",
-        "citation_key": "CIT-M013-HIER-CONS-ARTICLE-0001",
-        "evidence_span_id": "EV-M013-HIER-CONS-ARTICLE-0001",
-        "legal_unit_id": "LU-M013-HIER-CONS-ARTICLE-0001",
-        "source_block_id": "SB-M013-HIER-CONS-ARTICLE-0001",
-        "source_document_id": "SD-M013-DOC-CONS-44FZ"
-      },
-      "excerpt_sha256": "4b9856cfe9755e43219786edbb30d2c193ce7859a5c122d3f3a59de9374645f5",
+      "case_class": "unsafe_candidate_payload",
+      "evidence_path_ids": {},
+      "excerpt_sha256": "ca3d163bab055381827226140568f3bef7eaac187cebd76878e0b63e9e442356",
+      "expected_diagnostic_codes": [
+        "unsafe_payload_rejected"
+      ],
+      "expected_result": "",
+      "non_authoritative": true,
       "provenance": {
-        "derivation": "bounded M013 retrieval validator case reference; no source excerpt persisted",
-        "parser_source_artifact": "prd/parser/consultant_hierarchy_records.json",
-        "parser_source_sha256": "df14061fccedf5023a008d8ab7de77cc829459d54b4683fab08bababf26d7f95",
-        "source_case_id": "CASE-M013-UNSAFE-NO-ANSWER-WITH-CITATION",
-        "source_fixture_path": "prd/retrieval/fixtures/real_artifact_retrieval_cases.json"
+        "derivation": "bounded M014 unsafe-payload diagnostic reference; no source excerpt persisted",
+        "source_case_id": "CASE-M014-UNSAFE-CANDIDATE-PAYLOAD",
+        "source_fixture_path": "prd/retrieval/fixtures/offline_citation_retrieval_cases.json"
       },
       "redaction": {
         "absolute_path_persisted": false,
@@ -164,21 +150,24 @@
       },
       "reference_id": "RC-M016-005",
       "reference_role": "unsafe",
-      "source_artifact": "prd/retrieval/fixtures/real_artifact_retrieval_cases.json",
+      "source_case_id": "CASE-M014-UNSAFE-CANDIDATE-PAYLOAD",
       "source_family": "consultant_wordml",
+      "source_query_id": "QUERY-M014-UNSAFE-PAYLOAD-001",
+      "source_query_kind": "invalid_candidate",
       "source_record_ids": [
-        "HIER-CONS-ARTICLE-0001"
-      ],
-      "source_sha256": "9f1a815a84f79c00ea5b5416c4285826930ae43646e7152dc283ce99f1bd62a7"
+        "HIER-CONS-CHAPTER-0001"
+      ]
     },
     {
+      "case_class": "valid_marker_level_candidate",
       "evidence_path_ids": {},
-      "excerpt_sha256": "c87e01a53cc7842c322099249e76e616b295e9e10ccfef7103fd13471e5693ba",
+      "excerpt_sha256": "4511859c546f62029f6d5cd1c3e0c978f3aacdc8bf983dced75779bac62edea8",
+      "expected_diagnostic_codes": [],
+      "expected_result": "accepted",
+      "non_authoritative": true,
       "provenance": {
-        "derivation": "bounded M014 offline citation case reference; no query or answer text persisted",
+        "derivation": "bounded M014 marker-level candidate reference used as distractor metadata only",
         "source_case_id": "CASE-M014-VALID-MARKER-LEVEL-CANDIDATE",
-        "source_contract": "prd/retrieval/offline_citation_retrieval_contract.md",
-        "source_contract_sha256": "5f5563113589e7f1e647d9049977414fe013d8a545feb346c8dae30c083c1c88",
         "source_fixture_path": "prd/retrieval/fixtures/offline_citation_retrieval_cases.json"
       },
       "redaction": {
@@ -193,24 +182,20 @@
       },
       "reference_id": "RC-M016-006",
       "reference_role": "distractor",
-      "source_artifact": "prd/retrieval/fixtures/offline_citation_retrieval_cases.json",
+      "source_case_id": "CASE-M014-VALID-MARKER-LEVEL-CANDIDATE",
       "source_family": "consultant_wordml",
+      "source_query_id": "QUERY-M014-MARKER-ARTICLE-0001",
+      "source_query_kind": "marker_lookup",
       "source_record_ids": [
         "HIER-CONS-ARTICLE-0001"
-      ],
-      "source_sha256": "d087b68da758a4cdb3c3af693797266b6eb001428c6be86f1e19d44530732d77"
+      ]
     },
     {
-      "evidence_path_ids": {
-        "source_fixture_path": "law-source/garant/44-fz.odt",
-        "source_kind": "garant-odt",
-        "source_role": "odt-document-fixture"
-      },
-      "excerpt_sha256": "73777d4741fa1b65229a8b22b97eb2cff4c5180105affb79b058d7007e3e4337",
+      "fixture_id": "",
+      "non_authoritative": true,
+      "path": "law-source/garant/44-fz.odt",
       "provenance": {
-        "derivation": "Garant ODT metadata boundary only; no parsed-content or retrieval-quality claim",
-        "inventory_fixture_path": "law-source/garant/44-fz.odt",
-        "inventory_fixture_sha256": "73777d4741fa1b65229a8b22b97eb2cff4c5180105affb79b058d7007e3e4337",
+        "derivation": "Garant ODT environment-boundary metadata only; no parsed legal text or retrieval-quality claim",
         "source_fixture_path": "prd/parser/source_fixture_inventory.json"
       },
       "redaction": {
@@ -225,12 +210,13 @@
       },
       "reference_id": "RC-M016-007",
       "reference_role": "environment_boundary",
-      "source_artifact": "prd/parser/source_fixture_inventory.json",
-      "source_family": "garant_odt_metadata",
-      "source_record_ids": [
-        "law-source/garant/44-fz.odt"
+      "sha256": "73777d4741fa1b65229a8b22b97eb2cff4c5180105affb79b058d7007e3e4337",
+      "source_case_ids": [
+        "prd/parser/source_fixture_inventory.json",
+        "CASE-M015-ENVIRONMENT-BOUNDARY"
       ],
-      "source_sha256": "8680fd75add13a9d3f9347f1ff2cff1670324b34470a147e5ce64ddfdc474427"
+      "source_family": "garant_odt_metadata",
+      "source_kind": "garant-odt"
     }
   ],
   "corpus_id": "CORPUS-M016-REPRESENTATIVE-V1",
@@ -239,61 +225,61 @@
       "class_name": "source_family_consultant_wordml",
       "coverage_class_id": "COV-M016-001",
       "description": "Consultant WordML/XML-derived parser and retrieval proof artifacts represented by IDs, selectors, and hashes only.",
-      "proof_boundary": "redacted_static_manifest"
+      "non_authoritative": true
     },
     {
       "class_name": "source_family_garant_odt_metadata",
       "coverage_class_id": "COV-M016-002",
       "description": "Garant ODT source fixture metadata represented by repository-relative inventory path, source hash, and ODT shape metadata only.",
-      "proof_boundary": "redacted_static_manifest"
+      "non_authoritative": true
     },
     {
       "class_name": "legal_unit_path_coverage",
       "coverage_class_id": "COV-M016-003",
       "description": "Source document, source block, evidence span, legal unit, act edition, and legal act path IDs are represented where available.",
-      "proof_boundary": "redacted_static_manifest"
+      "non_authoritative": true
     },
     {
       "class_name": "positive_retrieval",
       "coverage_class_id": "COV-M016-004",
       "description": "At least one bounded query label expects relevant references.",
-      "proof_boundary": "redacted_static_manifest"
+      "non_authoritative": true
     },
     {
       "class_name": "distractor_retrieval",
       "coverage_class_id": "COV-M016-005",
       "description": "At least one bounded query label includes a distractor reference that must not outrank relevant evidence.",
-      "proof_boundary": "redacted_static_manifest"
+      "non_authoritative": true
     },
     {
       "class_name": "scoped_no_answer",
       "coverage_class_id": "COV-M016-006",
       "description": "At least one bounded query label expects no answer inside an explicit proof scope.",
-      "proof_boundary": "redacted_static_manifest"
+      "non_authoritative": true
     },
     {
       "class_name": "ambiguous_rejection",
       "coverage_class_id": "COV-M016-007",
-      "description": "At least one bounded query label is intentionally ambiguous and must fail closed.",
-      "proof_boundary": "redacted_static_manifest"
+      "description": "At least one bounded query label is intentionally ambiguous and expects rejection.",
+      "non_authoritative": true
     },
     {
       "class_name": "unsafe_rejection",
       "coverage_class_id": "COV-M016-008",
-      "description": "At least one bounded query label represents forbidden payload shape by labels only and must be rejected.",
-      "proof_boundary": "redacted_static_manifest"
+      "description": "At least one bounded query label covers unsafe payload rejection.",
+      "non_authoritative": true
     },
     {
       "class_name": "edition_path_mismatch",
       "coverage_class_id": "COV-M016-009",
-      "description": "At least one bounded query label exercises wrong-edition or path mismatch rejection.",
-      "proof_boundary": "redacted_static_manifest"
+      "description": "At least one bounded query label covers act edition mismatch rejection.",
+      "non_authoritative": true
     },
     {
       "class_name": "environment_runtime_handoff_boundary",
       "coverage_class_id": "COV-M016-010",
-      "description": "S03 gets local/open-weight runtime boundary metadata without managed API or production-readiness assumptions.",
-      "proof_boundary": "redacted_static_manifest"
+      "description": "Manifest includes static runtime handoff constraints without computing runtime retrieval metrics.",
+      "non_authoritative": true
     }
   ],
   "created_by": "scripts/build_representative_retrieval_corpus_manifest.py",
@@ -344,7 +330,6 @@
   ],
   "query_labels": [
     {
-      "as_of_date": "2026-01-01",
       "coverage_class_ids": [
         "COV-M016-001",
         "COV-M016-003",
@@ -353,10 +338,11 @@
       "expected_relevant_reference_ids": [
         "RC-M016-001"
       ],
-      "expected_result": "metrics_candidate",
+      "expected_result": "accepted",
+      "non_authoritative": true,
       "query_kind": "positive_retrieval",
       "query_label_id": "QRL-M016-001",
-      "query_label_sha256": "654fbf10c39de0e9ac44a910c954139aabb98874172e72eaf2a690f7aaa0b7fb",
+      "query_label_sha256": "2d49d8ca94c4cf12e1bd40fdcee434d269347c10f9e4f70213b8c9dc6ac6695c",
       "redaction": {
         "absolute_path_persisted": false,
         "generated_legal_advice_persisted": false,
@@ -367,14 +353,11 @@
         "raw_query_text_persisted": false,
         "raw_vector_persisted": false
       },
-      "scope_id": "SCOPE-M016-REPRESENTATIVE-RETRIEVAL-CORPUS",
       "source_case_ids": [
-        "CASE-M013-VALID-REAL-ARTIFACT",
-        "CASE-M015-POSITIVE-EXACT-RELEVANCE"
+        "CASE-M013-VALID-REAL-ARTIFACT"
       ]
     },
     {
-      "as_of_date": "2026-01-01",
       "coverage_class_ids": [
         "COV-M016-001",
         "COV-M016-005"
@@ -382,10 +365,11 @@
       "expected_relevant_reference_ids": [
         "RC-M016-001"
       ],
-      "expected_result": "metrics_candidate",
+      "expected_result": "accepted",
+      "non_authoritative": true,
       "query_kind": "distractor_retrieval",
       "query_label_id": "QRL-M016-002",
-      "query_label_sha256": "9df25a509be59451768a1343cf0c22d96b14fa2bf56a7da9f42f06ea397d60d4",
+      "query_label_sha256": "4efc67032a8f139e7f97719b020de64fe5291ca04449db8621475e708028da6c",
       "redaction": {
         "absolute_path_persisted": false,
         "generated_legal_advice_persisted": false,
@@ -396,23 +380,21 @@
         "raw_query_text_persisted": false,
         "raw_vector_persisted": false
       },
-      "scope_id": "SCOPE-M016-REPRESENTATIVE-RETRIEVAL-CORPUS",
       "source_case_ids": [
-        "CASE-M014-VALID-MARKER-LEVEL-CANDIDATE",
-        "CASE-M015-POSITIVE-WITH-DISTRACTOR"
+        "CASE-M014-VALID-MARKER-LEVEL-CANDIDATE"
       ]
     },
     {
-      "as_of_date": null,
       "coverage_class_ids": [
         "COV-M016-001",
         "COV-M016-006"
       ],
       "expected_relevant_reference_ids": [],
-      "expected_result": "scoped_no_answer",
+      "expected_result": "accepted_scoped_no_answer",
+      "non_authoritative": true,
       "query_kind": "scoped_no_answer",
       "query_label_id": "QRL-M016-003",
-      "query_label_sha256": "d9f2364a6fcabf9b14bd42ca48c3caa5807c2ab42bfca0fb322108db9f8b6b93",
+      "query_label_sha256": "653c79123e8f98b09665aaa21cb34e3094a2933af9674593ceead0f48d74f491",
       "redaction": {
         "absolute_path_persisted": false,
         "generated_legal_advice_persisted": false,
@@ -423,24 +405,22 @@
         "raw_query_text_persisted": false,
         "raw_vector_persisted": false
       },
-      "scope_id": "SCOPE-M016-REPRESENTATIVE-RETRIEVAL-CORPUS",
       "source_case_ids": [
         "CASE-M013-SCOPED-NO-ANSWER",
-        "CASE-M014-SCOPED-NO-CANDIDATE",
-        "CASE-M015-SCOPED-NO-ANSWER-QUALITY"
+        "CASE-M014-SCOPED-NO-CANDIDATE"
       ]
     },
     {
-      "as_of_date": null,
       "coverage_class_ids": [
         "COV-M016-001",
         "COV-M016-007"
       ],
       "expected_relevant_reference_ids": [],
       "expected_result": "rejected",
+      "non_authoritative": true,
       "query_kind": "ambiguous_rejection",
       "query_label_id": "QRL-M016-004",
-      "query_label_sha256": "96556ac538f7c8bdca26002e074b5a7bd1ce2368a8cae66fadb01c2c54ce3ae2",
+      "query_label_sha256": "cf4b864a8084dc1b1d6306a9cde2d8c8036e5322bd2c634b11c8bdcd645b2bac",
       "redaction": {
         "absolute_path_persisted": false,
         "generated_legal_advice_persisted": false,
@@ -451,24 +431,22 @@
         "raw_query_text_persisted": false,
         "raw_vector_persisted": false
       },
-      "scope_id": "SCOPE-M016-REPRESENTATIVE-RETRIEVAL-CORPUS",
       "source_case_ids": [
         "CASE-M013-AMBIGUOUS-CITATION",
-        "CASE-M014-AMBIGUOUS-CANDIDATE-SET",
-        "CASE-M015-AMBIGUOUS-RETRIEVAL-REJECTED"
+        "CASE-M014-AMBIGUOUS-CANDIDATE-SET"
       ]
     },
     {
-      "as_of_date": null,
       "coverage_class_ids": [
         "COV-M016-001",
         "COV-M016-008"
       ],
       "expected_relevant_reference_ids": [],
       "expected_result": "rejected",
+      "non_authoritative": true,
       "query_kind": "unsafe_rejection",
       "query_label_id": "QRL-M016-005",
-      "query_label_sha256": "650861c862f43ddf7ed11ca3d177f36f6ba0deac0b9db3f63a064feb7b0347be",
+      "query_label_sha256": "95588877a828ccdacbc4534c71d1fe5c9d8e8e87e0d01208470617919db191a6",
       "redaction": {
         "absolute_path_persisted": false,
         "generated_legal_advice_persisted": false,
@@ -479,15 +457,12 @@
         "raw_query_text_persisted": false,
         "raw_vector_persisted": false
       },
-      "scope_id": "SCOPE-M016-REPRESENTATIVE-RETRIEVAL-CORPUS",
       "source_case_ids": [
         "CASE-M013-UNSAFE-NO-ANSWER-WITH-CITATION",
-        "CASE-M014-UNSAFE-CANDIDATE-PAYLOAD",
-        "CASE-M015-UNSAFE-PAYLOAD-REJECTED"
+        "CASE-M014-UNSAFE-CANDIDATE-PAYLOAD"
       ]
     },
     {
-      "as_of_date": "1900-01-01",
       "coverage_class_ids": [
         "COV-M016-001",
         "COV-M016-003",
@@ -495,9 +470,10 @@
       ],
       "expected_relevant_reference_ids": [],
       "expected_result": "rejected",
+      "non_authoritative": true,
       "query_kind": "edition_path_mismatch",
       "query_label_id": "QRL-M016-006",
-      "query_label_sha256": "400b511fdc05e0b3aae5d1d35a73c04de5028d2ade35c7bd9ee62e910b8bae02",
+      "query_label_sha256": "4197722f2c603ed61036ea47f742a4c902141fca54a517e16ec313a155cd4253",
       "redaction": {
         "absolute_path_persisted": false,
         "generated_legal_advice_persisted": false,
@@ -508,13 +484,11 @@
         "raw_query_text_persisted": false,
         "raw_vector_persisted": false
       },
-      "scope_id": "SCOPE-M016-REPRESENTATIVE-RETRIEVAL-CORPUS",
       "source_case_ids": [
         "CASE-M013-WRONG-EDITION-PROXY"
       ]
     },
     {
-      "as_of_date": null,
       "coverage_class_ids": [
         "COV-M016-002",
         "COV-M016-010"
@@ -522,10 +496,11 @@
       "expected_relevant_reference_ids": [
         "RC-M016-007"
       ],
-      "expected_result": "environment_boundary",
+      "expected_result": "manifest_readiness_only",
+      "non_authoritative": true,
       "query_kind": "environment_runtime_handoff_boundary",
       "query_label_id": "QRL-M016-007",
-      "query_label_sha256": "46d1de7db95667ac88b1330bf3ea2252cabc17353afa8e30a37a12f493ab2e5d",
+      "query_label_sha256": "b2f03cb3f322cc3f8acb848d8ff2a7008cc8fded3add878dc5f9506e2036e5b9",
       "redaction": {
         "absolute_path_persisted": false,
         "generated_legal_advice_persisted": false,
@@ -536,7 +511,6 @@
         "raw_query_text_persisted": false,
         "raw_vector_persisted": false
       },
-      "scope_id": "SCOPE-M016-REPRESENTATIVE-RETRIEVAL-CORPUS",
       "source_case_ids": [
         "prd/parser/source_fixture_inventory.json",
         "CASE-M015-ENVIRONMENT-BOUNDARY"
@@ -600,7 +574,7 @@
   "source_artifacts": [
     {
       "path": "prd/parser/source_fixture_inventory.json",
-      "sha256": "8680fd75add13a9d3f9347f1ff2cff1670324b34470a147e5ce64ddfdc474427"
+      "sha256": "8cc036e1175028625f56cddb0bfaee5a860e2921191a6a4d6657614cfacb90b5"
     },
     {
       "path": "prd/retrieval/fixtures/local_retrieval_quality_benchmark.json",
