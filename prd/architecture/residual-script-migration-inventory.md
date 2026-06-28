@@ -107,7 +107,7 @@ Caveats: use file-qualified UIDs for ambiguous names such as `main`, `run`, and 
 | 42 | `scripts/generate-m065-s02-install-manifest.py` | 302 | 12 | 1 | no | deferred | medium | needs manual review after high-priority migrations |
 | 43 | `scripts/git_lex_diagnostic_adapter.py` | 467 | 22 | 1 | no | migrate logic | high | new package seam required before wrapper thinning |
 | 44 | `scripts/inventory-parser-fixtures.py` | 117 | 2 | 0 | yes | thin wrapper | low | retain wrapper around existing package seam |
-| 45 | `scripts/parser_records.py` | 277 | 9 | 8 | no | deferred | medium | needs manual review after high-priority migrations |
+| 45 | `scripts/parser_records.py` | 52 | 0 | 0 | yes | thin wrapper | low | S03 moved parser record contracts to `src/law_nexus.adapters.sources.parser_records`; script remains compatibility re-export wrapper |
 | 46 | `scripts/probe-consultant-parser.py` | 400 | 12 | 1 | yes | migrate logic | medium | thin existing package-backed script further |
 | 47 | `scripts/probe-s10-embedding-runtime-env.py` | 512 | 28 | 0 | no | migrate logic | high | new package seam required before wrapper thinning |
 | 48 | `scripts/prove-legalgraph-shaped-falkordb.py` | 486 | 19 | 3 | no | proof runtime wrapper | medium | retain runtime proof entrypoint, review helper extraction |
