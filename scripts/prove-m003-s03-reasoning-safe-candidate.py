@@ -528,7 +528,8 @@ def classify_safe_provider_summary(summary: object) -> dict[str, Any]:
     message = summary.get("message")
     if not isinstance(message, dict):
         return classify_provider_response({})
-    safe_diagnostics = summary.get("safe_diagnostics") if isinstance(summary.get("safe_diagnostics"), dict) else {}
+    safe_diagnostics_value = summary.get("safe_diagnostics")
+    safe_diagnostics = cast(dict[str, Any], safe_diagnostics_value) if isinstance(safe_diagnostics_value, dict) else {}
     if safe_diagnostics.get("raw_provider_body_persisted") is not False:
         classification = classify_provider_response({})
         classification["root_cause"] = "redaction-violation"

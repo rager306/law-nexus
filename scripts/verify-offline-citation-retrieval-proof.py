@@ -243,7 +243,8 @@ def run_proof(fixtures: Path) -> tuple[int, dict[str, Any]]:
         if not isinstance(case, Mapping):
             mismatches.append({"phase": "fixture_shape", "case_id": f"<index:{index}>", "code": "malformed_output_shape", "field_path": f"cases[{index}]"})
             continue
-        case_id = case.get("case_id") if isinstance(case.get("case_id"), str) else f"<index:{index}>"
+        raw_case_id = case.get("case_id")
+        case_id = raw_case_id if isinstance(raw_case_id, str) else f"<index:{index}>"
         selection_errors = _selection_shape_errors(case, index=index)
         mismatches.extend(selection_errors)
 

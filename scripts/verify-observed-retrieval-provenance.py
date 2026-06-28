@@ -8,7 +8,7 @@ import hashlib
 import json
 from collections.abc import Mapping, Sequence
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
 
 ROOT = Path(__file__).resolve().parents[1]
 FIXTURE_PATH = ROOT / "prd/research/ontology_architecture_requirements/fixtures/representative_evidence_span_retrieval_corpus.json"
@@ -115,7 +115,8 @@ def source_index(path_value: str) -> dict[str, set[str] | bool]:
         if isinstance(case_id, str):
             cases.add(case_id)
         records.update(rid for rid in case.get("source_record_ids", []) if isinstance(rid, str))
-    graph = data.get("derived_fixture_graph") if isinstance(data.get("derived_fixture_graph"), Mapping) else {}
+    graph_value = data.get("derived_fixture_graph")
+    graph = cast(Mapping[str, Any], graph_value) if isinstance(graph_value, Mapping) else {}
     evidence_spans: set[str] = set()
     source_blocks: set[str] = set()
     citation_keys: set[str] = set()

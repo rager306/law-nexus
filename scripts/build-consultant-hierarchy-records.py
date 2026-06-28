@@ -248,7 +248,7 @@ def load_inventory_fixture(target_path: str = str(SOURCE_PATH)) -> tuple[dict[st
     try:
         payload = json.loads(inventory_path.read_text(encoding="utf-8"))
     except json.JSONDecodeError as exc:
-        return None, [compact_error("malformed_inventory_json", exc, path=str(INVENTORY_PATH))]
+        return None, [compact_error("malformed_inventory_json", str(exc), path=str(INVENTORY_PATH))]
 
     for fixture in payload.get("fixtures", []):
         if fixture.get("path") == target_path:

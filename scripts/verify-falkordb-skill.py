@@ -12,6 +12,7 @@ import json
 import re
 import sys
 from pathlib import Path
+from typing import NoReturn
 
 REQUIRED_ROUTER_FILES = [
     "SKILL.md",
@@ -93,7 +94,7 @@ REQUIRED_XML_TAGS = [
 ]
 
 
-def fail(message: str) -> None:
+def fail(message: str) -> NoReturn:
     raise SystemExit(f"FalkorDB skill verification failed: {message}")
 
 

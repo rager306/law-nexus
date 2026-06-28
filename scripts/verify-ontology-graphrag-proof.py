@@ -8,7 +8,7 @@ import sys
 from collections import Counter
 from pathlib import Path
 from types import ModuleType
-from typing import Any, Mapping, Sequence
+from typing import Any, Mapping, Sequence, cast
 
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_FIXTURES = ROOT / "prd/research/ontology_architecture_requirements/ontology_graphrag_proof_cases.json"
@@ -331,7 +331,7 @@ def run_proof(fixtures: Path) -> tuple[int, dict[str, Any]]:
         case_id = _safe(case.get("case_id") or f"<index:{index}>")
         output = case.get("output")
         validator_result = validator.validate_case(case, validator_fixture) if output is not None else None
-        local_diagnostics = _case_local_diagnostics(case, validator_result=validator_result)
+        local_diagnostics = cast(list[Mapping[str, str]], _case_local_diagnostics(case, validator_result=validator_result))
         actual_codes = [diagnostic["code"] for diagnostic in local_diagnostics]
         if validator_result is not None:
             actual_codes.extend(_validator_codes(validator_result))

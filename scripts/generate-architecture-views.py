@@ -256,7 +256,7 @@ def render_health_dashboard(
         "# Architecture Health Dashboard",
         "",
         f"**Status:** {health_status}",
-        f"**Non-Authoritative:** This dashboard is derived from graph artifacts and does not validate product/runtime/legal claims. "
+        "**Non-Authoritative:** This dashboard is derived from graph artifacts and does not validate product/runtime/legal claims. "
         "PRD, GSD, ADR, source anchors, and runtime evidence remain the authoritative source of truth.",
         "",
         "---",
@@ -706,6 +706,8 @@ def render_blockers_report(
         for blocker in all_blockers:
             record_id = str(blocker.get("id", ""))
             source_record = items_lookup.get(record_id, blocker)
+            if source_record is None:
+                source_record = blocker
             bucket, _ = priority_bucket_for_record(source_record)
             by_bucket[bucket].append(record_id)
         for bucket in ("P0", "P1", "P2", "P3"):
@@ -837,7 +839,6 @@ def _classify_record(record: dict[str, Any]) -> ClaimClassification:
     """
     status = record.get("status", "")
     proof_level = record.get("proof_level", "")
-    non_claims: list[str] = record.get("non_claims", [])
 
     if status == "blocked":
         return "blocked/open"

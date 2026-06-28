@@ -13,7 +13,7 @@ import argparse
 import json
 import sys
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
 
 ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
@@ -471,7 +471,8 @@ def evaluate_no_answer(
     """Verify the intentionally absent target remains absent and anchor-free."""
 
     diagnostics: list[dict[str, Any]] = []
-    expected = case.get("expected") if isinstance(case.get("expected"), dict) else {}
+    expected_value = case.get("expected")
+    expected = cast(dict[str, Any], expected_value) if isinstance(expected_value, dict) else {}
     target_id = str(expected.get("missing_target_id") or "")
     inspected_paths = expected.get("inspected_artifact_paths")
     artifact_path = inspected_paths[-1] if isinstance(inspected_paths, list) and inspected_paths else display_path(parser_dir)
@@ -517,7 +518,8 @@ def evaluate_candidate_only(
 
     diagnostics: list[dict[str, Any]] = []
     by_id = {record.id: record for record in relations}
-    expected = case.get("expected") if isinstance(case.get("expected"), dict) else {}
+    expected_value = case.get("expected")
+    expected = cast(dict[str, Any], expected_value) if isinstance(expected_value, dict) else {}
     required_status = str(expected.get("required_relation_status") or "candidate")
     edge_key = str(expected.get("required_staging_edge_key") or "")
     keyed_edges = staging_graph.get("keyed_relation_edges")
@@ -636,7 +638,8 @@ def evaluate_non_authoritative(
     """Verify blocked claims and non-claim fragments remain present."""
 
     diagnostics: list[dict[str, Any]] = []
-    expected = case.get("expected") if isinstance(case.get("expected"), dict) else {}
+    expected_value = case.get("expected")
+    expected = cast(dict[str, Any], expected_value) if isinstance(expected_value, dict) else {}
     required_claims = set(str(item) for item in expected.get("blocked_claims", []) if isinstance(item, str))
     actual_claims = set(str(item) for item in golden_report.get("blocked_claims", []) if isinstance(item, str))
     missing_claims = required_claims - actual_claims

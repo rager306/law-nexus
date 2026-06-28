@@ -206,7 +206,7 @@ def validate_top_level(payload: dict[str, Any]) -> tuple[str, str, str]:
     require(isinstance(status, str) and status in STATUS_CATEGORIES, "status must be a known category")
     require(isinstance(root_cause, str) and root_cause in ROOT_CAUSE_CATEGORIES, "root_cause must be a known category")
     require(isinstance(phase, str) and phase in PHASE_CATEGORIES, "phase must be a known category")
-    return status, root_cause, phase
+    return cast(str, status), cast(str, root_cause), cast(str, phase)
 
 
 def validate_s03_source(payload: dict[str, Any]) -> dict[str, Any]:
@@ -232,7 +232,7 @@ def validate_validation(payload: dict[str, Any]) -> dict[str, Any]:
     require(all(isinstance(item, str) and item for item in evidence_returns), "validation.required_evidence_returns must contain strings")
     query_shape = validation.get("query_shape_category")
     if query_shape is not None:
-        require(isinstance(query_shape, str) and query_shape, "validation.query_shape_category must be non-empty when present")
+        require(isinstance(query_shape, str) and bool(query_shape), "validation.query_shape_category must be non-empty when present")
     safe_parameters = validation.get("safe_parameter_categories")
     if safe_parameters is not None:
         safe_parameters = require_dict(safe_parameters, "validation.safe_parameter_categories")
@@ -281,10 +281,10 @@ def validate_execution(payload: dict[str, Any]) -> dict[str, Any]:
     if parameter_summary is not None:
         parameter_summary = require_dict(parameter_summary, "execution.parameter_summary")
         for key, value in parameter_summary.items():
-            require(isinstance(key, str) and key, "execution.parameter_summary keys must be non-empty strings")
+            require(isinstance(key, str) and bool(key), "execution.parameter_summary keys must be non-empty strings")
             item = require_dict(value, f"execution.parameter_summary.{key}")
-            require(isinstance(item.get("type_category"), str) and item["type_category"], f"execution.parameter_summary.{key}.type_category required")
-            require(isinstance(item.get("value_category"), str) and item["value_category"], f"execution.parameter_summary.{key}.value_category required")
+            require(isinstance(item.get("type_category"), str) and bool(item["type_category"]), f"execution.parameter_summary.{key}.type_category required")
+            require(isinstance(item.get("value_category"), str) and bool(item["value_category"]), f"execution.parameter_summary.{key}.value_category required")
     return execution
 
 

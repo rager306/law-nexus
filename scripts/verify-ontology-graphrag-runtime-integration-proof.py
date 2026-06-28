@@ -281,7 +281,8 @@ def base_summary(report_output: Path) -> dict[str, Any]:
 
 def _safe_embedding_phase(runtime_report: Mapping[str, Any]) -> dict[str, Any]:
     status = runtime_report.get("runtime_status")
-    diagnostic_codes = runtime_report.get("diagnostic_codes") if isinstance(runtime_report.get("diagnostic_codes"), list) else []
+    diagnostic_value = runtime_report.get("diagnostic_codes")
+    diagnostic_codes = [str(code) for code in diagnostic_value] if isinstance(diagnostic_value, list) else []
     if status == "confirmed_runtime":
         return phase("passed", diagnostic_codes, runtime_status=status, model_id=runtime_report.get("model_id"), execution_mode=runtime_report.get("execution_mode"))
     if status in {"blocked_environment", "blocked_model_unavailable", "not_run_contract_only", "blocked_policy_violation"}:
@@ -436,8 +437,10 @@ def _source_backed_route_inputs(data: Mapping[str, Any]) -> dict[str, Any]:
     if not isinstance(binding, Mapping):
         raise RuntimeIntegrationProofError("unique citation/evidence binding is missing")
 
-    temporal = accepted_case.get("temporal_filter") if isinstance(accepted_case.get("temporal_filter"), Mapping) else {}
-    negative_temporal = negative_case.get("temporal_filter") if isinstance(negative_case.get("temporal_filter"), Mapping) else {}
+    temporal_value = accepted_case.get("temporal_filter")
+    temporal = cast(Mapping[str, Any], temporal_value) if isinstance(temporal_value, Mapping) else {}
+    negative_temporal_value = negative_case.get("temporal_filter")
+    negative_temporal = cast(Mapping[str, Any], negative_temporal_value) if isinstance(negative_temporal_value, Mapping) else {}
     return {
         "candidate_id": _strict_route_id(candidate.get("candidate_id"), "candidate.candidate_id"),
         "source_record_id": _strict_route_id(candidate.get("source_record_id"), "candidate.source_record_id"),
@@ -618,7 +621,8 @@ def _s08_source_backed_graph_route(
 def _s08_graph_route(falkordb_report: Mapping[str, Any] | None, falkordb_phase: Mapping[str, Any]) -> dict[str, Any]:
     phase_status = falkordb_phase.get("status")
     runtime_status = falkordb_phase.get("runtime_status") or (falkordb_report.get("status") if isinstance(falkordb_report, Mapping) else "missing")
-    codes = falkordb_phase.get("diagnostic_codes") if isinstance(falkordb_phase.get("diagnostic_codes"), list) else []
+    codes_value = falkordb_phase.get("diagnostic_codes")
+    codes = [str(code) for code in codes_value] if isinstance(codes_value, list) else []
     if phase_status == "passed":
         return {
             "status": "confirmed_synthetic_local_route",
@@ -666,13 +670,14 @@ def _s08_embedding_candidate_ranking(embedding_report: Mapping[str, Any], embedd
             "selected_rank": None,
             "selected_candidate_id": None,
             "candidates": [],
-            "diagnostic_codes": list(embedding_phase.get("diagnostic_codes", [])),
+            "diagnostic_codes": [str(code) for code in embedding_phase.get("diagnostic_codes", [])] if isinstance(embedding_phase.get("diagnostic_codes"), list) else [],
         }
     candidates: list[dict[str, Any]] = []
     for case in _fixture_cases():
         if case.get("expected_result") != "accepted":
             continue
-        case_candidates = case.get("candidate_set") if isinstance(case.get("candidate_set"), list) else []
+        candidate_value = case.get("candidate_set")
+        case_candidates = candidate_value if isinstance(candidate_value, list) else []
         for index, candidate in enumerate(case_candidates, start=1):
             if not isinstance(candidate, Mapping):
                 continue
@@ -699,7 +704,8 @@ def _s08_embedding_candidate_ranking(embedding_report: Mapping[str, Any], embedd
 
 
 def _s08_deterministic_evidence_id_diagnostics(integration_summary: Mapping[str, Any]) -> dict[str, Any]:
-    citation_status = integration_summary.get("citation_validation_status") if isinstance(integration_summary.get("citation_validation_status"), Mapping) else {}
+    citation_value = integration_summary.get("citation_validation_status")
+    citation_status = cast(Mapping[str, Any], citation_value) if isinstance(citation_value, Mapping) else {}
     accepted_cases_checked = int(citation_status.get("validated_count", 0) or 0)
     missing_negative_cases = int(citation_status.get("missing_citation_or_evidence_count", 0) or 0)
     passed = accepted_cases_checked >= 1 and missing_negative_cases >= 1 and citation_status.get("status") == "passed"
@@ -713,7 +719,8 @@ def _s08_deterministic_evidence_id_diagnostics(integration_summary: Mapping[str,
 
 
 def _s08_stale_evidence_diagnostics(integration_summary: Mapping[str, Any]) -> dict[str, Any]:
-    filter_summary = integration_summary.get("filter_trace_summary") if isinstance(integration_summary.get("filter_trace_summary"), Mapping) else {}
+    filter_value = integration_summary.get("filter_trace_summary")
+    filter_summary = cast(Mapping[str, Any], filter_value) if isinstance(filter_value, Mapping) else {}
     temporal_excluded = int(filter_summary.get("temporal_excluded_count", 0) or 0)
     passed = temporal_excluded >= 1
     return {
@@ -727,10 +734,14 @@ def _s08_stale_evidence_diagnostics(integration_summary: Mapping[str, Any]) -> d
 
 def _fixture_phases(integration_summary: Mapping[str, Any]) -> dict[str, dict[str, Any]]:
     mismatch_count = integration_summary.get("mismatch_count")
-    citation_status = integration_summary.get("citation_validation_status") if isinstance(integration_summary.get("citation_validation_status"), Mapping) else {}
-    query_safety = integration_summary.get("query_safety") if isinstance(integration_summary.get("query_safety"), Mapping) else {}
-    overclaim = integration_summary.get("overclaim_safety") if isinstance(integration_summary.get("overclaim_safety"), Mapping) else {}
-    filter_summary = integration_summary.get("filter_trace_summary") if isinstance(integration_summary.get("filter_trace_summary"), Mapping) else {}
+    citation_value = integration_summary.get("citation_validation_status")
+    citation_status = cast(Mapping[str, Any], citation_value) if isinstance(citation_value, Mapping) else {}
+    query_value = integration_summary.get("query_safety")
+    query_safety = cast(Mapping[str, Any], query_value) if isinstance(query_value, Mapping) else {}
+    overclaim_value = integration_summary.get("overclaim_safety")
+    overclaim = cast(Mapping[str, Any], overclaim_value) if isinstance(overclaim_value, Mapping) else {}
+    filter_value = integration_summary.get("filter_trace_summary")
+    filter_summary = cast(Mapping[str, Any], filter_value) if isinstance(filter_value, Mapping) else {}
 
     fixture_ok = mismatch_count == 0 and bool(integration_summary.get("total_cases"))
     citation_ok = citation_status.get("status") == "passed" and citation_status.get("missing_citation_or_evidence_count", 1) >= 1
@@ -766,7 +777,11 @@ def build_summary(
 
     if integration_runner is None:
         integration_module = _load_module(INTEGRATION_PROOF_PATH, "ontology_graphrag_integration_proof_for_runtime")
-        integration_runner = lambda fixtures, output: integration_module.run_proof(fixtures, output, write_report=False)
+
+        def default_integration_runner(fixtures: Path, output: Path) -> tuple[int, dict[str, Any]]:
+            return cast(tuple[int, dict[str, Any]], integration_module.run_proof(fixtures, output, write_report=False))
+
+        integration_runner = default_integration_runner
     _, integration_summary = integration_runner(FIXTURE_PATH, report_output)
     summary["phases"].update(_fixture_phases(integration_summary))
 

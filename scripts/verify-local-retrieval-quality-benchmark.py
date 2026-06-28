@@ -6,7 +6,7 @@ import sys
 from collections import Counter
 from collections.abc import Mapping, Sequence
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
 
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_FIXTURE = ROOT / "prd/retrieval/fixtures/local_retrieval_quality_benchmark.json"
@@ -348,10 +348,12 @@ def run_proof(fixture_path: Path) -> tuple[int, dict[str, Any]]:
         mismatches.extend(_diagnostic_safety_errors(case))
 
     aggregate = _aggregate_metrics(per_case)
-    thresholds = data.get("thresholds") if isinstance(data.get("thresholds"), Mapping) else {}
+    thresholds_value = data.get("thresholds")
+    thresholds = cast(Mapping[str, Any], thresholds_value) if isinstance(thresholds_value, Mapping) else {}
     mismatches.extend(_threshold_mismatches(aggregate, thresholds))
 
-    model = data.get("model_boundary") if isinstance(data.get("model_boundary"), Mapping) else {}
+    model_value = data.get("model_boundary")
+    model = cast(Mapping[str, Any], model_value) if isinstance(model_value, Mapping) else {}
     if model.get("managed_api_used") is not False:
         mismatches.append({"phase": "model_boundary", "code": "malformed_fixture_shape", "field_path": "model_boundary.managed_api_used"})
     if model.get("raw_vectors_persisted") is not False:

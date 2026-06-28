@@ -122,6 +122,14 @@ def write_log(log_dir: Path, name: str, payload: Mapping[str, Any]) -> str:
     return write_json(log_dir / f"{safe_name}.log", payload)
 
 
+def _command_text(value: str | bytes | None) -> str:
+    if isinstance(value, str):
+        return value
+    if isinstance(value, bytes):
+        return value.decode("utf-8", errors="replace")
+    return ""
+
+
 def run_command(command: Sequence[str], timeout_seconds: int, log_dir: Path, phase: str) -> CommandResult:
     started = time.monotonic()
     try:
@@ -135,13 +143,13 @@ def run_command(command: Sequence[str], timeout_seconds: int, log_dir: Path, pha
         )
         exit_code = completed.returncode
         timed_out = False
-        stdout = completed.stdout
-        stderr = completed.stderr
+        stdout = _command_text(completed.stdout)
+        stderr = _command_text(completed.stderr)
     except subprocess.TimeoutExpired as exc:
         exit_code = None
         timed_out = True
-        stdout = exc.stdout if isinstance(exc.stdout, str) else ""
-        stderr = exc.stderr if isinstance(exc.stderr, str) else ""
+        stdout = _command_text(exc.stdout)
+        stderr = _command_text(exc.stderr)
     duration_ms = round((time.monotonic() - started) * 1000, 2)
     log_path = write_log(
         log_dir,

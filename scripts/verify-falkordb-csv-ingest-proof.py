@@ -17,7 +17,7 @@ import shutil
 import subprocess
 import time
 import uuid
-from collections.abc import Mapping, Sequence
+from collections.abc import Iterable, Mapping, Sequence
 from pathlib import Path
 from typing import Any, Literal, Protocol, cast
 
@@ -103,7 +103,7 @@ def query_rows(graph: FalkorGraph, query: str) -> tuple[list[list[Any]], float]:
     duration_ms = round((time.monotonic() - started) * 1000, 2)
     rows = getattr(result, "result_set", result)
     if not isinstance(rows, list):
-        rows = list(rows)
+        rows = list(cast(Iterable[Any], rows))
     return cast("list[list[Any]]", rows), duration_ms
 
 

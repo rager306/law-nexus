@@ -13,7 +13,6 @@ import argparse
 import json
 import os
 import re
-import socket
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any, Protocol, cast
@@ -492,9 +491,10 @@ def make_provider_request(
     api_key: str,
     body: dict[str, Any],
     timeout: int,
-    urlopen: UrlOpen = request.urlopen,
+    urlopen: UrlOpen | None = None,
 ) -> dict[str, Any]:
     """POST once to the provider and return categorical diagnostics plus decoded JSON."""
+    active_urlopen = urlopen or cast(UrlOpen, request.urlopen)
     data = json.dumps(body).encode("utf-8")
     provider_request = request.Request(
         url,
@@ -507,7 +507,7 @@ def make_provider_request(
         },
     )
     try:
-        with urlopen(provider_request, timeout=timeout) as response:
+        with active_urlopen(provider_request, timeout=timeout) as response:
             status_code = int(getattr(response, "status", getattr(response, "code", 200)))
             raw_body = response.read()
     except error.HTTPError as exc:
@@ -523,8 +523,6 @@ def make_provider_request(
             "decoded": None,
         }
     except TimeoutError:
-        return timeout_result()
-    except socket.timeout:
         return timeout_result()
     except OSError as exc:
         if "timed out" in str(exc).lower():
@@ -590,7 +588,7 @@ def build_live_payload(
     timeout: int,
     api_key_env: str,
     environ: dict[str, str] | os._Environ[str] = os.environ,
-    urlopen: UrlOpen = request.urlopen,
+    urlopen: UrlOpen | None = None,
 ) -> tuple[dict[str, Any], list[str]]:
     api_key = environ.get(api_key_env, "")
     if not api_key:

@@ -138,8 +138,9 @@ def parse_frontmatter_block(block: str) -> dict[str, Any]:
             value = value.strip()
             current_key = key
             if value == "":
-                root[key] = []
-                current_list = root[key]
+                items: list[Any] = []
+                root[key] = items
+                current_list = items
             else:
                 root[key] = parse_scalar(value)
                 current_list = None
@@ -150,8 +151,9 @@ def parse_frontmatter_block(block: str) -> dict[str, Any]:
 
         if line.startswith("- "):
             if current_list is None:
-                root[current_key] = []
-                current_list = root[current_key]
+                items = []
+                root[current_key] = items
+                current_list = items
             item = line[2:].strip()
             if item.endswith(":"):
                 current_dict = {item[:-1].strip(): {}}

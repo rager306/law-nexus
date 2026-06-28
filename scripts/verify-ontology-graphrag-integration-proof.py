@@ -8,7 +8,7 @@ import sys
 from collections import Counter
 from pathlib import Path
 from types import ModuleType
-from typing import Any, Mapping, Sequence
+from typing import Any, Mapping, Sequence, cast
 
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_FIXTURES = ROOT / "prd/research/ontology_architecture_requirements/ontology_graphrag_proof_cases.json"
@@ -135,10 +135,14 @@ def _case_trace(case: Mapping[str, Any], *, s02: ModuleType, validator: ModuleTy
         diagnostic_codes.extend(_validator_codes(validator_result))
     actual_result = s02._final_result(case, validator_result, local_diagnostics)
 
-    ontology = case.get("ontology_filter") if isinstance(case.get("ontology_filter"), Mapping) else {}
-    temporal = case.get("temporal_filter") if isinstance(case.get("temporal_filter"), Mapping) else {}
-    candidates = case.get("candidate_set") if isinstance(case.get("candidate_set"), list) else []
-    citations = output.get("citations") if isinstance(output, Mapping) and isinstance(output.get("citations"), list) else []
+    ontology_value = case.get("ontology_filter")
+    ontology = cast(Mapping[str, Any], ontology_value) if isinstance(ontology_value, Mapping) else {}
+    temporal_value = case.get("temporal_filter")
+    temporal = cast(Mapping[str, Any], temporal_value) if isinstance(temporal_value, Mapping) else {}
+    candidate_value = case.get("candidate_set")
+    candidates = candidate_value if isinstance(candidate_value, list) else []
+    citation_value = output.get("citations") if isinstance(output, Mapping) else None
+    citations = citation_value if isinstance(citation_value, list) else []
 
     return {
         "case_id": case_id,
