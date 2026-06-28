@@ -12,6 +12,10 @@ from collections.abc import Mapping, Sequence
 from pathlib import Path
 from typing import Any
 
+from law_nexus.adapters.embeddings.local_sentence_transformer import (
+    LocalSentenceTransformerEmbedder,
+)
+
 ROOT = Path(__file__).resolve().parents[1]
 DESCRIPTOR_INPUTS = ROOT / "prd/research/ontology_architecture_requirements/fixtures/semantic_descriptor_inputs.json"
 FIXTURE = ROOT / "prd/research/ontology_architecture_requirements/fixtures/representative_evidence_span_retrieval_corpus.json"
@@ -185,10 +189,11 @@ def cosine(left: Sequence[float], right: Sequence[float]) -> float:
 
 
 def encode_texts(texts: Sequence[str]) -> list[list[float]]:
-    sentence_transformers = __import__("sentence_transformers", fromlist=["SentenceTransformer"])
-    model = sentence_transformers.SentenceTransformer(MODEL_ID, local_files_only=True)
-    vectors = model.encode(list(texts), convert_to_numpy=False)
-    return [[float(value) for value in vector] for vector in vectors]
+    embedder = LocalSentenceTransformerEmbedder(
+        model_id=MODEL_ID,
+        expected_dimension=EXPECTED_VECTOR_DIMENSION,
+    )
+    return embedder.encode(list(texts))
 
 
 def scores_from_model(inputs: Mapping[str, Any]) -> list[dict[str, Any]]:

@@ -74,6 +74,27 @@ def perfect_scores(tmp_path: Path) -> Path:
     return write_json(tmp_path, "scores.json", {"scores": scores})
 
 
+def test_encode_texts_delegates_to_local_embedding_adapter(monkeypatch: Any) -> None:
+    module = load_module("semantic_descriptor_scoring_verifier_adapter_test")
+    calls: list[tuple[str, Any]] = []
+
+    class FakeEmbedder:
+        def __init__(self, *, model_id: str, expected_dimension: int) -> None:
+            calls.append(("init", model_id, expected_dimension))
+
+        def encode(self, texts: list[str]) -> list[list[float]]:
+            calls.append(("encode", list(texts)))
+            return [[1.0, 0.0], [0.0, 1.0]]
+
+    monkeypatch.setattr(module, "LocalSentenceTransformerEmbedder", FakeEmbedder)
+
+    assert module.encode_texts(("first", "second")) == [[1.0, 0.0], [0.0, 1.0]]
+    assert calls == [
+        ("init", "deepvk/USER-bge-m3", 1024),
+        ("encode", ["first", "second"]),
+    ]
+
+
 def test_checked_in_proof_shape_and_positive_delta() -> None:
     proof = load_json(PROOF)
 

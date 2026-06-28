@@ -14,6 +14,15 @@ from __future__ import annotations
 
 from typing import Protocol, runtime_checkable
 
+EMBEDDER_NON_CLAIMS = (
+    "non-authoritative retrieval signal",
+    "Does not prove legal correctness.",
+    "Does not prove retrieval quality.",
+    "Does not prove parser completeness.",
+    "Does not prove production vector-index readiness.",
+    "Does not persist raw vectors.",
+)
+
 
 @runtime_checkable
 class Embedder(Protocol):
@@ -33,3 +42,6 @@ class Embedder(Protocol):
         the i-th output vector corresponds to ``texts[i]``.
         """
         ...
+
+
+__all__ = ["EMBEDDER_NON_CLAIMS", "Embedder"]
