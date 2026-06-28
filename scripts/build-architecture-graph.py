@@ -15,6 +15,11 @@ from typing import Any, Literal
 
 import networkx as nx
 
+from law_nexus.adapters.governance.architecture_registry import (
+    display_repo_path,
+    load_located_jsonl_objects,
+)
+
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_ITEMS_PATH = ROOT / "prd/architecture/architecture_items.jsonl"
 DEFAULT_EDGES_PATH = ROOT / "prd/architecture/architecture_edges.jsonl"
@@ -55,39 +60,22 @@ class LocatedRecord:
 
 
 def display_path(path: Path) -> str:
-    try:
-        return str(path.resolve().relative_to(ROOT))
-    except ValueError:
-        return str(path)
+    return display_repo_path(path, root=ROOT)
 
 
 def load_jsonl(path: Path) -> list[LocatedRecord]:
-    located: list[LocatedRecord] = []
-    try:
-        lines = path.read_text().splitlines()
-    except OSError as exc:
+    records, diagnostics = load_located_jsonl_objects(path)
+    if diagnostics:
+        diagnostic = diagnostics[0]
         raise ArchitectureGraphError(
-            f"{display_path(path)}:0 id=<none> record_kind=<none> "
-            f"rule=read-jsonl message={exc}"
-        ) from exc
-
-    for line_number, line in enumerate(lines, 1):
-        if not line.strip():
-            continue
-        try:
-            record = json.loads(line)
-        except JSONDecodeError as exc:
-            raise ArchitectureGraphError(
-                f"{display_path(path)}:{line_number} id=<unknown> record_kind=<unknown> "
-                f"rule=malformed-jsonl message={exc.msg}"
-            ) from exc
-        if not isinstance(record, dict):
-            raise ArchitectureGraphError(
-                f"{display_path(path)}:{line_number} id=<unknown> record_kind=<unknown> "
-                "rule=jsonl-object message=expected each JSONL record to be an object"
-            )
-        located.append(LocatedRecord(path=path, line_number=line_number, record=record))
-    return located
+            f"{display_path(diagnostic.path)}:{diagnostic.line_number} "
+            "id=<unknown> record_kind=<unknown> "
+            f"rule={diagnostic.rule} message={diagnostic.message}"
+        )
+    return [
+        LocatedRecord(path=path, line_number=located.line_number, record=located.record)
+        for located in records
+    ]
 
 
 def load_records(path: Path, *, expected_kind: RecordKind) -> list[dict[str, Any]]:
@@ -317,7 +305,8 @@ def sorted_edge_records(graph: nx.MultiDiGraph) -> list[tuple[str, str, str, dic
     for from_id, to_id, key, data in graph.edges(keys=True, data=True):
         record = data.get("record")
         if isinstance(record, dict):
-            edge_id = record.get("id") if isinstance(record.get("id"), str) else str(key)
+            record_id = record.get("id")
+            edge_id = record_id if isinstance(record_id, str) else str(key)
             records.append((edge_id, str(from_id), str(to_id), record))
     return sorted(records, key=lambda item: item[0])
 

@@ -68,7 +68,7 @@ Caveats: use file-qualified UIDs for ambiguous names such as `main`, `run`, and 
 | 3 | `scripts/build-acp-canonical-integration.py` | 392 | 22 | 1 | no | migrate logic | high | new package seam required before wrapper thinning |
 | 4 | `scripts/build-acp-composition-staging.py` | 333 | 20 | 1 | no | migrate logic | high | new package seam required before wrapper thinning |
 | 5 | `scripts/build-acp-integrated-registry-fixture.py` | 285 | 16 | 1 | no | deferred | medium | needs manual review after high-priority migrations |
-| 6 | `scripts/build-architecture-graph.py` | 669 | 29 | 2 | no | migrate logic | high | new package seam required before wrapper thinning |
+| 6 | `scripts/build-architecture-graph.py` | 669 | 29 | 2 | no | migrate logic | high | S02 extracted shared registry path and JSONL helpers; deeper graph/report logic still pending |
 | 7 | `scripts/build-consultant-hierarchy-records.py` | 865 | 30 | 3 | yes | migrate logic | medium | thin existing package-backed script further |
 | 8 | `scripts/build-consultant-prior-art-expectations.py` | 542 | 21 | 1 | no | migrate logic | high | new package seam required before wrapper thinning |
 | 9 | `scripts/build-consultant-relation-candidates.py` | 530 | 24 | 1 | no | migrate logic | high | new package seam required before wrapper thinning |
@@ -98,7 +98,7 @@ Caveats: use file-qualified UIDs for ambiguous names such as `main`, `run`, and 
 | 33 | `scripts/evaluate-s09-local-embeddings.py` | 788 | 37 | 3 | no | migrate logic | high | new package seam required before wrapper thinning |
 | 34 | `scripts/export-acp-architecture-projection.py` | 538 | 24 | 0 | no | migrate logic | high | new package seam required before wrapper thinning |
 | 35 | `scripts/export-acp-recovery-view.py` | 186 | 11 | 0 | no | deferred | medium | needs manual review after high-priority migrations |
-| 36 | `scripts/export-architecture-rdf-projection.py` | 716 | 38 | 1 | no | migrate logic | high | new package seam required before wrapper thinning |
+| 36 | `scripts/export-architecture-rdf-projection.py` | 716 | 38 | 1 | no | migrate logic | high | S02 extracted shared registry path and JSONL helpers; RDF projection builder logic still pending |
 | 37 | `scripts/extract-prd-architecture-items.py` | 3162 | 26 | 2 | no | migrate logic | high | new package seam required before wrapper thinning |
 | 38 | `scripts/generate-architecture-closure-roadmap.py` | 267 | 10 | 0 | no | deferred | medium | needs manual review after high-priority migrations |
 | 39 | `scripts/generate-architecture-remediation-matrix.py` | 434 | 12 | 0 | no | deferred | medium | needs manual review after high-priority migrations |

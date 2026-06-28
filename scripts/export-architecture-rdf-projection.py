@@ -16,6 +16,14 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
+from law_nexus.adapters.governance.architecture_registry import (
+    display_repo_path,
+    is_safe_repo_relative_path,
+    is_same_resolved_path,
+    load_jsonl_objects,
+    normalize_repo_path,
+)
+
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_ITEMS = ROOT / "prd/architecture/architecture_items.jsonl"
 DEFAULT_EDGES = ROOT / "prd/architecture/architecture_edges.jsonl"
@@ -136,44 +144,40 @@ class Diagnostic:
 
 
 def display_path(path: Path) -> str:
-    try:
-        return str(path.relative_to(ROOT))
-    except ValueError:
-        return str(path)
+    return display_repo_path(path, root=ROOT)
 
 
 def normalized_path(path: Path) -> Path:
-    return path if path.is_absolute() else ROOT / path
+    return normalize_repo_path(path, root=ROOT)
 
 
 def is_canonical_registry_path(path: Path) -> bool:
-    return normalized_path(path).resolve() in CANONICAL_REGISTRY_PATHS
+    return is_same_resolved_path(path, CANONICAL_REGISTRY_PATHS, root=ROOT)
 
 
 def safe_repo_relative_path(value: str) -> bool:
-    if not value or value.startswith("/") or "\x00" in value:
-        return False
-    parts = Path(value).parts
-    return ".." not in parts and not value.startswith(".gsd/exec")
+    return is_safe_repo_relative_path(value)
 
 
 def load_jsonl(path: Path) -> tuple[list[dict[str, Any]], list[Diagnostic]]:
-    records: list[dict[str, Any]] = []
-    diagnostics: list[Diagnostic] = []
     if not path.exists():
-        return records, [Diagnostic("missing-file", "input file is missing", path)]
-    for line_number, raw_line in enumerate(path.read_text(encoding="utf-8").splitlines(), start=1):
-        if not raw_line.strip():
-            continue
-        try:
-            record = json.loads(raw_line)
-        except json.JSONDecodeError as exc:
-            diagnostics.append(Diagnostic("jsonl-parse", f"invalid JSON on line {line_number}: {exc.msg}", path))
-            continue
-        if not isinstance(record, dict):
-            diagnostics.append(Diagnostic("jsonl-record", "JSONL record must be an object", path, field=str(line_number)))
-            continue
-        records.append(record)
+        return [], [Diagnostic("missing-file", "input file is missing", path)]
+
+    records, helper_diagnostics = load_jsonl_objects(path)
+    diagnostics: list[Diagnostic] = []
+    for diagnostic in helper_diagnostics:
+        if diagnostic.rule == "malformed-jsonl":
+            diagnostics.append(
+                Diagnostic(
+                    "jsonl-parse",
+                    f"invalid JSON on line {diagnostic.line_number}: {diagnostic.message}",
+                    diagnostic.path,
+                )
+            )
+        elif diagnostic.rule == "jsonl-object":
+            diagnostics.append(Diagnostic("jsonl-record", "JSONL record must be an object", diagnostic.path, field=diagnostic.field))
+        else:
+            diagnostics.append(Diagnostic(diagnostic.rule, diagnostic.message, diagnostic.path, field=diagnostic.field))
     return records, diagnostics
 
 
