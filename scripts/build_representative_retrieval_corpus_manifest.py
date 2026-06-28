@@ -2,12 +2,26 @@
 from __future__ import annotations
 
 import argparse
-import hashlib
 import json
 import sys
 from pathlib import Path
 from typing import Any, Sequence
 
+from law_nexus.adapters.cli.runtime import (
+    CliRuntimeError,
+    load_json_object,
+    repo_relative_path,
+    stable_json_text,
+)
+from law_nexus.adapters.cli.runtime import (
+    sha256_bytes as cli_sha256_bytes,
+)
+from law_nexus.adapters.cli.runtime import (
+    sha256_path as cli_sha256_path,
+)
+from law_nexus.adapters.cli.runtime import (
+    sha256_text as cli_sha256_text,
+)
 from law_nexus.application.representative_corpus_manifest import (
     CORPUS_ID,
     DIAGNOSTIC_CODE_INVENTORY,
@@ -25,7 +39,6 @@ from law_nexus.application.representative_corpus_manifest import (
     query_labels,
     redaction,
     runtime_handoff,
-    stable_representative_corpus_manifest_json,
     validate_payload,
 )
 from law_nexus.ports.representative_corpus_manifest import (
@@ -69,36 +82,41 @@ LEGACY_EXPORTS = (
 
 
 def relative(path: Path) -> str:
-    try:
-        return path.resolve().relative_to(ROOT).as_posix()
-    except ValueError:
-        return path.as_posix()
+    return repo_relative_path(path, root=ROOT, outside_project=path.as_posix())
 
 
 def sha256_bytes(payload: bytes) -> str:
-    return hashlib.sha256(payload).hexdigest()
+    return cli_sha256_bytes(payload)
 
 
 def sha256_text(payload: str) -> str:
-    return sha256_bytes(payload.encode("utf-8"))
+    return cli_sha256_text(payload)
 
 
 def sha256_path(path: Path) -> str:
-    return sha256_bytes(path.read_bytes())
+    return cli_sha256_path(path)
 
 
 def stable_json(payload: dict[str, Any]) -> str:
-    return stable_representative_corpus_manifest_json(payload)
+    return stable_json_text(payload)
 
 
 def load_json(path: Path) -> dict[str, Any]:
     try:
-        payload = json.loads(path.read_text(encoding="utf-8"))
-    except FileNotFoundError as exc:
-        raise ManifestError(diagnostic("missing_source_artifact", severity="error", artifact_path=relative(path))) from exc
-    if not isinstance(payload, dict):
-        raise ManifestError(diagnostic("manifest_schema_mismatch", severity="error", artifact_path=relative(path), field_path="$"))
-    return payload
+        return load_json_object(path, path_display=relative)
+    except CliRuntimeError as exc:
+        if exc.failure_class == "missing_source_artifact":
+            raise ManifestError(
+                diagnostic("missing_source_artifact", severity="error", artifact_path=relative(path))
+            ) from exc
+        raise ManifestError(
+            diagnostic(
+                "manifest_schema_mismatch",
+                severity="error",
+                artifact_path=relative(path),
+                field_path="$",
+            )
+        ) from exc
 
 
 def require_source_paths() -> None:

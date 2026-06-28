@@ -21,6 +21,7 @@ from collections.abc import Mapping, Sequence
 from pathlib import Path
 from typing import Any, Literal, Protocol, cast
 
+from law_nexus.adapters.cli.runtime import repo_relative_path, write_json_report
 from law_nexus.adapters.graph.falkordb_csv_loader import (
     FALKORDB_CSV_INGEST_NON_CLAIMS,
     FalkorCsvIngestRequest,
@@ -79,11 +80,7 @@ class FalkorClient(Protocol):
 
 
 def bounded_path(path: Path) -> str:
-    resolved = path.resolve()
-    try:
-        return resolved.relative_to(ROOT).as_posix()
-    except ValueError:
-        return "<outside-project>"
+    return repo_relative_path(path, root=ROOT)
 
 
 def read_csv_rows(path: Path) -> list[dict[str, str]]:
@@ -283,9 +280,7 @@ def run_proof(args: argparse.Namespace) -> tuple[int, dict[str, Any]]:
 
 
 def write_report(path: Path, report: Mapping[str, Any]) -> None:
-    assert_safe_payload(report)
-    path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(json.dumps(report, ensure_ascii=False, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    write_json_report(path, report, validator=assert_safe_payload)
 
 
 def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
