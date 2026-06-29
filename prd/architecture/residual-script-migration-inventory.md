@@ -69,7 +69,7 @@ Caveats: use file-qualified UIDs for ambiguous names such as `main`, `run`, and 
 | 4 | `scripts/build-acp-composition-staging.py` | 333 | 20 | 1 | no | migrate logic | high | new package seam required before wrapper thinning |
 | 5 | `scripts/build-acp-integrated-registry-fixture.py` | 285 | 16 | 1 | no | deferred | medium | needs manual review after high-priority migrations |
 | 6 | `scripts/build-architecture-graph.py` | 669 | 29 | 2 | no | migrate logic | high | S02 extracted shared registry path and JSONL helpers; deeper graph/report logic still pending |
-| 7 | `scripts/build-consultant-hierarchy-records.py` | 865 | 30 | 3 | yes | migrate logic | medium | thin existing package-backed script further |
+| 7 | `scripts/build-consultant-hierarchy-records.py` | 865 | 30 | 3 | yes | migrate logic | medium | M080 moved WordML paragraph streaming to `law_nexus.adapters.sources.consultant_hierarchy`; script remains corpus/report/write/check wrapper; committed artifact gate is `--corpus --check` |
 | 8 | `scripts/build-consultant-prior-art-expectations.py` | 542 | 21 | 1 | no | migrate logic | high | new package seam required before wrapper thinning |
 | 9 | `scripts/build-consultant-relation-candidates.py` | 530 | 24 | 1 | no | migrate logic | high | new package seam required before wrapper thinning |
 | 10 | `scripts/build-independent-structural-signal-inputs.py` | 213 | 11 | 1 | no | deferred | medium | needs manual review after high-priority migrations |

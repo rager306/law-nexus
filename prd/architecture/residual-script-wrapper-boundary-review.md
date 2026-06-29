@@ -17,7 +17,7 @@ This document is architecture-maintenance evidence only. It does not validate le
 
 | Script | Classification | Priority | Boundary state | M080 action |
 |---|---|---:|---|---|
-| `scripts/build-consultant-hierarchy-records.py` | migrate logic | medium | Existing package seam builds hierarchy records from normalized paragraphs; script still owns WordML input, corpus orchestration, reports, writes, and checks. | **Selected for bounded seam migration.** Extract neutral wrapper helpers only; preserve CLI/report behavior. |
+| `scripts/build-consultant-hierarchy-records.py` | migrate logic | medium | M080 moved WordML paragraph streaming and bounded source diagnostics into `law_nexus.adapters.sources.consultant_hierarchy`; script still owns corpus orchestration, reports, writes, and checks. | **Completed in M080 S02.** Preserve CLI/report behavior; committed artifact gate is `--corpus --check`. |
 | `scripts/build-offline-citation-retrieval-cases.py` | thin wrapper | low | Retained wrapper around an existing package seam. | Keep; no M080 code change. |
 | `scripts/build-parser-golden-cases.py` | migrate logic | high | M079 moved build-case core into `law_nexus.adapters.sources.parser_golden_cases`; report/render/write/check wrapper remains script-owned. | Keep wrapper; only future compatibility-wrapper cleanup after reference proof. |
 | `scripts/build-real-artifact-retrieval-cases.py` | thin wrapper | low | Retained wrapper around an existing package seam. | Keep; no M080 code change. |
@@ -36,7 +36,7 @@ This document is architecture-maintenance evidence only. It does not validate le
 
 ## Selected bounded seam
 
-M080 selects `scripts/build-consultant-hierarchy-records.py` because:
+M080 selected `scripts/build-consultant-hierarchy-records.py` because:
 
 - it is already package-backed through `SourceHierarchyUseCase` and `ConsultantHierarchyRecordBuilder`;
 - GitNexus found `SourceHierarchyUseCase` exactly at `Class:src/law_nexus/application/source_hierarchy.py:SourceHierarchyUseCase`;
@@ -49,11 +49,11 @@ M080 selects `scripts/build-consultant-hierarchy-records.py` because:
 
 ## M080 migration boundary
 
-Allowed in M080 S02:
+Completed in M080 S02:
 
-- Move neutral, reusable wrapper helpers into package code if they are independent of CLI side effects.
-- Candidate helpers include WordML paragraph streaming and deterministic source fixture metadata helpers.
-- Keep CLI argument parsing, report rendering, artifact writing, `--check`, corpus orchestration, and command exit behavior in the script unless tests prove a narrower extraction is safe.
+- Moved WordML paragraph streaming and bounded source diagnostics into package code.
+- Removed script-local dead hierarchy-core leftovers that were already package-owned.
+- Kept CLI argument parsing, report rendering, artifact writing, corpus orchestration, and command exit behavior in the script.
 
 Forbidden in M080 S02:
 

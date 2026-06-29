@@ -50,6 +50,7 @@ The `migrate logic` rows are not silently treated as complete. They represent fu
 | `law_nexus.adapters.retrieval.proof_helpers` | Bounded path rendering, JSON loading, diagnostic code/payload extraction, and safe payload validation for retrieval proof wrappers. | `scripts/verify-retrieval-output-validator.py`, `scripts/verify-real-artifact-retrieval-proof.py` |
 | `law_nexus.adapters.embeddings.proof_environment` | Local embedding proof environment/provenance helpers: cache roots, package probes, safe JSON logs, normalized paths, and model cache names. | `scripts/probe-s10-embedding-runtime-env.py`, `scripts/smoke-s09-local-embeddings.py` |
 | `law_nexus.adapters.sources.parser_golden_cases` | Parser golden-case helper and core behavior: stable display paths, diagnostics, JSON/JSONL loading, SHA-256, build-case construction, evaluator loading, case mapping, fail-closed diagnostics, and result assembly. | `scripts/build-parser-golden-cases.py`, `scripts/evaluate-parser-golden-cases.py` |
+| `law_nexus.adapters.sources.consultant_hierarchy` | Consultant hierarchy record builder plus M080 package-owned WordML paragraph streaming and bounded source diagnostics. | `scripts/build-consultant-hierarchy-records.py` |
 
 These seams are adapter-level or source-level support seams. They do not make domain/application code depend on `scripts/`, and `uv run lint-imports` remains green.
 
@@ -119,6 +120,10 @@ This closure map does not prove:
 - safe deletion of all scripts.
 
 Authoritative proof remains source code, tests, runtime evidence, GSD requirements/decisions, and real source-document evidence where applicable. ACP/RDF/JSONL/graph projections remain derived diagnostics, not source truth.
+
+## M080 Consultant hierarchy wrapper update
+
+M080 reviewed remaining package-backed wrapper boundaries in `prd/architecture/residual-script-wrapper-boundary-review.md` and selected `scripts/build-consultant-hierarchy-records.py` as the next bounded seam after LOW GitNexus impact. M080 moved WordML paragraph streaming and bounded source diagnostics into `law_nexus.adapters.sources.consultant_hierarchy`, removed script-local dead hierarchy-core leftovers, and kept corpus/report/write/check orchestration in the script. The committed artifact freshness gate for this wrapper is `uv run python scripts/build-consultant-hierarchy-records.py --corpus --check`; plain `--check` is the legacy single-fixture compatibility mode. This is a bounded migration and does not claim legal correctness or parser completeness.
 
 ## M079 parser golden-case core update
 
