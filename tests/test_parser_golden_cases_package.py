@@ -5,6 +5,7 @@ from pathlib import Path
 
 from law_nexus.adapters.sources.parser_golden_cases import (
     build_cases,
+    build_evaluation_result,
     diagnostic,
     display_path,
     load_json_object,
@@ -19,6 +20,7 @@ DOCUMENT_RECORDS_PATH = ROOT / "prd/parser/odt_document_records.jsonl"
 SOURCE_BLOCK_RECORDS_PATH = ROOT / "prd/parser/odt_source_block_records.jsonl"
 RELATION_CANDIDATES_PATH = ROOT / "prd/parser/consultant_relation_candidates.jsonl"
 STAGING_GRAPH_PATH = ROOT / "prd/parser/parser_staging_graph.json"
+GOLDEN_CASES_PATH = ROOT / "prd/parser/golden_cases.json"
 REQUIRED_CASE_CLASSES = [
     "evidence-present",
     "no-answer",
@@ -136,3 +138,29 @@ def test_build_cases_core_uses_tracked_parser_artifacts_without_parser_completen
     assert all(case["non_authoritative"] is True for case in cases)
     assert any("parser completeness" in json.dumps(case) for case in cases)
     assert all("parser completeness validated" not in json.dumps(case) for case in cases)
+
+
+def test_build_evaluation_result_core_preserves_warning_status_and_non_claims() -> None:
+    result = build_evaluation_result(
+        golden_cases_path=GOLDEN_CASES_PATH,
+        parser_dir=ROOT / "prd/parser",
+        source_artifact_filenames={
+            "documents": "odt_document_records.jsonl",
+            "source_blocks": "odt_source_block_records.jsonl",
+            "relations": "consultant_relation_candidates.jsonl",
+            "staging_graph": "parser_staging_graph.json",
+        },
+        required_case_classes=set(REQUIRED_CASE_CLASSES),
+        golden_cases_schema_version="legalgraph-parser-golden-cases/v1",
+        schema_version="legalgraph-parser-golden-evaluator/v1",
+        generated_by="scripts/evaluate-parser-golden-cases.py",
+        root=ROOT,
+    )
+
+    assert result["schema_version"] == "legalgraph-parser-golden-evaluator/v1"
+    assert result["status"] == "pass"
+    assert result["case_count"] == 5
+    assert result["evaluated_case_count"] == 5
+    assert result["error_count"] == 0
+    assert result["warning_count"] >= 1
+    assert "parser completeness" in result["blocked_claims"]
