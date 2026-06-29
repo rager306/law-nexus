@@ -1,6 +1,9 @@
 from __future__ import annotations
 
-from law_nexus.adapters.sources.consultant_hierarchy import ConsultantHierarchyRecordBuilder
+from law_nexus.adapters.sources.consultant_hierarchy import (
+    ConsultantHierarchyRecordBuilder,
+    stream_wordml_paragraphs,
+)
 from law_nexus.application.source_hierarchy import SourceHierarchyUseCase
 from law_nexus.ports.source_hierarchy import SourceHierarchyParagraph, SourceHierarchyRequest
 
@@ -17,6 +20,34 @@ def _request(paragraphs: list[SourceHierarchyParagraph], source_sha256: str = "a
 
 def _use_case() -> SourceHierarchyUseCase:
     return SourceHierarchyUseCase(builder=ConsultantHierarchyRecordBuilder())
+
+
+def test_stream_wordml_paragraphs_decodes_text_and_reports_diagnostics(tmp_path) -> None:
+    source = tmp_path / "fixture.xml"
+    source.write_text(
+        """
+        <w:wordDocument xmlns:w=\"http://schemas.microsoft.com/office/word/2003/wordml\">
+          <w:body>
+            <w:p><w:pPr><w:pStyle w:val=\"5\" /></w:pPr><w:r><w:t>Федеральный&#160;закон</w:t></w:r></w:p>
+            <w:p><w:pPr><w:pStyle w:val=\"2\" /></w:pPr><w:r><w:t>&#167; 1. Планирование</w:t></w:r></w:p>
+            <w:p><w:r><w:t>   </w:t></w:r></w:p>
+          </w:body>
+        </w:wordDocument>
+        """,
+        encoding="utf-8",
+    )
+
+    paragraphs, diagnostics = stream_wordml_paragraphs(source)
+
+    assert [(p.index, p.text, p.style) for p in paragraphs] == [
+        (1, "Федеральный закон", "5"),
+        (2, "§ 1. Планирование", "2"),
+    ]
+    assert diagnostics["namespace_detected"] == "http://schemas.microsoft.com/office/word/2003/wordml"
+    assert diagnostics["paragraph_count"] == 3
+    assert diagnostics["skipped_empty_paragraphs"] == 1
+    assert diagnostics["malformed_xml"] is None
+
 
 
 def test_source_hierarchy_use_case_builds_contextual_records() -> None:

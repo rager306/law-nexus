@@ -68,7 +68,7 @@ Forbidden in M080 S02:
 S02 must run at minimum:
 
 - targeted Consultant hierarchy tests;
-- `uv run python scripts/build-consultant-hierarchy-records.py --check`;
+- `uv run python scripts/build-consultant-hierarchy-records.py --corpus --check` for the committed corpus artifacts; plain `--check` is the legacy single-fixture compatibility mode and should only be used after regenerating single-fixture artifacts in an isolated check;
 - `uv run ruff check scripts src/law_nexus/adapters/sources/consultant_hierarchy.py tests/test_consultant_hierarchy_records.py tests/test_source_hierarchy_use_case.py`;
 - `uv run basedpyright scripts src/law_nexus/adapters/sources/consultant_hierarchy.py tests/test_consultant_hierarchy_records.py tests/test_source_hierarchy_use_case.py`;
 - `uv run lint-imports`;

@@ -13,16 +13,20 @@ from __future__ import annotations
 import hashlib
 import html
 import re
+import xml.etree.ElementTree as ET
 from collections import Counter
 from dataclasses import dataclass
+from pathlib import Path
 from typing import Any, Literal
 
 from law_nexus.ports.source_hierarchy import (
+    SourceHierarchyParagraph,
     SourceHierarchyRequest,
     SourceHierarchyResult,
 )
 
 Level = Literal["document", "chapter", "section", "article", "part", "clause", "subclause"]
+WORDML_NS = "http://schemas.microsoft.com/office/word/2003/wordml"
 MAX_DIAGNOSTICS = 100
 NON_CLAIMS = [
     "Consultant hierarchy records are deterministic parser-source records only.",
@@ -53,6 +57,56 @@ def normalize_text(text: str) -> str:
 
     decoded = html.unescape(text).replace("\xa0", " ")
     return re.sub(r"\s+", " ", decoded).strip()
+
+
+def paragraph_style(elem: ET.Element) -> str | None:
+    """Return the WordML paragraph style value if present."""
+
+    style_tag = f"{{{WORDML_NS}}}pStyle"
+    style_attr = f"{{{WORDML_NS}}}val"
+    for child in elem.iter():
+        if child.tag == style_tag:
+            return child.attrib.get(style_attr) or child.attrib.get("val")
+    return None
+
+
+def stream_wordml_paragraphs(path: Path) -> tuple[list[SourceHierarchyParagraph], dict[str, Any]]:
+    """Stream WordML paragraphs while collecting bounded source diagnostics."""
+
+    paragraphs: list[SourceHierarchyParagraph] = []
+    namespace_counts: Counter[str] = Counter()
+    style_counts: Counter[str] = Counter()
+    skipped_empty = 0
+    malformed_xml: str | None = None
+    paragraph_count = 0
+
+    try:
+        context = ET.iterparse(path, events=("start", "end"))
+        for event, elem in context:
+            if event == "start" and elem.tag.startswith("{"):
+                namespace_counts[elem.tag[1:].split("}", 1)[0]] += 1
+            if event == "end" and elem.tag == f"{{{WORDML_NS}}}p":
+                paragraph_count += 1
+                style = paragraph_style(elem)
+                style_counts[style or "<none>"] += 1
+                text = normalize_text("".join(elem.itertext()))
+                if text:
+                    paragraphs.append(SourceHierarchyParagraph(index=paragraph_count, text=text, style=style))
+                else:
+                    skipped_empty += 1
+                elem.clear()
+    except ET.ParseError as exc:
+        malformed_xml = str(exc)
+
+    diagnostics = {
+        "malformed_xml": malformed_xml,
+        "namespace_detected": WORDML_NS if namespace_counts.get(WORDML_NS, 0) else None,
+        "namespace_observations": dict(sorted(namespace_counts.items())),
+        "paragraph_count": paragraph_count,
+        "style_observations": dict(sorted(style_counts.items())),
+        "skipped_empty_paragraphs": skipped_empty,
+    }
+    return paragraphs, diagnostics
 
 
 def truncate(text: str, limit: int) -> str:

@@ -11,15 +11,14 @@ from __future__ import annotations
 
 import argparse
 import hashlib
-import html
 import json
 import re
-import xml.etree.ElementTree as ET
-from collections import Counter
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Literal
+from typing import Any
 
+from law_nexus.adapters.sources.consultant_hierarchy import normalize_text as _normalize_text
+from law_nexus.adapters.sources.consultant_hierarchy import stream_wordml_paragraphs
 from law_nexus.composition import make_consultant_hierarchy_use_case
 from law_nexus.ports.source_hierarchy import SourceHierarchyParagraph, SourceHierarchyRequest
 from parser_records import dumps_jsonl_record, parse_parser_record
@@ -30,7 +29,6 @@ INVENTORY_PATH = Path("prd/parser/source_fixture_inventory.json")
 JSONL_PATH = Path("prd/parser/consultant_hierarchy_records.jsonl")
 JSON_PATH = Path("prd/parser/consultant_hierarchy_records.json")
 REPORT_PATH = Path("prd/parser/consultant_hierarchy_records.md")
-WORDML_NS = "http://schemas.microsoft.com/office/word/2003/wordml"
 MAX_DIAGNOSTICS = 100
 #: In-scope document types for M072 S05 hierarchy extraction. These are the
 #: source-roles that have a normative-act structure (full-federal-law + code).
@@ -45,26 +43,8 @@ NON_CLAIMS = [
     "Consultant hierarchy records do not claim product ETL or FalkorDB load readiness.",
 ]
 
-Level = Literal["document", "section", "chapter", "article", "part", "clause", "subclause", "paragraph", "unknown"]
-
-
-@dataclass(frozen=True)
-class Paragraph:
-    """One bounded streamed WordML paragraph."""
-
-    index: int
-    text: str
-    style: str | None
-
-
-@dataclass(frozen=True)
-class Marker:
-    """Detected hierarchy marker for a paragraph."""
-
-    level: Level
-    raw: str
-    normalized: str
-    kind: str
+Paragraph = SourceHierarchyParagraph
+normalize_text = _normalize_text
 
 
 @dataclass(frozen=True)
@@ -94,17 +74,8 @@ def sha256_bytes(path: Path) -> str:
     return digest.hexdigest()
 
 
-def sha256_text(text: str) -> str:
-    """Return SHA-256 of text encoded as UTF-8."""
-
-    return hashlib.sha256(text.encode("utf-8")).hexdigest()
 
 
-def normalize_text(text: str) -> str:
-    """Decode XML/html entities and collapse WordML whitespace deterministically."""
-
-    decoded = html.unescape(text).replace("\xa0", " ")
-    return re.sub(r"\s+", " ", decoded).strip()
 
 
 def truncate(text: str, limit: int) -> str:
@@ -113,93 +84,12 @@ def truncate(text: str, limit: int) -> str:
     return text if len(text) <= limit else text[: limit - 1].rstrip() + "…"
 
 
-def marker_title(text: str, marker: Marker | None) -> str:
-    """Return a bounded title preserving the visible legal marker."""
-
-    if marker is None:
-        return truncate(text, 240)
-    return truncate(text, 240)
 
 
-def marker_for_text(text: str) -> Marker | None:
-    """Classify one paragraph as a hierarchy marker using anchored context-first rules."""
-
-    match = re.match(r"^(Глава\s+\d+(?:\.\d+)?\.)\s*(.+)$", text, flags=re.IGNORECASE)
-    if match:
-        return Marker("chapter", match.group(1), match.group(1).lower(), "chapter-number")
-
-    match = re.match(r"^(§\s*\d+(?:\.\d+)?\.)\s*(.+)$", text, flags=re.IGNORECASE)
-    if match:
-        normalized = re.sub(r"\s+", "", match.group(1)).replace(".", "")
-        return Marker("section", match.group(1), normalized, "section-symbol-number")
-
-    match = re.match(r"^(Статья\s+\d+(?:\.\d+)?\.)\s*(.+)$", text, flags=re.IGNORECASE)
-    if match:
-        return Marker("article", match.group(1), match.group(1).lower(), "article-number")
-
-    match = re.match(r"^(\d+(?:\.\d+)?\.)\s+\S", text)
-    if match:
-        return Marker("part", match.group(1), match.group(1).rstrip("."), "part-number")
-
-    match = re.match(r"^(\d+(?:\.\d+)?\))\s+\S", text)
-    if match:
-        return Marker("clause", match.group(1), match.group(1).rstrip(")"), "clause-number")
-
-    match = re.match(r"^([а-яё]\))\s+\S", text, flags=re.IGNORECASE)
-    if match:
-        return Marker("subclause", match.group(1), match.group(1).rstrip(")").lower(), "subclause-letter")
-
-    return None
 
 
-def paragraph_style(elem: ET.Element) -> str | None:
-    """Return the WordML paragraph style value if present."""
-
-    style_tag = f"{{{WORDML_NS}}}pStyle"
-    style_attr = f"{{{WORDML_NS}}}val"
-    for child in elem.iter():
-        if child.tag == style_tag:
-            return child.attrib.get(style_attr) or child.attrib.get("val")
-    return None
 
 
-def stream_wordml_paragraphs(path: Path) -> tuple[list[Paragraph], dict[str, Any]]:
-    """Stream WordML paragraphs while collecting bounded source diagnostics."""
-
-    paragraphs: list[Paragraph] = []
-    namespace_counts: Counter[str] = Counter()
-    style_counts: Counter[str] = Counter()
-    skipped_empty = 0
-    malformed_xml: str | None = None
-    paragraph_count = 0
-
-    try:
-        context = ET.iterparse(path, events=("start", "end"))
-        for event, elem in context:
-            if event == "start" and elem.tag.startswith("{"):
-                namespace_counts[elem.tag[1:].split("}", 1)[0]] += 1
-            if event == "end" and elem.tag == f"{{{WORDML_NS}}}p":
-                paragraph_count += 1
-                style = paragraph_style(elem)
-                style_counts[style or "<none>"] += 1
-                text = normalize_text("".join(elem.itertext()))
-                if text:
-                    paragraphs.append(Paragraph(index=paragraph_count, text=text, style=style))
-                else:
-                    skipped_empty += 1
-                elem.clear()
-    except ET.ParseError as exc:
-        malformed_xml = str(exc)
-
-    diagnostics = {
-        "malformed_xml": malformed_xml,
-        "namespace_detected": WORDML_NS if namespace_counts.get(WORDML_NS, 0) else None,
-        "namespace_observations": dict(sorted(namespace_counts.items())),
-        "paragraph_count": paragraph_count,
-        "style_observations": dict(sorted(style_counts.items())),
-        "skipped_empty_paragraphs": skipped_empty,
-    }
-    return paragraphs, diagnostics
 
 
 def compact_error(kind: str, message: str, **extra: Any) -> dict[str, Any]:
@@ -262,100 +152,12 @@ def load_inventory_fixture(target_path: str = str(SOURCE_PATH)) -> tuple[dict[st
     ]
 
 
-def next_record_id(scope_id: str, counters: Counter[str], level: Level) -> str:
-    """Return a stable record id for a hierarchy level occurrence.
-
-    IDs are prefixed with the per-fixture scope id (e.g. ``HIER-CONS-44-FZ-2026-CHAPTER-0001``)
-    so concatenated records from multiple fixtures do not collide.
-    """
-
-    if level == "document":
-        return _document_hierarchy_id(scope_id)
-    counters[level] += 1
-    return f"HIER-{scope_id}-{level.upper()}-{counters[level]:04d}"
 
 
-def parent_for_level(level: Level, context: dict[str, str | None]) -> str | None:
-    """Choose the current legal-context parent for a new hierarchy record."""
-
-    if level == "document":
-        return None
-    if level == "chapter":
-        return context["document"]
-    if level == "section":
-        return context["chapter"] or context["document"]
-    if level == "article":
-        return context["section"] or context["chapter"] or context["document"]
-    if level == "part":
-        return context["article"]
-    if level == "clause":
-        return context["part"] or context["article"]
-    if level == "subclause":
-        return context["clause"] or context["part"] or context["article"]
-    return context["article"] or context["section"] or context["chapter"] or context["document"]
 
 
-def update_context(level: Level, record_id: str, context: dict[str, str | None]) -> None:
-    """Reset lower hierarchy boundaries after adding a record."""
-
-    if level == "document":
-        context.update({"document": record_id, "chapter": None, "section": None, "article": None, "part": None, "clause": None, "subclause": None})
-    elif level == "chapter":
-        context.update({"chapter": record_id, "section": None, "article": None, "part": None, "clause": None, "subclause": None})
-    elif level == "section":
-        context.update({"section": record_id, "article": None, "part": None, "clause": None, "subclause": None})
-    elif level == "article":
-        context.update({"article": record_id, "part": None, "clause": None, "subclause": None})
-    elif level == "part":
-        context.update({"part": record_id, "clause": None, "subclause": None})
-    elif level == "clause":
-        context.update({"clause": record_id, "subclause": None})
-    elif level == "subclause":
-        context.update({"subclause": record_id})
 
 
-def build_record(
-    *,
-    record_id: str,
-    level: Level,
-    paragraph: Paragraph,
-    marker: Marker | None,
-    parent_id: str | None,
-    source_sha256: str,
-    scope_id: str,
-    document_id: str,
-    source_path: str,
-) -> dict[str, Any]:
-    """Build and validate one Consultant hierarchy parser record."""
-
-    excerpt = truncate(paragraph.text, 500)
-    payload: dict[str, Any] = {
-        "record_kind": "consultant_hierarchy",
-        "schema_version": "legalgraph-parser-record/v1",
-        "id": record_id,
-        "document_id": document_id,
-        "source_kind": "consultant-wordml-xml",
-        "source_path": source_path,
-        "source_sha256": source_sha256,
-        "source_member": None,
-        "order_index": paragraph.index,
-        "parent_id": parent_id,
-        "level": level,
-        "marker": None
-        if marker is None
-        else {"raw": marker.raw, "normalized": marker.normalized, "kind": marker.kind},
-        "title": marker_title(paragraph.text, marker),
-        "location": {
-            "selector": f"/w:wordDocument/w:body/w:p[{paragraph.index}]",
-            "label": f"WordML paragraph {paragraph.index}" + (f" style {paragraph.style}" if paragraph.style else ""),
-        },
-        "excerpt": excerpt,
-        "excerpt_sha256": sha256_text(excerpt),
-        "non_authoritative": True,
-        "non_claims": NON_CLAIMS,
-    }
-    parse_parser_record(payload)
-    return payload
 
 
 def hierarchy_records(
