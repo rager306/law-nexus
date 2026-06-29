@@ -178,3 +178,7 @@ M078 does not claim:
 ## S03 result
 
 The retire candidate was resolved in M078 S03. `scripts/build-representative-retrieval-corpus.py` was deleted after old and canonical commands both passed `--check`, `runtime_handoff()` was updated to emit the canonical underscore command for both builder fields, generated representative corpus artifacts were refreshed, and representative corpus tests passed.
+
+## S04 result
+
+The parser golden-case migration wave extracted shared utility helpers into `law_nexus.adapters.sources.parser_golden_cases`. `scripts/build-parser-golden-cases.py` and `scripts/evaluate-parser-golden-cases.py` retain their CLI/report engines but delegate stable display paths, diagnostics, JSON/JSONL utility loading, SHA-256, and deterministic diagnostic helpers to package code. This remains a bounded helper extraction and does not claim parser completeness.

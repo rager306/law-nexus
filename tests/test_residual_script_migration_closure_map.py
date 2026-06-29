@@ -19,6 +19,7 @@ REQUIRED_SEAMS = [
     "law_nexus.adapters.sources.parser_records",
     "law_nexus.adapters.retrieval.proof_helpers",
     "law_nexus.adapters.embeddings.proof_environment",
+    "law_nexus.adapters.sources.parser_golden_cases",
 ]
 
 REQUIRED_COMMITS = ["741b9d9", "5176b3e", "06a2eef", "65d8f89", "e5c029a", "5f7e27a"]

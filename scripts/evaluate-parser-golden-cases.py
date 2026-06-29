@@ -26,6 +26,8 @@ from scripts.parser_records import (  # noqa: E402
     load_jsonl_records,
 )
 
+from law_nexus.adapters.sources import parser_golden_cases as golden_case_helpers  # noqa: E402
+
 SCHEMA_VERSION = "legalgraph-parser-golden-evaluator/v1"
 GENERATED_BY = "scripts/evaluate-parser-golden-cases.py"
 GOLDEN_CASES_SCHEMA_VERSION = "legalgraph-parser-golden-cases/v1"
@@ -48,10 +50,7 @@ SOURCE_ARTIFACT_FILENAMES = {
 def display_path(path: Path) -> str:
     """Return a stable repository-relative path when possible."""
 
-    try:
-        return path.resolve().relative_to(ROOT.resolve()).as_posix()
-    except ValueError:
-        return path.as_posix()
+    return golden_case_helpers.display_path(path, root=ROOT)
 
 
 def diagnostic(
@@ -72,22 +71,21 @@ def diagnostic(
 ) -> dict[str, Any]:
     """Create the compact path-qualified diagnostic contract for stdout."""
 
-    payload: dict[str, Any] = {
-        "case_id": case_id,
-        "case_class": case_class,
-        "severity": severity,
-        "rule": rule,
-        "artifact_path": artifact_path,
-        "record_id": record_id,
-        "record_kind": record_kind,
-        "source_path": source_path,
-        "expected_state": expected_state,
-        "actual_state": actual_state,
-        "message": message,
-        "non_authoritative": non_authoritative,
-    }
-    payload.update(extra)
-    return payload
+    return golden_case_helpers.diagnostic(
+        case_id=case_id,
+        case_class=case_class,
+        severity=severity,
+        rule=rule,
+        artifact_path=artifact_path,
+        message=message,
+        expected_state=expected_state,
+        actual_state=actual_state,
+        record_id=record_id,
+        record_kind=record_kind,
+        source_path=source_path,
+        non_authoritative=non_authoritative,
+        **extra,
+    )
 
 
 def sort_diagnostics(diagnostics: list[dict[str, Any]]) -> list[dict[str, Any]]:

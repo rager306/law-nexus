@@ -12,7 +12,6 @@ or FalkorDB runtime readiness.
 from __future__ import annotations
 
 import argparse
-import hashlib
 import json
 import sys
 from pathlib import Path
@@ -26,8 +25,9 @@ from scripts.parser_records import (  # noqa: E402
     DocumentRecord,
     RelationCandidateRecord,
     SourceBlockRecord,
-    load_jsonl_records,
 )
+
+from law_nexus.adapters.sources import parser_golden_cases as golden_case_helpers  # noqa: E402
 
 DEFAULT_OUTPUT_DIR = ROOT / "prd/parser"
 CONTRACT_PATH = ROOT / "prd/parser/golden_test_contract.md"
@@ -69,20 +69,13 @@ SOURCE_ARTIFACT_PATHS = [
 def display_path(path: Path) -> str:
     """Return a stable repository-relative path when possible."""
 
-    try:
-        return path.resolve().relative_to(ROOT.resolve()).as_posix()
-    except ValueError:
-        return path.as_posix()
+    return golden_case_helpers.display_path(path, root=ROOT)
 
 
 def sha256_file(path: Path) -> str:
     """Return a SHA-256 digest for an artifact file."""
 
-    digest = hashlib.sha256()
-    with path.open("rb") as handle:
-        for chunk in iter(lambda: handle.read(1024 * 1024), b""):
-            digest.update(chunk)
-    return digest.hexdigest()
+    return golden_case_helpers.sha256_file(path)
 
 
 def diagnostic(
@@ -103,22 +96,21 @@ def diagnostic(
 ) -> dict[str, Any]:
     """Create a compact S01-contract diagnostic for agents and tests."""
 
-    payload: dict[str, Any] = {
-        "case_id": case_id,
-        "case_class": case_class,
-        "severity": severity,
-        "rule": rule,
-        "artifact_path": artifact_path,
-        "record_id": record_id,
-        "record_kind": record_kind,
-        "source_path": source_path,
-        "expected_state": expected_state,
-        "actual_state": actual_state,
-        "message": message,
-        "non_authoritative": non_authoritative,
-    }
-    payload.update(extra)
-    return payload
+    return golden_case_helpers.diagnostic(
+        case_id=case_id,
+        case_class=case_class,
+        severity=severity,
+        rule=rule,
+        artifact_path=artifact_path,
+        message=message,
+        record_id=record_id,
+        record_kind=record_kind,
+        source_path=source_path,
+        expected_state=expected_state,
+        actual_state=actual_state,
+        non_authoritative=non_authoritative,
+        **extra,
+    )
 
 
 def load_source_artifacts() -> tuple[dict[str, Any], list[dict[str, Any]]]:
@@ -194,9 +186,7 @@ def load_source_artifacts() -> tuple[dict[str, Any], list[dict[str, Any]]]:
 def load_jsonl_if_exists(path: Path) -> tuple[list[Any], list[dict[str, Any]]]:
     """Load parser JSONL records if the path exists; missing is reported elsewhere."""
 
-    if not path.exists():
-        return [], []
-    return load_jsonl_records(path)
+    return golden_case_helpers.load_jsonl_if_exists(path)
 
 
 def convert_loader_diagnostics(

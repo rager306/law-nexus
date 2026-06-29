@@ -79,7 +79,7 @@ Caveats: use file-qualified UIDs for ambiguous names such as `main`, `run`, and 
 | 14 | `scripts/build-offline-citation-retrieval-cases.py` | 103 | 8 | 0 | yes | thin wrapper | low | retain wrapper around existing package seam |
 | 15 | `scripts/build-ontology-graphrag-proof-cases.py` | 366 | 13 | 0 | no | proof runtime wrapper | medium | retain runtime proof entrypoint, review helper extraction |
 | 16 | `scripts/build-parser-evidence-span-materialization.py` | 200 | 12 | 1 | no | deferred | medium | needs manual review after high-priority migrations |
-| 17 | `scripts/build-parser-golden-cases.py` | 831 | 17 | 0 | no | migrate logic | high | new package seam required before wrapper thinning |
+| 17 | `scripts/build-parser-golden-cases.py` | 831 | 17 | 0 | yes | migrate logic | high | M078 S04 extracted shared golden-case utility helpers to `law_nexus.adapters.sources.parser_golden_cases`; deeper case-building logic remains script-owned |
 | 18 | `scripts/build-parser-staging-graph.py` | 774 | 24 | 4 | no | migrate logic | high | new package seam required before wrapper thinning |
 | 19 | `scripts/build-real-artifact-retrieval-cases.py` | 103 | 9 | 0 | yes | thin wrapper | low | retain wrapper around existing package seam |
 | 20 | `scripts/build-safe-structural-descriptor-remediation-inputs.py` | 227 | 12 | 1 | no | deferred | medium | needs manual review after high-priority migrations |
@@ -93,7 +93,7 @@ Caveats: use file-qualified UIDs for ambiguous names such as `main`, `run`, and 
 | 28 | `scripts/evaluate-falkordb-pack-quality.py` | 196 | 6 | 1 | no | deferred | medium | needs manual review after high-priority migrations |
 | 29 | `scripts/evaluate-falkordb-skill-quality.py` | 215 | 6 | 1 | no | deferred | medium | needs manual review after high-priority migrations |
 | 30 | `scripts/evaluate-falkordb-trigger-proxy.py` | 165 | 4 | 0 | no | deferred | medium | needs manual review after high-priority migrations |
-| 31 | `scripts/evaluate-parser-golden-cases.py` | 826 | 21 | 0 | no | migrate logic | high | new package seam required before wrapper thinning |
+| 31 | `scripts/evaluate-parser-golden-cases.py` | 826 | 21 | 0 | yes | migrate logic | high | M078 S04 extracted shared golden-case utility helpers to `law_nexus.adapters.sources.parser_golden_cases`; evaluator logic remains script-owned |
 | 32 | `scripts/evaluate-s09-local-embeddings.py` | 788 | 37 | 3 | no | migrate logic | high | new package seam required before wrapper thinning |
 | 33 | `scripts/export-acp-architecture-projection.py` | 538 | 24 | 0 | no | migrate logic | high | new package seam required before wrapper thinning |
 | 34 | `scripts/export-acp-recovery-view.py` | 186 | 11 | 0 | no | deferred | medium | needs manual review after high-priority migrations |
