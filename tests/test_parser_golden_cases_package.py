@@ -4,6 +4,7 @@ import json
 from pathlib import Path
 
 from law_nexus.adapters.sources.parser_golden_cases import (
+    build_cases,
     diagnostic,
     display_path,
     load_json_object,
@@ -11,6 +12,25 @@ from law_nexus.adapters.sources.parser_golden_cases import (
     sha256_file,
     sort_diagnostics,
 )
+from law_nexus.adapters.sources.parser_records import load_jsonl_records
+
+ROOT = Path(__file__).resolve().parents[1]
+DOCUMENT_RECORDS_PATH = ROOT / "prd/parser/odt_document_records.jsonl"
+SOURCE_BLOCK_RECORDS_PATH = ROOT / "prd/parser/odt_source_block_records.jsonl"
+RELATION_CANDIDATES_PATH = ROOT / "prd/parser/consultant_relation_candidates.jsonl"
+STAGING_GRAPH_PATH = ROOT / "prd/parser/parser_staging_graph.json"
+REQUIRED_CASE_CLASSES = [
+    "evidence-present",
+    "no-answer",
+    "candidate-only",
+    "unresolved-reference",
+    "non-authoritative",
+]
+BLOCKED_CLAIMS = [
+    "parser completeness",
+    "retrieval quality",
+    "legal-answer correctness",
+]
 
 
 def test_display_path_prefers_repo_relative_path(tmp_path: Path) -> None:
@@ -83,3 +103,36 @@ def test_sha256_sort_and_severity_helpers_are_stable(tmp_path: Path) -> None:
 
     assert [item["case_id"] for item in sort_diagnostics(diagnostics)] == ["A", "B"]
     assert severity_counts(diagnostics) == {"error": 1, "info": 1}
+
+
+def test_build_cases_core_uses_tracked_parser_artifacts_without_parser_completeness_claim() -> None:
+    documents, document_diagnostics = load_jsonl_records(DOCUMENT_RECORDS_PATH)
+    source_blocks, source_block_diagnostics = load_jsonl_records(SOURCE_BLOCK_RECORDS_PATH)
+    relation_candidates, relation_diagnostics = load_jsonl_records(RELATION_CANDIDATES_PATH)
+    assert document_diagnostics == []
+    assert source_block_diagnostics == []
+    assert relation_diagnostics == []
+
+    cases, diagnostics = build_cases(
+        {
+            "documents": documents,
+            "source_blocks": source_blocks,
+            "relation_candidates": relation_candidates,
+            "staging_graph": json.loads(STAGING_GRAPH_PATH.read_text(encoding="utf-8")),
+        },
+        contract_path=ROOT / "prd/parser/golden_test_contract.md",
+        document_records_path=DOCUMENT_RECORDS_PATH,
+        source_block_records_path=SOURCE_BLOCK_RECORDS_PATH,
+        relation_candidates_path=RELATION_CANDIDATES_PATH,
+        staging_graph_path=STAGING_GRAPH_PATH,
+        required_case_classes=REQUIRED_CASE_CLASSES,
+        blocked_claims=BLOCKED_CLAIMS,
+        root=ROOT,
+    )
+
+    assert {case["case_class"] for case in cases} == set(REQUIRED_CASE_CLASSES)
+    assert len(cases) == 5
+    assert diagnostics == []
+    assert all(case["non_authoritative"] is True for case in cases)
+    assert any("parser completeness" in json.dumps(case) for case in cases)
+    assert all("parser completeness validated" not in json.dumps(case) for case in cases)
