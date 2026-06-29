@@ -563,8 +563,8 @@ def validate_schema(records: list[LocatedRecord], schema: Mapping[str, Any], res
         except (KeyError, ValueError) as exc:
             result.add(located.diagnostic("schema-validator", str(exc), field="schema"))
             continue
-        for field, rule, message in errors:
-            result.add(located.diagnostic(rule, message, field=field))
+        for field_name, rule, message in errors:
+            result.add(located.diagnostic(rule, message, field=field_name))
 
 
 def source_anchor_path_is_local(anchor_path: str) -> bool:

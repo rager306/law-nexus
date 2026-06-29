@@ -112,7 +112,7 @@ def run_probe(command: list[str], cwd: Path) -> dict[str, Any]:
 
 
 def runtime_diagnostics() -> dict[str, Any]:
-    s04 = load_module(S04_HARNESS_PATH, "m048_s04_git_lex_proof_for_s09")
+    load_module(S04_HARNESS_PATH, "m048_s04_git_lex_proof_for_s09")
     s05 = load_module(S05_HARNESS_PATH, "m048_s05_git_lex_workflows_for_s09")
     main_lex_before = MAIN_REPO_LEX_DIR.exists()
     probes = [run_probe(["git", "lex", "--help"], ROOT), run_probe(["git-lex", "--help"], ROOT)]

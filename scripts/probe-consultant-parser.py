@@ -167,7 +167,9 @@ def _probe_one(
     # (only its SourceProvenanceClass is exposed). Re-derive classification
     # by re-running the parser's local _classify_document_type() on the
     # inventory title (which equals the parser's input).
-    from law_nexus.adapters.parsers.consultant_wordml import _classify_document_type  # type: ignore[import-not-found]
+    from law_nexus.adapters.parsers.consultant_wordml import (
+        _classify_document_type,  # type: ignore[import-not-found]
+    )
     derived = _classify_document_type(inventory_title_first_line or "")
     out["parser_classification"] = derived.value
     out["parser_outcome"] = (
@@ -187,7 +189,9 @@ def probe_corpus(root: Path) -> dict[str, Any]:
     fixtures = inventory.get("fixtures", [])
     # Late import: parser depends on src/law_nexus being importable; scripts
     # may be invoked from any cwd as long as PYTHONPATH or uv sets the venv.
-    from law_nexus.adapters.parsers.consultant_wordml import ConsultantWordMLParser  # type: ignore[import-not-found]
+    from law_nexus.adapters.parsers.consultant_wordml import (
+        ConsultantWordMLParser,  # type: ignore[import-not-found]
+    )
 
     rows: list[dict[str, Any]] = []
     for fixture in fixtures:

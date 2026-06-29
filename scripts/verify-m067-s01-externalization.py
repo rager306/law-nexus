@@ -196,7 +196,7 @@ def main(argv: list[str] | None = None) -> int:
         for d in diags:
             print(_fmt(d))
         return 1
-    print(f"M067 S01 externalization verification passed: diagnostics=0 (publication-ready, 0 leaks)")
+    print("M067 S01 externalization verification passed: diagnostics=0 (publication-ready, 0 leaks)")
     return 0
 
 
