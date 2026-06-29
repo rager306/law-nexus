@@ -108,6 +108,15 @@ Final closure also runs inventory/closure validators:
 uv run pytest tests/test_residual_script_migration_inventory.py tests/test_residual_script_migration_closure_map.py -q
 ```
 
+## M079 result
+
+M079 completed the planned core migration:
+
+- S02 moved build-case construction into `law_nexus.adapters.sources.parser_golden_cases.build_cases`.
+- S03 moved evaluator core behavior into `law_nexus.adapters.sources.parser_golden_cases.build_evaluation_result` and related package helpers.
+- `scripts/build-parser-golden-cases.py` and `scripts/evaluate-parser-golden-cases.py` remain CLI/report wrappers.
+- Existing wrapper checks, evaluator fail-closed tests, full script ruff, basedpyright, import-linter, and GitNexus detect gates passed.
+
 ## Non-claims
 
 M079 does not prove:

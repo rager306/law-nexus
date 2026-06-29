@@ -49,7 +49,7 @@ The `migrate logic` rows are not silently treated as complete. They represent fu
 | `law_nexus.adapters.sources.parser_records` | Parser record schemas and JSONL loading/parsing contracts. | `scripts/parser_records.py` and parser/source tests/importers |
 | `law_nexus.adapters.retrieval.proof_helpers` | Bounded path rendering, JSON loading, diagnostic code/payload extraction, and safe payload validation for retrieval proof wrappers. | `scripts/verify-retrieval-output-validator.py`, `scripts/verify-real-artifact-retrieval-proof.py` |
 | `law_nexus.adapters.embeddings.proof_environment` | Local embedding proof environment/provenance helpers: cache roots, package probes, safe JSON logs, normalized paths, and model cache names. | `scripts/probe-s10-embedding-runtime-env.py`, `scripts/smoke-s09-local-embeddings.py` |
-| `law_nexus.adapters.sources.parser_golden_cases` | Shared parser golden-case utility helpers: stable display paths, diagnostics, JSON/JSONL loading, SHA-256, severity counts, and deterministic diagnostic sorting. | `scripts/build-parser-golden-cases.py`, `scripts/evaluate-parser-golden-cases.py` |
+| `law_nexus.adapters.sources.parser_golden_cases` | Parser golden-case helper and core behavior: stable display paths, diagnostics, JSON/JSONL loading, SHA-256, build-case construction, evaluator loading, case mapping, fail-closed diagnostics, and result assembly. | `scripts/build-parser-golden-cases.py`, `scripts/evaluate-parser-golden-cases.py` |
 
 These seams are adapter-level or source-level support seams. They do not make domain/application code depend on `scripts/`, and `uv run lint-imports` remains green.
 
@@ -120,9 +120,13 @@ This closure map does not prove:
 
 Authoritative proof remains source code, tests, runtime evidence, GSD requirements/decisions, and real source-document evidence where applicable. ACP/RDF/JSONL/graph projections remain derived diagnostics, not source truth.
 
+## M079 parser golden-case core update
+
+M079 moved parser golden-case core behavior into `law_nexus.adapters.sources.parser_golden_cases`. `scripts/build-parser-golden-cases.py` delegates build-case construction to package code while retaining report/render/write/check wrapper behavior. `scripts/evaluate-parser-golden-cases.py` delegates evaluator artifact loading, case mapping, fail-closed diagnostics, and result assembly to package code while retaining CLI compatibility. This is a bounded migration and does not claim parser completeness.
+
 ## M078 S04 parser golden-case update
 
-M078 S04 extracted shared parser golden-case utility helpers into `law_nexus.adapters.sources.parser_golden_cases`. The build/evaluate scripts retain their CLI/report engines and delegate only shared utility behavior to the package seam. This is a bounded migration and does not claim parser completeness.
+M078 S04 extracted shared parser golden-case utility helpers into `law_nexus.adapters.sources.parser_golden_cases`. M079 later moved build/evaluate core behavior into the same package seam. The scripts remain CLI/report wrappers. This is a bounded migration and does not claim parser completeness.
 
 ## M078 S03 retirement update
 
