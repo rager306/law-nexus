@@ -11,7 +11,6 @@ EXPECTED_COUNTS = {
     "migrate logic": 49,
     "proof runtime wrapper": 61,
     "thin wrapper": 6,
-    "retire candidate": 1,
     "deferred": 23,
 }
 
@@ -71,7 +70,7 @@ def test_closure_map_matches_inventory_counts() -> None:
     scripts = sorted(path.as_posix() for path in SCRIPT_DIR.glob("*.py"))
     text = read_closure()
 
-    assert len(rows) == len(scripts) == 140
+    assert len(rows) == len(scripts) == 139
     assert sorted(row["path"] for row in rows) == scripts
     assert Counter(row["class"] for row in rows) == EXPECTED_COUNTS
 
@@ -101,7 +100,7 @@ def test_closure_map_does_not_overclaim_completion_or_retirement() -> None:
 
     required_phrases = [
         "not silently treated as complete",
-        "Do not delete in M077",
+        "Resolved in M078 S03",
         "Future cleanup should be planned as new bounded slices",
         "Full-script ruff still has unrelated pre-existing lint findings",
         "does not prove",

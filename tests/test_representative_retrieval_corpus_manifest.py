@@ -4,7 +4,6 @@ import hashlib
 import importlib.util
 import json
 import subprocess
-import sys
 from copy import deepcopy
 from pathlib import Path
 from typing import Any, Iterable
@@ -13,7 +12,6 @@ ROOT = Path(__file__).resolve().parents[1]
 MANIFEST_PATH = ROOT / "prd/retrieval/fixtures/representative_retrieval_corpus_manifest.json"
 REPORT_PATH = ROOT / "prd/retrieval/representative_retrieval_corpus_manifest.md"
 BUILDER_PATH = ROOT / "scripts/build_representative_retrieval_corpus_manifest.py"
-HYPHEN_BUILDER_PATH = ROOT / "scripts/build-representative-retrieval-corpus.py"
 
 REQUIRED_COVERAGE_CLASSES = {
     "source_family_consultant_wordml",
@@ -127,7 +125,6 @@ def ids(items: list[dict[str, Any]], key: str) -> list[str]:
 
 def test_manifest_paths_exist_and_schema_root_is_stable() -> None:
     assert BUILDER_PATH.exists()
-    assert HYPHEN_BUILDER_PATH.exists()
     assert MANIFEST_PATH.exists()
     assert REPORT_PATH.exists()
 
@@ -230,7 +227,7 @@ def test_non_claims_and_s03_handoff_are_explicitly_bounded() -> None:
     handoff = manifest["s03_handoff"]
     assert handoff == manifest["runtime_handoff"]
     assert handoff["manifest_path"] == "prd/retrieval/fixtures/representative_retrieval_corpus_manifest.json"
-    assert handoff["builder_check_command"] == "uv run python scripts/build-representative-retrieval-corpus.py --check"
+    assert handoff["builder_check_command"] == "uv run python scripts/build_representative_retrieval_corpus_manifest.py --check"
     assert handoff["canonical_builder_check_command"] == "uv run python scripts/build_representative_retrieval_corpus_manifest.py --check"
     assert handoff["schema_version"] == manifest["schema_version"]
     assert handoff["corpus_id"] == manifest["corpus_id"]
@@ -243,7 +240,7 @@ def test_non_claims_and_s03_handoff_are_explicitly_bounded() -> None:
 
 def test_builder_check_success_outputs_compact_safe_json() -> None:
     result = subprocess.run(
-        ["uv", "run", "python", "scripts/build-representative-retrieval-corpus.py", "--check"],
+        ["uv", "run", "python", "scripts/build_representative_retrieval_corpus_manifest.py", "--check"],
         cwd=ROOT,
         text=True,
         capture_output=True,

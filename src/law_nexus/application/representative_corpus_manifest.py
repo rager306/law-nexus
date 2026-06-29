@@ -409,7 +409,7 @@ def runtime_handoff(local_benchmark: Mapping[str, Any]) -> dict[str, Any]:
         model_boundary = {}
     return {
         "manifest_path": FIXTURE_ARTIFACT,
-        "builder_check_command": "uv run python scripts/build-representative-retrieval-corpus.py --check",
+        "builder_check_command": "uv run python scripts/build_representative_retrieval_corpus_manifest.py --check",
         "canonical_builder_check_command": "uv run python scripts/build_representative_retrieval_corpus_manifest.py --check",
         "schema_version": SCHEMA_VERSION,
         "corpus_id": CORPUS_ID,

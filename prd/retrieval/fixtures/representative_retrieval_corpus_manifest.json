@@ -542,7 +542,7 @@
       "quality_boundary": "S03 must produce runtime evidence; S02 only hands off redacted static labels and references.",
       "runtime_class": "local_open_weight_only"
     },
-    "builder_check_command": "uv run python scripts/build-representative-retrieval-corpus.py --check",
+    "builder_check_command": "uv run python scripts/build_representative_retrieval_corpus_manifest.py --check",
     "canonical_builder_check_command": "uv run python scripts/build_representative_retrieval_corpus_manifest.py --check",
     "corpus_id": "CORPUS-M016-REPRESENTATIVE-V1",
     "gate_g011_status": "open",
@@ -559,7 +559,7 @@
       "quality_boundary": "S03 must produce runtime evidence; S02 only hands off redacted static labels and references.",
       "runtime_class": "local_open_weight_only"
     },
-    "builder_check_command": "uv run python scripts/build-representative-retrieval-corpus.py --check",
+    "builder_check_command": "uv run python scripts/build_representative_retrieval_corpus_manifest.py --check",
     "canonical_builder_check_command": "uv run python scripts/build_representative_retrieval_corpus_manifest.py --check",
     "corpus_id": "CORPUS-M016-REPRESENTATIVE-V1",
     "gate_g011_status": "open",

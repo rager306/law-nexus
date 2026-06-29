@@ -48,8 +48,8 @@ def test_residual_script_inventory_covers_every_top_level_script_once() -> None:
     scripts = script_paths()
     rows = inventory_rows()
 
-    assert len(scripts) == 140
-    assert "Total scripts: `140`" in text
+    assert len(scripts) == 139
+    assert "Total scripts: `139`" in text
     assert len(rows) == len(scripts)
 
     table_scripts = []
@@ -70,7 +70,8 @@ def test_residual_script_inventory_uses_only_approved_classifications() -> None:
         assert classification in CLASSIFICATIONS, row
         seen.add(classification)
 
-    assert seen == CLASSIFICATIONS
+    assert seen <= CLASSIFICATIONS
+    assert "retire candidate" not in seen
 
 
 def test_residual_script_inventory_records_migration_waves_and_type_debt() -> None:

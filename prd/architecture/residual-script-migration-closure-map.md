@@ -17,14 +17,14 @@ Source inventory: `prd/architecture/residual-script-migration-inventory.md`.
 
 | Metric | Value |
 |---|---:|
-| Top-level Python scripts | 140 |
-| Inventory rows | 140 |
+| Top-level Python scripts | 139 |
+| Inventory rows | 139 |
 | Missing inventory rows | 0 |
 | Extra inventory rows | 0 |
 | `migrate logic` rows | 49 |
 | `proof runtime wrapper` rows | 61 |
 | `thin wrapper` rows | 6 |
-| `retire candidate` rows | 1 |
+| `retire candidate` rows | 0 |
 | `deferred` rows | 23 |
 | Rows with extracted helper/seam marker | 14 |
 
@@ -69,7 +69,7 @@ M077 intentionally did not delete all scripts. Proof and runtime wrappers are pa
 |---|---:|---|
 | Thin wrapper | 6 | Keep. These are package-backed or stable compatibility surfaces. |
 | Proof runtime wrapper | 61 | Keep. These are retained evidence/runtime entrypoints unless a future migration proves parity. |
-| Retire candidate | 1 | Do not delete in M077. `scripts/build-representative-retrieval-corpus.py` remains a review-only retirement candidate until references and replacement command parity are proven. |
+| Retire candidate | 0 | Resolved in M078 S03: `scripts/build-representative-retrieval-corpus.py` was retired after canonical command parity proof and runtime handoff update. |
 | Deferred | 23 | Keep bounded. Defer to future product/backlog slices with explicit scope. |
 | Migrate logic | 49 | Keep as backlog unless already marked `extracted=yes`; future waves should pick bounded seams rather than big-bang rewrites. |
 
@@ -118,3 +118,7 @@ This closure map does not prove:
 - safe deletion of all scripts.
 
 Authoritative proof remains source code, tests, runtime evidence, GSD requirements/decisions, and real source-document evidence where applicable. ACP/RDF/JSONL/graph projections remain derived diagnostics, not source truth.
+
+## M078 S03 retirement update
+
+M078 S03 retired `scripts/build-representative-retrieval-corpus.py`. The accepted builder/check command is now the canonical underscore command: `uv run python scripts/build_representative_retrieval_corpus_manifest.py --check`. The legacy wrapper path is no longer emitted in the generated representative corpus manifest runtime handoff.

@@ -174,3 +174,7 @@ M078 does not claim:
 - FalkorDB production readiness;
 - ACP/git-lex authority over source truth;
 - safe deletion of scripts beyond the single S03 retire candidate.
+
+## S03 result
+
+The retire candidate was resolved in M078 S03. `scripts/build-representative-retrieval-corpus.py` was deleted after old and canonical commands both passed `--check`, `runtime_handoff()` was updated to emit the canonical underscore command for both builder fields, generated representative corpus artifacts were refreshed, and representative corpus tests passed.
