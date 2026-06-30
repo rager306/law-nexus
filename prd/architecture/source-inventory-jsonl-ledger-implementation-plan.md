@@ -78,6 +78,34 @@ Each slice must produce `gsd_uat_exec` evidence. Focused checks:
 - `uv run lint-imports` before closeout.
 - `gitnexus analyze --force --name law-nexus` and `gitnexus_detect_changes(repo="law-nexus", scope="all")` after commits.
 
+## M084 implementation outcomes
+
+As of S08, M084 has implemented the bounded first ledger prototype in these repository surfaces:
+
+| Surface | Implemented artifact | Boundary |
+|---|---|---|
+| Generic ledger primitives | `src/law_nexus/adapters/observability/job_ledger.py` | Pure record construction, validation, deterministic JSONL serialization, and local append helper only. |
+| Source inventory event factory | `src/law_nexus/adapters/observability/source_inventory_ledger.py` | Source inventory queued/running/built/written/failed record builders only. |
+| Source inventory CLI wrapper | `scripts/inventory-parser-fixtures.py --ledger-jsonl <path>` | Explicit opt-in local JSONL emission; default no-ledger behavior unchanged. |
+| Parser golden reuse proof | `src/law_nexus/adapters/observability/parser_golden_ledger.py` | Fixture-only event factory; parser golden CLIs remain untouched. |
+| Tests | `tests/test_job_ledger.py`, `tests/test_source_inventory_ledger.py`, `tests/test_inventory_parser_fixtures_ledger_cli.py`, `tests/test_parser_golden_ledger.py` | Validate vocabulary, transitions, redaction, portability, JSONL append, source inventory CLI opt-in, and parser golden reuse proof. |
+
+Implementation clarifications:
+
+- The source inventory CLI emits queued/running records after manifest creation to avoid changing the deterministic inventory execution order in this first prototype.
+- Check-mode success emits `artifact_fresh`; build-mode success emits `artifact_written`.
+- Failure ledger records use bounded/redacted error messages; legacy CLI stderr behavior is otherwise preserved.
+- Ledger IDs are derived from bounded manifest fingerprints for deterministic local checks.
+- `.gsd/exec` remains valid UAT evidence but is rejected as a durable ledger source/artifact reference.
+- Parser golden-case support is intentionally limited to factory/test reuse proof; no parser golden CLI flag exists in M084.
+
+## Remaining deferred work
+
+- Add single-writer/lock mechanics only if later source inventory use proves concurrency risk.
+- Add SQLite ledger storage only after JSONL schema and source inventory wrapper behavior stabilize.
+- Add parser golden CLI ledger emission only in a later milestone after source inventory pilot value is validated.
+- Keep FalkorDB-backed job state, external queues, workers, daemons, and Legal Nexus runtime orchestration deferred.
+
 ## Non-claims
 
 M084 implementation is operational/debug infrastructure only. It does not prove async/reactive runtime behavior, legal correctness, parser completeness, retrieval quality, model/embedding quality, generated-Cypher correctness, FalkorDB production readiness, or ACP/git-lex source-truth authority.
