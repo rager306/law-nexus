@@ -60,6 +60,15 @@ from law_nexus.adapters.sources.filesystem_inventory import (
 )
 from law_nexus.composition import make_parser_inventory_use_case
 
+_MAX_LEDGER_ERROR_MESSAGE_LENGTH = 300
+_UNSAFE_LEDGER_ERROR_MARKERS = (
+    "GIGACHAT_AUTH_DATA",
+    "OPENAI_API_KEY",
+    "provider_payload",
+    "raw_legal_text",
+    "-----BEGIN",
+)
+
 
 def parse_args(argv: list[str]) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
@@ -98,6 +107,15 @@ def _ledger_context(manifest: dict[str, object]) -> SourceInventoryLedgerContext
     )
 
 
+def _bounded_ledger_error_message(errors: list[str]) -> str:
+    message = "; ".join(errors)
+    for marker in _UNSAFE_LEDGER_ERROR_MARKERS:
+        message = message.replace(marker, "[redacted]")
+    if len(message) > _MAX_LEDGER_ERROR_MESSAGE_LENGTH:
+        return message[: _MAX_LEDGER_ERROR_MESSAGE_LENGTH - 1] + "…"
+    return message
+
+
 def _append_inventory_ledger_events(
     *,
     ledger_path: Path,
@@ -125,7 +143,7 @@ def _append_inventory_ledger_events(
                 reason_code="validation_failed",
                 error_code="source_inventory_check_failed",
                 error_class="InventoryError",
-                error_message="; ".join(errors),
+                error_message=_bounded_ledger_error_message(errors),
                 recovery_instruction="Regenerate parser fixture inventory artifacts or inspect source fixtures.",
             ),
         )

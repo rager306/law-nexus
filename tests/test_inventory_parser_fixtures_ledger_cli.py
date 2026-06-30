@@ -108,3 +108,45 @@ def test_inventory_cli_ledger_flag_appends_failed_check_event(
     assert lines[-1]["status_after"] == "failed"
     assert lines[-1]["reason_code"] == "validation_failed"
     assert lines[-1]["error_code"] == "source_inventory_check_failed"
+    assert lines[-1]["recovery_instruction"]
+
+
+def test_inventory_cli_ledger_failure_message_is_bounded_and_redacted(
+    monkeypatch: Any,
+    tmp_path: Path,
+    capsys: Any,
+) -> None:
+    module = _load_script_module()
+    unsafe_error = "OPENAI_API_KEY=example " + "x" * 400
+    _patch_script(monkeypatch, module, errors=[unsafe_error])
+    ledger_path = tmp_path / "source-inventory.jsonl"
+
+    result = module.main(["--check", "--ledger-jsonl", str(ledger_path)])
+    capsys.readouterr()
+    lines = [json.loads(line) for line in ledger_path.read_text(encoding="utf-8").splitlines()]
+    error_message = lines[-1]["error_message"]
+
+    assert result == 1
+    assert "OPENAI_API_KEY" not in error_message
+    assert "[redacted]" in error_message
+    assert len(error_message) <= 300
+
+
+def test_inventory_cli_ledger_build_mode_records_artifact_written(
+    monkeypatch: Any,
+    tmp_path: Path,
+    capsys: Any,
+) -> None:
+    module = _load_script_module()
+    _patch_script(monkeypatch, module)
+    ledger_path = tmp_path / "source-inventory.jsonl"
+
+    result = module.main(["--ledger-jsonl", str(ledger_path)])
+    captured = capsys.readouterr()
+    lines = [json.loads(line) for line in ledger_path.read_text(encoding="utf-8").splitlines()]
+
+    assert result == 0
+    assert json.loads(captured.out)["status"] == "pass"
+    assert lines[-1]["event_name"] == "source_inventory_artifact_written"
+    assert lines[-1]["status_after"] == "succeeded"
+    assert lines[-1]["reason_code"] == "artifact_written"
