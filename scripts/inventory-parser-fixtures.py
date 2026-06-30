@@ -11,10 +11,21 @@ migration proceeds wave by wave.
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import sys
+from datetime import UTC, datetime
 from pathlib import Path
 
+from law_nexus.adapters.observability.job_ledger import append_job_ledger_record
+from law_nexus.adapters.observability.source_inventory_ledger import (
+    SourceInventoryLedgerContext,
+    build_source_inventory_artifact_written,
+    build_source_inventory_built,
+    build_source_inventory_job_failed,
+    build_source_inventory_job_queued,
+    build_source_inventory_scan_started,
+)
 from law_nexus.adapters.sources.filesystem_inventory import (
     CANONICAL_CONSULTANT_XML_PATH,
     CONSULTANT_FULL_ACT_XML_PATH,
@@ -57,7 +68,88 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
         action="store_true",
         help="verify generated artifacts are current without writing them",
     )
+    parser.add_argument(
+        "--ledger-jsonl",
+        type=Path,
+        help="append bounded source inventory job ledger events to this JSONL path",
+    )
     return parser.parse_args(argv)
+
+
+def _utc_now() -> str:
+    return datetime.now(UTC).replace(microsecond=0).isoformat().replace("+00:00", "Z")
+
+
+def _sha256_json(payload: object) -> str:
+    encoded = json.dumps(payload, ensure_ascii=False, sort_keys=True).encode("utf-8")
+    return "sha256:" + hashlib.sha256(encoded).hexdigest()
+
+
+def _ledger_context(manifest: dict[str, object]) -> SourceInventoryLedgerContext:
+    manifest_fingerprint = _sha256_json(manifest)
+    short_hash = manifest_fingerprint.removeprefix("sha256:")[:12]
+    return SourceInventoryLedgerContext(
+        trace_id=f"trace-source-inventory-{short_hash}",
+        correlation_id=f"corr-source-inventory-{short_hash}",
+        job_id=f"job-source-inventory-{short_hash}",
+        source_ref="law-source",
+        artifact_ref=str(JSON_OUTPUT),
+        input_fingerprint=manifest_fingerprint,
+    )
+
+
+def _append_inventory_ledger_events(
+    *,
+    ledger_path: Path,
+    manifest: dict[str, object],
+    check_mode: bool,
+    errors: list[str],
+) -> None:
+    context = _ledger_context(manifest)
+    output_fingerprint = _sha256_json(observability_summary(manifest))
+    produced_artifacts = (str(JSON_OUTPUT), str(MARKDOWN_OUTPUT))
+    append_job_ledger_record(
+        ledger_path,
+        build_source_inventory_job_queued(context, ts=_utc_now()),
+    )
+    append_job_ledger_record(
+        ledger_path,
+        build_source_inventory_scan_started(context, ts=_utc_now()),
+    )
+    if errors:
+        append_job_ledger_record(
+            ledger_path,
+            build_source_inventory_job_failed(
+                context,
+                ts=_utc_now(),
+                reason_code="validation_failed",
+                error_code="source_inventory_check_failed",
+                error_class="InventoryError",
+                error_message="; ".join(errors),
+                recovery_instruction="Regenerate parser fixture inventory artifacts or inspect source fixtures.",
+            ),
+        )
+        return
+    append_job_ledger_record(
+        ledger_path,
+        build_source_inventory_built(
+            context,
+            ts=_utc_now(),
+            output_fingerprint=output_fingerprint,
+            produced_artifacts=produced_artifacts,
+            reason_code="inventory_reused" if check_mode else "inventory_built",
+        ),
+    )
+    append_job_ledger_record(
+        ledger_path,
+        build_source_inventory_artifact_written(
+            context,
+            ts=_utc_now(),
+            output_fingerprint=output_fingerprint,
+            produced_artifacts=produced_artifacts,
+            reason_code="artifact_fresh" if check_mode else "artifact_written",
+        ),
+    )
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -66,6 +158,13 @@ def main(argv: list[str] | None = None) -> int:
     manifest = make_parser_inventory_use_case().build_parser_fixture_inventory(root)
     if args.check:
         errors = check_outputs(root, manifest)
+        if args.ledger_jsonl is not None:
+            _append_inventory_ledger_events(
+                ledger_path=args.ledger_jsonl,
+                manifest=manifest,
+                check_mode=True,
+                errors=errors,
+            )
         print(json.dumps(observability_summary(manifest), ensure_ascii=False, sort_keys=True))
         if errors:
             for error in errors:
@@ -73,6 +172,13 @@ def main(argv: list[str] | None = None) -> int:
             return 1
         return 0
     write_outputs(root, manifest)
+    if args.ledger_jsonl is not None:
+        _append_inventory_ledger_events(
+            ledger_path=args.ledger_jsonl,
+            manifest=manifest,
+            check_mode=False,
+            errors=[],
+        )
     print(json.dumps(observability_summary(manifest), ensure_ascii=False, sort_keys=True))
     return 0 if manifest["status"] == "pass" else 1
 
@@ -101,6 +207,9 @@ __all__ = [
     "fixture_ok",
     "inspect_fixture",
     "inspect_odt",
+    "_append_inventory_ledger_events",
+    "_ledger_context",
+    "_sha256_json",
     "main",
     "observability_summary",
     "parse_args",
