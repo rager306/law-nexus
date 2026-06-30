@@ -189,6 +189,120 @@ proof_level: proposed | bounded | smoke | validated
 non_claims
 ```
 
+## Trace and logging guardrails
+
+A future reactive shell must be **traceable before it is concurrent**. Async without durable traces would make law-nexus harder to debug than the current deterministic scripts.
+
+### Logging principle
+
+Log **decisions and failure states**, not activity noise.
+
+Useful events answer questions a future debugger will ask:
+
+- why was this job dispatched, skipped, retried, blocked, or marked succeeded;
+- which source/artifact fingerprint drove the decision;
+- which proof level and lifecycle tag applied;
+- which non-claims were carried forward;
+- where the bounded output and diagnostics were written;
+- what failed, in which phase, and whether retry is safe.
+
+Avoid logs like “entered function X” or raw dumps of legal text, embeddings, model payloads, credentials, or provider responses.
+
+### Minimum trace event shape
+
+Future implementation events should be structured JSONL or equivalent records with stable fields:
+
+```text
+ts
+trace_id
+correlation_id
+job_id
+parent_job_id
+event_name
+component
+phase
+status_before
+status_after
+source_ref or artifact_ref
+input_fingerprint
+output_fingerprint
+attempt
+retryable
+proof_level: proposed | bounded | smoke | validated
+lifecycle_tag: proposed | bounded | smoke | validated | deferred
+reason_code
+message
+safe_details
+produced_artifacts
+error_code
+error_class
+redaction_applied
+non_claims
+```
+
+Field intent:
+
+- `trace_id` follows one external request, source-change event, or batch run.
+- `correlation_id` connects multiple jobs spawned by the same architecture operation.
+- `job_id` identifies one durable unit of work.
+- `input_fingerprint` and `output_fingerprint` prevent stale artifact confusion.
+- `reason_code` should be machine-readable (`source_hash_changed`, `artifact_fresh`, `validation_failed`, `retry_exhausted`).
+- `safe_details` must be bounded and secret-safe.
+
+### Required event families
+
+| Event family | Purpose | Example event names |
+|---|---|---|
+| Job lifecycle | Reconstruct job progression. | `job_queued`, `job_started`, `job_succeeded`, `job_failed`, `job_skipped`, `job_blocked` |
+| Decision events | Explain branch decisions. | `source_fingerprint_changed`, `artifact_freshness_checked`, `retry_scheduled`, `non_claims_attached` |
+| Failure events | Persist debuggable failure state. | `input_invalid`, `external_dependency_failed`, `write_conflict_detected`, `proof_gate_failed` |
+| Artifact events | Link jobs to durable outputs. | `artifact_written`, `artifact_reused`, `artifact_stale`, `diagnostics_written` |
+| Boundary events | Prevent proof/authority drift. | `proof_level_assigned`, `lifecycle_tag_assigned`, `claim_boundary_flagged` |
+
+### Failure-state requirements
+
+Every failed or blocked job must persist:
+
+- final phase;
+- safe input/artifact reference;
+- input fingerprint;
+- attempt count;
+- last error code;
+- bounded error message;
+- retryability decision and reason;
+- produced partial artifacts, if any;
+- cleanup/recovery instruction;
+- non-claims and proof-level tags.
+
+A failure without a persisted reason is invalid for future reactive work.
+
+### Redaction and portability rules
+
+Trace/log records must not contain:
+
+- credentials, tokens, environment secrets;
+- raw embeddings or unnecessary vector payloads;
+- unnecessary raw legal text;
+- full provider payloads;
+- ignored `.gsd/exec` proof anchors as durable source references;
+- absolute local paths when a repository-relative path is available.
+
+Use tracked repository-relative proof anchors and bounded excerpts/hashes. If a trace references legal/source evidence, it should point to tracked parser/source artifacts and source hashes, not duplicate large text.
+
+### Trace bundle expectation
+
+A future job-ledger implementation should be able to produce a compact trace bundle for one `trace_id` or `job_id` containing:
+
+1. job summary;
+2. lifecycle transition list;
+3. decision events;
+4. failure state, if any;
+5. produced artifacts;
+6. proof level and non-claims;
+7. command/runtime evidence pointers.
+
+This trace bundle is operational/debug evidence only. It must not be promoted into legal correctness, parser completeness, retrieval quality, or FalkorDB production proof.
+
 ## Decision recommendation
 
 Record an architecture decision to **not** perform an async-first rewrite now. Instead, adopt a bounded reactive shell later, one proofable seam at a time, after event vocabulary and job observability requirements are explicit.
