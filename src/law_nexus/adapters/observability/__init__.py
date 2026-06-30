@@ -8,7 +8,9 @@ from law_nexus.adapters.observability.job_ledger import (
     STATUS_VALUES,
     JobLedgerRecord,
     JobLedgerValidationError,
+    append_job_ledger_record,
     build_job_ledger_record,
+    serialize_job_ledger_record,
 )
 
 __all__ = [
@@ -17,5 +19,7 @@ __all__ = [
     "STATUS_VALUES",
     "JobLedgerRecord",
     "JobLedgerValidationError",
+    "append_job_ledger_record",
     "build_job_ledger_record",
+    "serialize_job_ledger_record",
 ]

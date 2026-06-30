@@ -7,7 +7,10 @@ correctness, or FalkorDB production readiness.
 
 from __future__ import annotations
 
+import json
+from collections.abc import Mapping
 from dataclasses import dataclass, field
+from pathlib import Path, PurePosixPath, PureWindowsPath
 from typing import Any, ClassVar
 
 SCHEMA_VERSION = "law-nexus-job-ledger/v1"
@@ -53,7 +56,14 @@ REQUEST_REASON_CODES = frozenset(
     }
 )
 FRESHNESS_REASON_CODES = frozenset(
-    {"source_hash_changed", "source_hash_unchanged", "artifact_fresh", "artifact_stale"}
+    {
+        "source_seen",
+        "source_hash_changed",
+        "source_hash_unchanged",
+        "artifact_written",
+        "artifact_fresh",
+        "artifact_stale",
+    }
 )
 SCOPE_REASON_CODES = frozenset(
     {"fixture_in_scope", "fixture_out_of_scope", "classification_unknown"}
@@ -104,6 +114,61 @@ JOB_TYPES_BY_EVENT_PREFIX = {
     "source_fixture_": "source_inventory",
     "parser_golden_": "parser_golden",
 }
+
+ALLOWED_STATUS_TRANSITIONS: Mapping[str | None, frozenset[str]] = {
+    None: frozenset({"queued"}),
+    "queued": frozenset({"running", "skipped"}),
+    "running": frozenset({"running", "succeeded", "failed", "blocked"}),
+    "failed": frozenset({"queued"}),
+    "blocked": frozenset({"queued"}),
+    "succeeded": frozenset(),
+    "skipped": frozenset(),
+}
+
+EVENT_REASON_CODES: Mapping[str, frozenset[str]] = {
+    "source_inventory_job_queued": REQUEST_REASON_CODES,
+    "source_inventory_scan_started": frozenset({"job_started"}),
+    "source_fixture_seen": frozenset(
+        {"source_seen", "source_hash_changed", "source_hash_unchanged"}
+    ),
+    "source_fixture_classified": SCOPE_REASON_CODES,
+    "source_inventory_built": frozenset({"inventory_built", "inventory_reused"}),
+    "source_inventory_artifact_written": frozenset(
+        {"artifact_written", "artifact_fresh", "artifact_stale"}
+    ),
+    "source_inventory_job_failed": FAILURE_REASON_CODES,
+    "parser_golden_job_queued": REQUEST_REASON_CODES,
+    "parser_golden_cases_built": frozenset(
+        {"cases_built", "cases_reused", "artifact_fresh", "artifact_stale"}
+    ),
+    "parser_golden_evaluation_started": frozenset({"job_started"}),
+    "parser_golden_case_evaluated": RESULT_REASON_CODES,
+    "parser_golden_diagnostics_written": frozenset({"diagnostics_written", "no_diagnostics"}),
+    "parser_golden_regression_detected": REGRESSION_REASON_CODES,
+    "parser_golden_job_failed": FAILURE_REASON_CODES,
+}
+
+UNSAFE_DETAIL_KEY_PARTS = frozenset(
+    {
+        "secret",
+        "token",
+        "password",
+        "credential",
+        "provider_payload",
+        "raw_legal_text",
+        "raw_embedding",
+        "embedding_vector",
+    }
+)
+UNSAFE_DETAIL_TEXT_MARKERS = frozenset(
+    {
+        "-----BEGIN",
+        "GIGACHAT_AUTH_DATA",
+        "OPENAI_API_KEY",
+        "provider_payload",
+        "raw_legal_text",
+    }
+)
 
 
 class JobLedgerValidationError(ValueError):
@@ -274,8 +339,16 @@ def validate_job_ledger_record(record: JobLedgerRecord) -> None:
         raise JobLedgerValidationError(f"unknown status_after: {record.status_after}")
     if record.status_before is not None and record.status_before not in STATUS_VALUES:
         raise JobLedgerValidationError(f"unknown status_before: {record.status_before}")
+    if record.status_after not in ALLOWED_STATUS_TRANSITIONS[record.status_before]:
+        raise JobLedgerValidationError(
+            f"invalid status transition: {record.status_before!r} -> {record.status_after!r}"
+        )
     if record.reason_code not in REASON_CODES:
         raise JobLedgerValidationError(f"unknown reason_code: {record.reason_code}")
+    if record.reason_code not in EVENT_REASON_CODES[record.event_name]:
+        raise JobLedgerValidationError(
+            f"reason_code {record.reason_code!r} is not valid for event {record.event_name!r}"
+        )
     if record.attempt < 0:
         raise JobLedgerValidationError("attempt must be non-negative")
     if record.redaction_applied is not True:
@@ -291,3 +364,63 @@ def validate_job_ledger_record(record: JobLedgerRecord) -> None:
     inferred_job_type = infer_job_type_from_event(record.event_name)
     if record.job_type is not None and record.job_type != inferred_job_type:
         raise JobLedgerValidationError("job_type does not match event family")
+    _validate_portable_ref(record.source_ref, field_name="source_ref")
+    _validate_portable_ref(record.artifact_ref, field_name="artifact_ref")
+    for artifact in record.produced_artifacts:
+        _validate_portable_ref(artifact, field_name="produced_artifacts")
+    _validate_safe_details(record.safe_details)
+
+
+def _validate_portable_ref(value: str, *, field_name: str) -> None:
+    if not value:
+        raise JobLedgerValidationError(f"{field_name} must not be empty")
+    if PurePosixPath(value).is_absolute() or PureWindowsPath(value).is_absolute():
+        raise JobLedgerValidationError(f"{field_name} must be repository-relative")
+    normalized = value.replace("\\", "/")
+    if normalized.startswith(".gsd/exec/"):
+        raise JobLedgerValidationError(f"{field_name} must not point at .gsd/exec")
+    if ".." in PurePosixPath(normalized).parts:
+        raise JobLedgerValidationError(f"{field_name} must not contain parent traversal")
+
+
+def _validate_safe_details(details: Mapping[str, Any]) -> None:
+    for key, value in details.items():
+        lowered_key = key.lower()
+        if any(part in lowered_key for part in UNSAFE_DETAIL_KEY_PARTS):
+            raise JobLedgerValidationError(f"unsafe safe_details key: {key}")
+        _validate_safe_detail_value(value, path=key)
+
+
+def _validate_safe_detail_value(value: Any, *, path: str) -> None:
+    if isinstance(value, str):
+        if any(marker in value for marker in UNSAFE_DETAIL_TEXT_MARKERS):
+            raise JobLedgerValidationError(f"unsafe safe_details value at {path}")
+        return
+    if isinstance(value, Mapping):
+        _validate_safe_details(value)
+        return
+    if isinstance(value, list | tuple):
+        for index, item in enumerate(value):
+            _validate_safe_detail_value(item, path=f"{path}[{index}]")
+        return
+    try:
+        json.dumps(value)
+    except TypeError as exc:
+        raise JobLedgerValidationError(f"safe_details value at {path} is not JSON-safe") from exc
+
+
+def serialize_job_ledger_record(record: JobLedgerRecord) -> str:
+    """Serialize a validated record as one deterministic JSONL line."""
+    return json.dumps(
+        record.to_dict(),
+        ensure_ascii=False,
+        sort_keys=True,
+        separators=(",", ":"),
+    ) + "\n"
+
+
+def append_job_ledger_record(path: Path, record: JobLedgerRecord) -> None:
+    """Append one validated job ledger record to a local JSONL file."""
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with path.open("a", encoding="utf-8") as ledger_file:
+        ledger_file.write(serialize_job_ledger_record(record))
