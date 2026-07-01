@@ -231,6 +231,19 @@ The next repair milestone should not attempt all clusters at once. Recommended o
 - Retrieval corpus/provenance: passing tests prove fixture/provenance contract consistency only, not production retrieval quality.
 - Runtime metrics: passing tests prove bounded local runtime evidence only, not production scale or external API readiness.
 
+## S09 final measured status
+
+**Evidence:** `gsd_uat_exec:684fb484-e730-4251-b71f-1ecc877b2718`
+
+Final M085 measurement confirms:
+
+- full pytest still fails with 53 failures;
+- full ruff now passes;
+- `basedpyright src/law_nexus` passes;
+- `uv run lint-imports` passes.
+
+Therefore the next milestone should start with R1 architecture views reviewed refresh or another explicit repair wave from the table above. M085 must close as triage/remediation-order work, not as full health repair.
+
 ## Non-claims
 
 This roadmap does not prove full-suite health, legal correctness, parser completeness, retrieval quality, FalkorDB production readiness, generated-Cypher correctness, or ACP/git-lex source-truth authority.

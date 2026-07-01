@@ -53,6 +53,21 @@ GitNexus query results grouped current failures into separate process families:
 
 Use exact symbol/context queries before editing any function/class in later slices.
 
+## S09 final measured status
+
+**Evidence:** `gsd_uat_exec:684fb484-e730-4251-b71f-1ecc877b2718`
+
+After S02 lint hygiene and S03-S08 classification, the final measured state is:
+
+| Gate | Result | Notes |
+|---|---:|---|
+| Full pytest | FAIL | 53 failures remain, matching the baseline cluster count. |
+| Full ruff | PASS | `uv run ruff check src/law_nexus scripts tests` passes. |
+| Package type check | PASS | `uv run basedpyright src/law_nexus` passes. |
+| Import-linter | PASS | Onion contracts kept. |
+
+M085 improved lint signal and produced a remediation roadmap, but did not repair full-suite proof/freshness failures.
+
 ## Non-claims
 
 This baseline does **not** claim the full repository is green. It does **not** validate legal correctness, parser completeness, retrieval quality, FalkorDB production readiness, generated-Cypher correctness, ACP/git-lex source-truth authority, or product readiness.
