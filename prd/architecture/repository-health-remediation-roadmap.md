@@ -166,13 +166,46 @@ Targeted Consultant/source run produced 3 failures, all in `tests/test_consultan
   4. rerun `uv run pytest tests/test_consultant_hierarchy_prior_art_comparison.py -q`.
 - **Do not:** treat Old_project or prior-art comparison output as keep-as-is implementation authority.
 
+## S07 project state and environment classification
+
+**Evidence:** `gsd_uat_exec:e1da475b-6a8e-4aa0-98b9-604d3c61c63b`
+
+### Failing test clusters
+
+Targeted project-state/environment run produced 9 failures:
+
+| Count | Test file | Initial classification |
+|---:|---|---|
+| 2 | `tests/test_project_state_roadmap_freshness.py` | Stale GSD roadmap/current milestone projection. |
+| 1 | `tests/test_probe_s10_embedding_runtime_env.py` | Environment/package probe classification drift. |
+| 1 | `tests/test_s04_tooling.py` | Tooling/metadata discovery drift. |
+| 1 | `tests/test_verify_m049_binding.py` | Historical proof binding artifact freshness. |
+| 1 | `tests/test_verify_m056_acp_kit.py` | ACP kit scaffold/proof freshness. |
+| 1 | `tests/test_verify_m065_s02_release_install.py` | Release/install proof state drift. |
+| 1 | `tests/test_verify_m065_s03_workflow_proof.py` | Workflow proof state drift. |
+| 1 | `tests/test_verify_m065_s04_stage2_closure.py` | Stage2 closure proof state drift; prior verifier failure noted. |
+
+### Classification
+
+The primary state failure is stale GSD roadmap/current milestone projection.
+
+- **Likely cause:** stale generated GSD/roadmap projection plus environment-sensitive/historical proof verifiers that depend on earlier milestone artifacts.
+- **Risk:** medium. Manual edits to `.gsd/STATE.md` or roadmap projections can create new drift. DB-backed GSD tools are the safer source for current milestone status.
+- **Recommended remediation:** separate state/projection repair slice:
+  1. use DB-backed GSD tools to confirm current milestone statuses;
+  2. identify which projection generator owns ROADMAP/STATE freshness;
+  3. refresh generated projections through GSD-supported commands/tools only;
+  4. repair environment-sensitive tests only after confirming current host/package expectations;
+  5. rerun targeted state/env proof tests.
+- **Do not:** manually edit system-managed `.gsd/STATE.md`; do not treat historical M049/M056/M065 proof artifacts as current product proof without re-verification.
+
 ## Remediation order draft
 
 1. Architecture views refresh after diff review.
 2. Retrieval/provenance proof fixture classification and targeted refresh. **S04 complete: classify as high-risk proof fixture/runtime drift.**
 3. ACP/git-lex diagnostic adapter classification and boundary repair. **S05 complete: classify as diagnostic schema/boundary drift.**
 4. Consultant hierarchy/source artifact classification. **S06 complete: classify as prior-art comparison freshness/boundary drift.**
-5. Project state/environment freshness classification.
+5. Project state/environment freshness classification. **S07 complete: classify as stale projection/environment proof drift.**
 6. Final full-suite rerun and split remaining failures into repair milestones.
 
 ## Non-claims
