@@ -387,7 +387,7 @@ def test_contract_rejects_overclaims_and_forbidden_persistence_language() -> Non
         if token in {".gsd/exec", ".planning/", ".audits/"}:
             assert f"`{token}`" in text
             assert f"{token} outputs" not in text
-            assert f"{token} references" in text or f"must not read `.gsd/`, `.planning/`, `.audits/`" in text
+            assert f"{token} references" in text or "must not read `.gsd/`, `.planning/`, `.audits/`" in text
         else:
             assert token not in text
 

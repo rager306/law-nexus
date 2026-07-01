@@ -1,11 +1,7 @@
 from __future__ import annotations
 
 import json
-import xml.etree.ElementTree as ET
-import zipfile
 from pathlib import Path
-
-import pytest
 
 from law_nexus.adapters.parsers.consultant_wordml import (
     ConsultantWordMLParser,

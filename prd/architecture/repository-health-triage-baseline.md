@@ -57,9 +57,15 @@ Use exact symbol/context queries before editing any function/class in later slic
 
 This baseline does **not** claim the full repository is green. It does **not** validate legal correctness, parser completeness, retrieval quality, FalkorDB production readiness, generated-Cypher correctness, ACP/git-lex source-truth authority, or product readiness.
 
+## S02 lint hygiene outcome
+
+**Evidence:** `gsd_uat_exec:b6266c16-257e-4184-b0fc-fc4f1a4bfdc7`
+
+S02 applied safe ruff hygiene to test files only. Full ruff now passes for `src/law_nexus`, `scripts`, and `tests`. Focused pytest over touched files still reports 12 failures: 8 architecture analysis view failures plus one each in real artifact retrieval, M049 binding, M056 ACP kit, and M065 S04 stage2 closure. These are treated as pre-existing proof/freshness clusters for later classification, not lint regressions.
+
 ## Initial remediation ordering hypothesis
 
-1. Safe lint hygiene in tests, with proof-boundary text guarded.
+1. Safe lint hygiene in tests, with proof-boundary text guarded. **S02 complete: full ruff passes.**
 2. Architecture views freshness classification before artifact regeneration.
 3. Retrieval/provenance fixture classification before proof artifact updates.
 4. ACP/git-lex diagnostic classification while preserving no-main-mutation boundaries.

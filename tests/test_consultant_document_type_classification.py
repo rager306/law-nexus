@@ -95,7 +95,7 @@ def test_per_variant_classification_real_fixtures() -> None:
         "lower_court_ruling",
         "antimonopoly_decision",
         "document_list",
-    }, f"no real fixture for variants: missing"
+    }, "no real fixture for variants: missing"
 
 
 def test_federal_law_real_fixture() -> None:

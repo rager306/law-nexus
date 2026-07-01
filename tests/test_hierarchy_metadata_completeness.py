@@ -6,8 +6,6 @@ import re
 from collections import Counter
 from pathlib import Path
 
-import pytest
-
 ROOT = Path(__file__).resolve().parents[1]
 JSONL_PATH = ROOT / "prd" / "parser" / "consultant_hierarchy_records.jsonl"
 JSON_PATH = ROOT / "prd" / "parser" / "consultant_hierarchy_records.json"

@@ -2,7 +2,6 @@ import json
 import re
 from pathlib import Path
 
-
 AUDIT_PATH = Path("prd/research/ontology_architecture_requirements/06-r035-evidence-audit.md")
 INTEGRATION_PLAN_PATH = Path(
     "prd/research/ontology_architecture_requirements/05-registry-integration-plan.md"

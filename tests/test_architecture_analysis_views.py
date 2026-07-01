@@ -12,8 +12,6 @@ import sys
 from pathlib import Path
 from types import ModuleType
 
-import pytest
-
 ROOT = Path(__file__).resolve().parents[1]
 GENERATE_SCRIPT_PATH = ROOT / "scripts/generate-architecture-views.py"
 REPORT_JSON_PATH = ROOT / "prd/architecture/architecture_graph_report.json"
@@ -193,7 +191,7 @@ def test_high_risk_count_matches_report() -> None:
 
     content = HEALTH_MD_PATH.read_text(encoding="utf-8")
     expected_line = f"| High/Critical Risk Nodes | {len(high_risk_nodes)} ({critical_count} critical, {high_count} high) |"
-    assert expected_line in content, f"Expected risk count line in Quick Stats"
+    assert expected_line in content, "Expected risk count line in Quick Stats"
 
 
 def test_health_dashboard_surfaces_r034_validator_proof_and_open_gates() -> None:
@@ -1304,9 +1302,6 @@ def test_claims_ledger_does_not_claim_falkordb_production_scale() -> None:
     """Claims ledger must NOT claim FalkorDB is production-scale."""
     content = _load_claims_content()
     content_lower = content.lower()
-    overclaims = [
-        "production-scale falkordb",  # "No production-scale FalkorDB claim" is fine; "is production-scale" is not
-    ]
     # Check for the affirmative form only (not the non-claim "No production-scale")
     assert "is production-scale falkordb" not in content_lower
     assert "falkordb is production" not in content_lower
