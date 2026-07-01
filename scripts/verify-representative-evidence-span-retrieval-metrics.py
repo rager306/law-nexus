@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import subprocess
 import sys
 from collections.abc import Mapping, Sequence
@@ -130,6 +131,24 @@ def run_json_command(command: Sequence[str], timeout_seconds: int) -> tuple[int,
 def verify_fixture(path: Path, timeout_seconds: int) -> dict[str, Any]:
     exit_code, payload = run_json_command([sys.executable, str(FIXTURE_VERIFIER), "--fixture", str(path)], timeout_seconds)
     if exit_code != 0 or payload.get("status") != "ok":
+        # Optional diagnostics for R2 S01 triage (no-op when REPRESENTATIVE_DEBUG is unset).
+        # Does NOT alter contract: same MetricsError("representative_fixture_verifier_failed")
+        # is raised in both modes; only the stderr payload differs.
+        if os.environ.get("REPRESENTATIVE_DEBUG"):
+            print(
+                f"[representative-debug] verify_fixture exit_code={exit_code}",
+                file=sys.stderr,
+            )
+            if isinstance(payload, dict):
+                print(
+                    "[representative-debug] payload=" + json.dumps(payload, sort_keys=True),
+                    file=sys.stderr,
+                )
+            else:
+                print(
+                    f"[representative-debug] payload={type(payload).__name__}({payload!r})",
+                    file=sys.stderr,
+                )
         raise MetricsError("representative_fixture_verifier_failed")
     return payload
 

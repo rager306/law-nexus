@@ -9,17 +9,17 @@
 
 | Metric | Count |
 | --- | ---: |
-| Total Nodes | 58 |
-| Total Edges | 91 |
+| Total Nodes | 63 |
+| Total Edges | 98 |
 | Schema Layers | 11 |
 | Missing Layers | 0 |
 | Invalid Layer Records | 0 |
 | Unresolved Proof Gates | 7 |
 | Orphan Findings | 0 |
 | Contradiction Edges | 0 |
-| High/Critical Risk Nodes | 42 (5 critical, 37 high) |
-| Nodes with Non-Claims | 58 |
-| Total Non-Claims | 294 |
+| High/Critical Risk Nodes | 43 (5 critical, 38 high) |
+| Nodes with Non-Claims | 63 |
+| Total Non-Claims | 344 |
 
 ---
 
@@ -30,8 +30,8 @@ Priority and gate rows below are compact triage metadata only. They do not promo
 | Bucket | Diagnostic Class | Count |
 | --- | --- | ---: |
 | P0 | critical-gate | 8 |
-| P1 | high-priority-blocker | 36 |
-| P2 | medium-diagnostic | 13 |
+| P1 | high-priority-blocker | 37 |
+| P2 | medium-diagnostic | 17 |
 | P3 | backlog-only-signal | 1 |
 
 ### Critical Blockers
@@ -44,6 +44,7 @@ Priority and gate rows below are compact triage metadata only. They do not promo
 
 | ID | Status | Proof Level | Remediation Class |
 | --- | --- | --- | --- |
+| `ACP-AHF-0001` | blocked | static-check | add-evidence-class |
 | `GATE-AKOMA-FRBR-NORMALIZATION` | proposed | source-anchor | add-evidence-class |
 | `GATE-EMBEDDING-SUPPLY-CHAIN` | active | none | add-proof-gate |
 | `GATE-G005` | active | none | add-proof-gate |
@@ -53,12 +54,13 @@ Priority and gate rows below are compact triage metadata only. They do not promo
 | `GATE-LEGAL-NEXUS-ACCESS-CONTROL` | active | none | add-proof-gate |
 | `GATE-LKIF-DEONTIC-BENCHMARK` | proposed | source-anchor | add-evidence-class |
 | `GATE-ONTOLOGY-GRAPHRAG-INTEGRATION` | proposed | source-anchor | add-evidence-class |
-| `GATE-PILOT-SCALE-READINESS` | proposed | source-anchor | add-evidence-class |
 
 ### Deferred Candidates
 
 | ID | Priority | Status | Safe Handling |
 | --- | --- | --- | --- |
+| `ACP-AP-0001` | P2 / medium-diagnostic | proposed | defer-to-backlog |
+| `ACP-DC-0001` | P2 / medium-diagnostic | proposed | defer-to-backlog |
 | `GATE-AKOMA-FRBR-NORMALIZATION` | P1 / high-priority-blocker | proposed | defer-to-backlog |
 | `GATE-BFO-GOST-ALIGNMENT` | P2 / medium-diagnostic | proposed | defer-to-backlog |
 | `GATE-LEGAL-COLLISION-POLICY` | P1 / high-priority-blocker | proposed | defer-to-backlog |
@@ -69,7 +71,7 @@ Priority and gate rows below are compact triage metadata only. They do not promo
 
 ### Non-Authoritative Warnings
 
-- Non-claim statements visible in registry: 294.
+- Non-claim statements visible in registry: 344.
 - Reports must not include raw legal text, secrets, provider payloads, vectors, prompts, or local-only execution artifact paths.
 - A passing generated view check is not product/runtime/legal validation.
 
@@ -80,7 +82,7 @@ Priority and gate rows below are compact triage metadata only. They do not promo
 | Layer | Node Count |
 | --- | ---: |
 | api-product  | 1 |
-| architecture-governance  | 9 |
+| architecture-governance  | 14 |
 | generated-cypher  | 2 |
 | graph-runtime  | 2 |
 | legal-evidence  | 7 |
@@ -115,6 +117,7 @@ Every defined schema layer has at least one architecture record.
 
 | ID | Risk | Type | Layer | Status | Proof Level |
 | --- | --- | --- | --- | --- | --- |
+| ACP-AHF-0001 | high | health_finding | architecture-governance | blocked | static-check |
 | ASSUMP-PRD-SOURCE-TRUTH | high | assumption | architecture-governance | active | source-anchor |
 | CHECK-ARCHITECTURE-EXTRACTOR | high | workflow_check | workflow-governance | active | static-check |
 | COMP-LEGAL-NEXUS-ORCHESTRATOR | high | component | api-product | active | source-anchor |
@@ -166,6 +169,7 @@ This architecture graph and derived reports **do not** establish or validate:
 
 | Non-Claim |
 | --- |
+| Decision candidate is not accepted architecture doctrine. |
 | Does not allow managed embedding API fallback. |
 | Does not assert BFO conformance. |
 | Does not assert Common Logic necessity or OWL reasoning support. |
@@ -199,6 +203,7 @@ This architecture graph and derived reports **do not** establish or validate:
 | Does not promote any embedding model to product default. |
 | Does not prove Consultant relation correctness. |
 | Does not prove FalkorDB graph-vector/runtime capability. |
+| Does not prove FalkorDB ingestion or runtime loading. |
 | Does not prove FalkorDB loading/runtime behavior. |
 | Does not prove FalkorDB production-scale behavior. |
 | Does not prove FalkorDB runtime/vector/full-text/rerank behavior. |
@@ -219,8 +224,10 @@ This architecture graph and derived reports **do not** establish or validate:
 | Does not prove court interpretation correctness. |
 | Does not prove export compatibility. |
 | Does not prove extraction precision or recall. |
+| Does not prove graph-vector retrieval quality. |
 | Does not prove implementation readiness. |
 | Does not prove import runtime behavior. |
+| Does not prove independent external review. |
 | Does not prove legal correctness. |
 | Does not prove legal-answer correctness. |
 | Does not prove local embedding quality. |
@@ -240,6 +247,7 @@ This architecture graph and derived reports **do not** establish or validate:
 | Does not prove production graph schema readiness. |
 | Does not prove production observability. |
 | Does not prove production ranker quality. |
+| Does not prove production readiness. |
 | Does not prove production scale. |
 | Does not prove production-scale FalkorDB claim. |
 | Does not prove provider generation quality. |
@@ -250,10 +258,14 @@ This architecture graph and derived reports **do not** establish or validate:
 | Does not replace project-local LegalGraph core contracts. |
 | Does not require replacing current parser record contracts. |
 | Does not specify temporal storage implementation. |
+| Does not validate R035. |
+| Does not validate R037. |
+| Does not validate R038. |
 | Does not validate benchmark, cost, or latency claims. |
 | Does not validate same-date conflict policy. |
 | Does not validate temporal conflict resolution. |
 | Extractor check is not product runtime proof. |
+| Health finding is a governance blocker, not product readiness evidence. |
 | JSONL and GraphML are not source-of-truth replacements. |
 | No KnowQL parser. |
 | No LLM legal authority claim. |
@@ -281,6 +293,9 @@ This architecture graph and derived reports **do not** establish or validate:
 | No raw provider body persistence claim. |
 | Planning alias GATE-1000-DOC-PILOT is not emitted as an authoritative gate. |
 | Planning alias GATE-DEONTIC-MAPPING-PROOF is not emitted as an authoritative gate. |
+| Prompt provenance is not implementation proof. |
+| Proof gate fixture does not satisfy the gated product claim. |
+| Proposal is not an accepted architecture decision. |
 | Risk item does not assert current product failure. |
 | The skill is guidance, not a source of truth. |
 
@@ -298,6 +313,7 @@ No orphan findings.
 | Size | Node Count |
 | --- | ---: |
 | 54 | 54 |
+| 5 | 5 |
 | 4 | 4 |
 
 ---
