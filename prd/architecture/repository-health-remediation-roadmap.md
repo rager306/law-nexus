@@ -58,10 +58,49 @@ The stale dashboard is also missing expected high-risk node content such as `ACP
   5. rerun `uv run pytest tests/test_architecture_analysis_views.py -q`.
 - **Do not:** treat refreshed architecture views as product/runtime/legal proof; they remain derived diagnostics.
 
+## S04 retrieval and provenance classification
+
+**Evidence:** `gsd_uat_exec:42da1cc9-6332-42e8-94f7-b8b4b409bc0f`
+
+### Failing test clusters
+
+Targeted retrieval/provenance run produced 26 failures:
+
+| Count | Test file | Initial classification |
+|---:|---|---|
+| 8 | `tests/test_observed_retrieval_output_metrics.py` | Observed retrieval output metrics proof harness drift. |
+| 5 | `tests/test_representative_evidence_span_retrieval_corpus.py` | Representative EvidenceSpan corpus fixture/schema/reference drift. |
+| 5 | `tests/test_representative_evidence_span_retrieval_metrics.py` | Representative EvidenceSpan runtime metric proof drift. |
+| 3 | `tests/test_observed_retrieval_provenance.py` | Observed retrieval provenance manifest/source-record drift. |
+| 2 | `tests/test_representative_retrieval_runtime_benchmark_cli.py` | Runtime benchmark CLI/report safety drift. |
+| 1 | `tests/test_real_artifact_retrieval_cases.py` | Real artifact retrieval case shape/namespace drift. |
+| 1 | `tests/test_graph_filtered_retrieval_integration.py` | Graph-filtered retrieval integration proof boundary. |
+| 1 | `tests/test_held_out_semantic_descriptor_ablation.py` | Held-out semantic descriptor CLI/report drift. |
+
+### Mapped scripts and artifacts
+
+| Area | Likely scripts/artifacts |
+|---|---|
+| Observed retrieval output/provenance | `scripts/verify-observed-retrieval-provenance.py`, `scripts/verify-observed-retrieval-proof.py`, observed retrieval proof fixtures/reports under `prd/retrieval/` |
+| Representative EvidenceSpan corpus | `prd/retrieval/fixtures/representative_retrieval_corpus_manifest.json`, `scripts/build-representative-retrieval-corpus.py`, representative corpus markdown/JSON reports |
+| Representative runtime benchmark | `scripts/verify-representative-retrieval-runtime-benchmark.py`, representative runtime report artifacts |
+| Real artifact retrieval cases | `scripts/build-real-artifact-retrieval-cases.py`, real artifact retrieval fixture artifacts |
+| Graph-filtered retrieval integration | `scripts/verify-graph-filtered-retrieval-integration.py`, graph-filtered proof artifact |
+| Semantic descriptor ablation | semantic descriptor scoring/ablation scripts and reports |
+
+### Classification
+
+- **Likely cause:** a mix of stale retrieval proof fixtures, stricter safety/provenance validators, source-manifest drift, and environment/runtime proof assumptions.
+- **Risk:** high for overclaiming. These failures are close to retrieval quality/provenance proof boundaries and must not be repaired by loosening validators or promoting generated reports.
+- **Recommended remediation:** split into at least two future repair slices:
+  1. representative corpus/provenance fixture repair with strict source-record and safe-payload checks;
+  2. runtime metrics/report repair with managed-API and raw-vector non-claims preserved.
+- **Do not:** treat passing synthetic/representative retrieval tests as production retrieval quality or legal-answer correctness.
+
 ## Remediation order draft
 
 1. Architecture views refresh after diff review.
-2. Retrieval/provenance proof fixture classification and targeted refresh.
+2. Retrieval/provenance proof fixture classification and targeted refresh. **S04 complete: classify as high-risk proof fixture/runtime drift.**
 3. ACP/git-lex diagnostic adapter classification and boundary repair.
 4. Consultant hierarchy/source artifact classification.
 5. Project state/environment freshness classification.
