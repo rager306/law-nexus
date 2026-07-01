@@ -97,11 +97,45 @@ Targeted retrieval/provenance run produced 26 failures:
   2. runtime metrics/report repair with managed-API and raw-vector non-claims preserved.
 - **Do not:** treat passing synthetic/representative retrieval tests as production retrieval quality or legal-answer correctness.
 
+## S05 ACP/git-lex diagnostic classification
+
+**Evidence:** `gsd_uat_exec:2a37da4b-5882-407a-836d-a64a68825d1e`
+
+### Failing test clusters
+
+Targeted ACP/git-lex run produced 7 failures:
+
+| Count | Test file | Initial classification |
+|---:|---|---|
+| 5 | `tests/test_git_lex_diagnostic_adapter.py` | Diagnostic adapter JSON/classification contract drift. |
+| 1 | `tests/test_acp_git_lex_backend.py` | ACP backend denied-command JSON surface drift. |
+| 1 | `tests/test_m048_s04_git_lex_isolated_fixtures.py` | Isolated fixture negative-boundary drift. |
+
+### Mapped scripts and artifacts
+
+| Area | Likely scripts/artifacts |
+|---|---|
+| Diagnostic adapter | `scripts/git_lex_diagnostic_adapter.py`, `tests/test_git_lex_diagnostic_adapter.py` |
+| ACP git-lex backend | ACP/git-lex backend tests and `.lex` projection fixtures |
+| M048 isolated fixtures | `prd/architecture/acp/fixtures/git-lex-isolated-proof`, `tests/test_m048_s04_git_lex_isolated_fixtures.py` |
+| GitNexus process evidence | `Main -> Main_state`, `Main -> Is_inside_main_repo`, `Run_negative_case -> Main_residue_paths` |
+
+### Classification
+
+- **Likely cause:** diagnostic schema/classification expectations drifted around denied commands, main-repo blocking, missing expected inputs, bounded query IDs, and validation-overclaim negative cases.
+- **Risk:** medium/high. Repairs must preserve D098 and ACP/git-lex boundaries: checkpoint/diagnostic only, no main-repo mutation, no ACP/git-lex source-truth promotion.
+- **Recommended remediation:** dedicated ACP/git-lex diagnostic repair slice:
+  1. inspect `scripts/git_lex_diagnostic_adapter.py` with exact GitNexus impact before edits;
+  2. repair wrapper classification/schema output or test fixture expectations, whichever is actually stale;
+  3. rerun targeted ACP/git-lex tests;
+  4. verify no `.lex` main mutation and no validation-overclaim language.
+- **Do not:** run blind `git lex init`, mutate main `.lex` state, or treat git-lex/ACP projections as authoritative product proof.
+
 ## Remediation order draft
 
 1. Architecture views refresh after diff review.
 2. Retrieval/provenance proof fixture classification and targeted refresh. **S04 complete: classify as high-risk proof fixture/runtime drift.**
-3. ACP/git-lex diagnostic adapter classification and boundary repair.
+3. ACP/git-lex diagnostic adapter classification and boundary repair. **S05 complete: classify as diagnostic schema/boundary drift.**
 4. Consultant hierarchy/source artifact classification.
 5. Project state/environment freshness classification.
 6. Final full-suite rerun and split remaining failures into repair milestones.
