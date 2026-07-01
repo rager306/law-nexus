@@ -208,6 +208,29 @@ The primary state failure is stale GSD roadmap/current milestone projection.
 5. Project state/environment freshness classification. **S07 complete: classify as stale projection/environment proof drift.**
 6. Final full-suite rerun and split remaining failures into repair milestones.
 
+## Follow-on remediation wave proposal
+
+The next repair milestone should not attempt all clusters at once. Recommended order:
+
+| Future wave | Goal | Owner files/scripts/tests | Depends on | Stop condition |
+|---|---|---|---|---|
+| R1 Architecture views reviewed refresh | Regenerate architecture dashboard/claims/blockers after diff review. | `scripts/generate-architecture-views.py`; `prd/architecture/architecture_health.md`; `architecture_claims_ledger.md`; `architecture_blockers.md`; `tests/test_architecture_analysis_views.py` | M085 S03 | Stop if regenerated diff introduces lifecycle/proof overclaims or changes source-truth assumptions. |
+| R2 ACP/git-lex diagnostic repair | Restore diagnostic adapter/backend negative boundary tests. | `scripts/git_lex_diagnostic_adapter.py`; `tests/test_git_lex_diagnostic_adapter.py`; `tests/test_acp_git_lex_backend.py`; `tests/test_m048_s04_git_lex_isolated_fixtures.py` | M085 S05 | Stop if repair requires main `.lex` mutation or ACP/git-lex authority promotion. |
+| R3 Consultant prior-art freshness repair | Refresh/repair Consultant prior-art comparison artifacts with correct hierarchy check mode. | `scripts/compare-consultant-hierarchy-prior-art.py`; `prd/parser/consultant_hierarchy_prior_art_comparison.*`; `prd/parser/consultant_prior_art_expectations.json`; `tests/test_consultant_hierarchy_prior_art_comparison.py` | M085 S06 | Stop if repair treats Old_project/prior art as source truth or requires non-corpus hierarchy mode for committed artifacts. |
+| R4 Project state/projection repair | Regenerate or reconcile GSD/roadmap projections through supported tools. | GSD DB-backed tools; roadmap/state projection tests; `tests/test_project_state_roadmap_freshness.py` | M085 S07 | Stop if the only path is manual `.gsd/STATE.md` editing. |
+| R5 Retrieval corpus/provenance repair | Repair representative/observed retrieval corpus and provenance fixtures. | representative/observed retrieval tests, manifests, source-record refs, safe-payload validators | M085 S04 | Stop if repair weakens provenance/safe-payload validators or claims production retrieval quality. |
+| R6 Retrieval runtime metrics/report repair | Repair runtime report/metrics proof harnesses after corpus/provenance stabilizes. | runtime benchmark CLI/tests, observed/representative metrics reports | R5 | Stop if runtime cannot be confirmed locally or requires managed API/GigaChat path. |
+| R7 Full health consolidation | Rerun full pytest/ruff/type/import/GitNexus and split remaining failures. | full test suite and health baseline docs | R1-R6 | Stop when remaining failures are either zero or each has a separate bounded milestone. |
+
+## Cluster stop conditions and non-claims
+
+- Architecture views: passing tests prove derived report freshness only, not legal/product/runtime correctness.
+- ACP/git-lex: passing tests prove diagnostic adapter behavior only, not ACP/git-lex source-truth authority.
+- Consultant prior-art: passing tests prove prior-art comparison artifact consistency only, not Old_project trust or Garant parity.
+- GSD projection: passing tests prove projection freshness only, not product milestone correctness beyond DB-backed GSD state.
+- Retrieval corpus/provenance: passing tests prove fixture/provenance contract consistency only, not production retrieval quality.
+- Runtime metrics: passing tests prove bounded local runtime evidence only, not production scale or external API readiness.
+
 ## Non-claims
 
 This roadmap does not prove full-suite health, legal correctness, parser completeness, retrieval quality, FalkorDB production readiness, generated-Cypher correctness, or ACP/git-lex source-truth authority.
