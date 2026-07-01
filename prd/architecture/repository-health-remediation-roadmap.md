@@ -131,12 +131,47 @@ Targeted ACP/git-lex run produced 7 failures:
   4. verify no `.lex` main mutation and no validation-overclaim language.
 - **Do not:** run blind `git lex init`, mutate main `.lex` state, or treat git-lex/ACP projections as authoritative product proof.
 
+## S06 Consultant and source artifact classification
+
+**Evidence:** `gsd_uat_exec:31d613ac-ef75-4377-9c6d-33e51b2102c4`
+
+### Failing test clusters
+
+Targeted Consultant/source run produced 3 failures, all in `tests/test_consultant_hierarchy_prior_art_comparison.py`:
+
+1. `test_cli_check_reports_fresh_artifacts_without_blocking_on_needs_review`
+2. `test_generator_build_is_deterministic_against_artifacts`
+3. `test_compare_blocks_major_structure_parent_breakage`
+
+### Mapped scripts and artifacts
+
+| Role | Path |
+|---|---|
+| Prior-art comparison script | `scripts/compare-consultant-hierarchy-prior-art.py` |
+| Test | `tests/test_consultant_hierarchy_prior_art_comparison.py` |
+| JSON artifact | `prd/parser/consultant_hierarchy_prior_art_comparison.json` |
+| Markdown report | `prd/parser/consultant_hierarchy_prior_art_comparison.md` |
+| Expectations | `prd/parser/consultant_prior_art_expectations.json` |
+| Related hierarchy generator | `scripts/build-consultant-hierarchy-records.py` |
+
+### Classification
+
+- **Likely cause:** Consultant hierarchy prior-art comparison artifacts or expectations are stale relative to script logic/current hierarchy records, or the check path is now stricter around `needs_review`/parent breakage diagnostics.
+- **Risk:** medium. Prior-art is explicitly not trusted implementation; repairs must not promote Old_project/Consultant assumptions as product truth or Garant ODT parity.
+- **Known command gotcha:** for committed Consultant hierarchy records, use corpus mode (`uv run python scripts/build-consultant-hierarchy-records.py --corpus --check`) rather than legacy single-fixture `--check`.
+- **Recommended remediation:** dedicated Consultant prior-art freshness repair slice:
+  1. run `uv run python scripts/compare-consultant-hierarchy-prior-art.py --check` and inspect failure output;
+  2. verify related hierarchy artifacts with the correct corpus-mode command;
+  3. refresh prior-art comparison artifacts only after reviewing diffs and confirming no Old_project/source-truth overclaim;
+  4. rerun `uv run pytest tests/test_consultant_hierarchy_prior_art_comparison.py -q`.
+- **Do not:** treat Old_project or prior-art comparison output as keep-as-is implementation authority.
+
 ## Remediation order draft
 
 1. Architecture views refresh after diff review.
 2. Retrieval/provenance proof fixture classification and targeted refresh. **S04 complete: classify as high-risk proof fixture/runtime drift.**
 3. ACP/git-lex diagnostic adapter classification and boundary repair. **S05 complete: classify as diagnostic schema/boundary drift.**
-4. Consultant hierarchy/source artifact classification.
+4. Consultant hierarchy/source artifact classification. **S06 complete: classify as prior-art comparison freshness/boundary drift.**
 5. Project state/environment freshness classification.
 6. Final full-suite rerun and split remaining failures into repair milestones.
 
