@@ -19,12 +19,12 @@ from typing import Any, Literal, Mapping, cast
 
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_RECOMMENDATION = ROOT / "prd/08_m003_minimax_pyo3_functioning_proof.md"
-DEFAULT_CLOSURE = ROOT / ".gsd/milestones/M003/slices/S05/S05-R017-PROOF-CLOSURE.json"
+DEFAULT_CLOSURE = ROOT / "prd/milestone_proofs/M003_S05_R017-PROOF-CLOSURE.json"
 DEFAULT_UPSTREAM_PATHS = {
-    "S01": ROOT / ".gsd/milestones/M003/slices/S01/S01-MINIMAX-LIVE-BASELINE.json",
-    "S02": ROOT / ".gsd/milestones/M003/slices/S02/S02-MINIMAX-PYO3-ENDPOINT.json",
-    "S03": ROOT / ".gsd/milestones/M003/slices/S03/S03-REASONING-SAFE-CANDIDATE.json",
-    "S04": ROOT / ".gsd/milestones/M003/slices/S04/S04-VALIDATION-READONLY-EXECUTION.json",
+    "S01": ROOT / "prd/milestone_proofs/M003_S01_MINIMAX-LIVE-BASELINE.json",
+    "S02": ROOT / "prd/milestone_proofs/M003_S02_MINIMAX-PYO3-ENDPOINT.json",
+    "S03": ROOT / "prd/milestone_proofs/M003_S03_REASONING-SAFE-CANDIDATE.json",
+    "S04": ROOT / "prd/milestone_proofs/M003_S04_VALIDATION-READONLY-EXECUTION.json",
 }
 
 RecommendationCategory = Literal[

@@ -1,0 +1,102 @@
+{
+  "category_blockers": [],
+  "derived_recommendation_category": "pursue-pyo3",
+  "generated_at": "2026-05-10T14:22:51Z",
+  "non_claims": [
+    "provider generation quality",
+    "Legal KnowQL product behavior",
+    "legal-answer correctness",
+    "Legal KnowQL parser or product pipeline behavior",
+    "product ETL/import behavior",
+    "production graph schema fitness",
+    "ODT parsing",
+    "retrieval quality",
+    "live legal graph execution beyond the S04 synthetic read-only boundary"
+  ],
+  "r017_effect": {
+    "status": "advanced-not-validated",
+    "summary": "R017 has all M003 proof signals for the PyO3 route, but this artifact does not itself validate the requirement or prove product Legal KnowQL quality."
+  },
+  "redaction": {
+    "credentials_or_auth_headers_persisted": false,
+    "prompts_persisted": false,
+    "raw_generated_candidate_text_persisted": false,
+    "raw_graph_rows_persisted": false,
+    "raw_legal_text_persisted": false,
+    "raw_provider_bodies_persisted": false,
+    "raw_reasoning_persisted": false,
+    "secret_like_values_persisted": false
+  },
+  "requirements_advanced": [
+    "R017"
+  ],
+  "requirements_validated": [],
+  "schema_version": "m003-s05-r017-proof-closure/v1",
+  "upstream_artifacts": {
+    "S01": {
+      "endpoint_preserves_v1": true,
+      "path": "/root/law-nexus/.gsd/milestones/M003/slices/S01/S01-MINIMAX-LIVE-BASELINE.json",
+      "provider_attempts": 0,
+      "response_root_cause": "minimax-credential-missing",
+      "response_status": "blocked-credential",
+      "root_cause": "minimax-credential-missing",
+      "schema_version": "m003-s01-minimax-live-baseline/v1",
+      "status": "blocked-credential"
+    },
+    "S02": {
+      "endpoint_contract_valid": true,
+      "endpoint_preserves_v1": true,
+      "mechanics_confirmed": true,
+      "path": "/root/law-nexus/.gsd/milestones/M003/slices/S02/S02-MINIMAX-PYO3-ENDPOINT.json",
+      "phase_statuses": {
+        "build": "confirmed-runtime",
+        "import": "confirmed-runtime",
+        "provider": "failed-runtime",
+        "resolver": "confirmed-runtime"
+      },
+      "provider_attempts": 1,
+      "provider_root_cause": "provider-non-cypher-diagnostic",
+      "root_cause": "provider-non-cypher-diagnostic",
+      "schema_version": "m003-s02-minimax-pyo3-endpoint/v2",
+      "status": "failed-runtime"
+    },
+    "S03": {
+      "candidate_accepted": true,
+      "candidate_categories": [],
+      "candidate_root_cause": "none",
+      "candidate_sha256_12": "fc8f8b2cb38f",
+      "candidate_starts_with": "MATCH",
+      "candidate_status": "confirmed-runtime",
+      "path": "/root/law-nexus/.gsd/milestones/M003/slices/S03/S03-REASONING-SAFE-CANDIDATE.json",
+      "provider_attempts": 1,
+      "root_cause": "none",
+      "schema_version": "m003-s03-reasoning-safe-candidate/v2",
+      "status": "confirmed-runtime"
+    },
+    "S04": {
+      "execution_attempted": true,
+      "execution_graph_kind": "synthetic-legalgraph",
+      "execution_method": "Graph.ro_query",
+      "execution_status": "confirmed-runtime",
+      "path": "/root/law-nexus/.gsd/milestones/M003/slices/S04/S04-VALIDATION-READONLY-EXECUTION.json",
+      "root_cause": "none",
+      "schema_version": "m003-s04-validation-readonly-execution/v1",
+      "status": "confirmed-runtime",
+      "validation_accepted": true,
+      "validation_attempted": true,
+      "validation_query_shape_category": "evidence-return-readonly",
+      "validation_rejection_codes": []
+    }
+  },
+  "verification_summary": {
+    "producer_status": "generated",
+    "upstream_artifacts_checked": [
+      "S01",
+      "S02",
+      "S03",
+      "S04"
+    ],
+    "verifier_command": "uv run python scripts/verify-m003-s05-r017-recommendation.py",
+    "verifier_status": "pending"
+  }
+}

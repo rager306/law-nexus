@@ -1,0 +1,238 @@
+{
+  "boundaries": {
+    "does_not_prove": [
+      "provider generation quality",
+      "Legal KnowQL product behavior",
+      "legal-answer correctness",
+      "M002 validation acceptance",
+      "graph execution",
+      "ODT parsing",
+      "retrieval quality",
+      "production graph schema fitness"
+    ],
+    "proves": [
+      "generated PyO3/Rust route exposes endpoint and resolver metadata",
+      "live provider request body uses top-level reasoning_split=true",
+      "local classification separates reasoning metadata from candidate text",
+      "accepted candidate text starts with MATCH or CALL after whitespace trim only",
+      "contamination categories are emitted before downstream validation or execution"
+    ],
+    "safety": [
+      "raw provider bodies are not persisted",
+      "credential-bearing values and authorization material are not persisted",
+      "request text, raw reasoning text, raw legal text, and raw graph rows are not persisted",
+      "rejected candidate text is represented only by categories, lengths, booleans, and hashes"
+    ]
+  },
+  "candidate": {
+    "accepted": true,
+    "categories": [],
+    "has_comment": false,
+    "has_markdown_fence": false,
+    "has_multi_statement": false,
+    "has_prose_prefix": false,
+    "has_prose_suffix": false,
+    "has_think_tag": false,
+    "normalized_text": "MATCH (es:EvidenceSpan)-[:SUPPORTS]->(a:Article), (es)-[:IN_BLOCK]->(sb:SourceBlock), (a)-[:SUPPORTED_BY]->(sb) WHERE a.id = $article_id RETURN a.id, es.id, sb.id LIMIT 5",
+    "raw_provider_body_persisted": false,
+    "root_cause": "none",
+    "sha256_12": "fc8f8b2cb38f",
+    "starts_with": "MATCH",
+    "status": "confirmed-runtime",
+    "text_length": 170,
+    "trimmed_length": 170
+  },
+  "commands": [
+    {
+      "command": [
+        "uvx",
+        "--from",
+        "maturin",
+        "maturin",
+        "develop",
+        "--uv",
+        "--manifest-path",
+        "Cargo.toml",
+        "--quiet"
+      ],
+      "duration_ms": 14452,
+      "exit_code": 0,
+      "log_path": "/root/.gsd/projects/3495c0714df3/runtime-smoke/reasoning-safe-candidate/logs/maturin-build.log",
+      "phase": "maturin-build",
+      "stderr_summary": {
+        "char_count": 445,
+        "contains_secret_pattern": false,
+        "line_count": 8,
+        "redacted_tail": "    Updating crates.io index\n     Locking 154 packages to latest Rust 1.94.1 compatible versions\n      Adding pyo3 v0.27.2 (available: v0.28.3)\n      Adding reqwest v0.12.28 (available: v0.13.3)\n🐍 Found CPython 3.13 at /root/law-nexus/.venv/bin/python\n🔗 Found pyo3 bindings\n📦 Built wheel for CPython 3.13 to /tmp/.tmpsiuwF9/m003_s03_reasoning_safe_candidate-0.1.0-cp313-cp313-linux_x86_64.whl\n🛠 Installed m003-s03-reasoning-safe-candidate-0.1.0\n"
+      },
+      "stdout_summary": {
+        "char_count": 41,
+        "contains_secret_pattern": false,
+        "line_count": 1,
+        "redacted_tail": "✏️ Setting installed package as editable\n"
+      },
+      "timed_out": false
+    },
+    {
+      "command": [
+        "/root/law-nexus/.venv/bin/python3",
+        "-c",
+        "import json\nimport m003_s03_reasoning_safe_candidate as proof\n\nmetadata = json.loads(proof.binding_metadata())\ntarget = json.loads(proof.resolve_target_metadata('MiniMax-M2.7-highspeed'))\nassert metadata[\"adapter_kind\"] == \"OpenAI\"\nassert target[\"adapter_kind\"] == \"OpenAI\"\nassert metadata[\"request_body_reasoning_split\"] is True\nassert target[\"request_body_reasoning_split\"] is True\nprint(json.dumps(target, sort_keys=True))"
+      ],
+      "duration_ms": 26,
+      "exit_code": 0,
+      "log_path": "/root/.gsd/projects/3495c0714df3/runtime-smoke/reasoning-safe-candidate/logs/python-import-resolver.log",
+      "phase": "python-import-resolver",
+      "stderr_summary": {
+        "char_count": 0,
+        "contains_secret_pattern": false,
+        "line_count": 0,
+        "redacted_tail": ""
+      },
+      "stdout_summary": {
+        "char_count": 330,
+        "contains_secret_pattern": false,
+        "line_count": 1,
+        "redacted_tail": "{\"adapter_kind\": \"OpenAI\", \"effective_chat_completions_url\": \"https://api.minimax.io/v1/chat/completions\", \"model\": \"MiniMax-M2.7-highspeed\", \"module\": \"m003_s03_reasoning_safe_candidate\", \"normalized_endpoint_base_url\": \"https://api.minimax.io/v1/\", \"provider_body_persistence\": \"disabled\", \"request_body_reasoning_split\": true}\n"
+      },
+      "timed_out": false
+    },
+    {
+      "command": [
+        "/root/law-nexus/.venv/bin/python3",
+        "-c",
+        "import json\nimport m003_s03_reasoning_safe_candidate as proof\n\npayload = json.loads(proof.run_live_reasoning_split_once('MiniMax-M2.7-highspeed', 'MINIMAX_API_KEY', 60))\nprint(json.dumps(payload, sort_keys=True))"
+      ],
+      "duration_ms": 9854,
+      "exit_code": 0,
+      "log_path": null,
+      "phase": "minimax-live-reasoning-split-call",
+      "stderr_summary": {
+        "char_count": 0,
+        "contains_secret_pattern": false,
+        "line_count": 0,
+        "redacted_tail": "<omitted-provider-output>"
+      },
+      "stdout_summary": {
+        "char_count": 410,
+        "contains_secret_pattern": false,
+        "line_count": 1,
+        "redacted_tail": "<omitted-provider-output>"
+      },
+      "timed_out": false
+    }
+  ],
+  "endpoint": {
+    "effective_chat_completions_url": "https://api.minimax.io/v1/chat/completions",
+    "endpoint_contract_valid": true,
+    "endpoint_input": "https://api.minimax.io/v1",
+    "invalid_endpoint_reason": null,
+    "model": "MiniMax-M2.7-highspeed",
+    "normalization_applied": true,
+    "normalization_status": "normalized",
+    "normalized_base_url": "https://api.minimax.io/v1/",
+    "preserves_v1": true,
+    "root_cause": "none"
+  },
+  "generated_at": "2026-05-10T14:22:50Z",
+  "model": "MiniMax-M2.7-highspeed",
+  "non_claims": [
+    "provider generation quality",
+    "Legal KnowQL product behavior",
+    "legal-answer correctness",
+    "M002 validation acceptance",
+    "graph execution",
+    "ODT parsing",
+    "retrieval quality",
+    "production graph schema fitness"
+  ],
+  "phase": "candidate-classification",
+  "phase_categories": [
+    "credential-check",
+    "endpoint-contract",
+    "build",
+    "import",
+    "resolver",
+    "provider-response",
+    "candidate-classification",
+    "artifact-redaction"
+  ],
+  "provider_attempts": 1,
+  "provider_shape": {
+    "choice_count": 1,
+    "content_kind": "string",
+    "has_choices": true,
+    "has_content": true,
+    "has_message": true
+  },
+  "reasoning": {
+    "detail_count": 1,
+    "detail_types": [
+      "reasoning.text"
+    ],
+    "present": true,
+    "raw_text_persisted": false,
+    "separated": true
+  },
+  "request": {
+    "message_count": 2,
+    "model": "MiniMax-M2.7-highspeed",
+    "prompt_text_persisted": false,
+    "reasoning_split": true,
+    "stream": false
+  },
+  "resolver": {
+    "adapter_kind": "OpenAI",
+    "effective_chat_completions_url": "https://api.minimax.io/v1/chat/completions",
+    "model": "MiniMax-M2.7-highspeed",
+    "module": "m003_s03_reasoning_safe_candidate",
+    "normalized_endpoint_base_url": "https://api.minimax.io/v1/",
+    "provider_body_persistence": "disabled",
+    "request_body_reasoning_split": true
+  },
+  "root_cause": "none",
+  "root_cause_categories": [
+    "none",
+    "invalid-endpoint",
+    "minimax-credential-missing",
+    "uvx-missing",
+    "maturin-build-timeout",
+    "maturin-build-failed",
+    "python-import-timeout",
+    "python-import-failed",
+    "resolver-failed",
+    "resolver-metadata-malformed",
+    "endpoint-contract-lost-v1",
+    "provider-http-error",
+    "provider-timeout",
+    "provider-schema-mismatch",
+    "provider-malformed-response",
+    "empty-content",
+    "non-cypher-output",
+    "reasoning-contamination",
+    "markdown-contamination",
+    "prose-contamination",
+    "candidate-comment-contamination",
+    "candidate-multi-statement",
+    "redaction-violation"
+  ],
+  "runtime_workspace": "/root/.gsd/projects/3495c0714df3/runtime-smoke/reasoning-safe-candidate/workspace",
+  "safety": {
+    "auth_header_persisted": false,
+    "credential_persisted": false,
+    "raw_graph_rows_persisted": false,
+    "raw_legal_text_persisted": false,
+    "raw_provider_body_persisted": false,
+    "raw_reasoning_text_persisted": false,
+    "request_text_persisted": false
+  },
+  "schema_version": "m003-s03-reasoning-safe-candidate/v2",
+  "status": "confirmed-runtime",
+  "status_categories": [
+    "blocked-credential",
+    "blocked-environment",
+    "failed-runtime",
+    "confirmed-runtime"
+  ],
+  "timeout_seconds": 60
+}

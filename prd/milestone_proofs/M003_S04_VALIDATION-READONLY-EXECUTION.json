@@ -1,0 +1,88 @@
+{
+  "boundaries": {
+    "does_not_prove": [
+      "provider generation quality",
+      "Legal KnowQL product behavior",
+      "legal-answer correctness",
+      "ODT parsing",
+      "retrieval quality",
+      "production graph schema fitness",
+      "live legal graph execution"
+    ],
+    "proves": [
+      "S03 accepted candidate was gated through deterministic M002 validation",
+      "validator-accepted Cypher executed read-only against synthetic LegalGraph-shaped data"
+    ]
+  },
+  "execution": {
+    "attempted": true,
+    "graph_kind": "synthetic-legalgraph",
+    "graph_name_category": "synthetic-ephemeral",
+    "method": "Graph.ro_query",
+    "parameter_summary": {
+      "article_id": {
+        "type_category": "string",
+        "value_category": "synthetic-article-id"
+      }
+    },
+    "row_shape_summary": {
+      "column_categories": [
+        "Article.id",
+        "EvidenceSpan.id",
+        "SourceBlock.id"
+      ],
+      "column_type_categories": [
+        "identifier",
+        "identifier",
+        "identifier"
+      ],
+      "raw_rows_persisted": false,
+      "row_count_category": "non-empty"
+    },
+    "status": "confirmed-runtime",
+    "synthetic_identifier_categories": [
+      "article_id",
+      "evidence_span_id",
+      "source_block_id"
+    ],
+    "timeout_ms": 1000
+  },
+  "phase": "execution",
+  "redaction": {
+    "auth_header_persisted": false,
+    "credential_persisted": false,
+    "prompt_text_persisted": false,
+    "raw_graph_rows_persisted": false,
+    "raw_legal_text_persisted": false,
+    "raw_provider_body_persisted": false,
+    "raw_reasoning_text_persisted": false,
+    "secret_like_values_persisted": false
+  },
+  "root_cause": "none",
+  "s03_source": {
+    "candidate_accepted": true,
+    "phase": "candidate-classification",
+    "provider_attempts": 1,
+    "root_cause": "none",
+    "schema_version": "m003-s03-reasoning-safe-candidate/v2",
+    "status": "confirmed-runtime"
+  },
+  "schema_version": "m003-s04-validation-readonly-execution/v1",
+  "status": "confirmed-runtime",
+  "validation": {
+    "accepted": true,
+    "attempted": true,
+    "candidate_availability_reason": "available",
+    "query_shape_category": "evidence-return-readonly",
+    "rejection_codes": [],
+    "required_evidence_returns": [
+      "Article.id",
+      "EvidenceSpan.id",
+      "SourceBlock.id"
+    ],
+    "safe_parameter_categories": {
+      "article_id": "identifier"
+    },
+    "schema_version": "m002-legalgraph-cypher-safety-contract/v1"
+  }
+}

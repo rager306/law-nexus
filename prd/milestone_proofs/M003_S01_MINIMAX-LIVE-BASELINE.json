@@ -1,0 +1,92 @@
+{
+  "boundaries": {
+    "does_not_prove": [
+      "Legal KnowQL product behavior",
+      "legal-answer correctness",
+      "production graph schema fitness / production schema quality",
+      "Garant ODT parsing or retrieval quality",
+      "FalkorDB execution",
+      "S03 validation",
+      "PyO3/genai adapter behavior",
+      "provider generation quality"
+    ],
+    "proves": [
+      "direct MiniMax OpenAI-compatible baseline proof contract shape",
+      "documented model MiniMax-M2.7-highspeed and /v1/chat/completions endpoint composition",
+      "request body intent includes reasoning_split=true and stream=false",
+      "response diagnostics are categorical booleans/counts/types rather than raw provider bodies"
+    ],
+    "safety": [
+      "raw provider bodies are not persisted",
+      "request prompts, credentials, auth headers, raw legal text, and secret-like values are omitted or redacted",
+      "candidate content is represented only by safe categories such as MATCH/CALL/non-cypher and contamination booleans",
+      "LLM output is non-authoritative and remains untrusted draft text outside deterministic validation"
+    ]
+  },
+  "endpoint": {
+    "base_url_input": "https://api.minimax.io/v1",
+    "effective_url": "https://api.minimax.io/v1/chat/completions",
+    "preserves_v1": true
+  },
+  "generated_at": "2026-05-10T11:40:46Z",
+  "model": "MiniMax-M2.7-highspeed",
+  "provider_attempts": 0,
+  "provider_diagnostics": {
+    "attempted_http": false,
+    "category": "credential-missing",
+    "http_status_class": null,
+    "redacted_field_count": 1
+  },
+  "request_contract": {
+    "message_count": 2,
+    "reasoning_split_requested": true,
+    "stream_requested": false,
+    "user_message_persisted": false
+  },
+  "response_shape": {
+    "candidate_prefix": null,
+    "choice_count": 0,
+    "content_kind": "not-run",
+    "has_choices": false,
+    "has_content": false,
+    "has_message": false,
+    "has_reasoning_details": false,
+    "has_think_tag": false,
+    "reasoning_detail_types": [],
+    "reasoning_details_count": 0,
+    "root_cause": "minimax-credential-missing",
+    "status": "blocked-credential"
+  },
+  "root_cause": "minimax-credential-missing",
+  "root_cause_categories": [
+    "provider-not-called-local-only",
+    "minimax-credential-missing",
+    "minimax-auth-failed",
+    "minimax-rate-limited",
+    "minimax-http-4xx",
+    "minimax-http-5xx",
+    "minimax-provider-error",
+    "provider-timeout",
+    "provider-schema-mismatch",
+    "reasoning-contamination",
+    "non-cypher-content",
+    "redaction-violation"
+  ],
+  "safety": {
+    "auth_header_persisted": false,
+    "credential_persisted": false,
+    "raw_body_persisted": false,
+    "raw_falkordb_rows_persisted": false,
+    "raw_legal_text_persisted": false,
+    "request_body_persisted": false
+  },
+  "schema_version": "m003-s01-minimax-live-baseline/v1",
+  "status": "blocked-credential",
+  "status_categories": [
+    "confirmed-runtime",
+    "blocked-credential",
+    "blocked-environment",
+    "failed-runtime",
+    "not-run-local-only"
+  ]
+}
