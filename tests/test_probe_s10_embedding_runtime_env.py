@@ -112,7 +112,7 @@ def test_package_probe_classifies_missing_imports(monkeypatch) -> None:
     def fake_find_spec(import_name: str) -> object | None:
         return object() if import_name == "torch" else None
 
-    monkeypatch.setattr(probe.importlib.util, "find_spec", fake_find_spec)
+    monkeypatch.setattr("importlib.util.find_spec", fake_find_spec)
     result = probe.probe_packages(["sentence-transformers", "torch"])
 
     assert result["status"] == "blocked-environment"

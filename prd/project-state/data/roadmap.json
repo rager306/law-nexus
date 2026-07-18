@@ -53,17 +53,17 @@
       "boundary": "Reactive architecture proposed as bounded shell around synchronous deterministic core (not yet implemented as runtime). Job ledger contract defined; append-only JSONL pilot scoped to source-inventory. M085 triaged full-suite signal (53 failures) into evidence-backed clusters with R1-R7 remediation roadmap. Triage work only — does NOT claim full health."
     },
     {
-      "range": "M086-M089",
+      "range": "M086-M090",
       "theme": "Debt repair + parser IR widening — M086 test path drift repair (82 tests restored from collection-error state across M002/M003/M001-S10 + 21 downstream files synced); M087 broader proof-path drift repair (18 fixtures tracked under prd/milestone_proofs/, 72 files synced, M001/M004/M008/M009 evidence anchors aligned); M088 RawBlock IR widening (6 additive fields in SourceHierarchyParagraph, WordML adapter migrated, 7860 records byte-identical to M009 baseline)",
       "status": "complete",
       "boundary": "M086+M087 = bounded debt repair (mechanical path migration, no semantic edits, no R035/R037/R038 validation claims). M088 = parser foundation (RawBlock IR) enables future profile/two-pass engine work per proposal 26 Layer 1. Onion architecture preserved (import-linter 4 kept 0 broken)."
     }
   ],
   "current_milestone": {
-    "id": "M089-gqpsry",
-    "title": "Historical Proof Verifier and Project State Freshness Repair",
+    "id": "M090-thp0h3",
+    "title": "ACP Git Lex Diagnostic Boundary Repair",
     "status": "complete",
-    "goal": "Repair 9 mechanically-closeable test failures: 5 historical proof verifiers (M049/M056/M065, D095 contract alignment), 2 project state/roadmap freshness, 1 architecture verifier, 1 environment drift. W5 retrieval/provenance explicitly NOT closed per R035/R037/R038 boundary."
+    "goal": "Repaired 14 ACP/git-lex diagnostic test failures under D098 checkpoint boundaries. D095 .lex operational adoption contract rescope properly reflected: SAFETY_FIELDS no longer requires main_lex_absent, CLASSIFICATION_MAP extended with denied-surface, test expectations aligned. 60/60 tests pass in M090 scope, 1 skipped (binary-missing environment). Full delta: 53 -> 39 failures fixed."
   },
   "recommended_next": {
     "title": "Consultant XML Parser Hardening from M009 baseline (M034 corrected roadmap)",

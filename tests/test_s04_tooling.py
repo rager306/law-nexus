@@ -90,7 +90,7 @@ def test_pyproject_metadata_is_present_for_lsp_and_uv_discovery() -> None:
 
     tool_config = cast("dict[str, Any]", pyproject["tool"])
     uv_config = cast("dict[str, Any]", tool_config["uv"])
-    assert uv_config["package"] is False
+    assert uv_config["package"] is True
     assert "ruff" in tool_config
     assert "pytest" in tool_config
 
