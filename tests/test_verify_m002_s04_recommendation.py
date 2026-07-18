@@ -12,7 +12,7 @@ import pytest
 ROOT = Path(__file__).resolve().parents[1]
 SCRIPT_PATH = ROOT / "scripts/verify-m002-s04-recommendation.py"
 RECOMMENDATION_PATH = ROOT / "prd/07_m002_text_to_cypher_recommendation.md"
-PROOF_PATH = ROOT / ".gsd/milestones/M002/slices/S04/S04-MINIMAX-PYO3-PROOF.json"
+PROOF_PATH = ROOT / "prd/milestone_proofs/M002_S04_MINIMAX-PYO3-PROOF.json"
 
 
 def load_verifier() -> ModuleType:

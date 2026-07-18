@@ -19,7 +19,7 @@ from typing import Any, Literal, cast
 
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_RECOMMENDATION = ROOT / "prd/07_m002_text_to_cypher_recommendation.md"
-DEFAULT_PROOF = ROOT / ".gsd/milestones/M002/slices/S04/S04-MINIMAX-PYO3-PROOF.json"
+DEFAULT_PROOF = ROOT / "prd/milestone_proofs/M002_S04_MINIMAX-PYO3-PROOF.json"
 
 REQUIRED_TERMS = (
     "MiniMax-M2.7-highspeed",
