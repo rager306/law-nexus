@@ -26,7 +26,7 @@ The proof uses only tracked repository-relative inputs:
 - `tests/test_local_retrieval_quality_benchmark_fixture.py`
 - `tests/test_local_retrieval_quality_benchmark_cli.py`
 - `prd/retrieval/fixtures/offline_citation_retrieval_cases.json`
-- `.gsd/milestones/M001/slices/S10/S10-EMBEDDING-RUNTIME-PROOF.json`
+- `prd/milestone_proofs/M001_S10_EMBEDDING-RUNTIME-PROOF.json`
 
 The proof does not fetch external data, call a managed embedding API, call an LLM, run GigaEmbeddings, persist raw embedding vectors, persist raw legal text, generate legal answer prose, or inspect untracked corpora.
 
@@ -100,7 +100,7 @@ M015 records `deepvk/USER-bge-m3` as the only allowed local/open-weight baseline
 - `observed_vector_dimension`: `1024`
 - `managed_api_used`: `false`
 - `raw_vectors_persisted`: `false`
-- runtime evidence source: `.gsd/milestones/M001/slices/S10/S10-EMBEDDING-RUNTIME-PROOF.json`
+- runtime evidence source: `prd/milestone_proofs/M001_S10_EMBEDDING-RUNTIME-PROOF.json`
 
 This model boundary does not prove production retrieval quality or target-hardware reliability. GigaEmbeddings remains blocked/gated and is not promoted by this proof.
 

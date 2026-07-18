@@ -23,7 +23,7 @@ Repository-relative inputs used by the proof CLI:
 
 S01 runtime boundary sources:
 - `prd/retrieval/local_retrieval_runtime_boundary_contract.md`
-- `S10-EMBEDDING-RUNTIME-PROOF.json`
+- `prd/milestone_proofs/M001_S10_EMBEDDING-RUNTIME-PROOF.json`
 - `pyproject.toml`
 
 S02 representative manifest sources:

@@ -285,7 +285,7 @@
     "package_status": "available",
     "quality_boundary": "Fixture-ID-only retrieval metrics prove runtime mechanics, not production Russian legal retrieval quality.",
     "raw_vectors_persisted": false,
-    "runtime_evidence_source": ".gsd/milestones/M001/slices/S10/S10-EMBEDDING-RUNTIME-PROOF.json"
+    "runtime_evidence_source": "prd/milestone_proofs/M001_S10_EMBEDDING-RUNTIME-PROOF.json"
   },
   "non_authoritative": true,
   "non_claims": [
@@ -312,7 +312,7 @@
       "sha256": "d087b68da758a4cdb3c3af693797266b6eb001428c6be86f1e19d44530732d77"
     },
     {
-      "path": ".gsd/milestones/M001/slices/S10/S10-EMBEDDING-RUNTIME-PROOF.json",
+      "path": "prd/milestone_proofs/M001_S10_EMBEDDING-RUNTIME-PROOF.json",
       "sha256": "5e4dd925e812e243f46b3da8469897ad1de0fde859dc2ad39780ec89d9b85fce"
     }
   ],

@@ -18,7 +18,7 @@ from pathlib import Path
 from typing import Any, cast
 
 ROOT = Path(__file__).resolve().parents[1]
-DEFAULT_ARTIFACT = ROOT / ".gsd/milestones/M001/slices/S10/S10-EMBEDDING-RUNTIME-PROOF.json"
+DEFAULT_ARTIFACT = ROOT / "prd/milestone_proofs/M001_S10_EMBEDDING-RUNTIME-PROOF.json"
 
 PRIMARY_MODEL_IDS = ("deepvk/USER-bge-m3", "ai-sage/Giga-Embeddings-instruct")
 USER_MODEL_ID = "deepvk/USER-bge-m3"

@@ -19,7 +19,7 @@ This contract is a boundary contract, not a runtime pass report. It does not clo
 M016 runtime-boundary work may cite these bounded source artifacts:
 
 - `prd/retrieval/local_retrieval_quality_benchmark_contract.md` — M015 seed benchmark contract, metric boundary, redaction constraints, and fixture-vs-production non-claims.
-- `.gsd/milestones/M001/slices/S10/S10-EMBEDDING-RUNTIME-PROOF.json` — prior local host runtime evidence for `deepvk/USER-bge-m3`, including observed vector dimension `1024` and the managed-API exclusion policy.
+- `prd/milestone_proofs/M001_S10_EMBEDDING-RUNTIME-PROOF.json` — prior local host runtime evidence for `deepvk/USER-bge-m3`, including observed vector dimension `1024` and the managed-API exclusion policy.
 - `.gsd/milestones/M016/M016-CONTEXT.md` — milestone scope requiring local/open-weight runtime proof with compact fail-closed diagnostics and no external network/API dependency.
 
 Downstream scripts must emit repository-relative artifact references only. Durable public proof artifacts must not include absolute local paths, provider payloads, raw legal text, raw vectors, secrets, or generated legal-answer prose.

@@ -30,7 +30,7 @@ This skill preserves M001 architecture-only and evidence boundaries. Parsing `44
 <evidence_anchors>
 - Parser findings: `.gsd/milestones/M001/slices/S05/S05-ODT-PARSER-FINDINGS.md`.
 - Parser probe log: `.gsd/milestones/M001/slices/S05/logs/odt-parser-probes.json`.
-- Embedding runtime proof for answer-template boundaries: `.gsd/milestones/M001/slices/S10/S10-EMBEDDING-RUNTIME-PROOF.json`.
+- Embedding runtime proof for answer-template boundaries: `prd/milestone_proofs/M001_S10_EMBEDDING-RUNTIME-PROOF.json`.
 Use these as bounded evidence anchors, not as authorization to expand M001 beyond architecture-only guidance.
 </evidence_anchors>
 

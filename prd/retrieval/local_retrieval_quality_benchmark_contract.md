@@ -20,7 +20,7 @@ M015 may consume only tracked repository-relative inputs:
 
 - `prd/retrieval/offline_citation_retrieval_proof.md` — M014 executable offline citation retrieval proof and non-claims.
 - `prd/retrieval/fixtures/offline_citation_retrieval_cases.json` — deterministic M014 candidate/no-answer/ambiguous corpus.
-- `.gsd/milestones/M001/slices/S10/S10-EMBEDDING-RUNTIME-PROOF.json` — host-local `deepvk/USER-bge-m3` runtime baseline and explicit quality boundary.
+- `prd/milestone_proofs/M001_S10_EMBEDDING-RUNTIME-PROOF.json` — host-local `deepvk/USER-bge-m3` runtime baseline and explicit quality boundary.
 - `prd/architecture/product_readiness_blockers.md` — current open `GATE-G011` readiness boundary.
 
 The proof must not fetch external data, call a managed embedding API, call an LLM, generate legal answer prose, persist raw embedding vectors, run GigaEmbeddings, or inspect untracked local corpora.

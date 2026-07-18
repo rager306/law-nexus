@@ -33,7 +33,7 @@ For GraphBLAS, preserve conservative architecture wording. “FalkorDB GraphBLAS
 </graphblas_rule>
 
 <embedding_runtime_rule>
-When the claim mentions embeddings or vector dimensions, split model runtime from vector storage and legal quality. `.gsd/milestones/M001/slices/S10/S10-EMBEDDING-RUNTIME-PROOF.json` confirms `deepvk/USER-bge-m3` as a bounded local/open-weight runtime baseline on this host with `1024`-dimensional encode and FalkorDB vector proof. `GigaEmbeddings` / `ai-sage/Giga-Embeddings-instruct` and 2048-dimensional proof are `blocked-environment` / gated under current safety/runtime conditions, not disproven and not confirmed. D002/D003 allow local/open-weight candidate ordering only; they do not prove production legal retrieval quality.
+When the claim mentions embeddings or vector dimensions, split model runtime from vector storage and legal quality. `prd/milestone_proofs/M001_S10_EMBEDDING-RUNTIME-PROOF.json` confirms `deepvk/USER-bge-m3` as a bounded local/open-weight runtime baseline on this host with `1024`-dimensional encode and FalkorDB vector proof. `GigaEmbeddings` / `ai-sage/Giga-Embeddings-instruct` and 2048-dimensional proof are `blocked-environment` / gated under current safety/runtime conditions, not disproven and not confirmed. D002/D003 allow local/open-weight candidate ordering only; they do not prove production legal retrieval quality.
 </embedding_runtime_rule>
 
 <output_format>

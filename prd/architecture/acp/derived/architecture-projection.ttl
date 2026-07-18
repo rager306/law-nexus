@@ -2953,7 +2953,7 @@
   lgarch:selector "EVID-REAL-ARTIFACT-RETRIEVAL-PROOF" .
 
 <urn:law-nexus:architecture-source:1c8a4f5d43d9a1a1> a lgarch:SourceAnchor ;
-  lgarch:path ".gsd/milestones/M001/slices/S10/S10-EMBEDDING-RUNTIME-PROOF.json" ;
+  lgarch:path "prd/milestone_proofs/M001_S10_EMBEDDING-RUNTIME-PROOF.json" ;
   lgarch:kind "gsd-summary" ;
   lgarch:selector "deepvk/USER-bge-m3" .
 
@@ -3181,7 +3181,7 @@
   lgarch:kind "manual-note" .
 
 <urn:law-nexus:architecture-source:764b3478e86da755> a lgarch:SourceAnchor ;
-  lgarch:path ".gsd/milestones/M001/slices/S10/S10-EMBEDDING-RUNTIME-PROOF.json" ;
+  lgarch:path "prd/milestone_proofs/M001_S10_EMBEDDING-RUNTIME-PROOF.json" ;
   lgarch:kind "runtime-artifact" .
 
 <urn:law-nexus:architecture-source:77435a0926876dcb> a lgarch:SourceAnchor ;
@@ -3611,7 +3611,7 @@
   lgarch:section "Recommended JSON-Level Architecture Action" .
 
 <urn:law-nexus:architecture-source:fdbc389ee931f123> a lgarch:SourceAnchor ;
-  lgarch:path ".gsd/milestones/M001/slices/S10/S10-EMBEDDING-RUNTIME-PROOF.json" ;
+  lgarch:path "prd/milestone_proofs/M001_S10_EMBEDDING-RUNTIME-PROOF.json" ;
   lgarch:kind "runtime-artifact" ;
   lgarch:selector "deepvk/USER-bge-m3" .
 

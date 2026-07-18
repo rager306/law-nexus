@@ -19,7 +19,7 @@ from typing import Any
 
 ROOT = Path(__file__).resolve().parents[1]
 CONTRACT_PATH = ROOT / "prd/retrieval/local_retrieval_runtime_boundary_contract.md"
-S10_PROOF_PATH = ROOT / ".gsd/milestones/M001/slices/S10/S10-EMBEDDING-RUNTIME-PROOF.json"
+S10_PROOF_PATH = ROOT / "prd/milestone_proofs/M001_S10_EMBEDDING-RUNTIME-PROOF.json"
 SCHEMA_VERSION = "local-retrieval-runtime-boundary/v1"
 MODEL_ID = "deepvk/USER-bge-m3"
 EXECUTION_MODE = "local_open_weight"
@@ -32,7 +32,7 @@ PACKAGE_IMPORTS = {
 }
 SOURCE_ARTIFACTS = (
     "prd/retrieval/local_retrieval_runtime_boundary_contract.md",
-    ".gsd/milestones/M001/slices/S10/S10-EMBEDDING-RUNTIME-PROOF.json",
+    "prd/milestone_proofs/M001_S10_EMBEDDING-RUNTIME-PROOF.json",
     "pyproject.toml",
 )
 NON_CLAIMS = (

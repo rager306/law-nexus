@@ -29,7 +29,7 @@ EVIDENCE_ARTIFACTS = [
     Path(".gsd/milestones/M001/slices/S04/S04-FALKORDB-CAPABILITY-SMOKE.json"),
     Path(".gsd/milestones/M001/slices/S05/S05-ODT-PARSER-FINDINGS.md"),
     Path(".gsd/milestones/M001/slices/S09/S09-LOCAL-EMBEDDING-EVALUATION.json"),
-    Path(".gsd/milestones/M001/slices/S10/S10-EMBEDDING-RUNTIME-PROOF.json"),
+    Path("prd/milestone_proofs/M001_S10_EMBEDDING-RUNTIME-PROOF.json"),
 ]
 
 EXERCISE = Path(".gsd/milestones/M001/slices/S06/S06-SKILL-EVIDENCE-UPDATE.md")
@@ -41,7 +41,7 @@ REQUIRED_SKILL_ANCHORS: dict[Path, list[str]] = {
         ".gsd/milestones/M001/slices/S04/S04-FALKORDB-CAPABILITY-SMOKE.json",
         ".gsd/milestones/M001/slices/S05/S05-ODT-PARSER-FINDINGS.md",
         ".gsd/milestones/M001/slices/S09/S09-LOCAL-EMBEDDING-EVALUATION.json",
-        ".gsd/milestones/M001/slices/S10/S10-EMBEDDING-RUNTIME-PROOF.json",
+        "prd/milestone_proofs/M001_S10_EMBEDDING-RUNTIME-PROOF.json",
         "deepvk/USER-bge-m3",
         "1024",
         "ai-sage/Giga-Embeddings-instruct",
@@ -60,7 +60,7 @@ REQUIRED_SKILL_ANCHORS: dict[Path, list[str]] = {
     Path(".agents/skills/falkordb-legalgraph/SKILL.md"): [
         ".gsd/milestones/M001/slices/S04/S04-FALKORDB-CAPABILITY-SMOKE.json",
         ".gsd/milestones/M001/slices/S09/S09-LOCAL-EMBEDDING-EVALUATION.json",
-        ".gsd/milestones/M001/slices/S10/S10-EMBEDDING-RUNTIME-PROOF.json",
+        "prd/milestone_proofs/M001_S10_EMBEDDING-RUNTIME-PROOF.json",
         "deepvk/USER-bge-m3",
         "1024",
         "ai-sage/Giga-Embeddings-instruct",
