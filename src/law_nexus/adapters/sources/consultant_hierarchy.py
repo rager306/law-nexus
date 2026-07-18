@@ -26,7 +26,7 @@ from law_nexus.ports.source_hierarchy import (
     SourceHierarchyResult,
 )
 
-Level = Literal["document", "chapter", "section", "article", "part", "clause", "subclause"]
+Level = Literal["document", "razdel", "chapter", "section", "article", "part", "clause", "subclause"]
 WORDML_NS = "http://schemas.microsoft.com/office/word/2003/wordml"
 MAX_DIAGNOSTICS = 100
 NON_CLAIMS = [
@@ -134,6 +134,11 @@ def marker_title(text: str, marker: Marker | None) -> str:
 def marker_for_text(text: str) -> Marker | None:
     """Classify one paragraph as a hierarchy marker using anchored context-first rules."""
 
+    match = re.match(r"^(Раздел\s+[IVX]+\.?)\s*(.+)$", text, flags=re.IGNORECASE)
+    if match:
+        normalized = re.sub(r"\s+", "", match.group(1)).rstrip(".").lower()
+        return Marker("razdel", match.group(1), normalized, "razdel-roman-number")
+
     match = re.match(r"^(Глава\s+\d+(?:\.\d+)?\.)\s*(.+)$", text, flags=re.IGNORECASE)
     if match:
         return Marker("chapter", match.group(1), match.group(1).lower(), "chapter-number")
@@ -180,8 +185,10 @@ def parent_for_level(level: Level, context: dict[str, str | None]) -> str | None
 
     if level == "document":
         return None
-    if level == "chapter":
+    if level == "razdel":
         return context["document"]
+    if level == "chapter":
+        return context["razdel"] or context["document"]
     if level == "section":
         return context["chapter"] or context["document"]
     if level == "article":
@@ -202,6 +209,7 @@ def update_context(level: Level, record_id: str, context: dict[str, str | None])
         context.update(
             {
                 "document": record_id,
+                "razdel": None,
                 "chapter": None,
                 "section": None,
                 "article": None,
@@ -210,6 +218,8 @@ def update_context(level: Level, record_id: str, context: dict[str, str | None])
                 "subclause": None,
             }
         )
+    elif level == "razdel":
+        context.update({"razdel": record_id, "chapter": None, "section": None, "article": None, "part": None, "clause": None, "subclause": None})
     elif level == "chapter":
         context.update({"chapter": record_id, "section": None, "article": None, "part": None, "clause": None, "subclause": None})
     elif level == "section":
@@ -289,6 +299,7 @@ def hierarchy_records(request: SourceHierarchyRequest) -> tuple[list[dict[str, A
     rejected_context_markers: list[dict[str, Any]] = []
     context: dict[str, str | None] = {
         "document": document_hierarchy_id,
+        "razdel": None,
         "chapter": None,
         "section": None,
         "article": None,

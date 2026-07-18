@@ -29,6 +29,7 @@ SourceKind: TypeAlias = Literal["garant-odt", "consultant-wordml-xml"]
 RelationCandidateStatus: TypeAlias = Literal["candidate", "needs-review", "rejected"]
 ConsultantHierarchyLevel: TypeAlias = Literal[
     "document",
+    "razdel",
     "section",
     "chapter",
     "article",

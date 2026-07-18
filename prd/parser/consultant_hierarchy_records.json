@@ -36,10 +36,11 @@
         "chapter": 41,
         "clause": 597,
         "document": 1,
-        "part": 1481
+        "part": 1481,
+        "razdel": 10
       },
       "path": "law-source/consultant/Бюджетный кодекс Российской Федерации  от 31.07.1998 N 145-Ф.xml",
-      "record_count": 2516,
+      "record_count": 2526,
       "scope_id": "CONS-31-07-1998-N-145",
       "source_sha256": "141d0463ccea5ac1f1e1d672a05cce9c39df288c23c824ced86740cd075c0215",
       "structural_error_count": 0
@@ -52,10 +53,11 @@
         "clause": 220,
         "document": 1,
         "part": 1704,
+        "razdel": 3,
         "section": 24
       },
       "path": "law-source/consultant/Гражданский кодекс Российской Федерации (часть первая)  от 3.xml",
-      "record_count": 2572,
+      "record_count": 2575,
       "scope_id": "CONS-3",
       "source_sha256": "4398e60096787b8b75acd5235b4eb988851a67dfa6b9298fd01eda5ee294a210",
       "structural_error_count": 1
@@ -147,7 +149,7 @@
     "id_collision_count": 0,
     "in_scope_fixture_count": 4,
     "out_of_scope_fixture_count": 49,
-    "record_count": 7860,
-    "unique_record_id_count": 7860
+    "record_count": 7873,
+    "unique_record_id_count": 7873
   }
 }

@@ -7,8 +7,8 @@ This artifact is deterministic parser evidence only. It is non-authoritative and
 - In-scope document types: `federal_law, code`
 - In-scope fixtures: `4`
 - Out-of-scope fixtures: `49`
-- Total records emitted: `7860`
-- Unique record ids: `7860`
+- Total records emitted: `7873`
+- Unique record ids: `7873`
 - ID collisions: `0`
 - Fatal errors: `0`
 
@@ -17,8 +17,8 @@ This artifact is deterministic parser evidence only. It is non-authoritative and
 | Scope id | Source path | Document type | Records | Levels | SHA-256 |
 | --- | --- | --- | ---: | --- | --- |
 | `CONS-44-FZ-2026` | `law-source/consultant/44-FZ-2026.xml` | `federal_law` | 2185 | article=94, chapter=8, clause=997, document=1, part=793, section=9, subclause=283 | `69df0b9d9e2bcce6164fc4e3c74fb9bebfff36ae6b053c68917c804be4b52a86` |
-| `CONS-31-07-1998-N-145` | `law-source/consultant/Бюджетный кодекс Российской Федерации  от 31.07.1998 N 145-Ф.xml` | `code` | 2516 | article=396, chapter=41, clause=597, document=1, part=1481 | `141d0463ccea5ac1f1e1d672a05cce9c39df288c23c824ced86740cd075c0215` |
-| `CONS-3` | `law-source/consultant/Гражданский кодекс Российской Федерации (часть первая)  от 3.xml` | `code` | 2572 | article=591, chapter=32, clause=220, document=1, part=1704, section=24 | `4398e60096787b8b75acd5235b4eb988851a67dfa6b9298fd01eda5ee294a210` |
+| `CONS-31-07-1998-N-145` | `law-source/consultant/Бюджетный кодекс Российской Федерации  от 31.07.1998 N 145-Ф.xml` | `code` | 2526 | article=396, chapter=41, clause=597, document=1, part=1481, razdel=10 | `141d0463ccea5ac1f1e1d672a05cce9c39df288c23c824ced86740cd075c0215` |
+| `CONS-3` | `law-source/consultant/Гражданский кодекс Российской Федерации (часть первая)  от 3.xml` | `code` | 2575 | article=591, chapter=32, clause=220, document=1, part=1704, razdel=3, section=24 | `4398e60096787b8b75acd5235b4eb988851a67dfa6b9298fd01eda5ee294a210` |
 | `CONS-18-07-2011-N-223-08-08-2` | `law-source/consultant/Федеральный закон от 18.07.2011 N 223-ФЗ (ред. от 08.08.2024.xml` | `federal_law` | 587 | article=21, clause=253, document=1, part=241, subclause=71 | `dfc8314207faf37bd4bad1acbec7189db502a161a350a0969da08b6e653f4ece` |
 
 ## Out-of-scope fixtures (documented, not silently skipped)

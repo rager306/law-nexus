@@ -89,6 +89,7 @@
     "level": {
       "enum": [
         "document",
+        "razdel",
         "section",
         "chapter",
         "article",
