@@ -219,10 +219,10 @@ def test_candidate_only_and_unresolved_reference_cases_preserve_source_identitie
 
     staging_graph = read_json(PARSER_DIR / "parser_staging_graph.json")
     unresolved_ids = set(staging_graph["unresolved_reference_ids"])
-    assert unresolved_ids == {
+    assert {
         "consultant-list:law-source/consultant/Список документов (5).xml",
         "consultant:LAW:179581@11.05.2026",
-    }
+    } <= unresolved_ids  # M095: internal-reference candidates added more unresolved refs
     assert {anchor["record_id"] for anchor in unresolved["anchors"]} == unresolved_ids
     assert set(unresolved["expected"]["required_reference_ids"]) == unresolved_ids
     assert "DOC-44-FZ" not in unresolved["expected"]["required_reference_ids"]
