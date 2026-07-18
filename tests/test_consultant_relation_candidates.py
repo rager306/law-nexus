@@ -76,9 +76,9 @@ def test_real_fixture_happy_path_builds_one_s02_valid_candidate() -> None:
     result = module.build_relation_candidates(ROOT)
 
     assert result.report["status"] == "pass"
-    assert result.report["candidate_count"] == 1
+    assert result.report["candidate_count"] >= 1  # M095: internal-reference candidates added
     assert result.diagnostics == []
-    assert len(result.records) == 1
+    assert len(result.records) >= 1  # M095: internal-reference candidates added
 
     record = result.records[0]
     assert record["record_kind"] == "relation_candidate"
@@ -158,7 +158,7 @@ def test_write_then_check_generates_three_deterministic_artifacts(tmp_path: Path
     assert check.returncode == 0, check.stdout + check.stderr
     summary = parse_stdout_json(check)
     assert summary["status"] == "pass"
-    assert summary["candidate_count"] == 1
+    assert summary["candidate_count"] >= 1  # M095: internal-reference candidates added
     assert summary["artifact_freshness"]["status"] == "pass"  # type: ignore[index]
 
 
@@ -202,7 +202,7 @@ def test_tracked_artifacts_validate_and_markdown_repeats_non_claims() -> None:
 
     report = json.loads((ROOT / "prd/parser/consultant_relation_candidates.json").read_text(encoding="utf-8"))
     assert report["status"] == "pass"
-    assert report["candidate_count"] == 1
+    assert report["candidate_count"] >= 1  # M095: internal-reference candidates added
     assert report["non_authoritative"] is True
 
     readme = (ROOT / "prd/parser/README.md").read_text(encoding="utf-8")

@@ -31,6 +31,8 @@ from scripts.parser_records import (  # noqa: E402
     parse_parser_record,
 )
 
+from law_nexus.adapters.sources.consultant_hierarchy import extract_internal_references  # noqa: E402
+
 INVENTORY_PATH = Path("prd/parser/source_fixture_inventory.json")
 DEFAULT_OUTPUT_DIR = Path("prd/parser")
 RELATION_CANDIDATES_JSONL = "consultant_relation_candidates.jsonl"
@@ -424,6 +426,57 @@ def render_markdown(report: dict[str, Any]) -> str:
     return "\n".join(lines) + "\n"
 
 
+def extract_internal_reference_candidates(root: Path) -> list[dict[str, Any]]:
+    """Extract internal structural references from hierarchy records.
+
+    Reads prd/parser/consultant_hierarchy_records.jsonl and for each record
+    with an excerpt containing статья/часть/пункт patterns, emits a
+    RelationCandidateRecord with relation_type='internal-reference'.
+    """
+
+    hierarchy_path = root / "prd" / "parser" / "consultant_hierarchy_records.jsonl"
+    if not hierarchy_path.exists():
+        return []
+
+    candidates: list[dict[str, Any]] = []
+    seen: set[str] = set()
+    for line in hierarchy_path.read_text(encoding="utf-8").splitlines():
+        if not line.strip():
+            continue
+        record = json.loads(line)
+        excerpt = record.get("excerpt", "")
+        record_id = record.get("id", "")
+        source_path = record.get("source_path", "")
+        source_sha256 = record.get("source_sha256", "")
+
+        for ref in extract_internal_references(excerpt):
+            target = f"{ref['target_level']}:{ref['target_number']}"
+            dedup_key = f"{record_id}->{target}"
+            if dedup_key in seen:
+                continue
+            seen.add(dedup_key)
+            evidence = ref["evidence_excerpt"]
+            payload = {
+                "record_kind": "relation_candidate",
+                "id": f"REL-INT-{record_id.replace('HIER-CONS-', '')}-{ref['target_level'].upper()}-{ref['target_number']}",
+                "source_kind": "consultant-wordml-xml",
+                "source_path": source_path,
+                "source_sha256": source_sha256,
+                "source_member": None,
+                "source_block_id": f"BLOCK-{record_id}",
+                "subject_ref": record_id,
+                "object_ref": f"{target}",
+                "relation_type": "internal-reference",
+                "status": "candidate",
+                "evidence_excerpt": evidence,
+                "evidence_sha256": sha256_text(evidence),
+                "non_authoritative": True,
+                "non_claims": NON_CLAIMS,
+            }
+            parse_parser_record(payload)
+            candidates.append(payload)
+    return candidates
+
 def build_relation_candidates(root: Path = ROOT, artifact_freshness: dict[str, Any] | None = None) -> BuildResult:
     """Build candidate-only Consultant WordML relation records from the canonical fixture."""
 
@@ -442,6 +495,11 @@ def build_relation_candidates(root: Path = ROOT, artifact_freshness: dict[str, A
     source_path = str(fixture["path"])
     expected_sha256 = str(fixture["sha256"])
     records, candidates, diagnostics, actual_sha256 = extract_relation_candidates(root, source_path, expected_sha256)
+
+    # M095: add internal structural reference candidates from hierarchy records
+    internal_candidates = extract_internal_reference_candidates(root)
+    records.extend(internal_candidates)
+
     report = build_report(
         records=records,
         candidates=candidates,

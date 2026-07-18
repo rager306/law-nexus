@@ -131,6 +131,34 @@ def marker_title(text: str, marker: Marker | None) -> str:
     return truncate(text, 240)
 
 
+INTERNAL_REF_PATTERNS: tuple[tuple[str, re.Pattern[str]], ...] = (
+    ("article", re.compile(r"\bстать[ьюеяи]\s+(\d+(?:\.\d+)?)", re.IGNORECASE | re.UNICODE)),
+    ("part", re.compile(r"\bчаст[ьиьею]\s+(\d+(?:\.\d+)?)", re.IGNORECASE | re.UNICODE)),
+    ("clause", re.compile(r"\bпункт[аыоеу]\s+(\d+(?:\.\d+)?)", re.IGNORECASE | re.UNICODE)),
+)
+
+def extract_internal_references(text: str) -> list[dict[str, str]]:
+    """Extract bounded internal structural references from legal text.
+
+    Returns list of dicts with keys: target_level, target_number, evidence_excerpt.
+    Only anchored patterns are matched (статья N, часть N, пункт N).
+    Resolution stays deferred — these are candidates only.
+    """
+
+    hits: list[dict[str, str]] = []
+    for level, pattern in INTERNAL_REF_PATTERNS:
+        for match in pattern.finditer(text):
+            number = match.group(1)
+            start = max(0, match.start() - 20)
+            end = min(len(text), match.end() + 40)
+            excerpt = text[start:end].strip()
+            hits.append({
+                "target_level": level,
+                "target_number": number,
+                "evidence_excerpt": truncate(excerpt, 240),
+            })
+    return hits
+
 def marker_for_text(text: str) -> Marker | None:
     """Classify one paragraph as a hierarchy marker using anchored context-first rules."""
 
