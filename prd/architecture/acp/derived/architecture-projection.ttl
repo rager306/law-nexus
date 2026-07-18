@@ -3039,7 +3039,7 @@
   lgarch:section "Scope guardrail" .
 
 <urn:law-nexus:architecture-source:3513ad2168933e52> a lgarch:SourceAnchor ;
-  lgarch:path ".gsd/milestones/M009/M009-SUMMARY.md" ;
+  lgarch:path "prd/milestone_proofs/M009_SUMMARY.md" ;
   lgarch:kind "gsd-summary" .
 
 <urn:law-nexus:architecture-source:35a298e410715c9e> a lgarch:SourceAnchor ;
@@ -3418,7 +3418,7 @@
   lgarch:kind "gsd-summary" .
 
 <urn:law-nexus:architecture-source:c582a0ca299e786a> a lgarch:SourceAnchor ;
-  lgarch:path ".gsd/milestones/M008/M008-SUMMARY.md" ;
+  lgarch:path "prd/milestone_proofs/M008_SUMMARY.md" ;
   lgarch:kind "gsd-summary" .
 
 <urn:law-nexus:architecture-source:c6c1d39cd0d1d0d1> a lgarch:SourceAnchor ;

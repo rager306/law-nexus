@@ -28,7 +28,7 @@ Recovered prior decisions from memory and durable artifacts:
 |---|---|---|
 | GSD memory `MEM314` | Consultant WordML fixture taxonomy uses `full-normative-act` for `law-source/consultant/44-FZ-2026.xml` and `document-list-prior-art` for the document-list XML. | Treated as the expected taxonomy for this recheck. |
 | GSD memory `MEM312` | The full-act XML is canonical source-shape evidence only and does not supersede Garant ODT fixture evidence. | Preserves source-format separation. |
-| `.gsd/milestones/M009/slices/S01/S01-SUMMARY.md` | M009 S01 added the full-act fixture and kept document-list XML as prior-art relation evidence. | Confirms the source-role split is historical, not newly invented. |
+| `prd/milestone_proofs/M009_SUMMARY.md` | M009 S01 added the full-act fixture and kept document-list XML as prior-art relation evidence. | Confirms the source-role split is historical, not newly invented. |
 | `prd/parser/source_fixture_inventory.md` | Machine-generated inventory lists both Consultant XML fixtures with distinct `source_role` values and explicit non-claims. | Used as the current durable contract. |
 | `prd/parser/README.md` | Future parser slices should inspect the manifest first and should not glob `law-source/` directly. | Downstream S03/S04 should consume inventory artifacts, not raw source discovery. |
 | `prd/parser/consultant_parser_proof.md` | M009 parser proof is Consultant-only for the 44-FZ tracer and keeps Garant deferred. | Confirms S02 is taxonomy proof, not parser completeness proof. |

@@ -1,0 +1,42 @@
+completed_at | hasValue | 2026-05-12T12:59:31.491Z
+id | hasValue | M009
+key_decisions | hasValue | Count/hash/rule-based prior-art comparison with four-tier classification (pass/accepted/needs-review/blocked); advisory diagnostics preserved as evidence rather than flattened to pass/fail.
+key_decisions | hasValue | D040/D042 — Consultant Plus WordML is primary full-normative-act parser source; Garant ODT is lower-priority/deferred and not an M009 completion gate.
+key_decisions | hasValue | D041 — Single full 44-FZ tracer document before multi-document expansion to retire highest parser risk faster.
+key_decisions | hasValue | Deferred-source boundary enforced by pytest test asserting deferred source is not in proof package and not a completion gate.
+key_files | hasValue | law-source/consultant/44-FZ-2026.xml
+key_files | hasValue | prd/parser/README.md
+key_files | hasValue | prd/parser/consultant_hierarchy_prior_art_comparison.json
+key_files | hasValue | prd/parser/consultant_hierarchy_prior_art_comparison.md
+key_files | hasValue | prd/parser/consultant_hierarchy_records.json
+key_files | hasValue | prd/parser/consultant_hierarchy_records.jsonl
+key_files | hasValue | prd/parser/consultant_hierarchy_records.md
+key_files | hasValue | prd/parser/consultant_parser_proof.json
+key_files | hasValue | prd/parser/consultant_parser_proof.md
+key_files | hasValue | prd/parser/consultant_prior_art_expectations.json
+key_files | hasValue | prd/parser/consultant_prior_art_expectations.md
+key_files | hasValue | prd/parser/consultant_prior_art_inventory.json
+key_files | hasValue | prd/parser/consultant_prior_art_inventory.md
+key_files | hasValue | prd/parser/parser_record_contract.md
+key_files | hasValue | prd/parser/schemas/consultant_hierarchy_record.schema.json
+key_files | hasValue | prd/parser/source_fixture_inventory.json
+key_files | hasValue | prd/parser/source_fixture_inventory.md
+key_files | hasValue | scripts/build-consultant-hierarchy-records.py
+key_files | hasValue | scripts/build-consultant-prior-art-expectations.py
+key_files | hasValue | scripts/compare-consultant-hierarchy-prior-art.py
+key_files | hasValue | scripts/inventory-parser-fixtures.py
+key_files | hasValue | scripts/parser_records.py
+key_files | hasValue | scripts/validate-parser-records.py
+key_files | hasValue | tests/fixtures/consultant_wordml_context_false_positive.xml
+key_files | hasValue | tests/test_consultant_hierarchy_prior_art_comparison.py
+key_files | hasValue | tests/test_consultant_hierarchy_records.py
+key_files | hasValue | tests/test_consultant_parser_proof.py
+key_files | hasValue | tests/test_consultant_prior_art_expectations.py
+key_files | hasValue | tests/test_consultant_prior_art_inventory.py
+key_files | hasValue | tests/test_parser_fixture_inventory.py
+key_files | hasValue | tests/test_parser_records.py
+lessons_learned | hasValue | GitNexus symbol resolution fails for generic function names (build, main) in new CLI scripts; using more specific symbol names enables traceability and impact analysis.
+lessons_learned | hasValue | INVALIDITY-MARKER-SAMPLES advisory mismatch (article 10 vs 11, clause 19 vs 17) could not be definitively resolved because prior-art JSONL uses compact representation while hierarchy records preserve full structural markers; determining which interpretation is 'correct' requires legal-domain judgment beyond parser scope; the mismatch was correctly preserved as advisory evidence, not forced to an unprovable answer.
+lessons_learned | hasValue | Test string ordering must track documentation wording changes in the same commit; S04 changed 'deferred/lower-priority' word order without updating the associated assertion string in test_parser_fixture_inventory.py.
+status | hasValue | complete
+title | hasValue | Consultant Plus Full-Act Parser Integration
