@@ -3043,7 +3043,7 @@
   lgarch:kind "gsd-summary" .
 
 <urn:law-nexus:architecture-source:35a298e410715c9e> a lgarch:SourceAnchor ;
-  lgarch:path ".gsd/milestones/M001/slices/S04/S04-FALKORDB-CAPABILITY-SMOKE.json" ;
+  lgarch:path "prd/milestone_proofs/M001_S04_FALKORDB-CAPABILITY-SMOKE.json" ;
   lgarch:kind "runtime-artifact" .
 
 <urn:law-nexus:architecture-source:36e475198de99367> a lgarch:SourceAnchor ;
@@ -3082,7 +3082,7 @@
   lgarch:section "Candidate registry mapping records" .
 
 <urn:law-nexus:architecture-source:4d369c32dab0d169> a lgarch:SourceAnchor ;
-  lgarch:path ".gsd/milestones/M001/slices/S08/S08-FINDINGS.json" ;
+  lgarch:path "prd/milestone_proofs/M001_S08_FINDINGS.json" ;
   lgarch:kind "gsd-summary" ;
   lgarch:selector "G-008" .
 
@@ -3267,7 +3267,7 @@
   lgarch:selector "R009" .
 
 <urn:law-nexus:architecture-source:8f65ce84da46150d> a lgarch:SourceAnchor ;
-  lgarch:path ".gsd/milestones/M001/slices/S05/S05-ODT-PARSER-FINDINGS.md" ;
+  lgarch:path "prd/milestone_proofs/M001_S05_ODT-PARSER-FINDINGS.md" ;
   lgarch:kind "gsd-summary" .
 
 <urn:law-nexus:architecture-source:93137eed578e538a> a lgarch:SourceAnchor ;
@@ -3340,7 +3340,7 @@
   lgarch:section "Verification" .
 
 <urn:law-nexus:architecture-source:a72019a1ffedef2a> a lgarch:SourceAnchor ;
-  lgarch:path ".gsd/milestones/M001/slices/S08/S08-FINDINGS.json" ;
+  lgarch:path "prd/milestone_proofs/M001_S08_FINDINGS.json" ;
   lgarch:kind "gsd-summary" ;
   lgarch:selector "G-011" .
 
@@ -3414,7 +3414,7 @@
   lgarch:selector "G-005" .
 
 <urn:law-nexus:architecture-source:c279ae469aec7422> a lgarch:SourceAnchor ;
-  lgarch:path ".gsd/milestones/M001/slices/S08/S08-FINDINGS.json" ;
+  lgarch:path "prd/milestone_proofs/M001_S08_FINDINGS.json" ;
   lgarch:kind "gsd-summary" .
 
 <urn:law-nexus:architecture-source:c582a0ca299e786a> a lgarch:SourceAnchor ;
@@ -3436,7 +3436,7 @@
   lgarch:selector "EVID-RETRIEVAL-OUTPUT-ID-VALIDATOR-PROOF" .
 
 <urn:law-nexus:architecture-source:c8abfb11d69eb731> a lgarch:SourceAnchor ;
-  lgarch:path ".gsd/milestones/M001/slices/S08/S08-FINDINGS.json" ;
+  lgarch:path "prd/milestone_proofs/M001_S08_FINDINGS.json" ;
   lgarch:kind "gsd-summary" ;
   lgarch:selector "S07-FIXED-PRD-CONSISTENCY" .
 

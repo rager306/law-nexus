@@ -6,8 +6,8 @@ Use this workflow when a task asks whether a parser behavior, legal-unit count, 
 </when_to_use>
 
 <required_reading>
-- `.gsd/milestones/M001/slices/S05/S05-ODT-PARSER-FINDINGS.md` for bounded S05 parser findings, Old_project classification, owner/resolution/verification rows, and S06/S07/S08 handoff notes.
-- `.gsd/milestones/M001/slices/S05/logs/odt-parser-probes.json` for the machine-readable raw `content.xml`, `odfpy`, and `odfdo` probe statuses.
+- `prd/milestone_proofs/M001_S05_ODT-PARSER-FINDINGS.md` for bounded S05 parser findings, Old_project classification, owner/resolution/verification rows, and S06/S07/S08 handoff notes.
+- `prd/milestone_proofs/M001_S05_logs_odt-parser-probes.json` for the machine-readable raw `content.xml`, `odfpy`, and `odfdo` probe statuses.
 - `.gsd/milestones/M001/slices/S01/S01-RESEARCH.md` for earlier Old_project prior-art risks when S05 does not cover a candidate.
 - `prd/03_PRD.md` for the PRD claim being assessed, especially the WordML XML extraction versus ODT requirements inconsistency.
 - `references/old-project-prior-art.md` when legacy files are part of the assumption.
@@ -26,7 +26,7 @@ Use S05-specific classes before falling back to older pending labels:
 
 <process>
 1. Restate the assumption in one testable sentence. Separate source-format assumptions, legal hierarchy assumptions, parser behavior assumptions, raw observation assumptions, SourceBlock/EvidenceSpan assumptions, and legal fact assumptions.
-2. Check S05 first. If the claim is covered by `.gsd/milestones/M001/slices/S05/S05-ODT-PARSER-FINDINGS.md` or `.gsd/milestones/M001/slices/S05/logs/odt-parser-probes.json`, classify it with the S05-specific evidence classes above and preserve owner, resolution path, and verification criterion language.
+2. Check S05 first. If the claim is covered by `prd/milestone_proofs/M001_S05_ODT-PARSER-FINDINGS.md` or `prd/milestone_proofs/M001_S05_logs_odt-parser-probes.json`, classify it with the S05-specific evidence classes above and preserve owner, resolution path, and verification criterion language.
 3. Use raw `content.xml` traversal as the ordering oracle for parser comparison. Do not infer legal ordering from `odfpy` element-type buckets.
 4. Treat `odfdo` as the parser direction to investigate because S05 recorded unmodified-source loading when transient dependencies were present. If an environment only records `odfdo` as not-installed, require rerun with explicit transient dependencies before parser-selection claims.
 5. Treat `odfpy` as comparison evidence pending explicit manifest-cleaning design/review. Do not describe odfpy as the sole, final, authoritative, or production parser after its unmodified-load manifest failure.

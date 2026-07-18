@@ -155,7 +155,7 @@ def report_markdown(payload: dict[str, Any]) -> str:
     return f"""
 # 5. Final Architecture Review: M001 Closure
 
-> Source of truth: `.gsd/milestones/M001/slices/S08/S08-FINDINGS.json`, validated against `.gsd/milestones/M001/slices/S08/S08-FINDINGS.schema.json`.
+> Source of truth: `prd/milestone_proofs/M001_S08_FINDINGS.json`, validated against `prd/milestone_proofs/M001_S08_FINDINGS.schema.json`.
 > M001 is architecture-only and does not ship product ETL or production runtime behavior.
 
 ## 1. Executive verdict
@@ -173,8 +173,8 @@ S04 is bounded runtime evidence, S05 is parser-smoke-bounded evidence, S09/S10 p
 M002-M007 must preserve G-005, G-008, G-011, and G-015 proof gates.
 
 ## 5. Machine-readable findings path and schema proposal
-Current row artifact: `.gsd/milestones/M001/slices/S08/S08-FINDINGS.json`
-Current schema artifact: `.gsd/milestones/M001/slices/S08/S08-FINDINGS.schema.json`
+Current row artifact: `prd/milestone_proofs/M001_S08_FINDINGS.json`
+Current schema artifact: `prd/milestone_proofs/M001_S08_FINDINGS.schema.json`
 Proposed durable future path: `prd/findings/architecture-findings.v1.json`
 Proposed durable future schema path: `prd/findings/architecture-findings.v1.schema.json`
 Required row fields include owner, resolution_path, verification_criteria, roadmap_effect, and requirement_links.

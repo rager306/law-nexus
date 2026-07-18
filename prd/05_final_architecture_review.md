@@ -2,7 +2,7 @@
 
 > **Reader and action.** This report is for a cold reader planning M002, M003, M004, M005, M006, or M007. After reading it, the planner should know which M001 architecture findings are fixed, which proof gates remain blocked, who owns each resolution path, and which claims must stay bounded until later executable evidence exists.
 >
-> **Source of truth.** The machine-readable row source is `.gsd/milestones/M001/slices/S08/S08-FINDINGS.json`, validated against `.gsd/milestones/M001/slices/S08/S08-FINDINGS.schema.json`. This prose report does not introduce material claims beyond those rows and their cited S04/S05/S09/S10/S07 evidence.
+> **Source of truth.** The machine-readable row source is `prd/milestone_proofs/M001_S08_FINDINGS.json`, validated against `prd/milestone_proofs/M001_S08_FINDINGS.schema.json`. This prose report does not introduce material claims beyond those rows and their cited S04/S05/S09/S10/S07 evidence.
 >
 > **Scope guardrail.** M001 is architecture-only. This report does not ship product ETL, a production graph schema, LegalNexus API, KnowQL parser, hybrid retrieval, parser extraction output, or legal-answering runtime behavior.
 
@@ -74,8 +74,8 @@ The roadmap should treat these as corrections or gates, not optional notes:
 
 S08’s local machine-readable artifact is already usable as the v1 contract:
 
-- Current row artifact: `.gsd/milestones/M001/slices/S08/S08-FINDINGS.json`
-- Current schema artifact: `.gsd/milestones/M001/slices/S08/S08-FINDINGS.schema.json`
+- Current row artifact: `prd/milestone_proofs/M001_S08_FINDINGS.json`
+- Current schema artifact: `prd/milestone_proofs/M001_S08_FINDINGS.schema.json`
 - Proposed durable future path: `prd/findings/architecture-findings.v1.json`
 - Proposed durable future schema path: `prd/findings/architecture-findings.v1.schema.json`
 

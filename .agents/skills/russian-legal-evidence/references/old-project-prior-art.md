@@ -6,8 +6,8 @@ Encode the S05/S01 conservative reuse posture for `Old_project/`: legacy files a
 </purpose>
 
 <evidence_anchors>
-- Parser and reuse findings: `.gsd/milestones/M001/slices/S05/S05-ODT-PARSER-FINDINGS.md`.
-- Machine-readable parser probe status: `.gsd/milestones/M001/slices/S05/logs/odt-parser-probes.json`.
+- Parser and reuse findings: `prd/milestone_proofs/M001_S05_ODT-PARSER-FINDINGS.md`.
+- Machine-readable parser probe status: `prd/milestone_proofs/M001_S05_logs_odt-parser-probes.json`.
 Use these anchors for S05 classifications. If they are unavailable or malformed, preserve owner/resolution/verification gaps instead of inventing reuse approval.
 </evidence_anchors>
 
@@ -64,7 +64,7 @@ When asked to reuse or evaluate a legacy candidate:
 2. Assign adapt/defer/reject/keep-as-is posture. Keep-as-is is unavailable for Garant ODT unless a later verified decision supersedes S05/S01.
 3. State the risk: source-format mismatch, stale data, provider assumption, legal-authority risk, parser-comparison gap, or scope creep.
 4. Assign owner: S05/S06 for parser evidence interpretation, S07/S08 for PRD inconsistency or final prior-art reporting, later milestone for non-M001 expansion.
-5. Preserve owner, resolution, and verification criteria from `.gsd/milestones/M001/slices/S05/S05-ODT-PARSER-FINDINGS.md` when available.
+5. Preserve owner, resolution, and verification criteria from `prd/milestone_proofs/M001_S05_ODT-PARSER-FINDINGS.md` when available.
 6. Use a compact table when reviewing many candidates: candidate, posture, risk, owner, verification.
 </review_process>
 

@@ -19,8 +19,8 @@ from typing import Any, cast
 
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_REPORT = ROOT / "prd/05_final_architecture_review.md"
-DEFAULT_FINDINGS = ROOT / ".gsd/milestones/M001/slices/S08/S08-FINDINGS.json"
-DEFAULT_SCHEMA = ROOT / ".gsd/milestones/M001/slices/S08/S08-FINDINGS.schema.json"
+DEFAULT_FINDINGS = ROOT / "prd/milestone_proofs/M001_S08_FINDINGS.json"
+DEFAULT_SCHEMA = ROOT / "prd/milestone_proofs/M001_S08_FINDINGS.schema.json"
 
 SCHEMA_VERSION = "s08-final-architecture-findings/v1"
 REQUIRED_SOURCE_ARTIFACTS = (
@@ -52,8 +52,8 @@ REQUIRED_REPORT_TERMS = (
     "local/open-weight",
 )
 REQUIRED_MACHINE_PATHS = (
-    ".gsd/milestones/M001/slices/S08/S08-FINDINGS.json",
-    ".gsd/milestones/M001/slices/S08/S08-FINDINGS.schema.json",
+    "prd/milestone_proofs/M001_S08_FINDINGS.json",
+    "prd/milestone_proofs/M001_S08_FINDINGS.schema.json",
     "prd/findings/architecture-findings.v1.json",
     "prd/findings/architecture-findings.v1.schema.json",
 )

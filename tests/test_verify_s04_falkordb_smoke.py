@@ -43,7 +43,7 @@ def _valid_finding(capability_id: str, status: str = "smoke-needed") -> dict[str
         "owner": "S04",
         "resolution_path": f"Run the bounded runtime probe for `{capability_id}` in T03/T04.",
         "verification_criteria": f"Verifier records a terminal runtime status for `{capability_id}` with raw-log evidence.",
-        "raw_log_reference": ".gsd/milestones/M001/slices/S04/logs/schema-seed.log",
+        "raw_log_reference": "prd/milestone_proofs/M001_S04_logs_schema-seed.log",
         "diagnostics": {
             "root_cause": "not-run",
             "detail": "Runtime probes have not executed in schema-only mode.",
@@ -73,13 +73,13 @@ def _valid_json() -> dict[str, Any]:
             "sentence_transformers": "not-run",
         },
         "cleanup_status": "not-run; no runtime resources created by schema seed",
-        "log_artifact_path": ".gsd/milestones/M001/slices/S04/logs/schema-seed.log",
+        "log_artifact_path": "prd/milestone_proofs/M001_S04_logs_schema-seed.log",
     }
 
 
 def _valid_markdown() -> str:
     rows = "\n".join(
-        f"| `{capability_id}` | smoke-needed | smoke-needed | S04 | Run bounded runtime probe. | Terminal status with raw-log evidence. | `.gsd/milestones/M001/slices/S04/logs/schema-seed.log` |"
+        f"| `{capability_id}` | smoke-needed | smoke-needed | S04 | Run bounded runtime probe. | Terminal status with raw-log evidence. | `prd/milestone_proofs/M001_S04_logs_schema-seed.log` |"
         for capability_id in cast("tuple[str, ...]", VERIFIER.REQUIRED_CAPABILITY_IDS)
     )
     return f"""# S04 FalkorDB Capability Smoke

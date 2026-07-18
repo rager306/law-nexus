@@ -625,7 +625,7 @@ def test_missing_source_anchor_and_validated_status_have_record_level_diagnostic
         root=ROOT,
         items_path=ITEMS,
         edges_path=EDGES,
-        s08_findings_path=ROOT / ".gsd/milestones/M001/slices/S08/S08-FINDINGS.json",
+        s08_findings_path=ROOT / "prd/milestone_proofs/M001_S08_FINDINGS.json",
         check=True,
     )
 

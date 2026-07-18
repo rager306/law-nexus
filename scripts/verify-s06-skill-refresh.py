@@ -26,21 +26,21 @@ SKILL_PATHS = [
 ]
 
 EVIDENCE_ARTIFACTS = [
-    Path(".gsd/milestones/M001/slices/S04/S04-FALKORDB-CAPABILITY-SMOKE.json"),
-    Path(".gsd/milestones/M001/slices/S05/S05-ODT-PARSER-FINDINGS.md"),
-    Path(".gsd/milestones/M001/slices/S09/S09-LOCAL-EMBEDDING-EVALUATION.json"),
+    Path("prd/milestone_proofs/M001_S04_FALKORDB-CAPABILITY-SMOKE.json"),
+    Path("prd/milestone_proofs/M001_S05_ODT-PARSER-FINDINGS.md"),
+    Path("prd/milestone_proofs/M001_S09_LOCAL-EMBEDDING-EVALUATION.json"),
     Path("prd/milestone_proofs/M001_S10_EMBEDDING-RUNTIME-PROOF.json"),
 ]
 
-EXERCISE = Path(".gsd/milestones/M001/slices/S06/S06-SKILL-EVIDENCE-UPDATE.md")
+EXERCISE = Path("prd/milestone_proofs/M001_S06_SKILL-EVIDENCE-UPDATE.md")
 
 # Terms that must be present in the refreshed skill corpus. The file sets are
 # intentionally explicit so diagnostics name the stale/missing skill directly.
 REQUIRED_SKILL_ANCHORS: dict[Path, list[str]] = {
     Path(".agents/skills/legalgraph-nexus/SKILL.md"): [
-        ".gsd/milestones/M001/slices/S04/S04-FALKORDB-CAPABILITY-SMOKE.json",
-        ".gsd/milestones/M001/slices/S05/S05-ODT-PARSER-FINDINGS.md",
-        ".gsd/milestones/M001/slices/S09/S09-LOCAL-EMBEDDING-EVALUATION.json",
+        "prd/milestone_proofs/M001_S04_FALKORDB-CAPABILITY-SMOKE.json",
+        "prd/milestone_proofs/M001_S05_ODT-PARSER-FINDINGS.md",
+        "prd/milestone_proofs/M001_S09_LOCAL-EMBEDDING-EVALUATION.json",
         "prd/milestone_proofs/M001_S10_EMBEDDING-RUNTIME-PROOF.json",
         "deepvk/USER-bge-m3",
         "1024",
@@ -58,8 +58,8 @@ REQUIRED_SKILL_ANCHORS: dict[Path, list[str]] = {
         "architecture-only",
     ],
     Path(".agents/skills/falkordb-legalgraph/SKILL.md"): [
-        ".gsd/milestones/M001/slices/S04/S04-FALKORDB-CAPABILITY-SMOKE.json",
-        ".gsd/milestones/M001/slices/S09/S09-LOCAL-EMBEDDING-EVALUATION.json",
+        "prd/milestone_proofs/M001_S04_FALKORDB-CAPABILITY-SMOKE.json",
+        "prd/milestone_proofs/M001_S09_LOCAL-EMBEDDING-EVALUATION.json",
         "prd/milestone_proofs/M001_S10_EMBEDDING-RUNTIME-PROOF.json",
         "deepvk/USER-bge-m3",
         "1024",
@@ -73,7 +73,7 @@ REQUIRED_SKILL_ANCHORS: dict[Path, list[str]] = {
         "architecture-only",
     ],
     Path(".agents/skills/russian-legal-evidence/SKILL.md"): [
-        ".gsd/milestones/M001/slices/S05/S05-ODT-PARSER-FINDINGS.md",
+        "prd/milestone_proofs/M001_S05_ODT-PARSER-FINDINGS.md",
         "odfdo",
         "odfpy",
         "content.xml",

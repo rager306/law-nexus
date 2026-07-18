@@ -161,7 +161,7 @@ def valid_payload(root: Path) -> dict[str, Any]:
         "source_artifacts": {
             "user_bge_m3": ".gsd/milestones/M001/slices/S10/S10-USER-BGE-M3-PROOF.json",
             "gigaembeddings": ".gsd/milestones/M001/slices/S10/S10-GIGAEMBEDDINGS-PROOF.json",
-            "s09_pre_runtime_evaluation": ".gsd/milestones/M001/slices/S09/S09-LOCAL-EMBEDDING-EVALUATION.json",
+            "s09_pre_runtime_evaluation": "prd/milestone_proofs/M001_S09_LOCAL-EMBEDDING-EVALUATION.json",
         },
     }
 

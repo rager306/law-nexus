@@ -7,7 +7,7 @@ processed_architecture_inputs:
   - "prd/architecture/architecture_items.jsonl"
   - "prd/architecture/architecture_edges.jsonl"
   - "prd/architecture/architecture_graph_report.json"
-  - ".gsd/milestones/M001/slices/S08/S08-FINDINGS.json"
+  - "prd/milestone_proofs/M001_S08_FINDINGS.json"
 status: "research-json-comparison"
 non_authoritative: true
 requires_project_verification_before_adoption: true
@@ -30,7 +30,7 @@ The previous architecture mapping used PRD/architecture Markdown as context. Tha
 - `prd/architecture/architecture_items.jsonl`
 - `prd/architecture/architecture_edges.jsonl`
 - `prd/architecture/architecture_graph_report.json`
-- `.gsd/milestones/M001/slices/S08/S08-FINDINGS.json`
+- `prd/milestone_proofs/M001_S08_FINDINGS.json`
 
 This document compares the Habr article's approaches against those processed records, not against architecture Markdown prose.
 

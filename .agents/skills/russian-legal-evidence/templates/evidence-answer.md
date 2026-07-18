@@ -7,8 +7,8 @@ Copy and fill this template when answering future Russian legal evidence, ODT pa
 
 <allowed_evidence>
 Allowed bounded evidence anchors include:
-- S05 parser findings: `.gsd/milestones/M001/slices/S05/S05-ODT-PARSER-FINDINGS.md`.
-- S05 machine-readable probe log: `.gsd/milestones/M001/slices/S05/logs/odt-parser-probes.json`.
+- S05 parser findings: `prd/milestone_proofs/M001_S05_ODT-PARSER-FINDINGS.md`.
+- S05 machine-readable probe log: `prd/milestone_proofs/M001_S05_logs_odt-parser-probes.json`.
 - S10 embedding runtime proof: `prd/milestone_proofs/M001_S10_EMBEDDING-RUNTIME-PROOF.json`.
 S05 verified-source evidence can support raw `content.xml` metadata, raw ordering oracle status, parser-comparison evidence for `odfdo` and `odfpy`, and Old_project adapt/defer/reject classifications. S10 runtime evidence can support bounded local embedding runtime status. Neither S05 nor S10 creates citation-safe legal answers by itself.
 </allowed_evidence>

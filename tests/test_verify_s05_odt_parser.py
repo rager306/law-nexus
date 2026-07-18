@@ -41,7 +41,7 @@ def write_required_old_project_files(root: Path) -> None:
 def probe_payload(*, odfpy_status: str = "loaded-temp-clean-manifest", alternative_status: str = "loaded-unmodified") -> dict[str, Any]:
     return {
         "schema_version": "s05-raw-odt-baseline/v1",
-        "probe_log_path": ".gsd/milestones/M001/slices/S05/probe-log.json",
+        "probe_log_path": "prd/milestone_proofs/M001_S05_probe-log.json",
         "probe_count": 3,
         "statuses": {
             "raw-baseline": "verified-source-evidence",
@@ -108,7 +108,7 @@ def findings_markdown(*, old_project_table: bool = True, issue_owner: str = "S05
 Raw content.xml remains the ordering oracle. odfpy is not accepted as the sole parser because the unmodified-load phase failed on the real manifest; it is controlled comparison evidence only. {comparison_note}
 
 ## Real ODT evidence
-The probe log records real source path `law-source/garant/44-fz.odt`, SHA-256, source size, raw verified-source-evidence, odfpy status, alternative parser status, issue IDs, and normalized `.gsd/milestones/M001/slices/S05/probe-log.json` artifact path.
+The probe log records real source path `law-source/garant/44-fz.odt`, SHA-256, source size, raw verified-source-evidence, odfpy status, alternative parser status, issue IDs, and normalized `prd/milestone_proofs/M001_S05_probe-log.json` artifact path.
 
 ## Old_project reuse classification
 Old_project is prior art only; no product ETL claims are made.

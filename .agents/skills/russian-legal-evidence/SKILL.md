@@ -28,18 +28,18 @@ This skill preserves M001 architecture-only and evidence boundaries. Parsing `44
 </required_guardrails>
 
 <evidence_anchors>
-- Parser findings: `.gsd/milestones/M001/slices/S05/S05-ODT-PARSER-FINDINGS.md`.
-- Parser probe log: `.gsd/milestones/M001/slices/S05/logs/odt-parser-probes.json`.
+- Parser findings: `prd/milestone_proofs/M001_S05_ODT-PARSER-FINDINGS.md`.
+- Parser probe log: `prd/milestone_proofs/M001_S05_logs_odt-parser-probes.json`.
 - Embedding runtime proof for answer-template boundaries: `prd/milestone_proofs/M001_S10_EMBEDDING-RUNTIME-PROOF.json`.
 Use these as bounded evidence anchors, not as authorization to expand M001 beyond architecture-only guidance.
 </evidence_anchors>
 
 <failure_handling>
-If S05 parser findings or `.gsd/milestones/M001/slices/S05/logs/odt-parser-probes.json` are missing, malformed, or lack owner/resolution/verification language, treat the gap as a verifier failure rather than filling assumptions. If an assumption is not covered by S05 evidence, classify it as bounded/pending with an explicit owner. If `Old_project/` files are missing or stale, use the S05/S01 classification summaries and treat legacy claims as prior-art risk, not authoritative design.
+If S05 parser findings or `prd/milestone_proofs/M001_S05_logs_odt-parser-probes.json` are missing, malformed, or lack owner/resolution/verification language, treat the gap as a verifier failure rather than filling assumptions. If an assumption is not covered by S05 evidence, classify it as bounded/pending with an explicit owner. If `Old_project/` files are missing or stale, use the S05/S01 classification summaries and treat legacy claims as prior-art risk, not authoritative design.
 </failure_handling>
 
 <s06_evidence_refresh>
-Use `.gsd/milestones/M001/slices/S05/S05-ODT-PARSER-FINDINGS.md` and `.gsd/milestones/M001/slices/S05/logs/odt-parser-probes.json` as the bounded parser evidence anchors. They keep `odfdo`, `odfpy`, raw `content.xml`, marker counts, table count, and `Old_project` classifications visible with owner, resolution, and verification status. The current resolution is to investigate `odfdo`, keep raw `content.xml` ordering as oracle, keep `odfpy` as comparison/pending-manifest-cleaning evidence, and keep Old_project reuse as prior-art-only under the M001 architecture-only boundary.
+Use `prd/milestone_proofs/M001_S05_ODT-PARSER-FINDINGS.md` and `prd/milestone_proofs/M001_S05_logs_odt-parser-probes.json` as the bounded parser evidence anchors. They keep `odfdo`, `odfpy`, raw `content.xml`, marker counts, table count, and `Old_project` classifications visible with owner, resolution, and verification status. The current resolution is to investigate `odfdo`, keep raw `content.xml` ordering as oracle, keep `odfpy` as comparison/pending-manifest-cleaning evidence, and keep Old_project reuse as prior-art-only under the M001 architecture-only boundary.
 </s06_evidence_refresh>
 
 <success_criteria>

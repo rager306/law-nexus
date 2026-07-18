@@ -19,7 +19,7 @@ from typing import Any
 SCHEMA_VERSION = "legalgraph-architecture-registry/v1"
 DEFAULT_ITEMS = Path("prd/architecture/architecture_items.jsonl")
 DEFAULT_EDGES = Path("prd/architecture/architecture_edges.jsonl")
-DEFAULT_S08_FINDINGS = Path(".gsd/milestones/M001/slices/S08/S08-FINDINGS.json")
+DEFAULT_S08_FINDINGS = Path("prd/milestone_proofs/M001_S08_FINDINGS.json")
 REQUIRED_SOURCE_PATHS = [
     Path("prd/architecture/architecture.schema.json"),
     Path("tests/fixtures/architecture/valid_items.jsonl"),
@@ -372,7 +372,7 @@ def requirement_items() -> list[Record]:
             COMMON_NON_CLAIMS,
             lifecycle="maintaining",
             priority="high",
-            related_artifacts=[".gsd/milestones/M001/slices/S08/S08-FINDINGS.json"],
+            related_artifacts=["prd/milestone_proofs/M001_S08_FINDINGS.json"],
             tags=["R010", "machine-readable"],
         ),
         item(
@@ -1534,7 +1534,7 @@ def ontology_candidate_items() -> list[Record]:
 
 
 def evidence_and_governance_items() -> list[Record]:
-    s08 = anchor(".gsd/milestones/M001/slices/S08/S08-FINDINGS.json", "gsd-summary")
+    s08 = anchor("prd/milestone_proofs/M001_S08_FINDINGS.json", "gsd-summary")
     return [
         item(
             "ASSUMP-PRD-SOURCE-TRUTH",
@@ -1613,7 +1613,7 @@ def evidence_and_governance_items() -> list[Record]:
             "bounded-evidence",
             "runtime-smoke",
             "medium",
-            [s08, anchor(".gsd/milestones/M001/slices/S04/S04-FALKORDB-CAPABILITY-SMOKE.json", "runtime-artifact")],
+            [s08, anchor("prd/milestone_proofs/M001_S04_FALKORDB-CAPABILITY-SMOKE.json", "runtime-artifact")],
             "S04 evidence owner / S08 final report",
             "S04 verifier passes and S08 labels claims as bounded runtime mechanics.",
             ["No production-scale FalkorDB claim.", "No legal retrieval quality claim.", "No direct LegalGraph GraphBLAS API/control surface claim."],
@@ -1629,7 +1629,7 @@ def evidence_and_governance_items() -> list[Record]:
             "bounded-evidence",
             "real-document-proof",
             "high",
-            [s08, anchor(".gsd/milestones/M001/slices/S05/S05-ODT-PARSER-FINDINGS.md", "gsd-summary")],
+            [s08, anchor("prd/milestone_proofs/M001_S05_ODT-PARSER-FINDINGS.md", "gsd-summary")],
             "S05/S08 parser evidence consolidation",
             "S05 verifier passes; future parser tests prove final extraction behavior before promotion.",
             ["No final legal hierarchy extraction claim.", "No parser completeness claim.", "No production SourceBlock/EvidenceSpan creation claim."],
@@ -1646,7 +1646,7 @@ def evidence_and_governance_items() -> list[Record]:
             "bounded-evidence",
             "source-anchor",
             "high",
-            [s08, anchor(".gsd/milestones/M001/slices/S05/S05-ODT-PARSER-FINDINGS.md", "gsd-summary")],
+            [s08, anchor("prd/milestone_proofs/M001_S05_ODT-PARSER-FINDINGS.md", "gsd-summary")],
             "S08 final architecture review / future parser owners",
             "Downstream designs classify legacy reuse as prior art and avoid blessing ConsultantPlus behavior for Garant ODT.",
             ["No Old_project artifact accepted unchanged.", "No parser completeness claim."],
@@ -2209,7 +2209,7 @@ def build_edges() -> list[Record]:
             "evidenced_by",
             "active",
             "S07/S08 final report evidence supports architecture finding classification within M001 scope.",
-            [anchor(".gsd/milestones/M001/slices/S08/S08-FINDINGS.json", "gsd-summary", selector="S07-FIXED-PRD-CONSISTENCY")],
+            [anchor("prd/milestone_proofs/M001_S08_FINDINGS.json", "gsd-summary", selector="S07-FIXED-PRD-CONSISTENCY")],
             "M001/S08",
             confidence=0.85,
             tags=["R001", "S08"],
@@ -2221,7 +2221,7 @@ def build_edges() -> list[Record]:
             "evidenced_by",
             "active",
             "S08 findings rows preserve owner, resolution path, verification criteria, and roadmap effect for architecture issues.",
-            [anchor(".gsd/milestones/M001/slices/S08/S08-FINDINGS.json", "gsd-summary")],
+            [anchor("prd/milestone_proofs/M001_S08_FINDINGS.json", "gsd-summary")],
             "M001/S08",
             confidence=0.85,
             tags=["R009"],
@@ -2233,7 +2233,7 @@ def build_edges() -> list[Record]:
             "evidenced_by",
             "active",
             "S08 produced a machine-readable findings path and schema proposal consumed by this extractor.",
-            [anchor(".gsd/milestones/M001/slices/S08/S08-FINDINGS.json", "gsd-summary")],
+            [anchor("prd/milestone_proofs/M001_S08_FINDINGS.json", "gsd-summary")],
             "M001/S08",
             confidence=0.85,
             tags=["R010"],
@@ -2648,7 +2648,7 @@ def build_edges() -> list[Record]:
             "bounded_by",
             "active",
             "S05 parser smoke guides investigation but product parser/retrieval readiness remains behind GATE-G008.",
-            [anchor(".gsd/milestones/M001/slices/S08/S08-FINDINGS.json", "gsd-summary", selector="G-008")],
+            [anchor("prd/milestone_proofs/M001_S08_FINDINGS.json", "gsd-summary", selector="G-008")],
             "future-product-parser-retrieval-proof",
             confidence=0.85,
             tags=["parser", "G-008"],
@@ -2686,7 +2686,7 @@ def build_edges() -> list[Record]:
             "bounded_by",
             "active",
             "USER-bge-m3 runtime proof is a local baseline, not product retrieval quality proof.",
-            [anchor(".gsd/milestones/M001/slices/S08/S08-FINDINGS.json", "gsd-summary", selector="G-011")],
+            [anchor("prd/milestone_proofs/M001_S08_FINDINGS.json", "gsd-summary", selector="G-011")],
             "future-retrieval-quality-proof",
             confidence=0.85,
             tags=["embedding", "G-011"],

@@ -19,8 +19,8 @@ from pathlib import Path
 from typing import Any, Literal, cast
 
 ROOT = Path(__file__).resolve().parents[1]
-DEFAULT_MARKDOWN = ROOT / ".gsd/milestones/M001/slices/S04/S04-FALKORDB-CAPABILITY-SMOKE.md"
-DEFAULT_JSON = ROOT / ".gsd/milestones/M001/slices/S04/S04-FALKORDB-CAPABILITY-SMOKE.json"
+DEFAULT_MARKDOWN = ROOT / "prd/milestone_proofs/M001_S04_FALKORDB-CAPABILITY-SMOKE.md"
+DEFAULT_JSON = ROOT / "prd/milestone_proofs/M001_S04_FALKORDB-CAPABILITY-SMOKE.json"
 
 SCHEMA_VERSION = "s04-falkordb-capability-smoke/v1"
 

@@ -45,7 +45,7 @@ from law_nexus.adapters.embeddings.proof_environment import (
 
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_OUTPUT_DIR = ROOT / ".gsd/milestones/M001/slices/S10"
-DEFAULT_CONTRACT = ROOT / ".gsd/milestones/M001/slices/S09/S09-LOCAL-EMBEDDING-EVALUATION.json"
+DEFAULT_CONTRACT = ROOT / "prd/milestone_proofs/M001_S09_LOCAL-EMBEDDING-EVALUATION.json"
 SCHEMA_VERSION = "s10-embedding-runtime-proof/v1"
 USER_MODEL_ID = "deepvk/USER-bge-m3"
 GIGA_MODEL_ID = "ai-sage/Giga-Embeddings-instruct"

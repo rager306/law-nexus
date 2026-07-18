@@ -29,9 +29,9 @@ description: Routes S06 refreshed LegalGraph Nexus evidence guidance.
 ---
 
 <objective>
-S04 evidence path .gsd/milestones/M001/slices/S04/S04-FALKORDB-CAPABILITY-SMOKE.json.
-S05 evidence path .gsd/milestones/M001/slices/S05/S05-ODT-PARSER-FINDINGS.md.
-S09 evidence path .gsd/milestones/M001/slices/S09/S09-LOCAL-EMBEDDING-EVALUATION.json.
+S04 evidence path prd/milestone_proofs/M001_S04_FALKORDB-CAPABILITY-SMOKE.json.
+S05 evidence path prd/milestone_proofs/M001_S05_ODT-PARSER-FINDINGS.md.
+S09 evidence path prd/milestone_proofs/M001_S09_LOCAL-EMBEDDING-EVALUATION.json.
 S10 evidence path prd/milestone_proofs/M001_S10_EMBEDDING-RUNTIME-PROOF.json.
 Mention deepvk/USER-bge-m3 with 1024 dimensions, ai-sage/Giga-Embeddings-instruct, GigaEmbeddings, and blocked-environment runtime diagnostics.
 Mention odfdo, odfpy, and raw content.xml parser evidence.
@@ -42,7 +42,7 @@ Preserve M001 architecture-only guidance by keeping ETL/import, product API, Leg
 
 VALID_EXERCISE_TEXT = """# S06 Skill Evidence Update
 
-References .gsd/milestones/M001/slices/S04/S04-FALKORDB-CAPABILITY-SMOKE.json, .gsd/milestones/M001/slices/S05/S05-ODT-PARSER-FINDINGS.md, .gsd/milestones/M001/slices/S09/S09-LOCAL-EMBEDDING-EVALUATION.json, and prd/milestone_proofs/M001_S10_EMBEDDING-RUNTIME-PROOF.json.
+References prd/milestone_proofs/M001_S04_FALKORDB-CAPABILITY-SMOKE.json, prd/milestone_proofs/M001_S05_ODT-PARSER-FINDINGS.md, prd/milestone_proofs/M001_S09_LOCAL-EMBEDDING-EVALUATION.json, and prd/milestone_proofs/M001_S10_EMBEDDING-RUNTIME-PROOF.json.
 It covers deepvk/USER-bge-m3, 1024, ai-sage/Giga-Embeddings-instruct, GigaEmbeddings, blocked-environment, odfdo, odfpy, raw content.xml, Old_project, owner, resolution, verification, and M001 architecture-only boundaries.
 """
 
@@ -53,13 +53,13 @@ SKILL_PATHS = [
 ]
 
 EVIDENCE_PATHS = [
-    ".gsd/milestones/M001/slices/S04/S04-FALKORDB-CAPABILITY-SMOKE.json",
-    ".gsd/milestones/M001/slices/S05/S05-ODT-PARSER-FINDINGS.md",
-    ".gsd/milestones/M001/slices/S09/S09-LOCAL-EMBEDDING-EVALUATION.json",
+    "prd/milestone_proofs/M001_S04_FALKORDB-CAPABILITY-SMOKE.json",
+    "prd/milestone_proofs/M001_S05_ODT-PARSER-FINDINGS.md",
+    "prd/milestone_proofs/M001_S09_LOCAL-EMBEDDING-EVALUATION.json",
     "prd/milestone_proofs/M001_S10_EMBEDDING-RUNTIME-PROOF.json",
 ]
 
-EXERCISE_PATH = ".gsd/milestones/M001/slices/S06/S06-SKILL-EVIDENCE-UPDATE.md"
+EXERCISE_PATH = "prd/milestone_proofs/M001_S06_SKILL-EVIDENCE-UPDATE.md"
 
 
 def make_valid_tree(root: Path, *, include_exercise: bool = True) -> None:

@@ -36,11 +36,11 @@ M001 is architecture-only. Keep product ETL/import, a production graph schema, L
 
 <s06_evidence_refresh>
 Use S06-refresh evidence anchors when routing refreshed M001 claims:
-- FalkorDB runtime/capability anchor: `.gsd/milestones/M001/slices/S04/S04-FALKORDB-CAPABILITY-SMOKE.json`.
-- ODT parser anchor: `.gsd/milestones/M001/slices/S05/S05-ODT-PARSER-FINDINGS.md` with bounded `odfdo`, `odfpy`, and raw `content.xml` evidence.
-- Local embedding evaluation anchor: `.gsd/milestones/M001/slices/S09/S09-LOCAL-EMBEDDING-EVALUATION.json` for `deepvk/USER-bge-m3`, `1024`, and `ai-sage/Giga-Embeddings-instruct` comparisons.
+- FalkorDB runtime/capability anchor: `prd/milestone_proofs/M001_S04_FALKORDB-CAPABILITY-SMOKE.json`.
+- ODT parser anchor: `prd/milestone_proofs/M001_S05_ODT-PARSER-FINDINGS.md` with bounded `odfdo`, `odfpy`, and raw `content.xml` evidence.
+- Local embedding evaluation anchor: `prd/milestone_proofs/M001_S09_LOCAL-EMBEDDING-EVALUATION.json` for `deepvk/USER-bge-m3`, `1024`, and `ai-sage/Giga-Embeddings-instruct` comparisons.
 - Embedding runtime proof anchor: `prd/milestone_proofs/M001_S10_EMBEDDING-RUNTIME-PROOF.json` for `deepvk/USER-bge-m3` confirmed-runtime, `1024`-dimensional FalkorDB proof, `GigaEmbeddings` / `ai-sage/Giga-Embeddings-instruct`, and `blocked-environment` diagnostics.
-- Exercise/handoff anchor: `.gsd/milestones/M001/slices/S06/S06-SKILL-EVIDENCE-UPDATE.md` classifies the cross-domain question “Can LegalGraph use FalkorDB vector retrieval over Garant ODT evidence with local embeddings?” without copying raw legal text, embedding arrays, credentials, or managed API secret names.
+- Exercise/handoff anchor: `prd/milestone_proofs/M001_S06_SKILL-EVIDENCE-UPDATE.md` classifies the cross-domain question “Can LegalGraph use FalkorDB vector retrieval over Garant ODT evidence with local embeddings?” without copying raw legal text, embedding arrays, credentials, or managed API secret names.
 Every refreshed claim should expose an owner, resolution, and verification status instead of upgrading bounded evidence into product proof.
 </s06_evidence_refresh>
 

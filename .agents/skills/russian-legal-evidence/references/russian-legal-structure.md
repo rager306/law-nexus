@@ -6,8 +6,8 @@ Provide durable terminology for Russian legal structure, citation units, Evidenc
 </purpose>
 
 <evidence_anchors>
-- S05 parser findings: `.gsd/milestones/M001/slices/S05/S05-ODT-PARSER-FINDINGS.md`.
-- S05 parser probe log: `.gsd/milestones/M001/slices/S05/logs/odt-parser-probes.json`.
+- S05 parser findings: `prd/milestone_proofs/M001_S05_ODT-PARSER-FINDINGS.md`.
+- S05 parser probe log: `prd/milestone_proofs/M001_S05_logs_odt-parser-probes.json`.
 S05 verifies raw `content.xml` smoke observations and parser-comparison evidence; it does not verify final legal hierarchy, EvidenceSpan, SourceBlock, or product ETL output.
 </evidence_anchors>
 
