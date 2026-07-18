@@ -36,6 +36,7 @@ ConsultantHierarchyLevel: TypeAlias = Literal[
     "part",
     "clause",
     "subclause",
+    "abzac",
     "paragraph",
     "unknown",
 ]

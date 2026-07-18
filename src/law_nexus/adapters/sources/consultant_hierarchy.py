@@ -26,7 +26,7 @@ from law_nexus.ports.source_hierarchy import (
     SourceHierarchyResult,
 )
 
-Level = Literal["document", "razdel", "chapter", "section", "article", "part", "clause", "subclause"]
+Level = Literal["document", "razdel", "chapter", "section", "article", "part", "clause", "subclause", "abzac"]
 WORDML_NS = "http://schemas.microsoft.com/office/word/2003/wordml"
 MAX_DIAGNOSTICS = 100
 NON_CLAIMS = [
@@ -328,6 +328,8 @@ def hierarchy_records(request: SourceHierarchyRequest) -> tuple[list[dict[str, A
     for paragraph in paragraphs:
         marker = marker_for_text(paragraph.text)
         if marker is None:
+            if context["article"] is not None:
+                skipped["unnumbered_paragraphs_within_article"] += 1
             continue
         if marker.level in {"part", "clause", "subclause"} and context["article"] is None:
             skipped[f"{marker.level}_outside_article"] += 1
@@ -392,6 +394,8 @@ def hierarchy_records(request: SourceHierarchyRequest) -> tuple[list[dict[str, A
         )
     if skipped:
         for kind, count in sorted(skipped.items()):
+            if kind == "unnumbered_paragraphs_within_article":
+                continue  # diagnostic counter, not a structural error
             structural_errors.append({"kind": "context_break", "message": f"{kind}: {count}", "count": count})
 
     diagnostics = {
