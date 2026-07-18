@@ -3335,7 +3335,7 @@
   lgarch:section "6.2 Add proof gates rather than immediate implementation claims" .
 
 <urn:law-nexus:architecture-source:a16e4d28f946b2fd> a lgarch:SourceAnchor ;
-  lgarch:path ".gsd/milestones/M004/slices/S02/S02-PLAN.md" ;
+  lgarch:path "prd/milestone_proofs/M004_S02_PRE-EXEC-VERIFY.json" ;
   lgarch:kind "gsd-summary" ;
   lgarch:section "Verification" .
 
