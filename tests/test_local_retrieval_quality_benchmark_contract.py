@@ -26,7 +26,7 @@ REQUIRED_SECTIONS = [
 REQUIRED_SOURCE_ARTIFACTS = [
     "prd/retrieval/offline_citation_retrieval_proof.md",
     "prd/retrieval/fixtures/offline_citation_retrieval_cases.json",
-    ".gsd/milestones/M001/slices/S10/S10-EMBEDDING-RUNTIME-PROOF.json",
+    "prd/milestone_proofs/M001_S10_EMBEDDING-RUNTIME-PROOF.json",
     "prd/architecture/product_readiness_blockers.md",
 ]
 

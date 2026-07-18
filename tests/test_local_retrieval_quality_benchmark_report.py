@@ -28,7 +28,7 @@ REQUIRED_INPUTS = [
     "tests/test_local_retrieval_quality_benchmark_fixture.py",
     "tests/test_local_retrieval_quality_benchmark_cli.py",
     "prd/retrieval/fixtures/offline_citation_retrieval_cases.json",
-    ".gsd/milestones/M001/slices/S10/S10-EMBEDDING-RUNTIME-PROOF.json",
+    "prd/milestone_proofs/M001_S10_EMBEDDING-RUNTIME-PROOF.json",
 ]
 
 REQUIRED_CASE_CLASSES = [
@@ -163,7 +163,7 @@ def test_report_model_boundary_uses_user_bge_and_blocks_overclaims() -> None:
     assert "1024" in model
     assert "managed_api_used`: `false`" in model
     assert "raw_vectors_persisted`: `false`" in model
-    assert ".gsd/milestones/M001/slices/S10/S10-EMBEDDING-RUNTIME-PROOF.json" in model
+    assert "prd/milestone_proofs/M001_S10_EMBEDDING-RUNTIME-PROOF.json" in model
     assert "does not prove production retrieval quality" in model
     assert "GigaEmbeddings remains blocked/gated" in model
 

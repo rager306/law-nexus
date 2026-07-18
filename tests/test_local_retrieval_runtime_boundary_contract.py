@@ -23,7 +23,7 @@ REQUIRED_SECTIONS = [
 
 REQUIRED_SOURCE_REFERENCES = [
     "prd/retrieval/local_retrieval_quality_benchmark_contract.md",
-    ".gsd/milestones/M001/slices/S10/S10-EMBEDDING-RUNTIME-PROOF.json",
+    "prd/milestone_proofs/M001_S10_EMBEDDING-RUNTIME-PROOF.json",
     ".gsd/milestones/M016/M016-CONTEXT.md",
 ]
 
