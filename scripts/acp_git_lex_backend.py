@@ -56,14 +56,14 @@ CLASSIFICATION_MAP = {
     "wrapper-fail": "adapter-fail",
     "blocked": "blocked",
     "rejected": "rejected",
+    "denied-surface": "rejected",
     "not-run": "not-run",
 }
 
 SUCCESS_CLASSIFICATIONS = {"pass", "diagnostic-fail", "rejected"}
 PRIVATE_FIELDS = {"_stdout_raw", "_stderr_raw"}
 SAFETY_FIELDS = {
-    "main_lex_absent_before",
-    "main_lex_absent_after",
+    # post-M066 (D095): .lex is expected in main per operational adoption
     "main_squad_absent_before",
     "main_squad_absent_after",
     "main_raw_absent_before",

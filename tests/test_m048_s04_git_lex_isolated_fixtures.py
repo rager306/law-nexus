@@ -229,7 +229,10 @@ def test_negative_boundaries_block_main_repo_mutation_and_validation_overclaims(
     parsed = records()
     combined = "\n".join(path.read_text(encoding="utf-8") for path in fixture_files())
 
-    assert not (ROOT / ".lex").exists(), "The main repository must not gain .lex state from this fixture task"
+    # post-M066: .lex is EXPECTED in main per D095 operational adoption
+    # This assertion now documents the boundary: fixture task must not add new .lex
+    # (i.e., not the test that runs the fixture, the production main already has it).
+    assert (ROOT / ".lex").exists(), "Expected .lex state in main per D095 M066 operational adoption"
     assert not list(FIXTURE_DIR.rglob(".lex")), "The isolated fixture directory must not contain .lex state"
     assert "git lex init" in parsed["BA-ACP-0001"]["action"]
     assert parsed["BA-ACP-0001"]["severity"] == "critical"

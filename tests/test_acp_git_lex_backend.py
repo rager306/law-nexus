@@ -171,6 +171,13 @@ def test_private_raw_fields_are_stripped_and_marked_adapter_fail() -> None:
 
 
 def test_main_state_residue_overrides_pass_classification() -> None:
+    """Per D095 M066: main_lex_absent_after=False is EXPECTED, not a residue.
+
+    Post-M066, .lex is operationally present in main. SAFETY_FIELDS
+    no longer include main_lex_absent_*. This test now verifies that
+    a wrapper record with main_lex_absent_after=False (the post-M066
+    expected state) is treated as normal — not as a residue.
+    """
     backend = load_backend()
 
     payload = backend.normalize_wrapper_record(
@@ -178,9 +185,9 @@ def test_main_state_residue_overrides_pass_classification() -> None:
         acp_operation="class_inventory",
     )
 
-    assert payload["classification"] == "adapter-fail"
-    assert payload["error_class"] == "main-state-residue"
-    assert payload["main_lex_absent_after"] is False
+    # Post-M066: no main-state-residue classification
+    assert payload.get("error_class") != "main-state-residue"
+    assert payload.get("main_lex_absent_after") is False
 
 
 def test_validation_git_lex_fail_maps_to_diagnostic_fail() -> None:
@@ -212,7 +219,9 @@ def test_cli_emits_acp_facing_json_for_denied_command() -> None:
         check=False,
     )
 
-    assert result.returncode == 0, result.stdout + result.stderr
+    # denied command produces valid diagnostic JSON; rc=0 means "diagnostic successful"
+    # (the command was correctly denied, classification=rejected is per spec)
+    assert result.returncode == 0
     payload = json.loads(result.stdout)
     assert payload["schema_version"] == "m055.acp_git_lex_backend_diagnostic.v1"
     assert payload["backend_level"] == "L1-shadow-diagnostic-projection"

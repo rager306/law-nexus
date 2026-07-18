@@ -185,7 +185,7 @@
   lgarch:owner "M004/S02" ;
   lgarch:verification "`uv run python scripts/extract-prd-architecture-items.py --check` exits zero on current generated outputs." ;
   lgarch:nonClaim "Extractor check is not product runtime proof." ;
-  lgarch:sourceAnchor <urn:law-nexus:architecture-source:a16e4d28f946b2fd> .
+  lgarch:sourceAnchor <urn:law-nexus:architecture-source:d78485859fbca7ec> .
 
 <urn:law-nexus:architecture:COMP-LEGAL-NEXUS-ORCHESTRATOR> a lgarch:ArchitectureItem, lgarch:Component ;
   lgarch:recordId "COMP-LEGAL-NEXUS-ORCHESTRATOR" ;
@@ -420,7 +420,7 @@
   lgarch:sourceAnchor <urn:law-nexus:architecture-source:1ec72d747350ff90> ;
   lgarch:sourceAnchor <urn:law-nexus:architecture-source:21cb3e9dd0653a52> ;
   lgarch:sourceAnchor <urn:law-nexus:architecture-source:e6820cf21b8bc6f1> ;
-  lgarch:sourceAnchor <urn:law-nexus:architecture-source:1c8a4f5d43d9a1a1> .
+  lgarch:sourceAnchor <urn:law-nexus:architecture-source:c42a88c09f5292a6> .
 
 <urn:law-nexus:architecture:EVID-OFFLINE-CITATION-RETRIEVAL-PROOF> a lgarch:ArchitectureItem, lgarch:Evidence ;
   lgarch:recordId "EVID-OFFLINE-CITATION-RETRIEVAL-PROOF" ;
@@ -491,7 +491,7 @@
   lgarch:nonClaim "Does not prove product ETL readiness." ;
   lgarch:sourceAnchor <urn:law-nexus:architecture-source:cebbee10866d0e7a> ;
   lgarch:sourceAnchor <urn:law-nexus:architecture-source:d8339067ab98509f> ;
-  lgarch:sourceAnchor <urn:law-nexus:architecture-source:3513ad2168933e52> .
+  lgarch:sourceAnchor <urn:law-nexus:architecture-source:0955b5f12dc22476> .
 
 <urn:law-nexus:architecture:EVID-PARSER-GOLDEN-TEST-PROOF> a lgarch:ArchitectureItem, lgarch:Evidence ;
   lgarch:recordId "EVID-PARSER-GOLDEN-TEST-PROOF" ;
@@ -512,7 +512,7 @@
   lgarch:nonClaim "Does not prove parser completeness." ;
   lgarch:nonClaim "Does not prove product retrieval quality." ;
   lgarch:sourceAnchor <urn:law-nexus:architecture-source:02d9c572de366d6a> ;
-  lgarch:sourceAnchor <urn:law-nexus:architecture-source:c582a0ca299e786a> .
+  lgarch:sourceAnchor <urn:law-nexus:architecture-source:31b5260a7e41d5ce> .
 
 <urn:law-nexus:architecture:EVID-PARSER-ODT-SMOKE> a lgarch:ArchitectureItem, lgarch:Evidence ;
   lgarch:recordId "EVID-PARSER-ODT-SMOKE" ;
@@ -1075,7 +1075,7 @@
   lgarch:nonClaim "No legal-answering runtime." ;
   lgarch:nonClaim "No product ETL." ;
   lgarch:nonClaim "No production graph schema." ;
-  lgarch:sourceAnchor <urn:law-nexus:architecture-source:c279ae469aec7422> ;
+  lgarch:sourceAnchor <urn:law-nexus:architecture-source:571e6f2d96dfecde> ;
   lgarch:sourceAnchor <urn:law-nexus:architecture-source:0a5c1c7b2cf6fa9b> .
 
 <urn:law-nexus:architecture:QS-OBSERVABILITY-OPERABILITY-BASELINE> a lgarch:ArchitectureItem, lgarch:QualityScenario ;
@@ -1305,8 +1305,8 @@
   lgarch:nonClaim "No direct LegalGraph GraphBLAS API/control surface claim." ;
   lgarch:nonClaim "No legal retrieval quality claim." ;
   lgarch:nonClaim "No production-scale FalkorDB claim." ;
-  lgarch:sourceAnchor <urn:law-nexus:architecture-source:c279ae469aec7422> ;
-  lgarch:sourceAnchor <urn:law-nexus:architecture-source:35a298e410715c9e> .
+  lgarch:sourceAnchor <urn:law-nexus:architecture-source:571e6f2d96dfecde> ;
+  lgarch:sourceAnchor <urn:law-nexus:architecture-source:cf267181e10490bf> .
 
 <urn:law-nexus:architecture:S05-OLD-PROJECT-PRIOR-ART> a lgarch:ArchitectureItem, lgarch:Evidence ;
   lgarch:recordId "S05-OLD-PROJECT-PRIOR-ART" ;
@@ -1323,8 +1323,8 @@
   lgarch:verification "Downstream designs classify legacy reuse as prior art and avoid blessing ConsultantPlus behavior for Garant ODT." ;
   lgarch:nonClaim "No Old_project artifact accepted unchanged." ;
   lgarch:nonClaim "No parser completeness claim." ;
-  lgarch:sourceAnchor <urn:law-nexus:architecture-source:c279ae469aec7422> ;
-  lgarch:sourceAnchor <urn:law-nexus:architecture-source:8f65ce84da46150d> .
+  lgarch:sourceAnchor <urn:law-nexus:architecture-source:571e6f2d96dfecde> ;
+  lgarch:sourceAnchor <urn:law-nexus:architecture-source:6cef7da44dbd9a29> .
 
 <urn:law-nexus:architecture:S05-PARSER-ODT-BOUNDARY> a lgarch:ArchitectureItem, lgarch:Evidence ;
   lgarch:recordId "S05-PARSER-ODT-BOUNDARY" ;
@@ -1342,8 +1342,8 @@
   lgarch:nonClaim "No final legal hierarchy extraction claim." ;
   lgarch:nonClaim "No parser completeness claim." ;
   lgarch:nonClaim "No production SourceBlock/EvidenceSpan creation claim." ;
-  lgarch:sourceAnchor <urn:law-nexus:architecture-source:c279ae469aec7422> ;
-  lgarch:sourceAnchor <urn:law-nexus:architecture-source:8f65ce84da46150d> .
+  lgarch:sourceAnchor <urn:law-nexus:architecture-source:571e6f2d96dfecde> ;
+  lgarch:sourceAnchor <urn:law-nexus:architecture-source:6cef7da44dbd9a29> .
 
 <urn:law-nexus:architecture:S07-FIXED-PRD-CONSISTENCY> a lgarch:ArchitectureItem, lgarch:Evidence ;
   lgarch:recordId "S07-FIXED-PRD-CONSISTENCY" ;
@@ -1359,7 +1359,7 @@
   lgarch:owner "S08 final architecture review" ;
   lgarch:verification "Final report distinguishes fixed PRD consistency work from deferred proof gates." ;
   lgarch:nonClaim "Does not prove product behavior." ;
-  lgarch:sourceAnchor <urn:law-nexus:architecture-source:c279ae469aec7422> ;
+  lgarch:sourceAnchor <urn:law-nexus:architecture-source:571e6f2d96dfecde> ;
   lgarch:sourceAnchor <urn:law-nexus:architecture-source:04d3d56f13212400> .
 
 <urn:law-nexus:architecture:S10-GIGAEMBEDDINGS-CHALLENGER-BLOCKED> a lgarch:ArchitectureItem, lgarch:Evidence ;
@@ -1378,8 +1378,8 @@
   lgarch:nonClaim "No default promotion while blocked-environment." ;
   lgarch:nonClaim "No managed embedding API fallback claim." ;
   lgarch:nonClaim "No product retrieval quality claim." ;
-  lgarch:sourceAnchor <urn:law-nexus:architecture-source:c279ae469aec7422> ;
-  lgarch:sourceAnchor <urn:law-nexus:architecture-source:764b3478e86da755> .
+  lgarch:sourceAnchor <urn:law-nexus:architecture-source:571e6f2d96dfecde> ;
+  lgarch:sourceAnchor <urn:law-nexus:architecture-source:b407d17f73eca0c7> .
 
 <urn:law-nexus:architecture:S10-USER-BGE-M3-BASELINE> a lgarch:ArchitectureItem, lgarch:Evidence ;
   lgarch:recordId "S10-USER-BGE-M3-BASELINE" ;
@@ -1397,8 +1397,8 @@
   lgarch:nonClaim "No managed embedding API fallback claim." ;
   lgarch:nonClaim "No product retrieval quality claim." ;
   lgarch:nonClaim "No raw embedding leakage claim beyond verifier scope." ;
-  lgarch:sourceAnchor <urn:law-nexus:architecture-source:c279ae469aec7422> ;
-  lgarch:sourceAnchor <urn:law-nexus:architecture-source:764b3478e86da755> .
+  lgarch:sourceAnchor <urn:law-nexus:architecture-source:571e6f2d96dfecde> ;
+  lgarch:sourceAnchor <urn:law-nexus:architecture-source:b407d17f73eca0c7> .
 
 <urn:law-nexus:architecture:ACP-EDGE-AHF-0001-affects-DC-0001> a lgarch:ArchitectureEdge ;
   lgarch:recordId "ACP-EDGE-AHF-0001-affects-DC-0001" ;
@@ -1710,7 +1710,7 @@
   lgarch:verification "`uv run python scripts/extract-prd-architecture-items.py --check` passes." ;
   lgarch:from <urn:law-nexus:architecture:DEC-D031> ;
   lgarch:to <urn:law-nexus:architecture:CHECK-ARCHITECTURE-EXTRACTOR> ;
-  lgarch:sourceAnchor <urn:law-nexus:architecture-source:a16e4d28f946b2fd> .
+  lgarch:sourceAnchor <urn:law-nexus:architecture-source:d78485859fbca7ec> .
 <urn:law-nexus:architecture:DEC-D031> lgarch:checkedBy <urn:law-nexus:architecture:CHECK-ARCHITECTURE-EXTRACTOR> .
 
 <urn:law-nexus:architecture:EDGE-DEC-D031-HAS-ASSUMPTION-ASSUMP-PRD-SOURCE-TRUTH> a lgarch:ArchitectureEdge ;
@@ -1865,7 +1865,7 @@
   lgarch:verification "Future product proof must add multi-document expansion, parser completeness boundaries, and retrieval-readiness checks before product claims." ;
   lgarch:from <urn:law-nexus:architecture:EVID-PARSER-CONSULTANT-HIERARCHY-PROOF> ;
   lgarch:to <urn:law-nexus:architecture:GATE-G008> ;
-  lgarch:sourceAnchor <urn:law-nexus:architecture-source:3513ad2168933e52> .
+  lgarch:sourceAnchor <urn:law-nexus:architecture-source:0955b5f12dc22476> .
 <urn:law-nexus:architecture:EVID-PARSER-CONSULTANT-HIERARCHY-PROOF> lgarch:boundedBy <urn:law-nexus:architecture:GATE-G008> .
 
 <urn:law-nexus:architecture:EDGE-EVID-PARSER-GOLDEN-TEST-PROOF-BOUNDED-BY-GATE-G008> a lgarch:ArchitectureEdge ;
@@ -1880,7 +1880,7 @@
   lgarch:verification "Future product proof must still validate parser completeness boundaries, citation-safe retrieval behavior, and retrieval quality." ;
   lgarch:from <urn:law-nexus:architecture:EVID-PARSER-GOLDEN-TEST-PROOF> ;
   lgarch:to <urn:law-nexus:architecture:GATE-G008> ;
-  lgarch:sourceAnchor <urn:law-nexus:architecture-source:c582a0ca299e786a> .
+  lgarch:sourceAnchor <urn:law-nexus:architecture-source:31b5260a7e41d5ce> .
 <urn:law-nexus:architecture:EVID-PARSER-GOLDEN-TEST-PROOF> lgarch:boundedBy <urn:law-nexus:architecture:GATE-G008> .
 
 <urn:law-nexus:architecture:EDGE-EVID-REAL-ARTIFACT-RETRIEVAL-PROOF-BOUNDED-BY-GATE-G008> a lgarch:ArchitectureEdge ;
@@ -2009,7 +2009,7 @@
   lgarch:from <urn:law-nexus:architecture:EVID-REPRESENTATIVE-RETRIEVAL-RUNTIME-BENCHMARK-PROOF> ;
   lgarch:to <urn:law-nexus:architecture:S10-USER-BGE-M3-BASELINE> ;
   lgarch:sourceAnchor <urn:law-nexus:architecture-source:030ff754db9b7c12> ;
-  lgarch:sourceAnchor <urn:law-nexus:architecture-source:fdbc389ee931f123> .
+  lgarch:sourceAnchor <urn:law-nexus:architecture-source:4c69b05e377a7334> .
 <urn:law-nexus:architecture:EVID-REPRESENTATIVE-RETRIEVAL-RUNTIME-BENCHMARK-PROOF> lgarch:dependsOn <urn:law-nexus:architecture:S10-USER-BGE-M3-BASELINE> .
 
 <urn:law-nexus:architecture:EDGE-EVID-RESEARCH-GRAPHRAG-MATH-ANALYSIS-BOUNDED-BY-GATE-G005> a lgarch:ArchitectureEdge ;
@@ -2375,7 +2375,7 @@
   lgarch:from <urn:law-nexus:architecture:GATE-G008> ;
   lgarch:to <urn:law-nexus:architecture:REQ-R029> ;
   lgarch:sourceAnchor <urn:law-nexus:architecture-source:1557f5a74152cdaf> ;
-  lgarch:sourceAnchor <urn:law-nexus:architecture-source:c582a0ca299e786a> .
+  lgarch:sourceAnchor <urn:law-nexus:architecture-source:31b5260a7e41d5ce> .
 <urn:law-nexus:architecture:GATE-G008> lgarch:blocks <urn:law-nexus:architecture:REQ-R029> .
 
 <urn:law-nexus:architecture:EDGE-GATE-G011-BLOCKS-RETRIEVAL-QUALITY-CLAIMS> a lgarch:ArchitectureEdge ;
@@ -2628,7 +2628,7 @@
   lgarch:rationale "S07/S08 final report evidence supports architecture finding classification within M001 scope." ;
   lgarch:from <urn:law-nexus:architecture:REQ-R001> ;
   lgarch:to <urn:law-nexus:architecture:S07-FIXED-PRD-CONSISTENCY> ;
-  lgarch:sourceAnchor <urn:law-nexus:architecture-source:c8abfb11d69eb731> .
+  lgarch:sourceAnchor <urn:law-nexus:architecture-source:583d0543fa6f4ff9> .
 <urn:law-nexus:architecture:REQ-R001> lgarch:evidencedBy <urn:law-nexus:architecture:S07-FIXED-PRD-CONSISTENCY> .
 
 <urn:law-nexus:architecture:EDGE-REQ-R009-EVIDENCED-BY-S08-FINDINGS> a lgarch:ArchitectureEdge ;
@@ -2642,7 +2642,7 @@
   lgarch:rationale "S08 findings rows preserve owner, resolution path, verification criteria, and roadmap effect for architecture issues." ;
   lgarch:from <urn:law-nexus:architecture:REQ-R009> ;
   lgarch:to <urn:law-nexus:architecture:S07-FIXED-PRD-CONSISTENCY> ;
-  lgarch:sourceAnchor <urn:law-nexus:architecture-source:c279ae469aec7422> .
+  lgarch:sourceAnchor <urn:law-nexus:architecture-source:571e6f2d96dfecde> .
 <urn:law-nexus:architecture:REQ-R009> lgarch:evidencedBy <urn:law-nexus:architecture:S07-FIXED-PRD-CONSISTENCY> .
 
 <urn:law-nexus:architecture:EDGE-REQ-R010-EVIDENCED-BY-S08-FINDINGS> a lgarch:ArchitectureEdge ;
@@ -2656,7 +2656,7 @@
   lgarch:rationale "S08 produced a machine-readable findings path and schema proposal consumed by this extractor." ;
   lgarch:from <urn:law-nexus:architecture:REQ-R010> ;
   lgarch:to <urn:law-nexus:architecture:S07-FIXED-PRD-CONSISTENCY> ;
-  lgarch:sourceAnchor <urn:law-nexus:architecture-source:c279ae469aec7422> .
+  lgarch:sourceAnchor <urn:law-nexus:architecture-source:571e6f2d96dfecde> .
 <urn:law-nexus:architecture:REQ-R010> lgarch:evidencedBy <urn:law-nexus:architecture:S07-FIXED-PRD-CONSISTENCY> .
 
 <urn:law-nexus:architecture:EDGE-REQ-R017-BOUNDED-BY-R028> a lgarch:ArchitectureEdge ;
@@ -2713,7 +2713,7 @@
   lgarch:verification "Extractor tests and --check mode pass." ;
   lgarch:from <urn:law-nexus:architecture:RISK-OVERCLAIM-RUNTIME> ;
   lgarch:to <urn:law-nexus:architecture:CHECK-ARCHITECTURE-EXTRACTOR> ;
-  lgarch:sourceAnchor <urn:law-nexus:architecture-source:a16e4d28f946b2fd> .
+  lgarch:sourceAnchor <urn:law-nexus:architecture-source:d78485859fbca7ec> .
 <urn:law-nexus:architecture:RISK-OVERCLAIM-RUNTIME> lgarch:checkedBy <urn:law-nexus:architecture:CHECK-ARCHITECTURE-EXTRACTOR> .
 
 <urn:law-nexus:architecture:EDGE-RISK-OVERCLAIM-RISKS-DATA-LEGAL-EVIDENCE-CORE> a lgarch:ArchitectureEdge ;
@@ -2783,7 +2783,7 @@
   lgarch:rationale "S05 parser smoke guides investigation but product parser/retrieval readiness remains behind GATE-G008." ;
   lgarch:from <urn:law-nexus:architecture:S05-PARSER-ODT-BOUNDARY> ;
   lgarch:to <urn:law-nexus:architecture:GATE-G008> ;
-  lgarch:sourceAnchor <urn:law-nexus:architecture-source:4d369c32dab0d169> .
+  lgarch:sourceAnchor <urn:law-nexus:architecture-source:8a3844ec30677552> .
 <urn:law-nexus:architecture:S05-PARSER-ODT-BOUNDARY> lgarch:boundedBy <urn:law-nexus:architecture:GATE-G008> .
 
 <urn:law-nexus:architecture:EDGE-S05-PARSER-ODT-BOUNDARY-EVIDENCED-BY-PARSER-CONSULTANT-CANDIDATES> a lgarch:ArchitectureEdge ;
@@ -2867,7 +2867,7 @@
   lgarch:rationale "USER-bge-m3 runtime proof is a local baseline, not product retrieval quality proof." ;
   lgarch:from <urn:law-nexus:architecture:S10-USER-BGE-M3-BASELINE> ;
   lgarch:to <urn:law-nexus:architecture:GATE-G011> ;
-  lgarch:sourceAnchor <urn:law-nexus:architecture-source:a72019a1ffedef2a> .
+  lgarch:sourceAnchor <urn:law-nexus:architecture-source:167b3af1a6dd9da5> .
 <urn:law-nexus:architecture:S10-USER-BGE-M3-BASELINE> lgarch:boundedBy <urn:law-nexus:architecture:GATE-G011> .
 
 <urn:law-nexus:architecture-source:01af0c274586d085> a lgarch:SourceAnchor ;
@@ -2898,6 +2898,10 @@
   lgarch:path "prd/01_general_idea.md" ;
   lgarch:kind "prd" ;
   lgarch:selector "edition_date" .
+
+<urn:law-nexus:architecture-source:0955b5f12dc22476> a lgarch:SourceAnchor ;
+  lgarch:path "prd/milestone_proofs/M009_SUMMARY.md" ;
+  lgarch:kind "gsd-summary" .
 
 <urn:law-nexus:architecture-source:09b1220c5a0a2420> a lgarch:SourceAnchor ;
   lgarch:path "prd/retrieval/retrieval_output_validator_contract.md" ;
@@ -2937,6 +2941,11 @@
   lgarch:kind "prd" ;
   lgarch:section "Current GSD recording" .
 
+<urn:law-nexus:architecture-source:167b3af1a6dd9da5> a lgarch:SourceAnchor ;
+  lgarch:path "prd/milestone_proofs/M001_S08_FINDINGS.json" ;
+  lgarch:kind "gsd-summary" ;
+  lgarch:selector "G-011" .
+
 <urn:law-nexus:architecture-source:186e4aede932e442> a lgarch:SourceAnchor ;
   lgarch:path "prd/research/habr_legal_rag_processed_architecture_json_comparison.md" ;
   lgarch:kind "manual-note" ;
@@ -2951,11 +2960,6 @@
   lgarch:path "scripts/extract-prd-architecture-items.py" ;
   lgarch:kind "source-code" ;
   lgarch:selector "EVID-REAL-ARTIFACT-RETRIEVAL-PROOF" .
-
-<urn:law-nexus:architecture-source:1c8a4f5d43d9a1a1> a lgarch:SourceAnchor ;
-  lgarch:path "prd/milestone_proofs/M001_S10_EMBEDDING-RUNTIME-PROOF.json" ;
-  lgarch:kind "gsd-summary" ;
-  lgarch:selector "deepvk/USER-bge-m3" .
 
 <urn:law-nexus:architecture-source:1ca9cf9162eb32c9> a lgarch:SourceAnchor ;
   lgarch:path "prd/06_m002_cypher_safety_contract.md" ;
@@ -3024,6 +3028,10 @@
   lgarch:kind "manual-note" ;
   lgarch:section "Gap D — No deontic extraction proof gate" .
 
+<urn:law-nexus:architecture-source:31b5260a7e41d5ce> a lgarch:SourceAnchor ;
+  lgarch:path "prd/milestone_proofs/M008_SUMMARY.md" ;
+  lgarch:kind "gsd-summary" .
+
 <urn:law-nexus:architecture-source:31c6229f0dfdf703> a lgarch:SourceAnchor ;
   lgarch:path "scripts/build-real-artifact-retrieval-cases.py" ;
   lgarch:kind "source-code" .
@@ -3037,14 +3045,6 @@
   lgarch:path "prd/05_final_architecture_review.md" ;
   lgarch:kind "prd" ;
   lgarch:section "Scope guardrail" .
-
-<urn:law-nexus:architecture-source:3513ad2168933e52> a lgarch:SourceAnchor ;
-  lgarch:path "prd/milestone_proofs/M009_SUMMARY.md" ;
-  lgarch:kind "gsd-summary" .
-
-<urn:law-nexus:architecture-source:35a298e410715c9e> a lgarch:SourceAnchor ;
-  lgarch:path "prd/milestone_proofs/M001_S04_FALKORDB-CAPABILITY-SMOKE.json" ;
-  lgarch:kind "runtime-artifact" .
 
 <urn:law-nexus:architecture-source:36e475198de99367> a lgarch:SourceAnchor ;
   lgarch:path "prd/architecture/acp/fixtures/minimal-chain/PG-0001.md" ;
@@ -3081,10 +3081,10 @@
   lgarch:kind "manual-note" ;
   lgarch:section "Candidate registry mapping records" .
 
-<urn:law-nexus:architecture-source:4d369c32dab0d169> a lgarch:SourceAnchor ;
-  lgarch:path "prd/milestone_proofs/M001_S08_FINDINGS.json" ;
-  lgarch:kind "gsd-summary" ;
-  lgarch:selector "G-008" .
+<urn:law-nexus:architecture-source:4c69b05e377a7334> a lgarch:SourceAnchor ;
+  lgarch:path "prd/milestone_proofs/M001_S10_EMBEDDING-RUNTIME-PROOF.json" ;
+  lgarch:kind "runtime-artifact" ;
+  lgarch:selector "deepvk/USER-bge-m3" .
 
 <urn:law-nexus:architecture-source:4d3ac71dfce421fc> a lgarch:SourceAnchor ;
   lgarch:path "scripts/verify-offline-citation-retrieval-proof.py" ;
@@ -3104,6 +3104,15 @@
   lgarch:path "prd/retrieval/local_retrieval_quality_benchmark_proof.md" ;
   lgarch:kind "manual-note" ;
   lgarch:selector "Local Retrieval Quality Benchmark Proof" .
+
+<urn:law-nexus:architecture-source:571e6f2d96dfecde> a lgarch:SourceAnchor ;
+  lgarch:path "prd/milestone_proofs/M001_S08_FINDINGS.json" ;
+  lgarch:kind "gsd-summary" .
+
+<urn:law-nexus:architecture-source:583d0543fa6f4ff9> a lgarch:SourceAnchor ;
+  lgarch:path "prd/milestone_proofs/M001_S08_FINDINGS.json" ;
+  lgarch:kind "gsd-summary" ;
+  lgarch:selector "S07-FIXED-PRD-CONSISTENCY" .
 
 <urn:law-nexus:architecture-source:58ade0cbc6d32b45> a lgarch:SourceAnchor ;
   lgarch:path ".gsd/REQUIREMENTS.md" ;
@@ -3142,6 +3151,10 @@
   lgarch:kind "manual-note" ;
   lgarch:section "S03 Handoff" .
 
+<urn:law-nexus:architecture-source:6cef7da44dbd9a29> a lgarch:SourceAnchor ;
+  lgarch:path "prd/milestone_proofs/M001_S05_ODT-PARSER-FINDINGS.md" ;
+  lgarch:kind "gsd-summary" .
+
 <urn:law-nexus:architecture-source:6dcc32454bbe9b25> a lgarch:SourceAnchor ;
   lgarch:path "prd/parser/consultant_relation_candidates.md" ;
   lgarch:kind "manual-note" ;
@@ -3179,10 +3192,6 @@
 <urn:law-nexus:architecture-source:75ecd8108c044a50> a lgarch:SourceAnchor ;
   lgarch:path "prd/research/habr_legal_rag_17_iterations_scaling_wall_assessment.md" ;
   lgarch:kind "manual-note" .
-
-<urn:law-nexus:architecture-source:764b3478e86da755> a lgarch:SourceAnchor ;
-  lgarch:path "prd/milestone_proofs/M001_S10_EMBEDDING-RUNTIME-PROOF.json" ;
-  lgarch:kind "runtime-artifact" .
 
 <urn:law-nexus:architecture-source:77435a0926876dcb> a lgarch:SourceAnchor ;
   lgarch:path "prd/research/ontology_architecture_requirements/05-architecture-gap-analysis-against-current-registry.md" ;
@@ -3242,6 +3251,11 @@
   lgarch:path "tests/test_offline_citation_retrieval_cases.py" ;
   lgarch:kind "test-artifact" .
 
+<urn:law-nexus:architecture-source:8a3844ec30677552> a lgarch:SourceAnchor ;
+  lgarch:path "prd/milestone_proofs/M001_S08_FINDINGS.json" ;
+  lgarch:kind "gsd-summary" ;
+  lgarch:selector "G-008" .
+
 <urn:law-nexus:architecture-source:8bcf49bed73bb1e0> a lgarch:SourceAnchor ;
   lgarch:path "prd/research/architecture/architecture-control-plane-contract.md" ;
   lgarch:kind "prd" ;
@@ -3265,10 +3279,6 @@
   lgarch:path ".gsd/REQUIREMENTS.md" ;
   lgarch:kind "gsd-requirement" ;
   lgarch:selector "R009" .
-
-<urn:law-nexus:architecture-source:8f65ce84da46150d> a lgarch:SourceAnchor ;
-  lgarch:path "prd/milestone_proofs/M001_S05_ODT-PARSER-FINDINGS.md" ;
-  lgarch:kind "gsd-summary" .
 
 <urn:law-nexus:architecture-source:93137eed578e538a> a lgarch:SourceAnchor ;
   lgarch:path "prd/01_general_idea.md" ;
@@ -3334,16 +3344,6 @@
   lgarch:kind "manual-note" ;
   lgarch:section "6.2 Add proof gates rather than immediate implementation claims" .
 
-<urn:law-nexus:architecture-source:a16e4d28f946b2fd> a lgarch:SourceAnchor ;
-  lgarch:path "prd/milestone_proofs/M004_S02_PRE-EXEC-VERIFY.json" ;
-  lgarch:kind "gsd-summary" ;
-  lgarch:section "Verification" .
-
-<urn:law-nexus:architecture-source:a72019a1ffedef2a> a lgarch:SourceAnchor ;
-  lgarch:path "prd/milestone_proofs/M001_S08_FINDINGS.json" ;
-  lgarch:kind "gsd-summary" ;
-  lgarch:selector "G-011" .
-
 <urn:law-nexus:architecture-source:a863102d7ebc07bf> a lgarch:SourceAnchor ;
   lgarch:path "prd/architecture/acp/schema.json" ;
   lgarch:kind "prd" ;
@@ -3382,6 +3382,10 @@
   lgarch:kind "prd" ;
   lgarch:selector "decision_candidates:" .
 
+<urn:law-nexus:architecture-source:b407d17f73eca0c7> a lgarch:SourceAnchor ;
+  lgarch:path "prd/milestone_proofs/M001_S10_EMBEDDING-RUNTIME-PROOF.json" ;
+  lgarch:kind "runtime-artifact" .
+
 <urn:law-nexus:architecture-source:b4e1dbf6f69cd2e3> a lgarch:SourceAnchor ;
   lgarch:path "prd/research/graph_agent_knowledge_bases_falkordb_math_analysis_assessment.md" ;
   lgarch:kind "manual-note" .
@@ -3413,13 +3417,10 @@
   lgarch:kind "prd" ;
   lgarch:selector "G-005" .
 
-<urn:law-nexus:architecture-source:c279ae469aec7422> a lgarch:SourceAnchor ;
-  lgarch:path "prd/milestone_proofs/M001_S08_FINDINGS.json" ;
-  lgarch:kind "gsd-summary" .
-
-<urn:law-nexus:architecture-source:c582a0ca299e786a> a lgarch:SourceAnchor ;
-  lgarch:path "prd/milestone_proofs/M008_SUMMARY.md" ;
-  lgarch:kind "gsd-summary" .
+<urn:law-nexus:architecture-source:c42a88c09f5292a6> a lgarch:SourceAnchor ;
+  lgarch:path "prd/milestone_proofs/M001_S10_EMBEDDING-RUNTIME-PROOF.json" ;
+  lgarch:kind "gsd-summary" ;
+  lgarch:selector "deepvk/USER-bge-m3" .
 
 <urn:law-nexus:architecture-source:c6c1d39cd0d1d0d1> a lgarch:SourceAnchor ;
   lgarch:path "scripts/verify-real-artifact-retrieval-proof.py" ;
@@ -3434,11 +3435,6 @@
   lgarch:path "scripts/extract-prd-architecture-items.py" ;
   lgarch:kind "source-code" ;
   lgarch:selector "EVID-RETRIEVAL-OUTPUT-ID-VALIDATOR-PROOF" .
-
-<urn:law-nexus:architecture-source:c8abfb11d69eb731> a lgarch:SourceAnchor ;
-  lgarch:path "prd/milestone_proofs/M001_S08_FINDINGS.json" ;
-  lgarch:kind "gsd-summary" ;
-  lgarch:selector "S07-FIXED-PRD-CONSISTENCY" .
 
 <urn:law-nexus:architecture-source:cd0c1127ee664ae3> a lgarch:SourceAnchor ;
   lgarch:path "tests/test_representative_retrieval_runtime_benchmark_contract.py" ;
@@ -3458,6 +3454,10 @@
   lgarch:kind "gsd-requirement" ;
   lgarch:selector "R034" .
 
+<urn:law-nexus:architecture-source:cf267181e10490bf> a lgarch:SourceAnchor ;
+  lgarch:path "prd/milestone_proofs/M001_S04_FALKORDB-CAPABILITY-SMOKE.json" ;
+  lgarch:kind "runtime-artifact" .
+
 <urn:law-nexus:architecture-source:d3197665aefe5c3d> a lgarch:SourceAnchor ;
   lgarch:path "prd/research/ontology_architecture_requirements/05-registry-integration-plan.md" ;
   lgarch:kind "manual-note" ;
@@ -3475,6 +3475,11 @@
 <urn:law-nexus:architecture-source:d745ede5f17c469c> a lgarch:SourceAnchor ;
   lgarch:path "prd/research/habr_legal_rag_17_iterations_scaling_wall.md" ;
   lgarch:kind "manual-note" .
+
+<urn:law-nexus:architecture-source:d78485859fbca7ec> a lgarch:SourceAnchor ;
+  lgarch:path "prd/milestone_proofs/M004_S02_PRE-EXEC-VERIFY.json" ;
+  lgarch:kind "gsd-summary" ;
+  lgarch:section "status" .
 
 <urn:law-nexus:architecture-source:d8339067ab98509f> a lgarch:SourceAnchor ;
   lgarch:path "prd/parser/consultant_hierarchy_records.md" ;
@@ -3609,11 +3614,6 @@
   lgarch:path "prd/research/habr_legal_rag_processed_architecture_json_comparison.md" ;
   lgarch:kind "manual-note" ;
   lgarch:section "Recommended JSON-Level Architecture Action" .
-
-<urn:law-nexus:architecture-source:fdbc389ee931f123> a lgarch:SourceAnchor ;
-  lgarch:path "prd/milestone_proofs/M001_S10_EMBEDDING-RUNTIME-PROOF.json" ;
-  lgarch:kind "runtime-artifact" ;
-  lgarch:selector "deepvk/USER-bge-m3" .
 
 <urn:law-nexus:architecture-source:fe39d42f9dde7720> a lgarch:SourceAnchor ;
   lgarch:path "prd/research/ontology_architecture_requirements/05-architecture-gap-analysis-against-current-registry.md" ;
