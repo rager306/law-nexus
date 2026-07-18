@@ -182,6 +182,33 @@ INTERNAL_REF_PATTERNS: tuple[tuple[str, re.Pattern[str]], ...] = (
     ("clause", re.compile(r"\bпункт[аыоеу]\s+(\d+(?:\.\d+)?)", re.IGNORECASE | re.UNICODE)),
 )
 
+TEMPORAL_PATTERNS: tuple[tuple[str, str], ...] = (
+    ("entry_into_force", r"\bвступа[ею]т\s+в\s+силу"),
+    ("entry_into_force", r"\bвступил[ао]?\s+в\s+силу"),
+    ("entry_into_force", r"\bвве[сд]ти\s+в\s+действие"),
+    ("invalidity", r"\bутратил[ао]?\s+силу"),
+    ("invalidity", r"\bне\s+применя[ею]тся"),
+    ("invalidity", r"\bне\s+действу[ею]т"),
+    ("secrecy", r"\bДСП\b"),
+    ("secrecy", r"\bдля\s+служебного\s+пользования"),
+    ("secrecy", r"\bсекретно\b"),
+)
+
+def detect_temporal_markers(text: str) -> dict[str, int]:
+    """Detect temporal, validity, and secrecy markers in text.
+
+    Returns dict of category -> count. Categories: entry_into_force,
+    invalidity, secrecy. These are bounded diagnostic signals — no
+    legal-effect assertions, no temporal_confidence claims.
+    """
+
+    hits: dict[str, int] = {"entry_into_force": 0, "invalidity": 0, "secrecy": 0}
+    for category, pattern in TEMPORAL_PATTERNS:
+        count = len(re.findall(pattern, text, re.IGNORECASE | re.UNICODE))
+        if count:
+            hits[category] += count
+    return hits
+
 def extract_internal_references(text: str) -> list[dict[str, str]]:
     """Extract bounded internal structural references from legal text.
 
@@ -417,6 +444,10 @@ def hierarchy_records(request: SourceHierarchyRequest) -> tuple[list[dict[str, A
                 skipped["preambula_paragraphs"] += 1
             elif context["article"] is not None:
                 skipped["unnumbered_paragraphs_within_article"] += 1
+            # M097: temporal/validity/secrecy marker detection
+            for cat, count in detect_temporal_markers(paragraph.text).items():
+                if count:
+                    skipped[f"{cat}_markers"] += count
             continue
 
         if marker.level == "article":
@@ -485,7 +516,14 @@ def hierarchy_records(request: SourceHierarchyRequest) -> tuple[list[dict[str, A
         )
     if skipped:
         for kind, count in sorted(skipped.items()):
-            if kind in ("unnumbered_paragraphs_within_article", "preambula_paragraphs", "prilozhenie_paragraphs"):
+            if kind in (
+                "unnumbered_paragraphs_within_article",
+                "preambula_paragraphs",
+                "prilozhenie_paragraphs",
+                "entry_into_force_markers",
+                "invalidity_markers",
+                "secrecy_markers",
+            ):
                 continue  # diagnostic counters, not structural errors
             structural_errors.append({"kind": "context_break", "message": f"{kind}: {count}", "count": count})
 
