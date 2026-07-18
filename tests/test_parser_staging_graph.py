@@ -88,14 +88,14 @@ def test_multigraph_preserves_real_artifact_counts_and_non_authoritative_state()
     assert result.summary.node_counts == {
         "document": 2,
         "source_block": 48,
-        "unresolved_reference": 3183,
+        "unresolved_reference": 4348,
     }
     assert result.summary.edge_counts == {
         "contains_source_block": 48,
-        "relation_candidate": 3059,
+        "relation_candidate": 3936,
     }
     assert result.summary.non_authoritative is True
-    assert "REL-CONS-0001" in result.summary.relation_candidate_edge_keys  # M095: internal-reference candidates added
+    assert "REL-CONS-0001" in result.summary.relation_candidate_edge_keys  # M096: internal + external reference candidates added
 
 
 def test_keyed_consultant_relation_uses_unresolved_reference_nodes_without_doc_rewrite():
@@ -285,10 +285,10 @@ def test_write_then_check_generates_deterministic_staging_reports(tmp_path: Path
     assert summary["artifact_freshness"]["status"] == "pass"
     assert summary["document_count"] == 2
     assert summary["source_block_count"] == 48
-    assert summary["relation_candidate_count"] == 3059  # M095: internal-reference candidates added
-    assert "REL-CONS-0001" in summary["keyed_relation_edges"]  # M095: internal-reference candidates added
+    assert summary["relation_candidate_count"] == 3936  # M096: internal + external reference candidates added
+    assert "REL-CONS-0001" in summary["keyed_relation_edges"]  # M096: internal + external reference candidates added
     assert summary["error_count"] == 0
-    assert summary["warning_count"] >= 3  # M095: internal-reference candidates added
+    assert summary["warning_count"] >= 3  # M096: internal + external reference candidates added
     assert {diagnostic["rule"] for diagnostic in summary["diagnostics"]} >= {
         "missing_source_block_record",
         "unresolved_object_ref",
@@ -330,10 +330,10 @@ def test_tracked_staging_reports_preserve_counts_warnings_and_non_claims():
     assert report["status"] == "pass"
     assert report["document_count"] == 2
     assert report["source_block_count"] == 48
-    assert report["relation_candidate_count"] == 3059  # M095: internal-reference candidates added
-    assert "REL-CONS-0001" in report["keyed_relation_edges"]  # M095: internal-reference candidates added
+    assert report["relation_candidate_count"] == 3936  # M096: internal + external reference candidates added
+    assert "REL-CONS-0001" in report["keyed_relation_edges"]  # M096: internal + external reference candidates added
     assert report["error_count"] == 0
-    assert report["warning_count"] >= 3  # M095: internal-reference candidates added
+    assert report["warning_count"] >= 3  # M096: internal + external reference candidates added
     assert report["non_authoritative"] is True
     assert report["parser_completeness_claimed"] is False
     assert report["legal_correctness_claimed"] is False

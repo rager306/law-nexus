@@ -31,7 +31,7 @@ from scripts.parser_records import (  # noqa: E402
     parse_parser_record,
 )
 
-from law_nexus.adapters.sources.consultant_hierarchy import extract_internal_references  # noqa: E402
+from law_nexus.adapters.sources.consultant_hierarchy import extract_internal_references, extract_external_references  # noqa: E402
 
 INVENTORY_PATH = Path("prd/parser/source_fixture_inventory.json")
 DEFAULT_OUTPUT_DIR = Path("prd/parser")
@@ -477,6 +477,64 @@ def extract_internal_reference_candidates(root: Path) -> list[dict[str, Any]]:
             candidates.append(payload)
     return candidates
 
+def extract_external_reference_candidates(root: Path) -> list[dict[str, Any]]:
+    """Extract external legal-act references from hierarchy records.
+
+    Reads prd/parser/consultant_hierarchy_records.jsonl and for each record
+    with an excerpt containing external act patterns (ФЗ от DD.MM.YYYY N,
+    кодекс), emits a RelationCandidateRecord with relation_type='external-reference'.
+    Object_ref = candidate act_id where derivable; else 'external:{excerpt_hash}'.
+    """
+
+    hierarchy_path = root / "prd" / "parser" / "consultant_hierarchy_records.jsonl"
+    if not hierarchy_path.exists():
+        return []
+
+    candidates: list[dict[str, Any]] = []
+    seen: set[str] = set()
+    for line in hierarchy_path.read_text(encoding="utf-8").splitlines():
+        if not line.strip():
+            continue
+        record = json.loads(line)
+        excerpt = record.get("excerpt", "")
+        record_id = record.get("id", "")
+        source_path = record.get("source_path", "")
+        source_sha256 = record.get("source_sha256", "")
+
+        for ref in extract_external_references(excerpt):
+            act_type = ref["target_act_type"]
+            act_number = ref.get("target_act_number", "")
+            date = ref.get("target_date", "")
+            if act_type == "federal_law" and act_number and date:
+                object_ref = f"fz:{act_number}@{date.replace('.', '-')}"
+            else:
+                object_ref = f"external:{sha256_text(ref['evidence_excerpt'])[:16]}"
+            dedup_key = f"{record_id}->{object_ref}"
+            if dedup_key in seen:
+                continue
+            seen.add(dedup_key)
+            evidence = ref["evidence_excerpt"]
+            payload = {
+                "record_kind": "relation_candidate",
+                "id": f"REL-EXT-{record_id.replace('HIER-CONS-', '')}-{object_ref.replace(':', '').replace('@', '-')}"[:80],
+                "source_kind": "consultant-wordml-xml",
+                "source_path": source_path,
+                "source_sha256": source_sha256,
+                "source_member": None,
+                "source_block_id": f"BLOCK-{record_id}",
+                "subject_ref": record_id,
+                "object_ref": object_ref,
+                "relation_type": "external-reference",
+                "status": "candidate",
+                "evidence_excerpt": evidence,
+                "evidence_sha256": sha256_text(evidence),
+                "non_authoritative": True,
+                "non_claims": NON_CLAIMS,
+            }
+            parse_parser_record(payload)
+            candidates.append(payload)
+    return candidates
+
 def build_relation_candidates(root: Path = ROOT, artifact_freshness: dict[str, Any] | None = None) -> BuildResult:
     """Build candidate-only Consultant WordML relation records from the canonical fixture."""
 
@@ -499,6 +557,10 @@ def build_relation_candidates(root: Path = ROOT, artifact_freshness: dict[str, A
     # M095: add internal structural reference candidates from hierarchy records
     internal_candidates = extract_internal_reference_candidates(root)
     records.extend(internal_candidates)
+
+    # M096: add external legal-act reference candidates from hierarchy records
+    external_candidates = extract_external_reference_candidates(root)
+    records.extend(external_candidates)
 
     report = build_report(
         records=records,

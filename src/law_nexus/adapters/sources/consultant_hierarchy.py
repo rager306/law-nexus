@@ -131,6 +131,51 @@ def marker_title(text: str, marker: Marker | None) -> str:
     return truncate(text, 240)
 
 
+EXTERNAL_REF_PATTERNS: tuple[tuple[str, re.Pattern[str]], ...] = (
+    (
+        "federal_law",
+        re.compile(
+            r"\b(?:Федеральн(?:ый|ого|ому|ым|ом|ая|ой|ую|ее|ие|их|ыми)\s+)?закон[а-яё]*\s+от\s+(\d{2}\.\d{2}\.\d{4})\s+(?:N|№)\s*([0-9A-Za-zА-Яа-яёЁ+\-/]+)",
+            re.IGNORECASE | re.UNICODE,
+        ),
+    ),
+    (
+        "code",
+        re.compile(
+            r"\b([А-Яа-яёЁ]{3,30})\s+кодекс",
+            re.IGNORECASE | re.UNICODE,
+        ),
+    ),
+)
+
+def extract_external_references(text: str) -> list[dict[str, str]]:
+    """Extract bounded external legal-act references from text.
+
+    Returns list of dicts with keys: target_act_type, target_act_number
+    (or None for code refs), target_date (or None), evidence_excerpt.
+    Resolution stays deferred — these are candidates only.
+    """
+
+    hits: list[dict[str, str]] = []
+    for act_type, pattern in EXTERNAL_REF_PATTERNS:
+        for match in pattern.finditer(text):
+            start = max(0, match.start() - 20)
+            end = min(len(text), match.end() + 40)
+            excerpt = text[start:end].strip()
+            entry: dict[str, str] = {
+                "target_act_type": act_type,
+                "target_act_number": "",
+                "target_date": "",
+                "evidence_excerpt": truncate(excerpt, 240),
+            }
+            if act_type == "federal_law" and match.lastindex == 2:
+                entry["target_date"] = match.group(1) or ""
+                entry["target_act_number"] = match.group(2) or ""
+            elif act_type == "code":
+                entry["target_act_number"] = (match.group(1) or "") + " кодекс"
+            hits.append(entry)
+    return hits
+
 INTERNAL_REF_PATTERNS: tuple[tuple[str, re.Pattern[str]], ...] = (
     ("article", re.compile(r"\bстать[ьюеяи]\s+(\d+(?:\.\d+)?)", re.IGNORECASE | re.UNICODE)),
     ("part", re.compile(r"\bчаст[ьиьею]\s+(\d+(?:\.\d+)?)", re.IGNORECASE | re.UNICODE)),
