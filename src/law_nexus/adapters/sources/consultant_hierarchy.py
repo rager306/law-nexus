@@ -20,6 +20,7 @@ from pathlib import Path
 from typing import Any, Literal
 
 from law_nexus.ports.source_hierarchy import (
+    RawBlock,
     SourceHierarchyParagraph,
     SourceHierarchyRequest,
     SourceHierarchyResult,
@@ -70,10 +71,10 @@ def paragraph_style(elem: ET.Element) -> str | None:
     return None
 
 
-def stream_wordml_paragraphs(path: Path) -> tuple[list[SourceHierarchyParagraph], dict[str, Any]]:
+def stream_wordml_paragraphs(path: Path) -> tuple[list[RawBlock], dict[str, Any]]:
     """Stream WordML paragraphs while collecting bounded source diagnostics."""
 
-    paragraphs: list[SourceHierarchyParagraph] = []
+    paragraphs: list[RawBlock] = []
     namespace_counts: Counter[str] = Counter()
     style_counts: Counter[str] = Counter()
     skipped_empty = 0
@@ -91,7 +92,14 @@ def stream_wordml_paragraphs(path: Path) -> tuple[list[SourceHierarchyParagraph]
                 style_counts[style or "<none>"] += 1
                 text = normalize_text("".join(elem.itertext()))
                 if text:
-                    paragraphs.append(SourceHierarchyParagraph(index=paragraph_count, text=text, style=style))
+                    paragraphs.append(
+                        RawBlock(
+                            index=paragraph_count,
+                            text=text,
+                            style=style,
+                            source_span=f"/w:wordDocument/w:body/w:p[{paragraph_count}]",
+                        )
+                    )
                 else:
                     skipped_empty += 1
                 elem.clear()
