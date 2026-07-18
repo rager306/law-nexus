@@ -1,0 +1,75 @@
+# Consultant WordML Source Profile (declarative Layer 2 per proposal 26 §3)
+# This profile declares format, structure, style_map, and zones for Consultant WordML
+# extraction. It is data-only: extraction logic lives in the adapter
+# (consultant_hierarchy.py). Adding a new source family = adding a profile + a
+# thin adapter, not a new engine.
+
+source_kind: consultant-wordml-xml
+source_label: ConsultantPlus WordML 2003
+
+format:
+  namespace: http://schemas.microsoft.com/office/word/2003/wordml
+  root_element: "{http://schemas.microsoft.com/office/word/2003/wordml}wordDocument"
+  paragraph_element: "{http://schemas.microsoft.com/office/word/2003/wordml}p"
+  document_properties_element: "{urn:schemas-microsoft-com:office:office}DocumentProperties"
+  title_element: "{urn:schemas-microsoft-com:office:office}Title"
+  char_normalization:
+    - pattern: "\u00a0"
+      replacement: " "
+      description: "nbsp -> space"
+    - pattern: "\u00ab|\u00bb"
+      replacement: '"'
+      description: "guillemets -> double quote"
+    - pattern: "\u2013"
+      replacement: "-"
+      description: "en-dash -> hyphen"
+  iterparse: true
+  iterparse_clear: true
+
+structure:
+  ladder:
+    - document
+    - razdel
+    - chapter
+    - section
+    - article
+    - part
+    - clause
+    - subclause
+    - abzac
+  marker_patterns:
+    razdel: "^(?:Раздел|РАЗДЕЛ|раздел)\\s+[IVX]+\\.?"
+    chapter: "^(?:Глава|ГЛАВА|глава)\\s+\\d+(?:\\.\\d+)?\\.?"
+    section: "^(?:§|\\u00a7)\\s*\\d+(?:\\.\\d+)?\\.?"
+    article: "^(?:Статья|СТАТЬЯ|статья)\\s+\\d+(?:\\.\\d+)?\\.?"
+    part: "^\\d+(?:\\.\\d+)?\\.\\s+\\S"
+    clause: "^\\d+(?:\\.\\d+)?\\)\\s+\\S"
+    subclause: "^[а-яё]\\)\\s+\\S"
+  numbering_formats:
+    razdel: roman
+    chapter: arabic
+    section: arabic
+    article: arabic
+    part: arabic_dot
+    clause: arabic_paren
+    subclause: cyrillic_paren
+
+style_map:
+  "5": document
+  "2": section_heading
+  "0": body_text
+  default: body_text
+
+zones:
+  preambula:
+    marker: null
+    trigger: "before_first_article"
+  prilozhenie:
+    marker: "^Приложение\\s*\\d*\\.?\\s"
+    trigger: "marker_match"
+
+# Non-claim: this profile is data-only. The extraction engine in
+# consultant_hierarchy.py is unchanged in M099; the profile is loaded but
+# not yet used to drive extraction. Universality claim: adding a new source
+# family = adding a profile + a thin adapter, not a new engine (per
+# proposal 26 §3 Layer 2 universality claim, bounded).

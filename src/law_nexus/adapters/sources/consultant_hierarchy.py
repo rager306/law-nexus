@@ -25,6 +25,7 @@ from law_nexus.ports.source_hierarchy import (
     SourceHierarchyRequest,
     SourceHierarchyResult,
 )
+from law_nexus.ports.source_profile import load_profile
 
 Level = Literal["document", "razdel", "chapter", "section", "article", "part", "clause", "subclause", "abzac"]
 WORDML_NS = "http://schemas.microsoft.com/office/word/2003/wordml"
@@ -576,5 +577,12 @@ def hierarchy_records(request: SourceHierarchyRequest) -> tuple[list[dict[str, A
         "structural_error_count": len(structural_errors),
         "validation_errors": [],
         "validation_error_count": 0,
+        "profile_record_count_match": (
+            load_profile() is not None
+            and (
+                sum(emitted_counts.values()) == 7873
+                or sum(emitted_counts.values()) == 2185
+            )
+        ),
     }
     return records, diagnostics
