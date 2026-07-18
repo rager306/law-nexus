@@ -34,8 +34,9 @@ class FormatSpec:
     namespace: str
     root_element: str
     paragraph_element: str
-    document_properties_element: str
-    title_element: str
+    document_properties_element: str = ""
+    title_element: str = ""
+    content_member: str = ""
     char_normalization: tuple[CharNormalizationRule, ...] = ()
     iterparse: bool = True
     iterparse_clear: bool = True
@@ -84,16 +85,24 @@ def _parse_char_normalization(rules: list[dict[str, Any]]) -> tuple[CharNormaliz
         for rule in rules
     )
 
-def load_profile(path: Path | None = None) -> SourceProfile:
+def load_profile(path: Path | None = None, *, source_kind: str | None = None) -> SourceProfile:
     """Load a source profile from YAML.
 
-    Defaults to prd/parser/profiles/consultant_wordml.yaml.
-    Validates required keys (format, structure, style_map, zones)
-    and that the structure.ladder is a non-empty list of valid level names.
+    Defaults to prd/parser/profiles/consultant_wordml.yaml. If ``source_kind``
+    is given (e.g. "garant-odt"), loads the matching profile under
+    prd/parser/profiles/<source_kind>.yaml. Validates required keys
+    (format, structure, style_map, zones) and that the structure.ladder
+    is a non-empty list of valid level names.
     """
 
     if path is None:
-        path = Path(__file__).resolve().parents[3] / "prd" / "parser" / "profiles" / "consultant_wordml.yaml"
+        profiles_dir = Path(__file__).resolve().parents[3] / "prd" / "parser" / "profiles"
+        if source_kind is None:
+            source_kind = "consultant_wordml"
+        # Translate source_kind (e.g. "garant-odt") to filename
+        # (e.g. "garant_odt.yaml").
+        filename = source_kind.replace("-", "_") + ".yaml"
+        path = profiles_dir / filename
     data = yaml.safe_load(path.read_text(encoding="utf-8"))
 
     source_kind = str(data["source_kind"])
@@ -105,8 +114,9 @@ def load_profile(path: Path | None = None) -> SourceProfile:
         namespace=str(fmt["namespace"]),
         root_element=str(fmt["root_element"]),
         paragraph_element=str(fmt["paragraph_element"]),
-        document_properties_element=str(fmt["document_properties_element"]),
-        title_element=str(fmt["title_element"]),
+        document_properties_element=str(fmt.get("document_properties_element", "")),
+        title_element=str(fmt.get("title_element", "")),
+        content_member=str(fmt.get("content_member", "")),
         char_normalization=char_norm,
         iterparse=bool(fmt.get("iterparse", True)),
         iterparse_clear=bool(fmt.get("iterparse_clear", True)),
@@ -124,9 +134,19 @@ def load_profile(path: Path | None = None) -> SourceProfile:
     )
 
     style_data = data["style_map"]
+    # Support two style_map shapes:
+    # - flat dict (Consultant): {"5": "document", "2": "section_heading", ...}
+    # - nested (Garant ODT): {"default": "body_text", "observed": ["s1", "s3", ...]}
+    if isinstance(style_data, dict) and "observed" in style_data:
+        observed_list = style_data.get("observed", [])
+        mapping = {name: "body_text" for name in observed_list}
+        default_level = str(style_data.get("default", "body_text"))
+    else:
+        mapping = dict(style_data)
+        default_level = str(style_data.get("default", "body_text"))
     style_map_spec = StyleMapSpec(
-        mapping=dict(style_data),
-        default=str(style_data.get("default", "body_text")),
+        mapping=mapping,
+        default=default_level,
     )
 
     zones_data = data.get("zones", {})

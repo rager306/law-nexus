@@ -1,0 +1,98 @@
+# Garant ODT Source Profile (declarative Layer 2 per proposal 26 §3)
+# This profile declares format, structure, style_map, and zones for Garant ODT
+# extraction. It is data-only: extraction logic lives in adapters (future).
+#
+# Per memory injection (project gotcha):
+#   "Old_project is prior art, not trusted implementation: S01 classified no
+#   legacy artifact as keep-as-is, and ConsultantPlus WordML/XML extraction
+#   assumptions are incompatible with the current Garant ODT parser direction
+#   until S05 verifies real 44-fz.odt behavior."
+#
+# Therefore: this profile is DERIVED FROM REAL ODT OBSERVATIONS on 44-fz.odt
+# and PP_60_27-01-2022.odt, NOT from Odt_project prior-art assumptions.
+# Observations recorded 2026-07-18 against the live fixtures.
+
+source_kind: garant-odt
+source_label: Garant OpenDocument Text
+
+format:
+  # OpenDocument 1.x namespaces (real observations from law-source/garant/*.odt)
+  namespace: urn:oasis:names:tc:opendocument:xmlns:office:1.0
+  text_namespace: urn:oasis:names:tc:opendocument:xmlns:text:1.0
+  table_namespace: urn:oasis:names:tc:opendocument:xmlns:table:1.0
+  root_element: "{urn:oasis:names:tc:opendocument:xmlns:office:1.0}document-content"
+  paragraph_element: "{urn:oasis:names:tc:opendocument:xmlns:text:1.0}p"
+  heading_element: "{urn:oasis:names:tc:opendocument:xmlns:text:1.0}h"
+  list_element: "{urn:oasis:names:tc:opendocument:xmlns:text:1.0}list"
+  list_item_element: "{urn:oasis:names:tc:opendocument:xmlns:text:1.0}list-item"
+  table_element: "{urn:oasis:names:tc:opendocument:xmlns:table:1.0}table"
+  style_attr: "{urn:oasis:names:tc:opendocument:xmlns:text:1.0}style-name"
+  outline_attr: "{urn:oasis:names:tc:opendocument:xmlns:text:1.0}outline-level"
+  # ODT files are zip archives; content.xml is the body
+  container: zip
+  content_member: content.xml
+  iterparse: true
+  iterparse_clear: true
+
+structure:
+  # Ladder matches Consultant for cross-source compatibility, but ODT
+  # extraction rules differ (see non_claim).
+  ladder:
+    - document
+    - razdel
+    - chapter
+    - section
+    - article
+    - part
+    - clause
+    - subclause
+    - abzac
+  marker_patterns:
+    razdel: "^(?:Раздел|РАЗДЕЛ|раздел)\\s+[IVX]+\\.?"
+    chapter: "^(?:Глава|ГЛАВА|глава)\\s+\\d+(?:\\.\\d+)?\\.?"
+    section: "^(?:§|\\u00a7)\\s*\\d+(?:\\.\\d+)?\\.?"
+    article: "^(?:Статья|СТАТЬЯ|статья)\\s+\\d+(?:\\.\\d+)?\\.?"
+    part: "^\\d+(?:\\.\\d+)?\\.\\s+\\S"
+    clause: "^\\d+(?:\\.\\d+)?\\)\\s+\\S"
+    subclause: "^[а-яё]\\)\\s+\\S"
+
+style_map:
+  # OBSERVED on 44-fz.odt: styles s1, s3, s8, s9, s10, s15, s16_fi0,
+  # s1_right_fi0, s22, s22header, s25, s52, s52header.
+  # Mapping is INTENTIONALLY INCOMPLETE: without real-document verification
+  # per memory injection rule (Old_project prior art, not trusted), we only
+  # register styles with generic body_text default. Concrete mapping (e.g.
+  # s1 -> document_heading) requires S05 ODT parser verification.
+  default: body_text
+  # Each observed style gets a placeholder hint; resolution deferred to S05.
+  observed:
+    - s1
+    - s3
+    - s8
+    - s9
+    - s10
+    - s15
+    - s16_fi0
+    - s1_right_fi0
+    - s22
+    - s22header
+    - s25
+    - s52
+    - s52header
+
+zones:
+  preambula:
+    marker: null
+    trigger: "before_first_article"
+  prilozhenie:
+    marker: "^Приложение\\s*\\d*\\.?\\s"
+    trigger: "marker_match"
+
+# Non-claim: this profile is data-only and derived from real ODT observations
+# (content.xml structure, observed style names, observed outline_level=1) on
+# 44-fz.odt and PP_60_27-01-2022.odt. It is NOT derived from Odt_project prior
+# art. The extraction engine is NOT changed in M100; the profile is loaded but
+# not yet used to drive extraction. Style_map is intentionally placeholder:
+# concrete style->level mapping requires S05 ODT parser verification against
+# real-document behavior. Per memory injection: R035 must not be closed from
+# documentation-only evidence.
