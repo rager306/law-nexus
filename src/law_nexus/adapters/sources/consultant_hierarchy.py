@@ -194,6 +194,36 @@ TEMPORAL_PATTERNS: tuple[tuple[str, str], ...] = (
     ("secrecy", r"\bсекретно\b"),
 )
 
+DEONTIC_LEXEMES: dict[str, tuple[str, ...]] = {
+    "obligation_markers": (r"\bобязан[аы]?\b", r"\bдолжен[аы]?\b", r"\bнадлежит\b", r"\bнеобходимо\b"),
+    "permission_markers": (r"\bвправе\b", r"\bможет\s+быть\b", r"\bможет\b", r"\bимеет\s+право\b", r"\bдопускается\b"),
+    "prohibition_markers": (r"\bзапрещается\b", r"\bнельзя\b", r"\bне\s+допускается\b", r"\bне\s+вправе\b"),
+    "definition_markers": (r"\bпризнается\b", r"\bпонимается\b", r"\bв\s+целях\s+настоящ"),
+    "deadline_markers": (r"\bв\s+срок\s+не\s+позднее\b", r"\bв\s+течение\s+\d+\s+(?:дней|месяц|лет)"),
+    "exception_markers": (r"\bза\s+исключением\b", r"\bесли\s+иное\s+не\s+предусмотрено\b"),
+}
+
+def detect_deontic_lexemes(text: str) -> dict[str, int]:
+    """Detect deontic lexeme categories in text (NormStatement candidate preparation).
+
+    Returns dict of category -> count. Categories: obligation_markers,
+    permission_markers, prohibition_markers, definition_markers,
+    deadline_markers, exception_markers.
+
+    These are bounded diagnostic signals only — no legal-effect assertions,
+    no NormStatement record emission. Negation-aware matching is bounded
+    (per proposal 26 §8: 'не вправе' flips permission -> prohibition,
+    counted in prohibition_markers raw count). For bounded diagnostics.
+    """
+
+    hits: dict[str, int] = {category: 0 for category in DEONTIC_LEXEMES}
+    for category, patterns in DEONTIC_LEXEMES.items():
+        for pattern in patterns:
+            count = len(re.findall(pattern, text, re.IGNORECASE | re.UNICODE))
+            if count:
+                hits[category] += count
+    return hits
+
 def detect_temporal_markers(text: str) -> dict[str, int]:
     """Detect temporal, validity, and secrecy markers in text.
 
@@ -448,6 +478,10 @@ def hierarchy_records(request: SourceHierarchyRequest) -> tuple[list[dict[str, A
             for cat, count in detect_temporal_markers(paragraph.text).items():
                 if count:
                     skipped[f"{cat}_markers"] += count
+            # M098: deontic lexeme detection (NormStatement candidate preparation)
+            for cat, count in detect_deontic_lexemes(paragraph.text).items():
+                if count:
+                    skipped[f"{cat}"] += count
             continue
 
         if marker.level == "article":
@@ -523,6 +557,12 @@ def hierarchy_records(request: SourceHierarchyRequest) -> tuple[list[dict[str, A
                 "entry_into_force_markers",
                 "invalidity_markers",
                 "secrecy_markers",
+                "obligation_markers",
+                "permission_markers",
+                "prohibition_markers",
+                "definition_markers",
+                "deadline_markers",
+                "exception_markers",
             ):
                 continue  # diagnostic counters, not structural errors
             structural_errors.append({"kind": "context_break", "message": f"{kind}: {count}", "count": count})
