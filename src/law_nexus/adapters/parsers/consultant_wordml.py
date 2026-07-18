@@ -250,6 +250,73 @@ def _extract_edition_date(title: str) -> date | None:
     except ValueError:
         return None
 
+def _extract_adoption_date(title: str) -> date | None:
+    """Return the adoption date (first DD.MM.YYYY) from the title, or ``None``.
+
+    Consultant titles like ``Федеральный закон от 05.04.2013 N 44-ФЗ`` carry
+    the adoption date as the FIRST date; the redaction/edition date (after
+    ``ред.``) is extracted by :func:`_extract_edition_date`.
+    """
+
+    match = _DATE_RE.search(title)
+    if match is None:
+        return None
+    day, month, year = (int(g) for g in match.groups())
+    try:
+        return date(year, month, day)
+    except ValueError:
+        return None
+
+def _normalize_act_number(act_number: str | None) -> str | None:
+    """Return a slug-friendly form of ``act_number`` for use in ``act_id``, or ``None``.
+
+    Strips ``-ФЗ`` suffix (we encode it in the type prefix instead) and any
+    punctuation that would collide with the FRBR ``act_id`` delimiter syntax.
+    """
+
+    if not act_number:
+        return None
+    normalized = act_number.replace("-ФЗ", "").replace("-ФК", "")
+    return normalized or None
+
+def _act_type_prefix(doc_type: "ConsultantDocumentType") -> str:
+    """Map a Consultant document type to a FRBR ``act_id`` type prefix."""
+
+    if doc_type in (ConsultantDocumentType.federal_law, ConsultantDocumentType.code):
+        return "fz"
+    if doc_type == ConsultantDocumentType.government_resolution:
+        return "pp"
+    if doc_type in (ConsultantDocumentType.constitutional_court_ruling, ConsultantDocumentType.supreme_court_ruling, ConsultantDocumentType.lower_court_ruling):
+        return "court"
+    if doc_type == ConsultantDocumentType.antimonopoly_decision:
+        return "fas"
+    return "act"
+
+def _derive_act_id(doc_type: "ConsultantDocumentType", act_number: str | None, adoption_date: date | None) -> str | None:
+    """Return the FRBR ``act_id = {type}:{number}@{adoption_date}``, or ``None``.
+
+    Requires both ``act_number`` and ``adoption_date``; if either is absent
+    the parser cannot deterministically identify the FRBR Work and the field
+    stays ``None`` (the honest default).", """
+
+    number = _normalize_act_number(act_number)
+    if number is None or adoption_date is None:
+        return None
+    type_prefix = _act_type_prefix(doc_type)
+    return f"{type_prefix}:{number}@{adoption_date.isoformat()}"
+
+def _derive_edition_id(act_id: str | None, edition_date: date | None) -> str | None:
+    """Return the FRBR ``edition_id = act_id#red-{edition_date}``, or ``None``.
+
+    Requires both ``act_id`` and ``edition_date``; if ``act_id`` is absent the
+    edition is unidentifiable, and if ``edition_date`` is absent the edition
+    is the adoption-date edition (which we do not encode as a separate
+    edition_id — ``act_id`` already carries the adoption date).", """
+
+    if act_id is None or edition_date is None:
+        return None
+    return f"{act_id}#red-{edition_date.isoformat()}"
+
 
 def _read_document_properties(root: ET.Element) -> tuple[str, str | None]:
     """Return ``(title, company)`` from the ``<o:DocumentProperties>`` block.
@@ -340,9 +407,12 @@ class ConsultantWordMLParser:
         doc_type = _classify_document_type(title)
         act_number = _extract_act_number(title)
         edition_date = _extract_edition_date(title)
+        adoption_date = _extract_adoption_date(title)
         sha256 = _sha256_of_file(target)
 
         source_id = _derive_source_id(act_number, target.name, sha256 or "0" * 64)
+        act_id = _derive_act_id(doc_type, act_number, adoption_date)
+        edition_id = _derive_edition_id(act_id, edition_date)
 
         document = SourceDocument(
             source_id=source_id,
@@ -352,6 +422,8 @@ class ConsultantWordMLParser:
             mime_type="application/xml",
             filename=target.name,
             act_number=act_number,
+            act_id=act_id,
+            edition_id=edition_id,
             edition_date=edition_date,
             imported_at=None,
         )

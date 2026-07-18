@@ -52,5 +52,7 @@ class SourceDocument(BaseModel):
     mime_type: str | None = None
     filename: str | None = None
     act_number: str | None = None
+    act_id: str | None = None
+    edition_id: str | None = None
     edition_date: date | None = None
     imported_at: datetime | None = None

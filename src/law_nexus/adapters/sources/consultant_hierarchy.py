@@ -247,6 +247,7 @@ def build_record(
     scope_id: str,
     document_id: str,
     source_path: str,
+    edition_id: str | None = None,
 ) -> dict[str, Any]:
     """Build one Consultant hierarchy parser record."""
 
@@ -273,6 +274,7 @@ def build_record(
         },
         "excerpt": excerpt,
         "excerpt_sha256": sha256_text(excerpt),
+        "edition_id": edition_id,
         "non_authoritative": True,
         "non_claims": NON_CLAIMS,
     }

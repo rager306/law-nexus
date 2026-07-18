@@ -9,6 +9,19 @@
           "title": "Document Id",
           "type": "string"
         },
+        "edition_id": {
+          "anyOf": [
+            {
+              "pattern": "^[a-z]+:[^@]+@\\d{4}-\\d{2}-\\d{2}#red-\\d{4}-\\d{2}-\\d{2}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Edition Id"
+        },
         "excerpt": {
           "maxLength": 500,
           "minLength": 1,
@@ -156,6 +169,32 @@
       "additionalProperties": false,
       "description": "Document-level parser boundary record.",
       "properties": {
+        "act_id": {
+          "anyOf": [
+            {
+              "pattern": "^[a-z]+:[^@]+@\\d{4}-\\d{2}-\\d{2}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Act Id"
+        },
+        "edition_id": {
+          "anyOf": [
+            {
+              "pattern": "^[a-z]+:[^@]+@\\d{4}-\\d{2}-\\d{2}#red-\\d{4}-\\d{2}-\\d{2}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Edition Id"
+        },
         "id": {
           "pattern": "^DOC-.+",
           "title": "Id",

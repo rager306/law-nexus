@@ -91,6 +91,8 @@ class DocumentRecord(ParserRecordBase):
     record_kind: Literal["document"]
     id: str = Field(pattern=r"^DOC-.+")
     title: str = Field(min_length=1, max_length=240)
+    act_id: str | None = Field(default=None, pattern=r"^[a-z]+:[^@]+@\d{4}-\d{2}-\d{2}$")
+    edition_id: str | None = Field(default=None, pattern=r"^[a-z]+:[^@]+@\d{4}-\d{2}-\d{2}#red-\d{4}-\d{2}-\d{2}$")
 
 
 class SourceBlockRecord(ParserRecordBase):
@@ -136,6 +138,7 @@ class ConsultantHierarchyRecord(ParserRecordBase):
     location: LocationRecord
     excerpt: str = Field(min_length=1, max_length=MAX_EXCERPT_CHARS)
     excerpt_sha256: Sha256
+    edition_id: str | None = Field(default=None, pattern=r"^[a-z]+:[^@]+@\d{4}-\d{2}-\d{2}#red-\d{4}-\d{2}-\d{2}$")
 
     @model_validator(mode="after")
     def validate_marker_for_known_levels(self) -> ConsultantHierarchyRecord:
