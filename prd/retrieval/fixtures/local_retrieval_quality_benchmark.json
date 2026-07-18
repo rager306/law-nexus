@@ -305,7 +305,7 @@
   "source_artifacts": [
     {
       "path": "prd/retrieval/local_retrieval_quality_benchmark_contract.md",
-      "sha256": "2b39c4e74be1bc6d8780f4c91d5c4e92ee224e56842161628144896597bde4ef"
+      "sha256": "d7ba356091f1c19de012d8d427370116f9eea452f6636d973a440b6d5d7a808a"
     },
     {
       "path": "prd/retrieval/fixtures/offline_citation_retrieval_cases.json",
@@ -313,7 +313,7 @@
     },
     {
       "path": "prd/milestone_proofs/M001_S10_EMBEDDING-RUNTIME-PROOF.json",
-      "sha256": "5e4dd925e812e243f46b3da8469897ad1de0fde859dc2ad39780ec89d9b85fce"
+      "sha256": "f1f258f97e251aae8cb53200e6cc5246c5b506becd4c287a15232ed50baae655"
     }
   ],
   "thresholds": {

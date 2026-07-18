@@ -10,7 +10,7 @@ from typing import Any, Sequence
 ROOT = Path(__file__).resolve().parents[1]
 CONTRACT_PATH = ROOT / "prd/retrieval/local_retrieval_quality_benchmark_contract.md"
 OFFLINE_CASES_PATH = ROOT / "prd/retrieval/fixtures/offline_citation_retrieval_cases.json"
-S10_PROOF_PATH = ROOT / ".gsd/milestones/M001/slices/S10/S10-EMBEDDING-RUNTIME-PROOF.json"
+S10_PROOF_PATH = ROOT / "prd/milestone_proofs/M001_S10_EMBEDDING-RUNTIME-PROOF.json"
 OUTPUT_PATH = ROOT / "prd/retrieval/fixtures/local_retrieval_quality_benchmark.json"
 
 SCHEMA_VERSION = "local-retrieval-quality-benchmark/v1"

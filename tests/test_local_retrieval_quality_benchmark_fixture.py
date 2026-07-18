@@ -91,7 +91,7 @@ def test_fixture_top_level_schema_sources_and_model_boundary() -> None:
     for path in [
         "prd/retrieval/local_retrieval_quality_benchmark_contract.md",
         "prd/retrieval/fixtures/offline_citation_retrieval_cases.json",
-        ".gsd/milestones/M001/slices/S10/S10-EMBEDDING-RUNTIME-PROOF.json",
+        "prd/milestone_proofs/M001_S10_EMBEDDING-RUNTIME-PROOF.json",
     ]:
         assert path in source_paths
         assert (ROOT / path).exists()
@@ -104,7 +104,7 @@ def test_fixture_top_level_schema_sources_and_model_boundary() -> None:
     assert model["observed_vector_dimension"] == 1024
     assert model["managed_api_used"] is False
     assert model["raw_vectors_persisted"] is False
-    assert model["runtime_evidence_source"] == ".gsd/milestones/M001/slices/S10/S10-EMBEDDING-RUNTIME-PROOF.json"
+    assert model["runtime_evidence_source"] == "prd/milestone_proofs/M001_S10_EMBEDDING-RUNTIME-PROOF.json"
     assert "not production Russian legal retrieval quality" in model["quality_boundary"]
 
 

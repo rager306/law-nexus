@@ -360,7 +360,7 @@
       "title": "M001 remains architecture-only and must not ship product runtime behavior",
       "source": [
         ".gsd/REQUIREMENTS.md#R011",
-        ".gsd/milestones/M001/slices/S08/S08-PLAN.md"
+        "prd/milestone_proofs/M001_S08_PLAN.md"
       ],
       "claim_class": "out-of-scope-guardrail",
       "status": "excluded",

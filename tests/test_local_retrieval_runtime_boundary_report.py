@@ -106,7 +106,7 @@ def test_report_references_runtime_sources_and_command() -> None:
     for source in REQUIRED_SOURCES:
         assert f"`{source}`" in sources
         assert (ROOT / source).exists()
-    assert "`.gsd/milestones/M001/slices/S10/S10-EMBEDDING-RUNTIME-PROOF.json`" in sources
+    assert "`.gsd/milestones/M001/slices/S10/S10-EMBEDDING-RUNTIME-PROOF.json`" in sources or "`prd/milestone_proofs/M001_S10_EMBEDDING-RUNTIME-PROOF.json`" in sources
     assert "uv run python scripts/check-local-retrieval-runtime.py --allow-unavailable" in command
     assert "does not convert fail-closed runtime statuses into success statuses" in command
     assert "The runtime status remains authoritative" in command

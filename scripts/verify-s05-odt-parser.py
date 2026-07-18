@@ -169,8 +169,10 @@ def validate_probe_log(payload: dict[str, Any], result: VerificationResult) -> N
         probes = []
 
     probe_log_path = payload.get("probe_log_path")
-    if not isinstance(probe_log_path, str) or not probe_log_path.startswith(".gsd/"):
-        result.add("Probe JSON log must include normalized .gsd/... probe_log_path")
+    if not isinstance(probe_log_path, str) or not (
+        probe_log_path.startswith(".gsd/") or probe_log_path.startswith("prd/milestone_proofs/")
+    ):
+        result.add("Probe JSON log must include normalized .gsd/... or prd/milestone_proofs/... probe_log_path")
 
     raw_status = statuses.get("raw-baseline")
     if raw_status not in RAW_ALLOWED_STATUSES:
@@ -259,8 +261,8 @@ def validate_findings(markdown: str, probe_payload: dict[str, Any], result: Veri
         result.add("Findings must include the manifest issue for odfpy comparison")
     if REAL_SOURCE_PATH not in markdown:
         result.add(f"Findings must cite real ODT evidence path {REAL_SOURCE_PATH}")
-    if ".gsd/" not in markdown:
-        result.add("Findings must cite normalized .gsd/... artifact paths")
+    if ".gsd/" not in markdown and "prd/milestone_proofs/" not in markdown:
+        result.add("Findings must cite normalized .gsd/... or prd/milestone_proofs/... artifact paths")
     if "prior art" not in lowered:
         result.add("Findings must classify Old_project as prior art, not trusted implementation")
 
