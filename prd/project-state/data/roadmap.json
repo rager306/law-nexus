@@ -53,17 +53,17 @@
       "boundary": "Reactive architecture proposed as bounded shell around synchronous deterministic core (not yet implemented as runtime). Job ledger contract defined; append-only JSONL pilot scoped to source-inventory. M085 triaged full-suite signal (53 failures) into evidence-backed clusters with R1-R7 remediation roadmap. Triage work only — does NOT claim full health."
     },
     {
-      "range": "M086-M094",
+      "range": "M086-M095",
       "theme": "Debt repair + parser IR widening — M086 test path drift repair (82 tests restored from collection-error state across M002/M003/M001-S10 + 21 downstream files synced); M087 broader proof-path drift repair (18 fixtures tracked under prd/milestone_proofs/, 72 files synced, M001/M004/M008/M009 evidence anchors aligned); M088 RawBlock IR widening (6 additive fields in SourceHierarchyParagraph, WordML adapter migrated, 7860 records byte-identical to M009 baseline)",
       "status": "complete",
       "boundary": "M086+M087 = bounded debt repair (mechanical path migration, no semantic edits, no R035/R037/R038 validation claims). M088 = parser foundation (RawBlock IR) enables future profile/two-pass engine work per proposal 26 Layer 1. Onion architecture preserved (import-linter 4 kept 0 broken)."
     }
   ],
   "current_milestone": {
-    "id": "M094-et41xk",
-    "title": "Parser FRBR Identity - act_id and edition_id derivation",
+    "id": "M095-p8n931",
+    "title": "Parser Reference Extraction - internal structural references",
     "status": "complete",
-    "goal": "FRBR act_id/edition_id derivation added per proposal 26 Section 6. 5 derivation functions. DocumentRecord/ConsultantHierarchyRecord/SourceDocument gain Optional act_id/edition_id. Record count 7873 unchanged."
+    "goal": "Internal reference extraction added per proposal 26 Section 7. 3058 internal-reference candidates from hierarchy records. 3 anchored patterns (статья/часть/пункт N). All candidates unverified/candidate status."
   },
   "recommended_next": {
     "title": "Consultant XML Parser Hardening from M009 baseline (M034 corrected roadmap)",
