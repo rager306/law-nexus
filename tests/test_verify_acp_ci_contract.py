@@ -86,7 +86,7 @@ def test_allows_explicitly_rejected_m058_overclaim_wording(tmp_path: Path) -> No
 
 def test_detects_main_state_residue(tmp_path: Path) -> None:
     verifier = load_verifier()
-    (tmp_path / ".lex").write_text("unsafe main state", encoding="utf-8")
+    (tmp_path / ".artifacts").write_text("unsafe main state", encoding="utf-8")
 
     diagnostics = verifier.check_main_state_residue(tmp_path)
 

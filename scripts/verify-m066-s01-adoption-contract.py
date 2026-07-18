@@ -29,7 +29,7 @@ from typing import Any, Callable
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_CONTRACT = ROOT / "prd" / "architecture" / "acp" / "runtime" / "m066-s01" / "adoption-contract.md"
 DEFAULT_DECISIONS = ROOT / ".gsd" / "DECISIONS.md"
-MAIN_STATE_RESIDUE = (".lex", "Squad", "Raw", ".artifacts")
+MAIN_STATE_RESIDUE = ("Squad", "Raw", ".artifacts")
 
 # The two prior M065 verifiers that must stay green (Stage 2 evidence must not
 # regress). Each is a (verifier_key, ROOT-relative script path) pair.

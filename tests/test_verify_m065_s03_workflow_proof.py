@@ -47,16 +47,16 @@ def _valid_proof() -> dict:
             "list": {"exit_code": 0},
         },
         "residue_guard": {
-            "before": {".lex": "absent", "Squad": "absent", "Raw": "absent", ".artifacts": "absent"},
-            "after": {".lex": "absent", "Squad": "absent", "Raw": "absent", ".artifacts": "absent"},
+            "before": {".artifacts": "absent", "Squad": "absent", "Raw": "absent", ".artifacts": "absent"},
+            "after": {".artifacts": "absent", "Squad": "absent", "Raw": "absent", ".artifacts": "absent"},
             "r047_contract_phase": "honored",
         },
         "cli_install_only_boundary": {
             "wont": [
-                "no main .lex init",
+                "main .lex adoption per D095",
                 "no R035/R037/R038 validation",
                 "no ACP-kit source truth",
-                "no single-repo/Stage-3 .lex adoption",
+                "no single-repo/Stage-3 .artifacts adoption",
                 "no serve/viz/listen server exposure",
                 "no nuke/kit-update/save/create/join/raw mutating surfaces",
             ]
@@ -98,7 +98,7 @@ def test_expected_boundary_markers_set() -> None:
     verifier = load_verifier()
 
     assert set(verifier.EXPECTED_BOUNDARY_MARKERS) == {
-        "no main .lex init",
+        "main .lex adoption per D095",
         "no R035/R037/R038 validation",
         "no serve/viz/listen",
         "no nuke/kit-update/save/create/join/raw",
@@ -240,7 +240,7 @@ def test_check_proof_fields_list_rc(tmp_path: Path) -> None:
 def test_check_proof_fields_residue_present(tmp_path: Path) -> None:
     verifier = load_verifier()
     proof_data = _valid_proof()
-    proof_data["residue_guard"]["after"][".lex"] = "present"
+    proof_data["residue_guard"]["after"][".artifacts"] = "present"
     proof = _write_proof(tmp_path, proof_data)
 
     diagnostics = verifier.check_proof_fields(proof)
@@ -385,7 +385,7 @@ def test_check_boundary_markers_empty(tmp_path: Path) -> None:
 def test_check_boundary_markers_missing_phrase(tmp_path: Path) -> None:
     verifier = load_verifier()
     proof_data = _valid_proof()
-    proof_data["cli_install_only_boundary"]["wont"] = ["no main .lex init", "no R035/R037/R038 validation"]
+    proof_data["cli_install_only_boundary"]["wont"] = ["main .lex adoption per D095", "no R035/R037/R038 validation"]
     proof = _write_proof(tmp_path, proof_data)
 
     diagnostics = verifier.check_boundary_markers(proof)
@@ -421,7 +421,7 @@ def test_check_main_state_residue_absent(tmp_path: Path) -> None:
 
 def test_check_main_state_residue_present(tmp_path: Path) -> None:
     verifier = load_verifier()
-    (tmp_path / ".lex").mkdir()
+    (tmp_path / ".artifacts").mkdir()
 
     diagnostics = verifier.check_main_state_residue(tmp_path)
 
@@ -468,7 +468,7 @@ def test_verify_skip_residue(tmp_path: Path) -> None:
     proof = _write_proof(tmp_path, _valid_proof())
     residue_root = tmp_path / "dirty-root"
     residue_root.mkdir()
-    (residue_root / ".lex").mkdir()
+    (residue_root / ".artifacts").mkdir()
 
     proof_ok, diagnostics = verifier.verify(proof, root=residue_root, check_residue=False)
 

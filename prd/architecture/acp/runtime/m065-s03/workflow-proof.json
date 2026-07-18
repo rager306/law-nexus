@@ -68,7 +68,7 @@
   },
   "cli_install_only_boundary": {
     "wont": [
-      "no main .lex init",
+      "main .lex adoption per D095",
       "no R035/R037/R038 validation",
       "no ACP-kit source truth",
       "no single-repo/Stage-3 .lex adoption",

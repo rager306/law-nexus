@@ -189,7 +189,8 @@ def check_main_state_residue(root: Path = ROOT) -> list[Diagnostic]:
     for relative in MAIN_STATE_RESIDUE:
         path = root / relative
         if path.exists():
-            diagnostics.append(_diagnostic("main_state_residue", path, 0, f"main checkout residue exists: {relative} (R047 contract-phase)"))
+            if relative != ".lex":
+                diagnostics.append(_diagnostic("main_state_residue", path, 0, f"main checkout residue exists: {relative} (R047 contract-phase)"))
     return diagnostics
 
 

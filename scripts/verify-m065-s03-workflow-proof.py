@@ -30,7 +30,7 @@ from typing import Any
 
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_PROOF = ROOT / "prd" / "architecture" / "acp" / "runtime" / "m065-s03" / "workflow-proof.json"
-MAIN_STATE_RESIDUE = (".lex", "Squad", "Raw", ".artifacts")
+MAIN_STATE_RESIDUE = ("Squad", "Raw", ".artifacts")
 
 # Diagnostic identifiers (falsifiable surface; cold readers can rely on the set).
 DIAGNOSTIC_IDS = (
@@ -46,7 +46,7 @@ DIAGNOSTIC_IDS = (
 # list). The T01 proof records a 6-item wont list; these 4 phrases are the
 # contract-critical markers the verifier re-asserts.
 EXPECTED_BOUNDARY_MARKERS = (
-    "no main .lex init",
+    "main .lex adoption per D095",
     "no R035/R037/R038 validation",
     "no serve/viz/listen",
     "no nuke/kit-update/save/create/join/raw",
@@ -81,16 +81,12 @@ PROOF_FIELD_CHECKS: tuple[tuple[tuple[str, ...], Any, str], ...] = (
      "git lex validate exit code"),
     (("stages", "list", "exit_code"), 0,
      "git lex list exit code"),
-    (("residue_guard", "before", ".lex"), "absent",
-     "residue_guard.before .lex absent"),
     (("residue_guard", "before", "Squad"), "absent",
      "residue_guard.before Squad absent"),
     (("residue_guard", "before", "Raw"), "absent",
      "residue_guard.before Raw absent"),
     (("residue_guard", "before", ".artifacts"), "absent",
      "residue_guard.before .artifacts absent"),
-    (("residue_guard", "after", ".lex"), "absent",
-     "residue_guard.after .lex absent"),
     (("residue_guard", "after", "Squad"), "absent",
      "residue_guard.after Squad absent"),
     (("residue_guard", "after", "Raw"), "absent",
@@ -241,7 +237,7 @@ def check_main_state_residue(root: Path = ROOT) -> list[Diagnostic]:
     for relative in MAIN_STATE_RESIDUE:
         path = root / relative
         if path.exists():
-            diagnostics.append(_diagnostic("main_state_residue", path, 0,
+                    diagnostics.append(_diagnostic("main_state_residue", path, 0,
                                            f"main checkout residue exists: {relative} (R047 contract-phase)"))
     return diagnostics
 

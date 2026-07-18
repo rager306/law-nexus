@@ -126,7 +126,7 @@ def test_detects_placeholder_proof_misuse(tmp_path: Path) -> None:
 
 def test_detects_main_state_residue(tmp_path: Path) -> None:
     verifier = load_verifier()
-    (tmp_path / ".lex").write_text("unsafe main state", encoding="utf-8")
+    (tmp_path / ".artifacts").write_text("unsafe main state", encoding="utf-8")
 
     diagnostics = verifier.check_main_state_residue(tmp_path)
 

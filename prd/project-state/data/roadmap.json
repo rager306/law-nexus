@@ -39,13 +39,31 @@
       "theme": "Consultant parser foundation hardening + test-debt reduction — discovery-based inventory (v2), 12-variant classification, scope-filtered corpus (4 in-scope fixtures, 7860 records), hash-entropy source_id, fixture sha256 chain repair (26 tests fixed across 7 fixtures), 2 builder script patches (2 more tests fixed)",
       "status": "complete",
       "boundary": "Parser foundation: M072 = 6 slices (inventory v2 + 12-variant enum + scope-filtered corpus + hash-entropy source_id). M074/M075 = test-debt reduction (M072-induced failures, not parser content). M073 = deferred (legal-domain foundation). Does NOT validate R035/R037/R038; does NOT introduce FalkorDB/graph/vector/retrieval; does NOT claim parser completeness or legal correctness. 28 test failures remain: 23 Type B inherited (D097, out of scope), 2 Type A: M072-deferred, 3 Type A: blocked-by-corpus-scope-mismatch (semantic)."
+    },
+    {
+      "range": "M076-M080",
+      "theme": "Onion architecture migration (M076) + residual script logic migration closure (M077) + cleanup waves (M078) + parser golden case core migration (M079) + source hierarchy wrapper boundary waves (M080)",
+      "status": "complete",
+      "boundary": "Onion architecture package seams hardened: domain / ports / application / adapters / composition. Adapter seams extracted from script wrappers for source-hierarchy (consultant_hierarchy), parser-golden-cases, parser-records. Build_consultant_hierarchy_records.py retained as thin CLI/report/write/check wrapper preserving test compatibility. Anti-imitation boundary (D098) preserved — ACP/git-lex stays frozen."
+    },
+    {
+      "range": "M081-M085",
+      "theme": "Reactive async architecture assessment (M081) + tracer trace logging guardrails (M082) + tracer event vocabulary and job ledger (M083) + source inventory JSONL job ledger prototype (M084) + repository health and proof artifact freshness triage (M085)",
+      "status": "complete",
+      "boundary": "Reactive architecture proposed as bounded shell around synchronous deterministic core (not yet implemented as runtime). Job ledger contract defined; append-only JSONL pilot scoped to source-inventory. M085 triaged full-suite signal (53 failures) into evidence-backed clusters with R1-R7 remediation roadmap. Triage work only — does NOT claim full health."
+    },
+    {
+      "range": "M086-M088",
+      "theme": "Debt repair + parser IR widening — M086 test path drift repair (82 tests restored from collection-error state across M002/M003/M001-S10 + 21 downstream files synced); M087 broader proof-path drift repair (18 fixtures tracked under prd/milestone_proofs/, 72 files synced, M001/M004/M008/M009 evidence anchors aligned); M088 RawBlock IR widening (6 additive fields in SourceHierarchyParagraph, WordML adapter migrated, 7860 records byte-identical to M009 baseline)",
+      "status": "complete",
+      "boundary": "M086+M087 = bounded debt repair (mechanical path migration, no semantic edits, no R035/R037/R038 validation claims). M088 = parser foundation (RawBlock IR) enables future profile/two-pass engine work per proposal 26 Layer 1. Onion architecture preserved (import-linter 4 kept 0 broken)."
     }
   ],
   "current_milestone": {
-    "id": "M075-8bpodd",
-    "title": "Type A blocked-test resolution",
-    "status": "complete",
-    "goal": "Resolved 2 of 5 M074-deferred Type A: blocked tests via patch + content-tolerate approach; documented 3 prior_art tests as Type A: blocked-by-corpus-scope-mismatch (semantic, not data) for follow-up. Combined M074+M075: 56 → 28 failures (28 tests fixed)."
+    "id": "M089-gqpsry",
+    "title": "Historical Proof Verifier and Project State Freshness Repair",
+    "status": "active",
+    "goal": "Repair 9 mechanically-closeable test failures: 5 historical proof verifiers (M049/M056/M065, D095 contract alignment), 2 project state/roadmap freshness, 1 architecture verifier, 1 environment drift. W5 retrieval/provenance explicitly NOT closed per R035/R037/R038 boundary."
   },
   "recommended_next": {
     "title": "Consultant XML Parser Hardening from M009 baseline (M034 corrected roadmap)",

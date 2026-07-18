@@ -16,7 +16,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 M058_SYNTHESIS = ROOT / "prd/architecture/acp/M058-S03-CORRECTED-VALIDATION-SYNTHESIS.md"
-MAIN_STATE_RESIDUE = (".lex", "Squad", "Raw", ".artifacts")
+MAIN_STATE_RESIDUE = ("Squad", "Raw", ".artifacts")
 
 REQUIRED_M058_TERMS = (
     "validate/query representation mismatch",

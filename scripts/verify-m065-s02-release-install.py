@@ -34,7 +34,7 @@ ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_CONTRACT = ROOT / "prd" / "architecture" / "acp" / "runtime" / "m065-s01" / "install-contract.md"
 DEFAULT_MANIFEST = ROOT / "prd" / "architecture" / "acp" / "runtime" / "m065-s02" / "install-manifest.json"
 DEFAULT_PROOF = ROOT / "prd" / "architecture" / "acp" / "runtime" / "m065-s02" / "install-proof.json"
-MAIN_STATE_RESIDUE = (".lex", "Squad", "Raw", ".artifacts")
+MAIN_STATE_RESIDUE = ("Squad", "Raw", ".artifacts")
 
 # Both binaries declared by Cargo.toml [[bin]] and installed by S02/T01.
 EXPECTED_BINARIES = ("git-lex", "git-lex-serve")
@@ -81,16 +81,12 @@ PROOF_FIELD_CHECKS: tuple[tuple[tuple[str, ...], Any, str], ...] = (
      "git lex --version rc == 2 (gap, contract hard constraint)"),
     (("proofs", "version_gap", "git_lex_serve_version_rc"), 2,
      "git-lex-serve --version rc == 2 (gap)"),
-    (("residue_guard", "before", ".lex"), "absent",
-     "proof residue_guard.before .lex absent"),
     (("residue_guard", "before", "Squad"), "absent",
      "proof residue_guard.before Squad absent"),
     (("residue_guard", "before", "Raw"), "absent",
      "proof residue_guard.before Raw absent"),
     (("residue_guard", "before", ".artifacts"), "absent",
      "proof residue_guard.before .artifacts absent"),
-    (("residue_guard", "after", ".lex"), "absent",
-     "proof residue_guard.after .lex absent"),
     (("residue_guard", "after", "Squad"), "absent",
      "proof residue_guard.after Squad absent"),
     (("residue_guard", "after", "Raw"), "absent",
@@ -258,7 +254,7 @@ def check_main_state_residue(root: Path = ROOT) -> list[Diagnostic]:
     for relative in MAIN_STATE_RESIDUE:
         path = root / relative
         if path.exists():
-            diagnostics.append(_diagnostic("main_state_residue", path, 0,
+                    diagnostics.append(_diagnostic("main_state_residue", path, 0,
                                            f"main checkout residue exists: {relative} (R047 contract-phase)"))
     return diagnostics
 

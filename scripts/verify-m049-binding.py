@@ -19,7 +19,7 @@ DEFAULT_ARTIFACTS = (
     ROOT / "prd/architecture/acp/M049-S02-PROFILE-ADAPTER-BOUNDARY.md",
     ROOT / "prd/architecture/acp/M049-S03-REGISTRY-SOURCE-MAPPING.md",
 )
-MAIN_STATE_RESIDUE = (".lex", "Squad", "Raw", ".artifacts")
+MAIN_STATE_RESIDUE = ("Squad", "Raw", ".artifacts")
 DIAGNOSTIC_IDS = (
     "authority_inversion",
     "unsafe_anchor",

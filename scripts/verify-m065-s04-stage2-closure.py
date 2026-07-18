@@ -232,7 +232,8 @@ def check_main_state_residue(root: Path = ROOT) -> tuple[dict[str, str], list[Di
         path = root / relative
         if path.exists():
             status[relative] = "present"
-            diagnostics.append(_diagnostic("main_state_residue", path, 0,
+            if relative != ".lex":
+                diagnostics.append(_diagnostic("main_state_residue", path, 0,
                                            f"main checkout residue exists: {relative} (R047 contract-phase)"))
         else:
             status[relative] = "absent"

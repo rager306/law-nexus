@@ -54,10 +54,10 @@ def _valid_proof() -> dict:
             "version_gap": {"version_gap_confirmed": True, "git_lex_version_rc": 2, "git_lex_serve_version_rc": 2},
         },
         "residue_guard": {
-            "before": {".lex": "absent", "Squad": "absent", "Raw": "absent", ".artifacts": "absent"},
-            "after": {".lex": "absent", "Squad": "absent", "Raw": "absent", ".artifacts": "absent"},
+            "before": {".artifacts": "absent", "Squad": "absent", "Raw": "absent", ".artifacts": "absent"},
+            "after": {".artifacts": "absent", "Squad": "absent", "Raw": "absent", ".artifacts": "absent"},
         },
-        "cli_install_only_boundary": {"wont": ["no main .lex init", "no serve/viz/listen"]},
+        "cli_install_only_boundary": {"wont": ["no main .artifacts init", "no serve/viz/listen"]},
     }
 
 
@@ -330,7 +330,7 @@ def test_check_proof_fields_missing_field(tmp_path: Path) -> None:
 def test_check_proof_fields_residue_present_in_proof(tmp_path: Path) -> None:
     verifier = load_verifier()
     proof_data = _valid_proof()
-    proof_data["residue_guard"]["after"][".lex"] = "present"
+    proof_data["residue_guard"]["after"][".artifacts"] = "present"
     proof = _write_proof(tmp_path, proof_data)
 
     diagnostics = verifier.check_proof_fields(proof)
@@ -366,7 +366,7 @@ def test_check_main_state_residue_absent(tmp_path: Path) -> None:
 
 def test_check_main_state_residue_present(tmp_path: Path) -> None:
     verifier = load_verifier()
-    (tmp_path / ".lex").mkdir()
+    (tmp_path / ".artifacts").mkdir()
 
     diagnostics = verifier.check_main_state_residue(tmp_path)
 
@@ -431,7 +431,7 @@ def test_verify_skip_residue(tmp_path: Path) -> None:
     verifier = load_verifier()
     residue_root = tmp_path / "dirty-root"
     residue_root.mkdir()
-    (residue_root / ".lex").mkdir()
+    (residue_root / ".artifacts").mkdir()
 
     count, diagnostics = verifier.verify(
         tmp_path / "no-contract.md",

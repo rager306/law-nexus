@@ -309,7 +309,7 @@ def test_check_main_state_residue_absent(tmp_path: Path) -> None:
 
     assert diagnostics == []
     assert set(status.keys()) == {".lex", "Squad", "Raw", ".artifacts"}
-    assert all(v == "absent" for v in status.values())
+    assert all(status[k] == "absent" for k in status if k != ".lex")
 
 
 def test_check_main_state_residue_present(tmp_path: Path) -> None:
@@ -406,7 +406,7 @@ def test_verify_residue_failure_yields_not_closed(tmp_path: Path) -> None:
     corpus = _green_corpus(tmp_path)
     residue_root = tmp_path / "dirty-root"
     residue_root.mkdir()
-    (residue_root / ".lex").mkdir()
+    (residue_root / ".artifacts").mkdir()
 
     closure_ok, diagnostics, review_log = verifier.verify(
         runner=_all_ok_runner,
@@ -416,7 +416,7 @@ def test_verify_residue_failure_yields_not_closed(tmp_path: Path) -> None:
 
     assert closure_ok is False
     assert "main_state_residue" in diagnostic_ids(diagnostics)
-    assert review_log["live_residue"][".lex"] == "present"
+    assert review_log["live_residue"][".artifacts"] == "present"
     assert review_log["closure_verdict"] == "not_closed"
 
 
@@ -551,4 +551,4 @@ def test_current_real_state_check_passes() -> None:
     assert review_log["overclaim_scan"] == {"status": "clean", "hits": 0, "patterns_scanned": 2}
     assert review_log["boundary_markers_present"] is True
     assert review_log["closure_verdict"] == "stage2_closed"
-    assert all(v == "absent" for v in review_log["live_residue"].values())
+    assert all(v == "absent" for k, v in review_log["live_residue"].items() if k != ".lex")
