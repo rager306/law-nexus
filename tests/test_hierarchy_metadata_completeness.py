@@ -12,6 +12,7 @@ JSON_PATH = ROOT / "prd" / "parser" / "consultant_hierarchy_records.json"
 
 EXPECTED_LEVELS = {
     "document",
+    "razdel",
     "chapter",
     "section",
     "article",
