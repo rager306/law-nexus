@@ -325,12 +325,28 @@ def hierarchy_records(request: SourceHierarchyRequest) -> tuple[list[dict[str, A
         )
     )
 
+    zone = "preambula"  # preambula -> body (after first article) -> prilozhenie (after Приложение)
+
     for paragraph in paragraphs:
+        if zone == "preambula" and re.match(r"^Приложение\s*\d*\.?\s", paragraph.text, flags=re.IGNORECASE):
+            zone = "prilozhenie"
+            skipped["prilozhenie_paragraphs"] += 1
+            continue
+        if zone == "prilozhenie":
+            skipped["prilozhenie_paragraphs"] += 1
+            continue
+
         marker = marker_for_text(paragraph.text)
         if marker is None:
-            if context["article"] is not None:
+            if zone == "preambula":
+                skipped["preambula_paragraphs"] += 1
+            elif context["article"] is not None:
                 skipped["unnumbered_paragraphs_within_article"] += 1
             continue
+
+        if marker.level == "article":
+            zone = "body"
+
         if marker.level in {"part", "clause", "subclause"} and context["article"] is None:
             skipped[f"{marker.level}_outside_article"] += 1
             if len(rejected_context_markers) < MAX_DIAGNOSTICS:
@@ -394,8 +410,8 @@ def hierarchy_records(request: SourceHierarchyRequest) -> tuple[list[dict[str, A
         )
     if skipped:
         for kind, count in sorted(skipped.items()):
-            if kind == "unnumbered_paragraphs_within_article":
-                continue  # diagnostic counter, not a structural error
+            if kind in ("unnumbered_paragraphs_within_article", "preambula_paragraphs", "prilozhenie_paragraphs"):
+                continue  # diagnostic counters, not structural errors
             structural_errors.append({"kind": "context_break", "message": f"{kind}: {count}", "count": count})
 
     diagnostics = {

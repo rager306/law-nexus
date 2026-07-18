@@ -108,6 +108,7 @@ def test_source_hierarchy_use_case_rejects_markers_without_article_context() -> 
     assert result.diagnostics["skipped_marker_counts"] == {
         "clause_outside_article": 1,
         "part_outside_article": 1,
+        "preambula_paragraphs": 1,
     }
     assert result.diagnostics["structural_error_count"] == 3
     assert result.diagnostics["structural_errors"][0]["kind"] == "missing_article_heading"

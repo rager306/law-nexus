@@ -171,6 +171,7 @@ def test_context_false_positive_fixture_rejects_markers_outside_article_context(
         "clause_outside_article": 1,
         "part_outside_article": 2,
         "subclause_outside_article": 1,
+        "preambula_paragraphs": 1,
     }
     assert diagnostics["rejected_context_marker_count"] == 4
     assert diagnostics["structural_error_count"] == 3
@@ -269,7 +270,7 @@ def test_hierarchy_diagnostics_for_missing_article_heading_and_context_break():
         source_path="test/fixture.xml",
     )
     assert [record["level"] for record in records] == ["document", "chapter"]
-    assert diagnostics["skipped_marker_counts"] == {"clause_outside_article": 1, "part_outside_article": 1}
+    assert diagnostics["skipped_marker_counts"] == {"clause_outside_article": 1, "part_outside_article": 1, "preambula_paragraphs": 1}
     assert diagnostics["structural_error_count"] == 3
     assert diagnostics["structural_errors"][0]["kind"] == "missing_article_heading"
     assert {error["kind"] for error in diagnostics["structural_errors"][1:]} == {"context_break"}
