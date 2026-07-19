@@ -421,6 +421,72 @@ class ConsultantHierarchyRecordBuilder:
         return SourceHierarchyResult(records=records, diagnostics=diagnostics)
 
 
+def extract_norm_candidates(hierarchy_records: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """Extract bounded NormStatement candidates from hierarchy record excerpts.
+
+    For each hierarchy record with excerpt containing deontic lexemes,
+    emit a candidate record. Only obligation/permission/prohibition
+    categories produce candidates; definition/deadline/exception are
+    diagnostic-only (M098).
+
+    Returns list of candidate dicts with:
+    - id: NORM-CONS-{RECORD_ID_SUFFIX}-{MODALITY}-{N}
+    - record_kind: norm_candidate
+    - modality: obligation | permission | prohibition
+    - extraction_method: deterministic
+    - verification_status: unverified
+    - source_unit_id: hierarchy record id
+    - evidence_excerpt: bounded excerpt
+    - evidence_sha256: SHA-256 of excerpt
+    """
+
+    MODALITY_MAP = {
+        "obligation_markers": "obligation",
+        "permission_markers": "permission",
+        "prohibition_markers": "prohibition",
+    }
+    candidates: list[dict[str, Any]] = []
+    counter = 0
+    for record in hierarchy_records:
+        excerpt = record.get("excerpt", "")
+        record_id = record.get("id", "")
+        source_path = record.get("source_path", "")
+        source_sha256 = record.get("source_sha256", "")
+
+        lexemes = detect_deontic_lexemes(excerpt)
+        for lex_category, modality in MODALITY_MAP.items():
+            count = lexemes.get(lex_category, 0)
+            if count == 0:
+                continue
+            counter += 1
+            suffix = record_id.replace("HIER-CONS-", "")
+            candidate_id = f"NORM-CONS-{suffix}-{modality.upper()}-{counter:04d}"
+            candidate = {
+                "record_kind": "norm_candidate",
+                "schema_version": "legalgraph-parser-record/v1",
+                "id": candidate_id,
+                "source_kind": "consultant-wordml-xml",
+                "source_path": source_path,
+                "source_sha256": source_sha256,
+                "source_member": None,
+                "source_unit_id": record_id,
+                "modality": modality,
+                "lexeme_count": count,
+                "extraction_method": "deterministic",
+                "verification_status": "unverified",
+                "evidence_excerpt": truncate(excerpt, 500),
+                "evidence_sha256": sha256_text(truncate(excerpt, 500)),
+                "non_authoritative": True,
+                "non_claims": [
+                    "NormStatement candidates are deterministic extraction only.",
+                    "NormStatement candidates do not claim legal correctness or authoritative legal interpretation.",
+                    "NormStatement candidates do not claim parser completeness.",
+                    "NormStatement candidates are unverified until independent proof.",
+                ],
+            }
+            candidates.append(candidate)
+    return candidates
+
 def profile_document(paragraphs: Sequence[RawBlock]) -> dict[str, Any]:
     """Pass A document profiler: collect style, marker, and numbering census.
 
