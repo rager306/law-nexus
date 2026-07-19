@@ -42,7 +42,7 @@ JSON_OUTPUT = Path("prd/parser/source_fixture_inventory.json")
 MARKDOWN_OUTPUT = Path("prd/parser/source_fixture_inventory.md")
 REMOVED_DUPLICATE_PATH = "law-source/Список документов (5).xml"
 CANONICAL_CONSULTANT_XML_PATH = "law-source/consultant/Список документов (5).xml"
-CONSULTANT_FULL_ACT_XML_PATH = "law-source/consultant/44-FZ-2026.xml"
+CONSULTANT_FULL_ACT_XML_PATH = "law-source/consultant/federalnyi-zakon-ot-05-04-2013-n-44-fz-red-ot-28-12-2025-o-kontraktnoi-sisteme-v-sfere-zakupok-tovarov-rabot-uslug-dlya-obespecheniya-g--f9c8ca4c.xml"
 STATED_PP_FIXTURE_PATH = "law-source/garant/PP_60_27-02-2022.odt"
 OBSERVED_PP_FIXTURE_PATH = "law-source/garant/PP_60_27-01-2022.odt"
 

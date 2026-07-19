@@ -1,11 +1,12 @@
 {
   "canonical_path_decision": {
-    "consultant_wordml_full_act_fixture": "law-source/consultant/44-FZ-2026.xml",
+    "consultant_wordml_full_act_fixture": "law-source/consultant/federalnyi-zakon-ot-05-04-2013-n-44-fz-red-ot-28-12-2025-o-kontraktnoi-sisteme-v-sfere-zakupok-tovarov-rabot-uslug-dlya-obespecheniya-g--f9c8ca4c.xml",
     "consultant_wordml_relation_fixture": "law-source/consultant/Список документов (5).xml",
     "rationale": "The consultant-folder document-list XML remains the canonical relation fixture; the full 44-ФЗ XML is the M009 primary full normative-act source-shape fixture. Garant ODT work is lower-priority/deferred from M009, and no fixture creates parser-completeness, legal-correctness, or multi-source-readiness claims.",
     "removed_duplicate_path": "law-source/Список документов (5).xml"
   },
   "canonical_paths": [
+    "law-source/consultant/federalnyi-zakon-ot-05-04-2013-n-44-fz-red-ot-28-12-2025-o-kontraktnoi-sisteme-v-sfere-zakupok-tovarov-rabot-uslug-dlya-obespecheniya-g--f9c8ca4c.xml",
     "law-source/consultant/Список документов (5).xml"
   ],
   "document_type_taxonomy": [
@@ -34,7 +35,7 @@
   "fixture_hygiene": {
     "canonical_path_decisions": {
       "consultant_full_act_fixture": {
-        "canonical_path": "law-source/consultant/44-FZ-2026.xml",
+        "canonical_path": "law-source/consultant/federalnyi-zakon-ot-05-04-2013-n-44-fz-red-ot-28-12-2025-o-kontraktnoi-sisteme-v-sfere-zakupok-tovarov-rabot-uslug-dlya-obespecheniya-g--f9c8ca4c.xml",
         "classification": "canonical-full-act-wordml-source-shape-fixture",
         "diagnostic": "The full Consultant 44-ФЗ WordML file is inventoried as the M009 primary source-shape fixture with hash and XML diagnostics; it does not assert parsed legal semantics, parser completeness, or multi-source readiness. Garant ODT work is lower-priority/deferred from M009."
       },
@@ -97,8 +98,8 @@
       "sha256": "c111119c6c3001b5b4fde0e35bffbe382bcb877df2bba9cd54ab0290c92c1b14",
       "size_bytes": 5262136,
       "source_kind": "consultant-wordml-xml",
-      "source_role": "federal-law",
-      "source_role_v2": "federal-law",
+      "source_role": "full-normative-act",
+      "source_role_v2": "full-normative-act",
       "title_first_line": "Федеральный закон от 05.04.2013 N 44-ФЗ",
       "xml_shape": {
         "direct_child_count": 4,

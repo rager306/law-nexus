@@ -17,7 +17,7 @@ SCRIPT_PATH = ROOT / "scripts" / "build-consultant-hierarchy-records.py"
 JSONL_PATH = ROOT / "prd" / "parser" / "consultant_hierarchy_records.jsonl"
 JSON_PATH = ROOT / "prd" / "parser" / "consultant_hierarchy_records.json"
 REPORT_PATH = ROOT / "prd" / "parser" / "consultant_hierarchy_records.md"
-SOURCE_PATH = ROOT / "law-source" / "consultant" / "44-FZ-2026.xml"
+SOURCE_PATH = ROOT / "law-source" / "consultant" / "federalnyi-zakon-ot-05-04-2013-n-44-fz-red-ot-28-12-2025-o-kontraktnoi-sisteme-v-sfere-zakupok-tovarov-rabot-uslug-dlya-obespecheniya-g--f9c8ca4c.xml"
 CONTEXT_FALSE_POSITIVE_FIXTURE = ROOT / "tests" / "fixtures" / "consultant_wordml_context_false_positive.xml"
 
 
@@ -67,7 +67,7 @@ def test_generated_hierarchy_jsonl_records_are_valid_and_contextual():
 
     source_hash = hashlib.sha256(SOURCE_PATH.read_bytes()).hexdigest()
     assert {payload["source_sha256"] for payload in payloads} == {source_hash}
-    assert all(payload["source_path"] == "law-source/consultant/44-FZ-2026.xml" for payload in payloads)
+    assert all(payload["source_path"] == SOURCE_PATH.relative_to(ROOT).as_posix() for payload in payloads)
     assert all(payload["non_authoritative"] is True for payload in payloads)
     assert all("legal correctness" in " ".join(payload["non_claims"]) for payload in payloads)
 
@@ -86,8 +86,8 @@ def test_generator_build_is_deterministic_against_artifacts():
     assert result.summary_json == JSON_PATH.read_text(encoding="utf-8")
     assert result.report_md == REPORT_PATH.read_text(encoding="utf-8")
     assert result.diagnostics["namespace_detected"] == "http://schemas.microsoft.com/office/word/2003/wordml"
-    assert result.diagnostics["paragraph_count"] == 3601
-    assert result.diagnostics["skipped_empty_paragraphs"] == 439
+    assert result.diagnostics["paragraph_count"] == 3585
+    assert result.diagnostics["skipped_empty_paragraphs"] == 428
     assert result.diagnostics["validation_error_count"] == 0
 
 
@@ -317,11 +317,11 @@ def _ensure_corpus_artifacts_on_disk() -> None:
 
 
 def test_corpus_extracts_all_in_scope_fixtures() -> None:
-    """All 4 in-scope fixtures (2 federal_law + 2 code) must each produce >=1 record."""
+    """All 10 in-scope fixtures (7 federal_law + 3 code) must each produce >=1 record."""
     _ensure_corpus_artifacts_on_disk()
     summary = _load_corpus_summary()
     in_scope = summary["in_scope_fixtures"]
-    assert len(in_scope) == 4, f"expected 4 in-scope fixtures, got {len(in_scope)}"
+    assert len(in_scope) == 10, f"expected 10 in-scope fixtures, got {len(in_scope)}"
     document_types = {entry["document_type"] for entry in in_scope}
     assert document_types == {"federal_law", "code"}, document_types
     for entry in in_scope:
@@ -352,12 +352,12 @@ def test_corpus_records_have_per_fixture_scope_id_prefix() -> None:
 
 
 def test_corpus_documents_49_out_of_scope_fixtures_with_reason() -> None:
-    """Out-of-scope fixtures (49) must be documented in the corpus report with reason per role."""
+    """Out-of-scope fixtures (84) must be documented in the corpus report with reason per role."""
     _ensure_corpus_artifacts_on_disk()
     summary = _load_corpus_summary()
-    assert summary["totals"]["out_of_scope_fixture_count"] == 49
+    assert summary["totals"]["out_of_scope_fixture_count"] == 84
     out_of_scope = summary["out_of_scope"]
-    assert len(out_of_scope) == 11
+    assert sum(e["fixture_count"] for e in out_of_scope) == 84
     for entry in out_of_scope:
         assert entry["fixture_count"] >= 1
         assert "reason" in entry and entry["reason"]

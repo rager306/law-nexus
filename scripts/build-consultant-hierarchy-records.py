@@ -24,7 +24,7 @@ from law_nexus.ports.source_hierarchy import SourceHierarchyParagraph, SourceHie
 from parser_records import dumps_jsonl_record, parse_parser_record
 
 ROOT = Path(__file__).resolve().parents[1]
-SOURCE_PATH = Path("law-source/consultant/44-FZ-2026.xml")
+SOURCE_PATH = Path("law-source/consultant/federalnyi-zakon-ot-05-04-2013-n-44-fz-red-ot-28-12-2025-o-kontraktnoi-sisteme-v-sfere-zakupok-tovarov-rabot-uslug-dlya-obespecheniya-g--f9c8ca4c.xml")
 INVENTORY_PATH = Path("prd/parser/source_fixture_inventory.json")
 JSONL_PATH = Path("prd/parser/consultant_hierarchy_records.jsonl")
 JSON_PATH = Path("prd/parser/consultant_hierarchy_records.json")

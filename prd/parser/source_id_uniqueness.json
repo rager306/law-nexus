@@ -1,266 +1,497 @@
 {
-  "duplicate_groups": [
-    {
-      "paths": [
-        "law-source/consultant/Постановление Семнадцатого арбитражного апелляционного суда (1).xml",
-        "law-source/consultant/Постановление Семнадцатого арбитражного апелляционного суда (2).xml"
-      ],
-      "source_id": "consultant:17АП-9951/2025-ГК-c614c72f"
-    },
-    {
-      "paths": [
-        "law-source/consultant/Обзор изменений  Кодекса Российской Федерации об администрат (1).xml",
-        "law-source/consultant/Обзор изменений  Кодекса Российской Федерации об администрат.xml"
-      ],
-      "source_id": "consultant:195-ФЗ-cd8f6088"
-    }
-  ],
+  "duplicate_groups": [],
   "matrix": [
+    {
+      "act_number": "145-ФЗ",
+      "parser_outcome": "success-classified",
+      "path": "law-source/consultant/byudzhetnyi-kodeks-rossiiskoi-federatsii-ot-31-07-1998-n-145-fz-red-ot-26-06-2026-s-izm-i-dop-vstup-v-silu-s-01-07-2026--124297b4.xml",
+      "source_id": "consultant:145-ФЗ-62f36ad9"
+    },
     {
       "act_number": "44-ФЗ",
       "parser_outcome": "success-classified",
-      "path": "law-source/consultant/44-FZ-2026.xml",
-      "source_id": "consultant:44-ФЗ-69df0b9d"
+      "path": "law-source/consultant/federalnyi-zakon-ot-05-04-2013-n-44-fz-red-ot-28-12-2025-o-kontraktnoi-sisteme-v-sfere-zakupok-tovarov-rabot-uslug-dlya-obespecheniya-g--f9c8ca4c.xml",
+      "source_id": "consultant:44-ФЗ-c111119c"
     },
     {
-      "act_number": null,
+      "act_number": "63-ФЗ",
       "parser_outcome": "success-classified",
-      "path": "law-source/consultant/List-44-FZ-connected documents.xml",
-      "source_id": "consultant:List-44-FZ-connected documents-9104d5ba"
+      "path": "law-source/consultant/federalnyi-zakon-ot-06-04-2011-n-63-fz-red-ot-31-07-2025-ob-elektronnoi-podpisi--6caf7614.xml",
+      "source_id": "consultant:63-ФЗ-9608d069"
     },
     {
-      "act_number": "145-ФЗ",
+      "act_number": "402-ФЗ",
       "parser_outcome": "success-classified",
-      "path": "law-source/consultant/Бюджетный кодекс Российской Федерации  от 31.07.1998 N 145-Ф.xml",
-      "source_id": "consultant:145-ФЗ-141d0463"
+      "path": "law-source/consultant/federalnyi-zakon-ot-06-12-2011-n-402-fz-red-ot-15-12-2025-o-bukhgalterskom-uchete--fcc0b660.xml",
+      "source_id": "consultant:402-ФЗ-30e60a55"
     },
     {
-      "act_number": "51-ФЗ",
+      "act_number": "61-ФЗ",
       "parser_outcome": "success-classified",
-      "path": "law-source/consultant/Гражданский кодекс Российской Федерации (часть первая)  от 3.xml",
-      "source_id": "consultant:51-ФЗ-4398e600"
+      "path": "law-source/consultant/federalnyi-zakon-ot-12-04-2010-n-61-fz-red-ot-29-12-2025-ob-obrashchenii-lekarstvennykh-sredstv-s-izm-i-dop-vstup-v-silu-s-01-03-2026--5af26e08.xml",
+      "source_id": "consultant:61-ФЗ-b89e6f5f"
     },
     {
-      "act_number": "95-ФЗ",
+      "act_number": "223-ФЗ",
       "parser_outcome": "success-classified",
-      "path": "law-source/consultant/Обзор изменений  Арбитражного процессуального кодекса Россий.xml",
-      "source_id": "consultant:95-ФЗ-7af1d9c5"
+      "path": "law-source/consultant/federalnyi-zakon-ot-18-07-2011-n-223-fz-red-ot-08-08-2024-o-zakupkakh-tovarov-rabot-uslug-otdelnymi-vidami-yuridicheskikh-lits-s-izm-i--86e8fd8d.xml",
+      "source_id": "consultant:223-ФЗ-9a6d8a3b"
     },
     {
-      "act_number": "145-ФЗ",
+      "act_number": "435-ФЗ",
       "parser_outcome": "success-classified",
-      "path": "law-source/consultant/Обзор изменений  Бюджетного кодекса Российской Федерации  от.xml",
-      "source_id": "consultant:145-ФЗ-0217aa49"
+      "path": "law-source/consultant/federalnyi-zakon-ot-22-12-2020-n-435-fz-red-ot-25-12-2023-o-publichno-pravovoi-kompanii-edinyi-zakazchik-v-sfere-stroitelstva-i-o-vnese--d71bf702.xml",
+      "source_id": "consultant:435-ФЗ-62810fd1"
     },
     {
-      "act_number": "51-ФЗ",
+      "act_number": "273-ФЗ",
       "parser_outcome": "success-classified",
-      "path": "law-source/consultant/Обзор изменений  Гражданского кодекса Российской Федерации (.xml",
-      "source_id": "consultant:51-ФЗ-4021334c"
-    },
-    {
-      "act_number": "195-ФЗ",
-      "parser_outcome": "success-classified",
-      "path": "law-source/consultant/Обзор изменений  Кодекса Российской Федерации об администрат (1).xml",
-      "source_id": "consultant:195-ФЗ-cd8f6088"
+      "path": "law-source/consultant/federalnyi-zakon-ot-25-12-2008-n-273-fz-red-ot-28-12-2025-o-protivodeistvii-korruptsii--da724f03.xml",
+      "source_id": "consultant:273-ФЗ-fe8a2d3d"
     },
     {
       "act_number": "195-ФЗ",
       "parser_outcome": "success-classified",
-      "path": "law-source/consultant/Обзор изменений  Кодекса Российской Федерации об администрат.xml",
-      "source_id": "consultant:195-ФЗ-cd8f6088"
+      "path": "law-source/consultant/kodeks-rossiiskoi-federatsii-ob-administrativnykh-pravonarusheniyakh-ot-30-12-2001-n-195-fz-red-ot-04-07-2026-s-izm-i-dop-vstup-v-silu--b4fd4ec6.xml",
+      "source_id": "consultant:195-ФЗ-7a334df2"
+    },
+    {
+      "act_number": "44-ФЗ",
+      "parser_outcome": "success-classified",
+      "path": "law-source/consultant/obzor-izmenenii-federalnogo-zakona-ot-05-04-2013-n-44-fz-o-kontraktnoi-sisteme-v-sfere-zakupok-tovarov-rabot-uslug-dlya-obespecheniya-g--276d34f7.xml",
+      "source_id": "consultant:44-ФЗ-d9a53b58"
     },
     {
       "act_number": null,
       "parser_outcome": "success-classified",
-      "path": "law-source/consultant/Обзор недостатков и нарушений, выявленных Федеральным казнач.xml",
-      "source_id": "consultant:Обзор недостатков и нарушений, выявленных Федеральным казнач-41b0ff31"
+      "path": "law-source/consultant/obzor-narushenii-i-nedostatkov-vyyavlennykh-federalnym-kaznacheistvom-v-khode-osushchestvleniya-kontrolya-v-finansovo-byudzhetnoi-sfere--e41545c4.xml",
+      "source_id": "consultant:obzor-narushenii-i-nedostatkov-vyyavlennykh-federalnym-kaznacheistvom-v-khode-osushchestvleniya-kontrolya-v-finansovo-byudzhetnoi-sfere--e41545c4-22329b80"
     },
     {
       "act_number": null,
       "parser_outcome": "success-classified",
-      "path": "law-source/consultant/Обзор результатов осуществления Федеральным казначейством ко.xml",
-      "source_id": "consultant:Обзор результатов осуществления Федеральным казначейством ко-b302f695"
+      "path": "law-source/consultant/obzor-nedostatkov-i-narushenii-vyyavlennykh-federalnym-kaznacheistvom-v-khode-osushchestvleniya-kontrolya-v-finansovo-byudzhetnoi-sfere--bef0d103.xml",
+      "source_id": "consultant:obzor-nedostatkov-i-narushenii-vyyavlennykh-federalnym-kaznacheistvom-v-khode-osushchestvleniya-kontrolya-v-finansovo-byudzhetnoi-sfere--bef0d103-deeb92b3"
+    },
+    {
+      "act_number": null,
+      "parser_outcome": "success-classified",
+      "path": "law-source/consultant/obzor-rezultatov-osushchestvleniya-federalnym-kaznacheistvom-kontrolnoi-deyatelnosti-v-finansovo-byudzhetnoi-sfere-v-otnoshenii-glavnyk--49897501.xml",
+      "source_id": "consultant:obzor-rezultatov-osushchestvleniya-federalnym-kaznacheistvom-kontrolnoi-deyatelnosti-v-finansovo-byudzhetnoi-sfere-v-otnoshenii-glavnyk--49897501-07f817db"
+    },
+    {
+      "act_number": null,
+      "parser_outcome": "success-classified",
+      "path": "law-source/consultant/obzor-sudebnoi-praktiki-svyazannoi-s-privlecheniem-k-administrativnoi-otvetstvennosti-za-narusheniya-antimonopolnogo-zakonodatelstva-ut--4bb378ff.xml",
+      "source_id": "consultant:obzor-sudebnoi-praktiki-svyazannoi-s-privlecheniem-k-administrativnoi-otvetstvennosti-za-narusheniya-antimonopolnogo-zakonodatelstva-ut--4bb378ff-8360e2db"
     },
     {
       "act_number": "1",
       "parser_outcome": "success-classified",
-      "path": "law-source/consultant/Обзор судебной практики Верховного Суда Российской Федерации (1).xml",
-      "source_id": "consultant:1-208cd76b"
-    },
-    {
-      "act_number": "3",
-      "parser_outcome": "success-classified",
-      "path": "law-source/consultant/Обзор судебной практики Верховного Суда Российской Федерации (2).xml",
-      "source_id": "consultant:3-eacd37af"
+      "path": "law-source/consultant/obzor-sudebnoi-praktiki-verkhovnogo-suda-rossiiskoi-federatsii-n-1-2026-utv-postanovleniem-prezidiuma-verkhovnogo-suda-rf-ot-25-03-2026--353c3fc0.xml",
+      "source_id": "consultant:1-3c291cf2"
     },
     {
       "act_number": "2",
       "parser_outcome": "success-classified",
-      "path": "law-source/consultant/Обзор судебной практики Верховного Суда Российской Федерации.xml",
-      "source_id": "consultant:2-d28af4cc"
+      "path": "law-source/consultant/obzor-sudebnoi-praktiki-verkhovnogo-suda-rossiiskoi-federatsii-n-2-2025-utv-prezidiumom-verkhovnogo-suda-rf-18-06-2025-red-ot-19-11-202--7ae2a955.xml",
+      "source_id": "consultant:2-9e28ff7c"
     },
     {
-      "act_number": null,
+      "act_number": "3",
       "parser_outcome": "success-classified",
-      "path": "law-source/consultant/Обзор судебной практики, связанной с привлечением к админист.xml",
-      "source_id": "consultant:Обзор судебной практики, связанной с привлечением к админист-ec898f2c"
+      "path": "law-source/consultant/obzor-sudebnoi-praktiki-verkhovnogo-suda-rossiiskoi-federatsii-n-3-2022-utv-prezidiumom-verkhovnogo-suda-rf-21-12-2022-red-ot-25-03-202--e84b5bd5.xml",
+      "source_id": "consultant:3-706f1b83"
     },
     {
-      "act_number": "44-ФЗ",
+      "act_number": "14-ст",
       "parser_outcome": "success-classified",
-      "path": "law-source/consultant/Обзор_  Практика ФАС по Закону N 44-ФЗ_ какие ошибки отметил.xml",
-      "source_id": "consultant:44-ФЗ-8e81a6cb"
+      "path": "law-source/consultant/ok-029-2014-kdes-red-2-obshcherossiiskii-klassifikator-vidov-ekonomicheskoi-deyatelnosti-utv-prikazom-rosstandarta-ot-31-01-2014-n-14-s--ae072cec.xml",
+      "source_id": "consultant:14-ст-c13a4f91"
     },
     {
-      "act_number": "310-ЭС21-27414",
+      "act_number": "14-ст",
       "parser_outcome": "success-classified",
-      "path": "law-source/consultant/Определение Верховного Суда РФ от 05.12.2025 N 310-ЭС21-2741.xml",
-      "source_id": "consultant:310-ЭС21-27414-3933a0f6"
+      "path": "law-source/consultant/ok-034-2014-kpes-2008-obshcherossiiskii-klassifikator-produktsii-po-vidam-ekonomicheskoi-deyatelnosti-utv-prikazom-rosstandarta-ot-31-0--dc2109f9.xml",
+      "source_id": "consultant:14-ст-8c73ccde"
     },
     {
-      "act_number": "305-ЭС25-11651",
+      "act_number": "88-8444/2026",
       "parser_outcome": "success-classified",
-      "path": "law-source/consultant/Определение Верховного Суда РФ от 08.12.2025 N 305-ЭС25-1165.xml",
-      "source_id": "consultant:305-ЭС25-11651-cf687d7e"
+      "path": "law-source/consultant/opredelenie-sedmogo-kassatsionnogo-suda-obshchei-yurisdiktsii-ot-10-06-2026-n-88-8444-2026-uid-66rs0044-01-2023-005497-11-kategoriya-sp--12ad6325.xml",
+      "source_id": "consultant:88-8444/2026-c00c73f6"
     },
     {
-      "act_number": "1123-О",
+      "act_number": "310-ЭС26-4320",
       "parser_outcome": "success-classified",
-      "path": "law-source/consultant/Определение Конституционного Суда РФ от 28.05.2020 N 1123-О.xml",
-      "source_id": "consultant:1123-О-04a63c7c"
+      "path": "law-source/consultant/opredelenie-verkhovnogo-suda-rf-ot-03-07-2026-n-310-es26-4320-po-delu-n-a48-2335-2025-trebovanie-o-peresmotre-v-kassatsionnom-poryadke--d3b817a9.xml",
+      "source_id": "consultant:310-ЭС26-4320-f0af1e2e"
     },
     {
-      "act_number": "2837-О",
+      "act_number": "27735-АЛ/02",
       "parser_outcome": "success-classified",
-      "path": "law-source/consultant/Определение Конституционного Суда РФ от 30.10.2025 N 2837-О.xml",
-      "source_id": "consultant:2837-О-11fc270b"
+      "path": "law-source/consultant/pismo-minstroya-rossii-ot-07-05-2026-n-27735-al-02-ob-ustanovlenii-trebovanii-o-chlenstve-v-samoreguliruemoi-organizatsii--06cf65ce.xml",
+      "source_id": "consultant:27735-АЛ/02-0a21ea95"
     },
     {
-      "act_number": "38-АД25-9-К1",
+      "act_number": "13623-АВ/09",
       "parser_outcome": "success-classified",
-      "path": "law-source/consultant/Постановление Верховного Суда РФ от 09.10.2025 N 38-АД25-9-К.xml",
-      "source_id": "consultant:38-АД25-9-К1-fd425d97"
+      "path": "law-source/consultant/pismo-minstroya-rossii-ot-13-03-2026-n-13623-av-09-o-perechne-dokumentov-aktov-o-priemke-rezultata-vypolnennykh-rabot-po-dogovoru-stroi--866d2575.xml",
+      "source_id": "consultant:13623-АВ/09-07433556"
     },
     {
-      "act_number": "59-АД25-9-К9",
+      "act_number": "Ф03-913/2026",
       "parser_outcome": "success-classified",
-      "path": "law-source/consultant/Постановление Верховного Суда РФ от 10.11.2025 N 59-АД25-9-К.xml",
-      "source_id": "consultant:59-АД25-9-К9-e6a8f61a"
+      "path": "law-source/consultant/postanovlenie-arbitrazhnogo-suda-dalnevostochnogo-okruga-ot-03-07-2026-n-f03-913-2026-po-delu-n-a73-13075-2025-trebovanie-o-vzyskanii-d--d9e2d6ac.xml",
+      "source_id": "consultant:Ф03-913/2026-fe5c052f"
     },
     {
-      "act_number": "16-АД25-12-К4",
+      "act_number": "Ф01-7581/2026",
       "parser_outcome": "success-classified",
-      "path": "law-source/consultant/Постановление Верховного Суда РФ от 13.11.2025 N 16-АД25-12-.xml",
-      "source_id": "consultant:16-АД25-12-К4-7beb295a"
+      "path": "law-source/consultant/postanovlenie-arbitrazhnogo-suda-volgo-vyatskogo-okruga-ot-06-07-2026-n-f01-7581-2026-po-delu-n-a39-5259-2025-trebovanie-o-priznanii-ne--c6b081b3.xml",
+      "source_id": "consultant:Ф01-7581/2026-f6ec7b1f"
     },
     {
-      "act_number": "48-АД25-13-К7",
+      "act_number": "Ф02-1611/2026",
       "parser_outcome": "success-classified",
-      "path": "law-source/consultant/Постановление Верховного Суда РФ от 20.11.2025 N 48-АД25-13-.xml",
-      "source_id": "consultant:48-АД25-13-К7-25661f9a"
+      "path": "law-source/consultant/postanovlenie-arbitrazhnogo-suda-vostochno-sibirskogo-okruga-ot-29-06-2026-n-f02-1611-2026-po-delu-n-a33-10080-2023-trebovanie-o-prizna--01819602.xml",
+      "source_id": "consultant:Ф02-1611/2026-3a176e13"
     },
     {
-      "act_number": "16-1034/2023",
+      "act_number": "01АП-3115/2026",
       "parser_outcome": "success-classified",
-      "path": "law-source/consultant/Постановление Девятого кассационного суда общей юрисдикции о.xml",
-      "source_id": "consultant:16-1034/2023-c445112b"
+      "path": "law-source/consultant/postanovlenie-pervogo-arbitrazhnogo-apellyatsionnogo-suda-ot-02-07-2026-n-01ap-3115-2026-po-delu-n-a43-35691-2025-trebovanie-o-priznani--9cbeb8ca.xml",
+      "source_id": "consultant:01АП-3115/2026-c94aba91"
     },
     {
-      "act_number": "7-П",
+      "act_number": "7",
       "parser_outcome": "success-classified",
-      "path": "law-source/consultant/Постановление Конституционного Суда РФ от 18.03.2021 N 7-П.xml",
-      "source_id": "consultant:7-П-028e6bbb"
+      "path": "law-source/consultant/postanovlenie-plenuma-verkhovnogo-suda-rf-ot-24-03-2016-n-7-red-ot-22-06-2021-o-primenenii-sudami-nekotorykh-polozhenii-grazhdanskogo-k--15845971.xml",
+      "source_id": "consultant:7-e16464e4"
     },
     {
-      "act_number": "2571",
+      "act_number": "954-ПП",
       "parser_outcome": "success-classified",
-      "path": "law-source/consultant/Постановление Правительства РФ от 29.12.2021 N 2571 (ред. от.xml",
-      "source_id": "consultant:2571-2ebda3f3"
+      "path": "law-source/consultant/postanovlenie-pravitelstva-moskvy-ot-25-12-2015-n-954-pp-red-ot-24-02-2026-ob-opredelenii-trebovanii-k-zakupaemym-organami-ispolnitelno--1de99445.xml",
+      "source_id": "consultant:954-ПП-7b22ce63"
     },
     {
-      "act_number": "17АП-9951/2025-ГК",
+      "act_number": "926",
       "parser_outcome": "success-classified",
-      "path": "law-source/consultant/Постановление Семнадцатого арбитражного апелляционного суда (1).xml",
-      "source_id": "consultant:17АП-9951/2025-ГК-c614c72f"
+      "path": "law-source/consultant/postanovlenie-pravitelstva-rf-ot-02-09-2015-n-926-red-ot-12-06-2025-ob-utverzhdenii-obshchikh-pravil-opredeleniya-trebovanii-k-zakupaem--e6c4a931.xml",
+      "source_id": "consultant:926-c9d6309c"
     },
     {
-      "act_number": "17АП-9951/2025-ГК",
+      "act_number": "1546",
       "parser_outcome": "success-classified",
-      "path": "law-source/consultant/Постановление Семнадцатого арбитражного апелляционного суда (2).xml",
-      "source_id": "consultant:17АП-9951/2025-ГК-c614c72f"
+      "path": "law-source/consultant/postanovlenie-pravitelstva-rf-ot-06-10-2025-n-1546-o-tipovykh-usloviyakh-kontraktov-na-okazanie-uslug-po-provedeniyu-stroitelnogo-kontr--e269f805.xml",
+      "source_id": "consultant:1546-825fda0d"
     },
     {
-      "act_number": "17АП-8755/2025-ГК",
+      "act_number": "145",
       "parser_outcome": "success-classified",
-      "path": "law-source/consultant/Постановление Семнадцатого арбитражного апелляционного суда.xml",
-      "source_id": "consultant:17АП-8755/2025-ГК-303439f9"
+      "path": "law-source/consultant/postanovlenie-pravitelstva-rf-ot-08-02-2017-n-145-red-ot-23-12-2024-ob-utverzhdenii-pravil-formirovaniya-i-vedeniya-v-edinoi-informatsi--9299200a.xml",
+      "source_id": "consultant:145-103335cf"
+    },
+    {
+      "act_number": "1224",
+      "parser_outcome": "success-classified",
+      "path": "law-source/consultant/postanovlenie-pravitelstva-rf-ot-08-07-2022-n-1224-ob-osobennostyakh-opisaniya-otdelnykh-vidov-tovarov-yavlyayushchikhsya-obektom-zakup--871d656f.xml",
+      "source_id": "consultant:1224-698223f7"
+    },
+    {
+      "act_number": "1005",
+      "parser_outcome": "success-classified",
+      "path": "law-source/consultant/postanovlenie-pravitelstva-rf-ot-08-11-2013-n-1005-red-ot-26-12-2024-o-nezavisimykh-garantiyakh-ispolzuemykh-dlya-tselei-federalnogo-za--f101c16f.xml",
+      "source_id": "consultant:1005-04057503"
+    },
+    {
+      "act_number": "878",
+      "parser_outcome": "success-classified",
+      "path": "law-source/consultant/postanovlenie-pravitelstva-rf-ot-10-07-2019-n-878-red-ot-13-04-2026-o-merakh-stimulirovaniya-proizvodstva-radioelektronnoi-produktsii-n--ed9a9370.xml",
+      "source_id": "consultant:878-ceb22769"
+    },
+    {
+      "act_number": "736",
+      "parser_outcome": "success-classified",
+      "path": "law-source/consultant/postanovlenie-pravitelstva-rf-ot-12-06-2026-n-736-o-tsentralizatsii-zakupok-otdelnykh-vidov-lekarstvennykh-preparatov-dlya-meditsinskog--0ab4075b.xml",
+      "source_id": "consultant:736-45ef6160"
+    },
+    {
+      "act_number": "737",
+      "parser_outcome": "success-classified",
+      "path": "law-source/consultant/postanovlenie-pravitelstva-rf-ot-12-06-2026-n-737-o-tsentralizatsii-zakupok-otdelnykh-vidov-meditsinskikh-izdelii-dlya-obespecheniya-go--7486d25f.xml",
+      "source_id": "consultant:737-088e9438"
+    },
+    {
+      "act_number": "416",
+      "parser_outcome": "success-classified",
+      "path": "law-source/consultant/postanovlenie-pravitelstva-rf-ot-15-04-2026-n-416-ob-izmenenii-sushchestvennykh-uslovii-kontraktov-zaklyuchennykh-dlya-obespecheniya-fe--42072b55.xml",
+      "source_id": "consultant:416-bad37201"
+    },
+    {
+      "act_number": "373",
+      "parser_outcome": "success-classified",
+      "path": "law-source/consultant/postanovlenie-pravitelstva-rf-ot-16-05-2011-n-373-red-ot-20-07-2021-o-razrabotke-i-utverzhdenii-administrativnykh-reglamentov-osushches--a07065f6.xml",
+      "source_id": "consultant:373-6681a1a4"
+    },
+    {
+      "act_number": "1236",
+      "parser_outcome": "success-classified",
+      "path": "law-source/consultant/postanovlenie-pravitelstva-rf-ot-16-11-2015-n-1236-red-ot-09-12-2025-ob-utverzhdenii-pravil-formirovaniya-i-vedeniya-edinogo-reestra-ro--fca6af69.xml",
+      "source_id": "consultant:1236-ac3266f9"
+    },
+    {
+      "act_number": "287",
+      "parser_outcome": "success-classified",
+      "path": "law-source/consultant/postanovlenie-pravitelstva-rf-ot-18-03-2026-n-287-o-federalnom-organe-ispolnitelnoi-vlasti-upolnomochennom-na-ustanovlenie-poryadka-opr--d45f3b8c.xml",
+      "source_id": "consultant:287-6e6afdc7"
+    },
+    {
+      "act_number": "1084",
+      "parser_outcome": "success-classified",
+      "path": "law-source/consultant/postanovlenie-pravitelstva-rf-ot-20-10-2014-n-1084-red-ot-31-10-2024-o-poryadke-opredeleniya-normativnykh-zatrat-na-obespechenie-funkts--71673343.xml",
+      "source_id": "consultant:1084-06bf907e"
+    },
+    {
+      "act_number": "616",
+      "parser_outcome": "success-classified",
+      "path": "law-source/consultant/postanovlenie-pravitelstva-rf-ot-21-06-2012-n-616-red-ot-30-12-2015-ob-utverzhdenii-perechnya-tovarov-rabot-i-uslug-zakupka-kotorykh-os--b479cc6c.xml",
+      "source_id": "consultant:616-f51cc484"
+    },
+    {
+      "act_number": "590",
+      "parser_outcome": "success-classified",
+      "path": "law-source/consultant/postanovlenie-pravitelstva-rf-ot-23-05-2026-n-590-o-vnesenii-izmenenii-v-nekotorye-akty-pravitelstva-rossiiskoi-federatsii--eb8f2bad.xml",
+      "source_id": "consultant:590-bc752d56"
+    },
+    {
+      "act_number": "1875",
+      "parser_outcome": "success-classified",
+      "path": "law-source/consultant/postanovlenie-pravitelstva-rf-ot-23-12-2024-n-1875-red-ot-03-07-2026-o-merakh-po-predostavleniyu-natsionalnogo-rezhima-pri-osushchestvl--ac6afca0.xml",
+      "source_id": "consultant:1875-5714738e"
+    },
+    {
+      "act_number": "2411",
+      "parser_outcome": "success-classified",
+      "path": "law-source/consultant/postanovlenie-pravitelstva-rf-ot-24-12-2022-n-2411-red-ot-30-08-2025-ob-avansirovanii-dogovorov-gosudarstvennykh-kontraktov-o-postavke--a2c100f9.xml",
+      "source_id": "consultant:2411-42d54e9c"
+    },
+    {
+      "act_number": "476",
+      "parser_outcome": "success-classified",
+      "path": "law-source/consultant/postanovlenie-pravitelstva-rf-ot-27-04-2026-n-476-o-federalnom-organe-ispolnitelnoi-vlasti-upolnomochennom-na-ustanovlenie-poryadka-opr--b74f7d99.xml",
+      "source_id": "consultant:476-713f0e63"
+    },
+    {
+      "act_number": "1279",
+      "parser_outcome": "success-classified",
+      "path": "law-source/consultant/postanovlenie-pravitelstva-rf-ot-30-09-2019-n-1279-red-ot-02-09-2025-o-planakh-grafikakh-zakupok-i-o-priznanii-utrativshimi-silu-otdeln--0baaae5a.xml",
+      "source_id": "consultant:1279-7291cbe2"
+    },
+    {
+      "act_number": "16/26",
+      "parser_outcome": "success-classified",
+      "path": "law-source/consultant/prikaz-fas-rossii-ot-15-01-2026-n-16-26-ob-utverzhdenii-trebovanii-k-zakupaemym-federalnoi-antimonopolnoi-sluzhboi-ee-territorialnymi-o--0264c0ac.xml",
+      "source_id": "consultant:16/26-8d415de2"
+    },
+    {
+      "act_number": "32/26",
+      "parser_outcome": "success-classified",
+      "path": "law-source/consultant/prikaz-fas-rossii-ot-20-01-2026-n-32-26-ob-utverzhdenii-poryadka-deistvii-fas-rossii-i-ee-territorialnykh-organov-v-sluchae-vyyavleniya--10fb2bf1.xml",
+      "source_id": "consultant:32/26-46eb981a"
     },
     {
       "act_number": "339",
       "parser_outcome": "success-classified",
-      "path": "law-source/consultant/Приказ ФАС России от 25.05.2012 N 339 (ред. от 16.02.2016).xml",
-      "source_id": "consultant:339-d68facbc"
+      "path": "law-source/consultant/prikaz-fas-rossii-ot-25-05-2012-n-339-red-ot-16-02-2016-ob-utverzhdenii-administrativnogo-reglamenta-federalnoi-antimonopolnoi-sluzhby--26bd283c.xml",
+      "source_id": "consultant:339-2aba7edb"
     },
     {
-      "act_number": "024/06/106-3334/2025",
+      "act_number": "136",
       "parser_outcome": "success-classified",
-      "path": "law-source/consultant/Решение Красноярского УФАС России от 07.11.2025 N 024_06_106.xml",
-      "source_id": "consultant:024/06/106-3334/2025-88b1555c"
+      "path": "law-source/consultant/prikaz-fsb-rossii-ot-08-04-2026-n-136-ob-utverzhdenii-perechnya-dokumentov-predstavlyaemykh-v-federalnuyu-sluzhbu-bezopasnosti-rossiisk--9a634157.xml",
+      "source_id": "consultant:136-eb1fda17"
     },
     {
-      "act_number": "066/06/104-2953/2025",
+      "act_number": "120",
       "parser_outcome": "success-classified",
-      "path": "law-source/consultant/Решение Свердловского УФАС России от 29.10.2025 N 066_06_104.xml",
-      "source_id": "consultant:066/06/104-2953/2025-c9fb46e3"
+      "path": "law-source/consultant/prikaz-fstek-rossii-ot-24-04-2026-n-120-ob-utverzhdenii-trebovanii-k-zakupaemym-fstek-rossii-ee-territorialnymi-organami-i-podvedomstve--57826070.xml",
+      "source_id": "consultant:120-0e4a4abd"
     },
     {
-      "act_number": "А263-11/225",
+      "act_number": "204",
       "parser_outcome": "success-classified",
-      "path": "law-source/consultant/Решение Северо-Осетинского УФАС России от 06.11.2025 по делу.xml",
-      "source_id": "consultant:А263-11/225-648dceff"
+      "path": "law-source/consultant/prikaz-fts-rossii-ot-16-03-2026-n-204-ob-osushchestvlenii-federalnoi-tamozhennoi-sluzhboi-ee-territorialnymi-organami-i-uchrezhdeniyami--c8eace7c.xml",
+      "source_id": "consultant:204-021e653b"
     },
     {
-      "act_number": "28/06/105-4409/2025",
+      "act_number": "229",
       "parser_outcome": "success-classified",
-      "path": "law-source/consultant/Решение ФАС России от 06.11.2025 по делу N 28_06_105-4409_20.xml",
-      "source_id": "consultant:28/06/105-4409/2025-9ec79db9"
+      "path": "law-source/consultant/prikaz-minekonomrazvitiya-rossii-ot-04-06-2010-n-229-red-ot-09-06-2016-o-trebovaniyakh-energeticheskoi-effektivnosti-tovarov-ispolzuemy--f8324528.xml",
+      "source_id": "consultant:229-089c80fc"
     },
     {
-      "act_number": "28/06/105-4463/2025",
+      "act_number": "131",
       "parser_outcome": "success-classified",
-      "path": "law-source/consultant/Решение ФАС России от 06.11.2025 по делу N 28_06_105-4463_20.xml",
-      "source_id": "consultant:28/06/105-4463/2025-43c218ca"
+      "path": "law-source/consultant/prikaz-minekonomrazvitiya-rossii-ot-22-03-2021-n-131-red-ot-17-02-2023-o-trebovaniyakh-energeticheskoi-effektivnosti-v-otnoshenii-tovar--98a2b7b2.xml",
+      "source_id": "consultant:131-37227773"
     },
     {
-      "act_number": "28/06/105-4466/2025",
+      "act_number": "149н",
       "parser_outcome": "success-classified",
-      "path": "law-source/consultant/Решение ФАС России от 06.11.2025 по делу N 28_06_105-4466_20.xml",
-      "source_id": "consultant:28/06/105-4466/2025-7fed3982"
+      "path": "law-source/consultant/prikaz-minfina-rossii-ot-08-10-2024-n-149n-o-priznanii-utrativshimi-silu-prikaza-ministerstva-finansov-rossiiskoi-federatsii-ot-4-iyuny--4949c2aa.xml",
+      "source_id": "consultant:149н-4cf2378c"
     },
     {
-      "act_number": "25/44/104/516",
+      "act_number": "74н",
       "parser_outcome": "success-classified",
-      "path": "law-source/consultant/Решение ФАС России от 07.11.2025 по делу N 25_44_104_516 Обс.xml",
-      "source_id": "consultant:25/44/104/516-5f10e645"
+      "path": "law-source/consultant/prikaz-minfina-rossii-ot-16-06-2025-n-74n-ob-utverzhdenii-poryadka-prisvoeniya-primeneniya-a-takzhe-izmeneniya-identifikatsionnykh-kodo--66248b2b.xml",
+      "source_id": "consultant:74н-8b54455f"
     },
     {
-      "act_number": "РНП-399",
+      "act_number": "33н",
       "parser_outcome": "success-classified",
-      "path": "law-source/consultant/Решение Хабаровского УФАС России от 06.11.2025 N РНП-399 по.xml",
-      "source_id": "consultant:РНП-399-b98e1a61"
+      "path": "law-source/consultant/prikaz-minfina-rossii-ot-25-03-2011-n-33n-red-ot-04-08-2025-ob-utverzhdenii-instruktsii-o-poryadke-sostavleniya-predstavleniya-godovoi--e80bb7fe.xml",
+      "source_id": "consultant:33н-9f59f0e7"
+    },
+    {
+      "act_number": "256н",
+      "parser_outcome": "success-classified",
+      "path": "law-source/consultant/prikaz-minfina-rossii-ot-31-12-2016-n-256n-red-ot-13-09-2023-ob-utverzhdenii-federalnogo-standarta-bukhgalterskogo-ucheta-dlya-organiza--4ee50d67.xml",
+      "source_id": "consultant:256н-52332b8a"
+    },
+    {
+      "act_number": "5073",
+      "parser_outcome": "success-classified",
+      "path": "law-source/consultant/prikaz-minpromtorga-rossii-ot-15-10-2025-n-5073-red-ot-04-03-2026-ob-utverzhdenii-metodicheskikh-rekomendatsii-po-provedeniyu-na-territ--d927bd51.xml",
+      "source_id": "consultant:5073-8f91fd69"
+    },
+    {
+      "act_number": "639",
+      "parser_outcome": "success-classified",
+      "path": "law-source/consultant/prikaz-minpromtorga-rossii-ot-28-02-2023-n-639-ob-utverzhdenii-poryadka-opredeleniya-nachalnoi-maksimalnoi-tseny-kontrakta-tseny-kontra--f068327b.xml",
+      "source_id": "consultant:639-136dcece"
+    },
+    {
+      "act_number": "94",
+      "parser_outcome": "success-classified",
+      "path": "law-source/consultant/prikaz-rosfinmonitoringa-ot-13-05-2026-n-94-ob-utverzhdenii-trebovanii-k-zakupaemym-federalnoi-sluzhboi-po-finansovomu-monitoringu-i-ee--44d19fed.xml",
+      "source_id": "consultant:94-809d3e31"
+    },
+    {
+      "act_number": "45",
+      "parser_outcome": "success-classified",
+      "path": "law-source/consultant/prikaz-rosgvardii-ot-15-02-2021-n-45-ob-utverzhdenii-poryadka-opredeleniya-nachalnoi-maksimalnoi-tseny-kontrakta-tseny-kontrakta-zaklyu--f9493f06.xml",
+      "source_id": "consultant:45-41b77eef"
+    },
+    {
+      "act_number": "3500-р",
+      "parser_outcome": "success-classified",
+      "path": "law-source/consultant/rasporyazhenie-pravitelstva-rf-ot-08-12-2021-n-3500-r-red-ot-12-05-2023-ob-utverzhdenii-perechnei-tovarov-rabot-uslug-pri-osushchestvle--92d539ef.xml",
+      "source_id": "consultant:3500-р-20f0c70f"
+    },
+    {
+      "act_number": "21-р",
+      "parser_outcome": "success-classified",
+      "path": "law-source/consultant/rasporyazhenie-pravitelstva-rf-ot-16-01-2018-n-21-r-red-ot-27-03-2020-ob-utverzhdenii-perechnya-tovarov-i-uslug-v-otnoshenii-kotorykh-p--0db4e799.xml",
+      "source_id": "consultant:21-р-dffd33bc"
+    },
+    {
+      "act_number": "2227-р",
+      "parser_outcome": "success-classified",
+      "path": "law-source/consultant/rasporyazhenie-pravitelstva-rf-ot-16-08-2025-n-2227-r-ob-utverzhdenii-perechnya-istochnikov-informatsii-ispolzuemykh-dlya-tselei-oprede--b5a84d6d.xml",
+      "source_id": "consultant:2227-р-743a518e"
+    },
+    {
+      "act_number": "3867-р",
+      "parser_outcome": "success-classified",
+      "path": "law-source/consultant/rasporyazhenie-pravitelstva-rf-ot-18-12-2025-n-3867-r-ob-utverzhdenii-perechnya-zhiznenno-neobkhodimykh-i-vazhneishikh-lekarstvennykh-p--7259f6f6.xml",
+      "source_id": "consultant:3867-р-4c819a2b"
+    },
+    {
+      "act_number": "471-р",
+      "parser_outcome": "success-classified",
+      "path": "law-source/consultant/rasporyazhenie-pravitelstva-rf-ot-21-03-2016-n-471-r-red-ot-31-10-2022-o-perechne-tovarov-rabot-uslug-v-sluchae-osushchestvleniya-zakup--e127e64d.xml",
+      "source_id": "consultant:471-р-2632de02"
+    },
+    {
+      "act_number": "824-р",
+      "parser_outcome": "success-classified",
+      "path": "law-source/consultant/rasporyazhenie-pravitelstva-rf-ot-28-04-2018-n-824-r-red-ot-16-01-2025-o-sozdanii-edinogo-agregatora-torgovli--a95736a6.xml",
+      "source_id": "consultant:824-р-a8139520"
+    },
+    {
+      "act_number": "2710-р",
+      "parser_outcome": "success-classified",
+      "path": "law-source/consultant/rasporyazhenie-pravitelstva-rf-ot-29-09-2025-n-2710-r-red-ot-13-03-2026-o-provedenii-na-territorii-rossiiskoi-federatsii-eksperimenta-p--790b9408.xml",
+      "source_id": "consultant:2710-р-e37c89bf"
+    },
+    {
+      "act_number": "20",
+      "parser_outcome": "success-classified",
+      "path": "law-source/consultant/reglament-funktsionirovaniya-edinogo-agregatora-torgovli-redaktsiya-n-20-utv-prikazom-ao-edinyi-agregator-torgovli-ot-28-01-2026-n-3-vm--334e8a67.xml",
+      "source_id": "consultant:20-c0d2ebf7"
+    },
+    {
+      "act_number": "005/06/105-804/2026",
+      "parser_outcome": "success-classified",
+      "path": "law-source/consultant/reshenie-fas-rossii-ot-16-06-2026-n-005-06-105-804-2026-obstoyatelstva-po-mneniyu-zayavitelya-obosnovanie-nachalnoi-maksimalnoi-tseny-k--2ca29d1d.xml",
+      "source_id": "consultant:005/06/105-804/2026-2b4259c1"
+    },
+    {
+      "act_number": "050/06/105-20119/2026",
+      "parser_outcome": "success-classified",
+      "path": "law-source/consultant/reshenie-fas-rossii-ot-16-06-2026-po-delu-n-050-06-105-20119-2026-obstoyatelstva-po-mneniyu-zayavitelya-ego-prava-i-zakonnye-interesy-n--c0114127.xml",
+      "source_id": "consultant:050/06/105-20119/2026-606db07a"
+    },
+    {
+      "act_number": "048/06/105-547/2026",
+      "parser_outcome": "success-classified",
+      "path": "law-source/consultant/reshenie-fas-rossii-ot-17-06-2026-n-048-06-105-547-2026-obstoyatelstva-v-antimonopolnyi-organ-postupilo-obrashchenie-s-zhaloboi-na-polo--8a9d6306.xml",
+      "source_id": "consultant:048/06/105-547/2026-cf4ce4df"
+    },
+    {
+      "act_number": "26/44/104/330",
+      "parser_outcome": "success-classified",
+      "path": "law-source/consultant/reshenie-fas-rossii-ot-17-06-2026-po-delu-n-26-44-104-330-ob-otkaze-vo-vklyuchenii-svedenii-v-reestr-nedobrosovestnykh-postavshchikov-p--21c1baef.xml",
+      "source_id": "consultant:26/44/104/330-325c338a"
+    },
+    {
+      "act_number": "28/06/105-2268/2025",
+      "parser_outcome": "success-classified",
+      "path": "law-source/consultant/reshenie-fas-rossii-ot-19-06-2026-po-delu-n-28-06-105-2268-2025-narushenie-p-3-ch-5-st-44-zakona-o-kontraktnoi-sisteme-reshenie-priznat--9f1b3f25.xml",
+      "source_id": "consultant:28/06/105-2268/2025-f7afa428"
+    },
+    {
+      "act_number": "011/06/105-542/2026",
+      "parser_outcome": "success-classified",
+      "path": "law-source/consultant/reshenie-fas-rossii-ot-19-06-2026-po-zhalobe-n-011-06-105-542-2026-obstoyatelstva-v-antimonopolnyi-organ-postupilo-obrashchenie-s-zhalo--547d00b7.xml",
+      "source_id": "consultant:011/06/105-542/2026-9440a593"
+    },
+    {
+      "act_number": "042/06/105-760/2026",
+      "parser_outcome": "success-classified",
+      "path": "law-source/consultant/reshenie-kemerovskogo-ufas-rossii-ot-07-05-2026-po-delu-n-042-06-105-760-2026-sut-zhaloby-1-tekhnicheskim-kharakteristikam-tovara-ne-so--413c2013.xml",
+      "source_id": "consultant:042/06/105-760/2026-6fd6ccc3"
+    },
+    {
+      "act_number": "80",
+      "parser_outcome": "success-classified",
+      "path": "law-source/consultant/reshenie-soveta-evraziiskoi-ekonomicheskoi-komissii-ot-14-09-2021-n-80-red-ot-01-07-2026-ob-utverzhdenii-edinoi-tovarnoi-nomenklatury-v--1e5dc26f.xml",
+      "source_id": "consultant:80-cf0b916a"
+    },
+    {
+      "act_number": "136-ФЗ",
+      "parser_outcome": "success-classified",
+      "path": "law-source/consultant/zemelnyi-kodeks-rossiiskoi-federatsii-ot-25-10-2001-n-136-fz-red-ot-02-05-2026-s-izm-i-dop-vstup-v-silu-s-01-07-2026--77238147.xml",
+      "source_id": "consultant:136-ФЗ-d8ab6dee"
     },
     {
       "act_number": null,
       "parser_outcome": "success-classified",
       "path": "law-source/consultant/Список документов (5).xml",
       "source_id": "consultant:Список документов (5)-0694587f"
-    },
-    {
-      "act_number": "223-ФЗ",
-      "parser_outcome": "success-classified",
-      "path": "law-source/consultant/Федеральный закон от 18.07.2011 N 223-ФЗ (ред. от 08.08.2024.xml",
-      "source_id": "consultant:223-ФЗ-dfc83142"
     }
   ],
   "non_authoritative": true,
@@ -272,9 +503,9 @@
   "schema_version": "parser-source-id-uniqueness/v1",
   "source_path": "prd/parser/probe_results.json",
   "summary": {
-    "duplicates": 2,
+    "duplicates": 0,
     "duplicates_are_byte_identical": true,
-    "total_fixtures": 41,
-    "unique_source_ids": 39
+    "total_fixtures": 82,
+    "unique_source_ids": 82
   }
 }

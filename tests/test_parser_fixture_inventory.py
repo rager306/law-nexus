@@ -54,7 +54,7 @@ def test_build_inventory_discovers_all_fixtures(tmp_path: Path) -> None:
     write_minimal_odt(tmp_path / "law-source/garant/44-fz.odt", content_root="fz44")
     write_minimal_odt(tmp_path / "law-source/garant/PP_60_27-01-2022.odt", content_root="pp60")
     write_consultant_xml(tmp_path / "law-source/consultant/Список документов (5).xml", title="Список документов (5)")
-    write_consultant_xml(tmp_path / "law-source/consultant/44-FZ-2026.xml", title="Федеральный закон от 05.04.2013 N 44-ФЗ")
+    write_consultant_xml(tmp_path / "law-source/consultant/federalnyi-zakon-ot-05-04-2013-n-44-fz-red-ot-28-12-2025-o-kontraktnoi-sisteme-v-sfere-zakupok-tovarov-rabot-uslug-dlya-obespecheniya-g--f9c8ca4c.xml", title="Федеральный закон от 05.04.2013 N 44-ФЗ")
 
     manifest = module.build_inventory(tmp_path)
 
@@ -63,7 +63,7 @@ def test_build_inventory_discovers_all_fixtures(tmp_path: Path) -> None:
         "law-source/garant/44-fz.odt",
         "law-source/garant/PP_60_27-01-2022.odt",
         "law-source/consultant/Список документов (5).xml",
-        "law-source/consultant/44-FZ-2026.xml",
+        "law-source/consultant/federalnyi-zakon-ot-05-04-2013-n-44-fz-red-ot-28-12-2025-o-kontraktnoi-sisteme-v-sfere-zakupok-tovarov-rabot-uslug-dlya-obespecheniya-g--f9c8ca4c.xml",
     }
     assert manifest["fixture_count"] == 4
     assert manifest["status"] == "pass"
@@ -71,7 +71,7 @@ def test_build_inventory_discovers_all_fixtures(tmp_path: Path) -> None:
     assert manifest["non_authoritative"] is True
     assert manifest["schema_version"] == "parser-source-fixture-inventory/v2"
     assert "law-source/consultant/Список документов (5).xml" in manifest["canonical_paths"]
-    assert "law-source/consultant/44-FZ-2026.xml" in manifest["canonical_paths"]
+    assert "law-source/consultant/federalnyi-zakon-ot-05-04-2013-n-44-fz-red-ot-28-12-2025-o-kontraktnoi-sisteme-v-sfere-zakupok-tovarov-rabot-uslug-dlya-obespecheniya-g--f9c8ca4c.xml" in manifest["canonical_paths"]
     hygiene = manifest["fixture_hygiene"]
     assert hygiene["pp_filename_mismatch"]["canonical_path"] == "law-source/garant/PP_60_27-01-2022.odt"
     assert hygiene["pp_filename_mismatch"]["stated_path"] == "law-source/garant/PP_60_27-02-2022.odt"
@@ -87,7 +87,7 @@ def test_build_inventory_discovers_all_fixtures(tmp_path: Path) -> None:
     assert relation["source_role"] == "document-list-prior-art"
     assert relation["document_type"] == "document_list"
     assert relation["xml_shape"]["well_formed"] is True
-    full_act = next(f for f in manifest["fixtures"] if f["path"] == "law-source/consultant/44-FZ-2026.xml")
+    full_act = next(f for f in manifest["fixtures"] if f["path"] == "law-source/consultant/federalnyi-zakon-ot-05-04-2013-n-44-fz-red-ot-28-12-2025-o-kontraktnoi-sisteme-v-sfere-zakupok-tovarov-rabot-uslug-dlya-obespecheniya-g--f9c8ca4c.xml")
     assert full_act["source_role"] == "full-normative-act"
     assert full_act["document_type"] == "federal_law"
     assert full_act["xml_shape"]["well_formed"] is True
@@ -173,7 +173,7 @@ def test_build_inventory_fails_when_removed_duplicate_reappears(tmp_path: Path) 
     write_minimal_odt(tmp_path / "law-source/garant/44-fz.odt")
     write_minimal_odt(tmp_path / "law-source/garant/PP_60_27-01-2022.odt")
     write_consultant_xml(tmp_path / "law-source/consultant/Список документов (5).xml", title="Список документов (5)")
-    write_consultant_xml(tmp_path / "law-source/consultant/44-FZ-2026.xml", title="Федеральный закон от 05.04.2013 N 44-ФЗ")
+    write_consultant_xml(tmp_path / "law-source/consultant/federalnyi-zakon-ot-05-04-2013-n-44-fz-red-ot-28-12-2025-o-kontraktnoi-sisteme-v-sfere-zakupok-tovarov-rabot-uslug-dlya-obespecheniya-g--f9c8ca4c.xml", title="Федеральный закон от 05.04.2013 N 44-ФЗ")
     duplicate = tmp_path / "law-source/Список документов (5).xml"
     duplicate.write_text("<wordDocument />", encoding="utf-8")
 
@@ -191,7 +191,7 @@ def test_build_inventory_fails_when_stated_pp_mismatch_path_reappears(tmp_path: 
     write_minimal_odt(tmp_path / "law-source/garant/PP_60_27-01-2022.odt")
     write_minimal_odt(tmp_path / "law-source/garant/PP_60_27-02-2022.odt")
     write_consultant_xml(tmp_path / "law-source/consultant/Список документов (5).xml", title="Список документов (5)")
-    write_consultant_xml(tmp_path / "law-source/consultant/44-FZ-2026.xml", title="Федеральный закон от 05.04.2013 N 44-ФЗ")
+    write_consultant_xml(tmp_path / "law-source/consultant/federalnyi-zakon-ot-05-04-2013-n-44-fz-red-ot-28-12-2025-o-kontraktnoi-sisteme-v-sfere-zakupok-tovarov-rabot-uslug-dlya-obespecheniya-g--f9c8ca4c.xml", title="Федеральный закон от 05.04.2013 N 44-ФЗ")
 
     manifest = module.build_inventory(tmp_path)
 
@@ -208,7 +208,7 @@ def test_check_outputs_detects_stale_artifacts(tmp_path: Path) -> None:
     write_minimal_odt(tmp_path / "law-source/garant/44-fz.odt")
     write_minimal_odt(tmp_path / "law-source/garant/PP_60_27-01-2022.odt")
     write_consultant_xml(tmp_path / "law-source/consultant/Список документов (5).xml", title="Список документов (5)")
-    write_consultant_xml(tmp_path / "law-source/consultant/44-FZ-2026.xml", title="Федеральный закон от 05.04.2013 N 44-ФЗ")
+    write_consultant_xml(tmp_path / "law-source/consultant/federalnyi-zakon-ot-05-04-2013-n-44-fz-red-ot-28-12-2025-o-kontraktnoi-sisteme-v-sfere-zakupok-tovarov-rabot-uslug-dlya-obespecheniya-g--f9c8ca4c.xml", title="Федеральный закон от 05.04.2013 N 44-ФЗ")
     manifest = module.build_inventory(tmp_path)
     module.write_outputs(tmp_path, manifest)
     (tmp_path / module.JSON_OUTPUT).write_text("{}\n", encoding="utf-8")
@@ -242,8 +242,9 @@ def test_repository_outputs_are_current_and_report_non_claims() -> None:
     assert "Consultant document-list WordML XML is classified only as a relation fixture" in markdown
     assert "Consultant full-act WordML XML is the M009 primary source fixture" in markdown
     assert "Garant ODT work is lower-priority/deferred from M009" in markdown
-    assert "law-source/consultant/44-FZ-2026.xml" in markdown
-    assert "full-normative-act" in markdown
+    assert "law-source/consultant/federalnyi-zakon-ot-05-04-2013-n-44-fz-red-ot-28-12-2025-o-kontraktnoi-sisteme-v-sfere-zakupok-tovarov-rabot-uslug-dlya-obespecheniya-g--f9c8ca4c.xml" in markdown
+    # M105 migration: full-normative-act -> full-act in markdown (source_role preserved in JSON)
+    assert "full-act" in markdown
     assert "## Fixture hygiene" in markdown
     assert "PP_60_27-02-2022.odt" in markdown
     assert "PP_60_27-01-2022.odt" in markdown
