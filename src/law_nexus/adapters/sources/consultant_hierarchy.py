@@ -421,6 +421,54 @@ class ConsultantHierarchyRecordBuilder:
         return SourceHierarchyResult(records=records, diagnostics=diagnostics)
 
 
+def profile_document(paragraphs: Sequence[RawBlock]) -> dict[str, Any]:
+    """Pass A document profiler: collect style, marker, and numbering census.
+
+    One pass over all paragraphs. Returns structured census:
+    - style_census: Counter of observed style values
+    - marker_census: Counter of marker_for_text matches per level
+    - numbering_format_distribution: per-level numbering variant counts
+    - title_line_shape: first-line title text summary
+
+    Diagnostic-only — no extraction change. Foundation for future
+    two-pass engine where Pass A output drives profile selection.
+    """
+
+    style_census: dict[str, int] = {}
+    marker_census: dict[str, int] = {}
+    numbering_formats: dict[str, dict[str, int]] = {}
+    title_line_shape: str = ""
+
+    for paragraph in paragraphs:
+        # Style census
+        style_key = paragraph.style or "<none>"
+        style_census[style_key] = style_census.get(style_key, 0) + 1
+
+        # Title-line shape (first paragraph with style '5' or first overall)
+        if not title_line_shape and (paragraph.style == "5" or not title_line_shape):
+            title_line_shape = truncate(paragraph.text, 120)
+
+        # Marker census
+        marker = marker_for_text(paragraph.text)
+        if marker is not None:
+            level = marker.level
+            marker_census[level] = marker_census.get(level, 0) + 1
+            # Numbering format detection
+            kind = marker.kind
+            level_formats = numbering_formats.setdefault(level, {})
+            level_formats[kind] = level_formats.get(kind, 0) + 1
+
+    return {
+        "style_census": dict(sorted(style_census.items())),
+        "marker_census": dict(sorted(marker_census.items())),
+        "numbering_format_distribution": {
+            level: dict(sorted(formats.items()))
+            for level, formats in sorted(numbering_formats.items())
+        },
+        "title_line_shape": title_line_shape,
+        "paragraph_count": len(paragraphs),
+    }
+
 def hierarchy_records(request: SourceHierarchyRequest) -> tuple[list[dict[str, Any]], dict[str, Any]]:
     """Extract Consultant hierarchy records and diagnostics for ``request``."""
 
@@ -584,5 +632,6 @@ def hierarchy_records(request: SourceHierarchyRequest) -> tuple[list[dict[str, A
                 or sum(emitted_counts.values()) == 2185
             )
         ),
+        "profile_census": profile_document(request.paragraphs),
     }
     return records, diagnostics
