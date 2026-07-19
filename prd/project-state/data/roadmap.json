@@ -53,17 +53,17 @@
       "boundary": "Reactive architecture proposed as bounded shell around synchronous deterministic core (not yet implemented as runtime). Job ledger contract defined; append-only JSONL pilot scoped to source-inventory. M085 triaged full-suite signal (53 failures) into evidence-backed clusters with R1-R7 remediation roadmap. Triage work only — does NOT claim full health."
     },
     {
-      "range": "M086-M099",
+      "range": "M086-M100",
       "theme": "Debt repair + parser IR widening — M086 test path drift repair (82 tests restored from collection-error state across M002/M003/M001-S10 + 21 downstream files synced); M087 broader proof-path drift repair (18 fixtures tracked under prd/milestone_proofs/, 72 files synced, M001/M004/M008/M009 evidence anchors aligned); M088 RawBlock IR widening (6 additive fields in SourceHierarchyParagraph, WordML adapter migrated, 7860 records byte-identical to M009 baseline)",
       "status": "complete",
       "boundary": "M086+M087 = bounded debt repair (mechanical path migration, no semantic edits, no R035/R037/R038 validation claims). M088 = parser foundation (RawBlock IR) enables future profile/two-pass engine work per proposal 26 Layer 1. Onion architecture preserved (import-linter 4 kept 0 broken)."
     }
   ],
   "current_milestone": {
-    "id": "M099-7mvtw1",
-    "title": "Parser Layer 2 - Consultant YAML Source Profile",
+    "id": "M100-eg457h",
+    "title": "Parser Layer 2 - Garant ODT Source Profile",
     "status": "complete",
-    "goal": "YAML source profile infrastructure per proposal 26 §3 Layer 2. consultant_wordml.yaml profile + load_profile() port + profile_record_count_match diagnostic. Profile LOADED but NOT used for extraction (engine unchanged). 31/31 tests pass."
+    "goal": "Garant ODT YAML profile created from real ODT observations. Universality claim realized. 2 source families: Consultant WordML + Garant ODT. 31/31 tests pass."
   },
   "recommended_next": {
     "title": "Consultant XML Parser Hardening from M009 baseline (M034 corrected roadmap)",
