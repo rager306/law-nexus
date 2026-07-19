@@ -88,7 +88,8 @@ def test_multigraph_preserves_real_artifact_counts_and_non_authoritative_state()
     assert result.summary.node_counts == {
         "document": 2,
         "source_block": 48,
-        "unresolved_reference": 4348,
+        "hierarchy_record": 83,
+        "unresolved_reference": 3483,
     }
     assert result.summary.edge_counts == {
         "contains_source_block": 48,

@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 import sys
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -197,7 +198,11 @@ def build_staging_graph(
             summary=summarize_graph(graph, diagnostics),
         )
 
-    build_diagnostics = populate_graph(graph, documents, source_blocks, relation_candidates)
+    # M101: build hierarchy index for internal reference resolution
+    hierarchy_path = DEFAULT_OUTPUT_DIR / "consultant_hierarchy_records.jsonl"
+    hierarchy_index = _build_hierarchy_index(hierarchy_path)
+
+    build_diagnostics = populate_graph(graph, documents, source_blocks, relation_candidates, hierarchy_index=hierarchy_index)
     diagnostics.extend(build_diagnostics)
     diagnostics.append(
         GraphBuildDiagnostic(
@@ -300,11 +305,77 @@ def validate_loaded_record_invariants(
     return diagnostics
 
 
+def _build_hierarchy_index(hierarchy_path: Path) -> dict[tuple[str, str, str], str]:
+    """Build index of hierarchy records by (scope_id, level, marker_number).
+
+    Returns {(scope_id, level, number_str): record_id} for fast lookup.
+    Reads prd/parser/consultant_hierarchy_records.jsonl.
+    """
+
+    if not hierarchy_path.exists():
+        return {}
+
+    index: dict[tuple[str, str, str], str] = {}
+    for line in hierarchy_path.read_text(encoding="utf-8").splitlines():
+        if not line.strip():
+            continue
+        record = json.loads(line)
+        record_id = record.get("id", "")
+        level = record.get("level", "")
+        marker = record.get("marker") or {}
+        normalized = marker.get("normalized", "")
+        scope_id = record.get("document_id", "")
+        if not record_id or not level or not normalized:
+            continue
+        # Marker normalized form: e.g. 'глава 1.' -> '1' (strip words + punctuation)
+        number = re.sub(r"[^0-9.]", "", normalized).rstrip(".")
+        if number:
+            index[(scope_id, level, number)] = record_id
+    return index
+
+def _resolve_internal_reference(
+    object_ref: str,
+    subject_ref: str,
+    hierarchy_index: dict[tuple[str, str, str], str],
+) -> str | None:
+    """Resolve internal reference object_ref to a hierarchy record id.
+
+    object_ref format: 'article:5', 'part:3', 'clause:2'.
+    subject_ref format: 'HIER-CONS-{SCOPE}-...' — scope extracted for lookup.
+    Returns record_id if found, else None.
+    """
+
+    parts = object_ref.split(":", 1)
+    if len(parts) != 2:
+        return None
+    level, number = parts
+    # Extract scope from subject_ref: HIER-CONS-{SCOPE}-LEVEL-NNNN
+    # Scope is everything between HIER-CONS- and the last -LEVEL-NNNN
+    scope_match = re.match(r"^HIER-CONS-(.+?)-[A-Z]+-\d+$", subject_ref)
+    if not scope_match:
+        return None
+    scope_id = "DOC-CONS-" + scope_match.group(1)
+    # Try exact match
+    key = (scope_id, level, number)
+    if key in hierarchy_index:
+        return hierarchy_index[key]
+    # Try with float normalization (e.g. '5' vs '5.0')
+    try:
+        num_float = float(number)
+        for alt_num in [str(int(num_float)), f"{num_float}"]:
+            alt_key = (scope_id, level, alt_num)
+            if alt_key in hierarchy_index:
+                return hierarchy_index[alt_key]
+    except ValueError:
+        pass
+    return None
+
 def populate_graph(
     graph: nx.MultiDiGraph,
     documents: list[DocumentRecord],
     source_blocks: list[SourceBlockRecord],
     relation_candidates: list[RelationCandidateRecord],
+    hierarchy_index: dict[tuple[str, str, str], str] | None = None,
 ) -> list[GraphBuildDiagnostic]:
     """Populate a MultiDiGraph with document/source-block nodes and keyed relation edges."""
 
@@ -371,17 +442,31 @@ def populate_graph(
                     severity="warning",
                 )
             )
-        object_id = ensure_relation_endpoint_node(graph, candidate.object_ref, candidate)
-        if graph.nodes[object_id].get("node_kind") == "unresolved_reference":
-            diagnostics.append(
-                _record_diagnostic(
-                    candidate,
-                    "unresolved_object_ref",
-                    "relation candidate object_ref is not a loaded parser record id",
-                    field="object_ref",
-                    severity="warning",
+
+        # M101: attempt to resolve internal-reference object_ref to actual hierarchy record
+        resolved_object_id: str | None = None
+        if candidate.relation_type == "internal-reference" and hierarchy_index:
+            resolved = _resolve_internal_reference(candidate.object_ref, candidate.subject_ref, hierarchy_index)
+            if resolved:
+                # Add resolved hierarchy record as node if not present
+                if resolved not in graph:
+                    graph.add_node(resolved, node_kind="hierarchy_record", non_authoritative=True)
+                resolved_object_id = resolved
+
+        if resolved_object_id:
+            object_id = resolved_object_id
+        else:
+            object_id = ensure_relation_endpoint_node(graph, candidate.object_ref, candidate)
+            if graph.nodes[object_id].get("node_kind") == "unresolved_reference":
+                diagnostics.append(
+                    _record_diagnostic(
+                        candidate,
+                        "unresolved_object_ref",
+                        "relation candidate object_ref is not a loaded parser record id",
+                        field="object_ref",
+                        severity="warning",
+                    )
                 )
-            )
         graph.add_edge(
             subject_id,
             object_id,
@@ -390,7 +475,7 @@ def populate_graph(
             record=candidate,
             source_block_id=candidate.source_block_id,
             relation_type=candidate.relation_type,
-            status=candidate.status,
+            status="resolved" if resolved_object_id else candidate.status,
             non_authoritative=True,
         )
 
