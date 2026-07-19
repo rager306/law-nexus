@@ -89,11 +89,13 @@ def test_multigraph_preserves_real_artifact_counts_and_non_authoritative_state()
         "document": 2,
         "source_block": 48,
         "hierarchy_record": 83,
-        "unresolved_reference": 3483,
+        "norm_candidate": 1426,
+        "unresolved_reference": 4447,
     }
     assert result.summary.edge_counts == {
         "contains_source_block": 48,
         "relation_candidate": 3936,
+        "has_norm": 1426,
     }
     assert result.summary.non_authoritative is True
     assert "REL-CONS-0001" in result.summary.relation_candidate_edge_keys  # M096: internal + external reference candidates added

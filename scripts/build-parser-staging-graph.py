@@ -202,7 +202,15 @@ def build_staging_graph(
     hierarchy_path = DEFAULT_OUTPUT_DIR / "consultant_hierarchy_records.jsonl"
     hierarchy_index = _build_hierarchy_index(hierarchy_path)
 
-    build_diagnostics = populate_graph(graph, documents, source_blocks, relation_candidates, hierarchy_index=hierarchy_index)
+    # M104: load norm candidates
+    norm_candidates_path = DEFAULT_OUTPUT_DIR / "consultant_norm_candidates.jsonl"
+    norm_candidates: list[dict[str, Any]] = []
+    if norm_candidates_path.exists():
+        for line in norm_candidates_path.read_text(encoding="utf-8").splitlines():
+            if line.strip():
+                norm_candidates.append(json.loads(line))
+
+    build_diagnostics = populate_graph(graph, documents, source_blocks, relation_candidates, hierarchy_index=hierarchy_index, norm_candidates=norm_candidates)
     diagnostics.extend(build_diagnostics)
     diagnostics.append(
         GraphBuildDiagnostic(
@@ -376,6 +384,7 @@ def populate_graph(
     source_blocks: list[SourceBlockRecord],
     relation_candidates: list[RelationCandidateRecord],
     hierarchy_index: dict[tuple[str, str, str], str] | None = None,
+    norm_candidates: list[dict[str, Any]] | None = None,
 ) -> list[GraphBuildDiagnostic]:
     """Populate a MultiDiGraph with document/source-block nodes and keyed relation edges."""
 
@@ -478,6 +487,26 @@ def populate_graph(
             status="resolved" if resolved_object_id else candidate.status,
             non_authoritative=True,
         )
+
+    # M104: add norm_candidate nodes and HAS_NORM edges
+    if norm_candidates:
+        for nc in norm_candidates:
+            nc_id = nc.get("id", "")
+            source_unit_id = nc.get("source_unit_id", "")
+            if not nc_id:
+                continue
+            graph.add_node(nc_id, node_kind="norm_candidate", record=nc, non_authoritative=True)
+            if source_unit_id and source_unit_id not in graph:
+                graph.add_node(source_unit_id, node_kind="unresolved_reference", non_authoritative=True)
+            if source_unit_id:
+                graph.add_edge(
+                    source_unit_id,
+                    nc_id,
+                    key=f"has_norm:{nc_id}",
+                    edge_kind="has_norm",
+                    modality=nc.get("modality", ""),
+                    non_authoritative=True,
+                )
 
     return diagnostics
 
