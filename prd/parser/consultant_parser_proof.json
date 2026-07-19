@@ -195,8 +195,8 @@
     {
       "exists": true,
       "path": "prd/parser/consultant_hierarchy_records.jsonl",
-      "sha256": "e52f65025256efa900d40bdb7f1231c27a43852946d738b5931121dd5d1b67d0",
-      "size_bytes": 31578591
+      "sha256": "103e6e9c9006aaab930c72c4a2d894d3c2fe083848ca2ea273db966d48d27ad2",
+      "size_bytes": 4497057
     },
     {
       "exists": true,

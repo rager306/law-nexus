@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import pytest
+
 import importlib.util
 import json
 import subprocess
@@ -70,6 +72,7 @@ def diagnostics_by_rule(result) -> dict[str, list[Any]]:
     return grouped
 
 
+@pytest.mark.slow
 def test_multigraph_preserves_real_artifact_counts_and_non_authoritative_state():
     builder = load_builder_module()
 
@@ -269,6 +272,7 @@ def parse_stdout_json(result: subprocess.CompletedProcess[str]) -> dict[str, Any
     return json.loads(result.stdout)
 
 
+@pytest.mark.slow
 def test_write_then_check_generates_deterministic_staging_reports(tmp_path: Path):
     builder = load_builder_module()
     output_dir = tmp_path / "parser"
@@ -321,6 +325,7 @@ def test_check_reports_missing_and_stale_staging_reports(tmp_path: Path):
     assert all(diagnostic["rule"] == "stale-artifact" for diagnostic in freshness["diagnostics"])
 
 
+@pytest.mark.slow
 def test_tracked_staging_reports_preserve_counts_warnings_and_non_claims():
     builder = load_builder_module()
     expected_contents = builder.output_contents(builder.build_default_staging_graph())

@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import pytest
+
 import hashlib
 import json
 import re
@@ -33,6 +35,7 @@ def _load_corpus_summary() -> dict:
     return json.loads(JSON_PATH.read_text(encoding="utf-8"))
 
 
+@pytest.mark.slow
 def test_corpus_records_count_matches_summary() -> None:
     """Record count in the JSONL must equal the summary's record count."""
     records = _load_corpus_records()
@@ -79,6 +82,7 @@ def test_every_record_has_required_metadata() -> None:
         )
 
 
+@pytest.mark.slow
 def test_per_in_scope_fixture_metadata_completeness_is_100_percent() -> None:
     """Each in-scope fixture's records must have 100% metadata completeness."""
     records = _load_corpus_records()
@@ -105,6 +109,7 @@ def test_corpus_record_ids_unique_within_corpus() -> None:
     assert len(ids) == len(set(ids)), f"id collision: {len(ids)} records, {len(set(ids))} unique"
 
 
+@pytest.mark.slow
 def test_level_distribution_matches_summary() -> None:
     """The corpus level distribution must match the per-fixture totals in the summary."""
     records = _load_corpus_records()
