@@ -8,6 +8,8 @@ import sys
 from collections import Counter
 from pathlib import Path
 
+import pytest
+
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "scripts"))
 
@@ -20,6 +22,47 @@ REPORT_PATH = ROOT / "prd" / "parser" / "consultant_hierarchy_records.md"
 SOURCE_PATH = ROOT / "law-source" / "consultant" / "federalnyi-zakon-ot-05-04-2013-n-44-fz-red-ot-28-12-2025-o-kontraktnoi-sisteme-v-sfere-zakupok-tovarov-rabot-uslug-dlya-obespecheniya-g--f9c8ca4c.xml"
 CONTEXT_FALSE_POSITIVE_FIXTURE = ROOT / "tests" / "fixtures" / "consultant_wordml_context_false_positive.xml"
 
+CORPUS_JSONL = ROOT / "prd" / "parser" / "consultant_hierarchy_records.jsonl"
+CORPUS_JSON = ROOT / "prd" / "parser" / "consultant_hierarchy_records.json"
+CORPUS_REPORT = ROOT / "prd" / "parser" / "consultant_hierarchy_records.md"
+
+
+@pytest.fixture(scope="session")
+def _session_corpus_built() -> None:
+    """Build corpus artifacts once per session. All corpus tests use this."""
+
+    subprocess.run(
+        [sys.executable, str(SCRIPT_PATH), "--corpus"],
+        cwd=ROOT,
+        check=True,
+        capture_output=True,
+    )
+
+
+@pytest.fixture(scope="session")
+def _session_single_built() -> None:
+    """Build single-mode artifacts once per session."""
+
+    subprocess.run(
+        [sys.executable, str(SCRIPT_PATH)],
+        cwd=ROOT,
+        check=True,
+        capture_output=True,
+    )
+
+
+@pytest.fixture(scope="session")
+def _session_artifacts(_session_single_built, _session_corpus_built) -> None:
+    """Ensure corpus artifacts are on disk (last one wins)."""
+
+    # Corpus overwrites single-mode; this ensures corpus state for corpus tests.
+    subprocess.run(
+        [sys.executable, str(SCRIPT_PATH), "--corpus"],
+        cwd=ROOT,
+        check=True,
+        capture_output=True,
+    )
+
 
 def load_builder_module():
     spec = importlib.util.spec_from_file_location("build_consultant_hierarchy_records", SCRIPT_PATH)
@@ -31,14 +74,8 @@ def load_builder_module():
     return module
 
 
-def test_generated_hierarchy_jsonl_records_are_valid_and_contextual():
-    # Ensure single-mode artifacts are on disk (corpus mode overwrites them).
-    subprocess.run(
-        [sys.executable, str(SCRIPT_PATH)],
-        cwd=ROOT,
-        check=True,
-        capture_output=True,
-    )
+def test_generated_hierarchy_jsonl_records_are_valid_and_contextual(_session_single_built):
+    # Single-mode artifacts already built by _session_single_built fixture
     records, diagnostics = load_jsonl_records(JSONL_PATH)
     assert diagnostics == []
     assert records
@@ -72,14 +109,8 @@ def test_generated_hierarchy_jsonl_records_are_valid_and_contextual():
     assert all("legal correctness" in " ".join(payload["non_claims"]) for payload in payloads)
 
 
-def test_generator_build_is_deterministic_against_artifacts():
-    # Ensure single-mode artifacts are on disk (corpus mode overwrites them).
-    subprocess.run(
-        [sys.executable, str(SCRIPT_PATH)],
-        cwd=ROOT,
-        check=True,
-        capture_output=True,
-    )
+def test_generator_build_is_deterministic_against_artifacts(_session_single_built):
+    # Single-mode artifacts already built by _session_single_built fixture
     module = load_builder_module()
     result = module.build()
     assert result.jsonl == JSONL_PATH.read_text(encoding="utf-8")
@@ -91,14 +122,8 @@ def test_generator_build_is_deterministic_against_artifacts():
     assert result.diagnostics["validation_error_count"] == 0
 
 
-def test_cli_check_reports_fresh_artifacts_and_observability():
-    # Ensure single-mode artifacts are on disk (corpus mode overwrites them).
-    subprocess.run(
-        [sys.executable, str(SCRIPT_PATH)],
-        cwd=ROOT,
-        check=True,
-        capture_output=True,
-    )
+def test_cli_check_reports_fresh_artifacts_and_observability(_session_single_built):
+    # Single-mode artifacts already built by _session_single_built fixture
     completed = subprocess.run(
         [sys.executable, str(SCRIPT_PATH), "--check"],
         cwd=ROOT,
@@ -316,9 +341,10 @@ def _ensure_corpus_artifacts_on_disk() -> None:
     )
 
 
-def test_corpus_extracts_all_in_scope_fixtures() -> None:
+@pytest.mark.slow
+def test_corpus_extracts_all_in_scope_fixtures(_session_artifacts) -> None:
     """All 10 in-scope fixtures (7 federal_law + 3 code) must each produce >=1 record."""
-    _ensure_corpus_artifacts_on_disk()
+    pass  # _session_artifacts fixture
     summary = _load_corpus_summary()
     in_scope = summary["in_scope_fixtures"]
     assert len(in_scope) == 10, f"expected 10 in-scope fixtures, got {len(in_scope)}"
@@ -328,9 +354,10 @@ def test_corpus_extracts_all_in_scope_fixtures() -> None:
         assert entry["record_count"] >= 1, f"{entry['path']} produced 0 records"
 
 
-def test_corpus_record_ids_unique_across_fixtures() -> None:
+@pytest.mark.slow
+def test_corpus_record_ids_unique_across_fixtures(_session_artifacts) -> None:
     """Concatenated corpus records must have no id collisions across fixtures."""
-    _ensure_corpus_artifacts_on_disk()
+    pass  # _session_artifacts fixture
     records = _load_corpus_records()
     ids = [record["id"] for record in records]
     assert len(ids) == len(set(ids)), f"id collision: {len(ids)} records, {len(set(ids))} unique"
@@ -338,9 +365,10 @@ def test_corpus_record_ids_unique_across_fixtures() -> None:
     assert summary["totals"]["id_collision_count"] == 0
 
 
-def test_corpus_records_have_per_fixture_scope_id_prefix() -> None:
+@pytest.mark.slow
+def test_corpus_records_have_per_fixture_scope_id_prefix(_session_artifacts) -> None:
     """Each in-scope fixture's records must carry its own scope id prefix."""
-    _ensure_corpus_artifacts_on_disk()
+    pass  # _session_artifacts fixture
     records = _load_corpus_records()
     summary = _load_corpus_summary()
     by_path = {entry["path"]: entry["scope_id"] for entry in summary["in_scope_fixtures"]}
@@ -351,9 +379,10 @@ def test_corpus_records_have_per_fixture_scope_id_prefix() -> None:
         )
 
 
-def test_corpus_documents_49_out_of_scope_fixtures_with_reason() -> None:
+@pytest.mark.slow
+def test_corpus_documents_49_out_of_scope_fixtures_with_reason(_session_artifacts) -> None:
     """Out-of-scope fixtures (84) must be documented in the corpus report with reason per role."""
-    _ensure_corpus_artifacts_on_disk()
+    pass  # _session_artifacts fixture
     summary = _load_corpus_summary()
     assert summary["totals"]["out_of_scope_fixture_count"] == 84
     out_of_scope = summary["out_of_scope"]
@@ -363,9 +392,10 @@ def test_corpus_documents_49_out_of_scope_fixtures_with_reason() -> None:
         assert "reason" in entry and entry["reason"]
 
 
-def test_corpus_report_has_scope_section_and_non_claims() -> None:
+@pytest.mark.slow
+def test_corpus_report_has_scope_section_and_non_claims(_session_artifacts) -> None:
     """The corpus Markdown report must carry a scope section + non-claims block."""
-    _ensure_corpus_artifacts_on_disk()
+    pass  # _session_artifacts fixture
     md = CORPUS_REPORT.read_text(encoding="utf-8")
     assert "## Scope" in md
     assert "## In-scope per-fixture breakdown" in md
@@ -375,7 +405,8 @@ def test_corpus_report_has_scope_section_and_non_claims() -> None:
         assert claim in md, f"missing non-claim in report: {claim[:50]}"
 
 
-def test_corpus_is_idempotent_across_runs() -> None:
+@pytest.mark.slow
+def test_corpus_is_idempotent_across_runs(_session_artifacts) -> None:
     """Re-running --corpus produces the same JSONL (SHA-stable)."""
     sha_before = hashlib.sha256(CORPUS_JSONL.read_bytes()).hexdigest()
     subprocess.run(
@@ -388,7 +419,8 @@ def test_corpus_is_idempotent_across_runs() -> None:
     assert sha_before == sha_after, f"corpus drifted: {sha_before} != {sha_after}"
 
 
-def test_corpus_check_reports_fresh_artifacts() -> None:
+@pytest.mark.slow
+def test_corpus_check_reports_fresh_artifacts(_session_artifacts) -> None:
     """``--check`` exits 0 when the on-disk corpus artifacts are current."""
     result = subprocess.run(
         [sys.executable, str(SCRIPT_PATH), "--corpus", "--check"],

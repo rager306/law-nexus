@@ -45,6 +45,9 @@ addopts = [
     "--strict-config",
     "--strict-markers",
 ]
+markers = [
+    "slow: tests that rebuild full corpus artifacts (use -m 'not slow' for fast iteration)",
+]
 
 [tool.ruff]
 target-version = "py313"
