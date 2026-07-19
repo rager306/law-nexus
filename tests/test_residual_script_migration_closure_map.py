@@ -8,7 +8,7 @@ INVENTORY = Path("prd/architecture/residual-script-migration-inventory.md")
 SCRIPT_DIR = Path("scripts")
 
 EXPECTED_COUNTS = {
-    "migrate logic": 49,
+    "migrate logic": 50,
     "proof runtime wrapper": 61,
     "thin wrapper": 6,
     "deferred": 23,
@@ -71,7 +71,7 @@ def test_closure_map_matches_inventory_counts() -> None:
     scripts = sorted(path.as_posix() for path in SCRIPT_DIR.glob("*.py"))
     text = read_closure()
 
-    assert len(rows) == len(scripts) == 139
+    assert len(rows) == len(scripts) == 140
     assert sorted(row["path"] for row in rows) == scripts
     assert Counter(row["class"] for row in rows) == EXPECTED_COUNTS
 

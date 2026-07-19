@@ -24,7 +24,7 @@ S01 does not migrate code and does not authorize deletion. It creates the comple
 
 ## Summary
 
-- Total scripts: `139`
+- Total scripts: `140`
 - Package-backed scripts: `9`
 - `migrate logic`: `49`
 - `proof runtime wrapper`: `61`
@@ -238,4 +238,6 @@ Every current top-level Python script is represented exactly once. Later slices 
 
 ## S03 update
 
-M078 S03 retired `scripts/build-representative-retrieval-corpus.py` after parity proof showed the canonical underscore builder command passes and the generated runtime handoff now points to `scripts/build_representative_retrieval_corpus_manifest.py --check`. The live inventory now covers 139 top-level scripts and has no remaining `retire candidate` row.
+M078 S03 retired `scripts/build-representative-retrieval-corpus.py` after parity proof showed the canonical underscore builder command passes and the generated runtime handoff now points to `scripts/build_representative_retrieval_corpus_manifest.py --check`. The live inventory now covers 140 top-level scripts and has no remaining `retire candidate` row.
+
+| 140 | `scripts/build-consultant-norm-candidates.py` | 94 | 15 | 1 | no | migrate logic | medium | new script M103; reads hierarchy records, extracts deontic norm candidates via package seam |

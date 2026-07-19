@@ -17,11 +17,11 @@ Source inventory: `prd/architecture/residual-script-migration-inventory.md`.
 
 | Metric | Value |
 |---|---:|
-| Top-level Python scripts | 139 |
-| Inventory rows | 139 |
+| Top-level Python scripts | 140 |
+| Inventory rows | 140 |
 | Missing inventory rows | 0 |
 | Extra inventory rows | 0 |
-| `migrate logic` rows | 49 |
+| `migrate logic` rows | 50 |
 | `proof runtime wrapper` rows | 61 |
 | `thin wrapper` rows | 6 |
 | `retire candidate` rows | 0 |
