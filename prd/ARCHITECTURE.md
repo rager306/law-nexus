@@ -17,7 +17,9 @@ edition/effective-date, and provable answers with legal citations. **LLM is not
 legal authority** — all checkable operations are algorithmic via FalkorDB +
 formal Legal KnowQL.
 
-**Current status: `[bounded]` foundation, data NOT prepared, product NOT ready.**
+**Current status: `[bounded]` Python product reference with real parser artifacts;
+artifact baseline reconciliation and complete Rust transition are `[proposed]`;
+product is NOT ready.**
 
 ## Where we actually are (truth, not optimism)
 
@@ -56,14 +58,22 @@ M086-M105 Parser-hardening wave (2026-06–07)  [bounded]
    M106 test performance: session-scoped fixtures + slow markers
        fast run 32s (was 65+ min), 120x speedup
    ▼
-[YOU ARE HERE] — anti-drift enforcement in place (D098); product track resumes
+M107 architecture crystallization  [bounded/proposed]
+   Rust-only product transition selected (ADR-0004/0005, R063/R065)
+   Python repository-control harness allowed (ADR-0007, R064)
+   ACP/git-lex active role rejected; archive-only decommission planned (R066)
+   parser artifact baseline mismatch detected; reconciliation required before parity
+   ▼
+[YOU ARE HERE] — clean repository iteratively, disconnect ACP/git-lex,
+reconcile baseline, then build Rust product and Python repository harness in parallel
 ```
 
 ## Current layer (where work happens now)
 
-**`src/law_nexus` onion package** — `[bounded]` foundation (ADR-0001). The
-deterministic-first package surface that M068 hardened into an explicit
-dependency-directed onion: `domain/` (SourceDocument, SourceBlock, ActEdition,
+**`src/law_nexus` onion package** — `[bounded]` Python behavioral reference
+(historical ADR-0001 is archived under `python_archive/adr/`). The
+deterministic-first package surface remains dependency-directed during the Rust
+transition: `domain/` (SourceDocument, SourceBlock, ActEdition,
 EvidenceSpan, NormStatement, LegalUnit, Citation, SourceHierarchy), `ports/`
 (Parser, GraphStore, Embedder, LLMClient protocols), `adapters/parsers/`
 (ConsultantWordMLParser — document-level seam), `adapters/sources/`
@@ -71,33 +81,26 @@ EvidenceSpan, NormStatement, LegalUnit, Citation, SourceHierarchy), `ports/`
 extract_internal_references, extract_external_references,
 detect_temporal_markers, detect_deontic_lexemes, extract_norm_candidates,
 profile_document), `application/` (Ingest use case), `composition.py`
-(factory root). ADR-0002 adds the compliance gate (import-linter layer contracts
-+ verify-adr-conformance lifecycle/ADR checks); D098 keeps ACP as a checkpoint,
-not a gate. The package is a `[bounded]` document-level seam with working
+(factory root). Existing import-linter and ADR checks remain general repository
+controls until the ADR-0007 harness replaces/consolidates them; they are not ACP
+mechanisms. The package is a `[bounded]` document-level seam with working
 structural hierarchy, temporal/deontic markers, norm candidates, and staging
 graph materialization (15249 hierarchy records / 1567 norm candidates /
 1378 relation candidates / 271 hierarchy nodes in staging graph as of M105).
 Retrieval, FalkorDB product runtime, and KnowQL remain `[proposed]`/`[deferred]`
 (see `prd/02_architecture.md` per-layer tags).
 
-**Library boundary (ADR-0003):** domain forms and parser I/O boundary-records
-are Pydantic v2 (`[validated]` for the M006 records, `[proposed]` for the domain
-forms); verifier/extractor records are stdlib `@dataclass`; the
-boundary-record↔domain-form mapping is Adaptix `[deferred]` until the parser
-product wires it. The contracted pairs are `DocumentRecord`↔`SourceDocument` and
-`SourceBlockRecord`↔`SourceBlock` (ADR-0003).
+**Python library boundary (historical ADR-0003):** Pydantic/domain and parser
+record decisions remain part of the Python behavioral reference, not the Rust
+target. Rust equivalents are serde/schemars types and traits per ADR-0005.
 
-**Consultant XML parser hardening** — `[proposed]` (M034 roadmap, never executed).
-7 proof-gated slices: S01 baseline lock, S02 lxml eval, S03 structural rules,
-S04 semantic diagnostics, S05 razdel/pymorphy3 eval, S06 source-span/stable-ID,
-S07 final proof package. Boundary (M034): NO FalkorDB, NO graph-vector, NO
-R035/R037/R038 validation, NO legal answers, NO retrieval quality, NO Garant
-parity, NO Old_project as authority.
-
-**Baseline to harden:** M009 extractor — stdlib `xml.etree.ElementTree.iterparse`,
-context-first, 2185 hierarchy records from `law-source/consultant/44-FZ-2026.xml`.
-**Does NOT extract links/cross-references yet** (open question — graph-relations
-value depends on it).
+**Consultant XML parser hardening** — `[bounded]` through M086–M105: 81 XML
+source files, multi-level hierarchy, FRBR IDs, internal/external references,
+temporal/deontic markers, norm/relation candidates and staging graph artifacts.
+The tracked artifact baseline is **not frozen**: M105 closeout reports 1,567 norm
+candidates and 271 hierarchy nodes, while the current tracked artifacts contain
+386 norm rows and 48 source blocks. R0 must separate single/corpus outputs and
+reconcile hashes/counts before Rust parity starts.
 
 ## What is downstream and BLOCKED until parser data ready
 
@@ -110,19 +113,18 @@ value depends on it).
 | R037 (FalkorDB ingest/runtime) | `[bounded]` active, partially evidenced | needs production ingest from real corpus |
 | R038 (independent review) | `[bounded]` active | standing review gate |
 
-## ACP / git-lex role (D098)
+## ACP / git-lex status
 
-**Anti-drift enforcement, NOT endless infrastructure.** CHECKPOINT mode
-(detect+log+flag, not gate). FROZEN until parser data ready — product-only
-track. ACP expands ONLY if drift detected+logged OR explicit user decision.
-M067 closed the ACP-inline era; expanding ACP now = repeating meta-drift.
+**`[proposed]` decommission, decision accepted (D104/R066).** ACP/git-lex has no
+place in the target law-nexus architecture, runtime, CI, skills, requirements or
+source of truth. Project-local history will move to
+`python_archive/acp_git_lex/`; the external `/root/git-lex-kit-acp/` repository
+is not modified. General ADR, evidence, requirement/state consistency and
+fail-closed checks survive only after being rewritten without ACP/git-lex
+runtime or vocabulary dependencies.
 
-- Reusable core: external `/root/git-lex-kit-acp/` v0.2.0 (published)
-- law-nexus: profile consumer (`.agents/skills/{git-lex,acp}/` profile overrides,
-  `prd/architecture/PROFILE-ADAPTER.md` binding contract)
-- Enforcement: mandatory lifecycle tagging; record rule on
-  architectural/requirement/state claims; drift log via ACP HealthFinding;
-  git-lex traceability (parser output → ACP SourceRecords)
+The installed `.git/hooks/pre-commit` still runs `git-lex hook pre-commit` and
+mutates `.lex/extract`; decommission Wave D1 disconnects it before bulk archive.
 
 ## What law-nexus does NOT have (non-claims)
 
@@ -131,15 +133,14 @@ M067 closed the ACP-inline era; expanding ACP now = repeating meta-drift.
   extraction; legal correctness; Garant parity
 - any `[validated]` product capability — all product work is `[bounded]`/`[smoke]`/`[proposed]`
 
-## Anti-drift rules (D098, enforced)
+## Repository truth rules
 
-1. Read THIS first, not memory. Memory drifts; this oracle is forced.
-2. Lifecycle-tag every state claim. No smoothing `[bounded]`→`[validated]`.
-3. Record rule on architectural/requirement/state claims: source+lifecycle+
-   evidence+proof, not prose.
-4. Meta-work budget: ACP frozen until parser data ready.
-5. Drift → ACP HealthFinding log, not silent fix.
-6. Checkpoint, not gate — do not block product work.
+1. Read THIS first, not memory or archive history.
+2. Lifecycle-tag state claims; never smooth bounded/smoke into validated.
+3. Architecture/requirement claims need tracked source and executable proof.
+4. Generated projections and harness reports are diagnostics, not product truth.
+5. Rust owns product behavior; Python harness owns repository orchestration only.
+6. ACP/git-lex history is archive-only and cannot gate or mutate active work.
 
 ## Maintenance
 
