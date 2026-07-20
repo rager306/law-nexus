@@ -53,25 +53,25 @@
       "boundary": "Reactive architecture proposed as bounded shell around synchronous deterministic core (not yet implemented as runtime). Job ledger contract defined; append-only JSONL pilot scoped to source-inventory. M085 triaged full-suite signal (53 failures) into evidence-backed clusters with R1-R7 remediation roadmap. Triage work only — does NOT claim full health."
     },
     {
-      "range": "M086-M105",
-      "theme": "Debt repair + parser IR widening — M086 test path drift repair (82 tests restored from collection-error state across M002/M003/M001-S10 + 21 downstream files synced); M087 broader proof-path drift repair (18 fixtures tracked under prd/milestone_proofs/, 72 files synced, M001/M004/M008/M009 evidence anchors aligned); M088 RawBlock IR widening (6 additive fields in SourceHierarchyParagraph, WordML adapter migrated, 7860 records byte-identical to M009 baseline)",
+      "range": "M086-M107",
+      "theme": "Debt repair, parser IR/corpus widening, test performance repair, and complete Rust transition planning",
       "status": "complete",
-      "boundary": "M086+M087 = bounded debt repair (mechanical path migration, no semantic edits, no R035/R037/R038 validation claims). M088 = parser foundation (RawBlock IR) enables future profile/two-pass engine work per proposal 26 Layer 1. Onion architecture preserved (import-linter 4 kept 0 broken)."
+      "boundary": "M086-M105 repaired debt and widened the Consultant parser/corpus. M106 removed repeated corpus rebuilds from the fast test path. M107 selected a Rust-only product target, bounded a process-level Python repository harness, rejected PyO3, planned ACP/git-lex decommission, and recorded the artifact baseline mismatch. Planning does not prove Rust implementation or product readiness."
     }
   ],
   "current_milestone": {
-    "id": "M105-w15rmz",
-    "title": "Source Migration - Consultant 19-07-2026 Updated Corpus",
+    "id": "M107-7xtx1c",
+    "title": "Crystallize requirements, architecture, ADRs and prepare Rust migration roadmap",
     "status": "complete",
-    "goal": "81-file Consultant corpus migration. 15249 hierarchy records, 1378 relation candidates, 1567 norm candidates. Parser core green. 10 migration debt tests deferred to M106."
+    "goal": "Rust-only product transition, process-level Python repository harness, ACP/git-lex decommission, capability parity matrix, performance baseline and one-cutover roadmap. No Rust implementation claim."
   },
   "recommended_next": {
-    "title": "Consultant XML Parser Hardening from M009 baseline (M034 corrected roadmap)",
+    "title": "Disconnect ACP/git-lex runtime and freeze canonical parser baseline",
     "priority": 1,
-    "why": "Per D098 and the M034 corrected roadmap, the product track resumes at parser hardening. The structural foundation (M068/M069) is laid; the next value is a proof-gated Consultant XML parser on top of the M009 baseline, BEFORE graph/retrieval/R035-R038 work (all of which are downstream-blocked on parsed data).",
-    "plan_reference": "prd/research/source_structuring/25-corrected-consultant-xml-parser-roadmap.md",
-    "slices": "S01 baseline lock → S02 lxml equivalence eval → S03 structural rules → S04 semantic diagnostics → S05 razdel/pymorphy3 eval → S06 source-span/stable-ID → S07 final proof package",
-    "non_validation": "Does NOT validate R035/R037/R038; does NOT introduce FalkorDB/graph/vector/retrieval; does NOT claim parser completeness or legal correctness."
+    "why": "The installed git-lex pre-commit hook still mutates .lex, and current parser artifacts disagree with M105 closeout counts. These are the first blockers before safe cleanup or authoritative Rust parity.",
+    "plan_reference": "prd/migration/acp-git-lex-decommission-roadmap.md and prd/migration/rust-migration-roadmap.md",
+    "slices": "D0 manifest → D1 hook/runtime disconnect → D2 preserve general quality gates; in parallel prepare R0 single/corpus artifact reconciliation, then R1/H01 Rust workspace and harness tracer bullets",
+    "non_validation": "Does not archive Python product code, claim Rust parity, or validate product/retrieval/FalkorDB readiness."
   },
   "downstream_blocked": [
     {
@@ -85,9 +85,9 @@
       "current_status": "[bounded] smoke only"
     },
     {
-      "capability": "R035 (ontology architecture)",
-      "blocker": "needs registry extractor integration + accepted proof-gate evidence (documentation-only is insufficient)",
-      "current_status": "[proposed] active, not validated"
+      "capability": "Rust parity baseline",
+      "blocker": "single-document and corpus artifact paths currently overwrite shared outputs; M105 counts disagree with current tracked artifacts",
+      "current_status": "[proposed] baseline_not_frozen"
     },
     {
       "capability": "R037 (FalkorDB ingest/runtime)",
@@ -112,20 +112,22 @@
       "constraint": "Premature until parser-hardening produces the consumer."
     },
     {
-      "title": "ACP unfreeze (observational only)",
-      "why": "Only if a concrete drift is detected+logged OR the user explicitly directs it; D098 keeps ACP as checkpoint (non-blocking), never a gate.",
-      "constraint": "ACP expands ONLY observation, never into a blocking gate; do not re-enter the M035-M063 meta-drift."
+      "title": "Python repository harness",
+      "why": "Build architecture/ADR/Cargo/docs/parity/CI/GSD control surfaces while Rust product crates are implemented.",
+      "constraint": "Process-level Rust binary orchestration only; no product/domain logic, PyO3 or FFI."
     }
   ],
   "frozen": {
-    "acp": "checkpoint mode (detect+log+flag) until parser data ready (D098). Not a milestone track, not a gate.",
-    "r035_r037_r038_validation": "not validatable from documentation/projection evidence alone; deferred to downstream product-data milestones."
+    "acp_git_lex": "decommission and archive only (D104/R066); no active runtime, hook, CI, skill, requirement or source-of-truth role.",
+    "python_product_cutover": "blocked until complete Rust whole-system parity; then one controlled archival move."
   },
   "planning_constraints": [
     "Use GSD milestone/slice/task tools.",
     "Run GitNexus impact before editing code symbols; run GitNexus detect_changes before commits.",
     "Use tracked relative source anchors only (no .gsd/exec, absolute, ignored, or raw-payload anchors).",
     "Keep product/legal/runtime/parser/FalkorDB/retrieval claims bounded unless separate proof exists.",
-    "Apply D098 lifecycle tags ([proposed]/[bounded]/[smoke]/[validated]/[deferred]) on architectural/state claims; never smooth a bounded/proposed claim up to validated."
+    "Use explicit lifecycle tags ([proposed]/[bounded]/[smoke]/[validated]/[deferred]) on architectural/state claims; never smooth a bounded/proposed claim up to validated.",
+    "Keep Rust as the only target product runtime; Python may remain only as the repository harness defined by ADR-0007.",
+    "Do not reintroduce ACP/git-lex outside explicit archive paths."
   ]
 }
