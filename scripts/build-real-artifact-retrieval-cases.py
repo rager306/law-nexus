@@ -20,8 +20,8 @@ from law_nexus.ports.real_artifact_retrieval_cases import (
 )
 
 ROOT = Path(__file__).resolve().parents[1]
-HIERARCHY_JSON_PATH = ROOT / "prd/parser/consultant_hierarchy_records.json"
-HIERARCHY_JSONL_PATH = ROOT / "prd/parser/consultant_hierarchy_records.jsonl"
+HIERARCHY_JSON_PATH = ROOT / "prd/parser/consultant_hierarchy_corpus_records.json"
+HIERARCHY_JSONL_PATH = ROOT / "prd/parser/consultant_hierarchy_corpus_records.jsonl"
 STAGING_GRAPH_PATH = ROOT / "prd/parser/parser_staging_graph.json"
 MAPPING_PATH = ROOT / "prd/retrieval/real_artifact_evidence_mapping.md"
 OUTPUT_PATH = ROOT / "prd/retrieval/fixtures/real_artifact_retrieval_cases.json"
@@ -45,7 +45,9 @@ def load_json(path: Path) -> dict[str, Any]:
 
 
 def load_jsonl(path: Path) -> list[dict[str, Any]]:
-    return [json.loads(line) for line in path.read_text(encoding="utf-8").splitlines() if line.strip()]
+    return [
+        json.loads(line) for line in path.read_text(encoding="utf-8").splitlines() if line.strip()
+    ]
 
 
 def relative(path: Path) -> str:
@@ -82,7 +84,11 @@ def render_payload(payload: dict[str, Any]) -> str:
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="Build M013 real-artifact retrieval case corpus.")
-    parser.add_argument("--check", action="store_true", help="Check generated corpus freshness instead of writing it.")
+    parser.add_argument(
+        "--check",
+        action="store_true",
+        help="Check generated corpus freshness instead of writing it.",
+    )
     args = parser.parse_args(argv)
 
     payload = build_payload()
@@ -90,12 +96,34 @@ def main(argv: list[str] | None = None) -> int:
     if args.check:
         current = OUTPUT_PATH.read_text(encoding="utf-8") if OUTPUT_PATH.exists() else ""
         status = "pass" if current == rendered else "fail"
-        print(json.dumps({"status": status, "artifact": relative(OUTPUT_PATH), "case_count": len(payload["cases"]), "schema_version": SCHEMA_VERSION}, ensure_ascii=False, sort_keys=True))
+        print(
+            json.dumps(
+                {
+                    "status": status,
+                    "artifact": relative(OUTPUT_PATH),
+                    "case_count": len(payload["cases"]),
+                    "schema_version": SCHEMA_VERSION,
+                },
+                ensure_ascii=False,
+                sort_keys=True,
+            )
+        )
         return 0 if status == "pass" else 1
 
     OUTPUT_PATH.parent.mkdir(parents=True, exist_ok=True)
     OUTPUT_PATH.write_text(rendered, encoding="utf-8")
-    print(json.dumps({"status": "written", "artifact": relative(OUTPUT_PATH), "case_count": len(payload["cases"]), "schema_version": SCHEMA_VERSION}, ensure_ascii=False, sort_keys=True))
+    print(
+        json.dumps(
+            {
+                "status": "written",
+                "artifact": relative(OUTPUT_PATH),
+                "case_count": len(payload["cases"]),
+                "schema_version": SCHEMA_VERSION,
+            },
+            ensure_ascii=False,
+            sort_keys=True,
+        )
+    )
     return 0
 
 

@@ -1,16 +1,16 @@
 from __future__ import annotations
 
-import pytest
-
 import hashlib
 import json
 import re
 from collections import Counter
 from pathlib import Path
 
+import pytest
+
 ROOT = Path(__file__).resolve().parents[1]
-JSONL_PATH = ROOT / "prd" / "parser" / "consultant_hierarchy_records.jsonl"
-JSON_PATH = ROOT / "prd" / "parser" / "consultant_hierarchy_records.json"
+JSONL_PATH = ROOT / "prd" / "parser" / "consultant_hierarchy_corpus_records.jsonl"
+JSON_PATH = ROOT / "prd" / "parser" / "consultant_hierarchy_corpus_records.json"
 
 EXPECTED_LEVELS = {
     "document",
@@ -28,7 +28,9 @@ HEX_64 = re.compile(r"^[0-9a-f]{64}$")
 def _load_corpus_records() -> list[dict]:
     """Load the corpus JSONL produced by the ``--corpus`` build mode."""
     assert JSONL_PATH.exists(), f"corpus JSONL missing: {JSONL_PATH} (run --corpus)"
-    return [json.loads(line) for line in JSONL_PATH.read_text(encoding="utf-8").splitlines() if line]
+    return [
+        json.loads(line) for line in JSONL_PATH.read_text(encoding="utf-8").splitlines() if line
+    ]
 
 
 def _load_corpus_summary() -> dict:
@@ -77,9 +79,10 @@ def test_every_record_has_required_metadata() -> None:
                 f"{record['id']}: marker missing fields, got {list(marker.keys())}"
             )
         # excerpt_sha256 must match a fresh hash of the excerpt text
-        assert hashlib.sha256(record["excerpt"].encode("utf-8")).hexdigest() == record["excerpt_sha256"], (
-            f"{record['id']}: excerpt_sha256 does not match excerpt content"
-        )
+        assert (
+            hashlib.sha256(record["excerpt"].encode("utf-8")).hexdigest()
+            == record["excerpt_sha256"]
+        ), f"{record['id']}: excerpt_sha256 does not match excerpt content"
 
 
 @pytest.mark.slow

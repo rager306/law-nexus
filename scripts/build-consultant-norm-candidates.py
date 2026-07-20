@@ -14,7 +14,6 @@ Per proposal 26 Section 8: bounded extraction, no legal-effect assertions.
 from __future__ import annotations
 
 import argparse
-import hashlib
 import json
 import sys
 from pathlib import Path
@@ -26,8 +25,9 @@ if str(ROOT) not in sys.path:
 
 from law_nexus.adapters.sources.consultant_hierarchy import extract_norm_candidates  # noqa: E402
 
-HIERARCHY_PATH = ROOT / "prd" / "parser" / "consultant_hierarchy_records.jsonl"
+HIERARCHY_PATH = ROOT / "prd" / "parser" / "consultant_hierarchy_corpus_records.jsonl"
 OUTPUT_PATH = ROOT / "prd" / "parser" / "consultant_norm_candidates.jsonl"
+
 
 def load_hierarchy_records() -> list[dict[str, Any]]:
     """Load hierarchy records from JSONL."""
@@ -40,12 +40,14 @@ def load_hierarchy_records() -> list[dict[str, Any]]:
             records.append(json.loads(line))
     return records
 
+
 def write_jsonl(records: list[dict[str, Any]], path: Path) -> None:
     """Write records as JSONL."""
 
     with path.open("w", encoding="utf-8") as fh:
         for record in records:
             fh.write(json.dumps(record, ensure_ascii=False) + "\n")
+
 
 def build_and_write() -> dict[str, Any]:
     """Build norm candidates and write output."""
@@ -66,6 +68,7 @@ def build_and_write() -> dict[str, Any]:
         "non_authoritative": True,
     }
 
+
 def check_outputs() -> dict[str, Any]:
     """Check if outputs are fresh."""
 
@@ -74,12 +77,14 @@ def check_outputs() -> dict[str, Any]:
     fresh = len(existing.strip().splitlines()) == result["candidate_count"] if existing else False
     return {**result, "status": "pass" if fresh else "stale"}
 
+
 def parse_args(argv: list[str]) -> argparse.Namespace:
     parser = argparse.ArgumentParser()
     mode = parser.add_mutually_exclusive_group()
     mode.add_argument("--write", action="store_true", help="Write output artifacts")
     mode.add_argument("--check", action="store_true", help="Check freshness only")
     return parser.parse_args(argv)
+
 
 def main(argv: list[str] | None = None) -> int:
     args = parse_args(argv or sys.argv[1:])
@@ -89,6 +94,7 @@ def main(argv: list[str] | None = None) -> int:
         result = build_and_write()
     print(json.dumps(result, ensure_ascii=False, indent=2))
     return 0 if result["status"] == "pass" else 1
+
 
 if __name__ == "__main__":
     raise SystemExit(main())

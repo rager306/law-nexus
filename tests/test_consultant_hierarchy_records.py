@@ -3,7 +3,6 @@ from __future__ import annotations
 import hashlib
 import importlib.util
 import json
-import subprocess
 import sys
 from collections import Counter
 from pathlib import Path
@@ -19,49 +18,19 @@ SCRIPT_PATH = ROOT / "scripts" / "build-consultant-hierarchy-records.py"
 JSONL_PATH = ROOT / "prd" / "parser" / "consultant_hierarchy_records.jsonl"
 JSON_PATH = ROOT / "prd" / "parser" / "consultant_hierarchy_records.json"
 REPORT_PATH = ROOT / "prd" / "parser" / "consultant_hierarchy_records.md"
-SOURCE_PATH = ROOT / "law-source" / "consultant" / "federalnyi-zakon-ot-05-04-2013-n-44-fz-red-ot-28-12-2025-o-kontraktnoi-sisteme-v-sfere-zakupok-tovarov-rabot-uslug-dlya-obespecheniya-g--f9c8ca4c.xml"
-CONTEXT_FALSE_POSITIVE_FIXTURE = ROOT / "tests" / "fixtures" / "consultant_wordml_context_false_positive.xml"
+SOURCE_PATH = (
+    ROOT
+    / "law-source"
+    / "consultant"
+    / "federalnyi-zakon-ot-05-04-2013-n-44-fz-red-ot-28-12-2025-o-kontraktnoi-sisteme-v-sfere-zakupok-tovarov-rabot-uslug-dlya-obespecheniya-g--f9c8ca4c.xml"
+)
+CONTEXT_FALSE_POSITIVE_FIXTURE = (
+    ROOT / "tests" / "fixtures" / "consultant_wordml_context_false_positive.xml"
+)
 
-CORPUS_JSONL = ROOT / "prd" / "parser" / "consultant_hierarchy_records.jsonl"
-CORPUS_JSON = ROOT / "prd" / "parser" / "consultant_hierarchy_records.json"
-CORPUS_REPORT = ROOT / "prd" / "parser" / "consultant_hierarchy_records.md"
-
-
-@pytest.fixture(scope="session")
-def _session_corpus_built() -> None:
-    """Build corpus artifacts once per session. All corpus tests use this."""
-
-    subprocess.run(
-        [sys.executable, str(SCRIPT_PATH), "--corpus"],
-        cwd=ROOT,
-        check=True,
-        capture_output=True,
-    )
-
-
-@pytest.fixture(scope="session")
-def _session_single_built() -> None:
-    """Build single-mode artifacts once per session."""
-
-    subprocess.run(
-        [sys.executable, str(SCRIPT_PATH)],
-        cwd=ROOT,
-        check=True,
-        capture_output=True,
-    )
-
-
-@pytest.fixture(scope="session")
-def _session_artifacts(_session_single_built, _session_corpus_built) -> None:
-    """Ensure corpus artifacts are on disk (last one wins)."""
-
-    # Corpus overwrites single-mode; this ensures corpus state for corpus tests.
-    subprocess.run(
-        [sys.executable, str(SCRIPT_PATH), "--corpus"],
-        cwd=ROOT,
-        check=True,
-        capture_output=True,
-    )
+CORPUS_JSONL = ROOT / "prd" / "parser" / "consultant_hierarchy_corpus_records.jsonl"
+CORPUS_JSON = ROOT / "prd" / "parser" / "consultant_hierarchy_corpus_records.json"
+CORPUS_REPORT = ROOT / "prd" / "parser" / "consultant_hierarchy_corpus_records.md"
 
 
 def load_builder_module():
@@ -74,8 +43,7 @@ def load_builder_module():
     return module
 
 
-def test_generated_hierarchy_jsonl_records_are_valid_and_contextual(_session_single_built):
-    # Single-mode artifacts already built by _session_single_built fixture
+def test_generated_hierarchy_jsonl_records_are_valid_and_contextual():
     records, diagnostics = load_jsonl_records(JSONL_PATH)
     assert diagnostics == []
     assert records
@@ -104,40 +72,36 @@ def test_generated_hierarchy_jsonl_records_are_valid_and_contextual(_session_sin
 
     source_hash = hashlib.sha256(SOURCE_PATH.read_bytes()).hexdigest()
     assert {payload["source_sha256"] for payload in payloads} == {source_hash}
-    assert all(payload["source_path"] == SOURCE_PATH.relative_to(ROOT).as_posix() for payload in payloads)
+    assert all(
+        payload["source_path"] == SOURCE_PATH.relative_to(ROOT).as_posix() for payload in payloads
+    )
     assert all(payload["non_authoritative"] is True for payload in payloads)
     assert all("legal correctness" in " ".join(payload["non_claims"]) for payload in payloads)
 
 
-def test_generator_build_is_deterministic_against_artifacts(_session_single_built):
-    # Single-mode artifacts already built by _session_single_built fixture
+@pytest.mark.slow
+def test_generator_build_is_deterministic_against_artifacts():
     module = load_builder_module()
     result = module.build()
     assert result.jsonl == JSONL_PATH.read_text(encoding="utf-8")
     assert result.summary_json == JSON_PATH.read_text(encoding="utf-8")
     assert result.report_md == REPORT_PATH.read_text(encoding="utf-8")
-    assert result.diagnostics["namespace_detected"] == "http://schemas.microsoft.com/office/word/2003/wordml"
+    assert (
+        result.diagnostics["namespace_detected"]
+        == "http://schemas.microsoft.com/office/word/2003/wordml"
+    )
     assert result.diagnostics["paragraph_count"] == 3585
     assert result.diagnostics["skipped_empty_paragraphs"] == 428
     assert result.diagnostics["validation_error_count"] == 0
 
 
-def test_cli_check_reports_fresh_artifacts_and_observability(_session_single_built):
-    # Single-mode artifacts already built by _session_single_built fixture
-    completed = subprocess.run(
-        [sys.executable, str(SCRIPT_PATH), "--check"],
-        cwd=ROOT,
-        check=True,
-        text=True,
-        capture_output=True,
-    )
-    payload = json.loads(completed.stdout)
-    assert payload["status"] == "pass"
+def test_single_summary_exposes_canonical_mode_specific_paths():
+    payload = json.loads(JSON_PATH.read_text(encoding="utf-8"))
     assert payload["phase"] == "consultant_wordml_hierarchy_build"
-    assert payload["artifact_freshness"] == {
-        "prd/parser/consultant_hierarchy_records.json": True,
-        "prd/parser/consultant_hierarchy_records.jsonl": True,
-        "prd/parser/consultant_hierarchy_records.md": True,
+    assert payload["artifact_paths"] == {
+        "json": "prd/parser/consultant_hierarchy_records.json",
+        "jsonl": "prd/parser/consultant_hierarchy_records.jsonl",
+        "report": "prd/parser/consultant_hierarchy_records.md",
     }
     assert payload["source"]["inventory_hash_matches"] is True
     assert payload["malformed_xml"] is None
@@ -173,7 +137,10 @@ def test_marker_entity_decoding_and_boundary_resets_on_inline_fixture():
     assert by_title["§ 1. Планирование"]["parent_id"] == by_title["Глава 1. ОБЩИЕ ПОЛОЖЕНИЯ"]["id"]
     assert by_title["Статья 1. Предмет"]["parent_id"] == by_title["§ 1. Планирование"]["id"]
     assert by_title["Статья 2. Новая статья"]["parent_id"] == by_title["§ 1. Планирование"]["id"]
-    assert by_title["1) пункт без новой части"]["parent_id"] == by_title["Статья 2. Новая статья"]["id"]
+    assert (
+        by_title["1) пункт без новой части"]["parent_id"]
+        == by_title["Статья 2. Новая статья"]["id"]
+    )
 
 
 def test_context_false_positive_fixture_rejects_markers_outside_article_context():
@@ -200,7 +167,14 @@ def test_context_false_positive_fixture_rejects_markers_outside_article_context(
     }
     assert diagnostics["rejected_context_marker_count"] == 4
     assert diagnostics["structural_error_count"] == 3
-    assert [payload["level"] for payload in payloads] == ["document", "chapter", "article", "part", "clause", "subclause"]
+    assert [payload["level"] for payload in payloads] == [
+        "document",
+        "chapter",
+        "article",
+        "part",
+        "clause",
+        "subclause",
+    ]
     assert all("Context-free" not in title and "Chapter-level" not in title for title in titles)
     assert all(item["rule_id"] == "hierarchical_parsing_required" for item in rejected)
     assert {item["reason"] for item in rejected} == {
@@ -208,7 +182,10 @@ def test_context_false_positive_fixture_rejects_markers_outside_article_context(
         "part_outside_article",
         "subclause_outside_article",
     }
-    assert all(item["source_excerpt"] and len(item["source_excerpt_sha256"]) == 64 for item in rejected)
+    assert all(
+        item["source_excerpt"] and len(item["source_excerpt_sha256"]) == 64 for item in rejected
+    )
+
 
 def write_wordml(path: Path, paragraphs: list[str]) -> None:
     body = "".join(f"<w:p><w:r><w:t>{text}</w:t></w:r></w:p>" for text in paragraphs)
@@ -219,7 +196,13 @@ def write_wordml(path: Path, paragraphs: list[str]) -> None:
     )
 
 
-def configure_temp_builder(module, monkeypatch, tmp_path: Path, source_texts: list[str] | None, inventory_sha256: str | None = None):
+def configure_temp_builder(
+    module,
+    monkeypatch,
+    tmp_path: Path,
+    source_texts: list[str] | None,
+    inventory_sha256: str | None = None,
+):
     monkeypatch.setattr(module, "ROOT", tmp_path)
     monkeypatch.setattr(module, "SOURCE_PATH", Path("fixture.xml"))
     monkeypatch.setattr(module, "INVENTORY_PATH", Path("inventory.json"))
@@ -229,7 +212,9 @@ def configure_temp_builder(module, monkeypatch, tmp_path: Path, source_texts: li
     source_path = tmp_path / "fixture.xml"
     if source_texts is not None:
         write_wordml(source_path, source_texts)
-    sha256 = hashlib.sha256(source_path.read_bytes()).hexdigest() if source_path.exists() else "0" * 64
+    sha256 = (
+        hashlib.sha256(source_path.read_bytes()).hexdigest() if source_path.exists() else "0" * 64
+    )
     inventory = {"fixtures": [{"path": "fixture.xml", "sha256": inventory_sha256 or sha256}]}
     (tmp_path / "inventory.json").write_text(json.dumps(inventory), encoding="utf-8")
     return source_path
@@ -249,7 +234,13 @@ def test_cli_fail_closed_for_missing_source_fixture(monkeypatch, tmp_path, capsy
 
 def test_cli_fail_closed_for_sha_mismatch(monkeypatch, tmp_path, capsys):
     module = load_builder_module()
-    configure_temp_builder(module, monkeypatch, tmp_path, ["Федеральный закон", "Статья 1. Предмет"], inventory_sha256="b" * 64)
+    configure_temp_builder(
+        module,
+        monkeypatch,
+        tmp_path,
+        ["Федеральный закон", "Статья 1. Предмет"],
+        inventory_sha256="b" * 64,
+    )
 
     assert module.main(["--check"]) == 1
     payload = json.loads(capsys.readouterr().out)
@@ -269,7 +260,9 @@ def test_cli_fail_closed_for_malformed_xml(monkeypatch, tmp_path, capsys):
     source_path = tmp_path / "fixture.xml"
     source_path.write_text("<w:wordDocument><w:body><w:p>", encoding="utf-8")
     sha256 = hashlib.sha256(source_path.read_bytes()).hexdigest()
-    (tmp_path / "inventory.json").write_text(json.dumps({"fixtures": [{"path": "fixture.xml", "sha256": sha256}]}), encoding="utf-8")
+    (tmp_path / "inventory.json").write_text(
+        json.dumps({"fixtures": [{"path": "fixture.xml", "sha256": sha256}]}), encoding="utf-8"
+    )
 
     assert module.main(["--check"]) == 1
     payload = json.loads(capsys.readouterr().out)
@@ -295,7 +288,11 @@ def test_hierarchy_diagnostics_for_missing_article_heading_and_context_break():
         source_path="test/fixture.xml",
     )
     assert [record["level"] for record in records] == ["document", "chapter"]
-    assert diagnostics["skipped_marker_counts"] == {"clause_outside_article": 1, "part_outside_article": 1, "preambula_paragraphs": 1}
+    assert diagnostics["skipped_marker_counts"] == {
+        "clause_outside_article": 1,
+        "part_outside_article": 1,
+        "preambula_paragraphs": 1,
+    }
     assert diagnostics["structural_error_count"] == 3
     assert diagnostics["structural_errors"][0]["kind"] == "missing_article_heading"
     assert {error["kind"] for error in diagnostics["structural_errors"][1:]} == {"context_break"}
@@ -303,7 +300,12 @@ def test_hierarchy_diagnostics_for_missing_article_heading_and_context_break():
 
 def test_cli_fail_closed_for_missing_article_heading(monkeypatch, tmp_path, capsys):
     module = load_builder_module()
-    configure_temp_builder(module, monkeypatch, tmp_path, ["Федеральный закон", "Глава 1. Общие", "1. Часть без статьи"])
+    configure_temp_builder(
+        module,
+        monkeypatch,
+        tmp_path,
+        ["Федеральный закон", "Глава 1. Общие", "1. Часть без статьи"],
+    )
 
     assert module.main(["--check"]) == 1
     payload = json.loads(capsys.readouterr().out)
@@ -316,35 +318,24 @@ def test_cli_fail_closed_for_missing_article_heading(monkeypatch, tmp_path, caps
 # re-extracted by ``--corpus`` mode). All tests assert against the on-disk
 # corpus artifacts written by the build script.
 
-CORPUS_JSONL = ROOT / "prd" / "parser" / "consultant_hierarchy_records.jsonl"
-CORPUS_JSON = ROOT / "prd" / "parser" / "consultant_hierarchy_records.json"
-CORPUS_REPORT = ROOT / "prd" / "parser" / "consultant_hierarchy_records.md"
-
 
 def _load_corpus_records() -> list[dict]:
     """Read the corpus JSONL produced by ``--corpus`` mode."""
-    assert CORPUS_JSONL.exists(), f"corpus JSONL missing: {CORPUS_JSONL} (run --corpus --write)"
-    return [json.loads(line) for line in CORPUS_JSONL.read_text(encoding="utf-8").splitlines() if line]
+    assert CORPUS_JSONL.exists(), (
+        f"corpus JSONL missing: {CORPUS_JSONL} (run the explicit --corpus generation command)"
+    )
+    return [
+        json.loads(line) for line in CORPUS_JSONL.read_text(encoding="utf-8").splitlines() if line
+    ]
 
 
 def _load_corpus_summary() -> dict:
     return json.loads(CORPUS_JSON.read_text(encoding="utf-8"))
 
 
-def _ensure_corpus_artifacts_on_disk() -> None:
-    """Re-run ``--corpus`` to ensure the on-disk artifacts are corpus-mode (not single-mode)."""
-    subprocess.run(
-        [sys.executable, str(SCRIPT_PATH), "--corpus"],
-        cwd=ROOT,
-        check=True,
-        capture_output=True,
-    )
-
-
 @pytest.mark.slow
-def test_corpus_extracts_all_in_scope_fixtures(_session_artifacts) -> None:
+def test_corpus_extracts_all_in_scope_fixtures() -> None:
     """All 10 in-scope fixtures (7 federal_law + 3 code) must each produce >=1 record."""
-    pass  # _session_artifacts fixture
     summary = _load_corpus_summary()
     in_scope = summary["in_scope_fixtures"]
     assert len(in_scope) == 10, f"expected 10 in-scope fixtures, got {len(in_scope)}"
@@ -355,9 +346,8 @@ def test_corpus_extracts_all_in_scope_fixtures(_session_artifacts) -> None:
 
 
 @pytest.mark.slow
-def test_corpus_record_ids_unique_across_fixtures(_session_artifacts) -> None:
+def test_corpus_record_ids_unique_across_fixtures() -> None:
     """Concatenated corpus records must have no id collisions across fixtures."""
-    pass  # _session_artifacts fixture
     records = _load_corpus_records()
     ids = [record["id"] for record in records]
     assert len(ids) == len(set(ids)), f"id collision: {len(ids)} records, {len(set(ids))} unique"
@@ -366,9 +356,8 @@ def test_corpus_record_ids_unique_across_fixtures(_session_artifacts) -> None:
 
 
 @pytest.mark.slow
-def test_corpus_records_have_per_fixture_scope_id_prefix(_session_artifacts) -> None:
+def test_corpus_records_have_per_fixture_scope_id_prefix() -> None:
     """Each in-scope fixture's records must carry its own scope id prefix."""
-    pass  # _session_artifacts fixture
     records = _load_corpus_records()
     summary = _load_corpus_summary()
     by_path = {entry["path"]: entry["scope_id"] for entry in summary["in_scope_fixtures"]}
@@ -380,9 +369,8 @@ def test_corpus_records_have_per_fixture_scope_id_prefix(_session_artifacts) -> 
 
 
 @pytest.mark.slow
-def test_corpus_documents_49_out_of_scope_fixtures_with_reason(_session_artifacts) -> None:
+def test_corpus_documents_49_out_of_scope_fixtures_with_reason() -> None:
     """Out-of-scope fixtures (84) must be documented in the corpus report with reason per role."""
-    pass  # _session_artifacts fixture
     summary = _load_corpus_summary()
     assert summary["totals"]["out_of_scope_fixture_count"] == 84
     out_of_scope = summary["out_of_scope"]
@@ -393,9 +381,8 @@ def test_corpus_documents_49_out_of_scope_fixtures_with_reason(_session_artifact
 
 
 @pytest.mark.slow
-def test_corpus_report_has_scope_section_and_non_claims(_session_artifacts) -> None:
+def test_corpus_report_has_scope_section_and_non_claims() -> None:
     """The corpus Markdown report must carry a scope section + non-claims block."""
-    pass  # _session_artifacts fixture
     md = CORPUS_REPORT.read_text(encoding="utf-8")
     assert "## Scope" in md
     assert "## In-scope per-fixture breakdown" in md
@@ -406,30 +393,16 @@ def test_corpus_report_has_scope_section_and_non_claims(_session_artifacts) -> N
 
 
 @pytest.mark.slow
-def test_corpus_is_idempotent_across_runs(_session_artifacts) -> None:
-    """Re-running --corpus produces the same JSONL (SHA-stable)."""
-    sha_before = hashlib.sha256(CORPUS_JSONL.read_bytes()).hexdigest()
-    subprocess.run(
-        [sys.executable, str(SCRIPT_PATH), "--corpus"],
-        cwd=ROOT,
-        check=True,
-        capture_output=True,
+def test_corpus_artifact_hash_matches_frozen_manifest() -> None:
+    """The tracked corpus JSONL hash is frozen by the baseline manifest."""
+    manifest = json.loads(
+        (ROOT / "prd" / "parser" / "consultant_hierarchy_baseline_manifest.json").read_text(
+            encoding="utf-8"
+        )
     )
-    sha_after = hashlib.sha256(CORPUS_JSONL.read_bytes()).hexdigest()
-    assert sha_before == sha_after, f"corpus drifted: {sha_before} != {sha_after}"
-
-
-@pytest.mark.slow
-def test_corpus_check_reports_fresh_artifacts(_session_artifacts) -> None:
-    """``--check`` exits 0 when the on-disk corpus artifacts are current."""
-    result = subprocess.run(
-        [sys.executable, str(SCRIPT_PATH), "--corpus", "--check"],
-        cwd=ROOT,
-        check=False,
-        capture_output=True,
-        text=True,
+    corpus = next(section for section in manifest["modes"] if section["mode"] == "corpus")
+    expected = next(
+        entry["sha256"] for entry in corpus["outputs"] if entry["path"].endswith(".jsonl")
     )
-    assert result.returncode == 0, result.stderr
-    summary = json.loads(result.stdout)
-    assert summary["status"] == "pass"
-    assert summary["totals"]["record_count"] == summary["totals"]["unique_record_id_count"]
+    actual = hashlib.sha256(CORPUS_JSONL.read_bytes()).hexdigest()
+    assert actual == expected

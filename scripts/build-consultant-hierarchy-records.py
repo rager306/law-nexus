@@ -24,11 +24,26 @@ from law_nexus.ports.source_hierarchy import SourceHierarchyParagraph, SourceHie
 from parser_records import dumps_jsonl_record, parse_parser_record
 
 ROOT = Path(__file__).resolve().parents[1]
-SOURCE_PATH = Path("law-source/consultant/federalnyi-zakon-ot-05-04-2013-n-44-fz-red-ot-28-12-2025-o-kontraktnoi-sisteme-v-sfere-zakupok-tovarov-rabot-uslug-dlya-obespecheniya-g--f9c8ca4c.xml")
+SOURCE_PATH = Path(
+    "law-source/consultant/federalnyi-zakon-ot-05-04-2013-n-44-fz-red-ot-28-12-2025-o-kontraktnoi-sisteme-v-sfere-zakupok-tovarov-rabot-uslug-dlya-obespecheniya-g--f9c8ca4c.xml"
+)
 INVENTORY_PATH = Path("prd/parser/source_fixture_inventory.json")
+# Single-mode outputs (canonical 44-FZ-2026 fixture only, 2185 records).
+# Corpus consumers must NOT read these paths; they read the corpus paths below.
 JSONL_PATH = Path("prd/parser/consultant_hierarchy_records.jsonl")
 JSON_PATH = Path("prd/parser/consultant_hierarchy_records.json")
 REPORT_PATH = Path("prd/parser/consultant_hierarchy_records.md")
+# Corpus-mode outputs (all in-scope fixtures: 7 federal_law + 3 code, 15249 records).
+# Downstream relation/norm/retrieval/staging builders consume corpus paths so
+# that single-mode and corpus-mode baselines no longer overwrite each other.
+CORPUS_JSONL_PATH = Path("prd/parser/consultant_hierarchy_corpus_records.jsonl")
+CORPUS_JSON_PATH = Path("prd/parser/consultant_hierarchy_corpus_records.json")
+CORPUS_REPORT_PATH = Path("prd/parser/consultant_hierarchy_corpus_records.md")
+#: Canonical baseline manifest recording deterministic source/output hashes for both modes.
+BASELINE_MANIFEST_PATH = Path("prd/parser/consultant_hierarchy_baseline_manifest.json")
+MANIFEST_SCHEMA_VERSION = "consultant-hierarchy-baseline-manifest/v1"
+#: Repo-relative path to this generator script (used by manifest provenance).
+GENERATOR_PATH = Path("scripts/build-consultant-hierarchy-records.py")
 MAX_DIAGNOSTICS = 100
 #: In-scope document types for M072 S05 hierarchy extraction. These are the
 #: source-roles that have a normative-act structure (full-federal-law + code).
@@ -48,14 +63,33 @@ normalize_text = _normalize_text
 
 
 @dataclass(frozen=True)
+class ArtifactPaths:
+    """Resolved repo-relative output paths for one build mode."""
+
+    jsonl: Path
+    json: Path
+    report: Path
+    mode: str
+
+
+#: Single-mode (canonical 44-FZ-2026 fixture) artifact paths.
+SINGLE_PATHS = ArtifactPaths(jsonl=JSONL_PATH, json=JSON_PATH, report=REPORT_PATH, mode="single")
+#: Corpus-mode (all in-scope fixtures) artifact paths.
+CORPUS_PATHS = ArtifactPaths(
+    jsonl=CORPUS_JSONL_PATH, json=CORPUS_JSON_PATH, report=CORPUS_REPORT_PATH, mode="corpus"
+)
+
+
+@dataclass(frozen=True)
 class BuildResult:
-    """Generated artifacts and diagnostics."""
+    """Generated artifacts and diagnostics for one build mode."""
 
     records: list[dict[str, Any]]
     jsonl: str
     summary_json: str
     report_md: str
     diagnostics: dict[str, Any]
+    paths: ArtifactPaths
 
 
 def stable_json(data: Any) -> str:
@@ -74,22 +108,10 @@ def sha256_bytes(path: Path) -> str:
     return digest.hexdigest()
 
 
-
-
-
-
 def truncate(text: str, limit: int) -> str:
     """Return a bounded string without splitting deterministic behavior across callers."""
 
     return text if len(text) <= limit else text[: limit - 1].rstrip() + "…"
-
-
-
-
-
-
-
-
 
 
 def compact_error(kind: str, message: str, **extra: Any) -> dict[str, Any]:
@@ -128,12 +150,20 @@ def _document_hierarchy_id(scope_id: str) -> str:
     return f"HIER-{scope_id}-DOCUMENT"
 
 
-def load_inventory_fixture(target_path: str = str(SOURCE_PATH)) -> tuple[dict[str, Any] | None, list[dict[str, Any]]]:
+def load_inventory_fixture(
+    target_path: str = str(SOURCE_PATH),
+) -> tuple[dict[str, Any] | None, list[dict[str, Any]]]:
     """Load the canonical inventory entry for the given target fixture path."""
 
     inventory_path = ROOT / INVENTORY_PATH
     if not inventory_path.exists():
-        return None, [compact_error("missing_inventory", f"inventory file missing: {INVENTORY_PATH}", path=str(INVENTORY_PATH))]
+        return None, [
+            compact_error(
+                "missing_inventory",
+                f"inventory file missing: {INVENTORY_PATH}",
+                path=str(INVENTORY_PATH),
+            )
+        ]
 
     try:
         payload = json.loads(inventory_path.read_text(encoding="utf-8"))
@@ -152,14 +182,6 @@ def load_inventory_fixture(target_path: str = str(SOURCE_PATH)) -> tuple[dict[st
     ]
 
 
-
-
-
-
-
-
-
-
 def hierarchy_records(
     paragraphs: list[Paragraph],
     source_sha256: str,
@@ -172,7 +194,9 @@ def hierarchy_records(
 
     request = SourceHierarchyRequest(
         paragraphs=[
-            SourceHierarchyParagraph(index=paragraph.index, text=paragraph.text, style=paragraph.style)
+            SourceHierarchyParagraph(
+                index=paragraph.index, text=paragraph.text, style=paragraph.style
+            )
             for paragraph in paragraphs
         ],
         source_sha256=source_sha256,
@@ -186,13 +210,16 @@ def hierarchy_records(
     return result.records, result.diagnostics
 
 
-def build_for_fixture(source_path: Path, scope_id: str) -> BuildResult:
+def build_for_fixture(
+    source_path: Path, scope_id: str, paths: ArtifactPaths = SINGLE_PATHS
+) -> BuildResult:
     """Build all Consultant hierarchy artifacts in memory for a single fixture.
 
     ``source_path`` is the repo-relative path to the Consultant WordML
     fixture; ``scope_id`` is the per-fixture id prefix (see :func:`_derive_scope_id`).
-    The returned :class:`BuildResult` carries records, jsonl text, summary
-    json, report markdown, and diagnostics for that fixture only.
+    ``paths`` selects whether the summary records single-mode or corpus-mode
+    artifact paths. The returned :class:`BuildResult` carries records, jsonl
+    text, summary json, report markdown, and diagnostics for that fixture only.
     """
 
     source = ROOT / source_path
@@ -214,7 +241,11 @@ def build_for_fixture(source_path: Path, scope_id: str) -> BuildResult:
             "style_observations": {},
             "skipped_empty_paragraphs": 0,
         }
-        fatal_errors.append(compact_error("missing_source", f"source fixture missing: {source_path}", path=str(source_path)))
+        fatal_errors.append(
+            compact_error(
+                "missing_source", f"source fixture missing: {source_path}", path=str(source_path)
+            )
+        )
 
     inventory_sha256 = None if inventory_fixture is None else inventory_fixture.get("sha256")
     document_id = _document_id(scope_id)
@@ -227,27 +258,34 @@ def build_for_fixture(source_path: Path, scope_id: str) -> BuildResult:
             source_path=str(source_path),
         )
         if not fatal_errors and stream_diagnostics["malformed_xml"] is None
-        else ([], {
-            "emitted_counts_by_level": {},
-            "skipped_marker_counts": {},
-            "rejected_context_marker_count": 0,
-            "rejected_context_markers": [],
-            "structural_errors": [],
-            "structural_error_count": 0,
-            "validation_errors": [],
-            "validation_error_count": 0,
-        })
+        else (
+            [],
+            {
+                "emitted_counts_by_level": {},
+                "skipped_marker_counts": {},
+                "rejected_context_marker_count": 0,
+                "rejected_context_markers": [],
+                "structural_errors": [],
+                "structural_error_count": 0,
+                "validation_errors": [],
+                "validation_error_count": 0,
+            },
+        )
     )
 
-    inventory_hash_matches = source_sha256 == inventory_sha256 if source_sha256 is not None and inventory_sha256 is not None else False
+    inventory_hash_matches = (
+        source_sha256 == inventory_sha256
+        if source_sha256 is not None and inventory_sha256 is not None
+        else False
+    )
     jsonl = "".join(dumps_jsonl_record(record) + "\n" for record in records)
     summary = {
         "scope_id": scope_id,
         "document_id": document_id,
         "artifact_paths": {
-            "json": str(JSON_PATH),
-            "jsonl": str(JSONL_PATH),
-            "report": str(REPORT_PATH),
+            "json": str(paths.json),
+            "jsonl": str(paths.jsonl),
+            "report": str(paths.report),
         },
         "artifact_freshness": None,
         "diagnostics_bounded": True,
@@ -266,7 +304,14 @@ def build_for_fixture(source_path: Path, scope_id: str) -> BuildResult:
     }
     summary_json = stable_json(summary)
     report_md = render_report(summary, records)
-    return BuildResult(records=records, jsonl=jsonl, summary_json=summary_json, report_md=report_md, diagnostics=summary)
+    return BuildResult(
+        records=records,
+        jsonl=jsonl,
+        summary_json=summary_json,
+        report_md=report_md,
+        diagnostics=summary,
+        paths=paths,
+    )
 
 
 def build() -> BuildResult:
@@ -294,7 +339,9 @@ def build_corpus() -> BuildResult:
 
     inventory_path = ROOT / INVENTORY_PATH
     if not inventory_path.exists():
-        return _corpus_fatal(("missing_inventory", f"inventory file missing: {INVENTORY_PATH}", str(INVENTORY_PATH)))
+        return _corpus_fatal(
+            ("missing_inventory", f"inventory file missing: {INVENTORY_PATH}", str(INVENTORY_PATH))
+        )
 
     try:
         payload = json.loads(inventory_path.read_text(encoding="utf-8"))
@@ -303,7 +350,9 @@ def build_corpus() -> BuildResult:
 
     fixtures = payload.get("fixtures", [])
     if not isinstance(fixtures, list):
-        return _corpus_fatal(("inventory_shape_invalid", "Inventory fixtures must be a list.", str(INVENTORY_PATH)))
+        return _corpus_fatal(
+            ("inventory_shape_invalid", "Inventory fixtures must be a list.", str(INVENTORY_PATH))
+        )
 
     in_scope_fixtures: list[dict[str, Any]] = []
     out_of_scope_by_role: dict[str, list[dict[str, Any]]] = {}
@@ -343,9 +392,13 @@ def build_corpus() -> BuildResult:
                 "path": path_str,
                 "document_type": fixture.get("document_type"),
                 "record_count": len(fixture_result.records),
-                "emitted_counts_by_level": fixture_result.diagnostics.get("emitted_counts_by_level", {}),
+                "emitted_counts_by_level": fixture_result.diagnostics.get(
+                    "emitted_counts_by_level", {}
+                ),
                 "source_sha256": fixture_result.diagnostics.get("source", {}).get("sha256"),
-                "structural_error_count": fixture_result.diagnostics.get("structural_error_count", 0),
+                "structural_error_count": fixture_result.diagnostics.get(
+                    "structural_error_count", 0
+                ),
             }
         )
 
@@ -385,16 +438,18 @@ def build_corpus() -> BuildResult:
         "out_of_scope": out_of_scope_breakdown,
         "totals": {
             "in_scope_fixture_count": len(per_fixture_summaries),
-            "out_of_scope_fixture_count": sum(item["fixture_count"] for item in out_of_scope_breakdown),
+            "out_of_scope_fixture_count": sum(
+                item["fixture_count"] for item in out_of_scope_breakdown
+            ),
             "record_count": len(all_records),
             "unique_record_id_count": len(set(record_ids)),
             "id_collision_count": len(id_collisions),
         },
         "id_collisions": id_collisions[:MAX_DIAGNOSTICS],
         "artifact_paths": {
-            "json": str(JSON_PATH),
-            "jsonl": str(JSONL_PATH),
-            "report": str(REPORT_PATH),
+            "json": str(CORPUS_JSON_PATH),
+            "jsonl": str(CORPUS_JSONL_PATH),
+            "report": str(CORPUS_REPORT_PATH),
         },
         "fatal_errors": fatal_errors[:MAX_DIAGNOSTICS],
         "fatal_error_count": len(fatal_errors),
@@ -407,6 +462,7 @@ def build_corpus() -> BuildResult:
         summary_json=corpus_json,
         report_md=corpus_md,
         diagnostics=corpus_summary,
+        paths=CORPUS_PATHS,
     )
 
 
@@ -580,42 +636,268 @@ def render_report(summary: dict[str, Any], records: list[dict[str, Any]]) -> str
         ]
     )
     for record in records[:10]:
-        lines.append(f"- `{record['id']}` `{record['level']}` parent=`{record['parent_id']}` title={json.dumps(record['title'], ensure_ascii=False)}")
+        lines.append(
+            f"- `{record['id']}` `{record['level']}` parent=`{record['parent_id']}` title={json.dumps(record['title'], ensure_ascii=False)}"
+        )
     lines.append("")
     return "\n".join(lines)
 
 
 def write_artifacts(result: BuildResult) -> None:
-    """Write generated artifacts deterministically."""
+    """Write generated artifacts deterministically to mode-resolved paths."""
 
     for relative_path, content in {
-        JSONL_PATH: result.jsonl,
-        JSON_PATH: result.summary_json,
-        REPORT_PATH: result.report_md,
+        result.paths.jsonl: result.jsonl,
+        result.paths.json: result.summary_json,
+        result.paths.report: result.report_md,
     }.items():
         path = ROOT / relative_path
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text(content, encoding="utf-8")
 
 
-def check_artifacts(result: BuildResult) -> bool:
-    """Return True when all generated artifacts are fresh."""
+def _artifact_map(result: BuildResult) -> dict[Path, str]:
+    """Return the mode-resolved path→content map for a build result."""
 
-    expected = {JSONL_PATH: result.jsonl, JSON_PATH: result.summary_json, REPORT_PATH: result.report_md}
-    return all((ROOT / path).exists() and (ROOT / path).read_text(encoding="utf-8") == content for path, content in expected.items())
+    return {
+        result.paths.jsonl: result.jsonl,
+        result.paths.json: result.summary_json,
+        result.paths.report: result.report_md,
+    }
+
+
+def check_artifacts(result: BuildResult) -> bool:
+    """Return True when all generated artifacts are fresh at mode-resolved paths."""
+
+    expected = _artifact_map(result)
+    return all(
+        (ROOT / path).exists() and (ROOT / path).read_text(encoding="utf-8") == content
+        for path, content in expected.items()
+    )
+
+
+def _record_count_for_mode(result: BuildResult) -> int:
+    """Return the semantic record count for the result's mode."""
+
+    if result.paths.mode == "corpus":
+        return result.diagnostics.get("totals", {}).get("record_count", 0)
+    return len(result.records)
+
+
+def _emitted_counts_for_mode(result: BuildResult) -> dict[str, int]:
+    """Return the emitted-counts-by-level summary for the result's mode."""
+
+    if result.paths.mode == "corpus":
+        totals: dict[str, int] = {}
+        for entry in result.diagnostics.get("in_scope_fixtures", []):
+            for level, count in (entry.get("emitted_counts_by_level") or {}).items():
+                totals[level] = totals.get(level, 0) + int(count)
+        return totals
+    return result.diagnostics.get("emitted_counts_by_level", {})
+
+
+def _source_paths_for_mode(result: BuildResult) -> list[str]:
+    """Return the repo-relative source paths covered by this mode."""
+
+    if result.paths.mode == "corpus":
+        return [entry["path"] for entry in result.diagnostics.get("in_scope_fixtures", [])]
+    return [result.diagnostics.get("source", {}).get("path", str(SOURCE_PATH))]
+
+
+def _sha256_text(content: str) -> str:
+    """Return the SHA-256 hex digest of UTF-8 encoded text content."""
+
+    return hashlib.sha256(content.encode("utf-8")).hexdigest()
+
+
+def _sha256_file(path: Path) -> str | None:
+    """Return the SHA-256 of a tracked file on disk, or None if missing."""
+
+    full = ROOT / path
+    if not full.exists():
+        return None
+    return sha256_bytes(full)
+
+
+def _manifest_section(result: BuildResult) -> dict[str, Any]:
+    """Build a deterministic baseline-manifest section for one mode."""
+
+    artifact_map = _artifact_map(result)
+    source_paths = _source_paths_for_mode(result)
+    source_entries: list[dict[str, Any]] = []
+    for source_path in source_paths:
+        full = ROOT / source_path
+        source_entries.append(
+            {
+                "path": source_path,
+                "sha256": sha256_bytes(full) if full.exists() else None,
+                "exists": full.exists(),
+            }
+        )
+    return {
+        "mode": result.paths.mode,
+        "cli_invocation": (
+            ["uv", "run", "python", str(GENERATOR_PATH), "--corpus"]
+            if result.paths.mode == "corpus"
+            else ["uv", "run", "python", str(GENERATOR_PATH)]
+        ),
+        "sources": source_entries,
+        "generator": {
+            "path": str(GENERATOR_PATH),
+            "sha256": _sha256_file(GENERATOR_PATH),
+        },
+        "outputs": [
+            {
+                "path": str(rel),
+                "sha256": _sha256_text(content),
+            }
+            for rel, content in sorted(artifact_map.items())
+        ],
+        "semantic_counts": {
+            "record_count": _record_count_for_mode(result),
+            "emitted_counts_by_level": dict(sorted(_emitted_counts_for_mode(result).items())),
+        },
+    }
+
+
+def _read_manifest_mode_section(manifest: dict[str, Any], mode: str) -> dict[str, Any] | None:
+    """Return the section for a mode from a baseline manifest, or None."""
+
+    for section in manifest.get("modes", []):
+        if section.get("mode") == mode:
+            return section
+    return None
+
+
+def _validate_manifest_section(
+    section: dict[str, Any],
+    result: BuildResult,
+) -> tuple[bool, list[str]]:
+    """Validate a tracked manifest section against a freshly built result.
+
+    Returns (fresh, mismatches). Compares built content hashes and semantic
+    counts only; it never writes to disk or rescans sources.
+    """
+
+    mismatches: list[str] = []
+    expected_by_path = {entry["path"]: entry["sha256"] for entry in section.get("outputs", [])}
+    for rel, content in _artifact_map(result).items():
+        actual = _sha256_text(content)
+        tracked = expected_by_path.get(str(rel))
+        if tracked is None:
+            mismatches.append(f"{rel}: missing output entry in manifest")
+        elif tracked != actual:
+            mismatches.append(
+                f"{rel}: manifest hash drifted (tracked={tracked[:12]}, built={actual[:12]})"
+            )
+    tracked_count = section.get("semantic_counts", {}).get("record_count")
+    actual_count = _record_count_for_mode(result)
+    if tracked_count != actual_count:
+        mismatches.append(f"record_count drift (tracked={tracked_count}, built={actual_count})")
+    return (len(mismatches) == 0), mismatches
+
+
+def build_baseline_manifest(single: BuildResult, corpus: BuildResult) -> str:
+    """Return a deterministic baseline manifest covering both modes."""
+
+    manifest = {
+        "schema_version": MANIFEST_SCHEMA_VERSION,
+        "non_authoritative": True,
+        "non_claims": [
+            "The baseline manifest is deterministic parser evidence only.",
+            "It does not claim legal correctness, parser completeness, or product readiness.",
+            "Source hashes are recorded for reproducibility, not as a trust anchor.",
+        ],
+        "modes": [
+            _manifest_section(single),
+            _manifest_section(corpus),
+        ],
+    }
+    return stable_json(manifest)
+
+
+def write_baseline_manifest(single: BuildResult, corpus: BuildResult) -> None:
+    """Write the baseline manifest covering both modes."""
+
+    path = ROOT / BASELINE_MANIFEST_PATH
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(build_baseline_manifest(single, corpus), encoding="utf-8")
+
+
+def check_baseline_manifest(mode: str, result: BuildResult) -> tuple[bool, list[str]]:
+    """Read-only validation of one manifest section without rebuilding or rescanning.
+
+    Returns (fresh, mismatches). Reads the tracked manifest and compares the
+    selected mode's output hashes/counts against freshly built content only;
+    it never writes to disk.
+    """
+
+    manifest_path = ROOT / BASELINE_MANIFEST_PATH
+    if not manifest_path.exists():
+        return False, [f"{BASELINE_MANIFEST_PATH}: manifest missing"]
+    try:
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    except json.JSONDecodeError as exc:
+        return False, [f"{BASELINE_MANIFEST_PATH}: malformed manifest json: {exc}"]
+    section = _read_manifest_mode_section(manifest, mode)
+    if section is None:
+        return False, [f"{BASELINE_MANIFEST_PATH}: mode section '{mode}' missing"]
+    return _validate_manifest_section(section, result)
 
 
 def main(argv: list[str] | None = None) -> int:
     """CLI entrypoint."""
 
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--check", action="store_true", help="verify generated artifacts are fresh without writing")
+    parser.add_argument(
+        "--check", action="store_true", help="verify generated artifacts are fresh without writing"
+    )
     parser.add_argument(
         "--corpus",
         action="store_true",
         help="build hierarchy records for all in-scope fixtures in the corpus (federal_law + code); default is the canonical 44-FZ-2026 fixture only.",
     )
+    parser.add_argument(
+        "--manifest",
+        action="store_true",
+        help="write the canonical baseline manifest covering both single and corpus modes; requires building both modes and is incompatible with --check.",
+    )
     args = parser.parse_args(argv)
+
+    if args.manifest and args.check:
+        print(
+            stable_json(
+                {"status": "fail", "fatal_errors": ["--manifest cannot be combined with --check"]}
+            ),
+            end="",
+        )
+        return 1
+
+    if args.manifest:
+        single = build()
+        corpus = build_corpus()
+        if single.diagnostics.get("fatal_error_count", 0) or corpus.diagnostics.get(
+            "fatal_error_count", 0
+        ):
+            print(
+                stable_json(
+                    {"status": "fail", "fatal_errors": ["manifest build encountered fatal errors"]}
+                ),
+                end="",
+            )
+            return 1
+        write_artifacts(single)
+        write_artifacts(corpus)
+        write_baseline_manifest(single, corpus)
+        output = {
+            "status": "pass",
+            "mode": "manifest",
+            "single_record_count": _record_count_for_mode(single),
+            "corpus_record_count": _record_count_for_mode(corpus),
+            "manifest_path": str(BASELINE_MANIFEST_PATH),
+        }
+        print(stable_json(output), end="")
+        return 0
 
     if args.corpus:
         result = build_corpus()
@@ -648,16 +930,35 @@ def main(argv: list[str] | None = None) -> int:
             return 1
 
     if args.check:
-        fresh = check_artifacts(result)
+        artifacts_fresh = check_artifacts(result)
+        manifest_fresh, manifest_mismatches = check_baseline_manifest(result.paths.mode, result)
+        fresh = artifacts_fresh and manifest_fresh
         output = dict(result.diagnostics)
-        output["artifact_freshness"] = freshness_map({JSONL_PATH: result.jsonl, JSON_PATH: result.summary_json, REPORT_PATH: result.report_md})
+        output["mode"] = result.paths.mode
+        output["artifact_paths"] = {
+            "json": str(result.paths.json),
+            "jsonl": str(result.paths.jsonl),
+            "report": str(result.paths.report),
+        }
+        output["artifact_freshness"] = freshness_map(_artifact_map(result))
+        output["baseline_manifest"] = {
+            "fresh": manifest_fresh,
+            "mismatches": manifest_mismatches,
+            "path": str(BASELINE_MANIFEST_PATH),
+        }
         output["status"] = "pass" if fresh else "fail"
         print(stable_json(output), end="")
         return 0 if fresh else 1
 
     write_artifacts(result)
     output = dict(result.diagnostics)
-    output["artifact_freshness"] = freshness_map({JSONL_PATH: result.jsonl, JSON_PATH: result.summary_json, REPORT_PATH: result.report_md})
+    output["mode"] = result.paths.mode
+    output["artifact_paths"] = {
+        "json": str(result.paths.json),
+        "jsonl": str(result.paths.jsonl),
+        "report": str(result.paths.report),
+    }
+    output["artifact_freshness"] = freshness_map(_artifact_map(result))
     output["status"] = "pass"
     print(stable_json(output), end="")
     return 0

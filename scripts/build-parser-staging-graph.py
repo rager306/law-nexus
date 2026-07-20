@@ -147,7 +147,9 @@ class ParserStagingGraphResult:
 
     graph: nx.MultiDiGraph
     diagnostics: list[GraphBuildDiagnostic] = field(default_factory=list)
-    summary: ParserStagingGraphSummary = field(default_factory=lambda: summarize_graph(nx.MultiDiGraph(), []))
+    summary: ParserStagingGraphSummary = field(
+        default_factory=lambda: summarize_graph(nx.MultiDiGraph(), [])
+    )
 
 
 def build_default_staging_graph() -> ParserStagingGraphResult:
@@ -170,7 +172,9 @@ def build_staging_graph(
 
     document_load = load_records(document_records_path, expected_kind="document")
     source_block_load = load_records(source_block_records_path, expected_kind="source_block")
-    relation_load = load_records(relation_candidate_records_path, expected_kind="relation_candidate")
+    relation_load = load_records(
+        relation_candidate_records_path, expected_kind="relation_candidate"
+    )
     diagnostics = [
         *document_load.diagnostics,
         *source_block_load.diagnostics,
@@ -189,7 +193,9 @@ def build_staging_graph(
     source_blocks = _typed_records(source_block_load.records, SourceBlockRecord)
     relation_candidates = _typed_records(relation_load.records, RelationCandidateRecord)
 
-    invariant_diagnostics = validate_loaded_record_invariants(documents, source_blocks, relation_candidates)
+    invariant_diagnostics = validate_loaded_record_invariants(
+        documents, source_blocks, relation_candidates
+    )
     diagnostics.extend(invariant_diagnostics)
     if has_error_diagnostics(invariant_diagnostics):
         return ParserStagingGraphResult(
@@ -199,7 +205,7 @@ def build_staging_graph(
         )
 
     # M101: build hierarchy index for internal reference resolution
-    hierarchy_path = DEFAULT_OUTPUT_DIR / "consultant_hierarchy_records.jsonl"
+    hierarchy_path = DEFAULT_OUTPUT_DIR / "consultant_hierarchy_corpus_records.jsonl"
     hierarchy_index = _build_hierarchy_index(hierarchy_path)
 
     # M104: load norm candidates
@@ -210,7 +216,14 @@ def build_staging_graph(
             if line.strip():
                 norm_candidates.append(json.loads(line))
 
-    build_diagnostics = populate_graph(graph, documents, source_blocks, relation_candidates, hierarchy_index=hierarchy_index, norm_candidates=norm_candidates)
+    build_diagnostics = populate_graph(
+        graph,
+        documents,
+        source_blocks,
+        relation_candidates,
+        hierarchy_index=hierarchy_index,
+        norm_candidates=norm_candidates,
+    )
     diagnostics.extend(build_diagnostics)
     diagnostics.append(
         GraphBuildDiagnostic(
@@ -248,7 +261,9 @@ def load_records(path: Path, *, expected_kind: str) -> LoadedParserRecords:
         )
 
     records, raw_diagnostics = load_jsonl_records(path)
-    diagnostics = [GraphBuildDiagnostic.from_loader_diagnostic(diagnostic) for diagnostic in raw_diagnostics]
+    diagnostics = [
+        GraphBuildDiagnostic.from_loader_diagnostic(diagnostic) for diagnostic in raw_diagnostics
+    ]
     for record in records:
         if record.record_kind != expected_kind:
             diagnostics.append(
@@ -266,7 +281,9 @@ def load_records(path: Path, *, expected_kind: str) -> LoadedParserRecords:
             )
     if diagnostics:
         return LoadedParserRecords(path=path, records=(), diagnostics=tuple(diagnostics))
-    return LoadedParserRecords(path=path, records=tuple(sorted(records, key=record_sort_key)), diagnostics=())
+    return LoadedParserRecords(
+        path=path, records=tuple(sorted(records, key=record_sort_key)), diagnostics=()
+    )
 
 
 def validate_loaded_record_invariants(
@@ -317,7 +334,7 @@ def _build_hierarchy_index(hierarchy_path: Path) -> dict[tuple[str, str, str], s
     """Build index of hierarchy records by (scope_id, level, marker_number).
 
     Returns {(scope_id, level, number_str): record_id} for fast lookup.
-    Reads prd/parser/consultant_hierarchy_records.jsonl.
+    Reads prd/parser/consultant_hierarchy_corpus_records.jsonl.
     """
 
     if not hierarchy_path.exists():
@@ -340,6 +357,7 @@ def _build_hierarchy_index(hierarchy_path: Path) -> dict[tuple[str, str, str], s
         if number:
             index[(scope_id, level, number)] = record_id
     return index
+
 
 def _resolve_internal_reference(
     object_ref: str,
@@ -378,6 +396,7 @@ def _resolve_internal_reference(
         pass
     return None
 
+
 def populate_graph(
     graph: nx.MultiDiGraph,
     documents: list[DocumentRecord],
@@ -396,8 +415,12 @@ def populate_graph(
         document_ids.add(document.id)
         graph.add_node(document.id, node_kind="document", record=document, non_authoritative=True)
 
-    for source_block in sorted(source_blocks, key=lambda record: (record.document_id, record.order_index, record.id)):
-        graph.add_node(source_block.id, node_kind="source_block", record=source_block, non_authoritative=True)
+    for source_block in sorted(
+        source_blocks, key=lambda record: (record.document_id, record.order_index, record.id)
+    ):
+        graph.add_node(
+            source_block.id, node_kind="source_block", record=source_block, non_authoritative=True
+        )
         if source_block.document_id not in document_ids:
             diagnostics.append(
                 _record_diagnostic(
@@ -455,7 +478,9 @@ def populate_graph(
         # M101: attempt to resolve internal-reference object_ref to actual hierarchy record
         resolved_object_id: str | None = None
         if candidate.relation_type == "internal-reference" and hierarchy_index:
-            resolved = _resolve_internal_reference(candidate.object_ref, candidate.subject_ref, hierarchy_index)
+            resolved = _resolve_internal_reference(
+                candidate.object_ref, candidate.subject_ref, hierarchy_index
+            )
             if resolved:
                 # Add resolved hierarchy record as node if not present
                 if resolved not in graph:
@@ -497,7 +522,9 @@ def populate_graph(
                 continue
             graph.add_node(nc_id, node_kind="norm_candidate", record=nc, non_authoritative=True)
             if source_unit_id and source_unit_id not in graph:
-                graph.add_node(source_unit_id, node_kind="unresolved_reference", non_authoritative=True)
+                graph.add_node(
+                    source_unit_id, node_kind="unresolved_reference", non_authoritative=True
+                )
             if source_unit_id:
                 graph.add_edge(
                     source_unit_id,
@@ -511,7 +538,9 @@ def populate_graph(
     return diagnostics
 
 
-def ensure_relation_endpoint_node(graph: nx.MultiDiGraph, endpoint_ref: str, candidate: RelationCandidateRecord) -> str:
+def ensure_relation_endpoint_node(
+    graph: nx.MultiDiGraph, endpoint_ref: str, candidate: RelationCandidateRecord
+) -> str:
     """Ensure relation endpoints exist without rewriting non-DOC Consultant references."""
 
     if endpoint_ref in graph:
@@ -539,7 +568,9 @@ def ensure_relation_endpoint_node(graph: nx.MultiDiGraph, endpoint_ref: str, can
     return endpoint_ref
 
 
-def summarize_graph(graph: nx.MultiDiGraph, diagnostics: Iterable[GraphBuildDiagnostic]) -> ParserStagingGraphSummary:
+def summarize_graph(
+    graph: nx.MultiDiGraph, diagnostics: Iterable[GraphBuildDiagnostic]
+) -> ParserStagingGraphSummary:
     """Compute deterministic counts and bounded graph health signals."""
 
     diagnostics_tuple = tuple(diagnostics)
@@ -550,7 +581,10 @@ def summarize_graph(graph: nx.MultiDiGraph, diagnostics: Iterable[GraphBuildDiag
 
     edge_counts: dict[str, int] = {}
     relation_candidate_edge_keys: list[str] = []
-    edge_items = sorted(graph.edges(keys=True, data=True), key=lambda item: (str(item[0]), str(item[1]), str(item[2])))
+    edge_items = sorted(
+        graph.edges(keys=True, data=True),
+        key=lambda item: (str(item[0]), str(item[1]), str(item[2])),
+    )
     for _, _, key, data in edge_items:
         kind = str(data.get("edge_kind") or "unknown")
         edge_counts[kind] = edge_counts.get(kind, 0) + 1
@@ -578,7 +612,6 @@ def summarize_graph(graph: nx.MultiDiGraph, diagnostics: Iterable[GraphBuildDiag
     )
 
 
-
 def build_report(
     result: ParserStagingGraphResult,
     *,
@@ -586,11 +619,17 @@ def build_report(
 ) -> dict[str, Any]:
     """Create a deterministic bounded report for CLI, JSON artifact, and tests."""
 
-    freshness = artifact_freshness or {"status": "not-checked", "stale_paths": [], "diagnostics": []}
+    freshness = artifact_freshness or {
+        "status": "not-checked",
+        "stale_paths": [],
+        "diagnostics": [],
+    }
     freshness_diagnostics = tuple(freshness.get("diagnostics", []))
     graph_status = result.summary.status
     status = "pass" if graph_status == "pass" and not freshness_diagnostics else "fail"
-    diagnostics = [diagnostic.to_dict() for diagnostic in sorted(result.diagnostics, key=diagnostic_sort_key)]
+    diagnostics = [
+        diagnostic.to_dict() for diagnostic in sorted(result.diagnostics, key=diagnostic_sort_key)
+    ]
     all_diagnostics: list[dict[str, Any]] = [*diagnostics, *freshness_diagnostics]
     return {
         "schema_version": SCHEMA_VERSION,
@@ -706,9 +745,13 @@ def render_markdown(report: dict[str, Any]) -> str:
                 )
             )
         if len(report["diagnostics"]) > 20:
-            lines.append(f"| `info` | `bounded-report` | `report` | `diagnostics` | `None` | {len(report['diagnostics']) - 20} additional diagnostics omitted from Markdown. |")
+            lines.append(
+                f"| `info` | `bounded-report` | `report` | `diagnostics` | `None` | {len(report['diagnostics']) - 20} additional diagnostics omitted from Markdown. |"
+            )
     else:
-        lines.append("| `info` | `none` | `report` | `record` | `None` | No graph invariant diagnostics. |")
+        lines.append(
+            "| `info` | `none` | `report` | `record` | `None` | No graph invariant diagnostics. |"
+        )
 
     lines.extend(
         [
@@ -815,9 +858,20 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
 
     parser = argparse.ArgumentParser(description=__doc__)
     mode = parser.add_mutually_exclusive_group(required=True)
-    mode.add_argument("--write", action="store_true", help="Write deterministic parser staging graph reports.")
-    mode.add_argument("--check", action="store_true", help="Check parser staging graph report freshness and print compact JSON.")
-    parser.add_argument("--output-dir", type=Path, default=DEFAULT_OUTPUT_DIR, help="Artifact directory, default prd/parser.")
+    mode.add_argument(
+        "--write", action="store_true", help="Write deterministic parser staging graph reports."
+    )
+    mode.add_argument(
+        "--check",
+        action="store_true",
+        help="Check parser staging graph report freshness and print compact JSON.",
+    )
+    parser.add_argument(
+        "--output-dir",
+        type=Path,
+        default=DEFAULT_OUTPUT_DIR,
+        help="Artifact directory, default prd/parser.",
+    )
     return parser.parse_args(argv)
 
 
@@ -833,6 +887,7 @@ def main(argv: list[str] | None = None) -> int:
         report = check_outputs(args.output_dir)
     print(json.dumps(report, ensure_ascii=False, sort_keys=True, separators=(",", ":")))
     return 0 if report["status"] == "pass" else 1
+
 
 def has_error_diagnostics(diagnostics: Iterable[GraphBuildDiagnostic]) -> bool:
     """Return whether any diagnostic is a hard graph-build error."""

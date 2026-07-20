@@ -1,0 +1,150 @@
+{
+  "modes": [
+    {
+      "cli_invocation": [
+        "uv",
+        "run",
+        "python",
+        "scripts/build-consultant-hierarchy-records.py"
+      ],
+      "generator": {
+        "path": "scripts/build-consultant-hierarchy-records.py",
+        "sha256": "3a0c5ccb3c2cd1291e7fc173808a8d0f8fe58f64806a1d5fed0123c3a15f4199"
+      },
+      "mode": "single",
+      "outputs": [
+        {
+          "path": "prd/parser/consultant_hierarchy_records.json",
+          "sha256": "f9cbd9118183a9b174ccf61b211ba6e06dd31176d98a4457064276153bd6a8e0"
+        },
+        {
+          "path": "prd/parser/consultant_hierarchy_records.jsonl",
+          "sha256": "103e6e9c9006aaab930c72c4a2d894d3c2fe083848ca2ea273db966d48d27ad2"
+        },
+        {
+          "path": "prd/parser/consultant_hierarchy_records.md",
+          "sha256": "70f376df7193d3300f03f7d5f1dd57faa78e7b8ff4275f4f5a843fb28d3ba4f8"
+        }
+      ],
+      "semantic_counts": {
+        "emitted_counts_by_level": {
+          "article": 94,
+          "chapter": 8,
+          "clause": 997,
+          "document": 1,
+          "part": 793,
+          "section": 9,
+          "subclause": 283
+        },
+        "record_count": 2185
+      },
+      "sources": [
+        {
+          "exists": true,
+          "path": "law-source/consultant/federalnyi-zakon-ot-05-04-2013-n-44-fz-red-ot-28-12-2025-o-kontraktnoi-sisteme-v-sfere-zakupok-tovarov-rabot-uslug-dlya-obespecheniya-g--f9c8ca4c.xml",
+          "sha256": "c111119c6c3001b5b4fde0e35bffbe382bcb877df2bba9cd54ab0290c92c1b14"
+        }
+      ]
+    },
+    {
+      "cli_invocation": [
+        "uv",
+        "run",
+        "python",
+        "scripts/build-consultant-hierarchy-records.py",
+        "--corpus"
+      ],
+      "generator": {
+        "path": "scripts/build-consultant-hierarchy-records.py",
+        "sha256": "3a0c5ccb3c2cd1291e7fc173808a8d0f8fe58f64806a1d5fed0123c3a15f4199"
+      },
+      "mode": "corpus",
+      "outputs": [
+        {
+          "path": "prd/parser/consultant_hierarchy_corpus_records.json",
+          "sha256": "e5034c1fe87d9ade1dcf1dcc516b5a3fe3fb34f61cf69abba382d8891f84ea2c"
+        },
+        {
+          "path": "prd/parser/consultant_hierarchy_corpus_records.jsonl",
+          "sha256": "e52f65025256efa900d40bdb7f1231c27a43852946d738b5931121dd5d1b67d0"
+        },
+        {
+          "path": "prd/parser/consultant_hierarchy_corpus_records.md",
+          "sha256": "ba1c1947f3f3b28fe782031527ea660b6075a9902a4e45b0e34da5767f7d453e"
+        }
+      ],
+      "semantic_counts": {
+        "emitted_counts_by_level": {
+          "article": 2011,
+          "chapter": 103,
+          "clause": 4775,
+          "document": 10,
+          "part": 7734,
+          "razdel": 15,
+          "section": 9,
+          "subclause": 592
+        },
+        "record_count": 15249
+      },
+      "sources": [
+        {
+          "exists": true,
+          "path": "law-source/consultant/byudzhetnyi-kodeks-rossiiskoi-federatsii-ot-31-07-1998-n-145-fz-red-ot-26-06-2026-s-izm-i-dop-vstup-v-silu-s-01-07-2026--124297b4.xml",
+          "sha256": "62f36ad995fd459ee08d93818f4c8bf27d15cf2c51998eddde5666eb278d5571"
+        },
+        {
+          "exists": true,
+          "path": "law-source/consultant/federalnyi-zakon-ot-05-04-2013-n-44-fz-red-ot-28-12-2025-o-kontraktnoi-sisteme-v-sfere-zakupok-tovarov-rabot-uslug-dlya-obespecheniya-g--f9c8ca4c.xml",
+          "sha256": "c111119c6c3001b5b4fde0e35bffbe382bcb877df2bba9cd54ab0290c92c1b14"
+        },
+        {
+          "exists": true,
+          "path": "law-source/consultant/federalnyi-zakon-ot-06-04-2011-n-63-fz-red-ot-31-07-2025-ob-elektronnoi-podpisi--6caf7614.xml",
+          "sha256": "9608d06982dc1762844c6e0899b11dd3e53f9ced1a3813f940a33fc2153de3ed"
+        },
+        {
+          "exists": true,
+          "path": "law-source/consultant/federalnyi-zakon-ot-06-12-2011-n-402-fz-red-ot-15-12-2025-o-bukhgalterskom-uchete--fcc0b660.xml",
+          "sha256": "30e60a556e7aa6d66121e0d69768905ffab8a41b452f6e3ac3eecfe5980fe606"
+        },
+        {
+          "exists": true,
+          "path": "law-source/consultant/federalnyi-zakon-ot-12-04-2010-n-61-fz-red-ot-29-12-2025-ob-obrashchenii-lekarstvennykh-sredstv-s-izm-i-dop-vstup-v-silu-s-01-03-2026--5af26e08.xml",
+          "sha256": "b89e6f5fa6d58fd75551396c2ab6e0dd07e074a809e34899cafd7d903730f444"
+        },
+        {
+          "exists": true,
+          "path": "law-source/consultant/federalnyi-zakon-ot-18-07-2011-n-223-fz-red-ot-08-08-2024-o-zakupkakh-tovarov-rabot-uslug-otdelnymi-vidami-yuridicheskikh-lits-s-izm-i--86e8fd8d.xml",
+          "sha256": "9a6d8a3b49f27f9131259539ce1c03b5fb4199be1a1b3a5f6bdfa9685a01f0a2"
+        },
+        {
+          "exists": true,
+          "path": "law-source/consultant/federalnyi-zakon-ot-22-12-2020-n-435-fz-red-ot-25-12-2023-o-publichno-pravovoi-kompanii-edinyi-zakazchik-v-sfere-stroitelstva-i-o-vnese--d71bf702.xml",
+          "sha256": "62810fd14c12ca5b239178385d0fc53b3377c05da6a1ff9a834acd2e46fafb9d"
+        },
+        {
+          "exists": true,
+          "path": "law-source/consultant/federalnyi-zakon-ot-25-12-2008-n-273-fz-red-ot-28-12-2025-o-protivodeistvii-korruptsii--da724f03.xml",
+          "sha256": "fe8a2d3dbc761d501e54e5167a1dcda3c3e44cee0781be07b3d87f2a56ed93f0"
+        },
+        {
+          "exists": true,
+          "path": "law-source/consultant/kodeks-rossiiskoi-federatsii-ob-administrativnykh-pravonarusheniyakh-ot-30-12-2001-n-195-fz-red-ot-04-07-2026-s-izm-i-dop-vstup-v-silu--b4fd4ec6.xml",
+          "sha256": "7a334df262c18968e435b8e888e1b12c76d68878c025d08298054f48c274c3e4"
+        },
+        {
+          "exists": true,
+          "path": "law-source/consultant/zemelnyi-kodeks-rossiiskoi-federatsii-ot-25-10-2001-n-136-fz-red-ot-02-05-2026-s-izm-i-dop-vstup-v-silu-s-01-07-2026--77238147.xml",
+          "sha256": "d8ab6dee35d94c5d744f87ec4a70e6a30c3d82e964f85acd9c6817efa74c8b87"
+        }
+      ]
+    }
+  ],
+  "non_authoritative": true,
+  "non_claims": [
+    "The baseline manifest is deterministic parser evidence only.",
+    "It does not claim legal correctness, parser completeness, or product readiness.",
+    "Source hashes are recorded for reproducibility, not as a trust anchor."
+  ],
+  "schema_version": "consultant-hierarchy-baseline-manifest/v1"
+}

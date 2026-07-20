@@ -201,8 +201,8 @@
     {
       "exists": true,
       "path": "prd/parser/consultant_hierarchy_prior_art_comparison.json",
-      "sha256": "2649dbdca8826d1fd127d37fb97aca998174aef261d340a0dfaf3d2d81070e0d",
-      "size_bytes": 75239
+      "sha256": "165e241b6fd31d83af0f7cdd8edb9654d3a42a7c74c9e009e9ede9e7c5c502cc",
+      "size_bytes": 90224
     }
   ],
   "non_claims": [
@@ -444,7 +444,7 @@
   "schema_version": "legalgraph-consultant-parser-proof/v1",
   "source_kind": "consultant-wordml-xml",
   "verification_commands": [
-    ".venv/bin/python3 -m pytest tests/test_consultant_parser_proof.py",
+    "uv run pytest tests/test_consultant_parser_proof.py -q",
     "test -s prd/parser/consultant_parser_proof.md"
   ]
 }

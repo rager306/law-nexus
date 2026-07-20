@@ -55,7 +55,10 @@ def test_proof_exposes_consultant_fixture_inventory_and_hierarchy_counts():
     assert inventory["classification_counts"] == {"adapt": 13, "defer": 13, "keep": 1, "reject": 1}
     assert inventory["missing_assets"] == []
     assert inventory["hash_mismatches"] == []
-    assert inventory["consultant_fixture_assets"][0]["source_path"] == "law-source/consultant/44-FZ-2026.xml"
+    assert (
+        inventory["consultant_fixture_assets"][0]["source_path"]
+        == "law-source/consultant/44-FZ-2026.xml"
+    )
     assert inventory["consultant_fixture_assets"][0]["classification"] == "keep"
 
     hierarchy = proof["hierarchy_artifacts"]
@@ -114,11 +117,16 @@ def test_markdown_report_is_self_contained_for_cold_reader():
 
     assert "# Consultant Parser Proof Package" in report
     assert "## Commands" in report
-    assert ".venv/bin/python3 -m pytest tests/test_consultant_parser_proof.py" in report
+    assert "uv run pytest tests/test_consultant_parser_proof.py -q" in report
     assert "## Input Artifacts and Freshness" in report
     assert "Freshness status: **fresh-at-generation**; stale artifact count: **0**" in report
+    assert "consultant_hierarchy_baseline_manifest.json" in report
+    assert "single (2,185 records) and corpus (15,249 records)" in report
     assert "Total records: **2185**" in report
     assert "Overall status: **needs-review**" in report
     assert "INVALIDITY-MARKER-SAMPLES" in report
     assert "Garant is deferred separately" in report
-    assert "Does not claim product ETL, FalkorDB load readiness, or multi-source parser readiness." in report
+    assert (
+        "Does not claim product ETL, FalkorDB load readiness, or multi-source parser readiness."
+        in report
+    )

@@ -11,7 +11,7 @@ This package assembles the Consultant-only parser proof chain for the 44-ФЗ tr
 
 ## Commands
 
-- `.venv/bin/python3 -m pytest tests/test_consultant_parser_proof.py`
+- `uv run pytest tests/test_consultant_parser_proof.py -q`
 - `test -s prd/parser/consultant_parser_proof.md`
 
 ## Input Artifacts and Freshness
@@ -19,10 +19,15 @@ This package assembles the Consultant-only parser proof chain for the 44-ФЗ tr
 | Artifact | Exists | Size | SHA-256 |
 |---|---:|---:|---|
 | `prd/parser/consultant_prior_art_inventory.json` | True | 33820 | `e781c7e483809b51e19da1888c99d6211b3a8b1498d71891d0f3b97d145cb170` |
-| `prd/parser/consultant_hierarchy_records.jsonl` | True | 4175013 | `b8c5f810c96da71a3f6517bb88aa93133d07949e0f538f25ecf9b0591e92e708` |
-| `prd/parser/consultant_hierarchy_prior_art_comparison.json` | True | 75239 | `2649dbdca8826d1fd127d37fb97aca998174aef261d340a0dfaf3d2d81070e0d` |
+| `prd/parser/consultant_hierarchy_records.jsonl` | True | 4497057 | `103e6e9c9006aaab930c72c4a2d894d3c2fe083848ca2ea273db966d48d27ad2` |
+| `prd/parser/consultant_hierarchy_prior_art_comparison.json` | True | 90224 | `165e241b6fd31d83af0f7cdd8edb9654d3a42a7c74c9e009e9ede9e7c5c502cc` |
 
 Freshness status: **fresh-at-generation**; stale artifact count: **0**.
+
+The historical single-fixture proof remains separate from the corpus parity
+baseline. `prd/parser/consultant_hierarchy_baseline_manifest.json` freezes both
+single (2,185 records) and corpus (15,249 records) output/source hashes under
+`[bounded]` M109 evidence; it does not expand this M009 proof's scope.
 
 ## Fixture Inventory
 

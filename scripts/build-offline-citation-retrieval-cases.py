@@ -19,8 +19,8 @@ from law_nexus.ports.offline_retrieval_cases import (
 ROOT = Path(__file__).resolve().parents[1]
 CONTRACT_PATH = ROOT / "prd/retrieval/offline_citation_retrieval_contract.md"
 REAL_CASES_PATH = ROOT / "prd/retrieval/fixtures/real_artifact_retrieval_cases.json"
-HIERARCHY_JSON_PATH = ROOT / "prd/parser/consultant_hierarchy_records.json"
-HIERARCHY_JSONL_PATH = ROOT / "prd/parser/consultant_hierarchy_records.jsonl"
+HIERARCHY_JSON_PATH = ROOT / "prd/parser/consultant_hierarchy_corpus_records.json"
+HIERARCHY_JSONL_PATH = ROOT / "prd/parser/consultant_hierarchy_corpus_records.jsonl"
 STAGING_GRAPH_PATH = ROOT / "prd/parser/parser_staging_graph.json"
 OUTPUT_PATH = ROOT / "prd/retrieval/fixtures/offline_citation_retrieval_cases.json"
 
@@ -49,7 +49,9 @@ def load_json(path: Path) -> dict[str, Any]:
 
 
 def load_jsonl(path: Path) -> list[dict[str, Any]]:
-    return [json.loads(line) for line in path.read_text(encoding="utf-8").splitlines() if line.strip()]
+    return [
+        json.loads(line) for line in path.read_text(encoding="utf-8").splitlines() if line.strip()
+    ]
 
 
 def source_artifacts() -> list[OfflineRetrievalSourceArtifact]:
@@ -73,8 +75,12 @@ def stable_json(data: dict[str, Any]) -> str:
 
 
 def main(argv: Sequence[str] | None = None) -> int:
-    parser = argparse.ArgumentParser(description="Build deterministic M014 offline citation retrieval seed cases.")
-    parser.add_argument("--check", action="store_true", help="Fail if the checked-in fixture is stale.")
+    parser = argparse.ArgumentParser(
+        description="Build deterministic M014 offline citation retrieval seed cases."
+    )
+    parser.add_argument(
+        "--check", action="store_true", help="Fail if the checked-in fixture is stale."
+    )
     parser.add_argument("--output", type=Path, default=OUTPUT_PATH, help="Fixture output path.")
     args = parser.parse_args(argv)
 
@@ -85,17 +91,45 @@ def main(argv: Sequence[str] | None = None) -> int:
         try:
             current = output_path.read_text(encoding="utf-8")
         except FileNotFoundError:
-            print(json.dumps({"status": "fail", "reason": "missing_output", "path": relative(output_path)}, sort_keys=True))
+            print(
+                json.dumps(
+                    {"status": "fail", "reason": "missing_output", "path": relative(output_path)},
+                    sort_keys=True,
+                )
+            )
             return 1
         if current != rendered:
-            print(json.dumps({"status": "fail", "reason": "stale_output", "path": relative(output_path)}, sort_keys=True))
+            print(
+                json.dumps(
+                    {"status": "fail", "reason": "stale_output", "path": relative(output_path)},
+                    sort_keys=True,
+                )
+            )
             return 1
-        print(json.dumps({"status": "pass", "case_count": len(payload["cases"]), "path": relative(output_path)}, sort_keys=True))
+        print(
+            json.dumps(
+                {
+                    "status": "pass",
+                    "case_count": len(payload["cases"]),
+                    "path": relative(output_path),
+                },
+                sort_keys=True,
+            )
+        )
         return 0
 
     output_path.parent.mkdir(parents=True, exist_ok=True)
     output_path.write_text(rendered, encoding="utf-8")
-    print(json.dumps({"status": "written", "case_count": len(payload["cases"]), "path": relative(output_path)}, sort_keys=True))
+    print(
+        json.dumps(
+            {
+                "status": "written",
+                "case_count": len(payload["cases"]),
+                "path": relative(output_path),
+            },
+            sort_keys=True,
+        )
+    )
     return 0
 
 

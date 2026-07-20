@@ -92,8 +92,13 @@ profile_document), `application/` (Ingest use case), `composition.py`
 controls until the ADR-0007 harness replaces/consolidates them; they are not ACP
 mechanisms. The package is a `[bounded]` document-level seam with working
 structural hierarchy, temporal/deontic markers, norm candidates, and staging
-graph materialization (15249 hierarchy records / 1567 norm candidates /
-1378 relation candidates / 271 hierarchy nodes in staging graph as of M105).
+graph materialization. M109/R0 now keeps the historical single-fixture proof
+(2,185 hierarchy records) separate from the corpus parity baseline (15,249
+hierarchy records) and freezes both in
+`prd/parser/consultant_hierarchy_baseline_manifest.json`. Corpus-derived tracked
+artifacts currently contain 1,567 norm candidates, 7,568 relation candidates,
+and 271 materialized hierarchy nodes in the staging graph. These counts are
+`[bounded]` deterministic evidence, not parser completeness or legal correctness.
 Retrieval, FalkorDB product runtime, and KnowQL remain `[proposed]`/`[deferred]`
 (see `prd/02_architecture.md` per-layer tags).
 
@@ -104,10 +109,12 @@ target. Rust equivalents are serde/schemars types and traits per ADR-0005.
 **Consultant XML parser hardening** — `[bounded]` through M086–M105: 81 XML
 source files, multi-level hierarchy, FRBR IDs, internal/external references,
 temporal/deontic markers, norm/relation candidates and staging graph artifacts.
-The tracked artifact baseline is **not frozen**: M105 closeout reports 1,567 norm
-candidates and 271 hierarchy nodes, while the current tracked artifacts contain
-386 norm rows and 48 source blocks. R0 must separate single/corpus outputs and
-reconcile hashes/counts before Rust parity starts.
+The tracked hierarchy baseline is `[bounded]` and frozen for Rust parity input:
+single and corpus modes use distinct outputs, their source/output hashes and
+semantic counts are recorded in the canonical baseline manifest, and CLI
+`--check` verifies selected artifacts plus manifest without filesystem writes.
+This closes the M105/current overwrite ambiguity; it does not prove parser
+completeness, Consultant/Garant parity, or production graph readiness.
 
 ## What is downstream and BLOCKED until parser data ready
 

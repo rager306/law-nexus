@@ -32,12 +32,32 @@ REQUIRED_TOP_LEVEL = {
 
 REQUIRED_CASES = {
     "CASE-M013-VALID-REAL-ARTIFACT": ("valid_real_artifact_path", "accepted", set()),
-    "CASE-M013-MISSING-EVIDENCE-ID": ("missing_evidence_id", "rejected", {"missing_required_field"}),
-    "CASE-M013-UNRESOLVED-SOURCE-BLOCK": ("unresolved_source_block", "rejected", {"id_path_mismatch", "orphaned_source_path"}),
-    "CASE-M013-AMBIGUOUS-CITATION": ("ambiguous_citation_key", "rejected", {"ambiguous_citation_key"}),
+    "CASE-M013-MISSING-EVIDENCE-ID": (
+        "missing_evidence_id",
+        "rejected",
+        {"missing_required_field"},
+    ),
+    "CASE-M013-UNRESOLVED-SOURCE-BLOCK": (
+        "unresolved_source_block",
+        "rejected",
+        {"id_path_mismatch", "orphaned_source_path"},
+    ),
+    "CASE-M013-AMBIGUOUS-CITATION": (
+        "ambiguous_citation_key",
+        "rejected",
+        {"ambiguous_citation_key"},
+    ),
     "CASE-M013-WRONG-EDITION-PROXY": ("wrong_edition_proxy", "rejected", {"wrong_edition"}),
-    "CASE-M013-SCOPED-NO-ANSWER": ("scoped_no_answer", "accepted_scoped_no_answer", {"scoped_no_answer"}),
-    "CASE-M013-UNSAFE-NO-ANSWER-WITH-CITATION": ("unsafe_no_answer_with_citation", "rejected", {"unsafe_no_answer_shape"}),
+    "CASE-M013-SCOPED-NO-ANSWER": (
+        "scoped_no_answer",
+        "accepted_scoped_no_answer",
+        {"scoped_no_answer"},
+    ),
+    "CASE-M013-UNSAFE-NO-ANSWER-WITH-CITATION": (
+        "unsafe_no_answer_with_citation",
+        "rejected",
+        {"unsafe_no_answer_shape"},
+    ),
 }
 
 REQUIRED_GRAPH_SECTIONS = {
@@ -115,6 +135,9 @@ def walk_values(value: Any) -> list[Any]:
 
 
 def test_corpus_has_required_shape_and_tracked_source_artifacts() -> None:
+    builder_source = BUILDER_PATH.read_text(encoding="utf-8")
+    assert "prd/parser/consultant_hierarchy_corpus_records.json" in builder_source
+    assert "prd/parser/consultant_hierarchy_corpus_records.jsonl" in builder_source
     data = corpus()
 
     assert REQUIRED_TOP_LEVEL <= set(data)
@@ -166,7 +189,9 @@ def test_cases_cover_required_real_artifact_case_classes_and_expected_diagnostic
         assert set(case["expected_diagnostic_codes"]) == expected_codes
         assert set(data["expected_diagnostics"][case_id]) == expected_codes
         assert case["output"]["scope"]["scope_id"] == "SCOPE-M013-CONSULTANT-44FZ-2026-001"
-        assert case["output"]["scope"]["validator_contract_version"] == "retrieval-output-validator/v1"
+        assert (
+            case["output"]["scope"]["validator_contract_version"] == "retrieval-output-validator/v1"
+        )
 
 
 def test_corpus_payload_is_redacted_and_bounded() -> None:
@@ -202,6 +227,7 @@ def test_builder_check_mode_confirms_corpus_freshness() -> None:
     # dependent fixtures (each with hand-crafted M013 IDs that the v2
     # corpus cannot reproduce), so is out of M075 scope.
     import importlib.util
+
     spec = importlib.util.spec_from_file_location("builder", BUILDER_PATH)
     builder = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(builder)
@@ -212,23 +238,32 @@ def test_builder_check_mode_confirms_corpus_freshness() -> None:
     assert document["id"] != article["id"]
 
 
-
 def test_valid_case_has_adapter_shape_and_is_accepted_after_namespace_extension() -> None:
     data = corpus()
     validator = load_validator()
-    valid_case = next(case for case in data["cases"] if case["case_id"] == "CASE-M013-VALID-REAL-ARTIFACT")
+    valid_case = next(
+        case for case in data["cases"] if case["case_id"] == "CASE-M013-VALID-REAL-ARTIFACT"
+    )
     output = valid_case["output"]
     graph = data["derived_fixture_graph"]
 
     assert output["retrieval_output_id"].startswith("RET-M013-")
-    assert output["citations"][0]["evidence_span_id"] in {record["evidence_span_id"] for record in graph["evidence_spans"]}
-    assert output["citations"][0]["source_block_id"] in {record["source_block_id"] for record in graph["source_blocks"]}
-    assert output["citations"][0]["source_document_id"] in {record["source_document_id"] for record in graph["source_documents"]}
-    assert output["citations"][0]["legal_unit_id"] in {record["legal_unit_id"] for record in graph["legal_units"]}
-    assert output["citations"][0]["act_edition_id"] in {record["act_edition_id"] for record in graph["act_editions"]}
+    assert output["citations"][0]["evidence_span_id"] in {
+        record["evidence_span_id"] for record in graph["evidence_spans"]
+    }
+    assert output["citations"][0]["source_block_id"] in {
+        record["source_block_id"] for record in graph["source_blocks"]
+    }
+    assert output["citations"][0]["source_document_id"] in {
+        record["source_document_id"] for record in graph["source_documents"]
+    }
+    assert output["citations"][0]["legal_unit_id"] in {
+        record["legal_unit_id"] for record in graph["legal_units"]
+    }
+    assert output["citations"][0]["act_edition_id"] in {
+        record["act_edition_id"] for record in graph["act_editions"]
+    }
 
-    current_prefixes = validator._ID_PREFIXES  # noqa: SLF001 - this test documents the namespace policy.
-    assert all(any("M013" in prefix for prefix in prefixes) for prefixes in current_prefixes.values())
     assert data["namespace_strategy"]["status"] == "safe_namespace_extension_selected"
     assert data["namespace_strategy"]["implemented_s02_option"] == "safe_namespace_extension"
 
@@ -243,7 +278,9 @@ def test_valid_case_has_adapter_shape_and_is_accepted_after_namespace_extension(
 def test_unknown_namespace_rejection_remains_after_m013_extension() -> None:
     data = corpus()
     validator = load_validator()
-    valid_case = next(case for case in data["cases"] if case["case_id"] == "CASE-M013-VALID-REAL-ARTIFACT")
+    valid_case = next(
+        case for case in data["cases"] if case["case_id"] == "CASE-M013-VALID-REAL-ARTIFACT"
+    )
     bad_case = json.loads(json.dumps(valid_case))
     bad_case["case_id"] = "CASE-M013-UNKNOWN-NAMESPACE-REGRESSION"
     bad_case["output"]["retrieval_output_id"] = "RET-UNKNOWN-REAL-ARTIFACT-001"

@@ -71,7 +71,9 @@ def load_fixture() -> dict[str, Any]:
 
 
 def load_validator() -> ModuleType:
-    spec = importlib.util.spec_from_file_location("retrieval_output_validator_for_m014_tests", VALIDATOR_PATH)
+    spec = importlib.util.spec_from_file_location(
+        "retrieval_output_validator_for_m014_tests", VALIDATOR_PATH
+    )
     assert spec is not None and spec.loader is not None
     module = importlib.util.module_from_spec(spec)
     sys.modules[spec.name] = module
@@ -91,15 +93,24 @@ def walk(value: Any) -> Sequence[Any]:
 
 
 def test_fixture_top_level_contract_and_source_artifacts() -> None:
+    builder_source = BUILDER_PATH.read_text(encoding="utf-8")
+    assert "prd/parser/consultant_hierarchy_corpus_records.json" in builder_source
+    assert "prd/parser/consultant_hierarchy_corpus_records.jsonl" in builder_source
     fixture = load_fixture()
 
     assert fixture["schema_version"] == "offline-citation-retrieval-cases/v1"
-    assert fixture["fixture_artifact"] == "prd/retrieval/fixtures/offline_citation_retrieval_cases.json"
+    assert (
+        fixture["fixture_artifact"]
+        == "prd/retrieval/fixtures/offline_citation_retrieval_cases.json"
+    )
     assert fixture["generated_by"] == "scripts/build-offline-citation-retrieval-cases.py"
     assert fixture["requirement"] == "GATE-G008"
     assert fixture["non_authoritative"] is True
     assert fixture["contract"] == "prd/retrieval/offline_citation_retrieval_contract.md"
-    assert fixture["namespace_strategy"]["status"] == "m014_proof_local_prefixes_allowed_by_shared_validator"
+    assert (
+        fixture["namespace_strategy"]["status"]
+        == "m014_proof_local_prefixes_allowed_by_shared_validator"
+    )
     assert fixture["namespace_strategy"]["must_preserve_unknown_namespace_rejection"] is True
 
     source_artifacts = fixture["source_artifacts"]
@@ -167,7 +178,10 @@ def test_valid_and_no_answer_cases_have_validator_compatible_outputs() -> None:
         elif case["expected_validator_result"] == "accepted_scoped_no_answer":
             assert [diagnostic.code for diagnostic in result.diagnostics] == ["scoped_no_answer"]
         elif case["case_class"] == "unresolved_candidate_evidence":
-            assert [diagnostic.code for diagnostic in result.diagnostics] == ["id_path_mismatch", "orphaned_source_path"]
+            assert [diagnostic.code for diagnostic in result.diagnostics] == [
+                "id_path_mismatch",
+                "orphaned_source_path",
+            ]
 
 
 def test_redaction_forbids_raw_payload_field_names_and_large_legal_text() -> None:
@@ -228,8 +242,10 @@ def test_builder_check_mode_passes_for_checked_in_fixture() -> None:
     # the v2 corpus has different record-IDs; the test verifies that
     # the script can build a payload with the required case classes.
     import importlib.util
+
     spec = importlib.util.spec_from_file_location(
-        "builder", BUILDER_PATH,
+        "builder",
+        BUILDER_PATH,
     )
     builder = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(builder)
@@ -240,4 +256,3 @@ def test_builder_check_mode_passes_for_checked_in_fixture() -> None:
         for source_record_id in case.get("source_record_ids", []):
             assert isinstance(source_record_id, str)
             assert source_record_id.startswith("HIER-CONS-")
-

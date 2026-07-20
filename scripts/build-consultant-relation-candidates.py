@@ -31,7 +31,10 @@ from scripts.parser_records import (  # noqa: E402
     parse_parser_record,
 )
 
-from law_nexus.adapters.sources.consultant_hierarchy import extract_internal_references, extract_external_references  # noqa: E402
+from law_nexus.adapters.sources.consultant_hierarchy import (  # noqa: E402
+    extract_external_references,
+    extract_internal_references,
+)
 
 INVENTORY_PATH = Path("prd/parser/source_fixture_inventory.json")
 DEFAULT_OUTPUT_DIR = Path("prd/parser")
@@ -126,22 +129,37 @@ def diagnostic(source_path: str | None, rule: str, message: str, **extra: Any) -
     return payload
 
 
-def load_consultant_fixture_manifest(root: Path = ROOT) -> tuple[dict[str, Any] | None, list[dict[str, Any]]]:
+def load_consultant_fixture_manifest(
+    root: Path = ROOT,
+) -> tuple[dict[str, Any] | None, list[dict[str, Any]]]:
     """Load the one canonical Consultant WordML fixture from S01 inventory."""
 
     path = root / INVENTORY_PATH
     try:
         payload = json.loads(path.read_text(encoding="utf-8"))
     except FileNotFoundError:
-        return None, [diagnostic(str(INVENTORY_PATH), "missing-inventory", "S01 fixture inventory does not exist.")]
+        return None, [
+            diagnostic(
+                str(INVENTORY_PATH), "missing-inventory", "S01 fixture inventory does not exist."
+            )
+        ]
     except json.JSONDecodeError as exc:
         return None, [
-            diagnostic(str(INVENTORY_PATH), "inventory-json-invalid", "S01 fixture inventory is not valid JSON.", error=exc.msg)
+            diagnostic(
+                str(INVENTORY_PATH),
+                "inventory-json-invalid",
+                "S01 fixture inventory is not valid JSON.",
+                error=exc.msg,
+            )
         ]
 
     fixtures = payload.get("fixtures")
     if not isinstance(fixtures, list):
-        return None, [diagnostic(str(INVENTORY_PATH), "inventory-shape-invalid", "Inventory fixtures must be a list.")]
+        return None, [
+            diagnostic(
+                str(INVENTORY_PATH), "inventory-shape-invalid", "Inventory fixtures must be a list."
+            )
+        ]
 
     preferred_matches = [
         fixture
@@ -235,7 +253,9 @@ def make_relation_record(
     return payload
 
 
-def candidate_report_row(record: dict[str, Any], hyperlink_index: int, identity: dict[str, str]) -> dict[str, Any]:
+def candidate_report_row(
+    record: dict[str, Any], hyperlink_index: int, identity: dict[str, str]
+) -> dict[str, Any]:
     """Return deterministic per-candidate report identity fields."""
 
     return {
@@ -251,12 +271,25 @@ def candidate_report_row(record: dict[str, Any], hyperlink_index: int, identity:
     }
 
 
-def extract_relation_candidates(root: Path, source_path: str, expected_sha256: str) -> tuple[list[dict[str, Any]], list[dict[str, Any]], list[dict[str, Any]], str | None]:
+def extract_relation_candidates(
+    root: Path, source_path: str, expected_sha256: str
+) -> tuple[list[dict[str, Any]], list[dict[str, Any]], list[dict[str, Any]], str | None]:
     """Parse the canonical WordML XML fixture and return records/report rows/diagnostics."""
 
     source = root / source_path
     if not source.exists():
-        return [], [], [diagnostic(source_path, "missing-canonical-path", "Canonical Consultant fixture path does not exist.")], None
+        return (
+            [],
+            [],
+            [
+                diagnostic(
+                    source_path,
+                    "missing-canonical-path",
+                    "Canonical Consultant fixture path does not exist.",
+                )
+            ],
+            None,
+        )
 
     actual_sha256 = sha256_file(source)
     if actual_sha256 != expected_sha256:
@@ -278,9 +311,33 @@ def extract_relation_candidates(root: Path, source_path: str, expected_sha256: s
     try:
         tree = ElementTree.parse(source)
     except ElementTree.ParseError as exc:
-        return [], [], [diagnostic(source_path, "xml-parse-error", "Failed to parse Consultant WordML XML.", error=str(exc))], actual_sha256
+        return (
+            [],
+            [],
+            [
+                diagnostic(
+                    source_path,
+                    "xml-parse-error",
+                    "Failed to parse Consultant WordML XML.",
+                    error=str(exc),
+                )
+            ],
+            actual_sha256,
+        )
     except OSError as exc:
-        return [], [], [diagnostic(source_path, "read-error", "Failed to read Consultant WordML XML.", error=str(exc))], actual_sha256
+        return (
+            [],
+            [],
+            [
+                diagnostic(
+                    source_path,
+                    "read-error",
+                    "Failed to read Consultant WordML XML.",
+                    error=str(exc),
+                )
+            ],
+            actual_sha256,
+        )
 
     records: list[dict[str, Any]] = []
     report_rows: list[dict[str, Any]] = []
@@ -327,7 +384,11 @@ def extract_relation_candidates(root: Path, source_path: str, expected_sha256: s
         records.append(record)
         report_rows.append(candidate_report_row(record, hyperlink_index, identity))
     if not hyperlink_seen:
-        diagnostics.append(diagnostic(source_path, "no-hyperlinks", "Consultant WordML XML contains no w:hlink elements."))
+        diagnostics.append(
+            diagnostic(
+                source_path, "no-hyperlinks", "Consultant WordML XML contains no w:hlink elements."
+            )
+        )
     return records, report_rows, diagnostics, actual_sha256
 
 
@@ -342,7 +403,11 @@ def build_report(
 ) -> dict[str, Any]:
     """Create a deterministic compact report for CLI and tests."""
 
-    freshness = artifact_freshness or {"status": "not-checked", "stale_paths": [], "diagnostics": []}
+    freshness = artifact_freshness or {
+        "status": "not-checked",
+        "stale_paths": [],
+        "diagnostics": [],
+    }
     all_diagnostics = [*diagnostics, *freshness.get("diagnostics", [])]
     status = "pass" if not all_diagnostics else "fail"
     return {
@@ -429,12 +494,12 @@ def render_markdown(report: dict[str, Any]) -> str:
 def extract_internal_reference_candidates(root: Path) -> list[dict[str, Any]]:
     """Extract internal structural references from hierarchy records.
 
-    Reads prd/parser/consultant_hierarchy_records.jsonl and for each record
+    Reads prd/parser/consultant_hierarchy_corpus_records.jsonl and for each record
     with an excerpt containing статья/часть/пункт patterns, emits a
     RelationCandidateRecord with relation_type='internal-reference'.
     """
 
-    hierarchy_path = root / "prd" / "parser" / "consultant_hierarchy_records.jsonl"
+    hierarchy_path = root / "prd" / "parser" / "consultant_hierarchy_corpus_records.jsonl"
     if not hierarchy_path.exists():
         return []
 
@@ -477,16 +542,17 @@ def extract_internal_reference_candidates(root: Path) -> list[dict[str, Any]]:
             candidates.append(payload)
     return candidates
 
+
 def extract_external_reference_candidates(root: Path) -> list[dict[str, Any]]:
     """Extract external legal-act references from hierarchy records.
 
-    Reads prd/parser/consultant_hierarchy_records.jsonl and for each record
+    Reads prd/parser/consultant_hierarchy_corpus_records.jsonl and for each record
     with an excerpt containing external act patterns (ФЗ от DD.MM.YYYY N,
     кодекс), emits a RelationCandidateRecord with relation_type='external-reference'.
     Object_ref = candidate act_id where derivable; else 'external:{excerpt_hash}'.
     """
 
-    hierarchy_path = root / "prd" / "parser" / "consultant_hierarchy_records.jsonl"
+    hierarchy_path = root / "prd" / "parser" / "consultant_hierarchy_corpus_records.jsonl"
     if not hierarchy_path.exists():
         return []
 
@@ -516,7 +582,9 @@ def extract_external_reference_candidates(root: Path) -> list[dict[str, Any]]:
             evidence = ref["evidence_excerpt"]
             payload = {
                 "record_kind": "relation_candidate",
-                "id": f"REL-EXT-{record_id.replace('HIER-CONS-', '')}-{object_ref.replace(':', '').replace('@', '-')}"[:80],
+                "id": f"REL-EXT-{record_id.replace('HIER-CONS-', '')}-{object_ref.replace(':', '').replace('@', '-')}"[
+                    :80
+                ],
                 "source_kind": "consultant-wordml-xml",
                 "source_path": source_path,
                 "source_sha256": source_sha256,
@@ -535,7 +603,10 @@ def extract_external_reference_candidates(root: Path) -> list[dict[str, Any]]:
             candidates.append(payload)
     return candidates
 
-def build_relation_candidates(root: Path = ROOT, artifact_freshness: dict[str, Any] | None = None) -> BuildResult:
+
+def build_relation_candidates(
+    root: Path = ROOT, artifact_freshness: dict[str, Any] | None = None
+) -> BuildResult:
     """Build candidate-only Consultant WordML relation records from the canonical fixture."""
 
     fixture, manifest_diagnostics = load_consultant_fixture_manifest(root)
@@ -548,11 +619,18 @@ def build_relation_candidates(root: Path = ROOT, artifact_freshness: dict[str, A
             source_sha256=None,
             artifact_freshness=artifact_freshness,
         )
-        return BuildResult(records=[], report=report, markdown=render_markdown(report), diagnostics=report["diagnostics"])
+        return BuildResult(
+            records=[],
+            report=report,
+            markdown=render_markdown(report),
+            diagnostics=report["diagnostics"],
+        )
 
     source_path = str(fixture["path"])
     expected_sha256 = str(fixture["sha256"])
-    records, candidates, diagnostics, actual_sha256 = extract_relation_candidates(root, source_path, expected_sha256)
+    records, candidates, diagnostics, actual_sha256 = extract_relation_candidates(
+        root, source_path, expected_sha256
+    )
 
     # M095: add internal structural reference candidates from hierarchy records
     internal_candidates = extract_internal_reference_candidates(root)
@@ -570,7 +648,12 @@ def build_relation_candidates(root: Path = ROOT, artifact_freshness: dict[str, A
         source_sha256=actual_sha256,
         artifact_freshness=artifact_freshness,
     )
-    return BuildResult(records=records, report=report, markdown=render_markdown(report), diagnostics=report["diagnostics"])
+    return BuildResult(
+        records=records,
+        report=report,
+        markdown=render_markdown(report),
+        diagnostics=report["diagnostics"],
+    )
 
 
 def jsonl_content(records: list[dict[str, Any]]) -> str:
@@ -609,11 +692,25 @@ def check_outputs(output_dir: Path = DEFAULT_OUTPUT_DIR, root: Path = ROOT) -> B
         stable_path = repo_path(path, root)
         if not path.exists():
             stale_paths.append(stable_path)
-            diagnostics.append(diagnostic(None, "stale-artifact", "Expected artifact is missing or stale.", path=stable_path))
+            diagnostics.append(
+                diagnostic(
+                    None,
+                    "stale-artifact",
+                    "Expected artifact is missing or stale.",
+                    path=stable_path,
+                )
+            )
             continue
         if path.read_text(encoding="utf-8") != content:
             stale_paths.append(stable_path)
-            diagnostics.append(diagnostic(None, "stale-artifact", "Expected artifact is missing or stale.", path=stable_path))
+            diagnostics.append(
+                diagnostic(
+                    None,
+                    "stale-artifact",
+                    "Expected artifact is missing or stale.",
+                    path=stable_path,
+                )
+            )
     freshness = {
         "status": "pass" if not diagnostics else "stale",
         "stale_paths": stale_paths,
@@ -627,9 +724,22 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
 
     parser = argparse.ArgumentParser(description=__doc__)
     mode = parser.add_mutually_exclusive_group(required=True)
-    mode.add_argument("--write", action="store_true", help="Write deterministic Consultant relation candidate artifacts.")
-    mode.add_argument("--check", action="store_true", help="Check artifacts are fresh and print compact JSON report.")
-    parser.add_argument("--output-dir", type=Path, default=DEFAULT_OUTPUT_DIR, help="Artifact directory, default prd/parser.")
+    mode.add_argument(
+        "--write",
+        action="store_true",
+        help="Write deterministic Consultant relation candidate artifacts.",
+    )
+    mode.add_argument(
+        "--check",
+        action="store_true",
+        help="Check artifacts are fresh and print compact JSON report.",
+    )
+    parser.add_argument(
+        "--output-dir",
+        type=Path,
+        default=DEFAULT_OUTPUT_DIR,
+        help="Artifact directory, default prd/parser.",
+    )
     return parser.parse_args(argv)
 
 

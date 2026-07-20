@@ -4,8 +4,8 @@ status: "contract-draft"
 owner: "M013/S01"
 requirement: "R034"
 source_inputs:
-  - "prd/parser/consultant_hierarchy_records.json"
-  - "prd/parser/consultant_hierarchy_records.jsonl"
+  - "prd/parser/consultant_hierarchy_corpus_records.json"
+  - "prd/parser/consultant_hierarchy_corpus_records.jsonl"
   - "prd/parser/parser_staging_graph.json"
   - "prd/retrieval/retrieval_output_validator_contract.md"
 non_authoritative: true
@@ -20,9 +20,9 @@ This mapping defines how M013 may derive retrieval/answer output validator proof
 
 M013 may consume only tracked repository-relative artifacts:
 
-- `prd/parser/consultant_hierarchy_records.json` — summary and source provenance for the Consultant 44-FZ hierarchy proof.
-- `prd/parser/consultant_hierarchy_records.jsonl` — bounded hierarchy records with IDs, parent links, source hashes, location selectors, excerpt hashes, and non-claims.
-- `prd/parser/consultant_hierarchy_records.md` — human-readable proof summary and counts.
+- `prd/parser/consultant_hierarchy_corpus_records.json` — corpus summary and per-fixture source provenance for the in-scope Consultant hierarchy baseline.
+- `prd/parser/consultant_hierarchy_corpus_records.jsonl` — bounded corpus hierarchy records with IDs, parent links, source hashes, location selectors, excerpt hashes, and non-claims.
+- `prd/parser/consultant_hierarchy_corpus_records.md` — human-readable corpus scope, counts, and non-claims.
 - `prd/parser/parser_staging_graph.json` — bounded NetworkX staging graph diagnostics and source-block/relation candidate shape.
 - `prd/parser/parser_staging_graph.md` — human-readable staging graph report and non-claims.
 - `prd/retrieval/retrieval_output_validator_contract.md` — M012 output envelope and validation boundary contract.
@@ -34,7 +34,7 @@ The M013 proof must not rescan untracked local source directories, fetch externa
 
 | Validator concept | Candidate real-artifact source | M013 mapping rule | Proof boundary |
 | --- | --- | --- | --- |
-| `SourceDocument` | `consultant_hierarchy_records.json.source` and document-level `HIER-CONS-DOCUMENT` | Derive a proof-local source document record from the tracked source path, source SHA-256, and document hierarchy record. | Source-backed parser evidence only; not final document model or legal authority. |
+| `SourceDocument` | `consultant_hierarchy_corpus_records.json.in_scope_fixtures` and document-level corpus records | Derive a proof-local source document record from the selected tracked source path, source SHA-256, and document hierarchy record. | Source-backed parser evidence only; not final document model or legal authority. |
 | `SourceBlock` | Each selected hierarchy JSONL record with `id`, `location`, `excerpt_sha256`, `order_index`, and `source_path` | Derive a proof-local source block record from one hierarchy record. Use `excerpt_sha256`, not raw excerpt text, in durable proof outputs. | Parser-source block proxy; not parser completeness or final block segmentation. |
 | `EvidenceSpan` | Selected hierarchy JSONL record and its `excerpt_sha256` | Derive a proof-local evidence span pointing to the proof-local source block and legal unit for that record. | Evidence-span proxy over parser record hash; not legal correctness. |
 | `LegalUnit` | Selected hierarchy JSONL record with `level` and `parent_id` | Derive a proof-local legal unit record from the hierarchy ID, level, parent chain, and marker metadata when present. | Legal-unit proxy over parser hierarchy; not final legal graph schema. |
