@@ -1,0 +1,7 @@
+{
+  "binary": "ln-status",
+  "mode": "repository-tracer",
+  "schema_version": "law-nexus-rust-status/v1",
+  "status": "ok",
+  "version": "0.1.0"
+}

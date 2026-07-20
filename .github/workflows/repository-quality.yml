@@ -1,5 +1,5 @@
-# Repository quality gate for the current Python behavioral reference.
-# Rust Cargo/harness checks are added when the workspace lands (ADR-0004/0007).
+# Repository quality gate for the Python behavioral reference and Rust baseline.
+# Rust runs in a separate job through the ADR-0007 process-only harness boundary.
 # This workflow has no dependency on archived architecture tooling or generated
 # semantic projections. The final Rust cutover removes Python product checks but
 # keeps repository ADR/document/architecture checks through the harness.
@@ -58,3 +58,46 @@ jobs:
 
       - name: Architecture lifecycle tags and ADR references
         run: uv run python scripts/verify-adr-conformance.py
+
+  rust-harness-quality:
+    name: Rust workspace and process harness checks
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7.0.0
+
+      - name: Install Rust stable
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v8.2.0
+        with:
+          enable-cache: true
+          cache-dependency-glob: uv.lock
+
+      - name: Set up Python
+        run: uv python install 3.13
+
+      - name: Install Python harness dependencies
+        run: uv sync --frozen
+
+      - name: Rust formatting
+        run: cargo fmt --all -- --check
+
+      - name: Rust offline check
+        run: cargo check --workspace --offline
+
+      - name: Build Rust harness binaries
+        run: cargo build --workspace --offline
+
+      - name: Rust tests
+        run: cargo test --workspace --offline
+
+      - name: Process-only harness tests
+        run: >-
+          uv run pytest -q
+          tests/test_harness_status_tracer.py
+          tests/test_harness_subprocess_failure_modes.py
+          tests/test_harness_no_forbidden_imports.py

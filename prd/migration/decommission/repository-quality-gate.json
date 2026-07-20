@@ -1,7 +1,7 @@
 {
   "schema_version": "law-nexus/repository-quality-gate/v1",
   "status": "active",
-  "phase": "python-reference",
+  "phase": "python-reference-rust-baseline",
   "local_config": ".pre-commit-config.yaml",
   "ci_workflow": ".github/workflows/repository-quality.yml",
   "checks": [
@@ -14,6 +14,16 @@
       "id": "ruff-format-python",
       "command": "uv run ruff format --check <staged-python-files>",
       "scope": "staged Python files"
+    },
+    {
+      "id": "cargo-fmt-rust",
+      "command": "cargo fmt --all -- --check",
+      "scope": "staged Cargo and Rust paths"
+    },
+    {
+      "id": "cargo-check-rust",
+      "command": "cargo check --workspace --offline",
+      "scope": "staged Cargo and Rust paths"
     },
     {
       "id": "python-onion-dependencies",
@@ -33,9 +43,8 @@
     "archived architecture projections"
   ],
   "future_additions": [
-    "cargo fmt",
     "cargo clippy",
-    "cargo test",
+    "cargo test pre-commit gating",
     "cargo audit/deny",
     "repository harness document freshness",
     "Rust artifact parity"

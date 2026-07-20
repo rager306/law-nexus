@@ -7,8 +7,8 @@
 # - always verify architecture claims and ADR references.
 #
 # Existing full-tree Ruff debt is tracked separately and must not be hidden.
-# The future ADR-0007 repository harness will add Cargo and document-freshness
-# profiles while preserving these checks until the final Rust cutover.
+# ADR-0007 repository-harness Cargo checks run only when staged Cargo/Rust
+# paths change. Python reference checks remain in place until final cutover.
 #
 # Install exactly (forced overwrite prevents legacy hook chaining):
 #   uv run pre-commit install --install-hooks --overwrite
@@ -29,6 +29,20 @@ repos:
         entry: uv run ruff format --check
         language: system
         types: [python]
+
+      - id: cargo-fmt-rust
+        name: Rust workspace formatting
+        entry: cargo fmt --all -- --check
+        language: system
+        pass_filenames: false
+        files: ^(Cargo\.(toml|lock)|crates/.*\.(rs|toml))$
+
+      - id: cargo-check-rust
+        name: Rust workspace offline check
+        entry: cargo check --workspace --offline
+        language: system
+        pass_filenames: false
+        files: ^(Cargo\.(toml|lock)|crates/.*\.(rs|toml))$
 
       - id: python-onion-dependencies
         name: Python reference onion dependency contracts

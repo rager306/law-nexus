@@ -1,0 +1,96 @@
+{
+  "skill_name": "law-nexus-rust",
+  "evals": [
+    {
+      "id": 1,
+      "category": "should-trigger",
+      "should_trigger": true,
+      "prompt": "Implement the next Consultant XML parser parity slice in Rust from the frozen corpus baseline. Keep the existing Python behavior available until cutover.",
+      "expected_output": "A bounded vertical Rust plan or implementation that uses frozen parity artifacts, keeps Python as reference, and verifies behavior without FFI or tracked-artifact mutation.",
+      "files": [
+        "prd/migration/rust-migration-roadmap.md",
+        "prd/parser/consultant_hierarchy_baseline_manifest.json"
+      ],
+      "expectations": [
+        "Rust owns the migrated product behavior.",
+        "Python is retained only as a behavioral reference or process harness.",
+        "The parity check is bounded and read-only.",
+        "No PyO3, FFI, shared-library, ctypes, or cffi bridge is proposed."
+      ]
+    },
+    {
+      "id": 2,
+      "category": "gotcha",
+      "should_trigger": true,
+      "prompt": "The zero-dependency ln-status tracer has simple error cases. Add anyhow, thiserror, Tokio, and a builder now so future migration work is easier.",
+      "expected_output": "The response rejects speculative dependencies and abstractions, preserves the current small standard-library implementation, and asks for a concrete requirement before expansion.",
+      "files": [
+        "Cargo.toml",
+        "crates/ln-status/Cargo.toml"
+      ],
+      "expectations": [
+        "Blanket upstream crate recommendations are not treated as project policy.",
+        "The current zero-dependency boundary is preserved absent demonstrated need.",
+        "No future-proof builder or async runtime is added speculatively."
+      ]
+    },
+    {
+      "id": 3,
+      "category": "gotcha",
+      "should_trigger": true,
+      "prompt": "Speed up the Rust parser by enabling target-cpu=native, panic=abort, fat LTO, Rayon, and unsafe SIMD. We do not have benchmark data yet.",
+      "expected_output": "The response requires a representative baseline and semantic equivalence proof before optimization and rejects host-specific or unsafe tuning without evidence.",
+      "files": [],
+      "expectations": [
+        "Profiling and a reproducible baseline come before optimization.",
+        "Portable CI and release behavior are preserved by default.",
+        "Unsafe and new dependencies require explicit need and targeted verification.",
+        "Deterministic citation-safe output must remain equivalent."
+      ]
+    },
+    {
+      "id": 4,
+      "category": "should-trigger",
+      "should_trigger": true,
+      "prompt": "Review this new unsafe Rust block that converts parser bytes to UTF-8 without validation and exposes the result through a public API.",
+      "expected_output": "A soundness-focused review that first seeks a safe alternative, enumerates invariants, requires minimal unsafe scope and SAFETY documentation, and proposes targeted tests or Miri.",
+      "files": [],
+      "expectations": [
+        "Safe Rust is considered first.",
+        "UTF-8 validity, lifetime, aliasing, initialization, and caller obligations are analyzed.",
+        "The public safety contract and targeted verification are required.",
+        "No unsupported soundness claim is made."
+      ]
+    },
+    {
+      "id": 5,
+      "category": "boundary",
+      "should_trigger": false,
+      "prompt": "Update the Russian legal citation answer wording and decide whether a cited paragraph is legally sufficient.",
+      "expected_output": "The Rust engineering skill does not claim legal authority and routes the work to Russian legal evidence and citation-safe retrieval guidance.",
+      "files": [],
+      "expectations": [
+        "The response does not decide legal sufficiency from generic Rust guidance.",
+        "The task is routed to the Russian legal evidence or retrieval skill.",
+        "The LLM non-authoritative boundary is preserved."
+      ]
+    },
+    {
+      "id": 6,
+      "category": "should-trigger",
+      "should_trigger": true,
+      "prompt": "Add Rust CI and pre-commit checks for the Cargo workspace without rerunning the hour-long Python corpus suite.",
+      "expected_output": "A path-gated Rust verification plan using Cargo format, check, clippy, and tests as appropriate, with bounded contract tests and no hidden corpus rebuild.",
+      "files": [
+        ".github/workflows/repository-quality.yml",
+        ".pre-commit-config.yaml"
+      ],
+      "expectations": [
+        "The proposed Rust checks are path-gated and bounded.",
+        "Test collection or fixture behavior is inspected before running suites.",
+        "No unnecessary slow Python corpus rebuild is triggered.",
+        "Failure propagation is verified, not only successful compilation."
+      ]
+    }
+  ]
+}
