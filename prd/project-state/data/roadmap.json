@@ -53,25 +53,25 @@
       "boundary": "Reactive architecture proposed as bounded shell around synchronous deterministic core (not yet implemented as runtime). Job ledger contract defined; append-only JSONL pilot scoped to source-inventory. M085 triaged full-suite signal (53 failures) into evidence-backed clusters with R1-R7 remediation roadmap. Triage work only — does NOT claim full health."
     },
     {
-      "range": "M086-M107",
-      "theme": "Debt repair, parser IR/corpus widening, test performance repair, and complete Rust transition planning",
+      "range": "M086-M108",
+      "theme": "Debt repair, parser IR/corpus widening, test performance repair, Rust transition planning, and ACP/git-lex runtime disconnection",
       "status": "complete",
-      "boundary": "M086-M105 repaired debt and widened the Consultant parser/corpus. M106 removed repeated corpus rebuilds from the fast test path. M107 selected a Rust-only product target, bounded a process-level Python repository harness, rejected PyO3, planned ACP/git-lex decommission, and recorded the artifact baseline mismatch. Planning does not prove Rust implementation or product readiness."
+      "boundary": "M086-M105 repaired debt and widened the Consultant parser/corpus. M106 removed repeated corpus rebuilds. M107 selected Rust-only product plus process-level Python harness and planned decommission. M108 manifested 750 paths, disconnected the git-lex hook, and preserved neutral quality gates. Bulk archive, baseline reconciliation and Rust implementation remain open."
     }
   ],
   "current_milestone": {
-    "id": "M107-7xtx1c",
-    "title": "Crystallize requirements, architecture, ADRs and prepare Rust migration roadmap",
+    "id": "M108-qqoye7",
+    "title": "Disconnect ACP and git-lex runtime while preserving repository quality gates",
     "status": "complete",
-    "goal": "Rust-only product transition, process-level Python repository harness, ACP/git-lex decommission, capability parity matrix, performance baseline and one-cutover roadmap. No Rust implementation claim."
+    "goal": "D0-D2 complete: 750-path manifest, standard non-mutating hook, neutral repository quality gates. Bulk archive and Rust implementation not started."
   },
   "recommended_next": {
-    "title": "Disconnect ACP/git-lex runtime and freeze canonical parser baseline",
+    "title": "Parallel cleanup, baseline reconciliation, and Rust harness tracer",
     "priority": 1,
-    "why": "The installed git-lex pre-commit hook still mutates .lex, and current parser artifacts disagree with M105 closeout counts. These are the first blockers before safe cleanup or authoritative Rust parity.",
-    "plan_reference": "prd/migration/acp-git-lex-decommission-roadmap.md and prd/migration/rust-migration-roadmap.md",
-    "slices": "D0 manifest → D1 hook/runtime disconnect → D2 preserve general quality gates; in parallel prepare R0 single/corpus artifact reconciliation, then R1/H01 Rust workspace and harness tracer bullets",
-    "non_validation": "Does not archive Python product code, claim Rust parity, or validate product/retrieval/FalkorDB readiness."
+    "why": "The mutating hook is gone, so manifest-driven archive can proceed safely. Rust parity still depends on reconciling shared single/corpus artifacts. Cargo workspace and the process-level Python harness can now start in parallel.",
+    "plan_reference": "prd/migration/acp-git-lex-decommission-roadmap.md, rust-migration-roadmap.md, and repository-harness-roadmap.md",
+    "slices": "D3 active skills/kits/scripts/tests archive → D4 .lex/history archive; R0 mode-separated parser baseline; R1 Cargo workspace + H01 process-runner tracer",
+    "non_validation": "Does not move Python product code, claim complete ACP archive, or claim Rust product parity/readiness."
   },
   "downstream_blocked": [
     {

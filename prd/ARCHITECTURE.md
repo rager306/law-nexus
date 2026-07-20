@@ -64,8 +64,15 @@ M107 architecture crystallization  [bounded/proposed]
    ACP/git-lex active role rejected; archive-only decommission planned (R066)
    parser artifact baseline mismatch detected; reconciliation required before parity
    ▼
-[YOU ARE HERE] — clean repository iteratively, disconnect ACP/git-lex,
-reconcile baseline, then build Rust product and Python repository harness in parallel
+M108 ACP/git-lex runtime disconnection  [bounded]
+   750-path manifest: 546 archive candidates / 204 manual review
+   git-lex-managed pre-commit removed with forced standard installation
+   real hook proof: exit 0, .lex fingerprint unchanged
+   pre-commit/CI/ADR gates neutralized; 43 tests + onion 4/0
+   bulk archive NOT started; .lex and historical ACP artifacts still present
+   ▼
+[YOU ARE HERE] — run three parallel tracks: manifest-driven history archive,
+parser baseline reconciliation, and Rust workspace + Python harness tracer
 ```
 
 ## Current layer (where work happens now)
@@ -123,8 +130,9 @@ is not modified. General ADR, evidence, requirement/state consistency and
 fail-closed checks survive only after being rewritten without ACP/git-lex
 runtime or vocabulary dependencies.
 
-The installed `.git/hooks/pre-commit` still runs `git-lex hook pre-commit` and
-mutates `.lex/extract`; decommission Wave D1 disconnects it before bulk archive.
+M108 disconnected the git-lex-managed hook. The installed standard pre-commit
+hook has no legacy chain; real execution leaves `.lex` byte-identical. `.lex`
+and ACP history remain only until manifest-driven D3-D6 archive waves.
 
 ## What law-nexus does NOT have (non-claims)
 
