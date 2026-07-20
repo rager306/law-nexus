@@ -1,0 +1,9 @@
+date | hasValue | 2026-07-18
+id | hasValue | ADR-0006
+lifecycle | hasValue | [proposed]
+related | hasValue | ADR-0004
+related | hasValue | ADR-0005
+related | hasValue | M107-7xtx1c
+status | hasValue | Accepted
+superseds | hasValue | none
+title | hasValue | Rust-Python coexistence strategy (PyO3 incremental migration)

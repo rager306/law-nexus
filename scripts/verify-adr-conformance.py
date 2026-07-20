@@ -340,9 +340,12 @@ def verify_adr_conformance(paths: Iterable[str | Path]) -> list[Finding]:
 
 def default_claim_paths() -> list[Path]:
     paths = [ROOT / relative for relative in DEFAULT_CLAIM_FILES]
-    adr_dir = ROOT / "doc/adr"
-    if adr_dir.is_dir():
-        paths.extend(sorted(adr_dir.glob("*.md")))
+    # ADRs live in doc/adr/ (current) or python_archive/adr/ (superseded Python-only ADRs).
+    # Both are scanned so lifecycle/ADR checks still apply to archived ADRs.
+    for adr_rel in ("doc/adr", "python_archive/adr"):
+        adr_dir = ROOT / adr_rel
+        if adr_dir.is_dir():
+            paths.extend(sorted(adr_dir.glob("*.md")))
     return paths
 
 
