@@ -1,73 +1,15 @@
 {
-  "archive_candidate_count": 546,
+  "archive_candidate_count": 511,
   "counts_by_classification": {
     "active_script": 15,
-    "active_skill": 8,
     "active_test": 21,
     "derived_lex_state": 281,
     "historical_architecture": 194,
-    "manual_review_reference": 204,
-    "project_local_kit": 27
+    "manual_review_reference": 204
   },
   "decision": "D104",
   "duplicate_archive_targets": [],
   "entries": [
-    {
-      "action": "archive",
-      "archive_path": "python_archive/acp_git_lex/skills/acp/SKILL.md",
-      "classification": "active_skill",
-      "source_path": ".agents/skills/acp/SKILL.md",
-      "source_sha256": "2274e9bcd76c561d1130f0404e5ba16d44eeadd25749cedf9709a649ee97d868"
-    },
-    {
-      "action": "archive",
-      "archive_path": "python_archive/acp_git_lex/skills/acp/references/acp-kit-roadmap.md",
-      "classification": "active_skill",
-      "source_path": ".agents/skills/acp/references/acp-kit-roadmap.md",
-      "source_sha256": "a62a95b2c27a3787d64d9691082d0be216915f9c1e0715b2556104ace98eaae3"
-    },
-    {
-      "action": "archive",
-      "archive_path": "python_archive/acp_git_lex/skills/acp/references/source-truth-and-proof-gates.md",
-      "classification": "active_skill",
-      "source_path": ".agents/skills/acp/references/source-truth-and-proof-gates.md",
-      "source_sha256": "9e90ca20ee0bdf5e6eecb4a7c5c5636f70e506aeef14e3c532d2d613396ad354"
-    },
-    {
-      "action": "archive",
-      "archive_path": "python_archive/acp_git_lex/skills/git-lex/SKILL.md",
-      "classification": "active_skill",
-      "source_path": ".agents/skills/git-lex/SKILL.md",
-      "source_sha256": "3226b6bbd3a6bc35bb3467b67d2ce0d84dbe711dad8a596db86c91e8f6afa2a3"
-    },
-    {
-      "action": "archive",
-      "archive_path": "python_archive/acp_git_lex/skills/git-lex/references/acp-boundaries.md",
-      "classification": "active_skill",
-      "source_path": ".agents/skills/git-lex/references/acp-boundaries.md",
-      "source_sha256": "15a30e03bea101e2faca103fb26ec459d02a6a253c3d2c71e4b51648cf59deed"
-    },
-    {
-      "action": "archive",
-      "archive_path": "python_archive/acp_git_lex/skills/git-lex/references/ontology-map.md",
-      "classification": "active_skill",
-      "source_path": ".agents/skills/git-lex/references/ontology-map.md",
-      "source_sha256": "e51ccd20a0604afe79126eaa0e5f0ba2ee1ddf3a03d5a781171e47dd9f847471"
-    },
-    {
-      "action": "archive",
-      "archive_path": "python_archive/acp_git_lex/skills/git-lex/references/runtime-adoption-gates.md",
-      "classification": "active_skill",
-      "source_path": ".agents/skills/git-lex/references/runtime-adoption-gates.md",
-      "source_sha256": "04c83d7c5d19f54ffdd8f462322c592b00a2947ae8a303b46ff87c60166e6a5a"
-    },
-    {
-      "action": "archive",
-      "archive_path": "python_archive/acp_git_lex/skills/git-lex/references/source-inventory.md",
-      "classification": "active_skill",
-      "source_path": ".agents/skills/git-lex/references/source-inventory.md",
-      "source_sha256": "a0115eb5bd13592ee23692e6a6418cf00406ff867e64febac797cd5739526c0d"
-    },
     {
       "action": "archive",
       "archive_path": "python_archive/acp_git_lex/lex-state/README.md",
@@ -2050,195 +1992,6 @@
       "source_sha256": "53c3272cb8f040fa99a1379f87f744c464af19b288e46cc8aca157e29c68b825"
     },
     {
-      "action": "archive",
-      "archive_path": "python_archive/acp_git_lex/kits/git-lex-kit-acp/README.md",
-      "classification": "project_local_kit",
-      "source_path": "git-lex-kit-acp/README.md",
-      "source_sha256": "7eca57479d57669186b847943416ac595ff3b38add92d276973fcc5f326374e1"
-    },
-    {
-      "action": "archive",
-      "archive_path": "python_archive/acp_git_lex/kits/git-lex-kit-acp/content/ACP/.gitkeep",
-      "classification": "project_local_kit",
-      "source_path": "git-lex-kit-acp/content/ACP/.gitkeep",
-      "source_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
-    },
-    {
-      "action": "archive",
-      "archive_path": "python_archive/acp_git_lex/kits/git-lex-kit-acp/content/ACP/Decision/example-decision.md",
-      "classification": "project_local_kit",
-      "source_path": "git-lex-kit-acp/content/ACP/Decision/example-decision.md",
-      "source_sha256": "9e70bb290485123ec14a12e97f5a71f83836d1503eadcd1385ba4d27b91482f1"
-    },
-    {
-      "action": "archive",
-      "archive_path": "python_archive/acp_git_lex/kits/git-lex-kit-acp/content/ACP/EvidenceAnchor/example-evidence-anchor-missing-source-artifact.md",
-      "classification": "project_local_kit",
-      "source_path": "git-lex-kit-acp/content/ACP/EvidenceAnchor/example-evidence-anchor-missing-source-artifact.md",
-      "source_sha256": "e13d008b2ca17c4ca733292ad78dcc5fd56f167547409d7bcaeb27905b1c0e0a"
-    },
-    {
-      "action": "archive",
-      "archive_path": "python_archive/acp_git_lex/kits/git-lex-kit-acp/content/ACP/EvidenceAnchor/example-evidence-anchor.md",
-      "classification": "project_local_kit",
-      "source_path": "git-lex-kit-acp/content/ACP/EvidenceAnchor/example-evidence-anchor.md",
-      "source_sha256": "c01cec30e7ccb70b1ffdc95b8e428548a051e5a77d1f73c06896e97a100bb688"
-    },
-    {
-      "action": "archive",
-      "archive_path": "python_archive/acp_git_lex/kits/git-lex-kit-acp/content/ACP/ProofGate/example-proof-gate-invalid-verdict.md",
-      "classification": "project_local_kit",
-      "source_path": "git-lex-kit-acp/content/ACP/ProofGate/example-proof-gate-invalid-verdict.md",
-      "source_sha256": "77a8ffe75530f72d80405deac67e28a637895d65b4dbab67798f8350c95b66e0"
-    },
-    {
-      "action": "archive",
-      "archive_path": "python_archive/acp_git_lex/kits/git-lex-kit-acp/content/ACP/ProofGate/example-proof-gate.md",
-      "classification": "project_local_kit",
-      "source_path": "git-lex-kit-acp/content/ACP/ProofGate/example-proof-gate.md",
-      "source_sha256": "0a93236473f430fe168e8fa84e3e5e451087c333bb05761f5c8e4aa6b37e495c"
-    },
-    {
-      "action": "archive",
-      "archive_path": "python_archive/acp_git_lex/kits/git-lex-kit-acp/content/ACP/SourceRecord/example-source-record.md",
-      "classification": "project_local_kit",
-      "source_path": "git-lex-kit-acp/content/ACP/SourceRecord/example-source-record.md",
-      "source_sha256": "a189f0ddb2805c9ec7cea0eaea3af09ed17e6f37a73b125118d7dd0092a7540d"
-    },
-    {
-      "action": "archive",
-      "archive_path": "python_archive/acp_git_lex/kits/git-lex-kit-acp/kit.yml",
-      "classification": "project_local_kit",
-      "source_path": "git-lex-kit-acp/kit.yml",
-      "source_sha256": "3d621442d8b09ff3866e7cd68fd5d2dca524db38f0f01e7279e530975ccdf451"
-    },
-    {
-      "action": "archive",
-      "archive_path": "python_archive/acp_git_lex/kits/git-lex-kit-acp/ontology/acp/SHAPE-BASELINE.md",
-      "classification": "project_local_kit",
-      "source_path": "git-lex-kit-acp/ontology/acp/SHAPE-BASELINE.md",
-      "source_sha256": "94ef28f9b8ff6b6b45eca342c31e4ed9d67a655c451ed3d54c4c214bdcb3e9ca"
-    },
-    {
-      "action": "archive",
-      "archive_path": "python_archive/acp_git_lex/kits/git-lex-kit-acp/ontology/acp/SHAPE-CONTRACT.md",
-      "classification": "project_local_kit",
-      "source_path": "git-lex-kit-acp/ontology/acp/SHAPE-CONTRACT.md",
-      "source_sha256": "bc4a78bc1d9bede07eda8ff73c2c2d02261e89eb15eb71acd49441d139d4bda6"
-    },
-    {
-      "action": "archive",
-      "archive_path": "python_archive/acp_git_lex/kits/git-lex-kit-acp/ontology/acp/acp.ttl",
-      "classification": "project_local_kit",
-      "source_path": "git-lex-kit-acp/ontology/acp/acp.ttl",
-      "source_sha256": "f1b4f3eeb1dc5ff95e6bf62f35212945a213f7ea3ea7d2646410c76bf19eaeb7"
-    },
-    {
-      "action": "archive",
-      "archive_path": "python_archive/acp_git_lex/kits/git-lex-kit-acp/www/.gitkeep",
-      "classification": "project_local_kit",
-      "source_path": "git-lex-kit-acp/www/.gitkeep",
-      "source_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
-    },
-    {
-      "action": "archive",
-      "archive_path": "python_archive/acp_git_lex/kits/git-lex-kit-law-nexus/README.md",
-      "classification": "project_local_kit",
-      "source_path": "git-lex-kit-law-nexus/README.md",
-      "source_sha256": "ebe7b93e759ecb10b6380ac89de9038f347e9d99a718766ac31e5596ac0356fc"
-    },
-    {
-      "action": "archive",
-      "archive_path": "python_archive/acp_git_lex/kits/git-lex-kit-law-nexus/content/LawNexus/ACPBoundaryLink/example-acp-boundary-link.md",
-      "classification": "project_local_kit",
-      "source_path": "git-lex-kit-law-nexus/content/LawNexus/ACPBoundaryLink/example-acp-boundary-link.md",
-      "source_sha256": "0b606c75ed2b94fae82fd255943d637f02ec4d1aed0413adf76139576b01c877"
-    },
-    {
-      "action": "archive",
-      "archive_path": "python_archive/acp_git_lex/kits/git-lex-kit-law-nexus/content/LawNexus/Citation/example-citation.md",
-      "classification": "project_local_kit",
-      "source_path": "git-lex-kit-law-nexus/content/LawNexus/Citation/example-citation.md",
-      "source_sha256": "d4e2aea9627bc8122ef0e85a46a3f311ff7fef5a6ce56512bc25310d56275196"
-    },
-    {
-      "action": "archive",
-      "archive_path": "python_archive/acp_git_lex/kits/git-lex-kit-law-nexus/content/LawNexus/CypherSafetyCheck/example-cypher-safety-check.md",
-      "classification": "project_local_kit",
-      "source_path": "git-lex-kit-law-nexus/content/LawNexus/CypherSafetyCheck/example-cypher-safety-check.md",
-      "source_sha256": "aa097105452a37ae38a54f782ec878368a455e12af56fe3daaab12b36b4f57cc"
-    },
-    {
-      "action": "archive",
-      "archive_path": "python_archive/acp_git_lex/kits/git-lex-kit-law-nexus/content/LawNexus/EvidenceSpan/example-evidence-span.md",
-      "classification": "project_local_kit",
-      "source_path": "git-lex-kit-law-nexus/content/LawNexus/EvidenceSpan/example-evidence-span.md",
-      "source_sha256": "87a85e28e95e817de3e095d6e20319efdb13540db400589be4d6d97c8798beeb"
-    },
-    {
-      "action": "archive",
-      "archive_path": "python_archive/acp_git_lex/kits/git-lex-kit-law-nexus/content/LawNexus/FalkorDBGraphObservation/example-falkordb-graph-observation.md",
-      "classification": "project_local_kit",
-      "source_path": "git-lex-kit-law-nexus/content/LawNexus/FalkorDBGraphObservation/example-falkordb-graph-observation.md",
-      "source_sha256": "e8540835d2f087d3374b105153039c7aa934d787f378769c4ae52a7bd2c8dd42"
-    },
-    {
-      "action": "archive",
-      "archive_path": "python_archive/acp_git_lex/kits/git-lex-kit-law-nexus/content/LawNexus/LegalDocument/example-legal-document.md",
-      "classification": "project_local_kit",
-      "source_path": "git-lex-kit-law-nexus/content/LawNexus/LegalDocument/example-legal-document.md",
-      "source_sha256": "caafe466091acfaf26aa6df7249389fceb624c7f5218609c4601ec69f34bbff8"
-    },
-    {
-      "action": "archive",
-      "archive_path": "python_archive/acp_git_lex/kits/git-lex-kit-law-nexus/content/LawNexus/ParserRun/example-parser-run.md",
-      "classification": "project_local_kit",
-      "source_path": "git-lex-kit-law-nexus/content/LawNexus/ParserRun/example-parser-run.md",
-      "source_sha256": "e51aa77570f0f49a888f00c361e6f62675ab0a024997effda11e4da795d8e2d0"
-    },
-    {
-      "action": "archive",
-      "archive_path": "python_archive/acp_git_lex/kits/git-lex-kit-law-nexus/content/LawNexus/RetrievalAnswer/example-retrieval-answer.md",
-      "classification": "project_local_kit",
-      "source_path": "git-lex-kit-law-nexus/content/LawNexus/RetrievalAnswer/example-retrieval-answer.md",
-      "source_sha256": "7e7407313def7ed558a43c4b871a67008aa7344b48449ce37a66028585043b96"
-    },
-    {
-      "action": "archive",
-      "archive_path": "python_archive/acp_git_lex/kits/git-lex-kit-law-nexus/content/LawNexus/RetrievalQuery/example-retrieval-query.md",
-      "classification": "project_local_kit",
-      "source_path": "git-lex-kit-law-nexus/content/LawNexus/RetrievalQuery/example-retrieval-query.md",
-      "source_sha256": "740a0ae547ac16efb45905ae89ae0e12bc1842e2c104ba557ff1e9fbdb486256"
-    },
-    {
-      "action": "archive",
-      "archive_path": "python_archive/acp_git_lex/kits/git-lex-kit-law-nexus/content/LawNexus/SourceBlock/example-source-block.md",
-      "classification": "project_local_kit",
-      "source_path": "git-lex-kit-law-nexus/content/LawNexus/SourceBlock/example-source-block.md",
-      "source_sha256": "09eab2999aa9b4bf3102ed3e7ec6935d3d56a04ad4f0a9ff4ea2e3882191519f"
-    },
-    {
-      "action": "archive",
-      "archive_path": "python_archive/acp_git_lex/kits/git-lex-kit-law-nexus/content/LawNexus/SourceProvider/example-source-provider.md",
-      "classification": "project_local_kit",
-      "source_path": "git-lex-kit-law-nexus/content/LawNexus/SourceProvider/example-source-provider.md",
-      "source_sha256": "688d7f235a62650aadc950ff5e0f947ba924cf0916d71a5b85a70c42efad420a"
-    },
-    {
-      "action": "archive",
-      "archive_path": "python_archive/acp_git_lex/kits/git-lex-kit-law-nexus/kit.yml",
-      "classification": "project_local_kit",
-      "source_path": "git-lex-kit-law-nexus/kit.yml",
-      "source_sha256": "6806c752e836355de1d17e64755cbab80f66e32e971ad940afff906e60b19a5b"
-    },
-    {
-      "action": "archive",
-      "archive_path": "python_archive/acp_git_lex/kits/git-lex-kit-law-nexus/ontology/law-nexus/law-nexus.ttl",
-      "classification": "project_local_kit",
-      "source_path": "git-lex-kit-law-nexus/ontology/law-nexus/law-nexus.ttl",
-      "source_sha256": "90512d195cbc8229cdb31b1b99f6c6e3f423c8c184d650dd1c5c0580ae131ae9"
-    },
-    {
       "action": "review_or_rewrite",
       "archive_path": null,
       "classification": "manual_review_reference",
@@ -2817,7 +2570,7 @@
       "archive_path": null,
       "classification": "manual_review_reference",
       "source_path": "prd/ARCHITECTURE.md",
-      "source_sha256": "1a19f1d593b624784d77ca27b019482a66ae1d93635d96a89202ca35457c40d8"
+      "source_sha256": "395b53482cc3378462ca2dcd2194455e9f91f9ab6ade7b75d1b85d5c09f3bfec"
     },
     {
       "action": "review_or_rewrite",
@@ -4504,7 +4257,7 @@
       "archive_path": null,
       "classification": "manual_review_reference",
       "source_path": "prd/project-state/data/roadmap.json",
-      "source_sha256": "81c9ffd6f67029a360a9932e12b6246639bb6f3bb94b6bb5343072fb293274e8"
+      "source_sha256": "3932431d80e6c946fa4f1470b2502b0a6bfbb7b758172eaaf3a85b364f60329d"
     },
     {
       "action": "review_or_rewrite",
@@ -5263,7 +5016,7 @@
       "source_sha256": "808854ff5505bf6b307706797d5cc6c1e4ca9b7332f4854c3ccdc6752900cd78"
     }
   ],
-  "entry_count": 750,
+  "entry_count": 715,
   "external_repository": "/root/git-lex-kit-acp/",
   "external_repository_mutation_allowed": false,
   "manual_review_count": 204,
