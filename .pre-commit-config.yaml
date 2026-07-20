@@ -39,19 +39,17 @@
 repos:
   - repo: local
     hooks:
-      - id: ruff-check-src
-        name: ruff check src/ (ADR-0002 structural gate)
-        entry: uv run ruff check src/
+      - id: ruff-check-python
+        name: ruff check staged Python files
+        entry: uv run ruff check
         language: system
-        pass_filenames: false
-        always_run: true
+        types: [python]
 
-      - id: ruff-format-src
-        name: ruff format --check src/ (ADR-0002 structural gate)
-        entry: uv run ruff format --check src/
+      - id: ruff-format-python
+        name: ruff format --check staged Python files
+        entry: uv run ruff format --check
         language: system
-        pass_filenames: false
-        always_run: true
+        types: [python]
 
       - id: import-linter
         name: import-linter onion layers (ADR-0001, ADR-0002 structural gate)

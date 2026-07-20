@@ -1,0 +1,25 @@
+{
+  "schema_version": "law-nexus/pre-commit-hook-transition/v1",
+  "transition": "git-lex-managed-to-standard-pre-commit",
+  "old_hook": {
+    "owner": "git-lex",
+    "sha256": "2a2db210fb5262683d9b66d1c8d22905b245e2217cdc885bf2ed9a7af88f68bb",
+    "size_bytes": 782,
+    "invocation": "git-lex hook pre-commit",
+    "active": false
+  },
+  "new_hook": {
+    "owner": "pre-commit",
+    "sha256": "37f0e1ff021f59a4a5827ed05e333dcbd29af0ce622d391feb0785bc3411724c",
+    "size_bytes": 615,
+    "config": ".pre-commit-config.yaml",
+    "contains_git_lex": false,
+    "active": true
+  },
+  "local_rollback_copy": null,
+  "install_command": "uv run pre-commit install --install-hooks --overwrite",
+  "recovery": "Run the install command again. --overwrite is mandatory because migration mode preserves and executes legacy hooks; do not restore the git-lex hook.",
+  "external_repository_mutated": false,
+  "lex_state_removed": false,
+  "bulk_archive_started": false
+}
