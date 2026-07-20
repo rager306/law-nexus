@@ -1,5 +1,18 @@
 # 3. PRD: LegalGraph FalkorDB Agentic Temporal Knowledge System
 
+> **Living document.** Updated at milestone closeout. Current state: see
+> `prd/ARCHITECTURE.md` for single-page forced truth. Lifecycle tags per D098:
+> `[bounded]` / `[smoke]` / `[validated]` / `[proposed]` / `[deferred]`.
+>
+> **Current status (M106): `[bounded]` foundation, parser data prepared,
+> product NOT ready.** Parser produces 15249 hierarchy records / 1567 norm
+> candidates / 1378 relation candidates / 271 staging nodes. Retrieval,
+> FalkorDB product runtime, and KnowQL remain `[proposed]`/`[deferred]`.
+>
+> **Performance baseline (M107):** Full corpus parse 284 MB = 7.5s on Python
+> 3.13. Single-file parse (5 MB) = 2.2s. Test suite (pytest -m 'not slow')
+> = 32s. Test suite (full) ~10 min with session-scoped fixtures.
+
 ## 1. Название продукта
 
 **LegalGraph Nexus** — система подготовки нормативных актов и доступа к ним через FalkorDB-based agentic temporal graph knowledge database с дополнительным слоем **Legal Nexus + Legal KnowQL**.

@@ -37,6 +37,25 @@ M067 ACP/git-lex externalization  [validated]
    reusable core → /root/git-lex-kit-acp/ (published github.com/rager306/git-lex-kit-acp v0.2.0)
    law-nexus = profile consumer; ACP-inline era CLOSED
    ▼
+M086-M105 Parser-hardening wave (2026-06–07)  [bounded]
+   M086-M090 debt closure (+115 tests restored)
+   M088 RawBlock IR in ports/source_hierarchy.py (6 additive fields)
+   M091 razdel level + M092 abzac diagnostic + M093 zone detection
+   M094 FRBR act_id/edition_id derivation in consultant_wordml.py
+   M095-M096 internal + external reference extraction
+   M097 temporal markers (entry_into_force, invalidity, secrecy)
+   M098 NormStatement deontic lexeme detection (22 patterns, 6 categories)
+   M099-M100 Layer 2 YAML profiles (consultant_wordml.yaml + garant_odt.yaml)
+   M101 internal reference resolution (83 hierarchy nodes in staging)
+   M102 Pass A document profiler (profile_document census)
+   M103 NormStatement candidate emission (1426 candidates)
+   M104 NormStatement staging graph integration
+   M105 Consultant source corpus migration 41→81 files
+       15249 hierarchy records / 1378 relation candidates / 1567 norm candidates
+       10 in-scope / 84 out-of-scope fixtures, 94-fixture inventory
+   M106 test performance: session-scoped fixtures + slow markers
+       fast run 32s (was 65+ min), 120x speedup
+   ▼
 [YOU ARE HERE] — anti-drift enforcement in place (D098); product track resumes
 ```
 
@@ -47,13 +66,19 @@ deterministic-first package surface that M068 hardened into an explicit
 dependency-directed onion: `domain/` (SourceDocument, SourceBlock, ActEdition,
 EvidenceSpan, NormStatement, LegalUnit, Citation, SourceHierarchy), `ports/`
 (Parser, GraphStore, Embedder, LLMClient protocols), `adapters/parsers/`
-(ConsultantWordMLParser — document-level seam only, empty SourceBlock list),
-`application/` (Ingest use case), `composition.py` (factory root). ADR-0002
-adds the compliance gate (import-linter layer contracts + verify-adr-conformance
-lifecycle/ADR checks); D098 keeps ACP as a checkpoint, not a gate. The package is
-a `[bounded]` document-level seam — structural hierarchy, graph writes, temporal
-UDFs, and retrieval are still `[proposed]`/`[deferred]` (see `prd/02_architecture.md`
-per-layer tags).
+(ConsultantWordMLParser — document-level seam), `adapters/sources/`
+(consultant_hierarchy.py — marker_for_text, hierarchy_records,
+extract_internal_references, extract_external_references,
+detect_temporal_markers, detect_deontic_lexemes, extract_norm_candidates,
+profile_document), `application/` (Ingest use case), `composition.py`
+(factory root). ADR-0002 adds the compliance gate (import-linter layer contracts
++ verify-adr-conformance lifecycle/ADR checks); D098 keeps ACP as a checkpoint,
+not a gate. The package is a `[bounded]` document-level seam with working
+structural hierarchy, temporal/deontic markers, norm candidates, and staging
+graph materialization (15249 hierarchy records / 1567 norm candidates /
+1378 relation candidates / 271 hierarchy nodes in staging graph as of M105).
+Retrieval, FalkorDB product runtime, and KnowQL remain `[proposed]`/`[deferred]`
+(see `prd/02_architecture.md` per-layer tags).
 
 **Library boundary (ADR-0003):** domain forms and parser I/O boundary-records
 are Pydantic v2 (`[validated]` for the M006 records, `[proposed]` for the domain
