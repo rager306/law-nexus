@@ -1,0 +1,44 @@
+{
+  "schema_version": "law-nexus/repository-quality-gate/v1",
+  "status": "active",
+  "phase": "python-reference",
+  "local_config": ".pre-commit-config.yaml",
+  "ci_workflow": ".github/workflows/repository-quality.yml",
+  "checks": [
+    {
+      "id": "ruff-check-python",
+      "command": "uv run ruff check <staged-python-files>",
+      "scope": "staged Python files"
+    },
+    {
+      "id": "ruff-format-python",
+      "command": "uv run ruff format --check <staged-python-files>",
+      "scope": "staged Python files"
+    },
+    {
+      "id": "python-onion-dependencies",
+      "command": "uv run lint-imports",
+      "scope": "current Python behavioral reference"
+    },
+    {
+      "id": "architecture-claim-conformance",
+      "command": "uv run python scripts/verify-adr-conformance.py",
+      "scope": "living architecture and ADR records"
+    }
+  ],
+  "forbidden_active_dependencies": [
+    "git-lex executable",
+    ".lex generated state",
+    "archived semantic kits",
+    "archived architecture projections"
+  ],
+  "future_additions": [
+    "cargo fmt",
+    "cargo clippy",
+    "cargo test",
+    "cargo audit/deny",
+    "repository harness document freshness",
+    "Rust artifact parity"
+  ],
+  "product_logic_in_python_harness_allowed": false
+}

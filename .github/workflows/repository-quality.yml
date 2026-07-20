@@ -1,0 +1,60 @@
+# Repository quality gate for the current Python behavioral reference.
+# Rust Cargo/harness checks are added when the workspace lands (ADR-0004/0007).
+# This workflow has no dependency on archived architecture tooling or generated
+# semantic projections. The final Rust cutover removes Python product checks but
+# keeps repository ADR/document/architecture checks through the harness.
+
+name: repository-quality
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: repository-quality-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  python-reference-quality:
+    name: Python reference and repository architecture checks
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7.0.0
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v8.2.0
+        with:
+          enable-cache: true
+          cache-dependency-glob: uv.lock
+
+      - name: Set up Python
+        run: uv python install 3.13
+
+      - name: Install dependencies
+        run: uv sync --frozen
+
+      - name: Ruff lint current Python reference
+        run: uv run ruff check src/
+
+      - name: Ruff format current Python reference
+        run: uv run ruff format --check src/
+
+      - name: Python onion dependency contracts
+        run: uv run lint-imports
+
+      - name: Basedpyright current Python reference
+        run: uv run basedpyright src/
+
+      - name: Ty current Python reference
+        run: uv run ty check src/
+
+      - name: Pyrefly current Python reference
+        run: uv run pyrefly check src/
+
+      - name: Architecture lifecycle tags and ADR references
+        run: uv run python scripts/verify-adr-conformance.py

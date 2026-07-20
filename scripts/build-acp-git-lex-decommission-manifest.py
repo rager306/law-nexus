@@ -17,6 +17,9 @@ SCHEMA = "law-nexus/acp-git-lex-decommission-manifest/v1"
 EXCLUDED = {
     "scripts/build-acp-git-lex-decommission-manifest.py",
     "tests/test_acp_git_lex_decommission_manifest.py",
+    "tests/test_repository_quality_gate.py",
+    "prd/migration/decommission/acp-git-lex-manifest.json",
+    "prd/migration/decommission/acp-git-lex-manifest.md",
 }
 PRODUCT_DENY_PREFIXES = (
     "src/law_nexus/",

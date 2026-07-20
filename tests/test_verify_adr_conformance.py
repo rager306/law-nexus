@@ -417,15 +417,16 @@ def test_cli_subprocess_summary_json_contract(tmp_path: Path) -> None:
     assert summary["status"] == "ok"
     assert summary["finding_count"] == 0
     assert summary["files_scanned"] == 1
-    assert "gate" in summary["boundary"].lower()
+    assert "lifecycle" in summary["boundary"].lower()
+    assert "adr" in summary["boundary"].lower()
 
 
 def test_cli_default_paths_scan_known_claim_files() -> None:
-    # The default file set must include the ADR-0002 scope claim files.
+    # The default set includes living architecture files plus current/archived ADRs.
     result = run_cli()
 
     summary = json.loads(result.stdout)
-    # README + ARCHITECTURE + 02_architecture + at least ADR-0001/ADR-0002.
+    # Living architecture files plus multiple current/archived ADRs.
     assert summary["files_scanned"] >= 4
     # Exit code is nonzero iff there are findings (current baseline is expected
     # to have findings; T03 retags them). Either way the summary is well-formed.

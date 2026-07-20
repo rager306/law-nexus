@@ -6,9 +6,8 @@
     "active_test": 21,
     "derived_lex_state": 281,
     "historical_architecture": 194,
-    "manual_review_reference": 201,
-    "project_local_kit": 27,
-    "rewrite_quality_gate": 1
+    "manual_review_reference": 204,
+    "project_local_kit": 27
   },
   "decision": "D104",
   "duplicate_archive_targets": [],
@@ -68,13 +67,6 @@
       "classification": "active_skill",
       "source_path": ".agents/skills/git-lex/references/source-inventory.md",
       "source_sha256": "a0115eb5bd13592ee23692e6a6418cf00406ff867e64febac797cd5739526c0d"
-    },
-    {
-      "action": "review_or_rewrite",
-      "archive_path": null,
-      "classification": "rewrite_quality_gate",
-      "source_path": ".github/workflows/compliance-gate.yml",
-      "source_sha256": "d092b649e96326521ba02e8efcf6bb968ad6b42f5ebee6b7c7ada8523fa3a9b0"
     },
     {
       "action": "archive",
@@ -2042,13 +2034,6 @@
       "classification": "derived_lex_state",
       "source_path": ".lex/www/js/main.js",
       "source_sha256": "c5ba74e1e8aa1a5734cad8d88e91bef203ca28940850e28ca0a251e1f7185c8d"
-    },
-    {
-      "action": "review_or_rewrite",
-      "archive_path": null,
-      "classification": "manual_review_reference",
-      "source_path": ".pre-commit-config.yaml",
-      "source_sha256": "66a2708233863d1c4b742a428e0c73eb6e6484f6733aed105a5843b66a1f53c0"
     },
     {
       "action": "review_or_rewrite",
@@ -4392,6 +4377,27 @@
       "action": "review_or_rewrite",
       "archive_path": null,
       "classification": "manual_review_reference",
+      "source_path": "prd/migration/decommission/pre-commit-hook-transition.json",
+      "source_sha256": "e01e718e2fcd488ca17ede9fcae3b327d57085dec7d785e5c838baa97e687fc7"
+    },
+    {
+      "action": "review_or_rewrite",
+      "archive_path": null,
+      "classification": "manual_review_reference",
+      "source_path": "prd/migration/decommission/pre-commit-hook-transition.md",
+      "source_sha256": "196feba74f549e64e2a763ecdb66a533e2e3a264c6ee2125169a2c892827cb51"
+    },
+    {
+      "action": "review_or_rewrite",
+      "archive_path": null,
+      "classification": "manual_review_reference",
+      "source_path": "prd/migration/decommission/repository-quality-gate.json",
+      "source_sha256": "9c0e718b3579b8c9ac95e7ab575f454f75a16811eb0f616d503c61847c3f44dd"
+    },
+    {
+      "action": "review_or_rewrite",
+      "archive_path": null,
+      "classification": "manual_review_reference",
       "source_path": "prd/migration/repository-harness-roadmap.md",
       "source_sha256": "2745759fc7d0df8fab17de3d20dbde993be46eb6a443134ac629bf8beeb80056"
     },
@@ -4784,13 +4790,6 @@
       "action": "review_or_rewrite",
       "archive_path": null,
       "classification": "manual_review_reference",
-      "source_path": "scripts/verify-adr-conformance.py",
-      "source_sha256": "a3ce96baba8592a93588bcb6da46d46c6cc01e3f29ed60ecd7b16ef0da6c8259"
-    },
-    {
-      "action": "review_or_rewrite",
-      "archive_path": null,
-      "classification": "manual_review_reference",
       "source_path": "scripts/verify-m049-binding.py",
       "source_sha256": "1e16d4de8d0ba67cb25476b7a3a517718111223f1f38a9c33772eea6aa547cf8"
     },
@@ -4905,6 +4904,13 @@
       "classification": "manual_review_reference",
       "source_path": "scripts/verify-m067-s03-externalization-integrity.py",
       "source_sha256": "c29a449f4190ff50cef400502a6aee7d2408e271f4cf9c004d4724769ee084b5"
+    },
+    {
+      "action": "review_or_rewrite",
+      "archive_path": null,
+      "classification": "manual_review_reference",
+      "source_path": "scripts/verify-repository-pre-commit-hook.py",
+      "source_sha256": "7fefa73c23cbe76f13d196201b801fcee74e18d1db2756110f6be2309cbd7ea7"
     },
     {
       "action": "review_or_rewrite",
@@ -5248,12 +5254,19 @@
       "classification": "manual_review_reference",
       "source_path": "tests/test_verify_m065_s04_stage3_handoff.py",
       "source_sha256": "f619d66e80c97b4999fe674d3c3b9a507f3f6a7c3c66e13c4637b864db1d2660"
+    },
+    {
+      "action": "review_or_rewrite",
+      "archive_path": null,
+      "classification": "manual_review_reference",
+      "source_path": "tests/test_verify_repository_pre_commit_hook.py",
+      "source_sha256": "808854ff5505bf6b307706797d5cc6c1e4ca9b7332f4854c3ccdc6752900cd78"
     }
   ],
-  "entry_count": 748,
+  "entry_count": 750,
   "external_repository": "/root/git-lex-kit-acp/",
   "external_repository_mutation_allowed": false,
-  "manual_review_count": 201,
+  "manual_review_count": 204,
   "product_denylist_violations": [],
   "requirement": "R066",
   "schema_version": "law-nexus/acp-git-lex-decommission-manifest/v1"

@@ -1,8 +1,8 @@
 # ACP/git-lex decommission manifest
 
-- Entries: **748**
+- Entries: **750**
 - Archive candidates: **546**
-- Manual review: **201**
+- Manual review: **204**
 - Duplicate targets: **0**
 - Product denylist violations: **0**
 - External `/root/git-lex-kit-acp/`: **must not be modified**
@@ -16,9 +16,8 @@
 | `active_test` | 21 |
 | `derived_lex_state` | 281 |
 | `historical_architecture` | 194 |
-| `manual_review_reference` | 201 |
+| `manual_review_reference` | 204 |
 | `project_local_kit` | 27 |
-| `rewrite_quality_gate` | 1 |
 
 ## Boundary
 

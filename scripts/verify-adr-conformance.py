@@ -1,36 +1,17 @@
 #!/usr/bin/env python3
-"""Verify D098 lifecycle-tag and ADR-reference conformance of architectural claims.
+"""Verify lifecycle-tag and ADR-reference conformance of architecture claims.
 
-This is the compliance-gate tooling named by ADR-0002 ("ADR standard and the
-compliance-gate / ACP-checkpoint split"). It is a read-only checker over the
-architectural "claim files" in scope for D098:
-``prd/ARCHITECTURE.md``, ``prd/02_architecture.md``, and ``doc/adr/*.md``.
+This read-only repository quality check scans the living architecture documents
+and current/archived ADR records. It enforces two project-neutral rules:
 
-ADR-0002 establishes two enforcement mechanisms and keeps them strictly
-separated:
+1. ``untagged-claim`` — a binding architecture/technology assertion carries one
+   lifecycle tag: ``[proposed]``, ``[bounded]``, ``[smoke]``, ``[validated]`` or
+   ``[deferred]``.
+2. ``missing-adr-ref`` — a binding claim outside an ADR references ``ADR-NNNN``;
+   claims inside an ADR are documented by that ADR.
 
-- The **compliance gate** (this tool) is structural, one-time, and may
-  hard-fail. It enforces structural invariants of the code architecture and of
-  the ADR record standard.
-- The **ACP checkpoint** is behavioural, continuous, and must NOT block
-  (detect + log + flag, per D098).
-
-This script is the gate half. It runs two per-claim checks. Per D098, claims are
-**targeted, not all-prose** — only lines that make a binding
-architecture/technology assertion are treated as claims.
-
-1. ``untagged-claim``  — an architectural claim (a line making a binding
-   adoption / structure assertion) must carry one of the D098 lifecycle tags:
-   ``[proposed]`` / ``[bounded]`` / ``[smoke]`` / ``[validated]`` /
-   ``[deferred]`` (case-insensitive bracket match).
-
-2. ``missing-adr-ref`` — an architectural claim that lives in a *non-ADR* claim
-   file must reference an ADR (``ADR-NNNN``). A claim that lives *inside* an ADR
-   file is already documented by that ADR and does not need an additional ref.
-
-"Architectural claim" detection is deliberately conservative to honour D098's
-anti-smoothing intent ("targeted, not all-prose"). A line is treated as a
-claim when it matches either:
+Claim detection is deliberately conservative and targeted rather than applied to
+all prose. A line is treated as a claim when it matches either:
 
 - ``CLAIM_VERB_RE`` -- a binding adoption / structure verb with a Capitalized
   named target (``uses FalkorDB``, ``adopts Pydantic``, ``depends on FalkorDB``)
@@ -48,9 +29,8 @@ questions are never flagged. This trades recall for precision on purpose: a
 few untagged claims with lowercase targets may slip through and must be caught
 by review (T03 retag), but the gate never noises on ordinary prose.
 
-Exit code: ``0`` when conformant, ``1`` when any finding is reported (gate
-behaviour, so T04 can wire it as a hard gate). Use ``--report-only`` to always
-exit ``0`` (checkpoint / non-blocking use).
+Exit code: ``0`` when conformant, ``1`` when any finding is reported. Use
+``--report-only`` for diagnostics that must not block.
 """
 
 from __future__ import annotations
@@ -65,7 +45,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 
-# D098 lifecycle tag vocabulary. Matched case-insensitively as ``[tag]``.
+# Project lifecycle tag vocabulary. Matched case-insensitively as ``[tag]``.
 LIFECYCLE_TAGS: tuple[str, ...] = (
     "proposed",
     "bounded",
@@ -84,9 +64,8 @@ ADR_REF_RE = re.compile(r"\bADR[-\s]?(\d{4})\b", re.IGNORECASE)
 
 # Conservative architectural-claim signal. A line (outside a code fence and
 # front matter) matching one of these patterns is treated as a binding
-# architectural assertion and must carry a D098 lifecycle tag (and, in a
-# non-ADR file, an ADR reference). Kept narrow on purpose to honour D098's
-# "targeted, not all-prose" intent:
+# architectural assertion and must carry a lifecycle tag (and, in a non-ADR
+# file, an ADR reference). Kept narrow to avoid flagging ordinary prose:
 #
 # - Adoption/dependency verbs (uses, adopts, depends on, relies on, is based on)
 #   require a Capitalized named target to follow (e.g. "uses FalkorDB",
@@ -135,7 +114,7 @@ ALTERNATIVE_HEADER_RE = re.compile(r"^\s*#{0,6}\s*Option\s+[A-Z0-9]+\b", re.IGNO
 SECTION_HEADING_RE = re.compile(r"^##\s+(.*)$")
 
 UNTIL_TAGGED_MESSAGE = (
-    "architectural claim must carry a D098 lifecycle tag "
+    "architectural claim must carry a lifecycle tag "
     "([proposed]/[bounded]/[smoke]/[validated]/[deferred])"
 )
 MISSING_ADR_REF_MESSAGE = (
@@ -154,7 +133,7 @@ LAST_RESULT: list[Finding] | None = None
 
 @dataclass(frozen=True)
 class Finding:
-    """A single D098/ADR conformance finding about one architectural claim."""
+    """A single lifecycle/ADR conformance finding about an architecture claim."""
 
     file: str
     line: int
@@ -223,7 +202,7 @@ def is_table_separator(stripped: str) -> bool:
 
 
 def find_claim_findings(name: str, text: str) -> list[Finding]:
-    """Return D098/ADR conformance findings for the architectural claims in ``text``.
+    """Return lifecycle/ADR findings for the architecture claims in ``text``.
 
     Pure function on ``name``/``text``: reads no files, so tests can pass
     synthetic in-memory content without touching the real claim files.
@@ -358,19 +337,13 @@ def summary(findings: list[Finding], files_scanned: int) -> dict[str, object]:
         "untagged_claims": untagged,
         "missing_adr_refs": missing_refs,
         "files_scanned": files_scanned,
-        "boundary": (
-            "Structural compliance gate per ADR-0002 (gate half, not the ACP checkpoint). "
-            "D098 targeted claims only."
-        ),
+        "boundary": "Repository architecture claims: targeted lifecycle tags and ADR references.",
     }
 
 
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        description=(
-            "Verify D098 lifecycle-tag and ADR-reference conformance of architectural "
-            "claims (compliance gate per ADR-0002)."
-        )
+        description="Verify lifecycle-tag and ADR-reference conformance of architecture claims."
     )
     parser.add_argument(
         "files",
@@ -384,7 +357,7 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser.add_argument(
         "--report-only",
         action="store_true",
-        help="Report findings but always exit 0 (checkpoint / non-blocking use).",
+        help="Report findings but always exit 0 (diagnostic use).",
     )
     return parser.parse_args(argv)
 
