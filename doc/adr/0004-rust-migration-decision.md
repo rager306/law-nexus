@@ -40,8 +40,12 @@ an emergency fix.
 
 ## Decision
 
-**Migrate law-nexus from Python to Rust incrementally, preserving Python until
-Rust achieves functional parity per component.**
+**Transition all law-nexus product and domain functionality to Rust [proposed].**
+The existing Python product implementation remains intact as a behavioral
+reference until the complete Rust implementation passes all parity, integration,
+performance, and failure-surface gates. Then the Python product code moves
+wholesale to `python_archive/` in one controlled cutover. A thin Python
+repository-control CLI is allowed under ADR-0007; it contains no product logic.
 
 ### Migration triggers (when Rust pays off)
 
@@ -67,32 +71,39 @@ The migration is justified when one or more of these conditions materialize:
 - **Single-file correctness.** Parser logic (marker_for_text, hierarchy_records,
   deontic lexemes) is deterministic and already correct in Python. Rewriting it
   in Rust adds risk without fixing bugs.
-- **ACP/git-lex governance.** The reusable core at `/root/git-lex-kit-acp/` is
-  Python and stays Python (governance surface, not product hot path).
+- **Repository governance tooling.** Tooling language alone is not a migration
+  trigger. ADR-0007 permits a thin Python repository-control CLI that launches
+  Rust binaries and checks repository contracts without owning product logic.
 
 ### Migration strategy
 
 See `doc/adr/0005-rust-target-architecture.md` for the component-by-component
-map and `doc/adr/0006-rust-python-coexistence-strategy.md` for the PyO3
-incremental-migration mechanics.
+map. **Full product migration to Rust — no PyO3, no in-process bridge, and no
+per-component Python deletion [proposed].** Rust is implemented beside the
+unchanged Python reference until whole-system parity succeeds. Python product
+code is archived only at the final cutover.
 
 Summary:
 
-1. **Phase 1 — domain types (Rust crate `law-nexus-core`)**. Port the Pydantic
-   domain models to Rust structs with serde. No I/O. Parity test: Rust struct
-   ↔ Python Pydantic model round-trip JSON equality.
-2. **Phase 2 — parsers (hot path)**. Port `consultant_wordml.py` and
-   `consultant_hierarchy.py` to Rust using `quick-xml`. Parity test: same XML
-   input → byte-identical JSONL output.
-3. **Phase 3 — adapters (I/O-bound)**. Port filesystem inventory, graph store,
-   embedding client. Parity test: same interface contract.
-4. **Phase 4 — application + composition**. Port use cases and wiring. Parity
-   test: same CLI output for the same inputs.
-5. **Phase 5 — Python removal**. After all phases pass parity, Python moves to
-   `python_archive/` and Rust becomes the only runtime.
+1. **Phase 1 — freeze behavioral contracts.** Preserve Python outputs, schemas,
+   diagnostics, errors, fixtures, performance, and memory baselines as immutable
+   Rust parity targets.
+2. **Phase 2 — Rust foundation.** Create the Cargo workspace, crate boundaries,
+   repository harness, architecture checks, lint/test/security gates, and
+   benchmark surfaces. Python product code remains unchanged.
+3. **Phase 3 — Rust product implementation.** Implement domain types, parsers,
+   adapters, application logic, FalkorDB integration, retrieval, citation-safe
+   evidence, observability, and Rust CLIs. Python product code remains unchanged.
+4. **Phase 4 — whole-system parity.** Compare Rust against frozen artifacts and
+   behavioral contracts across the complete corpus, failures, performance,
+   concurrency, memory, graph integration, and UAT.
+5. **Phase 5 — one controlled cutover.** Move the entire Python product
+   implementation to `python_archive/`, remove it from product CI/runtime, and
+   make Rust the sole product runtime. Keep only the ADR-0007 Python repository
+   control-plane CLI if it still provides value.
 
-Each phase has a parity gate. **Python is not removed until the Rust equivalent
-passes the same test suite the Python version passes.**
+**No PyO3. No in-process bridge. No duplicated product logic in the Python
+harness. Rust is the only product runtime after cutover.**
 
 ## Consequences
 
@@ -103,15 +114,13 @@ passes the same test suite the Python version passes.**
 - **Easier — deployment.** Single static binary, no `uv`/`pip`/venv, no
   Python version drift. Smaller container image.
 - **Harder — velocity (short term).** Rust write-velocity is lower than Python
-  for exploratory work. Mitigation: keep Python as the exploration language
-  during research milestones; Rust only for validated, stable components.
+  for exploratory work. The repository harness reduces operational friction,
+  but all product behavior still belongs in Rust.
 - **Harder — hiring/contribution.** Smaller contributor pool for Rust legal-tech.
-  Mitigation: the PyO3 bridge lets Python-skilled contributors keep working on
-  the Python side during migration.
-- **We will revisit:** (1) whether Phase 1 (domain types) is worth the cost if
-  corpus growth stays under 10× for 12+ months; (2) whether PyO3 is the right
-  bridge vs. a hard cutover once Phase 2 (parsers) proves out; (3) whether to
-  keep ACP/git-lex in Python permanently (governance surface, low ROI for Rust).
+  Accepted as a cost of the full product transition.
+- **We will revisit:** whether the ADR-0007 Python repository harness should
+  eventually become a Rust CLI. This does not affect the Rust-only product
+  runtime boundary.
 
 ## Alternatives Considered
 
@@ -131,13 +140,13 @@ less expressive for the domain modeling (no sum types until recently, no
 traits); Go's garbage collector reintroduces GC pauses. Rust's zero-copy and
 explicit memory story is a better fit for legal-text processing at scale.
 
-### Option C: Migrate to Rust only for the parser, keep the rest in Python
+### Option C: Keep Python product modules behind a PyO3 bridge
 
-**Pros:** lowest rewrite cost, targets the actual hot path.
-**Cons:** two languages in the codebase permanently; two build systems; two test
-suites; the "rest" includes graph materialization, retrieval, and citation
-assembly, all of which also benefit from Rust. This is Phase 2 of the accepted
-plan, not a destination.
+**Pros:** incremental call-site migration and short-term compatibility.
+**Cons:** permanent bridge maintenance, duplicated product boundaries, GIL and
+packaging complexity, and an ambiguous source of product truth. Rejected by
+explicit human decision; only process-level repository orchestration is allowed
+in Python (ADR-0007).
 
 ### Option D: Do nothing until a measured bottleneck appears
 
@@ -151,8 +160,8 @@ latency incident is expensive.
 
 - **M107-7xtx1c** — this milestone: crystallize requirements/architecture/ADRs
   and write the Rust migration roadmap.
-- **D098** — anti-drift enforcement. This ADR carries lifecycle tags; migration
-  progress is tagged `[proposed]` → `[bounded]` → `[validated]` per phase.
+- **D103 / D105 / D106** (`.gsd/DECISIONS.md`) — Rust-only product runtime,
+  no in-process bridge, and the narrow Python repository-harness exception.
 - **`prd/migration/rust-migration-roadmap.md`** — the phased plan.
 - **`prd/migration/rust-target-architecture.md`** — the component-by-component map.
 - **`prd/migration/rust-performance-baseline.md`** — the M107 measured baseline.

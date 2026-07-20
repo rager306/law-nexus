@@ -68,14 +68,11 @@ law-nexus-app/      # Phase 4: use cases + composition
 │   ├── composition.rs # factory root
 │   └── bin/           # CLI entry points (replace scripts/build-*.py)
 └── Cargo.toml
-
-law-nexus-py/       # Phase 1-4 bridge: PyO3 bindings (see ADR-0006)
-├── src/
-│   └── lib.rs        # #[pyfunction] wrappers around Rust crates
-└── Cargo.toml
 ```
 
-A workspace `Cargo.toml` at the repo root ties the crates together.
+A workspace `Cargo.toml` at the repo root ties the crates together. **No PyO3
+crate or in-process Python binding [proposed].** A separate Python repository
+harness may invoke Rust binaries across process boundaries only (ADR-0007).
 
 ### Component-by-component port map
 
@@ -109,15 +106,16 @@ A workspace `Cargo.toml` at the repo root ties the crates together.
 | `uv run python` | `cargo run` | No virtualenv; no `uv`. |
 | `import-linter` onion contract | Rust module visibility (`pub(crate)`, `pub(super)`) | Compiler-enforced layering, not tooling-enforced. |
 
-### What does NOT migrate
+### What does NOT become Rust product code
 
-- **ACP/git-lex reusable core** (`/root/git-lex-kit-acp/`). Stays Python. It is
-  a governance/recovery surface, not a product hot path. See ADR-0004
-  "non-triggers."
-- **`.gsd/` tooling.** Stays whatever GSD ships (Node.js/TypeScript).
-- **`.lex/` extract state.** Stays as-is (ACP projection, not product).
-- **Research scripts** (`prd/research/`). Exploratory Python is fine; Rust is
-  for validated, stable components only.
+- **ACP/git-lex surfaces.** They are decommissioned from active law-nexus per
+  D104 and archived separately; they are not ported to Rust.
+- **`.gsd/` tooling.** It remains external repository workflow infrastructure.
+- **Python repository harness (ADR-0007).** It may orchestrate Rust binaries,
+  Cargo checks, architecture/ADR conformance, document freshness, parity
+  artifacts, CI, and GSD. It must not implement product or domain behavior.
+- **Historical and research documents.** They are evidence/history, not runtime
+  implementation targets.
 
 ## Consequences
 
@@ -132,14 +130,15 @@ A workspace `Cargo.toml` at the repo root ties the crates together.
   error messages, `TypeAdapter` — all need Rust equivalents (`schemars`,
   custom validators). Mitigation: Phase 1 is domain types only; learn the
   serde/schemars stack before tackling parsers.
-- **Harder — incremental testing.** Rust's test story is per-crate, not
-  session-scoped fixtures. Parity tests need a Python-in-Docker sidecar during
-  migration. Mitigation: `law-nexus-py` crate (ADR-0006) provides the bridge.
+- **Harder — parity verification.** Rust tests are per-crate while complete
+  parity spans artifacts and binaries. ADR-0007's Python harness orchestrates
+  process-level comparisons against frozen Python-generated JSONL/JSON fixtures;
+  it never imports or calls Rust in-process.
 - **We will revisit:** (1) whether to use `axum`/`actix` for a future HTTP API
-  surface (deferred until retrieval is productized); (2) whether `law-nexus-core`
-  should be published to a private registry for the ACP/git-lex side to consume
-  (deferred); (3) whether to split `law-nexus-parser` into per-format crates
-  (`law-nexus-consultant`, `law-nexus-garant`) once Garant is in scope.
+  surface (deferred until retrieval is productized); (2) whether to split
+  `law-nexus-parser` into per-format crates (`law-nexus-consultant`,
+  `law-nexus-garant`) once Garant is in scope; (3) whether the repository
+  harness eventually moves from Python to Rust.
 
 ## Alternatives Considered
 
@@ -167,10 +166,11 @@ crates in one workspace.
 ## References
 
 - **ADR-0004** — the migration decision this architecture serves.
-- **ADR-0006** — the PyO3 coexistence strategy for incremental migration.
 - **`python_archive/adr/0001-onion-package-structure.md`** — the Python onion
   ADR. Its layering concept survives; its Python-specific decisions (Pydantic,
   import-linter, factory functions) are replaced by Rust idioms.
 - **`prd/migration/rust-target-architecture.md`** — the detailed per-component
   migration plan with phase boundaries.
-- **`src/law_nexus/`** — the current Python package being ported.
+- **`src/law_nexus/`** — the current Python behavioral reference. It remains
+  intact until whole-system Rust parity and then moves wholesale to
+  `python_archive/`.
