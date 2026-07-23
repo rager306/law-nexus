@@ -1,0 +1,29 @@
+{
+  "schema": "law-nexus-hc05-verdict/v1",
+  "evidence_id": "S10-HC-05-RT",
+  "case_id": "HC-05",
+  "generated_at": "2026-07-23",
+  "implementation_revision": "25c7e68b17d669c58ec178f79df7a55eab17c27c",
+  "command": "cargo run --offline --quiet -p ln-hc05-runner -- verdict",
+  "verdict": "PASS",
+  "scenario_count": 2,
+  "honest_structural_only": true,
+  "malicious_reject_all": true,
+  "gate_owned_claims_absent": true,
+  "raw_payload_absent": true,
+  "positive_control_present": true,
+  "remaining_unsupported_cases": 15,
+  "lifecycle": "[bounded]",
+  "product_storage_selected": false,
+  "parser_format_selected": false,
+  "scenarios": [
+    "honest-structural-only",
+    "malicious-reject-all"
+  ],
+  "non_claims": [
+    "This proof does not select a parser crate or source format.",
+    "This proof does not implement C10, C12 or C13 gates, D118 clocks, D116 promotion or D120 publication.",
+    "No SQLite, Turso, LadybugDB, FalkorDB, ruVector or AgentFS product backend is selected by this proof.",
+    "HC-06 through HC-20 remain unsupported-case."
+  ]
+}

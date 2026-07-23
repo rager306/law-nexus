@@ -63,7 +63,7 @@ A required capability, fixture, adapter, sink or human/legal judgment is absent;
 
 ## HC-01 through HC-20 execution classification
 
-All 20 cases remain runtime-required. Post-M111 evidence now supplies bounded product-capability runtime for HC-01 through HC-04; HC-05 through HC-20 remain unsupported. The table records the strongest honest current evidence and exact remaining observable.
+All 20 cases remain runtime-required. Post-M111 evidence now supplies bounded product-capability runtime for HC-01 through HC-05; HC-06 through HC-20 remain unsupported. The table records the strongest honest current evidence and exact remaining observable.
 
 | HC | Primary capability | Aggregate mode/current verdict | Strongest current partial and inputs | S10 check IDs | Missing observable preventing aggregate PASS |
 |---|---|---|---|---|---|
@@ -71,7 +71,7 @@ All 20 cases remain runtime-required. Post-M111 evidence now supplies bounded pr
 | HC-02 | Inventory Immutable Intake | `runtime-required` / `PASS` `[bounded]` | artifact-static contract plus Rust process proof at `prd/migration/rust-evidence/probes/hc02-inventory-intake-runtime.json` | `S10-HC-02-STATIC`, `S10-HC-02-RT` | none for the bounded synthetic re-inventory scope; real filesystem intake and product storage remain non-claims |
 | HC-03 | Dispose Review | `runtime-required` / `PASS` `[bounded]` | artifact-static contract plus Rust process proof at `prd/migration/rust-evidence/probes/hc03-dispose-review-runtime.json` | `S10-HC-03-STATIC`, `S10-HC-03-RT` | none for the bounded synthetic non-accepted scope; real review UI and staffing policy remain non-claims |
 | HC-04 | Commit Curated Promotion | `runtime-required` / `PASS` `[bounded]` | artifact-static contract plus Rust process proof at `prd/migration/rust-evidence/probes/hc04-commit-curated-promotion-runtime.json` | `S10-HC-04-STATIC`, `S10-HC-04-RT` | none for the bounded synthetic cancel/retry/mismatch scope; real dual-write storage and product transaction mechanism remain non-claims |
-| HC-05 | Decode and Anchor | `runtime-required` / `unsupported-case` | artifact-static plus adjacent parser smoke only; parser smoke is not HC PASS | `S10-HC-05-STATIC`, `S10-HC-05-ADJ`, `S10-HC-05-RT` | honest/malicious decoder differential adapters and payload-canary sinks |
+| HC-05 | Decode and Anchor | `runtime-required` / `PASS` `[bounded]` | artifact-static contract plus Rust process proof at `prd/migration/rust-evidence/probes/hc05-decode-anchor-runtime.json` | `S10-HC-05-STATIC`, `S10-HC-05-ADJ`, `S10-HC-05-RT` | none for the bounded synthetic honest/malicious differential; parser crate and source format remain non-claims |
 | HC-06 | Gate Lifecycle | `runtime-required` / `unsupported-case` | artifact-static: C10 outcome vocabulary and confidence/in-place prohibition | `S10-HC-06-STATIC`, `S10-HC-06-RT` | C10 gate plus workflow/storage bypass fixture and lineage digest evidence |
 | HC-07 | Assert Identity | `runtime-required` / `unsupported-case`; legal correctness remains non-claim | artifact-static: C12 outcomes and no-merge rule | `S10-HC-07-STATIC`, `S10-HC-07-RT`, `S10-HC-07-LEGAL` | identity engine and family false-match/false-nonmatch fixtures; legal identity judgment |
 | HC-08 | Validate Relation | `runtime-required` / `unsupported-case` | artifact-static: C13 closed registry, unknown-predicate/wrong-owner | `S10-HC-08-STATIC`, `S10-HC-08-RT` | relation registry runtime and injection/query-absence observations |
@@ -86,18 +86,18 @@ All 20 cases remain runtime-required. Post-M111 evidence now supplies bounded pr
 | HC-17 | Query Evidence-Bounded State | `runtime-required` / `unsupported-case` | artifact-static plus adjacent legacy citation tests; adjacent pass is not HC PASS | `S10-HC-17-STATIC`, `S10-HC-17-ADJ`, `S10-HC-17-RT` | M111 query policy runtime and staging/gap-invention fixtures |
 | HC-18 | Resolve Citation | `runtime-required` / `unsupported-case`; official-source legal determination non-claim | artifact-static plus adjacent legacy citation binding tests | `S10-HC-18-STATIC`, `S10-HC-18-ADJ`, `S10-HC-18-RT`, `S10-HC-18-LEGAL` | restricted-official/mirror resolver and missing-anchor fixtures |
 | HC-19 | Emit Safe Diagnostics | `runtime-required` / `unsupported-case` | artifact-static plus adjacent secret/redaction marker checks | `S10-HC-19-STATIC`, `S10-HC-19-ADJ`, `S10-HC-19-RT` | declared sink inventory and multi-canary/redaction-failure/injection runtime |
-| HC-20 | Evaluate Conformance | `runtime-required` / `unsupported-case` | artifact-static owner/schema/oracle checks plus architecture/ADR verifiers | `S10-HC-20-STATIC`, `S10-HC-20-REPO`, `S10-HC-20-META` | complete meta-suite and differential adapters; runtime verdicts for HC-05-HC-19 remain unsupported; HC-01 through HC-04 are bounded PASS only |
+| HC-20 | Evaluate Conformance | `runtime-required` / `unsupported-case` | artifact-static owner/schema/oracle checks plus architecture/ADR verifiers | `S10-HC-20-STATIC`, `S10-HC-20-REPO`, `S10-HC-20-META` | complete meta-suite and differential adapters; runtime verdicts for HC-06-HC-19 remain unsupported; HC-01 through HC-05 are bounded PASS only |
 
 ## Current classification result
 
-- Aggregate runtime PASS: **4/20** (`HC-01`, `HC-02`, `HC-03`, `HC-04`, bounded synthetic Rust process proofs).
+- Aggregate runtime PASS: **5/20** (`HC-01`, `HC-02`, `HC-03`, `HC-04`, `HC-05`, bounded synthetic Rust process proofs).
 - Aggregate FAIL: **0/20**.
-- Aggregate `unsupported-case`: **16/20** because mandatory runtime observables for HC-05-HC-20 are absent.
+- Aggregate `unsupported-case`: **15/20** because mandatory runtime observables for HC-06-HC-20 are absent.
 - Artifact-static subchecks eligible for T02: **20/20**.
 - Adjacent repository executables eligible only as explicitly partial evidence: HC-05, HC-17, HC-18, HC-19 and HC-20.
 - Human/legal residual non-claims: HC-07, HC-09 and HC-18.
 
-This result does not invalidate or fully validate D123. Sixteen unsupported cases still block any aggregate runtime-conformant D123 claim.
+This result does not invalidate or fully validate D123. Fifteen unsupported cases still block any aggregate runtime-conformant D123 claim.
 
 ## T02 execution rule
 
@@ -207,6 +207,23 @@ Durable evidence:
 Current aggregate after HC-01 through HC-04: runtime PASS `4/20`, runtime FAIL `0/20`,
 `unsupported-case` `16/20`.
 
+### Post-M111 runtime delta: HC-05
+
+M117 added the missing Rust synthetic runtime surface for HC-05. The command
+`cargo run --offline --quiet -p ln-hc05-runner -- verdict` executed honest and
+malicious decoder paths. Output stayed limited to structural candidates and
+exact anchors; gate-owned claims were rejected; canary was absent from outputs;
+positive-control diagnostics were present.
+
+Durable evidence:
+
+- `prd/migration/rust-evidence/probes/hc05-decode-anchor-runtime.json`;
+- `prd/migration/rust-evidence/probes/hc05-decode-anchor-runtime.md`;
+- implementation revision `25c7e68b17d669c58ec178f79df7a55eab17c27c`.
+
+Current aggregate after HC-01 through HC-05: runtime PASS `5/20`, runtime FAIL `0/20`,
+`unsupported-case` `15/20`.
+
 ## T03 external negative-experience ledger
 
 All sources were accessed 2026-07-22. External incidents establish failure mechanisms, not local runtime behavior, technology fitness or transferable capacity.
@@ -265,7 +282,7 @@ A fresh independent pass used sources outside the central T01/T03 selection evid
 | OpenTelemetry Project, *Handling sensitive data*, accessed 2026-07-22, https://opentelemetry.io/docs/security/handling-sensitive-data/ | Telemetry may capture credentials, tokens and personal data; collection minimization and redaction/hash/deletion are required controls. | Framework guidance does not select OpenTelemetry or define legal-text/vector policy. **Retain** diagnostic denylist without technology selection. |
 | NIST SP 800-92, Kent and Souppaya, *Guide to Computer Security Log Management*, September 2006, https://csrc.nist.gov/pubs/sp/800/92/final | Logs are event records requiring confidentiality, integrity, availability and explicit content policy; operational records are not automatic domain truth. | Legacy log-management guidance is not a provenance ontology or legal temporal model. **Retain** observation/diagnostic non-authority. |
 
-Efficiency and transferable law-nexus capacity remain unknown. At M111 T05 this cross-check left the then-current aggregate at static PASS 20/20, architecture attack protection PASS 14/14, runtime PASS 0/20, runtime FAIL 0/20 and `unsupported-case` 20/20. The post-M116 current runtime aggregate is PASS 4/20, FAIL 0/20 and `unsupported-case` 16/20.
+Efficiency and transferable law-nexus capacity remain unknown. At M111 T05 this cross-check left the then-current aggregate at static PASS 20/20, architecture attack protection PASS 14/14, runtime PASS 0/20, runtime FAIL 0/20 and `unsupported-case` 20/20. The post-M117 current runtime aggregate is PASS 5/20, FAIL 0/20 and `unsupported-case` 15/20.
 
 ## T01-T05 non-claims
 

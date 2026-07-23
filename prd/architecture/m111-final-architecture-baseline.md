@@ -4,13 +4,13 @@
 **Milestone:** M111/S10  
 **Selection package:** D116, D118, D119, D120, D121 and D123 `KOF-DA`  
 **Product direction:** Rust-only product runtime under ADR-0004; subprocess-only Python harness under ADR-0007; ADR-0005 product topology is superseded
-**Proof ceiling:** architecture contracts, artifact-static checks, bounded adjacent repository evidence, and post-M111 HC-01 through HC-04 bounded runtime proofs
+**Proof ceiling:** architecture contracts, artifact-static checks, bounded adjacent repository evidence, and post-M111 HC-01 through HC-05 bounded runtime proofs
 
 ## Objective and boundary
 
 This document is the final M111 architecture package for future Rust planning. It fixes semantic ownership, authorities, evidence ceilings, hostile-case oracles and invalidation conditions without selecting implementation technology.
 
-The baseline proves architecture-level coherence only. Artifact-static checks pass for all 20 hostile cases, and all 14 cross-slice attack classes have an exclusive owner, fail-closed rule and invalidation condition. Post-M111 evidence now provides bounded product-capability runtime PASS for HC-01 through HC-04 (`S10-HC-01-RT`, `S10-HC-02-RT`, `S10-HC-03-RT`, `S10-HC-04-RT`): current runtime results are 4 PASS, 0 FAIL and 16 `unsupported-case`. This does not establish aggregate conformance.
+The baseline proves architecture-level coherence only. Artifact-static checks pass for all 20 hostile cases, and all 14 cross-slice attack classes have an exclusive owner, fail-closed rule and invalidation condition. Post-M111 evidence now provides bounded product-capability runtime PASS for HC-01 through HC-05 (`S10-HC-01-RT`, `S10-HC-02-RT`, `S10-HC-03-RT`, `S10-HC-04-RT`, `S10-HC-05-RT`): current runtime results are 5 PASS, 0 FAIL and 15 `unsupported-case`. This does not establish aggregate conformance.
 
 Architecture PASS is not product runtime PASS. Adjacent parser, citation, architecture/ADR and marker checks are partial evidence only.
 
@@ -128,7 +128,7 @@ Diagnostics may expose only bounded identifiers, hashes, phases, categories, rul
 | Repository-adjacent checks | available checks PASS after corrected invocation | partial parser/citation/repository evidence only |
 | Architecture attack protections | PASS 14/14 | each attack class has exact owner, fail-closed protection and invalidation condition |
 | Milestone-invalidating architecture failures | 0 | no current cross-contract contradiction found |
-| Runtime aggregate | PASS 4/20; FAIL 0/20; `unsupported-case` 16/20 | HC-01 through HC-04 have bounded runtime proofs; mandatory surfaces for HC-05-HC-20 remain absent |
+| Runtime aggregate | PASS 5/20; FAIL 0/20; `unsupported-case` 15/20 | HC-01 through HC-05 have bounded runtime proofs; mandatory surfaces for HC-06-HC-20 remain absent |
 
 | HC | Capability | Aggregate verdict | Missing surface preventing runtime PASS |
 |---|---|---|---|
@@ -136,7 +136,7 @@ Diagnostics may expose only bounded identifiers, hashes, phases, categories, rul
 | HC-02 | Inventory Immutable Intake | `PASS` `[bounded]` | `S10-HC-02-RT`: re-inventory stable digest, append-only attempts and staging/review visibility only |
 | HC-03 | Dispose Review | `PASS` `[bounded]` | `S10-HC-03-RT`: pending/quarantined reject promotion without curated commit |
 | HC-04 | Commit Curated Promotion | `PASS` `[bounded]` | `S10-HC-04-RT`: cancel/retry/mismatch preserve one D116 effect without publication authority |
-| HC-05 | Decode and Anchor | `unsupported-case` | malicious decoder differential and payload canaries |
+| HC-05 | Decode and Anchor | `PASS` `[bounded]` | `S10-HC-05-RT`: honest/malicious differential keeps structural candidates/anchors only; canary absent |
 | HC-06 | Gate Lifecycle | `unsupported-case` | C10 runtime and workflow/storage bypass fixtures |
 | HC-07 | Assert Identity | `unsupported-case`; legal non-claim | identity runtime and false-match/nonmatch fixtures |
 | HC-08 | Validate Relation | `unsupported-case` | registry runtime and unknown-predicate injection |
