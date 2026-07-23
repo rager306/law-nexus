@@ -4,12 +4,12 @@
 > non-authoritative cold-reader projection of
 > `prd/project-state/data/roadmap.json`.
 >
-> Refreshed 2026-07-23 after M119 completion.
+> Refreshed 2026-07-23 after M120 completion.
 
 ## Current position
 
-- **Latest completed milestone:** M119-ylfpsm, HC 07 Assert Identity Runtime Proof.
-- **Active milestone:** none (plan HC-08 next).
+- **Latest completed milestone:** M120-rhu5ui, HC 08 Validate Relation Runtime Proof.
+- **Active milestone:** none (plan HC-09 next).
 - **M111 result:** final `[bounded]` implementation-neutral semantic baseline for heterogeneous Russian legal evidence.
 - **M112 result:** ADR-0005 topology superseded; ADR-0008 through ADR-0012 authored `[bounded]`; executable ADR/decision/owner drift checks active in pre-commit and CI.
 - **M113 result:** first hostile-case Rust runtime proof. `S10-HC-01-RT` is bounded PASS.
@@ -19,7 +19,7 @@
 - **M117 result:** fifth hostile-case Rust runtime proof. `S10-HC-05-RT` is bounded PASS.
 - **M118 result:** sixth hostile-case Rust runtime proof. `S10-HC-06-RT` is bounded PASS.
 - **M119 result:** seventh hostile-case Rust runtime proof. `S10-HC-07-RT` is bounded PASS.
-- **M120 progress:** `S10-HC-08-RT` is bounded PASS. Current aggregate is **8 PASS / 0 FAIL / 12 unsupported-case**.
+- **M120 result:** eighth hostile-case Rust runtime proof. `S10-HC-08-RT` is bounded PASS. Current aggregate is **8 PASS / 0 FAIL / 12 unsupported-case**.
 - **Product target:** Rust-only runtime under ADR-0004; Python may remain only as ADR-0007 subprocess repository harness.
 - **Implementation topology:** not selected. Database, FalkorDB schema, storage, queue/ledger, product crate map, API, concurrency runtime and deployment remain evidence-gated future decisions.
 - **Product readiness:** not proven.
