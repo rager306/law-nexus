@@ -3,6 +3,10 @@
 version = 4
 
 [[package]]
+name = "ln-dispose"
+version = "0.1.0"
+
+[[package]]
 name = "ln-hc01-runner"
 version = "0.1.0"
 dependencies = [
