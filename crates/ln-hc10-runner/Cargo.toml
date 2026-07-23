@@ -1,0 +1,12 @@
+[package]
+name = "ln-hc10-runner"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[[bin]]
+name = "ln-hc10-runner"
+path = "src/main.rs"
+
+[dependencies]
+ln-work = { path = "../ln-work" }
