@@ -1,0 +1,30 @@
+{
+  "schema": "law-nexus-hc06-verdict/v1",
+  "evidence_id": "S10-HC-06-RT",
+  "case_id": "HC-06",
+  "generated_at": "2026-07-23",
+  "implementation_revision": "a4363c61f8cc6b52703555602f8d3c3c477dc3d2",
+  "command": "cargo run --offline --quiet -p ln-hc06-runner -- verdict",
+  "verdict": "PASS",
+  "scenario_count": 3,
+  "confidence_only_reject": true,
+  "in_place_reject": true,
+  "accepted_new_outcome": true,
+  "original_type_preserved": true,
+  "gate_version_ok": true,
+  "remaining_unsupported_cases": 14,
+  "lifecycle": "[bounded]",
+  "product_storage_selected": false,
+  "confidence_threshold_selected": false,
+  "scenarios": [
+    "confidence-only-reject",
+    "in-place-reject",
+    "accepted-new-outcome"
+  ],
+  "non_claims": [
+    "This proof does not select a numerical confidence threshold or product ranking model.",
+    "This proof does not implement C12/C13 gates, D118 clocks, D116 promotion or D120 publication.",
+    "No SQLite, Turso, LadybugDB, FalkorDB, ruVector or AgentFS product backend is selected by this proof.",
+    "HC-07 through HC-20 remain unsupported-case."
+  ]
+}
