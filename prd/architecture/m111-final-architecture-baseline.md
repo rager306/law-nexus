@@ -4,13 +4,13 @@
 **Milestone:** M111/S10  
 **Selection package:** D116, D118, D119, D120, D121 and D123 `KOF-DA`  
 **Product direction:** Rust-only product runtime under ADR-0004; subprocess-only Python harness under ADR-0007; ADR-0005 product topology is superseded
-**Proof ceiling:** architecture contracts, artifact-static checks, bounded adjacent repository evidence, and post-M111 HC-01 bounded runtime proof
+**Proof ceiling:** architecture contracts, artifact-static checks, bounded adjacent repository evidence, and post-M111 HC-01/HC-02 bounded runtime proofs
 
 ## Objective and boundary
 
 This document is the final M111 architecture package for future Rust planning. It fixes semantic ownership, authorities, evidence ceilings, hostile-case oracles and invalidation conditions without selecting implementation technology.
 
-The baseline proves architecture-level coherence only. Artifact-static checks pass for all 20 hostile cases, and all 14 cross-slice attack classes have an exclusive owner, fail-closed rule and invalidation condition. Post-M111 evidence `S10-HC-01-RT` now provides one bounded product-capability runtime PASS: current runtime results are 1 PASS, 0 FAIL and 19 `unsupported-case`. This does not establish aggregate conformance.
+The baseline proves architecture-level coherence only. Artifact-static checks pass for all 20 hostile cases, and all 14 cross-slice attack classes have an exclusive owner, fail-closed rule and invalidation condition. Post-M111 evidence now provides bounded product-capability runtime PASS for HC-01 and HC-02 (`S10-HC-01-RT`, `S10-HC-02-RT`): current runtime results are 2 PASS, 0 FAIL and 18 `unsupported-case`. This does not establish aggregate conformance.
 
 Architecture PASS is not product runtime PASS. Adjacent parser, citation, architecture/ADR and marker checks are partial evidence only.
 
@@ -128,12 +128,12 @@ Diagnostics may expose only bounded identifiers, hashes, phases, categories, rul
 | Repository-adjacent checks | available checks PASS after corrected invocation | partial parser/citation/repository evidence only |
 | Architecture attack protections | PASS 14/14 | each attack class has exact owner, fail-closed protection and invalidation condition |
 | Milestone-invalidating architecture failures | 0 | no current cross-contract contradiction found |
-| Runtime aggregate | PASS 1/20; FAIL 0/20; `unsupported-case` 19/20 | HC-01 has bounded runtime proof; mandatory surfaces for HC-02-HC-20 remain absent |
+| Runtime aggregate | PASS 2/20; FAIL 0/20; `unsupported-case` 18/20 | HC-01 and HC-02 have bounded runtime proofs; mandatory surfaces for HC-03-HC-20 remain absent |
 
 | HC | Capability | Aggregate verdict | Missing surface preventing runtime PASS |
 |---|---|---|---|
 | HC-01 | Observe Source | `PASS` `[bounded]` | `S10-HC-01-RT`: four interrupted outcomes, partial-byte canary and safe diagnostic observations |
-| HC-02 | Inventory Immutable Intake | `unsupported-case` | duplicate inventory and staging/curated visibility |
+| HC-02 | Inventory Immutable Intake | `PASS` `[bounded]` | `S10-HC-02-RT`: re-inventory stable digest, append-only attempts and staging/review visibility only |
 | HC-03 | Dispose Review | `unsupported-case` | disposition executor and non-accepted promotion attempts |
 | HC-04 | Commit Curated Promotion | `unsupported-case` | cancel, replay, mismatch and commit-cardinality runtime |
 | HC-05 | Decode and Anchor | `unsupported-case` | malicious decoder differential and payload canaries |

@@ -9,10 +9,11 @@
 ## Current position
 
 - **Latest completed milestone:** M113-cglmxe, HC 01 Observe Source Runtime Proof.
-- **Active milestone:** M114-8tw2dh, HC 02 Inventory Immutable Intake Runtime Proof.
+- **Active milestone:** M114-8tw2dh, HC 02 Inventory Immutable Intake Runtime Proof (in progress; runtime PASS already tracked pending milestone closeout).
 - **M111 result:** final `[bounded]` implementation-neutral semantic baseline for heterogeneous Russian legal evidence.
 - **M112 result:** ADR-0005 topology superseded; ADR-0008 through ADR-0012 authored `[bounded]`; executable ADR/decision/owner drift checks active in pre-commit and CI.
-- **M113 result:** first hostile-case Rust runtime proof. `S10-HC-01-RT` is bounded PASS. Current aggregate is **1 PASS / 0 FAIL / 19 unsupported-case**.
+- **M113 result:** first hostile-case Rust runtime proof. `S10-HC-01-RT` is bounded PASS.
+- **M114 progress:** `S10-HC-02-RT` is bounded PASS. Current aggregate is **2 PASS / 0 FAIL / 18 unsupported-case**.
 - **Product target:** Rust-only runtime under ADR-0004; Python may remain only as ADR-0007 subprocess repository harness.
 - **Implementation topology:** not selected. Database, FalkorDB schema, storage, queue/ledger, product crate map, API, concurrency runtime and deployment remain evidence-gated future decisions.
 - **Product readiness:** not proven.
@@ -72,23 +73,23 @@ Proof anchors:
 
 ## Recommended next milestone
 
-Execute M114 HC-02 Inventory Immutable Intake:
+After M114 closeout, execute HC-03 Dispose Review:
 
-1. close post-M113 roadmap debt;
-2. implement pure inventory domain/ports without filesystem/storage product selection;
-3. seal hostile rewrite, second-accepted-identity and curated/current exposure attempts;
-4. add a dependency-free process runner;
-5. produce tracked `S10-HC-02-RT` PASS or FAIL;
-6. update current aggregates honestly and gate HC-03 only if HC-02 PASS.
+1. pure disposition domain/ports without promotion authority;
+2. pending/quarantined cannot become acceptance;
+3. promotion attempts from non-accepted dispositions fail closed;
+4. dependency-free process runner and tracked `S10-HC-03-RT` PASS or FAIL;
+5. update aggregates honestly and gate HC-04 only if HC-03 PASS.
 
-HC-02 must keep re-inventory as immutable staging/review visibility. It must not mint curated/current/authoritative identity, overwrite history, or select product filesystem/storage backends.
+Do not select product filesystem/storage/graph/agent backends as part of the next thin hostile slice.
 
 ## Downstream gates
 
 | Capability | Gate | Current lifecycle |
 |---|---|---|
 | Rust product parity | Implement all required capability surfaces and whole-system parity before Python archival | `[proposed]` |
-| HC-02 inventory intake | Re-inventory remains staging/review; no curated/current/authority labels | `[proposed]` active next |
+| HC-02 inventory intake | Re-inventory remains staging/review; no curated/current/authority labels | `[bounded]` runtime PASS tracked; milestone closeout pending |
+| HC-03 dispose review | Pending/quarantined is not acceptance; promotion blocked | `[proposed]` next after M114 |
 | Temporal resolver | Five-clock runtime plus complete substitution/conflict fixtures | `[proposed]` |
 | Promotion/publication | Idempotent D116 and complete H1/D120 hostile fixtures | `[proposed]` |
 | FalkorDB product integration | ADR-0012 evidence pass and disposable runtime probes after an owning capability needs it | `[deferred]` |
@@ -106,4 +107,4 @@ HC-02 must keep re-inventory as immutable staging/review visibility. It must not
 
 ## Non-claims
 
-This roadmap does not prove Rust product readiness, parser completeness, Russian legal correctness, source completeness, FalkorDB production readiness, retrieval quality, diagnostic sink safety, E1-E3 capacity or whole-system parity. M113 HC-01 PASS is bounded synthetic interrupted-source proof only.
+This roadmap does not prove Rust product readiness, parser completeness, Russian legal correctness, source completeness, FalkorDB production readiness, retrieval quality, diagnostic sink safety, E1-E3 capacity or whole-system parity. HC-01 and HC-02 bounded synthetic runtime PASS proofs do not establish aggregate conformance or product storage readiness.

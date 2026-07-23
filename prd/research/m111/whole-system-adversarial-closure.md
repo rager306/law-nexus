@@ -63,12 +63,12 @@ A required capability, fixture, adapter, sink or human/legal judgment is absent;
 
 ## HC-01 through HC-20 execution classification
 
-All 20 cases remain runtime-required. Post-M111 evidence now supplies one bounded product-capability runtime for HC-01; HC-02 through HC-20 remain unsupported. The table records the strongest honest current evidence and exact remaining observable.
+All 20 cases remain runtime-required. Post-M111 evidence now supplies bounded product-capability runtime for HC-01 and HC-02; HC-03 through HC-20 remain unsupported. The table records the strongest honest current evidence and exact remaining observable.
 
 | HC | Primary capability | Aggregate mode/current verdict | Strongest current partial and inputs | S10 check IDs | Missing observable preventing aggregate PASS |
 |---|---|---|---|---|---|
 | HC-01 | Observe Source | `runtime-required` / `PASS` `[bounded]` | artifact-static contract plus Rust process proof at `prd/migration/rust-evidence/probes/hc01-observe-source-runtime.json` | `S10-HC-01-STATIC`, `S10-HC-01-RT` | none for the bounded synthetic interrupted-source scope; real provider/network/TLS fitness remains a non-claim |
-| HC-02 | Inventory Immutable Intake | `runtime-required` / `unsupported-case` | artifact-static: skeleton HC-02 and consultant intake immutable manifest/disposition contract | `S10-HC-02-STATIC`, `S10-HC-02-RT` | duplicate inventory execution and staging-versus-curated visibility query |
+| HC-02 | Inventory Immutable Intake | `runtime-required` / `PASS` `[bounded]` | artifact-static contract plus Rust process proof at `prd/migration/rust-evidence/probes/hc02-inventory-intake-runtime.json` | `S10-HC-02-STATIC`, `S10-HC-02-RT` | none for the bounded synthetic re-inventory scope; real filesystem intake and product storage remain non-claims |
 | HC-03 | Dispose Review | `runtime-required` / `unsupported-case` | artifact-static: pending/quarantined/accepted/rejected and promotion prerequisites | `S10-HC-03-STATIC`, `S10-HC-03-RT` | disposition executor and promotion attempt from each non-accepted state |
 | HC-04 | Commit Curated Promotion | `runtime-required` / `unsupported-case` | artifact-static: D116 sole owner, operation/digest outcomes and D116≠D120 | `S10-HC-04-STATIC`, `S10-HC-04-RT` | promotion runtime with cancel, identical replay, mismatch and commit-cardinality evidence |
 | HC-05 | Decode and Anchor | `runtime-required` / `unsupported-case` | artifact-static plus adjacent parser smoke only; parser smoke is not HC PASS | `S10-HC-05-STATIC`, `S10-HC-05-ADJ`, `S10-HC-05-RT` | honest/malicious decoder differential adapters and payload-canary sinks |
@@ -86,13 +86,13 @@ All 20 cases remain runtime-required. Post-M111 evidence now supplies one bounde
 | HC-17 | Query Evidence-Bounded State | `runtime-required` / `unsupported-case` | artifact-static plus adjacent legacy citation tests; adjacent pass is not HC PASS | `S10-HC-17-STATIC`, `S10-HC-17-ADJ`, `S10-HC-17-RT` | M111 query policy runtime and staging/gap-invention fixtures |
 | HC-18 | Resolve Citation | `runtime-required` / `unsupported-case`; official-source legal determination non-claim | artifact-static plus adjacent legacy citation binding tests | `S10-HC-18-STATIC`, `S10-HC-18-ADJ`, `S10-HC-18-RT`, `S10-HC-18-LEGAL` | restricted-official/mirror resolver and missing-anchor fixtures |
 | HC-19 | Emit Safe Diagnostics | `runtime-required` / `unsupported-case` | artifact-static plus adjacent secret/redaction marker checks | `S10-HC-19-STATIC`, `S10-HC-19-ADJ`, `S10-HC-19-RT` | declared sink inventory and multi-canary/redaction-failure/injection runtime |
-| HC-20 | Evaluate Conformance | `runtime-required` / `unsupported-case` | artifact-static owner/schema/oracle checks plus architecture/ADR verifiers | `S10-HC-20-STATIC`, `S10-HC-20-REPO`, `S10-HC-20-META` | complete meta-suite and differential adapters; runtime verdicts for HC-02-HC-19 remain unsupported; HC-01 is bounded PASS only |
+| HC-20 | Evaluate Conformance | `runtime-required` / `unsupported-case` | artifact-static owner/schema/oracle checks plus architecture/ADR verifiers | `S10-HC-20-STATIC`, `S10-HC-20-REPO`, `S10-HC-20-META` | complete meta-suite and differential adapters; runtime verdicts for HC-03-HC-19 remain unsupported; HC-01 and HC-02 are bounded PASS only |
 
 ## Current classification result
 
-- Aggregate runtime PASS: **1/20** (`HC-01`, bounded synthetic Rust process proof).
+- Aggregate runtime PASS: **2/20** (`HC-01`, `HC-02`, bounded synthetic Rust process proofs).
 - Aggregate FAIL: **0/20**.
-- Aggregate `unsupported-case`: **19/20** because mandatory runtime observables for HC-02-HC-20 are absent.
+- Aggregate `unsupported-case`: **18/20** because mandatory runtime observables for HC-03-HC-20 are absent.
 - Artifact-static subchecks eligible for T02: **20/20**.
 - Adjacent repository executables eligible only as explicitly partial evidence: HC-05, HC-17, HC-18, HC-19 and HC-20.
 - Human/legal residual non-claims: HC-07, HC-09 and HC-18.
@@ -153,9 +153,26 @@ Durable evidence:
 - `prd/migration/rust-evidence/probes/hc01-observe-source-runtime.md`;
 - implementation revision `092b8c4dbb3f7edfeeeb751222262cd1a95ec651`.
 
-Current aggregate after this delta: runtime PASS `1/20`, runtime FAIL `0/20`,
+Aggregate immediately after this delta: runtime PASS `1/20`, runtime FAIL `0/20`,
 `unsupported-case` `19/20`. Historical T02 rows above remain the M111 execution
 record and are not rewritten as if HC-01 runtime existed then.
+
+### Post-M111 runtime delta: HC-02
+
+M114 added the missing Rust synthetic runtime surface for HC-02. The command
+`cargo run --offline --quiet -p ln-hc02-runner -- verdict` executed inventory and
+re-inventory paths. Stable digest, append-only attempts, staging/review
+visibility only, authority absence and raw-canary absence all passed. The
+negative mismatched-digest control fails the PASS predicate.
+
+Durable evidence:
+
+- `prd/migration/rust-evidence/probes/hc02-inventory-intake-runtime.json`;
+- `prd/migration/rust-evidence/probes/hc02-inventory-intake-runtime.md`;
+- implementation revision `505a69e49227e9b867d7768476968fa2b6d1d774`.
+
+Current aggregate after HC-01 and HC-02: runtime PASS `2/20`, runtime FAIL `0/20`,
+`unsupported-case` `18/20`.
 
 ## T03 external negative-experience ledger
 
@@ -179,7 +196,7 @@ Independent corroboration is mechanism-level only: N02 and N03 expose multiple l
 | Attack | Primary owner and artifact | Architecture protection | Architecture verdict | Missing runtime observable |
 |---|---|---|---|---|
 | Source-authority loss | HC-01 `outward source boundary`; HC-18 `domain citation policy`; separate exclusive owners, not co-owners; `m111-corpus-source-authority-contract.md` and skeleton | Observe Source transport cannot rewrite source authority or turn inaccessible into absent. Resolve Citation separately cannot relabel a mirror official or invent an anchor. Either violation invalidates its owning capability. | `PASS` | HC-01 partial-byte and direct/proxy fixtures; separately, HC-18 restricted-official/mirror fixtures |
-| Immutable-intake corruption | HC-02 `intake application policy`; skeleton | Inventory is append-only staging; it cannot destructively rewrite or create curated/current/authoritative state. Destructive mutation or authority labeling invalidates this owner binding. | `PASS` | re-inventory and cancellation runtime for HC-02; HC-04 digest mismatch remains D116-owned |
+| Immutable-intake corruption | HC-02 `intake application policy`; skeleton | Inventory is append-only staging; it cannot destructively rewrite or create curated/current/authoritative state. Destructive mutation or authority labeling invalidates this owner binding. | `PASS` | bounded synthetic re-inventory closed by `S10-HC-02-RT`; real filesystem intake/cancellation and product storage remain open; HC-04 digest mismatch remains D116-owned |
 | Partial or duplicate promotion | HC-04 `sole Promotion Authority` under D116; source-authority and skeleton contracts | One idempotent commit identity; partial success is non-authoritative; promotion is not publication. A second promotion writer or partial curated commit invalidates D116. | `PASS` | cancel, identical replay, mismatch and commit-cardinality runtime for HC-04 |
 | Dual H1 writers | HC-15 `sole Publication Authority` under D120; pipeline and skeleton contracts | Publication Authority is singular and separate from D116; competing writers are forbidden and invalidate D120. | `PASS` | concurrent competing-writer fixture for HC-15 |
 | Provisional promotion | HC-16 `application acceleration policy`; D120 Publication Authority supplies the ceiling but is not co-owner; pipeline and skeleton contracts | Provisional remains non-authoritative, incomplete and not-current; direct promotion or a second authoritative writer invalidates the capability. | `PASS` | label-mutation and direct-promotion attempts for HC-16 |
@@ -215,7 +232,7 @@ A fresh independent pass used sources outside the central T01/T03 selection evid
 | OpenTelemetry Project, *Handling sensitive data*, accessed 2026-07-22, https://opentelemetry.io/docs/security/handling-sensitive-data/ | Telemetry may capture credentials, tokens and personal data; collection minimization and redaction/hash/deletion are required controls. | Framework guidance does not select OpenTelemetry or define legal-text/vector policy. **Retain** diagnostic denylist without technology selection. |
 | NIST SP 800-92, Kent and Souppaya, *Guide to Computer Security Log Management*, September 2006, https://csrc.nist.gov/pubs/sp/800/92/final | Logs are event records requiring confidentiality, integrity, availability and explicit content policy; operational records are not automatic domain truth. | Legacy log-management guidance is not a provenance ontology or legal temporal model. **Retain** observation/diagnostic non-authority. |
 
-Efficiency and transferable law-nexus capacity remain unknown. At M111 T05 this cross-check left the then-current aggregate at static PASS 20/20, architecture attack protection PASS 14/14, runtime PASS 0/20, runtime FAIL 0/20 and `unsupported-case` 20/20. The post-M113 current runtime aggregate is PASS 1/20, FAIL 0/20 and `unsupported-case` 19/20.
+Efficiency and transferable law-nexus capacity remain unknown. At M111 T05 this cross-check left the then-current aggregate at static PASS 20/20, architecture attack protection PASS 14/14, runtime PASS 0/20, runtime FAIL 0/20 and `unsupported-case` 20/20. The post-M114 current runtime aggregate is PASS 2/20, FAIL 0/20 and `unsupported-case` 18/20.
 
 ## T01-T05 non-claims
 
