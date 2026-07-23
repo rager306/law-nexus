@@ -1,3 +1,3 @@
 [workspace]
-members = ["crates/ln-status", "crates/ln-observe", "crates/ln-hc01-runner", "crates/ln-inventory"]
+members = ["crates/ln-status", "crates/ln-observe", "crates/ln-hc01-runner", "crates/ln-inventory", "crates/ln-hc02-runner"]
 resolver = "2"
