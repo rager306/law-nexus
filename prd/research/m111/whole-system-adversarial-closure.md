@@ -63,7 +63,7 @@ A required capability, fixture, adapter, sink or human/legal judgment is absent;
 
 ## HC-01 through HC-20 execution classification
 
-All 20 cases remain runtime-required. Post-M111 evidence now supplies bounded product-capability runtime for HC-01 and HC-02; HC-03 through HC-20 remain unsupported. The table records the strongest honest current evidence and exact remaining observable.
+All 20 cases remain runtime-required. Post-M111 evidence now supplies bounded product-capability runtime for HC-01, HC-02 and HC-03; HC-04 through HC-20 remain unsupported. The table records the strongest honest current evidence and exact remaining observable.
 
 | HC | Primary capability | Aggregate mode/current verdict | Strongest current partial and inputs | S10 check IDs | Missing observable preventing aggregate PASS |
 |---|---|---|---|---|---|
@@ -97,7 +97,7 @@ All 20 cases remain runtime-required. Post-M111 evidence now supplies bounded pr
 - Adjacent repository executables eligible only as explicitly partial evidence: HC-05, HC-17, HC-18, HC-19 and HC-20.
 - Human/legal residual non-claims: HC-07, HC-09 and HC-18.
 
-This result does not invalidate or fully validate D123. Nineteen unsupported cases still block any aggregate runtime-conformant D123 claim.
+This result does not invalidate or fully validate D123. Seventeen unsupported cases still block any aggregate runtime-conformant D123 claim.
 
 ## T02 execution rule
 

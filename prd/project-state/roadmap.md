@@ -4,16 +4,17 @@
 > non-authoritative cold-reader projection of
 > `prd/project-state/data/roadmap.json`.
 >
-> Refreshed 2026-07-23 after M113 completion.
+> Refreshed 2026-07-23 after M115 completion.
 
 ## Current position
 
-- **Latest completed milestone:** M114-8tw2dh, HC 02 Inventory Immutable Intake Runtime Proof.
-- **Active milestone:** M115-nrvz4v, HC 03 Dispose Review Runtime Proof.
+- **Latest completed milestone:** M115-nrvz4v, HC 03 Dispose Review Runtime Proof.
+- **Active milestone:** M116-l1avxb, HC 04 Commit Curated Promotion Runtime Proof.
 - **M111 result:** final `[bounded]` implementation-neutral semantic baseline for heterogeneous Russian legal evidence.
 - **M112 result:** ADR-0005 topology superseded; ADR-0008 through ADR-0012 authored `[bounded]`; executable ADR/decision/owner drift checks active in pre-commit and CI.
 - **M113 result:** first hostile-case Rust runtime proof. `S10-HC-01-RT` is bounded PASS.
-- **M115 progress:** `S10-HC-03-RT` is bounded PASS. Current aggregate is **3 PASS / 0 FAIL / 17 unsupported-case**.
+- **M114 result:** second hostile-case Rust runtime proof. `S10-HC-02-RT` is bounded PASS.
+- **M115 result:** third hostile-case Rust runtime proof. `S10-HC-03-RT` is bounded PASS. Current aggregate is **3 PASS / 0 FAIL / 17 unsupported-case**.
 - **Product target:** Rust-only runtime under ADR-0004; Python may remain only as ADR-0007 subprocess repository harness.
 - **Implementation topology:** not selected. Database, FalkorDB schema, storage, queue/ledger, product crate map, API, concurrency runtime and deployment remain evidence-gated future decisions.
 - **Product readiness:** not proven.
@@ -91,8 +92,8 @@ Do not select product filesystem/storage/graph/agent backends as part of the nex
 |---|---|---|
 | Rust product parity | Implement all required capability surfaces and whole-system parity before Python archival | `[proposed]` |
 | HC-02 inventory intake | Re-inventory remains staging/review; no curated/current/authority labels | `[bounded]` runtime PASS |
-| HC-03 dispose review | Pending/quarantined is not acceptance; promotion blocked | `[proposed]` active next |
-| HC-04 promotion | Cancel/retry/duplicate preserve one D116 effect | `[proposed]` after HC-03 |
+| HC-03 dispose review | Pending/quarantined is not acceptance; promotion blocked | `[bounded]` runtime PASS |
+| HC-04 promotion | Cancel/retry/duplicate preserve one D116 effect | `[proposed]` active next |
 | Temporal resolver | Five-clock runtime plus complete substitution/conflict fixtures | `[proposed]` |
 | Promotion/publication | Idempotent D116 and complete H1/D120 hostile fixtures | `[proposed]` |
 | FalkorDB product integration | ADR-0012 evidence pass and disposable runtime probes after an owning capability needs it | `[deferred]` |
@@ -110,4 +111,4 @@ Do not select product filesystem/storage/graph/agent backends as part of the nex
 
 ## Non-claims
 
-This roadmap does not prove Rust product readiness, parser completeness, Russian legal correctness, source completeness, FalkorDB production readiness, retrieval quality, diagnostic sink safety, E1-E3 capacity or whole-system parity. HC-01 and HC-02 bounded synthetic runtime PASS proofs do not establish aggregate conformance or product storage readiness.
+This roadmap does not prove Rust product readiness, parser completeness, Russian legal correctness, source completeness, FalkorDB production readiness, retrieval quality, diagnostic sink safety, E1-E3 capacity or whole-system parity. HC-01 through HC-03 bounded synthetic runtime PASS proofs do not establish aggregate conformance or product storage readiness.
