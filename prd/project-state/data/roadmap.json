@@ -108,12 +108,12 @@
     "goal": "Convert HC-06 from unsupported-case into a bounded Rust runtime PASS without selecting product storage or confidence threshold."
   },
   "recommended_next": {
-    "title": "HC-07 Assert Identity runtime proof",
+    "title": "HC-08 Validate Relation runtime proof",
     "priority": 1,
-    "why": "M118 admits only the next hostile case after HC-06 PASS. HC-07 is the next P0 evidence-kernel boundary: C12 preserves identities under false-match pressure without family-owned merge.",
-    "plan_reference": "prd/architecture/m111-system-skeleton-contract.md HC-07, prd/architecture/m111-final-architecture-baseline.md, doc/adr/0010-evidence-kernel-gates.md, doc/adr/0012-consequential-evidence-protocol.md",
-    "slices": "Close post-M118 roadmap debt, implement pure C12 identity domain/ports, seal hostile false-match merge contracts, add dependency-free runtime runner, produce S10-HC-07-RT PASS or FAIL, then validate and gate HC-08 only if HC-07 PASS.",
-    "non_validation": "HC-01 through HC-06 bounded synthetic runtime PASS do not prove source completeness, legal correctness, real filesystem intake, product storage readiness, FalkorDB readiness, retrieval quality or E1-E3 capacity. HC-07 through HC-20 remain unsupported until their own runtime proof exists."
+    "why": "M119 admits only the next hostile case after HC-07 PASS. HC-08 is the next P0 evidence-kernel boundary: C13 rejects open and wrong-owner relations without family co-ownership of the registry gate.",
+    "plan_reference": "prd/architecture/m111-system-skeleton-contract.md HC-08, prd/architecture/m111-final-architecture-baseline.md, doc/adr/0010-evidence-kernel-gates.md, doc/adr/0012-consequential-evidence-protocol.md",
+    "slices": "Close post-M119 roadmap debt, implement pure C13 relation domain/ports, seal hostile unknown-predicate and wrong-owner contracts, add dependency-free runtime runner, produce S10-HC-08-RT PASS or FAIL, then validate and gate HC-09 only if HC-08 PASS.",
+    "non_validation": "HC-01 through HC-07 bounded synthetic runtime PASS do not prove source completeness, legal correctness, real filesystem intake, product storage readiness, FalkorDB readiness, retrieval quality or E1-E3 capacity. HC-08 through HC-20 remain unsupported until their own runtime proof exists."
   },
   "downstream_blocked": [
     {
@@ -129,7 +129,7 @@
     {
       "capability": "Rust parity baseline",
       "blocker": "Rust has not reproduced the frozen mode-separated Python artifacts or product behavior",
-      "current_status": "[bounded] M111 semantic baseline, M112 ADR enforcement, M113-M118 HC-01 through HC-06 synthetic runtime PASS complete; whole-system Rust product parity unproven"
+      "current_status": "[bounded] M111 semantic baseline, M112 ADR enforcement, M113-M119 HC-01 through HC-07 synthetic runtime PASS complete; whole-system Rust product parity unproven"
     },
     {
       "capability": "R037 (FalkorDB ingest/runtime)",
