@@ -1,0 +1,12 @@
+[package]
+name = "ln-hc04-runner"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[[bin]]
+name = "ln-hc04-runner"
+path = "src/main.rs"
+
+[dependencies]
+ln-promote = { path = "../ln-promote" }
