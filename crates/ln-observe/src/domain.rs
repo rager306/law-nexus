@@ -111,8 +111,8 @@ impl TransportOutcome {
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct PartialObservationSummary {
-    pub byte_count: usize,
-    pub fingerprint: String,
+    byte_count: usize,
+    fingerprint: String,
 }
 
 impl PartialObservationSummary {
@@ -121,6 +121,14 @@ impl PartialObservationSummary {
             byte_count: 0,
             fingerprint: String::new(),
         }
+    }
+
+    pub fn byte_count(&self) -> usize {
+        self.byte_count
+    }
+
+    pub fn fingerprint(&self) -> &str {
+        &self.fingerprint
     }
 
     pub fn from_bytes(bytes: &[u8]) -> Self {
@@ -233,8 +241,8 @@ mod tests {
         let second = PartialObservationSummary::from_bytes(payload);
 
         assert_eq!(first, second);
-        assert_eq!(first.byte_count, payload.len());
-        assert_eq!(first.fingerprint, "fnv1a64:4506db77c0be12b7");
+        assert_eq!(first.byte_count(), payload.len());
+        assert_eq!(first.fingerprint(), "fnv1a64:4506db77c0be12b7");
         assert!(!format!("{first:?}").contains("PARTIAL-SECRET-LEGAL-TEXT"));
     }
 }

@@ -36,13 +36,15 @@ where
             DiagnosticId::parse(&format!("diagnostic:{}", request.request_id.as_str()))
                 .expect("validated request id must fit diagnostic namespace");
 
-        self.work_state.record_transition(WorkTransition {
+        let started = WorkTransition {
             request_id: request.request_id.clone(),
             phase: WorkPhase::Started,
-        });
+        };
+        self.work_state.record_transition(started.clone());
 
         let mut observation = self.source.observe(&request);
-        if observation.outcome == TransportOutcome::Completed && observation.partial.byte_count > 0
+        if observation.outcome == TransportOutcome::Completed
+            && observation.partial.byte_count() > 0
         {
             // A completed observation may not carry partial-byte state. Treat an
             // adapter contract violation as a transport failure so work and
@@ -55,10 +57,11 @@ where
         } else {
             WorkPhase::ObservationFailed
         };
-        self.work_state.record_transition(WorkTransition {
+        let finished = WorkTransition {
             request_id: request.request_id.clone(),
             phase: final_phase,
-        });
+        };
+        self.work_state.record_transition(finished.clone());
 
         let event = DiagnosticEvent {
             diagnostic_id,
@@ -67,16 +70,16 @@ where
             phase: DiagnosticCode::new("observe-source"),
             category: DiagnosticCode::new(observation.outcome.diagnostic_category()),
             retryable: observation.outcome.retryable(),
-            partial_byte_count: observation.partial.byte_count,
-            partial_fingerprint: observation.partial.fingerprint,
+            partial_byte_count: observation.partial.byte_count(),
+            partial_fingerprint: observation.partial.fingerprint().to_owned(),
         };
-        self.diagnostics.emit(event);
+        self.diagnostics.emit(event.clone());
 
         ObserveSourceResult {
             observation_id,
             transport_outcome: observation.outcome,
-            work_trace: self.work_state.transitions().to_vec(),
-            diagnostics: self.diagnostics.events().to_vec(),
+            work_trace: vec![started, finished],
+            diagnostics: vec![event],
             authority: AuthorityAbsence::default(),
             legal_clock_anchor: None,
             promotion_id: None,
