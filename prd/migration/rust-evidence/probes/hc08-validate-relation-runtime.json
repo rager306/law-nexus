@@ -1,0 +1,30 @@
+{
+  "schema": "law-nexus-hc08-verdict/v1",
+  "evidence_id": "S10-HC-08-RT",
+  "case_id": "HC-08",
+  "generated_at": "2026-07-23",
+  "implementation_revision": "437bd53be332b8f2f6f3b7823aee633666750dd2",
+  "command": "cargo run --offline --quiet -p ln-hc08-runner -- verdict",
+  "verdict": "PASS",
+  "scenario_count": 3,
+  "unknown_predicate_reject": true,
+  "wrong_owner_reject": true,
+  "correct_owner_accept": true,
+  "registry_unchanged_on_reject": true,
+  "rejected_not_query_facts": true,
+  "remaining_unsupported_cases": 12,
+  "lifecycle": "[bounded]",
+  "product_storage_selected": false,
+  "graph_schema_selected": false,
+  "scenarios": [
+    "unknown-predicate-reject",
+    "wrong-owner-reject",
+    "correct-owner-accept"
+  ],
+  "non_claims": [
+    "This proof does not select a graph or database schema.",
+    "This proof does not implement C10/C12 gates, D118 clocks, D116 promotion or D120 publication.",
+    "No SQLite, Turso, LadybugDB, FalkorDB, ruVector or AgentFS product backend is selected by this proof.",
+    "HC-09 through HC-20 remain unsupported-case."
+  ]
+}
