@@ -123,13 +123,19 @@
       "theme": "HC-10 Transition Work State runtime proof",
       "status": "complete",
       "boundary": "Preflighted with trajectory governor, implemented pure hexagonal ln-work seam, sealed hostile progress-to-legal contracts, added dependency-free process runner, and produced tracked S10-HC-10-RT PASS. Current aggregate after M113-M122 is 10 PASS / 0 FAIL / 10 unsupported. No product storage or workflow engine selected."
+    },
+    {
+      "range": "M123-M123",
+      "theme": "HC-11 Compute Dependency Closure runtime proof",
+      "status": "complete",
+      "boundary": "Preflighted with trajectory governor, implemented pure hexagonal ln-closure seam with application-owned registered-evidence freeze, sealed hostile progress-as-completeness contracts, added dependency-free process runner, and produced tracked S10-HC-11-RT PASS. Current aggregate after M113-M123 is 11 PASS / 0 FAIL / 9 unsupported. No product storage or dependency index selected."
     }
   ],
   "current_milestone": {
-    "id": "M122-0jpqp4",
-    "title": "HC 10 Transition Work State Runtime Proof",
+    "id": "M123-lhxv9q",
+    "title": "HC 11 Compute Dependency Closure Runtime Proof",
     "status": "complete",
-    "goal": "Convert HC-10 from unsupported-case into a bounded Rust runtime PASS without selecting product storage or a workflow engine."
+    "goal": "Convert HC-11 from unsupported-case into a bounded Rust runtime PASS without selecting product storage or a dependency index."
   },
   "recommended_next": {
     "title": "HC-12 Rebuild Disposable Projection runtime proof",
