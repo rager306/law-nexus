@@ -4,18 +4,18 @@
 > non-authoritative cold-reader projection of
 > `prd/project-state/data/roadmap.json`.
 >
-> Refreshed 2026-07-23 after M115 completion.
+> Refreshed 2026-07-23 after M116 completion.
 
 ## Current position
 
-- **Latest completed milestone:** M115-nrvz4v, HC 03 Dispose Review Runtime Proof.
-- **Active milestone:** M116-l1avxb, HC 04 Commit Curated Promotion Runtime Proof.
+- **Latest completed milestone:** M116-l1avxb, HC 04 Commit Curated Promotion Runtime Proof.
+- **Active milestone:** M117-a06sez, HC 05 Decode and Anchor Runtime Proof.
 - **M111 result:** final `[bounded]` implementation-neutral semantic baseline for heterogeneous Russian legal evidence.
 - **M112 result:** ADR-0005 topology superseded; ADR-0008 through ADR-0012 authored `[bounded]`; executable ADR/decision/owner drift checks active in pre-commit and CI.
 - **M113 result:** first hostile-case Rust runtime proof. `S10-HC-01-RT` is bounded PASS.
 - **M114 result:** second hostile-case Rust runtime proof. `S10-HC-02-RT` is bounded PASS.
 - **M115 result:** third hostile-case Rust runtime proof. `S10-HC-03-RT` is bounded PASS.
-- **M116 progress:** `S10-HC-04-RT` is bounded PASS. Current aggregate is **4 PASS / 0 FAIL / 16 unsupported-case**.
+- **M116 result:** fourth hostile-case Rust runtime proof. `S10-HC-04-RT` is bounded PASS. Current aggregate is **4 PASS / 0 FAIL / 16 unsupported-case**.
 - **Product target:** Rust-only runtime under ADR-0004; Python may remain only as ADR-0007 subprocess repository harness.
 - **Implementation topology:** not selected. Database, FalkorDB schema, storage, queue/ledger, product crate map, API, concurrency runtime and deployment remain evidence-gated future decisions.
 - **Product readiness:** not proven.
@@ -32,6 +32,7 @@
 | M113-M113 | HC-01 Observe Source first Rust hostile-case runtime proof | Bounded synthetic interrupted-source PASS only; 19 hostile cases remain unsupported; no product storage/backend selection. |
 | M114-M114 | HC-02 Inventory Immutable Intake second Rust hostile-case runtime proof | Bounded synthetic re-inventory PASS; 18 hostile cases remained unsupported at that point. |
 | M115-M115 | HC-03 Dispose Review third Rust hostile-case runtime proof | Bounded synthetic non-accepted rejection PASS; 17 hostile cases remain unsupported; no product storage/backend selection. |
+| M116-M116 | HC-04 Commit Curated Promotion fourth Rust hostile-case runtime proof | Bounded synthetic cancel/retry/mismatch PASS; 16 hostile cases remain unsupported; no product storage/backend selection. |
 
 ## M111 semantic baseline
 
