@@ -1,8 +1,8 @@
 use std::collections::HashMap;
 
 use crate::domain::{
-    CommitId, Disposition, DispositionReason, DispositionState, InventoryItemId, PromotionIdentity,
-    PromotionOutcome, PromotionResult,
+    CommitId, Disposition, DispositionReason, InventoryItemId, PromotionIdentity, PromotionOutcome,
+    PromotionResult,
 };
 use crate::ports::{DispositionStorePort, PromotionGatePort};
 

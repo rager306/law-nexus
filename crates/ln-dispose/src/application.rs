@@ -92,4 +92,16 @@ where
             promotion_identity: None,
         })
     }
+
+    /// Test-only helper: set disposition to Accepted for positive control.
+    pub fn store_set_accepted(&mut self, item_id: InventoryItemId) {
+        self.store.set_disposition(Disposition {
+            item_id,
+            state: DispositionState::Accepted,
+            reason: DispositionReason::Accepted,
+            evidence_ids: Vec::new(),
+            accepted_commit_id: None,
+            promotion_identity: None,
+        });
+    }
 }
