@@ -14,7 +14,8 @@
 - **M112 result:** ADR-0005 topology superseded; ADR-0008 through ADR-0012 authored `[bounded]`; executable ADR/decision/owner drift checks active in pre-commit and CI.
 - **M113 result:** first hostile-case Rust runtime proof. `S10-HC-01-RT` is bounded PASS.
 - **M114 result:** second hostile-case Rust runtime proof. `S10-HC-02-RT` is bounded PASS.
-- **M115 result:** third hostile-case Rust runtime proof. `S10-HC-03-RT` is bounded PASS. Current aggregate is **3 PASS / 0 FAIL / 17 unsupported-case**.
+- **M115 result:** third hostile-case Rust runtime proof. `S10-HC-03-RT` is bounded PASS.
+- **M116 progress:** `S10-HC-04-RT` is bounded PASS. Current aggregate is **4 PASS / 0 FAIL / 16 unsupported-case**.
 - **Product target:** Rust-only runtime under ADR-0004; Python may remain only as ADR-0007 subprocess repository harness.
 - **Implementation topology:** not selected. Database, FalkorDB schema, storage, queue/ledger, product crate map, API, concurrency runtime and deployment remain evidence-gated future decisions.
 - **Product readiness:** not proven.
@@ -76,13 +77,13 @@ Proof anchors:
 
 ## Recommended next milestone
 
-After M115 closeout, execute HC-04 Commit Curated Promotion:
+After M116 closeout, execute HC-05 Decode and Anchor:
 
-1. pure promotion domain/ports without publication authority;
-2. cancel/retry/duplicate preserve one D116 effect;
-3. mismatched reuse is rejected;
-4. dependency-free process runner and tracked `S10-HC-04-RT` PASS or FAIL;
-5. update aggregates honestly and gate HC-05 only if HC-04 PASS.
+1. pure outward decode boundary without C10/C12/C13 ownership;
+2. honest/malicious decoder differential;
+3. payload canaries and safe diagnostics;
+4. dependency-free process runner and tracked `S10-HC-05-RT` PASS or FAIL;
+5. update aggregates honestly and gate HC-06 only if HC-05 PASS.
 
 Do not select product filesystem/storage/graph/agent backends as part of the next thin hostile slice.
 
@@ -93,7 +94,8 @@ Do not select product filesystem/storage/graph/agent backends as part of the nex
 | Rust product parity | Implement all required capability surfaces and whole-system parity before Python archival | `[proposed]` |
 | HC-02 inventory intake | Re-inventory remains staging/review; no curated/current/authority labels | `[bounded]` runtime PASS |
 | HC-03 dispose review | Pending/quarantined is not acceptance; promotion blocked | `[bounded]` runtime PASS |
-| HC-04 promotion | Cancel/retry/duplicate preserve one D116 effect | `[proposed]` active next |
+| HC-04 promotion | Cancel/retry/duplicate preserve one D116 effect | `[bounded]` runtime PASS |
+| HC-05 decode and anchor | Decoder cannot verify/merge/mint relations or leak payload | `[proposed]` active next |
 | Temporal resolver | Five-clock runtime plus complete substitution/conflict fixtures | `[proposed]` |
 | Promotion/publication | Idempotent D116 and complete H1/D120 hostile fixtures | `[proposed]` |
 | FalkorDB product integration | ADR-0012 evidence pass and disposable runtime probes after an owning capability needs it | `[deferred]` |
@@ -111,4 +113,4 @@ Do not select product filesystem/storage/graph/agent backends as part of the nex
 
 ## Non-claims
 
-This roadmap does not prove Rust product readiness, parser completeness, Russian legal correctness, source completeness, FalkorDB production readiness, retrieval quality, diagnostic sink safety, E1-E3 capacity or whole-system parity. HC-01 through HC-03 bounded synthetic runtime PASS proofs do not establish aggregate conformance or product storage readiness.
+This roadmap does not prove Rust product readiness, parser completeness, Russian legal correctness, source completeness, FalkorDB production readiness, retrieval quality, diagnostic sink safety, E1-E3 capacity or whole-system parity. HC-01 through HC-04 bounded synthetic runtime PASS proofs do not establish aggregate conformance or product storage readiness.

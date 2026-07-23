@@ -1,0 +1,29 @@
+{
+  "schema": "law-nexus-hc04-verdict/v1",
+  "evidence_id": "S10-HC-04-RT",
+  "case_id": "HC-04",
+  "generated_at": "2026-07-23",
+  "implementation_revision": "a28323cdcb21402dac4d4f86f482dcbc1e3e3fae",
+  "command": "cargo run --offline --quiet -p ln-hc04-runner -- verdict",
+  "verdict": "PASS",
+  "scenario_count": 3,
+  "cancel_no_effect": true,
+  "identical_retry_one_commit": true,
+  "mismatch_reject": true,
+  "one_d116_effect": true,
+  "publication_authority_absent": true,
+  "remaining_unsupported_cases": 16,
+  "lifecycle": "[bounded]",
+  "product_storage_selected": false,
+  "scenarios": [
+    "cancel-no-effect",
+    "identical-retry-one-commit",
+    "mismatch-reject"
+  ],
+  "non_claims": [
+    "This proof does not validate real filesystem dual-write, product storage, legal correctness, source completeness, capacity or performance.",
+    "This proof does not implement D120 publication, D118 clocks, C10, C12 or C13 gates.",
+    "No SQLite, Turso, LadybugDB, FalkorDB, ruVector or AgentFS product backend is selected by this proof.",
+    "HC-05 through HC-20 remain unsupported-case."
+  ]
+}
