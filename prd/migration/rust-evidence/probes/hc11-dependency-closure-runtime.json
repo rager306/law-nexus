@@ -1,0 +1,37 @@
+{
+  "schema": "law-nexus-hc11-verdict/v1",
+  "evidence_id": "S10-HC-11-RT",
+  "case_id": "HC-11",
+  "generated_at": "2026-07-23",
+  "implementation_revision": "a133148c1d0151bac1a7d37e1af2bfdb06197390",
+  "command": "cargo run --offline --quiet -p ln-hc11-runner -- verdict",
+  "verdict": "PASS",
+  "scenario_count": 7,
+  "complete_eligible": true,
+  "incomplete_missing_blocks": true,
+  "unknown_seed_blocks": true,
+  "unbounded_fanout_blocks": true,
+  "rule_version_mismatch_blocks": true,
+  "forbidden_claim_matrix": true,
+  "hostile_freeze_holds": true,
+  "progress_never_completeness": true,
+  "remaining_unsupported_cases": 9,
+  "lifecycle": "[bounded]",
+  "product_storage_selected": false,
+  "dependency_index_selected": false,
+  "scenarios": [
+    "complete-eligible",
+    "incomplete-missing",
+    "unknown-seed",
+    "unbounded-fanout",
+    "rule-version-mismatch",
+    "forbidden-claim-matrix",
+    "hostile-freeze-holds"
+  ],
+  "non_claims": [
+    "This proof does not select a dependency index or capacity value.",
+    "This proof does not implement C10/C12/C13 gates, D116 promotion or D120 publication mechanics beyond eligibility blocking.",
+    "No SQLite, Turso, LadybugDB, FalkorDB, ruVector or AgentFS product backend is selected by this proof.",
+    "HC-12 through HC-20 remain unsupported-case."
+  ]
+}

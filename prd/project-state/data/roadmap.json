@@ -132,12 +132,12 @@
     "goal": "Convert HC-10 from unsupported-case into a bounded Rust runtime PASS without selecting product storage or a workflow engine."
   },
   "recommended_next": {
-    "title": "HC-11 Compute Dependency Closure runtime proof",
+    "title": "HC-12 Rebuild Disposable Projection runtime proof",
     "priority": 1,
-    "why": "M122 admits only the next hostile case after HC-10 PASS. HC-11 is the next P0 closure boundary: incomplete/unknown/unbounded closure cannot prove completeness or enable incremental authoritative publication.",
-    "plan_reference": "prd/architecture/m111-system-skeleton-contract.md HC-11, prd/architecture/m111-final-architecture-baseline.md, doc/adr/0012-consequential-evidence-protocol.md",
-    "slices": "Close post-M122 roadmap debt, implement pure dependency-closure domain/ports, seal hostile complete-from-progress contracts, add dependency-free runtime runner, produce S10-HC-11-RT PASS or FAIL, then validate and gate HC-12 only if HC-11 PASS.",
-    "non_validation": "HC-01 through HC-10 bounded synthetic runtime PASS do not prove source completeness, legal correctness, real filesystem intake, product storage readiness, FalkorDB readiness, retrieval quality or E1-E3 capacity. HC-11 through HC-20 remain unsupported until their own runtime proof exists."
+    "why": "M123 admits only the next hostile case after HC-11 PASS. HC-12 is the next P0 projection boundary: partial/stale/cancelled rebuild remains disposable and non-authoritative.",
+    "plan_reference": "prd/architecture/m111-system-skeleton-contract.md HC-12, prd/architecture/m111-final-architecture-baseline.md, doc/adr/0012-consequential-evidence-protocol.md",
+    "slices": "Close post-M123 roadmap debt, implement pure projection-rebuild domain/ports, seal hostile authoritative-label contracts, add dependency-free runtime runner, produce S10-HC-12-RT PASS or FAIL, then validate and gate HC-13 only if HC-12 PASS.",
+    "non_validation": "HC-01 through HC-11 bounded synthetic runtime PASS do not prove source completeness, legal correctness, real filesystem intake, product storage readiness, FalkorDB readiness, retrieval quality or E1-E3 capacity. HC-12 through HC-20 remain unsupported until their own runtime proof exists."
   },
   "downstream_blocked": [
     {
@@ -153,7 +153,7 @@
     {
       "capability": "Rust parity baseline",
       "blocker": "Rust has not reproduced the frozen mode-separated Python artifacts or product behavior",
-      "current_status": "[bounded] M111 semantic baseline, M112 ADR enforcement, M113-M122 HC-01 through HC-10 synthetic runtime PASS complete; whole-system Rust product parity unproven"
+      "current_status": "[bounded] M111 semantic baseline, M112 ADR enforcement, M113-M123 HC-01 through HC-11 synthetic runtime PASS complete; whole-system Rust product parity unproven"
     },
     {
       "capability": "R037 (FalkorDB ingest/runtime)",
