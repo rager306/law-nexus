@@ -4,12 +4,12 @@
 > non-authoritative cold-reader projection of
 > `prd/project-state/data/roadmap.json`.
 >
-> Refreshed 2026-07-23 after M123 completion.
+> Refreshed 2026-07-23 after M124 completion.
 
 ## Current position
 
-- **Latest completed milestone:** M123-lhxv9q, HC 11 Compute Dependency Closure Runtime Proof.
-- **Active milestone:** none (plan HC-12 next).
+- **Latest completed milestone:** M124-cpcb0c, HC 12 Rebuild Disposable Projection Runtime Proof.
+- **Active milestone:** none (plan HC-13 next).
 - **M111 result:** final `[bounded]` implementation-neutral semantic baseline for heterogeneous Russian legal evidence.
 - **M112 result:** ADR-0005 topology superseded; ADR-0008 through ADR-0012 authored `[bounded]`; executable ADR/decision/owner drift checks active in pre-commit and CI.
 - **M113 result:** first hostile-case Rust runtime proof. `S10-HC-01-RT` is bounded PASS.
@@ -23,7 +23,7 @@
 - **M121 result:** ninth hostile-case Rust runtime proof. `S10-HC-09-RT` is bounded PASS.
 - **M122 result:** tenth hostile-case Rust runtime proof. `S10-HC-10-RT` is bounded PASS.
 - **M123 result:** eleventh hostile-case Rust runtime proof. `S10-HC-11-RT` is bounded PASS.
-- **M124 progress:** `S10-HC-12-RT` is bounded PASS. Current aggregate is **12 PASS / 0 FAIL / 8 unsupported-case**.
+- **M124 result:** twelfth hostile-case Rust runtime proof. `S10-HC-12-RT` is bounded PASS. Current aggregate is **12 PASS / 0 FAIL / 8 unsupported-case**.
 - **Product target:** Rust-only runtime under ADR-0004; Python may remain only as ADR-0007 subprocess repository harness.
 - **Implementation topology:** not selected. Database, FalkorDB schema, storage, queue/ledger, product crate map, API, concurrency runtime and deployment remain evidence-gated future decisions.
 - **Product readiness:** not proven.
@@ -48,6 +48,7 @@
 | M121-M121 | HC-09 Resolve Five-Clock State ninth Rust hostile-case runtime proof | Bounded synthetic five-clock forbidden-substitution matrix PASS; 11 hostile cases remain unsupported; applicable-law/effective-date remain non-claims; no product storage selected. |
 | M122-M122 | HC-10 Transition Work State tenth Rust hostile-case runtime proof | Bounded synthetic cancel/resume domain freeze and progress-to-legal rejection PASS; 10 hostile cases remain unsupported; no product storage or workflow engine selected. |
 | M123-M123 | HC-11 Compute Dependency Closure eleventh Rust hostile-case runtime proof | Bounded synthetic incomplete/unknown/unbounded/version-skew publication block PASS; 9 hostile cases remain unsupported; no product storage or dependency index selected. |
+| M124-M124 | HC-12 Rebuild Disposable Projection twelfth Rust hostile-case runtime proof | Bounded synthetic non-authoritative rebuild and hostile-label demotion PASS; 8 hostile cases remain unsupported; no product storage or projection store selected. |
 
 ## M111 semantic baseline
 
