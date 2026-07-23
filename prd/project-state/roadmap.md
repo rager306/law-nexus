@@ -4,12 +4,12 @@
 > non-authoritative cold-reader projection of
 > `prd/project-state/data/roadmap.json`.
 >
-> Refreshed 2026-07-23 after M118 completion.
+> Refreshed 2026-07-23 after M119 completion.
 
 ## Current position
 
-- **Latest completed milestone:** M118-5s90td, HC 06 Gate Lifecycle Runtime Proof.
-- **Active milestone:** none (plan HC-07 next).
+- **Latest completed milestone:** M119-ylfpsm, HC 07 Assert Identity Runtime Proof.
+- **Active milestone:** none (plan HC-08 next).
 - **M111 result:** final `[bounded]` implementation-neutral semantic baseline for heterogeneous Russian legal evidence.
 - **M112 result:** ADR-0005 topology superseded; ADR-0008 through ADR-0012 authored `[bounded]`; executable ADR/decision/owner drift checks active in pre-commit and CI.
 - **M113 result:** first hostile-case Rust runtime proof. `S10-HC-01-RT` is bounded PASS.
@@ -18,7 +18,7 @@
 - **M116 result:** fourth hostile-case Rust runtime proof. `S10-HC-04-RT` is bounded PASS.
 - **M117 result:** fifth hostile-case Rust runtime proof. `S10-HC-05-RT` is bounded PASS.
 - **M118 result:** sixth hostile-case Rust runtime proof. `S10-HC-06-RT` is bounded PASS.
-- **M119 progress:** `S10-HC-07-RT` is bounded PASS. Current aggregate is **7 PASS / 0 FAIL / 13 unsupported-case**.
+- **M119 result:** seventh hostile-case Rust runtime proof. `S10-HC-07-RT` is bounded PASS. Current aggregate is **7 PASS / 0 FAIL / 13 unsupported-case**.
 - **Product target:** Rust-only runtime under ADR-0004; Python may remain only as ADR-0007 subprocess repository harness.
 - **Implementation topology:** not selected. Database, FalkorDB schema, storage, queue/ledger, product crate map, API, concurrency runtime and deployment remain evidence-gated future decisions.
 - **Product readiness:** not proven.
@@ -38,6 +38,7 @@
 | M116-M116 | HC-04 Commit Curated Promotion fourth Rust hostile-case runtime proof | Bounded synthetic cancel/retry/mismatch PASS; 16 hostile cases remain unsupported; no product storage/backend selection. |
 | M117-M117 | HC-05 Decode and Anchor fifth Rust hostile-case runtime proof | Bounded synthetic honest/malicious decoder PASS; 15 hostile cases remain unsupported; no product storage/parser-format selection. |
 | M118-M118 | HC-06 Gate Lifecycle sixth Rust hostile-case runtime proof | Bounded synthetic confidence-only/in-place rejection PASS; 14 hostile cases remain unsupported; no product storage/confidence-threshold selection. |
+| M119-M119 | HC-07 Assert Identity seventh Rust hostile-case runtime proof | Bounded synthetic one-sided/similarity reject and bilateral same without merge PASS; 13 hostile cases remain unsupported; legal identity residual non-claim; no similarity model selected. |
 
 ## M111 semantic baseline
 
