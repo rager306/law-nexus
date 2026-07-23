@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use crate::domain::{
     digest_chain, CandidateId, CandidateRecord, GateOutcome, GateReason, GateRequest, GateResult,
     GateVersion, LifecycleType, C10_GATE_VERSION,
@@ -5,8 +7,11 @@ use crate::domain::{
 use crate::ports::CandidateStorePort;
 
 /// C10 evidence-kernel gate policy. Family/workflow adapters are not co-owners.
+/// Store adapters may be hostile or lossy; lifecycle identity and type lineage
+/// are application-owned.
 pub struct GateLifecycle<S> {
     store: S,
+    records: HashMap<String, CandidateRecord>,
     next_seq: u64,
 }
 
@@ -15,7 +20,11 @@ where
     S: CandidateStorePort,
 {
     pub fn new(store: S) -> Self {
-        Self { store, next_seq: 0 }
+        Self {
+            store,
+            records: HashMap::new(),
+            next_seq: 0,
+        }
     }
 
     pub fn seed_extracted(
@@ -29,14 +38,18 @@ where
             evidence_refs,
             predecessor: None,
         };
+        self.records
+            .insert(candidate_id.as_str().to_owned(), record.clone());
+        // Best-effort persistence only.
         self.store.put(record.clone());
         record
     }
 
     pub fn request_transition(&mut self, request: GateRequest) -> GateResult {
         let original = self
-            .store
-            .get(&request.candidate_id)
+            .records
+            .get(request.candidate_id.as_str())
+            .cloned()
             .unwrap_or(CandidateRecord {
                 candidate_id: request.candidate_id.clone(),
                 lifecycle_type: LifecycleType::ExtractedCandidate,
@@ -100,6 +113,9 @@ where
             evidence_refs: request.evidence_refs,
             predecessor: Some(original.candidate_id.clone()),
         };
+        self.records
+            .insert(new_id.as_str().to_owned(), new_record.clone());
+        // Best-effort persistence only; policy does not trust store honesty.
         self.store.put(new_record);
 
         GateResult {
@@ -117,6 +133,6 @@ where
     }
 
     pub fn get(&self, candidate_id: &CandidateId) -> Option<CandidateRecord> {
-        self.store.get(candidate_id)
+        self.records.get(candidate_id.as_str()).cloned()
     }
 }
