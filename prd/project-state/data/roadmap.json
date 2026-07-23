@@ -117,13 +117,19 @@
       "theme": "HC-09 Resolve Five-Clock State runtime proof",
       "status": "complete",
       "boundary": "Preflighted with trajectory governor, implemented pure hexagonal ln-temporal seam, sealed hostile clock-substitution contracts, added dependency-free process runner, and produced tracked S10-HC-09-RT PASS. Current aggregate after M113-M121 is 9 PASS / 0 FAIL / 11 unsupported. No product storage selected; applicable-law/effective-date correctness remain non-claims."
+    },
+    {
+      "range": "M122-M122",
+      "theme": "HC-10 Transition Work State runtime proof",
+      "status": "complete",
+      "boundary": "Preflighted with trajectory governor, implemented pure hexagonal ln-work seam, sealed hostile progress-to-legal contracts, added dependency-free process runner, and produced tracked S10-HC-10-RT PASS. Current aggregate after M113-M122 is 10 PASS / 0 FAIL / 10 unsupported. No product storage or workflow engine selected."
     }
   ],
   "current_milestone": {
-    "id": "M121-qmr22h",
-    "title": "HC 09 Resolve Five Clock State Runtime Proof",
+    "id": "M122-0jpqp4",
+    "title": "HC 10 Transition Work State Runtime Proof",
     "status": "complete",
-    "goal": "Convert HC-09 from unsupported-case into a bounded Rust runtime PASS without selecting product storage or claiming applicable-law correctness."
+    "goal": "Convert HC-10 from unsupported-case into a bounded Rust runtime PASS without selecting product storage or a workflow engine."
   },
   "recommended_next": {
     "title": "HC-11 Compute Dependency Closure runtime proof",
