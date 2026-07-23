@@ -1,0 +1,12 @@
+[package]
+name = "ln-hc09-runner"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[[bin]]
+name = "ln-hc09-runner"
+path = "src/main.rs"
+
+[dependencies]
+ln-temporal = { path = "../ln-temporal" }
