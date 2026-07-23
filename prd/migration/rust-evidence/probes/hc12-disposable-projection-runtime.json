@@ -1,0 +1,33 @@
+{
+  "schema": "law-nexus-hc12-verdict/v1",
+  "evidence_id": "S10-HC-12-RT",
+  "case_id": "HC-12",
+  "generated_at": "2026-07-23",
+  "implementation_revision": "cd42c5bf4aaad4f08fb4792d00a30f01771201b7",
+  "command": "cargo run --offline --quiet -p ln-hc12-runner -- verdict",
+  "verdict": "PASS",
+  "scenario_count": 5,
+  "partial_non_authoritative": true,
+  "stale_cancelled_failed_matrix": true,
+  "rebuilt_disposable_non_authoritative": true,
+  "hostile_demotion": true,
+  "hostile_cannot_hide_gaps": true,
+  "publication_authority_never_granted": true,
+  "remaining_unsupported_cases": 8,
+  "lifecycle": "[bounded]",
+  "product_storage_selected": false,
+  "projection_store_selected": false,
+  "scenarios": [
+    "partial-non-authoritative",
+    "stale-cancelled-failed-matrix",
+    "rebuilt-disposable-non-authoritative",
+    "hostile-demotion",
+    "hostile-cannot-hide-gaps"
+  ],
+  "non_claims": [
+    "This proof does not select a projection store or rebuild algorithm.",
+    "This proof does not implement D120 publication mechanics beyond non-grant of Publication Authority.",
+    "No SQLite, Turso, LadybugDB, FalkorDB, ruVector or AgentFS product backend is selected by this proof.",
+    "HC-13 through HC-20 remain unsupported-case."
+  ]
+}
