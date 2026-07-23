@@ -1,4 +1,4 @@
-use std::collections::{HashSet, VecDeque};
+use std::collections::{HashMap, HashSet, VecDeque};
 
 use crate::domain::{
     ClosureRequest, ClosureResult, ClosureStatus, ClosureTrace, NodeId, PublicationEligibility,
@@ -7,8 +7,9 @@ use crate::domain::{
 use crate::ports::DependencyEvidencePort;
 
 /// Inward dependency policy for Compute Dependency Closure (HC-11).
-/// Owns completeness and publication eligibility. Progress/queue depth and
-/// hostile invented edges cannot force complete or eligible publication.
+/// Owns completeness and publication eligibility. Freezes registered-node
+/// evidence at compute start so hostile re-reads and invented unregistered
+/// edges cannot force complete. Progress/queue depth are never completeness.
 pub struct ComputeDependencyClosure<E> {
     evidence: E,
 }
@@ -38,8 +39,23 @@ where
             );
         }
 
-        let observed = self.evidence.rule_version();
-        if observed != request.expected_rule_version {
+        // Freeze registered evidence once. Hostile later invents are ignored.
+        let frozen_version = self.evidence.rule_version();
+        let mut frozen_registered: HashSet<String> = HashSet::new();
+        let mut frozen_deps: HashMap<String, Vec<NodeId>> = HashMap::new();
+        for node in self.evidence.registered_nodes() {
+            frozen_registered.insert(node.as_str().to_owned());
+            if let Some(deps) = self.evidence.dependencies_of(&node) {
+                frozen_deps.insert(node.as_str().to_owned(), deps);
+            } else {
+                frozen_deps.insert(node.as_str().to_owned(), Vec::new());
+            }
+        }
+        // Observe progress/queue only to prove they are unused.
+        let _progress = self.evidence.progress_count();
+        let _queue = self.evidence.queue_depth();
+
+        if frozen_version != request.expected_rule_version {
             return self.finish(
                 request,
                 ClosureStatus::RuleVersionMismatch,
@@ -53,10 +69,6 @@ where
             );
         }
 
-        // Progress/queue are observed only to prove they are unused.
-        let _progress = self.evidence.progress_count();
-        let _queue = self.evidence.queue_depth();
-
         let mut affected: Vec<NodeId> = Vec::new();
         let mut missing: Vec<NodeId> = Vec::new();
         let mut stale: Vec<NodeId> = Vec::new();
@@ -65,8 +77,7 @@ where
         let mut unknown_seed = false;
 
         for node in &request.changed {
-            // Seed/changed nodes without any evidence record are unknown.
-            if self.evidence.dependencies_of(node).is_none() && !self.evidence.known(node) {
+            if !frozen_registered.contains(node.as_str()) {
                 unknown_seed = true;
                 if !missing.iter().any(|n| n == node) {
                     missing.push(node.clone());
@@ -95,35 +106,31 @@ where
                 );
             }
 
-            match self.evidence.dependencies_of(&node) {
-                None => {
-                    // Non-seed missing targets are incomplete, not unknown.
-                    // Seed unknown already recorded above.
-                    if !request.changed.iter().any(|c| c == &node)
-                        && !missing.iter().any(|n| n == &node)
-                    {
-                        missing.push(node.clone());
-                    }
+            if !frozen_registered.contains(node.as_str()) {
+                // Unregistered non-seed already counted as missing; do not expand.
+                if !request.changed.iter().any(|c| c == &node)
+                    && !missing.iter().any(|n| n == &node)
+                {
+                    missing.push(node.clone());
                 }
-                Some(deps) => {
-                    if !self.evidence.known(&node) {
-                        stale.push(node.clone());
-                    }
-                    for dep in deps {
-                        if !seen.contains(dep.as_str()) {
-                            // Referenced dependency with no evidence → incomplete.
-                            if self.evidence.dependencies_of(&dep).is_none()
-                                && !self.evidence.known(&dep)
-                            {
-                                if !missing.iter().any(|n| n == &dep) {
-                                    missing.push(dep.clone());
-                                }
-                                // Do not expand inventively; record missing only.
-                                continue;
-                            }
-                            queue.push_back(dep);
+                continue;
+            }
+
+            let deps = frozen_deps
+                .get(node.as_str())
+                .cloned()
+                .unwrap_or_default();
+
+            for dep in deps {
+                if !seen.contains(dep.as_str()) {
+                    if !frozen_registered.contains(dep.as_str()) {
+                        if !missing.iter().any(|n| n == &dep) {
+                            missing.push(dep.clone());
                         }
+                        // Do not expand inventively beyond frozen registry.
+                        continue;
                     }
+                    queue.push_back(dep);
                 }
             }
         }
@@ -157,18 +164,10 @@ where
         }
 
         // Fully evidenced, bounded, matching rules → complete.
-        // Incremental authoritative publication is eligible only then.
-        let eligibility = if request.request_incremental_publication {
-            PublicationEligibility::Eligible
-        } else {
-            // Still complete; eligibility for publication only when requested.
-            PublicationEligibility::Eligible
-        };
-
         self.finish(
             request,
             ClosureStatus::Complete,
-            eligibility,
+            PublicationEligibility::Eligible,
             affected,
             missing,
             stale,

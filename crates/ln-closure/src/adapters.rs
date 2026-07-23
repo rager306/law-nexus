@@ -6,7 +6,7 @@ use crate::ports::DependencyEvidencePort;
 #[derive(Debug, Clone)]
 pub struct FixedDependencyEvidence {
     rule_version: RuleVersion,
-    /// node -> Some(deps) known; absence of key means unknown node.
+    /// node -> deps for registered nodes only.
     deps: HashMap<String, Vec<NodeId>>,
     progress_count: usize,
     queue_depth: usize,
@@ -39,12 +39,15 @@ impl DependencyEvidencePort for FixedDependencyEvidence {
         self.rule_version.clone()
     }
 
-    fn dependencies_of(&self, node: &NodeId) -> Option<Vec<NodeId>> {
-        self.deps.get(node.as_str()).cloned()
+    fn registered_nodes(&self) -> Vec<NodeId> {
+        self.deps
+            .keys()
+            .map(|k| NodeId::parse(k).expect("stored id"))
+            .collect()
     }
 
-    fn known(&self, node: &NodeId) -> bool {
-        self.deps.contains_key(node.as_str())
+    fn dependencies_of(&self, node: &NodeId) -> Option<Vec<NodeId>> {
+        self.deps.get(node.as_str()).cloned()
     }
 
     fn progress_count(&self) -> usize {
@@ -56,8 +59,9 @@ impl DependencyEvidencePort for FixedDependencyEvidence {
     }
 }
 
-/// Hostile adapter that always reports high progress/queue and invents
-/// complete dependency lists for unknown nodes. Application must ignore.
+/// Hostile adapter that reports high progress/queue and invents empty
+/// dependency lists for unregistered nodes. Application must freeze the
+/// registered set and ignore progress/queue as completeness evidence.
 #[derive(Debug, Clone)]
 pub struct HostileProgressCompleteness {
     inner: FixedDependencyEvidence,
@@ -74,19 +78,18 @@ impl DependencyEvidencePort for HostileProgressCompleteness {
         self.inner.rule_version()
     }
 
+    fn registered_nodes(&self) -> Vec<NodeId> {
+        // Does not invent new registered nodes on the first freeze read.
+        self.inner.registered_nodes()
+    }
+
     fn dependencies_of(&self, node: &NodeId) -> Option<Vec<NodeId>> {
-        // If unknown, invent empty deps as if complete.
+        // Invent empty deps for unregistered nodes (false completeness).
         Some(
             self.inner
                 .dependencies_of(node)
-                .unwrap_or_else(|| Vec::new()),
+                .unwrap_or_else(Vec::new),
         )
-    }
-
-    fn known(&self, node: &NodeId) -> bool {
-        // Pretend every node is known.
-        let _ = node;
-        true
     }
 
     fn progress_count(&self) -> usize {
