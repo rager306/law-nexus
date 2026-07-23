@@ -99,4 +99,47 @@ def test_cli_governor_command_emits_report(capsys) -> None:
     assert "findings" in payload
     assert code in {0, 1}
     # Live repository after debt close should exit 0.
+    # One open next-wave milestone (e.g. planned HC-06) is allowed.
     assert code == 0
+
+
+def test_open_next_wave_milestone_is_not_residual_debt(tmp_path: Path) -> None:
+    state = tmp_path / ".gsd"
+    state.mkdir()
+    (state / "STATE.md").write_text(
+        "# GSD State\n\n"
+        "**Last Completed Milestone:** M117-a06sez: HC 05\n"
+        "**Active Milestone:** M118-5s90td: HC 06\n"
+        "**Phase:** planning\n\n"
+        "## Milestone Registry\n"
+        "- ✅ **M117-a06sez:** HC 05\n"
+        "- 🔄 **M118-5s90td:** HC 06\n",
+        encoding="utf-8",
+    )
+    from law_nexus_harness.governor import check_gsd_residual_debt
+
+    findings = check_gsd_residual_debt(tmp_path)
+    by_id = {item.check_id: item for item in findings}
+    assert by_id["gsd-no-open-registry-debt"].status == "pass"
+    assert by_id["gsd-phase-complete-consistent"].status == "pass"
+
+
+def test_stale_open_milestone_behind_last_completed_is_debt(tmp_path: Path) -> None:
+    state = tmp_path / ".gsd"
+    state.mkdir()
+    (state / "STATE.md").write_text(
+        "# GSD State\n\n"
+        "**Last Completed Milestone:** M117-a06sez: HC 05\n"
+        "**Active Milestone:** M115-nrvz4v: HC 03\n"
+        "**Phase:** summarizing\n\n"
+        "## Milestone Registry\n"
+        "- 🔄 **M115-nrvz4v:** HC 03\n"
+        "- ✅ **M117-a06sez:** HC 05\n",
+        encoding="utf-8",
+    )
+    from law_nexus_harness.governor import check_gsd_residual_debt
+
+    findings = check_gsd_residual_debt(tmp_path)
+    failed = {item.check_id: item for item in findings if item.status == "fail"}
+    assert "gsd-no-open-registry-debt" in failed
+    assert "gsd-phase-complete-consistent" in failed

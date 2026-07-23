@@ -408,7 +408,13 @@ def check_hostile_proof_chain(root: Path) -> list[GovernorFinding]:
 
 
 def check_gsd_residual_debt(root: Path) -> list[GovernorFinding]:
-    """Detect residual incomplete GSD slices after a last-completed milestone."""
+    """Detect residual incomplete GSD milestones that are true debt.
+
+    One open milestone is allowed when it is exactly the next sequence after the
+    latest completed milestone (the currently planned/active wave). Residual debt
+    is: multiple open milestones, an open milestone at or behind last completed,
+    or a gap ahead of last_completed+1.
+    """
 
     findings: list[GovernorFinding] = []
     state_path = root / ".gsd" / "STATE.md"
@@ -427,32 +433,57 @@ def check_gsd_residual_debt(root: Path) -> list[GovernorFinding]:
     state_text = state_path.read_text(encoding="utf-8")
     rows = _registry_milestones(state_text)
     incomplete = [(seq, title) for seq, marker, title in rows if marker != "✅"]
-    last_completed = _last_completed_seq(state_text)
+    completed_seqs = [seq for seq, marker, _ in rows if marker == "✅"]
+    latest_completed = max(completed_seqs) if completed_seqs else _last_completed_seq(state_text)
     active = _active_milestone_seq(state_text)
 
-    if incomplete:
-        findings.append(
-            GovernorFinding(
-                check_id="gsd-no-open-registry-debt",
-                status="fail",
-                severity="error",
-                message="GSD registry still has non-complete milestones",
-                observed=str(incomplete),
-                remediation=(
-                    "Close residual GSD slices/tasks with engine tools before starting the next "
-                    "hostile-case product wave"
-                ),
-            )
-        )
-    else:
+    if not incomplete:
         findings.append(
             GovernorFinding(
                 check_id="gsd-no-open-registry-debt",
                 status="pass",
                 severity="ok",
                 message="GSD registry has no open non-complete milestones",
-                observed=f"last_completed={last_completed}; active={active}",
+                observed=f"last_completed={latest_completed}; active={active}",
                 remediation="none",
+            )
+        )
+    elif (
+        len(incomplete) == 1
+        and latest_completed is not None
+        and incomplete[0][0] == latest_completed + 1
+    ):
+        findings.append(
+            GovernorFinding(
+                check_id="gsd-no-open-registry-debt",
+                status="pass",
+                severity="ok",
+                message=(
+                    "Exactly one open next-wave milestone is allowed after last completed"
+                ),
+                observed=(
+                    f"open={incomplete}; last_completed=M{latest_completed}; "
+                    f"active={active}"
+                ),
+                remediation="none",
+            )
+        )
+    else:
+        findings.append(
+            GovernorFinding(
+                check_id="gsd-no-open-registry-debt",
+                status="fail",
+                severity="error",
+                message="GSD registry has residual open-milestone debt",
+                observed=(
+                    f"open={incomplete}; last_completed={latest_completed}; "
+                    f"active={active}"
+                ),
+                remediation=(
+                    "Close leftover incomplete milestones at or behind the last completed "
+                    "wave, or collapse multiple open milestones to a single next-wave "
+                    "active milestone before product work continues"
+                ),
             )
         )
 
@@ -460,26 +491,41 @@ def check_gsd_residual_debt(root: Path) -> list[GovernorFinding]:
         (line for line in state_text.splitlines() if line.startswith("**Phase:**")),
         "",
     )
-    if last_completed is not None and "complete" in phase_line.lower() and active is None:
-        findings.append(
-            GovernorFinding(
-                check_id="gsd-phase-complete-consistent",
-                status="pass",
-                severity="ok",
-                message="GSD phase complete is consistent with no active milestone",
-                observed=phase_line or "Phase missing",
-                remediation="none",
-            )
-        )
-    elif last_completed is not None and active is not None and active <= last_completed:
+    if latest_completed is not None and active is not None and active <= latest_completed:
         findings.append(
             GovernorFinding(
                 check_id="gsd-phase-complete-consistent",
                 status="fail",
                 severity="error",
                 message="Active milestone is not ahead of last completed milestone",
-                observed=f"active=M{active}; last_completed=M{last_completed}; {phase_line}",
+                observed=f"active=M{active}; last_completed=M{latest_completed}; {phase_line}",
                 remediation="Close residual slices on the active milestone or advance active pointer",
+            )
+        )
+    elif (
+        latest_completed is not None
+        and active is not None
+        and active == latest_completed + 1
+    ):
+        findings.append(
+            GovernorFinding(
+                check_id="gsd-phase-complete-consistent",
+                status="pass",
+                severity="ok",
+                message="Active milestone is exactly the next wave after last completed",
+                observed=f"active=M{active}; last_completed=M{latest_completed}; {phase_line}",
+                remediation="none",
+            )
+        )
+    elif latest_completed is not None and active is None:
+        findings.append(
+            GovernorFinding(
+                check_id="gsd-phase-complete-consistent",
+                status="pass",
+                severity="ok",
+                message="No active milestone; last completed stands alone",
+                observed=f"last_completed=M{latest_completed}; {phase_line}",
+                remediation="none",
             )
         )
     else:
@@ -489,7 +535,7 @@ def check_gsd_residual_debt(root: Path) -> list[GovernorFinding]:
                 status="pass",
                 severity="ok",
                 message="GSD active/last-completed relationship is coherent",
-                observed=f"active={active}; last_completed={last_completed}; {phase_line}",
+                observed=f"active={active}; last_completed={latest_completed}; {phase_line}",
                 remediation="none",
             )
         )
