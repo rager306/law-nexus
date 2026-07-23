@@ -1,0 +1,30 @@
+{
+  "schema": "law-nexus-hc01-verdict/v1",
+  "evidence_id": "S10-HC-01-RT",
+  "case_id": "HC-01",
+  "generated_at": "2026-07-23",
+  "implementation_revision": "092b8c4dbb3f7edfeeeb751222262cd1a95ec651",
+  "command": "cargo run --offline --quiet -p ln-hc01-runner -- verdict",
+  "verdict": "PASS",
+  "scenario_count": 4,
+  "typed_outcomes": true,
+  "failed_work_transitions": true,
+  "safe_diagnostics": true,
+  "authority_absent": true,
+  "raw_canary_absent": true,
+  "remaining_unsupported_cases": 19,
+  "lifecycle": "[bounded]",
+  "product_storage_selected": false,
+  "scenarios": [
+    "timeout",
+    "cancelled",
+    "transport-or-tls-failure",
+    "access-restricted"
+  ],
+  "non_claims": [
+    "This proof does not validate source completeness, legal correctness, real network or TLS behavior, production security, capacity or performance.",
+    "This proof does not implement D118 legal clocks, C10, C12 or C13 gates, Promotion Authority or Publication Authority.",
+    "No SQLite, Turso, LadybugDB, FalkorDB, ruVector or AgentFS product backend is selected by this proof.",
+    "HC-02 through HC-20 remain unsupported-case."
+  ]
+}
