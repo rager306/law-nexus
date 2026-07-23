@@ -87,13 +87,19 @@
       "theme": "HC-04 Commit Curated Promotion runtime proof",
       "status": "complete",
       "boundary": "Closed post-M115 roadmap debt, implemented pure hexagonal ln-promote seam with application-owned cardinality, sealed hostile double-commit and mismatch contracts, added dependency-free process runner, and produced tracked S10-HC-04-RT PASS. Current aggregate after M113-M116 is 4 PASS / 0 FAIL / 16 unsupported. No product storage, LadybugDB, ruVector or AgentFS selection was made."
+    },
+    {
+      "range": "M117-M117",
+      "theme": "HC-05 Decode and Anchor runtime proof",
+      "status": "complete",
+      "boundary": "Closed post-M116 roadmap debt, implemented pure hexagonal ln-decode seam, sealed hostile malicious-decoder contracts, added dependency-free process runner, and produced tracked S10-HC-05-RT PASS. Current aggregate after M113-M117 is 5 PASS / 0 FAIL / 15 unsupported. No product storage, LadybugDB, ruVector, AgentFS or parser-format selection was made."
     }
   ],
   "current_milestone": {
-    "id": "M116-l1avxb",
-    "title": "HC 04 Commit Curated Promotion Runtime Proof",
+    "id": "M117-a06sez",
+    "title": "HC 05 Decode and Anchor Runtime Proof",
     "status": "complete",
-    "goal": "Convert HC-04 from unsupported-case into a bounded Rust runtime PASS without selecting product storage or later backends."
+    "goal": "Convert HC-05 from unsupported-case into a bounded Rust runtime PASS without selecting product storage or parser format."
   },
   "recommended_next": {
     "title": "HC-06 Gate Lifecycle runtime proof",
