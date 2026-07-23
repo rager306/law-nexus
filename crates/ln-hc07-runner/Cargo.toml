@@ -1,0 +1,12 @@
+[package]
+name = "ln-hc07-runner"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[[bin]]
+name = "ln-hc07-runner"
+path = "src/main.rs"
+
+[dependencies]
+ln-identity = { path = "../ln-identity" }
