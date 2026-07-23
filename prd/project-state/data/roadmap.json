@@ -69,20 +69,26 @@
       "theme": "HC-01 Observe Source first Rust hostile-case runtime proof",
       "status": "complete",
       "boundary": "Closed Turso/AgentFS storage evidence debt under ADR-0012, implemented a pure hexagonal ln-observe seam, sealed hostile adapter contracts, added a dependency-free process runner, and produced tracked S10-HC-01-RT PASS. No product storage, LadybugDB, ruVector or AgentFS selection was made."
+    },
+    {
+      "range": "M114-M114",
+      "theme": "HC-02 Inventory Immutable Intake runtime proof",
+      "status": "complete",
+      "boundary": "Closed post-M113 roadmap debt, implemented pure hexagonal ln-inventory seam, sealed hostile overwrite/curated-exposure contracts, added dependency-free process runner, and produced tracked S10-HC-02-RT PASS. Current aggregate after M113 and M114 is 2 PASS / 0 FAIL / 18 unsupported. No product storage, LadybugDB, ruVector or AgentFS selection was made."
     }
   ],
   "current_milestone": {
-    "id": "M113-cglmxe",
-    "title": "HC 01 Observe Source Runtime Proof",
+    "id": "M114-8tw2dh",
+    "title": "HC 02 Inventory Immutable Intake Runtime Proof",
     "status": "complete",
-    "goal": "Convert HC-01 from unsupported-case into a bounded Rust runtime PASS without selecting product storage or later backends."
+    "goal": "Convert HC-02 from unsupported-case into a bounded Rust runtime PASS without selecting product storage or later backends."
   },
   "recommended_next": {
-    "title": "Finish M114 closeout, then HC-03 Dispose Review runtime proof",
+    "title": "HC-03 Dispose Review runtime proof",
     "priority": 1,
-    "why": "M114 has tracked S10-HC-02-RT PASS and current aggregate 2/0/18, but the milestone still needs final validation/closeout. After M114 completes, HC-03 is the next admitted hostile case: pending/quarantined review must not become acceptance and must not mint promotion.",
-    "plan_reference": "prd/architecture/m111-system-skeleton-contract.md HC-02/HC-03, prd/architecture/m111-consultant-intake-contract.md, prd/migration/rust-evidence/probes/hc02-inventory-intake-runtime.json, and M114-8tw2dh roadmap",
-    "slices": "Validate and complete M114, then implement pure disposition domain/ports, seal non-accepted promotion attempts, add dependency-free process runner, produce S10-HC-03-RT PASS or FAIL, and gate HC-04 only if HC-03 PASS.",
+    "why": "M114 admitted only the next hostile case after HC-02 PASS. HC-03 is the next P0 review boundary: pending/quarantined disposition must not become acceptance and must not produce a promotion commit.",
+    "plan_reference": "prd/architecture/m111-system-skeleton-contract.md HC-03, prd/architecture/m111-consultant-intake-contract.md, prd/architecture/m111-final-architecture-baseline.md, doc/adr/0012-consequential-evidence-protocol.md, and M115-nrvz4v roadmap",
+    "slices": "Close post-M114 roadmap debt, implement pure disposition domain/ports, seal hostile premature-promotion contracts, add dependency-free runtime runner, produce S10-HC-03-RT PASS or FAIL, then validate and gate HC-04 only if HC-03 PASS.",
     "non_validation": "HC-01 and HC-02 bounded synthetic runtime PASS do not prove source completeness, legal correctness, real filesystem intake, product storage readiness, FalkorDB readiness, retrieval quality or E1-E3 capacity. HC-03 through HC-20 remain unsupported until their own runtime proof exists."
   },
   "downstream_blocked": [
@@ -99,7 +105,7 @@
     {
       "capability": "Rust parity baseline",
       "blocker": "Rust has not reproduced the frozen mode-separated Python artifacts or product behavior",
-      "current_status": "[bounded] M111 semantic baseline, M112 ADR enforcement, M113 HC-01 and M114 HC-02 synthetic runtime PASS tracked; whole-system Rust product parity unproven"
+      "current_status": "[bounded] M111 semantic baseline, M112 ADR enforcement, M113 HC-01 and M114 HC-02 synthetic runtime PASS complete; whole-system Rust product parity unproven"
     },
     {
       "capability": "R037 (FalkorDB ingest/runtime)",
