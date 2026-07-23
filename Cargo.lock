@@ -3,6 +3,13 @@
 version = 4
 
 [[package]]
+name = "ln-hc01-runner"
+version = "0.1.0"
+dependencies = [
+ "ln-observe",
+]
+
+[[package]]
 name = "ln-observe"
 version = "0.1.0"
 
