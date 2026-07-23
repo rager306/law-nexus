@@ -1,0 +1,12 @@
+[package]
+name = "ln-hc12-runner"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[[bin]]
+name = "ln-hc12-runner"
+path = "src/main.rs"
+
+[dependencies]
+ln-projection = { path = "../ln-projection" }
