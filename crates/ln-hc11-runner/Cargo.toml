@@ -1,0 +1,12 @@
+[package]
+name = "ln-hc11-runner"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[[bin]]
+name = "ln-hc11-runner"
+path = "src/main.rs"
+
+[dependencies]
+ln-closure = { path = "../ln-closure" }
