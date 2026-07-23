@@ -1,0 +1,60 @@
+{
+  "schema": "lnx.probe.sqlite-turso.report/v1",
+  "generated_at": "2026-07-23",
+  "lifecycle": "[bounded]",
+  "adoption": "none",
+  "disposition": {
+    "sqlite": "authority-comparison-baseline",
+    "turso": "defer"
+  },
+  "versions": {
+    "rusqlite": "0.39.0",
+    "sqlite_linkage": "bundled-stock-sqlite",
+    "turso": "0.7.1"
+  },
+  "config": {
+    "synthetic_only": true,
+    "jobs": 40,
+    "payload_bytes": 4096,
+    "timestamp_fields": "probe-local synthetic fields; not D118 clock kinds",
+    "journal_mode": "WAL",
+    "synchronous": "FULL",
+    "forbidden_features": [
+      "mvcc",
+      "encryption",
+      "multiprocess-wal",
+      "fts",
+      "cdc",
+      "sync",
+      "mcp"
+    ]
+  },
+  "summary": {
+    "pass": 9,
+    "fail": 0,
+    "unsupported": 5
+  },
+  "results": [
+    {"backend":"sqlite","scenario":"S01_clean_commit","status":"pass","expected_rows":40,"observed_rows":40,"checksum_mismatches":0,"integrity":"ok"},
+    {"backend":"sqlite","scenario":"S02_kill_mid_txn","status":"pass","expected_rows":10,"observed_rows":10,"checksum_mismatches":0,"integrity":"ok"},
+    {"backend":"sqlite","scenario":"S03_kill_after_commit_before_checkpoint","status":"pass","expected_rows":40,"observed_rows":40,"checksum_mismatches":0,"integrity":"ok"},
+    {"backend":"sqlite","scenario":"S04_kill_during_checkpoint","status":"unsupported","reason":"checkpoint window is not controllable through a shared safe API"},
+    {"backend":"sqlite","scenario":"S05_disk_full","status":"unsupported","reason":"true ENOSPC was not induced; no simulation is promoted as durability proof"},
+    {"backend":"sqlite","scenario":"S06_reopen_integrity","status":"pass","expected_rows":40,"observed_rows":40,"checksum_mismatches":0,"integrity":"ok"},
+    {"backend":"sqlite","scenario":"S07_exit_to_stock_sqlite","status":"unsupported","reason":"stock reopen is a Turso compatibility check"},
+    {"backend":"turso","scenario":"S01_clean_commit","status":"pass","expected_rows":40,"observed_rows":40,"checksum_mismatches":0,"integrity":"ok"},
+    {"backend":"turso","scenario":"S02_kill_mid_txn","status":"pass","expected_rows":10,"observed_rows":10,"checksum_mismatches":0,"integrity":"ok"},
+    {"backend":"turso","scenario":"S03_kill_after_commit_before_checkpoint","status":"pass","expected_rows":40,"observed_rows":40,"checksum_mismatches":0,"integrity":"ok"},
+    {"backend":"turso","scenario":"S04_kill_during_checkpoint","status":"unsupported","reason":"checkpoint window is not controllable through a shared safe API"},
+    {"backend":"turso","scenario":"S05_disk_full","status":"unsupported","reason":"true ENOSPC was not induced; no simulation is promoted as durability proof"},
+    {"backend":"turso","scenario":"S06_reopen_integrity","status":"pass","expected_rows":40,"observed_rows":40,"checksum_mismatches":0,"integrity":"ok"},
+    {"backend":"turso","scenario":"S07_exit_to_stock_sqlite","status":"pass","expected_rows":40,"observed_rows":40,"checksum_mismatches":0,"integrity":"ok"}
+  ],
+  "non_claims": [
+    "No product database is selected or adopted.",
+    "The probe does not establish power-loss safety, checkpoint crash atomicity, true ENOSPC behavior, backup/restore, production durability, legal correctness or E1-E3 capacity.",
+    "No legal text, vectors, credentials, secrets, cloud services or experimental Turso features were used.",
+    "A passing bounded matrix does not change Turso from defer.",
+    "The probe does not prove D118 temporal resolution or clock-substitution resistance and does not exercise C10, C12 or C13 gates."
+  ]
+}
