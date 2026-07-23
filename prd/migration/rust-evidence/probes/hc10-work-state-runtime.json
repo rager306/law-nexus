@@ -1,0 +1,31 @@
+{
+  "schema": "law-nexus-hc10-verdict/v1",
+  "evidence_id": "S10-HC-10-RT",
+  "case_id": "HC-10",
+  "generated_at": "2026-07-23",
+  "implementation_revision": "32ad977441887f032dc25cc18aaae5367f5f1040",
+  "command": "cargo run --offline --quiet -p ln-hc10-runner -- verdict",
+  "verdict": "PASS",
+  "scenario_count": 4,
+  "cancel_resume_domain_unchanged": true,
+  "stale_checkpoint_typed": true,
+  "forbidden_legal_mapping_matrix": true,
+  "hostile_freeze_holds": true,
+  "legal_mapping_never_applied": true,
+  "remaining_unsupported_cases": 10,
+  "lifecycle": "[bounded]",
+  "product_storage_selected": false,
+  "workflow_engine_selected": false,
+  "scenarios": [
+    "cancel-resume-domain-unchanged",
+    "stale-checkpoint-typed",
+    "forbidden-legal-mapping-matrix",
+    "hostile-freeze-holds"
+  ],
+  "non_claims": [
+    "This proof does not select a workflow engine or scheduler.",
+    "This proof does not implement C10/C12/C13 gates, D116 promotion or D120 publication.",
+    "No SQLite, Turso, LadybugDB, FalkorDB, ruVector or AgentFS product backend is selected by this proof.",
+    "HC-11 through HC-20 remain unsupported-case."
+  ]
+}
