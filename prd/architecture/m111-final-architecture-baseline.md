@@ -134,7 +134,7 @@ Diagnostics may expose only bounded identifiers, hashes, phases, categories, rul
 |---|---|---|---|
 | HC-01 | Observe Source | `PASS` `[bounded]` | `S10-HC-01-RT`: four interrupted outcomes, partial-byte canary and safe diagnostic observations |
 | HC-02 | Inventory Immutable Intake | `PASS` `[bounded]` | `S10-HC-02-RT`: re-inventory stable digest, append-only attempts and staging/review visibility only |
-| HC-03 | Dispose Review | `unsupported-case` | disposition executor and non-accepted promotion attempts |
+| HC-03 | Dispose Review | `PASS` `[bounded]` | `S10-HC-03-RT`: pending/quarantined reject promotion without curated commit |
 | HC-04 | Commit Curated Promotion | `unsupported-case` | cancel, replay, mismatch and commit-cardinality runtime |
 | HC-05 | Decode and Anchor | `unsupported-case` | malicious decoder differential and payload canaries |
 | HC-06 | Gate Lifecycle | `unsupported-case` | C10 runtime and workflow/storage bypass fixtures |

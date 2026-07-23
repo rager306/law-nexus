@@ -13,7 +13,7 @@
 - **M111 result:** final `[bounded]` implementation-neutral semantic baseline for heterogeneous Russian legal evidence.
 - **M112 result:** ADR-0005 topology superseded; ADR-0008 through ADR-0012 authored `[bounded]`; executable ADR/decision/owner drift checks active in pre-commit and CI.
 - **M113 result:** first hostile-case Rust runtime proof. `S10-HC-01-RT` is bounded PASS.
-- **M114 result:** second hostile-case Rust runtime proof. `S10-HC-02-RT` is bounded PASS. Current aggregate is **2 PASS / 0 FAIL / 18 unsupported-case**.
+- **M115 progress:** `S10-HC-03-RT` is bounded PASS. Current aggregate is **3 PASS / 0 FAIL / 17 unsupported-case**.
 - **Product target:** Rust-only runtime under ADR-0004; Python may remain only as ADR-0007 subprocess repository harness.
 - **Implementation topology:** not selected. Database, FalkorDB schema, storage, queue/ledger, product crate map, API, concurrency runtime and deployment remain evidence-gated future decisions.
 - **Product readiness:** not proven.
@@ -28,7 +28,8 @@
 | M086-M110 | Debt repair, corpus stabilization, Rust-only transition, ACP/git-lex decommission, first Rust tracer and capability evidence map | Rust workspace/harness and bounded acceptance evidence exist; product/domain parity remains unproven. |
 | M111-M112 | Zero-based legal evidence architecture and post-M111 ADR synchronization | Semantic owners, authorities, clocks, gates and hostile oracles are bounded; ADR enforcement is executable. |
 | M113-M113 | HC-01 Observe Source first Rust hostile-case runtime proof | Bounded synthetic interrupted-source PASS only; 19 hostile cases remain unsupported; no product storage/backend selection. |
-| M114-M114 | HC-02 Inventory Immutable Intake second Rust hostile-case runtime proof | Bounded synthetic re-inventory PASS only; 18 hostile cases remain unsupported; no product storage/backend selection. |
+| M114-M114 | HC-02 Inventory Immutable Intake second Rust hostile-case runtime proof | Bounded synthetic re-inventory PASS; 18 hostile cases remained unsupported at that point. |
+| M115-M115 | HC-03 Dispose Review third Rust hostile-case runtime proof | Bounded synthetic non-accepted rejection PASS; 17 hostile cases remain unsupported; no product storage/backend selection. |
 
 ## M111 semantic baseline
 

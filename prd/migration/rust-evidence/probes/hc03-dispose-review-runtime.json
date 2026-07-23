@@ -1,0 +1,27 @@
+{
+  "schema": "law-nexus-hc03-verdict/v1",
+  "evidence_id": "S10-HC-03-RT",
+  "case_id": "HC-03",
+  "generated_at": "2026-07-23",
+  "implementation_revision": "0dd0966073857a208ebba516409c2447f45eb0cc",
+  "command": "cargo run --offline --quiet -p ln-hc03-runner -- verdict",
+  "verdict": "PASS",
+  "scenario_count": 2,
+  "pending_rejects_promotion": true,
+  "quarantined_rejects_promotion": true,
+  "no_curated_commit": true,
+  "authority_absent": true,
+  "remaining_unsupported_cases": 17,
+  "lifecycle": "[bounded]",
+  "product_storage_selected": false,
+  "scenarios": [
+    "pending-rejects",
+    "quarantined-rejects"
+  ],
+  "non_claims": [
+    "This proof does not validate review UI, staffing policy, real filesystem, legal correctness, source completeness, product storage readiness, capacity or performance.",
+    "This proof does not implement D116 promotion commit, D120 publication, D118 clocks, C10, C12 or C13 gates.",
+    "No SQLite, Turso, LadybugDB, FalkorDB, ruVector or AgentFS product backend is selected by this proof.",
+    "HC-04 through HC-20 remain unsupported-case."
+  ]
+}
