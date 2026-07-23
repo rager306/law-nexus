@@ -93,13 +93,19 @@
       "theme": "HC-05 Decode and Anchor runtime proof",
       "status": "complete",
       "boundary": "Closed post-M116 roadmap debt, implemented pure hexagonal ln-decode seam, sealed hostile malicious-decoder contracts, added dependency-free process runner, and produced tracked S10-HC-05-RT PASS. Current aggregate after M113-M117 is 5 PASS / 0 FAIL / 15 unsupported. No product storage, LadybugDB, ruVector, AgentFS or parser-format selection was made."
+    },
+    {
+      "range": "M118-M118",
+      "theme": "HC-06 Gate Lifecycle runtime proof",
+      "status": "complete",
+      "boundary": "Preflighted with trajectory governor, implemented pure hexagonal ln-gate seam with application-owned lifecycle ledger, sealed hostile in-place bypass contracts, added dependency-free process runner, and produced tracked S10-HC-06-RT PASS. Current aggregate after M113-M118 is 6 PASS / 0 FAIL / 14 unsupported. No product storage or confidence-threshold selection was made."
     }
   ],
   "current_milestone": {
-    "id": "M117-a06sez",
-    "title": "HC 05 Decode and Anchor Runtime Proof",
+    "id": "M118-5s90td",
+    "title": "HC 06 Gate Lifecycle Runtime Proof",
     "status": "complete",
-    "goal": "Convert HC-05 from unsupported-case into a bounded Rust runtime PASS without selecting product storage or parser format."
+    "goal": "Convert HC-06 from unsupported-case into a bounded Rust runtime PASS without selecting product storage or confidence threshold."
   },
   "recommended_next": {
     "title": "HC-07 Assert Identity runtime proof",
