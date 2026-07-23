@@ -63,7 +63,7 @@ A required capability, fixture, adapter, sink or human/legal judgment is absent;
 
 ## HC-01 through HC-20 execution classification
 
-All 20 cases remain runtime-required. Post-M111 evidence now supplies bounded product-capability runtime for HC-01 through HC-08; HC-09 through HC-20 remain unsupported. The table records the strongest honest current evidence and exact remaining observable.
+All 20 cases remain runtime-required. Post-M111 evidence now supplies bounded product-capability runtime for HC-01 through HC-09; HC-10 through HC-20 remain unsupported. The table records the strongest honest current evidence and exact remaining observable.
 
 | HC | Primary capability | Aggregate mode/current verdict | Strongest current partial and inputs | S10 check IDs | Missing observable preventing aggregate PASS |
 |---|---|---|---|---|---|
@@ -75,7 +75,7 @@ All 20 cases remain runtime-required. Post-M111 evidence now supplies bounded pr
 | HC-06 | Gate Lifecycle | `runtime-required` / `PASS` `[bounded]` | artifact-static contract plus Rust process proof at `prd/migration/rust-evidence/probes/hc06-gate-lifecycle-runtime.json` | `S10-HC-06-STATIC`, `S10-HC-06-RT` | none for the bounded synthetic confidence-only/in-place/accepted scope; numerical threshold and product storage remain non-claims |
 | HC-07 | Assert Identity | `runtime-required` / `PASS` `[bounded]`; legal correctness remains non-claim | artifact-static contract plus Rust process proof at `prd/migration/rust-evidence/probes/hc07-assert-identity-runtime.json` | `S10-HC-07-STATIC`, `S10-HC-07-RT`, `S10-HC-07-LEGAL` | none for the bounded synthetic one-sided/similarity/bilateral no-merge scope; legal identity judgment and similarity model remain non-claims |
 | HC-08 | Validate Relation | `runtime-required` / `PASS` `[bounded]` | artifact-static contract plus Rust process proof at `prd/migration/rust-evidence/probes/hc08-validate-relation-runtime.json` | `S10-HC-08-STATIC`, `S10-HC-08-RT` | none for the bounded synthetic unknown/wrong-owner/accept scope; graph/database schema remains a non-claim |
-| HC-09 | Resolve Five-Clock State | `runtime-required` / `unsupported-case`; applicable-law correctness non-claim | artifact-static: temporal contract and substitution prohibitions | `S10-HC-09-STATIC`, `S10-HC-09-RT`, `S10-HC-09-LEGAL` | temporal resolver and complete forbidden-substitution fixture matrix |
+| HC-09 | Resolve Five-Clock State | `runtime-required` / `PASS` `[bounded]`; applicable-law correctness non-claim | artifact-static contract plus Rust process proof at `prd/migration/rust-evidence/probes/hc09-five-clock-runtime.json` | `S10-HC-09-STATIC`, `S10-HC-09-RT`, `S10-HC-09-LEGAL` | none for the bounded synthetic substitution-matrix scope; applicable-law/effective-date correctness remain non-claims |
 | HC-10 | Transition Work State | `runtime-required` / `unsupported-case` | artifact-static: processing-state vocabulary and work≠legal state | `S10-HC-10-STATIC`, `S10-HC-10-RT` | work-state implementation and cancel/resume/stale sequences |
 | HC-11 | Compute Dependency Closure | `runtime-required` / `unsupported-case` | artifact-static: complete/incomplete/unbounded/unknown and publication eligibility | `S10-HC-11-STATIC`, `S10-HC-11-RT` | closure engine and incomplete/unbounded/version-skew fixtures |
 | HC-12 | Rebuild Disposable Projection | `runtime-required` / `unsupported-case` | artifact-static: projection non-authority and ceiling metadata | `S10-HC-12-STATIC`, `S10-HC-12-RT` | rebuild executor and fail/cancel-at-point fixtures |
@@ -86,18 +86,18 @@ All 20 cases remain runtime-required. Post-M111 evidence now supplies bounded pr
 | HC-17 | Query Evidence-Bounded State | `runtime-required` / `unsupported-case` | artifact-static plus adjacent legacy citation tests; adjacent pass is not HC PASS | `S10-HC-17-STATIC`, `S10-HC-17-ADJ`, `S10-HC-17-RT` | M111 query policy runtime and staging/gap-invention fixtures |
 | HC-18 | Resolve Citation | `runtime-required` / `unsupported-case`; official-source legal determination non-claim | artifact-static plus adjacent legacy citation binding tests | `S10-HC-18-STATIC`, `S10-HC-18-ADJ`, `S10-HC-18-RT`, `S10-HC-18-LEGAL` | restricted-official/mirror resolver and missing-anchor fixtures |
 | HC-19 | Emit Safe Diagnostics | `runtime-required` / `unsupported-case` | artifact-static plus adjacent secret/redaction marker checks | `S10-HC-19-STATIC`, `S10-HC-19-ADJ`, `S10-HC-19-RT` | declared sink inventory and multi-canary/redaction-failure/injection runtime |
-| HC-20 | Evaluate Conformance | `runtime-required` / `unsupported-case` | artifact-static owner/schema/oracle checks plus architecture/ADR verifiers | `S10-HC-20-STATIC`, `S10-HC-20-REPO`, `S10-HC-20-META` | complete meta-suite and differential adapters; runtime verdicts for HC-09-HC-19 remain unsupported; HC-01 through HC-08 are bounded PASS only |
+| HC-20 | Evaluate Conformance | `runtime-required` / `unsupported-case` | artifact-static owner/schema/oracle checks plus architecture/ADR verifiers | `S10-HC-20-STATIC`, `S10-HC-20-REPO`, `S10-HC-20-META` | complete meta-suite and differential adapters; runtime verdicts for HC-10-HC-19 remain unsupported; HC-01 through HC-09 are bounded PASS only |
 
 ## Current classification result
 
-- Aggregate runtime PASS: **8/20** (`HC-01`, `HC-02`, `HC-03`, `HC-04`, `HC-05`, `HC-06`, `HC-07`, `HC-08`, bounded synthetic Rust process proofs).
+- Aggregate runtime PASS: **9/20** (`HC-01`, `HC-02`, `HC-03`, `HC-04`, `HC-05`, `HC-06`, `HC-07`, `HC-08`, `HC-09`, bounded synthetic Rust process proofs).
 - Aggregate FAIL: **0/20**.
-- Aggregate `unsupported-case`: **12/20** because mandatory runtime observables for HC-09-HC-20 are absent.
+- Aggregate `unsupported-case`: **11/20** because mandatory runtime observables for HC-10-HC-20 are absent.
 - Artifact-static subchecks eligible for T02: **20/20**.
 - Adjacent repository executables eligible only as explicitly partial evidence: HC-05, HC-17, HC-18, HC-19 and HC-20.
 - Human/legal residual non-claims: HC-07, HC-09 and HC-18.
 
-This result does not invalidate or fully validate D123. Twelve unsupported cases still block any aggregate runtime-conformant D123 claim.
+This result does not invalidate or fully validate D123. Eleven unsupported cases still block any aggregate runtime-conformant D123 claim.
 
 ## T02 execution rule
 
@@ -275,6 +275,23 @@ Durable evidence:
 Current aggregate after HC-01 through HC-08: runtime PASS `8/20`, runtime FAIL `0/20`,
 `unsupported-case` `12/20`.
 
+### Post-M111 runtime delta: HC-09
+
+M121 added the missing Rust synthetic runtime surface for HC-09. The command
+`cargo run --offline --quiet -p ln-hc09-runner -- verdict` executed the five-clock
+forbidden-substitution matrix, missing-anchor and present-anchor paths. Every
+non-governing substitute including wall-clock was rejected when the governing
+anchor was missing; present governing anchors resolved without substitution.
+
+Durable evidence:
+
+- `prd/migration/rust-evidence/probes/hc09-five-clock-runtime.json`;
+- `prd/migration/rust-evidence/probes/hc09-five-clock-runtime.md`;
+- implementation revision `0b3d60cd14056aeafd8b729852ba3dd4c38f846e`.
+
+Current aggregate after HC-01 through HC-09: runtime PASS `9/20`, runtime FAIL `0/20`,
+`unsupported-case` `11/20`.
+
 ## T03 external negative-experience ledger
 
 All sources were accessed 2026-07-22. External incidents establish failure mechanisms, not local runtime behavior, technology fitness or transferable capacity.
@@ -305,7 +322,7 @@ Independent corroboration is mechanism-level only: N02 and N03 expose multiple l
 | C10 bypass | HC-06 `evidence kernel C10 policy`; canonical and skeleton contracts | Typed transitions have no implicit default, in-place mutation or confidence override. Any workflow/storage bypass invalidates C10. | `PASS` | bounded synthetic confidence-only/in-place/accepted closed by `S10-HC-06-RT`; product storage remains open |
 | C12 bypass | HC-07 `evidence kernel C12 policy`; canonical and skeleton contracts | Assertions do not merge; unresolved identities survive; confidence cannot authorize identity. Implicit merge invalidates C12. | `PASS` | bounded synthetic one-sided/similarity/bilateral no-merge closed by `S10-HC-07-RT`; legal identity remains a non-claim |
 | C13 bypass | HC-08 `evidence kernel C13 registry policy`; canonical and skeleton contracts | Kernel/family registries are closed; runtime, user or LLM input cannot mint predicates. Unknown-predicate acceptance invalidates C13. | `PASS` | bounded synthetic unknown/wrong-owner/accept closed by `S10-HC-08-RT`; graph schema remains a non-claim |
-| Clock substitution | HC-09 `domain temporal policy`; temporal and skeleton contracts | Missing anchors cannot fall back to publication, upload, observation, latest edition or current time. Silent fallback invalidates the five-clock owner binding. | `PASS` | complete forbidden-substitution matrix for HC-09; legal applicability remains a non-claim |
+| Clock substitution | HC-09 `domain temporal policy`; temporal and skeleton contracts | Missing anchors cannot fall back to publication, upload, observation, latest edition or current time. Silent fallback invalidates the five-clock owner binding. | `PASS` | bounded synthetic forbidden-substitution matrix closed by `S10-HC-09-RT`; legal applicability remains a non-claim |
 | Incomplete closure | HC-11 `inward dependency policy`; pipeline and skeleton contracts | `incomplete`, `unbounded` and `unknown` cannot become authoritative incremental completeness. Invented complete closure invalidates the capability. | `PASS` | closure/version-skew fixtures and publication block for HC-11 |
 | Unbounded work and false capacity precision | HC-13 `application admission policy`; pipeline and skeleton contracts | Unknown bounds pause/reject admission; formulas and external metrics cannot become E1-E3 measurements or SLA. Unbounded admission or fabricated precision invalidates the capability. | `PASS` | saturation/retry runtime and local comparable E1-E3 measurements for HC-13 |
 | Query/citation invention | HC-17 `inward query policy`; separately HC-18 `domain citation policy`; exclusive owners, not co-owners; source/canonical contracts constrain both | Query cannot create facts, identities, relations, clocks or authority. Citation separately cannot invent anchors or relabel mirrors official. Either invention invalidates its respective capability. | `PASS` | HC-17 staging/gap-invention fixtures; separately HC-18 restricted-official/mirror fixtures |
@@ -333,7 +350,7 @@ A fresh independent pass used sources outside the central T01/T03 selection evid
 | OpenTelemetry Project, *Handling sensitive data*, accessed 2026-07-22, https://opentelemetry.io/docs/security/handling-sensitive-data/ | Telemetry may capture credentials, tokens and personal data; collection minimization and redaction/hash/deletion are required controls. | Framework guidance does not select OpenTelemetry or define legal-text/vector policy. **Retain** diagnostic denylist without technology selection. |
 | NIST SP 800-92, Kent and Souppaya, *Guide to Computer Security Log Management*, September 2006, https://csrc.nist.gov/pubs/sp/800/92/final | Logs are event records requiring confidentiality, integrity, availability and explicit content policy; operational records are not automatic domain truth. | Legacy log-management guidance is not a provenance ontology or legal temporal model. **Retain** observation/diagnostic non-authority. |
 
-Efficiency and transferable law-nexus capacity remain unknown. At M111 T05 this cross-check left the then-current aggregate at static PASS 20/20, architecture attack protection PASS 14/14, runtime PASS 0/20, runtime FAIL 0/20 and `unsupported-case` 20/20. The post-M120 current runtime aggregate is PASS 8/20, FAIL 0/20 and `unsupported-case` 12/20.
+Efficiency and transferable law-nexus capacity remain unknown. At M111 T05 this cross-check left the then-current aggregate at static PASS 20/20, architecture attack protection PASS 14/14, runtime PASS 0/20, runtime FAIL 0/20 and `unsupported-case` 20/20. The post-M121 current runtime aggregate is PASS 9/20, FAIL 0/20 and `unsupported-case` 11/20.
 
 ## T01-T05 non-claims
 

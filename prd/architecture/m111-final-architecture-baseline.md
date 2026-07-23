@@ -4,13 +4,13 @@
 **Milestone:** M111/S10  
 **Selection package:** D116, D118, D119, D120, D121 and D123 `KOF-DA`  
 **Product direction:** Rust-only product runtime under ADR-0004; subprocess-only Python harness under ADR-0007; ADR-0005 product topology is superseded
-**Proof ceiling:** architecture contracts, artifact-static checks, bounded adjacent repository evidence, and post-M111 HC-01 through HC-08 bounded runtime proofs
+**Proof ceiling:** architecture contracts, artifact-static checks, bounded adjacent repository evidence, and post-M111 HC-01 through HC-09 bounded runtime proofs
 
 ## Objective and boundary
 
 This document is the final M111 architecture package for future Rust planning. It fixes semantic ownership, authorities, evidence ceilings, hostile-case oracles and invalidation conditions without selecting implementation technology.
 
-The baseline proves architecture-level coherence only. Artifact-static checks pass for all 20 hostile cases, and all 14 cross-slice attack classes have an exclusive owner, fail-closed rule and invalidation condition. Post-M111 evidence now provides bounded product-capability runtime PASS for HC-01 through HC-08 (`S10-HC-01-RT`, `S10-HC-02-RT`, `S10-HC-03-RT`, `S10-HC-04-RT`, `S10-HC-05-RT`, `S10-HC-06-RT`, `S10-HC-07-RT`, `S10-HC-08-RT`): current runtime results are 8 PASS, 0 FAIL and 12 `unsupported-case`. This does not establish aggregate conformance.
+The baseline proves architecture-level coherence only. Artifact-static checks pass for all 20 hostile cases, and all 14 cross-slice attack classes have an exclusive owner, fail-closed rule and invalidation condition. Post-M111 evidence now provides bounded product-capability runtime PASS for HC-01 through HC-09 (`S10-HC-01-RT`, `S10-HC-02-RT`, `S10-HC-03-RT`, `S10-HC-04-RT`, `S10-HC-05-RT`, `S10-HC-06-RT`, `S10-HC-07-RT`, `S10-HC-08-RT`, `S10-HC-09-RT`): current runtime results are 9 PASS, 0 FAIL and 11 `unsupported-case`. This does not establish aggregate conformance.
 
 Architecture PASS is not product runtime PASS. Adjacent parser, citation, architecture/ADR and marker checks are partial evidence only.
 
@@ -128,7 +128,7 @@ Diagnostics may expose only bounded identifiers, hashes, phases, categories, rul
 | Repository-adjacent checks | available checks PASS after corrected invocation | partial parser/citation/repository evidence only |
 | Architecture attack protections | PASS 14/14 | each attack class has exact owner, fail-closed protection and invalidation condition |
 | Milestone-invalidating architecture failures | 0 | no current cross-contract contradiction found |
-| Runtime aggregate | PASS 8/20; FAIL 0/20; `unsupported-case` 12/20 | HC-01 through HC-08 have bounded runtime proofs; mandatory surfaces for HC-09-HC-20 remain absent |
+| Runtime aggregate | PASS 9/20; FAIL 0/20; `unsupported-case` 11/20 | HC-01 through HC-09 have bounded runtime proofs; mandatory surfaces for HC-10-HC-20 remain absent |
 
 | HC | Capability | Aggregate verdict | Missing surface preventing runtime PASS |
 |---|---|---|---|
@@ -140,7 +140,7 @@ Diagnostics may expose only bounded identifiers, hashes, phases, categories, rul
 | HC-06 | Gate Lifecycle | `PASS` `[bounded]` | `S10-HC-06-RT`: confidence-only and in-place rejected; accepted path mints new immutable outcome |
 | HC-07 | Assert Identity | `PASS` `[bounded]`; legal non-claim | `S10-HC-07-RT`: one-sided/similarity-only reject; bilateral same never merges; both identities survive |
 | HC-08 | Validate Relation | `PASS` `[bounded]` | `S10-HC-08-RT`: unknown-predicate and wrong-owner rejected; rejected relations not query facts |
-| HC-09 | Resolve Five-Clock State | `unsupported-case`; legal non-claim | resolver and full clock-substitution matrix |
+| HC-09 | Resolve Five-Clock State | `PASS` `[bounded]`; legal non-claim | `S10-HC-09-RT`: five-clock forbidden-substitution matrix; wall-clock never authorizes |
 | HC-10 | Transition Work State | `unsupported-case` | cancel/resume/stale work-state sequences |
 | HC-11 | Compute Dependency Closure | `unsupported-case` | incomplete/unbounded/version-skew closure fixtures |
 | HC-12 | Rebuild Disposable Projection | `unsupported-case` | fail/cancel rebuild-at-point fixtures |
@@ -179,7 +179,7 @@ D123 may be reopened if a thinner ownership model satisfies every supported host
 ## Requirement evidence ceiling
 
 - **R067:** advanced by a complete implementation-neutral contract package, 20 exclusive capability owners, 20 hostile oracles, 12 rejection oracles, static PASS 20/20 and architecture attack PASS 14/14. Product/runtime validation remains outstanding.
-- **R068:** advanced by D118 five clocks, event-anchored assertions and HC-09 substitution oracles. Runtime resolver behavior and legal applicability remain unvalidated.
+- **R068:** advanced by D118 five clocks, event-anchored assertions and HC-09 substitution runtime PASS (`S10-HC-09-RT`). Legal applicability/effective-date correctness remain non-claims.
 - **R071:** M111 material decisions have primary/independent evidence, positive/negative lessons, dispositions and transferability limits. This demonstrates M111 process compliance, not permanent completion of an ongoing quality requirement.
 
 ## Future Rust planning handoff

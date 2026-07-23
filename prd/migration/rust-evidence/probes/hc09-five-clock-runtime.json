@@ -1,0 +1,30 @@
+{
+  "schema": "law-nexus-hc09-verdict/v1",
+  "evidence_id": "S10-HC-09-RT",
+  "case_id": "HC-09",
+  "generated_at": "2026-07-23",
+  "implementation_revision": "0b3d60cd14056aeafd8b729852ba3dd4c38f846e",
+  "command": "cargo run --offline --quiet -p ln-hc09-runner -- verdict",
+  "verdict": "PASS",
+  "scenario_count": 3,
+  "matrix_all_clocks_reject_substitution": true,
+  "missing_anchor_without_substitutes": true,
+  "present_anchor_resolves": true,
+  "wall_clock_never_authorizes": true,
+  "substitution_never_used": true,
+  "remaining_unsupported_cases": 11,
+  "lifecycle": "[bounded]",
+  "product_storage_selected": false,
+  "applicable_law_claimed": false,
+  "scenarios": [
+    "matrix-all-clocks-reject-substitution",
+    "missing-anchor-without-substitutes",
+    "present-anchor-resolves"
+  ],
+  "non_claims": [
+    "This proof does not claim applicable-law or effective-date correctness.",
+    "This proof does not implement C10/C12/C13 gates, D116 promotion or D120 publication.",
+    "No SQLite, Turso, LadybugDB, FalkorDB, ruVector or AgentFS product backend is selected by this proof.",
+    "HC-10 through HC-20 remain unsupported-case."
+  ]
+}
