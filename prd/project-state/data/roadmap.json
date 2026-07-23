@@ -111,13 +111,19 @@
       "theme": "HC-08 Validate Relation runtime proof",
       "status": "complete",
       "boundary": "Preflighted with trajectory governor, implemented pure hexagonal ln-relation seam with application-owned accepted-fact ledger, sealed hostile open-relation contracts, added dependency-free process runner, and produced tracked S10-HC-08-RT PASS. Current aggregate after M113-M120 is 8 PASS / 0 FAIL / 12 unsupported. No product storage or graph-schema selection was made."
+    },
+    {
+      "range": "M121-M121",
+      "theme": "HC-09 Resolve Five-Clock State runtime proof",
+      "status": "complete",
+      "boundary": "Preflighted with trajectory governor, implemented pure hexagonal ln-temporal seam, sealed hostile clock-substitution contracts, added dependency-free process runner, and produced tracked S10-HC-09-RT PASS. Current aggregate after M113-M121 is 9 PASS / 0 FAIL / 11 unsupported. No product storage selected; applicable-law/effective-date correctness remain non-claims."
     }
   ],
   "current_milestone": {
-    "id": "M120-rhu5ui",
-    "title": "HC 08 Validate Relation Runtime Proof",
+    "id": "M121-qmr22h",
+    "title": "HC 09 Resolve Five Clock State Runtime Proof",
     "status": "complete",
-    "goal": "Convert HC-08 from unsupported-case into a bounded Rust runtime PASS without selecting product storage or graph schema."
+    "goal": "Convert HC-09 from unsupported-case into a bounded Rust runtime PASS without selecting product storage or claiming applicable-law correctness."
   },
   "recommended_next": {
     "title": "HC-10 Transition Work State runtime proof",
