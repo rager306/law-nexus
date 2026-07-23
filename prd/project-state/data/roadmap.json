@@ -1,6 +1,6 @@
 {
   "schema_version": "law-nexus-project-state-roadmap/v2",
-  "generated_at": "2026-06-22",
+  "generated_at": "2026-07-23",
   "non_authoritative": true,
   "source_of_truth": "prd/ARCHITECTURE.md (living truth oracle) and .gsd/milestones/* (GSD state). This roadmap is a derived cold-reader summary; when it disagrees with the oracle or GSD state, those win.",
   "completed_milestone_groups": [
@@ -53,25 +53,37 @@
       "boundary": "Reactive architecture proposed as bounded shell around synchronous deterministic core (not yet implemented as runtime). Job ledger contract defined; append-only JSONL pilot scoped to source-inventory. M085 triaged full-suite signal (53 failures) into evidence-backed clusters with R1-R7 remediation roadmap. Triage work only — does NOT claim full health."
     },
     {
-      "range": "M086-M108",
-      "theme": "Debt repair, parser IR/corpus widening, test performance repair, Rust transition planning, and ACP/git-lex runtime disconnection",
+      "range": "M086-M110",
+      "theme": "Debt repair, parser/corpus stabilization, Rust-only transition, ACP/git-lex decommission, the first Rust process tracer and capability evidence mapping",
       "status": "complete",
-      "boundary": "M086-M105 repaired debt and widened the Consultant parser/corpus. M106 removed repeated corpus rebuilds. M107 selected Rust-only product plus process-level Python harness and planned decommission. M108 manifested 750 paths, disconnected the git-lex hook, and preserved neutral quality gates. Bulk archive, baseline reconciliation and Rust implementation remain open."
+      "boundary": "M086-M106 repaired debt and stabilized parser/corpus execution. M107 selected the Rust-only product target. M108-M109 archived active ACP/git-lex surfaces, froze parser baselines, created the root Cargo workspace, ln-status tracer and thin Python harness tracer. M110 classified 26 capabilities and 39 Rust candidate records, then replaced implementation-shape parity with observable contract acceptance. Product parity remains unproven."
+    },
+    {
+      "range": "M111-M112",
+      "theme": "Zero-based heterogeneous legal evidence architecture and post-M111 ADR synchronization",
+      "status": "complete",
+      "boundary": "M111 selected the bounded implementation-neutral semantic baseline: D116/D120 separate authorities, D118 five clocks, D119 C10/C12/C13, D120 complete H1 authority and D123 KOF-DA exact ownership. M112 superseded the pre-M111 crate map, authored ADR-0008 through ADR-0012 and added read-only ADR/decision/owner drift enforcement in pre-commit and CI. No implementation topology was selected."
+    },
+    {
+      "range": "M113-M113",
+      "theme": "HC-01 Observe Source first Rust hostile-case runtime proof",
+      "status": "complete",
+      "boundary": "Closed Turso/AgentFS storage evidence debt under ADR-0012, implemented a pure hexagonal ln-observe seam, sealed hostile adapter contracts, added a dependency-free process runner, and produced tracked S10-HC-01-RT PASS. Current aggregate is 1 PASS / 0 FAIL / 19 unsupported. No product storage, LadybugDB, ruVector or AgentFS selection was made."
     }
   ],
   "current_milestone": {
-    "id": "M108-qqoye7",
-    "title": "Disconnect ACP and git-lex runtime while preserving repository quality gates",
+    "id": "M113-cglmxe",
+    "title": "HC 01 Observe Source Runtime Proof",
     "status": "complete",
-    "goal": "D0-D2 complete: 750-path manifest, standard non-mutating hook, neutral repository quality gates. Bulk archive and Rust implementation not started."
+    "goal": "Convert HC-01 from unsupported-case into a bounded Rust runtime PASS without selecting product storage or later backends."
   },
   "recommended_next": {
-    "title": "Parallel cleanup, baseline reconciliation, and Rust harness tracer",
+    "title": "HC-02 Inventory Immutable Intake runtime proof",
     "priority": 1,
-    "why": "The mutating hook is gone, so manifest-driven archive can proceed safely. Rust parity still depends on reconciling shared single/corpus artifacts. Cargo workspace and the process-level Python harness can now start in parallel.",
-    "plan_reference": "prd/migration/acp-git-lex-decommission-roadmap.md, rust-migration-roadmap.md, and repository-harness-roadmap.md",
-    "slices": "D3 active skills/kits/scripts/tests archive → D4 .lex/history archive; R0 mode-separated parser baseline; R1 Cargo workspace + H01 process-runner tracer",
-    "non_validation": "Does not move Python product code, claim complete ACP archive, or claim Rust product parity/readiness."
+    "why": "M113 admitted only the next hostile case after HC-01 PASS. HC-02 is the next P1 intake boundary: re-inventory of the same immutable drop must remain staging/review visibility and must not mint curated/current/authoritative identity or overwrite history.",
+    "plan_reference": "prd/architecture/m111-system-skeleton-contract.md HC-02, prd/architecture/m111-consultant-intake-contract.md, prd/architecture/m111-final-architecture-baseline.md, doc/adr/0012-consequential-evidence-protocol.md, and M114-8tw2dh roadmap",
+    "slices": "Close post-M113 roadmap debt, implement pure inventory domain/ports, seal hostile rewrite/curated-exposure contracts, add dependency-free runtime runner, produce S10-HC-02-RT PASS or FAIL, then validate and gate HC-03 only if HC-02 PASS.",
+    "non_validation": "M113 HC-01 PASS is bounded synthetic interrupted-source proof only. It does not prove source completeness, legal correctness, real network/TLS, product storage readiness, FalkorDB readiness, retrieval quality or E1-E3 capacity. HC-02 through HC-20 remain unsupported until their own runtime proof exists."
   },
   "downstream_blocked": [
     {
@@ -86,8 +98,8 @@
     },
     {
       "capability": "Rust parity baseline",
-      "blocker": "single-document and corpus artifact paths currently overwrite shared outputs; M105 counts disagree with current tracked artifacts",
-      "current_status": "[proposed] baseline_not_frozen"
+      "blocker": "Rust has not reproduced the frozen mode-separated Python artifacts or product behavior",
+      "current_status": "[bounded] M111 semantic baseline, M112 ADR enforcement and M113 HC-01 synthetic runtime PASS complete; whole-system Rust product parity unproven"
     },
     {
       "capability": "R037 (FalkorDB ingest/runtime)",

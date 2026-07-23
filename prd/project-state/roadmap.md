@@ -1,120 +1,109 @@
 # Roadmap
 
-> **Source of truth:** `prd/ARCHITECTURE.md` (living truth oracle) and `.gsd/milestones/*` (GSD state).
-> This page is a derived cold-reader summary. When it disagrees with the oracle
-> or GSD state, those win. Derived from `prd/project-state/data/roadmap.json`.
-> Refreshed 2026-06-22 (post-M069).
+> **Source of truth:** `prd/ARCHITECTURE.md` and GSD state. This document is a
+> non-authoritative cold-reader projection of
+> `prd/project-state/data/roadmap.json`.
+>
+> Refreshed 2026-07-23 after M113 completion.
 
-## Where we are now
+## Current position
 
-```
-[STRUCTURAL FOUNDATION — COMPLETE (locally + CI enforceable)]
-  M068 (onion package src/law_nexus + ADR-0001 + MADR ADR standard ADR-0002
-        + compliance gate: pre-commit hooks AND .github/workflows CI)  ✅ complete
-  M069 (ADR-0003 library-boundary contract + gate-green standing tree)  ✅ complete
-  M070 (roadmap freshness guard — pytest parsing .gsd/STATE.md)        ✅ complete
-  M071 (root README landing page + CI badge)                            ✅ complete
+- **Latest completed milestone:** M113-cglmxe, HC 01 Observe Source Runtime Proof.
+- **Active milestone:** M114-8tw2dh, HC 02 Inventory Immutable Intake Runtime Proof.
+- **M111 result:** final `[bounded]` implementation-neutral semantic baseline for heterogeneous Russian legal evidence.
+- **M112 result:** ADR-0005 topology superseded; ADR-0008 through ADR-0012 authored `[bounded]`; executable ADR/decision/owner drift checks active in pre-commit and CI.
+- **M113 result:** first hostile-case Rust runtime proof. `S10-HC-01-RT` is bounded PASS. Current aggregate is **1 PASS / 0 FAIL / 19 unsupported-case**.
+- **Product target:** Rust-only runtime under ADR-0004; Python may remain only as ADR-0007 subprocess repository harness.
+- **Implementation topology:** not selected. Database, FalkorDB schema, storage, queue/ledger, product crate map, API, concurrency runtime and deployment remain evidence-gated future decisions.
+- **Product readiness:** not proven.
 
-[PRODUCT TRACK — RESUMES HERE]
-  Consultant XML Parser Hardening (M034 corrected roadmap)   ← NEXT
-    7 slices: baseline lock → lxml eval → structural rules →
-              semantic diagnostics → razdel/pymorphy3 →
-              source-span/stable-ID → final proof package
-
-[DOWNSTREAM — BLOCKED until parser data ready]
-  graph materialization → retrieval / citation-safe answers →
-  R035 / R037 / R038 validation
-```
-
-The structural foundation is fully enforceable now — both locally (pre-commit)
-and in CI (`.github/workflows/compliance-gate.yml` runs the same 4 hard-fail
-checks on push/PR). Future code cannot drift from ADR-0001 (onion layers),
-ADR-0002 (gate≠ACP), or D098 (lifecycle tags).
-
-The ACP/git-lex era (M035–M067) is **CLOSED**: the reusable core was
-externalized to `/root/git-lex-kit-acp/` and law-nexus became a profile consumer
-(M067, D097). Per **D098**, that era was itself meta-drift; ACP is now frozen to
-**checkpoint mode** (detect+log+flag, non-blocking) until parser data is ready.
-Do not treat ACP/RDF/SHACL/SPARQL/dashboards as source truth or as the next
-milestone.
-
-## Project proof roadmap
+## Completed milestone bands
 
 | Range | Theme | Boundary |
 |---|---|---|
-| M001-M010 | Architecture review, PRD consistency, parser direction, and baseline architecture verification | Foundations only, not production readiness. |
-| M011-M030 | GraphRAG, FalkorDB, retrieval, ontology, evidence, and semantic scoring proof cycles | Bounded proof cycles, not final retrieval quality or ontology/product readiness. |
-| M031-M034 | Consultant XML source structuring, MiniMax-assisted discovery, graph context staging, and workline recovery | Source workflow evidence, not parser completeness for all sources. |
-| M035-M067 | ACP / git-lex reusable-core era — construction, registry, RDF projection, then **externalization** | **CLOSED.** Core externalized (M067, D097); law-nexus is a profile consumer. This era was itself meta-drift (D098); ACP is frozen to checkpoint mode. Not source truth, not the next milestone. |
-| M068-M071 | Structural foundation crystallization + roadmap freshness guard + public README — onion package, ADR standard, compliance gate (pre-commit + CI), library-boundary contract | Anti-drift infrastructure, now fully enforceable locally AND in CI (push/PR), with a public cold-reader README. Repo is a package (`src/law_nexus`). M068/M069/M070/M071 all complete. Does NOT validate R035/R037/R038, does NOT harden the parser, does NOT introduce FalkorDB/graph/retrieval. |
-| M072-M075 | Consultant parser foundation hardening + test-debt reduction — discovery-based inventory (v2), 12-variant classification, scope-filtered corpus (4 in-scope fixtures, 7860 records), hash-entropy source_id, fixture sha256 chain repair (26 tests fixed across 7 fixtures), 2 builder script patches (2 more tests fixed) | Parser foundation: M072 = 6 slices (inventory v2 + 12-variant enum + scope-filtered corpus + hash-entropy source_id). M074/M075 = test-debt reduction (M072-induced failures, not parser content). M073 = deferred (legal-domain foundation). Does NOT validate R035/R037/R038; does NOT introduce FalkorDB/graph/vector/retrieval; does NOT claim parser completeness or legal correctness. 28 test failures remain: 23 Type B inherited (D097, out of scope), 2 Type A: M072-deferred, 3 Type A: blocked-by-corpus-scope-mismatch (semantic). |
+| M001-M034 | Architecture, parser direction, FalkorDB/retrieval evidence and source structuring | Foundational and bounded proof, not product readiness. |
+| M035-M067 | ACP/git-lex construction and externalization | Closed historical era; derived projections are non-authoritative. |
+| M068-M085 | Onion architecture, compliance gates, parser foundation and repository health | Structural and parser groundwork; no whole-system parity. |
+| M086-M110 | Debt repair, corpus stabilization, Rust-only transition, ACP/git-lex decommission, first Rust tracer and capability evidence map | Rust workspace/harness and bounded acceptance evidence exist; product/domain parity remains unproven. |
+| M111-M112 | Zero-based legal evidence architecture and post-M111 ADR synchronization | Semantic owners, authorities, clocks, gates and hostile oracles are bounded; ADR enforcement is executable. |
+| M113-M113 | HC-01 Observe Source first Rust hostile-case runtime proof | Bounded synthetic interrupted-source PASS only; 19 hostile cases remain unsupported; no product storage/backend selection. |
 
-See `prd/project-state/diagrams/milestone-timeline.mmd` for the compressed
-timeline (note: the diagram predates M068-M069 and should be refreshed when the
-parser-hardening milestone nears).
+## M111 semantic baseline
 
-## Current milestone
+M111 selected:
 
-`M075-8bpodd — Type A blocked-test resolution` is **complete**.
+- D116 sole Promotion Authority, separate from D120 Publication Authority;
+- D118 five clocks with no silent substitution;
+- D119 compositional evidence kernel with inward C10/C12/C13;
+- D120 complete immutable H1-only authority with provisional outputs always non-authoritative, incomplete and not-current;
+- D123 KOF-DA with exactly twenty primary capability owners;
+- HC-01 through HC-20 and twelve selection-time rejection oracles.
 
-It resolved 2 of 5 M074-deferred Type A: blocked tests (offline_citation + real_artifact builder scripts) via patch + content-tolerate approach, and documented the 3 prior_art tests as Type A: blocked-by-corpus-scope-mismatch (semantic, not data) for follow-up. Combined M074+M075: 56 → 28 failures (28 tests fixed across 13 test files via 7 fixture updates + 2 builder patches + 2 test modifications).
+Architecture-static checks passed. Runtime hostile cases remain mostly unsupported; only HC-01 now has a bounded synthetic Rust process proof.
 
-> **Note:** M068 is complete — round-0 needs-attention was resolved in round 1
-> by adding the CI compliance-gate workflow (S04) and by M069 closing the
-> standing pre-commit rc=1 (Decision-section exempt-rule).
+## M112 ADR and enforcement result
+
+- ADR-0004 retains Rust-only whole-system migration and no in-process bridge.
+- ADR-0005 pre-M111 crate/port topology is superseded `[deferred]`.
+- ADR-0007 retains a subprocess-only Python repository harness with no product logic.
+- ADR-0008 records authority separation, complete H1 and provisional ceilings.
+- ADR-0009 records the five-clock temporal model.
+- ADR-0010 records D119 evidence gates.
+- ADR-0011 records KOF-DA and exact twenty owners.
+- ADR-0012 records the ongoing evidence-before-selection protocol.
+- `scripts/verify-m112-adr-sync.py` checks index, lifecycle, decision/contract markers, owner parity, stale topology, authority/clock/gate/composite-owner regressions, technology adoption and proof inflation.
+- The derived architecture registry now has 69 items and 109 edges; it remains non-authoritative.
+
+R072 is validated only for ADR synchronization and static enforcement. R067, R068 and R071 remain active.
+
+## M113 HC-01 runtime result
+
+- Closed Turso/AgentFS storage evidence debt under ADR-0012 without product adoption.
+- Implemented pure hexagonal `ln-observe` domain/ports/application/adapters.
+- Sealed hostile partial-byte metadata and four interrupted outcome contracts.
+- Added dependency-free `ln-hc01-runner` process surface.
+- Tracked `S10-HC-01-RT` PASS with exact scenario-to-outcome mapping and a negative collapsed-mapping control.
+- D128 kept product SQLite outside M113.
+
+Proof anchors:
+
+- `prd/migration/rust-evidence/probes/hc01-observe-source-runtime.json`
+- `prd/migration/rust-evidence/probes/hc01-observe-source-runtime.md`
 
 ## Recommended next milestone
 
-**Consultant XML Parser Hardening from the M009 baseline** (the M034 corrected
-roadmap) is the recommended next milestone.
+Execute M114 HC-02 Inventory Immutable Intake:
 
-Why: the structural foundation is laid (M068/M069); per D098 and the M034
-corrected roadmap, the product track resumes at parser hardening **before** any
-graph/retrieval/R035-R038 work, all of which are downstream-blocked on parsed
-data. The parser-hardening milestone is a proof-gated, non-overclaiming pass on
-the existing M009 Consultant WordML hierarchy baseline.
+1. close post-M113 roadmap debt;
+2. implement pure inventory domain/ports without filesystem/storage product selection;
+3. seal hostile rewrite, second-accepted-identity and curated/current exposure attempts;
+4. add a dependency-free process runner;
+5. produce tracked `S10-HC-02-RT` PASS or FAIL;
+6. update current aggregates honestly and gate HC-03 only if HC-02 PASS.
 
-Plan: `prd/research/source_structuring/25-corrected-consultant-xml-parser-roadmap.md`
-— S01 baseline lock → S02 `lxml` equivalence eval → S03 structural rules →
-S04 semantic diagnostics → S05 `razdel`/`pymorphy3` eval → S06 source-span/
-stable-ID → S07 final proof package.
+HC-02 must keep re-inventory as immutable staging/review visibility. It must not mint curated/current/authoritative identity, overwrite history, or select product filesystem/storage backends.
 
-**Non-validation:** does NOT validate R035/R037/R038; does NOT introduce
-FalkorDB/graph/vector/retrieval; does NOT claim parser completeness or legal
-correctness.
+## Downstream gates
 
-## Downstream — blocked until parser data ready
-
-| Capability | Blocker | Current status |
+| Capability | Gate | Current lifecycle |
 |---|---|---|
-| FalkorDB legal graph (production) | needs materialized graph from parsed corpus | `[bounded]` synthetic smoke |
-| Retrieval / citation-safe answers | needs real EvidenceSpan/SourceBlock fixtures from parsed corpus | `[bounded]` smoke only |
-| R035 (ontology architecture) | needs registry extractor integration + accepted proof-gate evidence (documentation-only is insufficient) | `[proposed]` active, not validated |
-| R037 (FalkorDB ingest/runtime) | needs production ingest from real corpus | `[bounded]` active, partially evidenced |
-| R038 (independent review) | standing review gate | `[bounded]` active |
+| Rust product parity | Implement all required capability surfaces and whole-system parity before Python archival | `[proposed]` |
+| HC-02 inventory intake | Re-inventory remains staging/review; no curated/current/authority labels | `[proposed]` active next |
+| Temporal resolver | Five-clock runtime plus complete substitution/conflict fixtures | `[proposed]` |
+| Promotion/publication | Idempotent D116 and complete H1/D120 hostile fixtures | `[proposed]` |
+| FalkorDB product integration | ADR-0012 evidence pass and disposable runtime probes after an owning capability needs it | `[deferred]` |
+| Retrieval/citations | Real EvidenceSpan fixtures and evidence-bounded answer/citation runtime | `[bounded]` prior evidence only |
+| E1-E3 capacity | Comparable local measurements for selected runtime | `[proposed]` unknown |
+| Python archival | Complete Rust whole-system parity and one controlled cutover | `[deferred]` |
 
-## Alternatives
+## Frozen tracks
 
-Valid only if their trigger becomes more important than parser hardening:
+- ACP/git-lex active runtime, hooks, CI, skills and source-of-truth roles remain decommissioned.
+- PyO3, C ABI, FFI, embedded Python and shared-library product bridges remain forbidden.
+- ADR-0005 named crate topology is not a default or implementation plan.
+- Generated registry JSONL/reports/views are diagnostics, not architecture authority.
+- Product storage remains unselected after M113 D128.
 
-| Alternative | Choose when | Constraint |
-|---|---|---|
-| FalkorDB graph materialization | Parser proof yields a stable record stream. | Do not start before parser-hardening proof; no R037 claim from synthetic smoke. |
-| Adaptix boundary-record↔domain-form mapping | ADR-0003's reserved mapping becomes needed (parser product wires boundary-records into domain). | Premature until parser-hardening produces the consumer. |
-| ACP unfreeze (observational only) | A concrete drift is detected+logged, or the user explicitly directs it. | ACP expands ONLY observation, never into a blocking gate (D098); do not re-enter the M035-M063 meta-drift. |
+## Non-claims
 
-## Frozen (not active tracks)
-
-- **ACP** — checkpoint mode (detect+log+flag) until parser data ready (D098). Not a milestone, not a gate.
-- **R035 / R037 / R038 validation** — not validatable from documentation/projection evidence alone; deferred to downstream product-data milestones.
-
-## Planning constraints
-
-Future milestones should:
-
-- use GSD milestone/slice/task tools;
-- run GitNexus impact before editing code symbols;
-- run GitNexus detect_changes before commits;
-- use tracked relative source anchors only (no `.gsd/exec`, absolute, ignored, or raw-payload anchors);
-- keep product/legal/runtime/parser/FalkorDB/retrieval claims bounded unless separate proof exists;
-- apply D098 lifecycle tags (`[proposed]`/`[bounded]`/`[smoke]`/`[validated]`/`[deferred]`) on architectural/state claims; never smooth a bounded/proposed claim up to `[validated]`.
+This roadmap does not prove Rust product readiness, parser completeness, Russian legal correctness, source completeness, FalkorDB production readiness, retrieval quality, diagnostic sink safety, E1-E3 capacity or whole-system parity. M113 HC-01 PASS is bounded synthetic interrupted-source proof only.
