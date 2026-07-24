@@ -8,6 +8,7 @@ from collections.abc import Sequence
 from pathlib import Path
 
 from law_nexus_harness.governor import run_governor
+from law_nexus_harness.preflight import run_preflight
 from law_nexus_harness.subprocess_runner import (
     DEFAULT_MAX_OUTPUT_BYTES,
     DEFAULT_TIMEOUT_SECONDS,
@@ -37,6 +38,16 @@ def build_parser() -> argparse.ArgumentParser:
         default=Path.cwd(),
         help="Repository root (default: current working directory).",
     )
+    preflight = subcommands.add_parser(
+        "preflight",
+        help="Run early non-mutating repository preflight checks before completion/commit.",
+    )
+    preflight.add_argument(
+        "--root",
+        type=Path,
+        default=Path.cwd(),
+        help="Repository root (default: current working directory).",
+    )
     return parser
 
 
@@ -53,6 +64,10 @@ def main(argv: Sequence[str] | None = None) -> int:
         return 0 if result.status == "ok" else 1
     if args.command == "governor":
         report = run_governor(args.root)
+        sys.stdout.write(report.to_json())
+        return 0 if report.status == "ok" else 1
+    if args.command == "preflight":
+        report = run_preflight(args.root)
         sys.stdout.write(report.to_json())
         return 0 if report.status == "ok" else 1
     raise AssertionError(f"unhandled command: {args.command}")
