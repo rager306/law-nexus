@@ -162,10 +162,10 @@
     }
   ],
   "current_milestone": {
-    "id": "M127-9pitwq",
-    "title": "HC 15 Publish Authoritative H1 Unit Runtime Proof",
+    "id": "M128-z37bqq",
+    "title": "Governor Preflight and Process Debt Closure",
     "status": "complete",
-    "goal": "Convert HC-15 from unsupported-case into a bounded Rust runtime PASS without selecting product storage, fencing or transaction infrastructure."
+    "goal": "Deliver a complete non-mutating preflight profile for the law-nexus Python repository harness."
   },
   "recommended_next": {
     "title": "HC-15 Publish Authoritative H1 Unit runtime proof",
