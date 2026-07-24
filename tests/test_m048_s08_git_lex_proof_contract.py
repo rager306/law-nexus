@@ -97,7 +97,10 @@ def test_contract_exists_and_has_required_sections() -> None:
     authority = section(text, "Inputs and Authority")
     assert "M048-S08-GIT-LEX-CAPABILITY-MATRIX.md" in authority
     assert "No artifact is authoritative by shape alone." in authority
-    assert "source category + lifecycle state + evidence anchor + proof gate or accepted decision" in authority
+    assert (
+        "source category + lifecycle state + evidence anchor + proof gate or accepted decision"
+        in authority
+    )
 
 
 def test_scenario_matrix_covers_required_s09_proof_scenarios() -> None:
@@ -116,9 +119,10 @@ def test_scenario_matrix_covers_required_s09_proof_scenarios() -> None:
         assert row[2], f"Required capability focus must be populated: {scenario}"
         assert row[3], f"Minimum passing evidence must be populated: {scenario}"
         assert row[4], f"Blocked/fail interpretation must be populated: {scenario}"
-        assert any(category in row[4] for category in FAILURE_CATEGORIES) or scenario == "git-semantics", (
-            f"Blocked/fail interpretation should name a failure category: {scenario}"
-        )
+        assert (
+            any(category in row[4] for category in FAILURE_CATEGORIES)
+            or scenario == "git-semantics"
+        ), f"Blocked/fail interpretation should name a failure category: {scenario}"
 
     assert "Create a representative ACP source record" in scenarios
     assert "proof fail or runtime probe unavailable" in scenarios
@@ -141,7 +145,10 @@ def test_pass_block_fail_rules_define_allowed_dispositions_without_binary_adopti
     assert "Keep runtime adoption blocked/deferred" in rules
     assert "Fail closed" in rules
     assert "Do not cite as coverage" in rules
-    assert "A single `fail` in `isolation-safety` or `projection-boundary` blocks runtime adoption" in rules
+    assert (
+        "A single `fail` in `isolation-safety` or `projection-boundary` blocks runtime adoption"
+        in rules
+    )
     assert "`yes`" not in rules.casefold()
     assert "`no`" not in rules.casefold()
 

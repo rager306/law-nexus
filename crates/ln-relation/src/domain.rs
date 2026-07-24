@@ -159,7 +159,10 @@ mod tests {
 
     #[test]
     fn outcome_vocabulary_is_closed() {
-        assert_eq!(RelationOutcome::UnknownPredicate.as_str(), "unknown-predicate");
+        assert_eq!(
+            RelationOutcome::UnknownPredicate.as_str(),
+            "unknown-predicate"
+        );
         assert_eq!(RelationOutcome::WrongOwner.as_str(), "wrong-owner");
     }
 }

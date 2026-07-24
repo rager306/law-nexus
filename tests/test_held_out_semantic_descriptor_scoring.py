@@ -10,9 +10,18 @@ from typing import Any
 
 ROOT = Path(__file__).resolve().parents[1]
 VERIFIER = ROOT / "scripts/verify-held-out-semantic-descriptor-scoring.py"
-INPUTS = ROOT / "prd/research/ontology_architecture_requirements/fixtures/held_out_semantic_descriptor_inputs.json"
-LABELS = ROOT / "prd/research/ontology_architecture_requirements/fixtures/held_out_semantic_descriptor_evaluation_labels.json"
-PROOF = ROOT / "prd/research/ontology_architecture_requirements/held_out_semantic_descriptor_scoring_proof.json"
+INPUTS = (
+    ROOT
+    / "prd/research/ontology_architecture_requirements/fixtures/held_out_semantic_descriptor_inputs.json"
+)
+LABELS = (
+    ROOT
+    / "prd/research/ontology_architecture_requirements/fixtures/held_out_semantic_descriptor_evaluation_labels.json"
+)
+PROOF = (
+    ROOT
+    / "prd/research/ontology_architecture_requirements/held_out_semantic_descriptor_scoring_proof.json"
+)
 
 
 def load_module(name: str = "held_out_descriptor_scoring") -> ModuleType:
@@ -29,7 +38,9 @@ def load_json(path: Path) -> dict[str, Any]:
 
 def write_json(tmp_path: Path, name: str, payload: dict[str, Any]) -> Path:
     path = tmp_path / name
-    path.write_text(json.dumps(payload, ensure_ascii=False, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    path.write_text(
+        json.dumps(payload, ensure_ascii=False, indent=2, sort_keys=True) + "\n", encoding="utf-8"
+    )
     return path
 
 
@@ -100,7 +111,13 @@ def test_test_only_injection_cannot_write(tmp_path: Path) -> None:
         },
     )
     completed = subprocess.run(
-        [sys.executable, str(VERIFIER), "--runtime-json", str(runtime), "--allow-injected-test-inputs"],
+        [
+            sys.executable,
+            str(VERIFIER),
+            "--runtime-json",
+            str(runtime),
+            "--allow-injected-test-inputs",
+        ],
         cwd=ROOT,
         check=False,
         text=True,

@@ -29,10 +29,16 @@ def test_allowed_parent_relationships_are_explicit() -> None:
     assert is_allowed_legal_unit_parent(parent=LegalUnitType.article, child=LegalUnitType.part)
     assert is_allowed_legal_unit_parent(parent=LegalUnitType.part, child=LegalUnitType.clause)
     assert is_allowed_legal_unit_parent(parent=LegalUnitType.clause, child=LegalUnitType.subclause)
-    assert is_allowed_legal_unit_parent(parent=LegalUnitType.subclause, child=LegalUnitType.paragraph)
+    assert is_allowed_legal_unit_parent(
+        parent=LegalUnitType.subclause, child=LegalUnitType.paragraph
+    )
 
-    assert not is_allowed_legal_unit_parent(parent=LegalUnitType.clause, child=LegalUnitType.article)
-    assert not is_allowed_legal_unit_parent(parent=LegalUnitType.paragraph, child=LegalUnitType.chapter)
+    assert not is_allowed_legal_unit_parent(
+        parent=LegalUnitType.clause, child=LegalUnitType.article
+    )
+    assert not is_allowed_legal_unit_parent(
+        parent=LegalUnitType.paragraph, child=LegalUnitType.chapter
+    )
 
 
 def test_source_levels_are_ordered_by_legal_force() -> None:

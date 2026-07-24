@@ -8,7 +8,9 @@ from law_nexus.ports.evidence_citations import (
 )
 
 
-def _span(span_id: str = "span-1", lifecycle: EvidenceLifecycle = EvidenceLifecycle.current) -> EvidenceSpan:
+def _span(
+    span_id: str = "span-1", lifecycle: EvidenceLifecycle = EvidenceLifecycle.current
+) -> EvidenceSpan:
     return EvidenceSpan(
         span_id=span_id,
         source_document_id="doc-44fz",

@@ -113,7 +113,9 @@ def check_forbidden_terms(text: str, result: VerificationResult, label: str) -> 
             result.add(f"{label} contains forbidden secret/API term: {term}")
 
 
-def as_candidate_map(contract: dict[str, Any], result: VerificationResult) -> dict[str, dict[str, Any]]:
+def as_candidate_map(
+    contract: dict[str, Any], result: VerificationResult
+) -> dict[str, dict[str, Any]]:
     candidates = contract.get("candidates")
     if not isinstance(candidates, list):
         result.add("Contract must contain candidates list")
@@ -137,7 +139,9 @@ def as_candidate_map(contract: dict[str, Any], result: VerificationResult) -> di
     return mapped
 
 
-def validate_contract(contract: dict[str, Any], result: VerificationResult) -> dict[str, dict[str, Any]]:
+def validate_contract(
+    contract: dict[str, Any], result: VerificationResult
+) -> dict[str, dict[str, Any]]:
     policy = contract.get("policy")
     if not isinstance(policy, dict):
         result.add("Contract missing policy object")
@@ -165,7 +169,9 @@ def validate_contract(contract: dict[str, Any], result: VerificationResult) -> d
     return mapped
 
 
-def raw_log_exists(path_value: object, result: VerificationResult, label: str, artifact_root: Path) -> None:
+def raw_log_exists(
+    path_value: object, result: VerificationResult, label: str, artifact_root: Path
+) -> None:
     if not isinstance(path_value, str) or not path_value:
         result.add(f"{label} raw log path must be a non-empty string")
         return
@@ -178,7 +184,9 @@ def raw_log_exists(path_value: object, result: VerificationResult, label: str, a
         result.add(f"{label} raw log path does not exist: {path_value}")
 
 
-def validate_model_result(model: dict[str, Any], result: VerificationResult, source: str, artifact_root: Path) -> None:
+def validate_model_result(
+    model: dict[str, Any], result: VerificationResult, source: str, artifact_root: Path
+) -> None:
     model_id = model.get("id")
     if not isinstance(model_id, str) or model_id not in ALLOWED_MODEL_IDS:
         result.add(f"{source} model has unexpected id: {model_id!r}")
@@ -193,8 +201,12 @@ def validate_model_result(model: dict[str, Any], result: VerificationResult, sou
     if not isinstance(benchmark_status, str) or not benchmark_status:
         result.add(f"{source} model {model_id} missing benchmark_result_status")
     root_cause = model.get("blocked_root_cause")
-    if runtime_status != "confirmed-runtime" and (not isinstance(root_cause, str) or not root_cause):
-        result.add(f"{source} model {model_id} must include blocked_root_cause when not confirmed-runtime")
+    if runtime_status != "confirmed-runtime" and (
+        not isinstance(root_cause, str) or not root_cause
+    ):
+        result.add(
+            f"{source} model {model_id} must include blocked_root_cause when not confirmed-runtime"
+        )
     raw_logs = model.get("raw_log_paths")
     if not isinstance(raw_logs, list) or not raw_logs:
         result.add(f"{source} model {model_id} must include non-empty raw_log_paths")
@@ -216,7 +228,9 @@ def validate_model_result(model: dict[str, Any], result: VerificationResult, sou
                 raw_log_exists(raw_log, result, f"{source} model {model_id} vector", artifact_root)
 
 
-def validate_results_artifact(payload: dict[str, Any], result: VerificationResult, source: str, artifact_root: Path) -> dict[str, dict[str, Any]]:
+def validate_results_artifact(
+    payload: dict[str, Any], result: VerificationResult, source: str, artifact_root: Path
+) -> dict[str, dict[str, Any]]:
     if payload.get("managed_apis_contacted") is not False:
         result.add(f"{source} must record managed_apis_contacted=false")
     if payload.get("synthetic_fixtures_only") is not True:
@@ -243,14 +257,18 @@ def validate_results_artifact(payload: dict[str, Any], result: VerificationResul
     return mapped
 
 
-def validate_vector_probe_dimensions(retrieval_payload: dict[str, Any], result: VerificationResult, artifact_root: Path) -> None:
+def validate_vector_probe_dimensions(
+    retrieval_payload: dict[str, Any], result: VerificationResult, artifact_root: Path
+) -> None:
     probes = retrieval_payload.get("falkordb_vector_probes")
     if not isinstance(probes, list):
         result.add("Retrieval artifact missing falkordb_vector_probes list")
         return
     dimensions = {probe.get("dimension") for probe in probes if isinstance(probe, dict)}
     if {1024, 2048} - dimensions:
-        result.add("Retrieval artifact must include FalkorDB vector probes for 1024 and 2048 dimensions")
+        result.add(
+            "Retrieval artifact must include FalkorDB vector probes for 1024 and 2048 dimensions"
+        )
     for probe in probes:
         if not isinstance(probe, dict):
             result.add("Retrieval vector probe must be an object")
@@ -258,16 +276,28 @@ def validate_vector_probe_dimensions(retrieval_payload: dict[str, Any], result: 
         if not probe.get("status"):
             result.add(f"Vector probe {probe.get('dimension')} missing status")
         if probe.get("status") != "confirmed-runtime" and not probe.get("blocked_root_cause"):
-            result.add(f"Vector probe {probe.get('dimension')} must include blocked_root_cause unless confirmed")
-        for raw_log in probe.get("raw_log_paths", []) if isinstance(probe.get("raw_log_paths"), list) else []:
+            result.add(
+                f"Vector probe {probe.get('dimension')} must include blocked_root_cause unless confirmed"
+            )
+        for raw_log in (
+            probe.get("raw_log_paths", []) if isinstance(probe.get("raw_log_paths"), list) else []
+        ):
             raw_log_exists(raw_log, result, f"vector probe {probe.get('dimension')}", artifact_root)
 
 
 def model_classification(model_id: str, runtime_status: str, blocked_root_cause: str | None) -> str:
     if model_id == "deepvk/USER-bge-m3":
-        return "recommended-practical-baseline-blocked" if runtime_status != "confirmed-runtime" else "recommended-practical-baseline-runtime-confirmed"
+        return (
+            "recommended-practical-baseline-blocked"
+            if runtime_status != "confirmed-runtime"
+            else "recommended-practical-baseline-runtime-confirmed"
+        )
     if model_id == "ai-sage/Giga-Embeddings-instruct":
-        return "quality-challenger-blocked" if runtime_status != "confirmed-runtime" else "quality-challenger-runtime-confirmed"
+        return (
+            "quality-challenger-blocked"
+            if runtime_status != "confirmed-runtime"
+            else "quality-challenger-runtime-confirmed"
+        )
     if blocked_root_cause:
         return "optional-reference-blocked"
     return "optional-reference"
@@ -283,9 +313,22 @@ def merge_model_evidence(
         candidate = contract_candidates[model_id]
         retrieval = retrieval_models.get(model_id, {})
         smoke = smoke_models.get(model_id, {})
-        runtime_status = str(retrieval.get("runtime_status") or smoke.get("runtime_status") or candidate.get("runtime_status") or "bounded-not-product-proven")
-        blocked_root_cause = retrieval.get("blocked_root_cause") or smoke.get("blocked_root_cause") or candidate.get("blocked_root_cause")
-        classification = model_classification(model_id, runtime_status, blocked_root_cause if isinstance(blocked_root_cause, str) else None)
+        runtime_status = str(
+            retrieval.get("runtime_status")
+            or smoke.get("runtime_status")
+            or candidate.get("runtime_status")
+            or "bounded-not-product-proven"
+        )
+        blocked_root_cause = (
+            retrieval.get("blocked_root_cause")
+            or smoke.get("blocked_root_cause")
+            or candidate.get("blocked_root_cause")
+        )
+        classification = model_classification(
+            model_id,
+            runtime_status,
+            blocked_root_cause if isinstance(blocked_root_cause, str) else None,
+        )
         recommendations.append(
             {
                 "id": model_id,
@@ -295,10 +338,15 @@ def merge_model_evidence(
                 "vector_dimension": candidate.get("vector_dimension"),
                 "max_token_limit": candidate.get("max_token_limit"),
                 "runtime_status": runtime_status,
-                "benchmark_result_status": retrieval.get("benchmark_result_status") or smoke.get("benchmark_result_status") or candidate.get("benchmark_result_status"),
-                "encode_duration_ms": retrieval.get("encode_duration_ms") or smoke.get("encode_duration_ms"),
+                "benchmark_result_status": retrieval.get("benchmark_result_status")
+                or smoke.get("benchmark_result_status")
+                or candidate.get("benchmark_result_status"),
+                "encode_duration_ms": retrieval.get("encode_duration_ms")
+                or smoke.get("encode_duration_ms"),
                 "blocked_root_cause": blocked_root_cause,
-                "falkordb_vector_compatibility": retrieval.get("falkordb_vector_compatibility") or smoke.get("falkordb_vector_compatibility") or candidate.get("falkordb_vector_compatibility"),
+                "falkordb_vector_compatibility": retrieval.get("falkordb_vector_compatibility")
+                or smoke.get("falkordb_vector_compatibility")
+                or candidate.get("falkordb_vector_compatibility"),
                 "raw_log_paths": retrieval.get("raw_log_paths") or smoke.get("raw_log_paths") or [],
                 "recommendation": recommendation_text(model_id, runtime_status),
                 "required_next_proof": required_next_proof(model_id, runtime_status),
@@ -325,11 +373,18 @@ def required_next_proof(model_id: str, runtime_status: str) -> list[str]:
         "Evaluate against parser-produced EvidenceSpan/SourceBlock real-document fixtures after S05 parser proof is consumed.",
     ]
     if runtime_status != "confirmed-runtime":
-        common.insert(0, "Install optional local embedding dependencies and populate Hugging Face cache or explicitly allow open-weight downloads.")
+        common.insert(
+            0,
+            "Install optional local embedding dependencies and populate Hugging Face cache or explicitly allow open-weight downloads.",
+        )
     if model_id == "ai-sage/Giga-Embeddings-instruct":
-        common.append("Verify trust_remote_code boundary, flash-attn/GPU fallback, and 2048-dimensional FalkorDB storage cost.")
+        common.append(
+            "Verify trust_remote_code boundary, flash-attn/GPU fallback, and 2048-dimensional FalkorDB storage cost."
+        )
     elif model_id == "deepvk/USER-bge-m3":
-        common.append("Verify 1024-dimensional FalkorDB storage/query behavior and CPU feasibility for repeated legal retrieval batches.")
+        common.append(
+            "Verify 1024-dimensional FalkorDB storage/query behavior and CPU feasibility for repeated legal retrieval batches."
+        )
     return common
 
 
@@ -339,9 +394,13 @@ def build_final_recommendation(
     retrieval_models: dict[str, dict[str, Any]],
 ) -> dict[str, Any]:
     candidates = merge_model_evidence(contract_candidates, smoke_models, retrieval_models)
-    any_confirmed = any(candidate["runtime_status"] == "confirmed-runtime" for candidate in candidates)
+    any_confirmed = any(
+        candidate["runtime_status"] == "confirmed-runtime" for candidate in candidates
+    )
     return {
-        "status": "bounded-recommendation-runtime-confirmed" if any_confirmed else "bounded-recommendation-blocked-environment",
+        "status": "bounded-recommendation-runtime-confirmed"
+        if any_confirmed
+        else "bounded-recommendation-blocked-environment",
         "generated_at": utc_now(),
         "selected_practical_baseline": "deepvk/USER-bge-m3",
         "quality_challenger": "ai-sage/Giga-Embeddings-instruct",
@@ -389,7 +448,9 @@ def render_markdown_recommendation(recommendation: dict[str, Any]) -> str:
             )
         )
     holes = "\n".join(f"- {item}" for item in recommendation["confidence_loop"]["holes_found"])
-    fixes = "\n".join(f"- {item}" for item in recommendation["confidence_loop"]["fixes_or_next_proofs"])
+    fixes = "\n".join(
+        f"- {item}" for item in recommendation["confidence_loop"]["fixes_or_next_proofs"]
+    )
     downstream = "\n".join(f"- {item}" for item in recommendation["downstream_guidance"])
     return "\n".join(
         [
@@ -439,17 +500,30 @@ def upsert_markdown_section(markdown: str, section: str) -> str:
     start = markdown.find(FINAL_SECTION_START)
     end = markdown.find(FINAL_SECTION_END)
     if start != -1 and end != -1 and end > start:
-        return markdown[:start].rstrip() + "\n\n" + section.rstrip() + "\n" + markdown[end + len(FINAL_SECTION_END) :].lstrip()
+        return (
+            markdown[:start].rstrip()
+            + "\n\n"
+            + section.rstrip()
+            + "\n"
+            + markdown[end + len(FINAL_SECTION_END) :].lstrip()
+        )
     return markdown.rstrip() + "\n\n" + section.rstrip() + "\n"
 
 
-def write_final_recommendation(contract_path: Path, markdown_path: Path, recommendation: dict[str, Any], result: VerificationResult) -> None:
+def write_final_recommendation(
+    contract_path: Path,
+    markdown_path: Path,
+    recommendation: dict[str, Any],
+    result: VerificationResult,
+) -> None:
     contract = read_json(contract_path, result, "Contract JSON")
     markdown = read_text(markdown_path, result, "Contract markdown")
     if contract is None or markdown is None:
         return
     contract["final_recommendation"] = recommendation
-    contract_path.write_text(json.dumps(contract, ensure_ascii=False, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    contract_path.write_text(
+        json.dumps(contract, ensure_ascii=False, indent=2, sort_keys=True) + "\n", encoding="utf-8"
+    )
     markdown_section = render_markdown_recommendation(recommendation)
     markdown_path.write_text(upsert_markdown_section(markdown, markdown_section), encoding="utf-8")
 
@@ -486,13 +560,19 @@ def verify(
     retrieval_models: dict[str, dict[str, Any]] = {}
     if require_results:
         if smoke is not None:
-            smoke_models = validate_results_artifact(smoke, result, "Smoke artifact", contract_path.parent)
+            smoke_models = validate_results_artifact(
+                smoke, result, "Smoke artifact", contract_path.parent
+            )
         if retrieval is not None:
-            retrieval_models = validate_results_artifact(retrieval, result, "Retrieval artifact", contract_path.parent)
+            retrieval_models = validate_results_artifact(
+                retrieval, result, "Retrieval artifact", contract_path.parent
+            )
             validate_vector_probe_dimensions(retrieval, result, contract_path.parent)
 
     if result.ok and require_results:
-        recommendation = build_final_recommendation(contract_candidates, smoke_models, retrieval_models)
+        recommendation = build_final_recommendation(
+            contract_candidates, smoke_models, retrieval_models
+        )
         if write_recommendation:
             write_final_recommendation(contract_path, markdown_path, recommendation, result)
 
@@ -505,8 +585,16 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser.add_argument("--markdown", type=Path, default=DEFAULT_MARKDOWN)
     parser.add_argument("--smoke", type=Path, default=DEFAULT_SMOKE)
     parser.add_argument("--retrieval", type=Path, default=DEFAULT_RETRIEVAL)
-    parser.add_argument("--require-results", action="store_true", help="Require smoke/evaluation result artifacts and write final bounded recommendation.")
-    parser.add_argument("--check-only", action="store_true", help="Validate without updating final recommendation fields.")
+    parser.add_argument(
+        "--require-results",
+        action="store_true",
+        help="Require smoke/evaluation result artifacts and write final bounded recommendation.",
+    )
+    parser.add_argument(
+        "--check-only",
+        action="store_true",
+        help="Validate without updating final recommendation fields.",
+    )
     return parser.parse_args(argv)
 
 

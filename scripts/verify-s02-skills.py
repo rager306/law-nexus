@@ -21,19 +21,38 @@ ROOT = Path(__file__).resolve().parents[1]
 
 ROUTER = Path(".agents/skills/legalgraph-nexus/SKILL.md")
 FALKOR = Path(".agents/skills/falkordb-legalgraph/SKILL.md")
-FALKOR_ARCH_WORKFLOW = Path(".agents/skills/falkordb-legalgraph/workflows/answer-architecture-question.md")
-FALKOR_CAPABILITY_WORKFLOW = Path(".agents/skills/falkordb-legalgraph/workflows/check-capability-claim.md")
-FALKOR_PROTOCOL = Path(".agents/skills/falkordb-legalgraph/references/falkordb-evidence-protocol.md")
+FALKOR_ARCH_WORKFLOW = Path(
+    ".agents/skills/falkordb-legalgraph/workflows/answer-architecture-question.md"
+)
+FALKOR_CAPABILITY_WORKFLOW = Path(
+    ".agents/skills/falkordb-legalgraph/workflows/check-capability-claim.md"
+)
+FALKOR_PROTOCOL = Path(
+    ".agents/skills/falkordb-legalgraph/references/falkordb-evidence-protocol.md"
+)
 RUSSIAN = Path(".agents/skills/russian-legal-evidence/SKILL.md")
-RUSSIAN_ODT_WORKFLOW = Path(".agents/skills/russian-legal-evidence/workflows/review-odt-parser-assumption.md")
-RUSSIAN_STRUCTURE_REF = Path(".agents/skills/russian-legal-evidence/references/russian-legal-structure.md")
-RUSSIAN_PRIOR_ART_REF = Path(".agents/skills/russian-legal-evidence/references/old-project-prior-art.md")
-RUSSIAN_EVIDENCE_TEMPLATE = Path(".agents/skills/russian-legal-evidence/templates/evidence-answer.md")
+RUSSIAN_ODT_WORKFLOW = Path(
+    ".agents/skills/russian-legal-evidence/workflows/review-odt-parser-assumption.md"
+)
+RUSSIAN_STRUCTURE_REF = Path(
+    ".agents/skills/russian-legal-evidence/references/russian-legal-structure.md"
+)
+RUSSIAN_PRIOR_ART_REF = Path(
+    ".agents/skills/russian-legal-evidence/references/old-project-prior-art.md"
+)
+RUSSIAN_EVIDENCE_TEMPLATE = Path(
+    ".agents/skills/russian-legal-evidence/templates/evidence-answer.md"
+)
 EXERCISE = Path(".gsd/milestones/M001/slices/S02/S02-SKILL-EXERCISE.md")
 
 SKILL_PATHS = [ROUTER, FALKOR, RUSSIAN]
 FALKOR_DETAIL_PATHS = [FALKOR_ARCH_WORKFLOW, FALKOR_CAPABILITY_WORKFLOW, FALKOR_PROTOCOL]
-RUSSIAN_DETAIL_PATHS = [RUSSIAN_ODT_WORKFLOW, RUSSIAN_STRUCTURE_REF, RUSSIAN_PRIOR_ART_REF, RUSSIAN_EVIDENCE_TEMPLATE]
+RUSSIAN_DETAIL_PATHS = [
+    RUSSIAN_ODT_WORKFLOW,
+    RUSSIAN_STRUCTURE_REF,
+    RUSSIAN_PRIOR_ART_REF,
+    RUSSIAN_EVIDENCE_TEMPLATE,
+]
 FINAL_REQUIRED_PATHS = [*SKILL_PATHS, *FALKOR_DETAIL_PATHS, *RUSSIAN_DETAIL_PATHS, EXERCISE]
 
 REQUIRED_TERMS = {
@@ -340,7 +359,9 @@ def check_exercise(path: Path = EXERCISE, root: Path = ROOT, required: bool = Tr
 
 def check_required_paths(paths: Iterable[Path], root: Path = ROOT) -> CheckResult:
     missing = [rel(path) for path in paths if not (root / path).exists()]
-    empty = [rel(path) for path in paths if (root / path).exists() and (root / path).stat().st_size == 0]
+    empty = [
+        rel(path) for path in paths if (root / path).exists() and (root / path).stat().st_size == 0
+    ]
     details = []
     if missing:
         details.append("missing: " + ", ".join(missing))
@@ -364,7 +385,11 @@ def run_checks(
             if (root / optional_skill).exists():
                 results.append(check_skill(optional_skill, root))
             else:
-                results.append(CheckResult(rel(optional_skill), True, ["optional in partial mode and not present"]))
+                results.append(
+                    CheckResult(
+                        rel(optional_skill), True, ["optional in partial mode and not present"]
+                    )
+                )
     else:
         required_paths = [ROUTER, FALKOR, *FALKOR_DETAIL_PATHS]
         if not allow_missing_russian:
@@ -375,13 +400,21 @@ def run_checks(
         results.append(check_skill(ROUTER, root))
         results.append(check_skill(FALKOR, root))
         for detail_path in FALKOR_DETAIL_PATHS:
-            results.append(check_text_file(detail_path, FALKOR_DETAIL_REQUIRED_TERMS[detail_path], root))
+            results.append(
+                check_text_file(detail_path, FALKOR_DETAIL_REQUIRED_TERMS[detail_path], root)
+            )
         if allow_missing_russian and not (root / RUSSIAN).exists():
-            results.append(CheckResult(rel(RUSSIAN), True, ["optional because --allow-missing-russian was set"]))
+            results.append(
+                CheckResult(
+                    rel(RUSSIAN), True, ["optional because --allow-missing-russian was set"]
+                )
+            )
         else:
             results.append(check_skill(RUSSIAN, root))
             for detail_path in RUSSIAN_DETAIL_PATHS:
-                results.append(check_text_file(detail_path, RUSSIAN_DETAIL_REQUIRED_TERMS[detail_path], root))
+                results.append(
+                    check_text_file(detail_path, RUSSIAN_DETAIL_REQUIRED_TERMS[detail_path], root)
+                )
         results.append(check_exercise(EXERCISE, root, required=not allow_missing_exercise_final))
     return results
 
@@ -436,7 +469,9 @@ description: Routes LegalGraph Nexus architecture, FalkorDB Legal Graph, Legal N
         for failure in failures:
             print(f"  - {failure}")
         return 1
-    print("Self-test passed: malformed frontmatter, markdown headings, missing XML tags, missing vocabulary, and valid partial router cases behaved as expected.")
+    print(
+        "Self-test passed: malformed frontmatter, markdown headings, missing XML tags, missing vocabulary, and valid partial router cases behaved as expected."
+    )
     return 0
 
 
@@ -474,7 +509,10 @@ def main() -> int:
     )
     print_results(results)
     if all(result.ok for result in results):
-        print("S02 skill verification passed." + (" (partial-router mode)" if args.partial_router else ""))
+        print(
+            "S02 skill verification passed."
+            + (" (partial-router mode)" if args.partial_router else "")
+        )
         return 0
     print("S02 skill verification failed.")
     return 1

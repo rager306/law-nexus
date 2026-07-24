@@ -24,11 +24,22 @@ class FakeGraph:
         self.query_calls.append(query)
         return FakeResult([])
 
-    def ro_query(self, query: str, params: dict[str, object] | None = None, timeout: int | None = None) -> FakeResult:
+    def ro_query(
+        self, query: str, params: dict[str, object] | None = None, timeout: int | None = None
+    ) -> FakeResult:
         self.ro_calls.append((query, params, timeout))
         if self.ro_exc is not None:
             raise self.ro_exc
-        return FakeResult([["article:44fz:1", "evidence:44fz:art1:span1", "sourceblock:garant:44fz:1", "raw legal text omitted"]])
+        return FakeResult(
+            [
+                [
+                    "article:44fz:1",
+                    "evidence:44fz:art1:span1",
+                    "sourceblock:garant:44fz:1",
+                    "raw legal text omitted",
+                ]
+            ]
+        )
 
 
 class FakeClient:
@@ -70,9 +81,18 @@ def test_redact_masks_credentials_headers_and_secret_like_values() -> None:
 def test_classify_provider_failure_codes() -> None:
     harness = load_harness()
 
-    assert harness.classify_provider_failure("401 unauthorized invalid api key") == "minimax-auth-failed"
-    assert harness.classify_provider_failure("missing field choices in response json") == "minimax-openai-schema-mismatch"
-    assert harness.classify_provider_failure("resolver endpoint route failed") == "minimax-endpoint-routing-blocked"
+    assert (
+        harness.classify_provider_failure("401 unauthorized invalid api key")
+        == "minimax-auth-failed"
+    )
+    assert (
+        harness.classify_provider_failure("missing field choices in response json")
+        == "minimax-openai-schema-mismatch"
+    )
+    assert (
+        harness.classify_provider_failure("resolver endpoint route failed")
+        == "minimax-endpoint-routing-blocked"
+    )
     assert harness.classify_provider_failure("anything else") == "minimax-provider-call-failed"
 
 
@@ -81,7 +101,9 @@ def test_reasoning_contamination_detects_think_and_prose() -> None:
 
     assert harness.detect_reasoning_contamination({"has_think_tag": True})
     assert harness.detect_reasoning_contamination({"candidate_kind": "non_cypher_text"})
-    assert not harness.detect_reasoning_contamination({"candidate_kind": "cypher_like", "has_think_tag": False})
+    assert not harness.detect_reasoning_contamination(
+        {"candidate_kind": "cypher_like", "has_think_tag": False}
+    )
 
 
 def test_create_proof_project_writes_minimax_target_resolver_source(tmp_path: Path) -> None:
@@ -92,7 +114,7 @@ def test_create_proof_project_writes_minimax_target_resolver_source(tmp_path: Pa
     cargo = (project_dir / "Cargo.toml").read_text(encoding="utf-8")
     lib = (project_dir / "src/lib.rs").read_text(encoding="utf-8")
 
-    assert "genai = \"0.5.3\"" in cargo
+    assert 'genai = "0.5.3"' in cargo
     assert "text-to-cypher" not in cargo
     assert "ServiceTargetResolver::from_resolver_fn" in lib
     assert "Endpoint::from_static(DEFAULT_MINIMAX_ENDPOINT)" in lib
@@ -201,7 +223,9 @@ def test_safe_payload_redacts_forbidden_terms_before_persisting(tmp_path: Path) 
         ),
     ],
 )
-def test_generated_cypher_validation_rejects_unsafe_drafts(candidate: str, expected_code: str) -> None:
+def test_generated_cypher_validation_rejects_unsafe_drafts(
+    candidate: str, expected_code: str
+) -> None:
     harness = load_harness()
 
     report, payload = harness.validate_generated_cypher(candidate)
@@ -229,7 +253,9 @@ def test_read_only_execution_uses_ro_query_timeout_and_safe_rows() -> None:
     report, _payload = harness.validate_generated_cypher(harness.default_safe_candidate())
     graph = FakeGraph()
 
-    execution = harness.execute_validated_cypher(report, client=FakeClient(graph), graph_name="unit_s04")
+    execution = harness.execute_validated_cypher(
+        report, client=FakeClient(graph), graph_name="unit_s04"
+    )
 
     assert execution["status"] == "confirmed-runtime"
     assert execution["query_method"] == "Graph.ro_query"
@@ -239,7 +265,9 @@ def test_read_only_execution_uses_ro_query_timeout_and_safe_rows() -> None:
     assert params == {"article_id": "article:44fz:1", "as_of": "2025-01-01"}
     assert timeout == 1000
     assert execution["diagnostics"]["row_count"] == 1
-    assert execution["diagnostics"]["safe_identifiers"] == [["article:44fz:1", "evidence:44fz:art1:span1", "sourceblock:garant:44fz:1"]]
+    assert execution["diagnostics"]["safe_identifiers"] == [
+        ["article:44fz:1", "evidence:44fz:art1:span1", "sourceblock:garant:44fz:1"]
+    ]
     assert "raw legal text omitted" not in json.dumps(execution)
 
 
@@ -264,7 +292,9 @@ def test_read_only_execution_skips_when_validation_failed() -> None:
         (RuntimeError("server failed"), "read-only-execution-failed"),
     ],
 )
-def test_read_only_execution_classifies_timeout_and_errors(exc: Exception, expected_root: str) -> None:
+def test_read_only_execution_classifies_timeout_and_errors(
+    exc: Exception, expected_root: str
+) -> None:
     harness = load_harness()
     report, _payload = harness.validate_generated_cypher(harness.default_safe_candidate())
     graph = FakeGraph(ro_exc=exc)
@@ -278,7 +308,9 @@ def test_read_only_execution_classifies_timeout_and_errors(exc: Exception, expec
 def test_write_artifacts_include_validation_execution_boundaries(tmp_path: Path) -> None:
     harness = load_harness()
     report, validation = harness.validate_generated_cypher(harness.default_safe_candidate())
-    execution = harness.execute_validated_cypher(report, client=FakeClient(FakeGraph()), graph_name="unit_s04")
+    execution = harness.execute_validated_cypher(
+        report, client=FakeClient(FakeGraph()), graph_name="unit_s04"
+    )
     payload = {
         "schema_version": harness.SCHEMA_VERSION,
         "generated_at": "2026-05-10T00:00:00Z",

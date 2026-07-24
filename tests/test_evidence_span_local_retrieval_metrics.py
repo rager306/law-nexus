@@ -10,8 +10,14 @@ from typing import Any
 
 ROOT = Path(__file__).resolve().parents[1]
 CLI = ROOT / "scripts/verify-evidence-span-local-retrieval-metrics.py"
-FIXTURE = ROOT / "prd/research/ontology_architecture_requirements/fixtures/evidence_span_golden_retrieval_cases.json"
-PROOF = ROOT / "prd/research/ontology_architecture_requirements/evidence_span_local_retrieval_metrics_proof.json"
+FIXTURE = (
+    ROOT
+    / "prd/research/ontology_architecture_requirements/fixtures/evidence_span_golden_retrieval_cases.json"
+)
+PROOF = (
+    ROOT
+    / "prd/research/ontology_architecture_requirements/evidence_span_local_retrieval_metrics_proof.json"
+)
 
 FORBIDDEN_SNIPPETS = {
     "Федеральный закон",
@@ -43,7 +49,9 @@ def load_fixture() -> dict[str, Any]:
 
 
 def write_json(path: Path, data: dict[str, Any]) -> None:
-    path.write_text(json.dumps(data, ensure_ascii=False, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    path.write_text(
+        json.dumps(data, ensure_ascii=False, indent=2, sort_keys=True) + "\n", encoding="utf-8"
+    )
 
 
 def confirmed_runtime_payload() -> dict[str, Any]:
@@ -61,15 +69,32 @@ def confirmed_runtime_payload() -> dict[str, Any]:
 
 def blocked_runtime_payload() -> dict[str, Any]:
     payload = confirmed_runtime_payload()
-    payload.update({"runtime_status": "blocked_model_unavailable", "failure_class": "model_unavailable", "vector_dimension": None})
+    payload.update(
+        {
+            "runtime_status": "blocked_model_unavailable",
+            "failure_class": "model_unavailable",
+            "vector_dimension": None,
+        }
+    )
     return payload
 
 
-def run_cli(tmp_path: Path, runtime_payload: dict[str, Any], *extra: str) -> subprocess.CompletedProcess[str]:
+def run_cli(
+    tmp_path: Path, runtime_payload: dict[str, Any], *extra: str
+) -> subprocess.CompletedProcess[str]:
     runtime_path = tmp_path / "runtime.json"
     write_json(runtime_path, runtime_payload)
     return subprocess.run(
-        ["uv", "run", "python", str(CLI), "--runtime-json", str(runtime_path), "--no-write", *extra],
+        [
+            "uv",
+            "run",
+            "python",
+            str(CLI),
+            "--runtime-json",
+            str(runtime_path),
+            "--no-write",
+            *extra,
+        ],
         cwd=ROOT,
         text=True,
         capture_output=True,
@@ -127,7 +152,9 @@ def test_cli_reports_blocked_runtime_without_fallback(tmp_path: Path) -> None:
     assert payload["runtime_boundary"]["confirmed"] is False
     assert payload["runtime_boundary"]["runtime_status"] == "blocked_model_unavailable"
     assert "runtime_blocked" in payload["diagnostic_codes"]
-    assert any(mismatch["metric"] == "runtime_boundary_confirmed" for mismatch in payload["mismatches"])
+    assert any(
+        mismatch["metric"] == "runtime_boundary_confirmed" for mismatch in payload["mismatches"]
+    )
 
 
 def test_compute_metrics_detects_threshold_mismatch() -> None:
@@ -136,7 +163,9 @@ def test_compute_metrics_detects_threshold_mismatch() -> None:
     case = next(row for row in fixture["cases"] if row["case_class"] == "positive_evidence_span")
     case["candidates"][0]["expected_label"] = "stale"
 
-    metrics, diagnostics, mismatches = module.compute_metrics(fixture, {"confirmed": True, "diagnostic_codes": ["runtime_confirmed"]})
+    metrics, diagnostics, mismatches = module.compute_metrics(
+        fixture, {"confirmed": True, "diagnostic_codes": ["runtime_confirmed"]}
+    )
 
     assert metrics["mrr"] == 0.5
     assert metrics["recall_at_1"] == 0.5

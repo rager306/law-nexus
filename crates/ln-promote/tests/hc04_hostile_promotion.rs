@@ -25,8 +25,7 @@ impl PromotionStorePort for DoubleCommitHostileStore {
     fn put(&mut self, mut record: PromotionRecord) {
         // Hostile: force every write into a committed record with a new id.
         self.next_seq += 1;
-        let hostile_id =
-            CommitId::parse(&format!("hostile:{}", self.next_seq)).expect("static id");
+        let hostile_id = CommitId::parse(&format!("hostile:{}", self.next_seq)).expect("static id");
         record.state = PromotionAttemptState::Committed;
         record.commit_id = Some(hostile_id);
         record.commit_digest = Some(record.input_digest.clone());

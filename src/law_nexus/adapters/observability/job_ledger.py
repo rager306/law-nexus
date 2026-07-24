@@ -95,7 +95,12 @@ REGRESSION_REASON_CODES = frozenset(
     {"diagnostic_error", "missing_evidence", "unexpected_relation", "artifact_invalid"}
 )
 RECOVERY_REASON_CODES = frozenset(
-    {"retry_scheduled", "retry_exhausted", "blocked_waiting_for_artifact", "blocked_waiting_for_user"}
+    {
+        "retry_scheduled",
+        "retry_exhausted",
+        "blocked_waiting_for_artifact",
+        "blocked_waiting_for_user",
+    }
 )
 
 REASON_CODES = frozenset().union(
@@ -359,7 +364,9 @@ def validate_job_ledger_record(record: JobLedgerRecord) -> None:
         raise JobLedgerValidationError("default operational/debug non-claim is required")
     if not record.input_fingerprint.startswith("sha256:"):
         raise JobLedgerValidationError("input_fingerprint must use sha256: prefix")
-    if record.output_fingerprint is not None and not record.output_fingerprint.startswith("sha256:"):
+    if record.output_fingerprint is not None and not record.output_fingerprint.startswith(
+        "sha256:"
+    ):
         raise JobLedgerValidationError("output_fingerprint must use sha256: prefix")
     inferred_job_type = infer_job_type_from_event(record.event_name)
     if record.job_type is not None and record.job_type != inferred_job_type:
@@ -411,12 +418,15 @@ def _validate_safe_detail_value(value: Any, *, path: str) -> None:
 
 def serialize_job_ledger_record(record: JobLedgerRecord) -> str:
     """Serialize a validated record as one deterministic JSONL line."""
-    return json.dumps(
-        record.to_dict(),
-        ensure_ascii=False,
-        sort_keys=True,
-        separators=(",", ":"),
-    ) + "\n"
+    return (
+        json.dumps(
+            record.to_dict(),
+            ensure_ascii=False,
+            sort_keys=True,
+            separators=(",", ":"),
+        )
+        + "\n"
+    )
 
 
 def append_job_ledger_record(path: Path, record: JobLedgerRecord) -> None:

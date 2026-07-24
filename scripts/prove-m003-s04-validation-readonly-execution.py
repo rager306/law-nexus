@@ -74,7 +74,9 @@ _SAFE_SYNTHETIC_PARAMS: dict[str, Any] = {
 class GraphLike(Protocol):
     def query(self, query: str) -> Any: ...
 
-    def ro_query(self, query: str, params: Mapping[str, Any] | None = None, timeout: int | None = None) -> Any: ...
+    def ro_query(
+        self, query: str, params: Mapping[str, Any] | None = None, timeout: int | None = None
+    ) -> Any: ...
 
     def create_node_fulltext_index(self, label: str, attr: str, **kwargs: Any) -> Any: ...
 
@@ -91,7 +93,9 @@ class ExecutionRuntimeError(RuntimeError):
     """Raised after attempted ro_query execution when runtime execution fails."""
 
     def __init__(self, summary: dict[str, Any]) -> None:
-        super().__init__(str(summary.get("diagnostics", {}).get("error_category", "execution-failed")))
+        super().__init__(
+            str(summary.get("diagnostics", {}).get("error_category", "execution-failed"))
+        )
         self.summary = summary
 
 
@@ -154,7 +158,9 @@ def _boundaries(proves: list[str]) -> dict[str, list[str]]:
     }
 
 
-def _s03_source(payload: dict[str, Any] | None, *, fallback_reason: str | None = None) -> dict[str, Any]:
+def _s03_source(
+    payload: dict[str, Any] | None, *, fallback_reason: str | None = None
+) -> dict[str, Any]:
     if payload is None:
         return {
             "schema_version": S03_SCHEMA_VERSION,
@@ -170,12 +176,16 @@ def _s03_source(payload: dict[str, Any] | None, *, fallback_reason: str | None =
         "status": str(payload.get("status", "failed-runtime")),
         "root_cause": str(payload.get("root_cause", "unknown")),
         "phase": str(payload.get("phase", "unknown")),
-        "provider_attempts": int(payload.get("provider_attempts", 0)) if isinstance(payload.get("provider_attempts", 0), int) else 0,
+        "provider_attempts": int(payload.get("provider_attempts", 0))
+        if isinstance(payload.get("provider_attempts", 0), int)
+        else 0,
         "candidate_accepted": bool(cast("dict[str, Any]", candidate).get("accepted", False)),
     }
 
 
-def _candidate_unavailable_artifact(s03_payload: dict[str, Any] | None, reason: str) -> dict[str, Any]:
+def _candidate_unavailable_artifact(
+    s03_payload: dict[str, Any] | None, reason: str
+) -> dict[str, Any]:
     return {
         "schema_version": SCHEMA_VERSION,
         "status": "skipped",
@@ -194,7 +204,9 @@ def _candidate_unavailable_artifact(s03_payload: dict[str, Any] | None, reason: 
         },
         "execution": _execution_skipped(),
         "redaction": _redaction(),
-        "boundaries": _boundaries(["S03 candidate handoff was inspected and no accepted candidate was available"]),
+        "boundaries": _boundaries(
+            ["S03 candidate handoff was inspected and no accepted candidate was available"]
+        ),
     }
 
 
@@ -219,7 +231,11 @@ def _schema_unavailable_artifact(s03_payload: dict[str, Any], reason: str) -> di
         },
         "execution": _execution_skipped(),
         "redaction": _redaction(),
-        "boundaries": _boundaries(["S03 accepted candidate was not executed because schema contract loading failed closed"]),
+        "boundaries": _boundaries(
+            [
+                "S03 accepted candidate was not executed because schema contract loading failed closed"
+            ]
+        ),
     }
 
 
@@ -292,7 +308,9 @@ def wait_for_falkordb(host: str, port: int, timeout_seconds: int) -> ClientLike:
         except Exception as exc:  # noqa: BLE001 - readiness classification belongs in artifact
             last_error = exc
             time.sleep(0.25)
-    raise TimeoutError(f"FalkorDB readiness timeout: {type(last_error).__name__ if last_error else 'unknown'}")
+    raise TimeoutError(
+        f"FalkorDB readiness timeout: {type(last_error).__name__ if last_error else 'unknown'}"
+    )
 
 
 def setup_synthetic_legalgraph(graph: GraphLike) -> None:
@@ -339,7 +357,9 @@ def cleanup_synthetic_legalgraph(graph: GraphLike) -> None:
     _query_result_set(graph, "MATCH (n) DETACH DELETE n")
 
 
-def make_default_graph_factory(host: str, port: int, readiness_timeout_seconds: int) -> Callable[[], GraphLike]:
+def make_default_graph_factory(
+    host: str, port: int, readiness_timeout_seconds: int
+) -> Callable[[], GraphLike]:
     def factory() -> GraphLike:
         client = wait_for_falkordb(host, port, readiness_timeout_seconds)
         graph_name = f"m003_s04_validation_readonly_{uuid.uuid4().hex[:10]}"
@@ -470,7 +490,9 @@ def _synthetic_identifier_categories(rows: Sequence[Sequence[Any]]) -> list[str]
     return categories
 
 
-def _failed_execution_summary(root_cause: str, params: Mapping[str, Any], error_category: str) -> dict[str, Any]:
+def _failed_execution_summary(
+    root_cause: str, params: Mapping[str, Any], error_category: str
+) -> dict[str, Any]:
     return {
         "attempted": True,
         "status": "failed-runtime",
@@ -490,7 +512,9 @@ def _failed_execution_summary(root_cause: str, params: Mapping[str, Any], error_
     }
 
 
-def execute_validated(validation_report: Any, params: Mapping[str, Any], graph: GraphLike) -> dict[str, Any]:
+def execute_validated(
+    validation_report: Any, params: Mapping[str, Any], graph: GraphLike
+) -> dict[str, Any]:
     """Execute only an accepted M002 validation report through Graph.ro_query."""
 
     if not getattr(validation_report, "accepted", False):
@@ -507,12 +531,18 @@ def execute_validated(validation_report: Any, params: Mapping[str, Any], graph: 
         result = graph.ro_query(query, safe_params, timeout=EXECUTION_TIMEOUT_MS)
         rows = _rows_from_ro_result(result)
     except TimeoutError as exc:
-        raise ExecutionRuntimeError(_failed_execution_summary("execution-timeout", safe_params, type(exc).__name__)) from exc
+        raise ExecutionRuntimeError(
+            _failed_execution_summary("execution-timeout", safe_params, type(exc).__name__)
+        ) from exc
     except Exception as exc:  # noqa: BLE001 - categorical runtime diagnostics only
-        raise ExecutionRuntimeError(_failed_execution_summary("execution-failed", safe_params, type(exc).__name__)) from exc
+        raise ExecutionRuntimeError(
+            _failed_execution_summary("execution-failed", safe_params, type(exc).__name__)
+        ) from exc
     summary = _row_shape_summary(rows)
     if rows and len(summary["column_categories"]) < len(_REQUIRED_EVIDENCE_RETURNS):
-        raise ExecutionRuntimeError(_failed_execution_summary("execution-failed", safe_params, "row-shape-surprise"))
+        raise ExecutionRuntimeError(
+            _failed_execution_summary("execution-failed", safe_params, "row-shape-surprise")
+        )
     return {
         "attempted": True,
         "status": "confirmed-runtime",
@@ -534,14 +564,22 @@ def _validation_section(report: Any, candidate_text: str) -> dict[str, Any]:
         "query_shape_category": _query_shape_category(report),
         "rejection_codes": list(report.rejection_codes),
         "required_evidence_returns": list(report.required_evidence_returns),
-        "safe_parameter_categories": _parameter_categories(candidate_text) if report.accepted else {},
+        "safe_parameter_categories": _parameter_categories(candidate_text)
+        if report.accepted
+        else {},
         "candidate_availability_reason": "available",
     }
 
 
-def _validation_rejected_artifact(s03_payload: dict[str, Any], validation: dict[str, Any], report: Any) -> dict[str, Any]:
+def _validation_rejected_artifact(
+    s03_payload: dict[str, Any], validation: dict[str, Any], report: Any
+) -> dict[str, Any]:
     report_dict = asdict(report)
-    validation["failure_class"] = report_dict["diagnostics"][0]["failure_class"] if report_dict["diagnostics"] else "validation"
+    validation["failure_class"] = (
+        report_dict["diagnostics"][0]["failure_class"]
+        if report_dict["diagnostics"]
+        else "validation"
+    )
     return {
         "schema_version": SCHEMA_VERSION,
         "status": "validation-rejected",
@@ -551,14 +589,23 @@ def _validation_rejected_artifact(s03_payload: dict[str, Any], validation: dict[
         "validation": validation,
         "execution": _execution_skipped(),
         "redaction": _redaction(),
-        "boundaries": _boundaries(["S03 accepted candidate was rejected by deterministic M002 validation before execution"]),
+        "boundaries": _boundaries(
+            [
+                "S03 accepted candidate was rejected by deterministic M002 validation before execution"
+            ]
+        ),
     }
 
 
-def _blocked_environment_artifact(s03_payload: dict[str, Any], validation: dict[str, Any], error_category: str) -> dict[str, Any]:
+def _blocked_environment_artifact(
+    s03_payload: dict[str, Any], validation: dict[str, Any], error_category: str
+) -> dict[str, Any]:
     execution = _execution_skipped()
     execution["status"] = "blocked-environment"
-    execution["diagnostics"] = {"root_cause": "blocked-environment", "error_category": error_category}
+    execution["diagnostics"] = {
+        "root_cause": "blocked-environment",
+        "error_category": error_category,
+    }
     return {
         "schema_version": SCHEMA_VERSION,
         "status": "blocked-environment",
@@ -568,13 +615,23 @@ def _blocked_environment_artifact(s03_payload: dict[str, Any], validation: dict[
         "validation": validation,
         "execution": execution,
         "redaction": _redaction(),
-        "boundaries": _boundaries(["S03 accepted candidate passed M002 validation but synthetic FalkorDB setup was blocked before candidate execution"]),
+        "boundaries": _boundaries(
+            [
+                "S03 accepted candidate passed M002 validation but synthetic FalkorDB setup was blocked before candidate execution"
+            ]
+        ),
     }
 
 
-def _execution_artifact(s03_payload: dict[str, Any], validation: dict[str, Any], execution: dict[str, Any]) -> dict[str, Any]:
+def _execution_artifact(
+    s03_payload: dict[str, Any], validation: dict[str, Any], execution: dict[str, Any]
+) -> dict[str, Any]:
     status = execution["status"]
-    root_cause = "none" if status == "confirmed-runtime" else execution.get("diagnostics", {}).get("root_cause", "execution-failed")
+    root_cause = (
+        "none"
+        if status == "confirmed-runtime"
+        else execution.get("diagnostics", {}).get("root_cause", "execution-failed")
+    )
     return {
         "schema_version": SCHEMA_VERSION,
         "status": status,
@@ -584,10 +641,12 @@ def _execution_artifact(s03_payload: dict[str, Any], validation: dict[str, Any],
         "validation": validation,
         "execution": execution,
         "redaction": _redaction(),
-        "boundaries": _boundaries([
-            "S03 accepted candidate was gated through deterministic M002 validation",
-            "validator-accepted Cypher executed read-only against synthetic LegalGraph-shaped data",
-        ]),
+        "boundaries": _boundaries(
+            [
+                "S03 accepted candidate was gated through deterministic M002 validation",
+                "validator-accepted Cypher executed read-only against synthetic LegalGraph-shaped data",
+            ]
+        ),
     }
 
 
@@ -663,7 +722,9 @@ def build_artifact(
 def write_artifact(artifact_dir: Path, payload: dict[str, Any]) -> Path:
     artifact_dir.mkdir(parents=True, exist_ok=True)
     path = artifact_dir / ARTIFACT_NAME
-    path.write_text(json.dumps(payload, indent=2, sort_keys=True, ensure_ascii=False) + "\n", encoding="utf-8")
+    path.write_text(
+        json.dumps(payload, indent=2, sort_keys=True, ensure_ascii=False) + "\n", encoding="utf-8"
+    )
     return path
 
 
@@ -743,7 +804,16 @@ def main(argv: list[str] | None = None) -> int:
         artifact_path = None
         markdown_path = None
     result = {
-        "verdict": "pass" if payload["status"] in {"skipped", "validation-rejected", "blocked-environment", "failed-runtime", "confirmed-runtime"} else "fail",
+        "verdict": "pass"
+        if payload["status"]
+        in {
+            "skipped",
+            "validation-rejected",
+            "blocked-environment",
+            "failed-runtime",
+            "confirmed-runtime",
+        }
+        else "fail",
         "status": payload["status"],
         "root_cause": payload["root_cause"],
         "phase": payload["phase"],

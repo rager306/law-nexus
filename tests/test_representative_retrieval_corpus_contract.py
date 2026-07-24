@@ -180,10 +180,10 @@ def test_contract_file_exists_and_has_frontmatter() -> None:
     text = contract_text()
 
     assert text.startswith("---\n")
-    assert "title: \"Representative Retrieval Corpus Contract\"" in text
-    assert "owner: \"M016/S02\"" in text
-    assert "gate: \"GATE-G011\"" in text
-    assert "contract_version: \"representative-retrieval-corpus/v1\"" in text
+    assert 'title: "Representative Retrieval Corpus Contract"' in text
+    assert 'owner: "M016/S02"' in text
+    assert 'gate: "GATE-G011"' in text
+    assert 'contract_version: "representative-retrieval-corpus/v1"' in text
     assert "non_authoritative: true" in text
 
 
@@ -203,7 +203,10 @@ def test_source_artifacts_are_tracked_repository_relative_inputs() -> None:
         assert f"`{artifact}`" in source_artifacts
         assert (ROOT / artifact).exists(), f"missing source artifact: {artifact}"
     assert "tracked repository-relative source artifacts" in source_artifacts
-    assert "must not read `.gsd/`, `.planning/`, `.audits/`, untracked local corpora" in source_artifacts
+    assert (
+        "must not read `.gsd/`, `.planning/`, `.audits/`, untracked local corpora"
+        in source_artifacts
+    )
     assert "must not fetch external data" in source_artifacts
     assert "managed GigaChat/GigaChat API" in source_artifacts
     assert "managed embedding API" in source_artifacts
@@ -216,7 +219,9 @@ def test_contract_names_exact_t02_manifest_builder_and_check_paths() -> None:
 
     for path in EXPECTED_T02_PATHS:
         assert f"`{path}`" in paths
-    assert "uv run python scripts/build_representative_retrieval_corpus_manifest.py --check" in paths
+    assert (
+        "uv run python scripts/build_representative_retrieval_corpus_manifest.py --check" in paths
+    )
     assert "compact safe JSON" in paths
     assert "safe field paths and repository-relative artifact paths" in paths
 
@@ -279,7 +284,15 @@ def test_candidate_reference_shape_is_source_backed_and_redacted() -> None:
 
     for field in REQUIRED_REFERENCE_FIELDS:
         assert f"`{field}`" in candidate_shape
-    for role in ["relevant", "distractor", "no_answer_boundary", "ambiguous", "unsafe", "edition_mismatch", "environment_boundary"]:
+    for role in [
+        "relevant",
+        "distractor",
+        "no_answer_boundary",
+        "ambiguous",
+        "unsafe",
+        "edition_mismatch",
+        "environment_boundary",
+    ]:
         assert f"`{role}`" in candidate_shape
     assert "consultant_wordml" in candidate_shape
     assert "garant_odt_metadata" in candidate_shape
@@ -294,7 +307,13 @@ def test_provenance_redaction_and_forbidden_payloads_exclude_raw_material() -> N
     redaction = section(text, "## Redaction")
     forbidden = section(text, "## Forbidden payloads")
 
-    for safe_item in ["source contract path", "source fixture path", "source artifact SHA-256", "parser hierarchy record ID", "evidence path IDs"]:
+    for safe_item in [
+        "source contract path",
+        "source fixture path",
+        "source artifact SHA-256",
+        "parser hierarchy record ID",
+        "evidence path IDs",
+    ]:
         assert safe_item in provenance
     for field in REQUIRED_REDACTION_FIELDS:
         assert f"`{field}`" in redaction
@@ -320,7 +339,17 @@ def test_diagnostics_are_categorical_safe_and_agent_inspectable() -> None:
     diagnostics = section(text, "## Diagnostics")
 
     assert "deterministic, categorical, compact, and safe" in diagnostics
-    for field in ["code", "severity", "field_path", "artifact_path", "corpus_id", "query_label_id", "reference_id", "coverage_class_id", "source_case_id"]:
+    for field in [
+        "code",
+        "severity",
+        "field_path",
+        "artifact_path",
+        "corpus_id",
+        "query_label_id",
+        "reference_id",
+        "coverage_class_id",
+        "source_case_id",
+    ]:
         assert f"`{field}`" in diagnostics
     for code in REQUIRED_DIAGNOSTIC_CODES:
         assert f"`{code}`" in diagnostics
@@ -362,7 +391,10 @@ def test_s03_handoff_fields_are_actionable_and_keep_gate_open() -> None:
     ]:
         assert f"`{field}`" in handoff
     assert "`prd/retrieval/fixtures/representative_retrieval_corpus_manifest.json`" in handoff
-    assert "`uv run python scripts/build_representative_retrieval_corpus_manifest.py --check`" in handoff
+    assert (
+        "`uv run python scripts/build_representative_retrieval_corpus_manifest.py --check`"
+        in handoff
+    )
     assert "Local/open-weight only" in handoff
     assert "Must be `false`" in handoff
     assert "Must state `open`" in handoff
@@ -375,7 +407,10 @@ def test_non_claims_keep_gate_g011_open_and_avoid_legal_authority() -> None:
 
     for non_claim in REQUIRED_NON_CLAIMS:
         assert non_claim in non_claims
-    assert "`GATE-G011` remains open until later validation explicitly confirms full gate criteria" in non_claims
+    assert (
+        "`GATE-G011` remains open until later validation explicitly confirms full gate criteria"
+        in non_claims
+    )
 
 
 def test_contract_rejects_overclaims_and_forbidden_persistence_language() -> None:
@@ -387,7 +422,10 @@ def test_contract_rejects_overclaims_and_forbidden_persistence_language() -> Non
         if token in {".gsd/exec", ".planning/", ".audits/"}:
             assert f"`{token}`" in text
             assert f"{token} outputs" not in text
-            assert f"{token} references" in text or "must not read `.gsd/`, `.planning/`, `.audits/`" in text
+            assert (
+                f"{token} references" in text
+                or "must not read `.gsd/`, `.planning/`, `.audits/`" in text
+            )
         else:
             assert token not in text
 
@@ -397,4 +435,7 @@ def test_verification_hook_names_this_contract_test_only() -> None:
     verification = section(text, "## Verification hook")
 
     assert "uv run pytest tests/test_representative_retrieval_corpus_contract.py -q" in verification
-    assert "uv run python scripts/build_representative_retrieval_corpus_manifest.py --check" in verification
+    assert (
+        "uv run python scripts/build_representative_retrieval_corpus_manifest.py --check"
+        in verification
+    )

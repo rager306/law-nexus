@@ -80,9 +80,10 @@ def test_report_exists_and_has_required_reader_oriented_sections() -> None:
 
     assert "S06 is a final integration and closeout report" in section(text, "Scope")
     assert "future law-nexus architecture binding handoff" in section(text, "Scope")
-    assert "this report is the main human-readable s06 diagnostic surface" in section(
-        text, "Observability Impact"
-    ).casefold()
+    assert (
+        "this report is the main human-readable s06 diagnostic surface"
+        in section(text, "Observability Impact").casefold()
+    )
 
 
 def test_report_references_every_canonical_s06_command() -> None:
@@ -116,8 +117,14 @@ def test_report_preserves_projection_non_authority_and_rejects_source_promotion(
     assert "validate requirements by themselves" in boundary
     assert "become accepted architecture doctrine by freshness alone" in boundary
     assert "the remedy is to repair the source/projection pipeline" in boundary
-    assert "treat RDF, JSONL, recovery, project-state, dashboard, or git-lex diagnostics as source truth" in blocked
-    assert "RDF, SHACL, SPARQL, Turtle, JSONL, dashboards, recovery outputs, project-state summaries, or git-lex projections are authoritative source truth" in non_claims
+    assert (
+        "treat RDF, JSONL, recovery, project-state, dashboard, or git-lex diagnostics as source truth"
+        in blocked
+    )
+    assert (
+        "RDF, SHACL, SPARQL, Turtle, JSONL, dashboards, recovery outputs, project-state summaries, or git-lex projections are authoritative source truth"
+        in non_claims
+    )
 
     for claim in FORBIDDEN_BOUNDARY_DRIFT_CLAIMS:
         assert claim not in lowered
@@ -131,7 +138,10 @@ def test_report_keeps_r035_r037_r038_not_validated_by_s06_evidence() -> None:
     handoff = section(text, "Future Law-Nexus Binding Handoff")
 
     for requirement_id in ["R035", "R037", "R038"]:
-        assert f"| `{requirement_id}` | not validated by S06 ACP/git-lex/projection evidence |" in requirement_boundary
+        assert (
+            f"| `{requirement_id}` | not validated by S06 ACP/git-lex/projection evidence |"
+            in requirement_boundary
+        )
         assert requirement_id in blocked
         assert requirement_id in non_claims
         assert requirement_id in handoff
@@ -154,7 +164,10 @@ def test_report_blocks_main_repo_git_lex_init_and_dot_lex_mutation() -> None:
     assert "Main `.lex` before verification | absent" in mutation_guard
     assert "Main `.lex` after verification | absent" in mutation_guard
     assert "Runtime git-lex adoption | deferred" in mutation_guard
-    assert "A pre-existing or newly created main-repository `.lex` path is a closeout failure" in mutation_guard
+    assert (
+        "A pre-existing or newly created main-repository `.lex` path is a closeout failure"
+        in mutation_guard
+    )
     assert "claim `.lex` is safe in the main repository" in blocked
     assert "main-repository `.lex` state exists or should exist" in non_claims
 
@@ -175,7 +188,9 @@ def test_report_documents_deferred_runtime_adoption_recommendation() -> None:
     assert "Keep runtime git-lex adoption behind a new proof gate" in handoff
 
 
-def test_report_includes_future_handoff_failure_modes_load_profile_negative_tests_and_observability() -> None:
+def test_report_includes_future_handoff_failure_modes_load_profile_negative_tests_and_observability() -> (
+    None
+):
     text = report_text()
 
     handoff = section(text, "Future Law-Nexus Binding Handoff")

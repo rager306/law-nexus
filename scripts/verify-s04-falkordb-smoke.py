@@ -53,12 +53,24 @@ CAPABILITIES: tuple[CapabilitySpec, ...] = (
     CapabilitySpec("falkordb-algo-pagerank", "FalkorDB PageRank algorithm output shape", "S04"),
     CapabilitySpec("falkordb-algo-wcc", "FalkorDB WCC algorithm output shape", "S04"),
     CapabilitySpec("falkordb-algo-bfs", "FalkorDB BFS algorithm output shape", "S04"),
-    CapabilitySpec("falkordb-algo-betweenness", "FalkorDB betweenness algorithm output shape", "S04"),
-    CapabilitySpec("falkordb-algo-label-propagation", "FalkorDB label propagation algorithm output shape", "S04"),
-    CapabilitySpec("falkordb-algo-sp-paths", "FalkorDB single-pair shortest paths output shape", "S04"),
-    CapabilitySpec("falkordb-algo-ss-paths", "FalkorDB single-source shortest paths output shape", "S04"),
+    CapabilitySpec(
+        "falkordb-algo-betweenness", "FalkorDB betweenness algorithm output shape", "S04"
+    ),
+    CapabilitySpec(
+        "falkordb-algo-label-propagation",
+        "FalkorDB label propagation algorithm output shape",
+        "S04",
+    ),
+    CapabilitySpec(
+        "falkordb-algo-sp-paths", "FalkorDB single-pair shortest paths output shape", "S04"
+    ),
+    CapabilitySpec(
+        "falkordb-algo-ss-paths", "FalkorDB single-source shortest paths output shape", "S04"
+    ),
     CapabilitySpec("falkordb-algo-msf", "FalkorDB minimum spanning forest output shape", "S04"),
-    CapabilitySpec("falkordb-algo-negative-contracts", "FalkorDB algorithm negative/error contracts", "S04"),
+    CapabilitySpec(
+        "falkordb-algo-negative-contracts", "FalkorDB algorithm negative/error contracts", "S04"
+    ),
     CapabilitySpec("falkordblite-import", "FalkorDBLite import/bootstrap", "S04"),
     CapabilitySpec("falkordblite-basic-graph", "FalkorDBLite basic graph query", "S04"),
     CapabilitySpec("falkordblite-udf", "FalkorDBLite UDF behavior", "S04"),
@@ -192,7 +204,10 @@ def _validate_diagnostics(
                 f"finding {capability_id} diagnostics.{field}",
             )
         )
-    if mode == VerificationMode.RUNTIME_RESULTS and status in {"blocked-environment", "failed-runtime"}:
+    if mode == VerificationMode.RUNTIME_RESULTS and status in {
+        "blocked-environment",
+        "failed-runtime",
+    }:
         for field in ("root_cause", "detail"):
             if diagnostics_map.get(field) in {"not-run", "pending", "N/A"}:
                 failures.append(
@@ -223,8 +238,17 @@ def _validate_finding(
     if capability_id not in REQUIRED_CAPABILITY_IDS:
         failures.append(f"finding {capability_id} has unknown capability ID")
 
-    for field in ("phase", "timestamp", "owner", "resolution_path", "verification_criteria", "raw_log_reference"):
-        failures.extend(_as_non_empty_string(finding_map.get(field), f"finding {capability_id} {field}"))
+    for field in (
+        "phase",
+        "timestamp",
+        "owner",
+        "resolution_path",
+        "verification_criteria",
+        "raw_log_reference",
+    ):
+        failures.extend(
+            _as_non_empty_string(finding_map.get(field), f"finding {capability_id} {field}")
+        )
 
     raw_status = finding_map.get("status")
     if not isinstance(raw_status, str) or not raw_status.strip():
@@ -234,7 +258,9 @@ def _validate_finding(
         status = raw_status
         if status not in ALLOWED_RUNTIME_STATUSES:
             allowed = ", ".join(sorted(ALLOWED_RUNTIME_STATUSES))
-            failures.append(f"finding {capability_id} invalid status {status!r}; allowed: {allowed}")
+            failures.append(
+                f"finding {capability_id} invalid status {status!r}; allowed: {allowed}"
+            )
         if mode == VerificationMode.RUNTIME_RESULTS and status in SCHEMA_SCAFFOLD_STATUSES:
             terminal = ", ".join(sorted(TERMINAL_RUNTIME_STATUSES))
             failures.append(
@@ -272,7 +298,10 @@ def check_json_structure(data: dict[str, Any], mode: VerificationMode) -> list[s
         )
     if mode == VerificationMode.RUNTIME_RESULTS and data.get("phase") != "runtime-results":
         failures.append("JSON phase must be 'runtime-results' in runtime-results mode")
-    if mode == VerificationMode.SCHEMA_ONLY and data.get("phase") not in {"schema-only", "runtime-results"}:
+    if mode == VerificationMode.SCHEMA_ONLY and data.get("phase") not in {
+        "schema-only",
+        "runtime-results",
+    }:
         failures.append("JSON phase must be 'schema-only' or 'runtime-results' in schema-only mode")
 
     for field in ("generated_at", "cleanup_status", "log_artifact_path"):

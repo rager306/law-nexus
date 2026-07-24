@@ -129,7 +129,9 @@ def check_forbidden_content(text: str, result: VerificationResult) -> None:
     for pattern in FORBIDDEN_SECRET_PATTERNS:
         match = pattern.search(text)
         if match:
-            result.add(f"Recommendation contains forbidden secret-like content matching {pattern.pattern!r}")
+            result.add(
+                f"Recommendation contains forbidden secret-like content matching {pattern.pattern!r}"
+            )
     lowered = text.lower()
     for phrase in FORBIDDEN_OVERCLAIMS:
         if phrase.lower() in lowered:
@@ -170,7 +172,9 @@ def finding_statuses(proof: dict[str, Any]) -> dict[str, str]:
     return statuses
 
 
-def expected_category(proof: dict[str, Any], result: VerificationResult) -> RecommendationCategory | None:
+def expected_category(
+    proof: dict[str, Any], result: VerificationResult
+) -> RecommendationCategory | None:
     status = proof.get("status")
     validation = proof.get("validation")
     execution = proof.get("execution")
@@ -196,7 +200,12 @@ def expected_category(proof: dict[str, Any], result: VerificationResult) -> Reco
     build_confirmed = statuses.get("maturin-build") == "confirmed-runtime"
     live_status = statuses.get("minimax-live-proof")
 
-    if status == "confirmed-runtime" and provider_attempts > 0 and validation_accepted and execution_status == "confirmed-runtime":
+    if (
+        status == "confirmed-runtime"
+        and provider_attempts > 0
+        and validation_accepted
+        and execution_status == "confirmed-runtime"
+    ):
         return "pursue-pyo3"
     if (
         status in {"blocked-credential", "failed-runtime"}
@@ -209,7 +218,10 @@ def expected_category(proof: dict[str, Any], result: VerificationResult) -> Reco
         return "pursue-pyo3-conditioned"
     if status == "failed-runtime" and execution_status == "failed-runtime":
         return "defer"
-    if status in {"blocked-credential", "blocked-environment", "failed-runtime"} and validation_accepted:
+    if (
+        status in {"blocked-credential", "blocked-environment", "failed-runtime"}
+        and validation_accepted
+    ):
         return "validator-only"
     if status == "blocked-environment":
         return "defer"
@@ -217,13 +229,19 @@ def expected_category(proof: dict[str, Any], result: VerificationResult) -> Reco
     return None
 
 
-def check_category_matches_proof(category: RecommendationCategory | None, proof: dict[str, Any], result: VerificationResult) -> None:
+def check_category_matches_proof(
+    category: RecommendationCategory | None, proof: dict[str, Any], result: VerificationResult
+) -> None:
     expected = expected_category(proof, result)
     if category is not None and expected is not None and category != expected:
-        result.add(f"Recommendation category {category!r} does not match proof-derived category {expected!r}")
+        result.add(
+            f"Recommendation category {category!r} does not match proof-derived category {expected!r}"
+        )
 
 
-def check_boundary_language(text: str, category: RecommendationCategory | None, result: VerificationResult) -> None:
+def check_boundary_language(
+    text: str, category: RecommendationCategory | None, result: VerificationResult
+) -> None:
     missing = [term for term in REQUIRED_BOUNDARY_TERMS if term not in text]
     if missing:
         result.add(f"Recommendation missing R011/out-of-scope boundary terms: {', '.join(missing)}")
@@ -233,7 +251,10 @@ def check_boundary_language(text: str, category: RecommendationCategory | None, 
         result.add("Conditioned PyO3 recommendation must keep R017 active")
     if "shares the exact same validation boundary" not in text:
         result.add("REST baseline must state that it shares the same validation boundary")
-    if not re.search(r"does\s+(?:\*\*)?not(?:\*\*)?\s+claim that an upstream high-level `TextToCypherClient` can route MiniMax", text):
+    if not re.search(
+        r"does\s+(?:\*\*)?not(?:\*\*)?\s+claim that an upstream high-level `TextToCypherClient` can route MiniMax",
+        text,
+    ):
         result.add("REST baseline must avoid unproven TextToCypherClient MiniMax routing claims")
 
 

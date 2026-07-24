@@ -38,7 +38,9 @@ def accepted_decision() -> dict[str, object]:
         "candidate_id": "CAND-abc123def456",
         "verifier_status": "accepted",
         "checked_refs": ["processed/consultant-wordml-v1/CORPUS/source_inventory.safe.jsonl"],
-        "acceptance_evidence_refs": ["processed/consultant-wordml-v1/CORPUS/source_inventory.safe.jsonl"],
+        "acceptance_evidence_refs": [
+            "processed/consultant-wordml-v1/CORPUS/source_inventory.safe.jsonl"
+        ],
     }
 
 
@@ -55,7 +57,9 @@ def test_graph_context_staging_record_contains_required_provenance_and_non_claim
     assert result["candidate_refs"] == ["candidate:CAND-abc123def456"]
     assert result["verifier_refs"] == ["decision:DECISION-abc123def456"]
     assert result["trajectory_refs"] == ["trajectory:STEP-abc123def456"]
-    assert result["source_refs"] == ["processed/consultant-wordml-v1/CORPUS/source_inventory.safe.jsonl"]
+    assert result["source_refs"] == [
+        "processed/consultant-wordml-v1/CORPUS/source_inventory.safe.jsonl"
+    ]
     assert result["non_authoritative"] is True
     assert "graph_context staging does not validate R035" in result["non_claims"]
     assert "graph_context staging does not validate R037" in result["non_claims"]
@@ -131,7 +135,9 @@ def test_cli_graph_context_stage_smoke(tmp_path: Path) -> None:
         ]
     }
     mock_response.write_text(
-        json.dumps({"response_summary": json.dumps(response, ensure_ascii=False)}, ensure_ascii=False),
+        json.dumps(
+            {"response_summary": json.dumps(response, ensure_ascii=False)}, ensure_ascii=False
+        ),
         encoding="utf-8",
     )
     run_id = "RUN-abc123def456"
@@ -177,7 +183,10 @@ def test_cli_graph_context_stage_smoke(tmp_path: Path) -> None:
     assert payload["status"] == "graph_context_staging_exported"
     assert payload["staged"] == 1
     assert payload["skipped"] == 0
-    assert payload["staging_ref"] == "runtime/graph-context/RUN-abc123def456/graph_context_staging.jsonl"
+    assert (
+        payload["staging_ref"]
+        == "runtime/graph-context/RUN-abc123def456/graph_context_staging.jsonl"
+    )
     assert (workspace / payload["staging_ref"]).is_file()
     assert (workspace / payload["diagnostics_ref"]).is_file()
     assert (workspace / payload["summary_ref"]).is_file()
@@ -191,7 +200,9 @@ def test_cli_graph_context_stage_smoke(tmp_path: Path) -> None:
     assert "graph_context staging does not validate R037" in staging_rows[0]["non_claims"]
 
 
-def test_export_graph_context_staging_writes_staging_diagnostics_and_summary(tmp_path: Path) -> None:
+def test_export_graph_context_staging_writes_staging_diagnostics_and_summary(
+    tmp_path: Path,
+) -> None:
     skipped_decision = accepted_decision()
     skipped_decision["decision_id"] = "DECISION-def456abc123"
     skipped_decision["verifier_status"] = "needs_review"
@@ -211,9 +222,17 @@ def test_export_graph_context_staging_writes_staging_diagnostics_and_summary(tmp
     assert result["staged"] == 1
     assert result["skipped"] == 1
     assert result["diagnostics"] == 1
-    assert result["staging_ref"] == "runtime/graph-context/RUN-abc123def456/graph_context_staging.jsonl"
-    assert result["diagnostics_ref"] == "runtime/graph-context/RUN-abc123def456/graph_context_diagnostics.jsonl"
-    assert result["summary_ref"] == "runtime/graph-context/RUN-abc123def456/graph_context_summary.json"
+    assert (
+        result["staging_ref"]
+        == "runtime/graph-context/RUN-abc123def456/graph_context_staging.jsonl"
+    )
+    assert (
+        result["diagnostics_ref"]
+        == "runtime/graph-context/RUN-abc123def456/graph_context_diagnostics.jsonl"
+    )
+    assert (
+        result["summary_ref"] == "runtime/graph-context/RUN-abc123def456/graph_context_summary.json"
+    )
 
     staging_rows = [
         json.loads(line)
@@ -229,7 +248,9 @@ def test_export_graph_context_staging_writes_staging_diagnostics_and_summary(tmp
 
     assert len(staging_rows) == 1
     assert staging_rows[0]["schema_version"] == GRAPH_CONTEXT_STAGING_SCHEMA_VERSION
-    assert staging_rows[0]["review_pack_refs"] == ["runtime/external-review/RUN-abc123def456/review_pack.json"]
+    assert staging_rows[0]["review_pack_refs"] == [
+        "runtime/external-review/RUN-abc123def456/review_pack.json"
+    ]
     assert len(diagnostic_rows) == 1
     assert diagnostic_rows[0]["schema_version"] == GRAPH_CONTEXT_DIAGNOSTIC_SCHEMA_VERSION
     assert "verifier-status-not-accepted" in diagnostic_rows[0]["reason_codes"]
@@ -288,7 +309,9 @@ def verifier_candidate(
     return row
 
 
-def test_weak_graph_context_signal_is_not_silently_accepted_on_inherited_refs(tmp_path: Path) -> None:
+def test_weak_graph_context_signal_is_not_silently_accepted_on_inherited_refs(
+    tmp_path: Path,
+) -> None:
     relationship = verifier_candidate(
         candidate_id="CAND-abc123def456",
         candidate_kind="relationship_candidate",
@@ -313,15 +336,22 @@ def test_weak_graph_context_signal_is_not_silently_accepted_on_inherited_refs(tm
     assert result["status_counts"]["needs_review"] + result["status_counts"]["rejected"] == 1
     decisions = [
         json.loads(line)
-        for line in (tmp_path / "runtime/verifier/RUN-abc123def456/verifier_decisions.jsonl").read_text(encoding="utf-8").splitlines()
+        for line in (tmp_path / "runtime/verifier/RUN-abc123def456/verifier_decisions.jsonl")
+        .read_text(encoding="utf-8")
+        .splitlines()
         if line.strip()
     ]
     weak_decision = next(row for row in decisions if row["candidate_id"] == "CAND-def456abc123")
     assert weak_decision["verifier_status"] in {"needs_review", "rejected"}
-    assert any("graph-context-signal" in reason for reason in weak_decision["rejection_reasons"] + weak_decision["decision_notes"])
+    assert any(
+        "graph-context-signal" in reason
+        for reason in weak_decision["rejection_reasons"] + weak_decision["decision_notes"]
+    )
 
 
-def test_supported_relationship_candidate_still_accepts_and_stages_after_hardening(tmp_path: Path) -> None:
+def test_supported_relationship_candidate_still_accepts_and_stages_after_hardening(
+    tmp_path: Path,
+) -> None:
     candidate = verifier_candidate(
         candidate_id="CAND-abc123def456",
         candidate_kind="relationship_candidate",
@@ -330,7 +360,9 @@ def test_supported_relationship_candidate_still_accepts_and_stages_after_hardeni
     verify_discovery_candidates(tmp_path, run_id="RUN-abc123def456", candidate_rows=[candidate])
     decisions = [
         json.loads(line)
-        for line in (tmp_path / "runtime/verifier/RUN-abc123def456/verifier_decisions.jsonl").read_text(encoding="utf-8").splitlines()
+        for line in (tmp_path / "runtime/verifier/RUN-abc123def456/verifier_decisions.jsonl")
+        .read_text(encoding="utf-8")
+        .splitlines()
         if line.strip()
     ]
 
@@ -377,8 +409,16 @@ def test_branch_coverage_populates_rejections_review_queue_pack_and_staging(tmp_
     review_queue_path = tmp_path / "runtime/verifier/RUN-abc123def456/review_queue_items.jsonl"
     assert rejection_path.is_file()
     assert review_queue_path.is_file()
-    rejections = [json.loads(line) for line in rejection_path.read_text(encoding="utf-8").splitlines() if line.strip()]
-    review_items = [json.loads(line) for line in review_queue_path.read_text(encoding="utf-8").splitlines() if line.strip()]
+    rejections = [
+        json.loads(line)
+        for line in rejection_path.read_text(encoding="utf-8").splitlines()
+        if line.strip()
+    ]
+    review_items = [
+        json.loads(line)
+        for line in review_queue_path.read_text(encoding="utf-8").splitlines()
+        if line.strip()
+    ]
     assert len(rejections) == 1
     assert len(review_items) == 1
 
@@ -391,7 +431,9 @@ def test_branch_coverage_populates_rejections_review_queue_pack_and_staging(tmp_
 
     decisions = [
         json.loads(line)
-        for line in (tmp_path / "runtime/verifier/RUN-abc123def456/verifier_decisions.jsonl").read_text(encoding="utf-8").splitlines()
+        for line in (tmp_path / "runtime/verifier/RUN-abc123def456/verifier_decisions.jsonl")
+        .read_text(encoding="utf-8")
+        .splitlines()
         if line.strip()
     ]
     stage = export_graph_context_staging(

@@ -77,9 +77,14 @@ def assert_s07_report_contract(text: str) -> None:
     non_goals = section(text, "R035/R037/R038 Non-Goal Reconciliation")
     non_goals_lowered = non_goals.casefold()
     for requirement_id in ["R035", "R037", "R038"]:
-        assert f"`{requirement_id}`" in non_goals, f"Non-goal reconciliation missing {requirement_id}"
+        assert f"`{requirement_id}`" in non_goals, (
+            f"Non-goal reconciliation missing {requirement_id}"
+        )
     assert "must remain explicit non-goals" in non_goals
-    assert "m048 preserves the proof boundary for `r035`, `r037`, and `r038`; it does not validate them" in non_goals_lowered
+    assert (
+        "m048 preserves the proof boundary for `r035`, `r037`, and `r038`; it does not validate them"
+        in non_goals_lowered
+    )
     assert "s04-s06 do not prove ontology architecture correctness" in non_goals_lowered
     assert "s04-s06 do not perform falkordb csv loading" in non_goals_lowered
     assert "does not itself replace a review gate" in non_goals_lowered
@@ -115,7 +120,10 @@ def assert_s07_report_contract(text: str) -> None:
     assert "explicitly future work" in handoff_lowered
     assert "future binding milestone" in handoff_lowered
     assert "keep runtime git-lex adoption behind a new proof gate" in handoff_lowered
-    assert "treat any future projection claim that a requirement is validated as a hypothesis" in handoff_lowered
+    assert (
+        "treat any future projection claim that a requirement is validated as a hypothesis"
+        in handoff_lowered
+    )
 
     evidence = section(text, "Validation Round 1 Evidence")
     assert "uv run python scripts/run-m048-s04-git-lex-proof.py --check" in evidence
@@ -146,7 +154,9 @@ def test_coverage_matrix_reconciles_all_required_m048_requirements() -> None:
         assert expected_boundary in coverage_matrix
 
 
-def test_report_explicitly_keeps_r035_r037_r038_not_validated_by_acp_git_lex_or_projection_evidence() -> None:
+def test_report_explicitly_keeps_r035_r037_r038_not_validated_by_acp_git_lex_or_projection_evidence() -> (
+    None
+):
     text = report_text()
     lowered = text.casefold()
 
@@ -156,8 +166,14 @@ def test_report_explicitly_keeps_r035_r037_r038_not_validated_by_acp_git_lex_or_
         assert f"validates {requirement_id}" not in lowered
         assert f"validated {requirement_id}" not in lowered
 
-    assert "m048 may cite source/projection/proof-boundary guardrails, but it must not claim `r035` validation" in lowered
-    assert "m048 does not load falkordb data and must not use acp/git-lex diagnostics as ingestion proof" in lowered
+    assert (
+        "m048 may cite source/projection/proof-boundary guardrails, but it must not claim `r035` validation"
+        in lowered
+    )
+    assert (
+        "m048 does not load falkordb data and must not use acp/git-lex diagnostics as ingestion proof"
+        in lowered
+    )
     assert "not newly validated by this report" in lowered
     assert "s04/s05 validate r035/r037/r038" in lowered
     assert "unacceptable wording" in lowered
@@ -171,8 +187,14 @@ def test_report_bounds_r043_blocked_runtime_semantics_without_turning_blocked_in
     assert "`R043` receives bounded partial coverage from S04-S06" in r043
     assert "runtime git-lex adoption deferred" in r043.casefold()
     assert "`blocked` means the local `git lex` / `git-lex` runtime surface was unavailable" in r043
-    assert "It does not mean deterministic ACP mechanics failed when `fatal_failures=[]`, deterministic checks pass, and the mutation guard is safe." in r043
-    assert "S04/S05 are blocked for runtime git-lex adoption but pass bounded deterministic ACP mechanics and mutation-safety checks." in caveat
+    assert (
+        "It does not mean deterministic ACP mechanics failed when `fatal_failures=[]`, deterministic checks pass, and the mutation guard is safe."
+        in r043
+    )
+    assert (
+        "S04/S05 are blocked for runtime git-lex adoption but pass bounded deterministic ACP mechanics and mutation-safety checks."
+        in caveat
+    )
 
 
 def test_report_keeps_future_law_nexus_binding_as_future_work_only() -> None:
@@ -182,16 +204,23 @@ def test_report_keeps_future_law_nexus_binding_as_future_work_only() -> None:
 
     assert "Future law-nexus architecture binding is explicitly future work." in handoff
     assert "A future binding milestone should start with these expectations" in handoff
-    assert "Use M048 as ACP governance foundation evidence, not as product/runtime/legal proof." in handoff
+    assert (
+        "Use M048 as ACP governance foundation evidence, not as product/runtime/legal proof."
+        in handoff
+    )
     assert "Keep runtime git-lex adoption behind a new proof gate" in handoff
     for claim in FORBIDDEN_COMPLETED_BINDING_CLAIMS:
         assert claim not in lowered
 
 
 def test_negative_contract_detects_missing_required_section() -> None:
-    text = report_text().replace("## Future Law-Nexus Binding Handoff\n", "## Future Binding Handoff\n")
+    text = report_text().replace(
+        "## Future Law-Nexus Binding Handoff\n", "## Future Binding Handoff\n"
+    )
 
-    with pytest.raises(AssertionError, match="Missing required report section: Future Law-Nexus Binding Handoff"):
+    with pytest.raises(
+        AssertionError, match="Missing required report section: Future Law-Nexus Binding Handoff"
+    ):
         assert_s07_report_contract(text)
 
 

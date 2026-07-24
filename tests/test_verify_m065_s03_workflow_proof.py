@@ -47,8 +47,8 @@ def _valid_proof() -> dict:
             "list": {"exit_code": 0},
         },
         "residue_guard": {
-            "before": {".artifacts": "absent", "Squad": "absent", "Raw": "absent", ".artifacts": "absent"},
-            "after": {".artifacts": "absent", "Squad": "absent", "Raw": "absent", ".artifacts": "absent"},
+            "before": {".artifacts": "absent", "Squad": "absent", "Raw": "absent"},
+            "after": {".artifacts": "absent", "Squad": "absent", "Raw": "absent"},
             "r047_contract_phase": "honored",
         },
         "cli_install_only_boundary": {
@@ -385,7 +385,10 @@ def test_check_boundary_markers_empty(tmp_path: Path) -> None:
 def test_check_boundary_markers_missing_phrase(tmp_path: Path) -> None:
     verifier = load_verifier()
     proof_data = _valid_proof()
-    proof_data["cli_install_only_boundary"]["wont"] = ["main .lex adoption per D095", "no R035/R037/R038 validation"]
+    proof_data["cli_install_only_boundary"]["wont"] = [
+        "main .lex adoption per D095",
+        "no R035/R037/R038 validation",
+    ]
     proof = _write_proof(tmp_path, proof_data)
 
     diagnostics = verifier.check_boundary_markers(proof)
@@ -483,8 +486,9 @@ def test_verify_skip_residue(tmp_path: Path) -> None:
 
 def test_main_exits_nonzero_on_diagnostics(tmp_path: Path) -> None:
     verifier = load_verifier()
-    rc = verifier.main(["--proof", str(tmp_path / "nope.json"),
-                        "--root", str(tmp_path), "--skip-residue"])
+    rc = verifier.main(
+        ["--proof", str(tmp_path / "nope.json"), "--root", str(tmp_path), "--skip-residue"]
+    )
 
     assert rc == 1
 
@@ -495,10 +499,14 @@ def test_main_exits_zero_clean(tmp_path: Path, capsys: pytest.CaptureFixture[str
     residue_root = tmp_path / "clean-root"
     residue_root.mkdir()
 
-    rc = verifier.main([
-        "--proof", str(proof),
-        "--root", str(residue_root),
-    ])
+    rc = verifier.main(
+        [
+            "--proof",
+            str(proof),
+            "--root",
+            str(residue_root),
+        ]
+    )
 
     assert rc == 0
     captured = capsys.readouterr()

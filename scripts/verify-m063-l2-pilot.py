@@ -346,7 +346,9 @@ def run_checked_command(
         )
     result = runner(command, cwd, git_lex_env())
     post = check_main_residue(root)
-    classification = "pass" if result.exit_code == 0 else classify_command_failure(result, workspace)
+    classification = (
+        "pass" if result.exit_code == 0 else classify_command_failure(result, workspace)
+    )
     if any(post.values()):
         classification = "residue-violation"
     return make_record(
@@ -508,8 +510,10 @@ def detect_hook_failure(context: FailureContext) -> bool:
     if result is None:
         return False
     text = f"{result.stdout}\n{result.stderr}".lower()
-    return "git commit" in command_to_string(result.command) and result.exit_code != 0 and (
-        "hook" in text or "git-lex" in text
+    return (
+        "git commit" in command_to_string(result.command)
+        and result.exit_code != 0
+        and ("hook" in text or "git-lex" in text)
     )
 
 
@@ -572,7 +576,9 @@ def classify_command_failure(result: CommandResult, workspace: Path) -> str:
 def sample_context_for_failure_mode(mode: str, tmp_dir: Path | None = None) -> FailureContext:
     if mode == "state-corruption":
         return FailureContext(
-            result=CommandResult(["git-lex", "validate"], "/tmp/m063-l2-sample", 1, stderr="store read error")
+            result=CommandResult(
+                ["git-lex", "validate"], "/tmp/m063-l2-sample", 1, stderr="store read error"
+            )
         )
     if mode == "network-failure":
         return FailureContext(
@@ -585,11 +591,15 @@ def sample_context_for_failure_mode(mode: str, tmp_dir: Path | None = None) -> F
         )
     if mode == "hook-failure":
         return FailureContext(
-            result=CommandResult(["git", "commit", "-m", "x"], "/tmp/m063-l2-sample", 1, stderr="git-lex hook failed")
+            result=CommandResult(
+                ["git", "commit", "-m", "x"], "/tmp/m063-l2-sample", 1, stderr="git-lex hook failed"
+            )
         )
     if mode == "validation-overflow":
         stdout = "\n".join(f"violation {idx}" for idx in range(101))
-        return FailureContext(result=CommandResult(["git-lex", "validate"], "/tmp/m063-l2-sample", 1, stdout=stdout))
+        return FailureContext(
+            result=CommandResult(["git-lex", "validate"], "/tmp/m063-l2-sample", 1, stdout=stdout)
+        )
     if mode == "workspace-retention-overrun":
         workspace = (tmp_dir or Path("/tmp")) / "m063-l2-retention-sample"
         workspace.mkdir(parents=True, exist_ok=True)
@@ -597,7 +607,9 @@ def sample_context_for_failure_mode(mode: str, tmp_dir: Path | None = None) -> F
             (workspace / f"f{idx}.txt").write_text("x", encoding="utf-8")
         return FailureContext(workspace=workspace)
     if mode == "main-repo-residue":
-        return FailureContext(residue={".lex": True, "Squad": False, "Raw": False, ".artifacts": False})
+        return FailureContext(
+            residue={".lex": True, "Squad": False, "Raw": False, ".artifacts": False}
+        )
     if mode == "acp-native-only-overclaim":
         return FailureContext(record={"evidence_tier": "ACP-native-only", "authority": "git-lex"})
     if mode == "user-abort":

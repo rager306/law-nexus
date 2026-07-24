@@ -171,13 +171,19 @@ def closure_slice(closure: Mapping[str, Any], slice_id: str) -> dict[str, Any]:
     return payload if isinstance(payload, dict) else {}
 
 
-def merged_slice(closure: Mapping[str, Any], upstream: Mapping[str, Mapping[str, Any]], slice_id: str) -> dict[str, Any]:
+def merged_slice(
+    closure: Mapping[str, Any], upstream: Mapping[str, Mapping[str, Any]], slice_id: str
+) -> dict[str, Any]:
     merged = dict(upstream.get(slice_id, {}))
     merged.update(closure_slice(closure, slice_id))
     return merged
 
 
-def check_schema(closure: Mapping[str, Any], upstream: Mapping[str, Mapping[str, Any]], result: VerificationResult) -> None:
+def check_schema(
+    closure: Mapping[str, Any],
+    upstream: Mapping[str, Mapping[str, Any]],
+    result: VerificationResult,
+) -> None:
     if closure.get("schema_version") != REQUIRED_CLOSURE_SCHEMA:
         result.add(f"Closure schema_version must be {REQUIRED_CLOSURE_SCHEMA!r}")
     for slice_id, expected in REQUIRED_UPSTREAM_SCHEMAS.items():
@@ -195,9 +201,18 @@ def check_schema(closure: Mapping[str, Any], upstream: Mapping[str, Mapping[str,
 def has_safety_regression(s03: Mapping[str, Any], s04: Mapping[str, Any]) -> bool:
     categories = s03.get("candidate_categories")
     rejection_codes = s04.get("validation_rejection_codes")
-    category_text = " ".join(str(value).lower() for value in categories) if isinstance(categories, list) else ""
-    code_text = " ".join(str(value).lower() for value in rejection_codes) if isinstance(rejection_codes, list) else ""
-    return any(term in category_text or term in code_text for term in ("unsafe", "write", "delete", "mutation", "non-read-only"))
+    category_text = (
+        " ".join(str(value).lower() for value in categories) if isinstance(categories, list) else ""
+    )
+    code_text = (
+        " ".join(str(value).lower() for value in rejection_codes)
+        if isinstance(rejection_codes, list)
+        else ""
+    )
+    return any(
+        term in category_text or term in code_text
+        for term in ("unsafe", "write", "delete", "mutation", "non-read-only")
+    )
 
 
 def derive_category(
@@ -211,13 +226,20 @@ def derive_category(
     s03 = merged_slice(closure, upstream, "S03")
     s04 = merged_slice(closure, upstream, "S04")
 
-    endpoint_ok = bool_field(s01, "endpoint_preserves_v1") or str_field(s01, "status") == "blocked-credential"
+    endpoint_ok = (
+        bool_field(s01, "endpoint_preserves_v1") or str_field(s01, "status") == "blocked-credential"
+    )
     s02_endpoint_ok = bool_field(s02, "endpoint_preserves_v1")
     mechanics_ok = bool_field(s02, "mechanics_confirmed")
-    provider_attempted = int_field(s02, "provider_attempts") > 0 or int_field(s03, "provider_attempts") > 0
+    provider_attempted = (
+        int_field(s02, "provider_attempts") > 0 or int_field(s03, "provider_attempts") > 0
+    )
     accepted_candidate = bool_field(s03, "candidate_accepted")
     validation_accepted = bool_field(s04, "validation_accepted")
-    execution_confirmed = bool_field(s04, "execution_attempted") and str_field(s04, "execution_status") == "confirmed-runtime"
+    execution_confirmed = (
+        bool_field(s04, "execution_attempted")
+        and str_field(s04, "execution_status") == "confirmed-runtime"
+    )
 
     if not endpoint_ok:
         result.add("S01 endpoint normalization evidence is missing or regressed")
@@ -267,7 +289,9 @@ def check_branch_rules(text: str, result: VerificationResult) -> None:
     if missing:
         result.add(f"Recommendation missing branch rules for: {', '.join(missing)}")
     if "accepted S03 candidate" not in text or "confirmed S04 read-only execution" not in text:
-        result.add("Recommendation must require accepted candidate plus confirmed read-only execution for upgrade")
+        result.add(
+            "Recommendation must require accepted candidate plus confirmed read-only execution for upgrade"
+        )
     if "route regresses" not in text and "route regression" not in text:
         result.add("Recommendation must state route-regression fallback rules")
     if "safety" not in text or "redaction" not in text:
@@ -276,17 +300,25 @@ def check_branch_rules(text: str, result: VerificationResult) -> None:
 
 def check_non_claims(text: str, result: VerificationResult) -> None:
     missing = [term for term in REQUIRED_NON_CLAIMS if term not in text]
-    undercounted = [term for term, minimum in REQUIRED_NON_CLAIM_MIN_COUNTS.items() if text.count(term) < minimum]
+    undercounted = [
+        term
+        for term, minimum in REQUIRED_NON_CLAIM_MIN_COUNTS.items()
+        if text.count(term) < minimum
+    ]
     if missing or undercounted:
         all_missing = sorted(set(missing + undercounted))
         result.add(f"Recommendation missing explicit non-claims: {', '.join(all_missing)}")
 
 
-def check_r017_language(text: str, category: RecommendationCategory | None, result: VerificationResult) -> None:
+def check_r017_language(
+    text: str, category: RecommendationCategory | None, result: VerificationResult
+) -> None:
     if "R017 is advanced but not fully validated" not in text:
         result.add("Recommendation must state that R017 is advanced but not fully validated")
     if "R017 remains active and is advanced-not-validated" not in text:
-        result.add("Recommendation must state that R017 remains active and is advanced-not-validated")
+        result.add(
+            "Recommendation must state that R017 remains active and is advanced-not-validated"
+        )
     if "does not validate R017" not in text and "does not validate it" not in text:
         result.add("Recommendation must avoid validating R017")
     if category == "pursue-pyo3-conditioned" and "rather than `pursue-pyo3`" not in text:
@@ -296,10 +328,14 @@ def check_r017_language(text: str, category: RecommendationCategory | None, resu
 def check_forbidden_content(text: str, result: VerificationResult) -> None:
     for pattern in FORBIDDEN_SECRET_PATTERNS:
         if pattern.search(text):
-            result.add(f"Recommendation contains forbidden secret-like content matching {pattern.pattern!r}")
+            result.add(
+                f"Recommendation contains forbidden secret-like content matching {pattern.pattern!r}"
+            )
     for pattern in FORBIDDEN_RAW_PATTERNS:
         if pattern.search(text):
-            result.add(f"Recommendation contains forbidden raw/think content matching {pattern.pattern!r}")
+            result.add(
+                f"Recommendation contains forbidden raw/think content matching {pattern.pattern!r}"
+            )
     lowered = text.lower()
     for phrase in FORBIDDEN_OVERCLAIMS:
         if phrase.lower() in lowered:
@@ -325,7 +361,17 @@ def check_closure_consistency(
     if not isinstance(non_claims, list):
         result.add("Closure non_claims must be a list")
         return
-    missing = [claim for claim in ("provider generation quality", "Legal KnowQL product behavior", "legal-answer correctness", "ODT parsing", "retrieval quality") if claim not in non_claims]
+    missing = [
+        claim
+        for claim in (
+            "provider generation quality",
+            "Legal KnowQL product behavior",
+            "legal-answer correctness",
+            "ODT parsing",
+            "retrieval quality",
+        )
+        if claim not in non_claims
+    ]
     if missing:
         result.add(f"Closure missing required non-claims: {', '.join(missing)}")
 

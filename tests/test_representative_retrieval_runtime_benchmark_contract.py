@@ -327,7 +327,10 @@ def test_non_claims_keep_gate_g011_open_and_non_authoritative() -> None:
     non_claims = section(text, "## Non-claims")
 
     assert_terms_present(non_claims, REQUIRED_NON_CLAIMS)
-    assert "`GATE-G011` remains open until a later milestone validation explicitly closes it" in non_claims
+    assert (
+        "`GATE-G011` remains open until a later milestone validation explicitly closes it"
+        in non_claims
+    )
 
 
 def test_implementation_checklist_preserves_fail_closed_runtime_contract() -> None:

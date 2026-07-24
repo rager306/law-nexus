@@ -37,7 +37,9 @@ def test_expected_counts_from_csv_rows_match_existing_contract() -> None:
 
 
 def test_load_csv_query_plan_is_bounded_and_uses_fixture_import_paths() -> None:
-    plan = build_load_csv_query_plan(node_csv_uri="file:///legal_units.csv", edge_csv_uri="file:///legal_unit_edges.csv")
+    plan = build_load_csv_query_plan(
+        node_csv_uri="file:///legal_units.csv", edge_csv_uri="file:///legal_unit_edges.csv"
+    )
 
     assert [step.name for step in plan.steps] == [
         "cleanup_before_load",
@@ -46,7 +48,10 @@ def test_load_csv_query_plan_is_bounded_and_uses_fixture_import_paths() -> None:
         "load_nodes_second",
         "load_relationships_second",
     ]
-    assert all("LOAD CSV WITH HEADERS" in step.cypher or step.name == "cleanup_before_load" for step in plan.steps)
+    assert all(
+        "LOAD CSV WITH HEADERS" in step.cypher or step.name == "cleanup_before_load"
+        for step in plan.steps
+    )
     assert all("/root/" not in step.cypher and "/tmp/" not in step.cypher for step in plan.steps)
     assert plan.raw_query_text_persisted is False
 
@@ -61,7 +66,12 @@ def test_base_report_keeps_non_claims_and_safe_counts() -> None:
     units = read_csv_rows(UNITS_CSV)
     edges = read_csv_rows(EDGES_CSV)
 
-    report = build_base_report(request, expected_counts=expected_counts_from_rows(units, edges), disposition="blocked", diagnostic_codes=("CSV_FILE_ACCESS_BLOCKED",))
+    report = build_base_report(
+        request,
+        expected_counts=expected_counts_from_rows(units, edges),
+        disposition="blocked",
+        diagnostic_codes=("CSV_FILE_ACCESS_BLOCKED",),
+    )
 
     assert report["schema_version"] == "falkordb-csv-ingest-proof/v1"
     assert report["loader"]["mechanism"] == "LOAD CSV"
@@ -79,8 +89,17 @@ def test_compare_graph_counts_reports_mismatch_once() -> None:
         "expected_inactive_nodes": 1,
     }
 
-    assert compare_graph_counts(expected, {"node_count": 4, "relationship_count": 3, "current_nodes": 3, "inactive_nodes": 1}) == []
-    assert compare_graph_counts(expected, {"node_count": 1, "relationship_count": 3, "current_nodes": 3, "inactive_nodes": 1}) == ["LOAD_CSV_COUNTS_MISMATCH"]
+    assert (
+        compare_graph_counts(
+            expected,
+            {"node_count": 4, "relationship_count": 3, "current_nodes": 3, "inactive_nodes": 1},
+        )
+        == []
+    )
+    assert compare_graph_counts(
+        expected,
+        {"node_count": 1, "relationship_count": 3, "current_nodes": 3, "inactive_nodes": 1},
+    ) == ["LOAD_CSV_COUNTS_MISMATCH"]
 
 
 def test_validate_safe_report_rejects_raw_or_absolute_payloads() -> None:
@@ -92,7 +111,9 @@ def test_validate_safe_report_rejects_raw_or_absolute_payloads() -> None:
 
 def test_request_from_args_preserves_container_boundary() -> None:
     args = SimpleNamespace(container="never", container_image="falkordb/falkordb:edge")
-    request = FalkorCsvIngestRequest.from_args(args, source_units_path="units.csv", source_edges_path="edges.csv")
+    request = FalkorCsvIngestRequest.from_args(
+        args, source_units_path="units.csv", source_edges_path="edges.csv"
+    )
 
     assert request.container_mode == "never"
     assert request.container_image == "falkordb/falkordb:edge"

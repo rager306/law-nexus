@@ -44,9 +44,7 @@ impl DomainEvidencePort for FixedDomainEvidence {
         self.snapshots
             .get(work_unit.as_str())
             .map(|s| s.domain.clone())
-            .unwrap_or_else(|| {
-                DomainSnapshotId::parse("domain:missing").expect("static id")
-            })
+            .unwrap_or_else(|| DomainSnapshotId::parse("domain:missing").expect("static id"))
     }
 
     fn publication_snapshot(&self, work_unit: &WorkUnitId) -> PublicationSnapshotId {

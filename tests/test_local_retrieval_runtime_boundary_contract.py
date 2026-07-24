@@ -137,7 +137,10 @@ def test_contract_references_required_sources_without_using_ignored_fixtures() -
     for artifact in REQUIRED_SOURCE_REFERENCES:
         assert f"`{artifact}`" in source_artifacts
     assert "repository-relative artifact references only" in source_artifacts
-    assert "runtime smoke/check tests must not require ignored `.gsd` files as fixtures" in safe_artifacts
+    assert (
+        "runtime smoke/check tests must not require ignored `.gsd` files as fixtures"
+        in safe_artifacts
+    )
     assert "without copying raw logs or absolute log paths" in safe_artifacts
     assert "`.gsd/exec` paths" in safe_artifacts
 
@@ -265,7 +268,9 @@ def test_downstream_checklist_and_verification_hook_are_actionable() -> None:
         "keep `GATE-G011` open",
     ]:
         assert phrase in checklist
-    assert "uv run pytest tests/test_local_retrieval_runtime_boundary_contract.py -q" in verification
+    assert (
+        "uv run pytest tests/test_local_retrieval_runtime_boundary_contract.py -q" in verification
+    )
 
 
 def test_contract_avoids_unsafe_absolute_raw_or_secret_payload_snippets() -> None:

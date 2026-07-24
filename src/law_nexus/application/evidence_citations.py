@@ -35,7 +35,9 @@ class EvidenceCitationLinkUseCase:
                 diagnostics.append(f"missing-citation:{span.span_id}")
                 continue
             if span.lifecycle_status is not EvidenceLifecycle.current:
-                diagnostics.append(f"non-current-evidence-span:{span.span_id}:{span.lifecycle_status.value}")
+                diagnostics.append(
+                    f"non-current-evidence-span:{span.span_id}:{span.lifecycle_status.value}"
+                )
             links.append(
                 EvidenceCitationLink(
                     span_id=span.span_id,

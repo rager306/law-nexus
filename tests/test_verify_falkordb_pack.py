@@ -32,8 +32,16 @@ def copy_required_tree(dst: Path) -> None:
     dst.mkdir(parents=True, exist_ok=True)
     for skill_dir in SKILLS_DIR.glob("falkordb*"):
         if skill_dir.is_dir():
-            shutil.copytree(skill_dir, dst / skill_dir.name, ignore=shutil.ignore_patterns("__pycache__", "*.pyc"))
-    shutil.copytree(SKILLS_DIR / "pi-skill-creator", dst / "pi-skill-creator", ignore=shutil.ignore_patterns("__pycache__", "*.pyc"))
+            shutil.copytree(
+                skill_dir,
+                dst / skill_dir.name,
+                ignore=shutil.ignore_patterns("__pycache__", "*.pyc"),
+            )
+    shutil.copytree(
+        SKILLS_DIR / "pi-skill-creator",
+        dst / "pi-skill-creator",
+        ignore=shutil.ignore_patterns("__pycache__", "*.pyc"),
+    )
 
 
 def test_verify_falkordb_pack_passes(tmp_path: Path) -> None:
@@ -42,7 +50,11 @@ def test_verify_falkordb_pack_passes(tmp_path: Path) -> None:
     report = json.loads((tmp_path / "verification-report.json").read_text(encoding="utf-8"))
     assert report["summary"]["failed"] == 0
     assert report["summary"]["total"] >= 16
-    assert (tmp_path / "verification-report.md").read_text(encoding="utf-8").startswith("# FalkorDB Skill Pack Verification Report")
+    assert (
+        (tmp_path / "verification-report.md")
+        .read_text(encoding="utf-8")
+        .startswith("# FalkorDB Skill Pack Verification Report")
+    )
 
 
 def test_verify_falkordb_pack_fails_when_focused_skill_missing(tmp_path: Path) -> None:

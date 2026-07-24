@@ -13,8 +13,14 @@ from pathlib import Path
 from typing import Any
 
 ROOT = Path(__file__).resolve().parents[1]
-FIXTURE_PATH = ROOT / "prd/research/ontology_architecture_requirements/fixtures/representative_evidence_span_retrieval_corpus.json"
-REPORT_PATH = ROOT / "prd/research/ontology_architecture_requirements/representative_evidence_span_retrieval_metrics_proof.json"
+FIXTURE_PATH = (
+    ROOT
+    / "prd/research/ontology_architecture_requirements/fixtures/representative_evidence_span_retrieval_corpus.json"
+)
+REPORT_PATH = (
+    ROOT
+    / "prd/research/ontology_architecture_requirements/representative_evidence_span_retrieval_metrics_proof.json"
+)
 FIXTURE_VERIFIER = ROOT / "scripts/verify-representative-evidence-span-retrieval-corpus.py"
 RUNTIME_CHECKER = ROOT / "scripts/check-local-retrieval-runtime.py"
 SCHEMA_VERSION = "representative-evidence-span-retrieval-metrics-proof/v1"
@@ -118,7 +124,14 @@ def assert_safe_payload(payload: Mapping[str, Any]) -> None:
 
 
 def run_json_command(command: Sequence[str], timeout_seconds: int) -> tuple[int, dict[str, Any]]:
-    completed = subprocess.run(list(command), cwd=ROOT, check=False, text=True, capture_output=True, timeout=timeout_seconds)
+    completed = subprocess.run(
+        list(command),
+        cwd=ROOT,
+        check=False,
+        text=True,
+        capture_output=True,
+        timeout=timeout_seconds,
+    )
     try:
         payload = json.loads(completed.stdout)
     except json.JSONDecodeError as exc:
@@ -129,7 +142,9 @@ def run_json_command(command: Sequence[str], timeout_seconds: int) -> tuple[int,
 
 
 def verify_fixture(path: Path, timeout_seconds: int) -> dict[str, Any]:
-    exit_code, payload = run_json_command([sys.executable, str(FIXTURE_VERIFIER), "--fixture", str(path)], timeout_seconds)
+    exit_code, payload = run_json_command(
+        [sys.executable, str(FIXTURE_VERIFIER), "--fixture", str(path)], timeout_seconds
+    )
     if exit_code != 0 or payload.get("status") != "ok":
         # Optional diagnostics for R2 S01 triage (no-op when REPRESENTATIVE_DEBUG is unset).
         # Does NOT alter contract: same MetricsError("representative_fixture_verifier_failed")
@@ -155,7 +170,9 @@ def verify_fixture(path: Path, timeout_seconds: int) -> dict[str, Any]:
 
 def runtime_boundary(timeout_seconds: int, runtime_json: Path | None = None) -> dict[str, Any]:
     if runtime_json is None:
-        _exit_code, payload = run_json_command([sys.executable, str(RUNTIME_CHECKER)], timeout_seconds)
+        _exit_code, payload = run_json_command(
+            [sys.executable, str(RUNTIME_CHECKER)], timeout_seconds
+        )
     else:
         payload = load_json(runtime_json)
     status = str(payload.get("runtime_status", "blocked_environment"))
@@ -197,9 +214,15 @@ def fraction(numerator: int, denominator: int) -> float:
 
 def reciprocal_rank(case: Mapping[str, Any]) -> float:
     expected = set(case.get("expected_candidate_ids", []))
-    candidates = sorted(case.get("candidates", []), key=lambda row: row.get("rank", 999) if isinstance(row, Mapping) else 999)
+    candidates = sorted(
+        case.get("candidates", []),
+        key=lambda row: row.get("rank", 999) if isinstance(row, Mapping) else 999,
+    )
     for index, candidate in enumerate(candidates, start=1):
-        if candidate.get("candidate_id") in expected and candidate.get("expected_label") == "relevant":
+        if (
+            candidate.get("candidate_id") in expected
+            and candidate.get("expected_label") == "relevant"
+        ):
             return round(1 / index, 6)
     return 0.0
 
@@ -211,7 +234,15 @@ def has_diagnostic(case: Mapping[str, Any], code: str) -> bool:
 def citation_preserved(case: Mapping[str, Any]) -> bool:
     for candidate in case.get("candidates", []):
         if candidate.get("expected_label") == "relevant":
-            return all(candidate.get(field) for field in ("evidence_span_id", "source_block_id", "citation_key", "act_edition_id"))
+            return all(
+                candidate.get(field)
+                for field in (
+                    "evidence_span_id",
+                    "source_block_id",
+                    "citation_key",
+                    "act_edition_id",
+                )
+            )
     return False
 
 
@@ -225,26 +256,89 @@ def compute_metrics(fixture: Mapping[str, Any], runtime: Mapping[str, Any]) -> d
         "mrr": mrr,
         "recall_at_1": fraction(top1_hits, len(positive)),
         "recall_at_3": fraction(top3_hits, len(positive)),
-        "distractor_rejection_rate": fraction(sum(1 for case in cases if case["case_class"] == "positive_with_distractor" and case.get("expected_rejected_candidate_ids")), 1),
-        "stale_rejection_rate": fraction(sum(1 for case in cases if case["case_class"] in {"stale_temporal_negative", "edition_mismatch_negative"} and has_diagnostic(case, "stale_temporal_candidate")), 2),
-        "ambiguous_preservation_rate": fraction(sum(1 for case in cases if case["case_class"] == "ambiguous_candidate_set" and has_diagnostic(case, "ambiguous_candidate_set")), 1),
-        "unsupported_scope_accuracy": fraction(sum(1 for case in cases if case["case_class"] == "unsupported_scope" and has_diagnostic(case, "unsupported_scope")), 1),
-        "no_answer_accuracy": fraction(sum(1 for case in cases if case["case_class"] == "scoped_no_answer" and has_diagnostic(case, "scoped_no_answer")), 1),
-        "citation_preservation_rate": fraction(sum(1 for case in positive if citation_preserved(case)), len(positive)),
-        "unsafe_rejection_rate": fraction(sum(1 for case in cases if case["case_class"] == "unsafe_payload_boundary" and has_diagnostic(case, "unsafe_payload_rejected")), 1),
+        "distractor_rejection_rate": fraction(
+            sum(
+                1
+                for case in cases
+                if case["case_class"] == "positive_with_distractor"
+                and case.get("expected_rejected_candidate_ids")
+            ),
+            1,
+        ),
+        "stale_rejection_rate": fraction(
+            sum(
+                1
+                for case in cases
+                if case["case_class"] in {"stale_temporal_negative", "edition_mismatch_negative"}
+                and has_diagnostic(case, "stale_temporal_candidate")
+            ),
+            2,
+        ),
+        "ambiguous_preservation_rate": fraction(
+            sum(
+                1
+                for case in cases
+                if case["case_class"] == "ambiguous_candidate_set"
+                and has_diagnostic(case, "ambiguous_candidate_set")
+            ),
+            1,
+        ),
+        "unsupported_scope_accuracy": fraction(
+            sum(
+                1
+                for case in cases
+                if case["case_class"] == "unsupported_scope"
+                and has_diagnostic(case, "unsupported_scope")
+            ),
+            1,
+        ),
+        "no_answer_accuracy": fraction(
+            sum(
+                1
+                for case in cases
+                if case["case_class"] == "scoped_no_answer"
+                and has_diagnostic(case, "scoped_no_answer")
+            ),
+            1,
+        ),
+        "citation_preservation_rate": fraction(
+            sum(1 for case in positive if citation_preserved(case)), len(positive)
+        ),
+        "unsafe_rejection_rate": fraction(
+            sum(
+                1
+                for case in cases
+                if case["case_class"] == "unsafe_payload_boundary"
+                and has_diagnostic(case, "unsafe_payload_rejected")
+            ),
+            1,
+        ),
         "runtime_boundary_confirmed": 1.0 if runtime.get("confirmed") is True else 0.0,
     }
     return metrics
 
 
-def build_report(fixture_path: Path, runtime_json: Path | None, timeout_seconds: int) -> dict[str, Any]:
+def build_report(
+    fixture_path: Path, runtime_json: Path | None, timeout_seconds: int
+) -> dict[str, Any]:
     fixture_summary = verify_fixture(fixture_path, timeout_seconds)
     fixture = load_json(fixture_path)
     runtime = runtime_boundary(timeout_seconds, runtime_json)
     metrics = compute_metrics(fixture, runtime)
-    threshold_failures = [name for name, minimum in THRESHOLDS.items() if metrics.get(name, 0.0) < minimum]
+    threshold_failures = [
+        name for name, minimum in THRESHOLDS.items() if metrics.get(name, 0.0) < minimum
+    ]
     status = "passed" if not threshold_failures else "blocked"
-    diagnostics = sorted(set(runtime["diagnostic_codes"] + (["threshold_mismatch"] if threshold_failures else ["representative_metrics_verified"])))
+    diagnostics = sorted(
+        set(
+            runtime["diagnostic_codes"]
+            + (
+                ["threshold_mismatch"]
+                if threshold_failures
+                else ["representative_metrics_verified"]
+            )
+        )
+    )
     report = {
         "schema_version": SCHEMA_VERSION,
         "milestone_id": "M022-5t4bzn",
@@ -291,11 +385,30 @@ def main(argv: Sequence[str] | None = None) -> int:
     try:
         report = build_report(args.fixture, args.runtime_json, args.timeout_seconds)
         if not args.no_write:
-            args.output.write_text(json.dumps(report, ensure_ascii=False, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+            args.output.write_text(
+                json.dumps(report, ensure_ascii=False, indent=2, sort_keys=True) + "\n",
+                encoding="utf-8",
+            )
     except MetricsError as exc:
-        print(json.dumps({"status": "failed", "diagnostic": str(exc), "non_authoritative": True}, sort_keys=True))
+        print(
+            json.dumps(
+                {"status": "failed", "diagnostic": str(exc), "non_authoritative": True},
+                sort_keys=True,
+            )
+        )
         return 1
-    print(json.dumps({"status": report["status"], "case_count": report["case_count"], "metrics": report["metrics"], "diagnostic_codes": report["diagnostic_codes"], "non_authoritative": True}, sort_keys=True))
+    print(
+        json.dumps(
+            {
+                "status": report["status"],
+                "case_count": report["case_count"],
+                "metrics": report["metrics"],
+                "diagnostic_codes": report["diagnostic_codes"],
+                "non_authoritative": True,
+            },
+            sort_keys=True,
+        )
+    )
     return 0 if report["status"] == "passed" else 1
 
 

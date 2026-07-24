@@ -108,7 +108,10 @@ fn run_unknown_seed() -> ScenarioResult {
 fn run_unbounded_fanout() -> ScenarioResult {
     let mut evidence = FixedDependencyEvidence::new(rv("rules:v1"));
     for i in 0..12 {
-        evidence = evidence.with_node(n(&format!("node:N{i}")), vec![n(&format!("node:N{}", i + 1))]);
+        evidence = evidence.with_node(
+            n(&format!("node:N{i}")),
+            vec![n(&format!("node:N{}", i + 1))],
+        );
     }
     evidence = evidence.with_node(n("node:N12"), vec![]);
     let svc = ComputeDependencyClosure::new(evidence);

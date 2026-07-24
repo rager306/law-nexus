@@ -123,7 +123,9 @@ def read_text(path: Path, diagnostics: list[Diagnostic]) -> str:
     return path.read_text(encoding="utf-8")
 
 
-def require_terms(path: Path, text: str, terms: list[str], diagnostics: list[Diagnostic], rule: str) -> None:
+def require_terms(
+    path: Path, text: str, terms: list[str], diagnostics: list[Diagnostic], rule: str
+) -> None:
     for term in terms:
         if term not in text:
             diagnostics.append(Diagnostic(rule, path, f"missing required term {term}"))
@@ -139,7 +141,9 @@ def verify_jsonld(diagnostics: list[Diagnostic]) -> None:
         diagnostics.append(Diagnostic("jsonld-parse", SAMPLE_JSONLD, f"invalid JSON: {exc}"))
         return
     if not isinstance(data, dict):
-        diagnostics.append(Diagnostic("jsonld-object", SAMPLE_JSONLD, "top-level JSON-LD value must be an object"))
+        diagnostics.append(
+            Diagnostic("jsonld-object", SAMPLE_JSONLD, "top-level JSON-LD value must be an object")
+        )
         return
     if "@context" not in data:
         diagnostics.append(Diagnostic("jsonld-context", SAMPLE_JSONLD, "missing @context"))
@@ -147,7 +151,9 @@ def verify_jsonld(diagnostics: list[Diagnostic]) -> None:
         diagnostics.append(Diagnostic("jsonld-graph", SAMPLE_JSONLD, "missing @graph"))
     graph = data.get("@graph")
     if not isinstance(graph, list) or not graph:
-        diagnostics.append(Diagnostic("jsonld-graph", SAMPLE_JSONLD, "@graph must be a non-empty array"))
+        diagnostics.append(
+            Diagnostic("jsonld-graph", SAMPLE_JSONLD, "@graph must be a non-empty array")
+        )
 
 
 def verify_queries(diagnostics: list[Diagnostic]) -> None:
@@ -167,7 +173,11 @@ def verify_forbidden_anchors(sample_text: str, diagnostics: list[Diagnostic]) ->
     for pattern in FORBIDDEN_ANCHOR_PATTERNS:
         if pattern.search(sample_text):
             diagnostics.append(
-                Diagnostic("forbidden-anchor", SAMPLE_TTL, f"forbidden source anchor pattern: {pattern.pattern}")
+                Diagnostic(
+                    "forbidden-anchor",
+                    SAMPLE_TTL,
+                    f"forbidden source anchor pattern: {pattern.pattern}",
+                )
             )
 
 
@@ -180,23 +190,41 @@ def main() -> int:
     shacl_text = read_text(SHACL, diagnostics)
 
     require_terms(ONTOLOGY, ontology_text, REQUIRED_CLASSES, diagnostics, "ontology-required-class")
-    require_terms(ONTOLOGY, ontology_text, REQUIRED_PROPERTIES, diagnostics, "ontology-required-property")
-    require_terms(SAMPLE_TTL, sample_text, REQUIRED_SAMPLE_TERMS, diagnostics, "sample-required-term")
+    require_terms(
+        ONTOLOGY, ontology_text, REQUIRED_PROPERTIES, diagnostics, "ontology-required-property"
+    )
+    require_terms(
+        SAMPLE_TTL, sample_text, REQUIRED_SAMPLE_TERMS, diagnostics, "sample-required-term"
+    )
     require_terms(SHACL, shacl_text, REQUIRED_SHACL_TERMS, diagnostics, "shacl-required-term")
 
     if "acp:nonAuthoritative true" not in ontology_text:
-        diagnostics.append(Diagnostic("ontology-non-authoritative", ONTOLOGY, "ontology lacks non-authoritative marker"))
+        diagnostics.append(
+            Diagnostic(
+                "ontology-non-authoritative", ONTOLOGY, "ontology lacks non-authoritative marker"
+            )
+        )
     if "R035" not in ontology_text or "R037" not in ontology_text or "R038" not in ontology_text:
-        diagnostics.append(Diagnostic("ontology-requirement-boundary", ONTOLOGY, "ontology lacks R035/R037/R038 boundary"))
+        diagnostics.append(
+            Diagnostic(
+                "ontology-requirement-boundary", ONTOLOGY, "ontology lacks R035/R037/R038 boundary"
+            )
+        )
     if "non-authoritative" not in report_text:
-        diagnostics.append(Diagnostic("report-boundary", REPORT, "report lacks non-authoritative boundary language"))
+        diagnostics.append(
+            Diagnostic(
+                "report-boundary", REPORT, "report lacks non-authoritative boundary language"
+            )
+        )
 
     verify_jsonld(diagnostics)
     verify_queries(diagnostics)
     verify_forbidden_anchors(sample_text, diagnostics)
 
     if MAIN_LEX.exists():
-        diagnostics.append(Diagnostic("main-lex-state", MAIN_LEX, "main repository .lex must not exist"))
+        diagnostics.append(
+            Diagnostic("main-lex-state", MAIN_LEX, "main repository .lex must not exist")
+        )
 
     result = {
         "status": "ok" if not diagnostics else "failed",

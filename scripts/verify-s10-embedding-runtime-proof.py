@@ -140,7 +140,9 @@ def check_forbidden_terms(path: Path, result: VerificationResult) -> None:
             result.add(f"Artifact contains forbidden managed credential/API literal: {term}")
 
 
-def raw_log_exists(path_value: object, result: VerificationResult, label: str, artifact_root: Path) -> None:
+def raw_log_exists(
+    path_value: object, result: VerificationResult, label: str, artifact_root: Path
+) -> None:
     if not isinstance(path_value, str) or not path_value.strip():
         result.add(f"{label} raw log path must be a non-empty string")
         return
@@ -178,7 +180,14 @@ def validate_environment(payload: dict[str, Any], result: VerificationResult) ->
     if not isinstance(environment, dict):
         result.add("environment must be an object")
         return
-    for field_name in ("python", "platform", "cpu_count", "memory_mib", "package_status", "cache_status"):
+    for field_name in (
+        "python",
+        "platform",
+        "cpu_count",
+        "memory_mib",
+        "package_status",
+        "cache_status",
+    ):
         if field_name not in environment:
             result.add(f"environment missing required field: {field_name}")
     logs = environment.get("raw_log_paths")
@@ -229,19 +238,27 @@ def validate_model(model: dict[str, Any], result: VerificationResult, artifact_r
     if verdict in {"proven-baseline", "proven-challenger"} and not is_model_proven(model):
         result.add(f"model {model_id} verdict {verdict} requires confirmed-runtime status")
     if is_model_proven(model):
-        require_number(model.get("encode_duration_ms"), result, f"model {model_id}.encode_duration_ms")
+        require_number(
+            model.get("encode_duration_ms"), result, f"model {model_id}.encode_duration_ms"
+        )
         observed = model.get("observed_vector_dimension")
         expected = model.get("vector_dimension")
         if observed != expected:
-            result.add(f"model {model_id} observed_vector_dimension must equal vector_dimension when proven")
+            result.add(
+                f"model {model_id} observed_vector_dimension must equal vector_dimension when proven"
+            )
         metrics = model.get("retrieval_metrics")
         if not isinstance(metrics, dict) or not metrics:
             result.add(f"model {model_id} requires retrieval_metrics when proven")
         if model.get("blocked_root_cause") not in {None, ""}:
             result.add(f"model {model_id} cannot be proven while blocked_root_cause is set")
     else:
-        require_non_empty_string(model.get("blocked_root_cause"), result, f"model {model_id}.blocked_root_cause")
-        require_non_empty_string(model.get("next_proof_step"), result, f"model {model_id}.next_proof_step")
+        require_non_empty_string(
+            model.get("blocked_root_cause"), result, f"model {model_id}.blocked_root_cause"
+        )
+        require_non_empty_string(
+            model.get("next_proof_step"), result, f"model {model_id}.next_proof_step"
+        )
     resources = model.get("resource_metadata")
     if not isinstance(resources, dict) or not resources:
         result.add(f"model {model_id}.resource_metadata must be a non-empty object")
@@ -259,11 +276,16 @@ def validate_model(model: dict[str, Any], result: VerificationResult, artifact_r
             if gate.get("status") not in TERMINAL_STATUSES | {"safe-to-run"}:
                 result.add("GigaEmbeddings safety_gate.status must be terminal or safe-to-run")
             reasons = gate.get("reasons")
-            if gate.get("status") != "safe-to-run" and (not isinstance(reasons, list) or not reasons):
+            if gate.get("status") != "safe-to-run" and (
+                not isinstance(reasons, list) or not reasons
+            ):
                 result.add("GigaEmbeddings blocked/not-safe safety_gate must include reasons")
     instruction = model.get("instruction_handling")
     if model_id == GIGA_MODEL_ID:
-        if not isinstance(instruction, dict) or instruction.get("query_instruction_applied") is not True:
+        if (
+            not isinstance(instruction, dict)
+            or instruction.get("query_instruction_applied") is not True
+        ):
             result.add("GigaEmbeddings proof must record query_instruction_applied=true")
     if model_id == USER_MODEL_ID:
         if isinstance(instruction, dict) and instruction.get("query_instruction_applied") is True:
@@ -292,7 +314,9 @@ def vector_map(payload: dict[str, Any], result: VerificationResult) -> dict[int,
     return mapped
 
 
-def validate_vector_proof(proof: dict[str, Any], result: VerificationResult, artifact_root: Path) -> None:
+def validate_vector_proof(
+    proof: dict[str, Any], result: VerificationResult, artifact_root: Path
+) -> None:
     dimension = proof.get("dimension")
     for field_name in REQUIRED_VECTOR_FIELDS:
         if field_name not in proof:
@@ -309,8 +333,12 @@ def validate_vector_proof(proof: dict[str, Any], result: VerificationResult, art
         if proof.get("blocked_root_cause") not in {None, ""}:
             result.add(f"vector proof {dimension} cannot be proven while blocked_root_cause is set")
     else:
-        require_non_empty_string(proof.get("blocked_root_cause"), result, f"vector proof {dimension}.blocked_root_cause")
-        require_non_empty_string(proof.get("next_proof_step"), result, f"vector proof {dimension}.next_proof_step")
+        require_non_empty_string(
+            proof.get("blocked_root_cause"), result, f"vector proof {dimension}.blocked_root_cause"
+        )
+        require_non_empty_string(
+            proof.get("next_proof_step"), result, f"vector proof {dimension}.next_proof_step"
+        )
     logs = proof.get("raw_log_paths")
     if not isinstance(logs, list) or not logs:
         result.add(f"vector proof {dimension}.raw_log_paths must be a non-empty list")
@@ -329,13 +357,19 @@ def validate_fixture_policy(payload: dict[str, Any], result: VerificationResult)
     if fixture_policy.get("raw_vectors_logged") is not False:
         result.add("fixture_policy.raw_vectors_logged must be false")
     source = fixture_policy.get("source")
-    if source not in {"synthetic-only", "s05-evidence-span-ids", "synthetic-and-s05-evidence-span-ids"}:
+    if source not in {
+        "synthetic-only",
+        "s05-evidence-span-ids",
+        "synthetic-and-s05-evidence-span-ids",
+    }:
         result.add("fixture_policy.source must describe synthetic/S05 span-ID fixture source")
     if fixture_policy.get("production_legal_quality_claim") not in {False, "not-proven"}:
         result.add("fixture_policy.production_legal_quality_claim must remain false/not-proven")
 
 
-def validate_confidence_loop(payload: dict[str, Any], result: VerificationResult, mode: VerificationMode) -> None:
+def validate_confidence_loop(
+    payload: dict[str, Any], result: VerificationResult, mode: VerificationMode
+) -> None:
     loop = payload.get("confidence_loop")
     if not isinstance(loop, dict):
         result.add("confidence_loop must be an object")
@@ -356,7 +390,9 @@ def validate_confidence_loop(payload: dict[str, Any], result: VerificationResult
         result.add("require-final mode requires confidence_loop.closed=true")
 
 
-def validate_final_fields(payload: dict[str, Any], result: VerificationResult, mode: VerificationMode) -> None:
+def validate_final_fields(
+    payload: dict[str, Any], result: VerificationResult, mode: VerificationMode
+) -> None:
     if mode != VerificationMode.REQUIRE_FINAL:
         return
     for field_name in REQUIRED_FINAL_FIELDS:
@@ -374,21 +410,29 @@ def validate_final_fields(payload: dict[str, Any], result: VerificationResult, m
             for field_name in ("model_id", "role", "verdict", "evidence", "downstream_guidance"):
                 if field_name == "verdict":
                     if row_obj.get(field_name) not in ALLOWED_VERDICTS - {"pending"}:
-                        result.add(f"verdict_matrix[{index}].verdict must be a final allowed verdict")
+                        result.add(
+                            f"verdict_matrix[{index}].verdict must be a final allowed verdict"
+                        )
                 else:
-                    require_non_empty_string(row_obj.get(field_name), result, f"verdict_matrix[{index}].{field_name}")
+                    require_non_empty_string(
+                        row_obj.get(field_name), result, f"verdict_matrix[{index}].{field_name}"
+                    )
     downstream = payload.get("downstream_guidance")
     if not isinstance(downstream, dict):
         result.add("downstream_guidance must be an object in require-final mode")
     else:
         for slice_id in ("S06", "S07", "S08"):
-            require_non_empty_string(downstream.get(slice_id), result, f"downstream_guidance.{slice_id}")
+            require_non_empty_string(
+                downstream.get(slice_id), result, f"downstream_guidance.{slice_id}"
+            )
     sources = payload.get("source_artifacts")
     if not isinstance(sources, dict):
         result.add("source_artifacts must be an object in require-final mode")
     else:
         for field_name in ("user_bge_m3", "gigaembeddings", "s09_pre_runtime_evaluation"):
-            require_non_empty_string(sources.get(field_name), result, f"source_artifacts.{field_name}")
+            require_non_empty_string(
+                sources.get(field_name), result, f"source_artifacts.{field_name}"
+            )
 
 
 def validate_mode_requirements(
@@ -401,17 +445,28 @@ def validate_mode_requirements(
     giga = models.get(GIGA_MODEL_ID, {})
     if mode == VerificationMode.REQUIRE_USER_PROOF:
         if not is_model_proven(user):
-            result.add("require-user-proof mode requires USER-bge-m3 confirmed-runtime encode proof")
+            result.add(
+                "require-user-proof mode requires USER-bge-m3 confirmed-runtime encode proof"
+            )
         vector_1024 = vectors.get(1024, {})
         if vector_1024.get("status") not in PROVEN_STATUSES:
             result.add("require-user-proof mode requires confirmed-runtime 1024-dim vector proof")
     if mode == VerificationMode.ALLOW_GIGA_BLOCKED_WITH_GATE:
         gate = giga.get("safety_gate") if isinstance(giga, dict) else None
         if not is_model_proven(giga):
-            if not isinstance(gate, dict) or gate.get("status") not in {"not-safe-to-run", "blocked-environment", "not-attempted-by-policy"}:
-                result.add("allow-giga-blocked-with-gate mode requires Giga safety_gate terminal no-go status when not proven")
+            if not isinstance(gate, dict) or gate.get("status") not in {
+                "not-safe-to-run",
+                "blocked-environment",
+                "not-attempted-by-policy",
+            }:
+                result.add(
+                    "allow-giga-blocked-with-gate mode requires Giga safety_gate terminal no-go status when not proven"
+                )
     if mode == VerificationMode.REQUIRE_FINAL:
-        final = any(model.get("verdict") in {"proven-baseline", "blocked-baseline"} for model in models.values())
+        final = any(
+            model.get("verdict") in {"proven-baseline", "blocked-baseline"}
+            for model in models.values()
+        )
         if not final:
             result.add("require-final mode requires at least one baseline verdict")
         for dimension in (1024, 2048):
@@ -419,7 +474,9 @@ def validate_mode_requirements(
                 result.add(f"require-final mode missing vector verdict for dimension {dimension}")
 
 
-def validate_payload(payload: dict[str, Any], result: VerificationResult, artifact_root: Path, mode: VerificationMode) -> None:
+def validate_payload(
+    payload: dict[str, Any], result: VerificationResult, artifact_root: Path, mode: VerificationMode
+) -> None:
     for field_name in REQUIRED_TOP_LEVEL_FIELDS:
         if field_name not in payload:
             result.add(f"artifact missing top-level field: {field_name}")

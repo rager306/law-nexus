@@ -106,7 +106,9 @@ def test_cli_fails_closed_on_expected_result_mismatch(tmp_path: Path) -> None:
     data = json.loads(FIXTURE_PATH.read_text(encoding="utf-8"))
     data["cases"][0]["expected_result"] = "rejected"
     bad_fixture = tmp_path / "bad-real-artifact-cases.json"
-    bad_fixture.write_text(json.dumps(data, ensure_ascii=False, indent=2, sort_keys=True), encoding="utf-8")
+    bad_fixture.write_text(
+        json.dumps(data, ensure_ascii=False, indent=2, sort_keys=True), encoding="utf-8"
+    )
 
     completed = run_cli("--fixtures", str(bad_fixture))
     summary = parse_stdout(completed)

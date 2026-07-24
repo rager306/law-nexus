@@ -71,7 +71,11 @@ def base_artifact() -> dict[str, object]:
                 "column_categories": ["Article.id", "EvidenceSpan.id", "SourceBlock.id"],
                 "raw_rows_persisted": False,
             },
-            "synthetic_identifier_categories": ["article_id", "evidence_span_id", "source_block_id"],
+            "synthetic_identifier_categories": [
+                "article_id",
+                "evidence_span_id",
+                "source_block_id",
+            ],
         },
         "redaction": {
             "raw_provider_body_persisted": False,
@@ -107,7 +111,9 @@ def write_artifact(tmp_path: Path, payload: dict[str, object]) -> Path:
     return path
 
 
-def s03_payload(*, status: str = "confirmed-runtime", accepted: bool = True, text: str | None = None) -> dict[str, object]:
+def s03_payload(
+    *, status: str = "confirmed-runtime", accepted: bool = True, text: str | None = None
+) -> dict[str, object]:
     candidate: dict[str, object] = {
         "accepted": accepted,
         "categories": [],
@@ -131,7 +137,9 @@ def s03_payload(*, status: str = "confirmed-runtime", accepted: bool = True, tex
         "schema_version": "m003-s03-reasoning-safe-candidate/v2",
         "status": status,
         "root_cause": "none" if status == "confirmed-runtime" else "provider-malformed-response",
-        "phase": "candidate-classification" if status == "confirmed-runtime" else "provider-response",
+        "phase": "candidate-classification"
+        if status == "confirmed-runtime"
+        else "provider-response",
         "provider_attempts": 1,
         "candidate": candidate,
     }
@@ -143,7 +151,9 @@ def write_s03(tmp_path: Path, payload: dict[str, object]) -> Path:
     return path
 
 
-def test_proof_skips_current_failed_runtime_s03_without_validation_or_execution(tmp_path: Path) -> None:
+def test_proof_skips_current_failed_runtime_s03_without_validation_or_execution(
+    tmp_path: Path,
+) -> None:
     proof = load_proof()
     s03_path = write_s03(tmp_path, s03_payload(status="failed-runtime", accepted=False))
 
@@ -175,7 +185,11 @@ def test_proof_rejects_clean_s03_candidate_that_fails_m002_validation(tmp_path: 
 class FakeGraph:
     def __init__(self, result: object | None = None) -> None:
         self.calls: list[tuple[str, dict[str, object], int]] = []
-        self.result = result if result is not None else [["article:44fz:1", "evidence:44fz:art1:span1", "sourceblock:garant:44fz:1"]]
+        self.result = (
+            result
+            if result is not None
+            else [["article:44fz:1", "evidence:44fz:art1:span1", "sourceblock:garant:44fz:1"]]
+        )
 
     def ro_query(self, query: str, params: dict[str, object], timeout: int) -> object:
         self.calls.append((query, params, timeout))
@@ -217,7 +231,11 @@ def test_execute_validated_calls_only_ro_query_with_timeout_and_safe_params() ->
         "column_type_categories": ["identifier", "identifier", "identifier"],
         "raw_rows_persisted": False,
     }
-    assert summary["synthetic_identifier_categories"] == ["article_id", "evidence_span_id", "source_block_id"]
+    assert summary["synthetic_identifier_categories"] == [
+        "article_id",
+        "evidence_span_id",
+        "source_block_id",
+    ]
     assert summary["parameter_summary"] == {
         "article_id": {"type_category": "string", "value_category": "synthetic-article-id"}
     }
@@ -226,7 +244,9 @@ def test_execute_validated_calls_only_ro_query_with_timeout_and_safe_params() ->
 def test_execute_validated_rejects_unaccepted_validation_report_without_graph_call() -> None:
     proof = load_proof()
     contract = proof.load_schema_contract(proof.DEFAULT_SCHEMA_CONTRACT)
-    report = proof.validate_candidate("CREATE (:Article {id: $id}) RETURN 1 LIMIT 1", contract, query_case="unit")
+    report = proof.validate_candidate(
+        "CREATE (:Article {id: $id}) RETURN 1 LIMIT 1", contract, query_case="unit"
+    )
     graph = FakeGraph()
 
     with pytest.raises(proof.ExecutionContractError, match="validation report must be accepted"):
@@ -240,12 +260,16 @@ def test_execute_validated_rejects_unsafe_parameter_categories_without_graph_cal
     graph = FakeGraph()
 
     with pytest.raises(proof.ExecutionContractError, match="unsafe parameter"):
-        proof.execute_validated(accepted_report(accepted_query()), {"article_id": "raw legal text value"}, graph)
+        proof.execute_validated(
+            accepted_report(accepted_query()), {"article_id": "raw legal text value"}, graph
+        )
 
     assert graph.calls == []
 
 
-def test_proof_executes_evidence_return_candidate_with_injected_synthetic_graph(tmp_path: Path) -> None:
+def test_proof_executes_evidence_return_candidate_with_injected_synthetic_graph(
+    tmp_path: Path,
+) -> None:
     proof = load_proof()
     s03_path = write_s03(tmp_path, s03_payload(text=accepted_query()))
     graph = FakeGraph()
@@ -276,7 +300,14 @@ def test_proof_cli_writes_verifiable_artifact_for_failed_runtime_skip(tmp_path: 
     artifact_dir = tmp_path / "artifacts"
 
     completed = subprocess.run(
-        [sys.executable, str(PROOF_SCRIPT_PATH), "--s03-artifact", str(s03_path), "--artifact-dir", str(artifact_dir)],
+        [
+            sys.executable,
+            str(PROOF_SCRIPT_PATH),
+            "--s03-artifact",
+            str(s03_path),
+            "--artifact-dir",
+            str(artifact_dir),
+        ],
         check=False,
         text=True,
         capture_output=True,
@@ -294,9 +325,13 @@ def test_proof_cli_writes_verifiable_artifact_for_failed_runtime_skip(tmp_path: 
     assert verifier.verify_artifact(artifact_path)["status"] == "skipped"
 
 
-def test_accepts_blocked_environment_before_execution_attempt(verifier: ModuleType, tmp_path: Path) -> None:
+def test_accepts_blocked_environment_before_execution_attempt(
+    verifier: ModuleType, tmp_path: Path
+) -> None:
     payload = base_artifact()
-    payload.update({"status": "blocked-environment", "root_cause": "blocked-environment", "phase": "execution"})
+    payload.update(
+        {"status": "blocked-environment", "root_cause": "blocked-environment", "phase": "execution"}
+    )
     payload["execution"] = {
         "attempted": False,
         "status": "blocked-environment",
@@ -312,7 +347,10 @@ def test_accepts_blocked_environment_before_execution_attempt(verifier: ModuleTy
         },
         "synthetic_identifier_categories": [],
         "parameter_summary": {},
-        "diagnostics": {"root_cause": "blocked-environment", "error_category": "ModuleNotFoundError"},
+        "diagnostics": {
+            "root_cause": "blocked-environment",
+            "error_category": "ModuleNotFoundError",
+        },
     }
 
     result = verifier.verify_artifact(write_artifact(tmp_path, payload))
@@ -324,7 +362,9 @@ def test_accepts_blocked_environment_before_execution_attempt(verifier: ModuleTy
 
 def test_accepts_current_s03_style_no_candidate_skip(verifier: ModuleType, tmp_path: Path) -> None:
     payload = base_artifact()
-    payload.update({"status": "skipped", "root_cause": "candidate-unavailable", "phase": "s03-handoff"})
+    payload.update(
+        {"status": "skipped", "root_cause": "candidate-unavailable", "phase": "s03-handoff"}
+    )
     payload["s03_source"] = {
         "schema_version": "m003-s03-reasoning-safe-candidate/v2",
         "status": "blocked-credential",
@@ -346,7 +386,11 @@ def test_accepts_current_s03_style_no_candidate_skip(verifier: ModuleType, tmp_p
         "method": None,
         "timeout_ms": None,
         "graph_kind": "synthetic-legalgraph",
-        "row_shape_summary": {"row_count_category": "not-run", "column_categories": [], "raw_rows_persisted": False},
+        "row_shape_summary": {
+            "row_count_category": "not-run",
+            "column_categories": [],
+            "raw_rows_persisted": False,
+        },
         "synthetic_identifier_categories": [],
     }
 
@@ -359,9 +403,17 @@ def test_accepts_current_s03_style_no_candidate_skip(verifier: ModuleType, tmp_p
     assert result["execution_attempted"] is False
 
 
-def test_accepts_validation_rejection_without_execution(verifier: ModuleType, tmp_path: Path) -> None:
+def test_accepts_validation_rejection_without_execution(
+    verifier: ModuleType, tmp_path: Path
+) -> None:
     payload = base_artifact()
-    payload.update({"status": "validation-rejected", "root_cause": "validation-rejected", "phase": "validation"})
+    payload.update(
+        {
+            "status": "validation-rejected",
+            "root_cause": "validation-rejected",
+            "phase": "validation",
+        }
+    )
     payload["validation"] = {
         "attempted": True,
         "accepted": False,
@@ -375,7 +427,11 @@ def test_accepts_validation_rejection_without_execution(verifier: ModuleType, tm
         "method": None,
         "timeout_ms": None,
         "graph_kind": "synthetic-legalgraph",
-        "row_shape_summary": {"row_count_category": "not-run", "column_categories": [], "raw_rows_persisted": False},
+        "row_shape_summary": {
+            "row_count_category": "not-run",
+            "column_categories": [],
+            "raw_rows_persisted": False,
+        },
         "synthetic_identifier_categories": [],
     }
 
@@ -396,11 +452,17 @@ def test_rejects_confirmed_runtime_without_execution(verifier: ModuleType, tmp_p
         "method": None,
         "timeout_ms": None,
         "graph_kind": "synthetic-legalgraph",
-        "row_shape_summary": {"row_count_category": "not-run", "column_categories": [], "raw_rows_persisted": False},
+        "row_shape_summary": {
+            "row_count_category": "not-run",
+            "column_categories": [],
+            "raw_rows_persisted": False,
+        },
         "synthetic_identifier_categories": [],
     }
 
-    with pytest.raises(verifier.VerificationError, match="confirmed-runtime requires attempted execution"):
+    with pytest.raises(
+        verifier.VerificationError, match="confirmed-runtime requires attempted execution"
+    ):
         verifier.verify_artifact(write_artifact(tmp_path, payload))
 
 
@@ -425,9 +487,17 @@ def test_requires_readonly_ro_query_execution_contract(
         verifier.verify_artifact(write_artifact(tmp_path, payload))
 
 
-def test_rejects_execution_attempt_without_validation_acceptance(verifier: ModuleType, tmp_path: Path) -> None:
+def test_rejects_execution_attempt_without_validation_acceptance(
+    verifier: ModuleType, tmp_path: Path
+) -> None:
     payload = base_artifact()
-    payload.update({"status": "validation-rejected", "root_cause": "validation-rejected", "phase": "validation"})
+    payload.update(
+        {
+            "status": "validation-rejected",
+            "root_cause": "validation-rejected",
+            "phase": "validation",
+        }
+    )
     payload["validation"] = {
         "attempted": True,
         "accepted": False,
@@ -436,7 +506,10 @@ def test_rejects_execution_attempt_without_validation_acceptance(verifier: Modul
         "required_evidence_returns": ["Article.id"],
     }
 
-    with pytest.raises(verifier.VerificationError, match="execution cannot be attempted unless validation.accepted is true"):
+    with pytest.raises(
+        verifier.VerificationError,
+        match="execution cannot be attempted unless validation.accepted is true",
+    ):
         verifier.verify_artifact(write_artifact(tmp_path, payload))
 
 
@@ -462,7 +535,9 @@ def test_rejects_missing_validation_fields(verifier: ModuleType, tmp_path: Path)
         "Authorization: Bearer sk-secret-token",
     ],
 )
-def test_rejects_forbidden_raw_content_terms(verifier: ModuleType, tmp_path: Path, term: str) -> None:
+def test_rejects_forbidden_raw_content_terms(
+    verifier: ModuleType, tmp_path: Path, term: str
+) -> None:
     payload = base_artifact()
     payload["diagnostics"] = {"unsafe_value": term}
 

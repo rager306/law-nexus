@@ -207,11 +207,13 @@ def classify_response_shape(decoded: object) -> dict[str, Any]:
 
     stripped = content.lstrip()
     upper = stripped[:5].upper()
-    candidate_prefix = "MATCH" if upper.startswith("MATCH") else "CALL" if upper.startswith("CALL") else "OTHER"
+    candidate_prefix = (
+        "MATCH" if upper.startswith("MATCH") else "CALL" if upper.startswith("CALL") else "OTHER"
+    )
     has_think_tag = "<think" in content.lower() or "</think" in content.lower()
     content_kind = "cypher_like" if candidate_prefix in {"MATCH", "CALL"} else "non_cypher_text"
-    has_reasoning_details, reasoning_details_count, reasoning_detail_types = _reasoning_detail_summary(
-        message.get("reasoning_details")
+    has_reasoning_details, reasoning_details_count, reasoning_detail_types = (
+        _reasoning_detail_summary(message.get("reasoning_details"))
     )
     root_cause = None
     status = "confirmed-runtime"
@@ -258,9 +260,13 @@ def sanitize_artifact_payload(value: Any, *, sensitive_values: list[str] | None 
     if isinstance(value, str):
         return redact(value, sensitive_values=sensitive_values)
     if isinstance(value, list):
-        return [sanitize_artifact_payload(item, sensitive_values=sensitive_values) for item in value]
+        return [
+            sanitize_artifact_payload(item, sensitive_values=sensitive_values) for item in value
+        ]
     if isinstance(value, tuple):
-        return [sanitize_artifact_payload(item, sensitive_values=sensitive_values) for item in value]
+        return [
+            sanitize_artifact_payload(item, sensitive_values=sensitive_values) for item in value
+        ]
     if isinstance(value, dict):
         sanitized: dict[str, Any] = {}
         redacted_field_count = 0
@@ -273,9 +279,13 @@ def sanitize_artifact_payload(value: Any, *, sensitive_values: list[str] | None 
             elif _is_sensitive_key(key):
                 redacted_field_count += 1
             else:
-                sanitized[key] = sanitize_artifact_payload(raw_item, sensitive_values=sensitive_values)
+                sanitized[key] = sanitize_artifact_payload(
+                    raw_item, sensitive_values=sensitive_values
+                )
         if redacted_field_count:
-            sanitized["redacted_field_count"] = sanitized.get("redacted_field_count", 0) + redacted_field_count
+            sanitized["redacted_field_count"] = (
+                sanitized.get("redacted_field_count", 0) + redacted_field_count
+            )
         return sanitized
     return value
 
@@ -366,7 +376,9 @@ def write_artifacts(
     sensitive_values: list[str] | None = None,
 ) -> tuple[Path, Path]:
     output_dir.mkdir(parents=True, exist_ok=True)
-    safe_payload = cast("dict[str, Any]", sanitize_artifact_payload(payload, sensitive_values=sensitive_values))
+    safe_payload = cast(
+        "dict[str, Any]", sanitize_artifact_payload(payload, sensitive_values=sensitive_values)
+    )
     assert_safe_payload(safe_payload)
     json_path = output_dir / JSON_ARTIFACT
     markdown_path = output_dir / MARKDOWN_ARTIFACT
@@ -414,7 +426,9 @@ def build_local_only_payload(*, model: str, base_url: str, timeout: int) -> dict
             "status": "not-run-local-only",
             "root_cause": "provider-not-called-local-only",
             "provider_attempts": 0,
-            "request_body": build_request_body(model=model, user_prompt="<omitted-local-only-placeholder>"),
+            "request_body": build_request_body(
+                model=model, user_prompt="<omitted-local-only-placeholder>"
+            ),
             "provider_diagnostics": {"category": "not-run-local-only", "http_status_class": None},
             "response_shape": {
                 "status": "not-run-local-only",
@@ -435,7 +449,9 @@ def build_local_only_payload(*, model: str, base_url: str, timeout: int) -> dict
     return payload
 
 
-def build_missing_credential_payload(*, model: str, base_url: str, api_key_env: str) -> dict[str, Any]:
+def build_missing_credential_payload(
+    *, model: str, base_url: str, api_key_env: str
+) -> dict[str, Any]:
     payload = base_payload(model=model, base_url=base_url)
     payload.update(
         {
@@ -592,7 +608,9 @@ def build_live_payload(
 ) -> tuple[dict[str, Any], list[str]]:
     api_key = environ.get(api_key_env, "")
     if not api_key:
-        return build_missing_credential_payload(model=model, base_url=base_url, api_key_env=api_key_env), []
+        return build_missing_credential_payload(
+            model=model, base_url=base_url, api_key_env=api_key_env
+        ), []
 
     payload = base_payload(model=model, base_url=base_url)
     request_body = build_request_body(model=model, user_prompt=SAFE_CYPHER_PROMPT)
@@ -605,20 +623,24 @@ def build_live_payload(
         urlopen=urlopen,
     )
 
-    response_shape = classify_response_shape(result["decoded"]) if result["decoded"] is not None else {
-        "status": "failed-runtime",
-        "root_cause": result["root_cause"],
-        "has_choices": False,
-        "choice_count": 0,
-        "has_message": False,
-        "has_content": False,
-        "content_kind": "missing",
-        "candidate_prefix": None,
-        "has_think_tag": False,
-        "has_reasoning_details": False,
-        "reasoning_details_count": 0,
-        "reasoning_detail_types": [],
-    }
+    response_shape = (
+        classify_response_shape(result["decoded"])
+        if result["decoded"] is not None
+        else {
+            "status": "failed-runtime",
+            "root_cause": result["root_cause"],
+            "has_choices": False,
+            "choice_count": 0,
+            "has_message": False,
+            "has_content": False,
+            "content_kind": "missing",
+            "candidate_prefix": None,
+            "has_think_tag": False,
+            "has_reasoning_details": False,
+            "reasoning_details_count": 0,
+            "reasoning_detail_types": [],
+        }
+    )
     status = response_shape["status"] if result["ok"] else "failed-runtime"
     root_cause = response_shape["root_cause"] if result["ok"] else result["root_cause"]
     if status == "confirmed-runtime" and not all(
@@ -671,7 +693,9 @@ def main(argv: list[str] | None = None) -> int:
         timeout=args.timeout,
         api_key_env=args.api_key_env,
     )
-    json_path, markdown_path = write_artifacts(artifact_dir, payload, sensitive_values=sensitive_values)
+    json_path, markdown_path = write_artifacts(
+        artifact_dir, payload, sensitive_values=sensitive_values
+    )
     print(
         json.dumps(
             {

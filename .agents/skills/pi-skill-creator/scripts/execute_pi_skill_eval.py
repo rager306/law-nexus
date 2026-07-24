@@ -65,7 +65,9 @@ def execute_run(run_dir: Path, base_command: str, timeout: int, overwrite: bool)
     started = time.monotonic()
     started_at = datetime.now(UTC).isoformat()
     try:
-        completed = subprocess.run(command, text=True, capture_output=True, timeout=timeout, check=False)
+        completed = subprocess.run(
+            command, text=True, capture_output=True, timeout=timeout, check=False
+        )
         timed_out = False
     except subprocess.TimeoutExpired as exc:
         duration_ms = int((time.monotonic() - started) * 1000)
@@ -117,7 +119,13 @@ def execute_run(run_dir: Path, base_command: str, timeout: int, overwrite: bool)
     return status
 
 
-def execute_iteration(iteration_dir: Path, base_command: str, timeout: int, overwrite: bool, configurations: set[str] | None) -> dict[str, Any]:
+def execute_iteration(
+    iteration_dir: Path,
+    base_command: str,
+    timeout: int,
+    overwrite: bool,
+    configurations: set[str] | None,
+) -> dict[str, Any]:
     runs = []
     for run_dir in run_dirs(iteration_dir, configurations):
         runs.append(execute_run(run_dir, base_command, timeout, overwrite))
@@ -136,7 +144,9 @@ def execute_iteration(iteration_dir: Path, base_command: str, timeout: int, over
         "runs": runs,
         "updated_at": datetime.now(UTC).isoformat(),
     }
-    (iteration_dir / "execution-summary.json").write_text(json.dumps(report, indent=2), encoding="utf-8")
+    (iteration_dir / "execution-summary.json").write_text(
+        json.dumps(report, indent=2), encoding="utf-8"
+    )
     return report
 
 
@@ -144,10 +154,17 @@ def main() -> int:
     parser = argparse.ArgumentParser(description="Execute PI/GSD skill eval prompts")
     parser.add_argument("iteration_dir", type=Path)
     parser.add_argument("--backend", choices=["gsd-print", "command"], default="gsd-print")
-    parser.add_argument("--command", default=None, help="Command for backend=command, or override for gsd-print")
+    parser.add_argument(
+        "--command", default=None, help="Command for backend=command, or override for gsd-print"
+    )
     parser.add_argument("--timeout", type=int, default=300)
     parser.add_argument("--overwrite", action="store_true")
-    parser.add_argument("--configuration", action="append", choices=["with_skill", "baseline", "old_skill"], help="Limit execution to one or more configurations")
+    parser.add_argument(
+        "--configuration",
+        action="append",
+        choices=["with_skill", "baseline", "old_skill"],
+        help="Limit execution to one or more configurations",
+    )
     args = parser.parse_args()
 
     if not args.iteration_dir.is_dir():
@@ -158,7 +175,13 @@ def main() -> int:
         print("--command is required when --backend=command", file=sys.stderr)
         return 1
     try:
-        report = execute_iteration(args.iteration_dir, command, args.timeout, args.overwrite, set(args.configuration or []) or None)
+        report = execute_iteration(
+            args.iteration_dir,
+            command,
+            args.timeout,
+            args.overwrite,
+            set(args.configuration or []) or None,
+        )
     except (OSError, ValueError) as exc:
         print(f"PI skill eval execution failed: {exc}", file=sys.stderr)
         return 1

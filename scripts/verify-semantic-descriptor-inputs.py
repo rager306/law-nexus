@@ -12,7 +12,10 @@ from pathlib import Path
 from typing import Any
 
 ROOT = Path(__file__).resolve().parents[1]
-DEFAULT_MANIFEST = ROOT / "prd/research/ontology_architecture_requirements/fixtures/semantic_descriptor_inputs.json"
+DEFAULT_MANIFEST = (
+    ROOT
+    / "prd/research/ontology_architecture_requirements/fixtures/semantic_descriptor_inputs.json"
+)
 SCHEMA_VERSION = "semantic-descriptor-inputs/v1"
 REPRESENTATION_KIND = "safe_semantic_descriptor_v1"
 ALLOWED_ROOT_FIELDS = {
@@ -200,7 +203,9 @@ def validate_allowed_enums(allowed: Any) -> dict[str, set[str]]:
     return normalized
 
 
-def validate_descriptors(descriptors: Any, fields: set[str], allowed: Mapping[str, set[str]], input_id: str) -> None:
+def validate_descriptors(
+    descriptors: Any, fields: set[str], allowed: Mapping[str, set[str]], input_id: str
+) -> None:
     if not isinstance(descriptors, Mapping):
         raise DescriptorInputError(f"descriptors missing: {input_id}")
     if set(descriptors) != fields:
@@ -244,7 +249,10 @@ def verify_manifest(path: Path) -> dict[str, Any]:
         if not isinstance(manifest.get(field), str):
             raise DescriptorInputError(f"missing path field: {field}")
         repo_path(manifest[field])
-    for path_field, hash_field in (("source_fixture", "source_fixture_sha256"), ("contract", "contract_sha256")):
+    for path_field, hash_field in (
+        ("source_fixture", "source_fixture_sha256"),
+        ("contract", "contract_sha256"),
+    ):
         if sha256_path(repo_path(manifest[path_field])) != manifest.get(hash_field):
             raise DescriptorInputError(f"sha256 mismatch: {path_field}")
     allowed = validate_allowed_enums(manifest.get("allowed_descriptor_fields"))
@@ -252,7 +260,9 @@ def verify_manifest(path: Path) -> dict[str, Any]:
     candidate_descriptors = manifest.get("candidate_descriptors")
     if not isinstance(query_descriptors, list) or not isinstance(candidate_descriptors, list):
         raise DescriptorInputError("descriptor inputs must be lists")
-    if manifest.get("query_descriptor_count") != len(query_descriptors) or manifest.get("candidate_descriptor_count") != len(candidate_descriptors):
+    if manifest.get("query_descriptor_count") != len(query_descriptors) or manifest.get(
+        "candidate_descriptor_count"
+    ) != len(candidate_descriptors):
         raise DescriptorInputError("descriptor count mismatch")
     if len(query_descriptors) != 10 or len(candidate_descriptors) != 10:
         raise DescriptorInputError("representative descriptor coverage mismatch")
@@ -263,7 +273,9 @@ def verify_manifest(path: Path) -> dict[str, Any]:
             raise DescriptorInputError("query descriptor must be object")
         unexpected_query = set(item) - ALLOWED_QUERY_FIELDS
         if unexpected_query:
-            raise DescriptorInputError(f"unexpected query descriptor fields: {sorted(unexpected_query)}")
+            raise DescriptorInputError(
+                f"unexpected query descriptor fields: {sorted(unexpected_query)}"
+            )
         input_id = str(item.get("descriptor_input_id", ""))
         if not input_id.startswith("DESCQ-M025-") or input_id in seen_ids:
             raise DescriptorInputError(f"bad descriptor input id: {input_id}")
@@ -272,7 +284,11 @@ def verify_manifest(path: Path) -> dict[str, Any]:
         if item.get("representation_kind") != REPRESENTATION_KIND:
             raise DescriptorInputError(f"bad query representation kind: {input_id}")
         query_hash = item.get("query_hash_ref")
-        if not isinstance(query_hash, str) or len(query_hash) != 64 or not re.fullmatch(r"[a-f0-9]{64}", query_hash):
+        if (
+            not isinstance(query_hash, str)
+            or len(query_hash) != 64
+            or not re.fullmatch(r"[a-f0-9]{64}", query_hash)
+        ):
             raise DescriptorInputError(f"bad query hash ref: {input_id}")
         validate_descriptors(item.get("descriptors"), QUERY_DESCRIPTOR_FIELDS, allowed, input_id)
         validate_tokens(item.get("descriptor_tokens"), item["descriptors"], input_id)
@@ -282,7 +298,9 @@ def verify_manifest(path: Path) -> dict[str, Any]:
             raise DescriptorInputError("candidate descriptor must be object")
         unexpected_candidate = set(item) - ALLOWED_CANDIDATE_FIELDS
         if unexpected_candidate:
-            raise DescriptorInputError(f"unexpected candidate descriptor fields: {sorted(unexpected_candidate)}")
+            raise DescriptorInputError(
+                f"unexpected candidate descriptor fields: {sorted(unexpected_candidate)}"
+            )
         input_id = str(item.get("descriptor_input_id", ""))
         if not input_id.startswith("DESCC-M025-") or input_id in seen_ids:
             raise DescriptorInputError(f"bad descriptor input id: {input_id}")
@@ -294,7 +312,9 @@ def verify_manifest(path: Path) -> dict[str, Any]:
             raise DescriptorInputError(f"missing candidate id: {input_id}")
         if not isinstance(item.get("source_record_ids"), list):
             raise DescriptorInputError(f"bad source_record_ids: {input_id}")
-        validate_descriptors(item.get("descriptors"), CANDIDATE_DESCRIPTOR_FIELDS, allowed, input_id)
+        validate_descriptors(
+            item.get("descriptors"), CANDIDATE_DESCRIPTOR_FIELDS, allowed, input_id
+        )
         validate_tokens(item.get("descriptor_tokens"), item["descriptors"], input_id)
     if not candidate_case_ids.issubset(query_case_ids):
         raise DescriptorInputError("candidate/query descriptor coverage mismatch")
@@ -324,7 +344,12 @@ def main(argv: Sequence[str] | None = None) -> int:
     try:
         result = verify_manifest(args.manifest)
     except DescriptorInputError as exc:
-        print(json.dumps({"status": "failed", "diagnostic": str(exc), "non_authoritative": True}, sort_keys=True))
+        print(
+            json.dumps(
+                {"status": "failed", "diagnostic": str(exc), "non_authoritative": True},
+                sort_keys=True,
+            )
+        )
         return 1
     print(json.dumps(result, sort_keys=True))
     return 0

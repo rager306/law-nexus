@@ -113,13 +113,20 @@ class GeneratedCypherValidationResult:
 
         if not self.accepted:
             return None
-        return GraphStoreQuery(cypher=self.normalized_query, read_only=True, generated=self.generated, purpose="generated-cypher-policy-approved")
+        return GraphStoreQuery(
+            cypher=self.normalized_query,
+            read_only=True,
+            generated=self.generated,
+            purpose="generated-cypher-policy-approved",
+        )
 
 
 class GeneratedCypherPolicy:
     """Validate candidate Cypher before any graph execution path."""
 
-    def validate(self, request: GeneratedCypherValidationRequest) -> GeneratedCypherValidationResult:
+    def validate(
+        self, request: GeneratedCypherValidationRequest
+    ) -> GeneratedCypherValidationResult:
         contract = dict(request.schema_contract)
         try:
             _validate_contract(contract)
@@ -128,41 +135,93 @@ class GeneratedCypherPolicy:
             return _reject(contract, request, code, str(exc), "")
 
         if unsafe_key := _unsafe_context_key(request.request_context):
-            return _reject(contract, request, "E_UNSAFE_CONTEXT_FIELD", f"unsafe request context key: {unsafe_key}", request.query)
+            return _reject(
+                contract,
+                request,
+                "E_UNSAFE_CONTEXT_FIELD",
+                f"unsafe request context key: {unsafe_key}",
+                request.query,
+            )
         if request.generated:
-            return _reject(contract, request, "E_GENERATED_QUERY_UNAPPROVED", "generated Cypher is rejected until explicitly policy-approved", request.query)
+            return _reject(
+                contract,
+                request,
+                "E_GENERATED_QUERY_UNAPPROVED",
+                "generated Cypher is rejected until explicitly policy-approved",
+                request.query,
+            )
         if not isinstance(request.query, str) or not request.query.strip():
-            return _reject(contract, request, "E_CANDIDATE_FORMAT", "candidate is empty or not a string", request.query)
+            return _reject(
+                contract,
+                request,
+                "E_CANDIDATE_FORMAT",
+                "candidate is empty or not a string",
+                request.query,
+            )
 
         query = request.query.strip()
         normalized = normalize_query(query)
         if _has_multiple_statements(normalized):
-            return _reject(contract, request, "E_MULTIPLE_STATEMENTS", "multiple Cypher statements are not allowed", query)
+            return _reject(
+                contract,
+                request,
+                "E_MULTIPLE_STATEMENTS",
+                "multiple Cypher statements are not allowed",
+                query,
+            )
 
         policy = _policy(contract)
         for clause in policy.get("forbidden_clauses", []):
             if _word_pattern(str(clause)).search(normalized):
-                return _reject(contract, request, "E_WRITE_OPERATION", f"forbidden clause {clause} is not read-only", query)
+                return _reject(
+                    contract,
+                    request,
+                    "E_WRITE_OPERATION",
+                    f"forbidden clause {clause} is not read-only",
+                    query,
+                )
         for token in policy.get("forbidden_tokens", []):
             if str(token).lower() in normalized.lower():
-                return _reject(contract, request, "E_FORBIDDEN_TOKEN", f"forbidden token {token}", query)
+                return _reject(
+                    contract, request, "E_FORBIDDEN_TOKEN", f"forbidden token {token}", query
+                )
 
         procedures = _procedure_names(normalized)
         allowed = {str(name) for name in policy.get("allowed_procedures", [])}
         for procedure in procedures:
             if procedure not in allowed:
-                return _reject(contract, request, "E_PROCEDURE_NOT_ALLOWLISTED", f"procedure {procedure} is not allowlisted", query)
+                return _reject(
+                    contract,
+                    request,
+                    "E_PROCEDURE_NOT_ALLOWLISTED",
+                    f"procedure {procedure} is not allowlisted",
+                    query,
+                )
 
         if not normalized.upper().startswith(("MATCH ", "OPTIONAL MATCH ", "CALL ")):
-            return _reject(contract, request, "E_CLAUSE_NOT_ALLOWED", "query must start with a read-only MATCH/OPTIONAL MATCH/CALL", query)
+            return _reject(
+                contract,
+                request,
+                "E_CLAUSE_NOT_ALLOWED",
+                "query must start with a read-only MATCH/OPTIONAL MATCH/CALL",
+                query,
+            )
         if policy.get("requires_limit", True) and not _limit_values(normalized):
             return _reject(contract, request, "E_LIMIT_REQUIRED", "query must include LIMIT", query)
         limit_values = _limit_values(normalized)
         max_allowed = max_limit(contract)
         if any(value > max_allowed for value in limit_values):
-            return _reject(contract, request, "E_LIMIT_TOO_HIGH", "query LIMIT exceeds policy maximum", query)
+            return _reject(
+                contract, request, "E_LIMIT_TOO_HIGH", "query LIMIT exceeds policy maximum", query
+            )
         if not _query_returns_required_evidence(normalized, contract):
-            return _reject(contract, request, "E_EVIDENCE_RETURN_REQUIRED", "query must return required evidence identifiers", query)
+            return _reject(
+                contract,
+                request,
+                "E_EVIDENCE_RETURN_REQUIRED",
+                "query must return required evidence identifiers",
+                query,
+            )
 
         return GeneratedCypherValidationResult(
             query_case=request.query_case,
@@ -226,7 +285,13 @@ def max_limit(contract: Mapping[str, Any]) -> int:
     return int(value) if isinstance(value, int) else 25
 
 
-def _reject(contract: Mapping[str, Any], request: GeneratedCypherValidationRequest, code: str, message: str, candidate: object) -> GeneratedCypherValidationResult:
+def _reject(
+    contract: Mapping[str, Any],
+    request: GeneratedCypherValidationRequest,
+    code: str,
+    message: str,
+    candidate: object,
+) -> GeneratedCypherValidationResult:
     diagnostic = GeneratedCypherDiagnostic(
         code=code,
         message=message,
@@ -237,7 +302,9 @@ def _reject(contract: Mapping[str, Any], request: GeneratedCypherValidationReque
     return GeneratedCypherValidationResult(
         query_case=request.query_case,
         accepted=False,
-        normalized_query=normalize_query(candidate) if isinstance(candidate, str) else "<non-string>",
+        normalized_query=normalize_query(candidate)
+        if isinstance(candidate, str)
+        else "<non-string>",
         schema_version=schema_version(contract),
         required_evidence_returns=tuple(required_evidence_returns(contract)),
         max_limit=max_limit(contract),
@@ -285,7 +352,10 @@ def _procedure_names(query: str) -> list[str]:
 def _query_returns_required_evidence(query: str, contract: Mapping[str, Any]) -> bool:
     return_values = _return_identifiers(query)
     required = required_evidence_returns(contract)
-    return all(any(_field_matches(candidate, required_field) for candidate in return_values) for required_field in required)
+    return all(
+        any(_field_matches(candidate, required_field) for candidate in return_values)
+        for required_field in required
+    )
 
 
 def _return_identifiers(query: str) -> list[str]:

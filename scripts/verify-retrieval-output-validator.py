@@ -40,7 +40,9 @@ def _bounded_path(path: Path) -> str:
     return bounded_path(path, root=ROOT)
 
 
-def _error_summary(*, fixtures: Path, phase: str, code: str, detail: str | None = None) -> dict[str, Any]:
+def _error_summary(
+    *, fixtures: Path, phase: str, code: str, detail: str | None = None
+) -> dict[str, Any]:
     return error_summary(
         fixtures=fixtures,
         root=ROOT,
@@ -100,18 +102,31 @@ def run_proof(fixtures: Path) -> tuple[int, dict[str, Any]]:
     try:
         fixture = validator.load_fixture_file(fixtures)
     except FileNotFoundError as exc:
-        return 2, _error_summary(fixtures=fixtures, phase="fixture_load", code="fixture_not_found", detail=str(exc))
+        return 2, _error_summary(
+            fixtures=fixtures, phase="fixture_load", code="fixture_not_found", detail=str(exc)
+        )
     except json.JSONDecodeError as exc:
-        return 2, _error_summary(fixtures=fixtures, phase="fixture_load", code="malformed_fixture_json", detail=exc.msg)
+        return 2, _error_summary(
+            fixtures=fixtures, phase="fixture_load", code="malformed_fixture_json", detail=exc.msg
+        )
     except ValueError as exc:
-        return 2, _error_summary(fixtures=fixtures, phase="fixture_load", code="malformed_output_shape", detail=str(exc))
+        return 2, _error_summary(
+            fixtures=fixtures, phase="fixture_load", code="malformed_output_shape", detail=str(exc)
+        )
     except OSError as exc:
-        return 2, _error_summary(fixtures=fixtures, phase="fixture_load", code="fixture_load_error", detail=str(exc))
+        return 2, _error_summary(
+            fixtures=fixtures, phase="fixture_load", code="fixture_load_error", detail=str(exc)
+        )
 
     data = fixture.data
     cases = data.get("cases")
     if not isinstance(cases, list):
-        return 2, _error_summary(fixtures=fixtures, phase="fixture_shape", code="malformed_output_shape", detail="cases must be a list")
+        return 2, _error_summary(
+            fixtures=fixtures,
+            phase="fixture_shape",
+            code="malformed_output_shape",
+            detail="cases must be a list",
+        )
 
     safe_fields = set(validator.SAFE_DIAGNOSTIC_FIELDS)
     known_codes = set(validator.KNOWN_DIAGNOSTIC_CODES)
@@ -175,7 +190,9 @@ def run_proof(fixtures: Path) -> tuple[int, dict[str, Any]]:
 
 
 def main(argv: Sequence[str] | None = None) -> int:
-    parser = argparse.ArgumentParser(description="Run the retrieval output validator proof against tracked fixtures.")
+    parser = argparse.ArgumentParser(
+        description="Run the retrieval output validator proof against tracked fixtures."
+    )
     parser.add_argument(
         "--fixtures",
         type=Path,

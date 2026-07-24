@@ -54,7 +54,11 @@ fn run_partial_non_authoritative() -> ScenarioResult {
         extra_stale: vec![NodeId::parse("node:stale1").expect("static id")],
     });
     let result = svc.rebuild(req("req:partial", &["node:gap1"]));
-    let gaps_preserved = result.ceiling.gaps.iter().any(|g| g.as_str() == "node:gap1");
+    let gaps_preserved = result
+        .ceiling
+        .gaps
+        .iter()
+        .any(|g| g.as_str() == "node:gap1");
     let pass = non_auth_pass(&result, RebuildOutcome::Partial) && gaps_preserved && !result.demoted;
     ScenarioResult {
         outcome: result.outcome,
@@ -83,7 +87,11 @@ fn run_stale_cancelled_failed_matrix() -> ScenarioResult {
         });
         let result = svc.rebuild(req("req:matrix", &["node:gapX"]));
         all_pass &= non_auth_pass(&result, outcome)
-            && result.ceiling.gaps.iter().any(|g| g.as_str() == "node:gapX");
+            && result
+                .ceiling
+                .gaps
+                .iter()
+                .any(|g| g.as_str() == "node:gapX");
         last = result.outcome;
     }
     ScenarioResult {
@@ -123,8 +131,16 @@ fn run_hostile_demotion() -> ScenarioResult {
         base_outcome: RebuildOutcome::RebuiltDisposable,
     });
     let result = svc.rebuild(req("req:hostile", &["node:gap1", "node:gap2"]));
-    let gaps_preserved = result.ceiling.gaps.iter().any(|g| g.as_str() == "node:gap1")
-        && result.ceiling.gaps.iter().any(|g| g.as_str() == "node:gap2");
+    let gaps_preserved = result
+        .ceiling
+        .gaps
+        .iter()
+        .any(|g| g.as_str() == "node:gap1")
+        && result
+            .ceiling
+            .gaps
+            .iter()
+            .any(|g| g.as_str() == "node:gap2");
     let pass = result.outcome == RebuildOutcome::Failed
         && result.demoted
         && !result.ceiling.authoritative
@@ -151,8 +167,16 @@ fn run_hostile_cannot_hide_gaps() -> ScenarioResult {
     });
     let result = svc.rebuild(req("req:hide", &["node:gap1", "node:gap2"]));
     let gaps_preserved = result.ceiling.gaps.len() == 2
-        && result.ceiling.gaps.iter().any(|g| g.as_str() == "node:gap1")
-        && result.ceiling.gaps.iter().any(|g| g.as_str() == "node:gap2");
+        && result
+            .ceiling
+            .gaps
+            .iter()
+            .any(|g| g.as_str() == "node:gap1")
+        && result
+            .ceiling
+            .gaps
+            .iter()
+            .any(|g| g.as_str() == "node:gap2");
     let pass = result.outcome == RebuildOutcome::Partial
         && result.demoted
         && !result.ceiling.authoritative

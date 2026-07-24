@@ -62,17 +62,14 @@ trait CandidateCountOk {
 impl CandidateCountOk for ln_decode::domain::DecodeResult {
     fn candidate_count_ok(&self) -> bool {
         self.candidates.len() == 1
-            && self.candidates[0].category
-                == ln_decode::domain::DecodeCategory::StructuralCandidate
+            && self.candidates[0].category == ln_decode::domain::DecodeCategory::StructuralCandidate
             && self.candidates[0].anchor.end_offset > self.candidates[0].anchor.start_offset
     }
 }
 
 fn run_malicious_reject_all() -> ScenarioResult {
-    let mut use_case = DecodeAndAnchor::new(
-        MaliciousSyntheticDecoder,
-        InMemoryDiagnosticSink::default(),
-    );
+    let mut use_case =
+        DecodeAndAnchor::new(MaliciousSyntheticDecoder, InMemoryDiagnosticSink::default());
     let result = use_case.execute(request("malicious"));
     let positive = result
         .diagnostics

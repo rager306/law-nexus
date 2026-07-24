@@ -11,7 +11,9 @@ GENERATOR_SCRIPT_PATH = ROOT / "scripts/generate-architecture-views.py"
 
 
 def load_view_generator_module() -> Any:
-    spec = importlib.util.spec_from_file_location("architecture_view_generator", GENERATOR_SCRIPT_PATH)
+    spec = importlib.util.spec_from_file_location(
+        "architecture_view_generator", GENERATOR_SCRIPT_PATH
+    )
     assert spec is not None
     assert spec.loader is not None
     module = importlib.util.module_from_spec(spec)
@@ -54,7 +56,11 @@ def item(
 def minimal_report() -> dict[str, Any]:
     return {
         "counts": {"nodes": 4, "edges": 0},
-        "layer_coverage": {"counts": {"architecture-governance": 4}, "missing_layers": [], "invalid_layers": []},
+        "layer_coverage": {
+            "counts": {"architecture-governance": 4},
+            "missing_layers": [],
+            "invalid_layers": [],
+        },
         "unresolved_proof_gates": [
             {
                 "id": "GATE-CRITICAL",
@@ -205,8 +211,14 @@ def test_claims_ledger_surfaces_r035_gate_status_as_guardrail_only() -> None:
     content = generator.render_claims_ledger(items, minimal_report())
 
     assert "## R035 Gate Status" in content
-    assert "Ontology, external-standard, GraphRAG, graph-vector, and pilot-scale rows are registry/view synchronization-only guardrails" in content
-    assert "not standard, runtime, product behavior, retrieval quality, FalkorDB runtime, or R035 validation" in content
+    assert (
+        "Ontology, external-standard, GraphRAG, graph-vector, and pilot-scale rows are registry/view synchronization-only guardrails"
+        in content
+    )
+    assert (
+        "not standard, runtime, product behavior, retrieval quality, FalkorDB runtime, or R035 validation"
+        in content
+    )
     assert "`EVID-GRAPHRAG-CANDIDATE`" in content
     assert "GATE-ONTOLOGY-GRAPHRAG-INTEGRATION" in content
     assert "S07/S08 runtime remediation reference" in content
@@ -218,7 +230,10 @@ def test_claims_ledger_surfaces_r035_gate_status_as_guardrail_only() -> None:
     assert "proof_level<integration-test" in content
     assert "add-proof-gate" in content
     assert "do not validate the referenced standard or product behavior" not in content
-    assert "not standard, runtime, product behavior, retrieval quality, FalkorDB runtime, or R035 validation" in content
+    assert (
+        "not standard, runtime, product behavior, retrieval quality, FalkorDB runtime, or R035 validation"
+        in content
+    )
     assert "production ready" not in content.lower()
 
 
@@ -257,7 +272,10 @@ def test_claims_ledger_r035_gate_status_lists_legal_hierarchy_and_collision_poli
     assert "`GATE-LEGAL-COLLISION-POLICY`" in content
     assert "GATE-LEGAL-COLLISION-POLICY" in content
     assert "registry/view synchronization-only guardrails" in content
-    assert "not standard, runtime, product behavior, retrieval quality, FalkorDB runtime, or R035 validation" in content
+    assert (
+        "not standard, runtime, product behavior, retrieval quality, FalkorDB runtime, or R035 validation"
+        in content
+    )
 
 
 REPORT_PATHS = (
@@ -289,11 +307,15 @@ UNSAFE_POSITIVE_REPORT_PHRASES = (
 def assert_contains_boundary(content: str, required: str) -> None:
     normalized_content = re.sub(r"[*_`]+", "", content.lower())
     normalized_required = re.sub(r"[*_`]+", "", required.lower())
-    assert normalized_required in normalized_content, f"missing report boundary/disclaimer: {required!r}"
+    assert normalized_required in normalized_content, (
+        f"missing report boundary/disclaimer: {required!r}"
+    )
 
 
 def assert_omits_unsafe_positive_phrase(content: str, phrase: str, path: Path | str) -> None:
-    assert phrase not in content.lower(), f"unsafe phrase {phrase!r} appears in generated report {path}"
+    assert phrase not in content.lower(), (
+        f"unsafe phrase {phrase!r} appears in generated report {path}"
+    )
 
 
 def test_generated_reports_preserve_minimal_non_authoritative_disclaimers() -> None:
@@ -304,7 +326,9 @@ def test_generated_reports_preserve_minimal_non_authoritative_disclaimers() -> N
         assert_contains_boundary(content, "source-of-truth remains")
 
     health = (ROOT / "prd/architecture/architecture_health.md").read_text(encoding="utf-8")
-    assert_contains_boundary(health, "A passing generated view check is not product/runtime/legal validation")
+    assert_contains_boundary(
+        health, "A passing generated view check is not product/runtime/legal validation"
+    )
 
     blockers = (ROOT / "prd/architecture/product_readiness_blockers.md").read_text(encoding="utf-8")
     for boundary in (

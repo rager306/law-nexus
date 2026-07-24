@@ -88,7 +88,10 @@ def test_raw_missing_content_xml_returns_malformed_odt(tmp_path: Path) -> None:
     harness = load_harness()
     source = tmp_path / "missing-content.odt"
     with zipfile.ZipFile(source, "w") as zf:
-        zf.writestr("META-INF/manifest.xml", "<manifest:manifest xmlns:manifest='urn:oasis:names:tc:opendocument:xmlns:manifest:1.0'/>")
+        zf.writestr(
+            "META-INF/manifest.xml",
+            "<manifest:manifest xmlns:manifest='urn:oasis:names:tc:opendocument:xmlns:manifest:1.0'/>",
+        )
 
     result = harness.probe_raw_odt(source, allow_fixture_source=True)
 
@@ -101,7 +104,10 @@ def test_raw_xml_parse_failure_preserves_package_metadata(tmp_path: Path) -> Non
     harness = load_harness()
     source = tmp_path / "bad-content.odt"
     with zipfile.ZipFile(source, "w") as zf:
-        zf.writestr("META-INF/manifest.xml", "<manifest:manifest xmlns:manifest='urn:oasis:names:tc:opendocument:xmlns:manifest:1.0'/>")
+        zf.writestr(
+            "META-INF/manifest.xml",
+            "<manifest:manifest xmlns:manifest='urn:oasis:names:tc:opendocument:xmlns:manifest:1.0'/>",
+        )
         zf.writestr("content.xml", "<office:document-content>")
 
     result = harness.probe_raw_odt(source, allow_fixture_source=True)
@@ -127,7 +133,9 @@ def test_raw_empty_document_body_is_a_bounded_success(tmp_path: Path) -> None:
 def test_raw_required_real_source_policy_rejects_fixture_without_bypass(tmp_path: Path) -> None:
     harness = load_harness()
     source = tmp_path / "fixture.odt"
-    harness.write_test_odt_fixture(source, content_body="<office:text><text:p>test</text:p></office:text>")
+    harness.write_test_odt_fixture(
+        source, content_body="<office:text><text:p>test</text:p></office:text>"
+    )
     out = tmp_path / "probe.json"
 
     exit_code = harness.main(["--source", str(source), "--out", str(out)])
@@ -160,11 +168,11 @@ def test_optional_parsers_are_not_run_unless_requested(tmp_path: Path) -> None:
     harness = load_harness()
     source = tmp_path / "fixture.odt"
     out = tmp_path / "probe.json"
-    harness.write_test_odt_fixture(source, content_body="<office:text><text:p>test</text:p></office:text>")
-
-    exit_code = harness.main(
-        ["--source", str(source), "--allow-fixture-source", "--out", str(out)]
+    harness.write_test_odt_fixture(
+        source, content_body="<office:text><text:p>test</text:p></office:text>"
     )
+
+    exit_code = harness.main(["--source", str(source), "--allow-fixture-source", "--out", str(out)])
 
     assert exit_code == 0
     payload = json.loads(out.read_text(encoding="utf-8"))
@@ -177,7 +185,9 @@ def test_optional_parser_absence_is_comparison_evidence_not_raw_failure(
 ) -> None:
     harness = load_harness()
     source = tmp_path / "fixture.odt"
-    harness.write_test_odt_fixture(source, content_body="<office:text><text:p>test</text:p></office:text>")
+    harness.write_test_odt_fixture(
+        source, content_body="<office:text><text:p>test</text:p></office:text>"
+    )
 
     def missing_import(name: str):
         if name in {"odf.opendocument", "odfdo"}:
@@ -224,13 +234,15 @@ def test_odfpy_unmodified_failure_and_temp_clean_success_are_recorded(
     monkeypatch.setattr(
         harness.importlib,
         "import_module",
-        lambda name: Mock(load=fake_load)
-        if name == "odf.opendocument"
-        else original_import_module(name),
+        lambda name: (
+            Mock(load=fake_load) if name == "odf.opendocument" else original_import_module(name)
+        ),
     )
 
     raw = harness.probe_raw_odt(source, allow_fixture_source=True)
-    [probe] = [probe for probe in harness.probe_optional_parsers(source, raw) if probe["parser"] == "odfpy"]
+    [probe] = [
+        probe for probe in harness.probe_optional_parsers(source, raw) if probe["parser"] == "odfpy"
+    ]
 
     assert probe["status"] == "loaded-temp-clean-manifest"
     assert probe["phases"]["unmodified"]["status"] == "failed-unmodified-load"
@@ -282,7 +294,9 @@ def test_manifest_clean_copy_without_doctype_reports_no_removal(tmp_path: Path) 
 def test_odfdo_api_incomplete_records_observed_capabilities(tmp_path: Path, monkeypatch) -> None:
     harness = load_harness()
     source = tmp_path / "fixture.odt"
-    harness.write_test_odt_fixture(source, content_body="<office:text><text:p>test</text:p></office:text>")
+    harness.write_test_odt_fixture(
+        source, content_body="<office:text><text:p>test</text:p></office:text>"
+    )
 
     original_import_module = harness.importlib.import_module
     monkeypatch.setattr(
@@ -292,7 +306,9 @@ def test_odfdo_api_incomplete_records_observed_capabilities(tmp_path: Path, monk
     )
 
     raw = harness.probe_raw_odt(source, allow_fixture_source=True)
-    [probe] = [probe for probe in harness.probe_optional_parsers(source, raw) if probe["parser"] == "odfdo"]
+    [probe] = [
+        probe for probe in harness.probe_optional_parsers(source, raw) if probe["parser"] == "odfdo"
+    ]
 
     assert probe["status"] == "api-incomplete"
     assert probe["observed_capabilities"]["has_Document"] is False
@@ -302,7 +318,9 @@ def test_odfdo_api_incomplete_records_observed_capabilities(tmp_path: Path, monk
 def test_odfdo_loaded_summary_keeps_raw_ordering_as_oracle(tmp_path: Path, monkeypatch) -> None:
     harness = load_harness()
     source = tmp_path / "fixture.odt"
-    harness.write_test_odt_fixture(source, content_body="<office:text><text:p>test</text:p></office:text>")
+    harness.write_test_odt_fixture(
+        source, content_body="<office:text><text:p>test</text:p></office:text>"
+    )
 
     class FakeBody:
         def get_formatted_text(self) -> str:
@@ -321,11 +339,15 @@ def test_odfdo_loaded_summary_keeps_raw_ordering_as_oracle(tmp_path: Path, monke
     monkeypatch.setattr(
         harness.importlib,
         "import_module",
-        lambda name: Mock(Document=FakeDocument) if name == "odfdo" else original_import_module(name),
+        lambda name: (
+            Mock(Document=FakeDocument) if name == "odfdo" else original_import_module(name)
+        ),
     )
 
     raw = harness.probe_raw_odt(source, allow_fixture_source=True)
-    [probe] = [probe for probe in harness.probe_optional_parsers(source, raw) if probe["parser"] == "odfdo"]
+    [probe] = [
+        probe for probe in harness.probe_optional_parsers(source, raw) if probe["parser"] == "odfdo"
+    ]
 
     assert probe["status"] == "loaded-unmodified"
     assert probe["comparison_summary"]["ordering_oracle"] == "raw-content-xml"
@@ -338,7 +360,9 @@ def test_cli_include_optional_parsers_adds_statuses_to_payload(tmp_path: Path, m
     harness = load_harness()
     source = tmp_path / "fixture.odt"
     out = tmp_path / "probe.json"
-    harness.write_test_odt_fixture(source, content_body="<office:text><text:p>test</text:p></office:text>")
+    harness.write_test_odt_fixture(
+        source, content_body="<office:text><text:p>test</text:p></office:text>"
+    )
 
     monkeypatch.setattr(
         harness,

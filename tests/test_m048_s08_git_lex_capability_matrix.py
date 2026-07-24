@@ -54,16 +54,33 @@ FAILURE_CATEGORIES = [
 
 REQUIRED_ROW_LANGUAGE = {
     "Typed records": ["source category", "lifecycle state", "schema version", "round-tripped"],
-    "Schema/frontmatter validation": ["negative validation fixtures", "invalid status", "invalid disposition"],
-    "Evidence anchors": ["repo-relative", "resolvable", "broken or local-only anchors are rejected"],
-    "Lifecycle transitions": ["candidate", "accepted", "blocked/deferred", "invalid transitions fail"],
+    "Schema/frontmatter validation": [
+        "negative validation fixtures",
+        "invalid status",
+        "invalid disposition",
+    ],
+    "Evidence anchors": [
+        "repo-relative",
+        "resolvable",
+        "broken or local-only anchors are rejected",
+    ],
+    "Lifecycle transitions": [
+        "candidate",
+        "accepted",
+        "blocked/deferred",
+        "invalid transitions fail",
+    ],
     "Transition history": ["previous state", "new state", "rationale", "evidence anchor"],
     "Proof gates": ["proof command/result evidence", "failed proof cannot promote acceptance"],
     "Derived projection boundary": ["marked derived", "non-authoritative", "source records"],
     "Query/recovery": ["authority chain", "blocked findings", "fluent summary text"],
     "Health findings and blocked diagnostics": ["typed", "durable", "queryable", "proof summaries"],
     "Git semantics beyond ordinary git": ["ordinary git", "record-aware", "branding"],
-    "Isolation and mutation guard": ["outside the main checkout", "no main-repo `.lex`", "rollback/delete path"],
+    "Isolation and mutation guard": [
+        "outside the main checkout",
+        "no main-repo `.lex`",
+        "rollback/delete path",
+    ],
     "Profile adapters": ["Core/profile boundary", "law-nexus-only", "reusable core"],
 }
 
@@ -122,7 +139,10 @@ def test_matrix_exists_and_has_required_sections() -> None:
         assert body.strip(), f"Section must not be empty: {heading}"
 
     assert "No artifact is authoritative by shape alone." in section(text, "Authority Rule")
-    assert "source category + lifecycle state + evidence anchor + proof gate or accepted decision" in text
+    assert (
+        "source category + lifecycle state + evidence anchor + proof gate or accepted decision"
+        in text
+    )
 
 
 def test_allowed_dispositions_and_failure_categories_are_explicit() -> None:
@@ -218,7 +238,9 @@ def test_proof_contract_covers_required_scenarios_and_boundaries() -> None:
 
 def test_no_main_repository_mutation_constraints_are_required() -> None:
     text = matrix_text()
-    capability = " | ".join(capability_row(section(text, "Capability Matrix"), "Isolation and mutation guard"))
+    capability = " | ".join(
+        capability_row(section(text, "Capability Matrix"), "Isolation and mutation guard")
+    )
     scenarios = section(text, "Proof Scenarios")
     failure_modes = section(text, "Failure Modes")
 
@@ -243,7 +265,9 @@ def test_matrix_preserves_runtime_adoption_and_requirement_non_validation_bounda
         assert claim not in lowered, f"Forbidden overclaim present: {claim}"
 
     evidence_boundary = section(text, "Current M048 Evidence Boundary")
-    assert "Runtime git-lex acquisition/build/invocation remains blocked/deferred" in evidence_boundary
+    assert (
+        "Runtime git-lex acquisition/build/invocation remains blocked/deferred" in evidence_boundary
+    )
     assert "`R035`, `R037`, and `R038` remain non-validated" in evidence_boundary
     assert "`R046`, `R047`, and `R048` remain hard boundaries" in evidence_boundary
 

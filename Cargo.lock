@@ -3,7 +3,23 @@
 version = 4
 
 [[package]]
+name = "ln-admission"
+version = "0.1.0"
+
+[[package]]
+name = "ln-closure"
+version = "0.1.0"
+
+[[package]]
+name = "ln-decode"
+version = "0.1.0"
+
+[[package]]
 name = "ln-dispose"
+version = "0.1.0"
+
+[[package]]
+name = "ln-gate"
 version = "0.1.0"
 
 [[package]]
@@ -28,6 +44,87 @@ dependencies = [
 ]
 
 [[package]]
+name = "ln-hc04-runner"
+version = "0.1.0"
+dependencies = [
+ "ln-promote",
+]
+
+[[package]]
+name = "ln-hc05-runner"
+version = "0.1.0"
+dependencies = [
+ "ln-decode",
+]
+
+[[package]]
+name = "ln-hc06-runner"
+version = "0.1.0"
+dependencies = [
+ "ln-gate",
+]
+
+[[package]]
+name = "ln-hc07-runner"
+version = "0.1.0"
+dependencies = [
+ "ln-identity",
+]
+
+[[package]]
+name = "ln-hc08-runner"
+version = "0.1.0"
+dependencies = [
+ "ln-relation",
+]
+
+[[package]]
+name = "ln-hc09-runner"
+version = "0.1.0"
+dependencies = [
+ "ln-temporal",
+]
+
+[[package]]
+name = "ln-hc10-runner"
+version = "0.1.0"
+dependencies = [
+ "ln-work",
+]
+
+[[package]]
+name = "ln-hc11-runner"
+version = "0.1.0"
+dependencies = [
+ "ln-closure",
+]
+
+[[package]]
+name = "ln-hc12-runner"
+version = "0.1.0"
+dependencies = [
+ "ln-projection",
+]
+
+[[package]]
+name = "ln-hc13-runner"
+version = "0.1.0"
+dependencies = [
+ "ln-admission",
+]
+
+[[package]]
+name = "ln-hc14-runner"
+version = "0.1.0"
+dependencies = [
+ "ln-replay",
+]
+
+[[package]]
+name = "ln-identity"
+version = "0.1.0"
+
+[[package]]
 name = "ln-inventory"
 version = "0.1.0"
 
@@ -36,5 +133,33 @@ name = "ln-observe"
 version = "0.1.0"
 
 [[package]]
+name = "ln-projection"
+version = "0.1.0"
+
+[[package]]
+name = "ln-promote"
+version = "0.1.0"
+
+[[package]]
+name = "ln-publish"
+version = "0.1.0"
+
+[[package]]
+name = "ln-relation"
+version = "0.1.0"
+
+[[package]]
+name = "ln-replay"
+version = "0.1.0"
+
+[[package]]
 name = "ln-status"
+version = "0.1.0"
+
+[[package]]
+name = "ln-temporal"
+version = "0.1.0"
+
+[[package]]
+name = "ln-work"
 version = "0.1.0"

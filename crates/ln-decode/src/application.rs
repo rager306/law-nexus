@@ -1,6 +1,6 @@
 use crate::domain::{
-    fingerprint_bytes, DecodeCategory, DecodeRequest, DecodeResult, DiagnosticId,
-    SafeDiagnostic, StructuralCandidate,
+    fingerprint_bytes, DecodeCategory, DecodeRequest, DecodeResult, DiagnosticId, SafeDiagnostic,
+    StructuralCandidate,
 };
 use crate::ports::{DecoderPort, DiagnosticPort};
 
@@ -30,8 +30,7 @@ where
 
         for emission in emissions {
             if emission.category.is_structural() {
-                if let (Some(candidate_id), Some(anchor)) =
-                    (emission.candidate_id, emission.anchor)
+                if let (Some(candidate_id), Some(anchor)) = (emission.candidate_id, emission.anchor)
                 {
                     candidates.push(StructuralCandidate {
                         candidate_id,

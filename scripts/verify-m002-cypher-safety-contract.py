@@ -209,20 +209,25 @@ def _word_pattern(term: str) -> re.Pattern[str]:
 
 def _extract_variable_labels(query: str) -> dict[str, str]:
     labels: dict[str, str] = {}
-    for match in re.finditer(r"\(\s*([A-Za-z_][A-Za-z0-9_]*)?\s*:\s*([A-Za-z_][A-Za-z0-9_]*)", query):
+    for match in re.finditer(
+        r"\(\s*([A-Za-z_][A-Za-z0-9_]*)?\s*:\s*([A-Za-z_][A-Za-z0-9_]*)", query
+    ):
         variable = match.group(1)
         label = match.group(2)
         if variable:
             labels[variable] = label
-    for match in re.finditer(r"CALL\s+db\.idx\.fulltext\.queryNodes\(\s*['\"]([A-Za-z_][A-Za-z0-9_]*)['\"]", query, re.IGNORECASE):
+    for match in re.finditer(
+        r"CALL\s+db\.idx\.fulltext\.queryNodes\(\s*['\"]([A-Za-z_][A-Za-z0-9_]*)['\"]",
+        query,
+        re.IGNORECASE,
+    ):
         labels.setdefault("node", match.group(1))
     return labels
 
 
 def _extract_labels(query: str) -> set[str]:
     return set(_extract_variable_labels(query).values()) | {
-        match.group(1)
-        for match in re.finditer(r"\(\s*:\s*([A-Za-z_][A-Za-z0-9_]*)", query)
+        match.group(1) for match in re.finditer(r"\(\s*:\s*([A-Za-z_][A-Za-z0-9_]*)", query)
     }
 
 
@@ -245,12 +250,20 @@ def _extract_relationships(
     )
     for pattern, direction in ((forward, "forward"), (reverse, "reverse")):
         for match in pattern.finditer(query):
-            left_label = match.group("left_label") or labels_by_variable.get(match.group("left_var") or "")
-            right_label = match.group("right_label") or labels_by_variable.get(match.group("right_var") or "")
+            left_label = match.group("left_label") or labels_by_variable.get(
+                match.group("left_var") or ""
+            )
+            right_label = match.group("right_label") or labels_by_variable.get(
+                match.group("right_var") or ""
+            )
             if direction == "forward":
-                relationships.append((left_label, match.group("rel"), right_label, match.group("depth") or ""))
+                relationships.append(
+                    (left_label, match.group("rel"), right_label, match.group("depth") or "")
+                )
             else:
-                relationships.append((right_label, match.group("rel"), left_label, match.group("depth") or ""))
+                relationships.append(
+                    (right_label, match.group("rel"), left_label, match.group("depth") or "")
+                )
     return relationships
 
 
@@ -260,7 +273,9 @@ def _extract_relationship_types(query: str) -> set[str]:
 
 def _extract_properties(query: str) -> list[tuple[str, str]]:
     properties: list[tuple[str, str]] = []
-    for variable, property_name in re.findall(r"\b([A-Za-z_][A-Za-z0-9_]*)\.([A-Za-z_][A-Za-z0-9_]*)\b", query):
+    for variable, property_name in re.findall(
+        r"\b([A-Za-z_][A-Za-z0-9_]*)\.([A-Za-z_][A-Za-z0-9_]*)\b", query
+    ):
         if variable.upper() not in {"DB"}:
             properties.append((variable, property_name))
     return properties
@@ -309,7 +324,9 @@ def _query_returns_required_evidence(query: str, variable_labels: dict[str, str]
     relationships = _extract_relationship_types(query)
     if not {"SUPPORTS", "SUPPORTED_BY", "IN_BLOCK"}.issubset(relationships):
         return False
-    return_clause_match = re.search(r"\bRETURN\b(?P<return>.+?)\bLIMIT\b", query, re.IGNORECASE | re.DOTALL)
+    return_clause_match = re.search(
+        r"\bRETURN\b(?P<return>.+?)\bLIMIT\b", query, re.IGNORECASE | re.DOTALL
+    )
     if return_clause_match is None:
         return False
     return_clause = return_clause_match.group("return")
@@ -322,12 +339,16 @@ def _query_returns_required_evidence(query: str, variable_labels: dict[str, str]
 
 
 def _requires_temporal_filter(query: str, request_context: dict[str, Any] | None) -> bool:
-    return bool(request_context and request_context.get("as_of") and "Article" in _extract_labels(query))
+    return bool(
+        request_context and request_context.get("as_of") and "Article" in _extract_labels(query)
+    )
 
 
 def _has_temporal_filter(query: str) -> bool:
     normalized = normalize_query(query).lower().replace(" ", "")
-    return "valid_from<=$as_of" in normalized and "$as_of<" in normalized and "valid_to" in normalized
+    return (
+        "valid_from<=$as_of" in normalized and "$as_of<" in normalized and "valid_to" in normalized
+    )
 
 
 def validate_candidate(
@@ -345,7 +366,13 @@ def validate_candidate(
         return reject(contract, query_case, candidate, code, str(exc))
 
     if not isinstance(candidate, str) or not candidate.strip():
-        return reject(contract, query_case, candidate, "E_CANDIDATE_FORMAT", "candidate is empty or not a string")
+        return reject(
+            contract,
+            query_case,
+            candidate,
+            "E_CANDIDATE_FORMAT",
+            "candidate is empty or not a string",
+        )
 
     query = candidate.strip()
     normalized = normalize_query(query)
@@ -353,69 +380,177 @@ def validate_candidate(
 
     for clause in policy.get("forbidden_clauses", []):
         if _word_pattern(clause).search(normalized):
-            return reject(contract, query_case, query, "E_WRITE_OPERATION", f"forbidden clause {clause} is not read-only")
+            return reject(
+                contract,
+                query_case,
+                query,
+                "E_WRITE_OPERATION",
+                f"forbidden clause {clause} is not read-only",
+            )
 
     forbidden_tokens = policy.get("forbidden_tokens", [])
     if any(token in query for token in forbidden_tokens):
-        return reject(contract, query_case, query, "E_CANDIDATE_FORMAT", "candidate contains forbidden formatting, comments, or multi-statement token")
+        return reject(
+            contract,
+            query_case,
+            query,
+            "E_CANDIDATE_FORMAT",
+            "candidate contains forbidden formatting, comments, or multi-statement token",
+        )
     if not re.match(r"^(MATCH|CALL)\b", normalized, re.IGNORECASE):
-        return reject(contract, query_case, query, "E_CANDIDATE_FORMAT", "candidate must start with MATCH or CALL")
+        return reject(
+            contract,
+            query_case,
+            query,
+            "E_CANDIDATE_FORMAT",
+            "candidate must start with MATCH or CALL",
+        )
 
     procedures = _procedure_names(normalized)
     allowed_procedures = set(policy.get("allowed_procedures", []))
     for procedure in procedures:
         if procedure in allowed_procedures:
             continue
-        if procedure.startswith(("gds.", "apoc.")) or procedure in set(policy.get("forbidden_procedures", [])):
-            return reject(contract, query_case, query, "E_NEO4J_ONLY_CARRYOVER", f"procedure {procedure} is Neo4j/APOC/GDS carryover")
-        return reject(contract, query_case, query, "E_UNSUPPORTED_PROCEDURE", f"procedure {procedure} is not allowlisted")
+        if procedure.startswith(("gds.", "apoc.")) or procedure in set(
+            policy.get("forbidden_procedures", [])
+        ):
+            return reject(
+                contract,
+                query_case,
+                query,
+                "E_NEO4J_ONLY_CARRYOVER",
+                f"procedure {procedure} is Neo4j/APOC/GDS carryover",
+            )
+        return reject(
+            contract,
+            query_case,
+            query,
+            "E_UNSUPPORTED_PROCEDURE",
+            f"procedure {procedure} is not allowlisted",
+        )
 
     allowed_schema = contract["allowed_schema"]
     allowed_labels = set(allowed_schema["labels"])
     variable_labels = _extract_variable_labels(query)
     for label in _extract_labels(query):
         if label not in allowed_labels:
-            return reject(contract, query_case, query, "E_UNKNOWN_LABEL", f"label {label} is not in allowed_schema.labels")
+            return reject(
+                contract,
+                query_case,
+                query,
+                "E_UNKNOWN_LABEL",
+                f"label {label} is not in allowed_schema.labels",
+            )
 
     allowed_relationships = allowed_schema["relationships"]
-    for from_label, relationship, to_label, depth_expression in _extract_relationships(query, variable_labels):
+    for from_label, relationship, to_label, depth_expression in _extract_relationships(
+        query, variable_labels
+    ):
         if relationship not in allowed_relationships:
-            return reject(contract, query_case, query, "E_UNKNOWN_RELATIONSHIP", f"relationship {relationship} is not in allowed_schema.relationships")
+            return reject(
+                contract,
+                query_case,
+                query,
+                "E_UNKNOWN_RELATIONSHIP",
+                f"relationship {relationship} is not in allowed_schema.relationships",
+            )
         if _has_excessive_traversal(depth_expression, policy):
-            return reject(contract, query_case, query, "E_UNBOUNDED_TRAVERSAL", f"relationship {relationship}{depth_expression} exceeds max traversal depth")
-        if not _relationship_endpoint_allowed(allowed_relationships[relationship], from_label, to_label):
-            return reject(contract, query_case, query, "E_BAD_RELATIONSHIP_ENDPOINT", f"relationship {relationship} endpoint {from_label}->{to_label} is not allowed")
+            return reject(
+                contract,
+                query_case,
+                query,
+                "E_UNBOUNDED_TRAVERSAL",
+                f"relationship {relationship}{depth_expression} exceeds max traversal depth",
+            )
+        if not _relationship_endpoint_allowed(
+            allowed_relationships[relationship], from_label, to_label
+        ):
+            return reject(
+                contract,
+                query_case,
+                query,
+                "E_BAD_RELATIONSHIP_ENDPOINT",
+                f"relationship {relationship} endpoint {from_label}->{to_label} is not allowed",
+            )
 
     if _has_unbounded_scan(query, variable_labels):
-        return reject(contract, query_case, query, "E_UNBOUNDED_TRAVERSAL", "query performs an unbounded node scan or RETURN *")
+        return reject(
+            contract,
+            query_case,
+            query,
+            "E_UNBOUNDED_TRAVERSAL",
+            "query performs an unbounded node scan or RETURN *",
+        )
 
     for variable, property_name in _extract_properties(query):
         label = variable_labels.get(variable)
         if label is None:
             continue
         if label not in allowed_schema["labels"]:
-            return reject(contract, query_case, query, "E_UNKNOWN_LABEL", f"label {label} is not in allowed_schema.labels")
+            return reject(
+                contract,
+                query_case,
+                query,
+                "E_UNKNOWN_LABEL",
+                f"label {label} is not in allowed_schema.labels",
+            )
         properties = set(allowed_schema["labels"][label].get("properties", []))
         if property_name not in properties:
-            return reject(contract, query_case, query, "E_UNKNOWN_PROPERTY", f"property {label}.{property_name} is not allowed")
+            return reject(
+                contract,
+                query_case,
+                query,
+                "E_UNKNOWN_PROPERTY",
+                f"property {label}.{property_name} is not allowed",
+            )
         returnable = set(allowed_schema["labels"][label].get("returnable_properties", []))
         non_returnable = set(allowed_schema["labels"][label].get("non_returnable_properties", []))
-        if property_name in non_returnable or (property_name in properties and property_name not in returnable):
-            return reject(contract, query_case, query, "E_UNKNOWN_PROPERTY", f"property {label}.{property_name} is not returnable under redaction policy")
+        if property_name in non_returnable or (
+            property_name in properties and property_name not in returnable
+        ):
+            return reject(
+                contract,
+                query_case,
+                query,
+                "E_UNKNOWN_PROPERTY",
+                f"property {label}.{property_name} is not returnable under redaction policy",
+            )
 
     limits = _limit_values(query)
     if policy.get("requires_limit") and not limits:
         return reject(contract, query_case, query, "E_LIMIT_REQUIRED", "query omits required LIMIT")
     policy_max_limit = max_limit(contract)
     if any(limit > policy_max_limit for limit in limits):
-        return reject(contract, query_case, query, "E_LIMIT_EXCEEDED", f"LIMIT exceeds max_limit {policy_max_limit}")
+        return reject(
+            contract,
+            query_case,
+            query,
+            "E_LIMIT_EXCEEDED",
+            f"LIMIT exceeds max_limit {policy_max_limit}",
+        )
 
     if _requires_temporal_filter(query, request_context) and not _has_temporal_filter(query):
-        return reject(contract, query_case, query, "E_TEMPORAL_REQUIRED", "as_of context requires Article valid_from/valid_to predicates")
+        return reject(
+            contract,
+            query_case,
+            query,
+            "E_TEMPORAL_REQUIRED",
+            "as_of context requires Article valid_from/valid_to predicates",
+        )
 
     labels_in_query = set(variable_labels.values())
-    if labels_in_query & {"Article", "EvidenceSpan", "SourceBlock"} and not _query_returns_required_evidence(query, variable_labels):
-        return reject(contract, query_case, query, "E_EVIDENCE_REQUIRED", "answer query omits required EvidenceSpan/SourceBlock path or returns")
+    if labels_in_query & {
+        "Article",
+        "EvidenceSpan",
+        "SourceBlock",
+    } and not _query_returns_required_evidence(query, variable_labels):
+        return reject(
+            contract,
+            query_case,
+            query,
+            "E_EVIDENCE_REQUIRED",
+            "answer query omits required EvidenceSpan/SourceBlock path or returns",
+        )
 
     warnings: list[str] = []
     if procedures:
@@ -435,7 +570,8 @@ def evaluate_contract(contract_path: Path, schema_path: Path) -> dict[str, Any]:
     schema = load_schema_contract(schema_path)
     readback = contract_readback(contract_path, schema_path)
     accepted_reports = [
-        validate_candidate(query, schema, query_case=query_case) for query_case, query in ACCEPTED_CASES
+        validate_candidate(query, schema, query_case=query_case)
+        for query_case, query in ACCEPTED_CASES
     ]
     unsafe_reports = [
         validate_candidate(item["cypher"], schema, query_case=item["name"])
@@ -452,7 +588,13 @@ def evaluate_contract(contract_path: Path, schema_path: Path) -> dict[str, Any]:
         }
         for item, report in zip(schema.get("unsafe_examples", []), unsafe_reports, strict=True)
     ]
-    status = "pass" if readback["accepted"] and all(r.accepted for r in accepted_reports) and all(e["passed"] for e in unsafe_expectations) else "fail"
+    status = (
+        "pass"
+        if readback["accepted"]
+        and all(r.accepted for r in accepted_reports)
+        and all(e["passed"] for e in unsafe_expectations)
+        else "fail"
+    )
     return {
         "schema_version": schema["schema_version"],
         "generated_at": datetime.now(UTC).isoformat(),
@@ -493,7 +635,9 @@ def write_markdown(path: Path, payload: dict[str, Any]) -> None:
         "",
     ]
     for report in payload["accepted_reports"]:
-        lines.append(f"- `{report['query_case']}` accepted={report['accepted']} warnings={report['warnings']}")
+        lines.append(
+            f"- `{report['query_case']}` accepted={report['accepted']} warnings={report['warnings']}"
+        )
     lines.extend(["", "## Rejected unsafe cases", ""])
     for expectation in payload["unsafe_expectations"]:
         lines.append(

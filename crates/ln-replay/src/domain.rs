@@ -163,6 +163,9 @@ mod tests {
 
     #[test]
     fn publication_authority_is_sealed_default() {
-        assert_eq!(PublicationAuthority::default(), PublicationAuthority::default());
+        assert_eq!(
+            PublicationAuthority::default(),
+            PublicationAuthority::default()
+        );
     }
 }

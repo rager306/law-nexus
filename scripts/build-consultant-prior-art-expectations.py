@@ -142,7 +142,12 @@ def load_jsonl(path: Path) -> tuple[list[dict[str, Any]], dict[str, Any] | None]
         except json.JSONDecodeError as exc:
             return records, compact_error("malformed_jsonl", exc, path=str(path), line_no=line_no)
         if not isinstance(value, dict):
-            return records, compact_error("non_object_jsonl_record", "JSONL record is not an object", path=str(path), line_no=line_no)
+            return records, compact_error(
+                "non_object_jsonl_record",
+                "JSONL record is not an object",
+                path=str(path),
+                line_no=line_no,
+            )
         records.append(value)
     return records, None
 
@@ -171,7 +176,9 @@ def source_entry(path: Path, inventory_assets: dict[str, dict[str, Any]]) -> dic
         "comparable_boundary": asset.get("reuse_boundary"),
         "exists": exists,
         "expected_sha256": expected_sha,
-        "hash_matches_expected": actual_sha == expected_sha if actual_sha and expected_sha else False,
+        "hash_matches_expected": actual_sha == expected_sha
+        if actual_sha and expected_sha
+        else False,
         "path": str(path),
         "sha256": actual_sha,
         "size_bytes": path.stat().st_size if exists else None,
@@ -196,8 +203,12 @@ def structure_expectations(structure: dict[str, Any]) -> dict[str, Any]:
     """Summarize comparable structure-json counts."""
 
     chapters = structure.get("chapters") or []
-    chapter_article_counts = [len(chapter.get("articles") or []) for chapter in chapters if isinstance(chapter, dict)]
-    chapter_paragraph_counts = [len(chapter.get("paragraphs") or []) for chapter in chapters if isinstance(chapter, dict)]
+    chapter_article_counts = [
+        len(chapter.get("articles") or []) for chapter in chapters if isinstance(chapter, dict)
+    ]
+    chapter_paragraph_counts = [
+        len(chapter.get("paragraphs") or []) for chapter in chapters if isinstance(chapter, dict)
+    ]
     metadata = structure.get("metadata") or {}
     return {
         "expectation_id": "EXP-CPA-STRUCTURE-COUNTS",
@@ -347,7 +358,9 @@ def validation_rule_expectations(paths: list[Path]) -> tuple[dict[str, Any], lis
                     "severity": rule.get("severity"),
                     "target": rule.get("target"),
                     "check": rule.get("check"),
-                    "source_excerpt": truncate(rule.get("description") or rule.get("name") or rule_id),
+                    "source_excerpt": truncate(
+                        rule.get("description") or rule.get("name") or rule_id
+                    ),
                 }
             counts[classification] += 1
             rules.append(rule_entry)
@@ -363,7 +376,11 @@ def validation_rule_expectations(paths: list[Path]) -> tuple[dict[str, Any], lis
         },
         "files": files,
         "rules": rules,
-        "skipped_fields": ["rule implementation semantics", "LLM prompt behavior", "legal interpretation"],
+        "skipped_fields": [
+            "rule implementation semantics",
+            "LLM prompt behavior",
+            "legal interpretation",
+        ],
     }, errors
 
 
@@ -414,11 +431,15 @@ def render_report(summary: dict[str, Any]) -> str:
     lines.extend(["", "### Comparable rules", ""])
     for rule in validation["rules"]:
         if rule["classification"] == "comparable":
-            lines.append(f"- `{rule['rule_id']}` `{rule.get('severity')}` target=`{rule.get('target')}` check=`{rule.get('check')}` — {rule.get('source_excerpt')}")
+            lines.append(
+                f"- `{rule['rule_id']}` `{rule.get('severity')}` target=`{rule.get('target')}` check=`{rule.get('check')}` — {rule.get('source_excerpt')}"
+            )
     lines.extend(["", "### Advisory rules", ""])
     for rule in validation["rules"]:
         if rule["classification"] == "advisory":
-            lines.append(f"- `{rule['rule_id']}` `{rule.get('severity')}` target=`{rule.get('target')}` check=`{rule.get('check')}` — {rule.get('source_excerpt')}")
+            lines.append(
+                f"- `{rule['rule_id']}` `{rule.get('severity')}` target=`{rule.get('target')}` check=`{rule.get('check')}` — {rule.get('source_excerpt')}"
+            )
     lines.extend(["", "## Skipped/advisory fields", ""])
     for item in summary["expectations"]["skipped_fields"]:
         lines.append(f"- `{item['field']}` — {item['reason']}")
@@ -440,7 +461,11 @@ def build() -> BuildResult:
     """Build the normalized prior-art expectations and diagnostics."""
 
     inventory_assets, fatal_errors = load_inventory_assets()
-    validation_paths = sorted(VALIDATION_DIR.glob("*.yaml")) if VALIDATION_DIR.exists() else [VALIDATION_DIR / "semantic_rules.yaml", VALIDATION_DIR / "structural_rules.yaml"]
+    validation_paths = (
+        sorted(VALIDATION_DIR.glob("*.yaml"))
+        if VALIDATION_DIR.exists()
+        else [VALIDATION_DIR / "semantic_rules.yaml", VALIDATION_DIR / "structural_rules.yaml"]
+    )
     source_paths = [STRUCTURE_PATH, ARTICLES_PATH, *validation_paths]
     sources = [source_entry(path, inventory_assets) for path in source_paths]
 
@@ -454,15 +479,29 @@ def build() -> BuildResult:
     validation_rules, validation_errors = validation_rule_expectations(validation_paths)
     fatal_errors.extend(validation_errors)
 
-    structure_counts = structure_expectations(structure_payload if isinstance(structure_payload, dict) else {})
+    structure_counts = structure_expectations(
+        structure_payload if isinstance(structure_payload, dict) else {}
+    )
     article_counts = articles_expectations(articles_records)
     hash_drifts = [
-        compact_error("hash_drift", f"source hash does not match inventory for {source['path']}", path=source["path"], asset_id=source.get("asset_id"))
+        compact_error(
+            "hash_drift",
+            f"source hash does not match inventory for {source['path']}",
+            path=source["path"],
+            asset_id=source.get("asset_id"),
+        )
         for source in sources
-        if source.get("exists") and source.get("expected_sha256") and not source.get("hash_matches_expected")
+        if source.get("exists")
+        and source.get("expected_sha256")
+        and not source.get("hash_matches_expected")
     ]
     missing_sources = [
-        compact_error("missing_source", f"source is missing: {source['path']}", path=source["path"], asset_id=source.get("asset_id"))
+        compact_error(
+            "missing_source",
+            f"source is missing: {source['path']}",
+            path=source["path"],
+            asset_id=source.get("asset_id"),
+        )
         for source in sources
         if not source.get("exists")
     ]
@@ -494,7 +533,10 @@ def build() -> BuildResult:
 def write_artifacts(result: BuildResult) -> None:
     """Write generated artifacts deterministically."""
 
-    for relative_path, content in {JSON_PATH: result.summary_json, REPORT_PATH: result.report_md}.items():
+    for relative_path, content in {
+        JSON_PATH: result.summary_json,
+        REPORT_PATH: result.report_md,
+    }.items():
         path = ROOT / relative_path
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text(content, encoding="utf-8")
@@ -504,14 +546,19 @@ def check_artifacts(result: BuildResult) -> bool:
     """Return True when generated artifacts are fresh."""
 
     expected = {JSON_PATH: result.summary_json, REPORT_PATH: result.report_md}
-    return all((ROOT / path).exists() and (ROOT / path).read_text(encoding="utf-8") == content for path, content in expected.items())
+    return all(
+        (ROOT / path).exists() and (ROOT / path).read_text(encoding="utf-8") == content
+        for path, content in expected.items()
+    )
 
 
 def cli_payload(result: BuildResult, status: str) -> dict[str, Any]:
     """Return CLI diagnostics with artifact freshness populated."""
 
     output = dict(result.diagnostics)
-    output["artifact_freshness"] = freshness_map({JSON_PATH: result.summary_json, REPORT_PATH: result.report_md})
+    output["artifact_freshness"] = freshness_map(
+        {JSON_PATH: result.summary_json, REPORT_PATH: result.report_md}
+    )
     output["status"] = status
     return output
 
@@ -520,11 +567,15 @@ def main(argv: list[str] | None = None) -> int:
     """CLI entrypoint."""
 
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--check", action="store_true", help="verify generated artifacts are fresh without writing")
+    parser.add_argument(
+        "--check", action="store_true", help="verify generated artifacts are fresh without writing"
+    )
     args = parser.parse_args(argv)
 
     result = build()
-    if result.diagnostics.get("fatal_error_count", 0) or result.diagnostics.get("hash_drift_count", 0):
+    if result.diagnostics.get("fatal_error_count", 0) or result.diagnostics.get(
+        "hash_drift_count", 0
+    ):
         print(stable_json(cli_payload(result, "fail")), end="")
         return 1
 

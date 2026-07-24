@@ -19,7 +19,9 @@ HIERARCHY_JSONL_PATH = ROOT / "prd" / "parser" / "consultant_hierarchy_records.j
 
 
 def load_comparison_module():
-    spec = importlib.util.spec_from_file_location("compare_consultant_hierarchy_prior_art", SCRIPT_PATH)
+    spec = importlib.util.spec_from_file_location(
+        "compare_consultant_hierarchy_prior_art", SCRIPT_PATH
+    )
     assert spec is not None
     module = importlib.util.module_from_spec(spec)
     sys.modules[spec.name] = module
@@ -63,7 +65,9 @@ def test_generated_comparison_classifies_pass_accepted_and_needs_review_with_anc
     assert invalidity["expected"] == {"article": 11, "part": 41, "clause": 17, "subclause": 1}
     assert invalidity["observed"] == {"article": 10, "part": 40, "clause": 19, "subclause": 1}
     assert invalidity["evidence_anchors"]
-    assert {"record_id", "source_sha256", "excerpt_sha256", "excerpt"} <= set(invalidity["evidence_anchors"][0])
+    assert {"record_id", "source_sha256", "excerpt_sha256", "excerpt"} <= set(
+        invalidity["evidence_anchors"][0]
+    )
 
     report = REPORT_PATH.read_text(encoding="utf-8")
     assert "non-authoritative" in report
@@ -122,8 +126,12 @@ def test_compare_blocks_major_structure_parent_breakage():
     module = load_comparison_module()
     expectations = json.loads(EXPECTATIONS_PATH.read_text(encoding="utf-8"))
     records = hierarchy_records()
-    first_article_index = next(index for index, record in enumerate(records) if record.level == "article")
-    records[first_article_index] = records[first_article_index].model_copy(update={"parent_id": "HIER-CONS-MISSING-PARENT"})
+    first_article_index = next(
+        index for index, record in enumerate(records) if record.level == "article"
+    )
+    records[first_article_index] = records[first_article_index].model_copy(
+        update={"parent_id": "HIER-CONS-MISSING-PARENT"}
+    )
 
     payload = module.compare(expectations, records, [])
     checks = {check["check_id"]: check for check in payload["checks"]}
@@ -131,14 +139,18 @@ def test_compare_blocks_major_structure_parent_breakage():
     assert payload["overall_status"] == "blocked"
     assert checks["STRUCT-PARENTS-AND-ORDER"]["status"] == "blocked"
     assert checks["STRUCT-PARENTS-AND-ORDER"]["observed"]["missing_parent_count"] == 1
-    assert checks["STRUCT-PARENTS-AND-ORDER"]["evidence_anchors"][0]["record_id"].startswith("HIER-CONS-ARTICLE")
+    assert checks["STRUCT-PARENTS-AND-ORDER"]["evidence_anchors"][0]["record_id"].startswith(
+        "HIER-CONS-ARTICLE"
+    )
 
 
 def test_compare_blocks_malformed_input_diagnostics():
     module = load_comparison_module()
     expectations = json.loads(EXPECTATIONS_PATH.read_text(encoding="utf-8"))
 
-    payload = module.compare(expectations, hierarchy_records(), [{"rule": "json_invalid", "record_id": None}])
+    payload = module.compare(
+        expectations, hierarchy_records(), [{"rule": "json_invalid", "record_id": None}]
+    )
     checks = {check["check_id"]: check for check in payload["checks"]}
 
     assert payload["overall_status"] == "blocked"

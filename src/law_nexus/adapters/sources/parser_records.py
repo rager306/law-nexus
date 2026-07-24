@@ -74,7 +74,9 @@ class ParserRecordBase(StrictRecordModel):
         if value.startswith("/") or path.is_absolute():
             raise ValueError("source_path must be repository-relative, not absolute")
         if any(part in {"", ".", ".."} for part in path.parts):
-            raise ValueError("source_path must not contain empty, current, or parent traversal parts")
+            raise ValueError(
+                "source_path must not contain empty, current, or parent traversal parts"
+            )
         return value
 
     @field_validator("non_claims")
@@ -92,7 +94,9 @@ class DocumentRecord(ParserRecordBase):
     id: str = Field(pattern=r"^DOC-.+")
     title: str = Field(min_length=1, max_length=240)
     act_id: str | None = Field(default=None, pattern=r"^[a-z]+:[^@]+@\d{4}-\d{2}-\d{2}$")
-    edition_id: str | None = Field(default=None, pattern=r"^[a-z]+:[^@]+@\d{4}-\d{2}-\d{2}#red-\d{4}-\d{2}-\d{2}$")
+    edition_id: str | None = Field(
+        default=None, pattern=r"^[a-z]+:[^@]+@\d{4}-\d{2}-\d{2}#red-\d{4}-\d{2}-\d{2}$"
+    )
 
 
 class SourceBlockRecord(ParserRecordBase):
@@ -138,7 +142,9 @@ class ConsultantHierarchyRecord(ParserRecordBase):
     location: LocationRecord
     excerpt: str = Field(min_length=1, max_length=MAX_EXCERPT_CHARS)
     excerpt_sha256: Sha256
-    edition_id: str | None = Field(default=None, pattern=r"^[a-z]+:[^@]+@\d{4}-\d{2}-\d{2}#red-\d{4}-\d{2}-\d{2}$")
+    edition_id: str | None = Field(
+        default=None, pattern=r"^[a-z]+:[^@]+@\d{4}-\d{2}-\d{2}#red-\d{4}-\d{2}-\d{2}$"
+    )
 
     @model_validator(mode="after")
     def validate_marker_for_known_levels(self) -> ConsultantHierarchyRecord:
@@ -189,7 +195,12 @@ def validation_error_to_diagnostic(
     """Convert one Pydantic error into a compact deterministic diagnostic."""
 
     location = [str(part) for part in error.get("loc", ()) if str(part) not in {"tagged-union"}]
-    if location and location[0] in {"document", "source_block", "consultant_hierarchy", "relation_candidate"}:
+    if location and location[0] in {
+        "document",
+        "source_block",
+        "consultant_hierarchy",
+        "relation_candidate",
+    }:
         location = location[1:]
     field = ".".join(location) if location else "record"
     return {
@@ -223,7 +234,9 @@ def json_error_to_diagnostic(*, file_path: Path, line_number: int, message: str)
     }
 
 
-def load_jsonl_records(path: Path, *, max_diagnostics: int = MAX_DIAGNOSTICS_PER_FILE) -> tuple[list[ParserRecord], list[dict[str, Any]]]:
+def load_jsonl_records(
+    path: Path, *, max_diagnostics: int = MAX_DIAGNOSTICS_PER_FILE
+) -> tuple[list[ParserRecord], list[dict[str, Any]]]:
     """Load parser records from JSONL with bounded deterministic diagnostics."""
 
     records: list[ParserRecord] = []

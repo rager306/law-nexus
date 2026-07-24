@@ -27,9 +27,17 @@ from types import ModuleType
 from typing import Any, Literal, Protocol, cast
 
 ROOT = Path(__file__).resolve().parents[1]
-FIXTURE_PATH = ROOT / "prd/research/ontology_architecture_requirements/ontology_graphrag_proof_cases.json"
-DEFAULT_REPORT = ROOT / "prd/research/ontology_architecture_requirements/ontology_graphrag_runtime_integration_proof.json"
-DEFAULT_MARKDOWN_REPORT = ROOT / "prd/research/ontology_architecture_requirements/13-r035-runtime-integration-remediation.md"
+FIXTURE_PATH = (
+    ROOT / "prd/research/ontology_architecture_requirements/ontology_graphrag_proof_cases.json"
+)
+DEFAULT_REPORT = (
+    ROOT
+    / "prd/research/ontology_architecture_requirements/ontology_graphrag_runtime_integration_proof.json"
+)
+DEFAULT_MARKDOWN_REPORT = (
+    ROOT
+    / "prd/research/ontology_architecture_requirements/13-r035-runtime-integration-remediation.md"
+)
 INTEGRATION_PROOF_PATH = ROOT / "scripts/verify-ontology-graphrag-integration-proof.py"
 RUNTIME_CHECK_PATH = ROOT / "scripts/check-local-retrieval-runtime.py"
 FALKORDB_PROOF_PATH = ROOT / "scripts/prove-legalgraph-shaped-falkordb.py"
@@ -166,7 +174,9 @@ def bounded_path(path: Path) -> str:
         return "<outside-project>"
 
 
-def phase(status: PhaseStatus, diagnostic_codes: Sequence[str] = (), **details: Any) -> dict[str, Any]:
+def phase(
+    status: PhaseStatus, diagnostic_codes: Sequence[str] = (), **details: Any
+) -> dict[str, Any]:
     if status not in STATUS_VOCABULARY:
         raise RuntimeIntegrationProofError("invalid phase status")
     payload: dict[str, Any] = {"status": status, "diagnostic_codes": sorted(set(diagnostic_codes))}
@@ -271,7 +281,11 @@ def base_summary(report_output: Path) -> dict[str, Any]:
             "diagnostic_codes": ["RIP_NOT_RUN"],
         },
         "runtime_disposition": "not_run",
-        "container_runtime": {"mode": "not_requested", "status": "not_run", "cleanup_status": "not_needed"},
+        "container_runtime": {
+            "mode": "not_requested",
+            "status": "not_run",
+            "cleanup_status": "not_needed",
+        },
         "cleanup_status": "not_needed",
         "r035_lifecycle_disposition": "remains_active_runtime_contract_only",
         "gate_disposition": "gate_remains_open",
@@ -282,26 +296,57 @@ def base_summary(report_output: Path) -> dict[str, Any]:
 def _safe_embedding_phase(runtime_report: Mapping[str, Any]) -> dict[str, Any]:
     status = runtime_report.get("runtime_status")
     diagnostic_value = runtime_report.get("diagnostic_codes")
-    diagnostic_codes = [str(code) for code in diagnostic_value] if isinstance(diagnostic_value, list) else []
+    diagnostic_codes = (
+        [str(code) for code in diagnostic_value] if isinstance(diagnostic_value, list) else []
+    )
     if status == "confirmed_runtime":
-        return phase("passed", diagnostic_codes, runtime_status=status, model_id=runtime_report.get("model_id"), execution_mode=runtime_report.get("execution_mode"))
-    if status in {"blocked_environment", "blocked_model_unavailable", "not_run_contract_only", "blocked_policy_violation"}:
-        return phase("blocked", diagnostic_codes or ["RIP_EMBEDDING_RUNTIME_BLOCKED"], runtime_status=status)
-    return phase("failed_closed", diagnostic_codes or ["RIP_EMBEDDING_RUNTIME_FAILED_CLOSED"], runtime_status=status or "<missing>")
+        return phase(
+            "passed",
+            diagnostic_codes,
+            runtime_status=status,
+            model_id=runtime_report.get("model_id"),
+            execution_mode=runtime_report.get("execution_mode"),
+        )
+    if status in {
+        "blocked_environment",
+        "blocked_model_unavailable",
+        "not_run_contract_only",
+        "blocked_policy_violation",
+    }:
+        return phase(
+            "blocked", diagnostic_codes or ["RIP_EMBEDDING_RUNTIME_BLOCKED"], runtime_status=status
+        )
+    return phase(
+        "failed_closed",
+        diagnostic_codes or ["RIP_EMBEDDING_RUNTIME_FAILED_CLOSED"],
+        runtime_status=status or "<missing>",
+    )
 
 
-def _safe_falkordb_phase(falkordb_report: Mapping[str, Any] | None, *, explicit_blocked_mode: bool) -> dict[str, Any]:
+def _safe_falkordb_phase(
+    falkordb_report: Mapping[str, Any] | None, *, explicit_blocked_mode: bool
+) -> dict[str, Any]:
     if falkordb_report is None:
         if explicit_blocked_mode:
-            return phase("blocked", ["RIP_FALKORDB_RUNTIME_NOT_AVAILABLE"], evidence_class="blocked_rescope")
+            return phase(
+                "blocked", ["RIP_FALKORDB_RUNTIME_NOT_AVAILABLE"], evidence_class="blocked_rescope"
+            )
         return phase("failed_closed", ["RIP_FALKORDB_RUNTIME_REQUIRED"], evidence_class="missing")
     status = falkordb_report.get("status")
     if status in {"confirmed-runtime", "confirmed_runtime"}:
         return phase("passed", [], evidence_class="synthetic_runtime", runtime_status=status)
     if status in {"blocked-environment", "blocked_environment"} and explicit_blocked_mode:
-        return phase("blocked", ["RIP_FALKORDB_RUNTIME_BLOCKED"], evidence_class="blocked_rescope", runtime_status=status)
-    return phase("failed_closed", ["RIP_FALKORDB_RUNTIME_FAILED_CLOSED"], runtime_status=status or "<missing>")
-
+        return phase(
+            "blocked",
+            ["RIP_FALKORDB_RUNTIME_BLOCKED"],
+            evidence_class="blocked_rescope",
+            runtime_status=status,
+        )
+    return phase(
+        "failed_closed",
+        ["RIP_FALKORDB_RUNTIME_FAILED_CLOSED"],
+        runtime_status=status or "<missing>",
+    )
 
 
 def _safe_id(value: Any) -> str:
@@ -319,7 +364,6 @@ def _fixture_cases() -> list[Mapping[str, Any]]:
     if not isinstance(cases, list):
         return []
     return [case for case in cases if isinstance(case, Mapping)]
-
 
 
 def _strict_route_id(value: Any, field: str) -> str:
@@ -376,29 +420,69 @@ def _source_backed_route_inputs(data: Mapping[str, Any]) -> dict[str, Any]:
     if not isinstance(graph, Mapping) or not isinstance(cases, list):
         raise RuntimeIntegrationProofError("validator_fixture_graph and cases are required")
 
-    accepted_case = next((case for case in cases if isinstance(case, Mapping) and case.get("expected_result") == "accepted"), None)
-    negative_case = next((case for case in cases if isinstance(case, Mapping) and case.get("case_class") == "inactive_or_wrong_edition_excluded"), None)
+    accepted_case = next(
+        (
+            case
+            for case in cases
+            if isinstance(case, Mapping) and case.get("expected_result") == "accepted"
+        ),
+        None,
+    )
+    negative_case = next(
+        (
+            case
+            for case in cases
+            if isinstance(case, Mapping)
+            and case.get("case_class") == "inactive_or_wrong_edition_excluded"
+        ),
+        None,
+    )
     if not isinstance(accepted_case, Mapping) or not isinstance(negative_case, Mapping):
-        raise RuntimeIntegrationProofError("source-backed positive and temporal negative cases are required")
+        raise RuntimeIntegrationProofError(
+            "source-backed positive and temporal negative cases are required"
+        )
 
     accepted_candidates = accepted_case.get("candidate_set")
     negative_candidates = negative_case.get("candidate_set")
     output = accepted_case.get("output")
     citations = output.get("citations") if isinstance(output, Mapping) else None
     scope = output.get("scope") if isinstance(output, Mapping) else None
-    if not isinstance(accepted_candidates, list) or len(accepted_candidates) != 1 or not isinstance(accepted_candidates[0], Mapping):
-        raise RuntimeIntegrationProofError("source-backed route requires exactly one accepted candidate")
-    if not isinstance(negative_candidates, list) or len(negative_candidates) != 1 or not isinstance(negative_candidates[0], Mapping):
-        raise RuntimeIntegrationProofError("source-backed route requires exactly one wrong-edition negative candidate")
-    if not isinstance(citations, list) or len(citations) != 1 or not isinstance(citations[0], Mapping) or not isinstance(scope, Mapping):
-        raise RuntimeIntegrationProofError("source-backed route requires one safe citation and scope")
+    if (
+        not isinstance(accepted_candidates, list)
+        or len(accepted_candidates) != 1
+        or not isinstance(accepted_candidates[0], Mapping)
+    ):
+        raise RuntimeIntegrationProofError(
+            "source-backed route requires exactly one accepted candidate"
+        )
+    if (
+        not isinstance(negative_candidates, list)
+        or len(negative_candidates) != 1
+        or not isinstance(negative_candidates[0], Mapping)
+    ):
+        raise RuntimeIntegrationProofError(
+            "source-backed route requires exactly one wrong-edition negative candidate"
+        )
+    if (
+        not isinstance(citations, list)
+        or len(citations) != 1
+        or not isinstance(citations[0], Mapping)
+        or not isinstance(scope, Mapping)
+    ):
+        raise RuntimeIntegrationProofError(
+            "source-backed route requires one safe citation and scope"
+        )
 
     candidate = accepted_candidates[0]
     negative_candidate = negative_candidates[0]
     citation = citations[0]
     ontology_values = candidate.get("ontology_values")
-    if not isinstance(ontology_values, list) or not SOURCE_BACKED_REQUIRED_ONTOLOGY_VALUES.issubset(set(str(value) for value in ontology_values)):
-        raise RuntimeIntegrationProofError("accepted candidate does not carry required ontology/gate/current markers")
+    if not isinstance(ontology_values, list) or not SOURCE_BACKED_REQUIRED_ONTOLOGY_VALUES.issubset(
+        set(str(value) for value in ontology_values)
+    ):
+        raise RuntimeIntegrationProofError(
+            "accepted candidate does not carry required ontology/gate/current markers"
+        )
 
     act_editions = _items_by_id(graph.get("act_editions"), "act_edition_id")
     source_blocks = _items_by_id(graph.get("source_blocks"), "source_block_id")
@@ -408,7 +492,9 @@ def _source_backed_route_inputs(data: Mapping[str, Any]) -> dict[str, Any]:
         raise RuntimeIntegrationProofError("validator_fixture_graph.citation_bindings missing")
 
     act_edition_id = _strict_route_id(candidate.get("act_edition_id"), "candidate.act_edition_id")
-    evidence_span_id = _strict_route_id(candidate.get("evidence_span_id"), "candidate.evidence_span_id")
+    evidence_span_id = _strict_route_id(
+        candidate.get("evidence_span_id"), "candidate.evidence_span_id"
+    )
     citation_key = _strict_route_id(candidate.get("citation_key"), "candidate.citation_key")
     source_block_id = _strict_route_id(citation.get("source_block_id"), "citation.source_block_id")
     scope_id = _strict_route_id(scope.get("scope_id"), "scope.scope_id")
@@ -417,9 +503,17 @@ def _source_backed_route_inputs(data: Mapping[str, Any]) -> dict[str, Any]:
     evidence_span = evidence_spans.get(evidence_span_id)
     source_block = source_blocks.get(source_block_id)
     if not act_edition or act_edition.get("status") != "active":
-        raise RuntimeIntegrationProofError("accepted candidate act edition is not active in fixture graph")
-    if not evidence_span or evidence_span.get("status") != "active" or evidence_span.get("source_block_id") != source_block_id:
-        raise RuntimeIntegrationProofError("accepted candidate evidence span is not source-block bound")
+        raise RuntimeIntegrationProofError(
+            "accepted candidate act edition is not active in fixture graph"
+        )
+    if (
+        not evidence_span
+        or evidence_span.get("status") != "active"
+        or evidence_span.get("source_block_id") != source_block_id
+    ):
+        raise RuntimeIntegrationProofError(
+            "accepted candidate evidence span is not source-block bound"
+        )
     if not source_block or source_block.get("status") != "active":
         raise RuntimeIntegrationProofError("accepted candidate source block is not active")
     binding = next(
@@ -438,36 +532,65 @@ def _source_backed_route_inputs(data: Mapping[str, Any]) -> dict[str, Any]:
         raise RuntimeIntegrationProofError("unique citation/evidence binding is missing")
 
     temporal_value = accepted_case.get("temporal_filter")
-    temporal = cast(Mapping[str, Any], temporal_value) if isinstance(temporal_value, Mapping) else {}
+    temporal = (
+        cast(Mapping[str, Any], temporal_value) if isinstance(temporal_value, Mapping) else {}
+    )
     negative_temporal_value = negative_case.get("temporal_filter")
-    negative_temporal = cast(Mapping[str, Any], negative_temporal_value) if isinstance(negative_temporal_value, Mapping) else {}
+    negative_temporal = (
+        cast(Mapping[str, Any], negative_temporal_value)
+        if isinstance(negative_temporal_value, Mapping)
+        else {}
+    )
     return {
         "candidate_id": _strict_route_id(candidate.get("candidate_id"), "candidate.candidate_id"),
-        "source_record_id": _strict_route_id(candidate.get("source_record_id"), "candidate.source_record_id"),
+        "source_record_id": _strict_route_id(
+            candidate.get("source_record_id"), "candidate.source_record_id"
+        ),
         "citation_key": citation_key,
         "evidence_span_id": evidence_span_id,
         "act_edition_id": act_edition_id,
-        "legal_act_id": _strict_route_id(act_edition.get("legal_act_id"), "act_edition.legal_act_id"),
-        "act_source_hash": _strict_hash(act_edition.get("source_sha256"), "act_edition.source_sha256"),
+        "legal_act_id": _strict_route_id(
+            act_edition.get("legal_act_id"), "act_edition.legal_act_id"
+        ),
+        "act_source_hash": _strict_hash(
+            act_edition.get("source_sha256"), "act_edition.source_sha256"
+        ),
         "valid_from": _strict_route_id(act_edition.get("valid_from"), "act_edition.valid_from"),
-        "valid_to": _strict_route_id(act_edition.get("valid_to") or "9999-12-31", "act_edition.valid_to"),
+        "valid_to": _strict_route_id(
+            act_edition.get("valid_to") or "9999-12-31", "act_edition.valid_to"
+        ),
         "source_block_id": source_block_id,
-        "source_document_id": _strict_route_id(citation.get("source_document_id"), "citation.source_document_id"),
+        "source_document_id": _strict_route_id(
+            citation.get("source_document_id"), "citation.source_document_id"
+        ),
         "legal_unit_id": _strict_route_id(citation.get("legal_unit_id"), "citation.legal_unit_id"),
-        "source_block_hash": _strict_hash(source_block.get("excerpt_sha256"), "source_block.excerpt_sha256"),
-        "evidence_span_hash": _strict_hash(evidence_span.get("excerpt_sha256"), "evidence_span.excerpt_sha256"),
+        "source_block_hash": _strict_hash(
+            source_block.get("excerpt_sha256"), "source_block.excerpt_sha256"
+        ),
+        "evidence_span_hash": _strict_hash(
+            evidence_span.get("excerpt_sha256"), "evidence_span.excerpt_sha256"
+        ),
         "scope_id": scope_id,
         "as_of_date": _strict_route_id(temporal.get("as_of_date"), "temporal.as_of_date"),
-        "negative_candidate_id": _strict_route_id(negative_candidate.get("candidate_id"), "negative_candidate.candidate_id"),
-        "negative_act_edition_id": _strict_route_id(negative_candidate.get("act_edition_id"), "negative_candidate.act_edition_id"),
-        "negative_expected_temporal_result": _strict_route_id(negative_temporal.get("expected_temporal_result"), "negative_temporal.expected_temporal_result"),
+        "negative_candidate_id": _strict_route_id(
+            negative_candidate.get("candidate_id"), "negative_candidate.candidate_id"
+        ),
+        "negative_act_edition_id": _strict_route_id(
+            negative_candidate.get("act_edition_id"), "negative_candidate.act_edition_id"
+        ),
+        "negative_expected_temporal_result": _strict_route_id(
+            negative_temporal.get("expected_temporal_result"),
+            "negative_temporal.expected_temporal_result",
+        ),
         "ontology_core": "DATA-LEGAL-EVIDENCE-CORE",
         "ontology_gate": "GATE-ONTOLOGY-GRAPHRAG-INTEGRATION",
         "current_marker": "current_version",
     }
 
 
-def build_source_backed_fixture_route_report(graph: SourceBackedGraph, fixture_data: Mapping[str, Any] | None = None) -> dict[str, Any]:
+def build_source_backed_fixture_route_report(
+    graph: SourceBackedGraph, fixture_data: Mapping[str, Any] | None = None
+) -> dict[str, Any]:
     data = fixture_data if fixture_data is not None else _load_fixture_data()
     route = _source_backed_route_inputs(data)
     started = time.monotonic()
@@ -475,25 +598,25 @@ def build_source_backed_fixture_route_report(graph: SourceBackedGraph, fixture_d
     graph.query(
         f"""
         CREATE
-          (:Candidate {{id:'{route['candidate_id']}', status:'accepted', source_record_id:'{route['source_record_id']}', ontology_core:'{route['ontology_core']}', ontology_gate:'{route['ontology_gate']}', current_marker:'{route['current_marker']}', act_edition_id:'{route['act_edition_id']}', citation_key:'{route['citation_key']}', evidence_span_id:'{route['evidence_span_id']}'}}),
-          (:Candidate {{id:'{route['negative_candidate_id']}', status:'rejected', source_record_id:'{route['source_record_id']}', ontology_core:'{route['ontology_core']}', ontology_gate:'{route['ontology_gate']}', current_marker:'wrong_edition', act_edition_id:'{route['negative_act_edition_id']}', citation_key:'{route['citation_key']}', evidence_span_id:'{route['evidence_span_id']}'}}),
-          (:ActEdition {{id:'{route['act_edition_id']}', legal_act_id:'{route['legal_act_id']}', status:'active', valid_from:'{route['valid_from']}', valid_to:'{route['valid_to']}', source_hash:'{route['act_source_hash']}'}}),
-          (:ActEdition {{id:'{route['negative_act_edition_id']}', legal_act_id:'{route['legal_act_id']}', status:'inactive', valid_from:'1900-01-01', valid_to:'1901-01-01', source_hash:'{route['act_source_hash']}'}}),
-          (:SourceBlock {{id:'{route['source_block_id']}', source_document_id:'{route['source_document_id']}', source_record_id:'{route['source_record_id']}', block_hash:'{route['source_block_hash']}', status:'active'}}),
-          (:EvidenceSpan {{id:'{route['evidence_span_id']}', legal_unit_id:'{route['legal_unit_id']}', span_hash:'{route['evidence_span_hash']}', status:'active'}}),
-          (:CitationBinding {{id:'{route['citation_key']}:{route['evidence_span_id']}', citation_key:'{route['citation_key']}', evidence_span_id:'{route['evidence_span_id']}', scope_id:'{route['scope_id']}', binding_role:'unique'}})
+          (:Candidate {{id:'{route["candidate_id"]}', status:'accepted', source_record_id:'{route["source_record_id"]}', ontology_core:'{route["ontology_core"]}', ontology_gate:'{route["ontology_gate"]}', current_marker:'{route["current_marker"]}', act_edition_id:'{route["act_edition_id"]}', citation_key:'{route["citation_key"]}', evidence_span_id:'{route["evidence_span_id"]}'}}),
+          (:Candidate {{id:'{route["negative_candidate_id"]}', status:'rejected', source_record_id:'{route["source_record_id"]}', ontology_core:'{route["ontology_core"]}', ontology_gate:'{route["ontology_gate"]}', current_marker:'wrong_edition', act_edition_id:'{route["negative_act_edition_id"]}', citation_key:'{route["citation_key"]}', evidence_span_id:'{route["evidence_span_id"]}'}}),
+          (:ActEdition {{id:'{route["act_edition_id"]}', legal_act_id:'{route["legal_act_id"]}', status:'active', valid_from:'{route["valid_from"]}', valid_to:'{route["valid_to"]}', source_hash:'{route["act_source_hash"]}'}}),
+          (:ActEdition {{id:'{route["negative_act_edition_id"]}', legal_act_id:'{route["legal_act_id"]}', status:'inactive', valid_from:'1900-01-01', valid_to:'1901-01-01', source_hash:'{route["act_source_hash"]}'}}),
+          (:SourceBlock {{id:'{route["source_block_id"]}', source_document_id:'{route["source_document_id"]}', source_record_id:'{route["source_record_id"]}', block_hash:'{route["source_block_hash"]}', status:'active'}}),
+          (:EvidenceSpan {{id:'{route["evidence_span_id"]}', legal_unit_id:'{route["legal_unit_id"]}', span_hash:'{route["evidence_span_hash"]}', status:'active'}}),
+          (:CitationBinding {{id:'{route["citation_key"]}:{route["evidence_span_id"]}', citation_key:'{route["citation_key"]}', evidence_span_id:'{route["evidence_span_id"]}', scope_id:'{route["scope_id"]}', binding_role:'unique'}})
         """
     )
     graph.query(
         f"""
         MATCH
-          (candidate:Candidate {{id:'{route['candidate_id']}'}}),
-          (negative:Candidate {{id:'{route['negative_candidate_id']}'}}),
-          (edition:ActEdition {{id:'{route['act_edition_id']}'}}),
-          (negativeEdition:ActEdition {{id:'{route['negative_act_edition_id']}'}}),
-          (block:SourceBlock {{id:'{route['source_block_id']}'}}),
-          (span:EvidenceSpan {{id:'{route['evidence_span_id']}'}}),
-          (binding:CitationBinding {{citation_key:'{route['citation_key']}', evidence_span_id:'{route['evidence_span_id']}'}})
+          (candidate:Candidate {{id:'{route["candidate_id"]}'}}),
+          (negative:Candidate {{id:'{route["negative_candidate_id"]}'}}),
+          (edition:ActEdition {{id:'{route["act_edition_id"]}'}}),
+          (negativeEdition:ActEdition {{id:'{route["negative_act_edition_id"]}'}}),
+          (block:SourceBlock {{id:'{route["source_block_id"]}'}}),
+          (span:EvidenceSpan {{id:'{route["evidence_span_id"]}'}}),
+          (binding:CitationBinding {{citation_key:'{route["citation_key"]}', evidence_span_id:'{route["evidence_span_id"]}'}})
         CREATE
           (candidate)-[:HAS_EDITION]->(edition),
           (negative)-[:HAS_EDITION]->(negativeEdition),
@@ -507,20 +630,32 @@ def build_source_backed_fixture_route_report(graph: SourceBackedGraph, fixture_d
     positive_rows, positive_duration = _route_rows(
         graph,
         f"""
-        MATCH (candidate:Candidate {{id:'{route['candidate_id']}', status:'accepted'}})-[:HAS_EDITION]->(edition:ActEdition {{status:'active'}})
+        MATCH (candidate:Candidate {{id:'{route["candidate_id"]}', status:'accepted'}})-[:HAS_EDITION]->(edition:ActEdition {{status:'active'}})
         MATCH (candidate)-[:CITES_WITH]->(binding:CitationBinding {{binding_role:'unique'}})-[:BINDS_EVIDENCE]->(span:EvidenceSpan {{status:'active'}})-[:IN_BLOCK]->(block:SourceBlock {{status:'active'}})
-        WHERE candidate.ontology_core = '{route['ontology_core']}'
-          AND candidate.ontology_gate = '{route['ontology_gate']}'
-          AND candidate.current_marker = '{route['current_marker']}'
-          AND edition.valid_from <= '{route['as_of_date']}'
-          AND '{route['as_of_date']}' < edition.valid_to
+        WHERE candidate.ontology_core = '{route["ontology_core"]}'
+          AND candidate.ontology_gate = '{route["ontology_gate"]}'
+          AND candidate.current_marker = '{route["current_marker"]}'
+          AND edition.valid_from <= '{route["as_of_date"]}'
+          AND '{route["as_of_date"]}' < edition.valid_to
           AND candidate.citation_key = binding.citation_key
           AND candidate.evidence_span_id = span.id
         RETURN candidate.id, edition.id, block.id, span.id, binding.citation_key
         """,
     )
-    observed_candidate_id, observed_edition_id, observed_block_id, observed_span_id, observed_citation_key = _single_row(positive_rows, "source-backed-positive-route")
-    positive_ok = [observed_candidate_id, observed_edition_id, observed_block_id, observed_span_id, observed_citation_key] == [
+    (
+        observed_candidate_id,
+        observed_edition_id,
+        observed_block_id,
+        observed_span_id,
+        observed_citation_key,
+    ) = _single_row(positive_rows, "source-backed-positive-route")
+    positive_ok = [
+        observed_candidate_id,
+        observed_edition_id,
+        observed_block_id,
+        observed_span_id,
+        observed_citation_key,
+    ] == [
         route["candidate_id"],
         route["act_edition_id"],
         route["source_block_id"],
@@ -531,12 +666,12 @@ def build_source_backed_fixture_route_report(graph: SourceBackedGraph, fixture_d
     negative_rows, negative_duration = _route_rows(
         graph,
         f"""
-        MATCH (candidate:Candidate {{id:'{route['negative_candidate_id']}'}})-[:HAS_EDITION]->(edition:ActEdition)
+        MATCH (candidate:Candidate {{id:'{route["negative_candidate_id"]}'}})-[:HAS_EDITION]->(edition:ActEdition)
         WHERE candidate.status = 'accepted'
-          AND candidate.current_marker = '{route['current_marker']}'
+          AND candidate.current_marker = '{route["current_marker"]}'
           AND edition.status = 'active'
-          AND edition.valid_from <= '{route['as_of_date']}'
-          AND '{route['as_of_date']}' < edition.valid_to
+          AND edition.valid_from <= '{route["as_of_date"]}'
+          AND '{route["as_of_date"]}' < edition.valid_to
         RETURN count(candidate)
         """,
     )
@@ -567,7 +702,8 @@ def build_source_backed_fixture_route_report(graph: SourceBackedGraph, fixture_d
             "status": "passed" if positive_ok else "failed_closed",
             "ontology_gate_preserved": observed_candidate_id == route["candidate_id"],
             "temporal_current_edition_preserved": observed_edition_id == route["act_edition_id"],
-            "sourceblock_evidencespan_binding_preserved": [observed_block_id, observed_span_id] == [route["source_block_id"], route["evidence_span_id"]],
+            "sourceblock_evidencespan_binding_preserved": [observed_block_id, observed_span_id]
+            == [route["source_block_id"], route["evidence_span_id"]],
             "citation_binding_preserved": observed_citation_key == route["citation_key"],
             "duration_ms": positive_duration,
         },
@@ -589,9 +725,18 @@ def _s08_source_backed_graph_route(
 ) -> dict[str, Any]:
     if source_backed_route_report is None:
         return _s08_graph_route(falkordb_report, falkordb_phase)
-    runtime_status = falkordb_phase.get("runtime_status") or (falkordb_report.get("status") if isinstance(falkordb_report, Mapping) else "missing")
-    codes = source_backed_route_report.get("diagnostic_codes") if isinstance(source_backed_route_report.get("diagnostic_codes"), list) else []
-    if source_backed_route_report.get("status") == "passed" and falkordb_phase.get("status") == "passed":
+    runtime_status = falkordb_phase.get("runtime_status") or (
+        falkordb_report.get("status") if isinstance(falkordb_report, Mapping) else "missing"
+    )
+    codes = (
+        source_backed_route_report.get("diagnostic_codes")
+        if isinstance(source_backed_route_report.get("diagnostic_codes"), list)
+        else []
+    )
+    if (
+        source_backed_route_report.get("status") == "passed"
+        and falkordb_phase.get("status") == "passed"
+    ):
         return {
             "status": "confirmed_source_backed_local_route",
             "route_class": SOURCE_BACKED_ROUTE_CLASS,
@@ -609,18 +754,26 @@ def _s08_source_backed_graph_route(
         "route_class": SOURCE_BACKED_ROUTE_CLASS,
         "falkordb_runtime_status": _safe_id(runtime_status),
         "real_artifact_graph_querying_proven": False,
-        "candidate_query_execution_performed": bool(source_backed_route_report.get("candidate_query_execution_performed")),
+        "candidate_query_execution_performed": bool(
+            source_backed_route_report.get("candidate_query_execution_performed")
+        ),
         "positive_falkordb_validation_claim": False,
         "selected_safe_ids": source_backed_route_report.get("selected_safe_ids", {}),
         "positive_route": source_backed_route_report.get("positive_route", {}),
         "negative_route": source_backed_route_report.get("negative_route", {}),
-        "diagnostic_codes": sorted(str(code) for code in (codes or ["RIP_SOURCE_BACKED_ROUTE_FAILED_CLOSED"])),
+        "diagnostic_codes": sorted(
+            str(code) for code in (codes or ["RIP_SOURCE_BACKED_ROUTE_FAILED_CLOSED"])
+        ),
     }
 
 
-def _s08_graph_route(falkordb_report: Mapping[str, Any] | None, falkordb_phase: Mapping[str, Any]) -> dict[str, Any]:
+def _s08_graph_route(
+    falkordb_report: Mapping[str, Any] | None, falkordb_phase: Mapping[str, Any]
+) -> dict[str, Any]:
     phase_status = falkordb_phase.get("status")
-    runtime_status = falkordb_phase.get("runtime_status") or (falkordb_report.get("status") if isinstance(falkordb_report, Mapping) else "missing")
+    runtime_status = falkordb_phase.get("runtime_status") or (
+        falkordb_report.get("status") if isinstance(falkordb_report, Mapping) else "missing"
+    )
     codes_value = falkordb_phase.get("diagnostic_codes")
     codes = [str(code) for code in codes_value] if isinstance(codes_value, list) else []
     if phase_status == "passed":
@@ -650,11 +803,15 @@ def _s08_graph_route(falkordb_report: Mapping[str, Any] | None, falkordb_phase: 
         "real_artifact_graph_querying_proven": False,
         "candidate_query_execution_performed": False,
         "positive_falkordb_validation_claim": False,
-        "diagnostic_codes": sorted(str(code) for code in (codes or ["RIP_FALKORDB_RUNTIME_FAILED_CLOSED"])),
+        "diagnostic_codes": sorted(
+            str(code) for code in (codes or ["RIP_FALKORDB_RUNTIME_FAILED_CLOSED"])
+        ),
     }
 
 
-def _s08_embedding_candidate_ranking(embedding_report: Mapping[str, Any], embedding_phase: Mapping[str, Any]) -> dict[str, Any]:
+def _s08_embedding_candidate_ranking(
+    embedding_report: Mapping[str, Any], embedding_phase: Mapping[str, Any]
+) -> dict[str, Any]:
     runtime_status = _safe_id(embedding_report.get("runtime_status"))
     base = {
         "embedding_runtime": runtime_status,
@@ -665,12 +822,16 @@ def _s08_embedding_candidate_ranking(embedding_report: Mapping[str, Any], embedd
     }
     if embedding_phase.get("status") != "passed":
         return {
-            "status": "unavailable_blocked_runtime" if embedding_phase.get("status") == "blocked" else "unavailable_failed_closed",
+            "status": "unavailable_blocked_runtime"
+            if embedding_phase.get("status") == "blocked"
+            else "unavailable_failed_closed",
             **base,
             "selected_rank": None,
             "selected_candidate_id": None,
             "candidates": [],
-            "diagnostic_codes": [str(code) for code in embedding_phase.get("diagnostic_codes", [])] if isinstance(embedding_phase.get("diagnostic_codes"), list) else [],
+            "diagnostic_codes": [str(code) for code in embedding_phase.get("diagnostic_codes", [])]
+            if isinstance(embedding_phase.get("diagnostic_codes"), list)
+            else [],
         }
     candidates: list[dict[str, Any]] = []
     for case in _fixture_cases():
@@ -703,12 +864,20 @@ def _s08_embedding_candidate_ranking(embedding_report: Mapping[str, Any], embedd
     }
 
 
-def _s08_deterministic_evidence_id_diagnostics(integration_summary: Mapping[str, Any]) -> dict[str, Any]:
+def _s08_deterministic_evidence_id_diagnostics(
+    integration_summary: Mapping[str, Any],
+) -> dict[str, Any]:
     citation_value = integration_summary.get("citation_validation_status")
-    citation_status = cast(Mapping[str, Any], citation_value) if isinstance(citation_value, Mapping) else {}
+    citation_status = (
+        cast(Mapping[str, Any], citation_value) if isinstance(citation_value, Mapping) else {}
+    )
     accepted_cases_checked = int(citation_status.get("validated_count", 0) or 0)
     missing_negative_cases = int(citation_status.get("missing_citation_or_evidence_count", 0) or 0)
-    passed = accepted_cases_checked >= 1 and missing_negative_cases >= 1 and citation_status.get("status") == "passed"
+    passed = (
+        accepted_cases_checked >= 1
+        and missing_negative_cases >= 1
+        and citation_status.get("status") == "passed"
+    )
     return {
         "status": "passed" if passed else "failed_closed",
         "accepted_cases_checked": accepted_cases_checked,
@@ -720,7 +889,9 @@ def _s08_deterministic_evidence_id_diagnostics(integration_summary: Mapping[str,
 
 def _s08_stale_evidence_diagnostics(integration_summary: Mapping[str, Any]) -> dict[str, Any]:
     filter_value = integration_summary.get("filter_trace_summary")
-    filter_summary = cast(Mapping[str, Any], filter_value) if isinstance(filter_value, Mapping) else {}
+    filter_summary = (
+        cast(Mapping[str, Any], filter_value) if isinstance(filter_value, Mapping) else {}
+    )
     temporal_excluded = int(filter_summary.get("temporal_excluded_count", 0) or 0)
     passed = temporal_excluded >= 1
     return {
@@ -735,26 +906,55 @@ def _s08_stale_evidence_diagnostics(integration_summary: Mapping[str, Any]) -> d
 def _fixture_phases(integration_summary: Mapping[str, Any]) -> dict[str, dict[str, Any]]:
     mismatch_count = integration_summary.get("mismatch_count")
     citation_value = integration_summary.get("citation_validation_status")
-    citation_status = cast(Mapping[str, Any], citation_value) if isinstance(citation_value, Mapping) else {}
+    citation_status = (
+        cast(Mapping[str, Any], citation_value) if isinstance(citation_value, Mapping) else {}
+    )
     query_value = integration_summary.get("query_safety")
     query_safety = cast(Mapping[str, Any], query_value) if isinstance(query_value, Mapping) else {}
     overclaim_value = integration_summary.get("overclaim_safety")
-    overclaim = cast(Mapping[str, Any], overclaim_value) if isinstance(overclaim_value, Mapping) else {}
+    overclaim = (
+        cast(Mapping[str, Any], overclaim_value) if isinstance(overclaim_value, Mapping) else {}
+    )
     filter_value = integration_summary.get("filter_trace_summary")
-    filter_summary = cast(Mapping[str, Any], filter_value) if isinstance(filter_value, Mapping) else {}
+    filter_summary = (
+        cast(Mapping[str, Any], filter_value) if isinstance(filter_value, Mapping) else {}
+    )
 
     fixture_ok = mismatch_count == 0 and bool(integration_summary.get("total_cases"))
-    citation_ok = citation_status.get("status") == "passed" and citation_status.get("missing_citation_or_evidence_count", 1) >= 1
+    citation_ok = (
+        citation_status.get("status") == "passed"
+        and citation_status.get("missing_citation_or_evidence_count", 1) >= 1
+    )
     temporal_ok = filter_summary.get("temporal_excluded_count", 0) >= 1
-    query_ok = query_safety.get("generated_query_execution_avoided") is True and query_safety.get("execution_like_step_performed") is False and query_safety.get("status", "passed") == "passed"
+    query_ok = (
+        query_safety.get("generated_query_execution_avoided") is True
+        and query_safety.get("execution_like_step_performed") is False
+        and query_safety.get("status", "passed") == "passed"
+    )
     overclaim_ok = overclaim.get("status") == "passed"
 
     return {
-        "fixture_materialization": phase("passed" if fixture_ok else "failed_closed", [] if fixture_ok else ["RIP_FIXTURE_MISMATCH"], total_cases=integration_summary.get("total_cases", 0)),
-        "ontology_temporal_query": phase("passed" if temporal_ok else "failed_closed", [] if temporal_ok else ["RIP_TEMPORAL_NEGATIVE_CASE_MISSING"]),
-        "citation_evidence_validation": phase("passed" if citation_ok else "failed_closed", [] if citation_ok else ["RIP_CITATION_EVIDENCE_VALIDATION_FAILED"]),
-        "query_safety": phase("passed" if query_ok else "failed_closed", [] if query_ok else ["RIP_QUERY_SAFETY_FAILED"]),
-        "overclaim_safety": phase("passed" if overclaim_ok else "failed_closed", [] if overclaim_ok else ["RIP_OVERCLAIM_DETECTED"]),
+        "fixture_materialization": phase(
+            "passed" if fixture_ok else "failed_closed",
+            [] if fixture_ok else ["RIP_FIXTURE_MISMATCH"],
+            total_cases=integration_summary.get("total_cases", 0),
+        ),
+        "ontology_temporal_query": phase(
+            "passed" if temporal_ok else "failed_closed",
+            [] if temporal_ok else ["RIP_TEMPORAL_NEGATIVE_CASE_MISSING"],
+        ),
+        "citation_evidence_validation": phase(
+            "passed" if citation_ok else "failed_closed",
+            [] if citation_ok else ["RIP_CITATION_EVIDENCE_VALIDATION_FAILED"],
+        ),
+        "query_safety": phase(
+            "passed" if query_ok else "failed_closed",
+            [] if query_ok else ["RIP_QUERY_SAFETY_FAILED"],
+        ),
+        "overclaim_safety": phase(
+            "passed" if overclaim_ok else "failed_closed",
+            [] if overclaim_ok else ["RIP_OVERCLAIM_DETECTED"],
+        ),
     }
 
 
@@ -771,24 +971,39 @@ def build_summary(
 
     if embedding_report is None:
         runtime_module = _load_module(RUNTIME_CHECK_PATH, "local_retrieval_runtime_boundary")
-        embedding_report = cast("Mapping[str, Any]", runtime_module.build_runtime_report(run_inference=True))
+        embedding_report = cast(
+            "Mapping[str, Any]", runtime_module.build_runtime_report(run_inference=True)
+        )
         runtime_module.validate_payload(embedding_report)
     summary["phases"]["embedding_runtime"] = _safe_embedding_phase(embedding_report)
 
     if integration_runner is None:
-        integration_module = _load_module(INTEGRATION_PROOF_PATH, "ontology_graphrag_integration_proof_for_runtime")
+        integration_module = _load_module(
+            INTEGRATION_PROOF_PATH, "ontology_graphrag_integration_proof_for_runtime"
+        )
 
         def default_integration_runner(fixtures: Path, output: Path) -> tuple[int, dict[str, Any]]:
-            return cast(tuple[int, dict[str, Any]], integration_module.run_proof(fixtures, output, write_report=False))
+            return cast(
+                tuple[int, dict[str, Any]],
+                integration_module.run_proof(fixtures, output, write_report=False),
+            )
 
         integration_runner = default_integration_runner
     _, integration_summary = integration_runner(FIXTURE_PATH, report_output)
     summary["phases"].update(_fixture_phases(integration_summary))
 
-    summary["phases"]["falkordb_runtime"] = _safe_falkordb_phase(falkordb_report, explicit_blocked_mode=allow_blocked_runtime)
-    summary["graph_route"] = _s08_source_backed_graph_route(falkordb_report, summary["phases"]["falkordb_runtime"], source_backed_route_report)
-    summary["embedding_candidate_ranking"] = _s08_embedding_candidate_ranking(embedding_report, summary["phases"]["embedding_runtime"])
-    summary["deterministic_evidence_id_diagnostics"] = _s08_deterministic_evidence_id_diagnostics(integration_summary)
+    summary["phases"]["falkordb_runtime"] = _safe_falkordb_phase(
+        falkordb_report, explicit_blocked_mode=allow_blocked_runtime
+    )
+    summary["graph_route"] = _s08_source_backed_graph_route(
+        falkordb_report, summary["phases"]["falkordb_runtime"], source_backed_route_report
+    )
+    summary["embedding_candidate_ranking"] = _s08_embedding_candidate_ranking(
+        embedding_report, summary["phases"]["embedding_runtime"]
+    )
+    summary["deterministic_evidence_id_diagnostics"] = _s08_deterministic_evidence_id_diagnostics(
+        integration_summary
+    )
     summary["stale_evidence_diagnostics"] = _s08_stale_evidence_diagnostics(integration_summary)
 
     summary["phases"]["r035_lifecycle_disposition"] = phase(
@@ -806,7 +1021,10 @@ def build_summary(
     statuses = [summary["phases"][name]["status"] for name in PHASES]
     if summary["graph_route"].get("status") == "failed_closed":
         statuses.append("failed_closed")
-    if any(status == "failed_closed" or str(status).startswith("failed_closed") for status in s08_statuses):
+    if any(
+        status == "failed_closed" or str(status).startswith("failed_closed")
+        for status in s08_statuses
+    ):
         statuses.append("failed_closed")
     if any(status == "failed_closed" for status in statuses):
         exit_code = 1
@@ -839,17 +1057,28 @@ def _falkordb_command(args: argparse.Namespace) -> list[str]:
 
 
 def _load_falkordb_artifact() -> Mapping[str, Any]:
-    artifact = ROOT / ".gsd/runtime-smoke/legalgraph-shaped-falkordb/LEGALGRAPH-SHAPED-FALKORDB-PROOF.json"
+    artifact = (
+        ROOT / ".gsd/runtime-smoke/legalgraph-shaped-falkordb/LEGALGRAPH-SHAPED-FALKORDB-PROOF.json"
+    )
     if not artifact.is_file():
         return {"status": "failed-runtime", "diagnostic_codes": ["RIP_FALKORDB_ARTIFACT_MISSING"]}
     data = json.loads(artifact.read_text(encoding="utf-8"))
-    return data if isinstance(data, Mapping) else {"status": "failed-runtime", "diagnostic_codes": ["RIP_FALKORDB_ARTIFACT_MALFORMED"]}
+    return (
+        data
+        if isinstance(data, Mapping)
+        else {"status": "failed-runtime", "diagnostic_codes": ["RIP_FALKORDB_ARTIFACT_MALFORMED"]}
+    )
 
 
 def _run_falkordb_proof(args: argparse.Namespace) -> Mapping[str, Any]:
-    completed = subprocess.run(_falkordb_command(args), cwd=ROOT, check=False, text=True, capture_output=True)  # noqa: S603 - fixed local script path and args
+    completed = subprocess.run(
+        _falkordb_command(args), cwd=ROOT, check=False, text=True, capture_output=True
+    )  # noqa: S603 - fixed local script path and args
     if completed.returncode != 0:
-        return {"status": "blocked-environment", "diagnostic_codes": ["RIP_FALKORDB_PROOF_COMMAND_BLOCKED"]}
+        return {
+            "status": "blocked-environment",
+            "diagnostic_codes": ["RIP_FALKORDB_PROOF_COMMAND_BLOCKED"],
+        }
     return _load_falkordb_artifact()
 
 
@@ -860,14 +1089,21 @@ def _docker_available() -> bool:
 def _local_image_present(image: str) -> bool:
     if not _docker_available():
         return False
-    completed = subprocess.run(["docker", "image", "inspect", image], cwd=ROOT, check=False, text=True, capture_output=True)  # noqa: S603 - fixed docker executable and args
+    completed = subprocess.run(
+        ["docker", "image", "inspect", image], cwd=ROOT, check=False, text=True, capture_output=True
+    )  # noqa: S603 - fixed docker executable and args
     return completed.returncode == 0
 
 
 def _start_falkordb_container(args: argparse.Namespace) -> tuple[str | None, dict[str, Any]]:
     mode = args.container
     image = args.container_image
-    diagnostic = {"mode": mode, "status": "not_started", "cleanup_status": "not_needed", "image_reference": image}
+    diagnostic = {
+        "mode": mode,
+        "status": "not_started",
+        "cleanup_status": "not_needed",
+        "image_reference": image,
+    }
     if mode == "never":
         diagnostic["status"] = "skipped_by_flag"
         return None, diagnostic
@@ -900,13 +1136,19 @@ def _start_falkordb_container(args: argparse.Namespace) -> tuple[str | None, dic
 def _cleanup_container(container_id: str | None, diagnostic: dict[str, Any]) -> None:
     if not container_id:
         return
-    completed = subprocess.run(["docker", "rm", "-f", container_id], cwd=ROOT, check=False, text=True, capture_output=True)  # noqa: S603 - fixed docker executable and args
+    completed = subprocess.run(
+        ["docker", "rm", "-f", container_id], cwd=ROOT, check=False, text=True, capture_output=True
+    )  # noqa: S603 - fixed docker executable and args
     diagnostic["cleanup_status"] = "deleted" if completed.returncode == 0 else "cleanup_failed"
     if completed.returncode != 0:
-        diagnostic["diagnostic_codes"] = sorted(set(diagnostic.get("diagnostic_codes", []) + ["RIP_FALKORDB_CONTAINER_CLEANUP_FAILED"]))
+        diagnostic["diagnostic_codes"] = sorted(
+            set(diagnostic.get("diagnostic_codes", []) + ["RIP_FALKORDB_CONTAINER_CLEANUP_FAILED"])
+        )
 
 
-def prepare_falkordb_runtime(args: argparse.Namespace) -> tuple[Mapping[str, Any] | None, dict[str, Any], str | None]:
+def prepare_falkordb_runtime(
+    args: argparse.Namespace,
+) -> tuple[Mapping[str, Any] | None, dict[str, Any], str | None]:
     container_diag = {"mode": args.container, "status": "not_run", "cleanup_status": "not_needed"}
     if args.skip_falkordb_runtime:
         container_diag["status"] = "skipped_falkordb_runtime"
@@ -932,12 +1174,12 @@ def prepare_falkordb_runtime(args: argparse.Namespace) -> tuple[Mapping[str, Any
         raise
 
 
-
-def run_falkordb_subprocess(args: argparse.Namespace) -> tuple[Mapping[str, Any] | None, dict[str, Any]]:
+def run_falkordb_subprocess(
+    args: argparse.Namespace,
+) -> tuple[Mapping[str, Any] | None, dict[str, Any]]:
     falkordb_report, container_diag, container_id = prepare_falkordb_runtime(args)
     _cleanup_container(container_id, container_diag)
     return falkordb_report, container_diag
-
 
 
 def _connect_source_backed_graph(args: argparse.Namespace) -> SourceBackedGraph:
@@ -948,8 +1190,13 @@ def _connect_source_backed_graph(args: argparse.Namespace) -> SourceBackedGraph:
     return cast(SourceBackedGraph, client.select_graph(graph_name))
 
 
-def run_source_backed_route(args: argparse.Namespace, falkordb_report: Mapping[str, Any] | None) -> Mapping[str, Any] | None:
-    if not isinstance(falkordb_report, Mapping) or falkordb_report.get("status") not in {"confirmed-runtime", "confirmed_runtime"}:
+def run_source_backed_route(
+    args: argparse.Namespace, falkordb_report: Mapping[str, Any] | None
+) -> Mapping[str, Any] | None:
+    if not isinstance(falkordb_report, Mapping) or falkordb_report.get("status") not in {
+        "confirmed-runtime",
+        "confirmed_runtime",
+    }:
         return None
     try:
         graph = _connect_source_backed_graph(args)
@@ -964,7 +1211,10 @@ def run_source_backed_route(args: argparse.Namespace, falkordb_report: Mapping[s
             "selected_safe_ids": {},
             "positive_route": {"status": "failed_closed"},
             "negative_route": {"status": "failed_closed"},
-            "diagnostic_codes": ["RIP_SOURCE_BACKED_ROUTE_EXCEPTION_REDACTED", f"RIP_SOURCE_BACKED_ROUTE_{type(exc).__name__.upper()}"],
+            "diagnostic_codes": [
+                "RIP_SOURCE_BACKED_ROUTE_EXCEPTION_REDACTED",
+                f"RIP_SOURCE_BACKED_ROUTE_{type(exc).__name__.upper()}",
+            ],
         }
 
 
@@ -990,46 +1240,58 @@ def write_markdown_report(path: Path, summary: Mapping[str, Any]) -> None:
     if isinstance(phases, Mapping):
         for name in PHASES:
             phase_payload = phases.get(name, {})
-            status = phase_payload.get("status", "<missing>") if isinstance(phase_payload, Mapping) else "<malformed>"
-            codes = phase_payload.get("diagnostic_codes", []) if isinstance(phase_payload, Mapping) else []
-            lines.append(f"- `{name}`: `{status}`; diagnostics: `{','.join(codes) if codes else 'none'}`")
-    graph_route = summary.get('graph_route', {})
-    embedding_ranking = summary.get('embedding_candidate_ranking', {})
-    evidence_ids = summary.get('deterministic_evidence_id_diagnostics', {})
-    stale_evidence = summary.get('stale_evidence_diagnostics', {})
-    lines.extend([
-        "",
-        "## Container/runtime",
-        "",
-        f"- Container runtime: `{json.dumps(summary.get('container_runtime', {}), ensure_ascii=False, sort_keys=True)}`",
-        "",
-        "## Graph route",
-        "",
-        f"- Route summary: `{json.dumps(graph_route, ensure_ascii=False, sort_keys=True)}`",
-        "- Boundary: source-backed fixture routes prove only safe-ID local graph querying for the bounded M020 fixture; synthetic routes and blocked-runtime rescopes do not claim real artifact graph querying.",
-        "",
-        "## Local/open-weight embedding ranking summary",
-        "",
-        f"- Ranking summary: `{json.dumps(embedding_ranking, ensure_ascii=False, sort_keys=True)}`",
-        "- Boundary: candidate IDs and ranks are safe fixture-derived diagnostics only; vectors, raw legal text, provider payloads, and managed API details are excluded.",
-        "",
-        "## Deterministic evidence-ID validation",
-        "",
-        f"- Evidence-ID diagnostics: `{json.dumps(evidence_ids, ensure_ascii=False, sort_keys=True)}`",
-        "- Boundary: this checks citation/evidence identifier preservation and missing-ID negative coverage for the M020 proof fixture only.",
-        "",
-        "## Stale-evidence diagnostics",
-        "",
-        f"- Stale-evidence diagnostics: `{json.dumps(stale_evidence, ensure_ascii=False, sort_keys=True)}`",
-        "- Boundary: this records inactive or wrong-edition exclusion diagnostics without persisting raw legal text.",
-        "",
-        "## S01-to-S02 handoff clarification",
-        "",
-        "S01 and S02 remain handoff/source-preparation evidence only. S08 persists the bounded runtime proof or blocked-runtime rescope for R035; it does not reinterpret S01/S02 as legal-answer, parser-completeness, product-retrieval, formal-ontology, graph-vector/HNSW, FalkorDB production, or pilot-readiness validation.",
-        "",
-        "## Non-claims",
-        "",
-    ])
+            status = (
+                phase_payload.get("status", "<missing>")
+                if isinstance(phase_payload, Mapping)
+                else "<malformed>"
+            )
+            codes = (
+                phase_payload.get("diagnostic_codes", [])
+                if isinstance(phase_payload, Mapping)
+                else []
+            )
+            lines.append(
+                f"- `{name}`: `{status}`; diagnostics: `{','.join(codes) if codes else 'none'}`"
+            )
+    graph_route = summary.get("graph_route", {})
+    embedding_ranking = summary.get("embedding_candidate_ranking", {})
+    evidence_ids = summary.get("deterministic_evidence_id_diagnostics", {})
+    stale_evidence = summary.get("stale_evidence_diagnostics", {})
+    lines.extend(
+        [
+            "",
+            "## Container/runtime",
+            "",
+            f"- Container runtime: `{json.dumps(summary.get('container_runtime', {}), ensure_ascii=False, sort_keys=True)}`",
+            "",
+            "## Graph route",
+            "",
+            f"- Route summary: `{json.dumps(graph_route, ensure_ascii=False, sort_keys=True)}`",
+            "- Boundary: source-backed fixture routes prove only safe-ID local graph querying for the bounded M020 fixture; synthetic routes and blocked-runtime rescopes do not claim real artifact graph querying.",
+            "",
+            "## Local/open-weight embedding ranking summary",
+            "",
+            f"- Ranking summary: `{json.dumps(embedding_ranking, ensure_ascii=False, sort_keys=True)}`",
+            "- Boundary: candidate IDs and ranks are safe fixture-derived diagnostics only; vectors, raw legal text, provider payloads, and managed API details are excluded.",
+            "",
+            "## Deterministic evidence-ID validation",
+            "",
+            f"- Evidence-ID diagnostics: `{json.dumps(evidence_ids, ensure_ascii=False, sort_keys=True)}`",
+            "- Boundary: this checks citation/evidence identifier preservation and missing-ID negative coverage for the M020 proof fixture only.",
+            "",
+            "## Stale-evidence diagnostics",
+            "",
+            f"- Stale-evidence diagnostics: `{json.dumps(stale_evidence, ensure_ascii=False, sort_keys=True)}`",
+            "- Boundary: this records inactive or wrong-edition exclusion diagnostics without persisting raw legal text.",
+            "",
+            "## S01-to-S02 handoff clarification",
+            "",
+            "S01 and S02 remain handoff/source-preparation evidence only. S08 persists the bounded runtime proof or blocked-runtime rescope for R035; it does not reinterpret S01/S02 as legal-answer, parser-completeness, product-retrieval, formal-ontology, graph-vector/HNSW, FalkorDB production, or pilot-readiness validation.",
+            "",
+            "## Non-claims",
+            "",
+        ]
+    )
     for claim in summary.get("non_claims", []):
         lines.append(f"- {claim}")
     markdown_payload = "\n".join(lines) + "\n"
@@ -1044,15 +1306,48 @@ def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--report-output", type=Path, default=DEFAULT_REPORT)
     parser.add_argument("--markdown-output", type=Path, default=DEFAULT_MARKDOWN_REPORT)
-    parser.add_argument("--allow-blocked", "--allow-blocked-runtime", dest="allow_blocked_runtime", action="store_true", help="Emit exit 0 for a safe blocked-runtime rescope when local prerequisites are unavailable.")
-    parser.add_argument("--skip-falkordb-runtime", action="store_true", help="Do not launch FalkorDB proof; requires --allow-blocked for exit 0.")
+    parser.add_argument(
+        "--allow-blocked",
+        "--allow-blocked-runtime",
+        dest="allow_blocked_runtime",
+        action="store_true",
+        help="Emit exit 0 for a safe blocked-runtime rescope when local prerequisites are unavailable.",
+    )
+    parser.add_argument(
+        "--skip-falkordb-runtime",
+        action="store_true",
+        help="Do not launch FalkorDB proof; requires --allow-blocked for exit 0.",
+    )
     parser.add_argument("--host", "--falkordb-host", dest="host", default="127.0.0.1")
     parser.add_argument("--port", "--falkordb-port", dest="port", type=int, default=6380)
-    parser.add_argument("--readiness-timeout", "--falkordb-readiness-timeout", dest="readiness_timeout", type=int, default=5)
-    parser.add_argument("--container", choices=("auto", "always", "never"), default="auto", help="Use an already-present local FalkorDB container image when needed; never pulls images.")
+    parser.add_argument(
+        "--readiness-timeout",
+        "--falkordb-readiness-timeout",
+        dest="readiness_timeout",
+        type=int,
+        default=5,
+    )
+    parser.add_argument(
+        "--container",
+        choices=("auto", "always", "never"),
+        default="auto",
+        help="Use an already-present local FalkorDB container image when needed; never pulls images.",
+    )
     parser.add_argument("--container-image", default="falkordb/falkordb:edge")
-    parser.add_argument("--use-container", action="store_const", const="always", dest="container", help="Require an already-present local container image if no runtime is listening.")
-    parser.add_argument("--no-container", action="store_const", const="never", dest="container", help="Never start an ephemeral container.")
+    parser.add_argument(
+        "--use-container",
+        action="store_const",
+        const="always",
+        dest="container",
+        help="Require an already-present local container image if no runtime is listening.",
+    )
+    parser.add_argument(
+        "--no-container",
+        action="store_const",
+        const="never",
+        dest="container",
+        help="Never start an ephemeral container.",
+    )
     parser.add_argument("--no-write", action="store_true")
     return parser.parse_args(argv)
 
@@ -1060,7 +1355,11 @@ def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
 def main(argv: Sequence[str] | None = None) -> int:
     args = parse_args(argv)
     container_id: str | None = None
-    container_diag: dict[str, Any] = {"mode": args.container, "status": "not_run", "cleanup_status": "not_needed"}
+    container_diag: dict[str, Any] = {
+        "mode": args.container,
+        "status": "not_run",
+        "cleanup_status": "not_needed",
+    }
     try:
         falkordb_report, container_diag, container_id = prepare_falkordb_runtime(args)
         source_backed_route_report = run_source_backed_route(args, falkordb_report)
@@ -1080,15 +1379,22 @@ def main(argv: Sequence[str] | None = None) -> int:
         summary = base_summary(args.report_output)
         summary["container_runtime"] = container_diag
         summary["cleanup_status"] = container_diag.get("cleanup_status", "not_needed")
-        summary["phases"]["r035_lifecycle_disposition"] = phase("passed", [], disposition="remains_active")
+        summary["phases"]["r035_lifecycle_disposition"] = phase(
+            "passed", [], disposition="remains_active"
+        )
         summary["runtime_disposition"] = "failed_closed"
         summary["gate_disposition"] = "gate_remains_open_failed_closed"
-        summary["phases"]["fixture_materialization"] = phase("failed_closed", ["RIP_INTERNAL_ERROR_REDACTED"])
+        summary["phases"]["fixture_materialization"] = phase(
+            "failed_closed", ["RIP_INTERNAL_ERROR_REDACTED"]
+        )
         exit_code = 1
         assert_safe_payload(summary)
     if not args.no_write:
         args.report_output.parent.mkdir(parents=True, exist_ok=True)
-        args.report_output.write_text(json.dumps(summary, ensure_ascii=False, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+        args.report_output.write_text(
+            json.dumps(summary, ensure_ascii=False, indent=2, sort_keys=True) + "\n",
+            encoding="utf-8",
+        )
         write_markdown_report(args.markdown_output, summary)
     print(json.dumps(summary, ensure_ascii=False, sort_keys=True, separators=(",", ":")))
     return exit_code

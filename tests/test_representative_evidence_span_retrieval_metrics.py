@@ -8,8 +8,14 @@ from typing import Any
 
 ROOT = Path(__file__).resolve().parents[1]
 VERIFIER = ROOT / "scripts/verify-representative-evidence-span-retrieval-metrics.py"
-FIXTURE = ROOT / "prd/research/ontology_architecture_requirements/fixtures/representative_evidence_span_retrieval_corpus.json"
-PROOF = ROOT / "prd/research/ontology_architecture_requirements/representative_evidence_span_retrieval_metrics_proof.json"
+FIXTURE = (
+    ROOT
+    / "prd/research/ontology_architecture_requirements/fixtures/representative_evidence_span_retrieval_corpus.json"
+)
+PROOF = (
+    ROOT
+    / "prd/research/ontology_architecture_requirements/representative_evidence_span_retrieval_metrics_proof.json"
+)
 
 EXPECTED_METRICS = {
     "mrr",
@@ -82,7 +88,9 @@ def test_build_report_with_injected_confirmed_runtime(tmp_path: Path) -> None:
 def test_build_report_blocks_unconfirmed_runtime(tmp_path: Path) -> None:
     verifier = load_module("representative_metrics_blocked_runtime")
 
-    report = verifier.build_report(FIXTURE, runtime_file(tmp_path, runtime_status="blocked_environment"), timeout_seconds=30)
+    report = verifier.build_report(
+        FIXTURE, runtime_file(tmp_path, runtime_status="blocked_environment"), timeout_seconds=30
+    )
 
     assert report["status"] == "blocked"
     assert "runtime_blocked" in report["diagnostic_codes"]
@@ -92,7 +100,9 @@ def test_build_report_blocks_unconfirmed_runtime(tmp_path: Path) -> None:
 def test_build_report_blocks_managed_api_runtime(tmp_path: Path) -> None:
     verifier = load_module("representative_metrics_managed_api")
 
-    report = verifier.build_report(FIXTURE, runtime_file(tmp_path, managed_api_used=True), timeout_seconds=30)
+    report = verifier.build_report(
+        FIXTURE, runtime_file(tmp_path, managed_api_used=True), timeout_seconds=30
+    )
 
     assert report["status"] == "blocked"
     assert "managed_api_forbidden" in report["diagnostic_codes"]
@@ -102,7 +112,9 @@ def test_build_report_blocks_managed_api_runtime(tmp_path: Path) -> None:
 def test_build_report_blocks_raw_vector_persistence(tmp_path: Path) -> None:
     verifier = load_module("representative_metrics_raw_vectors")
 
-    report = verifier.build_report(FIXTURE, runtime_file(tmp_path, raw_vectors_persisted=True), timeout_seconds=30)
+    report = verifier.build_report(
+        FIXTURE, runtime_file(tmp_path, raw_vectors_persisted=True), timeout_seconds=30
+    )
 
     assert report["status"] == "blocked"
     assert "raw_vector_persistence_forbidden" in report["diagnostic_codes"]
@@ -116,7 +128,9 @@ def test_build_report_blocks_threshold_mismatch(tmp_path: Path) -> None:
         if case["case_class"] == "positive_with_distractor":
             case["expected_rejected_candidate_ids"] = []
             break
-    fixture_path.write_text(json.dumps(fixture, ensure_ascii=False, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    fixture_path.write_text(
+        json.dumps(fixture, ensure_ascii=False, indent=2, sort_keys=True) + "\n", encoding="utf-8"
+    )
 
     report = verifier.build_report(fixture_path, runtime_file(tmp_path), timeout_seconds=30)
 

@@ -100,7 +100,9 @@ def model_boundary(s10: dict[str, Any]) -> dict[str, Any]:
     model = next(row for row in s10["models"] if row["id"] == MODEL_ID)
     return {
         "model_id": MODEL_ID,
-        "model_status": "available" if model.get("package_status") == "available" and model.get("cache_status") == "available" else "blocked_environment",
+        "model_status": "available"
+        if model.get("package_status") == "available" and model.get("cache_status") == "available"
+        else "blocked_environment",
         "observed_vector_dimension": model.get("observed_vector_dimension"),
         "runtime_evidence_source": relative(S10_PROOF_PATH),
         "managed_api_used": False,
@@ -111,7 +113,9 @@ def model_boundary(s10: dict[str, Any]) -> dict[str, Any]:
     }
 
 
-def query(query_id: str, kind: str, label: str, relevant: list[str], expected: str) -> dict[str, Any]:
+def query(
+    query_id: str, kind: str, label: str, relevant: list[str], expected: str
+) -> dict[str, Any]:
     return {
         "benchmark_query_id": query_id,
         "query_kind": kind,
@@ -143,7 +147,16 @@ def candidate(
     }
 
 
-def diagnostic(code: str, *, case_id: str, query_id: str, severity: str = "info", candidate_id: str | None = None, metric: str | None = None, field_path: str | None = None) -> dict[str, str]:
+def diagnostic(
+    code: str,
+    *,
+    case_id: str,
+    query_id: str,
+    severity: str = "info",
+    candidate_id: str | None = None,
+    metric: str | None = None,
+    field_path: str | None = None,
+) -> dict[str, str]:
     payload = {
         "code": code,
         "severity": severity,
@@ -160,7 +173,14 @@ def diagnostic(code: str, *, case_id: str, query_id: str, severity: str = "info"
     return payload
 
 
-def benchmark_case(case_id: str, case_class: str, query_obj: dict[str, Any], candidates: list[dict[str, Any]], expected_metrics: dict[str, float], expected_diagnostics: list[dict[str, str]]) -> dict[str, Any]:
+def benchmark_case(
+    case_id: str,
+    case_class: str,
+    query_obj: dict[str, Any],
+    candidates: list[dict[str, Any]],
+    expected_metrics: dict[str, float],
+    expected_diagnostics: list[dict[str, str]],
+) -> dict[str, Any]:
     return {
         "benchmark_case_id": case_id,
         "case_class": case_class,
@@ -207,7 +227,13 @@ def build_payload() -> dict[str, Any]:
         benchmark_case(
             "CASE-M015-POSITIVE-EXACT-RELEVANCE",
             "positive_exact_relevance",
-            query("QR-M015-POSITIVE-EXACT-001", "positive_retrieval", "m015 positive exact article benchmark", [positive_candidate["candidate_id"]], "metrics_pass"),
+            query(
+                "QR-M015-POSITIVE-EXACT-001",
+                "positive_retrieval",
+                "m015 positive exact article benchmark",
+                [positive_candidate["candidate_id"]],
+                "metrics_pass",
+            ),
             [positive_candidate],
             {"mrr": 1.0, "recall_at_1": 1.0, "recall_at_3": 1.0},
             [],
@@ -215,7 +241,13 @@ def build_payload() -> dict[str, Any]:
         benchmark_case(
             "CASE-M015-POSITIVE-WITH-DISTRACTOR",
             "positive_with_distractor",
-            query("QR-M015-POSITIVE-DISTRACTOR-001", "distractor_retrieval", "m015 positive with distractor benchmark", [relevant_with_distractor["candidate_id"]], "metrics_pass"),
+            query(
+                "QR-M015-POSITIVE-DISTRACTOR-001",
+                "distractor_retrieval",
+                "m015 positive with distractor benchmark",
+                [relevant_with_distractor["candidate_id"]],
+                "metrics_pass",
+            ),
             [relevant_with_distractor, distractor_candidate],
             {"mrr": 1.0, "recall_at_1": 1.0, "recall_at_3": 1.0},
             [],
@@ -223,37 +255,112 @@ def build_payload() -> dict[str, Any]:
         benchmark_case(
             "CASE-M015-SCOPED-NO-ANSWER-QUALITY",
             "scoped_no_answer_quality",
-            query("QR-M015-SCOPED-NO-ANSWER-001", "scoped_no_answer", "m015 scoped no answer benchmark", [], "scoped_no_answer"),
+            query(
+                "QR-M015-SCOPED-NO-ANSWER-001",
+                "scoped_no_answer",
+                "m015 scoped no answer benchmark",
+                [],
+                "scoped_no_answer",
+            ),
             [],
             {"no_answer_accuracy": 1.0},
-            [diagnostic("scoped_no_answer", case_id="CASE-M015-SCOPED-NO-ANSWER-QUALITY", query_id="QR-M015-SCOPED-NO-ANSWER-001", metric="no_answer_accuracy")],
+            [
+                diagnostic(
+                    "scoped_no_answer",
+                    case_id="CASE-M015-SCOPED-NO-ANSWER-QUALITY",
+                    query_id="QR-M015-SCOPED-NO-ANSWER-001",
+                    metric="no_answer_accuracy",
+                )
+            ],
         ),
         benchmark_case(
             "CASE-M015-AMBIGUOUS-RETRIEVAL-REJECTED",
             "ambiguous_retrieval_rejected",
-            query("QR-M015-AMBIGUOUS-001", "ambiguous_retrieval", "m015 ambiguous retrieval benchmark", [], "rejected"),
+            query(
+                "QR-M015-AMBIGUOUS-001",
+                "ambiguous_retrieval",
+                "m015 ambiguous retrieval benchmark",
+                [],
+                "rejected",
+            ),
             [
-                candidate(candidate_id="BQ-M015-AMBIGUOUS-0001", source_case=ambiguous, relevance_label="ambiguous", rank=None, deterministic_score=None),
-                candidate(candidate_id="BQ-M015-AMBIGUOUS-0002", source_case=ambiguous, relevance_label="ambiguous", rank=None, deterministic_score=None),
+                candidate(
+                    candidate_id="BQ-M015-AMBIGUOUS-0001",
+                    source_case=ambiguous,
+                    relevance_label="ambiguous",
+                    rank=None,
+                    deterministic_score=None,
+                ),
+                candidate(
+                    candidate_id="BQ-M015-AMBIGUOUS-0002",
+                    source_case=ambiguous,
+                    relevance_label="ambiguous",
+                    rank=None,
+                    deterministic_score=None,
+                ),
             ],
             {"ambiguous_rejection_rate": 1.0},
-            [diagnostic("ambiguous_rejected", case_id="CASE-M015-AMBIGUOUS-RETRIEVAL-REJECTED", query_id="QR-M015-AMBIGUOUS-001", severity="warning", metric="ambiguous_rejection_rate")],
+            [
+                diagnostic(
+                    "ambiguous_rejected",
+                    case_id="CASE-M015-AMBIGUOUS-RETRIEVAL-REJECTED",
+                    query_id="QR-M015-AMBIGUOUS-001",
+                    severity="warning",
+                    metric="ambiguous_rejection_rate",
+                )
+            ],
         ),
         benchmark_case(
             "CASE-M015-UNSAFE-PAYLOAD-REJECTED",
             "unsafe_payload_rejected",
-            query("QR-M015-UNSAFE-001", "unsafe_payload", "m015 unsafe payload benchmark", [], "rejected"),
-            [candidate(candidate_id="BQ-M015-UNSAFE-0001", source_case=unsafe, relevance_label="unsafe", rank=None, deterministic_score=None)],
+            query(
+                "QR-M015-UNSAFE-001",
+                "unsafe_payload",
+                "m015 unsafe payload benchmark",
+                [],
+                "rejected",
+            ),
+            [
+                candidate(
+                    candidate_id="BQ-M015-UNSAFE-0001",
+                    source_case=unsafe,
+                    relevance_label="unsafe",
+                    rank=None,
+                    deterministic_score=None,
+                )
+            ],
             {"unsafe_rejection_rate": 1.0},
-            [diagnostic("unsafe_payload_rejected", case_id="CASE-M015-UNSAFE-PAYLOAD-REJECTED", query_id="QR-M015-UNSAFE-001", severity="error", candidate_id="BQ-M015-UNSAFE-0001", metric="unsafe_rejection_rate")],
+            [
+                diagnostic(
+                    "unsafe_payload_rejected",
+                    case_id="CASE-M015-UNSAFE-PAYLOAD-REJECTED",
+                    query_id="QR-M015-UNSAFE-001",
+                    severity="error",
+                    candidate_id="BQ-M015-UNSAFE-0001",
+                    metric="unsafe_rejection_rate",
+                )
+            ],
         ),
         benchmark_case(
             "CASE-M015-ENVIRONMENT-BOUNDARY",
             "environment_boundary",
-            query("QR-M015-ENVIRONMENT-001", "positive_retrieval", "m015 environment boundary benchmark", [], "metrics_pass"),
+            query(
+                "QR-M015-ENVIRONMENT-001",
+                "positive_retrieval",
+                "m015 environment boundary benchmark",
+                [],
+                "metrics_pass",
+            ),
             [],
             {},
-            [diagnostic("model_runtime_available", case_id="CASE-M015-ENVIRONMENT-BOUNDARY", query_id="QR-M015-ENVIRONMENT-001", metric="environment")],
+            [
+                diagnostic(
+                    "model_runtime_available",
+                    case_id="CASE-M015-ENVIRONMENT-BOUNDARY",
+                    query_id="QR-M015-ENVIRONMENT-001",
+                    metric="environment",
+                )
+            ],
         ),
     ]
 
@@ -279,8 +386,12 @@ def stable_json(data: dict[str, Any]) -> str:
 
 
 def main(argv: Sequence[str] | None = None) -> int:
-    parser = argparse.ArgumentParser(description="Build deterministic M015 local retrieval quality benchmark fixture.")
-    parser.add_argument("--check", action="store_true", help="Fail if the checked-in fixture is stale.")
+    parser = argparse.ArgumentParser(
+        description="Build deterministic M015 local retrieval quality benchmark fixture."
+    )
+    parser.add_argument(
+        "--check", action="store_true", help="Fail if the checked-in fixture is stale."
+    )
     parser.add_argument("--output", type=Path, default=OUTPUT_PATH, help="Fixture output path.")
     args = parser.parse_args(argv)
 
@@ -291,17 +402,47 @@ def main(argv: Sequence[str] | None = None) -> int:
         try:
             current = output_path.read_text(encoding="utf-8")
         except FileNotFoundError:
-            print(json.dumps({"status": "fail", "reason": "missing_output", "path": relative(output_path)}, sort_keys=True))
+            print(
+                json.dumps(
+                    {"status": "fail", "reason": "missing_output", "path": relative(output_path)},
+                    sort_keys=True,
+                )
+            )
             return 1
         if current != rendered:
-            print(json.dumps({"status": "fail", "reason": "stale_output", "path": relative(output_path)}, sort_keys=True))
+            print(
+                json.dumps(
+                    {"status": "fail", "reason": "stale_output", "path": relative(output_path)},
+                    sort_keys=True,
+                )
+            )
             return 1
-        print(json.dumps({"status": "pass", "case_count": len(payload["cases"]), "model_id": payload["model_boundary"]["model_id"], "path": relative(output_path)}, sort_keys=True))
+        print(
+            json.dumps(
+                {
+                    "status": "pass",
+                    "case_count": len(payload["cases"]),
+                    "model_id": payload["model_boundary"]["model_id"],
+                    "path": relative(output_path),
+                },
+                sort_keys=True,
+            )
+        )
         return 0
 
     output_path.parent.mkdir(parents=True, exist_ok=True)
     output_path.write_text(rendered, encoding="utf-8")
-    print(json.dumps({"status": "written", "case_count": len(payload["cases"]), "model_id": payload["model_boundary"]["model_id"], "path": relative(output_path)}, sort_keys=True))
+    print(
+        json.dumps(
+            {
+                "status": "written",
+                "case_count": len(payload["cases"]),
+                "model_id": payload["model_boundary"]["model_id"],
+                "path": relative(output_path),
+            },
+            sort_keys=True,
+        )
+    )
     return 0
 
 

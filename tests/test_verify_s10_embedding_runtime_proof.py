@@ -16,7 +16,9 @@ GIGA_MODEL_ID = "ai-sage/Giga-Embeddings-instruct"
 
 
 def load_verifier() -> ModuleType:
-    spec = importlib.util.spec_from_file_location("verify_s10_embedding_runtime_proof", VERIFIER_PATH)
+    spec = importlib.util.spec_from_file_location(
+        "verify_s10_embedding_runtime_proof", VERIFIER_PATH
+    )
     assert spec is not None
     module = importlib.util.module_from_spec(spec)
     assert spec.loader is not None
@@ -92,7 +94,9 @@ def vector_proof(root: Path, dimension: int, *, confirmed: bool = False) -> dict
         "query_executed": confirmed,
         "duration_ms": 55.0 if confirmed else None,
         "blocked_root_cause": None if confirmed else "falkordb-client-runtime-missing",
-        "next_proof_step": "Start FalkorDB and install client." if not confirmed else "Expand batch test.",
+        "next_proof_step": "Start FalkorDB and install client."
+        if not confirmed
+        else "Expand batch test.",
         "raw_log_paths": [write_log(root, f"vector-{dimension}.log")],
     }
 

@@ -116,7 +116,9 @@ def runtime_diagnostics() -> dict[str, Any]:
     s05 = load_module(S05_HARNESS_PATH, "m048_s05_git_lex_workflows_for_s09")
     main_lex_before = MAIN_REPO_LEX_DIR.exists()
     probes = [run_probe(["git", "lex", "--help"], ROOT), run_probe(["git-lex", "--help"], ROOT)]
-    runtime_available = any(item.get("exit_code") == 0 and not item.get("timed_out") for item in probes)
+    runtime_available = any(
+        item.get("exit_code") == 0 and not item.get("timed_out") for item in probes
+    )
     s05_contract = s05.build_contract()
     main_lex_after = MAIN_REPO_LEX_DIR.exists()
     return {
@@ -159,12 +161,14 @@ def ordinary_git_semantics(workspace: Path) -> dict[str, Any]:
             timeout=10,
             check=False,
         )
-        commands.append({
-            "command": command,
-            "exit_code": completed.returncode,
-            "stdout_preview": completed.stdout[:300],
-            "stderr_preview": completed.stderr[:300],
-        })
+        commands.append(
+            {
+                "command": command,
+                "exit_code": completed.returncode,
+                "stdout_preview": completed.stdout[:300],
+                "stderr_preview": completed.stderr[:300],
+            }
+        )
         return completed
 
     try:
@@ -236,91 +240,145 @@ def run_functional_fit() -> dict[str, Any]:
         lifecycle_failures = s04.validate_lifecycle(records)
         profile_failures = s04.validate_profile_boundary(records)
         blocked_failures = s04.validate_blocked_actions(records)
-        git_result = ordinary_git_semantics(workspace / "ordinary-git") if shutil.which("git") else {
-            "status": "blocked",
-            "summary": "git executable unavailable for ordinary-git comparison.",
-            "commands": [],
-        }
+        git_result = (
+            ordinary_git_semantics(workspace / "ordinary-git")
+            if shutil.which("git")
+            else {
+                "status": "blocked",
+                "summary": "git executable unavailable for ordinary-git comparison.",
+                "commands": [],
+            }
+        )
 
-        deterministic_failures = validation_failures + lifecycle_failures + profile_failures + blocked_failures
+        deterministic_failures = (
+            validation_failures + lifecycle_failures + profile_failures + blocked_failures
+        )
         deterministic_state = "pass" if not deterministic_failures else "fail"
-        projection_state = "pass" if projection.get("authority_status") == "non_authoritative" else "fail"
-        recovery_ok = any(item.get("record_kind") == "architecture_decision" and item.get("id") == "AD-ACP-0001" for item in projection.get("records", []))
+        projection_state = (
+            "pass" if projection.get("authority_status") == "non_authoritative" else "fail"
+        )
+        recovery_ok = any(
+            item.get("record_kind") == "architecture_decision" and item.get("id") == "AD-ACP-0001"
+            for item in projection.get("records", [])
+        )
         gate_edges = projection.get("edges", {}).get("PG-ACP-0001", [])
 
-        results.extend([
-            CapabilityResult(
-                "source-record-lifecycle", "ACP-S09-C01", "Typed source record lifecycle",
-                deterministic_state, None if deterministic_state == "pass" else "InsufficientEvidence",
-                "prd/architecture/acp/fixtures/git-lex-isolated-proof/*.md",
-                "source_records_authoritative_projection_non_authoritative",
-                "temporary_disposable_workspace", "deleted_by_TemporaryDirectory",
-                "implement_acp_native_or_adapter_later", "No runtime git-lex value proven; ACP-native typed fixtures satisfy the lifecycle proof contract deterministically.",
-                "S04 fixture records validate taxonomy, anchors, lifecycle states, profile boundary, and blocked actions." if deterministic_state == "pass" else "; ".join(deterministic_failures),
-                {"record_count": len(records), "record_ids": sorted(records)},
-            ),
-            CapabilityResult(
-                "blocked-claim", "ACP-S09-C02", "Blocked claim and proof-gate diagnostics",
-                "pass" if not blocked_failures and runtime["runtime_status"] == "blocked" else deterministic_state,
-                "UnsupportedGitLexRuntime" if runtime["runtime_status"] == "blocked" else None,
-                "prd/architecture/acp/fixtures/git-lex-isolated-proof/blocked-action.md",
-                "source_records_authoritative_projection_non_authoritative",
-                "temporary_disposable_workspace", "deleted_by_TemporaryDirectory",
-                "keep_runtime_adoption_blocked_deferred", "git-lex adds no proven value while runtime is unavailable; explicit blocked diagnostics are ACP-native and durable.",
-                "Runtime unavailability is recorded as a blocked/deferred result, not a pass and not adoption evidence.",
-                {"runtime_status": runtime["runtime_status"], "blocker_class": runtime["blocker_class"]},
-            ),
-            CapabilityResult(
-                "projection-boundary", "ACP-S09-C03", "Projection boundary and stale projection handling",
-                projection_state, None if projection_state == "pass" else "ImitativeArtifact",
-                "temporary derived projection generated from tracked fixtures",
-                projection.get("authority_status", "unknown"),
-                "temporary_disposable_workspace", "deleted_by_TemporaryDirectory",
-                "keep_projection_derived_non_authoritative", "No git-lex runtime value proven; ACP can generate and reject authority inheritance with native source/projection markers.",
-                "Derived projection stayed non-authoritative and cannot validate R035/R037/R038 or override source records.",
-                {"projection_kind": projection.get("projection_kind"), "authority_status": projection.get("authority_status")},
-            ),
-            CapabilityResult(
-                "recovery-query", "ACP-S09-C04", "Recovery query over source, proof gate, evidence, and dependents",
-                "pass" if recovery_ok and "EA-ACP-0001" in gate_edges else "fail",
-                None if recovery_ok and "EA-ACP-0001" in gate_edges else "InsufficientEvidence",
-                "temporary derived projection generated from tracked fixtures",
-                "source_records_authoritative_projection_non_authoritative",
-                "temporary_disposable_workspace", "deleted_by_TemporaryDirectory",
-                "continue_acp_native_recovery", "No git-lex runtime value proven; deterministic source-record recovery covers the required cold-reader chain.",
-                "Recovered AD-ACP-0001 and PG-ACP-0001 -> EA-ACP-0001 evidence edge without relying on polished prose.",
-                {"architecture_decision_recovered": recovery_ok, "proof_gate_edges": gate_edges},
-            ),
-            CapabilityResult(
-                "git-semantics", "ACP-S09-C05", "Record-aware value beyond ordinary git",
-                "blocked" if runtime["runtime_status"] == "blocked" else "partial",
-                "UnsupportedGitLexRuntime" if runtime["runtime_status"] == "blocked" else None,
-                "build/acp/m048-s09/git_lex_capability_results.json",
-                "not_applicable_no_git_lex_projection",
-                "temporary_disposable_workspace", "deleted_by_TemporaryDirectory",
-                "ordinary_git_plus_acp_native_records_remains_sufficient", "Ordinary git covers branch/diff/history/conflict mechanics; no record-aware git-lex value was proven because the runtime is unavailable.",
-                git_result.get("summary", "ordinary git comparison recorded"),
-                {"ordinary_git": git_result, "runtime_status": runtime["runtime_status"]},
-            ),
-            CapabilityResult(
-                "isolation-safety", "ACP-S09-C06", "Isolation safety and no-main-repo .lex guard",
-                "pass" if runtime["mutation_guard"]["safe"] else "fail",
-                None if runtime["mutation_guard"]["safe"] else "UnsafeMutation",
-                "prd/architecture/acp/M048-S09-GIT-LEX-RUNTIME-DIAGNOSTICS.md",
-                "not_applicable_safety_guard",
-                "temporary_disposable_workspace", "deleted_by_TemporaryDirectory",
-                "allow_future_isolated_adapter_spike_only", "No git-lex runtime state touched the main checkout; safety is preserved but adoption remains blocked/deferred.",
-                "Main checkout .lex absence checked before and after; proof workspace is disposable.",
-                {"mutation_guard": runtime["mutation_guard"], "cleanup_path": cleanup_path},
-            ),
-        ])
+        results.extend(
+            [
+                CapabilityResult(
+                    "source-record-lifecycle",
+                    "ACP-S09-C01",
+                    "Typed source record lifecycle",
+                    deterministic_state,
+                    None if deterministic_state == "pass" else "InsufficientEvidence",
+                    "prd/architecture/acp/fixtures/git-lex-isolated-proof/*.md",
+                    "source_records_authoritative_projection_non_authoritative",
+                    "temporary_disposable_workspace",
+                    "deleted_by_TemporaryDirectory",
+                    "implement_acp_native_or_adapter_later",
+                    "No runtime git-lex value proven; ACP-native typed fixtures satisfy the lifecycle proof contract deterministically.",
+                    "S04 fixture records validate taxonomy, anchors, lifecycle states, profile boundary, and blocked actions."
+                    if deterministic_state == "pass"
+                    else "; ".join(deterministic_failures),
+                    {"record_count": len(records), "record_ids": sorted(records)},
+                ),
+                CapabilityResult(
+                    "blocked-claim",
+                    "ACP-S09-C02",
+                    "Blocked claim and proof-gate diagnostics",
+                    "pass"
+                    if not blocked_failures and runtime["runtime_status"] == "blocked"
+                    else deterministic_state,
+                    "UnsupportedGitLexRuntime" if runtime["runtime_status"] == "blocked" else None,
+                    "prd/architecture/acp/fixtures/git-lex-isolated-proof/blocked-action.md",
+                    "source_records_authoritative_projection_non_authoritative",
+                    "temporary_disposable_workspace",
+                    "deleted_by_TemporaryDirectory",
+                    "keep_runtime_adoption_blocked_deferred",
+                    "git-lex adds no proven value while runtime is unavailable; explicit blocked diagnostics are ACP-native and durable.",
+                    "Runtime unavailability is recorded as a blocked/deferred result, not a pass and not adoption evidence.",
+                    {
+                        "runtime_status": runtime["runtime_status"],
+                        "blocker_class": runtime["blocker_class"],
+                    },
+                ),
+                CapabilityResult(
+                    "projection-boundary",
+                    "ACP-S09-C03",
+                    "Projection boundary and stale projection handling",
+                    projection_state,
+                    None if projection_state == "pass" else "ImitativeArtifact",
+                    "temporary derived projection generated from tracked fixtures",
+                    projection.get("authority_status", "unknown"),
+                    "temporary_disposable_workspace",
+                    "deleted_by_TemporaryDirectory",
+                    "keep_projection_derived_non_authoritative",
+                    "No git-lex runtime value proven; ACP can generate and reject authority inheritance with native source/projection markers.",
+                    "Derived projection stayed non-authoritative and cannot validate R035/R037/R038 or override source records.",
+                    {
+                        "projection_kind": projection.get("projection_kind"),
+                        "authority_status": projection.get("authority_status"),
+                    },
+                ),
+                CapabilityResult(
+                    "recovery-query",
+                    "ACP-S09-C04",
+                    "Recovery query over source, proof gate, evidence, and dependents",
+                    "pass" if recovery_ok and "EA-ACP-0001" in gate_edges else "fail",
+                    None if recovery_ok and "EA-ACP-0001" in gate_edges else "InsufficientEvidence",
+                    "temporary derived projection generated from tracked fixtures",
+                    "source_records_authoritative_projection_non_authoritative",
+                    "temporary_disposable_workspace",
+                    "deleted_by_TemporaryDirectory",
+                    "continue_acp_native_recovery",
+                    "No git-lex runtime value proven; deterministic source-record recovery covers the required cold-reader chain.",
+                    "Recovered AD-ACP-0001 and PG-ACP-0001 -> EA-ACP-0001 evidence edge without relying on polished prose.",
+                    {
+                        "architecture_decision_recovered": recovery_ok,
+                        "proof_gate_edges": gate_edges,
+                    },
+                ),
+                CapabilityResult(
+                    "git-semantics",
+                    "ACP-S09-C05",
+                    "Record-aware value beyond ordinary git",
+                    "blocked" if runtime["runtime_status"] == "blocked" else "partial",
+                    "UnsupportedGitLexRuntime" if runtime["runtime_status"] == "blocked" else None,
+                    "build/acp/m048-s09/git_lex_capability_results.json",
+                    "not_applicable_no_git_lex_projection",
+                    "temporary_disposable_workspace",
+                    "deleted_by_TemporaryDirectory",
+                    "ordinary_git_plus_acp_native_records_remains_sufficient",
+                    "Ordinary git covers branch/diff/history/conflict mechanics; no record-aware git-lex value was proven because the runtime is unavailable.",
+                    git_result.get("summary", "ordinary git comparison recorded"),
+                    {"ordinary_git": git_result, "runtime_status": runtime["runtime_status"]},
+                ),
+                CapabilityResult(
+                    "isolation-safety",
+                    "ACP-S09-C06",
+                    "Isolation safety and no-main-repo .lex guard",
+                    "pass" if runtime["mutation_guard"]["safe"] else "fail",
+                    None if runtime["mutation_guard"]["safe"] else "UnsafeMutation",
+                    "prd/architecture/acp/M048-S09-GIT-LEX-RUNTIME-DIAGNOSTICS.md",
+                    "not_applicable_safety_guard",
+                    "temporary_disposable_workspace",
+                    "deleted_by_TemporaryDirectory",
+                    "allow_future_isolated_adapter_spike_only",
+                    "No git-lex runtime state touched the main checkout; safety is preserved but adoption remains blocked/deferred.",
+                    "Main checkout .lex absence checked before and after; proof workspace is disposable.",
+                    {"mutation_guard": runtime["mutation_guard"], "cleanup_path": cleanup_path},
+                ),
+            ]
+        )
         cleanup_status = "deleted_by_TemporaryDirectory"
 
     main_lex_after = MAIN_REPO_LEX_DIR.exists()
     if main_lex_after:
         fatal_failures.append("main repository .lex exists after S09 proof")
 
-    status = "fail" if fatal_failures or any(r.result_state == "fail" for r in results) else "blocked"
+    status = (
+        "fail" if fatal_failures or any(r.result_state == "fail" for r in results) else "blocked"
+    )
     if status != "fail" and all(r.result_state == "pass" for r in results):
         status = "pass"
 
@@ -352,20 +410,20 @@ def render_runtime_markdown(diagnostics: dict[str, Any]) -> str:
 
 ## Status
 
-- Runtime status: `{diagnostics['runtime_status']}`
-- Blocker class: `{diagnostics['blocker_class'] or 'none'}`
-- Safe acquisition policy: {diagnostics['safe_acquisition_policy']}
-- Main-repo mutation guard: `{'pass' if diagnostics['mutation_guard']['safe'] else 'fail'}`
+- Runtime status: `{diagnostics["runtime_status"]}`
+- Blocker class: `{diagnostics["blocker_class"] or "none"}`
+- Safe acquisition policy: {diagnostics["safe_acquisition_policy"]}
+- Main-repo mutation guard: `{"pass" if diagnostics["mutation_guard"]["safe"] else "fail"}`
 
 ## Workspace
 
-- Main repository: `{diagnostics['workspace']['main_repo']}`
-- Isolated workspace policy: {diagnostics['workspace']['isolated_workspace_policy']}
+- Main repository: `{diagnostics["workspace"]["main_repo"]}`
+- Isolated workspace policy: {diagnostics["workspace"]["isolated_workspace_policy"]}
 
 ## Tool Versions
 
-- Python: `{diagnostics['tool_versions']['python']}`
-- git-lex runtime: `{diagnostics['tool_versions']['git_lex_runtime']}`
+- Python: `{diagnostics["tool_versions"]["python"]}`
+- git-lex runtime: `{diagnostics["tool_versions"]["git_lex_runtime"]}`
 
 ## Command Diagnostics
 
@@ -377,14 +435,14 @@ def render_runtime_markdown(diagnostics: dict[str, Any]) -> str:
 
 | Check | Result |
 | --- | --- |
-| `.lex` absent before proof | `{not diagnostics['mutation_guard']['main_lex_before']}` |
-| `.lex` absent after proof | `{not diagnostics['mutation_guard']['main_lex_after']}` |
-| Guard safe | `{diagnostics['mutation_guard']['safe']}` |
+| `.lex` absent before proof | `{not diagnostics["mutation_guard"]["main_lex_before"]}` |
+| `.lex` absent after proof | `{not diagnostics["mutation_guard"]["main_lex_after"]}` |
+| Guard safe | `{diagnostics["mutation_guard"]["safe"]}` |
 
 ## S05 Carry-forward Contract
 
-- S05 contract status: `{diagnostics['s05_contract_status']}`
-- S05 workflow statuses: `{json.dumps(diagnostics['s05_workflow_statuses'], sort_keys=True)}`
+- S05 contract status: `{diagnostics["s05_contract_status"]}`
+- S05 workflow statuses: `{json.dumps(diagnostics["s05_workflow_statuses"], sort_keys=True)}`
 
 ## Conclusion
 
@@ -413,10 +471,10 @@ def render_fit_report(payload: dict[str, Any]) -> str:
 
 ## Status
 
-- Harness status: `{payload['status']}`
-- Runtime status: `{payload['runtime']['runtime_status']}`
-- Main-repo mutation guard safe: `{payload['main_repo_mutation_guard']['safe']}`
-- Workspace cleanup: `{payload['workspace']['cleanup_status']}`
+- Harness status: `{payload["status"]}`
+- Runtime status: `{payload["runtime"]["runtime_status"]}`
+- Main-repo mutation guard safe: `{payload["main_repo_mutation_guard"]["safe"]}`
+- Workspace cleanup: `{payload["workspace"]["cleanup_status"]}`
 
 ## Scenario Results
 
@@ -434,7 +492,7 @@ S09 did not prove runtime git-lex adoption. Deterministic ACP-native fixtures pr
 
 ## Adoption Conclusion
 
-{payload['adoption_conclusion']}
+{payload["adoption_conclusion"]}
 
 ## Machine-readable Evidence
 
@@ -453,10 +511,22 @@ def write_outputs(runtime: dict[str, Any] | None, fit: dict[str, Any] | None) ->
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--check-runtime", action="store_true", help="Run runtime probes and write runtime diagnostics.")
-    parser.add_argument("--run-all", action="store_true", help="Run all S09 functional-fit scenarios.")
-    parser.add_argument("--write-report", action="store_true", help="Write Markdown and JSON reports.")
-    parser.add_argument("--no-main-repo-mutation", action="store_true", help="Fail if main checkout .lex exists before or after.")
+    parser.add_argument(
+        "--check-runtime",
+        action="store_true",
+        help="Run runtime probes and write runtime diagnostics.",
+    )
+    parser.add_argument(
+        "--run-all", action="store_true", help="Run all S09 functional-fit scenarios."
+    )
+    parser.add_argument(
+        "--write-report", action="store_true", help="Write Markdown and JSON reports."
+    )
+    parser.add_argument(
+        "--no-main-repo-mutation",
+        action="store_true",
+        help="Fail if main checkout .lex exists before or after.",
+    )
     args = parser.parse_args()
 
     if not args.check_runtime and not args.run_all:

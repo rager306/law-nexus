@@ -12,7 +12,10 @@ from pathlib import Path
 from typing import Any
 
 ROOT = Path(__file__).resolve().parents[1]
-DEFAULT_MANIFEST = ROOT / "prd/research/ontology_architecture_requirements/fixtures/independent_structural_signal_inputs.json"
+DEFAULT_MANIFEST = (
+    ROOT
+    / "prd/research/ontology_architecture_requirements/fixtures/independent_structural_signal_inputs.json"
+)
 SCHEMA_VERSION = "independent-structural-signal-inputs/v1"
 REPRESENTATION_KIND = "safe_materialized_descriptor_with_anchor_family_v1"
 SELECTED_SIGNAL = "safe_anchor_family_bucket"
@@ -27,9 +30,23 @@ BASE_FIELDS = {
     "source_order_index_bucket",
 }
 ENHANCED_FIELDS = BASE_FIELDS | {SELECTED_SIGNAL}
-ANCHOR_FAMILY_VALUES = {"source_anchor_family_article", "source_anchor_family_paragraph", "source_anchor_family_unknown"}
-M027_BASELINE = {"mrr": 0.680555, "recall_at_1": 0.5, "recall_at_3": 0.833333, "runtime_boundary_confirmed": 1.0}
-M028_BASELINE = {"mrr": 0.916667, "recall_at_1": 0.833333, "recall_at_3": 1.0, "runtime_boundary_confirmed": 1.0}
+ANCHOR_FAMILY_VALUES = {
+    "source_anchor_family_article",
+    "source_anchor_family_paragraph",
+    "source_anchor_family_unknown",
+}
+M027_BASELINE = {
+    "mrr": 0.680555,
+    "recall_at_1": 0.5,
+    "recall_at_3": 0.833333,
+    "runtime_boundary_confirmed": 1.0,
+}
+M028_BASELINE = {
+    "mrr": 0.916667,
+    "recall_at_1": 0.833333,
+    "recall_at_3": 1.0,
+    "runtime_boundary_confirmed": 1.0,
+}
 ALLOWED_ROOT_FIELDS = {
     "added_descriptor_fields",
     "allowed_descriptor_fields",
@@ -235,7 +252,9 @@ def validate_allowed_enums(allowed: Any) -> dict[str, set[str]]:
     return normalized
 
 
-def validate_descriptors(descriptors: Any, tokens: Any, allowed: Mapping[str, set[str]], input_id: str) -> str:
+def validate_descriptors(
+    descriptors: Any, tokens: Any, allowed: Mapping[str, set[str]], input_id: str
+) -> str:
     if not isinstance(descriptors, Mapping) or set(descriptors) != ENHANCED_FIELDS:
         raise IndependentSignalInputError(f"descriptor field mismatch: {input_id}")
     expected_tokens: list[str] = []
@@ -268,7 +287,9 @@ def expected_anchor_family(source_anchor_ref: str) -> str:
     return "source_anchor_family_unknown"
 
 
-def validate_common(item: Mapping[str, Any], allowed: Mapping[str, set[str]], refs: set[str], anchors: set[str]) -> None:
+def validate_common(
+    item: Mapping[str, Any], allowed: Mapping[str, set[str]], refs: set[str], anchors: set[str]
+) -> None:
     if set(item) - (ALLOWED_QUERY_FIELDS | ALLOWED_CANDIDATE_FIELDS):
         raise IndependentSignalInputError("unexpected descriptor field")
     input_id = str(item.get("descriptor_input_id"))
@@ -295,7 +316,9 @@ def validate_common(item: Mapping[str, Any], allowed: Mapping[str, set[str]], re
         raise IndependentSignalInputError(f"representation mismatch: {input_id}")
     if item.get("selected_signal") != SELECTED_SIGNAL:
         raise IndependentSignalInputError(f"selected signal mismatch: {input_id}")
-    value = validate_descriptors(item.get("descriptors"), item.get("descriptor_tokens"), allowed, input_id)
+    value = validate_descriptors(
+        item.get("descriptors"), item.get("descriptor_tokens"), allowed, input_id
+    )
     if item.get("selected_signal_value") != value:
         raise IndependentSignalInputError(f"selected signal value mismatch: {input_id}")
     if value != expected_anchor_family(source_anchor_ref):
@@ -304,14 +327,18 @@ def validate_common(item: Mapping[str, Any], allowed: Mapping[str, set[str]], re
         raise IndependentSignalInputError(f"non-authoritative marker missing: {input_id}")
 
 
-def validate_items(manifest: Mapping[str, Any], allowed: Mapping[str, set[str]]) -> tuple[set[str], set[str]]:
+def validate_items(
+    manifest: Mapping[str, Any], allowed: Mapping[str, set[str]]
+) -> tuple[set[str], set[str]]:
     refs: set[str] = set()
     anchors: set[str] = set()
     query_items = manifest.get("query_descriptors")
     candidate_items = manifest.get("candidate_descriptors")
     if not isinstance(query_items, list) or not isinstance(candidate_items, list):
         raise IndependentSignalInputError("descriptor arrays missing")
-    if len(query_items) != manifest.get("query_descriptor_count") or len(candidate_items) != manifest.get("candidate_descriptor_count"):
+    if len(query_items) != manifest.get("query_descriptor_count") or len(
+        candidate_items
+    ) != manifest.get("candidate_descriptor_count"):
         raise IndependentSignalInputError("descriptor count mismatch")
     for item in query_items:
         if not isinstance(item, Mapping) or set(item) - ALLOWED_QUERY_FIELDS:
@@ -324,7 +351,11 @@ def validate_items(manifest: Mapping[str, Any], allowed: Mapping[str, set[str]])
         if not SAFE_CANDIDATE_ID_RE.fullmatch(candidate_id):
             raise IndependentSignalInputError(f"unsafe candidate id: {candidate_id}")
         records = item.get("source_record_ids")
-        if not isinstance(records, list) or not records or not all(isinstance(record, str) for record in records):
+        if (
+            not isinstance(records, list)
+            or not records
+            or not all(isinstance(record, str) for record in records)
+        ):
             raise IndependentSignalInputError("source record ids missing")
         validate_common(item, allowed, refs, anchors)
     return refs, anchors
@@ -335,35 +366,64 @@ def verify_manifest(path: Path = DEFAULT_MANIFEST) -> dict[str, Any]:
     assert_safe_payload(manifest)
     if set(manifest) != ALLOWED_ROOT_FIELDS:
         raise IndependentSignalInputError("manifest root field mismatch")
-    if manifest.get("schema_version") != SCHEMA_VERSION or manifest.get("representation_kind") != REPRESENTATION_KIND:
+    if (
+        manifest.get("schema_version") != SCHEMA_VERSION
+        or manifest.get("representation_kind") != REPRESENTATION_KIND
+    ):
         raise IndependentSignalInputError("schema or representation mismatch")
     if manifest.get("milestone_id") != "M029-yfyh51" or manifest.get("slice_id") != "S02":
         raise IndependentSignalInputError("milestone/slice mismatch")
     if manifest.get("selected_signal") != SELECTED_SIGNAL:
         raise IndependentSignalInputError("selected signal mismatch")
-    if manifest.get("forbidden_reused_signal") != FORBIDDEN_REUSED_SIGNAL or manifest.get("forbidden_reused_signal_declared") is not True:
+    if (
+        manifest.get("forbidden_reused_signal") != FORBIDDEN_REUSED_SIGNAL
+        or manifest.get("forbidden_reused_signal_declared") is not True
+    ):
         raise IndependentSignalInputError("forbidden reused signal marker mismatch")
-    if manifest.get("single_signal_change_only") is not True or manifest.get("added_descriptor_fields") != [SELECTED_SIGNAL]:
+    if manifest.get("single_signal_change_only") is not True or manifest.get(
+        "added_descriptor_fields"
+    ) != [SELECTED_SIGNAL]:
         raise IndependentSignalInputError("single signal change mismatch")
     if set(manifest.get("base_derivation_fields", [])) != BASE_FIELDS:
         raise IndependentSignalInputError("base derivation field mismatch")
     if set(manifest.get("enhanced_derivation_fields", [])) != ENHANCED_FIELDS:
         raise IndependentSignalInputError("enhanced derivation field mismatch")
-    if manifest.get("m027_baseline_locked") is not True or manifest.get("m027_baseline_metrics") != M027_BASELINE:
+    if (
+        manifest.get("m027_baseline_locked") is not True
+        or manifest.get("m027_baseline_metrics") != M027_BASELINE
+    ):
         raise IndependentSignalInputError("M027 baseline mismatch")
-    if manifest.get("m028_baseline_locked") is not True or manifest.get("m028_baseline_metrics") != M028_BASELINE:
+    if (
+        manifest.get("m028_baseline_locked") is not True
+        or manifest.get("m028_baseline_metrics") != M028_BASELINE
+    ):
         raise IndependentSignalInputError("M028 baseline mismatch")
     redaction = manifest.get("redaction")
-    if not isinstance(redaction, Mapping) or set(redaction) != REQUIRED_REDACTION or not all(redaction.values()):
+    if (
+        not isinstance(redaction, Mapping)
+        or set(redaction) != REQUIRED_REDACTION
+        or not all(redaction.values())
+    ):
         raise IndependentSignalInputError("redaction flags mismatch")
-    if manifest.get("r035_non_validation_declared") is not True or manifest.get("r038_review_required") is not True or manifest.get("non_authoritative") is not True:
+    if (
+        manifest.get("r035_non_validation_declared") is not True
+        or manifest.get("r038_review_required") is not True
+        or manifest.get("non_authoritative") is not True
+    ):
         raise IndependentSignalInputError("lifecycle boundary marker missing")
     summary = manifest.get("signal_derivation_summary")
     if not isinstance(summary, Mapping):
         raise IndependentSignalInputError("signal derivation summary missing")
-    if summary.get("allowed_inputs") != ["source_anchor_ref", "source_anchor_sha256", "materialized_candidate_ref"]:
+    if summary.get("allowed_inputs") != [
+        "source_anchor_ref",
+        "source_anchor_sha256",
+        "materialized_candidate_ref",
+    ]:
         raise IndependentSignalInputError("allowed derivation inputs mismatch")
-    if summary.get("source_order_index_used") is not False or summary.get("forbidden_reused_signal_used") is not False:
+    if (
+        summary.get("source_order_index_used") is not False
+        or summary.get("forbidden_reused_signal_used") is not False
+    ):
         raise IndependentSignalInputError("forbidden derivation input used")
     if summary.get("raw_text_used") is not False or summary.get("labels_used") is not False:
         raise IndependentSignalInputError("unsafe derivation input used")

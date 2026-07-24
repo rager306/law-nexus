@@ -71,7 +71,7 @@ FORBIDDEN_OUTPUT_FRAGMENTS = (
     "api_key",
     "api-key",
     "authorization",
-    "\"embedding\":[",
+    '"embedding":[',
     "/root/",
     "/tmp/",
     "\\u005b0.0,",
@@ -120,7 +120,9 @@ def package_import_name(package: str) -> str:
     return PACKAGE_IMPORTS.get(package, package.replace("-", "_"))
 
 
-def probe_dependency_versions(packages: Sequence[str] = REQUIRED_PACKAGES) -> tuple[dict[str, str], list[str]]:
+def probe_dependency_versions(
+    packages: Sequence[str] = REQUIRED_PACKAGES,
+) -> tuple[dict[str, str], list[str]]:
     versions: dict[str, str] = {}
     missing: list[str] = []
     for package in packages:
@@ -210,7 +212,9 @@ def fail_payload(
     return payload
 
 
-def confirmed_payload(dependency_versions: Mapping[str, str], vector_dimension: int) -> dict[str, Any]:
+def confirmed_payload(
+    dependency_versions: Mapping[str, str], vector_dimension: int
+) -> dict[str, Any]:
     payload = base_payload()
     payload.update(
         {
@@ -248,7 +252,10 @@ def validate_payload(payload: Mapping[str, Any]) -> None:
     redaction = payload.get("redaction")
     if not isinstance(redaction, dict) or not all(value is True for value in redaction.values()):
         raise RuntimeCheckError("redaction flags must all be true")
-    if status == "confirmed_runtime" and payload.get("vector_dimension") != EXPECTED_VECTOR_DIMENSION:
+    if (
+        status == "confirmed_runtime"
+        and payload.get("vector_dimension") != EXPECTED_VECTOR_DIMENSION
+    ):
         raise RuntimeCheckError("confirmed runtime requires expected vector dimension")
     if status != "confirmed_runtime" and not payload.get("diagnostic_codes"):
         raise RuntimeCheckError("fail-closed status requires diagnostic codes")

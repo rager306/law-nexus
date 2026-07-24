@@ -363,7 +363,9 @@ def optional_probe_base(parser: str, source: Path, status: str) -> dict[str, Any
 
 
 def remove_xml_doctype(payload: bytes) -> tuple[bytes, bool]:
-    cleaned, count = re.subn(rb"<!DOCTYPE\s+[^>]*>\s*", b"", payload, count=1, flags=re.IGNORECASE | re.DOTALL)
+    cleaned, count = re.subn(
+        rb"<!DOCTYPE\s+[^>]*>\s*", b"", payload, count=1, flags=re.IGNORECASE | re.DOTALL
+    )
     return cleaned, count > 0
 
 
@@ -393,7 +395,11 @@ def odfpy_probe(source: Path) -> dict[str, Any]:
     try:
         odf_open_document = importlib.import_module("odf.opendocument")
     except ModuleNotFoundError as exc:
-        return probe | {"status": "not-installed", "issue_ids": ["S05-optional-odfpy-not-installed"], "error": exception_payload(exc)}
+        return probe | {
+            "status": "not-installed",
+            "issue_ids": ["S05-optional-odfpy-not-installed"],
+            "error": exception_payload(exc),
+        }
 
     load = getattr(odf_open_document, "load", None)
     if not callable(load):
@@ -477,7 +483,9 @@ def summarize_odfdo_document(document: Any, raw_result: dict[str, Any]) -> dict[
             body = {"error": exception_payload(exc)}
 
     text_available, formatted_text = call_optional(
-        first_callable(getattr(body, "get_formatted_text", None), getattr(document, "get_formatted_text", None))
+        first_callable(
+            getattr(body, "get_formatted_text", None), getattr(document, "get_formatted_text", None)
+        )
     )
     tables_available, tables = call_optional(
         first_callable(getattr(body, "get_tables", None), getattr(document, "get_tables", None))
@@ -519,12 +527,18 @@ def odfdo_probe(source: Path, raw_result: dict[str, Any]) -> dict[str, Any]:
     try:
         odfdo_module = importlib.import_module("odfdo")
     except ModuleNotFoundError as exc:
-        return probe | {"status": "not-installed", "issue_ids": ["S05-optional-odfdo-not-installed"], "error": exception_payload(exc)}
+        return probe | {
+            "status": "not-installed",
+            "issue_ids": ["S05-optional-odfdo-not-installed"],
+            "error": exception_payload(exc),
+        }
 
     document_class = getattr(odfdo_module, "Document", None)
     observed_capabilities = {
         "has_Document": callable(document_class),
-        "module_attrs_sample": sorted(name for name in dir(odfdo_module) if not name.startswith("_"))[:20],
+        "module_attrs_sample": sorted(
+            name for name in dir(odfdo_module) if not name.startswith("_")
+        )[:20],
     }
     if not callable(document_class):
         return probe | {
@@ -547,7 +561,8 @@ def odfdo_probe(source: Path, raw_result: dict[str, Any]) -> dict[str, Any]:
     comparison_summary = summarize_odfdo_document(document, raw_result)
     status = (
         "loaded-unmodified"
-        if comparison_summary["ordered_text_available"] or comparison_summary["table_count_available"]
+        if comparison_summary["ordered_text_available"]
+        or comparison_summary["table_count_available"]
         else "api-incomplete"
     )
     return probe | {
@@ -566,10 +581,14 @@ def probe_optional_parsers(source: Path, raw_result: dict[str, Any]) -> list[dic
 
 def write_json(path: Path, payload: dict[str, Any]) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(json.dumps(payload, ensure_ascii=False, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    path.write_text(
+        json.dumps(payload, ensure_ascii=False, indent=2, sort_keys=True) + "\n", encoding="utf-8"
+    )
 
 
-def build_cli_payload(result: dict[str, Any], optional_probes: list[dict[str, Any]] | None = None) -> dict[str, Any]:
+def build_cli_payload(
+    result: dict[str, Any], optional_probes: list[dict[str, Any]] | None = None
+) -> dict[str, Any]:
     probes = [result, *(optional_probes or [])]
     statuses = {"raw-baseline": result["status"]}
     statuses.update({probe["parser"]: probe["status"] for probe in optional_probes or []})
@@ -604,17 +623,24 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
 def main(argv: list[str] | None = None) -> int:
     args = parse_args(sys.argv[1:] if argv is None else argv)
     result = probe_raw_odt(args.source, allow_fixture_source=args.allow_fixture_source)
-    optional_probes = probe_optional_parsers(args.source, result) if args.include_optional_parsers else []
+    optional_probes = (
+        probe_optional_parsers(args.source, result) if args.include_optional_parsers else []
+    )
     payload = build_cli_payload(result, optional_probes)
     out_path = args.out
     write_json(out_path, payload | {"probe_log_path": normalized_path(out_path)})
     if result["status"] == "verified-source-evidence":
         return 0
-    print(f"S05 raw ODT probe failed: {result['status']}: {result['error']['message']}", file=sys.stderr)
+    print(
+        f"S05 raw ODT probe failed: {result['status']}: {result['error']['message']}",
+        file=sys.stderr,
+    )
     return 1
 
 
-def write_test_odt_fixture(source: Path, *, content_body: str, manifest_doctype: bool = False) -> None:
+def write_test_odt_fixture(
+    source: Path, *, content_body: str, manifest_doctype: bool = False
+) -> None:
     """Create a minimal ODT package for pytest fixtures.
 
     This helper is intentionally in the harness so tests exercise the same namespace
@@ -643,7 +669,9 @@ def write_test_odt_fixture(source: Path, *, content_body: str, manifest_doctype:
 </office:document-content>
 """
     with zipfile.ZipFile(source, "w", compression=zipfile.ZIP_DEFLATED) as zf:
-        zf.writestr("mimetype", "application/vnd.oasis.opendocument.text", compress_type=zipfile.ZIP_STORED)
+        zf.writestr(
+            "mimetype", "application/vnd.oasis.opendocument.text", compress_type=zipfile.ZIP_STORED
+        )
         zf.writestr("META-INF/manifest.xml", manifest)
         zf.writestr("content.xml", content)
 

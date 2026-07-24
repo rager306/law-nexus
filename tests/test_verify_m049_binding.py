@@ -54,7 +54,9 @@ def test_lists_required_diagnostic_ids() -> None:
 
 def test_detects_authority_inversion(tmp_path: Path) -> None:
     verifier = load_verifier()
-    artifact = write_artifact(tmp_path, "JSONL registry rows are source truth and validation proof.\n")
+    artifact = write_artifact(
+        tmp_path, "JSONL registry rows are source truth and validation proof.\n"
+    )
 
     diagnostics = verifier.check_artifact(artifact)
 
@@ -117,7 +119,9 @@ def test_detects_registry_currency_overclaim(tmp_path: Path) -> None:
 
 def test_detects_placeholder_proof_misuse(tmp_path: Path) -> None:
     verifier = load_verifier()
-    artifact = write_artifact(tmp_path, "A placeholder proof gate proves profile behavior exists.\n")
+    artifact = write_artifact(
+        tmp_path, "A placeholder proof gate proves profile behavior exists.\n"
+    )
 
     diagnostics = verifier.check_artifact(artifact)
 

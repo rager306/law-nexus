@@ -1,9 +1,7 @@
 use ln_temporal::{
     adapters::SubstitutingHostileEvidence,
     application::ResolveFiveClockState,
-    domain::{
-        ClockKind, RequestId, ResolutionOutcome, ResolutionRequest, SubstituteKind,
-    },
+    domain::{ClockKind, RequestId, ResolutionOutcome, ResolutionRequest, SubstituteKind},
 };
 
 fn forbidden_substitutes(missing: ClockKind) -> Vec<SubstituteKind> {
@@ -70,7 +68,10 @@ fn hostile_wall_clock_only_request_is_still_rejected() {
         attempted_substitutes: vec![SubstituteKind::WallClock],
     });
     assert_eq!(result.outcome, ResolutionOutcome::SubstituteRejected);
-    assert_eq!(result.trace.rejected_substitutes, vec!["wall_clock".to_owned()]);
+    assert_eq!(
+        result.trace.rejected_substitutes,
+        vec!["wall_clock".to_owned()]
+    );
     assert!(!result.substitution_used);
 }
 

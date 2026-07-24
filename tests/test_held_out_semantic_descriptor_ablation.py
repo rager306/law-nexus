@@ -9,7 +9,10 @@ from types import ModuleType
 
 ROOT = Path(__file__).resolve().parents[1]
 SCRIPT = ROOT / "scripts/verify-held-out-semantic-descriptor-ablation.py"
-PROOF = ROOT / "prd/research/ontology_architecture_requirements/held_out_semantic_descriptor_ablation_proof.json"
+PROOF = (
+    ROOT
+    / "prd/research/ontology_architecture_requirements/held_out_semantic_descriptor_ablation_proof.json"
+)
 
 
 def load_module(name: str = "held_out_ablation") -> ModuleType:
@@ -72,7 +75,10 @@ def test_digests_and_redaction_are_present() -> None:
     assert len(proof["evaluation_labels_sha256"]) == 64
     assert len(proof["score_digest"]["current_scores_sha256"]) == 64
     assert len(proof["score_digest"]["ablated_scores_sha256"]) == 64
-    assert proof["score_digest"]["current_scores_sha256"] != proof["score_digest"]["ablated_scores_sha256"]
+    assert (
+        proof["score_digest"]["current_scores_sha256"]
+        != proof["score_digest"]["ablated_scores_sha256"]
+    )
     assert proof["redaction"]["external_payloads_excluded"] is True
     assert proof["redaction"]["raw_vectors_excluded"] is True
 
@@ -96,15 +102,24 @@ def test_cli_emits_compact_ok_json_no_write() -> None:
 
 def test_classifier_detects_dependency_when_metrics_drop() -> None:
     ablation = load_module("held_out_ablation_classifier")
-    current = {"status": "completed", "metrics": {"mrr": 1.0, "recall_at_1": 1.0, "recall_at_3": 1.0}}
-    ablated = {"status": "completed", "metrics": {"mrr": 0.5, "recall_at_1": 0.0, "recall_at_3": 1.0}}
+    current = {
+        "status": "completed",
+        "metrics": {"mrr": 1.0, "recall_at_1": 1.0, "recall_at_3": 1.0},
+    }
+    ablated = {
+        "status": "completed",
+        "metrics": {"mrr": 0.5, "recall_at_1": 0.0, "recall_at_3": 1.0},
+    }
 
     assert ablation.classify(current, ablated) == "held_out_success_depends_on_descriptor_signal"
 
 
 def test_classifier_detects_blocked_scoring() -> None:
     ablation = load_module("held_out_ablation_blocked")
-    current = {"status": "completed", "metrics": {"mrr": 1.0, "recall_at_1": 1.0, "recall_at_3": 1.0}}
+    current = {
+        "status": "completed",
+        "metrics": {"mrr": 1.0, "recall_at_1": 1.0, "recall_at_3": 1.0},
+    }
     ablated = {"status": "blocked", "metrics": {"mrr": 0.0, "recall_at_1": 0.0, "recall_at_3": 0.0}}
 
     assert ablation.classify(current, ablated) == "held_out_scoring_blocked"

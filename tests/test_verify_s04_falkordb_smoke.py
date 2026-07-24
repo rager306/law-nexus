@@ -120,11 +120,15 @@ Run `uv run python scripts/verify-s04-falkordb-smoke.py --require-schema-only` f
 """
 
 
-def _write_artifacts(tmp_path: Path, payload: dict[str, Any] | None = None, markdown: str | None = None) -> tuple[Path, Path]:
+def _write_artifacts(
+    tmp_path: Path, payload: dict[str, Any] | None = None, markdown: str | None = None
+) -> tuple[Path, Path]:
     markdown_path = tmp_path / "S04-FALKORDB-CAPABILITY-SMOKE.md"
     json_path = tmp_path / "S04-FALKORDB-CAPABILITY-SMOKE.json"
     markdown_path.write_text(_valid_markdown() if markdown is None else markdown, encoding="utf-8")
-    json_path.write_text(json.dumps(_valid_json() if payload is None else payload), encoding="utf-8")
+    json_path.write_text(
+        json.dumps(_valid_json() if payload is None else payload), encoding="utf-8"
+    )
     return markdown_path, json_path
 
 
@@ -174,7 +178,11 @@ def test_rejects_missing_owner(tmp_path: Path) -> None:
     assert any("owner must be a non-empty string" in failure for failure in failures)
 
 
-@given(status=st.text(min_size=1).filter(lambda value: value.strip() and value not in VERIFIER.ALLOWED_RUNTIME_STATUSES))
+@given(
+    status=st.text(min_size=1).filter(
+        lambda value: value.strip() and value not in VERIFIER.ALLOWED_RUNTIME_STATUSES
+    )
+)
 @settings(max_examples=25)
 def test_rejects_unknown_status(status: str) -> None:
     payload = _valid_json()
@@ -219,7 +227,9 @@ def test_rejects_missing_capability_id(tmp_path: Path) -> None:
 
     failures = VERIFIER.validate_artifacts(markdown_path, json_path, VerificationMode.SCHEMA_ONLY)
 
-    assert any("markdown missing capability ID: embedding-cpu-tiny" in failure for failure in failures)
+    assert any(
+        "markdown missing capability ID: embedding-cpu-tiny" in failure for failure in failures
+    )
     assert any(
         "JSON capabilities missing required capability ID: embedding-cpu-tiny" in failure
         for failure in failures
@@ -260,14 +270,18 @@ def test_rejects_blank_resolution_and_verification_fields(tmp_path: Path) -> Non
     failures = _validate(payload, tmp_path)
 
     assert any("resolution_path must be a non-empty string" in failure for failure in failures)
-    assert any("verification_criteria must be a non-empty string" in failure for failure in failures)
+    assert any(
+        "verification_criteria must be a non-empty string" in failure for failure in failures
+    )
 
 
 def test_missing_markdown_file_reports_path(tmp_path: Path) -> None:
     _markdown_path, json_path = _write_artifacts(tmp_path)
     missing_markdown = tmp_path / "missing.md"
 
-    failures = VERIFIER.validate_artifacts(missing_markdown, json_path, VerificationMode.SCHEMA_ONLY)
+    failures = VERIFIER.validate_artifacts(
+        missing_markdown, json_path, VerificationMode.SCHEMA_ONLY
+    )
 
     assert any(f"markdown artifact missing: {missing_markdown}" in failure for failure in failures)
 
@@ -276,7 +290,9 @@ def test_missing_json_file_reports_path(tmp_path: Path) -> None:
     markdown_path, _json_path = _write_artifacts(tmp_path)
     missing_json = tmp_path / "missing.json"
 
-    failures = VERIFIER.validate_artifacts(markdown_path, missing_json, VerificationMode.SCHEMA_ONLY)
+    failures = VERIFIER.validate_artifacts(
+        markdown_path, missing_json, VerificationMode.SCHEMA_ONLY
+    )
 
     assert any(f"JSON artifact missing: {missing_json}" in failure for failure in failures)
 
@@ -284,7 +300,9 @@ def test_missing_json_file_reports_path(tmp_path: Path) -> None:
 def test_runtime_mode_rejects_schema_only_statuses(tmp_path: Path) -> None:
     markdown_path, json_path = _write_artifacts(tmp_path)
 
-    failures = VERIFIER.validate_artifacts(markdown_path, json_path, VerificationMode.RUNTIME_RESULTS)
+    failures = VERIFIER.validate_artifacts(
+        markdown_path, json_path, VerificationMode.RUNTIME_RESULTS
+    )
 
     assert any("non-terminal runtime status" in failure for failure in failures)
     assert any("JSON phase must be 'runtime-results'" in failure for failure in failures)
@@ -313,6 +331,8 @@ def test_runtime_mode_accepts_terminal_statuses_with_specific_diagnostics(tmp_pa
     payload["findings"] = terminal_findings
     markdown_path, json_path = _write_artifacts(tmp_path, payload)
 
-    failures = VERIFIER.validate_artifacts(markdown_path, json_path, VerificationMode.RUNTIME_RESULTS)
+    failures = VERIFIER.validate_artifacts(
+        markdown_path, json_path, VerificationMode.RUNTIME_RESULTS
+    )
 
     assert failures == []

@@ -31,9 +31,15 @@ from pathlib import Path
 from typing import Any
 
 ROOT = Path(__file__).resolve().parents[1]
-DEFAULT_CONTRACT = ROOT / "prd" / "architecture" / "acp" / "runtime" / "m065-s01" / "install-contract.md"
-DEFAULT_MANIFEST = ROOT / "prd" / "architecture" / "acp" / "runtime" / "m065-s02" / "install-manifest.json"
-DEFAULT_PROOF = ROOT / "prd" / "architecture" / "acp" / "runtime" / "m065-s02" / "install-proof.json"
+DEFAULT_CONTRACT = (
+    ROOT / "prd" / "architecture" / "acp" / "runtime" / "m065-s01" / "install-contract.md"
+)
+DEFAULT_MANIFEST = (
+    ROOT / "prd" / "architecture" / "acp" / "runtime" / "m065-s02" / "install-manifest.json"
+)
+DEFAULT_PROOF = (
+    ROOT / "prd" / "architecture" / "acp" / "runtime" / "m065-s02" / "install-proof.json"
+)
 MAIN_STATE_RESIDUE = ("Squad", "Raw", ".artifacts")
 
 # Both binaries declared by Cargo.toml [[bin]] and installed by S02/T01.
@@ -59,40 +65,61 @@ DIAGNOSTIC_IDS = (
 # is_gate:false). The proven cold-PATH *help resolution* rc=0 is the DIRECT
 # binary invocation ``git-lex --help`` => ``proofs.git_lex_direct_help``. We
 # therefore verify git_lex_direct_help (help exit 0 + banner), git_subcommand
-#_dispatch (git found git-lex via cold PATH and dispatched 'lex': rc=2 + banner,
+# _dispatch (git found git-lex via cold PATH and dispatched 'lex': rc=2 + banner,
 # contract item 4), and the version gap. Checking a nonexistent ``git_lex_help``
 # key would make every correct install falsely fail, so we read the real key.
 PROOF_FIELD_CHECKS: tuple[tuple[tuple[str, ...], Any, str], ...] = (
-    (("proofs", "git_lex_direct_help", "exit_code"), 0,
-     "git-lex --help cold-PATH direct resolution exit code (contract §5 item 2 intent)"),
-    (("proofs", "git_lex_direct_help", "banner_found"), True,
-     "git-lex --help banner found"),
-    (("proofs", "git_lex_serve_help", "exit_code"), 0,
-     "git-lex-serve --help cold-PATH exit code (contract §5 item 3)"),
-    (("proofs", "git_lex_serve_help", "banner_found"), True,
-     "git-lex-serve --help banner found"),
-    (("proofs", "git_subcommand_dispatch", "primary_exit_code"), 2,
-     "git lex subcommand dispatch exit code (contract §5 item 4: git found git-lex via cold PATH)"),
-    (("proofs", "git_subcommand_dispatch", "primary_banner_found"), True,
-     "git lex dispatch banner found (installed git-lex binary executed)"),
-    (("proofs", "version_gap", "version_gap_confirmed"), True,
-     "version gap confirmed (no version claim)"),
-    (("proofs", "version_gap", "git_lex_version_rc"), 2,
-     "git lex --version rc == 2 (gap, contract hard constraint)"),
-    (("proofs", "version_gap", "git_lex_serve_version_rc"), 2,
-     "git-lex-serve --version rc == 2 (gap)"),
-    (("residue_guard", "before", "Squad"), "absent",
-     "proof residue_guard.before Squad absent"),
-    (("residue_guard", "before", "Raw"), "absent",
-     "proof residue_guard.before Raw absent"),
-    (("residue_guard", "before", ".artifacts"), "absent",
-     "proof residue_guard.before .artifacts absent"),
-    (("residue_guard", "after", "Squad"), "absent",
-     "proof residue_guard.after Squad absent"),
-    (("residue_guard", "after", "Raw"), "absent",
-     "proof residue_guard.after Raw absent"),
-    (("residue_guard", "after", ".artifacts"), "absent",
-     "proof residue_guard.after .artifacts absent"),
+    (
+        ("proofs", "git_lex_direct_help", "exit_code"),
+        0,
+        "git-lex --help cold-PATH direct resolution exit code (contract §5 item 2 intent)",
+    ),
+    (("proofs", "git_lex_direct_help", "banner_found"), True, "git-lex --help banner found"),
+    (
+        ("proofs", "git_lex_serve_help", "exit_code"),
+        0,
+        "git-lex-serve --help cold-PATH exit code (contract §5 item 3)",
+    ),
+    (("proofs", "git_lex_serve_help", "banner_found"), True, "git-lex-serve --help banner found"),
+    (
+        ("proofs", "git_subcommand_dispatch", "primary_exit_code"),
+        2,
+        "git lex subcommand dispatch exit code (contract §5 item 4: git found git-lex via cold PATH)",
+    ),
+    (
+        ("proofs", "git_subcommand_dispatch", "primary_banner_found"),
+        True,
+        "git lex dispatch banner found (installed git-lex binary executed)",
+    ),
+    (
+        ("proofs", "version_gap", "version_gap_confirmed"),
+        True,
+        "version gap confirmed (no version claim)",
+    ),
+    (
+        ("proofs", "version_gap", "git_lex_version_rc"),
+        2,
+        "git lex --version rc == 2 (gap, contract hard constraint)",
+    ),
+    (
+        ("proofs", "version_gap", "git_lex_serve_version_rc"),
+        2,
+        "git-lex-serve --version rc == 2 (gap)",
+    ),
+    (("residue_guard", "before", "Squad"), "absent", "proof residue_guard.before Squad absent"),
+    (("residue_guard", "before", "Raw"), "absent", "proof residue_guard.before Raw absent"),
+    (
+        ("residue_guard", "before", ".artifacts"),
+        "absent",
+        "proof residue_guard.before .artifacts absent",
+    ),
+    (("residue_guard", "after", "Squad"), "absent", "proof residue_guard.after Squad absent"),
+    (("residue_guard", "after", "Raw"), "absent", "proof residue_guard.after Raw absent"),
+    (
+        ("residue_guard", "after", ".artifacts"),
+        "absent",
+        "proof residue_guard.after .artifacts absent",
+    ),
 )
 
 
@@ -105,7 +132,9 @@ class Diagnostic:
     text: str
 
 
-def _diagnostic(diagnostic_id: str, path: Path | str, line_no: int, message: str, text: str = "") -> Diagnostic:
+def _diagnostic(
+    diagnostic_id: str, path: Path | str, line_no: int, message: str, text: str = ""
+) -> Diagnostic:
     try:
         rel = str(Path(path).relative_to(ROOT))
     except (ValueError, TypeError):
@@ -131,8 +160,14 @@ def _sha256(path: Path) -> str | None:
 
 def check_contract_file(contract: Path) -> list[Diagnostic]:
     if not contract.exists():
-        return [_diagnostic("contract_file_missing", contract, 0,
-                            f"S01 install-contract file is missing: {contract} (cross-slice contract continuity)")]
+        return [
+            _diagnostic(
+                "contract_file_missing",
+                contract,
+                0,
+                f"S01 install-contract file is missing: {contract} (cross-slice contract continuity)",
+            )
+        ]
     return []
 
 
@@ -154,28 +189,49 @@ def check_installed_binaries(manifest: Path) -> tuple[int, list[Diagnostic]]:
     """
     diagnostics: list[Diagnostic] = []
     if not manifest.exists():
-        diagnostics.append(_diagnostic("missing_manifest_file", manifest, 0,
-                                       f"install-manifest is missing: {manifest} (T01 evidence anchor)"))
+        diagnostics.append(
+            _diagnostic(
+                "missing_manifest_file",
+                manifest,
+                0,
+                f"install-manifest is missing: {manifest} (T01 evidence anchor)",
+            )
+        )
         return 0, diagnostics
 
     data = _load_json(manifest)
     if data is None:
-        diagnostics.append(_diagnostic("missing_manifest_file", manifest, 0,
-                                       f"install-manifest is not valid JSON: {manifest}"))
+        diagnostics.append(
+            _diagnostic(
+                "missing_manifest_file",
+                manifest,
+                0,
+                f"install-manifest is not valid JSON: {manifest}",
+            )
+        )
         return 0, diagnostics
 
     binaries = data.get("binaries")
     if not isinstance(binaries, dict):
-        diagnostics.append(_diagnostic("missing_manifest_file", manifest, 0,
-                                       "install-manifest has no 'binaries' object"))
+        diagnostics.append(
+            _diagnostic(
+                "missing_manifest_file", manifest, 0, "install-manifest has no 'binaries' object"
+            )
+        )
         return 0, diagnostics
 
     binary_count_ok = 0
     for name in EXPECTED_BINARIES:
         recorded = binaries.get(name)
         if not isinstance(recorded, dict):
-            diagnostics.append(_diagnostic("binary_identity_drift", manifest, 0,
-                                           f"manifest binaries has no recorded entry for {name}"))
+            diagnostics.append(
+                _diagnostic(
+                    "binary_identity_drift",
+                    manifest,
+                    0,
+                    f"manifest binaries has no recorded entry for {name}",
+                )
+            )
             continue
 
         recorded_sha = recorded.get("sha256")
@@ -184,23 +240,39 @@ def check_installed_binaries(manifest: Path) -> tuple[int, list[Diagnostic]]:
         binary_path = Path(recorded_path_raw)
 
         if not binary_path.exists():
-            diagnostics.append(_diagnostic("missing_installed_binary", binary_path, 0,
-                                           f"installed binary is missing: {binary_path}"))
+            diagnostics.append(
+                _diagnostic(
+                    "missing_installed_binary",
+                    binary_path,
+                    0,
+                    f"installed binary is missing: {binary_path}",
+                )
+            )
             continue
 
         if not os.access(binary_path, os.X_OK):
             # mode is part of recorded identity (manifest records mode "0o755");
             # a non-executable binary is an identity drift, not merely missing.
-            diagnostics.append(_diagnostic("binary_identity_drift", binary_path, 0,
-                                           f"installed binary is not executable: {binary_path}"))
+            diagnostics.append(
+                _diagnostic(
+                    "binary_identity_drift",
+                    binary_path,
+                    0,
+                    f"installed binary is not executable: {binary_path}",
+                )
+            )
             continue
 
         actual_sha = _sha256(binary_path)
         if actual_sha != recorded_sha:
-            diagnostics.append(_diagnostic(
-                "binary_identity_drift", binary_path, 0,
-                f"sha256 drift for {name}: manifest records {recorded_sha} but installed binary recomputes to {actual_sha}",
-            ))
+            diagnostics.append(
+                _diagnostic(
+                    "binary_identity_drift",
+                    binary_path,
+                    0,
+                    f"sha256 drift for {name}: manifest records {recorded_sha} but installed binary recomputes to {actual_sha}",
+                )
+            )
             continue
 
         binary_count_ok += 1
@@ -220,31 +292,57 @@ def _dig(obj: Any, keys: tuple[str, ...]) -> tuple[bool, Any]:
 def check_proof_fields(proof: Path) -> list[Diagnostic]:
     diagnostics: list[Diagnostic] = []
     if not proof.exists():
-        diagnostics.append(_diagnostic("missing_proof_file", proof, 0,
-                                       f"install-proof is missing: {proof} (T02 evidence anchor)"))
+        diagnostics.append(
+            _diagnostic(
+                "missing_proof_file",
+                proof,
+                0,
+                f"install-proof is missing: {proof} (T02 evidence anchor)",
+            )
+        )
         return diagnostics
 
     data = _load_json(proof)
     if data is None:
-        diagnostics.append(_diagnostic("missing_proof_file", proof, 0,
-                                       f"install-proof is not valid JSON: {proof}"))
+        diagnostics.append(
+            _diagnostic("missing_proof_file", proof, 0, f"install-proof is not valid JSON: {proof}")
+        )
         return diagnostics
 
     for keys, expected, label in PROOF_FIELD_CHECKS:
         present, actual = _dig(data, keys)
         dotted = ".".join(keys)
         if not present:
-            diagnostics.append(_diagnostic("proof_field_invalid", proof, 0,
-                                           f"proof field missing: {dotted} ({label})"))
+            diagnostics.append(
+                _diagnostic(
+                    "proof_field_invalid", proof, 0, f"proof field missing: {dotted} ({label})"
+                )
+            )
         elif actual != expected:
-            diagnostics.append(_diagnostic("proof_field_invalid", proof, 0,
-                                           f"proof field invalid: {dotted} expected {expected!r} but recorded {actual!r} ({label})"))
+            diagnostics.append(
+                _diagnostic(
+                    "proof_field_invalid",
+                    proof,
+                    0,
+                    f"proof field invalid: {dotted} expected {expected!r} but recorded {actual!r} ({label})",
+                )
+            )
 
     # CLI-install-only boundary markers must be present (plan §3e).
     boundary = data.get("cli_install_only_boundary")
-    if not isinstance(boundary, dict) or not isinstance(boundary.get("wont"), list) or not boundary["wont"]:
-        diagnostics.append(_diagnostic("proof_field_invalid", proof, 0,
-                                       "proof cli_install_only_boundary.wont is missing or empty (CLI-install-only boundary markers)"))
+    if (
+        not isinstance(boundary, dict)
+        or not isinstance(boundary.get("wont"), list)
+        or not boundary["wont"]
+    ):
+        diagnostics.append(
+            _diagnostic(
+                "proof_field_invalid",
+                proof,
+                0,
+                "proof cli_install_only_boundary.wont is missing or empty (CLI-install-only boundary markers)",
+            )
+        )
 
     return diagnostics
 
@@ -254,8 +352,14 @@ def check_main_state_residue(root: Path = ROOT) -> list[Diagnostic]:
     for relative in MAIN_STATE_RESIDUE:
         path = root / relative
         if path.exists():
-                    diagnostics.append(_diagnostic("main_state_residue", path, 0,
-                                           f"main checkout residue exists: {relative} (R047 contract-phase)"))
+            diagnostics.append(
+                _diagnostic(
+                    "main_state_residue",
+                    path,
+                    0,
+                    f"main checkout residue exists: {relative} (R047 contract-phase)",
+                )
+            )
     return diagnostics
 
 
@@ -289,16 +393,30 @@ def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(
         description="Verify the M065 S02 git-lex release-install state (Stage 2 of D084). Inspection only; does not run git lex.",
     )
-    parser.add_argument("--contract", type=Path, default=DEFAULT_CONTRACT,
-                        help="S01 install-contract file (cross-slice continuity)")
-    parser.add_argument("--manifest", type=Path, default=DEFAULT_MANIFEST,
-                        help="T01 install-manifest.json (binary identity anchor)")
-    parser.add_argument("--proof", type=Path, default=DEFAULT_PROOF,
-                        help="T02 install-proof.json (cold-PATH proof anchor)")
-    parser.add_argument("--root", type=Path, default=ROOT,
-                        help="repository root for the R047 residue guard")
-    parser.add_argument("--skip-residue", action="store_true",
-                        help="skip the main-checkout residue guard")
+    parser.add_argument(
+        "--contract",
+        type=Path,
+        default=DEFAULT_CONTRACT,
+        help="S01 install-contract file (cross-slice continuity)",
+    )
+    parser.add_argument(
+        "--manifest",
+        type=Path,
+        default=DEFAULT_MANIFEST,
+        help="T01 install-manifest.json (binary identity anchor)",
+    )
+    parser.add_argument(
+        "--proof",
+        type=Path,
+        default=DEFAULT_PROOF,
+        help="T02 install-proof.json (cold-PATH proof anchor)",
+    )
+    parser.add_argument(
+        "--root", type=Path, default=ROOT, help="repository root for the R047 residue guard"
+    )
+    parser.add_argument(
+        "--skip-residue", action="store_true", help="skip the main-checkout residue guard"
+    )
     args = parser.parse_args(argv)
 
     binary_count_ok, diagnostics = verify(
@@ -314,7 +432,9 @@ def main(argv: list[str] | None = None) -> int:
         return 1
 
     total = len(EXPECTED_BINARIES)
-    print(f"M065 S02 release-install verification passed: binaries={binary_count_ok}/{total} diagnostics=0")
+    print(
+        f"M065 S02 release-install verification passed: binaries={binary_count_ok}/{total} diagnostics=0"
+    )
     return 0
 
 

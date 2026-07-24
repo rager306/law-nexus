@@ -140,7 +140,9 @@ def _repo_relative(path: Path, root: Path = ROOT) -> str:
         return str(path)
 
 
-def _diagnostic(diagnostic_id: str, path: Path, line_no: int, message: str, text: str = "") -> Diagnostic:
+def _diagnostic(
+    diagnostic_id: str, path: Path, line_no: int, message: str, text: str = ""
+) -> Diagnostic:
     return Diagnostic(
         diagnostic_id=diagnostic_id,
         path=_repo_relative(path),
@@ -166,7 +168,14 @@ def check_expected_files(kit_root: Path) -> list[Diagnostic]:
     for relative in EXPECTED_FILES:
         path = kit_root / relative
         if not path.exists():
-            diagnostics.append(_diagnostic("missing_scaffold_file", path, 0, f"expected scaffold file is missing: {relative}"))
+            diagnostics.append(
+                _diagnostic(
+                    "missing_scaffold_file",
+                    path,
+                    0,
+                    f"expected scaffold file is missing: {relative}",
+                )
+            )
     return diagnostics
 
 
@@ -178,10 +187,18 @@ def check_kit_config(kit_root: Path) -> list[Diagnostic]:
     diagnostics: list[Diagnostic] = []
     for term in REQUIRED_KIT_FIELDS:
         if term not in text:
-            diagnostics.append(_diagnostic("invalid_kit_config", path, 0, f"required kit.yml field missing: {term}"))
+            diagnostics.append(
+                _diagnostic(
+                    "invalid_kit_config", path, 0, f"required kit.yml field missing: {term}"
+                )
+            )
     for term in FORBIDDEN_KIT_CONFIG_TERMS:
         if term in text:
-            diagnostics.append(_diagnostic("forbidden_kit_config", path, 0, f"forbidden kit.yml config present: {term}"))
+            diagnostics.append(
+                _diagnostic(
+                    "forbidden_kit_config", path, 0, f"forbidden kit.yml config present: {term}"
+                )
+            )
     return diagnostics
 
 
@@ -193,7 +210,11 @@ def check_ontology_terms(kit_root: Path) -> list[Diagnostic]:
     diagnostics: list[Diagnostic] = []
     for term in REQUIRED_ONTOLOGY_TERMS:
         if term not in text:
-            diagnostics.append(_diagnostic("missing_ontology_term", path, 0, f"required ontology term missing: {term}"))
+            diagnostics.append(
+                _diagnostic(
+                    "missing_ontology_term", path, 0, f"required ontology term missing: {term}"
+                )
+            )
     return diagnostics
 
 
@@ -205,7 +226,11 @@ def check_guidance(kit_root: Path) -> list[Diagnostic]:
     diagnostics: list[Diagnostic] = []
     for term in REQUIRED_GUIDANCE_TERMS:
         if term not in text:
-            diagnostics.append(_diagnostic("missing_guidance_term", path, 0, f"required guidance term missing: {term}"))
+            diagnostics.append(
+                _diagnostic(
+                    "missing_guidance_term", path, 0, f"required guidance term missing: {term}"
+                )
+            )
     return diagnostics
 
 
@@ -222,9 +247,20 @@ def check_examples(kit_root: Path) -> list[Diagnostic]:
         text = path.read_text(encoding="utf-8")
         for term in REQUIRED_EXAMPLE_TERMS:
             if term not in text:
-                diagnostics.append(_diagnostic("missing_example_guardrail", path, 0, f"required example guardrail missing: {term}"))
+                diagnostics.append(
+                    _diagnostic(
+                        "missing_example_guardrail",
+                        path,
+                        0,
+                        f"required example guardrail missing: {term}",
+                    )
+                )
         if "acp." not in text:
-            diagnostics.append(_diagnostic("missing_example_guardrail", path, 0, "example lacks ACP typed frontmatter"))
+            diagnostics.append(
+                _diagnostic(
+                    "missing_example_guardrail", path, 0, "example lacks ACP typed frontmatter"
+                )
+            )
     return diagnostics
 
 
@@ -233,27 +269,60 @@ def check_forbidden_paths(kit_root: Path) -> list[Diagnostic]:
     for relative in FORBIDDEN_KIT_PATHS:
         path = kit_root / relative
         if path.exists():
-            diagnostics.append(_diagnostic("forbidden_kit_path", path, 0, f"forbidden ACP-kit scaffold path exists: {relative}"))
+            diagnostics.append(
+                _diagnostic(
+                    "forbidden_kit_path",
+                    path,
+                    0,
+                    f"forbidden ACP-kit scaffold path exists: {relative}",
+                )
+            )
     return diagnostics
 
 
 def check_line_policy(path: Path, line_no: int, line: str) -> Diagnostic | None:
     if re.search(r"/root/|\.gsd/exec|\.artifacts/", line, flags=re.IGNORECASE):
-        return _diagnostic("unsafe_anchor", path, line_no, "forbidden durable anchor literal appears in scaffold", line)
+        return _diagnostic(
+            "unsafe_anchor",
+            path,
+            line_no,
+            "forbidden durable anchor literal appears in scaffold",
+            line,
+        )
 
     lowered = line.lower()
     if "source truth" in lowered and not _is_negative_context(line):
-        return _diagnostic("source_truth_overclaim", path, line_no, "source-truth claim appears outside a negative/boundary context", line)
+        return _diagnostic(
+            "source_truth_overclaim",
+            path,
+            line_no,
+            "source-truth claim appears outside a negative/boundary context",
+            line,
+        )
 
-    if re.search(r"runtime adoption|production evidence|production use", line, flags=re.IGNORECASE) and not _is_negative_context(line):
-        return _diagnostic("runtime_adoption_overclaim", path, line_no, "runtime or production adoption claim appears outside a blocked/boundary context", line)
+    if re.search(
+        r"runtime adoption|production evidence|production use", line, flags=re.IGNORECASE
+    ) and not _is_negative_context(line):
+        return _diagnostic(
+            "runtime_adoption_overclaim",
+            path,
+            line_no,
+            "runtime or production adoption claim appears outside a blocked/boundary context",
+            line,
+        )
 
     if re.search(r"R0?(35|37|38)", line) and re.search(
         r"validated|validates|validation evidence|proof for", line, flags=re.IGNORECASE
     ):
         if _is_negative_context(line):
             return None
-        return _diagnostic("forbidden_profile_validation", path, line_no, "R035/R037/R038 validation claim appears without profile proof", line)
+        return _diagnostic(
+            "forbidden_profile_validation",
+            path,
+            line_no,
+            "R035/R037/R038 validation claim appears without profile proof",
+            line,
+        )
 
     return None
 
@@ -278,11 +347,17 @@ def check_main_state_residue(root: Path = ROOT) -> list[Diagnostic]:
         path = root / relative
         if path.exists():
             if relative != ".lex":
-                diagnostics.append(_diagnostic("main_state_residue", path, 0, f"main checkout residue exists: {relative}"))
+                diagnostics.append(
+                    _diagnostic(
+                        "main_state_residue", path, 0, f"main checkout residue exists: {relative}"
+                    )
+                )
     return diagnostics
 
 
-def verify(kit_root: Path = DEFAULT_KIT_ROOT, *, check_residue: bool = True, root: Path = ROOT) -> list[Diagnostic]:
+def verify(
+    kit_root: Path = DEFAULT_KIT_ROOT, *, check_residue: bool = True, root: Path = ROOT
+) -> list[Diagnostic]:
     diagnostics: list[Diagnostic] = []
     diagnostics.extend(check_expected_files(kit_root))
     diagnostics.extend(check_kit_config(kit_root))

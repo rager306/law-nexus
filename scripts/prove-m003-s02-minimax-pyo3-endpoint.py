@@ -265,7 +265,9 @@ def normalize_genai_base_endpoint(base_url: str) -> dict[str, Any]:
     base_path = "/v1/"
     normalized_base_url = urlunsplit(("https", SUPPORTED_ENDPOINT_HOST, base_path, "", ""))
     effective_path = "/v1/chat/completions"
-    effective_chat_completions_url = urlunsplit(("https", SUPPORTED_ENDPOINT_HOST, effective_path, "", ""))
+    effective_chat_completions_url = urlunsplit(
+        ("https", SUPPORTED_ENDPOINT_HOST, effective_path, "", "")
+    )
     normalization_applied = stripped != normalized_base_url
     return {
         "endpoint_input": endpoint_input,
@@ -334,7 +336,11 @@ def default_phases(endpoint_contract: dict[str, Any]) -> dict[str, Any]:
         "build": {"status": "not-run", "root_cause": "not-run"},
         "import": {"status": "not-run", "root_cause": "not-run"},
         "resolver": {"status": "not-run", "root_cause": "not-run"},
-        "provider": {"status": "not-run", "root_cause": "not-run", "raw_provider_body_persisted": False},
+        "provider": {
+            "status": "not-run",
+            "root_cause": "not-run",
+            "raw_provider_body_persisted": False,
+        },
     }
 
 
@@ -601,10 +607,16 @@ def provider_probe_code(model: str, api_key_env: str, timeout_seconds: int) -> s
 def command_failure_root(result: CommandResult, *, timeout_root: str, failed_root: str) -> str:
     if result.timed_out:
         return timeout_root
-    return f"{result.phase}-exit-{result.exit_code}" if result.exit_code not in (None, 1) else failed_root
+    return (
+        f"{result.phase}-exit-{result.exit_code}"
+        if result.exit_code not in (None, 1)
+        else failed_root
+    )
 
 
-def command_phase_payload(result: CommandResult, *, include_stream_tails: bool = True) -> dict[str, Any]:
+def command_phase_payload(
+    result: CommandResult, *, include_stream_tails: bool = True
+) -> dict[str, Any]:
     payload = {
         "phase": result.phase,
         "command": result.command,
@@ -634,13 +646,22 @@ def command_phase_payload(result: CommandResult, *, include_stream_tails: bool =
 
 def classify_provider_failure(text: str) -> str:
     lowered = text.lower()
-    if any(token in lowered for token in ("401", "403", "unauthorized", "forbidden", "invalid api key", "api key")):
+    if any(
+        token in lowered
+        for token in ("401", "403", "unauthorized", "forbidden", "invalid api key", "api key")
+    ):
         return "minimax-auth-failed"
     if any(token in lowered for token in ("429", "rate limit", "too many requests", "quota")):
         return "minimax-rate-limited"
-    if any(token in lowered for token in ("schema", "choices", "deserialize", "missing field", "chatresponsegeneration")):
+    if any(
+        token in lowered
+        for token in ("schema", "choices", "deserialize", "missing field", "chatresponsegeneration")
+    ):
         return "minimax-openai-schema-mismatch"
-    if any(token in lowered for token in ("404", "not found", "/chat/completions", "route", "url", "invalid uri")):
+    if any(
+        token in lowered
+        for token in ("404", "not found", "/chat/completions", "route", "url", "invalid uri")
+    ):
         return "endpoint-contract-lost-v1"
     return "minimax-provider-call-failed"
 
@@ -664,7 +685,9 @@ def validate_resolver_metadata(
     elif metadata.get("provider_body_persistence") != "disabled":
         ok = False
         root_cause = "resolver-metadata-malformed"
-    elif actual_endpoint != expected_endpoint or not str(actual_endpoint).startswith("https://api.minimax.io/v1/"):
+    elif actual_endpoint != expected_endpoint or not str(actual_endpoint).startswith(
+        "https://api.minimax.io/v1/"
+    ):
         ok = False
         root_cause = "endpoint-contract-lost-v1"
 
@@ -697,7 +720,11 @@ def payload_status(phases: dict[str, Any]) -> tuple[Status, str, str]:
         phase = phases.get(phase_name, {})
         status = phase.get("status")
         if status in ("blocked-environment", "blocked-credential", "failed-runtime"):
-            return cast(Status, status), str(phase.get("root_cause", "unknown")), str(phase.get("phase", phase_name.replace("_", "-")))
+            return (
+                cast(Status, status),
+                str(phase.get("root_cause", "unknown")),
+                str(phase.get("phase", phase_name.replace("_", "-"))),
+            )
         if status and status != "not-run":
             last_phase = str(phase.get("phase", phase_name.replace("_", "-")))
             root_cause = str(phase.get("root_cause", root_cause))
@@ -772,9 +799,21 @@ def run_proof(
             "summary": "uvx is unavailable, so maturin could not build the generated PyO3 module.",
         }
     else:
-        project_dir = create_proof_project(workspace_dir, cast(str, endpoint_metadata["normalized_base_url"]))
+        project_dir = create_proof_project(
+            workspace_dir, cast(str, endpoint_metadata["normalized_base_url"])
+        )
         build = run_command(
-            ["uvx", "--from", "maturin", "maturin", "develop", "--uv", "--manifest-path", "Cargo.toml", "--quiet"],
+            [
+                "uvx",
+                "--from",
+                "maturin",
+                "maturin",
+                "develop",
+                "--uv",
+                "--manifest-path",
+                "Cargo.toml",
+                "--quiet",
+            ],
             cwd=project_dir,
             state=state,
             phase="maturin-build",
@@ -808,7 +847,12 @@ def run_proof(
         )
         commands.append(command_phase_payload(imported))
         if imported.exit_code == 0 and not imported.timed_out:
-            phases["import"] = {"phase": "import", "status": "confirmed-runtime", "root_cause": "none", "category": "import"}
+            phases["import"] = {
+                "phase": "import",
+                "status": "confirmed-runtime",
+                "root_cause": "none",
+                "category": "import",
+            }
             resolver_metadata = parse_json_tail(imported.stdout_summary.redacted_tail)
             if resolver_metadata is None:
                 phases["resolver"] = {
@@ -818,12 +862,16 @@ def run_proof(
                     "category": "resolver",
                 }
             else:
-                resolver_result = validate_resolver_metadata(resolver_metadata, endpoint_metadata=endpoint_metadata, model=model)
+                resolver_result = validate_resolver_metadata(
+                    resolver_metadata, endpoint_metadata=endpoint_metadata, model=model
+                )
                 phases["resolver"] = {
                     "phase": "resolver",
                     "status": resolver_result["status"],
                     "root_cause": resolver_result["root_cause"],
-                    "category": "resolver" if resolver_result["status"] == "confirmed-runtime" else "endpoint-contract",
+                    "category": "resolver"
+                    if resolver_result["status"] == "confirmed-runtime"
+                    else "endpoint-contract",
                 }
                 resolver_metadata = cast(dict[str, Any], resolver_result["metadata"])
         else:
@@ -865,7 +913,9 @@ def run_proof(
                     "raw_provider_body_persisted": False,
                 }
             elif live.exit_code == 0:
-                provider_payload = parse_json_tail(live.stdout_summary.redacted_tail) or {"safe_category": "provider-schema-mismatch"}
+                provider_payload = parse_json_tail(live.stdout_summary.redacted_tail) or {
+                    "safe_category": "provider-schema-mismatch"
+                }
                 provider_status = str(provider_payload.get("status"))
                 if provider_status == "timeout":
                     phases["provider"] = {
@@ -876,7 +926,9 @@ def run_proof(
                         "raw_provider_body_persisted": False,
                         "provider_summary": sanitize(provider_payload),
                     }
-                elif provider_payload.get("has_think_tag") or provider_payload.get("has_reasoning_content"):
+                elif provider_payload.get("has_think_tag") or provider_payload.get(
+                    "has_reasoning_content"
+                ):
                     phases["provider"] = {
                         "phase": "provider",
                         "status": "failed-runtime",
@@ -895,13 +947,17 @@ def run_proof(
                         "provider_summary": sanitize(provider_payload),
                     }
             else:
-                combined = f"{live.stdout_summary.redacted_tail}\n{live.stderr_summary.redacted_tail}"
+                combined = (
+                    f"{live.stdout_summary.redacted_tail}\n{live.stderr_summary.redacted_tail}"
+                )
                 root = classify_provider_failure(combined)
                 phases["provider"] = {
                     "phase": "provider",
                     "status": "failed-runtime",
                     "root_cause": root,
-                    "category": "endpoint-contract" if root == "endpoint-contract-lost-v1" else root.replace("minimax-", ""),
+                    "category": "endpoint-contract"
+                    if root == "endpoint-contract-lost-v1"
+                    else root.replace("minimax-", ""),
                     "raw_provider_body_persisted": False,
                 }
 
@@ -967,7 +1023,10 @@ def write_artifacts(artifact_dir: Path, payload: dict[str, Any]) -> tuple[Path, 
     artifact_dir.mkdir(parents=True, exist_ok=True)
     json_path = artifact_dir / JSON_ARTIFACT
     markdown_path = artifact_dir / MARKDOWN_ARTIFACT
-    json_path.write_text(json.dumps(safe_payload, ensure_ascii=False, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    json_path.write_text(
+        json.dumps(safe_payload, ensure_ascii=False, indent=2, sort_keys=True) + "\n",
+        encoding="utf-8",
+    )
 
     lines = [
         "# M003/S02 MiniMax PyO3 endpoint proof",
@@ -1007,7 +1066,9 @@ def write_artifacts(artifact_dir: Path, payload: dict[str, Any]) -> tuple[Path, 
     )
     for name, phase in safe_payload.get("phases", {}).items():
         if isinstance(phase, dict):
-            lines.append(f"- `{name}`: status=`{phase.get('status')}`, root_cause=`{phase.get('root_cause')}`")
+            lines.append(
+                f"- `{name}`: status=`{phase.get('status')}`, root_cause=`{phase.get('root_cause')}`"
+            )
     markdown_text = "\n".join(lines) + "\n"
     assert_safe_payload({"markdown": markdown_text})
     markdown_path.write_text(markdown_text, encoding="utf-8")

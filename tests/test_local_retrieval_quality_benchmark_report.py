@@ -118,7 +118,10 @@ def test_report_records_command_and_exact_summary_counts() -> None:
     result = section(text, "## Proof result")
 
     assert "uv run python scripts/verify-local-retrieval-quality-benchmark.py" in command
-    assert "uv run pytest tests/test_local_retrieval_quality_benchmark_cli.py tests/test_local_retrieval_quality_benchmark_report.py -q" in command
+    assert (
+        "uv run pytest tests/test_local_retrieval_quality_benchmark_cli.py tests/test_local_retrieval_quality_benchmark_report.py -q"
+        in command
+    )
     for snippet in [
         '"total_cases":6',
         '"positive_query_count":2',

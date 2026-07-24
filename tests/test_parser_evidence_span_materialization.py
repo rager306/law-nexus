@@ -11,7 +11,10 @@ from typing import Any
 ROOT = Path(__file__).resolve().parents[1]
 BUILDER = ROOT / "scripts/build-parser-evidence-span-materialization.py"
 VERIFIER = ROOT / "scripts/verify-parser-evidence-span-materialization.py"
-ARTIFACT = ROOT / "prd/research/ontology_architecture_requirements/parser_evidence_span_materialization.json"
+ARTIFACT = (
+    ROOT
+    / "prd/research/ontology_architecture_requirements/parser_evidence_span_materialization.json"
+)
 
 
 def load_verifier(name: str = "materialization_verifier") -> ModuleType:
@@ -36,7 +39,9 @@ def load_artifact() -> dict[str, Any]:
 
 def write_artifact(tmp_path: Path, payload: dict[str, Any]) -> Path:
     path = tmp_path / "materialization.json"
-    path.write_text(json.dumps(payload, ensure_ascii=False, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    path.write_text(
+        json.dumps(payload, ensure_ascii=False, indent=2, sort_keys=True) + "\n", encoding="utf-8"
+    )
     return path
 
 
@@ -64,7 +69,9 @@ def test_checked_in_artifact_passes() -> None:
 
 
 def test_cli_emits_compact_ok_json() -> None:
-    completed = subprocess.run([sys.executable, str(VERIFIER)], cwd=ROOT, check=False, text=True, capture_output=True)
+    completed = subprocess.run(
+        [sys.executable, str(VERIFIER)], cwd=ROOT, check=False, text=True, capture_output=True
+    )
 
     assert completed.returncode == 0
     payload = json.loads(completed.stdout)
@@ -83,7 +90,16 @@ def test_artifact_shape_and_no_forbidden_fragments() -> None:
     assert artifact["redaction"]["external_payloads_excluded"] is True
     assert artifact["r035_non_validation_declared"] is True
     assert artifact["r038_review_required"] is True
-    for forbidden in ("Федеральный закон", "Статья ", "raw_legal_text", "source_excerpt", "provider_payload", "expected_candidate_ids", ".gsd/exec", "/root/"):
+    for forbidden in (
+        "Федеральный закон",
+        "Статья ",
+        "raw_legal_text",
+        "source_excerpt",
+        "provider_payload",
+        "expected_candidate_ids",
+        ".gsd/exec",
+        "/root/",
+    ):
         assert forbidden not in serialized
 
 

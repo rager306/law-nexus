@@ -60,7 +60,9 @@ def load_description(skill_dir: Path) -> str:
     return ""
 
 
-def update_history(workspace: Path, iteration_dir: Path, skill_dir: Path, benchmark: dict[str, Any]) -> None:
+def update_history(
+    workspace: Path, iteration_dir: Path, skill_dir: Path, benchmark: dict[str, Any]
+) -> None:
     history_path = workspace / "history.json"
     if history_path.is_file():
         history = json.loads(history_path.read_text(encoding="utf-8"))
@@ -74,7 +76,10 @@ def update_history(workspace: Path, iteration_dir: Path, skill_dir: Path, benchm
     best_rate = -1.0
     for item in history.get("iterations", []):
         best_rate = max(best_rate, float(item.get("pass_rate", 0.0)))
-    with_skill = next((c for c in benchmark.get("configurations", []) if c.get("configuration") == "with_skill"), None)
+    with_skill = next(
+        (c for c in benchmark.get("configurations", []) if c.get("configuration") == "with_skill"),
+        None,
+    )
     pass_rate = float(with_skill.get("pass_rate", 0.0)) if with_skill else 0.0
     is_best = pass_rate >= best_rate
     record = {
@@ -102,10 +107,23 @@ def main() -> int:
     parser.add_argument("--workspace", type=Path, default=None)
     parser.add_argument("--iteration", type=int, default=None)
     parser.add_argument("--baseline", choices=["baseline", "old_skill"], default="baseline")
-    parser.add_argument("--no-prepare", action="store_true", help="Use existing iteration workspace instead of preparing a new one")
+    parser.add_argument(
+        "--no-prepare",
+        action="store_true",
+        help="Use existing iteration workspace instead of preparing a new one",
+    )
     parser.add_argument("--min-pass-rate", type=float, default=0.0)
-    parser.add_argument("--execute", choices=["none", "gsd-print", "command"], default="none", help="Optionally execute generated prompts before grading")
-    parser.add_argument("--execute-command", default=None, help="Command override for execution; prompt is appended unless command contains {prompt}")
+    parser.add_argument(
+        "--execute",
+        choices=["none", "gsd-print", "command"],
+        default="none",
+        help="Optionally execute generated prompts before grading",
+    )
+    parser.add_argument(
+        "--execute-command",
+        default=None,
+        help="Command override for execution; prompt is appended unless command contains {prompt}",
+    )
     parser.add_argument("--execute-timeout", type=int, default=300)
     parser.add_argument("--execute-overwrite", action="store_true")
     args = parser.parse_args()
@@ -124,7 +142,15 @@ def main() -> int:
             print(f"Missing iteration directory: {iteration_dir}", file=sys.stderr)
             return 1
     else:
-        runner_args = [sys.executable, str(RUNNER), str(args.skill_dir), "--workspace", str(workspace), "--baseline", args.baseline]
+        runner_args = [
+            sys.executable,
+            str(RUNNER),
+            str(args.skill_dir),
+            "--workspace",
+            str(workspace),
+            "--baseline",
+            args.baseline,
+        ]
         if args.iteration:
             runner_args.extend(["--iteration", str(args.iteration)])
         prepared = run_cmd(runner_args)
@@ -157,21 +183,35 @@ def main() -> int:
 
     if not outputs_ready(iteration_dir):
         manifest_path = iteration_dir / "run_manifest.json"
-        manifest = json.loads(manifest_path.read_text(encoding="utf-8")) if manifest_path.is_file() else {}
+        manifest = (
+            json.loads(manifest_path.read_text(encoding="utf-8")) if manifest_path.is_file() else {}
+        )
         manifest["status"] = "pending_outputs"
-        manifest["next_step"] = "Execute generated EXECUTOR_PROMPT.md files and save outputs/answer.md, then rerun with --no-prepare."
+        manifest["next_step"] = (
+            "Execute generated EXECUTOR_PROMPT.md files and save outputs/answer.md, then rerun with --no-prepare."
+        )
         manifest_path.write_text(json.dumps(manifest, indent=2), encoding="utf-8")
         print(f"Pending outputs: {iteration_dir}")
         print("Execute generated prompts, save outputs/answer.md, then rerun with --no-prepare.")
         return 2
 
-    graded = run_cmd([sys.executable, str(GRADER), str(iteration_dir), "--min-pass-rate", str(args.min_pass_rate)])
+    graded = run_cmd(
+        [
+            sys.executable,
+            str(GRADER),
+            str(iteration_dir),
+            "--min-pass-rate",
+            str(args.min_pass_rate),
+        ]
+    )
     print(graded.stdout, end="")
     if graded.returncode != 0:
         print(graded.stderr, file=sys.stderr)
         return graded.returncode
 
-    aggregated = run_cmd([sys.executable, str(AGGREGATOR), str(iteration_dir), "--skill-name", args.skill_dir.name])
+    aggregated = run_cmd(
+        [sys.executable, str(AGGREGATOR), str(iteration_dir), "--skill-name", args.skill_dir.name]
+    )
     print(aggregated.stdout, end="")
     if aggregated.returncode != 0:
         print(aggregated.stderr, file=sys.stderr)

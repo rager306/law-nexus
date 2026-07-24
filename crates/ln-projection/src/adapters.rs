@@ -1,6 +1,4 @@
-use crate::domain::{
-    ExecutorReport, NodeId, RebuildOutcome, RebuildRequest,
-};
+use crate::domain::{ExecutorReport, NodeId, RebuildOutcome, RebuildRequest};
 use crate::ports::RebuildExecutorPort;
 
 /// Honest executor that reports the configured failure/partial mode without

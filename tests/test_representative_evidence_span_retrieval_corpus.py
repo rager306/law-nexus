@@ -9,7 +9,10 @@ from types import ModuleType
 from typing import Any
 
 ROOT = Path(__file__).resolve().parents[1]
-FIXTURE = ROOT / "prd/research/ontology_architecture_requirements/fixtures/representative_evidence_span_retrieval_corpus.json"
+FIXTURE = (
+    ROOT
+    / "prd/research/ontology_architecture_requirements/fixtures/representative_evidence_span_retrieval_corpus.json"
+)
 VERIFIER = ROOT / "scripts/verify-representative-evidence-span-retrieval-corpus.py"
 
 REQUIRED_CASE_CLASSES = {
@@ -56,7 +59,9 @@ def load_verifier(name: str = "representative_corpus_verifier") -> ModuleType:
 
 def write_fixture(tmp_path: Path, data: dict[str, Any]) -> Path:
     path = tmp_path / "fixture.json"
-    path.write_text(json.dumps(data, ensure_ascii=False, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    path.write_text(
+        json.dumps(data, ensure_ascii=False, indent=2, sort_keys=True) + "\n", encoding="utf-8"
+    )
     return path
 
 
@@ -65,7 +70,10 @@ def test_fixture_shape_and_safety() -> None:
     serialized = json.dumps(fixture, ensure_ascii=False, sort_keys=True)
 
     assert fixture["schema_version"] == "representative-evidence-span-retrieval-corpus/v1"
-    assert fixture["fixture_artifact"] == "prd/research/ontology_architecture_requirements/fixtures/representative_evidence_span_retrieval_corpus.json"
+    assert (
+        fixture["fixture_artifact"]
+        == "prd/research/ontology_architecture_requirements/fixtures/representative_evidence_span_retrieval_corpus.json"
+    )
     assert fixture["generated_by"] == "M022/S02"
     assert fixture["non_authoritative"] is True
     assert len(fixture["cases"]) == 10
@@ -104,13 +112,17 @@ def test_verifier_cli_accepts_checked_in_fixture() -> None:
 def test_verifier_fails_closed_for_missing_required_class(tmp_path: Path) -> None:
     verifier = load_verifier("representative_missing_class")
     fixture = load_fixture()
-    fixture["cases"] = [case for case in fixture["cases"] if case["case_class"] != "unsafe_payload_boundary"]
+    fixture["cases"] = [
+        case for case in fixture["cases"] if case["case_class"] != "unsafe_payload_boundary"
+    ]
     path = write_fixture(tmp_path, fixture)
 
     try:
         verifier.verify_fixture(path)
     except verifier.VerificationError as exc:
-        assert "case_count below representative minimum" in str(exc) or "case class coverage" in str(exc)
+        assert "case_count below representative minimum" in str(
+            exc
+        ) or "case class coverage" in str(exc)
     else:
         raise AssertionError("expected VerificationError")
 

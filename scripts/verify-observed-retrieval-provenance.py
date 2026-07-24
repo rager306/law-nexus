@@ -11,9 +11,18 @@ from pathlib import Path
 from typing import Any, cast
 
 ROOT = Path(__file__).resolve().parents[1]
-FIXTURE_PATH = ROOT / "prd/research/ontology_architecture_requirements/fixtures/representative_evidence_span_retrieval_corpus.json"
-QUERY_REGISTRY_PATH = ROOT / "prd/research/ontology_architecture_requirements/fixtures/observed_retrieval_query_provenance_registry.json"
-SOURCE_MANIFEST_PATH = ROOT / "prd/research/ontology_architecture_requirements/fixtures/observed_retrieval_source_provenance_manifest.json"
+FIXTURE_PATH = (
+    ROOT
+    / "prd/research/ontology_architecture_requirements/fixtures/representative_evidence_span_retrieval_corpus.json"
+)
+QUERY_REGISTRY_PATH = (
+    ROOT
+    / "prd/research/ontology_architecture_requirements/fixtures/observed_retrieval_query_provenance_registry.json"
+)
+SOURCE_MANIFEST_PATH = (
+    ROOT
+    / "prd/research/ontology_architecture_requirements/fixtures/observed_retrieval_source_provenance_manifest.json"
+)
 QUERY_SCHEMA = "observed-retrieval-query-provenance-registry/v1"
 SOURCE_SCHEMA = "observed-retrieval-source-provenance-manifest/v1"
 
@@ -205,7 +214,9 @@ def verify_query_registry(fixture: Mapping[str, Any], registry: Mapping[str, Any
     return diagnostics
 
 
-def candidate_lookup(fixture: Mapping[str, Any]) -> dict[str, tuple[Mapping[str, Any], Mapping[str, Any]]]:
+def candidate_lookup(
+    fixture: Mapping[str, Any],
+) -> dict[str, tuple[Mapping[str, Any], Mapping[str, Any]]]:
     lookup: dict[str, tuple[Mapping[str, Any], Mapping[str, Any]]] = {}
     for case in fixture_cases(fixture):
         for candidate in case.get("candidates", []):
@@ -217,7 +228,9 @@ def candidate_lookup(fixture: Mapping[str, Any]) -> dict[str, tuple[Mapping[str,
     return lookup
 
 
-def require_source_membership(candidate_id: str, field: str, value: str, index: Mapping[str, set[str] | bool], key: str) -> None:
+def require_source_membership(
+    candidate_id: str, field: str, value: str, index: Mapping[str, set[str] | bool], key: str
+) -> None:
     values = index.get(key)
     if isinstance(values, set) and value not in values:
         raise ProvenanceError(f"{field} missing for {candidate_id}: {value}")
@@ -254,35 +267,79 @@ def verify_source_manifest(fixture: Mapping[str, Any], manifest: Mapping[str, An
         if candidate_id not in lookup:
             raise ProvenanceError(f"candidate entry not in fixture: {candidate_id}")
         _case, candidate = lookup[candidate_id]
-        for field in ("source_artifact", "source_case_id", "evidence_span_id", "source_block_id", "citation_key", "act_edition_id"):
+        for field in (
+            "source_artifact",
+            "source_case_id",
+            "evidence_span_id",
+            "source_block_id",
+            "citation_key",
+            "act_edition_id",
+        ):
             if entry.get(field) != candidate.get(field):
-                raise ProvenanceError(f"candidate provenance field mismatch: {candidate_id}: {field}")
+                raise ProvenanceError(
+                    f"candidate provenance field mismatch: {candidate_id}: {field}"
+                )
         if entry.get("source_record_ids") != candidate.get("source_record_ids"):
             raise ProvenanceError(f"source_record_ids mismatch: {candidate_id}")
         source_artifact = str(entry["source_artifact"])
         if source_artifact not in indexes:
             indexes[source_artifact] = source_index(source_artifact)
         index = indexes[source_artifact]
-        require_source_membership(candidate_id, "source_case_id", str(entry["source_case_id"]), index, "case_ids")
+        require_source_membership(
+            candidate_id, "source_case_id", str(entry["source_case_id"]), index, "case_ids"
+        )
         for source_record_id in entry.get("source_record_ids", []):
-            require_source_membership(candidate_id, "source_record_id", str(source_record_id), index, "source_record_ids")
+            require_source_membership(
+                candidate_id, "source_record_id", str(source_record_id), index, "source_record_ids"
+            )
         expected_label = entry.get("expected_label")
         if expected_label in {"relevant", "distractor", "unsafe"}:
-            require_source_membership(candidate_id, "evidence_span_id", str(entry["evidence_span_id"]), index, "evidence_span_ids")
-            require_source_membership(candidate_id, "source_block_id", str(entry["source_block_id"]), index, "source_block_ids")
-            require_source_membership(candidate_id, "citation_key", str(entry["citation_key"]), index, "citation_keys")
-            require_source_membership(candidate_id, "act_edition_id", str(entry["act_edition_id"]), index, "act_edition_ids")
+            require_source_membership(
+                candidate_id,
+                "evidence_span_id",
+                str(entry["evidence_span_id"]),
+                index,
+                "evidence_span_ids",
+            )
+            require_source_membership(
+                candidate_id,
+                "source_block_id",
+                str(entry["source_block_id"]),
+                index,
+                "source_block_ids",
+            )
+            require_source_membership(
+                candidate_id, "citation_key", str(entry["citation_key"]), index, "citation_keys"
+            )
+            require_source_membership(
+                candidate_id,
+                "act_edition_id",
+                str(entry["act_edition_id"]),
+                index,
+                "act_edition_ids",
+            )
         expectations = entry.get("validation_expectations")
-        if not isinstance(expectations, Mapping) or expectations.get("source_case_exists") is not True or expectations.get("source_records_exist") is not True:
+        if (
+            not isinstance(expectations, Mapping)
+            or expectations.get("source_case_exists") is not True
+            or expectations.get("source_records_exist") is not True
+        ):
             raise ProvenanceError(f"source expectation mismatch: {candidate_id}")
     return diagnostics
 
 
-def verify(fixture_path: Path, query_registry_path: Path, source_manifest_path: Path) -> dict[str, Any]:
+def verify(
+    fixture_path: Path, query_registry_path: Path, source_manifest_path: Path
+) -> dict[str, Any]:
     fixture = load_json(fixture_path)
     query_registry = load_json(query_registry_path)
     source_manifest = load_json(source_manifest_path)
-    diagnostics = sorted(set(verify_query_registry(fixture, query_registry) + verify_source_manifest(fixture, source_manifest)))
+    diagnostics = sorted(
+        set(
+            verify_query_registry(fixture, query_registry)
+            + verify_source_manifest(fixture, source_manifest)
+        )
+    )
     return {
         "status": "ok",
         "schema_version": "observed-retrieval-provenance-verification/v1",
@@ -307,7 +364,12 @@ def main(argv: Sequence[str] | None = None) -> int:
     try:
         result = verify(args.fixture, args.query_registry, args.source_manifest)
     except ProvenanceError as exc:
-        print(json.dumps({"status": "failed", "diagnostic": str(exc), "non_authoritative": True}, sort_keys=True))
+        print(
+            json.dumps(
+                {"status": "failed", "diagnostic": str(exc), "non_authoritative": True},
+                sort_keys=True,
+            )
+        )
         return 1
     print(json.dumps(result, sort_keys=True))
     return 0

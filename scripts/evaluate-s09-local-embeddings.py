@@ -383,7 +383,9 @@ def encode_fixture_with_sentence_transformers(
         if max_token_limit is not None and hasattr(model, "max_seq_length"):
             model.max_seq_length = min(max_token_limit, 256)
         query_inputs = [format_query_for_model(model_id, query.text) for query in QUERIES]
-        document_inputs = [format_document_for_model(model_id, document.text) for document in DOCUMENTS]
+        document_inputs = [
+            format_document_for_model(model_id, document.text) for document in DOCUMENTS
+        ]
         query_vectors = coerce_vectors(
             model.encode(
                 query_inputs,
@@ -442,8 +444,13 @@ def download_status(cache_present: bool, allow_download: bool) -> str:
     return "disabled-no-download"
 
 
-def should_attempt_runtime(package_probe: Mapping[str, Any], cache_probe: Mapping[str, Any], allow_download: bool) -> bool:
-    return package_blocker(package_probe) is None and cache_blocker(cache_probe, allow_download) is None
+def should_attempt_runtime(
+    package_probe: Mapping[str, Any], cache_probe: Mapping[str, Any], allow_download: bool
+) -> bool:
+    return (
+        package_blocker(package_probe) is None
+        and cache_blocker(cache_probe, allow_download) is None
+    )
 
 
 def probe_falkordb_vector_dimension(dimension: int, log_dir: Path) -> dict[str, Any]:
@@ -455,7 +462,9 @@ def probe_falkordb_vector_dimension(dimension: int, log_dir: Path) -> dict[str, 
     status = "blocked-environment" if package_probe["status"] != "available" else "not-attempted"
     root_cause = None
     if package_probe["status"] != "available":
-        root_cause = "falkordb-client-packages-missing:" + ",".join(str(item) for item in package_probe["missing"])
+        root_cause = "falkordb-client-packages-missing:" + ",".join(
+            str(item) for item in package_probe["missing"]
+        )
     else:
         root_cause = "falkordb-runtime-not-configured-for-t03-no-download-probe"
     payload: dict[str, Any] = {
@@ -500,7 +509,9 @@ def write_log(log_dir: Path, name: str, payload: Mapping[str, Any]) -> Path:
     log_dir.mkdir(parents=True, exist_ok=True)
     safe_name = name.replace("/", "__")
     path = log_dir / f"{safe_name}.log"
-    path.write_text(json.dumps(payload, ensure_ascii=False, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    path.write_text(
+        json.dumps(payload, ensure_ascii=False, indent=2, sort_keys=True) + "\n", encoding="utf-8"
+    )
     return path
 
 
@@ -517,16 +528,23 @@ def evaluate_candidate(
     if model_id not in ALLOWED_MODEL_IDS:
         raise ValueError(f"Model is outside the S09 open-weight allow-list: {model_id}")
     runtime_requirements = candidate.get("runtime_requirements", {})
-    package_names = runtime_requirements.get("python_packages", []) if isinstance(runtime_requirements, dict) else []
+    package_names = (
+        runtime_requirements.get("python_packages", [])
+        if isinstance(runtime_requirements, dict)
+        else []
+    )
     packages = [str(package) for package in package_names if isinstance(package, str)]
     package_probe = probe_required_packages(packages)
     cache_probe = probe_model_cache(model_id, cache_roots)
     expected_dimension_raw = candidate.get("vector_dimension")
-    expected_dimension = int(expected_dimension_raw) if isinstance(expected_dimension_raw, int) else None
+    expected_dimension = (
+        int(expected_dimension_raw) if isinstance(expected_dimension_raw, int) else None
+    )
     max_token_limit_raw = candidate.get("max_token_limit")
     max_token_limit = int(max_token_limit_raw) if isinstance(max_token_limit_raw, int) else None
     trust_remote_code = bool(
-        isinstance(runtime_requirements, dict) and runtime_requirements.get("trust_remote_code_required")
+        isinstance(runtime_requirements, dict)
+        and runtime_requirements.get("trust_remote_code_required")
     )
     root_cause = package_blocker(package_probe) or cache_blocker(cache_probe, allow_download)
 
@@ -569,7 +587,9 @@ def evaluate_candidate(
         "resource_metadata": dict(resources),
         "instruction_handling": {
             "query_instruction_applied": model_id == GIGA_MODEL_ID,
-            "query_instruction_template": "Instruct: {task_description}\\nQuery: {query}" if model_id == GIGA_MODEL_ID else None,
+            "query_instruction_template": "Instruct: {task_description}\\nQuery: {query}"
+            if model_id == GIGA_MODEL_ID
+            else None,
             "document_instruction_applied": False,
             "baseline_plain_encoding": model_id in {USER_MODEL_ID, "BAAI/bge-m3"},
         },
@@ -595,7 +615,9 @@ def summarize_status(model_results: Sequence[Mapping[str, Any]]) -> dict[str, in
 
 def write_json_artifact(output_dir: Path, payload: Mapping[str, Any]) -> Path:
     path = output_dir / "S09-LOCAL-EMBEDDING-RETRIEVAL-EVAL.json"
-    path.write_text(json.dumps(payload, ensure_ascii=False, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    path.write_text(
+        json.dumps(payload, ensure_ascii=False, indent=2, sort_keys=True) + "\n", encoding="utf-8"
+    )
     return path
 
 
@@ -644,7 +666,9 @@ def write_markdown_artifact(output_dir: Path, payload: Mapping[str, Any], json_p
     return path
 
 
-def update_contract_with_evaluation(contract_path: Path, payload: Mapping[str, Any], json_path: Path, markdown_path: Path) -> None:
+def update_contract_with_evaluation(
+    contract_path: Path, payload: Mapping[str, Any], json_path: Path, markdown_path: Path
+) -> None:
     contract = load_contract(contract_path)
     contract["latest_synthetic_retrieval_evaluation"] = {
         "schema_version": payload["schema_version"],
@@ -655,7 +679,9 @@ def update_contract_with_evaluation(contract_path: Path, payload: Mapping[str, A
             "markdown": normalized_path(markdown_path),
         },
         "status_counts": payload["status_counts"],
-        "vector_probe_dimensions": [probe["dimension"] for probe in payload["falkordb_vector_probes"]],
+        "vector_probe_dimensions": [
+            probe["dimension"] for probe in payload["falkordb_vector_probes"]
+        ],
         "models": [
             {
                 "id": model["id"],
@@ -670,7 +696,9 @@ def update_contract_with_evaluation(contract_path: Path, payload: Mapping[str, A
             for model in payload["models"]
         ],
     }
-    contract_path.write_text(json.dumps(contract, ensure_ascii=False, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    contract_path.write_text(
+        json.dumps(contract, ensure_ascii=False, indent=2, sort_keys=True) + "\n", encoding="utf-8"
+    )
 
 
 def build_payload(
@@ -687,12 +715,14 @@ def build_payload(
         {
             int(candidate["vector_dimension"])
             for candidate in candidates
-            if isinstance(candidate.get("vector_dimension"), int) and int(candidate["vector_dimension"]) in {1024, 2048}
+            if isinstance(candidate.get("vector_dimension"), int)
+            and int(candidate["vector_dimension"]) in {1024, 2048}
         }
         | {1024, 2048}
     )
     vector_probes_by_dimension = {
-        dimension: probe_falkordb_vector_dimension(dimension, log_dir) for dimension in vector_dimensions
+        dimension: probe_falkordb_vector_dimension(dimension, log_dir)
+        for dimension in vector_dimensions
     }
     cache_roots = huggingface_cache_roots()
     model_results = [
@@ -729,7 +759,9 @@ def build_payload(
         "fixture_metadata": fixture_metadata(),
         "resource_metadata": resources,
         "cache_roots_checked": [normalized_path(path) for path in cache_roots],
-        "falkordb_vector_probes": [vector_probes_by_dimension[dimension] for dimension in vector_dimensions],
+        "falkordb_vector_probes": [
+            vector_probes_by_dimension[dimension] for dimension in vector_dimensions
+        ],
         "models": model_results,
         "status_counts": summarize_status(model_results),
         "raw_log_paths": [normalized_path(summary_log)],
@@ -775,7 +807,9 @@ def main(argv: Sequence[str] | None = None) -> int:
                 "json": normalized_path(json_path),
                 "markdown": normalized_path(markdown_path),
                 "status_counts": payload["status_counts"],
-                "vector_probe_dimensions": [probe["dimension"] for probe in payload["falkordb_vector_probes"]],
+                "vector_probe_dimensions": [
+                    probe["dimension"] for probe in payload["falkordb_vector_probes"]
+                ],
             },
             ensure_ascii=False,
             sort_keys=True,

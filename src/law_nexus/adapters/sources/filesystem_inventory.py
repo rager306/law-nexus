@@ -56,23 +56,38 @@ _WORDML_NS = "http://schemas.microsoft.com/office/word/2003/wordml"
 # does not fail the inventory.
 DOCUMENT_TYPE_PATTERNS: tuple[tuple[str, re.Pattern[str]], ...] = (
     ("federal_law", re.compile(r"Федеральн[ыы]й\s+закон", re.IGNORECASE | re.UNICODE)),
-    ("code_amendment_overview", re.compile(r"Обзор\s+изменений.*Кодекс", re.IGNORECASE | re.UNICODE)),
+    (
+        "code_amendment_overview",
+        re.compile(r"Обзор\s+изменений.*Кодекс", re.IGNORECASE | re.UNICODE),
+    ),
     ("code", re.compile(r"\bКодекс\b", re.IGNORECASE | re.UNICODE)),
-    ("court_practice_review", re.compile(r"Обзор\s+судебной\s+практики", re.IGNORECASE | re.UNICODE)),
+    (
+        "court_practice_review",
+        re.compile(r"Обзор\s+судебной\s+практики", re.IGNORECASE | re.UNICODE),
+    ),
     ("fas_review", re.compile(r"Обзор.*\b(ФАС|Казначейств)", re.IGNORECASE | re.UNICODE)),
-    ("government_resolution", re.compile(r"Постановление\s+Правительства", re.IGNORECASE | re.UNICODE)),
-    ("constitutional_court_ruling", re.compile(
-        r"(Постановление|Определение)\s+Конституционного\s+Суда", re.IGNORECASE | re.UNICODE
-    )),
-    ("supreme_court_ruling", re.compile(
-        r"(Постановление|Определение)\s+Верховного\s+Суда", re.IGNORECASE | re.UNICODE
-    )),
-    ("lower_court_ruling", re.compile(
-        r"Постановление.*(?:арбитражн|кассацион)", re.IGNORECASE | re.UNICODE
-    )),
-    ("antimonopoly_decision", re.compile(
-        r"(Решение|Приказ)\s+(ФАС|УФАС)", re.IGNORECASE | re.UNICODE
-    )),
+    (
+        "government_resolution",
+        re.compile(r"Постановление\s+Правительства", re.IGNORECASE | re.UNICODE),
+    ),
+    (
+        "constitutional_court_ruling",
+        re.compile(
+            r"(Постановление|Определение)\s+Конституционного\s+Суда", re.IGNORECASE | re.UNICODE
+        ),
+    ),
+    (
+        "supreme_court_ruling",
+        re.compile(r"(Постановление|Определение)\s+Верховного\s+Суда", re.IGNORECASE | re.UNICODE),
+    ),
+    (
+        "lower_court_ruling",
+        re.compile(r"Постановление.*(?:арбитражн|кассацион)", re.IGNORECASE | re.UNICODE),
+    ),
+    (
+        "antimonopoly_decision",
+        re.compile(r"(Решение|Приказ)\s+(ФАС|УФАС)", re.IGNORECASE | re.UNICODE),
+    ),
     ("document_list", re.compile(r"Список\s+документов", re.IGNORECASE | re.UNICODE)),
     ("list_related", re.compile(r"^List-", re.IGNORECASE | re.UNICODE)),
 )
@@ -233,9 +248,7 @@ def inspect_odt(path: Path) -> dict[str, Any]:
             diagnostics["required_members"] = {
                 member: member in name_set for member in required_members
             }
-            diagnostics["required_members_present"] = all(
-                diagnostics["required_members"].values()
-            )
+            diagnostics["required_members_present"] = all(diagnostics["required_members"].values())
             for member in required_members:
                 if member in name_set:
                     try:
@@ -260,7 +273,11 @@ def discover_fixtures(root: Path) -> list[str]:
     """Return sorted relative paths of every Consultant *.xml + Garant *.odt."""
     found: set[str] = set()
     for pattern in ("law-source/consultant/*.xml",):
-        for path in sorted((root / "law-source/consultant").glob("*.xml")) if (root / "law-source/consultant").is_dir() else []:
+        for path in (
+            sorted((root / "law-source/consultant").glob("*.xml"))
+            if (root / "law-source/consultant").is_dir()
+            else []
+        ):
             found.add(str(path.relative_to(root)))
     for pattern in ("law-source/garant/*.odt",):
         garant_dir = root / "law-source/garant"
@@ -307,13 +324,17 @@ def inspect_fixture(root: Path, relative_path: str) -> dict[str, Any]:
             fixture["source_role_v2"] = document_type.replace("_", "-")
             fixture["source_role"] = fixture["source_role_v2"]
         fixture["odt_shape"] = None
-        fixture["xml_shape"] = xml_summary_from_file(path) if exists else {
-            "well_formed": False,
-            "root_tag": None,
-            "root_namespace": None,
-            "root_local_name": None,
-            "direct_child_count": None,
-        }
+        fixture["xml_shape"] = (
+            xml_summary_from_file(path)
+            if exists
+            else {
+                "well_formed": False,
+                "root_tag": None,
+                "root_namespace": None,
+                "root_local_name": None,
+                "direct_child_count": None,
+            }
+        )
     return fixture
 
 
@@ -422,7 +443,8 @@ def build_parser_fixture_inventory(root: Path) -> dict[str, Any]:
         "status": status,
         "non_authoritative": True,
         "fixture_count": len(fixtures),
-        "document_type_taxonomy": [label for label, _ in DOCUMENT_TYPE_PATTERNS] + ["other_document"],
+        "document_type_taxonomy": [label for label, _ in DOCUMENT_TYPE_PATTERNS]
+        + ["other_document"],
         "duplicate_check": {
             "removed_duplicate_path": REMOVED_DUPLICATE_PATH,
             "canonical_path": CANONICAL_CONSULTANT_XML_PATH,
@@ -505,18 +527,18 @@ def render_markdown(manifest: dict[str, Any]) -> str:
             "",
             "## Fixture hygiene",
             "",
-        f"- PP fixture stated path: `{manifest['fixture_hygiene']['pp_filename_mismatch']['stated_path']}`",
-        f"- PP fixture observed/canonical path: `{manifest['fixture_hygiene']['pp_filename_mismatch']['observed_path']}`",
-        f"- PP filename mismatch visible: `{str(manifest['fixture_hygiene']['pp_filename_mismatch']['mismatch_visible']).lower()}`",
-        f"- PP stated path currently exists: `{str(manifest['fixture_hygiene']['pp_filename_mismatch']['stated_exists']).lower()}`",
-        f"- PP hygiene classification: `{manifest['fixture_hygiene']['canonical_path_decisions']['garant_pp_fixture']['classification']}`",
-        f"- PP diagnostic: {manifest['fixture_hygiene']['canonical_path_decisions']['garant_pp_fixture']['diagnostic']}",
-        f"- Consultant XML hygiene classification: `{manifest['fixture_hygiene']['canonical_path_decisions']['consultant_wordml_relation_fixture']['classification']}`",
-        f"- Consultant full-act hygiene classification: `{manifest['fixture_hygiene']['canonical_path_decisions']['consultant_full_act_fixture']['classification']}`",
-        f"- Consultant full-act diagnostic: {manifest['fixture_hygiene']['canonical_path_decisions']['consultant_full_act_fixture']['diagnostic']}",
-        f"- Removed duplicate status: `absent={str(manifest['fixture_hygiene']['removed_duplicate_status']['absent']).lower()}`; failure_if_present=`{str(manifest['fixture_hygiene']['removed_duplicate_status']['failure_if_present']).lower()}`",
-        f"- Unexpected duplicate paths: `{', '.join(manifest['fixture_hygiene']['unexpected_duplicate_paths']) if manifest['fixture_hygiene']['unexpected_duplicate_paths'] else 'none'}`",
-        "- Internal duplicate pairs (tracked fixtures sharing a SHA-256, surfaced only):",
+            f"- PP fixture stated path: `{manifest['fixture_hygiene']['pp_filename_mismatch']['stated_path']}`",
+            f"- PP fixture observed/canonical path: `{manifest['fixture_hygiene']['pp_filename_mismatch']['observed_path']}`",
+            f"- PP filename mismatch visible: `{str(manifest['fixture_hygiene']['pp_filename_mismatch']['mismatch_visible']).lower()}`",
+            f"- PP stated path currently exists: `{str(manifest['fixture_hygiene']['pp_filename_mismatch']['stated_exists']).lower()}`",
+            f"- PP hygiene classification: `{manifest['fixture_hygiene']['canonical_path_decisions']['garant_pp_fixture']['classification']}`",
+            f"- PP diagnostic: {manifest['fixture_hygiene']['canonical_path_decisions']['garant_pp_fixture']['diagnostic']}",
+            f"- Consultant XML hygiene classification: `{manifest['fixture_hygiene']['canonical_path_decisions']['consultant_wordml_relation_fixture']['classification']}`",
+            f"- Consultant full-act hygiene classification: `{manifest['fixture_hygiene']['canonical_path_decisions']['consultant_full_act_fixture']['classification']}`",
+            f"- Consultant full-act diagnostic: {manifest['fixture_hygiene']['canonical_path_decisions']['consultant_full_act_fixture']['diagnostic']}",
+            f"- Removed duplicate status: `absent={str(manifest['fixture_hygiene']['removed_duplicate_status']['absent']).lower()}`; failure_if_present=`{str(manifest['fixture_hygiene']['removed_duplicate_status']['failure_if_present']).lower()}`",
+            f"- Unexpected duplicate paths: `{', '.join(manifest['fixture_hygiene']['unexpected_duplicate_paths']) if manifest['fixture_hygiene']['unexpected_duplicate_paths'] else 'none'}`",
+            "- Internal duplicate pairs (tracked fixtures sharing a SHA-256, surfaced only):",
         ]
     )
     if manifest["fixture_hygiene"]["internal_duplicate_pairs"]:
@@ -596,7 +618,9 @@ def write_outputs(root: Path, manifest: dict[str, Any]) -> None:
     json_path = root / JSON_OUTPUT
     markdown_path = root / MARKDOWN_OUTPUT
     json_path.parent.mkdir(parents=True, exist_ok=True)
-    json_path.write_text(json.dumps(manifest, ensure_ascii=False, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    json_path.write_text(
+        json.dumps(manifest, ensure_ascii=False, indent=2, sort_keys=True) + "\n", encoding="utf-8"
+    )
     markdown_path.write_text(render_markdown(manifest), encoding="utf-8")
 
 
@@ -650,7 +674,11 @@ def observability_summary(manifest: dict[str, Any]) -> dict[str, Any]:
         "internal_duplicate_pairs": manifest["duplicate_check"]["internal_duplicate_pairs"],
         "pp_filename_mismatch": manifest["fixture_hygiene"]["pp_filename_mismatch"],
         "unexpected_duplicate_paths": manifest["fixture_hygiene"]["unexpected_duplicate_paths"],
-        "canonical_paths": [fixture["path"] for fixture in manifest["fixtures"] if fixture.get("source_role") in ("document-list-prior-art", "full-normative-act")],
+        "canonical_paths": [
+            fixture["path"]
+            for fixture in manifest["fixtures"]
+            if fixture.get("source_role") in ("document-list-prior-art", "full-normative-act")
+        ],
         "source_roles": {
             fixture["path"]: fixture["source_role_v2"] for fixture in manifest["fixtures"]
         },
@@ -659,8 +687,6 @@ def observability_summary(manifest: dict[str, Any]) -> dict[str, Any]:
         },
         "non_authoritative": manifest["non_authoritative"],
     }
-
-
 
 
 class FilesystemParserFixtureInventory:

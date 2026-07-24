@@ -1,16 +1,11 @@
 use ln_replay::adapters::{sample_checkpoint, InMemoryCheckpointStore, InMemoryEffectLedger};
 use ln_replay::application::CoordinateCheckpointAndReplay;
 use ln_replay::domain::{
-    CheckpointDigest, CheckpointId, EffectId, OperationId, ReplayOutcome, ReplayRequest,
-    RequestId, RuleVersion, REPLAY_POLICY_VERSION,
+    CheckpointDigest, CheckpointId, EffectId, OperationId, ReplayOutcome, ReplayRequest, RequestId,
+    RuleVersion, REPLAY_POLICY_VERSION,
 };
 
-fn request(
-    digest: &str,
-    rules: &str,
-    operation: &str,
-    effect: &str,
-) -> ReplayRequest {
+fn request(digest: &str, rules: &str, operation: &str, effect: &str) -> ReplayRequest {
     ReplayRequest {
         request_id: RequestId::parse("req:R1").expect("id"),
         checkpoint_id: CheckpointId::parse("cp:1").expect("id"),
@@ -56,7 +51,11 @@ fn first_apply_then_suppress_on_identical_replay() {
     assert!(!second.publication_authority_changed);
     assert!(!second.lineage_rewritten);
     assert_eq!(
-        second.trace.prior_applied_digest.as_ref().map(|d| d.as_str()),
+        second
+            .trace
+            .prior_applied_digest
+            .as_ref()
+            .map(|d| d.as_str()),
         Some("digest:abc")
     );
 }

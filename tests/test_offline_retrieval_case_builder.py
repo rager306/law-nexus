@@ -50,7 +50,10 @@ def test_offline_retrieval_case_builder_emits_expected_contract_shape() -> None:
     assert payload["non_claims"] == list(OFFLINE_RETRIEVAL_CASE_NON_CLAIMS)
     assert payload["source_artifacts"] == [
         {"path": "prd/retrieval/offline_citation_retrieval_contract.md", "sha256": "sha-contract"},
-        {"path": "prd/retrieval/fixtures/real_artifact_retrieval_cases.json", "sha256": "sha-real-cases"},
+        {
+            "path": "prd/retrieval/fixtures/real_artifact_retrieval_cases.json",
+            "sha256": "sha-real-cases",
+        },
     ]
     assert len(payload["cases"]) == 6
 
@@ -62,7 +65,10 @@ def test_offline_retrieval_case_builder_keeps_case_diagnostics_bounded() -> None
     scoped_no_answer = cases["CASE-M014-SCOPED-NO-CANDIDATE"]
     assert scoped_no_answer["output"]["output_kind"] == "scoped_no_answer"
     assert scoped_no_answer["output"]["citations"] == []
-    assert scoped_no_answer["expected_diagnostic_codes"] == ["scoped_no_candidate", "scoped_no_answer"]
+    assert scoped_no_answer["expected_diagnostic_codes"] == [
+        "scoped_no_candidate",
+        "scoped_no_answer",
+    ]
 
     ambiguous = cases["CASE-M014-AMBIGUOUS-CANDIDATE-SET"]
     assert ambiguous["expected_selection_result"] == "rejected"

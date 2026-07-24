@@ -70,9 +70,9 @@ def test_per_variant_classification_real_fixtures() -> None:
             # parser falls through to ``other_document`` for them.
             if inventory_doc_type == "other_document":
                 title = _extract_consultant_title_first_line(ROOT / fixture["path"])
-                assert _classify_document_type(title or "") == ConsultantDocumentType.other_document, (
-                    f"{fixture['path']}: title did not fall through to other_document"
-                )
+                assert (
+                    _classify_document_type(title or "") == ConsultantDocumentType.other_document
+                ), f"{fixture['path']}: title did not fall through to other_document"
             continue
         title = _extract_consultant_title_first_line(ROOT / fixture["path"])
         expected = ConsultantDocumentType(inventory_doc_type)
@@ -137,7 +137,9 @@ def test_government_resolution_real_fixture() -> None:
 def test_constitutional_court_ruling_real_fixture() -> None:
     fixture = _first_consultant_fixture_by_document_type("constitutional_court_ruling")
     title = _extract_consultant_title_first_line(ROOT / fixture["path"])
-    assert _classify_document_type(title or "") == ConsultantDocumentType.constitutional_court_ruling
+    assert (
+        _classify_document_type(title or "") == ConsultantDocumentType.constitutional_court_ruling
+    )
 
 
 def test_supreme_court_ruling_real_fixture() -> None:
@@ -169,7 +171,10 @@ def test_empty_title_falls_through_to_other_document() -> None:
 
 
 def test_unknown_title_falls_through_to_other_document() -> None:
-    assert _classify_document_type("Какой-то совершенно неизвестный акт 2025 года") == ConsultantDocumentType.other_document
+    assert (
+        _classify_document_type("Какой-то совершенно неизвестный акт 2025 года")
+        == ConsultantDocumentType.other_document
+    )
 
 
 def test_priority_constitutional_beats_generic() -> None:

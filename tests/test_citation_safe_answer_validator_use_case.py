@@ -55,12 +55,18 @@ def test_validator_accepts_scoped_no_answer_without_citation() -> None:
 
 
 def test_validator_rejects_missing_and_unsafe_citations_with_safe_diagnostics() -> None:
-    missing = CitationSafeAnswerValidator().validate(_request("CASE-M012-ANSWER-CLAIM-WITHOUT-EVIDENCE"))
-    unsafe = CitationSafeAnswerValidator().validate(_request("CASE-M012-UNSAFE-NOANSWER-WITH-CITATION"))
+    missing = CitationSafeAnswerValidator().validate(
+        _request("CASE-M012-ANSWER-CLAIM-WITHOUT-EVIDENCE")
+    )
+    unsafe = CitationSafeAnswerValidator().validate(
+        _request("CASE-M012-UNSAFE-NOANSWER-WITH-CITATION")
+    )
     ambiguous = CitationSafeAnswerValidator().validate(_request("CASE-M012-AMBIGUOUS-CITATION-KEY"))
 
     assert missing.result == "rejected"
-    assert "answer_claim_without_evidence" in {diagnostic.code for diagnostic in missing.diagnostics}
+    assert "answer_claim_without_evidence" in {
+        diagnostic.code for diagnostic in missing.diagnostics
+    }
     assert unsafe.result == "rejected"
     assert "unsafe_no_answer_shape" in {diagnostic.code for diagnostic in unsafe.diagnostics}
     assert ambiguous.result == "rejected"
@@ -87,9 +93,14 @@ def test_validator_rejects_missing_and_unsafe_citations_with_safe_diagnostics() 
 
 
 def test_build_citation_safe_fixture_indexes_fixture_graph() -> None:
-    fixture = build_citation_safe_fixture(_fixture_data(), fixture_artifact="prd/retrieval/fixtures/retrieval_output_validator_cases.json")
+    fixture = build_citation_safe_fixture(
+        _fixture_data(),
+        fixture_artifact="prd/retrieval/fixtures/retrieval_output_validator_cases.json",
+    )
 
-    assert fixture.fixture_artifact == "prd/retrieval/fixtures/retrieval_output_validator_cases.json"
+    assert (
+        fixture.fixture_artifact == "prd/retrieval/fixtures/retrieval_output_validator_cases.json"
+    )
     assert fixture.citation_bindings_by_scope_key
     assert fixture.evidence_spans_by_id
     assert fixture.source_blocks_by_id

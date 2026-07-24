@@ -101,12 +101,16 @@ class Diagnostic:
     text: str
 
 
-def _diag(diagnostic_id: str, path: Path | str, line_no: int, message: str, text: str = "") -> Diagnostic:
+def _diag(
+    diagnostic_id: str, path: Path | str, line_no: int, message: str, text: str = ""
+) -> Diagnostic:
     try:
         rel = str(Path(path).relative_to(DEFAULT_EXTERNAL))
     except (ValueError, TypeError):
         rel = str(path)
-    return Diagnostic(diagnostic_id=diagnostic_id, path=rel, line=line_no, message=message, text=text.strip())
+    return Diagnostic(
+        diagnostic_id=diagnostic_id, path=rel, line=line_no, message=message, text=text.strip()
+    )
 
 
 def check_completeness(ext: Path) -> tuple[dict[str, bool], list[Diagnostic]]:
@@ -120,18 +124,36 @@ def check_completeness(ext: Path) -> tuple[dict[str, bool], list[Diagnostic]]:
         if not ok:
             diags.append(_diag("missing_file", p, 0, f"required file missing: {rel}"))
     # acp.ttl version
-    acp = ext / "ontology/acp/acp/acp.ttl" if (ext / "ontology/acp/acp.ttl").exists() is False else (ext / "ontology/acp/acp.ttl")
+    acp = (
+        ext / "ontology/acp/acp/acp.ttl"
+        if (ext / "ontology/acp/acp.ttl").exists() is False
+        else (ext / "ontology/acp/acp.ttl")
+    )
     acp = ext / "ontology/acp/acp.ttl"
     if acp.exists():
         ver = re.search(r'versionInfo\s+"([^"]+)"', acp.read_text())
         if not ver or ver.group(1) != "0.2.0":
-            diags.append(_diag("acp_ttl_wrong_version", acp, 0, f"acp.ttl version is {ver.group(1) if ver else 'missing'}, expected 0.2.0"))
+            diags.append(
+                _diag(
+                    "acp_ttl_wrong_version",
+                    acp,
+                    0,
+                    f"acp.ttl version is {ver.group(1) if ver else 'missing'}, expected 0.2.0",
+                )
+            )
     # ACP→git-lex binding
     acp_skill = ext / "skills/acp/SKILL.md"
     if acp_skill.exists():
         t = acp_skill.read_text()
         if "git-lex" not in t.lower():
-            diags.append(_diag("acp_not_bound_to_git_lex", acp_skill, 0, "acp SKILL.md does not reference git-lex skill (binding lost)"))
+            diags.append(
+                _diag(
+                    "acp_not_bound_to_git_lex",
+                    acp_skill,
+                    0,
+                    "acp SKILL.md does not reference git-lex skill (binding lost)",
+                )
+            )
     return present, diags
 
 
@@ -147,7 +169,9 @@ def scan_leaks(ext: Path) -> tuple[dict[str, int], list[Diagnostic]]:
             for m in re.finditer(pat, text):
                 summary[name] += 1
                 line_no = text.count("\n", 0, m.start()) + 1
-                diags.append(_diag("leak_detected", md, line_no, f"{name}: {m.group(0)!r}", m.group(0)))
+                diags.append(
+                    _diag("leak_detected", md, line_no, f"{name}: {m.group(0)!r}", m.group(0))
+                )
     # also scan acp.ttl (non-md) for leaks
     acp = ext / "ontology/acp/acp.ttl"
     if acp.exists():
@@ -156,7 +180,9 @@ def scan_leaks(ext: Path) -> tuple[dict[str, int], list[Diagnostic]]:
             for m in re.finditer(pat, text):
                 summary[name] += 1
                 line_no = text.count("\n", 0, m.start()) + 1
-                diags.append(_diag("leak_detected", acp, line_no, f"{name}: {m.group(0)!r}", m.group(0)))
+                diags.append(
+                    _diag("leak_detected", acp, line_no, f"{name}: {m.group(0)!r}", m.group(0))
+                )
     return summary, diags
 
 
@@ -188,7 +214,9 @@ def _fmt(d: Diagnostic) -> str:
 
 
 def main(argv: list[str] | None = None) -> int:
-    ap = argparse.ArgumentParser(description="Verify /root/git-lex-kit-acp/ externalization completeness + no-leak.")
+    ap = argparse.ArgumentParser(
+        description="Verify /root/git-lex-kit-acp/ externalization completeness + no-leak."
+    )
     ap.add_argument("--external", type=Path, default=DEFAULT_EXTERNAL)
     args = ap.parse_args(argv)
     ok, diags, _ = verify(args.external)
@@ -196,7 +224,9 @@ def main(argv: list[str] | None = None) -> int:
         for d in diags:
             print(_fmt(d))
         return 1
-    print("M067 S01 externalization verification passed: diagnostics=0 (publication-ready, 0 leaks)")
+    print(
+        "M067 S01 externalization verification passed: diagnostics=0 (publication-ready, 0 leaks)"
+    )
     return 0
 
 

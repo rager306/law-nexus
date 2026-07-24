@@ -10,7 +10,9 @@ SCRIPT = Path("scripts/evaluate-falkordb-trigger-proxy.py")
 SKILLS_DIR = Path(".agents/skills")
 
 
-def run_proxy(tmp_path: Path, skills_dir: Path = SKILLS_DIR, *extra: str) -> subprocess.CompletedProcess[str]:
+def run_proxy(
+    tmp_path: Path, skills_dir: Path = SKILLS_DIR, *extra: str
+) -> subprocess.CompletedProcess[str]:
     return subprocess.run(
         [
             sys.executable,
@@ -35,7 +37,11 @@ def copy_falkordb_skills(dst: Path) -> None:
     dst.mkdir(parents=True, exist_ok=True)
     for skill_dir in SKILLS_DIR.glob("falkordb*"):
         if skill_dir.is_dir():
-            shutil.copytree(skill_dir, dst / skill_dir.name, ignore=shutil.ignore_patterns("__pycache__", "*.pyc"))
+            shutil.copytree(
+                skill_dir,
+                dst / skill_dir.name,
+                ignore=shutil.ignore_patterns("__pycache__", "*.pyc"),
+            )
 
 
 def test_trigger_proxy_passes_for_pack(tmp_path: Path) -> None:
@@ -47,7 +53,11 @@ def test_trigger_proxy_passes_for_pack(tmp_path: Path) -> None:
     assert report["summary"]["false_positives"] == 0
     assert report["actual_activation"] == "unavailable"
     assert len(report["skills"]) >= 12
-    assert (tmp_path / "trigger-proxy-report.md").read_text(encoding="utf-8").startswith("# FalkorDB Skill Pack Trigger Proxy Evaluation")
+    assert (
+        (tmp_path / "trigger-proxy-report.md")
+        .read_text(encoding="utf-8")
+        .startswith("# FalkorDB Skill Pack Trigger Proxy Evaluation")
+    )
 
 
 def test_trigger_proxy_fails_on_bad_description(tmp_path: Path) -> None:
@@ -62,7 +72,9 @@ def test_trigger_proxy_fails_on_bad_description(tmp_path: Path) -> None:
         else:
             lines.append(line)
     skill_md.write_text("\n".join(lines) + "\n", encoding="utf-8")
-    result = run_proxy(tmp_path, skills_copy, "--skill", "falkordb-cypher", "--min-pass-rate", "1.0")
+    result = run_proxy(
+        tmp_path, skills_copy, "--skill", "falkordb-cypher", "--min-pass-rate", "1.0"
+    )
     assert result.returncode != 0
     report = json.loads((tmp_path / "trigger-proxy-report.json").read_text(encoding="utf-8"))
     assert report["summary"]["failed"] > 0

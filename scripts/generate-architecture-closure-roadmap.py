@@ -53,14 +53,23 @@ def validate_inputs(matrix: dict[str, Any], track_split: dict[str, Any]) -> None
     assigned_gate_count = track_split.get("summary", {}).get("assigned_gate_count")
     errors: list[str] = []
     if recommendation_count != EXPECTED_RECOMMENDATION_COUNT:
-        errors.append(f"expected {EXPECTED_RECOMMENDATION_COUNT} recommendations, found {recommendation_count}")
+        errors.append(
+            f"expected {EXPECTED_RECOMMENDATION_COUNT} recommendations, found {recommendation_count}"
+        )
     if track_count != EXPECTED_TRACK_COUNT:
         errors.append(f"expected {EXPECTED_TRACK_COUNT} tracks, found {track_count}")
     if assigned_gate_count != EXPECTED_ASSIGNED_GATE_COUNT:
-        errors.append(f"expected {EXPECTED_ASSIGNED_GATE_COUNT} assigned gates, found {assigned_gate_count}")
-    unknown_statuses = sorted({row.get("status") for row in matrix.get("recommendation_rows", [])} - set(FINAL_STATUS_BUCKETS))
+        errors.append(
+            f"expected {EXPECTED_ASSIGNED_GATE_COUNT} assigned gates, found {assigned_gate_count}"
+        )
+    unknown_statuses = sorted(
+        {row.get("status") for row in matrix.get("recommendation_rows", [])}
+        - set(FINAL_STATUS_BUCKETS)
+    )
     if unknown_statuses:
-        errors.append(f"unknown recommendation statuses: {', '.join(str(status) for status in unknown_statuses)}")
+        errors.append(
+            f"unknown recommendation statuses: {', '.join(str(status) for status in unknown_statuses)}"
+        )
     if errors:
         raise RuntimeError("; ".join(errors))
 
@@ -83,7 +92,9 @@ def build_closure(matrix: dict[str, Any], track_split: dict[str, Any]) -> dict[s
             }
         )
     status_counts = dict(sorted(Counter(row["m007_status"] for row in recommendation_rows).items()))
-    bucket_counts = dict(sorted(Counter(row["final_bucket"] for row in recommendation_rows).items()))
+    bucket_counts = dict(
+        sorted(Counter(row["final_bucket"] for row in recommendation_rows).items())
+    )
     return {
         "schema_version": "legalgraph-architecture-closure-roadmap/v1",
         "record_kind": "derived-architecture-closure-roadmap",
@@ -150,13 +161,15 @@ def render_markdown(closure: dict[str, Any]) -> str:
     for bucket, count in closure["summary"]["bucket_counts"].items():
         lines.append(f"| {escape_md(bucket)} | {count} |")
 
-    lines.extend([
-        "",
-        "## R04 Recommendation Final Disposition",
-        "",
-        "| Recommendation | Priority | M007 Status | Final Bucket | Next |",
-        "| --- | --- | --- | --- | --- |",
-    ])
+    lines.extend(
+        [
+            "",
+            "## R04 Recommendation Final Disposition",
+            "",
+            "| Recommendation | Priority | M007 Status | Final Bucket | Next |",
+            "| --- | --- | --- | --- | --- |",
+        ]
+    )
     for row in closure["recommendation_rows"]:
         lines.append(
             f"| `{escape_md(row['id'])}` — {escape_md(row['title'])} | "
@@ -164,13 +177,15 @@ def render_markdown(closure: dict[str, Any]) -> str:
             f"{escape_md(row['final_bucket'])} | {escape_md(row['next'])} |"
         )
 
-    lines.extend([
-        "",
-        "## Future Proof Tracks",
-        "",
-        "| Track | Status | Gates | Proof Artifact | Next Unit |",
-        "| --- | --- | --- | --- | --- |",
-    ])
+    lines.extend(
+        [
+            "",
+            "## Future Proof Tracks",
+            "",
+            "| Track | Status | Gates | Proof Artifact | Next Unit |",
+            "| --- | --- | --- | --- | --- |",
+        ]
+    )
     for track in closure["future_tracks"]:
         lines.append(
             f"| `{escape_md(track['track_id'])}` — {escape_md(track['title'])} | "
@@ -178,20 +193,24 @@ def render_markdown(closure: dict[str, Any]) -> str:
             f"{escape_md(track['proof_artifact'])} | {escape_md(track['recommended_next_unit'])} |"
         )
 
-    lines.extend([
-        "",
-        "## Non-Claims",
-        "",
-    ])
+    lines.extend(
+        [
+            "",
+            "## Non-Claims",
+            "",
+        ]
+    )
     for claim in closure["non_claims"]:
         lines.append(f"- {escape_md(claim)}")
 
-    lines.extend([
-        "",
-        "---",
-        "",
-        "*Generated from `prd/architecture/remediation_matrix.json` and `prd/architecture/major_track_split.json`. Source evidence remains authoritative.*",
-    ])
+    lines.extend(
+        [
+            "",
+            "---",
+            "",
+            "*Generated from `prd/architecture/remediation_matrix.json` and `prd/architecture/major_track_split.json`. Source evidence remains authoritative.*",
+        ]
+    )
     return "\n".join(lines) + "\n"
 
 
@@ -204,22 +223,32 @@ def write_atomic(path: Path, content: str) -> None:
 
 def check_output(path: Path, expected: str, label: str) -> bool:
     if not path.exists():
-        print(f"missing {label}: {path}; regenerate with `uv run python scripts/generate-architecture-closure-roadmap.py`", file=sys.stderr)
+        print(
+            f"missing {label}: {path}; regenerate with `uv run python scripts/generate-architecture-closure-roadmap.py`",
+            file=sys.stderr,
+        )
         return False
     actual = path.read_text(encoding="utf-8")
     if actual != expected:
-        print(f"stale {label}: {path}; regenerate with `uv run python scripts/generate-architecture-closure-roadmap.py`", file=sys.stderr)
+        print(
+            f"stale {label}: {path}; regenerate with `uv run python scripts/generate-architecture-closure-roadmap.py`",
+            file=sys.stderr,
+        )
         return False
     return True
 
 
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description="Generate/check the derived architecture closure roadmap.")
+    parser = argparse.ArgumentParser(
+        description="Generate/check the derived architecture closure roadmap."
+    )
     parser.add_argument("--matrix-json", type=Path, default=DEFAULT_MATRIX_JSON_PATH)
     parser.add_argument("--track-json", type=Path, default=DEFAULT_TRACK_JSON_PATH)
     parser.add_argument("--closure-json", type=Path, default=DEFAULT_CLOSURE_JSON_PATH)
     parser.add_argument("--closure-md", type=Path, default=DEFAULT_CLOSURE_MD_PATH)
-    parser.add_argument("--check", action="store_true", help="Compare expected outputs without rewriting.")
+    parser.add_argument(
+        "--check", action="store_true", help="Compare expected outputs without rewriting."
+    )
     return parser.parse_args(argv)
 
 

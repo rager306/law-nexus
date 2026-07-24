@@ -12,7 +12,10 @@ from pathlib import Path
 from typing import Any
 
 ROOT = Path(__file__).resolve().parents[1]
-DEFAULT_MANIFEST = ROOT / "prd/research/ontology_architecture_requirements/fixtures/semantic_retrieval_safe_inputs.json"
+DEFAULT_MANIFEST = (
+    ROOT
+    / "prd/research/ontology_architecture_requirements/fixtures/semantic_retrieval_safe_inputs.json"
+)
 SCHEMA_VERSION = "semantic-retrieval-safe-inputs/v1"
 ALLOWED_ROOT_FIELDS = {
     "allowed_representation_kinds",
@@ -203,7 +206,9 @@ def verify_manifest(path: Path) -> dict[str, Any]:
     manifest = load_json(path)
     assert_safe_payload(manifest)
     if set(manifest) - ALLOWED_ROOT_FIELDS:
-        raise SemanticInputError(f"unexpected root fields: {sorted(set(manifest) - ALLOWED_ROOT_FIELDS)}")
+        raise SemanticInputError(
+            f"unexpected root fields: {sorted(set(manifest) - ALLOWED_ROOT_FIELDS)}"
+        )
     if manifest.get("schema_version") != SCHEMA_VERSION:
         raise SemanticInputError("schema_version mismatch")
     for field in ("source_fixture", "query_registry", "source_provenance_manifest", "contract"):
@@ -223,7 +228,9 @@ def verify_manifest(path: Path) -> dict[str, Any]:
     candidate_inputs = manifest.get("candidate_inputs")
     if not isinstance(query_inputs, list) or not isinstance(candidate_inputs, list):
         raise SemanticInputError("inputs must be lists")
-    if manifest.get("query_input_count") != len(query_inputs) or manifest.get("candidate_input_count") != len(candidate_inputs):
+    if manifest.get("query_input_count") != len(query_inputs) or manifest.get(
+        "candidate_input_count"
+    ) != len(candidate_inputs):
         raise SemanticInputError("input count mismatch")
     if len(query_inputs) != 10 or len(candidate_inputs) != 10:
         raise SemanticInputError("representative input coverage mismatch")
@@ -233,7 +240,9 @@ def verify_manifest(path: Path) -> dict[str, Any]:
         if not isinstance(item, Mapping):
             raise SemanticInputError("query input must be object")
         if set(item) - ALLOWED_QUERY_FIELDS:
-            raise SemanticInputError(f"unexpected query fields: {sorted(set(item) - ALLOWED_QUERY_FIELDS)}")
+            raise SemanticInputError(
+                f"unexpected query fields: {sorted(set(item) - ALLOWED_QUERY_FIELDS)}"
+            )
         input_id = str(item.get("semantic_input_id", ""))
         if not input_id.startswith("SEMQ-M024-") or input_id in seen_ids:
             raise SemanticInputError(f"bad semantic input id: {input_id}")
@@ -249,7 +258,9 @@ def verify_manifest(path: Path) -> dict[str, Any]:
         if not isinstance(item, Mapping):
             raise SemanticInputError("candidate input must be object")
         if set(item) - ALLOWED_CANDIDATE_FIELDS:
-            raise SemanticInputError(f"unexpected candidate fields: {sorted(set(item) - ALLOWED_CANDIDATE_FIELDS)}")
+            raise SemanticInputError(
+                f"unexpected candidate fields: {sorted(set(item) - ALLOWED_CANDIDATE_FIELDS)}"
+            )
         input_id = str(item.get("semantic_input_id", ""))
         if not input_id.startswith("SEMC-M024-") or input_id in seen_ids:
             raise SemanticInputError(f"bad semantic input id: {input_id}")
@@ -258,7 +269,13 @@ def verify_manifest(path: Path) -> dict[str, Any]:
         if item.get("representation_kind") != "safe_candidate_token_bag_v1":
             raise SemanticInputError(f"bad candidate representation kind: {input_id}")
         validate_tokens(item.get("representation_tokens"), input_id)
-        for field in ("candidate_id", "evidence_span_id", "source_block_id", "citation_key", "act_edition_id"):
+        for field in (
+            "candidate_id",
+            "evidence_span_id",
+            "source_block_id",
+            "citation_key",
+            "act_edition_id",
+        ):
             if not isinstance(item.get(field), str) or not item[field]:
                 raise SemanticInputError(f"missing candidate field: {input_id}: {field}")
     if not candidate_case_ids.issubset(query_case_ids):
@@ -288,7 +305,12 @@ def main(argv: Sequence[str] | None = None) -> int:
     try:
         result = verify_manifest(args.manifest)
     except SemanticInputError as exc:
-        print(json.dumps({"status": "failed", "diagnostic": str(exc), "non_authoritative": True}, sort_keys=True))
+        print(
+            json.dumps(
+                {"status": "failed", "diagnostic": str(exc), "non_authoritative": True},
+                sort_keys=True,
+            )
+        )
         return 1
     print(json.dumps(result, sort_keys=True))
     return 0

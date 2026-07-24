@@ -207,11 +207,14 @@ CAPABILITIES: tuple[CapabilitySpec, ...] = (
     ),
 )
 
-FALKORDB_CAPABILITY_IDS = tuple(spec.capability_id for spec in CAPABILITIES if spec.docker_dependent)
+FALKORDB_CAPABILITY_IDS = tuple(
+    spec.capability_id for spec in CAPABILITIES if spec.docker_dependent
+)
 LITE_AND_EMBEDDING_IDS = tuple(
     spec.capability_id
     for spec in CAPABILITIES
-    if spec.capability_id not in {"docker-daemon", "docker-falkordb-image", *FALKORDB_CAPABILITY_IDS}
+    if spec.capability_id
+    not in {"docker-daemon", "docker-falkordb-image", *FALKORDB_CAPABILITY_IDS}
 )
 
 
@@ -329,7 +332,9 @@ def write_log(log_dir: Path, phase: str, content: str) -> Path:
     return path
 
 
-def run_command(command: list[str], timeout_seconds: int, log_dir: Path, phase: str) -> CommandResult:
+def run_command(
+    command: list[str], timeout_seconds: int, log_dir: Path, phase: str
+) -> CommandResult:
     started = time.monotonic()
     try:
         completed = subprocess.run(
@@ -489,7 +494,9 @@ def embedding_cache_roots() -> list[Path]:
     return deduped
 
 
-def embedding_model_cache_metadata(model_id: str, roots: list[Path] | None = None) -> dict[str, object]:
+def embedding_model_cache_metadata(
+    model_id: str, roots: list[Path] | None = None
+) -> dict[str, object]:
     roots = roots or embedding_cache_roots()
     model_dir_name = f"models--{model_id.replace('/', '--')}"
     checked = [str(root / model_dir_name) for root in roots]
@@ -569,7 +576,9 @@ def create_state(output_dir: Path, timeout_seconds: int) -> SmokeState:
 
 
 def ensure_docker(state: SmokeState) -> bool:
-    result = run_command(["docker", "version", "--format", "{{json .}}"], 30, state.log_dir, "docker-daemon")
+    result = run_command(
+        ["docker", "version", "--format", "{{json .}}"], 30, state.log_dir, "docker-daemon"
+    )
     state.command_summary["docker-daemon"] = summarize_command(result)
     if result.exit_code == 0 and not result.timed_out:
         try:
@@ -589,21 +598,51 @@ def ensure_docker(state: SmokeState) -> bool:
         return True
     root = command_root_cause(result, "docker-daemon")
     detail = command_detail(result)
-    put_finding(state, "docker-daemon", "blocked-environment", "docker-daemon", result.log_path, root, detail)
-    cascade_blocker(state, ("docker-falkordb-image", *FALKORDB_CAPABILITY_IDS), root, detail, "docker-daemon", result.log_path)
+    put_finding(
+        state,
+        "docker-daemon",
+        "blocked-environment",
+        "docker-daemon",
+        result.log_path,
+        root,
+        detail,
+    )
+    cascade_blocker(
+        state,
+        ("docker-falkordb-image", *FALKORDB_CAPABILITY_IDS),
+        root,
+        detail,
+        "docker-daemon",
+        result.log_path,
+    )
     return False
 
 
 def ensure_image(state: SmokeState) -> bool:
-    inspect = run_command(["docker", "image", "inspect", IMAGE, "--format", "{{json .}}"], 30, state.log_dir, "docker-image-inspect")
+    inspect = run_command(
+        ["docker", "image", "inspect", IMAGE, "--format", "{{json .}}"],
+        30,
+        state.log_dir,
+        "docker-image-inspect",
+    )
     state.command_summary["docker-image-inspect"] = summarize_command(inspect)
     result = inspect
     if inspect.exit_code != 0 or inspect.timed_out:
-        pull = run_command(["docker", "pull", IMAGE], min(state.timeout_seconds, 300), state.log_dir, "docker-image-pull")
+        pull = run_command(
+            ["docker", "pull", IMAGE],
+            min(state.timeout_seconds, 300),
+            state.log_dir,
+            "docker-image-pull",
+        )
         state.command_summary["docker-image-pull"] = summarize_command(pull)
         result = pull
         if pull.exit_code == 0 and not pull.timed_out:
-            inspect = run_command(["docker", "image", "inspect", IMAGE, "--format", "{{json .}}"], 30, state.log_dir, "docker-image-inspect-after-pull")
+            inspect = run_command(
+                ["docker", "image", "inspect", IMAGE, "--format", "{{json .}}"],
+                30,
+                state.log_dir,
+                "docker-image-inspect-after-pull",
+            )
             state.command_summary["docker-image-inspect-after-pull"] = summarize_command(inspect)
             result = inspect
     if result.exit_code == 0 and not result.timed_out:
@@ -643,7 +682,9 @@ def ensure_image(state: SmokeState) -> bool:
         root,
         detail,
     )
-    cascade_blocker(state, FALKORDB_CAPABILITY_IDS, root, detail, "docker-falkordb-image", result.log_path)
+    cascade_blocker(
+        state, FALKORDB_CAPABILITY_IDS, root, detail, "docker-falkordb-image", result.log_path
+    )
     return False
 
 
@@ -757,7 +798,9 @@ def wait_for_container_ready(state: SmokeState) -> bool:
     if root == "docker-falkordb-readiness-ok":
         root = "docker-falkordb-readiness-timeout"
     detail = command_detail(last_result)
-    cascade_blocker(state, FALKORDB_CAPABILITY_IDS, root, detail, "container-readiness", last_result.log_path)
+    cascade_blocker(
+        state, FALKORDB_CAPABILITY_IDS, root, detail, "container-readiness", last_result.log_path
+    )
     return False
 
 
@@ -783,7 +826,9 @@ def start_container(state: SmokeState) -> bool:
         return wait_for_container_ready(state)
     root = command_root_cause(result, "docker-falkordb-container")
     detail = command_detail(result)
-    cascade_blocker(state, FALKORDB_CAPABILITY_IDS, root, detail, "container-start", result.log_path)
+    cascade_blocker(
+        state, FALKORDB_CAPABILITY_IDS, root, detail, "container-start", result.log_path
+    )
     return False
 
 
@@ -1112,7 +1157,16 @@ def run_runtime_probes(state: SmokeState, venv_path: Path, work_dir: Path) -> No
         root = probe.get("root_cause", f"{capability_id}-unknown")
         detail = probe.get("detail", "Runtime probe returned no detail.")
         evidence_class = "confirmed" if status == "confirmed-runtime" else "smoke-needed"
-        put_finding(state, capability_id, status, "runtime-probes", result.log_path, root, detail, evidence_class)
+        put_finding(
+            state,
+            capability_id,
+            status,
+            "runtime-probes",
+            result.log_path,
+            root,
+            detail,
+            evidence_class,
+        )
 
 
 def write_falkordblite_probe_script(path: Path, graph_suffix: str) -> None:
@@ -1271,7 +1325,12 @@ def create_probe_venv(state: SmokeState, parent: Path, label: str) -> Path | Non
 
 
 def run_falkordblite_probes(state: SmokeState, work_dir: Path) -> None:
-    lite_ids = ("falkordblite-import", "falkordblite-basic-graph", "falkordblite-udf", "falkordblite-vector-fulltext")
+    lite_ids = (
+        "falkordblite-import",
+        "falkordblite-basic-graph",
+        "falkordblite-udf",
+        "falkordblite-vector-fulltext",
+    )
     if not VENDOR_FALKORDBLITE.is_dir():
         log_path = write_log(
             state.log_dir,
@@ -1307,7 +1366,9 @@ def run_falkordblite_probes(state: SmokeState, work_dir: Path) -> None:
     )
     state.command_summary["falkordblite-install"] = summarize_command(install_result)
     state.package_metadata["falkordblite_source"] = str(VENDOR_FALKORDBLITE)
-    state.package_metadata["falkordblite_install_log"] = relative_for_artifact(install_result.log_path)
+    state.package_metadata["falkordblite_install_log"] = relative_for_artifact(
+        install_result.log_path
+    )
     if install_result.exit_code != 0 or install_result.timed_out:
         cascade_blocker(
             state,
@@ -1401,7 +1462,7 @@ def run_falkordblite_probes(state: SmokeState, work_dir: Path) -> None:
 
 
 def write_embedding_probe_script(path: Path, model_id: str) -> None:
-    code = f'''
+    code = f"""
 import importlib.util
 import json
 import os
@@ -1472,7 +1533,7 @@ else:
         }}
 
 print(json.dumps({{"packages": packages, "cache": cache, "results": results}}, sort_keys=True))
-'''
+"""
     path.write_text(textwrap.dedent(code).strip() + "\n", encoding="utf-8")
 
 
@@ -1537,7 +1598,11 @@ def run_embedding_probes(state: SmokeState, work_dir: Path) -> None:
             duration,
             exc.stdout if isinstance(exc.stdout, str) else "",
             f"{exc.stderr if isinstance(exc.stderr, str) else ''}\nTIMEOUT after {min(state.timeout_seconds, 90)}s".strip(),
-            write_log(state.log_dir, "embedding-probes", f"phase: embedding-probes\ntimestamp: {utc_now()}\nTIMEOUT\n"),
+            write_log(
+                state.log_dir,
+                "embedding-probes",
+                f"phase: embedding-probes\ntimestamp: {utc_now()}\nTIMEOUT\n",
+            ),
         )
     state.command_summary["embedding-probes"] = summarize_command(result)
     if result.exit_code != 0 or result.timed_out:
@@ -1642,7 +1707,10 @@ def artifact_json(state: SmokeState, log_path: Path) -> dict[str, object]:
 
 def write_json_artifact(state: SmokeState, log_path: Path) -> Path:
     path = state.output_dir / "S04-FALKORDB-CAPABILITY-SMOKE.json"
-    path.write_text(json.dumps(artifact_json(state, log_path), indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    path.write_text(
+        json.dumps(artifact_json(state, log_path), indent=2, sort_keys=True) + "\n",
+        encoding="utf-8",
+    )
     return path
 
 
@@ -1746,7 +1814,11 @@ def run_smoke(output_dir: Path, timeout_seconds: int) -> SmokeState:
             run_embedding_probes(state, temp_parent)
             if ensure_docker(state) and ensure_image(state):
                 venv_path = create_venv(state, temp_parent)
-                if venv_path is not None and install_client(state, venv_path) and start_container(state):
+                if (
+                    venv_path is not None
+                    and install_client(state, venv_path)
+                    and start_container(state)
+                ):
                     run_runtime_probes(state, venv_path, temp_parent)
         finally:
             cleanup_container(state)
@@ -1767,7 +1839,9 @@ def main(argv: list[str] | None = None) -> int:
     try:
         state = run_smoke(args.output_dir, args.timeout_seconds)
     except Exception as exc:  # noqa: BLE001 - CLI must return a diagnostic instead of a traceback-only crash.
-        print(f"S04 FalkorDB smoke harness failed before artifact completion: {exc}", file=sys.stderr)
+        print(
+            f"S04 FalkorDB smoke harness failed before artifact completion: {exc}", file=sys.stderr
+        )
         return 2
     blocked_or_failed = [
         finding

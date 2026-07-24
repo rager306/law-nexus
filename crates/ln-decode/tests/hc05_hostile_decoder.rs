@@ -16,10 +16,8 @@ fn request() -> DecodeRequest {
 
 #[test]
 fn malicious_verified_merge_relation_and_raw_context_are_rejected() {
-    let mut use_case = DecodeAndAnchor::new(
-        MaliciousSyntheticDecoder,
-        InMemoryDiagnosticSink::default(),
-    );
+    let mut use_case =
+        DecodeAndAnchor::new(MaliciousSyntheticDecoder, InMemoryDiagnosticSink::default());
     let result = use_case.execute(request());
 
     assert!(result.candidates.is_empty());
@@ -43,10 +41,8 @@ fn malicious_verified_merge_relation_and_raw_context_are_rejected() {
 
 #[test]
 fn malicious_canary_never_appears_in_diagnostics_or_debug() {
-    let mut use_case = DecodeAndAnchor::new(
-        MaliciousSyntheticDecoder,
-        InMemoryDiagnosticSink::default(),
-    );
+    let mut use_case =
+        DecodeAndAnchor::new(MaliciousSyntheticDecoder, InMemoryDiagnosticSink::default());
     let result = use_case.execute(request());
 
     let debug = format!("{result:?}");
@@ -61,10 +57,8 @@ fn malicious_canary_never_appears_in_diagnostics_or_debug() {
 
 #[test]
 fn malicious_path_still_emits_positive_control() {
-    let mut use_case = DecodeAndAnchor::new(
-        MaliciousSyntheticDecoder,
-        InMemoryDiagnosticSink::default(),
-    );
+    let mut use_case =
+        DecodeAndAnchor::new(MaliciousSyntheticDecoder, InMemoryDiagnosticSink::default());
     let result = use_case.execute(request());
 
     assert!(result

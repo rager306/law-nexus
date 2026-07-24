@@ -40,11 +40,15 @@ def run_trigger_analyzer(analyzer: Path, skill_dir: Path, output: Path) -> dict[
         check=False,
     )
     if completed.returncode not in {0, 2}:  # 2 means proxy completed but below threshold.
-        raise RuntimeError(completed.stderr or completed.stdout or f"trigger analyzer failed for {skill_dir}")
+        raise RuntimeError(
+            completed.stderr or completed.stdout or f"trigger analyzer failed for {skill_dir}"
+        )
     return json.loads(output.read_text(encoding="utf-8"))
 
 
-def evaluate(skills_dir: Path, analyzer: Path, report_dir: Path, skills: list[str]) -> dict[str, Any]:
+def evaluate(
+    skills_dir: Path, analyzer: Path, report_dir: Path, skills: list[str]
+) -> dict[str, Any]:
     report_dir.mkdir(parents=True, exist_ok=True)
     reports = []
     total = 0
@@ -62,12 +66,14 @@ def evaluate(skills_dir: Path, analyzer: Path, report_dir: Path, skills: list[st
         passed += int(summary["passed"])
         false_negatives += int(summary["false_negatives"])
         false_positives += int(summary["false_positives"])
-        reports.append({
-            "skill": skill,
-            "report_path": str(output),
-            "summary": summary,
-            "actual_activation": report.get("actual_activation", "unavailable"),
-        })
+        reports.append(
+            {
+                "skill": skill,
+                "report_path": str(output),
+                "summary": summary,
+                "actual_activation": report.get("actual_activation", "unavailable"),
+            }
+        )
     return {
         "pack_name": "falkordb",
         "mode": "deterministic_trigger_proxy_pack",
@@ -127,18 +133,41 @@ def write_markdown(report: dict[str, Any], path: Path) -> None:
 def main() -> int:
     parser = argparse.ArgumentParser(description="Evaluate FalkorDB skill pack trigger proxy")
     parser.add_argument("--skills-dir", type=Path, default=Path(".agents/skills"))
-    parser.add_argument("--analyzer", type=Path, default=Path(".agents/skills/pi-skill-creator/scripts/analyze_skill_triggers.py"))
-    parser.add_argument("--report-dir", type=Path, default=Path(".agents/skills/falkordb/evals/trigger-proxy"))
-    parser.add_argument("--json-output", type=Path, default=Path(".agents/skills/falkordb/evals/trigger-proxy-report.json"))
-    parser.add_argument("--markdown-output", type=Path, default=Path(".agents/skills/falkordb/evals/trigger-proxy-report.md"))
-    parser.add_argument("--skill", action="append", dest="skills", help="Skill name to include; repeatable. Defaults to the FalkorDB pack.")
+    parser.add_argument(
+        "--analyzer",
+        type=Path,
+        default=Path(".agents/skills/pi-skill-creator/scripts/analyze_skill_triggers.py"),
+    )
+    parser.add_argument(
+        "--report-dir", type=Path, default=Path(".agents/skills/falkordb/evals/trigger-proxy")
+    )
+    parser.add_argument(
+        "--json-output",
+        type=Path,
+        default=Path(".agents/skills/falkordb/evals/trigger-proxy-report.json"),
+    )
+    parser.add_argument(
+        "--markdown-output",
+        type=Path,
+        default=Path(".agents/skills/falkordb/evals/trigger-proxy-report.md"),
+    )
+    parser.add_argument(
+        "--skill",
+        action="append",
+        dest="skills",
+        help="Skill name to include; repeatable. Defaults to the FalkorDB pack.",
+    )
     parser.add_argument("--min-pass-rate", type=float, default=1.0)
     args = parser.parse_args()
 
     try:
-        report = evaluate(args.skills_dir, args.analyzer, args.report_dir, args.skills or DEFAULT_SKILLS)
+        report = evaluate(
+            args.skills_dir, args.analyzer, args.report_dir, args.skills or DEFAULT_SKILLS
+        )
         args.json_output.parent.mkdir(parents=True, exist_ok=True)
-        args.json_output.write_text(json.dumps(report, indent=2, ensure_ascii=False), encoding="utf-8")
+        args.json_output.write_text(
+            json.dumps(report, indent=2, ensure_ascii=False), encoding="utf-8"
+        )
         write_markdown(report, args.markdown_output)
     except Exception as exc:  # noqa: BLE001
         print(f"FalkorDB trigger proxy evaluation failed: {exc}", file=sys.stderr)

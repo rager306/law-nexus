@@ -120,7 +120,10 @@ def test_report_records_command_and_exact_summary_counts() -> None:
     result = section(text, "## Proof result")
 
     assert "uv run python scripts/verify-offline-citation-retrieval-proof.py" in command
-    assert "uv run pytest tests/test_offline_citation_retrieval_proof_cli.py tests/test_offline_citation_retrieval_proof_report.py -q" in command
+    assert (
+        "uv run pytest tests/test_offline_citation_retrieval_proof_cli.py tests/test_offline_citation_retrieval_proof_report.py -q"
+        in command
+    )
     for snippet in [
         '"total_cases":6',
         '"selected_count":2',

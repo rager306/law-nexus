@@ -146,7 +146,9 @@ def test_parser_overclaim_fails(tmp_path: Path) -> None:
     verifier = load_verifier()
     make_valid_tree(tmp_path)
     target = tmp_path / SKILL_PATHS[1]
-    target.write_text(VALID_SKILL_TEXT + "\nodfpy is the sole final parser for Garant ODT.\n", encoding="utf-8")
+    target.write_text(
+        VALID_SKILL_TEXT + "\nodfpy is the sole final parser for Garant ODT.\n", encoding="utf-8"
+    )
 
     results = verifier.run_checks(root=tmp_path, allow_missing_exercise=False)
 
@@ -158,7 +160,10 @@ def test_embedding_quality_overclaim_fails(tmp_path: Path) -> None:
     verifier = load_verifier()
     make_valid_tree(tmp_path)
     target = tmp_path / SKILL_PATHS[1]
-    target.write_text(VALID_SKILL_TEXT + "\nGigaEmbeddings is proven for production legal retrieval quality.\n", encoding="utf-8")
+    target.write_text(
+        VALID_SKILL_TEXT + "\nGigaEmbeddings is proven for production legal retrieval quality.\n",
+        encoding="utf-8",
+    )
 
     results = verifier.run_checks(root=tmp_path, allow_missing_exercise=False)
 
@@ -170,7 +175,10 @@ def test_architecture_boundary_violation_fails(tmp_path: Path) -> None:
     verifier = load_verifier()
     make_valid_tree(tmp_path)
     target = tmp_path / SKILL_PATHS[2]
-    target.write_text(VALID_SKILL_TEXT + "\nBuild the product API and implement hybrid retrieval now.\n", encoding="utf-8")
+    target.write_text(
+        VALID_SKILL_TEXT + "\nBuild the product API and implement hybrid retrieval now.\n",
+        encoding="utf-8",
+    )
 
     results = verifier.run_checks(root=tmp_path, allow_missing_exercise=False)
 

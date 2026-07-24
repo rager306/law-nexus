@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-import pytest
-
 import importlib.util
 import json
 import subprocess
@@ -10,6 +8,7 @@ from pathlib import Path
 from typing import Any
 
 import networkx as nx
+import pytest
 
 ROOT = Path(__file__).resolve().parents[1]
 MODULE_PATH = ROOT / "scripts" / "build-parser-staging-graph.py"
@@ -29,15 +28,26 @@ def load_builder_module():
 
 
 def read_jsonl(path: Path) -> list[dict[str, Any]]:
-    return [json.loads(line) for line in path.read_text(encoding="utf-8").splitlines() if line.strip()]
+    return [
+        json.loads(line) for line in path.read_text(encoding="utf-8").splitlines() if line.strip()
+    ]
 
 
 def write_jsonl(path: Path, rows: list[dict[str, Any]]) -> Path:
-    path.write_text("".join(json.dumps(row, ensure_ascii=False, sort_keys=True) + "\n" for row in rows), encoding="utf-8")
+    path.write_text(
+        "".join(json.dumps(row, ensure_ascii=False, sort_keys=True) + "\n" for row in rows),
+        encoding="utf-8",
+    )
     return path
 
 
-def fixture_paths(tmp_path: Path, *, documents: list[dict[str, Any]], source_blocks: list[dict[str, Any]], relations: list[dict[str, Any]]) -> tuple[Path, Path, Path]:
+def fixture_paths(
+    tmp_path: Path,
+    *,
+    documents: list[dict[str, Any]],
+    source_blocks: list[dict[str, Any]],
+    relations: list[dict[str, Any]],
+) -> tuple[Path, Path, Path]:
     documents_path = write_jsonl(tmp_path / "documents.jsonl", documents)
     source_blocks_path = write_jsonl(tmp_path / "source_blocks.jsonl", source_blocks)
     relations_path = write_jsonl(tmp_path / "relations.jsonl", relations)
@@ -55,7 +65,9 @@ def build_from_rows(
     paths = fixture_paths(
         tmp_path,
         documents=documents if documents is not None else [read_jsonl(DOCUMENT_RECORDS_PATH)[0]],
-        source_blocks=source_blocks if source_blocks is not None else [read_jsonl(SOURCE_BLOCK_RECORDS_PATH)[0]],
+        source_blocks=source_blocks
+        if source_blocks is not None
+        else [read_jsonl(SOURCE_BLOCK_RECORDS_PATH)[0]],
         relations=relations if relations is not None else [],
     )
     return builder.build_staging_graph(
@@ -83,7 +95,11 @@ def test_multigraph_preserves_real_artifact_counts_and_non_authoritative_state()
     assert result.summary.warning_count >= 3
     assert result.summary.status == "pass"
     assert {diagnostic.severity for diagnostic in result.diagnostics} <= {"warning", "info"}
-    assert {"unresolved_subject_ref", "unresolved_object_ref", "missing_source_block_record"} <= set(rules)
+    assert {
+        "unresolved_subject_ref",
+        "unresolved_object_ref",
+        "missing_source_block_record",
+    } <= set(rules)
     assert "candidate_only_relation" in rules
     assert "no_falkordb_load_executed" in rules
     assert isinstance(result.graph, nx.MultiDiGraph)
@@ -101,7 +117,9 @@ def test_multigraph_preserves_real_artifact_counts_and_non_authoritative_state()
         "has_norm": 1567,
     }
     assert result.summary.non_authoritative is True
-    assert "REL-CONS-0001" in result.summary.relation_candidate_edge_keys  # M105: 81-file corpus adds federal_law+code fixture count, candidates
+    assert (
+        "REL-CONS-0001" in result.summary.relation_candidate_edge_keys
+    )  # M105: 81-file corpus adds federal_law+code fixture count, candidates
 
 
 def test_keyed_consultant_relation_uses_unresolved_reference_nodes_without_doc_rewrite():
@@ -117,8 +135,16 @@ def test_keyed_consultant_relation_uses_unresolved_reference_nodes_without_doc_r
     assert relation is not None
     assert relation["edge_kind"] == "relation_candidate"
     assert relation["record"].id == "REL-CONS-0001"
-    assert result.graph.nodes["consultant-list:law-source/consultant/Список документов (5).xml"]["node_kind"] == "unresolved_reference"
-    assert result.graph.nodes["consultant:LAW:179581@11.05.2026"]["node_kind"] == "unresolved_reference"
+    assert (
+        result.graph.nodes["consultant-list:law-source/consultant/Список документов (5).xml"][
+            "node_kind"
+        ]
+        == "unresolved_reference"
+    )
+    assert (
+        result.graph.nodes["consultant:LAW:179581@11.05.2026"]["node_kind"]
+        == "unresolved_reference"
+    )
     assert not result.graph.has_edge("DOC-PP-60", "DOC-44-FZ", key="REL-CONS-0001")
     assert not result.graph.has_edge("DOC-44-FZ", "DOC-PP-60", key="REL-CONS-0001")
 
@@ -136,12 +162,16 @@ def test_source_block_records_keep_full_attributes_and_document_order_links():
     ]
     ordered_records = [result.graph.nodes[node_id]["record"] for node_id in document_blocks]
 
-    assert document_blocks == sorted(document_blocks, key=lambda block_id: result.graph.nodes[block_id]["record"].order_index)
+    assert document_blocks == sorted(
+        document_blocks, key=lambda block_id: result.graph.nodes[block_id]["record"].order_index
+    )
     assert ordered_records[0].record_kind == "source_block"
     assert ordered_records[0].document_id == "DOC-44-FZ"
     assert ordered_records[0].excerpt
     assert result.graph.nodes["DOC-44-FZ"]["record"].title
-    assert result.graph.has_edge("DOC-44-FZ", ordered_records[0].id, key=f"contains:{ordered_records[0].id}")
+    assert result.graph.has_edge(
+        "DOC-44-FZ", ordered_records[0].id, key=f"contains:{ordered_records[0].id}"
+    )
 
 
 def test_malformed_jsonl_becomes_path_line_rule_error_diagnostic(tmp_path: Path):
@@ -159,8 +189,13 @@ def test_malformed_jsonl_becomes_path_line_rule_error_diagnostic(tmp_path: Path)
     assert result.graph.number_of_nodes() == 0
     assert result.summary.status == "fail"
     assert result.summary.error_count == len(result.diagnostics)
-    assert {diagnostic.rule for diagnostic in result.diagnostics} >= {"json_invalid", "missing_file"}
-    assert any(diagnostic.path == malformed and diagnostic.line == 1 for diagnostic in result.diagnostics)
+    assert {diagnostic.rule for diagnostic in result.diagnostics} >= {
+        "json_invalid",
+        "missing_file",
+    }
+    assert any(
+        diagnostic.path == malformed and diagnostic.line == 1 for diagnostic in result.diagnostics
+    )
     assert all(diagnostic.severity == "error" for diagnostic in result.diagnostics)
     assert all(diagnostic.message for diagnostic in result.diagnostics)
 
@@ -193,7 +228,10 @@ def test_duplicate_document_identity_hazard_fails_without_legal_claim(tmp_path: 
 
 
 def test_source_block_with_unknown_document_id_fails_with_localizable_diagnostic(tmp_path: Path):
-    source_block = read_jsonl(SOURCE_BLOCK_RECORDS_PATH)[0] | {"id": "BLOCK-MISSING-DOC-000", "document_id": "DOC-MISSING"}
+    source_block = read_jsonl(SOURCE_BLOCK_RECORDS_PATH)[0] | {
+        "id": "BLOCK-MISSING-DOC-000",
+        "document_id": "DOC-MISSING",
+    }
 
     result = build_from_rows(tmp_path, source_blocks=[source_block])
     diagnostic = diagnostics_by_rule(result)["missing_document_endpoint"][0]
@@ -229,7 +267,9 @@ def test_invalid_relation_status_fails_through_parser_validation(tmp_path: Path)
     assert diagnostic.field == "status"
 
 
-def test_unresolved_refs_and_missing_source_block_are_warnings_that_keep_relation_key(tmp_path: Path):
+def test_unresolved_refs_and_missing_source_block_are_warnings_that_keep_relation_key(
+    tmp_path: Path,
+):
     relation = read_jsonl(RELATION_RECORDS_PATH)[0]
 
     result = build_from_rows(tmp_path, relations=[relation])
@@ -237,8 +277,20 @@ def test_unresolved_refs_and_missing_source_block_are_warnings_that_keep_relatio
 
     assert result.summary.status == "pass"
     assert result.summary.error_count == 0
-    assert {"unresolved_subject_ref", "unresolved_object_ref", "missing_source_block_record"} <= set(rules)
-    assert all(diagnostic.severity == "warning" for rule in ("unresolved_subject_ref", "unresolved_object_ref", "missing_source_block_record") for diagnostic in rules[rule])
+    assert {
+        "unresolved_subject_ref",
+        "unresolved_object_ref",
+        "missing_source_block_record",
+    } <= set(rules)
+    assert all(
+        diagnostic.severity == "warning"
+        for rule in (
+            "unresolved_subject_ref",
+            "unresolved_object_ref",
+            "missing_source_block_record",
+        )
+        for diagnostic in rules[rule]
+    )
     assert "REL-CONS-0001" in result.summary.relation_candidate_edge_keys
 
 
@@ -292,10 +344,16 @@ def test_write_then_check_generates_deterministic_staging_reports(tmp_path: Path
     assert summary["artifact_freshness"]["status"] == "pass"
     assert summary["document_count"] == 2
     assert summary["source_block_count"] == 48
-    assert summary["relation_candidate_count"] == 7568  # M105: 81-file corpus adds federal_law+code fixture count, candidates
-    assert "REL-CONS-0001" in summary["keyed_relation_edges"]  # M105: 81-file corpus adds federal_law+code fixture count, candidates
+    assert (
+        summary["relation_candidate_count"] == 7568
+    )  # M105: 81-file corpus adds federal_law+code fixture count, candidates
+    assert (
+        "REL-CONS-0001" in summary["keyed_relation_edges"]
+    )  # M105: 81-file corpus adds federal_law+code fixture count, candidates
     assert summary["error_count"] == 0
-    assert summary["warning_count"] >= 3  # M105: 81-file corpus adds federal_law+code fixture count, candidates
+    assert (
+        summary["warning_count"] >= 3
+    )  # M105: 81-file corpus adds federal_law+code fixture count, candidates
     assert {diagnostic["rule"] for diagnostic in summary["diagnostics"]} >= {
         "missing_source_block_record",
         "unresolved_object_ref",
@@ -338,10 +396,16 @@ def test_tracked_staging_reports_preserve_counts_warnings_and_non_claims():
     assert report["status"] == "pass"
     assert report["document_count"] == 2
     assert report["source_block_count"] == 48
-    assert report["relation_candidate_count"] == 7568  # M105: 81-file corpus adds federal_law+code fixture count, candidates
-    assert "REL-CONS-0001" in report["keyed_relation_edges"]  # M105: 81-file corpus adds federal_law+code fixture count, candidates
+    assert (
+        report["relation_candidate_count"] == 7568
+    )  # M105: 81-file corpus adds federal_law+code fixture count, candidates
+    assert (
+        "REL-CONS-0001" in report["keyed_relation_edges"]
+    )  # M105: 81-file corpus adds federal_law+code fixture count, candidates
     assert report["error_count"] == 0
-    assert report["warning_count"] >= 3  # M105: 81-file corpus adds federal_law+code fixture count, candidates
+    assert (
+        report["warning_count"] >= 3
+    )  # M105: 81-file corpus adds federal_law+code fixture count, candidates
     assert report["non_authoritative"] is True
     assert report["parser_completeness_claimed"] is False
     assert report["legal_correctness_claimed"] is False
@@ -398,4 +462,3 @@ def test_readme_documents_s05_contract_and_avoids_positive_claims():
     lower_docs = docs.lower()
     for phrase in forbidden_positive_claims:
         assert phrase.lower() not in lower_docs
-

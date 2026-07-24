@@ -114,10 +114,16 @@ def test_s10_artifacts_preserve_authority_and_anti_imitation_rule() -> None:
     combined = "\n".join([read(DECISION_PATH), read(DELTA_PATH)])
 
     assert "No artifact is authoritative by shape alone." in combined
-    assert "source category + lifecycle state + evidence anchor + proof gate or accepted decision" in combined
+    assert (
+        "source category + lifecycle state + evidence anchor + proof gate or accepted decision"
+        in combined
+    )
     assert "anti-imitation" in combined.casefold()
     assert "polished summaries" in combined.casefold() or "polished text" in combined.casefold()
-    assert "generated projections" in combined.casefold() or "derived projection" in combined.casefold()
+    assert (
+        "generated projections" in combined.casefold()
+        or "derived projection" in combined.casefold()
+    )
     assert "source truth" in combined.casefold()
     assert "non-authoritative" in combined.casefold()
 

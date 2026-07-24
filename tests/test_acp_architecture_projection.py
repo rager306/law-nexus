@@ -28,7 +28,9 @@ def run_exporter(*args: str) -> subprocess.CompletedProcess[str]:
 
 
 def load_schema_test_module():
-    spec = importlib.util.spec_from_file_location("architecture_registry_schema_tests", SCHEMA_TESTS)
+    spec = importlib.util.spec_from_file_location(
+        "architecture_registry_schema_tests", SCHEMA_TESTS
+    )
     assert spec is not None
     module = importlib.util.module_from_spec(spec)
     assert spec.loader is not None
@@ -38,7 +40,9 @@ def load_schema_test_module():
 
 
 def load_jsonl(path: Path) -> list[dict[str, Any]]:
-    return [json.loads(line) for line in path.read_text(encoding="utf-8").splitlines() if line.strip()]
+    return [
+        json.loads(line) for line in path.read_text(encoding="utf-8").splitlines() if line.strip()
+    ]
 
 
 def test_acp_architecture_projection_is_current() -> None:
@@ -57,7 +61,9 @@ def test_acp_architecture_projection_shape_and_boundary() -> None:
     payload = json.loads(OUTPUT.read_text(encoding="utf-8"))
 
     assert payload["kind"] == "acp_architecture_projection_preview"
-    assert payload["boundary"] == "Preview only; canonical architecture registry files are unchanged."
+    assert (
+        payload["boundary"] == "Preview only; canonical architecture registry files are unchanged."
+    )
     assert payload["source"] == "prd/architecture/acp/derived/recovery-view.json"
     assert payload["non_mappable"] == []
     assert len(payload["items"]) == 5
@@ -87,12 +93,19 @@ def test_acp_architecture_projection_items_preserve_non_claims() -> None:
 
 def test_acp_architecture_projection_edges_and_blocked_mutations() -> None:
     payload = json.loads(OUTPUT.read_text(encoding="utf-8"))
-    edges = {(edge["source_preview_id"], edge["target_preview_id"], edge["suggested_edge_type"]) for edge in payload["edges"]}
+    edges = {
+        (edge["source_preview_id"], edge["target_preview_id"], edge["suggested_edge_type"])
+        for edge in payload["edges"]
+    }
 
     assert ("ACP-PREVIEW-DC-0001", "ACP-PREVIEW-PG-0001", "checked_by") in edges
     assert ("ACP-PREVIEW-AHF-0001", "ACP-PREVIEW-DC-0001", "blocks") in edges
-    assert "write prd/architecture/architecture_items.jsonl" in payload["blocked_canonical_mutations"]
-    assert "write prd/architecture/architecture_edges.jsonl" in payload["blocked_canonical_mutations"]
+    assert (
+        "write prd/architecture/architecture_items.jsonl" in payload["blocked_canonical_mutations"]
+    )
+    assert (
+        "write prd/architecture/architecture_edges.jsonl" in payload["blocked_canonical_mutations"]
+    )
 
 
 def test_acp_architecture_projection_detects_stale_output(tmp_path: Path) -> None:

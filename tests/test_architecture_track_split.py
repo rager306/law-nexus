@@ -59,7 +59,9 @@ def test_track_split_assigns_each_source_gate_exactly_once() -> None:
         "GATE-GENERATED-CYPHER-SAFETY",
         "GATE-LEGAL-NEXUS-ACCESS-CONTROL",
     ]
-    assert track_split["summary"]["assigned_gate_count"] == track_split["summary"]["source_gate_count"]
+    assert (
+        track_split["summary"]["assigned_gate_count"] == track_split["summary"]["source_gate_count"]
+    )
 
 
 def test_tracks_have_required_fields_and_non_claims() -> None:
@@ -100,7 +102,11 @@ def test_track_statuses_cover_planned_decision_and_experiment_work() -> None:
 
 def test_generated_cypher_track_preserves_r017_boundary() -> None:
     track_split = load_track_split()
-    generated = next(track for track in track_split["tracks"] if track["track_id"] == "TRACK-GENERATED-CYPHER-SAFETY")
+    generated = next(
+        track
+        for track in track_split["tracks"]
+        if track["track_id"] == "TRACK-GENERATED-CYPHER-SAFETY"
+    )
 
     assert generated["gate_ids"] == ["GATE-GENERATED-CYPHER-SAFETY"]
     assert "R017" in generated["r04_links"]
@@ -109,11 +115,18 @@ def test_generated_cypher_track_preserves_r017_boundary() -> None:
 
 def test_retrieval_embedding_track_groups_embedding_supply_chain_and_retrieval_quality() -> None:
     track_split = load_track_split()
-    retrieval = next(track for track in track_split["tracks"] if track["track_id"] == "TRACK-RETRIEVAL-EMBEDDING-EXPERIMENT")
+    retrieval = next(
+        track
+        for track in track_split["tracks"]
+        if track["track_id"] == "TRACK-RETRIEVAL-EMBEDDING-EXPERIMENT"
+    )
 
     assert retrieval["gate_ids"] == ["GATE-EMBEDDING-SUPPLY-CHAIN", "GATE-G011"]
     assert retrieval["track_status"] == "needs-runtime-experiment"
-    assert any("Only local/open-weight embedding candidates" in item for item in retrieval["acceptance_criteria"])
+    assert any(
+        "Only local/open-weight embedding candidates" in item
+        for item in retrieval["acceptance_criteria"]
+    )
 
 
 def test_markdown_contains_tracks_acceptance_criteria_and_non_claims() -> None:

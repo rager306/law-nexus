@@ -84,7 +84,9 @@ def load_json(path: Path, result: VerificationResult) -> dict[str, Any] | None:
     except FileNotFoundError:
         result.add(f"Probe JSON log is missing: {path}")
     except json.JSONDecodeError as exc:
-        result.add(f"Probe JSON log is invalid JSON at line {exc.lineno}, column {exc.colno}: {exc.msg}")
+        result.add(
+            f"Probe JSON log is invalid JSON at line {exc.lineno}, column {exc.colno}: {exc.msg}"
+        )
     return None
 
 
@@ -110,7 +112,9 @@ def split_table_line(line: str) -> list[str]:
 
 
 def is_separator(cells: list[str]) -> bool:
-    return bool(cells) and all(set(cell.replace(":", "").replace("-", "")) <= set() for cell in cells)
+    return bool(cells) and all(
+        set(cell.replace(":", "").replace("-", "")) <= set() for cell in cells
+    )
 
 
 def parse_markdown_tables(markdown: str) -> list[MarkdownTable]:
@@ -134,7 +138,10 @@ def parse_markdown_tables(markdown: str) -> list[MarkdownTable]:
         index += 2
         while index < len(lines) and lines[index].lstrip().startswith("|"):
             cells = split_table_line(lines[index])
-            row = {header.lower(): cells[pos] if pos < len(cells) else "" for pos, header in enumerate(headers)}
+            row = {
+                header.lower(): cells[pos] if pos < len(cells) else ""
+                for pos, header in enumerate(headers)
+            }
             rows.append(row)
             index += 1
         tables.append(MarkdownTable(headers=[header.lower() for header in headers], rows=rows))
@@ -172,11 +179,15 @@ def validate_probe_log(payload: dict[str, Any], result: VerificationResult) -> N
     if not isinstance(probe_log_path, str) or not (
         probe_log_path.startswith(".gsd/") or probe_log_path.startswith("prd/milestone_proofs/")
     ):
-        result.add("Probe JSON log must include normalized .gsd/... or prd/milestone_proofs/... probe_log_path")
+        result.add(
+            "Probe JSON log must include normalized .gsd/... or prd/milestone_proofs/... probe_log_path"
+        )
 
     raw_status = statuses.get("raw-baseline")
     if raw_status not in RAW_ALLOWED_STATUSES:
-        result.add("Probe statuses.raw-baseline must be verified-source-evidence for real source evidence")
+        result.add(
+            "Probe statuses.raw-baseline must be verified-source-evidence for real source evidence"
+        )
 
     odfpy_status = statuses.get("odfpy")
     if odfpy_status is None:
@@ -209,7 +220,9 @@ def validate_probe_log(payload: dict[str, Any], result: VerificationResult) -> N
             result.add("Raw probe is missing source metadata object")
         else:
             if source.get("path") != REAL_SOURCE_PATH:
-                result.add(f"Raw probe must use real source path {REAL_SOURCE_PATH}; got {source.get('path')!r}")
+                result.add(
+                    f"Raw probe must use real source path {REAL_SOURCE_PATH}; got {source.get('path')!r}"
+                )
             sha256 = source.get("sha256")
             if not isinstance(sha256, str) or len(sha256) != 64:
                 result.add("Raw probe source metadata must include a 64-character sha256")
@@ -232,18 +245,24 @@ def validate_probe_log(payload: dict[str, Any], result: VerificationResult) -> N
             continue
         status = probe.get("status")
         parser = probe.get("parser", "raw-baseline")
-        allowed = RAW_ALLOWED_STATUSES if parser in {"raw", "raw-baseline"} else OPTIONAL_ALLOWED_STATUSES
+        allowed = (
+            RAW_ALLOWED_STATUSES if parser in {"raw", "raw-baseline"} else OPTIONAL_ALLOWED_STATUSES
+        )
         if status not in allowed:
             result.add(f"Probe {parser} has unsupported status: {status}")
         evidence_class = probe.get("evidence_class")
         if evidence_class not in ALLOWED_EVIDENCE_CLASSES:
             result.add(f"Probe {parser} has unsupported evidence_class: {evidence_class}")
         issue_ids = probe.get("issue_ids")
-        if not isinstance(issue_ids, list) or not all(isinstance(issue_id, str) and issue_id for issue_id in issue_ids):
+        if not isinstance(issue_ids, list) or not all(
+            isinstance(issue_id, str) and issue_id for issue_id in issue_ids
+        ):
             result.add(f"Probe {parser} must include non-empty issue_ids")
 
 
-def validate_findings(markdown: str, probe_payload: dict[str, Any], result: VerificationResult) -> None:
+def validate_findings(
+    markdown: str, probe_payload: dict[str, Any], result: VerificationResult
+) -> None:
     lowered = markdown.lower()
     for section in REQUIRED_SECTIONS:
         if f"## {section}" not in lowered:
@@ -253,8 +272,13 @@ def validate_findings(markdown: str, probe_payload: dict[str, Any], result: Veri
         if phrase in lowered:
             result.add(f"Findings markdown contains architecture-boundary violation: {phrase}")
 
-    if "odfpy is accepted as the sole parser" in lowered or "odfpy accepted as the sole parser" in lowered:
-        result.add("Findings must not accept odfpy as the sole parser after unmodified-load failure")
+    if (
+        "odfpy is accepted as the sole parser" in lowered
+        or "odfpy accepted as the sole parser" in lowered
+    ):
+        result.add(
+            "Findings must not accept odfpy as the sole parser after unmodified-load failure"
+        )
     if "unmodified-load" not in lowered and "unmodified load" not in lowered:
         result.add("Findings must mention the odfpy unmodified-load manifest issue")
     if "manifest" not in lowered:
@@ -262,7 +286,9 @@ def validate_findings(markdown: str, probe_payload: dict[str, Any], result: Veri
     if REAL_SOURCE_PATH not in markdown:
         result.add(f"Findings must cite real ODT evidence path {REAL_SOURCE_PATH}")
     if ".gsd/" not in markdown and "prd/milestone_proofs/" not in markdown:
-        result.add("Findings must cite normalized .gsd/... or prd/milestone_proofs/... artifact paths")
+        result.add(
+            "Findings must cite normalized .gsd/... or prd/milestone_proofs/... artifact paths"
+        )
     if "prior art" not in lowered:
         result.add("Findings must classify Old_project as prior art, not trusted implementation")
 
@@ -284,12 +310,16 @@ def validate_old_project_rows(tables: list[MarkdownTable], result: VerificationR
             if not row_field(row, field_name):
                 result.add(f"Old_project candidate {path} lacks {field_name} field")
         if not Path(path).exists():
-            result.add(f"Old_project evidence file required by findings table does not exist: {path}")
+            result.add(
+                f"Old_project evidence file required by findings table does not exist: {path}"
+            )
     if not found_any:
         result.add("Findings markdown is missing the required Old_project classification table")
 
 
-def validate_issue_rows(tables: list[MarkdownTable], probe_payload: dict[str, Any], result: VerificationResult) -> None:
+def validate_issue_rows(
+    tables: list[MarkdownTable], probe_payload: dict[str, Any], result: VerificationResult
+) -> None:
     issue_ids: set[str] = set()
     for probe in probe_payload.get("probes", []):
         if not isinstance(probe, dict):
@@ -308,7 +338,9 @@ def validate_issue_rows(tables: list[MarkdownTable], probe_payload: dict[str, An
                 result.add(f"Findings issue {issue_id} lacks {field_name} field")
 
 
-def validate_alternative_blocked(markdown: str, probe_payload: dict[str, Any], result: VerificationResult) -> None:
+def validate_alternative_blocked(
+    markdown: str, probe_payload: dict[str, Any], result: VerificationResult
+) -> None:
     statuses = probe_payload.get("statuses", {})
     if not isinstance(statuses, dict):
         return
@@ -322,7 +354,9 @@ def validate_alternative_blocked(markdown: str, probe_payload: dict[str, Any], r
         has_blocked = "blocked" in lowered and "alternative parser" in lowered
         has_resolution = "resolution path" in lowered or "resolution:" in lowered
         if not (has_blocked and has_resolution):
-            result.add("alternative parser is not-installed; findings must mark comparison blocked and provide a resolution path")
+            result.add(
+                "alternative parser is not-installed; findings must mark comparison blocked and provide a resolution path"
+            )
 
 
 def verify(findings: Path | str, probe_log: Path | str) -> VerificationResult:
@@ -339,7 +373,9 @@ def verify(findings: Path | str, probe_log: Path | str) -> VerificationResult:
 def parse_args(argv: list[str]) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--findings", required=True, type=Path, help="S05 findings markdown path")
-    parser.add_argument("--probe-log", required=True, type=Path, help="S05 machine-readable probe JSON log")
+    parser.add_argument(
+        "--probe-log", required=True, type=Path, help="S05 machine-readable probe JSON log"
+    )
     return parser.parse_args(argv)
 
 

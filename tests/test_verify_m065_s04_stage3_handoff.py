@@ -423,7 +423,9 @@ def test_verify_real_handoff_passes() -> None:
 # --------------------------------------------------------------------------
 
 
-def test_main_exits_nonzero_on_section_missing(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
+def test_main_exits_nonzero_on_section_missing(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
     verifier = load_verifier()
     handoff = tmp_path / "handoff.md"
     handoff.write_text("no sections here\n", encoding="utf-8")

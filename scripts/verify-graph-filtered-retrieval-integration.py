@@ -24,9 +24,18 @@ from pathlib import Path
 from typing import Any, Literal, Protocol, cast
 
 ROOT = Path(__file__).resolve().parents[1]
-FIXTURE_PATH = ROOT / "prd/research/ontology_architecture_requirements/fixtures/evidence_span_golden_retrieval_cases.json"
-METRICS_PATH = ROOT / "prd/research/ontology_architecture_requirements/evidence_span_local_retrieval_metrics_proof.json"
-DEFAULT_REPORT = ROOT / "prd/research/ontology_architecture_requirements/graph_filtered_retrieval_integration_proof.json"
+FIXTURE_PATH = (
+    ROOT
+    / "prd/research/ontology_architecture_requirements/fixtures/evidence_span_golden_retrieval_cases.json"
+)
+METRICS_PATH = (
+    ROOT
+    / "prd/research/ontology_architecture_requirements/evidence_span_local_retrieval_metrics_proof.json"
+)
+DEFAULT_REPORT = (
+    ROOT
+    / "prd/research/ontology_architecture_requirements/graph_filtered_retrieval_integration_proof.json"
+)
 S04_VERIFIER = ROOT / "scripts/verify-evidence-span-golden-retrieval-cases.py"
 S05_VERIFIER = ROOT / "scripts/verify-evidence-span-local-retrieval-metrics.py"
 SCHEMA_VERSION = "graph-filtered-retrieval-integration-proof/v1"
@@ -138,7 +147,9 @@ class FalkorClient(Protocol):
     def select_graph(self, graph_name: str) -> FalkorGraph: ...
 
 
-def phase(status: PhaseStatus, diagnostic_codes: Sequence[str] = (), **details: Any) -> dict[str, Any]:
+def phase(
+    status: PhaseStatus, diagnostic_codes: Sequence[str] = (), **details: Any
+) -> dict[str, Any]:
     return {"status": status, "diagnostic_codes": sorted(set(diagnostic_codes)), **details}
 
 
@@ -194,7 +205,9 @@ def wait_for_falkordb(host: str, port: int, timeout_seconds: int) -> FalkorClien
         except Exception as exc:  # noqa: BLE001 - readiness diagnostics are classified by caller
             last_error = exc
             time.sleep(0.5)
-    raise TimeoutError(f"FalkorDB readiness timeout: {type(last_error).__name__ if last_error else 'unknown'}")
+    raise TimeoutError(
+        f"FalkorDB readiness timeout: {type(last_error).__name__ if last_error else 'unknown'}"
+    )
 
 
 def docker_available() -> bool:
@@ -204,12 +217,19 @@ def docker_available() -> bool:
 def local_image_present(image: str) -> bool:
     if not docker_available():
         return False
-    completed = subprocess.run(["docker", "image", "inspect", image], cwd=ROOT, check=False, text=True, capture_output=True)  # noqa: S603
+    completed = subprocess.run(
+        ["docker", "image", "inspect", image], cwd=ROOT, check=False, text=True, capture_output=True
+    )  # noqa: S603
     return completed.returncode == 0
 
 
 def start_container(args: argparse.Namespace) -> tuple[str | None, dict[str, Any]]:
-    diagnostic: dict[str, Any] = {"mode": args.container, "status": "not_started", "cleanup_status": "not_needed", "image_reference": args.container_image}
+    diagnostic: dict[str, Any] = {
+        "mode": args.container,
+        "status": "not_started",
+        "cleanup_status": "not_needed",
+        "image_reference": args.container_image,
+    }
     if args.container == "never":
         diagnostic["status"] = "skipped_by_flag"
         diagnostic["diagnostic_codes"] = ["graph_runtime_blocked"]
@@ -218,7 +238,15 @@ def start_container(args: argparse.Namespace) -> tuple[str | None, dict[str, Any
         diagnostic["status"] = "blocked_image_absent"
         diagnostic["diagnostic_codes"] = ["graph_runtime_blocked"]
         return None, diagnostic
-    command = ["docker", "run", "--rm", "-d", "-p", f"127.0.0.1:{args.port}:6379", args.container_image]
+    command = [
+        "docker",
+        "run",
+        "--rm",
+        "-d",
+        "-p",
+        f"127.0.0.1:{args.port}:6379",
+        args.container_image,
+    ]
     completed = subprocess.run(command, cwd=ROOT, check=False, text=True, capture_output=True)  # noqa: S603
     if completed.returncode != 0:
         diagnostic["status"] = "blocked_start_failed"
@@ -235,14 +263,25 @@ def start_container(args: argparse.Namespace) -> tuple[str | None, dict[str, Any
 def cleanup_container(container_id: str | None, diagnostic: dict[str, Any]) -> None:
     if not container_id:
         return
-    completed = subprocess.run(["docker", "rm", "-f", container_id], cwd=ROOT, check=False, text=True, capture_output=True)  # noqa: S603
+    completed = subprocess.run(
+        ["docker", "rm", "-f", container_id], cwd=ROOT, check=False, text=True, capture_output=True
+    )  # noqa: S603
     diagnostic["cleanup_status"] = "deleted" if completed.returncode == 0 else "cleanup_failed"
     if completed.returncode != 0:
-        diagnostic["diagnostic_codes"] = sorted(set(diagnostic.get("diagnostic_codes", []) + ["cleanup_failed"]))
+        diagnostic["diagnostic_codes"] = sorted(
+            set(diagnostic.get("diagnostic_codes", []) + ["cleanup_failed"])
+        )
 
 
 def run_json_command(command: Sequence[str], timeout_seconds: int) -> tuple[int, dict[str, Any]]:
-    completed = subprocess.run(list(command), cwd=ROOT, check=False, text=True, capture_output=True, timeout=timeout_seconds)
+    completed = subprocess.run(
+        list(command),
+        cwd=ROOT,
+        check=False,
+        text=True,
+        capture_output=True,
+        timeout=timeout_seconds,
+    )
     try:
         payload = json.loads(completed.stdout)
     except json.JSONDecodeError as exc:
@@ -262,11 +301,18 @@ def load_json(path: Path) -> dict[str, Any]:
     return payload
 
 
-def verify_inputs(args: argparse.Namespace) -> tuple[dict[str, Any], dict[str, Any], dict[str, Any], dict[str, Any]]:
-    s04_exit, s04_summary = run_json_command([sys.executable, str(S04_VERIFIER), "--fixture", str(args.fixture)], args.timeout)
+def verify_inputs(
+    args: argparse.Namespace,
+) -> tuple[dict[str, Any], dict[str, Any], dict[str, Any], dict[str, Any]]:
+    s04_exit, s04_summary = run_json_command(
+        [sys.executable, str(S04_VERIFIER), "--fixture", str(args.fixture)], args.timeout
+    )
     if s04_exit != 0 or s04_summary.get("status") != "ok":
         raise IntegrationError("fixture_verifier_failed")
-    s05_exit, s05_summary = run_json_command([sys.executable, str(S05_VERIFIER), "--no-write", "--timeout", str(args.timeout)], args.timeout + 60)
+    s05_exit, s05_summary = run_json_command(
+        [sys.executable, str(S05_VERIFIER), "--no-write", "--timeout", str(args.timeout)],
+        args.timeout + 60,
+    )
     if s05_exit != 0 or s05_summary.get("threshold_passed") is not True:
         raise IntegrationError("metrics_baseline_failed")
     fixture = load_json(args.fixture)
@@ -297,11 +343,19 @@ def all_candidates(fixture: Mapping[str, Any]) -> list[dict[str, Any]]:
                     "scope_id": safe_id(str(query["scope_id"]), "scope_id"),
                     "as_of_date": safe_id(str(query["as_of_date"]), "as_of_date"),
                     "act_edition_id": safe_id(str(candidate["act_edition_id"]), "act_edition_id"),
-                    "evidence_span_id": safe_id(str(candidate["evidence_span_id"]), "evidence_span_id"),
-                    "source_block_id": safe_id(str(candidate["source_block_id"]), "source_block_id"),
+                    "evidence_span_id": safe_id(
+                        str(candidate["evidence_span_id"]), "evidence_span_id"
+                    ),
+                    "source_block_id": safe_id(
+                        str(candidate["source_block_id"]), "source_block_id"
+                    ),
                     "citation_key": safe_id(str(candidate["citation_key"]), "citation_key"),
-                    "source_record_id": safe_id(str(source_record_ids[0]), "source_record_id") if source_record_ids else "NO-SOURCE-RECORD",
-                    "temporal_status": "current" if candidate.get("expected_label") in {"relevant", "ambiguous"} else "stale",
+                    "source_record_id": safe_id(str(source_record_ids[0]), "source_record_id")
+                    if source_record_ids
+                    else "NO-SOURCE-RECORD",
+                    "temporal_status": "current"
+                    if candidate.get("expected_label") in {"relevant", "ambiguous"}
+                    else "stale",
                     "ontology_class": "legal_evidence_candidate",
                 }
             )
@@ -330,7 +384,16 @@ def create_node(graph: FalkorGraph, label: str, props: Mapping[str, str]) -> Non
     query_rows(graph, f"CREATE (n:{label} {{{properties}}})")
 
 
-def create_relation(graph: FalkorGraph, start_label: str, start_key: str, start_value: str, rel: str, end_label: str, end_key: str, end_value: str) -> None:
+def create_relation(
+    graph: FalkorGraph,
+    start_label: str,
+    start_key: str,
+    start_value: str,
+    rel: str,
+    end_label: str,
+    end_key: str,
+    end_value: str,
+) -> None:
     for token in (start_label, start_key, rel, end_label, end_key):
         safe_id(token, "cypher token")
     query_rows(
@@ -374,21 +437,84 @@ def materialize_graph(graph: FalkorGraph, fixture: Mapping[str, Any]) -> dict[st
         )
         if candidate["evidence_span_id"] not in seen_evidence:
             seen_evidence.add(candidate["evidence_span_id"])
-            create_node(graph, "EvidenceSpan", {"evidence_span_id": candidate["evidence_span_id"], "citation_key": candidate["citation_key"]})
+            create_node(
+                graph,
+                "EvidenceSpan",
+                {
+                    "evidence_span_id": candidate["evidence_span_id"],
+                    "citation_key": candidate["citation_key"],
+                },
+            )
         if candidate["source_block_id"] not in seen_blocks:
             seen_blocks.add(candidate["source_block_id"])
-            create_node(graph, "SourceBlock", {"source_block_id": candidate["source_block_id"], "source_record_id": candidate["source_record_id"]})
+            create_node(
+                graph,
+                "SourceBlock",
+                {
+                    "source_block_id": candidate["source_block_id"],
+                    "source_record_id": candidate["source_record_id"],
+                },
+            )
         if candidate["source_record_id"] not in seen_units:
             seen_units.add(candidate["source_record_id"])
-            create_node(graph, "LegalUnit", {"source_record_id": candidate["source_record_id"], "ontology_class": candidate["ontology_class"]})
+            create_node(
+                graph,
+                "LegalUnit",
+                {
+                    "source_record_id": candidate["source_record_id"],
+                    "ontology_class": candidate["ontology_class"],
+                },
+            )
         if candidate["act_edition_id"] not in seen_editions:
             seen_editions.add(candidate["act_edition_id"])
-            temporal_status = "current" if candidate["act_edition_id"] == "ED-M014-44FZ-2026-01-01" else "stale"
-            create_node(graph, "ActEdition", {"act_edition_id": candidate["act_edition_id"], "temporal_status": temporal_status})
-        create_relation(graph, "RetrievalCandidate", "candidate_id", candidate["candidate_id"], "HAS_EVIDENCE_SPAN", "EvidenceSpan", "evidence_span_id", candidate["evidence_span_id"])
-        create_relation(graph, "EvidenceSpan", "evidence_span_id", candidate["evidence_span_id"], "IN_SOURCE_BLOCK", "SourceBlock", "source_block_id", candidate["source_block_id"])
-        create_relation(graph, "SourceBlock", "source_block_id", candidate["source_block_id"], "FOR_LEGAL_UNIT", "LegalUnit", "source_record_id", candidate["source_record_id"])
-        create_relation(graph, "RetrievalCandidate", "candidate_id", candidate["candidate_id"], "IN_EDITION", "ActEdition", "act_edition_id", candidate["act_edition_id"])
+            temporal_status = (
+                "current" if candidate["act_edition_id"] == "ED-M014-44FZ-2026-01-01" else "stale"
+            )
+            create_node(
+                graph,
+                "ActEdition",
+                {"act_edition_id": candidate["act_edition_id"], "temporal_status": temporal_status},
+            )
+        create_relation(
+            graph,
+            "RetrievalCandidate",
+            "candidate_id",
+            candidate["candidate_id"],
+            "HAS_EVIDENCE_SPAN",
+            "EvidenceSpan",
+            "evidence_span_id",
+            candidate["evidence_span_id"],
+        )
+        create_relation(
+            graph,
+            "EvidenceSpan",
+            "evidence_span_id",
+            candidate["evidence_span_id"],
+            "IN_SOURCE_BLOCK",
+            "SourceBlock",
+            "source_block_id",
+            candidate["source_block_id"],
+        )
+        create_relation(
+            graph,
+            "SourceBlock",
+            "source_block_id",
+            candidate["source_block_id"],
+            "FOR_LEGAL_UNIT",
+            "LegalUnit",
+            "source_record_id",
+            candidate["source_record_id"],
+        )
+        create_relation(
+            graph,
+            "RetrievalCandidate",
+            "candidate_id",
+            candidate["candidate_id"],
+            "IN_EDITION",
+            "ActEdition",
+            "act_edition_id",
+            candidate["act_edition_id"],
+        )
     return {
         "candidate_count": scalar_int(graph, "MATCH (n:RetrievalCandidate) RETURN count(n)"),
         "evidence_span_count": scalar_int(graph, "MATCH (n:EvidenceSpan) RETURN count(n)"),
@@ -399,7 +525,9 @@ def materialize_graph(graph: FalkorGraph, fixture: Mapping[str, Any]) -> dict[st
     }
 
 
-def expected_ids(fixture: Mapping[str, Any], case_class: str, key: str = "expected_candidate_ids") -> list[str]:
+def expected_ids(
+    fixture: Mapping[str, Any], case_class: str, key: str = "expected_candidate_ids"
+) -> list[str]:
     ids: list[str] = []
     for case in fixture.get("cases", []):
         if isinstance(case, Mapping) and case.get("case_class") == case_class:
@@ -407,13 +535,24 @@ def expected_ids(fixture: Mapping[str, Any], case_class: str, key: str = "expect
     return sorted(ids)
 
 
-def route(graph: FalkorGraph, name: str, query: str, expected: Sequence[str], diagnostic: str) -> dict[str, Any]:
+def route(
+    graph: FalkorGraph, name: str, query: str, expected: Sequence[str], diagnostic: str
+) -> dict[str, Any]:
     selected, duration_ms = string_list(graph, query)
     status: ROUTE_STATUS = "passed" if selected == sorted(expected) else "failed_closed"
-    return {"route": name, "status": status, "diagnostic_codes": [diagnostic] if status == "passed" else ["baseline_comparison_failed"], "selected_candidate_ids": selected, "expected_candidate_ids": sorted(expected), "duration_ms": duration_ms}
+    return {
+        "route": name,
+        "status": status,
+        "diagnostic_codes": [diagnostic] if status == "passed" else ["baseline_comparison_failed"],
+        "selected_candidate_ids": selected,
+        "expected_candidate_ids": sorted(expected),
+        "duration_ms": duration_ms,
+    }
 
 
-def run_routes(graph: FalkorGraph, fixture: Mapping[str, Any]) -> tuple[list[dict[str, Any]], list[str]]:
+def run_routes(
+    graph: FalkorGraph, fixture: Mapping[str, Any]
+) -> tuple[list[dict[str, Any]], list[str]]:
     routes = [
         route(
             graph,
@@ -447,14 +586,22 @@ def run_routes(graph: FalkorGraph, fixture: Mapping[str, Any]) -> tuple[list[dic
             graph,
             "unsupported_scope_filter",
             "MATCH (s:RetrievalScope) WHERE s.case_class = 'unsupported_scope' AND s.expected_result = 'unsupported' RETURN s.case_id",
-            [case["case_id"] for case in fixture.get("cases", []) if isinstance(case, Mapping) and case.get("case_class") == "unsupported_scope"],
+            [
+                case["case_id"]
+                for case in fixture.get("cases", [])
+                if isinstance(case, Mapping) and case.get("case_class") == "unsupported_scope"
+            ],
             "unsupported_scope_preserved",
         ),
         route(
             graph,
             "scoped_no_answer_filter",
             "MATCH (s:RetrievalScope) WHERE s.case_class = 'scoped_no_answer' AND s.expected_result = 'no_answer' RETURN s.case_id",
-            [case["case_id"] for case in fixture.get("cases", []) if isinstance(case, Mapping) and case.get("case_class") == "scoped_no_answer"],
+            [
+                case["case_id"]
+                for case in fixture.get("cases", [])
+                if isinstance(case, Mapping) and case.get("case_class") == "scoped_no_answer"
+            ],
             "scoped_no_answer_preserved",
         ),
     ]
@@ -462,9 +609,16 @@ def run_routes(graph: FalkorGraph, fixture: Mapping[str, Any]) -> tuple[list[dic
     return routes, diagnostics
 
 
-def citation_preservation(routes: Sequence[Mapping[str, Any]], fixture: Mapping[str, Any]) -> dict[str, Any]:
-    positive_ids = set(expected_ids(fixture, "positive_evidence_span") + expected_ids(fixture, "positive_source_block_marker"))
-    candidate_lookup = {candidate["candidate_id"]: candidate for candidate in all_candidates(fixture)}
+def citation_preservation(
+    routes: Sequence[Mapping[str, Any]], fixture: Mapping[str, Any]
+) -> dict[str, Any]:
+    positive_ids = set(
+        expected_ids(fixture, "positive_evidence_span")
+        + expected_ids(fixture, "positive_source_block_marker")
+    )
+    candidate_lookup = {
+        candidate["candidate_id"]: candidate for candidate in all_candidates(fixture)
+    }
     preserved = []
     for candidate_id in sorted(positive_ids):
         candidate = candidate_lookup[candidate_id]
@@ -477,7 +631,11 @@ def citation_preservation(routes: Sequence[Mapping[str, Any]], fixture: Mapping[
                 "act_edition_id": candidate["act_edition_id"],
             }
         )
-    return {"status": "passed", "diagnostic_codes": ["citation_binding_preserved"], "preserved_bindings": preserved}
+    return {
+        "status": "passed",
+        "diagnostic_codes": ["citation_binding_preserved"],
+        "preserved_bindings": preserved,
+    }
 
 
 def base_report() -> dict[str, Any]:
@@ -520,9 +678,21 @@ def run_proof(args: argparse.Namespace) -> tuple[int, dict[str, Any]]:
     container_diag: dict[str, Any] = {}
     try:
         s04_summary, s05_summary, fixture, metrics = verify_inputs(args)
-        report["phases"]["s04_fixture_verification"] = phase("passed", case_count=s04_summary.get("case_count"), candidate_count=s04_summary.get("candidate_count"))
-        report["phases"]["s05_baseline_verification"] = phase("passed", threshold_passed=s05_summary.get("threshold_passed"), mismatch_count=s05_summary.get("mismatch_count"))
-        report["baseline_metrics"] = {"threshold_passed": metrics.get("threshold_passed"), "mismatch_count": metrics.get("mismatch_count"), "metrics": metrics.get("metrics")}
+        report["phases"]["s04_fixture_verification"] = phase(
+            "passed",
+            case_count=s04_summary.get("case_count"),
+            candidate_count=s04_summary.get("candidate_count"),
+        )
+        report["phases"]["s05_baseline_verification"] = phase(
+            "passed",
+            threshold_passed=s05_summary.get("threshold_passed"),
+            mismatch_count=s05_summary.get("mismatch_count"),
+        )
+        report["baseline_metrics"] = {
+            "threshold_passed": metrics.get("threshold_passed"),
+            "mismatch_count": metrics.get("mismatch_count"),
+            "metrics": metrics.get("metrics"),
+        }
         container_id, container_diag = start_container(args)
         report["container_runtime"] = container_diag
         if container_id is None:
@@ -532,41 +702,85 @@ def run_proof(args: argparse.Namespace) -> tuple[int, dict[str, Any]]:
         client = wait_for_falkordb(args.host, args.port, args.readiness_timeout)
         graph_name = f"m021_s06_graph_filtered_{uuid.uuid4().hex[:10]}"
         report["graph_name_hash"] = f"len:{len(graph_name)}"
-        report["phases"]["graph_runtime"] = phase("passed", ["graph_runtime_confirmed"], runtime_status="confirmed-runtime")
+        report["phases"]["graph_runtime"] = phase(
+            "passed", ["graph_runtime_confirmed"], runtime_status="confirmed-runtime"
+        )
         graph = client.select_graph(graph_name)
         counts = materialize_graph(graph, fixture)
         report["materialized_counts"] = counts
         expected_candidate_count = len(all_candidates(fixture))
-        materialized_ok = counts["candidate_count"] == expected_candidate_count and counts["scope_count"] == len(fixture.get("cases", []))
-        report["phases"]["graph_materialization"] = phase("passed" if materialized_ok else "failed_closed", [] if materialized_ok else ["count_mismatch"])
+        materialized_ok = counts["candidate_count"] == expected_candidate_count and counts[
+            "scope_count"
+        ] == len(fixture.get("cases", []))
+        report["phases"]["graph_materialization"] = phase(
+            "passed" if materialized_ok else "failed_closed",
+            [] if materialized_ok else ["count_mismatch"],
+        )
         routes, route_diagnostics = run_routes(graph, fixture)
         failed_routes = [item for item in routes if item["status"] != "passed"]
         report["routes"] = routes
-        report["phases"]["ontology_temporal_filter"] = phase("passed" if not failed_routes else "failed_closed", ["positive_filter_passed", "stale_temporal_candidate_rejected"] if not failed_routes else ["baseline_comparison_failed"])
-        report["phases"]["negative_routes"] = phase("passed" if not failed_routes else "failed_closed", ["ambiguous_candidate_preserved", "unsupported_scope_preserved", "scoped_no_answer_preserved"] if not failed_routes else ["baseline_comparison_failed"])
+        report["phases"]["ontology_temporal_filter"] = phase(
+            "passed" if not failed_routes else "failed_closed",
+            ["positive_filter_passed", "stale_temporal_candidate_rejected"]
+            if not failed_routes
+            else ["baseline_comparison_failed"],
+        )
+        report["phases"]["negative_routes"] = phase(
+            "passed" if not failed_routes else "failed_closed",
+            [
+                "ambiguous_candidate_preserved",
+                "unsupported_scope_preserved",
+                "scoped_no_answer_preserved",
+            ]
+            if not failed_routes
+            else ["baseline_comparison_failed"],
+        )
         citation = citation_preservation(routes, fixture)
         report["citation_preservation"] = citation
         report["phases"]["citation_preservation"] = phase("passed", ["citation_binding_preserved"])
-        baseline_passed = not failed_routes and materialized_ok and metrics.get("threshold_passed") is True
-        report["phases"]["baseline_comparison"] = phase("passed" if baseline_passed else "failed_closed", ["baseline_comparison_passed"] if baseline_passed else ["baseline_comparison_failed"])
+        baseline_passed = (
+            not failed_routes and materialized_ok and metrics.get("threshold_passed") is True
+        )
+        report["phases"]["baseline_comparison"] = phase(
+            "passed" if baseline_passed else "failed_closed",
+            ["baseline_comparison_passed"] if baseline_passed else ["baseline_comparison_failed"],
+        )
         report["phases"]["overclaim_safety"] = phase("passed", ["overclaim_rejected"])
-        report["diagnostic_codes"] = sorted(set(route_diagnostics + ["graph_runtime_confirmed", "citation_binding_preserved", "baseline_comparison_passed"]))
+        report["diagnostic_codes"] = sorted(
+            set(
+                route_diagnostics
+                + [
+                    "graph_runtime_confirmed",
+                    "citation_binding_preserved",
+                    "baseline_comparison_passed",
+                ]
+            )
+        )
         return (0 if baseline_passed else 1), report
     except Exception as exc:  # noqa: BLE001 - emit fail-closed compact diagnostic
-        report["diagnostic_codes"] = ["unsafe_payload_rejected" if isinstance(exc, IntegrationError) else "graph_materialization_failed"]
+        report["diagnostic_codes"] = [
+            "unsafe_payload_rejected"
+            if isinstance(exc, IntegrationError)
+            else "graph_materialization_failed"
+        ]
         report["failure_class"] = type(exc).__name__
         return 2, report
     finally:
         cleanup_container(container_id, container_diag)
         if container_diag:
             report["container_runtime"] = container_diag
-            report["phases"]["cleanup"] = phase("passed" if container_diag.get("cleanup_status") == "deleted" else "blocked", [] if container_diag.get("cleanup_status") == "deleted" else ["cleanup_failed"])
+            report["phases"]["cleanup"] = phase(
+                "passed" if container_diag.get("cleanup_status") == "deleted" else "blocked",
+                [] if container_diag.get("cleanup_status") == "deleted" else ["cleanup_failed"],
+            )
 
 
 def write_report(path: Path, payload: Mapping[str, Any]) -> None:
     assert_safe_payload(payload)
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(json.dumps(payload, ensure_ascii=False, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    path.write_text(
+        json.dumps(payload, ensure_ascii=False, indent=2, sort_keys=True) + "\n", encoding="utf-8"
+    )
 
 
 def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:

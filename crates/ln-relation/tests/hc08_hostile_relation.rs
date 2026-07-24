@@ -1,9 +1,7 @@
 use ln_relation::{
     adapters::OpenRelationHostileRegistry,
     application::ValidateRelation,
-    domain::{
-        EndpointId, EvidenceRef, FamilyId, PredicateId, RelationOutcome, RelationProposal,
-    },
+    domain::{EndpointId, EvidenceRef, FamilyId, PredicateId, RelationOutcome, RelationProposal},
 };
 
 fn use_case() -> ValidateRelation<OpenRelationHostileRegistry> {

@@ -101,21 +101,33 @@ def schema_errors(
     field: str = "$",
 ) -> list[tuple[str, str, str]]:
     if "$ref" in schema_node:
-        return schema_errors(value, resolve_ref(root_schema, schema_node["$ref"]), root_schema, field)
+        return schema_errors(
+            value, resolve_ref(root_schema, schema_node["$ref"]), root_schema, field
+        )
 
     errors: list[tuple[str, str, str]] = []
 
     if "oneOf" in schema_node:
-        option_errors = [schema_errors(value, option, root_schema, field) for option in schema_node["oneOf"]]
+        option_errors = [
+            schema_errors(value, option, root_schema, field) for option in schema_node["oneOf"]
+        ]
         passing = [candidate for candidate in option_errors if not candidate]
         if len(passing) != 1:
             details = "; ".join(error[2] for candidate in option_errors for error in candidate[:2])
-            errors.append((field, "oneOf", f"expected exactly one schema branch to match; {details}"))
+            errors.append(
+                (field, "oneOf", f"expected exactly one schema branch to match; {details}")
+            )
         return errors
 
     expected_type = schema_node.get("type")
     if expected_type and not type_matches(value, expected_type):
-        errors.append((field, f"type={expected_type}", f"expected {expected_type}, got {type(value).__name__}"))
+        errors.append(
+            (
+                field,
+                f"type={expected_type}",
+                f"expected {expected_type}, got {type(value).__name__}",
+            )
+        )
         return errors
 
     if "const" in schema_node and value != schema_node["const"]:
@@ -130,7 +142,9 @@ def schema_errors(
         if pattern and not re.search(pattern, value):
             errors.append((field, f"pattern={pattern}", f"value {value!r} does not match pattern"))
         not_schema = schema_node.get("not")
-        if isinstance(not_schema, Mapping) and not schema_errors(value, not_schema, root_schema, field):
+        if isinstance(not_schema, Mapping) and not schema_errors(
+            value, not_schema, root_schema, field
+        ):
             errors.append((field, "not", f"value {value!r} matched forbidden schema"))
         if schema_node.get("format") == "date" and not re.fullmatch(r"\d{4}-\d{2}-\d{2}", value):
             errors.append((field, "format=date", f"value {value!r} is not YYYY-MM-DD"))
@@ -204,7 +218,9 @@ def array_items_are_unique(items: list[Any]) -> bool:
     return True
 
 
-def validate_schema_records(records: Iterable[LocatedRecord], schema: Mapping[str, Any]) -> list[ValidationErrorDetail]:
+def validate_schema_records(
+    records: Iterable[LocatedRecord], schema: Mapping[str, Any]
+) -> list[ValidationErrorDetail]:
     errors: list[ValidationErrorDetail] = []
     for located in records:
         record_kind = located.record.get("record_kind")
@@ -314,23 +330,27 @@ def test_invalid_architecture_fixtures_fail_with_observable_diagnostics() -> Non
         "rule=accepted-decision-requires-consequence"
         in failures_by_path["invalid_decision_no_consequence.jsonl"]
     )
-    assert "source_anchor=prd/09_architecture_planning_verification_research.md#ADR repository addendum" in failures_by_path[
-        "invalid_decision_no_consequence.jsonl"
-    ]
+    assert (
+        "source_anchor=prd/09_architecture_planning_verification_research.md#ADR repository addendum"
+        in failures_by_path["invalid_decision_no_consequence.jsonl"]
+    )
 
-    assert "id=DEC-SUPERSEDED-NO-SUCCESSOR" in failures_by_path[
-        "invalid_superseded_no_successor.jsonl"
-    ]
+    assert (
+        "id=DEC-SUPERSEDED-NO-SUCCESSOR"
+        in failures_by_path["invalid_superseded_no_successor.jsonl"]
+    )
     assert "field=superseded_by" in failures_by_path["invalid_superseded_no_successor.jsonl"]
     assert "rule=required" in failures_by_path["invalid_superseded_no_successor.jsonl"]
-    assert "rule=superseded-decision-requires-successor-edge" in failures_by_path[
-        "invalid_superseded_no_successor.jsonl"
-    ]
+    assert (
+        "rule=superseded-decision-requires-successor-edge"
+        in failures_by_path["invalid_superseded_no_successor.jsonl"]
+    )
 
     assert "id=DEC-HIGH-RISK-NO-GATE" in failures_by_path["invalid_high_risk_no_gate.jsonl"]
-    assert "rule=high-risk-decision-requires-proof-gate" in failures_by_path[
-        "invalid_high_risk_no_gate.jsonl"
-    ]
+    assert (
+        "rule=high-risk-decision-requires-proof-gate"
+        in failures_by_path["invalid_high_risk_no_gate.jsonl"]
+    )
 
     for path_name, diagnostics in failures_by_path.items():
         assert diagnostics, f"{path_name} unexpectedly passed"

@@ -130,10 +130,6 @@ def test_rejects_malformed_jsonl_with_file_and_line_context(tmp_path: Path) -> N
     assert "rule=malformed-jsonl" in diagnostic
 
 
-
-
-
-
 def test_rejects_malformed_jsonl_at_cli_with_nonzero_diagnostic(tmp_path: Path) -> None:
     items_path = tmp_path / "items.jsonl"
     edges_path = tmp_path / "edges.jsonl"
@@ -219,7 +215,9 @@ def test_report_exposes_r034_validator_proof_traceability_edges() -> None:
     assert "EVID-RETRIEVAL-OUTPUT-ID-VALIDATOR-PROOF" in node_ids
     assert "EVID-REAL-ARTIFACT-RETRIEVAL-PROOF" in node_ids
 
-    edge_index = {(edge["from"], edge["type"], edge["to"]): edge for edge in report["traceability_edges"]}
+    edge_index = {
+        (edge["from"], edge["type"], edge["to"]): edge for edge in report["traceability_edges"]
+    }
     assert (
         "EVID-RETRIEVAL-OUTPUT-ID-VALIDATOR-PROOF",
         "satisfies",
@@ -233,7 +231,9 @@ def test_report_exposes_r034_validator_proof_traceability_edges() -> None:
     for gate_id in ("GATE-G008", "GATE-G011"):
         edge = edge_index[("EVID-RETRIEVAL-OUTPUT-ID-VALIDATOR-PROOF", "bounded_by", gate_id)]
         assert edge["status"] == "active"
-        real_artifact_edge = edge_index[("EVID-REAL-ARTIFACT-RETRIEVAL-PROOF", "bounded_by", gate_id)]
+        real_artifact_edge = edge_index[
+            ("EVID-REAL-ARTIFACT-RETRIEVAL-PROOF", "bounded_by", gate_id)
+        ]
         assert real_artifact_edge["status"] == "active"
     assert (
         "EVID-RETRIEVAL-OUTPUT-ID-VALIDATOR-PROOF",
@@ -245,13 +245,15 @@ def test_report_exposes_r034_validator_proof_traceability_edges() -> None:
     assert {"GATE-G008", "GATE-G011"}.issubset(unresolved_ids)
 
     proof_non_claims = next(
-        node for node in report["non_claims_summary"]["by_node"]
+        node
+        for node in report["non_claims_summary"]["by_node"]
         if node["id"] == "EVID-RETRIEVAL-OUTPUT-ID-VALIDATOR-PROOF"
     )["non_claims"]
     assert "Does not prove product retrieval quality." in proof_non_claims
     assert "Does not prove legal-answer correctness." in proof_non_claims
     real_artifact_non_claims = next(
-        node for node in report["non_claims_summary"]["by_node"]
+        node
+        for node in report["non_claims_summary"]["by_node"]
         if node["id"] == "EVID-REAL-ARTIFACT-RETRIEVAL-PROOF"
     )["non_claims"]
     assert "Does not close GATE-G008." in real_artifact_non_claims
@@ -274,18 +276,26 @@ def test_report_exposes_m016_representative_runtime_benchmark_boundary() -> None
     assert high_risk[m016_id]["status"] == "bounded-evidence"
     assert high_risk[m016_id]["proof_level"] == "runtime-smoke"
 
-    edge_index = {(edge["from"], edge["type"], edge["to"]): edge for edge in report["traceability_edges"]}
+    edge_index = {
+        (edge["from"], edge["type"], edge["to"]): edge for edge in report["traceability_edges"]
+    }
     assert edge_index[(m016_id, "bounded_by", "GATE-G011")]["status"] == "active"
-    assert edge_index[(m016_id, "depends_on", "EVID-LOCAL-RETRIEVAL-QUALITY-BENCHMARK-PROOF")]["status"] == "active"
+    assert (
+        edge_index[(m016_id, "depends_on", "EVID-LOCAL-RETRIEVAL-QUALITY-BENCHMARK-PROOF")][
+            "status"
+        ]
+        == "active"
+    )
     assert edge_index[(m016_id, "depends_on", "S10-USER-BGE-M3-BASELINE")]["status"] == "active"
-    assert edge_index[(m016_id, "checked_by", "CHECK-ARCHITECTURE-EXTRACTOR")]["status"] == "validated"
+    assert (
+        edge_index[(m016_id, "checked_by", "CHECK-ARCHITECTURE-EXTRACTOR")]["status"] == "validated"
+    )
 
     unresolved_ids = {gate["id"] for gate in report["unresolved_proof_gates"]}
     assert "GATE-G011" in unresolved_ids
 
     m016_non_claims = next(
-        node for node in report["non_claims_summary"]["by_node"]
-        if node["id"] == m016_id
+        node for node in report["non_claims_summary"]["by_node"] if node["id"] == m016_id
     )["non_claims"]
     assert "Does not prove product retrieval quality." in m016_non_claims
     assert "Does not prove legal-answer correctness." in m016_non_claims
@@ -297,7 +307,9 @@ def test_report_exposes_m016_representative_runtime_benchmark_boundary() -> None
 def test_report_handles_empty_graph_with_schema_layer_contract() -> None:
     graph_module = load_graph_module()
 
-    report = graph_module.compute_graph_report(graph_module.nx.MultiDiGraph(), schema_path=SCHEMA_PATH)
+    report = graph_module.compute_graph_report(
+        graph_module.nx.MultiDiGraph(), schema_path=SCHEMA_PATH
+    )
 
     assert report["counts"] == {"nodes": 0, "edges": 0}
     assert report["layer_coverage"]["missing_layers"] == [
@@ -635,7 +647,9 @@ def test_cli_check_mode_rejects_report_wording_regression(tmp_path: Path) -> Non
 
     items = graph_module.load_records(ITEMS_PATH, expected_kind="item")
     edges = graph_module.load_records(EDGES_PATH, expected_kind="edge")
-    report = graph_module.compute_graph_report(graph_module.build_graph(items, edges), schema_path=SCHEMA_PATH)
+    report = graph_module.compute_graph_report(
+        graph_module.build_graph(items, edges), schema_path=SCHEMA_PATH
+    )
     report_json.write_text(graph_module.serialize_report_json(report), encoding="utf-8")
     report_md.write_text("# Architecture Graph Report\n\nAuthoritative report.\n", encoding="utf-8")
 

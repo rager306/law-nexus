@@ -149,7 +149,10 @@ def test_contract_labels_metrics_and_thresholds_are_closed_and_strict() -> None:
         assert f"`{metric}` | 1.0 |" in thresholds
     assert "fixture-level quality signals only" in metrics
     assert "never present these metrics as production Russian legal retrieval quality" in metrics
-    assert "future broader benchmark may lower or stratify thresholds only with a new contract" in thresholds
+    assert (
+        "future broader benchmark may lower or stratify thresholds only with a new contract"
+        in thresholds
+    )
 
 
 def test_contract_environment_model_boundary_uses_s10_user_bge_only() -> None:
@@ -181,7 +184,16 @@ def test_contract_case_classes_diagnostics_and_forbidden_payloads_are_safe() -> 
 
     for case_class in REQUIRED_CASE_CLASSES:
         assert f"`{case_class}`" in case_classes
-    for field in ["code", "severity", "benchmark_case_id", "benchmark_query_id", "candidate_id", "metric", "field_path", "proof_artifact"]:
+    for field in [
+        "code",
+        "severity",
+        "benchmark_case_id",
+        "benchmark_query_id",
+        "candidate_id",
+        "metric",
+        "field_path",
+        "proof_artifact",
+    ]:
         assert f"`{field}`" in diagnostics
     for blocked in [
         "raw legal text",
@@ -219,7 +231,9 @@ def test_contract_s02_handoff_and_verification_hook_are_actionable() -> None:
         "exits non-zero on stale fixtures",
     ]:
         assert phrase in handoff
-    assert "uv run pytest tests/test_local_retrieval_quality_benchmark_contract.py -q" in verification
+    assert (
+        "uv run pytest tests/test_local_retrieval_quality_benchmark_contract.py -q" in verification
+    )
 
 
 def test_contract_avoids_unsafe_absolute_or_raw_payload_snippets() -> None:

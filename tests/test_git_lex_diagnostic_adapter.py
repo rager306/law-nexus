@@ -54,7 +54,9 @@ def test_help_emits_complete_non_authoritative_record() -> None:
     result = run_adapter("help", "--json")
 
     if result.returncode != 0 and "pinned binary missing" in result.stdout:
-        pytest.skip("git-lex binary not pinned at expected source path; installed binary at ~/.cargo/bin/git-lex is operational per M065 S02")
+        pytest.skip(
+            "git-lex binary not pinned at expected source path; installed binary at ~/.cargo/bin/git-lex is operational per M065 S02"
+        )
     assert result.returncode == 0, result.stdout + result.stderr
     payload = parse_stdout(result)
     assert payload["schema_version"] == "m054.git_lex_diagnostic.v1"
@@ -63,7 +65,10 @@ def test_help_emits_complete_non_authoritative_record() -> None:
     assert payload["workspace_path"] is None
     assert payload["workspace_is_main_repo"] is False
     assert payload["git_lex_source_commit"] == "eaa4b24d144a78a8b8e4969404d74cf22267df1f"
-    assert payload["binary_sha256"] == "40ac81758a85e672a7774442add493c5e8c59ce58f945526197a11a8818a229c"
+    assert (
+        payload["binary_sha256"]
+        == "40ac81758a85e672a7774442add493c5e8c59ce58f945526197a11a8818a229c"
+    )
     assert "Git extensions for knowledge graphs" in str(payload["stdout_digest"])
     assert_main_safety_fields(payload)
 

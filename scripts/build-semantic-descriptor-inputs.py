@@ -11,9 +11,18 @@ from pathlib import Path
 from typing import Any
 
 ROOT = Path(__file__).resolve().parents[1]
-DEFAULT_FIXTURE = ROOT / "prd/research/ontology_architecture_requirements/fixtures/representative_evidence_span_retrieval_corpus.json"
-DEFAULT_CONTRACT = ROOT / "prd/research/ontology_architecture_requirements/44-local-semantic-scoring-iteration-contract.md"
-DEFAULT_OUTPUT = ROOT / "prd/research/ontology_architecture_requirements/fixtures/semantic_descriptor_inputs.json"
+DEFAULT_FIXTURE = (
+    ROOT
+    / "prd/research/ontology_architecture_requirements/fixtures/representative_evidence_span_retrieval_corpus.json"
+)
+DEFAULT_CONTRACT = (
+    ROOT
+    / "prd/research/ontology_architecture_requirements/44-local-semantic-scoring-iteration-contract.md"
+)
+DEFAULT_OUTPUT = (
+    ROOT
+    / "prd/research/ontology_architecture_requirements/fixtures/semantic_descriptor_inputs.json"
+)
 SCHEMA_VERSION = "semantic-descriptor-inputs/v1"
 REPRESENTATION_KIND = "safe_semantic_descriptor_v1"
 FORBIDDEN_DERIVATION_FIELDS = {
@@ -244,9 +253,13 @@ def descriptor_tokens(descriptors: Mapping[str, str]) -> list[str]:
     return [f"{field}:{value}" for field, value in sorted(descriptors.items())]
 
 
-def build_manifest(fixture_path: Path = DEFAULT_FIXTURE, contract_path: Path = DEFAULT_CONTRACT) -> dict[str, Any]:
+def build_manifest(
+    fixture_path: Path = DEFAULT_FIXTURE, contract_path: Path = DEFAULT_CONTRACT
+) -> dict[str, Any]:
     fixture = load_json(fixture_path)
-    ensure_no_forbidden_fields({"allowed_fixture_root": {key: fixture[key] for key in fixture if key != "cases"}})
+    ensure_no_forbidden_fields(
+        {"allowed_fixture_root": {key: fixture[key] for key in fixture if key != "cases"}}
+    )
     cases = fixture.get("cases")
     if not isinstance(cases, list):
         raise ValueError("fixture cases missing")
@@ -326,7 +339,9 @@ def build_manifest(fixture_path: Path = DEFAULT_FIXTURE, contract_path: Path = D
         "contract_sha256": sha256_path(contract_path),
         "source_fixture": portable_path(fixture_path),
         "source_fixture_sha256": sha256_path(fixture_path),
-        "allowed_descriptor_fields": {field: sorted(values) for field, values in sorted(allowed_descriptor_fields.items())},
+        "allowed_descriptor_fields": {
+            field: sorted(values) for field, values in sorted(allowed_descriptor_fields.items())
+        },
         "query_descriptor_count": len(query_descriptors),
         "candidate_descriptor_count": len(candidate_descriptors),
         "query_descriptors": query_descriptors,
@@ -362,7 +377,10 @@ def main(argv: Sequence[str] | None = None) -> int:
     args = parse_args(argv)
     manifest = build_manifest(args.fixture, args.contract)
     if not args.no_write:
-        args.output.write_text(json.dumps(manifest, ensure_ascii=False, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+        args.output.write_text(
+            json.dumps(manifest, ensure_ascii=False, indent=2, sort_keys=True) + "\n",
+            encoding="utf-8",
+        )
     print(
         json.dumps(
             {

@@ -68,7 +68,9 @@ class LocalEmbeddingDiagnostics:
 class SentenceTransformerModel(Protocol):
     """Minimal model shape used by the local adapter."""
 
-    def encode(self, texts: list[str], *, convert_to_numpy: bool = False) -> Sequence[Sequence[float]]:
+    def encode(
+        self, texts: list[str], *, convert_to_numpy: bool = False
+    ) -> Sequence[Sequence[float]]:
         """Encode texts with order-preserving output."""
         ...
 
@@ -81,7 +83,9 @@ class SentenceTransformerLoader(Protocol):
         ...
 
 
-def load_local_sentence_transformer(model_id: str, *, local_files_only: bool) -> SentenceTransformerModel:
+def load_local_sentence_transformer(
+    model_id: str, *, local_files_only: bool
+) -> SentenceTransformerModel:
     """Lazily import sentence-transformers in the adapter layer only."""
 
     sentence_transformers = __import__("sentence_transformers", fromlist=["SentenceTransformer"])

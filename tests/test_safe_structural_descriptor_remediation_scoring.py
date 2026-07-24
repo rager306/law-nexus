@@ -10,9 +10,18 @@ from typing import Any
 
 ROOT = Path(__file__).resolve().parents[1]
 VERIFIER = ROOT / "scripts/verify-safe-structural-descriptor-remediation-scoring.py"
-INPUTS = ROOT / "prd/research/ontology_architecture_requirements/fixtures/safe_structural_descriptor_remediation_inputs.json"
-LABELS = ROOT / "prd/research/ontology_architecture_requirements/fixtures/materialized_descriptor_evaluation_labels.json"
-PROOF = ROOT / "prd/research/ontology_architecture_requirements/safe_structural_descriptor_remediation_scoring_proof.json"
+INPUTS = (
+    ROOT
+    / "prd/research/ontology_architecture_requirements/fixtures/safe_structural_descriptor_remediation_inputs.json"
+)
+LABELS = (
+    ROOT
+    / "prd/research/ontology_architecture_requirements/fixtures/materialized_descriptor_evaluation_labels.json"
+)
+PROOF = (
+    ROOT
+    / "prd/research/ontology_architecture_requirements/safe_structural_descriptor_remediation_scoring_proof.json"
+)
 
 
 def load_module(name: str = "safe_structural_descriptor_remediation_scoring") -> ModuleType:
@@ -29,7 +38,9 @@ def load_json(path: Path) -> dict[str, Any]:
 
 def write_json(tmp_path: Path, name: str, payload: dict[str, Any]) -> Path:
     path = tmp_path / name
-    path.write_text(json.dumps(payload, ensure_ascii=False, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    path.write_text(
+        json.dumps(payload, ensure_ascii=False, indent=2, sort_keys=True) + "\n", encoding="utf-8"
+    )
     return path
 
 
@@ -51,9 +62,17 @@ def test_checked_in_proof_has_expected_boundaries() -> None:
     assert proof["slice_id"] == "S03"
     assert proof["status"] == "completed"
     assert proof["scoring_mode"] == "local_user_bge_m3_safe_structural_descriptor_similarity_v1"
-    assert proof["descriptor_inputs_artifact"] == "prd/research/ontology_architecture_requirements/fixtures/safe_structural_descriptor_remediation_inputs.json"
+    assert (
+        proof["descriptor_inputs_artifact"]
+        == "prd/research/ontology_architecture_requirements/fixtures/safe_structural_descriptor_remediation_inputs.json"
+    )
     assert proof["outcome_classification"] == "improvement"
-    assert proof["m027_baseline_metrics"] == {"mrr": 0.680555, "recall_at_1": 0.5, "recall_at_3": 0.833333, "runtime_boundary_confirmed": 1.0}
+    assert proof["m027_baseline_metrics"] == {
+        "mrr": 0.680555,
+        "recall_at_1": 0.5,
+        "recall_at_3": 0.833333,
+        "runtime_boundary_confirmed": 1.0,
+    }
     assert proof["evaluation_label_boundary"]["post_scoring_only"] is True
     assert proof["evaluation_label_boundary"]["forbidden_as_descriptor_input"] is True
     assert proof["evaluation_label_boundary"]["loaded_after_score_generation"] is True
@@ -62,7 +81,12 @@ def test_checked_in_proof_has_expected_boundaries() -> None:
     assert proof["runtime_boundary"]["managed_api_used"] is False
     assert proof["runtime_boundary"]["network_used"] is False
     assert proof["score_count"] == 36
-    assert proof["metrics"] == {"mrr": 0.916667, "recall_at_1": 0.833333, "recall_at_3": 1.0, "runtime_boundary_confirmed": 1.0}
+    assert proof["metrics"] == {
+        "mrr": 0.916667,
+        "recall_at_1": 0.833333,
+        "recall_at_3": 1.0,
+        "runtime_boundary_confirmed": 1.0,
+    }
     assert proof["metric_deltas_vs_m027"]["delta_vs_m027_mrr"] == 0.236112
     assert proof["metric_deltas_vs_m027"]["delta_vs_m027_recall_at_1"] == 0.333333
     assert "Does not validate R035." in proof["non_claims"]
@@ -76,7 +100,10 @@ def test_scores_rank_all_candidates_per_case() -> None:
 
     assert len(scores_by_case) == 6
     assert all(len(rows) == 6 for rows in scores_by_case.values())
-    assert all(sorted(row["observed_rank"] for row in rows) == [1, 2, 3, 4, 5, 6] for rows in scores_by_case.values())
+    assert all(
+        sorted(row["observed_rank"] for row in rows) == [1, 2, 3, 4, 5, 6]
+        for rows in scores_by_case.values()
+    )
 
 
 def test_evaluation_labels_are_post_scoring_only() -> None:
@@ -164,7 +191,13 @@ def test_test_only_injection_cannot_write(tmp_path: Path) -> None:
         },
     )
     completed = subprocess.run(
-        [sys.executable, str(VERIFIER), "--runtime-json", str(runtime), "--allow-injected-test-inputs"],
+        [
+            sys.executable,
+            str(VERIFIER),
+            "--runtime-json",
+            str(runtime),
+            "--allow-injected-test-inputs",
+        ],
         cwd=ROOT,
         check=False,
         text=True,

@@ -106,7 +106,10 @@ def test_report_references_runtime_sources_and_command() -> None:
     for source in REQUIRED_SOURCES:
         assert f"`{source}`" in sources
         assert (ROOT / source).exists()
-    assert "`.gsd/milestones/M001/slices/S10/S10-EMBEDDING-RUNTIME-PROOF.json`" in sources or "`prd/milestone_proofs/M001_S10_EMBEDDING-RUNTIME-PROOF.json`" in sources
+    assert (
+        "`.gsd/milestones/M001/slices/S10/S10-EMBEDDING-RUNTIME-PROOF.json`" in sources
+        or "`prd/milestone_proofs/M001_S10_EMBEDDING-RUNTIME-PROOF.json`" in sources
+    )
     assert "uv run python scripts/check-local-retrieval-runtime.py --allow-unavailable" in command
     assert "does not convert fail-closed runtime statuses into success statuses" in command
     assert "The runtime status remains authoritative" in command
@@ -195,7 +198,9 @@ def test_report_verification_hook_matches_slice_verification() -> None:
         "tests/test_local_retrieval_runtime_check_cli.py "
         "tests/test_local_retrieval_runtime_boundary_report.py -q"
     ) in verification
-    assert "uv run python scripts/check-local-retrieval-runtime.py --allow-unavailable" in verification
+    assert (
+        "uv run python scripts/check-local-retrieval-runtime.py --allow-unavailable" in verification
+    )
 
 
 def test_report_avoids_unsafe_raw_secret_or_local_path_payloads() -> None:

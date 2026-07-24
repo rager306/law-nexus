@@ -13,9 +13,18 @@ from pathlib import Path
 from typing import Any
 
 ROOT = Path(__file__).resolve().parents[1]
-DESCRIPTOR_INPUTS = ROOT / "prd/research/ontology_architecture_requirements/fixtures/independent_structural_signal_inputs.json"
-EVALUATION_LABELS = ROOT / "prd/research/ontology_architecture_requirements/fixtures/materialized_descriptor_evaluation_labels.json"
-REPORT = ROOT / "prd/research/ontology_architecture_requirements/independent_structural_signal_scoring_proof.json"
+DESCRIPTOR_INPUTS = (
+    ROOT
+    / "prd/research/ontology_architecture_requirements/fixtures/independent_structural_signal_inputs.json"
+)
+EVALUATION_LABELS = (
+    ROOT
+    / "prd/research/ontology_architecture_requirements/fixtures/materialized_descriptor_evaluation_labels.json"
+)
+REPORT = (
+    ROOT
+    / "prd/research/ontology_architecture_requirements/independent_structural_signal_scoring_proof.json"
+)
 DESCRIPTOR_VERIFIER = ROOT / "scripts/verify-independent-structural-signal-inputs.py"
 RUNTIME_CHECKER = ROOT / "scripts/check-local-retrieval-runtime.py"
 MODEL_ID = "deepvk/USER-bge-m3"
@@ -110,7 +119,9 @@ def sha256_path(path: Path) -> str:
 
 
 def assert_safe_payload(payload: Mapping[str, Any], *, allow_labels: bool = False) -> None:
-    forbidden = FORBIDDEN_FIELD_NAMES - (FORBIDDEN_SCORING_INPUT_FIELD_NAMES if allow_labels else set())
+    forbidden = FORBIDDEN_FIELD_NAMES - (
+        FORBIDDEN_SCORING_INPUT_FIELD_NAMES if allow_labels else set()
+    )
 
     def walk(value: Any) -> None:
         if isinstance(value, Mapping):
@@ -135,18 +146,29 @@ def assert_safe_payload(payload: Mapping[str, Any], *, allow_labels: bool = Fals
 
 
 def run_json_command(command: Sequence[str], timeout_seconds: int) -> tuple[int, dict[str, Any]]:
-    completed = subprocess.run(list(command), cwd=ROOT, check=False, text=True, capture_output=True, timeout=timeout_seconds)
+    completed = subprocess.run(
+        list(command),
+        cwd=ROOT,
+        check=False,
+        text=True,
+        capture_output=True,
+        timeout=timeout_seconds,
+    )
     try:
         payload = json.loads(completed.stdout)
     except json.JSONDecodeError as exc:
-        raise IndependentSignalScoringError(f"command returned non-JSON output: {command[0]}") from exc
+        raise IndependentSignalScoringError(
+            f"command returned non-JSON output: {command[0]}"
+        ) from exc
     if not isinstance(payload, dict):
         raise IndependentSignalScoringError("command returned non-object JSON")
     return completed.returncode, payload
 
 
 def verify_descriptor_inputs(timeout_seconds: int) -> dict[str, Any]:
-    exit_code, payload = run_json_command([sys.executable, str(DESCRIPTOR_VERIFIER)], timeout_seconds)
+    exit_code, payload = run_json_command(
+        [sys.executable, str(DESCRIPTOR_VERIFIER)], timeout_seconds
+    )
     if exit_code != 0 or payload.get("status") != "ok":
         raise IndependentSignalScoringError("descriptor_input_verifier_failed")
     return payload
@@ -154,7 +176,9 @@ def verify_descriptor_inputs(timeout_seconds: int) -> dict[str, Any]:
 
 def runtime_boundary(timeout_seconds: int, runtime_json: Path | None = None) -> dict[str, Any]:
     if runtime_json is None:
-        _exit_code, payload = run_json_command([sys.executable, str(RUNTIME_CHECKER)], timeout_seconds)
+        _exit_code, payload = run_json_command(
+            [sys.executable, str(RUNTIME_CHECKER)], timeout_seconds
+        )
     else:
         payload = load_json(runtime_json)
     status = str(payload.get("runtime_status", "blocked_environment"))
@@ -217,7 +241,10 @@ def scores_from_model(inputs: Mapping[str, Any]) -> list[dict[str, Any]]:
     candidate_descriptors = inputs.get("candidate_descriptors")
     if not isinstance(query_descriptors, list) or not isinstance(candidate_descriptors, list):
         raise IndependentSignalScoringError("descriptor inputs missing")
-    all_texts = [descriptor_text(item["descriptor_tokens"]) for item in query_descriptors + candidate_descriptors]
+    all_texts = [
+        descriptor_text(item["descriptor_tokens"])
+        for item in query_descriptors + candidate_descriptors
+    ]
     vectors = encode_texts(all_texts)
     query_vectors = vectors[: len(query_descriptors)]
     candidate_vectors = vectors[len(query_descriptors) :]
@@ -261,7 +288,10 @@ def load_evaluation_labels(path: Path = EVALUATION_LABELS) -> dict[str, set[str]
     assert_safe_payload(payload, allow_labels=True)
     if payload.get("schema_version") != "materialized-descriptor-evaluation-labels/v1":
         raise IndependentSignalScoringError("evaluation label schema mismatch")
-    if payload.get("post_scoring_only") is not True or payload.get("forbidden_as_descriptor_input") is not True:
+    if (
+        payload.get("post_scoring_only") is not True
+        or payload.get("forbidden_as_descriptor_input") is not True
+    ):
         raise IndependentSignalScoringError("evaluation label boundary missing")
     labels = payload.get("labels")
     if not isinstance(labels, list) or not labels:
@@ -270,7 +300,10 @@ def load_evaluation_labels(path: Path = EVALUATION_LABELS) -> dict[str, set[str]
     for row in labels:
         if not isinstance(row, Mapping):
             raise IndependentSignalScoringError("evaluation label row must be object")
-        if row.get("metric_scope") != "post_scoring_only" or row.get("non_authoritative") is not True:
+        if (
+            row.get("metric_scope") != "post_scoring_only"
+            or row.get("non_authoritative") is not True
+        ):
             raise IndependentSignalScoringError("evaluation label row boundary missing")
         expected = row.get("expected_candidate_ids")
         if not isinstance(expected, list) or not expected:
@@ -292,7 +325,9 @@ def fraction(numerator: int, denominator: int) -> float:
     return 0.0 if denominator == 0 else round(numerator / denominator, 6)
 
 
-def compute_metrics(scores: Sequence[Mapping[str, Any]], expected_by_case: Mapping[str, set[str]]) -> dict[str, float]:
+def compute_metrics(
+    scores: Sequence[Mapping[str, Any]], expected_by_case: Mapping[str, set[str]]
+) -> dict[str, float]:
     scores_by_case: dict[str, list[Mapping[str, Any]]] = {}
     for row in scores:
         if set(row).intersection(FORBIDDEN_SCORING_INPUT_FIELD_NAMES):
@@ -306,7 +341,9 @@ def compute_metrics(scores: Sequence[Mapping[str, Any]], expected_by_case: Mappi
     top1 = 0
     top3 = 0
     for case_id, expected in expected_by_case.items():
-        rows = sorted(scores_by_case.get(case_id, []), key=lambda row: int(row.get("observed_rank", 999)))
+        rows = sorted(
+            scores_by_case.get(case_id, []), key=lambda row: int(row.get("observed_rank", 999))
+        )
         ranked_ids = [str(row["candidate_id"]) for row in rows]
         if len(ranked_ids) < 2:
             raise IndependentSignalScoringError(f"insufficient candidate ranking: {case_id}")
@@ -314,11 +351,20 @@ def compute_metrics(scores: Sequence[Mapping[str, Any]], expected_by_case: Mappi
         rr_values.append(rr)
         top1 += int(rr == 1.0)
         top3 += int(rr >= round(1 / 3, 6))
-    return {"mrr": round(sum(rr_values) / len(rr_values), 6), "recall_at_1": fraction(top1, len(rr_values)), "recall_at_3": fraction(top3, len(rr_values))}
+    return {
+        "mrr": round(sum(rr_values) / len(rr_values), 6),
+        "recall_at_1": fraction(top1, len(rr_values)),
+        "recall_at_3": fraction(top3, len(rr_values)),
+    }
 
 
-def metric_deltas(metrics: Mapping[str, float], baseline: Mapping[str, float], prefix: str) -> dict[str, float]:
-    return {f"{prefix}_{name}": round(float(metrics.get(name, 0.0)) - value, 6) for name, value in baseline.items()}
+def metric_deltas(
+    metrics: Mapping[str, float], baseline: Mapping[str, float], prefix: str
+) -> dict[str, float]:
+    return {
+        f"{prefix}_{name}": round(float(metrics.get(name, 0.0)) - value, 6)
+        for name, value in baseline.items()
+    }
 
 
 def build_report(
@@ -329,7 +375,9 @@ def build_report(
     allow_injected_test_inputs: bool = False,
 ) -> dict[str, Any]:
     if (runtime_json is not None or scores_json is not None) and not allow_injected_test_inputs:
-        raise IndependentSignalScoringError("injected runtime/scores JSON forbidden for acceptance proof")
+        raise IndependentSignalScoringError(
+            "injected runtime/scores JSON forbidden for acceptance proof"
+        )
     descriptor_summary = verify_descriptor_inputs(timeout_seconds)
     inputs = load_json(DESCRIPTOR_INPUTS)
     assert_safe_payload(inputs)
@@ -340,7 +388,9 @@ def build_report(
         metrics = {"mrr": 0.0, "recall_at_1": 0.0, "recall_at_3": 0.0}
         scoring_status = "blocked"
     else:
-        scores = scores_from_json(scores_json) if scores_json is not None else scores_from_model(inputs)
+        scores = (
+            scores_from_json(scores_json) if scores_json is not None else scores_from_model(inputs)
+        )
         assert_safe_payload({"scores": scores})
         labels = load_evaluation_labels(labels_path)
         metrics = compute_metrics(scores, labels)
@@ -356,10 +406,18 @@ def build_report(
         outcome_classification = "regression_vs_m027"
     else:
         outcome_classification = "neutral_vs_m027"
-    if scoring_status == "completed" and (deltas_vs_m028["delta_vs_m028_mrr"] < 0 or deltas_vs_m028["delta_vs_m028_recall_at_1"] < 0):
+    if scoring_status == "completed" and (
+        deltas_vs_m028["delta_vs_m028_mrr"] < 0 or deltas_vs_m028["delta_vs_m028_recall_at_1"] < 0
+    ):
         outcome_classification = f"{outcome_classification}_below_m028"
-    diagnostics = set(descriptor_summary.get("diagnostic_codes", [])) | set(runtime.get("diagnostic_codes", []))
-    diagnostics.add("independent_structural_signal_scoring_completed" if scoring_status == "completed" else "independent_structural_signal_scoring_blocked")
+    diagnostics = set(descriptor_summary.get("diagnostic_codes", [])) | set(
+        runtime.get("diagnostic_codes", [])
+    )
+    diagnostics.add(
+        "independent_structural_signal_scoring_completed"
+        if scoring_status == "completed"
+        else "independent_structural_signal_scoring_blocked"
+    )
     report = {
         "schema_version": SCHEMA_VERSION,
         "milestone_id": "M029-yfyh51",
@@ -413,9 +471,21 @@ def build_report(
 
 def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--runtime-json", type=Path, help="Test-only injected runtime payload; rejected unless --allow-injected-test-inputs is set.")
-    parser.add_argument("--scores-json", type=Path, help="Test-only injected scores payload; rejected unless --allow-injected-test-inputs is set.")
-    parser.add_argument("--allow-injected-test-inputs", action="store_true", help="Allow injected runtime/scores only for unit tests. This mode cannot write the acceptance proof artifact.")
+    parser.add_argument(
+        "--runtime-json",
+        type=Path,
+        help="Test-only injected runtime payload; rejected unless --allow-injected-test-inputs is set.",
+    )
+    parser.add_argument(
+        "--scores-json",
+        type=Path,
+        help="Test-only injected scores payload; rejected unless --allow-injected-test-inputs is set.",
+    )
+    parser.add_argument(
+        "--allow-injected-test-inputs",
+        action="store_true",
+        help="Allow injected runtime/scores only for unit tests. This mode cannot write the acceptance proof artifact.",
+    )
     parser.add_argument("--output", type=Path, default=REPORT)
     parser.add_argument("--no-write", action="store_true")
     parser.add_argument("--timeout-seconds", type=int, default=120)
@@ -426,12 +496,27 @@ def main(argv: Sequence[str] | None = None) -> int:
     args = parse_args(argv)
     try:
         if args.allow_injected_test_inputs and not args.no_write:
-            raise IndependentSignalScoringError("test-only injected inputs cannot write acceptance proof")
-        report = build_report(args.runtime_json, args.scores_json, args.timeout_seconds, allow_injected_test_inputs=args.allow_injected_test_inputs)
+            raise IndependentSignalScoringError(
+                "test-only injected inputs cannot write acceptance proof"
+            )
+        report = build_report(
+            args.runtime_json,
+            args.scores_json,
+            args.timeout_seconds,
+            allow_injected_test_inputs=args.allow_injected_test_inputs,
+        )
         if not args.no_write:
-            args.output.write_text(json.dumps(report, ensure_ascii=False, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+            args.output.write_text(
+                json.dumps(report, ensure_ascii=False, indent=2, sort_keys=True) + "\n",
+                encoding="utf-8",
+            )
     except IndependentSignalScoringError as exc:
-        print(json.dumps({"status": "failed", "diagnostic": str(exc), "non_authoritative": True}, sort_keys=True))
+        print(
+            json.dumps(
+                {"status": "failed", "diagnostic": str(exc), "non_authoritative": True},
+                sort_keys=True,
+            )
+        )
         return 1
     print(
         json.dumps(

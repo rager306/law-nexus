@@ -88,7 +88,9 @@ def _bounded_path(path: Path) -> str:
         return str(path)[:_MAX_SAFE_FIELD_LENGTH]
 
 
-def _error_summary(*, fixture: Path, phase: str, code: str, detail: str | None = None) -> dict[str, Any]:
+def _error_summary(
+    *, fixture: Path, phase: str, code: str, detail: str | None = None
+) -> dict[str, Any]:
     mismatch: dict[str, Any] = {
         "phase": phase,
         "code": code,
@@ -117,13 +119,40 @@ def _load_json(path: Path) -> tuple[int, dict[str, Any] | None, dict[str, Any] |
     try:
         data = json.loads(path.read_text(encoding="utf-8"))
     except FileNotFoundError as exc:
-        return 2, None, _error_summary(fixture=path, phase="fixture_load", code="fixture_not_found", detail=str(exc))
+        return (
+            2,
+            None,
+            _error_summary(
+                fixture=path, phase="fixture_load", code="fixture_not_found", detail=str(exc)
+            ),
+        )
     except json.JSONDecodeError as exc:
-        return 2, None, _error_summary(fixture=path, phase="fixture_load", code="malformed_fixture_json", detail=exc.msg)
+        return (
+            2,
+            None,
+            _error_summary(
+                fixture=path, phase="fixture_load", code="malformed_fixture_json", detail=exc.msg
+            ),
+        )
     except OSError as exc:
-        return 2, None, _error_summary(fixture=path, phase="fixture_load", code="malformed_fixture_shape", detail=str(exc))
+        return (
+            2,
+            None,
+            _error_summary(
+                fixture=path, phase="fixture_load", code="malformed_fixture_shape", detail=str(exc)
+            ),
+        )
     if not isinstance(data, dict):
-        return 2, None, _error_summary(fixture=path, phase="fixture_shape", code="malformed_fixture_shape", detail="fixture root must be an object")
+        return (
+            2,
+            None,
+            _error_summary(
+                fixture=path,
+                phase="fixture_shape",
+                code="malformed_fixture_shape",
+                detail="fixture root must be an object",
+            ),
+        )
     return 0, data, None
 
 
@@ -231,22 +260,44 @@ def _case_metrics(case: Mapping[str, Any]) -> dict[str, float]:
     if case_class == "scoped_no_answer_quality":
         query = case.get("query")
         candidates = case.get("candidates")
-        is_no_answer = isinstance(query, Mapping) and query.get("expected_result") == "scoped_no_answer" and candidates == []
+        is_no_answer = (
+            isinstance(query, Mapping)
+            and query.get("expected_result") == "scoped_no_answer"
+            and candidates == []
+        )
         return {"no_answer_accuracy": 1.0 if is_no_answer else 0.0}
     if case_class == "ambiguous_retrieval_rejected":
-        labels = [candidate.get("relevance_label") for candidate in case.get("candidates", []) if isinstance(candidate, Mapping)]
+        labels = [
+            candidate.get("relevance_label")
+            for candidate in case.get("candidates", [])
+            if isinstance(candidate, Mapping)
+        ]
         query = case.get("query")
-        rejected = isinstance(query, Mapping) and query.get("expected_result") == "rejected" and labels.count("ambiguous") >= 2
+        rejected = (
+            isinstance(query, Mapping)
+            and query.get("expected_result") == "rejected"
+            and labels.count("ambiguous") >= 2
+        )
         return {"ambiguous_rejection_rate": 1.0 if rejected else 0.0}
     if case_class == "unsafe_payload_rejected":
-        labels = [candidate.get("relevance_label") for candidate in case.get("candidates", []) if isinstance(candidate, Mapping)]
+        labels = [
+            candidate.get("relevance_label")
+            for candidate in case.get("candidates", [])
+            if isinstance(candidate, Mapping)
+        ]
         query = case.get("query")
-        rejected = isinstance(query, Mapping) and query.get("expected_result") == "rejected" and "unsafe" in labels
+        rejected = (
+            isinstance(query, Mapping)
+            and query.get("expected_result") == "rejected"
+            and "unsafe" in labels
+        )
         return {"unsafe_rejection_rate": 1.0 if rejected else 0.0}
     return {}
 
 
-def _metric_mismatch(*, case_id: str, expected: Mapping[str, Any], actual: Mapping[str, float]) -> list[dict[str, Any]]:
+def _metric_mismatch(
+    *, case_id: str, expected: Mapping[str, Any], actual: Mapping[str, float]
+) -> list[dict[str, Any]]:
     mismatches: list[dict[str, Any]] = []
     if dict(expected) != actual:
         mismatches.append(
@@ -267,10 +318,14 @@ def _aggregate_metrics(per_case_metrics: list[Mapping[str, float]]) -> dict[str,
         for key, value in metrics.items():
             if key in values:
                 values[key].append(float(value))
-    return {key: round(sum(items) / len(items), 6) if items else 0.0 for key, items in values.items()}
+    return {
+        key: round(sum(items) / len(items), 6) if items else 0.0 for key, items in values.items()
+    }
 
 
-def _threshold_mismatches(metrics: Mapping[str, float], thresholds: Mapping[str, Any]) -> list[dict[str, Any]]:
+def _threshold_mismatches(
+    metrics: Mapping[str, float], thresholds: Mapping[str, Any]
+) -> list[dict[str, Any]]:
     mismatches: list[dict[str, Any]] = []
     for key in _REQUIRED_THRESHOLD_KEYS:
         threshold = thresholds.get(key)
@@ -288,7 +343,9 @@ def _threshold_mismatches(metrics: Mapping[str, float], thresholds: Mapping[str,
     return mismatches
 
 
-def _code_inventory(cases: Sequence[Mapping[str, Any]], mismatches: Sequence[Mapping[str, Any]]) -> list[str]:
+def _code_inventory(
+    cases: Sequence[Mapping[str, Any]], mismatches: Sequence[Mapping[str, Any]]
+) -> list[str]:
     inventory: Counter[str] = Counter()
     for case in cases:
         for diagnostic in _diagnostics(case):
@@ -311,11 +368,18 @@ def run_proof(fixture_path: Path) -> tuple[int, dict[str, Any]]:
 
     cases = data.get("cases")
     if not isinstance(cases, list):
-        return 2, _error_summary(fixture=fixture_path, phase="fixture_shape", code="malformed_fixture_shape", detail="cases must be a list")
+        return 2, _error_summary(
+            fixture=fixture_path,
+            phase="fixture_shape",
+            code="malformed_fixture_shape",
+            detail="cases must be a list",
+        )
     case_records = [case for case in cases if isinstance(case, Mapping)]
     mismatches: list[dict[str, Any]] = []
     if len(case_records) != len(cases):
-        mismatches.append({"phase": "fixture_shape", "code": "malformed_fixture_shape", "field_path": "cases"})
+        mismatches.append(
+            {"phase": "fixture_shape", "code": "malformed_fixture_shape", "field_path": "cases"}
+        )
 
     mismatches.extend(_safety_errors(data))
     per_case: list[Mapping[str, float]] = []
@@ -325,15 +389,32 @@ def run_proof(fixture_path: Path) -> tuple[int, dict[str, Any]]:
         metrics = _case_metrics(case)
         per_case.append(metrics)
         query = case.get("query")
-        if isinstance(query, Mapping) and query.get("query_kind") in {"positive_retrieval", "distractor_retrieval"} and metrics:
+        if (
+            isinstance(query, Mapping)
+            and query.get("query_kind") in {"positive_retrieval", "distractor_retrieval"}
+            and metrics
+        ):
             positive_query_count += 1
         expected_metrics = case.get("expected_metrics")
         if not isinstance(expected_metrics, Mapping):
-            mismatches.append({"phase": "fixture_shape", "case_id": case_id, "code": "malformed_fixture_shape", "field_path": "expected_metrics"})
+            mismatches.append(
+                {
+                    "phase": "fixture_shape",
+                    "case_id": case_id,
+                    "code": "malformed_fixture_shape",
+                    "field_path": "expected_metrics",
+                }
+            )
         else:
-            mismatches.extend(_metric_mismatch(case_id=case_id, expected=expected_metrics, actual=dict(metrics)))
+            mismatches.extend(
+                _metric_mismatch(case_id=case_id, expected=expected_metrics, actual=dict(metrics))
+            )
         expected_codes = case.get("expected_diagnostic_codes")
-        actual_codes = [str(diagnostic.get("code")) for diagnostic in _diagnostics(case) if isinstance(diagnostic.get("code"), str)]
+        actual_codes = [
+            str(diagnostic.get("code"))
+            for diagnostic in _diagnostics(case)
+            if isinstance(diagnostic.get("code"), str)
+        ]
         if actual_codes != expected_codes:
             mismatches.append(
                 {
@@ -349,15 +430,29 @@ def run_proof(fixture_path: Path) -> tuple[int, dict[str, Any]]:
 
     aggregate = _aggregate_metrics(per_case)
     thresholds_value = data.get("thresholds")
-    thresholds = cast(Mapping[str, Any], thresholds_value) if isinstance(thresholds_value, Mapping) else {}
+    thresholds = (
+        cast(Mapping[str, Any], thresholds_value) if isinstance(thresholds_value, Mapping) else {}
+    )
     mismatches.extend(_threshold_mismatches(aggregate, thresholds))
 
     model_value = data.get("model_boundary")
     model = cast(Mapping[str, Any], model_value) if isinstance(model_value, Mapping) else {}
     if model.get("managed_api_used") is not False:
-        mismatches.append({"phase": "model_boundary", "code": "malformed_fixture_shape", "field_path": "model_boundary.managed_api_used"})
+        mismatches.append(
+            {
+                "phase": "model_boundary",
+                "code": "malformed_fixture_shape",
+                "field_path": "model_boundary.managed_api_used",
+            }
+        )
     if model.get("raw_vectors_persisted") is not False:
-        mismatches.append({"phase": "model_boundary", "code": "malformed_fixture_shape", "field_path": "model_boundary.raw_vectors_persisted"})
+        mismatches.append(
+            {
+                "phase": "model_boundary",
+                "code": "malformed_fixture_shape",
+                "field_path": "model_boundary.raw_vectors_persisted",
+            }
+        )
 
     threshold_passed = not _threshold_mismatches(aggregate, thresholds)
     summary: dict[str, Any] = {
@@ -382,8 +477,15 @@ def run_proof(fixture_path: Path) -> tuple[int, dict[str, Any]]:
 
 
 def main(argv: Sequence[str] | None = None) -> int:
-    parser = argparse.ArgumentParser(description="Run the M015 local retrieval quality benchmark proof.")
-    parser.add_argument("--fixture", type=Path, default=DEFAULT_FIXTURE, help="Path to local retrieval quality benchmark fixture JSON.")
+    parser = argparse.ArgumentParser(
+        description="Run the M015 local retrieval quality benchmark proof."
+    )
+    parser.add_argument(
+        "--fixture",
+        type=Path,
+        default=DEFAULT_FIXTURE,
+        help="Path to local retrieval quality benchmark fixture JSON.",
+    )
     args = parser.parse_args(argv)
     exit_code, summary = run_proof(args.fixture)
     json.dump(summary, sys.stdout, ensure_ascii=False, sort_keys=True, separators=(",", ":"))

@@ -12,8 +12,14 @@ from pathlib import Path
 from typing import Any, Literal
 
 ROOT = Path(__file__).resolve().parents[1]
-FIXTURE_PATH = ROOT / "prd/research/ontology_architecture_requirements/fixtures/evidence_span_golden_retrieval_cases.json"
-REPORT_PATH = ROOT / "prd/research/ontology_architecture_requirements/evidence_span_local_retrieval_metrics_proof.json"
+FIXTURE_PATH = (
+    ROOT
+    / "prd/research/ontology_architecture_requirements/fixtures/evidence_span_golden_retrieval_cases.json"
+)
+REPORT_PATH = (
+    ROOT
+    / "prd/research/ontology_architecture_requirements/evidence_span_local_retrieval_metrics_proof.json"
+)
 S04_VERIFIER = ROOT / "scripts/verify-evidence-span-golden-retrieval-cases.py"
 RUNTIME_CHECKER = ROOT / "scripts/check-local-retrieval-runtime.py"
 SCHEMA_VERSION = "evidence-span-local-retrieval-metrics-proof/v1"
@@ -161,7 +167,9 @@ def run_json_command(command: Sequence[str], timeout_seconds: int) -> tuple[int,
 
 
 def verify_fixture(fixture_path: Path, timeout_seconds: int) -> dict[str, Any]:
-    exit_code, payload = run_json_command([sys.executable, str(S04_VERIFIER), "--fixture", str(fixture_path)], timeout_seconds)
+    exit_code, payload = run_json_command(
+        [sys.executable, str(S04_VERIFIER), "--fixture", str(fixture_path)], timeout_seconds
+    )
     if exit_code != 0 or payload.get("status") != "ok":
         raise MetricsError("fixture_verifier_failed")
     return payload
@@ -171,7 +179,9 @@ def runtime_boundary(timeout_seconds: int, runtime_json: Path | None = None) -> 
     if runtime_json is not None:
         payload = load_json(runtime_json)
     else:
-        _exit_code, payload = run_json_command([sys.executable, str(RUNTIME_CHECKER)], timeout_seconds)
+        _exit_code, payload = run_json_command(
+            [sys.executable, str(RUNTIME_CHECKER)], timeout_seconds
+        )
     status = str(payload.get("runtime_status", "blocked_environment"))
     model_id = str(payload.get("model_id", MODEL_ID))
     vector_dimension = payload.get("vector_dimension") or payload.get("observed_vector_dimension")
@@ -221,16 +231,24 @@ def reciprocal_rank(case: Mapping[str, Any]) -> float:
     if not isinstance(candidates, list):
         return 0.0
     for index, candidate in enumerate(candidates, start=1):
-        if isinstance(candidate, Mapping) and candidate.get("candidate_id") in expected and candidate.get("expected_label") == "relevant":
+        if (
+            isinstance(candidate, Mapping)
+            and candidate.get("candidate_id") in expected
+            and candidate.get("expected_label") == "relevant"
+        ):
             return round(1 / index, 6)
     return 0.0
 
 
-def compute_metrics(fixture: Mapping[str, Any], runtime: Mapping[str, Any]) -> tuple[dict[str, float], list[str], list[dict[str, Any]]]:
+def compute_metrics(
+    fixture: Mapping[str, Any], runtime: Mapping[str, Any]
+) -> tuple[dict[str, float], list[str], list[dict[str, Any]]]:
     cases = fixture.get("cases")
     if not isinstance(cases, list):
         raise MetricsError("fixture cases must be a list")
-    by_class: dict[str, list[Mapping[str, Any]]] = {case_class: [] for case_class in REQUIRED_CASE_CLASSES}
+    by_class: dict[str, list[Mapping[str, Any]]] = {
+        case_class: [] for case_class in REQUIRED_CASE_CLASSES
+    }
     for case in cases:
         if not isinstance(case, Mapping):
             raise MetricsError("case must be an object")
@@ -261,7 +279,9 @@ def compute_metrics(fixture: Mapping[str, Any], runtime: Mapping[str, Any]) -> t
     unsupported_cases = by_class["unsupported_scope"]
     no_answer_cases = by_class["scoped_no_answer"]
 
-    def expected_result_count(case_list: list[Mapping[str, Any]], expected_result: str, required_diagnostic: str) -> int:
+    def expected_result_count(
+        case_list: list[Mapping[str, Any]], expected_result: str, required_diagnostic: str
+    ) -> int:
         return sum(
             1
             for case in case_list
@@ -274,20 +294,44 @@ def compute_metrics(fixture: Mapping[str, Any], runtime: Mapping[str, Any]) -> t
         "mrr": round(sum(reciprocal_ranks) / len(reciprocal_ranks), 6) if reciprocal_ranks else 0.0,
         "recall_at_1": fraction(recall_at_1_hits, len(positives)),
         "recall_at_3": fraction(recall_at_3_hits, len(positives)),
-        "stale_rejection_rate": fraction(expected_result_count(stale_cases, "rejected", "stale_temporal_candidate"), len(stale_cases)),
-        "ambiguous_rejection_rate": fraction(expected_result_count(ambiguous_cases, "ambiguous", "ambiguous_candidate_set"), len(ambiguous_cases)),
-        "unsupported_scope_accuracy": fraction(expected_result_count(unsupported_cases, "unsupported", "unsupported_scope"), len(unsupported_cases)),
-        "no_answer_accuracy": fraction(expected_result_count(no_answer_cases, "no_answer", "scoped_no_answer"), len(no_answer_cases)),
+        "stale_rejection_rate": fraction(
+            expected_result_count(stale_cases, "rejected", "stale_temporal_candidate"),
+            len(stale_cases),
+        ),
+        "ambiguous_rejection_rate": fraction(
+            expected_result_count(ambiguous_cases, "ambiguous", "ambiguous_candidate_set"),
+            len(ambiguous_cases),
+        ),
+        "unsupported_scope_accuracy": fraction(
+            expected_result_count(unsupported_cases, "unsupported", "unsupported_scope"),
+            len(unsupported_cases),
+        ),
+        "no_answer_accuracy": fraction(
+            expected_result_count(no_answer_cases, "no_answer", "scoped_no_answer"),
+            len(no_answer_cases),
+        ),
         "runtime_boundary_confirmed": 1.0 if runtime.get("confirmed") is True else 0.0,
     }
     diagnostics = list(runtime.get("diagnostic_codes", []))
-    for code in ("stale_temporal_candidate", "ambiguous_candidate_set", "unsupported_scope", "scoped_no_answer"):
+    for code in (
+        "stale_temporal_candidate",
+        "ambiguous_candidate_set",
+        "unsupported_scope",
+        "scoped_no_answer",
+    ):
         diagnostics.append(code)
     mismatches: list[dict[str, Any]] = []
     for metric, threshold in THRESHOLDS.items():
         actual = metrics[metric]
         if actual < threshold:
-            mismatches.append({"code": "threshold_mismatch", "metric": metric, "actual": actual, "expected_minimum": threshold})
+            mismatches.append(
+                {
+                    "code": "threshold_mismatch",
+                    "metric": metric,
+                    "actual": actual,
+                    "expected_minimum": threshold,
+                }
+            )
             diagnostics.append("threshold_mismatch")
     return metrics, sorted(set(diagnostics)), mismatches
 
@@ -339,7 +383,9 @@ def build_report(args: argparse.Namespace) -> tuple[int, dict[str, Any]]:
 def write_report(path: Path, report: Mapping[str, Any]) -> None:
     check_no_unsafe_payload(report)
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(json.dumps(report, ensure_ascii=False, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    path.write_text(
+        json.dumps(report, ensure_ascii=False, indent=2, sort_keys=True) + "\n", encoding="utf-8"
+    )
 
 
 def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:

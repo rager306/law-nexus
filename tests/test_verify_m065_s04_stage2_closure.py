@@ -197,21 +197,24 @@ def test_scan_overclaim_flags_affirmative_verb_adjacency(tmp_path: Path, phrase:
     assert "overclaim_detected" in diagnostic_ids(diagnostics)
     assert summary["status"] == "overclaim_detected"
     assert summary["hits"] >= 1
-    assert any(phrase.strip().splitlines()[0][:20] in (getattr(d, "text", "") + getattr(d, "message", ""))
-               or getattr(d, "line", 0) == 1 for d in diagnostics)
+    assert any(
+        phrase.strip().splitlines()[0][:20] in (getattr(d, "text", "") + getattr(d, "message", ""))
+        or getattr(d, "line", 0) == 1
+        for d in diagnostics
+    )
 
 
 @pytest.mark.parametrize(
     "phrase",
     [
-        "no R035/R037/R038 validation",          # boundary negation (noun) — critical
-        "R035/R037/R038 validation gate",         # noun, no verb
-        "R035/R037/R038 must not be validated",   # negated verb, non-adjacent
-        "did not validate R035",                  # negation guard
-        "without validating R035",                # negation guard
-        "R035",                                    # bare token only
-        "R035/R037/R038",                          # bare tokens only
-        "validation of R035/R037/R038",            # noun
+        "no R035/R037/R038 validation",  # boundary negation (noun) — critical
+        "R035/R037/R038 validation gate",  # noun, no verb
+        "R035/R037/R038 must not be validated",  # negated verb, non-adjacent
+        "did not validate R035",  # negation guard
+        "without validating R035",  # negation guard
+        "R035",  # bare token only
+        "R035/R037/R038",  # bare tokens only
+        "validation of R035/R037/R038",  # noun
     ],
 )
 def test_scan_overclaim_does_not_false_positive(tmp_path: Path, phrase: str) -> None:
@@ -356,7 +359,11 @@ def test_verify_happy_path(tmp_path: Path) -> None:
     assert review_log["per_verifier_rc"] == {"s01": 0, "s02": 0, "s03": 0}
     assert review_log["overclaim_scan"] == {"status": "clean", "hits": 0, "patterns_scanned": 2}
     assert review_log["live_residue"] == {
-        ".lex": "absent", "Squad": "absent", "Raw": "absent", ".artifacts": "absent"}
+        ".lex": "absent",
+        "Squad": "absent",
+        "Raw": "absent",
+        ".artifacts": "absent",
+    }
     assert review_log["boundary_markers_present"] is True
     assert review_log["closure_verdict"] == "stage2_closed"
     assert "timestamp" in review_log
@@ -384,7 +391,9 @@ def test_verify_overclaim_failure_yields_not_closed(tmp_path: Path) -> None:
     verifier = load_verifier()
     corpus = _write_overclaim_corpus(
         tmp_path,
-        {"over.md": "We validated R035 in Stage 2.\nno R035/R037/R038 validation boundary R047 D084 CLI-install-only"},
+        {
+            "over.md": "We validated R035 in Stage 2.\nno R035/R037/R038 validation boundary R047 D084 CLI-install-only"
+        },
     )
     residue_root = tmp_path / "clean-root"
     residue_root.mkdir()
@@ -467,7 +476,10 @@ def test_verify_skip_residue(tmp_path: Path) -> None:
 
 def test_write_closure_review_creates_dir_and_file(tmp_path: Path) -> None:
     verifier = load_verifier()
-    review_log = {"schema_version": "m065-s04-closure-review/v1", "closure_verdict": "stage2_closed"}
+    review_log = {
+        "schema_version": "m065-s04-closure-review/v1",
+        "closure_verdict": "stage2_closed",
+    }
     out = tmp_path / "nested" / "deep" / "stage2-closure-review.json"
 
     written = verifier.write_closure_review(review_log, out)
@@ -497,7 +509,9 @@ def test_main_exits_nonzero_on_prior_verifier_failure(tmp_path: Path, monkeypatc
     assert rc == 1
 
 
-def test_main_exits_zero_clean_and_writes_log(tmp_path: Path, capsys: pytest.CaptureFixture[str], monkeypatch) -> None:
+def test_main_exits_zero_clean_and_writes_log(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str], monkeypatch
+) -> None:
     verifier = load_verifier()
     corpus = _green_corpus(tmp_path)
     residue_root = tmp_path / "clean-root"
@@ -540,7 +554,9 @@ def test_main_no_write_skips_log(tmp_path: Path, monkeypatch) -> None:
 def test_current_real_state_check_passes() -> None:
     verifier = load_verifier()
     scripts = [script for _, script in verifier.PRIOR_VERIFIER_SCRIPTS]
-    if not all(p.exists() for p in scripts) or not all(p.exists() for p in verifier.OVERCLAIM_SCAN_FILES):
+    if not all(p.exists() for p in scripts) or not all(
+        p.exists() for p in verifier.OVERCLAIM_SCAN_FILES
+    ):
         pytest.skip("real M065 Stage-2 evidence anchors not present in this environment")
 
     closure_ok, diagnostics, review_log = verifier.verify()

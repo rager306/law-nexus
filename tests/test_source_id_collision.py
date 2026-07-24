@@ -15,7 +15,9 @@ _WORDML_NS = "http://schemas.microsoft.com/office/word/2003/wordml"
 _OFFICE_NS = "urn:schemas-microsoft-com:office:office"
 
 
-def _write_minimal_consultant_xml(path: Path, title: str, body_marker: str = "DEFAULT_BODY") -> None:
+def _write_minimal_consultant_xml(
+    path: Path, title: str, body_marker: str = "DEFAULT_BODY"
+) -> None:
     """Write a minimal valid Consultant WordML XML with the given ``<o:Title>``.
 
     ``body_marker`` is embedded in ``<w:body>`` to make the file content
@@ -27,12 +29,12 @@ def _write_minimal_consultant_xml(path: Path, title: str, body_marker: str = "DE
     xml = (
         f'<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n'
         f'<w:wordDocument xmlns:w="{_WORDML_NS}" xmlns:o="{_OFFICE_NS}">'
-        f'<o:DocumentProperties>'
-        f'<o:Title>{title}</o:Title>'
-        f'<o:Company>Версия 4025.00.30</o:Company>'
-        f'</o:DocumentProperties>'
-        f'<w:body><w:p>{body_marker}</w:p></w:body>'
-        f'</w:wordDocument>'
+        f"<o:DocumentProperties>"
+        f"<o:Title>{title}</o:Title>"
+        f"<o:Company>Версия 4025.00.30</o:Company>"
+        f"</o:DocumentProperties>"
+        f"<w:body><w:p>{body_marker}</w:p></w:body>"
+        f"</w:wordDocument>"
     )
     path.write_text(xml, encoding="utf-8")
 
@@ -47,8 +49,12 @@ def test_synthetic_collision_two_files_same_act_number(tmp_path: Path) -> None:
 
     a = tmp_path / "first.xml"
     b = tmp_path / "second.xml"
-    _write_minimal_consultant_xml(a, "Федеральный закон от 05.04.2013 N 44-ФЗ", body_marker="FIRST_BODY")
-    _write_minimal_consultant_xml(b, "Федеральный закон от 05.04.2013 N 44-ФЗ", body_marker="SECOND_BODY")
+    _write_minimal_consultant_xml(
+        a, "Федеральный закон от 05.04.2013 N 44-ФЗ", body_marker="FIRST_BODY"
+    )
+    _write_minimal_consultant_xml(
+        b, "Федеральный закон от 05.04.2013 N 44-ФЗ", body_marker="SECOND_BODY"
+    )
 
     parser = ConsultantWordMLParser(source_root=str(tmp_path))
     doc_a, _ = parser.parse(str(a))

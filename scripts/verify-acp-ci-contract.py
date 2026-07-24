@@ -59,7 +59,11 @@ class Diagnostic:
 
 def _has_negative_context(lines: list[str], index: int) -> bool:
     current_line = lines[index].lower()
-    if any(marker in current_line for marker in NEGATIVE_CONTEXT_MARKERS if marker != "avoid this wording"):
+    if any(
+        marker in current_line
+        for marker in NEGATIVE_CONTEXT_MARKERS
+        if marker != "avoid this wording"
+    ):
         return True
     previous_lines = "\n".join(lines[max(0, index - 4) : index]).lower()
     return "avoid this wording" in previous_lines
@@ -68,20 +72,26 @@ def _has_negative_context(lines: list[str], index: int) -> bool:
 def check_m058_synthesis(path: Path = M058_SYNTHESIS) -> list[Diagnostic]:
     diagnostics: list[Diagnostic] = []
     if not path.exists():
-        return [Diagnostic("missing_m058_synthesis", path, 0, "M058 corrected synthesis is missing")]
+        return [
+            Diagnostic("missing_m058_synthesis", path, 0, "M058 corrected synthesis is missing")
+        ]
 
     text = path.read_text(encoding="utf-8")
     for term in REQUIRED_M058_TERMS:
         if term not in text:
             diagnostics.append(
-                Diagnostic("missing_m058_guard_term", path, 0, f"required M058 guard term missing: {term}")
+                Diagnostic(
+                    "missing_m058_guard_term", path, 0, f"required M058 guard term missing: {term}"
+                )
             )
 
     lines = text.splitlines()
     for line_no, line in enumerate(lines, start=1):
         normalized = line.replace("`", "")
         for claim in FORBIDDEN_M058_CLAIMS:
-            if claim.lower() in normalized.lower() and not _has_negative_context(lines, line_no - 1):
+            if claim.lower() in normalized.lower() and not _has_negative_context(
+                lines, line_no - 1
+            ):
                 diagnostics.append(
                     Diagnostic(
                         "forbidden_m058_overclaim",
@@ -99,14 +109,21 @@ def check_main_state_residue(root: Path = ROOT) -> list[Diagnostic]:
     for name in MAIN_STATE_RESIDUE:
         path = root / name
         if path.exists():
-            diagnostics.append(Diagnostic("main_state_residue", path, 0, "main checkout state residue exists"))
+            diagnostics.append(
+                Diagnostic("main_state_residue", path, 0, "main checkout state residue exists")
+            )
     return diagnostics
 
 
 def _run(command: list[str], *, cwd: Path = ROOT) -> Diagnostic | None:
     completed = subprocess.run(command, cwd=cwd, text=True)
     if completed.returncode != 0:
-        return Diagnostic("command_failed", cwd, 0, f"command failed with exit {completed.returncode}: {' '.join(command)}")
+        return Diagnostic(
+            "command_failed",
+            cwd,
+            0,
+            f"command failed with exit {completed.returncode}: {' '.join(command)}",
+        )
     return None
 
 
@@ -160,7 +177,9 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Run the local ACP CI contract.")
     parser.add_argument("--skip-tests", action="store_true", help="Skip targeted pytest suites.")
     parser.add_argument("--skip-diff-check", action="store_true", help="Skip git diff --check.")
-    parser.add_argument("--skip-residue", action="store_true", help="Skip main-state residue check.")
+    parser.add_argument(
+        "--skip-residue", action="store_true", help="Skip main-state residue check."
+    )
     parser.add_argument("--m058-only", action="store_true", help="Run only the M058 wording guard.")
     return parser.parse_args(argv)
 

@@ -12,7 +12,10 @@ from pathlib import Path
 from typing import Any
 
 ROOT = Path(__file__).resolve().parents[1]
-DEFAULT_MANIFEST = ROOT / "prd/research/ontology_architecture_requirements/fixtures/held_out_semantic_descriptor_inputs.json"
+DEFAULT_MANIFEST = (
+    ROOT
+    / "prd/research/ontology_architecture_requirements/fixtures/held_out_semantic_descriptor_inputs.json"
+)
 SCHEMA_VERSION = "held-out-semantic-descriptor-inputs/v1"
 REPRESENTATION_KIND = "safe_semantic_descriptor_v1"
 ALLOWED_ROOT_FIELDS = {
@@ -210,16 +213,22 @@ def validate_allowed_enums(allowed: Any) -> dict[str, set[str]]:
     return normalized
 
 
-def validate_descriptors(descriptors: Any, fields: set[str], allowed: Mapping[str, set[str]], input_id: str) -> None:
+def validate_descriptors(
+    descriptors: Any, fields: set[str], allowed: Mapping[str, set[str]], input_id: str
+) -> None:
     if not isinstance(descriptors, Mapping):
         raise HeldOutDescriptorInputError(f"descriptors missing: {input_id}")
     if set(descriptors) != fields:
         raise HeldOutDescriptorInputError(f"descriptor field mismatch: {input_id}")
     for field, value in descriptors.items():
         if not isinstance(value, str):
-            raise HeldOutDescriptorInputError(f"descriptor value must be string: {input_id}: {field}")
+            raise HeldOutDescriptorInputError(
+                f"descriptor value must be string: {input_id}: {field}"
+            )
         if not SAFE_ENUM_RE.fullmatch(value):
-            raise HeldOutDescriptorInputError(f"unsafe descriptor enum grammar: {input_id}: {field}")
+            raise HeldOutDescriptorInputError(
+                f"unsafe descriptor enum grammar: {input_id}: {field}"
+            )
         if value not in allowed[field]:
             raise HeldOutDescriptorInputError(f"descriptor enum not allowed: {input_id}: {field}")
 
@@ -259,7 +268,11 @@ def verify_manifest(path: Path) -> dict[str, Any]:
         raise HeldOutDescriptorInputError("representation_kind mismatch")
     if manifest.get("milestone_id") != "M026-1uqmzc" or manifest.get("slice_id") != "S02":
         raise HeldOutDescriptorInputError("milestone or slice marker mismatch")
-    for marker in ("held_out_case_independence_required", "m025_design_case_reuse_forbidden", "m022_acceptance_case_reuse_forbidden"):
+    for marker in (
+        "held_out_case_independence_required",
+        "m025_design_case_reuse_forbidden",
+        "m022_acceptance_case_reuse_forbidden",
+    ):
         if manifest.get(marker) is not True:
             raise HeldOutDescriptorInputError(f"independence marker missing: {marker}")
     if not isinstance(manifest.get("contract"), str):
@@ -271,7 +284,9 @@ def verify_manifest(path: Path) -> dict[str, Any]:
     candidate_descriptors = manifest.get("candidate_descriptors")
     if not isinstance(query_descriptors, list) or not isinstance(candidate_descriptors, list):
         raise HeldOutDescriptorInputError("descriptor inputs must be lists")
-    if manifest.get("query_descriptor_count") != len(query_descriptors) or manifest.get("candidate_descriptor_count") != len(candidate_descriptors):
+    if manifest.get("query_descriptor_count") != len(query_descriptors) or manifest.get(
+        "candidate_descriptor_count"
+    ) != len(candidate_descriptors):
         raise HeldOutDescriptorInputError("descriptor count mismatch")
     if len(query_descriptors) < 3 or len(candidate_descriptors) < len(query_descriptors):
         raise HeldOutDescriptorInputError("held-out descriptor coverage mismatch")
@@ -283,7 +298,9 @@ def verify_manifest(path: Path) -> dict[str, Any]:
             raise HeldOutDescriptorInputError("query descriptor must be object")
         unexpected_query_fields = set(item) - ALLOWED_QUERY_FIELDS
         if unexpected_query_fields:
-            raise HeldOutDescriptorInputError(f"unexpected query fields: {sorted(unexpected_query_fields)}")
+            raise HeldOutDescriptorInputError(
+                f"unexpected query fields: {sorted(unexpected_query_fields)}"
+            )
         case_id = str(item.get("case_id"))
         query_id = str(item.get("query_id"))
         descriptor_id = str(item.get("descriptor_input_id"))
@@ -292,9 +309,16 @@ def verify_manifest(path: Path) -> dict[str, Any]:
             raise HeldOutDescriptorInputError(f"unsafe M026 query id: {descriptor_id}")
         if not SAFE_DESCRIPTOR_ID_RE.fullmatch(descriptor_id):
             raise HeldOutDescriptorInputError(f"unsafe descriptor id: {descriptor_id}")
-        if item.get("representation_kind") != REPRESENTATION_KIND or item.get("non_authoritative") is not True:
-            raise HeldOutDescriptorInputError(f"query descriptor boundary mismatch: {descriptor_id}")
-        if not isinstance(item.get("query_hash_ref"), str) or not SAFE_HASH_RE.fullmatch(item["query_hash_ref"]):
+        if (
+            item.get("representation_kind") != REPRESENTATION_KIND
+            or item.get("non_authoritative") is not True
+        ):
+            raise HeldOutDescriptorInputError(
+                f"query descriptor boundary mismatch: {descriptor_id}"
+            )
+        if not isinstance(item.get("query_hash_ref"), str) or not SAFE_HASH_RE.fullmatch(
+            item["query_hash_ref"]
+        ):
             raise HeldOutDescriptorInputError(f"query hash missing: {descriptor_id}")
         if descriptor_id in seen_ids:
             raise HeldOutDescriptorInputError(f"duplicate descriptor id: {descriptor_id}")
@@ -312,27 +336,42 @@ def verify_manifest(path: Path) -> dict[str, Any]:
             raise HeldOutDescriptorInputError("candidate descriptor must be object")
         unexpected_candidate_fields = set(item) - ALLOWED_CANDIDATE_FIELDS
         if unexpected_candidate_fields:
-            raise HeldOutDescriptorInputError(f"unexpected candidate fields: {sorted(unexpected_candidate_fields)}")
+            raise HeldOutDescriptorInputError(
+                f"unexpected candidate fields: {sorted(unexpected_candidate_fields)}"
+            )
         case_id = str(item.get("case_id"))
         query_id = str(item.get("query_id"))
         candidate_id = str(item.get("candidate_id"))
         descriptor_id = str(item.get("descriptor_input_id"))
         assert_no_forbidden_id_reuse(case_id, query_id, candidate_id, descriptor_id)
-        if not SAFE_M026_ID_RE.fullmatch(case_id) or not SAFE_M026_ID_RE.fullmatch(query_id) or not SAFE_M026_ID_RE.fullmatch(candidate_id):
+        if (
+            not SAFE_M026_ID_RE.fullmatch(case_id)
+            or not SAFE_M026_ID_RE.fullmatch(query_id)
+            or not SAFE_M026_ID_RE.fullmatch(candidate_id)
+        ):
             raise HeldOutDescriptorInputError(f"unsafe M026 candidate id: {descriptor_id}")
         if not SAFE_DESCRIPTOR_ID_RE.fullmatch(descriptor_id):
             raise HeldOutDescriptorInputError(f"unsafe descriptor id: {descriptor_id}")
         if case_id not in query_case_ids or query_id not in query_ids:
             raise HeldOutDescriptorInputError(f"candidate without query coverage: {descriptor_id}")
-        if item.get("representation_kind") != REPRESENTATION_KIND or item.get("non_authoritative") is not True:
-            raise HeldOutDescriptorInputError(f"candidate descriptor boundary mismatch: {descriptor_id}")
+        if (
+            item.get("representation_kind") != REPRESENTATION_KIND
+            or item.get("non_authoritative") is not True
+        ):
+            raise HeldOutDescriptorInputError(
+                f"candidate descriptor boundary mismatch: {descriptor_id}"
+            )
         source_record_ids = item.get("source_record_ids")
         if not isinstance(source_record_ids, list) or not source_record_ids:
             raise HeldOutDescriptorInputError(f"source record ids missing: {descriptor_id}")
         for source_id in source_record_ids:
-            if not isinstance(source_id, str) or not re.fullmatch(r"^HELDOUT-SRC-M026-[A-Z0-9-]+$", source_id):
+            if not isinstance(source_id, str) or not re.fullmatch(
+                r"^HELDOUT-SRC-M026-[A-Z0-9-]+$", source_id
+            ):
                 raise HeldOutDescriptorInputError(f"unsafe source record id: {descriptor_id}")
-        if not isinstance(item.get("source_hash_ref"), str) or not SAFE_HASH_RE.fullmatch(item["source_hash_ref"]):
+        if not isinstance(item.get("source_hash_ref"), str) or not SAFE_HASH_RE.fullmatch(
+            item["source_hash_ref"]
+        ):
             raise HeldOutDescriptorInputError(f"source hash missing: {descriptor_id}")
         if descriptor_id in seen_ids:
             raise HeldOutDescriptorInputError(f"duplicate descriptor id: {descriptor_id}")
@@ -359,10 +398,16 @@ def verify_manifest(path: Path) -> dict[str, Any]:
         "absolute_paths_excluded",
         "gsd_exec_paths_excluded",
     }
-    if set(redaction) != required_redaction or any(value is not True for value in redaction.values()):
+    if set(redaction) != required_redaction or any(
+        value is not True for value in redaction.values()
+    ):
         raise HeldOutDescriptorInputError("redaction flags mismatch")
     boundary = manifest.get("non_claim_boundary")
-    if not isinstance(boundary, str) or "does not prove semantic retrieval quality" not in boundary or "validate R035" not in boundary:
+    if (
+        not isinstance(boundary, str)
+        or "does not prove semantic retrieval quality" not in boundary
+        or "validate R035" not in boundary
+    ):
         raise HeldOutDescriptorInputError("non-claim boundary missing")
     return {
         "schema_version": "held-out-semantic-descriptor-inputs-verification/v1",
@@ -388,7 +433,13 @@ def main(argv: Sequence[str] | None = None) -> int:
     try:
         result = verify_manifest(args.manifest)
     except HeldOutDescriptorInputError as exc:
-        print(json.dumps({"status": "failed", "diagnostic": str(exc), "non_authoritative": True}, ensure_ascii=False, sort_keys=True))
+        print(
+            json.dumps(
+                {"status": "failed", "diagnostic": str(exc), "non_authoritative": True},
+                ensure_ascii=False,
+                sort_keys=True,
+            )
+        )
         return 1
     print(json.dumps(result, ensure_ascii=False, sort_keys=True))
     return 0

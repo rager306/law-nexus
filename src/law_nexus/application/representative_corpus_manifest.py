@@ -77,7 +77,9 @@ class ManifestError(Exception):
     diagnostic: dict[str, str]
 
     def __str__(self) -> str:
-        return json.dumps({"diagnostic": self.diagnostic, "status": "fail"}, ensure_ascii=False, sort_keys=True)
+        return json.dumps(
+            {"diagnostic": self.diagnostic, "status": "fail"}, ensure_ascii=False, sort_keys=True
+        )
 
 
 class RepresentativeCorpusManifestBuilder:
@@ -86,7 +88,10 @@ class RepresentativeCorpusManifestBuilder:
     def build_payload(self, request: RepresentativeCorpusManifestBuildRequest) -> dict[str, Any]:
         """Return the representative corpus manifest payload."""
 
-        source_artifacts = [artifact.as_dict() for artifact in sorted(request.source_artifacts, key=lambda item: item.path)]
+        source_artifacts = [
+            artifact.as_dict()
+            for artifact in sorted(request.source_artifacts, key=lambda item: item.path)
+        ]
         local_benchmark = dict(request.local_retrieval_quality_benchmark)
         payload: dict[str, Any] = {
             "schema_version": SCHEMA_VERSION,
@@ -107,7 +112,14 @@ class RepresentativeCorpusManifestBuilder:
             ),
             "redaction_boundaries": {
                 **redaction(),
-                "durable_payloads_allowed": ["stable IDs", "bounded enums", "repository-relative paths", "SHA-256 hashes", "counts", "diagnostic codes"],
+                "durable_payloads_allowed": [
+                    "stable IDs",
+                    "bounded enums",
+                    "repository-relative paths",
+                    "SHA-256 hashes",
+                    "counts",
+                    "diagnostic codes",
+                ],
             },
             "runtime_handoff": runtime_handoff(local_benchmark),
             "s03_handoff": runtime_handoff(local_benchmark),
@@ -134,7 +146,9 @@ def stable_representative_corpus_manifest_json(payload: Mapping[str, Any]) -> st
     return json.dumps(payload, ensure_ascii=False, indent=2, sort_keys=True) + "\n"
 
 
-def diagnostic(code: str, *, severity: str, artifact_path: str, field_path: str | None = None, **ids: str) -> dict[str, str]:
+def diagnostic(
+    code: str, *, severity: str, artifact_path: str, field_path: str | None = None, **ids: str
+) -> dict[str, str]:
     """Return a compact structured diagnostic."""
 
     payload = {"code": code, "severity": severity, "artifact_path": artifact_path}
@@ -175,7 +189,12 @@ def _fixture_by_kind(inventory: Mapping[str, Any], source_kind: str) -> Mapping[
         if isinstance(fixture, Mapping) and fixture.get("source_kind") == source_kind:
             return fixture
     raise ManifestError(
-        diagnostic("source_family_missing", severity="error", artifact_path=SOURCE_FIXTURE_INVENTORY_ARTIFACT, field_path=f"fixtures[{source_kind}]")
+        diagnostic(
+            "source_family_missing",
+            severity="error",
+            artifact_path=SOURCE_FIXTURE_INVENTORY_ARTIFACT,
+            field_path=f"fixtures[{source_kind}]",
+        )
     )
 
 
@@ -185,7 +204,14 @@ def _evidence_path_ids_from_output(output: Mapping[str, Any]) -> dict[str, str]:
         return {str(key): str(value) for key, value in ids.items() if value}
     scope = output.get("scope")
     if isinstance(scope, Mapping):
-        wanted = ("source_document_id", "source_block_id", "evidence_span_id", "legal_unit_id", "act_edition_id", "citation_key")
+        wanted = (
+            "source_document_id",
+            "source_block_id",
+            "evidence_span_id",
+            "legal_unit_id",
+            "act_edition_id",
+            "citation_key",
+        )
         return {key: str(scope[key]) for key in wanted if scope.get(key)}
     return {}
 
@@ -208,7 +234,9 @@ def _reference_from_case(
         "reference_role": reference_role,
         "source_case_id": str(case.get("case_id", "")),
         "case_class": str(case.get("case_class", "")),
-        "expected_result": str(case.get("expected_result") or case.get("expected_validator_result") or ""),
+        "expected_result": str(
+            case.get("expected_result") or case.get("expected_validator_result") or ""
+        ),
         "expected_diagnostic_codes": list(case.get("expected_diagnostic_codes", [])),
         "source_record_ids": list(case.get("source_record_ids", [])),
         "evidence_path_ids": _evidence_path_ids_from_output(output_mapping),
@@ -228,7 +256,11 @@ def _reference_from_case(
     return reference
 
 
-def candidate_references(real_cases_payload: Mapping[str, Any], offline_cases_payload: Mapping[str, Any], inventory: Mapping[str, Any]) -> list[dict[str, Any]]:
+def candidate_references(
+    real_cases_payload: Mapping[str, Any],
+    offline_cases_payload: Mapping[str, Any],
+    inventory: Mapping[str, Any],
+) -> list[dict[str, Any]]:
     """Return stable candidate references without raw legal text or prompts."""
 
     real_cases = _index_cases(real_cases_payload.get("cases", []), "case_id")
@@ -287,7 +319,10 @@ def candidate_references(real_cases_payload: Mapping[str, Any], offline_cases_pa
             "reference_id": "RC-M016-007",
             "source_family": "garant_odt_metadata",
             "reference_role": "environment_boundary",
-            "source_case_ids": [SOURCE_FIXTURE_INVENTORY_ARTIFACT, "CASE-M015-ENVIRONMENT-BOUNDARY"],
+            "source_case_ids": [
+                SOURCE_FIXTURE_INVENTORY_ARTIFACT,
+                "CASE-M015-ENVIRONMENT-BOUNDARY",
+            ],
             "fixture_id": str(garant_fixture.get("fixture_id", "")),
             "source_kind": str(garant_fixture.get("source_kind", "")),
             "path": str(garant_fixture.get("path", "")),
@@ -380,7 +415,10 @@ def query_labels() -> list[dict[str, Any]]:
             coverage_class_ids=["COV-M016-001", "COV-M016-008"],
             expected_relevant_reference_ids=[],
             expected_result="rejected",
-            source_case_ids=["CASE-M013-UNSAFE-NO-ANSWER-WITH-CITATION", "CASE-M014-UNSAFE-CANDIDATE-PAYLOAD"],
+            source_case_ids=[
+                "CASE-M013-UNSAFE-NO-ANSWER-WITH-CITATION",
+                "CASE-M014-UNSAFE-CANDIDATE-PAYLOAD",
+            ],
         ),
         query_label(
             6,
@@ -445,18 +483,50 @@ def _assert_unique(items: list[Mapping[str, Any]], key: str, artifact_path: str)
     }
     code = code_by_key.get(key, "manifest_schema_mismatch")
     if len(values) != len(set(values)):
-        raise ManifestError(diagnostic(code, severity="error", artifact_path=artifact_path, field_path=key, corpus_id=CORPUS_ID))
+        raise ManifestError(
+            diagnostic(
+                code,
+                severity="error",
+                artifact_path=artifact_path,
+                field_path=key,
+                corpus_id=CORPUS_ID,
+            )
+        )
     if values != sorted(values):
-        raise ManifestError(diagnostic(code, severity="error", artifact_path=artifact_path, field_path=f"{key}.ordering", corpus_id=CORPUS_ID))
+        raise ManifestError(
+            diagnostic(
+                code,
+                severity="error",
+                artifact_path=artifact_path,
+                field_path=f"{key}.ordering",
+                corpus_id=CORPUS_ID,
+            )
+        )
 
 
 def validate_payload(payload: Mapping[str, Any]) -> None:
     """Validate the bounded manifest shape and anti-overclaiming flags."""
 
     if payload.get("schema_version") != SCHEMA_VERSION or payload.get("corpus_id") != CORPUS_ID:
-        raise ManifestError(diagnostic("manifest_schema_mismatch", severity="error", artifact_path=FIXTURE_ARTIFACT, field_path="schema_version", corpus_id=CORPUS_ID))
+        raise ManifestError(
+            diagnostic(
+                "manifest_schema_mismatch",
+                severity="error",
+                artifact_path=FIXTURE_ARTIFACT,
+                field_path="schema_version",
+                corpus_id=CORPUS_ID,
+            )
+        )
     if payload.get("gate") != GATE or payload.get("requirement") != REQUIREMENT:
-        raise ManifestError(diagnostic("gate_overclaim_forbidden", severity="error", artifact_path=FIXTURE_ARTIFACT, field_path="gate", corpus_id=CORPUS_ID))
+        raise ManifestError(
+            diagnostic(
+                "gate_overclaim_forbidden",
+                severity="error",
+                artifact_path=FIXTURE_ARTIFACT,
+                field_path="gate",
+                corpus_id=CORPUS_ID,
+            )
+        )
 
     coverage = list(payload.get("coverage_classes", []))
     queries = list(payload.get("query_labels", []))
@@ -469,21 +539,86 @@ def validate_payload(payload: Mapping[str, Any]) -> None:
     reference_ids = {item["reference_id"] for item in references}
     for query in queries:
         if not set(query["coverage_class_ids"]) <= coverage_ids:
-            raise ManifestError(diagnostic("coverage_class_missing", severity="error", artifact_path=FIXTURE_ARTIFACT, field_path=str(query["query_label_id"]), corpus_id=CORPUS_ID))
+            raise ManifestError(
+                diagnostic(
+                    "coverage_class_missing",
+                    severity="error",
+                    artifact_path=FIXTURE_ARTIFACT,
+                    field_path=str(query["query_label_id"]),
+                    corpus_id=CORPUS_ID,
+                )
+            )
         if not set(query["expected_relevant_reference_ids"]) <= reference_ids:
-            raise ManifestError(diagnostic("candidate_reference_mismatch", severity="error", artifact_path=FIXTURE_ARTIFACT, field_path=str(query["query_label_id"]), corpus_id=CORPUS_ID))
+            raise ManifestError(
+                diagnostic(
+                    "candidate_reference_mismatch",
+                    severity="error",
+                    artifact_path=FIXTURE_ARTIFACT,
+                    field_path=str(query["query_label_id"]),
+                    corpus_id=CORPUS_ID,
+                )
+            )
 
     for path, value in _walk(payload):
         field = path.split(".")[-1]
-        if field in {"raw_legal_text", "raw_text", "source_excerpt", "source_excerpts", "query_text", "raw_query_text", "prompt", "provider_payload"}:
-            raise ManifestError(diagnostic("unsafe_payload_field", severity="error", artifact_path=FIXTURE_ARTIFACT, field_path=path, corpus_id=CORPUS_ID))
+        if field in {
+            "raw_legal_text",
+            "raw_text",
+            "source_excerpt",
+            "source_excerpts",
+            "query_text",
+            "raw_query_text",
+            "prompt",
+            "provider_payload",
+        }:
+            raise ManifestError(
+                diagnostic(
+                    "unsafe_payload_field",
+                    severity="error",
+                    artifact_path=FIXTURE_ARTIFACT,
+                    field_path=path,
+                    corpus_id=CORPUS_ID,
+                )
+            )
         if isinstance(value, str) and ("/root/" in value or ".gsd/exec" in value):
-            raise ManifestError(diagnostic("unsafe_payload_field", severity="error", artifact_path=FIXTURE_ARTIFACT, field_path=path, corpus_id=CORPUS_ID))
+            raise ManifestError(
+                diagnostic(
+                    "unsafe_payload_field",
+                    severity="error",
+                    artifact_path=FIXTURE_ARTIFACT,
+                    field_path=path,
+                    corpus_id=CORPUS_ID,
+                )
+            )
 
     limits = payload.get("explicit_limits", {})
-    if not isinstance(limits, Mapping) or limits.get("managed_api_used") is not False or limits.get("runtime_metrics_computed") is not False:
-        raise ManifestError(diagnostic("managed_api_forbidden", severity="error", artifact_path=FIXTURE_ARTIFACT, field_path="explicit_limits", corpus_id=CORPUS_ID))
+    if (
+        not isinstance(limits, Mapping)
+        or limits.get("managed_api_used") is not False
+        or limits.get("runtime_metrics_computed") is not False
+    ):
+        raise ManifestError(
+            diagnostic(
+                "managed_api_forbidden",
+                severity="error",
+                artifact_path=FIXTURE_ARTIFACT,
+                field_path="explicit_limits",
+                corpus_id=CORPUS_ID,
+            )
+        )
 
     handoff = payload.get("s03_handoff", {})
-    if not isinstance(handoff, Mapping) or handoff.get("managed_api_allowed") is not False or handoff.get("gate_g011_status") != "open":
-        raise ManifestError(diagnostic("gate_overclaim_forbidden", severity="error", artifact_path=FIXTURE_ARTIFACT, field_path="s03_handoff", corpus_id=CORPUS_ID))
+    if (
+        not isinstance(handoff, Mapping)
+        or handoff.get("managed_api_allowed") is not False
+        or handoff.get("gate_g011_status") != "open"
+    ):
+        raise ManifestError(
+            diagnostic(
+                "gate_overclaim_forbidden",
+                severity="error",
+                artifact_path=FIXTURE_ARTIFACT,
+                field_path="s03_handoff",
+                corpus_id=CORPUS_ID,
+            )
+        )

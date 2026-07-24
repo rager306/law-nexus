@@ -12,12 +12,13 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Literal
+from typing import Any
 
 import yaml
 
 # Type alias matching the ConsultantHierarchyLevel literal from parser_records
 LevelName = str
+
 
 @dataclass(frozen=True)
 class CharNormalizationRule:
@@ -26,6 +27,7 @@ class CharNormalizationRule:
     pattern: str
     replacement: str
     description: str = ""
+
 
 @dataclass(frozen=True)
 class FormatSpec:
@@ -41,6 +43,7 @@ class FormatSpec:
     iterparse: bool = True
     iterparse_clear: bool = True
 
+
 @dataclass(frozen=True)
 class StructureSpec:
     """Structure declaration: ordered level ladder + marker regex families."""
@@ -49,6 +52,7 @@ class StructureSpec:
     marker_patterns: dict[str, str] = field(default_factory=dict)
     numbering_formats: dict[str, str] = field(default_factory=dict)
 
+
 @dataclass(frozen=True)
 class StyleMapSpec:
     """Style -> level hint mapping (e.g. Consultant style \"5\" = document)."""
@@ -56,12 +60,14 @@ class StyleMapSpec:
     mapping: dict[str, LevelName]
     default: LevelName = "body_text"
 
+
 @dataclass(frozen=True)
 class ZoneSpec:
     """Zone declaration: preamble or appendix with marker trigger."""
 
     marker: str | None
     trigger: str
+
 
 @dataclass(frozen=True)
 class SourceProfile:
@@ -75,6 +81,7 @@ class SourceProfile:
     zones: dict[str, ZoneSpec] = field(default_factory=dict)
     non_claim: str = ""
 
+
 def _parse_char_normalization(rules: list[dict[str, Any]]) -> tuple[CharNormalizationRule, ...]:
     return tuple(
         CharNormalizationRule(
@@ -84,6 +91,7 @@ def _parse_char_normalization(rules: list[dict[str, Any]]) -> tuple[CharNormaliz
         )
         for rule in rules
     )
+
 
 def load_profile(path: Path | None = None, *, source_kind: str | None = None) -> SourceProfile:
     """Load a source profile from YAML.

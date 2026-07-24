@@ -23,15 +23,34 @@ def _json(path: str) -> dict[str, object]:
 def _request() -> RepresentativeCorpusManifestBuildRequest:
     return RepresentativeCorpusManifestBuildRequest(
         source_fixture_inventory=_json("prd/parser/source_fixture_inventory.json"),
-        local_retrieval_quality_benchmark=_json("prd/retrieval/fixtures/local_retrieval_quality_benchmark.json"),
-        offline_citation_retrieval_cases=_json("prd/retrieval/fixtures/offline_citation_retrieval_cases.json"),
-        real_artifact_retrieval_cases=_json("prd/retrieval/fixtures/real_artifact_retrieval_cases.json"),
+        local_retrieval_quality_benchmark=_json(
+            "prd/retrieval/fixtures/local_retrieval_quality_benchmark.json"
+        ),
+        offline_citation_retrieval_cases=_json(
+            "prd/retrieval/fixtures/offline_citation_retrieval_cases.json"
+        ),
+        real_artifact_retrieval_cases=_json(
+            "prd/retrieval/fixtures/real_artifact_retrieval_cases.json"
+        ),
         source_artifacts=(
-            RepresentativeCorpusSourceArtifact(path="prd/parser/source_fixture_inventory.json", sha256="sha-inventory"),
-            RepresentativeCorpusSourceArtifact(path="prd/retrieval/fixtures/local_retrieval_quality_benchmark.json", sha256="sha-local"),
-            RepresentativeCorpusSourceArtifact(path="prd/retrieval/fixtures/offline_citation_retrieval_cases.json", sha256="sha-offline"),
-            RepresentativeCorpusSourceArtifact(path="prd/retrieval/fixtures/real_artifact_retrieval_cases.json", sha256="sha-real"),
-            RepresentativeCorpusSourceArtifact(path="prd/retrieval/representative_retrieval_corpus_contract.md", sha256="sha-contract"),
+            RepresentativeCorpusSourceArtifact(
+                path="prd/parser/source_fixture_inventory.json", sha256="sha-inventory"
+            ),
+            RepresentativeCorpusSourceArtifact(
+                path="prd/retrieval/fixtures/local_retrieval_quality_benchmark.json",
+                sha256="sha-local",
+            ),
+            RepresentativeCorpusSourceArtifact(
+                path="prd/retrieval/fixtures/offline_citation_retrieval_cases.json",
+                sha256="sha-offline",
+            ),
+            RepresentativeCorpusSourceArtifact(
+                path="prd/retrieval/fixtures/real_artifact_retrieval_cases.json", sha256="sha-real"
+            ),
+            RepresentativeCorpusSourceArtifact(
+                path="prd/retrieval/representative_retrieval_corpus_contract.md",
+                sha256="sha-contract",
+            ),
         ),
     )
 
@@ -45,10 +64,19 @@ def test_representative_corpus_manifest_builder_emits_expected_contract_shape() 
     assert payload["non_claims"] == list(REPRESENTATIVE_CORPUS_MANIFEST_NON_CLAIMS)
     assert payload["source_artifacts"] == [
         {"path": "prd/parser/source_fixture_inventory.json", "sha256": "sha-inventory"},
-        {"path": "prd/retrieval/fixtures/local_retrieval_quality_benchmark.json", "sha256": "sha-local"},
-        {"path": "prd/retrieval/fixtures/offline_citation_retrieval_cases.json", "sha256": "sha-offline"},
+        {
+            "path": "prd/retrieval/fixtures/local_retrieval_quality_benchmark.json",
+            "sha256": "sha-local",
+        },
+        {
+            "path": "prd/retrieval/fixtures/offline_citation_retrieval_cases.json",
+            "sha256": "sha-offline",
+        },
         {"path": "prd/retrieval/fixtures/real_artifact_retrieval_cases.json", "sha256": "sha-real"},
-        {"path": "prd/retrieval/representative_retrieval_corpus_contract.md", "sha256": "sha-contract"},
+        {
+            "path": "prd/retrieval/representative_retrieval_corpus_contract.md",
+            "sha256": "sha-contract",
+        },
     ]
     assert payload["explicit_limits"]["garant_parsed_content_claimed"] is False
     assert payload["explicit_limits"]["runtime_metrics_computed"] is False

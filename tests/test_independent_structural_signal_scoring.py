@@ -10,9 +10,18 @@ from typing import Any
 
 ROOT = Path(__file__).resolve().parents[1]
 VERIFIER = ROOT / "scripts/verify-independent-structural-signal-scoring.py"
-INPUTS = ROOT / "prd/research/ontology_architecture_requirements/fixtures/independent_structural_signal_inputs.json"
-LABELS = ROOT / "prd/research/ontology_architecture_requirements/fixtures/materialized_descriptor_evaluation_labels.json"
-PROOF = ROOT / "prd/research/ontology_architecture_requirements/independent_structural_signal_scoring_proof.json"
+INPUTS = (
+    ROOT
+    / "prd/research/ontology_architecture_requirements/fixtures/independent_structural_signal_inputs.json"
+)
+LABELS = (
+    ROOT
+    / "prd/research/ontology_architecture_requirements/fixtures/materialized_descriptor_evaluation_labels.json"
+)
+PROOF = (
+    ROOT
+    / "prd/research/ontology_architecture_requirements/independent_structural_signal_scoring_proof.json"
+)
 
 
 def load_module(name: str = "independent_structural_signal_scoring") -> ModuleType:
@@ -29,7 +38,9 @@ def load_json(path: Path) -> dict[str, Any]:
 
 def write_json(tmp_path: Path, name: str, payload: dict[str, Any]) -> Path:
     path = tmp_path / name
-    path.write_text(json.dumps(payload, ensure_ascii=False, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    path.write_text(
+        json.dumps(payload, ensure_ascii=False, indent=2, sort_keys=True) + "\n", encoding="utf-8"
+    )
     return path
 
 
@@ -53,10 +64,23 @@ def test_checked_in_proof_has_expected_boundaries() -> None:
     assert proof["scoring_mode"] == "local_user_bge_m3_independent_anchor_family_similarity_v1"
     assert proof["selected_signal"] == "safe_anchor_family_bucket"
     assert proof["forbidden_reused_signal"] == "safe_source_order_neighborhood_bucket"
-    assert proof["descriptor_inputs_artifact"] == "prd/research/ontology_architecture_requirements/fixtures/independent_structural_signal_inputs.json"
+    assert (
+        proof["descriptor_inputs_artifact"]
+        == "prd/research/ontology_architecture_requirements/fixtures/independent_structural_signal_inputs.json"
+    )
     assert proof["outcome_classification"] == "neutral_vs_m027_below_m028"
-    assert proof["m027_baseline_metrics"] == {"mrr": 0.680555, "recall_at_1": 0.5, "recall_at_3": 0.833333, "runtime_boundary_confirmed": 1.0}
-    assert proof["m028_baseline_metrics"] == {"mrr": 0.916667, "recall_at_1": 0.833333, "recall_at_3": 1.0, "runtime_boundary_confirmed": 1.0}
+    assert proof["m027_baseline_metrics"] == {
+        "mrr": 0.680555,
+        "recall_at_1": 0.5,
+        "recall_at_3": 0.833333,
+        "runtime_boundary_confirmed": 1.0,
+    }
+    assert proof["m028_baseline_metrics"] == {
+        "mrr": 0.916667,
+        "recall_at_1": 0.833333,
+        "recall_at_3": 1.0,
+        "runtime_boundary_confirmed": 1.0,
+    }
     assert proof["evaluation_label_boundary"]["post_scoring_only"] is True
     assert proof["evaluation_label_boundary"]["forbidden_as_descriptor_input"] is True
     assert proof["evaluation_label_boundary"]["loaded_after_score_generation"] is True
@@ -66,9 +90,24 @@ def test_checked_in_proof_has_expected_boundaries() -> None:
     assert proof["runtime_boundary"]["network_used"] is False
     assert proof["runtime_boundary"]["raw_vectors_persisted"] is False
     assert proof["score_count"] == 36
-    assert proof["metrics"] == {"mrr": 0.680555, "recall_at_1": 0.5, "recall_at_3": 0.833333, "runtime_boundary_confirmed": 1.0}
-    assert proof["metric_deltas_vs_m027"] == {"delta_vs_m027_mrr": 0.0, "delta_vs_m027_recall_at_1": 0.0, "delta_vs_m027_recall_at_3": 0.0, "delta_vs_m027_runtime_boundary_confirmed": 0.0}
-    assert proof["metric_deltas_vs_m028"] == {"delta_vs_m028_mrr": -0.236112, "delta_vs_m028_recall_at_1": -0.333333, "delta_vs_m028_recall_at_3": -0.166667, "delta_vs_m028_runtime_boundary_confirmed": 0.0}
+    assert proof["metrics"] == {
+        "mrr": 0.680555,
+        "recall_at_1": 0.5,
+        "recall_at_3": 0.833333,
+        "runtime_boundary_confirmed": 1.0,
+    }
+    assert proof["metric_deltas_vs_m027"] == {
+        "delta_vs_m027_mrr": 0.0,
+        "delta_vs_m027_recall_at_1": 0.0,
+        "delta_vs_m027_recall_at_3": 0.0,
+        "delta_vs_m027_runtime_boundary_confirmed": 0.0,
+    }
+    assert proof["metric_deltas_vs_m028"] == {
+        "delta_vs_m028_mrr": -0.236112,
+        "delta_vs_m028_recall_at_1": -0.333333,
+        "delta_vs_m028_recall_at_3": -0.166667,
+        "delta_vs_m028_runtime_boundary_confirmed": 0.0,
+    }
     assert "Does not validate R035." in proof["non_claims"]
 
 
@@ -80,7 +119,10 @@ def test_scores_rank_all_candidates_per_case() -> None:
 
     assert len(scores_by_case) == 6
     assert all(len(rows) == 6 for rows in scores_by_case.values())
-    assert all(sorted(row["observed_rank"] for row in rows) == [1, 2, 3, 4, 5, 6] for rows in scores_by_case.values())
+    assert all(
+        sorted(row["observed_rank"] for row in rows) == [1, 2, 3, 4, 5, 6]
+        for rows in scores_by_case.values()
+    )
 
 
 def test_evaluation_labels_are_post_scoring_only() -> None:
@@ -108,7 +150,10 @@ def test_descriptor_inputs_do_not_contain_evaluation_labels_or_reused_signal() -
         assert forbidden not in serialized
     for item in inputs["query_descriptors"] + inputs["candidate_descriptors"]:
         assert "safe_source_order_neighborhood_bucket" not in item["descriptors"]
-        assert all("safe_source_order_neighborhood_bucket:" not in token for token in item["descriptor_tokens"])
+        assert all(
+            "safe_source_order_neighborhood_bucket:" not in token
+            for token in item["descriptor_tokens"]
+        )
         assert "source_order_index" not in item
 
 
@@ -172,7 +217,13 @@ def test_test_only_injection_cannot_write(tmp_path: Path) -> None:
         },
     )
     completed = subprocess.run(
-        [sys.executable, str(VERIFIER), "--runtime-json", str(runtime), "--allow-injected-test-inputs"],
+        [
+            sys.executable,
+            str(VERIFIER),
+            "--runtime-json",
+            str(runtime),
+            "--allow-injected-test-inputs",
+        ],
         cwd=ROOT,
         check=False,
         text=True,
@@ -280,7 +331,9 @@ def test_descriptor_input_with_source_order_index_is_rejected() -> None:
 
 def test_descriptor_input_with_reused_m028_signal_is_rejected() -> None:
     inputs = load_json(INPUTS)
-    inputs["query_descriptors"][0]["descriptors"]["safe_source_order_neighborhood_bucket"] = "source_order_neighbor_first"
+    inputs["query_descriptors"][0]["descriptors"]["safe_source_order_neighborhood_bucket"] = (
+        "source_order_neighbor_first"
+    )
 
     def run(scorer: ModuleType) -> None:
         scorer.assert_safe_payload(inputs)

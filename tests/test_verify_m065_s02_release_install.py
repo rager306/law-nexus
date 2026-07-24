@@ -39,7 +39,10 @@ def _write_binary(tmp_path: Path, name: str, content: bytes, mode: int = 0o755) 
 
 def _write_manifest(tmp_path: Path, binaries: dict) -> Path:
     manifest_path = tmp_path / "install-manifest.json"
-    manifest_path.write_text(json.dumps({"schema_version": "m065-s02-install-manifest/v1", "binaries": binaries}), encoding="utf-8")
+    manifest_path.write_text(
+        json.dumps({"schema_version": "m065-s02-install-manifest/v1", "binaries": binaries}),
+        encoding="utf-8",
+    )
     return manifest_path
 
 
@@ -51,11 +54,15 @@ def _valid_proof() -> dict:
             "git_lex_direct_help": {"exit_code": 0, "banner_found": True},
             "git_lex_serve_help": {"exit_code": 0, "banner_found": True},
             "git_subcommand_dispatch": {"primary_exit_code": 2, "primary_banner_found": True},
-            "version_gap": {"version_gap_confirmed": True, "git_lex_version_rc": 2, "git_lex_serve_version_rc": 2},
+            "version_gap": {
+                "version_gap_confirmed": True,
+                "git_lex_version_rc": 2,
+                "git_lex_serve_version_rc": 2,
+            },
         },
         "residue_guard": {
-            "before": {".artifacts": "absent", "Squad": "absent", "Raw": "absent", ".artifacts": "absent"},
-            "after": {".artifacts": "absent", "Squad": "absent", "Raw": "absent", ".artifacts": "absent"},
+            "before": {".artifacts": "absent", "Squad": "absent", "Raw": "absent"},
+            "after": {".artifacts": "absent", "Squad": "absent", "Raw": "absent"},
         },
         "cli_install_only_boundary": {"wont": ["no main .artifacts init", "no serve/viz/listen"]},
     }
@@ -178,7 +185,9 @@ def test_check_installed_binaries_missing_binary(tmp_path: Path) -> None:
 def test_check_installed_binaries_missing_manifest_entry(tmp_path: Path) -> None:
     verifier = load_verifier()
     # only git-lex recorded; git-lex-serve absent
-    manifest = _write_manifest(tmp_path, {"git-lex": {"sha256": "aa", "path": str(tmp_path / "git-lex")}})
+    manifest = _write_manifest(
+        tmp_path, {"git-lex": {"sha256": "aa", "path": str(tmp_path / "git-lex")}}
+    )
 
     count, diagnostics = verifier.check_installed_binaries(manifest)
 
@@ -451,8 +460,19 @@ def test_verify_skip_residue(tmp_path: Path) -> None:
 
 def test_main_exits_nonzero_on_diagnostics(tmp_path: Path) -> None:
     verifier = load_verifier()
-    rc = verifier.main(["--contract", str(tmp_path / "nope.md"), "--manifest", str(tmp_path / "nope.json"),
-                        "--proof", str(tmp_path / "nope.json"), "--root", str(tmp_path), "--skip-residue"])
+    rc = verifier.main(
+        [
+            "--contract",
+            str(tmp_path / "nope.md"),
+            "--manifest",
+            str(tmp_path / "nope.json"),
+            "--proof",
+            str(tmp_path / "nope.json"),
+            "--root",
+            str(tmp_path),
+            "--skip-residue",
+        ]
+    )
 
     assert rc == 1
 
@@ -476,16 +496,24 @@ def test_main_exits_zero_clean(tmp_path: Path, capsys: pytest.CaptureFixture[str
     residue_root = tmp_path / "clean-root"
     residue_root.mkdir()
 
-    rc = verifier.main([
-        "--contract", str(contract),
-        "--manifest", str(manifest),
-        "--proof", str(proof),
-        "--root", str(residue_root),
-    ])
+    rc = verifier.main(
+        [
+            "--contract",
+            str(contract),
+            "--manifest",
+            str(manifest),
+            "--proof",
+            str(proof),
+            "--root",
+            str(residue_root),
+        ]
+    )
 
     assert rc == 0
     captured = capsys.readouterr()
-    assert "M065 S02 release-install verification passed: binaries=2/2 diagnostics=0" in captured.out
+    assert (
+        "M065 S02 release-install verification passed: binaries=2/2 diagnostics=0" in captured.out
+    )
 
 
 # --------------------------------------------------------------------------

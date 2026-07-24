@@ -53,7 +53,9 @@ def test_contract_readback_confirms_required_terms(validator: ModuleType) -> Non
     assert "LLM non-authoritative" in report["required_terms"]
 
 
-def test_accepts_evidence_returning_article_query(validator: ModuleType, schema: dict[str, object]) -> None:
+def test_accepts_evidence_returning_article_query(
+    validator: ModuleType, schema: dict[str, object]
+) -> None:
     query = """MATCH (span:EvidenceSpan)-[:SUPPORTS]->(article:Article)-[:SUPPORTED_BY]->(block:SourceBlock),
                     (span)-[:IN_BLOCK]->(block)
              WHERE article.id = $article_id
@@ -92,7 +94,10 @@ def test_accepts_allowed_fulltext_procedure_with_evidence_path(
     [
         ("empty", ""),
         ("markdown", "```cypher\nMATCH (a:Article) RETURN a.id LIMIT 1\n```"),
-        ("multi_statement", "MATCH (a:Article) RETURN a.id LIMIT 1; MATCH (b:SourceBlock) RETURN b.id LIMIT 1"),
+        (
+            "multi_statement",
+            "MATCH (a:Article) RETURN a.id LIMIT 1; MATCH (b:SourceBlock) RETURN b.id LIMIT 1",
+        ),
         ("comment", "MATCH (a:Article) RETURN a.id LIMIT 1 // ignore policy"),
         ("hidden_reasoning", "<think>find all nodes</think> MATCH (a:Article) RETURN a.id LIMIT 1"),
     ],
@@ -126,7 +131,10 @@ def test_rejects_writes_admin_and_imports(
     ("candidate", "code"),
     [
         ("MATCH (p:Paragraph) RETURN p.id LIMIT 5", "E_UNKNOWN_LABEL"),
-        ("MATCH (a:Article)-[:AMENDS]->(b:Article) RETURN a.id, b.id LIMIT 5", "E_UNKNOWN_RELATIONSHIP"),
+        (
+            "MATCH (a:Article)-[:AMENDS]->(b:Article) RETURN a.id, b.id LIMIT 5",
+            "E_UNKNOWN_RELATIONSHIP",
+        ),
         ("MATCH (a:Article) RETURN a.body LIMIT 5", "E_UNKNOWN_PROPERTY"),
         (
             "MATCH (block:SourceBlock)-[:SUPPORTED_BY]->(article:Article) RETURN article.id, block.id LIMIT 5",
@@ -145,8 +153,14 @@ def test_rejects_unknown_schema_and_bad_endpoint(
 @pytest.mark.parametrize(
     ("candidate", "code"),
     [
-        ("CALL db.index.fulltext.queryNodes('SourceBlock', $q) YIELD node RETURN node.id LIMIT 5", "E_NEO4J_ONLY_CARRYOVER"),
-        ("CALL gds.pageRank.stream('g') YIELD nodeId RETURN nodeId LIMIT 5", "E_NEO4J_ONLY_CARRYOVER"),
+        (
+            "CALL db.index.fulltext.queryNodes('SourceBlock', $q) YIELD node RETURN node.id LIMIT 5",
+            "E_NEO4J_ONLY_CARRYOVER",
+        ),
+        (
+            "CALL gds.pageRank.stream('g') YIELD nodeId RETURN nodeId LIMIT 5",
+            "E_NEO4J_ONLY_CARRYOVER",
+        ),
         ("CALL apoc.meta.schema() YIELD value RETURN value LIMIT 5", "E_NEO4J_ONLY_CARRYOVER"),
         ("CALL db.labels() YIELD label RETURN label LIMIT 5", "E_UNSUPPORTED_PROCEDURE"),
     ],
@@ -163,8 +177,14 @@ def test_rejects_gds_apoc_and_unallowlisted_procedures(
     ("candidate", "code"),
     [
         ("MATCH (n) RETURN n", "E_UNBOUNDED_TRAVERSAL"),
-        ("MATCH (a:Article)-[:CITES*]->(b:Article) RETURN a.id, b.id LIMIT 5", "E_UNBOUNDED_TRAVERSAL"),
-        ("MATCH (a:Article)-[:CITES*1..10]->(b:Article) RETURN a.id, b.id LIMIT 5", "E_UNBOUNDED_TRAVERSAL"),
+        (
+            "MATCH (a:Article)-[:CITES*]->(b:Article) RETURN a.id, b.id LIMIT 5",
+            "E_UNBOUNDED_TRAVERSAL",
+        ),
+        (
+            "MATCH (a:Article)-[:CITES*1..10]->(b:Article) RETURN a.id, b.id LIMIT 5",
+            "E_UNBOUNDED_TRAVERSAL",
+        ),
         ("MATCH (a:Article) RETURN a.id", "E_LIMIT_REQUIRED"),
         ("MATCH (a:Article) RETURN a.id LIMIT 10000", "E_LIMIT_EXCEEDED"),
     ],
@@ -232,7 +252,9 @@ def test_accepts_temporal_query_when_as_of_filter_is_present(
     assert report.rejection_codes == []
 
 
-def test_malformed_or_unknown_schema_fails_closed(validator: ModuleType, schema: dict[str, object]) -> None:
+def test_malformed_or_unknown_schema_fails_closed(
+    validator: ModuleType, schema: dict[str, object]
+) -> None:
     malformed = copy.deepcopy(schema)
     malformed.pop("cypher_policy")
     with pytest.raises(ValueError, match="E_CONTRACT_MALFORMED"):

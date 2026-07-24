@@ -54,7 +54,9 @@ def load_fixture() -> dict[str, Any]:
 
 
 def write_fixture(path: Path, data: dict[str, Any]) -> None:
-    path.write_text(json.dumps(data, ensure_ascii=False, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    path.write_text(
+        json.dumps(data, ensure_ascii=False, indent=2, sort_keys=True) + "\n", encoding="utf-8"
+    )
 
 
 def test_cli_passes_for_checked_in_fixture() -> None:
@@ -137,13 +139,11 @@ def test_cli_detects_unsafe_diagnostic_fields(tmp_path: Path) -> None:
     assert result.returncode == 1
     summary = json.loads(result.stdout)
     assert any(
-        mismatch["code"] == "unsafe_payload_field"
-        and "raw_text" in mismatch["field_path"]
+        mismatch["code"] == "unsafe_payload_field" and "raw_text" in mismatch["field_path"]
         for mismatch in summary["mismatches"]
     )
     assert any(
-        mismatch["code"] == "unsafe_diagnostic_field"
-        and "raw_text" in mismatch["actual_fields"]
+        mismatch["code"] == "unsafe_diagnostic_field" and "raw_text" in mismatch["actual_fields"]
         for mismatch in summary["mismatches"]
     )
 
@@ -159,8 +159,14 @@ def test_cli_detects_raw_vector_or_managed_api_boundary_failure(tmp_path: Path) 
 
     assert result.returncode == 1
     summary = json.loads(result.stdout)
-    assert any(mismatch["field_path"] == "model_boundary.managed_api_used" for mismatch in summary["mismatches"])
-    assert any(mismatch["field_path"] == "model_boundary.raw_vectors_persisted" for mismatch in summary["mismatches"])
+    assert any(
+        mismatch["field_path"] == "model_boundary.managed_api_used"
+        for mismatch in summary["mismatches"]
+    )
+    assert any(
+        mismatch["field_path"] == "model_boundary.raw_vectors_persisted"
+        for mismatch in summary["mismatches"]
+    )
 
 
 def test_cli_detects_forbidden_text_payload(tmp_path: Path) -> None:

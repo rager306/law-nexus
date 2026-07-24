@@ -44,12 +44,16 @@ def load_results() -> dict:
 
 
 def report_text() -> str:
-    assert REPORT_PATH.exists(), f"Missing S09 functional-fit report: {REPORT_PATH.relative_to(ROOT)}"
+    assert REPORT_PATH.exists(), (
+        f"Missing S09 functional-fit report: {REPORT_PATH.relative_to(ROOT)}"
+    )
     return REPORT_PATH.read_text(encoding="utf-8")
 
 
 def diagnostics_text() -> str:
-    assert DIAGNOSTICS_PATH.exists(), f"Missing S09 runtime diagnostics: {DIAGNOSTICS_PATH.relative_to(ROOT)}"
+    assert DIAGNOSTICS_PATH.exists(), (
+        f"Missing S09 runtime diagnostics: {DIAGNOSTICS_PATH.relative_to(ROOT)}"
+    )
     return DIAGNOSTICS_PATH.read_text(encoding="utf-8")
 
 
@@ -87,7 +91,9 @@ def test_blocked_runtime_diagnostics_are_preserved_without_treating_block_as_pas
     assert runtime["runtime_status"] == "blocked"
     assert runtime["blocker_class"] == "UnsupportedGitLexRuntime"
     assert runtime["tool_versions"]["git_lex_runtime"] == "unavailable"
-    assert "no clone/install/download/durable build/git-lex-init" in runtime["safe_acquisition_policy"]
+    assert (
+        "no clone/install/download/durable build/git-lex-init" in runtime["safe_acquisition_policy"]
+    )
 
     commands = {" ".join(command["command"]): command for command in runtime["commands"]}
     assert "git lex --help" in commands
@@ -98,7 +104,9 @@ def test_blocked_runtime_diagnostics_are_preserved_without_treating_block_as_pas
     git_semantics = rows["git-semantics"]
     assert git_semantics["result_state"] == "blocked"
     assert git_semantics["failure_category"] == "UnsupportedGitLexRuntime"
-    assert "no record-aware git-lex value was proven" in git_semantics["value_beyond_acp_native_git"]
+    assert (
+        "no record-aware git-lex value was proven" in git_semantics["value_beyond_acp_native_git"]
+    )
 
     blocked_claim = rows["blocked-claim"]
     assert blocked_claim["failure_category"] == "UnsupportedGitLexRuntime"
@@ -122,7 +130,10 @@ def test_no_main_repo_lex_mutation_guard_is_machine_readable_and_reported() -> N
     isolation = rows_by_scenario(results)["isolation-safety"]
     assert isolation["result_state"] == "pass"
     assert isolation["diagnostics"]["mutation_guard"]["safe"] is True
-    assert isolation["evidence_anchor"] == "prd/architecture/acp/M048-S09-GIT-LEX-RUNTIME-DIAGNOSTICS.md"
+    assert (
+        isolation["evidence_anchor"]
+        == "prd/architecture/acp/M048-S09-GIT-LEX-RUNTIME-DIAGNOSTICS.md"
+    )
 
     assert "Main-repo mutation guard safe: `True`" in report
     assert "Main checkout .lex absence checked before and after" in report

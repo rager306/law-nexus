@@ -120,7 +120,9 @@ def test_runtime_inputs_are_generated_style_and_negative_ready(tmp_path: Path) -
     shape = (tmp_path / "shapes/composed-profile.ttl").read_text(encoding="utf-8")
     assert "@prefix acp:" in shape
     assert "@prefix lawNexus:" in shape
-    assert "acp:ValidationClaimShape a sh:NodeShape ;\n  sh:targetClass acp:ValidationClaim ;" in shape
+    assert (
+        "acp:ValidationClaimShape a sh:NodeShape ;\n  sh:targetClass acp:ValidationClaim ;" in shape
+    )
     assert "sh:path acp:verdict" in shape
     assert "sh:path acp:sourceArtifact" in shape
     assert "sh:path lawNexus:observedAt" in shape

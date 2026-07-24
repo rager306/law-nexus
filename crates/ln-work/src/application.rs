@@ -2,8 +2,8 @@ use std::collections::HashMap;
 
 use crate::domain::{
     next_state, CheckpointId, DomainSnapshotId, LegalMappingAttempt, PublicationSnapshotId,
-    TransitionOutcome, TransitionRequest, TransitionResult, TransitionTrace, WorkState,
-    WorkUnitId, WORK_POLICY_VERSION,
+    TransitionOutcome, TransitionRequest, TransitionResult, TransitionTrace, WorkState, WorkUnitId,
+    WORK_POLICY_VERSION,
 };
 use crate::ports::DomainEvidencePort;
 
@@ -68,9 +68,7 @@ where
     }
 
     pub fn state_of(&self, work_unit_id: &WorkUnitId) -> Option<WorkState> {
-        self.units
-            .get(work_unit_id.as_str())
-            .map(|r| r.state)
+        self.units.get(work_unit_id.as_str()).map(|r| r.state)
     }
 
     pub fn domain_snapshot_of(&self, work_unit_id: &WorkUnitId) -> Option<DomainSnapshotId> {
@@ -91,8 +89,7 @@ where
     pub fn transition(&mut self, request: TransitionRequest) -> TransitionResult {
         let Some(prior) = self.units.get(request.work_unit_id.as_str()).cloned() else {
             // Unknown unit: treat as invalid without inventing legal state.
-            let empty_domain =
-                DomainSnapshotId::parse("domain:unknown-unit").expect("static id");
+            let empty_domain = DomainSnapshotId::parse("domain:unknown-unit").expect("static id");
             let empty_pub =
                 PublicationSnapshotId::parse("publication:unknown-unit").expect("static id");
             let cp = CheckpointId::parse("cp:none").expect("static id");
@@ -183,8 +180,7 @@ where
         // Processing transition only: advance work state + checkpoint.
         // Domain/publication remain the application-frozen values.
         let new_seq = prior.checkpoint_seq + 1;
-        let new_checkpoint =
-            CheckpointId::parse(&format!("cp:{new_seq}")).expect("checkpoint id");
+        let new_checkpoint = CheckpointId::parse(&format!("cp:{new_seq}")).expect("checkpoint id");
         let updated = WorkRecord {
             state: next,
             checkpoint: new_checkpoint.clone(),

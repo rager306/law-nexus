@@ -48,7 +48,9 @@ def write_case(tmp_path: Path, text: str, proof: dict[str, object]) -> tuple[Pat
     return recommendation, proof_path
 
 
-def errors_for(verifier: ModuleType, tmp_path: Path, text: str, proof: dict[str, object]) -> list[str]:
+def errors_for(
+    verifier: ModuleType, tmp_path: Path, text: str, proof: dict[str, object]
+) -> list[str]:
     recommendation, proof_path = write_case(tmp_path, text, proof)
     return verifier.verify_recommendation(recommendation, proof_path).errors
 
@@ -97,7 +99,12 @@ def test_rejects_missing_evidence_table_rows(
     proof_payload: dict[str, object],
     row: str,
 ) -> None:
-    errors = errors_for(verifier, tmp_path, recommendation_text.replace(f"| {row} |", "| missing |", 1), proof_payload)
+    errors = errors_for(
+        verifier,
+        tmp_path,
+        recommendation_text.replace(f"| {row} |", "| missing |", 1),
+        proof_payload,
+    )
 
     assert any(f"missing {row} row" in error for error in errors)
 
@@ -119,7 +126,9 @@ def test_rejects_secret_like_strings(
     proof_payload: dict[str, object],
     secret_like: str,
 ) -> None:
-    errors = errors_for(verifier, tmp_path, recommendation_text + f"\n{secret_like}\n", proof_payload)
+    errors = errors_for(
+        verifier, tmp_path, recommendation_text + f"\n{secret_like}\n", proof_payload
+    )
 
     assert any("forbidden secret-like content" in error for error in errors)
 
@@ -179,7 +188,9 @@ def test_rejects_missing_r017_r011_boundary_language(
     proof_payload: dict[str, object],
     boundary: str,
 ) -> None:
-    errors = errors_for(verifier, tmp_path, recommendation_text.replace(boundary, ""), proof_payload)
+    errors = errors_for(
+        verifier, tmp_path, recommendation_text.replace(boundary, ""), proof_payload
+    )
 
     assert any("R011" in error or "R017" in error for error in errors)
 
@@ -190,7 +201,14 @@ def test_rejects_rest_baseline_without_validation_boundary(
     recommendation_text: str,
     proof_payload: dict[str, object],
 ) -> None:
-    errors = errors_for(verifier, tmp_path, recommendation_text.replace("shares the exact same validation boundary", "shares the exact same runtime", 1), proof_payload)
+    errors = errors_for(
+        verifier,
+        tmp_path,
+        recommendation_text.replace(
+            "shares the exact same validation boundary", "shares the exact same runtime", 1
+        ),
+        proof_payload,
+    )
 
     assert any("same validation boundary" in error for error in errors)
 
@@ -225,7 +243,9 @@ def test_derives_validator_only_when_provider_blocked_and_execution_not_confirme
     assert result.ok
 
 
-def test_derives_defer_for_failed_runtime(verifier: ModuleType, proof_payload: dict[str, object]) -> None:
+def test_derives_defer_for_failed_runtime(
+    verifier: ModuleType, proof_payload: dict[str, object]
+) -> None:
     proof = copy.deepcopy(proof_payload)
     proof["status"] = "failed-runtime"
     assert isinstance(proof["execution"], dict)

@@ -80,7 +80,9 @@ def base_scope(query_id: str) -> dict[str, str]:
     }
 
 
-def validator_output(*, query_id: str, output_id: str, citation_key: str, evidence_span_id: str, source_block_id: str) -> dict[str, Any]:
+def validator_output(
+    *, query_id: str, output_id: str, citation_key: str, evidence_span_id: str, source_block_id: str
+) -> dict[str, Any]:
     return {
         "retrieval_output_id": output_id,
         "output_kind": "retrieval_candidate",
@@ -110,7 +112,14 @@ def scoped_no_answer_output(query_id: str) -> dict[str, Any]:
     }
 
 
-def candidate(record: dict[str, Any], *, candidate_id: str, query_id: str, reason: str, output: dict[str, Any] | None) -> dict[str, Any]:
+def candidate(
+    record: dict[str, Any],
+    *,
+    candidate_id: str,
+    query_id: str,
+    reason: str,
+    output: dict[str, Any] | None,
+) -> dict[str, Any]:
     payload: dict[str, Any] = {
         "candidate_id": candidate_id,
         "query_id": query_id,
@@ -125,7 +134,15 @@ def candidate(record: dict[str, Any], *, candidate_id: str, query_id: str, reaso
     return payload
 
 
-def diagnostic(code: str, *, case_id: str, query_id: str, severity: str = "error", candidate_id: str | None = None, field_path: str | None = None) -> dict[str, str]:
+def diagnostic(
+    code: str,
+    *,
+    case_id: str,
+    query_id: str,
+    severity: str = "error",
+    candidate_id: str | None = None,
+    field_path: str | None = None,
+) -> dict[str, str]:
     payload = {
         "code": code,
         "severity": severity,
@@ -178,7 +195,8 @@ def _build_payload(request: OfflineRetrievalCaseBuildRequest) -> dict[str, Any]:
     chapter = first_record_by_level(records, "chapter")
     clause_1 = first_record_by_level(records, "clause")
     clause_2 = next(
-        record for record in records
+        record
+        for record in records
         if record.get("level") == "clause" and record["id"] != clause_1["id"]
     )
 
@@ -291,20 +309,46 @@ def _build_payload(request: OfflineRetrievalCaseBuildRequest) -> dict[str, Any]:
             expected_selection_result="scoped_no_answer",
             expected_validator_result="accepted_scoped_no_answer",
             expected_diagnostic_codes=["scoped_no_candidate", "scoped_no_answer"],
-            diagnostics=[diagnostic("scoped_no_candidate", case_id="CASE-M014-SCOPED-NO-CANDIDATE", query_id=no_answer_query["query_id"], severity="info")],
+            diagnostics=[
+                diagnostic(
+                    "scoped_no_candidate",
+                    case_id="CASE-M014-SCOPED-NO-CANDIDATE",
+                    query_id=no_answer_query["query_id"],
+                    severity="info",
+                )
+            ],
         ),
         case(
             case_id="CASE-M014-AMBIGUOUS-CANDIDATE-SET",
             case_class="ambiguous_candidate_set",
             query=ambiguous_query,
             candidates=[
-                candidate(clause_1, candidate_id="CAND-M014-CLAUSE-0001-AMBIG", query_id=ambiguous_query["query_id"], reason="ambiguous_candidate_set", output=None),
-                candidate(clause_2, candidate_id="CAND-M014-CLAUSE-0002-AMBIG", query_id=ambiguous_query["query_id"], reason="ambiguous_candidate_set", output=None),
+                candidate(
+                    clause_1,
+                    candidate_id="CAND-M014-CLAUSE-0001-AMBIG",
+                    query_id=ambiguous_query["query_id"],
+                    reason="ambiguous_candidate_set",
+                    output=None,
+                ),
+                candidate(
+                    clause_2,
+                    candidate_id="CAND-M014-CLAUSE-0002-AMBIG",
+                    query_id=ambiguous_query["query_id"],
+                    reason="ambiguous_candidate_set",
+                    output=None,
+                ),
             ],
             expected_selection_result="rejected",
             expected_validator_result=None,
             expected_diagnostic_codes=["ambiguous_candidate_set"],
-            diagnostics=[diagnostic("ambiguous_candidate_set", case_id="CASE-M014-AMBIGUOUS-CANDIDATE-SET", query_id=ambiguous_query["query_id"], field_path="candidates")],
+            diagnostics=[
+                diagnostic(
+                    "ambiguous_candidate_set",
+                    case_id="CASE-M014-AMBIGUOUS-CANDIDATE-SET",
+                    query_id=ambiguous_query["query_id"],
+                    field_path="candidates",
+                )
+            ],
         ),
         case(
             case_id="CASE-M014-UNRESOLVED-CANDIDATE-EVIDENCE",
@@ -327,20 +371,46 @@ def _build_payload(request: OfflineRetrievalCaseBuildRequest) -> dict[str, Any]:
             ],
             expected_selection_result="rejected",
             expected_validator_result="rejected",
-            expected_diagnostic_codes=["unresolved_candidate_evidence", "id_path_mismatch", "orphaned_source_path"],
-            diagnostics=[diagnostic("unresolved_candidate_evidence", case_id="CASE-M014-UNRESOLVED-CANDIDATE-EVIDENCE", query_id=unresolved_query["query_id"], candidate_id="CAND-M014-ARTICLE-0001-UNRESOLVED", field_path="candidates[0].validator_output.citations[0]")],
+            expected_diagnostic_codes=[
+                "unresolved_candidate_evidence",
+                "id_path_mismatch",
+                "orphaned_source_path",
+            ],
+            diagnostics=[
+                diagnostic(
+                    "unresolved_candidate_evidence",
+                    case_id="CASE-M014-UNRESOLVED-CANDIDATE-EVIDENCE",
+                    query_id=unresolved_query["query_id"],
+                    candidate_id="CAND-M014-ARTICLE-0001-UNRESOLVED",
+                    field_path="candidates[0].validator_output.citations[0]",
+                )
+            ],
         ),
         case(
             case_id="CASE-M014-UNSAFE-CANDIDATE-PAYLOAD",
             case_class="unsafe_candidate_payload",
             query=unsafe_query,
             candidates=[
-                candidate(chapter, candidate_id="CAND-M014-CHAPTER-0001-UNSAFE", query_id=unsafe_query["query_id"], reason="unsafe_payload_rejected", output=None)
+                candidate(
+                    chapter,
+                    candidate_id="CAND-M014-CHAPTER-0001-UNSAFE",
+                    query_id=unsafe_query["query_id"],
+                    reason="unsafe_payload_rejected",
+                    output=None,
+                )
             ],
             expected_selection_result="rejected",
             expected_validator_result=None,
             expected_diagnostic_codes=["unsafe_payload_rejected"],
-            diagnostics=[diagnostic("unsafe_payload_rejected", case_id="CASE-M014-UNSAFE-CANDIDATE-PAYLOAD", query_id=unsafe_query["query_id"], candidate_id="CAND-M014-CHAPTER-0001-UNSAFE", field_path="query.unsafe_payload_fields")],
+            diagnostics=[
+                diagnostic(
+                    "unsafe_payload_rejected",
+                    case_id="CASE-M014-UNSAFE-CANDIDATE-PAYLOAD",
+                    query_id=unsafe_query["query_id"],
+                    candidate_id="CAND-M014-CHAPTER-0001-UNSAFE",
+                    field_path="query.unsafe_payload_fields",
+                )
+            ],
         ),
     ]
 

@@ -15,6 +15,7 @@ only structural/freshness facts — it does not validate product readiness.
 If this test fails, update `prd/project-state/data/roadmap.json` (and
 `prd/project-state/roadmap.md`) to match the current GSD state, then re-run.
 """
+
 from __future__ import annotations
 
 import json
@@ -227,7 +228,9 @@ if __name__ == "__main__":
     print(
         json.dumps(
             {
-                "latest_completed_gsd_milestone": f"M{latest_completed}" if latest_completed else None,
+                "latest_completed_gsd_milestone": f"M{latest_completed}"
+                if latest_completed
+                else None,
                 "active_gsd_milestone": f"M{active_seq}" if active_seq else None,
                 "max_gsd_milestone": f"M{max_seq}",
                 "roadmap_current": f"M{current_seq}",

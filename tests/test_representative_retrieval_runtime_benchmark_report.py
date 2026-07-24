@@ -103,7 +103,10 @@ def test_report_has_required_sections_schema_and_command() -> None:
     assert all(position >= 0 for position in positions)
     assert positions == sorted(positions)
     assert f"Schema version: `{SCHEMA_VERSION}`" in text
-    assert "uv run python scripts/verify-representative-retrieval-runtime-benchmark.py --allow-runtime-blocker" in text
+    assert (
+        "uv run python scripts/verify-representative-retrieval-runtime-benchmark.py --allow-runtime-blocker"
+        in text
+    )
     assert "Safe compact stdout summary excerpt" in text
 
 

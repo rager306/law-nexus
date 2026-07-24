@@ -18,8 +18,12 @@ from typing import Any
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_RECOVERY_VIEW = ROOT / "prd/architecture/acp/derived/recovery-view.json"
 DEFAULT_OUTPUT = ROOT / "prd/architecture/acp/derived/architecture-projection.preview.json"
-DEFAULT_CANONICAL_ITEMS_OUTPUT = ROOT / "prd/architecture/acp/derived/canonical-projection.items.jsonl"
-DEFAULT_CANONICAL_EDGES_OUTPUT = ROOT / "prd/architecture/acp/derived/canonical-projection.edges.jsonl"
+DEFAULT_CANONICAL_ITEMS_OUTPUT = (
+    ROOT / "prd/architecture/acp/derived/canonical-projection.items.jsonl"
+)
+DEFAULT_CANONICAL_EDGES_OUTPUT = (
+    ROOT / "prd/architecture/acp/derived/canonical-projection.edges.jsonl"
+)
 CANONICAL_REGISTRY_PATHS = (
     ROOT / "prd/architecture/architecture_items.jsonl",
     ROOT / "prd/architecture/architecture_edges.jsonl",
@@ -223,9 +227,13 @@ def preview_item(record: dict[str, Any]) -> tuple[dict[str, Any] | None, dict[st
         "mapping_notes": [mapping["mapping_notes"]],
     }
     if record.get("record_kind") == "architecture_prompt_record":
-        item["mapping_notes"].append("capture_mode and redaction_status remain ACP-only in M037 preview.")
+        item["mapping_notes"].append(
+            "capture_mode and redaction_status remain ACP-only in M037 preview."
+        )
     if record.get("record_kind") == "architecture_health_finding":
-        item["mapping_notes"].append("blocked actions remain ACP recovery data until registry schema is extended.")
+        item["mapping_notes"].append(
+            "blocked actions remain ACP recovery data until registry schema is extended."
+        )
     return item, None
 
 
@@ -282,7 +290,9 @@ def canonical_item(record: dict[str, Any]) -> tuple[dict[str, Any] | None, dict[
     if record_kind == "architecture_prompt_record":
         item["capture_mode"] = "summarized-with-quotes"
         item["redaction_status"] = "checked"
-        item["acp_non_mappable"] = ["raw prompt text intentionally omitted from canonical-shaped output"]
+        item["acp_non_mappable"] = [
+            "raw prompt text intentionally omitted from canonical-shaped output"
+        ]
     elif record_kind == "decision_candidate":
         item["authority_required"] = True
     elif record_kind == "proof_gate":
@@ -364,7 +374,9 @@ def build_projection(recovery_view_path: Path) -> dict[str, Any]:
     }
 
 
-def build_canonical_projection(recovery_view_path: Path) -> tuple[list[dict[str, Any]], list[dict[str, Any]], list[dict[str, Any]]]:
+def build_canonical_projection(
+    recovery_view_path: Path,
+) -> tuple[list[dict[str, Any]], list[dict[str, Any]], list[dict[str, Any]]]:
     recovery = load_json(recovery_view_path)
     items: list[dict[str, Any]] = []
     edges: list[dict[str, Any]] = []
@@ -383,7 +395,9 @@ def build_canonical_projection(recovery_view_path: Path) -> tuple[list[dict[str,
         if projected is not None and projected["from"] in item_ids and projected["to"] in item_ids:
             edges.append(projected)
         elif projected is not None:
-            non_mappable.append({"edge": edge, "reason": "Projected edge endpoint missing from items"})
+            non_mappable.append(
+                {"edge": edge, "reason": "Projected edge endpoint missing from items"}
+            )
         if issue is not None:
             non_mappable.append(issue)
 
@@ -398,7 +412,9 @@ def write_output(output_path: Path, payload: dict[str, Any]) -> None:
     if is_canonical_registry_path(output_path):
         raise ValueError("refusing to write canonical architecture registry file")
     output_path.parent.mkdir(parents=True, exist_ok=True)
-    output_path.write_text(json.dumps(payload, ensure_ascii=False, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    output_path.write_text(
+        json.dumps(payload, ensure_ascii=False, indent=2, sort_keys=True) + "\n", encoding="utf-8"
+    )
 
 
 def write_jsonl_output(output_path: Path, records: list[dict[str, Any]]) -> None:
@@ -413,7 +429,9 @@ def expected_text(payload: dict[str, Any]) -> str:
 
 
 def expected_jsonl_text(records: list[dict[str, Any]]) -> str:
-    return "".join(json.dumps(record, ensure_ascii=False, sort_keys=True) + "\n" for record in records)
+    return "".join(
+        json.dumps(record, ensure_ascii=False, sort_keys=True) + "\n" for record in records
+    )
 
 
 def check_output(output_path: Path, payload: dict[str, Any]) -> tuple[bool, str]:
@@ -452,7 +470,11 @@ def canonical_mode(args: argparse.Namespace) -> int:
     if non_mappable:
         print(
             json.dumps(
-                {"status": "failed", "message": "canonical projection has non-mappable records", "non_mappable": non_mappable},
+                {
+                    "status": "failed",
+                    "message": "canonical projection has non-mappable records",
+                    "non_mappable": non_mappable,
+                },
                 ensure_ascii=False,
                 indent=2,
                 sort_keys=True,
@@ -502,7 +524,11 @@ def preview_mode(args: argparse.Namespace) -> int:
     payload = build_projection(args.recovery_view)
     if args.check:
         ok, message = check_output(args.output, payload)
-        result = {"status": "ok" if ok else "failed", "message": message, "output": display_path(args.output)}
+        result = {
+            "status": "ok" if ok else "failed",
+            "message": message,
+            "output": display_path(args.output),
+        }
         print(json.dumps(result, ensure_ascii=False, indent=2, sort_keys=True))
         return 0 if ok else 1
     write_output(args.output, payload)
@@ -530,7 +556,14 @@ def main(argv: list[str] | None = None) -> int:
             return canonical_mode(args)
         return preview_mode(args)
     except (OSError, ValueError, json.JSONDecodeError) as exc:
-        print(json.dumps({"status": "failed", "message": str(exc)}, ensure_ascii=False, indent=2, sort_keys=True))
+        print(
+            json.dumps(
+                {"status": "failed", "message": str(exc)},
+                ensure_ascii=False,
+                indent=2,
+                sort_keys=True,
+            )
+        )
         return 1
 
 

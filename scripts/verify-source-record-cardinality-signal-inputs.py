@@ -13,7 +13,10 @@ from pathlib import Path
 from typing import Any
 
 ROOT = Path(__file__).resolve().parents[1]
-DEFAULT_MANIFEST = ROOT / "prd/research/ontology_architecture_requirements/fixtures/source_record_cardinality_signal_inputs.json"
+DEFAULT_MANIFEST = (
+    ROOT
+    / "prd/research/ontology_architecture_requirements/fixtures/source_record_cardinality_signal_inputs.json"
+)
 SCHEMA_VERSION = "source-record-cardinality-signal-inputs/v1"
 REPRESENTATION_KIND = "safe_materialized_descriptor_with_source_record_cardinality_v1"
 SELECTED_SIGNAL = "safe_source_record_cardinality_bucket"
@@ -28,10 +31,29 @@ BASE_FIELDS = {
     "source_order_index_bucket",
 }
 ENHANCED_FIELDS = BASE_FIELDS | {SELECTED_SIGNAL}
-CARDINALITY_VALUES = {"source_record_cardinality_single", "source_record_cardinality_multiple", "source_record_cardinality_unknown"}
-M027_BASELINE = {"mrr": 0.680555, "recall_at_1": 0.5, "recall_at_3": 0.833333, "runtime_boundary_confirmed": 1.0}
-M028_BASELINE = {"mrr": 0.916667, "recall_at_1": 0.833333, "recall_at_3": 1.0, "runtime_boundary_confirmed": 1.0}
-M029_BASELINE = {"mrr": 0.680555, "recall_at_1": 0.5, "recall_at_3": 0.833333, "runtime_boundary_confirmed": 1.0}
+CARDINALITY_VALUES = {
+    "source_record_cardinality_single",
+    "source_record_cardinality_multiple",
+    "source_record_cardinality_unknown",
+}
+M027_BASELINE = {
+    "mrr": 0.680555,
+    "recall_at_1": 0.5,
+    "recall_at_3": 0.833333,
+    "runtime_boundary_confirmed": 1.0,
+}
+M028_BASELINE = {
+    "mrr": 0.916667,
+    "recall_at_1": 0.833333,
+    "recall_at_3": 1.0,
+    "runtime_boundary_confirmed": 1.0,
+}
+M029_BASELINE = {
+    "mrr": 0.680555,
+    "recall_at_1": 0.5,
+    "recall_at_3": 0.833333,
+    "runtime_boundary_confirmed": 1.0,
+}
 ALLOWED_ROOT_FIELDS = {
     "added_descriptor_fields",
     "allowed_descriptor_fields",
@@ -251,14 +273,18 @@ def cardinality_bucket(count: int) -> str:
     return "source_record_cardinality_unknown"
 
 
-def validate_descriptors(descriptors: Any, tokens: Any, allowed: Mapping[str, set[str]], input_id: str) -> str:
+def validate_descriptors(
+    descriptors: Any, tokens: Any, allowed: Mapping[str, set[str]], input_id: str
+) -> str:
     if not isinstance(descriptors, Mapping) or set(descriptors) != ENHANCED_FIELDS:
         raise SourceRecordCardinalityInputError(f"descriptor field mismatch: {input_id}")
     expected_tokens: list[str] = []
     for field in ENHANCED_FIELDS:
         value = descriptors.get(field)
         if not isinstance(value, str) or value not in allowed[field]:
-            raise SourceRecordCardinalityInputError(f"descriptor enum not allowed: {input_id}: {field}")
+            raise SourceRecordCardinalityInputError(
+                f"descriptor enum not allowed: {input_id}: {field}"
+            )
         token = f"{field}:{value}"
         if not SAFE_TOKEN_RE.fullmatch(token):
             raise SourceRecordCardinalityInputError(f"unsafe descriptor token: {input_id}: {field}")
@@ -273,7 +299,9 @@ def validate_descriptors(descriptors: Any, tokens: Any, allowed: Mapping[str, se
     return str(descriptors[SELECTED_SIGNAL])
 
 
-def validate_common(item: Mapping[str, Any], allowed: Mapping[str, set[str]], refs: set[str], anchors: set[str]) -> str:
+def validate_common(
+    item: Mapping[str, Any], allowed: Mapping[str, set[str]], refs: set[str], anchors: set[str]
+) -> str:
     input_id = str(item.get("descriptor_input_id"))
     if not SAFE_DESCRIPTOR_ID_RE.fullmatch(input_id):
         raise SourceRecordCardinalityInputError(f"unsafe descriptor id: {input_id}")
@@ -298,7 +326,9 @@ def validate_common(item: Mapping[str, Any], allowed: Mapping[str, set[str]], re
         raise SourceRecordCardinalityInputError(f"representation mismatch: {input_id}")
     if item.get("selected_signal") != SELECTED_SIGNAL:
         raise SourceRecordCardinalityInputError(f"selected signal mismatch: {input_id}")
-    value = validate_descriptors(item.get("descriptors"), item.get("descriptor_tokens"), allowed, input_id)
+    value = validate_descriptors(
+        item.get("descriptors"), item.get("descriptor_tokens"), allowed, input_id
+    )
     if item.get("selected_signal_value") != value:
         raise SourceRecordCardinalityInputError(f"selected signal value mismatch: {input_id}")
     cardinality = item.get("source_record_cardinality")
@@ -328,14 +358,18 @@ def candidate_cardinality_index(candidate_items: Sequence[Mapping[str, Any]]) ->
     return index
 
 
-def validate_items(manifest: Mapping[str, Any], allowed: Mapping[str, set[str]]) -> tuple[set[str], set[str], dict[str, int]]:
+def validate_items(
+    manifest: Mapping[str, Any], allowed: Mapping[str, set[str]]
+) -> tuple[set[str], set[str], dict[str, int]]:
     refs: set[str] = set()
     anchors: set[str] = set()
     query_items = manifest.get("query_descriptors")
     candidate_items = manifest.get("candidate_descriptors")
     if not isinstance(query_items, list) or not isinstance(candidate_items, list):
         raise SourceRecordCardinalityInputError("descriptor arrays missing")
-    if len(query_items) != manifest.get("query_descriptor_count") or len(candidate_items) != manifest.get("candidate_descriptor_count"):
+    if len(query_items) != manifest.get("query_descriptor_count") or len(
+        candidate_items
+    ) != manifest.get("candidate_descriptor_count"):
         raise SourceRecordCardinalityInputError("descriptor count mismatch")
     for item in query_items:
         if not isinstance(item, Mapping) or set(item) - ALLOWED_QUERY_FIELDS:
@@ -363,37 +397,69 @@ def verify_manifest(path: Path = DEFAULT_MANIFEST) -> dict[str, Any]:
     assert_safe_payload(manifest)
     if set(manifest) != ALLOWED_ROOT_FIELDS:
         raise SourceRecordCardinalityInputError("manifest root field mismatch")
-    if manifest.get("schema_version") != SCHEMA_VERSION or manifest.get("representation_kind") != REPRESENTATION_KIND:
+    if (
+        manifest.get("schema_version") != SCHEMA_VERSION
+        or manifest.get("representation_kind") != REPRESENTATION_KIND
+    ):
         raise SourceRecordCardinalityInputError("schema or representation mismatch")
     if manifest.get("milestone_id") != "M030-hwfnq0" or manifest.get("slice_id") != "S02":
         raise SourceRecordCardinalityInputError("milestone/slice mismatch")
     if manifest.get("selected_signal") != SELECTED_SIGNAL:
         raise SourceRecordCardinalityInputError("selected signal mismatch")
-    if set(manifest.get("forbidden_prior_signals", [])) != FORBIDDEN_PRIOR_SIGNALS or manifest.get("forbidden_prior_signals_declared") is not True:
+    if (
+        set(manifest.get("forbidden_prior_signals", [])) != FORBIDDEN_PRIOR_SIGNALS
+        or manifest.get("forbidden_prior_signals_declared") is not True
+    ):
         raise SourceRecordCardinalityInputError("forbidden prior signal marker mismatch")
-    if manifest.get("single_signal_change_only") is not True or manifest.get("added_descriptor_fields") != [SELECTED_SIGNAL]:
+    if manifest.get("single_signal_change_only") is not True or manifest.get(
+        "added_descriptor_fields"
+    ) != [SELECTED_SIGNAL]:
         raise SourceRecordCardinalityInputError("single signal change mismatch")
     if set(manifest.get("base_derivation_fields", [])) != BASE_FIELDS:
         raise SourceRecordCardinalityInputError("base derivation field mismatch")
     if set(manifest.get("enhanced_derivation_fields", [])) != ENHANCED_FIELDS:
         raise SourceRecordCardinalityInputError("enhanced derivation field mismatch")
-    if manifest.get("m027_baseline_locked") is not True or manifest.get("m027_baseline_metrics") != M027_BASELINE:
+    if (
+        manifest.get("m027_baseline_locked") is not True
+        or manifest.get("m027_baseline_metrics") != M027_BASELINE
+    ):
         raise SourceRecordCardinalityInputError("M027 baseline mismatch")
-    if manifest.get("m028_baseline_locked") is not True or manifest.get("m028_baseline_metrics") != M028_BASELINE:
+    if (
+        manifest.get("m028_baseline_locked") is not True
+        or manifest.get("m028_baseline_metrics") != M028_BASELINE
+    ):
         raise SourceRecordCardinalityInputError("M028 baseline mismatch")
-    if manifest.get("m029_baseline_locked") is not True or manifest.get("m029_baseline_metrics") != M029_BASELINE:
+    if (
+        manifest.get("m029_baseline_locked") is not True
+        or manifest.get("m029_baseline_metrics") != M029_BASELINE
+    ):
         raise SourceRecordCardinalityInputError("M029 baseline mismatch")
     redaction = manifest.get("redaction")
-    if not isinstance(redaction, Mapping) or set(redaction) != REQUIRED_REDACTION or not all(redaction.values()):
+    if (
+        not isinstance(redaction, Mapping)
+        or set(redaction) != REQUIRED_REDACTION
+        or not all(redaction.values())
+    ):
         raise SourceRecordCardinalityInputError("redaction flags mismatch")
-    if manifest.get("r035_non_validation_declared") is not True or manifest.get("r038_review_required") is not True or manifest.get("non_authoritative") is not True:
+    if (
+        manifest.get("r035_non_validation_declared") is not True
+        or manifest.get("r038_review_required") is not True
+        or manifest.get("non_authoritative") is not True
+    ):
         raise SourceRecordCardinalityInputError("lifecycle boundary marker missing")
     summary = manifest.get("signal_derivation_summary")
     if not isinstance(summary, Mapping):
         raise SourceRecordCardinalityInputError("signal derivation summary missing")
-    if summary.get("allowed_inputs") != ["materialized_candidate_ref", "source_record_ids", "source_anchor_sha256"]:
+    if summary.get("allowed_inputs") != [
+        "materialized_candidate_ref",
+        "source_record_ids",
+        "source_anchor_sha256",
+    ]:
         raise SourceRecordCardinalityInputError("allowed derivation inputs mismatch")
-    if summary.get("source_order_index_used") is not False or summary.get("prior_signals_used") is not False:
+    if (
+        summary.get("source_order_index_used") is not False
+        or summary.get("prior_signals_used") is not False
+    ):
         raise SourceRecordCardinalityInputError("forbidden derivation input used")
     if summary.get("source_anchor_ref_suffix_family_used") is not False:
         raise SourceRecordCardinalityInputError("anchor-family derivation input used")

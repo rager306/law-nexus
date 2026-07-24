@@ -13,12 +13,14 @@ EVALS = ROOT / "evals" / "evals.json"
 def run_quality(tmp_path: Path | None = None, *extra: str) -> subprocess.CompletedProcess[str]:
     args = [sys.executable, str(SCRIPT), "--root", str(ROOT), "--evals", str(EVALS), *extra]
     if tmp_path is not None:
-        args.extend([
-            "--json-output",
-            str(tmp_path / "quality.json"),
-            "--markdown-output",
-            str(tmp_path / "quality.md"),
-        ])
+        args.extend(
+            [
+                "--json-output",
+                str(tmp_path / "quality.json"),
+                "--markdown-output",
+                str(tmp_path / "quality.md"),
+            ]
+        )
     return subprocess.run(args, text=True, capture_output=True, check=False)
 
 
@@ -28,7 +30,11 @@ def test_quality_evaluation_passes_all_expectations(tmp_path: Path) -> None:
     report = json.loads((tmp_path / "quality.json").read_text(encoding="utf-8"))
     assert report["summary"] == {"passed": 30, "failed": 0, "total": 30, "pass_rate": 1.0}
     assert len(report["results"]) == 6
-    assert (tmp_path / "quality.md").read_text(encoding="utf-8").startswith("# FalkorDB Skill Quality Evaluation")
+    assert (
+        (tmp_path / "quality.md")
+        .read_text(encoding="utf-8")
+        .startswith("# FalkorDB Skill Quality Evaluation")
+    )
 
 
 def test_quality_evaluation_fails_when_required_content_missing(tmp_path: Path) -> None:

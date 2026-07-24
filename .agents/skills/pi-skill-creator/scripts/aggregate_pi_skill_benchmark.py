@@ -38,7 +38,9 @@ def aggregate(iteration_dir: Path, skill_name: str) -> dict[str, Any]:
                 "total": total,
                 "pass_rate": round(passed / total, 4) if total else 0.0,
                 "mean_eval_pass_rate": round(statistics.mean(pass_rates), 4) if pass_rates else 0.0,
-                "stdev_eval_pass_rate": round(statistics.pstdev(pass_rates), 4) if len(pass_rates) > 1 else 0.0,
+                "stdev_eval_pass_rate": round(statistics.pstdev(pass_rates), 4)
+                if len(pass_rates) > 1
+                else 0.0,
             }
         )
 
@@ -90,12 +92,20 @@ def main() -> int:
     parser.add_argument("--skill-name", default=None)
     args = parser.parse_args()
     manifest_path = args.iteration_dir / "run_manifest.json"
-    manifest = json.loads(manifest_path.read_text(encoding="utf-8")) if manifest_path.is_file() else {}
-    skill_name = args.skill_name or manifest.get("skill_name") or args.iteration_dir.parent.name.removesuffix("-workspace")
+    manifest = (
+        json.loads(manifest_path.read_text(encoding="utf-8")) if manifest_path.is_file() else {}
+    )
+    skill_name = (
+        args.skill_name
+        or manifest.get("skill_name")
+        or args.iteration_dir.parent.name.removesuffix("-workspace")
+    )
     benchmark = aggregate(args.iteration_dir, skill_name)
     print(f"Wrote benchmark: {args.iteration_dir / 'benchmark.json'}")
     for item in benchmark["configurations"]:
-        print(f"{item['configuration']}: {item['passed']}/{item['total']} ({item['pass_rate']:.2%})")
+        print(
+            f"{item['configuration']}: {item['passed']}/{item['total']} ({item['pass_rate']:.2%})"
+        )
     return 0
 
 

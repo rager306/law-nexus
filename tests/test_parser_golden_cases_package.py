@@ -82,7 +82,9 @@ def test_load_json_object_reports_missing_and_invalid_shapes(tmp_path: Path) -> 
 def test_sha256_sort_and_severity_helpers_are_stable(tmp_path: Path) -> None:
     payload = tmp_path / "payload.txt"
     payload.write_text("abc", encoding="utf-8")
-    assert sha256_file(payload) == "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad"
+    assert (
+        sha256_file(payload) == "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad"
+    )
 
     diagnostics = [
         diagnostic(

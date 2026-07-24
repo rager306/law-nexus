@@ -38,7 +38,11 @@ def write_required_old_project_files(root: Path) -> None:
         path.write_text("prior art fixture only\n", encoding="utf-8")
 
 
-def probe_payload(*, odfpy_status: str = "loaded-temp-clean-manifest", alternative_status: str = "loaded-unmodified") -> dict[str, Any]:
+def probe_payload(
+    *,
+    odfpy_status: str = "loaded-temp-clean-manifest",
+    alternative_status: str = "loaded-unmodified",
+) -> dict[str, Any]:
     return {
         "schema_version": "s05-raw-odt-baseline/v1",
         "probe_log_path": "prd/milestone_proofs/M001_S05_probe-log.json",
@@ -83,7 +87,9 @@ def probe_payload(*, odfpy_status: str = "loaded-temp-clean-manifest", alternati
     }
 
 
-def findings_markdown(*, old_project_table: bool = True, issue_owner: str = "S05", alternative_blocked: bool = False) -> str:
+def findings_markdown(
+    *, old_project_table: bool = True, issue_owner: str = "S05", alternative_blocked: bool = False
+) -> str:
     comparison_note = (
         "Alternative parser comparison is BLOCKED because odfdo is not installed; resolution path: "
         "S05 owner installs odfdo or records an explicit parser alternative before S06."
@@ -219,7 +225,9 @@ def test_rejects_issue_rows_without_owner_resolution_or_verifier(tmp_path: Path)
     result = verifier.verify(findings, probe)
 
     assert result.ok is False
-    assert any("issue S05-optional-odfpy-loaded-temp-clean-manifest" in error for error in result.errors)
+    assert any(
+        "issue S05-optional-odfpy-loaded-temp-clean-manifest" in error for error in result.errors
+    )
 
 
 def test_rejects_odfpy_as_sole_parser_after_unmodified_failure(tmp_path: Path) -> None:

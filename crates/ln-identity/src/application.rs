@@ -72,7 +72,10 @@ where
             if similarity_only {
                 (IdentityOutcome::Ambiguous, IdentityReason::SimilarityOnly)
             } else if !has_any_evidence {
-                (IdentityOutcome::NotResolvable, IdentityReason::MissingEvidence)
+                (
+                    IdentityOutcome::NotResolvable,
+                    IdentityReason::MissingEvidence,
+                )
             } else if !has_bilateral {
                 (IdentityOutcome::Candidate, IdentityReason::OneSidedEvidence)
             } else {
@@ -89,7 +92,10 @@ where
         } else if similarity_only {
             (IdentityOutcome::Ambiguous, IdentityReason::SimilarityOnly)
         } else {
-            (IdentityOutcome::NotResolvable, IdentityReason::MissingEvidence)
+            (
+                IdentityOutcome::NotResolvable,
+                IdentityReason::MissingEvidence,
+            )
         };
 
         // C12 never performs physical/semantic merge. Both ids always survive.

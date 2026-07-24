@@ -17,7 +17,17 @@ def run_cmd(args: list[str]) -> subprocess.CompletedProcess[str]:
 
 def test_eval_runner_grader_and_aggregator_roundtrip(tmp_path: Path) -> None:
     workspace = tmp_path / "pi-skill-creator-workspace"
-    result = run_cmd([sys.executable, str(RUNNER), str(PI_SKILL), "--workspace", str(workspace), "--iteration", "1"])
+    result = run_cmd(
+        [
+            sys.executable,
+            str(RUNNER),
+            str(PI_SKILL),
+            "--workspace",
+            str(workspace),
+            "--iteration",
+            "1",
+        ]
+    )
     assert result.returncode == 0, result.stderr + result.stdout
 
     iteration = workspace / "iteration-1"
@@ -40,13 +50,26 @@ def test_eval_runner_grader_and_aggregator_roundtrip(tmp_path: Path) -> None:
     result = run_cmd([sys.executable, str(AGGREGATOR), str(iteration)])
     assert result.returncode == 0, result.stderr + result.stdout
     benchmark = json.loads((iteration / "benchmark.json").read_text(encoding="utf-8"))
-    assert {item["configuration"] for item in benchmark["configurations"]} == {"baseline", "with_skill"}
+    assert {item["configuration"] for item in benchmark["configurations"]} == {
+        "baseline",
+        "with_skill",
+    }
     assert (iteration / "benchmark.md").is_file()
 
 
 def test_grader_reports_missing_outputs(tmp_path: Path) -> None:
     workspace = tmp_path / "pi-skill-creator-workspace"
-    result = run_cmd([sys.executable, str(RUNNER), str(PI_SKILL), "--workspace", str(workspace), "--iteration", "1"])
+    result = run_cmd(
+        [
+            sys.executable,
+            str(RUNNER),
+            str(PI_SKILL),
+            "--workspace",
+            str(workspace),
+            "--iteration",
+            "1",
+        ]
+    )
     assert result.returncode == 0, result.stderr + result.stdout
 
     iteration = workspace / "iteration-1"

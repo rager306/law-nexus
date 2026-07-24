@@ -71,7 +71,9 @@ REQUIRED_SOURCE_PATHS = [
     Path("tests/test_representative_retrieval_runtime_benchmark_report.py"),
     Path("prd/retrieval/representative_retrieval_corpus_contract.md"),
     Path("prd/research/ontology_architecture_requirements/05-registry-integration-plan.md"),
-    Path("prd/research/ontology_architecture_requirements/05-architecture-gap-analysis-against-current-registry.md"),
+    Path(
+        "prd/research/ontology_architecture_requirements/05-architecture-gap-analysis-against-current-registry.md"
+    ),
     Path("prd/research/ontology_architecture_requirements/06-r035-evidence-audit.md"),
     Path("prd/architecture/acp/README.md"),
     Path("prd/architecture/acp/schema.json"),
@@ -198,7 +200,9 @@ class ExtractionError(Exception):
 Record = dict[str, Any]
 
 
-def anchor(path: str, kind: str, *, selector: str | None = None, section: str | None = None) -> Record:
+def anchor(
+    path: str, kind: str, *, selector: str | None = None, section: str | None = None
+) -> Record:
     value: Record = {"path": path, "kind": kind}
     if section:
         value["section"] = section
@@ -285,7 +289,9 @@ def load_s08_findings(path: Path) -> dict[str, Any]:
     try:
         data = json.loads(path.read_text(encoding="utf-8"))
     except JSONDecodeError as exc:
-        raise ExtractionError(f"malformed source JSON in {path}: {exc.msg} at line {exc.lineno} column {exc.colno}") from exc
+        raise ExtractionError(
+            f"malformed source JSON in {path}: {exc.msg} at line {exc.lineno} column {exc.colno}"
+        ) from exc
     if not isinstance(data, dict):
         raise ExtractionError(f"malformed source JSON in {path}: top-level value must be an object")
     findings = data.get("findings")
@@ -294,7 +300,9 @@ def load_s08_findings(path: Path) -> dict[str, Any]:
     ids = {row.get("id") for row in findings if isinstance(row, dict)}
     missing = sorted(REQUIRED_S08_IDS - ids)
     if missing:
-        raise ExtractionError(f"malformed source JSON in {path}: missing required finding IDs {', '.join(missing)}")
+        raise ExtractionError(
+            f"malformed source JSON in {path}: missing required finding IDs {', '.join(missing)}"
+        )
     return data
 
 
@@ -313,7 +321,9 @@ def validate_sources(config: ExtractionConfig) -> None:
         if not path.exists():
             if path_is_portable_gsd_reference(rel_path):
                 continue
-            raise ExtractionError(f"missing required source for curated architecture extraction: {rel_path}")
+            raise ExtractionError(
+                f"missing required source for curated architecture extraction: {rel_path}"
+            )
     if custom_s08 or config.s08_findings_path.exists():
         load_s08_findings(config.s08_findings_path)
 
@@ -502,7 +512,11 @@ def decision_items() -> list[Record]:
             "high",
             [
                 anchor(".gsd/DECISIONS.md", "gsd-decision", selector="D031"),
-                anchor("prd/09_architecture_planning_verification_research.md", "prd", section="Current GSD recording"),
+                anchor(
+                    "prd/09_architecture_planning_verification_research.md",
+                    "prd",
+                    section="Current GSD recording",
+                ),
             ],
             "M004",
             "Architecture registry extractor/checks, graph builder, and verifier pass.",
@@ -511,7 +525,11 @@ def decision_items() -> list[Record]:
             stakeholders=["Future agents", "LegalGraph Nexus maintainers"],
             priority="critical",
             lifecycle="implementing",
-            decision_drivers=["Prevent architecture overclaims", "Make traceability executable", "Keep PRD/GSD/ADR evidence authoritative"],
+            decision_drivers=[
+                "Prevent architecture overclaims",
+                "Make traceability executable",
+                "Keep PRD/GSD/ADR evidence authoritative",
+            ],
             considered_options=[
                 {
                     "id": "OPT-D031-docs-as-code",
@@ -534,9 +552,15 @@ def decision_items() -> list[Record]:
             negative_consequences=["Schema drift must be controlled by tests."],
             assumptions=["Tracked prd/architecture artifacts can be reviewed safely in git."],
             constraints=["Do not treat derived graph artifacts as authoritative."],
-            implications=["Future architecture changes should update the registry or source anchors."],
+            implications=[
+                "Future architecture changes should update the registry or source anchors."
+            ],
             related_requirements=["REQ-R029"],
-            governed_artifacts=["prd/architecture/architecture_items.jsonl", "prd/architecture/architecture_edges.jsonl", "scripts/verify-architecture-graph.py"],
+            governed_artifacts=[
+                "prd/architecture/architecture_items.jsonl",
+                "prd/architecture/architecture_edges.jsonl",
+                "scripts/verify-architecture-graph.py",
+            ],
             last_reviewed="2026-05-10",
             tags=["D031", "architecture-registry"],
         ),
@@ -551,7 +575,11 @@ def decision_items() -> list[Record]:
             "medium",
             [
                 anchor(".gsd/DECISIONS.md", "gsd-decision", selector="D032"),
-                anchor("prd/09_architecture_planning_verification_research.md", "prd", section="Current GSD recording"),
+                anchor(
+                    "prd/09_architecture_planning_verification_research.md",
+                    "prd",
+                    section="Current GSD recording",
+                ),
             ],
             "M004/S05",
             "S05 skill consistency test passes and references current verifier paths.",
@@ -702,7 +730,11 @@ def product_coverage_items() -> list[Record]:
             "source-anchor",
             "high",
             [
-                anchor("prd/01_general_idea.md", "prd", selector="Legal Nexus реализован как Python-модуль"),
+                anchor(
+                    "prd/01_general_idea.md",
+                    "prd",
+                    selector="Legal Nexus реализован как Python-модуль",
+                ),
                 anchor("prd/03_PRD.md", "prd", selector="Legal Nexus Module"),
             ],
             "future-api-product-design",
@@ -750,7 +782,13 @@ def product_coverage_items() -> list[Record]:
             "active",
             "none",
             "critical",
-            [anchor("prd/06_m002_cypher_safety_contract.md", "prd", selector="Generated-Cypher Safety Contract")],
+            [
+                anchor(
+                    "prd/06_m002_cypher_safety_contract.md",
+                    "prd",
+                    selector="Generated-Cypher Safety Contract",
+                )
+            ],
             "future-generated-cypher-safety-proof",
             "A future product proof demonstrates validator acceptance/rejection behavior across representative Legal KnowQL tasks and live graph schemas.",
             [
@@ -817,8 +855,14 @@ def product_coverage_items() -> list[Record]:
             "source-anchor",
             "high",
             [
-                anchor("prd/research/graph_agent_knowledge_bases_falkordb_math_analysis.md", "manual-note"),
-                anchor("prd/research/graph_agent_knowledge_bases_falkordb_math_analysis_assessment.md", "manual-note"),
+                anchor(
+                    "prd/research/graph_agent_knowledge_bases_falkordb_math_analysis.md",
+                    "manual-note",
+                ),
+                anchor(
+                    "prd/research/graph_agent_knowledge_bases_falkordb_math_analysis_assessment.md",
+                    "manual-note",
+                ),
             ],
             "M011/S01",
             "Assessment classifies ideas into applicable-now principles, proof-gated candidates, and deferred/not-adopted claims; future proof must validate any runtime, SDK, benchmark, or retrieval-quality claim.",
@@ -831,7 +875,9 @@ def product_coverage_items() -> list[Record]:
             ],
             lifecycle="researching",
             priority="high",
-            related_artifacts=["prd/research/graph_agent_knowledge_bases_falkordb_math_analysis_assessment.md"],
+            related_artifacts=[
+                "prd/research/graph_agent_knowledge_bases_falkordb_math_analysis_assessment.md"
+            ],
             tags=["M011", "GraphRAG", "FalkorDB", "research", "bounded"],
         ),
         item(
@@ -845,8 +891,15 @@ def product_coverage_items() -> list[Record]:
             "high",
             [
                 anchor("prd/research/habr_legal_rag_17_iterations_scaling_wall.md", "manual-note"),
-                anchor("prd/research/habr_legal_rag_17_iterations_scaling_wall_assessment.md", "manual-note"),
-                anchor("prd/research/habr_legal_rag_processed_architecture_json_comparison.md", "manual-note", section="Corrected Bottom Line"),
+                anchor(
+                    "prd/research/habr_legal_rag_17_iterations_scaling_wall_assessment.md",
+                    "manual-note",
+                ),
+                anchor(
+                    "prd/research/habr_legal_rag_processed_architecture_json_comparison.md",
+                    "manual-note",
+                    section="Corrected Bottom Line",
+                ),
             ],
             "D045 / future-retrieval-quality-proof",
             "Human-reviewed JSON comparison classifies all transferable ideas as requiring project-specific verification before adoption; future proof must validate retrieval IDs, evidence precision, no-answer behavior, scale/noise degradation, and any runtime or model claim.",
@@ -875,9 +928,19 @@ def product_coverage_items() -> list[Record]:
             "unit-test",
             "high",
             [
-                anchor("prd/retrieval/retrieval_output_validator_contract.md", "manual-note", selector="Retrieval Output Validator Contract"),
-                anchor("prd/retrieval/retrieval_output_validator_fixtures.md", "manual-note", selector="Retrieval Output Validator Fixture Taxonomy"),
-                anchor("prd/retrieval/fixtures/retrieval_output_validator_cases.json", "test-artifact"),
+                anchor(
+                    "prd/retrieval/retrieval_output_validator_contract.md",
+                    "manual-note",
+                    selector="Retrieval Output Validator Contract",
+                ),
+                anchor(
+                    "prd/retrieval/retrieval_output_validator_fixtures.md",
+                    "manual-note",
+                    selector="Retrieval Output Validator Fixture Taxonomy",
+                ),
+                anchor(
+                    "prd/retrieval/fixtures/retrieval_output_validator_cases.json", "test-artifact"
+                ),
                 anchor("scripts/retrieval_output_validator.py", "source-code"),
                 anchor("scripts/verify-retrieval-output-validator.py", "source-code"),
                 anchor("tests/test_retrieval_output_validator.py", "test-artifact"),
@@ -917,11 +980,21 @@ def product_coverage_items() -> list[Record]:
             "unit-test",
             "high",
             [
-                anchor("prd/retrieval/real_artifact_evidence_mapping.md", "manual-note", selector="Real Artifact Retrieval Evidence Mapping"),
-                anchor("prd/retrieval/fixtures/real_artifact_retrieval_cases.json", "test-artifact"),
+                anchor(
+                    "prd/retrieval/real_artifact_evidence_mapping.md",
+                    "manual-note",
+                    selector="Real Artifact Retrieval Evidence Mapping",
+                ),
+                anchor(
+                    "prd/retrieval/fixtures/real_artifact_retrieval_cases.json", "test-artifact"
+                ),
                 anchor("scripts/verify-real-artifact-retrieval-proof.py", "source-code"),
                 anchor("scripts/build-real-artifact-retrieval-cases.py", "source-code"),
-                anchor("prd/retrieval/real_artifact_retrieval_proof.md", "manual-note", selector="Real Artifact Retrieval Proof"),
+                anchor(
+                    "prd/retrieval/real_artifact_retrieval_proof.md",
+                    "manual-note",
+                    selector="Real Artifact Retrieval Proof",
+                ),
                 anchor("tests/test_real_artifact_retrieval_proof_cli.py", "test-artifact"),
                 anchor("tests/test_real_artifact_retrieval_cases.py", "test-artifact"),
             ],
@@ -948,7 +1021,14 @@ def product_coverage_items() -> list[Record]:
                 "scripts/verify-real-artifact-retrieval-proof.py",
                 "prd/retrieval/real_artifact_retrieval_proof.md",
             ],
-            tags=["M013", "R034", "real-artifact", "retrieval-output-validator", "fail-closed", "bounded"],
+            tags=[
+                "M013",
+                "R034",
+                "real-artifact",
+                "retrieval-output-validator",
+                "fail-closed",
+                "bounded",
+            ],
         ),
         item(
             "EVID-OFFLINE-CITATION-RETRIEVAL-PROOF",
@@ -960,11 +1040,21 @@ def product_coverage_items() -> list[Record]:
             "unit-test",
             "high",
             [
-                anchor("prd/retrieval/offline_citation_retrieval_contract.md", "manual-note", selector="Offline Citation Retrieval Contract"),
-                anchor("prd/retrieval/fixtures/offline_citation_retrieval_cases.json", "test-artifact"),
+                anchor(
+                    "prd/retrieval/offline_citation_retrieval_contract.md",
+                    "manual-note",
+                    selector="Offline Citation Retrieval Contract",
+                ),
+                anchor(
+                    "prd/retrieval/fixtures/offline_citation_retrieval_cases.json", "test-artifact"
+                ),
                 anchor("scripts/verify-offline-citation-retrieval-proof.py", "source-code"),
                 anchor("scripts/build-offline-citation-retrieval-cases.py", "source-code"),
-                anchor("prd/retrieval/offline_citation_retrieval_proof.md", "manual-note", selector="Offline Citation Retrieval Proof"),
+                anchor(
+                    "prd/retrieval/offline_citation_retrieval_proof.md",
+                    "manual-note",
+                    selector="Offline Citation Retrieval Proof",
+                ),
                 anchor("tests/test_offline_citation_retrieval_cases.py", "test-artifact"),
                 anchor("tests/test_offline_citation_retrieval_proof_cli.py", "test-artifact"),
                 anchor("tests/test_offline_citation_retrieval_proof_report.py", "test-artifact"),
@@ -991,7 +1081,14 @@ def product_coverage_items() -> list[Record]:
                 "scripts/verify-offline-citation-retrieval-proof.py",
                 "prd/retrieval/offline_citation_retrieval_proof.md",
             ],
-            tags=["M014", "G-008", "offline-retrieval", "citation-safety", "fail-closed", "bounded"],
+            tags=[
+                "M014",
+                "G-008",
+                "offline-retrieval",
+                "citation-safety",
+                "fail-closed",
+                "bounded",
+            ],
         ),
         item(
             "EVID-LOCAL-RETRIEVAL-QUALITY-BENCHMARK-PROOF",
@@ -1003,16 +1100,30 @@ def product_coverage_items() -> list[Record]:
             "unit-test",
             "high",
             [
-                anchor("prd/retrieval/local_retrieval_quality_benchmark_contract.md", "manual-note", selector="Local Retrieval Quality Benchmark Contract"),
-                anchor("prd/retrieval/fixtures/local_retrieval_quality_benchmark.json", "test-artifact"),
+                anchor(
+                    "prd/retrieval/local_retrieval_quality_benchmark_contract.md",
+                    "manual-note",
+                    selector="Local Retrieval Quality Benchmark Contract",
+                ),
+                anchor(
+                    "prd/retrieval/fixtures/local_retrieval_quality_benchmark.json", "test-artifact"
+                ),
                 anchor("scripts/build-local-retrieval-quality-benchmark.py", "source-code"),
                 anchor("scripts/verify-local-retrieval-quality-benchmark.py", "source-code"),
-                anchor("prd/retrieval/local_retrieval_quality_benchmark_proof.md", "manual-note", selector="Local Retrieval Quality Benchmark Proof"),
+                anchor(
+                    "prd/retrieval/local_retrieval_quality_benchmark_proof.md",
+                    "manual-note",
+                    selector="Local Retrieval Quality Benchmark Proof",
+                ),
                 anchor("tests/test_local_retrieval_quality_benchmark_contract.py", "test-artifact"),
                 anchor("tests/test_local_retrieval_quality_benchmark_fixture.py", "test-artifact"),
                 anchor("tests/test_local_retrieval_quality_benchmark_cli.py", "test-artifact"),
                 anchor("tests/test_local_retrieval_quality_benchmark_report.py", "test-artifact"),
-                anchor("prd/milestone_proofs/M001_S10_EMBEDDING-RUNTIME-PROOF.json", "gsd-summary", selector="deepvk/USER-bge-m3"),
+                anchor(
+                    "prd/milestone_proofs/M001_S10_EMBEDDING-RUNTIME-PROOF.json",
+                    "gsd-summary",
+                    selector="deepvk/USER-bge-m3",
+                ),
             ],
             "M015/S02",
             "`uv run python scripts/verify-local-retrieval-quality-benchmark.py` proves 6 seed benchmark cases with positive_query_count=2, all fixture metrics=1.0, threshold_passed=true, model_id=deepvk/USER-bge-m3, managed_api_used=false, raw_vectors_persisted=false, and mismatch_count=0.",
@@ -1049,14 +1160,39 @@ def product_coverage_items() -> list[Record]:
             "runtime-smoke",
             "high",
             [
-                anchor("prd/retrieval/representative_retrieval_runtime_benchmark_contract.md", "manual-note", selector="Representative Retrieval Runtime Benchmark Contract"),
-                anchor("scripts/verify-representative-retrieval-runtime-benchmark.py", "source-code"),
-                anchor("prd/retrieval/representative_retrieval_runtime_benchmark_proof.md", "manual-note", selector="Representative Retrieval Runtime Benchmark Proof"),
-                anchor("tests/test_representative_retrieval_runtime_benchmark_contract.py", "test-artifact"),
-                anchor("tests/test_representative_retrieval_runtime_benchmark_cli.py", "test-artifact"),
-                anchor("tests/test_representative_retrieval_runtime_benchmark_report.py", "test-artifact"),
-                anchor("prd/retrieval/representative_retrieval_corpus_contract.md", "manual-note", selector="Representative Retrieval Corpus Contract"),
-                anchor("prd/retrieval/fixtures/representative_retrieval_corpus_manifest.json", "test-artifact"),
+                anchor(
+                    "prd/retrieval/representative_retrieval_runtime_benchmark_contract.md",
+                    "manual-note",
+                    selector="Representative Retrieval Runtime Benchmark Contract",
+                ),
+                anchor(
+                    "scripts/verify-representative-retrieval-runtime-benchmark.py", "source-code"
+                ),
+                anchor(
+                    "prd/retrieval/representative_retrieval_runtime_benchmark_proof.md",
+                    "manual-note",
+                    selector="Representative Retrieval Runtime Benchmark Proof",
+                ),
+                anchor(
+                    "tests/test_representative_retrieval_runtime_benchmark_contract.py",
+                    "test-artifact",
+                ),
+                anchor(
+                    "tests/test_representative_retrieval_runtime_benchmark_cli.py", "test-artifact"
+                ),
+                anchor(
+                    "tests/test_representative_retrieval_runtime_benchmark_report.py",
+                    "test-artifact",
+                ),
+                anchor(
+                    "prd/retrieval/representative_retrieval_corpus_contract.md",
+                    "manual-note",
+                    selector="Representative Retrieval Corpus Contract",
+                ),
+                anchor(
+                    "prd/retrieval/fixtures/representative_retrieval_corpus_manifest.json",
+                    "test-artifact",
+                ),
             ],
             "M016/S03",
             "`uv run python scripts/verify-representative-retrieval-runtime-benchmark.py --allow-runtime-blocker` records metrics_confirmed with mrr=1.0, recall_at_1=1.0, recall_at_3=1.0, no_answer_accuracy=1.0, rejection metrics=1.0, runtime_boundary_confirmed=true, managed_api_used=false, and GATE-G011 status=open.",
@@ -1082,7 +1218,14 @@ def product_coverage_items() -> list[Record]:
                 "prd/retrieval/representative_retrieval_corpus_contract.md",
                 "prd/retrieval/fixtures/representative_retrieval_corpus_manifest.json",
             ],
-            tags=["M016", "G-011", "USER-bge-m3", "representative-runtime", "retrieval-quality", "bounded"],
+            tags=[
+                "M016",
+                "G-011",
+                "USER-bge-m3",
+                "representative-runtime",
+                "retrieval-quality",
+                "bounded",
+            ],
         ),
         item(
             "EVID-PARSER-SOURCE-FIXTURE-INVENTORY",
@@ -1093,7 +1236,13 @@ def product_coverage_items() -> list[Record]:
             "bounded-evidence",
             "static-check",
             "medium",
-            [anchor("prd/parser/source_fixture_inventory.md", "manual-note", selector="Parser Source Fixture Inventory")],
+            [
+                anchor(
+                    "prd/parser/source_fixture_inventory.md",
+                    "manual-note",
+                    selector="Parser Source Fixture Inventory",
+                )
+            ],
             "M006/S01",
             "`uv run python scripts/inventory-parser-fixtures.py --check` verifies fixture inventory freshness and hygiene.",
             ["Does not prove parser completeness.", "Does not prove legal correctness."],
@@ -1109,7 +1258,13 @@ def product_coverage_items() -> list[Record]:
             "bounded-evidence",
             "static-check",
             "medium",
-            [anchor("prd/parser/parser_record_contract.md", "manual-note", selector="Parser Record Contract")],
+            [
+                anchor(
+                    "prd/parser/parser_record_contract.md",
+                    "manual-note",
+                    selector="Parser Record Contract",
+                )
+            ],
             "M006/S02",
             "`uv run python scripts/validate-parser-records.py --check` verifies schemas, examples, and contract freshness.",
             ["Does not prove product ETL readiness.", "Does not prove parser completeness."],
@@ -1125,7 +1280,13 @@ def product_coverage_items() -> list[Record]:
             "bounded-evidence",
             "real-document-proof",
             "high",
-            [anchor("prd/parser/odt_smoke_records.md", "manual-note", selector="ODT Smoke Parser Records")],
+            [
+                anchor(
+                    "prd/parser/odt_smoke_records.md",
+                    "manual-note",
+                    selector="ODT Smoke Parser Records",
+                )
+            ],
             "M006/S03",
             "`uv run python scripts/build-odt-smoke-records.py --check` verifies ODT smoke artifact freshness.",
             ["No final legal hierarchy extraction claim.", "No parser completeness claim."],
@@ -1142,10 +1303,19 @@ def product_coverage_items() -> list[Record]:
             "bounded-evidence",
             "static-check",
             "medium",
-            [anchor("prd/parser/consultant_relation_candidates.md", "manual-note", selector="Consultant WordML Relation Candidates")],
+            [
+                anchor(
+                    "prd/parser/consultant_relation_candidates.md",
+                    "manual-note",
+                    selector="Consultant WordML Relation Candidates",
+                )
+            ],
             "M006/S04",
             "`uv run python scripts/build-consultant-relation-candidates.py --check` verifies Consultant candidate artifact freshness.",
-            ["Does not prove Consultant relation correctness.", "Does not prove parser completeness."],
+            [
+                "Does not prove Consultant relation correctness.",
+                "Does not prove parser completeness.",
+            ],
             lifecycle="maintaining",
             tags=["M006", "Consultant", "R04-REC-005"],
         ),
@@ -1158,10 +1328,19 @@ def product_coverage_items() -> list[Record]:
             "bounded-evidence",
             "static-check",
             "medium",
-            [anchor("prd/parser/parser_staging_graph.md", "manual-note", selector="Parser Staging Graph")],
+            [
+                anchor(
+                    "prd/parser/parser_staging_graph.md",
+                    "manual-note",
+                    selector="Parser Staging Graph",
+                )
+            ],
             "M006/S05",
             "`uv run python scripts/build-parser-staging-graph.py --check` verifies staging graph freshness and invariants.",
-            ["Does not prove FalkorDB loading/runtime behavior.", "Does not prove legal-answer correctness."],
+            [
+                "Does not prove FalkorDB loading/runtime behavior.",
+                "Does not prove legal-answer correctness.",
+            ],
             lifecycle="maintaining",
             tags=["M006", "NetworkX", "R04-REC-005"],
         ),
@@ -1232,11 +1411,16 @@ def product_coverage_items() -> list[Record]:
             [
                 anchor("prd/01_general_idea.md", "prd", selector="edition_date"),
                 anchor("prd/03_PRD.md", "prd", selector="edition_date"),
-                anchor("prd/06_m002_cypher_safety_contract.md", "prd", selector="temporal field names"),
+                anchor(
+                    "prd/06_m002_cypher_safety_contract.md", "prd", selector="temporal field names"
+                ),
             ],
             "future-temporal-proof",
             "Future temporal proof validates field semantics on real document editions and query-time as-of behavior.",
-            ["Does not specify temporal storage implementation.", "Does not validate temporal conflict resolution."],
+            [
+                "Does not specify temporal storage implementation.",
+                "Does not validate temporal conflict resolution.",
+            ],
             lifecycle="researching",
             priority="high",
             tags=["R04-REC-006", "temporal"],
@@ -1256,7 +1440,10 @@ def product_coverage_items() -> list[Record]:
             ],
             "future-temporal-proof",
             "Future implementation verifies idempotent replay, changed-source revision handling, and new-edition behavior on fixture imports.",
-            ["Does not prove import runtime behavior.", "Does not validate same-date conflict policy."],
+            [
+                "Does not prove import runtime behavior.",
+                "Does not validate same-date conflict policy.",
+            ],
             lifecycle="researching",
             priority="high",
             tags=["R04-REC-006", "temporal", "status"],
@@ -1289,7 +1476,8 @@ def ontology_candidate_items() -> list[Record]:
             ontology_anchor("6.1 Add a research evidence item"),
             "architecture registry owner / M017 ontology intake",
             "Keep as bounded source-anchor evidence until primary-source, benchmark, runtime, or real-document proof exists and verifier gates pass.",
-            ONTOLOGY_NON_CLAIMS + [
+            ONTOLOGY_NON_CLAIMS
+            + [
                 "Does not prove GOST/BFO source correctness.",
                 "Does not prove LKIF/deontic extraction correctness.",
                 "Does not prove ontology GraphRAG retrieval quality.",
@@ -1313,7 +1501,8 @@ def ontology_candidate_items() -> list[Record]:
             ontology_anchor("Gap A — No formal legal document identity model"),
             "architecture + parser owners",
             "Verify with source-backed identity examples before upgrading beyond hypothesis.",
-            ONTOLOGY_NON_CLAIMS + [
+            ONTOLOGY_NON_CLAIMS
+            + [
                 "Does not prove correct FRBR implementation.",
                 "Does not prove amendment aggregation or inactive-version filtering.",
                 "Does not prove compatibility with Consultant, Garant, RusLawOD, or Akoma Ntoso sources.",
@@ -1334,7 +1523,8 @@ def ontology_candidate_items() -> list[Record]:
             ontology_anchor("Gap D — No deontic extraction proof gate"),
             "architecture + legal-evidence owners",
             "Verify against source spans, benchmark cases, negative cases, and ambiguous modality before activation.",
-            ONTOLOGY_NON_CLAIMS + [
+            ONTOLOGY_NON_CLAIMS
+            + [
                 "Does not prove extraction precision or recall.",
                 "Does not prove negation handling or modal-verb interpretation.",
                 "Does not make ML/NER outputs authoritative assertions.",
@@ -1355,7 +1545,8 @@ def ontology_candidate_items() -> list[Record]:
             ontology_anchor("Gap B — No explicit ontology/domain layer"),
             "architecture + legal domain owners",
             "Verify bounded class list, excluded scope, source classes, and non-goals before active status.",
-            ONTOLOGY_NON_CLAIMS + [
+            ONTOLOGY_NON_CLAIMS
+            + [
                 "Does not define final ontology scope.",
                 "Does not prove Russian-law completeness.",
                 "Does not replace project-local LegalGraph core contracts.",
@@ -1376,7 +1567,8 @@ def ontology_candidate_items() -> list[Record]:
             ontology_anchor("Gap C — Legal collision policy is too narrow"),
             "architecture + legal domain owners",
             "Verify explicit hierarchy source anchors and examples before relying on collision-policy behavior.",
-            ONTOLOGY_NON_CLAIMS + [
+            ONTOLOGY_NON_CLAIMS
+            + [
                 "Does not decide legal priority.",
                 "Does not prove automated legal collision resolution.",
                 "Does not authorize automated legal conclusions.",
@@ -1397,7 +1589,8 @@ def ontology_candidate_items() -> list[Record]:
             ontology_anchor("6.2 Add proof gates rather than immediate implementation claims"),
             "parser + architecture owners",
             "Verify generated fixtures or real-document proof before validation; keep Akoma/FRBR as optional projection until proven.",
-            ONTOLOGY_NON_CLAIMS + [
+            ONTOLOGY_NON_CLAIMS
+            + [
                 "Does not make Akoma Ntoso canonical.",
                 "Does not prove export compatibility.",
                 "Does not require replacing current parser record contracts.",
@@ -1418,14 +1611,23 @@ def ontology_candidate_items() -> list[Record]:
             ontology_anchor("Gap D — No deontic extraction proof gate"),
             "legal-evidence + extraction owners",
             "Verify benchmark metrics, negative cases, source-span provenance, and ambiguous-modality diagnostics before validation.",
-            ONTOLOGY_NON_CLAIMS + [
+            ONTOLOGY_NON_CLAIMS
+            + [
                 "Does not prove semantic extraction.",
                 "Does not prove ML model fitness.",
                 "Planning alias GATE-DEONTIC-MAPPING-PROOF is not emitted as an authoritative gate.",
             ],
             lifecycle="researching",
             priority="high",
-            tags=["M017", "R035", "LKIF", "deontic", "benchmark", "proof-gate", "alias-GATE-DEONTIC-MAPPING-PROOF"],
+            tags=[
+                "M017",
+                "R035",
+                "LKIF",
+                "deontic",
+                "benchmark",
+                "proof-gate",
+                "alias-GATE-DEONTIC-MAPPING-PROOF",
+            ],
         ),
         item(
             "GATE-RUSLEGALCORE-SCOPE",
@@ -1439,7 +1641,8 @@ def ontology_candidate_items() -> list[Record]:
             ontology_anchor("Gap B — No explicit ontology/domain layer"),
             "architecture + legal domain owners",
             "Verify bounded class list, non-goals, source anchors, and excluded claims before promotion.",
-            ONTOLOGY_NON_CLAIMS + ["Does not prove ontology completeness.", "Does not prove implementation readiness."],
+            ONTOLOGY_NON_CLAIMS
+            + ["Does not prove ontology completeness.", "Does not prove implementation readiness."],
             lifecycle="researching",
             priority="high",
             tags=["M017", "R035", "RusLegalCore", "scope", "proof-gate"],
@@ -1456,7 +1659,8 @@ def ontology_candidate_items() -> list[Record]:
             ontology_anchor("Gap E — No BFO/GOST proof boundary"),
             "architecture owner",
             "Verify external references and conformance criteria before promoting beyond proposed planning status.",
-            ONTOLOGY_NON_CLAIMS + [
+            ONTOLOGY_NON_CLAIMS
+            + [
                 "Does not assert GOST requirements.",
                 "Does not assert BFO conformance.",
                 "Does not assert Common Logic necessity or OWL reasoning support.",
@@ -1477,7 +1681,8 @@ def ontology_candidate_items() -> list[Record]:
             ontology_anchor("Gap C — Legal collision policy is too narrow"),
             "architecture + legal domain owners",
             "Verify explicit legal maxims, source hierarchy, source anchors, and explainability examples before validation.",
-            ONTOLOGY_NON_CLAIMS + [
+            ONTOLOGY_NON_CLAIMS
+            + [
                 "Does not prove automated legal collision resolution.",
                 "Does not prove court interpretation correctness.",
                 "Does not produce legally binding answers.",
@@ -1498,7 +1703,8 @@ def ontology_candidate_items() -> list[Record]:
             ontology_anchor("6.2 Add proof gates rather than immediate implementation claims"),
             "retrieval + architecture owners",
             "Verify with integration tests or runtime smoke only after an implemented retrieval path exists.",
-            ONTOLOGY_NON_CLAIMS + [
+            ONTOLOGY_NON_CLAIMS
+            + [
                 "Does not prove product retrieval quality.",
                 "Does not prove vector/full-text/FalkorDB runtime capability.",
                 "Does not prove HNSW behavior or single-transaction graph+vector semantics.",
@@ -1519,7 +1725,8 @@ def ontology_candidate_items() -> list[Record]:
             ontology_anchor("Gap F — No 1000-document pilot requirement"),
             "architecture + operability owners",
             "Verify repeatable manifest, metrics, failure taxonomy, and real-document/runtime evidence before pilot-readiness claims.",
-            ONTOLOGY_NON_CLAIMS + [
+            ONTOLOGY_NON_CLAIMS
+            + [
                 "Does not invalidate existing bounded proofs.",
                 "Does not prove production scale.",
                 "Does not claim that 1,000 representative documents have been processed.",
@@ -1528,7 +1735,14 @@ def ontology_candidate_items() -> list[Record]:
             ],
             lifecycle="researching",
             priority="high",
-            tags=["M017", "R035", "pilot-scale", "readiness", "proof-gate", "alias-GATE-1000-DOC-PILOT"],
+            tags=[
+                "M017",
+                "R035",
+                "pilot-scale",
+                "readiness",
+                "proof-gate",
+                "alias-GATE-1000-DOC-PILOT",
+            ],
         ),
     ]
 
@@ -1545,7 +1759,13 @@ def evidence_and_governance_items() -> list[Record]:
             "active",
             "source-anchor",
             "high",
-            [anchor("prd/09_architecture_planning_verification_research.md", "prd", section="Recommendation")],
+            [
+                anchor(
+                    "prd/09_architecture_planning_verification_research.md",
+                    "prd",
+                    section="Recommendation",
+                )
+            ],
             "M004",
             "Verifier rejects records or docs that claim JSONL/GraphML are authoritative over source docs.",
             ["Does not make generated artifacts authoritative."],
@@ -1562,7 +1782,13 @@ def evidence_and_governance_items() -> list[Record]:
             "active",
             "source-anchor",
             "critical",
-            [anchor("prd/09_architecture_planning_verification_research.md", "prd", section="LegalGraph Nexus-specific implications")],
+            [
+                anchor(
+                    "prd/09_architecture_planning_verification_research.md",
+                    "prd",
+                    section="LegalGraph Nexus-specific implications",
+                )
+            ],
             "M004/S04",
             "Verifier fails forbidden FalkorDB/vector/full-text/UDF/ODT/parser/retrieval/legal-answer overclaims.",
             ["Risk item does not assert current product failure."],
@@ -1579,13 +1805,23 @@ def evidence_and_governance_items() -> list[Record]:
             "active",
             "static-check",
             "high",
-            [anchor("prd/milestone_proofs/M004_S02_PRE-EXEC-VERIFY.json", "gsd-summary", section="status")],
+            [
+                anchor(
+                    "prd/milestone_proofs/M004_S02_PRE-EXEC-VERIFY.json",
+                    "gsd-summary",
+                    section="status",
+                )
+            ],
             "M004/S02",
             "`uv run python scripts/extract-prd-architecture-items.py --check` exits zero on current generated outputs.",
             ["Extractor check is not product runtime proof."],
             lifecycle="implementing",
             priority="high",
-            governed_artifacts=["scripts/extract-prd-architecture-items.py", "prd/architecture/architecture_items.jsonl", "prd/architecture/architecture_edges.jsonl"],
+            governed_artifacts=[
+                "scripts/extract-prd-architecture-items.py",
+                "prd/architecture/architecture_items.jsonl",
+                "prd/architecture/architecture_edges.jsonl",
+            ],
             tags=["extractor", "S02"],
         ),
         item(
@@ -1597,7 +1833,12 @@ def evidence_and_governance_items() -> list[Record]:
             "bounded-evidence",
             "source-anchor",
             "low",
-            [s08, anchor("prd/04_review_findings.md", "prd", section="S07 final status and S08 handoff")],
+            [
+                s08,
+                anchor(
+                    "prd/04_review_findings.md", "prd", section="S07 final status and S08 handoff"
+                ),
+            ],
             "S08 final architecture review",
             "Final report distinguishes fixed PRD consistency work from deferred proof gates.",
             ["Does not prove product behavior."],
@@ -1613,10 +1854,20 @@ def evidence_and_governance_items() -> list[Record]:
             "bounded-evidence",
             "runtime-smoke",
             "medium",
-            [s08, anchor("prd/milestone_proofs/M001_S04_FALKORDB-CAPABILITY-SMOKE.json", "runtime-artifact")],
+            [
+                s08,
+                anchor(
+                    "prd/milestone_proofs/M001_S04_FALKORDB-CAPABILITY-SMOKE.json",
+                    "runtime-artifact",
+                ),
+            ],
             "S04 evidence owner / S08 final report",
             "S04 verifier passes and S08 labels claims as bounded runtime mechanics.",
-            ["No production-scale FalkorDB claim.", "No legal retrieval quality claim.", "No direct LegalGraph GraphBLAS API/control surface claim."],
+            [
+                "No production-scale FalkorDB claim.",
+                "No legal retrieval quality claim.",
+                "No direct LegalGraph GraphBLAS API/control surface claim.",
+            ],
             lifecycle="maintaining",
             tags=["S04", "FalkorDB", "bounded"],
         ),
@@ -1632,7 +1883,11 @@ def evidence_and_governance_items() -> list[Record]:
             [s08, anchor("prd/milestone_proofs/M001_S05_ODT-PARSER-FINDINGS.md", "gsd-summary")],
             "S05/S08 parser evidence consolidation",
             "S05 verifier passes; future parser tests prove final extraction behavior before promotion.",
-            ["No final legal hierarchy extraction claim.", "No parser completeness claim.", "No production SourceBlock/EvidenceSpan creation claim."],
+            [
+                "No final legal hierarchy extraction claim.",
+                "No parser completeness claim.",
+                "No production SourceBlock/EvidenceSpan creation claim.",
+            ],
             lifecycle="maintaining",
             priority="high",
             tags=["S05", "ODT", "bounded"],
@@ -1663,10 +1918,19 @@ def evidence_and_governance_items() -> list[Record]:
             "bounded-evidence",
             "runtime-smoke",
             "medium",
-            [s08, anchor("prd/milestone_proofs/M001_S10_EMBEDDING-RUNTIME-PROOF.json", "runtime-artifact")],
+            [
+                s08,
+                anchor(
+                    "prd/milestone_proofs/M001_S10_EMBEDDING-RUNTIME-PROOF.json", "runtime-artifact"
+                ),
+            ],
             "S10 evidence owner / future embedding proof owner",
             "Future embedding proof repeats runtime on target hardware and adds real EvidenceSpan/SourceBlock evaluation.",
-            ["No product retrieval quality claim.", "No managed embedding API fallback claim.", "No raw embedding leakage claim beyond verifier scope."],
+            [
+                "No product retrieval quality claim.",
+                "No managed embedding API fallback claim.",
+                "No raw embedding leakage claim beyond verifier scope.",
+            ],
             lifecycle="maintaining",
             tags=["S10", "USER-bge-m3", "bounded"],
         ),
@@ -1679,10 +1943,19 @@ def evidence_and_governance_items() -> list[Record]:
             "blocked",
             "none",
             "medium",
-            [s08, anchor("prd/milestone_proofs/M001_S10_EMBEDDING-RUNTIME-PROOF.json", "runtime-artifact")],
+            [
+                s08,
+                anchor(
+                    "prd/milestone_proofs/M001_S10_EMBEDDING-RUNTIME-PROOF.json", "runtime-artifact"
+                ),
+            ],
             "Future embedding/runtime proof",
             "Challenger proof records gate approvals, runtime status, vector dimension, resource envelope, and retrieval metrics before promotion.",
-            ["No managed embedding API fallback claim.", "No default promotion while blocked-environment.", "No product retrieval quality claim."],
+            [
+                "No managed embedding API fallback claim.",
+                "No default promotion while blocked-environment.",
+                "No product retrieval quality claim.",
+            ],
             lifecycle="researching",
             tags=["S10", "GigaEmbeddings", "blocked"],
         ),
@@ -1698,7 +1971,14 @@ def evidence_and_governance_items() -> list[Record]:
             [s08, anchor(".gsd/REQUIREMENTS.md", "gsd-requirement", selector="R011")],
             "S08 final architecture review",
             "S08 verifier rejects overclaim markers that promote architecture findings into product runtime or legal-quality claims.",
-            ["No product ETL.", "No production graph schema.", "No LegalNexus API.", "No KnowQL parser.", "No hybrid retrieval.", "No legal-answering runtime."],
+            [
+                "No product ETL.",
+                "No production graph schema.",
+                "No LegalNexus API.",
+                "No KnowQL parser.",
+                "No hybrid retrieval.",
+                "No legal-answering runtime.",
+            ],
             lifecycle="maintaining",
             priority="critical",
             tags=["M001", "architecture-only", "guardrail"],
@@ -1731,13 +2011,28 @@ def acp_governance_items() -> list[Record]:
             "static-check",
             "high",
             [
-                anchor("prd/architecture/acp/fixtures/minimal-chain/DC-0001.md", "prd", selector="requires_proof_gate: PG-0001"),
-                anchor("prd/architecture/acp/fixtures/minimal-chain/PG-0001.md", "prd", selector="blocks:"),
-                anchor("prd/architecture/acp/M044-DEFAULT-INCLUSION-POLICY.md", "prd", section="Approved row classes"),
+                anchor(
+                    "prd/architecture/acp/fixtures/minimal-chain/DC-0001.md",
+                    "prd",
+                    selector="requires_proof_gate: PG-0001",
+                ),
+                anchor(
+                    "prd/architecture/acp/fixtures/minimal-chain/PG-0001.md",
+                    "prd",
+                    selector="blocks:",
+                ),
+                anchor(
+                    "prd/architecture/acp/M044-DEFAULT-INCLUSION-POLICY.md",
+                    "prd",
+                    section="Approved row classes",
+                ),
             ],
             "architecture-control-plane",
             "Generated by scripts/extract-prd-architecture-items.py and checked by uv run python scripts/verify-architecture-graph.py.",
-            [*ACP_NON_CLAIMS, "Health finding is a governance blocker, not product readiness evidence."],
+            [
+                *ACP_NON_CLAIMS,
+                "Health finding is a governance blocker, not product readiness evidence.",
+            ],
             acp_record_kind="architecture_health_finding",
             acp_source_record_id="AHF-0001",
             allowed_next_actions=["use default extractor generated ACP governance row"],
@@ -1753,9 +2048,21 @@ def acp_governance_items() -> list[Record]:
             "source-anchor",
             "medium",
             [
-                anchor("prd/research/architecture/architecture-control-plane-contract.md", "prd", selector="ArchitectureProposal"),
-                anchor("prd/research/architecture/law-nexus-acp-profile-and-first-proof-plan.md", "prd", selector="first implementation proof"),
-                anchor("prd/architecture/acp/M044-DEFAULT-INCLUSION-POLICY.md", "prd", section="Approved row classes"),
+                anchor(
+                    "prd/research/architecture/architecture-control-plane-contract.md",
+                    "prd",
+                    selector="ArchitectureProposal",
+                ),
+                anchor(
+                    "prd/research/architecture/law-nexus-acp-profile-and-first-proof-plan.md",
+                    "prd",
+                    selector="first implementation proof",
+                ),
+                anchor(
+                    "prd/architecture/acp/M044-DEFAULT-INCLUSION-POLICY.md",
+                    "prd",
+                    section="Approved row classes",
+                ),
             ],
             "architecture-control-plane",
             "Generated by scripts/extract-prd-architecture-items.py from curated ACP source mappings.",
@@ -1773,15 +2080,25 @@ def acp_governance_items() -> list[Record]:
             "source-anchor",
             "medium",
             [
-                anchor("prd/research/architecture/law-nexus-acp-profile-and-first-proof-plan.md", "prd", selector="ArchitecturePromptRecord"),
-                anchor("prd/architecture/acp/M044-DEFAULT-INCLUSION-POLICY.md", "prd", section="Approved row classes"),
+                anchor(
+                    "prd/research/architecture/law-nexus-acp-profile-and-first-proof-plan.md",
+                    "prd",
+                    selector="ArchitecturePromptRecord",
+                ),
+                anchor(
+                    "prd/architecture/acp/M044-DEFAULT-INCLUSION-POLICY.md",
+                    "prd",
+                    section="Approved row classes",
+                ),
             ],
             "architecture-control-plane",
             "Generated by scripts/extract-prd-architecture-items.py with redacted/summarized prompt provenance only.",
             [*ACP_NON_CLAIMS, "Prompt provenance is not implementation proof."],
             acp_record_kind="architecture_prompt_record",
             acp_source_record_id="APR-0001",
-            acp_non_mappable=["raw prompt text intentionally omitted from default canonical output"],
+            acp_non_mappable=[
+                "raw prompt text intentionally omitted from default canonical output"
+            ],
             capture_mode="summarized-with-quotes",
             redaction_status="checked",
         ),
@@ -1795,9 +2112,21 @@ def acp_governance_items() -> list[Record]:
             "source-anchor",
             "medium",
             [
-                anchor("prd/research/architecture/architecture-control-plane-contract.md", "prd", selector="DecisionCandidate"),
-                anchor("prd/architecture/acp/fixtures/minimal-chain/AP-0001.md", "prd", selector="decision_candidates:"),
-                anchor("prd/architecture/acp/M044-DEFAULT-INCLUSION-POLICY.md", "prd", section="Approved row classes"),
+                anchor(
+                    "prd/research/architecture/architecture-control-plane-contract.md",
+                    "prd",
+                    selector="DecisionCandidate",
+                ),
+                anchor(
+                    "prd/architecture/acp/fixtures/minimal-chain/AP-0001.md",
+                    "prd",
+                    selector="decision_candidates:",
+                ),
+                anchor(
+                    "prd/architecture/acp/M044-DEFAULT-INCLUSION-POLICY.md",
+                    "prd",
+                    section="Approved row classes",
+                ),
             ],
             "architecture-control-plane",
             "Generated by scripts/extract-prd-architecture-items.py; authority_required must remain true until a later acceptance workflow exists.",
@@ -1816,9 +2145,21 @@ def acp_governance_items() -> list[Record]:
             "static-check",
             "medium",
             [
-                anchor("prd/architecture/acp/schema.json", "prd", selector="Minimal Architecture Control Plane Record Schema"),
-                anchor("prd/architecture/acp/README.md", "prd", selector="Architecture Control Plane Fixtures"),
-                anchor("prd/architecture/acp/M044-DEFAULT-INCLUSION-POLICY.md", "prd", section="Approved row classes"),
+                anchor(
+                    "prd/architecture/acp/schema.json",
+                    "prd",
+                    selector="Minimal Architecture Control Plane Record Schema",
+                ),
+                anchor(
+                    "prd/architecture/acp/README.md",
+                    "prd",
+                    selector="Architecture Control Plane Fixtures",
+                ),
+                anchor(
+                    "prd/architecture/acp/M044-DEFAULT-INCLUSION-POLICY.md",
+                    "prd",
+                    section="Approved row classes",
+                ),
             ],
             "architecture-control-plane",
             "Generated by scripts/extract-prd-architecture-items.py as a proof-gate definition, not proof satisfaction.",
@@ -1846,7 +2187,9 @@ def build_items() -> list[Record]:
         raise ExtractionError(f"extractor mapping missing required item IDs: {', '.join(missing)}")
     if any(record["status"] == "validated" for record in records):
         bad = sorted(record["id"] for record in records if record["status"] == "validated")
-        raise ExtractionError(f"unsafe status/proof mapping: extractor must not emit validated items: {', '.join(bad)}")
+        raise ExtractionError(
+            f"unsafe status/proof mapping: extractor must not emit validated items: {', '.join(bad)}"
+        )
     return sorted(records, key=lambda record: str(record["id"]))
 
 
@@ -1911,7 +2254,13 @@ def ontology_candidate_edges() -> list[Record]:
                 "refines",
                 "hypothesis",
                 "The FRBR-like candidate refines existing temporal property bundle concepts without replacing current parser records.",
-                [anchor(gap, "manual-note", section="Gap A — No formal legal document identity model")],
+                [
+                    anchor(
+                        gap,
+                        "manual-note",
+                        section="Gap A — No formal legal document identity model",
+                    )
+                ],
                 "architecture + parser owners",
                 confidence=0.7,
                 tags=["M017", "FRBR", "temporal"],
@@ -1923,7 +2272,13 @@ def ontology_candidate_edges() -> list[Record]:
                 "refines",
                 "hypothesis",
                 "The identity candidate refines existing temporal status semantics and remains source-anchor-only until examples and proof exist.",
-                [anchor(gap, "manual-note", section="Gap A — No formal legal document identity model")],
+                [
+                    anchor(
+                        gap,
+                        "manual-note",
+                        section="Gap A — No formal legal document identity model",
+                    )
+                ],
                 "architecture + parser owners",
                 confidence=0.7,
                 tags=["M017", "FRBR", "temporal"],
@@ -2007,7 +2362,11 @@ def ontology_candidate_edges() -> list[Record]:
                 "depends_on",
                 "hypothesis",
                 "Collision policy needs explicit hierarchy and supersession inputs before priority behavior can be tested.",
-                [anchor(gap, "manual-note", section="Gap C — Legal collision policy is too narrow")],
+                [
+                    anchor(
+                        gap, "manual-note", section="Gap C — Legal collision policy is too narrow"
+                    )
+                ],
                 "architecture + legal domain owners",
                 confidence=0.8,
                 tags=["M017", "collision-policy", "source-hierarchy"],
@@ -2019,7 +2378,11 @@ def ontology_candidate_edges() -> list[Record]:
                 "refines",
                 "hypothesis",
                 "Full legal collision policy broadens the existing temporal same-date/multi-edition conflict gate without closing it.",
-                [anchor(gap, "manual-note", section="Gap C — Legal collision policy is too narrow")],
+                [
+                    anchor(
+                        gap, "manual-note", section="Gap C — Legal collision policy is too narrow"
+                    )
+                ],
                 "architecture + legal domain owners",
                 confidence=0.75,
                 tags=["M017", "collision-policy", "G-005"],
@@ -2066,7 +2429,13 @@ def ontology_candidate_edges() -> list[Record]:
 
 
 def acp_governance_edges() -> list[Record]:
-    source = [anchor("prd/architecture/acp/M040-CANONICAL-PROJECTION-CONTRACT.md", "prd", section="Canonical-shaped edge mapping")]
+    source = [
+        anchor(
+            "prd/architecture/acp/M040-CANONICAL-PROJECTION-CONTRACT.md",
+            "prd",
+            section="Canonical-shaped edge mapping",
+        )
+    ]
     return [
         edge(
             "ACP-EDGE-AHF-0001-affects-DC-0001",
@@ -2171,7 +2540,10 @@ def build_edges() -> list[Record]:
             "satisfies",
             "active",
             "The docs-as-code architecture registry decision is the chosen approach for executable architecture verification.",
-            [anchor(".gsd/DECISIONS.md", "gsd-decision", selector="D031"), anchor(".gsd/REQUIREMENTS.md", "gsd-requirement", selector="R029")],
+            [
+                anchor(".gsd/DECISIONS.md", "gsd-decision", selector="D031"),
+                anchor(".gsd/REQUIREMENTS.md", "gsd-requirement", selector="R029"),
+            ],
             "M004",
             verification="Registry schema/extractor/verifier workflow passes.",
             confidence=0.95,
@@ -2184,7 +2556,13 @@ def build_edges() -> list[Record]:
             "checked_by",
             "active",
             "The high-risk architecture registry decision is checked by the deterministic extractor drift check in S02.",
-            [anchor("prd/milestone_proofs/M004_S02_PRE-EXEC-VERIFY.json", "gsd-summary", section="status")],
+            [
+                anchor(
+                    "prd/milestone_proofs/M004_S02_PRE-EXEC-VERIFY.json",
+                    "gsd-summary",
+                    section="status",
+                )
+            ],
             "M004/S02",
             verification="`uv run python scripts/extract-prd-architecture-items.py --check` passes.",
             confidence=0.9,
@@ -2209,7 +2587,13 @@ def build_edges() -> list[Record]:
             "evidenced_by",
             "active",
             "S07/S08 final report evidence supports architecture finding classification within M001 scope.",
-            [anchor("prd/milestone_proofs/M001_S08_FINDINGS.json", "gsd-summary", selector="S07-FIXED-PRD-CONSISTENCY")],
+            [
+                anchor(
+                    "prd/milestone_proofs/M001_S08_FINDINGS.json",
+                    "gsd-summary",
+                    selector="S07-FIXED-PRD-CONSISTENCY",
+                )
+            ],
             "M001/S08",
             confidence=0.85,
             tags=["R001", "S08"],
@@ -2259,7 +2643,11 @@ def build_edges() -> list[Record]:
             "The M012 validator proof provides bounded executable evidence for R034 fail-closed output identifier checks without promoting product retrieval or legal-answer claims.",
             [
                 anchor(".gsd/REQUIREMENTS.md", "gsd-requirement", selector="R034"),
-                anchor("prd/retrieval/retrieval_output_validator_contract.md", "manual-note", selector="R034"),
+                anchor(
+                    "prd/retrieval/retrieval_output_validator_contract.md",
+                    "manual-note",
+                    selector="R034",
+                ),
                 anchor("tests/test_retrieval_output_validator.py", "test-artifact"),
             ],
             "M012/S02",
@@ -2275,7 +2663,11 @@ def build_edges() -> list[Record]:
             "active",
             "The validator proof checks output IDs and diagnostics but remains bounded by the product parser/retrieval readiness gate.",
             [
-                anchor("prd/retrieval/retrieval_output_validator_contract.md", "manual-note", selector="Validation Boundary"),
+                anchor(
+                    "prd/retrieval/retrieval_output_validator_contract.md",
+                    "manual-note",
+                    selector="Validation Boundary",
+                ),
                 anchor("prd/04_review_findings.md", "prd", selector="G-008"),
             ],
             "M012/S03 / future product parser-retrieval proof",
@@ -2291,7 +2683,11 @@ def build_edges() -> list[Record]:
             "active",
             "The validator proof can reject unresolved IDs but does not measure local embedding or product retrieval quality.",
             [
-                anchor("prd/retrieval/retrieval_output_validator_contract.md", "manual-note", selector="Validation Boundary"),
+                anchor(
+                    "prd/retrieval/retrieval_output_validator_contract.md",
+                    "manual-note",
+                    selector="Validation Boundary",
+                ),
                 anchor("prd/04_review_findings.md", "prd", selector="G-011"),
             ],
             "M012/S03 / future retrieval quality proof",
@@ -2307,8 +2703,16 @@ def build_edges() -> list[Record]:
             "active",
             "The validator proof resolves citation and evidence IDs through bounded SourceBlock, SourceDocument, LegalUnit, and ActEdition fixture paths derived from the legal-evidence core concept.",
             [
-                anchor("prd/retrieval/retrieval_output_validator_contract.md", "manual-note", selector="Static Fixture Graph Resolution Contract"),
-                anchor("prd/retrieval/retrieval_output_validator_fixtures.md", "manual-note", selector="Minimal Fixture Graph Record Set"),
+                anchor(
+                    "prd/retrieval/retrieval_output_validator_contract.md",
+                    "manual-note",
+                    selector="Static Fixture Graph Resolution Contract",
+                ),
+                anchor(
+                    "prd/retrieval/retrieval_output_validator_fixtures.md",
+                    "manual-note",
+                    selector="Minimal Fixture Graph Record Set",
+                ),
             ],
             "M012/S02",
             verification="Fixture cases exercise source and legal-unit traversal failures with stable diagnostics.",
@@ -2323,8 +2727,16 @@ def build_edges() -> list[Record]:
             "active",
             "The deterministic architecture extractor keeps the M012 validator proof anchors, status, proof level, and non-claims visible in generated registry outputs.",
             [
-                anchor("scripts/extract-prd-architecture-items.py", "source-code", selector="EVID-RETRIEVAL-OUTPUT-ID-VALIDATOR-PROOF"),
-                anchor("tests/test_extract_prd_architecture_items.py", "test-artifact", selector="EVID-RETRIEVAL-OUTPUT-ID-VALIDATOR-PROOF"),
+                anchor(
+                    "scripts/extract-prd-architecture-items.py",
+                    "source-code",
+                    selector="EVID-RETRIEVAL-OUTPUT-ID-VALIDATOR-PROOF",
+                ),
+                anchor(
+                    "tests/test_extract_prd_architecture_items.py",
+                    "test-artifact",
+                    selector="EVID-RETRIEVAL-OUTPUT-ID-VALIDATOR-PROOF",
+                ),
             ],
             "M012/S03",
             verification="`uv run python scripts/extract-prd-architecture-items.py --check` and extractor tests fail if the proof record or required edges disappear.",
@@ -2340,7 +2752,11 @@ def build_edges() -> list[Record]:
             "The M013 real-artifact proof provides executable evidence that retrieval output IDs derived from tracked parser artifacts can fail closed through source, legal-unit, and edition paths without promoting product retrieval quality or legal-answer claims.",
             [
                 anchor(".gsd/REQUIREMENTS.md", "gsd-requirement", selector="R034"),
-                anchor("prd/retrieval/real_artifact_retrieval_proof.md", "manual-note", selector="R034 status"),
+                anchor(
+                    "prd/retrieval/real_artifact_retrieval_proof.md",
+                    "manual-note",
+                    selector="R034 status",
+                ),
                 anchor("scripts/verify-real-artifact-retrieval-proof.py", "source-code"),
             ],
             "M013/S02",
@@ -2356,7 +2772,11 @@ def build_edges() -> list[Record]:
             "active",
             "The M013 proof validates real-artifact output IDs and diagnostics but remains bounded by the product parser/retrieval readiness gate.",
             [
-                anchor("prd/retrieval/real_artifact_retrieval_proof.md", "manual-note", selector="Remaining gates"),
+                anchor(
+                    "prd/retrieval/real_artifact_retrieval_proof.md",
+                    "manual-note",
+                    selector="Remaining gates",
+                ),
                 anchor("prd/04_review_findings.md", "prd", selector="G-008"),
             ],
             "M013/S03 / future product parser-retrieval proof",
@@ -2372,7 +2792,11 @@ def build_edges() -> list[Record]:
             "active",
             "The M013 proof validates fail-closed output IDs but does not measure local embedding or product retrieval quality.",
             [
-                anchor("prd/retrieval/real_artifact_retrieval_proof.md", "manual-note", selector="Remaining gates"),
+                anchor(
+                    "prd/retrieval/real_artifact_retrieval_proof.md",
+                    "manual-note",
+                    selector="Remaining gates",
+                ),
                 anchor("prd/04_review_findings.md", "prd", selector="G-011"),
             ],
             "M013/S03 / future retrieval quality proof",
@@ -2388,8 +2812,16 @@ def build_edges() -> list[Record]:
             "active",
             "The deterministic architecture extractor keeps the M013 real-artifact proof anchors, status, proof level, and non-claims visible in generated registry outputs.",
             [
-                anchor("scripts/extract-prd-architecture-items.py", "source-code", selector="EVID-REAL-ARTIFACT-RETRIEVAL-PROOF"),
-                anchor("tests/test_extract_prd_architecture_items.py", "test-artifact", selector="EVID-REAL-ARTIFACT-RETRIEVAL-PROOF"),
+                anchor(
+                    "scripts/extract-prd-architecture-items.py",
+                    "source-code",
+                    selector="EVID-REAL-ARTIFACT-RETRIEVAL-PROOF",
+                ),
+                anchor(
+                    "tests/test_extract_prd_architecture_items.py",
+                    "test-artifact",
+                    selector="EVID-REAL-ARTIFACT-RETRIEVAL-PROOF",
+                ),
             ],
             "M013/S03",
             verification="`uv run python scripts/extract-prd-architecture-items.py --check` and extractor tests fail if the M013 proof record or required edges disappear.",
@@ -2404,7 +2836,11 @@ def build_edges() -> list[Record]:
             "active",
             "The M014 proof validates deterministic offline citation-safe retrieval behavior over a bounded tracked corpus, but remains bounded by the broader product parser/retrieval readiness gate.",
             [
-                anchor("prd/retrieval/offline_citation_retrieval_proof.md", "manual-note", selector="GATE-G008 status"),
+                anchor(
+                    "prd/retrieval/offline_citation_retrieval_proof.md",
+                    "manual-note",
+                    selector="GATE-G008 status",
+                ),
                 anchor("prd/04_review_findings.md", "prd", selector="G-008"),
             ],
             "M014/S03 / future product parser-retrieval proof",
@@ -2420,8 +2856,16 @@ def build_edges() -> list[Record]:
             "active",
             "The offline citation proof depends on source/evidence/legal-unit/edition ID path concepts from the legal evidence core while remaining a proof-local fixture, not production graph data.",
             [
-                anchor("prd/retrieval/offline_citation_retrieval_contract.md", "manual-note", selector="Validator envelope handoff"),
-                anchor("prd/retrieval/offline_citation_retrieval_proof.md", "manual-note", selector="Validator integration"),
+                anchor(
+                    "prd/retrieval/offline_citation_retrieval_contract.md",
+                    "manual-note",
+                    selector="Validator envelope handoff",
+                ),
+                anchor(
+                    "prd/retrieval/offline_citation_retrieval_proof.md",
+                    "manual-note",
+                    selector="Validator integration",
+                ),
             ],
             "M014/S03",
             verification="The proof CLI validates eligible M014 envelopes through the shared output validator and rejects unresolved evidence paths fail-closed.",
@@ -2436,8 +2880,16 @@ def build_edges() -> list[Record]:
             "active",
             "The deterministic architecture extractor keeps the M014 offline citation proof anchors, status, proof level, and non-claims visible in generated registry outputs.",
             [
-                anchor("scripts/extract-prd-architecture-items.py", "source-code", selector="EVID-OFFLINE-CITATION-RETRIEVAL-PROOF"),
-                anchor("tests/test_extract_prd_architecture_items.py", "test-artifact", selector="EVID-OFFLINE-CITATION-RETRIEVAL-PROOF"),
+                anchor(
+                    "scripts/extract-prd-architecture-items.py",
+                    "source-code",
+                    selector="EVID-OFFLINE-CITATION-RETRIEVAL-PROOF",
+                ),
+                anchor(
+                    "tests/test_extract_prd_architecture_items.py",
+                    "test-artifact",
+                    selector="EVID-OFFLINE-CITATION-RETRIEVAL-PROOF",
+                ),
             ],
             "M014/S03",
             verification="`uv run python scripts/extract-prd-architecture-items.py --check` and extractor tests fail if the M014 proof record or required edges disappear.",
@@ -2452,7 +2904,11 @@ def build_edges() -> list[Record]:
             "active",
             "The M015 proof validates deterministic seed-fixture retrieval quality metrics under local/open-weight USER-bge-m3 boundary metadata, but remains bounded by the broader local embedding quality gate.",
             [
-                anchor("prd/retrieval/local_retrieval_quality_benchmark_proof.md", "manual-note", selector="GATE-G011 status"),
+                anchor(
+                    "prd/retrieval/local_retrieval_quality_benchmark_proof.md",
+                    "manual-note",
+                    selector="GATE-G011 status",
+                ),
                 anchor("prd/04_review_findings.md", "prd", selector="G-011"),
             ],
             "M015/S03 / future retrieval quality proof",
@@ -2468,8 +2924,16 @@ def build_edges() -> list[Record]:
             "active",
             "The M015 seed benchmark reuses M014 offline citation retrieval fixture provenance while adding fixture-level quality metrics and S10 model boundary metadata.",
             [
-                anchor("prd/retrieval/local_retrieval_quality_benchmark_contract.md", "manual-note", selector="Source artifacts"),
-                anchor("prd/retrieval/local_retrieval_quality_benchmark_proof.md", "manual-note", selector="Proof inputs"),
+                anchor(
+                    "prd/retrieval/local_retrieval_quality_benchmark_contract.md",
+                    "manual-note",
+                    selector="Source artifacts",
+                ),
+                anchor(
+                    "prd/retrieval/local_retrieval_quality_benchmark_proof.md",
+                    "manual-note",
+                    selector="Proof inputs",
+                ),
             ],
             "M015/S03",
             verification="The benchmark builder consumes the M014 fixture and S10 proof metadata without raw text/vector persistence.",
@@ -2484,8 +2948,16 @@ def build_edges() -> list[Record]:
             "active",
             "The deterministic architecture extractor keeps the M015 benchmark proof anchors, status, proof level, and non-claims visible in generated registry outputs.",
             [
-                anchor("scripts/extract-prd-architecture-items.py", "source-code", selector="EVID-LOCAL-RETRIEVAL-QUALITY-BENCHMARK-PROOF"),
-                anchor("tests/test_extract_prd_architecture_items.py", "test-artifact", selector="EVID-LOCAL-RETRIEVAL-QUALITY-BENCHMARK-PROOF"),
+                anchor(
+                    "scripts/extract-prd-architecture-items.py",
+                    "source-code",
+                    selector="EVID-LOCAL-RETRIEVAL-QUALITY-BENCHMARK-PROOF",
+                ),
+                anchor(
+                    "tests/test_extract_prd_architecture_items.py",
+                    "test-artifact",
+                    selector="EVID-LOCAL-RETRIEVAL-QUALITY-BENCHMARK-PROOF",
+                ),
             ],
             "M015/S03",
             verification="`uv run python scripts/extract-prd-architecture-items.py --check` and extractor tests fail if the M015 proof record or required edges disappear.",
@@ -2500,7 +2972,11 @@ def build_edges() -> list[Record]:
             "active",
             "The M016 representative runtime benchmark confirms proof-local metrics and local/open-weight runtime boundary, but remains bounded by the broader GATE-G011 product retrieval quality disposition.",
             [
-                anchor("prd/retrieval/representative_retrieval_runtime_benchmark_proof.md", "manual-note", selector="GATE-G011 Disposition Inputs"),
+                anchor(
+                    "prd/retrieval/representative_retrieval_runtime_benchmark_proof.md",
+                    "manual-note",
+                    selector="GATE-G011 Disposition Inputs",
+                ),
                 anchor("prd/04_review_findings.md", "prd", selector="G-011"),
             ],
             "M016/S04 / future retrieval quality proof",
@@ -2516,8 +2992,16 @@ def build_edges() -> list[Record]:
             "active",
             "The M016 representative runtime benchmark extends the M015 local retrieval benchmark pattern from seed fixtures to the representative manifest while preserving bounded, local/open-weight evidence scope.",
             [
-                anchor("prd/retrieval/representative_retrieval_runtime_benchmark_contract.md", "manual-note", selector="Source artifacts"),
-                anchor("prd/retrieval/local_retrieval_quality_benchmark_proof.md", "manual-note", selector="Local Retrieval Quality Benchmark Proof"),
+                anchor(
+                    "prd/retrieval/representative_retrieval_runtime_benchmark_contract.md",
+                    "manual-note",
+                    selector="Source artifacts",
+                ),
+                anchor(
+                    "prd/retrieval/local_retrieval_quality_benchmark_proof.md",
+                    "manual-note",
+                    selector="Local Retrieval Quality Benchmark Proof",
+                ),
             ],
             "M016/S04",
             verification="The M016 proof records threshold metrics at 1.0 over representative manifest inputs without promoting M015 or M016 fixture metrics to product metrics.",
@@ -2532,8 +3016,16 @@ def build_edges() -> list[Record]:
             "active",
             "The M016 representative runtime benchmark depends on the bounded USER-bge-m3 local/open-weight runtime baseline and repeats the no-managed-API boundary in its proof output.",
             [
-                anchor("prd/retrieval/representative_retrieval_runtime_benchmark_proof.md", "manual-note", selector="Runtime Status"),
-                anchor("prd/milestone_proofs/M001_S10_EMBEDDING-RUNTIME-PROOF.json", "runtime-artifact", selector="deepvk/USER-bge-m3"),
+                anchor(
+                    "prd/retrieval/representative_retrieval_runtime_benchmark_proof.md",
+                    "manual-note",
+                    selector="Runtime Status",
+                ),
+                anchor(
+                    "prd/milestone_proofs/M001_S10_EMBEDDING-RUNTIME-PROOF.json",
+                    "runtime-artifact",
+                    selector="deepvk/USER-bge-m3",
+                ),
             ],
             "M016/S04",
             verification="The M016 proof records model_id=deepvk/USER-bge-m3, execution_mode=local_open_weight, managed_api_used=false, and runtime_boundary_confirmed=true.",
@@ -2548,8 +3040,16 @@ def build_edges() -> list[Record]:
             "validated",
             "The deterministic architecture extractor and regression tests keep the M016 representative runtime benchmark anchors, bounded status, proof level, redaction boundary, and open GATE-G011 disposition visible in generated registry outputs.",
             [
-                anchor("scripts/extract-prd-architecture-items.py", "source-code", selector="EVID-REPRESENTATIVE-RETRIEVAL-RUNTIME-BENCHMARK-PROOF"),
-                anchor("tests/test_extract_prd_architecture_items.py", "test-artifact", selector="EVID-REPRESENTATIVE-RETRIEVAL-RUNTIME-BENCHMARK-PROOF"),
+                anchor(
+                    "scripts/extract-prd-architecture-items.py",
+                    "source-code",
+                    selector="EVID-REPRESENTATIVE-RETRIEVAL-RUNTIME-BENCHMARK-PROOF",
+                ),
+                anchor(
+                    "tests/test_extract_prd_architecture_items.py",
+                    "test-artifact",
+                    selector="EVID-REPRESENTATIVE-RETRIEVAL-RUNTIME-BENCHMARK-PROOF",
+                ),
             ],
             "M016/S04",
             verification="Extractor, graph, view, and verifier tests fail if the M016 proof record, traceability edges, source anchors, bounded non-claims, or generated outputs disappear.",
@@ -2587,7 +3087,10 @@ def build_edges() -> list[Record]:
             "blocks",
             "active",
             "Product parser/retrieval readiness gaps must remain explicit even after M008 bounded golden-test harness proof.",
-            [anchor("prd/04_review_findings.md", "prd", selector="G-008"), anchor("prd/milestone_proofs/M008_SUMMARY.md", "gsd-summary")],
+            [
+                anchor("prd/04_review_findings.md", "prd", selector="G-008"),
+                anchor("prd/milestone_proofs/M008_SUMMARY.md", "gsd-summary"),
+            ],
             "future-product-parser-retrieval-proof",
             confidence=0.75,
             tags=["G-008", "M008"],
@@ -2623,7 +3126,13 @@ def build_edges() -> list[Record]:
             "checked_by",
             "active",
             "The extractor check fails closed for unsafe status/proof mappings and stale generated outputs.",
-            [anchor("prd/milestone_proofs/M004_S02_PRE-EXEC-VERIFY.json", "gsd-summary", section="status")],
+            [
+                anchor(
+                    "prd/milestone_proofs/M004_S02_PRE-EXEC-VERIFY.json",
+                    "gsd-summary",
+                    section="status",
+                )
+            ],
             "M004/S02",
             verification="Extractor tests and --check mode pass.",
             confidence=0.8,
@@ -2636,7 +3145,13 @@ def build_edges() -> list[Record]:
             "bounded_by",
             "active",
             "S04 smoke evidence must not be upgraded to product suitability, production scale, or legal-quality proof.",
-            [anchor("prd/05_final_architecture_review.md", "prd", section="Non-goals and overclaim guardrails")],
+            [
+                anchor(
+                    "prd/05_final_architecture_review.md",
+                    "prd",
+                    section="Non-goals and overclaim guardrails",
+                )
+            ],
             "M004/S04",
             confidence=0.9,
             tags=["FalkorDB", "bounded"],
@@ -2648,7 +3163,11 @@ def build_edges() -> list[Record]:
             "bounded_by",
             "active",
             "S05 parser smoke guides investigation but product parser/retrieval readiness remains behind GATE-G008.",
-            [anchor("prd/milestone_proofs/M001_S08_FINDINGS.json", "gsd-summary", selector="G-008")],
+            [
+                anchor(
+                    "prd/milestone_proofs/M001_S08_FINDINGS.json", "gsd-summary", selector="G-008"
+                )
+            ],
             "future-product-parser-retrieval-proof",
             confidence=0.85,
             tags=["parser", "G-008"],
@@ -2686,7 +3205,11 @@ def build_edges() -> list[Record]:
             "bounded_by",
             "active",
             "USER-bge-m3 runtime proof is a local baseline, not product retrieval quality proof.",
-            [anchor("prd/milestone_proofs/M001_S08_FINDINGS.json", "gsd-summary", selector="G-011")],
+            [
+                anchor(
+                    "prd/milestone_proofs/M001_S08_FINDINGS.json", "gsd-summary", selector="G-011"
+                )
+            ],
             "future-retrieval-quality-proof",
             confidence=0.85,
             tags=["embedding", "G-011"],
@@ -2710,7 +3233,13 @@ def build_edges() -> list[Record]:
             "has_assumption",
             "active",
             "The architecture registry decision assumes PRD/GSD/ADR/source/runtime evidence remains authoritative and generated registry artifacts remain derived projections.",
-            [anchor("prd/09_architecture_planning_verification_research.md", "prd", section="Recommendation")],
+            [
+                anchor(
+                    "prd/09_architecture_planning_verification_research.md",
+                    "prd",
+                    section="Recommendation",
+                )
+            ],
             "M007/S01",
             confidence=0.9,
             tags=["R04-REC-002", "orphan-connectivity"],
@@ -2722,7 +3251,13 @@ def build_edges() -> list[Record]:
             "checked_by",
             "active",
             "The deterministic architecture extractor/check workflow keeps observability and auditability boundary records visible in derived planning views.",
-            [anchor("prd/architecture/README.md", "manual-note", section="End-to-end architecture verification workflow")],
+            [
+                anchor(
+                    "prd/architecture/README.md",
+                    "manual-note",
+                    section="End-to-end architecture verification workflow",
+                )
+            ],
             "M010/S01",
             verification="Architecture extractor, graph, verifier, and derived view checks pass after M010 registry repair.",
             confidence=0.8,
@@ -2735,7 +3270,13 @@ def build_edges() -> list[Record]:
             "bounded_by",
             "active",
             "Old_project prior art remains bounded by executable parser/retrieval golden-test proof before any legacy assumption is promoted.",
-            [anchor("prd/architecture/review_findings/04/06_recommendations.json", "manual-note", selector="R04-REC-002")],
+            [
+                anchor(
+                    "prd/architecture/review_findings/04/06_recommendations.json",
+                    "manual-note",
+                    selector="R04-REC-002",
+                )
+            ],
             "M007/S01",
             confidence=0.85,
             tags=["R04-REC-002", "Old_project"],
@@ -2747,7 +3288,13 @@ def build_edges() -> list[Record]:
             "bounded_by",
             "active",
             "Blocked GigaEmbeddings challenger evidence remains behind local embedding quality proof and cannot become managed fallback or default retrieval model.",
-            [anchor("prd/architecture/review_findings/04/06_recommendations.json", "manual-note", selector="R04-REC-002")],
+            [
+                anchor(
+                    "prd/architecture/review_findings/04/06_recommendations.json",
+                    "manual-note",
+                    selector="R04-REC-002",
+                )
+            ],
             "M007/S01",
             confidence=0.85,
             tags=["R04-REC-002", "embedding"],
@@ -2759,7 +3306,13 @@ def build_edges() -> list[Record]:
             "blocks",
             "active",
             "R017 cannot be validated for product Legal KnowQL until generated-Cypher safety is proven beyond M003 route/proof-harness evidence.",
-            [anchor("prd/06_m002_cypher_safety_contract.md", "prd", selector="Generated-Cypher Safety Contract")],
+            [
+                anchor(
+                    "prd/06_m002_cypher_safety_contract.md",
+                    "prd",
+                    selector="Generated-Cypher Safety Contract",
+                )
+            ],
             "M007/S01",
             verification="Future validator proof covers safe/unsafe generated-Cypher candidate suites.",
             confidence=0.9,
@@ -2796,7 +3349,13 @@ def build_edges() -> list[Record]:
             "bounded_by",
             "active",
             "Research ideas about graph pre-filtering and GraphRAG retrieval remain bounded by product parser/retrieval readiness proof.",
-            [anchor("prd/research/graph_agent_knowledge_bases_falkordb_math_analysis_assessment.md", "manual-note", section="Proof-Gated Candidates")],
+            [
+                anchor(
+                    "prd/research/graph_agent_knowledge_bases_falkordb_math_analysis_assessment.md",
+                    "manual-note",
+                    section="Proof-Gated Candidates",
+                )
+            ],
             "M011/S01",
             verification="Future offline retrieval proof must compare graph strategies against M008 golden cases and preserve source anchors.",
             confidence=0.85,
@@ -2809,7 +3368,13 @@ def build_edges() -> list[Record]:
             "bounded_by",
             "active",
             "Research ideas about ranking, embeddings, and hybrid retrieval remain bounded by local embedding quality proof.",
-            [anchor("prd/research/graph_agent_knowledge_bases_falkordb_math_analysis_assessment.md", "manual-note", section="Proof-Gated Candidates")],
+            [
+                anchor(
+                    "prd/research/graph_agent_knowledge_bases_falkordb_math_analysis_assessment.md",
+                    "manual-note",
+                    section="Proof-Gated Candidates",
+                )
+            ],
             "M011/S01",
             verification="Future retrieval benchmark must use local/open-weight embeddings and measure quality before product claims.",
             confidence=0.8,
@@ -2822,7 +3387,13 @@ def build_edges() -> list[Record]:
             "bounded_by",
             "active",
             "Research performance and FalkorDB runtime claims remain bounded by runtime migration/load proof.",
-            [anchor("prd/research/graph_agent_knowledge_bases_falkordb_math_analysis_assessment.md", "manual-note", section="FalkorDB Claim Classification")],
+            [
+                anchor(
+                    "prd/research/graph_agent_knowledge_bases_falkordb_math_analysis_assessment.md",
+                    "manual-note",
+                    section="FalkorDB Claim Classification",
+                )
+            ],
             "M011/S01",
             verification="Future FalkorDB legal-shaped runtime smoke must verify algorithm output shape and bounded runtime diagnostics.",
             confidence=0.8,
@@ -2835,7 +3406,13 @@ def build_edges() -> list[Record]:
             "bounded_by",
             "active",
             "Research ideas about temporal legal graph reasoning remain bounded by the unresolved temporal same-date conflict policy gate.",
-            [anchor("prd/research/graph_agent_knowledge_bases_falkordb_math_analysis_assessment.md", "manual-note", section="Applicable Now as Architecture Principles")],
+            [
+                anchor(
+                    "prd/research/graph_agent_knowledge_bases_falkordb_math_analysis_assessment.md",
+                    "manual-note",
+                    section="Applicable Now as Architecture Principles",
+                )
+            ],
             "M011/S01",
             verification="Future temporal proof must define and verify point-in-time and same-date conflict behavior on legal fixtures.",
             confidence=0.8,
@@ -2848,7 +3425,13 @@ def build_edges() -> list[Record]:
             "bounded_by",
             "active",
             "Research ideas about LLM agent orchestration and generated queries remain bounded by generated-Cypher product safety proof.",
-            [anchor("prd/research/graph_agent_knowledge_bases_falkordb_math_analysis_assessment.md", "manual-note", section="Non-Claims")],
+            [
+                anchor(
+                    "prd/research/graph_agent_knowledge_bases_falkordb_math_analysis_assessment.md",
+                    "manual-note",
+                    section="Non-Claims",
+                )
+            ],
             "M011/S01",
             verification="Future validator proof must cover generated-Cypher acceptance/rejection before execution claims.",
             confidence=0.75,
@@ -2861,7 +3444,13 @@ def build_edges() -> list[Record]:
             "bounded_by",
             "active",
             "Habr Legal RAG ideas about format-first validation, citation precision, and scoped no-answer behavior remain bounded by product parser/retrieval readiness proof.",
-            [anchor("prd/research/habr_legal_rag_processed_architecture_json_comparison.md", "manual-note", section="Article Idea → Processed Record Mapping")],
+            [
+                anchor(
+                    "prd/research/habr_legal_rag_processed_architecture_json_comparison.md",
+                    "manual-note",
+                    section="Article Idea → Processed Record Mapping",
+                )
+            ],
             "D045 / future-product-parser-retrieval-proof",
             verification="Future product proof must validate parser completeness boundaries, citation-safe retrieval behavior, retrieval output IDs, and no-answer semantics over real legal source fixtures.",
             confidence=0.85,
@@ -2874,7 +3463,13 @@ def build_edges() -> list[Record]:
             "bounded_by",
             "active",
             "Habr Legal RAG ideas about hybrid retrieval, evidence precision, reranking, and scale/noise evaluation remain bounded by local embedding quality proof.",
-            [anchor("prd/research/habr_legal_rag_processed_architecture_json_comparison.md", "manual-note", section="Missing or Weakly Represented in Processed JSON")],
+            [
+                anchor(
+                    "prd/research/habr_legal_rag_processed_architecture_json_comparison.md",
+                    "manual-note",
+                    section="Missing or Weakly Represented in Processed JSON",
+                )
+            ],
             "D045 / future-retrieval-quality-proof",
             verification="Future retrieval benchmark must measure precision/recall/F-beta over stable EvidenceSpan or citation IDs under local/open-weight embedding constraints.",
             confidence=0.85,
@@ -2887,7 +3482,13 @@ def build_edges() -> list[Record]:
             "bounded_by",
             "active",
             "Habr Legal RAG local retrieval and reranker model ideas remain bounded by embedding model provenance, integrity, local runtime, and leakage checks.",
-            [anchor("prd/research/habr_legal_rag_processed_architecture_json_comparison.md", "manual-note", section="Recommended JSON-Level Architecture Action")],
+            [
+                anchor(
+                    "prd/research/habr_legal_rag_processed_architecture_json_comparison.md",
+                    "manual-note",
+                    section="Recommended JSON-Level Architecture Action",
+                )
+            ],
             "D045 / future-embedding-supply-chain-proof",
             verification="Future embedding proof records model source, revision or checksum, local runtime envelope, vector dimension, and no-secret/no-raw-vector leakage checks before promotion.",
             confidence=0.8,
@@ -2900,7 +3501,13 @@ def build_edges() -> list[Record]:
             "bounded_by",
             "active",
             "Habr Legal RAG scale/disambiguation lessons reinforce temporal routing but remain bounded by unresolved same-date and multi-edition conflict policy.",
-            [anchor("prd/research/habr_legal_rag_processed_architecture_json_comparison.md", "manual-note", section="Article Idea → Processed Record Mapping")],
+            [
+                anchor(
+                    "prd/research/habr_legal_rag_processed_architecture_json_comparison.md",
+                    "manual-note",
+                    section="Article Idea → Processed Record Mapping",
+                )
+            ],
             "D045 / future-temporal-proof",
             verification="Future temporal proof must define point-in-time and same-date conflict behavior before temporal routing can support product retrieval claims.",
             confidence=0.75,
@@ -2913,7 +3520,13 @@ def build_edges() -> list[Record]:
             "bounded_by",
             "active",
             "Habr Legal RAG post-LLM verification lessons support generated-output caution but remain bounded by generated-Cypher safety proof.",
-            [anchor("prd/research/habr_legal_rag_processed_architecture_json_comparison.md", "manual-note", section="Article Idea → Processed Record Mapping")],
+            [
+                anchor(
+                    "prd/research/habr_legal_rag_processed_architecture_json_comparison.md",
+                    "manual-note",
+                    section="Article Idea → Processed Record Mapping",
+                )
+            ],
             "D045 / future-generated-cypher-safety-proof",
             verification="Future validator proof must cover generated-Cypher acceptance/rejection and evidence-return behavior before execution claims.",
             confidence=0.75,
@@ -2926,7 +3539,13 @@ def build_edges() -> list[Record]:
             "bounded_by",
             "active",
             "Habr Legal RAG scale/noise degradation lessons remain bounded by future FalkorDBLite-to-Docker runtime migration and load proof.",
-            [anchor("prd/research/habr_legal_rag_processed_architecture_json_comparison.md", "manual-note", section="Processed Graph Implications")],
+            [
+                anchor(
+                    "prd/research/habr_legal_rag_processed_architecture_json_comparison.md",
+                    "manual-note",
+                    section="Processed Graph Implications",
+                )
+            ],
             "D045 / future-runtime-migration-proof",
             verification="Future runtime proof must execute migration/load runbook against bounded fixtures and record runtime diagnostics before production-scale claims.",
             confidence=0.75,
@@ -2939,7 +3558,13 @@ def build_edges() -> list[Record]:
             "evidenced_by",
             "active",
             "Parser record contracts provide bounded evidence for SourceDocument/SourceBlock-related legal-evidence record shapes.",
-            [anchor("prd/parser/parser_record_contract.md", "manual-note", selector="SourceBlockRecord")],
+            [
+                anchor(
+                    "prd/parser/parser_record_contract.md",
+                    "manual-note",
+                    selector="SourceBlockRecord",
+                )
+            ],
             "M007/S01",
             confidence=0.85,
             tags=["R04-REC-005", "legal-evidence"],
@@ -2951,7 +3576,13 @@ def build_edges() -> list[Record]:
             "evidenced_by",
             "active",
             "M006 fixture inventory is tracked parser evidence that supersedes ad hoc source-path assumptions for downstream parser planning.",
-            [anchor("prd/parser/source_fixture_inventory.md", "manual-note", selector="Parser Source Fixture Inventory")],
+            [
+                anchor(
+                    "prd/parser/source_fixture_inventory.md",
+                    "manual-note",
+                    selector="Parser Source Fixture Inventory",
+                )
+            ],
             "M007/S01",
             confidence=0.9,
             tags=["R04-REC-005", "parser"],
@@ -2963,7 +3594,13 @@ def build_edges() -> list[Record]:
             "evidenced_by",
             "active",
             "Bounded ODT smoke records are tracked real-document parser evidence for current parser staging scope.",
-            [anchor("prd/parser/odt_smoke_records.md", "manual-note", selector="ODT Smoke Parser Records")],
+            [
+                anchor(
+                    "prd/parser/odt_smoke_records.md",
+                    "manual-note",
+                    selector="ODT Smoke Parser Records",
+                )
+            ],
             "M007/S01",
             confidence=0.9,
             tags=["R04-REC-005", "ODT"],
@@ -2975,7 +3612,13 @@ def build_edges() -> list[Record]:
             "evidenced_by",
             "active",
             "Consultant relation candidates are tracked prior-art relation evidence but remain non-authoritative candidate records.",
-            [anchor("prd/parser/consultant_relation_candidates.md", "manual-note", selector="Consultant WordML Relation Candidates")],
+            [
+                anchor(
+                    "prd/parser/consultant_relation_candidates.md",
+                    "manual-note",
+                    selector="Consultant WordML Relation Candidates",
+                )
+            ],
             "M007/S01",
             confidence=0.8,
             tags=["R04-REC-005", "Consultant"],
@@ -2987,7 +3630,13 @@ def build_edges() -> list[Record]:
             "evidenced_by",
             "active",
             "NetworkX staging graph evidence preserves parser JSONL and relation-candidate invariants without claiming FalkorDB runtime loading.",
-            [anchor("prd/parser/parser_staging_graph.md", "manual-note", selector="Parser Staging Graph")],
+            [
+                anchor(
+                    "prd/parser/parser_staging_graph.md",
+                    "manual-note",
+                    selector="Parser Staging Graph",
+                )
+            ],
             "M007/S01",
             confidence=0.85,
             tags=["R04-REC-005", "NetworkX"],
@@ -3023,7 +3672,13 @@ def build_edges() -> list[Record]:
             "risks",
             "active",
             "Generated-Cypher proof gates are threatened by overclaiming draft LLM output as executable or legally authoritative behavior.",
-            [anchor("prd/09_architecture_planning_verification_research.md", "prd", section="LegalGraph Nexus-specific implications")],
+            [
+                anchor(
+                    "prd/09_architecture_planning_verification_research.md",
+                    "prd",
+                    section="LegalGraph Nexus-specific implications",
+                )
+            ],
             "M007/S01",
             confidence=0.85,
             tags=["R04-REC-015", "overclaim"],
@@ -3035,7 +3690,13 @@ def build_edges() -> list[Record]:
             "risks",
             "active",
             "Legal-evidence entity records can be overclaimed as implemented schema or legal correctness if non-claims are ignored.",
-            [anchor("prd/09_architecture_planning_verification_research.md", "prd", section="LegalGraph Nexus-specific implications")],
+            [
+                anchor(
+                    "prd/09_architecture_planning_verification_research.md",
+                    "prd",
+                    section="LegalGraph Nexus-specific implications",
+                )
+            ],
             "M007/S01",
             confidence=0.8,
             tags=["R04-REC-015", "overclaim"],
@@ -3067,7 +3728,9 @@ def build_edges() -> list[Record]:
 def serialize_jsonl(records: list[Record]) -> str:
     if not records:
         raise ExtractionError("refusing to emit empty architecture registry output")
-    return "".join(json.dumps(record, ensure_ascii=False, separators=(",", ":")) + "\n" for record in records)
+    return "".join(
+        json.dumps(record, ensure_ascii=False, separators=(",", ":")) + "\n" for record in records
+    )
 
 
 def validate_anchor_paths(config: ExtractionConfig, records: list[Record]) -> None:
@@ -3077,13 +3740,19 @@ def validate_anchor_paths(config: ExtractionConfig, records: list[Record]) -> No
             if not isinstance(path_value, str) or not path_value:
                 raise ExtractionError(f"record {record.get('id')} has malformed source anchor path")
             if path_value.startswith("/"):
-                raise ExtractionError(f"record {record.get('id')} has absolute source anchor path: {path_value}")
+                raise ExtractionError(
+                    f"record {record.get('id')} has absolute source anchor path: {path_value}"
+                )
             if path_value.startswith(".gsd/exec"):
-                raise ExtractionError(f"record {record.get('id')} references ignored local execution path: {path_value}")
+                raise ExtractionError(
+                    f"record {record.get('id')} references ignored local execution path: {path_value}"
+                )
             if not (config.root / path_value).exists():
                 if path_is_portable_gsd_reference(path_value):
                     continue
-                raise ExtractionError(f"record {record.get('id')} references missing source anchor: {path_value}")
+                raise ExtractionError(
+                    f"record {record.get('id')} references missing source anchor: {path_value}"
+                )
 
 
 def validate_existing_jsonl(path: Path) -> None:
@@ -3119,10 +3788,29 @@ def write_or_check(path: Path, expected: str, *, check: bool) -> bool:
 
 def parse_args(argv: list[str]) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--items", type=Path, default=DEFAULT_ITEMS, help="Path for generated architecture item JSONL")
-    parser.add_argument("--edges", type=Path, default=DEFAULT_EDGES, help="Path for generated architecture edge JSONL")
-    parser.add_argument("--s08-findings", type=Path, default=DEFAULT_S08_FINDINGS, help="S08 machine-readable findings JSON source")
-    parser.add_argument("--check", action="store_true", help="Compare generated bytes to existing outputs without rewriting")
+    parser.add_argument(
+        "--items",
+        type=Path,
+        default=DEFAULT_ITEMS,
+        help="Path for generated architecture item JSONL",
+    )
+    parser.add_argument(
+        "--edges",
+        type=Path,
+        default=DEFAULT_EDGES,
+        help="Path for generated architecture edge JSONL",
+    )
+    parser.add_argument(
+        "--s08-findings",
+        type=Path,
+        default=DEFAULT_S08_FINDINGS,
+        help="S08 machine-readable findings JSON source",
+    )
+    parser.add_argument(
+        "--check",
+        action="store_true",
+        help="Compare generated bytes to existing outputs without rewriting",
+    )
     return parser.parse_args(argv)
 
 
@@ -3133,7 +3821,9 @@ def main(argv: list[str] | None = None) -> int:
         root=root,
         items_path=args.items,
         edges_path=args.edges,
-        s08_findings_path=args.s08_findings if args.s08_findings.is_absolute() else root / args.s08_findings,
+        s08_findings_path=args.s08_findings
+        if args.s08_findings.is_absolute()
+        else root / args.s08_findings,
         check=args.check,
     )
     try:

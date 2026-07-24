@@ -102,9 +102,7 @@ def test_state_location_enforcement(tmp_path: Path) -> None:
         layers = harness.enforce_state_locations(workspace, root=root)
 
         assert layers["disposable"] == str(workspace.resolve())
-        assert layers["persistent"].endswith(
-            "prd/architecture/acp/runtime/M063-qp7ial"
-        )
+        assert layers["persistent"].endswith("prd/architecture/acp/runtime/M063-qp7ial")
         assert layers["forbidden_main"] == str(root.resolve())
         assert not (root / ".lex").exists()
         assert not (root / "Squad").exists()
@@ -138,7 +136,11 @@ def test_8_failure_modes_classified(mode: str, tmp_path: Path) -> None:
         assert mode in harness.RECOVERY_POLICIES
         assert harness.RECOVERY_POLICIES[mode].classification in harness.CLASSIFICATION_VOCABULARY
     finally:
-        if mode == "workspace-retention-overrun" and context.workspace and context.workspace.exists():
+        if (
+            mode == "workspace-retention-overrun"
+            and context.workspace
+            and context.workspace.exists()
+        ):
             shutil.rmtree(context.workspace)
 
 

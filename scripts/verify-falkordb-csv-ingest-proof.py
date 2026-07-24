@@ -39,7 +39,9 @@ ROOT = Path(__file__).resolve().parents[1]
 FIXTURE_DIR = ROOT / "prd/research/ontology_architecture_requirements/fixtures/falkordb_ingest"
 UNITS_CSV = FIXTURE_DIR / "legal_units.csv"
 EDGES_CSV = FIXTURE_DIR / "legal_unit_edges.csv"
-DEFAULT_REPORT = ROOT / "prd/research/ontology_architecture_requirements/falkordb_csv_ingest_proof.json"
+DEFAULT_REPORT = (
+    ROOT / "prd/research/ontology_architecture_requirements/falkordb_csv_ingest_proof.json"
+)
 SCHEMA_VERSION = "falkordb-csv-ingest-proof/v1"
 MILESTONE_ID = "M021-qk4lze"
 SLICE_ID = "S02"
@@ -132,7 +134,9 @@ def wait_for_falkordb(host: str, port: int, timeout_seconds: int) -> FalkorClien
         except Exception as exc:  # noqa: BLE001 - readiness diagnostics are classified by caller
             last_error = exc
             time.sleep(0.5)
-    raise TimeoutError(f"FalkorDB readiness timeout: {type(last_error).__name__ if last_error else 'unknown'}")
+    raise TimeoutError(
+        f"FalkorDB readiness timeout: {type(last_error).__name__ if last_error else 'unknown'}"
+    )
 
 
 def docker_available() -> bool:
@@ -142,7 +146,9 @@ def docker_available() -> bool:
 def local_image_present(image: str) -> bool:
     if not docker_available():
         return False
-    completed = subprocess.run(["docker", "image", "inspect", image], cwd=ROOT, check=False, text=True, capture_output=True)  # noqa: S603 - fixed executable and args
+    completed = subprocess.run(
+        ["docker", "image", "inspect", image], cwd=ROOT, check=False, text=True, capture_output=True
+    )  # noqa: S603 - fixed executable and args
     return completed.returncode == 0
 
 
@@ -190,10 +196,14 @@ def start_container(args: argparse.Namespace) -> tuple[str | None, dict[str, Any
 def cleanup_container(container_id: str | None, diagnostic: dict[str, Any]) -> None:
     if not container_id:
         return
-    completed = subprocess.run(["docker", "rm", "-f", container_id], cwd=ROOT, check=False, text=True, capture_output=True)  # noqa: S603 - fixed executable and args
+    completed = subprocess.run(
+        ["docker", "rm", "-f", container_id], cwd=ROOT, check=False, text=True, capture_output=True
+    )  # noqa: S603 - fixed executable and args
     diagnostic["cleanup_status"] = "deleted" if completed.returncode == 0 else "cleanup_failed"
     if completed.returncode != 0:
-        diagnostic["diagnostic_codes"] = sorted(set(diagnostic.get("diagnostic_codes", []) + ["LOAD_CSV_CLEANUP_FAILED"]))
+        diagnostic["diagnostic_codes"] = sorted(
+            set(diagnostic.get("diagnostic_codes", []) + ["LOAD_CSV_CLEANUP_FAILED"])
+        )
 
 
 def load_csv_queries(graph: FalkorGraph) -> dict[str, float]:
@@ -206,13 +216,21 @@ def load_csv_queries(graph: FalkorGraph) -> dict[str, float]:
 def graph_counts(graph: FalkorGraph) -> dict[str, int]:
     return {
         "node_count": scalar_int(graph, "MATCH (n:LegalUnit) RETURN count(n)"),
-        "relationship_count": scalar_int(graph, "MATCH (:LegalUnit)-[r:LINKS_TO]->(:LegalUnit) RETURN count(r)"),
-        "current_nodes": scalar_int(graph, "MATCH (n:LegalUnit {temporal_status:'current'}) RETURN count(n)"),
-        "inactive_nodes": scalar_int(graph, "MATCH (n:LegalUnit {temporal_status:'inactive'}) RETURN count(n)"),
+        "relationship_count": scalar_int(
+            graph, "MATCH (:LegalUnit)-[r:LINKS_TO]->(:LegalUnit) RETURN count(r)"
+        ),
+        "current_nodes": scalar_int(
+            graph, "MATCH (n:LegalUnit {temporal_status:'current'}) RETURN count(n)"
+        ),
+        "inactive_nodes": scalar_int(
+            graph, "MATCH (n:LegalUnit {temporal_status:'inactive'}) RETURN count(n)"
+        ),
     }
 
 
-def base_report(args: argparse.Namespace, disposition: RuntimeDisposition, diagnostic_codes: Sequence[str]) -> dict[str, Any]:
+def base_report(
+    args: argparse.Namespace, disposition: RuntimeDisposition, diagnostic_codes: Sequence[str]
+) -> dict[str, Any]:
     request = FalkorCsvIngestRequest.from_args(
         args,
         source_units_path=bounded_path(UNITS_CSV),
@@ -239,7 +257,9 @@ def run_proof(args: argparse.Namespace) -> tuple[int, dict[str, Any]]:
         report["container_runtime"] = container_diag
         if container_id is None:
             report["runtime_disposition"] = "blocked"
-            report["diagnostic_codes"] = sorted(set(container_diag.get("diagnostic_codes", []) + ["CSV_FILE_ACCESS_BLOCKED"]))
+            report["diagnostic_codes"] = sorted(
+                set(container_diag.get("diagnostic_codes", []) + ["CSV_FILE_ACCESS_BLOCKED"])
+            )
             return 1, report
         client = wait_for_falkordb(args.host, args.port, args.readiness_timeout)
         graph_name = f"m021_csv_ingest_{uuid.uuid4().hex[:10]}"
@@ -270,7 +290,11 @@ def run_proof(args: argparse.Namespace) -> tuple[int, dict[str, Any]]:
     except Exception as exc:  # noqa: BLE001 - fail closed with sanitized class only
         report["runtime_disposition"] = "failed_closed"
         report["container_runtime"] = container_diag or report["container_runtime"]
-        code = "CSV_FILE_ACCESS_BLOCKED" if type(exc).__name__ in {"ResponseError", "DataError"} else "LOAD_CSV_RUNTIME_FAILED"
+        code = (
+            "CSV_FILE_ACCESS_BLOCKED"
+            if type(exc).__name__ in {"ResponseError", "DataError"}
+            else "LOAD_CSV_RUNTIME_FAILED"
+        )
         report["diagnostic_codes"] = sorted({code, f"LOAD_CSV_{type(exc).__name__.upper()}"})
         return 1, report
     finally:

@@ -52,7 +52,9 @@ def slug(text: str) -> str:
     return value or "eval"
 
 
-def write_executor_prompt(path: Path, *, skill_dir: Path, eval_item: dict[str, Any], configuration: str, outputs_dir: Path) -> None:
+def write_executor_prompt(
+    path: Path, *, skill_dir: Path, eval_item: dict[str, Any], configuration: str, outputs_dir: Path
+) -> None:
     skill_clause = (
         f"Use this PI/GSD skill as the primary guidance: {skill_dir}\n"
         if configuration == "with_skill"
@@ -84,7 +86,9 @@ def run(skill_dir: Path, workspace: Path, iteration: int | None, baseline: str) 
     iteration_dir.mkdir(parents=True, exist_ok=False)
 
     snapshot_dir = iteration_dir / "skill-snapshot"
-    shutil.copytree(skill_dir, snapshot_dir, ignore=shutil.ignore_patterns("*-workspace", "quality-report.*"))
+    shutil.copytree(
+        skill_dir, snapshot_dir, ignore=shutil.ignore_patterns("*-workspace", "quality-report.*")
+    )
 
     manifest = {
         "skill_name": skill_dir.name,
@@ -97,7 +101,9 @@ def run(skill_dir: Path, workspace: Path, iteration: int | None, baseline: str) 
         "eval_count": len(evals.get("evals", [])),
         "status": "pending_outputs",
     }
-    (iteration_dir / "run_manifest.json").write_text(json.dumps(manifest, indent=2), encoding="utf-8")
+    (iteration_dir / "run_manifest.json").write_text(
+        json.dumps(manifest, indent=2), encoding="utf-8"
+    )
 
     for item in evals.get("evals", []):
         eval_dir = iteration_dir / f"eval-{item['id']}-{slug(item['prompt'])}"
@@ -111,7 +117,9 @@ def run(skill_dir: Path, workspace: Path, iteration: int | None, baseline: str) 
             "expectations": item.get("expectations", []),
             "assertions": item.get("assertions", []),
         }
-        (eval_dir / "eval_metadata.json").write_text(json.dumps(metadata, indent=2), encoding="utf-8")
+        (eval_dir / "eval_metadata.json").write_text(
+            json.dumps(metadata, indent=2), encoding="utf-8"
+        )
         for configuration in ["with_skill", baseline]:
             run_dir = eval_dir / configuration
             outputs_dir = run_dir / "outputs"
@@ -124,7 +132,9 @@ def run(skill_dir: Path, workspace: Path, iteration: int | None, baseline: str) 
                 outputs_dir=outputs_dir,
             )
             (run_dir / "status.json").write_text(
-                json.dumps({"status": "pending", "outputs_expected": "outputs/answer.md"}, indent=2),
+                json.dumps(
+                    {"status": "pending", "outputs_expected": "outputs/answer.md"}, indent=2
+                ),
                 encoding="utf-8",
             )
     return iteration_dir
@@ -140,7 +150,9 @@ def main() -> int:
     workspace = args.workspace or args.skill_dir.with_name(f"{args.skill_dir.name}-workspace")
     iteration_dir = run(args.skill_dir, workspace, args.iteration, args.baseline)
     print(f"Prepared PI skill eval workspace: {iteration_dir}")
-    print("Next: execute each EXECUTOR_PROMPT.md, save outputs/answer.md, then run grade_pi_skill_eval.py")
+    print(
+        "Next: execute each EXECUTOR_PROMPT.md, save outputs/answer.md, then run grade_pi_skill_eval.py"
+    )
     return 0
 
 

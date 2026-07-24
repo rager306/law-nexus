@@ -11,13 +11,20 @@ from typing import Any, Sequence
 ROOT = Path(__file__).resolve().parents[1]
 OFFLINE_CASES_PATH = ROOT / "prd/retrieval/fixtures/offline_citation_retrieval_cases.json"
 REAL_CASES_PATH = ROOT / "prd/retrieval/fixtures/real_artifact_retrieval_cases.json"
-CONTRACT_PATH = ROOT / "prd/research/ontology_architecture_requirements/09-ontology-graphrag-fixture-contract.md"
-OUTPUT_PATH = ROOT / "prd/research/ontology_architecture_requirements/ontology_graphrag_proof_cases.json"
+CONTRACT_PATH = (
+    ROOT
+    / "prd/research/ontology_architecture_requirements/09-ontology-graphrag-fixture-contract.md"
+)
+OUTPUT_PATH = (
+    ROOT / "prd/research/ontology_architecture_requirements/ontology_graphrag_proof_cases.json"
+)
 
 SCHEMA_VERSION = "ontology-graphrag-proof-cases/v1"
 PROOF_ID = "OG-M020-S02-FIXTURE-PROOF"
 GENERATED_BY = "scripts/build-ontology-graphrag-proof-cases.py"
-FIXTURE_ARTIFACT = "prd/research/ontology_architecture_requirements/ontology_graphrag_proof_cases.json"
+FIXTURE_ARTIFACT = (
+    "prd/research/ontology_architecture_requirements/ontology_graphrag_proof_cases.json"
+)
 CORE_VALUE = "DATA-LEGAL-EVIDENCE-CORE"
 GATE_VALUE = "GATE-ONTOLOGY-GRAPHRAG-INTEGRATION"
 CURRENT_VALUE = "current_version"
@@ -71,7 +78,14 @@ def offline_case_by_id(data: dict[str, Any], case_id: str) -> dict[str, Any]:
     raise ValueError(f"source case not found: {case_id}")
 
 
-def base_query(*, query_id: str, kind: str, scope_id: str, target_record_id: str | None = "HIER-CONS-ARTICLE-0001", target_level: str | None = "article") -> dict[str, Any]:
+def base_query(
+    *,
+    query_id: str,
+    kind: str,
+    scope_id: str,
+    target_record_id: str | None = "HIER-CONS-ARTICLE-0001",
+    target_level: str | None = "article",
+) -> dict[str, Any]:
     query: dict[str, Any] = {
         "query_id": query_id,
         "query_kind": kind,
@@ -84,7 +98,14 @@ def base_query(*, query_id: str, kind: str, scope_id: str, target_record_id: str
     return query
 
 
-def ontology_filter(*, filter_id: str, kind: str, requested_value: str, expected: str, allowed_values: list[str] | None = None) -> dict[str, Any]:
+def ontology_filter(
+    *,
+    filter_id: str,
+    kind: str,
+    requested_value: str,
+    expected: str,
+    allowed_values: list[str] | None = None,
+) -> dict[str, Any]:
     return {
         "filter_id": filter_id,
         "filter_kind": kind,
@@ -94,7 +115,9 @@ def ontology_filter(*, filter_id: str, kind: str, requested_value: str, expected
     }
 
 
-def temporal_filter(*, expected: str, mode: str = "current_only", edition_id: str | None = "ED-M014-44FZ-2026-01-01") -> dict[str, Any]:
+def temporal_filter(
+    *, expected: str, mode: str = "current_only", edition_id: str | None = "ED-M014-44FZ-2026-01-01"
+) -> dict[str, Any]:
     payload: dict[str, Any] = {
         "as_of_date": AS_OF_DATE,
         "mode": mode,
@@ -235,8 +258,17 @@ def build_payload() -> dict[str, Any]:
                 case_id="CASE-M020-OG-VALID-ONTOLOGY-TEMPORAL-CITATION",
                 case_class="valid_ontology_temporal_citation",
                 source_case_ids=["CASE-M014-VALID-EXACT-RECORD-CANDIDATE"],
-                query=base_query(query_id="QUERY-M020-OG-VALID-001", kind="ontology_filter_lookup", scope_id=scope_id),
-                ontology_filter_payload=ontology_filter(filter_id="OF-M020-LEGAL-EVIDENCE-CORE", kind="legal_evidence_core", requested_value=CORE_VALUE, expected="matched"),
+                query=base_query(
+                    query_id="QUERY-M020-OG-VALID-001",
+                    kind="ontology_filter_lookup",
+                    scope_id=scope_id,
+                ),
+                ontology_filter_payload=ontology_filter(
+                    filter_id="OF-M020-LEGAL-EVIDENCE-CORE",
+                    kind="legal_evidence_core",
+                    requested_value=CORE_VALUE,
+                    expected="matched",
+                ),
                 temporal_filter_payload=temporal_filter(expected="included"),
                 candidate_set=[valid_candidate],
                 output=valid_output,
@@ -246,10 +278,24 @@ def build_payload() -> dict[str, Any]:
             case(
                 case_id="CASE-M020-OG-INACTIVE-OR-WRONG-EDITION-EXCLUDED",
                 case_class="inactive_or_wrong_edition_excluded",
-                source_case_ids=["CASE-M013-WRONG-EDITION-PROXY", "CASE-M014-VALID-EXACT-RECORD-CANDIDATE"],
-                query=base_query(query_id="QUERY-M020-OG-TEMPORAL-001", kind="current_status_lookup", scope_id=scope_id),
-                ontology_filter_payload=ontology_filter(filter_id="OF-M020-CURRENT-VERSION", kind="temporal_status", requested_value=CURRENT_VALUE, expected="matched"),
-                temporal_filter_payload=temporal_filter(expected="wrong_edition", edition_id="ED-M014-44FZ-2026-01-01"),
+                source_case_ids=[
+                    "CASE-M013-WRONG-EDITION-PROXY",
+                    "CASE-M014-VALID-EXACT-RECORD-CANDIDATE",
+                ],
+                query=base_query(
+                    query_id="QUERY-M020-OG-TEMPORAL-001",
+                    kind="current_status_lookup",
+                    scope_id=scope_id,
+                ),
+                ontology_filter_payload=ontology_filter(
+                    filter_id="OF-M020-CURRENT-VERSION",
+                    kind="temporal_status",
+                    requested_value=CURRENT_VALUE,
+                    expected="matched",
+                ),
+                temporal_filter_payload=temporal_filter(
+                    expected="wrong_edition", edition_id="ED-M014-44FZ-2026-01-01"
+                ),
                 candidate_set=[inactive_candidate],
                 output=output_with_wrong_edition(valid_output),
                 expected_result="rejected",
@@ -259,9 +305,23 @@ def build_payload() -> dict[str, Any]:
                 case_id="CASE-M020-OG-UNSUPPORTED-ONTOLOGY-FILTER",
                 case_class="unsupported_ontology_filter",
                 source_case_ids=[],
-                query=base_query(query_id="QUERY-M020-OG-UNSUPPORTED-001", kind="negative_guardrail", scope_id=scope_id, target_record_id=None, target_level=None),
-                ontology_filter_payload=ontology_filter(filter_id="OF-M020-UNSUPPORTED-GATE", kind="unsupported_gate", requested_value=UNSUPPORTED_VALUE, expected="unsupported", allowed_values=[CORE_VALUE, GATE_VALUE]),
-                temporal_filter_payload=temporal_filter(expected="not_applicable", mode="not_applicable", edition_id=None),
+                query=base_query(
+                    query_id="QUERY-M020-OG-UNSUPPORTED-001",
+                    kind="negative_guardrail",
+                    scope_id=scope_id,
+                    target_record_id=None,
+                    target_level=None,
+                ),
+                ontology_filter_payload=ontology_filter(
+                    filter_id="OF-M020-UNSUPPORTED-GATE",
+                    kind="unsupported_gate",
+                    requested_value=UNSUPPORTED_VALUE,
+                    expected="unsupported",
+                    allowed_values=[CORE_VALUE, GATE_VALUE],
+                ),
+                temporal_filter_payload=temporal_filter(
+                    expected="not_applicable", mode="not_applicable", edition_id=None
+                ),
                 candidate_set=[],
                 expected_result="blocked_unsupported_filter",
                 expected_diagnostic_codes=["unsupported_ontology_filter"],
@@ -269,9 +329,21 @@ def build_payload() -> dict[str, Any]:
             case(
                 case_id="CASE-M020-OG-MISSING-CITATION-OR-EVIDENCE-ID",
                 case_class="missing_citation_or_evidence_id",
-                source_case_ids=["CASE-M013-MISSING-EVIDENCE-ID", "CASE-M014-VALID-EXACT-RECORD-CANDIDATE"],
-                query=base_query(query_id="QUERY-M020-OG-MISSING-EVIDENCE-001", kind="ontology_filter_lookup", scope_id=scope_id),
-                ontology_filter_payload=ontology_filter(filter_id="OF-M020-MISSING-EVIDENCE", kind="legal_evidence_core", requested_value=CORE_VALUE, expected="matched"),
+                source_case_ids=[
+                    "CASE-M013-MISSING-EVIDENCE-ID",
+                    "CASE-M014-VALID-EXACT-RECORD-CANDIDATE",
+                ],
+                query=base_query(
+                    query_id="QUERY-M020-OG-MISSING-EVIDENCE-001",
+                    kind="ontology_filter_lookup",
+                    scope_id=scope_id,
+                ),
+                ontology_filter_payload=ontology_filter(
+                    filter_id="OF-M020-MISSING-EVIDENCE",
+                    kind="legal_evidence_core",
+                    requested_value=CORE_VALUE,
+                    expected="matched",
+                ),
                 temporal_filter_payload=temporal_filter(expected="included"),
                 candidate_set=[valid_candidate],
                 output=output_without_evidence_id(valid_output),
@@ -282,12 +354,25 @@ def build_payload() -> dict[str, Any]:
                 case_id="CASE-M020-OG-AMBIGUOUS-CANDIDATE-SET",
                 case_class="ambiguous_candidate_set",
                 source_case_ids=["CASE-M014-AMBIGUOUS-CANDIDATES"],
-                query=base_query(query_id="QUERY-M020-OG-AMBIGUOUS-001", kind="ontology_filter_lookup", scope_id=scope_id),
-                ontology_filter_payload=ontology_filter(filter_id="OF-M020-AMBIGUOUS", kind="legal_evidence_core", requested_value=CORE_VALUE, expected="matched"),
+                query=base_query(
+                    query_id="QUERY-M020-OG-AMBIGUOUS-001",
+                    kind="ontology_filter_lookup",
+                    scope_id=scope_id,
+                ),
+                ontology_filter_payload=ontology_filter(
+                    filter_id="OF-M020-AMBIGUOUS",
+                    kind="legal_evidence_core",
+                    requested_value=CORE_VALUE,
+                    expected="matched",
+                ),
                 temporal_filter_payload=temporal_filter(expected="included"),
                 candidate_set=[
                     valid_candidate,
-                    {**valid_candidate, "candidate_id": "CAND-M020-OG-AMBIGUOUS-002", "selection_reason": "ontology_and_temporal_match"},
+                    {
+                        **valid_candidate,
+                        "candidate_id": "CAND-M020-OG-AMBIGUOUS-002",
+                        "selection_reason": "ontology_and_temporal_match",
+                    },
                 ],
                 expected_result="rejected",
                 expected_diagnostic_codes=["ambiguous_candidate_set"],
@@ -296,9 +381,22 @@ def build_payload() -> dict[str, Any]:
                 case_id="CASE-M020-OG-SCOPED-NO-ANSWER",
                 case_class="scoped_no_answer",
                 source_case_ids=["CASE-M014-SCOPED-NO-CANDIDATE"],
-                query=base_query(query_id="QUERY-M020-OG-SCOPED-NO-ANSWER-001", kind="scoped_no_answer", scope_id=scope_id, target_record_id="HIER-CONS-NOT-PRESENT", target_level="article"),
-                ontology_filter_payload=ontology_filter(filter_id="OF-M020-SCOPED-NO-ANSWER", kind="legal_evidence_core", requested_value=CORE_VALUE, expected="matched"),
-                temporal_filter_payload=temporal_filter(expected="not_applicable", mode="not_applicable", edition_id=None),
+                query=base_query(
+                    query_id="QUERY-M020-OG-SCOPED-NO-ANSWER-001",
+                    kind="scoped_no_answer",
+                    scope_id=scope_id,
+                    target_record_id="HIER-CONS-NOT-PRESENT",
+                    target_level="article",
+                ),
+                ontology_filter_payload=ontology_filter(
+                    filter_id="OF-M020-SCOPED-NO-ANSWER",
+                    kind="legal_evidence_core",
+                    requested_value=CORE_VALUE,
+                    expected="matched",
+                ),
+                temporal_filter_payload=temporal_filter(
+                    expected="not_applicable", mode="not_applicable", edition_id=None
+                ),
                 candidate_set=[],
                 output=deepcopy(scoped_no_answer["output"]),
                 expected_result="accepted_scoped_no_answer",
@@ -308,11 +406,27 @@ def build_payload() -> dict[str, Any]:
                 case_id="CASE-M020-OG-FORBIDDEN-PAYLOAD-FIELD",
                 case_class="forbidden_payload_field",
                 source_case_ids=[],
-                query=base_query(query_id="QUERY-M020-OG-FORBIDDEN-PAYLOAD-001", kind="negative_guardrail", scope_id=scope_id, target_record_id=None, target_level=None),
-                ontology_filter_payload=ontology_filter(filter_id="OF-M020-FORBIDDEN-PAYLOAD", kind="legal_evidence_core", requested_value=CORE_VALUE, expected="matched"),
-                temporal_filter_payload=temporal_filter(expected="not_applicable", mode="not_applicable", edition_id=None),
+                query=base_query(
+                    query_id="QUERY-M020-OG-FORBIDDEN-PAYLOAD-001",
+                    kind="negative_guardrail",
+                    scope_id=scope_id,
+                    target_record_id=None,
+                    target_level=None,
+                ),
+                ontology_filter_payload=ontology_filter(
+                    filter_id="OF-M020-FORBIDDEN-PAYLOAD",
+                    kind="legal_evidence_core",
+                    requested_value=CORE_VALUE,
+                    expected="matched",
+                ),
+                temporal_filter_payload=temporal_filter(
+                    expected="not_applicable", mode="not_applicable", edition_id=None
+                ),
                 candidate_set=[],
-                safety_probe={"field_path": "output.disallowed_payload", "payload_class": "unsafe_external_payload"},
+                safety_probe={
+                    "field_path": "output.disallowed_payload",
+                    "payload_class": "unsafe_external_payload",
+                },
                 expected_result="rejected",
                 expected_diagnostic_codes=["forbidden_payload_field"],
             ),
@@ -325,9 +439,15 @@ def canonical_json(data: dict[str, Any]) -> str:
 
 
 def main(argv: Sequence[str] | None = None) -> int:
-    parser = argparse.ArgumentParser(description="Build the M020 S02 ontology GraphRAG proof fixture.")
+    parser = argparse.ArgumentParser(
+        description="Build the M020 S02 ontology GraphRAG proof fixture."
+    )
     parser.add_argument("--output", type=Path, default=OUTPUT_PATH, help="Output fixture path.")
-    parser.add_argument("--check", action="store_true", help="Check that the output fixture is current without writing it.")
+    parser.add_argument(
+        "--check",
+        action="store_true",
+        help="Check that the output fixture is current without writing it.",
+    )
     args = parser.parse_args(argv)
 
     output = args.output if args.output.is_absolute() else ROOT / args.output

@@ -92,12 +92,20 @@ FORBIDDEN_TEXT_PATTERNS = (
 )
 FORBIDDEN_OVERCLAIM_PATTERNS = (
     re.compile(r"(?i)provider generation quality\s+(is\s+)?(validated|proven|confirmed)"),
-    re.compile(r"(?i)Legal KnowQL product behavior\s+(is\s+)?(validated|proven|confirmed|implemented|production[- ]ready)"),
-    re.compile(r"(?i)legal-answer correctness\s+(is\s+)?(validated|proven|confirmed|production[- ]ready)"),
+    re.compile(
+        r"(?i)Legal KnowQL product behavior\s+(is\s+)?(validated|proven|confirmed|implemented|production[- ]ready)"
+    ),
+    re.compile(
+        r"(?i)legal-answer correctness\s+(is\s+)?(validated|proven|confirmed|production[- ]ready)"
+    ),
     re.compile(r"(?i)ODT parsing.*(validated|proven|confirmed|production[- ]ready)"),
     re.compile(r"(?i)retrieval quality.*(validated|proven|confirmed|production[- ]ready)"),
-    re.compile(r"(?i)production graph schema fitness\s+(is\s+)?(validated|proven|confirmed|production[- ]ready)"),
-    re.compile(r"(?i)live legal graph execution\s+(is\s+)?(validated|proven|confirmed|production[- ]ready)"),
+    re.compile(
+        r"(?i)production graph schema fitness\s+(is\s+)?(validated|proven|confirmed|production[- ]ready)"
+    ),
+    re.compile(
+        r"(?i)live legal graph execution\s+(is\s+)?(validated|proven|confirmed|production[- ]ready)"
+    ),
 )
 
 RecommendationCategory = Literal["pursue-pyo3-conditioned", "pursue-pyo3", "defer"]
@@ -185,10 +193,14 @@ def assert_redacted(value: Any, *, path: str = "payload") -> None:
 
 
 def validate_common(label: str, payload: dict[str, Any]) -> tuple[str, str, int]:
-    require(payload.get("schema_version") == EXPECTED_SCHEMAS[label], f"{label}.schema_version mismatch")
+    require(
+        payload.get("schema_version") == EXPECTED_SCHEMAS[label], f"{label}.schema_version mismatch"
+    )
     status = require_str(require_field(payload, "status", label), f"{label}.status")
     root_cause = require_str(require_field(payload, "root_cause", label), f"{label}.root_cause")
-    provider_attempts = require_int(require_field(payload, "provider_attempts", label), f"{label}.provider_attempts")
+    provider_attempts = require_int(
+        require_field(payload, "provider_attempts", label), f"{label}.provider_attempts"
+    )
     return status, root_cause, provider_attempts
 
 
@@ -218,9 +230,11 @@ def validate_s02(payload: dict[str, Any]) -> dict[str, Any]:
     provider = require_dict(phases.get("provider"), "S02.phases.provider")
     require_bool(endpoint.get("endpoint_contract_valid"), "S02.endpoint.endpoint_contract_valid")
     require_bool(endpoint.get("preserves_v1"), "S02.endpoint.preserves_v1")
-    mechanics_confirmed = all(
-        phase.get("status") == "confirmed-runtime" for phase in (build, import_phase, resolver)
-    ) and endpoint.get("endpoint_contract_valid") is True and endpoint.get("preserves_v1") is True
+    mechanics_confirmed = (
+        all(phase.get("status") == "confirmed-runtime" for phase in (build, import_phase, resolver))
+        and endpoint.get("endpoint_contract_valid") is True
+        and endpoint.get("preserves_v1") is True
+    )
     return {
         "schema_version": payload["schema_version"],
         "status": status,
@@ -244,9 +258,18 @@ def validate_s03(payload: dict[str, Any]) -> dict[str, Any]:
     candidate = require_dict(payload.get("candidate"), "S03.candidate")
     accepted = require_bool(candidate.get("accepted"), "S03.candidate.accepted")
     if accepted:
-        require(status == "confirmed-runtime", "S03 accepted candidate requires S03.status confirmed-runtime")
-        require(candidate.get("starts_with") in {"MATCH", "CALL"}, "S03 accepted candidate must start with MATCH or CALL")
-        require(isinstance(candidate.get("sha256_12"), str) and candidate["sha256_12"], "S03 accepted candidate requires sha256_12")
+        require(
+            status == "confirmed-runtime",
+            "S03 accepted candidate requires S03.status confirmed-runtime",
+        )
+        require(
+            candidate.get("starts_with") in {"MATCH", "CALL"},
+            "S03 accepted candidate must start with MATCH or CALL",
+        )
+        require(
+            isinstance(candidate.get("sha256_12"), str) and candidate["sha256_12"],
+            "S03 accepted candidate requires sha256_12",
+        )
     return {
         "schema_version": payload["schema_version"],
         "status": status,
@@ -255,7 +278,9 @@ def validate_s03(payload: dict[str, Any]) -> dict[str, Any]:
         "candidate_accepted": accepted,
         "candidate_status": candidate.get("status"),
         "candidate_root_cause": candidate.get("root_cause"),
-        "candidate_categories": list(candidate.get("categories", [])) if isinstance(candidate.get("categories"), list) else [],
+        "candidate_categories": list(candidate.get("categories", []))
+        if isinstance(candidate.get("categories"), list)
+        else [],
         "candidate_starts_with": candidate.get("starts_with"),
         "candidate_sha256_12": candidate.get("sha256_12"),
     }
@@ -274,19 +299,33 @@ def validate_s04(payload: dict[str, Any]) -> dict[str, Any]:
     if validation_accepted:
         require(validation_attempted, "S04 validation cannot be accepted unless attempted")
     if execution_attempted:
-        require(validation_accepted, "S04 execution cannot be attempted unless validation.accepted is true")
-        require(execution_status == "confirmed-runtime", "S04 attempted execution must be confirmed-runtime")
-        require(execution.get("method") == "Graph.ro_query", "S04 execution method must be Graph.ro_query")
+        require(
+            validation_accepted,
+            "S04 execution cannot be attempted unless validation.accepted is true",
+        )
+        require(
+            execution_status == "confirmed-runtime",
+            "S04 attempted execution must be confirmed-runtime",
+        )
+        require(
+            execution.get("method") == "Graph.ro_query",
+            "S04 execution method must be Graph.ro_query",
+        )
         require(execution.get("timeout_ms") == 1000, "S04 execution timeout must be 1000")
     else:
-        require(execution_status in {"not-attempted", "blocked-environment"}, "S04 unattempted execution status must be not-attempted or blocked-environment")
+        require(
+            execution_status in {"not-attempted", "blocked-environment"},
+            "S04 unattempted execution status must be not-attempted or blocked-environment",
+        )
     return {
         "schema_version": payload["schema_version"],
         "status": status,
         "root_cause": root_cause,
         "validation_attempted": validation_attempted,
         "validation_accepted": validation_accepted,
-        "validation_rejection_codes": list(validation.get("rejection_codes", [])) if isinstance(validation.get("rejection_codes"), list) else [],
+        "validation_rejection_codes": list(validation.get("rejection_codes", []))
+        if isinstance(validation.get("rejection_codes"), list)
+        else [],
         "validation_query_shape_category": validation.get("query_shape_category"),
         "execution_attempted": execution_attempted,
         "execution_status": execution_status,
@@ -371,7 +410,9 @@ def build_proof_closure(paths: dict[str, Path]) -> dict[str, Any]:
         "derived_recommendation_category": category,
         "category_blockers": category_blockers(upstreams),
         "r017_effect": r017_effect_for(category),
-        "requirements_advanced": ["R017"] if category in {"pursue-pyo3", "pursue-pyo3-conditioned"} else [],
+        "requirements_advanced": ["R017"]
+        if category in {"pursue-pyo3", "pursue-pyo3-conditioned"}
+        else [],
         "requirements_validated": [],
         "verification_summary": {
             "producer_status": "generated",
@@ -408,7 +449,9 @@ def render_markdown(artifact: dict[str, Any]) -> str:
         "R017 is advanced but not validated by this closure artifact.",
         f"- Status: `{artifact['r017_effect']['status']}`",
         f"- Summary: {artifact['r017_effect']['summary']}",
-        "- Requirements advanced: `" + ", ".join(artifact["requirements_advanced"]) + "`" if artifact["requirements_advanced"] else "- Requirements advanced: none",
+        "- Requirements advanced: `" + ", ".join(artifact["requirements_advanced"]) + "`"
+        if artifact["requirements_advanced"]
+        else "- Requirements advanced: none",
         "- Requirements validated: none",
         "",
         "## Upstream evidence summary",
@@ -431,7 +474,9 @@ def render_markdown(artifact: dict[str, Any]) -> str:
         else:
             key_fields = f"endpoint_preserves_v1=`{item['endpoint_preserves_v1']}`; response_status=`{item['response_status']}`"
             attempts = item["provider_attempts"]
-        lines.append(f"| {label} | `{item['status']}` | `{item['root_cause']}` | {attempts} | {key_fields} | `{item['path']}` |")
+        lines.append(
+            f"| {label} | `{item['status']}` | `{item['root_cause']}` | {attempts} | {key_fields} | `{item['path']}` |"
+        )
     lines.extend(
         [
             "",

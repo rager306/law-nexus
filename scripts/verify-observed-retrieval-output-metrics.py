@@ -12,11 +12,26 @@ from pathlib import Path
 from typing import Any
 
 ROOT = Path(__file__).resolve().parents[1]
-FIXTURE_PATH = ROOT / "prd/research/ontology_architecture_requirements/fixtures/representative_evidence_span_retrieval_corpus.json"
-QUERY_REGISTRY_PATH = ROOT / "prd/research/ontology_architecture_requirements/fixtures/observed_retrieval_query_provenance_registry.json"
-SOURCE_MANIFEST_PATH = ROOT / "prd/research/ontology_architecture_requirements/fixtures/observed_retrieval_source_provenance_manifest.json"
-OBSERVED_OUTPUT_PATH = ROOT / "prd/research/ontology_architecture_requirements/fixtures/observed_retrieval_outputs.json"
-REPORT_PATH = ROOT / "prd/research/ontology_architecture_requirements/observed_retrieval_output_metrics_proof.json"
+FIXTURE_PATH = (
+    ROOT
+    / "prd/research/ontology_architecture_requirements/fixtures/representative_evidence_span_retrieval_corpus.json"
+)
+QUERY_REGISTRY_PATH = (
+    ROOT
+    / "prd/research/ontology_architecture_requirements/fixtures/observed_retrieval_query_provenance_registry.json"
+)
+SOURCE_MANIFEST_PATH = (
+    ROOT
+    / "prd/research/ontology_architecture_requirements/fixtures/observed_retrieval_source_provenance_manifest.json"
+)
+OBSERVED_OUTPUT_PATH = (
+    ROOT
+    / "prd/research/ontology_architecture_requirements/fixtures/observed_retrieval_outputs.json"
+)
+REPORT_PATH = (
+    ROOT
+    / "prd/research/ontology_architecture_requirements/observed_retrieval_output_metrics_proof.json"
+)
 PROVENANCE_VERIFIER = ROOT / "scripts/verify-observed-retrieval-provenance.py"
 RUNTIME_CHECKER = ROOT / "scripts/check-local-retrieval-runtime.py"
 SCHEMA_VERSION = "observed-retrieval-output-metrics-proof/v1"
@@ -117,7 +132,14 @@ def assert_safe_payload(payload: Mapping[str, Any]) -> None:
 
 
 def run_json_command(command: Sequence[str], timeout_seconds: int) -> tuple[int, dict[str, Any]]:
-    completed = subprocess.run(list(command), cwd=ROOT, check=False, text=True, capture_output=True, timeout=timeout_seconds)
+    completed = subprocess.run(
+        list(command),
+        cwd=ROOT,
+        check=False,
+        text=True,
+        capture_output=True,
+        timeout=timeout_seconds,
+    )
     try:
         payload = json.loads(completed.stdout)
     except json.JSONDecodeError as exc:
@@ -148,7 +170,9 @@ def verify_provenance(timeout_seconds: int) -> dict[str, Any]:
 
 def runtime_boundary(timeout_seconds: int, runtime_json: Path | None = None) -> dict[str, Any]:
     if runtime_json is None:
-        _exit_code, payload = run_json_command([sys.executable, str(RUNTIME_CHECKER)], timeout_seconds)
+        _exit_code, payload = run_json_command(
+            [sys.executable, str(RUNTIME_CHECKER)], timeout_seconds
+        )
     else:
         payload = load_json(runtime_json)
     status = str(payload.get("runtime_status", "blocked_environment"))
@@ -199,18 +223,26 @@ def observed_entries(observed: Mapping[str, Any]) -> list[Mapping[str, Any]]:
     if not isinstance(entries, list) or not entries:
         raise ObservedMetricsError("observed_output_missing")
     if observed.get("retrieval_mode") != RETRIEVAL_MODE:
-        raise ObservedMetricsError("observed_output_self_confirming: retrieval mode missing or unsupported")
+        raise ObservedMetricsError(
+            "observed_output_self_confirming: retrieval mode missing or unsupported"
+        )
     for entry in entries:
         if not isinstance(entry, Mapping):
             raise ObservedMetricsError("observed entry must be object")
         if set(entry).intersection(FORBIDDEN_OBSERVED_FIELDS):
-            raise ObservedMetricsError(f"observed_output_self_confirming: forbidden expected fields in {entry.get('case_id')}")
+            raise ObservedMetricsError(
+                f"observed_output_self_confirming: forbidden expected fields in {entry.get('case_id')}"
+            )
         if entry.get("retrieval_mode") != RETRIEVAL_MODE:
-            raise ObservedMetricsError(f"observed output retrieval mode mismatch: {entry.get('case_id')}")
+            raise ObservedMetricsError(
+                f"observed output retrieval mode mismatch: {entry.get('case_id')}"
+            )
         if entry.get("derived_from_expected_fixture_fields") is not False:
             raise ObservedMetricsError(f"observed_output_self_confirming: {entry.get('case_id')}")
         if not isinstance(entry.get("observed_ranked_candidate_ids"), list):
-            raise ObservedMetricsError(f"observed ranked candidates missing: {entry.get('case_id')}")
+            raise ObservedMetricsError(
+                f"observed ranked candidates missing: {entry.get('case_id')}"
+            )
         if not isinstance(entry.get("observed_diagnostic_codes"), list):
             raise ObservedMetricsError(f"observed diagnostics missing: {entry.get('case_id')}")
         if not entry.get("query_provenance_ref") or not entry.get("candidate_source_ref"):
@@ -232,15 +264,29 @@ def reciprocal_rank(expected: set[str], observed_ranked: list[str]) -> float:
 
 
 def citation_preserved(case: Mapping[str, Any], observed_ranked: list[str]) -> bool:
-    candidates = {candidate.get("candidate_id"): candidate for candidate in case.get("candidates", []) if isinstance(candidate, Mapping)}
+    candidates = {
+        candidate.get("candidate_id"): candidate
+        for candidate in case.get("candidates", [])
+        if isinstance(candidate, Mapping)
+    }
     for candidate_id in observed_ranked:
         if candidate_id in set(case.get("expected_candidate_ids", [])):
             candidate = candidates.get(candidate_id, {})
-            return all(candidate.get(field) for field in ("evidence_span_id", "source_block_id", "citation_key", "act_edition_id"))
+            return all(
+                candidate.get(field)
+                for field in (
+                    "evidence_span_id",
+                    "source_block_id",
+                    "citation_key",
+                    "act_edition_id",
+                )
+            )
     return False
 
 
-def compute_metrics(fixture: Mapping[str, Any], observed: Mapping[str, Any], runtime: Mapping[str, Any]) -> dict[str, float]:
+def compute_metrics(
+    fixture: Mapping[str, Any], observed: Mapping[str, Any], runtime: Mapping[str, Any]
+) -> dict[str, float]:
     cases = fixture_cases(fixture)
     observed_by_case = {entry.get("case_id"): entry for entry in observed_entries(observed)}
     if set(observed_by_case) != {case.get("case_id") for case in cases}:
@@ -271,35 +317,80 @@ def compute_metrics(fixture: Mapping[str, Any], observed: Mapping[str, Any], run
         "recall_at_1": fraction(top1, len(positives)),
         "recall_at_3": fraction(top3, len(positives)),
         "distractor_rejection_rate": fraction(
-            int(set(cases_by_class["positive_with_distractor"].get("expected_rejected_candidate_ids", [])).issubset(set(observed_for("positive_with_distractor").get("observed_rejected_candidate_ids", [])))),
+            int(
+                set(
+                    cases_by_class["positive_with_distractor"].get(
+                        "expected_rejected_candidate_ids", []
+                    )
+                ).issubset(
+                    set(
+                        observed_for("positive_with_distractor").get(
+                            "observed_rejected_candidate_ids", []
+                        )
+                    )
+                )
+            ),
             1,
         ),
         "stale_rejection_rate": fraction(
             sum(
-                int("stale_temporal_candidate" in set(observed_for(case_class).get("observed_diagnostic_codes", [])))
+                int(
+                    "stale_temporal_candidate"
+                    in set(observed_for(case_class).get("observed_diagnostic_codes", []))
+                )
                 for case_class in ("stale_temporal_negative", "edition_mismatch_negative")
             ),
             2,
         ),
-        "ambiguous_preservation_rate": fraction(int("ambiguous_candidate_set" in set(observed_for("ambiguous_candidate_set").get("observed_diagnostic_codes", []))), 1),
-        "unsupported_scope_accuracy": fraction(int("unsupported_scope" in set(observed_for("unsupported_scope").get("observed_diagnostic_codes", []))), 1),
-        "no_answer_accuracy": fraction(int("scoped_no_answer" in set(observed_for("scoped_no_answer").get("observed_diagnostic_codes", []))), 1),
+        "ambiguous_preservation_rate": fraction(
+            int(
+                "ambiguous_candidate_set"
+                in set(observed_for("ambiguous_candidate_set").get("observed_diagnostic_codes", []))
+            ),
+            1,
+        ),
+        "unsupported_scope_accuracy": fraction(
+            int(
+                "unsupported_scope"
+                in set(observed_for("unsupported_scope").get("observed_diagnostic_codes", []))
+            ),
+            1,
+        ),
+        "no_answer_accuracy": fraction(
+            int(
+                "scoped_no_answer"
+                in set(observed_for("scoped_no_answer").get("observed_diagnostic_codes", []))
+            ),
+            1,
+        ),
         "citation_preservation_rate": fraction(citation_hits, len(positives)),
-        "unsafe_rejection_rate": fraction(int("unsafe_payload_rejected" in set(observed_for("unsafe_payload_boundary").get("observed_diagnostic_codes", []))), 1),
+        "unsafe_rejection_rate": fraction(
+            int(
+                "unsafe_payload_rejected"
+                in set(observed_for("unsafe_payload_boundary").get("observed_diagnostic_codes", []))
+            ),
+            1,
+        ),
         "runtime_boundary_confirmed": 1.0 if runtime.get("confirmed") is True else 0.0,
     }
     return metrics
 
 
-def build_report(observed_path: Path, runtime_json: Path | None, timeout_seconds: int) -> dict[str, Any]:
+def build_report(
+    observed_path: Path, runtime_json: Path | None, timeout_seconds: int
+) -> dict[str, Any]:
     provenance = verify_provenance(timeout_seconds)
     fixture = load_json(FIXTURE_PATH)
     observed = load_json(observed_path)
     runtime = runtime_boundary(timeout_seconds, runtime_json)
     metrics = compute_metrics(fixture, observed, runtime)
-    threshold_failures = [name for name, minimum in THRESHOLDS.items() if metrics.get(name, 0.0) < minimum]
+    threshold_failures = [
+        name for name, minimum in THRESHOLDS.items() if metrics.get(name, 0.0) < minimum
+    ]
     status = "passed" if not threshold_failures else "blocked"
-    diagnostics = set(provenance.get("diagnostic_codes", [])) | set(runtime.get("diagnostic_codes", []))
+    diagnostics = set(provenance.get("diagnostic_codes", [])) | set(
+        runtime.get("diagnostic_codes", [])
+    )
     diagnostics.add("metric_comparison_verified" if not threshold_failures else "metric_mismatch")
     report = {
         "schema_version": SCHEMA_VERSION,
@@ -353,11 +444,30 @@ def main(argv: Sequence[str] | None = None) -> int:
     try:
         report = build_report(args.observed_output, args.runtime_json, args.timeout_seconds)
         if not args.no_write:
-            args.output.write_text(json.dumps(report, ensure_ascii=False, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+            args.output.write_text(
+                json.dumps(report, ensure_ascii=False, indent=2, sort_keys=True) + "\n",
+                encoding="utf-8",
+            )
     except ObservedMetricsError as exc:
-        print(json.dumps({"status": "failed", "diagnostic": str(exc), "non_authoritative": True}, sort_keys=True))
+        print(
+            json.dumps(
+                {"status": "failed", "diagnostic": str(exc), "non_authoritative": True},
+                sort_keys=True,
+            )
+        )
         return 1
-    print(json.dumps({"status": report["status"], "retrieval_mode": report["retrieval_mode"], "metrics": report["metrics"], "diagnostic_codes": report["diagnostic_codes"], "non_authoritative": True}, sort_keys=True))
+    print(
+        json.dumps(
+            {
+                "status": report["status"],
+                "retrieval_mode": report["retrieval_mode"],
+                "metrics": report["metrics"],
+                "diagnostic_codes": report["diagnostic_codes"],
+                "non_authoritative": True,
+            },
+            sort_keys=True,
+        )
+    )
     return 0 if report["status"] == "passed" else 1
 
 

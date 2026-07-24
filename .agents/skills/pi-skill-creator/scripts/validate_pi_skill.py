@@ -15,9 +15,22 @@ import sys
 from pathlib import Path
 from typing import Any
 
-ALLOWED_FRONTMATTER_KEYS = {"name", "description", "license", "allowed-tools", "metadata", "compatibility"}
+ALLOWED_FRONTMATTER_KEYS = {
+    "name",
+    "description",
+    "license",
+    "allowed-tools",
+    "metadata",
+    "compatibility",
+}
 REQUIRED_TAGS = ["success_criteria"]
-OPTIONAL_ROUTER_TAGS = ["essential_principles", "quick_reference", "routing", "reference_index", "workflows_index"]
+OPTIONAL_ROUTER_TAGS = [
+    "essential_principles",
+    "quick_reference",
+    "routing",
+    "reference_index",
+    "workflows_index",
+]
 
 
 class ValidationError(Exception):
@@ -94,9 +107,13 @@ def validate_body(body: str) -> None:
     for tag in REQUIRED_TAGS:
         if f"<{tag}>" not in body or f"</{tag}>" not in body:
             raise ValidationError(f"Missing required XML tag pair: {tag}")
-    router_tags_present = sum(1 for tag in OPTIONAL_ROUTER_TAGS if f"<{tag}>" in body and f"</{tag}>" in body)
+    router_tags_present = sum(
+        1 for tag in OPTIONAL_ROUTER_TAGS if f"<{tag}>" in body and f"</{tag}>" in body
+    )
     if len(body.splitlines()) > 120 and router_tags_present < 2:
-        raise ValidationError("Large SKILL.md should use router/progressive-disclosure XML sections")
+        raise ValidationError(
+            "Large SKILL.md should use router/progressive-disclosure XML sections"
+        )
 
 
 def referenced_files(body: str) -> set[str]:
@@ -107,11 +124,15 @@ def validate_references(skill_dir: Path, body: str) -> None:
     for rel in sorted(referenced_files(body)):
         if not (skill_dir / rel).exists():
             raise ValidationError(f"SKILL.md references missing file: {rel}")
-    for workflow in (skill_dir / "workflows").glob("*.md") if (skill_dir / "workflows").exists() else []:
+    for workflow in (
+        (skill_dir / "workflows").glob("*.md") if (skill_dir / "workflows").exists() else []
+    ):
         text = workflow.read_text(encoding="utf-8")
         for tag in ["required_reading", "process", "success_criteria"]:
             if f"<{tag}>" not in text or f"</{tag}>" not in text:
-                raise ValidationError(f"Workflow {workflow.relative_to(skill_dir)} missing {tag} tag pair")
+                raise ValidationError(
+                    f"Workflow {workflow.relative_to(skill_dir)} missing {tag} tag pair"
+                )
 
 
 def validate_evals(evals_path: Path, skill_name: str) -> None:
@@ -140,8 +161,14 @@ def validate_evals(evals_path: Path, skill_name: str) -> None:
         if not isinstance(files, list) or not all(isinstance(v, str) for v in files):
             raise ValidationError(f"evals[{index}].files must be a list of strings")
         expectations = item.get("expectations", [])
-        if not isinstance(expectations, list) or not expectations or not all(isinstance(v, str) and v.strip() for v in expectations):
-            raise ValidationError(f"evals[{index}].expectations must be a non-empty list of strings")
+        if (
+            not isinstance(expectations, list)
+            or not expectations
+            or not all(isinstance(v, str) and v.strip() for v in expectations)
+        ):
+            raise ValidationError(
+                f"evals[{index}].expectations must be a non-empty list of strings"
+            )
 
 
 def validate_skill(skill_dir: Path, require_evals: bool) -> list[str]:
@@ -160,7 +187,9 @@ def validate_skill(skill_dir: Path, require_evals: bool) -> list[str]:
     elif require_evals:
         raise ValidationError("Missing evals/evals.json")
     else:
-        warnings.append("No evals/evals.json found; structure is valid but quality is not eval-validated")
+        warnings.append(
+            "No evals/evals.json found; structure is valid but quality is not eval-validated"
+        )
     return warnings
 
 

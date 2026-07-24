@@ -95,7 +95,9 @@ def schema_payload() -> dict[str, Any]:
     }
 
 
-def finding(root: Path, finding_id: str, claim_class: str, status: str, severity: str) -> dict[str, Any]:
+def finding(
+    root: Path, finding_id: str, claim_class: str, status: str, severity: str
+) -> dict[str, Any]:
     artifact = root / f"evidence/{finding_id}.md"
     artifact.parent.mkdir(parents=True, exist_ok=True)
     artifact.write_text(f"evidence for {finding_id}\n", encoding="utf-8")
@@ -132,10 +134,22 @@ def findings_payload(root: Path) -> dict[str, Any]:
         finding(root, "G-008", "deferred-proof-gate", "deferred", "MAJOR"),
         finding(root, "G-011", "embedding-boundary", "confirmed-runtime", "MINOR"),
         finding(root, "G-015", "deferred-proof-gate", "deferred", "MINOR"),
-        finding(root, "S04-FALKORDB-RUNTIME-BOUNDED", "confirmed-runtime-bounded", "confirmed-runtime", "INFO"),
+        finding(
+            root,
+            "S04-FALKORDB-RUNTIME-BOUNDED",
+            "confirmed-runtime-bounded",
+            "confirmed-runtime",
+            "INFO",
+        ),
         finding(root, "S05-PARSER-ODT-BOUNDARY", "parser-smoke-bounded", "bounded", "MAJOR"),
         finding(root, "S05-OLD-PROJECT-PRIOR-ART", "prior-art-bounded", "bounded", "MAJOR"),
-        finding(root, "M001-ARCHITECTURE-ONLY-GUARDRAIL", "out-of-scope-guardrail", "excluded", "BLOCKER"),
+        finding(
+            root,
+            "M001-ARCHITECTURE-ONLY-GUARDRAIL",
+            "out-of-scope-guardrail",
+            "excluded",
+            "BLOCKER",
+        ),
     ]
     return {
         "schema_version": "s08-final-architecture-findings/v1",
@@ -187,7 +201,9 @@ A planner checks owner, resolution, verification, roadmap, machine-readable evid
 """
 
 
-def write_fixture(root: Path, payload: dict[str, Any] | None = None) -> tuple[Path, Path, Path, dict[str, Any]]:
+def write_fixture(
+    root: Path, payload: dict[str, Any] | None = None
+) -> tuple[Path, Path, Path, dict[str, Any]]:
     root.mkdir(parents=True, exist_ok=True)
     selected = findings_payload(root) if payload is None else payload
     report = root / "report.md"
@@ -279,7 +295,10 @@ def test_rejects_nonexistent_artifact_path(tmp_path: Path) -> None:
     result = verifier.verify(report, findings, schema)
 
     assert result.ok is False
-    assert any("source_artifacts.s04_falkordb_smoke path does not exist" in error for error in result.errors)
+    assert any(
+        "source_artifacts.s04_falkordb_smoke path does not exist" in error
+        for error in result.errors
+    )
 
 
 def test_rejects_malformed_json(tmp_path: Path) -> None:
@@ -296,12 +315,20 @@ def test_rejects_malformed_json(tmp_path: Path) -> None:
 def test_rejects_missing_report_section(tmp_path: Path) -> None:
     verifier = load_verifier()
     report, findings, schema, _ = write_fixture(tmp_path)
-    report.write_text(report.read_text(encoding="utf-8").replace("## 5. Machine-readable findings path and schema proposal", "## 5. Other"), encoding="utf-8")
+    report.write_text(
+        report.read_text(encoding="utf-8").replace(
+            "## 5. Machine-readable findings path and schema proposal", "## 5. Other"
+        ),
+        encoding="utf-8",
+    )
 
     result = verifier.verify(report, findings, schema)
 
     assert result.ok is False
-    assert any("report missing section: ## 5. Machine-readable findings path and schema proposal" in error for error in result.errors)
+    assert any(
+        "report missing section: ## 5. Machine-readable findings path and schema proposal" in error
+        for error in result.errors
+    )
 
 
 def test_rejects_overclaim_phrases_even_when_rows_are_otherwise_valid(tmp_path: Path) -> None:
@@ -314,7 +341,10 @@ def test_rejects_overclaim_phrases_even_when_rows_are_otherwise_valid(tmp_path: 
         "Managed embedding API fallback is promoted for M002.",
     ]
     for phrase in overclaims:
-        report, findings, schema, payload = write_fixture(tmp_path / phrase.split()[0].lower(), deepcopy(findings_payload(tmp_path / phrase.split()[0].lower())))
+        report, findings, schema, payload = write_fixture(
+            tmp_path / phrase.split()[0].lower(),
+            deepcopy(findings_payload(tmp_path / phrase.split()[0].lower())),
+        )
         report.write_text(report_markdown(payload) + f"\n{phrase}\n", encoding="utf-8")
 
         result = verifier.verify(report, findings, schema)

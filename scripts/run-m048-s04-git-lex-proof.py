@@ -94,7 +94,13 @@ def monotonic_ms() -> int:
     return int(time.monotonic() * 1000)
 
 
-def phase(name: str, status: str, summary: str, details: dict[str, Any] | None = None, started: int | None = None) -> Phase:
+def phase(
+    name: str,
+    status: str,
+    summary: str,
+    details: dict[str, Any] | None = None,
+    started: int | None = None,
+) -> Phase:
     return Phase(
         name=name,
         status=status,
@@ -209,7 +215,9 @@ def validate_records(records: dict[str, dict[str, Any]]) -> list[str]:
     if ids_by_kind != REQUIRED_KINDS:
         failures.append(f"required taxonomy mismatch: expected {REQUIRED_KINDS}, got {ids_by_kind}")
     if set(records) != set(REQUIRED_KINDS.values()):
-        failures.append(f"record id mismatch: expected {sorted(REQUIRED_KINDS.values())}, got {sorted(records)}")
+        failures.append(
+            f"record id mismatch: expected {sorted(REQUIRED_KINDS.values())}, got {sorted(records)}"
+        )
 
     for record_id, record in records.items():
         safety = record.get("safety")
@@ -221,7 +229,10 @@ def validate_records(records: dict[str, dict[str, Any]]) -> list[str]:
                 failures.append(f"{record_id}: safety flag must be false: {flag}")
 
     unresolved = sorted(
-        ref for record in records.values() for ref in referenced_fixture_ids(record) if ref not in records
+        ref
+        for record in records.values()
+        for ref in referenced_fixture_ids(record)
+        if ref not in records
     )
     if unresolved:
         failures.append(f"unresolved fixture references: {unresolved}")
@@ -249,8 +260,7 @@ def validate_records(records: dict[str, dict[str, Any]]) -> list[str]:
 
 def acp_projection(records: dict[str, dict[str, Any]]) -> dict[str, Any]:
     edges = {
-        record_id: sorted(referenced_fixture_ids(record))
-        for record_id, record in records.items()
+        record_id: sorted(referenced_fixture_ids(record)) for record_id, record in records.items()
     }
     return {
         "projection_kind": "deterministic-acp-fixture-projection",
@@ -284,7 +294,9 @@ def validate_lifecycle(records: dict[str, dict[str, Any]]) -> list[str]:
         actual = records.get(record_id, {}).get("status")
         if actual != status:
             failures.append(f"{record_id}: expected status {status!r}, got {actual!r}")
-    gate_text = " ".join(str(records.get("PG-ACP-0001", {}).get("claim_or_requirement", "")).casefold().split())
+    gate_text = " ".join(
+        str(records.get("PG-ACP-0001", {}).get("claim_or_requirement", "")).casefold().split()
+    )
     for term in [
         "typed records",
         "validation",
@@ -336,7 +348,9 @@ def validate_blocked_actions(records: dict[str, dict[str, Any]]) -> list[str]:
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--check", action="store_true", help="Return non-zero when fail-closed checks fail.")
+    parser.add_argument(
+        "--check", action="store_true", help="Return non-zero when fail-closed checks fail."
+    )
     args = parser.parse_args()
 
     started_all = monotonic_ms()
@@ -358,10 +372,31 @@ def main() -> int:
     ]
     available = [probe for probe in probes if probe["exit_code"] == 0 and not probe["timed_out"]]
     if available:
-        phases.append(phase("acquisition", "pass", "Existing git-lex command responds to a help probe; no acquisition attempted.", {"probes": probes}, start))
+        phases.append(
+            phase(
+                "acquisition",
+                "pass",
+                "Existing git-lex command responds to a help probe; no acquisition attempted.",
+                {"probes": probes},
+                start,
+            )
+        )
     else:
-        blocked_or_deferred.append("git-lex executable unavailable; runtime git-lex mechanics are blocked, deterministic fixture checks still ran")
-        phases.append(phase("acquisition", "blocked", "No existing git-lex executable was found; safe acquisition/build is intentionally not attempted from the main checkout.", {"probes": probes, "safe_acquisition_policy": "no clone/install/download/durable build from law-nexus"}, start))
+        blocked_or_deferred.append(
+            "git-lex executable unavailable; runtime git-lex mechanics are blocked, deterministic fixture checks still ran"
+        )
+        phases.append(
+            phase(
+                "acquisition",
+                "blocked",
+                "No existing git-lex executable was found; safe acquisition/build is intentionally not attempted from the main checkout.",
+                {
+                    "probes": probes,
+                    "safe_acquisition_policy": "no clone/install/download/durable build from law-nexus",
+                },
+                start,
+            )
+        )
 
     records: dict[str, dict[str, Any]] = {}
     projection: dict[str, Any] = {}
@@ -372,15 +407,33 @@ def main() -> int:
         start = monotonic_ms()
         try:
             if not FIXTURE_DIR.exists():
-                raise FileNotFoundError(f"missing fixture directory: {FIXTURE_DIR.relative_to(ROOT)}")
+                raise FileNotFoundError(
+                    f"missing fixture directory: {FIXTURE_DIR.relative_to(ROOT)}"
+                )
             shutil.copytree(FIXTURE_DIR, isolated_fixture_dir)
             copied_files = sorted(path.name for path in isolated_fixture_dir.glob("*.md"))
             if (isolated_fixture_dir / ".lex").exists():
                 raise RuntimeError("copied fixture unexpectedly contains .lex state")
-            phases.append(phase("fixture_copy", "pass", "Copied only the S04 fixture pack into a Python temporary workspace.", {"temporary_workspace": str(tmp_root), "copied_files": copied_files}, start))
+            phases.append(
+                phase(
+                    "fixture_copy",
+                    "pass",
+                    "Copied only the S04 fixture pack into a Python temporary workspace.",
+                    {"temporary_workspace": str(tmp_root), "copied_files": copied_files},
+                    start,
+                )
+            )
         except Exception as exc:  # noqa: BLE001 - harness must emit diagnostics rather than traceback-only output.
             fatal_failures.append(f"fixture_copy: {exc}")
-            phases.append(phase("fixture_copy", "fail", "Could not copy fixture pack into isolated workspace.", {"error": str(exc)}, start))
+            phases.append(
+                phase(
+                    "fixture_copy",
+                    "fail",
+                    "Could not copy fixture pack into isolated workspace.",
+                    {"error": str(exc)},
+                    start,
+                )
+            )
 
         start = monotonic_ms()
         try:
@@ -388,12 +441,36 @@ def main() -> int:
             failures = validate_records(records)
             if failures:
                 fatal_failures.extend(f"validation: {failure}" for failure in failures)
-                phases.append(phase("validation", "fail", "Fixture source-record validation failed.", {"failures": failures}, start))
+                phases.append(
+                    phase(
+                        "validation",
+                        "fail",
+                        "Fixture source-record validation failed.",
+                        {"failures": failures},
+                        start,
+                    )
+                )
             else:
-                phases.append(phase("validation", "pass", "Typed source records, required taxonomy, relationships, safety flags, and anchors validated.", {"record_count": len(records), "record_ids": sorted(records)}, start))
+                phases.append(
+                    phase(
+                        "validation",
+                        "pass",
+                        "Typed source records, required taxonomy, relationships, safety flags, and anchors validated.",
+                        {"record_count": len(records), "record_ids": sorted(records)},
+                        start,
+                    )
+                )
         except Exception as exc:  # noqa: BLE001
             fatal_failures.append(f"validation: {exc}")
-            phases.append(phase("validation", "fail", "Fixture validation crashed safely and emitted diagnostics.", {"error": str(exc)}, start))
+            phases.append(
+                phase(
+                    "validation",
+                    "fail",
+                    "Fixture validation crashed safely and emitted diagnostics.",
+                    {"error": str(exc)},
+                    start,
+                )
+            )
 
         start = monotonic_ms()
         try:
@@ -401,13 +478,35 @@ def main() -> int:
                 raise RuntimeError("records unavailable after validation")
             projection = acp_projection(records)
             projection_path = tmp_root / "derived-projection.json"
-            projection_path.write_text(json.dumps(projection, indent=2, sort_keys=True), encoding="utf-8")
+            projection_path.write_text(
+                json.dumps(projection, indent=2, sort_keys=True), encoding="utf-8"
+            )
             if projection["authority_status"] != "non_authoritative":
                 raise RuntimeError("derived projection must remain non_authoritative")
-            phases.append(phase("extraction_projection", "pass", "Built a deterministic non-authoritative projection in the temporary workspace only.", {"projection_path": str(projection_path), "authority_status": projection["authority_status"], "record_count": projection["record_count"]}, start))
+            phases.append(
+                phase(
+                    "extraction_projection",
+                    "pass",
+                    "Built a deterministic non-authoritative projection in the temporary workspace only.",
+                    {
+                        "projection_path": str(projection_path),
+                        "authority_status": projection["authority_status"],
+                        "record_count": projection["record_count"],
+                    },
+                    start,
+                )
+            )
         except Exception as exc:  # noqa: BLE001
             fatal_failures.append(f"extraction_projection: {exc}")
-            phases.append(phase("extraction_projection", "fail", "Could not build or validate temporary projection.", {"error": str(exc)}, start))
+            phases.append(
+                phase(
+                    "extraction_projection",
+                    "fail",
+                    "Could not build or validate temporary projection.",
+                    {"error": str(exc)},
+                    start,
+                )
+            )
 
         start = monotonic_ms()
         try:
@@ -420,42 +519,138 @@ def main() -> int:
                 raise RuntimeError("query recovery did not recover AD-ACP-0001 decision")
             if "EA-ACP-0001" not in recovered_gate_edges:
                 raise RuntimeError("query recovery did not recover proof gate evidence edge")
-            phases.append(phase("query_recovery", "pass", "Recovered typed records and proof-gate relationships from the temporary projection.", {"architecture_decision": recovered_decision, "proof_gate_edges": recovered_gate_edges}, start))
+            phases.append(
+                phase(
+                    "query_recovery",
+                    "pass",
+                    "Recovered typed records and proof-gate relationships from the temporary projection.",
+                    {
+                        "architecture_decision": recovered_decision,
+                        "proof_gate_edges": recovered_gate_edges,
+                    },
+                    start,
+                )
+            )
         except Exception as exc:  # noqa: BLE001
             fatal_failures.append(f"query_recovery: {exc}")
-            phases.append(phase("query_recovery", "fail", "Could not recover expected records from temporary projection.", {"error": str(exc)}, start))
+            phases.append(
+                phase(
+                    "query_recovery",
+                    "fail",
+                    "Could not recover expected records from temporary projection.",
+                    {"error": str(exc)},
+                    start,
+                )
+            )
 
         start = monotonic_ms()
         failures = validate_lifecycle(records) if records else ["records unavailable"]
         if failures:
             fatal_failures.extend(f"lifecycle_proof_gate: {failure}" for failure in failures)
-            phases.append(phase("lifecycle_proof_gate", "fail", "Lifecycle/proof-gate semantics failed.", {"failures": failures}, start))
+            phases.append(
+                phase(
+                    "lifecycle_proof_gate",
+                    "fail",
+                    "Lifecycle/proof-gate semantics failed.",
+                    {"failures": failures},
+                    start,
+                )
+            )
         else:
-            phases.append(phase("lifecycle_proof_gate", "pass", "Lifecycle and proof-gate records expose pending/blocked states without claiming proof satisfaction.", {"checked_records": ["APR-ACP-0001", "AP-ACP-0001", "DC-ACP-0001", "AD-ACP-0001", "PG-ACP-0001", "AHF-ACP-0001", "BA-ACP-0001"]}, start))
+            phases.append(
+                phase(
+                    "lifecycle_proof_gate",
+                    "pass",
+                    "Lifecycle and proof-gate records expose pending/blocked states without claiming proof satisfaction.",
+                    {
+                        "checked_records": [
+                            "APR-ACP-0001",
+                            "AP-ACP-0001",
+                            "DC-ACP-0001",
+                            "AD-ACP-0001",
+                            "PG-ACP-0001",
+                            "AHF-ACP-0001",
+                            "BA-ACP-0001",
+                        ]
+                    },
+                    start,
+                )
+            )
 
         start = monotonic_ms()
         failures = validate_profile_boundary(records) if records else ["records unavailable"]
         if failures:
             fatal_failures.extend(f"profile_boundary: {failure}" for failure in failures)
-            phases.append(phase("profile_boundary", "fail", "Reusable core/profile boundary failed.", {"failures": failures}, start))
+            phases.append(
+                phase(
+                    "profile_boundary",
+                    "fail",
+                    "Reusable core/profile boundary failed.",
+                    {"failures": failures},
+                    start,
+                )
+            )
         else:
-            phases.append(phase("profile_boundary", "pass", "law-nexus-specific proof boundaries are confined to ProfileConstraint.", {"profile_record": "PC-LN-0001"}, start))
+            phases.append(
+                phase(
+                    "profile_boundary",
+                    "pass",
+                    "law-nexus-specific proof boundaries are confined to ProfileConstraint.",
+                    {"profile_record": "PC-LN-0001"},
+                    start,
+                )
+            )
 
         start = monotonic_ms()
         failures = validate_blocked_actions(records) if records else ["records unavailable"]
         if failures:
             fatal_failures.extend(f"blocked_actions: {failure}" for failure in failures)
-            phases.append(phase("blocked_actions", "fail", "Blocked action semantics failed.", {"failures": failures}, start))
+            phases.append(
+                phase(
+                    "blocked_actions",
+                    "fail",
+                    "Blocked action semantics failed.",
+                    {"failures": failures},
+                    start,
+                )
+            )
         else:
-            phases.append(phase("blocked_actions", "pass", "Main-repo git-lex initialization remains explicitly blocked until separate proof and decision evidence exist.", {"blocked_record": "BA-ACP-0001", "blocked_surface": records["BA-ACP-0001"].get("surface")}, start))
+            phases.append(
+                phase(
+                    "blocked_actions",
+                    "pass",
+                    "Main-repo git-lex initialization remains explicitly blocked until separate proof and decision evidence exist.",
+                    {
+                        "blocked_record": "BA-ACP-0001",
+                        "blocked_surface": records["BA-ACP-0001"].get("surface"),
+                    },
+                    start,
+                )
+            )
 
     start = monotonic_ms()
     main_lex_after = MAIN_REPO_LEX_DIR.exists()
     if main_lex_after:
         fatal_failures.append("main repository .lex exists after proof harness execution")
-        phases.append(phase("main_repo_mutation_guard", "fail", "Main repository .lex state exists; proof failed closed.", {"main_lex_before": main_lex_before, "main_lex_after": main_lex_after}, start))
+        phases.append(
+            phase(
+                "main_repo_mutation_guard",
+                "fail",
+                "Main repository .lex state exists; proof failed closed.",
+                {"main_lex_before": main_lex_before, "main_lex_after": main_lex_after},
+                start,
+            )
+        )
     else:
-        phases.append(phase("main_repo_mutation_guard", "pass", "No .lex state exists in the main repository before or after the harness run.", {"main_lex_before": main_lex_before, "main_lex_after": main_lex_after}, start))
+        phases.append(
+            phase(
+                "main_repo_mutation_guard",
+                "pass",
+                "No .lex state exists in the main repository before or after the harness run.",
+                {"main_lex_before": main_lex_before, "main_lex_after": main_lex_after},
+                start,
+            )
+        )
 
     status = "fail" if fatal_failures else ("blocked" if blocked_or_deferred else "pass")
     result = {

@@ -11,7 +11,10 @@ from pathlib import Path
 from typing import Any
 
 ROOT = Path(__file__).resolve().parents[1]
-DEFAULT_FIXTURE = ROOT / "prd/research/ontology_architecture_requirements/fixtures/representative_evidence_span_retrieval_corpus.json"
+DEFAULT_FIXTURE = (
+    ROOT
+    / "prd/research/ontology_architecture_requirements/fixtures/representative_evidence_span_retrieval_corpus.json"
+)
 SCHEMA_VERSION = "representative-evidence-span-retrieval-corpus/v1"
 FIXTURE_ARTIFACT = "prd/research/ontology_architecture_requirements/fixtures/representative_evidence_span_retrieval_corpus.json"
 
@@ -28,8 +31,23 @@ REQUIRED_CASE_CLASSES = {
     "unsafe_payload_boundary",
 }
 
-ALLOWED_EXPECTED_RESULTS = {"selected", "rejected", "ambiguous", "unsupported", "no_answer", "boundary_rejected"}
-ALLOWED_EXPECTED_LABELS = {"relevant", "distractor", "stale", "ambiguous", "unsupported", "no_answer", "unsafe"}
+ALLOWED_EXPECTED_RESULTS = {
+    "selected",
+    "rejected",
+    "ambiguous",
+    "unsupported",
+    "no_answer",
+    "boundary_rejected",
+}
+ALLOWED_EXPECTED_LABELS = {
+    "relevant",
+    "distractor",
+    "stale",
+    "ambiguous",
+    "unsupported",
+    "no_answer",
+    "unsafe",
+}
 REQUIRED_NON_CLAIMS = {
     "Does not validate R035.",
     "Does not validate R037.",
@@ -170,14 +188,18 @@ def check_source_artifacts(payload: Mapping[str, Any]) -> set[str]:
         if not path.exists():
             raise VerificationError(f"source anchor missing: {path_value}")
         if repo_relative(path) != path_value:
-            raise VerificationError(f"source artifact is not stable repo-relative path: {path_value}")
+            raise VerificationError(
+                f"source artifact is not stable repo-relative path: {path_value}"
+            )
         if len(digest) != 64 or sha256_path(path) != digest:
             raise VerificationError(f"source artifact sha256 mismatch: {path_value}")
         declared.add(path_value)
     return declared
 
 
-def check_candidate(candidate: Mapping[str, Any], source_paths: set[str], seen_candidate_ids: set[str]) -> str:
+def check_candidate(
+    candidate: Mapping[str, Any], source_paths: set[str], seen_candidate_ids: set[str]
+) -> str:
     candidate_id = require_string(candidate.get("candidate_id"), "candidate_id")
     if not candidate_id.startswith("CAND-M022-"):
         raise VerificationError(f"candidate_id prefix invalid: {candidate_id}")
@@ -196,7 +218,13 @@ def check_candidate(candidate: Mapping[str, Any], source_paths: set[str], seen_c
     rank = candidate.get("rank")
     if not isinstance(rank, int) or rank < 1:
         raise VerificationError(f"candidate rank invalid: {candidate_id}")
-    for field in ("evidence_span_id", "source_block_id", "citation_key", "act_edition_id", "selection_reason"):
+    for field in (
+        "evidence_span_id",
+        "source_block_id",
+        "citation_key",
+        "act_edition_id",
+        "selection_reason",
+    ):
         require_string(candidate.get(field), f"candidate {field}")
     record_ids = require_list(candidate.get("source_record_ids"), "candidate source_record_ids")
     if not all(isinstance(item, str) for item in record_ids):
@@ -204,7 +232,13 @@ def check_candidate(candidate: Mapping[str, Any], source_paths: set[str], seen_c
     return candidate_id
 
 
-def check_case(case: Mapping[str, Any], source_paths: set[str], seen_case_ids: set[str], seen_query_ids: set[str], seen_candidate_ids: set[str]) -> str:
+def check_case(
+    case: Mapping[str, Any],
+    source_paths: set[str],
+    seen_case_ids: set[str],
+    seen_query_ids: set[str],
+    seen_candidate_ids: set[str],
+) -> str:
     case_id = require_string(case.get("case_id"), "case_id")
     if not case_id.startswith("CASE-M022-"):
         raise VerificationError(f"case_id prefix invalid: {case_id}")
@@ -238,19 +272,37 @@ def check_case(case: Mapping[str, Any], source_paths: set[str], seen_case_ids: s
         if ref not in source_paths:
             raise VerificationError(f"case source ref not declared: {ref}")
     requirements = case.get("citation_requirements")
-    if not isinstance(requirements, Mapping) or not all(requirements.get(key) is True for key in ("requires_evidence_span_id", "requires_source_block_id", "requires_citation_key", "requires_act_edition_id")):
+    if not isinstance(requirements, Mapping) or not all(
+        requirements.get(key) is True
+        for key in (
+            "requires_evidence_span_id",
+            "requires_source_block_id",
+            "requires_citation_key",
+            "requires_act_edition_id",
+        )
+    ):
         raise VerificationError(f"citation requirements invalid: {case_id}")
     candidates = require_list(case.get("candidates"), "candidates")
-    local_candidate_ids = {check_candidate(candidate, source_paths, seen_candidate_ids) for candidate in candidates if isinstance(candidate, Mapping)}
+    local_candidate_ids = {
+        check_candidate(candidate, source_paths, seen_candidate_ids)
+        for candidate in candidates
+        if isinstance(candidate, Mapping)
+    }
     if len(local_candidate_ids) != len(candidates):
         raise VerificationError(f"candidate entries must be objects: {case_id}")
-    expected_candidate_ids = set(require_list(case.get("expected_candidate_ids"), "expected_candidate_ids"))
-    expected_rejected_ids = set(require_list(case.get("expected_rejected_candidate_ids"), "expected_rejected_candidate_ids"))
+    expected_candidate_ids = set(
+        require_list(case.get("expected_candidate_ids"), "expected_candidate_ids")
+    )
+    expected_rejected_ids = set(
+        require_list(case.get("expected_rejected_candidate_ids"), "expected_rejected_candidate_ids")
+    )
     if not expected_candidate_ids.issubset(local_candidate_ids):
         raise VerificationError(f"invalid expected candidate reference: {case_id}")
     if not expected_rejected_ids.issubset(local_candidate_ids):
         raise VerificationError(f"invalid expected rejected candidate reference: {case_id}")
-    diagnostics = set(require_list(case.get("expected_diagnostic_codes"), "expected_diagnostic_codes"))
+    diagnostics = set(
+        require_list(case.get("expected_diagnostic_codes"), "expected_diagnostic_codes")
+    )
     required_diagnostics = EXPECTED_DIAGNOSTICS_BY_CLASS.get(case_class, set())
     if not required_diagnostics.issubset(diagnostics):
         raise VerificationError(f"missing expected diagnostics for {case_id}")
@@ -266,13 +318,23 @@ def verify_fixture(path: Path) -> dict[str, Any]:
         raise VerificationError("schema_version mismatch")
     if payload.get("fixture_artifact") != FIXTURE_ARTIFACT:
         raise VerificationError("fixture_artifact mismatch")
-    if payload.get("generated_by") != "M022/S02" or payload.get("milestone_id") != "M022-5t4bzn" or payload.get("slice_id") != "S02":
+    if (
+        payload.get("generated_by") != "M022/S02"
+        or payload.get("milestone_id") != "M022-5t4bzn"
+        or payload.get("slice_id") != "S02"
+    ):
         raise VerificationError("generator or milestone mismatch")
     if payload.get("non_authoritative") is not True:
         raise VerificationError("fixture must be non_authoritative")
-    if set(require_list(payload.get("required_case_classes"), "required_case_classes")) != REQUIRED_CASE_CLASSES:
+    if (
+        set(require_list(payload.get("required_case_classes"), "required_case_classes"))
+        != REQUIRED_CASE_CLASSES
+    ):
         raise VerificationError("required_case_classes mismatch")
-    if set(require_list(payload.get("allowed_expected_results"), "allowed_expected_results")) != ALLOWED_EXPECTED_RESULTS:
+    if (
+        set(require_list(payload.get("allowed_expected_results"), "allowed_expected_results"))
+        != ALLOWED_EXPECTED_RESULTS
+    ):
         raise VerificationError("allowed_expected_results mismatch")
     if not REQUIRED_NON_CLAIMS.issubset(set(require_list(payload.get("non_claims"), "non_claims"))):
         raise VerificationError("required non_claims missing")
@@ -280,7 +342,11 @@ def verify_fixture(path: Path) -> dict[str, Any]:
     if not isinstance(redaction, Mapping) or not all(value is True for value in redaction.values()):
         raise VerificationError("redaction values must all be true")
     policy = payload.get("source_anchor_policy")
-    if not isinstance(policy, Mapping) or policy.get("stable_sources_preferred") is not True or policy.get("mutable_runtime_hashes_avoided") is not True:
+    if (
+        not isinstance(policy, Mapping)
+        or policy.get("stable_sources_preferred") is not True
+        or policy.get("mutable_runtime_hashes_avoided") is not True
+    ):
         raise VerificationError("source anchor policy invalid")
     source_paths = check_source_artifacts(payload)
     cases = require_list(payload.get("cases"), "cases")
@@ -322,7 +388,12 @@ def main(argv: Sequence[str] | None = None) -> int:
     try:
         result = verify_fixture(args.fixture)
     except VerificationError as exc:
-        print(json.dumps({"status": "failed", "diagnostic": str(exc), "non_authoritative": True}, sort_keys=True))
+        print(
+            json.dumps(
+                {"status": "failed", "diagnostic": str(exc), "non_authoritative": True},
+                sort_keys=True,
+            )
+        )
         return 1
     print(json.dumps(result, sort_keys=True))
     return 0

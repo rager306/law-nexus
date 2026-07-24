@@ -29,7 +29,9 @@ def load_verifier_module() -> Any:
 
 
 def load_view_generator_module() -> Any:
-    spec = importlib.util.spec_from_file_location("architecture_view_generator", GENERATOR_SCRIPT_PATH)
+    spec = importlib.util.spec_from_file_location(
+        "architecture_view_generator", GENERATOR_SCRIPT_PATH
+    )
     assert spec is not None
     assert spec.loader is not None
     module = importlib.util.module_from_spec(spec)
@@ -50,7 +52,9 @@ def run_cli(*args: str) -> subprocess.CompletedProcess[str]:
 
 
 def write_jsonl(path: Path, records: list[dict[str, Any]]) -> None:
-    path.write_text("".join(json.dumps(record, sort_keys=True) + "\n" for record in records), encoding="utf-8")
+    path.write_text(
+        "".join(json.dumps(record, sort_keys=True) + "\n" for record in records), encoding="utf-8"
+    )
 
 
 def minimal_item(record_id: str, source_anchors: list[dict[str, Any]]) -> dict[str, Any]:
@@ -73,7 +77,13 @@ def minimal_item(record_id: str, source_anchors: list[dict[str, Any]]) -> dict[s
     }
 
 
-def minimal_edge(record_id: str, source_anchors: list[dict[str, Any]], *, from_id: str = "NODE-A", to_id: str = "NODE-A") -> dict[str, Any]:
+def minimal_edge(
+    record_id: str,
+    source_anchors: list[dict[str, Any]],
+    *,
+    from_id: str = "NODE-A",
+    to_id: str = "NODE-A",
+) -> dict[str, Any]:
     return {
         "schema_version": "legalgraph-architecture-registry/v1",
         "record_kind": "edge",
@@ -133,15 +143,24 @@ def test_gsd_report_contract_documents_minimal_non_authoritative_fields() -> Non
     assert "generated reports remain derived planning artifacts" in readme
 
 
-def test_upstream_check_nonzero_is_stable_diagnostic_without_rewriting(tmp_path: Path, monkeypatch: Any) -> None:
+def test_upstream_check_nonzero_is_stable_diagnostic_without_rewriting(
+    tmp_path: Path, monkeypatch: Any
+) -> None:
     verifier = load_verifier_module()
     calls: list[list[str]] = []
 
     def fake_run(command: list[str], **_: Any) -> subprocess.CompletedProcess[str]:
         calls.append(command)
         if command[-1] == "--check" and "extract-prd-architecture-items.py" in command[-2]:
-            return subprocess.CompletedProcess(command, 1, stdout="", stderr="stale generated output: fixtures are old\nsecond line")
-        return subprocess.CompletedProcess(command, 0, stdout="architecture graph outputs are current\n", stderr="")
+            return subprocess.CompletedProcess(
+                command,
+                1,
+                stdout="",
+                stderr="stale generated output: fixtures are old\nsecond line",
+            )
+        return subprocess.CompletedProcess(
+            command, 0, stdout="architecture graph outputs are current\n", stderr=""
+        )
 
     before_items = ITEMS_PATH.read_bytes()
     before_report = REPORT_JSON_PATH.read_bytes()
@@ -193,13 +212,22 @@ def test_wrong_record_kind_and_duplicate_ids_are_hard_failures(tmp_path: Path) -
     assert "id=EDGE-WRONG" in result.stderr
 
 
-def test_missing_report_output_default_gate_becomes_upstream_s03_diagnostic(monkeypatch: Any) -> None:
+def test_missing_report_output_default_gate_becomes_upstream_s03_diagnostic(
+    monkeypatch: Any,
+) -> None:
     verifier = load_verifier_module()
 
     def fake_run(command: list[str], **_: Any) -> subprocess.CompletedProcess[str]:
         if "build-architecture-graph.py" in command[-2]:
-            return subprocess.CompletedProcess(command, 1, stdout="", stderr="missing report output: prd/architecture/architecture_report.md")
-        return subprocess.CompletedProcess(command, 0, stdout="architecture JSONL outputs are current\n", stderr="")
+            return subprocess.CompletedProcess(
+                command,
+                1,
+                stdout="",
+                stderr="missing report output: prd/architecture/architecture_report.md",
+            )
+        return subprocess.CompletedProcess(
+            command, 0, stdout="architecture JSONL outputs are current\n", stderr=""
+        )
 
     monkeypatch.setattr(verifier.subprocess, "run", fake_run)
 
@@ -212,13 +240,19 @@ def test_missing_report_output_default_gate_becomes_upstream_s03_diagnostic(monk
     assert "missing report output" in formatted
 
 
-def test_typed_drift_diagnostic_marks_only_freshness_as_safe_to_regenerate(monkeypatch: Any) -> None:
+def test_typed_drift_diagnostic_marks_only_freshness_as_safe_to_regenerate(
+    monkeypatch: Any,
+) -> None:
     verifier = load_verifier_module()
 
     def fake_run(command: list[str], **_: Any) -> subprocess.CompletedProcess[str]:
         if "extract-prd-architecture-items.py" in command[-2]:
-            return subprocess.CompletedProcess(command, 1, stdout="", stderr="stale generated output: architecture_items.jsonl")
-        return subprocess.CompletedProcess(command, 0, stdout="architecture graph outputs are current\n", stderr="")
+            return subprocess.CompletedProcess(
+                command, 1, stdout="", stderr="stale generated output: architecture_items.jsonl"
+            )
+        return subprocess.CompletedProcess(
+            command, 0, stdout="architecture graph outputs are current\n", stderr=""
+        )
 
     monkeypatch.setattr(verifier.subprocess, "run", fake_run)
 
@@ -229,13 +263,21 @@ def test_typed_drift_diagnostic_marks_only_freshness_as_safe_to_regenerate(monke
     formatted = "\n".join(diagnostic.format() for diagnostic in verifier.LAST_RESULT.diagnostics)
     assert "drift_kind=freshness-drift" in formatted
     assert "safe_to_regenerate=true" in formatted
-    assert "remediation_hint=regenerate-derived-artifact-after-confirming-source-evidence-is-current" in formatted
+    assert (
+        "remediation_hint=regenerate-derived-artifact-after-confirming-source-evidence-is-current"
+        in formatted
+    )
     summary = verifier.LAST_RESULT.summary()
     assert summary["drift_counts"]["freshness-drift"] >= 1
 
 
 def test_typed_drift_diagnostic_for_source_anchor_is_not_auto_regenerable() -> None:
-    result = run_cli("--items", str(FIXTURE_DIR / "invalid_stale_anchor.jsonl"), "--edges", str(FIXTURE_DIR / "valid_edges.jsonl"))
+    result = run_cli(
+        "--items",
+        str(FIXTURE_DIR / "invalid_stale_anchor.jsonl"),
+        "--edges",
+        str(FIXTURE_DIR / "valid_edges.jsonl"),
+    )
 
     assert result.returncode == 1
     assert "id=REQ-STALE-ANCHOR" in result.stderr
@@ -243,7 +285,10 @@ def test_typed_drift_diagnostic_for_source_anchor_is_not_auto_regenerable() -> N
     assert "field=source_anchors[0].path" in result.stderr
     assert "affected_field=source_anchors[0].path" in result.stderr
     assert "safe_to_regenerate=false" in result.stderr
-    assert "remediation_hint=edit-authoritative-source-anchor-or-source-evidence-then-regenerate-derived-projections" in result.stderr
+    assert (
+        "remediation_hint=edit-authoritative-source-anchor-or-source-evidence-then-regenerate-derived-projections"
+        in result.stderr
+    )
 
 
 def test_typed_drift_diagnostic_classes_cover_policy_failures(tmp_path: Path) -> None:
@@ -256,13 +301,23 @@ def test_typed_drift_diagnostic_classes_cover_policy_failures(tmp_path: Path) ->
     assert active_contradiction.returncode == 1
     assert "drift_kind=contradiction-drift" in active_contradiction.stderr
 
-    no_gate = run_cli("--items", str(FIXTURE_DIR / "invalid_high_risk_no_gate.jsonl"), "--edges", str(tmp_path / "empty-edges.jsonl"))
+    no_gate = run_cli(
+        "--items",
+        str(FIXTURE_DIR / "invalid_high_risk_no_gate.jsonl"),
+        "--edges",
+        str(tmp_path / "empty-edges.jsonl"),
+    )
     assert no_gate.returncode == 1
     assert "drift_kind=decision-fitness-drift" in no_gate.stderr
 
     overclaim_edges = tmp_path / "empty-edges-overclaim.jsonl"
     overclaim_edges.write_text("", encoding="utf-8")
-    overclaim = run_cli("--items", str(FIXTURE_DIR / "invalid_forbidden_overclaim.jsonl"), "--edges", str(overclaim_edges))
+    overclaim = run_cli(
+        "--items",
+        str(FIXTURE_DIR / "invalid_forbidden_overclaim.jsonl"),
+        "--edges",
+        str(overclaim_edges),
+    )
     assert overclaim.returncode == 1
     assert "drift_kind=overclaim-drift" in overclaim.stderr
     assert "safe_to_regenerate=false" in overclaim.stderr
@@ -296,7 +351,11 @@ def test_generated_health_view_surfaces_drift_counts_as_non_authoritative_diagno
     generator = load_view_generator_module()
     report = {
         "counts": {"nodes": 1, "edges": 0},
-        "layer_coverage": {"counts": {"architecture-governance": 1}, "missing_layers": [], "invalid_layers": []},
+        "layer_coverage": {
+            "counts": {"architecture-governance": 1},
+            "missing_layers": [],
+            "invalid_layers": [],
+        },
         "unresolved_proof_gates": [],
         "orphan_findings": [],
         "high_risk_nodes": [],
@@ -339,7 +398,13 @@ def test_current_generated_views_do_not_claim_repair_or_proof_completion() -> No
 def test_custom_paths_skip_upstream_and_preserve_summary_boundary(tmp_path: Path) -> None:
     items_path = tmp_path / "items.jsonl"
     edges_path = tmp_path / "edges.jsonl"
-    anchor = [{"path": "prd/architecture/architecture.schema.json", "kind": "test-artifact", "selector": "record_kind"}]
+    anchor = [
+        {
+            "path": "prd/architecture/architecture.schema.json",
+            "kind": "test-artifact",
+            "selector": "record_kind",
+        }
+    ]
     write_jsonl(items_path, [minimal_item("NODE-A", anchor)])
     write_jsonl(edges_path, [minimal_edge("EDGE-A", anchor)])
 
@@ -359,12 +424,24 @@ def test_schema_anchor_rules_reject_missing_and_unknown_fields(tmp_path: Path) -
     missing_path = minimal_item("REQ-MISSING-PATH", [{"kind": "prd", "selector": "anything"}])
     unknown_field = minimal_item(
         "REQ-UNKNOWN-FIELD",
-        [{"path": "prd/architecture/architecture.schema.json", "kind": "test-artifact", "selector": "record_kind"}],
+        [
+            {
+                "path": "prd/architecture/architecture.schema.json",
+                "kind": "test-artifact",
+                "selector": "record_kind",
+            }
+        ],
     )
     unknown_field["unexpected"] = True
     bad_enum = minimal_item(
         "REQ-BAD-ENUM",
-        [{"path": "prd/architecture/architecture.schema.json", "kind": "not-a-kind", "selector": "record_kind"}],
+        [
+            {
+                "path": "prd/architecture/architecture.schema.json",
+                "kind": "not-a-kind",
+                "selector": "record_kind",
+            }
+        ],
     )
     write_jsonl(items_path, [missing_path, unknown_field, bad_enum])
     edges_path.write_text("", encoding="utf-8")
@@ -384,7 +461,12 @@ def test_schema_anchor_rules_reject_missing_and_unknown_fields(tmp_path: Path) -
 
 
 def test_missing_anchor_fixture_is_schema_failure() -> None:
-    result = run_cli("--items", str(FIXTURE_DIR / "invalid_missing_anchor.jsonl"), "--edges", str(FIXTURE_DIR / "valid_edges.jsonl"))
+    result = run_cli(
+        "--items",
+        str(FIXTURE_DIR / "invalid_missing_anchor.jsonl"),
+        "--edges",
+        str(FIXTURE_DIR / "valid_edges.jsonl"),
+    )
 
     assert result.returncode == 1
     assert "id=REQ-MISSING-ANCHOR" in result.stderr
@@ -398,8 +480,14 @@ def test_anchor_paths_must_exist_and_stay_repository_local(tmp_path: Path) -> No
     write_jsonl(
         items_path,
         [
-            minimal_item("REQ-ABSOLUTE-PATH", [{"path": "/tmp/architecture.md", "kind": "prd", "selector": "anything"}]),
-            minimal_item("REQ-LOCAL-EXEC-PATH", [{"path": ".gsd/exec/run.stdout", "kind": "runtime-artifact"}]),
+            minimal_item(
+                "REQ-ABSOLUTE-PATH",
+                [{"path": "/tmp/architecture.md", "kind": "prd", "selector": "anything"}],
+            ),
+            minimal_item(
+                "REQ-LOCAL-EXEC-PATH",
+                [{"path": ".gsd/exec/run.stdout", "kind": "runtime-artifact"}],
+            ),
         ],
     )
 
@@ -413,7 +501,12 @@ def test_anchor_paths_must_exist_and_stay_repository_local(tmp_path: Path) -> No
 
 
 def test_stale_anchor_fixture_reports_missing_source_file() -> None:
-    result = run_cli("--items", str(FIXTURE_DIR / "invalid_stale_anchor.jsonl"), "--edges", str(FIXTURE_DIR / "valid_edges.jsonl"))
+    result = run_cli(
+        "--items",
+        str(FIXTURE_DIR / "invalid_stale_anchor.jsonl"),
+        "--edges",
+        str(FIXTURE_DIR / "valid_edges.jsonl"),
+    )
 
     assert result.returncode == 1
     assert "id=REQ-STALE-ANCHOR" in result.stderr
@@ -429,15 +522,35 @@ def test_anchor_line_ranges_must_be_bounded_ordered_and_in_bounds(tmp_path: Path
         [
             minimal_item(
                 "REQ-UNBOUNDED-LINE-START",
-                [{"path": "prd/architecture/architecture.schema.json", "kind": "test-artifact", "line_start": 1}],
+                [
+                    {
+                        "path": "prd/architecture/architecture.schema.json",
+                        "kind": "test-artifact",
+                        "line_start": 1,
+                    }
+                ],
             ),
             minimal_item(
                 "REQ-REVERSED-LINES",
-                [{"path": "prd/architecture/architecture.schema.json", "kind": "test-artifact", "line_start": 2, "line_end": 1}],
+                [
+                    {
+                        "path": "prd/architecture/architecture.schema.json",
+                        "kind": "test-artifact",
+                        "line_start": 2,
+                        "line_end": 1,
+                    }
+                ],
             ),
             minimal_item(
                 "REQ-OUT-OF-RANGE-LINES",
-                [{"path": "prd/architecture/architecture.schema.json", "kind": "test-artifact", "line_start": 1, "line_end": 9999}],
+                [
+                    {
+                        "path": "prd/architecture/architecture.schema.json",
+                        "kind": "test-artifact",
+                        "line_start": 1,
+                        "line_end": 9999,
+                    }
+                ],
             ),
         ],
     )
@@ -455,7 +568,9 @@ def test_anchor_line_ranges_must_be_bounded_ordered_and_in_bounds(tmp_path: Path
     assert "failure_class=line-range-out-of-bounds" in result.stderr
 
 
-def test_anchor_symlink_resolving_into_gsd_is_rejected_without_raw_content(tmp_path: Path, monkeypatch: Any) -> None:
+def test_anchor_symlink_resolving_into_gsd_is_rejected_without_raw_content(
+    tmp_path: Path, monkeypatch: Any
+) -> None:
     verifier = load_verifier_module()
     repo_root = tmp_path / "repo"
     gsd_dir = repo_root / ".gsd"
@@ -485,12 +600,21 @@ def test_anchor_symlink_resolving_into_gsd_is_rejected_without_raw_content(tmp_p
     assert "SECRET LEGAL TEXT" not in formatted
 
 
-def test_anchor_selector_or_section_must_appear_but_path_only_json_anchor_can_pass(tmp_path: Path) -> None:
+def test_anchor_selector_or_section_must_appear_but_path_only_json_anchor_can_pass(
+    tmp_path: Path,
+) -> None:
     path_only_items = tmp_path / "path-only-items.jsonl"
     path_only_edges = tmp_path / "path-only-edges.jsonl"
     anchor = [{"path": "prd/architecture/architecture.schema.json", "kind": "test-artifact"}]
     write_jsonl(path_only_items, [minimal_item("REQ-PATH-ONLY", anchor)])
-    write_jsonl(path_only_edges, [minimal_edge("EDGE-PATH-ONLY-SELF", anchor, from_id="REQ-PATH-ONLY", to_id="REQ-PATH-ONLY")])
+    write_jsonl(
+        path_only_edges,
+        [
+            minimal_edge(
+                "EDGE-PATH-ONLY-SELF", anchor, from_id="REQ-PATH-ONLY", to_id="REQ-PATH-ONLY"
+            )
+        ],
+    )
 
     passing = run_cli("--items", str(path_only_items), "--edges", str(path_only_edges))
     assert passing.returncode == 0, passing.stderr
@@ -529,14 +653,18 @@ def decision_item(record_id: str, anchor: list[dict[str, Any]], **overrides: Any
     return record
 
 
-def proof_gate_item(record_id: str, anchor: list[dict[str, Any]], **overrides: Any) -> dict[str, Any]:
+def proof_gate_item(
+    record_id: str, anchor: list[dict[str, Any]], **overrides: Any
+) -> dict[str, Any]:
     record = minimal_item(record_id, anchor)
     record.update({"type": "proof_gate", "proof_level": "none", "risk_level": "high"})
     record.update(overrides)
     return record
 
 
-def workflow_check_item(record_id: str, anchor: list[dict[str, Any]], **overrides: Any) -> dict[str, Any]:
+def workflow_check_item(
+    record_id: str, anchor: list[dict[str, Any]], **overrides: Any
+) -> dict[str, Any]:
     record = minimal_item(record_id, anchor)
     record.update({"type": "workflow_check", "proof_level": "static-check", "risk_level": "medium"})
     record.update(overrides)
@@ -546,9 +674,22 @@ def workflow_check_item(record_id: str, anchor: list[dict[str, Any]], **override
 def test_missing_edge_endpoint_is_hard_graph_failure(tmp_path: Path) -> None:
     items_path = tmp_path / "items.jsonl"
     edges_path = tmp_path / "edges.jsonl"
-    anchor = [{"path": "prd/architecture/architecture.schema.json", "kind": "test-artifact", "selector": "record_kind"}]
+    anchor = [
+        {
+            "path": "prd/architecture/architecture.schema.json",
+            "kind": "test-artifact",
+            "selector": "record_kind",
+        }
+    ]
     write_jsonl(items_path, [minimal_item("REQ-NODE-A", anchor)])
-    write_jsonl(edges_path, [minimal_edge("EDGE-MISSING-ENDPOINT", anchor, from_id="REQ-NODE-A", to_id="REQ-NODE-MISSING")])
+    write_jsonl(
+        edges_path,
+        [
+            minimal_edge(
+                "EDGE-MISSING-ENDPOINT", anchor, from_id="REQ-NODE-A", to_id="REQ-NODE-MISSING"
+            )
+        ],
+    )
 
     result = run_cli("--items", str(items_path), "--edges", str(edges_path))
 
@@ -560,8 +701,15 @@ def test_missing_edge_endpoint_is_hard_graph_failure(tmp_path: Path) -> None:
     assert "REQ-NODE-MISSING" in result.stderr
 
 
-def test_traceability_critical_orphans_fail_but_evidence_and_assumption_isolates_do_not(tmp_path: Path) -> None:
-    orphan_result = run_cli("--items", str(FIXTURE_DIR / "invalid_orphan_requirement.jsonl"), "--edges", str(tmp_path / "empty-edges.jsonl"))
+def test_traceability_critical_orphans_fail_but_evidence_and_assumption_isolates_do_not(
+    tmp_path: Path,
+) -> None:
+    orphan_result = run_cli(
+        "--items",
+        str(FIXTURE_DIR / "invalid_orphan_requirement.jsonl"),
+        "--edges",
+        str(tmp_path / "empty-edges.jsonl"),
+    )
     assert orphan_result.returncode == 1
     assert "id=REQ-ORPHAN-TRACEABILITY" in orphan_result.stderr
     assert "rule=orphan-traceability" in orphan_result.stderr
@@ -569,7 +717,13 @@ def test_traceability_critical_orphans_fail_but_evidence_and_assumption_isolates
     items_path = tmp_path / "items.jsonl"
     edges_path = tmp_path / "empty-edges.jsonl"
     edges_path.write_text("", encoding="utf-8")
-    anchor = [{"path": "prd/architecture/architecture.schema.json", "kind": "test-artifact", "selector": "record_kind"}]
+    anchor = [
+        {
+            "path": "prd/architecture/architecture.schema.json",
+            "kind": "test-artifact",
+            "selector": "record_kind",
+        }
+    ]
     evidence = minimal_item("EVID-ISOLATED", anchor)
     evidence.update({"type": "evidence", "status": "bounded-evidence"})
     assumption = minimal_item("ASSUMP-ISOLATED", anchor)
@@ -581,8 +735,15 @@ def test_traceability_critical_orphans_fail_but_evidence_and_assumption_isolates
     assert nonfatal_result.returncode == 0, nonfatal_result.stderr
 
 
-def test_active_unresolved_gate_requires_metadata_but_baseline_owned_gates_pass(tmp_path: Path) -> None:
-    result = run_cli("--items", str(FIXTURE_DIR / "invalid_gate_metadata.jsonl"), "--edges", str(tmp_path / "empty-edges.jsonl"))
+def test_active_unresolved_gate_requires_metadata_but_baseline_owned_gates_pass(
+    tmp_path: Path,
+) -> None:
+    result = run_cli(
+        "--items",
+        str(FIXTURE_DIR / "invalid_gate_metadata.jsonl"),
+        "--edges",
+        str(tmp_path / "empty-edges.jsonl"),
+    )
 
     assert result.returncode == 1
     assert "id=GATE-MISSING-METADATA" in result.stderr
@@ -596,17 +757,29 @@ def test_decision_consequence_supersession_and_high_risk_gate_policies(tmp_path:
     empty_edges = tmp_path / "empty-edges.jsonl"
     empty_edges.write_text("", encoding="utf-8")
 
-    no_consequence = run_cli("--items", str(FIXTURE_DIR / "invalid_decision_no_consequence.jsonl"), "--edges", str(empty_edges))
+    no_consequence = run_cli(
+        "--items",
+        str(FIXTURE_DIR / "invalid_decision_no_consequence.jsonl"),
+        "--edges",
+        str(empty_edges),
+    )
     assert no_consequence.returncode == 1
     assert "id=DEC-NO-CONSEQUENCE" in no_consequence.stderr
     assert "rule=decision-consequence" in no_consequence.stderr
 
-    no_successor = run_cli("--items", str(FIXTURE_DIR / "invalid_superseded_no_successor.jsonl"), "--edges", str(empty_edges))
+    no_successor = run_cli(
+        "--items",
+        str(FIXTURE_DIR / "invalid_superseded_no_successor.jsonl"),
+        "--edges",
+        str(empty_edges),
+    )
     assert no_successor.returncode == 1
     assert "id=DEC-SUPERSEDED-NO-SUCCESSOR" in no_successor.stderr
     assert "rule=decision-supersession" in no_successor.stderr
 
-    no_gate = run_cli("--items", str(FIXTURE_DIR / "invalid_high_risk_no_gate.jsonl"), "--edges", str(empty_edges))
+    no_gate = run_cli(
+        "--items", str(FIXTURE_DIR / "invalid_high_risk_no_gate.jsonl"), "--edges", str(empty_edges)
+    )
     assert no_gate.returncode == 1
     assert "id=DEC-HIGH-RISK-NO-GATE" in no_gate.stderr
     assert "rule=decision-fitness" in no_gate.stderr
@@ -615,7 +788,13 @@ def test_decision_consequence_supersession_and_high_risk_gate_policies(tmp_path:
 def test_decision_policy_accepts_successor_and_gate_coverage(tmp_path: Path) -> None:
     items_path = tmp_path / "items.jsonl"
     edges_path = tmp_path / "edges.jsonl"
-    anchor = [{"path": "prd/architecture/architecture.schema.json", "kind": "test-artifact", "selector": "record_kind"}]
+    anchor = [
+        {
+            "path": "prd/architecture/architecture.schema.json",
+            "kind": "test-artifact",
+            "selector": "record_kind",
+        }
+    ]
     old_decision = decision_item(
         "DEC-OLD",
         anchor,
@@ -631,7 +810,9 @@ def test_decision_policy_accepts_successor_and_gate_coverage(tmp_path: Path) -> 
         [
             minimal_edge("EDGE-NEW-SUPERSEDES-OLD", anchor, from_id="DEC-NEW", to_id="DEC-OLD")
             | {"type": "supersedes"},
-            minimal_edge("EDGE-NEW-CHECKED-BY-CHECK", anchor, from_id="DEC-NEW", to_id="CHECK-DECISION")
+            minimal_edge(
+                "EDGE-NEW-CHECKED-BY-CHECK", anchor, from_id="DEC-NEW", to_id="CHECK-DECISION"
+            )
             | {"type": "checked_by", "status": "validated"},
         ],
     )
@@ -641,7 +822,9 @@ def test_decision_policy_accepts_successor_and_gate_coverage(tmp_path: Path) -> 
     assert result.returncode == 0, result.stderr
 
 
-def test_active_contradiction_edge_fails_but_rejected_contradiction_is_nonfatal(tmp_path: Path) -> None:
+def test_active_contradiction_edge_fails_but_rejected_contradiction_is_nonfatal(
+    tmp_path: Path,
+) -> None:
     active_result = run_cli(
         "--items",
         str(FIXTURE_DIR / "valid_items.jsonl"),
@@ -654,11 +837,24 @@ def test_active_contradiction_edge_fails_but_rejected_contradiction_is_nonfatal(
 
     items_path = tmp_path / "items.jsonl"
     edges_path = tmp_path / "edges.jsonl"
-    anchor = [{"path": "prd/architecture/architecture.schema.json", "kind": "test-artifact", "selector": "record_kind"}]
-    write_jsonl(items_path, [minimal_item("REQ-NODE-A", anchor), minimal_item("REQ-NODE-B", anchor)])
+    anchor = [
+        {
+            "path": "prd/architecture/architecture.schema.json",
+            "kind": "test-artifact",
+            "selector": "record_kind",
+        }
+    ]
+    write_jsonl(
+        items_path, [minimal_item("REQ-NODE-A", anchor), minimal_item("REQ-NODE-B", anchor)]
+    )
     write_jsonl(
         edges_path,
-        [minimal_edge("EDGE-REJECTED-CONTRADICTION", anchor, from_id="REQ-NODE-A", to_id="REQ-NODE-B") | {"type": "contradicts", "status": "rejected"}],
+        [
+            minimal_edge(
+                "EDGE-REJECTED-CONTRADICTION", anchor, from_id="REQ-NODE-A", to_id="REQ-NODE-B"
+            )
+            | {"type": "contradicts", "status": "rejected"}
+        ],
     )
 
     rejected_result = run_cli("--items", str(items_path), "--edges", str(edges_path))
@@ -670,7 +866,12 @@ def test_forbidden_positive_product_overclaim_is_hard_failure(tmp_path: Path) ->
     edges_path = tmp_path / "empty-edges.jsonl"
     edges_path.write_text("", encoding="utf-8")
 
-    result = run_cli("--items", str(FIXTURE_DIR / "invalid_forbidden_overclaim.jsonl"), "--edges", str(edges_path))
+    result = run_cli(
+        "--items",
+        str(FIXTURE_DIR / "invalid_forbidden_overclaim.jsonl"),
+        "--edges",
+        str(edges_path),
+    )
 
     assert result.returncode == 1
     assert "id=REQ-FORBIDDEN-OVERCLAIM" in result.stderr
@@ -684,9 +885,17 @@ def test_forbidden_overclaim_categories_fail_with_precise_fields(tmp_path: Path)
     items_path = tmp_path / "items.jsonl"
     edges_path = tmp_path / "edges.jsonl"
     edges_path.write_text("", encoding="utf-8")
-    anchor = [{"path": "prd/architecture/architecture.schema.json", "kind": "test-artifact", "selector": "record_kind"}]
+    anchor = [
+        {
+            "path": "prd/architecture/architecture.schema.json",
+            "kind": "test-artifact",
+            "selector": "record_kind",
+        }
+    ]
     generated_cypher = minimal_item("REQ-GENERATED-CYPHER-SAFE", anchor)
-    generated_cypher["summary"] = "Generated Cypher is safe for unrestricted execution by the product."
+    generated_cypher["summary"] = (
+        "Generated Cypher is safe for unrestricted execution by the product."
+    )
     retrieval = minimal_item("REQ-RETRIEVAL-QUALITY-PROVEN", anchor)
     retrieval["verification"] = "Retrieval quality is proven for legal answers."
     llm = minimal_item("REQ-LLM-AUTHORITY", anchor)
@@ -717,10 +926,18 @@ def test_forbidden_overclaim_categories_fail_with_precise_fields(tmp_path: Path)
     assert result.stderr.count("rule=forbidden-overclaim") >= 7
 
 
-def test_negative_guardrails_and_non_claim_boundaries_do_not_fail_overclaim_scan(tmp_path: Path) -> None:
+def test_negative_guardrails_and_non_claim_boundaries_do_not_fail_overclaim_scan(
+    tmp_path: Path,
+) -> None:
     items_path = tmp_path / "items.jsonl"
     edges_path = tmp_path / "edges.jsonl"
-    anchor = [{"path": "prd/architecture/architecture.schema.json", "kind": "test-artifact", "selector": "record_kind"}]
+    anchor = [
+        {
+            "path": "prd/architecture/architecture.schema.json",
+            "kind": "test-artifact",
+            "selector": "record_kind",
+        }
+    ]
     guardrail = minimal_item("REQ-NEGATED-GUARDRAIL", anchor)
     guardrail.update(
         {
@@ -737,27 +954,54 @@ def test_negative_guardrails_and_non_claim_boundaries_do_not_fail_overclaim_scan
     boundary.update(
         {
             "summary": "The architecture registry is non-authoritative and must not be used as legal authority.",
-            "negative_consequences": ["Legal answers are not correct merely because a derived verifier passes."],
+            "negative_consequences": [
+                "Legal answers are not correct merely because a derived verifier passes."
+            ],
             "non_claims": ["LLM output is not authoritative legal guidance."],
         }
     )
     write_jsonl(items_path, [guardrail, boundary])
-    write_jsonl(edges_path, [minimal_edge("EDGE-GUARDRAIL", anchor, from_id="REQ-NEGATED-GUARDRAIL", to_id="REQ-NON-CLAIM-BOUNDARY")])
+    write_jsonl(
+        edges_path,
+        [
+            minimal_edge(
+                "EDGE-GUARDRAIL",
+                anchor,
+                from_id="REQ-NEGATED-GUARDRAIL",
+                to_id="REQ-NON-CLAIM-BOUNDARY",
+            )
+        ],
+    )
 
     result = run_cli("--items", str(items_path), "--edges", str(edges_path))
 
     assert result.returncode == 0, result.stderr
 
 
-
 def test_claim_lifecycle_rejects_unverified_validated_promotion(tmp_path: Path) -> None:
     items_path = tmp_path / "items.jsonl"
     edges_path = tmp_path / "edges.jsonl"
-    anchor = [{"path": "prd/architecture/architecture.schema.json", "kind": "test-artifact", "selector": "record_kind"}]
+    anchor = [
+        {
+            "path": "prd/architecture/architecture.schema.json",
+            "kind": "test-artifact",
+            "selector": "record_kind",
+        }
+    ]
     unverified = minimal_item("REQ-UNVERIFIED-VALIDATED", anchor)
     unverified.update({"status": "validated", "proof_level": "source-anchor"})
     write_jsonl(items_path, [unverified])
-    write_jsonl(edges_path, [minimal_edge("EDGE-SELF", anchor, from_id="REQ-UNVERIFIED-VALIDATED", to_id="REQ-UNVERIFIED-VALIDATED")])
+    write_jsonl(
+        edges_path,
+        [
+            minimal_edge(
+                "EDGE-SELF",
+                anchor,
+                from_id="REQ-UNVERIFIED-VALIDATED",
+                to_id="REQ-UNVERIFIED-VALIDATED",
+            )
+        ],
+    )
 
     result = run_cli("--items", str(items_path), "--edges", str(edges_path))
 
@@ -772,7 +1016,13 @@ def test_claim_lifecycle_rejects_unverified_validated_promotion(tmp_path: Path) 
 def test_claim_lifecycle_rejects_deferred_or_rejected_records_used_as_proof(tmp_path: Path) -> None:
     items_path = tmp_path / "items.jsonl"
     edges_path = tmp_path / "edges.jsonl"
-    anchor = [{"path": "prd/architecture/architecture.schema.json", "kind": "test-artifact", "selector": "record_kind"}]
+    anchor = [
+        {
+            "path": "prd/architecture/architecture.schema.json",
+            "kind": "test-artifact",
+            "selector": "record_kind",
+        }
+    ]
     deferred_evidence = minimal_item("EVID-DEFERRED-PROOF", anchor)
     deferred_evidence.update({"type": "evidence", "status": "deferred"})
     rejected_evidence = minimal_item("EVID-REJECTED-PROOF", anchor)
@@ -782,9 +1032,19 @@ def test_claim_lifecycle_rejects_deferred_or_rejected_records_used_as_proof(tmp_
     write_jsonl(
         edges_path,
         [
-            minimal_edge("EDGE-DEFERRED-SATISFIES", anchor, from_id="EVID-DEFERRED-PROOF", to_id="REQ-ACTIVE-CLAIM")
+            minimal_edge(
+                "EDGE-DEFERRED-SATISFIES",
+                anchor,
+                from_id="EVID-DEFERRED-PROOF",
+                to_id="REQ-ACTIVE-CLAIM",
+            )
             | {"type": "satisfies"},
-            minimal_edge("EDGE-REJECTED-EVIDENCES", anchor, from_id="EVID-REJECTED-PROOF", to_id="REQ-ACTIVE-CLAIM")
+            minimal_edge(
+                "EDGE-REJECTED-EVIDENCES",
+                anchor,
+                from_id="EVID-REJECTED-PROOF",
+                to_id="REQ-ACTIVE-CLAIM",
+            )
             | {"type": "evidenced_by"},
         ],
     )
@@ -801,27 +1061,55 @@ def test_claim_lifecycle_rejects_deferred_or_rejected_records_used_as_proof(tmp_
     assert "remediation=supersede-or-reject-edge-or-downgrade-claim" in result.stderr
 
 
-def test_claim_lifecycle_allows_proposed_and_bounded_records_without_proof_use(tmp_path: Path) -> None:
+def test_claim_lifecycle_allows_proposed_and_bounded_records_without_proof_use(
+    tmp_path: Path,
+) -> None:
     items_path = tmp_path / "items.jsonl"
     edges_path = tmp_path / "edges.jsonl"
-    anchor = [{"path": "prd/architecture/architecture.schema.json", "kind": "test-artifact", "selector": "record_kind"}]
+    anchor = [
+        {
+            "path": "prd/architecture/architecture.schema.json",
+            "kind": "test-artifact",
+            "selector": "record_kind",
+        }
+    ]
     proposed = minimal_item("EVID-PROPOSED-IDEA", anchor)
     proposed.update({"type": "evidence", "status": "proposed", "proof_level": "none"})
     bounded = minimal_item("EVID-BOUNDED-IDEA", anchor)
-    bounded.update({"type": "evidence", "status": "bounded-evidence", "proof_level": "runtime-smoke"})
+    bounded.update(
+        {"type": "evidence", "status": "bounded-evidence", "proof_level": "runtime-smoke"}
+    )
     write_jsonl(items_path, [proposed, bounded])
-    write_jsonl(edges_path, [minimal_edge("EDGE-IDEA-DEPENDENCY", anchor, from_id="EVID-PROPOSED-IDEA", to_id="EVID-BOUNDED-IDEA")])
+    write_jsonl(
+        edges_path,
+        [
+            minimal_edge(
+                "EDGE-IDEA-DEPENDENCY",
+                anchor,
+                from_id="EVID-PROPOSED-IDEA",
+                to_id="EVID-BOUNDED-IDEA",
+            )
+        ],
+    )
 
     result = run_cli("--items", str(items_path), "--edges", str(edges_path))
 
     assert result.returncode == 0, result.stderr
 
 
-def test_claim_lifecycle_preserve_as_backlog_allows_low_priority_deferred_ideas(tmp_path: Path) -> None:
+def test_claim_lifecycle_preserve_as_backlog_allows_low_priority_deferred_ideas(
+    tmp_path: Path,
+) -> None:
     items_path = tmp_path / "items.jsonl"
     edges_path = tmp_path / "empty-edges.jsonl"
     edges_path.write_text("", encoding="utf-8")
-    anchor = [{"path": "prd/architecture/architecture.schema.json", "kind": "test-artifact", "selector": "record_kind"}]
+    anchor = [
+        {
+            "path": "prd/architecture/architecture.schema.json",
+            "kind": "test-artifact",
+            "selector": "record_kind",
+        }
+    ]
     backlog_idea = minimal_item("EVID-PRESERVE-BACKLOG", anchor)
     backlog_idea.update(
         {
@@ -844,14 +1132,34 @@ def test_claim_lifecycle_preserve_as_backlog_allows_low_priority_deferred_ideas(
     assert summary["failure_count"] == 0
 
 
-def test_claim_lifecycle_unsafe_promotion_diagnostic_names_priority_status_and_remediation(tmp_path: Path) -> None:
+def test_claim_lifecycle_unsafe_promotion_diagnostic_names_priority_status_and_remediation(
+    tmp_path: Path,
+) -> None:
     items_path = tmp_path / "items.jsonl"
     edges_path = tmp_path / "edges.jsonl"
-    anchor = [{"path": "prd/architecture/architecture.schema.json", "kind": "test-artifact", "selector": "record_kind"}]
+    anchor = [
+        {
+            "path": "prd/architecture/architecture.schema.json",
+            "kind": "test-artifact",
+            "selector": "record_kind",
+        }
+    ]
     promoted_without_proof = minimal_item("REQ-UNSAFE-PROMOTION", anchor)
-    promoted_without_proof.update({"status": "validated", "proof_level": "source-anchor", "priority": "high"})
+    promoted_without_proof.update(
+        {"status": "validated", "proof_level": "source-anchor", "priority": "high"}
+    )
     write_jsonl(items_path, [promoted_without_proof])
-    write_jsonl(edges_path, [minimal_edge("EDGE-UNSAFE-PROMOTION-SELF", anchor, from_id="REQ-UNSAFE-PROMOTION", to_id="REQ-UNSAFE-PROMOTION")])
+    write_jsonl(
+        edges_path,
+        [
+            minimal_edge(
+                "EDGE-UNSAFE-PROMOTION-SELF",
+                anchor,
+                from_id="REQ-UNSAFE-PROMOTION",
+                to_id="REQ-UNSAFE-PROMOTION",
+            )
+        ],
+    )
 
     result = run_cli("--items", str(items_path), "--edges", str(edges_path))
 
@@ -864,14 +1172,34 @@ def test_claim_lifecycle_unsafe_promotion_diagnostic_names_priority_status_and_r
     assert "remediation_class=add-evidence-or-downgrade" in result.stderr
 
 
-def test_evidence_class_boundary_rejects_validated_unit_test_without_test_artifact(tmp_path: Path) -> None:
+def test_evidence_class_boundary_rejects_validated_unit_test_without_test_artifact(
+    tmp_path: Path,
+) -> None:
     items_path = tmp_path / "items.jsonl"
     edges_path = tmp_path / "edges.jsonl"
-    anchor = [{"path": "prd/architecture/architecture.schema.json", "kind": "runtime-artifact", "selector": "record_kind"}]
+    anchor = [
+        {
+            "path": "prd/architecture/architecture.schema.json",
+            "kind": "runtime-artifact",
+            "selector": "record_kind",
+        }
+    ]
     validated = minimal_item("EVID-UNIT-TEST-WITH-RUNTIME-ONLY", anchor)
-    validated.update({"type": "evidence", "status": "validated", "proof_level": "unit-test", "priority": "high"})
+    validated.update(
+        {"type": "evidence", "status": "validated", "proof_level": "unit-test", "priority": "high"}
+    )
     write_jsonl(items_path, [validated])
-    write_jsonl(edges_path, [minimal_edge("EDGE-UNIT-TEST-SELF", anchor, from_id="EVID-UNIT-TEST-WITH-RUNTIME-ONLY", to_id="EVID-UNIT-TEST-WITH-RUNTIME-ONLY")])
+    write_jsonl(
+        edges_path,
+        [
+            minimal_edge(
+                "EDGE-UNIT-TEST-SELF",
+                anchor,
+                from_id="EVID-UNIT-TEST-WITH-RUNTIME-ONLY",
+                to_id="EVID-UNIT-TEST-WITH-RUNTIME-ONLY",
+            )
+        ],
+    )
 
     result = run_cli("--items", str(items_path), "--edges", str(edges_path))
 
@@ -889,10 +1217,26 @@ def test_evidence_class_boundary_rejects_validated_unit_test_without_test_artifa
 def test_evidence_class_boundary_rejects_derived_report_as_proof_anchor(tmp_path: Path) -> None:
     items_path = tmp_path / "items.jsonl"
     edges_path = tmp_path / "edges.jsonl"
-    anchor = [{"path": "prd/architecture/architecture_report.md", "kind": "manual-note", "selector": "Architecture Graph Report"}]
+    anchor = [
+        {
+            "path": "prd/architecture/architecture_report.md",
+            "kind": "manual-note",
+            "selector": "Architecture Graph Report",
+        }
+    ]
     claim = minimal_item("REQ-DERIVED-REPORT-AS-PROOF", anchor)
     write_jsonl(items_path, [claim])
-    write_jsonl(edges_path, [minimal_edge("EDGE-DERIVED-REPORT-SELF", anchor, from_id="REQ-DERIVED-REPORT-AS-PROOF", to_id="REQ-DERIVED-REPORT-AS-PROOF")])
+    write_jsonl(
+        edges_path,
+        [
+            minimal_edge(
+                "EDGE-DERIVED-REPORT-SELF",
+                anchor,
+                from_id="REQ-DERIVED-REPORT-AS-PROOF",
+                to_id="REQ-DERIVED-REPORT-AS-PROOF",
+            )
+        ],
+    )
 
     result = run_cli("--items", str(items_path), "--edges", str(edges_path))
 
@@ -904,17 +1248,35 @@ def test_evidence_class_boundary_rejects_derived_report_as_proof_anchor(tmp_path
     assert "anchor_path=prd/architecture/architecture_report.md" in result.stderr
 
 
-def test_claim_lifecycle_proof_from_backlog_diagnostic_names_priority_status_and_remediation(tmp_path: Path) -> None:
+def test_claim_lifecycle_proof_from_backlog_diagnostic_names_priority_status_and_remediation(
+    tmp_path: Path,
+) -> None:
     items_path = tmp_path / "items.jsonl"
     edges_path = tmp_path / "edges.jsonl"
-    anchor = [{"path": "prd/architecture/architecture.schema.json", "kind": "test-artifact", "selector": "record_kind"}]
+    anchor = [
+        {
+            "path": "prd/architecture/architecture.schema.json",
+            "kind": "test-artifact",
+            "selector": "record_kind",
+        }
+    ]
     backlog_idea = minimal_item("EVID-BACKLOG-PROOF", anchor)
-    backlog_idea.update({"type": "evidence", "status": "deferred", "proof_level": "none", "priority": "low"})
+    backlog_idea.update(
+        {"type": "evidence", "status": "deferred", "proof_level": "none", "priority": "low"}
+    )
     active_claim = minimal_item("REQ-ACTIVE-NEEDS-PROOF", anchor)
     write_jsonl(items_path, [backlog_idea, active_claim])
     write_jsonl(
         edges_path,
-        [minimal_edge("EDGE-BACKLOG-PROOF", anchor, from_id="EVID-BACKLOG-PROOF", to_id="REQ-ACTIVE-NEEDS-PROOF") | {"type": "evidenced_by"}],
+        [
+            minimal_edge(
+                "EDGE-BACKLOG-PROOF",
+                anchor,
+                from_id="EVID-BACKLOG-PROOF",
+                to_id="REQ-ACTIVE-NEEDS-PROOF",
+            )
+            | {"type": "evidenced_by"}
+        ],
     )
 
     result = run_cli("--items", str(items_path), "--edges", str(edges_path))
@@ -932,12 +1294,30 @@ def test_report_markdown_positive_overclaim_is_hard_failure(tmp_path: Path) -> N
     items_path = tmp_path / "items.jsonl"
     edges_path = tmp_path / "edges.jsonl"
     report_path = tmp_path / "architecture_report.md"
-    anchor = [{"path": "prd/architecture/architecture.schema.json", "kind": "test-artifact", "selector": "record_kind"}]
+    anchor = [
+        {
+            "path": "prd/architecture/architecture.schema.json",
+            "kind": "test-artifact",
+            "selector": "record_kind",
+        }
+    ]
     write_jsonl(items_path, [minimal_item("REQ-REPORT-SCAN", anchor)])
-    write_jsonl(edges_path, [minimal_edge("EDGE-REPORT-SCAN", anchor, from_id="REQ-REPORT-SCAN", to_id="REQ-REPORT-SCAN")])
-    report_path.write_text("# Report\n\nThe LegalGraph product is production ready for legal answers.\n", encoding="utf-8")
+    write_jsonl(
+        edges_path,
+        [
+            minimal_edge(
+                "EDGE-REPORT-SCAN", anchor, from_id="REQ-REPORT-SCAN", to_id="REQ-REPORT-SCAN"
+            )
+        ],
+    )
+    report_path.write_text(
+        "# Report\n\nThe LegalGraph product is production ready for legal answers.\n",
+        encoding="utf-8",
+    )
 
-    result = run_cli("--items", str(items_path), "--edges", str(edges_path), "--report-md", str(report_path))
+    result = run_cli(
+        "--items", str(items_path), "--edges", str(edges_path), "--report-md", str(report_path)
+    )
 
     assert result.returncode == 1
     assert "architecture_report.md" in result.stderr
@@ -945,7 +1325,9 @@ def test_report_markdown_positive_overclaim_is_hard_failure(tmp_path: Path) -> N
     assert "record_kind=derived-report" in result.stderr
 
 
-def test_ontology_promotion_gate_rejects_validated_standard_without_required_proof(tmp_path: Path) -> None:
+def test_ontology_promotion_gate_rejects_validated_standard_without_required_proof(
+    tmp_path: Path,
+) -> None:
     items_path = tmp_path / "items.jsonl"
     edges_path = tmp_path / "edges.jsonl"
     anchor = [{"path": "prd/architecture/architecture.schema.json", "kind": "test-artifact"}]
@@ -959,7 +1341,17 @@ def test_ontology_promotion_gate_rejects_validated_standard_without_required_pro
         }
     )
     write_jsonl(items_path, [claim])
-    write_jsonl(edges_path, [minimal_edge("EDGE-AKOMA-SELF", anchor, from_id="REQ-AKOMA-VALIDATED-OVERREACH", to_id="REQ-AKOMA-VALIDATED-OVERREACH")])
+    write_jsonl(
+        edges_path,
+        [
+            minimal_edge(
+                "EDGE-AKOMA-SELF",
+                anchor,
+                from_id="REQ-AKOMA-VALIDATED-OVERREACH",
+                to_id="REQ-AKOMA-VALIDATED-OVERREACH",
+            )
+        ],
+    )
 
     result = run_cli("--items", str(items_path), "--edges", str(edges_path))
 
@@ -977,7 +1369,13 @@ def test_ontology_promotion_gate_rejects_validated_standard_without_required_pro
 def test_ontology_promotion_gate_allows_bounded_research_candidate(tmp_path: Path) -> None:
     items_path = tmp_path / "items.jsonl"
     edges_path = tmp_path / "edges.jsonl"
-    anchor = [{"path": "prd/architecture/architecture.schema.json", "kind": "test-artifact", "selector": "record_kind"}]
+    anchor = [
+        {
+            "path": "prd/architecture/architecture.schema.json",
+            "kind": "test-artifact",
+            "selector": "record_kind",
+        }
+    ]
     candidate = minimal_item("EVID-LKIF-CANDIDATE", anchor)
     candidate.update(
         {
@@ -989,17 +1387,32 @@ def test_ontology_promotion_gate_allows_bounded_research_candidate(tmp_path: Pat
         }
     )
     write_jsonl(items_path, [candidate])
-    write_jsonl(edges_path, [minimal_edge("EDGE-LKIF-SELF", anchor, from_id="EVID-LKIF-CANDIDATE", to_id="EVID-LKIF-CANDIDATE")])
+    write_jsonl(
+        edges_path,
+        [
+            minimal_edge(
+                "EDGE-LKIF-SELF", anchor, from_id="EVID-LKIF-CANDIDATE", to_id="EVID-LKIF-CANDIDATE"
+            )
+        ],
+    )
 
     result = run_cli("--items", str(items_path), "--edges", str(edges_path))
 
     assert result.returncode == 0, result.stderr
 
 
-def test_ontology_promotion_gate_allows_proposed_external_standard_with_boundary_language(tmp_path: Path) -> None:
+def test_ontology_promotion_gate_allows_proposed_external_standard_with_boundary_language(
+    tmp_path: Path,
+) -> None:
     items_path = tmp_path / "items.jsonl"
     edges_path = tmp_path / "edges.jsonl"
-    anchor = [{"path": "prd/architecture/architecture.schema.json", "kind": "test-artifact", "selector": "record_kind"}]
+    anchor = [
+        {
+            "path": "prd/architecture/architecture.schema.json",
+            "kind": "test-artifact",
+            "selector": "record_kind",
+        }
+    ]
     candidate = minimal_item("REQ-LEGALDOCML-PROPOSED-CANDIDATE", anchor)
     candidate.update(
         {
@@ -1011,17 +1424,35 @@ def test_ontology_promotion_gate_allows_proposed_external_standard_with_boundary
         }
     )
     write_jsonl(items_path, [candidate])
-    write_jsonl(edges_path, [minimal_edge("EDGE-LEGALDOCML-SELF", anchor, from_id="REQ-LEGALDOCML-PROPOSED-CANDIDATE", to_id="REQ-LEGALDOCML-PROPOSED-CANDIDATE")])
+    write_jsonl(
+        edges_path,
+        [
+            minimal_edge(
+                "EDGE-LEGALDOCML-SELF",
+                anchor,
+                from_id="REQ-LEGALDOCML-PROPOSED-CANDIDATE",
+                to_id="REQ-LEGALDOCML-PROPOSED-CANDIDATE",
+            )
+        ],
+    )
 
     result = run_cli("--items", str(items_path), "--edges", str(edges_path))
 
     assert result.returncode == 0, result.stderr
 
 
-def test_ontology_promotion_gate_rejects_research_candidate_without_boundary_language(tmp_path: Path) -> None:
+def test_ontology_promotion_gate_rejects_research_candidate_without_boundary_language(
+    tmp_path: Path,
+) -> None:
     items_path = tmp_path / "items.jsonl"
     edges_path = tmp_path / "edges.jsonl"
-    anchor = [{"path": "prd/architecture/architecture.schema.json", "kind": "test-artifact", "selector": "record_kind"}]
+    anchor = [
+        {
+            "path": "prd/architecture/architecture.schema.json",
+            "kind": "test-artifact",
+            "selector": "record_kind",
+        }
+    ]
     candidate = minimal_item("REQ-OWL-PROPOSED-OPEN", anchor)
     candidate.update(
         {
@@ -1032,7 +1463,17 @@ def test_ontology_promotion_gate_rejects_research_candidate_without_boundary_lan
         }
     )
     write_jsonl(items_path, [candidate])
-    write_jsonl(edges_path, [minimal_edge("EDGE-OWL-SELF", anchor, from_id="REQ-OWL-PROPOSED-OPEN", to_id="REQ-OWL-PROPOSED-OPEN")])
+    write_jsonl(
+        edges_path,
+        [
+            minimal_edge(
+                "EDGE-OWL-SELF",
+                anchor,
+                from_id="REQ-OWL-PROPOSED-OPEN",
+                to_id="REQ-OWL-PROPOSED-OPEN",
+            )
+        ],
+    )
 
     result = run_cli("--items", str(items_path), "--edges", str(edges_path))
 
@@ -1048,7 +1489,13 @@ def test_ontology_promotion_gate_rejects_research_candidate_without_boundary_lan
 def test_ontology_promotion_gate_names_missing_owner_and_status(tmp_path: Path) -> None:
     items_path = tmp_path / "items.jsonl"
     edges_path = tmp_path / "edges.jsonl"
-    anchor = [{"path": "prd/architecture/architecture.schema.json", "kind": "test-artifact", "selector": "record_kind"}]
+    anchor = [
+        {
+            "path": "prd/architecture/architecture.schema.json",
+            "kind": "test-artifact",
+            "selector": "record_kind",
+        }
+    ]
     missing_owner = minimal_item("REQ-AKOMA-MISSING-OWNER", anchor)
     missing_owner.update(
         {
@@ -1068,15 +1515,32 @@ def test_ontology_promotion_gate_names_missing_owner_and_status(tmp_path: Path) 
         }
     )
     del missing_status["status"]
-    akoma_gate = proof_gate_item("GATE-AKOMA-FRBR-NORMALIZATION", anchor, status="active", verification="Static fixture gate.")
-    ruslegalcore_gate = proof_gate_item("GATE-RUSLEGALCORE-SCOPE", anchor, status="active", verification="Static fixture gate.")
+    akoma_gate = proof_gate_item(
+        "GATE-AKOMA-FRBR-NORMALIZATION",
+        anchor,
+        status="active",
+        verification="Static fixture gate.",
+    )
+    ruslegalcore_gate = proof_gate_item(
+        "GATE-RUSLEGALCORE-SCOPE", anchor, status="active", verification="Static fixture gate."
+    )
     write_jsonl(items_path, [missing_owner, missing_status, akoma_gate, ruslegalcore_gate])
     write_jsonl(
         edges_path,
         [
-            minimal_edge("EDGE-AKOMA-MISSING-OWNER-GATE", anchor, from_id="REQ-AKOMA-MISSING-OWNER", to_id="GATE-AKOMA-FRBR-NORMALIZATION")
+            minimal_edge(
+                "EDGE-AKOMA-MISSING-OWNER-GATE",
+                anchor,
+                from_id="REQ-AKOMA-MISSING-OWNER",
+                to_id="GATE-AKOMA-FRBR-NORMALIZATION",
+            )
             | {"type": "checked_by", "status": "validated"},
-            minimal_edge("EDGE-RUSLEGALCORE-MISSING-STATUS-GATE", anchor, from_id="REQ-RUSLEGALCORE-MISSING-STATUS", to_id="GATE-RUSLEGALCORE-SCOPE")
+            minimal_edge(
+                "EDGE-RUSLEGALCORE-MISSING-STATUS-GATE",
+                anchor,
+                from_id="REQ-RUSLEGALCORE-MISSING-STATUS",
+                to_id="GATE-RUSLEGALCORE-SCOPE",
+            )
             | {"type": "checked_by", "status": "validated"},
         ],
     )
@@ -1094,10 +1558,18 @@ def test_ontology_promotion_gate_names_missing_owner_and_status(tmp_path: Path) 
     assert "current_status=<missing-status>" in result.stderr
 
 
-def test_ontology_promotion_gate_accepts_validated_claim_with_mapping_gate_and_proof(tmp_path: Path) -> None:
+def test_ontology_promotion_gate_accepts_validated_claim_with_mapping_gate_and_proof(
+    tmp_path: Path,
+) -> None:
     items_path = tmp_path / "items.jsonl"
     edges_path = tmp_path / "edges.jsonl"
-    anchor = [{"path": "prd/architecture/architecture.schema.json", "kind": "test-artifact", "selector": "record_kind"}]
+    anchor = [
+        {
+            "path": "prd/architecture/architecture.schema.json",
+            "kind": "test-artifact",
+            "selector": "record_kind",
+        }
+    ]
     claim = minimal_item("REQ-AKOMA-VALIDATED-WITH-GATE", anchor)
     claim.update(
         {
@@ -1117,7 +1589,12 @@ def test_ontology_promotion_gate_accepts_validated_claim_with_mapping_gate_and_p
     write_jsonl(
         edges_path,
         [
-            minimal_edge("EDGE-AKOMA-CHECKED-BY-GATE", anchor, from_id="REQ-AKOMA-VALIDATED-WITH-GATE", to_id="GATE-AKOMA-FRBR-NORMALIZATION")
+            minimal_edge(
+                "EDGE-AKOMA-CHECKED-BY-GATE",
+                anchor,
+                from_id="REQ-AKOMA-VALIDATED-WITH-GATE",
+                to_id="GATE-AKOMA-FRBR-NORMALIZATION",
+            )
             | {"type": "checked_by", "status": "validated"},
         ],
     )

@@ -34,15 +34,17 @@ from pathlib import Path
 from typing import Any
 
 ROOT = Path(__file__).resolve().parents[1]
-DEFAULT_PROOF = ROOT / "prd" / "architecture" / "acp" / "runtime" / "m066-s02" / "workflow-proof.json"
+DEFAULT_PROOF = (
+    ROOT / "prd" / "architecture" / "acp" / "runtime" / "m066-s02" / "workflow-proof.json"
+)
 MAIN_CHECKOUT_RESIDUE = (".lex", "Squad", "Raw", ".artifacts")
 
 # Diagnostic identifiers (falsifiable surface; cold readers can rely on the set).
 DIAGNOSTIC_IDS = (
     "missing_proof_file",
     "proof_field_invalid",
-    "lex_missing",            # .lex absent after S02 (operational adoption regression)
-    "unexpected_residue",     # Squad/Raw/.artifacts present (out-of-contract surfaces)
+    "lex_missing",  # .lex absent after S02 (operational adoption regression)
+    "unexpected_residue",  # Squad/Raw/.artifacts present (out-of-contract surfaces)
     "cold_path_regression",
     "boundary_markers_missing",
     "overclaim_detected",
@@ -53,36 +55,59 @@ DIAGNOSTIC_IDS = (
 # separately by check_commit_results_count (>= comparison, not equality).
 PROOF_FIELD_CHECKS: tuple[tuple[tuple[str, ...], Any, str], ...] = (
     (("init_result", "rc"), 0, "git lex init exit code"),
-    (("init_result", "auto_commit_landed"), True,
-     "init auto-commit landed (MEM549 inversion on REAL repo)"),
-    (("init_result", "init_commit_count"), 2,
-     "init created 2 commits (git lex init + git lex identity)"),
-    (("init_result", "pre_commit_hook_installed"), True,
-     "pre-commit hook installed by init"),
-    (("init_result", "kit"), "repolex-ai/git-lex-kit-base",
-     "base kit only (not ACP-kit source truth)"),
+    (
+        ("init_result", "auto_commit_landed"),
+        True,
+        "init auto-commit landed (MEM549 inversion on REAL repo)",
+    ),
+    (
+        ("init_result", "init_commit_count"),
+        2,
+        "init created 2 commits (git lex init + git lex identity)",
+    ),
+    (("init_result", "pre_commit_hook_installed"), True, "pre-commit hook installed by init"),
+    (
+        ("init_result", "kit"),
+        "repolex-ai/git-lex-kit-base",
+        "base kit only (not ACP-kit source truth)",
+    ),
     (("sync_result", "rc"), 0, "git lex sync exit code"),
     (("query_result", "rc"), 0, "git lex query exit code"),
-    (("query_result", "real_content"), True,
-     "query returned real law-nexus content (count >= 1)"),
+    (("query_result", "real_content"), True, "query returned real law-nexus content (count >= 1)"),
     (("validate_result", "rc"), 0, "git lex validate exit code"),
-    (("validate_result", "base_kit_noop"), True,
-     "validate is base-kit no-op (MEM566; NOT R035/R037/R038 validation)"),
+    (
+        ("validate_result", "base_kit_noop"),
+        True,
+        "validate is base-kit no-op (MEM566; NOT R035/R037/R038 validation)",
+    ),
     (("list_result", "rc"), 0, "git lex list exit code"),
-    (("pre_init_state", "residue_before", ".lex"), "absent",
-     "pre-init .lex absent (R047 contract-phase on S01)"),
-    (("post_init_residue", ".lex"), "present",
-     "post-init .lex present (operational adoption transition)"),
-    (("post_init_residue", "Squad"), "absent",
-     "post-init Squad absent (out-of-contract surface)"),
-    (("post_init_residue", "Raw"), "absent",
-     "post-init Raw absent (out-of-contract surface)"),
-    (("post_init_residue", ".artifacts"), "absent",
-     "post-init .artifacts absent (out-of-contract surface)"),
-    (("cold_path_definition", "cargo_bin_on_path"), True,
-     "~/.cargo/bin on PATH (release install, not debug-binary)"),
-    (("cold_path_definition", "vendor_dir_excluded"), True,
-     "vendor-dir excluded from PATH (no debug-binary false-pass)"),
+    (
+        ("pre_init_state", "residue_before", ".lex"),
+        "absent",
+        "pre-init .lex absent (R047 contract-phase on S01)",
+    ),
+    (
+        ("post_init_residue", ".lex"),
+        "present",
+        "post-init .lex present (operational adoption transition)",
+    ),
+    (("post_init_residue", "Squad"), "absent", "post-init Squad absent (out-of-contract surface)"),
+    (("post_init_residue", "Raw"), "absent", "post-init Raw absent (out-of-contract surface)"),
+    (
+        ("post_init_residue", ".artifacts"),
+        "absent",
+        "post-init .artifacts absent (out-of-contract surface)",
+    ),
+    (
+        ("cold_path_definition", "cargo_bin_on_path"),
+        True,
+        "~/.cargo/bin on PATH (release install, not debug-binary)",
+    ),
+    (
+        ("cold_path_definition", "vendor_dir_excluded"),
+        True,
+        "vendor-dir excluded from PATH (no debug-binary false-pass)",
+    ),
 )
 
 # Contract-critical boundary markers that MUST appear in boundary_markers.
@@ -119,7 +144,9 @@ class Diagnostic:
     text: str
 
 
-def _diagnostic(diagnostic_id: str, path: Path | str, line_no: int, message: str, text: str = "") -> Diagnostic:
+def _diagnostic(
+    diagnostic_id: str, path: Path | str, line_no: int, message: str, text: str = ""
+) -> Diagnostic:
     try:
         rel = str(Path(path).relative_to(ROOT))
     except (ValueError, TypeError):
@@ -158,7 +185,9 @@ def check_proof_file(proof: Path) -> tuple[dict[str, Any], list[Diagnostic]]:
     try:
         data = json.loads(proof.read_text(encoding="utf-8"))
     except (OSError, json.JSONDecodeError) as exc:
-        return {}, [_diagnostic("missing_proof_file", proof, 0, f"proof file is invalid JSON: {exc}")]
+        return {}, [
+            _diagnostic("missing_proof_file", proof, 0, f"proof file is invalid JSON: {exc}")
+        ]
     return data, diagnostics
 
 
@@ -167,16 +196,34 @@ def check_proof_fields(data: dict[str, Any], proof: Path) -> list[Diagnostic]:
     for keys, expected, label in PROOF_FIELD_CHECKS:
         actual = _dig(data, keys)
         if actual is None:
-            diagnostics.append(_diagnostic("proof_field_invalid", proof, 0,
-                                           f"proof field missing: {'.'.join(keys)} ({label})"))
+            diagnostics.append(
+                _diagnostic(
+                    "proof_field_invalid",
+                    proof,
+                    0,
+                    f"proof field missing: {'.'.join(keys)} ({label})",
+                )
+            )
         elif actual != expected:
-            diagnostics.append(_diagnostic("proof_field_invalid", proof, 0,
-                                           f"proof field {'.'.join(keys)} = {actual!r}, expected {expected!r} ({label})"))
+            diagnostics.append(
+                _diagnostic(
+                    "proof_field_invalid",
+                    proof,
+                    0,
+                    f"proof field {'.'.join(keys)} = {actual!r}, expected {expected!r} ({label})",
+                )
+            )
     # query commit_results_count >= 1 gate (separate, it is a >= comparison)
     qcount = _dig(data, ("query_result", "commit_results_count"))
     if not (isinstance(qcount, int) and qcount >= 1):
-        diagnostics.append(_diagnostic("proof_field_invalid", proof, 0,
-                                       f"query_result.commit_results_count = {qcount!r}, expected int >= 1 (real law-nexus content)"))
+        diagnostics.append(
+            _diagnostic(
+                "proof_field_invalid",
+                proof,
+                0,
+                f"query_result.commit_results_count = {qcount!r}, expected int >= 1 (real law-nexus content)",
+            )
+        )
     return diagnostics
 
 
@@ -184,8 +231,14 @@ def check_cold_path(data: dict[str, Any], proof: Path) -> list[Diagnostic]:
     diagnostics: list[Diagnostic] = []
     excluded = _dig(data, ("cold_path_definition", "vendor_dir_excluded"))
     if excluded is not True:
-        diagnostics.append(_diagnostic("cold_path_regression", proof, 0,
-                                       "cold_path_definition.vendor_dir_excluded is not True (debug-binary false-pass risk)"))
+        diagnostics.append(
+            _diagnostic(
+                "cold_path_regression",
+                proof,
+                0,
+                "cold_path_definition.vendor_dir_excluded is not True (debug-binary false-pass risk)",
+            )
+        )
     return diagnostics
 
 
@@ -193,13 +246,22 @@ def check_boundary_markers(data: dict[str, Any], proof: Path) -> list[Diagnostic
     diagnostics: list[Diagnostic] = []
     markers = _dig(data, ("boundary_markers",))
     if not isinstance(markers, dict):
-        diagnostics.append(_diagnostic("boundary_markers_missing", proof, 0,
-                                       "boundary_markers object missing from proof"))
+        diagnostics.append(
+            _diagnostic(
+                "boundary_markers_missing", proof, 0, "boundary_markers object missing from proof"
+            )
+        )
         return diagnostics
     for marker in EXPECTED_BOUNDARY_MARKERS:
         if markers.get(marker) is not True:
-            diagnostics.append(_diagnostic("boundary_markers_missing", proof, 0,
-                                           f"contract-critical boundary marker not True: {marker!r}"))
+            diagnostics.append(
+                _diagnostic(
+                    "boundary_markers_missing",
+                    proof,
+                    0,
+                    f"contract-critical boundary marker not True: {marker!r}",
+                )
+            )
     return diagnostics
 
 
@@ -216,11 +278,15 @@ def scan_overclaim(proof: Path) -> list[Diagnostic]:
             if _preceded_by_negation(text, match.start()):
                 continue
             line_no = text.count("\n", 0, match.start()) + 1
-            diagnostics.append(_diagnostic(
-                "overclaim_detected", proof, line_no,
-                f"affirmative R035/R037/R038 validation overclaim ({name}): {match.group(0)!r}",
-                match.group(0),
-            ))
+            diagnostics.append(
+                _diagnostic(
+                    "overclaim_detected",
+                    proof,
+                    line_no,
+                    f"affirmative R035/R037/R038 validation overclaim ({name}): {match.group(0)!r}",
+                    match.group(0),
+                )
+            )
     return diagnostics
 
 
@@ -239,12 +305,24 @@ def check_live_residue(root: Path = ROOT) -> tuple[dict[str, str], list[Diagnost
         status[relative] = "present" if present else "absent"
         if relative == ".lex":
             if not present:
-                diagnostics.append(_diagnostic("lex_missing", path, 0,
-                                               ".lex absent after S02 (operational adoption regression — init did not complete)"))
+                diagnostics.append(
+                    _diagnostic(
+                        "lex_missing",
+                        path,
+                        0,
+                        ".lex absent after S02 (operational adoption regression — init did not complete)",
+                    )
+                )
         else:
             if present:
-                diagnostics.append(_diagnostic("unexpected_residue", path, 0,
-                                               f"unexpected out-of-contract residue present: {relative}"))
+                diagnostics.append(
+                    _diagnostic(
+                        "unexpected_residue",
+                        path,
+                        0,
+                        f"unexpected out-of-contract residue present: {relative}",
+                    )
+                )
     return status, diagnostics
 
 
@@ -293,17 +371,21 @@ def _format_diagnostic(diagnostic: Diagnostic) -> str:
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(
         description="Verify M066 S02 main-repo operational adoption (Stage 3 of D084). "
-                    "Inspection only; does not run git lex. Re-asserts workflow-proof.json gates "
-                    "and the R047 residue TRANSITION (.lex present, Squad/Raw/.artifacts absent).",
+        "Inspection only; does not run git lex. Re-asserts workflow-proof.json gates "
+        "and the R047 residue TRANSITION (.lex present, Squad/Raw/.artifacts absent).",
     )
     parser.add_argument("--proof", type=Path, default=DEFAULT_PROOF)
-    parser.add_argument("--root", type=Path, default=ROOT,
-                        help="repository root for the live residue guard")
-    parser.add_argument("--skip-residue", action="store_true",
-                        help="skip the main-checkout residue guard")
+    parser.add_argument(
+        "--root", type=Path, default=ROOT, help="repository root for the live residue guard"
+    )
+    parser.add_argument(
+        "--skip-residue", action="store_true", help="skip the main-checkout residue guard"
+    )
     args = parser.parse_args(argv)
 
-    ok, diagnostics, _summary = verify(args.proof, root=args.root, check_residue=not args.skip_residue)
+    ok, diagnostics, _summary = verify(
+        args.proof, root=args.root, check_residue=not args.skip_residue
+    )
 
     if diagnostics:
         for diagnostic in diagnostics:

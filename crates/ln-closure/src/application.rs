@@ -116,10 +116,7 @@ where
                 continue;
             }
 
-            let deps = frozen_deps
-                .get(node.as_str())
-                .cloned()
-                .unwrap_or_default();
+            let deps = frozen_deps.get(node.as_str()).cloned().unwrap_or_default();
 
             for dep in deps {
                 if !seen.contains(dep.as_str()) {

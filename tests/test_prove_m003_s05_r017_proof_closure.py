@@ -29,13 +29,18 @@ def producer() -> ModuleType:
     return load_producer()
 
 
-def s01_payload(*, status: str = "blocked-credential", root_cause: str = "minimax-credential-missing") -> dict[str, Any]:
+def s01_payload(
+    *, status: str = "blocked-credential", root_cause: str = "minimax-credential-missing"
+) -> dict[str, Any]:
     return {
         "schema_version": "m003-s01-minimax-live-baseline/v1",
         "status": status,
         "root_cause": root_cause,
         "provider_attempts": 0 if status == "blocked-credential" else 1,
-        "endpoint": {"preserves_v1": True, "effective_url": "https://api.minimax.io/v1/chat/completions"},
+        "endpoint": {
+            "preserves_v1": True,
+            "effective_url": "https://api.minimax.io/v1/chat/completions",
+        },
         "response_shape": {"status": status, "root_cause": root_cause, "content_kind": "not-run"},
         "safety": {
             "auth_header_persisted": False,
@@ -48,7 +53,9 @@ def s01_payload(*, status: str = "blocked-credential", root_cause: str = "minima
     }
 
 
-def s02_payload(*, status: str = "failed-runtime", root_cause: str = "provider-non-cypher-diagnostic") -> dict[str, Any]:
+def s02_payload(
+    *, status: str = "failed-runtime", root_cause: str = "provider-non-cypher-diagnostic"
+) -> dict[str, Any]:
     return {
         "schema_version": "m003-s02-minimax-pyo3-endpoint/v2",
         "status": status,
@@ -64,7 +71,11 @@ def s02_payload(*, status: str = "failed-runtime", root_cause: str = "provider-n
             "build": {"status": "confirmed-runtime", "root_cause": "none"},
             "import": {"status": "confirmed-runtime", "root_cause": "none"},
             "resolver": {"status": "confirmed-runtime", "root_cause": "none"},
-            "provider": {"status": status, "root_cause": root_cause, "raw_provider_body_persisted": False},
+            "provider": {
+                "status": status,
+                "root_cause": root_cause,
+                "raw_provider_body_persisted": False,
+            },
         },
         "safety": {
             "auth_headers_persisted": False,
@@ -78,7 +89,12 @@ def s02_payload(*, status: str = "failed-runtime", root_cause: str = "provider-n
     }
 
 
-def s03_payload(*, status: str = "failed-runtime", root_cause: str = "provider-malformed-response", accepted: bool = False) -> dict[str, Any]:
+def s03_payload(
+    *,
+    status: str = "failed-runtime",
+    root_cause: str = "provider-malformed-response",
+    accepted: bool = False,
+) -> dict[str, Any]:
     return {
         "schema_version": "m003-s03-reasoning-safe-candidate/v2",
         "status": status,
@@ -125,8 +141,12 @@ def s04_payload(
             "accepted": validation_accepted,
             "schema_version": "m002-legalgraph-cypher-safety-contract/v1",
             "rejection_codes": [] if validation_accepted else ["E_CANDIDATE_UNAVAILABLE"],
-            "required_evidence_returns": ["Article.id", "EvidenceSpan.id", "SourceBlock.id"] if validation_accepted else [],
-            "query_shape_category": "evidence-return-readonly" if validation_accepted else "candidate-unavailable",
+            "required_evidence_returns": ["Article.id", "EvidenceSpan.id", "SourceBlock.id"]
+            if validation_accepted
+            else [],
+            "query_shape_category": "evidence-return-readonly"
+            if validation_accepted
+            else "candidate-unavailable",
         },
         "execution": {
             "attempted": execution_confirmed,
@@ -134,7 +154,10 @@ def s04_payload(
             "method": "Graph.ro_query" if execution_confirmed else None,
             "timeout_ms": 1000 if execution_confirmed else None,
             "graph_kind": "synthetic-legalgraph",
-            "row_shape_summary": {"raw_rows_persisted": False, "row_count_category": "non-empty" if execution_confirmed else "not-run"},
+            "row_shape_summary": {
+                "raw_rows_persisted": False,
+                "row_count_category": "non-empty" if execution_confirmed else "not-run",
+            },
         },
         "redaction": {
             "raw_provider_body_persisted": False,
@@ -167,7 +190,9 @@ def current_payloads() -> dict[str, dict[str, Any]]:
     }
 
 
-def test_current_state_derives_conditioned_category_without_validating_r017(producer: ModuleType, tmp_path: Path) -> None:
+def test_current_state_derives_conditioned_category_without_validating_r017(
+    producer: ModuleType, tmp_path: Path
+) -> None:
     paths = write_upstreams(tmp_path, current_payloads())
 
     artifact = producer.build_proof_closure(paths)
@@ -186,13 +211,24 @@ def test_current_state_derives_conditioned_category_without_validating_r017(prod
     assert artifact["verification_summary"]["producer_status"] == "generated"
 
 
-def test_synthetic_all_confirmed_state_derives_unconditioned_pyo3(producer: ModuleType, tmp_path: Path) -> None:
+def test_synthetic_all_confirmed_state_derives_unconditioned_pyo3(
+    producer: ModuleType, tmp_path: Path
+) -> None:
     payloads = current_payloads()
     payloads["S01"] = s01_payload(status="confirmed-runtime", root_cause="none")
     payloads["S02"] = s02_payload(status="confirmed-runtime", root_cause="none")
-    payloads["S02"]["phases"]["provider"] = {"status": "confirmed-runtime", "root_cause": "none", "raw_provider_body_persisted": False}
+    payloads["S02"]["phases"]["provider"] = {
+        "status": "confirmed-runtime",
+        "root_cause": "none",
+        "raw_provider_body_persisted": False,
+    }
     payloads["S03"] = s03_payload(status="confirmed-runtime", root_cause="none", accepted=True)
-    payloads["S04"] = s04_payload(status="confirmed-runtime", root_cause="none", validation_accepted=True, execution_confirmed=True)
+    payloads["S04"] = s04_payload(
+        status="confirmed-runtime",
+        root_cause="none",
+        validation_accepted=True,
+        execution_confirmed=True,
+    )
     paths = write_upstreams(tmp_path, payloads)
 
     artifact = producer.build_proof_closure(paths)
@@ -202,7 +238,9 @@ def test_synthetic_all_confirmed_state_derives_unconditioned_pyo3(producer: Modu
     assert artifact["requirements_validated"] == []
 
 
-def test_rejects_missing_required_upstream_fields_without_outputs(producer: ModuleType, tmp_path: Path) -> None:
+def test_rejects_missing_required_upstream_fields_without_outputs(
+    producer: ModuleType, tmp_path: Path
+) -> None:
     payloads = current_payloads()
     del payloads["S02"]["provider_attempts"]
     paths = write_upstreams(tmp_path, payloads)
@@ -211,7 +249,9 @@ def test_rejects_missing_required_upstream_fields_without_outputs(producer: Modu
         producer.build_proof_closure(paths)
 
 
-def test_rejects_wrong_schema_and_contradictory_execution(producer: ModuleType, tmp_path: Path) -> None:
+def test_rejects_wrong_schema_and_contradictory_execution(
+    producer: ModuleType, tmp_path: Path
+) -> None:
     payloads = current_payloads()
     payloads["S03"]["schema_version"] = "wrong-schema/v1"
     payloads["S04"]["execution"]["attempted"] = True
@@ -222,7 +262,10 @@ def test_rejects_wrong_schema_and_contradictory_execution(producer: ModuleType, 
 
     payloads["S03"]["schema_version"] = "m003-s03-reasoning-safe-candidate/v2"
     paths = write_upstreams(tmp_path, payloads)
-    with pytest.raises(producer.ProofClosureError, match="S04 execution cannot be attempted unless validation.accepted is true"):
+    with pytest.raises(
+        producer.ProofClosureError,
+        match="S04 execution cannot be attempted unless validation.accepted is true",
+    ):
         producer.build_proof_closure(paths)
 
 
@@ -240,7 +283,9 @@ def test_rejects_missing_artifact_and_invalid_json(producer: ModuleType, tmp_pat
         producer.build_proof_closure(paths)
 
 
-def test_rejects_secret_like_or_raw_claim_contamination(producer: ModuleType, tmp_path: Path) -> None:
+def test_rejects_secret_like_or_raw_claim_contamination(
+    producer: ModuleType, tmp_path: Path
+) -> None:
     payloads = current_payloads()
     payloads["S01"]["diagnostics"] = {"unsafe": "Authorization: Bearer sk-secret-token"}
     paths = write_upstreams(tmp_path, payloads)
@@ -249,7 +294,9 @@ def test_rejects_secret_like_or_raw_claim_contamination(producer: ModuleType, tm
         producer.build_proof_closure(paths)
 
     payloads = current_payloads()
-    payloads["S04"]["boundaries"] = {"proves": ["Legal KnowQL product behavior is proven for production"]}
+    payloads["S04"]["boundaries"] = {
+        "proves": ["Legal KnowQL product behavior is proven for production"]
+    }
     paths = write_upstreams(tmp_path, payloads)
     with pytest.raises(producer.ProofClosureError, match="forbidden overclaim"):
         producer.build_proof_closure(paths)

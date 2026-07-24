@@ -153,7 +153,10 @@ def test_mapping_names_m012_namespace_constraint_and_m013_options() -> None:
     text = mapping_text()
     namespace_strategy = section(text, "## ID namespace strategy")
 
-    assert "current `scripts/retrieval_output_validator.py` enforces those prefixes" in namespace_strategy
+    assert (
+        "current `scripts/retrieval_output_validator.py` enforces those prefixes"
+        in namespace_strategy
+    )
     assert "must not silently bypass this constraint" in namespace_strategy
     assert "Safe namespace extension" in namespace_strategy
     assert "Adapter normalization" in namespace_strategy
@@ -168,7 +171,10 @@ def test_mapping_invalid_case_classes_are_closed_and_safe() -> None:
 
     for case_class in REQUIRED_INVALID_CASE_CLASSES:
         assert f"`{case_class}`" in invalid_cases
-    assert "Additional invalid cases may be added only if they remain deterministic and safe." in invalid_cases
+    assert (
+        "Additional invalid cases may be added only if they remain deterministic and safe."
+        in invalid_cases
+    )
 
 
 def test_mapping_diagnostic_redaction_and_non_claims_are_explicit() -> None:

@@ -143,7 +143,12 @@ def requirement_package_name(requirement: str) -> str:
 
 def probe_package(package: str) -> PackageProbe:
     availability = probe_package_availability(package, package_imports=PACKAGE_IMPORTS)
-    return PackageProbe(package, availability.import_name, cast(ProbeStatus, availability.status), availability.version)
+    return PackageProbe(
+        package,
+        availability.import_name,
+        cast(ProbeStatus, availability.status),
+        availability.version,
+    )
 
 
 def probe_required_packages(packages: Sequence[str]) -> dict[str, Any]:
@@ -181,7 +186,11 @@ def memory_metadata() -> dict[str, Any]:
     if meminfo.is_file():
         for line in meminfo.read_text(encoding="utf-8", errors="replace").splitlines():
             parts = line.split()
-            if len(parts) >= 2 and parts[0].rstrip(":") in {"MemTotal", "MemAvailable", "SwapTotal"}:
+            if len(parts) >= 2 and parts[0].rstrip(":") in {
+                "MemTotal",
+                "MemAvailable",
+                "SwapTotal",
+            }:
                 values[parts[0].rstrip(":")] = round(int(parts[1]) / 1024, 1)
     return {
         "mem_total_mib": values.get("MemTotal"),
@@ -301,7 +310,9 @@ def encode_with_sentence_transformers(
         }
 
 
-def should_attempt_encode(root_cause: str | None, cache_present: bool, allow_download: bool) -> bool:
+def should_attempt_encode(
+    root_cause: str | None, cache_present: bool, allow_download: bool
+) -> bool:
     if root_cause is not None:
         return False
     return cache_present or allow_download
@@ -320,7 +331,11 @@ def probe_candidate(
         raise ValueError(f"Model is outside the S09 open-weight allow-list: {model_id}")
 
     runtime_requirements = candidate.get("runtime_requirements", {})
-    package_names = runtime_requirements.get("python_packages", []) if isinstance(runtime_requirements, dict) else []
+    package_names = (
+        runtime_requirements.get("python_packages", [])
+        if isinstance(runtime_requirements, dict)
+        else []
+    )
     packages = [str(package) for package in package_names if isinstance(package, str)]
     package_probe = probe_required_packages(packages)
     cache_probe = probe_model_cache(model_id, cache_roots)
@@ -333,9 +348,12 @@ def probe_candidate(
     max_token_limit_raw = candidate.get("max_token_limit")
     max_token_limit = int(max_token_limit_raw) if isinstance(max_token_limit_raw, int) else None
     expected_dimension_raw = candidate.get("vector_dimension")
-    expected_dimension = int(expected_dimension_raw) if isinstance(expected_dimension_raw, int) else None
+    expected_dimension = (
+        int(expected_dimension_raw) if isinstance(expected_dimension_raw, int) else None
+    )
     trust_remote_code = bool(
-        isinstance(runtime_requirements, dict) and runtime_requirements.get("trust_remote_code_required")
+        isinstance(runtime_requirements, dict)
+        and runtime_requirements.get("trust_remote_code_required")
     )
 
     encode_result: dict[str, Any]
@@ -400,7 +418,9 @@ def summarize_status(model_results: Sequence[Mapping[str, Any]]) -> dict[str, in
 
 def write_json_artifact(output_dir: Path, payload: Mapping[str, Any]) -> Path:
     path = output_dir / "S09-LOCAL-EMBEDDING-SMOKE.json"
-    path.write_text(json.dumps(payload, ensure_ascii=False, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    path.write_text(
+        json.dumps(payload, ensure_ascii=False, indent=2, sort_keys=True) + "\n", encoding="utf-8"
+    )
     return path
 
 
@@ -535,7 +555,17 @@ def main(argv: Sequence[str] | None = None) -> int:
     )
     json_path = write_json_artifact(output_dir, payload)
     markdown_path = write_markdown_artifact(output_dir, payload, json_path)
-    print(json.dumps({"json": normalized_path(json_path), "markdown": normalized_path(markdown_path), "status_counts": payload["status_counts"]}, ensure_ascii=False, sort_keys=True))
+    print(
+        json.dumps(
+            {
+                "json": normalized_path(json_path),
+                "markdown": normalized_path(markdown_path),
+                "status_counts": payload["status_counts"],
+            },
+            ensure_ascii=False,
+            sort_keys=True,
+        )
+    )
     return 0
 
 

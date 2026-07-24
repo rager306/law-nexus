@@ -156,7 +156,6 @@ def build_graph(items: list[dict[str, Any]], edges: list[dict[str, Any]]) -> nx.
     return graph
 
 
-
 def compute_graph_report(
     graph: nx.MultiDiGraph, *, schema_path: Path = DEFAULT_SCHEMA_PATH
 ) -> dict[str, Any]:
@@ -200,7 +199,9 @@ def compute_graph_report(
         if not isinstance(proof_level, str):
             invalid_records.append({"id": node_id, "rule": "missing-proof-level"})
         elif proof_level not in proof_level_enum:
-            invalid_records.append({"id": node_id, "rule": "invalid-proof-level", "value": proof_level})
+            invalid_records.append(
+                {"id": node_id, "rule": "invalid-proof-level", "value": proof_level}
+            )
 
         if record.get("type") == "proof_gate" and status == "active" and proof_level == "none":
             unresolved_proof_gates.append(
@@ -210,7 +211,9 @@ def compute_graph_report(
                     "status": "active",
                     "proof_level": "none",
                     "layer": string_or_placeholder(layer, "<missing-layer>"),
-                    "risk_level": string_or_placeholder(record.get("risk_level"), "<missing-risk-level>"),
+                    "risk_level": string_or_placeholder(
+                        record.get("risk_level"), "<missing-risk-level>"
+                    ),
                     "verification": string_or_placeholder(
                         record.get("verification"), "<missing-verification>"
                     ),
@@ -320,7 +323,9 @@ def collect_weak_components(graph: nx.MultiDiGraph) -> list[dict[str, Any]]:
     for nodes in nx.weakly_connected_components(graph):
         sorted_nodes = sorted(str(node) for node in nodes)
         components.append({"size": len(sorted_nodes), "nodes": sorted_nodes})
-    return sorted(components, key=lambda item: (item["nodes"][0] if item["nodes"] else "", item["size"]))
+    return sorted(
+        components, key=lambda item: (item["nodes"][0] if item["nodes"] else "", item["size"])
+    )
 
 
 def collect_traceability_edges(
@@ -427,17 +432,21 @@ def render_report_markdown(report: dict[str, Any]) -> str:
         lines.append(f"| {escape_md(layer)} | {count} |")
 
     lines.extend(["", "### Missing Layers", ""])
-    lines.extend(bullet_lines(report["layer_coverage"]["missing_layers"], empty="No missing schema layers."))
+    lines.extend(
+        bullet_lines(report["layer_coverage"]["missing_layers"], empty="No missing schema layers.")
+    )
 
-    lines.extend([
-        "",
-        "## Findings for S04",
-        "",
-        "### Unresolved Proof Gates",
-        "",
-        "| ID | Layer | Owner | Risk | Verification |",
-        "| --- | --- | --- | --- | --- |",
-    ])
+    lines.extend(
+        [
+            "",
+            "## Findings for S04",
+            "",
+            "### Unresolved Proof Gates",
+            "",
+            "| ID | Layer | Owner | Risk | Verification |",
+            "| --- | --- | --- | --- | --- |",
+        ]
+    )
     for gate in report["unresolved_proof_gates"]:
         lines.append(
             "| "
@@ -447,25 +456,29 @@ def render_report_markdown(report: dict[str, Any]) -> str:
     if not report["unresolved_proof_gates"]:
         lines.append("| _None_ |  |  |  |  |")
 
-    lines.extend([
-        "",
-        "### Orphan Findings",
-        "",
-        "| ID | Rule |",
-        "| --- | --- |",
-    ])
+    lines.extend(
+        [
+            "",
+            "### Orphan Findings",
+            "",
+            "| ID | Rule |",
+            "| --- | --- |",
+        ]
+    )
     for finding in report["orphan_findings"]:
         lines.append(f"| {escape_md(finding['id'])} | {escape_md(finding['rule'])} |")
     if not report["orphan_findings"]:
         lines.append("| _None_ |  |")
 
-    lines.extend([
-        "",
-        "### Contradictions",
-        "",
-        "| Edge ID | From | To | Status | Rationale |",
-        "| --- | --- | --- | --- | --- |",
-    ])
+    lines.extend(
+        [
+            "",
+            "### Contradictions",
+            "",
+            "| Edge ID | From | To | Status | Rationale |",
+            "| --- | --- | --- | --- | --- |",
+        ]
+    )
     for edge in report["contradiction_edges"]:
         lines.append(
             "| "
@@ -475,15 +488,17 @@ def render_report_markdown(report: dict[str, Any]) -> str:
     if not report["contradiction_edges"]:
         lines.append("| _None_ |  |  |  |  |")
 
-    lines.extend([
-        "",
-        "### Traceability Edges",
-        "",
-        "These edge summaries expose bounded proof, requirement, gate, and data-boundary relationships without asserting product readiness.",
-        "",
-        "| Edge ID | From | Type | To | Status | Rationale |",
-        "| --- | --- | --- | --- | --- | --- |",
-    ])
+    lines.extend(
+        [
+            "",
+            "### Traceability Edges",
+            "",
+            "These edge summaries expose bounded proof, requirement, gate, and data-boundary relationships without asserting product readiness.",
+            "",
+            "| Edge ID | From | Type | To | Status | Rationale |",
+            "| --- | --- | --- | --- | --- | --- |",
+        ]
+    )
     for edge in report.get("traceability_edges", []):
         lines.append(
             "| "
@@ -493,13 +508,15 @@ def render_report_markdown(report: dict[str, Any]) -> str:
     if not report.get("traceability_edges", []):
         lines.append("| _None_ |  |  |  |  |  |")
 
-    lines.extend([
-        "",
-        "### High and Critical Risk Nodes",
-        "",
-        "| ID | Risk | Type | Layer | Status | Proof Level |",
-        "| --- | --- | --- | --- | --- | --- |",
-    ])
+    lines.extend(
+        [
+            "",
+            "### High and Critical Risk Nodes",
+            "",
+            "| ID | Risk | Type | Layer | Status | Proof Level |",
+            "| --- | --- | --- | --- | --- | --- |",
+        ]
+    )
     for node in report["high_risk_nodes"]:
         lines.append(
             "| "
@@ -509,13 +526,15 @@ def render_report_markdown(report: dict[str, Any]) -> str:
     if not report["high_risk_nodes"]:
         lines.append("| _None_ |  |  |  |  |  |")
 
-    lines.extend([
-        "",
-        "## Invalid Records",
-        "",
-        "| ID | Rule | Value |",
-        "| --- | --- | --- |",
-    ])
+    lines.extend(
+        [
+            "",
+            "## Invalid Records",
+            "",
+            "| ID | Rule | Value |",
+            "| --- | --- | --- |",
+        ]
+    )
     for finding in report["invalid_records"]:
         lines.append(
             f"| {escape_md(finding['id'])} | {escape_md(finding['rule'])} | "
@@ -524,20 +543,22 @@ def render_report_markdown(report: dict[str, Any]) -> str:
     if not report["invalid_records"]:
         lines.append("| _None_ |  |  |")
 
-    lines.extend([
-        "",
-        "## Non-Claims Boundary",
-        "",
-        "| Field | Value |",
-        "| --- | ---: |",
-        f"| Nodes with non-claims | {report['non_claims_summary']['nodes_with_non_claims']} |",
-        f"| Total non-claims | {report['non_claims_summary']['total_non_claims']} |",
-        "",
-        "### Nodes with Non-Claims",
-        "",
-        "| ID | Count |",
-        "| --- | ---: |",
-    ])
+    lines.extend(
+        [
+            "",
+            "## Non-Claims Boundary",
+            "",
+            "| Field | Value |",
+            "| --- | ---: |",
+            f"| Nodes with non-claims | {report['non_claims_summary']['nodes_with_non_claims']} |",
+            f"| Total non-claims | {report['non_claims_summary']['total_non_claims']} |",
+            "",
+            "### Nodes with Non-Claims",
+            "",
+            "| ID | Count |",
+            "| --- | ---: |",
+        ]
+    )
     for node in report["non_claims_summary"]["by_node"]:
         lines.append(f"| {escape_md(node['id'])} | {node['count']} |")
     if not report["non_claims_summary"]["by_node"]:
@@ -581,7 +602,10 @@ def check_report_output(path: Path, expected: str) -> bool:
 
 
 def run_upstream_freshness_check(items_path: Path, edges_path: Path) -> None:
-    if items_path.resolve() != DEFAULT_ITEMS_PATH.resolve() or edges_path.resolve() != DEFAULT_EDGES_PATH.resolve():
+    if (
+        items_path.resolve() != DEFAULT_ITEMS_PATH.resolve()
+        or edges_path.resolve() != DEFAULT_EDGES_PATH.resolve()
+    ):
         return
     result = subprocess.run(
         [sys.executable, "scripts/extract-prd-architecture-items.py", "--check"],

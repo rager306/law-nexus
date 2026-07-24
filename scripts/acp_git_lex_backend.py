@@ -109,7 +109,9 @@ def wrapper_operation_for(acp_operation: str) -> str:
 
 
 def private_fields_present(record: dict[str, Any]) -> bool:
-    return any(key in record for key in PRIVATE_FIELDS) or any(key.startswith("_") for key in record)
+    return any(key in record for key in PRIVATE_FIELDS) or any(
+        key.startswith("_") for key in record
+    )
 
 
 def main_state_safe(record: dict[str, Any]) -> bool:
@@ -243,7 +245,9 @@ def normalize_wrapper_record(
     if private_fields_present(wrapper_record):
         record["classification"] = "adapter-fail"
         record["error_class"] = "unknown-adapter-error"
-        record["diagnostic_summary"] = "private wrapper fields were stripped from ACP diagnostic output"
+        record["diagnostic_summary"] = (
+            "private wrapper fields were stripped from ACP diagnostic output"
+        )
     return record
 
 
@@ -339,7 +343,9 @@ def build_parser() -> argparse.ArgumentParser:
 
     query_json_parser = sub.add_parser("bounded-query-json")
     query_json_parser.add_argument("--workspace", required=True)
-    query_json_parser.add_argument("--query-id", required=True, choices=sorted(git_lex.QUERY_TEMPLATES))
+    query_json_parser.add_argument(
+        "--query-id", required=True, choices=sorted(git_lex.QUERY_TEMPLATES)
+    )
 
     validate_parser = sub.add_parser("validation-diagnostic")
     validate_parser.add_argument("--workspace", required=True)

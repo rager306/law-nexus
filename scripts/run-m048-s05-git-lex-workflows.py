@@ -80,7 +80,9 @@ def load_s04_harness() -> ModuleType:
     return module
 
 
-def phase(name: str, status: str, summary: str, details: dict[str, Any] | None = None) -> dict[str, Any]:
+def phase(
+    name: str, status: str, summary: str, details: dict[str, Any] | None = None
+) -> dict[str, Any]:
     return {
         "name": name,
         "status": status,
@@ -136,9 +138,15 @@ def deterministic_mechanics(s04: ModuleType) -> tuple[dict[str, Any], list[str]]
     if "EA-ACP-0001" not in projection.get("edges", {}).get("PG-ACP-0001", []):
         failures.append("query_recovery: proof gate evidence edge EA-ACP-0001 was not recovered")
 
-    failures.extend(f"lifecycle_proof_gate: {failure}" for failure in s04.validate_lifecycle(records))
-    failures.extend(f"profile_boundary: {failure}" for failure in s04.validate_profile_boundary(records))
-    failures.extend(f"blocked_actions: {failure}" for failure in s04.validate_blocked_actions(records))
+    failures.extend(
+        f"lifecycle_proof_gate: {failure}" for failure in s04.validate_lifecycle(records)
+    )
+    failures.extend(
+        f"profile_boundary: {failure}" for failure in s04.validate_profile_boundary(records)
+    )
+    failures.extend(
+        f"blocked_actions: {failure}" for failure in s04.validate_blocked_actions(records)
+    )
 
     diagnostics = {
         "record_count": len(records),
@@ -184,27 +192,33 @@ def build_contract() -> dict[str, Any]:
         runtime_reason = "git-lex executable unavailable; runtime acquisition and adoption are deferred while deterministic ACP mechanics remain inspectable"
         blocked_or_deferred.append(runtime_reason)
 
-    workflows.append(workflow(
-        "runtime_acquisition_and_adoption",
-        "Runtime acquisition and adoption",
-        runtime_status,
-        [phase(
-            "runtime_help_probe",
+    workflows.append(
+        workflow(
+            "runtime_acquisition_and_adoption",
+            "Runtime acquisition and adoption",
             runtime_status,
-            "Existing git-lex command responded to a help probe." if runtime_available else "No existing git-lex executable responded; acquisition is intentionally not attempted.",
-            {
-                "probes": runtime_probes,
-                "safe_acquisition_policy": "no clone/install/download/durable build/git-lex-init from law-nexus",
-            },
-        )],
-        blocked_or_deferred_reason=runtime_reason,
-        allowed_actions=ALLOWED_ACTIONS_WHEN_BLOCKED,
-        blocked_actions=BLOCKED_ACTIONS,
-        non_claims=[
-            "does_not_claim_runtime_git_lex_available_when_help_probe_fails",
-            "does_not_claim_full_acp_git_lex_adoption",
-        ],
-    ))
+            [
+                phase(
+                    "runtime_help_probe",
+                    runtime_status,
+                    "Existing git-lex command responded to a help probe."
+                    if runtime_available
+                    else "No existing git-lex executable responded; acquisition is intentionally not attempted.",
+                    {
+                        "probes": runtime_probes,
+                        "safe_acquisition_policy": "no clone/install/download/durable build/git-lex-init from law-nexus",
+                    },
+                )
+            ],
+            blocked_or_deferred_reason=runtime_reason,
+            allowed_actions=ALLOWED_ACTIONS_WHEN_BLOCKED,
+            blocked_actions=BLOCKED_ACTIONS,
+            non_claims=[
+                "does_not_claim_runtime_git_lex_available_when_help_probe_fails",
+                "does_not_claim_full_acp_git_lex_adoption",
+            ],
+        )
+    )
 
     deterministic: dict[str, Any] = {}
     mechanics_failures: list[str] = []
@@ -220,89 +234,130 @@ def build_contract() -> dict[str, Any]:
         fatal_failures.extend(mechanics_failures)
 
     mechanics_status = "fail" if mechanics_failures else "pass"
-    workflows.extend([
-        workflow(
-            "typed_source_record_validation",
-            "Typed source-record validation",
-            mechanics_status,
-            [phase(
-                "s04_validate_records",
+    workflows.extend(
+        [
+            workflow(
+                "typed_source_record_validation",
+                "Typed source-record validation",
                 mechanics_status,
-                "S04 source-record taxonomy, relationship, safety flag, and anchor checks passed." if not mechanics_failures else "S04 source-record validation or related deterministic mechanics failed.",
-                {"record_count": deterministic.get("record_count"), "record_ids": deterministic.get("record_ids"), "failures": mechanics_failures},
-            )],
-            non_claims=["does_not_validate_R035", "does_not_validate_R037", "does_not_validate_R038"],
-        ),
-        workflow(
-            "extraction_projection_query_recovery",
-            "Extraction projection and query recovery",
-            mechanics_status,
-            [
-                phase(
-                    "s04_acp_projection",
-                    mechanics_status,
-                    "S04 projection remains deterministic and non-authoritative." if not mechanics_failures else "Projection diagnostics failed with S04 deterministic mechanics.",
-                    {
-                        "projection_kind": deterministic.get("projection_kind"),
-                        "authority_status": deterministic.get("projection_authority_status"),
-                        "failures": mechanics_failures,
-                    },
-                ),
-                phase(
-                    "s04_query_recovery",
-                    mechanics_status,
-                    "Recovered architecture decision and proof-gate evidence edge from the derived projection." if not mechanics_failures else "Query recovery failed with S04 deterministic mechanics.",
-                    {
-                        "architecture_decision": deterministic.get("recovered_architecture_decision"),
-                        "proof_gate_edges": deterministic.get("proof_gate_edges"),
-                        "failures": mechanics_failures,
-                    },
-                ),
-            ],
-            non_claims=["does_not_promote_derived_projections_to_source_truth"],
-        ),
-        workflow(
-            "lifecycle_proof_gate_profile_boundary",
-            "Lifecycle proof-gate and profile boundary",
-            mechanics_status,
-            [phase(
-                "s04_lifecycle_profile_blocked_actions",
+                [
+                    phase(
+                        "s04_validate_records",
+                        mechanics_status,
+                        "S04 source-record taxonomy, relationship, safety flag, and anchor checks passed."
+                        if not mechanics_failures
+                        else "S04 source-record validation or related deterministic mechanics failed.",
+                        {
+                            "record_count": deterministic.get("record_count"),
+                            "record_ids": deterministic.get("record_ids"),
+                            "failures": mechanics_failures,
+                        },
+                    )
+                ],
+                non_claims=[
+                    "does_not_validate_R035",
+                    "does_not_validate_R037",
+                    "does_not_validate_R038",
+                ],
+            ),
+            workflow(
+                "extraction_projection_query_recovery",
+                "Extraction projection and query recovery",
                 mechanics_status,
-                "S04 lifecycle, pending proof-gate, law-nexus profile boundary, and blocked action checks passed." if not mechanics_failures else "Lifecycle/profile/blocked-action diagnostics failed.",
-                {
-                    "proof_gate_status": deterministic.get("proof_gate_status"),
-                    "profile_record": deterministic.get("profile_record"),
-                    "blocked_record": deterministic.get("blocked_record"),
-                    "failures": mechanics_failures,
-                },
-            )],
-            non_claims=["does_not_claim_product_readiness", "does_not_claim_full_acp_git_lex_adoption"],
-        ),
-    ])
+                [
+                    phase(
+                        "s04_acp_projection",
+                        mechanics_status,
+                        "S04 projection remains deterministic and non-authoritative."
+                        if not mechanics_failures
+                        else "Projection diagnostics failed with S04 deterministic mechanics.",
+                        {
+                            "projection_kind": deterministic.get("projection_kind"),
+                            "authority_status": deterministic.get("projection_authority_status"),
+                            "failures": mechanics_failures,
+                        },
+                    ),
+                    phase(
+                        "s04_query_recovery",
+                        mechanics_status,
+                        "Recovered architecture decision and proof-gate evidence edge from the derived projection."
+                        if not mechanics_failures
+                        else "Query recovery failed with S04 deterministic mechanics.",
+                        {
+                            "architecture_decision": deterministic.get(
+                                "recovered_architecture_decision"
+                            ),
+                            "proof_gate_edges": deterministic.get("proof_gate_edges"),
+                            "failures": mechanics_failures,
+                        },
+                    ),
+                ],
+                non_claims=["does_not_promote_derived_projections_to_source_truth"],
+            ),
+            workflow(
+                "lifecycle_proof_gate_profile_boundary",
+                "Lifecycle proof-gate and profile boundary",
+                mechanics_status,
+                [
+                    phase(
+                        "s04_lifecycle_profile_blocked_actions",
+                        mechanics_status,
+                        "S04 lifecycle, pending proof-gate, law-nexus profile boundary, and blocked action checks passed."
+                        if not mechanics_failures
+                        else "Lifecycle/profile/blocked-action diagnostics failed.",
+                        {
+                            "proof_gate_status": deterministic.get("proof_gate_status"),
+                            "profile_record": deterministic.get("profile_record"),
+                            "blocked_record": deterministic.get("blocked_record"),
+                            "failures": mechanics_failures,
+                        },
+                    )
+                ],
+                non_claims=[
+                    "does_not_claim_product_readiness",
+                    "does_not_claim_full_acp_git_lex_adoption",
+                ],
+            ),
+        ]
+    )
 
     main_repo_lex_after = MAIN_REPO_LEX_DIR.exists()
     if main_repo_lex_after:
         fatal_failures.append("main repository .lex exists after S05 workflow diagnostics")
     guard_status = "fail" if main_repo_lex_before or main_repo_lex_after else "pass"
-    workflows.append(workflow(
-        "main_repo_mutation_guard",
-        "Main-repo mutation guard",
-        guard_status,
-        [phase(
-            "main_repo_dot_lex_guard",
+    workflows.append(
+        workflow(
+            "main_repo_mutation_guard",
+            "Main-repo mutation guard",
             guard_status,
-            "No main-repo .lex state exists before or after S05 workflow diagnostics." if guard_status == "pass" else "Main-repo .lex state exists; S05 fails closed.",
-            {"main_lex_before": main_repo_lex_before, "main_lex_after": main_repo_lex_after},
-        )],
-        blocked_actions=["run_git_lex_init_in_main_repository", "create_or_mutate_main_repository_dot_lex_state"],
-    ))
+            [
+                phase(
+                    "main_repo_dot_lex_guard",
+                    guard_status,
+                    "No main-repo .lex state exists before or after S05 workflow diagnostics."
+                    if guard_status == "pass"
+                    else "Main-repo .lex state exists; S05 fails closed.",
+                    {
+                        "main_lex_before": main_repo_lex_before,
+                        "main_lex_after": main_repo_lex_after,
+                    },
+                )
+            ],
+            blocked_actions=[
+                "run_git_lex_init_in_main_repository",
+                "create_or_mutate_main_repository_dot_lex_state",
+            ],
+        )
+    )
 
     phase_statuses = {
         phase_item["name"]: phase_item["status"]
         for workflow_item in workflows
         for phase_item in workflow_item["phases"]
     }
-    workflow_statuses = {workflow_item["id"]: workflow_item["status"] for workflow_item in workflows}
+    workflow_statuses = {
+        workflow_item["id"]: workflow_item["status"] for workflow_item in workflows
+    }
     status = "fail" if fatal_failures else ("blocked" if blocked_or_deferred else "pass")
     adoption_recommendation = (
         "defer_runtime_adoption_keep_deterministic_acp_mechanics_only"
@@ -319,7 +374,9 @@ def build_contract() -> dict[str, Any]:
         "phase_statuses": phase_statuses,
         "workflows": workflows,
         "blocked_or_deferred": blocked_or_deferred,
-        "blocked_or_deferred_reason": "; ".join(blocked_or_deferred) if blocked_or_deferred else None,
+        "blocked_or_deferred_reason": "; ".join(blocked_or_deferred)
+        if blocked_or_deferred
+        else None,
         "adoption_recommendation": adoption_recommendation,
         "allowed_actions": ALLOWED_ACTIONS_WHEN_BLOCKED,
         "blocked_actions": BLOCKED_ACTIONS,
@@ -352,13 +409,22 @@ def validate_contract(contract: dict[str, Any]) -> None:
     missing_workflows = sorted(set(WORKFLOW_IDS) - set(contract.get("workflow_statuses", {})))
     if missing_workflows:
         raise ContractError(f"missing workflow diagnostics: {missing_workflows}")
-    if contract.get("source_projection_boundary", {}).get("projection_may_validate_requirements") is not False:
+    if (
+        contract.get("source_projection_boundary", {}).get("projection_may_validate_requirements")
+        is not False
+    ):
         raise ContractError("derived projection must not validate requirements")
-    if contract.get("source_projection_boundary", {}).get("projection_may_override_source_records") is not False:
+    if (
+        contract.get("source_projection_boundary", {}).get("projection_may_override_source_records")
+        is not False
+    ):
         raise ContractError("derived projection must not override source records")
     requirement_boundary = contract.get("requirement_boundary", {})
     for requirement_id in ["R035", "R037", "R038"]:
-        if requirement_boundary.get(requirement_id) != "not_validated_by_s05_git_lex_workflow_diagnostics":
+        if (
+            requirement_boundary.get(requirement_id)
+            != "not_validated_by_s05_git_lex_workflow_diagnostics"
+        ):
             raise ContractError(f"{requirement_id} must remain not validated by S05")
     if "does_not_claim_full_acp_git_lex_adoption" not in contract.get("non_claims", []):
         raise ContractError("contract must include full-adoption non-claim")
@@ -370,7 +436,11 @@ def validate_contract(contract: dict[str, Any]) -> None:
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--check", action="store_true", help="Return non-zero only for unsafe mutation or malformed deterministic contract.")
+    parser.add_argument(
+        "--check",
+        action="store_true",
+        help="Return non-zero only for unsafe mutation or malformed deterministic contract.",
+    )
     args = parser.parse_args()
 
     try:

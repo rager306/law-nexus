@@ -11,13 +11,17 @@ from types import ModuleType
 from typing import Any, Mapping, Sequence, cast
 
 ROOT = Path(__file__).resolve().parents[1]
-DEFAULT_FIXTURES = ROOT / "prd/research/ontology_architecture_requirements/ontology_graphrag_proof_cases.json"
+DEFAULT_FIXTURES = (
+    ROOT / "prd/research/ontology_architecture_requirements/ontology_graphrag_proof_cases.json"
+)
 VALIDATOR_PATH = ROOT / "scripts/retrieval_output_validator.py"
 SUMMARY_SCHEMA_VERSION = "ontology-graphrag-proof/v1"
 EXPECTED_SCHEMA_VERSION = "ontology-graphrag-proof-cases/v1"
 EXPECTED_PROOF_ID = "OG-M020-S02-FIXTURE-PROOF"
 
-_ALLOWED_RESULT_STATES = frozenset({"accepted", "accepted_scoped_no_answer", "rejected", "blocked_unsupported_filter"})
+_ALLOWED_RESULT_STATES = frozenset(
+    {"accepted", "accepted_scoped_no_answer", "rejected", "blocked_unsupported_filter"}
+)
 _PROOF_LOCAL_CODES = frozenset(
     {
         "ontology_filter_matched",
@@ -27,7 +31,9 @@ _PROOF_LOCAL_CODES = frozenset(
         "forbidden_payload_field",
     }
 )
-_SAFE_DIAGNOSTIC_FIELDS = frozenset({"code", "severity", "result", "field_path", "case_id", "rule", "remediation"})
+_SAFE_DIAGNOSTIC_FIELDS = frozenset(
+    {"code", "severity", "result", "field_path", "case_id", "rule", "remediation"}
+)
 _MAX_SAFE_FIELD_LENGTH = 160
 
 _FORBIDDEN_FIELD_NAMES = frozenset(
@@ -81,7 +87,9 @@ def _safe(value: Any) -> str:
     return "<missing>"
 
 
-def _error_summary(*, fixtures: Path, phase: str, code: str, detail: str | None = None) -> dict[str, Any]:
+def _error_summary(
+    *, fixtures: Path, phase: str, code: str, detail: str | None = None
+) -> dict[str, Any]:
     error: dict[str, Any] = {"phase": phase, "code": code, "fixture_path": _bounded_path(fixtures)}
     if detail:
         error["detail"] = detail[:_MAX_SAFE_FIELD_LENGTH]
@@ -105,17 +113,53 @@ def _load_json(path: Path) -> tuple[int, dict[str, Any] | None, dict[str, Any] |
         with path.open(encoding="utf-8") as fixture_file:
             data = json.load(fixture_file)
     except FileNotFoundError as exc:
-        return 2, None, _error_summary(fixtures=path, phase="fixture_load", code="fixture_not_found", detail=str(exc))
+        return (
+            2,
+            None,
+            _error_summary(
+                fixtures=path, phase="fixture_load", code="fixture_not_found", detail=str(exc)
+            ),
+        )
     except json.JSONDecodeError as exc:
-        return 2, None, _error_summary(fixtures=path, phase="fixture_load", code="malformed_fixture_json", detail=exc.msg)
+        return (
+            2,
+            None,
+            _error_summary(
+                fixtures=path, phase="fixture_load", code="malformed_fixture_json", detail=exc.msg
+            ),
+        )
     except OSError as exc:
-        return 2, None, _error_summary(fixtures=path, phase="fixture_load", code="fixture_load_error", detail=str(exc))
+        return (
+            2,
+            None,
+            _error_summary(
+                fixtures=path, phase="fixture_load", code="fixture_load_error", detail=str(exc)
+            ),
+        )
     if not isinstance(data, dict):
-        return 2, None, _error_summary(fixtures=path, phase="fixture_shape", code="malformed_fixture_shape", detail="fixture root must be an object")
+        return (
+            2,
+            None,
+            _error_summary(
+                fixtures=path,
+                phase="fixture_shape",
+                code="malformed_fixture_shape",
+                detail="fixture root must be an object",
+            ),
+        )
     return 0, data, None
 
 
-def _diagnostic(code: str, *, case_id: str, result: str, field_path: str, severity: str = "error", rule: str, remediation: str) -> dict[str, str]:
+def _diagnostic(
+    code: str,
+    *,
+    case_id: str,
+    result: str,
+    field_path: str,
+    severity: str = "error",
+    rule: str,
+    remediation: str,
+) -> dict[str, str]:
     return {
         "code": code,
         "severity": severity,
@@ -131,7 +175,9 @@ def _validator_codes(result: Any) -> list[str]:
     return [diagnostic.code for diagnostic in result.diagnostics]
 
 
-def _check_forbidden_field_names(value: Any, *, path: str = "$", hits: list[str] | None = None) -> list[str]:
+def _check_forbidden_field_names(
+    value: Any, *, path: str = "$", hits: list[str] | None = None
+) -> list[str]:
     found = hits if hits is not None else []
     if isinstance(value, Mapping):
         for key, nested in value.items():
@@ -145,16 +191,37 @@ def _check_forbidden_field_names(value: Any, *, path: str = "$", hits: list[str]
     return found
 
 
-def _build_validator_fixture(validator: ModuleType, data: Mapping[str, Any], fixtures: Path) -> tuple[int, Any | None, dict[str, Any] | None]:
+def _build_validator_fixture(
+    validator: ModuleType, data: Mapping[str, Any], fixtures: Path
+) -> tuple[int, Any | None, dict[str, Any] | None]:
     graph = data.get("validator_fixture_graph")
     if not isinstance(graph, Mapping):
-        return 2, None, _error_summary(fixtures=fixtures, phase="fixture_shape", code="malformed_fixture_shape", detail="validator_fixture_graph must be an object")
+        return (
+            2,
+            None,
+            _error_summary(
+                fixtures=fixtures,
+                phase="fixture_shape",
+                code="malformed_fixture_shape",
+                detail="validator_fixture_graph must be an object",
+            ),
+        )
     try:
         fixture = validator.build_fixture(
-            {"fixture_graph": graph}, fixture_artifact=str(data.get("fixture_artifact") or _bounded_path(fixtures))
+            {"fixture_graph": graph},
+            fixture_artifact=str(data.get("fixture_artifact") or _bounded_path(fixtures)),
         )
     except ValueError as exc:
-        return 2, None, _error_summary(fixtures=fixtures, phase="fixture_shape", code="malformed_fixture_shape", detail=str(exc))
+        return (
+            2,
+            None,
+            _error_summary(
+                fixtures=fixtures,
+                phase="fixture_shape",
+                code="malformed_fixture_shape",
+                detail=str(exc),
+            ),
+        )
     return 0, fixture, None
 
 
@@ -178,16 +245,35 @@ def _shape_mismatches(data: Mapping[str, Any]) -> list[dict[str, Any]]:
             )
     for field in ("source_inputs", "cases", "redaction", "non_claims"):
         if field not in data:
-            mismatches.append({"phase": "fixture_shape", "code": "missing_required_field", "field_path": field})
+            mismatches.append(
+                {"phase": "fixture_shape", "code": "missing_required_field", "field_path": field}
+            )
     redaction = data.get("redaction")
-    if not isinstance(redaction, Mapping) or redaction.get("forbidden_payload_classes_absent") is not True:
-        mismatches.append({"phase": "fixture_shape", "code": "redaction_boundary_missing", "field_path": "redaction.forbidden_payload_classes_absent"})
+    if (
+        not isinstance(redaction, Mapping)
+        or redaction.get("forbidden_payload_classes_absent") is not True
+    ):
+        mismatches.append(
+            {
+                "phase": "fixture_shape",
+                "code": "redaction_boundary_missing",
+                "field_path": "redaction.forbidden_payload_classes_absent",
+            }
+        )
     for field_path in _check_forbidden_field_names(data):
-        mismatches.append({"phase": "redaction_boundary", "code": "forbidden_payload_field", "field_path": field_path})
+        mismatches.append(
+            {
+                "phase": "redaction_boundary",
+                "code": "forbidden_payload_field",
+                "field_path": field_path,
+            }
+        )
     return mismatches
 
 
-def _case_local_diagnostics(case: Mapping[str, Any], *, validator_result: Any | None) -> list[dict[str, str]]:
+def _case_local_diagnostics(
+    case: Mapping[str, Any], *, validator_result: Any | None
+) -> list[dict[str, str]]:
     case_id = _safe(case.get("case_id"))
     expected_result = _safe(case.get("expected_result"))
     diagnostics: list[dict[str, str]] = []
@@ -222,7 +308,10 @@ def _case_local_diagnostics(case: Mapping[str, Any], *, validator_result: Any | 
                 )
             )
 
-    if isinstance(temporal, Mapping) and temporal.get("expected_temporal_result") in {"excluded_inactive", "wrong_edition"}:
+    if isinstance(temporal, Mapping) and temporal.get("expected_temporal_result") in {
+        "excluded_inactive",
+        "wrong_edition",
+    }:
         diagnostics.append(
             _diagnostic(
                 "temporal_filter_excluded",
@@ -235,7 +324,12 @@ def _case_local_diagnostics(case: Mapping[str, Any], *, validator_result: Any | 
         )
 
     if isinstance(candidates, list):
-        matching = [candidate for candidate in candidates if isinstance(candidate, Mapping) and candidate.get("selection_reason") == "ontology_and_temporal_match"]
+        matching = [
+            candidate
+            for candidate in candidates
+            if isinstance(candidate, Mapping)
+            and candidate.get("selection_reason") == "ontology_and_temporal_match"
+        ]
         if len(matching) > 1:
             diagnostics.append(
                 _diagnostic(
@@ -263,18 +357,32 @@ def _case_local_diagnostics(case: Mapping[str, Any], *, validator_result: Any | 
     return diagnostics
 
 
-def _final_result(case: Mapping[str, Any], validator_result: Any | None, local_diagnostics: list[Mapping[str, str]]) -> str:
+def _final_result(
+    case: Mapping[str, Any],
+    validator_result: Any | None,
+    local_diagnostics: list[Mapping[str, str]],
+) -> str:
     local_codes = {diagnostic["code"] for diagnostic in local_diagnostics}
     if "unsupported_ontology_filter" in local_codes:
         return "blocked_unsupported_filter"
-    if local_codes & {"temporal_filter_excluded", "ambiguous_candidate_set", "forbidden_payload_field"}:
+    if local_codes & {
+        "temporal_filter_excluded",
+        "ambiguous_candidate_set",
+        "forbidden_payload_field",
+    }:
         return "rejected"
     if validator_result is not None:
         return validator_result.result
     return "rejected"
 
 
-def _case_mismatch(case_id: str, expected_result: Any, actual_result: str, expected_codes: Any, actual_codes: list[str]) -> dict[str, Any]:
+def _case_mismatch(
+    case_id: str,
+    expected_result: Any,
+    actual_result: str,
+    expected_codes: Any,
+    actual_codes: list[str],
+) -> dict[str, Any]:
     return {
         "phase": "case_expectation",
         "case_id": case_id[:_MAX_SAFE_FIELD_LENGTH],
@@ -286,19 +394,44 @@ def _case_mismatch(case_id: str, expected_result: Any, actual_result: str, expec
     }
 
 
-def _safe_payload_errors(*, case_id: str, diagnostics: list[Mapping[str, Any]], known_codes: set[str]) -> list[dict[str, Any]]:
+def _safe_payload_errors(
+    *, case_id: str, diagnostics: list[Mapping[str, Any]], known_codes: set[str]
+) -> list[dict[str, Any]]:
     errors: list[dict[str, Any]] = []
     for index, payload in enumerate(diagnostics):
         extra_fields = sorted(set(payload) - _SAFE_DIAGNOSTIC_FIELDS)
         if extra_fields:
-            errors.append({"phase": "diagnostic_safety", "case_id": case_id, "code": "unsafe_diagnostic_field", "field_path": f"diagnostics[{index}]", "actual_codes": extra_fields})
+            errors.append(
+                {
+                    "phase": "diagnostic_safety",
+                    "case_id": case_id,
+                    "code": "unsafe_diagnostic_field",
+                    "field_path": f"diagnostics[{index}]",
+                    "actual_codes": extra_fields,
+                }
+            )
         diagnostic_code = payload.get("code")
         if diagnostic_code not in known_codes:
-            errors.append({"phase": "diagnostic_safety", "case_id": case_id, "code": "unknown_diagnostic_code", "field_path": f"diagnostics[{index}].code", "actual_codes": [_safe(diagnostic_code)]})
+            errors.append(
+                {
+                    "phase": "diagnostic_safety",
+                    "case_id": case_id,
+                    "code": "unknown_diagnostic_code",
+                    "field_path": f"diagnostics[{index}].code",
+                    "actual_codes": [_safe(diagnostic_code)],
+                }
+            )
         for field in ("field_path", "case_id", "rule", "remediation"):
             value = payload.get(field)
             if not isinstance(value, str) or len(value) > _MAX_SAFE_FIELD_LENGTH:
-                errors.append({"phase": "diagnostic_safety", "case_id": case_id, "code": "malformed_diagnostic_shape", "field_path": f"diagnostics[{index}].{field}"})
+                errors.append(
+                    {
+                        "phase": "diagnostic_safety",
+                        "case_id": case_id,
+                        "code": "malformed_diagnostic_shape",
+                        "field_path": f"diagnostics[{index}].{field}",
+                    }
+                )
     return errors
 
 
@@ -317,7 +450,12 @@ def run_proof(fixtures: Path) -> tuple[int, dict[str, Any]]:
 
     cases = data.get("cases")
     if not isinstance(cases, list):
-        return 2, _error_summary(fixtures=fixtures, phase="fixture_shape", code="malformed_fixture_shape", detail="cases must be a list")
+        return 2, _error_summary(
+            fixtures=fixtures,
+            phase="fixture_shape",
+            code="malformed_fixture_shape",
+            detail="cases must be a list",
+        )
 
     known_codes = set(validator.KNOWN_DIAGNOSTIC_CODES) | set(_PROOF_LOCAL_CODES)
     result_counts: Counter[str] = Counter()
@@ -326,12 +464,24 @@ def run_proof(fixtures: Path) -> tuple[int, dict[str, Any]]:
 
     for index, case in enumerate(cases):
         if not isinstance(case, Mapping):
-            mismatches.append({"phase": "fixture_shape", "case_id": f"<index:{index}>", "code": "malformed_fixture_shape", "field_path": f"cases[{index}]"})
+            mismatches.append(
+                {
+                    "phase": "fixture_shape",
+                    "case_id": f"<index:{index}>",
+                    "code": "malformed_fixture_shape",
+                    "field_path": f"cases[{index}]",
+                }
+            )
             continue
         case_id = _safe(case.get("case_id") or f"<index:{index}>")
         output = case.get("output")
-        validator_result = validator.validate_case(case, validator_fixture) if output is not None else None
-        local_diagnostics = cast(list[Mapping[str, str]], _case_local_diagnostics(case, validator_result=validator_result))
+        validator_result = (
+            validator.validate_case(case, validator_fixture) if output is not None else None
+        )
+        local_diagnostics = cast(
+            list[Mapping[str, str]],
+            _case_local_diagnostics(case, validator_result=validator_result),
+        )
         actual_codes = [diagnostic["code"] for diagnostic in local_diagnostics]
         if validator_result is not None:
             actual_codes.extend(_validator_codes(validator_result))
@@ -342,9 +492,17 @@ def run_proof(fixtures: Path) -> tuple[int, dict[str, Any]]:
         expected_result = case.get("expected_result")
         expected_codes = case.get("expected_diagnostic_codes")
         if actual_result != expected_result or actual_codes != expected_codes:
-            mismatches.append(_case_mismatch(case_id, expected_result, actual_result, expected_codes, actual_codes))
+            mismatches.append(
+                _case_mismatch(
+                    case_id, expected_result, actual_result, expected_codes, actual_codes
+                )
+            )
 
-        mismatches.extend(_safe_payload_errors(case_id=case_id, diagnostics=local_diagnostics, known_codes=known_codes))
+        mismatches.extend(
+            _safe_payload_errors(
+                case_id=case_id, diagnostics=local_diagnostics, known_codes=known_codes
+            )
+        )
 
     accepted_count = result_counts["accepted"] + result_counts["accepted_scoped_no_answer"]
     rejected_count = result_counts["rejected"]
@@ -369,8 +527,15 @@ def run_proof(fixtures: Path) -> tuple[int, dict[str, Any]]:
 
 
 def main(argv: Sequence[str] | None = None) -> int:
-    parser = argparse.ArgumentParser(description="Run the M020 S02 ontology GraphRAG proof over tracked fixtures.")
-    parser.add_argument("--fixtures", type=Path, default=DEFAULT_FIXTURES, help="Path to ontology GraphRAG proof fixture JSON.")
+    parser = argparse.ArgumentParser(
+        description="Run the M020 S02 ontology GraphRAG proof over tracked fixtures."
+    )
+    parser.add_argument(
+        "--fixtures",
+        type=Path,
+        default=DEFAULT_FIXTURES,
+        help="Path to ontology GraphRAG proof fixture JSON.",
+    )
     args = parser.parse_args(argv)
     fixtures = args.fixtures if args.fixtures.is_absolute() else ROOT / args.fixtures
     exit_code, summary = run_proof(fixtures)

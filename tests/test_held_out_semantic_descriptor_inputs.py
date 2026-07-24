@@ -10,7 +10,10 @@ from typing import Any
 
 ROOT = Path(__file__).resolve().parents[1]
 VERIFIER = ROOT / "scripts/verify-held-out-semantic-descriptor-inputs.py"
-MANIFEST = ROOT / "prd/research/ontology_architecture_requirements/fixtures/held_out_semantic_descriptor_inputs.json"
+MANIFEST = (
+    ROOT
+    / "prd/research/ontology_architecture_requirements/fixtures/held_out_semantic_descriptor_inputs.json"
+)
 
 
 def load_module(name: str = "held_out_descriptor_input_verifier") -> ModuleType:
@@ -27,7 +30,9 @@ def load_manifest() -> dict[str, Any]:
 
 def write_manifest(tmp_path: Path, payload: dict[str, Any]) -> Path:
     path = tmp_path / "held_out_descriptor_manifest.json"
-    path.write_text(json.dumps(payload, ensure_ascii=False, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    path.write_text(
+        json.dumps(payload, ensure_ascii=False, indent=2, sort_keys=True) + "\n", encoding="utf-8"
+    )
     return path
 
 
@@ -89,7 +94,7 @@ def test_manifest_shape_and_no_forbidden_fragments() -> None:
         "DESCQ-M025-",
         "DESCC-M025-",
         "raw_legal_text",
-        "query_text\"",
+        'query_text"',
         "provider_payloads_excluded",
         "embedding_vector",
         "expected_label",

@@ -53,7 +53,9 @@ def recent_exec_runs(gsd_dir: Path, limit: int) -> list[ExecRun]:
     exec_dir = gsd_dir / "exec"
     if not exec_dir.exists():
         return []
-    meta_files = sorted(exec_dir.glob("*.meta.json"), key=lambda path: path.stat().st_mtime, reverse=True)
+    meta_files = sorted(
+        exec_dir.glob("*.meta.json"), key=lambda path: path.stat().st_mtime, reverse=True
+    )
     runs: list[ExecRun] = []
     for meta_file in meta_files[:limit]:
         meta = load_json(meta_file)
@@ -77,7 +79,9 @@ def recent_exec_runs(gsd_dir: Path, limit: int) -> list[ExecRun]:
 
 
 def git_status() -> list[str]:
-    completed = subprocess.run(["git", "status", "--short"], text=True, capture_output=True, check=False)
+    completed = subprocess.run(
+        ["git", "status", "--short"], text=True, capture_output=True, check=False
+    )
     if completed.returncode != 0:
         return [f"git status failed: {completed.stderr.strip() or completed.stdout.strip()}"]
     return [line for line in completed.stdout.splitlines() if line.strip()]
@@ -132,7 +136,9 @@ def classify_exec_runs(runs: list[ExecRun]) -> dict[str, Any]:
     return {"successes": successes, "failures": failures, "total": len(runs)}
 
 
-def infer_recommendations(status_lines: list[str], exec_summary: dict[str, Any]) -> list[dict[str, str]]:
+def infer_recommendations(
+    status_lines: list[str], exec_summary: dict[str, Any]
+) -> list[dict[str, str]]:
     recommendations: list[dict[str, str]] = []
     skills = changed_skill_names(status_lines)
     if skills:
@@ -178,7 +184,9 @@ def infer_recommendations(status_lines: list[str], exec_summary: dict[str, Any])
     return recommendations
 
 
-def memory_candidates(recommendations: list[dict[str, str]], exec_summary: dict[str, Any]) -> list[dict[str, str]]:
+def memory_candidates(
+    recommendations: list[dict[str, str]], exec_summary: dict[str, Any]
+) -> list[dict[str, str]]:
     candidates: list[dict[str, str]] = []
     for rec in recommendations:
         if rec["kind"] in {"failure-learning", "meta-skill", "skill-verification"}:
@@ -203,7 +211,9 @@ def memory_candidates(recommendations: list[dict[str, str]], exec_summary: dict[
 def save_to_agentmemory(base_url: str, candidate: dict[str, str]) -> dict[str, Any]:
     url = f"{base_url.rstrip('/')}/agentmemory/remember"
     body = json.dumps(candidate).encode("utf-8")
-    request = urllib.request.Request(url, data=body, headers={"Content-Type": "application/json"}, method="POST")
+    request = urllib.request.Request(
+        url, data=body, headers={"Content-Type": "application/json"}, method="POST"
+    )
     secret = os.environ.get("AGENTMEMORY_SECRET")
     if secret:
         request.add_header("Authorization", f"Bearer {secret}")
@@ -237,7 +247,9 @@ def write_markdown(report: dict[str, Any], path: Path) -> None:
         lines.append(f"- `{candidate['type']}` — {candidate['content']}")
     lines.extend(["", "## Failed Exec Signals", ""])
     for failure in report["exec_summary"]["failures"]:
-        lines.append(f"- `{failure['id']}` `{failure.get('purpose', '')}` exit={failure.get('exit_code')} signals={failure.get('signals')}")
+        lines.append(
+            f"- `{failure['id']}` `{failure.get('purpose', '')}` exit={failure.get('exit_code')} signals={failure.get('signals')}"
+        )
     if not report["exec_summary"]["failures"]:
         lines.append("- none")
     lines.append("")
@@ -272,13 +284,23 @@ def analyze(args: argparse.Namespace) -> dict[str, Any]:
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="Analyze session logs and suggest skill/memory improvements")
+    parser = argparse.ArgumentParser(
+        description="Analyze session logs and suggest skill/memory improvements"
+    )
     parser.add_argument("--gsd-dir", type=Path, default=Path(".gsd"))
     parser.add_argument("--exec-limit", type=int, default=20)
-    parser.add_argument("--json-output", type=Path, default=Path(".gsd/session-learning-report.json"))
-    parser.add_argument("--markdown-output", type=Path, default=Path(".gsd/session-learning-report.md"))
-    parser.add_argument("--save-memory", action="store_true", help="Save generated memory candidates to agentmemory")
-    parser.add_argument("--agentmemory-url", default=os.environ.get("AGENTMEMORY_URL", "http://localhost:3111"))
+    parser.add_argument(
+        "--json-output", type=Path, default=Path(".gsd/session-learning-report.json")
+    )
+    parser.add_argument(
+        "--markdown-output", type=Path, default=Path(".gsd/session-learning-report.md")
+    )
+    parser.add_argument(
+        "--save-memory", action="store_true", help="Save generated memory candidates to agentmemory"
+    )
+    parser.add_argument(
+        "--agentmemory-url", default=os.environ.get("AGENTMEMORY_URL", "http://localhost:3111")
+    )
     args = parser.parse_args()
 
     report = analyze(args)

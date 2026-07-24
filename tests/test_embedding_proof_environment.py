@@ -35,11 +35,16 @@ def test_normalized_path_prefers_gsd_root_when_requested(tmp_path: Path) -> None
     artifact.parent.mkdir(parents=True)
     artifact.write_text("{}", encoding="utf-8")
 
-    assert normalized_path(artifact, root=root, prefer_gsd_root=True) == ".gsd/milestones/M001/proof.json"
+    assert (
+        normalized_path(artifact, root=root, prefer_gsd_root=True)
+        == ".gsd/milestones/M001/proof.json"
+    )
     assert normalized_path(artifact, root=root) == ".gsd/milestones/M001/proof.json"
 
 
-def test_unique_paths_expands_and_deduplicates_without_sorting(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+def test_unique_paths_expands_and_deduplicates_without_sorting(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
     home = tmp_path / "home"
     monkeypatch.setenv("HOME", str(home))
 
@@ -65,11 +70,17 @@ def test_huggingface_cache_roots_supports_s09_and_s10_shapes(tmp_path: Path) -> 
 
 
 def test_requirement_import_mapping_and_package_probe() -> None:
-    assert requirement_package_name("sentence-transformers>=2; python_version>'3.10'") == "sentence-transformers"
-    assert import_name_for_requirement(
-        "sentence-transformers>=2",
-        {"sentence-transformers": "sentence_transformers"},
-    ) == "sentence_transformers"
+    assert (
+        requirement_package_name("sentence-transformers>=2; python_version>'3.10'")
+        == "sentence-transformers"
+    )
+    assert (
+        import_name_for_requirement(
+            "sentence-transformers>=2",
+            {"sentence-transformers": "sentence_transformers"},
+        )
+        == "sentence_transformers"
+    )
 
     probe = probe_package_availability("definitely-law-nexus-missing-package>=1")
 

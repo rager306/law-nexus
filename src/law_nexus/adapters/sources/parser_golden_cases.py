@@ -76,7 +76,9 @@ def diagnostic(
     return payload
 
 
-def load_json_object(path: Path, *, root: Path) -> tuple[dict[str, Any] | None, list[dict[str, Any]]]:
+def load_json_object(
+    path: Path, *, root: Path
+) -> tuple[dict[str, Any] | None, list[dict[str, Any]]]:
     """Load a JSON object and report bounded diagnostics instead of raising."""
 
     if not path.exists():
@@ -167,7 +169,9 @@ def severity_counts(items: list[dict[str, Any]]) -> dict[str, int]:
     return dict(sorted(counts.items()))
 
 
-def source_artifact_inventory_core(source_artifact_paths: list[Path], *, root: Path) -> list[dict[str, Any]]:
+def source_artifact_inventory_core(
+    source_artifact_paths: list[Path], *, root: Path
+) -> list[dict[str, Any]]:
     """Return deterministic source artifact paths and file hashes."""
 
     inventory: list[dict[str, Any]] = []
@@ -180,6 +184,7 @@ def source_artifact_inventory_core(source_artifact_paths: list[Path], *, root: P
             item["sha256"] = sha256_file(path)
         inventory.append(item)
     return inventory
+
 
 def make_anchor_core(record: Any, artifact_path: Path, *, root: Path) -> dict[str, Any]:
     """Project one parser record into a bounded source anchor."""
@@ -214,6 +219,7 @@ def make_anchor_core(record: Any, artifact_path: Path, *, root: Path) -> dict[st
         )
     return anchor
 
+
 def build_cases(
     sources: dict[str, Any],
     *,
@@ -230,14 +236,23 @@ def build_cases(
 
     diagnostics: list[dict[str, Any]] = []
     documents: list[DocumentRecord] = sorted(sources["documents"], key=lambda record: record.id)
-    source_blocks: list[SourceBlockRecord] = sorted(sources["source_blocks"], key=lambda record: (record.document_id, record.order_index, record.id))
-    relation_candidates: list[RelationCandidateRecord] = sorted(sources["relation_candidates"], key=lambda record: record.id)
+    source_blocks: list[SourceBlockRecord] = sorted(
+        sources["source_blocks"],
+        key=lambda record: (record.document_id, record.order_index, record.id),
+    )
+    relation_candidates: list[RelationCandidateRecord] = sorted(
+        sources["relation_candidates"], key=lambda record: record.id
+    )
     staging_graph: dict[str, Any] = sources["staging_graph"]
     cases: list[dict[str, Any]] = []
 
-    preferred_block = next((record for record in source_blocks if record.id == "BLOCK-44-FZ-000"), None)
+    preferred_block = next(
+        (record for record in source_blocks if record.id == "BLOCK-44-FZ-000"), None
+    )
     if preferred_block is None:
-        preferred_block = next((record for record in source_blocks if record.document_id == "DOC-44-FZ"), None)
+        preferred_block = next(
+            (record for record in source_blocks if record.document_id == "DOC-44-FZ"), None
+        )
     if preferred_block is None and source_blocks:
         preferred_block = source_blocks[0]
     if preferred_block is None:
@@ -260,7 +275,9 @@ def build_cases(
                 "case_class": "evidence-present",
                 "description": "Bounded evidence exists for a tracked Garant ODT source block.",
                 "source_artifacts": [display_path(source_block_records_path, root=root)],
-                "anchors": [make_anchor_core(preferred_block, source_block_records_path, root=root)],
+                "anchors": [
+                    make_anchor_core(preferred_block, source_block_records_path, root=root)
+                ],
                 "expected": {
                     "answer_state": "evidence-present",
                     "matched": True,
@@ -308,12 +325,16 @@ def build_cases(
                     record_id=absent_target,
                     record_kind="result",
                     expected_state="no-answer",
-                    actual_state="no-answer" if absent_target not in known_ids else "target-present",
+                    actual_state="no-answer"
+                    if absent_target not in known_ids
+                    else "target-present",
                     message="Golden no-answer target is intentionally absent from tracked parser artifacts.",
                 )
             ],
             "non_authoritative": True,
-            "non_claims": ["No-answer behavior does not prove recall, parser completeness, or product retrieval quality."],
+            "non_claims": [
+                "No-answer behavior does not prove recall, parser completeness, or product retrieval quality."
+            ],
         }
     )
     if absent_target in known_ids:
@@ -332,7 +353,9 @@ def build_cases(
             )
         )
 
-    relation = next((record for record in relation_candidates if record.id == "REL-CONS-0001"), None)
+    relation = next(
+        (record for record in relation_candidates if record.id == "REL-CONS-0001"), None
+    )
     if relation is None:
         diagnostics.append(
             diagnostic(
@@ -370,7 +393,10 @@ def build_cases(
                 "case_id": "GT-003",
                 "case_class": "candidate-only",
                 "description": "Consultant relation candidate remains visible only as status:candidate.",
-                "source_artifacts": [display_path(relation_candidates_path, root=root), display_path(staging_graph_path, root=root)],
+                "source_artifacts": [
+                    display_path(relation_candidates_path, root=root),
+                    display_path(staging_graph_path, root=root),
+                ],
                 "anchors": [make_anchor_core(relation, relation_candidates_path, root=root)],
                 "expected": {
                     "answer_state": "candidate-only",
@@ -378,7 +404,11 @@ def build_cases(
                     "required_record_ids": [relation.id],
                     "required_relation_status": "candidate",
                     "required_staging_edge_key": relation.id,
-                    "forbidden_claims": ["relation correctness", "Consultant WordML legal authority", "product graph truth"],
+                    "forbidden_claims": [
+                        "relation correctness",
+                        "Consultant WordML legal authority",
+                        "product graph truth",
+                    ],
                 },
                 "diagnostics": [],
                 "non_authoritative": True,
@@ -386,7 +416,11 @@ def build_cases(
             }
         )
 
-    unresolved_ids = sorted(str(value) for value in staging_graph.get("unresolved_reference_ids", []) if isinstance(value, str))
+    unresolved_ids = sorted(
+        str(value)
+        for value in staging_graph.get("unresolved_reference_ids", [])
+        if isinstance(value, str)
+    )
     if not unresolved_ids:
         diagnostics.append(
             diagnostic(
@@ -421,7 +455,9 @@ def build_cases(
                             source_path=item.get("source_path"),
                             expected_state="unresolved-reference",
                             actual_state="unresolved-reference",
-                            message=str(item.get("message") or "Unresolved reference remains explicit."),
+                            message=str(
+                                item.get("message") or "Unresolved reference remains explicit."
+                            ),
                             field=item.get("field"),
                         )
                     )
@@ -465,7 +501,11 @@ def build_cases(
             for claim in record.non_claims
             if isinstance(claim, str) and claim.strip()
         }
-        | {claim for claim in staging_graph.get("non_claims", []) if isinstance(claim, str) and claim.strip()}
+        | {
+            claim
+            for claim in staging_graph.get("non_claims", [])
+            if isinstance(claim, str) and claim.strip()
+        }
     )
     if not non_claims:
         diagnostics.append(
@@ -500,7 +540,9 @@ def build_cases(
                         "record_id": "golden-test-contract",
                         "record_kind": "result",
                         "source_path": None,
-                        "source_sha256": sha256_file(contract_path) if contract_path.exists() else None,
+                        "source_sha256": sha256_file(contract_path)
+                        if contract_path.exists()
+                        else None,
                         "non_authoritative": True,
                     }
                 ],
@@ -564,6 +606,7 @@ def sort_evaluation_diagnostics(diagnostics: list[dict[str, Any]]) -> list[dict[
         ),
     )
 
+
 def evaluation_severity_counts(diagnostics: list[dict[str, Any]]) -> dict[str, int]:
     """Return deterministic severity counts with explicit zeroes."""
 
@@ -573,6 +616,7 @@ def evaluation_severity_counts(diagnostics: list[dict[str, Any]]) -> dict[str, i
         if severity in counts:
             counts[severity] += 1
     return counts
+
 
 def evaluation_loader_diagnostics(
     loader_diagnostics: list[dict[str, Any]], *, artifact_path: Path, root: Path
@@ -610,12 +654,20 @@ def load_evaluation_source_artifacts(
     """Load all bounded parser artifacts consumed by the evaluator."""
 
     diagnostics: list[dict[str, Any]] = []
-    documents_raw, document_diagnostics = load_jsonl_records(parser_dir / source_artifact_filenames["documents"])
-    source_blocks_raw, source_block_diagnostics = load_jsonl_records(parser_dir / source_artifact_filenames["source_blocks"])
-    relations_raw, relation_diagnostics = load_jsonl_records(parser_dir / source_artifact_filenames["relations"])
+    documents_raw, document_diagnostics = load_jsonl_records(
+        parser_dir / source_artifact_filenames["documents"]
+    )
+    source_blocks_raw, source_block_diagnostics = load_jsonl_records(
+        parser_dir / source_artifact_filenames["source_blocks"]
+    )
+    relations_raw, relation_diagnostics = load_jsonl_records(
+        parser_dir / source_artifact_filenames["relations"]
+    )
     diagnostics.extend(
         evaluation_loader_diagnostics(
-            document_diagnostics, artifact_path=parser_dir / source_artifact_filenames["documents"], root=root
+            document_diagnostics,
+            artifact_path=parser_dir / source_artifact_filenames["documents"],
+            root=root,
         )
     )
     diagnostics.extend(
@@ -627,7 +679,9 @@ def load_evaluation_source_artifacts(
     )
     diagnostics.extend(
         evaluation_loader_diagnostics(
-            relation_diagnostics, artifact_path=parser_dir / source_artifact_filenames["relations"], root=root
+            relation_diagnostics,
+            artifact_path=parser_dir / source_artifact_filenames["relations"],
+            root=root,
         )
     )
 
@@ -652,7 +706,9 @@ def load_evaluation_source_artifacts(
         diagnostics.extend(staging_diagnostics)
 
     documents = [record for record in documents_raw if isinstance(record, DocumentRecord)]
-    source_blocks = [record for record in source_blocks_raw if isinstance(record, SourceBlockRecord)]
+    source_blocks = [
+        record for record in source_blocks_raw if isinstance(record, SourceBlockRecord)
+    ]
     relations = [record for record in relations_raw if isinstance(record, RelationCandidateRecord)]
     record_ids = {record.id for record in [*documents, *source_blocks, *relations]}
     return {
@@ -662,6 +718,7 @@ def load_evaluation_source_artifacts(
         "staging_graph": staging_graph,
         "record_ids": record_ids,
     }, diagnostics
+
 
 def load_golden_cases_report(
     path: Path, *, golden_cases_schema_version: str, root: Path
@@ -726,6 +783,7 @@ def load_golden_cases_report(
             )
         )
     return report, diagnostics
+
 
 def require_case_mapping(
     golden_report: dict[str, Any], *, golden_path: Path, required_case_classes: set[str], root: Path
@@ -799,6 +857,7 @@ def require_case_mapping(
         )
     return cases_by_class, diagnostics
 
+
 def expected_list(case: dict[str, Any], key: str) -> list[str]:
     """Return a string list from a case expected payload."""
 
@@ -806,9 +865,14 @@ def expected_list(case: dict[str, Any], key: str) -> list[str]:
     value = expected.get(key) if isinstance(expected, dict) else None
     return [str(item) for item in value] if isinstance(value, list) else []
 
+
 def evaluate_evidence_present(
-    case: dict[str, Any], *, source_blocks: list[SourceBlockRecord], source_blocks_path: Path
-, root: Path) -> list[dict[str, Any]]:
+    case: dict[str, Any],
+    *,
+    source_blocks: list[SourceBlockRecord],
+    source_blocks_path: Path,
+    root: Path,
+) -> list[dict[str, Any]]:
     """Verify all required evidence record ids and bounded anchors remain present."""
 
     diagnostics: list[dict[str, Any]] = []
@@ -905,9 +969,10 @@ def evaluate_evidence_present(
                 )
     return diagnostics
 
+
 def evaluate_no_answer(
-    case: dict[str, Any], *, source_artifacts: dict[str, Any], parser_dir: Path
-, root: Path) -> list[dict[str, Any]]:
+    case: dict[str, Any], *, source_artifacts: dict[str, Any], parser_dir: Path, root: Path
+) -> list[dict[str, Any]]:
     """Verify the intentionally absent target remains absent and anchor-free."""
 
     diagnostics: list[dict[str, Any]] = []
@@ -915,9 +980,17 @@ def evaluate_no_answer(
     expected = cast(dict[str, Any], expected_value) if isinstance(expected_value, dict) else {}
     target_id = str(expected.get("missing_target_id") or "")
     inspected_paths = expected.get("inspected_artifact_paths")
-    artifact_path = inspected_paths[-1] if isinstance(inspected_paths, list) and inspected_paths else display_path(parser_dir, root=root)
+    artifact_path = (
+        inspected_paths[-1]
+        if isinstance(inspected_paths, list) and inspected_paths
+        else display_path(parser_dir, root=root)
+    )
     anchors = case.get("anchors")
-    actual_state = "no-answer" if target_id and target_id not in source_artifacts["record_ids"] and anchors == [] else "matched"
+    actual_state = (
+        "no-answer"
+        if target_id and target_id not in source_artifacts["record_ids"] and anchors == []
+        else "matched"
+    )
     if actual_state != "no-answer":
         diagnostics.append(
             diagnostic(
@@ -950,9 +1023,16 @@ def evaluate_no_answer(
         )
     return diagnostics
 
+
 def evaluate_candidate_only(
-    case: dict[str, Any], *, relations: list[RelationCandidateRecord], staging_graph: dict[str, Any], relations_path: Path, staging_path: Path
-, root: Path) -> list[dict[str, Any]]:
+    case: dict[str, Any],
+    *,
+    relations: list[RelationCandidateRecord],
+    staging_graph: dict[str, Any],
+    relations_path: Path,
+    staging_path: Path,
+    root: Path,
+) -> list[dict[str, Any]]:
     """Verify relation records remain candidate-only and keyed in staging."""
 
     diagnostics: list[dict[str, Any]] = []
@@ -962,7 +1042,9 @@ def evaluate_candidate_only(
     required_status = str(expected.get("required_relation_status") or "candidate")
     edge_key = str(expected.get("required_staging_edge_key") or "")
     keyed_edges = staging_graph.get("keyed_relation_edges")
-    keyed_edge_set = set(str(edge) for edge in keyed_edges) if isinstance(keyed_edges, list) else set()
+    keyed_edge_set = (
+        set(str(edge) for edge in keyed_edges) if isinstance(keyed_edges, list) else set()
+    )
     for record_id in expected_list(case, "required_record_ids"):
         record = by_id.get(record_id)
         if record is None:
@@ -1013,9 +1095,10 @@ def evaluate_candidate_only(
         )
     return diagnostics
 
+
 def evaluate_unresolved_reference(
-    case: dict[str, Any], *, staging_graph: dict[str, Any], staging_path: Path
-, root: Path) -> list[dict[str, Any]]:
+    case: dict[str, Any], *, staging_graph: dict[str, Any], staging_path: Path, root: Path
+) -> list[dict[str, Any]]:
     """Verify unresolved reference ids exactly match the staging graph ids."""
 
     diagnostics: list[dict[str, Any]] = []
@@ -1069,26 +1152,42 @@ def evaluate_unresolved_reference(
         )
     return diagnostics
 
+
 def evaluate_non_authoritative(
-    case: dict[str, Any], *, golden_report: dict[str, Any], source_artifacts: dict[str, Any], golden_path: Path
-, root: Path) -> list[dict[str, Any]]:
+    case: dict[str, Any],
+    *,
+    golden_report: dict[str, Any],
+    source_artifacts: dict[str, Any],
+    golden_path: Path,
+    root: Path,
+) -> list[dict[str, Any]]:
     """Verify blocked claims and non-claim fragments remain present."""
 
     diagnostics: list[dict[str, Any]] = []
     expected_value = case.get("expected")
     expected = cast(dict[str, Any], expected_value) if isinstance(expected_value, dict) else {}
-    required_claims = set(str(item) for item in expected.get("blocked_claims", []) if isinstance(item, str))
-    actual_claims = set(str(item) for item in golden_report.get("blocked_claims", []) if isinstance(item, str))
+    required_claims = set(
+        str(item) for item in expected.get("blocked_claims", []) if isinstance(item, str)
+    )
+    actual_claims = set(
+        str(item) for item in golden_report.get("blocked_claims", []) if isinstance(item, str)
+    )
     missing_claims = required_claims - actual_claims
     non_claims: list[str] = []
-    for record in [*source_artifacts["documents"], *source_artifacts["source_blocks"], *source_artifacts["relations"]]:
+    for record in [
+        *source_artifacts["documents"],
+        *source_artifacts["source_blocks"],
+        *source_artifacts["relations"],
+    ]:
         non_claims.extend(record.non_claims)
     staging_non_claims = source_artifacts["staging_graph"].get("non_claims")
     if isinstance(staging_non_claims, list):
         non_claims.extend(str(item) for item in staging_non_claims if isinstance(item, str))
     for golden_case in golden_report.get("cases", []):
         if isinstance(golden_case, dict) and isinstance(golden_case.get("non_claims"), list):
-            non_claims.extend(str(item) for item in golden_case["non_claims"] if isinstance(item, str))
+            non_claims.extend(
+                str(item) for item in golden_case["non_claims"] if isinstance(item, str)
+            )
     non_claim_text = "\n".join([*non_claims, *actual_claims]).casefold()
     for claim in sorted(missing_claims):
         diagnostics.append(
@@ -1138,6 +1237,7 @@ def evaluate_non_authoritative(
         )
     return diagnostics
 
+
 def evaluate_cases(
     golden_report: dict[str, Any],
     golden_path: Path,
@@ -1152,9 +1252,14 @@ def evaluate_cases(
 ) -> dict[str, Any]:
     """Evaluate the golden cases and return the stdout JSON contract."""
 
-    source_artifacts, diagnostics = load_evaluation_source_artifacts(parser_dir, source_artifact_filenames=source_artifact_filenames, root=root)
+    source_artifacts, diagnostics = load_evaluation_source_artifacts(
+        parser_dir, source_artifact_filenames=source_artifact_filenames, root=root
+    )
     cases_by_class, case_mapping_diagnostics = require_case_mapping(
-        golden_report, golden_path=golden_path, required_case_classes=required_case_classes, root=root
+        golden_report,
+        golden_path=golden_path,
+        required_case_classes=required_case_classes,
+        root=root,
     )
     diagnostics.extend(case_mapping_diagnostics)
 
@@ -1172,7 +1277,14 @@ def evaluate_cases(
             )
         )
     if "no-answer" in cases_by_class:
-        diagnostics.extend(evaluate_no_answer(cases_by_class["no-answer"], source_artifacts=source_artifacts, parser_dir=parser_dir, root=root))
+        diagnostics.extend(
+            evaluate_no_answer(
+                cases_by_class["no-answer"],
+                source_artifacts=source_artifacts,
+                parser_dir=parser_dir,
+                root=root,
+            )
+        )
     if "candidate-only" in cases_by_class:
         diagnostics.extend(
             evaluate_candidate_only(
@@ -1211,8 +1323,12 @@ def evaluate_cases(
         "generated_by": generated_by,
         "status": "fail" if counts["error"] else "pass",
         "non_authoritative": golden_report.get("non_authoritative") is True,
-        "blocked_claims": sorted(str(item) for item in golden_report.get("blocked_claims", []) if isinstance(item, str)),
-        "case_count": len(golden_report.get("cases", [])) if isinstance(golden_report.get("cases"), list) else 0,
+        "blocked_claims": sorted(
+            str(item) for item in golden_report.get("blocked_claims", []) if isinstance(item, str)
+        ),
+        "case_count": len(golden_report.get("cases", []))
+        if isinstance(golden_report.get("cases"), list)
+        else 0,
         "evaluated_case_count": len(cases_by_class),
         "case_class_counts": {case_class: 1 for case_class in sorted(cases_by_class)},
         "severity_counts": counts,
@@ -1221,6 +1337,7 @@ def evaluate_cases(
         "info_count": counts["info"],
         "diagnostics": sorted_diagnostics,
     }
+
 
 def build_evaluation_result(
     *,

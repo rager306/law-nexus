@@ -136,12 +136,19 @@ def result_payload(tmp_path: Path) -> dict[str, Any]:
     }
 
 
-def write_artifacts(tmp_path: Path, *, contract: dict[str, Any] | None = None, retrieval: dict[str, Any] | None = None) -> tuple[Path, Path, Path, Path]:
+def write_artifacts(
+    tmp_path: Path,
+    *,
+    contract: dict[str, Any] | None = None,
+    retrieval: dict[str, Any] | None = None,
+) -> tuple[Path, Path, Path, Path]:
     contract_path = tmp_path / "contract.json"
     markdown_path = tmp_path / "contract.md"
     smoke_path = tmp_path / "smoke.json"
     retrieval_path = tmp_path / "retrieval.json"
-    contract_path.write_text(json.dumps(contract_payload() if contract is None else contract), encoding="utf-8")
+    contract_path.write_text(
+        json.dumps(contract_payload() if contract is None else contract), encoding="utf-8"
+    )
     markdown_path.write_text("# Contract\n\nManaged APIs are excluded.\n", encoding="utf-8")
     payload = result_payload(tmp_path) if retrieval is None else retrieval
     smoke_path.write_text(json.dumps(payload), encoding="utf-8")
@@ -149,9 +156,17 @@ def write_artifacts(tmp_path: Path, *, contract: dict[str, Any] | None = None, r
     return contract_path, markdown_path, smoke_path, retrieval_path
 
 
-def run_verify(tmp_path: Path, *, contract: dict[str, Any] | None = None, retrieval: dict[str, Any] | None = None, write_recommendation: bool = False) -> Any:
+def run_verify(
+    tmp_path: Path,
+    *,
+    contract: dict[str, Any] | None = None,
+    retrieval: dict[str, Any] | None = None,
+    write_recommendation: bool = False,
+) -> Any:
     verifier = load_verifier()
-    contract_path, markdown_path, smoke_path, retrieval_path = write_artifacts(tmp_path, contract=contract, retrieval=retrieval)
+    contract_path, markdown_path, smoke_path, retrieval_path = write_artifacts(
+        tmp_path, contract=contract, retrieval=retrieval
+    )
     return verifier.verify(
         contract_path=contract_path,
         markdown_path=markdown_path,
@@ -179,7 +194,9 @@ def test_accepts_complete_bounded_results_and_writes_recommendation(tmp_path: Pa
     markdown = markdown_path.read_text(encoding="utf-8")
     assert result.ok is True
     assert contract["final_recommendation"]["selected_practical_baseline"] == "deepvk/USER-bge-m3"
-    assert contract["final_recommendation"]["quality_challenger"] == "ai-sage/Giga-Embeddings-instruct"
+    assert (
+        contract["final_recommendation"]["quality_challenger"] == "ai-sage/Giga-Embeddings-instruct"
+    )
     assert contract["final_recommendation"]["legal_quality_claim"].startswith("not-proven")
     assert "Ты на 100% уверен" in markdown
     assert "bounded-recommendation-blocked-environment" in markdown
@@ -216,7 +233,9 @@ def test_rejects_forbidden_secret_terms(tmp_path: Path) -> None:
 
 def test_rejects_missing_primary_candidate(tmp_path: Path) -> None:
     contract = contract_payload()
-    contract["candidates"] = [candidate for candidate in contract["candidates"] if candidate["id"] != "deepvk/USER-bge-m3"]
+    contract["candidates"] = [
+        candidate for candidate in contract["candidates"] if candidate["id"] != "deepvk/USER-bge-m3"
+    ]
 
     result = run_verify(tmp_path, contract=contract)
 

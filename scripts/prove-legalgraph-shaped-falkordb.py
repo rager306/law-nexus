@@ -99,7 +99,10 @@ def write_json(path: Path, payload: Mapping[str, Any]) -> str:
     safe_payload = cast("Mapping[str, Any]", sanitize(dict(payload)))
     assert_safe_payload(safe_payload)
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(json.dumps(safe_payload, ensure_ascii=False, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    path.write_text(
+        json.dumps(safe_payload, ensure_ascii=False, indent=2, sort_keys=True) + "\n",
+        encoding="utf-8",
+    )
     return normalized_path(path)
 
 
@@ -240,7 +243,10 @@ def build_proof(
             expected,
             observed,
             duration_ms,
-            {"root_cause": "unexpected-result", "detail": "Observed query result did not match expected synthetic contract."},
+            {
+                "root_cause": "unexpected-result",
+                "detail": "Observed query result did not match expected synthetic contract.",
+            },
         )
     return QueryProof(
         proof_id,
@@ -311,7 +317,10 @@ def run_query_proofs(graph: FalkorGraph) -> list[QueryProof]:
         build_proof(
             "legalgraph-authority-chain",
             "authority-act-article-traversal",
-            {"authority_id": "authority:minfin", "article_ids": ["article:44fz:1", "article:44fz:2"]},
+            {
+                "authority_id": "authority:minfin",
+                "article_ids": ["article:44fz:1", "article:44fz:2"],
+            },
             {"authority_id": authority_id, "article_ids": sorted(article_ids)},
             duration,
         )
@@ -402,7 +411,11 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--graph-name", default=f"legalgraph_shape_{uuid.uuid4().hex[:10]}")
     parser.add_argument("--output-dir", type=Path, default=DEFAULT_OUTPUT_DIR)
     parser.add_argument("--readiness-timeout", type=int, default=20)
-    parser.add_argument("--keep-graph", action="store_true", help="Do not cleanup synthetic graph nodes after proof.")
+    parser.add_argument(
+        "--keep-graph",
+        action="store_true",
+        help="Do not cleanup synthetic graph nodes after proof.",
+    )
     return parser.parse_args()
 
 
@@ -478,7 +491,9 @@ def main() -> int:
     }
     json_path = write_json(output_dir / "LEGALGRAPH-SHAPED-FALKORDB-PROOF.json", payload)
     markdown_path = write_markdown(output_dir / "LEGALGRAPH-SHAPED-FALKORDB-PROOF.md", payload)
-    print(f"LegalGraph-shaped FalkorDB proof {payload['status']}. json={json_path} markdown={markdown_path}")
+    print(
+        f"LegalGraph-shaped FalkorDB proof {payload['status']}. json={json_path} markdown={markdown_path}"
+    )
     return 0 if payload["status"] == "confirmed-runtime" else 1
 
 

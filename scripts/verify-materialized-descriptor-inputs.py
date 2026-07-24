@@ -12,7 +12,10 @@ from pathlib import Path
 from typing import Any
 
 ROOT = Path(__file__).resolve().parents[1]
-DEFAULT_MANIFEST = ROOT / "prd/research/ontology_architecture_requirements/fixtures/materialized_descriptor_inputs.json"
+DEFAULT_MANIFEST = (
+    ROOT
+    / "prd/research/ontology_architecture_requirements/fixtures/materialized_descriptor_inputs.json"
+)
 SCHEMA_VERSION = "materialized-descriptor-inputs/v1"
 REPRESENTATION_KIND = "safe_materialized_descriptor_v1"
 DERIVATION_FIELDS = {
@@ -211,14 +214,18 @@ def validate_allowed_enums(allowed: Any) -> dict[str, set[str]]:
     return normalized
 
 
-def validate_descriptors(descriptors: Any, tokens: Any, allowed: Mapping[str, set[str]], input_id: str) -> None:
+def validate_descriptors(
+    descriptors: Any, tokens: Any, allowed: Mapping[str, set[str]], input_id: str
+) -> None:
     if not isinstance(descriptors, Mapping) or set(descriptors) != DERIVATION_FIELDS:
         raise MaterializedDescriptorInputError(f"descriptor field mismatch: {input_id}")
     expected_tokens: list[str] = []
     for field in sorted(DERIVATION_FIELDS):
         value = descriptors.get(field)
         if not isinstance(value, str) or value not in allowed[field]:
-            raise MaterializedDescriptorInputError(f"descriptor enum not allowed: {input_id}: {field}")
+            raise MaterializedDescriptorInputError(
+                f"descriptor enum not allowed: {input_id}: {field}"
+            )
         token = f"{field}:{value}"
         if not SAFE_TOKEN_RE.fullmatch(token):
             raise MaterializedDescriptorInputError(f"unsafe descriptor token: {input_id}: {field}")
@@ -227,7 +234,12 @@ def validate_descriptors(descriptors: Any, tokens: Any, allowed: Mapping[str, se
         raise MaterializedDescriptorInputError(f"descriptor token mismatch: {input_id}")
 
 
-def validate_common_descriptor(item: Mapping[str, Any], allowed: Mapping[str, set[str]], materialized_refs: set[str], anchor_refs: set[str]) -> None:
+def validate_common_descriptor(
+    item: Mapping[str, Any],
+    allowed: Mapping[str, set[str]],
+    materialized_refs: set[str],
+    anchor_refs: set[str],
+) -> None:
     input_id = str(item.get("descriptor_input_id"))
     if not SAFE_DESCRIPTOR_ID_RE.fullmatch(input_id):
         raise MaterializedDescriptorInputError(f"unsafe descriptor id: {input_id}")
@@ -239,7 +251,9 @@ def validate_common_descriptor(item: Mapping[str, Any], allowed: Mapping[str, se
         raise MaterializedDescriptorInputError(f"representation mismatch: {input_id}")
     materialized_ref = item.get("materialized_candidate_ref")
     anchor_ref = item.get("source_anchor_ref")
-    if not isinstance(materialized_ref, str) or not SAFE_MATERIALIZED_REF_RE.fullmatch(materialized_ref):
+    if not isinstance(materialized_ref, str) or not SAFE_MATERIALIZED_REF_RE.fullmatch(
+        materialized_ref
+    ):
         raise MaterializedDescriptorInputError(f"unsafe materialized ref: {input_id}")
     if not isinstance(anchor_ref, str) or not SAFE_ANCHOR_REF_RE.fullmatch(anchor_ref):
         raise MaterializedDescriptorInputError(f"unsafe source anchor ref: {input_id}")
@@ -247,29 +261,41 @@ def validate_common_descriptor(item: Mapping[str, Any], allowed: Mapping[str, se
         raise MaterializedDescriptorInputError(f"duplicate descriptor source ref: {input_id}")
     materialized_refs.add(materialized_ref)
     anchor_refs.add(anchor_ref)
-    if not isinstance(item.get("source_anchor_sha256"), str) or not SAFE_HASH_RE.fullmatch(item["source_anchor_sha256"]):
+    if not isinstance(item.get("source_anchor_sha256"), str) or not SAFE_HASH_RE.fullmatch(
+        item["source_anchor_sha256"]
+    ):
         raise MaterializedDescriptorInputError(f"source anchor hash mismatch: {input_id}")
     if item.get("non_authoritative") is not True:
         raise MaterializedDescriptorInputError(f"non-authoritative marker missing: {input_id}")
     validate_descriptors(item.get("descriptors"), item.get("descriptor_tokens"), allowed, input_id)
 
 
-def validate_query(item: Any, allowed: Mapping[str, set[str]], materialized_refs: set[str], anchor_refs: set[str]) -> None:
+def validate_query(
+    item: Any, allowed: Mapping[str, set[str]], materialized_refs: set[str], anchor_refs: set[str]
+) -> None:
     if not isinstance(item, Mapping) or set(item) != ALLOWED_QUERY_FIELDS:
         raise MaterializedDescriptorInputError("query descriptor field mismatch")
     validate_common_descriptor(item, allowed, materialized_refs, anchor_refs)
-    if not isinstance(item.get("query_hash_ref"), str) or not SAFE_HASH_RE.fullmatch(item["query_hash_ref"]):
+    if not isinstance(item.get("query_hash_ref"), str) or not SAFE_HASH_RE.fullmatch(
+        item["query_hash_ref"]
+    ):
         raise MaterializedDescriptorInputError("query hash ref mismatch")
 
 
-def validate_candidate(item: Any, allowed: Mapping[str, set[str]], materialized_refs: set[str], anchor_refs: set[str]) -> None:
+def validate_candidate(
+    item: Any, allowed: Mapping[str, set[str]], materialized_refs: set[str], anchor_refs: set[str]
+) -> None:
     if not isinstance(item, Mapping) or set(item) != ALLOWED_CANDIDATE_FIELDS:
         raise MaterializedDescriptorInputError("candidate descriptor field mismatch")
     validate_common_descriptor(item, allowed, materialized_refs, anchor_refs)
-    if not isinstance(item.get("candidate_id"), str) or not SAFE_CANDIDATE_ID_RE.fullmatch(item["candidate_id"]):
+    if not isinstance(item.get("candidate_id"), str) or not SAFE_CANDIDATE_ID_RE.fullmatch(
+        item["candidate_id"]
+    ):
         raise MaterializedDescriptorInputError("candidate id mismatch")
     source_record_ids = item.get("source_record_ids")
-    if not isinstance(source_record_ids, list) or source_record_ids != [item.get("materialized_candidate_ref")]:
+    if not isinstance(source_record_ids, list) or source_record_ids != [
+        item.get("materialized_candidate_ref")
+    ]:
         raise MaterializedDescriptorInputError("source record id mismatch")
 
 
@@ -279,29 +305,47 @@ def verify_manifest(path: Path) -> dict[str, Any]:
     unexpected = set(manifest) - ALLOWED_ROOT_FIELDS
     if unexpected:
         raise MaterializedDescriptorInputError(f"unexpected root fields: {sorted(unexpected)}")
-    if manifest.get("schema_version") != SCHEMA_VERSION or manifest.get("representation_kind") != REPRESENTATION_KIND:
+    if (
+        manifest.get("schema_version") != SCHEMA_VERSION
+        or manifest.get("representation_kind") != REPRESENTATION_KIND
+    ):
         raise MaterializedDescriptorInputError("schema or representation mismatch")
     if manifest.get("milestone_id") != "M027-vxdy7c" or manifest.get("slice_id") != "S03":
         raise MaterializedDescriptorInputError("milestone or slice marker mismatch")
     if set(manifest.get("derivation_fields", [])) != DERIVATION_FIELDS:
         raise MaterializedDescriptorInputError("derivation field mismatch")
     source = manifest.get("materialization_source")
-    if not isinstance(source, str) or sha256_path(repo_path(source)) != manifest.get("materialization_source_sha256"):
+    if not isinstance(source, str) or sha256_path(repo_path(source)) != manifest.get(
+        "materialization_source_sha256"
+    ):
         raise MaterializedDescriptorInputError("materialization source hash mismatch")
     summary = manifest.get("materialization_verification_summary")
-    if not isinstance(summary, Mapping) or summary.get("status") != "ok" or summary.get("artifact_status") != "ok":
+    if (
+        not isinstance(summary, Mapping)
+        or summary.get("status") != "ok"
+        or summary.get("artifact_status") != "ok"
+    ):
         raise MaterializedDescriptorInputError("materialization verification summary mismatch")
     redaction = manifest.get("redaction")
-    if not isinstance(redaction, Mapping) or set(redaction) != REQUIRED_REDACTION or any(value is not True for value in redaction.values()):
+    if (
+        not isinstance(redaction, Mapping)
+        or set(redaction) != REQUIRED_REDACTION
+        or any(value is not True for value in redaction.values())
+    ):
         raise MaterializedDescriptorInputError("redaction flags mismatch")
-    if manifest.get("r035_non_validation_declared") is not True or manifest.get("r038_review_required") is not True:
+    if (
+        manifest.get("r035_non_validation_declared") is not True
+        or manifest.get("r038_review_required") is not True
+    ):
         raise MaterializedDescriptorInputError("lifecycle boundary marker missing")
     allowed = validate_allowed_enums(manifest.get("allowed_descriptor_fields"))
     queries = manifest.get("query_descriptors")
     candidates = manifest.get("candidate_descriptors")
     if not isinstance(queries, list) or not isinstance(candidates, list):
         raise MaterializedDescriptorInputError("descriptor arrays missing")
-    if manifest.get("query_descriptor_count") != len(queries) or manifest.get("candidate_descriptor_count") != len(candidates):
+    if manifest.get("query_descriptor_count") != len(queries) or manifest.get(
+        "candidate_descriptor_count"
+    ) != len(candidates):
         raise MaterializedDescriptorInputError("descriptor count mismatch")
     query_refs: set[str] = set()
     query_anchors: set[str] = set()
@@ -340,7 +384,13 @@ def main(argv: Sequence[str] | None = None) -> int:
     try:
         result = verify_manifest(args.manifest)
     except MaterializedDescriptorInputError as exc:
-        print(json.dumps({"status": "failed", "diagnostic": str(exc), "non_authoritative": True}, ensure_ascii=False, sort_keys=True))
+        print(
+            json.dumps(
+                {"status": "failed", "diagnostic": str(exc), "non_authoritative": True},
+                ensure_ascii=False,
+                sort_keys=True,
+            )
+        )
         return 1
     print(json.dumps(result, ensure_ascii=False, sort_keys=True))
     return 0

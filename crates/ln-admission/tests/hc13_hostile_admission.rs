@@ -59,7 +59,11 @@ fn hostile_vendor_inferences_are_rejected() {
         let mut request = req(0);
         request.forbidden_inference = inference;
         let result = svc.decide(request);
-        assert_eq!(result.decision, AdmissionDecision::Rejected, "{inference:?}");
+        assert_eq!(
+            result.decision,
+            AdmissionDecision::Rejected,
+            "{inference:?}"
+        );
         assert!(!result.vendor_number_used);
         assert!(!result.legal_delay_inferred);
         assert!(!result.completeness_inferred);

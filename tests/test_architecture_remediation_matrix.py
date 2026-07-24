@@ -14,7 +14,9 @@ MATRIX_MD_PATH = ROOT / "prd/architecture/remediation_matrix.md"
 
 
 def load_generator() -> ModuleType:
-    spec = importlib.util.spec_from_file_location("generate_architecture_remediation_matrix", SCRIPT_PATH)
+    spec = importlib.util.spec_from_file_location(
+        "generate_architecture_remediation_matrix", SCRIPT_PATH
+    )
     assert spec is not None
     module = importlib.util.module_from_spec(spec)
     assert spec.loader is not None
@@ -143,7 +145,10 @@ def test_build_matrix_fails_when_report_has_unmapped_gate() -> None:
 def test_build_matrix_fails_when_r04_recommendation_is_unmapped() -> None:
     generator = load_generator()
     report = {"unresolved_proof_gates": [{"id": gate_id} for gate_id in generator.GATE_DECISIONS]}
-    items = {gate_id: {"id": gate_id, "source_anchors": [{"path": "prd/03_PRD.md"}]} for gate_id in generator.GATE_DECISIONS}
+    items = {
+        gate_id: {"id": gate_id, "source_anchors": [{"path": "prd/03_PRD.md"}]}
+        for gate_id in generator.GATE_DECISIONS
+    }
     recommendations = {"items": [{"id": "R04-REC-999"}]}
 
     try:

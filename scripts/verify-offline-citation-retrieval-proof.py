@@ -35,7 +35,17 @@ _SAFE_DIAGNOSTIC_FIELDS = frozenset(
         "fixture_artifact",
     }
 )
-_BOUNDED_FIELDS = frozenset({"case_id", "query_id", "candidate_id", "field_path", "proof_artifact", "retrieval_output_id", "scope_id"})
+_BOUNDED_FIELDS = frozenset(
+    {
+        "case_id",
+        "query_id",
+        "candidate_id",
+        "field_path",
+        "proof_artifact",
+        "retrieval_output_id",
+        "scope_id",
+    }
+)
 _MAX_SAFE_FIELD_LENGTH = 180
 
 
@@ -56,7 +66,9 @@ def _bounded_path(path: Path) -> str:
         return str(path)[:_MAX_SAFE_FIELD_LENGTH]
 
 
-def _error_summary(*, fixtures: Path, phase: str, code: str, detail: str | None = None) -> dict[str, Any]:
+def _error_summary(
+    *, fixtures: Path, phase: str, code: str, detail: str | None = None
+) -> dict[str, Any]:
     error: dict[str, Any] = {
         "phase": phase,
         "code": code,
@@ -83,26 +95,74 @@ def _load_json(path: Path) -> tuple[int, dict[str, Any] | None, dict[str, Any] |
     try:
         data = json.loads(path.read_text(encoding="utf-8"))
     except FileNotFoundError as exc:
-        return 2, None, _error_summary(fixtures=path, phase="fixture_load", code="fixture_not_found", detail=str(exc))
+        return (
+            2,
+            None,
+            _error_summary(
+                fixtures=path, phase="fixture_load", code="fixture_not_found", detail=str(exc)
+            ),
+        )
     except json.JSONDecodeError as exc:
-        return 2, None, _error_summary(fixtures=path, phase="fixture_load", code="malformed_fixture_json", detail=exc.msg)
+        return (
+            2,
+            None,
+            _error_summary(
+                fixtures=path, phase="fixture_load", code="malformed_fixture_json", detail=exc.msg
+            ),
+        )
     except OSError as exc:
-        return 2, None, _error_summary(fixtures=path, phase="fixture_load", code="fixture_load_error", detail=str(exc))
+        return (
+            2,
+            None,
+            _error_summary(
+                fixtures=path, phase="fixture_load", code="fixture_load_error", detail=str(exc)
+            ),
+        )
     if not isinstance(data, dict):
-        return 2, None, _error_summary(fixtures=path, phase="fixture_shape", code="malformed_output_shape", detail="fixture root must be an object")
+        return (
+            2,
+            None,
+            _error_summary(
+                fixtures=path,
+                phase="fixture_shape",
+                code="malformed_output_shape",
+                detail="fixture root must be an object",
+            ),
+        )
     return 0, data, None
 
 
-def _build_validator_fixture(validator: ModuleType, data: Mapping[str, Any], fixtures: Path) -> tuple[int, Any | None, dict[str, Any] | None]:
+def _build_validator_fixture(
+    validator: ModuleType, data: Mapping[str, Any], fixtures: Path
+) -> tuple[int, Any | None, dict[str, Any] | None]:
     graph = data.get("derived_fixture_graph")
     if not isinstance(graph, Mapping):
-        return 2, None, _error_summary(fixtures=fixtures, phase="fixture_shape", code="malformed_output_shape", detail="derived_fixture_graph must be an object")
+        return (
+            2,
+            None,
+            _error_summary(
+                fixtures=fixtures,
+                phase="fixture_shape",
+                code="malformed_output_shape",
+                detail="derived_fixture_graph must be an object",
+            ),
+        )
     try:
         fixture = validator.build_fixture(
-            {"fixture_graph": graph}, fixture_artifact=str(data.get("fixture_artifact") or _bounded_path(fixtures))
+            {"fixture_graph": graph},
+            fixture_artifact=str(data.get("fixture_artifact") or _bounded_path(fixtures)),
         )
     except ValueError as exc:
-        return 2, None, _error_summary(fixtures=fixtures, phase="fixture_shape", code="malformed_output_shape", detail=str(exc))
+        return (
+            2,
+            None,
+            _error_summary(
+                fixtures=fixtures,
+                phase="fixture_shape",
+                code="malformed_output_shape",
+                detail=str(exc),
+            ),
+        )
     return 0, fixture, None
 
 
@@ -122,10 +182,16 @@ def _offline_diagnostic_payloads(case: Mapping[str, Any]) -> list[Mapping[str, A
 
 
 def _offline_codes(case: Mapping[str, Any]) -> list[str]:
-    return [str(diagnostic.get("code")) for diagnostic in _offline_diagnostic_payloads(case) if isinstance(diagnostic.get("code"), str)]
+    return [
+        str(diagnostic.get("code"))
+        for diagnostic in _offline_diagnostic_payloads(case)
+        if isinstance(diagnostic.get("code"), str)
+    ]
 
 
-def _safe_payload_errors(*, case_id: str, payloads: Sequence[Mapping[str, Any]], known_codes: set[str]) -> list[dict[str, Any]]:
+def _safe_payload_errors(
+    *, case_id: str, payloads: Sequence[Mapping[str, Any]], known_codes: set[str]
+) -> list[dict[str, Any]]:
     errors: list[dict[str, Any]] = []
     for index, payload in enumerate(payloads):
         extra_fields = sorted(set(payload) - _SAFE_DIAGNOSTIC_FIELDS)
@@ -152,7 +218,9 @@ def _safe_payload_errors(*, case_id: str, payloads: Sequence[Mapping[str, Any]],
             )
         for field in _BOUNDED_FIELDS:
             value = payload.get(field)
-            if value is not None and (not isinstance(value, str) or len(value) > _MAX_SAFE_FIELD_LENGTH):
+            if value is not None and (
+                not isinstance(value, str) or len(value) > _MAX_SAFE_FIELD_LENGTH
+            ):
                 errors.append(
                     {
                         "phase": "diagnostic_safety",
@@ -171,22 +239,76 @@ def _selection_shape_errors(case: Mapping[str, Any], *, index: int) -> list[dict
     candidates = case.get("candidates")
     expected_selection = case.get("expected_selection_result")
     if expected_selection not in _ALLOWED_SELECTION_RESULTS:
-        errors.append({"phase": "selection_shape", "case_id": case_id, "code": "malformed_output_shape", "field_path": "expected_selection_result"})
+        errors.append(
+            {
+                "phase": "selection_shape",
+                "case_id": case_id,
+                "code": "malformed_output_shape",
+                "field_path": "expected_selection_result",
+            }
+        )
     if not isinstance(query, Mapping):
-        errors.append({"phase": "selection_shape", "case_id": case_id, "code": "malformed_output_shape", "field_path": "query"})
+        errors.append(
+            {
+                "phase": "selection_shape",
+                "case_id": case_id,
+                "code": "malformed_output_shape",
+                "field_path": "query",
+            }
+        )
     if not isinstance(candidates, list):
-        errors.append({"phase": "selection_shape", "case_id": case_id, "code": "malformed_output_shape", "field_path": "candidates"})
+        errors.append(
+            {
+                "phase": "selection_shape",
+                "case_id": case_id,
+                "code": "malformed_output_shape",
+                "field_path": "candidates",
+            }
+        )
         return errors
 
     output = case.get("output")
-    selected_candidates = [candidate for candidate in candidates if isinstance(candidate, Mapping) and isinstance(candidate.get("validator_output"), Mapping)]
+    selected_candidates = [
+        candidate
+        for candidate in candidates
+        if isinstance(candidate, Mapping) and isinstance(candidate.get("validator_output"), Mapping)
+    ]
     if expected_selection == "selected" and len(selected_candidates) != 1:
-        errors.append({"phase": "selection_shape", "case_id": case_id, "code": "expectation_mismatch", "field_path": "candidates"})
+        errors.append(
+            {
+                "phase": "selection_shape",
+                "case_id": case_id,
+                "code": "expectation_mismatch",
+                "field_path": "candidates",
+            }
+        )
     if expected_selection == "scoped_no_answer":
-        if candidates or not isinstance(output, Mapping) or output.get("output_kind") != "scoped_no_answer":
-            errors.append({"phase": "selection_shape", "case_id": case_id, "code": "unsafe_no_answer_shape", "field_path": "output"})
-    if expected_selection == "rejected" and case.get("expected_validator_result") is None and isinstance(output, Mapping):
-        errors.append({"phase": "selection_shape", "case_id": case_id, "code": "expectation_mismatch", "field_path": "output"})
+        if (
+            candidates
+            or not isinstance(output, Mapping)
+            or output.get("output_kind") != "scoped_no_answer"
+        ):
+            errors.append(
+                {
+                    "phase": "selection_shape",
+                    "case_id": case_id,
+                    "code": "unsafe_no_answer_shape",
+                    "field_path": "output",
+                }
+            )
+    if (
+        expected_selection == "rejected"
+        and case.get("expected_validator_result") is None
+        and isinstance(output, Mapping)
+    ):
+        errors.append(
+            {
+                "phase": "selection_shape",
+                "case_id": case_id,
+                "code": "expectation_mismatch",
+                "field_path": "output",
+            }
+        )
     return errors
 
 
@@ -202,8 +324,12 @@ def _case_mismatch(
         "case_id": case_id[:_MAX_SAFE_FIELD_LENGTH],
         "code": "expectation_mismatch",
         "field_path": field_path,
-        "expected": expected if isinstance(expected, (str, int, float, list, dict, type(None))) else str(expected)[:_MAX_SAFE_FIELD_LENGTH],
-        "actual": actual if isinstance(actual, (str, int, float, list, dict, type(None))) else str(actual)[:_MAX_SAFE_FIELD_LENGTH],
+        "expected": expected
+        if isinstance(expected, (str, int, float, list, dict, type(None)))
+        else str(expected)[:_MAX_SAFE_FIELD_LENGTH],
+        "actual": actual
+        if isinstance(actual, (str, int, float, list, dict, type(None)))
+        else str(actual)[:_MAX_SAFE_FIELD_LENGTH],
     }
 
 
@@ -223,7 +349,12 @@ def run_proof(fixtures: Path) -> tuple[int, dict[str, Any]]:
 
     cases = data.get("cases")
     if not isinstance(cases, list):
-        return 2, _error_summary(fixtures=fixtures, phase="fixture_shape", code="malformed_output_shape", detail="cases must be a list")
+        return 2, _error_summary(
+            fixtures=fixtures,
+            phase="fixture_shape",
+            code="malformed_output_shape",
+            detail="cases must be a list",
+        )
 
     known_codes = set(validator.KNOWN_DIAGNOSTIC_CODES) | {
         "scoped_no_candidate",
@@ -241,7 +372,14 @@ def run_proof(fixtures: Path) -> tuple[int, dict[str, Any]]:
 
     for index, case in enumerate(cases):
         if not isinstance(case, Mapping):
-            mismatches.append({"phase": "fixture_shape", "case_id": f"<index:{index}>", "code": "malformed_output_shape", "field_path": f"cases[{index}]"})
+            mismatches.append(
+                {
+                    "phase": "fixture_shape",
+                    "case_id": f"<index:{index}>",
+                    "code": "malformed_output_shape",
+                    "field_path": f"cases[{index}]",
+                }
+            )
             continue
         raw_case_id = case.get("case_id")
         case_id = raw_case_id if isinstance(raw_case_id, str) else f"<index:{index}>"
@@ -257,24 +395,58 @@ def run_proof(fixtures: Path) -> tuple[int, dict[str, Any]]:
         validator_payloads: list[dict[str, Any]] = []
         if expected_validator_result is not None:
             if expected_validator_result not in _ALLOWED_VALIDATOR_RESULTS:
-                mismatches.append(_case_mismatch(case_id=case_id, field_path="expected_validator_result", expected="allowed validator result", actual=expected_validator_result))
+                mismatches.append(
+                    _case_mismatch(
+                        case_id=case_id,
+                        field_path="expected_validator_result",
+                        expected="allowed validator result",
+                        actual=expected_validator_result,
+                    )
+                )
             result = validator.validate_case(case, validator_fixture)
             validator_counts[result.result] += 1
             validator_codes = _validator_codes(result)
             validator_payloads = _validator_payloads(result)
             if result.result != expected_validator_result:
-                mismatches.append(_case_mismatch(case_id=case_id, field_path="expected_validator_result", expected=expected_validator_result, actual=result.result))
+                mismatches.append(
+                    _case_mismatch(
+                        case_id=case_id,
+                        field_path="expected_validator_result",
+                        expected=expected_validator_result,
+                        actual=result.result,
+                    )
+                )
         elif isinstance(case.get("output"), Mapping):
-            mismatches.append(_case_mismatch(case_id=case_id, field_path="output", expected="no validator output", actual="present"))
+            mismatches.append(
+                _case_mismatch(
+                    case_id=case_id,
+                    field_path="output",
+                    expected="no validator output",
+                    actual="present",
+                )
+            )
 
         offline_codes = _offline_codes(case)
         actual_codes = offline_codes + validator_codes
         diagnostic_inventory.update(actual_codes)
         expected_codes = case.get("expected_diagnostic_codes")
         if actual_codes != expected_codes:
-            mismatches.append(_case_mismatch(case_id=case_id, field_path="expected_diagnostic_codes", expected=expected_codes, actual=actual_codes))
+            mismatches.append(
+                _case_mismatch(
+                    case_id=case_id,
+                    field_path="expected_diagnostic_codes",
+                    expected=expected_codes,
+                    actual=actual_codes,
+                )
+            )
 
-        mismatches.extend(_safe_payload_errors(case_id=case_id, payloads=[*_offline_diagnostic_payloads(case), *validator_payloads], known_codes=known_codes))
+        mismatches.extend(
+            _safe_payload_errors(
+                case_id=case_id,
+                payloads=[*_offline_diagnostic_payloads(case), *validator_payloads],
+                known_codes=known_codes,
+            )
+        )
 
     summary: dict[str, Any] = {
         "schema_version": SUMMARY_SCHEMA_VERSION,
@@ -283,11 +455,14 @@ def run_proof(fixtures: Path) -> tuple[int, dict[str, Any]]:
         "selected_count": selection_counts["selected"],
         "scoped_no_answer_count": selection_counts["scoped_no_answer"],
         "rejected_count": selection_counts["rejected"],
-        "validator_accepted_count": validator_counts["accepted"] + validator_counts["accepted_scoped_no_answer"],
+        "validator_accepted_count": validator_counts["accepted"]
+        + validator_counts["accepted_scoped_no_answer"],
         "validator_rejected_count": validator_counts["rejected"],
         "mismatch_count": len(mismatches),
         "diagnostic_code_inventory": sorted(diagnostic_inventory),
-        "namespace_strategy": data.get("namespace_strategy", {}).get("status") if isinstance(data.get("namespace_strategy"), Mapping) else None,
+        "namespace_strategy": data.get("namespace_strategy", {}).get("status")
+        if isinstance(data.get("namespace_strategy"), Mapping)
+        else None,
         "non_authoritative": data.get("non_authoritative") is True,
     }
     if mismatches:
@@ -296,7 +471,9 @@ def run_proof(fixtures: Path) -> tuple[int, dict[str, Any]]:
 
 
 def main(argv: Sequence[str] | None = None) -> int:
-    parser = argparse.ArgumentParser(description="Run the M014 offline citation-safe retrieval proof against tracked fixtures.")
+    parser = argparse.ArgumentParser(
+        description="Run the M014 offline citation-safe retrieval proof against tracked fixtures."
+    )
     parser.add_argument(
         "--fixtures",
         type=Path,

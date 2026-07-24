@@ -27,8 +27,7 @@ fn honest_decode_yields_only_structural_candidates_and_anchors() {
     );
     assert_eq!(result.candidates[0].anchor.start_offset, 0);
     assert!(result.candidates[0].anchor.end_offset > 0);
-    assert!(result
-        .candidates[0]
+    assert!(result.candidates[0]
         .anchor
         .fingerprint
         .starts_with("fnv1a64:"));
@@ -66,14 +65,8 @@ fn accepted_output_never_carries_gate_owned_claims() {
 
     for candidate in &result.candidates {
         assert!(candidate.category.is_structural());
-        assert_ne!(
-            candidate.category,
-            DecodeCategory::VerifiedAssertion
-        );
+        assert_ne!(candidate.category, DecodeCategory::VerifiedAssertion);
         assert_ne!(candidate.category, DecodeCategory::MergedIdentity);
-        assert_ne!(
-            candidate.category,
-            DecodeCategory::UnregisteredRelation
-        );
+        assert_ne!(candidate.category, DecodeCategory::UnregisteredRelation);
     }
 }

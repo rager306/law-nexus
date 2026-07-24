@@ -25,28 +25,138 @@ class Check:
 
 
 PACK_CHECKS: list[Check] = [
-    Check("falkordb-cypher", ("SKILL.md", "references/main.md"), ("Cypher", "GRAPH.QUERY", "GRAPH.EXPLAIN", "Neo4j"), "cypher routing and plan review"),
-    Check("falkordb-cypher", ("references/main.md",), ("Parameterize", "do not interpolate", "capability-evidence"), "query safety and capability routing"),
-    Check("falkordb-modeling", ("SKILL.md", "references/main.md"), ("labels", "relationships", "direction", "cardinality"), "modeling primitives"),
-    Check("falkordb-modeling", ("references/main.md",), ("access patterns", "query", "Indexes"), "query-driven model/index guidance"),
-    Check("falkordb-python", ("SKILL.md", "references/main.md"), ("falkordb-py", "from_url", "close/aclose"), "python client version surface"),
-    Check("falkordb-python", ("references/main.md",), ("Never log credentials", "parameters", "UDF API"), "python safety and UDF notes"),
-    Check("falkordb-ops-debug", ("SKILL.md", "references/main.md"), ("GRAPH.SLOWLOG", "GRAPH.INFO", "GRAPH.MEMORY", "GRAPH.CONFIG"), "ops command surface"),
-    Check("falkordb-ops-debug", ("references/main.md",), ("4.18.x", "Bolt/WebSocket", "one variable"), "version-aware debugging"),
-    Check("falkordb-index-search", ("SKILL.md", "references/main.md"), ("range", "full-text", "vector"), "index/search surfaces"),
-    Check("falkordb-index-search", ("references/main.md",), ("docs-backed", "runtime-confirmed", "Neo4j vector syntax"), "index evidence boundary"),
-    Check("falkordb-capability-evidence", ("SKILL.md", "references/main.md"), ("runtime-confirmed", "source-backed", "docs-backed", "smoke-needed"), "claim classes"),
-    Check("falkordb-capability-evidence", ("references/main.md",), ("neo4j-only", "redisgraph-legacy", "unknown"), "drift classes"),
-    Check("falkordb-algorithms", ("SKILL.md", "references/main.md"), ("BFS", "PageRank", "WCC", "MSF"), "algorithm coverage"),
-    Check("falkordb-algorithms", ("references/main.md",), ("Neo4j GDS", "small fixtures", "output shape"), "algorithm boundary and proof"),
-    Check("falkordb-udf-flex", ("SKILL.md", "references/main.md"), ("UDF", "FLEX", "QuickJS", "graph.getNodeById"), "UDF/FLEX surface"),
-    Check("falkordb-udf-flex", ("references/main.md",), ("APOC", "Resource limits", "security review"), "UDF safety boundary"),
-    Check("falkordb-ingest-integrations", ("SKILL.md", "references/main.md"), ("LOAD CSV", "Bulk Loader", "Kafka", "Snowflake"), "ingest/integration surface"),
-    Check("falkordb-ingest-integrations", ("references/main.md",), ("idempotency", "batching", "verification counts"), "ingest correctness"),
-    Check("falkordb-genai-mcp-graphrag", ("SKILL.md", "references/main.md"), ("GraphRAG", "MCP", "LangChain", "LlamaIndex"), "GenAI/MCP surface"),
-    Check("falkordb-genai-mcp-graphrag", ("references/main.md",), ("retrieval quality", "citation", "traceability"), "retrieval quality boundary"),
-    Check("falkordb-browser-rest", ("SKILL.md", "references/main.md"), ("Browser", "REST", "auth tokens", "graph endpoints"), "Browser/REST surface"),
-    Check("falkordb-browser-rest", ("references/main.md",), ("bearer", "Do not conflate", "File upload"), "REST security boundary"),
+    Check(
+        "falkordb-cypher",
+        ("SKILL.md", "references/main.md"),
+        ("Cypher", "GRAPH.QUERY", "GRAPH.EXPLAIN", "Neo4j"),
+        "cypher routing and plan review",
+    ),
+    Check(
+        "falkordb-cypher",
+        ("references/main.md",),
+        ("Parameterize", "do not interpolate", "capability-evidence"),
+        "query safety and capability routing",
+    ),
+    Check(
+        "falkordb-modeling",
+        ("SKILL.md", "references/main.md"),
+        ("labels", "relationships", "direction", "cardinality"),
+        "modeling primitives",
+    ),
+    Check(
+        "falkordb-modeling",
+        ("references/main.md",),
+        ("access patterns", "query", "Indexes"),
+        "query-driven model/index guidance",
+    ),
+    Check(
+        "falkordb-python",
+        ("SKILL.md", "references/main.md"),
+        ("falkordb-py", "from_url", "close/aclose"),
+        "python client version surface",
+    ),
+    Check(
+        "falkordb-python",
+        ("references/main.md",),
+        ("Never log credentials", "parameters", "UDF API"),
+        "python safety and UDF notes",
+    ),
+    Check(
+        "falkordb-ops-debug",
+        ("SKILL.md", "references/main.md"),
+        ("GRAPH.SLOWLOG", "GRAPH.INFO", "GRAPH.MEMORY", "GRAPH.CONFIG"),
+        "ops command surface",
+    ),
+    Check(
+        "falkordb-ops-debug",
+        ("references/main.md",),
+        ("4.18.x", "Bolt/WebSocket", "one variable"),
+        "version-aware debugging",
+    ),
+    Check(
+        "falkordb-index-search",
+        ("SKILL.md", "references/main.md"),
+        ("range", "full-text", "vector"),
+        "index/search surfaces",
+    ),
+    Check(
+        "falkordb-index-search",
+        ("references/main.md",),
+        ("docs-backed", "runtime-confirmed", "Neo4j vector syntax"),
+        "index evidence boundary",
+    ),
+    Check(
+        "falkordb-capability-evidence",
+        ("SKILL.md", "references/main.md"),
+        ("runtime-confirmed", "source-backed", "docs-backed", "smoke-needed"),
+        "claim classes",
+    ),
+    Check(
+        "falkordb-capability-evidence",
+        ("references/main.md",),
+        ("neo4j-only", "redisgraph-legacy", "unknown"),
+        "drift classes",
+    ),
+    Check(
+        "falkordb-algorithms",
+        ("SKILL.md", "references/main.md"),
+        ("BFS", "PageRank", "WCC", "MSF"),
+        "algorithm coverage",
+    ),
+    Check(
+        "falkordb-algorithms",
+        ("references/main.md",),
+        ("Neo4j GDS", "small fixtures", "output shape"),
+        "algorithm boundary and proof",
+    ),
+    Check(
+        "falkordb-udf-flex",
+        ("SKILL.md", "references/main.md"),
+        ("UDF", "FLEX", "QuickJS", "graph.getNodeById"),
+        "UDF/FLEX surface",
+    ),
+    Check(
+        "falkordb-udf-flex",
+        ("references/main.md",),
+        ("APOC", "Resource limits", "security review"),
+        "UDF safety boundary",
+    ),
+    Check(
+        "falkordb-ingest-integrations",
+        ("SKILL.md", "references/main.md"),
+        ("LOAD CSV", "Bulk Loader", "Kafka", "Snowflake"),
+        "ingest/integration surface",
+    ),
+    Check(
+        "falkordb-ingest-integrations",
+        ("references/main.md",),
+        ("idempotency", "batching", "verification counts"),
+        "ingest correctness",
+    ),
+    Check(
+        "falkordb-genai-mcp-graphrag",
+        ("SKILL.md", "references/main.md"),
+        ("GraphRAG", "MCP", "LangChain", "LlamaIndex"),
+        "GenAI/MCP surface",
+    ),
+    Check(
+        "falkordb-genai-mcp-graphrag",
+        ("references/main.md",),
+        ("retrieval quality", "citation", "traceability"),
+        "retrieval quality boundary",
+    ),
+    Check(
+        "falkordb-browser-rest",
+        ("SKILL.md", "references/main.md"),
+        ("Browser", "REST", "auth tokens", "graph endpoints"),
+        "Browser/REST surface",
+    ),
+    Check(
+        "falkordb-browser-rest",
+        ("references/main.md",),
+        ("bearer", "Do not conflate", "File upload"),
+        "REST security boundary",
+    ),
 ]
 
 
@@ -87,12 +197,14 @@ def evaluate(skills_dir: Path) -> dict:
         text = read_combined(skills_dir, check.skill, check.files)
         ok, evidence = contains_all(text, check.patterns)
         passed += int(ok)
-        results.append({
-            "skill": check.skill,
-            "description": check.description,
-            "passed": ok,
-            "evidence": f"{', '.join(check.files)}: {evidence}",
-        })
+        results.append(
+            {
+                "skill": check.skill,
+                "description": check.description,
+                "passed": ok,
+                "evidence": f"{', '.join(check.files)}: {evidence}",
+            }
+        )
 
     forbidden_results = []
     for skill_dir in sorted(skills_dir.glob("falkordb*")):
@@ -107,12 +219,14 @@ def evaluate(skills_dir: Path) -> dict:
         for forbidden in FORBIDDEN_ACROSS_PACK:
             ok = normalize(forbidden) not in normalize(combined)
             passed += int(ok)
-            results.append({
-                "skill": skill_dir.name,
-                "description": f"no project-specific leakage: {forbidden}",
-                "passed": ok,
-                "evidence": "absent" if ok else f"found forbidden term {forbidden!r}",
-            })
+            results.append(
+                {
+                    "skill": skill_dir.name,
+                    "description": f"no project-specific leakage: {forbidden}",
+                    "passed": ok,
+                    "evidence": "absent" if ok else f"found forbidden term {forbidden!r}",
+                }
+            )
             forbidden_results.append(ok)
 
     total = len(results)
@@ -162,15 +276,25 @@ def write_markdown(report: dict, path: Path) -> None:
 def main() -> int:
     parser = argparse.ArgumentParser(description="Evaluate FalkorDB focused skill pack quality")
     parser.add_argument("--skills-dir", type=Path, default=Path(".agents/skills"))
-    parser.add_argument("--json-output", type=Path, default=Path(".agents/skills/falkordb/evals/pack-quality-report.json"))
-    parser.add_argument("--markdown-output", type=Path, default=Path(".agents/skills/falkordb/evals/pack-quality-report.md"))
+    parser.add_argument(
+        "--json-output",
+        type=Path,
+        default=Path(".agents/skills/falkordb/evals/pack-quality-report.json"),
+    )
+    parser.add_argument(
+        "--markdown-output",
+        type=Path,
+        default=Path(".agents/skills/falkordb/evals/pack-quality-report.md"),
+    )
     parser.add_argument("--min-pass-rate", type=float, default=1.0)
     args = parser.parse_args()
 
     try:
         report = evaluate(args.skills_dir)
         args.json_output.parent.mkdir(parents=True, exist_ok=True)
-        args.json_output.write_text(json.dumps(report, indent=2, ensure_ascii=False), encoding="utf-8")
+        args.json_output.write_text(
+            json.dumps(report, indent=2, ensure_ascii=False), encoding="utf-8"
+        )
         write_markdown(report, args.markdown_output)
     except Exception as exc:  # noqa: BLE001
         print(f"FalkorDB focused skill pack quality evaluation failed: {exc}", file=sys.stderr)

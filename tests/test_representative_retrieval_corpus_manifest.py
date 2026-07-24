@@ -132,7 +132,10 @@ def test_manifest_paths_exist_and_schema_root_is_stable() -> None:
     assert manifest["schema_version"] == "representative-retrieval-corpus/v1"
     assert manifest["corpus_id"] == "CORPUS-M016-REPRESENTATIVE-V1"
     assert manifest["generated_by"] == "scripts/build_representative_retrieval_corpus_manifest.py"
-    assert manifest["fixture_artifact"] == "prd/retrieval/fixtures/representative_retrieval_corpus_manifest.json"
+    assert (
+        manifest["fixture_artifact"]
+        == "prd/retrieval/fixtures/representative_retrieval_corpus_manifest.json"
+    )
     assert manifest["gate"] == "GATE-G011"
     assert manifest["requirement"] == "R034"
     assert manifest["non_authoritative"] is True
@@ -173,7 +176,11 @@ def test_required_coverage_classes_and_minimum_cases_are_present() -> None:
 
     source_families = {item["source_family"] for item in manifest["candidate_references"]}
     assert {"consultant_wordml", "garant_odt_metadata"} <= source_families
-    garant_refs = [item for item in manifest["candidate_references"] if item["source_family"] == "garant_odt_metadata"]
+    garant_refs = [
+        item
+        for item in manifest["candidate_references"]
+        if item["source_family"] == "garant_odt_metadata"
+    ]
     assert garant_refs
     assert all(item["reference_role"] == "environment_boundary" for item in garant_refs)
     assert manifest["explicit_limits"]["garant_odt_metadata_only"] is True
@@ -226,21 +233,38 @@ def test_non_claims_and_s03_handoff_are_explicitly_bounded() -> None:
     assert REQUIRED_NON_CLAIMS <= set(manifest["non_claims"])
     handoff = manifest["s03_handoff"]
     assert handoff == manifest["runtime_handoff"]
-    assert handoff["manifest_path"] == "prd/retrieval/fixtures/representative_retrieval_corpus_manifest.json"
-    assert handoff["builder_check_command"] == "uv run python scripts/build_representative_retrieval_corpus_manifest.py --check"
-    assert handoff["canonical_builder_check_command"] == "uv run python scripts/build_representative_retrieval_corpus_manifest.py --check"
+    assert (
+        handoff["manifest_path"]
+        == "prd/retrieval/fixtures/representative_retrieval_corpus_manifest.json"
+    )
+    assert (
+        handoff["builder_check_command"]
+        == "uv run python scripts/build_representative_retrieval_corpus_manifest.py --check"
+    )
+    assert (
+        handoff["canonical_builder_check_command"]
+        == "uv run python scripts/build_representative_retrieval_corpus_manifest.py --check"
+    )
     assert handoff["schema_version"] == manifest["schema_version"]
     assert handoff["corpus_id"] == manifest["corpus_id"]
     assert handoff["managed_api_allowed"] is False
     assert handoff["managed_embedding_api_fallback_allowed"] is False
     assert handoff["raw_payload_persistence_allowed"] is False
     assert handoff["gate_g011_status"] == "open"
-    assert handoff["quality_claim_scope"] == "manifest-readiness only; not product retrieval quality"
+    assert (
+        handoff["quality_claim_scope"] == "manifest-readiness only; not product retrieval quality"
+    )
 
 
 def test_builder_check_success_outputs_compact_safe_json() -> None:
     result = subprocess.run(
-        ["uv", "run", "python", "scripts/build_representative_retrieval_corpus_manifest.py", "--check"],
+        [
+            "uv",
+            "run",
+            "python",
+            "scripts/build_representative_retrieval_corpus_manifest.py",
+            "--check",
+        ],
         cwd=ROOT,
         text=True,
         capture_output=True,

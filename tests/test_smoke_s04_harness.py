@@ -40,7 +40,9 @@ def test_planned_cleanup_command_targets_unique_container_name() -> None:
     assert harness.planned_cleanup_commands(name) == [["docker", "rm", "-f", name]]
 
 
-def test_wait_for_container_ready_records_ping_success(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+def test_wait_for_container_ready_records_ping_success(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
     harness = load_harness()
     state = harness.create_state(tmp_path, 10)
     calls: list[list[str]] = []
@@ -57,7 +59,9 @@ def test_wait_for_container_ready_records_ping_success(tmp_path: Path, monkeypat
     assert state.command_summary["container-readiness"]["exit_code"] == 0
 
 
-def test_wait_for_container_ready_cascades_blocker_on_ping_failure(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+def test_wait_for_container_ready_cascades_blocker_on_ping_failure(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
     harness = load_harness()
     state = harness.create_state(tmp_path, 1)
 
@@ -70,7 +74,10 @@ def test_wait_for_container_ready_cascades_blocker_on_ping_failure(tmp_path: Pat
 
     assert harness.wait_for_container_ready(state) is False
     assert state.findings["falkordb-basic-graph"].status == "blocked-environment"
-    assert state.findings["falkordb-basic-graph"].diagnostics["root_cause"] == "docker-falkordb-readiness-exit-1"
+    assert (
+        state.findings["falkordb-basic-graph"].diagnostics["root_cause"]
+        == "docker-falkordb-readiness-exit-1"
+    )
 
 
 def test_cascade_blocker_applies_same_root_cause_and_log(tmp_path: Path) -> None:
@@ -135,13 +142,18 @@ def test_mark_out_of_harness_capabilities_are_terminal(tmp_path: Path) -> None:
 def test_falkordblite_binary_blockers_distinguish_missing_binary_metadata() -> None:
     harness = load_harness()
 
-    assert harness.falkordblite_binary_blockers({"redis_executable": "/tmp/redis", "falkordb_module": "/tmp/falkordb.so"}) == []
-    assert harness.falkordblite_binary_blockers({"redis_executable": "", "falkordb_module": "/tmp/falkordb.so"}) == [
-        "missing-redis-server-binary"
-    ]
-    assert harness.falkordblite_binary_blockers({"redis_executable": "/tmp/redis", "falkordb_module": ""}) == [
-        "missing-falkordb-module"
-    ]
+    assert (
+        harness.falkordblite_binary_blockers(
+            {"redis_executable": "/tmp/redis", "falkordb_module": "/tmp/falkordb.so"}
+        )
+        == []
+    )
+    assert harness.falkordblite_binary_blockers(
+        {"redis_executable": "", "falkordb_module": "/tmp/falkordb.so"}
+    ) == ["missing-redis-server-binary"]
+    assert harness.falkordblite_binary_blockers(
+        {"redis_executable": "/tmp/redis", "falkordb_module": ""}
+    ) == ["missing-falkordb-module"]
 
 
 def test_embedding_model_cache_metadata_handles_absent_and_present_cache(tmp_path: Path) -> None:

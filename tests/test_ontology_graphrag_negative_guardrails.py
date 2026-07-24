@@ -7,7 +7,13 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 PROOF_PATH = ROOT / "scripts" / "verify-ontology-graphrag-integration-proof.py"
-FIXTURE_PATH = ROOT / "prd" / "research" / "ontology_architecture_requirements" / "ontology_graphrag_proof_cases.json"
+FIXTURE_PATH = (
+    ROOT
+    / "prd"
+    / "research"
+    / "ontology_architecture_requirements"
+    / "ontology_graphrag_proof_cases.json"
+)
 
 
 def run_proof(*args: str) -> subprocess.CompletedProcess[str]:
@@ -29,11 +35,15 @@ def write_fixture(tmp_path: Path, **updates: object) -> Path:
     data = json.loads(FIXTURE_PATH.read_text(encoding="utf-8"))
     data.update(updates)
     fixture = tmp_path / "negative-ontology-graphrag-proof-cases.json"
-    fixture.write_text(json.dumps(data, ensure_ascii=False, indent=2, sort_keys=True), encoding="utf-8")
+    fixture.write_text(
+        json.dumps(data, ensure_ascii=False, indent=2, sort_keys=True), encoding="utf-8"
+    )
     return fixture
 
 
-def test_generated_query_missing_evidence_path_and_temporal_constraint_fails_closed(tmp_path: Path) -> None:
+def test_generated_query_missing_evidence_path_and_temporal_constraint_fails_closed(
+    tmp_path: Path,
+) -> None:
     fixture = write_fixture(
         tmp_path,
         generated_query_candidates=[
@@ -84,7 +94,9 @@ def test_generated_query_write_operation_is_rejected_before_execution(tmp_path: 
     assert summary["query_safety"]["execution_like_step_performed"] is False
 
 
-def test_positive_overclaim_wording_fails_gate_disposition_without_mutating_non_claims(tmp_path: Path) -> None:
+def test_positive_overclaim_wording_fails_gate_disposition_without_mutating_non_claims(
+    tmp_path: Path,
+) -> None:
     fixture = write_fixture(
         tmp_path,
         proof_report_claims=[

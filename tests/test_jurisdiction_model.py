@@ -30,10 +30,16 @@ def test_jurisdiction_levels_are_ordered_broad_to_local() -> None:
         JurisdictionLevel.municipal,
     )
     assert is_subordinate_jurisdiction_level(JurisdictionLevel.regional, JurisdictionLevel.federal)
-    assert is_subordinate_jurisdiction_level(JurisdictionLevel.municipal, JurisdictionLevel.regional)
+    assert is_subordinate_jurisdiction_level(
+        JurisdictionLevel.municipal, JurisdictionLevel.regional
+    )
     assert is_subordinate_jurisdiction_level(JurisdictionLevel.municipal, JurisdictionLevel.federal)
-    assert not is_subordinate_jurisdiction_level(JurisdictionLevel.federal, JurisdictionLevel.regional)
-    assert not is_subordinate_jurisdiction_level(JurisdictionLevel.federal, JurisdictionLevel.federal)
+    assert not is_subordinate_jurisdiction_level(
+        JurisdictionLevel.federal, JurisdictionLevel.regional
+    )
+    assert not is_subordinate_jurisdiction_level(
+        JurisdictionLevel.federal, JurisdictionLevel.federal
+    )
 
 
 def test_regional_and_municipal_jurisdictions_carry_parent_ids() -> None:

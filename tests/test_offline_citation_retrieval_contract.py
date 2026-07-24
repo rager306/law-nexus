@@ -146,7 +146,10 @@ def test_contract_selection_reasons_and_case_classes_are_closed_sets() -> None:
         assert f"`{reason}`" in selection_reasons
     for case_class in REQUIRED_CASE_CLASSES:
         assert f"`{case_class}`" in case_classes
-    assert "No ranking score, embedding distance, LLM confidence, FalkorDB score, or legal relevance score" in selection_reasons
+    assert (
+        "No ranking score, embedding distance, LLM confidence, FalkorDB score, or legal relevance score"
+        in selection_reasons
+    )
     assert "Additional case classes may be added only if they are deterministic" in case_classes
 
 
@@ -183,7 +186,16 @@ def test_contract_diagnostics_redaction_and_non_claims_are_explicit() -> None:
     redaction = section(text, "## Redaction and forbidden payloads")
     non_claims = section(text, "## Non-claims")
 
-    for field in ["code", "severity", "case_id", "query_id", "candidate_id", "source_record_id", "field_path", "proof_artifact"]:
+    for field in [
+        "code",
+        "severity",
+        "case_id",
+        "query_id",
+        "candidate_id",
+        "source_record_id",
+        "field_path",
+        "proof_artifact",
+    ]:
         assert f"`{field}`" in diagnostics
     for blocked in [
         "raw legal text",

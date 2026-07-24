@@ -80,23 +80,38 @@ REQUIRED_EVIDENCE_FIELDS = ("artifact", "summary")
 OVERCLAIM_PATTERNS: tuple[tuple[str, re.Pattern[str]], ...] = (
     (
         "product ETL promotion",
-        re.compile(r"\bproduct\s+ETL\b[^\n.]{0,80}\b(ready|implemented|shipped|import(?:ed)?|production\s+import)", re.I),
+        re.compile(
+            r"\bproduct\s+ETL\b[^\n.]{0,80}\b(ready|implemented|shipped|import(?:ed)?|production\s+import)",
+            re.I,
+        ),
     ),
     (
         "final ODT parser readiness",
-        re.compile(r"\bfinal\s+ODT\s+parser\b[^\n.]{0,80}\b(ready|proven|complete|production|authoritative)", re.I),
+        re.compile(
+            r"\bfinal\s+ODT\s+parser\b[^\n.]{0,80}\b(ready|proven|complete|production|authoritative)",
+            re.I,
+        ),
     ),
     (
         "production retrieval quality proof",
-        re.compile(r"\bproduction\s+retrieval\s+quality\b[^\n.]{0,80}\b(proven|confirmed|ready|validated)", re.I),
+        re.compile(
+            r"\bproduction\s+retrieval\s+quality\b[^\n.]{0,80}\b(proven|confirmed|ready|validated)",
+            re.I,
+        ),
     ),
     (
         "direct GraphBLAS control-surface proof",
-        re.compile(r"\bdirect\s+(?:LegalGraph\s+)?GraphBLAS\s+control[- ]surface\s+proof\b[^\n.]{0,80}\b(proven|confirmed|ready|validated)", re.I),
+        re.compile(
+            r"\bdirect\s+(?:LegalGraph\s+)?GraphBLAS\s+control[- ]surface\s+proof\b[^\n.]{0,80}\b(proven|confirmed|ready|validated)",
+            re.I,
+        ),
     ),
     (
         "managed embedding API promotion",
-        re.compile(r"\bmanaged\s+embedding\s+API\b[^\n.]{0,80}\b(fallback|promoted|allowed|default|recommended)", re.I),
+        re.compile(
+            r"\bmanaged\s+embedding\s+API\b[^\n.]{0,80}\b(fallback|promoted|allowed|default|recommended)",
+            re.I,
+        ),
     ),
 )
 
@@ -220,7 +235,9 @@ def validate_top_level(payload: dict[str, Any], result: VerificationResult, base
         if field_name not in payload:
             result.add(f"findings JSON missing top-level field: {field_name}")
     if payload.get("schema_version") != SCHEMA_VERSION:
-        result.add(f"findings JSON schema_version must be {SCHEMA_VERSION!r}, got {payload.get('schema_version')!r}")
+        result.add(
+            f"findings JSON schema_version must be {SCHEMA_VERSION!r}, got {payload.get('schema_version')!r}"
+        )
     require_non_empty_string(payload.get("generated_at"), result, "findings JSON generated_at")
 
     source_artifacts = payload.get("source_artifacts")
@@ -231,7 +248,9 @@ def validate_top_level(payload: dict[str, Any], result: VerificationResult, base
             if key not in source_artifacts:
                 result.add(f"source_artifacts missing required key: {key}")
             else:
-                require_existing_path(source_artifacts.get(key), result, f"source_artifacts.{key}", base)
+                require_existing_path(
+                    source_artifacts.get(key), result, f"source_artifacts.{key}", base
+                )
 
     if not isinstance(payload.get("findings"), list):
         result.add("findings JSON findings must be a list")
@@ -251,10 +270,16 @@ def validate_evidence_entry(
     for field_name in REQUIRED_EVIDENCE_FIELDS:
         if field_name not in evidence_obj:
             result.add(f"finding {row_id} evidence[{index}] missing required field: {field_name}")
-    require_existing_path(evidence_obj.get("artifact"), result, f"finding {row_id} evidence[{index}].artifact", base)
-    require_non_empty_string(evidence_obj.get("summary"), result, f"finding {row_id} evidence[{index}].summary")
+    require_existing_path(
+        evidence_obj.get("artifact"), result, f"finding {row_id} evidence[{index}].artifact", base
+    )
+    require_non_empty_string(
+        evidence_obj.get("summary"), result, f"finding {row_id} evidence[{index}].summary"
+    )
     if "status" in evidence_obj:
-        require_non_empty_string(evidence_obj.get("status"), result, f"finding {row_id} evidence[{index}].status")
+        require_non_empty_string(
+            evidence_obj.get("status"), result, f"finding {row_id} evidence[{index}].status"
+        )
 
 
 def validate_finding(
@@ -279,7 +304,15 @@ def validate_finding(
         result.add(f"finding index {index} id must be a non-empty string")
         return None
 
-    for field_name in ("title", "impact", "recommendation", "owner", "resolution_path", "verification_criteria", "roadmap_effect"):
+    for field_name in (
+        "title",
+        "impact",
+        "recommendation",
+        "owner",
+        "resolution_path",
+        "verification_criteria",
+        "roadmap_effect",
+    ):
         require_non_empty_string(row_obj.get(field_name), result, f"finding {raw_id} {field_name}")
 
     for field_name in ("claim_class", "status", "severity"):
@@ -287,7 +320,11 @@ def validate_finding(
 
     claim_class = row_obj.get("claim_class")
     allowed_claim_classes = schema_enum(schema, "claim_class", set())
-    if isinstance(claim_class, str) and allowed_claim_classes and claim_class not in allowed_claim_classes:
+    if (
+        isinstance(claim_class, str)
+        and allowed_claim_classes
+        and claim_class not in allowed_claim_classes
+    ):
         result.add(f"finding {raw_id} invalid claim_class {claim_class!r}")
 
     status = row_obj.get("status")
@@ -330,13 +367,19 @@ def validate_finding(
         value = row_obj.get(optional_list_field)
         if value is None:
             continue
-        if not isinstance(value, list) or not all(isinstance(item, str) and item.strip() for item in value):
-            result.add(f"finding {raw_id} {optional_list_field} must contain only non-empty strings")
+        if not isinstance(value, list) or not all(
+            isinstance(item, str) and item.strip() for item in value
+        ):
+            result.add(
+                f"finding {raw_id} {optional_list_field} must contain only non-empty strings"
+            )
 
     return raw_id
 
 
-def validate_findings(payload: dict[str, Any], schema: dict[str, Any], result: VerificationResult, base: Path) -> set[str]:
+def validate_findings(
+    payload: dict[str, Any], schema: dict[str, Any], result: VerificationResult, base: Path
+) -> set[str]:
     validate_top_level(payload, result, base)
     rows = payload.get("findings")
     if not isinstance(rows, list):
@@ -356,9 +399,15 @@ def validate_findings(payload: dict[str, Any], schema: dict[str, Any], result: V
 
 
 def is_negated_guardrail(report: str, match: re.Match[str]) -> bool:
-    sentence_start = max(report.rfind(".", 0, match.start()), report.rfind("\n", 0, match.start())) + 1
+    sentence_start = (
+        max(report.rfind(".", 0, match.start()), report.rfind("\n", 0, match.start())) + 1
+    )
     prefix = report[sentence_start : match.start()].strip().lower()
-    sentence = report[sentence_start : report.find(".", match.end()) if report.find(".", match.end()) != -1 else len(report)]
+    sentence = report[
+        sentence_start : report.find(".", match.end())
+        if report.find(".", match.end()) != -1
+        else len(report)
+    ]
     lowered_sentence = sentence.strip().lower()
     return (
         prefix.endswith("no")
@@ -373,7 +422,9 @@ def is_negated_guardrail(report: str, match: re.Match[str]) -> bool:
     )
 
 
-def validate_report(report: str, row_ids: set[str], payload: dict[str, Any], result: VerificationResult) -> None:
+def validate_report(
+    report: str, row_ids: set[str], payload: dict[str, Any], result: VerificationResult
+) -> None:
     for section in REQUIRED_REPORT_SECTIONS:
         if section not in report:
             result.add(f"report missing section: {section}")
@@ -415,7 +466,9 @@ def verify(report: Path | str, findings: Path | str, schema: Path | str) -> Veri
     report_path = Path(report)
     findings_path = Path(findings)
     schema_path = Path(schema)
-    base = ROOT if findings_path.absolute().is_relative_to(ROOT) else findings_path.absolute().parent
+    base = (
+        ROOT if findings_path.absolute().is_relative_to(ROOT) else findings_path.absolute().parent
+    )
 
     report_text = read_text(report_path, "report", result)
     findings_payload = read_json(findings_path, "findings JSON", result)
@@ -432,9 +485,21 @@ def verify(report: Path | str, findings: Path | str, schema: Path | str) -> Veri
 
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--report", type=Path, default=DEFAULT_REPORT, help="S08 final architecture review markdown path")
-    parser.add_argument("--findings", type=Path, default=DEFAULT_FINDINGS, help="S08 machine-readable findings JSON path")
-    parser.add_argument("--schema", type=Path, default=DEFAULT_SCHEMA, help="S08 findings JSON schema path")
+    parser.add_argument(
+        "--report",
+        type=Path,
+        default=DEFAULT_REPORT,
+        help="S08 final architecture review markdown path",
+    )
+    parser.add_argument(
+        "--findings",
+        type=Path,
+        default=DEFAULT_FINDINGS,
+        help="S08 machine-readable findings JSON path",
+    )
+    parser.add_argument(
+        "--schema", type=Path, default=DEFAULT_SCHEMA, help="S08 findings JSON schema path"
+    )
     return parser.parse_args(argv)
 
 

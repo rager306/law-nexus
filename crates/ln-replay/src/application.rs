@@ -119,11 +119,9 @@ where
         // First apply: application ledger is authoritative.
         self.applied.insert(key, record.digest.clone());
         // Best-effort external side channel only.
-        let _ = self.ledger.try_apply(
-            &request.operation_id,
-            &request.effect_id,
-            &record.digest,
-        );
+        let _ = self
+            .ledger
+            .try_apply(&request.operation_id, &request.effect_id, &record.digest);
         let after = self.applied.len();
         self.finish(
             request,

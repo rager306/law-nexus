@@ -68,10 +68,20 @@ def build_edges(records: list[Any]) -> list[dict[str, str]]:
                     edges.append({"source": target, "target": source, "relationship": rel})
                 else:
                     edges.append({"source": source, "target": target, "relationship": rel})
-        for target in data.get("decision_candidates", []) if isinstance(data.get("decision_candidates"), list) else []:
+        for target in (
+            data.get("decision_candidates", [])
+            if isinstance(data.get("decision_candidates"), list)
+            else []
+        ):
             if target in ids:
-                edges.append({"source": source, "target": target, "relationship": "suggestedDecision"})
-        for target in data.get("affected_records", []) if isinstance(data.get("affected_records"), list) else []:
+                edges.append(
+                    {"source": source, "target": target, "relationship": "suggestedDecision"}
+                )
+        for target in (
+            data.get("affected_records", [])
+            if isinstance(data.get("affected_records"), list)
+            else []
+        ):
             if target in ids:
                 edges.append({"source": source, "target": target, "relationship": "affects"})
     return edges
@@ -92,7 +102,9 @@ def collect_blocked_actions(records: list[Any]) -> list[dict[str, Any]]:
                     "action": action,
                     "blocked_by": record.record_id,
                     "record_kind": record.record_kind,
-                    "reason": data.get("failure_mode") or data.get("finding") or "blocked by ACP record",
+                    "reason": data.get("failure_mode")
+                    or data.get("finding")
+                    or "blocked by ACP record",
                 }
             )
     return blocked
@@ -137,7 +149,9 @@ def build_recovery_view(fixture_dir: Path) -> dict[str, Any]:
 
 def write_output(output_path: Path, payload: dict[str, Any]) -> None:
     output_path.parent.mkdir(parents=True, exist_ok=True)
-    output_path.write_text(json.dumps(payload, ensure_ascii=False, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    output_path.write_text(
+        json.dumps(payload, ensure_ascii=False, indent=2, sort_keys=True) + "\n", encoding="utf-8"
+    )
 
 
 def check_output(output_path: Path, payload: dict[str, Any]) -> tuple[bool, str]:
@@ -154,7 +168,9 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--fixture-dir", type=Path, default=DEFAULT_FIXTURE_DIR)
     parser.add_argument("--output", type=Path, default=DEFAULT_OUTPUT)
-    parser.add_argument("--check", action="store_true", help="Fail if derived output is missing or stale.")
+    parser.add_argument(
+        "--check", action="store_true", help="Fail if derived output is missing or stale."
+    )
     return parser.parse_args(argv)
 
 
@@ -164,7 +180,11 @@ def main(argv: list[str] | None = None) -> int:
         payload = build_recovery_view(args.fixture_dir)
         if args.check:
             ok, message = check_output(args.output, payload)
-            result = {"status": "ok" if ok else "failed", "message": message, "output": display_path(args.output)}
+            result = {
+                "status": "ok" if ok else "failed",
+                "message": message,
+                "output": display_path(args.output),
+            }
             print(json.dumps(result, ensure_ascii=False, indent=2, sort_keys=True))
             return 0 if ok else 1
         write_output(args.output, payload)
@@ -178,7 +198,14 @@ def main(argv: list[str] | None = None) -> int:
         print(json.dumps(result, ensure_ascii=False, indent=2, sort_keys=True))
         return 0
     except ValueError as exc:
-        print(json.dumps({"status": "failed", "message": str(exc)}, ensure_ascii=False, indent=2, sort_keys=True))
+        print(
+            json.dumps(
+                {"status": "failed", "message": str(exc)},
+                ensure_ascii=False,
+                indent=2,
+                sort_keys=True,
+            )
+        )
         return 1
 
 

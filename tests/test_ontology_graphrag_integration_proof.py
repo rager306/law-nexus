@@ -9,8 +9,20 @@ from types import ModuleType
 
 ROOT = Path(__file__).resolve().parents[1]
 PROOF_PATH = ROOT / "scripts" / "verify-ontology-graphrag-integration-proof.py"
-FIXTURE_PATH = ROOT / "prd" / "research" / "ontology_architecture_requirements" / "ontology_graphrag_proof_cases.json"
-REPORT_PATH = ROOT / "prd" / "research" / "ontology_architecture_requirements" / "ontology_graphrag_integration_proof.json"
+FIXTURE_PATH = (
+    ROOT
+    / "prd"
+    / "research"
+    / "ontology_architecture_requirements"
+    / "ontology_graphrag_proof_cases.json"
+)
+REPORT_PATH = (
+    ROOT
+    / "prd"
+    / "research"
+    / "ontology_architecture_requirements"
+    / "ontology_graphrag_integration_proof.json"
+)
 SAFETY_CONTRACT_PATH = ROOT / "prd" / "06_m002_cypher_safety_contract.md"
 
 EXPECTED_TRACE_RESULTS = {
@@ -75,7 +87,10 @@ def assert_safe_integration_summary(summary: dict) -> None:
 
     assert summary["schema_version"] == "ontology-graphrag-integration-proof/v1"
     assert summary["proof_id"] == "OG-M020-S03-CITATION-BOUND-INTEGRATION-PROOF"
-    assert summary["source_fixture_path"] == "prd/research/ontology_architecture_requirements/ontology_graphrag_proof_cases.json"
+    assert (
+        summary["source_fixture_path"]
+        == "prd/research/ontology_architecture_requirements/ontology_graphrag_proof_cases.json"
+    )
     assert summary["report_path"]
     assert summary["source_verifier_path"] == "scripts/verify-ontology-graphrag-proof.py"
     assert summary["gate"] == "GATE-ONTOLOGY-GRAPHRAG-INTEGRATION"
@@ -85,7 +100,9 @@ def assert_safe_integration_summary(summary: dict) -> None:
     assert summary["redaction_ok"] is True
     assert summary["gate_disposition"] == "bounded_fixture_integration_passed_gate_remains_open"
     assert summary["r035_lifecycle_disposition"] == "remains_active_bounded_s03_evidence_only"
-    assert any("generated-Cypher generation quality" in non_claim for non_claim in summary["non_claims"])
+    assert any(
+        "generated-Cypher generation quality" in non_claim for non_claim in summary["non_claims"]
+    )
 
 
 def test_cli_succeeds_and_persists_safe_report(tmp_path: Path) -> None:
@@ -190,10 +207,14 @@ def test_query_safety_boundary_avoids_generated_query_execution_and_points_to_co
 
 def test_integration_proof_fails_closed_when_s02_verifier_finds_mismatch(tmp_path: Path) -> None:
     data = json.loads(FIXTURE_PATH.read_text(encoding="utf-8"))
-    accepted = next(case for case in data["cases"] if case["case_class"] == "valid_ontology_temporal_citation")
+    accepted = next(
+        case for case in data["cases"] if case["case_class"] == "valid_ontology_temporal_citation"
+    )
     accepted["expected_result"] = "rejected"
     bad_fixture = tmp_path / "bad-ontology-integration-proof-cases.json"
-    bad_fixture.write_text(json.dumps(data, ensure_ascii=False, indent=2, sort_keys=True), encoding="utf-8")
+    bad_fixture.write_text(
+        json.dumps(data, ensure_ascii=False, indent=2, sort_keys=True), encoding="utf-8"
+    )
 
     completed = run_cli("--fixtures", str(bad_fixture), "--no-write")
     summary = parse_stdout(completed)
@@ -206,10 +227,14 @@ def test_integration_proof_fails_closed_when_s02_verifier_finds_mismatch(tmp_pat
 
 def test_report_redaction_rejects_forbidden_payload_keys(tmp_path: Path) -> None:
     data = json.loads(FIXTURE_PATH.read_text(encoding="utf-8"))
-    accepted = next(case for case in data["cases"] if case["case_class"] == "valid_ontology_temporal_citation")
+    accepted = next(
+        case for case in data["cases"] if case["case_class"] == "valid_ontology_temporal_citation"
+    )
     accepted["output"]["provider_payload"] = {"unsafe": "redacted but forbidden key"}
     bad_fixture = tmp_path / "unsafe-ontology-integration-proof-cases.json"
-    bad_fixture.write_text(json.dumps(data, ensure_ascii=False, indent=2, sort_keys=True), encoding="utf-8")
+    bad_fixture.write_text(
+        json.dumps(data, ensure_ascii=False, indent=2, sort_keys=True), encoding="utf-8"
+    )
 
     completed = run_cli("--fixtures", str(bad_fixture), "--no-write")
     summary = parse_stdout(completed)

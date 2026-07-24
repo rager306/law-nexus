@@ -17,9 +17,17 @@ from law_nexus.adapters.embeddings.local_sentence_transformer import (
 )
 
 ROOT = Path(__file__).resolve().parents[1]
-DESCRIPTOR_INPUTS = ROOT / "prd/research/ontology_architecture_requirements/fixtures/semantic_descriptor_inputs.json"
-FIXTURE = ROOT / "prd/research/ontology_architecture_requirements/fixtures/representative_evidence_span_retrieval_corpus.json"
-REPORT = ROOT / "prd/research/ontology_architecture_requirements/semantic_descriptor_scoring_proof.json"
+DESCRIPTOR_INPUTS = (
+    ROOT
+    / "prd/research/ontology_architecture_requirements/fixtures/semantic_descriptor_inputs.json"
+)
+FIXTURE = (
+    ROOT
+    / "prd/research/ontology_architecture_requirements/fixtures/representative_evidence_span_retrieval_corpus.json"
+)
+REPORT = (
+    ROOT / "prd/research/ontology_architecture_requirements/semantic_descriptor_scoring_proof.json"
+)
 DESCRIPTOR_VERIFIER = ROOT / "scripts/verify-semantic-descriptor-inputs.py"
 RUNTIME_CHECKER = ROOT / "scripts/check-local-retrieval-runtime.py"
 MODEL_ID = "deepvk/USER-bge-m3"
@@ -120,7 +128,14 @@ def assert_safe_payload(payload: Mapping[str, Any]) -> None:
 
 
 def run_json_command(command: Sequence[str], timeout_seconds: int) -> tuple[int, dict[str, Any]]:
-    completed = subprocess.run(list(command), cwd=ROOT, check=False, text=True, capture_output=True, timeout=timeout_seconds)
+    completed = subprocess.run(
+        list(command),
+        cwd=ROOT,
+        check=False,
+        text=True,
+        capture_output=True,
+        timeout=timeout_seconds,
+    )
     try:
         payload = json.loads(completed.stdout)
     except json.JSONDecodeError as exc:
@@ -131,7 +146,9 @@ def run_json_command(command: Sequence[str], timeout_seconds: int) -> tuple[int,
 
 
 def verify_descriptor_inputs(timeout_seconds: int) -> dict[str, Any]:
-    exit_code, payload = run_json_command([sys.executable, str(DESCRIPTOR_VERIFIER)], timeout_seconds)
+    exit_code, payload = run_json_command(
+        [sys.executable, str(DESCRIPTOR_VERIFIER)], timeout_seconds
+    )
     if exit_code != 0 or payload.get("status") != "ok":
         raise DescriptorScoringError("descriptor_input_verifier_failed")
     return payload
@@ -139,7 +156,9 @@ def verify_descriptor_inputs(timeout_seconds: int) -> dict[str, Any]:
 
 def runtime_boundary(timeout_seconds: int, runtime_json: Path | None = None) -> dict[str, Any]:
     if runtime_json is None:
-        _exit_code, payload = run_json_command([sys.executable, str(RUNTIME_CHECKER)], timeout_seconds)
+        _exit_code, payload = run_json_command(
+            [sys.executable, str(RUNTIME_CHECKER)], timeout_seconds
+        )
     else:
         payload = load_json(runtime_json)
     status = str(payload.get("runtime_status", "blocked_environment"))
@@ -201,11 +220,17 @@ def scores_from_model(inputs: Mapping[str, Any]) -> list[dict[str, Any]]:
     candidate_descriptors = inputs.get("candidate_descriptors")
     if not isinstance(query_descriptors, list) or not isinstance(candidate_descriptors, list):
         raise DescriptorScoringError("descriptor inputs missing")
-    all_texts = [descriptor_text(item["descriptor_tokens"]) for item in query_descriptors + candidate_descriptors]
+    all_texts = [
+        descriptor_text(item["descriptor_tokens"])
+        for item in query_descriptors + candidate_descriptors
+    ]
     vectors = encode_texts(all_texts)
     query_vectors = vectors[: len(query_descriptors)]
     candidate_vectors = vectors[len(query_descriptors) :]
-    query_by_case = {item["case_id"]: (item, query_vectors[index]) for index, item in enumerate(query_descriptors)}
+    query_by_case = {
+        item["case_id"]: (item, query_vectors[index])
+        for index, item in enumerate(query_descriptors)
+    }
     candidate_rows: list[dict[str, Any]] = []
     for index, candidate in enumerate(candidate_descriptors):
         case_id = candidate["case_id"]
@@ -277,10 +302,15 @@ def compute_metrics(scores: Sequence[Mapping[str, Any]]) -> dict[str, float]:
     top3 = 0
     distractor_first = 0
     for case in positives:
-        rows = sorted(scores_by_case.get(str(case["case_id"]), []), key=lambda row: int(row.get("observed_rank", 999)))
+        rows = sorted(
+            scores_by_case.get(str(case["case_id"]), []),
+            key=lambda row: int(row.get("observed_rank", 999)),
+        )
         ranked_ids = [str(row["candidate_id"]) for row in rows]
         if not ranked_ids:
-            raise DescriptorScoringError(f"observed scores missing for positive case: {case['case_id']}")
+            raise DescriptorScoringError(
+                f"observed scores missing for positive case: {case['case_id']}"
+            )
         expected = set(case.get("expected_candidate_ids", []))
         rr = reciprocal_rank(expected, ranked_ids)
         rr_values.append(rr)
@@ -297,15 +327,30 @@ def compute_metrics(scores: Sequence[Mapping[str, Any]]) -> dict[str, float]:
 
 
 def metric_deltas(metrics: Mapping[str, float]) -> dict[str, float]:
-    return {f"delta_{name}": round(float(metrics.get(name, 0.0)) - baseline, 6) for name, baseline in M024_BASELINE.items()}
+    return {
+        f"delta_{name}": round(float(metrics.get(name, 0.0)) - baseline, 6)
+        for name, baseline in M024_BASELINE.items()
+    }
 
 
-def disposition_hint(metrics: Mapping[str, float], deltas: Mapping[str, float], threshold_failures: Sequence[str], runtime_confirmed: bool) -> str:
+def disposition_hint(
+    metrics: Mapping[str, float],
+    deltas: Mapping[str, float],
+    threshold_failures: Sequence[str],
+    runtime_confirmed: bool,
+) -> str:
     if not runtime_confirmed:
         return "blocked"
-    if "recall_at_3" in threshold_failures and metrics.get("recall_at_3", 0.0) < M024_BASELINE["recall_at_3"]:
+    if (
+        "recall_at_3" in threshold_failures
+        and metrics.get("recall_at_3", 0.0) < M024_BASELINE["recall_at_3"]
+    ):
         return "reject"
-    if deltas.get("delta_positive_with_distractor_relevant_first", 0.0) > 0 and deltas.get("delta_mrr", 0.0) >= 0 and deltas.get("delta_recall_at_1", 0.0) >= 0:
+    if (
+        deltas.get("delta_positive_with_distractor_relevant_first", 0.0) > 0
+        and deltas.get("delta_mrr", 0.0) >= 0
+        and deltas.get("delta_recall_at_1", 0.0) >= 0
+    ):
         return "accept_candidate_pending_review"
     if any(value > 0 for key, value in deltas.items() if key != "delta_runtime_boundary_confirmed"):
         return "revise_candidate_pending_review"
@@ -327,18 +372,33 @@ def build_report(
     runtime = runtime_boundary(timeout_seconds, runtime_json)
     if not runtime["confirmed"]:
         scores: list[dict[str, Any]] = []
-        metrics = {"mrr": 0.0, "recall_at_1": 0.0, "recall_at_3": 0.0, "positive_with_distractor_relevant_first": 0.0}
+        metrics = {
+            "mrr": 0.0,
+            "recall_at_1": 0.0,
+            "recall_at_3": 0.0,
+            "positive_with_distractor_relevant_first": 0.0,
+        }
         scoring_status = "blocked"
     else:
-        scores = scores_from_json(scores_json) if scores_json is not None else scores_from_model(inputs)
+        scores = (
+            scores_from_json(scores_json) if scores_json is not None else scores_from_model(inputs)
+        )
         assert_safe_payload({"scores": scores})
         metrics = compute_metrics(scores)
         scoring_status = "completed"
     metrics["runtime_boundary_confirmed"] = 1.0 if runtime["confirmed"] else 0.0
     deltas = metric_deltas(metrics)
-    threshold_failures = [name for name, minimum in THRESHOLDS.items() if metrics.get(name, 0.0) < minimum]
-    diagnostics = set(descriptor_summary.get("diagnostic_codes", [])) | set(runtime.get("diagnostic_codes", []))
-    diagnostics.add("descriptor_scoring_completed" if scoring_status == "completed" else "descriptor_scoring_blocked")
+    threshold_failures = [
+        name for name, minimum in THRESHOLDS.items() if metrics.get(name, 0.0) < minimum
+    ]
+    diagnostics = set(descriptor_summary.get("diagnostic_codes", [])) | set(
+        runtime.get("diagnostic_codes", [])
+    )
+    diagnostics.add(
+        "descriptor_scoring_completed"
+        if scoring_status == "completed"
+        else "descriptor_scoring_blocked"
+    )
     if threshold_failures:
         diagnostics.add("metric_mismatch")
     if any(value > 0 for key, value in deltas.items() if key != "delta_runtime_boundary_confirmed"):
@@ -388,9 +448,21 @@ def build_report(
 
 def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--runtime-json", type=Path, help="Test-only injected runtime payload; rejected unless --allow-injected-test-inputs is set.")
-    parser.add_argument("--scores-json", type=Path, help="Test-only injected scores payload; rejected unless --allow-injected-test-inputs is set.")
-    parser.add_argument("--allow-injected-test-inputs", action="store_true", help="Allow injected runtime/scores only for unit tests. This mode cannot write the acceptance proof artifact.")
+    parser.add_argument(
+        "--runtime-json",
+        type=Path,
+        help="Test-only injected runtime payload; rejected unless --allow-injected-test-inputs is set.",
+    )
+    parser.add_argument(
+        "--scores-json",
+        type=Path,
+        help="Test-only injected scores payload; rejected unless --allow-injected-test-inputs is set.",
+    )
+    parser.add_argument(
+        "--allow-injected-test-inputs",
+        action="store_true",
+        help="Allow injected runtime/scores only for unit tests. This mode cannot write the acceptance proof artifact.",
+    )
     parser.add_argument("--output", type=Path, default=REPORT)
     parser.add_argument("--no-write", action="store_true")
     parser.add_argument("--timeout-seconds", type=int, default=120)
@@ -409,9 +481,17 @@ def main(argv: Sequence[str] | None = None) -> int:
             allow_injected_test_inputs=args.allow_injected_test_inputs,
         )
         if not args.no_write:
-            args.output.write_text(json.dumps(report, ensure_ascii=False, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+            args.output.write_text(
+                json.dumps(report, ensure_ascii=False, indent=2, sort_keys=True) + "\n",
+                encoding="utf-8",
+            )
     except DescriptorScoringError as exc:
-        print(json.dumps({"status": "failed", "diagnostic": str(exc), "non_authoritative": True}, sort_keys=True))
+        print(
+            json.dumps(
+                {"status": "failed", "diagnostic": str(exc), "non_authoritative": True},
+                sort_keys=True,
+            )
+        )
         return 1
     print(
         json.dumps(

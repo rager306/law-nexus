@@ -4,7 +4,9 @@ import subprocess
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-RUNTIME_SENTINEL = ROOT / "law-source" / "consultant" / "runtime" / "gsd-ignore-smoke" / "sentinel.generated.json"
+RUNTIME_SENTINEL = (
+    ROOT / "law-source" / "consultant" / "runtime" / "gsd-ignore-smoke" / "sentinel.generated.json"
+)
 
 
 def git(*args: str) -> subprocess.CompletedProcess[str]:
@@ -24,10 +26,15 @@ def test_runtime_generated_outputs_are_ignored_by_gitignore() -> None:
     RUNTIME_SENTINEL.parent.mkdir(parents=True, exist_ok=True)
     RUNTIME_SENTINEL.write_text('{"generated": true}\n', encoding="utf-8")
     try:
-        ignored = git("check-ignore", "law-source/consultant/runtime/gsd-ignore-smoke/sentinel.generated.json")
+        ignored = git(
+            "check-ignore", "law-source/consultant/runtime/gsd-ignore-smoke/sentinel.generated.json"
+        )
         assert ignored.returncode == 0, ignored.stderr
         status = git("status", "--short", "--untracked-files=all")
-        assert "law-source/consultant/runtime/gsd-ignore-smoke/sentinel.generated.json" not in status.stdout
+        assert (
+            "law-source/consultant/runtime/gsd-ignore-smoke/sentinel.generated.json"
+            not in status.stdout
+        )
     finally:
         RUNTIME_SENTINEL.unlink(missing_ok=True)
         try:

@@ -123,7 +123,9 @@ def assert_contains(text: str, phrase: str) -> None:
 
 
 def iter_sentences(text: str) -> list[str]:
-    return [sentence.strip() for sentence in re.split(r"(?<=[.!?])\s+|\n-\s+", text) if sentence.strip()]
+    return [
+        sentence.strip() for sentence in re.split(r"(?<=[.!?])\s+|\n-\s+", text) if sentence.strip()
+    ]
 
 
 def is_boundary_sentence(sentence: str) -> bool:
@@ -148,7 +150,11 @@ def test_architecture_skill_preserves_source_of_truth_hierarchy() -> None:
     for phrase in SOURCE_BOUNDARY_PHRASES:
         assert_contains(skill, phrase)
 
-    assert skill.index("Source of truth") < skill.index("Schema contract") < skill.index("Derived projections")
+    assert (
+        skill.index("Source of truth")
+        < skill.index("Schema contract")
+        < skill.index("Derived projections")
+    )
     assert "this skill" in skill and "never override anchored" in skill
 
 

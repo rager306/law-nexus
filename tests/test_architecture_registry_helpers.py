@@ -29,7 +29,9 @@ def test_is_same_resolved_path_matches_canonical_paths(tmp_path: Path) -> None:
     canonical.parent.mkdir(parents=True)
     canonical.write_text("", encoding="utf-8")
 
-    assert is_same_resolved_path(Path("prd/architecture/architecture_items.jsonl"), {canonical}, root=root)
+    assert is_same_resolved_path(
+        Path("prd/architecture/architecture_items.jsonl"), {canonical}, root=root
+    )
     assert not is_same_resolved_path(Path("prd/architecture/other.jsonl"), {canonical}, root=root)
 
 
@@ -46,7 +48,7 @@ def test_safe_repo_relative_path_rejects_absolute_parent_and_exec_paths() -> Non
 def test_load_jsonl_objects_returns_records_and_diagnostics(tmp_path: Path) -> None:
     path = tmp_path / "items.jsonl"
     path.write_text(
-        '\n'.join(
+        "\n".join(
             [
                 '{"id": "A", "record_kind": "item"}',
                 "",
@@ -62,7 +64,10 @@ def test_load_jsonl_objects_returns_records_and_diagnostics(tmp_path: Path) -> N
     located_records, located_diagnostics = load_located_jsonl_objects(path)
 
     assert [record["id"] for record in records] == ["A", "B"]
-    assert [(record.line_number, record.record["id"]) for record in located_records] == [(1, "A"), (5, "B")]
+    assert [(record.line_number, record.record["id"]) for record in located_records] == [
+        (1, "A"),
+        (5, "B"),
+    ]
     assert diagnostics == located_diagnostics
     assert [(diagnostic.rule, diagnostic.line_number) for diagnostic in diagnostics] == [
         ("malformed-jsonl", 3),

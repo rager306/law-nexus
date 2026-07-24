@@ -21,7 +21,11 @@ def assert_terms(text: str, terms: list[str]) -> None:
 
 
 def assert_patterns(text: str, patterns: list[str]) -> None:
-    missing = [pattern for pattern in patterns if not re.search(pattern, text, flags=re.IGNORECASE | re.DOTALL)]
+    missing = [
+        pattern
+        for pattern in patterns
+        if not re.search(pattern, text, flags=re.IGNORECASE | re.DOTALL)
+    ]
     assert not missing, f"Missing required contract patterns: {missing}"
 
 
@@ -88,7 +92,10 @@ def test_model_covers_s01_surface_mapping_and_downstream_handoffs() -> None:
             "law-nexus legal/FalkorDB/parser constraints",
         ],
     )
-    assert_terms(text, ["Handoff Checklist for S03", "Handoff Checklist for S04", "Handoff Checklist for S06"])
+    assert_terms(
+        text,
+        ["Handoff Checklist for S03", "Handoff Checklist for S04", "Handoff Checklist for S06"],
+    )
 
 
 def test_model_preserves_reusable_core_profile_split_and_non_claims() -> None:
@@ -147,7 +154,10 @@ def test_model_blocks_unsafe_authority_promotion_and_anchor_hazards() -> None:
             r"ProofGate`? definition does not satisfy the proof gate",
         ],
     )
-    assert "serve as sole source anchor" in lowered or "sole source for an authoritative claim" in lowered
+    assert (
+        "serve as sole source anchor" in lowered
+        or "sole source for an authoritative claim" in lowered
+    )
 
 
 def test_model_negative_test_section_names_boundary_regressions() -> None:

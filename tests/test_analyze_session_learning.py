@@ -8,7 +8,9 @@ from pathlib import Path
 SCRIPT = Path("scripts/analyze-session-learning.py")
 
 
-def write_exec_fixture(gsd_dir: Path, run_id: str, *, purpose: str, exit_code: int, stderr: str = "", stdout: str = "") -> None:
+def write_exec_fixture(
+    gsd_dir: Path, run_id: str, *, purpose: str, exit_code: int, stderr: str = "", stdout: str = ""
+) -> None:
     exec_dir = gsd_dir / "exec"
     exec_dir.mkdir(parents=True, exist_ok=True)
     stdout_path = exec_dir / f"{run_id}.stdout"
@@ -62,7 +64,11 @@ def test_session_learning_report_detects_failure_and_memory_candidates(tmp_path:
     assert report["exec_summary"]["failures"]
     assert report["memory_candidates"]
     assert any(rec["kind"] == "failure-learning" for rec in report["recommendations"])
-    assert (tmp_path / "session-learning-report.md").read_text(encoding="utf-8").startswith("# Session Learning Retrospective")
+    assert (
+        (tmp_path / "session-learning-report.md")
+        .read_text(encoding="utf-8")
+        .startswith("# Session Learning Retrospective")
+    )
 
 
 def test_session_learning_report_handles_empty_evidence(tmp_path: Path) -> None:
@@ -76,7 +82,9 @@ def test_session_learning_report_handles_empty_evidence(tmp_path: Path) -> None:
     assert report["recommendations"][0]["kind"] in {"no-action", "skill-verification", "gsd-state"}
 
 
-def test_session_learning_report_does_not_treat_successful_zero_failed_output_as_failure(tmp_path: Path) -> None:
+def test_session_learning_report_does_not_treat_successful_zero_failed_output_as_failure(
+    tmp_path: Path,
+) -> None:
     gsd_dir = tmp_path / ".gsd"
     write_exec_fixture(
         gsd_dir,

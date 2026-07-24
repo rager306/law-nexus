@@ -149,7 +149,10 @@ EXPECTED_CONSERVATIVE_RECORDS = {
         "status": "active",
         "proof_level": "none",
         "risk_level": "high",
-        "non_claims": ["No product retrieval quality claim.", "No managed embedding API fallback claim."],
+        "non_claims": [
+            "No product retrieval quality claim.",
+            "No managed embedding API fallback claim.",
+        ],
     },
     "GATE-G015": {
         "status": "active",
@@ -167,37 +170,55 @@ EXPECTED_CONSERVATIVE_RECORDS = {
         "status": "bounded-evidence",
         "proof_level": "real-document-proof",
         "risk_level": "high",
-        "non_claims": ["No final legal hierarchy extraction claim.", "No parser completeness claim."],
+        "non_claims": [
+            "No final legal hierarchy extraction claim.",
+            "No parser completeness claim.",
+        ],
     },
     "S10-USER-BGE-M3-BASELINE": {
         "status": "bounded-evidence",
         "proof_level": "runtime-smoke",
         "risk_level": "medium",
-        "non_claims": ["No product retrieval quality claim.", "No managed embedding API fallback claim."],
+        "non_claims": [
+            "No product retrieval quality claim.",
+            "No managed embedding API fallback claim.",
+        ],
     },
     "S10-GIGAEMBEDDINGS-CHALLENGER-BLOCKED": {
         "status": "blocked",
         "proof_level": "none",
         "risk_level": "medium",
-        "non_claims": ["No managed embedding API fallback claim.", "No default promotion while blocked-environment."],
+        "non_claims": [
+            "No managed embedding API fallback claim.",
+            "No default promotion while blocked-environment.",
+        ],
     },
     "EVID-PARSER-GOLDEN-TEST-PROOF": {
         "status": "bounded-evidence",
         "proof_level": "unit-test",
         "risk_level": "medium",
-        "non_claims": ["Does not prove parser completeness.", "Does not prove product retrieval quality."],
+        "non_claims": [
+            "Does not prove parser completeness.",
+            "Does not prove product retrieval quality.",
+        ],
     },
     "EVID-PARSER-CONSULTANT-HIERARCHY-PROOF": {
         "status": "bounded-evidence",
         "proof_level": "real-document-proof",
         "risk_level": "medium",
-        "non_claims": ["Does not prove multi-document Consultant expansion.", "Does not prove parser completeness."],
+        "non_claims": [
+            "Does not prove multi-document Consultant expansion.",
+            "Does not prove parser completeness.",
+        ],
     },
     "EVID-RESEARCH-GRAPHRAG-MATH-ANALYSIS": {
         "status": "bounded-evidence",
         "proof_level": "source-anchor",
         "risk_level": "high",
-        "non_claims": ["Does not prove product retrieval quality.", "Does not prove GraphRAG-SDK compatibility."],
+        "non_claims": [
+            "Does not prove product retrieval quality.",
+            "Does not prove GraphRAG-SDK compatibility.",
+        ],
     },
     "EVID-RETRIEVAL-OUTPUT-ID-VALIDATOR-PROOF": {
         "status": "bounded-evidence",
@@ -287,73 +308,110 @@ EXPECTED_CONSERVATIVE_RECORDS = {
         "status": "hypothesis",
         "proof_level": "source-anchor",
         "risk_level": "high",
-        "non_claims": ["Does not prove parser completeness.", "Does not prove legal-answer correctness."],
+        "non_claims": [
+            "Does not prove parser completeness.",
+            "Does not prove legal-answer correctness.",
+        ],
     },
     "DATA-LKIF-DEONTIC-MAPPING": {
         "status": "hypothesis",
         "proof_level": "source-anchor",
         "risk_level": "high",
-        "non_claims": ["Does not prove product Legal KnowQL behavior.", "Does not prove ontology benchmark quality."],
+        "non_claims": [
+            "Does not prove product Legal KnowQL behavior.",
+            "Does not prove ontology benchmark quality.",
+        ],
     },
     "DATA-RUSLEGALCORE-DOMAIN-ONTOLOGY": {
         "status": "hypothesis",
         "proof_level": "source-anchor",
         "risk_level": "high",
-        "non_claims": ["Does not prove legal-answer correctness.", "Does not prove ontology benchmark quality."],
+        "non_claims": [
+            "Does not prove legal-answer correctness.",
+            "Does not prove ontology benchmark quality.",
+        ],
     },
     "DATA-LEGAL-SOURCE-HIERARCHY": {
         "status": "hypothesis",
         "proof_level": "source-anchor",
         "risk_level": "high",
-        "non_claims": ["Does not prove automated legal collision resolution.", "Does not prove legal-answer correctness."],
+        "non_claims": [
+            "Does not prove automated legal collision resolution.",
+            "Does not prove legal-answer correctness.",
+        ],
     },
     "GATE-AKOMA-FRBR-NORMALIZATION": {
         "status": "proposed",
         "proof_level": "source-anchor",
         "risk_level": "high",
-        "non_claims": ["Does not prove parser completeness.", "Does not make Akoma Ntoso canonical."],
+        "non_claims": [
+            "Does not prove parser completeness.",
+            "Does not make Akoma Ntoso canonical.",
+        ],
     },
     "GATE-LKIF-DEONTIC-BENCHMARK": {
         "status": "proposed",
         "proof_level": "source-anchor",
         "risk_level": "high",
-        "non_claims": ["Does not prove ontology benchmark quality.", "Does not prove product Legal KnowQL behavior."],
+        "non_claims": [
+            "Does not prove ontology benchmark quality.",
+            "Does not prove product Legal KnowQL behavior.",
+        ],
     },
     "GATE-RUSLEGALCORE-SCOPE": {
         "status": "proposed",
         "proof_level": "source-anchor",
         "risk_level": "high",
-        "non_claims": ["Does not prove ontology completeness.", "Does not prove legal-answer correctness."],
+        "non_claims": [
+            "Does not prove ontology completeness.",
+            "Does not prove legal-answer correctness.",
+        ],
     },
     "GATE-BFO-GOST-ALIGNMENT": {
         "status": "proposed",
         "proof_level": "source-anchor",
         "risk_level": "medium",
-        "non_claims": ["Does not assert GOST requirements.", "Does not prove ontology benchmark quality."],
+        "non_claims": [
+            "Does not assert GOST requirements.",
+            "Does not prove ontology benchmark quality.",
+        ],
     },
     "GATE-LEGAL-COLLISION-POLICY": {
         "status": "proposed",
         "proof_level": "source-anchor",
         "risk_level": "high",
-        "non_claims": ["Does not prove automated legal collision resolution.", "Does not prove legal-answer correctness."],
+        "non_claims": [
+            "Does not prove automated legal collision resolution.",
+            "Does not prove legal-answer correctness.",
+        ],
     },
     "GATE-ONTOLOGY-GRAPHRAG-INTEGRATION": {
         "status": "proposed",
         "proof_level": "source-anchor",
         "risk_level": "high",
-        "non_claims": ["Does not prove product retrieval quality.", "Does not prove legal-answer correctness."],
+        "non_claims": [
+            "Does not prove product retrieval quality.",
+            "Does not prove legal-answer correctness.",
+        ],
     },
     "GATE-PILOT-SCALE-READINESS": {
         "status": "proposed",
         "proof_level": "source-anchor",
         "risk_level": "high",
-        "non_claims": ["Does not prove pilot-scale readiness.", "Does not prove production-scale FalkorDB claim."],
+        "non_claims": [
+            "Does not prove pilot-scale readiness.",
+            "Does not prove production-scale FalkorDB claim.",
+        ],
     },
     "M001-ARCHITECTURE-ONLY-GUARDRAIL": {
         "status": "out-of-scope",
         "proof_level": "source-anchor",
         "risk_level": "critical",
-        "non_claims": ["No product ETL.", "No production graph schema.", "No legal-answering runtime."],
+        "non_claims": [
+            "No product ETL.",
+            "No production graph schema.",
+            "No legal-answering runtime.",
+        ],
     },
 }
 
@@ -376,10 +434,14 @@ def read_jsonl(path: Path) -> list[dict[str, Any]]:
             continue
         try:
             record = json.loads(line)
-        except json.JSONDecodeError as exc:  # pragma: no cover - assertion text is the useful branch
+        except (
+            json.JSONDecodeError
+        ) as exc:  # pragma: no cover - assertion text is the useful branch
             raise AssertionError(f"{path}:{line_number}: malformed JSONL: {exc.msg}") from exc
         if not isinstance(record, dict):
-            raise AssertionError(f"{path}:{line_number}: expected object record, got {type(record).__name__}")
+            raise AssertionError(
+                f"{path}:{line_number}: expected object record, got {type(record).__name__}"
+            )
         records.append(record)
     return records
 
@@ -406,8 +468,12 @@ def load_extractor_module() -> Any:
 
 
 def assert_no_validated_items(items: list[dict[str, Any]]) -> None:
-    bad = sorted(str(item.get("id", "<missing-id>")) for item in items if item.get("status") == "validated")
-    assert not bad, "unsafe status/proof mapping: generated items must not be validated: " + ", ".join(bad)
+    bad = sorted(
+        str(item.get("id", "<missing-id>")) for item in items if item.get("status") == "validated"
+    )
+    assert not bad, (
+        "unsafe status/proof mapping: generated items must not be validated: " + ", ".join(bad)
+    )
 
 
 def test_generated_lines_match_architecture_schema_and_fitness_rules() -> None:
@@ -428,9 +494,16 @@ def test_check_mode_matches_generated_outputs_and_required_ids() -> None:
     item_by_id = records_by_id(read_jsonl(ITEMS), ITEMS)
     edge_by_id = records_by_id(read_jsonl(EDGES), EDGES)
 
-    assert REQUIRED_ITEM_IDS <= set(item_by_id), "missing required item IDs: " + ", ".join(sorted(REQUIRED_ITEM_IDS - set(item_by_id)))
-    assert not (FORBIDDEN_ONTOLOGY_ALIAS_ITEM_IDS & set(item_by_id)), "forbidden ontology alias item IDs emitted: " + ", ".join(sorted(FORBIDDEN_ONTOLOGY_ALIAS_ITEM_IDS & set(item_by_id)))
-    assert REQUIRED_EDGE_IDS <= set(edge_by_id), "missing required edge IDs: " + ", ".join(sorted(REQUIRED_EDGE_IDS - set(edge_by_id)))
+    assert REQUIRED_ITEM_IDS <= set(item_by_id), "missing required item IDs: " + ", ".join(
+        sorted(REQUIRED_ITEM_IDS - set(item_by_id))
+    )
+    assert not (FORBIDDEN_ONTOLOGY_ALIAS_ITEM_IDS & set(item_by_id)), (
+        "forbidden ontology alias item IDs emitted: "
+        + ", ".join(sorted(FORBIDDEN_ONTOLOGY_ALIAS_ITEM_IDS & set(item_by_id)))
+    )
+    assert REQUIRED_EDGE_IDS <= set(edge_by_id), "missing required edge IDs: " + ", ".join(
+        sorted(REQUIRED_EDGE_IDS - set(edge_by_id))
+    )
     assert ITEMS.read_text(encoding="utf-8").endswith("\n"), f"{ITEMS}: missing trailing newline"
     assert EDGES.read_text(encoding="utf-8").endswith("\n"), f"{EDGES}: missing trailing newline"
 
@@ -445,7 +518,9 @@ def test_generated_records_are_conservative_and_anchored() -> None:
     for record_id, expectations in EXPECTED_CONSERVATIVE_RECORDS.items():
         record = item_by_id[record_id]
         for field in ["status", "proof_level", "risk_level"]:
-            assert record[field] == expectations[field], f"id={record_id} field={field} expected {expectations[field]!r}, got {record[field]!r}"
+            assert record[field] == expectations[field], (
+                f"id={record_id} field={field} expected {expectations[field]!r}, got {record[field]!r}"
+            )
         non_claims = record.get("non_claims", [])
         assert isinstance(non_claims, list), f"id={record_id} field=non_claims expected list"
         for claim in expectations["non_claims"]:
@@ -453,7 +528,9 @@ def test_generated_records_are_conservative_and_anchored() -> None:
 
     m016_anchor_paths = {
         anchor["path"]
-        for anchor in item_by_id["EVID-REPRESENTATIVE-RETRIEVAL-RUNTIME-BENCHMARK-PROOF"]["source_anchors"]
+        for anchor in item_by_id["EVID-REPRESENTATIVE-RETRIEVAL-RUNTIME-BENCHMARK-PROOF"][
+            "source_anchors"
+        ]
     }
     assert {
         "prd/retrieval/representative_retrieval_runtime_benchmark_proof.md",
@@ -463,14 +540,24 @@ def test_generated_records_are_conservative_and_anchored() -> None:
 
     for record in [*items, *edges]:
         anchors = record.get("source_anchors")
-        assert isinstance(anchors, list) and anchors, f"id={record.get('id')} field=source_anchors missing"
+        assert isinstance(anchors, list) and anchors, (
+            f"id={record.get('id')} field=source_anchors missing"
+        )
         for source_anchor in anchors:
-            assert isinstance(source_anchor, dict), f"id={record.get('id')} field=source_anchors contains non-object"
+            assert isinstance(source_anchor, dict), (
+                f"id={record.get('id')} field=source_anchors contains non-object"
+            )
             path = str(source_anchor.get("path", ""))
             assert path, f"id={record.get('id')} field=source_anchors.path empty"
-            assert not path.startswith("/"), f"id={record.get('id')} field=source_anchors.path absolute: {path}"
-            assert not path.startswith(".gsd/exec"), f"id={record.get('id')} field=source_anchors.path ignored local-only path: {path}"
-            assert path.startswith(".gsd/") or (ROOT / path).exists(), f"id={record.get('id')} field=source_anchors.path missing: {path}"
+            assert not path.startswith("/"), (
+                f"id={record.get('id')} field=source_anchors.path absolute: {path}"
+            )
+            assert not path.startswith(".gsd/exec"), (
+                f"id={record.get('id')} field=source_anchors.path ignored local-only path: {path}"
+            )
+            assert path.startswith(".gsd/") or (ROOT / path).exists(), (
+                f"id={record.get('id')} field=source_anchors.path missing: {path}"
+            )
 
 
 def test_default_extractor_emits_bounded_acp_governance_rows() -> None:
@@ -505,9 +592,16 @@ def test_default_extractor_emits_bounded_acp_governance_rows() -> None:
         assert record["layer"] == "architecture-governance"
         assert record["generated_draft"] is False
         non_claims = record["non_claims"]
-        for claim in ["Does not validate R035.", "Does not validate R037.", "Does not validate R038."]:
+        for claim in [
+            "Does not validate R035.",
+            "Does not validate R037.",
+            "Does not validate R038.",
+        ]:
             assert claim in non_claims
-        assert not any(anchor["path"].startswith("prd/architecture/acp/derived/") for anchor in record["source_anchors"])
+        assert not any(
+            anchor["path"].startswith("prd/architecture/acp/derived/")
+            for anchor in record["source_anchors"]
+        )
 
     assert item_by_id["ACP-DC-0001"]["authority_required"] is True
     assert item_by_id["ACP-DC-0001"]["type"] != "decision"
@@ -520,7 +614,10 @@ def test_default_extractor_emits_bounded_acp_governance_rows() -> None:
         assert record["from"] in item_by_id
         assert record["to"] in item_by_id
         assert record["type"] not in {"satisfies", "validated_by"}
-        assert not any(anchor["path"].startswith("prd/architecture/acp/derived/") for anchor in record["source_anchors"])
+        assert not any(
+            anchor["path"].startswith("prd/architecture/acp/derived/")
+            for anchor in record["source_anchors"]
+        )
 
 
 def test_tmp_generation_check_mode_and_deterministic_bytes(tmp_path: Path) -> None:
@@ -584,14 +681,28 @@ def test_check_mode_reports_malformed_existing_jsonl_with_line_number(tmp_path: 
 
 def test_missing_or_malformed_s08_findings_fail_closed(tmp_path: Path) -> None:
     missing = tmp_path / "missing-S08-FINDINGS.json"
-    missing_result = run_cli("--s08-findings", str(missing), "--items", str(tmp_path / "i.jsonl"), "--edges", str(tmp_path / "e.jsonl"))
+    missing_result = run_cli(
+        "--s08-findings",
+        str(missing),
+        "--items",
+        str(tmp_path / "i.jsonl"),
+        "--edges",
+        str(tmp_path / "e.jsonl"),
+    )
     assert missing_result.returncode != 0
     assert "missing required source" in missing_result.stderr
     assert str(missing) in missing_result.stderr
 
     malformed = tmp_path / "S08-FINDINGS.json"
     malformed.write_text("{not-json", encoding="utf-8")
-    malformed_result = run_cli("--s08-findings", str(malformed), "--items", str(tmp_path / "i2.jsonl"), "--edges", str(tmp_path / "e2.jsonl"))
+    malformed_result = run_cli(
+        "--s08-findings",
+        str(malformed),
+        "--items",
+        str(tmp_path / "i2.jsonl"),
+        "--edges",
+        str(tmp_path / "e2.jsonl"),
+    )
     assert malformed_result.returncode != 0
     assert "malformed source JSON" in malformed_result.stderr
     assert str(malformed) in malformed_result.stderr
@@ -599,7 +710,14 @@ def test_missing_or_malformed_s08_findings_fail_closed(tmp_path: Path) -> None:
 
     missing_ids = tmp_path / "S08-FINDINGS-missing-ids.json"
     missing_ids.write_text(json.dumps({"findings": [{"id": "G-005"}]}), encoding="utf-8")
-    missing_ids_result = run_cli("--s08-findings", str(missing_ids), "--items", str(tmp_path / "i3.jsonl"), "--edges", str(tmp_path / "e3.jsonl"))
+    missing_ids_result = run_cli(
+        "--s08-findings",
+        str(missing_ids),
+        "--items",
+        str(tmp_path / "i3.jsonl"),
+        "--edges",
+        str(tmp_path / "e3.jsonl"),
+    )
     assert missing_ids_result.returncode != 0
     assert "missing required finding IDs" in missing_ids_result.stderr
     assert "G-008" in missing_ids_result.stderr
@@ -640,9 +758,11 @@ def test_missing_source_anchor_and_validated_status_have_record_level_diagnostic
     assert "prd/architecture/does-not-exist.md" in diagnostic
 
     try:
-        assert_no_validated_items([
-            {"id": "BAD-VALIDATED-OVERCLAIM", "status": "validated"},
-        ])
+        assert_no_validated_items(
+            [
+                {"id": "BAD-VALIDATED-OVERCLAIM", "status": "validated"},
+            ]
+        )
     except AssertionError as exc:
         status_diagnostic = str(exc)
     else:  # pragma: no cover - failure branch produces clearer assertion below

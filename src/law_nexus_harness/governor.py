@@ -284,7 +284,11 @@ def check_hostile_proof_chain(root: Path) -> list[GovernorFinding]:
         verdict = str(payload.get("verdict", ""))
         remaining = payload.get("remaining_unsupported_cases")
         expected_remaining = 20 - case_num
-        if evidence_id == expected_evidence and verdict == "PASS" and remaining == expected_remaining:
+        if (
+            evidence_id == expected_evidence
+            and verdict == "PASS"
+            and remaining == expected_remaining
+        ):
             findings.append(
                 GovernorFinding(
                     check_id=f"hostile-proof-hc{case_num:02d}",
@@ -458,12 +462,9 @@ def check_gsd_residual_debt(root: Path) -> list[GovernorFinding]:
                 check_id="gsd-no-open-registry-debt",
                 status="pass",
                 severity="ok",
-                message=(
-                    "Exactly one open next-wave milestone is allowed after last completed"
-                ),
+                message=("Exactly one open next-wave milestone is allowed after last completed"),
                 observed=(
-                    f"open={incomplete}; last_completed=M{latest_completed}; "
-                    f"active={active}"
+                    f"open={incomplete}; last_completed=M{latest_completed}; active={active}"
                 ),
                 remediation="none",
             )
@@ -475,10 +476,7 @@ def check_gsd_residual_debt(root: Path) -> list[GovernorFinding]:
                 status="fail",
                 severity="error",
                 message="GSD registry has residual open-milestone debt",
-                observed=(
-                    f"open={incomplete}; last_completed={latest_completed}; "
-                    f"active={active}"
-                ),
+                observed=(f"open={incomplete}; last_completed={latest_completed}; active={active}"),
                 remediation=(
                     "Close leftover incomplete milestones at or behind the last completed "
                     "wave, or collapse multiple open milestones to a single next-wave "
@@ -502,11 +500,7 @@ def check_gsd_residual_debt(root: Path) -> list[GovernorFinding]:
                 remediation="Close residual slices on the active milestone or advance active pointer",
             )
         )
-    elif (
-        latest_completed is not None
-        and active is not None
-        and active == latest_completed + 1
-    ):
+    elif latest_completed is not None and active is not None and active == latest_completed + 1:
         findings.append(
             GovernorFinding(
                 check_id="gsd-phase-complete-consistent",

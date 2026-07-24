@@ -14,9 +14,15 @@ from types import ModuleType
 from typing import Any
 
 ROOT = Path(__file__).resolve().parents[1]
-BASE_INPUTS = ROOT / "prd/research/ontology_architecture_requirements/fixtures/materialized_descriptor_inputs.json"
+BASE_INPUTS = (
+    ROOT
+    / "prd/research/ontology_architecture_requirements/fixtures/materialized_descriptor_inputs.json"
+)
 BASE_VERIFIER = ROOT / "scripts/verify-materialized-descriptor-inputs.py"
-OUTPUT = ROOT / "prd/research/ontology_architecture_requirements/fixtures/source_record_cardinality_signal_inputs.json"
+OUTPUT = (
+    ROOT
+    / "prd/research/ontology_architecture_requirements/fixtures/source_record_cardinality_signal_inputs.json"
+)
 SCHEMA_VERSION = "source-record-cardinality-signal-inputs/v1"
 REPRESENTATION_KIND = "safe_materialized_descriptor_with_source_record_cardinality_v1"
 SELECTED_SIGNAL = "safe_source_record_cardinality_bucket"
@@ -36,9 +42,24 @@ CARDINALITY_VALUES = [
     "source_record_cardinality_multiple",
     "source_record_cardinality_unknown",
 ]
-M027_BASELINE = {"mrr": 0.680555, "recall_at_1": 0.5, "recall_at_3": 0.833333, "runtime_boundary_confirmed": 1.0}
-M028_BASELINE = {"mrr": 0.916667, "recall_at_1": 0.833333, "recall_at_3": 1.0, "runtime_boundary_confirmed": 1.0}
-M029_BASELINE = {"mrr": 0.680555, "recall_at_1": 0.5, "recall_at_3": 0.833333, "runtime_boundary_confirmed": 1.0}
+M027_BASELINE = {
+    "mrr": 0.680555,
+    "recall_at_1": 0.5,
+    "recall_at_3": 0.833333,
+    "runtime_boundary_confirmed": 1.0,
+}
+M028_BASELINE = {
+    "mrr": 0.916667,
+    "recall_at_1": 0.833333,
+    "recall_at_3": 1.0,
+    "runtime_boundary_confirmed": 1.0,
+}
+M029_BASELINE = {
+    "mrr": 0.680555,
+    "recall_at_1": 0.5,
+    "recall_at_3": 0.833333,
+    "runtime_boundary_confirmed": 1.0,
+}
 
 
 class SourceRecordCardinalityBuildError(RuntimeError):
@@ -96,7 +117,11 @@ def source_record_index(candidate_items: Sequence[Any]) -> dict[str, list[str]]:
             continue
         ref = str(item.get("materialized_candidate_ref"))
         records = item.get("source_record_ids")
-        if not isinstance(records, list) or not records or not all(isinstance(record, str) for record in records):
+        if (
+            not isinstance(records, list)
+            or not records
+            or not all(isinstance(record, str) for record in records)
+        ):
             raise SourceRecordCardinalityBuildError(f"source_record_ids missing: {ref}")
         index[ref] = list(records)
     if not index:
@@ -104,7 +129,9 @@ def source_record_index(candidate_items: Sequence[Any]) -> dict[str, list[str]]:
     return index
 
 
-def enhance_item(item: Mapping[str, Any], records_by_ref: Mapping[str, Sequence[str]]) -> dict[str, Any]:
+def enhance_item(
+    item: Mapping[str, Any], records_by_ref: Mapping[str, Sequence[str]]
+) -> dict[str, Any]:
     base_descriptors = item.get("descriptors")
     if not isinstance(base_descriptors, Mapping):
         raise SourceRecordCardinalityBuildError("base descriptors missing")
@@ -112,7 +139,9 @@ def enhance_item(item: Mapping[str, Any], records_by_ref: Mapping[str, Sequence[
     if set(descriptors) != set(BASE_DERIVATION_FIELDS):
         raise SourceRecordCardinalityBuildError("base descriptor field mismatch")
     serialized_tokens = "\n".join(str(token) for token in item.get("descriptor_tokens", []))
-    if any(signal in descriptors or signal in serialized_tokens for signal in FORBIDDEN_PRIOR_SIGNALS):
+    if any(
+        signal in descriptors or signal in serialized_tokens for signal in FORBIDDEN_PRIOR_SIGNALS
+    ):
         raise SourceRecordCardinalityBuildError("forbidden prior signal present")
     materialized_ref = str(item.get("materialized_candidate_ref"))
     records = records_by_ref.get(materialized_ref)
@@ -137,12 +166,20 @@ def build_inputs(base_inputs_path: Path = BASE_INPUTS) -> dict[str, Any]:
     if not isinstance(query_items, list) or not isinstance(candidate_items, list):
         raise SourceRecordCardinalityBuildError("descriptor arrays missing")
     records_by_ref = source_record_index(candidate_items)
-    query_descriptors = [enhance_item(item, records_by_ref) for item in query_items if isinstance(item, Mapping)]
-    candidate_descriptors = [enhance_item(item, records_by_ref) for item in candidate_items if isinstance(item, Mapping)]
+    query_descriptors = [
+        enhance_item(item, records_by_ref) for item in query_items if isinstance(item, Mapping)
+    ]
+    candidate_descriptors = [
+        enhance_item(item, records_by_ref) for item in candidate_items if isinstance(item, Mapping)
+    ]
     allowed_descriptor_fields = dict(base_inputs.get("allowed_descriptor_fields", {}))
     allowed_descriptor_fields[SELECTED_SIGNAL] = CARDINALITY_VALUES
-    distribution = Counter(item["selected_signal_value"] for item in query_descriptors + candidate_descriptors)
-    cardinality_counts = sorted({item["source_record_cardinality"] for item in query_descriptors + candidate_descriptors})
+    distribution = Counter(
+        item["selected_signal_value"] for item in query_descriptors + candidate_descriptors
+    )
+    cardinality_counts = sorted(
+        {item["source_record_cardinality"] for item in query_descriptors + candidate_descriptors}
+    )
     return {
         "schema_version": SCHEMA_VERSION,
         "milestone_id": "M030-hwfnq0",
@@ -166,8 +203,16 @@ def build_inputs(base_inputs_path: Path = BASE_INPUTS) -> dict[str, Any]:
         "added_descriptor_fields": [SELECTED_SIGNAL],
         "allowed_descriptor_fields": allowed_descriptor_fields,
         "signal_derivation_summary": {
-            "allowed_inputs": ["materialized_candidate_ref", "source_record_ids", "source_anchor_sha256"],
-            "forbidden_inputs": ["source_order_index", *FORBIDDEN_PRIOR_SIGNALS, "source_anchor_ref_suffix_family"],
+            "allowed_inputs": [
+                "materialized_candidate_ref",
+                "source_record_ids",
+                "source_anchor_sha256",
+            ],
+            "forbidden_inputs": [
+                "source_order_index",
+                *FORBIDDEN_PRIOR_SIGNALS,
+                "source_anchor_ref_suffix_family",
+            ],
             "raw_text_used": False,
             "labels_used": False,
             "source_order_index_used": False,
@@ -212,7 +257,9 @@ def main(argv: Sequence[str] | None = None) -> int:
     args = parse_args(argv)
     manifest = build_inputs(args.base_inputs)
     args.output.parent.mkdir(parents=True, exist_ok=True)
-    args.output.write_text(json.dumps(manifest, ensure_ascii=False, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    args.output.write_text(
+        json.dumps(manifest, ensure_ascii=False, indent=2, sort_keys=True) + "\n", encoding="utf-8"
+    )
     print(
         json.dumps(
             {
@@ -224,7 +271,9 @@ def main(argv: Sequence[str] | None = None) -> int:
                 "query_descriptor_count": manifest["query_descriptor_count"],
                 "candidate_descriptor_count": manifest["candidate_descriptor_count"],
                 "cardinality_distribution": manifest["cardinality_distribution"],
-                "constant_signal_risk": manifest["signal_derivation_summary"]["constant_signal_risk"],
+                "constant_signal_risk": manifest["signal_derivation_summary"][
+                    "constant_signal_risk"
+                ],
                 "non_authoritative": True,
             },
             sort_keys=True,

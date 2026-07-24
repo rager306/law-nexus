@@ -124,15 +124,23 @@ ALLOWED_FALSE_FIELD_NAMES = REQUIRED_SAFETY_FALSE_FIELDS | {
     "auth_header_persisted",
 }
 OVERCLAIM_PATTERNS = (
-    re.compile(r"(?i)Legal KnowQL product behavior\s+(is\s+)?(validated|proven|confirmed|implemented|production[- ]ready)"),
-    re.compile(r"(?i)legal-answer correctness\s+(is\s+)?(validated|proven|confirmed|production[- ]ready)"),
+    re.compile(
+        r"(?i)Legal KnowQL product behavior\s+(is\s+)?(validated|proven|confirmed|implemented|production[- ]ready)"
+    ),
+    re.compile(
+        r"(?i)legal-answer correctness\s+(is\s+)?(validated|proven|confirmed|production[- ]ready)"
+    ),
     re.compile(r"(?i)M002 validation\s+(is\s+)?(validated|proven|confirmed|accepted|complete)"),
-    re.compile(r"(?i)deterministic validation\s+(is\s+)?(validated|proven|confirmed|performed|complete)"),
+    re.compile(
+        r"(?i)deterministic validation\s+(is\s+)?(validated|proven|confirmed|performed|complete)"
+    ),
     re.compile(r"(?i)(S03\s+)?performed\s+graph execution"),
     re.compile(r"(?i)graph execution\s+(is\s+)?(validated|proven|confirmed|performed|complete)"),
     re.compile(r"(?i)ODT parsing.*(validated|proven|confirmed|production[- ]ready)"),
     re.compile(r"(?i)retrieval quality.*(validated|proven|confirmed|production[- ]ready)"),
-    re.compile(r"(?i)production graph schema fitness\s+(is\s+)?(validated|proven|confirmed|production[- ]ready)"),
+    re.compile(
+        r"(?i)production graph schema fitness\s+(is\s+)?(validated|proven|confirmed|production[- ]ready)"
+    ),
 )
 
 
@@ -204,12 +212,27 @@ def assert_no_unsafe_fields(value: Any, *, path: str = "payload") -> None:
 
 def validate_endpoint(payload: dict[str, Any]) -> None:
     endpoint = require_dict(payload.get("endpoint"), "endpoint")
-    require(endpoint.get("endpoint_input") == EXPECTED_ENDPOINT_INPUT, "endpoint.endpoint_input mismatch")
-    require(endpoint.get("normalized_base_url") == EXPECTED_NORMALIZED_BASE_URL, "endpoint.normalized_base_url mismatch")
-    require(endpoint.get("effective_chat_completions_url") == EXPECTED_EFFECTIVE_URL, "endpoint effective URL mismatch")
+    require(
+        endpoint.get("endpoint_input") == EXPECTED_ENDPOINT_INPUT,
+        "endpoint.endpoint_input mismatch",
+    )
+    require(
+        endpoint.get("normalized_base_url") == EXPECTED_NORMALIZED_BASE_URL,
+        "endpoint.normalized_base_url mismatch",
+    )
+    require(
+        endpoint.get("effective_chat_completions_url") == EXPECTED_EFFECTIVE_URL,
+        "endpoint effective URL mismatch",
+    )
     require(endpoint.get("preserves_v1") is True, "endpoint.preserves_v1 must be true")
-    require(endpoint.get("endpoint_contract_valid") is True, "endpoint.endpoint_contract_valid must be true")
-    require(endpoint.get("normalization_status") in {"normalized", "already-normalized"}, "endpoint normalization status invalid")
+    require(
+        endpoint.get("endpoint_contract_valid") is True,
+        "endpoint.endpoint_contract_valid must be true",
+    )
+    require(
+        endpoint.get("normalization_status") in {"normalized", "already-normalized"},
+        "endpoint normalization status invalid",
+    )
 
 
 def validate_request(payload: dict[str, Any]) -> None:
@@ -218,7 +241,9 @@ def validate_request(payload: dict[str, Any]) -> None:
     require(request.get("stream") is False, "request.stream must be false")
     require(request.get("reasoning_split") is True, "request.reasoning_split must be true")
     require(request.get("message_count") == 2, "request.message_count must be 2")
-    require(request.get("prompt_text_persisted") is False, "request.prompt_text_persisted must be false")
+    require(
+        request.get("prompt_text_persisted") is False, "request.prompt_text_persisted must be false"
+    )
 
 
 def validate_resolver(payload: dict[str, Any]) -> None:
@@ -226,17 +251,32 @@ def validate_resolver(payload: dict[str, Any]) -> None:
     adapter_kind = resolver.get("adapter_kind")
     require(adapter_kind == "OpenAI", "resolver.adapter_kind must be OpenAI")
     if "module" in resolver:
-        require(resolver.get("module") == "m003_s03_reasoning_safe_candidate", "resolver.module mismatch")
+        require(
+            resolver.get("module") == "m003_s03_reasoning_safe_candidate",
+            "resolver.module mismatch",
+        )
     if "model" in resolver:
         require(resolver.get("model") == DEFAULT_MODEL, "resolver.model mismatch")
     if "normalized_endpoint_base_url" in resolver:
-        require(resolver.get("normalized_endpoint_base_url") == EXPECTED_NORMALIZED_BASE_URL, "resolver normalized endpoint mismatch")
+        require(
+            resolver.get("normalized_endpoint_base_url") == EXPECTED_NORMALIZED_BASE_URL,
+            "resolver normalized endpoint mismatch",
+        )
     if "effective_chat_completions_url" in resolver:
-        require(resolver.get("effective_chat_completions_url") == EXPECTED_EFFECTIVE_URL, "resolver effective URL mismatch")
+        require(
+            resolver.get("effective_chat_completions_url") == EXPECTED_EFFECTIVE_URL,
+            "resolver effective URL mismatch",
+        )
     if "request_body_reasoning_split" in resolver:
-        require(resolver.get("request_body_reasoning_split") is True, "resolver.request_body_reasoning_split must be true")
+        require(
+            resolver.get("request_body_reasoning_split") is True,
+            "resolver.request_body_reasoning_split must be true",
+        )
     if "provider_body_persistence" in resolver:
-        require(resolver.get("provider_body_persistence") == "disabled", "resolver.provider_body_persistence must be disabled")
+        require(
+            resolver.get("provider_body_persistence") == "disabled",
+            "resolver.provider_body_persistence must be disabled",
+        )
 
 
 def validate_safety(payload: dict[str, Any]) -> None:
@@ -247,16 +287,30 @@ def validate_safety(payload: dict[str, Any]) -> None:
 
 def validate_boundaries(payload: dict[str, Any]) -> None:
     boundaries = require_dict(payload.get("boundaries"), "boundaries")
-    proves = "\n".join(str(item) for item in require_list(boundaries.get("proves"), "boundaries.proves"))
-    does_not_prove_items = require_list(boundaries.get("does_not_prove"), "boundaries.does_not_prove")
+    proves = "\n".join(
+        str(item) for item in require_list(boundaries.get("proves"), "boundaries.proves")
+    )
+    does_not_prove_items = require_list(
+        boundaries.get("does_not_prove"), "boundaries.does_not_prove"
+    )
     does_not_prove = "\n".join(str(item) for item in does_not_prove_items)
-    safety = "\n".join(str(item) for item in require_list(boundaries.get("safety"), "boundaries.safety"))
-    missing = sorted(phrase for phrase in REQUIRED_NON_CLAIM_PHRASES if phrase not in does_not_prove)
+    safety = "\n".join(
+        str(item) for item in require_list(boundaries.get("safety"), "boundaries.safety")
+    )
+    missing = sorted(
+        phrase for phrase in REQUIRED_NON_CLAIM_PHRASES if phrase not in does_not_prove
+    )
     require(not missing, "boundaries.does_not_prove missing: " + ", ".join(missing))
-    require("classification" in proves, "boundaries.proves must mention classification, not validation or execution")
+    require(
+        "classification" in proves,
+        "boundaries.proves must mention classification, not validation or execution",
+    )
     require("not persisted" in safety, "boundaries.safety must state non-persistence")
     non_claims = require_list(payload.get("non_claims"), "non_claims")
-    require(set(map(str, non_claims)) == set(map(str, does_not_prove_items)), "non_claims must mirror boundaries.does_not_prove")
+    require(
+        set(map(str, non_claims)) == set(map(str, does_not_prove_items)),
+        "non_claims must mirror boundaries.does_not_prove",
+    )
 
 
 def validate_candidate(payload: dict[str, Any]) -> dict[str, Any]:
@@ -264,9 +318,17 @@ def validate_candidate(payload: dict[str, Any]) -> dict[str, Any]:
     for field in REQUIRED_CANDIDATE_BOOL_FIELDS:
         require(isinstance(candidate.get(field), bool), f"candidate.{field} must be boolean")
     require(isinstance(candidate.get("categories"), list), "candidate.categories must be an array")
-    require(isinstance(candidate.get("text_length"), int) and candidate["text_length"] >= 0, "candidate.text_length invalid")
-    require(isinstance(candidate.get("trimmed_length"), int) and candidate["trimmed_length"] >= 0, "candidate.trimmed_length invalid")
-    require(candidate.get("root_cause") in ROOT_CAUSE_CATEGORIES, "candidate.root_cause must be known")
+    require(
+        isinstance(candidate.get("text_length"), int) and candidate["text_length"] >= 0,
+        "candidate.text_length invalid",
+    )
+    require(
+        isinstance(candidate.get("trimmed_length"), int) and candidate["trimmed_length"] >= 0,
+        "candidate.trimmed_length invalid",
+    )
+    require(
+        candidate.get("root_cause") in ROOT_CAUSE_CATEGORIES, "candidate.root_cause must be known"
+    )
     require(candidate.get("status") in STATUS_CATEGORIES, "candidate.status must be known")
     starts_with = candidate.get("starts_with")
     require(starts_with in {"MATCH", "CALL", "OTHER", None}, "candidate.starts_with invalid")
@@ -279,9 +341,16 @@ def validate_reasoning(payload: dict[str, Any]) -> dict[str, Any]:
     reasoning = require_dict(payload.get("reasoning"), "reasoning")
     require(isinstance(reasoning.get("present"), bool), "reasoning.present must be boolean")
     require(isinstance(reasoning.get("separated"), bool), "reasoning.separated must be boolean")
-    require(isinstance(reasoning.get("detail_count"), int) and reasoning["detail_count"] >= 0, "reasoning.detail_count invalid")
-    require(isinstance(reasoning.get("detail_types"), list), "reasoning.detail_types must be an array")
-    require(reasoning.get("raw_text_persisted") is False, "reasoning.raw_text_persisted must be false")
+    require(
+        isinstance(reasoning.get("detail_count"), int) and reasoning["detail_count"] >= 0,
+        "reasoning.detail_count invalid",
+    )
+    require(
+        isinstance(reasoning.get("detail_types"), list), "reasoning.detail_types must be an array"
+    )
+    require(
+        reasoning.get("raw_text_persisted") is False, "reasoning.raw_text_persisted must be false"
+    )
     if reasoning["present"]:
         require(reasoning["separated"] is True, "present reasoning must be separated")
         require(reasoning["detail_count"] >= 1, "present reasoning requires detail_count >= 1")
@@ -293,13 +362,24 @@ def validate_contract(payload: dict[str, Any]) -> None:
     status = payload.get("status")
     root_cause = payload.get("root_cause")
     phase = payload.get("phase")
-    require(isinstance(status, str) and status in STATUS_CATEGORIES, "status must be a known category")
-    require(isinstance(root_cause, str) and root_cause in ROOT_CAUSE_CATEGORIES, "root_cause must be a known category")
+    require(
+        isinstance(status, str) and status in STATUS_CATEGORIES, "status must be a known category"
+    )
+    require(
+        isinstance(root_cause, str) and root_cause in ROOT_CAUSE_CATEGORIES,
+        "root_cause must be a known category",
+    )
     require(isinstance(phase, str) and phase in PHASE_CATEGORIES, "phase must be a known category")
     require(payload.get("model") == DEFAULT_MODEL, "model mismatch")
     attempts = payload.get("provider_attempts")
-    require(isinstance(attempts, int) and attempts >= 0, "provider_attempts must be a non-negative integer")
-    require(isinstance(payload.get("timeout_seconds"), int) and payload["timeout_seconds"] >= 1, "timeout_seconds must be positive")
+    require(
+        isinstance(attempts, int) and attempts >= 0,
+        "provider_attempts must be a non-negative integer",
+    )
+    require(
+        isinstance(payload.get("timeout_seconds"), int) and payload["timeout_seconds"] >= 1,
+        "timeout_seconds must be positive",
+    )
     validate_endpoint(payload)
     validate_request(payload)
     validate_resolver(payload)
@@ -318,41 +398,84 @@ def validate_status_semantics(payload: dict[str, Any]) -> None:
     reasoning = validate_reasoning(payload)
 
     if status == "blocked-credential":
-        require(root_cause == "minimax-credential-missing", "blocked-credential root_cause must be minimax-credential-missing")
+        require(
+            root_cause == "minimax-credential-missing",
+            "blocked-credential root_cause must be minimax-credential-missing",
+        )
         require(phase == "credential-check", "blocked-credential phase must be credential-check")
         require(provider_attempts == 0, "blocked-credential must not claim provider attempts")
-        require(candidate.get("accepted") is False, "blocked-credential candidate must not be accepted")
-        require("normalized_text" not in candidate, "rejected artifacts must not persist accepted candidate text")
-        require(candidate.get("categories") == ["not-run"], "blocked-credential candidate categories must be ['not-run']")
+        require(
+            candidate.get("accepted") is False, "blocked-credential candidate must not be accepted"
+        )
+        require(
+            "normalized_text" not in candidate,
+            "rejected artifacts must not persist accepted candidate text",
+        )
+        require(
+            candidate.get("categories") == ["not-run"],
+            "blocked-credential candidate categories must be ['not-run']",
+        )
         return
 
     if status == "blocked-environment":
         require(root_cause != "none", "blocked-environment requires a real root_cause")
         require(provider_attempts == 0, "blocked-environment must not claim provider attempts")
-        require(candidate.get("accepted") is False, "blocked-environment candidate must not be accepted")
-        require("normalized_text" not in candidate, "rejected artifacts must not persist accepted candidate text")
+        require(
+            candidate.get("accepted") is False, "blocked-environment candidate must not be accepted"
+        )
+        require(
+            "normalized_text" not in candidate,
+            "rejected artifacts must not persist accepted candidate text",
+        )
         return
 
     if status == "failed-runtime":
         require(root_cause != "none", "failed-runtime requires a real root_cause")
-        require(provider_attempts == 1, "failed-runtime must represent exactly one provider attempt")
+        require(
+            provider_attempts == 1, "failed-runtime must represent exactly one provider attempt"
+        )
         require(candidate.get("accepted") is False, "failed-runtime candidate must not be accepted")
-        require(candidate.get("status") == "failed-runtime", "failed-runtime candidate.status mismatch")
-        require(candidate.get("root_cause") == root_cause, "failed-runtime candidate.root_cause mismatch")
-        require("normalized_text" not in candidate, "rejected artifacts must not persist accepted candidate text")
+        require(
+            candidate.get("status") == "failed-runtime", "failed-runtime candidate.status mismatch"
+        )
+        require(
+            candidate.get("root_cause") == root_cause,
+            "failed-runtime candidate.root_cause mismatch",
+        )
+        require(
+            "normalized_text" not in candidate,
+            "rejected artifacts must not persist accepted candidate text",
+        )
         return
 
     require(status == "confirmed-runtime", "unexpected status after category validation")
     require(root_cause == "none", "confirmed-runtime root_cause must be none")
-    require(phase == "candidate-classification", "confirmed-runtime phase must be candidate-classification")
+    require(
+        phase == "candidate-classification",
+        "confirmed-runtime phase must be candidate-classification",
+    )
     require(provider_attempts == 1, "confirmed-runtime requires exactly one provider attempt")
     require(candidate.get("accepted") is True, "confirmed-runtime candidate must be accepted")
-    require(candidate.get("status") == "confirmed-runtime", "confirmed-runtime candidate.status mismatch")
-    require(candidate.get("root_cause") == "none", "confirmed-runtime candidate.root_cause must be none")
-    require(candidate.get("starts_with") in {"MATCH", "CALL"}, "confirmed-runtime candidate must start with MATCH or CALL")
-    require(isinstance(candidate.get("normalized_text"), str) and candidate["normalized_text"].strip(), "confirmed-runtime requires accepted candidate text")
+    require(
+        candidate.get("status") == "confirmed-runtime",
+        "confirmed-runtime candidate.status mismatch",
+    )
+    require(
+        candidate.get("root_cause") == "none", "confirmed-runtime candidate.root_cause must be none"
+    )
+    require(
+        candidate.get("starts_with") in {"MATCH", "CALL"},
+        "confirmed-runtime candidate must start with MATCH or CALL",
+    )
+    require(
+        isinstance(candidate.get("normalized_text"), str) and candidate["normalized_text"].strip(),
+        "confirmed-runtime requires accepted candidate text",
+    )
     normalized = cast("str", candidate["normalized_text"]).lstrip().upper()
-    require(normalized.startswith(("MATCH", "CALL")), "confirmed-runtime accepted candidate must start with MATCH or CALL")
+    require(
+        normalized.startswith(("MATCH", "CALL")),
+        "confirmed-runtime accepted candidate must start with MATCH or CALL",
+    )
     clean_flags = [
         candidate.get("has_think_tag"),
         candidate.get("has_markdown_fence"),
@@ -363,8 +486,14 @@ def validate_status_semantics(payload: dict[str, Any]) -> None:
         bool(candidate.get("categories")),
     ]
     require(not any(clean_flags), "confirmed-runtime requires clean candidate diagnostics")
-    require(candidate.get("raw_provider_body_persisted") is False, "confirmed-runtime raw provider body must not persist")
-    require(reasoning.get("raw_text_persisted") is False, "confirmed-runtime raw reasoning text must not persist")
+    require(
+        candidate.get("raw_provider_body_persisted") is False,
+        "confirmed-runtime raw provider body must not persist",
+    )
+    require(
+        reasoning.get("raw_text_persisted") is False,
+        "confirmed-runtime raw reasoning text must not persist",
+    )
 
 
 def validate_markdown(payload: dict[str, Any], markdown: str) -> None:

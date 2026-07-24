@@ -88,7 +88,9 @@ def load_json(path: Path) -> tuple[dict[str, Any] | None, dict[str, Any] | None]
     except json.JSONDecodeError as exc:
         return None, compact_error("malformed_json", exc, path=str(path))
     if not isinstance(payload, dict):
-        return None, compact_error("non_object_json", "JSON file must contain an object", path=str(path))
+        return None, compact_error(
+            "non_object_json", "JSON file must contain an object", path=str(path)
+        )
     return payload, None
 
 
@@ -135,11 +137,19 @@ def hierarchy_records(path: Path) -> tuple[list[ConsultantHierarchyRecord], list
     records = [record for record in parsed if isinstance(record, ConsultantHierarchyRecord)]
     skipped = [record for record in parsed if not isinstance(record, ConsultantHierarchyRecord)]
     if skipped:
-        diagnostics.append(compact_error("non_hierarchy_record", "comparison input contained non-hierarchy records", count=len(skipped)))
+        diagnostics.append(
+            compact_error(
+                "non_hierarchy_record",
+                "comparison input contained non-hierarchy records",
+                count=len(skipped),
+            )
+        )
     return records, diagnostics
 
 
-def ancestor_level(record: ConsultantHierarchyRecord, by_id: dict[str, ConsultantHierarchyRecord], level: str) -> ConsultantHierarchyRecord | None:
+def ancestor_level(
+    record: ConsultantHierarchyRecord, by_id: dict[str, ConsultantHierarchyRecord], level: str
+) -> ConsultantHierarchyRecord | None:
     """Return the nearest ancestor at the requested level."""
 
     seen: set[str] = set()
@@ -164,8 +174,14 @@ def observed_summary(records: list[ConsultantHierarchyRecord]) -> dict[str, Any]
     counts = Counter(record.level for record in records)
     first_by_level: dict[str, ConsultantHierarchyRecord] = {}
     last_by_level: dict[str, ConsultantHierarchyRecord] = {}
-    duplicate_ids = [record_id for record_id, count in Counter(record.id for record in records).items() if count > 1]
-    missing_parents = [record for record in records if record.parent_id and record.parent_id not in by_id]
+    duplicate_ids = [
+        record_id
+        for record_id, count in Counter(record.id for record in records).items()
+        if count > 1
+    ]
+    missing_parents = [
+        record for record in records if record.parent_id and record.parent_id not in by_id
+    ]
     non_monotonic = []
     previous = -1
     for record in records:
@@ -199,17 +215,29 @@ def observed_summary(records: list[ConsultantHierarchyRecord]) -> dict[str, Any]
     return {
         "counts_by_level": dict(sorted(counts.items())),
         "duplicate_ids": duplicate_ids[:MAX_DIAGNOSTICS],
-        "first_by_level": {level: record_anchor(record) for level, record in sorted(first_by_level.items())},
-        "last_by_level": {level: record_anchor(record) for level, record in sorted(last_by_level.items())},
+        "first_by_level": {
+            level: record_anchor(record) for level, record in sorted(first_by_level.items())
+        },
+        "last_by_level": {
+            level: record_anchor(record) for level, record in sorted(last_by_level.items())
+        },
         "missing_parent_count": len(missing_parents),
-        "missing_parent_samples": [record_anchor(record) for record in missing_parents[:MAX_DIAGNOSTICS]],
+        "missing_parent_samples": [
+            record_anchor(record) for record in missing_parents[:MAX_DIAGNOSTICS]
+        ],
         "non_monotonic_order_count": len(non_monotonic),
-        "non_monotonic_order_samples": [record_anchor(record) for record in non_monotonic[:MAX_DIAGNOSTICS]],
+        "non_monotonic_order_samples": [
+            record_anchor(record) for record in non_monotonic[:MAX_DIAGNOSTICS]
+        ],
         "article_markers_first": article_markers[:5],
         "article_markers_last": article_markers[-5:],
-        "chapter_article_counts": dict(sorted(chapter_article_counts.items(), key=lambda item: float(item[0]))),
+        "chapter_article_counts": dict(
+            sorted(chapter_article_counts.items(), key=lambda item: float(item[0]))
+        ),
         "invalidity_marker_counts_by_level": dict(sorted(invalidity_by_level.items())),
-        "invalidity_marker_samples": [record_anchor(record) for record in invalidity_records[:MAX_DIAGNOSTICS]],
+        "invalidity_marker_samples": [
+            record_anchor(record) for record in invalidity_records[:MAX_DIAGNOSTICS]
+        ],
         "source_hashes": sorted({record.source_sha256 for record in records}),
         "record_count": len(records),
     }
@@ -236,22 +264,34 @@ def comparison_entry(
         "rationale": rationale,
         "rule_ids": rule_ids,
         "status": status,
-        "evidence_anchors": [anchor for anchor in (anchors or []) if anchor is not None][:MAX_DIAGNOSTICS],
+        "evidence_anchors": [anchor for anchor in (anchors or []) if anchor is not None][
+            :MAX_DIAGNOSTICS
+        ],
     }
 
 
-def expected_counts(expectations: dict[str, Any]) -> tuple[dict[str, Any], dict[str, Any], list[str]]:
+def expected_counts(
+    expectations: dict[str, Any],
+) -> tuple[dict[str, Any], dict[str, Any], list[str]]:
     """Extract the comparable prior-art count expectations and structural rule IDs."""
 
     comparable = expectations.get("expectations", {}).get("comparable_counts", {})
     article_exp = comparable.get("articles", {})
     structure_exp = comparable.get("structure", {})
     rules = expectations.get("expectations", {}).get("validation_rules", {}).get("rules", [])
-    comparable_rule_ids = [rule.get("rule_id") for rule in rules if rule.get("classification") == "comparable" and rule.get("rule_id")]
+    comparable_rule_ids = [
+        rule.get("rule_id")
+        for rule in rules
+        if rule.get("classification") == "comparable" and rule.get("rule_id")
+    ]
     return article_exp, structure_exp, sorted(comparable_rule_ids)
 
 
-def compare(expectations: dict[str, Any], records: list[ConsultantHierarchyRecord], parse_diagnostics: list[dict[str, Any]]) -> dict[str, Any]:
+def compare(
+    expectations: dict[str, Any],
+    records: list[ConsultantHierarchyRecord],
+    parse_diagnostics: list[dict[str, Any]],
+) -> dict[str, Any]:
     """Compare observed hierarchy records to prior-art expectations."""
 
     observed = observed_summary(records)
@@ -266,7 +306,11 @@ def compare(expectations: dict[str, Any], records: list[ConsultantHierarchyRecor
     last_chapter_anchor = observed["last_by_level"].get("chapter")
 
     for level, expected_key in (("chapter", "chapter_count"), ("article", "article_record_count")):
-        expected = structure_counts.get(expected_key) if level == "chapter" else article_counts.get(expected_key)
+        expected = (
+            structure_counts.get(expected_key)
+            if level == "chapter"
+            else article_counts.get(expected_key)
+        )
         observed_count = observed["counts_by_level"].get(level, 0)
         status = "pass" if expected == observed_count else "blocked"
         checks.append(
@@ -278,11 +322,19 @@ def compare(expectations: dict[str, Any], records: list[ConsultantHierarchyRecor
                 observed=observed_count,
                 status=status,
                 rationale="Major chapter/article counts must match prior-art structure safeguards exactly.",
-                anchors=[first_chapter_anchor if level == "chapter" else first_article_anchor, last_chapter_anchor if level == "chapter" else last_article_anchor],
+                anchors=[
+                    first_chapter_anchor if level == "chapter" else first_article_anchor,
+                    last_chapter_anchor if level == "chapter" else last_article_anchor,
+                ],
             )
         )
 
-    for level, expected_key in (("part", "part_count"), ("clause", "clause_count"), ("subclause", "subclause_count"), ("section", None)):
+    for level, expected_key in (
+        ("part", "part_count"),
+        ("clause", "clause_count"),
+        ("subclause", "subclause_count"),
+        ("section", None),
+    ):
         expected = article_counts.get(expected_key) if expected_key else 0
         observed_count = observed["counts_by_level"].get(level, 0)
         if expected == observed_count:
@@ -293,21 +345,30 @@ def compare(expectations: dict[str, Any], records: list[ConsultantHierarchyRecor
             rationale = "Granular drift is accepted as provider-boundary evidence: Consultant hierarchy records preserve more structural markers than compact prior-art article JSONL."
         else:
             status = "needs-review"
-            rationale = "Granular count is below prior-art evidence and needs parser-boundary review."
+            rationale = (
+                "Granular count is below prior-art evidence and needs parser-boundary review."
+            )
         checks.append(
             comparison_entry(
                 check_id=f"COUNT-{level.upper()}",
-                rule_ids=["STRUCT-004" if level in {"part", "clause", "subclause"} else "STRUCT-005"],
+                rule_ids=[
+                    "STRUCT-004" if level in {"part", "clause", "subclause"} else "STRUCT-005"
+                ],
                 classification="granular-count",
                 expected=expected,
                 observed=observed_count,
                 status=status,
                 rationale=rationale,
-                anchors=[observed["first_by_level"].get(level), observed["last_by_level"].get(level)],
+                anchors=[
+                    observed["first_by_level"].get(level),
+                    observed["last_by_level"].get(level),
+                ],
             )
         )
 
-    expected_chapter_counts = {str(key): value for key, value in (article_exp.get("chapter_article_counts") or {}).items()}
+    expected_chapter_counts = {
+        str(key): value for key, value in (article_exp.get("chapter_article_counts") or {}).items()
+    }
     checks.append(
         comparison_entry(
             check_id="ORDER-CHAPTER-ARTICLE-COUNTS",
@@ -315,7 +376,9 @@ def compare(expectations: dict[str, Any], records: list[ConsultantHierarchyRecor
             classification="order-and-parentage",
             expected=expected_chapter_counts,
             observed=observed["chapter_article_counts"],
-            status="pass" if expected_chapter_counts == observed["chapter_article_counts"] else "blocked",
+            status="pass"
+            if expected_chapter_counts == observed["chapter_article_counts"]
+            else "blocked",
             rationale="Articles must map to the same chapter-count distribution even when sections are present.",
             anchors=[first_article_anchor, last_article_anchor],
         )
@@ -326,8 +389,14 @@ def compare(expectations: dict[str, Any], records: list[ConsultantHierarchyRecor
             check_id="ORDER-FIRST-LAST-ARTICLES",
             rule_ids=["STRUCT-001", "STRUCT-003"],
             classification="order-and-boundary-samples",
-            expected={"first": article_exp.get("first_article_ids"), "last": article_exp.get("last_article_ids")},
-            observed={"first": observed["article_markers_first"], "last": observed["article_markers_last"]},
+            expected={
+                "first": article_exp.get("first_article_ids"),
+                "last": article_exp.get("last_article_ids"),
+            },
+            observed={
+                "first": observed["article_markers_first"],
+                "last": observed["article_markers_last"],
+            },
             status="pass"
             if article_exp.get("first_article_ids") == observed["article_markers_first"]
             and article_exp.get("last_article_ids") == observed["article_markers_last"]
@@ -341,17 +410,31 @@ def compare(expectations: dict[str, Any], records: list[ConsultantHierarchyRecor
     checks.append(
         comparison_entry(
             check_id="STRUCT-PARENTS-AND-ORDER",
-            rule_ids=[rule for rule in comparable_rule_ids if rule in {"STRUCT-003", "STRUCT-004", "STRUCT-005", "STRUCT-006"}],
+            rule_ids=[
+                rule
+                for rule in comparable_rule_ids
+                if rule in {"STRUCT-003", "STRUCT-004", "STRUCT-005", "STRUCT-006"}
+            ],
             classification="structural-rules",
-            expected={"missing_parent_count": 0, "non_monotonic_order_count": 0, "duplicate_id_count": 0},
+            expected={
+                "missing_parent_count": 0,
+                "non_monotonic_order_count": 0,
+                "duplicate_id_count": 0,
+            },
             observed={
                 "missing_parent_count": observed["missing_parent_count"],
                 "non_monotonic_order_count": observed["non_monotonic_order_count"],
                 "duplicate_id_count": len(observed["duplicate_ids"]),
             },
-            status="pass" if parent_status == "pass" and observed["non_monotonic_order_count"] == 0 and not observed["duplicate_ids"] else "blocked",
+            status="pass"
+            if parent_status == "pass"
+            and observed["non_monotonic_order_count"] == 0
+            and not observed["duplicate_ids"]
+            else "blocked",
             rationale="Comparable structural rules require non-orphaned hierarchy records, deterministic IDs, and monotonic source order.",
-            anchors=observed["missing_parent_samples"] or observed["non_monotonic_order_samples"] or [first_article_anchor],
+            anchors=observed["missing_parent_samples"]
+            or observed["non_monotonic_order_samples"]
+            or [first_article_anchor],
         )
     )
 
@@ -361,7 +444,11 @@ def compare(expectations: dict[str, Any], records: list[ConsultantHierarchyRecor
         "clause": article_counts.get("clause_invalid_true_count"),
         "subclause": article_counts.get("subclause_invalid_true_count"),
     }
-    invalidity_status = "pass" if expected_invalidity == observed["invalidity_marker_counts_by_level"] else "needs-review"
+    invalidity_status = (
+        "pass"
+        if expected_invalidity == observed["invalidity_marker_counts_by_level"]
+        else "needs-review"
+    )
     checks.append(
         comparison_entry(
             check_id="INVALIDITY-MARKER-SAMPLES",
@@ -379,10 +466,20 @@ def compare(expectations: dict[str, Any], records: list[ConsultantHierarchyRecor
     checks.append(
         comparison_entry(
             check_id="INPUT-VALIDATION",
-            rule_ids=["STRUCT-001", "STRUCT-002", "STRUCT-003", "STRUCT-004", "STRUCT-005", "STRUCT-006"],
+            rule_ids=[
+                "STRUCT-001",
+                "STRUCT-002",
+                "STRUCT-003",
+                "STRUCT-004",
+                "STRUCT-005",
+                "STRUCT-006",
+            ],
             classification="freshness-and-schema",
             expected={"parse_diagnostic_count": 0},
-            observed={"parse_diagnostic_count": len(parse_diagnostics), "samples": parse_diagnostics[:MAX_DIAGNOSTICS]},
+            observed={
+                "parse_diagnostic_count": len(parse_diagnostics),
+                "samples": parse_diagnostics[:MAX_DIAGNOSTICS],
+            },
             status=parse_status,
             rationale="Comparison fails closed on malformed hierarchy JSONL records.",
         )
@@ -391,7 +488,9 @@ def compare(expectations: dict[str, Any], records: list[ConsultantHierarchyRecor
     status_counts = Counter(check["status"] for check in checks)
     blocked_checks = [check for check in checks if check["status"] == "blocked"]
     needs_review_checks = [check for check in checks if check["status"] == "needs-review"]
-    overall_status = "blocked" if blocked_checks else "needs-review" if needs_review_checks else "pass"
+    overall_status = (
+        "blocked" if blocked_checks else "needs-review" if needs_review_checks else "pass"
+    )
 
     return {
         "checks": checks,
@@ -444,7 +543,9 @@ def render_report(summary: dict[str, Any]) -> str:
         "",
     ]
     for source in summary["sources"]:
-        lines.append(f"- `{source['path']}` exists=`{str(source['exists']).lower()}` sha256=`{source.get('sha256')}` size=`{source.get('size_bytes')}`")
+        lines.append(
+            f"- `{source['path']}` exists=`{str(source['exists']).lower()}` sha256=`{source.get('sha256')}` size=`{source.get('size_bytes')}`"
+        )
     lines.extend(["", "## Checks", ""])
     for check in summary["checks"]:
         lines.extend(
@@ -490,11 +591,23 @@ def build() -> BuildResult:
 
     records, parse_diagnostics = hierarchy_records(ROOT / HIERARCHY_JSONL_PATH)
     if not (ROOT / HIERARCHY_JSONL_PATH).exists():
-        fatal_errors.append(compact_error("missing_jsonl", f"missing hierarchy JSONL file: {HIERARCHY_JSONL_PATH}", path=str(HIERARCHY_JSONL_PATH)))
+        fatal_errors.append(
+            compact_error(
+                "missing_jsonl",
+                f"missing hierarchy JSONL file: {HIERARCHY_JSONL_PATH}",
+                path=str(HIERARCHY_JSONL_PATH),
+            )
+        )
 
     comparison = compare(expectations or {}, records, parse_diagnostics)
     sources = [source_entry(HIERARCHY_JSONL_PATH), source_entry(EXPECTATIONS_PATH)]
-    missing_sources = [compact_error("missing_source", f"comparison input is missing: {source['path']}", path=source["path"]) for source in sources if not source["exists"]]
+    missing_sources = [
+        compact_error(
+            "missing_source", f"comparison input is missing: {source['path']}", path=source["path"]
+        )
+        for source in sources
+        if not source["exists"]
+    ]
     fatal_errors.extend(missing_sources)
 
     summary = {
@@ -522,7 +635,10 @@ def build() -> BuildResult:
 def write_artifacts(result: BuildResult) -> None:
     """Write generated artifacts deterministically."""
 
-    for relative_path, content in {JSON_PATH: result.summary_json, REPORT_PATH: result.report_md}.items():
+    for relative_path, content in {
+        JSON_PATH: result.summary_json,
+        REPORT_PATH: result.report_md,
+    }.items():
         path = ROOT / relative_path
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text(content, encoding="utf-8")
@@ -532,14 +648,19 @@ def check_artifacts(result: BuildResult) -> bool:
     """Return True when generated artifacts are fresh."""
 
     expected = {JSON_PATH: result.summary_json, REPORT_PATH: result.report_md}
-    return all((ROOT / path).exists() and (ROOT / path).read_text(encoding="utf-8") == content for path, content in expected.items())
+    return all(
+        (ROOT / path).exists() and (ROOT / path).read_text(encoding="utf-8") == content
+        for path, content in expected.items()
+    )
 
 
 def cli_payload(result: BuildResult, status: str) -> dict[str, Any]:
     """Return CLI diagnostics with artifact freshness populated."""
 
     output = dict(result.diagnostics)
-    output["artifact_freshness"] = freshness_map({JSON_PATH: result.summary_json, REPORT_PATH: result.report_md})
+    output["artifact_freshness"] = freshness_map(
+        {JSON_PATH: result.summary_json, REPORT_PATH: result.report_md}
+    )
     output["status"] = status
     return output
 
@@ -548,7 +669,9 @@ def main(argv: list[str] | None = None) -> int:
     """CLI entrypoint."""
 
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--check", action="store_true", help="verify generated artifacts are fresh without writing")
+    parser.add_argument(
+        "--check", action="store_true", help="verify generated artifacts are fresh without writing"
+    )
     args = parser.parse_args(argv)
 
     result = build()

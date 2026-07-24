@@ -183,7 +183,9 @@ def load_matrix(path: Path) -> dict[str, Any]:
 
 
 def validate_track_definitions(matrix: dict[str, Any]) -> None:
-    matrix_gate_ids = {row["gate_id"] for row in matrix.get("gate_rows", []) if row.get("disposition") != "defer"}
+    matrix_gate_ids = {
+        row["gate_id"] for row in matrix.get("gate_rows", []) if row.get("disposition") != "defer"
+    }
     assigned: list[str] = []
     for track in TRACK_DEFINITIONS:
         gate_ids = track.get("gate_ids", [])
@@ -229,7 +231,9 @@ def build_track_split(matrix: dict[str, Any]) -> dict[str, Any]:
                 **definition,
                 "gate_dispositions": sorted({row["disposition"] for row in gate_rows}),
                 "risk_levels": sorted({row["risk_level"] for row in gate_rows}),
-                "r04_links": sorted({link for row in gate_rows for link in row.get("r04_links", [])}),
+                "r04_links": sorted(
+                    {link for row in gate_rows for link in row.get("r04_links", [])}
+                ),
                 "source_gates": gate_rows,
             }
         )
@@ -241,7 +245,9 @@ def build_track_split(matrix: dict[str, Any]) -> dict[str, Any]:
         "summary": {
             "track_count": len(tracks),
             "assigned_gate_count": sum(len(track["gate_ids"]) for track in tracks),
-            "source_gate_count": len([row for row in matrix.get("gate_rows", []) if row.get("disposition") != "defer"]),
+            "source_gate_count": len(
+                [row for row in matrix.get("gate_rows", []) if row.get("disposition") != "defer"]
+            ),
         },
         "tracks": tracks,
         "non_claims": [
@@ -278,19 +284,23 @@ def render_markdown(track_split: dict[str, Any]) -> str:
             f"{escape_md(', '.join(track['r04_links']))} | {escape_md(track['proof_artifact'])} | "
             f"{escape_md(track['recommended_next_unit'])} |"
         )
-    lines.extend([
-        "",
-        "## Track Boundaries and Acceptance Criteria",
-        "",
-    ])
-    for track in track_split["tracks"]:
-        lines.extend([
-            f"### {escape_md(track['track_id'])}: {escape_md(track['title'])}",
+    lines.extend(
+        [
             "",
-            f"- Status: `{escape_md(track['track_status'])}`",
-            f"- Scope boundary: {escape_md(track['scope_boundary'])}",
-            "- Required inputs:",
-        ])
+            "## Track Boundaries and Acceptance Criteria",
+            "",
+        ]
+    )
+    for track in track_split["tracks"]:
+        lines.extend(
+            [
+                f"### {escape_md(track['track_id'])}: {escape_md(track['title'])}",
+                "",
+                f"- Status: `{escape_md(track['track_status'])}`",
+                f"- Scope boundary: {escape_md(track['scope_boundary'])}",
+                "- Required inputs:",
+            ]
+        )
         for item in track["required_inputs"]:
             lines.append(f"  - {escape_md(item)}")
         lines.append("- Acceptance criteria:")
@@ -300,18 +310,22 @@ def render_markdown(track_split: dict[str, Any]) -> str:
         for item in track["non_claims"]:
             lines.append(f"  - {escape_md(item)}")
         lines.append("")
-    lines.extend([
-        "## Global Non-Claims",
-        "",
-    ])
+    lines.extend(
+        [
+            "## Global Non-Claims",
+            "",
+        ]
+    )
     for claim in track_split["non_claims"]:
         lines.append(f"- {escape_md(claim)}")
-    lines.extend([
-        "",
-        "---",
-        "",
-        "*Generated from `prd/architecture/remediation_matrix.json`. Source evidence remains authoritative.*",
-    ])
+    lines.extend(
+        [
+            "",
+            "---",
+            "",
+            "*Generated from `prd/architecture/remediation_matrix.json`. Source evidence remains authoritative.*",
+        ]
+    )
     return "\n".join(lines) + "\n"
 
 
@@ -324,21 +338,31 @@ def write_atomic(path: Path, content: str) -> None:
 
 def check_output(path: Path, expected: str, label: str) -> bool:
     if not path.exists():
-        print(f"missing {label}: {path}; regenerate with `uv run python scripts/generate-architecture-track-split.py`", file=sys.stderr)
+        print(
+            f"missing {label}: {path}; regenerate with `uv run python scripts/generate-architecture-track-split.py`",
+            file=sys.stderr,
+        )
         return False
     actual = path.read_text(encoding="utf-8")
     if actual != expected:
-        print(f"stale {label}: {path}; regenerate with `uv run python scripts/generate-architecture-track-split.py`", file=sys.stderr)
+        print(
+            f"stale {label}: {path}; regenerate with `uv run python scripts/generate-architecture-track-split.py`",
+            file=sys.stderr,
+        )
         return False
     return True
 
 
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description="Generate/check the derived major architecture proof-track split.")
+    parser = argparse.ArgumentParser(
+        description="Generate/check the derived major architecture proof-track split."
+    )
     parser.add_argument("--matrix-json", type=Path, default=DEFAULT_MATRIX_JSON_PATH)
     parser.add_argument("--track-json", type=Path, default=DEFAULT_TRACK_JSON_PATH)
     parser.add_argument("--track-md", type=Path, default=DEFAULT_TRACK_MD_PATH)
-    parser.add_argument("--check", action="store_true", help="Compare expected outputs without rewriting.")
+    parser.add_argument(
+        "--check", action="store_true", help="Compare expected outputs without rewriting."
+    )
     return parser.parse_args(argv)
 
 

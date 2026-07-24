@@ -43,14 +43,14 @@ def write_odt(path: Path, content_xml: str | None = None) -> None:
 
 
 def minimal_content_xml(body: str) -> str:
-    return f'''<?xml version="1.0" encoding="UTF-8"?>
+    return f"""<?xml version="1.0" encoding="UTF-8"?>
 <office:document-content
   xmlns:office="urn:oasis:names:tc:opendocument:xmlns:office:1.0"
   xmlns:text="urn:oasis:names:tc:opendocument:xmlns:text:1.0"
   xmlns:table="urn:oasis:names:tc:opendocument:xmlns:table:1.0">
   <office:body>{body}</office:body>
 </office:document-content>
-'''
+"""
 
 
 def test_real_fixtures_build_s02_valid_bounded_records_with_raw_order() -> None:
@@ -62,7 +62,9 @@ def test_real_fixtures_build_s02_valid_bounded_records_with_raw_order() -> None:
     assert [record["id"] for record in result.document_records] == ["DOC-44-FZ", "DOC-PP-60"]
     assert result.report["document_count"] == 2
     assert result.report["source_block_count"] == len(result.source_block_records)
-    assert result.report["downstream_boundary"].startswith("S03 emits bounded smoke parser records only")
+    assert result.report["downstream_boundary"].startswith(
+        "S03 emits bounded smoke parser records only"
+    )
     assert result.markdown.count("parser completeness") >= 1
     assert "First emitted hash" in result.markdown
     assert 0 < result.report["source_block_count"] <= module.MAX_BLOCKS_PER_DOCUMENT * 2
@@ -155,7 +157,9 @@ def test_tracked_artifacts_and_readme_expose_t02_boundaries() -> None:
         assert phrase in docs
 
 
-def test_fixture_failure_diagnostics_cover_missing_path_invalid_zip_missing_member_and_bad_xml(tmp_path: Path) -> None:
+def test_fixture_failure_diagnostics_cover_missing_path_invalid_zip_missing_member_and_bad_xml(
+    tmp_path: Path,
+) -> None:
     module = load_module()
     missing = module.load_fixture("DOC-MISSING", "missing.odt", "0" * 64, tmp_path)
     assert missing.status == "missing-canonical-path"
@@ -171,7 +175,9 @@ def test_fixture_failure_diagnostics_cover_missing_path_invalid_zip_missing_memb
 
     no_content = tmp_path / "missing-content.odt"
     write_odt(no_content, None)
-    no_content_result = module.load_fixture("DOC-NO-CONTENT", "missing-content.odt", "0" * 64, tmp_path)
+    no_content_result = module.load_fixture(
+        "DOC-NO-CONTENT", "missing-content.odt", "0" * 64, tmp_path
+    )
     assert no_content_result.status == "missing-content-xml"
     assert no_content_result.diagnostics[0]["source_path"] == "missing-content.odt"
     assert no_content_result.diagnostics[0]["rule"] == no_content_result.status
@@ -184,11 +190,15 @@ def test_fixture_failure_diagnostics_cover_missing_path_invalid_zip_missing_memb
     assert bad_xml_result.diagnostics[0]["rule"] == bad_xml_result.status
 
 
-def test_fixture_failure_diagnostics_cover_empty_text_and_record_validation(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+def test_fixture_failure_diagnostics_cover_empty_text_and_record_validation(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
     module = load_module()
     empty = tmp_path / "empty.odt"
     write_odt(empty, minimal_content_xml("<text:p></text:p><text:p>   </text:p>"))
-    empty_result = module.load_fixture("DOC-EMPTY", "empty.odt", module.sha256_file(empty), tmp_path)
+    empty_result = module.load_fixture(
+        "DOC-EMPTY", "empty.odt", module.sha256_file(empty), tmp_path
+    )
     assert empty_result.status == "empty-extracted-text"
     assert empty_result.diagnostics[0]["source_path"] == "empty.odt"
     assert empty_result.diagnostics[0]["rule"] == empty_result.status
@@ -198,7 +208,9 @@ def test_fixture_failure_diagnostics_cover_empty_text_and_record_validation(tmp_
     valid = tmp_path / "validation.odt"
     write_odt(valid, minimal_content_xml("<text:p>valid text</text:p>"))
     monkeypatch.setattr(module, "NON_CLAIMS", [])
-    invalid_record_result = module.load_fixture("DOC-VALIDATION", "validation.odt", module.sha256_file(valid), tmp_path)
+    invalid_record_result = module.load_fixture(
+        "DOC-VALIDATION", "validation.odt", module.sha256_file(valid), tmp_path
+    )
     assert invalid_record_result.status == "record-validation-error"
     assert invalid_record_result.diagnostics[0]["source_path"] == "validation.odt"
     assert invalid_record_result.diagnostics[0]["rule"] == invalid_record_result.status
@@ -212,12 +224,12 @@ def test_title_excerpt_limits_and_raw_vs_emitted_order(tmp_path: Path) -> None:
     write_odt(
         path,
         minimal_content_xml(
-            f'''
+            f"""
             <text:h text:outline-level="1">{long_heading}</text:h>
             <text:p>first emitted</text:p>
             <text:p></text:p>
             <text:p>{long_para}</text:p>
-            '''
+            """
         ),
     )
 

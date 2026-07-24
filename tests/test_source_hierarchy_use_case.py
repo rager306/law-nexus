@@ -8,7 +8,9 @@ from law_nexus.application.source_hierarchy import SourceHierarchyUseCase
 from law_nexus.ports.source_hierarchy import SourceHierarchyParagraph, SourceHierarchyRequest
 
 
-def _request(paragraphs: list[SourceHierarchyParagraph], source_sha256: str = "a" * 64) -> SourceHierarchyRequest:
+def _request(
+    paragraphs: list[SourceHierarchyParagraph], source_sha256: str = "a" * 64
+) -> SourceHierarchyRequest:
     return SourceHierarchyRequest(
         paragraphs=paragraphs,
         source_sha256=source_sha256,
@@ -43,11 +45,12 @@ def test_stream_wordml_paragraphs_decodes_text_and_reports_diagnostics(tmp_path)
         (1, "Федеральный закон", "5"),
         (2, "§ 1. Планирование", "2"),
     ]
-    assert diagnostics["namespace_detected"] == "http://schemas.microsoft.com/office/word/2003/wordml"
+    assert (
+        diagnostics["namespace_detected"] == "http://schemas.microsoft.com/office/word/2003/wordml"
+    )
     assert diagnostics["paragraph_count"] == 3
     assert diagnostics["skipped_empty_paragraphs"] == 1
     assert diagnostics["malformed_xml"] is None
-
 
 
 def test_source_hierarchy_use_case_builds_contextual_records() -> None:

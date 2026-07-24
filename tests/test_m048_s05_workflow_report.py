@@ -2,7 +2,9 @@ from __future__ import annotations
 
 from pathlib import Path
 
-REPORT_PATH = Path(__file__).resolve().parents[1] / "prd/architecture/acp/M048-S05-GIT-LEX-WORKFLOW-REPORT.md"
+REPORT_PATH = (
+    Path(__file__).resolve().parents[1] / "prd/architecture/acp/M048-S05-GIT-LEX-WORKFLOW-REPORT.md"
+)
 
 REQUIRED_SECTIONS = [
     "## Verdict",
@@ -76,7 +78,10 @@ def test_report_keeps_projection_non_authoritative_and_source_bounded() -> None:
     text = report_text()
 
     assert "Source truth | Tracked S04 fixture source records and evidence anchors." in text
-    assert "Derived projection | Temporary deterministic non-authoritative diagnostic projection." in text
+    assert (
+        "Derived projection | Temporary deterministic non-authoritative diagnostic projection."
+        in text
+    )
     assert "Projection may validate requirements | `false`" in text
     assert "Projection may override source records | `false`" in text
     assert "treating a derived projection as source truth" in text
@@ -87,7 +92,9 @@ def test_report_keeps_r035_r037_r038_unvalidated() -> None:
     text = report_text()
 
     for requirement_id in ["R035", "R037", "R038"]:
-        assert f"| `{requirement_id}` | `not_validated_by_s05_git_lex_workflow_diagnostics` |" in text
+        assert (
+            f"| `{requirement_id}` | `not_validated_by_s05_git_lex_workflow_diagnostics` |" in text
+        )
         assert f"requirement validation for `{requirement_id}`" in text
     assert "S05 is workflow diagnostics for ACP git-lex integration safety" in text
     assert "not evidence for parser completeness" in text
@@ -116,4 +123,7 @@ def test_report_s06_handoff_requires_future_runtime_proof_gate() -> None:
     assert "Preserve the main-repo `.lex` mutation guard as a hard fail-closed condition." in text
     assert "Keep `R035`, `R037`, and `R038` out of scope for S05 evidence." in text
     assert "require a new proof gate" in text
-    assert "runtime executable availability, acquisition policy, repository mutation policy, rollback, and source/projection authority" in text
+    assert (
+        "runtime executable availability, acquisition policy, repository mutation policy, rollback, and source/projection authority"
+        in text
+    )

@@ -17,17 +17,18 @@ import xml.etree.ElementTree as ET
 from collections import Counter
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Literal
+from typing import Any, Literal, Sequence
 
 from law_nexus.ports.source_hierarchy import (
     RawBlock,
-    SourceHierarchyParagraph,
     SourceHierarchyRequest,
     SourceHierarchyResult,
 )
 from law_nexus.ports.source_profile import load_profile
 
-Level = Literal["document", "razdel", "chapter", "section", "article", "part", "clause", "subclause", "abzac"]
+Level = Literal[
+    "document", "razdel", "chapter", "section", "article", "part", "clause", "subclause", "abzac"
+]
 WORDML_NS = "http://schemas.microsoft.com/office/word/2003/wordml"
 MAX_DIAGNOSTICS = 100
 NON_CLAIMS = [
@@ -149,6 +150,7 @@ EXTERNAL_REF_PATTERNS: tuple[tuple[str, re.Pattern[str]], ...] = (
     ),
 )
 
+
 def extract_external_references(text: str) -> list[dict[str, str]]:
     """Extract bounded external legal-act references from text.
 
@@ -177,6 +179,7 @@ def extract_external_references(text: str) -> list[dict[str, str]]:
             hits.append(entry)
     return hits
 
+
 INTERNAL_REF_PATTERNS: tuple[tuple[str, re.Pattern[str]], ...] = (
     ("article", re.compile(r"\bстать[ьюеяи]\s+(\d+(?:\.\d+)?)", re.IGNORECASE | re.UNICODE)),
     ("part", re.compile(r"\bчаст[ьиьею]\s+(\d+(?:\.\d+)?)", re.IGNORECASE | re.UNICODE)),
@@ -196,13 +199,33 @@ TEMPORAL_PATTERNS: tuple[tuple[str, str], ...] = (
 )
 
 DEONTIC_LEXEMES: dict[str, tuple[str, ...]] = {
-    "obligation_markers": (r"\bобязан[аы]?\b", r"\bдолжен[аы]?\b", r"\bнадлежит\b", r"\bнеобходимо\b"),
-    "permission_markers": (r"\bвправе\b", r"\bможет\s+быть\b", r"\bможет\b", r"\bимеет\s+право\b", r"\bдопускается\b"),
-    "prohibition_markers": (r"\bзапрещается\b", r"\bнельзя\b", r"\bне\s+допускается\b", r"\bне\s+вправе\b"),
+    "obligation_markers": (
+        r"\bобязан[аы]?\b",
+        r"\bдолжен[аы]?\b",
+        r"\bнадлежит\b",
+        r"\bнеобходимо\b",
+    ),
+    "permission_markers": (
+        r"\bвправе\b",
+        r"\bможет\s+быть\b",
+        r"\bможет\b",
+        r"\bимеет\s+право\b",
+        r"\bдопускается\b",
+    ),
+    "prohibition_markers": (
+        r"\bзапрещается\b",
+        r"\bнельзя\b",
+        r"\bне\s+допускается\b",
+        r"\bне\s+вправе\b",
+    ),
     "definition_markers": (r"\bпризнается\b", r"\bпонимается\b", r"\bв\s+целях\s+настоящ"),
-    "deadline_markers": (r"\bв\s+срок\s+не\s+позднее\b", r"\bв\s+течение\s+\d+\s+(?:дней|месяц|лет)"),
+    "deadline_markers": (
+        r"\bв\s+срок\s+не\s+позднее\b",
+        r"\bв\s+течение\s+\d+\s+(?:дней|месяц|лет)",
+    ),
     "exception_markers": (r"\bза\s+исключением\b", r"\bесли\s+иное\s+не\s+предусмотрено\b"),
 }
+
 
 def detect_deontic_lexemes(text: str) -> dict[str, int]:
     """Detect deontic lexeme categories in text (NormStatement candidate preparation).
@@ -225,6 +248,7 @@ def detect_deontic_lexemes(text: str) -> dict[str, int]:
                 hits[category] += count
     return hits
 
+
 def detect_temporal_markers(text: str) -> dict[str, int]:
     """Detect temporal, validity, and secrecy markers in text.
 
@@ -239,6 +263,7 @@ def detect_temporal_markers(text: str) -> dict[str, int]:
         if count:
             hits[category] += count
     return hits
+
 
 def extract_internal_references(text: str) -> list[dict[str, str]]:
     """Extract bounded internal structural references from legal text.
@@ -255,12 +280,15 @@ def extract_internal_references(text: str) -> list[dict[str, str]]:
             start = max(0, match.start() - 20)
             end = min(len(text), match.end() + 40)
             excerpt = text[start:end].strip()
-            hits.append({
-                "target_level": level,
-                "target_number": number,
-                "evidence_excerpt": truncate(excerpt, 240),
-            })
+            hits.append(
+                {
+                    "target_level": level,
+                    "target_number": number,
+                    "evidence_excerpt": truncate(excerpt, 240),
+                }
+            )
     return hits
+
 
 def marker_for_text(text: str) -> Marker | None:
     """Classify one paragraph as a hierarchy marker using anchored context-first rules."""
@@ -293,7 +321,9 @@ def marker_for_text(text: str) -> Marker | None:
 
     match = re.match(r"^([а-яё]\))\s+\S", text, flags=re.IGNORECASE)
     if match:
-        return Marker("subclause", match.group(1), match.group(1).rstrip(")").lower(), "subclause-letter")
+        return Marker(
+            "subclause", match.group(1), match.group(1).rstrip(")").lower(), "subclause-letter"
+        )
 
     return None
 
@@ -350,11 +380,32 @@ def update_context(level: Level, record_id: str, context: dict[str, str | None])
             }
         )
     elif level == "razdel":
-        context.update({"razdel": record_id, "chapter": None, "section": None, "article": None, "part": None, "clause": None, "subclause": None})
+        context.update(
+            {
+                "razdel": record_id,
+                "chapter": None,
+                "section": None,
+                "article": None,
+                "part": None,
+                "clause": None,
+                "subclause": None,
+            }
+        )
     elif level == "chapter":
-        context.update({"chapter": record_id, "section": None, "article": None, "part": None, "clause": None, "subclause": None})
+        context.update(
+            {
+                "chapter": record_id,
+                "section": None,
+                "article": None,
+                "part": None,
+                "clause": None,
+                "subclause": None,
+            }
+        )
     elif level == "section":
-        context.update({"section": record_id, "article": None, "part": None, "clause": None, "subclause": None})
+        context.update(
+            {"section": record_id, "article": None, "part": None, "clause": None, "subclause": None}
+        )
     elif level == "article":
         context.update({"article": record_id, "part": None, "clause": None, "subclause": None})
     elif level == "part":
@@ -401,7 +452,8 @@ def build_record(
         "title": marker_title(paragraph_text, marker),
         "location": {
             "selector": f"/w:wordDocument/w:body/w:p[{paragraph_index}]",
-            "label": f"WordML paragraph {paragraph_index}" + (f" style {paragraph_style}" if paragraph_style else ""),
+            "label": f"WordML paragraph {paragraph_index}"
+            + (f" style {paragraph_style}" if paragraph_style else ""),
         },
         "excerpt": excerpt,
         "excerpt_sha256": sha256_text(excerpt),
@@ -487,6 +539,7 @@ def extract_norm_candidates(hierarchy_records: list[dict[str, Any]]) -> list[dic
             candidates.append(candidate)
     return candidates
 
+
 def profile_document(paragraphs: Sequence[RawBlock]) -> dict[str, Any]:
     """Pass A document profiler: collect style, marker, and numbering census.
 
@@ -535,7 +588,10 @@ def profile_document(paragraphs: Sequence[RawBlock]) -> dict[str, Any]:
         "paragraph_count": len(paragraphs),
     }
 
-def hierarchy_records(request: SourceHierarchyRequest) -> tuple[list[dict[str, Any]], dict[str, Any]]:
+
+def hierarchy_records(
+    request: SourceHierarchyRequest,
+) -> tuple[list[dict[str, Any]], dict[str, Any]]:
     """Extract Consultant hierarchy records and diagnostics for ``request``."""
 
     paragraphs = list(request.paragraphs)
@@ -555,7 +611,9 @@ def hierarchy_records(request: SourceHierarchyRequest) -> tuple[list[dict[str, A
         "subclause": None,
     }
 
-    first_title = next((p for p in paragraphs if p.style == "5" and not p.text.startswith("iVBOR")), paragraphs[0])
+    first_title = next(
+        (p for p in paragraphs if p.style == "5" and not p.text.startswith("iVBOR")), paragraphs[0]
+    )
     records.append(
         build_record(
             record_id=document_hierarchy_id,
@@ -575,7 +633,9 @@ def hierarchy_records(request: SourceHierarchyRequest) -> tuple[list[dict[str, A
     zone = "preambula"  # preambula -> body (after first article) -> prilozhenie (after Приложение)
 
     for paragraph in paragraphs:
-        if zone == "preambula" and re.match(r"^Приложение\s*\d*\.?\s", paragraph.text, flags=re.IGNORECASE):
+        if zone == "preambula" and re.match(
+            r"^Приложение\s*\d*\.?\s", paragraph.text, flags=re.IGNORECASE
+        ):
             zone = "prilozhenie"
             skipped["prilozhenie_paragraphs"] += 1
             continue
@@ -680,7 +740,9 @@ def hierarchy_records(request: SourceHierarchyRequest) -> tuple[list[dict[str, A
                 "exception_markers",
             ):
                 continue  # diagnostic counters, not structural errors
-            structural_errors.append({"kind": "context_break", "message": f"{kind}: {count}", "count": count})
+            structural_errors.append(
+                {"kind": "context_break", "message": f"{kind}: {count}", "count": count}
+            )
 
     diagnostics = {
         "emitted_counts_by_level": dict(sorted(emitted_counts.items())),
@@ -693,10 +755,7 @@ def hierarchy_records(request: SourceHierarchyRequest) -> tuple[list[dict[str, A
         "validation_error_count": 0,
         "profile_record_count_match": (
             load_profile() is not None
-            and (
-                sum(emitted_counts.values()) == 7873
-                or sum(emitted_counts.values()) == 2185
-            )
+            and (sum(emitted_counts.values()) == 7873 or sum(emitted_counts.values()) == 2185)
         ),
         "profile_census": profile_document(request.paragraphs),
     }

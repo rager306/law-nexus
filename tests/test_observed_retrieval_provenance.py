@@ -8,9 +8,18 @@ from typing import Any
 
 ROOT = Path(__file__).resolve().parents[1]
 VERIFIER = ROOT / "scripts/verify-observed-retrieval-provenance.py"
-FIXTURE = ROOT / "prd/research/ontology_architecture_requirements/fixtures/representative_evidence_span_retrieval_corpus.json"
-QUERY_REGISTRY = ROOT / "prd/research/ontology_architecture_requirements/fixtures/observed_retrieval_query_provenance_registry.json"
-SOURCE_MANIFEST = ROOT / "prd/research/ontology_architecture_requirements/fixtures/observed_retrieval_source_provenance_manifest.json"
+FIXTURE = (
+    ROOT
+    / "prd/research/ontology_architecture_requirements/fixtures/representative_evidence_span_retrieval_corpus.json"
+)
+QUERY_REGISTRY = (
+    ROOT
+    / "prd/research/ontology_architecture_requirements/fixtures/observed_retrieval_query_provenance_registry.json"
+)
+SOURCE_MANIFEST = (
+    ROOT
+    / "prd/research/ontology_architecture_requirements/fixtures/observed_retrieval_source_provenance_manifest.json"
+)
 
 
 def load_module(name: str = "observed_retrieval_provenance_verifier") -> ModuleType:
@@ -27,7 +36,9 @@ def load_json(path: Path) -> dict[str, Any]:
 
 def write_json(tmp_path: Path, name: str, payload: dict[str, Any]) -> Path:
     path = tmp_path / name
-    path.write_text(json.dumps(payload, ensure_ascii=False, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    path.write_text(
+        json.dumps(payload, ensure_ascii=False, indent=2, sort_keys=True) + "\n", encoding="utf-8"
+    )
     return path
 
 
@@ -52,7 +63,13 @@ def test_query_registry_shape_and_redaction() -> None:
     assert all(len(entry["query_hash"]) == 64 for entry in registry["entries"])
     assert all(entry["query_hash_field"] == "query_text_sha256" for entry in registry["entries"])
     assert registry["redaction"]["query_text_excluded"] is True
-    for forbidden in ("raw_legal_text", "provider_payload", "embedding_vector", ".gsd/exec", "/root/"):
+    for forbidden in (
+        "raw_legal_text",
+        "provider_payload",
+        "embedding_vector",
+        ".gsd/exec",
+        "/root/",
+    ):
         assert forbidden not in serialized
 
 
@@ -62,10 +79,22 @@ def test_source_manifest_shape_and_redaction() -> None:
 
     assert manifest["schema_version"] == "observed-retrieval-source-provenance-manifest/v1"
     assert manifest["candidate_count"] == 10
-    assert all(entry["validation_expectations"]["source_case_exists"] for entry in manifest["candidate_entries"])
-    assert all(entry["validation_expectations"]["source_records_exist"] for entry in manifest["candidate_entries"])
+    assert all(
+        entry["validation_expectations"]["source_case_exists"]
+        for entry in manifest["candidate_entries"]
+    )
+    assert all(
+        entry["validation_expectations"]["source_records_exist"]
+        for entry in manifest["candidate_entries"]
+    )
     assert manifest["redaction"]["source_text_excluded"] is True
-    for forbidden in ("raw_legal_text", "provider_payload", "embedding_vector", ".gsd/exec", "/root/"):
+    for forbidden in (
+        "raw_legal_text",
+        "provider_payload",
+        "embedding_vector",
+        ".gsd/exec",
+        "/root/",
+    ):
         assert forbidden not in serialized
 
 

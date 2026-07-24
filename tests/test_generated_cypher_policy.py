@@ -25,7 +25,9 @@ def test_policy_accepts_explicit_read_only_evidence_query() -> None:
              LIMIT 5"""
 
     result = GeneratedCypherPolicy().validate(
-        GeneratedCypherValidationRequest(query=query, schema_contract=_schema(), query_case="article_evidence", generated=False)
+        GeneratedCypherValidationRequest(
+            query=query, schema_contract=_schema(), query_case="article_evidence", generated=False
+        )
     )
 
     assert result.accepted is True
@@ -39,7 +41,9 @@ def test_policy_rejects_generated_query_by_default_even_if_read_only() -> None:
     query = "MATCH (span:EvidenceSpan) RETURN span.id LIMIT 5"
 
     result = GeneratedCypherPolicy().validate(
-        GeneratedCypherValidationRequest(query=query, schema_contract=_schema(), query_case="generated_candidate", generated=True)
+        GeneratedCypherValidationRequest(
+            query=query, schema_contract=_schema(), query_case="generated_candidate", generated=True
+        )
     )
 
     assert result.accepted is False
@@ -51,7 +55,12 @@ def test_policy_rejects_mutating_and_multi_statement_queries() -> None:
     policy = GeneratedCypherPolicy()
 
     mutating = policy.validate(
-        GeneratedCypherValidationRequest(query="CREATE (:LegalUnit) RETURN 1", schema_contract=_schema(), query_case="mutating", generated=False)
+        GeneratedCypherValidationRequest(
+            query="CREATE (:LegalUnit) RETURN 1",
+            schema_contract=_schema(),
+            query_case="mutating",
+            generated=False,
+        )
     )
     multi = policy.validate(
         GeneratedCypherValidationRequest(
@@ -72,7 +81,11 @@ def test_policy_rejects_unsafe_procedure_and_raw_context() -> None:
     policy = GeneratedCypherPolicy()
 
     procedure = policy.validate(
-        GeneratedCypherValidationRequest(query="CALL db.labels() YIELD label RETURN label LIMIT 5", schema_contract=_schema(), query_case="procedure")
+        GeneratedCypherValidationRequest(
+            query="CALL db.labels() YIELD label RETURN label LIMIT 5",
+            schema_contract=_schema(),
+            query_case="procedure",
+        )
     )
     raw_context = policy.validate(
         GeneratedCypherValidationRequest(
@@ -91,7 +104,9 @@ def test_policy_rejects_unsafe_procedure_and_raw_context() -> None:
 
 def test_policy_diagnostics_are_bounded_and_non_authoritative() -> None:
     result = GeneratedCypherPolicy().validate(
-        GeneratedCypherValidationRequest(query="DELETE n", schema_contract=_schema(), query_case="delete", generated=False)
+        GeneratedCypherValidationRequest(
+            query="DELETE n", schema_contract=_schema(), query_case="delete", generated=False
+        )
     )
 
     assert result.accepted is False

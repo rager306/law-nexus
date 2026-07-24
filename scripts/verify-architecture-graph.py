@@ -71,7 +71,12 @@ GRAPH_INTEGRITY_DRIFT_RULES = {
     "read-claim-text",
 }
 DECISION_FITNESS_DRIFT_RULES = {"decision-consequence", "decision-supersession", "decision-fitness"}
-PROOF_GATE_DRIFT_RULES = {"proof-gate-metadata", "evidence-class-boundary", "claim-lifecycle", "ontology-promotion-gate"}
+PROOF_GATE_DRIFT_RULES = {
+    "proof-gate-metadata",
+    "evidence-class-boundary",
+    "claim-lifecycle",
+    "ontology-promotion-gate",
+}
 CONTRADICTION_DRIFT_RULES = {"active-contradiction"}
 OVERCLAIM_DRIFT_RULES = {"forbidden-overclaim"}
 SCHEMA_RULE_FRAGMENTS = (
@@ -123,7 +128,9 @@ def drift_policy_for_rule(rule: str, field: str = "<none>") -> DriftDiagnosticPo
             "overclaim-drift",
             "downgrade-positive-claim-to-bounded-non-authoritative-language-or-add-required-proof",
         )
-    if rule in GRAPH_INTEGRITY_DRIFT_RULES or any(fragment in rule for fragment in SCHEMA_RULE_FRAGMENTS):
+    if rule in GRAPH_INTEGRITY_DRIFT_RULES or any(
+        fragment in rule for fragment in SCHEMA_RULE_FRAGMENTS
+    ):
         return DriftDiagnosticPolicy(
             "graph-integrity-drift",
             "fix-schema-or-graph-integrity-source-mapping-then-regenerate-derived-projections",
@@ -257,7 +264,9 @@ def first_actionable_line(stdout: str, stderr: str) -> str:
     return "upstream check failed without output"
 
 
-def run_upstream_check(rule: str, command: list[str], path: Path, timeout_seconds: int = 30) -> Diagnostic | None:
+def run_upstream_check(
+    rule: str, command: list[str], path: Path, timeout_seconds: int = 30
+) -> Diagnostic | None:
     try:
         completed = subprocess.run(
             command,
@@ -270,12 +279,18 @@ def run_upstream_check(rule: str, command: list[str], path: Path, timeout_second
     except subprocess.TimeoutExpired as exc:
         output = exc.stdout if isinstance(exc.stdout, str) else ""
         error = exc.stderr if isinstance(exc.stderr, str) else ""
-        return Diagnostic(rule=rule, message=f"timeout after {timeout_seconds}s: {first_actionable_line(output, error)}", path=path)
+        return Diagnostic(
+            rule=rule,
+            message=f"timeout after {timeout_seconds}s: {first_actionable_line(output, error)}",
+            path=path,
+        )
     except OSError as exc:
         return Diagnostic(rule=rule, message=str(exc), path=path)
 
     if completed.returncode != 0:
-        return Diagnostic(rule=rule, message=first_actionable_line(completed.stdout, completed.stderr), path=path)
+        return Diagnostic(
+            rule=rule, message=first_actionable_line(completed.stdout, completed.stderr), path=path
+        )
     return None
 
 
@@ -312,7 +327,9 @@ def run_upstream_freshness(args: argparse.Namespace, result: VerificationResult)
     result.upstream_checks = "passed" if result.ok else "failed"
 
 
-def load_jsonl(path: Path, *, expected_kind: RecordKind, result: VerificationResult) -> list[LocatedRecord]:
+def load_jsonl(
+    path: Path, *, expected_kind: RecordKind, result: VerificationResult
+) -> list[LocatedRecord]:
     located: list[LocatedRecord] = []
     seen_ids: dict[str, LocatedRecord] = {}
     try:
@@ -354,7 +371,9 @@ def load_jsonl(path: Path, *, expected_kind: RecordKind, result: VerificationRes
         current = LocatedRecord(path=path, line_number=line_number, record=record)
         record_id = record.get("id")
         if not isinstance(record_id, str) or not record_id:
-            result.add(current.diagnostic("record-id", "expected non-empty string record id", field="id"))
+            result.add(
+                current.diagnostic("record-id", "expected non-empty string record id", field="id")
+            )
         elif record_id in seen_ids:
             first = seen_ids[record_id]
             result.add(
@@ -402,10 +421,19 @@ def load_schema(result: VerificationResult) -> Mapping[str, Any] | None:
         )
         return None
     except (OSError, UnicodeDecodeError) as exc:
-        result.add(Diagnostic(rule="schema-read", message=str(exc), path=SCHEMA_PATH, field="schema"))
+        result.add(
+            Diagnostic(rule="schema-read", message=str(exc), path=SCHEMA_PATH, field="schema")
+        )
         return None
     if not isinstance(schema, Mapping):
-        result.add(Diagnostic(rule="schema-object", message="expected JSON schema root object", path=SCHEMA_PATH, field="schema"))
+        result.add(
+            Diagnostic(
+                rule="schema-object",
+                message="expected JSON schema root object",
+                path=SCHEMA_PATH,
+                field="schema",
+            )
+        )
         return None
     return schema
 
@@ -439,23 +467,35 @@ def schema_errors(
 ) -> list[tuple[str, str, str]]:
     if "$ref" in schema_node:
         try:
-            return schema_errors(value, resolve_ref(root_schema, str(schema_node["$ref"])), root_schema, field)
+            return schema_errors(
+                value, resolve_ref(root_schema, str(schema_node["$ref"])), root_schema, field
+            )
         except (KeyError, ValueError) as exc:
             return [(field, "$ref", str(exc))]
 
     errors: list[tuple[str, str, str]] = []
 
     if "oneOf" in schema_node:
-        option_errors = [schema_errors(value, option, root_schema, field) for option in schema_node["oneOf"]]
+        option_errors = [
+            schema_errors(value, option, root_schema, field) for option in schema_node["oneOf"]
+        ]
         passing = [candidate for candidate in option_errors if not candidate]
         if len(passing) != 1:
             details = "; ".join(error[2] for candidate in option_errors for error in candidate[:2])
-            errors.append((field, "oneOf", f"expected exactly one schema branch to match; {details}"))
+            errors.append(
+                (field, "oneOf", f"expected exactly one schema branch to match; {details}")
+            )
         return errors
 
     expected_type = schema_node.get("type")
     if expected_type and not type_matches(value, str(expected_type)):
-        errors.append((field, f"type={expected_type}", f"expected {expected_type}, got {type(value).__name__}"))
+        errors.append(
+            (
+                field,
+                f"type={expected_type}",
+                f"expected {expected_type}, got {type(value).__name__}",
+            )
+        )
         return errors
 
     if "const" in schema_node and value != schema_node["const"]:
@@ -470,7 +510,9 @@ def schema_errors(
         if isinstance(pattern, str) and not re.search(pattern, value):
             errors.append((field, f"pattern={pattern}", f"value {value!r} does not match pattern"))
         not_schema = schema_node.get("not")
-        if isinstance(not_schema, Mapping) and not schema_errors(value, not_schema, root_schema, field):
+        if isinstance(not_schema, Mapping) and not schema_errors(
+            value, not_schema, root_schema, field
+        ):
             errors.append((field, "not", f"value {value!r} matched forbidden schema"))
         if schema_node.get("format") == "date" and not re.fullmatch(r"\d{4}-\d{2}-\d{2}", value):
             errors.append((field, "format=date", f"value {value!r} is not YYYY-MM-DD"))
@@ -506,13 +548,27 @@ def schema_errors(
         if schema_node.get("additionalProperties") is False:
             for key in value:
                 if key not in properties:
-                    errors.append((field_path(field, str(key)), "additionalProperties=false", "unexpected field"))
+                    errors.append(
+                        (
+                            field_path(field, str(key)),
+                            "additionalProperties=false",
+                            "unexpected field",
+                        )
+                    )
         for key, property_schema in properties.items():
             if key in value and isinstance(property_schema, Mapping):
-                errors.extend(schema_errors(value[key], property_schema, root_schema, field_path(field, str(key))))
+                errors.extend(
+                    schema_errors(
+                        value[key], property_schema, root_schema, field_path(field, str(key))
+                    )
+                )
         for condition in schema_node.get("allOf", []):
             if isinstance(condition, Mapping):
-                if_errors = schema_errors(value, condition.get("if", {}), root_schema, field) if isinstance(condition.get("if", {}), Mapping) else []
+                if_errors = (
+                    schema_errors(value, condition.get("if", {}), root_schema, field)
+                    if isinstance(condition.get("if", {}), Mapping)
+                    else []
+                )
                 if not if_errors:
                     then_schema = condition.get("then")
                     if isinstance(then_schema, Mapping):
@@ -555,7 +611,9 @@ def schema_node_for_record(schema: Mapping[str, Any], located: LocatedRecord) ->
     return schema
 
 
-def validate_schema(records: list[LocatedRecord], schema: Mapping[str, Any], result: VerificationResult) -> None:
+def validate_schema(
+    records: list[LocatedRecord], schema: Mapping[str, Any], result: VerificationResult
+) -> None:
     for located in records:
         try:
             schema_node = schema_node_for_record(schema, located)
@@ -582,7 +640,9 @@ def source_anchor_kind(anchor: Mapping[str, Any]) -> str:
     return kind if isinstance(kind, str) and kind else "<missing-kind>"
 
 
-def source_anchor_failure_message(anchor_path: str, anchor_kind: str, failure_class: str, remediation_class: str, remediation: str) -> str:
+def source_anchor_failure_message(
+    anchor_path: str, anchor_kind: str, failure_class: str, remediation_class: str, remediation: str
+) -> str:
     return (
         f"anchor_path={anchor_path} anchor_kind={anchor_kind} failure_class={failure_class} "
         f"remediation_class={remediation_class} remediation={remediation}"
@@ -607,7 +667,9 @@ def source_anchor_resolves_inside_gsd(anchor_path: str) -> bool:
     return resolved_path == gsd_root or gsd_root in resolved_path.parents
 
 
-def read_anchor_lines(anchor_path: str, cache: dict[str, tuple[Path, list[str]]]) -> tuple[Path, list[str]] | None:
+def read_anchor_lines(
+    anchor_path: str, cache: dict[str, tuple[Path, list[str]]]
+) -> tuple[Path, list[str]] | None:
     if anchor_path in cache:
         return cache[anchor_path]
     full_path = ROOT / anchor_path
@@ -710,7 +772,9 @@ def validate_source_anchors(records: list[LocatedRecord], result: VerificationRe
                             "add-source-anchor",
                             "provide-both-line_start-and-line_end-or-use-selector",
                         ),
-                        field=f"{field_prefix}.line_start" if has_line_start else f"{field_prefix}.line_end",
+                        field=f"{field_prefix}.line_start"
+                        if has_line_start
+                        else f"{field_prefix}.line_end",
                     )
                 )
             elif has_line_start and has_line_end:
@@ -810,35 +874,59 @@ PROSE_OPTION_FIELDS = {"title", "summary", "pros", "cons"}
 OVERCLAIM_PATTERNS: tuple[tuple[str, re.Pattern[str]], ...] = (
     (
         "LegalGraph product promotion",
-        re.compile(r"\bLegalGraph\s+product\b[^\n.]{0,100}\b(?:production\s+ready|ready\s+for\s+production|implemented|shipped|validated|proven)\b", re.I),
+        re.compile(
+            r"\bLegalGraph\s+product\b[^\n.]{0,100}\b(?:production\s+ready|ready\s+for\s+production|implemented|shipped|validated|proven)\b",
+            re.I,
+        ),
     ),
     (
         "Legal KnowQL runtime/parser proof",
-        re.compile(r"\bLegal\s+KnowQL\b[^\n.]{0,100}\b(?:runtime|parser)\b[^\n.]{0,100}\b(?:proven|validated|production\s+ready|complete|safe)\b", re.I),
+        re.compile(
+            r"\bLegal\s+KnowQL\b[^\n.]{0,100}\b(?:runtime|parser)\b[^\n.]{0,100}\b(?:proven|validated|production\s+ready|complete|safe)\b",
+            re.I,
+        ),
     ),
     (
         "ODT parser completeness",
-        re.compile(r"\bODT\s+parser\b[^\n.]{0,100}\b(?:complete|proven|validated|production\s+ready|authoritative)\b", re.I),
+        re.compile(
+            r"\bODT\s+parser\b[^\n.]{0,100}\b(?:complete|proven|validated|production\s+ready|authoritative)\b",
+            re.I,
+        ),
     ),
     (
         "retrieval quality proof",
-        re.compile(r"\bretrieval\s+quality\b[^\n.]{0,100}\b(?:proven|validated|confirmed|production\s+ready|guaranteed)\b", re.I),
+        re.compile(
+            r"\bretrieval\s+quality\b[^\n.]{0,100}\b(?:proven|validated|confirmed|production\s+ready|guaranteed)\b",
+            re.I,
+        ),
     ),
     (
         "FalkorDB production scale proof",
-        re.compile(r"\bFalkorDB\b[^\n.]{0,100}\bproduction\s+scale\b[^\n.]{0,100}\b(?:proven|validated|confirmed|ready|supported)\b", re.I),
+        re.compile(
+            r"\bFalkorDB\b[^\n.]{0,100}\bproduction\s+scale\b[^\n.]{0,100}\b(?:proven|validated|confirmed|ready|supported)\b",
+            re.I,
+        ),
     ),
     (
         "generated Cypher safety proof",
-        re.compile(r"\bgenerated\s+Cypher\b[^\n.]{0,100}\b(?:safe|safety\s+(?:is\s+)?(?:proven|validated|guaranteed)|validated|proven|guaranteed)\b", re.I),
+        re.compile(
+            r"\bgenerated\s+Cypher\b[^\n.]{0,100}\b(?:safe|safety\s+(?:is\s+)?(?:proven|validated|guaranteed)|validated|proven|guaranteed)\b",
+            re.I,
+        ),
     ),
     (
         "legal answer correctness",
-        re.compile(r"\blegal\s+answers?\b[^\n.]{0,100}\b(?:correct|validated|authoritative|guaranteed|legally\s+sound)\b", re.I),
+        re.compile(
+            r"\blegal\s+answers?\b[^\n.]{0,100}\b(?:correct|validated|authoritative|guaranteed|legally\s+sound)\b",
+            re.I,
+        ),
     ),
     (
         "LLM authority",
-        re.compile(r"\bLLM(?:\s+output)?\b[^\n.]{0,80}\b(?:is|are|acts?\s+as|serves?\s+as|becomes?|creates?)\b[^\n.]{0,40}\b(?:authoritative|legal\s+authority|binding|legal\s+facts?)\b", re.I),
+        re.compile(
+            r"\bLLM(?:\s+output)?\b[^\n.]{0,80}\b(?:is|are|acts?\s+as|serves?\s+as|becomes?|creates?)\b[^\n.]{0,40}\b(?:authoritative|legal\s+authority|binding|legal\s+facts?)\b",
+            re.I,
+        ),
     ),
 )
 
@@ -902,7 +990,11 @@ ONTOLOGY_PROMOTION_RULES: tuple[dict[str, Any], ...] = (
     },
     {
         "label": "Ontology GraphRAG integration proof",
-        "trigger_terms": ("Ontology GraphRAG", "ontology-aware GraphRAG", "ontology-driven GraphRAG"),
+        "trigger_terms": (
+            "Ontology GraphRAG",
+            "ontology-aware GraphRAG",
+            "ontology-driven GraphRAG",
+        ),
         "required_gate_ids": ("GATE-ONTOLOGY-GRAPHRAG-INTEGRATION",),
         "minimum_proof_level": "integration-test",
     },
@@ -914,7 +1006,13 @@ ONTOLOGY_PROMOTION_RULES: tuple[dict[str, Any], ...] = (
     },
     {
         "label": "pilot-scale / 1000-document readiness",
-        "trigger_terms": ("pilot-scale", "1000-document", "1,000-document", "1000 document", "1,000 document"),
+        "trigger_terms": (
+            "pilot-scale",
+            "1000-document",
+            "1,000-document",
+            "1000 document",
+            "1,000 document",
+        ),
         "required_gate_ids": ("GATE-PILOT-SCALE-READINESS",),
         "minimum_proof_level": "integration-test",
     },
@@ -940,7 +1038,9 @@ def non_empty_list(value: Any) -> bool:
     return isinstance(value, list) and bool(value)
 
 
-def build_graph_index(item_records: list[LocatedRecord], edge_records: list[LocatedRecord], result: VerificationResult) -> GraphIndex:
+def build_graph_index(
+    item_records: list[LocatedRecord], edge_records: list[LocatedRecord], result: VerificationResult
+) -> GraphIndex:
     items_by_id = {
         located.record_id: located
         for located in item_records
@@ -1002,7 +1102,9 @@ def validate_orphan_traceability(index: GraphIndex, result: VerificationResult) 
         )
 
 
-def validate_proof_gate_metadata(item_records: list[LocatedRecord], result: VerificationResult) -> None:
+def validate_proof_gate_metadata(
+    item_records: list[LocatedRecord], result: VerificationResult
+) -> None:
     for located in item_records:
         if item_type(located) != "proof_gate":
             continue
@@ -1026,7 +1128,9 @@ def validate_proof_gate_metadata(item_records: list[LocatedRecord], result: Veri
 
 
 def decision_has_consequence(located: LocatedRecord) -> bool:
-    return non_empty_list(located.record.get("positive_consequences")) or non_empty_list(located.record.get("negative_consequences"))
+    return non_empty_list(located.record.get("positive_consequences")) or non_empty_list(
+        located.record.get("negative_consequences")
+    )
 
 
 def edge_endpoint(edge: LocatedRecord, field_name: str) -> str | None:
@@ -1097,7 +1201,11 @@ def validate_decision_policies(index: GraphIndex, result: VerificationResult) ->
                         field="superseded_by",
                     )
                 )
-        if status == "active" and located.record.get("risk_level") in {"high", "critical"} and not decision_has_gate_coverage(record_id, index):
+        if (
+            status == "active"
+            and located.record.get("risk_level") in {"high", "critical"}
+            and not decision_has_gate_coverage(record_id, index)
+        ):
             result.add(
                 located.diagnostic(
                     "decision-fitness",
@@ -1107,7 +1215,9 @@ def validate_decision_policies(index: GraphIndex, result: VerificationResult) ->
             )
 
 
-def validate_active_contradictions(edge_records: list[LocatedRecord], result: VerificationResult) -> None:
+def validate_active_contradictions(
+    edge_records: list[LocatedRecord], result: VerificationResult
+) -> None:
     for edge in edge_records:
         if edge.record.get("type") != "contradicts":
             continue
@@ -1171,7 +1281,11 @@ def evidence_class_message(
     anchor_path: str | None = None,
 ) -> str:
     current = ",".join(sorted(current_classes)) if current_classes else "<none>"
-    required = ",".join(sorted(required_classes)) if required_classes else "<non-authoritative-derived-artifact>"
+    required = (
+        ",".join(sorted(required_classes))
+        if required_classes
+        else "<non-authoritative-derived-artifact>"
+    )
     path_context = f" anchor_path={anchor_path}" if anchor_path else ""
     return (
         f"proof_level={proof_level} current_evidence_classes={current} "
@@ -1180,7 +1294,9 @@ def evidence_class_message(
     )
 
 
-def validate_evidence_class_boundaries(item_records: list[LocatedRecord], result: VerificationResult) -> None:
+def validate_evidence_class_boundaries(
+    item_records: list[LocatedRecord], result: VerificationResult
+) -> None:
     for located in item_records:
         proof_level = located.record.get("proof_level")
         if not isinstance(proof_level, str) or proof_level == "none":
@@ -1242,7 +1358,11 @@ def validate_claim_lifecycle(index: GraphIndex, result: VerificationResult) -> N
     for edge in index.edges:
         edge_type = edge.record.get("type")
         edge_status = edge.record.get("status")
-        if edge_type not in PROOF_USING_EDGE_TYPES or edge_status not in {"active", "bounded-evidence", "validated"}:
+        if edge_type not in PROOF_USING_EDGE_TYPES or edge_status not in {
+            "active",
+            "bounded-evidence",
+            "validated",
+        }:
             continue
         for endpoint_field in ("from", "to"):
             endpoint_id = edge_endpoint(edge, endpoint_field)
@@ -1342,7 +1462,15 @@ def has_research_boundary_language(located: LocatedRecord) -> bool:
     return any(term in text for term in ONTOLOGY_BOUNDARY_TERMS)
 
 
-def ontology_promotion_message(*, trigger_term: str, label: str, failure_class: str, remediation_class: str, remediation: str, detail: str) -> str:
+def ontology_promotion_message(
+    *,
+    trigger_term: str,
+    label: str,
+    failure_class: str,
+    remediation_class: str,
+    remediation: str,
+    detail: str,
+) -> str:
     return (
         f"r035_trigger={trigger_term} ontology_rule={label} failure_class={failure_class} {detail} "
         f"remediation_class={remediation_class} remediation={remediation}"
@@ -1568,13 +1696,23 @@ def line_number_for_offset(text: str, offset: int) -> int:
     return text.count("\n", 0, offset) + 1
 
 
-def validate_text_file_overclaims(path: Path, result: VerificationResult, *, record_kind: str) -> None:
+def validate_text_file_overclaims(
+    path: Path, result: VerificationResult, *, record_kind: str
+) -> None:
     try:
         text = path.read_text(encoding="utf-8")
     except FileNotFoundError:
         return
     except (OSError, UnicodeDecodeError) as exc:
-        result.add(Diagnostic(rule="read-claim-text", message=str(exc), path=path, record_kind=record_kind, field="text"))
+        result.add(
+            Diagnostic(
+                rule="read-claim-text",
+                message=str(exc),
+                path=path,
+                record_kind=record_kind,
+                field="text",
+            )
+        )
         return
     for label, pattern in OVERCLAIM_PATTERNS:
         for match in pattern.finditer(text):
@@ -1596,14 +1734,18 @@ def validate_text_file_overclaims(path: Path, result: VerificationResult, *, rec
             break
 
 
-def validate_overclaim_policies(records: list[LocatedRecord], args: argparse.Namespace, result: VerificationResult) -> None:
+def validate_overclaim_policies(
+    records: list[LocatedRecord], args: argparse.Namespace, result: VerificationResult
+) -> None:
     validate_record_overclaims(records, result)
     validate_text_file_overclaims(args.report_md, result, record_kind="derived-report")
     for policy_doc in args.policy_doc:
         validate_text_file_overclaims(policy_doc, result, record_kind="policy-doc")
 
 
-def validate_graph_policies(item_records: list[LocatedRecord], edge_records: list[LocatedRecord], result: VerificationResult) -> None:
+def validate_graph_policies(
+    item_records: list[LocatedRecord], edge_records: list[LocatedRecord], result: VerificationResult
+) -> None:
     index = build_graph_index(item_records, edge_records, result)
     validate_orphan_traceability(index, result)
     validate_proof_gate_metadata(item_records, result)
@@ -1653,7 +1795,10 @@ def run(argv: list[str] | None = None) -> int:
 
     LAST_RESULT = result
     if result.diagnostics:
-        for diagnostic in sorted(result.diagnostics, key=lambda item: (item.rule, display_path(item.path), item.line_number, item.record_id)):
+        for diagnostic in sorted(
+            result.diagnostics,
+            key=lambda item: (item.rule, display_path(item.path), item.line_number, item.record_id),
+        ):
             print(diagnostic.format(), file=sys.stderr)
         print(json.dumps(result.summary(), sort_keys=True))
         return 1

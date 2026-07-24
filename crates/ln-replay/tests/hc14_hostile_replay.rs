@@ -3,8 +3,8 @@ use ln_replay::adapters::{
 };
 use ln_replay::application::CoordinateCheckpointAndReplay;
 use ln_replay::domain::{
-    CheckpointDigest, CheckpointId, EffectId, OperationId, ReplayOutcome, ReplayRequest,
-    RequestId, RuleVersion,
+    CheckpointDigest, CheckpointId, EffectId, OperationId, ReplayOutcome, ReplayRequest, RequestId,
+    RuleVersion,
 };
 
 fn request(digest: &str, rules: &str) -> ReplayRequest {

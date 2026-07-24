@@ -107,7 +107,9 @@ def load_json(path: Path) -> dict[str, Any]:
     except CliRuntimeError as exc:
         if exc.failure_class == "missing_source_artifact":
             raise ManifestError(
-                diagnostic("missing_source_artifact", severity="error", artifact_path=relative(path))
+                diagnostic(
+                    "missing_source_artifact", severity="error", artifact_path=relative(path)
+                )
             ) from exc
         raise ManifestError(
             diagnostic(
@@ -122,9 +124,20 @@ def load_json(path: Path) -> dict[str, Any]:
 def require_source_paths() -> None:
     for path in REQUIRED_SOURCE_PATHS:
         if not path.exists():
-            raise ManifestError(diagnostic("missing_source_artifact", severity="error", artifact_path=relative(path)))
+            raise ManifestError(
+                diagnostic(
+                    "missing_source_artifact", severity="error", artifact_path=relative(path)
+                )
+            )
         if not relative(path).startswith("prd/"):
-            raise ManifestError(diagnostic("manifest_schema_mismatch", severity="error", artifact_path=relative(path), field_path="source_artifacts"))
+            raise ManifestError(
+                diagnostic(
+                    "manifest_schema_mismatch",
+                    severity="error",
+                    artifact_path=relative(path),
+                    field_path="source_artifacts",
+                )
+            )
 
 
 def source_artifacts() -> list[dict[str, str]]:
@@ -141,7 +154,9 @@ def build_request() -> RepresentativeCorpusManifestBuildRequest:
         local_retrieval_quality_benchmark=load_json(LOCAL_BENCHMARK_PATH),
         offline_citation_retrieval_cases=load_json(OFFLINE_CASES_PATH),
         real_artifact_retrieval_cases=load_json(REAL_ARTIFACT_CASES_PATH),
-        source_artifacts=tuple(RepresentativeCorpusSourceArtifact(**artifact) for artifact in source_artifacts()),
+        source_artifacts=tuple(
+            RepresentativeCorpusSourceArtifact(**artifact) for artifact in source_artifacts()
+        ),
     )
 
 
@@ -185,8 +200,12 @@ def success_json(payload: dict[str, Any], status: str) -> str:
 
 
 def main(argv: Sequence[str] | None = None) -> int:
-    parser = argparse.ArgumentParser(description="Build the deterministic M016 representative retrieval corpus manifest.")
-    parser.add_argument("--check", action="store_true", help="Fail if checked-in manifest/report are stale.")
+    parser = argparse.ArgumentParser(
+        description="Build the deterministic M016 representative retrieval corpus manifest."
+    )
+    parser.add_argument(
+        "--check", action="store_true", help="Fail if checked-in manifest/report are stale."
+    )
     args = parser.parse_args(argv)
 
     try:
@@ -195,11 +214,31 @@ def main(argv: Sequence[str] | None = None) -> int:
         report = render_report(payload)
         if args.check:
             if not OUTPUT_PATH.exists():
-                raise ManifestError(diagnostic("missing_source_artifact", severity="error", artifact_path=relative(OUTPUT_PATH)))
+                raise ManifestError(
+                    diagnostic(
+                        "missing_source_artifact",
+                        severity="error",
+                        artifact_path=relative(OUTPUT_PATH),
+                    )
+                )
             if OUTPUT_PATH.read_text(encoding="utf-8") != rendered:
-                raise ManifestError(diagnostic("manifest_schema_mismatch", severity="error", artifact_path=relative(OUTPUT_PATH), field_path="manifest_bytes"))
+                raise ManifestError(
+                    diagnostic(
+                        "manifest_schema_mismatch",
+                        severity="error",
+                        artifact_path=relative(OUTPUT_PATH),
+                        field_path="manifest_bytes",
+                    )
+                )
             if not REPORT_PATH.exists() or REPORT_PATH.read_text(encoding="utf-8") != report:
-                raise ManifestError(diagnostic("manifest_schema_mismatch", severity="error", artifact_path=relative(REPORT_PATH), field_path="report_bytes"))
+                raise ManifestError(
+                    diagnostic(
+                        "manifest_schema_mismatch",
+                        severity="error",
+                        artifact_path=relative(REPORT_PATH),
+                        field_path="report_bytes",
+                    )
+                )
             print(success_json(payload, "pass"))
             return 0
 
@@ -209,7 +248,12 @@ def main(argv: Sequence[str] | None = None) -> int:
         print(success_json(payload, "written"))
         return 0
     except ManifestError as exc:
-        print(json.dumps({"status": "fail", "diagnostic": exc.diagnostic}, ensure_ascii=False, sort_keys=True), file=sys.stderr)
+        print(
+            json.dumps(
+                {"status": "fail", "diagnostic": exc.diagnostic}, ensure_ascii=False, sort_keys=True
+            ),
+            file=sys.stderr,
+        )
         return 1
 
 

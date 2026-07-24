@@ -27,7 +27,9 @@ from pathlib import Path
 from typing import Any, Callable
 
 ROOT = Path(__file__).resolve().parents[1]
-DEFAULT_CONTRACT = ROOT / "prd" / "architecture" / "acp" / "runtime" / "m066-s01" / "adoption-contract.md"
+DEFAULT_CONTRACT = (
+    ROOT / "prd" / "architecture" / "acp" / "runtime" / "m066-s01" / "adoption-contract.md"
+)
 DEFAULT_DECISIONS = ROOT / ".gsd" / "DECISIONS.md"
 MAIN_STATE_RESIDUE = ("Squad", "Raw", ".artifacts")
 
@@ -54,17 +56,17 @@ EXPECTED_SECTIONS = (
 
 # Boundary markers that must appear in the contract.
 EXPECTED_BOUNDARY_MARKERS = (
-    "operational adoption",             # scope label (operational, not binding)
-    "R047",                             # R047 Gate A closing
-    "R057",                             # architecture-binding gate
-    "explicitly gated",                 # R057 explicitly-gated posture
-    "R035/R037/R038",                   # active, not source-truth
-    "ACP-kit",                          # not source truth
-    "base kit",                         # repolex-ai/git-lex-kit-base only
-    "pre-commit hook",                  # inherent consequence documented
-    "D084",                             # adoption roadmap
-    "D093",                             # this contract
-    "Stage 4",                          # reusability is later
+    "operational adoption",  # scope label (operational, not binding)
+    "R047",  # R047 Gate A closing
+    "R057",  # architecture-binding gate
+    "explicitly gated",  # R057 explicitly-gated posture
+    "R035/R037/R038",  # active, not source-truth
+    "ACP-kit",  # not source truth
+    "base kit",  # repolex-ai/git-lex-kit-base only
+    "pre-commit hook",  # inherent consequence documented
+    "D084",  # adoption roadmap
+    "D093",  # this contract
+    "Stage 4",  # reusability is later
 )
 
 # Overclaim detection — mirrors verify-m065-s04-stage2-closure.py. The boundary
@@ -103,7 +105,9 @@ class Diagnostic:
     text: str
 
 
-def _diagnostic(diagnostic_id: str, path: Path | str, line_no: int, message: str, text: str = "") -> Diagnostic:
+def _diagnostic(
+    diagnostic_id: str, path: Path | str, line_no: int, message: str, text: str = ""
+) -> Diagnostic:
     try:
         rel = str(Path(path).relative_to(ROOT))
     except (ValueError, TypeError):
@@ -128,7 +132,11 @@ def _read_text(path: Path) -> str:
 
 def check_contract_file(contract: Path) -> list[Diagnostic]:
     if not contract.exists():
-        return [_diagnostic("missing_contract_file", contract, 0, f"contract file is missing: {contract}")]
+        return [
+            _diagnostic(
+                "missing_contract_file", contract, 0, f"contract file is missing: {contract}"
+            )
+        ]
     return []
 
 
@@ -136,7 +144,11 @@ def check_sections(text: str, contract: Path) -> list[Diagnostic]:
     diagnostics: list[Diagnostic] = []
     for header in EXPECTED_SECTIONS:
         if header not in text:
-            diagnostics.append(_diagnostic("missing_section", contract, 0, f"required contract section missing: {header}"))
+            diagnostics.append(
+                _diagnostic(
+                    "missing_section", contract, 0, f"required contract section missing: {header}"
+                )
+            )
     return diagnostics
 
 
@@ -144,7 +156,14 @@ def check_boundary_markers(text: str, contract: Path) -> list[Diagnostic]:
     diagnostics: list[Diagnostic] = []
     for marker in EXPECTED_BOUNDARY_MARKERS:
         if marker not in text:
-            diagnostics.append(_diagnostic("missing_boundary_marker", contract, 0, f"required boundary marker missing: {marker}"))
+            diagnostics.append(
+                _diagnostic(
+                    "missing_boundary_marker",
+                    contract,
+                    0,
+                    f"required boundary marker missing: {marker}",
+                )
+            )
     return diagnostics
 
 
@@ -152,14 +171,25 @@ def check_decision_recorded(decisions: Path) -> list[Diagnostic]:
     diagnostics: list[Diagnostic] = []
     text = _read_text(decisions)
     if not text:
-        diagnostics.append(_diagnostic("decision_not_recorded", decisions, 0, f"DECISIONS.md missing or empty: {decisions}"))
+        diagnostics.append(
+            _diagnostic(
+                "decision_not_recorded", decisions, 0, f"DECISIONS.md missing or empty: {decisions}"
+            )
+        )
         return diagnostics
     # D093 must appear as a decision ID token (table row or heading), not just
     # as a back-reference inside another decision's prose. Match the ID at a
     # token boundary followed by a non-hex-char so D0930-style false positives
     # are avoided.
     if not re.search(r"\bD093\b(?![0-9A-Za-z])", text):
-        diagnostics.append(_diagnostic("decision_not_recorded", decisions, 0, "D093 adoption-contract decision not recorded in DECISIONS.md"))
+        diagnostics.append(
+            _diagnostic(
+                "decision_not_recorded",
+                decisions,
+                0,
+                "D093 adoption-contract decision not recorded in DECISIONS.md",
+            )
+        )
     return diagnostics
 
 
@@ -168,7 +198,9 @@ def _default_runner(cmd: list[str], *, timeout: int = 180) -> subprocess.Complet
     return subprocess.run(cmd, cwd=str(ROOT), capture_output=True, text=True, timeout=timeout)
 
 
-def check_prior_verifiers(runner: Callable[[list[str]], Any] | None = None, *, skip_residue_children: bool = False) -> tuple[dict[str, int], list[Diagnostic]]:
+def check_prior_verifiers(
+    runner: Callable[[list[str]], Any] | None = None, *, skip_residue_children: bool = False
+) -> tuple[dict[str, int], list[Diagnostic]]:
     """Re-run the prior M065 verifiers fresh and assert each exits 0.
 
     When ``skip_residue_children`` is True, ``--skip-residue`` is forwarded to
@@ -188,14 +220,26 @@ def check_prior_verifiers(runner: Callable[[list[str]], Any] | None = None, *, s
             result = runner(cmd)
         except Exception as exc:  # timeout / file-not-found / env error
             per_rc[name] = -1
-            diagnostics.append(_diagnostic("prior_verifier_failed", script, 0,
-                                           f"{name} prior verifier could not run: {exc}"))
+            diagnostics.append(
+                _diagnostic(
+                    "prior_verifier_failed",
+                    script,
+                    0,
+                    f"{name} prior verifier could not run: {exc}",
+                )
+            )
             continue
         rc = int(getattr(result, "returncode", -1))
         per_rc[name] = rc
         if rc != 0:
-            diagnostics.append(_diagnostic("prior_verifier_failed", script, 0,
-                                           f"{name} prior verifier exited {rc} (Stage 2 evidence must stay green)"))
+            diagnostics.append(
+                _diagnostic(
+                    "prior_verifier_failed",
+                    script,
+                    0,
+                    f"{name} prior verifier exited {rc} (Stage 2 evidence must stay green)",
+                )
+            )
     return per_rc, diagnostics
 
 
@@ -214,11 +258,15 @@ def scan_overclaim(contract_text: str, contract: Path) -> tuple[dict[str, Any], 
                 continue
             total_hits += 1
             line_no = contract_text.count("\n", 0, match.start()) + 1
-            diagnostics.append(_diagnostic(
-                "overclaim_detected", contract, line_no,
-                f"affirmative R035/R037/R038 validation overclaim ({name}): {match.group(0)!r}",
-                match.group(0),
-            ))
+            diagnostics.append(
+                _diagnostic(
+                    "overclaim_detected",
+                    contract,
+                    line_no,
+                    f"affirmative R035/R037/R038 validation overclaim ({name}): {match.group(0)!r}",
+                    match.group(0),
+                )
+            )
     summary: dict[str, Any] = {
         "status": "clean" if not diagnostics else "overclaim_detected",
         "hits": total_hits,
@@ -235,8 +283,14 @@ def check_main_state_residue(root: Path = ROOT) -> tuple[dict[str, str], list[Di
         path = root / relative
         if path.exists():
             status[relative] = "present"
-            diagnostics.append(_diagnostic("main_state_residue", path, 0,
-                                           f"main checkout residue exists: {relative} (R047 contract-phase on S01)"))
+            diagnostics.append(
+                _diagnostic(
+                    "main_state_residue",
+                    path,
+                    0,
+                    f"main checkout residue exists: {relative} (R047 contract-phase on S01)",
+                )
+            )
         else:
             status[relative] = "absent"
     return status, diagnostics
@@ -298,14 +352,16 @@ def _format_diagnostic(diagnostic: Diagnostic) -> str:
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(
         description="Verify the M066 S01 git-lex operational adoption contract (Stage 3 of D084). "
-                    "Inspection only; does not run git lex.",
+        "Inspection only; does not run git lex.",
     )
     parser.add_argument("--contract", type=Path, default=DEFAULT_CONTRACT)
     parser.add_argument("--decisions", type=Path, default=DEFAULT_DECISIONS)
-    parser.add_argument("--root", type=Path, default=ROOT,
-                        help="repository root for the R047 residue guard")
-    parser.add_argument("--skip-residue", action="store_true",
-                        help="skip the main-checkout residue guard")
+    parser.add_argument(
+        "--root", type=Path, default=ROOT, help="repository root for the R047 residue guard"
+    )
+    parser.add_argument(
+        "--skip-residue", action="store_true", help="skip the main-checkout residue guard"
+    )
     args = parser.parse_args(argv)
 
     ok, diagnostics, _summary = verify(
@@ -321,7 +377,9 @@ def main(argv: list[str] | None = None) -> int:
         return 1
 
     section_count = sum(1 for header in EXPECTED_SECTIONS if header in _read_text(args.contract))
-    print(f"M066 S01 adoption-contract verification passed: sections={section_count}/{len(EXPECTED_SECTIONS)} diagnostics=0")
+    print(
+        f"M066 S01 adoption-contract verification passed: sections={section_count}/{len(EXPECTED_SECTIONS)} diagnostics=0"
+    )
     return 0
 
 

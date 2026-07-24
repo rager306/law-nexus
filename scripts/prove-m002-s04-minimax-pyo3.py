@@ -93,7 +93,9 @@ class ProofState:
 class FalkorGraph(Protocol):
     def query(self, query: str) -> Any: ...
 
-    def ro_query(self, query: str, params: dict[str, Any] | None = None, timeout: int | None = None) -> Any: ...
+    def ro_query(
+        self, query: str, params: dict[str, Any] | None = None, timeout: int | None = None
+    ) -> Any: ...
 
 
 class FalkorClient(Protocol):
@@ -101,7 +103,9 @@ class FalkorClient(Protocol):
 
 
 def load_s03_validator() -> Any:
-    spec = importlib.util.spec_from_file_location("verify_m002_cypher_safety_contract", S03_VALIDATOR_PATH)
+    spec = importlib.util.spec_from_file_location(
+        "verify_m002_cypher_safety_contract", S03_VALIDATOR_PATH
+    )
     if spec is None or spec.loader is None:
         raise RuntimeError("S03 validator could not be imported")
     module = importlib.util.module_from_spec(spec)
@@ -180,7 +184,10 @@ def sanitize(value: Any, *, sensitive_values: list[str] | None = None) -> Any:
     if isinstance(value, tuple):
         return [sanitize(item, sensitive_values=sensitive_values) for item in value]
     if isinstance(value, dict):
-        return {str(key): sanitize(item, sensitive_values=sensitive_values) for key, item in value.items()}
+        return {
+            str(key): sanitize(item, sensitive_values=sensitive_values)
+            for key, item in value.items()
+        }
     return value
 
 
@@ -454,9 +461,15 @@ def classify_command_failure(result: CommandResult) -> str:
 
 def classify_provider_failure(text: str) -> str:
     lowered = text.lower()
-    if any(token in lowered for token in ("401", "403", "unauthorized", "forbidden", "invalid api key", "api key")):
+    if any(
+        token in lowered
+        for token in ("401", "403", "unauthorized", "forbidden", "invalid api key", "api key")
+    ):
         return "minimax-auth-failed"
-    if any(token in lowered for token in ("schema", "choices", "deserialize", "missing field", "chatresponsegeneration")):
+    if any(
+        token in lowered
+        for token in ("schema", "choices", "deserialize", "missing field", "chatresponsegeneration")
+    ):
         return "minimax-openai-schema-mismatch"
     if any(token in lowered for token in ("resolver", "endpoint", "route", "url", "invalid uri")):
         return "minimax-endpoint-routing-blocked"
@@ -474,7 +487,9 @@ def detect_reasoning_contamination(provider_payload: dict[str, Any]) -> bool:
 def safe_validation_payload(report: Any, *, include_query: bool) -> dict[str, Any]:
     payload = asdict(report)
     if not include_query:
-        payload["normalized_query"] = "<omitted-untrusted-draft>" if payload.get("normalized_query") else ""
+        payload["normalized_query"] = (
+            "<omitted-untrusted-draft>" if payload.get("normalized_query") else ""
+        )
     return cast("dict[str, Any]", sanitize(payload))
 
 
@@ -553,8 +568,15 @@ def safe_row_diagnostics(rows: list[Any]) -> dict[str, Any]:
     safe_identifiers: list[list[str]] = []
     for row in rows[:5]:
         values = list(row) if isinstance(row, list | tuple) else [row]
-        row_shapes.append({"column_count": len(values), "value_types": [type(value).__name__ for value in values]})
-        safe_row = [value for value in values if isinstance(value, str) and re.match(r"^(act|article|sourceblock|evidence|garant)[A-Za-z0-9:._-]*$", value)]
+        row_shapes.append(
+            {"column_count": len(values), "value_types": [type(value).__name__ for value in values]}
+        )
+        safe_row = [
+            value
+            for value in values
+            if isinstance(value, str)
+            and re.match(r"^(act|article|sourceblock|evidence|garant)[A-Za-z0-9:._-]*$", value)
+        ]
         safe_identifiers.append(safe_row[:6])
     return {"row_count": len(rows), "row_shapes": row_shapes, "safe_identifiers": safe_identifiers}
 
@@ -591,7 +613,9 @@ def execute_validated_cypher(
         falkor_client = client or connect_falkordb_client(host, port)
         graph = falkor_client.select_graph(graph_label)
         setup_synthetic_legalgraph(graph)
-        result = graph.ro_query(validation_report.normalized_query, params=params, timeout=READ_ONLY_TIMEOUT_MS)
+        result = graph.ro_query(
+            validation_report.normalized_query, params=params, timeout=READ_ONLY_TIMEOUT_MS
+        )
         rows = _rows_from_result(result)
         status = "confirmed-runtime"
         root_cause = "none"
@@ -605,7 +629,9 @@ def execute_validated_cypher(
     except Exception as exc:  # noqa: BLE001 - classified proof diagnostics
         environment_error = isinstance(exc, (ImportError, ModuleNotFoundError, ConnectionError))
         status = "blocked-environment" if environment_error else "failed-runtime"
-        root_cause = "blocked-environment" if environment_error else classify_ro_query_exception(exc)
+        root_cause = (
+            "blocked-environment" if environment_error else classify_ro_query_exception(exc)
+        )
         diagnostics = {"safe_category": root_cause, "error_type": type(exc).__name__}
         cleanup_status = "not-attempted"
     duration_ms = int((time.monotonic() - started) * 1000)
@@ -654,7 +680,10 @@ def add_validation_and_execution_findings(
             phase="generated-cypher-validation",
             root_cause="generated-cypher-validation-failed",
             summary="S03 deterministic validator rejected the candidate; read-only FalkorDB execution was skipped and no legal answer was produced.",
-            diagnostics={"safe_category": "generated-cypher-validation-failed", "rejection_codes": rejection_codes},
+            diagnostics={
+                "safe_category": "generated-cypher-validation-failed",
+                "rejection_codes": rejection_codes,
+            },
         )
     exec_status = execution_payload.get("status")
     if exec_status == "confirmed-runtime":
@@ -665,7 +694,10 @@ def add_validation_and_execution_findings(
             phase="read-only-execution",
             root_cause="none",
             summary="Validated Cypher was executed only through Graph.ro_query(..., timeout=1000) against synthetic LegalGraph-shaped data.",
-            diagnostics={"safe_category": "read-only-execution-confirmed", **execution_payload.get("diagnostics", {})},
+            diagnostics={
+                "safe_category": "read-only-execution-confirmed",
+                **execution_payload.get("diagnostics", {}),
+            },
         )
     elif exec_status == "skipped":
         add_finding(
@@ -686,7 +718,9 @@ def add_validation_and_execution_findings(
             phase="read-only-execution",
             root_cause=str(execution_payload.get("root_cause", "read-only-execution-failed")),
             summary="Validated Cypher did not complete read-only FalkorDB execution; categorical diagnostics were persisted without raw legal text.",
-            diagnostics=execution_payload.get("diagnostics", {"safe_category": execution_payload.get("root_cause", "unknown")}),
+            diagnostics=execution_payload.get(
+                "diagnostics", {"safe_category": execution_payload.get("root_cause", "unknown")}
+            ),
         )
 
 
@@ -811,7 +845,17 @@ def run_proof(
     else:
         project_dir = create_proof_project(workspace_dir)
         build = run_command(
-            ["uvx", "--from", "maturin", "maturin", "develop", "--uv", "--manifest-path", "Cargo.toml", "--quiet"],
+            [
+                "uvx",
+                "--from",
+                "maturin",
+                "maturin",
+                "develop",
+                "--uv",
+                "--manifest-path",
+                "Cargo.toml",
+                "--quiet",
+            ],
             cwd=project_dir,
             state=state,
             phase="maturin-build",
@@ -840,7 +884,11 @@ def run_proof(
                     phase="python-import-target-resolution",
                     root_cause="none",
                     summary="Python imported the module and resolved MiniMax through genai ServiceTargetResolver using AdapterKind::OpenAI.",
-                    diagnostics={"endpoint": endpoint, "model": model, "credential_env_name": api_key_env},
+                    diagnostics={
+                        "endpoint": endpoint,
+                        "model": model,
+                        "credential_env_name": api_key_env,
+                    },
                 )
             else:
                 add_finding(
@@ -850,7 +898,10 @@ def run_proof(
                     phase="python-import-target-resolution",
                     root_cause="minimax-endpoint-routing-blocked",
                     summary="Generated module import or target resolution failed before any provider request.",
-                    diagnostics={"safe_category": classify_command_failure(imported), "log_path": imported.log_path},
+                    diagnostics={
+                        "safe_category": classify_command_failure(imported),
+                        "log_path": imported.log_path,
+                    },
                 )
         else:
             add_finding(
@@ -860,11 +911,17 @@ def run_proof(
                 phase="maturin-build",
                 root_cause="minimax-endpoint-routing-blocked",
                 summary="maturin could not build the generated ServiceTargetResolver proof module.",
-                diagnostics={"safe_category": classify_command_failure(build), "log_path": build.log_path},
+                diagnostics={
+                    "safe_category": classify_command_failure(build),
+                    "log_path": build.log_path,
+                },
             )
 
     provider_attempts = 0
-    if any(finding["id"] == "target-resolution" and finding["status"] == "confirmed-runtime" for finding in state.findings):
+    if any(
+        finding["id"] == "target-resolution" and finding["status"] == "confirmed-runtime"
+        for finding in state.findings
+    ):
         if not secret_value:
             add_finding(
                 state,
@@ -873,12 +930,19 @@ def run_proof(
                 phase="credential-check",
                 root_cause="minimax-credential-missing",
                 summary="MiniMax API key was not present; no provider request was made.",
-                diagnostics={"safe_category": "missing-credential", "credential_env_name": api_key_env},
+                diagnostics={
+                    "safe_category": "missing-credential",
+                    "credential_env_name": api_key_env,
+                },
             )
         else:
             provider_attempts = 1
             live = run_command(
-                [sys.executable, "-c", provider_probe_code(model, endpoint, api_key_env, timeout_seconds)],
+                [
+                    sys.executable,
+                    "-c",
+                    provider_probe_code(model, endpoint, api_key_env, timeout_seconds),
+                ],
                 cwd=state.workspace_dir,
                 state=state,
                 phase="minimax-live-provider-call",
@@ -898,7 +962,10 @@ def run_proof(
                         phase="minimax-live-provider-call",
                         root_cause="reasoning-contamination",
                         summary="MiniMax returned output categorized as reasoning/prose-contaminated; raw body was not persisted.",
-                        diagnostics={"safe_category": "reasoning-contamination", "provider_summary": provider_payload},
+                        diagnostics={
+                            "safe_category": "reasoning-contamination",
+                            "provider_summary": provider_payload,
+                        },
                     )
                 else:
                     add_finding(
@@ -908,11 +975,20 @@ def run_proof(
                         phase="minimax-live-provider-call",
                         root_cause="none",
                         summary="MiniMax provider call returned a Cypher-like candidate through the proof-only PyO3/genai route; raw body was not persisted.",
-                        diagnostics={"safe_category": "provider-response-received", "provider_summary": provider_payload},
+                        diagnostics={
+                            "safe_category": "provider-response-received",
+                            "provider_summary": provider_payload,
+                        },
                     )
             else:
-                combined = f"{live.stdout_summary.redacted_tail}\n{live.stderr_summary.redacted_tail}"
-                root_cause = "minimax-provider-timeout" if live.timed_out else classify_provider_failure(combined)
+                combined = (
+                    f"{live.stdout_summary.redacted_tail}\n{live.stderr_summary.redacted_tail}"
+                )
+                root_cause = (
+                    "minimax-provider-timeout"
+                    if live.timed_out
+                    else classify_provider_failure(combined)
+                )
                 add_finding(
                     state,
                     finding_id="minimax-live-proof",
@@ -975,7 +1051,10 @@ def write_artifacts(
     assert_safe_payload(safe_payload)
     json_path = output_dir / JSON_ARTIFACT
     markdown_path = output_dir / MARKDOWN_ARTIFACT
-    json_path.write_text(json.dumps(safe_payload, ensure_ascii=False, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    json_path.write_text(
+        json.dumps(safe_payload, ensure_ascii=False, indent=2, sort_keys=True) + "\n",
+        encoding="utf-8",
+    )
 
     findings = safe_payload.get("findings", [])
     lines = [
@@ -1000,7 +1079,9 @@ def write_artifacts(
         if not isinstance(finding, dict):
             continue
         diagnostics = finding.get("diagnostics", {})
-        safe_category = diagnostics.get("safe_category") if isinstance(diagnostics, dict) else "unknown"
+        safe_category = (
+            diagnostics.get("safe_category") if isinstance(diagnostics, dict) else "unknown"
+        )
         lines.extend(
             [
                 f"### `{finding.get('id')}`",
@@ -1009,13 +1090,19 @@ def write_artifacts(
                 f"- Phase: `{finding.get('phase')}`",
                 f"- Root cause: `{finding.get('root_cause')}`",
                 f"- Safe category: `{safe_category}`",
-                f"- Summary: {finding.get('summary')}`" if False else f"- Summary: {finding.get('summary')}",
+                f"- Summary: {finding.get('summary')}`"
+                if False
+                else f"- Summary: {finding.get('summary')}",
                 "",
             ]
         )
     validation = safe_payload.get("validation", {})
     execution = safe_payload.get("execution", {})
-    rejection_codes = validation.get("report", {}).get("rejection_codes", []) if isinstance(validation, dict) else []
+    rejection_codes = (
+        validation.get("report", {}).get("rejection_codes", [])
+        if isinstance(validation, dict)
+        else []
+    )
     row_diagnostics = execution.get("diagnostics", {}) if isinstance(execution, dict) else {}
     lines.extend(
         [
@@ -1060,10 +1147,22 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--model", default=DEFAULT_MODEL)
     parser.add_argument("--endpoint", default=DEFAULT_ENDPOINT)
     parser.add_argument("--api-key-env", default=DEFAULT_API_KEY_ENV)
-    parser.add_argument("--host", default=DEFAULT_FALKOR_HOST, help="FalkorDB host for validated read-only synthetic execution.")
-    parser.add_argument("--port", type=int, default=DEFAULT_FALKOR_PORT, help="FalkorDB port for validated read-only synthetic execution.")
+    parser.add_argument(
+        "--host",
+        default=DEFAULT_FALKOR_HOST,
+        help="FalkorDB host for validated read-only synthetic execution.",
+    )
+    parser.add_argument(
+        "--port",
+        type=int,
+        default=DEFAULT_FALKOR_PORT,
+        help="FalkorDB port for validated read-only synthetic execution.",
+    )
     parser.add_argument("--schema-contract", type=Path, default=DEFAULT_SCHEMA_CONTRACT)
-    parser.add_argument("--candidate-cypher", help="Optional generated Cypher draft to validate before read-only execution; defaults to a synthetic safe candidate.")
+    parser.add_argument(
+        "--candidate-cypher",
+        help="Optional generated Cypher draft to validate before read-only execution; defaults to a synthetic safe candidate.",
+    )
     parser.add_argument("--timeout", type=parse_positive_timeout, default=240)
     parser.add_argument("--runtime-dir", type=Path, default=DEFAULT_RUNTIME_DIR)
     parser.add_argument("--output-dir", type=Path, default=DEFAULT_ARTIFACT_DIR)

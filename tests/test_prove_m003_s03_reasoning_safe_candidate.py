@@ -31,7 +31,9 @@ FORBIDDEN_ARTIFACT_TERMS = (
 
 
 def load_proof() -> ModuleType:
-    spec = importlib.util.spec_from_file_location("prove_m003_s03_reasoning_safe_candidate", SCRIPT_PATH)
+    spec = importlib.util.spec_from_file_location(
+        "prove_m003_s03_reasoning_safe_candidate", SCRIPT_PATH
+    )
     assert spec is not None
     module = importlib.util.module_from_spec(spec)
     assert spec.loader is not None
@@ -47,7 +49,9 @@ def proof() -> ModuleType:
 
 def load_verifier() -> ModuleType:
     verifier_path = ROOT / "scripts/verify-m003-s03-reasoning-safe-candidate.py"
-    spec = importlib.util.spec_from_file_location("verify_m003_s03_reasoning_safe_candidate", verifier_path)
+    spec = importlib.util.spec_from_file_location(
+        "verify_m003_s03_reasoning_safe_candidate", verifier_path
+    )
     assert spec is not None
     module = importlib.util.module_from_spec(spec)
     assert spec.loader is not None
@@ -74,8 +78,14 @@ def assert_no_forbidden_terms(payload: dict[str, Any]) -> None:
 @pytest.mark.parametrize(
     ("content", "starts_with"),
     [
-        ("  MATCH (span:EvidenceSpan)-[:SUPPORTS]->(article:Article) RETURN article.id, span.id LIMIT 5\n", "MATCH"),
-        ("\nCALL db.idx.fulltext.queryNodes('SourceBlock', $search_terms) YIELD node RETURN node.id LIMIT 5", "CALL"),
+        (
+            "  MATCH (span:EvidenceSpan)-[:SUPPORTS]->(article:Article) RETURN article.id, span.id LIMIT 5\n",
+            "MATCH",
+        ),
+        (
+            "\nCALL db.idx.fulltext.queryNodes('SourceBlock', $search_terms) YIELD node RETURN node.id LIMIT 5",
+            "CALL",
+        ),
     ],
 )
 def test_accepts_clean_match_and_call_after_whitespace_trim(
@@ -95,7 +105,9 @@ def test_accepts_clean_match_and_call_after_whitespace_trim(
     assert result["reasoning"]["present"] is False
 
 
-def test_separated_reasoning_metadata_does_not_contaminate_clean_candidate(proof: ModuleType) -> None:
+def test_separated_reasoning_metadata_does_not_contaminate_clean_candidate(
+    proof: ModuleType,
+) -> None:
     result = proof.classify_provider_response(
         provider_payload(
             "MATCH (block:SourceBlock)<-[:SUPPORTED_BY]-(article:Article) RETURN article.id, block.id LIMIT 5",
@@ -118,9 +130,19 @@ def test_separated_reasoning_metadata_does_not_contaminate_clean_candidate(proof
         ("empty", provider_payload(""), "empty-content", "malformed-content"),
         ("whitespace", provider_payload("   \n"), "empty-content", "malformed-content"),
         ("ok", provider_payload("OK"), "non-cypher-output", "non-cypher"),
-        ("non_string", provider_payload({"text": "MATCH (n) RETURN n LIMIT 1"}), "provider-schema-mismatch", "malformed-provider-shape"),
+        (
+            "non_string",
+            provider_payload({"text": "MATCH (n) RETURN n LIMIT 1"}),
+            "provider-schema-mismatch",
+            "malformed-provider-shape",
+        ),
         ("missing_choices", {}, "provider-schema-mismatch", "malformed-provider-shape"),
-        ("missing_message", {"choices": [{}]}, "provider-schema-mismatch", "malformed-provider-shape"),
+        (
+            "missing_message",
+            {"choices": [{}]},
+            "provider-schema-mismatch",
+            "malformed-provider-shape",
+        ),
         (
             "think",
             provider_payload("<think>reason</think> MATCH (n) RETURN n LIMIT 1"),
@@ -173,7 +195,9 @@ def test_rejects_malformed_and_contaminated_provider_shapes(
     assert result["candidate"]["sha256_12"] is None or len(result["candidate"]["sha256_12"]) == 12
 
 
-def test_artifact_helpers_expose_safe_runtime_signals_without_forbidden_fields(proof: ModuleType) -> None:
+def test_artifact_helpers_expose_safe_runtime_signals_without_forbidden_fields(
+    proof: ModuleType,
+) -> None:
     classification = proof.classify_provider_response(
         provider_payload(
             "MATCH (span:EvidenceSpan)-[:IN_BLOCK]->(block:SourceBlock) RETURN span.id, block.id LIMIT 5",
@@ -219,15 +243,22 @@ def test_artifact_helpers_expose_safe_runtime_signals_without_forbidden_fields(p
 
 
 def test_write_artifacts_persists_safe_json_and_markdown(proof: ModuleType, tmp_path: Path) -> None:
-    classification = proof.classify_provider_response(provider_payload("MATCH (article:Article) RETURN article.id LIMIT 5"))
-    artifact = proof.build_confirmed_runtime_artifact(classification=classification, provider_attempts=1, commands=[])
+    classification = proof.classify_provider_response(
+        provider_payload("MATCH (article:Article) RETURN article.id LIMIT 5")
+    )
+    artifact = proof.build_confirmed_runtime_artifact(
+        classification=classification, provider_attempts=1, commands=[]
+    )
 
     json_path, markdown_path = proof.write_artifacts(tmp_path, artifact)
 
     written = json.loads(json_path.read_text(encoding="utf-8"))
     markdown = markdown_path.read_text(encoding="utf-8")
     assert written["status"] == "confirmed-runtime"
-    assert written["candidate"]["normalized_text"] == "MATCH (article:Article) RETURN article.id LIMIT 5"
+    assert (
+        written["candidate"]["normalized_text"]
+        == "MATCH (article:Article) RETURN article.id LIMIT 5"
+    )
     assert "confirmed-runtime" in markdown
     assert "raw provider bodies are not persisted" in markdown
     assert_no_forbidden_terms(written)
@@ -240,7 +271,9 @@ def test_endpoint_normalization_preserves_v1_chat_completions(proof: ModuleType)
 
     assert metadata["endpoint_input"] == "https://api.minimax.io/v1/"
     assert metadata["normalized_base_url"] == "https://api.minimax.io/v1/"
-    assert metadata["effective_chat_completions_url"] == "https://api.minimax.io/v1/chat/completions"
+    assert (
+        metadata["effective_chat_completions_url"] == "https://api.minimax.io/v1/chat/completions"
+    )
     assert metadata["preserves_v1"] is True
     assert metadata["endpoint_contract_valid"] is True
 
@@ -271,26 +304,39 @@ def test_run_proof_missing_credentials_is_blocked_after_resolver_without_provide
 ) -> None:
     monkeypatch.delenv("MINIMAX_API_KEY", raising=False)
     monkeypatch.setattr(proof, "command_available", lambda _name: True)
-    monkeypatch.setattr(proof, "run_command", lambda *args, **kwargs: proof.CommandResult(
-        phase="fixture",
-        command=["fixture"],
-        exit_code=0,
-        timed_out=False,
-        duration_ms=1,
-        stdout_summary=proof.StreamSummary(1, 2, json.dumps({
-            "module": proof.MODULE_NAME,
-            "model": proof.DEFAULT_MODEL,
-            "adapter_kind": "OpenAI",
-            "normalized_endpoint_base_url": "https://api.minimax.io/v1/",
-            "effective_chat_completions_url": "https://api.minimax.io/v1/chat/completions",
-            "provider_body_persistence": "disabled",
-            "request_body_reasoning_split": True,
-        }), False),
-        stderr_summary=proof.StreamSummary(0, 0, "", False),
-        log_path=None,
-    ))
+    monkeypatch.setattr(
+        proof,
+        "run_command",
+        lambda *args, **kwargs: proof.CommandResult(
+            phase="fixture",
+            command=["fixture"],
+            exit_code=0,
+            timed_out=False,
+            duration_ms=1,
+            stdout_summary=proof.StreamSummary(
+                1,
+                2,
+                json.dumps(
+                    {
+                        "module": proof.MODULE_NAME,
+                        "model": proof.DEFAULT_MODEL,
+                        "adapter_kind": "OpenAI",
+                        "normalized_endpoint_base_url": "https://api.minimax.io/v1/",
+                        "effective_chat_completions_url": "https://api.minimax.io/v1/chat/completions",
+                        "provider_body_persistence": "disabled",
+                        "request_body_reasoning_split": True,
+                    }
+                ),
+                False,
+            ),
+            stderr_summary=proof.StreamSummary(0, 0, "", False),
+            log_path=None,
+        ),
+    )
 
-    payload = proof.run_proof(artifact_dir=tmp_path, runtime_dir=tmp_path / "runtime", timeout_seconds=5)
+    payload = proof.run_proof(
+        artifact_dir=tmp_path, runtime_dir=tmp_path / "runtime", timeout_seconds=5
+    )
 
     assert payload["status"] == "blocked-credential"
     assert payload["root_cause"] == "minimax-credential-missing"
@@ -303,14 +349,21 @@ def test_run_proof_missing_credentials_is_blocked_after_resolver_without_provide
     assert_no_forbidden_terms(payload)
 
 
-def test_provider_summary_routes_to_classifier_and_counts_one_attempt(proof: ModuleType, tmp_path: Path) -> None:
+def test_provider_summary_routes_to_classifier_and_counts_one_attempt(
+    proof: ModuleType, tmp_path: Path
+) -> None:
     safe_summary = {
         "status": "provider-response-received",
         "message": {
             "content": "MATCH (span:EvidenceSpan)-[:SUPPORTS]->(article:Article) RETURN span.id, article.id LIMIT 5",
-            "reasoning_details": [{"type": "summary", "text_length": 24, "sha256_12": "abc123abc123"}],
+            "reasoning_details": [
+                {"type": "summary", "text_length": 24, "sha256_12": "abc123abc123"}
+            ],
         },
-        "safe_diagnostics": {"raw_provider_body_persisted": False, "raw_reasoning_text_persisted": False},
+        "safe_diagnostics": {
+            "raw_provider_body_persisted": False,
+            "raw_reasoning_text_persisted": False,
+        },
     }
 
     classification = proof.classify_safe_provider_summary(safe_summary)
@@ -350,7 +403,9 @@ def write_verifier_artifacts(proof: ModuleType, tmp_path: Path, artifact: dict[s
     (tmp_path / proof.MARKDOWN_ARTIFACT).write_text(markdown, encoding="utf-8")
 
 
-def test_verifier_accepts_honest_status_artifacts(proof: ModuleType, verifier: ModuleType, tmp_path: Path) -> None:
+def test_verifier_accepts_honest_status_artifacts(
+    proof: ModuleType, verifier: ModuleType, tmp_path: Path
+) -> None:
     blocked = proof.build_blocked_credential_artifact()
     failed_classification = proof.classify_provider_response(
         provider_payload("<think>hidden reasoning</think> MATCH (n) RETURN n LIMIT 1")
@@ -367,7 +422,9 @@ def test_verifier_accepts_honest_status_artifacts(proof: ModuleType, verifier: M
             reasoning_details=[{"type": "summary", "text_length": 12}],
         )
     )
-    confirmed = proof.build_confirmed_runtime_artifact(classification=confirmed_classification, provider_attempts=1)
+    confirmed = proof.build_confirmed_runtime_artifact(
+        classification=confirmed_classification, provider_attempts=1
+    )
 
     for artifact in (blocked, failed, confirmed):
         case_dir = tmp_path / str(artifact["status"])
@@ -382,13 +439,36 @@ def test_verifier_accepts_honest_status_artifacts(proof: ModuleType, verifier: M
     ("mutation", "expected"),
     [
         (lambda artifact: artifact.pop("candidate"), "candidate must be an object"),
-        (lambda artifact: artifact.update({"status": "mystery"}), "status must be a known category"),
-        (lambda artifact: artifact.update({"root_cause": "mystery"}), "root_cause must be a known category"),
-        (lambda artifact: artifact.update({"provider_attempts": 1}), "blocked-credential must not claim provider attempts"),
-        (lambda artifact: artifact["candidate"].update({"normalized_text": "MATCH (n) RETURN n"}), "rejected artifacts must not persist accepted candidate text"),
-        (lambda artifact: artifact.update({"raw_response": "raw_provider_body_value"}), "redaction violation"),
-        (lambda artifact: artifact["reasoning"].update({"text": "reasoning_text_value"}), "redaction violation"),
-        (lambda artifact: artifact["safety"].update({"raw_provider_body_persisted": True}), "safety.raw_provider_body_persisted must be false"),
+        (
+            lambda artifact: artifact.update({"status": "mystery"}),
+            "status must be a known category",
+        ),
+        (
+            lambda artifact: artifact.update({"root_cause": "mystery"}),
+            "root_cause must be a known category",
+        ),
+        (
+            lambda artifact: artifact.update({"provider_attempts": 1}),
+            "blocked-credential must not claim provider attempts",
+        ),
+        (
+            lambda artifact: artifact["candidate"].update(
+                {"normalized_text": "MATCH (n) RETURN n"}
+            ),
+            "rejected artifacts must not persist accepted candidate text",
+        ),
+        (
+            lambda artifact: artifact.update({"raw_response": "raw_provider_body_value"}),
+            "redaction violation",
+        ),
+        (
+            lambda artifact: artifact["reasoning"].update({"text": "reasoning_text_value"}),
+            "redaction violation",
+        ),
+        (
+            lambda artifact: artifact["safety"].update({"raw_provider_body_persisted": True}),
+            "safety.raw_provider_body_persisted must be false",
+        ),
     ],
 )
 def test_verifier_rejects_unsafe_or_impossible_artifacts(
@@ -406,14 +486,18 @@ def test_verifier_rejects_confirmed_runtime_without_clean_candidate(
     proof: ModuleType, verifier: ModuleType, tmp_path: Path
 ) -> None:
     artifact = proof.build_confirmed_runtime_artifact(
-        classification=proof.classify_provider_response(provider_payload("MATCH (n) RETURN n LIMIT 1")),
+        classification=proof.classify_provider_response(
+            provider_payload("MATCH (n) RETURN n LIMIT 1")
+        ),
         provider_attempts=1,
     )
     artifact["candidate"]["has_markdown_fence"] = True
     artifact["candidate"]["categories"] = ["markdown-fence-contamination"]
     write_verifier_artifacts(proof, tmp_path, artifact)
 
-    with pytest.raises(verifier.VerificationError, match="confirmed-runtime requires clean candidate diagnostics"):
+    with pytest.raises(
+        verifier.VerificationError, match="confirmed-runtime requires clean candidate diagnostics"
+    ):
         verifier.verify_artifacts(tmp_path)
 
 
@@ -424,7 +508,8 @@ def test_verifier_rejects_boundary_overclaims_in_markdown(
     json_path, markdown_path = proof.write_artifacts(tmp_path, artifact)
     assert json_path.exists()
     markdown_path.write_text(
-        markdown_path.read_text(encoding="utf-8") + "\nS03 performed graph execution and deterministic validation.\n",
+        markdown_path.read_text(encoding="utf-8")
+        + "\nS03 performed graph execution and deterministic validation.\n",
         encoding="utf-8",
     )
 

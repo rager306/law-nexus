@@ -26,7 +26,9 @@ LEGAL_UNIT_ALLOWED_PARENTS: dict[LegalUnitType, frozenset[LegalUnitType | None]]
     LegalUnitType.part: frozenset({LegalUnitType.article}),
     LegalUnitType.clause: frozenset({LegalUnitType.article, LegalUnitType.part}),
     LegalUnitType.subclause: frozenset({LegalUnitType.clause}),
-    LegalUnitType.paragraph: frozenset({LegalUnitType.subclause, LegalUnitType.clause, LegalUnitType.part}),
+    LegalUnitType.paragraph: frozenset(
+        {LegalUnitType.subclause, LegalUnitType.clause, LegalUnitType.part}
+    ),
 }
 
 SOURCE_LEVELS_BY_FORCE: tuple[SourceLevel, ...] = (

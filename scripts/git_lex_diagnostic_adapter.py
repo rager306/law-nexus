@@ -121,7 +121,9 @@ def resolve_workspace(raw_workspace: str | None, *, required: bool) -> Path | No
     if not workspace.is_absolute():
         workspace = Path.cwd() / workspace
     if is_inside_main_repo(workspace):
-        raise AdapterError(f"workspace must not be the main repository or a child of it: {workspace}")
+        raise AdapterError(
+            f"workspace must not be the main repository or a child of it: {workspace}"
+        )
     return workspace
 
 
@@ -145,7 +147,9 @@ def binary_identity_ok() -> tuple[bool, str | None]:
     return True, None
 
 
-def base_record(operation_type: str, workspace: Path | None, command: list[str] | None) -> dict[str, Any]:
+def base_record(
+    operation_type: str, workspace: Path | None, command: list[str] | None
+) -> dict[str, Any]:
     before = main_state()
     return {
         "schema_version": SCHEMA_VERSION,
@@ -153,7 +157,9 @@ def base_record(operation_type: str, workspace: Path | None, command: list[str] 
         "operation_type": operation_type,
         "classification": "not-run",
         "workspace_path": str(workspace) if workspace is not None else None,
-        "workspace_is_main_repo": is_inside_main_repo(workspace) if workspace is not None else False,
+        "workspace_is_main_repo": is_inside_main_repo(workspace)
+        if workspace is not None
+        else False,
         "git_lex_binary": str(PINNED_BINARY),
         "git_lex_source_commit": PINNED_SOURCE_COMMIT,
         "binary_sha256": PINNED_BINARY_SHA256,
@@ -251,7 +257,9 @@ def operation_reject_denied(command_name: str) -> dict[str, Any]:
         record["stderr_digest"] = f"command denied by M054 policy: {normalized}"
     else:
         record["classification"] = "blocked"
-        record["stderr_digest"] = f"command is not in denylist; use explicit adapter operation: {normalized}"
+        record["stderr_digest"] = (
+            f"command is not in denylist; use explicit adapter operation: {normalized}"
+        )
     return finalize_record(record, started)
 
 
@@ -259,7 +267,9 @@ def operation_init(workspace_raw: str, kit: str) -> dict[str, Any]:
     workspace = resolve_workspace(workspace_raw, required=True)
     assert workspace is not None
     workspace.mkdir(parents=True, exist_ok=True)
-    return run_git_lex("init", [str(PINNED_BINARY), "init", "--kit", kit, str(workspace)], workspace)
+    return run_git_lex(
+        "init", [str(PINNED_BINARY), "init", "--kit", kit, str(workspace)], workspace
+    )
 
 
 def operation_sync(workspace_raw: str) -> dict[str, Any]:
@@ -301,14 +311,18 @@ def operation_query(workspace_raw: str, query_id: str, *, json_output: bool) -> 
     command = [str(PINNED_BINARY), "query", QUERY_TEMPLATES[query_id]]
     if json_output:
         command = [str(PINNED_BINARY), "query", "--json", QUERY_TEMPLATES[query_id]]
-    record = run_git_lex("query_json" if json_output else "query", command, workspace, include_raw=json_output)
+    record = run_git_lex(
+        "query_json" if json_output else "query", command, workspace, include_raw=json_output
+    )
     raw_stdout = str(record.pop("_stdout_raw", ""))
     record.pop("_stderr_raw", None)
     record["query_id"] = query_id
     if json_output and record["classification"] == "pass":
         try:
             payload = json.loads(raw_stdout)
-            bindings = payload.get("results", {}).get("bindings", []) if isinstance(payload, dict) else []
+            bindings = (
+                payload.get("results", {}).get("bindings", []) if isinstance(payload, dict) else []
+            )
             record["result_count"] = len(bindings) if isinstance(bindings, list) else None
         except json.JSONDecodeError:
             record["classification"] = "wrapper-fail"

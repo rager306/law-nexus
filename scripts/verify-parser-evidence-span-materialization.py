@@ -12,11 +12,21 @@ from pathlib import Path
 from typing import Any
 
 ROOT = Path(__file__).resolve().parents[1]
-DEFAULT_ARTIFACT = ROOT / "prd/research/ontology_architecture_requirements/parser_evidence_span_materialization.json"
+DEFAULT_ARTIFACT = (
+    ROOT
+    / "prd/research/ontology_architecture_requirements/parser_evidence_span_materialization.json"
+)
 SCHEMA_VERSION = "parser-evidence-span-materialization/v1"
 REPRESENTATION_KIND = "safe_materialized_evidence_candidates_v1"
 ALLOWED_STATUS = {"ok", "blocked", "failed"}
-ALLOWED_BLOCKED_REASONS = {"none", "source_unavailable", "parser_unavailable", "raw_text_leakage_risk", "schema_boundary_missing", "insufficient_structural_evidence"}
+ALLOWED_BLOCKED_REASONS = {
+    "none",
+    "source_unavailable",
+    "parser_unavailable",
+    "raw_text_leakage_risk",
+    "schema_boundary_missing",
+    "insufficient_structural_evidence",
+}
 ALLOWED_ROOT_FIELDS = {
     "blocked_reason",
     "contract",
@@ -54,12 +64,48 @@ ALLOWED_CANDIDATE_FIELDS = {
     "parser_evidence_ref",
     "non_authoritative",
 }
-ALLOWED_CANDIDATE_KIND = {"evidence_span", "source_block", "citation_boundary", "temporal_scope_marker", "blocked_candidate"}
-ALLOWED_STRUCTURAL_UNIT_KIND = {"document", "article", "clause", "paragraph", "table", "list_item", "unknown_structural_unit"}
-ALLOWED_CITATION_GRANULARITY = {"act_edition", "article_or_evidence_span", "clause", "source_block_marker", "temporal_marker", "unknown_granularity"}
-ALLOWED_CONTENT_ROLE = {"retrieval_candidate", "citation_boundary", "scope_boundary", "temporal_boundary", "blocked_unsafe"}
-ALLOWED_TEMPORAL_STATUS = {"current_edition", "as_of_date_required", "edition_consistency_required", "unknown_temporal_status"}
-ALLOWED_MATERIALIZATION_METHOD = {"odt_structure_smoke", "content_xml_order_anchor", "parser_blocked"}
+ALLOWED_CANDIDATE_KIND = {
+    "evidence_span",
+    "source_block",
+    "citation_boundary",
+    "temporal_scope_marker",
+    "blocked_candidate",
+}
+ALLOWED_STRUCTURAL_UNIT_KIND = {
+    "document",
+    "article",
+    "clause",
+    "paragraph",
+    "table",
+    "list_item",
+    "unknown_structural_unit",
+}
+ALLOWED_CITATION_GRANULARITY = {
+    "act_edition",
+    "article_or_evidence_span",
+    "clause",
+    "source_block_marker",
+    "temporal_marker",
+    "unknown_granularity",
+}
+ALLOWED_CONTENT_ROLE = {
+    "retrieval_candidate",
+    "citation_boundary",
+    "scope_boundary",
+    "temporal_boundary",
+    "blocked_unsafe",
+}
+ALLOWED_TEMPORAL_STATUS = {
+    "current_edition",
+    "as_of_date_required",
+    "edition_consistency_required",
+    "unknown_temporal_status",
+}
+ALLOWED_MATERIALIZATION_METHOD = {
+    "odt_structure_smoke",
+    "content_xml_order_anchor",
+    "parser_blocked",
+}
 FORBIDDEN_FIELD_NAMES = {
     "raw_legal_text",
     "raw_text",
@@ -177,11 +223,17 @@ def validate_redaction(redaction: Any) -> None:
         "absolute_paths_excluded",
         "gsd_exec_paths_excluded",
     }
-    if not isinstance(redaction, Mapping) or set(redaction) != required or any(value is not True for value in redaction.values()):
+    if (
+        not isinstance(redaction, Mapping)
+        or set(redaction) != required
+        or any(value is not True for value in redaction.values())
+    ):
         raise MaterializationVerificationError("redaction flags mismatch")
 
 
-def validate_candidate(candidate: Any, source_ref: str, source_sha: str, seen_ids: set[str]) -> None:
+def validate_candidate(
+    candidate: Any, source_ref: str, source_sha: str, seen_ids: set[str]
+) -> None:
     if not isinstance(candidate, Mapping):
         raise MaterializationVerificationError("candidate must be object")
     unexpected = set(candidate) - ALLOWED_CANDIDATE_FIELDS
@@ -208,13 +260,23 @@ def validate_candidate(candidate: Any, source_ref: str, source_sha: str, seen_id
         raise MaterializationVerificationError("temporal_status enum mismatch")
     if candidate.get("materialization_method") not in ALLOWED_MATERIALIZATION_METHOD:
         raise MaterializationVerificationError("materialization_method enum mismatch")
-    if candidate.get("source_document_ref") != source_ref or candidate.get("source_document_sha256") != source_sha:
+    if (
+        candidate.get("source_document_ref") != source_ref
+        or candidate.get("source_document_sha256") != source_sha
+    ):
         raise MaterializationVerificationError("candidate source reference mismatch")
-    if not isinstance(candidate.get("source_order_index"), int) or candidate["source_order_index"] <= 0:
+    if (
+        not isinstance(candidate.get("source_order_index"), int)
+        or candidate["source_order_index"] <= 0
+    ):
         raise MaterializationVerificationError("source_order_index mismatch")
-    if not isinstance(candidate.get("source_anchor_sha256"), str) or not SAFE_HASH_RE.fullmatch(candidate["source_anchor_sha256"]):
+    if not isinstance(candidate.get("source_anchor_sha256"), str) or not SAFE_HASH_RE.fullmatch(
+        candidate["source_anchor_sha256"]
+    ):
         raise MaterializationVerificationError("source anchor hash mismatch")
-    if not isinstance(candidate.get("parser_evidence_ref"), str) or not SAFE_EVIDENCE_REF_RE.fullmatch(candidate["parser_evidence_ref"]):
+    if not isinstance(
+        candidate.get("parser_evidence_ref"), str
+    ) or not SAFE_EVIDENCE_REF_RE.fullmatch(candidate["parser_evidence_ref"]):
         raise MaterializationVerificationError("parser evidence ref mismatch")
     if candidate.get("non_authoritative") is not True:
         raise MaterializationVerificationError("candidate non-authoritative marker missing")
@@ -237,7 +299,10 @@ def verify_artifact(path: Path) -> dict[str, Any]:
     if artifact.get("blocked_reason") not in ALLOWED_BLOCKED_REASONS:
         raise MaterializationVerificationError("blocked reason mismatch")
     validate_redaction(artifact.get("redaction"))
-    if artifact.get("r035_non_validation_declared") is not True or artifact.get("r038_review_required") is not True:
+    if (
+        artifact.get("r035_non_validation_declared") is not True
+        or artifact.get("r038_review_required") is not True
+    ):
         raise MaterializationVerificationError("lifecycle boundary marker missing")
     source_ref = artifact.get("source_document_ref")
     if not isinstance(source_ref, str):
@@ -249,7 +314,9 @@ def verify_artifact(path: Path) -> dict[str, Any]:
             raise MaterializationVerificationError("source document sha mismatch")
         if artifact.get("safe_source_anchors_verified") is not True:
             raise MaterializationVerificationError("safe source anchors marker missing")
-        if not isinstance(artifact.get("contract"), str) or sha256_path(repo_path(artifact["contract"])) != artifact.get("contract_sha256"):
+        if not isinstance(artifact.get("contract"), str) or sha256_path(
+            repo_path(artifact["contract"])
+        ) != artifact.get("contract_sha256"):
             raise MaterializationVerificationError("contract sha mismatch")
         candidates = artifact.get("materialized_candidates")
         if not isinstance(candidates, list) or not candidates:
@@ -260,10 +327,17 @@ def verify_artifact(path: Path) -> dict[str, Any]:
         for candidate in candidates:
             validate_candidate(candidate, source_ref, str(source_sha), seen_ids)
         summary = artifact.get("parser_evidence_summary")
-        if not isinstance(summary, Mapping) or summary.get("raw_text_persisted") is not False or summary.get("content_xml_ordering_oracle_used") is not True:
+        if (
+            not isinstance(summary, Mapping)
+            or summary.get("raw_text_persisted") is not False
+            or summary.get("content_xml_ordering_oracle_used") is not True
+        ):
             raise MaterializationVerificationError("parser evidence summary mismatch")
     else:
-        if artifact.get("materialized_candidate_count") != 0 or artifact.get("materialized_candidates") != []:
+        if (
+            artifact.get("materialized_candidate_count") != 0
+            or artifact.get("materialized_candidates") != []
+        ):
             raise MaterializationVerificationError("blocked artifact must not contain candidates")
     boundary = artifact.get("non_claim_boundary")
     if not isinstance(boundary, str) or "validate R035" not in boundary:
@@ -293,7 +367,13 @@ def main(argv: Sequence[str] | None = None) -> int:
     try:
         result = verify_artifact(args.artifact)
     except MaterializationVerificationError as exc:
-        print(json.dumps({"status": "failed", "diagnostic": str(exc), "non_authoritative": True}, ensure_ascii=False, sort_keys=True))
+        print(
+            json.dumps(
+                {"status": "failed", "diagnostic": str(exc), "non_authoritative": True},
+                ensure_ascii=False,
+                sort_keys=True,
+            )
+        )
         return 1
     print(json.dumps(result, ensure_ascii=False, sort_keys=True))
     return 0

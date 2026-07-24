@@ -97,7 +97,9 @@ def test_giga_query_instruction_and_document_no_instruction_are_explicit() -> No
 
     giga_query = evaluator.format_query_for_model("ai-sage/Giga-Embeddings-instruct", "Что искать?")
     user_query = evaluator.format_query_for_model("deepvk/USER-bge-m3", "Что искать?")
-    document = evaluator.format_document_for_model("ai-sage/Giga-Embeddings-instruct", "Текст нормы")
+    document = evaluator.format_document_for_model(
+        "ai-sage/Giga-Embeddings-instruct", "Текст нормы"
+    )
 
     assert giga_query.startswith("Instruct: ")
     assert "\nQuery: Что искать?" in giga_query
@@ -126,7 +128,11 @@ def test_no_download_absent_cache_blocks_runtime_and_records_vector_probe(
 
     def fake_package_probe(packages: list[str]) -> dict[str, Any]:
         if packages == ["falkordb", "redis"]:
-            return {"status": "blocked-environment", "missing": ["falkordb", "redis"], "packages": []}
+            return {
+                "status": "blocked-environment",
+                "missing": ["falkordb", "redis"],
+                "packages": [],
+            }
         return {"status": "available", "missing": [], "packages": []}
 
     def fail_encode(*_args: object, **_kwargs: object) -> dict[str, object]:
@@ -234,7 +240,9 @@ def test_main_writes_artifacts_and_updates_contract_without_managed_api_terms(
         return {"status": "blocked-environment", "missing": ["package-a"], "packages": []}
 
     monkeypatch.setattr(evaluator, "probe_required_packages", fake_package_probe)
-    exit_code = evaluator.main(["--contract", str(contract), "--output-dir", str(output_dir), "--no-download"])
+    exit_code = evaluator.main(
+        ["--contract", str(contract), "--output-dir", str(output_dir), "--no-download"]
+    )
 
     assert exit_code == 0
     payload_path = output_dir / "S09-LOCAL-EMBEDDING-RETRIEVAL-EVAL.json"
@@ -249,7 +257,10 @@ def test_main_writes_artifacts_and_updates_contract_without_managed_api_terms(
         "ai-sage/Giga-Embeddings-instruct",
     }
     assert "latest_synthetic_retrieval_evaluation" in contract_payload
-    assert contract_payload["latest_synthetic_retrieval_evaluation"]["vector_probe_dimensions"] == [1024, 2048]
+    assert contract_payload["latest_synthetic_retrieval_evaluation"]["vector_probe_dimensions"] == [
+        1024,
+        2048,
+    ]
     forbidden_env = "GIGACHAT" + "_AUTH_DATA"
     combined = payload_path.read_text(encoding="utf-8") + markdown_path.read_text(encoding="utf-8")
     assert forbidden_env not in combined

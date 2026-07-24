@@ -169,7 +169,7 @@ def validation_reasons(proposal: dict[str, Any]) -> list[str]:
 def safe_id(value: str, prefix: str) -> bool:
     if not value.startswith(prefix):
         return False
-    suffix = value[len(prefix):]
+    suffix = value[len(prefix) :]
     return bool(suffix) and all(ch.isalnum() or ch == "-" for ch in suffix)
 
 
@@ -207,7 +207,12 @@ def reason_for_marker(marker: str) -> str:
         return "parser_completeness_overclaim"
     if "r035" in lowered:
         return "r035_validation_overclaim"
-    if "sk-" in lowered or "gigachat" in lowered or "vector" in lowered or "embedding_array" in lowered:
+    if (
+        "sk-" in lowered
+        or "gigachat" in lowered
+        or "vector" in lowered
+        or "embedding_array" in lowered
+    ):
         return "forbidden_payload_class"
     return "raw_text_detected"
 
@@ -267,7 +272,9 @@ def review_queue_item(proposal: dict[str, Any], decision: dict[str, Any]) -> dic
     worker_attempt_id = str(proposal.get("worker_attempt_id") or "WA-unknown")
     return {
         "schema_version": "legalgraph-review-queue-item/v1",
-        "queue_item_id": hash_id("RQ", {"proposal_id": proposal_id, "worker_attempt_id": worker_attempt_id}),
+        "queue_item_id": hash_id(
+            "RQ", {"proposal_id": proposal_id, "worker_attempt_id": worker_attempt_id}
+        ),
         "proposal_id": proposal_id,
         "worker_attempt_id": worker_attempt_id,
         "verifier_status": "needs_review",

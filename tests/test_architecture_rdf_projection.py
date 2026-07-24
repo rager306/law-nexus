@@ -40,12 +40,16 @@ def temp_output_args(tmp_path: Path) -> list[str]:
 
 
 def load_jsonl(path: Path) -> list[dict[str, Any]]:
-    return [json.loads(line) for line in path.read_text(encoding="utf-8").splitlines() if line.strip()]
+    return [
+        json.loads(line) for line in path.read_text(encoding="utf-8").splitlines() if line.strip()
+    ]
 
 
 def write_jsonl(path: Path, records: list[dict[str, Any]]) -> None:
     path.write_text(
-        "".join(json.dumps(record, ensure_ascii=False, sort_keys=True) + "\n" for record in records),
+        "".join(
+            json.dumps(record, ensure_ascii=False, sort_keys=True) + "\n" for record in records
+        ),
         encoding="utf-8",
     )
 
@@ -145,9 +149,15 @@ def test_architecture_rdf_projection_temp_outputs_are_deterministic(tmp_path: Pa
     assert second.returncode == 0, second.stdout + second.stderr
     payload = json.loads(second.stdout)
     assert payload["status"] == "ok"
-    assert (tmp_path / "projection.ttl").read_text(encoding="utf-8") == TTL_OUTPUT.read_text(encoding="utf-8")
-    assert (tmp_path / "projection.shacl.ttl").read_text(encoding="utf-8") == SHACL_OUTPUT.read_text(encoding="utf-8")
-    assert (tmp_path / "projection.sparql").read_text(encoding="utf-8") == SPARQL_OUTPUT.read_text(encoding="utf-8")
+    assert (tmp_path / "projection.ttl").read_text(encoding="utf-8") == TTL_OUTPUT.read_text(
+        encoding="utf-8"
+    )
+    assert (tmp_path / "projection.shacl.ttl").read_text(
+        encoding="utf-8"
+    ) == SHACL_OUTPUT.read_text(encoding="utf-8")
+    assert (tmp_path / "projection.sparql").read_text(encoding="utf-8") == SPARQL_OUTPUT.read_text(
+        encoding="utf-8"
+    )
     first_report = (tmp_path / "projection-report.json").read_text(encoding="utf-8")
     third = run_exporter(*args, "--check")
     assert third.returncode == 0, third.stdout + third.stderr
@@ -157,7 +167,12 @@ def test_architecture_rdf_projection_temp_outputs_are_deterministic(tmp_path: Pa
 
 
 def test_architecture_rdf_projection_detects_stale_outputs(tmp_path: Path) -> None:
-    for name in ("projection.ttl", "projection.shacl.ttl", "projection.sparql", "projection-report.json"):
+    for name in (
+        "projection.ttl",
+        "projection.shacl.ttl",
+        "projection.sparql",
+        "projection-report.json",
+    ):
         (tmp_path / name).write_text("stale\n", encoding="utf-8")
 
     result = run_exporter(*temp_output_args(tmp_path), "--check")
@@ -168,10 +183,15 @@ def test_architecture_rdf_projection_detects_stale_outputs(tmp_path: Path) -> No
     assert payload["diagnostic_summary"]["by_rule"] == {"stale-output": 4}
     assert payload["diagnostic_summary"]["by_category"] == {"freshness": 4}
     assert payload["diagnostic_summary"]["by_severity"] == {"error": 4}
-    stale_diagnostics = [diagnostic for diagnostic in payload["diagnostics"] if diagnostic["rule"] == "stale-output"]
+    stale_diagnostics = [
+        diagnostic for diagnostic in payload["diagnostics"] if diagnostic["rule"] == "stale-output"
+    ]
     assert all(diagnostic["severity"] == "error" for diagnostic in stale_diagnostics)
     assert all(diagnostic["category"] == "freshness" for diagnostic in stale_diagnostics)
-    assert all("Run the exporter in write mode" in diagnostic["remediation"] for diagnostic in stale_diagnostics)
+    assert all(
+        "Run the exporter in write mode" in diagnostic["remediation"]
+        for diagnostic in stale_diagnostics
+    )
     stale_paths = {diagnostic["path"] for diagnostic in stale_diagnostics}
     assert stale_paths == {
         str(tmp_path / "projection.ttl"),
@@ -203,7 +223,9 @@ def test_architecture_rdf_projection_rejects_duplicate_ids(tmp_path: Path) -> No
 
     assert result.returncode == 1
     payload = json.loads(result.stdout)
-    duplicate = next(diagnostic for diagnostic in payload["diagnostics"] if diagnostic["rule"] == "duplicate-id")
+    duplicate = next(
+        diagnostic for diagnostic in payload["diagnostics"] if diagnostic["rule"] == "duplicate-id"
+    )
     assert duplicate["category"] == "shape"
     assert duplicate["severity"] == "error"
     assert "generator ID derivation" in duplicate["remediation"]
@@ -219,7 +241,11 @@ def test_architecture_rdf_projection_rejects_missing_endpoint(tmp_path: Path) ->
 
     assert result.returncode == 1
     payload = json.loads(result.stdout)
-    missing_endpoint = next(diagnostic for diagnostic in payload["diagnostics"] if diagnostic["rule"] == "missing-endpoint")
+    missing_endpoint = next(
+        diagnostic
+        for diagnostic in payload["diagnostics"]
+        if diagnostic["rule"] == "missing-endpoint"
+    )
     assert missing_endpoint["category"] == "shape"
     assert "Fix the edge endpoint" in missing_endpoint["remediation"]
 
@@ -234,7 +260,11 @@ def test_architecture_rdf_projection_rejects_unsafe_source_anchor(tmp_path: Path
 
     assert result.returncode == 1
     payload = json.loads(result.stdout)
-    unsafe_anchor = next(diagnostic for diagnostic in payload["diagnostics"] if diagnostic["rule"] == "unsafe-source-anchor")
+    unsafe_anchor = next(
+        diagnostic
+        for diagnostic in payload["diagnostics"]
+        if diagnostic["rule"] == "unsafe-source-anchor"
+    )
     assert unsafe_anchor["category"] == "safety"
     assert "safe repository-relative" in unsafe_anchor["remediation"]
 
@@ -244,14 +274,20 @@ def test_architecture_rdf_projection_rejects_missing_acp_non_claim(tmp_path: Pat
     records = load_jsonl(ITEMS)
     for record in records:
         if record["id"] == "ACP-DC-0001":
-            record["non_claims"] = [claim for claim in record["non_claims"] if claim != "Does not validate R035."]
+            record["non_claims"] = [
+                claim for claim in record["non_claims"] if claim != "Does not validate R035."
+            ]
     write_jsonl(invalid_items, records)
 
     result = run_exporter("--items", str(invalid_items), *temp_output_args(tmp_path))
 
     assert result.returncode == 1
     payload = json.loads(result.stdout)
-    missing_non_claim = next(diagnostic for diagnostic in payload["diagnostics"] if diagnostic["rule"] == "missing-non-claim")
+    missing_non_claim = next(
+        diagnostic
+        for diagnostic in payload["diagnostics"]
+        if diagnostic["rule"] == "missing-non-claim"
+    )
     assert missing_non_claim["category"] == "authority"
     assert "R035/R037/R038 non-claims" in missing_non_claim["remediation"]
 
@@ -268,13 +304,20 @@ def test_architecture_rdf_projection_rejects_missing_authority_requirement(tmp_p
 
     assert result.returncode == 1
     payload = json.loads(result.stdout)
-    authority_required = next(diagnostic for diagnostic in payload["diagnostics"] if diagnostic["rule"] == "authority-required")
+    authority_required = next(
+        diagnostic
+        for diagnostic in payload["diagnostics"]
+        if diagnostic["rule"] == "authority-required"
+    )
     assert authority_required["category"] == "authority"
     assert "authority_required to true" in authority_required["remediation"]
 
 
 def test_architecture_rdf_projection_diff_mode_is_non_writing_and_current() -> None:
-    before = {path: path.read_text(encoding="utf-8") for path in (TTL_OUTPUT, SHACL_OUTPUT, SPARQL_OUTPUT, REPORT_OUTPUT)}
+    before = {
+        path: path.read_text(encoding="utf-8")
+        for path in (TTL_OUTPUT, SHACL_OUTPUT, SPARQL_OUTPUT, REPORT_OUTPUT)
+    }
 
     result = run_exporter("--diff")
 
@@ -294,7 +337,9 @@ def test_architecture_rdf_projection_diff_mode_is_non_writing_and_current() -> N
     assert before == {path: path.read_text(encoding="utf-8") for path in before}
 
 
-def test_architecture_rdf_projection_diff_mode_reports_missing_without_writing(tmp_path: Path) -> None:
+def test_architecture_rdf_projection_diff_mode_reports_missing_without_writing(
+    tmp_path: Path,
+) -> None:
     args = temp_output_args(tmp_path)
 
     result = run_exporter(*args, "--diff")

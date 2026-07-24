@@ -196,8 +196,12 @@ def assert_retrieval_fixture_inventory(data: dict) -> None:
     for section, min_count in REQUIRED_GRAPH_COUNTS.items():
         assert section in graph, f"missing fixture_graph.{section}"
         assert isinstance(graph[section], list), f"fixture_graph.{section} must be a list"
-        assert len(graph[section]) >= min_count, f"fixture_graph.{section} needs at least {min_count} records"
-    assert isinstance(graph.get("citation_bindings"), list), "fixture_graph.citation_bindings must be a list"
+        assert len(graph[section]) >= min_count, (
+            f"fixture_graph.{section} needs at least {min_count} records"
+        )
+    assert isinstance(graph.get("citation_bindings"), list), (
+        "fixture_graph.citation_bindings must be a list"
+    )
 
     diagnostic_codes = {entry["code"] for entry in data["diagnostic_inventory"]}
     assert diagnostic_codes == EXPECTED_DIAGNOSTIC_CODES
@@ -205,7 +209,9 @@ def assert_retrieval_fixture_inventory(data: dict) -> None:
     cases = data["cases"]
     assert isinstance(cases, list), "cases must be a list"
     case_ids = [case.get("case_id") for case in cases]
-    assert all(isinstance(case_id, str) and case_id for case_id in case_ids), "case IDs must be non-empty strings"
+    assert all(isinstance(case_id, str) and case_id for case_id in case_ids), (
+        "case IDs must be non-empty strings"
+    )
     duplicated_case_ids = [case_id for case_id, count in Counter(case_ids).items() if count > 1]
     assert not duplicated_case_ids, f"duplicate case IDs: {duplicated_case_ids}"
 
@@ -217,31 +223,45 @@ def assert_retrieval_fixture_inventory(data: dict) -> None:
         assert actual_result == expected_result, f"bad result for {case_id}: {actual_result!r}"
 
     expected_diagnostics = data["expected_diagnostics"]
-    assert set(expected_diagnostics) == set(case_ids), "expected_diagnostics keys must align with cases"
+    assert set(expected_diagnostics) == set(case_ids), (
+        "expected_diagnostics keys must align with cases"
+    )
 
     represented_codes: set[str] = set()
     for case in cases:
         case_id = case["case_id"]
         expected_result = case.get("expected_result")
         expected_codes = case.get("expected_diagnostic_codes")
-        assert expected_result in {"accepted", "accepted_scoped_no_answer", "rejected"}, f"bad result for {case_id}"
+        assert expected_result in {"accepted", "accepted_scoped_no_answer", "rejected"}, (
+            f"bad result for {case_id}"
+        )
         assert isinstance(expected_codes, list), f"{case_id} missing expected_diagnostic_codes list"
-        assert set(expected_codes) <= EXPECTED_DIAGNOSTIC_CODES, f"{case_id} has unknown diagnostic code"
+        assert set(expected_codes) <= EXPECTED_DIAGNOSTIC_CODES, (
+            f"{case_id} has unknown diagnostic code"
+        )
         represented_codes.update(expected_codes)
 
         diagnostic_entries = expected_diagnostics[case_id]
         assert [entry["code"] for entry in diagnostic_entries] == expected_codes
         if expected_result == "rejected":
-            assert expected_codes, f"{case_id} rejected case must expect at least one diagnostic code"
-            assert any(code != "scoped_no_answer" for code in expected_codes), f"{case_id} must fail closed with error code"
+            assert expected_codes, (
+                f"{case_id} rejected case must expect at least one diagnostic code"
+            )
+            assert any(code != "scoped_no_answer" for code in expected_codes), (
+                f"{case_id} must fail closed with error code"
+            )
         elif expected_result == "accepted":
             assert expected_codes == [], f"{case_id} accepted case must not expect errors"
         else:
-            assert expected_codes == ["scoped_no_answer"], f"{case_id} scoped no-answer must expect only info code"
+            assert expected_codes == ["scoped_no_answer"], (
+                f"{case_id} scoped no-answer must expect only info code"
+            )
 
         for diagnostic in diagnostic_entries:
             extra_fields = set(diagnostic) - SAFE_DIAGNOSTIC_FIELDS
-            assert not extra_fields, f"{case_id} diagnostic has unsafe fields: {sorted(extra_fields)}"
+            assert not extra_fields, (
+                f"{case_id} diagnostic has unsafe fields: {sorted(extra_fields)}"
+            )
             assert diagnostic["case_id"] == case_id
             assert diagnostic["code"] in EXPECTED_DIAGNOSTIC_CODES
             assert diagnostic["severity"] in {"error", "warning", "info"}
@@ -268,7 +288,9 @@ def test_validator_executes_all_fixture_cases_with_expected_results_and_codes() 
         result = validate_case(case, fixture)
 
         assert result.result == case["expected_result"], case["case_id"]
-        assert [diagnostic.code for diagnostic in result.diagnostics] == case["expected_diagnostic_codes"], case["case_id"]
+        assert [diagnostic.code for diagnostic in result.diagnostics] == case[
+            "expected_diagnostic_codes"
+        ], case["case_id"]
         assert_safe_validation_result(result, case_id=case["case_id"])
         if case["expected_result"] == "accepted":
             assert not result.diagnostics
@@ -288,8 +310,12 @@ def test_validator_rejects_malformed_ad_hoc_envelopes_fail_closed() -> None:
 
     missing_fields = validate_output({}, fixture, case_id="ADHOC-MISSING-FIELDS")
     assert missing_fields.result == "rejected"
-    assert "missing_required_field" in [diagnostic.code for diagnostic in missing_fields.diagnostics]
-    assert "malformed_output_shape" in [diagnostic.code for diagnostic in missing_fields.diagnostics]
+    assert "missing_required_field" in [
+        diagnostic.code for diagnostic in missing_fields.diagnostics
+    ]
+    assert "malformed_output_shape" in [
+        diagnostic.code for diagnostic in missing_fields.diagnostics
+    ]
     assert_safe_validation_result(missing_fields, case_id="ADHOC-MISSING-FIELDS")
 
 

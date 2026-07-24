@@ -44,13 +44,20 @@ class FakeGraphStore:
                     code="write_batch_accepted",
                     severity="info",
                     message="accepted by fake graph store",
-                    safe_context={"legal_unit_count": len(batch.legal_units), "relation_count": len(batch.relations)},
+                    safe_context={
+                        "legal_unit_count": len(batch.legal_units),
+                        "relation_count": len(batch.relations),
+                    },
                 ),
             ),
         )
 
     def query(self, query: GraphStoreQuery) -> GraphStoreQueryResult:
-        if not query.read_only or query.generated or not query.cypher.strip().upper().startswith("MATCH"):
+        if (
+            not query.read_only
+            or query.generated
+            or not query.cypher.strip().upper().startswith("MATCH")
+        ):
             return GraphStoreQueryResult(
                 rows=(),
                 diagnostics=(
@@ -62,16 +69,24 @@ class FakeGraphStore:
                     ),
                 ),
             )
-        return GraphStoreQueryResult(rows=tuple({"unit_id": unit_id} for unit_id in sorted(self.legal_units)), diagnostics=())
+        return GraphStoreQueryResult(
+            rows=tuple({"unit_id": unit_id} for unit_id in sorted(self.legal_units)), diagnostics=()
+        )
 
     def health(self) -> GraphStoreHealth:
         return GraphStoreHealth(
             status="fake",
             capabilities=(
                 GraphStoreCapability(name="write_batch", supported=True, evidence="fake-contract"),
-                GraphStoreCapability(name="read_only_match_query", supported=True, evidence="fake-contract"),
-                GraphStoreCapability(name="generated_cypher_execution", supported=False, evidence="S16-owned"),
-                GraphStoreCapability(name="production_falkordb_runtime", supported=False, evidence="S15-owned"),
+                GraphStoreCapability(
+                    name="read_only_match_query", supported=True, evidence="fake-contract"
+                ),
+                GraphStoreCapability(
+                    name="generated_cypher_execution", supported=False, evidence="S16-owned"
+                ),
+                GraphStoreCapability(
+                    name="production_falkordb_runtime", supported=False, evidence="S15-owned"
+                ),
             ),
             non_claims=GRAPH_STORE_NON_CLAIMS,
         )
@@ -89,7 +104,12 @@ def _unit(unit_id: str = "LU-M014-001") -> LegalUnit:
 
 def test_graph_store_fake_contract_writes_units_and_relations() -> None:
     store = FakeGraphStore()
-    relation = Relation(relation_type="CONTAINS", from_id="SD-M014-DOC-001", to_id="LU-M014-001", properties={"order": 1})
+    relation = Relation(
+        relation_type="CONTAINS",
+        from_id="SD-M014-DOC-001",
+        to_id="LU-M014-001",
+        properties={"order": 1},
+    )
     result = store.write_batch(GraphWriteBatch(legal_units=(_unit(),), relations=(relation,)))
 
     assert store.read_legal_unit("LU-M014-001") == _unit()
@@ -101,8 +121,12 @@ def test_graph_store_fake_contract_writes_units_and_relations() -> None:
 def test_graph_store_query_contract_rejects_generated_or_mutating_cypher() -> None:
     store = FakeGraphStore()
 
-    generated = store.query(GraphStoreQuery(cypher="MATCH (n) RETURN n", read_only=True, generated=True))
-    mutating = store.query(GraphStoreQuery(cypher="CREATE (:LegalUnit)", read_only=False, generated=False))
+    generated = store.query(
+        GraphStoreQuery(cypher="MATCH (n) RETURN n", read_only=True, generated=True)
+    )
+    mutating = store.query(
+        GraphStoreQuery(cypher="CREATE (:LegalUnit)", read_only=False, generated=False)
+    )
 
     assert [diagnostic.code for diagnostic in generated.diagnostics] == ["unsafe_query_rejected"]
     assert [diagnostic.code for diagnostic in mutating.diagnostics] == ["unsafe_query_rejected"]
@@ -114,7 +138,11 @@ def test_graph_store_query_contract_returns_bounded_rows_for_read_only_match() -
     store = FakeGraphStore()
     store.write_legal_unit(_unit("LU-M014-002"))
 
-    result = store.query(GraphStoreQuery(cypher="MATCH (u:LegalUnit) RETURN u.unit_id", read_only=True, generated=False))
+    result = store.query(
+        GraphStoreQuery(
+            cypher="MATCH (u:LegalUnit) RETURN u.unit_id", read_only=True, generated=False
+        )
+    )
 
     assert result.rows == ({"unit_id": "LU-M014-002"},)
     assert result.diagnostics == ()

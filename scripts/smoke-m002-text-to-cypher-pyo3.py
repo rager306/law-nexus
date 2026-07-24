@@ -70,7 +70,14 @@ def parse_positive_timeout(value: str) -> int:
 def redact(text: str) -> str:
     redacted = text
     for pattern in SECRET_PATTERNS:
-        redacted = pattern.sub(lambda match: match.group(0).split("=", 1)[0] + "=<redacted>" if "=" in match.group(0) else "<redacted>", redacted)
+        redacted = pattern.sub(
+            lambda match: (
+                match.group(0).split("=", 1)[0] + "=<redacted>"
+                if "=" in match.group(0)
+                else "<redacted>"
+            ),
+            redacted,
+        )
     return redacted
 
 
@@ -243,7 +250,9 @@ def command_available(name: str) -> bool:
     return shutil.which(name) is not None
 
 
-def run_smoke(output_dir: Path, timeout_seconds: int, falkordb_url: str, keep_workspace: bool) -> dict[str, object]:
+def run_smoke(
+    output_dir: Path, timeout_seconds: int, falkordb_url: str, keep_workspace: bool
+) -> dict[str, object]:
     output_dir.mkdir(parents=True, exist_ok=True)
     workspace_dir = output_dir / "workspace"
     if workspace_dir.exists() and not keep_workspace:
@@ -446,7 +455,11 @@ def build_parser() -> argparse.ArgumentParser:
 def main(argv: list[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
     payload = run_smoke(args.output_dir, args.timeout, args.falkordb_url, args.keep_workspace)
-    print(json.dumps({"status": payload["status"], "output_dir": str(args.output_dir)}, sort_keys=True))
+    print(
+        json.dumps(
+            {"status": payload["status"], "output_dir": str(args.output_dir)}, sort_keys=True
+        )
+    )
     return 0 if payload["status"] == "confirmed-runtime" else 1
 
 

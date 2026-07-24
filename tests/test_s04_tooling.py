@@ -62,7 +62,9 @@ def _run_uv_python(script: str) -> str:
 
 
 def test_uv_environment_uses_python_313_or_newer() -> None:
-    version = tuple(json.loads(_run_uv_python("import json, sys; print(json.dumps(sys.version_info[:2]))")))
+    version = tuple(
+        json.loads(_run_uv_python("import json, sys; print(json.dumps(sys.version_info[:2]))"))
+    )
 
     assert version >= (3, 13), version
 

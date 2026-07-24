@@ -64,11 +64,15 @@ def confirmed_embedding(module: ModuleType) -> dict[str, Any]:
     }
 
 
-def blocked_embedding(module: ModuleType, status: str = "blocked_model_unavailable", codes: list[str] | None = None) -> dict[str, Any]:
+def blocked_embedding(
+    module: ModuleType, status: str = "blocked_model_unavailable", codes: list[str] | None = None
+) -> dict[str, Any]:
     payload = confirmed_embedding(module)
     payload.pop("vector_dimension")
     payload["runtime_status"] = status
-    payload["failure_class"] = "model_unavailable" if status == "blocked_model_unavailable" else "policy_violation"
+    payload["failure_class"] = (
+        "model_unavailable" if status == "blocked_model_unavailable" else "policy_violation"
+    )
     payload["diagnostic_codes"] = codes or ["LRR_MODEL_CACHE_MISSING"]
     return payload
 
@@ -101,7 +105,6 @@ def runner_for(summary: dict[str, Any]):
     return run
 
 
-
 class FakeFalkorResult:
     def __init__(self, rows: list[list[Any]]) -> None:
         self.result_set = rows
@@ -116,13 +119,15 @@ class FakeSourceBackedGraph:
         self.queries.append(query)
         if "RETURN candidate.id, edition.id, block.id, span.id, binding.citation_key" in query:
             return FakeFalkorResult(
-                [[
-                    "CAND-M020-OG-VALID-CURRENT-001",
-                    "ED-M014-44FZ-2026-01-01",
-                    "SB-M014-HIER-CONS-ARTICLE-0001",
-                    "EV-M014-HIER-CONS-ARTICLE-0001",
-                    "CIT-M014-HIER-CONS-ARTICLE-0001",
-                ]]
+                [
+                    [
+                        "CAND-M020-OG-VALID-CURRENT-001",
+                        "ED-M014-44FZ-2026-01-01",
+                        "SB-M014-HIER-CONS-ARTICLE-0001",
+                        "EV-M014-HIER-CONS-ARTICLE-0001",
+                        "CIT-M014-HIER-CONS-ARTICLE-0001",
+                    ]
+                ]
             )
         if "RETURN count(candidate)" in query:
             return FakeFalkorResult([[self.negative_count]])
@@ -130,7 +135,9 @@ class FakeSourceBackedGraph:
 
 
 def source_backed_route_report(module: ModuleType, *, negative_count: int = 0) -> dict[str, Any]:
-    return module.build_source_backed_fixture_route_report(FakeSourceBackedGraph(negative_count=negative_count))
+    return module.build_source_backed_fixture_route_report(
+        FakeSourceBackedGraph(negative_count=negative_count)
+    )
 
 
 def assert_runtime_summary_is_safe(module: ModuleType, summary: dict[str, Any]) -> None:
@@ -145,7 +152,12 @@ def assert_runtime_summary_is_safe(module: ModuleType, summary: dict[str, Any]) 
     assert summary["r035_lifecycle_disposition"] == "remains_active_bounded_runtime_evidence_only"
     assert summary["gate_disposition"].startswith("gate_remains_open")
     assert set(summary["phases"]) == set(module.PHASES)
-    assert set(summary["phase_status_vocabulary"]) == {"passed", "blocked", "failed_closed", "not_run"}
+    assert set(summary["phase_status_vocabulary"]) == {
+        "passed",
+        "blocked",
+        "failed_closed",
+        "not_run",
+    }
     assert all(summary["redaction"].values())
     assert any("R035 remains Active" in claim for claim in summary["non_claims"])
     assert any("Does not satisfy broad ontology" in claim for claim in summary["non_claims"])
@@ -199,8 +211,6 @@ def test_blocked_runtime_rescope_is_explicit_and_keeps_r035_active(tmp_path: Pat
     assert_runtime_summary_is_safe(module, summary)
 
 
-
-
 def test_s08_contract_exposes_metadata_graph_route_ranking_and_diagnostics(tmp_path: Path) -> None:
     module = load_module("runtime_integration_s08_contract")
 
@@ -208,7 +218,10 @@ def test_s08_contract_exposes_metadata_graph_route_ranking_and_diagnostics(tmp_p
         report_output=tmp_path / "runtime-proof.json",
         allow_blocked_runtime=False,
         embedding_report=confirmed_embedding(module),
-        falkordb_report={"status": "confirmed-runtime", "query_proofs": [{"query_class": "synthetic_traversal"}]},
+        falkordb_report={
+            "status": "confirmed-runtime",
+            "query_proofs": [{"query_class": "synthetic_traversal"}],
+        },
         integration_runner=runner_for(good_integration_summary()),
     )
 
@@ -263,7 +276,6 @@ def test_s08_contract_exposes_metadata_graph_route_ranking_and_diagnostics(tmp_p
     assert_runtime_summary_is_safe(module, summary)
 
 
-
 def test_source_backed_fixture_route_executes_positive_and_negative_reads() -> None:
     module = load_module("runtime_integration_source_route_direct")
     graph = FakeSourceBackedGraph()
@@ -305,7 +317,10 @@ def test_source_backed_summary_promotes_only_bounded_fixture_route(tmp_path: Pat
         report_output=tmp_path / "runtime-proof.json",
         allow_blocked_runtime=False,
         embedding_report=confirmed_embedding(module),
-        falkordb_report={"status": "confirmed-runtime", "query_proofs": [{"query_class": "synthetic_traversal"}]},
+        falkordb_report={
+            "status": "confirmed-runtime",
+            "query_proofs": [{"query_class": "synthetic_traversal"}],
+        },
         source_backed_route_report=source_backed_route_report(module),
         integration_runner=runner_for(good_integration_summary()),
     )
@@ -316,7 +331,10 @@ def test_source_backed_summary_promotes_only_bounded_fixture_route(tmp_path: Pat
     assert summary["graph_route"]["route_class"] == "local_falkordb_source_backed_fixture_route"
     assert summary["graph_route"]["candidate_query_execution_performed"] is True
     assert summary["graph_route"]["real_artifact_graph_querying_proven"] is True
-    assert summary["graph_route"]["selected_safe_ids"]["candidate_id"] == "CAND-M020-OG-VALID-CURRENT-001"
+    assert (
+        summary["graph_route"]["selected_safe_ids"]["candidate_id"]
+        == "CAND-M020-OG-VALID-CURRENT-001"
+    )
     assert summary["graph_route"]["positive_route"]["citation_binding_preserved"] is True
     assert summary["graph_route"]["negative_route"]["wrong_edition_or_inactive_selected_count"] == 0
     assert summary["r035_lifecycle_disposition"] == "remains_active_bounded_runtime_evidence_only"
@@ -358,7 +376,9 @@ def test_source_backed_route_rejects_malformed_fixture_ids_before_runtime_query(
         raise AssertionError("malformed fixture IDs must fail before runtime query")
 
 
-def test_s08_blocked_mode_preserves_diagnostic_slots_without_positive_runtime_claim(tmp_path: Path) -> None:
+def test_s08_blocked_mode_preserves_diagnostic_slots_without_positive_runtime_claim(
+    tmp_path: Path,
+) -> None:
     module = load_module("runtime_integration_s08_blocked_slots")
 
     exit_code, summary = module.build_summary(
@@ -391,7 +411,9 @@ def test_s08_blocked_mode_preserves_diagnostic_slots_without_positive_runtime_cl
     assert_runtime_summary_is_safe(module, summary)
 
 
-def test_s08_deterministic_evidence_ids_fail_closed_when_accepted_ids_are_missing(tmp_path: Path) -> None:
+def test_s08_deterministic_evidence_ids_fail_closed_when_accepted_ids_are_missing(
+    tmp_path: Path,
+) -> None:
     module = load_module("runtime_integration_s08_missing_ids")
     bad_summary = good_integration_summary()
     bad_summary["citation_validation_status"] = {
@@ -421,6 +443,7 @@ def test_s08_deterministic_evidence_ids_fail_closed_when_accepted_ids_are_missin
     assert summary["phases"]["citation_evidence_validation"]["status"] == "failed_closed"
     assert_runtime_summary_is_safe(module, summary)
 
+
 def test_falkordb_unavailable_without_explicit_blocked_mode_fails_closed(tmp_path: Path) -> None:
     module = load_module("runtime_integration_falkordb_required")
 
@@ -448,7 +471,9 @@ def test_managed_api_embedding_signal_is_blocked_without_provider_payload(tmp_pa
     exit_code, summary = module.build_summary(
         report_output=tmp_path / "managed-api-blocked.json",
         allow_blocked_runtime=True,
-        embedding_report=blocked_embedding(module, "blocked_policy_violation", ["LRR_MANAGED_API_FORBIDDEN"]),
+        embedding_report=blocked_embedding(
+            module, "blocked_policy_violation", ["LRR_MANAGED_API_FORBIDDEN"]
+        ),
         falkordb_report={"status": "blocked-environment"},
         integration_runner=runner_for(good_integration_summary()),
     )
@@ -465,7 +490,9 @@ def test_managed_api_embedding_signal_is_blocked_without_provider_payload(tmp_pa
     assert_runtime_summary_is_safe(module, summary)
 
 
-def test_fixture_contract_requires_inactive_temporal_and_missing_evidence_negative_cases(tmp_path: Path) -> None:
+def test_fixture_contract_requires_inactive_temporal_and_missing_evidence_negative_cases(
+    tmp_path: Path,
+) -> None:
     module = load_module("runtime_integration_negative_cases")
     bad_summary = good_integration_summary()
     bad_summary["filter_trace_summary"] = {"temporal_excluded_count": 0}
@@ -527,13 +554,19 @@ def test_overclaim_wording_fails_closed_before_artifact_write() -> None:
         raise AssertionError("overclaim wording must be rejected")
 
 
-def test_main_keeps_ephemeral_container_until_source_route(monkeypatch, tmp_path: Path, capsys) -> None:
+def test_main_keeps_ephemeral_container_until_source_route(
+    monkeypatch, tmp_path: Path, capsys
+) -> None:
     module = load_module("runtime_integration_container_lifecycle")
     events: list[str] = []
 
     def fake_prepare(_args: Any) -> tuple[dict[str, Any], dict[str, Any], str]:
         events.append("prepare")
-        return {"status": "confirmed-runtime"}, {"mode": "auto", "status": "started", "cleanup_status": "pending"}, "container-1"
+        return (
+            {"status": "confirmed-runtime"},
+            {"mode": "auto", "status": "started", "cleanup_status": "pending"},
+            "container-1",
+        )
 
     def fake_route(_args: Any, falkordb_report: dict[str, Any]) -> dict[str, Any]:
         assert falkordb_report["status"] == "confirmed-runtime"
@@ -588,7 +621,10 @@ def test_cli_blocked_mode_writes_safe_rescope_artifact(tmp_path: Path) -> None:
     summary = json.loads(completed.stdout)
     persisted = json.loads(report.read_text(encoding="utf-8"))
     assert persisted == summary
-    assert summary["runtime_disposition"] in {"blocked_runtime_rescope", "bounded_runtime_proof_passed"}
+    assert summary["runtime_disposition"] in {
+        "blocked_runtime_rescope",
+        "bounded_runtime_proof_passed",
+    }
     assert summary["r035_lifecycle_disposition"] == "remains_active_bounded_runtime_evidence_only"
     for forbidden in FORBIDDEN_SNIPPETS:
         assert forbidden not in completed.stdout
@@ -597,17 +633,19 @@ def test_cli_blocked_mode_writes_safe_rescope_artifact(tmp_path: Path) -> None:
 def test_cli_accepts_required_t02_flag_aliases() -> None:
     module = load_module("runtime_integration_cli_flags")
 
-    args = module.parse_args([
-        "--allow-blocked",
-        "--host",
-        "127.0.0.1",
-        "--port",
-        "6391",
-        "--readiness-timeout",
-        "2",
-        "--no-container",
-        "--no-write",
-    ])
+    args = module.parse_args(
+        [
+            "--allow-blocked",
+            "--host",
+            "127.0.0.1",
+            "--port",
+            "6391",
+            "--readiness-timeout",
+            "2",
+            "--no-container",
+            "--no-write",
+        ]
+    )
 
     assert args.allow_blocked_runtime is True
     assert args.host == "127.0.0.1"
@@ -626,7 +664,11 @@ def test_markdown_report_is_safe_and_keeps_r035_active(tmp_path: Path) -> None:
         falkordb_report={"status": "confirmed-runtime", "query_proofs": []},
         integration_runner=runner_for(good_integration_summary()),
     )
-    summary["container_runtime"] = {"mode": "never", "status": "skipped_by_flag", "cleanup_status": "not_needed"}
+    summary["container_runtime"] = {
+        "mode": "never",
+        "status": "skipped_by_flag",
+        "cleanup_status": "not_needed",
+    }
     summary["cleanup_status"] = "not_needed"
     report = tmp_path / "13-r035-runtime-integration-remediation.md"
 

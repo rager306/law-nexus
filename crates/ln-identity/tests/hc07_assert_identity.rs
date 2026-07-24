@@ -7,7 +7,11 @@ use ln_identity::{
     },
 };
 
-fn seeded() -> (AssertIdentity<InMemoryIdentityStore>, IdentityId, IdentityId) {
+fn seeded() -> (
+    AssertIdentity<InMemoryIdentityStore>,
+    IdentityId,
+    IdentityId,
+) {
     let mut use_case = AssertIdentity::new(InMemoryIdentityStore::default());
     let left = IdentityId::parse("ID-A").expect("valid");
     let right = IdentityId::parse("ID-B").expect("valid");

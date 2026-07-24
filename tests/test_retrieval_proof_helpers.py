@@ -38,9 +38,10 @@ def test_bounded_path_prefers_repo_relative_path(tmp_path: Path) -> None:
     fixture.write_text("{}", encoding="utf-8")
 
     assert bounded_path(fixture, root=root) == "prd/retrieval/fixture.json"
-    assert bounded_path(tmp_path / "outside" / "fixture.json", root=root, max_length=12) == str(
-        tmp_path / "outside" / "fixture.json"
-    )[:12]
+    assert (
+        bounded_path(tmp_path / "outside" / "fixture.json", root=root, max_length=12)
+        == str(tmp_path / "outside" / "fixture.json")[:12]
+    )
 
 
 def test_load_json_object_requires_object_payload(tmp_path: Path) -> None:

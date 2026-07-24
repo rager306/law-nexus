@@ -30,7 +30,9 @@ DEFAULT_EDGES = ROOT / "prd/architecture/architecture_edges.jsonl"
 DEFAULT_TTL_OUTPUT = ROOT / "prd/architecture/acp/derived/architecture-projection.ttl"
 DEFAULT_SHACL_OUTPUT = ROOT / "prd/architecture/acp/derived/architecture-projection.shacl.ttl"
 DEFAULT_SPARQL_OUTPUT = ROOT / "prd/architecture/acp/derived/architecture-projection.sparql"
-DEFAULT_REPORT_OUTPUT = ROOT / "prd/architecture/acp/derived/architecture-projection-rdf-report.json"
+DEFAULT_REPORT_OUTPUT = (
+    ROOT / "prd/architecture/acp/derived/architecture-projection-rdf-report.json"
+)
 CANONICAL_REGISTRY_PATHS = {DEFAULT_ITEMS.resolve(), DEFAULT_EDGES.resolve()}
 REQUIRED_ACP_NON_CLAIMS = (
     "Does not validate R035.",
@@ -62,19 +64,51 @@ FORBIDDEN_MARKERS = (
     ".gsd/exec",
 )
 DIAGNOSTIC_METADATA = {
-    "missing-file": ("error", "input", "Regenerate or provide the expected generated registry input."),
+    "missing-file": (
+        "error",
+        "input",
+        "Regenerate or provide the expected generated registry input.",
+    ),
     "jsonl-parse": ("error", "input", "Fix the generating source or regenerated JSONL line."),
     "jsonl-record": ("error", "input", "Ensure every JSONL line is an object record."),
     "duplicate-id": ("error", "shape", "Fix source mapping or generator ID derivation."),
     "record-kind": ("error", "shape", "Fix source mapping or generator output partitioning."),
-    "shape-smoke": ("error", "shape", "Add the missing generated registry field from source evidence."),
+    "shape-smoke": (
+        "error",
+        "shape",
+        "Add the missing generated registry field from source evidence.",
+    ),
     "source-anchor": ("error", "safety", "Add safe tracked source anchors."),
-    "unsafe-source-anchor": ("error", "safety", "Replace with a safe repository-relative tracked anchor."),
-    "missing-non-claim": ("error", "authority", "Add explicit R035/R037/R038 non-claims in source-owned ACP records."),
-    "authority-required": ("error", "authority", "Set authority_required to true for decision candidates."),
-    "missing-endpoint": ("error", "shape", "Fix the edge endpoint or add the missing item through source generation."),
-    "forbidden-marker": ("error", "output", "Remove the secret, local path, or overclaim from generated inputs or templates."),
-    "stale-output": ("error", "freshness", "Run the exporter in write mode after reviewing expected changes."),
+    "unsafe-source-anchor": (
+        "error",
+        "safety",
+        "Replace with a safe repository-relative tracked anchor.",
+    ),
+    "missing-non-claim": (
+        "error",
+        "authority",
+        "Add explicit R035/R037/R038 non-claims in source-owned ACP records.",
+    ),
+    "authority-required": (
+        "error",
+        "authority",
+        "Set authority_required to true for decision candidates.",
+    ),
+    "missing-endpoint": (
+        "error",
+        "shape",
+        "Fix the edge endpoint or add the missing item through source generation.",
+    ),
+    "forbidden-marker": (
+        "error",
+        "output",
+        "Remove the secret, local path, or overclaim from generated inputs or templates.",
+    ),
+    "stale-output": (
+        "error",
+        "freshness",
+        "Run the exporter in write mode after reviewing expected changes.",
+    ),
 }
 VOCABULARY = {
     "boundary": "Custom projection vocabulary only; not ontology completeness, SHACL engine proof, SPARQL execution proof, or architecture authority.",
@@ -129,7 +163,11 @@ class Diagnostic:
     def to_json(self) -> dict[str, str]:
         severity, category, remediation = DIAGNOSTIC_METADATA.get(
             self.rule,
-            ("error", "output", "Inspect the diagnostic rule and repair the generated source or projection output."),
+            (
+                "error",
+                "output",
+                "Inspect the diagnostic rule and repair the generated source or projection output.",
+            ),
         )
         return {
             "rule": self.rule,
@@ -175,9 +213,20 @@ def load_jsonl(path: Path) -> tuple[list[dict[str, Any]], list[Diagnostic]]:
                 )
             )
         elif diagnostic.rule == "jsonl-object":
-            diagnostics.append(Diagnostic("jsonl-record", "JSONL record must be an object", diagnostic.path, field=diagnostic.field))
+            diagnostics.append(
+                Diagnostic(
+                    "jsonl-record",
+                    "JSONL record must be an object",
+                    diagnostic.path,
+                    field=diagnostic.field,
+                )
+            )
         else:
-            diagnostics.append(Diagnostic(diagnostic.rule, diagnostic.message, diagnostic.path, field=diagnostic.field))
+            diagnostics.append(
+                Diagnostic(
+                    diagnostic.rule, diagnostic.message, diagnostic.path, field=diagnostic.field
+                )
+            )
     return records, diagnostics
 
 
@@ -212,7 +261,9 @@ def source_anchor_iri(anchor: dict[str, Any]) -> str:
         "line_start": anchor.get("line_start", ""),
         "line_end": anchor.get("line_end", ""),
     }
-    digest = hashlib.sha256(json.dumps(stable, ensure_ascii=False, sort_keys=True).encode("utf-8")).hexdigest()[:16]
+    digest = hashlib.sha256(
+        json.dumps(stable, ensure_ascii=False, sort_keys=True).encode("utf-8")
+    ).hexdigest()[:16]
     return f"<urn:law-nexus:architecture-source:{digest}>"
 
 
@@ -323,7 +374,11 @@ def edge_ttl(edge: dict[str, Any]) -> list[str]:
         if isinstance(anchor, dict):
             lines.append(f"  lgarch:sourceAnchor {source_anchor_iri(anchor)} ;")
     finish_block(lines)
-    direct = [f"{record_iri(from_id)} lgarch:{edge_predicate(edge_type)} {record_iri(to_id)} ."] if from_id and to_id and edge_type else []
+    direct = (
+        [f"{record_iri(from_id)} lgarch:{edge_predicate(edge_type)} {record_iri(to_id)} ."]
+        if from_id and to_id and edge_type
+        else []
+    )
     return [*lines, *direct]
 
 
@@ -440,64 +495,153 @@ def validate_source_anchors(record: dict[str, Any], path: Path) -> list[Diagnost
     record_id = str(record.get("id", "<missing-id>"))
     anchors = record.get("source_anchors")
     if not isinstance(anchors, list) or not anchors:
-        return [Diagnostic("source-anchor", "source_anchors must be a non-empty list", path, record_id, "source_anchors")]
+        return [
+            Diagnostic(
+                "source-anchor",
+                "source_anchors must be a non-empty list",
+                path,
+                record_id,
+                "source_anchors",
+            )
+        ]
     for index, anchor in enumerate(anchors):
         if not isinstance(anchor, dict):
-            diagnostics.append(Diagnostic("source-anchor", "source anchor must be an object", path, record_id, f"source_anchors[{index}]"))
+            diagnostics.append(
+                Diagnostic(
+                    "source-anchor",
+                    "source anchor must be an object",
+                    path,
+                    record_id,
+                    f"source_anchors[{index}]",
+                )
+            )
             continue
         anchor_path = anchor.get("path")
         if not isinstance(anchor_path, str) or not safe_repo_relative_path(anchor_path):
-            diagnostics.append(Diagnostic("unsafe-source-anchor", "source anchor path must be safe and repo-relative", path, record_id, f"source_anchors[{index}].path"))
+            diagnostics.append(
+                Diagnostic(
+                    "unsafe-source-anchor",
+                    "source anchor path must be safe and repo-relative",
+                    path,
+                    record_id,
+                    f"source_anchors[{index}].path",
+                )
+            )
     return diagnostics
 
 
-def validate_items(items: list[dict[str, Any]], items_path: Path) -> tuple[set[str], list[Diagnostic]]:
+def validate_items(
+    items: list[dict[str, Any]], items_path: Path
+) -> tuple[set[str], list[Diagnostic]]:
     diagnostics: list[Diagnostic] = []
     item_ids: set[str] = set()
     for item in items:
         item_id = str(item.get("id", "<missing-id>"))
         if item_id in item_ids:
-            diagnostics.append(Diagnostic("duplicate-id", "duplicate item id", items_path, item_id, "id"))
+            diagnostics.append(
+                Diagnostic("duplicate-id", "duplicate item id", items_path, item_id, "id")
+            )
         item_ids.add(item_id)
         if item.get("record_kind") != "item":
-            diagnostics.append(Diagnostic("record-kind", "item file contains non-item record", items_path, item_id, "record_kind"))
+            diagnostics.append(
+                Diagnostic(
+                    "record-kind",
+                    "item file contains non-item record",
+                    items_path,
+                    item_id,
+                    "record_kind",
+                )
+            )
         for field in ("type", "status", "layer", "proof_level"):
             if not item.get(field):
-                diagnostics.append(Diagnostic("shape-smoke", f"item missing {field}", items_path, item_id, field))
+                diagnostics.append(
+                    Diagnostic("shape-smoke", f"item missing {field}", items_path, item_id, field)
+                )
         diagnostics.extend(validate_source_anchors(item, items_path))
         if item_id.startswith("ACP-"):
             non_claims = item.get("non_claims")
             if not isinstance(non_claims, list):
-                diagnostics.append(Diagnostic("missing-non-claim", "ACP item non_claims must be a list", items_path, item_id, "non_claims"))
+                diagnostics.append(
+                    Diagnostic(
+                        "missing-non-claim",
+                        "ACP item non_claims must be a list",
+                        items_path,
+                        item_id,
+                        "non_claims",
+                    )
+                )
             else:
                 for claim in REQUIRED_ACP_NON_CLAIMS:
                     if claim not in non_claims:
-                        diagnostics.append(Diagnostic("missing-non-claim", f"missing required non-claim: {claim}", items_path, item_id, "non_claims"))
-            if item.get("type") == "decision_candidate" and item.get("authority_required") is not True:
-                diagnostics.append(Diagnostic("authority-required", "decision_candidate must require authority", items_path, item_id, "authority_required"))
+                        diagnostics.append(
+                            Diagnostic(
+                                "missing-non-claim",
+                                f"missing required non-claim: {claim}",
+                                items_path,
+                                item_id,
+                                "non_claims",
+                            )
+                        )
+            if (
+                item.get("type") == "decision_candidate"
+                and item.get("authority_required") is not True
+            ):
+                diagnostics.append(
+                    Diagnostic(
+                        "authority-required",
+                        "decision_candidate must require authority",
+                        items_path,
+                        item_id,
+                        "authority_required",
+                    )
+                )
     return item_ids, diagnostics
 
 
-def validate_edges(edges: list[dict[str, Any]], item_ids: set[str], edges_path: Path) -> list[Diagnostic]:
+def validate_edges(
+    edges: list[dict[str, Any]], item_ids: set[str], edges_path: Path
+) -> list[Diagnostic]:
     diagnostics: list[Diagnostic] = []
     edge_ids: set[str] = set()
     for edge in edges:
         edge_id = str(edge.get("id", "<missing-id>"))
         if edge_id in edge_ids:
-            diagnostics.append(Diagnostic("duplicate-id", "duplicate edge id", edges_path, edge_id, "id"))
+            diagnostics.append(
+                Diagnostic("duplicate-id", "duplicate edge id", edges_path, edge_id, "id")
+            )
         edge_ids.add(edge_id)
         if edge.get("record_kind") != "edge":
-            diagnostics.append(Diagnostic("record-kind", "edge file contains non-edge record", edges_path, edge_id, "record_kind"))
+            diagnostics.append(
+                Diagnostic(
+                    "record-kind",
+                    "edge file contains non-edge record",
+                    edges_path,
+                    edge_id,
+                    "record_kind",
+                )
+            )
         for field in ("from", "to"):
             endpoint = edge.get(field)
             if not isinstance(endpoint, str) or endpoint not in item_ids:
-                diagnostics.append(Diagnostic("missing-endpoint", "edge endpoint does not reference an item", edges_path, edge_id, field))
+                diagnostics.append(
+                    Diagnostic(
+                        "missing-endpoint",
+                        "edge endpoint does not reference an item",
+                        edges_path,
+                        edge_id,
+                        field,
+                    )
+                )
         diagnostics.extend(validate_source_anchors(edge, edges_path))
     return diagnostics
 
 
 def validate_generated_text(path: Path, text: str) -> list[Diagnostic]:
-    return [Diagnostic("forbidden-marker", f"forbidden marker found: {marker}", path) for marker in FORBIDDEN_MARKERS if marker in text]
+    return [
+        Diagnostic("forbidden-marker", f"forbidden marker found: {marker}", path)
+        for marker in FORBIDDEN_MARKERS
+        if marker in text
+    ]
 
 
 def write_output(path: Path, text: str) -> None:
@@ -544,7 +688,9 @@ def output_state(path: Path, expected: str) -> dict[str, Any]:
 def diagnostic_summary(diagnostics: list[Diagnostic]) -> dict[str, dict[str, int]]:
     summary: dict[str, dict[str, int]] = {"by_rule": {}, "by_category": {}, "by_severity": {}}
     for diagnostic in diagnostics:
-        severity, category, _remediation = DIAGNOSTIC_METADATA.get(diagnostic.rule, ("error", "output", ""))
+        severity, category, _remediation = DIAGNOSTIC_METADATA.get(
+            diagnostic.rule, ("error", "output", "")
+        )
         summary["by_rule"][diagnostic.rule] = summary["by_rule"].get(diagnostic.rule, 0) + 1
         summary["by_category"][category] = summary["by_category"].get(category, 0) + 1
         summary["by_severity"][severity] = summary["by_severity"].get(severity, 0) + 1
@@ -560,7 +706,12 @@ def apply_diagnostics(report: dict[str, Any], diagnostics: list[Diagnostic]) -> 
 
 
 def build_diff(output_pairs: list[tuple[Path, str]]) -> dict[str, Any]:
-    outputs = {label: output_state(path, expected) for label, (path, expected) in zip(("ttl", "shacl", "sparql", "report"), output_pairs, strict=True)}
+    outputs = {
+        label: output_state(path, expected)
+        for label, (path, expected) in zip(
+            ("ttl", "shacl", "sparql", "report"), output_pairs, strict=True
+        )
+    }
     states = sorted({value["state"] for value in outputs.values()})
     return {
         "mode": "diff",
@@ -575,7 +726,9 @@ def count_statements(ttl_text: str) -> int:
     return sum(1 for line in ttl_text.splitlines() if line.strip().endswith("."))
 
 
-def build_outputs(args: argparse.Namespace) -> tuple[dict[str, str], dict[str, Any], list[Diagnostic]]:
+def build_outputs(
+    args: argparse.Namespace,
+) -> tuple[dict[str, str], dict[str, Any], list[Diagnostic]]:
     items, diagnostics = load_jsonl(args.items)
     edges, edge_diagnostics = load_jsonl(args.edges)
     diagnostics.extend(edge_diagnostics)
@@ -586,7 +739,11 @@ def build_outputs(args: argparse.Namespace) -> tuple[dict[str, str], dict[str, A
     ttl_text = build_ttl(items, edges)
     shacl_text = build_shacl()
     sparql_text = build_sparql()
-    for path, text in ((args.ttl_output, ttl_text), (args.shacl_output, shacl_text), (args.sparql_output, sparql_text)):
+    for path, text in (
+        (args.ttl_output, ttl_text),
+        (args.shacl_output, shacl_text),
+        (args.sparql_output, sparql_text),
+    ):
         diagnostics.extend(validate_generated_text(path, text))
 
     acp_items = sum(1 for item in items if str(item.get("id", "")).startswith("ACP-"))
@@ -648,7 +805,11 @@ def build_outputs(args: argparse.Namespace) -> tuple[dict[str, str], dict[str, A
     if diagnostics:
         apply_diagnostics(report, diagnostics)
         report_text = json.dumps(report, ensure_ascii=False, indent=2, sort_keys=True) + "\n"
-    return {"ttl": ttl_text, "shacl": shacl_text, "sparql": sparql_text, "report": report_text}, report, diagnostics
+    return (
+        {"ttl": ttl_text, "shacl": shacl_text, "sparql": sparql_text, "report": report_text},
+        report,
+        diagnostics,
+    )
 
 
 def run(args: argparse.Namespace) -> dict[str, Any]:
@@ -702,7 +863,9 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
     parser.add_argument("--sparql-output", type=Path, default=DEFAULT_SPARQL_OUTPUT)
     parser.add_argument("--report-output", type=Path, default=DEFAULT_REPORT_OUTPUT)
     parser.add_argument("--check", action="store_true")
-    parser.add_argument("--diff", action="store_true", help="Report output freshness without writing files.")
+    parser.add_argument(
+        "--diff", action="store_true", help="Report output freshness without writing files."
+    )
     args = parser.parse_args(argv)
     if args.check and args.diff:
         parser.error("--check and --diff are mutually exclusive")

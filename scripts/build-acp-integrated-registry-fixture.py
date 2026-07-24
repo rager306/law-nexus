@@ -92,17 +92,25 @@ def load_jsonl(path: Path) -> tuple[list[dict[str, Any]], list[Diagnostic]]:
         try:
             record = json.loads(raw_line)
         except json.JSONDecodeError as exc:
-            diagnostics.append(Diagnostic("jsonl-parse", f"invalid JSON on line {line_number}: {exc.msg}", path))
+            diagnostics.append(
+                Diagnostic("jsonl-parse", f"invalid JSON on line {line_number}: {exc.msg}", path)
+            )
             continue
         if not isinstance(record, dict):
-            diagnostics.append(Diagnostic("jsonl-record", "JSONL record must be an object", path, field=str(line_number)))
+            diagnostics.append(
+                Diagnostic(
+                    "jsonl-record", "JSONL record must be an object", path, field=str(line_number)
+                )
+            )
             continue
         records.append(record)
     return records, diagnostics
 
 
 def expected_jsonl_text(records: list[dict[str, Any]]) -> str:
-    return "".join(json.dumps(record, ensure_ascii=False, sort_keys=True) + "\n" for record in records)
+    return "".join(
+        json.dumps(record, ensure_ascii=False, sort_keys=True) + "\n" for record in records
+    )
 
 
 def write_jsonl(path: Path, records: list[dict[str, Any]]) -> None:
@@ -132,16 +140,48 @@ def validate_source_anchors(record: dict[str, Any], path: Path) -> list[Diagnost
     record_id = str(record.get("id", "<missing-id>"))
     anchors = record.get("source_anchors")
     if not isinstance(anchors, list) or not anchors:
-        return [Diagnostic("source-anchor", "source_anchors must be a non-empty list", path, record_id, "source_anchors")]
+        return [
+            Diagnostic(
+                "source-anchor",
+                "source_anchors must be a non-empty list",
+                path,
+                record_id,
+                "source_anchors",
+            )
+        ]
     for index, anchor in enumerate(anchors):
         if not isinstance(anchor, dict):
-            diagnostics.append(Diagnostic("source-anchor", "source anchor must be an object", path, record_id, f"source_anchors[{index}]"))
+            diagnostics.append(
+                Diagnostic(
+                    "source-anchor",
+                    "source anchor must be an object",
+                    path,
+                    record_id,
+                    f"source_anchors[{index}]",
+                )
+            )
             continue
         ref_path = anchor.get("path")
         if not isinstance(ref_path, str) or not safe_repo_relative_path(ref_path):
-            diagnostics.append(Diagnostic("source-anchor-path", "source anchor path must be safe and repo-relative", path, record_id, f"source_anchors[{index}].path"))
+            diagnostics.append(
+                Diagnostic(
+                    "source-anchor-path",
+                    "source anchor path must be safe and repo-relative",
+                    path,
+                    record_id,
+                    f"source_anchors[{index}].path",
+                )
+            )
         elif not (ROOT / ref_path).exists():
-            diagnostics.append(Diagnostic("source-anchor-exists", "source anchor path does not exist", path, record_id, f"source_anchors[{index}].path"))
+            diagnostics.append(
+                Diagnostic(
+                    "source-anchor-exists",
+                    "source anchor path does not exist",
+                    path,
+                    record_id,
+                    f"source_anchors[{index}].path",
+                )
+            )
     return diagnostics
 
 
@@ -149,10 +189,16 @@ def validate_forbidden_text(path: Path) -> list[Diagnostic]:
     if not path.exists():
         return []
     text = path.read_text(encoding="utf-8")
-    return [Diagnostic("forbidden-marker", f"forbidden marker found: {marker}", path) for marker in FORBIDDEN_MARKERS if marker in text]
+    return [
+        Diagnostic("forbidden-marker", f"forbidden marker found: {marker}", path)
+        for marker in FORBIDDEN_MARKERS
+        if marker in text
+    ]
 
 
-def validate_integrated_fixture(items: list[dict[str, Any]], edges: list[dict[str, Any]], items_path: Path, edges_path: Path) -> list[Diagnostic]:
+def validate_integrated_fixture(
+    items: list[dict[str, Any]], edges: list[dict[str, Any]], items_path: Path, edges_path: Path
+) -> list[Diagnostic]:
     diagnostics: list[Diagnostic] = []
     item_ids: set[str] = set()
     edge_ids: set[str] = set()
@@ -160,33 +206,88 @@ def validate_integrated_fixture(items: list[dict[str, Any]], edges: list[dict[st
     for item in items:
         item_id = str(item.get("id", "<missing-id>"))
         if item_id in item_ids:
-            diagnostics.append(Diagnostic("duplicate-id", "duplicate item id", items_path, item_id, "id"))
+            diagnostics.append(
+                Diagnostic("duplicate-id", "duplicate item id", items_path, item_id, "id")
+            )
         item_ids.add(item_id)
         if item.get("record_kind") != "item":
-            diagnostics.append(Diagnostic("record-kind", "item file contains non-item record", items_path, item_id, "record_kind"))
+            diagnostics.append(
+                Diagnostic(
+                    "record-kind",
+                    "item file contains non-item record",
+                    items_path,
+                    item_id,
+                    "record_kind",
+                )
+            )
         diagnostics.extend(validate_source_anchors(item, items_path))
         if item_id.startswith("ACP-"):
             non_claims = item.get("non_claims")
             if not isinstance(non_claims, list):
-                diagnostics.append(Diagnostic("acp-non-claims", "ACP item non_claims must be a list", items_path, item_id, "non_claims"))
+                diagnostics.append(
+                    Diagnostic(
+                        "acp-non-claims",
+                        "ACP item non_claims must be a list",
+                        items_path,
+                        item_id,
+                        "non_claims",
+                    )
+                )
             else:
                 for claim in REQUIRED_NON_CLAIMS:
                     if claim not in non_claims:
-                        diagnostics.append(Diagnostic("acp-non-claims", f"missing required non-claim: {claim}", items_path, item_id, "non_claims"))
-            if item.get("type") == "decision_candidate" and item.get("authority_required") is not True:
-                diagnostics.append(Diagnostic("authority-required", "decision_candidate must require authority", items_path, item_id, "authority_required"))
+                        diagnostics.append(
+                            Diagnostic(
+                                "acp-non-claims",
+                                f"missing required non-claim: {claim}",
+                                items_path,
+                                item_id,
+                                "non_claims",
+                            )
+                        )
+            if (
+                item.get("type") == "decision_candidate"
+                and item.get("authority_required") is not True
+            ):
+                diagnostics.append(
+                    Diagnostic(
+                        "authority-required",
+                        "decision_candidate must require authority",
+                        items_path,
+                        item_id,
+                        "authority_required",
+                    )
+                )
 
     for edge in edges:
         edge_id = str(edge.get("id", "<missing-id>"))
         if edge_id in edge_ids:
-            diagnostics.append(Diagnostic("duplicate-id", "duplicate edge id", edges_path, edge_id, "id"))
+            diagnostics.append(
+                Diagnostic("duplicate-id", "duplicate edge id", edges_path, edge_id, "id")
+            )
         edge_ids.add(edge_id)
         if edge.get("record_kind") != "edge":
-            diagnostics.append(Diagnostic("record-kind", "edge file contains non-edge record", edges_path, edge_id, "record_kind"))
+            diagnostics.append(
+                Diagnostic(
+                    "record-kind",
+                    "edge file contains non-edge record",
+                    edges_path,
+                    edge_id,
+                    "record_kind",
+                )
+            )
         for field in ("from", "to"):
             endpoint = edge.get(field)
             if not isinstance(endpoint, str) or endpoint not in item_ids:
-                diagnostics.append(Diagnostic("edge-endpoint", "edge endpoint does not reference an item", edges_path, edge_id, field))
+                diagnostics.append(
+                    Diagnostic(
+                        "edge-endpoint",
+                        "edge endpoint does not reference an item",
+                        edges_path,
+                        edge_id,
+                        field,
+                    )
+                )
         diagnostics.extend(validate_source_anchors(edge, edges_path))
 
     diagnostics.extend(validate_forbidden_text(items_path))
@@ -207,13 +308,23 @@ def build_integrated_fixture(
     diagnostics.extend(edge_diagnostics)
     diagnostics.extend(acp_item_diagnostics)
     diagnostics.extend(acp_edge_diagnostics)
-    diagnostics.extend(validate_integrated_fixture(acp_items, acp_edges, acp_items_path, acp_edges_path))
+    diagnostics.extend(
+        validate_integrated_fixture(acp_items, acp_edges, acp_items_path, acp_edges_path)
+    )
     canonical_item_ids = {str(record.get("id", "")) for record in canonical_items}
     canonical_edge_ids = {str(record.get("id", "")) for record in canonical_edges}
-    acp_items_to_add = [record for record in acp_items if str(record.get("id", "")) not in canonical_item_ids]
-    acp_edges_to_add = [record for record in acp_edges if str(record.get("id", "")) not in canonical_edge_ids]
-    items = sorted([*canonical_items, *acp_items_to_add], key=lambda record: str(record.get("id", "")))
-    edges = sorted([*canonical_edges, *acp_edges_to_add], key=lambda record: str(record.get("id", "")))
+    acp_items_to_add = [
+        record for record in acp_items if str(record.get("id", "")) not in canonical_item_ids
+    ]
+    acp_edges_to_add = [
+        record for record in acp_edges if str(record.get("id", "")) not in canonical_edge_ids
+    ]
+    items = sorted(
+        [*canonical_items, *acp_items_to_add], key=lambda record: str(record.get("id", ""))
+    )
+    edges = sorted(
+        [*canonical_edges, *acp_edges_to_add], key=lambda record: str(record.get("id", ""))
+    )
     return items, edges, diagnostics
 
 
@@ -224,7 +335,9 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
         args.acp_items,
         args.acp_edges,
     )
-    diagnostics.extend(validate_integrated_fixture(items, edges, args.items_output, args.edges_output))
+    diagnostics.extend(
+        validate_integrated_fixture(items, edges, args.items_output, args.edges_output)
+    )
     status = "ok" if not diagnostics else "failed"
 
     if not args.check and status == "ok":
@@ -248,7 +361,9 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
         "item_count": len(items),
         "edge_count": len(edges),
         "acp_item_count": sum(1 for item in items if str(item.get("id", "")).startswith("ACP-")),
-        "acp_edge_count": sum(1 for edge in edges if str(edge.get("id", "")).startswith("ACP-EDGE-")),
+        "acp_edge_count": sum(
+            1 for edge in edges if str(edge.get("id", "")).startswith("ACP-EDGE-")
+        ),
         "items_output": display_path(args.items_output),
         "edges_output": display_path(args.edges_output),
         "items_message": items_message,

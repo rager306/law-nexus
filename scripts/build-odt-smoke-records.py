@@ -225,9 +225,15 @@ def read_content_xml(source: Path, source_path: str) -> tuple[bytes | None, list
                 ]
             return zf.read(CONTENT_MEMBER), []
     except zipfile.BadZipFile as exc:
-        return None, [diagnostic(source_path, "invalid-zip", "Source is not a valid ODT ZIP package.", error=str(exc))]
+        return None, [
+            diagnostic(
+                source_path, "invalid-zip", "Source is not a valid ODT ZIP package.", error=str(exc)
+            )
+        ]
     except OSError as exc:
-        return None, [diagnostic(source_path, "read-error", "Failed to read ODT package.", error=str(exc))]
+        return None, [
+            diagnostic(source_path, "read-error", "Failed to read ODT package.", error=str(exc))
+        ]
 
 
 def document_title(blocks: list[RawBlock], fallback: str) -> str:
@@ -245,7 +251,9 @@ def block_id(document_id: str, emitted_index: int) -> str:
     return f"BLOCK-{document_id.removeprefix('DOC-')}-{emitted_index:03d}"
 
 
-def make_document_record(document_id: str, source_path: str, source_sha256: str, title: str) -> dict[str, Any]:
+def make_document_record(
+    document_id: str, source_path: str, source_sha256: str, title: str
+) -> dict[str, Any]:
     """Build and validate one S02 document record."""
 
     payload = {
@@ -300,14 +308,20 @@ def make_block_record(
     return payload
 
 
-def load_fixture(document_id: str, source_path: str, expected_sha256: str, root: Path = ROOT) -> FixtureResult:
+def load_fixture(
+    document_id: str, source_path: str, expected_sha256: str, root: Path = ROOT
+) -> FixtureResult:
     """Load one canonical ODT fixture and emit bounded S02 records."""
 
     source = root / source_path
     result = FixtureResult(status="pass", source_path=source_path, document_id=document_id)
     if not source.exists():
         result.status = "missing-canonical-path"
-        result.diagnostics.append(diagnostic(source_path, "missing-canonical-path", "Canonical fixture path does not exist."))
+        result.diagnostics.append(
+            diagnostic(
+                source_path, "missing-canonical-path", "Canonical fixture path does not exist."
+            )
+        )
         return result
 
     actual_sha256 = sha256_file(source)
@@ -388,7 +402,12 @@ def load_fixture(document_id: str, source_path: str, expected_sha256: str, root:
     except Exception as exc:  # noqa: BLE001 - preserve validation class/message in CLI diagnostics.
         result.status = "record-validation-error"
         result.diagnostics.append(
-            diagnostic(source_path, "record-validation-error", "S02 parser-record validation failed.", error=str(exc))
+            diagnostic(
+                source_path,
+                "record-validation-error",
+                "S02 parser-record validation failed.",
+                error=str(exc),
+            )
         )
         result.document_record = None
         result.source_block_records = []
@@ -402,13 +421,28 @@ def load_inventory(root: Path = ROOT) -> tuple[list[tuple[str, str, str]], list[
     try:
         payload = json.loads(path.read_text(encoding="utf-8"))
     except FileNotFoundError:
-        return [], [diagnostic(str(INVENTORY_PATH), "missing-inventory", "S01 fixture inventory does not exist.")]
+        return [], [
+            diagnostic(
+                str(INVENTORY_PATH), "missing-inventory", "S01 fixture inventory does not exist."
+            )
+        ]
     except json.JSONDecodeError as exc:
-        return [], [diagnostic(str(INVENTORY_PATH), "inventory-json-invalid", "S01 fixture inventory is not valid JSON.", error=exc.msg)]
+        return [], [
+            diagnostic(
+                str(INVENTORY_PATH),
+                "inventory-json-invalid",
+                "S01 fixture inventory is not valid JSON.",
+                error=exc.msg,
+            )
+        ]
 
     fixtures = payload.get("fixtures")
     if not isinstance(fixtures, list):
-        return [], [diagnostic(str(INVENTORY_PATH), "inventory-shape-invalid", "Inventory fixtures must be a list.")]
+        return [], [
+            diagnostic(
+                str(INVENTORY_PATH), "inventory-shape-invalid", "Inventory fixtures must be a list."
+            )
+        ]
 
     by_path: dict[str, dict[str, Any]] = {}
     for fixture in fixtures:
@@ -423,12 +457,20 @@ def load_inventory(root: Path = ROOT) -> tuple[list[tuple[str, str, str]], list[
         fixture = by_path.get(source_path)
         if fixture is None:
             diagnostics.append(
-                diagnostic(source_path, "missing-canonical-path", "Canonical garant-odt path is missing from inventory.")
+                diagnostic(
+                    source_path,
+                    "missing-canonical-path",
+                    "Canonical garant-odt path is missing from inventory.",
+                )
             )
             continue
         sha256_value = fixture.get("sha256")
         if not isinstance(sha256_value, str):
-            diagnostics.append(diagnostic(source_path, "inventory-shape-invalid", "Fixture sha256 must be a string."))
+            diagnostics.append(
+                diagnostic(
+                    source_path, "inventory-shape-invalid", "Fixture sha256 must be a string."
+                )
+            )
             continue
         selected.append((document_id, source_path, sha256_value))
     return selected, diagnostics
@@ -456,7 +498,9 @@ def fixture_report_row(fixture: FixtureResult) -> dict[str, Any]:
     }
 
 
-def build_report(fixtures: list[FixtureResult], artifact_freshness: dict[str, Any] | None = None) -> dict[str, Any]:
+def build_report(
+    fixtures: list[FixtureResult], artifact_freshness: dict[str, Any] | None = None
+) -> dict[str, Any]:
     """Create a deterministic compact report for CLI and JSON artifact output."""
 
     diagnostics = [diag for fixture in fixtures for diag in fixture.diagnostics]
@@ -523,13 +567,18 @@ def render_markdown(report: dict[str, Any]) -> str:
         ]
     )
     if report["diagnostics"]:
-        lines.extend(f"- `{diag['rule']}` `{diag.get('source_path') or diag.get('path')}`: {diag['message']}" for diag in report["diagnostics"])
+        lines.extend(
+            f"- `{diag['rule']}` `{diag.get('source_path') or diag.get('path')}`: {diag['message']}"
+            for diag in report["diagnostics"]
+        )
     else:
         lines.append("- None.")
     return "\n".join(lines) + "\n"
 
 
-def build_smoke_records(root: Path = ROOT, artifact_freshness: dict[str, Any] | None = None) -> BuildResult:
+def build_smoke_records(
+    root: Path = ROOT, artifact_freshness: dict[str, Any] | None = None
+) -> BuildResult:
     """Build all canonical ODT smoke records and report data."""
 
     selected, inventory_diagnostics = load_inventory(root)
@@ -545,8 +594,12 @@ def build_smoke_records(root: Path = ROOT, artifact_freshness: dict[str, Any] | 
                 diagnostics=inventory_diagnostics,
             )
         )
-    document_records = [fixture.document_record for fixture in fixtures if fixture.document_record is not None]
-    source_block_records = [record for fixture in fixtures for record in fixture.source_block_records]
+    document_records = [
+        fixture.document_record for fixture in fixtures if fixture.document_record is not None
+    ]
+    source_block_records = [
+        record for fixture in fixtures for record in fixture.source_block_records
+    ]
     report = build_report(fixtures, artifact_freshness)
     return BuildResult(
         document_records=document_records,
@@ -594,12 +647,20 @@ def check_outputs(output_dir: Path = DEFAULT_OUTPUT_DIR, root: Path = ROOT) -> B
         stable_path = repo_path(path, root)
         if not path.exists():
             stale_paths.append(stable_path)
-            diagnostics.append(diagnostic("", "stale-artifact", "Expected artifact is missing or stale.", path=stable_path))
+            diagnostics.append(
+                diagnostic(
+                    "", "stale-artifact", "Expected artifact is missing or stale.", path=stable_path
+                )
+            )
             continue
         current = path.read_text(encoding="utf-8")
         if current != content:
             stale_paths.append(stable_path)
-            diagnostics.append(diagnostic("", "stale-artifact", "Expected artifact is missing or stale.", path=stable_path))
+            diagnostics.append(
+                diagnostic(
+                    "", "stale-artifact", "Expected artifact is missing or stale.", path=stable_path
+                )
+            )
     freshness = {
         "status": "pass" if not diagnostics else "stale",
         "stale_paths": stale_paths,
@@ -613,9 +674,20 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
 
     parser = argparse.ArgumentParser(description=__doc__)
     mode = parser.add_mutually_exclusive_group(required=True)
-    mode.add_argument("--write", action="store_true", help="Write deterministic ODT smoke artifacts.")
-    mode.add_argument("--check", action="store_true", help="Check artifacts are fresh and print compact JSON report.")
-    parser.add_argument("--output-dir", type=Path, default=DEFAULT_OUTPUT_DIR, help="Artifact directory, default prd/parser.")
+    mode.add_argument(
+        "--write", action="store_true", help="Write deterministic ODT smoke artifacts."
+    )
+    mode.add_argument(
+        "--check",
+        action="store_true",
+        help="Check artifacts are fresh and print compact JSON report.",
+    )
+    parser.add_argument(
+        "--output-dir",
+        type=Path,
+        default=DEFAULT_OUTPUT_DIR,
+        help="Artifact directory, default prd/parser.",
+    )
     return parser.parse_args(argv)
 
 

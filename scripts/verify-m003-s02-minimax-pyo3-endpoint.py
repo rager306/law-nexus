@@ -86,14 +86,23 @@ FORBIDDEN_FIELD_PARTS = {
     "raw_falkordb",
     "falkordb_rows",
 }
-ALLOWED_FALSE_SAFETY_FIELDS = REQUIRED_SAFETY_FALSE_FIELDS | {"raw_body_persisted", "raw_provider_body_persisted"}
+ALLOWED_FALSE_SAFETY_FIELDS = REQUIRED_SAFETY_FALSE_FIELDS | {
+    "raw_body_persisted",
+    "raw_provider_body_persisted",
+}
 OVERCLAIM_PATTERNS = (
-    re.compile(r"(?i)Legal KnowQL product behavior\s+(is\s+)?(validated|proven|confirmed|implemented|production[- ]ready)"),
-    re.compile(r"(?i)legal-answer correctness\s+(is\s+)?(validated|proven|confirmed|production[- ]ready)"),
+    re.compile(
+        r"(?i)Legal KnowQL product behavior\s+(is\s+)?(validated|proven|confirmed|implemented|production[- ]ready)"
+    ),
+    re.compile(
+        r"(?i)legal-answer correctness\s+(is\s+)?(validated|proven|confirmed|production[- ]ready)"
+    ),
     re.compile(r"(?i)ODT parsing.*(validated|proven|confirmed|production[- ]ready)"),
     re.compile(r"(?i)retrieval quality.*(validated|proven|confirmed|production[- ]ready)"),
     re.compile(r"(?i)FalkorDB execution\s+(is\s+)?(validated|proven|confirmed)"),
-    re.compile(r"(?i)production schema quality\s+(is\s+)?(validated|proven|confirmed|production[- ]ready)"),
+    re.compile(
+        r"(?i)production schema quality\s+(is\s+)?(validated|proven|confirmed|production[- ]ready)"
+    ),
     re.compile(r"(?i)S03 validation\s+(is\s+)?(validated|proven|confirmed|complete)"),
 )
 
@@ -155,7 +164,9 @@ def assert_no_unsafe_fields(value: Any, *, path: str = "payload") -> None:
             normalized = key.lower().replace("-", "_")
             if normalized in ALLOWED_FALSE_SAFETY_FIELDS:
                 require(item is False, f"{path}.{key} must be false")
-            elif path != "payload.safety" and any(part in normalized for part in FORBIDDEN_FIELD_PARTS):
+            elif path != "payload.safety" and any(
+                part in normalized for part in FORBIDDEN_FIELD_PARTS
+            ):
                 fail(f"redaction violation: unsafe field persisted at {path}.{key}")
             assert_no_unsafe_fields(item, path=f"{path}.{key}")
     elif isinstance(value, list):
@@ -165,7 +176,10 @@ def assert_no_unsafe_fields(value: Any, *, path: str = "payload") -> None:
 
 def validate_endpoint(payload: dict[str, Any]) -> None:
     endpoint = require_dict(payload.get("endpoint"), "endpoint")
-    require(endpoint.get("endpoint_input") == EXPECTED_ENDPOINT_INPUT, "endpoint.endpoint_input mismatch")
+    require(
+        endpoint.get("endpoint_input") == EXPECTED_ENDPOINT_INPUT,
+        "endpoint.endpoint_input mismatch",
+    )
     require(
         endpoint.get("normalized_base_url") == EXPECTED_NORMALIZED_BASE_URL,
         "endpoint.normalized_base_url must be https://api.minimax.io/v1/",
@@ -175,9 +189,18 @@ def validate_endpoint(payload: dict[str, Any]) -> None:
         "endpoint.effective_chat_completions_url must preserve /v1/chat/completions",
     )
     require(endpoint.get("preserves_v1") is True, "endpoint.preserves_v1 must be true")
-    require(endpoint.get("endpoint_contract_valid") is True, "endpoint.endpoint_contract_valid must be true")
-    require(endpoint.get("normalization_status") in {"normalized", "already-normalized"}, "endpoint normalization status invalid")
-    require(endpoint.get("normalized_base_url", "").endswith("/"), "endpoint.normalized_base_url must end with slash")
+    require(
+        endpoint.get("endpoint_contract_valid") is True,
+        "endpoint.endpoint_contract_valid must be true",
+    )
+    require(
+        endpoint.get("normalization_status") in {"normalized", "already-normalized"},
+        "endpoint normalization status invalid",
+    )
+    require(
+        endpoint.get("normalized_base_url", "").endswith("/"),
+        "endpoint.normalized_base_url must end with slash",
+    )
 
 
 def validate_resolver_metadata(payload: dict[str, Any]) -> None:
@@ -185,9 +208,14 @@ def validate_resolver_metadata(payload: dict[str, Any]) -> None:
     if metadata is None:
         return
     resolver_metadata = require_dict(metadata, "resolver_metadata")
-    require(resolver_metadata.get("module") == "m003_s02_minimax_pyo3_endpoint", "resolver_metadata.module mismatch")
+    require(
+        resolver_metadata.get("module") == "m003_s02_minimax_pyo3_endpoint",
+        "resolver_metadata.module mismatch",
+    )
     require(resolver_metadata.get("model") == DEFAULT_MODEL, "resolver_metadata.model mismatch")
-    require(resolver_metadata.get("adapter_kind") == "OpenAI", "resolver_metadata.adapter_kind mismatch")
+    require(
+        resolver_metadata.get("adapter_kind") == "OpenAI", "resolver_metadata.adapter_kind mismatch"
+    )
     require(
         resolver_metadata.get("normalized_endpoint_base_url") == EXPECTED_NORMALIZED_BASE_URL,
         "resolver_metadata.normalized_endpoint_base_url mismatch",
@@ -202,13 +230,27 @@ def validate_contract(payload: dict[str, Any]) -> None:
     require(payload.get("schema_version") == SCHEMA_VERSION, "schema_version mismatch")
     status = payload.get("status")
     root_cause = payload.get("root_cause")
-    require(isinstance(status, str) and status in STATUS_CATEGORIES, "status must be a known category")
-    require(isinstance(root_cause, str) and root_cause in ROOT_CAUSE_CATEGORIES, "root_cause must be a known category")
+    require(
+        isinstance(status, str) and status in STATUS_CATEGORIES, "status must be a known category"
+    )
+    require(
+        isinstance(root_cause, str) and root_cause in ROOT_CAUSE_CATEGORIES,
+        "root_cause must be a known category",
+    )
     require(payload.get("model") == DEFAULT_MODEL, "model mismatch")
-    require(isinstance(payload.get("phase"), str) and payload["phase"], "phase must be a non-empty string")
+    require(
+        isinstance(payload.get("phase"), str) and payload["phase"],
+        "phase must be a non-empty string",
+    )
     attempts = payload.get("provider_attempts")
-    require(isinstance(attempts, int) and attempts >= 0, "provider_attempts must be a non-negative integer")
-    require(isinstance(payload.get("timeout_seconds"), int) and payload["timeout_seconds"] >= 1, "timeout_seconds must be positive")
+    require(
+        isinstance(attempts, int) and attempts >= 0,
+        "provider_attempts must be a non-negative integer",
+    )
+    require(
+        isinstance(payload.get("timeout_seconds"), int) and payload["timeout_seconds"] >= 1,
+        "timeout_seconds must be positive",
+    )
     validate_endpoint(payload)
     validate_resolver_metadata(payload)
 
@@ -217,8 +259,13 @@ def validate_contract(payload: dict[str, Any]) -> None:
         require(safety.get(field) is False, f"safety.{field} must be false")
 
     boundaries = require_dict(payload.get("boundaries"), "boundaries")
-    does_not_prove = "\n".join(str(item) for item in require_list(boundaries.get("does_not_prove"), "boundaries.does_not_prove"))
-    missing = sorted(phrase for phrase in REQUIRED_NON_CLAIM_PHRASES if phrase not in does_not_prove)
+    does_not_prove = "\n".join(
+        str(item)
+        for item in require_list(boundaries.get("does_not_prove"), "boundaries.does_not_prove")
+    )
+    missing = sorted(
+        phrase for phrase in REQUIRED_NON_CLAIM_PHRASES if phrase not in does_not_prove
+    )
     require(not missing, "boundaries.does_not_prove missing: " + ", ".join(missing))
 
 
@@ -232,19 +279,38 @@ def validate_status_semantics(payload: dict[str, Any]) -> None:
     if status in {"blocked-credential", "blocked-environment", "not-run-local-only"}:
         require(provider_attempts == 0, f"{status} must not claim provider attempts")
     if status == "blocked-credential":
-        require(root_cause == "minimax-credential-missing", "blocked-credential root_cause must be minimax-credential-missing")
-        require(provider_phase.get("status") == "blocked-credential", "blocked-credential provider phase mismatch")
+        require(
+            root_cause == "minimax-credential-missing",
+            "blocked-credential root_cause must be minimax-credential-missing",
+        )
+        require(
+            provider_phase.get("status") == "blocked-credential",
+            "blocked-credential provider phase mismatch",
+        )
     if status == "blocked-environment":
         require(root_cause != "none", "blocked-environment requires a real root_cause")
     if status == "failed-runtime":
-        require(provider_attempts == 1, "failed-runtime must represent exactly one provider attempt")
-        require(provider_phase.get("status") == "failed-runtime", "failed-runtime provider phase mismatch")
+        require(
+            provider_attempts == 1, "failed-runtime must represent exactly one provider attempt"
+        )
+        require(
+            provider_phase.get("status") == "failed-runtime",
+            "failed-runtime provider phase mismatch",
+        )
     if status == "confirmed-runtime":
         require(root_cause == "none", "confirmed-runtime root_cause must be none")
         require(provider_attempts == 1, "confirmed-runtime requires exactly one provider attempt")
-        require(provider_phase.get("status") == "confirmed-runtime", "confirmed-runtime provider phase mismatch")
         require(
-            root_cause not in {"endpoint-contract-lost-v1", "minimax-openai-schema-mismatch", "provider-non-cypher-diagnostic"},
+            provider_phase.get("status") == "confirmed-runtime",
+            "confirmed-runtime provider phase mismatch",
+        )
+        require(
+            root_cause
+            not in {
+                "endpoint-contract-lost-v1",
+                "minimax-openai-schema-mismatch",
+                "provider-non-cypher-diagnostic",
+            },
             "confirmed-runtime cannot carry endpoint/schema/contamination root causes",
         )
 
@@ -256,9 +322,18 @@ def validate_markdown(payload: dict[str, Any], markdown: str) -> None:
     require(EXPECTED_EFFECTIVE_URL in markdown, "Markdown missing effective URL")
     for non_claim in REQUIRED_NON_CLAIM_PHRASES:
         require(non_claim in markdown, f"Markdown missing boundary non-claim: {non_claim}")
-    require("Raw provider body persisted: `False`" in markdown, "Markdown must expose raw_provider_body_persisted=false")
-    require("Raw FalkorDB rows persisted: `False`" in markdown, "Markdown must expose raw_falkordb_rows_persisted=false")
-    require("Think content persisted: `False`" in markdown, "Markdown must expose think_content_persisted=false")
+    require(
+        "Raw provider body persisted: `False`" in markdown,
+        "Markdown must expose raw_provider_body_persisted=false",
+    )
+    require(
+        "Raw FalkorDB rows persisted: `False`" in markdown,
+        "Markdown must expose raw_falkordb_rows_persisted=false",
+    )
+    require(
+        "Think content persisted: `False`" in markdown,
+        "Markdown must expose think_content_persisted=false",
+    )
 
 
 def verify_artifacts(artifact_dir: Path = DEFAULT_ARTIFACT_DIR) -> dict[str, Any]:

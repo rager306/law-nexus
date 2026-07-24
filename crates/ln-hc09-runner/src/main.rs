@@ -40,7 +40,8 @@ fn run_matrix_all_clocks_reject_substitution() -> ScenarioResult {
         let resolver = ResolveFiveClockState::new(evidence);
         let substitutes = forbidden_substitutes(governing);
         let result = resolver.resolve(ResolutionRequest {
-            request_id: RequestId::parse(&format!("req:{}", governing.as_str())).expect("static id"),
+            request_id: RequestId::parse(&format!("req:{}", governing.as_str()))
+                .expect("static id"),
             governing_clock: governing,
             attempted_substitutes: substitutes.clone(),
         });

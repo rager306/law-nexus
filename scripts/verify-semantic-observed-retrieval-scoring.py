@@ -13,9 +13,18 @@ from pathlib import Path
 from typing import Any
 
 ROOT = Path(__file__).resolve().parents[1]
-SAFE_INPUTS = ROOT / "prd/research/ontology_architecture_requirements/fixtures/semantic_retrieval_safe_inputs.json"
-FIXTURE = ROOT / "prd/research/ontology_architecture_requirements/fixtures/representative_evidence_span_retrieval_corpus.json"
-REPORT = ROOT / "prd/research/ontology_architecture_requirements/semantic_observed_retrieval_scoring_proof.json"
+SAFE_INPUTS = (
+    ROOT
+    / "prd/research/ontology_architecture_requirements/fixtures/semantic_retrieval_safe_inputs.json"
+)
+FIXTURE = (
+    ROOT
+    / "prd/research/ontology_architecture_requirements/fixtures/representative_evidence_span_retrieval_corpus.json"
+)
+REPORT = (
+    ROOT
+    / "prd/research/ontology_architecture_requirements/semantic_observed_retrieval_scoring_proof.json"
+)
 SAFE_INPUT_VERIFIER = ROOT / "scripts/verify-semantic-retrieval-safe-inputs.py"
 RUNTIME_CHECKER = ROOT / "scripts/check-local-retrieval-runtime.py"
 MODEL_ID = "deepvk/USER-bge-m3"
@@ -106,7 +115,14 @@ def assert_safe_payload(payload: Mapping[str, Any]) -> None:
 
 
 def run_json_command(command: Sequence[str], timeout_seconds: int) -> tuple[int, dict[str, Any]]:
-    completed = subprocess.run(list(command), cwd=ROOT, check=False, text=True, capture_output=True, timeout=timeout_seconds)
+    completed = subprocess.run(
+        list(command),
+        cwd=ROOT,
+        check=False,
+        text=True,
+        capture_output=True,
+        timeout=timeout_seconds,
+    )
     try:
         payload = json.loads(completed.stdout)
     except json.JSONDecodeError as exc:
@@ -117,7 +133,9 @@ def run_json_command(command: Sequence[str], timeout_seconds: int) -> tuple[int,
 
 
 def verify_safe_inputs(timeout_seconds: int) -> dict[str, Any]:
-    exit_code, payload = run_json_command([sys.executable, str(SAFE_INPUT_VERIFIER)], timeout_seconds)
+    exit_code, payload = run_json_command(
+        [sys.executable, str(SAFE_INPUT_VERIFIER)], timeout_seconds
+    )
     if exit_code != 0 or payload.get("status") != "ok":
         raise SemanticScoringError("semantic_input_verifier_failed")
     return payload
@@ -125,7 +143,9 @@ def verify_safe_inputs(timeout_seconds: int) -> dict[str, Any]:
 
 def runtime_boundary(timeout_seconds: int, runtime_json: Path | None = None) -> dict[str, Any]:
     if runtime_json is None:
-        _exit_code, payload = run_json_command([sys.executable, str(RUNTIME_CHECKER)], timeout_seconds)
+        _exit_code, payload = run_json_command(
+            [sys.executable, str(RUNTIME_CHECKER)], timeout_seconds
+        )
     else:
         payload = load_json(runtime_json)
     status = str(payload.get("runtime_status", "blocked_environment"))
@@ -186,11 +206,15 @@ def observed_scores_from_model(inputs: Mapping[str, Any]) -> list[dict[str, Any]
     candidate_inputs = inputs.get("candidate_inputs")
     if not isinstance(query_inputs, list) or not isinstance(candidate_inputs, list):
         raise SemanticScoringError("semantic_input_missing")
-    all_texts = [safe_text(item["representation_tokens"]) for item in query_inputs + candidate_inputs]
+    all_texts = [
+        safe_text(item["representation_tokens"]) for item in query_inputs + candidate_inputs
+    ]
     vectors = encode_texts(all_texts)
     query_vectors = vectors[: len(query_inputs)]
     candidate_vectors = vectors[len(query_inputs) :]
-    query_by_case = {item["case_id"]: (item, query_vectors[index]) for index, item in enumerate(query_inputs)}
+    query_by_case = {
+        item["case_id"]: (item, query_vectors[index]) for index, item in enumerate(query_inputs)
+    }
     candidate_rows: list[dict[str, Any]] = []
     for index, candidate in enumerate(candidate_inputs):
         case_id = candidate["case_id"]
@@ -262,10 +286,15 @@ def compute_metrics(scores: Sequence[Mapping[str, Any]]) -> dict[str, float]:
     top3 = 0
     distractor_first = 0
     for case in positives:
-        rows = sorted(scores_by_case.get(str(case["case_id"]), []), key=lambda row: int(row.get("observed_rank", 999)))
+        rows = sorted(
+            scores_by_case.get(str(case["case_id"]), []),
+            key=lambda row: int(row.get("observed_rank", 999)),
+        )
         ranked_ids = [str(row["candidate_id"]) for row in rows]
         if not ranked_ids:
-            raise SemanticScoringError(f"observed scores missing for positive case: {case['case_id']}")
+            raise SemanticScoringError(
+                f"observed scores missing for positive case: {case['case_id']}"
+            )
         expected = set(case.get("expected_candidate_ids", []))
         rr = reciprocal_rank(expected, ranked_ids)
         rr_values.append(rr)
@@ -304,14 +333,26 @@ def build_report(
         }
         scoring_status = "blocked"
     else:
-        scores = observed_scores_from_json(scores_json) if scores_json is not None else observed_scores_from_model(inputs)
+        scores = (
+            observed_scores_from_json(scores_json)
+            if scores_json is not None
+            else observed_scores_from_model(inputs)
+        )
         assert_safe_payload({"scores": scores})
         metrics = compute_metrics(scores)
         scoring_status = "completed"
     metrics["runtime_boundary_confirmed"] = 1.0 if runtime["confirmed"] else 0.0
-    threshold_failures = [name for name, minimum in THRESHOLDS.items() if metrics.get(name, 0.0) < minimum]
-    diagnostics = set(safe_input_summary.get("diagnostic_codes", [])) | set(runtime.get("diagnostic_codes", []))
-    diagnostics.add("semantic_scoring_completed" if scoring_status == "completed" else "semantic_scoring_blocked")
+    threshold_failures = [
+        name for name, minimum in THRESHOLDS.items() if metrics.get(name, 0.0) < minimum
+    ]
+    diagnostics = set(safe_input_summary.get("diagnostic_codes", [])) | set(
+        runtime.get("diagnostic_codes", [])
+    )
+    diagnostics.add(
+        "semantic_scoring_completed"
+        if scoring_status == "completed"
+        else "semantic_scoring_blocked"
+    )
     if threshold_failures:
         diagnostics.add("metric_mismatch")
     report = {
@@ -353,9 +394,21 @@ def build_report(
 
 def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--runtime-json", type=Path, help="Test-only injected runtime payload; rejected unless --allow-injected-test-inputs is set.")
-    parser.add_argument("--scores-json", type=Path, help="Test-only injected scores payload; rejected unless --allow-injected-test-inputs is set.")
-    parser.add_argument("--allow-injected-test-inputs", action="store_true", help="Allow injected runtime/scores only for unit tests. This mode cannot write the acceptance proof artifact.")
+    parser.add_argument(
+        "--runtime-json",
+        type=Path,
+        help="Test-only injected runtime payload; rejected unless --allow-injected-test-inputs is set.",
+    )
+    parser.add_argument(
+        "--scores-json",
+        type=Path,
+        help="Test-only injected scores payload; rejected unless --allow-injected-test-inputs is set.",
+    )
+    parser.add_argument(
+        "--allow-injected-test-inputs",
+        action="store_true",
+        help="Allow injected runtime/scores only for unit tests. This mode cannot write the acceptance proof artifact.",
+    )
     parser.add_argument("--output", type=Path, default=REPORT)
     parser.add_argument("--no-write", action="store_true")
     parser.add_argument("--timeout-seconds", type=int, default=120)
@@ -374,11 +427,31 @@ def main(argv: Sequence[str] | None = None) -> int:
             allow_injected_test_inputs=args.allow_injected_test_inputs,
         )
         if not args.no_write:
-            args.output.write_text(json.dumps(report, ensure_ascii=False, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+            args.output.write_text(
+                json.dumps(report, ensure_ascii=False, indent=2, sort_keys=True) + "\n",
+                encoding="utf-8",
+            )
     except SemanticScoringError as exc:
-        print(json.dumps({"status": "failed", "diagnostic": str(exc), "non_authoritative": True}, sort_keys=True))
+        print(
+            json.dumps(
+                {"status": "failed", "diagnostic": str(exc), "non_authoritative": True},
+                sort_keys=True,
+            )
+        )
         return 1
-    print(json.dumps({"status": report["status"], "scoring_mode": report["scoring_mode"], "metrics": report["metrics"], "threshold_failures": report["threshold_failures"], "diagnostic_codes": report["diagnostic_codes"], "non_authoritative": True}, sort_keys=True))
+    print(
+        json.dumps(
+            {
+                "status": report["status"],
+                "scoring_mode": report["scoring_mode"],
+                "metrics": report["metrics"],
+                "threshold_failures": report["threshold_failures"],
+                "diagnostic_codes": report["diagnostic_codes"],
+                "non_authoritative": True,
+            },
+            sort_keys=True,
+        )
+    )
     return 0
 
 

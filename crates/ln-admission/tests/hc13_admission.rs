@@ -60,7 +60,10 @@ fn measured_local_bound_can_admit() {
     assert_eq!(result.decision, AdmissionDecision::Admitted);
     assert_eq!(result.reason, AdmissionReason::MeasuredBound);
     assert_eq!(result.capacity, CapacityState::BoundedLocal);
-    assert_eq!(result.bound_id.as_ref().map(|b| b.as_str()), Some("bound:local1"));
+    assert_eq!(
+        result.bound_id.as_ref().map(|b| b.as_str()),
+        Some("bound:local1")
+    );
     assert!(!result.vendor_number_used);
     assert!(!result.legal_delay_inferred);
     assert!(!result.completeness_inferred);
@@ -71,11 +74,18 @@ fn legal_delay_and_completeness_claims_are_rejected() {
     let svc = DecideAdmission::new(HonestBoundObservation::measured(
         BoundId::parse("bound:local1").expect("id"),
     ));
-    for inference in [ForbiddenInference::LegalDelay, ForbiddenInference::Completeness] {
+    for inference in [
+        ForbiddenInference::LegalDelay,
+        ForbiddenInference::Completeness,
+    ] {
         let mut request = req(0);
         request.forbidden_inference = inference;
         let result = svc.decide(request);
-        assert_eq!(result.decision, AdmissionDecision::Rejected, "{inference:?}");
+        assert_eq!(
+            result.decision,
+            AdmissionDecision::Rejected,
+            "{inference:?}"
+        );
         assert!(!result.legal_delay_inferred);
         assert!(!result.completeness_inferred);
         assert_eq!(result.capacity, CapacityState::Unknown);

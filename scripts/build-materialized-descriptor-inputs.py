@@ -13,9 +13,15 @@ from types import ModuleType
 from typing import Any
 
 ROOT = Path(__file__).resolve().parents[1]
-MATERIALIZATION = ROOT / "prd/research/ontology_architecture_requirements/parser_evidence_span_materialization.json"
+MATERIALIZATION = (
+    ROOT
+    / "prd/research/ontology_architecture_requirements/parser_evidence_span_materialization.json"
+)
 MATERIALIZATION_VERIFIER = ROOT / "scripts/verify-parser-evidence-span-materialization.py"
-OUTPUT = ROOT / "prd/research/ontology_architecture_requirements/fixtures/materialized_descriptor_inputs.json"
+OUTPUT = (
+    ROOT
+    / "prd/research/ontology_architecture_requirements/fixtures/materialized_descriptor_inputs.json"
+)
 SCHEMA_VERSION = "materialized-descriptor-inputs/v1"
 REPRESENTATION_KIND = "safe_materialized_descriptor_v1"
 DERIVATION_FIELDS = (
@@ -28,11 +34,43 @@ DERIVATION_FIELDS = (
     "source_order_index_bucket",
 )
 ALLOWED_DESCRIPTOR_FIELDS = {
-    "candidate_kind": ["evidence_span", "source_block", "citation_boundary", "temporal_scope_marker", "blocked_candidate"],
-    "structural_unit_kind": ["document", "article", "clause", "paragraph", "table", "list_item", "unknown_structural_unit"],
-    "citation_granularity": ["act_edition", "article_or_evidence_span", "clause", "source_block_marker", "temporal_marker", "unknown_granularity"],
-    "content_role": ["retrieval_candidate", "citation_boundary", "scope_boundary", "temporal_boundary", "blocked_unsafe"],
-    "temporal_status": ["current_edition", "as_of_date_required", "edition_consistency_required", "unknown_temporal_status"],
+    "candidate_kind": [
+        "evidence_span",
+        "source_block",
+        "citation_boundary",
+        "temporal_scope_marker",
+        "blocked_candidate",
+    ],
+    "structural_unit_kind": [
+        "document",
+        "article",
+        "clause",
+        "paragraph",
+        "table",
+        "list_item",
+        "unknown_structural_unit",
+    ],
+    "citation_granularity": [
+        "act_edition",
+        "article_or_evidence_span",
+        "clause",
+        "source_block_marker",
+        "temporal_marker",
+        "unknown_granularity",
+    ],
+    "content_role": [
+        "retrieval_candidate",
+        "citation_boundary",
+        "scope_boundary",
+        "temporal_boundary",
+        "blocked_unsafe",
+    ],
+    "temporal_status": [
+        "current_edition",
+        "as_of_date_required",
+        "edition_consistency_required",
+        "unknown_temporal_status",
+    ],
     "materialization_method": ["odt_structure_smoke", "content_xml_order_anchor", "parser_blocked"],
     "source_order_index_bucket": ["early_source_order", "middle_source_order", "late_source_order"],
 }
@@ -102,7 +140,9 @@ def descriptor_tokens(descriptors: Mapping[str, str]) -> list[str]:
 
 
 def build_inputs(materialization_path: Path = MATERIALIZATION) -> dict[str, Any]:
-    verifier = load_module(MATERIALIZATION_VERIFIER, "materialization_verifier_for_descriptor_builder")
+    verifier = load_module(
+        MATERIALIZATION_VERIFIER, "materialization_verifier_for_descriptor_builder"
+    )
     verification = verifier.verify_artifact(materialization_path)
     materialization = load_json(materialization_path)
     if materialization.get("status") != "ok":
@@ -189,7 +229,9 @@ def main(argv: Sequence[str] | None = None) -> int:
     args = parse_args(argv)
     manifest = build_inputs(args.materialization)
     args.output.parent.mkdir(parents=True, exist_ok=True)
-    args.output.write_text(json.dumps(manifest, ensure_ascii=False, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    args.output.write_text(
+        json.dumps(manifest, ensure_ascii=False, indent=2, sort_keys=True) + "\n", encoding="utf-8"
+    )
     print(
         json.dumps(
             {

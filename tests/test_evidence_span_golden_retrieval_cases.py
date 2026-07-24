@@ -9,7 +9,10 @@ from types import ModuleType
 from typing import Any
 
 ROOT = Path(__file__).resolve().parents[1]
-FIXTURE_PATH = ROOT / "prd/research/ontology_architecture_requirements/fixtures/evidence_span_golden_retrieval_cases.json"
+FIXTURE_PATH = (
+    ROOT
+    / "prd/research/ontology_architecture_requirements/fixtures/evidence_span_golden_retrieval_cases.json"
+)
 VERIFIER_PATH = ROOT / "scripts/verify-evidence-span-golden-retrieval-cases.py"
 
 REQUIRED_CASE_CLASSES = {
@@ -60,7 +63,10 @@ def test_fixture_top_level_contract_and_case_classes() -> None:
     fixture = load_fixture()
 
     assert fixture["schema_version"] == "evidence-span-golden-retrieval-cases/v1"
-    assert fixture["fixture_artifact"] == "prd/research/ontology_architecture_requirements/fixtures/evidence_span_golden_retrieval_cases.json"
+    assert (
+        fixture["fixture_artifact"]
+        == "prd/research/ontology_architecture_requirements/fixtures/evidence_span_golden_retrieval_cases.json"
+    )
     assert fixture["generated_by"] == "M021/S04"
     assert fixture["milestone_id"] == "M021-qk4lze"
     assert fixture["slice_id"] == "S04"
@@ -126,7 +132,9 @@ def test_verifier_cli_accepts_fixture() -> None:
 def test_verifier_fails_closed_for_missing_case_class(tmp_path: Path) -> None:
     verifier = load_verifier("evidence_span_missing_class")
     fixture = load_fixture()
-    fixture["cases"] = [case for case in fixture["cases"] if case["case_class"] != "unsupported_scope"]
+    fixture["cases"] = [
+        case for case in fixture["cases"] if case["case_class"] != "unsupported_scope"
+    ]
     path = write_fixture(tmp_path, fixture)
 
     try:

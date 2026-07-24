@@ -169,9 +169,7 @@ def check_checkout(ref: ReferenceRepo, text: str) -> list[str]:
         return failures
 
     if normalize_remote(actual_remote) != normalize_remote(ref.url):
-        failures.append(
-            f"remote mismatch for {ref.key}: expected {ref.url}, got {actual_remote}"
-        )
+        failures.append(f"remote mismatch for {ref.key}: expected {ref.url}, got {actual_remote}")
     if not re.fullmatch(r"[0-9a-f]{40}", head):
         failures.append(f"invalid HEAD hash for {ref.key}: {head}")
 
@@ -256,7 +254,8 @@ def main() -> int:
         missing = [ref for ref in REFERENCES if not ref.local_path.is_dir()]
         if missing:
             failures.append(
-                "missing checkouts: " + ", ".join(f"{ref.key} ({ref.local_path})" for ref in missing)
+                "missing checkouts: "
+                + ", ".join(f"{ref.key} ({ref.local_path})" for ref in missing)
             )
 
     if args.check_gitnexus_evidence:
@@ -274,7 +273,9 @@ def main() -> int:
     elif args.check_checkouts:
         print("Mode: checkout verification; git remotes and commit pins are required.")
     if args.check_gitnexus_evidence:
-        print("Mode: GitNexus evidence verification; repo evidence or blocked diagnostics required.")
+        print(
+            "Mode: GitNexus evidence verification; repo evidence or blocked diagnostics required."
+        )
     return 0
 
 

@@ -25,7 +25,9 @@ def load_inventory_module() -> ModuleType:
     return module
 
 
-def write_minimal_odt(path: Path, *, content_root: str = "content", meta_root: str = "meta") -> None:
+def write_minimal_odt(
+    path: Path, *, content_root: str = "content", meta_root: str = "meta"
+) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     with zipfile.ZipFile(path, "w") as archive:
         archive.writestr("content.xml", f"<{content_root}><p>body</p><p>tail</p></{content_root}>")
@@ -38,12 +40,12 @@ def write_consultant_xml(path: Path, *, title: str) -> None:
     xml = (
         f'<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n'
         f'<w:wordDocument xmlns:w="{_WORDML_NS}" xmlns:o="{_OFFICE_NS}">'
-        f'<o:DocumentProperties>'
-        f'<o:Title>{title}</o:Title>'
-        f'<o:Company>Версия 4025.00.30</o:Company>'
-        f'</o:DocumentProperties>'
-        f'<w:body/>'
-        f'</w:wordDocument>'
+        f"<o:DocumentProperties>"
+        f"<o:Title>{title}</o:Title>"
+        f"<o:Company>Версия 4025.00.30</o:Company>"
+        f"</o:DocumentProperties>"
+        f"<w:body/>"
+        f"</w:wordDocument>"
     )
     path.write_text(xml, encoding="utf-8")
 
@@ -53,8 +55,14 @@ def test_build_inventory_discovers_all_fixtures(tmp_path: Path) -> None:
     module = load_inventory_module()
     write_minimal_odt(tmp_path / "law-source/garant/44-fz.odt", content_root="fz44")
     write_minimal_odt(tmp_path / "law-source/garant/PP_60_27-01-2022.odt", content_root="pp60")
-    write_consultant_xml(tmp_path / "law-source/consultant/Список документов (5).xml", title="Список документов (5)")
-    write_consultant_xml(tmp_path / "law-source/consultant/federalnyi-zakon-ot-05-04-2013-n-44-fz-red-ot-28-12-2025-o-kontraktnoi-sisteme-v-sfere-zakupok-tovarov-rabot-uslug-dlya-obespecheniya-g--f9c8ca4c.xml", title="Федеральный закон от 05.04.2013 N 44-ФЗ")
+    write_consultant_xml(
+        tmp_path / "law-source/consultant/Список документов (5).xml", title="Список документов (5)"
+    )
+    write_consultant_xml(
+        tmp_path
+        / "law-source/consultant/federalnyi-zakon-ot-05-04-2013-n-44-fz-red-ot-28-12-2025-o-kontraktnoi-sisteme-v-sfere-zakupok-tovarov-rabot-uslug-dlya-obespecheniya-g--f9c8ca4c.xml",
+        title="Федеральный закон от 05.04.2013 N 44-ФЗ",
+    )
 
     manifest = module.build_inventory(tmp_path)
 
@@ -71,10 +79,18 @@ def test_build_inventory_discovers_all_fixtures(tmp_path: Path) -> None:
     assert manifest["non_authoritative"] is True
     assert manifest["schema_version"] == "parser-source-fixture-inventory/v2"
     assert "law-source/consultant/Список документов (5).xml" in manifest["canonical_paths"]
-    assert "law-source/consultant/federalnyi-zakon-ot-05-04-2013-n-44-fz-red-ot-28-12-2025-o-kontraktnoi-sisteme-v-sfere-zakupok-tovarov-rabot-uslug-dlya-obespecheniya-g--f9c8ca4c.xml" in manifest["canonical_paths"]
+    assert (
+        "law-source/consultant/federalnyi-zakon-ot-05-04-2013-n-44-fz-red-ot-28-12-2025-o-kontraktnoi-sisteme-v-sfere-zakupok-tovarov-rabot-uslug-dlya-obespecheniya-g--f9c8ca4c.xml"
+        in manifest["canonical_paths"]
+    )
     hygiene = manifest["fixture_hygiene"]
-    assert hygiene["pp_filename_mismatch"]["canonical_path"] == "law-source/garant/PP_60_27-01-2022.odt"
-    assert hygiene["pp_filename_mismatch"]["stated_path"] == "law-source/garant/PP_60_27-02-2022.odt"
+    assert (
+        hygiene["pp_filename_mismatch"]["canonical_path"]
+        == "law-source/garant/PP_60_27-01-2022.odt"
+    )
+    assert (
+        hygiene["pp_filename_mismatch"]["stated_path"] == "law-source/garant/PP_60_27-02-2022.odt"
+    )
     assert hygiene["pp_filename_mismatch"]["mismatch_visible"] is True
     assert hygiene["pp_filename_mismatch"]["stated_exists"] is False
     assert hygiene["unexpected_duplicate_paths"] == []
@@ -83,11 +99,20 @@ def test_build_inventory_discovers_all_fixtures(tmp_path: Path) -> None:
     assert odt["odt_shape"]["zip_valid"] is True
     assert odt["odt_shape"]["required_members_present"] is True
     assert odt["document_type"] == "odt_document"
-    relation = next(f for f in manifest["fixtures"] if f["path"] == "law-source/consultant/Список документов (5).xml")
+    relation = next(
+        f
+        for f in manifest["fixtures"]
+        if f["path"] == "law-source/consultant/Список документов (5).xml"
+    )
     assert relation["source_role"] == "document-list-prior-art"
     assert relation["document_type"] == "document_list"
     assert relation["xml_shape"]["well_formed"] is True
-    full_act = next(f for f in manifest["fixtures"] if f["path"] == "law-source/consultant/federalnyi-zakon-ot-05-04-2013-n-44-fz-red-ot-28-12-2025-o-kontraktnoi-sisteme-v-sfere-zakupok-tovarov-rabot-uslug-dlya-obespecheniya-g--f9c8ca4c.xml")
+    full_act = next(
+        f
+        for f in manifest["fixtures"]
+        if f["path"]
+        == "law-source/consultant/federalnyi-zakon-ot-05-04-2013-n-44-fz-red-ot-28-12-2025-o-kontraktnoi-sisteme-v-sfere-zakupok-tovarov-rabot-uslug-dlya-obespecheniya-g--f9c8ca4c.xml"
+    )
     assert full_act["source_role"] == "full-normative-act"
     assert full_act["document_type"] == "federal_law"
     assert full_act["xml_shape"]["well_formed"] is True
@@ -99,21 +124,73 @@ def test_build_inventory_classifies_first_line_title_patterns(tmp_path: Path) ->
     """Pattern matchers map observed first-line titles to the v2 taxonomy."""
     module = load_inventory_module()
     cases = [
-        ("law-source/consultant/federal-law.xml", "Федеральный закон от 05.04.2013 N 44-ФЗ", "federal_law"),
+        (
+            "law-source/consultant/federal-law.xml",
+            "Федеральный закон от 05.04.2013 N 44-ФЗ",
+            "federal_law",
+        ),
         ("law-source/consultant/code.xml", "Бюджетный кодекс Российской Федерации", "code"),
-        ("law-source/consultant/code-amendment.xml", "Обзор изменений Гражданского кодекса Российской Федерации", "code_amendment_overview"),
-        ("law-source/consultant/court-practice.xml", "Обзор судебной практики Верховного Суда Российской Федерации", "court_practice_review"),
-        ("law-source/consultant/fas-review.xml", "Обзор недостатков и нарушений, выявленных Федеральным казначейством", "fas_review"),
-        ("law-source/consultant/gov-resolution.xml", "Постановление Правительства РФ от 29.12.2021 N 2571", "government_resolution"),
-        ("law-source/consultant/ks-postanovlenie.xml", "Постановление Конституционного Суда РФ от 18.03.2021 N 7-П", "constitutional_court_ruling"),
-        ("law-source/consultant/ks-opredelenie.xml", "Определение Конституционного Суда РФ от 30.10.2025 N 2837-О", "constitutional_court_ruling"),
-        ("law-source/consultant/vs-postanovlenie.xml", "Постановление Верховного Суда РФ от 09.10.2025 N 38-АД25-9-К", "supreme_court_ruling"),
-        ("law-source/consultant/vs-opredelenie.xml", "Определение Верховного Суда РФ от 05.12.2025 N 310-ЭС21-2741", "supreme_court_ruling"),
-        ("law-source/consultant/lower-court.xml", "Постановление Девятого кассационного суда общей юрисдикции", "lower_court_ruling"),
-        ("law-source/consultant/fas-order.xml", "Приказ ФАС России от 25.05.2012 N 339", "antimonopoly_decision"),
-        ("law-source/consultant/fas-decision.xml", "Решение ФАС России от 06.11.2025 по делу N 28_06_105-4409_20", "antimonopoly_decision"),
+        (
+            "law-source/consultant/code-amendment.xml",
+            "Обзор изменений Гражданского кодекса Российской Федерации",
+            "code_amendment_overview",
+        ),
+        (
+            "law-source/consultant/court-practice.xml",
+            "Обзор судебной практики Верховного Суда Российской Федерации",
+            "court_practice_review",
+        ),
+        (
+            "law-source/consultant/fas-review.xml",
+            "Обзор недостатков и нарушений, выявленных Федеральным казначейством",
+            "fas_review",
+        ),
+        (
+            "law-source/consultant/gov-resolution.xml",
+            "Постановление Правительства РФ от 29.12.2021 N 2571",
+            "government_resolution",
+        ),
+        (
+            "law-source/consultant/ks-postanovlenie.xml",
+            "Постановление Конституционного Суда РФ от 18.03.2021 N 7-П",
+            "constitutional_court_ruling",
+        ),
+        (
+            "law-source/consultant/ks-opredelenie.xml",
+            "Определение Конституционного Суда РФ от 30.10.2025 N 2837-О",
+            "constitutional_court_ruling",
+        ),
+        (
+            "law-source/consultant/vs-postanovlenie.xml",
+            "Постановление Верховного Суда РФ от 09.10.2025 N 38-АД25-9-К",
+            "supreme_court_ruling",
+        ),
+        (
+            "law-source/consultant/vs-opredelenie.xml",
+            "Определение Верховного Суда РФ от 05.12.2025 N 310-ЭС21-2741",
+            "supreme_court_ruling",
+        ),
+        (
+            "law-source/consultant/lower-court.xml",
+            "Постановление Девятого кассационного суда общей юрисдикции",
+            "lower_court_ruling",
+        ),
+        (
+            "law-source/consultant/fas-order.xml",
+            "Приказ ФАС России от 25.05.2012 N 339",
+            "antimonopoly_decision",
+        ),
+        (
+            "law-source/consultant/fas-decision.xml",
+            "Решение ФАС России от 06.11.2025 по делу N 28_06_105-4409_20",
+            "antimonopoly_decision",
+        ),
         ("law-source/consultant/doc-list.xml", "Список документов (5)", "document_list"),
-        ("law-source/consultant/list-related.xml", "List-44-FZ-connected documents", "list_related"),
+        (
+            "law-source/consultant/list-related.xml",
+            "List-44-FZ-connected documents",
+            "list_related",
+        ),
     ]
     for path, title, _expected in cases:
         write_consultant_xml(tmp_path / path, title=title)
@@ -134,8 +211,8 @@ def test_build_inventory_surfaces_internal_duplicate_pairs(tmp_path: Path) -> No
     identical_xml = (
         f'<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n'
         f'<w:wordDocument xmlns:w="{_WORDML_NS}" xmlns:o="{_OFFICE_NS}">'
-        f'<o:DocumentProperties><o:Title>Идентичные байты</o:Title></o:DocumentProperties>'
-        f'</w:wordDocument>'
+        f"<o:DocumentProperties><o:Title>Идентичные байты</o:Title></o:DocumentProperties>"
+        f"</w:wordDocument>"
     )
     for path in ("law-source/consultant/orig.xml", "law-source/consultant/dup.xml"):
         target = tmp_path / path
@@ -149,16 +226,21 @@ def test_build_inventory_surfaces_internal_duplicate_pairs(tmp_path: Path) -> No
     pairs = manifest["fixture_hygiene"]["internal_duplicate_pairs"]
     assert len(pairs) == 1
     pair = pairs[0]
-    assert sorted([pair[0], pair[1]]) == sorted([
-        "law-source/consultant/orig.xml",
-        "law-source/consultant/dup.xml",
-    ])
+    assert sorted([pair[0], pair[1]]) == sorted(
+        [
+            "law-source/consultant/orig.xml",
+            "law-source/consultant/dup.xml",
+        ]
+    )
 
 
 def test_build_inventory_falls_through_to_other_document(tmp_path: Path) -> None:
     """A Consultant XML whose title matches no pattern gets other_document."""
     module = load_inventory_module()
-    write_consultant_xml(tmp_path / "law-source/consultant/unknown.xml", title="Какой-то неизвестный тип документа 2025")
+    write_consultant_xml(
+        tmp_path / "law-source/consultant/unknown.xml",
+        title="Какой-то неизвестный тип документа 2025",
+    )
     write_minimal_odt(tmp_path / "law-source/garant/44-fz.odt")
 
     manifest = module.build_inventory(tmp_path)
@@ -172,8 +254,14 @@ def test_build_inventory_fails_when_removed_duplicate_reappears(tmp_path: Path) 
     module = load_inventory_module()
     write_minimal_odt(tmp_path / "law-source/garant/44-fz.odt")
     write_minimal_odt(tmp_path / "law-source/garant/PP_60_27-01-2022.odt")
-    write_consultant_xml(tmp_path / "law-source/consultant/Список документов (5).xml", title="Список документов (5)")
-    write_consultant_xml(tmp_path / "law-source/consultant/federalnyi-zakon-ot-05-04-2013-n-44-fz-red-ot-28-12-2025-o-kontraktnoi-sisteme-v-sfere-zakupok-tovarov-rabot-uslug-dlya-obespecheniya-g--f9c8ca4c.xml", title="Федеральный закон от 05.04.2013 N 44-ФЗ")
+    write_consultant_xml(
+        tmp_path / "law-source/consultant/Список документов (5).xml", title="Список документов (5)"
+    )
+    write_consultant_xml(
+        tmp_path
+        / "law-source/consultant/federalnyi-zakon-ot-05-04-2013-n-44-fz-red-ot-28-12-2025-o-kontraktnoi-sisteme-v-sfere-zakupok-tovarov-rabot-uslug-dlya-obespecheniya-g--f9c8ca4c.xml",
+        title="Федеральный закон от 05.04.2013 N 44-ФЗ",
+    )
     duplicate = tmp_path / "law-source/Список документов (5).xml"
     duplicate.write_text("<wordDocument />", encoding="utf-8")
 
@@ -182,7 +270,10 @@ def test_build_inventory_fails_when_removed_duplicate_reappears(tmp_path: Path) 
     assert manifest["status"] == "fail"
     assert manifest["duplicate_check"]["duplicate_absent"] is False
     assert manifest["fixture_hygiene"]["removed_duplicate_status"]["absent"] is False
-    assert "law-source/Список документов (5).xml" in manifest["fixture_hygiene"]["unexpected_duplicate_paths"]
+    assert (
+        "law-source/Список документов (5).xml"
+        in manifest["fixture_hygiene"]["unexpected_duplicate_paths"]
+    )
 
 
 def test_build_inventory_fails_when_stated_pp_mismatch_path_reappears(tmp_path: Path) -> None:
@@ -190,8 +281,14 @@ def test_build_inventory_fails_when_stated_pp_mismatch_path_reappears(tmp_path: 
     write_minimal_odt(tmp_path / "law-source/garant/44-fz.odt")
     write_minimal_odt(tmp_path / "law-source/garant/PP_60_27-01-2022.odt")
     write_minimal_odt(tmp_path / "law-source/garant/PP_60_27-02-2022.odt")
-    write_consultant_xml(tmp_path / "law-source/consultant/Список документов (5).xml", title="Список документов (5)")
-    write_consultant_xml(tmp_path / "law-source/consultant/federalnyi-zakon-ot-05-04-2013-n-44-fz-red-ot-28-12-2025-o-kontraktnoi-sisteme-v-sfere-zakupok-tovarov-rabot-uslug-dlya-obespecheniya-g--f9c8ca4c.xml", title="Федеральный закон от 05.04.2013 N 44-ФЗ")
+    write_consultant_xml(
+        tmp_path / "law-source/consultant/Список документов (5).xml", title="Список документов (5)"
+    )
+    write_consultant_xml(
+        tmp_path
+        / "law-source/consultant/federalnyi-zakon-ot-05-04-2013-n-44-fz-red-ot-28-12-2025-o-kontraktnoi-sisteme-v-sfere-zakupok-tovarov-rabot-uslug-dlya-obespecheniya-g--f9c8ca4c.xml",
+        title="Федеральный закон от 05.04.2013 N 44-ФЗ",
+    )
 
     manifest = module.build_inventory(tmp_path)
 
@@ -200,15 +297,24 @@ def test_build_inventory_fails_when_stated_pp_mismatch_path_reappears(tmp_path: 
     assert mismatch["observed_path"] == "law-source/garant/PP_60_27-01-2022.odt"
     assert mismatch["stated_path"] == "law-source/garant/PP_60_27-02-2022.odt"
     assert mismatch["stated_exists"] is True
-    assert "law-source/garant/PP_60_27-02-2022.odt" in manifest["fixture_hygiene"]["unexpected_duplicate_paths"]
+    assert (
+        "law-source/garant/PP_60_27-02-2022.odt"
+        in manifest["fixture_hygiene"]["unexpected_duplicate_paths"]
+    )
 
 
 def test_check_outputs_detects_stale_artifacts(tmp_path: Path) -> None:
     module = load_inventory_module()
     write_minimal_odt(tmp_path / "law-source/garant/44-fz.odt")
     write_minimal_odt(tmp_path / "law-source/garant/PP_60_27-01-2022.odt")
-    write_consultant_xml(tmp_path / "law-source/consultant/Список документов (5).xml", title="Список документов (5)")
-    write_consultant_xml(tmp_path / "law-source/consultant/federalnyi-zakon-ot-05-04-2013-n-44-fz-red-ot-28-12-2025-o-kontraktnoi-sisteme-v-sfere-zakupok-tovarov-rabot-uslug-dlya-obespecheniya-g--f9c8ca4c.xml", title="Федеральный закон от 05.04.2013 N 44-ФЗ")
+    write_consultant_xml(
+        tmp_path / "law-source/consultant/Список документов (5).xml", title="Список документов (5)"
+    )
+    write_consultant_xml(
+        tmp_path
+        / "law-source/consultant/federalnyi-zakon-ot-05-04-2013-n-44-fz-red-ot-28-12-2025-o-kontraktnoi-sisteme-v-sfere-zakupok-tovarov-rabot-uslug-dlya-obespecheniya-g--f9c8ca4c.xml",
+        title="Федеральный закон от 05.04.2013 N 44-ФЗ",
+    )
     manifest = module.build_inventory(tmp_path)
     module.write_outputs(tmp_path, manifest)
     (tmp_path / module.JSON_OUTPUT).write_text("{}\n", encoding="utf-8")
@@ -239,10 +345,15 @@ def test_repository_outputs_are_current_and_report_non_claims() -> None:
     markdown = (ROOT / "prd/parser/source_fixture_inventory.md").read_text(encoding="utf-8")
     assert "This inventory does not claim parser completeness." in markdown
     assert "This inventory does not claim legal correctness" in markdown
-    assert "Consultant document-list WordML XML is classified only as a relation fixture" in markdown
+    assert (
+        "Consultant document-list WordML XML is classified only as a relation fixture" in markdown
+    )
     assert "Consultant full-act WordML XML is the M009 primary source fixture" in markdown
     assert "Garant ODT work is lower-priority/deferred from M009" in markdown
-    assert "law-source/consultant/federalnyi-zakon-ot-05-04-2013-n-44-fz-red-ot-28-12-2025-o-kontraktnoi-sisteme-v-sfere-zakupok-tovarov-rabot-uslug-dlya-obespecheniya-g--f9c8ca4c.xml" in markdown
+    assert (
+        "law-source/consultant/federalnyi-zakon-ot-05-04-2013-n-44-fz-red-ot-28-12-2025-o-kontraktnoi-sisteme-v-sfere-zakupok-tovarov-rabot-uslug-dlya-obespecheniya-g--f9c8ca4c.xml"
+        in markdown
+    )
     # M105 migration: full-normative-act -> full-act in markdown (source_role preserved in JSON)
     assert "full-act" in markdown
     assert "## Fixture hygiene" in markdown

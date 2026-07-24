@@ -11,7 +11,10 @@ from typing import Any
 ROOT = Path(__file__).resolve().parents[1]
 BUILDER = ROOT / "scripts/build-materialized-descriptor-inputs.py"
 VERIFIER = ROOT / "scripts/verify-materialized-descriptor-inputs.py"
-MANIFEST = ROOT / "prd/research/ontology_architecture_requirements/fixtures/materialized_descriptor_inputs.json"
+MANIFEST = (
+    ROOT
+    / "prd/research/ontology_architecture_requirements/fixtures/materialized_descriptor_inputs.json"
+)
 
 
 def load_module(path: Path, name: str) -> ModuleType:
@@ -32,7 +35,9 @@ def load_manifest() -> dict[str, Any]:
 
 def write_manifest(tmp_path: Path, payload: dict[str, Any]) -> Path:
     path = tmp_path / "materialized_descriptor_inputs.json"
-    path.write_text(json.dumps(payload, ensure_ascii=False, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    path.write_text(
+        json.dumps(payload, ensure_ascii=False, indent=2, sort_keys=True) + "\n", encoding="utf-8"
+    )
     return path
 
 
@@ -79,7 +84,9 @@ def test_builder_emits_manifest_with_safe_derivation_fields() -> None:
 
 
 def test_cli_verifier_emits_compact_json() -> None:
-    completed = subprocess.run([sys.executable, str(VERIFIER)], cwd=ROOT, check=False, text=True, capture_output=True)
+    completed = subprocess.run(
+        [sys.executable, str(VERIFIER)], cwd=ROOT, check=False, text=True, capture_output=True
+    )
 
     assert completed.returncode == 0
     payload = json.loads(completed.stdout)
@@ -96,7 +103,17 @@ def test_manifest_shape_and_forbidden_fragment_absence() -> None:
     assert manifest["r038_review_required"] is True
     assert manifest["redaction"]["source_text_excluded"] is True
     assert manifest["redaction"]["expected_answer_fields_excluded_from_descriptor_inputs"] is True
-    for forbidden in ("Федеральный закон", "Статья ", "raw_legal_text", "source_excerpt", "provider_payload", "expected_label", "expected_candidate_ids", ".gsd/exec", "/root/"):
+    for forbidden in (
+        "Федеральный закон",
+        "Статья ",
+        "raw_legal_text",
+        "source_excerpt",
+        "provider_payload",
+        "expected_label",
+        "expected_candidate_ids",
+        ".gsd/exec",
+        "/root/",
+    ):
         assert forbidden not in serialized
 
 
@@ -120,7 +137,9 @@ def test_fails_closed_for_forbidden_raw_text_fragment(tmp_path: Path) -> None:
 
 def test_fails_closed_for_absolute_path(tmp_path: Path) -> None:
     manifest = load_manifest()
-    manifest["materialization_source"] = "/root/law-nexus/prd/research/ontology_architecture_requirements/parser_evidence_span_materialization.json"
+    manifest["materialization_source"] = (
+        "/root/law-nexus/prd/research/ontology_architecture_requirements/parser_evidence_span_materialization.json"
+    )
     expect_error(write_manifest(tmp_path, manifest), "unsafe absolute path")
 
 
@@ -142,7 +161,9 @@ def test_fails_closed_for_invalid_enum(tmp_path: Path) -> None:
 
 def test_fails_closed_for_token_mismatch(tmp_path: Path) -> None:
     manifest = load_manifest()
-    manifest["query_descriptors"][0]["descriptor_tokens"] = manifest["query_descriptors"][0]["descriptor_tokens"][:-1]
+    manifest["query_descriptors"][0]["descriptor_tokens"] = manifest["query_descriptors"][0][
+        "descriptor_tokens"
+    ][:-1]
     expect_error(write_manifest(tmp_path, manifest), "descriptor token mismatch")
 
 

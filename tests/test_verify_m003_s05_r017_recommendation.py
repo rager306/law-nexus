@@ -22,7 +22,9 @@ UPSTREAM_PATHS = {
 
 
 def load_verifier() -> ModuleType:
-    spec = importlib.util.spec_from_file_location("verify_m003_s05_r017_recommendation", SCRIPT_PATH)
+    spec = importlib.util.spec_from_file_location(
+        "verify_m003_s05_r017_recommendation", SCRIPT_PATH
+    )
     assert spec is not None
     module = importlib.util.module_from_spec(spec)
     assert spec.loader is not None
@@ -48,7 +50,10 @@ def closure_payload() -> dict[str, object]:
 
 @pytest.fixture()
 def upstream_payloads() -> dict[str, dict[str, object]]:
-    return {slice_id: json.loads(path.read_text(encoding="utf-8")) for slice_id, path in UPSTREAM_PATHS.items()}
+    return {
+        slice_id: json.loads(path.read_text(encoding="utf-8"))
+        for slice_id, path in UPSTREAM_PATHS.items()
+    }
 
 
 def write_case(
@@ -120,14 +125,22 @@ def test_current_recommendation_matches_current_evidence(verifier: ModuleType) -
     assert result.ok, result.errors
 
 
-def test_derives_current_pyo3_category(verifier: ModuleType, closure_payload: dict[str, object], upstream_payloads: dict[str, dict[str, object]]) -> None:
+def test_derives_current_pyo3_category(
+    verifier: ModuleType,
+    closure_payload: dict[str, object],
+    upstream_payloads: dict[str, dict[str, object]],
+) -> None:
     result = verifier.VerificationResult()
 
     assert verifier.derive_category(closure_payload, upstream_payloads, result) == "pursue-pyo3"
     assert result.ok
 
 
-def test_derives_all_confirmed_upgrade_eligibility(verifier: ModuleType, closure_payload: dict[str, object], upstream_payloads: dict[str, dict[str, object]]) -> None:
+def test_derives_all_confirmed_upgrade_eligibility(
+    verifier: ModuleType,
+    closure_payload: dict[str, object],
+    upstream_payloads: dict[str, dict[str, object]],
+) -> None:
     closure, upstream = make_all_confirmed(closure_payload, upstream_payloads)
     result = verifier.VerificationResult()
 
@@ -144,7 +157,13 @@ def test_rejects_missing_evidence_rows(
     upstream_payloads: dict[str, dict[str, object]],
     row: str,
 ) -> None:
-    errors = errors_for(verifier, tmp_path, recommendation_text.replace(f"| {row} |", "| missing |", 1), closure_payload, upstream_payloads)
+    errors = errors_for(
+        verifier,
+        tmp_path,
+        recommendation_text.replace(f"| {row} |", "| missing |", 1),
+        closure_payload,
+        upstream_payloads,
+    )
 
     assert any(f"missing {row} row" in error for error in errors)
 
@@ -183,7 +202,13 @@ def test_rejects_forbidden_product_and_legal_answer_claims(
     upstream_payloads: dict[str, dict[str, object]],
     overclaim: str,
 ) -> None:
-    errors = errors_for(verifier, tmp_path, recommendation_text + f"\n{overclaim}\n", closure_payload, upstream_payloads)
+    errors = errors_for(
+        verifier,
+        tmp_path,
+        recommendation_text + f"\n{overclaim}\n",
+        closure_payload,
+        upstream_payloads,
+    )
 
     assert any("forbidden overclaim" in error for error in errors)
 
@@ -210,7 +235,13 @@ def test_rejects_raw_secret_and_think_contamination(
     upstream_payloads: dict[str, dict[str, object]],
     raw_or_secret_like: str,
 ) -> None:
-    errors = errors_for(verifier, tmp_path, recommendation_text + f"\n{raw_or_secret_like}\n", closure_payload, upstream_payloads)
+    errors = errors_for(
+        verifier,
+        tmp_path,
+        recommendation_text + f"\n{raw_or_secret_like}\n",
+        closure_payload,
+        upstream_payloads,
+    )
 
     assert any("forbidden" in error for error in errors)
 
@@ -222,7 +253,13 @@ def test_rejects_missing_r017_active_language(
     closure_payload: dict[str, object],
     upstream_payloads: dict[str, dict[str, object]],
 ) -> None:
-    errors = errors_for(verifier, tmp_path, recommendation_text.replace("R017 remains active", "R017 remains pending", 1), closure_payload, upstream_payloads)
+    errors = errors_for(
+        verifier,
+        tmp_path,
+        recommendation_text.replace("R017 remains active", "R017 remains pending", 1),
+        closure_payload,
+        upstream_payloads,
+    )
 
     assert any("R017 remains active" in error for error in errors)
 
@@ -247,12 +284,23 @@ def test_rejects_missing_explicit_non_claims(
     upstream_payloads: dict[str, dict[str, object]],
     required_non_claim: str,
 ) -> None:
-    errors = errors_for(verifier, tmp_path, recommendation_text.replace(required_non_claim, ""), closure_payload, upstream_payloads)
+    errors = errors_for(
+        verifier,
+        tmp_path,
+        recommendation_text.replace(required_non_claim, ""),
+        closure_payload,
+        upstream_payloads,
+    )
 
     assert any("missing explicit non-claims" in error for error in errors)
 
 
-def test_fails_closed_on_invalid_closure_json(verifier: ModuleType, tmp_path: Path, recommendation_text: str, upstream_payloads: dict[str, dict[str, object]]) -> None:
+def test_fails_closed_on_invalid_closure_json(
+    verifier: ModuleType,
+    tmp_path: Path,
+    recommendation_text: str,
+    upstream_payloads: dict[str, dict[str, object]],
+) -> None:
     recommendation = tmp_path / "recommendation.md"
     closure = tmp_path / "closure.json"
     recommendation.write_text(recommendation_text, encoding="utf-8")
@@ -286,12 +334,22 @@ def test_rejects_missing_category_line(
     closure_payload: dict[str, object],
     upstream_payloads: dict[str, dict[str, object]],
 ) -> None:
-    errors = errors_for(verifier, tmp_path, recommendation_text.replace("**Recommendation category:**", "**Recommendation:**", 1), closure_payload, upstream_payloads)
+    errors = errors_for(
+        verifier,
+        tmp_path,
+        recommendation_text.replace("**Recommendation category:**", "**Recommendation:**", 1),
+        closure_payload,
+        upstream_payloads,
+    )
 
     assert any("missing canonical recommendation category line" in error for error in errors)
 
 
-def test_route_regression_falls_back_to_rest_baseline(verifier: ModuleType, closure_payload: dict[str, object], upstream_payloads: dict[str, dict[str, object]]) -> None:
+def test_route_regression_falls_back_to_rest_baseline(
+    verifier: ModuleType,
+    closure_payload: dict[str, object],
+    upstream_payloads: dict[str, dict[str, object]],
+) -> None:
     closure = copy.deepcopy(closure_payload)
     upstream = copy.deepcopy(upstream_payloads)
     assert isinstance(closure["upstream_artifacts"], dict)
@@ -304,7 +362,11 @@ def test_route_regression_falls_back_to_rest_baseline(verifier: ModuleType, clos
     assert result.ok
 
 
-def test_safety_regression_defers(verifier: ModuleType, closure_payload: dict[str, object], upstream_payloads: dict[str, dict[str, object]]) -> None:
+def test_safety_regression_defers(
+    verifier: ModuleType,
+    closure_payload: dict[str, object],
+    upstream_payloads: dict[str, dict[str, object]],
+) -> None:
     closure = copy.deepcopy(closure_payload)
     upstream = copy.deepcopy(upstream_payloads)
     assert isinstance(closure["upstream_artifacts"], dict)

@@ -32,18 +32,24 @@ def run_builder(*args: str) -> subprocess.CompletedProcess[str]:
 
 
 def load_jsonl(path: Path) -> list[dict[str, Any]]:
-    return [json.loads(line) for line in path.read_text(encoding="utf-8").splitlines() if line.strip()]
+    return [
+        json.loads(line) for line in path.read_text(encoding="utf-8").splitlines() if line.strip()
+    ]
 
 
 def write_jsonl(path: Path, records: list[dict[str, Any]]) -> None:
     path.write_text(
-        "".join(json.dumps(record, ensure_ascii=False, sort_keys=True) + "\n" for record in records),
+        "".join(
+            json.dumps(record, ensure_ascii=False, sort_keys=True) + "\n" for record in records
+        ),
         encoding="utf-8",
     )
 
 
 def load_schema_test_module():
-    spec = importlib.util.spec_from_file_location("architecture_registry_schema_tests", SCHEMA_TESTS)
+    spec = importlib.util.spec_from_file_location(
+        "architecture_registry_schema_tests", SCHEMA_TESTS
+    )
     assert spec is not None
     module = importlib.util.module_from_spec(spec)
     assert spec.loader is not None
@@ -127,8 +133,14 @@ def test_acp_canonical_integration_report_is_safe() -> None:
 
     assert report["status"] == "ok"
     assert report["mode"] == "enabled"
-    assert report["graph_summary"]["report_json"] == "prd/architecture/acp/derived/canonical-integration-graph-report.json"
-    assert report["graph_summary"]["report_md"] == "prd/architecture/acp/derived/canonical-integration-graph-report.md"
+    assert (
+        report["graph_summary"]["report_json"]
+        == "prd/architecture/acp/derived/canonical-integration-graph-report.json"
+    )
+    assert (
+        report["graph_summary"]["report_md"]
+        == "prd/architecture/acp/derived/canonical-integration-graph-report.md"
+    )
     assert "/root/" not in report_text
     assert ".gsd/exec" not in report_text
     assert "sk-" not in report_text
@@ -161,7 +173,14 @@ def test_acp_canonical_integration_rejects_duplicate_ids(tmp_path: Path) -> None
     write_jsonl(duplicate_items, acp_records)
     duplicate_edges.write_text(ACP_EDGES.read_text(encoding="utf-8"), encoding="utf-8")
 
-    result = run_with_temp_outputs(tmp_path, "--include-acp", "--acp-items", str(duplicate_items), "--acp-edges", str(duplicate_edges))
+    result = run_with_temp_outputs(
+        tmp_path,
+        "--include-acp",
+        "--acp-items",
+        str(duplicate_items),
+        "--acp-edges",
+        str(duplicate_edges),
+    )
 
     assert result.returncode == 1
     payload = json.loads(result.stdout)
@@ -184,7 +203,9 @@ def test_acp_canonical_integration_rejects_broken_endpoint(tmp_path: Path) -> No
 def test_acp_canonical_integration_rejects_missing_non_claim(tmp_path: Path) -> None:
     invalid_items = tmp_path / "acp-items.jsonl"
     acp_records = load_jsonl(ACP_ITEMS)
-    acp_records[0]["non_claims"] = [claim for claim in acp_records[0]["non_claims"] if claim != "Does not validate R035."]
+    acp_records[0]["non_claims"] = [
+        claim for claim in acp_records[0]["non_claims"] if claim != "Does not validate R035."
+    ]
     write_jsonl(invalid_items, acp_records)
 
     result = run_with_temp_outputs(tmp_path, "--include-acp", "--acp-items", str(invalid_items))
@@ -213,7 +234,9 @@ def test_acp_canonical_integration_refuses_canonical_output_paths() -> None:
     before_items = CANONICAL_ITEMS.read_text(encoding="utf-8")
     before_edges = CANONICAL_EDGES.read_text(encoding="utf-8")
 
-    result = run_builder("--include-acp", "--items-output", str(CANONICAL_ITEMS), "--edges-output", str(EDGES_OUTPUT))
+    result = run_builder(
+        "--include-acp", "--items-output", str(CANONICAL_ITEMS), "--edges-output", str(EDGES_OUTPUT)
+    )
 
     assert result.returncode == 1
     payload = json.loads(result.stdout)

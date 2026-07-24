@@ -152,7 +152,9 @@ def test_models_accept_one_valid_record_per_kind() -> None:
         (relation_payload, "relation_candidate"),
     ],
 )
-def test_parser_record_adapter_discriminates_record_kinds(payload_factory, expected_kind: str) -> None:
+def test_parser_record_adapter_discriminates_record_kinds(
+    payload_factory, expected_kind: str
+) -> None:
     module = load_parser_records_module()
 
     record = module.parse_parser_record(payload_factory())
@@ -164,14 +166,19 @@ def test_parser_record_adapter_discriminates_record_kinds(payload_factory, expec
     ("mutator", "expected_fragment"),
     [
         (lambda payload: payload.update({"source_path": "/tmp/44-fz.odt"}), "source_path"),
-        (lambda payload: payload.update({"source_path": "../law-source/garant/44-fz.odt"}), "source_path"),
+        (
+            lambda payload: payload.update({"source_path": "../law-source/garant/44-fz.odt"}),
+            "source_path",
+        ),
         (lambda payload: payload.pop("source_sha256"), "source_sha256"),
         (lambda payload: payload.update({"id": "BAD-44-FZ"}), "DOC-"),
         (lambda payload: payload.update({"source_sha256": "A" * 64}), "sha256"),
         (lambda payload: payload.update({"non_authoritative": False}), "non_authoritative"),
     ],
 )
-def test_document_validation_rejects_malformed_provenance_and_claims(mutator, expected_fragment: str) -> None:
+def test_document_validation_rejects_malformed_provenance_and_claims(
+    mutator, expected_fragment: str
+) -> None:
     module = load_parser_records_module()
     payload = document_payload()
     mutator(payload)
@@ -290,7 +297,9 @@ def test_jsonl_validation_diagnostics_include_file_line_record_and_field(tmp_pat
     assert invalid["message"]
 
 
-def test_consultant_hierarchy_jsonl_diagnostics_include_level_and_parent_context(tmp_path: Path) -> None:
+def test_consultant_hierarchy_jsonl_diagnostics_include_level_and_parent_context(
+    tmp_path: Path,
+) -> None:
     module = load_parser_records_module()
     jsonl = tmp_path / "hierarchy.jsonl"
     payload = consultant_hierarchy_payload()
@@ -392,7 +401,9 @@ def test_cli_malformed_jsonl_diagnostics_are_actionable_and_provenance_safe(tmp_
 
 
 def test_cli_expected_kind_mismatch_reports_record_context() -> None:
-    result = run_contract_cli("--kind", "document", "prd/parser/examples/relation_candidate_records.jsonl")
+    result = run_contract_cli(
+        "--kind", "document", "prd/parser/examples/relation_candidate_records.jsonl"
+    )
 
     assert result.returncode == 1
     summary = parse_cli_summary(result)
@@ -408,7 +419,11 @@ def test_cli_expected_kind_mismatch_reports_record_context() -> None:
 
 
 def test_parser_contract_docs_preserve_explicit_non_claim_wording() -> None:
-    combined = README_PATH.read_text(encoding="utf-8") + "\n" + CONTRACT_REPORT_PATH.read_text(encoding="utf-8")
+    combined = (
+        README_PATH.read_text(encoding="utf-8")
+        + "\n"
+        + CONTRACT_REPORT_PATH.read_text(encoding="utf-8")
+    )
 
     for phrase in [
         "parser completeness",

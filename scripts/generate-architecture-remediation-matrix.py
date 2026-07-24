@@ -17,7 +17,9 @@ from typing import Any
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_REPORT_JSON_PATH = ROOT / "prd/architecture/architecture_graph_report.json"
 DEFAULT_ITEMS_JSONL_PATH = ROOT / "prd/architecture/architecture_items.jsonl"
-DEFAULT_R04_RECOMMENDATIONS_PATH = ROOT / "prd/architecture/review_findings/04/06_recommendations.json"
+DEFAULT_R04_RECOMMENDATIONS_PATH = (
+    ROOT / "prd/architecture/review_findings/04/06_recommendations.json"
+)
 DEFAULT_MATRIX_JSON_PATH = ROOT / "prd/architecture/remediation_matrix.json"
 DEFAULT_MATRIX_MD_PATH = ROOT / "prd/architecture/remediation_matrix.md"
 
@@ -118,24 +120,78 @@ GATE_DECISIONS: dict[str, dict[str, Any]] = {
 }
 
 R04_DISPOSITIONS: dict[str, dict[str, str]] = {
-    "R04-REC-001": {"status": "implemented-s01", "next": "Keep as coverage baseline; do not treat one record per layer as completeness."},
-    "R04-REC-002": {"status": "implemented-s01", "next": "Keep connectivity visible in graph report; reassess if new orphan findings appear."},
-    "R04-REC-003": {"status": "implemented-s01-open-gates", "next": "Use proof-gate rows to split concrete product/runtime proof work."},
-    "R04-REC-004": {"status": "downstream-s03", "next": "Project FR/NFR coverage only after S02 matrix classifies current gates and deferrals."},
-    "R04-REC-005": {"status": "implemented-s01", "next": "Use parser bridge records as inputs for parser/retrieval golden-test proof."},
-    "R04-REC-006": {"status": "implemented-s01", "next": "Use temporal records as inputs for temporal conflict policy and fixture tests."},
-    "R04-REC-007": {"status": "defer-s04", "next": "Handle anchor line ranges/quote hashes as a minor hardening pass."},
-    "R04-REC-008": {"status": "defer-s04", "next": "Document schema evolution policy after blocker/major proof tracks are split."},
-    "R04-REC-009": {"status": "implemented-s01", "next": "Claims ledger now includes claim-domain separation."},
-    "R04-REC-010": {"status": "defer-s04", "next": "Decide report/dashboard roles in minor recommendation disposition."},
-    "R04-REC-011": {"status": "defer-s04", "next": "Document edge confidence semantics or schedule schema v2 work."},
-    "R04-REC-012": {"status": "defer-s04", "next": "Document CI/regenerate hook recipe after matrix/check workflow stabilizes."},
-    "R04-REC-013": {"status": "defer-s04", "next": "Decide schema-level versus extractor-level ID prefix enforcement."},
-    "R04-REC-014": {"status": "downstream-s03", "next": "Use coverage metrics only with explicit non-readiness caveat."},
-    "R04-REC-015": {"status": "partially-implemented-s01", "next": "S04 should decide whether additional risks edges are necessary or whether current coverage is sufficient."},
-    "R04-REC-016": {"status": "defer-s04", "next": "Fixture-test contradiction/supersession branches without adding fake production edges."},
-    "R04-REC-017": {"status": "partially-implemented-s01", "next": "Verifier summary has a non-authoritative boundary; S04 can decide whether to add a longer CLI prose card."},
-    "R04-REC-018": {"status": "defer-s04", "next": "Document .gsd path stability assumption or path-mapping response procedure."},
+    "R04-REC-001": {
+        "status": "implemented-s01",
+        "next": "Keep as coverage baseline; do not treat one record per layer as completeness.",
+    },
+    "R04-REC-002": {
+        "status": "implemented-s01",
+        "next": "Keep connectivity visible in graph report; reassess if new orphan findings appear.",
+    },
+    "R04-REC-003": {
+        "status": "implemented-s01-open-gates",
+        "next": "Use proof-gate rows to split concrete product/runtime proof work.",
+    },
+    "R04-REC-004": {
+        "status": "downstream-s03",
+        "next": "Project FR/NFR coverage only after S02 matrix classifies current gates and deferrals.",
+    },
+    "R04-REC-005": {
+        "status": "implemented-s01",
+        "next": "Use parser bridge records as inputs for parser/retrieval golden-test proof.",
+    },
+    "R04-REC-006": {
+        "status": "implemented-s01",
+        "next": "Use temporal records as inputs for temporal conflict policy and fixture tests.",
+    },
+    "R04-REC-007": {
+        "status": "defer-s04",
+        "next": "Handle anchor line ranges/quote hashes as a minor hardening pass.",
+    },
+    "R04-REC-008": {
+        "status": "defer-s04",
+        "next": "Document schema evolution policy after blocker/major proof tracks are split.",
+    },
+    "R04-REC-009": {
+        "status": "implemented-s01",
+        "next": "Claims ledger now includes claim-domain separation.",
+    },
+    "R04-REC-010": {
+        "status": "defer-s04",
+        "next": "Decide report/dashboard roles in minor recommendation disposition.",
+    },
+    "R04-REC-011": {
+        "status": "defer-s04",
+        "next": "Document edge confidence semantics or schedule schema v2 work.",
+    },
+    "R04-REC-012": {
+        "status": "defer-s04",
+        "next": "Document CI/regenerate hook recipe after matrix/check workflow stabilizes.",
+    },
+    "R04-REC-013": {
+        "status": "defer-s04",
+        "next": "Decide schema-level versus extractor-level ID prefix enforcement.",
+    },
+    "R04-REC-014": {
+        "status": "downstream-s03",
+        "next": "Use coverage metrics only with explicit non-readiness caveat.",
+    },
+    "R04-REC-015": {
+        "status": "partially-implemented-s01",
+        "next": "S04 should decide whether additional risks edges are necessary or whether current coverage is sufficient.",
+    },
+    "R04-REC-016": {
+        "status": "defer-s04",
+        "next": "Fixture-test contradiction/supersession branches without adding fake production edges.",
+    },
+    "R04-REC-017": {
+        "status": "partially-implemented-s01",
+        "next": "Verifier summary has a non-authoritative boundary; S04 can decide whether to add a longer CLI prose card.",
+    },
+    "R04-REC-018": {
+        "status": "defer-s04",
+        "next": "Document .gsd path stability assumption or path-mapping response procedure.",
+    },
 }
 
 
@@ -199,11 +255,15 @@ def validate_r04_dispositions(recommendations: dict[str, Any]) -> list[str]:
     if missing:
         errors.append(f"missing R04 disposition rows: {', '.join(missing)}")
     if stale:
-        errors.append(f"stale R04 disposition rows not present in recommendations: {', '.join(stale)}")
+        errors.append(
+            f"stale R04 disposition rows not present in recommendations: {', '.join(stale)}"
+        )
     return errors
 
 
-def build_matrix(report: dict[str, Any], items: dict[str, dict[str, Any]], recommendations: dict[str, Any]) -> dict[str, Any]:
+def build_matrix(
+    report: dict[str, Any], items: dict[str, dict[str, Any]], recommendations: dict[str, Any]
+) -> dict[str, Any]:
     errors = validate_required_gate_decisions(report)
     errors.extend(validate_r04_dispositions(recommendations))
     if errors:
@@ -304,13 +364,15 @@ def render_markdown(matrix: dict[str, Any]) -> str:
     for disposition, count in matrix["summary"]["gate_counts_by_disposition"].items():
         lines.append(f"| {escape_md(disposition)} | {count} |")
 
-    lines.extend([
-        "",
-        "## Gate Remediation Rows",
-        "",
-        "| Gate | Layer | Risk | Disposition | R04 Links | Next Proof Artifact | Target Track |",
-        "| --- | --- | --- | --- | --- | --- | --- |",
-    ])
+    lines.extend(
+        [
+            "",
+            "## Gate Remediation Rows",
+            "",
+            "| Gate | Layer | Risk | Disposition | R04 Links | Next Proof Artifact | Target Track |",
+            "| --- | --- | --- | --- | --- | --- | --- |",
+        ]
+    )
     for row in matrix["gate_rows"]:
         lines.append(
             f"| `{escape_md(row['gate_id'])}` | {escape_md(row['layer'])} | {escape_md(row['risk_level'])} | "
@@ -318,46 +380,53 @@ def render_markdown(matrix: dict[str, Any]) -> str:
             f"{escape_md(row['next_proof_artifact'])} | {escape_md(row['target_track'])} |"
         )
 
-    lines.extend([
-        "",
-        "## Gate Non-Claims",
-        "",
-        "| Gate | Non-Claims |",
-        "| --- | --- |",
-    ])
+    lines.extend(
+        [
+            "",
+            "## Gate Non-Claims",
+            "",
+            "| Gate | Non-Claims |",
+            "| --- | --- |",
+        ]
+    )
     for row in matrix["gate_rows"]:
         lines.append(
-            f"| `{escape_md(row['gate_id'])}` | "
-            f"{escape_md('; '.join(row['non_claims']))} |"
+            f"| `{escape_md(row['gate_id'])}` | {escape_md('; '.join(row['non_claims']))} |"
         )
 
-    lines.extend([
-        "",
-        "## R04 Recommendation Disposition",
-        "",
-        "| Recommendation | Priority | Status | Next |",
-        "| --- | --- | --- | --- |",
-    ])
+    lines.extend(
+        [
+            "",
+            "## R04 Recommendation Disposition",
+            "",
+            "| Recommendation | Priority | Status | Next |",
+            "| --- | --- | --- | --- |",
+        ]
+    )
     for row in matrix["recommendation_rows"]:
         lines.append(
             f"| `{escape_md(row['id'])}` — {escape_md(row['title'])} | "
             f"{escape_md(row['priority'])} | {escape_md(row['status'])} | {escape_md(row['next'])} |"
         )
 
-    lines.extend([
-        "",
-        "## Non-Claims",
-        "",
-    ])
+    lines.extend(
+        [
+            "",
+            "## Non-Claims",
+            "",
+        ]
+    )
     for claim in matrix["non_claims"]:
         lines.append(f"- {escape_md(claim)}")
 
-    lines.extend([
-        "",
-        "---",
-        "",
-        "*Generated from `architecture_graph_report.json`, `architecture_items.jsonl`, and R04 recommendations. Source evidence remains authoritative.*",
-    ])
+    lines.extend(
+        [
+            "",
+            "---",
+            "",
+            "*Generated from `architecture_graph_report.json`, `architecture_items.jsonl`, and R04 recommendations. Source evidence remains authoritative.*",
+        ]
+    )
     return "\n".join(lines) + "\n"
 
 
@@ -370,23 +439,35 @@ def write_atomic(path: Path, content: str) -> None:
 
 def check_output(path: Path, expected: str, label: str) -> bool:
     if not path.exists():
-        print(f"missing {label}: {path}; regenerate with `uv run python scripts/generate-architecture-remediation-matrix.py`", file=sys.stderr)
+        print(
+            f"missing {label}: {path}; regenerate with `uv run python scripts/generate-architecture-remediation-matrix.py`",
+            file=sys.stderr,
+        )
         return False
     actual = path.read_text(encoding="utf-8")
     if actual != expected:
-        print(f"stale {label}: {path}; regenerate with `uv run python scripts/generate-architecture-remediation-matrix.py`", file=sys.stderr)
+        print(
+            f"stale {label}: {path}; regenerate with `uv run python scripts/generate-architecture-remediation-matrix.py`",
+            file=sys.stderr,
+        )
         return False
     return True
 
 
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description="Generate/check the derived architecture remediation matrix.")
+    parser = argparse.ArgumentParser(
+        description="Generate/check the derived architecture remediation matrix."
+    )
     parser.add_argument("--report-json", type=Path, default=DEFAULT_REPORT_JSON_PATH)
     parser.add_argument("--items-jsonl", type=Path, default=DEFAULT_ITEMS_JSONL_PATH)
-    parser.add_argument("--r04-recommendations", type=Path, default=DEFAULT_R04_RECOMMENDATIONS_PATH)
+    parser.add_argument(
+        "--r04-recommendations", type=Path, default=DEFAULT_R04_RECOMMENDATIONS_PATH
+    )
     parser.add_argument("--matrix-json", type=Path, default=DEFAULT_MATRIX_JSON_PATH)
     parser.add_argument("--matrix-md", type=Path, default=DEFAULT_MATRIX_MD_PATH)
-    parser.add_argument("--check", action="store_true", help="Compare expected matrix outputs without rewriting.")
+    parser.add_argument(
+        "--check", action="store_true", help="Compare expected matrix outputs without rewriting."
+    )
     return parser.parse_args(argv)
 
 

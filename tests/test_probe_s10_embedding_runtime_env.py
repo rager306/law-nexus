@@ -23,7 +23,9 @@ def load_probe() -> ModuleType:
 
 
 def load_verifier() -> ModuleType:
-    spec = importlib.util.spec_from_file_location("verify_s10_embedding_runtime_proof", VERIFIER_PATH)
+    spec = importlib.util.spec_from_file_location(
+        "verify_s10_embedding_runtime_proof", VERIFIER_PATH
+    )
     assert spec is not None
     module = importlib.util.module_from_spec(spec)
     assert spec.loader is not None
@@ -122,7 +124,13 @@ def test_package_probe_classifies_missing_imports(monkeypatch) -> None:
 def test_model_entry_fails_closed_when_packages_missing(tmp_path: Path) -> None:
     probe = load_probe()
     candidate = contract_payload()["candidates"][0]
-    hardware = {"python": "3.13", "platform": "linux", "cpu_count": 2, "memory_mib": 4096, "no_swap": True}
+    hardware = {
+        "python": "3.13",
+        "platform": "linux",
+        "cpu_count": 2,
+        "memory_mib": 4096,
+        "no_swap": True,
+    }
 
     model = probe.model_entry(
         candidate,
@@ -181,7 +189,9 @@ def test_main_writes_verifier_compatible_no_download_artifact(tmp_path: Path, mo
         return {"status": "blocked-environment", "missing": list(requirements), "packages": []}
 
     monkeypatch.setattr(probe, "probe_packages", fake_package_probe)
-    exit_code = probe.main(["--contract", str(contract), "--output-dir", str(output_dir), "--no-download"])
+    exit_code = probe.main(
+        ["--contract", str(contract), "--output-dir", str(output_dir), "--no-download"]
+    )
 
     artifact = output_dir / "S10-EMBEDDING-RUNTIME-PROOF.json"
     payload = json.loads(artifact.read_text(encoding="utf-8"))
@@ -198,7 +208,9 @@ def test_main_writes_verifier_compatible_no_download_artifact(tmp_path: Path, mo
     assert payload["confidence_loop"]["question"] == "Ты на 100% уверен в этой стратегии?"
 
 
-def test_allow_download_user_only_marks_user_download_as_allowed(tmp_path: Path, monkeypatch) -> None:
+def test_allow_download_user_only_marks_user_download_as_allowed(
+    tmp_path: Path, monkeypatch
+) -> None:
     probe = load_probe()
     contract = write_contract(tmp_path)
     output_dir = tmp_path / "out"
@@ -208,17 +220,34 @@ def test_allow_download_user_only_marks_user_download_as_allowed(tmp_path: Path,
 
     monkeypatch.setattr(probe, "probe_packages", fake_package_probe)
     monkeypatch.setattr(probe, "huggingface_cache_roots", lambda: (tmp_path / "empty-hf-cache",))
-    monkeypatch.setattr(probe, "hardware_metadata", lambda: {"python": "3.13", "platform": "linux", "cpu_count": 2, "memory_mib": 4096, "no_swap": False, "gpu_probe": {"status": "absent"}, "docker_probe": {"status": "absent"}})
+    monkeypatch.setattr(
+        probe,
+        "hardware_metadata",
+        lambda: {
+            "python": "3.13",
+            "platform": "linux",
+            "cpu_count": 2,
+            "memory_mib": 4096,
+            "no_swap": False,
+            "gpu_probe": {"status": "absent"},
+            "docker_probe": {"status": "absent"},
+        },
+    )
     exit_code = probe.main(
         ["--contract", str(contract), "--output-dir", str(output_dir), "--allow-download-user"]
     )
 
-    payload = json.loads((output_dir / "S10-EMBEDDING-RUNTIME-PROOF.json").read_text(encoding="utf-8"))
+    payload = json.loads(
+        (output_dir / "S10-EMBEDDING-RUNTIME-PROOF.json").read_text(encoding="utf-8")
+    )
     by_id = {model["id"]: model for model in payload["models"]}
 
     assert exit_code == 0
     assert payload["policy"]["downloads"] == "explicit-open-weight-only"
-    assert by_id["deepvk/USER-bge-m3"]["download_status"] == "allowed-download-not-executed-by-env-probe"
+    assert (
+        by_id["deepvk/USER-bge-m3"]["download_status"]
+        == "allowed-download-not-executed-by-env-probe"
+    )
     assert by_id["ai-sage/Giga-Embeddings-instruct"]["download_status"] == "disabled"
 
 

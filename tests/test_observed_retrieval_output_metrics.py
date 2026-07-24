@@ -8,8 +8,14 @@ from typing import Any
 
 ROOT = Path(__file__).resolve().parents[1]
 VERIFIER = ROOT / "scripts/verify-observed-retrieval-output-metrics.py"
-OBSERVED = ROOT / "prd/research/ontology_architecture_requirements/fixtures/observed_retrieval_outputs.json"
-PROOF = ROOT / "prd/research/ontology_architecture_requirements/observed_retrieval_output_metrics_proof.json"
+OBSERVED = (
+    ROOT
+    / "prd/research/ontology_architecture_requirements/fixtures/observed_retrieval_outputs.json"
+)
+PROOF = (
+    ROOT
+    / "prd/research/ontology_architecture_requirements/observed_retrieval_output_metrics_proof.json"
+)
 
 EXPECTED_METRICS = {
     "mrr",
@@ -40,7 +46,9 @@ def load_json(path: Path) -> dict[str, Any]:
 
 def write_json(tmp_path: Path, name: str, payload: dict[str, Any]) -> Path:
     path = tmp_path / name
-    path.write_text(json.dumps(payload, ensure_ascii=False, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    path.write_text(
+        json.dumps(payload, ensure_ascii=False, indent=2, sort_keys=True) + "\n", encoding="utf-8"
+    )
     return path
 
 
@@ -70,7 +78,10 @@ def test_checked_in_proof_shape() -> None:
     assert set(proof["metrics"]) == EXPECTED_METRICS
     assert all(value == 1.0 for value in proof["metrics"].values())
     assert "metric_comparison_verified" in proof["diagnostic_codes"]
-    assert "Does not prove model semantic retrieval quality; observed outputs are safe-ID rule retrieval outputs." in proof["non_claims"]
+    assert (
+        "Does not prove model semantic retrieval quality; observed outputs are safe-ID rule retrieval outputs."
+        in proof["non_claims"]
+    )
 
 
 def test_build_report_with_injected_confirmed_runtime(tmp_path: Path) -> None:
@@ -159,7 +170,9 @@ def test_blocks_inconsistent_diagnostic_metric(tmp_path: Path) -> None:
 def test_blocks_unconfirmed_runtime(tmp_path: Path) -> None:
     verifier = load_module("observed_output_blocked_runtime")
 
-    report = verifier.build_report(OBSERVED, runtime_file(tmp_path, runtime_status="blocked_environment"), timeout_seconds=30)
+    report = verifier.build_report(
+        OBSERVED, runtime_file(tmp_path, runtime_status="blocked_environment"), timeout_seconds=30
+    )
 
     assert report["status"] == "blocked"
     assert "runtime_boundary_confirmed" in report["threshold_failures"]

@@ -24,7 +24,9 @@ DEFAULT_HEALTH_MD_PATH = ROOT / "prd/architecture/architecture_health.md"
 DEFAULT_BLOCKERS_MD_PATH = ROOT / "prd/architecture/product_readiness_blockers.md"
 DEFAULT_CLAIMS_MD_PATH = ROOT / "prd/architecture/claims_ledger.md"
 R035_RUNTIME_PROOF_PATH = "prd/research/ontology_architecture_requirements/ontology_graphrag_runtime_integration_proof.json"
-R035_RUNTIME_REMEDIATION_PATH = "prd/research/ontology_architecture_requirements/13-r035-runtime-integration-remediation.md"
+R035_RUNTIME_REMEDIATION_PATH = (
+    "prd/research/ontology_architecture_requirements/13-r035-runtime-integration-remediation.md"
+)
 
 
 def escape_md(value: Any) -> str:
@@ -96,7 +98,16 @@ R035_RULES: tuple[dict[str, Any], ...] = (
         "minimum_proof_level": "static-check",
     },
     {
-        "terms": ("legal source hierarchy", "source hierarchy", "legal collision policy", "collision policy", "lex superior", "lex specialis", "lex posterior", "supersession"),
+        "terms": (
+            "legal source hierarchy",
+            "source hierarchy",
+            "legal collision policy",
+            "collision policy",
+            "lex superior",
+            "lex specialis",
+            "lex posterior",
+            "supersession",
+        ),
         "safe_bucket": "proof-gated legal-priority candidate",
         "gate": "GATE-LEGAL-COLLISION-POLICY",
         "minimum_proof_level": "static-check",
@@ -204,16 +215,18 @@ def r035_gate_rows(items_lookup: dict[str, dict[str, Any]]) -> list[dict[str, st
                 missing.append("missing owner")
             if not record.get("status"):
                 missing.append("missing status")
-            rows.append({
-                "id": str(record_id),
-                "trigger": ", ".join(matched_terms),
-                "safe_bucket": str(rule["safe_bucket"]),
-                "required_gate": gate_expr,
-                "minimum_proof_level": minimum,
-                "current_status": str(record.get("status", "")),
-                "missing": "; ".join(missing) if missing else "none",
-                "remediation_class": "add-proof-gate" if missing else "none",
-            })
+            rows.append(
+                {
+                    "id": str(record_id),
+                    "trigger": ", ".join(matched_terms),
+                    "safe_bucket": str(rule["safe_bucket"]),
+                    "required_gate": gate_expr,
+                    "minimum_proof_level": minimum,
+                    "current_status": str(record.get("status", "")),
+                    "missing": "; ".join(missing) if missing else "none",
+                    "remediation_class": "add-proof-gate" if missing else "none",
+                }
+            )
             break
     return rows
 
@@ -281,11 +294,13 @@ def render_health_dashboard(
     if drift_counts:
         lines.append(f"| Drift Diagnostics | {total_drift_findings} |")
 
-    lines.extend([
-        "",
-        "---",
-        "",
-    ])
+    lines.extend(
+        [
+            "",
+            "---",
+            "",
+        ]
+    )
 
     if items_lookup:
         buckets = priority_summary(items_lookup)
@@ -299,144 +314,197 @@ def render_health_dashboard(
             key=lambda item: str(item.get("id", "")),
         )
         deferred = deferred_candidates(items_lookup)
-        lines.extend([
-            "## GSD Validation Snapshot",
-            "",
-            "Priority and gate rows below are compact triage metadata only. They do not promote claims, prove product readiness, or replace source anchors.",
-            "",
-            "| Bucket | Diagnostic Class | Count |",
-            "| --- | --- | ---: |",
-        ])
-        for priority, label in (("P0", "critical-gate"), ("P1", "high-priority-blocker"), ("P2", "medium-diagnostic"), ("P3", "backlog-only-signal")):
+        lines.extend(
+            [
+                "## GSD Validation Snapshot",
+                "",
+                "Priority and gate rows below are compact triage metadata only. They do not promote claims, prove product readiness, or replace source anchors.",
+                "",
+                "| Bucket | Diagnostic Class | Count |",
+                "| --- | --- | ---: |",
+            ]
+        )
+        for priority, label in (
+            ("P0", "critical-gate"),
+            ("P1", "high-priority-blocker"),
+            ("P2", "medium-diagnostic"),
+            ("P3", "backlog-only-signal"),
+        ):
             lines.append(f"| {priority} | {label} | {len(buckets[priority])} |")
         lines.extend(["", "### Critical Blockers", ""])
         if critical_blockers:
-            lines.extend(["| ID | Status | Proof Level | Remediation Class |", "| --- | --- | --- | --- |"])
+            lines.extend(
+                ["| ID | Status | Proof Level | Remediation Class |", "| --- | --- | --- | --- |"]
+            )
             for record in critical_blockers[:10]:
-                remediation = "add-proof-gate" if str(record.get("proof_level", "")) == "none" else "downgrade-claim"
-                lines.append(f"| `{escape_md(record.get('id', ''))}` | {escape_md(record.get('status', ''))} | {escape_md(record.get('proof_level', ''))} | {remediation} |")
+                remediation = (
+                    "add-proof-gate"
+                    if str(record.get("proof_level", "")) == "none"
+                    else "downgrade-claim"
+                )
+                lines.append(
+                    f"| `{escape_md(record.get('id', ''))}` | {escape_md(record.get('status', ''))} | {escape_md(record.get('proof_level', ''))} | {remediation} |"
+                )
         else:
             lines.append("No P0 promotion blockers in the generated registry view.")
         lines.extend(["", "### High-Priority Validator Failures", ""])
         if high_priority_failures:
-            lines.extend(["| ID | Status | Proof Level | Remediation Class |", "| --- | --- | --- | --- |"])
+            lines.extend(
+                ["| ID | Status | Proof Level | Remediation Class |", "| --- | --- | --- | --- |"]
+            )
             for record in high_priority_failures[:10]:
-                remediation = "add-proof-gate" if str(record.get("proof_level", "")) == "none" else "add-evidence-class"
-                lines.append(f"| `{escape_md(record.get('id', ''))}` | {escape_md(record.get('status', ''))} | {escape_md(record.get('proof_level', ''))} | {remediation} |")
+                remediation = (
+                    "add-proof-gate"
+                    if str(record.get("proof_level", "")) == "none"
+                    else "add-evidence-class"
+                )
+                lines.append(
+                    f"| `{escape_md(record.get('id', ''))}` | {escape_md(record.get('status', ''))} | {escape_md(record.get('proof_level', ''))} | {remediation} |"
+                )
         else:
             lines.append("No P1 promotion blockers in the generated registry view.")
         lines.extend(["", "### Deferred Candidates", ""])
         if deferred:
-            lines.extend(["| ID | Priority | Status | Safe Handling |", "| --- | --- | --- | --- |"])
+            lines.extend(
+                ["| ID | Priority | Status | Safe Handling |", "| --- | --- | --- | --- |"]
+            )
             for record in deferred[:10]:
                 bucket, label = priority_bucket_for_record(record)
-                lines.append(f"| `{escape_md(record.get('id', ''))}` | {bucket} / {label} | {escape_md(record.get('status', ''))} | defer-to-backlog |")
+                lines.append(
+                    f"| `{escape_md(record.get('id', ''))}` | {bucket} / {label} | {escape_md(record.get('status', ''))} | defer-to-backlog |"
+                )
         else:
-            lines.append("No deferred or proposed backlog candidates in the generated registry view.")
-        lines.extend([
-            "",
-            "### Non-Authoritative Warnings",
-            "",
-            f"- Non-claim statements visible in registry: {non_claims_summary.get('total_non_claims', 0)}.",
-            "- Reports must not include raw legal text, secrets, provider payloads, vectors, prompts, or local-only execution artifact paths.",
-            "- A passing generated view check is not product/runtime/legal validation.",
-            "",
-            "---",
-            "",
-        ])
+            lines.append(
+                "No deferred or proposed backlog candidates in the generated registry view."
+            )
+        lines.extend(
+            [
+                "",
+                "### Non-Authoritative Warnings",
+                "",
+                f"- Non-claim statements visible in registry: {non_claims_summary.get('total_non_claims', 0)}.",
+                "- Reports must not include raw legal text, secrets, provider payloads, vectors, prompts, or local-only execution artifact paths.",
+                "- A passing generated view check is not product/runtime/legal validation.",
+                "",
+                "---",
+                "",
+            ]
+        )
 
     if drift_counts:
-        lines.extend([
-            "## Drift Diagnostics",
-            "",
-            "These verifier findings are non-authoritative diagnostics only. They do not prove product readiness, repair authoritative sources, or imply that derived projection regeneration is safe unless the verifier explicitly marks that drift class as safe to regenerate.",
-            "",
-            "| Drift Kind | Count |",
-            "| --- | ---: |",
-        ])
+        lines.extend(
+            [
+                "## Drift Diagnostics",
+                "",
+                "These verifier findings are non-authoritative diagnostics only. They do not prove product readiness, repair authoritative sources, or imply that derived projection regeneration is safe unless the verifier explicitly marks that drift class as safe to regenerate.",
+                "",
+                "| Drift Kind | Count |",
+                "| --- | ---: |",
+            ]
+        )
         for drift_kind, count in drift_counts.items():
             lines.append(f"| {escape_md(drift_kind)} | {count} |")
-        lines.extend([
-            "",
-            "---",
-            "",
-        ])
+        lines.extend(
+            [
+                "",
+                "---",
+                "",
+            ]
+        )
 
-    lines.extend([
-        "## Layer Coverage",
-        "",
-    ])
+    lines.extend(
+        [
+            "## Layer Coverage",
+            "",
+        ]
+    )
 
     layer_counts = layer_coverage.get("counts", {})
     if layer_counts:
-        lines.extend([
-            "| Layer | Node Count |",
-            "| --- | ---: |",
-        ])
+        lines.extend(
+            [
+                "| Layer | Node Count |",
+                "| --- | ---: |",
+            ]
+        )
         for layer, count in sorted(layer_counts.items()):
             marker = "⚠️" if layer in missing_layers else ""
             lines.append(f"| {escape_md(layer)} {marker} | {count} |")
 
     if missing_layers:
-        lines.extend([
-            "",
-            "### ⚠️  Missing Layers",
-            "",
-            "The following schema layers have no architecture records:",
-            "",
-        ])
+        lines.extend(
+            [
+                "",
+                "### ⚠️  Missing Layers",
+                "",
+                "The following schema layers have no architecture records:",
+                "",
+            ]
+        )
         for layer in sorted(missing_layers):
             lines.append(f"- {escape_md(layer)}")
     else:
-        lines.extend([
-            "",
-            "### ✅  All Schema Layers Covered",
-            "",
-            "Every defined schema layer has at least one architecture record.",
-        ])
+        lines.extend(
+            [
+                "",
+                "### ✅  All Schema Layers Covered",
+                "",
+                "Every defined schema layer has at least one architecture record.",
+            ]
+        )
 
-    lines.extend([
-        "",
-        "---",
-        "",
-        "## Open Proof Gates",
-        "",
-    ])
+    lines.extend(
+        [
+            "",
+            "---",
+            "",
+            "## Open Proof Gates",
+            "",
+        ]
+    )
 
     if unresolved_gates:
-        lines.extend([
-            "| ID | Layer | Owner | Risk | Verification |",
-            "| --- | --- | --- | --- | --- |",
-        ])
+        lines.extend(
+            [
+                "| ID | Layer | Owner | Risk | Verification |",
+                "| --- | --- | --- | --- | --- |",
+            ]
+        )
         for gate in unresolved_gates:
             lines.append(
                 f"| {escape_md(gate.get('id', ''))} | {escape_md(gate.get('layer', ''))} "
                 f"| {escape_md(gate.get('owner', ''))} | {escape_md(gate.get('risk_level', ''))} "
                 f"| {escape_md(gate.get('verification', ''))[:60]}... |"
-                if len(gate.get('verification', '')) > 60
+                if len(gate.get("verification", "")) > 60
                 else f"| {escape_md(gate.get('id', ''))} | {escape_md(gate.get('layer', ''))} "
-                     f"| {escape_md(gate.get('owner', ''))} | {escape_md(gate.get('risk_level', ''))} "
-                     f"| {escape_md(gate.get('verification', ''))} |"
+                f"| {escape_md(gate.get('owner', ''))} | {escape_md(gate.get('risk_level', ''))} "
+                f"| {escape_md(gate.get('verification', ''))} |"
             )
     else:
-        lines.extend([
-            "No unresolved proof gates.",
-            "",
-        ])
+        lines.extend(
+            [
+                "No unresolved proof gates.",
+                "",
+            ]
+        )
 
-    lines.extend([
-        "",
-        "---",
-        "",
-        "## High-Risk Nodes",
-        "",
-    ])
+    lines.extend(
+        [
+            "",
+            "---",
+            "",
+            "## High-Risk Nodes",
+            "",
+        ]
+    )
 
     if high_risk_nodes:
-        lines.extend([
-            "| ID | Risk | Type | Layer | Status | Proof Level |",
-            "| --- | --- | --- | --- | --- | --- |",
-        ])
+        lines.extend(
+            [
+                "| ID | Risk | Type | Layer | Status | Proof Level |",
+                "| --- | --- | --- | --- | --- | --- |",
+            ]
+        )
         for node in high_risk_nodes:
             lines.append(
                 f"| {escape_md(node.get('id', ''))} | "
@@ -447,20 +515,24 @@ def render_health_dashboard(
                 f"{escape_md(node.get('proof_level', ''))} |"
             )
     else:
-        lines.extend([
-            "No high or critical risk nodes.",
-            "",
-        ])
+        lines.extend(
+            [
+                "No high or critical risk nodes.",
+                "",
+            ]
+        )
 
-    lines.extend([
-        "",
-        "---",
-        "",
-        "## Non-Authoritative Boundary",
-        "",
-        "This architecture graph and derived reports **do not** establish or validate:",
-        "",
-    ])
+    lines.extend(
+        [
+            "",
+            "---",
+            "",
+            "## Non-Authoritative Boundary",
+            "",
+            "This architecture graph and derived reports **do not** establish or validate:",
+            "",
+        ]
+    )
 
     non_claims_by_node = non_claims_summary.get("by_node", [])
     if non_claims_by_node:
@@ -477,41 +549,53 @@ def render_health_dashboard(
     else:
         lines.append("No non-claims documented.")
 
-    lines.extend([
-        "",
-        "---",
-        "",
-        "## Orphan Findings",
-        "",
-    ])
+    lines.extend(
+        [
+            "",
+            "---",
+            "",
+            "## Orphan Findings",
+            "",
+        ]
+    )
 
     if orphan_findings:
-        lines.extend([
-            "| ID | Rule |",
-            "| --- | --- |",
-        ])
+        lines.extend(
+            [
+                "| ID | Rule |",
+                "| --- | --- |",
+            ]
+        )
         for finding in orphan_findings:
-            lines.append(f"| {escape_md(finding.get('id', ''))} | {escape_md(finding.get('rule', ''))} |")
+            lines.append(
+                f"| {escape_md(finding.get('id', ''))} | {escape_md(finding.get('rule', ''))} |"
+            )
     else:
-        lines.extend([
-            "No orphan findings.",
-            "",
-        ])
+        lines.extend(
+            [
+                "No orphan findings.",
+                "",
+            ]
+        )
 
-    lines.extend([
-        "",
-        "---",
-        "",
-        "## Weakly Connected Components",
-        "",
-    ])
+    lines.extend(
+        [
+            "",
+            "---",
+            "",
+            "## Weakly Connected Components",
+            "",
+        ]
+    )
 
     weak_components = report.get("weak_components", [])
     if weak_components:
-        lines.extend([
-            "| Size | Node Count |",
-            "| --- | ---: |",
-        ])
+        lines.extend(
+            [
+                "| Size | Node Count |",
+                "| --- | ---: |",
+            ]
+        )
         for comp in sorted(weak_components, key=lambda c: -c["size"])[:10]:  # Top 10 largest
             lines.append(f"| {len(comp.get('nodes', []))} | {comp.get('size', 0)} |")
         if len(weak_components) > 10:
@@ -519,14 +603,16 @@ def render_health_dashboard(
     else:
         lines.append("No weakly connected components.")
 
-    lines.extend([
-        "",
-        "---",
-        "",
-        "*Dashboard generated from `prd/architecture/architecture_graph_report.json`. "
-        "This is a derived, non-authoritative view. Source-of-truth remains with PRD, GSD, ADR, "
-        "and source anchor evidence.*",
-    ])
+    lines.extend(
+        [
+            "",
+            "---",
+            "",
+            "*Dashboard generated from `prd/architecture/architecture_graph_report.json`. "
+            "This is a derived, non-authoritative view. Source-of-truth remains with PRD, GSD, ADR, "
+            "and source anchor evidence.*",
+        ]
+    )
 
     return "\n".join(lines) + "\n"
 
@@ -582,7 +668,8 @@ def render_blockers_report(
     # ── Collect high-risk blocked/bounded evidence ───────────────────────────────
     high_risk_nodes = report.get("high_risk_nodes", [])
     blocked_nodes: list[dict[str, Any]] = [
-        n for n in high_risk_nodes
+        n
+        for n in high_risk_nodes
         if n.get("id", "") not in gate_ids
         and n.get("status", "") in ("blocked", "bounded-evidence")
     ]
@@ -687,21 +774,21 @@ def render_blockers_report(
         "| --- | ---: | ---: |",
     ]
     for area in CAPABILITY_AREAS:
-        lines.append(
-            f"| {area} | {len(gates_by_area[area])} | {len(blocked_by_area[area])} |"
-        )
+        lines.append(f"| {area} | {len(gates_by_area[area])} | {len(blocked_by_area[area])} |")
 
     all_blockers = [*unresolved_gates, *blocked_nodes]
     if all_blockers:
-        lines.extend([
-            "",
-            "## Priority Snapshot",
-            "",
-            "This snapshot is a triage view only; priority does not prove readiness or promote claims.",
-            "",
-            "| Priority | Count | Representative Blockers |",
-            "| --- | ---: | --- |",
-        ])
+        lines.extend(
+            [
+                "",
+                "## Priority Snapshot",
+                "",
+                "This snapshot is a triage view only; priority does not prove readiness or promote claims.",
+                "",
+                "| Priority | Count | Representative Blockers |",
+                "| --- | ---: | --- |",
+            ]
+        )
         by_bucket: dict[str, list[str]] = {"P0": [], "P1": [], "P2": [], "P3": []}
         for blocker in all_blockers:
             record_id = str(blocker.get("id", ""))
@@ -712,7 +799,9 @@ def render_blockers_report(
             by_bucket[bucket].append(record_id)
         for bucket in ("P0", "P1", "P2", "P3"):
             ids = sorted(by_bucket[bucket])
-            representatives = ", ".join(f"`{escape_md(record_id)}`" for record_id in ids[:5]) if ids else "—"
+            representatives = (
+                ", ".join(f"`{escape_md(record_id)}`" for record_id in ids[:5]) if ids else "—"
+            )
             lines.append(f"| {bucket} | {len(ids)} | {representatives} |")
 
     # ── Per-area sections ───────────────────────────────────────────────────────
@@ -723,51 +812,59 @@ def render_blockers_report(
         lines.extend(["", f"## {area}", ""])
 
         if gate_list or blocked_list:
-            lines.extend([
-                "### Proof Gates",
-                "",
-                "| ID | Title | Priority | Status | Risk | Verification | Owner |",
-                "| --- | --- | --- | --- | --- | --- | --- |",
-            ])
+            lines.extend(
+                [
+                    "### Proof Gates",
+                    "",
+                    "| ID | Title | Priority | Status | Risk | Verification | Owner |",
+                    "| --- | --- | --- | --- | --- | --- | --- |",
+                ]
+            )
             for gate in gate_list:
                 lines.extend(render_gate_rows(gate))
 
             if blocked_list:
-                lines.extend([
-                    "",
-                    "### Blocked / Bounded Evidence",
-                    "",
-                    "| ID | Title | Priority | Status | Risk | Proof Level | Verification | Owner |",
-                    "| --- | --- | --- | --- | --- | --- | --- | --- |",
-                ])
+                lines.extend(
+                    [
+                        "",
+                        "### Blocked / Bounded Evidence",
+                        "",
+                        "| ID | Title | Priority | Status | Risk | Proof Level | Verification | Owner |",
+                        "| --- | --- | --- | --- | --- | --- | --- | --- |",
+                    ]
+                )
                 for node in blocked_list:
                     lines.extend(render_node_rows(node))
 
             # What this area does NOT prove
             seen_nc: set[str] = set()
-            lines.extend([
-                "",
-                "### What This Area Does Not Prove",
-                "",
-                "_Below non-claims are drawn directly from architecture registry records. "
-                "They are not exhaustive._",
-                "",
-                "| Non-Claim |",
-                "| --- |",
-            ])
+            lines.extend(
+                [
+                    "",
+                    "### What This Area Does Not Prove",
+                    "",
+                    "_Below non-claims are drawn directly from architecture registry records. "
+                    "They are not exhaustive._",
+                    "",
+                    "| Non-Claim |",
+                    "| --- |",
+                ]
+            )
             for nid in [g["id"] for g in gate_list] + [n["id"] for n in blocked_list]:
                 for nc in _nc_by_id.get(nid, []):
                     if nc not in seen_nc:
                         seen_nc.add(nc)
                         lines.append(f"| {escape_md(nc)} |")
 
-            lines.extend([
-                "",
-                "### Next Proof Work",
-                "",
-                "Proof work for this area should:",
-                "",
-            ])
+            lines.extend(
+                [
+                    "",
+                    "### Next Proof Work",
+                    "",
+                    "Proof work for this area should:",
+                    "",
+                ]
+            )
             for gate in gate_list:
                 lines.append(
                     f"- Address [`{gate.get('id', '')}`](#proof-gates): "
@@ -776,28 +873,31 @@ def render_blockers_report(
             for node in blocked_list:
                 nid = node.get("id", "")
                 lines.append(
-                    f"- Resolve [`{nid}`](#blocked--bounded-evidence): "
-                    f"{_full_verification(nid)}"
+                    f"- Resolve [`{nid}`](#blocked--bounded-evidence): {_full_verification(nid)}"
                 )
         else:
-            lines.extend([
-                "No active proof gates or blocked evidence for this area in the current architecture registry.",
-                "",
-            ])
+            lines.extend(
+                [
+                    "No active proof gates or blocked evidence for this area in the current architecture registry.",
+                    "",
+                ]
+            )
 
     # ── Global non-claims summary ───────────────────────────────────────────────
-    lines.extend([
-        "",
-        "---",
-        "",
-        "## Global Non-Claims Summary",
-        "",
-        "_The following statements appear across one or more architecture records and "
-        "collectively define what this architecture does NOT validate:_",
-        "",
-        "| Non-Claim | Appears In |",
-        "| --- | --- |",
-    ])
+    lines.extend(
+        [
+            "",
+            "---",
+            "",
+            "## Global Non-Claims Summary",
+            "",
+            "_The following statements appear across one or more architecture records and "
+            "collectively define what this architecture does NOT validate:_",
+            "",
+            "| Non-Claim | Appears In |",
+            "| --- | --- |",
+        ]
+    )
 
     seen_nc_global: set[str] = set()
     for entry in non_claims_summary.get("by_node", []):
@@ -807,21 +907,25 @@ def render_blockers_report(
                 seen_nc_global.add(nc)
                 lines.append(f"| {escape_md(nc)} | `{nid}` |")
 
-    lines.extend([
-        "",
-        "---",
-        "",
-        "*Blockers report generated from `prd/architecture/architecture_graph_report.json`. "
-        "This is a derived, non-authoritative planning artifact — it makes next proof work visible without asserting "
-        "product readiness. Source-of-truth remains with PRD, GSD, ADR, and source anchor evidence.*",
-    ])
+    lines.extend(
+        [
+            "",
+            "---",
+            "",
+            "*Blockers report generated from `prd/architecture/architecture_graph_report.json`. "
+            "This is a derived, non-authoritative planning artifact — it makes next proof work visible without asserting "
+            "product readiness. Source-of-truth remains with PRD, GSD, ADR, and source anchor evidence.*",
+        ]
+    )
 
     return "\n".join(lines) + "\n"
 
 
 # ── Claims ledger ───────────────────────────────────────────────────────────────
 
-ClaimClassification = str  # Literal["safe-to-say", "bounded", "blocked/open", "unsafe-to-assert", "non-claim"]
+ClaimClassification = (
+    str  # Literal["safe-to-say", "bounded", "blocked/open", "unsafe-to-assert", "non-claim"]
+)
 
 
 def _classify_record(record: dict[str, Any]) -> ClaimClassification:
@@ -917,19 +1021,23 @@ def render_claims_ledger(
     ]
 
     ontology_rows = r035_gate_rows(items_lookup)
-    lines.extend([
-        "## R035 Gate Status",
-        "",
-        "Ontology, external-standard, GraphRAG, graph-vector, and pilot-scale rows are registry/view synchronization-only guardrails. They are not standard, runtime, product behavior, retrieval quality, FalkorDB runtime, or R035 validation.",
-        "",
-        f"S07/S08 runtime remediation reference: review `{R035_RUNTIME_PROOF_PATH}` and `{R035_RUNTIME_REMEDIATION_PATH}` as bounded runtime remediation or blocked prerequisite diagnostics only. R035 remains Active; these artifacts do not validate broad ontology behavior, formal standard conformance, graph-vector/HNSW behavior, FalkorDB production behavior, parser completeness, product retrieval quality, legal-answer correctness, or pilot readiness.",
-        "",
-    ])
+    lines.extend(
+        [
+            "## R035 Gate Status",
+            "",
+            "Ontology, external-standard, GraphRAG, graph-vector, and pilot-scale rows are registry/view synchronization-only guardrails. They are not standard, runtime, product behavior, retrieval quality, FalkorDB runtime, or R035 validation.",
+            "",
+            f"S07/S08 runtime remediation reference: review `{R035_RUNTIME_PROOF_PATH}` and `{R035_RUNTIME_REMEDIATION_PATH}` as bounded runtime remediation or blocked prerequisite diagnostics only. R035 remains Active; these artifacts do not validate broad ontology behavior, formal standard conformance, graph-vector/HNSW behavior, FalkorDB production behavior, parser completeness, product retrieval quality, legal-answer correctness, or pilot readiness.",
+            "",
+        ]
+    )
     if ontology_rows:
-        lines.extend([
-            "| ID | Trigger | Current Safe Bucket | Required Gate | Minimum Proof | Status | Missing Requirements | Remediation Class |",
-            "| --- | --- | --- | --- | --- | --- | --- | --- |",
-        ])
+        lines.extend(
+            [
+                "| ID | Trigger | Current Safe Bucket | Required Gate | Minimum Proof | Status | Missing Requirements | Remediation Class |",
+                "| --- | --- | --- | --- | --- | --- | --- | --- |",
+            ]
+        )
         for row in ontology_rows:
             lines.append(
                 f"| `{escape_md(row['id'])}` | {escape_md(row['trigger'])} "
@@ -941,21 +1049,27 @@ def render_claims_ledger(
                 f"| {escape_md(row['remediation_class'])} |"
             )
     else:
-        lines.append("No R035-triggered ontology or external-standard rows in the generated registry view.")
+        lines.append(
+            "No R035-triggered ontology or external-standard rows in the generated registry view."
+        )
 
-    lines.extend([
-        "",
-        "---",
-        "",
-        "## safe-to-say",
-        "",
-    ])
+    lines.extend(
+        [
+            "",
+            "---",
+            "",
+            "## safe-to-say",
+            "",
+        ]
+    )
 
     if safe_items:
-        lines.extend([
-            "| ID | Title | Layer | Claim Domain | Risk | Non-Claims |",
-            "| --- | --- | --- | --- | --- | --- |",
-        ])
+        lines.extend(
+            [
+                "| ID | Title | Layer | Claim Domain | Risk | Non-Claims |",
+                "| --- | --- | --- | --- | --- | --- |",
+            ]
+        )
         for rid, record in safe_items:
             ncs = record.get("non_claims", [])
             nc_cell = "; ".join(f"❌ {escape_md(nc)}" for nc in ncs[:2]) if ncs else "—"
@@ -972,10 +1086,12 @@ def render_claims_ledger(
     lines.extend(["", "---", "", "## bounded", ""])
 
     if bounded_items:
-        lines.extend([
-            "| ID | Title | Layer | Claim Domain | Risk | Proof Level | Non-Claims |",
-            "| --- | --- | --- | --- | --- | --- | --- |",
-        ])
+        lines.extend(
+            [
+                "| ID | Title | Layer | Claim Domain | Risk | Proof Level | Non-Claims |",
+                "| --- | --- | --- | --- | --- | --- | --- |",
+            ]
+        )
         for rid, record in bounded_items:
             ncs = record.get("non_claims", [])
             nc_cell = "; ".join(f"❌ {escape_md(nc)}" for nc in ncs) if ncs else "—"
@@ -993,10 +1109,12 @@ def render_claims_ledger(
     lines.extend(["", "---", "", "## blocked/open", ""])
 
     if blocked_items:
-        lines.extend([
-            "| ID | Title | Layer | Claim Domain | Risk | Status | Proof Level | Verification | Non-Claims |",
-            "| --- | --- | --- | --- | --- | --- | --- | --- | --- |",
-        ])
+        lines.extend(
+            [
+                "| ID | Title | Layer | Claim Domain | Risk | Status | Proof Level | Verification | Non-Claims |",
+                "| --- | --- | --- | --- | --- | --- | --- | --- | --- |",
+            ]
+        )
         for rid, record in blocked_items:
             ncs = record.get("non_claims", [])
             nc_cell = "; ".join(f"❌ {escape_md(nc)}" for nc in ncs[:2]) if ncs else "—"
@@ -1012,13 +1130,13 @@ def render_claims_ledger(
                 f"| {nc_cell} |"
                 if len(ver) > 60
                 else f"| `{rid}` | {escape_md(record.get('title', ''))} "
-                     f"| {escape_md(record.get('layer', ''))} "
-                     f"| {escape_md(_claim_domain(record))} "
-                     f"| {escape_md(record.get('risk_level', ''))} "
-                     f"| {escape_md(record.get('status', ''))} "
-                     f"| {escape_md(record.get('proof_level', ''))} "
-                     f"| {ver} |"
-                     f"| {nc_cell} |"
+                f"| {escape_md(record.get('layer', ''))} "
+                f"| {escape_md(_claim_domain(record))} "
+                f"| {escape_md(record.get('risk_level', ''))} "
+                f"| {escape_md(record.get('status', ''))} "
+                f"| {escape_md(record.get('proof_level', ''))} "
+                f"| {ver} |"
+                f"| {nc_cell} |"
             )
     else:
         lines.append("No items classified as blocked/open.")
@@ -1026,10 +1144,12 @@ def render_claims_ledger(
     lines.extend(["", "---", "", "## unsafe-to-assert", ""])
 
     if unsafe_items:
-        lines.extend([
-            "| ID | Title | Layer | Claim Domain | Risk | Status | Non-Claims |",
-            "| --- | --- | --- | --- | --- | --- | --- |",
-        ])
+        lines.extend(
+            [
+                "| ID | Title | Layer | Claim Domain | Risk | Status | Non-Claims |",
+                "| --- | --- | --- | --- | --- | --- | --- |",
+            ]
+        )
         for rid, record in unsafe_items:
             ncs = record.get("non_claims", [])
             nc_cell = "; ".join(f"❌ {escape_md(nc)}" for nc in ncs[:2]) if ncs else "—"
@@ -1045,15 +1165,17 @@ def render_claims_ledger(
         lines.append("No items classified as unsafe-to-assert.")
 
     # Non-authoritative footer
-    lines.extend([
-        "",
-        "---",
-        "",
-        "*Claims ledger generated from `prd/architecture/architecture_items.jsonl` and "
-        "`prd/architecture/architecture_graph_report.json`. This is a derived, "
-        "non-authoritative planning artifact. Source-of-truth remains with PRD, GSD, ADR, "
-        "and source anchor evidence.*",
-    ])
+    lines.extend(
+        [
+            "",
+            "---",
+            "",
+            "*Claims ledger generated from `prd/architecture/architecture_items.jsonl` and "
+            "`prd/architecture/architecture_graph_report.json`. This is a derived, "
+            "non-authoritative planning artifact. Source-of-truth remains with PRD, GSD, ADR, "
+            "and source anchor evidence.*",
+        ]
+    )
 
     return "\n".join(lines) + "\n"
 

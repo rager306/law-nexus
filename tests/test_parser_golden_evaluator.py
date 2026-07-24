@@ -84,12 +84,20 @@ def write_json_artifact(parser_dir: Path, filename: str, payload: dict[str, Any]
 
 
 def load_jsonl_artifact(parser_dir: Path, filename: str) -> list[dict[str, Any]]:
-    return [json.loads(line) for line in (parser_dir / filename).read_text(encoding="utf-8").splitlines() if line.strip()]
+    return [
+        json.loads(line)
+        for line in (parser_dir / filename).read_text(encoding="utf-8").splitlines()
+        if line.strip()
+    ]
 
 
 def write_jsonl_artifact(parser_dir: Path, filename: str, rows: list[dict[str, Any]]) -> None:
     (parser_dir / filename).write_text(
-        "\n".join(json.dumps(row, ensure_ascii=False, sort_keys=True, separators=(",", ":")) for row in rows) + "\n",
+        "\n".join(
+            json.dumps(row, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
+            for row in rows
+        )
+        + "\n",
         encoding="utf-8",
     )
 
@@ -181,7 +189,11 @@ def test_evaluator_stdout_preserves_non_authoritative_redaction_boundary() -> No
 
 def test_fails_when_required_evidence_source_block_is_missing(tmp_path: Path) -> None:
     parser_dir = copy_parser_artifacts(tmp_path)
-    rows = [row for row in load_jsonl_artifact(parser_dir, "odt_source_block_records.jsonl") if row["id"] != "BLOCK-44-FZ-000"]
+    rows = [
+        row
+        for row in load_jsonl_artifact(parser_dir, "odt_source_block_records.jsonl")
+        if row["id"] != "BLOCK-44-FZ-000"
+    ]
     write_jsonl_artifact(parser_dir, "odt_source_block_records.jsonl", rows)
 
     result = run_cli_for_parser_dir(parser_dir)
@@ -388,7 +400,9 @@ def test_fails_when_unresolved_reference_boundary_adds_resolved_odt_id(tmp_path:
 def test_fails_when_required_blocked_claim_is_missing(tmp_path: Path) -> None:
     parser_dir = copy_parser_artifacts(tmp_path)
     golden = load_json_artifact(parser_dir, "golden_cases.json")
-    golden["blocked_claims"] = [claim for claim in golden["blocked_claims"] if claim != "retrieval quality"]
+    golden["blocked_claims"] = [
+        claim for claim in golden["blocked_claims"] if claim != "retrieval quality"
+    ]
     write_json_artifact(parser_dir, "golden_cases.json", golden)
 
     result = run_cli_for_parser_dir(parser_dir)

@@ -156,7 +156,10 @@ class ValidationResult:
     non_claims: tuple[str, ...] = CITATION_SAFE_ANSWER_VALIDATOR_NON_CLAIMS
 
     def to_dict(self) -> dict[str, Any]:
-        return {"result": self.result, "diagnostics": [diagnostic.to_dict() for diagnostic in self.diagnostics]}
+        return {
+            "result": self.result,
+            "diagnostics": [diagnostic.to_dict() for diagnostic in self.diagnostics],
+        }
 
 
 @dataclass(frozen=True)
@@ -202,7 +205,9 @@ def build_fixture(data: Mapping[str, Any], *, fixture_artifact: str = "<fixture>
         citation_key = binding.get("citation_key")
         if not isinstance(scope_id, str) or not isinstance(citation_key, str):
             raise ValueError("citation binding missing scope_id or citation_key")
-        citation_index.setdefault((scope_id, citation_key), []).append(MappingProxyType(dict(binding)))
+        citation_index.setdefault((scope_id, citation_key), []).append(
+            MappingProxyType(dict(binding))
+        )
 
     return Fixture(
         data=MappingProxyType(dict(data)),
@@ -225,7 +230,9 @@ def validate_case(case: Mapping[str, Any], fixture: Fixture) -> ValidationResult
     return validate_output(output, fixture, case_id=case_id)
 
 
-def validate_output(output: Any, fixture: Fixture, *, case_id: str = "<ad-hoc>") -> ValidationResult:
+def validate_output(
+    output: Any, fixture: Fixture, *, case_id: str = "<ad-hoc>"
+) -> ValidationResult:
     diagnostics: list[Diagnostic] = []
 
     def add(
@@ -239,14 +246,18 @@ def validate_output(output: Any, fixture: Fixture, *, case_id: str = "<ad-hoc>")
     ) -> None:
         if code not in KNOWN_DIAGNOSTIC_CODES:
             raise ValueError(f"unknown diagnostic code: {code}")
-        provisional_result = RESULT_ACCEPTED_SCOPED_NO_ANSWER if code == "scoped_no_answer" else RESULT_REJECTED
+        provisional_result = (
+            RESULT_ACCEPTED_SCOPED_NO_ANSWER if code == "scoped_no_answer" else RESULT_REJECTED
+        )
         diagnostics.append(
             Diagnostic(
                 code=code,
                 severity=severity,
                 result=provisional_result,
                 field_path=field_path,
-                retrieval_output_id=_safe_id(output.get("retrieval_output_id") if isinstance(output, Mapping) else None),
+                retrieval_output_id=_safe_id(
+                    output.get("retrieval_output_id") if isinstance(output, Mapping) else None
+                ),
                 scope_id=_safe_id(_scope_id(output)),
                 case_id=_safe_id(case_id),
                 safe_id_value=_optional_safe_id(safe_id_value),
@@ -261,7 +272,9 @@ def validate_output(output: Any, fixture: Fixture, *, case_id: str = "<ad-hoc>")
         return _finalize(diagnostics)
 
     _check_forbidden_fields(output, add)
-    _check_required_mapping(output, ("retrieval_output_id", "output_kind", "scope", "citations"), "", add)
+    _check_required_mapping(
+        output, ("retrieval_output_id", "output_kind", "scope", "citations"), "", add
+    )
     retrieval_output_id = output.get("retrieval_output_id")
     output_kind = output.get("output_kind")
     scope = output.get("scope")
@@ -301,7 +314,11 @@ def validate_output(output: Any, fixture: Fixture, *, case_id: str = "<ad-hoc>")
     claim_ids_with_citation: set[str] = set()
     for index, citation in enumerate(citations):
         if not isinstance(citation, Mapping):
-            add("malformed_output_shape", f"citations[{index}]", safe_id_value=type(citation).__name__)
+            add(
+                "malformed_output_shape",
+                f"citations[{index}]",
+                safe_id_value=type(citation).__name__,
+            )
             continue
         _validate_citation(
             citation,
@@ -318,7 +335,11 @@ def validate_output(output: Any, fixture: Fixture, *, case_id: str = "<ad-hoc>")
         add("answer_claim_without_evidence", "answer_claims")
     for index, claim in enumerate(answer_claims):
         if not isinstance(claim, Mapping):
-            add("malformed_output_shape", f"answer_claims[{index}]", safe_id_value=type(claim).__name__)
+            add(
+                "malformed_output_shape",
+                f"answer_claims[{index}]",
+                safe_id_value=type(claim).__name__,
+            )
             continue
         _validate_answer_claim(
             claim,
@@ -346,13 +367,22 @@ def _validate_citation(
 ) -> None:
     prefix = f"citations[{citation_index}]"
     _check_forbidden_fields(citation, add, path_prefix=prefix)
-    _check_required_mapping(citation, _REQUIRED_CITATION_FIELDS, prefix, add, citation_without_evidence=True)
+    _check_required_mapping(
+        citation, _REQUIRED_CITATION_FIELDS, prefix, add, citation_without_evidence=True
+    )
 
     citation_output_id = citation.get("retrieval_output_id")
     if citation_output_id != output_id:
-        add("id_path_mismatch", f"{prefix}.retrieval_output_id", expected_id=output_id, resolved_id=citation_output_id)
+        add(
+            "id_path_mismatch",
+            f"{prefix}.retrieval_output_id",
+            expected_id=output_id,
+            resolved_id=citation_output_id,
+        )
     if isinstance(citation_output_id, str):
-        _check_id_namespace(f"{prefix}.retrieval_output_id", citation_output_id, add, id_kind="retrieval_output_id")
+        _check_id_namespace(
+            f"{prefix}.retrieval_output_id", citation_output_id, add, id_kind="retrieval_output_id"
+        )
 
     for field in _REQUIRED_CITATION_FIELDS[1:]:
         value = citation.get(field)
@@ -367,7 +397,9 @@ def _validate_citation(
     answer_claim_id = citation.get("answer_claim_id")
     if isinstance(answer_claim_id, str):
         claim_ids_with_citation.add(answer_claim_id)
-        _check_id_namespace(f"{prefix}.answer_claim_id", answer_claim_id, add, id_kind="answer_claim_id")
+        _check_id_namespace(
+            f"{prefix}.answer_claim_id", answer_claim_id, add, id_kind="answer_claim_id"
+        )
 
     if evidence_span_id is None:
         return
@@ -376,8 +408,16 @@ def _validate_citation(
     if not _has_allowed_prefix("evidence_span_id", evidence_span_id):
         return
 
-    binding_key = (scope_id, citation_key) if isinstance(scope_id, str) and isinstance(citation_key, str) else None
-    bindings = fixture.citation_bindings_by_scope_key.get(binding_key, ()) if binding_key is not None else ()
+    binding_key = (
+        (scope_id, citation_key)
+        if isinstance(scope_id, str) and isinstance(citation_key, str)
+        else None
+    )
+    bindings = (
+        fixture.citation_bindings_by_scope_key.get(binding_key, ())
+        if binding_key is not None
+        else ()
+    )
     if not bindings:
         add("unresolved_citation_key", f"{prefix}.citation_key", safe_id_value=citation_key)
     elif len(bindings) > 1:
@@ -385,7 +425,9 @@ def _validate_citation(
 
     evidence = fixture.evidence_spans_by_id.get(evidence_span_id)
     if evidence is None:
-        add("unresolved_evidence_span", f"{prefix}.evidence_span_id", safe_id_value=evidence_span_id)
+        add(
+            "unresolved_evidence_span", f"{prefix}.evidence_span_id", safe_id_value=evidence_span_id
+        )
         return
 
     if len(bindings) == 1 and bindings[0].get("evidence_span_id") != evidence_span_id:
@@ -402,9 +444,21 @@ def _validate_citation(
 
     source_block_id = evidence.get("source_block_id")
     source_document_id = evidence.get("source_document_id")
-    source_block = fixture.source_blocks_by_id.get(source_block_id) if isinstance(source_block_id, str) else None
-    source_document = fixture.source_documents_by_id.get(source_document_id) if isinstance(source_document_id, str) else None
-    if source_block is None or source_document is None or source_block.get("source_document_id") != evidence.get("source_document_id"):
+    source_block = (
+        fixture.source_blocks_by_id.get(source_block_id)
+        if isinstance(source_block_id, str)
+        else None
+    )
+    source_document = (
+        fixture.source_documents_by_id.get(source_document_id)
+        if isinstance(source_document_id, str)
+        else None
+    )
+    if (
+        source_block is None
+        or source_document is None
+        or source_block.get("source_document_id") != evidence.get("source_document_id")
+    ):
         add(
             "orphaned_source_path",
             f"{prefix}.source_block_id",
@@ -415,10 +469,16 @@ def _validate_citation(
 
     legal_unit_id = evidence.get("legal_unit_id")
     act_edition_id = evidence.get("act_edition_id")
-    legal_unit = fixture.legal_units_by_id.get(legal_unit_id) if isinstance(legal_unit_id, str) else None
-    act_edition = fixture.act_editions_by_id.get(act_edition_id) if isinstance(act_edition_id, str) else None
+    legal_unit = (
+        fixture.legal_units_by_id.get(legal_unit_id) if isinstance(legal_unit_id, str) else None
+    )
+    act_edition = (
+        fixture.act_editions_by_id.get(act_edition_id) if isinstance(act_edition_id, str) else None
+    )
     legal_act_id = legal_unit.get("legal_act_id") if legal_unit else None
-    legal_act = fixture.legal_acts_by_id.get(legal_act_id) if isinstance(legal_act_id, str) else None
+    legal_act = (
+        fixture.legal_acts_by_id.get(legal_act_id) if isinstance(legal_act_id, str) else None
+    )
     if (
         legal_unit is None
         or act_edition is None
@@ -436,7 +496,9 @@ def _validate_citation(
 
     as_of_date = scope.get("as_of_date")
     declared_edition_id = citation.get("act_edition_id")
-    if declared_edition_id != evidence.get("act_edition_id") or not _edition_valid_for_date(act_edition, as_of_date):
+    if declared_edition_id != evidence.get("act_edition_id") or not _edition_valid_for_date(
+        act_edition, as_of_date
+    ):
         add(
             "wrong_edition",
             f"{prefix}.act_edition_id",
@@ -453,7 +515,12 @@ def _validate_citation(
     }
     for field, expected_id in expected_paths.items():
         if citation.get(field) != expected_id:
-            add("id_path_mismatch", f"{prefix}.{field}", expected_id=expected_id, resolved_id=citation.get(field))
+            add(
+                "id_path_mismatch",
+                f"{prefix}.{field}",
+                expected_id=expected_id,
+                resolved_id=citation.get(field),
+            )
             return
 
 
@@ -471,9 +538,19 @@ def _validate_answer_claim(
     _check_forbidden_fields(claim, add, path_prefix=prefix)
     _check_required_mapping(claim, _REQUIRED_ANSWER_CLAIM_FIELDS, prefix, add)
     if claim.get("retrieval_output_id") != output_id:
-        add("id_path_mismatch", f"{prefix}.retrieval_output_id", expected_id=output_id, resolved_id=claim.get("retrieval_output_id"))
+        add(
+            "id_path_mismatch",
+            f"{prefix}.retrieval_output_id",
+            expected_id=output_id,
+            resolved_id=claim.get("retrieval_output_id"),
+        )
     if claim.get("scope_id") != scope.get("scope_id"):
-        add("id_path_mismatch", f"{prefix}.scope_id", expected_id=scope.get("scope_id"), resolved_id=claim.get("scope_id"))
+        add(
+            "id_path_mismatch",
+            f"{prefix}.scope_id",
+            expected_id=scope.get("scope_id"),
+            resolved_id=claim.get("scope_id"),
+        )
 
     for field in ("answer_claim_id", "retrieval_output_id", "scope_id"):
         value = claim.get(field)
@@ -482,14 +559,26 @@ def _validate_answer_claim(
 
     supported = claim.get("supported_citation_keys")
     if not isinstance(supported, list):
-        add("malformed_output_shape", f"{prefix}.supported_citation_keys", safe_id_value=type(supported).__name__)
+        add(
+            "malformed_output_shape",
+            f"{prefix}.supported_citation_keys",
+            safe_id_value=type(supported).__name__,
+        )
         return
     if not supported:
-        add("answer_claim_without_evidence", f"{prefix}.supported_citation_keys", safe_id_value=claim.get("answer_claim_id"))
+        add(
+            "answer_claim_without_evidence",
+            f"{prefix}.supported_citation_keys",
+            safe_id_value=claim.get("answer_claim_id"),
+        )
         return
     missing = [key for key in supported if key not in citation_keys]
     if missing:
-        add("answer_claim_without_evidence", f"{prefix}.supported_citation_keys", safe_id_value=missing[0])
+        add(
+            "answer_claim_without_evidence",
+            f"{prefix}.supported_citation_keys",
+            safe_id_value=missing[0],
+        )
     claim_id = claim.get("answer_claim_id")
     if isinstance(claim_id, str) and claim_id not in claim_ids_with_citation:
         add("answer_claim_without_evidence", f"{prefix}.answer_claim_id", safe_id_value=claim_id)
@@ -505,7 +594,11 @@ def _check_required_mapping(
 ) -> None:
     for field in required_fields:
         if field not in value or value.get(field) in (None, ""):
-            code = "citation_without_evidence" if citation_without_evidence and field == "evidence_span_id" and field in value else "missing_required_field"
+            code = (
+                "citation_without_evidence"
+                if citation_without_evidence and field == "evidence_span_id" and field in value
+                else "missing_required_field"
+            )
             add(code, _join_path(path_prefix, field))
 
 
@@ -521,7 +614,9 @@ def _check_forbidden_fields(value: Any, add: Any, *, path_prefix: str = "") -> N
             _check_forbidden_fields(nested, add, path_prefix=f"{path_prefix}[{index}]")
 
 
-def _check_id_namespace(field_path: str, value: str, add: Any, *, id_kind: str | None = None) -> None:
+def _check_id_namespace(
+    field_path: str, value: str, add: Any, *, id_kind: str | None = None
+) -> None:
     key = id_kind or field_path.rsplit(".", 1)[-1]
     if key in _ID_PREFIXES and not _has_allowed_prefix(key, value):
         add("unknown_id_namespace", field_path, safe_id_value=value)
@@ -551,7 +646,9 @@ def _scope_id(output: Any) -> Any:
 
 def _finalize(diagnostics: list[Diagnostic]) -> ValidationResult:
     result = RESULT_REJECTED if _has_error(diagnostics) else RESULT_ACCEPTED
-    if result == RESULT_ACCEPTED and any(diagnostic.code == "scoped_no_answer" for diagnostic in diagnostics):
+    if result == RESULT_ACCEPTED and any(
+        diagnostic.code == "scoped_no_answer" for diagnostic in diagnostics
+    ):
         result = RESULT_ACCEPTED_SCOPED_NO_ANSWER
     normalized = tuple(
         Diagnostic(
@@ -607,7 +704,9 @@ class CitationSafeAnswerValidator:
         return validate_output(request.output, fixture, case_id=request.case_id)
 
 
-def validate_citation_safe_output(output: Any, fixture: Fixture, *, case_id: str = "<ad-hoc>") -> ValidationResult:
+def validate_citation_safe_output(
+    output: Any, fixture: Fixture, *, case_id: str = "<ad-hoc>"
+) -> ValidationResult:
     """Package-facing alias for validating a loaded retrieval output."""
 
     return validate_output(output, fixture, case_id=case_id)

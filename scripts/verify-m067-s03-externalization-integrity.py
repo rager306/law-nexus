@@ -46,12 +46,24 @@ def _run(name: str, script: Path) -> list[Diagnostic]:
     if not script.exists():
         return [_d("subprocess_verifier_failed", script, f"{name} verifier missing: {script}")]
     try:
-        r = subprocess.run(["uv", "run", "python", str(script)], cwd=str(ROOT), capture_output=True, text=True, timeout=120)
+        r = subprocess.run(
+            ["uv", "run", "python", str(script)],
+            cwd=str(ROOT),
+            capture_output=True,
+            text=True,
+            timeout=120,
+        )
     except Exception as exc:
         return [_d("subprocess_verifier_failed", script, f"{name} verifier could not run: {exc}")]
     if r.returncode != 0:
         tail = (r.stdout + r.stderr).strip().splitlines()[-3:]
-        return [_d("subprocess_verifier_failed", script, f"{name} verifier exited {r.returncode}: {' | '.join(tail)}")]
+        return [
+            _d(
+                "subprocess_verifier_failed",
+                script,
+                f"{name} verifier exited {r.returncode}: {' | '.join(tail)}",
+            )
+        ]
     return []
 
 
@@ -63,7 +75,13 @@ def check_project_md() -> list[Diagnostic]:
     required = ("D097", "/root/git-lex-kit-acp", "profile", "ACP externalization", "product")
     missing = [m for m in required if m.lower() not in text.lower()]
     if missing:
-        return [_d("project_md_not_revised", p, f"PROJECT.md missing post-externalization markers: {missing}")]
+        return [
+            _d(
+                "project_md_not_revised",
+                p,
+                f"PROJECT.md missing post-externalization markers: {missing}",
+            )
+        ]
     return []
 
 
@@ -81,7 +99,14 @@ def verify() -> tuple[bool, list[Diagnostic], dict]:
     diags.extend(check_project_md())
     diags.extend(check_adapter())
     ok = not diags
-    return ok, diags, {"verdict": "m067_restructuring_complete" if ok else "incomplete", "diagnostics": len(diags)}
+    return (
+        ok,
+        diags,
+        {
+            "verdict": "m067_restructuring_complete" if ok else "incomplete",
+            "diagnostics": len(diags),
+        },
+    )
 
 
 def _fmt(d: Diagnostic) -> str:
@@ -89,13 +114,17 @@ def _fmt(d: Diagnostic) -> str:
 
 
 def main(argv: list[str] | None = None) -> int:
-    argparse.ArgumentParser(description="Verify M067 externalization integrity end-to-end.").parse_args(argv)
+    argparse.ArgumentParser(
+        description="Verify M067 externalization integrity end-to-end."
+    ).parse_args(argv)
     ok, diags, _ = verify()
     if diags:
         for d in diags:
             print(_fmt(d))
         return 1
-    print("M067 S03 externalization-integrity verification passed: diagnostics=0 (restructuring complete)")
+    print(
+        "M067 S03 externalization-integrity verification passed: diagnostics=0 (restructuring complete)"
+    )
     return 0
 
 

@@ -110,7 +110,9 @@ def assert_safe_payload(payload: Mapping[str, Any]) -> None:
 def write_json(path: Path, payload: Mapping[str, Any]) -> str:
     assert_safe_payload(payload)
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(json.dumps(payload, ensure_ascii=False, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    path.write_text(
+        json.dumps(payload, ensure_ascii=False, indent=2, sort_keys=True) + "\n", encoding="utf-8"
+    )
     return normalized_path(path)
 
 
@@ -127,7 +129,9 @@ def _command_text(value: str | bytes | None) -> str:
     return ""
 
 
-def run_command(command: Sequence[str], timeout_seconds: int, log_dir: Path, phase: str) -> CommandResult:
+def run_command(
+    command: Sequence[str], timeout_seconds: int, log_dir: Path, phase: str
+) -> CommandResult:
     started = time.monotonic()
     try:
         completed = subprocess.run(
@@ -231,7 +235,9 @@ def requirement_package_name(requirement: str) -> str:
 
 def probe_package(requirement: str) -> dict[str, Any]:
     package = requirement_package_name(requirement)
-    import_name = {"sentence-transformers": "sentence_transformers"}.get(package, package.replace("-", "_"))
+    import_name = {"sentence-transformers": "sentence_transformers"}.get(
+        package, package.replace("-", "_")
+    )
     available = importlib.util.find_spec(import_name) is not None
     version: str | None = None
     if available:
@@ -251,7 +257,11 @@ def probe_package(requirement: str) -> dict[str, Any]:
 def package_status(requirements: Sequence[str]) -> dict[str, Any]:
     probes = [probe_package(requirement) for requirement in requirements]
     missing = [probe["package"] for probe in probes if probe["status"] != "available"]
-    return {"status": "available" if not missing else "blocked-environment", "missing": missing, "packages": probes}
+    return {
+        "status": "available" if not missing else "blocked-environment",
+        "missing": missing,
+        "packages": probes,
+    }
 
 
 def memory_metadata() -> dict[str, Any]:
@@ -444,10 +454,14 @@ def encode_user_fixtures(
     try:
         encoder = active_encoder_factory(model_id, local_files_only)
         document_vectors = matrix_to_lists(
-            encoder.encode([fixture.text for fixture in documents], normalize_embeddings=True, batch_size=3)
+            encoder.encode(
+                [fixture.text for fixture in documents], normalize_embeddings=True, batch_size=3
+            )
         )
         query_vectors = matrix_to_lists(
-            encoder.encode([fixture.text for fixture in queries], normalize_embeddings=True, batch_size=3)
+            encoder.encode(
+                [fixture.text for fixture in queries], normalize_embeddings=True, batch_size=3
+            )
         )
     except Exception as exc:  # noqa: BLE001 - terminal proof artifact must preserve exact root cause.
         duration_ms = round((time.monotonic() - started) * 1000, 2)
@@ -495,7 +509,9 @@ def encode_user_fixtures(
             "document_count": len(documents),
             "query_count": len(queries),
             "fixture_ids": [fixture.fixture_id for fixture in (*documents, *queries)],
-            "fixture_classes": sorted({fixture.fixture_class for fixture in (*documents, *queries)}),
+            "fixture_classes": sorted(
+                {fixture.fixture_class for fixture in (*documents, *queries)}
+            ),
             "retrieval_metrics": metrics,
             "resource_metadata": resource_metadata(),
             "raw_text_logged": False,
@@ -506,7 +522,9 @@ def encode_user_fixtures(
     return {
         "status": status,
         "duration_ms": duration_ms,
-        "blocked_root_cause": None if status == "confirmed-runtime" else f"observed-dimension-{observed_dimension}-expected-1024",
+        "blocked_root_cause": None
+        if status == "confirmed-runtime"
+        else f"observed-dimension-{observed_dimension}-expected-1024",
         "observed_vector_dimension": observed_dimension,
         "retrieval_metrics": metrics,
         "raw_log_paths": [log_path],
@@ -628,7 +646,9 @@ def run_vector_query_with_client(
         "index_created": True,
         "query_executed": bool(returned_ids),
         "duration_ms": duration_ms,
-        "blocked_root_cause": None if status == "confirmed-runtime" else "falkordb-vector-query-returned-no-rows",
+        "blocked_root_cause": None
+        if status == "confirmed-runtime"
+        else "falkordb-vector-query-returned-no-rows",
         "raw_log_paths": [log_path],
     }
 
@@ -725,7 +745,9 @@ def run_falkordb_vector_proof(
         }
 
     command_logs: list[str] = []
-    docker = run_command(["docker", "version", "--format", "{{json .}}"], 30, log_dir, "falkordb-docker-daemon")
+    docker = run_command(
+        ["docker", "version", "--format", "{{json .}}"], 30, log_dir, "falkordb-docker-daemon"
+    )
     command_logs.append(docker.log_path)
     root_cause = command_root_cause(docker, "docker-daemon")
     if root_cause:
@@ -738,10 +760,20 @@ def run_falkordb_vector_proof(
             "raw_log_paths": command_logs,
         }
 
-    inspect = run_command(["docker", "image", "inspect", FALKORDB_IMAGE, "--format", "{{json .}}"], 30, log_dir, "falkordb-image-inspect")
+    inspect = run_command(
+        ["docker", "image", "inspect", FALKORDB_IMAGE, "--format", "{{json .}}"],
+        30,
+        log_dir,
+        "falkordb-image-inspect",
+    )
     command_logs.append(inspect.log_path)
     if inspect.exit_code != 0:
-        pull = run_command(["docker", "pull", FALKORDB_IMAGE], min(timeout_seconds, 300), log_dir, "falkordb-image-pull")
+        pull = run_command(
+            ["docker", "pull", FALKORDB_IMAGE],
+            min(timeout_seconds, 300),
+            log_dir,
+            "falkordb-image-pull",
+        )
         command_logs.append(pull.log_path)
         root_cause = command_root_cause(pull, "docker-image-pull")
         if root_cause:
@@ -795,7 +827,9 @@ def run_falkordb_vector_proof(
                 "raw_log_paths": command_logs,
             }
         try:
-            client = instantiate_falkordb_client_with_retry("127.0.0.1", port, min(timeout_seconds, 60), client_factory)
+            client = instantiate_falkordb_client_with_retry(
+                "127.0.0.1", port, min(timeout_seconds, 60), client_factory
+            )
         except Exception as exc:  # noqa: BLE001 - record terminal client handshake failure.
             log_path = write_log(
                 log_dir,
@@ -827,7 +861,9 @@ def run_falkordb_vector_proof(
         result["raw_log_paths"] = [*command_logs, *cast("list[str]", result["raw_log_paths"])]
         return result
     finally:
-        cleanup = run_command(["docker", "rm", "-f", container_name], 30, log_dir, "falkordb-container-cleanup")
+        cleanup = run_command(
+            ["docker", "rm", "-f", container_name], 30, log_dir, "falkordb-container-cleanup"
+        )
         command_logs.append(cleanup.log_path)
 
 
@@ -845,7 +881,9 @@ def blocked_giga_from_existing(existing: Mapping[str, Any], log_dir: Path) -> di
     for model in existing.get("models", []):
         if isinstance(model, dict) and model.get("id") == GIGA_MODEL_ID:
             return dict(model)
-    log_path = write_log(log_dir, "giga-not-attempted-by-t03", {"phase": "giga", "status": "not-attempted-by-policy"})
+    log_path = write_log(
+        log_dir, "giga-not-attempted-by-t03", {"phase": "giga", "status": "not-attempted-by-policy"}
+    )
     return {
         "id": GIGA_MODEL_ID,
         "role": "quality-challenger",
@@ -864,12 +902,20 @@ def blocked_giga_from_existing(existing: Mapping[str, Any], log_dir: Path) -> di
         "blocked_root_cause": "t03-user-only-proof",
         "next_proof_step": "Run T04 GigaEmbeddings proof only if safety gate passes.",
         "raw_log_paths": [log_path],
-        "instruction_handling": {"query_instruction_applied": True, "document_instruction_applied": False},
-        "safety_gate": {"status": "not-attempted-by-policy", "reasons": ["T03 is USER-bge-m3 only"]},
+        "instruction_handling": {
+            "query_instruction_applied": True,
+            "document_instruction_applied": False,
+        },
+        "safety_gate": {
+            "status": "not-attempted-by-policy",
+            "reasons": ["T03 is USER-bge-m3 only"],
+        },
     }
 
 
-def carry_other_models(existing: Mapping[str, Any], user_model: Mapping[str, Any], giga_model: Mapping[str, Any]) -> list[dict[str, Any]]:
+def carry_other_models(
+    existing: Mapping[str, Any], user_model: Mapping[str, Any], giga_model: Mapping[str, Any]
+) -> list[dict[str, Any]]:
     carried: list[dict[str, Any]] = [dict(giga_model), dict(user_model)]
     for model in existing.get("models", []):
         if not isinstance(model, dict):
@@ -885,7 +931,11 @@ def vector_2048_from_existing(existing: Mapping[str, Any], log_dir: Path) -> dic
     for proof in existing.get("vector_proofs", []):
         if isinstance(proof, dict) and proof.get("dimension") == 2048:
             return dict(proof)
-    log_path = write_log(log_dir, "vector-2048-not-attempted-by-t03", {"phase": "vector-2048", "status": "not-attempted-by-policy"})
+    log_path = write_log(
+        log_dir,
+        "vector-2048-not-attempted-by-t03",
+        {"phase": "vector-2048", "status": "not-attempted-by-policy"},
+    )
     return {
         "dimension": 2048,
         "model_id": GIGA_MODEL_ID,
@@ -918,13 +968,20 @@ def user_model_entry(
         "download_status": "explicit-open-weight-allowed" if allow_download else "cache-only",
         "runtime_status": "confirmed-runtime" if confirmed else "failed-runtime",
         "encode_duration_ms": encode_result.get("duration_ms") if confirmed else None,
-        "observed_vector_dimension": encode_result.get("observed_vector_dimension") if confirmed else None,
+        "observed_vector_dimension": encode_result.get("observed_vector_dimension")
+        if confirmed
+        else None,
         "resource_metadata": resource_metadata(),
         "retrieval_metrics": encode_result.get("retrieval_metrics") if confirmed else None,
         "blocked_root_cause": None if confirmed else encode_result.get("blocked_root_cause"),
-        "next_proof_step": "Use S10 USER baseline as local embedding runtime proof input." if confirmed else "Resolve USER-bge-m3 package/cache/runtime blocker and rerun T03.",
+        "next_proof_step": "Use S10 USER baseline as local embedding runtime proof input."
+        if confirmed
+        else "Resolve USER-bge-m3 package/cache/runtime blocker and rerun T03.",
         "raw_log_paths": encode_result.get("raw_log_paths", []),
-        "instruction_handling": {"query_instruction_applied": False, "document_instruction_applied": False},
+        "instruction_handling": {
+            "query_instruction_applied": False,
+            "document_instruction_applied": False,
+        },
         "safety_gate": {"status": "confirmed-runtime", "reasons": []},
         "package_details": pkg_status,
         "cache_details": cache_status,
@@ -954,7 +1011,11 @@ def build_runtime_payload(
             "raw_vectors_logged": False,
         },
     )
-    environment: dict[str, Any] = dict(existing.get("environment", {})) if isinstance(existing.get("environment"), dict) else {}
+    environment: dict[str, Any] = (
+        dict(existing.get("environment", {}))
+        if isinstance(existing.get("environment"), dict)
+        else {}
+    )
     environment.update(
         {
             **resource_metadata(),
@@ -997,7 +1058,13 @@ def build_runtime_payload(
             ],
             "closed": False,
         },
-        "raw_log_paths": sorted({summary_log, *user_model.get("raw_log_paths", []), *vector_1024.get("raw_log_paths", [])}),
+        "raw_log_paths": sorted(
+            {
+                summary_log,
+                *user_model.get("raw_log_paths", []),
+                *vector_1024.get("raw_log_paths", []),
+            }
+        ),
     }
 
 
@@ -1011,7 +1078,10 @@ def build_user_artifact(
         "schema_version": SCHEMA_VERSION,
         "generated_at": utc_now(),
         "model_id": USER_MODEL_ID,
-        "status": "confirmed-runtime" if user_model.get("status") == "confirmed-runtime" and vector_1024.get("status") == "confirmed-runtime" else "failed-runtime",
+        "status": "confirmed-runtime"
+        if user_model.get("status") == "confirmed-runtime"
+        and vector_1024.get("status") == "confirmed-runtime"
+        else "failed-runtime",
         "encode": {
             "status": user_model.get("status"),
             "duration_ms": user_model.get("encode_duration_ms"),
@@ -1054,11 +1124,16 @@ def main(argv: Sequence[str] | None = None) -> int:
     local_files_only = not args.cache_or_explicit_download
 
     if pkg["status"] != "available":
-        log_path = write_log(log_dir, "user-bge-m3-package-blocked", {"phase": "package-probe", "status": "blocked-environment", "package_probe": pkg})
+        log_path = write_log(
+            log_dir,
+            "user-bge-m3-package-blocked",
+            {"phase": "package-probe", "status": "blocked-environment", "package_probe": pkg},
+        )
         encode_result = {
             "status": "blocked-environment",
             "duration_ms": None,
-            "blocked_root_cause": "embedding-packages-missing:" + ",".join(cast("list[str]", pkg["missing"])),
+            "blocked_root_cause": "embedding-packages-missing:"
+            + ",".join(cast("list[str]", pkg["missing"])),
             "observed_vector_dimension": None,
             "retrieval_metrics": None,
             "raw_log_paths": [log_path],
@@ -1068,7 +1143,11 @@ def main(argv: Sequence[str] | None = None) -> int:
             "query_ids": [],
         }
     elif cache["status"] != "available" and not args.cache_or_explicit_download:
-        log_path = write_log(log_dir, "user-bge-m3-cache-blocked", {"phase": "cache-probe", "status": "blocked-environment", "cache_probe": cache})
+        log_path = write_log(
+            log_dir,
+            "user-bge-m3-cache-blocked",
+            {"phase": "cache-probe", "status": "blocked-environment", "cache_probe": cache},
+        )
         encode_result = {
             "status": "blocked-environment",
             "duration_ms": None,
@@ -1088,7 +1167,12 @@ def main(argv: Sequence[str] | None = None) -> int:
     vector_result = run_falkordb_vector_proof(
         cast("Sequence[str]", encode_result.get("document_ids", [])),
         cast("Sequence[Sequence[float]]", encode_result.get("document_vectors", [])),
-        cast("Sequence[float]", cast("Sequence[Sequence[float]]", encode_result.get("query_vectors", [[]]))[0] if encode_result.get("query_vectors") else []),
+        cast(
+            "Sequence[float]",
+            cast("Sequence[Sequence[float]]", encode_result.get("query_vectors", [[]]))[0]
+            if encode_result.get("query_vectors")
+            else [],
+        ),
         log_dir,
         args.timeout_seconds,
     )
@@ -1100,13 +1184,17 @@ def main(argv: Sequence[str] | None = None) -> int:
         "query_executed": vector_result["query_executed"],
         "duration_ms": vector_result["duration_ms"],
         "blocked_root_cause": vector_result["blocked_root_cause"],
-        "next_proof_step": "Use 1024-dim FalkorDB vector query as runtime baseline proof." if vector_result["status"] == "confirmed-runtime" else "Resolve FalkorDB vector runtime blocker and rerun T03.",
+        "next_proof_step": "Use 1024-dim FalkorDB vector query as runtime baseline proof."
+        if vector_result["status"] == "confirmed-runtime"
+        else "Resolve FalkorDB vector runtime blocker and rerun T03.",
         "raw_log_paths": vector_result["raw_log_paths"],
     }
 
     user_artifact = build_user_artifact(user_model, vector_1024, pkg, cache)
     write_json(user_artifact_path, user_artifact)
-    runtime_payload = build_runtime_payload(existing, user_model, vector_1024, log_dir, args.cache_or_explicit_download, pkg, cache)
+    runtime_payload = build_runtime_payload(
+        existing, user_model, vector_1024, log_dir, args.cache_or_explicit_download, pkg, cache
+    )
     write_json(runtime_artifact, runtime_payload)
 
     if user_artifact["status"] == "confirmed-runtime":

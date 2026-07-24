@@ -173,8 +173,12 @@ def load_source_artifacts() -> tuple[dict[str, Any], list[dict[str, Any]]]:
             )
 
     documents = [record for record in documents_raw if isinstance(record, DocumentRecord)]
-    source_blocks = [record for record in source_blocks_raw if isinstance(record, SourceBlockRecord)]
-    relation_candidates = [record for record in relation_candidates_raw if isinstance(record, RelationCandidateRecord)]
+    source_blocks = [
+        record for record in source_blocks_raw if isinstance(record, SourceBlockRecord)
+    ]
+    relation_candidates = [
+        record for record in relation_candidates_raw if isinstance(record, RelationCandidateRecord)
+    ]
     return {
         "documents": documents,
         "source_blocks": source_blocks,
@@ -250,16 +254,17 @@ def build_report(*, artifact_freshness: dict[str, Any] | None = None) -> dict[st
     sources, load_diagnostics = load_source_artifacts()
     cases, case_diagnostics = build_cases(sources)
     embedded_case_diagnostics = [
-        item
-        for case in cases
-        for item in case.get("diagnostics", [])
-        if isinstance(item, dict)
+        item for case in cases for item in case.get("diagnostics", []) if isinstance(item, dict)
     ]
     all_case_diagnostics = [*load_diagnostics, *case_diagnostics, *embedded_case_diagnostics]
     case_class_counts = {case_class: 0 for case_class in REQUIRED_CASE_CLASSES}
     for case in cases:
         case_class_counts[case["case_class"]] = case_class_counts.get(case["case_class"], 0) + 1
-    freshness = artifact_freshness or {"status": "not-checked", "stale_paths": [], "diagnostics": []}
+    freshness = artifact_freshness or {
+        "status": "not-checked",
+        "stale_paths": [],
+        "diagnostics": [],
+    }
     freshness_diagnostics = list(freshness.get("diagnostics") or [])
     diagnostics = [*all_case_diagnostics, *freshness_diagnostics]
     error_count = sum(1 for item in diagnostics if item.get("severity") == "error")
@@ -315,14 +320,20 @@ def render_markdown(report: dict[str, Any]) -> str:
     ]
     for case in report["cases"]:
         expected = case["expected"]
-        anchor_ids = ", ".join(str(anchor.get("record_id")) for anchor in case.get("anchors", [])) or "none"
+        anchor_ids = (
+            ", ".join(str(anchor.get("record_id")) for anchor in case.get("anchors", [])) or "none"
+        )
         lines.append(
             f"| `{case['case_id']}` | `{case['case_class']}` | `{expected.get('answer_state')}` | `{expected.get('matched')}` | {anchor_ids} |"
         )
 
-    lines.extend(["", "## Source artifacts", "", "| Artifact | Exists | SHA-256 |", "| --- | --- | --- |"])
+    lines.extend(
+        ["", "## Source artifacts", "", "| Artifact | Exists | SHA-256 |", "| --- | --- | --- |"]
+    )
     for artifact in report["source_artifacts"]:
-        lines.append(f"| `{artifact['path']}` | `{artifact['exists']}` | `{artifact.get('sha256', '')}` |")
+        lines.append(
+            f"| `{artifact['path']}` | `{artifact['exists']}` | `{artifact.get('sha256', '')}` |"
+        )
 
     lines.extend(["", "## Source anchors", ""])
     for case in report["cases"]:
@@ -383,7 +394,9 @@ def render_markdown(report: dict[str, Any]) -> str:
                 f"| `info` | `report` | `bounded-report` | `prd/parser/golden_cases.md` | `None` | {len(report['diagnostics']) - 40} additional diagnostics omitted from Markdown. |"
             )
     else:
-        lines.append("| `info` | `report` | `none` | `prd/parser/golden_cases.json` | `None` | No diagnostics. |")
+        lines.append(
+            "| `info` | `report` | `none` | `prd/parser/golden_cases.json` | `None` | No diagnostics. |"
+        )
     lines.append("")
     return "\n".join(lines)
 
@@ -459,9 +472,20 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
 
     parser = argparse.ArgumentParser(description=__doc__)
     mode = parser.add_mutually_exclusive_group(required=True)
-    mode.add_argument("--write", action="store_true", help="Write deterministic parser golden-case artifacts.")
-    mode.add_argument("--check", action="store_true", help="Check parser golden-case artifact freshness and print compact JSON.")
-    parser.add_argument("--output-dir", type=Path, default=DEFAULT_OUTPUT_DIR, help="Artifact directory, default prd/parser.")
+    mode.add_argument(
+        "--write", action="store_true", help="Write deterministic parser golden-case artifacts."
+    )
+    mode.add_argument(
+        "--check",
+        action="store_true",
+        help="Check parser golden-case artifact freshness and print compact JSON.",
+    )
+    parser.add_argument(
+        "--output-dir",
+        type=Path,
+        default=DEFAULT_OUTPUT_DIR,
+        help="Artifact directory, default prd/parser.",
+    )
     return parser.parse_args(argv)
 
 

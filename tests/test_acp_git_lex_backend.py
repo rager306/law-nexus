@@ -93,7 +93,9 @@ def test_run_backend_operation_dispatches_to_m054_wrapper(monkeypatch: Any) -> N
     backend = load_backend()
     called: dict[str, object] = {}
 
-    def fake_operation_query(workspace: str, query_id: str, *, json_output: bool) -> dict[str, object]:
+    def fake_operation_query(
+        workspace: str, query_id: str, *, json_output: bool
+    ) -> dict[str, object]:
         called["workspace"] = workspace
         called["query_id"] = query_id
         called["json_output"] = json_output

@@ -40,20 +40,22 @@ def render_markdown(iteration_dir: Path, benchmark: dict[str, Any], grading: dic
             marker = "✅" if expectation.get("passed") else "❌"
             lines.append(f"- {marker} {expectation['text']} — {expectation['evidence']}")
         lines.append("")
-    lines.extend([
-        "## Interpretation",
-        "",
-        "- Treat this as local benchmark evidence only when outputs were produced by real with-skill/baseline runs.",
-        "- If outputs were manually authored or dry-reviewed, record that limitation in the workspace notes.",
-        "- Improve the skill only from repeated or high-severity failures, not one-off prompt overfitting.",
-        "",
-        "## Raw Artifacts",
-        "",
-        "- `benchmark.json`",
-        "- `grading-summary.json`",
-        "- per-run `grading.json` files",
-        "",
-    ])
+    lines.extend(
+        [
+            "## Interpretation",
+            "",
+            "- Treat this as local benchmark evidence only when outputs were produced by real with-skill/baseline runs.",
+            "- If outputs were manually authored or dry-reviewed, record that limitation in the workspace notes.",
+            "- Improve the skill only from repeated or high-severity failures, not one-off prompt overfitting.",
+            "",
+            "## Raw Artifacts",
+            "",
+            "- `benchmark.json`",
+            "- `grading-summary.json`",
+            "- per-run `grading.json` files",
+            "",
+        ]
+    )
     return "\n".join(lines)
 
 
@@ -90,7 +92,10 @@ def main() -> int:
     md_path = args.iteration_dir / "eval-report.md"
     html_path = args.iteration_dir / "eval-report.html"
     md_path.write_text(markdown, encoding="utf-8")
-    html_path.write_text(render_html(markdown, f"PI Skill Eval Report: {benchmark['metadata']['skill_name']}"), encoding="utf-8")
+    html_path.write_text(
+        render_html(markdown, f"PI Skill Eval Report: {benchmark['metadata']['skill_name']}"),
+        encoding="utf-8",
+    )
     print(f"Wrote report: {md_path}")
     print(f"Wrote report: {html_path}")
     return 0

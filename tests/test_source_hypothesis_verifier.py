@@ -24,7 +24,9 @@ def accepted_proposal() -> dict:
         "source_artifact_id": "SA-CONSULTANT-abc123def456",
         "source_revision_id": "SR-CONSULTANT-doc-abc123def456",
         "run_id": "RUN-abc123def456",
-        "output_refs": ["processed/consultant-wordml-v1/CORPUS-abc123def456/source_inventory.safe.jsonl"],
+        "output_refs": [
+            "processed/consultant-wordml-v1/CORPUS-abc123def456/source_inventory.safe.jsonl"
+        ],
         "source_family": "consultant_wordml",
         "document_role": "full_normative_act",
         "parser_route": "full_act",
@@ -93,13 +95,38 @@ def test_rejects_missing_non_claims_and_unsafe_refs() -> None:
 @pytest.mark.parametrize(
     ("mutator", "reason"),
     [
-        (lambda p: p["hypothesis_payload"].__setitem__("nested_note", "Федеральный закон"), "raw_text_detected"),
-        (lambda p: p.__setitem__("output_refs", ["/tmp/source_inventory.safe.jsonl"]), "absolute_path_detected"),
-        (lambda p: p["hypothesis_payload"].__setitem__("provider_debug", "BEGIN PROVIDER PAYLOAD"), "provider_payload_detected"),
-        (lambda p: p["hypothesis_payload"].__setitem__("answer", "legal answer: use this interpretation"), "legal_answer_prose_detected"),
-        (lambda p: p["hypothesis_payload"].__setitem__("claim", "parser completeness validated"), "parser_completeness_overclaim"),
-        (lambda p: p["hypothesis_payload"].__setitem__("claim", "validates R035"), "r035_validation_overclaim"),
-        (lambda p: p["hypothesis_payload"].__setitem__("raw_vectors", [0.1, 0.2]), "forbidden_payload_class"),
+        (
+            lambda p: p["hypothesis_payload"].__setitem__("nested_note", "Федеральный закон"),
+            "raw_text_detected",
+        ),
+        (
+            lambda p: p.__setitem__("output_refs", ["/tmp/source_inventory.safe.jsonl"]),
+            "absolute_path_detected",
+        ),
+        (
+            lambda p: p["hypothesis_payload"].__setitem__(
+                "provider_debug", "BEGIN PROVIDER PAYLOAD"
+            ),
+            "provider_payload_detected",
+        ),
+        (
+            lambda p: p["hypothesis_payload"].__setitem__(
+                "answer", "legal answer: use this interpretation"
+            ),
+            "legal_answer_prose_detected",
+        ),
+        (
+            lambda p: p["hypothesis_payload"].__setitem__("claim", "parser completeness validated"),
+            "parser_completeness_overclaim",
+        ),
+        (
+            lambda p: p["hypothesis_payload"].__setitem__("claim", "validates R035"),
+            "r035_validation_overclaim",
+        ),
+        (
+            lambda p: p["hypothesis_payload"].__setitem__("raw_vectors", [0.1, 0.2]),
+            "forbidden_payload_class",
+        ),
     ],
 )
 def test_rejects_forbidden_payload_classes_recursively(mutator, reason: str) -> None:

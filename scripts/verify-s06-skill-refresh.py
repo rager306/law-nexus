@@ -110,7 +110,10 @@ STALE_DECISION_RE = re.compile(r"\b(" + "|".join(STALE_DECISIONS) + r")\b")
 OVERCLAIM_PATTERNS: list[tuple[str, re.Pattern[str], str]] = [
     (
         "parser overclaim",
-        re.compile(r"odfpy\s+(?:is|as|will be|should be)\s+(?:the\s+)?(?:sole|final|authoritative|production)", re.I),
+        re.compile(
+            r"odfpy\s+(?:is|as|will be|should be)\s+(?:the\s+)?(?:sole|final|authoritative|production)",
+            re.I,
+        ),
         "odfpy must not be described as the sole/final/authoritative parser; S05 evidence keeps odfdo/odfpy/raw content.xml bounded.",
     ),
     (
@@ -120,17 +123,26 @@ OVERCLAIM_PATTERNS: list[tuple[str, re.Pattern[str], str]] = [
     ),
     (
         "embedding quality overclaim",
-        re.compile(r"GigaEmbeddings[^.\n]{0,120}\b(?:proven|confirmed|validated)[^.\n]{0,120}\bproduction\s+legal\s+retrieval\s+quality\b", re.I),
+        re.compile(
+            r"GigaEmbeddings[^.\n]{0,120}\b(?:proven|confirmed|validated)[^.\n]{0,120}\bproduction\s+legal\s+retrieval\s+quality\b",
+            re.I,
+        ),
         "GigaEmbeddings runtime availability must not be upgraded into proven production legal retrieval quality.",
     ),
     (
         "embedding quality overclaim",
-        re.compile(r"production\s+legal\s+retrieval\s+quality[^.\n]{0,120}\b(?:proven|confirmed|validated)\b", re.I),
+        re.compile(
+            r"production\s+legal\s+retrieval\s+quality[^.\n]{0,120}\b(?:proven|confirmed|validated)\b",
+            re.I,
+        ),
         "Production legal retrieval quality remains unproven by S09/S10 local embedding/runtime evidence.",
     ),
     (
         "architecture-boundary violation",
-        re.compile(r"\b(?:build|implement|ship|create)\b[^.\n]{0,120}\b(?:product\s+API|ETL/import|ETL|import\s+pipeline|Legal\s+KnowQL\s+parser|KnowQL\s+parser|hybrid\s+retrieval)\b", re.I),
+        re.compile(
+            r"\b(?:build|implement|ship|create)\b[^.\n]{0,120}\b(?:product\s+API|ETL/import|ETL|import\s+pipeline|Legal\s+KnowQL\s+parser|KnowQL\s+parser|hybrid\s+retrieval)\b",
+            re.I,
+        ),
         "M001 skill guidance must stay architecture-only and must not direct product ETL/import/API/KnowQL/hybrid retrieval implementation.",
     ),
 ]
@@ -183,7 +195,9 @@ def check_skill_file(path: Path, root: Path = ROOT) -> CheckResult:
 
     stale_ids = sorted(set(STALE_DECISION_RE.findall(text)))
     for decision_id in stale_ids:
-        errors.append(f"{rel(path)}: stale/nonexistent authoritative decision reference: {decision_id}")
+        errors.append(
+            f"{rel(path)}: stale/nonexistent authoritative decision reference: {decision_id}"
+        )
 
     for label, pattern, explanation in OVERCLAIM_PATTERNS:
         if pattern.search(text):
@@ -192,12 +206,20 @@ def check_skill_file(path: Path, root: Path = ROOT) -> CheckResult:
     return CheckResult(rel(path), not errors, errors or ["ok"])
 
 
-def check_exercise(path: Path = EXERCISE, root: Path = ROOT, allow_missing: bool = False) -> CheckResult:
+def check_exercise(
+    path: Path = EXERCISE, root: Path = ROOT, allow_missing: bool = False
+) -> CheckResult:
     full = root / path
     if not full.exists():
         if allow_missing:
-            return CheckResult(rel(path), True, [f"{rel(path)}: optional before T04 because --allow-missing-exercise was set"])
-        return CheckResult(rel(path), False, [f"{rel(path)}: missing required S06 exercise artifact"])
+            return CheckResult(
+                rel(path),
+                True,
+                [f"{rel(path)}: optional before T04 because --allow-missing-exercise was set"],
+            )
+        return CheckResult(
+            rel(path), False, [f"{rel(path)}: missing required S06 exercise artifact"]
+        )
     if full.stat().st_size == 0:
         return CheckResult(rel(path), False, [f"{rel(path)}: S06 exercise artifact is empty"])
 
@@ -212,7 +234,9 @@ def check_exercise(path: Path = EXERCISE, root: Path = ROOT, allow_missing: bool
             errors.append(f"{rel(path)}: missing required exercise anchor: {anchor}")
     stale_ids = sorted(set(STALE_DECISION_RE.findall(text)))
     for decision_id in stale_ids:
-        errors.append(f"{rel(path)}: stale/nonexistent authoritative decision reference: {decision_id}")
+        errors.append(
+            f"{rel(path)}: stale/nonexistent authoritative decision reference: {decision_id}"
+        )
     for label, pattern, explanation in OVERCLAIM_PATTERNS:
         if pattern.search(text):
             errors.append(f"{rel(path)}: {label}: {explanation}")
@@ -250,7 +274,10 @@ def main(argv: Iterable[str] | None = None) -> int:
     results = run_checks(allow_missing_exercise=args.allow_missing_exercise)
     print_results(results)
     if all(result.ok for result in results):
-        print("S06 skill-refresh verification passed." + (" (missing exercise allowed)" if args.allow_missing_exercise else ""))
+        print(
+            "S06 skill-refresh verification passed."
+            + (" (missing exercise allowed)" if args.allow_missing_exercise else "")
+        )
         return 0
     print("S06 skill-refresh verification failed.")
     return 1

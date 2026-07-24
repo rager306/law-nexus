@@ -23,7 +23,9 @@ from dataclasses import dataclass
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-DEFAULT_CONTRACT = ROOT / "prd" / "architecture" / "acp" / "runtime" / "m065-s01" / "install-contract.md"
+DEFAULT_CONTRACT = (
+    ROOT / "prd" / "architecture" / "acp" / "runtime" / "m065-s01" / "install-contract.md"
+)
 DEFAULT_VENDOR_ROOT = Path("/root/vendor-source/git-lex")
 MAIN_STATE_RESIDUE = (".lex", "Squad", "Raw", ".artifacts")
 
@@ -39,16 +41,16 @@ EXPECTED_SECTIONS = (
 
 # Boundary markers that must appear in the contract.
 EXPECTED_BOUNDARY_MARKERS = (
-    "cargo install --path . --locked",   # canonical install command
-    "CLI-install-only",                  # boundary label
-    "R047",                              # main-checkout residue guard
-    "R035/R037/R038",                    # active, not source-truth
-    "ACP-kit",                           # not source truth in this stage
-    "Stage 3",                           # .lex adoption is later/blocked
-    "D084",                              # adoption roadmap
-    "D089",                              # this contract
-    "D077",                              # source pin
-    "--version",                         # version-gap constraint on S02
+    "cargo install --path . --locked",  # canonical install command
+    "CLI-install-only",  # boundary label
+    "R047",  # main-checkout residue guard
+    "R035/R037/R038",  # active, not source-truth
+    "ACP-kit",  # not source truth in this stage
+    "Stage 3",  # .lex adoption is later/blocked
+    "D084",  # adoption roadmap
+    "D089",  # this contract
+    "D077",  # source pin
+    "--version",  # version-gap constraint on S02
 )
 
 # Provenance fields parsed from the contract's YAML block.
@@ -78,7 +80,9 @@ class Diagnostic:
     text: str
 
 
-def _diagnostic(diagnostic_id: str, path: Path | str, line_no: int, message: str, text: str = "") -> Diagnostic:
+def _diagnostic(
+    diagnostic_id: str, path: Path | str, line_no: int, message: str, text: str = ""
+) -> Diagnostic:
     try:
         rel = str(Path(path).relative_to(ROOT))
     except (ValueError, TypeError):
@@ -94,7 +98,11 @@ def _diagnostic(diagnostic_id: str, path: Path | str, line_no: int, message: str
 
 def check_contract_file(contract: Path) -> list[Diagnostic]:
     if not contract.exists():
-        return [_diagnostic("missing_contract_file", contract, 0, f"contract file is missing: {contract}")]
+        return [
+            _diagnostic(
+                "missing_contract_file", contract, 0, f"contract file is missing: {contract}"
+            )
+        ]
     return []
 
 
@@ -102,7 +110,11 @@ def check_sections(text: str, contract: Path) -> list[Diagnostic]:
     diagnostics: list[Diagnostic] = []
     for header in EXPECTED_SECTIONS:
         if header not in text:
-            diagnostics.append(_diagnostic("missing_section", contract, 0, f"required contract section missing: {header}"))
+            diagnostics.append(
+                _diagnostic(
+                    "missing_section", contract, 0, f"required contract section missing: {header}"
+                )
+            )
     return diagnostics
 
 
@@ -110,7 +122,14 @@ def check_boundary_markers(text: str, contract: Path) -> list[Diagnostic]:
     diagnostics: list[Diagnostic] = []
     for marker in EXPECTED_BOUNDARY_MARKERS:
         if marker not in text:
-            diagnostics.append(_diagnostic("missing_boundary_marker", contract, 0, f"required boundary marker missing: {marker}"))
+            diagnostics.append(
+                _diagnostic(
+                    "missing_boundary_marker",
+                    contract,
+                    0,
+                    f"required boundary marker missing: {marker}",
+                )
+            )
     return diagnostics
 
 
@@ -120,7 +139,14 @@ def _parse_provenance(text: str, contract: Path) -> tuple[dict[str, str], list[D
     for field, pattern in _PROVENANCE_PATTERNS.items():
         match = pattern.search(text)
         if match is None:
-            diagnostics.append(_diagnostic("provenance_record_missing", contract, 0, f"contract does not record provenance field: {field}"))
+            diagnostics.append(
+                _diagnostic(
+                    "provenance_record_missing",
+                    contract,
+                    0,
+                    f"contract does not record provenance field: {field}",
+                )
+            )
         else:
             recorded[field] = match.group(1)
     return recorded, diagnostics
@@ -153,7 +179,14 @@ def _sha256(path: Path) -> str | None:
 def check_provenance(text: str, contract: Path, vendor_root: Path) -> list[Diagnostic]:
     diagnostics: list[Diagnostic] = []
     if not vendor_root.exists():
-        diagnostics.append(_diagnostic("vendor_source_missing", vendor_root, 0, f"vendor source checkout is missing: {vendor_root}"))
+        diagnostics.append(
+            _diagnostic(
+                "vendor_source_missing",
+                vendor_root,
+                0,
+                f"vendor source checkout is missing: {vendor_root}",
+            )
+        )
         return diagnostics
 
     recorded, parse_diags = _parse_provenance(text, contract)
@@ -171,7 +204,14 @@ def check_provenance(text: str, contract: Path, vendor_root: Path) -> list[Diagn
         if rec is None:
             continue  # already reported as provenance_record_missing
         if act is None:
-            diagnostics.append(_diagnostic("provenance_mismatch", contract, 0, f"could not recompute {field} from {vendor_root}"))
+            diagnostics.append(
+                _diagnostic(
+                    "provenance_mismatch",
+                    contract,
+                    0,
+                    f"could not recompute {field} from {vendor_root}",
+                )
+            )
         elif rec != act:
             diagnostics.append(
                 _diagnostic(
@@ -190,11 +230,24 @@ def check_main_state_residue(root: Path = ROOT) -> list[Diagnostic]:
         path = root / relative
         if path.exists():
             if relative != ".lex":
-                diagnostics.append(_diagnostic("main_state_residue", path, 0, f"main checkout residue exists: {relative} (R047 contract-phase)"))
+                diagnostics.append(
+                    _diagnostic(
+                        "main_state_residue",
+                        path,
+                        0,
+                        f"main checkout residue exists: {relative} (R047 contract-phase)",
+                    )
+                )
     return diagnostics
 
 
-def verify(contract: Path = DEFAULT_CONTRACT, vendor_root: Path = DEFAULT_VENDOR_ROOT, *, root: Path = ROOT, check_residue: bool = True) -> list[Diagnostic]:
+def verify(
+    contract: Path = DEFAULT_CONTRACT,
+    vendor_root: Path = DEFAULT_VENDOR_ROOT,
+    *,
+    root: Path = ROOT,
+    check_residue: bool = True,
+) -> list[Diagnostic]:
     diagnostics: list[Diagnostic] = []
     diagnostics.extend(check_contract_file(contract))
     if contract.exists():
@@ -216,21 +269,33 @@ def _format_diagnostic(diagnostic: Diagnostic) -> str:
 
 
 def main(argv: list[str] | None = None) -> int:
-    parser = argparse.ArgumentParser(description="Verify the M065 S01 git-lex install contract (Stage 2 of D084).")
+    parser = argparse.ArgumentParser(
+        description="Verify the M065 S01 git-lex install contract (Stage 2 of D084)."
+    )
     parser.add_argument("--contract", type=Path, default=DEFAULT_CONTRACT)
     parser.add_argument("--vendor-root", type=Path, default=DEFAULT_VENDOR_ROOT)
     parser.add_argument("--root", type=Path, default=ROOT)
     parser.add_argument("--skip-residue", action="store_true")
     args = parser.parse_args(argv)
 
-    diagnostics = verify(args.contract, args.vendor_root, root=args.root, check_residue=not args.skip_residue)
+    diagnostics = verify(
+        args.contract, args.vendor_root, root=args.root, check_residue=not args.skip_residue
+    )
     if diagnostics:
         for diagnostic in diagnostics:
             print(_format_diagnostic(diagnostic))
         return 1
 
-    section_count = sum(1 for header in EXPECTED_SECTIONS if header in args.contract.read_text(encoding="utf-8")) if args.contract.exists() else 0
-    print(f"M065 S01 install-contract verification passed: sections={section_count}/{len(EXPECTED_SECTIONS)} diagnostics=0")
+    section_count = (
+        sum(
+            1 for header in EXPECTED_SECTIONS if header in args.contract.read_text(encoding="utf-8")
+        )
+        if args.contract.exists()
+        else 0
+    )
+    print(
+        f"M065 S01 install-contract verification passed: sections={section_count}/{len(EXPECTED_SECTIONS)} diagnostics=0"
+    )
     return 0
 
 

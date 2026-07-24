@@ -46,8 +46,16 @@ fn hostile_cannot_hide_known_gaps() {
     });
     let result = svc.rebuild(req_with_gaps());
     assert!(!result.ceiling.authoritative);
-    assert!(result.ceiling.gaps.iter().any(|g| g.as_str() == "node:gap1"));
-    assert!(result.ceiling.gaps.iter().any(|g| g.as_str() == "node:gap2"));
+    assert!(result
+        .ceiling
+        .gaps
+        .iter()
+        .any(|g| g.as_str() == "node:gap1"));
+    assert!(result
+        .ceiling
+        .gaps
+        .iter()
+        .any(|g| g.as_str() == "node:gap2"));
     // Residual was emptied by hostile hide; known gaps still present.
     assert_eq!(result.ceiling.gaps.len(), 2);
 }

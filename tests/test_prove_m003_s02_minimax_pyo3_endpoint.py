@@ -19,7 +19,9 @@ def synthetic_secret_like_token() -> str:
 
 
 def load_harness() -> ModuleType:
-    spec = importlib.util.spec_from_file_location("prove_m003_s02_minimax_pyo3_endpoint", SCRIPT_PATH)
+    spec = importlib.util.spec_from_file_location(
+        "prove_m003_s02_minimax_pyo3_endpoint", SCRIPT_PATH
+    )
     assert spec is not None
     module = importlib.util.module_from_spec(spec)
     assert spec.loader is not None
@@ -45,7 +47,9 @@ def test_endpoint_normalization_preserves_v1_chat_completions(
 
     assert endpoint["endpoint_input"] == endpoint_input
     assert endpoint["normalized_base_url"] == "https://api.minimax.io/v1/"
-    assert endpoint["effective_chat_completions_url"] == "https://api.minimax.io/v1/chat/completions"
+    assert (
+        endpoint["effective_chat_completions_url"] == "https://api.minimax.io/v1/chat/completions"
+    )
     assert endpoint["preserves_v1"] is True
     assert endpoint["normalization_applied"] is expected_applied
     assert endpoint["normalization_status"] == expected_status
@@ -65,11 +69,19 @@ def test_endpoint_normalization_preserves_v1_chat_completions(
         ("https://api.minimax.io/proxy/v1/chat/completions", "missing-v1-path"),
         ("https://api.minimax.io/v1/models", "unsupported-path"),
         ("https://user:pass@api.minimax.io/v1", "userinfo-not-allowed"),
-        ("https://api.minimax.io/v1?" + "api" + "_key=" + synthetic_secret_like_token(), "query-not-allowed"),
-        ("https://api.minimax.io/v1#" + "tok" + "en=" + synthetic_secret_like_token(), "fragment-not-allowed"),
+        (
+            "https://api.minimax.io/v1?" + "api" + "_key=" + synthetic_secret_like_token(),
+            "query-not-allowed",
+        ),
+        (
+            "https://api.minimax.io/v1#" + "tok" + "en=" + synthetic_secret_like_token(),
+            "fragment-not-allowed",
+        ),
     ],
 )
-def test_endpoint_invalid_inputs_block_before_provider_phase(endpoint_input: str, reason: str) -> None:
+def test_endpoint_invalid_inputs_block_before_provider_phase(
+    endpoint_input: str, reason: str
+) -> None:
     harness = load_harness()
 
     endpoint = harness.normalize_genai_base_endpoint(endpoint_input)
@@ -87,7 +99,12 @@ def test_endpoint_invalid_inputs_block_before_provider_phase(endpoint_input: str
 def test_unsafe_endpoint_components_are_rejected_without_persisting_user_input() -> None:
     harness = load_harness()
 
-    unsafe_endpoint = "https://user:pass@example@api.minimax.io/v1?" + "api" + "_key=" + synthetic_secret_like_token()
+    unsafe_endpoint = (
+        "https://user:pass@example@api.minimax.io/v1?"
+        + "api"
+        + "_key="
+        + synthetic_secret_like_token()
+    )
     endpoint = harness.normalize_genai_base_endpoint(unsafe_endpoint)
 
     assert endpoint["normalization_status"] == "invalid"
@@ -158,7 +175,9 @@ def test_s02_harness_does_not_reintroduce_m002_s04_validation_or_graph_runtime_l
 def test_safe_payload_helpers_redact_secrets_and_refuse_forbidden_terms(tmp_path: Path) -> None:
     harness = load_harness()
 
-    payload = harness.build_endpoint_contract_payload(model=harness.DEFAULT_MODEL, endpoint=harness.DEFAULT_ENDPOINT, timeout=5)
+    payload = harness.build_endpoint_contract_payload(
+        model=harness.DEFAULT_MODEL, endpoint=harness.DEFAULT_ENDPOINT, timeout=5
+    )
     payload["diagnostic"] = "Bearer " + synthetic_secret_like_token()
     sanitized = harness.sanitize(payload)
     json_path, markdown_path = harness.write_artifacts(tmp_path, sanitized)
@@ -211,7 +230,9 @@ def test_resolver_metadata_rejects_lost_v1_endpoint_contract() -> None:
     assert result["provider_attempts"] == 0
 
 
-def test_missing_credential_blocks_after_successful_build_import_resolver(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+def test_missing_credential_blocks_after_successful_build_import_resolver(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
     harness = load_harness()
     monkeypatch.delenv(harness.DEFAULT_API_KEY_ENV, raising=False)
 
@@ -228,7 +249,16 @@ def test_missing_credential_blocks_after_successful_build_import_resolver(monkey
                     "provider_body_persistence": "disabled",
                 }
             )
-        return harness.CommandResult(phase, command, 0, False, 1, harness.summarize_stream(stdout), harness.summarize_stream(""), None)
+        return harness.CommandResult(
+            phase,
+            command,
+            0,
+            False,
+            1,
+            harness.summarize_stream(stdout),
+            harness.summarize_stream(""),
+            None,
+        )
 
     monkeypatch.setattr(harness, "command_available", lambda name: True)
     monkeypatch.setattr(harness, "run_command", fake_run_command)
@@ -249,13 +279,22 @@ def test_missing_credential_blocks_after_successful_build_import_resolver(monkey
     assert payload["phases"]["provider"]["status"] == "blocked-credential"
 
 
-def test_build_failure_stops_before_provider(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+def test_build_failure_stops_before_provider(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
     harness = load_harness()
     monkeypatch.setenv(harness.DEFAULT_API_KEY_ENV, "dummy-credential-value")
 
     def fake_run_command(command: list[str], **kwargs: object) -> harness.CommandResult:
         return harness.CommandResult(
-            str(kwargs["phase"]), command, 101, False, 1, harness.summarize_stream(""), harness.summarize_stream("compile error"), None
+            str(kwargs["phase"]),
+            command,
+            101,
+            False,
+            1,
+            harness.summarize_stream(""),
+            harness.summarize_stream("compile error"),
+            None,
         )
 
     monkeypatch.setattr(harness, "command_available", lambda name: True)
@@ -299,7 +338,16 @@ def test_provider_error_with_credential_records_one_attempt_without_raw_body(
                     "provider_body_persistence": "disabled",
                 }
             )
-            return harness.CommandResult(phase, command, 0, False, 1, harness.summarize_stream(stdout), harness.summarize_stream(""), None)
+            return harness.CommandResult(
+                phase,
+                command,
+                0,
+                False,
+                1,
+                harness.summarize_stream(stdout),
+                harness.summarize_stream(""),
+                None,
+            )
         if phase == "minimax-live-provider-call":
             return harness.CommandResult(
                 phase,
@@ -311,7 +359,16 @@ def test_provider_error_with_credential_records_one_attempt_without_raw_body(
                 harness.summarize_stream("404 not found /chat/completions"),
                 None,
             )
-        return harness.CommandResult(phase, command, 0, False, 1, harness.summarize_stream(""), harness.summarize_stream(""), None)
+        return harness.CommandResult(
+            phase,
+            command,
+            0,
+            False,
+            1,
+            harness.summarize_stream(""),
+            harness.summarize_stream(""),
+            None,
+        )
 
     monkeypatch.setattr(harness, "command_available", lambda name: True)
     monkeypatch.setattr(harness, "run_command", fake_run_command)
@@ -339,13 +396,24 @@ def test_classify_provider_failures() -> None:
 
     assert harness.classify_provider_failure("401 unauthorized") == "minimax-auth-failed"
     assert harness.classify_provider_failure("429 rate limit exceeded") == "minimax-rate-limited"
-    assert harness.classify_provider_failure("missing field choices deserialize") == "minimax-openai-schema-mismatch"
-    assert harness.classify_provider_failure("404 not found /chat/completions") == "endpoint-contract-lost-v1"
-    assert harness.classify_provider_failure("upstream refused connection") == "minimax-provider-call-failed"
+    assert (
+        harness.classify_provider_failure("missing field choices deserialize")
+        == "minimax-openai-schema-mismatch"
+    )
+    assert (
+        harness.classify_provider_failure("404 not found /chat/completions")
+        == "endpoint-contract-lost-v1"
+    )
+    assert (
+        harness.classify_provider_failure("upstream refused connection")
+        == "minimax-provider-call-failed"
+    )
 
 
 def load_verifier() -> ModuleType:
-    spec = importlib.util.spec_from_file_location("verify_m003_s02_minimax_pyo3_endpoint", VERIFY_SCRIPT_PATH)
+    spec = importlib.util.spec_from_file_location(
+        "verify_m003_s02_minimax_pyo3_endpoint", VERIFY_SCRIPT_PATH
+    )
     assert spec is not None
     module = importlib.util.module_from_spec(spec)
     assert spec.loader is not None
@@ -354,7 +422,9 @@ def load_verifier() -> ModuleType:
     return module
 
 
-def write_s02_artifacts(tmp_path: Path, payload: dict[str, object], markdown: str | None = None) -> None:
+def write_s02_artifacts(
+    tmp_path: Path, payload: dict[str, object], markdown: str | None = None
+) -> None:
     (tmp_path / "S02-MINIMAX-PYO3-ENDPOINT.json").write_text(
         json.dumps(payload, ensure_ascii=False, indent=2, sort_keys=True) + "\n",
         encoding="utf-8",
@@ -383,7 +453,9 @@ def write_s02_artifacts(tmp_path: Path, payload: dict[str, object], markdown: st
     )
 
 
-def base_verifier_payload(status: str = "blocked-credential", root_cause: str = "minimax-credential-missing") -> dict[str, object]:
+def base_verifier_payload(
+    status: str = "blocked-credential", root_cause: str = "minimax-credential-missing"
+) -> dict[str, object]:
     harness = load_harness()
     payload = harness.build_endpoint_contract_payload(
         model=harness.DEFAULT_MODEL,
@@ -393,10 +465,27 @@ def base_verifier_payload(status: str = "blocked-credential", root_cause: str = 
     payload["status"] = status
     payload["root_cause"] = root_cause
     payload["phase"] = "provider" if status == "blocked-credential" else "endpoint-contract"
-    payload["provider_attempts"] = 0 if status in {"blocked-credential", "blocked-environment", "not-run-local-only"} else 1
-    payload["phases"]["build"] = {"phase": "build", "status": "confirmed-runtime", "root_cause": "none", "category": "build"}
-    payload["phases"]["import"] = {"phase": "import", "status": "confirmed-runtime", "root_cause": "none", "category": "import"}
-    payload["phases"]["resolver"] = {"phase": "resolver", "status": "confirmed-runtime", "root_cause": "none", "category": "resolver"}
+    payload["provider_attempts"] = (
+        0 if status in {"blocked-credential", "blocked-environment", "not-run-local-only"} else 1
+    )
+    payload["phases"]["build"] = {
+        "phase": "build",
+        "status": "confirmed-runtime",
+        "root_cause": "none",
+        "category": "build",
+    }
+    payload["phases"]["import"] = {
+        "phase": "import",
+        "status": "confirmed-runtime",
+        "root_cause": "none",
+        "category": "import",
+    }
+    payload["phases"]["resolver"] = {
+        "phase": "resolver",
+        "status": "confirmed-runtime",
+        "root_cause": "none",
+        "category": "resolver",
+    }
     payload["phases"]["provider"] = {
         "phase": "provider",
         "status": "blocked-credential" if status == "blocked-credential" else "not-run",
@@ -440,11 +529,34 @@ def test_s02_verifier_accepts_truthful_blocked_credential_fixture(tmp_path: Path
 @pytest.mark.parametrize(
     ("mutator", "expected_error"),
     [
-        (lambda p: p["endpoint"].update({"effective_chat_completions_url": "https://api.minimax.io/chat/completions"}), "effective_chat_completions_url"),
-        (lambda p: p["endpoint"].update({"normalized_base_url": "https://api.minimax.io/v1"}), "normalized_base_url"),
-        (lambda p: p.update({"provider_attempts": 1}), "blocked-credential must not claim provider attempts"),
-        (lambda p: p.update({"status": "confirmed-runtime", "root_cause": "endpoint-contract-lost-v1", "provider_attempts": 1}), "confirmed-runtime root_cause"),
-        (lambda p: p.update({"unsafe": "Bearer " + synthetic_secret_like_token()}), "redaction violation"),
+        (
+            lambda p: p["endpoint"].update(
+                {"effective_chat_completions_url": "https://api.minimax.io/chat/completions"}
+            ),
+            "effective_chat_completions_url",
+        ),
+        (
+            lambda p: p["endpoint"].update({"normalized_base_url": "https://api.minimax.io/v1"}),
+            "normalized_base_url",
+        ),
+        (
+            lambda p: p.update({"provider_attempts": 1}),
+            "blocked-credential must not claim provider attempts",
+        ),
+        (
+            lambda p: p.update(
+                {
+                    "status": "confirmed-runtime",
+                    "root_cause": "endpoint-contract-lost-v1",
+                    "provider_attempts": 1,
+                }
+            ),
+            "confirmed-runtime root_cause",
+        ),
+        (
+            lambda p: p.update({"unsafe": "Bearer " + synthetic_secret_like_token()}),
+            "redaction violation",
+        ),
         (lambda p: p.update({"raw_prompt": "Return OK only"}), "unsafe field"),
         (lambda p: p.update({"diagnostic": "<think>hidden reasoning</think>"}), "think"),
     ],
@@ -473,7 +585,9 @@ def test_s02_verifier_rejects_endpoint_semantic_and_redaction_violations(
         "RAW_LEGAL_TEXT_SENTINEL article text",
     ],
 )
-def test_s02_verifier_rejects_boundary_overclaims_and_unsafe_markdown(tmp_path: Path, overclaim: str) -> None:
+def test_s02_verifier_rejects_boundary_overclaims_and_unsafe_markdown(
+    tmp_path: Path, overclaim: str
+) -> None:
     verifier = load_verifier()
     payload = base_verifier_payload()
     write_s02_artifacts(tmp_path, payload, markdown=overclaim)

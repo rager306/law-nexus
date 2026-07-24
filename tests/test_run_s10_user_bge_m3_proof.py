@@ -55,14 +55,18 @@ def available_cache() -> dict[str, Any]:
     }
 
 
-def test_main_writes_verifier_compatible_user_proof_when_boundaries_confirm(monkeypatch: Any, tmp_path: Path) -> None:
+def test_main_writes_verifier_compatible_user_proof_when_boundaries_confirm(
+    monkeypatch: Any, tmp_path: Path
+) -> None:
     runner = load_module("run_s10_user_bge_m3_proof_success", RUNNER_PATH)
     verifier = load_module("verify_s10_embedding_runtime_proof_for_runner", VERIFIER_PATH)
     output_dir = tmp_path / "S10"
 
     monkeypatch.setattr(runner, "package_status", lambda _requirements: available_packages())
     monkeypatch.setattr(runner, "probe_model_cache", lambda _model_id, _roots: available_cache())
-    monkeypatch.setattr(runner, "load_sentence_transformer", lambda _model_id, _local_files_only: FakeEncoder())
+    monkeypatch.setattr(
+        runner, "load_sentence_transformer", lambda _model_id, _local_files_only: FakeEncoder()
+    )
     monkeypatch.setattr(
         runner,
         "run_falkordb_vector_proof",
@@ -72,7 +76,11 @@ def test_main_writes_verifier_compatible_user_proof_when_boundaries_confirm(monk
             "query_executed": True,
             "duration_ms": 12.5,
             "blocked_root_cause": None,
-            "raw_log_paths": [runner.write_log(output_dir / "logs", "fake-vector", {"status": "confirmed-runtime"})],
+            "raw_log_paths": [
+                runner.write_log(
+                    output_dir / "logs", "fake-vector", {"status": "confirmed-runtime"}
+                )
+            ],
         },
     )
 
@@ -86,7 +94,9 @@ def test_main_writes_verifier_compatible_user_proof_when_boundaries_confirm(monk
     assert result.ok is True
 
 
-def test_main_records_terminal_blocker_without_overclaim_when_encode_fails(monkeypatch: Any, tmp_path: Path) -> None:
+def test_main_records_terminal_blocker_without_overclaim_when_encode_fails(
+    monkeypatch: Any, tmp_path: Path
+) -> None:
     runner = load_module("run_s10_user_bge_m3_proof_blocked", RUNNER_PATH)
     verifier = load_module("verify_s10_embedding_runtime_proof_for_blocked_runner", VERIFIER_PATH)
     output_dir = tmp_path / "S10"

@@ -29,7 +29,9 @@ def run_builder(*args: str) -> subprocess.CompletedProcess[str]:
 
 
 def load_schema_test_module():
-    spec = importlib.util.spec_from_file_location("architecture_registry_schema_tests", SCHEMA_TESTS)
+    spec = importlib.util.spec_from_file_location(
+        "architecture_registry_schema_tests", SCHEMA_TESTS
+    )
     assert spec is not None
     module = importlib.util.module_from_spec(spec)
     assert spec.loader is not None
@@ -39,7 +41,9 @@ def load_schema_test_module():
 
 
 def load_jsonl(path: Path) -> list[dict[str, Any]]:
-    return [json.loads(line) for line in path.read_text(encoding="utf-8").splitlines() if line.strip()]
+    return [
+        json.loads(line) for line in path.read_text(encoding="utf-8").splitlines() if line.strip()
+    ]
 
 
 def test_acp_integrated_registry_fixture_is_current() -> None:
@@ -72,7 +76,13 @@ def test_acp_integrated_registry_fixture_contains_expected_acp_records() -> None
     acp_items = {item["id"]: item for item in items if item["id"].startswith("ACP-")}
     acp_edges = {edge["id"]: edge for edge in edges if edge["id"].startswith("ACP-EDGE-")}
 
-    assert set(acp_items) == {"ACP-AHF-0001", "ACP-AP-0001", "ACP-APR-0001", "ACP-DC-0001", "ACP-PG-0001"}
+    assert set(acp_items) == {
+        "ACP-AHF-0001",
+        "ACP-AP-0001",
+        "ACP-APR-0001",
+        "ACP-DC-0001",
+        "ACP-PG-0001",
+    }
     assert len(acp_edges) == 7
     assert acp_items["ACP-DC-0001"]["type"] == "decision_candidate"
     assert acp_items["ACP-DC-0001"]["authority_required"] is True
@@ -88,7 +98,9 @@ def test_acp_integrated_registry_fixture_detects_stale_outputs(tmp_path: Path) -
     stale_items.write_text("{}\n", encoding="utf-8")
     stale_edges.write_text("{}\n", encoding="utf-8")
 
-    result = run_builder("--items-output", str(stale_items), "--edges-output", str(stale_edges), "--check")
+    result = run_builder(
+        "--items-output", str(stale_items), "--edges-output", str(stale_edges), "--check"
+    )
 
     assert result.returncode == 1
     payload = json.loads(result.stdout)
@@ -106,11 +118,22 @@ def test_acp_integrated_registry_fixture_rejects_duplicate_ids(tmp_path: Path) -
     acp_records[0]["id"] = "ACP-DUPLICATE-FIXTURE"
     acp_records[1]["id"] = "ACP-DUPLICATE-FIXTURE"
     duplicate_items.write_text(
-        "".join(json.dumps(record, ensure_ascii=False, sort_keys=True) + "\n" for record in acp_records),
+        "".join(
+            json.dumps(record, ensure_ascii=False, sort_keys=True) + "\n" for record in acp_records
+        ),
         encoding="utf-8",
     )
 
-    result = run_builder("--acp-items", str(duplicate_items), "--acp-edges", str(duplicate_edges), "--items-output", str(tmp_path / "items.jsonl"), "--edges-output", str(tmp_path / "edges.jsonl"))
+    result = run_builder(
+        "--acp-items",
+        str(duplicate_items),
+        "--acp-edges",
+        str(duplicate_edges),
+        "--items-output",
+        str(tmp_path / "items.jsonl"),
+        "--edges-output",
+        str(tmp_path / "edges.jsonl"),
+    )
 
     assert result.returncode == 1
     payload = json.loads(result.stdout)
@@ -124,11 +147,20 @@ def test_acp_integrated_registry_fixture_rejects_broken_endpoint(tmp_path: Path)
     edge_records = load_jsonl(broken_edges)
     edge_records[0]["to"] = "ACP-MISSING"
     broken_edges.write_text(
-        "".join(json.dumps(record, ensure_ascii=False, sort_keys=True) + "\n" for record in edge_records),
+        "".join(
+            json.dumps(record, ensure_ascii=False, sort_keys=True) + "\n" for record in edge_records
+        ),
         encoding="utf-8",
     )
 
-    result = run_builder("--acp-edges", str(broken_edges), "--items-output", str(tmp_path / "items.jsonl"), "--edges-output", str(tmp_path / "edges.jsonl"))
+    result = run_builder(
+        "--acp-edges",
+        str(broken_edges),
+        "--items-output",
+        str(tmp_path / "items.jsonl"),
+        "--edges-output",
+        str(tmp_path / "edges.jsonl"),
+    )
 
     assert result.returncode == 1
     payload = json.loads(result.stdout)

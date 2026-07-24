@@ -48,7 +48,8 @@ def test_acp_validator_rejects_unsafe_fixture(tmp_path: Path) -> None:
     assert payload["status"] == "failed"
     assert payload["diagnostic_count"] >= 1
     assert any(
-        diagnostic["rule"] == "safety-false" and diagnostic["field"] == "safety.claims_r035_validated"
+        diagnostic["rule"] == "safety-false"
+        and diagnostic["field"] == "safety.claims_r035_validated"
         for diagnostic in payload["diagnostics"]
     )
 

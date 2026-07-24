@@ -92,7 +92,10 @@ def test_detects_missing_ontology_term(tmp_path: Path) -> None:
     verifier = load_verifier()
     kit_root = copy_kit(tmp_path)
     ontology = kit_root / "ontology/acp/acp.ttl"
-    ontology.write_text(ontology.read_text(encoding="utf-8").replace("acp:RuntimeAdapter", "acp:RuntimeBoundary"), encoding="utf-8")
+    ontology.write_text(
+        ontology.read_text(encoding="utf-8").replace("acp:RuntimeAdapter", "acp:RuntimeBoundary"),
+        encoding="utf-8",
+    )
 
     diagnostics = verifier.verify(kit_root, check_residue=False)
 
@@ -136,7 +139,10 @@ def test_detects_unsafe_anchor(tmp_path: Path) -> None:
     verifier = load_verifier()
     kit_root = copy_kit(tmp_path)
     guidance = kit_root / "content/AGENTS.md"
-    guidance.write_text(guidance.read_text(encoding="utf-8") + "\nAccepted proof anchor: /root/local/debug.txt\n", encoding="utf-8")
+    guidance.write_text(
+        guidance.read_text(encoding="utf-8") + "\nAccepted proof anchor: /root/local/debug.txt\n",
+        encoding="utf-8",
+    )
 
     diagnostics = verifier.verify(kit_root, check_residue=False)
 
@@ -147,7 +153,10 @@ def test_detects_source_truth_overclaim(tmp_path: Path) -> None:
     verifier = load_verifier()
     kit_root = copy_kit(tmp_path)
     guidance = kit_root / "content/AGENTS.md"
-    guidance.write_text(guidance.read_text(encoding="utf-8") + "\nACP-kit is the ACP source truth.\n", encoding="utf-8")
+    guidance.write_text(
+        guidance.read_text(encoding="utf-8") + "\nACP-kit is the ACP source truth.\n",
+        encoding="utf-8",
+    )
 
     diagnostics = verifier.verify(kit_root, check_residue=False)
 
@@ -158,7 +167,11 @@ def test_detects_runtime_adoption_overclaim(tmp_path: Path) -> None:
     verifier = load_verifier()
     kit_root = copy_kit(tmp_path)
     guidance = kit_root / "content/AGENTS.md"
-    guidance.write_text(guidance.read_text(encoding="utf-8") + "\nACP-kit approves runtime adoption and production use.\n", encoding="utf-8")
+    guidance.write_text(
+        guidance.read_text(encoding="utf-8")
+        + "\nACP-kit approves runtime adoption and production use.\n",
+        encoding="utf-8",
+    )
 
     diagnostics = verifier.verify(kit_root, check_residue=False)
 
@@ -169,7 +182,10 @@ def test_detects_forbidden_profile_validation(tmp_path: Path) -> None:
     verifier = load_verifier()
     kit_root = copy_kit(tmp_path)
     guidance = kit_root / "content/AGENTS.md"
-    guidance.write_text(guidance.read_text(encoding="utf-8") + "\nR035 is validated by ACP-kit projection shape.\n", encoding="utf-8")
+    guidance.write_text(
+        guidance.read_text(encoding="utf-8") + "\nR035 is validated by ACP-kit projection shape.\n",
+        encoding="utf-8",
+    )
 
     diagnostics = verifier.verify(kit_root, check_residue=False)
 

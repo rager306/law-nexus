@@ -23,7 +23,12 @@ def load_harness() -> ModuleType:
     return module
 
 
-def run_harness_main(module: ModuleType, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str], *args: str) -> tuple[int, dict[str, Any]]:
+def run_harness_main(
+    module: ModuleType,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+    *args: str,
+) -> tuple[int, dict[str, Any]]:
     monkeypatch.setattr(module.sys, "argv", [str(HARNESS_PATH), *args])
     exit_code = module.main()
     captured = capsys.readouterr()
@@ -95,7 +100,10 @@ def test_absent_git_lex_blocks_runtime_adoption_but_s04_mechanics_pass(
     assert runtime["blocked_or_deferred_reason"] == (
         "git-lex executable unavailable; runtime acquisition and adoption are deferred while deterministic ACP mechanics remain inspectable"
     )
-    assert result["adoption_recommendation"] == "defer_runtime_adoption_keep_deterministic_acp_mechanics_only"
+    assert (
+        result["adoption_recommendation"]
+        == "defer_runtime_adoption_keep_deterministic_acp_mechanics_only"
+    )
     assert "claim_full_acp_runtime_adoption_from_fixture_only_evidence" in result["blocked_actions"]
 
 
@@ -126,7 +134,10 @@ def test_no_full_adoption_recommendation_even_when_runtime_probe_succeeds(
     assert exit_code == 0
     assert result["status"] == "pass"
     assert result["workflow_statuses"]["runtime_acquisition_and_adoption"] == "pass"
-    assert result["adoption_recommendation"] == "partial_adoption_requires_separate_runtime_git_lex_proof_before_full_adoption"
+    assert (
+        result["adoption_recommendation"]
+        == "partial_adoption_requires_separate_runtime_git_lex_proof_before_full_adoption"
+    )
     assert result["adoption_recommendation"] != "full_adoption"
     assert result["adoption_recommendation"].startswith("partial_adoption_")
     assert "does_not_claim_full_acp_git_lex_adoption" in result["non_claims"]
@@ -171,7 +182,9 @@ def test_requirement_boundary_keeps_r035_r037_r038_unvalidated_and_non_claimed(
     assert "does_not_validate_R035" in result["non_claims"]
     assert "does_not_validate_R037" in result["non_claims"]
     assert "does_not_validate_R038" in result["non_claims"]
-    assert "validate_R035_R037_R038_from_git_lex_projection_diagnostics" in result["blocked_actions"]
+    assert (
+        "validate_R035_R037_R038_from_git_lex_projection_diagnostics" in result["blocked_actions"]
+    )
 
 
 def test_source_projection_boundary_blocks_derived_projection_promotion(
@@ -242,10 +255,14 @@ def test_projection_overclaim_and_source_override_are_malformed_contracts() -> N
         "fatal_failures": [],
     }
 
-    with pytest.raises(module.ContractError, match="derived projection must not validate requirements"):
+    with pytest.raises(
+        module.ContractError, match="derived projection must not validate requirements"
+    ):
         module.validate_contract(contract)
 
     contract["source_projection_boundary"]["projection_may_validate_requirements"] = False
     contract["source_projection_boundary"]["projection_may_override_source_records"] = True
-    with pytest.raises(module.ContractError, match="derived projection must not override source records"):
+    with pytest.raises(
+        module.ContractError, match="derived projection must not override source records"
+    ):
         module.validate_contract(contract)

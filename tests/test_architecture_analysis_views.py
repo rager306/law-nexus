@@ -20,7 +20,9 @@ HEALTH_MD_PATH = ROOT / "prd/architecture/architecture_health.md"
 
 def load_generator() -> ModuleType:
     """Dynamically import the generator script."""
-    spec = importlib.util.spec_from_file_location("generate_architecture_views", GENERATE_SCRIPT_PATH)
+    spec = importlib.util.spec_from_file_location(
+        "generate_architecture_views", GENERATE_SCRIPT_PATH
+    )
     assert spec is not None
     module = importlib.util.module_from_spec(spec)
     assert spec.loader is not None
@@ -37,6 +39,7 @@ def load_report() -> dict:
 # ---------------------------------------------------------------------------
 # Section presence
 # ---------------------------------------------------------------------------
+
 
 def test_health_dashboard_has_required_sections() -> None:
     """Health dashboard must contain all required structural sections."""
@@ -71,6 +74,7 @@ def test_health_dashboard_has_non_authoritative_disclaimer() -> None:
 # ---------------------------------------------------------------------------
 # Derived / non-authoritative boundary
 # ---------------------------------------------------------------------------
+
 
 def test_non_authoritative_boundary_section_has_table() -> None:
     """Non-authoritative boundary section must contain a table of non-claims."""
@@ -108,6 +112,7 @@ def test_non_authoritative_flag_in_report() -> None:
 # ---------------------------------------------------------------------------
 # Unresolved proof gates
 # ---------------------------------------------------------------------------
+
 
 def test_unresolved_gates_appear_in_dashboard() -> None:
     """All unresolved proof gates from JSON must appear in the dashboard."""
@@ -155,6 +160,7 @@ def test_gate_table_has_required_columns() -> None:
 # ---------------------------------------------------------------------------
 # High-risk nodes
 # ---------------------------------------------------------------------------
+
 
 def test_high_risk_nodes_appear_in_dashboard() -> None:
     """All high-risk and critical nodes must appear in the dashboard."""
@@ -205,7 +211,7 @@ def test_health_dashboard_surfaces_r034_validator_proof_and_open_gates() -> None
         assert f"| {gate_id} |" in content
         assert f"| {gate_id} | high | proof_gate |" in content
         gate_pos = content.find(f"| {gate_id} | high | proof_gate |")
-        assert "| active | none |" in content[gate_pos:gate_pos + 240]
+        assert "| active | none |" in content[gate_pos : gate_pos + 240]
 
 
 def test_health_dashboard_surfaces_m016_runtime_benchmark_and_open_gate_g011() -> None:
@@ -214,17 +220,18 @@ def test_health_dashboard_surfaces_m016_runtime_benchmark_and_open_gate_g011() -
     m016_id = "EVID-REPRESENTATIVE-RETRIEVAL-RUNTIME-BENCHMARK-PROOF"
     assert m016_id in content
     evidence_pos = content.find(m016_id)
-    assert "bounded-evidence" in content[evidence_pos:evidence_pos + 360]
-    assert "runtime-smoke" in content[evidence_pos:evidence_pos + 360]
+    assert "bounded-evidence" in content[evidence_pos : evidence_pos + 360]
+    assert "runtime-smoke" in content[evidence_pos : evidence_pos + 360]
 
     assert "| GATE-G011 | high | proof_gate |" in content
     gate_pos = content.find("| GATE-G011 | high | proof_gate |")
-    assert "| active | none |" in content[gate_pos:gate_pos + 240]
+    assert "| active | none |" in content[gate_pos : gate_pos + 240]
 
 
 # ---------------------------------------------------------------------------
 # Missing layers
 # ---------------------------------------------------------------------------
+
 
 def test_all_schema_layers_are_covered_in_dashboard() -> None:
     """Dashboard must document that every schema layer has at least one architecture record."""
@@ -257,6 +264,7 @@ def test_all_layers_covered_section_has_success_header() -> None:
 # Contradiction count
 # ---------------------------------------------------------------------------
 
+
 def test_contradiction_count_shown_in_quick_stats() -> None:
     """Dashboard must show contradiction edge count."""
     report = load_report()
@@ -277,6 +285,7 @@ def test_zero_contradiction_edges_is_valid_state() -> None:
 # ---------------------------------------------------------------------------
 # Orphan findings
 # ---------------------------------------------------------------------------
+
 
 def test_orphan_findings_count_matches_report() -> None:
     """Dashboard must report correct count of orphan findings."""
@@ -301,6 +310,7 @@ def test_orphan_nodes_appear_in_dashboard() -> None:
 # ---------------------------------------------------------------------------
 # Quick stats integrity
 # ---------------------------------------------------------------------------
+
 
 def test_quick_stats_table_header_present() -> None:
     """Quick Stats section must have a proper markdown table."""
@@ -349,6 +359,7 @@ def test_non_claims_summary_counts_present() -> None:
 # Layer coverage table
 # ---------------------------------------------------------------------------
 
+
 def test_layer_coverage_table_has_headers() -> None:
     """Layer Coverage section must have proper table headers."""
     content = HEALTH_MD_PATH.read_text(encoding="utf-8")
@@ -386,6 +397,7 @@ def test_missing_layers_marked_in_table() -> None:
 # Determinism
 # ---------------------------------------------------------------------------
 
+
 def test_generator_is_deterministic() -> None:
     """Running the generator twice produces identical output."""
     module = load_generator()
@@ -409,8 +421,7 @@ def test_generated_output_matches_stored_file() -> None:
 
     actual = HEALTH_MD_PATH.read_text(encoding="utf-8")
     assert actual == expected, (
-        "Stored health dashboard is stale. Run:\n"
-        f"  uv run python {GENERATE_SCRIPT_PATH}"
+        f"Stored health dashboard is stale. Run:\n  uv run python {GENERATE_SCRIPT_PATH}"
     )
 
 
@@ -456,6 +467,7 @@ def test_check_health_output_function_detects_missing_file(tmp_path: Path) -> No
 # Weakly connected components
 # ---------------------------------------------------------------------------
 
+
 def test_weak_components_section_present() -> None:
     """Weakly Connected Components section must exist."""
     content = HEALTH_MD_PATH.read_text(encoding="utf-8")
@@ -475,6 +487,7 @@ def test_weak_components_table_has_headers() -> None:
 # ---------------------------------------------------------------------------
 # High-risk nodes table
 # ---------------------------------------------------------------------------
+
 
 def test_high_risk_table_has_all_required_columns() -> None:
     """High-Risk Nodes table must have all required columns."""
@@ -554,9 +567,7 @@ def test_blockers_report_does_not_claim_legal_answer_correctness() -> None:
         "legal answer is correct",
     ]
     for phrase in overclaims:
-        assert phrase not in content_lower, (
-            f"Blocker report must NOT claim '{phrase}'"
-        )
+        assert phrase not in content_lower, f"Blocker report must NOT claim '{phrase}'"
 
 
 def test_blockers_report_includes_gate_g005() -> None:
@@ -672,9 +683,7 @@ def test_blockers_report_does_not_claim_etl_is_complete() -> None:
         "parser is ready",
     ]
     for phrase in overclaims:
-        assert phrase not in content_lower, (
-            f"Blocker report must NOT claim '{phrase}'"
-        )
+        assert phrase not in content_lower, f"Blocker report must NOT claim '{phrase}'"
 
 
 def test_blockers_report_does_not_claim_legal_knowql_works() -> None:
@@ -689,9 +698,7 @@ def test_blockers_report_does_not_claim_legal_knowql_works() -> None:
         "legal knowql is production",
     ]
     for phrase in overclaims:
-        assert phrase not in content_lower, (
-            f"Blocker report must NOT claim '{phrase}'"
-        )
+        assert phrase not in content_lower, f"Blocker report must NOT claim '{phrase}'"
 
 
 def test_blockers_report_has_summary_table() -> None:
@@ -705,9 +712,7 @@ def test_blockers_report_has_summary_table() -> None:
 def test_blockers_report_lists_etl_parser_area() -> None:
     """Blocker report must list the ETL / Parser capability area."""
     content = _load_blockers_content()
-    assert "ETL / Parser" in content, (
-        "Blocker report must include the ETL / Parser capability area"
-    )
+    assert "ETL / Parser" in content, "Blocker report must include the ETL / Parser capability area"
 
 
 def test_blockers_report_lists_retrieval_embedding_area() -> None:
@@ -745,9 +750,7 @@ def test_blockers_report_does_not_claim_runtime_migration_complete() -> None:
         "runtime migration is complete",
     ]
     for phrase in overclaims:
-        assert phrase not in content_lower, (
-            f"Blocker report must NOT claim '{phrase}'"
-        )
+        assert phrase not in content_lower, f"Blocker report must NOT claim '{phrase}'"
 
 
 def test_blockers_report_includes_global_non_claims_summary() -> None:
@@ -762,9 +765,7 @@ def test_blockers_report_non_claims_cite_architecture_ids() -> None:
     """Blocker report non-claim rows must cite architecture record IDs."""
     content = _load_blockers_content()
     # The Global Non-Claims Summary should cite specific record IDs like GATE-G008, REQ-R001, etc.
-    assert "GATE-G" in content, (
-        "Blocker report must cite gate IDs in the Global Non-Claims Summary"
-    )
+    assert "GATE-G" in content, "Blocker report must cite gate IDs in the Global Non-Claims Summary"
     assert "REQ-R" in content, (
         "Blocker report must cite requirement IDs in the Global Non-Claims Summary"
     )
@@ -780,9 +781,7 @@ def test_blockers_report_does_not_contain_llm_authority_claim() -> None:
         "llm provides legal authority",
     ]
     for phrase in overclaims:
-        assert phrase not in content_lower, (
-            f"Blocker report must NOT claim '{phrase}'"
-        )
+        assert phrase not in content_lower, f"Blocker report must NOT claim '{phrase}'"
 
 
 def test_blockers_report_blocked_evidence_cites_architecture_ids() -> None:
@@ -797,9 +796,7 @@ def test_blockers_report_next_proof_work_section_present() -> None:
     """Each capability area must have a 'Next Proof Work' section."""
     content = _load_blockers_content()
     # Check that at least one area has "Next Proof Work"
-    assert "Next Proof Work" in content, (
-        "Blocker report must include 'Next Proof Work' sections"
-    )
+    assert "Next Proof Work" in content, "Blocker report must include 'Next Proof Work' sections"
 
 
 # ---------------------------------------------------------------------------
@@ -809,36 +806,74 @@ def test_blockers_report_next_proof_work_section_present() -> None:
 CLAIMS_MD_PATH = ROOT / "prd/architecture/claims_ledger.md"
 
 ALL_TRACKED_IDS = {
-    "ASSUMP-PRD-SOURCE-TRUTH", "CHECK-ARCHITECTURE-EXTRACTOR", "DEC-D031",
-    "DEC-D032", "EVID-PARSER-CONSULTANT-HIERARCHY-PROOF", "EVID-PARSER-GOLDEN-TEST-PROOF",
-    "GATE-G005", "GATE-G008", "GATE-G011", "GATE-G015",
-    "M001-ARCHITECTURE-ONLY-GUARDRAIL", "REQ-R001", "REQ-R009", "REQ-R010",
-    "REQ-R017", "REQ-R022", "REQ-R028", "REQ-R029", "REQ-R034",
-    "RISK-OVERCLAIM-RUNTIME", "S04-FALKORDB-RUNTIME-BOUNDED",
-    "S05-OLD-PROJECT-PRIOR-ART", "S05-PARSER-ODT-BOUNDARY", "S07-FIXED-PRD-CONSISTENCY",
-    "S10-GIGAEMBEDDINGS-CHALLENGER-BLOCKED", "S10-USER-BGE-M3-BASELINE",
-    "EVID-RESEARCH-GRAPHRAG-MATH-ANALYSIS", "EVID-RETRIEVAL-OUTPUT-ID-VALIDATOR-PROOF",
-    "EVID-REAL-ARTIFACT-RETRIEVAL-PROOF", "EVID-REPRESENTATIVE-RETRIEVAL-RUNTIME-BENCHMARK-PROOF",
+    "ASSUMP-PRD-SOURCE-TRUTH",
+    "CHECK-ARCHITECTURE-EXTRACTOR",
+    "DEC-D031",
+    "DEC-D032",
+    "EVID-PARSER-CONSULTANT-HIERARCHY-PROOF",
+    "EVID-PARSER-GOLDEN-TEST-PROOF",
+    "GATE-G005",
+    "GATE-G008",
+    "GATE-G011",
+    "GATE-G015",
+    "M001-ARCHITECTURE-ONLY-GUARDRAIL",
+    "REQ-R001",
+    "REQ-R009",
+    "REQ-R010",
+    "REQ-R017",
+    "REQ-R022",
+    "REQ-R028",
+    "REQ-R029",
+    "REQ-R034",
+    "RISK-OVERCLAIM-RUNTIME",
+    "S04-FALKORDB-RUNTIME-BOUNDED",
+    "S05-OLD-PROJECT-PRIOR-ART",
+    "S05-PARSER-ODT-BOUNDARY",
+    "S07-FIXED-PRD-CONSISTENCY",
+    "S10-GIGAEMBEDDINGS-CHALLENGER-BLOCKED",
+    "S10-USER-BGE-M3-BASELINE",
+    "EVID-RESEARCH-GRAPHRAG-MATH-ANALYSIS",
+    "EVID-RETRIEVAL-OUTPUT-ID-VALIDATOR-PROOF",
+    "EVID-REAL-ARTIFACT-RETRIEVAL-PROOF",
+    "EVID-REPRESENTATIVE-RETRIEVAL-RUNTIME-BENCHMARK-PROOF",
 }
 
 ALL_26_IDS = ALL_TRACKED_IDS
 
 SAFE_IDS = {
-    "ASSUMP-PRD-SOURCE-TRUTH", "CHECK-ARCHITECTURE-EXTRACTOR", "DEC-D031",
-    "DEC-D032", "REQ-R001", "REQ-R009", "REQ-R010", "REQ-R017",
-    "REQ-R022", "REQ-R029", "REQ-R034", "RISK-OVERCLAIM-RUNTIME",
+    "ASSUMP-PRD-SOURCE-TRUTH",
+    "CHECK-ARCHITECTURE-EXTRACTOR",
+    "DEC-D031",
+    "DEC-D032",
+    "REQ-R001",
+    "REQ-R009",
+    "REQ-R010",
+    "REQ-R017",
+    "REQ-R022",
+    "REQ-R029",
+    "REQ-R034",
+    "RISK-OVERCLAIM-RUNTIME",
 }
 
 BOUNDED_IDS = {
-    "S04-FALKORDB-RUNTIME-BOUNDED", "S05-OLD-PROJECT-PRIOR-ART",
-    "S05-PARSER-ODT-BOUNDARY", "S07-FIXED-PRD-CONSISTENCY", "S10-USER-BGE-M3-BASELINE",
-    "EVID-PARSER-GOLDEN-TEST-PROOF", "EVID-PARSER-CONSULTANT-HIERARCHY-PROOF",
-    "EVID-RESEARCH-GRAPHRAG-MATH-ANALYSIS", "EVID-RETRIEVAL-OUTPUT-ID-VALIDATOR-PROOF",
-    "EVID-REAL-ARTIFACT-RETRIEVAL-PROOF", "EVID-REPRESENTATIVE-RETRIEVAL-RUNTIME-BENCHMARK-PROOF",
+    "S04-FALKORDB-RUNTIME-BOUNDED",
+    "S05-OLD-PROJECT-PRIOR-ART",
+    "S05-PARSER-ODT-BOUNDARY",
+    "S07-FIXED-PRD-CONSISTENCY",
+    "S10-USER-BGE-M3-BASELINE",
+    "EVID-PARSER-GOLDEN-TEST-PROOF",
+    "EVID-PARSER-CONSULTANT-HIERARCHY-PROOF",
+    "EVID-RESEARCH-GRAPHRAG-MATH-ANALYSIS",
+    "EVID-RETRIEVAL-OUTPUT-ID-VALIDATOR-PROOF",
+    "EVID-REAL-ARTIFACT-RETRIEVAL-PROOF",
+    "EVID-REPRESENTATIVE-RETRIEVAL-RUNTIME-BENCHMARK-PROOF",
 }
 
 BLOCKED_IDS = {
-    "GATE-G005", "GATE-G008", "GATE-G011", "GATE-G015",
+    "GATE-G005",
+    "GATE-G008",
+    "GATE-G011",
+    "GATE-G015",
     "S10-GIGAEMBEDDINGS-CHALLENGER-BLOCKED",
 }
 
@@ -859,7 +894,7 @@ def _claims_section(content: str, heading: str) -> str:
     section_start = content.find(f"## {heading}")
     assert section_start >= 0, f"Missing claims ledger section: {heading}"
     section_end = content.find("\n## ", section_start + 1)
-    return content[section_start:section_end if section_end >= 0 else None]
+    return content[section_start : section_end if section_end >= 0 else None]
 
 
 def _markdown_table_column_count(row: str) -> int:
@@ -889,9 +924,7 @@ def test_claims_ledger_has_required_sections() -> None:
 def test_claims_ledger_has_classification_guide() -> None:
     """Claims ledger must include a classification guide table."""
     content = _load_claims_content()
-    assert "## Classification Guide" in content, (
-        "Claims ledger must include a Classification Guide"
-    )
+    assert "## Classification Guide" in content, "Claims ledger must include a Classification Guide"
     assert "| **safe-to-say**" in content
     assert "| **bounded**" in content
     assert "| **blocked/open**" in content
@@ -917,6 +950,7 @@ def test_claims_ledger_non_authoritative_footer_present() -> None:
 # ---------------------------------------------------------------------------
 # Claims ledger — selected tracked items appear
 # ---------------------------------------------------------------------------
+
 
 def test_claims_ledger_covers_all_30_tracked_items() -> None:
     """Every tracked architecture item ID must appear in the claims ledger somewhere."""
@@ -962,7 +996,7 @@ def test_claims_ledger_classifies_r034_and_validator_proof_conservatively() -> N
     assert "GATE-G011" in blocked_section
     for gate_id in ("GATE-G008", "GATE-G011"):
         gate_pos = blocked_section.find(gate_id)
-        assert "| none |" in blocked_section[gate_pos:gate_pos + 320]
+        assert "| none |" in blocked_section[gate_pos : gate_pos + 320]
 
 
 def test_claims_ledger_classifies_m016_runtime_benchmark_as_bounded_evidence() -> None:
@@ -974,7 +1008,7 @@ def test_claims_ledger_classifies_m016_runtime_benchmark_as_bounded_evidence() -
     m016_id = "EVID-REPRESENTATIVE-RETRIEVAL-RUNTIME-BENCHMARK-PROOF"
     assert m016_id in bounded_section
     m016_pos = bounded_section.find(m016_id)
-    m016_row = bounded_section[m016_pos:bounded_section.find("\n", m016_pos)]
+    m016_row = bounded_section[m016_pos : bounded_section.find("\n", m016_pos)]
     assert "| runtime-smoke |" in m016_row
     assert "bounded-technical-proof" in m016_row
     assert "Does not prove product retrieval quality." in m016_row
@@ -985,8 +1019,8 @@ def test_claims_ledger_classifies_m016_runtime_benchmark_as_bounded_evidence() -
 
     assert "GATE-G011" in blocked_section
     gate_pos = blocked_section.find("GATE-G011")
-    assert "| active |" in blocked_section[gate_pos:gate_pos + 320]
-    assert "| none |" in blocked_section[gate_pos:gate_pos + 320]
+    assert "| active |" in blocked_section[gate_pos : gate_pos + 320]
+    assert "| none |" in blocked_section[gate_pos : gate_pos + 320]
 
 
 def test_claims_ledger_all_blocked_items_present() -> None:
@@ -1054,6 +1088,7 @@ def test_claims_ledger_no_duplicate_item_ids() -> None:
 # Claims ledger — required known unsafe items
 # ---------------------------------------------------------------------------
 
+
 def test_claims_ledger_includes_m001_guardrail() -> None:
     """M001 architecture-only guardrail must appear as unsafe-to-assert."""
     content = _load_claims_content()
@@ -1088,7 +1123,7 @@ def test_claims_ledger_unsafe_items_have_out_of_scope_status() -> None:
         # The row should contain "| out-of-scope |" for these items
         rid_pos = unsafe_section.find(rid)
         # Check the next ~200 chars after the ID contains "| out-of-scope |"
-        row_snippet = unsafe_section[rid_pos:rid_pos + 300]
+        row_snippet = unsafe_section[rid_pos : rid_pos + 300]
         assert "out-of-scope" in row_snippet, (
             f"{rid} should show 'out-of-scope' status in the unsafe-to-assert table"
         )
@@ -1098,15 +1133,14 @@ def test_claims_ledger_unsafe_items_have_out_of_scope_status() -> None:
 # Claims ledger — evidence / non-claims
 # ---------------------------------------------------------------------------
 
+
 def test_claims_ledger_safe_items_have_non_claims_column() -> None:
     """Safe-to-say rows must include a Non-Claims column."""
     content = _load_claims_content()
     section_start = content.find("## safe-to-say")
     section_end = content.find("\n## ", section_start + 1)
     safe_section = content[section_start:section_end]
-    assert "| Non-Claims |" in safe_section, (
-        "Safe-to-say table must have a Non-Claims column"
-    )
+    assert "| Non-Claims |" in safe_section, "Safe-to-say table must have a Non-Claims column"
 
 
 def test_claims_ledger_bounded_items_have_proof_level() -> None:
@@ -1115,9 +1149,7 @@ def test_claims_ledger_bounded_items_have_proof_level() -> None:
     section_start = content.find("## bounded")
     section_end = content.find("\n## ", section_start + 1)
     bounded_section = content[section_start:section_end]
-    assert "| Proof Level |" in bounded_section, (
-        "Bounded table must have a Proof Level column"
-    )
+    assert "| Proof Level |" in bounded_section, "Bounded table must have a Proof Level column"
 
 
 def test_claims_ledger_rows_have_claim_domain_column() -> None:
@@ -1195,7 +1227,7 @@ def test_claims_ledger_blocked_gates_have_no_proof() -> None:
         blocked_section = content[section_start:section_end]
         assert gate_id in blocked_section
         pos = blocked_section.find(gate_id)
-        row_snippet = blocked_section[pos:pos + 300]
+        row_snippet = blocked_section[pos : pos + 300]
         # The proof_level column should contain "none" for these gates
         assert "none" in row_snippet, (
             f"{gate_id} should show 'none' proof level in the blocked/open table"
@@ -1205,6 +1237,7 @@ def test_claims_ledger_blocked_gates_have_no_proof() -> None:
 # ---------------------------------------------------------------------------
 # Claims ledger — forbidden overclaim wording
 # ---------------------------------------------------------------------------
+
 
 def test_claims_ledger_does_not_claim_product_ready() -> None:
     """Claims ledger must NOT claim product readiness."""
@@ -1218,9 +1251,7 @@ def test_claims_ledger_does_not_claim_product_ready() -> None:
         "shippable",
     ]
     for phrase in overclaims:
-        assert phrase not in content_lower, (
-            f"Claims ledger must NOT contain '{phrase}'"
-        )
+        assert phrase not in content_lower, f"Claims ledger must NOT contain '{phrase}'"
 
 
 def test_claims_ledger_does_not_claim_legal_answer_correctness() -> None:
@@ -1234,9 +1265,7 @@ def test_claims_ledger_does_not_claim_legal_answer_correctness() -> None:
         "guarantees legal accuracy",
     ]
     for phrase in overclaims:
-        assert phrase not in content_lower, (
-            f"Claims ledger must NOT contain '{phrase}'"
-        )
+        assert phrase not in content_lower, f"Claims ledger must NOT contain '{phrase}'"
 
 
 def test_claims_ledger_does_not_claim_llm_legal_authority() -> None:
@@ -1248,9 +1277,7 @@ def test_claims_ledger_does_not_claim_llm_legal_authority() -> None:
         "llm is legally authoritative",
     ]
     for phrase in overclaims:
-        assert phrase not in content_lower, (
-            f"Claims ledger must NOT contain '{phrase}'"
-        )
+        assert phrase not in content_lower, f"Claims ledger must NOT contain '{phrase}'"
 
 
 def test_claims_ledger_does_not_claim_parser_complete() -> None:
@@ -1263,9 +1290,7 @@ def test_claims_ledger_does_not_claim_parser_complete() -> None:
         "parser is ready",
     ]
     for phrase in overclaims:
-        assert phrase not in content_lower, (
-            f"Claims ledger must NOT contain '{phrase}'"
-        )
+        assert phrase not in content_lower, f"Claims ledger must NOT contain '{phrase}'"
 
 
 def test_claims_ledger_does_not_claim_etl_production() -> None:
@@ -1278,9 +1303,7 @@ def test_claims_ledger_does_not_claim_etl_production() -> None:
         "etl is complete",
     ]
     for phrase in overclaims:
-        assert phrase not in content_lower, (
-            f"Claims ledger must NOT contain '{phrase}'"
-        )
+        assert phrase not in content_lower, f"Claims ledger must NOT contain '{phrase}'"
 
 
 def test_claims_ledger_does_not_claim_knowql_works() -> None:
@@ -1293,9 +1316,7 @@ def test_claims_ledger_does_not_claim_knowql_works() -> None:
         "knowql is production",
     ]
     for phrase in overclaims:
-        assert phrase not in content_lower, (
-            f"Claims ledger must NOT contain '{phrase}'"
-        )
+        assert phrase not in content_lower, f"Claims ledger must NOT contain '{phrase}'"
 
 
 def test_claims_ledger_does_not_claim_falkordb_production_scale() -> None:
@@ -1310,6 +1331,7 @@ def test_claims_ledger_does_not_claim_falkordb_production_scale() -> None:
 # ---------------------------------------------------------------------------
 # Claims ledger — classification function unit tests
 # ---------------------------------------------------------------------------
+
 
 def test_classify_safe_source_anchor_active() -> None:
     """source-anchor proof + active status → safe-to-say."""
@@ -1423,6 +1445,7 @@ def test_classify_unsafe_unknown_proof_and_status() -> None:
 # Claims ledger — determinism
 # ---------------------------------------------------------------------------
 
+
 def test_claims_ledger_generator_is_deterministic() -> None:
     """Claims ledger generator is deterministic for the same items_lookup + report."""
     module = load_generator()
@@ -1441,8 +1464,7 @@ def test_claims_ledger_matches_stored_file() -> None:
     expected = module.render_claims_ledger(items_lookup, report)
     actual = CLAIMS_MD_PATH.read_text(encoding="utf-8")
     assert actual == expected, (
-        "Stored claims ledger is stale. Run:\n"
-        f"  uv run python {GENERATE_SCRIPT_PATH}"
+        f"Stored claims ledger is stale. Run:\n  uv run python {GENERATE_SCRIPT_PATH}"
     )
 
 
@@ -1470,6 +1492,7 @@ def test_check_claims_ledger_output_function_detects_missing(tmp_path: Path) -> 
 # Blockers report — determinism
 # ---------------------------------------------------------------------------
 
+
 def test_blockers_report_generator_is_deterministic() -> None:
     """Blockers report generator is deterministic for the same report + items_lookup."""
     module = load_generator()
@@ -1488,8 +1511,7 @@ def test_blockers_report_matches_stored_file() -> None:
     expected = module.render_blockers_report(report, items_lookup)
     actual = BLOCKERS_MD_PATH.read_text(encoding="utf-8")
     assert actual == expected, (
-        "Stored blockers report is stale. Run:\n"
-        f"  uv run python {GENERATE_SCRIPT_PATH}"
+        f"Stored blockers report is stale. Run:\n  uv run python {GENERATE_SCRIPT_PATH}"
     )
 
 
@@ -1517,9 +1539,11 @@ def test_check_blockers_output_function_detects_missing(tmp_path: Path) -> None:
 # Full view generator — --check mode integration
 # ---------------------------------------------------------------------------
 
+
 def test_generate_script_supports_check_flag() -> None:
     """The generator script must support --check and exit 0 when all views are fresh."""
     import subprocess
+
     result = subprocess.run(
         [sys.executable, str(GENERATE_SCRIPT_PATH), "--check"],
         capture_output=True,
@@ -1534,27 +1558,37 @@ def test_generate_script_supports_check_flag() -> None:
 def test_generate_script_check_reports_all_three_views() -> None:
     """--check mode must process all three views (health, blockers, claims)."""
     import subprocess
+
     result = subprocess.run(
         [sys.executable, str(GENERATE_SCRIPT_PATH), "--check"],
         capture_output=True,
         text=True,
     )
     output = result.stdout + result.stderr
-    assert "health" in output.lower() or "architecture_health" in output.lower() or "ok" in output.lower()
+    assert (
+        "health" in output.lower()
+        or "architecture_health" in output.lower()
+        or "ok" in output.lower()
+    )
 
 
 def test_generate_script_write_produces_all_three_views(tmp_path: Path) -> None:
     """Write mode must produce all three .md files."""
     import subprocess
+
     health = tmp_path / "health.md"
     blockers = tmp_path / "blockers.md"
     claims = tmp_path / "claims.md"
     result = subprocess.run(
         [
-            sys.executable, str(GENERATE_SCRIPT_PATH),
-            "--health-md", str(health),
-            "--blockers-md", str(blockers),
-            "--claims-ledger-md", str(claims),
+            sys.executable,
+            str(GENERATE_SCRIPT_PATH),
+            "--health-md",
+            str(health),
+            "--blockers-md",
+            str(blockers),
+            "--claims-ledger-md",
+            str(claims),
         ],
         capture_output=True,
         text=True,
@@ -1572,75 +1606,79 @@ def test_generate_script_write_produces_all_three_views(tmp_path: Path) -> None:
 def test_generate_script_check_fails_on_stale_health(tmp_path: Path) -> None:
     """--check must fail if the health dashboard is stale."""
     import subprocess
+
     stale_health = tmp_path / "health.md"
     stale_health.write_text("# stale", encoding="utf-8")
     result = subprocess.run(
         [
-            sys.executable, str(GENERATE_SCRIPT_PATH),
-            "--health-md", str(stale_health),
+            sys.executable,
+            str(GENERATE_SCRIPT_PATH),
+            "--health-md",
+            str(stale_health),
             "--check",
         ],
         capture_output=True,
         text=True,
     )
-    assert result.returncode != 0, (
-        "--check should fail on stale health dashboard"
-    )
+    assert result.returncode != 0, "--check should fail on stale health dashboard"
     assert "stale" in result.stderr.lower() or "stale" in result.stdout.lower()
 
 
 def test_generate_script_check_fails_on_stale_blockers(tmp_path: Path) -> None:
     """--check must fail if the blockers report is stale."""
     import subprocess
+
     stale_blockers = tmp_path / "blockers.md"
     stale_blockers.write_text("# stale", encoding="utf-8")
     result = subprocess.run(
         [
-            sys.executable, str(GENERATE_SCRIPT_PATH),
-            "--blockers-md", str(stale_blockers),
+            sys.executable,
+            str(GENERATE_SCRIPT_PATH),
+            "--blockers-md",
+            str(stale_blockers),
             "--check",
         ],
         capture_output=True,
         text=True,
     )
-    assert result.returncode != 0, (
-        "--check should fail on stale blockers report"
-    )
+    assert result.returncode != 0, "--check should fail on stale blockers report"
 
 
 def test_generate_script_check_fails_on_stale_claims(tmp_path: Path) -> None:
     """--check must fail if the claims ledger is stale."""
     import subprocess
+
     stale_claims = tmp_path / "claims.md"
     stale_claims.write_text("# stale", encoding="utf-8")
     result = subprocess.run(
         [
-            sys.executable, str(GENERATE_SCRIPT_PATH),
-            "--claims-ledger-md", str(stale_claims),
+            sys.executable,
+            str(GENERATE_SCRIPT_PATH),
+            "--claims-ledger-md",
+            str(stale_claims),
             "--check",
         ],
         capture_output=True,
         text=True,
     )
-    assert result.returncode != 0, (
-        "--check should fail on stale claims ledger"
-    )
+    assert result.returncode != 0, "--check should fail on stale claims ledger"
 
 
 def test_generate_script_check_fails_on_missing_report() -> None:
     """Generator must fail gracefully if the report JSON is missing."""
     import subprocess
+
     result = subprocess.run(
         [
-            sys.executable, str(GENERATE_SCRIPT_PATH),
-            "--report-json", "/nonexistent/report.json",
+            sys.executable,
+            str(GENERATE_SCRIPT_PATH),
+            "--report-json",
+            "/nonexistent/report.json",
         ],
         capture_output=True,
         text=True,
     )
-    assert result.returncode != 0, (
-        "Generator should exit non-zero when report JSON is missing"
-    )
+    assert result.returncode != 0, "Generator should exit non-zero when report JSON is missing"
 
 
 def test_all_three_views_use_non_authoritative_disclaimer() -> None:
@@ -1656,8 +1694,7 @@ def test_all_three_views_use_non_authoritative_disclaimer() -> None:
 
     # Blockers report uses "planning artifact" scope disclaimer + "Source-of-truth"
     blockers_lower = blockers.lower()
-    assert ("planning artifact" in blockers_lower
-            or "non-authoritative" in blockers_lower), (
+    assert "planning artifact" in blockers_lower or "non-authoritative" in blockers_lower, (
         "blockers view must include a scope disclaimer"
     )
     assert "source-of-truth" in blockers_lower, (

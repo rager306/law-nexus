@@ -32,7 +32,12 @@ def package(skill_dir: Path, output: Path, require_evals: bool) -> Path:
     with tarfile.open(output, "w:gz") as archive:
         for path in sorted(skill_dir.rglob("*")):
             if path.is_file() and include(path.relative_to(skill_dir)):
-                archive.add(path, arcname=str(skill_dir.name / path.relative_to(skill_dir)) if isinstance(skill_dir.name, Path) else f"{skill_dir.name}/{path.relative_to(skill_dir)}")
+                archive.add(
+                    path,
+                    arcname=str(skill_dir.name / path.relative_to(skill_dir))
+                    if isinstance(skill_dir.name, Path)
+                    else f"{skill_dir.name}/{path.relative_to(skill_dir)}",
+                )
     return output
 
 

@@ -55,7 +55,9 @@ UNSAFE_ANCHOR_PATTERNS = [
 
 
 def fixture_files() -> list[Path]:
-    assert FIXTURE_DIR.exists(), f"Missing isolated git-lex fixture dir: {FIXTURE_DIR.relative_to(ROOT)}"
+    assert FIXTURE_DIR.exists(), (
+        f"Missing isolated git-lex fixture dir: {FIXTURE_DIR.relative_to(ROOT)}"
+    )
     return sorted(FIXTURE_DIR.glob("*.md"))
 
 
@@ -64,7 +66,9 @@ def parse_frontmatter(path: Path) -> dict[str, Any]:
     match = re.match(r"\A---\n([\s\S]*?)\n---\n", text)
     assert match, f"Missing YAML frontmatter in {path.relative_to(ROOT)}"
     data = yaml.safe_load(match.group(1))
-    assert isinstance(data, dict), f"Frontmatter must parse to a mapping in {path.relative_to(ROOT)}"
+    assert isinstance(data, dict), (
+        f"Frontmatter must parse to a mapping in {path.relative_to(ROOT)}"
+    )
     return data
 
 
@@ -90,16 +94,20 @@ def flatten(value: Any) -> list[Any]:
 
 def referenced_fixture_ids(record: dict[str, Any]) -> set[str]:
     values = flatten(record)
-    return {value for value in values if isinstance(value, str) and value in FIXTURE_RECORD_IDS and value != record["id"]}
+    return {
+        value
+        for value in values
+        if isinstance(value, str) and value in FIXTURE_RECORD_IDS and value != record["id"]
+    }
 
 
 def assert_repo_relative_path(path: str) -> None:
     candidate = Path(path)
     assert not candidate.is_absolute(), f"Anchor path must be repository-relative, got {path!r}"
     assert ".." not in candidate.parts, f"Anchor path must not escape the repository, got {path!r}"
-    assert not any(re.search(pattern, path, flags=re.IGNORECASE) for pattern in UNSAFE_ANCHOR_PATTERNS), (
-        f"Unsafe durable anchor path in isolated fixture: {path!r}"
-    )
+    assert not any(
+        re.search(pattern, path, flags=re.IGNORECASE) for pattern in UNSAFE_ANCHOR_PATTERNS
+    ), f"Unsafe durable anchor path in isolated fixture: {path!r}"
 
 
 def test_fixture_pack_declares_full_reusable_acp_taxonomy_once() -> None:
@@ -139,15 +147,25 @@ def test_record_identity_relationship_references_and_safe_anchors_are_valid() ->
         "AHF-ACP-0001": {"BA-ACP-0001", "PG-ACP-0001", "EA-ACP-0001"},
         "BA-ACP-0001": {"PG-ACP-0001", "AHF-ACP-0001", "EA-ACP-0001"},
         "RB-ACP-0001": {"PG-ACP-0001", "PC-LN-0001", "EA-ACP-0001"},
-        "DPR-ACP-0001": {"APR-ACP-0001", "AP-ACP-0001", "DC-ACP-0001", "PG-ACP-0001", "EA-ACP-0001"},
+        "DPR-ACP-0001": {
+            "APR-ACP-0001",
+            "AP-ACP-0001",
+            "DC-ACP-0001",
+            "PG-ACP-0001",
+            "EA-ACP-0001",
+        },
         "PC-LN-0001": {"PG-ACP-0001", "EA-ACP-0001"},
     }
     for record_id, expected_refs in required_edges.items():
-        assert expected_refs <= graph[record_id], f"{record_id} missing required refs {expected_refs - graph[record_id]}"
+        assert expected_refs <= graph[record_id], (
+            f"{record_id} missing required refs {expected_refs - graph[record_id]}"
+        )
 
     anchor = parsed["EA-ACP-0001"]
     assert_repo_relative_path(anchor["repo_relative_path"])
-    assert (ROOT / anchor["repo_relative_path"]).exists(), "Primary evidence anchor should point to tracked source input"
+    assert (ROOT / anchor["repo_relative_path"]).exists(), (
+        "Primary evidence anchor should point to tracked source input"
+    )
     for path in anchor.get("secondary_repo_relative_paths", []):
         assert_repo_relative_path(path)
         assert (ROOT / path).exists(), f"Secondary evidence anchor is missing: {path}"
@@ -185,7 +203,11 @@ def test_lifecycle_and_proof_gate_chain_cover_required_mechanics() -> None:
 
     command = "uv run pytest tests/test_m048_s04_git_lex_isolated_fixtures.py"
     assert command in gate["verification_commands"]
-    assert any(".lex" in action for action in finding["allowed_next_actions"] + [blocked_action["action"], blocked_action["reason"]])
+    assert any(
+        ".lex" in action
+        for action in finding["allowed_next_actions"]
+        + [blocked_action["action"], blocked_action["reason"]]
+    )
     assert "PG-ACP-0001" in blocked_action["required_unblock_evidence"][0]
 
 
@@ -222,7 +244,9 @@ def test_profile_specific_constraints_do_not_leak_into_reusable_core_records() -
             continue
         record_text = yaml.safe_dump(record, sort_keys=True)
         leaked = sorted(term for term in PROJECT_SPECIFIC_TERMS if term in record_text)
-        assert not leaked, f"Project-specific profile terms leaked into reusable core record {record_id}: {leaked}"
+        assert not leaked, (
+            f"Project-specific profile terms leaked into reusable core record {record_id}: {leaked}"
+        )
 
 
 def test_negative_boundaries_block_main_repo_mutation_and_validation_overclaims() -> None:
@@ -232,8 +256,12 @@ def test_negative_boundaries_block_main_repo_mutation_and_validation_overclaims(
     # post-M066: .lex is EXPECTED in main per D095 operational adoption
     # This assertion now documents the boundary: fixture task must not add new .lex
     # (i.e., not the test that runs the fixture, the production main already has it).
-    assert (ROOT / ".lex").exists(), "Expected .lex state in main per D095 M066 operational adoption"
-    assert not list(FIXTURE_DIR.rglob(".lex")), "The isolated fixture directory must not contain .lex state"
+    assert (ROOT / ".lex").exists(), (
+        "Expected .lex state in main per D095 M066 operational adoption"
+    )
+    assert not list(FIXTURE_DIR.rglob(".lex")), (
+        "The isolated fixture directory must not contain .lex state"
+    )
     assert "git lex init" in parsed["BA-ACP-0001"]["action"]
     assert parsed["BA-ACP-0001"]["severity"] == "critical"
 
@@ -245,8 +273,14 @@ def test_negative_boundaries_block_main_repo_mutation_and_validation_overclaims(
         r"claims_r037_validated:\s+true",
         r"claims_r038_validated:\s+true",
     ]
-    violations = [pattern for pattern in forbidden_validation_patterns if re.search(pattern, combined, re.IGNORECASE)]
-    assert not violations, f"Fixture must not contain R035/R037/R038 validation claims: {violations}"
+    violations = [
+        pattern
+        for pattern in forbidden_validation_patterns
+        if re.search(pattern, combined, re.IGNORECASE)
+    ]
+    assert not violations, (
+        f"Fixture must not contain R035/R037/R038 validation claims: {violations}"
+    )
 
     for record in parsed.values():
         safety = record["safety"]

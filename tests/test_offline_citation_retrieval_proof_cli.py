@@ -35,7 +35,9 @@ def load_fixture() -> dict[str, Any]:
 
 
 def write_fixture(path: Path, data: dict[str, Any]) -> None:
-    path.write_text(json.dumps(data, ensure_ascii=False, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    path.write_text(
+        json.dumps(data, ensure_ascii=False, indent=2, sort_keys=True) + "\n", encoding="utf-8"
+    )
 
 
 def test_cli_passes_for_checked_in_fixture() -> None:
@@ -104,7 +106,9 @@ def test_cli_detects_case_expectation_mismatch(tmp_path: Path) -> None:
 
 def test_cli_detects_unsafe_offline_diagnostic_fields(tmp_path: Path) -> None:
     fixture = load_fixture()
-    ambiguous = next(case for case in fixture["cases"] if case["case_class"] == "ambiguous_candidate_set")
+    ambiguous = next(
+        case for case in fixture["cases"] if case["case_class"] == "ambiguous_candidate_set"
+    )
     ambiguous["diagnostics"][0]["raw_text"] = "unsafe raw payload"
     mutated = tmp_path / "unsafe-diagnostic.json"
     write_fixture(mutated, fixture)

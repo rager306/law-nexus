@@ -26,7 +26,19 @@ def extract_terms(text: str) -> list[str]:
     seen = []
     for word in words:
         low = word.lower()
-        if low in {"skill", "output", "expected", "answer", "should", "with", "when", "user", "prompt", "this", "that"}:
+        if low in {
+            "skill",
+            "output",
+            "expected",
+            "answer",
+            "should",
+            "with",
+            "when",
+            "user",
+            "prompt",
+            "this",
+            "that",
+        }:
             continue
         if low not in [x.lower() for x in seen]:
             seen.append(word)

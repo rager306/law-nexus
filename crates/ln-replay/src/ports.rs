@@ -10,7 +10,11 @@ pub trait CheckpointPort {
 pub trait EffectLedgerPort {
     fn applied_count(&self) -> usize;
     fn has_applied(&self, operation_id: &OperationId, effect_id: &EffectId) -> bool;
-    fn prior_digest(&self, operation_id: &OperationId, effect_id: &EffectId) -> Option<CheckpointDigest>;
+    fn prior_digest(
+        &self,
+        operation_id: &OperationId,
+        effect_id: &EffectId,
+    ) -> Option<CheckpointDigest>;
     /// Record a first-time external effect. Returns false if already applied.
     fn try_apply(
         &mut self,

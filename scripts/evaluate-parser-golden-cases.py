@@ -97,7 +97,9 @@ def severity_counts(diagnostics: list[dict[str, Any]]) -> dict[str, int]:
     return golden_case_helpers.evaluation_severity_counts(diagnostics)
 
 
-def load_json_object(path: Path, *, artifact_label: str) -> tuple[dict[str, Any], list[dict[str, Any]]]:
+def load_json_object(
+    path: Path, *, artifact_label: str
+) -> tuple[dict[str, Any], list[dict[str, Any]]]:
     """Load a JSON object with fail-closed diagnostics."""
 
     if not path.exists():
@@ -280,7 +282,10 @@ def evaluate_unresolved_reference(
 
 
 def evaluate_non_authoritative(
-    case: dict[str, Any], source_artifacts: dict[str, Any], golden_report: dict[str, Any], golden_path: Path
+    case: dict[str, Any],
+    source_artifacts: dict[str, Any],
+    golden_report: dict[str, Any],
+    golden_path: Path,
 ) -> list[dict[str, Any]]:
     """Evaluate non-authoritative boundary case."""
 
@@ -293,7 +298,9 @@ def evaluate_non_authoritative(
     )
 
 
-def evaluate_cases(golden_report: dict[str, Any], golden_path: Path, parser_dir: Path) -> dict[str, Any]:
+def evaluate_cases(
+    golden_report: dict[str, Any], golden_path: Path, parser_dir: Path
+) -> dict[str, Any]:
     """Evaluate generated golden cases against tracked parser artifacts."""
 
     return golden_case_helpers.evaluate_cases(
@@ -328,7 +335,12 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
     """Parse the evaluator CLI."""
 
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--check", action="store_true", required=True, help="Evaluate tracked golden cases and exit non-zero on errors.")
+    parser.add_argument(
+        "--check",
+        action="store_true",
+        required=True,
+        help="Evaluate tracked golden cases and exit non-zero on errors.",
+    )
     parser.add_argument(
         "--parser-dir",
         type=Path,

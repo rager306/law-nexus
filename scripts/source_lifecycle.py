@@ -213,9 +213,7 @@ def load_batch_manifest(path: Path) -> BatchManifest:
     payload = _load_json_object(manifest_path)
     schema_version = payload.get("schema_version")
     if schema_version != BATCH_SCHEMA_VERSION:
-        raise SourceLifecycleError(
-            f"unsupported batch manifest schema_version: {schema_version!r}"
-        )
+        raise SourceLifecycleError(f"unsupported batch manifest schema_version: {schema_version!r}")
     batch_id = payload.get("batch_id")
     if not isinstance(batch_id, str) or not batch_id.strip():
         raise SourceLifecycleError("batch manifest requires a non-empty batch_id")
@@ -329,10 +327,14 @@ def probe_xml_shape(path: Path, *, max_bytes: int = MAX_XML_PROBE_BYTES) -> dict
     if size_bytes is None:
         return _xml_error_shape("missing_file", "artifact does not exist", size_bytes)
     if size_bytes > max_bytes:
-        return _xml_error_shape("xml_probe_size_limit", "artifact exceeds probe byte limit", size_bytes)
+        return _xml_error_shape(
+            "xml_probe_size_limit", "artifact exceeds probe byte limit", size_bytes
+        )
     prefix = path.read_bytes()[:4096].lower()
     if b"<!doctype" in prefix or b"<!entity" in prefix:
-        return _xml_error_shape("xml_unsafe_doctype", "XML doctype/entity declarations are not allowed", size_bytes)
+        return _xml_error_shape(
+            "xml_unsafe_doctype", "XML doctype/entity declarations are not allowed", size_bytes
+        )
     parser = ET.XMLParser()
     try:
         root = ET.parse(path, parser=parser).getroot()
@@ -447,7 +449,9 @@ def revision_row(artifact: ManifestArtifact, artifact_payload: dict[str, Any]) -
     }
 
 
-def classification_row(artifact: ManifestArtifact, artifact_payload: dict[str, Any]) -> dict[str, Any]:
+def classification_row(
+    artifact: ManifestArtifact, artifact_payload: dict[str, Any]
+) -> dict[str, Any]:
     """Build a safe source_classification.safe.jsonl row."""
 
     source_family = str(artifact_payload["source_family"])
@@ -610,22 +614,30 @@ def xml_inventory_metrics(path: Path) -> dict[str, Any]:
     }
 
 
-def inventory_row(artifact: ManifestArtifact, artifact_payload: dict[str, Any], source_path: Path) -> dict[str, Any]:
+def inventory_row(
+    artifact: ManifestArtifact, artifact_payload: dict[str, Any], source_path: Path
+) -> dict[str, Any]:
     """Build a safe inventory-only processed row."""
 
     shape = artifact_payload["detected_shape"]
-    metrics = xml_inventory_metrics(source_path) if shape.get("well_formed") else {
-        "well_formed": False,
-        "error_kind": shape.get("error_kind"),
-        "element_count": 0,
-        "max_depth": 0,
-        "namespace_counts": {},
-    }
+    metrics = (
+        xml_inventory_metrics(source_path)
+        if shape.get("well_formed")
+        else {
+            "well_formed": False,
+            "error_kind": shape.get("error_kind"),
+            "element_count": 0,
+            "max_depth": 0,
+            "namespace_counts": {},
+        }
+    )
     return {
         "schema_version": "legalgraph-source-inventory/v1",
         "source_artifact_id": artifact_payload["source_artifact_id"],
         "source_family": artifact_payload["source_family"],
-        "document_role": _role_from_hint(artifact.declared_role_hint, str(artifact_payload["source_family"])),
+        "document_role": _role_from_hint(
+            artifact.declared_role_hint, str(artifact_payload["source_family"])
+        ),
         "raw_sha256": artifact_payload["raw_sha256"],
         "raw_size_bucket": size_bucket(int(artifact_payload["raw_size_bytes"])),
         "selector": safe_selector(shape),
@@ -713,15 +725,25 @@ def lifecycle_status(workspace_root: Path) -> dict[str, Any]:
         "batches": _count_jsonl(registry_dir / "batches.jsonl"),
         "source_classification": _count_jsonl(registry_dir / "source_classification.safe.jsonl"),
     }
-    batches = read_jsonl(registry_dir / "batches.jsonl") if (registry_dir / "batches.jsonl").exists() else []
+    batches = (
+        read_jsonl(registry_dir / "batches.jsonl")
+        if (registry_dir / "batches.jsonl").exists()
+        else []
+    )
     latest_batch_id_hash = None
     if batches:
         latest_batch_id = str(batches[-1].get("batch_id") or "")
         latest_batch_id_hash = hashlib.sha256(latest_batch_id.encode("utf-8")).hexdigest()
-    processed_corpora = sorted(
-        path.name for path in processed_root.iterdir() if path.is_dir()
-    ) if processed_root.exists() else []
-    run_ids = sorted(path.name for path in runs_root.iterdir() if path.is_dir()) if runs_root.exists() else []
+    processed_corpora = (
+        sorted(path.name for path in processed_root.iterdir() if path.is_dir())
+        if processed_root.exists()
+        else []
+    )
+    run_ids = (
+        sorted(path.name for path in runs_root.iterdir() if path.is_dir())
+        if runs_root.exists()
+        else []
+    )
     latest_run_id = run_ids[-1] if run_ids else None
     latest_run_status = None
     if latest_run_id is not None:
@@ -819,7 +841,9 @@ def trajectory_record(
         not parent_step_id.startswith("STEP-") or not re_match_safe_id(parent_step_id)
     ):
         raise SourceLifecycleError("parent_step_id must be a safe STEP- identifier")
-    selected_record_id = record_id or stable_discovery_id("REC", run_id, step_id, event_type, summary)
+    selected_record_id = record_id or stable_discovery_id(
+        "REC", run_id, step_id, event_type, summary
+    )
     if not selected_record_id.startswith("REC-") or not re_match_safe_id(selected_record_id):
         raise SourceLifecycleError("record_id must be a safe REC- identifier")
     row: dict[str, Any] = {
@@ -875,7 +899,11 @@ def write_minimax_attempt_summary(
     """Write a normalized MiniMax attempt summary and return output refs."""
 
     attempt_id = summary.get("attempt_id")
-    if not isinstance(attempt_id, str) or not attempt_id.startswith("ATTEMPT-") or not re_match_safe_id(attempt_id):
+    if (
+        not isinstance(attempt_id, str)
+        or not attempt_id.startswith("ATTEMPT-")
+        or not re_match_safe_id(attempt_id)
+    ):
         raise SourceLifecycleError("attempt summary requires a safe ATTEMPT- attempt_id")
     allowed = {
         "attempt_id",
@@ -889,7 +917,9 @@ def write_minimax_attempt_summary(
         "status",
         "decision_reason",
     }
-    row = {key: summary[key] for key in sorted(summary) if key in allowed and summary[key] is not None}
+    row = {
+        key: summary[key] for key in sorted(summary) if key in allowed and summary[key] is not None
+    }
     row.update({"schema_version": MINIMAX_ATTEMPT_SCHEMA_VERSION, "non_authoritative": True})
     path = minimax_attempt_directory(workspace_root, run_id) / "attempts.jsonl"
     append_jsonl(path, [row])
@@ -925,7 +955,13 @@ def _candidate_entries(response_summary: str) -> tuple[list[dict[str, Any]], lis
 
     stripped = response_summary.strip()
     if not stripped:
-        return [], [{"error_kind": "empty_discovery_output", "status": "rejected", "message": "Discovery response was empty."}]
+        return [], [
+            {
+                "error_kind": "empty_discovery_output",
+                "status": "rejected",
+                "message": "Discovery response was empty.",
+            }
+        ]
     if stripped[0] in "[{":
         try:
             payload = json.loads(stripped)
@@ -989,7 +1025,9 @@ def normalize_discovery_candidates(
         diagnostic_rows.append(
             {
                 "schema_version": NORMALIZATION_DIAGNOSTIC_SCHEMA_VERSION,
-                "diagnostic_id": stable_discovery_id("DIAG", run_id, attempt_id, str(index), diagnostic["error_kind"]),
+                "diagnostic_id": stable_discovery_id(
+                    "DIAG", run_id, attempt_id, str(index), diagnostic["error_kind"]
+                ),
                 "run_id": run_id,
                 "attempt_id": attempt_id,
                 "status": diagnostic["status"],
@@ -1004,13 +1042,20 @@ def normalize_discovery_candidates(
         kind, warnings = normalize_candidate_kind(entry.get("candidate_kind", entry.get("kind")))
         status_value = entry.get("lifecycle_status", entry.get("status"))
         ignored_claims: list[str] = []
-        if isinstance(status_value, str) and status_value in {"accepted", "verified", "validated", "production_ready"}:
+        if isinstance(status_value, str) and status_value in {
+            "accepted",
+            "verified",
+            "validated",
+            "production_ready",
+        }:
             ignored_claims.append(f"model_claimed_status:{status_value}")
         summary = entry.get("candidate_summary", entry.get("summary", entry.get("title")))
         if not isinstance(summary, str) or not summary.strip():
             summary = "Discovery output proposed a graph-context signal requiring review."
             warnings.append("missing_candidate_summary")
-        supporting_context = entry.get("supporting_context", entry.get("context", entry.get("evidence")))
+        supporting_context = entry.get(
+            "supporting_context", entry.get("context", entry.get("evidence"))
+        )
         if not isinstance(supporting_context, str) or not supporting_context.strip():
             supporting_context = response_summary[:1000]
         confidence = entry.get("confidence_bucket", "unknown")
@@ -1080,7 +1125,9 @@ def normalize_discovery_candidates(
         "candidate_count": len(candidate_rows),
         "signal_count": len(signal_rows),
         "diagnostic_count": len(diagnostic_rows),
-        "output_refs": output_summary(output_paths, workspace_root)["output_refs"] if output_paths else [],
+        "output_refs": output_summary(output_paths, workspace_root)["output_refs"]
+        if output_paths
+        else [],
         "candidate_refs": [f"candidate:{row['candidate_id']}" for row in candidate_rows],
         "non_authoritative": True,
     }
@@ -1142,7 +1189,9 @@ def _graph_context_signal_support_reasons(candidate: dict[str, Any]) -> list[str
     return sorted(set(reasons))
 
 
-def candidate_to_verifier_proposal(candidate: dict[str, Any]) -> tuple[dict[str, Any] | None, list[str]]:
+def candidate_to_verifier_proposal(
+    candidate: dict[str, Any],
+) -> tuple[dict[str, Any] | None, list[str]]:
     """Adapt one S04 candidate into the legacy verifier proposal contract."""
 
     reasons: list[str] = []
@@ -1156,9 +1205,17 @@ def candidate_to_verifier_proposal(candidate: dict[str, Any]) -> tuple[dict[str,
     attempt_id = candidate.get("attempt_id")
     run_id = candidate.get("run_id")
     candidate_kind = candidate.get("candidate_kind")
-    if not isinstance(candidate_id, str) or not candidate_id.startswith("CAND-") or not re_match_safe_id(candidate_id):
+    if (
+        not isinstance(candidate_id, str)
+        or not candidate_id.startswith("CAND-")
+        or not re_match_safe_id(candidate_id)
+    ):
         reasons.append("candidate_id_invalid")
-    if not isinstance(attempt_id, str) or not attempt_id.startswith("ATTEMPT-") or not re_match_safe_id(attempt_id):
+    if (
+        not isinstance(attempt_id, str)
+        or not attempt_id.startswith("ATTEMPT-")
+        or not re_match_safe_id(attempt_id)
+    ):
         reasons.append("attempt_id_invalid")
     if not isinstance(run_id, str) or not run_id.startswith("RUN-") or not re_match_safe_id(run_id):
         reasons.append("run_id_invalid")
@@ -1183,7 +1240,13 @@ def candidate_to_verifier_proposal(candidate: dict[str, Any]) -> tuple[dict[str,
     confidence = candidate.get("confidence_bucket")
     if confidence not in {"low", "medium", "high"}:
         confidence = "low"
-    if reasons or verifier_kind is None or not isinstance(candidate_id, str) or not isinstance(attempt_id, str) or not isinstance(run_id, str):
+    if (
+        reasons
+        or verifier_kind is None
+        or not isinstance(candidate_id, str)
+        or not isinstance(attempt_id, str)
+        or not isinstance(run_id, str)
+    ):
         return None, sorted(set(reasons))
     summary = str(candidate.get("candidate_summary") or candidate_id)[:120]
     proposal = {
@@ -1226,14 +1289,28 @@ def _graph_context_diagnostic(
 ) -> dict[str, Any]:
     """Return a safe graph-context staging diagnostic row."""
 
-    safe_candidate_id = candidate_id if isinstance(candidate_id, str) and re_match_safe_id(candidate_id) else "unknown-candidate"
-    safe_decision_id = decision_id if isinstance(decision_id, str) and re_match_safe_id(decision_id) else "unknown-decision"
+    safe_candidate_id = (
+        candidate_id
+        if isinstance(candidate_id, str) and re_match_safe_id(candidate_id)
+        else "unknown-candidate"
+    )
+    safe_decision_id = (
+        decision_id
+        if isinstance(decision_id, str) and re_match_safe_id(decision_id)
+        else "unknown-decision"
+    )
     return {
         "schema_version": GRAPH_CONTEXT_DIAGNOSTIC_SCHEMA_VERSION,
-        "diagnostic_id": stable_discovery_id("GCTXDIAG", run_id, safe_candidate_id, safe_decision_id, *sorted(set(reason_codes))),
+        "diagnostic_id": stable_discovery_id(
+            "GCTXDIAG", run_id, safe_candidate_id, safe_decision_id, *sorted(set(reason_codes))
+        ),
         "run_id": run_id,
-        "candidate_id": candidate_id if isinstance(candidate_id, str) and re_match_safe_id(candidate_id) else None,
-        "decision_id": decision_id if isinstance(decision_id, str) and re_match_safe_id(decision_id) else None,
+        "candidate_id": candidate_id
+        if isinstance(candidate_id, str) and re_match_safe_id(candidate_id)
+        else None,
+        "decision_id": decision_id
+        if isinstance(decision_id, str) and re_match_safe_id(decision_id)
+        else None,
         "diagnostic_status": "skipped",
         "reason_codes": sorted(set(reason_codes)),
         "safe_summary": safe_summary,
@@ -1260,9 +1337,17 @@ def graph_context_candidate_to_record(
     if not run_id.startswith("RUN-") or not re_match_safe_id(run_id):
         raise SourceLifecycleError("run_id must be a safe RUN- identifier")
     reason_codes: list[str] = []
-    if not isinstance(candidate_id, str) or not candidate_id.startswith("CAND-") or not re_match_safe_id(candidate_id):
+    if (
+        not isinstance(candidate_id, str)
+        or not candidate_id.startswith("CAND-")
+        or not re_match_safe_id(candidate_id)
+    ):
         reason_codes.append("candidate-id-invalid")
-    if not isinstance(decision_id, str) or not decision_id.startswith("DECISION-") or not re_match_safe_id(decision_id):
+    if (
+        not isinstance(decision_id, str)
+        or not decision_id.startswith("DECISION-")
+        or not re_match_safe_id(decision_id)
+    ):
         reason_codes.append("decision-id-invalid")
     if decision.get("verifier_status") != "accepted":
         reason_codes.append("verifier-status-not-accepted")
@@ -1275,33 +1360,58 @@ def graph_context_candidate_to_record(
         reason_codes.append("source-refs-missing")
     if not isinstance(decision_evidence_refs, list):
         decision_evidence_refs = []
-    source_refs = _safe_verifier_refs([ref for ref in candidate_source_refs if isinstance(ref, str)])
-    evidence_refs = _safe_verifier_refs([ref for ref in decision_evidence_refs if isinstance(ref, str)])
+    source_refs = _safe_verifier_refs(
+        [ref for ref in candidate_source_refs if isinstance(ref, str)]
+    )
+    evidence_refs = _safe_verifier_refs(
+        [ref for ref in decision_evidence_refs if isinstance(ref, str)]
+    )
     if len(source_refs) != len([ref for ref in candidate_source_refs if isinstance(ref, str)]):
         reason_codes.append("unsafe-source-ref")
     if not source_refs and not evidence_refs:
         reason_codes.append("source-refs-missing")
-    if reason_codes or not isinstance(candidate_id, str) or not isinstance(decision_id, str) or not isinstance(candidate_kind, str):
+    if (
+        reason_codes
+        or not isinstance(candidate_id, str)
+        or not isinstance(decision_id, str)
+        or not isinstance(candidate_kind, str)
+    ):
         return _graph_context_diagnostic(
             run_id=run_id,
             candidate_id=candidate_id if isinstance(candidate_id, str) else None,
             decision_id=decision_id if isinstance(decision_id, str) else None,
             reason_codes=reason_codes,
         )
-    trajectory_refs = [ref for ref in candidate.get("trajectory_refs", []) if isinstance(ref, str) and ref.startswith("trajectory:STEP-")]
-    attempt_refs = [ref for ref in candidate.get("attempt_refs", []) if isinstance(ref, str) and ref.startswith("attempt:ATTEMPT-")]
-    review_refs = [ref for ref in review_pack_refs or [] if isinstance(ref, str) and not ref.startswith("/") and ".." not in Path(ref).parts]
+    trajectory_refs = [
+        ref
+        for ref in candidate.get("trajectory_refs", [])
+        if isinstance(ref, str) and ref.startswith("trajectory:STEP-")
+    ]
+    attempt_refs = [
+        ref
+        for ref in candidate.get("attempt_refs", [])
+        if isinstance(ref, str) and ref.startswith("attempt:ATTEMPT-")
+    ]
+    review_refs = [
+        ref
+        for ref in review_pack_refs or []
+        if isinstance(ref, str) and not ref.startswith("/") and ".." not in Path(ref).parts
+    ]
     safe_summary = str(candidate.get("candidate_summary") or candidate_id)[:240]
     return {
         "schema_version": GRAPH_CONTEXT_STAGING_SCHEMA_VERSION,
-        "graph_context_id": stable_discovery_id("GCTX", run_id, candidate_id, decision_id, candidate_kind),
+        "graph_context_id": stable_discovery_id(
+            "GCTX", run_id, candidate_id, decision_id, candidate_kind
+        ),
         "run_id": run_id,
         "record_kind": candidate_kind,
         "candidate_id": candidate_id,
         "decision_id": decision_id,
         "staging_status": "staged",
         "safe_summary": safe_summary,
-        "confidence_bucket": candidate.get("confidence_bucket") if candidate.get("confidence_bucket") in {"low", "medium", "high"} else "unknown",
+        "confidence_bucket": candidate.get("confidence_bucket")
+        if candidate.get("confidence_bucket") in {"low", "medium", "high"}
+        else "unknown",
         "candidate_refs": [f"candidate:{candidate_id}"],
         "verifier_refs": [f"decision:{decision_id}"],
         "trajectory_refs": trajectory_refs,
@@ -1340,9 +1450,13 @@ def export_graph_context_staging(
     if not run_id.startswith("RUN-") or not re_match_safe_id(run_id):
         raise SourceLifecycleError("run_id must be a safe RUN- identifier")
     if candidate_rows is None:
-        candidate_rows = read_jsonl(discovery_directory(workspace_root, run_id) / "candidate_hypotheses.jsonl")
+        candidate_rows = read_jsonl(
+            discovery_directory(workspace_root, run_id) / "candidate_hypotheses.jsonl"
+        )
     if decision_rows is None:
-        decision_rows = read_jsonl(verifier_directory(workspace_root, run_id) / "verifier_decisions.jsonl")
+        decision_rows = read_jsonl(
+            verifier_directory(workspace_root, run_id) / "verifier_decisions.jsonl"
+        )
     decisions_by_candidate: dict[str, dict[str, Any]] = {}
     for decision in decision_rows:
         candidate_id = decision.get("candidate_id")
@@ -1355,7 +1469,9 @@ def export_graph_context_staging(
         candidate_id = candidate.get("candidate_id")
         if isinstance(candidate_id, str):
             seen_candidate_ids.add(candidate_id)
-        decision = decisions_by_candidate.get(candidate_id) if isinstance(candidate_id, str) else None
+        decision = (
+            decisions_by_candidate.get(candidate_id) if isinstance(candidate_id, str) else None
+        )
         if decision is None:
             diagnostic_rows.append(
                 _graph_context_diagnostic(
@@ -1383,7 +1499,9 @@ def export_graph_context_staging(
                 _graph_context_diagnostic(
                     run_id=run_id,
                     candidate_id=candidate_id,
-                    decision_id=decision.get("decision_id") if isinstance(decision.get("decision_id"), str) else None,
+                    decision_id=decision.get("decision_id")
+                    if isinstance(decision.get("decision_id"), str)
+                    else None,
                     reason_codes=["missing-candidate-row"],
                 )
             )
@@ -1437,7 +1555,9 @@ def verify_discovery_candidates(
     review_items: list[dict[str, Any]] = []
     rejection_rows: list[dict[str, Any]] = []
     for candidate in candidate_rows:
-        candidate_id = str(candidate.get("candidate_id") or stable_discovery_id("CAND", stable_json(candidate)))
+        candidate_id = str(
+            candidate.get("candidate_id") or stable_discovery_id("CAND", stable_json(candidate))
+        )
         proposal, adapter_reasons = candidate_to_verifier_proposal(candidate)
         if proposal is None:
             base_decision = {
@@ -1452,7 +1572,9 @@ def verify_discovery_candidates(
         else:
             base_decision = verify_proposal(proposal)
         status = str(base_decision["verifier_status"])
-        decision_id = stable_discovery_id("DECISION", candidate_id, status, stable_json(base_decision))
+        decision_id = stable_discovery_id(
+            "DECISION", candidate_id, status, stable_json(base_decision)
+        )
         decision = {
             "schema_version": CANDIDATE_VERIFIER_DECISION_SCHEMA_VERSION,
             "decision_id": decision_id,
@@ -1520,14 +1642,19 @@ def verify_discovery_candidates(
         path = directory / "rejection_reasons.jsonl"
         write_jsonl(path, rejection_rows)
         output_paths.append(path)
-    status_counts = {status: sum(1 for row in decisions if row["verifier_status"] == status) for status in ("accepted", "rejected", "needs_review")}
+    status_counts = {
+        status: sum(1 for row in decisions if row["verifier_status"] == status)
+        for status in ("accepted", "rejected", "needs_review")
+    }
     return {
         "schema_version": "m032.s05.candidate-verifier-result/v1",
         "status": "verified",
         "run_id": run_id,
         "decision_count": len(decisions),
         "status_counts": status_counts,
-        "output_refs": output_summary(output_paths, workspace_root)["output_refs"] if output_paths else [],
+        "output_refs": output_summary(output_paths, workspace_root)["output_refs"]
+        if output_paths
+        else [],
         "non_authoritative": True,
     }
 
@@ -1569,7 +1696,9 @@ def build_external_review_pack(workspace_root: Path, run_id: str) -> dict[str, A
     }
     rows = {name: _rows_at(workspace_root, ref) for name, ref in refs.items()}
     missing_sections = [name for name, ref in refs.items() if not (workspace_root / ref).exists()]
-    review_id = stable_discovery_id("REVIEW", run_id, stable_json({name: len(value) for name, value in rows.items()}))
+    review_id = stable_discovery_id(
+        "REVIEW", run_id, stable_json({name: len(value) for name, value in rows.items()})
+    )
     decisions = rows["decisions"]
     candidates = rows["candidates"]
     attempts = rows["attempts"]
@@ -1584,44 +1713,97 @@ def build_external_review_pack(workspace_root: Path, run_id: str) -> dict[str, A
         "review_scope": "external_gpt55_cli_output_review",
         "trajectory_summary": {
             "record_count": len(trajectory),
-            "event_types": sorted({str(row.get("event_type")) for row in trajectory if row.get("event_type")}),
+            "event_types": sorted(
+                {str(row.get("event_type")) for row in trajectory if row.get("event_type")}
+            ),
             "phases": sorted({str(row.get("phase")) for row in trajectory if row.get("phase")}),
-            "step_refs": [f"trajectory:{row['step_id']}" for row in trajectory if isinstance(row.get("step_id"), str)],
+            "step_refs": [
+                f"trajectory:{row['step_id']}"
+                for row in trajectory
+                if isinstance(row.get("step_id"), str)
+            ],
         },
         "minimax_attempt_summary": {
             "attempt_count": len(attempts),
             "statuses": _status_counts(attempts, "status"),
-            "model_names": sorted({str(row.get("model_name")) for row in attempts if row.get("model_name")}),
-            "response_summaries": [row.get("response_summary") for row in attempts if row.get("response_summary")],
+            "model_names": sorted(
+                {str(row.get("model_name")) for row in attempts if row.get("model_name")}
+            ),
+            "response_summaries": [
+                row.get("response_summary") for row in attempts if row.get("response_summary")
+            ],
             "non_authoritative": True,
         },
         "candidate_summary": {
             "candidate_count": len(candidates),
             "candidate_kinds": _status_counts(candidates, "candidate_kind"),
             "lifecycle_statuses": _status_counts(candidates, "lifecycle_status"),
-            "candidate_refs": [f"candidate:{row['candidate_id']}" for row in candidates if isinstance(row.get("candidate_id"), str)],
-            "model_claims_ignored": [claim for row in candidates for claim in row.get("model_claims_ignored", []) if isinstance(claim, str)],
+            "candidate_refs": [
+                f"candidate:{row['candidate_id']}"
+                for row in candidates
+                if isinstance(row.get("candidate_id"), str)
+            ],
+            "model_claims_ignored": [
+                claim
+                for row in candidates
+                for claim in row.get("model_claims_ignored", [])
+                if isinstance(claim, str)
+            ],
         },
         "verifier_summary": {
             "decision_count": len(decisions),
             "status_counts": _status_counts(decisions, "verifier_status"),
-            "checked_refs": sorted({ref for row in decisions for ref in row.get("checked_refs", []) if isinstance(ref, str)}),
-            "acceptance_evidence_refs": sorted({ref for row in decisions for ref in row.get("acceptance_evidence_refs", []) if isinstance(ref, str)}),
-            "decision_notes": [note for row in decisions for note in row.get("decision_notes", []) if isinstance(note, str)],
+            "checked_refs": sorted(
+                {
+                    ref
+                    for row in decisions
+                    for ref in row.get("checked_refs", [])
+                    if isinstance(ref, str)
+                }
+            ),
+            "acceptance_evidence_refs": sorted(
+                {
+                    ref
+                    for row in decisions
+                    for ref in row.get("acceptance_evidence_refs", [])
+                    if isinstance(ref, str)
+                }
+            ),
+            "decision_notes": [
+                note
+                for row in decisions
+                for note in row.get("decision_notes", [])
+                if isinstance(note, str)
+            ],
         },
         "rejected_branch_summary": {
             "rejected_count": len(rejections),
-            "candidate_ids": [row.get("candidate_id") for row in rejections if row.get("candidate_id")],
-            "reason_categories": sorted({reason for row in rejections for reason in row.get("rejection_reasons", []) if isinstance(reason, str)}),
+            "candidate_ids": [
+                row.get("candidate_id") for row in rejections if row.get("candidate_id")
+            ],
+            "reason_categories": sorted(
+                {
+                    reason
+                    for row in rejections
+                    for reason in row.get("rejection_reasons", [])
+                    if isinstance(reason, str)
+                }
+            ),
         },
         "review_queue_summary": {
             "needs_review_count": len(review_queue),
-            "queue_item_ids": [row.get("queue_item_id") for row in review_queue if row.get("queue_item_id")],
-            "review_reasons": sorted({str(row.get("review_reason")) for row in review_queue if row.get("review_reason")}),
+            "queue_item_ids": [
+                row.get("queue_item_id") for row in review_queue if row.get("queue_item_id")
+            ],
+            "review_reasons": sorted(
+                {str(row.get("review_reason")) for row in review_queue if row.get("review_reason")}
+            ),
         },
         "normalization_diagnostics_summary": {
             "diagnostic_count": len(diagnostics),
-            "error_kinds": sorted({str(row.get("error_kind")) for row in diagnostics if row.get("error_kind")}),
+            "error_kinds": sorted(
+                {str(row.get("error_kind")) for row in diagnostics if row.get("error_kind")}
+            ),
             "statuses": _status_counts(diagnostics, "status"),
         },
         "artifact_refs": [ref for ref in refs.values() if (workspace_root / ref).exists()],
@@ -1634,7 +1816,13 @@ def build_external_review_pack(workspace_root: Path, run_id: str) -> dict[str, A
         ],
         "expected_external_review_output": {
             "review_verdict": "useful|needs_more_evidence|not_useful|blocked_by_traceability",
-            "fields": ["useful_findings", "candidate_concerns", "traceability_concerns", "recommended_next_actions", "non_claims"],
+            "fields": [
+                "useful_findings",
+                "candidate_concerns",
+                "traceability_concerns",
+                "recommended_next_actions",
+                "non_claims",
+            ],
         },
         "missing_sections": missing_sections,
         "boundary": {
@@ -1701,7 +1889,9 @@ def _load_mock_minimax_response(path: Path) -> str:
         value = payload.get(key)
         if isinstance(value, str) and value.strip():
             return value.strip()
-    raise SourceLifecycleError("mock MiniMax response requires response_summary, content, or message")
+    raise SourceLifecycleError(
+        "mock MiniMax response requires response_summary, content, or message"
+    )
 
 
 def _call_minimax_chat(
@@ -1818,7 +2008,9 @@ def discover_with_minimax(
             timeout_seconds=timeout_seconds,
         )
         status = "completed"
-        decision_reason = "MiniMax provider response summarized without persisting transport payloads."
+        decision_reason = (
+            "MiniMax provider response summarized without persisting transport payloads."
+        )
 
     completed_step_id = stable_discovery_id("STEP", selected_run_id, attempt_id, status)
     append_trajectory_record(
@@ -1830,11 +2022,15 @@ def discover_with_minimax(
             phase="minimax_discovery",
             step_id=completed_step_id,
             parent_step_id=start_step_id,
-            summary="MiniMax structural discovery attempt completed." if status == "completed" else "MiniMax discovery blocked before provider call.",
+            summary="MiniMax structural discovery attempt completed."
+            if status == "completed"
+            else "MiniMax discovery blocked before provider call.",
             observed_context=response_summary,
             decision=status,
             decision_reason=decision_reason,
-            next_action="candidate_normalization" if status == "completed" else "configure_minimax_and_retry",
+            next_action="candidate_normalization"
+            if status == "completed"
+            else "configure_minimax_and_retry",
             source_refs=refs,
             output_refs=[f"attempt:{attempt_id}"],
             timestamp_utc=started_at,
@@ -1941,7 +2137,9 @@ def safe_log_row(kind: str, payload: dict[str, Any]) -> dict[str, Any]:
         "count",
         "message",
     }
-    row = {key: payload[key] for key in sorted(payload) if key in allowed and payload[key] is not None}
+    row = {
+        key: payload[key] for key in sorted(payload) if key in allowed and payload[key] is not None
+    }
     if "message" in row:
         row["message"] = str(row["message"])[:220]
     row.update({"schema_version": f"legalgraph-source-run-{kind}/v1", "non_authoritative": True})
@@ -2029,7 +2227,9 @@ def workspace_tracking_warning(workspace_root: Path) -> dict[str, Any]:
         "schema_version": "legalgraph-source-workspace-tracking-warning/v1",
         "status": "ok" if all_ignored else "warning",
         "ignored": ignored,
-        "message": "lifecycle output directories are ignored" if all_ignored else "review tracking policy before persistent real-corpus runs",
+        "message": "lifecycle output directories are ignored"
+        if all_ignored
+        else "review tracking policy before persistent real-corpus runs",
         "non_authoritative": True,
     }
 
@@ -2091,13 +2291,22 @@ def run_batch_with_envelope(
         write_json(run_dir / "inputs.json", manifest_input_summary(manifest))
         append_run_event(run_dir, {"phase": "register", "status": "started"})
         registered = register_batch(manifest_path, workspace_root)
-        append_run_event(run_dir, {"phase": "register", "status": "completed", "count": registered["registered_count"]})
+        append_run_event(
+            run_dir,
+            {"phase": "register", "status": "completed", "count": registered["registered_count"]},
+        )
         append_run_event(run_dir, {"phase": "classify", "status": "started"})
         classified = classify_batch(manifest_path, workspace_root)
-        append_run_event(run_dir, {"phase": "classify", "status": "completed", "count": classified["classified_count"]})
+        append_run_event(
+            run_dir,
+            {"phase": "classify", "status": "completed", "count": classified["classified_count"]},
+        )
         append_run_event(run_dir, {"phase": "process", "status": "started"})
         processed = process_batch(manifest_path, workspace_root)
-        append_run_event(run_dir, {"phase": "process", "status": "completed", "count": processed["processed_count"]})
+        append_run_event(
+            run_dir,
+            {"phase": "process", "status": "completed", "count": processed["processed_count"]},
+        )
         output_dir = workspace_root / str(processed["output_dir"])
         output_paths = [
             workspace_root / "registry" / "source_artifacts.jsonl",
@@ -2113,7 +2322,12 @@ def run_batch_with_envelope(
         error_count = 1
         append_run_error(
             run_dir,
-            {"phase": "run-batch", "status": "failed", "error_kind": "source_lifecycle_error", "message": str(exc)},
+            {
+                "phase": "run-batch",
+                "status": "failed",
+                "error_kind": "source_lifecycle_error",
+                "message": str(exc),
+            },
         )
 
     metrics = run_metrics_summary(
@@ -2151,7 +2365,11 @@ def latest_run_id(workspace_root: Path) -> str:
     """Return the latest run id in a workspace."""
 
     runs_root = workspace_root / "runs"
-    run_ids = sorted(path.name for path in runs_root.iterdir() if path.is_dir()) if runs_root.exists() else []
+    run_ids = (
+        sorted(path.name for path in runs_root.iterdir() if path.is_dir())
+        if runs_root.exists()
+        else []
+    )
     if not run_ids:
         raise SourceLifecycleError("no runs found in workspace")
     return run_ids[-1]
@@ -2164,10 +2382,14 @@ def build_review_pack(workspace_root: Path, run_id: str | None = None) -> dict[s
     run_dir = run_directory(workspace_root, selected_run_id)
     run_json = _load_json_object(run_dir / "run.json")
     metrics = _load_json_object(run_dir / "metrics.json")
-    outputs = _load_json_object(run_dir / "outputs.json") if (run_dir / "outputs.json").exists() else {
-        "output_refs": [],
-        "output_count": 0,
-    }
+    outputs = (
+        _load_json_object(run_dir / "outputs.json")
+        if (run_dir / "outputs.json").exists()
+        else {
+            "output_refs": [],
+            "output_count": 0,
+        }
+    )
     errors = read_jsonl(run_dir / "errors.jsonl") if (run_dir / "errors.jsonl").exists() else []
     events = read_jsonl(run_dir / "events.jsonl") if (run_dir / "events.jsonl").exists() else []
     pack = {
@@ -2178,10 +2400,14 @@ def build_review_pack(workspace_root: Path, run_id: str | None = None) -> dict[s
         "output_refs": outputs.get("output_refs", []),
         "event_count": len(events),
         "error_count": len(errors),
-        "error_kinds": sorted({str(error.get("error_kind")) for error in errors if error.get("error_kind")}),
+        "error_kinds": sorted(
+            {str(error.get("error_kind")) for error in errors if error.get("error_kind")}
+        ),
         "workspace_tracking": run_json.get("workspace_tracking"),
         "rerun_hint": "uv run python scripts/source_cli.py --workspace <workspace> run-batch <manifest>",
-        "next_steps": review_next_steps(str(run_json.get("status")), int(metrics.get("error_count", 0))),
+        "next_steps": review_next_steps(
+            str(run_json.get("status")), int(metrics.get("error_count", 0))
+        ),
         "non_authoritative": True,
         "non_claims": list(NON_CLAIMS),
     }
@@ -2224,13 +2450,13 @@ def render_review_pack_markdown(pack: dict[str, Any]) -> str:
 
 ## Run
 
-- Run ID: `{pack['run_id']}`
-- Status: `{pack['run_status']}`
-- Registered: `{metrics.get('registered_count', 0)}`
-- Classified: `{metrics.get('classified_count', 0)}`
-- Processed: `{metrics.get('processed_count', 0)}`
-- Errors: `{pack.get('error_count', 0)}`
-- Workspace tracking: `{tracking.get('status', 'unknown')}`
+- Run ID: `{pack["run_id"]}`
+- Status: `{pack["run_status"]}`
+- Registered: `{metrics.get("registered_count", 0)}`
+- Classified: `{metrics.get("classified_count", 0)}`
+- Processed: `{metrics.get("processed_count", 0)}`
+- Errors: `{pack.get("error_count", 0)}`
+- Workspace tracking: `{tracking.get("status", "unknown")}`
 
 ## Output refs
 
@@ -2243,7 +2469,7 @@ def render_review_pack_markdown(pack: dict[str, Any]) -> str:
 ## Rerun hint
 
 ```bash
-{pack['rerun_hint']}
+{pack["rerun_hint"]}
 ```
 
 ## Non-claims

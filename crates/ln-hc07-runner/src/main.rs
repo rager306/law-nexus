@@ -21,7 +21,11 @@ struct ScenarioResult {
     pass: bool,
 }
 
-fn seeded() -> (AssertIdentity<InMemoryIdentityStore>, IdentityId, IdentityId) {
+fn seeded() -> (
+    AssertIdentity<InMemoryIdentityStore>,
+    IdentityId,
+    IdentityId,
+) {
     let mut use_case = AssertIdentity::new(InMemoryIdentityStore::default());
     let left = IdentityId::parse("ID-A").expect("static id");
     let right = IdentityId::parse("ID-B").expect("static id");

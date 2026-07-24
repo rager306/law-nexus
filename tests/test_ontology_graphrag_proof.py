@@ -10,7 +10,13 @@ from types import ModuleType
 ROOT = Path(__file__).resolve().parents[1]
 BUILDER_PATH = ROOT / "scripts" / "build-ontology-graphrag-proof-cases.py"
 VERIFIER_PATH = ROOT / "scripts" / "verify-ontology-graphrag-proof.py"
-FIXTURE_PATH = ROOT / "prd" / "research" / "ontology_architecture_requirements" / "ontology_graphrag_proof_cases.json"
+FIXTURE_PATH = (
+    ROOT
+    / "prd"
+    / "research"
+    / "ontology_architecture_requirements"
+    / "ontology_graphrag_proof_cases.json"
+)
 
 EXPECTED_CODES = {
     "ambiguous_candidate_set",
@@ -78,7 +84,10 @@ def assert_safe_summary(summary: dict) -> None:
     for forbidden in FORBIDDEN_SNIPPETS:
         assert forbidden not in serialized
     assert summary["schema_version"] == "ontology-graphrag-proof/v1"
-    assert summary["fixture_path"] == "prd/research/ontology_architecture_requirements/ontology_graphrag_proof_cases.json"
+    assert (
+        summary["fixture_path"]
+        == "prd/research/ontology_architecture_requirements/ontology_graphrag_proof_cases.json"
+    )
     assert summary["proof_id"] == "OG-M020-S02-FIXTURE-PROOF"
     assert summary["non_authoritative"] is True
     assert summary["redaction_ok"] is True
@@ -117,20 +126,35 @@ def test_tracked_fixture_shape_covers_happy_path_and_fail_closed_cases() -> None
     assert all(case["non_authoritative"] is True for case in data["cases"])
     assert all(case["case_id"].startswith("CASE-M020-OG-") for case in data["cases"])
 
-    accepted = next(case for case in data["cases"] if case["case_class"] == "valid_ontology_temporal_citation")
+    accepted = next(
+        case for case in data["cases"] if case["case_class"] == "valid_ontology_temporal_citation"
+    )
     assert accepted["expected_result"] == "accepted"
     assert accepted["ontology_filter"]["expected_filter_result"] == "matched"
     assert accepted["temporal_filter"]["expected_temporal_result"] == "included"
     assert accepted["candidate_set"][0]["evidence_span_id"] == "EV-M014-HIER-CONS-ARTICLE-0001"
-    assert accepted["output"]["citations"][0]["evidence_span_id"] == "EV-M014-HIER-CONS-ARTICLE-0001"
+    assert (
+        accepted["output"]["citations"][0]["evidence_span_id"] == "EV-M014-HIER-CONS-ARTICLE-0001"
+    )
 
     by_class = {case["case_class"]: case for case in data["cases"]}
-    assert by_class["inactive_or_wrong_edition_excluded"]["expected_diagnostic_codes"] == ["temporal_filter_excluded", "wrong_edition"]
-    assert by_class["unsupported_ontology_filter"]["expected_result"] == "blocked_unsupported_filter"
-    assert by_class["missing_citation_or_evidence_id"]["expected_diagnostic_codes"] == ["missing_required_field"]
-    assert by_class["ambiguous_candidate_set"]["expected_diagnostic_codes"] == ["ambiguous_candidate_set"]
+    assert by_class["inactive_or_wrong_edition_excluded"]["expected_diagnostic_codes"] == [
+        "temporal_filter_excluded",
+        "wrong_edition",
+    ]
+    assert (
+        by_class["unsupported_ontology_filter"]["expected_result"] == "blocked_unsupported_filter"
+    )
+    assert by_class["missing_citation_or_evidence_id"]["expected_diagnostic_codes"] == [
+        "missing_required_field"
+    ]
+    assert by_class["ambiguous_candidate_set"]["expected_diagnostic_codes"] == [
+        "ambiguous_candidate_set"
+    ]
     assert by_class["scoped_no_answer"]["expected_result"] == "accepted_scoped_no_answer"
-    assert by_class["forbidden_payload_field"]["expected_diagnostic_codes"] == ["forbidden_payload_field"]
+    assert by_class["forbidden_payload_field"]["expected_diagnostic_codes"] == [
+        "forbidden_payload_field"
+    ]
 
     case_payload = json.dumps(
         [
@@ -192,10 +216,14 @@ def test_verifier_is_deterministic_for_tracked_fixture() -> None:
 
 def test_verifier_fails_closed_on_unsupported_filter_expectation_mismatch(tmp_path: Path) -> None:
     data = json.loads(FIXTURE_PATH.read_text(encoding="utf-8"))
-    unsupported = next(case for case in data["cases"] if case["case_class"] == "unsupported_ontology_filter")
+    unsupported = next(
+        case for case in data["cases"] if case["case_class"] == "unsupported_ontology_filter"
+    )
     unsupported["expected_result"] = "accepted"
     bad_fixture = tmp_path / "bad-ontology-proof-cases.json"
-    bad_fixture.write_text(json.dumps(data, ensure_ascii=False, indent=2, sort_keys=True), encoding="utf-8")
+    bad_fixture.write_text(
+        json.dumps(data, ensure_ascii=False, indent=2, sort_keys=True), encoding="utf-8"
+    )
 
     completed = run_cli(VERIFIER_PATH, "--fixtures", str(bad_fixture))
     summary = parse_stdout(completed)
@@ -211,10 +239,14 @@ def test_verifier_fails_closed_on_unsupported_filter_expectation_mismatch(tmp_pa
 
 def test_verifier_fails_closed_on_forbidden_payload_key(tmp_path: Path) -> None:
     data = json.loads(FIXTURE_PATH.read_text(encoding="utf-8"))
-    accepted = next(case for case in data["cases"] if case["case_class"] == "valid_ontology_temporal_citation")
+    accepted = next(
+        case for case in data["cases"] if case["case_class"] == "valid_ontology_temporal_citation"
+    )
     accepted["output"]["raw_legal_text"] = "redacted"
     bad_fixture = tmp_path / "unsafe-ontology-proof-cases.json"
-    bad_fixture.write_text(json.dumps(data, ensure_ascii=False, indent=2, sort_keys=True), encoding="utf-8")
+    bad_fixture.write_text(
+        json.dumps(data, ensure_ascii=False, indent=2, sort_keys=True), encoding="utf-8"
+    )
 
     completed = run_cli(VERIFIER_PATH, "--fixtures", str(bad_fixture))
     summary = parse_stdout(completed)

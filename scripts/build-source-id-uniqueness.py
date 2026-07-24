@@ -33,7 +33,9 @@ NON_CLAIMS = (
 def _load_probe_results() -> dict[str, Any]:
     path = ROOT / PROBE_RESULTS_JSON
     if not path.is_file():
-        raise SystemExit(f"missing probe results: {PROBE_RESULTS_JSON} (run probe-consultant-parser.py first)")
+        raise SystemExit(
+            f"missing probe results: {PROBE_RESULTS_JSON} (run probe-consultant-parser.py first)"
+        )
     return json.loads(path.read_text(encoding="utf-8"))
 
 
@@ -82,14 +84,21 @@ def main(argv: list[str] | None = None) -> int:
     probe = _load_probe_results()
     manifest = _build_matrix(probe)
     summary = {
-        "status": "pass" if manifest["summary"]["unique_source_ids"] + manifest["summary"]["duplicates"] == manifest["summary"]["total_fixtures"] else "fail",
+        "status": "pass"
+        if manifest["summary"]["unique_source_ids"] + manifest["summary"]["duplicates"]
+        == manifest["summary"]["total_fixtures"]
+        else "fail",
         "total_fixtures": manifest["summary"]["total_fixtures"],
         "unique_source_ids": manifest["summary"]["unique_source_ids"],
         "duplicates": manifest["summary"]["duplicates"],
         "duplicate_groups": manifest["duplicate_groups"],
     }
     if args.check:
-        existing = (ROOT / OUTPUT_JSON).read_text(encoding="utf-8") if (ROOT / OUTPUT_JSON).is_file() else ""
+        existing = (
+            (ROOT / OUTPUT_JSON).read_text(encoding="utf-8")
+            if (ROOT / OUTPUT_JSON).is_file()
+            else ""
+        )
         new_content = json.dumps(manifest, ensure_ascii=False, indent=2, sort_keys=True) + "\n"
         print(json.dumps(summary, ensure_ascii=False, sort_keys=True))
         return 0 if existing == new_content else 1
@@ -104,7 +113,9 @@ def main(argv: list[str] | None = None) -> int:
 
 def _parse_args(argv: list[str]) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--check", action="store_true", help="verify generated artifact is current without writing")
+    parser.add_argument(
+        "--check", action="store_true", help="verify generated artifact is current without writing"
+    )
     return parser.parse_args(argv)
 
 

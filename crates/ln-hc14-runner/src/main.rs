@@ -6,8 +6,8 @@ use ln_replay::adapters::{
 };
 use ln_replay::application::CoordinateCheckpointAndReplay;
 use ln_replay::domain::{
-    CheckpointDigest, CheckpointId, EffectId, OperationId, ReplayOutcome, ReplayRequest,
-    RequestId, RuleVersion, REPLAY_POLICY_VERSION,
+    CheckpointDigest, CheckpointId, EffectId, OperationId, ReplayOutcome, ReplayRequest, RequestId,
+    RuleVersion, REPLAY_POLICY_VERSION,
 };
 
 struct ScenarioResult {
@@ -21,13 +21,7 @@ struct ScenarioResult {
     pass: bool,
 }
 
-fn request(
-    id: &str,
-    digest: &str,
-    rules: &str,
-    operation: &str,
-    effect: &str,
-) -> ReplayRequest {
+fn request(id: &str, digest: &str, rules: &str, operation: &str, effect: &str) -> ReplayRequest {
     ReplayRequest {
         request_id: RequestId::parse(id).expect("static id"),
         checkpoint_id: CheckpointId::parse("cp:1").expect("static id"),
@@ -50,8 +44,7 @@ fn honest_store() -> InMemoryCheckpointStore {
 }
 
 fn run_first_apply_then_suppress() -> ScenarioResult {
-    let mut svc =
-        CoordinateCheckpointAndReplay::new(honest_store(), InMemoryEffectLedger::new());
+    let mut svc = CoordinateCheckpointAndReplay::new(honest_store(), InMemoryEffectLedger::new());
     let req = request("req:ok", "digest:abc", "rules:v1", "op:1", "effect:1");
     let first = svc.replay(req.clone());
     let second = svc.replay(req);
@@ -78,8 +71,7 @@ fn run_first_apply_then_suppress() -> ScenarioResult {
 }
 
 fn run_corrupt_fail_closed() -> ScenarioResult {
-    let mut svc =
-        CoordinateCheckpointAndReplay::new(honest_store(), InMemoryEffectLedger::new());
+    let mut svc = CoordinateCheckpointAndReplay::new(honest_store(), InMemoryEffectLedger::new());
     let result = svc.replay(request(
         "req:corrupt",
         "digest:WRONG",
@@ -105,8 +97,7 @@ fn run_corrupt_fail_closed() -> ScenarioResult {
 }
 
 fn run_incompatible_rule() -> ScenarioResult {
-    let mut svc =
-        CoordinateCheckpointAndReplay::new(honest_store(), InMemoryEffectLedger::new());
+    let mut svc = CoordinateCheckpointAndReplay::new(honest_store(), InMemoryEffectLedger::new());
     let result = svc.replay(request(
         "req:skew",
         "digest:abc",

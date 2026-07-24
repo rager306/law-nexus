@@ -12,7 +12,10 @@ from pathlib import Path
 from typing import Any
 
 ROOT = Path(__file__).resolve().parents[1]
-DEFAULT_MANIFEST = ROOT / "prd/research/ontology_architecture_requirements/fixtures/safe_structural_descriptor_remediation_inputs.json"
+DEFAULT_MANIFEST = (
+    ROOT
+    / "prd/research/ontology_architecture_requirements/fixtures/safe_structural_descriptor_remediation_inputs.json"
+)
 SCHEMA_VERSION = "safe-structural-descriptor-remediation-inputs/v1"
 REPRESENTATION_KIND = "safe_materialized_descriptor_with_neighborhood_v1"
 SELECTED_SIGNAL = "safe_source_order_neighborhood_bucket"
@@ -33,7 +36,13 @@ NEIGHBOR_VALUES = {
     "source_order_neighbor_before_late_gap",
     "source_order_neighbor_late",
 }
-M027_BASELINE = {"mrr": 0.680555, "recall_at_1": 0.5, "recall_at_3": 0.833333, "runtime_boundary_confirmed": 1.0, "score_count": 36}
+M027_BASELINE = {
+    "mrr": 0.680555,
+    "recall_at_1": 0.5,
+    "recall_at_3": 0.833333,
+    "runtime_boundary_confirmed": 1.0,
+    "score_count": 36,
+}
 ALLOWED_ROOT_FIELDS = {
     "added_descriptor_fields",
     "allowed_descriptor_fields",
@@ -238,24 +247,32 @@ def validate_allowed_enums(allowed: Any) -> dict[str, set[str]]:
     return normalized
 
 
-def validate_descriptors(descriptors: Any, tokens: Any, allowed: Mapping[str, set[str]], input_id: str) -> str:
+def validate_descriptors(
+    descriptors: Any, tokens: Any, allowed: Mapping[str, set[str]], input_id: str
+) -> str:
     if not isinstance(descriptors, Mapping) or set(descriptors) != ENHANCED_FIELDS:
         raise SafeStructuralDescriptorInputError(f"descriptor field mismatch: {input_id}")
     expected_tokens: list[str] = []
     for field in sorted(ENHANCED_FIELDS):
         value = descriptors.get(field)
         if not isinstance(value, str) or value not in allowed[field]:
-            raise SafeStructuralDescriptorInputError(f"descriptor enum not allowed: {input_id}: {field}")
+            raise SafeStructuralDescriptorInputError(
+                f"descriptor enum not allowed: {input_id}: {field}"
+            )
         token = f"{field}:{value}"
         if not SAFE_TOKEN_RE.fullmatch(token):
-            raise SafeStructuralDescriptorInputError(f"unsafe descriptor token: {input_id}: {field}")
+            raise SafeStructuralDescriptorInputError(
+                f"unsafe descriptor token: {input_id}: {field}"
+            )
         expected_tokens.append(token)
     if not isinstance(tokens, list) or sorted(tokens) != expected_tokens:
         raise SafeStructuralDescriptorInputError(f"descriptor token mismatch: {input_id}")
     return str(descriptors[SELECTED_SIGNAL])
 
 
-def validate_common(item: Mapping[str, Any], allowed: Mapping[str, set[str]], refs: set[str], anchors: set[str]) -> None:
+def validate_common(
+    item: Mapping[str, Any], allowed: Mapping[str, set[str]], refs: set[str], anchors: set[str]
+) -> None:
     input_id = str(item.get("descriptor_input_id"))
     if not SAFE_DESCRIPTOR_ID_RE.fullmatch(input_id):
         raise SafeStructuralDescriptorInputError(f"unsafe descriptor id: {input_id}")
@@ -269,7 +286,9 @@ def validate_common(item: Mapping[str, Any], allowed: Mapping[str, set[str]], re
         raise SafeStructuralDescriptorInputError(f"selected signal mismatch: {input_id}")
     materialized_ref = item.get("materialized_candidate_ref")
     anchor_ref = item.get("source_anchor_ref")
-    if not isinstance(materialized_ref, str) or not SAFE_MATERIALIZED_REF_RE.fullmatch(materialized_ref):
+    if not isinstance(materialized_ref, str) or not SAFE_MATERIALIZED_REF_RE.fullmatch(
+        materialized_ref
+    ):
         raise SafeStructuralDescriptorInputError(f"unsafe materialized ref: {input_id}")
     if not isinstance(anchor_ref, str) or not SAFE_ANCHOR_REF_RE.fullmatch(anchor_ref):
         raise SafeStructuralDescriptorInputError(f"unsafe source anchor ref: {input_id}")
@@ -277,30 +296,42 @@ def validate_common(item: Mapping[str, Any], allowed: Mapping[str, set[str]], re
         raise SafeStructuralDescriptorInputError(f"duplicate descriptor source ref: {input_id}")
     refs.add(materialized_ref)
     anchors.add(anchor_ref)
-    if not isinstance(item.get("source_anchor_sha256"), str) or not SAFE_HASH_RE.fullmatch(item["source_anchor_sha256"]):
+    if not isinstance(item.get("source_anchor_sha256"), str) or not SAFE_HASH_RE.fullmatch(
+        item["source_anchor_sha256"]
+    ):
         raise SafeStructuralDescriptorInputError(f"source anchor hash mismatch: {input_id}")
     if not isinstance(item.get("source_order_index"), int) or item["source_order_index"] <= 0:
         raise SafeStructuralDescriptorInputError(f"source order index mismatch: {input_id}")
     if item.get("non_authoritative") is not True:
         raise SafeStructuralDescriptorInputError(f"non-authoritative marker missing: {input_id}")
-    signal_value = validate_descriptors(item.get("descriptors"), item.get("descriptor_tokens"), allowed, input_id)
+    signal_value = validate_descriptors(
+        item.get("descriptors"), item.get("descriptor_tokens"), allowed, input_id
+    )
     if item.get("selected_signal_value") != signal_value:
         raise SafeStructuralDescriptorInputError(f"selected signal value mismatch: {input_id}")
 
 
-def validate_query(item: Any, allowed: Mapping[str, set[str]], refs: set[str], anchors: set[str]) -> None:
+def validate_query(
+    item: Any, allowed: Mapping[str, set[str]], refs: set[str], anchors: set[str]
+) -> None:
     if not isinstance(item, Mapping) or set(item) != ALLOWED_QUERY_FIELDS:
         raise SafeStructuralDescriptorInputError("query descriptor field mismatch")
     validate_common(item, allowed, refs, anchors)
-    if not isinstance(item.get("query_hash_ref"), str) or not SAFE_HASH_RE.fullmatch(item["query_hash_ref"]):
+    if not isinstance(item.get("query_hash_ref"), str) or not SAFE_HASH_RE.fullmatch(
+        item["query_hash_ref"]
+    ):
         raise SafeStructuralDescriptorInputError("query hash ref mismatch")
 
 
-def validate_candidate(item: Any, allowed: Mapping[str, set[str]], refs: set[str], anchors: set[str]) -> None:
+def validate_candidate(
+    item: Any, allowed: Mapping[str, set[str]], refs: set[str], anchors: set[str]
+) -> None:
     if not isinstance(item, Mapping) or set(item) != ALLOWED_CANDIDATE_FIELDS:
         raise SafeStructuralDescriptorInputError("candidate descriptor field mismatch")
     validate_common(item, allowed, refs, anchors)
-    if not isinstance(item.get("candidate_id"), str) or not SAFE_CANDIDATE_ID_RE.fullmatch(item["candidate_id"]):
+    if not isinstance(item.get("candidate_id"), str) or not SAFE_CANDIDATE_ID_RE.fullmatch(
+        item["candidate_id"]
+    ):
         raise SafeStructuralDescriptorInputError("candidate id mismatch")
     if item.get("source_record_ids") != [item.get("materialized_candidate_ref")]:
         raise SafeStructuralDescriptorInputError("source record id mismatch")
@@ -312,36 +343,64 @@ def verify_manifest(path: Path) -> dict[str, Any]:
     unexpected = set(manifest) - ALLOWED_ROOT_FIELDS
     if unexpected:
         raise SafeStructuralDescriptorInputError(f"unexpected root fields: {sorted(unexpected)}")
-    if manifest.get("schema_version") != SCHEMA_VERSION or manifest.get("representation_kind") != REPRESENTATION_KIND:
+    if (
+        manifest.get("schema_version") != SCHEMA_VERSION
+        or manifest.get("representation_kind") != REPRESENTATION_KIND
+    ):
         raise SafeStructuralDescriptorInputError("schema or representation mismatch")
     if manifest.get("milestone_id") != "M028-yejcai" or manifest.get("slice_id") != "S02":
         raise SafeStructuralDescriptorInputError("milestone or slice marker mismatch")
-    if manifest.get("selected_signal") != SELECTED_SIGNAL or manifest.get("added_descriptor_fields") != [SELECTED_SIGNAL]:
+    if manifest.get("selected_signal") != SELECTED_SIGNAL or manifest.get(
+        "added_descriptor_fields"
+    ) != [SELECTED_SIGNAL]:
         raise SafeStructuralDescriptorInputError("selected signal mismatch")
-    if manifest.get("single_signal_change_only") is not True or manifest.get("m027_baseline_locked") is not True:
+    if (
+        manifest.get("single_signal_change_only") is not True
+        or manifest.get("m027_baseline_locked") is not True
+    ):
         raise SafeStructuralDescriptorInputError("single-signal or baseline marker missing")
     if manifest.get("m027_baseline_metrics") != M027_BASELINE:
         raise SafeStructuralDescriptorInputError("M027 baseline mismatch")
-    if set(manifest.get("base_derivation_fields", [])) != BASE_FIELDS or set(manifest.get("enhanced_derivation_fields", [])) != ENHANCED_FIELDS:
+    if (
+        set(manifest.get("base_derivation_fields", [])) != BASE_FIELDS
+        or set(manifest.get("enhanced_derivation_fields", [])) != ENHANCED_FIELDS
+    ):
         raise SafeStructuralDescriptorInputError("derivation field mismatch")
-    if sha256_path(repo_path(str(manifest.get("base_descriptor_inputs_artifact")))) != manifest.get("base_descriptor_inputs_sha256"):
+    if sha256_path(repo_path(str(manifest.get("base_descriptor_inputs_artifact")))) != manifest.get(
+        "base_descriptor_inputs_sha256"
+    ):
         raise SafeStructuralDescriptorInputError("base descriptor source hash mismatch")
-    if sha256_path(repo_path(str(manifest.get("materialization_artifact")))) != manifest.get("materialization_sha256"):
+    if sha256_path(repo_path(str(manifest.get("materialization_artifact")))) != manifest.get(
+        "materialization_sha256"
+    ):
         raise SafeStructuralDescriptorInputError("materialization source hash mismatch")
     redaction = manifest.get("redaction")
-    if not isinstance(redaction, Mapping) or set(redaction) != REQUIRED_REDACTION or any(value is not True for value in redaction.values()):
+    if (
+        not isinstance(redaction, Mapping)
+        or set(redaction) != REQUIRED_REDACTION
+        or any(value is not True for value in redaction.values())
+    ):
         raise SafeStructuralDescriptorInputError("redaction flags mismatch")
-    if manifest.get("r035_non_validation_declared") is not True or manifest.get("r038_review_required") is not True:
+    if (
+        manifest.get("r035_non_validation_declared") is not True
+        or manifest.get("r038_review_required") is not True
+    ):
         raise SafeStructuralDescriptorInputError("lifecycle boundary marker missing")
     summary = manifest.get("signal_derivation_summary")
-    if not isinstance(summary, Mapping) or summary.get("raw_text_used") is not False or summary.get("labels_used") is not False:
+    if (
+        not isinstance(summary, Mapping)
+        or summary.get("raw_text_used") is not False
+        or summary.get("labels_used") is not False
+    ):
         raise SafeStructuralDescriptorInputError("signal derivation summary mismatch")
     allowed = validate_allowed_enums(manifest.get("allowed_descriptor_fields"))
     queries = manifest.get("query_descriptors")
     candidates = manifest.get("candidate_descriptors")
     if not isinstance(queries, list) or not isinstance(candidates, list):
         raise SafeStructuralDescriptorInputError("descriptor arrays missing")
-    if manifest.get("query_descriptor_count") != len(queries) or manifest.get("candidate_descriptor_count") != len(candidates):
+    if manifest.get("query_descriptor_count") != len(queries) or manifest.get(
+        "candidate_descriptor_count"
+    ) != len(candidates):
         raise SafeStructuralDescriptorInputError("descriptor count mismatch")
     query_refs: set[str] = set()
     query_anchors: set[str] = set()
@@ -380,7 +439,13 @@ def main(argv: Sequence[str] | None = None) -> int:
     try:
         result = verify_manifest(args.manifest)
     except SafeStructuralDescriptorInputError as exc:
-        print(json.dumps({"status": "failed", "diagnostic": str(exc), "non_authoritative": True}, ensure_ascii=False, sort_keys=True))
+        print(
+            json.dumps(
+                {"status": "failed", "diagnostic": str(exc), "non_authoritative": True},
+                ensure_ascii=False,
+                sort_keys=True,
+            )
+        )
         return 1
     print(json.dumps(result, ensure_ascii=False, sort_keys=True))
     return 0

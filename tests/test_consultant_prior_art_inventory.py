@@ -49,7 +49,10 @@ def test_prior_art_inventory_records_required_assets_and_boundaries() -> None:
         assert asset["hash_matches_expected"] is True
         assert asset["expected_sha256"] == asset["sha256"]
         assert "Does not claim parser completeness." in asset["non_claims"]
-        assert "Does not claim legal correctness or authoritative legal interpretation." in asset["non_claims"]
+        assert (
+            "Does not claim legal correctness or authoritative legal interpretation."
+            in asset["non_claims"]
+        )
 
 
 def test_prior_art_inventory_diagnostics_and_classification_counts_are_consistent() -> None:
@@ -61,9 +64,18 @@ def test_prior_art_inventory_diagnostics_and_classification_counts_are_consisten
     assert inventory["diagnostics"]["classification_count_total"] == inventory["asset_count"]
     assert inventory["diagnostics"]["missing_prior_art_files"] == []
     assert inventory["diagnostics"]["hash_drift_paths"] == []
-    assert "Consultant Plus WordML is primary for M009 full normative-act source-shape evidence." in inventory["diagnostics"]["source_priority_notes"]
-    assert "Garant ODT work is lower-priority/deferred from M009; prior ODT artifacts remain bounded evidence, not multi-source readiness." in inventory["diagnostics"]["source_priority_notes"]
-    assert "law-parser derived JSON/JSONL outputs are not imported as authoritative parsed legal data." in inventory["diagnostics"]["source_priority_notes"]
+    assert (
+        "Consultant Plus WordML is primary for M009 full normative-act source-shape evidence."
+        in inventory["diagnostics"]["source_priority_notes"]
+    )
+    assert (
+        "Garant ODT work is lower-priority/deferred from M009; prior ODT artifacts remain bounded evidence, not multi-source readiness."
+        in inventory["diagnostics"]["source_priority_notes"]
+    )
+    assert (
+        "law-parser derived JSON/JSONL outputs are not imported as authoritative parsed legal data."
+        in inventory["diagnostics"]["source_priority_notes"]
+    )
 
     blocked_claims = set(inventory["blocked_claims"])
     assert "parser completeness" in blocked_claims

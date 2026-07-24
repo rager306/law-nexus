@@ -17,11 +17,17 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 def _request() -> RealArtifactRetrievalCaseBuildRequest:
-    hierarchy_summary = json.loads((ROOT / "prd/parser/consultant_hierarchy_records.json").read_text(encoding="utf-8"))
-    staging_graph = json.loads((ROOT / "prd/parser/parser_staging_graph.json").read_text(encoding="utf-8"))
+    hierarchy_summary = json.loads(
+        (ROOT / "prd/parser/consultant_hierarchy_records.json").read_text(encoding="utf-8")
+    )
+    staging_graph = json.loads(
+        (ROOT / "prd/parser/parser_staging_graph.json").read_text(encoding="utf-8")
+    )
     hierarchy_records = [
         json.loads(line)
-        for line in (ROOT / "prd/parser/consultant_hierarchy_records.jsonl").read_text(encoding="utf-8").splitlines()
+        for line in (ROOT / "prd/parser/consultant_hierarchy_records.jsonl")
+        .read_text(encoding="utf-8")
+        .splitlines()
         if line.strip()
     ]
     return RealArtifactRetrievalCaseBuildRequest(
@@ -29,9 +35,15 @@ def _request() -> RealArtifactRetrievalCaseBuildRequest:
         staging_graph=staging_graph,
         hierarchy_records=hierarchy_records,
         source_artifacts=(
-            RealArtifactSourceArtifact(path="prd/parser/consultant_hierarchy_records.json", sha256="sha-summary"),
-            RealArtifactSourceArtifact(path="prd/parser/consultant_hierarchy_records.jsonl", sha256="sha-records"),
-            RealArtifactSourceArtifact(path="prd/parser/parser_staging_graph.json", sha256="sha-graph"),
+            RealArtifactSourceArtifact(
+                path="prd/parser/consultant_hierarchy_records.json", sha256="sha-summary"
+            ),
+            RealArtifactSourceArtifact(
+                path="prd/parser/consultant_hierarchy_records.jsonl", sha256="sha-records"
+            ),
+            RealArtifactSourceArtifact(
+                path="prd/parser/parser_staging_graph.json", sha256="sha-graph"
+            ),
         ),
     )
 
@@ -59,7 +71,9 @@ def test_real_artifact_case_builder_preserves_expected_diagnostics() -> None:
 
     assert cases["CASE-M013-VALID-REAL-ARTIFACT"]["expected_result"] == "accepted"
     assert cases["CASE-M013-SCOPED-NO-ANSWER"]["output"]["output_kind"] == "scoped_no_answer"
-    assert cases["CASE-M013-AMBIGUOUS-CITATION"]["expected_diagnostic_codes"] == ["ambiguous_citation_key"]
+    assert cases["CASE-M013-AMBIGUOUS-CITATION"]["expected_diagnostic_codes"] == [
+        "ambiguous_citation_key"
+    ]
     assert payload["expected_diagnostics"] == {
         "CASE-M013-AMBIGUOUS-CITATION": ["ambiguous_citation_key"],
         "CASE-M013-MISSING-EVIDENCE-ID": ["missing_required_field"],

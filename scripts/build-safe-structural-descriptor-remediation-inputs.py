@@ -13,10 +13,19 @@ from types import ModuleType
 from typing import Any
 
 ROOT = Path(__file__).resolve().parents[1]
-BASE_INPUTS = ROOT / "prd/research/ontology_architecture_requirements/fixtures/materialized_descriptor_inputs.json"
-MATERIALIZATION = ROOT / "prd/research/ontology_architecture_requirements/parser_evidence_span_materialization.json"
+BASE_INPUTS = (
+    ROOT
+    / "prd/research/ontology_architecture_requirements/fixtures/materialized_descriptor_inputs.json"
+)
+MATERIALIZATION = (
+    ROOT
+    / "prd/research/ontology_architecture_requirements/parser_evidence_span_materialization.json"
+)
 BASE_VERIFIER = ROOT / "scripts/verify-materialized-descriptor-inputs.py"
-OUTPUT = ROOT / "prd/research/ontology_architecture_requirements/fixtures/safe_structural_descriptor_remediation_inputs.json"
+OUTPUT = (
+    ROOT
+    / "prd/research/ontology_architecture_requirements/fixtures/safe_structural_descriptor_remediation_inputs.json"
+)
 SCHEMA_VERSION = "safe-structural-descriptor-remediation-inputs/v1"
 REPRESENTATION_KIND = "safe_materialized_descriptor_with_neighborhood_v1"
 SELECTED_SIGNAL = "safe_source_order_neighborhood_bucket"
@@ -101,7 +110,9 @@ def materialization_index(path: Path) -> dict[str, dict[str, Any]]:
     return index
 
 
-def neighborhood_bucket(candidate_id: str, ordered_ids: Sequence[str], materialized: Mapping[str, Mapping[str, Any]]) -> str:
+def neighborhood_bucket(
+    candidate_id: str, ordered_ids: Sequence[str], materialized: Mapping[str, Mapping[str, Any]]
+) -> str:
     position = ordered_ids.index(candidate_id)
     candidate = materialized[candidate_id]
     previous_id = ordered_ids[position - 1] if position > 0 else None
@@ -124,7 +135,11 @@ def enhanced_tokens(descriptors: Mapping[str, str]) -> list[str]:
     return [f"{field}:{descriptors[field]}" for field in ENHANCED_DERIVATION_FIELDS]
 
 
-def enhance_item(item: Mapping[str, Any], materialized: Mapping[str, Mapping[str, Any]], ordered_ids: Sequence[str]) -> dict[str, Any]:
+def enhance_item(
+    item: Mapping[str, Any],
+    materialized: Mapping[str, Mapping[str, Any]],
+    ordered_ids: Sequence[str],
+) -> dict[str, Any]:
     materialized_ref = str(item.get("materialized_candidate_ref"))
     if materialized_ref not in materialized:
         raise SafeStructuralDescriptorBuildError(f"unknown materialized ref: {materialized_ref}")
@@ -146,17 +161,32 @@ def enhance_item(item: Mapping[str, Any], materialized: Mapping[str, Mapping[str
     return enhanced
 
 
-def build_inputs(base_inputs_path: Path = BASE_INPUTS, materialization_path: Path = MATERIALIZATION) -> dict[str, Any]:
+def build_inputs(
+    base_inputs_path: Path = BASE_INPUTS, materialization_path: Path = MATERIALIZATION
+) -> dict[str, Any]:
     base_summary = verify_base_inputs(base_inputs_path)
     base_inputs = load_json(base_inputs_path)
     materialized = materialization_index(materialization_path)
-    ordered_ids = [candidate_id for candidate_id, _ in sorted(materialized.items(), key=lambda item: int(item[1]["source_order_index"]))]
+    ordered_ids = [
+        candidate_id
+        for candidate_id, _ in sorted(
+            materialized.items(), key=lambda item: int(item[1]["source_order_index"])
+        )
+    ]
     query_items = base_inputs.get("query_descriptors")
     candidate_items = base_inputs.get("candidate_descriptors")
     if not isinstance(query_items, list) or not isinstance(candidate_items, list):
         raise SafeStructuralDescriptorBuildError("descriptor arrays missing")
-    query_descriptors = [enhance_item(item, materialized, ordered_ids) for item in query_items if isinstance(item, Mapping)]
-    candidate_descriptors = [enhance_item(item, materialized, ordered_ids) for item in candidate_items if isinstance(item, Mapping)]
+    query_descriptors = [
+        enhance_item(item, materialized, ordered_ids)
+        for item in query_items
+        if isinstance(item, Mapping)
+    ]
+    candidate_descriptors = [
+        enhance_item(item, materialized, ordered_ids)
+        for item in candidate_items
+        if isinstance(item, Mapping)
+    ]
     allowed_descriptor_fields = dict(base_inputs.get("allowed_descriptor_fields", {}))
     allowed_descriptor_fields[SELECTED_SIGNAL] = NEIGHBOR_VALUES
     return {
@@ -178,11 +208,22 @@ def build_inputs(base_inputs_path: Path = BASE_INPUTS, materialization_path: Pat
         "added_descriptor_fields": [SELECTED_SIGNAL],
         "allowed_descriptor_fields": allowed_descriptor_fields,
         "signal_derivation_summary": {
-            "allowed_inputs": ["materialized_candidate_ref", "source_order_index", "candidate_kind", "source_anchor_ref", "source_anchor_sha256"],
+            "allowed_inputs": [
+                "materialized_candidate_ref",
+                "source_order_index",
+                "candidate_kind",
+                "source_anchor_ref",
+                "source_anchor_sha256",
+            ],
             "raw_text_used": False,
             "labels_used": False,
-            "source_order_index_values": [int(materialized[candidate_id]["source_order_index"]) for candidate_id in ordered_ids],
-            "selected_signal_values": sorted({item["selected_signal_value"] for item in query_descriptors}),
+            "source_order_index_values": [
+                int(materialized[candidate_id]["source_order_index"])
+                for candidate_id in ordered_ids
+            ],
+            "selected_signal_values": sorted(
+                {item["selected_signal_value"] for item in query_descriptors}
+            ),
         },
         "query_descriptor_count": len(query_descriptors),
         "candidate_descriptor_count": len(candidate_descriptors),
@@ -218,8 +259,23 @@ def main(argv: Sequence[str] | None = None) -> int:
     args = parse_args(argv)
     manifest = build_inputs(args.base_inputs, args.materialization)
     args.output.parent.mkdir(parents=True, exist_ok=True)
-    args.output.write_text(json.dumps(manifest, ensure_ascii=False, indent=2, sort_keys=True) + "\n", encoding="utf-8")
-    print(json.dumps({"status": "ok", "schema_version": SCHEMA_VERSION, "representation_kind": REPRESENTATION_KIND, "selected_signal": SELECTED_SIGNAL, "query_descriptor_count": manifest["query_descriptor_count"], "candidate_descriptor_count": manifest["candidate_descriptor_count"], "non_authoritative": True}, sort_keys=True))
+    args.output.write_text(
+        json.dumps(manifest, ensure_ascii=False, indent=2, sort_keys=True) + "\n", encoding="utf-8"
+    )
+    print(
+        json.dumps(
+            {
+                "status": "ok",
+                "schema_version": SCHEMA_VERSION,
+                "representation_kind": REPRESENTATION_KIND,
+                "selected_signal": SELECTED_SIGNAL,
+                "query_descriptor_count": manifest["query_descriptor_count"],
+                "candidate_descriptor_count": manifest["candidate_descriptor_count"],
+                "non_authoritative": True,
+            },
+            sort_keys=True,
+        )
+    )
     return 0
 
 

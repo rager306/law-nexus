@@ -45,7 +45,9 @@ SCRIPT_PATH = ROOT / "scripts" / "source_cli.py"
 WORDML_NS = "http://schemas.microsoft.com/office/word/2003/wordml"
 
 
-def write_xml(path: Path, body: str | None = None, marker: str = "SHOULD_NOT_APPEAR_IN_DURABLE_OUTPUTS") -> None:
+def write_xml(
+    path: Path, body: str | None = None, marker: str = "SHOULD_NOT_APPEAR_IN_DURABLE_OUTPUTS"
+) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     payload = body or (
         f'<w:wordDocument xmlns:w="{WORDML_NS}"><w:body><w:p><w:r><w:t>'
@@ -113,7 +115,14 @@ def test_register_writes_safe_registry_rows_and_raw_store(tmp_path: Path) -> Non
     row = artifact_rows[0]
     assert row["source_family"] == "consultant_wordml"
     assert row["raw_storage_ref"].startswith("law-source/consultant/raw/sha256/")
-    assert (workspace / "raw" / "sha256" / row["raw_sha256"][:2] / row["raw_sha256"][2:4] / f"{row['raw_sha256']}.xml").is_file()
+    assert (
+        workspace
+        / "raw"
+        / "sha256"
+        / row["raw_sha256"][:2]
+        / row["raw_sha256"][2:4]
+        / f"{row['raw_sha256']}.xml"
+    ).is_file()
     durable = "\n".join(path.read_text(encoding="utf-8") for path in registry.glob("*.jsonl"))
     assert "SHOULD_NOT_APPEAR_IN_DURABLE_OUTPUTS" not in durable
     assert str(tmp_path) not in durable
@@ -249,7 +258,9 @@ def test_run_envelope_helpers_write_safe_events_errors_and_summaries(tmp_path: P
     assert "relative_path" not in json.dumps(inputs, ensure_ascii=False)
     assert output["output_refs"] == ["registry/source_artifacts.jsonl"]
     assert metrics["status"] == "completed"
-    durable = (run_dir / "events.jsonl").read_text(encoding="utf-8") + (run_dir / "errors.jsonl").read_text(encoding="utf-8")
+    durable = (run_dir / "events.jsonl").read_text(encoding="utf-8") + (
+        run_dir / "errors.jsonl"
+    ).read_text(encoding="utf-8")
     assert "SHOULD_NOT_APPEAR_IN_DURABLE_OUTPUTS" not in durable
     assert str(tmp_path) not in durable
 
@@ -286,7 +297,9 @@ def test_external_review_pack_summarizes_discovery_and_verifier_artifacts(tmp_pa
         ]
     }
     mock_response.write_text(
-        json.dumps({"response_summary": json.dumps(response, ensure_ascii=False)}, ensure_ascii=False),
+        json.dumps(
+            {"response_summary": json.dumps(response, ensure_ascii=False)}, ensure_ascii=False
+        ),
         encoding="utf-8",
     )
     run_id = "RUN-abc123def456"
@@ -323,7 +336,9 @@ def test_external_review_pack_summarizes_discovery_and_verifier_artifacts(tmp_pa
     assert str(tmp_path) not in durable
 
 
-def test_verify_discovery_candidates_writes_accepted_rejected_and_review_outputs(tmp_path: Path) -> None:
+def test_verify_discovery_candidates_writes_accepted_rejected_and_review_outputs(
+    tmp_path: Path,
+) -> None:
     workspace = tmp_path / "workspace"
     run_id = "RUN-abc123def456"
     accepted = {
@@ -369,9 +384,15 @@ def test_verify_discovery_candidates_writes_accepted_rejected_and_review_outputs
     assert result["status"] == "verified"
     assert result["decision_count"] == 3
     assert result["status_counts"] == {"accepted": 1, "rejected": 1, "needs_review": 1}
-    decisions_ref = next(ref for ref in result["output_refs"] if ref.endswith("verifier_decisions.jsonl"))
-    review_ref = next(ref for ref in result["output_refs"] if ref.endswith("review_queue_items.jsonl"))
-    rejection_ref = next(ref for ref in result["output_refs"] if ref.endswith("rejection_reasons.jsonl"))
+    decisions_ref = next(
+        ref for ref in result["output_refs"] if ref.endswith("verifier_decisions.jsonl")
+    )
+    review_ref = next(
+        ref for ref in result["output_refs"] if ref.endswith("review_queue_items.jsonl")
+    )
+    rejection_ref = next(
+        ref for ref in result["output_refs"] if ref.endswith("rejection_reasons.jsonl")
+    )
     decisions = read_jsonl(workspace / decisions_ref)
     reviews = read_jsonl(workspace / review_ref)
     rejections = read_jsonl(workspace / rejection_ref)
@@ -385,7 +406,9 @@ def test_verify_discovery_candidates_writes_accepted_rejected_and_review_outputs
     assert "candidate_not_proposed" in by_candidate["CAND-rejected123"]["rejection_reasons"]
     assert reviews[0]["candidate_id"] == "CAND-review123"
     assert rejections[0]["candidate_id"] == "CAND-rejected123"
-    durable = "".join((workspace / ref).read_text(encoding="utf-8") for ref in result["output_refs"])
+    durable = "".join(
+        (workspace / ref).read_text(encoding="utf-8") for ref in result["output_refs"]
+    )
     assert str(tmp_path) not in durable
     assert "legal correctness" in durable
     assert "R035" in durable
@@ -431,7 +454,10 @@ def test_candidate_normalization_writes_structured_candidates_and_signals(tmp_pa
     assert candidates[0]["candidate_kind"] == "relationship_candidate"
     assert candidates[0]["lifecycle_status"] == "proposed"
     assert candidates[0]["model_claims_ignored"] == ["model_claimed_status:accepted"]
-    assert candidates[0]["supporting_context"] == "Open legal/source context explains the repeated structure."
+    assert (
+        candidates[0]["supporting_context"]
+        == "Open legal/source context explains the repeated structure."
+    )
     assert signals[0]["candidate_id"] == candidates[0]["candidate_id"]
     assert signals[0]["lifecycle_status"] == "proposed"
     durable = candidate_path.read_text(encoding="utf-8") + signal_path.read_text(encoding="utf-8")
@@ -454,10 +480,15 @@ def test_candidate_normalization_plain_text_fallback(tmp_path: Path) -> None:
     candidate = read_jsonl(candidate_path)[0]
     assert candidate["candidate_kind"] == "graph_context_signal"
     assert candidate["confidence_bucket"] == "unknown"
-    assert candidate["candidate_summary"] == "Possible repeated source pattern that may help graph context."
+    assert (
+        candidate["candidate_summary"]
+        == "Possible repeated source pattern that may help graph context."
+    )
 
 
-def test_candidate_normalization_empty_and_malformed_outputs_write_diagnostics(tmp_path: Path) -> None:
+def test_candidate_normalization_empty_and_malformed_outputs_write_diagnostics(
+    tmp_path: Path,
+) -> None:
     workspace = tmp_path / "workspace"
     empty = normalize_discovery_candidates(
         workspace,
@@ -543,13 +574,16 @@ def test_discovery_trajectory_helpers_write_attempt_and_records(tmp_path: Path) 
     attempt_rows = read_jsonl(workspace / attempt_result["attempt_ref"])
     assert trajectory_rows[0]["schema_version"] == "m032.s02.trajectory.v1"
     assert trajectory_rows[0]["non_authoritative"] is True
-    assert trajectory_rows[0]["observed_context"] == "Open legal/source context preserved for analysis."
+    assert (
+        trajectory_rows[0]["observed_context"]
+        == "Open legal/source context preserved for analysis."
+    )
     assert attempt_rows[0]["schema_version"] == "m032.s03.minimax-attempt.v1"
     assert attempt_rows[0]["attempt_id"] == attempt_id
     assert attempt_rows[0]["non_authoritative"] is True
-    durable = trajectory_path.read_text(encoding="utf-8") + (workspace / attempt_result["attempt_ref"]).read_text(
-        encoding="utf-8"
-    )
+    durable = trajectory_path.read_text(encoding="utf-8") + (
+        workspace / attempt_result["attempt_ref"]
+    ).read_text(encoding="utf-8")
     assert "SHOULD_NOT_APPEAR_IN_DURABLE_OUTPUTS" not in durable
     assert str(tmp_path) not in durable
 
@@ -635,9 +669,7 @@ def test_run_batch_with_envelope_writes_run_artifacts_and_status(tmp_path: Path)
     write_xml(batch_dir / "incoming" / "doc.xml")
     manifest = write_manifest(batch_dir, [artifact("doc.xml")])
 
-    result = run_batch_with_envelope(
-        manifest, workspace, started_at="2026-05-20T01:00:00Z"
-    )
+    result = run_batch_with_envelope(manifest, workspace, started_at="2026-05-20T01:00:00Z")
 
     assert result["status"] == "completed"
     run_dir = workspace / result["run_ref"]
@@ -669,7 +701,9 @@ def test_run_batch_with_envelope_writes_run_artifacts_and_status(tmp_path: Path)
     status = lifecycle_status(workspace)
     assert status["run_count"] == 1
     assert status["latest_run_status"] == "completed"
-    durable = "\n".join(path.read_text(encoding="utf-8") for path in run_dir.iterdir() if path.is_file())
+    durable = "\n".join(
+        path.read_text(encoding="utf-8") for path in run_dir.iterdir() if path.is_file()
+    )
     assert "SHOULD_NOT_APPEAR_IN_DURABLE_OUTPUTS" not in durable
     assert str(tmp_path) not in durable
 
@@ -679,9 +713,7 @@ def test_run_batch_with_envelope_records_malformed_manifest_failure(tmp_path: Pa
     manifest = tmp_path / "bad.manifest.json"
     manifest.write_text("[]", encoding="utf-8")
 
-    result = run_batch_with_envelope(
-        manifest, workspace, started_at="2026-05-20T02:00:00Z"
-    )
+    result = run_batch_with_envelope(manifest, workspace, started_at="2026-05-20T02:00:00Z")
 
     assert result["status"] == "failed"
     run_dir = workspace / result["run_ref"]
@@ -746,7 +778,9 @@ def test_cli_discover_writes_mocked_minimax_trajectory(tmp_path: Path) -> None:
     workspace = tmp_path / "workspace"
     mock_response = tmp_path / "mock-response.json"
     mock_response.write_text(
-        json.dumps({"response_summary": "Observed a source structure candidate for graph context."}),
+        json.dumps(
+            {"response_summary": "Observed a source structure candidate for graph context."}
+        ),
         encoding="utf-8",
     )
 
@@ -778,19 +812,34 @@ def test_cli_discover_writes_mocked_minimax_trajectory(tmp_path: Path) -> None:
     assert payload["attempt_ref"].endswith("attempts.jsonl")
     assert payload["candidate_count"] == 1
     assert payload["signal_count"] == 1
-    assert any(ref.endswith("candidate_hypotheses.jsonl") for ref in payload["discovery_output_refs"])
-    assert any(ref.endswith("graph_context_signals.jsonl") for ref in payload["discovery_output_refs"])
+    assert any(
+        ref.endswith("candidate_hypotheses.jsonl") for ref in payload["discovery_output_refs"]
+    )
+    assert any(
+        ref.endswith("graph_context_signals.jsonl") for ref in payload["discovery_output_refs"]
+    )
     trajectory = read_jsonl(workspace / payload["trajectory_ref"])
     attempts = read_jsonl(workspace / payload["attempt_ref"])
-    candidate_ref = next(ref for ref in payload["discovery_output_refs"] if ref.endswith("candidate_hypotheses.jsonl"))
-    signal_ref = next(ref for ref in payload["discovery_output_refs"] if ref.endswith("graph_context_signals.jsonl"))
+    candidate_ref = next(
+        ref
+        for ref in payload["discovery_output_refs"]
+        if ref.endswith("candidate_hypotheses.jsonl")
+    )
+    signal_ref = next(
+        ref
+        for ref in payload["discovery_output_refs"]
+        if ref.endswith("graph_context_signals.jsonl")
+    )
     candidates = read_jsonl(workspace / candidate_ref)
     signals = read_jsonl(workspace / signal_ref)
     assert [row["event_type"] for row in trajectory] == [
         "minimax_attempt_prepared",
         "minimax_attempt_completed",
     ]
-    assert attempts[0]["response_summary"] == "Observed a source structure candidate for graph context."
+    assert (
+        attempts[0]["response_summary"]
+        == "Observed a source structure candidate for graph context."
+    )
     assert attempts[0]["non_authoritative"] is True
     assert candidates[0]["lifecycle_status"] == "proposed"
     assert candidates[0]["candidate_kind"] == "graph_context_signal"
@@ -818,7 +867,9 @@ def test_cli_discover_can_verify_candidates(tmp_path: Path) -> None:
         ]
     }
     mock_response.write_text(
-        json.dumps({"response_summary": json.dumps(response, ensure_ascii=False)}, ensure_ascii=False),
+        json.dumps(
+            {"response_summary": json.dumps(response, ensure_ascii=False)}, ensure_ascii=False
+        ),
         encoding="utf-8",
     )
 
@@ -849,7 +900,9 @@ def test_cli_discover_can_verify_candidates(tmp_path: Path) -> None:
     assert payload["status"] == "completed"
     assert payload["candidate_count"] == 1
     assert payload["verifier_status_counts"] == {"accepted": 1, "rejected": 0, "needs_review": 0}
-    decision_ref = next(ref for ref in payload["verifier_output_refs"] if ref.endswith("verifier_decisions.jsonl"))
+    decision_ref = next(
+        ref for ref in payload["verifier_output_refs"] if ref.endswith("verifier_decisions.jsonl")
+    )
     decisions = read_jsonl(workspace / decision_ref)
     assert decisions[0]["verifier_status"] == "accepted"
     assert decisions[0]["candidate_id"].startswith("CAND-")
@@ -873,7 +926,9 @@ def test_cli_external_review_pack_smoke(tmp_path: Path) -> None:
         ]
     }
     mock_response.write_text(
-        json.dumps({"response_summary": json.dumps(response, ensure_ascii=False)}, ensure_ascii=False),
+        json.dumps(
+            {"response_summary": json.dumps(response, ensure_ascii=False)}, ensure_ascii=False
+        ),
         encoding="utf-8",
     )
     run_id = "RUN-abc123def456"
@@ -962,9 +1017,7 @@ def test_review_pack_writes_safe_markdown_and_json_for_completed_run(tmp_path: P
     batch_dir = tmp_path / "batch"
     write_xml(batch_dir / "incoming" / "doc.xml")
     manifest = write_manifest(batch_dir, [artifact("doc.xml")])
-    run = run_batch_with_envelope(
-        manifest, workspace, started_at="2026-05-20T03:00:00Z"
-    )
+    run = run_batch_with_envelope(manifest, workspace, started_at="2026-05-20T03:00:00Z")
 
     result = build_review_pack(workspace, run["run_id"])
 
@@ -979,7 +1032,10 @@ def test_review_pack_writes_safe_markdown_and_json_for_completed_run(tmp_path: P
     assert "Consultant XML Run Review Pack" in pack_md
     assert "does not claim parser completeness" in pack_md
     assert "does not validate R035" in pack_md
-    assert "uv run python scripts/source_cli.py --workspace <workspace> run-batch <manifest>" in pack_md
+    assert (
+        "uv run python scripts/source_cli.py --workspace <workspace> run-batch <manifest>"
+        in pack_md
+    )
     durable = json.dumps(pack_json, ensure_ascii=False) + pack_md
     assert "SHOULD_NOT_APPEAR_IN_DURABLE_OUTPUTS" not in durable
     assert str(tmp_path) not in durable
@@ -989,9 +1045,7 @@ def test_review_pack_summarizes_failure_errors(tmp_path: Path) -> None:
     workspace = tmp_path / "workspace"
     manifest = tmp_path / "bad.manifest.json"
     manifest.write_text("[]", encoding="utf-8")
-    run = run_batch_with_envelope(
-        manifest, workspace, started_at="2026-05-20T04:00:00Z"
-    )
+    run = run_batch_with_envelope(manifest, workspace, started_at="2026-05-20T04:00:00Z")
 
     result = build_review_pack(workspace)
 
@@ -1052,14 +1106,28 @@ def test_cli_register_and_classify_smoke(tmp_path: Path) -> None:
     manifest = write_manifest(batch_dir, [artifact("doc.xml")])
 
     register = subprocess.run(
-        [sys.executable, str(SCRIPT_PATH), "--workspace", str(workspace), "register", str(manifest)],
+        [
+            sys.executable,
+            str(SCRIPT_PATH),
+            "--workspace",
+            str(workspace),
+            "register",
+            str(manifest),
+        ],
         cwd=ROOT,
         check=True,
         text=True,
         capture_output=True,
     )
     classify = subprocess.run(
-        [sys.executable, str(SCRIPT_PATH), "--workspace", str(workspace), "classify", str(manifest)],
+        [
+            sys.executable,
+            str(SCRIPT_PATH),
+            "--workspace",
+            str(workspace),
+            "classify",
+            str(manifest),
+        ],
         cwd=ROOT,
         check=True,
         text=True,

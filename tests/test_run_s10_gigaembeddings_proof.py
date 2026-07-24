@@ -95,7 +95,9 @@ def test_format_giga_query_uses_required_instruction_and_leaves_documents_plain(
     assert not document.startswith("Instruct:")
 
 
-def test_main_records_terminal_safety_gate_without_overclaim(monkeypatch: Any, tmp_path: Path) -> None:
+def test_main_records_terminal_safety_gate_without_overclaim(
+    monkeypatch: Any, tmp_path: Path
+) -> None:
     runner = load_module("run_s10_gigaembeddings_proof_gated", RUNNER_PATH)
     verifier = load_module("verify_s10_embedding_runtime_proof_for_giga_gate", VERIFIER_PATH)
     output_dir = tmp_path / "S10"
@@ -104,11 +106,15 @@ def test_main_records_terminal_safety_gate_without_overclaim(monkeypatch: Any, t
     monkeypatch.setattr(runner, "probe_model_cache", lambda _model_id, _roots: available_cache())
     monkeypatch.setattr(runner, "resource_metadata", lambda _output_dir=None: safe_resources())
 
-    exit_code = runner.main(["--output-dir", str(output_dir), "--cache-or-explicit-download", "--require-safety-gate"])
+    exit_code = runner.main(
+        ["--output-dir", str(output_dir), "--cache-or-explicit-download", "--require-safety-gate"]
+    )
 
     artifact = output_dir / "S10-EMBEDDING-RUNTIME-PROOF.json"
     giga_artifact = output_dir / "S10-GIGAEMBEDDINGS-PROOF.json"
-    result = verifier.verify_artifact(artifact, verifier.VerificationMode.ALLOW_GIGA_BLOCKED_WITH_GATE)
+    result = verifier.verify_artifact(
+        artifact, verifier.VerificationMode.ALLOW_GIGA_BLOCKED_WITH_GATE
+    )
     payload = runner.load_json(artifact)
     giga = next(model for model in payload["models"] if model["id"] == GIGA_MODEL_ID)
     vector = next(proof for proof in payload["vector_proofs"] if proof["dimension"] == 2048)
@@ -124,7 +130,9 @@ def test_main_records_terminal_safety_gate_without_overclaim(monkeypatch: Any, t
     assert vector["blocked_root_cause"] == "encode-proof-unavailable"
 
 
-def test_main_writes_confirmed_2048_proof_when_gate_and_boundaries_confirm(monkeypatch: Any, tmp_path: Path) -> None:
+def test_main_writes_confirmed_2048_proof_when_gate_and_boundaries_confirm(
+    monkeypatch: Any, tmp_path: Path
+) -> None:
     runner = load_module("run_s10_gigaembeddings_proof_success", RUNNER_PATH)
     verifier = load_module("verify_s10_embedding_runtime_proof_for_giga_success", VERIFIER_PATH)
     output_dir = tmp_path / "S10"
@@ -132,7 +140,11 @@ def test_main_writes_confirmed_2048_proof_when_gate_and_boundaries_confirm(monke
     monkeypatch.setattr(runner, "package_status", lambda _requirements: available_packages())
     monkeypatch.setattr(runner, "probe_model_cache", lambda _model_id, _roots: available_cache())
     monkeypatch.setattr(runner, "resource_metadata", lambda _output_dir=None: safe_resources())
-    monkeypatch.setattr(runner, "load_sentence_transformer", lambda _model_id, _local_files_only, _trust_remote_code: FakeEncoder())
+    monkeypatch.setattr(
+        runner,
+        "load_sentence_transformer",
+        lambda _model_id, _local_files_only, _trust_remote_code: FakeEncoder(),
+    )
     monkeypatch.setattr(
         runner,
         "run_falkordb_vector_proof",
@@ -142,7 +154,11 @@ def test_main_writes_confirmed_2048_proof_when_gate_and_boundaries_confirm(monke
             "query_executed": True,
             "duration_ms": 14.0,
             "blocked_root_cause": None,
-            "raw_log_paths": [runner.write_log(output_dir / "logs", "fake-vector-2048", {"status": "confirmed-runtime"})],
+            "raw_log_paths": [
+                runner.write_log(
+                    output_dir / "logs", "fake-vector-2048", {"status": "confirmed-runtime"}
+                )
+            ],
         },
     )
 
@@ -158,7 +174,9 @@ def test_main_writes_confirmed_2048_proof_when_gate_and_boundaries_confirm(monke
     )
 
     artifact = output_dir / "S10-EMBEDDING-RUNTIME-PROOF.json"
-    result = verifier.verify_artifact(artifact, verifier.VerificationMode.ALLOW_GIGA_BLOCKED_WITH_GATE)
+    result = verifier.verify_artifact(
+        artifact, verifier.VerificationMode.ALLOW_GIGA_BLOCKED_WITH_GATE
+    )
     payload = runner.load_json(artifact)
     giga = next(model for model in payload["models"] if model["id"] == GIGA_MODEL_ID)
     vector = next(proof for proof in payload["vector_proofs"] if proof["dimension"] == 2048)
@@ -201,7 +219,9 @@ def test_vector_client_boundary_creates_2048_index_and_logs_no_vectors(tmp_path:
     vector = [0.0] * 2048
     vector[0] = 1.0
 
-    result = runner.run_vector_query_with_client(FakeClient(graph), "fixture_graph", ["doc-1"], [vector], vector, tmp_path / "logs")
+    result = runner.run_vector_query_with_client(
+        FakeClient(graph), "fixture_graph", ["doc-1"], [vector], vector, tmp_path / "logs"
+    )
 
     log_text = Path(result["raw_log_paths"][0]).read_text(encoding="utf-8")
     assert result["status"] == "confirmed-runtime"

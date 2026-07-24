@@ -17,7 +17,36 @@ from pathlib import Path
 from typing import Any
 
 STOPWORDS = {
-    "the", "a", "an", "and", "or", "to", "of", "in", "for", "with", "without", "is", "are", "be", "as", "by", "it", "this", "that", "skill", "answer", "output", "includes", "include", "uses", "use", "should", "must", "when", "whether",
+    "the",
+    "a",
+    "an",
+    "and",
+    "or",
+    "to",
+    "of",
+    "in",
+    "for",
+    "with",
+    "without",
+    "is",
+    "are",
+    "be",
+    "as",
+    "by",
+    "it",
+    "this",
+    "that",
+    "skill",
+    "answer",
+    "output",
+    "includes",
+    "include",
+    "uses",
+    "use",
+    "should",
+    "must",
+    "when",
+    "whether",
 }
 
 
@@ -87,7 +116,13 @@ def grade_run(eval_dir: Path, run_dir: Path, metadata: dict[str, Any]) -> dict[s
     if assertions:
         for assertion in assertions:
             ok, evidence = grade_assertion(assertion, output)
-            expectations.append({"text": assertion.get("text", assertion.get("pattern", "assertion")), "passed": ok, "evidence": evidence})
+            expectations.append(
+                {
+                    "text": assertion.get("text", assertion.get("pattern", "assertion")),
+                    "passed": ok,
+                    "evidence": evidence,
+                }
+            )
     else:
         for expectation in metadata.get("expectations", []):
             ok, evidence = grade_expectation(expectation, output)
@@ -119,7 +154,9 @@ def grade_iteration(iteration_dir: Path) -> dict[str, Any]:
         if not metadata_path.is_file():
             continue
         metadata = json.loads(metadata_path.read_text(encoding="utf-8"))
-        for run_dir in sorted(child for child in eval_dir.iterdir() if child.is_dir() and child.name != "outputs"):
+        for run_dir in sorted(
+            child for child in eval_dir.iterdir() if child.is_dir() and child.name != "outputs"
+        ):
             if (run_dir / "outputs").is_dir():
                 results.append(grade_run(eval_dir, run_dir, metadata))
     passed = sum(item["summary"]["passed"] for item in results)
@@ -135,7 +172,9 @@ def grade_iteration(iteration_dir: Path) -> dict[str, Any]:
         },
         "results": results,
     }
-    (iteration_dir / "grading-summary.json").write_text(json.dumps(report, indent=2), encoding="utf-8")
+    (iteration_dir / "grading-summary.json").write_text(
+        json.dumps(report, indent=2), encoding="utf-8"
+    )
     return report
 
 

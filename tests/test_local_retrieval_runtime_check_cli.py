@@ -32,7 +32,10 @@ def test_confirmed_runtime_emits_deterministic_safe_json(monkeypatch: Any, capsy
     monkeypatch.setattr(
         check,
         "probe_dependency_versions",
-        lambda: ({"torch": "2.11.0", "sentence-transformers": "5.4.1", "transformers": "4.51.0"}, []),
+        lambda: (
+            {"torch": "2.11.0", "sentence-transformers": "5.4.1", "transformers": "4.51.0"},
+            [],
+        ),
     )
     monkeypatch.setattr(check, "load_s10_metadata", lambda: {"id": check.MODEL_ID})
     monkeypatch.setattr(check, "model_cache_present", lambda: True)
@@ -73,7 +76,9 @@ def test_missing_dependency_fails_closed_but_allow_unavailable_returns_zero(
 ) -> None:
     check = load_check_module("check_local_retrieval_runtime_missing_dep")
 
-    monkeypatch.setattr(check, "probe_dependency_versions", lambda: ({"torch": "2.11.0"}, ["transformers"]))
+    monkeypatch.setattr(
+        check, "probe_dependency_versions", lambda: ({"torch": "2.11.0"}, ["transformers"])
+    )
 
     exit_code = check.main(["--allow-unavailable"])
     payload = parse_stdout_json(capsys)

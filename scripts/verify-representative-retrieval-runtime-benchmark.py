@@ -149,7 +149,9 @@ def redaction_flags() -> dict[str, bool]:
     return {field: False for field in REDACTION_FALSE_FIELDS}
 
 
-def load_json_file(path: Path, missing_code: str, malformed_code: str, status: str, failure_class: str) -> dict[str, Any]:
+def load_json_file(
+    path: Path, missing_code: str, malformed_code: str, status: str, failure_class: str
+) -> dict[str, Any]:
     if not path.is_file():
         raise ProofError(status, failure_class, [missing_code])
     try:
@@ -178,7 +180,9 @@ def safe_runtime_diagnostic(runtime: Mapping[str, Any]) -> dict[str, Any]:
     }
     summary = {key: runtime[key] for key in allowed if key in runtime}
     if "source_artifacts" in summary and isinstance(summary["source_artifacts"], list):
-        summary["source_artifacts"] = [repo_safe_path(str(item)) for item in summary["source_artifacts"]]
+        summary["source_artifacts"] = [
+            repo_safe_path(str(item)) for item in summary["source_artifacts"]
+        ]
     return summary
 
 
@@ -205,7 +209,9 @@ def run_runtime_command(command: str, timeout_seconds: float) -> dict[str, Any]:
     except subprocess.TimeoutExpired as exc:
         raise ProofError("blocked_runtime", "runtime_boundary", ["RRB_RUNTIME_TIMEOUT"]) from exc
     except OSError as exc:
-        raise ProofError("blocked_runtime", "runtime_boundary", ["RRB_RUNTIME_DIAGNOSTIC_MISSING"]) from exc
+        raise ProofError(
+            "blocked_runtime", "runtime_boundary", ["RRB_RUNTIME_DIAGNOSTIC_MISSING"]
+        ) from exc
 
     if completed.returncode != 0:
         try:
@@ -215,15 +221,23 @@ def run_runtime_command(command: str, timeout_seconds: float) -> dict[str, Any]:
         if isinstance(payload, dict):
             codes = payload.get("diagnostic_codes")
             safe_codes = [str(code) for code in codes] if isinstance(codes, list) else []
-            raise ProofError("blocked_runtime", "runtime_boundary", safe_codes or ["RRB_RUNTIME_NOT_CONFIRMED"])
-        raise ProofError("blocked_runtime", "runtime_boundary", ["RRB_RUNTIME_DIAGNOSTIC_MALFORMED"])
+            raise ProofError(
+                "blocked_runtime", "runtime_boundary", safe_codes or ["RRB_RUNTIME_NOT_CONFIRMED"]
+            )
+        raise ProofError(
+            "blocked_runtime", "runtime_boundary", ["RRB_RUNTIME_DIAGNOSTIC_MALFORMED"]
+        )
 
     try:
         payload = json.loads(completed.stdout)
     except json.JSONDecodeError as exc:
-        raise ProofError("blocked_runtime", "runtime_boundary", ["RRB_RUNTIME_DIAGNOSTIC_MALFORMED"]) from exc
+        raise ProofError(
+            "blocked_runtime", "runtime_boundary", ["RRB_RUNTIME_DIAGNOSTIC_MALFORMED"]
+        ) from exc
     if not isinstance(payload, dict):
-        raise ProofError("blocked_runtime", "runtime_boundary", ["RRB_RUNTIME_DIAGNOSTIC_MALFORMED"])
+        raise ProofError(
+            "blocked_runtime", "runtime_boundary", ["RRB_RUNTIME_DIAGNOSTIC_MALFORMED"]
+        )
     return payload
 
 
@@ -312,23 +326,36 @@ def validate_manifest(manifest: Mapping[str, Any]) -> dict[str, Any]:
     if manifest.get("schema_version") != MANIFEST_SCHEMA_VERSION:
         raise ProofError("blocked_manifest", "manifest_input", ["RRB_MANIFEST_SCHEMA_MISMATCH"])
     if manifest.get("gate") != GATE_ID:
-        raise ProofError("blocked_policy_violation", "policy_violation", ["RRB_GATE_OVERCLAIM_FORBIDDEN"])
+        raise ProofError(
+            "blocked_policy_violation", "policy_violation", ["RRB_GATE_OVERCLAIM_FORBIDDEN"]
+        )
     handoff = manifest.get("s03_handoff")
     if not isinstance(handoff, Mapping):
         raise ProofError("blocked_manifest", "manifest_input", ["RRB_MANIFEST_MALFORMED"])
     if handoff.get("schema_version") != MANIFEST_SCHEMA_VERSION:
         raise ProofError("blocked_manifest", "manifest_input", ["RRB_MANIFEST_SCHEMA_MISMATCH"])
-    if handoff.get("managed_api_allowed") is not False or handoff.get("managed_embedding_api_fallback_allowed") is not False:
-        raise ProofError("blocked_policy_violation", "policy_violation", ["RRB_MANAGED_API_FORBIDDEN"])
+    if (
+        handoff.get("managed_api_allowed") is not False
+        or handoff.get("managed_embedding_api_fallback_allowed") is not False
+    ):
+        raise ProofError(
+            "blocked_policy_violation", "policy_violation", ["RRB_MANAGED_API_FORBIDDEN"]
+        )
     if handoff.get("raw_payload_persistence_allowed") is not False:
         raise ProofError("blocked_policy_violation", "policy_violation", ["RRB_RAW_TEXT_FORBIDDEN"])
     if handoff.get("gate_g011_status") != "open":
-        raise ProofError("blocked_policy_violation", "policy_violation", ["RRB_GATE_OVERCLAIM_FORBIDDEN"])
+        raise ProofError(
+            "blocked_policy_violation", "policy_violation", ["RRB_GATE_OVERCLAIM_FORBIDDEN"]
+        )
 
     query_labels = manifest.get("query_labels")
     candidate_references = manifest.get("candidate_references")
     coverage_classes = manifest.get("coverage_classes")
-    if not isinstance(query_labels, list) or not isinstance(candidate_references, list) or not isinstance(coverage_classes, list):
+    if (
+        not isinstance(query_labels, list)
+        or not isinstance(candidate_references, list)
+        or not isinstance(coverage_classes, list)
+    ):
         raise ProofError("blocked_manifest", "manifest_input", ["RRB_MANIFEST_MALFORMED"])
     if not query_labels or not candidate_references or not coverage_classes:
         raise ProofError("blocked_manifest", "manifest_input", ["RRB_MANIFEST_MALFORMED"])
@@ -342,7 +369,15 @@ def validate_manifest(manifest: Mapping[str, Any]) -> dict[str, Any]:
         role = reference.get("reference_role")
         if not isinstance(reference_id, str) or not reference_id.startswith("RC-M016-"):
             raise ProofError("blocked_manifest", "manifest_input", ["RRB_MANIFEST_MALFORMED"])
-        if role not in {"relevant", "distractor", "no_answer_boundary", "ambiguous", "unsafe", "edition_mismatch", "environment_boundary"}:
+        if role not in {
+            "relevant",
+            "distractor",
+            "no_answer_boundary",
+            "ambiguous",
+            "unsafe",
+            "edition_mismatch",
+            "environment_boundary",
+        }:
             raise ProofError("blocked_manifest", "manifest_input", ["RRB_MANIFEST_MALFORMED"])
         reference_ids.add(reference_id)
 
@@ -368,7 +403,9 @@ def validate_manifest(manifest: Mapping[str, Any]) -> dict[str, Any]:
             raise ProofError("blocked_manifest", "manifest_input", ["RRB_MANIFEST_MALFORMED"])
         seen_kinds.add(query_kind)
         expected_refs = query.get("expected_relevant_reference_ids")
-        if not isinstance(expected_refs, list) or not all(isinstance(item, str) for item in expected_refs):
+        if not isinstance(expected_refs, list) or not all(
+            isinstance(item, str) for item in expected_refs
+        ):
             raise ProofError("blocked_manifest", "manifest_input", ["RRB_MANIFEST_MALFORMED"])
         if any(ref not in reference_ids for ref in expected_refs):
             raise ProofError("blocked_manifest", "manifest_input", ["RRB_MANIFEST_MALFORMED"])
@@ -381,7 +418,11 @@ def validate_manifest(manifest: Mapping[str, Any]) -> dict[str, Any]:
         "query_label_count": len(query_labels),
         "candidate_reference_count": len(candidate_references),
         "coverage_class_count": len(coverage_classes),
-        "source_artifacts": [repo_safe_path(item.get("path", "")) for item in manifest.get("source_artifacts", []) if isinstance(item, Mapping)],
+        "source_artifacts": [
+            repo_safe_path(item.get("path", ""))
+            for item in manifest.get("source_artifacts", [])
+            if isinstance(item, Mapping)
+        ],
     }
 
 
@@ -389,7 +430,9 @@ def ratio(passed: int, total: int) -> float:
     return 1.0 if total == 0 else passed / total
 
 
-def compute_metrics(manifest: Mapping[str, Any]) -> tuple[dict[str, float | bool], list[dict[str, Any]], dict[str, Any]]:
+def compute_metrics(
+    manifest: Mapping[str, Any],
+) -> tuple[dict[str, float | bool], list[dict[str, Any]], dict[str, Any]]:
     references = {item["reference_id"]: item for item in manifest["candidate_references"]}
     positive_queries = [
         query
@@ -403,45 +446,112 @@ def compute_metrics(manifest: Mapping[str, Any]) -> tuple[dict[str, float | bool
     recall_3_pass = 0
     for query in positive_queries:
         expected_refs = list(query["expected_relevant_reference_ids"])
-        valid_expected = [ref for ref in expected_refs if references.get(ref, {}).get("reference_role") == "relevant"]
+        valid_expected = [
+            ref
+            for ref in expected_refs
+            if references.get(ref, {}).get("reference_role") == "relevant"
+        ]
         if valid_expected != expected_refs:
-            mismatch_records.append({"kind": "metric", "metric": "mrr", "query_label_id": query["query_label_id"]})
+            mismatch_records.append(
+                {"kind": "metric", "metric": "mrr", "query_label_id": query["query_label_id"]}
+            )
             reciprocal_ranks.append(0.0)
             continue
         ranked_ids = valid_expected + sorted(
-            ref_id for ref_id, ref in references.items() if ref_id not in valid_expected and ref.get("reference_role") == "distractor"
+            ref_id
+            for ref_id, ref in references.items()
+            if ref_id not in valid_expected and ref.get("reference_role") == "distractor"
         )
-        first_rank = min((ranked_ids.index(ref) + 1 for ref in expected_refs if ref in ranked_ids), default=0)
+        first_rank = min(
+            (ranked_ids.index(ref) + 1 for ref in expected_refs if ref in ranked_ids), default=0
+        )
         reciprocal_ranks.append(1.0 / first_rank if first_rank else 0.0)
         if first_rank == 1:
             recall_1_pass += 1
         if all(ref in ranked_ids[:3] for ref in expected_refs):
             recall_3_pass += 1
 
-    no_answer_queries = [query for query in manifest["query_labels"] if query.get("query_kind") == "scoped_no_answer"]
-    ambiguous_queries = [query for query in manifest["query_labels"] if query.get("query_kind") == "ambiguous_rejection"]
-    unsafe_queries = [query for query in manifest["query_labels"] if query.get("query_kind") == "unsafe_rejection"]
-    edition_queries = [query for query in manifest["query_labels"] if query.get("query_kind") == "edition_path_mismatch"]
+    no_answer_queries = [
+        query for query in manifest["query_labels"] if query.get("query_kind") == "scoped_no_answer"
+    ]
+    ambiguous_queries = [
+        query
+        for query in manifest["query_labels"]
+        if query.get("query_kind") == "ambiguous_rejection"
+    ]
+    unsafe_queries = [
+        query for query in manifest["query_labels"] if query.get("query_kind") == "unsafe_rejection"
+    ]
+    edition_queries = [
+        query
+        for query in manifest["query_labels"]
+        if query.get("query_kind") == "edition_path_mismatch"
+    ]
 
     metrics: dict[str, float | bool] = {
         "mrr": sum(reciprocal_ranks) / len(reciprocal_ranks) if reciprocal_ranks else 0.0,
         "recall_at_1": ratio(recall_1_pass, len(positive_queries)),
         "recall_at_3": ratio(recall_3_pass, len(positive_queries)),
-        "no_answer_accuracy": ratio(sum(1 for query in no_answer_queries if query.get("expected_result") == "scoped_no_answer" and not query.get("expected_relevant_reference_ids")), len(no_answer_queries)),
-        "ambiguous_rejection_rate": ratio(sum(1 for query in ambiguous_queries if query.get("expected_result") == "rejected" and not query.get("expected_relevant_reference_ids")), len(ambiguous_queries)),
-        "unsafe_rejection_rate": ratio(sum(1 for query in unsafe_queries if query.get("expected_result") == "rejected" and not query.get("expected_relevant_reference_ids")), len(unsafe_queries)),
-        "edition_path_mismatch_rejection_rate": ratio(sum(1 for query in edition_queries if query.get("expected_result") == "rejected" and not query.get("expected_relevant_reference_ids")), len(edition_queries)),
+        "no_answer_accuracy": ratio(
+            sum(
+                1
+                for query in no_answer_queries
+                if query.get("expected_result") == "scoped_no_answer"
+                and not query.get("expected_relevant_reference_ids")
+            ),
+            len(no_answer_queries),
+        ),
+        "ambiguous_rejection_rate": ratio(
+            sum(
+                1
+                for query in ambiguous_queries
+                if query.get("expected_result") == "rejected"
+                and not query.get("expected_relevant_reference_ids")
+            ),
+            len(ambiguous_queries),
+        ),
+        "unsafe_rejection_rate": ratio(
+            sum(
+                1
+                for query in unsafe_queries
+                if query.get("expected_result") == "rejected"
+                and not query.get("expected_relevant_reference_ids")
+            ),
+            len(unsafe_queries),
+        ),
+        "edition_path_mismatch_rejection_rate": ratio(
+            sum(
+                1
+                for query in edition_queries
+                if query.get("expected_result") == "rejected"
+                and not query.get("expected_relevant_reference_ids")
+            ),
+            len(edition_queries),
+        ),
         "runtime_boundary_confirmed": True,
     }
     for metric, value in metrics.items():
         numeric = 1.0 if value is True else float(value)
         if numeric < THRESHOLDS[metric]:
-            mismatch_records.append({"kind": "threshold", "metric": metric, "observed": round(numeric, 6), "threshold": THRESHOLDS[metric]})
+            mismatch_records.append(
+                {
+                    "kind": "threshold",
+                    "metric": metric,
+                    "observed": round(numeric, 6),
+                    "threshold": THRESHOLDS[metric],
+                }
+            )
 
     metric_inputs = {
         "query_label_ids": [query["query_label_id"] for query in manifest["query_labels"]],
-        "candidate_reference_ids": [reference["reference_id"] for reference in manifest["candidate_references"]],
-        "coverage_class_ids": [coverage["coverage_class_id"] for coverage in manifest["coverage_classes"] if isinstance(coverage, Mapping)],
+        "candidate_reference_ids": [
+            reference["reference_id"] for reference in manifest["candidate_references"]
+        ],
+        "coverage_class_ids": [
+            coverage["coverage_class_id"]
+            for coverage in manifest["coverage_classes"]
+            if isinstance(coverage, Mapping)
+        ],
     }
     return metrics, mismatch_records, metric_inputs
 
@@ -463,12 +573,25 @@ def build_payload(
         "benchmark_status": status,
         "failure_class": failure_class,
         "diagnostic_codes": list(dict.fromkeys(diagnostic_codes)),
-        "runtime_boundary_confirmed": bool(metrics and metrics.get("runtime_boundary_confirmed") is True and status == "metrics_confirmed"),
+        "runtime_boundary_confirmed": bool(
+            metrics
+            and metrics.get("runtime_boundary_confirmed") is True
+            and status == "metrics_confirmed"
+        ),
         "runtime_diagnostic": dict(runtime_diagnostic or {}),
         "manifest": dict(manifest_summary or {}),
-        "metrics": dict(metrics or {name: False if name == "runtime_boundary_confirmed" else 0.0 for name in METRIC_NAMES}),
+        "metrics": dict(
+            metrics
+            or {
+                name: False if name == "runtime_boundary_confirmed" else 0.0
+                for name in METRIC_NAMES
+            }
+        ),
         "thresholds": dict(THRESHOLDS),
-        "metric_inputs": dict(metric_inputs or {"query_label_ids": [], "candidate_reference_ids": [], "coverage_class_ids": []}),
+        "metric_inputs": dict(
+            metric_inputs
+            or {"query_label_ids": [], "candidate_reference_ids": [], "coverage_class_ids": []}
+        ),
         "mismatch_records": [dict(item) for item in mismatch_records or []],
         "source_artifacts": list(SOURCE_ARTIFACTS),
         "redaction": redaction_flags(),
@@ -483,10 +606,14 @@ def build_payload(
 def assert_safe_output(payload: Mapping[str, Any]) -> None:
     text = json.dumps(payload, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
     if str(ROOT) in text or ".gsd/exec" in text:
-        raise ProofError("blocked_unsafe_artifact", "unsafe_artifact", ["RRB_UNSAFE_PATH_FORBIDDEN"])
+        raise ProofError(
+            "blocked_unsafe_artifact", "unsafe_artifact", ["RRB_UNSAFE_PATH_FORBIDDEN"]
+        )
     for key in FORBIDDEN_KEYS:
         if f'"{key}"' in text:
-            raise ProofError("blocked_unsafe_artifact", "unsafe_artifact", ["RRB_INTERNAL_ERROR_REDACTED"])
+            raise ProofError(
+                "blocked_unsafe_artifact", "unsafe_artifact", ["RRB_INTERNAL_ERROR_REDACTED"]
+            )
 
 
 def write_report(path: Path, payload: Mapping[str, Any]) -> None:
@@ -497,7 +624,9 @@ def write_report(path: Path, payload: Mapping[str, Any]) -> None:
     runtime_sources = [repo_safe_path(item) for item in runtime.get("source_artifacts", [])]
     manifest_sources = [repo_safe_path(item) for item in manifest.get("source_artifacts", [])]
     manifest_source_path = repo_safe_path(manifest.get("source_path", DEFAULT_MANIFEST))
-    redaction_items = [f"`{key}` = `{str(value).lower()}`" for key, value in payload["redaction"].items()]
+    redaction_items = [
+        f"`{key}` = `{str(value).lower()}`" for key, value in payload["redaction"].items()
+    ]
     compact_summary = {
         "schema_version": payload["schema_version"],
         "benchmark_id": payload["benchmark_id"],
@@ -509,7 +638,9 @@ def write_report(path: Path, payload: Mapping[str, Any]) -> None:
         "thresholds": payload["thresholds"],
         "gate": payload["gate"],
     }
-    compact_json = json.dumps(compact_summary, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
+    compact_json = json.dumps(
+        compact_summary, ensure_ascii=False, sort_keys=True, separators=(",", ":")
+    )
 
     report = "\n".join(
         [
@@ -529,7 +660,10 @@ def write_report(path: Path, payload: Mapping[str, Any]) -> None:
             *[f"- `{item}`" for item in source_artifacts],
             "",
             "S01 runtime boundary sources:",
-            *[f"- `{item}`" for item in (runtime_sources or ["scripts/check-local-retrieval-runtime.py"])],
+            *[
+                f"- `{item}`"
+                for item in (runtime_sources or ["scripts/check-local-retrieval-runtime.py"])
+            ],
             "",
             "S02 representative manifest sources:",
             f"- `{manifest_source_path}`",
@@ -580,7 +714,10 @@ def write_report(path: Path, payload: Mapping[str, Any]) -> None:
             f"- Benchmark status: `{payload['benchmark_status']}`",
             f"- Failure class: `{payload['failure_class']}`",
             *[f"- Diagnostic code: `{code}`" for code in diagnostic_codes],
-            *[f"- Mismatch record: `{json.dumps(dict(item), ensure_ascii=False, sort_keys=True)}`" for item in payload.get('mismatch_records', [])],
+            *[
+                f"- Mismatch record: `{json.dumps(dict(item), ensure_ascii=False, sort_keys=True)}`"
+                for item in payload.get("mismatch_records", [])
+            ],
             "",
             "## Redaction Boundary",
             "",
@@ -607,7 +744,9 @@ def write_report(path: Path, payload: Mapping[str, Any]) -> None:
         ]
     )
     if str(ROOT) in report or ".gsd/exec" in report:
-        raise ProofError("blocked_unsafe_artifact", "unsafe_artifact", ["RRB_UNSAFE_PATH_FORBIDDEN"])
+        raise ProofError(
+            "blocked_unsafe_artifact", "unsafe_artifact", ["RRB_UNSAFE_PATH_FORBIDDEN"]
+        )
     path.write_text(report, encoding="utf-8")
 
 
@@ -615,10 +754,18 @@ def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--manifest", default=str(DEFAULT_MANIFEST), help="Manifest JSON path.")
     parser.add_argument("--runtime-summary", help="Safe runtime summary JSON path for tests.")
-    parser.add_argument("--runtime-command", default=DEFAULT_RUNTIME_COMMAND, help="Runtime diagnostic command.")
-    parser.add_argument("--runtime-timeout", type=float, default=60.0, help="Runtime command timeout in seconds.")
+    parser.add_argument(
+        "--runtime-command", default=DEFAULT_RUNTIME_COMMAND, help="Runtime diagnostic command."
+    )
+    parser.add_argument(
+        "--runtime-timeout", type=float, default=60.0, help="Runtime command timeout in seconds."
+    )
     parser.add_argument("--report", default=str(DEFAULT_REPORT), help="Durable proof report path.")
-    parser.add_argument("--allow-runtime-blocker", action="store_true", help="Exit 0 for blocked_runtime only; status remains blocked_runtime.")
+    parser.add_argument(
+        "--allow-runtime-blocker",
+        action="store_true",
+        help="Exit 0 for blocked_runtime only; status remains blocked_runtime.",
+    )
     return parser.parse_args(argv)
 
 
@@ -630,7 +777,11 @@ def execute(argv: Sequence[str] | None = None) -> tuple[int, dict[str, Any]]:
     metric_inputs: dict[str, Any] | None = None
     mismatches: list[dict[str, Any]] = []
     try:
-        runtime = read_runtime_summary(Path(args.runtime_summary)) if args.runtime_summary else run_runtime_command(args.runtime_command, args.runtime_timeout)
+        runtime = (
+            read_runtime_summary(Path(args.runtime_summary))
+            if args.runtime_summary
+            else run_runtime_command(args.runtime_command, args.runtime_timeout)
+        )
         runtime_diagnostic = safe_runtime_diagnostic(runtime)
         confirmed, runtime_codes = runtime_confirmed(runtime)
         if not confirmed:

@@ -130,7 +130,13 @@ def should_trigger(item: dict[str, Any]) -> bool:
     if "should_trigger" in item:
         return bool(item["should_trigger"])
     category = str(item.get("category", "")).lower()
-    if category in {"should-not-trigger", "should_not_trigger", "boundary", "false-positive", "false_positive"}:
+    if category in {
+        "should-not-trigger",
+        "should_not_trigger",
+        "boundary",
+        "false-positive",
+        "false_positive",
+    }:
         return False
     return True
 
@@ -180,8 +186,12 @@ def analyze(skill_dir: Path) -> dict[str, Any]:
     results = [score_eval(description_terms, item) for item in eval_data.get("evals", [])]
     passed = sum(1 for item in results if item["passed"])
     total = len(results)
-    false_negatives = [item for item in results if item["should_trigger"] and not item["predicted_trigger"]]
-    false_positives = [item for item in results if not item["should_trigger"] and item["predicted_trigger"]]
+    false_negatives = [
+        item for item in results if item["should_trigger"] and not item["predicted_trigger"]
+    ]
+    false_positives = [
+        item for item in results if not item["should_trigger"] and item["predicted_trigger"]
+    ]
     return {
         "skill_name": skill_dir.name,
         "description": description,

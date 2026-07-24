@@ -20,7 +20,9 @@ from dataclasses import dataclass
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-DEFAULT_HANDOFF = ROOT / "prd" / "architecture" / "acp" / "runtime" / "m066-s03" / "stage4-handoff.md"
+DEFAULT_HANDOFF = (
+    ROOT / "prd" / "architecture" / "acp" / "runtime" / "m066-s03" / "stage4-handoff.md"
+)
 
 # Required top-level sections (## headers).
 EXPECTED_SECTIONS = (
@@ -35,17 +37,17 @@ EXPECTED_SECTIONS = (
 
 # Boundary markers that must appear (Stage 3 carried-forward boundary contract).
 EXPECTED_BOUNDARY_MARKERS = (
-    "R035/R037/R038",          # active, non-source-truth
-    "R047",                    # operational adoption completed
-    "R053",                    # anti-feature
-    "R057",                    # explicitly gated (architecture binding)
-    "R046",                    # source-truth boundary
-    "R048",                    # reusable-core / profile boundary
-    "explicitly gated",        # R057 posture
-    "base kit",                # base kit only (not ACP-kit source truth)
-    "D084",                    # adoption roadmap
-    "D093",                    # Stage 3 adoption contract
-    "MEM549",                  # inversion marker
+    "R035/R037/R038",  # active, non-source-truth
+    "R047",  # operational adoption completed
+    "R053",  # anti-feature
+    "R057",  # explicitly gated (architecture binding)
+    "R046",  # source-truth boundary
+    "R048",  # reusable-core / profile boundary
+    "explicitly gated",  # R057 posture
+    "base kit",  # base kit only (not ACP-kit source truth)
+    "D084",  # adoption roadmap
+    "D093",  # Stage 3 adoption contract
+    "MEM549",  # inversion marker
 )
 
 # Proof anchors that must be referenced (repo-relative paths).
@@ -86,12 +88,16 @@ class Diagnostic:
     text: str
 
 
-def _diagnostic(diagnostic_id: str, path: Path | str, line_no: int, message: str, text: str = "") -> Diagnostic:
+def _diagnostic(
+    diagnostic_id: str, path: Path | str, line_no: int, message: str, text: str = ""
+) -> Diagnostic:
     try:
         rel = str(Path(path).relative_to(ROOT))
     except (ValueError, TypeError):
         rel = str(path)
-    return Diagnostic(diagnostic_id=diagnostic_id, path=rel, line=line_no, message=message, text=text.strip())
+    return Diagnostic(
+        diagnostic_id=diagnostic_id, path=rel, line=line_no, message=message, text=text.strip()
+    )
 
 
 def _read_text(path: Path) -> str:
@@ -105,7 +111,9 @@ def _read_text(path: Path) -> str:
 
 def check_handoff_file(handoff: Path) -> list[Diagnostic]:
     if not handoff.exists():
-        return [_diagnostic("missing_handoff_file", handoff, 0, f"handoff file is missing: {handoff}")]
+        return [
+            _diagnostic("missing_handoff_file", handoff, 0, f"handoff file is missing: {handoff}")
+        ]
     return []
 
 
@@ -116,7 +124,9 @@ def check_sections(text: str, handoff: Path) -> tuple[int, list[Diagnostic]]:
         if header in text:
             count += 1
         else:
-            diagnostics.append(_diagnostic("missing_section", handoff, 0, f"required section missing: {header}"))
+            diagnostics.append(
+                _diagnostic("missing_section", handoff, 0, f"required section missing: {header}")
+            )
     return count, diagnostics
 
 
@@ -124,7 +134,14 @@ def check_boundary_markers(text: str, handoff: Path) -> list[Diagnostic]:
     diagnostics: list[Diagnostic] = []
     for marker in EXPECTED_BOUNDARY_MARKERS:
         if marker not in text:
-            diagnostics.append(_diagnostic("missing_boundary_marker", handoff, 0, f"required boundary marker missing: {marker}"))
+            diagnostics.append(
+                _diagnostic(
+                    "missing_boundary_marker",
+                    handoff,
+                    0,
+                    f"required boundary marker missing: {marker}",
+                )
+            )
     return diagnostics
 
 
@@ -135,7 +152,14 @@ def check_proof_anchors(text: str, handoff: Path) -> tuple[int, list[Diagnostic]
         if anchor in text:
             count += 1
         else:
-            diagnostics.append(_diagnostic("missing_proof_anchor", handoff, 0, f"required proof anchor not referenced: {anchor}"))
+            diagnostics.append(
+                _diagnostic(
+                    "missing_proof_anchor",
+                    handoff,
+                    0,
+                    f"required proof anchor not referenced: {anchor}",
+                )
+            )
     return count, diagnostics
 
 
@@ -150,9 +174,15 @@ def scan_overclaim(text: str, handoff: Path) -> list[Diagnostic]:
             if _preceded_by_negation(text, match.start()):
                 continue
             line_no = text.count("\n", 0, match.start()) + 1
-            diagnostics.append(_diagnostic("overclaim_detected", handoff, line_no,
-                                           f"affirmative R035/R037/R038 validation overclaim ({name}): {match.group(0)!r}",
-                                           match.group(0)))
+            diagnostics.append(
+                _diagnostic(
+                    "overclaim_detected",
+                    handoff,
+                    line_no,
+                    f"affirmative R035/R037/R038 validation overclaim ({name}): {match.group(0)!r}",
+                    match.group(0),
+                )
+            )
     return diagnostics
 
 
@@ -167,7 +197,15 @@ def verify(handoff: Path = DEFAULT_HANDOFF) -> tuple[bool, list[Diagnostic], dic
     diagnostics.extend(anchor_diags)
     diagnostics.extend(scan_overclaim(text, handoff) if handoff.exists() else [])
     ok = not diagnostics
-    return ok, diagnostics, {"sections": section_count, "anchors": anchor_count, "boundary_markers": len(EXPECTED_BOUNDARY_MARKERS)}
+    return (
+        ok,
+        diagnostics,
+        {
+            "sections": section_count,
+            "anchors": anchor_count,
+            "boundary_markers": len(EXPECTED_BOUNDARY_MARKERS),
+        },
+    )
 
 
 def _format_diagnostic(diagnostic: Diagnostic) -> str:
@@ -181,7 +219,7 @@ def _format_diagnostic(diagnostic: Diagnostic) -> str:
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(
         description="Verify the M066 S03 Stage 4 handoff document (sections, boundary markers, proof anchors, overclaim). "
-                    "Inspection only; does not run git lex.",
+        "Inspection only; does not run git lex.",
     )
     parser.add_argument("--handoff", type=Path, default=DEFAULT_HANDOFF)
     args = parser.parse_args(argv)
@@ -191,7 +229,9 @@ def main(argv: list[str] | None = None) -> int:
         for diagnostic in diagnostics:
             print(_format_diagnostic(diagnostic))
         return 1
-    print(f"M066 S03 stage4-handoff verification passed: diagnostics=0 (sections={counts['sections']}, markers={counts['boundary_markers']}, anchors={counts['anchors']})")
+    print(
+        f"M066 S03 stage4-handoff verification passed: diagnostics=0 (sections={counts['sections']}, markers={counts['boundary_markers']}, anchors={counts['anchors']})"
+    )
     return 0
 
 

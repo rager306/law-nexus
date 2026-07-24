@@ -30,7 +30,10 @@ def test_governance_boundary_matrix_preserves_lifecycle_tags() -> None:
     for tag in ["[validated]", "[bounded]", "[smoke]", "[proposed]", "[deferred]"]:
         assert tag in text
 
-    assert "Do not smooth `[bounded]`, `[smoke]`, `[proposed]`, or `[deferred]` into `[validated]`" in text
+    assert (
+        "Do not smooth `[bounded]`, `[smoke]`, `[proposed]`, or `[deferred]` into `[validated]`"
+        in text
+    )
 
 
 def test_governance_boundary_matrix_blocks_projection_overclaims() -> None:

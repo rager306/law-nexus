@@ -15,10 +15,22 @@ from types import ModuleType
 from typing import Any
 
 ROOT = Path(__file__).resolve().parents[1]
-DESCRIPTOR_INPUTS = ROOT / "prd/research/ontology_architecture_requirements/fixtures/held_out_semantic_descriptor_inputs.json"
-EVALUATION_LABELS = ROOT / "prd/research/ontology_architecture_requirements/fixtures/held_out_semantic_descriptor_evaluation_labels.json"
-SCORING_PROOF = ROOT / "prd/research/ontology_architecture_requirements/held_out_semantic_descriptor_scoring_proof.json"
-REPORT = ROOT / "prd/research/ontology_architecture_requirements/held_out_semantic_descriptor_ablation_proof.json"
+DESCRIPTOR_INPUTS = (
+    ROOT
+    / "prd/research/ontology_architecture_requirements/fixtures/held_out_semantic_descriptor_inputs.json"
+)
+EVALUATION_LABELS = (
+    ROOT
+    / "prd/research/ontology_architecture_requirements/fixtures/held_out_semantic_descriptor_evaluation_labels.json"
+)
+SCORING_PROOF = (
+    ROOT
+    / "prd/research/ontology_architecture_requirements/held_out_semantic_descriptor_scoring_proof.json"
+)
+REPORT = (
+    ROOT
+    / "prd/research/ontology_architecture_requirements/held_out_semantic_descriptor_ablation_proof.json"
+)
 SCORING_SCRIPT = ROOT / "scripts/verify-held-out-semantic-descriptor-scoring.py"
 INPUT_VERIFIER_SCRIPT = ROOT / "scripts/verify-held-out-semantic-descriptor-inputs.py"
 SCHEMA_VERSION = "held-out-semantic-descriptor-ablation-proof/v1"
@@ -49,7 +61,9 @@ def load_json(path: Path) -> dict[str, Any]:
 
 
 def write_json(path: Path, payload: Mapping[str, Any]) -> None:
-    path.write_text(json.dumps(payload, ensure_ascii=False, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    path.write_text(
+        json.dumps(payload, ensure_ascii=False, indent=2, sort_keys=True) + "\n", encoding="utf-8"
+    )
 
 
 def sha256_path(path: Path) -> str:
@@ -71,10 +85,15 @@ def load_module(path: Path, name: str) -> ModuleType:
 
 
 def update_query_intent_tokens(tokens: Sequence[str], value: str) -> list[str]:
-    return [token if not token.startswith(f"{ABLATION_FIELD}:") else f"{ABLATION_FIELD}:{value}" for token in tokens]
+    return [
+        token if not token.startswith(f"{ABLATION_FIELD}:") else f"{ABLATION_FIELD}:{value}"
+        for token in tokens
+    ]
 
 
-def build_ablated_manifest(source: Mapping[str, Any]) -> tuple[dict[str, Any], list[dict[str, str]]]:
+def build_ablated_manifest(
+    source: Mapping[str, Any],
+) -> tuple[dict[str, Any], list[dict[str, str]]]:
     ablated = copy.deepcopy(dict(source))
     changed_fields: list[dict[str, str]] = []
     query_descriptors = ablated.get("query_descriptors")
@@ -110,7 +129,9 @@ def build_ablated_manifest(source: Mapping[str, Any]) -> tuple[dict[str, Any], l
     return ablated, changed_fields
 
 
-def run_scoring_with_manifest(scoring: ModuleType, manifest_path: Path, timeout_seconds: int) -> dict[str, Any]:
+def run_scoring_with_manifest(
+    scoring: ModuleType, manifest_path: Path, timeout_seconds: int
+) -> dict[str, Any]:
     previous = getattr(scoring, "DESCRIPTOR_INPUTS")
     try:
         setattr(scoring, "DESCRIPTOR_INPUTS", manifest_path)
@@ -127,7 +148,10 @@ def classify(current: Mapping[str, Any], ablated: Mapping[str, Any]) -> str:
     if not isinstance(current_metrics, Mapping) or not isinstance(ablated_metrics, Mapping):
         return "held_out_metric_mismatch"
     metric_names = ("mrr", "recall_at_1", "recall_at_3")
-    if all(float(ablated_metrics.get(name, -1.0)) == float(current_metrics.get(name, -2.0)) for name in metric_names):
+    if all(
+        float(ablated_metrics.get(name, -1.0)) == float(current_metrics.get(name, -2.0))
+        for name in metric_names
+    ):
         return "held_out_success_survives_ablation"
     return "held_out_success_depends_on_descriptor_signal"
 
@@ -150,7 +174,11 @@ def build_report(timeout_seconds: int) -> dict[str, Any]:
     if diagnosis not in ALLOWED_DIAGNOSES:
         raise HeldOutAblationError(f"invalid diagnosis: {diagnosis}")
     metric_deltas_after_ablation = {
-        key: round(float(ablated_report["metrics"].get(key, 0.0)) - float(current_report["metrics"].get(key, 0.0)), 6)
+        key: round(
+            float(ablated_report["metrics"].get(key, 0.0))
+            - float(current_report["metrics"].get(key, 0.0)),
+            6,
+        )
         for key in current_report["metrics"]
     }
     report = {
@@ -174,7 +202,8 @@ def build_report(timeout_seconds: int) -> dict[str, Any]:
         "fixed_invariants": {
             "ablation_changes_one_signal_at_a_time": True,
             "changed_signal": ABLATION_FIELD,
-            "candidate_descriptors_fixed": candidate_digest == digest_rows(ablated_manifest.get("candidate_descriptors", [])),
+            "candidate_descriptors_fixed": candidate_digest
+            == digest_rows(ablated_manifest.get("candidate_descriptors", [])),
             "evaluation_labels_fixed": label_digest == sha256_path(EVALUATION_LABELS),
             "metrics_policy_fixed": True,
             "runtime_model_fixed": scoring.MODEL_ID,
@@ -218,9 +247,17 @@ def main(argv: Sequence[str] | None = None) -> int:
     try:
         report = build_report(args.timeout_seconds)
         if not args.no_write:
-            args.output.write_text(json.dumps(report, ensure_ascii=False, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+            args.output.write_text(
+                json.dumps(report, ensure_ascii=False, indent=2, sort_keys=True) + "\n",
+                encoding="utf-8",
+            )
     except HeldOutAblationError as exc:
-        print(json.dumps({"status": "failed", "diagnostic": str(exc), "non_authoritative": True}, sort_keys=True))
+        print(
+            json.dumps(
+                {"status": "failed", "diagnostic": str(exc), "non_authoritative": True},
+                sort_keys=True,
+            )
+        )
         return 1
     print(
         json.dumps(

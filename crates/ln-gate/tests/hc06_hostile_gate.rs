@@ -1,9 +1,7 @@
 use ln_gate::{
     adapters::InPlaceMutatingHostileStore,
     application::GateLifecycle,
-    domain::{
-        CandidateId, EvidenceRef, GateOutcome, GateReason, GateRequest, LifecycleType,
-    },
+    domain::{CandidateId, EvidenceRef, GateOutcome, GateReason, GateRequest, LifecycleType},
 };
 
 fn seed_hostile() -> (GateLifecycle<InPlaceMutatingHostileStore>, CandidateId) {

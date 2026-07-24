@@ -10,8 +10,14 @@ from typing import Any
 
 ROOT = Path(__file__).resolve().parents[1]
 CLI = ROOT / "scripts/verify-graph-filtered-retrieval-integration.py"
-FIXTURE = ROOT / "prd/research/ontology_architecture_requirements/fixtures/evidence_span_golden_retrieval_cases.json"
-PROOF = ROOT / "prd/research/ontology_architecture_requirements/graph_filtered_retrieval_integration_proof.json"
+FIXTURE = (
+    ROOT
+    / "prd/research/ontology_architecture_requirements/fixtures/evidence_span_golden_retrieval_cases.json"
+)
+PROOF = (
+    ROOT
+    / "prd/research/ontology_architecture_requirements/graph_filtered_retrieval_integration_proof.json"
+)
 
 REQUIRED_PHASES = {
     "s04_fixture_verification",
@@ -90,19 +96,33 @@ def test_candidate_projection_preserves_safe_ids_and_temporal_status() -> None:
     by_id = {candidate["candidate_id"]: candidate for candidate in candidates}
     assert by_id["CAND-M021-S04-EV-ARTICLE-0001"]["temporal_status"] == "current"
     assert by_id["CAND-M021-S04-STALE-WRONG-EDITION-001"]["temporal_status"] == "stale"
-    assert by_id["CAND-M021-S04-EV-ARTICLE-0001"]["evidence_span_id"] == "EV-M014-HIER-CONS-ARTICLE-0001"
-    assert by_id["CAND-M021-S04-EV-ARTICLE-0001"]["source_block_id"] == "SB-M014-HIER-CONS-ARTICLE-0001"
-    assert by_id["CAND-M021-S04-EV-ARTICLE-0001"]["citation_key"] == "CIT-M014-HIER-CONS-ARTICLE-0001"
+    assert (
+        by_id["CAND-M021-S04-EV-ARTICLE-0001"]["evidence_span_id"]
+        == "EV-M014-HIER-CONS-ARTICLE-0001"
+    )
+    assert (
+        by_id["CAND-M021-S04-EV-ARTICLE-0001"]["source_block_id"]
+        == "SB-M014-HIER-CONS-ARTICLE-0001"
+    )
+    assert (
+        by_id["CAND-M021-S04-EV-ARTICLE-0001"]["citation_key"] == "CIT-M014-HIER-CONS-ARTICLE-0001"
+    )
 
 
 def test_expected_ids_from_fixture_match_routes() -> None:
     module = load_module("s06_expected_ids")
     fixture = load_fixture()
 
-    assert module.expected_ids(fixture, "positive_evidence_span") == ["CAND-M021-S04-EV-ARTICLE-0001"]
-    assert module.expected_ids(fixture, "positive_source_block_marker") == ["CAND-M021-S04-SB-ARTICLE-0001-MARKER"]
+    assert module.expected_ids(fixture, "positive_evidence_span") == [
+        "CAND-M021-S04-EV-ARTICLE-0001"
+    ]
+    assert module.expected_ids(fixture, "positive_source_block_marker") == [
+        "CAND-M021-S04-SB-ARTICLE-0001-MARKER"
+    ]
     assert module.expected_ids(fixture, "stale_temporal_negative") == []
-    assert module.expected_ids(fixture, "stale_temporal_negative", "expected_rejected_candidate_ids") == ["CAND-M021-S04-STALE-WRONG-EDITION-001"]
+    assert module.expected_ids(
+        fixture, "stale_temporal_negative", "expected_rejected_candidate_ids"
+    ) == ["CAND-M021-S04-STALE-WRONG-EDITION-001"]
 
 
 def test_citation_preservation_contains_positive_bindings() -> None:

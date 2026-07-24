@@ -515,7 +515,9 @@ def make_record(
             }
         )
     else:
-        record.update({"command": None, "cwd": str(workspace), "exit_code": None, "stdout": "", "stderr": ""})
+        record.update(
+            {"command": None, "cwd": str(workspace), "exit_code": None, "stdout": "", "stderr": ""}
+        )
     if details:
         record["details"] = details
     return record
@@ -776,7 +778,9 @@ def run_positive(
                 ["git-lex", "query", query, "--json"], workspace, runner=runner
             )
             rows = row_count_from_query(result.stdout)
-            classification = "pass" if result.exit_code == 0 and rows is not None and rows >= 1 else "blocked"
+            classification = (
+                "pass" if result.exit_code == 0 and rows is not None and rows >= 1 else "blocked"
+            )
             records.append(
                 make_record(
                     phase="positive",
@@ -850,7 +854,9 @@ def run_negative_case(
         if result.exit_code != 0:
             return records
 
-        validate_result, pre, post = run_checked_command(["git-lex", "validate"], workspace, runner=runner)
+        validate_result, pre, post = run_checked_command(
+            ["git-lex", "validate"], workspace, runner=runner
+        )
         classification = classify_negative(validate_result)
         records.append(
             make_record(
@@ -927,10 +933,16 @@ def summarize(records: list[dict[str, object]]) -> dict[str, object]:
 def parse_args(argv: Sequence[str]) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     group = parser.add_mutually_exclusive_group(required=True)
-    group.add_argument("--positive", action="store_true", help="run positive validate/sync/query proof")
-    group.add_argument("--negative", action="store_true", help="run scalar negative validation probes")
+    group.add_argument(
+        "--positive", action="store_true", help="run positive validate/sync/query proof"
+    )
+    group.add_argument(
+        "--negative", action="store_true", help="run scalar negative validation probes"
+    )
     group.add_argument("--all", action="store_true", help="run positive and negative proof flows")
-    parser.add_argument("--workspace-dir", type=Path, help="optional /tmp/s061-s04-* workspace for positive run")
+    parser.add_argument(
+        "--workspace-dir", type=Path, help="optional /tmp/s061-s04-* workspace for positive run"
+    )
     return parser.parse_args(argv)
 
 
@@ -966,7 +978,10 @@ def main(argv: Sequence[str] | None = None) -> int:
     write_jsonl(records)
     summary = summarize(records)
     print(json.dumps(summary, ensure_ascii=False, indent=2, sort_keys=True))
-    if any(record["classification"] == "blocked" and record["phase"] != "negative" for record in records):
+    if any(
+        record["classification"] == "blocked" and record["phase"] != "negative"
+        for record in records
+    ):
         return 1
     if args.positive or args.all:
         positive_blocked = [

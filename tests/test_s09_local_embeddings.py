@@ -97,7 +97,9 @@ def test_probe_model_cache_reports_absent_and_present_snapshots(tmp_path: Path) 
     assert present.snapshots == ("abc123",)
 
 
-def test_no_download_absent_cache_blocks_without_encode_attempt(tmp_path: Path, monkeypatch) -> None:
+def test_no_download_absent_cache_blocks_without_encode_attempt(
+    tmp_path: Path, monkeypatch
+) -> None:
     harness = load_harness()
 
     def fake_package_probe(packages: list[str]) -> dict[str, object]:
@@ -151,7 +153,9 @@ def test_missing_packages_are_reported_as_blocked_root_cause(tmp_path: Path, mon
     assert root == "embedding-packages-missing:sentence-transformers,transformers"
 
 
-def test_main_writes_no_download_artifacts_without_managed_api_terms(tmp_path: Path, monkeypatch) -> None:
+def test_main_writes_no_download_artifacts_without_managed_api_terms(
+    tmp_path: Path, monkeypatch
+) -> None:
     harness = load_harness()
     contract = tmp_path / "contract.json"
     write_contract(contract)
@@ -161,7 +165,9 @@ def test_main_writes_no_download_artifacts_without_managed_api_terms(tmp_path: P
         return {"status": "blocked-environment", "missing": list(packages), "packages": []}
 
     monkeypatch.setattr(harness, "probe_required_packages", fake_package_probe)
-    exit_code = harness.main(["--contract", str(contract), "--output-dir", str(output_dir), "--no-download"])
+    exit_code = harness.main(
+        ["--contract", str(contract), "--output-dir", str(output_dir), "--no-download"]
+    )
 
     assert exit_code == 0
     payload_path = output_dir / "S09-LOCAL-EMBEDDING-SMOKE.json"

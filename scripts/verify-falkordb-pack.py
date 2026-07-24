@@ -63,10 +63,36 @@ def run_step(step: Step) -> dict[str, Any]:
 
 def build_steps(python: str, skills_dir: Path) -> list[Step]:
     steps = [
-        Step("pack-structure", [python, "scripts/verify-falkordb-skill.py", "--root", str(skills_dir / "falkordb")]),
-        Step("router-quality", [python, "scripts/evaluate-falkordb-skill-quality.py", "--min-pass-rate", "1.0"]),
-        Step("focused-pack-quality", [python, "scripts/evaluate-falkordb-pack-quality.py", "--skills-dir", str(skills_dir), "--min-pass-rate", "1.0"]),
-        Step("trigger-proxy", [python, "scripts/evaluate-falkordb-trigger-proxy.py", "--skills-dir", str(skills_dir), "--min-pass-rate", "1.0"]),
+        Step(
+            "pack-structure",
+            [python, "scripts/verify-falkordb-skill.py", "--root", str(skills_dir / "falkordb")],
+        ),
+        Step(
+            "router-quality",
+            [python, "scripts/evaluate-falkordb-skill-quality.py", "--min-pass-rate", "1.0"],
+        ),
+        Step(
+            "focused-pack-quality",
+            [
+                python,
+                "scripts/evaluate-falkordb-pack-quality.py",
+                "--skills-dir",
+                str(skills_dir),
+                "--min-pass-rate",
+                "1.0",
+            ],
+        ),
+        Step(
+            "trigger-proxy",
+            [
+                python,
+                "scripts/evaluate-falkordb-trigger-proxy.py",
+                "--skills-dir",
+                str(skills_dir),
+                "--min-pass-rate",
+                "1.0",
+            ],
+        ),
     ]
     validator = skills_dir / "pi-skill-creator" / "scripts" / "validate_pi_skill.py"
     for skill in PACK_SKILLS:
@@ -131,7 +157,9 @@ def write_markdown(report: dict[str, Any], path: Path) -> None:
     path.write_text("\n".join(lines), encoding="utf-8")
 
 
-def verify(skills_dir: Path, json_output: Path, markdown_output: Path, python: str) -> dict[str, Any]:
+def verify(
+    skills_dir: Path, json_output: Path, markdown_output: Path, python: str
+) -> dict[str, Any]:
     results = [run_step(step) for step in build_steps(python, skills_dir)]
     report = {
         "pack_name": "falkordb",
@@ -153,8 +181,16 @@ def verify(skills_dir: Path, json_output: Path, markdown_output: Path, python: s
 def main() -> int:
     parser = argparse.ArgumentParser(description="Run complete FalkorDB skill pack verification")
     parser.add_argument("--skills-dir", type=Path, default=Path(".agents/skills"))
-    parser.add_argument("--json-output", type=Path, default=Path(".agents/skills/falkordb/evals/verification-report.json"))
-    parser.add_argument("--markdown-output", type=Path, default=Path(".agents/skills/falkordb/evals/verification-report.md"))
+    parser.add_argument(
+        "--json-output",
+        type=Path,
+        default=Path(".agents/skills/falkordb/evals/verification-report.json"),
+    )
+    parser.add_argument(
+        "--markdown-output",
+        type=Path,
+        default=Path(".agents/skills/falkordb/evals/verification-report.md"),
+    )
     parser.add_argument("--python", default=sys.executable)
     args = parser.parse_args()
 

@@ -26,7 +26,9 @@ ROOT = Path(__file__).resolve().parents[1]
 FIXTURE_DIR = ROOT / "prd/research/ontology_architecture_requirements/fixtures/falkordb_ingest"
 UNITS_CSV = FIXTURE_DIR / "legal_units.csv"
 EDGES_CSV = FIXTURE_DIR / "legal_unit_edges.csv"
-DEFAULT_REPORT = ROOT / "prd/research/ontology_architecture_requirements/falkordb_bulk_loader_proof.json"
+DEFAULT_REPORT = (
+    ROOT / "prd/research/ontology_architecture_requirements/falkordb_bulk_loader_proof.json"
+)
 SCHEMA_VERSION = "falkordb-bulk-loader-proof/v1"
 MILESTONE_ID = "M021-qk4lze"
 SLICE_ID = "S03"
@@ -91,8 +93,12 @@ def expected_counts() -> dict[str, int]:
         "expected_source_relationship_rows": len(edges),
         "expected_node_count": len(units),
         "expected_relationship_count": len(edges),
-        "expected_current_nodes": sum(1 for row in units if row.get("temporal_status") == "current"),
-        "expected_inactive_nodes": sum(1 for row in units if row.get("temporal_status") == "inactive"),
+        "expected_current_nodes": sum(
+            1 for row in units if row.get("temporal_status") == "current"
+        ),
+        "expected_inactive_nodes": sum(
+            1 for row in units if row.get("temporal_status") == "inactive"
+        ),
     }
 
 
@@ -181,9 +187,15 @@ def scalar_int(graph: FalkorGraph, query: str) -> int:
 def graph_counts(graph: FalkorGraph) -> dict[str, int]:
     return {
         "node_count": scalar_int(graph, "MATCH (n:LegalUnit) RETURN count(n)"),
-        "relationship_count": scalar_int(graph, "MATCH (:LegalUnit)-[r:LINKS_TO]->(:LegalUnit) RETURN count(r)"),
-        "current_nodes": scalar_int(graph, "MATCH (n:LegalUnit {temporal_status:'current'}) RETURN count(n)"),
-        "inactive_nodes": scalar_int(graph, "MATCH (n:LegalUnit {temporal_status:'inactive'}) RETURN count(n)"),
+        "relationship_count": scalar_int(
+            graph, "MATCH (:LegalUnit)-[r:LINKS_TO]->(:LegalUnit) RETURN count(r)"
+        ),
+        "current_nodes": scalar_int(
+            graph, "MATCH (n:LegalUnit {temporal_status:'current'}) RETURN count(n)"
+        ),
+        "inactive_nodes": scalar_int(
+            graph, "MATCH (n:LegalUnit {temporal_status:'inactive'}) RETURN count(n)"
+        ),
     }
 
 
@@ -205,7 +217,9 @@ def wait_for_falkordb(host: str, port: int, timeout_seconds: int) -> FalkorClien
         except Exception as exc:  # noqa: BLE001 - readiness diagnostics are classified by caller
             last_error = exc
             time.sleep(0.5)
-    raise TimeoutError(f"FalkorDB readiness timeout: {type(last_error).__name__ if last_error else 'unknown'}")
+    raise TimeoutError(
+        f"FalkorDB readiness timeout: {type(last_error).__name__ if last_error else 'unknown'}"
+    )
 
 
 def docker_available() -> bool:
@@ -215,7 +229,9 @@ def docker_available() -> bool:
 def local_image_present(image: str) -> bool:
     if not docker_available():
         return False
-    completed = subprocess.run(["docker", "image", "inspect", image], cwd=ROOT, check=False, text=True, capture_output=True)  # noqa: S603
+    completed = subprocess.run(
+        ["docker", "image", "inspect", image], cwd=ROOT, check=False, text=True, capture_output=True
+    )  # noqa: S603
     return completed.returncode == 0
 
 
@@ -233,7 +249,15 @@ def start_container(args: argparse.Namespace) -> tuple[str | None, dict[str, Any
         diagnostic["status"] = "blocked_image_absent"
         diagnostic["diagnostic_codes"] = ["BULK_LOADER_CONTAINER_IMAGE_ABSENT"]
         return None, diagnostic
-    command = ["docker", "run", "--rm", "-d", "-p", f"127.0.0.1:{args.port}:6379", args.container_image]
+    command = [
+        "docker",
+        "run",
+        "--rm",
+        "-d",
+        "-p",
+        f"127.0.0.1:{args.port}:6379",
+        args.container_image,
+    ]
     completed = subprocess.run(command, cwd=ROOT, check=False, text=True, capture_output=True)  # noqa: S603
     if completed.returncode != 0:
         diagnostic["status"] = "blocked_start_failed"
@@ -250,13 +274,19 @@ def start_container(args: argparse.Namespace) -> tuple[str | None, dict[str, Any
 def cleanup_container(container_id: str | None, diagnostic: dict[str, Any]) -> None:
     if not container_id:
         return
-    completed = subprocess.run(["docker", "rm", "-f", container_id], cwd=ROOT, check=False, text=True, capture_output=True)  # noqa: S603
+    completed = subprocess.run(
+        ["docker", "rm", "-f", container_id], cwd=ROOT, check=False, text=True, capture_output=True
+    )  # noqa: S603
     diagnostic["cleanup_status"] = "deleted" if completed.returncode == 0 else "cleanup_failed"
     if completed.returncode != 0:
-        diagnostic["diagnostic_codes"] = sorted(set(diagnostic.get("diagnostic_codes", []) + ["BULK_LOADER_CLEANUP_FAILED"]))
+        diagnostic["diagnostic_codes"] = sorted(
+            set(diagnostic.get("diagnostic_codes", []) + ["BULK_LOADER_CLEANUP_FAILED"])
+        )
 
 
-def base_report(args: argparse.Namespace, disposition: RuntimeDisposition, diagnostic_codes: Sequence[str]) -> dict[str, Any]:
+def base_report(
+    args: argparse.Namespace, disposition: RuntimeDisposition, diagnostic_codes: Sequence[str]
+) -> dict[str, Any]:
     counts = expected_counts()
     return {
         "schema_version": SCHEMA_VERSION,
@@ -274,10 +304,18 @@ def base_report(args: argparse.Namespace, disposition: RuntimeDisposition, diagn
             "id_type": "STRING",
         },
         "source_fixture_paths": [bounded_path(UNITS_CSV), bounded_path(EDGES_CSV)],
-        "source_counts": {"node_rows": counts["expected_source_node_rows"], "relationship_rows": counts["expected_source_relationship_rows"]},
+        "source_counts": {
+            "node_rows": counts["expected_source_node_rows"],
+            "relationship_rows": counts["expected_source_relationship_rows"],
+        },
         "expected_counts": counts,
         "graph_counts": {},
-        "container_runtime": {"mode": args.container, "status": "not_run", "cleanup_status": "not_needed", "image_reference": args.container_image},
+        "container_runtime": {
+            "mode": args.container,
+            "status": "not_run",
+            "cleanup_status": "not_needed",
+            "image_reference": args.container_image,
+        },
         "diagnostic_codes": sorted(set(diagnostic_codes)),
         "redaction": {
             "source_text_excluded": True,
@@ -310,7 +348,9 @@ def compare_counts(report: dict[str, Any]) -> list[str]:
     return sorted(set(diagnostics))
 
 
-def run_bulk_loader(args: argparse.Namespace, graph_name: str, nodes_path: Path, rels_path: Path) -> tuple[int, float, str]:
+def run_bulk_loader(
+    args: argparse.Namespace, graph_name: str, nodes_path: Path, rels_path: Path
+) -> tuple[int, float, str]:
     command = [
         "uvx",
         "--from",
@@ -332,7 +372,13 @@ def run_bulk_loader(args: argparse.Namespace, graph_name: str, nodes_path: Path,
     started = time.monotonic()
     completed = subprocess.run(command, cwd=ROOT, check=False, text=True, capture_output=True)  # noqa: S603 - fixed uvx executable and args
     duration_ms = round((time.monotonic() - started) * 1000, 2)
-    output_class = "ok" if completed.returncode == 0 else completed.stderr[:200].splitlines()[0] if completed.stderr else "failed"
+    output_class = (
+        "ok"
+        if completed.returncode == 0
+        else completed.stderr[:200].splitlines()[0]
+        if completed.stderr
+        else "failed"
+    )
     return completed.returncode, duration_ms, output_class
 
 
@@ -347,14 +393,18 @@ def run_proof(args: argparse.Namespace) -> tuple[int, dict[str, Any]]:
         container_id, container_diag = start_container(args)
         report["container_runtime"] = container_diag
         if container_id is None:
-            report["diagnostic_codes"] = sorted(set(container_diag.get("diagnostic_codes", []) + ["BULK_LOADER_RUNTIME_FAILED"]))
+            report["diagnostic_codes"] = sorted(
+                set(container_diag.get("diagnostic_codes", []) + ["BULK_LOADER_RUNTIME_FAILED"])
+            )
             return 1, report
         client = wait_for_falkordb(args.host, args.port, args.readiness_timeout)
         graph_name = f"m021_bulk_ingest_{uuid.uuid4().hex[:10]}"
         report["graph_name_hash"] = f"len:{len(graph_name)}"
         with tempfile.TemporaryDirectory(prefix="m021-bulk-loader-") as tmpdir:
             nodes_path, rels_path = write_bulk_csvs(Path(tmpdir))
-            loader_exit, loader_duration, output_class = run_bulk_loader(args, graph_name, nodes_path, rels_path)
+            loader_exit, loader_duration, output_class = run_bulk_loader(
+                args, graph_name, nodes_path, rels_path
+            )
         report["loader_duration_ms"] = loader_duration
         report["loader_output_class"] = output_class
         if loader_exit != 0:
@@ -379,7 +429,11 @@ def run_proof(args: argparse.Namespace) -> tuple[int, dict[str, Any]]:
     except Exception as exc:  # noqa: BLE001 - fail closed with sanitized exception class
         report["runtime_disposition"] = "failed_closed"
         report["container_runtime"] = container_diag or report["container_runtime"]
-        code = "BULK_LOADER_SCHEMA_UNSUPPORTED" if type(exc).__name__ in {"KeyError", "ValueError"} else "BULK_LOADER_RUNTIME_FAILED"
+        code = (
+            "BULK_LOADER_SCHEMA_UNSUPPORTED"
+            if type(exc).__name__ in {"KeyError", "ValueError"}
+            else "BULK_LOADER_RUNTIME_FAILED"
+        )
         report["diagnostic_codes"] = sorted({code, f"BULK_LOADER_{type(exc).__name__.upper()}"})
         return 1, report
     finally:
@@ -391,7 +445,9 @@ def run_proof(args: argparse.Namespace) -> tuple[int, dict[str, Any]]:
 def write_report(path: Path, report: Mapping[str, Any]) -> None:
     assert_safe_payload(report)
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(json.dumps(report, ensure_ascii=False, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    path.write_text(
+        json.dumps(report, ensure_ascii=False, indent=2, sort_keys=True) + "\n", encoding="utf-8"
+    )
 
 
 def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:

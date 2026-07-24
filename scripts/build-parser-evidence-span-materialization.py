@@ -14,8 +14,14 @@ from xml.etree import ElementTree as ET
 
 ROOT = Path(__file__).resolve().parents[1]
 SOURCE = ROOT / "law-source/garant/44-fz.odt"
-CONTRACT = ROOT / "prd/research/ontology_architecture_requirements/58-parser-evidence-span-materialization-contract.md"
-OUTPUT = ROOT / "prd/research/ontology_architecture_requirements/parser_evidence_span_materialization.json"
+CONTRACT = (
+    ROOT
+    / "prd/research/ontology_architecture_requirements/58-parser-evidence-span-materialization-contract.md"
+)
+OUTPUT = (
+    ROOT
+    / "prd/research/ontology_architecture_requirements/parser_evidence_span_materialization.json"
+)
 SCHEMA_VERSION = "parser-evidence-span-materialization/v1"
 REPRESENTATION_KIND = "safe_materialized_evidence_candidates_v1"
 TEXT_NS = "urn:oasis:names:tc:opendocument:xmlns:text:1.0"
@@ -73,19 +79,54 @@ def iter_structural_events(content_xml: bytes) -> list[dict[str, Any]]:
     events: list[dict[str, Any]] = []
     for index, element in enumerate(text.iter(), start=1):
         if element.tag == TEXT_H:
-            events.append({"tag": "text:h", "source_order_index": index, "structural_unit_kind": "article", "candidate_kind": "source_block", "citation_granularity": "article_or_evidence_span", "content_role": "scope_boundary"})
+            events.append(
+                {
+                    "tag": "text:h",
+                    "source_order_index": index,
+                    "structural_unit_kind": "article",
+                    "candidate_kind": "source_block",
+                    "citation_granularity": "article_or_evidence_span",
+                    "content_role": "scope_boundary",
+                }
+            )
         elif element.tag == TEXT_P:
-            events.append({"tag": "text:p", "source_order_index": index, "structural_unit_kind": "paragraph", "candidate_kind": "evidence_span", "citation_granularity": "article_or_evidence_span", "content_role": "retrieval_candidate"})
+            events.append(
+                {
+                    "tag": "text:p",
+                    "source_order_index": index,
+                    "structural_unit_kind": "paragraph",
+                    "candidate_kind": "evidence_span",
+                    "citation_granularity": "article_or_evidence_span",
+                    "content_role": "retrieval_candidate",
+                }
+            )
         elif element.tag == TABLE_TABLE:
-            events.append({"tag": "table:table", "source_order_index": index, "structural_unit_kind": "table", "candidate_kind": "source_block", "citation_granularity": "source_block_marker", "content_role": "citation_boundary"})
+            events.append(
+                {
+                    "tag": "table:table",
+                    "source_order_index": index,
+                    "structural_unit_kind": "table",
+                    "candidate_kind": "source_block",
+                    "citation_granularity": "source_block_marker",
+                    "content_role": "citation_boundary",
+                }
+            )
         if len(events) >= 6:
             break
     return events
 
 
-def build_candidate(event: dict[str, Any], ordinal: int, source_ref: str, source_sha: str) -> dict[str, Any]:
+def build_candidate(
+    event: dict[str, Any], ordinal: int, source_ref: str, source_sha: str
+) -> dict[str, Any]:
     anchor_id = f"SRC-M027-{ordinal:03d}-{event['structural_unit_kind'].upper().replace('_', '-')}"
-    anchor_sha = safe_hash(source_sha, event["tag"], event["source_order_index"], event["structural_unit_kind"], event["candidate_kind"])
+    anchor_sha = safe_hash(
+        source_sha,
+        event["tag"],
+        event["source_order_index"],
+        event["structural_unit_kind"],
+        event["candidate_kind"],
+    )
     return {
         "candidate_id": f"MAT-M027-{ordinal:03d}-{event['candidate_kind'].upper().replace('_', '-')}",
         "candidate_kind": event["candidate_kind"],
@@ -150,7 +191,10 @@ def build_materialization(source: Path = SOURCE) -> dict[str, Any]:
         return blocked_payload(reason, source_ref)
     if not events:
         return blocked_payload("insufficient_structural_evidence", source_ref)
-    candidates = [build_candidate(event, ordinal, source_ref, source_sha) for ordinal, event in enumerate(events, start=1)]
+    candidates = [
+        build_candidate(event, ordinal, source_ref, source_sha)
+        for ordinal, event in enumerate(events, start=1)
+    ]
     return {
         "schema_version": SCHEMA_VERSION,
         "milestone_id": "M027-vxdy7c",
@@ -191,8 +235,21 @@ def main(argv: Sequence[str] | None = None) -> int:
     args = parse_args(argv)
     payload = build_materialization(args.source)
     if not args.no_write:
-        args.output.write_text(json.dumps(payload, ensure_ascii=False, indent=2, sort_keys=True) + "\n", encoding="utf-8")
-    print(json.dumps({"status": payload["status"], "blocked_reason": payload["blocked_reason"], "materialized_candidate_count": payload["materialized_candidate_count"], "non_authoritative": True}, sort_keys=True))
+        args.output.write_text(
+            json.dumps(payload, ensure_ascii=False, indent=2, sort_keys=True) + "\n",
+            encoding="utf-8",
+        )
+    print(
+        json.dumps(
+            {
+                "status": payload["status"],
+                "blocked_reason": payload["blocked_reason"],
+                "materialized_candidate_count": payload["materialized_candidate_count"],
+                "non_authoritative": True,
+            },
+            sort_keys=True,
+        )
+    )
     return 0 if payload["status"] in {"ok", "blocked"} else 1
 
 

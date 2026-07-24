@@ -49,8 +49,7 @@ where
             commit_digest: None,
             publication_authority: None,
         };
-        self.open
-            .insert(op_id.as_str().to_owned(), record.clone());
+        self.open.insert(op_id.as_str().to_owned(), record.clone());
         self.store.put(record);
         PromotionResult {
             outcome: PromotionOutcome::Incomplete,
@@ -86,8 +85,7 @@ where
                 existing.commit_digest = None;
                 existing.publication_authority = None;
                 let op = existing.op_id.clone();
-                self.open
-                    .insert(op.as_str().to_owned(), existing.clone());
+                self.open.insert(op.as_str().to_owned(), existing.clone());
                 self.store.put(existing);
                 PromotionResult {
                     outcome: PromotionOutcome::Cancelled,

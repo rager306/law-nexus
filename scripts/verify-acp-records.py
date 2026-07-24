@@ -225,44 +225,115 @@ def validate_base(record: AcpRecord) -> list[Diagnostic]:
     diagnostics: list[Diagnostic] = []
     for field in ("id", "record_kind", "title", "status", "source_refs", "safety"):
         if field not in data:
-            diagnostics.append(Diagnostic("required", "missing required field", record.path, record.record_id, field))
+            diagnostics.append(
+                Diagnostic(
+                    "required", "missing required field", record.path, record.record_id, field
+                )
+            )
 
     if not re.fullmatch(r"(APR|AP|DC|PG|AHF)-[0-9]{4}", str(data.get("id", ""))):
-        diagnostics.append(Diagnostic("record-id", "invalid ACP record id", record.path, record.record_id, "id"))
+        diagnostics.append(
+            Diagnostic("record-id", "invalid ACP record id", record.path, record.record_id, "id")
+        )
 
     if data.get("record_kind") not in REQUIRED_RECORD_KINDS:
         diagnostics.append(
-            Diagnostic("record-kind", "unexpected ACP record kind", record.path, record.record_id, "record_kind")
+            Diagnostic(
+                "record-kind",
+                "unexpected ACP record kind",
+                record.path,
+                record.record_id,
+                "record_kind",
+            )
         )
 
     source_refs = data.get("source_refs")
     if not isinstance(source_refs, list) or not source_refs:
-        diagnostics.append(Diagnostic("source-ref", "source_refs must be a non-empty list", record.path, record.record_id, "source_refs"))
+        diagnostics.append(
+            Diagnostic(
+                "source-ref",
+                "source_refs must be a non-empty list",
+                record.path,
+                record.record_id,
+                "source_refs",
+            )
+        )
     else:
         for index, ref in enumerate(source_refs):
             if not isinstance(ref, dict):
-                diagnostics.append(Diagnostic("source-ref", "source ref must be an object", record.path, record.record_id, f"source_refs[{index}]"))
+                diagnostics.append(
+                    Diagnostic(
+                        "source-ref",
+                        "source ref must be an object",
+                        record.path,
+                        record.record_id,
+                        f"source_refs[{index}]",
+                    )
+                )
                 continue
             ref_path = ref.get("path")
             if not isinstance(ref_path, str) or not is_repo_relative_path(ref_path):
-                diagnostics.append(Diagnostic("source-ref-path", "source ref path must be safe and repo-relative", record.path, record.record_id, f"source_refs[{index}].path"))
+                diagnostics.append(
+                    Diagnostic(
+                        "source-ref-path",
+                        "source ref path must be safe and repo-relative",
+                        record.path,
+                        record.record_id,
+                        f"source_refs[{index}].path",
+                    )
+                )
             elif not source_path_exists(ref_path):
-                diagnostics.append(Diagnostic("source-ref-exists", "source ref path does not exist", record.path, record.record_id, f"source_refs[{index}].path"))
+                diagnostics.append(
+                    Diagnostic(
+                        "source-ref-exists",
+                        "source ref path does not exist",
+                        record.path,
+                        record.record_id,
+                        f"source_refs[{index}].path",
+                    )
+                )
             if not isinstance(ref.get("role"), str) or not ref["role"]:
-                diagnostics.append(Diagnostic("source-ref-role", "source ref role is required", record.path, record.record_id, f"source_refs[{index}].role"))
+                diagnostics.append(
+                    Diagnostic(
+                        "source-ref-role",
+                        "source ref role is required",
+                        record.path,
+                        record.record_id,
+                        f"source_refs[{index}].role",
+                    )
+                )
 
     safety = data.get("safety")
     if not isinstance(safety, dict):
-        diagnostics.append(Diagnostic("safety", "safety must be an object", record.path, record.record_id, "safety"))
+        diagnostics.append(
+            Diagnostic(
+                "safety", "safety must be an object", record.path, record.record_id, "safety"
+            )
+        )
     else:
         for field in sorted(REQUIRED_SAFETY_FALSE_FIELDS):
             if safety.get(field) is not False:
-                diagnostics.append(Diagnostic("safety-false", "safety field must be false", record.path, record.record_id, f"safety.{field}"))
+                diagnostics.append(
+                    Diagnostic(
+                        "safety-false",
+                        "safety field must be false",
+                        record.path,
+                        record.record_id,
+                        f"safety.{field}",
+                    )
+                )
 
     text = record.path.read_text(encoding="utf-8")
     for marker in FORBIDDEN_MARKERS:
         if marker in text:
-            diagnostics.append(Diagnostic("forbidden-marker", f"forbidden marker found: {marker}", record.path, record.record_id))
+            diagnostics.append(
+                Diagnostic(
+                    "forbidden-marker",
+                    f"forbidden marker found: {marker}",
+                    record.path,
+                    record.record_id,
+                )
+            )
 
     return diagnostics
 
@@ -274,22 +345,73 @@ def validate_kind_specific(record: AcpRecord, ids: set[str]) -> list[Diagnostic]
 
     def require_str(field: str) -> None:
         if not isinstance(data.get(field), str) or not data[field]:
-            diagnostics.append(Diagnostic("required-string", "field must be a non-empty string", record.path, record.record_id, field))
+            diagnostics.append(
+                Diagnostic(
+                    "required-string",
+                    "field must be a non-empty string",
+                    record.path,
+                    record.record_id,
+                    field,
+                )
+            )
 
     def require_ref(field: str, pattern: str) -> None:
         value = data.get(field)
         if not isinstance(value, str) or not re.fullmatch(pattern, value):
-            diagnostics.append(Diagnostic("record-ref", "field must reference expected record id", record.path, record.record_id, field))
+            diagnostics.append(
+                Diagnostic(
+                    "record-ref",
+                    "field must reference expected record id",
+                    record.path,
+                    record.record_id,
+                    field,
+                )
+            )
         elif value not in ids:
-            diagnostics.append(Diagnostic("record-ref-exists", "referenced record id is missing", record.path, record.record_id, field))
+            diagnostics.append(
+                Diagnostic(
+                    "record-ref-exists",
+                    "referenced record id is missing",
+                    record.path,
+                    record.record_id,
+                    field,
+                )
+            )
 
     if kind == "architecture_prompt_record":
-        for field in ("capture_mode", "redaction_status", "user_intent", "response_snapshot", "outcome"):
+        for field in (
+            "capture_mode",
+            "redaction_status",
+            "user_intent",
+            "response_snapshot",
+            "outcome",
+        ):
             require_str(field)
-        if data.get("capture_mode") not in {"verbatim", "redacted-verbatim", "summarized-with-quotes", "metadata-only"}:
-            diagnostics.append(Diagnostic("capture-mode", "unsupported capture mode", record.path, record.record_id, "capture_mode"))
+        if data.get("capture_mode") not in {
+            "verbatim",
+            "redacted-verbatim",
+            "summarized-with-quotes",
+            "metadata-only",
+        }:
+            diagnostics.append(
+                Diagnostic(
+                    "capture-mode",
+                    "unsupported capture mode",
+                    record.path,
+                    record.record_id,
+                    "capture_mode",
+                )
+            )
         if data.get("redaction_status") not in {"checked", "redacted", "not-required"}:
-            diagnostics.append(Diagnostic("redaction-status", "unsupported redaction status", record.path, record.record_id, "redaction_status"))
+            diagnostics.append(
+                Diagnostic(
+                    "redaction-status",
+                    "unsupported redaction status",
+                    record.path,
+                    record.record_id,
+                    "redaction_status",
+                )
+            )
         require_ref("produced_proposal", r"AP-[0-9]{4}")
     elif kind == "architecture_proposal":
         require_ref("origin_prompt_record", r"APR-[0-9]{4}")
@@ -297,37 +419,105 @@ def validate_kind_specific(record: AcpRecord, ids: set[str]) -> list[Diagnostic]
             require_str(field)
         candidates = data.get("decision_candidates")
         if not isinstance(candidates, list) or not candidates:
-            diagnostics.append(Diagnostic("decision-candidates", "decision_candidates must be non-empty", record.path, record.record_id, "decision_candidates"))
+            diagnostics.append(
+                Diagnostic(
+                    "decision-candidates",
+                    "decision_candidates must be non-empty",
+                    record.path,
+                    record.record_id,
+                    "decision_candidates",
+                )
+            )
         else:
             for candidate in candidates:
                 if candidate not in ids:
-                    diagnostics.append(Diagnostic("record-ref-exists", f"missing decision candidate {candidate}", record.path, record.record_id, "decision_candidates"))
+                    diagnostics.append(
+                        Diagnostic(
+                            "record-ref-exists",
+                            f"missing decision candidate {candidate}",
+                            record.path,
+                            record.record_id,
+                            "decision_candidates",
+                        )
+                    )
     elif kind == "decision_candidate":
         require_ref("origin_proposal", r"AP-[0-9]{4}")
         require_ref("requires_proof_gate", r"PG-[0-9]{4}")
         if data.get("authority_required") is not True:
-            diagnostics.append(Diagnostic("authority-required", "decision candidate must require authority", record.path, record.record_id, "authority_required"))
+            diagnostics.append(
+                Diagnostic(
+                    "authority-required",
+                    "decision candidate must require authority",
+                    record.path,
+                    record.record_id,
+                    "authority_required",
+                )
+            )
         for field in ("significance", "alternatives"):
             if not isinstance(data.get(field), list) or not data[field]:
-                diagnostics.append(Diagnostic("required-list", "field must be a non-empty list", record.path, record.record_id, field))
+                diagnostics.append(
+                    Diagnostic(
+                        "required-list",
+                        "field must be a non-empty list",
+                        record.path,
+                        record.record_id,
+                        field,
+                    )
+                )
         if data.get("status") not in {"candidate", "proposed", "rejected", "deferred"}:
-            diagnostics.append(Diagnostic("candidate-status", "decision candidate has invalid status", record.path, record.record_id, "status"))
+            diagnostics.append(
+                Diagnostic(
+                    "candidate-status",
+                    "decision candidate has invalid status",
+                    record.path,
+                    record.record_id,
+                    "status",
+                )
+            )
     elif kind == "proof_gate":
         for field in ("claim", "required_evidence_class", "failure_mode"):
             require_str(field)
         if not isinstance(data.get("blocks"), list) or not data["blocks"]:
-            diagnostics.append(Diagnostic("blocks", "proof gate blocks must be non-empty", record.path, record.record_id, "blocks"))
+            diagnostics.append(
+                Diagnostic(
+                    "blocks",
+                    "proof gate blocks must be non-empty",
+                    record.path,
+                    record.record_id,
+                    "blocks",
+                )
+            )
     elif kind == "architecture_health_finding":
         for field in ("severity", "category", "finding", "recommended_fix"):
             require_str(field)
         if data.get("severity") not in {"info", "warning", "blocking"}:
-            diagnostics.append(Diagnostic("severity", "invalid severity", record.path, record.record_id, "severity"))
+            diagnostics.append(
+                Diagnostic(
+                    "severity", "invalid severity", record.path, record.record_id, "severity"
+                )
+            )
         for field in ("affected_records", "blocked_actions"):
             if not isinstance(data.get(field), list) or not data[field]:
-                diagnostics.append(Diagnostic("required-list", "field must be a non-empty list", record.path, record.record_id, field))
+                diagnostics.append(
+                    Diagnostic(
+                        "required-list",
+                        "field must be a non-empty list",
+                        record.path,
+                        record.record_id,
+                        field,
+                    )
+                )
         for affected in data.get("affected_records", []):
             if affected not in ids:
-                diagnostics.append(Diagnostic("record-ref-exists", f"missing affected record {affected}", record.path, record.record_id, "affected_records"))
+                diagnostics.append(
+                    Diagnostic(
+                        "record-ref-exists",
+                        f"missing affected record {affected}",
+                        record.path,
+                        record.record_id,
+                        "affected_records",
+                    )
+                )
 
     return diagnostics
 
@@ -339,12 +529,22 @@ def validate_records(records: list[AcpRecord]) -> list[Diagnostic]:
 
     for required_kind in sorted(REQUIRED_RECORD_KINDS):
         if required_kind not in kinds:
-            diagnostics.append(Diagnostic("required-kind", f"missing required record kind {required_kind}", DEFAULT_FIXTURE_DIR))
+            diagnostics.append(
+                Diagnostic(
+                    "required-kind",
+                    f"missing required record kind {required_kind}",
+                    DEFAULT_FIXTURE_DIR,
+                )
+            )
 
     seen: set[str] = set()
     for record in records:
         if record.record_id in seen:
-            diagnostics.append(Diagnostic("duplicate-id", "duplicate ACP record id", record.path, record.record_id, "id"))
+            diagnostics.append(
+                Diagnostic(
+                    "duplicate-id", "duplicate ACP record id", record.path, record.record_id, "id"
+                )
+            )
         seen.add(record.record_id)
         diagnostics.extend(validate_base(record))
 

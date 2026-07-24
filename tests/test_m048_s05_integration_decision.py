@@ -64,7 +64,9 @@ def test_decision_explicitly_classifies_full_partial_and_deferred_adoption() -> 
     assert "Deferred adoption" in decision
     assert "runtime git-lex acquisition" in decision
     assert "defer_runtime_adoption_keep_deterministic_acp_mechanics_only" in decision
-    assert "partial_adoption_requires_separate_runtime_git_lex_proof_before_full_adoption" in decision
+    assert (
+        "partial_adoption_requires_separate_runtime_git_lex_proof_before_full_adoption" in decision
+    )
     assert "no main-repository git-lex initialization" in closeout
 
 
@@ -105,7 +107,10 @@ def test_decision_preserves_source_projection_boundary_and_non_authority() -> No
     boundary = section(text, "Source and projection boundary")
 
     assert "Source truth | Tracked S04 fixture source records and evidence anchors." in boundary
-    assert "Derived projection | Temporary deterministic non-authoritative diagnostic projection." in boundary
+    assert (
+        "Derived projection | Temporary deterministic non-authoritative diagnostic projection."
+        in boundary
+    )
     assert "Projection may validate requirements | `false`" in boundary
     assert "Projection may override source records | `false`" in boundary
     assert "Proof-gate definition equals proof satisfaction | `false`" in boundary

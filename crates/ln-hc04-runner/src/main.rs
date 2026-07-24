@@ -33,10 +33,7 @@ fn run_cancel_no_effect() -> ScenarioResult {
     let cancelled = use_case.cancel(op.clone());
     ScenarioResult {
         outcome: cancelled.outcome,
-        commit_id: cancelled
-            .commit_id
-            .as_ref()
-            .map(|c| c.as_str().to_owned()),
+        commit_id: cancelled.commit_id.as_ref().map(|c| c.as_str().to_owned()),
         commit_digest: cancelled
             .commit_digest
             .as_ref()
@@ -71,10 +68,7 @@ fn run_identical_retry_one_commit() -> ScenarioResult {
             PromotionOutcome::Incomplete
         },
         commit_id: retry.commit_id.as_ref().map(|c| c.as_str().to_owned()),
-        commit_digest: retry
-            .commit_digest
-            .as_ref()
-            .map(|d| d.as_str().to_owned()),
+        commit_digest: retry.commit_digest.as_ref().map(|d| d.as_str().to_owned()),
         committed_count: use_case.committed_count(),
         curated_effect: use_case.has_curated_effect_for(&op),
         publication_authority_absent: !first.has_publication_authority()
@@ -101,10 +95,7 @@ fn run_mismatch_reject() -> ScenarioResult {
         } else {
             PromotionOutcome::Incomplete
         },
-        commit_id: mismatch
-            .commit_id
-            .as_ref()
-            .map(|c| c.as_str().to_owned()),
+        commit_id: mismatch.commit_id.as_ref().map(|c| c.as_str().to_owned()),
         commit_digest: mismatch
             .commit_digest
             .as_ref()

@@ -261,7 +261,9 @@ def normalize_minimax_endpoint(endpoint: str) -> dict[str, Any]:
         "effective_chat_completions_url": effective_url,
         "preserves_v1": True,
         "normalization_applied": stripped != normalized_base_url,
-        "normalization_status": "normalized" if stripped != normalized_base_url else "already-normalized",
+        "normalization_status": "normalized"
+        if stripped != normalized_base_url
+        else "already-normalized",
         "root_cause": "none",
         "invalid_endpoint_reason": None,
         "endpoint_contract_valid": True,
@@ -376,7 +378,12 @@ def _safe_hash(text: str) -> str:
 
 
 def _has_comment(text: str) -> bool:
-    return "//" in text or "/*" in text or "*/" in text or any(line.lstrip().startswith("--") for line in text.splitlines())
+    return (
+        "//" in text
+        or "/*" in text
+        or "*/" in text
+        or any(line.lstrip().startswith("--") for line in text.splitlines())
+    )
 
 
 def _has_multi_statement(text: str) -> bool:
@@ -395,7 +402,22 @@ def _has_prose_suffix(text: str) -> bool:
         lowered = line.lower()
         if lowered.startswith(PROSE_SUFFIX_MARKERS):
             return True
-        if not lowered.startswith(("match ", "call ", "where ", "return ", "with ", "yield ", "limit ", "order ", "and ", "or ", ",", "(")):
+        if not lowered.startswith(
+            (
+                "match ",
+                "call ",
+                "where ",
+                "return ",
+                "with ",
+                "yield ",
+                "limit ",
+                "order ",
+                "and ",
+                "or ",
+                ",",
+                "(",
+            )
+        ):
             return True
     return False
 
@@ -423,7 +445,13 @@ def classify_candidate_text(content: object) -> dict[str, Any]:
 
     stripped = content.strip()
     lowered = stripped.lower()
-    starts_with = "MATCH" if stripped.upper().startswith("MATCH") else "CALL" if stripped.upper().startswith("CALL") else "OTHER"
+    starts_with = (
+        "MATCH"
+        if stripped.upper().startswith("MATCH")
+        else "CALL"
+        if stripped.upper().startswith("CALL")
+        else "OTHER"
+    )
     has_think_tag = "<think" in lowered or "</think" in lowered
     has_markdown_fence = "```" in stripped
     has_prose_prefix = (
@@ -431,7 +459,9 @@ def classify_candidate_text(content: object) -> dict[str, Any]:
         and starts_with == "OTHER"
         and not has_markdown_fence
         and not has_think_tag
-        and ("match" in lowered or "call" in lowered or ":" in stripped or len(stripped.split()) > 1)
+        and (
+            "match" in lowered or "call" in lowered or ":" in stripped or len(stripped.split()) > 1
+        )
     )
     has_prose_suffix = starts_with in {"MATCH", "CALL"} and _has_prose_suffix(stripped)
     has_comment = _has_comment(stripped)
@@ -510,7 +540,11 @@ def classify_provider_response(decoded: object) -> dict[str, Any]:
         "status": candidate["status"],
         "root_cause": candidate["root_cause"],
         "phase": "candidate-classification" if candidate["accepted"] else "provider-response",
-        "provider_shape": {**shape, "has_content": isinstance(content, str), "content_kind": "string" if isinstance(content, str) else type(content).__name__},
+        "provider_shape": {
+            **shape,
+            "has_content": isinstance(content, str),
+            "content_kind": "string" if isinstance(content, str) else type(content).__name__,
+        },
         "candidate": candidate,
         "reasoning": reasoning,
     }
@@ -529,7 +563,11 @@ def classify_safe_provider_summary(summary: object) -> dict[str, Any]:
     if not isinstance(message, dict):
         return classify_provider_response({})
     safe_diagnostics_value = summary.get("safe_diagnostics")
-    safe_diagnostics = cast(dict[str, Any], safe_diagnostics_value) if isinstance(safe_diagnostics_value, dict) else {}
+    safe_diagnostics = (
+        cast(dict[str, Any], safe_diagnostics_value)
+        if isinstance(safe_diagnostics_value, dict)
+        else {}
+    )
     if safe_diagnostics.get("raw_provider_body_persisted") is not False:
         classification = classify_provider_response({})
         classification["root_cause"] = "redaction-violation"
@@ -728,7 +766,10 @@ def assert_safe_artifact(payload: dict[str, Any]) -> None:
     for term in FORBIDDEN_ARTIFACT_TERMS:
         if term in text:
             raise ValueError(f"refusing to write forbidden artifact term: {term}")
-    if "normalized_text" in payload.get("candidate", {}) and payload.get("status") != "confirmed-runtime":
+    if (
+        "normalized_text" in payload.get("candidate", {})
+        and payload.get("status") != "confirmed-runtime"
+    ):
         raise ValueError("rejected candidates must not persist normalized_text")
 
 
@@ -811,7 +852,9 @@ def command_available(name: str) -> bool:
     return shutil.which(name) is not None
 
 
-def command_phase_payload(result: CommandResult, *, include_stream_tails: bool = True) -> dict[str, Any]:
+def command_phase_payload(
+    result: CommandResult, *, include_stream_tails: bool = True
+) -> dict[str, Any]:
     payload = {
         "phase": result.phase,
         "command": result.command,
@@ -1069,7 +1112,9 @@ def provider_probe_code(model: str, credential_env: str, timeout_seconds: int) -
     ).strip()
 
 
-def validate_resolver_metadata(metadata: dict[str, Any], *, endpoint_metadata: dict[str, Any], model: str) -> dict[str, Any]:
+def validate_resolver_metadata(
+    metadata: dict[str, Any], *, endpoint_metadata: dict[str, Any], model: str
+) -> dict[str, Any]:
     ok = True
     root_cause = "none"
     if metadata.get("module") != MODULE_NAME:
@@ -1087,10 +1132,14 @@ def validate_resolver_metadata(metadata: dict[str, Any], *, endpoint_metadata: d
     elif metadata.get("request_body_reasoning_split") is not True:
         ok = False
         root_cause = "resolver-metadata-malformed"
-    elif metadata.get("normalized_endpoint_base_url") != endpoint_metadata.get("normalized_base_url"):
+    elif metadata.get("normalized_endpoint_base_url") != endpoint_metadata.get(
+        "normalized_base_url"
+    ):
         ok = False
         root_cause = "endpoint-contract-lost-v1"
-    elif metadata.get("effective_chat_completions_url") != endpoint_metadata.get("effective_chat_completions_url"):
+    elif metadata.get("effective_chat_completions_url") != endpoint_metadata.get(
+        "effective_chat_completions_url"
+    ):
         ok = False
         root_cause = "endpoint-contract-lost-v1"
 
@@ -1108,7 +1157,9 @@ def classify_provider_failure(text: str) -> str:
         return "provider-timeout"
     if any(token in lowered for token in ("401", "403", "unauthorized", "forbidden", "invalid")):
         return "provider-http-error"
-    if any(token in lowered for token in ("schema", "choices", "deserialize", "json", "missing field")):
+    if any(
+        token in lowered for token in ("schema", "choices", "deserialize", "json", "missing field")
+    ):
         return "provider-schema-mismatch"
     return "provider-http-error"
 
@@ -1182,7 +1233,17 @@ def run_proof(
 
     project_dir = create_proof_project(workspace_dir, endpoint_metadata)
     build = run_command(
-        ["uvx", "--from", "maturin", "maturin", "develop", "--uv", "--manifest-path", "Cargo.toml", "--quiet"],
+        [
+            "uvx",
+            "--from",
+            "maturin",
+            "maturin",
+            "develop",
+            "--uv",
+            "--manifest-path",
+            "Cargo.toml",
+            "--quiet",
+        ],
         cwd=project_dir,
         state=state,
         phase="maturin-build",
@@ -1252,7 +1313,9 @@ def run_proof(
             write_artifacts(artifact_dir, payload)
         return payload
 
-    resolver_result = validate_resolver_metadata(resolver_metadata, endpoint_metadata=endpoint_metadata, model=model)
+    resolver_result = validate_resolver_metadata(
+        resolver_metadata, endpoint_metadata=endpoint_metadata, model=model
+    )
     resolver_metadata = cast(dict[str, Any], resolver_result["metadata"])
     if resolver_result["status"] != "confirmed-runtime":
         classification = classify_provider_response({})
@@ -1370,7 +1433,9 @@ def run_proof(
                 )
             else:
                 payload = build_failed_runtime_artifact(
-                    root_cause=cast(str, classification.get("root_cause", "provider-schema-mismatch")),
+                    root_cause=cast(
+                        str, classification.get("root_cause", "provider-schema-mismatch")
+                    ),
                     phase=cast(str, classification.get("phase", "provider-response")),
                     classification=classification,
                     provider_attempts=provider_attempts,
@@ -1440,7 +1505,10 @@ def write_artifacts(output_dir: Path, payload: dict[str, Any]) -> tuple[Path, Pa
     output_dir.mkdir(parents=True, exist_ok=True)
     json_path = output_dir / JSON_ARTIFACT
     markdown_path = output_dir / MARKDOWN_ARTIFACT
-    json_path.write_text(json.dumps(safe_payload, ensure_ascii=False, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    json_path.write_text(
+        json.dumps(safe_payload, ensure_ascii=False, indent=2, sort_keys=True) + "\n",
+        encoding="utf-8",
+    )
     markdown_path.write_text(render_markdown(safe_payload), encoding="utf-8")
     return json_path, markdown_path
 
@@ -1469,11 +1537,19 @@ def main(argv: list[str] | None = None) -> int:
         )
         if not args.no_write_artifacts:
             write_artifacts(args.artifact_dir, artifact)
-        print(json.dumps({"status": artifact["status"], "root_cause": artifact["root_cause"]}, sort_keys=True))
+        print(
+            json.dumps(
+                {"status": artifact["status"], "root_cause": artifact["root_cause"]}, sort_keys=True
+            )
+        )
         return 0
     if args.fixture == "clean":
         classification = classify_provider_response(
-            {"choices": [{"message": {"content": "MATCH (article:Article) RETURN article.id LIMIT 5"}}]}
+            {
+                "choices": [
+                    {"message": {"content": "MATCH (article:Article) RETURN article.id LIMIT 5"}}
+                ]
+            }
         )
         artifact = build_confirmed_runtime_artifact(
             classification=classification,
@@ -1484,7 +1560,11 @@ def main(argv: list[str] | None = None) -> int:
         )
         if not args.no_write_artifacts:
             write_artifacts(args.artifact_dir, artifact)
-        print(json.dumps({"status": artifact["status"], "root_cause": artifact["root_cause"]}, sort_keys=True))
+        print(
+            json.dumps(
+                {"status": artifact["status"], "root_cause": artifact["root_cause"]}, sort_keys=True
+            )
+        )
         return 0
 
     payload = run_proof(
@@ -1496,7 +1576,11 @@ def main(argv: list[str] | None = None) -> int:
         runtime_dir=args.runtime_dir,
         keep_workspace=args.keep_workspace,
     )
-    print(json.dumps({"status": payload["status"], "root_cause": payload["root_cause"]}, sort_keys=True))
+    print(
+        json.dumps(
+            {"status": payload["status"], "root_cause": payload["root_cause"]}, sort_keys=True
+        )
+    )
     return 0
 
 

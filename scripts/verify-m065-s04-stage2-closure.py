@@ -38,7 +38,9 @@ from pathlib import Path
 from typing import Any, Callable
 
 ROOT = Path(__file__).resolve().parents[1]
-DEFAULT_REVIEW = ROOT / "prd" / "architecture" / "acp" / "runtime" / "m065-s04" / "stage2-closure-review.json"
+DEFAULT_REVIEW = (
+    ROOT / "prd" / "architecture" / "acp" / "runtime" / "m065-s04" / "stage2-closure-review.json"
+)
 SCHEMA_VERSION = "m065-s04-closure-review/v1"
 MAIN_STATE_RESIDUE = (".lex", "Squad", "Raw", ".artifacts")
 
@@ -112,7 +114,9 @@ class Diagnostic:
     text: str
 
 
-def _diagnostic(diagnostic_id: str, path: Path | str, line_no: int, message: str, text: str = "") -> Diagnostic:
+def _diagnostic(
+    diagnostic_id: str, path: Path | str, line_no: int, message: str, text: str = ""
+) -> Diagnostic:
     try:
         rel = str(Path(path).relative_to(ROOT))
     except (ValueError, TypeError):
@@ -140,7 +144,9 @@ def _default_runner(cmd: list[str], *, timeout: int = 180) -> subprocess.Complet
     return subprocess.run(cmd, cwd=str(ROOT), capture_output=True, text=True, timeout=timeout)
 
 
-def check_prior_verifiers(runner: Callable[[list[str]], Any] | None = None) -> tuple[dict[str, int], list[Diagnostic]]:
+def check_prior_verifiers(
+    runner: Callable[[list[str]], Any] | None = None,
+) -> tuple[dict[str, int], list[Diagnostic]]:
     """Re-run the three prior verifiers fresh and assert each exits 0.
 
     ``runner`` is injectable for tests (returns an object exposing
@@ -158,14 +164,26 @@ def check_prior_verifiers(runner: Callable[[list[str]], Any] | None = None) -> t
             result = runner(cmd)
         except Exception as exc:  # timeout / file-not-found / env error
             per_rc[name] = -1
-            diagnostics.append(_diagnostic("prior_verifier_failed", script, 0,
-                                           f"{name} prior verifier could not run: {exc}"))
+            diagnostics.append(
+                _diagnostic(
+                    "prior_verifier_failed",
+                    script,
+                    0,
+                    f"{name} prior verifier could not run: {exc}",
+                )
+            )
             continue
         rc = int(getattr(result, "returncode", -1))
         per_rc[name] = rc
         if rc != 0:
-            diagnostics.append(_diagnostic("prior_verifier_failed", script, 0,
-                                           f"{name} prior verifier exited {rc} (Stage 2 evidence must stay green)"))
+            diagnostics.append(
+                _diagnostic(
+                    "prior_verifier_failed",
+                    script,
+                    0,
+                    f"{name} prior verifier exited {rc} (Stage 2 evidence must stay green)",
+                )
+            )
     return per_rc, diagnostics
 
 
@@ -175,7 +193,9 @@ def _preceded_by_negation(text: str, match_start: int) -> bool:
     return _NEGATION_AT_END.search(text[:match_start].lower()) is not None
 
 
-def scan_overclaim(files: tuple[Path, ...] = OVERCLAIM_SCAN_FILES) -> tuple[dict[str, Any], list[Diagnostic]]:
+def scan_overclaim(
+    files: tuple[Path, ...] = OVERCLAIM_SCAN_FILES,
+) -> tuple[dict[str, Any], list[Diagnostic]]:
     """Scan the corpus for affirmative R035/R037/R038 validation overclaim.
 
     Returns (summary, diagnostics). The summary records status, hit count, and
@@ -192,11 +212,15 @@ def scan_overclaim(files: tuple[Path, ...] = OVERCLAIM_SCAN_FILES) -> tuple[dict
                     continue
                 total_hits += 1
                 line_no = text.count("\n", 0, match.start()) + 1
-                diagnostics.append(_diagnostic(
-                    "overclaim_detected", path, line_no,
-                    f"affirmative R035/R037/R038 validation overclaim ({name}): {match.group(0)!r}",
-                    match.group(0),
-                ))
+                diagnostics.append(
+                    _diagnostic(
+                        "overclaim_detected",
+                        path,
+                        line_no,
+                        f"affirmative R035/R037/R038 validation overclaim ({name}): {match.group(0)!r}",
+                        match.group(0),
+                    )
+                )
     summary: dict[str, Any] = {
         "status": "clean" if not diagnostics else "overclaim_detected",
         "hits": total_hits,
@@ -205,7 +229,9 @@ def scan_overclaim(files: tuple[Path, ...] = OVERCLAIM_SCAN_FILES) -> tuple[dict
     return summary, diagnostics
 
 
-def check_boundary_markers(files: tuple[Path, ...] = OVERCLAIM_SCAN_FILES) -> tuple[bool, list[Diagnostic]]:
+def check_boundary_markers(
+    files: tuple[Path, ...] = OVERCLAIM_SCAN_FILES,
+) -> tuple[bool, list[Diagnostic]]:
     """Assert each EXPECTED_BOUNDARY_MARKERS entry is present as a substring
     somewhere across the proof set (concatenated text). Returns
     (all_present, diagnostics).
@@ -217,10 +243,14 @@ def check_boundary_markers(files: tuple[Path, ...] = OVERCLAIM_SCAN_FILES) -> tu
         if any(alt in concatenated for alt in alternatives):
             continue
         all_present = False
-        diagnostics.append(_diagnostic(
-            "boundary_markers_missing", DEFAULT_REVIEW.parent, 0,
-            f"contract-critical boundary marker missing across the proof set: {label!r}",
-        ))
+        diagnostics.append(
+            _diagnostic(
+                "boundary_markers_missing",
+                DEFAULT_REVIEW.parent,
+                0,
+                f"contract-critical boundary marker missing across the proof set: {label!r}",
+            )
+        )
     return all_present, diagnostics
 
 
@@ -233,8 +263,14 @@ def check_main_state_residue(root: Path = ROOT) -> tuple[dict[str, str], list[Di
         if path.exists():
             status[relative] = "present"
             if relative != ".lex":
-                diagnostics.append(_diagnostic("main_state_residue", path, 0,
-                                           f"main checkout residue exists: {relative} (R047 contract-phase)"))
+                diagnostics.append(
+                    _diagnostic(
+                        "main_state_residue",
+                        path,
+                        0,
+                        f"main checkout residue exists: {relative} (R047 contract-phase)",
+                    )
+                )
         else:
             status[relative] = "absent"
     return status, diagnostics
@@ -301,17 +337,23 @@ def _format_diagnostic(diagnostic: Diagnostic) -> str:
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(
         description="Verify M065 S04 Stage 2 closure: fresh re-run of the S01/S02/S03 verifiers, "
-                    "R035/R037/R038 overclaim scan, live R047 residue guard, boundary markers. "
-                    "Inspection only; does not run git lex.",
+        "R035/R037/R038 overclaim scan, live R047 residue guard, boundary markers. "
+        "Inspection only; does not run git lex.",
     )
-    parser.add_argument("--root", type=Path, default=ROOT,
-                        help="repository root for the R047 residue guard")
-    parser.add_argument("--review", type=Path, default=DEFAULT_REVIEW,
-                        help="tracked closure-review log path")
-    parser.add_argument("--skip-residue", action="store_true",
-                        help="skip the main-checkout residue guard")
-    parser.add_argument("--no-write", action="store_true",
-                        help="do not write the closure-review log (diagnostics still printed)")
+    parser.add_argument(
+        "--root", type=Path, default=ROOT, help="repository root for the R047 residue guard"
+    )
+    parser.add_argument(
+        "--review", type=Path, default=DEFAULT_REVIEW, help="tracked closure-review log path"
+    )
+    parser.add_argument(
+        "--skip-residue", action="store_true", help="skip the main-checkout residue guard"
+    )
+    parser.add_argument(
+        "--no-write",
+        action="store_true",
+        help="do not write the closure-review log (diagnostics still printed)",
+    )
     args = parser.parse_args(argv)
 
     closure_ok, diagnostics, review_log = verify(

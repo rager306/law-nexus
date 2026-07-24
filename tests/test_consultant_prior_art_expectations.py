@@ -14,7 +14,9 @@ REPORT_PATH = ROOT / "prd" / "parser" / "consultant_prior_art_expectations.md"
 
 
 def load_builder_module():
-    spec = importlib.util.spec_from_file_location("build_consultant_prior_art_expectations", SCRIPT_PATH)
+    spec = importlib.util.spec_from_file_location(
+        "build_consultant_prior_art_expectations", SCRIPT_PATH
+    )
     assert spec is not None
     module = importlib.util.module_from_spec(spec)
     sys.modules[spec.name] = module
@@ -108,7 +110,10 @@ def test_generator_build_is_deterministic_against_artifacts():
 
     assert result.summary_json == JSON_PATH.read_text(encoding="utf-8")
     assert result.report_md == REPORT_PATH.read_text(encoding="utf-8")
-    assert result.diagnostics["expectations"]["validation_rules"]["counts"]["comparable_rule_count"] == 6
+    assert (
+        result.diagnostics["expectations"]["validation_rules"]["counts"]["comparable_rule_count"]
+        == 6
+    )
     assert "STRUCT-001" in result.report_md
     assert "semantic legal meaning" in result.report_md
 
@@ -123,7 +128,9 @@ def write_text(path: Path, text: str) -> None:
     path.write_text(text, encoding="utf-8")
 
 
-def configure_temp_builder(module, monkeypatch, tmp_path: Path, inventory_hash_override: str | None = None):
+def configure_temp_builder(
+    module, monkeypatch, tmp_path: Path, inventory_hash_override: str | None = None
+):
     structure_path = tmp_path / "structure.json"
     articles_path = tmp_path / "articles.jsonl"
     validation_dir = tmp_path / "validation"
@@ -170,7 +177,9 @@ def configure_temp_builder(module, monkeypatch, tmp_path: Path, inventory_hash_o
                                         "invalid": True,
                                         "references": [],
                                         "amendments": [],
-                                        "subclauses": [{"number": "а", "text": "sub", "invalid": False}],
+                                        "subclauses": [
+                                            {"number": "а", "text": "sub", "invalid": False}
+                                        ],
                                     }
                                 ],
                             }
@@ -178,7 +187,17 @@ def configure_temp_builder(module, monkeypatch, tmp_path: Path, inventory_hash_o
                     },
                     ensure_ascii=False,
                 ),
-                json.dumps({"doc_id": "DOC", "chapter": 2, "article": "2", "title": "Article 2", "invalid": True, "parts": []}, ensure_ascii=False),
+                json.dumps(
+                    {
+                        "doc_id": "DOC",
+                        "chapter": 2,
+                        "article": "2",
+                        "title": "Article 2",
+                        "invalid": True,
+                        "parts": [],
+                    },
+                    ensure_ascii=False,
+                ),
             ]
         )
         + "\n",
@@ -201,7 +220,9 @@ def configure_temp_builder(module, monkeypatch, tmp_path: Path, inventory_hash_o
             "reuse_boundary": "fixture boundary",
         }
 
-    structure_sha = inventory_hash_override or hashlib.sha256(structure_path.read_bytes()).hexdigest()
+    structure_sha = (
+        inventory_hash_override or hashlib.sha256(structure_path.read_bytes()).hexdigest()
+    )
     inventory = {
         "assets": [
             asset(structure_path, "TMP-STRUCT", structure_sha),
@@ -243,9 +264,20 @@ def test_inline_fixture_classifies_counts_rules_and_skipped_fields(monkeypatch, 
         "key_dates_count": 0,
         "metadata_field_count": 2,
     }
-    assert payload["expectations"]["comparable_counts"]["articles"]["counts"]["article_record_count"] == 2
-    assert payload["expectations"]["comparable_counts"]["articles"]["counts"]["articles_without_parts"] == 1
-    assert payload["expectations"]["comparable_counts"]["articles"]["counts"]["clause_invalid_true_count"] == 1
+    assert (
+        payload["expectations"]["comparable_counts"]["articles"]["counts"]["article_record_count"]
+        == 2
+    )
+    assert (
+        payload["expectations"]["comparable_counts"]["articles"]["counts"]["articles_without_parts"]
+        == 1
+    )
+    assert (
+        payload["expectations"]["comparable_counts"]["articles"]["counts"][
+            "clause_invalid_true_count"
+        ]
+        == 1
+    )
     assert payload["expectations"]["validation_rules"]["counts"] == {
         "advisory_rule_count": 1,
         "comparable_rule_count": 1,

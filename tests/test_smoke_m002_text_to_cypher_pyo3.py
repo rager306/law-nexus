@@ -53,7 +53,7 @@ def test_create_smoke_project_writes_proof_only_sources(tmp_path: Path) -> None:
     assert "text-to-cypher" in cargo
     assert "default-features = false" in cargo
     assert "pyo3" in cargo
-    assert "requires-python = \">=3.13\"" in pyproject
+    assert 'requires-python = ">=3.13"' in pyproject
     assert "provider_calls" in lib
     assert "skipped-by-design" in lib
     assert "__redacted_test_key__" in lib
@@ -83,7 +83,10 @@ def test_payload_status_confirms_only_build_and_import() -> None:
         )
         == "failed-runtime"
     )
-    assert harness.payload_status({"provider-backed-generation": {"status": "skipped"}}) == "blocked-environment"
+    assert (
+        harness.payload_status({"provider-backed-generation": {"status": "skipped"}})
+        == "blocked-environment"
+    )
 
 
 def test_write_artifacts_preserves_boundary_language(tmp_path: Path) -> None:

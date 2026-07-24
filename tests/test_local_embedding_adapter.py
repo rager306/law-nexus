@@ -18,7 +18,9 @@ class FakeModel:
         self.seen_texts: list[str] = []
         self.convert_to_numpy: bool | None = None
 
-    def encode(self, texts: list[str], *, convert_to_numpy: bool = False) -> Sequence[Sequence[float]]:
+    def encode(
+        self, texts: list[str], *, convert_to_numpy: bool = False
+    ) -> Sequence[Sequence[float]]:
         self.seen_texts = texts
         self.convert_to_numpy = convert_to_numpy
         return self.vectors[: len(texts)]
@@ -101,6 +103,9 @@ def test_local_sentence_transformer_adapter_rejects_output_count_mismatch() -> N
 
 
 def test_local_adapter_non_claims_exclude_managed_api_and_raw_vectors() -> None:
-    assert "Does not use managed GigaChat or external embedding APIs." in LOCAL_SENTENCE_TRANSFORMER_NON_CLAIMS
+    assert (
+        "Does not use managed GigaChat or external embedding APIs."
+        in LOCAL_SENTENCE_TRANSFORMER_NON_CLAIMS
+    )
     assert "Does not persist raw vectors." in LOCAL_SENTENCE_TRANSFORMER_NON_CLAIMS
     assert "Does not prove retrieval quality." in LOCAL_SENTENCE_TRANSFORMER_NON_CLAIMS

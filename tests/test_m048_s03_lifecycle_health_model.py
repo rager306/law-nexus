@@ -48,7 +48,11 @@ def assert_terms(text: str, terms: list[str]) -> None:
 
 
 def assert_patterns(text: str, patterns: list[str]) -> None:
-    missing = [pattern for pattern in patterns if not re.search(pattern, text, flags=re.IGNORECASE | re.DOTALL)]
+    missing = [
+        pattern
+        for pattern in patterns
+        if not re.search(pattern, text, flags=re.IGNORECASE | re.DOTALL)
+    ]
     assert not missing, f"Missing required lifecycle-health patterns: {missing}"
 
 
@@ -76,7 +80,9 @@ def test_model_declares_required_record_families_and_lifecycle_tables() -> None:
 
     for family in RECORD_FAMILIES:
         family_table = table_subsection(lifecycle, family)
-        assert_terms(family_table, ["| State | Meaning | Allowed next states | Blocking conditions |"])
+        assert_terms(
+            family_table, ["| State | Meaning | Allowed next states | Blocking conditions |"]
+        )
         assert_patterns(family_table, [rf"Core rule:.*{re.escape(family)[:18]}|Core rule:"])
 
     assert_patterns(
@@ -141,7 +147,9 @@ def test_derived_projections_stale_project_state_and_unsafe_anchors_are_blocked(
     core_matrix = section(text, "Generic ACP Core Action Matrix")
     assertions = section(text, "Document Assertions for T02")
 
-    derived_projection = table_subsection(section(text, "Lifecycle State Tables"), "DerivedProjectionReference")
+    derived_projection = table_subsection(
+        section(text, "Lifecycle State Tables"), "DerivedProjectionReference"
+    )
 
     assert_patterns(
         non_claims + authority + derived_projection + core_matrix + assertions,
@@ -217,7 +225,9 @@ def test_r035_r037_r038_are_not_validated_by_acp_or_projection_evidence_alone() 
     assertions = section(text, "Document Assertions for T02")
     negative_tests = section(text, "Negative Tests")
 
-    assert_terms(non_claims + profile_matrix + checklist + assertions + negative_tests, REQUIREMENT_IDS)
+    assert_terms(
+        non_claims + profile_matrix + checklist + assertions + negative_tests, REQUIREMENT_IDS
+    )
     assert "this contract does not validate `r035`, `r037`, or `r038`" in lowered
     assert_patterns(
         profile_matrix + checklist + assertions + negative_tests,

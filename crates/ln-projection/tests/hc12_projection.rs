@@ -12,18 +12,12 @@ fn req(gaps: &[&str]) -> RebuildRequest {
         scope: ScopeId::parse("scope:S1").expect("id"),
         cutoff: CutoffId::parse("cutoff:C1").expect("id"),
         rules: RuleVersion::parse("rules:v1").expect("id"),
-        known_gaps: gaps
-            .iter()
-            .map(|g| NodeId::parse(g).expect("id"))
-            .collect(),
+        known_gaps: gaps.iter().map(|g| NodeId::parse(g).expect("id")).collect(),
     }
 }
 
 fn rebuild(outcome: RebuildOutcome, gaps: &[&str]) -> ln_projection::domain::RebuildResult {
-    let residual = gaps
-        .iter()
-        .map(|g| NodeId::parse(g).expect("id"))
-        .collect();
+    let residual = gaps.iter().map(|g| NodeId::parse(g).expect("id")).collect();
     let svc = RebuildDisposableProjection::new(HonestExecutor {
         outcome,
         residual_gaps: residual,
@@ -41,8 +35,16 @@ fn partial_rebuild_is_non_authoritative_with_ceiling() {
     assert_eq!(result.ceiling.currency, CurrencyLabel::NotCurrent);
     assert!(result.publication_authority.is_none());
     assert!(!result.publication_authority_changed);
-    assert!(result.ceiling.gaps.iter().any(|g| g.as_str() == "node:gap1"));
-    assert!(result.ceiling.stale.iter().any(|g| g.as_str() == "node:stale1"));
+    assert!(result
+        .ceiling
+        .gaps
+        .iter()
+        .any(|g| g.as_str() == "node:gap1"));
+    assert!(result
+        .ceiling
+        .stale
+        .iter()
+        .any(|g| g.as_str() == "node:stale1"));
     assert_eq!(result.ceiling.baseline.as_str(), "baseline:B1");
     assert_eq!(result.ceiling.scope.as_str(), "scope:S1");
     assert_eq!(result.ceiling.cutoff.as_str(), "cutoff:C1");
@@ -62,7 +64,11 @@ fn stale_input_cancelled_and_failed_preserve_non_authority() {
         assert!(!result.ceiling.authoritative);
         assert!(result.publication_authority.is_none());
         assert!(!result.publication_authority_changed);
-        assert!(result.ceiling.gaps.iter().any(|g| g.as_str() == "node:gapX"));
+        assert!(result
+            .ceiling
+            .gaps
+            .iter()
+            .any(|g| g.as_str() == "node:gapX"));
     }
 }
 

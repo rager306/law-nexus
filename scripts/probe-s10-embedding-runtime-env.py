@@ -203,7 +203,9 @@ def parse_download_mode(args: argparse.Namespace) -> tuple[str, set[str]]:
     return "disabled", set()
 
 
-def download_status(model_id: str, cache_present: bool, downloads_policy: str, allowed_downloads: set[str]) -> str:
+def download_status(
+    model_id: str, cache_present: bool, downloads_policy: str, allowed_downloads: set[str]
+) -> str:
     if cache_present:
         return "allowed-not-needed" if model_id in allowed_downloads else "cache-present"
     if downloads_policy == "explicit-open-weight-only" and model_id in allowed_downloads:
@@ -223,7 +225,11 @@ def root_cause_for_model(
 ) -> tuple[str, str, dict[str, Any]]:
     missing = package_probe.get("missing") if isinstance(package_probe.get("missing"), list) else []
     if missing:
-        return "blocked-environment", "embedding-packages-missing:" + ",".join(str(item) for item in missing), {}
+        return (
+            "blocked-environment",
+            "embedding-packages-missing:" + ",".join(str(item) for item in missing),
+            {},
+        )
     cache_present = bool(cache_probe.get("present"))
     if not cache_present and model_id not in allowed_downloads:
         return "blocked-environment", "model-cache-absent-and-download-not-allowed", {}
@@ -235,10 +241,14 @@ def root_cause_for_model(
         if hardware.get("no_swap") is True:
             reasons.append("host-has-no-swap")
         if reasons:
-            return "not-safe-to-run", "giga-safety-gate:" + ",".join(reasons), {
-                "status": "not-safe-to-run",
-                "reasons": reasons,
-            }
+            return (
+                "not-safe-to-run",
+                "giga-safety-gate:" + ",".join(reasons),
+                {
+                    "status": "not-safe-to-run",
+                    "reasons": reasons,
+                },
+            )
     return "blocked-environment", "env-probe-does-not-load-models-run-next-proof-task", {}
 
 
@@ -303,7 +313,9 @@ def model_entry(
         "max_token_limit": candidate.get("max_token_limit"),
         "package_status": package_probe.get("status"),
         "cache_status": cache_probe.get("status"),
-        "download_status": download_status(model_id, bool(cache_probe.get("present")), downloads_policy, allowed_downloads),
+        "download_status": download_status(
+            model_id, bool(cache_probe.get("present")), downloads_policy, allowed_downloads
+        ),
         "runtime_status": status,
         "encode_duration_ms": None,
         "observed_vector_dimension": None,
@@ -324,9 +336,17 @@ def model_entry(
     return entry
 
 
-def vector_entry(dimension: int, model_id: str, falkordb_probe: Mapping[str, Any], log_dir: Path) -> dict[str, Any]:
-    missing = falkordb_probe.get("missing") if isinstance(falkordb_probe.get("missing"), list) else []
-    root_cause = "falkordb-client-packages-missing:" + ",".join(str(item) for item in missing) if missing else "env-probe-does-not-start-falkordb-run-model-proof-task"
+def vector_entry(
+    dimension: int, model_id: str, falkordb_probe: Mapping[str, Any], log_dir: Path
+) -> dict[str, Any]:
+    missing = (
+        falkordb_probe.get("missing") if isinstance(falkordb_probe.get("missing"), list) else []
+    )
+    root_cause = (
+        "falkordb-client-packages-missing:" + ",".join(str(item) for item in missing)
+        if missing
+        else "env-probe-does-not-start-falkordb-run-model-proof-task"
+    )
     entry: dict[str, Any] = {
         "dimension": dimension,
         "model_id": model_id,
@@ -343,7 +363,9 @@ def vector_entry(dimension: int, model_id: str, falkordb_probe: Mapping[str, Any
     return entry
 
 
-def build_payload(output_dir: Path, contract_path: Path, downloads_policy: str, allowed_downloads: set[str]) -> dict[str, Any]:
+def build_payload(
+    output_dir: Path, contract_path: Path, downloads_policy: str, allowed_downloads: set[str]
+) -> dict[str, Any]:
     contract = load_contract(contract_path)
     candidates = configured_candidates(contract)
     output_dir.mkdir(parents=True, exist_ok=True)
@@ -356,7 +378,9 @@ def build_payload(output_dir: Path, contract_path: Path, downloads_policy: str, 
         model_id = str(candidate["id"])
         requirements = candidate.get("runtime_requirements", {})
         packages = requirements.get("python_packages", []) if isinstance(requirements, dict) else []
-        package_probe = probe_packages([str(package) for package in packages if isinstance(package, str)])
+        package_probe = probe_packages(
+            [str(package) for package in packages if isinstance(package, str)]
+        )
         cache_probe = probe_cache(model_id, cache_roots)
         model_entries.append(
             model_entry(
@@ -385,8 +409,16 @@ def build_payload(output_dir: Path, contract_path: Path, downloads_policy: str, 
         "gpu_probe": hardware.get("gpu_probe"),
         "docker_probe": hardware.get("docker_probe"),
         "disk_mib": hardware.get("disk_mib"),
-        "package_status": "available" if all(model["package_status"] == "available" for model in model_entries) else "blocked-environment",
-        "cache_status": "available" if all(model["cache_status"] == "available" for model in model_entries if model["id"] in {USER_MODEL_ID, GIGA_MODEL_ID}) else "absent",
+        "package_status": "available"
+        if all(model["package_status"] == "available" for model in model_entries)
+        else "blocked-environment",
+        "cache_status": "available"
+        if all(
+            model["cache_status"] == "available"
+            for model in model_entries
+            if model["id"] in {USER_MODEL_ID, GIGA_MODEL_ID}
+        )
+        else "absent",
         "cache_roots_checked": [normalized_path(path) for path in cache_roots],
         "allowed_download_model_ids": sorted(allowed_downloads),
         "raw_log_paths": [],
@@ -412,7 +444,9 @@ def build_payload(output_dir: Path, contract_path: Path, downloads_policy: str, 
         "downloads_policy": downloads_policy,
         "allowed_download_model_ids": sorted(allowed_downloads),
         "model_statuses": {model["id"]: model["status"] for model in model_entries},
-        "vector_statuses": {str(vector["dimension"]): vector["status"] for vector in vector_entries},
+        "vector_statuses": {
+            str(vector["dimension"]): vector["status"] for vector in vector_entries
+        },
     }
     summary_log = write_log(log_dir, "summary", summary)
     return {

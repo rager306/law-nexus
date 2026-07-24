@@ -13,9 +13,15 @@ from types import ModuleType
 from typing import Any
 
 ROOT = Path(__file__).resolve().parents[1]
-BASE_INPUTS = ROOT / "prd/research/ontology_architecture_requirements/fixtures/materialized_descriptor_inputs.json"
+BASE_INPUTS = (
+    ROOT
+    / "prd/research/ontology_architecture_requirements/fixtures/materialized_descriptor_inputs.json"
+)
 BASE_VERIFIER = ROOT / "scripts/verify-materialized-descriptor-inputs.py"
-OUTPUT = ROOT / "prd/research/ontology_architecture_requirements/fixtures/independent_structural_signal_inputs.json"
+OUTPUT = (
+    ROOT
+    / "prd/research/ontology_architecture_requirements/fixtures/independent_structural_signal_inputs.json"
+)
 SCHEMA_VERSION = "independent-structural-signal-inputs/v1"
 REPRESENTATION_KIND = "safe_materialized_descriptor_with_anchor_family_v1"
 SELECTED_SIGNAL = "safe_anchor_family_bucket"
@@ -101,7 +107,9 @@ def enhance_item(item: Mapping[str, Any]) -> dict[str, Any]:
     descriptors = {str(key): str(value) for key, value in base_descriptors.items()}
     if set(descriptors) != set(BASE_DERIVATION_FIELDS):
         raise IndependentSignalBuildError("base descriptor field mismatch")
-    if FORBIDDEN_REUSED_SIGNAL in descriptors or FORBIDDEN_REUSED_SIGNAL in item.get("descriptor_tokens", []):
+    if FORBIDDEN_REUSED_SIGNAL in descriptors or FORBIDDEN_REUSED_SIGNAL in item.get(
+        "descriptor_tokens", []
+    ):
         raise IndependentSignalBuildError("forbidden reused signal present")
     source_anchor_ref = str(item.get("source_anchor_ref"))
     bucket = anchor_family(source_anchor_ref)
@@ -125,7 +133,9 @@ def build_inputs(base_inputs_path: Path = BASE_INPUTS) -> dict[str, Any]:
     if not isinstance(query_items, list) or not isinstance(candidate_items, list):
         raise IndependentSignalBuildError("descriptor arrays missing")
     query_descriptors = [enhance_item(item) for item in query_items if isinstance(item, Mapping)]
-    candidate_descriptors = [enhance_item(item) for item in candidate_items if isinstance(item, Mapping)]
+    candidate_descriptors = [
+        enhance_item(item) for item in candidate_items if isinstance(item, Mapping)
+    ]
     allowed_descriptor_fields = dict(base_inputs.get("allowed_descriptor_fields", {}))
     allowed_descriptor_fields[SELECTED_SIGNAL] = ANCHOR_FAMILY_VALUES
     return {
@@ -149,13 +159,19 @@ def build_inputs(base_inputs_path: Path = BASE_INPUTS) -> dict[str, Any]:
         "added_descriptor_fields": [SELECTED_SIGNAL],
         "allowed_descriptor_fields": allowed_descriptor_fields,
         "signal_derivation_summary": {
-            "allowed_inputs": ["source_anchor_ref", "source_anchor_sha256", "materialized_candidate_ref"],
+            "allowed_inputs": [
+                "source_anchor_ref",
+                "source_anchor_sha256",
+                "materialized_candidate_ref",
+            ],
             "forbidden_inputs": ["source_order_index", FORBIDDEN_REUSED_SIGNAL],
             "raw_text_used": False,
             "labels_used": False,
             "source_order_index_used": False,
             "forbidden_reused_signal_used": False,
-            "selected_signal_values": sorted({item["selected_signal_value"] for item in query_descriptors}),
+            "selected_signal_values": sorted(
+                {item["selected_signal_value"] for item in query_descriptors}
+            ),
         },
         "query_descriptor_count": len(query_descriptors),
         "candidate_descriptor_count": len(candidate_descriptors),
@@ -190,7 +206,9 @@ def main(argv: Sequence[str] | None = None) -> int:
     args = parse_args(argv)
     manifest = build_inputs(args.base_inputs)
     args.output.parent.mkdir(parents=True, exist_ok=True)
-    args.output.write_text(json.dumps(manifest, ensure_ascii=False, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    args.output.write_text(
+        json.dumps(manifest, ensure_ascii=False, indent=2, sort_keys=True) + "\n", encoding="utf-8"
+    )
     print(
         json.dumps(
             {

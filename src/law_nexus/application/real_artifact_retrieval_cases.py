@@ -30,16 +30,43 @@ NON_CLAIMS = list(REAL_ARTIFACT_RETRIEVAL_CASE_NON_CLAIMS)
 
 REQUIRED_CASES = [
     ("CASE-M013-VALID-REAL-ARTIFACT", "valid_real_artifact_path", "accepted", []),
-    ("CASE-M013-MISSING-EVIDENCE-ID", "missing_evidence_id", "rejected", ["missing_required_field"]),
-    ("CASE-M013-UNRESOLVED-SOURCE-BLOCK", "unresolved_source_block", "rejected", ["id_path_mismatch", "orphaned_source_path"]),
-    ("CASE-M013-AMBIGUOUS-CITATION", "ambiguous_citation_key", "rejected", ["ambiguous_citation_key"]),
+    (
+        "CASE-M013-MISSING-EVIDENCE-ID",
+        "missing_evidence_id",
+        "rejected",
+        ["missing_required_field"],
+    ),
+    (
+        "CASE-M013-UNRESOLVED-SOURCE-BLOCK",
+        "unresolved_source_block",
+        "rejected",
+        ["id_path_mismatch", "orphaned_source_path"],
+    ),
+    (
+        "CASE-M013-AMBIGUOUS-CITATION",
+        "ambiguous_citation_key",
+        "rejected",
+        ["ambiguous_citation_key"],
+    ),
     ("CASE-M013-WRONG-EDITION-PROXY", "wrong_edition_proxy", "rejected", ["wrong_edition"]),
-    ("CASE-M013-SCOPED-NO-ANSWER", "scoped_no_answer", "accepted_scoped_no_answer", ["scoped_no_answer"]),
-    ("CASE-M013-UNSAFE-NO-ANSWER-WITH-CITATION", "unsafe_no_answer_with_citation", "rejected", ["unsafe_no_answer_shape"]),
+    (
+        "CASE-M013-SCOPED-NO-ANSWER",
+        "scoped_no_answer",
+        "accepted_scoped_no_answer",
+        ["scoped_no_answer"],
+    ),
+    (
+        "CASE-M013-UNSAFE-NO-ANSWER-WITH-CITATION",
+        "unsafe_no_answer_with_citation",
+        "rejected",
+        ["unsafe_no_answer_shape"],
+    ),
 ]
 
 
-def source_identity(hierarchy_summary: Mapping[str, Any], article_record: Mapping[str, Any]) -> tuple[str, str]:
+def source_identity(
+    hierarchy_summary: Mapping[str, Any], article_record: Mapping[str, Any]
+) -> tuple[str, str]:
     """Return source path and SHA from summary metadata or selected record."""
 
     source = hierarchy_summary.get("source")
@@ -47,9 +74,13 @@ def source_identity(hierarchy_summary: Mapping[str, Any], article_record: Mappin
         source_path = str(source["path"])
         source_sha256 = str(source["sha256"])
         if source_path != article_record["source_path"]:
-            raise ValueError("source path mismatch between hierarchy summary and selected article record")
+            raise ValueError(
+                "source path mismatch between hierarchy summary and selected article record"
+            )
         if source_sha256 != article_record["source_sha256"]:
-            raise ValueError("source sha256 mismatch between hierarchy summary and selected article record")
+            raise ValueError(
+                "source sha256 mismatch between hierarchy summary and selected article record"
+            )
         return source_path, source_sha256
     return str(article_record["source_path"]), str(article_record["source_sha256"])
 
@@ -149,7 +180,9 @@ def _build_payload(request: RealArtifactRetrievalCaseBuildRequest) -> dict[str, 
                 "case_class": case_class,
                 "expected_result": expected_result,
                 "expected_diagnostic_codes": expected_codes,
-                "source_record_ids": [article_record["id"]] if case_class != "scoped_no_answer" else [],
+                "source_record_ids": [article_record["id"]]
+                if case_class != "scoped_no_answer"
+                else [],
                 "output": make_output(case_id, case_class),
             }
         )
@@ -166,7 +199,16 @@ def _build_payload(request: RealArtifactRetrievalCaseBuildRequest) -> dict[str, 
         "namespace_strategy": {
             "status": "safe_namespace_extension_selected",
             "current_validator_prefixes": ["*-M012-*", "*-M013-*"],
-            "proposed_m013_prefixes": ["RET-M013-*", "CIT-M013-*", "EV-M013-*", "SB-M013-*", "SD-M013-*", "LU-M013-*", "ED-M013-*", "AC-M013-*"],
+            "proposed_m013_prefixes": [
+                "RET-M013-*",
+                "CIT-M013-*",
+                "EV-M013-*",
+                "SB-M013-*",
+                "SD-M013-*",
+                "LU-M013-*",
+                "ED-M013-*",
+                "AC-M013-*",
+            ],
             "implemented_s02_option": "safe_namespace_extension",
         },
         "fixture_boundaries": {

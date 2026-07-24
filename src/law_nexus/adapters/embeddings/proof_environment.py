@@ -133,7 +133,9 @@ def requirement_package_name(requirement: str) -> str:
     return requirement.strip()
 
 
-def import_name_for_requirement(requirement: str, package_imports: Mapping[str, str] | None = None) -> str:
+def import_name_for_requirement(
+    requirement: str, package_imports: Mapping[str, str] | None = None
+) -> str:
     """Return the Python import name for a requirement."""
 
     package = requirement_package_name(requirement)

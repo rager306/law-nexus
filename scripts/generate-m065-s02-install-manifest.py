@@ -33,7 +33,9 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_VENDOR_ROOT = Path("/root/vendor-source/git-lex")
 DEFAULT_CARGO_BIN = Path.home() / ".cargo" / "bin"
-DEFAULT_OUTPUT = ROOT / "prd" / "architecture" / "acp" / "runtime" / "m065-s02" / "install-manifest.json"
+DEFAULT_OUTPUT = (
+    ROOT / "prd" / "architecture" / "acp" / "runtime" / "m065-s02" / "install-manifest.json"
+)
 DEFAULT_BUILD_RECORD = Path("/tmp/m065-s02-t01-build-record.txt")
 
 # Source-provenance trust anchors reused from S01 D089 / M051-S09 / M051-S10 /
@@ -76,7 +78,9 @@ class Diagnostic:
     text: str
 
 
-def _diagnostic(diagnostic_id: str, path: Path | str, line_no: int, message: str, text: str = "") -> Diagnostic:
+def _diagnostic(
+    diagnostic_id: str, path: Path | str, line_no: int, message: str, text: str = ""
+) -> Diagnostic:
     try:
         rel = str(Path(path).relative_to(ROOT))
     except (ValueError, TypeError):
@@ -118,7 +122,14 @@ def check_vendor_provenance(vendor_root: Path) -> tuple[dict[str, str | None], l
     diagnostics: list[Diagnostic] = []
     actual: dict[str, str | None] = {}
     if not vendor_root.exists():
-        diagnostics.append(_diagnostic("vendor_source_missing", vendor_root, 0, f"vendor source checkout is missing: {vendor_root}"))
+        diagnostics.append(
+            _diagnostic(
+                "vendor_source_missing",
+                vendor_root,
+                0,
+                f"vendor source checkout is missing: {vendor_root}",
+            )
+        )
         return actual, diagnostics
 
     actual["source_commit"] = _git_head(vendor_root)
@@ -133,16 +144,37 @@ def check_vendor_provenance(vendor_root: Path) -> tuple[dict[str, str | None], l
     for field, want in expected.items():
         got = actual.get(field)
         if got is None:
-            diagnostics.append(_diagnostic("provenance_drift", vendor_root, 0, f"could not recompute {field} from {vendor_root}"))
+            diagnostics.append(
+                _diagnostic(
+                    "provenance_drift",
+                    vendor_root,
+                    0,
+                    f"could not recompute {field} from {vendor_root}",
+                )
+            )
         elif got != want:
-            diagnostics.append(_diagnostic("provenance_drift", vendor_root, 0, f"{field} drift: expected {want} but vendor source recomputes to {got}"))
+            diagnostics.append(
+                _diagnostic(
+                    "provenance_drift",
+                    vendor_root,
+                    0,
+                    f"{field} drift: expected {want} but vendor source recomputes to {got}",
+                )
+            )
     return actual, diagnostics
 
 
 def parse_build_record(record_path: Path) -> tuple[dict[str, str], list[Diagnostic]]:
     diagnostics: list[Diagnostic] = []
     if not record_path.exists():
-        diagnostics.append(_diagnostic("build_record_missing", record_path, 0, f"build record file is missing: {record_path}"))
+        diagnostics.append(
+            _diagnostic(
+                "build_record_missing",
+                record_path,
+                0,
+                f"build record file is missing: {record_path}",
+            )
+        )
         return {}, diagnostics
     raw = record_path.read_text(encoding="utf-8")
     record: dict[str, str] = {}
@@ -150,10 +182,26 @@ def parse_build_record(record_path: Path) -> tuple[dict[str, str], list[Diagnost
         if "=" in line:
             key, _, value = line.partition("=")
             record[key.strip()] = value.strip()
-    required = ("START_MS", "END_MS", "DURATION_MS", "INSTALL_RC", "BUILD_DIR", "COMMAND", "RUSTC_VERSION", "CARGO_VERSION")
+    required = (
+        "START_MS",
+        "END_MS",
+        "DURATION_MS",
+        "INSTALL_RC",
+        "BUILD_DIR",
+        "COMMAND",
+        "RUSTC_VERSION",
+        "CARGO_VERSION",
+    )
     for key in required:
         if key not in record:
-            diagnostics.append(_diagnostic("build_record_parse_error", record_path, 0, f"build record is missing required field: {key}"))
+            diagnostics.append(
+                _diagnostic(
+                    "build_record_parse_error",
+                    record_path,
+                    0,
+                    f"build record is missing required field: {key}",
+                )
+            )
     return record, diagnostics
 
 
@@ -161,7 +209,14 @@ def check_install_rc(record: dict[str, str], record_path: Path) -> list[Diagnost
     diagnostics: list[Diagnostic] = []
     rc = record.get("INSTALL_RC")
     if rc is not None and str(rc) != "0":
-        diagnostics.append(_diagnostic("install_failed", record_path, 0, f"canonical install did not exit 0: INSTALL_RC={rc} (BLOCKER per S01 §1)"))
+        diagnostics.append(
+            _diagnostic(
+                "install_failed",
+                record_path,
+                0,
+                f"canonical install did not exit 0: INSTALL_RC={rc} (BLOCKER per S01 §1)",
+            )
+        )
     return diagnostics
 
 
@@ -170,7 +225,9 @@ def inspect_binary(name: str, cargo_bin: Path) -> tuple[dict[str, object], list[
     path = cargo_bin / name
     identity: dict[str, object] = {"name": name}
     if not path.exists():
-        diagnostics.append(_diagnostic("binary_missing", path, 0, f"installed binary is missing: {path}"))
+        diagnostics.append(
+            _diagnostic("binary_missing", path, 0, f"installed binary is missing: {path}")
+        )
         identity["path"] = str(path)
         return identity, diagnostics
     stat = path.stat()
@@ -186,7 +243,11 @@ def inspect_binary(name: str, cargo_bin: Path) -> tuple[dict[str, object], list[
         }
     )
     if not os.access(path, os.X_OK):
-        diagnostics.append(_diagnostic("binary_not_executable", path, 0, f"installed binary is not executable: {path}"))
+        diagnostics.append(
+            _diagnostic(
+                "binary_not_executable", path, 0, f"installed binary is not executable: {path}"
+            )
+        )
     return identity, diagnostics
 
 
@@ -246,7 +307,9 @@ def _to_int(value: object) -> int | None:
 def _iso_utc() -> str:
     import datetime as _dt
 
-    return _dt.datetime.now(_dt.timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z")
+    return (
+        _dt.datetime.now(_dt.timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z")
+    )
 
 
 def _format_diagnostic(diagnostic: Diagnostic) -> str:
@@ -258,12 +321,18 @@ def _format_diagnostic(diagnostic: Diagnostic) -> str:
 
 
 def main(argv: list[str] | None = None) -> int:
-    parser = argparse.ArgumentParser(description="Generate the M065 S02 git-lex release-install manifest.")
+    parser = argparse.ArgumentParser(
+        description="Generate the M065 S02 git-lex release-install manifest."
+    )
     parser.add_argument("--vendor-root", type=Path, default=DEFAULT_VENDOR_ROOT)
     parser.add_argument("--cargo-bin", type=Path, default=DEFAULT_CARGO_BIN)
     parser.add_argument("--output", type=Path, default=DEFAULT_OUTPUT)
     parser.add_argument("--build-record", type=Path, default=DEFAULT_BUILD_RECORD)
-    parser.add_argument("--check", action="store_true", help="inspect and report diagnostics without writing the manifest")
+    parser.add_argument(
+        "--check",
+        action="store_true",
+        help="inspect and report diagnostics without writing the manifest",
+    )
     args = parser.parse_args(argv)
 
     diagnostics: list[Diagnostic] = []
@@ -288,13 +357,17 @@ def main(argv: list[str] | None = None) -> int:
         return 1
 
     if args.check:
-        print(f"M065 S02 install-manifest check passed: binaries={len(binaries)} diagnostics=0 (no write)")
+        print(
+            f"M065 S02 install-manifest check passed: binaries={len(binaries)} diagnostics=0 (no write)"
+        )
         return 0
 
     manifest = build_manifest(record, provenance, binaries)
     args.output.parent.mkdir(parents=True, exist_ok=True)
     args.output.write_text(json.dumps(manifest, indent=2, sort_keys=False) + "\n", encoding="utf-8")
-    print(f"M065 S02 install-manifest written: {args.output} binaries={len(binaries)} diagnostics=0")
+    print(
+        f"M065 S02 install-manifest written: {args.output} binaries={len(binaries)} diagnostics=0"
+    )
     return 0
 
 

@@ -76,9 +76,13 @@ def check_skills() -> list[Diagnostic]:
             continue
         text = p.read_text()
         if "/root/git-lex-kit-acp/skills" not in text:
-            diags.append(_d("no_external_reference", p, f"{rel} does not reference external generic skill"))
+            diags.append(
+                _d("no_external_reference", p, f"{rel} does not reference external generic skill")
+            )
         if not any(m in text for m in LAW_NEXUS_MARKERS):
-            diags.append(_d("no_override_markers", p, f"{rel} has no law-nexus-specific override markers"))
+            diags.append(
+                _d("no_override_markers", p, f"{rel} has no law-nexus-specific override markers")
+            )
     return diags
 
 
@@ -86,7 +90,13 @@ def check_orphans() -> list[Diagnostic]:
     diags: list[Diagnostic] = []
     for rel in ORPHANED_GENERIC:
         if (ROOT / rel).exists():
-            diags.append(_d("orphaned_generic_duplicate", rel, f"generic-only file still present (should reference external): {rel}"))
+            diags.append(
+                _d(
+                    "orphaned_generic_duplicate",
+                    rel,
+                    f"generic-only file still present (should reference external): {rel}",
+                )
+            )
     return diags
 
 
@@ -103,7 +113,13 @@ def check_agents_md() -> list[Diagnostic]:
         return [_d("agents_md_no_profile", p, "AGENTS.md missing")]
     text = p.read_text()
     if "profile" not in text.lower() or "/root/git-lex-kit-acp" not in text:
-        return [_d("agents_md_no_profile", p, "AGENTS.md does not reflect profile-layer architecture (external kit + profile)")]
+        return [
+            _d(
+                "agents_md_no_profile",
+                p,
+                "AGENTS.md does not reflect profile-layer architecture (external kit + profile)",
+            )
+        ]
     return []
 
 
@@ -114,7 +130,9 @@ def check_acp_binding() -> list[Diagnostic]:
     text = p.read_text().lower()
     # ACP should still route git-lex runtime to git-lex skill
     if "git-lex" not in text:
-        return [_d("acp_binding_lost", p, "acp SKILL.md no longer references git-lex (binding lost)")]
+        return [
+            _d("acp_binding_lost", p, "acp SKILL.md no longer references git-lex (binding lost)")
+        ]
     return []
 
 
@@ -124,11 +142,23 @@ def check_external_no_regression() -> list[Diagnostic]:
     if not verifier.exists():
         return [_d("external_regression", verifier, "S01 externalization verifier missing")]
     try:
-        r = subprocess.run(["uv", "run", "python", str(verifier)], cwd=str(ROOT), capture_output=True, text=True, timeout=60)
+        r = subprocess.run(
+            ["uv", "run", "python", str(verifier)],
+            cwd=str(ROOT),
+            capture_output=True,
+            text=True,
+            timeout=60,
+        )
     except Exception as exc:
         return [_d("external_regression", verifier, f"could not re-run S01 verifier: {exc}")]
     if r.returncode != 0:
-        return [_d("external_regression", EXT, f"S01 externalization verifier regressed (rc={r.returncode})")]
+        return [
+            _d(
+                "external_regression",
+                EXT,
+                f"S01 externalization verifier regressed (rc={r.returncode})",
+            )
+        ]
     return []
 
 
@@ -141,7 +171,11 @@ def verify() -> tuple[bool, list[Diagnostic], dict]:
     diags.extend(check_acp_binding())
     diags.extend(check_external_no_regression())
     ok = not diags
-    return ok, diags, {"verdict": "profile_layer_healthy" if ok else "not_healthy", "diagnostics": len(diags)}
+    return (
+        ok,
+        diags,
+        {"verdict": "profile_layer_healthy" if ok else "not_healthy", "diagnostics": len(diags)},
+    )
 
 
 def _fmt(d: Diagnostic) -> str:

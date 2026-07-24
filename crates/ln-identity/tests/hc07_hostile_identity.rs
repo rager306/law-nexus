@@ -7,7 +7,11 @@ use ln_identity::{
     },
 };
 
-fn seeded_hostile() -> (AssertIdentity<ErasingMergerHostileStore>, IdentityId, IdentityId) {
+fn seeded_hostile() -> (
+    AssertIdentity<ErasingMergerHostileStore>,
+    IdentityId,
+    IdentityId,
+) {
     let right = IdentityId::parse("ID-B").expect("valid");
     let mut use_case = AssertIdentity::new(ErasingMergerHostileStore::targeting_right(&right));
     let left = IdentityId::parse("ID-A").expect("valid");

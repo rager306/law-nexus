@@ -37,7 +37,9 @@ def load_manifest() -> dict[str, Any]:
     return json.loads(MANIFEST.read_text(encoding="utf-8"))
 
 
-def run_cli(tmp_path: Path, *args: str) -> tuple[subprocess.CompletedProcess[str], dict[str, Any] | None]:
+def run_cli(
+    tmp_path: Path, *args: str
+) -> tuple[subprocess.CompletedProcess[str], dict[str, Any] | None]:
     report = tmp_path / "proof.md"
     completed = subprocess.run(
         [sys.executable, str(CLI), "--report", str(report), *args],
@@ -71,18 +73,28 @@ def test_pass_emits_one_safe_json_object_and_report(tmp_path: Path) -> None:
     assert payload["failure_class"] == "none"
     assert payload["diagnostic_codes"] == []
     assert payload["runtime_boundary_confirmed"] is True
-    assert all(payload["metrics"][metric] == 1.0 for metric in payload["thresholds"] if metric != "runtime_boundary_confirmed")
+    assert all(
+        payload["metrics"][metric] == 1.0
+        for metric in payload["thresholds"]
+        if metric != "runtime_boundary_confirmed"
+    )
     assert payload["metrics"]["runtime_boundary_confirmed"] is True
     assert all(value is False for value in payload["redaction"].values())
     assert payload["managed_api_used"] is False
     assert payload["giga_chat_used"] is False
     assert payload["network_used"] is False
-    assert payload["gate"] == {"gate_id": "GATE-G011", "status": "open", "claim": "gate remains open"}
+    assert payload["gate"] == {
+        "gate_id": "GATE-G011",
+        "status": "open",
+        "claim": "gate remains open",
+    }
     assert "QRL-M016-001" in payload["metric_inputs"]["query_label_ids"]
     assert (tmp_path / "proof.md").exists()
 
 
-def test_blocked_runtime_summary_exits_nonzero_without_successful_metric_claim(tmp_path: Path) -> None:
+def test_blocked_runtime_summary_exits_nonzero_without_successful_metric_claim(
+    tmp_path: Path,
+) -> None:
     runtime = confirmed_runtime()
     runtime["runtime_status"] = "blocked_model_unavailable"
     runtime["failure_class"] = "model_unavailable"
@@ -107,7 +119,9 @@ def test_allow_runtime_blocker_relaxes_exit_only(tmp_path: Path) -> None:
     runtime["diagnostic_codes"] = ["LRR_DEPENDENCY_MISSING"]
     runtime_path = write_json(tmp_path / "runtime.json", runtime)
 
-    completed, payload = run_cli(tmp_path, "--runtime-summary", str(runtime_path), "--allow-runtime-blocker")
+    completed, payload = run_cli(
+        tmp_path, "--runtime-summary", str(runtime_path), "--allow-runtime-blocker"
+    )
 
     assert completed.returncode == 0
     assert payload is not None

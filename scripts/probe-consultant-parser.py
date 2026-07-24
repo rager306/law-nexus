@@ -170,14 +170,12 @@ def _probe_one(
     from law_nexus.adapters.parsers.consultant_wordml import (
         _classify_document_type,  # type: ignore[import-not-found]
     )
+
     derived = _classify_document_type(inventory_title_first_line or "")
     out["parser_classification"] = derived.value
     out["parser_outcome"] = (
         "success-classified"
-        if (
-            isinstance(inventory_document_type, str)
-            and inventory_document_type == derived.value
-        )
+        if (isinstance(inventory_document_type, str) and inventory_document_type == derived.value)
         else "success-as-other"
     )
     out["is_by_design_fail"] = False
@@ -205,9 +203,7 @@ def probe_corpus(root: Path) -> dict[str, Any]:
             by_outcome.get(row["parser_outcome"] or "unknown", 0) + 1
         )
         if row["failure_mode"]:
-            by_failure_mode[row["failure_mode"]] = (
-                by_failure_mode.get(row["failure_mode"], 0) + 1
-            )
+            by_failure_mode[row["failure_mode"]] = by_failure_mode.get(row["failure_mode"], 0) + 1
         if row["parser_outcome"] == "success-as-other":
             classification_gap_count += 1
 
@@ -222,11 +218,15 @@ def probe_corpus(root: Path) -> dict[str, Any]:
         if row["parser_outcome"] == "success-as-other"
     ]
 
-    status = "pass" if all(
-        row["parser_outcome"] in ("success-classified", "success-as-other", "fail-by-design")
-        or row["parser_outcome"] == "fail"
-        for row in rows
-    ) else "fail"
+    status = (
+        "pass"
+        if all(
+            row["parser_outcome"] in ("success-classified", "success-as-other", "fail-by-design")
+            or row["parser_outcome"] == "fail"
+            for row in rows
+        )
+        else "fail"
+    )
     return {
         "schema_version": SCHEMA_VERSION,
         "generated_by": SCRIPT_PATH,
@@ -278,7 +278,9 @@ def render_markdown(manifest: dict[str, Any]) -> str:
         ]
     )
     if manifest["classification_gap"]:
-        lines.append("| Path | Inventory document_type | Parser classification | Title (first line) |")
+        lines.append(
+            "| Path | Inventory document_type | Parser classification | Title (first line) |"
+        )
         lines.append("|---|---|---|---|")
         for row in manifest["classification_gap"]:
             title_display = (row.get("inventory_title_first_line") or "").replace("|", "\\|")[:100]
@@ -330,7 +332,9 @@ def write_outputs(root: Path, manifest: dict[str, Any]) -> None:
     json_path = root / JSON_OUTPUT
     markdown_path = root / MARKDOWN_OUTPUT
     json_path.parent.mkdir(parents=True, exist_ok=True)
-    json_path.write_text(json.dumps(manifest, ensure_ascii=False, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    json_path.write_text(
+        json.dumps(manifest, ensure_ascii=False, indent=2, sort_keys=True) + "\n", encoding="utf-8"
+    )
     markdown_path.write_text(render_markdown(manifest), encoding="utf-8")
 
 
@@ -375,8 +379,16 @@ def observability_summary(manifest: dict[str, Any]) -> dict[str, Any]:
 
 def parse_args(argv: list[str]) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--check", action="store_true", help="verify generated artifacts are current without writing them")
-    parser.add_argument("--show-sha", action="store_true", help="print SHA-256 of the generated JSON (after --write) and exit")
+    parser.add_argument(
+        "--check",
+        action="store_true",
+        help="verify generated artifacts are current without writing them",
+    )
+    parser.add_argument(
+        "--show-sha",
+        action="store_true",
+        help="print SHA-256 of the generated JSON (after --write) and exit",
+    )
     return parser.parse_args(argv)
 
 

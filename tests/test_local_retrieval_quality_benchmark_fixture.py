@@ -81,7 +81,10 @@ def test_fixture_top_level_schema_sources_and_model_boundary() -> None:
     fixture = load_fixture()
 
     assert fixture["schema_version"] == "local-retrieval-quality-benchmark/v1"
-    assert fixture["fixture_artifact"] == "prd/retrieval/fixtures/local_retrieval_quality_benchmark.json"
+    assert (
+        fixture["fixture_artifact"]
+        == "prd/retrieval/fixtures/local_retrieval_quality_benchmark.json"
+    )
     assert fixture["generated_by"] == "scripts/build-local-retrieval-quality-benchmark.py"
     assert fixture["contract"] == "prd/retrieval/local_retrieval_quality_benchmark_contract.md"
     assert fixture["gate"] == "GATE-G011"
@@ -104,7 +107,10 @@ def test_fixture_top_level_schema_sources_and_model_boundary() -> None:
     assert model["observed_vector_dimension"] == 1024
     assert model["managed_api_used"] is False
     assert model["raw_vectors_persisted"] is False
-    assert model["runtime_evidence_source"] == "prd/milestone_proofs/M001_S10_EMBEDDING-RUNTIME-PROOF.json"
+    assert (
+        model["runtime_evidence_source"]
+        == "prd/milestone_proofs/M001_S10_EMBEDDING-RUNTIME-PROOF.json"
+    )
     assert "not production Russian legal retrieval quality" in model["quality_boundary"]
 
 
@@ -112,7 +118,13 @@ def test_fixture_contains_required_cases_thresholds_and_labels() -> None:
     fixture = load_fixture()
 
     assert fixture["thresholds"] == REQUIRED_THRESHOLDS
-    assert set(fixture["allowed_relevance_labels"]) == {"relevant", "distractor", "ambiguous", "no_answer", "unsafe"}
+    assert set(fixture["allowed_relevance_labels"]) == {
+        "relevant",
+        "distractor",
+        "ambiguous",
+        "no_answer",
+        "unsafe",
+    }
     assert {case["case_class"] for case in fixture["cases"]} == REQUIRED_CASE_CLASSES
     assert len(fixture["cases"]) == 6
 
@@ -133,7 +145,10 @@ def test_fixture_candidate_ids_scores_and_relevance_are_deterministic() -> None:
             candidate_ids.append(candidate["candidate_id"])
             assert candidate["candidate_id"].startswith("BQ-M015-")
             assert candidate["score_input_id"].startswith("SCORE-M015-")
-            assert candidate["source_artifact"] == "prd/retrieval/fixtures/offline_citation_retrieval_cases.json"
+            assert (
+                candidate["source_artifact"]
+                == "prd/retrieval/fixtures/offline_citation_retrieval_cases.json"
+            )
             assert candidate["relevance_label"] in fixture["allowed_relevance_labels"]
             if candidate["relevance_label"] in {"relevant", "distractor"}:
                 assert isinstance(candidate["rank"], int)
@@ -148,13 +163,21 @@ def test_fixture_expected_metrics_cover_positive_no_answer_ambiguous_and_unsafe_
     fixture = load_fixture()
     by_class = {case["case_class"]: case for case in fixture["cases"]}
 
-    assert by_class["positive_exact_relevance"]["expected_metrics"] == {"mrr": 1.0, "recall_at_1": 1.0, "recall_at_3": 1.0}
+    assert by_class["positive_exact_relevance"]["expected_metrics"] == {
+        "mrr": 1.0,
+        "recall_at_1": 1.0,
+        "recall_at_3": 1.0,
+    }
     assert by_class["positive_with_distractor"]["candidates"][0]["relevance_label"] == "relevant"
     assert by_class["positive_with_distractor"]["candidates"][1]["relevance_label"] == "distractor"
     assert by_class["scoped_no_answer_quality"]["expected_metrics"] == {"no_answer_accuracy": 1.0}
-    assert by_class["ambiguous_retrieval_rejected"]["expected_metrics"] == {"ambiguous_rejection_rate": 1.0}
+    assert by_class["ambiguous_retrieval_rejected"]["expected_metrics"] == {
+        "ambiguous_rejection_rate": 1.0
+    }
     assert by_class["unsafe_payload_rejected"]["expected_metrics"] == {"unsafe_rejection_rate": 1.0}
-    assert by_class["environment_boundary"]["expected_diagnostic_codes"] == ["model_runtime_available"]
+    assert by_class["environment_boundary"]["expected_diagnostic_codes"] == [
+        "model_runtime_available"
+    ]
 
 
 def test_fixture_diagnostics_are_safe_and_bounded() -> None:
@@ -172,7 +195,10 @@ def test_fixture_diagnostics_are_safe_and_bounded() -> None:
                 "field_path",
                 "proof_artifact",
             }
-            assert diagnostic["proof_artifact"] == "prd/retrieval/fixtures/local_retrieval_quality_benchmark.json"
+            assert (
+                diagnostic["proof_artifact"]
+                == "prd/retrieval/fixtures/local_retrieval_quality_benchmark.json"
+            )
             assert diagnostic["benchmark_case_id"] == case["benchmark_case_id"]
 
 

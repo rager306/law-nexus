@@ -10,8 +10,14 @@ from typing import Any
 
 ROOT = Path(__file__).resolve().parents[1]
 BUILDER = ROOT / "scripts/build-semantic-descriptor-inputs.py"
-FIXTURE = ROOT / "prd/research/ontology_architecture_requirements/fixtures/representative_evidence_span_retrieval_corpus.json"
-CONTRACT = ROOT / "prd/research/ontology_architecture_requirements/44-local-semantic-scoring-iteration-contract.md"
+FIXTURE = (
+    ROOT
+    / "prd/research/ontology_architecture_requirements/fixtures/representative_evidence_span_retrieval_corpus.json"
+)
+CONTRACT = (
+    ROOT
+    / "prd/research/ontology_architecture_requirements/44-local-semantic-scoring-iteration-contract.md"
+)
 FORBIDDEN_FIELDS = {
     "expected_label",
     "rank",
@@ -36,7 +42,9 @@ def load_fixture() -> dict[str, Any]:
 
 def write_fixture(tmp_path: Path, name: str, payload: dict[str, Any]) -> Path:
     path = tmp_path / name
-    path.write_text(json.dumps(payload, ensure_ascii=False, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    path.write_text(
+        json.dumps(payload, ensure_ascii=False, indent=2, sort_keys=True) + "\n", encoding="utf-8"
+    )
     return path
 
 
@@ -79,7 +87,9 @@ def test_forbidden_answer_field_perturbation_does_not_change_descriptors(tmp_pat
     builder = load_builder("descriptor_builder_perturbation")
     fixture = load_fixture()
     original_path = write_fixture(tmp_path, "original_fixture.json", fixture)
-    perturbed_path = write_fixture(tmp_path, "perturbed_fixture.json", perturb_forbidden_fields(fixture))
+    perturbed_path = write_fixture(
+        tmp_path, "perturbed_fixture.json", perturb_forbidden_fields(fixture)
+    )
 
     original = descriptor_projection(builder.build_manifest(original_path, CONTRACT))
     perturbed = descriptor_projection(builder.build_manifest(perturbed_path, CONTRACT))
@@ -104,7 +114,9 @@ def test_structural_candidate_field_change_does_change_descriptors(tmp_path: Pat
 
 def test_outcome_like_enum_values_are_absent_from_builder_output(tmp_path: Path) -> None:
     builder = load_builder("descriptor_builder_neutral_enums")
-    manifest = builder.build_manifest(write_fixture(tmp_path, "fixture.json", load_fixture()), CONTRACT)
+    manifest = builder.build_manifest(
+        write_fixture(tmp_path, "fixture.json", load_fixture()), CONTRACT
+    )
     serialized = json.dumps(manifest, ensure_ascii=False, sort_keys=True)
 
     for forbidden in (
@@ -125,7 +137,9 @@ def test_outcome_like_enum_values_are_absent_from_builder_output(tmp_path: Path)
 
 def test_builder_output_does_not_persist_forbidden_answer_fields(tmp_path: Path) -> None:
     builder = load_builder("descriptor_builder_no_forbidden_output")
-    manifest = builder.build_manifest(write_fixture(tmp_path, "fixture.json", load_fixture()), CONTRACT)
+    manifest = builder.build_manifest(
+        write_fixture(tmp_path, "fixture.json", load_fixture()), CONTRACT
+    )
 
     def walk(value: Any) -> None:
         if isinstance(value, dict):

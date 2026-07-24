@@ -144,7 +144,9 @@ def verify_evals(skill_root: Path, expected_name: str) -> None:
     evals = data.get("evals")
     if not isinstance(evals, list) or len(evals) < 2:
         fail(f"{expected_name} must have at least one positive eval and one boundary eval")
-    if not any(item.get("should_trigger") is False or item.get("category") == "boundary" for item in evals):
+    if not any(
+        item.get("should_trigger") is False or item.get("category") == "boundary" for item in evals
+    ):
         fail(f"{expected_name} evals must include a boundary/should-not-trigger case")
 
 
@@ -170,7 +172,9 @@ def verify_focused_skill(skills_dir: Path, name: str, required_terms: list[str])
     if not desc or len(desc) > 1024 or "Use" not in desc:
         fail(f"{name} description must be non-empty, <=1024 chars, and state when to use it")
     verify_xml_sections(skill, f"{name}/SKILL.md", REQUIRED_XML_TAGS)
-    combined = "\n".join([skill, read(root / "workflows/main.md"), read(root / "references/main.md")])
+    combined = "\n".join(
+        [skill, read(root / "workflows/main.md"), read(root / "references/main.md")]
+    )
     verify_no_project_specific_terms(combined, name)
     for term in [*required_terms, "FalkorDB", "falkordb-capability-evidence", "Neo4j"]:
         if term.lower() not in combined.lower():

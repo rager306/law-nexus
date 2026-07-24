@@ -65,11 +65,16 @@ def read_json(path: Path) -> dict[str, Any]:
 
 
 def read_jsonl(path: Path) -> list[dict[str, Any]]:
-    return [json.loads(line) for line in path.read_text(encoding="utf-8").splitlines() if line.strip()]
+    return [
+        json.loads(line) for line in path.read_text(encoding="utf-8").splitlines() if line.strip()
+    ]
 
 
 def write_jsonl(path: Path, rows: list[dict[str, Any]]) -> None:
-    path.write_text("".join(json.dumps(row, ensure_ascii=False, sort_keys=True) + "\n" for row in rows), encoding="utf-8")
+    path.write_text(
+        "".join(json.dumps(row, ensure_ascii=False, sort_keys=True) + "\n" for row in rows),
+        encoding="utf-8",
+    )
 
 
 def case_by_class(report: dict[str, Any], case_class: str) -> dict[str, Any]:
@@ -89,7 +94,9 @@ def patch_source_paths(module: Any, monkeypatch: pytest.MonkeyPatch, parser_dir:
     monkeypatch.setattr(module, "SOURCE_BLOCK_RECORDS_PATH", source_blocks)
     monkeypatch.setattr(module, "RELATION_CANDIDATES_PATH", relations)
     monkeypatch.setattr(module, "STAGING_GRAPH_PATH", staging)
-    monkeypatch.setattr(module, "SOURCE_ARTIFACT_PATHS", [contract, documents, source_blocks, relations, staging])
+    monkeypatch.setattr(
+        module, "SOURCE_ARTIFACT_PATHS", [contract, documents, source_blocks, relations, staging]
+    )
 
 
 def copy_source_fixtures(tmp_path: Path, module: Any, monkeypatch: pytest.MonkeyPatch) -> Path:
@@ -102,7 +109,9 @@ def copy_source_fixtures(tmp_path: Path, module: Any, monkeypatch: pytest.Monkey
         "consultant_relation_candidates.jsonl",
         "parser_staging_graph.json",
     ]:
-        (parser_dir / name).write_text((PARSER_DIR / name).read_text(encoding="utf-8"), encoding="utf-8")
+        (parser_dir / name).write_text(
+            (PARSER_DIR / name).read_text(encoding="utf-8"), encoding="utf-8"
+        )
     patch_source_paths(module, monkeypatch, parser_dir)
     return parser_dir
 
@@ -123,7 +132,9 @@ def test_real_tracked_check_succeeds_with_expected_counts_and_sources() -> None:
     assert report["artifact_freshness"]["status"] == "pass"
     assert report["artifact_freshness"]["stale_paths"] == []
     assert report["case_count"] == 5
-    assert report["case_class_counts"] == {case_class: 1 for case_class in sorted(REQUIRED_CASE_CLASSES)}
+    assert report["case_class_counts"] == {
+        case_class: 1 for case_class in sorted(REQUIRED_CASE_CLASSES)
+    }
     assert [artifact["path"] for artifact in report["source_artifacts"]] == [
         "prd/parser/golden_test_contract.md",
         "prd/parser/odt_document_records.jsonl",
@@ -169,7 +180,14 @@ def test_json_artifact_shape_is_closed_bounded_and_non_authoritative() -> None:
         for source_artifact in case["source_artifacts"]:
             assert source_artifact.startswith("prd/parser/")
         for anchor in case["anchors"]:
-            assert set(anchor) >= {"artifact_path", "record_id", "record_kind", "source_path", "source_sha256", "non_authoritative"}
+            assert set(anchor) >= {
+                "artifact_path",
+                "record_id",
+                "record_kind",
+                "source_path",
+                "source_sha256",
+                "non_authoritative",
+            }
             assert anchor["artifact_path"].startswith("prd/parser/")
             assert anchor["record_id"]
             assert anchor["non_authoritative"] is True
@@ -211,11 +229,16 @@ def test_candidate_only_and_unresolved_reference_cases_preserve_source_identitie
     assert candidate_anchor["record_id"] == "REL-CONS-0001"
     assert candidate_anchor["relation_status"] == "candidate"
     assert candidate_anchor["source_block_id"] == "BLOCK-CONSULTANT-XML-0001"
-    assert candidate_anchor["subject_ref"] == "consultant-list:law-source/consultant/Список документов (5).xml"
+    assert (
+        candidate_anchor["subject_ref"]
+        == "consultant-list:law-source/consultant/Список документов (5).xml"
+    )
     assert candidate_anchor["object_ref"] == "consultant:LAW:179581@11.05.2026"
     assert candidate["expected"]["required_relation_status"] == "candidate"
     assert candidate["expected"]["required_staging_edge_key"] == "REL-CONS-0001"
-    assert {"relation correctness", "Consultant WordML legal authority"} <= set(candidate["expected"]["forbidden_claims"])
+    assert {"relation correctness", "Consultant WordML legal authority"} <= set(
+        candidate["expected"]["forbidden_claims"]
+    )
 
     staging_graph = read_json(PARSER_DIR / "parser_staging_graph.json")
     unresolved_ids = set(staging_graph["unresolved_reference_ids"])
@@ -245,14 +268,22 @@ def test_check_reports_path_qualified_stale_artifacts(tmp_path: Path) -> None:
     report = parse_stdout_json(stale)
     assert report["status"] == "fail"
     assert report["artifact_freshness"]["status"] == "stale"
-    assert any(path.endswith("golden_cases.md") for path in report["artifact_freshness"]["stale_paths"])
-    stale_diagnostics = [diagnostic for diagnostic in report["diagnostics"] if diagnostic["rule"] == "stale-artifact"]
+    assert any(
+        path.endswith("golden_cases.md") for path in report["artifact_freshness"]["stale_paths"]
+    )
+    stale_diagnostics = [
+        diagnostic for diagnostic in report["diagnostics"] if diagnostic["rule"] == "stale-artifact"
+    ]
     assert stale_diagnostics
     assert all(diagnostic["severity"] == "error" for diagnostic in stale_diagnostics)
-    assert any(diagnostic["artifact_path"].endswith("golden_cases.md") for diagnostic in stale_diagnostics)
+    assert any(
+        diagnostic["artifact_path"].endswith("golden_cases.md") for diagnostic in stale_diagnostics
+    )
 
 
-def test_malformed_jsonl_becomes_path_line_rule_diagnostic(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+def test_malformed_jsonl_becomes_path_line_rule_diagnostic(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
     module = load_module()
     parser_dir = copy_source_fixtures(tmp_path, module, monkeypatch)
     malformed = parser_dir / "consultant_relation_candidates.jsonl"
@@ -284,7 +315,9 @@ def test_candidate_promotion_and_missing_unresolved_references_fail_closed(
     write_jsonl(parser_dir / "consultant_relation_candidates.jsonl", relations)
     staging_graph = read_json(parser_dir / "parser_staging_graph.json")
     staging_graph["unresolved_reference_ids"] = []
-    (parser_dir / "parser_staging_graph.json").write_text(json.dumps(staging_graph, ensure_ascii=False, sort_keys=True), encoding="utf-8")
+    (parser_dir / "parser_staging_graph.json").write_text(
+        json.dumps(staging_graph, ensure_ascii=False, sort_keys=True), encoding="utf-8"
+    )
 
     report = module.build_report()
     rules = diagnostics_by_rule(report)
@@ -317,5 +350,7 @@ def test_missing_evidence_source_blocks_fail_without_long_text_comparison(
 
     assert report["status"] == "fail"
     assert rules["missing_evidence"][0]["case_id"] == "GT-001"
-    assert rules["missing_evidence"][0]["artifact_path"] == str(parser_dir / "odt_source_block_records.jsonl")
+    assert rules["missing_evidence"][0]["artifact_path"] == str(
+        parser_dir / "odt_source_block_records.jsonl"
+    )
     assert rules["required_case_class_missing"][0]["case_class"] == "evidence-present"

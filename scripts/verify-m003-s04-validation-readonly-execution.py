@@ -101,12 +101,20 @@ FORBIDDEN_TEXT_PATTERNS = (
     re.compile(r"(?i)<\s*/?\s*think\s*>"),
 )
 OVERCLAIM_PATTERNS = (
-    re.compile(r"(?i)Legal KnowQL product behavior\s+(is\s+)?(validated|proven|confirmed|implemented|production[- ]ready)"),
-    re.compile(r"(?i)legal-answer correctness\s+(is\s+)?(validated|proven|confirmed|production[- ]ready)"),
+    re.compile(
+        r"(?i)Legal KnowQL product behavior\s+(is\s+)?(validated|proven|confirmed|implemented|production[- ]ready)"
+    ),
+    re.compile(
+        r"(?i)legal-answer correctness\s+(is\s+)?(validated|proven|confirmed|production[- ]ready)"
+    ),
     re.compile(r"(?i)ODT parsing.*(validated|proven|confirmed|production[- ]ready)"),
     re.compile(r"(?i)retrieval quality.*(validated|proven|confirmed|production[- ]ready)"),
-    re.compile(r"(?i)production graph schema fitness\s+(is\s+)?(validated|proven|confirmed|production[- ]ready)"),
-    re.compile(r"(?i)live legal graph execution\s+(is\s+)?(validated|proven|confirmed|production[- ]ready)"),
+    re.compile(
+        r"(?i)production graph schema fitness\s+(is\s+)?(validated|proven|confirmed|production[- ]ready)"
+    ),
+    re.compile(
+        r"(?i)live legal graph execution\s+(is\s+)?(validated|proven|confirmed|production[- ]ready)"
+    ),
 )
 REQUIRED_NON_CLAIMS = {
     "provider generation quality",
@@ -203,47 +211,96 @@ def validate_top_level(payload: dict[str, Any]) -> tuple[str, str, str]:
     status = payload.get("status")
     root_cause = payload.get("root_cause")
     phase = payload.get("phase")
-    require(isinstance(status, str) and status in STATUS_CATEGORIES, "status must be a known category")
-    require(isinstance(root_cause, str) and root_cause in ROOT_CAUSE_CATEGORIES, "root_cause must be a known category")
+    require(
+        isinstance(status, str) and status in STATUS_CATEGORIES, "status must be a known category"
+    )
+    require(
+        isinstance(root_cause, str) and root_cause in ROOT_CAUSE_CATEGORIES,
+        "root_cause must be a known category",
+    )
     require(isinstance(phase, str) and phase in PHASE_CATEGORIES, "phase must be a known category")
     return cast(str, status), cast(str, root_cause), cast(str, phase)
 
 
 def validate_s03_source(payload: dict[str, Any]) -> dict[str, Any]:
     source = require_dict(payload.get("s03_source"), "s03_source")
-    require(source.get("schema_version") == S03_SCHEMA_VERSION, "s03_source.schema_version mismatch")
+    require(
+        source.get("schema_version") == S03_SCHEMA_VERSION, "s03_source.schema_version mismatch"
+    )
     require(source.get("status") in S03_STATUS_CATEGORIES, "s03_source.status must be known")
-    require(isinstance(source.get("root_cause"), str) and source["root_cause"], "s03_source.root_cause must be non-empty")
-    require(isinstance(source.get("phase"), str) and source["phase"], "s03_source.phase must be non-empty")
+    require(
+        isinstance(source.get("root_cause"), str) and source["root_cause"],
+        "s03_source.root_cause must be non-empty",
+    )
+    require(
+        isinstance(source.get("phase"), str) and source["phase"],
+        "s03_source.phase must be non-empty",
+    )
     provider_attempts = source.get("provider_attempts")
-    require(isinstance(provider_attempts, int) and provider_attempts >= 0, "s03_source.provider_attempts must be a non-negative integer")
+    require(
+        isinstance(provider_attempts, int) and provider_attempts >= 0,
+        "s03_source.provider_attempts must be a non-negative integer",
+    )
     require_bool(source.get("candidate_accepted"), "s03_source.candidate_accepted")
     return source
 
 
 def validate_validation(payload: dict[str, Any]) -> dict[str, Any]:
     validation = require_dict(payload.get("validation"), "validation")
-    attempted = require_bool(require_field(validation, "attempted", "validation"), "validation.attempted")
-    accepted = require_bool(require_field(validation, "accepted", "validation"), "validation.accepted")
-    require(require_field(validation, "schema_version", "validation") == M002_SCHEMA_VERSION, "validation.schema_version mismatch")
-    rejection_codes = require_list(require_field(validation, "rejection_codes", "validation"), "validation.rejection_codes")
-    require(all(isinstance(code, str) and code for code in rejection_codes), "validation.rejection_codes must contain strings")
-    evidence_returns = require_list(require_field(validation, "required_evidence_returns", "validation"), "validation.required_evidence_returns")
-    require(all(isinstance(item, str) and item for item in evidence_returns), "validation.required_evidence_returns must contain strings")
+    attempted = require_bool(
+        require_field(validation, "attempted", "validation"), "validation.attempted"
+    )
+    accepted = require_bool(
+        require_field(validation, "accepted", "validation"), "validation.accepted"
+    )
+    require(
+        require_field(validation, "schema_version", "validation") == M002_SCHEMA_VERSION,
+        "validation.schema_version mismatch",
+    )
+    rejection_codes = require_list(
+        require_field(validation, "rejection_codes", "validation"), "validation.rejection_codes"
+    )
+    require(
+        all(isinstance(code, str) and code for code in rejection_codes),
+        "validation.rejection_codes must contain strings",
+    )
+    evidence_returns = require_list(
+        require_field(validation, "required_evidence_returns", "validation"),
+        "validation.required_evidence_returns",
+    )
+    require(
+        all(isinstance(item, str) and item for item in evidence_returns),
+        "validation.required_evidence_returns must contain strings",
+    )
     query_shape = validation.get("query_shape_category")
     if query_shape is not None:
-        require(isinstance(query_shape, str) and bool(query_shape), "validation.query_shape_category must be non-empty when present")
+        require(
+            isinstance(query_shape, str) and bool(query_shape),
+            "validation.query_shape_category must be non-empty when present",
+        )
     safe_parameters = validation.get("safe_parameter_categories")
     if safe_parameters is not None:
         safe_parameters = require_dict(safe_parameters, "validation.safe_parameter_categories")
-        require(all(isinstance(key, str) and isinstance(value, str) for key, value in safe_parameters.items()), "validation.safe_parameter_categories must map strings to strings")
+        require(
+            all(
+                isinstance(key, str) and isinstance(value, str)
+                for key, value in safe_parameters.items()
+            ),
+            "validation.safe_parameter_categories must map strings to strings",
+        )
     if accepted:
         require(attempted, "accepted validation requires validation.attempted=true")
         require(rejection_codes == [], "accepted validation must not include rejection codes")
         missing = sorted(REQUIRED_EXECUTION_COLUMNS - set(evidence_returns))
-        require(not missing, "accepted validation missing required evidence returns: " + ", ".join(missing))
+        require(
+            not missing,
+            "accepted validation missing required evidence returns: " + ", ".join(missing),
+        )
     elif attempted:
-        require(bool(rejection_codes), "attempted rejected validation requires at least one rejection code")
+        require(
+            bool(rejection_codes),
+            "attempted rejected validation requires at least one rejection code",
+        )
     else:
         require(not accepted, "unattempted validation cannot be accepted")
     return validation
@@ -251,28 +308,67 @@ def validate_validation(payload: dict[str, Any]) -> dict[str, Any]:
 
 def validate_execution(payload: dict[str, Any]) -> dict[str, Any]:
     execution = require_dict(payload.get("execution"), "execution")
-    attempted = require_bool(require_field(execution, "attempted", "execution"), "execution.attempted")
-    require(require_field(execution, "status", "execution") in EXECUTION_STATUS_CATEGORIES, "execution.status must be known")
+    attempted = require_bool(
+        require_field(execution, "attempted", "execution"), "execution.attempted"
+    )
+    require(
+        require_field(execution, "status", "execution") in EXECUTION_STATUS_CATEGORIES,
+        "execution.status must be known",
+    )
     graph_kind = require_field(execution, "graph_kind", "execution")
-    require(graph_kind == "synthetic-legalgraph", "execution.graph_kind must be synthetic-legalgraph")
-    summary = require_dict(require_field(execution, "row_shape_summary", "execution"), "execution.row_shape_summary")
-    require(summary.get("raw_rows_persisted") is False, "execution.row_shape_summary.raw_rows_persisted must be false")
-    require(isinstance(summary.get("row_count_category"), str) and summary["row_count_category"], "execution.row_shape_summary.row_count_category required")
-    columns = require_list(summary.get("column_categories"), "execution.row_shape_summary.column_categories")
-    require(all(isinstance(column, str) for column in columns), "execution.row_shape_summary.column_categories must contain strings")
-    identifier_categories = require_list(require_field(execution, "synthetic_identifier_categories", "execution"), "execution.synthetic_identifier_categories")
-    require(all(isinstance(item, str) for item in identifier_categories), "execution.synthetic_identifier_categories must contain strings")
+    require(
+        graph_kind == "synthetic-legalgraph", "execution.graph_kind must be synthetic-legalgraph"
+    )
+    summary = require_dict(
+        require_field(execution, "row_shape_summary", "execution"), "execution.row_shape_summary"
+    )
+    require(
+        summary.get("raw_rows_persisted") is False,
+        "execution.row_shape_summary.raw_rows_persisted must be false",
+    )
+    require(
+        isinstance(summary.get("row_count_category"), str) and summary["row_count_category"],
+        "execution.row_shape_summary.row_count_category required",
+    )
+    columns = require_list(
+        summary.get("column_categories"), "execution.row_shape_summary.column_categories"
+    )
+    require(
+        all(isinstance(column, str) for column in columns),
+        "execution.row_shape_summary.column_categories must contain strings",
+    )
+    identifier_categories = require_list(
+        require_field(execution, "synthetic_identifier_categories", "execution"),
+        "execution.synthetic_identifier_categories",
+    )
+    require(
+        all(isinstance(item, str) for item in identifier_categories),
+        "execution.synthetic_identifier_categories must contain strings",
+    )
 
     if attempted:
-        require(execution.get("method") == "Graph.ro_query", "execution.method must be Graph.ro_query")
+        require(
+            execution.get("method") == "Graph.ro_query", "execution.method must be Graph.ro_query"
+        )
         require(execution.get("timeout_ms") == 1000, "execution.timeout_ms must be 1000")
-        require(execution.get("status") in {"confirmed-runtime", "failed-runtime"}, "attempted execution status invalid")
+        require(
+            execution.get("status") in {"confirmed-runtime", "failed-runtime"},
+            "attempted execution status invalid",
+        )
         missing = sorted(REQUIRED_EXECUTION_COLUMNS - set(columns))
-        require(not missing, "execution.row_shape_summary missing required columns: " + ", ".join(missing))
-        require(bool(identifier_categories), "attempted execution requires synthetic identifier categories")
+        require(
+            not missing,
+            "execution.row_shape_summary missing required columns: " + ", ".join(missing),
+        )
+        require(
+            bool(identifier_categories),
+            "attempted execution requires synthetic identifier categories",
+        )
     else:
         require(execution.get("method") is None, "not-attempted execution.method must be null")
-        require(execution.get("timeout_ms") is None, "not-attempted execution.timeout_ms must be null")
+        require(
+            execution.get("timeout_ms") is None, "not-attempted execution.timeout_ms must be null"
+        )
         require(
             execution.get("status") in {"not-attempted", "blocked-environment"},
             "not-attempted execution.status must be not-attempted or blocked-environment",
@@ -281,23 +377,39 @@ def validate_execution(payload: dict[str, Any]) -> dict[str, Any]:
     if parameter_summary is not None:
         parameter_summary = require_dict(parameter_summary, "execution.parameter_summary")
         for key, value in parameter_summary.items():
-            require(isinstance(key, str) and bool(key), "execution.parameter_summary keys must be non-empty strings")
+            require(
+                isinstance(key, str) and bool(key),
+                "execution.parameter_summary keys must be non-empty strings",
+            )
             item = require_dict(value, f"execution.parameter_summary.{key}")
-            require(isinstance(item.get("type_category"), str) and bool(item["type_category"]), f"execution.parameter_summary.{key}.type_category required")
-            require(isinstance(item.get("value_category"), str) and bool(item["value_category"]), f"execution.parameter_summary.{key}.value_category required")
+            require(
+                isinstance(item.get("type_category"), str) and bool(item["type_category"]),
+                f"execution.parameter_summary.{key}.type_category required",
+            )
+            require(
+                isinstance(item.get("value_category"), str) and bool(item["value_category"]),
+                f"execution.parameter_summary.{key}.value_category required",
+            )
     return execution
 
 
 def validate_redaction(payload: dict[str, Any]) -> None:
     redaction = require_dict(payload.get("redaction"), "redaction")
     for field in REQUIRED_REDACTION_FALSE_FIELDS:
-        require(require_field(redaction, field, "redaction") is False, f"redaction.{field} must be false")
+        require(
+            require_field(redaction, field, "redaction") is False,
+            f"redaction.{field} must be false",
+        )
 
 
 def validate_boundaries(payload: dict[str, Any]) -> None:
     boundaries = require_dict(payload.get("boundaries"), "boundaries")
-    proves = "\n".join(str(item) for item in require_list(boundaries.get("proves"), "boundaries.proves"))
-    does_not_prove_items = require_list(boundaries.get("does_not_prove"), "boundaries.does_not_prove")
+    proves = "\n".join(
+        str(item) for item in require_list(boundaries.get("proves"), "boundaries.proves")
+    )
+    does_not_prove_items = require_list(
+        boundaries.get("does_not_prove"), "boundaries.does_not_prove"
+    )
     does_not_prove = "\n".join(str(item) for item in does_not_prove_items)
     assert_no_forbidden_text(proves, path="boundaries.proves")
     missing = sorted(item for item in REQUIRED_NON_CLAIMS if item not in does_not_prove)
@@ -325,7 +437,10 @@ def validate_state_semantics(
         fail("validation.accepted requires s03_source.candidate_accepted=true")
 
     if status == "skipped":
-        require(root_cause == "candidate-unavailable", "skipped root_cause must be candidate-unavailable")
+        require(
+            root_cause == "candidate-unavailable",
+            "skipped root_cause must be candidate-unavailable",
+        )
         require(phase == "s03-handoff", "skipped phase must be s03-handoff")
         require(not s03_accepted, "skipped artifact requires unaccepted S03 candidate")
         require(not validation_attempted, "skipped artifact must not attempt validation")
@@ -337,7 +452,9 @@ def validate_state_semantics(
         require(root_cause == "validation-rejected", "validation-rejected root_cause mismatch")
         require(phase == "validation", "validation-rejected phase must be validation")
         require(s03_accepted, "validation rejection requires accepted S03 candidate")
-        require(validation_attempted, "validation-rejected artifact requires validation.attempted=true")
+        require(
+            validation_attempted, "validation-rejected artifact requires validation.attempted=true"
+        )
         require(not validation_accepted, "validation-rejected artifact must not accept validation")
         require(not execution_attempted, "validation-rejected artifact must not execute")
         return
@@ -346,9 +463,13 @@ def validate_state_semantics(
         require(root_cause == "none", "validation-accepted root_cause must be none")
         require(phase == "validation", "validation-accepted phase must be validation")
         require(s03_accepted, "validation acceptance requires accepted S03 candidate")
-        require(validation_attempted, "validation-accepted artifact requires validation.attempted=true")
+        require(
+            validation_attempted, "validation-accepted artifact requires validation.attempted=true"
+        )
         require(validation_accepted, "validation-accepted artifact must accept validation")
-        require(not execution_attempted, "validation-accepted artifact must explicitly skip execution")
+        require(
+            not execution_attempted, "validation-accepted artifact must explicitly skip execution"
+        )
         return
 
     if status == "blocked-environment":
@@ -358,11 +479,16 @@ def validate_state_semantics(
         return
 
     if status == "failed-runtime":
-        require(root_cause in {"execution-timeout", "execution-failed"}, "failed-runtime root_cause mismatch")
+        require(
+            root_cause in {"execution-timeout", "execution-failed"},
+            "failed-runtime root_cause mismatch",
+        )
         require(phase == "execution", "failed-runtime phase must be execution")
         require(validation_accepted, "failed runtime requires accepted validation")
         require(execution_attempted, "failed runtime requires attempted execution")
-        require(execution.get("status") == "failed-runtime", "failed runtime execution.status mismatch")
+        require(
+            execution.get("status") == "failed-runtime", "failed runtime execution.status mismatch"
+        )
         return
 
     require(status == "confirmed-runtime", "unexpected status after category validation")
@@ -371,7 +497,10 @@ def validate_state_semantics(
     require(s03_accepted, "confirmed-runtime requires accepted S03 candidate")
     require(validation_accepted, "confirmed-runtime requires accepted validation")
     require(execution_attempted, "confirmed-runtime requires attempted execution")
-    require(execution.get("status") == "confirmed-runtime", "confirmed-runtime execution.status mismatch")
+    require(
+        execution.get("status") == "confirmed-runtime",
+        "confirmed-runtime execution.status mismatch",
+    )
 
 
 def verify_artifact(path: Path = DEFAULT_ARTIFACT) -> dict[str, Any]:
@@ -415,7 +544,9 @@ def failure_result(error: str) -> dict[str, Any]:
         "verdict": "fail",
         "status": "contract-invalid",
         "root_cause": root_cause,
-        "phase": "artifact-redaction" if root_cause in {"redaction-violation", "boundary-overclaim"} else "contract-readback",
+        "phase": "artifact-redaction"
+        if root_cause in {"redaction-violation", "boundary-overclaim"}
+        else "contract-readback",
         "validation_attempted": None,
         "validation_accepted": None,
         "execution_attempted": None,

@@ -86,12 +86,7 @@ fn mismatched_digest_reuse_is_rejected() {
     assert!(mismatch.commit_id.is_none());
     assert!(!mismatch.has_publication_authority());
     assert_eq!(use_case.committed_count(), 1);
-    assert_eq!(
-        use_case
-            .commit(op.clone(), set, digest)
-            .commit_id,
-        first_id
-    );
+    assert_eq!(use_case.commit(op.clone(), set, digest).commit_id, first_id);
 }
 
 #[test]

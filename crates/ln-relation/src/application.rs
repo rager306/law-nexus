@@ -47,11 +47,7 @@ where
                     object: proposal.object.clone(),
                     owner_family: registered.owner_family,
                 };
-                let key = fact_key(
-                    &fact.predicate_id,
-                    &fact.subject,
-                    &fact.object,
-                );
+                let key = fact_key(&fact.predicate_id, &fact.subject, &fact.object);
                 self.accepted_facts.insert(key, fact.clone());
                 // Best-effort persistence only.
                 let _ = self.registry.try_store_fact(fact);
@@ -67,11 +63,7 @@ where
             ));
         // Query exposure is application-owned, not store-owned.
         let exposed_as_query_fact = stored_as_fact
-            && self.query_has_fact(
-                &proposal.predicate_id,
-                &proposal.subject,
-                &proposal.object,
-            );
+            && self.query_has_fact(&proposal.predicate_id, &proposal.subject, &proposal.object);
 
         let registry_unchanged = self.registry.registered_count() == registered_before
             && self.registry.registered_count() == self.initial_registered_count;

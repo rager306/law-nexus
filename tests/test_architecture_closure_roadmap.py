@@ -14,7 +14,9 @@ CLOSURE_MD_PATH = ROOT / "prd/architecture/closure_roadmap.md"
 
 
 def load_generator() -> ModuleType:
-    spec = importlib.util.spec_from_file_location("generate_architecture_closure_roadmap", SCRIPT_PATH)
+    spec = importlib.util.spec_from_file_location(
+        "generate_architecture_closure_roadmap", SCRIPT_PATH
+    )
     assert spec is not None
     module = importlib.util.module_from_spec(spec)
     assert spec.loader is not None
@@ -73,7 +75,9 @@ def test_closure_preserves_future_track_references_without_retiring_gates() -> N
     assert "TRACK-GENERATED-CYPHER-SAFETY" in tracks
     assert "GATE-GENERATED-CYPHER-SAFETY" in tracks["TRACK-GENERATED-CYPHER-SAFETY"]["gate_ids"]
     assert "TRACK-RETRIEVAL-EMBEDDING-EXPERIMENT" in tracks
-    assert "GATE-EMBEDDING-SUPPLY-CHAIN" in tracks["TRACK-RETRIEVAL-EMBEDDING-EXPERIMENT"]["gate_ids"]
+    assert (
+        "GATE-EMBEDDING-SUPPLY-CHAIN" in tracks["TRACK-RETRIEVAL-EMBEDDING-EXPERIMENT"]["gate_ids"]
+    )
     assert "Track assignment does not retire proof gates." in closure["non_claims"] or any(
         "does not retire" in claim.lower() for claim in closure["non_claims"]
     )
@@ -94,7 +98,10 @@ def test_markdown_contains_closure_statement_recommendations_tracks_and_non_clai
 def test_build_closure_fails_when_recommendation_count_drifts() -> None:
     generator = load_generator()
     matrix = {"recommendation_rows": []}
-    track_split = {"tracks": [{} for _ in range(generator.EXPECTED_TRACK_COUNT)], "summary": {"assigned_gate_count": generator.EXPECTED_ASSIGNED_GATE_COUNT}}
+    track_split = {
+        "tracks": [{} for _ in range(generator.EXPECTED_TRACK_COUNT)],
+        "summary": {"assigned_gate_count": generator.EXPECTED_ASSIGNED_GATE_COUNT},
+    }
 
     try:
         generator.build_closure(matrix, track_split)
@@ -108,11 +115,20 @@ def test_build_closure_fails_when_track_count_drifts() -> None:
     generator = load_generator()
     matrix = {
         "recommendation_rows": [
-            {"id": f"R04-REC-{index:03d}", "status": "defer-s04", "title": "x", "priority": "minor", "next": "x"}
+            {
+                "id": f"R04-REC-{index:03d}",
+                "status": "defer-s04",
+                "title": "x",
+                "priority": "minor",
+                "next": "x",
+            }
             for index in range(1, generator.EXPECTED_RECOMMENDATION_COUNT + 1)
         ]
     }
-    track_split = {"tracks": [], "summary": {"assigned_gate_count": generator.EXPECTED_ASSIGNED_GATE_COUNT}}
+    track_split = {
+        "tracks": [],
+        "summary": {"assigned_gate_count": generator.EXPECTED_ASSIGNED_GATE_COUNT},
+    }
 
     try:
         generator.build_closure(matrix, track_split)
@@ -126,12 +142,29 @@ def test_build_closure_fails_on_unknown_recommendation_status() -> None:
     generator = load_generator()
     matrix = {
         "recommendation_rows": [
-            {"id": f"R04-REC-{index:03d}", "status": "defer-s04", "title": "x", "priority": "minor", "next": "x"}
+            {
+                "id": f"R04-REC-{index:03d}",
+                "status": "defer-s04",
+                "title": "x",
+                "priority": "minor",
+                "next": "x",
+            }
             for index in range(1, generator.EXPECTED_RECOMMENDATION_COUNT)
         ]
-        + [{"id": "R04-REC-999", "status": "unknown-status", "title": "x", "priority": "minor", "next": "x"}]
+        + [
+            {
+                "id": "R04-REC-999",
+                "status": "unknown-status",
+                "title": "x",
+                "priority": "minor",
+                "next": "x",
+            }
+        ]
     }
-    track_split = {"tracks": [{} for _ in range(generator.EXPECTED_TRACK_COUNT)], "summary": {"assigned_gate_count": generator.EXPECTED_ASSIGNED_GATE_COUNT}}
+    track_split = {
+        "tracks": [{} for _ in range(generator.EXPECTED_TRACK_COUNT)],
+        "summary": {"assigned_gate_count": generator.EXPECTED_ASSIGNED_GATE_COUNT},
+    }
 
     try:
         generator.build_closure(matrix, track_split)

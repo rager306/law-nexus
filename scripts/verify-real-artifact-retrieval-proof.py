@@ -41,7 +41,9 @@ def _bounded_path(path: Path) -> str:
     return bounded_path(path, root=ROOT)
 
 
-def _error_summary(*, fixtures: Path, phase: str, code: str, detail: str | None = None) -> dict[str, Any]:
+def _error_summary(
+    *, fixtures: Path, phase: str, code: str, detail: str | None = None
+) -> dict[str, Any]:
     return error_summary(
         fixtures=fixtures,
         root=ROOT,
@@ -56,13 +58,37 @@ def _load_json(path: Path) -> tuple[int, dict[str, Any] | None, dict[str, Any] |
     try:
         data = load_json_object(path)
     except FileNotFoundError as exc:
-        return 2, None, _error_summary(fixtures=path, phase="fixture_load", code="fixture_not_found", detail=str(exc))
+        return (
+            2,
+            None,
+            _error_summary(
+                fixtures=path, phase="fixture_load", code="fixture_not_found", detail=str(exc)
+            ),
+        )
     except json.JSONDecodeError as exc:
-        return 2, None, _error_summary(fixtures=path, phase="fixture_load", code="malformed_fixture_json", detail=exc.msg)
+        return (
+            2,
+            None,
+            _error_summary(
+                fixtures=path, phase="fixture_load", code="malformed_fixture_json", detail=exc.msg
+            ),
+        )
     except ValueError as exc:
-        return 2, None, _error_summary(fixtures=path, phase="fixture_shape", code="malformed_output_shape", detail=str(exc))
+        return (
+            2,
+            None,
+            _error_summary(
+                fixtures=path, phase="fixture_shape", code="malformed_output_shape", detail=str(exc)
+            ),
+        )
     except OSError as exc:
-        return 2, None, _error_summary(fixtures=path, phase="fixture_load", code="fixture_load_error", detail=str(exc))
+        return (
+            2,
+            None,
+            _error_summary(
+                fixtures=path, phase="fixture_load", code="fixture_load_error", detail=str(exc)
+            ),
+        )
     return 0, data, None
 
 
@@ -110,16 +136,37 @@ def _case_mismatch(
     }
 
 
-def _build_validator_fixture(validator: ModuleType, data: Mapping[str, Any], fixtures: Path) -> tuple[int, Any | None, dict[str, Any] | None]:
+def _build_validator_fixture(
+    validator: ModuleType, data: Mapping[str, Any], fixtures: Path
+) -> tuple[int, Any | None, dict[str, Any] | None]:
     graph = data.get("derived_fixture_graph")
     if not isinstance(graph, Mapping):
-        return 2, None, _error_summary(fixtures=fixtures, phase="fixture_shape", code="malformed_output_shape", detail="derived_fixture_graph must be an object")
+        return (
+            2,
+            None,
+            _error_summary(
+                fixtures=fixtures,
+                phase="fixture_shape",
+                code="malformed_output_shape",
+                detail="derived_fixture_graph must be an object",
+            ),
+        )
     try:
         fixture = validator.build_fixture(
-            {"fixture_graph": graph}, fixture_artifact=str(data.get("fixture_artifact") or _bounded_path(fixtures))
+            {"fixture_graph": graph},
+            fixture_artifact=str(data.get("fixture_artifact") or _bounded_path(fixtures)),
         )
     except ValueError as exc:
-        return 2, None, _error_summary(fixtures=fixtures, phase="fixture_shape", code="malformed_output_shape", detail=str(exc))
+        return (
+            2,
+            None,
+            _error_summary(
+                fixtures=fixtures,
+                phase="fixture_shape",
+                code="malformed_output_shape",
+                detail=str(exc),
+            ),
+        )
     return 0, fixture, None
 
 
@@ -139,7 +186,12 @@ def run_proof(fixtures: Path) -> tuple[int, dict[str, Any]]:
 
     cases = data.get("cases")
     if not isinstance(cases, list):
-        return 2, _error_summary(fixtures=fixtures, phase="fixture_shape", code="malformed_output_shape", detail="cases must be a list")
+        return 2, _error_summary(
+            fixtures=fixtures,
+            phase="fixture_shape",
+            code="malformed_output_shape",
+            detail="cases must be a list",
+        )
 
     safe_fields = set(validator.SAFE_DIAGNOSTIC_FIELDS)
     known_codes = set(validator.KNOWN_DIAGNOSTIC_CODES)
@@ -196,7 +248,9 @@ def run_proof(fixtures: Path) -> tuple[int, dict[str, Any]]:
         "rejected_count": rejected_count,
         "mismatch_count": len(mismatches),
         "diagnostic_code_inventory": sorted(diagnostic_inventory),
-        "namespace_strategy": data.get("namespace_strategy", {}).get("status") if isinstance(data.get("namespace_strategy"), Mapping) else None,
+        "namespace_strategy": data.get("namespace_strategy", {}).get("status")
+        if isinstance(data.get("namespace_strategy"), Mapping)
+        else None,
     }
     if mismatches:
         summary["mismatches"] = mismatches
@@ -204,7 +258,9 @@ def run_proof(fixtures: Path) -> tuple[int, dict[str, Any]]:
 
 
 def main(argv: Sequence[str] | None = None) -> int:
-    parser = argparse.ArgumentParser(description="Run the M013 real-artifact retrieval proof against tracked fixtures.")
+    parser = argparse.ArgumentParser(
+        description="Run the M013 real-artifact retrieval proof against tracked fixtures."
+    )
     parser.add_argument(
         "--fixtures",
         type=Path,

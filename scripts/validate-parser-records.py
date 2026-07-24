@@ -138,7 +138,9 @@ def build_example_records(inventory: dict[str, Any]) -> dict[RecordKind, list[di
     consultant = fixtures["law-source/consultant/Список документов (5).xml"]
 
     block_excerpt = "Bounded content.xml excerpt placeholder for parser contract shape only."
-    relation_excerpt = "Bounded Consultant WordML excerpt placeholder for relation-candidate shape only."
+    relation_excerpt = (
+        "Bounded Consultant WordML excerpt placeholder for relation-candidate shape only."
+    )
 
     document_records = [
         {
@@ -223,7 +225,11 @@ def schema_artifacts() -> list[GeneratedArtifact]:
     """Generate deterministic JSON Schema artifacts for parser records."""
 
     schema_inputs: list[tuple[str, Path, dict[str, Any]]] = [
-        ("DocumentRecord", EXPECTED_SCHEMA_FILES["document_record"], DocumentRecord.model_json_schema()),
+        (
+            "DocumentRecord",
+            EXPECTED_SCHEMA_FILES["document_record"],
+            DocumentRecord.model_json_schema(),
+        ),
         (
             "SourceBlockRecord",
             EXPECTED_SCHEMA_FILES["source_block_record"],
@@ -239,7 +245,11 @@ def schema_artifacts() -> list[GeneratedArtifact]:
             EXPECTED_SCHEMA_FILES["relation_candidate_record"],
             RelationCandidateRecord.model_json_schema(),
         ),
-        ("ParserRecord", EXPECTED_SCHEMA_FILES["parser_record"], PARSER_RECORD_ADAPTER.json_schema()),
+        (
+            "ParserRecord",
+            EXPECTED_SCHEMA_FILES["parser_record"],
+            PARSER_RECORD_ADAPTER.json_schema(),
+        ),
     ]
     artifacts: list[GeneratedArtifact] = []
     for kind, path, schema in schema_inputs:
@@ -489,7 +499,9 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
         choices=["document", "source_block", "consultant_hierarchy", "relation_candidate"],
         help="Require every validated record to use this record kind",
     )
-    parser.add_argument("--write", action="store_true", help="Write generated schemas/examples/report")
+    parser.add_argument(
+        "--write", action="store_true", help="Write generated schemas/examples/report"
+    )
     parser.add_argument(
         "--check",
         action="store_true",
@@ -510,7 +522,14 @@ def main(argv: list[str] | None = None) -> int:
             written = write_artifacts(ROOT)
             counts, diagnostics = validate_paths(default_check_paths(ROOT))
             status = "pass" if not diagnostics else "fail"
-            print(compact_json(build_summary(status=status, counts=counts, diagnostics=diagnostics, written=written)), end="")
+            print(
+                compact_json(
+                    build_summary(
+                        status=status, counts=counts, diagnostics=diagnostics, written=written
+                    )
+                ),
+                end="",
+            )
             return 0 if status == "pass" else 1
 
         if args.check:
@@ -521,16 +540,32 @@ def main(argv: list[str] | None = None) -> int:
             counts, record_diagnostics = validate_paths(paths, expected_kind=args.kind)
             diagnostics = artifact_diagnostics + record_diagnostics
             status = "pass" if not diagnostics else "fail"
-            print(compact_json(build_summary(status=status, counts=counts, artifact_status=artifact_status, diagnostics=diagnostics)), end="")
+            print(
+                compact_json(
+                    build_summary(
+                        status=status,
+                        counts=counts,
+                        artifact_status=artifact_status,
+                        diagnostics=diagnostics,
+                    )
+                ),
+                end="",
+            )
             return 0 if status == "pass" else 1
 
         paths = [path if path.is_absolute() else ROOT / path for path in args.files]
         if not paths:
-            print("at least one JSONL file is required unless --write or --check is used", file=sys.stderr)
+            print(
+                "at least one JSONL file is required unless --write or --check is used",
+                file=sys.stderr,
+            )
             return 2
         counts, diagnostics = validate_paths(paths, expected_kind=args.kind)
         status = "pass" if not diagnostics else "fail"
-        print(compact_json(build_summary(status=status, counts=counts, diagnostics=diagnostics)), end="")
+        print(
+            compact_json(build_summary(status=status, counts=counts, diagnostics=diagnostics)),
+            end="",
+        )
         return 0 if status == "pass" else 1
     except Exception as exc:  # noqa: BLE001 - CLI must surface model/generation errors loudly.
         summary = build_summary(

@@ -46,7 +46,9 @@ def build_parser() -> argparse.ArgumentParser:
     register.add_argument("manifest", type=Path, help="Path to batch.manifest.json.")
     register.set_defaults(handler=run_register)
 
-    classify = subparsers.add_parser("classify", help="Classify registered or provided XML artifacts.")
+    classify = subparsers.add_parser(
+        "classify", help="Classify registered or provided XML artifacts."
+    )
     classify.add_argument("manifest", type=Path, help="Path to batch.manifest.json.")
     classify.set_defaults(handler=run_classify)
 
@@ -65,7 +67,9 @@ def build_parser() -> argparse.ArgumentParser:
     review_pack.add_argument("run_id", nargs="?", help="Run id; defaults to latest run.")
     review_pack.set_defaults(handler=run_review_pack)
 
-    discover = subparsers.add_parser("discover", help="Run a non-authoritative MiniMax discovery attempt.")
+    discover = subparsers.add_parser(
+        "discover", help="Run a non-authoritative MiniMax discovery attempt."
+    )
     discover.add_argument("--run-id", help="Optional safe RUN- id for this discovery attempt.")
     discover.add_argument(
         "--source-ref",
@@ -84,8 +88,16 @@ def build_parser() -> argparse.ArgumentParser:
         default="https://api.minimax.io/v1/chat/completions",
         help="MiniMax OpenAI-compatible chat-completions endpoint.",
     )
-    discover.add_argument("--api-key-env", default="MINIMAX_API_KEY", help="Environment variable containing the MiniMax API key.")
-    discover.add_argument("--mock-response", type=Path, help="JSON file with response_summary/content/message for tests.")
+    discover.add_argument(
+        "--api-key-env",
+        default="MINIMAX_API_KEY",
+        help="Environment variable containing the MiniMax API key.",
+    )
+    discover.add_argument(
+        "--mock-response",
+        type=Path,
+        help="JSON file with response_summary/content/message for tests.",
+    )
     discover.add_argument(
         "--verify-candidates",
         action="store_true",

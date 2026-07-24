@@ -151,8 +151,12 @@ def assert_no_unsafe_fields(value: Any, *, path: str = "payload") -> None:
             key = str(raw_key)
             normalized = key.lower().replace("-", "_")
             if normalized == "request_body":
-                require(item == "<omitted-request-body>", "request_body must be omitted, not persisted")
-            elif path != "payload.safety" and any(part in normalized for part in FORBIDDEN_FIELD_PARTS):
+                require(
+                    item == "<omitted-request-body>", "request_body must be omitted, not persisted"
+                )
+            elif path != "payload.safety" and any(
+                part in normalized for part in FORBIDDEN_FIELD_PARTS
+            ):
                 fail(f"redaction violation: unsafe field persisted at {path}.{key}")
             assert_no_unsafe_fields(item, path=f"{path}.{key}")
     elif isinstance(value, list):
@@ -164,12 +168,23 @@ def validate_contract(payload: dict[str, Any]) -> None:
     require(payload.get("schema_version") == SCHEMA_VERSION, "schema_version mismatch")
     status = payload.get("status")
     root_cause = payload.get("root_cause")
-    require(isinstance(status, str) and status in STATUS_CATEGORIES, "status must be a known category")
-    require(root_cause is None or root_cause in ROOT_CAUSE_CATEGORIES, "root_cause must be null or a known category")
+    require(
+        isinstance(status, str) and status in STATUS_CATEGORIES, "status must be a known category"
+    )
+    require(
+        root_cause is None or root_cause in ROOT_CAUSE_CATEGORIES,
+        "root_cause must be null or a known category",
+    )
 
     endpoint = require_dict(payload.get("endpoint"), "endpoint")
-    require(endpoint.get("base_url_input") == DEFAULT_BASE_URL, "endpoint.base_url_input must preserve https://api.minimax.io/v1")
-    require(endpoint.get("effective_url") == EXPECTED_EFFECTIVE_URL, "endpoint.effective_url must be /v1/chat/completions")
+    require(
+        endpoint.get("base_url_input") == DEFAULT_BASE_URL,
+        "endpoint.base_url_input must preserve https://api.minimax.io/v1",
+    )
+    require(
+        endpoint.get("effective_url") == EXPECTED_EFFECTIVE_URL,
+        "endpoint.effective_url must be /v1/chat/completions",
+    )
     require(endpoint.get("preserves_v1") is True, "endpoint.preserves_v1 must be true")
     require(payload.get("model") == DEFAULT_MODEL, "model mismatch")
 
@@ -178,15 +193,27 @@ def validate_contract(payload: dict[str, Any]) -> None:
         request_contract.get("reasoning_split_requested") is True,
         "request_contract.reasoning_split_requested must be true",
     )
-    require(request_contract.get("stream_requested") is False, "request_contract.stream_requested must be false")
-    require(request_contract.get("user_message_persisted") is False, "request_contract.user_message_persisted must be false")
+    require(
+        request_contract.get("stream_requested") is False,
+        "request_contract.stream_requested must be false",
+    )
+    require(
+        request_contract.get("user_message_persisted") is False,
+        "request_contract.user_message_persisted must be false",
+    )
 
     provider_attempts = payload.get("provider_attempts")
-    require(isinstance(provider_attempts, int) and provider_attempts >= 0, "provider_attempts must be a non-negative integer")
+    require(
+        isinstance(provider_attempts, int) and provider_attempts >= 0,
+        "provider_attempts must be a non-negative integer",
+    )
 
     provider_diagnostics = require_dict(payload.get("provider_diagnostics"), "provider_diagnostics")
     require("category" in provider_diagnostics, "provider_diagnostics.category is required")
-    require("http_status_class" in provider_diagnostics, "provider_diagnostics.http_status_class is required")
+    require(
+        "http_status_class" in provider_diagnostics,
+        "provider_diagnostics.http_status_class is required",
+    )
 
     response_shape = require_dict(payload.get("response_shape"), "response_shape")
     for field, expected_type in RESPONSE_SHAPE_FIELDS.items():
@@ -196,16 +223,27 @@ def validate_contract(payload: dict[str, Any]) -> None:
             f"response_shape.{field} must be {_type_name(expected_type)}",
         )
     require(response_shape["choice_count"] >= 0, "response_shape.choice_count must be non-negative")
-    require(response_shape["reasoning_details_count"] >= 0, "response_shape.reasoning_details_count must be non-negative")
+    require(
+        response_shape["reasoning_details_count"] >= 0,
+        "response_shape.reasoning_details_count must be non-negative",
+    )
 
     safety = require_dict(payload.get("safety"), "safety")
     for field in REQUIRED_SAFETY_FALSE_FIELDS:
         require(safety.get(field) is False, f"safety.{field} must be false")
 
     boundaries = require_dict(payload.get("boundaries"), "boundaries")
-    does_not_prove = "\n".join(str(item) for item in require_list(boundaries.get("does_not_prove"), "boundaries.does_not_prove"))
-    missing_non_claims = sorted(phrase for phrase in REQUIRED_NON_CLAIM_PHRASES if phrase not in does_not_prove)
-    require(not missing_non_claims, "boundaries.does_not_prove missing: " + ", ".join(missing_non_claims))
+    does_not_prove = "\n".join(
+        str(item)
+        for item in require_list(boundaries.get("does_not_prove"), "boundaries.does_not_prove")
+    )
+    missing_non_claims = sorted(
+        phrase for phrase in REQUIRED_NON_CLAIM_PHRASES if phrase not in does_not_prove
+    )
+    require(
+        not missing_non_claims,
+        "boundaries.does_not_prove missing: " + ", ".join(missing_non_claims),
+    )
 
 
 def validate_status_semantics(payload: dict[str, Any]) -> None:
@@ -217,23 +255,46 @@ def validate_status_semantics(payload: dict[str, Any]) -> None:
     if status == "confirmed-runtime":
         require(root_cause is None, "confirmed-runtime root_cause must be null")
         require(provider_attempts >= 1, "confirmed-runtime requires provider_attempts >= 1")
-        require(response_shape["status"] == "confirmed-runtime", "confirmed-runtime response_shape.status mismatch")
+        require(
+            response_shape["status"] == "confirmed-runtime",
+            "confirmed-runtime response_shape.status mismatch",
+        )
         require(response_shape["has_choices"] is True, "confirmed-runtime requires choices")
         require(response_shape["choice_count"] >= 1, "confirmed-runtime requires choice_count >= 1")
         require(response_shape["has_message"] is True, "confirmed-runtime requires message")
-        require(response_shape["has_content"] is True, "confirmed-runtime requires candidate-like content")
-        require(response_shape["content_kind"] == "cypher_like", "confirmed-runtime requires cypher_like content")
-        require(response_shape["candidate_prefix"] in {"MATCH", "CALL"}, "confirmed-runtime requires MATCH or CALL prefix")
-        require(response_shape["has_think_tag"] is False, "confirmed-runtime must not contain think-tag contamination")
-        require(response_shape["root_cause"] is None, "confirmed-runtime response_shape.root_cause must be null")
+        require(
+            response_shape["has_content"] is True,
+            "confirmed-runtime requires candidate-like content",
+        )
+        require(
+            response_shape["content_kind"] == "cypher_like",
+            "confirmed-runtime requires cypher_like content",
+        )
+        require(
+            response_shape["candidate_prefix"] in {"MATCH", "CALL"},
+            "confirmed-runtime requires MATCH or CALL prefix",
+        )
+        require(
+            response_shape["has_think_tag"] is False,
+            "confirmed-runtime must not contain think-tag contamination",
+        )
+        require(
+            response_shape["root_cause"] is None,
+            "confirmed-runtime response_shape.root_cause must be null",
+        )
         return
 
     require(root_cause in ROOT_CAUSE_CATEGORIES, f"{status} requires a categorical root_cause")
     if status in {"blocked-credential", "blocked-environment", "not-run-local-only"}:
         require(provider_attempts == 0, f"{status} must not claim provider attempts")
     if status == "failed-runtime":
-        require(provider_attempts >= 1, "failed-runtime must represent at least one provider attempt")
-        require(response_shape["status"] in {"failed-runtime", status}, "failed-runtime response_shape.status mismatch")
+        require(
+            provider_attempts >= 1, "failed-runtime must represent at least one provider attempt"
+        )
+        require(
+            response_shape["status"] in {"failed-runtime", status},
+            "failed-runtime response_shape.status mismatch",
+        )
 
 
 def validate_markdown(payload: dict[str, Any], markdown: str) -> None:
@@ -242,7 +303,9 @@ def validate_markdown(payload: dict[str, Any], markdown: str) -> None:
     require(EXPECTED_EFFECTIVE_URL in markdown, "Markdown missing effective URL")
     for non_claim in REQUIRED_NON_CLAIM_PHRASES:
         require(non_claim in markdown, f"Markdown missing boundary non-claim: {non_claim}")
-    require("Raw body persisted: `False`" in markdown, "Markdown must expose raw_body_persisted=false")
+    require(
+        "Raw body persisted: `False`" in markdown, "Markdown must expose raw_body_persisted=false"
+    )
 
 
 def verify_artifacts(artifact_dir: Path = DEFAULT_ARTIFACT_DIR) -> dict[str, Any]:

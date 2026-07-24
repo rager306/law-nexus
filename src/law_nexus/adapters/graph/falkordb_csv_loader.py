@@ -55,7 +55,9 @@ class FalkorCsvIngestRequest:
     container_import_dir: str = CONTAINER_IMPORT_DIR
 
     @classmethod
-    def from_args(cls, args: Any, *, source_units_path: str, source_edges_path: str) -> "FalkorCsvIngestRequest":  # noqa: ANN401 - CLI args are argparse-like.
+    def from_args(
+        cls, args: Any, *, source_units_path: str, source_edges_path: str
+    ) -> "FalkorCsvIngestRequest":  # noqa: ANN401 - CLI args are argparse-like.
         """Create request metadata from argparse-like CLI args."""
 
         return cls(
@@ -92,7 +94,9 @@ def read_csv_rows(path: str | Path) -> list[dict[str, str]]:
         return list(csv.DictReader(handle))
 
 
-def expected_counts_from_rows(units: Sequence[Mapping[str, str]], edges: Sequence[Mapping[str, str]]) -> dict[str, int]:
+def expected_counts_from_rows(
+    units: Sequence[Mapping[str, str]], edges: Sequence[Mapping[str, str]]
+) -> dict[str, int]:
     """Return the bounded source/expected graph counts for proof fixtures."""
 
     return {
@@ -100,12 +104,20 @@ def expected_counts_from_rows(units: Sequence[Mapping[str, str]], edges: Sequenc
         "expected_source_relationship_rows": len(edges),
         "expected_node_count": len(units),
         "expected_relationship_count": len(edges),
-        "expected_current_nodes": sum(1 for row in units if row.get("temporal_status") == "current"),
-        "expected_inactive_nodes": sum(1 for row in units if row.get("temporal_status") == "inactive"),
+        "expected_current_nodes": sum(
+            1 for row in units if row.get("temporal_status") == "current"
+        ),
+        "expected_inactive_nodes": sum(
+            1 for row in units if row.get("temporal_status") == "inactive"
+        ),
     }
 
 
-def build_load_csv_query_plan(*, node_csv_uri: str = "file:///legal_units.csv", edge_csv_uri: str = "file:///legal_unit_edges.csv") -> LoadCsvQueryPlan:
+def build_load_csv_query_plan(
+    *,
+    node_csv_uri: str = "file:///legal_units.csv",
+    edge_csv_uri: str = "file:///legal_unit_edges.csv",
+) -> LoadCsvQueryPlan:
     """Return the deterministic LOAD CSV MERGE proof query plan.
 
     The plan uses container import URIs only. It is metadata for proof execution;

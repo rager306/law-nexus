@@ -20,8 +20,12 @@ from typing import Any, Iterable, Literal
 
 ROOT = Path(__file__).resolve().parents[1]
 AUDIT_PATH = ROOT / "prd/research/ontology_architecture_requirements/06-r035-evidence-audit.md"
-CONTRACT_PATH = ROOT / "prd/research/ontology_architecture_requirements/07-gsd-sync-drift-contract.md"
-INTEGRATION_PLAN_PATH = ROOT / "prd/research/ontology_architecture_requirements/05-registry-integration-plan.md"
+CONTRACT_PATH = (
+    ROOT / "prd/research/ontology_architecture_requirements/07-gsd-sync-drift-contract.md"
+)
+INTEGRATION_PLAN_PATH = (
+    ROOT / "prd/research/ontology_architecture_requirements/05-registry-integration-plan.md"
+)
 ARCHITECTURE_ITEMS_PATH = ROOT / "prd/architecture/architecture_items.jsonl"
 CLAIMS_LEDGER_PATH = ROOT / "prd/architecture/claims_ledger.md"
 VERIFIER_PATH = ROOT / "scripts/verify-architecture-graph.py"
@@ -98,7 +102,9 @@ def load_jsonl_records(path: Path) -> dict[str, dict[str, Any]]:
         try:
             record = json.loads(line)
         except json.JSONDecodeError as exc:
-            raise SystemExit(f"malformed JSONL in {display_path(path)}:{line_number}: {exc}") from exc
+            raise SystemExit(
+                f"malformed JSONL in {display_path(path)}:{line_number}: {exc}"
+            ) from exc
         record_id = record.get("id")
         if isinstance(record_id, str) and record_id:
             records[record_id] = record
@@ -117,20 +123,28 @@ def has_alias_reconciliation_evidence(record: dict[str, Any] | None, planning_al
     if isinstance(tags, list) and alias_tag in tags:
         return True
     non_claims = record.get("non_claims")
-    if isinstance(non_claims, list) and any(planning_alias in str(non_claim) for non_claim in non_claims):
+    if isinstance(non_claims, list) and any(
+        planning_alias in str(non_claim) for non_claim in non_claims
+    ):
         return True
     return False
 
 
-def unresolved_candidate_ids(registry_records: dict[str, dict[str, Any]]) -> tuple[list[str], list[str]]:
+def unresolved_candidate_ids(
+    registry_records: dict[str, dict[str, Any]],
+) -> tuple[list[str], list[str]]:
     missing_candidates: list[str] = []
     missing_alias_evidence: list[str] = []
     for candidate_id in PLANNED_R035_CANDIDATE_IDS:
         canonical_id = CANONICAL_R035_CANDIDATE_ID_BY_ALIAS.get(candidate_id, candidate_id)
         record = registry_records.get(canonical_id)
         if record is None:
-            missing_candidates.append(candidate_id if canonical_id == candidate_id else f"{candidate_id}->{canonical_id}")
-        elif canonical_id != candidate_id and not has_alias_reconciliation_evidence(record, candidate_id):
+            missing_candidates.append(
+                candidate_id if canonical_id == candidate_id else f"{candidate_id}->{canonical_id}"
+            )
+        elif canonical_id != candidate_id and not has_alias_reconciliation_evidence(
+            record, candidate_id
+        ):
             missing_alias_evidence.append(f"{candidate_id}->{canonical_id}")
     return missing_candidates, missing_alias_evidence
 
@@ -138,7 +152,11 @@ def unresolved_candidate_ids(registry_records: dict[str, dict[str, Any]]) -> tup
 def extract_required_gate_ids_from_verifier(verifier_text: str) -> set[str]:
     """Extract gate IDs from ONTOLOGY_PROMOTION_RULES without importing the verifier."""
 
-    match = re.search(r"ONTOLOGY_PROMOTION_RULES:\s*tuple\[dict\[str, Any\], \.\.\.\]\s*=\s*(\(.*?\n\))\n\n", verifier_text, re.DOTALL)
+    match = re.search(
+        r"ONTOLOGY_PROMOTION_RULES:\s*tuple\[dict\[str, Any\], \.\.\.\]\s*=\s*(\(.*?\n\))\n\n",
+        verifier_text,
+        re.DOTALL,
+    )
     if not match:
         return set(re.findall(r'"(GATE-[A-Z0-9-]+)"', verifier_text))
     try:
@@ -157,14 +175,24 @@ def extract_required_gate_ids_from_verifier(verifier_text: str) -> set[str]:
 
 
 def r035_gate_status_section(claims_ledger_text: str) -> str:
-    match = re.search(r"^## R035 Gate Status\n(?P<section>.*?)(?=^##\s|\Z)", claims_ledger_text, re.DOTALL | re.MULTILINE)
+    match = re.search(
+        r"^## R035 Gate Status\n(?P<section>.*?)(?=^##\s|\Z)",
+        claims_ledger_text,
+        re.DOTALL | re.MULTILINE,
+    )
     return match.group("section") if match else ""
 
 
 def unsafe_lifecycle_lines(paths_and_text: Iterable[tuple[Path, str]]) -> list[str]:
     unsafe_patterns = (
-        re.compile(r"\bR035\b[^\n]*(?:validated|closed|satisfied)[^\n]*(?:because|from|by|after|due to)[^\n]*(?:M017|M018|milestone completion|completed milestone)", re.IGNORECASE),
-        re.compile(r"(?:M017|M018|milestone completion|completed milestone)[^\n]*(?:validates|validated|closes|closed|satisfies|satisfied)[^\n]*\bR035\b", re.IGNORECASE),
+        re.compile(
+            r"\bR035\b[^\n]*(?:validated|closed|satisfied)[^\n]*(?:because|from|by|after|due to)[^\n]*(?:M017|M018|milestone completion|completed milestone)",
+            re.IGNORECASE,
+        ),
+        re.compile(
+            r"(?:M017|M018|milestone completion|completed milestone)[^\n]*(?:validates|validated|closes|closed|satisfies|satisfied)[^\n]*\bR035\b",
+            re.IGNORECASE,
+        ),
     )
     safe_markers = (
         "does not claim",
@@ -237,10 +265,13 @@ def build_diagnostics() -> list[DiagnosticResult]:
     gate_view_missing = [
         candidate_id
         for candidate_id in PLANNED_R035_CANDIDATE_IDS
-        if CANONICAL_R035_CANDIDATE_ID_BY_ALIAS.get(candidate_id, candidate_id) not in gate_status_section
+        if CANONICAL_R035_CANDIDATE_ID_BY_ALIAS.get(candidate_id, candidate_id)
+        not in gate_status_section
     ]
     r035_verifier_gate_ids = verifier_gate_ids.intersection(PLANNED_R035_CANONICAL_CANDIDATE_IDS)
-    missing_verifier_gates = sorted(gate_id for gate_id in r035_verifier_gate_ids if gate_id not in registry_ids)
+    missing_verifier_gates = sorted(
+        gate_id for gate_id in r035_verifier_gate_ids if gate_id not in registry_ids
+    )
     drift_pairs = [
         f"{planned} vs {policy}"
         for planned, policy in KNOWN_GATE_ID_DRIFT_PAIRS
@@ -260,8 +291,14 @@ def build_diagnostics() -> list[DiagnosticResult]:
     )
 
     audit_says_active = bool(re.search(r"R035 remains \*\*Active / not validated\*\*", audit_text))
-    audit_says_completed_prior_milestones = "M017 and M018" in audit_text and "do **not** prove" in audit_text
-    explicit_followup_owner = bool(re.search(r"R035[^\n]*(?:owned by|owner:)\s*(?:M019|S03|in-progress)", audit_text, re.IGNORECASE))
+    audit_says_completed_prior_milestones = (
+        "M017 and M018" in audit_text and "do **not** prove" in audit_text
+    )
+    explicit_followup_owner = bool(
+        re.search(
+            r"R035[^\n]*(?:owned by|owner:)\s*(?:M019|S03|in-progress)", audit_text, re.IGNORECASE
+        )
+    )
     active_owner_observed = (
         "audit states R035 remains Active/not validated while M017/M018 completion is non-validation evidence; explicit in-progress owner marker found"
         if explicit_followup_owner
@@ -271,7 +308,9 @@ def build_diagnostics() -> list[DiagnosticResult]:
     return [
         make_result(
             "DRIFT-R035-ACTIVE-UNOWNED",
-            audit_says_active and audit_says_completed_prior_milestones and not explicit_followup_owner,
+            audit_says_active
+            and audit_says_completed_prior_milestones
+            and not explicit_followup_owner,
             AUDIT_PATH,
             "GSD planning / requirement lifecycle owner",
             "Assign explicit in-progress milestone/follow-up ownership or keep this drift visible until lifecycle state is reconciled.",
@@ -363,8 +402,12 @@ def build_diagnostics() -> list[DiagnosticResult]:
 def emit_text(diagnostics: list[DiagnosticResult]) -> None:
     failed_count = sum(1 for diagnostic in diagnostics if diagnostic.failed)
     print("GSD sync drift check: R035 active/unmapped contradiction class")
-    print(f"status={'DRIFT' if failed_count else 'OK'} diagnostics={len(diagnostics)} failed={failed_count}")
-    print("non_claim=This check does not validate, synchronize, repair, or update R035 lifecycle state.")
+    print(
+        f"status={'DRIFT' if failed_count else 'OK'} diagnostics={len(diagnostics)} failed={failed_count}"
+    )
+    print(
+        "non_claim=This check does not validate, synchronize, repair, or update R035 lifecycle state."
+    )
     for diagnostic in diagnostics:
         print(
             f"{diagnostic.diagnostic_id} status={diagnostic.status} severity={diagnostic.severity} "
@@ -387,7 +430,9 @@ def emit_json(diagnostics: list[DiagnosticResult]) -> None:
 
 
 def parse_args(argv: list[str]) -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description="Detect R035 GSD sync drift without changing requirement state.")
+    parser = argparse.ArgumentParser(
+        description="Detect R035 GSD sync drift without changing requirement state."
+    )
     parser.add_argument("--format", choices=("text", "json"), default="text", help="Output format.")
     parser.add_argument(
         "--strict-exit-code",
@@ -404,7 +449,9 @@ def main(argv: list[str] | None = None) -> int:
         emit_json(diagnostics)
     else:
         emit_text(diagnostics)
-    return 1 if args.strict_exit_code and any(diagnostic.failed for diagnostic in diagnostics) else 0
+    return (
+        1 if args.strict_exit_code and any(diagnostic.failed for diagnostic in diagnostics) else 0
+    )
 
 
 if __name__ == "__main__":

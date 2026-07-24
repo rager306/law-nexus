@@ -171,7 +171,10 @@ def test_r035_m020_validation_coverage_keeps_s01_s02_as_historical_handoff_only(
     assert "S01 remains proof-contract and source-inventory evidence" in text
     assert "S02 remains proof-local fixture and source-preparation evidence" in text
     assert "Neither S01 nor S02 becomes legal-answer validation" in text
-    assert "source inventory, proof contract, fixture preparation, and safe evidence identifier handling" in text
+    assert (
+        "source inventory, proof contract, fixture preparation, and safe evidence identifier handling"
+        in text
+    )
     assert "must not be cited as proof that R035 is broadly validated" in text
 
 
@@ -189,7 +192,9 @@ def test_r035_m020_validation_coverage_keeps_runtime_rescope_non_validating() ->
     assert "It does not close that gate" in text
 
 
-def test_r035_m020_validation_coverage_records_s10_bounded_runtime_outcome_without_scope_widening() -> None:
+def test_r035_m020_validation_coverage_records_s10_bounded_runtime_outcome_without_scope_widening() -> (
+    None
+):
     text = read_text(VALIDATION_COVERAGE_PATH)
     proof = json.loads(read_text(RUNTIME_PROOF_PATH))
 
@@ -331,9 +336,17 @@ def test_r035_lifecycle_recommendation_documents_runtime_prerequisite_boundary()
     assert "`confirmed_runtime` or explicit blocked prerequisite diagnostic" in text
     assert "Bounded prerequisite diagnostic only" in text
     assert "does not validate R035" in text
-    assert "`confirmed-runtime` bounded synthetic runtime proof or explicit blocked prerequisite diagnostic" in text
-    assert "blocked/unavailable status is not negative R035 evidence and not R035 validation" in text
-    assert "must not persist secrets, provider payloads, raw legal text, raw queries, raw vectors" in text
+    assert (
+        "`confirmed-runtime` bounded synthetic runtime proof or explicit blocked prerequisite diagnostic"
+        in text
+    )
+    assert (
+        "blocked/unavailable status is not negative R035 evidence and not R035 validation" in text
+    )
+    assert (
+        "must not persist secrets, provider payloads, raw legal text, raw queries, raw vectors"
+        in text
+    )
     assert "ontology_graphrag_runtime_integration_proof.json" in text
     assert "13-r035-runtime-integration-remediation.md" in text
     assert "bounded runtime remediation or blocked prerequisite diagnostics only" in text
@@ -367,7 +380,10 @@ def test_r035_evidence_audit_points_to_s07_runtime_remediation_without_broad_val
     text = read_audit()
 
     assert "M020/S07-S08 runtime remediation update" in text
-    assert "graph-route, local/open-weight embedding candidate ranking, deterministic evidence-ID, stale-evidence diagnostics" in text
+    assert (
+        "graph-route, local/open-weight embedding candidate ranking, deterministic evidence-ID, stale-evidence diagnostics"
+        in text
+    )
     assert "13-r035-runtime-integration-remediation.md" in text
     assert "ontology_graphrag_runtime_integration_proof.json" in text
     assert "bounded runtime remediation or prerequisite diagnostics only" in text
@@ -380,7 +396,10 @@ def test_claims_ledger_r035_status_is_synchronization_only_not_runtime_validatio
     claims_ledger = read_text(CLAIMS_LEDGER_PATH)
 
     assert "registry/view synchronization-only guardrails" in claims_ledger
-    assert "not standard, runtime, product behavior, retrieval quality, FalkorDB runtime, or R035 validation" in claims_ledger
+    assert (
+        "not standard, runtime, product behavior, retrieval quality, FalkorDB runtime, or R035 validation"
+        in claims_ledger
+    )
     assert "do not validate the referenced standard or product behavior" not in claims_ledger
 
 

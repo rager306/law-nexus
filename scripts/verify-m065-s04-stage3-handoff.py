@@ -80,6 +80,7 @@ REQUIRED_PROOF_ANCHOR_PATHS: tuple[str, ...] = (
 # landed because the installed hook found git-lex on cold PATH).
 MEM549_MARKER = "auto_commit_landed"
 
+
 # Corpus scanned for forbidden overclaim: the handoff document (the artifact
 # this verifier governs) + this verifier's own source (self-policing). The
 # verifier source is written so the affirmative-verb patterns below never
@@ -87,6 +88,7 @@ MEM549_MARKER = "auto_commit_landed"
 # non-adjacent).
 def _overclaim_scan_files(handoff: Path = DEFAULT_HANDOFF) -> tuple[Path, ...]:
     return (handoff, VERIFIER_SOURCE)
+
 
 # Overclaim detection — IDENTICAL design to T01 (Stage-2 closure). Patterns
 # require an AFFIRMATIVE validation VERB *adjacent* to an R035/R037/R038 token
@@ -124,7 +126,9 @@ class Diagnostic:
     text: str
 
 
-def _diagnostic(diagnostic_id: str, path: Path | str, line_no: int, message: str, text: str = "") -> Diagnostic:
+def _diagnostic(
+    diagnostic_id: str, path: Path | str, line_no: int, message: str, text: str = ""
+) -> Diagnostic:
     try:
         rel = str(Path(path).relative_to(ROOT))
     except (ValueError, TypeError):
@@ -158,10 +162,14 @@ def check_sections(text: str, source: Path = DEFAULT_HANDOFF) -> list[Diagnostic
     diagnostics: list[Diagnostic] = []
     for header in EXPECTED_SECTIONS:
         if header not in text:
-            diagnostics.append(_diagnostic(
-                "missing_section", source, 0,
-                f"required section header missing: {header!r}",
-            ))
+            diagnostics.append(
+                _diagnostic(
+                    "missing_section",
+                    source,
+                    0,
+                    f"required section header missing: {header!r}",
+                )
+            )
     return diagnostics
 
 
@@ -171,10 +179,14 @@ def check_boundary_markers(text: str, source: Path = DEFAULT_HANDOFF) -> list[Di
     for label, alternatives in REQUIRED_BOUNDARY_MARKERS:
         if any(alt in text for alt in alternatives):
             continue
-        diagnostics.append(_diagnostic(
-            "missing_boundary_marker", source, 0,
-            f"contract-critical boundary marker missing: {label!r}",
-        ))
+        diagnostics.append(
+            _diagnostic(
+                "missing_boundary_marker",
+                source,
+                0,
+                f"contract-critical boundary marker missing: {label!r}",
+            )
+        )
     return diagnostics
 
 
@@ -183,24 +195,34 @@ def check_proof_anchors(text: str, source: Path = DEFAULT_HANDOFF) -> list[Diagn
     diagnostics: list[Diagnostic] = []
     for anchor in REQUIRED_PROOF_ANCHOR_PATHS:
         if anchor not in text:
-            diagnostics.append(_diagnostic(
-                "missing_proof_anchor", source, 0,
-                f"proof-anchor path not referenced in handoff: {anchor!r}",
-            ))
+            diagnostics.append(
+                _diagnostic(
+                    "missing_proof_anchor",
+                    source,
+                    0,
+                    f"proof-anchor path not referenced in handoff: {anchor!r}",
+                )
+            )
     return diagnostics
 
 
 def check_mem549_marker(text: str, source: Path = DEFAULT_HANDOFF) -> list[Diagnostic]:
     """Assert the MEM549-inversion marker is present as a substring."""
     if MEM549_MARKER not in text:
-        return [_diagnostic(
-            "missing_mem549_marker", source, 0,
-            f"MEM549-inversion marker missing: {MEM549_MARKER!r}",
-        )]
+        return [
+            _diagnostic(
+                "missing_mem549_marker",
+                source,
+                0,
+                f"MEM549-inversion marker missing: {MEM549_MARKER!r}",
+            )
+        ]
     return []
 
 
-def scan_overclaim(files: tuple[Path, ...] | None = None) -> tuple[dict[str, Any], list[Diagnostic]]:
+def scan_overclaim(
+    files: tuple[Path, ...] | None = None,
+) -> tuple[dict[str, Any], list[Diagnostic]]:
     """Scan the corpus for affirmative R035/R037/R038 validation overclaim.
 
     Returns (summary, diagnostics). The summary records status, hit count, and
@@ -219,11 +241,15 @@ def scan_overclaim(files: tuple[Path, ...] | None = None) -> tuple[dict[str, Any
                     continue
                 total_hits += 1
                 line_no = text.count("\n", 0, match.start()) + 1
-                diagnostics.append(_diagnostic(
-                    "overclaim_detected", path, line_no,
-                    f"affirmative R035/R037/R038 validation overclaim ({name}): {match.group(0)!r}",
-                    match.group(0),
-                ))
+                diagnostics.append(
+                    _diagnostic(
+                        "overclaim_detected",
+                        path,
+                        line_no,
+                        f"affirmative R035/R037/R038 validation overclaim ({name}): {match.group(0)!r}",
+                        match.group(0),
+                    )
+                )
     summary: dict[str, Any] = {
         "status": "clean" if not diagnostics else "overclaim_detected",
         "hits": total_hits,
@@ -266,11 +292,15 @@ def _format_diagnostic(diagnostic: Diagnostic) -> str:
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(
         description="Verify M065 S04 Stage 3 handoff document: required sections, "
-                    "boundary markers, proof-anchor references, MEM549-inversion marker, "
-                    "and zero R035/R037/R038 overclaim. Inspection only; stdlib only, no subprocess.",
+        "boundary markers, proof-anchor references, MEM549-inversion marker, "
+        "and zero R035/R037/R038 overclaim. Inspection only; stdlib only, no subprocess.",
     )
-    parser.add_argument("--handoff", type=Path, default=DEFAULT_HANDOFF,
-                        help="tracked Stage 3 handoff document path")
+    parser.add_argument(
+        "--handoff",
+        type=Path,
+        default=DEFAULT_HANDOFF,
+        help="tracked Stage 3 handoff document path",
+    )
     args = parser.parse_args(argv)
 
     handoff_ok, diagnostics, summary = verify(args.handoff)

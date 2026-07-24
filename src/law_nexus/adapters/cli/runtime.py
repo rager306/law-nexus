@@ -34,7 +34,9 @@ class CliRuntimeError(RuntimeError):
         self.failure_class = failure_class
 
 
-def repo_relative_path(path: Path, *, root: Path, outside_project: str = "<outside-project>") -> str:
+def repo_relative_path(
+    path: Path, *, root: Path, outside_project: str = "<outside-project>"
+) -> str:
     """Return a repo-relative POSIX path or an outside-project sentinel."""
 
     resolved = path.resolve()

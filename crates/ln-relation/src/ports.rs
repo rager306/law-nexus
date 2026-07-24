@@ -1,6 +1,4 @@
-use crate::domain::{
-    PredicateId, RegisteredPredicate, RegistryVersion, RelationFact,
-};
+use crate::domain::{PredicateId, RegisteredPredicate, RegistryVersion, RelationFact};
 
 pub trait RelationRegistryPort {
     fn registry_version(&self) -> RegistryVersion;

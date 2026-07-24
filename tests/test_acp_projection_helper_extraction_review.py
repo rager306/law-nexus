@@ -55,7 +55,10 @@ def test_acp_projection_helper_review_preserves_canonical_registry_write_guards(
         assert path in text
 
     assert "must remain protected from projection-helper writes" in text
-    assert "derived paths remain diagnostic/projection artifacts, not authoritative registry truth" in text
+    assert (
+        "derived paths remain diagnostic/projection artifacts, not authoritative registry truth"
+        in text
+    )
 
 
 def test_acp_projection_helper_review_blocks_projection_overclaims() -> None:
