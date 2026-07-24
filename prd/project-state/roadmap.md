@@ -23,7 +23,8 @@
 - **M121 result:** ninth hostile-case Rust runtime proof. `S10-HC-09-RT` is bounded PASS.
 - **M122 result:** tenth hostile-case Rust runtime proof. `S10-HC-10-RT` is bounded PASS.
 - **M123 result:** eleventh hostile-case Rust runtime proof. `S10-HC-11-RT` is bounded PASS.
-- **M124 result:** twelfth hostile-case Rust runtime proof. `S10-HC-12-RT` is bounded PASS. Current aggregate is **12 PASS / 0 FAIL / 8 unsupported-case**.
+- **M124 result:** twelfth hostile-case Rust runtime proof. `S10-HC-12-RT` is bounded PASS.
+- **M125 progress:** `S10-HC-13-RT` is bounded PASS. Current aggregate is **13 PASS / 0 FAIL / 7 unsupported-case**.
 - **Product target:** Rust-only runtime under ADR-0004; Python may remain only as ADR-0007 subprocess repository harness.
 - **Implementation topology:** not selected. Database, FalkorDB schema, storage, queue/ledger, product crate map, API, concurrency runtime and deployment remain evidence-gated future decisions.
 - **Product readiness:** not proven.
@@ -94,12 +95,12 @@ Proof anchors:
 
 ## Recommended next milestone
 
-After M124 closeout, execute HC-13 Decide Admission:
+After M125 closeout, execute HC-14 Coordinate Checkpoint and Replay:
 
-1. pure application admission policy for unknown bounds and retry amplification;
-2. pause/reject when bound is unknown or saturated; capacity remains unknown;
-3. dependency-free process runner and tracked `S10-HC-13-RT` PASS or FAIL;
-4. update aggregates honestly and gate HC-14 only if HC-13 PASS.
+1. pure application replay policy for corrupt lineage and prior external effects;
+2. suppress prior effects by operation identity; reject corrupt/version-skew;
+3. dependency-free process runner and tracked `S10-HC-14-RT` PASS or FAIL;
+4. update aggregates honestly and gate HC-15 only if HC-14 PASS.
 
 Do not select product filesystem/storage/graph/agent backends as part of the next thin hostile slice.
 
@@ -119,7 +120,8 @@ Do not select product filesystem/storage/graph/agent backends as part of the nex
 | HC-10 transition work state | Work cancellation and resume cannot alter legal state | `[bounded]` runtime PASS |
 | HC-11 compute dependency closure | Incomplete/unbounded closure cannot prove completeness | `[bounded]` runtime PASS |
 | HC-12 rebuild disposable projection | Partial rebuild remains disposable and non-authoritative | `[bounded]` runtime PASS |
-| HC-13 decide admission | Unknown bounds and retry amplification fail closed | `[proposed]` active next |
+| HC-13 decide admission | Unknown bounds and retry amplification fail closed | `[bounded]` runtime PASS |
+| HC-14 coordinate checkpoint and replay | Corrupt lineage rejected; prior external effects suppressed | `[proposed]` active next |
 | Temporal resolver | Five-clock runtime plus complete substitution/conflict fixtures | `[proposed]` |
 | Promotion/publication | Idempotent D116 and complete H1/D120 hostile fixtures | `[proposed]` |
 | FalkorDB product integration | ADR-0012 evidence pass and disposable runtime probes after an owning capability needs it | `[deferred]` |
@@ -137,4 +139,4 @@ Do not select product filesystem/storage/graph/agent backends as part of the nex
 
 ## Non-claims
 
-This roadmap does not prove Rust product readiness, parser completeness, Russian legal correctness, source completeness, FalkorDB production readiness, retrieval quality, diagnostic sink safety, E1-E3 capacity or whole-system parity. HC-01 through HC-12 bounded synthetic runtime PASS proofs do not establish aggregate conformance or product storage readiness.
+This roadmap does not prove Rust product readiness, parser completeness, Russian legal correctness, source completeness, FalkorDB production readiness, retrieval quality, diagnostic sink safety, E1-E3 capacity or whole-system parity. HC-01 through HC-13 bounded synthetic runtime PASS proofs do not establish aggregate conformance or product storage readiness.

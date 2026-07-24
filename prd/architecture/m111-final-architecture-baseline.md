@@ -4,13 +4,13 @@
 **Milestone:** M111/S10  
 **Selection package:** D116, D118, D119, D120, D121 and D123 `KOF-DA`  
 **Product direction:** Rust-only product runtime under ADR-0004; subprocess-only Python harness under ADR-0007; ADR-0005 product topology is superseded
-**Proof ceiling:** architecture contracts, artifact-static checks, bounded adjacent repository evidence, and post-M111 HC-01 through HC-12 bounded runtime proofs
+**Proof ceiling:** architecture contracts, artifact-static checks, bounded adjacent repository evidence, and post-M111 HC-01 through HC-13 bounded runtime proofs
 
 ## Objective and boundary
 
 This document is the final M111 architecture package for future Rust planning. It fixes semantic ownership, authorities, evidence ceilings, hostile-case oracles and invalidation conditions without selecting implementation technology.
 
-The baseline proves architecture-level coherence only. Artifact-static checks pass for all 20 hostile cases, and all 14 cross-slice attack classes have an exclusive owner, fail-closed rule and invalidation condition. Post-M111 evidence now provides bounded product-capability runtime PASS for HC-01 through HC-12 (`S10-HC-01-RT`, `S10-HC-02-RT`, `S10-HC-03-RT`, `S10-HC-04-RT`, `S10-HC-05-RT`, `S10-HC-06-RT`, `S10-HC-07-RT`, `S10-HC-08-RT`, `S10-HC-09-RT`, `S10-HC-10-RT`, `S10-HC-11-RT`, `S10-HC-12-RT`): current runtime results are 12 PASS, 0 FAIL and 8 `unsupported-case`. This does not establish aggregate conformance.
+The baseline proves architecture-level coherence only. Artifact-static checks pass for all 20 hostile cases, and all 14 cross-slice attack classes have an exclusive owner, fail-closed rule and invalidation condition. Post-M111 evidence now provides bounded product-capability runtime PASS for HC-01 through HC-13 (`S10-HC-01-RT`, `S10-HC-02-RT`, `S10-HC-03-RT`, `S10-HC-04-RT`, `S10-HC-05-RT`, `S10-HC-06-RT`, `S10-HC-07-RT`, `S10-HC-08-RT`, `S10-HC-09-RT`, `S10-HC-10-RT`, `S10-HC-11-RT`, `S10-HC-12-RT`, `S10-HC-13-RT`): current runtime results are 13 PASS, 0 FAIL and 7 `unsupported-case`. This does not establish aggregate conformance.
 
 Architecture PASS is not product runtime PASS. Adjacent parser, citation, architecture/ADR and marker checks are partial evidence only.
 
@@ -128,7 +128,7 @@ Diagnostics may expose only bounded identifiers, hashes, phases, categories, rul
 | Repository-adjacent checks | available checks PASS after corrected invocation | partial parser/citation/repository evidence only |
 | Architecture attack protections | PASS 14/14 | each attack class has exact owner, fail-closed protection and invalidation condition |
 | Milestone-invalidating architecture failures | 0 | no current cross-contract contradiction found |
-| Runtime aggregate | PASS 12/20; FAIL 0/20; `unsupported-case` 8/20 | HC-01 through HC-12 have bounded runtime proofs; mandatory surfaces for HC-13-HC-20 remain absent |
+| Runtime aggregate | PASS 13/20; FAIL 0/20; `unsupported-case` 7/20 | HC-01 through HC-13 have bounded runtime proofs; mandatory surfaces for HC-14-HC-20 remain absent |
 
 | HC | Capability | Aggregate verdict | Missing surface preventing runtime PASS |
 |---|---|---|---|
@@ -144,7 +144,7 @@ Diagnostics may expose only bounded identifiers, hashes, phases, categories, rul
 | HC-10 | Transition Work State | `PASS` `[bounded]` | `S10-HC-10-RT`: cancel/resume freeze domain/publication; stale typed; progress-to-legal rejected |
 | HC-11 | Compute Dependency Closure | `PASS` `[bounded]` | `S10-HC-11-RT`: incomplete/unknown/unbounded/version-skew block publication; progress never completeness |
 | HC-12 | Rebuild Disposable Projection | `PASS` `[bounded]` | `S10-HC-12-RT`: partial/stale/cancel/failed non-authoritative; hostile labels demoted; publication authority never granted |
-| HC-13 | Decide Admission | `unsupported-case` | saturation/retry runtime and local E1-E3 measurements |
+| HC-13 | Decide Admission | `PASS` `[bounded]` | `S10-HC-13-RT`: bound-unknown/saturated/retry fail closed; vendor capacity rejected; capacity unknown without measured local bound |
 | HC-14 | Coordinate Checkpoint and Replay | `unsupported-case` | prior-effect replay, corruption and rule-version skew |
 | HC-15 | Publish Authoritative H1 Unit | `unsupported-case` | dual-writer, duplicate and partial H1 fixtures |
 | HC-16 | Publish Provisional Acceleration | `unsupported-case` | label mutation and direct-promotion attempts |
