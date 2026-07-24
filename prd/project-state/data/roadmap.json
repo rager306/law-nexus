@@ -135,13 +135,19 @@
       "theme": "HC-12 Rebuild Disposable Projection runtime proof",
       "status": "complete",
       "boundary": "Preflighted with trajectory governor, implemented pure hexagonal ln-projection seam, sealed hostile authoritative-label contracts, added dependency-free process runner, and produced tracked S10-HC-12-RT PASS. Current aggregate after M113-M124 is 12 PASS / 0 FAIL / 8 unsupported. No product storage or projection store selected."
+    },
+    {
+      "range": "M125-M125",
+      "theme": "HC-13 Decide Admission runtime proof",
+      "status": "complete",
+      "boundary": "Preflighted with trajectory governor, implemented pure hexagonal ln-admission seam, sealed hostile vendor-capacity contracts, added dependency-free process runner, and produced tracked S10-HC-13-RT PASS. Current aggregate after M113-M125 is 13 PASS / 0 FAIL / 7 unsupported. No product storage, queue, hardware or throughput selected; E1-E3 product capacity remains unproven."
     }
   ],
   "current_milestone": {
-    "id": "M124-cpcb0c",
-    "title": "HC 12 Rebuild Disposable Projection Runtime Proof",
+    "id": "M125-xh8c4i",
+    "title": "HC 13 Decide Admission Runtime Proof",
     "status": "complete",
-    "goal": "Convert HC-12 from unsupported-case into a bounded Rust runtime PASS without selecting product storage or a projection store."
+    "goal": "Convert HC-13 from unsupported-case into a bounded Rust runtime PASS without selecting product storage, queue, hardware or throughput."
   },
   "recommended_next": {
     "title": "HC-14 Coordinate Checkpoint and Replay runtime proof",
