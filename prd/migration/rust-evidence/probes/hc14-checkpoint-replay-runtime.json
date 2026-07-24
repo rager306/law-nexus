@@ -1,0 +1,35 @@
+{
+  "schema": "law-nexus-hc14-verdict/v1",
+  "evidence_id": "S10-HC-14-RT",
+  "case_id": "HC-14",
+  "generated_at": "2026-07-23",
+  "implementation_revision": "c41369b547cd02c5c1b815fd75487876f765445d",
+  "command": "cargo run --offline --quiet -p ln-hc14-runner -- verdict",
+  "verdict": "PASS",
+  "scenario_count": 5,
+  "first_apply_then_suppress": true,
+  "corrupt_fail_closed": true,
+  "incompatible_rule": true,
+  "incomplete_missing": true,
+  "hostile_no_duplicate": true,
+  "publication_authority_never_granted": true,
+  "lineage_never_rewritten": true,
+  "remaining_unsupported_cases": 6,
+  "lifecycle": "[bounded]",
+  "product_storage_selected": false,
+  "checkpoint_store_selected": false,
+  "exactly_once_infra_selected": false,
+  "scenarios": [
+    "first-apply-then-suppress",
+    "corrupt-fail-closed",
+    "incompatible-rule",
+    "incomplete-missing",
+    "hostile-no-duplicate"
+  ],
+  "non_claims": [
+    "This proof does not select a checkpoint store or exactly-once infrastructure.",
+    "Application-owned effect identity is synthetic only; product durability is unproven.",
+    "No SQLite, Turso, LadybugDB, FalkorDB, ruVector or AgentFS product backend is selected by this proof.",
+    "HC-15 through HC-20 remain unsupported-case."
+  ]
+}
