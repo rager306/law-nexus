@@ -12,7 +12,7 @@
 - **ADR-0005** — Rust target architecture (crate and port map)
 - **ADR-0007** — Python repository control-plane harness (process orchestration only)
 - **ADR-0012** — Consequential evidence protocol (storage/ledger/workspace candidate assessment)
-- **ADR-0013** — Universal multi-source parser architecture (Consultant XML + Garant ODT)
+- **ADR-0013** — Universal multi-source parser architecture (Consultant XML + Garant ODT, Russian morphology strategy, stem-based regex)
 
 ## Archived (Python-specific, M068–M106)
 

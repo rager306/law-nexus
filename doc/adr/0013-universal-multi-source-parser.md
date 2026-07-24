@@ -286,6 +286,114 @@ zip = "2.1"
   a transitive dependency (`flate2`, `miniz_oxide`). This is acceptable for
   a parser crate.
 
+## Russian language morphology strategy
+
+Russian is highly inflected (6 cases, 3 genders, 2 numbers, aspectual verb
+system). The parser must handle morphological variation at specific layers.
+
+### Per-layer morphological requirements
+
+| Layer | Linguistic need | Approach | Why not pymorphy2/razdel? |
+|-------|----------------|----------|--------------------------|
+| I/O adapter | None | N/A | Pure XML/text extraction |
+| Hierarchy | Minimal | Pure regex | Markers ("\u0413\u043b\u0430\u0432\u0430 N", "\u0421\u0442\u0430\u0442\u044c\u044f N") are standardized, always nominative case |
+| References | HIGH: 6 cases for "\u0441\u0442\u0430\u0442\u044c\u044f" | Stem-based regex | One pattern `\u0441\u0442\u0430\u0442\u044c[\u044c\u044f\u0435\u0439\u0451\u044e\u044c\u044e\u044e]` covers all case forms; no lemmatization needed |
+| Temporal | Medium: verb forms + date parsing | Stem regex + date parser | Legal verbs are a closed set: "\u0432\u0441\u0442\u0443\u043f\u0430\u0435\u0442/\u0432\u0441\u0442\u0443\u043f\u0430\u044e\u0442/\u0432\u0441\u0442\u0443\u043f\u0438\u043b" |
+| Deontic | MAXIMAL: modal verb morphology | Stem dictionary + negation context | Legal modality set is closed: "\u043e\u0431\u044f\u0437\u0430\u043d", "\u0432\u043f\u0440\u0430\u0432\u0435", "\u0437\u0430\u043f\u0440\u0435\u0449\u0430\u0435\u0442\u0441\u044f" + gender/number variants |
+| Embedding | Implicit | Handled by USER-bge-m3 | Model trained on Russian corpus; morphology handled internally |
+
+### Stem-based regex (primary approach)
+
+Instead of full morphological analysis (pymorphy2) or rule-based tokenization
+(razdel), the parser uses Unicode-aware regex patterns `[proposed]` that cover all
+morphological variants of legal markers with single patterns:
+
+```rust
+// "\u0441\u0442\u0430\u0442\u044c\u044f" in all 6 cases:
+// \u0441\u0442\u0430\u0442\u044c[\u044c\u044f\u0435\u0439\u0451\u044e] covers: \u0441\u0442\u0430\u0442\u044c\u044f, \u0441\u0442\u0430\u0442\u044c\u0438, \u0441\u0442\u0430\u0442\u044c\u0435, \u0441\u0442\u0430\u0442\u044c\u0439, \u0441\u0442\u0430\u0442\u044c\u0451\u0439, \u0441\u0442\u0430\u0442\u044c\u044e
+static STATYA_RE: &str = r"(?i)\u0441\u0442\u0430\u0442\u044c[\u044c\u044f\u0435\u0439\u0451\u044e]\s+(\d+(?:\.\d+)*)";
+
+// Modal verbs in all gender/number forms:
+// \u043e\u0431\u044f\u0437\u0430\u043d, \u043e\u0431\u044f\u0437\u0430\u043d\u0430, \u043e\u0431\u044f\u0437\u0430\u043d\u043e, \u043e\u0431\u044f\u0437\u0430\u043d\u044b
+static OBLIGATION_RE: &str = r"\u043e\u0431\u044f\u0437\u0430\u043d(?:\u0430|\u043e|\u044b)?";
+```
+
+### Sentence splitting: custom LegalSentenceSplitter
+
+No razdel equivalent exists in Rust. A custom rule-based sentence splitter
+handles the specific challenges of Russian legal text:
+
+- Abbreviations that mimic sentence boundaries: \u0441\u0442., \u043f., \u0447., \u0440\u0435\u0434., \u0433., \u0420\u0424, \u0424\u0417
+- Decimal numbers with periods: 5.1, 44-\u0424\u0417
+- Nested numbering: 1), 1.1)
+- Cyrillic quotation marks: \u00ab\u00bb
+
+Implementation: ~50 lines of rule-based logic with a HashSet of legal
+abbreviations. No external dependency. No neural model. razdel solves a broader
+problem (literary text, dialogues, URLs) that legal documents do not need.
+
+### Self-improvement of morphological coverage
+
+The parser includes a feedback loop for morphological gaps:
+
+1. **Unknown form collector:** when a deontic/reference regex fails to match a
+   sentence that clearly contains a legal marker, the unmatched text is logged.
+2. **Marker hit-rate metrics:** track match rate per regex per document.
+3. **Periodic review:** logged unknown forms are reviewed; new stem patterns
+   are added to the regex dictionary.
+4. **Cross-format validation:** the same law parsed from both Consultant XML and
+   Garant ODT must produce the same hierarchy tree; diffs reveal morphology gaps.
+
+### Why morph-rs is excluded
+
+**morph-rs** (v0.2.0, March 2024) is the closest Rust analog to pymorphy2.
+It provides dictionary-based morphological analysis using OpenCorpora data.
+However:
+
+1. **License: Kribrum-NC** (Non-Commercial). Even as an optional dependency,
+   this introduces license complexity incompatible with a potential future
+   commercial use of law-nexus.
+2. **Low activity:** no significant updates after the 0.2.0 release.
+3. **Unnecessary for extraction:** stem-based regex covers the parser's actual
+   need (pattern matching for legal markers), not full morphological analysis.
+4. **OpenCorpora dictionary licensing:** the dictionary itself has separate
+   LGPL-style terms that add complexity.
+
+If morph-rs proves necessary in the future for graph node normalization
+(lemmatization for deduplication), it can be added as an optional feature
+flag `morphology` behind a separate license review. The default build must
+remain dependency-light and NC-free.
+
+### Module layout for morphology
+
+```
+crates/ln-decode/
+\u2514\u2500\u2500 src/
+    \u251c\u2500\u2500 morphology.rs         # Cyrillic morphology utilities
+    \u2502   \u251c\u2500\u2500 stems.rs           # stem_match(word, stem) -> bool
+    \u2502   \u251c\u2500\u2500 patterns.rs        # Pre-built regex for \u0441\u0442\u0430\u0442\u044c[\u044c\u044f\u0435\u0439\u0451\u044e], \u043f\u0443\u043d\u043a\u0442[\u0430\u0443\u043e\u043c\u044b], etc.
+    \u2502   \u2514\u2500\u2500 negation.rs        # detect_negation(text, pos) -> bool
+    \u251c\u2500\u2500 sentence_split.rs     # LegalSentenceSplitter
+    \u2502   \u251c\u2500\u2500 abbreviations.rs   # HashSet of legal abbreviations
+    \u2502   \u2514\u2500\u2500 rules.rs           # Rule-based boundary detection
+    \u251c\u2500\u2500 hierarchy.rs           # Pure regex, no morphology
+    \u251c\u2500\u2500 references.rs          # Stem patterns + sentence split
+    \u251c\u2500\u2500 temporal.rs            # Verb-form regex + date parser
+    \u2514\u2500\u2500 deontic.rs             # Modal stem dictionary + negation
+```
+
+Dependencies remain minimal:
+
+```toml
+[dependencies]
+quick-xml = "0.36"
+zip = "2.1"
+regex = "1"
+once_cell = "1"
+```
+
+No morph-rs. No pymorphy2. No natasha. No razdel. Full control.
+
 ## Alternatives Considered
 
 ### Option A: Separate crates per format (`ln-consultant`, `ln-garant`)
