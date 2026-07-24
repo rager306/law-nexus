@@ -1,0 +1,23 @@
+{
+  "schema": "law-nexus-hc16-verdict/v1",
+  "evidence_id": "S10-HC-16-RT",
+  "case_id": "HC-16",
+  "verdict": "PASS",
+  "scenario_count": 5,
+  "normal_acceleration": true,
+  "direct_promotion_rejected": true,
+  "label_mutation_rejected": true,
+  "hostile_no_authority": true,
+  "provisional_never_authoritative": true,
+  "remaining_unsupported_cases": 4,
+  "lifecycle": "[bounded]",
+  "product_storage_selected": false,
+  "generated_at": "2026-07-24",
+  "implementation_revision": "55a180b519babf699d720a1a0a90408133d9d6b5",
+  "command": "cargo run --offline --quiet -p ln-hc16-runner -- verdict",
+  "non_claims": [
+    "This proof does not select product storage or infrastructure.",
+    "Bounded synthetic runtime proof only.",
+    "No legal determination or product readiness claim."
+  ]
+}

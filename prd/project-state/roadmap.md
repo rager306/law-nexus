@@ -4,12 +4,12 @@
 > non-authoritative cold-reader projection of
 > `prd/project-state/data/roadmap.json`.
 >
-> Refreshed 2026-07-24 after M127 completion.
+> Refreshed 2026-07-24 after M129 completion — all 20 hostile cases PASS.
 
 ## Current position
 
-- **Latest completed milestone:** M127-9pitwq, HC 15 Publish Authoritative H1 Unit Runtime Proof.
-- **Active milestone:** none (plan HC-16 next).
+- **Latest completed milestone:** M129-yec916, HC-16 through HC-20 Final Hostile Cases.
+- **Active milestone:** none (next: whole-system parity).
 - **M111 result:** final `[bounded]` implementation-neutral semantic baseline for heterogeneous Russian legal evidence.
 - **M112 result:** ADR-0005 topology superseded; ADR-0008 through ADR-0012 authored `[bounded]`; executable ADR/decision/owner drift checks active in pre-commit and CI.
 - **M113 result:** first hostile-case Rust runtime proof. `S10-HC-01-RT` is bounded PASS.
@@ -25,8 +25,7 @@
 - **M123 result:** eleventh hostile-case Rust runtime proof. `S10-HC-11-RT` is bounded PASS.
 - **M124 result:** twelfth hostile-case Rust runtime proof. `S10-HC-12-RT` is bounded PASS.
 - **M125 result:** thirteenth hostile-case Rust runtime proof. `S10-HC-13-RT` is bounded PASS.
-- **M127 result:** fifteenth hostile-case Rust runtime proof. `S10-HC-15-RT` is bounded PASS. Current aggregate is **15 PASS / 0 FAIL / 5 unsupported-case**.
-- **M128 result:** Governor preflight and process debt closure delivered 5-check non-mutating preflight profile.
+- **M129 result:** All 5 remaining hostile cases closed. **20 PASS / 0 FAIL / 0 unsupported-case**. All 20 HC cases have bounded runtime PASS.
 - **Product target:** Rust-only runtime under ADR-0004; Python may remain only as ADR-0007 subprocess repository harness.
 - **Implementation topology:** not selected. Database, FalkorDB schema, storage, queue/ledger, product crate map, API, concurrency runtime and deployment remain evidence-gated future decisions.
 - **Product readiness:** not proven.

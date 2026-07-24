@@ -1,0 +1,12 @@
+[package]
+name = "ln-hc19-runner"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[[bin]]
+name = "ln-hc19-runner"
+path = "src/main.rs"
+
+[dependencies]
+ln-diagnostic = { path = "../ln-diagnostic" }

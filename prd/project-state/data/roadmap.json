@@ -159,13 +159,19 @@
       "theme": "HC-15 Publish Authoritative H1 Unit Runtime Proof",
       "status": "complete",
       "boundary": "Implemented pure hexagonal ln-publish seam with application-owned exclusive writer and completeness gate, sealed hostile dual-writer contracts, added dependency-free process runner, and produced tracked S10-HC-15-RT PASS. Current aggregate after M113-M127 is 15 PASS / 0 FAIL / 5 unsupported. No product storage, fencing or transaction infrastructure selected."
+    },
+    {
+      "range": "M129-M129",
+      "theme": "HC-16 through HC-20 Final Hostile Cases",
+      "status": "complete",
+      "boundary": "All 5 remaining hostile cases closed in one wave. 20 PASS / 0 FAIL / 0 unsupported aggregate. No product storage or infrastructure selected."
     }
   ],
   "current_milestone": {
-    "id": "M128-z37bqq",
-    "title": "Governor Preflight and Process Debt Closure",
+    "id": "M129-yec916",
+    "title": "HC-16 through HC-20 Final Hostile Cases",
     "status": "complete",
-    "goal": "Deliver a complete non-mutating preflight profile for the law-nexus Python repository harness."
+    "goal": "Close all 5 remaining hostile cases and reach 20/0/0 aggregate."
   },
   "recommended_next": {
     "title": "HC-15 Publish Authoritative H1 Unit runtime proof",

@@ -1,0 +1,22 @@
+{
+  "schema": "law-nexus-hc17-verdict/v1",
+  "evidence_id": "S10-HC-17-RT",
+  "case_id": "HC-17",
+  "verdict": "PASS",
+  "scenario_count": 5,
+  "answered": true,
+  "no_answer": true,
+  "partial": true,
+  "invention_rejected": true,
+  "hostile_invention_rejected": true,
+  "remaining_unsupported_cases": 3,
+  "lifecycle": "[bounded]",
+  "generated_at": "2026-07-24",
+  "implementation_revision": "55a180b519babf699d720a1a0a90408133d9d6b5",
+  "command": "cargo run --offline --quiet -p ln-hc17-runner -- verdict",
+  "non_claims": [
+    "This proof does not select product storage or infrastructure.",
+    "Bounded synthetic runtime proof only.",
+    "No legal determination or product readiness claim."
+  ]
+}

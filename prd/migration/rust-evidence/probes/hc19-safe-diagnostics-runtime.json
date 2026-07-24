@@ -1,0 +1,23 @@
+{
+  "schema": "law-nexus-hc19-verdict/v1",
+  "evidence_id": "S10-HC-19-RT",
+  "case_id": "HC-19",
+  "verdict": "PASS",
+  "scenario_count": 6,
+  "safe_emitted": true,
+  "secret_blocked": true,
+  "raw_legal_blocked": true,
+  "forbidden_marker_blocked": true,
+  "injection_blocked": true,
+  "hostile_sink_blocked": true,
+  "remaining_unsupported_cases": 1,
+  "lifecycle": "[bounded]",
+  "generated_at": "2026-07-24",
+  "implementation_revision": "55a180b519babf699d720a1a0a90408133d9d6b5",
+  "command": "cargo run --offline --quiet -p ln-hc19-runner -- verdict",
+  "non_claims": [
+    "This proof does not select product storage or infrastructure.",
+    "Bounded synthetic runtime proof only.",
+    "No legal determination or product readiness claim."
+  ]
+}

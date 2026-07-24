@@ -1,0 +1,20 @@
+{
+  "schema": "law-nexus-hc20-verdict/v1",
+  "evidence_id": "S10-HC-20-RT",
+  "case_id": "HC-20",
+  "verdict": "PASS",
+  "total_cases": 20,
+  "pass_count": 20,
+  "fail_count": 0,
+  "unsupported_count": 0,
+  "remaining_unsupported_cases": 0,
+  "lifecycle": "[bounded]",
+  "generated_at": "2026-07-24",
+  "implementation_revision": "55a180b519babf699d720a1a0a90408133d9d6b5",
+  "command": "cargo run --offline --quiet -p ln-hc20-runner -- verdict",
+  "non_claims": [
+    "This proof does not select product storage or infrastructure.",
+    "Bounded synthetic runtime proof only.",
+    "No legal determination or product readiness claim."
+  ]
+}

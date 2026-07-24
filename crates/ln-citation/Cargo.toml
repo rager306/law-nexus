@@ -1,0 +1,5 @@
+[package]
+name = "ln-citation"
+version = "0.1.0"
+edition = "2021"
+publish = false

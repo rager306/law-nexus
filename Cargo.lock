@@ -3,7 +3,15 @@
 version = 4
 
 [[package]]
+name = "ln-accelerate"
+version = "0.1.0"
+
+[[package]]
 name = "ln-admission"
+version = "0.1.0"
+
+[[package]]
+name = "ln-citation"
 version = "0.1.0"
 
 [[package]]
@@ -11,7 +19,15 @@ name = "ln-closure"
 version = "0.1.0"
 
 [[package]]
+name = "ln-conformance"
+version = "0.1.0"
+
+[[package]]
 name = "ln-decode"
+version = "0.1.0"
+
+[[package]]
+name = "ln-diagnostic"
 version = "0.1.0"
 
 [[package]]
@@ -128,6 +144,41 @@ dependencies = [
 ]
 
 [[package]]
+name = "ln-hc16-runner"
+version = "0.1.0"
+dependencies = [
+ "ln-accelerate",
+]
+
+[[package]]
+name = "ln-hc17-runner"
+version = "0.1.0"
+dependencies = [
+ "ln-query",
+]
+
+[[package]]
+name = "ln-hc18-runner"
+version = "0.1.0"
+dependencies = [
+ "ln-citation",
+]
+
+[[package]]
+name = "ln-hc19-runner"
+version = "0.1.0"
+dependencies = [
+ "ln-diagnostic",
+]
+
+[[package]]
+name = "ln-hc20-runner"
+version = "0.1.0"
+dependencies = [
+ "ln-conformance",
+]
+
+[[package]]
 name = "ln-identity"
 version = "0.1.0"
 
@@ -149,6 +200,10 @@ version = "0.1.0"
 
 [[package]]
 name = "ln-publish"
+version = "0.1.0"
+
+[[package]]
+name = "ln-query"
 version = "0.1.0"
 
 [[package]]

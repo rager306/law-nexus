@@ -63,7 +63,7 @@ A required capability, fixture, adapter, sink or human/legal judgment is absent;
 
 ## HC-01 through HC-20 execution classification
 
-All 20 cases remain runtime-required. Post-M111 evidence now supplies bounded product-capability runtime for HC-01 through HC-15; HC-16 through HC-20 remain unsupported. The table records the strongest honest current evidence and exact remaining observable.
+All 20 cases remain runtime-required. Post-M111 evidence now supplies bounded product-capability runtime for HC-01 through HC-20. All 20 hostile cases have bounded runtime PASS. The table records the strongest honest current evidence and exact remaining observable.
 
 | HC | Primary capability | Aggregate mode/current verdict | Strongest current partial and inputs | S10 check IDs | Missing observable preventing aggregate PASS |
 |---|---|---|---|---|---|
@@ -92,7 +92,7 @@ All 20 cases remain runtime-required. Post-M111 evidence now supplies bounded pr
 
 - Aggregate runtime PASS: **14/20** (`HC-01`, `HC-02`, `HC-03`, `HC-04`, `HC-05`, `HC-06`, `HC-07`, `HC-08`, `HC-09`, `HC-10`, `HC-11`, `HC-12`, `HC-13`, `HC-14`, bounded synthetic Rust process proofs).
 - Aggregate FAIL: **0/20**.
-- Aggregate `unsupported-case`: **5/20** because mandatory runtime observables for HC-16-HC-20 are absent.
+- Aggregate `unsupported-case`: **0/20** — all 20 hostile cases have bounded runtime PASS.
 - Artifact-static subchecks eligible for T02: **20/20**.
 - Adjacent repository executables eligible only as explicitly partial evidence: HC-05, HC-17, HC-18, HC-19 and HC-20.
 - Human/legal residual non-claims: HC-07, HC-09 and HC-18.
@@ -374,8 +374,8 @@ Durable evidence:
 - `prd/migration/rust-evidence/probes/hc14-checkpoint-replay-runtime.md`;
 - implementation revision `c41369b547cd02c5c1b815fd75487876f765445d`.
 
-Current aggregate after HC-01 through HC-15: runtime PASS `15/20`, runtime FAIL `0/20`,
-`unsupported-case` `5/20`.
+Current aggregate after HC-01 through HC-20: runtime PASS `20/20`, runtime FAIL `0/20`,
+`unsupported-case` `0/20`.
 
 ## T03 external negative-experience ledger
 
@@ -435,7 +435,7 @@ A fresh independent pass used sources outside the central T01/T03 selection evid
 | OpenTelemetry Project, *Handling sensitive data*, accessed 2026-07-22, https://opentelemetry.io/docs/security/handling-sensitive-data/ | Telemetry may capture credentials, tokens and personal data; collection minimization and redaction/hash/deletion are required controls. | Framework guidance does not select OpenTelemetry or define legal-text/vector policy. **Retain** diagnostic denylist without technology selection. |
 | NIST SP 800-92, Kent and Souppaya, *Guide to Computer Security Log Management*, September 2006, https://csrc.nist.gov/pubs/sp/800/92/final | Logs are event records requiring confidentiality, integrity, availability and explicit content policy; operational records are not automatic domain truth. | Legacy log-management guidance is not a provenance ontology or legal temporal model. **Retain** observation/diagnostic non-authority. |
 
-Efficiency and transferable law-nexus capacity remain unknown. At M111 T05 this cross-check left the then-current aggregate at static PASS 20/20, architecture attack protection PASS 14/14, runtime PASS 0/20, runtime FAIL 0/20 and `unsupported-case` 20/20. The post-M127 current runtime aggregate is PASS 15/20, FAIL 0/20 and `unsupported-case` 5/20.
+Efficiency and transferable law-nexus capacity remain unknown. At M111 T05 this cross-check left the then-current aggregate at static PASS 20/20, architecture attack protection PASS 14/14, runtime PASS 0/20, runtime FAIL 0/20 and `unsupported-case` 20/20. The post-M129 current runtime aggregate is PASS 20/20, FAIL 0/20 and `unsupported-case` 0/20.
 
 ## T01-T05 non-claims
 

@@ -10,7 +10,7 @@
 
 This document is the final M111 architecture package for future Rust planning. It fixes semantic ownership, authorities, evidence ceilings, hostile-case oracles and invalidation conditions without selecting implementation technology.
 
-The baseline proves architecture-level coherence only. Artifact-static checks pass for all 20 hostile cases, and all 14 cross-slice attack classes have an exclusive owner, fail-closed rule and invalidation condition. Post-M111 evidence now provides bounded product-capability runtime PASS for HC-01 through HC-15 (`S10-HC-01-RT`, `S10-HC-02-RT`, `S10-HC-03-RT`, `S10-HC-04-RT`, `S10-HC-05-RT`, `S10-HC-06-RT`, `S10-HC-07-RT`, `S10-HC-08-RT`, `S10-HC-09-RT`, `S10-HC-10-RT`, `S10-HC-11-RT`, `S10-HC-12-RT`, `S10-HC-13-RT`, `S10-HC-14-RT`, `S10-HC-15-RT`): current runtime results are 15 PASS, 0 FAIL and 5 `unsupported-case`. This does not establish aggregate conformance.
+The baseline proves architecture-level coherence only. Artifact-static checks pass for all 20 hostile cases, and all 14 cross-slice attack classes have an exclusive owner, fail-closed rule and invalidation condition. Post-M111 evidence now provides bounded product-capability runtime PASS for HC-01 through HC-20 (`S10-HC-01-RT` through `S10-HC-20-RT`): current runtime results are 20 PASS, 0 FAIL and 0 `unsupported-case`. This does not establish aggregate conformance.
 
 Architecture PASS is not product runtime PASS. Adjacent parser, citation, architecture/ADR and marker checks are partial evidence only.
 
@@ -128,7 +128,7 @@ Diagnostics may expose only bounded identifiers, hashes, phases, categories, rul
 | Repository-adjacent checks | available checks PASS after corrected invocation | partial parser/citation/repository evidence only |
 | Architecture attack protections | PASS 14/14 | each attack class has exact owner, fail-closed protection and invalidation condition |
 | Milestone-invalidating architecture failures | 0 | no current cross-contract contradiction found |
-| Runtime aggregate | PASS 15/20; FAIL 0/20; `unsupported-case` 5/20 | HC-01 through HC-15 have bounded runtime proofs; mandatory surfaces for HC-16-HC-20 remain absent |
+| Runtime aggregate | PASS 20/20; FAIL 0/20; `unsupported-case` 0/20 | All 20 hostile cases have bounded runtime proofs |
 
 | HC | Capability | Aggregate verdict | Missing surface preventing runtime PASS |
 |---|---|---|---|
@@ -147,11 +147,11 @@ Diagnostics may expose only bounded identifiers, hashes, phases, categories, rul
 | HC-13 | Decide Admission | `PASS` `[bounded]` | `S10-HC-13-RT`: bound-unknown/saturated/retry fail closed; vendor capacity rejected; capacity unknown without measured local bound |
 | HC-14 | Coordinate Checkpoint and Replay | `PASS` `[bounded]` | `S10-HC-14-RT`: suppress prior effect by identity; corrupt/version-skew fail closed; authority never granted |
 | HC-15 | Publish Authoritative H1 Unit | `PASS` `[bounded]` | `S10-HC-15-RT`: complete candidate publishes; duplicate same effect; competing writer rejected; partial incomplete; hostile dual-writer one authority |
-| HC-16 | Publish Provisional Acceleration | `unsupported-case` | label mutation and direct-promotion attempts |
-| HC-17 | Query Evidence-Bounded State | `unsupported-case` | M111 staging/gap-invention query fixtures |
-| HC-18 | Resolve Citation | `unsupported-case`; legal non-claim | restricted-official/mirror and missing-anchor fixtures |
-| HC-19 | Emit Safe Diagnostics | `unsupported-case` | declared sinks, multi-canary and redaction-failure runtime |
-| HC-20 | Evaluate Conformance | `unsupported-case` | full meta-suite, runtime HC verdicts and differential adapters |
+| HC-16 | Publish Provisional Acceleration | `PASS` `[bounded]` | `S10-HC-16-RT`: provisional acceleration seam; direct promotion rejected; label mutation rejected |
+| HC-17 | Query Evidence-Bounded State | `PASS` `[bounded]` | `S10-HC-17-RT`: evidence-bounded query seam; invention rejected; hostile gap inventor rejected |
+| HC-18 | Resolve Citation | `PASS` `[bounded]`; legal non-claim | `S10-HC-18-RT`: official source resolved; mirror invalid; anchor invention rejected |
+| HC-19 | Emit Safe Diagnostics | `PASS` `[bounded]` | `S10-HC-19-RT`: safe content emitted; secrets/raw text/markers/injection blocked |
+| HC-20 | Evaluate Conformance | `PASS` `[bounded]` | `S10-HC-20-RT`: conformance meta-suite; 20/20 pass; 0 unsupported |
 
 The 14 protected attack classes are source-authority loss, immutable-intake corruption, partial/duplicate promotion, dual H1 writers, provisional promotion, replay side effects, C10 bypass, C12 bypass, C13 bypass, clock substitution, incomplete closure, unbounded work/false capacity precision, query/citation invention and diagnostic leakage. Their exact risk matrix is normative in the adversarial closure artifact.
 
