@@ -71,7 +71,7 @@ where
 
         let mut affected: Vec<NodeId> = Vec::new();
         let mut missing: Vec<NodeId> = Vec::new();
-        let mut stale: Vec<NodeId> = Vec::new();
+        let stale: Vec<NodeId> = Vec::new();
         let mut seen: HashSet<String> = HashSet::new();
         let mut queue: VecDeque<NodeId> = VecDeque::new();
         let mut unknown_seed = false;
