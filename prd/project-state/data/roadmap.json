@@ -141,13 +141,19 @@
       "theme": "HC-13 Decide Admission runtime proof",
       "status": "complete",
       "boundary": "Preflighted with trajectory governor, implemented pure hexagonal ln-admission seam, sealed hostile vendor-capacity contracts, added dependency-free process runner, and produced tracked S10-HC-13-RT PASS. Current aggregate after M113-M125 is 13 PASS / 0 FAIL / 7 unsupported. No product storage, queue, hardware or throughput selected; E1-E3 product capacity remains unproven."
+    },
+    {
+      "range": "M126-M126",
+      "theme": "HC-14 Coordinate Checkpoint and Replay runtime proof",
+      "status": "complete",
+      "boundary": "Preflighted with trajectory governor, implemented pure hexagonal ln-replay seam with application-owned effect identity ledger, sealed hostile duplicate-effect contracts, added dependency-free process runner, and produced tracked S10-HC-14-RT PASS. Current aggregate after M113-M126 is 14 PASS / 0 FAIL / 6 unsupported. No product storage, checkpoint store or exactly-once infrastructure selected."
     }
   ],
   "current_milestone": {
-    "id": "M125-xh8c4i",
-    "title": "HC 13 Decide Admission Runtime Proof",
+    "id": "M126-pnfr1q",
+    "title": "HC 14 Coordinate Checkpoint and Replay Runtime Proof",
     "status": "complete",
-    "goal": "Convert HC-13 from unsupported-case into a bounded Rust runtime PASS without selecting product storage, queue, hardware or throughput."
+    "goal": "Convert HC-14 from unsupported-case into a bounded Rust runtime PASS without selecting product storage, checkpoint store or exactly-once infrastructure."
   },
   "recommended_next": {
     "title": "HC-15 Publish Authoritative H1 Unit runtime proof",
