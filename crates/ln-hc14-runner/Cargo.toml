@@ -1,0 +1,12 @@
+[package]
+name = "ln-hc14-runner"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[[bin]]
+name = "ln-hc14-runner"
+path = "src/main.rs"
+
+[dependencies]
+ln-replay = { path = "../ln-replay" }
