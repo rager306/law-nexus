@@ -1,0 +1,35 @@
+{
+  "schema": "law-nexus-hc15-verdict/v1",
+  "evidence_id": "S10-HC-15-RT",
+  "case_id": "HC-15",
+  "generated_at": "2026-07-24",
+  "implementation_revision": "cea36e3af9c0114bf4546f84b1833a06816c6624",
+  "command": "cargo run --offline --quiet -p ln-hc15-runner -- verdict",
+  "verdict": "PASS",
+  "scenario_count": 5,
+  "first_complete_publish": true,
+  "identical_duplicate": true,
+  "competing_writer_rejected": true,
+  "partial_incomplete_non_authoritative": true,
+  "hostile_dual_writer_one_authority": true,
+  "authority_surface_publication_only": true,
+  "one_authoritative_unit_per_scope": true,
+  "remaining_unsupported_cases": 5,
+  "lifecycle": "[bounded]",
+  "product_storage_selected": false,
+  "fencing_selected": false,
+  "transaction_selected": false,
+  "scenarios": [
+    "first-complete-publish",
+    "identical-duplicate",
+    "competing-writer-rejected",
+    "partial-incomplete",
+    "hostile-dual-writer-one-authority"
+  ],
+  "non_claims": [
+    "This proof does not select a product storage, fencing, or transaction infrastructure.",
+    "Application-owned publication authority is synthetic only; product durability is unproven.",
+    "No SQLite, Turso, LadybugDB, FalkorDB, ruVector or AgentFS product backend is selected by this proof.",
+    "HC-16 through HC-20 remain unsupported-case."
+  ]
+}

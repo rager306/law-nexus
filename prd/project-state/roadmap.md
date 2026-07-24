@@ -4,12 +4,12 @@
 > non-authoritative cold-reader projection of
 > `prd/project-state/data/roadmap.json`.
 >
-> Refreshed 2026-07-23 after M126 completion.
+> Refreshed 2026-07-24 during M127 execution.
 
 ## Current position
 
 - **Latest completed milestone:** M126-pnfr1q, HC 14 Coordinate Checkpoint and Replay Runtime Proof.
-- **Active milestone:** none (plan HC-15 next).
+- **Active milestone:** M127-9pitwq (HC 15 Publish Authoritative H1 Unit Runtime Proof).
 - **M111 result:** final `[bounded]` implementation-neutral semantic baseline for heterogeneous Russian legal evidence.
 - **M112 result:** ADR-0005 topology superseded; ADR-0008 through ADR-0012 authored `[bounded]`; executable ADR/decision/owner drift checks active in pre-commit and CI.
 - **M113 result:** first hostile-case Rust runtime proof. `S10-HC-01-RT` is bounded PASS.
@@ -26,6 +26,7 @@
 - **M124 result:** twelfth hostile-case Rust runtime proof. `S10-HC-12-RT` is bounded PASS.
 - **M125 result:** thirteenth hostile-case Rust runtime proof. `S10-HC-13-RT` is bounded PASS.
 - **M126 result:** fourteenth hostile-case Rust runtime proof. `S10-HC-14-RT` is bounded PASS. Current aggregate is **14 PASS / 0 FAIL / 6 unsupported-case**.
+- **M127 in progress:** fifteenth hostile-case Rust runtime proof. `S10-HC-15-RT` is bounded PASS. Target aggregate is **15 PASS / 0 FAIL / 5 unsupported-case**.
 - **Product target:** Rust-only runtime under ADR-0004; Python may remain only as ADR-0007 subprocess repository harness.
 - **Implementation topology:** not selected. Database, FalkorDB schema, storage, queue/ledger, product crate map, API, concurrency runtime and deployment remain evidence-gated future decisions.
 - **Product readiness:** not proven.
@@ -53,6 +54,7 @@
 | M124-M124 | HC-12 Rebuild Disposable Projection twelfth Rust hostile-case runtime proof | Bounded synthetic non-authoritative rebuild and hostile-label demotion PASS; 8 hostile cases remain unsupported; no product storage or projection store selected. |
 | M125-M125 | HC-13 Decide Admission thirteenth Rust hostile-case runtime proof | Bounded synthetic bound-unknown/saturated/retry fail-closed and vendor-capacity rejection PASS; 7 hostile cases remain unsupported; no product storage, queue, hardware or throughput selected; E1-E3 product capacity unproven. |
 | M126-M126 | HC-14 Coordinate Checkpoint and Replay fourteenth Rust hostile-case runtime proof | Bounded synthetic suppress-by-identity and corrupt/version-skew fail-closed PASS; 6 hostile cases remain unsupported; no product storage, checkpoint store or exactly-once infrastructure selected. |
+| M127-M127 | HC-15 Publish Authoritative H1 Unit fifteenth Rust hostile-case runtime proof | Bounded synthetic complete-publish, duplicate, competing-writer, partial-incomplete and hostile dual-writer PASS; 5 hostile cases remain unsupported; no product storage, fencing or transaction infrastructure selected. |
 
 ## M111 semantic baseline
 
@@ -98,7 +100,7 @@ Proof anchors:
 
 ## Recommended next milestone
 
-After M126 closeout, execute HC-15 Publish Authoritative H1 Unit:
+After M126 closeout, executing HC-15 Publish Authoritative H1 Unit:
 
 1. pure sole Publication Authority for one complete H1 unit and one writer;
 2. reject concurrent writers, partial candidates and duplicate mutation;
@@ -125,6 +127,7 @@ Do not select product filesystem/storage/graph/agent backends as part of the nex
 | HC-12 rebuild disposable projection | Partial rebuild remains disposable and non-authoritative | `[bounded]` runtime PASS |
 | HC-13 decide admission | Unknown bounds and retry amplification fail closed | `[bounded]` runtime PASS |
 | HC-14 coordinate checkpoint and replay | Corrupt lineage rejected; prior external effects suppressed | `[bounded]` runtime PASS |
+| HC-15 publish authoritative H1 unit | Dual-writer and partial-authority rejected; one authoritative unit per scope | `[bounded]` runtime PASS |
 | HC-15 publish authoritative H1 unit | One writer and one complete authoritative effect | `[proposed]` active next |
 | Temporal resolver | Five-clock runtime plus complete substitution/conflict fixtures | `[proposed]` |
 | Promotion/publication | Idempotent D116 and complete H1/D120 hostile fixtures | `[proposed]` |

@@ -147,13 +147,19 @@
       "theme": "HC-14 Coordinate Checkpoint and Replay runtime proof",
       "status": "complete",
       "boundary": "Preflighted with trajectory governor, implemented pure hexagonal ln-replay seam with application-owned effect identity ledger, sealed hostile duplicate-effect contracts, added dependency-free process runner, and produced tracked S10-HC-14-RT PASS. Current aggregate after M113-M126 is 14 PASS / 0 FAIL / 6 unsupported. No product storage, checkpoint store or exactly-once infrastructure selected."
+    },
+    {
+      "range": "M128-M128",
+      "theme": "Governor Preflight and Process Debt Closure",
+      "status": "complete",
+      "boundary": "Delivered a complete non-mutating preflight profile for the law-nexus Python repository harness. Five checks: cargo fmt, Ruff explicit paths, GitNexus freshness, GSD state surface, docs freshness. No product/domain logic; ADR-0007 compliant."
     }
   ],
   "current_milestone": {
-    "id": "M126-pnfr1q",
-    "title": "HC 14 Coordinate Checkpoint and Replay Runtime Proof",
-    "status": "complete",
-    "goal": "Convert HC-14 from unsupported-case into a bounded Rust runtime PASS without selecting product storage, checkpoint store or exactly-once infrastructure."
+    "id": "M127-9pitwq",
+    "title": "HC 15 Publish Authoritative H1 Unit Runtime Proof",
+    "status": "active",
+    "goal": "Convert HC-15 from unsupported-case into a bounded Rust runtime PASS without selecting product storage, fencing or transaction infrastructure."
   },
   "recommended_next": {
     "title": "HC-15 Publish Authoritative H1 Unit runtime proof",

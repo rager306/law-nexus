@@ -1,0 +1,12 @@
+[package]
+name = "ln-hc15-runner"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[[bin]]
+name = "ln-hc15-runner"
+path = "src/main.rs"
+
+[dependencies]
+ln-publish = { path = "../ln-publish" }
