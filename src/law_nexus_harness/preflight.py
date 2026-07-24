@@ -161,6 +161,170 @@ def _check_from_result(
     )
 
 
+def _warning_check(
+    *,
+    check_id: str,
+    phase: str,
+    command: tuple[str, ...],
+    observed: str,
+    remediation: str,
+    duration_ms: int = 0,
+    exit_code: int | None = None,
+    stdout_tail: str = "",
+    stderr_tail: str = "",
+) -> PreflightCheck:
+    return PreflightCheck(
+        check_id=check_id,
+        phase=phase,
+        status="warn",
+        severity="warn",
+        command=command,
+        duration_ms=duration_ms,
+        exit_code=exit_code,
+        stdout_tail=stdout_tail,
+        stderr_tail=stderr_tail,
+        observed=observed,
+        remediation=remediation,
+    )
+
+
+def _pass_check(
+    *,
+    check_id: str,
+    phase: str,
+    command: tuple[str, ...],
+    observed: str,
+    duration_ms: int = 0,
+    exit_code: int | None = 0,
+    stdout_tail: str = "",
+    stderr_tail: str = "",
+) -> PreflightCheck:
+    return PreflightCheck(
+        check_id=check_id,
+        phase=phase,
+        status="pass",
+        severity="ok",
+        command=command,
+        duration_ms=duration_ms,
+        exit_code=exit_code,
+        stdout_tail=stdout_tail,
+        stderr_tail=stderr_tail,
+        observed=observed,
+        remediation="none",
+    )
+
+
+def _gitnexus_freshness_check(root: Path, runner: Runner) -> PreflightCheck:
+    head = runner(("git", "rev-parse", "HEAD"), root)
+    status = runner(("git", "status", "--porcelain"), root)
+    meta_path = root / ".gitnexus" / "meta.json"
+    command = ("read", ".gitnexus/meta.json")
+    remediation = "Run `gitnexus analyze --force --name law-nexus` after local code changes."
+    if head.exit_code != 0:
+        return _warning_check(
+            check_id="gitnexus-index-freshness",
+            phase="graph-freshness",
+            command=head.command,
+            observed="Unable to read current git HEAD for GitNexus freshness check.",
+            remediation=remediation,
+            duration_ms=head.duration_ms,
+            exit_code=head.exit_code,
+            stdout_tail=head.stdout_tail,
+            stderr_tail=head.stderr_tail,
+        )
+    if status.exit_code != 0:
+        return _warning_check(
+            check_id="gitnexus-index-freshness",
+            phase="graph-freshness",
+            command=status.command,
+            observed="Unable to read working tree status for GitNexus freshness check.",
+            remediation=remediation,
+            duration_ms=status.duration_ms,
+            exit_code=status.exit_code,
+            stdout_tail=status.stdout_tail,
+            stderr_tail=status.stderr_tail,
+        )
+    if status.stdout_tail.strip():
+        return _warning_check(
+            check_id="gitnexus-index-freshness",
+            phase="graph-freshness",
+            command=status.command,
+            observed="GitNexus index may be stale: working tree has uncommitted changes.",
+            remediation=remediation,
+            duration_ms=status.duration_ms,
+            exit_code=status.exit_code,
+            stdout_tail=status.stdout_tail,
+            stderr_tail=status.stderr_tail,
+        )
+    if not meta_path.is_file():
+        return _warning_check(
+            check_id="gitnexus-index-freshness",
+            phase="graph-freshness",
+            command=command,
+            observed="GitNexus metadata is missing.",
+            remediation=remediation,
+        )
+    try:
+        indexed_commit = str(
+            json.loads(meta_path.read_text(encoding="utf-8")).get("lastCommit", "")
+        )
+    except (OSError, json.JSONDecodeError) as error:
+        return _warning_check(
+            check_id="gitnexus-index-freshness",
+            phase="graph-freshness",
+            command=command,
+            observed="GitNexus metadata could not be read as JSON.",
+            remediation=remediation,
+            stderr_tail=str(error),
+        )
+    current_commit = head.stdout_tail.strip()
+    if indexed_commit != current_commit:
+        return _warning_check(
+            check_id="gitnexus-index-freshness",
+            phase="graph-freshness",
+            command=command,
+            observed=f"GitNexus index commit {indexed_commit or '<missing>'} does not match HEAD {current_commit}.",
+            remediation=remediation,
+        )
+    return _pass_check(
+        check_id="gitnexus-index-freshness",
+        phase="graph-freshness",
+        command=command,
+        observed="GitNexus metadata matches HEAD and working tree is clean.",
+    )
+
+
+def _gsd_state_surface_check(root: Path) -> PreflightCheck:
+    state_path = root / ".gsd" / "STATE.md"
+    command = ("read", ".gsd/STATE.md")
+    remediation = "Use GSD tools such as `gsd_milestone_status` to inspect active task/slice state."
+    if not state_path.is_file():
+        return _warning_check(
+            check_id="gsd-state-surface",
+            phase="gsd-state",
+            command=command,
+            observed="GSD STATE.md surface is missing; preflight will not query .gsd/gsd.db directly.",
+            remediation=remediation,
+        )
+    state_text = state_path.read_text(encoding="utf-8")
+    required = ("**Active Milestone:**", "**Active Slice:**", "**Phase:**")
+    missing = [field for field in required if field not in state_text]
+    if missing:
+        return _warning_check(
+            check_id="gsd-state-surface",
+            phase="gsd-state",
+            command=command,
+            observed=f"GSD STATE.md is present but missing fields: {', '.join(missing)}.",
+            remediation=remediation,
+        )
+    return _pass_check(
+        check_id="gsd-state-surface",
+        phase="gsd-state",
+        command=command,
+        observed="GSD STATE.md exposes active milestone, slice, and phase surface.",
+    )
+
+
 def run_preflight(root: Path, *, runner: Runner = run_command) -> PreflightReport:
     """Run non-mutating formatter and lint preflight checks."""
 
@@ -190,6 +354,8 @@ def run_preflight(root: Path, *, runner: Runner = run_command) -> PreflightRepor
                 "or format the listed files explicitly."
             ),
         ),
+        _gitnexus_freshness_check(resolved_root, runner),
+        _gsd_state_surface_check(resolved_root),
     )
     error_count = sum(1 for item in checks if item.severity == "error")
     warn_count = sum(1 for item in checks if item.severity == "warn")
