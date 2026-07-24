@@ -4,12 +4,12 @@
 > non-authoritative cold-reader projection of
 > `prd/project-state/data/roadmap.json`.
 >
-> Refreshed 2026-07-24 during M127 execution.
+> Refreshed 2026-07-24 after M127 completion.
 
 ## Current position
 
-- **Latest completed milestone:** M126-pnfr1q, HC 14 Coordinate Checkpoint and Replay Runtime Proof.
-- **Active milestone:** M127-9pitwq (HC 15 Publish Authoritative H1 Unit Runtime Proof).
+- **Latest completed milestone:** M127-9pitwq, HC 15 Publish Authoritative H1 Unit Runtime Proof.
+- **Active milestone:** none (plan HC-16 next).
 - **M111 result:** final `[bounded]` implementation-neutral semantic baseline for heterogeneous Russian legal evidence.
 - **M112 result:** ADR-0005 topology superseded; ADR-0008 through ADR-0012 authored `[bounded]`; executable ADR/decision/owner drift checks active in pre-commit and CI.
 - **M113 result:** first hostile-case Rust runtime proof. `S10-HC-01-RT` is bounded PASS.
@@ -25,8 +25,8 @@
 - **M123 result:** eleventh hostile-case Rust runtime proof. `S10-HC-11-RT` is bounded PASS.
 - **M124 result:** twelfth hostile-case Rust runtime proof. `S10-HC-12-RT` is bounded PASS.
 - **M125 result:** thirteenth hostile-case Rust runtime proof. `S10-HC-13-RT` is bounded PASS.
-- **M126 result:** fourteenth hostile-case Rust runtime proof. `S10-HC-14-RT` is bounded PASS. Current aggregate is **14 PASS / 0 FAIL / 6 unsupported-case**.
-- **M127 in progress:** fifteenth hostile-case Rust runtime proof. `S10-HC-15-RT` is bounded PASS. Target aggregate is **15 PASS / 0 FAIL / 5 unsupported-case**.
+- **M127 result:** fifteenth hostile-case Rust runtime proof. `S10-HC-15-RT` is bounded PASS. Current aggregate is **15 PASS / 0 FAIL / 5 unsupported-case**.
+- **M128 result:** Governor preflight and process debt closure delivered 5-check non-mutating preflight profile.
 - **Product target:** Rust-only runtime under ADR-0004; Python may remain only as ADR-0007 subprocess repository harness.
 - **Implementation topology:** not selected. Database, FalkorDB schema, storage, queue/ledger, product crate map, API, concurrency runtime and deployment remain evidence-gated future decisions.
 - **Product readiness:** not proven.
@@ -100,7 +100,7 @@ Proof anchors:
 
 ## Recommended next milestone
 
-After M126 closeout, executing HC-15 Publish Authoritative H1 Unit:
+After M127 closeout, execute HC-16 Publish Provisional Acceleration:
 
 1. pure sole Publication Authority for one complete H1 unit and one writer;
 2. reject concurrent writers, partial candidates and duplicate mutation;
@@ -128,6 +128,7 @@ Do not select product filesystem/storage/graph/agent backends as part of the nex
 | HC-13 decide admission | Unknown bounds and retry amplification fail closed | `[bounded]` runtime PASS |
 | HC-14 coordinate checkpoint and replay | Corrupt lineage rejected; prior external effects suppressed | `[bounded]` runtime PASS |
 | HC-15 publish authoritative H1 unit | Dual-writer and partial-authority rejected; one authoritative unit per scope | `[bounded]` runtime PASS |
+| HC-15 publish authoritative H1 unit | Dual-writer and partial-authority rejected; one authoritative unit per scope | `[bounded]` runtime PASS |
 | HC-15 publish authoritative H1 unit | One writer and one complete authoritative effect | `[proposed]` active next |
 | Temporal resolver | Five-clock runtime plus complete substitution/conflict fixtures | `[proposed]` |
 | Promotion/publication | Idempotent D116 and complete H1/D120 hostile fixtures | `[proposed]` |
@@ -146,4 +147,4 @@ Do not select product filesystem/storage/graph/agent backends as part of the nex
 
 ## Non-claims
 
-This roadmap does not prove Rust product readiness, parser completeness, Russian legal correctness, source completeness, FalkorDB production readiness, retrieval quality, diagnostic sink safety, E1-E3 capacity or whole-system parity. HC-01 through HC-14 bounded synthetic runtime PASS proofs do not establish aggregate conformance or product storage readiness.
+This roadmap does not prove Rust product readiness, parser completeness, Russian legal correctness, source completeness, FalkorDB production readiness, retrieval quality, diagnostic sink safety, E1-E3 capacity or whole-system parity. HC-01 through HC-15 bounded synthetic runtime PASS proofs do not establish aggregate conformance or product storage readiness.

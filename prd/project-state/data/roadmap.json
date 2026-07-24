@@ -153,12 +153,18 @@
       "theme": "Governor Preflight and Process Debt Closure",
       "status": "complete",
       "boundary": "Delivered a complete non-mutating preflight profile for the law-nexus Python repository harness. Five checks: cargo fmt, Ruff explicit paths, GitNexus freshness, GSD state surface, docs freshness. No product/domain logic; ADR-0007 compliant."
+    },
+    {
+      "range": "M127-M127",
+      "theme": "HC-15 Publish Authoritative H1 Unit Runtime Proof",
+      "status": "complete",
+      "boundary": "Implemented pure hexagonal ln-publish seam with application-owned exclusive writer and completeness gate, sealed hostile dual-writer contracts, added dependency-free process runner, and produced tracked S10-HC-15-RT PASS. Current aggregate after M113-M127 is 15 PASS / 0 FAIL / 5 unsupported. No product storage, fencing or transaction infrastructure selected."
     }
   ],
   "current_milestone": {
     "id": "M127-9pitwq",
     "title": "HC 15 Publish Authoritative H1 Unit Runtime Proof",
-    "status": "active",
+    "status": "complete",
     "goal": "Convert HC-15 from unsupported-case into a bounded Rust runtime PASS without selecting product storage, fencing or transaction infrastructure."
   },
   "recommended_next": {
