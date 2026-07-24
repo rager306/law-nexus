@@ -6,7 +6,12 @@ import json
 from pathlib import Path
 
 from law_nexus_harness.cli import main
-from law_nexus_harness.preflight import PREFLIGHT_SCHEMA_VERSION, CommandResult, run_preflight
+from law_nexus_harness.preflight import (
+    DOCS_FRESHNESS_PATHS,
+    PREFLIGHT_SCHEMA_VERSION,
+    CommandResult,
+    run_preflight,
+)
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -52,22 +57,34 @@ def write_gitnexus_meta(root: Path, last_commit: str = "abc123") -> None:
     (gitnexus / "meta.json").write_text(json.dumps({"lastCommit": last_commit}), encoding="utf-8")
 
 
+def write_docs(root: Path) -> None:
+    for rel_path in DOCS_FRESHNESS_PATHS:
+        path = root / rel_path
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text("# placeholder\n", encoding="utf-8")
+
+
+EXPECTED_CHECK_IDS = [
+    "cargo-fmt-workspace",
+    "ruff-format-explicit-python-paths",
+    "gitnexus-index-freshness",
+    "gsd-state-surface",
+    "docs-freshness-surface",
+]
+
+
 def test_preflight_report_schema_and_formatter_profile_pass(tmp_path: Path) -> None:
     write_gitnexus_meta(tmp_path)
     write_gsd_state(tmp_path)
+    write_docs(tmp_path)
     report = run_preflight(tmp_path, runner=passing_runner)
     payload = report.to_dict()
 
     assert payload["schema_version"] == PREFLIGHT_SCHEMA_VERSION
     assert payload["status"] == "ok"
     assert payload["root"] == str(tmp_path.resolve())
-    assert [item["check_id"] for item in payload["checks"]] == [
-        "cargo-fmt-workspace",
-        "ruff-format-explicit-python-paths",
-        "gitnexus-index-freshness",
-        "gsd-state-surface",
-    ]
-    assert payload["pass_count"] == 4
+    assert [item["check_id"] for item in payload["checks"]] == EXPECTED_CHECK_IDS
+    assert payload["pass_count"] == 5
     assert payload["warn_count"] == 0
     assert payload["error_count"] == 0
 
@@ -80,12 +97,7 @@ def test_cli_preflight_command_emits_stable_json(capsys) -> None:
     assert code == 0
     assert payload["schema_version"] == PREFLIGHT_SCHEMA_VERSION
     assert payload["status"] == "ok"
-    assert [item["check_id"] for item in payload["checks"]] == [
-        "cargo-fmt-workspace",
-        "ruff-format-explicit-python-paths",
-        "gitnexus-index-freshness",
-        "gsd-state-surface",
-    ]
+    assert [item["check_id"] for item in payload["checks"]] == EXPECTED_CHECK_IDS
 
 
 def test_cargo_formatter_failure_is_fail_closed_and_actionable() -> None:
@@ -134,6 +146,7 @@ def test_ruff_format_check_includes_agent_skill_scripts() -> None:
 def test_stale_gitnexus_metadata_is_warn_with_reindex_remediation(tmp_path: Path) -> None:
     write_gitnexus_meta(tmp_path, last_commit="old456")
     write_gsd_state(tmp_path)
+    write_docs(tmp_path)
 
     report = run_preflight(tmp_path, runner=passing_runner)
     payload = report.to_dict()
@@ -151,6 +164,7 @@ def test_stale_gitnexus_metadata_is_warn_with_reindex_remediation(tmp_path: Path
 def test_dirty_worktree_marks_gitnexus_freshness_warning(tmp_path: Path) -> None:
     write_gitnexus_meta(tmp_path)
     write_gsd_state(tmp_path)
+    write_docs(tmp_path)
 
     def dirty_runner(command: tuple[str, ...], root: Path) -> CommandResult:
         if command == ("git", "status", "--porcelain"):
@@ -172,6 +186,7 @@ def test_dirty_worktree_marks_gitnexus_freshness_warning(tmp_path: Path) -> None
 
 def test_missing_gsd_state_surface_is_warn_not_db_access(tmp_path: Path) -> None:
     write_gitnexus_meta(tmp_path)
+    write_docs(tmp_path)
 
     payload = run_preflight(tmp_path, runner=passing_runner).to_dict()
     by_id = {item["check_id"]: item for item in payload["checks"]}
@@ -179,3 +194,18 @@ def test_missing_gsd_state_surface_is_warn_not_db_access(tmp_path: Path) -> None
     assert by_id["gsd-state-surface"]["status"] == "warn"
     assert by_id["gsd-state-surface"]["command"] == ["read", ".gsd/STATE.md"]
     assert "GSD tools" in by_id["gsd-state-surface"]["remediation"]
+
+
+def test_missing_docs_surface_warns_with_required_files(tmp_path: Path) -> None:
+    write_gitnexus_meta(tmp_path)
+    write_gsd_state(tmp_path)
+
+    payload = run_preflight(tmp_path, runner=passing_runner).to_dict()
+    by_id = {item["check_id"]: item for item in payload["checks"]}
+
+    assert by_id["docs-freshness-surface"]["status"] == "warn"
+    assert "prd/ARCHITECTURE.md" in by_id["docs-freshness-surface"]["observed"]
+    assert (
+        "doc/adr/0007-python-repository-harness.md" in by_id["docs-freshness-surface"]["observed"]
+    )
+    assert "assess" in by_id["docs-freshness-surface"]["remediation"].lower()

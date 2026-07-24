@@ -33,6 +33,12 @@ AGENT_SKILL_SCRIPT_PATHS = (
     ".agents/skills/pi-skill-creator/scripts/suggest_description.py",
     ".agents/skills/pi-skill-creator/scripts/validate_pi_skill.py",
 )
+DOCS_FRESHNESS_PATHS = (
+    "prd/ARCHITECTURE.md",
+    "doc/adr/0004-rust-migration-decision.md",
+    "doc/adr/0007-python-repository-harness.md",
+    ".gsd/REQUIREMENTS.md",
+)
 
 
 @dataclass(frozen=True)
@@ -325,6 +331,33 @@ def _gsd_state_surface_check(root: Path) -> PreflightCheck:
     )
 
 
+def _docs_freshness_surface_check(root: Path) -> PreflightCheck:
+    command = ("read", *DOCS_FRESHNESS_PATHS)
+    remediation = (
+        "Assess and update architecture, ADR, and requirements documents after each wave; "
+        "preserve lifecycle tags and do not promote generated projections to source truth."
+    )
+    missing: list[str] = []
+    for rel_path in DOCS_FRESHNESS_PATHS:
+        path = root / rel_path
+        if not path.is_file() or path.stat().st_size == 0:
+            missing.append(rel_path)
+    if missing:
+        return _warning_check(
+            check_id="docs-freshness-surface",
+            phase="docs-freshness",
+            command=command,
+            observed=f"Missing or empty docs: {', '.join(missing)}.",
+            remediation=remediation,
+        )
+    return _pass_check(
+        check_id="docs-freshness-surface",
+        phase="docs-freshness",
+        command=command,
+        observed="All required architecture, ADR, and requirements documents are present.",
+    )
+
+
 def run_preflight(root: Path, *, runner: Runner = run_command) -> PreflightReport:
     """Run non-mutating formatter and lint preflight checks."""
 
@@ -356,6 +389,7 @@ def run_preflight(root: Path, *, runner: Runner = run_command) -> PreflightRepor
         ),
         _gitnexus_freshness_check(resolved_root, runner),
         _gsd_state_surface_check(resolved_root),
+        _docs_freshness_surface_check(resolved_root),
     )
     error_count = sum(1 for item in checks if item.severity == "error")
     warn_count = sum(1 for item in checks if item.severity == "warn")
