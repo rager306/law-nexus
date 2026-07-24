@@ -11,6 +11,8 @@
 - **ADR-0004** — Full Rust product transition (measured baseline, parity-gated cutover)
 - **ADR-0005** — Rust target architecture (crate and port map)
 - **ADR-0007** — Python repository control-plane harness (process orchestration only)
+- **ADR-0012** — Consequential evidence protocol (storage/ledger/workspace candidate assessment)
+- **ADR-0013** — Universal multi-source parser architecture (Consultant XML + Garant ODT)
 
 ## Archived (Python-specific, M068–M106)
 
