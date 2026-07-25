@@ -16,6 +16,7 @@
 | 0011 | KOF-DA ownership | `[bounded]` | 20 exclusive owners proven | Production ownership enforcement |
 | 0012 | Evidence protocol | `[bounded]` | Protocol applied to M111/M112 | Must be applied to every future selection |
 | 0013 | Universal parser | `[proposed]` | WordML adapter works; ODT structure analyzed | ODT adapter; hierarchy extractor; morphology; references; temporal markers; deontic |
+| 0014 | RuVector infra | `[proposed]` | 25 isolated functional checks on synthetic data | Real corpus integration; USER-bge-m3 ONNX adapter; end-to-end pipeline; citation contract enforcement |
 
 ## Gap Analysis: ADR → Implementation
 
@@ -83,16 +84,33 @@ M130: Parser Domain Types + Morphology (ADR-0013)
         Cross-format validation (Consultant vs Garant same law)
         Parser self-improvement: marker hit-rate, unknown form collector
 
-M135: FalkorDB Rust Client
+M135: RuVector Integration
   │   Evaluate: redis-rs vs custom FalkorDB client
   │   Cypher query execution, timeouts, error taxonomy
   │   Integration tests against running FalkorDB instance
   │
-  └── M136: Graph Materialization
-        Idempotent MERGE for hierarchy nodes
-        REFERS_TO edges from ReferenceExtractor
-        Temporal edges from TemporalMarkerExtractor
-        Cleanup and idempotency verification
+  ├── M135-S1: RuVector workspace integration
+  │     Add ruvector-core, ruvector-graph, rvf-runtime to law-nexus Cargo.toml
+  │     Create ln-storage crate bridging RuVector to ln-* domain types
+  │     Verify: cargo build --workspace compiles with RuVector deps
+  │
+  ├── M135-S2: ONNX embedding adapter
+  │     USER-bge-m3 1024d via ort crate (ONNX Runtime)
+  │     Implement EmbeddingProvider trait
+  │     Verify: real Russian legal text → 1024d vector (not HashEmbedding)
+  │
+  ├── M135-S3: Real corpus verification gate
+  │     Parse real 44-fz.odt → ParsedBlock → embed → store in RVF
+  │     Parse real 44-fz.odt → graph nodes/edges → store in redb
+  │     KnowQL query returns result traceable to source .odt
+  │     Verify: byte offset in result matches source file bytes
+  │     This gate promotes ADR-0014 from [proposed] to [bounded]
+  │
+  └── M135-S4: Citation contract enforcement
+        Returned text must match source bytes exactly
+        Source authority check (official vs mirror)
+        Fail-closed no-answer behavior
+        This gate promotes ADR-0014 from [bounded] to [validated]
 
 M137: Embedding Adapter
   │   Local USER-bge-m3 (1024d) via candle or onnxruntime

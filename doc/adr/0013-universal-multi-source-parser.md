@@ -16,6 +16,12 @@ related: [ADR-0004, ADR-0005]
 Consultant XML and Garant ODT adapters parse real documents into the shared
 domain types with passing tests.
 
+**Critical boundary:** ConsultantPlus WordML/XML extraction assumptions are
+incompatible with the Garant ODT parser direction. The two adapters are
+independent risk profiles: WordML assumptions (style IDs, paragraph structure)
+MUST NOT be inherited by the ODT adapter. Each adapter must be verified
+against its own real source documents independently.
+
 ## Context
 
 law-nexus ingests Russian normative legal acts from two providers with
