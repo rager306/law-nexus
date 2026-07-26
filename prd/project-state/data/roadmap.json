@@ -177,21 +177,27 @@
       "theme": "Provider-neutral Rust parser domain and bounded morphology/sentence foundation",
       "status": "complete",
       "boundary": "Validated types and decoded-text primitives only. Does not prove Consultant/Garant adapters, source mapping, parser completeness, legal correctness, retrieval or citations."
+    },
+    {
+      "range": "M132-M132",
+      "theme": "Independent Consultant WordML adapter and bounded real-document hierarchy tracer",
+      "status": "complete",
+      "boundary": "Fail-closed Rust adapter, four bounded hierarchy markers and one tracked real federal-law tracer only. No corpus, legal, citation, source/text mapping, Garant, retrieval or infrastructure readiness claim."
     }
   ],
   "current_milestone": {
-    "id": "M131-oisbcv",
-    "title": "Parser domain contracts and morphology foundation",
+    "id": "M132-gjjem8",
+    "title": "Consultant WordML adapter and hierarchy foundation",
     "status": "complete",
-    "goal": "Provide validated provider-neutral Rust parser records, bounded lexical/sentence primitives and type-safe artifact versus decoded-text coordinates."
+    "goal": "Provide a fail-closed independent Consultant adapter, provider-neutral bounded hierarchy and one real deterministic tracer."
   },
   "recommended_next": {
-    "title": "M132 Consultant WordML adapter and hierarchy foundation",
+    "title": "M133 Garant ODT adapter and independent parser proof",
     "priority": 1,
-    "why": "M131 closed the provider-neutral domain seam. The next bounded tracer is a fallible Consultant adapter with honest paragraph provenance before shared hierarchy and real-fixture evidence.",
-    "plan_reference": "M132-gjjem8; prd/migration/forward-roadmap.md M132; doc/adr/0013-universal-multi-source-parser.md",
-    "slices": "First close post-M131 projection/remediation debt; then fallible block port, Consultant ParsedBlock adapter, shared hierarchy and one real Consultant tracer.",
-    "non_validation": "M131 primitives do not validate WordML/ODT adapter correctness, artifact-to-decoded mapping, parser completeness, legal hierarchy, temporal/deontic facts, retrieval or citations."
+    "why": "M132 proved Consultant WordML only. Garant ODT has a separate ZIP/package and content.xml risk profile that must be retired independently behind the shared block port.",
+    "plan_reference": "M133-iv4yu0; prd/migration/forward-roadmap.md M133; doc/adr/0013-universal-multi-source-parser.md",
+    "slices": "First close post-M132 projection debt; then safe in-memory ODT package intake, independent content.xml adapter, shared hierarchy composition and one real ODT tracer.",
+    "non_validation": "M132 does not validate ODT package safety, Garant XML topology, parser/corpus completeness, legal correctness, temporal/deontic facts, retrieval, storage or citations."
   },
   "downstream_blocked": [
     {
