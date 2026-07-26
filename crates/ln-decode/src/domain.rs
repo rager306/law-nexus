@@ -192,6 +192,70 @@ impl fmt::Display for ParserDomainError {
 
 impl Error for ParserDomainError {}
 
+/// Bounded stage at which provider block decoding failed.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum DecodePhase {
+    Input,
+    Parse,
+    Validate,
+}
+
+/// Stable failure category for provider block decoding.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum BlockDecodeErrorKind {
+    UnsupportedFormat,
+    MalformedInput,
+    InvalidBlock,
+}
+
+/// Safe provider block decode failure metadata.
+///
+/// This type intentionally cannot contain source text or raw payload bytes.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct BlockDecodeError {
+    phase: DecodePhase,
+    kind: BlockDecodeErrorKind,
+    byte_offset: Option<usize>,
+}
+
+impl BlockDecodeError {
+    pub const fn new(
+        phase: DecodePhase,
+        kind: BlockDecodeErrorKind,
+        byte_offset: Option<usize>,
+    ) -> Self {
+        Self {
+            phase,
+            kind,
+            byte_offset,
+        }
+    }
+
+    pub const fn phase(&self) -> DecodePhase {
+        self.phase
+    }
+
+    pub const fn kind(&self) -> BlockDecodeErrorKind {
+        self.kind
+    }
+
+    pub const fn byte_offset(&self) -> Option<usize> {
+        self.byte_offset
+    }
+}
+
+impl fmt::Display for BlockDecodeError {
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(
+            formatter,
+            "block decode failed: phase={:?}, kind={:?}, byte_offset={:?}",
+            self.phase, self.kind, self.byte_offset
+        )
+    }
+}
+
+impl Error for BlockDecodeError {}
+
 /// Non-empty half-open byte range in the original source artifact.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct SourceSpan {

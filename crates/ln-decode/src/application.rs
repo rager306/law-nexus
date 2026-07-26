@@ -1,8 +1,26 @@
 use crate::domain::{
-    fingerprint_bytes, DecodeCategory, DecodeRequest, DecodeResult, DiagnosticId, SafeDiagnostic,
-    StructuralCandidate,
+    fingerprint_bytes, BlockDecodeError, DecodeCategory, DecodeRequest, DecodeResult, DiagnosticId,
+    ParsedBlock, SafeDiagnostic, StructuralCandidate,
 };
-use crate::ports::{DecoderPort, DiagnosticPort};
+use crate::ports::{BlockDecoderPort, DecoderPort, DiagnosticPort};
+
+/// Atomic provider-block decoding use case.
+pub struct DecodeBlocks<D> {
+    decoder: D,
+}
+
+impl<D> DecodeBlocks<D>
+where
+    D: BlockDecoderPort,
+{
+    pub fn new(decoder: D) -> Self {
+        Self { decoder }
+    }
+
+    pub fn execute(&self, request: &DecodeRequest) -> Result<Vec<ParsedBlock>, BlockDecodeError> {
+        self.decoder.decode_blocks(request)
+    }
+}
 
 /// Outward decode boundary. Accepts only structural candidates with anchors.
 /// Gate-owned claims and raw payload context are rejected by policy.
