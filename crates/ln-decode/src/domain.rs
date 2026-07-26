@@ -161,6 +161,7 @@ pub struct DecodeResult {
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum ParserDomainError {
     InvalidSourceSpan { start: usize, end: usize },
+    InvalidTextSpan { start: usize, end: usize },
     EmptyBlockText,
     EmptyProviderStyleId,
     EmptyHierarchyNumber,
@@ -173,6 +174,12 @@ impl fmt::Display for ParserDomainError {
         match self {
             Self::InvalidSourceSpan { start, end } => {
                 write!(formatter, "invalid source span: start={start}, end={end}")
+            }
+            Self::InvalidTextSpan { start, end } => {
+                write!(
+                    formatter,
+                    "invalid decoded text span: start={start}, end={end}"
+                )
             }
             Self::EmptyBlockText => formatter.write_str("parsed block text is empty"),
             Self::EmptyProviderStyleId => formatter.write_str("provider style id is empty"),
@@ -196,6 +203,42 @@ impl SourceSpan {
     pub fn try_new(start: usize, end: usize) -> Result<Self, ParserDomainError> {
         if start >= end {
             return Err(ParserDomainError::InvalidSourceSpan { start, end });
+        }
+        Ok(Self { start, end })
+    }
+
+    pub fn start(self) -> usize {
+        self.start
+    }
+
+    pub fn end(self) -> usize {
+        self.end
+    }
+
+    pub fn len(self) -> usize {
+        self.end - self.start
+    }
+
+    pub fn is_empty(self) -> bool {
+        false
+    }
+}
+
+/// Non-empty half-open byte range in decoded block text.
+///
+/// This coordinate system is intentionally distinct from `SourceSpan`, which
+/// refers to the original XML/ODT artifact. Adapters own any mapping between
+/// the two.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub struct TextSpan {
+    start: usize,
+    end: usize,
+}
+
+impl TextSpan {
+    pub fn try_new(start: usize, end: usize) -> Result<Self, ParserDomainError> {
+        if start >= end {
+            return Err(ParserDomainError::InvalidTextSpan { start, end });
         }
         Ok(Self { start, end })
     }

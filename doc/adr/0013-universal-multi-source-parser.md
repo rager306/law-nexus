@@ -163,8 +163,11 @@ crates/ln-decode/
 ### Shared domain types
 
 ```rust
-/// Non-empty half-open byte range in the original source artifact.
+/// Non-empty half-open byte range in the original XML/ODT artifact.
 pub struct SourceSpan { /* private start/end; try_new validates start < end */ }
+
+/// Non-empty half-open byte range in decoded block text.
+pub struct TextSpan { /* distinct coordinate system from SourceSpan */ }
 
 /// A parsed paragraph from any source format.
 pub struct ParsedBlock {
@@ -198,8 +201,12 @@ pub struct HierarchyNode {
 ```
 
 These M131 types are `[bounded]` contract evidence only. They do not prove that
-either source adapter emits correct offsets or hierarchy. Serialization is not
-added until a concrete versioned boundary requires it.
+either source adapter emits correct offsets or hierarchy. `ParsedBlock` keeps an
+original-artifact `SourceSpan`; morphology and sentence primitives return
+`TextSpan` relative to decoded block text. No automatic translation exists.
+Each adapter must separately prove any artifact-to-decoded-text mapping before
+citation or EvidenceSpan use. Serialization is not added until a concrete
+versioned boundary requires it.
 
 ### Format detection
 
@@ -305,7 +312,7 @@ system). The parser must handle morphological variation at specific layers.
 M131 uses a dependency-free Unicode token scan rather than regex or a morphology
 library. Exact supported inflection lists classify lexical markers for `статья`,
 `пункт`, `обязан`, `вправе` and bounded `запрещ*` forms. Results preserve source
-order and exact UTF-8 byte spans.
+order and exact UTF-8 `TextSpan` offsets within decoded input.
 
 The immediate preceding whitespace-separated token `не` sets a `negated` flag.
 Punctuation or distant negation does not. This flag is lexical context only: the
@@ -323,8 +330,9 @@ points and a numeric list marker at the start of the current segment, joins
 consecutive terminal punctuation, includes directly adjacent closing quotes or
 brackets, trims external whitespace and retains trailing unpunctuated text.
 
-The output contains ordered non-empty `SourceSpan` values only; it does not copy
-or normalize sentence text. This is `[bounded]` rule evidence, not general
+The output contains ordered non-empty decoded-text `TextSpan` values only; it
+does not copy or normalize sentence text and makes no original-artifact mapping
+claim. This is `[bounded]` rule evidence, not general
 Russian sentence segmentation. URLs, initials, broader abbreviations, malformed
 punctuation and provider-specific layout require later evidence before adding
 rules. No razdel, regex, neural model or external dependency is used.
@@ -364,7 +372,7 @@ crates/ln-decode/
 └── tests/morphology_contract.rs
 ```
 
-The module uses only the Rust standard library and the existing `SourceSpan`
+The module uses only the Rust standard library and the decoded-text `TextSpan`
 domain type. No regex, once_cell, morph-rs, pymorphy2, natasha or razdel
 dependency is introduced. Sentence splitting, hierarchy extraction, references,
 temporal extraction and deontic interpretation remain separate future slices.

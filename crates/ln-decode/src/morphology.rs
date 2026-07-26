@@ -1,4 +1,4 @@
-use crate::domain::SourceSpan;
+use crate::domain::TextSpan;
 
 /// Bounded lexical marker classes. They are not legal-effect conclusions.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -10,11 +10,11 @@ pub enum LegalMarkerKind {
     Zapret,
 }
 
-/// One exact lexical marker occurrence in source text.
+/// One exact lexical marker occurrence in decoded block text.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct MorphologyMatch {
     kind: LegalMarkerKind,
-    source_span: SourceSpan,
+    text_span: TextSpan,
     negated: bool,
 }
 
@@ -23,16 +23,16 @@ impl MorphologyMatch {
         self.kind
     }
 
-    pub fn source_span(self) -> SourceSpan {
-        self.source_span
+    pub fn text_span(self) -> TextSpan {
+        self.text_span
     }
 
     pub fn start(self) -> usize {
-        self.source_span.start()
+        self.text_span.start()
     }
 
     pub fn end(self) -> usize {
-        self.source_span.end()
+        self.text_span.end()
     }
 
     pub fn negated(self) -> bool {
@@ -106,11 +106,11 @@ pub fn find_legal_markers(text: &str) -> Vec<MorphologyMatch> {
                     .chars()
                     .all(char::is_whitespace)
         });
-        let source_span = SourceSpan::try_new(token.start, token.end)
-            .expect("alphabetic token always has a non-empty source span");
+        let text_span = TextSpan::try_new(token.start, token.end)
+            .expect("alphabetic token always has a non-empty decoded text span");
         matches.push(MorphologyMatch {
             kind,
-            source_span,
+            text_span,
             negated,
         });
     }

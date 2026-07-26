@@ -1,25 +1,25 @@
-use crate::domain::SourceSpan;
+use crate::domain::TextSpan;
 
 const LEGAL_ABBREVIATIONS: &[&str] = &["ст", "п", "ч", "ред", "г"];
 const CLOSING_PUNCTUATION: &[char] = &['»', '”', '"', '\'', ')', ']', '}'];
 
-/// Exact non-empty span of one bounded legal sentence candidate.
+/// Exact non-empty span within decoded block text.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct SentenceSpan {
-    source_span: SourceSpan,
+    text_span: TextSpan,
 }
 
 impl SentenceSpan {
-    pub fn source_span(self) -> SourceSpan {
-        self.source_span
+    pub fn text_span(self) -> TextSpan {
+        self.text_span
     }
 
     pub fn start(self) -> usize {
-        self.source_span.start()
+        self.text_span.start()
     }
 
     pub fn end(self) -> usize {
-        self.source_span.end()
+        self.text_span.end()
     }
 }
 
@@ -70,12 +70,12 @@ fn trimmed_span(text: &str, start: usize, end: usize) -> Option<SentenceSpan> {
         .rev()
         .find(|(_, character)| !character.is_whitespace())
         .map(|(index, character)| start + index + character.len_utf8())?;
-    SourceSpan::try_new(left, right)
+    TextSpan::try_new(left, right)
         .ok()
-        .map(|source_span| SentenceSpan { source_span })
+        .map(|text_span| SentenceSpan { text_span })
 }
 
-/// Split text into bounded sentence candidates with exact source byte spans.
+/// Split decoded text into bounded sentence candidates with exact input byte spans.
 ///
 /// The implementation supports a small explicit legal-abbreviation list,
 /// decimal points, leading numeric list markers, and directly adjacent closing

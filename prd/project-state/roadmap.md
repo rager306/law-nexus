@@ -128,6 +128,13 @@ recovery; typed KnowQL; product composition/CLI; whole-system acceptance; and
 Python product archival. `prd/migration/forward-roadmap.md` owns the detailed
 sequence and proof gates.
 
+M131 foundation progress is `[bounded]`: provider-neutral validated block and
+hierarchy types, dependency-free lexical morphology markers, and legal sentence
+boundaries now have contract tests. Original-artifact `SourceSpan` and decoded
+`TextSpan` are distinct; adapter-owned mapping remains unproven. This does not
+validate parser completeness, real Consultant/Garant offsets, legal structure,
+NormStatement extraction or citation safety.
+
 ## Downstream gates
 
 | Capability | Gate | Current lifecycle |

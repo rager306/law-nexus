@@ -1,6 +1,6 @@
 use ln_decode::domain::{
     HierarchyLevel, HierarchyNode, ParagraphStyle, ParsedBlock, ParserDomainError, SourceFormatId,
-    SourceSpan,
+    SourceSpan, TextSpan,
 };
 
 #[test]
@@ -22,6 +22,18 @@ fn source_span_rejects_empty_or_reversed_offsets() {
         SourceSpan::try_new(9, 4),
         Err(ParserDomainError::InvalidSourceSpan { start: 9, end: 4 })
     );
+}
+
+#[test]
+fn text_span_has_a_distinct_typed_failure_contract() {
+    assert_eq!(
+        TextSpan::try_new(7, 7),
+        Err(ParserDomainError::InvalidTextSpan { start: 7, end: 7 })
+    );
+    let span = TextSpan::try_new(2, 9).expect("valid decoded text span");
+    assert_eq!(span.start(), 2);
+    assert_eq!(span.end(), 9);
+    assert_eq!(span.len(), 7);
 }
 
 #[test]
