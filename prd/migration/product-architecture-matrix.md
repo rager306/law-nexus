@@ -116,60 +116,47 @@ Deficiencies must be fixed in dependency order. Each layer depends on the
 previous one:
 
 ```text
-R3 Domain Types
-  └─ R4 Parser (Consultant XML → Garant ODT → Pipeline)
-       └─ R5 Parser Artifacts (Golden pipeline, staging graph)
-            └─ R6 FalkorDB Graph (Client → Ingest → Cypher safety)
-                 └─ R7 Retrieval (Embedding → Exact → Vector → Graph-filtered → Citation → Validator)
-                      │    ruVector integration candidate (vector store, adaptive ranking)
-                      └─ R8 Application (Ingest → Composition → CLI → Jobs)
-                           └─ R9 Parity (Whole-system → Performance → Security)
-                                └─ R10 Python Cutover
+R3 Provider-neutral parser domain contracts
+  └─ R4 Parser adapters (Consultant XML and Garant ODT independently)
+       └─ R5 Shared extractors and golden parser pipeline
+            └─ R6 TEI HTTP + RuVector components behind Rust ports
+                 └─ R7 Typed KnowQL, temporal retrieval and exact citations
+                      └─ R8 Application composition and product CLI
+                           └─ R9 Whole-system acceptance
+                                └─ R10 Python cutover
 ```
 
-## Forward Roadmap: Milestones M130+
+## Forward Roadmap: Product Milestones M131–M140
 
-| Milestone | Phase | Title | Slices | Risk | Key Output |
-|-----------|-------|-------|--------|------|------------|
-| M130 | R3 | Rust Domain and Serialization Contracts | 6 thin slices by aggregate | high | Rust domain types with serde, schemars, property tests, parity fixtures |
-| M131 | R4.1-R4.3 | Consultant XML Parser Foundation | 3 slices: metadata/blocks, hierarchy, parentage | critical | Real XML fixture → Rust hierarchy records matching frozen baseline |
-| M132 | R4.4-R4.6 | Consultant XML Parser Advanced | 3 slices: zones, FRBR IDs, references | critical | Full Consultant XML pipeline for single-fixture parity |
-| M133 | R4.7-R4.10 | Consultant XML Parser Completion | 4 slices: temporal, deontic, staging, parallel corpus | critical | Full corpus deterministic build matching Python artifacts |
-| M134 | R4/R5 | Garant ODT Parser | 3 slices: ODT structure, hierarchy, content | high | Garant ODT → Rust records matching Python |
-| M135 | R5 | Parser Golden Pipeline | 4 slices: validation, builders, staging graph, golden evaluator | high | All parser artifacts match frozen contract |
-| M136 | R6.1-R6.3 | FalkorDB Rust Client | 3 slices: client verify, graph access, error taxonomy | high | Verified FalkorDB Rust client with integration tests |
-| M137 | R6.4-R6.6 | Graph Materialization and Cypher Safety | 3 slices: ingest, edges, Cypher validation | high | Real graph ingest from parsed data |
-| M138 | R7.1-R7.2 | Embedding and Exact Retrieval | 2 slices: embedding adapter, exact retrieval | high | Local embedding + article-level exact search |
-| M139 | R7.3-R7.4 | Vector and Graph-Filtered Retrieval | 2 slices: vector search, graph-filtered | high | Hybrid retrieval with temporal/authority filters |
-| M140 | R7.5-R7.7 | Citation Assembly and Output Validation | 3 slices: citation binding, output validator, fail-closed no-answer | high | Citation-safe answer assembly with golden cases |
-| M141 | R8 | Application Composition and Product CLI | 4 slices: ingest use case, composition root, CLI, job management | medium | Full product CLI: ingest→retrieve→verify |
-| M142 | R9 | Whole-System Parity and Scale | 5 parallel verification classes | critical | Parity PASS against frozen Python artifacts |
-| M143 | R10 | Python Product Archival Cutover | 1 controlled operation | critical | Python product moved to python_archive/; Rust-only active |
+M130 closed repository-control debt. The current product sequence is owned by
+`prd/migration/forward-roadmap.md` and summarized here without creating a second
+independent numbering scheme.
 
-**Total estimated milestones:** 14 (M130-M143)
-**Total estimated slices:** ~45
-**Critical path:** R3 → R4 → R5 → R6 → R7 → R8 → R9 → R10
+| Milestone | Phase | Title | Risk | Bounded output |
+|-----------|-------|-------|------|----------------|
+| M131 | R3 | Parser domain contracts and morphology foundation | high | Provider-neutral validated Rust types and deterministic primitives |
+| M132 | R4 | Consultant hierarchy adapter | critical | Real Consultant XML hierarchy evidence against frozen fixtures |
+| M133 | R4 | Garant ODT adapter | critical | Independent real ODT structural evidence; no WordML assumption inheritance |
+| M134 | R4 | Shared reference, temporal and deontic extractors | critical | Format-independent bounded extractor contracts |
+| M135 | R5 | Parser golden pipeline | high | Joined Consultant/Garant/extractor evidence and quality baseline |
+| M136 | R6 | TEI and RuVector integration with recovery | high | HTTP embeddings, RVF/redb adapters and injected-failure recovery evidence |
+| M137 | R7 | Typed KnowQL executor | high | law-nexus-owned typed operations over graph/vector ports |
+| M138 | R8 | Application composition and product CLI | medium | Observable Rust composition root and job failure surfaces |
+| M139 | R9 | Whole-system acceptance | critical | Real-source end-to-end, performance, security and UAT evidence |
+| M140 | R10 | Python product archival cutover | critical | One controlled move after complete Rust acceptance |
 
-## ruVector Optimization Milestone (Optional, Parallel)
-
-| Milestone | Phase | Title | Depends | Risk |
-|-----------|-------|-------|---------|------|
-| M-RV | R7+ | ruVector Integration Pilot | M139 (vector retrieval) | medium |
-
-Slices:
-1. ruVector vector store adapter for EvidenceSpan embeddings
-2. Adaptive retrieval ranking with agent feedback (non-authoritative)
-3. Performance benchmark: ruVector vs FalkorDB vector index
-4. Fallback verification: law-nexus works identically without ruVector
-
-**Key decision point:** After M-RV S03, decide whether ruVector becomes the
-primary vector backend or stays as an optional acceleration layer.
+After M131, Consultant, Garant and shared extractor slices may advance where
+inputs are independent; M135 joins them. M136–M140 remain sequential. Every
+lifecycle advancement requires its own tracked evidence and cannot be inferred
+from synthetic infrastructure checks.
 
 ## Non-Claims
 
 - This matrix is `[proposed]` planning. No product capability is claimed.
-- ruVector integration is exploratory; ADR-0012 `separate-role` disposition
-  holds until a bounded proof packet changes it.
+- ADR-0014 selects RuVector components at `[proposed]`; external synthetic
+  research does not prove product integration, recovery, retrieval quality or readiness.
+- FalkorDB is historical-only and has no active product milestone.
+- TEI is an HTTP adapter behind `EmbeddingPort`, not embedded Python or in-process ONNX.
 - All 20 hostile case crates are `[bounded]` synthetic proof, not product
   validation.
 - Migration phases R3-R10 follow the frozen roadmap in

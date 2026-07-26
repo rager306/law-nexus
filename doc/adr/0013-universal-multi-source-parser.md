@@ -66,10 +66,10 @@ we can design the universal architecture properly.
 │                    ln-decode (existing crate)            │
 │                                                          │
 │  ┌────────────────────────────────────────────────────┐  │
-│  │           SourceFormat trait (NEW)                  │  │
-│  │  fn detect(path) -> Option<Self>                   │  │
-│  │  fn decode(reader) -> Vec<ParsedBlock>             │  │
-│  │  fn format_id() -> &'static str                   │  │
+│  │       Source adapter ports (future slices)          │  │
+│  │  detect belongs to adapters, not domain            │  │
+│  │  decode(input) -> Result<Vec<ParsedBlock>, Error>  │  │
+│  │  format_id() -> SourceFormatId                     │  │
 │  └────────────────────────────────────────────────────┘  │
 │                                                          │
 │  ┌──────────────────┐  ┌──────────────────────────────┐  │
@@ -83,11 +83,10 @@ we can design the universal architecture properly.
 │                                                          │
 │  ┌────────────────────────────────────────────────────┐  │
 │  │           ParsedBlock (SHARED domain type)          │  │
-│  │  text: String                                      │  │
-│  │  style_id: String                                  │  │
-│  │  style_classification: ParagraphStyle              │  │
-│  │  byte_offset: (start, end)                        │  │
-│  │  source_format: SourceFormatId                     │  │
+│  │  private validated fields                          │  │
+│  │  text + optional provider_style_id                 │  │
+│  │  ParagraphStyle + non-empty SourceSpan             │  │
+│  │  SourceFormatId                                    │  │
 │  └────────────────────────────────────────────────────┘  │
 │                                                          │
 │  ┌────────────────────────────────────────────────────┐  │
@@ -164,65 +163,58 @@ crates/ln-decode/
 ### Shared domain types
 
 ```rust
+/// Non-empty half-open byte range in the original source artifact.
+pub struct SourceSpan { /* private start/end; try_new validates start < end */ }
+
 /// A parsed paragraph from any source format.
 pub struct ParsedBlock {
-    pub text: String,
-    pub style_id: String,
-    pub style: ParagraphStyle,
-    pub byte_range: (usize, usize),
-    pub source_format: SourceFormatId,
+    // Private fields. `try_new` rejects empty text and invalid provider style IDs.
+    // Accessors expose text, optional provider style, shared style, span and format.
 }
 
-/// Shared paragraph style classification.
 pub enum ParagraphStyle {
-    Title,           // Document title
-    BodyText,        // Normal legal text body
-    Heading,         // Chapter/section heading
-    JurTerm,         // Legal term definition
-    ProviderComment, // ГАРАНТ/Consultant annotation (filtered)
-    TableCell,       // Table content
+    Title,
+    BodyText,
+    Heading,
+    JurTerm,
+    ProviderComment,
+    TableCell,
     Unknown,
 }
 
-/// Hierarchy level in Russian legal acts.
 pub enum HierarchyLevel {
-    Razdel,     // Раздел
-    Glava,      // Глава
-    Paragraph,  // § Параграф (optional, only in some chapters)
-    Statya,     // Статья
-    Chast,      // Часть (numbered: "1.", "2.")
-    Punkt,      // Пункт (numbered: "1)", "2)")
-    Podpunkt,   // Подпункт (lettered: "а)", "б)")
+    Razdel,
+    Glava,
+    Paragraph,
+    Statya,
+    Chast,
+    Punkt,
+    Podpunkt,
 }
 
 pub struct HierarchyNode {
-    pub level: HierarchyLevel,
-    pub number: Option<String>,
-    pub title: Option<String>,
-    pub text: String,
-    pub byte_range: (usize, usize),
+    // Private validated level, number, optional title, text and SourceSpan.
 }
 ```
+
+These M131 types are `[bounded]` contract evidence only. They do not prove that
+either source adapter emits correct offsets or hierarchy. Serialization is not
+added until a concrete versioned boundary requires it.
 
 ### Format detection
 
 ```rust
 pub enum SourceFormatId {
-    ConsultantWordML,
-    GarantODT,
-}
-
-pub trait SourceFormat: Send + Sync {
-    /// Detect format from file extension or content signature.
-    fn detect(path: &Path) -> Option<Self> where Self: Sized;
-
-    /// Decode source into parsed blocks.
-    fn decode(&self, source: &mut dyn BufRead) -> Vec<ParsedBlock>;
-
-    /// Return the format identifier.
-    fn format_id(&self) -> SourceFormatId;
+    ConsultantWordMl,
+    GarantOdt,
 }
 ```
+
+Format detection is adapter-owned because paths, extensions, ZIP signatures and
+XML roots are external concerns. A future port accepts bounded input and returns
+`Result<Vec<ParsedBlock>, AdapterError>`; it must not silently return partial
+records on malformed input. M131 intentionally defines no I/O trait before the
+Consultant and Garant adapter contracts are planned.
 
 ### Hierarchy extraction (shared, format-independent)
 

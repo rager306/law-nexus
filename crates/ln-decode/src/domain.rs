@@ -155,6 +155,216 @@ pub struct DecodeResult {
     pub raw_payload_absent: bool,
 }
 
+/// Stable validation failures for provider-neutral parser domain values.
+///
+/// Error variants intentionally contain no source text.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum ParserDomainError {
+    InvalidSourceSpan { start: usize, end: usize },
+    EmptyBlockText,
+    EmptyProviderStyleId,
+    EmptyHierarchyNumber,
+    EmptyHierarchyTitle,
+    EmptyHierarchyText,
+}
+
+impl fmt::Display for ParserDomainError {
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::InvalidSourceSpan { start, end } => {
+                write!(formatter, "invalid source span: start={start}, end={end}")
+            }
+            Self::EmptyBlockText => formatter.write_str("parsed block text is empty"),
+            Self::EmptyProviderStyleId => formatter.write_str("provider style id is empty"),
+            Self::EmptyHierarchyNumber => formatter.write_str("hierarchy number is empty"),
+            Self::EmptyHierarchyTitle => formatter.write_str("hierarchy title is empty"),
+            Self::EmptyHierarchyText => formatter.write_str("hierarchy text is empty"),
+        }
+    }
+}
+
+impl Error for ParserDomainError {}
+
+/// Non-empty half-open byte range in the original source artifact.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub struct SourceSpan {
+    start: usize,
+    end: usize,
+}
+
+impl SourceSpan {
+    pub fn try_new(start: usize, end: usize) -> Result<Self, ParserDomainError> {
+        if start >= end {
+            return Err(ParserDomainError::InvalidSourceSpan { start, end });
+        }
+        Ok(Self { start, end })
+    }
+
+    pub fn start(self) -> usize {
+        self.start
+    }
+
+    pub fn end(self) -> usize {
+        self.end
+    }
+
+    pub fn len(self) -> usize {
+        self.end - self.start
+    }
+
+    pub fn is_empty(self) -> bool {
+        false
+    }
+}
+
+/// Source format identity carried by shared parser records.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub enum SourceFormatId {
+    ConsultantWordMl,
+    GarantOdt,
+}
+
+/// Provider-specific styles map into this shared classification in adapters.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub enum ParagraphStyle {
+    Title,
+    BodyText,
+    Heading,
+    JurTerm,
+    ProviderComment,
+    TableCell,
+    Unknown,
+}
+
+/// A validated paragraph emitted by any source-format adapter.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct ParsedBlock {
+    text: String,
+    provider_style_id: Option<String>,
+    style: ParagraphStyle,
+    source_span: SourceSpan,
+    source_format: SourceFormatId,
+}
+
+impl ParsedBlock {
+    pub fn try_new(
+        text: String,
+        provider_style_id: Option<String>,
+        style: ParagraphStyle,
+        source_span: SourceSpan,
+        source_format: SourceFormatId,
+    ) -> Result<Self, ParserDomainError> {
+        if text.trim().is_empty() {
+            return Err(ParserDomainError::EmptyBlockText);
+        }
+        if provider_style_id
+            .as_deref()
+            .is_some_and(|value| value.trim().is_empty())
+        {
+            return Err(ParserDomainError::EmptyProviderStyleId);
+        }
+        Ok(Self {
+            text,
+            provider_style_id,
+            style,
+            source_span,
+            source_format,
+        })
+    }
+
+    pub fn text(&self) -> &str {
+        &self.text
+    }
+
+    pub fn provider_style_id(&self) -> Option<&str> {
+        self.provider_style_id.as_deref()
+    }
+
+    pub fn style(&self) -> ParagraphStyle {
+        self.style
+    }
+
+    pub fn source_span(&self) -> SourceSpan {
+        self.source_span
+    }
+
+    pub fn source_format(&self) -> SourceFormatId {
+        self.source_format
+    }
+}
+
+/// Format-independent hierarchy levels for Russian legal acts.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub enum HierarchyLevel {
+    Razdel,
+    Glava,
+    Paragraph,
+    Statya,
+    Chast,
+    Punkt,
+    Podpunkt,
+}
+
+/// A validated hierarchy marker and its exact source span.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct HierarchyNode {
+    level: HierarchyLevel,
+    number: String,
+    title: Option<String>,
+    text: String,
+    source_span: SourceSpan,
+}
+
+impl HierarchyNode {
+    pub fn try_new(
+        level: HierarchyLevel,
+        number: String,
+        title: Option<String>,
+        text: String,
+        source_span: SourceSpan,
+    ) -> Result<Self, ParserDomainError> {
+        if number.trim().is_empty() {
+            return Err(ParserDomainError::EmptyHierarchyNumber);
+        }
+        if title
+            .as_deref()
+            .is_some_and(|value| value.trim().is_empty())
+        {
+            return Err(ParserDomainError::EmptyHierarchyTitle);
+        }
+        if text.trim().is_empty() {
+            return Err(ParserDomainError::EmptyHierarchyText);
+        }
+        Ok(Self {
+            level,
+            number,
+            title,
+            text,
+            source_span,
+        })
+    }
+
+    pub fn level(&self) -> HierarchyLevel {
+        self.level
+    }
+
+    pub fn number(&self) -> &str {
+        &self.number
+    }
+
+    pub fn title(&self) -> Option<&str> {
+        self.title.as_deref()
+    }
+
+    pub fn text(&self) -> &str {
+        &self.text
+    }
+
+    pub fn source_span(&self) -> SourceSpan {
+        self.source_span
+    }
+}
+
 pub fn fingerprint_bytes(bytes: &[u8]) -> String {
     // FNV-1a diagnostic fingerprint only; not integrity or authority digest.
     let mut hash = 0xcbf29ce484222325_u64;
