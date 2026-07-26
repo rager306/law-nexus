@@ -196,6 +196,7 @@ impl Error for ParserDomainError {}
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum DecodePhase {
     Input,
+    Package,
     Parse,
     Validate,
 }
@@ -204,6 +205,11 @@ pub enum DecodePhase {
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum BlockDecodeErrorKind {
     UnsupportedFormat,
+    InvalidPackage,
+    MissingContentXml,
+    DuplicatePackageEntry,
+    UnsafePackageEntry,
+    PackageLimitExceeded,
     MalformedInput,
     InvalidBlock,
 }

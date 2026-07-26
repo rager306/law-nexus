@@ -1,3 +1,5 @@
+pub mod garant_odt_package;
+
 use quick_xml::events::Event;
 use quick_xml::reader::NsReader;
 
