@@ -6,6 +6,7 @@ import json
 from pathlib import Path
 
 from law_nexus_harness.cli import main
+from law_nexus_harness.governor import GovernorFinding, GovernorReport
 from law_nexus_harness.preflight import (
     DOCS_FRESHNESS_PATHS,
     PREFLIGHT_SCHEMA_VERSION,
@@ -57,6 +58,45 @@ def write_gitnexus_meta(root: Path, last_commit: str = "abc123") -> None:
     (gitnexus / "meta.json").write_text(json.dumps({"lastCommit": last_commit}), encoding="utf-8")
 
 
+def passing_governor(root: Path) -> GovernorReport:
+    return GovernorReport(
+        schema_version="law-nexus-governor-report/v1",
+        status="ok",
+        root=str(root),
+        findings=(),
+        error_count=0,
+        warn_count=0,
+        pass_count=0,
+    )
+
+
+def governor_failure(*check_ids: str) -> GovernorReport:
+    findings = tuple(
+        GovernorFinding(
+            check_id=check_id,
+            status="fail",
+            severity="error",
+            message="test failure",
+            observed="test",
+            remediation="fix it",
+        )
+        for check_id in check_ids
+    )
+    return GovernorReport(
+        schema_version="law-nexus-governor-report/v1",
+        status="failure",
+        root="/tmp",
+        findings=findings,
+        error_count=len(findings),
+        warn_count=0,
+        pass_count=0,
+    )
+
+
+def run_test_preflight(root: Path, *, runner=passing_runner, governor_runner=passing_governor):
+    return run_preflight(root, runner=runner, governor_runner=governor_runner)
+
+
 def write_docs(root: Path) -> None:
     for rel_path in DOCS_FRESHNESS_PATHS:
         path = root / rel_path
@@ -70,6 +110,7 @@ EXPECTED_CHECK_IDS = [
     "gitnexus-index-freshness",
     "gsd-state-surface",
     "docs-freshness-surface",
+    "trajectory-governor",
 ]
 
 
@@ -77,14 +118,14 @@ def test_preflight_report_schema_and_formatter_profile_pass(tmp_path: Path) -> N
     write_gitnexus_meta(tmp_path)
     write_gsd_state(tmp_path)
     write_docs(tmp_path)
-    report = run_preflight(tmp_path, runner=passing_runner)
+    report = run_test_preflight(tmp_path)
     payload = report.to_dict()
 
     assert payload["schema_version"] == PREFLIGHT_SCHEMA_VERSION
     assert payload["status"] == "ok"
     assert payload["root"] == str(tmp_path.resolve())
     assert [item["check_id"] for item in payload["checks"]] == EXPECTED_CHECK_IDS
-    assert payload["pass_count"] == 5
+    assert payload["pass_count"] == 6
     assert payload["warn_count"] == 0
     assert payload["error_count"] == 0
 
@@ -101,7 +142,7 @@ def test_cli_preflight_command_emits_stable_json(capsys) -> None:
 
 
 def test_cargo_formatter_failure_is_fail_closed_and_actionable() -> None:
-    report = run_preflight(ROOT, runner=failing_cargo_runner)
+    report = run_test_preflight(ROOT, runner=failing_cargo_runner)
     payload = report.to_dict()
 
     assert payload["status"] == "failure"
@@ -119,7 +160,7 @@ def test_ruff_format_check_includes_agent_skill_scripts() -> None:
         commands.append(command)
         return passing_runner(command, root)
 
-    run_preflight(ROOT, runner=recording_runner)
+    run_test_preflight(ROOT, runner=recording_runner)
 
     ruff_commands = [command for command in commands if command[:3] == ("uv", "run", "ruff")]
     assert ruff_commands == [
@@ -148,7 +189,7 @@ def test_stale_gitnexus_metadata_is_warn_with_reindex_remediation(tmp_path: Path
     write_gsd_state(tmp_path)
     write_docs(tmp_path)
 
-    report = run_preflight(tmp_path, runner=passing_runner)
+    report = run_test_preflight(tmp_path)
     payload = report.to_dict()
 
     assert payload["status"] == "ok"
@@ -177,7 +218,7 @@ def test_dirty_worktree_marks_gitnexus_freshness_warning(tmp_path: Path) -> None
             )
         return passing_runner(command, root)
 
-    payload = run_preflight(tmp_path, runner=dirty_runner).to_dict()
+    payload = run_test_preflight(tmp_path, runner=dirty_runner).to_dict()
     by_id = {item["check_id"]: item for item in payload["checks"]}
 
     assert by_id["gitnexus-index-freshness"]["status"] == "warn"
@@ -188,7 +229,7 @@ def test_missing_gsd_state_surface_is_warn_not_db_access(tmp_path: Path) -> None
     write_gitnexus_meta(tmp_path)
     write_docs(tmp_path)
 
-    payload = run_preflight(tmp_path, runner=passing_runner).to_dict()
+    payload = run_test_preflight(tmp_path).to_dict()
     by_id = {item["check_id"]: item for item in payload["checks"]}
 
     assert by_id["gsd-state-surface"]["status"] == "warn"
@@ -196,11 +237,82 @@ def test_missing_gsd_state_surface_is_warn_not_db_access(tmp_path: Path) -> None
     assert "GSD tools" in by_id["gsd-state-surface"]["remediation"]
 
 
+def test_docs_freshness_uses_only_tracked_portable_authority_surfaces() -> None:
+    assert ".gsd/REQUIREMENTS.md" not in DOCS_FRESHNESS_PATHS
+    assert "prd/project-state/roadmap.md" in DOCS_FRESHNESS_PATHS
+    assert "doc/adr/0014-ruvector-primary-infrastructure.md" in DOCS_FRESHNESS_PATHS
+
+
+def test_portable_governor_failure_fails_preflight(tmp_path: Path) -> None:
+    write_gitnexus_meta(tmp_path)
+    write_gsd_state(tmp_path)
+    write_docs(tmp_path)
+
+    payload = run_test_preflight(
+        tmp_path,
+        governor_runner=lambda _root: governor_failure("architecture-direction-contract"),
+    ).to_dict()
+    finding = {item["check_id"]: item for item in payload["checks"]}["trajectory-governor"]
+
+    assert payload["status"] == "failure"
+    assert finding["status"] == "fail"
+    assert "architecture-direction-contract" in finding["observed"]
+
+
+def test_portable_failure_is_not_hidden_by_missing_local_projection(tmp_path: Path) -> None:
+    write_gitnexus_meta(tmp_path)
+    write_docs(tmp_path)
+
+    payload = run_test_preflight(
+        tmp_path,
+        governor_runner=lambda _root: governor_failure(
+            "gsd-state-present", "architecture-direction-contract"
+        ),
+    ).to_dict()
+    finding = {item["check_id"]: item for item in payload["checks"]}["trajectory-governor"]
+
+    assert payload["status"] == "failure"
+    assert finding["status"] == "fail"
+    assert "architecture-direction-contract" in finding["observed"]
+
+
+def test_existing_local_projection_debt_fails_preflight(tmp_path: Path) -> None:
+    write_gitnexus_meta(tmp_path)
+    write_gsd_state(tmp_path)
+    write_docs(tmp_path)
+
+    payload = run_test_preflight(
+        tmp_path,
+        governor_runner=lambda _root: governor_failure("gsd-no-open-registry-debt"),
+    ).to_dict()
+    finding = {item["check_id"]: item for item in payload["checks"]}["trajectory-governor"]
+
+    assert payload["status"] == "failure"
+    assert finding["status"] == "fail"
+
+
+def test_local_projection_only_governor_failures_warn_in_preflight(tmp_path: Path) -> None:
+    write_gitnexus_meta(tmp_path)
+    write_docs(tmp_path)
+
+    payload = run_test_preflight(
+        tmp_path,
+        governor_runner=lambda _root: governor_failure(
+            "gsd-state-present", "roadmap-state-present"
+        ),
+    ).to_dict()
+    finding = {item["check_id"]: item for item in payload["checks"]}["trajectory-governor"]
+
+    assert payload["status"] == "ok"
+    assert finding["status"] == "warn"
+    assert "local-projection-unavailable" in finding["observed"]
+
+
 def test_missing_docs_surface_warns_with_required_files(tmp_path: Path) -> None:
     write_gitnexus_meta(tmp_path)
     write_gsd_state(tmp_path)
 
-    payload = run_preflight(tmp_path, runner=passing_runner).to_dict()
+    payload = run_test_preflight(tmp_path).to_dict()
     by_id = {item["check_id"]: item for item in payload["checks"]}
 
     assert by_id["docs-freshness-surface"]["status"] == "warn"

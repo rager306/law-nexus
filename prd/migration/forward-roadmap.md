@@ -2,6 +2,7 @@
 
 **Date:** 2026-07-24
 **Status:** `[proposed]`
+**Sequence authority:** M130 is repository-control debt; this roadmap owns the non-conflicting product sequence M131–M140 and supersedes older product milestone numbering.
 **Source ADR set:** 0004, 0005, 0007, 0008, 0009, 0010, 0011, 0012, 0013, 0014
 **Decisions:** D130 (KnowQL), D131 (stem morphology), D132 (RuVector), D133 (proof ceiling)
 
@@ -45,27 +46,15 @@ These prove **adversarial contracts only**. Real product behavior is unproven.
 
 ### What's proven (RuVector infrastructure)
 
-25 isolated functional checks in `/tmp/ruvector-test`:
+An isolated external harness reported bounded synthetic behavior for RVF
+create/insert/search/reopen, GraphDB CRUD/persistence, hybrid/reranking components,
+toy temporal records and hand-built query demos. It used synthetic fixtures and
+placeholder embeddings. This is research input, not tracked product proof and not
+a readiness claim.
 
-| # | Capability | Status |
-|---|-----------|--------|
-| 1–8 | RVF store: create, ingest, search, persist | ✅ |
-| 9–10 | GraphDB: nodes, edges, hyperedges, property filter | ✅ |
-| 11–12 | GraphDB redb persistence | ✅ |
-| 13 | BM25 hybrid search (RRF) | ✅ |
-| 14–15 | GNN reranking (diffusion, mincut) | ✅ |
-| 16 | Cypher parse + semantic analysis | ✅ |
-| 17 | RAG multi-hop (KnowledgeGraph) | ✅ |
-| 18 | Dual storage pipeline (RVF + redb) | ✅ |
-| 19 | Temporal point-in-time query | ✅ |
-| 20 | Version history (sorted lineage) | ✅ |
-| 21 | Amendment chain (SUPERSEDED_BY) | ✅ |
-| 22 | KnowQL FIND ARTICLE | ✅ |
-| 23 | KnowQL FIND REFERENCES | ✅ |
-| 24 | KnowQL FIND OBLIGATIONS | ✅ |
-| 25 | KnowQL FIND HISTORY + CITE | ✅ |
-
-**These are bounded synthetic proof only.** Real corpus, ONNX embedding, and citation byte-traceability are NOT verified (per ADR-0014 proof ceiling).
+Real corpus, TEI embedding, cross-store recovery, typed KnowQL execution and
+citation byte traceability are not verified. `ruvector-graph` Cypher execution is
+not relied upon; law-nexus owns a typed application executor over storage ports.
 
 ### What's missing (critical gaps)
 
@@ -73,7 +62,7 @@ These prove **adversarial contracts only**. Real product behavior is unproven.
 |-----|----------|--------|
 | ODT adapter (Garant .odt) | CRITICAL | Reading Garant source files |
 | hierarchy.rs, references.rs, temporal.rs, deontic.rs | CRITICAL | Legal structure extraction |
-| Real ONNX embedding (USER-bge-m3, not HashEmbedding) | HIGH | Semantic retrieval quality |
+| Real TEI HTTP embedding (USER-bge-m3 1024d, not HashEmbedding) | HIGH | Semantic retrieval quality |
 | RuVector integration into law-nexus workspace | HIGH | Storage runtime |
 | Authority flow: parser → ln-promote → ln-publish → store | HIGH | Real product pipeline |
 | KnowQL parser (real syntax, not AST PoC) | MEDIUM | User-facing query |
@@ -88,40 +77,40 @@ These prove **adversarial contracts only**. Real product behavior is unproven.
 |-----|-------|-----------|----------------|----------------|
 | 0004 | Rust migration | `[proposed]` | 41 crates, 20 HC PASS, WordML parser | Full product pipeline, Python archival |
 | 0005 | Rust target architecture | `[proposed]` | Hexagonal pattern proven | ADR stale (proposes mega-crates; reality is per-HC ln-*) |
-| 0007 | Python harness | `[proposed]` | Governor (27 pass), preflight (5 checks) | Consolidated CLI command groups |
+| 0007 | Python harness | `[proposed]` | Executable governor and composed preflight contracts | Milestone-close operational evidence |
 | 0008 | Authority ceiling | `[bounded]` | HC-04/15/16 PASS | Real authority flow with corpus |
 | 0009 | Five-clock temporal | `[bounded]` | HC-09 PASS | Real legal-date parsing |
 | 0010 | Evidence kernel | `[bounded]` | HC-05/07/08/10/14 PASS | Real graph evidence storage |
 | 0011 | KOF-DA ownership | `[bounded]` | 20 owners proven | Production enforcement |
 | 0012 | Evidence protocol | `[bounded]` | M111/M112 applied | Applied to every future selection |
 | 0013 | Universal parser | `[proposed]` | WordML adapter works | ODT adapter, hierarchy/morphology/refs/temporal/deontic extractors |
-| 0014 | RuVector infra | `[proposed]` | 25 isolated checks | Real corpus + ONNX + citation contract |
+| 0014 | RuVector infra | `[proposed]` | Bounded external synthetic research only | TEI, real corpus, recovery, typed queries and exact citations |
 
 ## Roadmap
 
 Critical path (each milestone blocks the next):
 
 ```text
-M130: Parser Domain Types + Morphology
-   ├── M130-S1: ln-decode domain types: ParsedBlock, ParagraphStyle,
+M131: Parser Domain Types + Morphology
+   ├── M131-S1: ln-decode domain types: ParsedBlock, ParagraphStyle,
    │            HierarchyLevel, HierarchyNode
-   ├── M130-S2: morphology.rs: stem_match(), negation detector
+   ├── M131-S2: morphology.rs: stem_match(), negation detector
    │            (стать[ьяейёю], пункт[ауомы], обязан[аоы]?, вправе)
-   └── M130-S3: sentence_split.rs: LegalSentenceSplitter
+   └── M131-S3: sentence_split.rs: LegalSentenceSplitter
                 with legal abbreviations allowlist
    Verify: cargo test -p ln-decode passes
    Promotes: ADR-0013 [proposed] → [bounded] (domain types only)
 ```
 
 ```text
-M131: Hierarchy Extractor + Consultant Full Parse
+M132: Hierarchy Extractor + Consultant Full Parse
    Real 44-FZ file parsing: Глава → § → Статья → Часть → Пункт → Подпункт
    Tests against real consultant/ fixtures
    Verify: hierarchy matches frozen manifest for known files
 ```
 
 ```text
-M132: ODT Adapter + Garant Parse
+M133: ODT Adapter + Garant Parse
    zip crate + quick-xml NsReader on content.xml
    Style map: s1=BodyText, s9=Comment (ГАРАНТ), s15=Heading
    Provider comment filtering
@@ -130,7 +119,7 @@ M132: ODT Adapter + Garant Parse
 ```
 
 ```text
-M133: References + Temporal + Deontic Extractors
+M134: References + Temporal + Deontic Extractors
    ReferenceExtractor: стать[ьяейёю] N, пункт N
    TemporalMarkerExtractor: вступает в силу, утрачивает силу
    DeonticDetector: обязан/вправе/запрещается + negation context
@@ -138,7 +127,7 @@ M133: References + Temporal + Deontic Extractors
 ```
 
 ```text
-M134: Parser Golden Pipeline
+M135: Parser Golden Pipeline
    GoldenEvaluator: parse vs human-verified fixtures
    Corpus coverage report
    Cross-format validation (Consultant vs Garant same law)
@@ -148,30 +137,27 @@ M134: Parser Golden Pipeline
 ```
 
 ```text
-M135: RuVector Integration (replaces M135-M139 from previous roadmap)
-   M135-S1: Workspace integration
-             Add ruvector-core, ruvector-graph, rvf-runtime to law-nexus
-             Create ln-storage crate (RuVector ↔ ln-* domain bridge)
-             Verify: cargo build --workspace compiles
-   M135-S2: ONNX embedding adapter
-             USER-bge-m3 1024d via ort crate (ONNX Runtime)
-             Implement EmbeddingProvider trait (not HashEmbedding)
-             Verify: real Russian legal text → 1024d vector
-   M135-S3: Real corpus verification gate [PROMOTES ADR-0014]
-             Parse real 44-fz.odt → embed (USER-bge-m3) → store in RVF
-             Parse same → graph nodes/edges → store in redb
-             KnowQL query returns result traceable to source .odt
-             Verify: byte offset matches source file
-             Promotes: ADR-0014 [proposed] → [bounded]
-   M135-S4: Citation contract enforcement [PROMOTES ADR-0014]
-             Returned text must match source bytes exactly
-             Source authority check (official vs mirror)
-             Fail-closed no-answer behavior
-             Promotes: ADR-0014 [bounded] → [validated]
+M136: RuVector Integration
+   M136-S1: Storage port contracts and bounded dependency probe
+             Define VectorStorePort and GraphStorePort before adapters
+             Verify selected crate revisions, licenses and minimal APIs
+   M136-S2: TEI HTTP embedding adapter
+             USER-bge-m3 1024d through EmbeddingPort
+             Validate model identity, dimensions, finite values and failures
+             Verify: real Russian legal text → exactly 1024d vector
+   M136-S3: RVF and redb adapters with recovery
+             Materialize real parser records through application ports
+             Add operation journal, idempotent replay and failure injection
+             Verify reopen, reconciliation and competing-writer behavior
+   M136-S4: Real retrieval and citation gate [PROMOTES ADR-0014]
+             Measure lexical/dense complementarity on a real temporal corpus
+             Execute typed KnowQL operations without Cypher-stub reliance
+             Enforce exact source-span citation and fail-closed no-answer
+             Promotes ADR-0014 [proposed] → [bounded] only
 ```
 
 ```text
-M136: KnowQL Executor
+M137: KnowQL Executor
    Real parser (pest or nom grammar)
    AST → RuVector operations translator
    7 query types from PoC become production:
@@ -181,22 +167,23 @@ M136: KnowQL Executor
 ```
 
 ```text
-M137: Application Composition + Product CLI
+M138: Application Composition + Product CLI
    Composition root wiring ln-decode → ln-promote → ln-publish → ln-storage
    Product CLI: ingest → profile → build → load → retrieve → verify → status
    Job management: phase/failure persistence, timeouts, cleanup
 ```
 
 ```text
-M138: Whole-System Parity
-   Schema/determinism/failure parity vs frozen Python artifacts
-   End-to-end test: real .odt → query → byte-traceable answer
+M139: Whole-System Acceptance
+   Rust contracts and real evidence are authoritative
+   Frozen Python artifacts are bounded comparison inputs only
+   End-to-end test: real source document → query → byte-traceable answer
    1× corpus benchmark; security/license audit
    UAT with Python product disabled
 ```
 
 ```text
-M139: Python Product Archival Cutover
+M140: Python Product Archival Cutover
    Move src/law_nexus/ → python_archive/product/
    Keep src/law_nexus_harness/ as control-plane
    Update all docs for Rust-only
@@ -207,29 +194,29 @@ M139: Python Product Archival Cutover
 
 | # | Milestone | Depends on | Blocks | Est. scope |
 |---|-----------|-----------|--------|------------|
-| 1 | M130 | — | M131-M134 | Foundation: types + morphology |
-| 2 | M131 | M130 | M134 | Hierarchy on real Consultant files |
-| 3 | M132 | M130 | M134 | ODT adapter (Garant source format) |
-| 4 | M133 | M130 | M134 | References, temporal, deontic extractors |
-| 5 | M134 | M131-M133 | M135 | Golden corpus + parser validation |
-| 6 | M135 | M134 | M136-M138 | RuVector + ONNX + citation contract |
-| 7 | M136 | M135 | M137 | KnowQL executor (production parser) |
-| 8 | M137 | M136 | M138 | Product CLI |
-| 9 | M138 | M137 | M139 | Parity + benchmarks + UAT |
-| 10 | M139 | M138 | — | Python archival |
+| 1 | M131 | — | M132-M135 | Foundation: types + morphology |
+| 2 | M132 | M131 | M135 | Hierarchy on real Consultant files |
+| 3 | M133 | M131 | M135 | ODT adapter (Garant source format) |
+| 4 | M134 | M131 | M135 | References, temporal, deontic extractors |
+| 5 | M135 | M132-M134 | M136 | Golden corpus + parser validation |
+| 6 | M136 | M135 | M137-M139 | RuVector + TEI + recovery + citation contract |
+| 7 | M137 | M136 | M138 | KnowQL executor (production parser) |
+| 8 | M138 | M137 | M139 | Product CLI |
+| 9 | M139 | M138 | M140 | Parity + benchmarks + UAT |
+| 10 | M140 | M139 | — | Python archival |
 
-**Critical path: 10 milestones, all sequential.** No parallelism possible because each milestone builds on the previous.
+**Critical path: 10 milestones.** After M131, the Consultant hierarchy, Garant ODT and shared extractor slices can advance independently where their inputs do not overlap; M135 joins their evidence. Storage, query, composition, acceptance and archival remain sequential after that join.
 
 ## Verification Gates (where lifecycle tags advance)
 
 | Gate | What it proves | ADR transition |
 |------|----------------|-----------------|
-| After M130-S3 | Domain types compile + morphology patterns tested | ADR-0013 [proposed]→[bounded] (domain only) |
-| After M134 | Parser pipeline works end-to-end on real corpus | ADR-0013 [bounded]→[validated] |
-| After M135-S3 | Real 44-fz.odt → embed → store → query, byte-traceable | ADR-0014 [proposed]→[bounded] |
-| After M135-S4 | Citation: returned text matches source bytes | ADR-0014 [bounded]→[validated] |
-| After M138 | End-to-end Python parity PASS | ADR-0004 →[validated], ADR-0005 →[validated] |
-| After M139 | Python product archived; Rust-only active | All ADRs at final lifecycle |
+| After M131-S3 | Domain types compile + morphology patterns tested | ADR-0013 [proposed]→[bounded] (domain only) |
+| After M135 | Parser pipeline works end-to-end on real corpus | ADR-0013 [bounded]→[validated] |
+| After M136-S3 | Real parser records persist and recover across RVF/redb failures | ADR-0014 remains [proposed] |
+| After M136-S4 | Real temporal retrieval plus exact citation tamper matrix | ADR-0014 [proposed]→[bounded] |
+| After M139 | Whole-system acceptance with Python disabled | ADR-0004/0005/0014 may advance only if every planned gate passes |
+| After M140 | Python product archived; Rust-only active | All ADRs at final lifecycle |
 
 ## Dependency Map (Cargo)
 
@@ -245,7 +232,6 @@ rvf-runtime = { version = "2" }                    # RVF storage format
 [dependencies]
 ln-storage = { path = "../ln-storage" }
 ln-decode = { path = "../ln-decode" }
-ort = { version = "2" }                           # ONNX Runtime for USER-bge-m3
 
 # ln-citation enforces byte traceability
 [dependencies]
@@ -269,7 +255,7 @@ ln-query = { path = "../ln-query" }
 - This roadmap is `[proposed]` planning, not commitment.
 - Milestone numbering and grouping may shift based on verification results.
 - 20 HC bounded synthetic proofs are not production claims.
-- 25 RuVector isolated checks are not end-to-end pipeline claims.
-- Real corpus integration (USER-bge-m3 ONNX, real 44-fz.odt) remains unproven.
+- External RuVector synthetic harness results are not end-to-end pipeline claims.
+- Real corpus integration (TEI USER-bge-m3 1024d, real Consultant/Garant documents) remains unproven.
 - No legal correctness claim at any stage.
 - No performance claim at scale (corpus size, query latency under load).

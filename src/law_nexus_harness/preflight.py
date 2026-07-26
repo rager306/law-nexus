@@ -15,6 +15,8 @@ from dataclasses import asdict, dataclass
 from pathlib import Path
 from typing import Any, Literal
 
+from law_nexus_harness.governor import GovernorReport, run_governor
+
 PREFLIGHT_SCHEMA_VERSION = "law-nexus-preflight-report/v1"
 
 PreflightStatus = Literal["ok", "failure"]
@@ -35,10 +37,15 @@ AGENT_SKILL_SCRIPT_PATHS = (
 )
 DOCS_FRESHNESS_PATHS = (
     "prd/ARCHITECTURE.md",
+    "prd/project-state/roadmap.md",
     "doc/adr/0004-rust-migration-decision.md",
     "doc/adr/0007-python-repository-harness.md",
-    ".gsd/REQUIREMENTS.md",
+    "doc/adr/0014-ruvector-primary-infrastructure.md",
 )
+_UNAVAILABLE_LOCAL_PROJECTION_CHECK_IDS = {
+    "gsd-state-present",
+    "roadmap-state-present",
+}
 
 
 @dataclass(frozen=True)
@@ -53,6 +60,7 @@ class CommandResult:
 
 
 Runner = Callable[[tuple[str, ...], Path], CommandResult]
+GovernorRunner = Callable[[Path], GovernorReport]
 
 
 @dataclass(frozen=True)
@@ -331,6 +339,44 @@ def _gsd_state_surface_check(root: Path) -> PreflightCheck:
     )
 
 
+def _trajectory_governor_check(root: Path, governor_runner: GovernorRunner) -> PreflightCheck:
+    report = governor_runner(root)
+    failed_ids = sorted(item.check_id for item in report.findings if item.status == "fail")
+    command = ("internal", "trajectory-governor")
+    if not failed_ids:
+        return _pass_check(
+            check_id="trajectory-governor",
+            phase="trajectory",
+            command=command,
+            observed=f"governor_pass={report.pass_count}; governor_errors=0",
+        )
+    if set(failed_ids) <= _UNAVAILABLE_LOCAL_PROJECTION_CHECK_IDS:
+        return _warning_check(
+            check_id="trajectory-governor",
+            phase="trajectory",
+            command=command,
+            observed=f"local-projection-unavailable; failed_checks={failed_ids}",
+            remediation=(
+                "Materialize or repair local GSD projections and rerun governor; portable tracked "
+                "architecture checks remain authoritative in clean-clone CI"
+            ),
+            exit_code=1,
+        )
+    return PreflightCheck(
+        check_id="trajectory-governor",
+        phase="trajectory",
+        status="fail",
+        severity="error",
+        command=command,
+        duration_ms=0,
+        exit_code=1,
+        stdout_tail="",
+        stderr_tail="",
+        observed=f"failed_checks={failed_ids}",
+        remediation="Run `uv run law-nexus-harness governor` and resolve every portable failure.",
+    )
+
+
 def _docs_freshness_surface_check(root: Path) -> PreflightCheck:
     command = ("read", *DOCS_FRESHNESS_PATHS)
     remediation = (
@@ -358,7 +404,12 @@ def _docs_freshness_surface_check(root: Path) -> PreflightCheck:
     )
 
 
-def run_preflight(root: Path, *, runner: Runner = run_command) -> PreflightReport:
+def run_preflight(
+    root: Path,
+    *,
+    runner: Runner = run_command,
+    governor_runner: GovernorRunner = run_governor,
+) -> PreflightReport:
     """Run non-mutating formatter and lint preflight checks."""
 
     resolved_root = root.resolve()
@@ -390,6 +441,7 @@ def run_preflight(root: Path, *, runner: Runner = run_command) -> PreflightRepor
         _gitnexus_freshness_check(resolved_root, runner),
         _gsd_state_surface_check(resolved_root),
         _docs_freshness_surface_check(resolved_root),
+        _trajectory_governor_check(resolved_root, governor_runner),
     )
     error_count = sum(1 for item in checks if item.severity == "error")
     warn_count = sum(1 for item in checks if item.severity == "warn")

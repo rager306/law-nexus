@@ -121,11 +121,12 @@ M130 closes repository-control debt before product work:
 3. active requirement contradiction closure;
 4. unified preflight and renumbered long-horizon roadmap.
 
-After M130, continue parser-first thin slices: shared domain/morphology contracts,
-real Consultant hierarchy, independent Garant ODT, shared extractors and golden
-corpus. Only then integrate TEI + RuVector behind ports, followed by KnowQL,
-product CLI, whole-system parity and Python product archival. See
-`prd/migration/forward-roadmap.md`; numbering will be refreshed in M130/S04.
+After M130, the non-conflicting product sequence is M131–M140: shared parser
+domain/morphology contracts; real Consultant hierarchy; independent Garant ODT;
+shared extractors; golden corpus; TEI + RuVector components behind ports with
+recovery; typed KnowQL; product composition/CLI; whole-system acceptance; and
+Python product archival. `prd/migration/forward-roadmap.md` owns the detailed
+sequence and proof gates.
 
 ## Downstream gates
 
@@ -147,7 +148,6 @@ product CLI, whole-system parity and Python product archival. See
 | HC-14 coordinate checkpoint and replay | Corrupt lineage rejected; prior external effects suppressed | `[bounded]` runtime PASS |
 | HC-15 publish authoritative H1 unit | Dual-writer and partial-authority rejected; one authoritative unit per scope | `[bounded]` runtime PASS |
 | HC-15 publish authoritative H1 unit | Dual-writer and partial-authority rejected; one authoritative unit per scope | `[bounded]` runtime PASS |
-| HC-15 publish authoritative H1 unit | One writer and one complete authoritative effect | `[proposed]` active next |
 | Temporal resolver | Five-clock runtime plus complete substitution/conflict fixtures | `[proposed]` |
 | Promotion/publication | Idempotent D116 and complete H1/D120 hostile fixtures | `[proposed]` |
 | RuVector product integration | Real parser output, TEI 1024d embeddings, RVF/redb recovery contract and exact citation gates | `[proposed]` |

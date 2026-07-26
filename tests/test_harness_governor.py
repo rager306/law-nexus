@@ -7,9 +7,12 @@ from pathlib import Path
 
 from law_nexus_harness.cli import main
 from law_nexus_harness.governor import (
+    _ACTIVE_REQUIREMENT_POLICY,
+    _EXPECTED_DIRECTION,
     GOVERNOR_SCHEMA_VERSION,
     check_active_requirement_contradictions,
     check_architecture_direction,
+    check_forward_roadmap_sequence,
     check_hostile_proof_chain,
     check_roadmap_freshness,
     run_governor,
@@ -137,18 +140,11 @@ def test_open_next_wave_milestone_is_not_residual_debt(tmp_path: Path) -> None:
     assert by_id["gsd-phase-complete-consistent"].status == "pass"
 
 
-ACTIVE_DIRECTION = """## Active Direction Contract
-
-```text
-runtime=rust-only
-python=repository-control-only
-graph_vector=ruvector
-infrastructure_lifecycle=proposed
-embedding=tei-user-bge-m3-1024d
-acp_git_lex=archive-only
-falkordb=historical-only
-```
-"""
+ACTIVE_DIRECTION = (
+    "## Active Direction Contract\n\n```text\n"
+    + "\n".join(f"{key}={value}" for key, value in _EXPECTED_DIRECTION.items())
+    + "\n```\n"
+)
 
 
 def write_direction_surfaces(root: Path, contract: str = ACTIVE_DIRECTION) -> None:
@@ -262,6 +258,36 @@ def test_architecture_direction_requires_all_tracked_surfaces_to_match(tmp_path:
     assert "graph_vector" in finding.observed
 
 
+def test_forward_roadmap_requires_unique_m131_to_m140_sequence(tmp_path: Path) -> None:
+    path = tmp_path / "prd" / "migration" / "forward-roadmap.md"
+    path.parent.mkdir(parents=True)
+    path.write_text(
+        "# Roadmap\n\n" + "\n".join(f"M{seq}: Product wave" for seq in range(131, 141)),
+        encoding="utf-8",
+    )
+
+    finding = check_forward_roadmap_sequence(tmp_path)[0]
+
+    assert finding.status == "pass"
+    assert "M131-M140" in finding.observed
+
+
+def test_forward_roadmap_rejects_old_gap_or_duplicate_numbering(tmp_path: Path) -> None:
+    path = tmp_path / "prd" / "migration" / "forward-roadmap.md"
+    path.parent.mkdir(parents=True)
+    path.write_text(
+        "# Roadmap\n\nM130: Old product wave\nM131: Wave\nM131: Duplicate\nM133: Gap\n",
+        encoding="utf-8",
+    )
+
+    finding = check_forward_roadmap_sequence(tmp_path)[0]
+
+    assert finding.status == "fail"
+    assert "unexpected=M130" in finding.observed
+    assert "duplicate=M131" in finding.observed
+    assert "missing=M132" in finding.observed
+
+
 def write_requirements(root: Path, active_blocks: str) -> None:
     path = root / ".gsd" / "REQUIREMENTS.md"
     path.parent.mkdir(parents=True, exist_ok=True)
@@ -299,13 +325,50 @@ def test_requirement_contradictions_ignore_allowed_r066_antifeature(tmp_path: Pa
         "### R066 — ACP and git-lex must not remain active\n"
         "- Description: ACP and git-lex are archive-only.\n"
         "### R065 — Python prior art\n"
-        "- Description: Python is historical prior art until cutover.\n",
+        "- Description: Python is historical prior art and a bounded comparison surface until cutover.\n",
     )
 
     finding = check_active_requirement_contradictions(tmp_path)[0]
 
     assert finding.status == "pass"
     assert "active_conflicts=[]" in finding.observed
+
+
+def test_requirement_contradictions_accept_supported_heading_separators(
+    tmp_path: Path,
+) -> None:
+    for separator in ("—", "–", "-"):
+        write_requirements(
+            tmp_path,
+            f"### R066 {separator} Archive-only guard\n"
+            "- Description: ACP remains archive-only.\n"
+            f"### R065 {separator} Python prior art\n"
+            "- Description: Python is historical prior art and a bounded comparison surface until cutover.\n",
+        )
+        assert check_active_requirement_contradictions(tmp_path)[0].status == "pass"
+
+
+def test_requirement_contradictions_fail_on_empty_active_section(tmp_path: Path) -> None:
+    write_requirements(tmp_path, "")
+
+    finding = check_active_requirement_contradictions(tmp_path)[0]
+
+    assert finding.status == "fail"
+    assert "empty-active-section" in finding.observed
+
+
+def test_requirement_contradictions_fail_on_malformed_requirement_heading(
+    tmp_path: Path,
+) -> None:
+    write_requirements(
+        tmp_path,
+        "### R037 : malformed separator\n- Description: legacy requirement.\n",
+    )
+
+    finding = check_active_requirement_contradictions(tmp_path)[0]
+
+    assert finding.status == "fail"
+    assert "malformed-headings" in finding.observed
 
 
 def test_requirement_contradictions_report_legacy_ids_and_stale_python_wording(
@@ -324,6 +387,37 @@ def test_requirement_contradictions_report_legacy_ids_and_stale_python_wording(
     assert finding.status == "fail"
     assert "R037" in finding.observed
     assert "R065" in finding.observed
+
+
+def test_requirement_contradictions_enforce_r065_policy_without_scanning_notes(
+    tmp_path: Path,
+) -> None:
+    required = _ACTIVE_REQUIREMENT_POLICY["R065"]["required"]
+    forbidden = _ACTIVE_REQUIREMENT_POLICY["R065"]["forbidden"]
+    assert required == ("prior art", "bounded comparison")
+    assert "behavioral reference" in forbidden
+
+    write_requirements(
+        tmp_path,
+        "### R065 — Python cutover\n"
+        "- Description: Python is historical prior art and a bounded comparison surface.\n"
+        "- Notes: Do not treat Python as a behavioral reference or source of truth.\n",
+    )
+    assert check_active_requirement_contradictions(tmp_path)[0].status == "pass"
+
+    for stale_description in (
+        "Python is the behavioral reference until parity.",
+        "Python is the source of truth until parity.",
+        "Python is the normative specification until parity.",
+        "Python is prior art until parity.",
+    ):
+        write_requirements(
+            tmp_path,
+            f"### R065 — Python cutover\n- Description: {stale_description}\n",
+        )
+        finding = check_active_requirement_contradictions(tmp_path)[0]
+        assert finding.status == "fail", stale_description
+        assert "R065" in finding.observed
 
 
 def test_requirement_contradictions_do_not_scan_validated_history(tmp_path: Path) -> None:

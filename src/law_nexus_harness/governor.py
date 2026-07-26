@@ -35,6 +35,8 @@ _LAST_COMPLETED_RE = re.compile(
 _MSEQ_RE = re.compile(r"^M(\d+)(?:-[a-z0-9]+)?$")
 _RANGE_RE = re.compile(r"M(\d+)\s*[-–]\s*M(\d+)")
 _HC_PROOF_RE = re.compile(r"^hc(\d{2})-.*-runtime\.json$")
+_FORWARD_MILESTONE_RE = re.compile(r"^M(?P<seq>\d+):\s+.+$", re.MULTILINE)
+_EXPECTED_FORWARD_MILESTONES = tuple(range(131, 141))
 _BASELINE_AGG_RE = re.compile(
     r"PASS\s+(\d+)/20;\s*FAIL\s+(\d+)/20;\s*`?unsupported-case`?\s+(\d+)/20",
     re.IGNORECASE,
@@ -60,7 +62,15 @@ _LEGACY_ACTIVE_REQUIREMENT_IDS = {
     "R056",
     "R057",
 }
-_REQUIREMENT_HEADING_RE = re.compile(r"^### (?P<id>R\d+) — (?P<title>.+)$", re.MULTILINE)
+_REQUIREMENT_HEADING_RE = re.compile(r"^### (?P<id>R\d+) (?:—|–|-) (?P<title>.+)$", re.MULTILINE)
+_REQUIREMENT_LIKE_HEADING_RE = re.compile(r"^### R\d+\b.*$", re.MULTILINE)
+_REQUIREMENT_DESCRIPTION_RE = re.compile(r"^- Description:\s*(?P<value>.+)$", re.MULTILINE)
+_ACTIVE_REQUIREMENT_POLICY = {
+    "R065": {
+        "required": ("prior art", "bounded comparison"),
+        "forbidden": ("behavioral reference", "source of truth", "normative specification"),
+    }
+}
 _EXPECTED_DIRECTION = {
     "runtime": "rust-only",
     "python": "repository-control-only",
@@ -264,7 +274,37 @@ def check_active_requirement_contradictions(root: Path) -> list[GovernorFinding]
             )
         ]
     active = active_match.group("body")
+    if not active.strip():
+        return [
+            GovernorFinding(
+                check_id="active-requirement-contradictions",
+                status="fail",
+                severity="error",
+                message="Local GSD requirements projection has no active requirements",
+                observed="empty-active-section",
+                remediation="Regenerate and inspect the GSD requirements projection",
+            )
+        ]
+
     headings = list(_REQUIREMENT_HEADING_RE.finditer(active))
+    requirement_like_headings = list(_REQUIREMENT_LIKE_HEADING_RE.finditer(active))
+    malformed_headings = [
+        match.group(0)
+        for match in requirement_like_headings
+        if _REQUIREMENT_HEADING_RE.fullmatch(match.group(0)) is None
+    ]
+    if malformed_headings:
+        return [
+            GovernorFinding(
+                check_id="active-requirement-contradictions",
+                status="fail",
+                severity="error",
+                message="Local GSD requirements projection has malformed requirement headings",
+                observed=f"malformed-headings={malformed_headings}",
+                remediation="Regenerate the GSD requirements projection from the requirements DB",
+            )
+        ]
+
     conflicts: list[str] = []
     for index, heading in enumerate(headings):
         requirement_id = heading.group("id")
@@ -272,8 +312,16 @@ def check_active_requirement_contradictions(root: Path) -> list[GovernorFinding]
         block = active[heading.start() : block_end]
         if requirement_id in _LEGACY_ACTIVE_REQUIREMENT_IDS:
             conflicts.append(requirement_id)
-        if requirement_id == "R065" and "behavioral reference" in block.lower():
-            conflicts.append(requirement_id)
+        policy = _ACTIVE_REQUIREMENT_POLICY.get(requirement_id)
+        if policy is not None:
+            description_match = _REQUIREMENT_DESCRIPTION_RE.search(block)
+            description = description_match.group("value").lower() if description_match else ""
+            required = policy["required"]
+            forbidden = policy["forbidden"]
+            if any(term not in description for term in required) or any(
+                term in description for term in forbidden
+            ):
+                conflicts.append(requirement_id)
 
     unique_conflicts = sorted(set(conflicts))
     if unique_conflicts:
@@ -298,6 +346,60 @@ def check_active_requirement_contradictions(root: Path) -> list[GovernorFinding]
             severity="ok",
             message="Active requirement contract matches the current architecture direction",
             observed="active_conflicts=[]",
+            remediation="none",
+        )
+    ]
+
+
+def check_forward_roadmap_sequence(root: Path) -> list[GovernorFinding]:
+    """Require the non-conflicting post-M130 product milestone sequence."""
+
+    path = root / "prd" / "migration" / "forward-roadmap.md"
+    if not path.is_file():
+        return [
+            GovernorFinding(
+                check_id="forward-roadmap-sequence",
+                status="fail",
+                severity="error",
+                message="Forward product roadmap is missing",
+                observed="missing-surface=prd/migration/forward-roadmap.md",
+                remediation="Restore the tracked M131-M140 forward roadmap",
+            )
+        ]
+    sequences = [
+        int(match.group("seq"))
+        for match in _FORWARD_MILESTONE_RE.finditer(path.read_text(encoding="utf-8"))
+    ]
+    expected = set(_EXPECTED_FORWARD_MILESTONES)
+    counts = {seq: sequences.count(seq) for seq in set(sequences)}
+    missing = sorted(expected - set(sequences))
+    duplicate = sorted(seq for seq, count in counts.items() if count > 1)
+    unexpected = sorted(set(sequences) - expected)
+    details: list[str] = []
+    if missing:
+        details.append(f"missing={','.join(f'M{seq}' for seq in missing)}")
+    if duplicate:
+        details.append(f"duplicate={','.join(f'M{seq}' for seq in duplicate)}")
+    if unexpected:
+        details.append(f"unexpected={','.join(f'M{seq}' for seq in unexpected)}")
+    if details:
+        return [
+            GovernorFinding(
+                check_id="forward-roadmap-sequence",
+                status="fail",
+                severity="error",
+                message="Forward product roadmap numbering conflicts with M130 debt milestone",
+                observed="; ".join(details),
+                remediation="Keep M130 for repository-control debt and product milestones exactly M131-M140",
+            )
+        ]
+    return [
+        GovernorFinding(
+            check_id="forward-roadmap-sequence",
+            status="pass",
+            severity="ok",
+            message="Forward product roadmap has a unique post-M130 sequence",
+            observed="product_sequence=M131-M140",
             remediation="none",
         )
     ]
@@ -737,6 +839,7 @@ def run_governor(root: Path | None = None) -> GovernorReport:
     findings = (
         check_architecture_direction(resolved)
         + check_active_requirement_contradictions(resolved)
+        + check_forward_roadmap_sequence(resolved)
         + check_roadmap_freshness(resolved)
         + check_hostile_proof_chain(resolved)
         + check_gsd_residual_debt(resolved)

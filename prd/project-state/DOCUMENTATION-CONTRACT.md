@@ -1,8 +1,10 @@
-# M047 Documentation Contract
+# Project-State Documentation Contract
 
 ## Status
 
-Accepted as the S01 contract for the law-nexus project-state documentation pack.
+Current maintenance contract. The original M047 creation scope below is retained as historical context; current direction is governed by `prd/ARCHITECTURE.md`, `prd/project-state/roadmap.md`, ADR-0004/0007/0014 and executable repository checks.
+
+Portable completion and CI checks must require only git-tracked files. External `.gsd/*` projections may enrich local operator diagnostics but must not be mandatory clean-clone authority surfaces.
 
 ## Reader and post-read action
 
@@ -132,7 +134,22 @@ Derived, non-authoritative artifacts:
 
 ## Required verification commands
 
-S02 JSON verification:
+Current repository-control entry points:
+
+```bash
+uv run law-nexus-harness governor
+uv run law-nexus-harness preflight
+```
+
+`preflight` composes formatter, GitNexus freshness, local GSD surface, tracked documentation and trajectory-governor summaries. The canonical architecture registry verifier remains a separate derived-artifact closure gate:
+
+```bash
+uv run python scripts/verify-architecture-graph.py
+```
+
+Its success proves static registry health only, not product readiness.
+
+Historical M047 JSON verification:
 
 ```bash
 uv run python -m json.tool prd/project-state/data/project-overview.json
