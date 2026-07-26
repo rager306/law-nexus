@@ -209,6 +209,10 @@ where
         )
     }
 
+    // Keep the authority trace inputs explicit: collapsing before/after snapshots,
+    // checkpoints, event, and legal-mapping evidence risks hiding HC-10 invariants.
+    // A structural parameter-object refactor requires a dedicated HC-10 proof slice.
+    #[allow(clippy::too_many_arguments)]
     fn result_for(
         &self,
         work_unit_id: WorkUnitId,

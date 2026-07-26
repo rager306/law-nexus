@@ -47,7 +47,7 @@ impl HostileGapInventorState {
 }
 
 impl QueryStatePort for HostileGapInventorState {
-    fn has_evidence(&self, id: &EvidenceId) -> bool {
+    fn has_evidence(&self, _id: &EvidenceId) -> bool {
         true
     }
     fn evidence_ids(&self) -> Vec<EvidenceId> {

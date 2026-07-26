@@ -85,7 +85,7 @@ impl DependencyEvidencePort for HostileProgressCompleteness {
 
     fn dependencies_of(&self, node: &NodeId) -> Option<Vec<NodeId>> {
         // Invent empty deps for unregistered nodes (false completeness).
-        Some(self.inner.dependencies_of(node).unwrap_or_else(Vec::new))
+        Some(self.inner.dependencies_of(node).unwrap_or_default())
     }
 
     fn progress_count(&self) -> usize {

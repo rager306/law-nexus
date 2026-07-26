@@ -9,10 +9,8 @@ use ln_dispose::{
 
 #[test]
 fn promotion_attempt_from_missing_item_is_rejected() {
-    let mut use_case = DisposeReview::new(
-        InMemoryDispositionStore::default(),
-        InMemoryPromotionGate::default(),
-    );
+    let mut use_case =
+        DisposeReview::new(InMemoryDispositionStore::default(), InMemoryPromotionGate);
     let item = InventoryItemId::parse("I-MISSING").expect("valid");
     let result = use_case.attempt_promotion(
         item,
@@ -27,7 +25,7 @@ fn promotion_attempt_from_missing_item_is_rejected() {
 #[test]
 fn accepted_state_can_produce_promotion_commit() {
     let store = InMemoryDispositionStore::default();
-    let gate = InMemoryPromotionGate::default();
+    let gate = InMemoryPromotionGate;
     let mut use_case = DisposeReview::new(store, gate);
 
     let item = InventoryItemId::parse("I1").expect("valid");
@@ -51,7 +49,7 @@ fn accepted_state_can_produce_promotion_commit() {
 #[test]
 fn pending_stays_pending_after_rejected_promotion() {
     let store = InMemoryDispositionStore::default();
-    let gate = InMemoryPromotionGate::default();
+    let gate = InMemoryPromotionGate;
     let mut use_case = DisposeReview::new(store, gate);
 
     let item = InventoryItemId::parse("I1").expect("valid");

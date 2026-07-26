@@ -6,13 +6,15 @@ use ln_observe::{
     },
 };
 
+type HostileCase = (
+    &'static str,
+    TransportOutcome,
+    Box<dyn Fn(&[u8]) -> InterruptibleSourceAdapter>,
+);
+
 #[test]
 fn every_interrupted_outcome_stays_bounded_and_non_authoritative() {
-    let cases: Vec<(
-        &str,
-        TransportOutcome,
-        Box<dyn Fn(&[u8]) -> InterruptibleSourceAdapter>,
-    )> = vec![
+    let cases: Vec<HostileCase> = vec![
         (
             "timeout",
             TransportOutcome::Timeout,

@@ -1,4 +1,4 @@
-use crate::domain::{EvidenceId, QueryOutcome, QueryRequest, QueryResult, QUERY_POLICY_VERSION};
+use crate::domain::{QueryOutcome, QueryRequest, QueryResult, QUERY_POLICY_VERSION};
 use crate::ports::QueryStatePort;
 
 pub struct ExecuteEvidenceBoundedQuery<S> {

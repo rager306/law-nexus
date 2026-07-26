@@ -1,4 +1,4 @@
-use ln_citation::adapters::{HostileMirrorRelabeler, InMemoryCitationSource};
+use ln_citation::adapters::InMemoryCitationSource;
 use ln_citation::application::ResolveCitation;
 use ln_citation::domain::{
     CitationId, CitationOutcome, CitationRequest, SourceAuthority, SourceRef,

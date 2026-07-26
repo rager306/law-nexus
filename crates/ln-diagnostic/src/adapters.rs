@@ -45,7 +45,7 @@ impl HostileCanarySink {
 }
 
 impl DiagnosticSinkPort for HostileCanarySink {
-    fn is_allowed(&self, sink: &SinkId) -> bool {
+    fn is_allowed(&self, _sink: &SinkId) -> bool {
         true
     }
     fn emit(&mut self, sink: &SinkId, content: &str) {

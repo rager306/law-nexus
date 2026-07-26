@@ -43,10 +43,8 @@ struct ScenarioResult {
 }
 
 fn run_pending_rejects_promotion() -> ScenarioResult {
-    let mut use_case = DisposeReview::new(
-        InMemoryDispositionStore::default(),
-        InMemoryPromotionGate::default(),
-    );
+    let mut use_case =
+        DisposeReview::new(InMemoryDispositionStore::default(), InMemoryPromotionGate);
     let item = InventoryItemId::parse("I1").expect("static item id is valid");
     use_case.set_pending(
         item.clone(),
@@ -67,10 +65,8 @@ fn run_pending_rejects_promotion() -> ScenarioResult {
 }
 
 fn run_quarantined_rejects_promotion() -> ScenarioResult {
-    let mut use_case = DisposeReview::new(
-        InMemoryDispositionStore::default(),
-        InMemoryPromotionGate::default(),
-    );
+    let mut use_case =
+        DisposeReview::new(InMemoryDispositionStore::default(), InMemoryPromotionGate);
     let item = InventoryItemId::parse("I2").expect("static item id is valid");
     use_case.set_quarantined(
         item.clone(),

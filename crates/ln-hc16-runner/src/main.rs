@@ -5,7 +5,7 @@ use ln_accelerate::adapters::{HostileLabelMutatorLedger, InMemoryAccelerationLed
 use ln_accelerate::application::PublishProvisionalAcceleration;
 use ln_accelerate::domain::{
     AccelerationOutcome, AccelerationRequest, LabelId, ProvisionalId, ProvisionalTier, ScopeId,
-    WriterId, ACCELERATION_POLICY_VERSION,
+    WriterId,
 };
 
 fn req(id: &str, label: &str, tier: ProvisionalTier) -> AccelerationRequest {

@@ -10,7 +10,7 @@ use ln_dispose::{
 #[test]
 fn pending_disposition_rejects_promotion_without_curated_commit() {
     let store = InMemoryDispositionStore::default();
-    let gate = InMemoryPromotionGate::default();
+    let gate = InMemoryPromotionGate;
     let mut use_case = DisposeReview::new(store, gate);
 
     let item = InventoryItemId::parse("I1").expect("valid item id");
@@ -41,7 +41,7 @@ fn pending_disposition_rejects_promotion_without_curated_commit() {
 #[test]
 fn quarantined_disposition_also_rejects_promotion() {
     let store = InMemoryDispositionStore::default();
-    let gate = InMemoryPromotionGate::default();
+    let gate = InMemoryPromotionGate;
     let mut use_case = DisposeReview::new(store, gate);
 
     let item = InventoryItemId::parse("I1").expect("valid item id");

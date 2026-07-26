@@ -1,4 +1,4 @@
-use crate::domain::{ProvisionalId, ScopeId};
+use crate::domain::ProvisionalId;
 
 use crate::domain::AccelerationRequest;
 

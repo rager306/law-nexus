@@ -11,7 +11,7 @@ use ln_inventory::{
 fn re_inventory_of_same_drop_remains_immutable_staging() {
     let bytes = b"SYNTHETIC-IMMUTABLE-DROP-D1";
     let store = InMemoryInventoryStore::default();
-    let visibility = InMemoryVisibilityView::default();
+    let visibility = InMemoryVisibilityView;
     let mut use_case = InventoryImmutableIntake::new(store, visibility);
 
     let request = InventoryRequest::new(
