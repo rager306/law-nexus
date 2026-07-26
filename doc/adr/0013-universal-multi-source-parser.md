@@ -315,19 +315,19 @@ confidence. Prefix words such as `обязанность` and `пунктуац�
 This is `[bounded]` contract evidence for the primitive only. It does not validate
 Russian morphology coverage, NormStatement extraction or real-corpus legal facts.
 
-### Sentence splitting: custom LegalSentenceSplitter
+### Bounded legal sentence spans (implemented contract)
 
-No razdel equivalent exists in Rust. A custom rule-based sentence splitter
-handles the specific challenges of Russian legal text:
+M131 implements a dependency-free source-span splitter with a small explicit
+abbreviation list: `ст.`, `п.`, `ч.`, `ред.` and `г.`. It preserves decimal
+points and a numeric list marker at the start of the current segment, joins
+consecutive terminal punctuation, includes directly adjacent closing quotes or
+brackets, trims external whitespace and retains trailing unpunctuated text.
 
-- Abbreviations that mimic sentence boundaries: \u0441\u0442., \u043f., \u0447., \u0440\u0435\u0434., \u0433., \u0420\u0424, \u0424\u0417
-- Decimal numbers with periods: 5.1, 44-\u0424\u0417
-- Nested numbering: 1), 1.1)
-- Cyrillic quotation marks: \u00ab\u00bb
-
-Implementation: ~50 lines of rule-based logic with a HashSet of legal
-abbreviations. No external dependency. No neural model. razdel solves a broader
-problem (literary text, dialogues, URLs) that legal documents do not need.
+The output contains ordered non-empty `SourceSpan` values only; it does not copy
+or normalize sentence text. This is `[bounded]` rule evidence, not general
+Russian sentence segmentation. URLs, initials, broader abbreviations, malformed
+punctuation and provider-specific layout require later evidence before adding
+rules. No razdel, regex, neural model or external dependency is used.
 
 ### Future morphology coverage feedback
 
