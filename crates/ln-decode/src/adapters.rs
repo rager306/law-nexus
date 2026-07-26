@@ -2,10 +2,11 @@ use quick_xml::events::Event;
 use quick_xml::reader::NsReader;
 
 use crate::domain::{
-    fingerprint_bytes, AnchorId, CandidateId, DecodeCategory, DecodeRequest, DecoderEmission,
-    EvidenceAnchor,
+    fingerprint_bytes, AnchorId, BlockDecodeError, BlockDecodeErrorKind, CandidateId,
+    DecodeCategory, DecodePhase, DecodeRequest, DecoderEmission, EvidenceAnchor,
+    ParagraphStyle as DomainParagraphStyle, ParsedBlock, SourceFormatId, SourceSpan,
 };
-use crate::ports::DecoderPort;
+use crate::ports::{BlockDecoderPort, DecoderPort};
 
 /// Streaming WordML parser for Consultant XML source documents.
 ///
@@ -61,6 +62,188 @@ impl ParagraphStyle {
 
 fn local_name_match(local: &[u8], expected: &str) -> bool {
     local == expected.as_bytes()
+}
+
+/// Fail-closed Consultant WordML adapter for provider-neutral parsed blocks.
+#[derive(Debug, Default)]
+pub struct ConsultantWordMlBlockDecoder;
+
+impl BlockDecoderPort for ConsultantWordMlBlockDecoder {
+    fn decode_blocks(&self, request: &DecodeRequest) -> Result<Vec<ParsedBlock>, BlockDecodeError> {
+        if request.family_format.as_str() != "family:consultant-wordml" {
+            return Err(BlockDecodeError::new(
+                DecodePhase::Input,
+                BlockDecodeErrorKind::UnsupportedFormat,
+                None,
+            ));
+        }
+
+        let mut reader = NsReader::from_reader(request.bytes.as_slice());
+        let mut buf = Vec::with_capacity(4096);
+        let mut blocks = Vec::new();
+        let mut text = String::new();
+        let mut provider_style_id = None;
+        let mut paragraph_start = None;
+        let mut in_text = false;
+        let mut in_bindata = false;
+        let mut open_elements = 0usize;
+
+        loop {
+            buf.clear();
+            let event_start = usize::try_from(reader.buffer_position()).ok();
+            let decoder = reader.decoder();
+            let (_, event) = match reader.read_resolved_event_into(&mut buf) {
+                Ok(pair) => pair,
+                Err(_) => {
+                    return Err(BlockDecodeError::new(
+                        DecodePhase::Parse,
+                        BlockDecodeErrorKind::MalformedInput,
+                        usize::try_from(reader.error_position()).ok(),
+                    ));
+                }
+            };
+
+            match event {
+                Event::Start(element) => {
+                    open_elements += 1;
+                    let local = element.local_name();
+                    if local_name_match(local.as_ref(), "binData") {
+                        in_bindata = true;
+                    } else if local_name_match(local.as_ref(), "p") {
+                        paragraph_start = event_start;
+                        provider_style_id = None;
+                        text.clear();
+                    } else if local_name_match(local.as_ref(), "t")
+                        && paragraph_start.is_some()
+                        && !in_bindata
+                    {
+                        in_text = true;
+                    } else if local_name_match(local.as_ref(), "pStyle")
+                        && paragraph_start.is_some()
+                    {
+                        provider_style_id = style_id(decoder, &element, event_start)?;
+                    }
+                }
+                Event::Empty(element)
+                    if local_name_match(element.local_name().as_ref(), "pStyle")
+                        && paragraph_start.is_some() =>
+                {
+                    provider_style_id = style_id(decoder, &element, event_start)?;
+                }
+                Event::Text(value) if in_text && !in_bindata => {
+                    let decoded = value.unescape().map_err(|_| {
+                        BlockDecodeError::new(
+                            DecodePhase::Parse,
+                            BlockDecodeErrorKind::MalformedInput,
+                            event_start,
+                        )
+                    })?;
+                    text.push_str(&decoded);
+                }
+                Event::End(element) => {
+                    open_elements = open_elements.checked_sub(1).ok_or_else(|| {
+                        BlockDecodeError::new(
+                            DecodePhase::Parse,
+                            BlockDecodeErrorKind::MalformedInput,
+                            event_start,
+                        )
+                    })?;
+                    let local = element.local_name();
+                    if local_name_match(local.as_ref(), "binData") {
+                        in_bindata = false;
+                    } else if local_name_match(local.as_ref(), "t") {
+                        in_text = false;
+                    } else if local_name_match(local.as_ref(), "p") {
+                        if let Some(start) = paragraph_start.take() {
+                            let end = usize::try_from(reader.buffer_position()).map_err(|_| {
+                                BlockDecodeError::new(
+                                    DecodePhase::Validate,
+                                    BlockDecodeErrorKind::InvalidBlock,
+                                    Some(start),
+                                )
+                            })?;
+                            if !text.trim().is_empty() {
+                                let source_span =
+                                    SourceSpan::try_new(start, end).map_err(|_| {
+                                        BlockDecodeError::new(
+                                            DecodePhase::Validate,
+                                            BlockDecodeErrorKind::InvalidBlock,
+                                            Some(start),
+                                        )
+                                    })?;
+                                let style = map_paragraph_style(provider_style_id.as_deref());
+                                let block = ParsedBlock::try_new(
+                                    text.clone(),
+                                    provider_style_id.take(),
+                                    style,
+                                    source_span,
+                                    SourceFormatId::ConsultantWordMl,
+                                )
+                                .map_err(|_| {
+                                    BlockDecodeError::new(
+                                        DecodePhase::Validate,
+                                        BlockDecodeErrorKind::InvalidBlock,
+                                        Some(start),
+                                    )
+                                })?;
+                                blocks.push(block);
+                            }
+                            text.clear();
+                            provider_style_id = None;
+                        }
+                    }
+                }
+                Event::Eof if open_elements == 0 => return Ok(blocks),
+                Event::Eof => {
+                    return Err(BlockDecodeError::new(
+                        DecodePhase::Parse,
+                        BlockDecodeErrorKind::MalformedInput,
+                        event_start,
+                    ));
+                }
+                _ => {}
+            }
+        }
+    }
+}
+
+fn style_id(
+    decoder: quick_xml::encoding::Decoder,
+    element: &quick_xml::events::BytesStart<'_>,
+    byte_offset: Option<usize>,
+) -> Result<Option<String>, BlockDecodeError> {
+    for attribute in element.attributes() {
+        let attribute = attribute.map_err(|_| {
+            BlockDecodeError::new(
+                DecodePhase::Parse,
+                BlockDecodeErrorKind::MalformedInput,
+                byte_offset,
+            )
+        })?;
+        let key = attribute.key.as_ref();
+        if key == b"val" || key.ends_with(b":val") {
+            let value = attribute.decode_and_unescape_value(decoder).map_err(|_| {
+                BlockDecodeError::new(
+                    DecodePhase::Parse,
+                    BlockDecodeErrorKind::MalformedInput,
+                    byte_offset,
+                )
+            })?;
+            return Ok(Some(value.into_owned()));
+        }
+    }
+    Ok(None)
+}
+
+fn map_paragraph_style(style_id: Option<&str>) -> DomainParagraphStyle {
+    match style_id.unwrap_or("0") {
+        "0" | "1" => DomainParagraphStyle::BodyText,
+        "2" | "5" => DomainParagraphStyle::Title,
+        "3" => DomainParagraphStyle::TableCell,
+        "4" | "7" | "8" => DomainParagraphStyle::BodyText,
+        "6" => DomainParagraphStyle::JurTerm,
+        _ => DomainParagraphStyle::Unknown,
+    }
 }
 
 impl DecoderPort for WordMLStreamingDecoder {
