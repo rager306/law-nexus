@@ -130,16 +130,17 @@ sequence and proof gates.
 
 M131 foundation progress is `[bounded]`: provider-neutral validated block and
 hierarchy types, dependency-free lexical morphology markers, and legal sentence
-boundaries now have contract tests. Original-artifact `SourceSpan` and decoded
-`TextSpan` are distinct; adapter-owned mapping remains unproven. This does not
+boundaries now have contract tests. Explicit source-stream `SourceLocation` and
+decoded `TextSpan` are distinct; adapter-owned mapping remains unproven. This does not
 validate parser completeness, real Consultant/Garant offsets, legal structure,
 NormStatement extraction or citation safety.
 
 M132 Consultant progress is `[bounded]`: the fail-closed Rust WordML adapter,
 shared start-marker hierarchy extractor, and one tracked real federal-law tracer
-produce deterministic blocks and bounded marker counts. Paragraph `SourceSpan`
-integrity is proven for that fixture, while automatic `SourceSpan`/`TextSpan`
-translation, corpus completeness, full hierarchy coverage, legal correctness,
+produce deterministic blocks and bounded marker counts. Paragraph
+`SourceLocation(artifact:whole, SourceSpan)` integrity is proven for that fixture,
+while automatic cross-stream or source-to-`TextSpan` translation, corpus
+completeness, full hierarchy coverage, legal correctness,
 Garant behavior, retrieval and citation readiness remain unproven.
 
 ## Downstream gates

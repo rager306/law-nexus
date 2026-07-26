@@ -85,7 +85,7 @@ we can design the universal architecture properly.
 │  │           ParsedBlock (SHARED domain type)          │  │
 │  │  private validated fields                          │  │
 │  │  text + optional provider_style_id                 │  │
-│  │  ParagraphStyle + non-empty SourceSpan             │  │
+│  │  ParagraphStyle + non-empty SourceLocation         │  │
 │  │  SourceFormatId                                    │  │
 │  └────────────────────────────────────────────────────┘  │
 │                                                          │
@@ -163,8 +163,14 @@ crates/ln-decode/
 ### Shared domain types
 
 ```rust
-/// Non-empty half-open byte range in the original XML/ODT artifact.
+/// Non-empty half-open byte range in an explicitly named source byte stream.
 pub struct SourceSpan { /* private start/end; try_new validates start < end */ }
+
+/// Validated identity of the byte stream indexed by SourceSpan.
+pub struct SourceStreamId { /* e.g. artifact:whole or package-member:content.xml */ }
+
+/// An indivisible source stream identity and byte span.
+pub struct SourceLocation { /* private stream/span; no bare ParsedBlock span getter */ }
 
 /// Non-empty half-open byte range in decoded block text.
 pub struct TextSpan { /* distinct coordinate system from SourceSpan */ }
@@ -196,17 +202,19 @@ pub enum HierarchyLevel {
 }
 
 pub struct HierarchyNode {
-    // Private validated level, number, optional title, text and SourceSpan.
+    // Private validated level, number, optional title, text and marker TextSpan.
 }
 ```
 
-These M131 types are `[bounded]` contract evidence only. They do not prove that
-either source adapter emits correct offsets or hierarchy. `ParsedBlock` keeps an
-original-artifact `SourceSpan`; morphology and sentence primitives return
-`TextSpan` relative to decoded block text. No automatic translation exists.
-Each adapter must separately prove any artifact-to-decoded-text mapping before
-citation or EvidenceSpan use. Serialization is not added until a concrete
-versioned boundary requires it.
+These types are `[bounded]` contract evidence only. They do not prove that
+either source adapter emits correct offsets or hierarchy. `ParsedBlock` keeps a
+`SourceLocation`: Consultant currently uses `artifact:whole`, while Garant ODT
+will use `package-member:content.xml` because decompressed member offsets are not
+compressed package offsets. Morphology, sentence and hierarchy markers return
+`TextSpan` relative to decoded block text. No automatic cross-stream or
+source-to-decoded translation exists. Each adapter must separately prove any
+mapping before citation or EvidenceSpan use. Serialization is not added until a
+concrete versioned boundary requires it.
 
 ### Format detection
 
@@ -254,8 +262,11 @@ pub static SUBITEM_RE: Lazy<Regex> = Lazy::new(|| {
 
 ODT files are ZIP archives. The adapter needs:
 
-1. `zip` crate dependency for reading `content.xml` from the archive
-2. `quick-xml` `NsReader` on the extracted `content.xml`
+1. pinned `zip` 8.6.0 with defaults disabled and only Deflate support;
+   in-memory intake rejects packages above 16 MiB, more than 16 entries,
+   unsafe/duplicate/missing members and `content.xml` above 8 MiB
+2. `quick-xml` `NsReader` on bounded in-memory `content.xml` bytes; no
+   filesystem extraction
 3. Parse ODF elements:
    - `<text:p>` → paragraph (like `<w:p>`)
    - `text:style-name` attribute → style classification
@@ -267,7 +278,7 @@ ODT files are ZIP archives. The adapter needs:
 # Cargo.toml additions for ODT support
 [dependencies]
 quick-xml = "0.36"
-zip = "2.1"
+zip = { version = "=8.6.0", default-features = false, features = ["deflate-flate2-zlib-rs"] }
 ```
 
 ## Consequences

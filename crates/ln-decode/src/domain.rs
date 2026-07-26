@@ -59,6 +59,7 @@ macro_rules! id_type {
 
 id_type!(PayloadRef, "payload ref");
 id_type!(FamilyFormat, "family format");
+id_type!(SourceStreamId, "source stream id");
 id_type!(CandidateId, "candidate id");
 id_type!(AnchorId, "anchor id");
 id_type!(DiagnosticId, "diagnostic id");
@@ -262,7 +263,7 @@ impl fmt::Display for BlockDecodeError {
 
 impl Error for BlockDecodeError {}
 
-/// Non-empty half-open byte range in the original source artifact.
+/// Non-empty half-open byte range in an explicitly named source byte stream.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct SourceSpan {
     start: usize,
@@ -291,6 +292,27 @@ impl SourceSpan {
 
     pub fn is_empty(self) -> bool {
         false
+    }
+}
+
+/// A byte span paired with the exact source stream that it indexes.
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub struct SourceLocation {
+    stream: SourceStreamId,
+    span: SourceSpan,
+}
+
+impl SourceLocation {
+    pub const fn new(stream: SourceStreamId, span: SourceSpan) -> Self {
+        Self { stream, span }
+    }
+
+    pub const fn stream(&self) -> &SourceStreamId {
+        &self.stream
+    }
+
+    pub const fn span(&self) -> SourceSpan {
+        self.span
     }
 }
 
@@ -355,7 +377,7 @@ pub struct ParsedBlock {
     text: String,
     provider_style_id: Option<String>,
     style: ParagraphStyle,
-    source_span: SourceSpan,
+    source_location: SourceLocation,
     source_format: SourceFormatId,
 }
 
@@ -364,7 +386,7 @@ impl ParsedBlock {
         text: String,
         provider_style_id: Option<String>,
         style: ParagraphStyle,
-        source_span: SourceSpan,
+        source_location: SourceLocation,
         source_format: SourceFormatId,
     ) -> Result<Self, ParserDomainError> {
         if text.trim().is_empty() {
@@ -380,7 +402,7 @@ impl ParsedBlock {
             text,
             provider_style_id,
             style,
-            source_span,
+            source_location,
             source_format,
         })
     }
@@ -397,8 +419,8 @@ impl ParsedBlock {
         self.style
     }
 
-    pub fn source_span(&self) -> SourceSpan {
-        self.source_span
+    pub const fn source_location(&self) -> &SourceLocation {
+        &self.source_location
     }
 
     pub fn source_format(&self) -> SourceFormatId {

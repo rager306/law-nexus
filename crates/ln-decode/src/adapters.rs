@@ -6,7 +6,8 @@ use quick_xml::reader::NsReader;
 use crate::domain::{
     fingerprint_bytes, AnchorId, BlockDecodeError, BlockDecodeErrorKind, CandidateId,
     DecodeCategory, DecodePhase, DecodeRequest, DecoderEmission, EvidenceAnchor,
-    ParagraphStyle as DomainParagraphStyle, ParsedBlock, SourceFormatId, SourceSpan,
+    ParagraphStyle as DomainParagraphStyle, ParsedBlock, SourceFormatId, SourceLocation,
+    SourceSpan, SourceStreamId,
 };
 use crate::ports::{BlockDecoderPort, DecoderPort};
 
@@ -80,6 +81,8 @@ impl BlockDecoderPort for ConsultantWordMlBlockDecoder {
             ));
         }
 
+        let source_stream =
+            SourceStreamId::parse("artifact:whole").expect("static source stream id");
         let mut reader = NsReader::from_reader(request.bytes.as_slice());
         let mut buf = Vec::with_capacity(4096);
         let mut blocks = Vec::new();
@@ -178,7 +181,7 @@ impl BlockDecoderPort for ConsultantWordMlBlockDecoder {
                                     text.clone(),
                                     provider_style_id.take(),
                                     style,
-                                    source_span,
+                                    SourceLocation::new(source_stream.clone(), source_span),
                                     SourceFormatId::ConsultantWordMl,
                                 )
                                 .map_err(|_| {

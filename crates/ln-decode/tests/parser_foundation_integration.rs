@@ -1,4 +1,7 @@
-use ln_decode::domain::{ParagraphStyle, ParsedBlock, SourceFormatId, SourceSpan, TextSpan};
+use ln_decode::domain::{
+    ParagraphStyle, ParsedBlock, SourceFormatId, SourceLocation, SourceSpan, SourceStreamId,
+    TextSpan,
+};
 use ln_decode::morphology::find_legal_markers;
 use ln_decode::sentence::split_legal_sentences;
 
@@ -10,7 +13,10 @@ fn parsed_block_composes_with_decoded_text_spans_without_claiming_source_mapping
         text.to_owned(),
         Some("provider-style-heading".to_owned()),
         ParagraphStyle::Heading,
-        original_source_span,
+        SourceLocation::new(
+            SourceStreamId::parse("fixture:parser-foundation").unwrap(),
+            original_source_span,
+        ),
         SourceFormatId::ConsultantWordMl,
     )
     .expect("valid block");
@@ -20,7 +26,11 @@ fn parsed_block_composes_with_decoded_text_spans_without_claiming_source_mapping
 
     assert_eq!(sentences.len(), 3);
     assert_eq!(markers.len(), 2);
-    assert_eq!(block.source_span(), original_source_span);
+    assert_eq!(
+        block.source_location().stream().as_str(),
+        "fixture:parser-foundation"
+    );
+    assert_eq!(block.source_location().span(), original_source_span);
 
     for sentence in &sentences {
         let span: TextSpan = sentence.text_span();

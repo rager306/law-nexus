@@ -56,7 +56,8 @@ fn tracked_real_consultant_act_is_deterministic_and_bounded() {
     assert_eq!(first, second, "repeat decode must be byte-deterministic");
     assert!(!first.is_empty(), "real act must emit blocks");
     for block in &first {
-        let span = block.source_span();
+        assert_eq!(block.source_location().stream().as_str(), "artifact:whole");
+        let span = block.source_location().span();
         let artifact = &bytes[span.start()..span.end()];
         assert!(artifact.starts_with(b"<w:p"));
         assert!(artifact.ends_with(b"</w:p>"));

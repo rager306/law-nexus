@@ -32,7 +32,8 @@ fn namespaced_paragraphs_emit_validated_blocks_with_artifact_spans() {
     assert_eq!(blocks[0].style(), ParagraphStyle::Title);
     assert_eq!(blocks[1].style(), ParagraphStyle::Unknown);
     for block in &blocks {
-        let span = block.source_span();
+        assert_eq!(block.source_location().stream().as_str(), "artifact:whole");
+        let span = block.source_location().span();
         let source = &xml.as_bytes()[span.start()..span.end()];
         assert!(source.starts_with(b"<w:p>"));
         assert!(source.ends_with(b"</w:p>"));

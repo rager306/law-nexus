@@ -2,7 +2,7 @@ use ln_decode::{
     adapters::ConsultantWordMlBlockDecoder,
     domain::{
         DecodeRequest, FamilyFormat, HierarchyLevel, ParagraphStyle, ParsedBlock, PayloadRef,
-        SourceFormatId, SourceSpan, TextSpan,
+        SourceFormatId, SourceLocation, SourceSpan, SourceStreamId, TextSpan,
     },
     hierarchy::extract_hierarchy,
     ports::BlockDecoderPort,
@@ -13,7 +13,10 @@ fn block(text: &str) -> ParsedBlock {
         text.to_owned(),
         None,
         ParagraphStyle::Heading,
-        SourceSpan::try_new(500, 900).expect("independent artifact span"),
+        SourceLocation::new(
+            SourceStreamId::parse("fixture:hierarchy").unwrap(),
+            SourceSpan::try_new(500, 900).expect("independent artifact span"),
+        ),
         SourceFormatId::ConsultantWordMl,
     )
     .expect("valid parsed block")
@@ -108,7 +111,9 @@ fn consultant_block_feeds_shared_hierarchy_without_coordinate_translation() {
     let block = blocks.first().expect("one parsed block");
     let node = extract_hierarchy(block).expect("bounded article marker");
 
-    let artifact = &xml.as_bytes()[block.source_span().start()..block.source_span().end()];
+    assert_eq!(block.source_location().stream().as_str(), "artifact:whole");
+    let span = block.source_location().span();
+    let artifact = &xml.as_bytes()[span.start()..span.end()];
     assert!(artifact.starts_with(b"<w:p>"));
     assert!(artifact.ends_with(b"</w:p>"));
     assert_eq!(node.marker_span(), TextSpan::try_new(0, 15).unwrap());
@@ -118,9 +123,13 @@ fn consultant_block_feeds_shared_hierarchy_without_coordinate_translation() {
 #[test]
 fn artifact_span_is_not_reused_as_decoded_marker_span() {
     let parsed = block("Статья 2. Текст");
-    let artifact_span = parsed.source_span();
+    let source_location = parsed.source_location();
     let node = extract_hierarchy(&parsed).expect("bounded marker");
 
-    assert_eq!(artifact_span, SourceSpan::try_new(500, 900).unwrap());
+    assert_eq!(source_location.stream().as_str(), "fixture:hierarchy");
+    assert_eq!(
+        source_location.span(),
+        SourceSpan::try_new(500, 900).unwrap()
+    );
     assert_eq!(node.marker_span(), TextSpan::try_new(0, 15).unwrap());
 }

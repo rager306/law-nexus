@@ -1,7 +1,14 @@
 use ln_decode::domain::{
     HierarchyLevel, HierarchyNode, ParagraphStyle, ParsedBlock, ParserDomainError, SourceFormatId,
-    SourceSpan, TextSpan,
+    SourceLocation, SourceSpan, SourceStreamId, TextSpan,
 };
+
+fn location(stream: &str, start: usize, end: usize) -> SourceLocation {
+    SourceLocation::new(
+        SourceStreamId::parse(stream).expect("valid source stream id"),
+        SourceSpan::try_new(start, end).expect("valid source span"),
+    )
+}
 
 #[test]
 fn source_span_accepts_non_empty_ordered_offsets() {
@@ -37,12 +44,21 @@ fn text_span_has_a_distinct_typed_failure_contract() {
 }
 
 #[test]
+fn source_location_distinguishes_whole_artifact_from_package_member() {
+    let whole = location("artifact:whole", 100, 151);
+    let member = location("package-member:content.xml", 100, 151);
+
+    assert_ne!(whole.stream(), member.stream());
+    assert_eq!(whole.span(), member.span());
+}
+
+#[test]
 fn parsed_block_preserves_provider_neutral_contract() {
     let block = ParsedBlock::try_new(
         "Статья 1. Предмет регулирования".to_owned(),
         Some("provider-style-42".to_owned()),
         ParagraphStyle::Heading,
-        SourceSpan::try_new(100, 151).expect("valid span"),
+        location("artifact:whole", 100, 151),
         SourceFormatId::ConsultantWordMl,
     )
     .expect("valid parsed block");
@@ -50,31 +66,30 @@ fn parsed_block_preserves_provider_neutral_contract() {
     assert_eq!(block.text(), "Статья 1. Предмет регулирования");
     assert_eq!(block.provider_style_id(), Some("provider-style-42"));
     assert_eq!(block.style(), ParagraphStyle::Heading);
-    assert_eq!(block.source_span().start(), 100);
+    assert_eq!(block.source_location().stream().as_str(), "artifact:whole");
+    assert_eq!(block.source_location().span().start(), 100);
     assert_eq!(block.source_format(), SourceFormatId::ConsultantWordMl);
 }
 
 #[test]
 fn parsed_block_rejects_empty_text_and_empty_provider_style() {
-    let span = SourceSpan::try_new(0, 1).expect("valid span");
     assert_eq!(
         ParsedBlock::try_new(
             "  ".to_owned(),
             None,
             ParagraphStyle::BodyText,
-            span,
+            location("package-member:content.xml", 0, 1),
             SourceFormatId::GarantOdt,
         ),
         Err(ParserDomainError::EmptyBlockText)
     );
 
-    let span = SourceSpan::try_new(0, 4).expect("valid span");
     assert_eq!(
         ParsedBlock::try_new(
             "Текст".to_owned(),
             Some(" ".to_owned()),
             ParagraphStyle::BodyText,
-            span,
+            location("package-member:content.xml", 0, 4),
             SourceFormatId::GarantOdt,
         ),
         Err(ParserDomainError::EmptyProviderStyleId)

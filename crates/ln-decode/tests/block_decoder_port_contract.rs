@@ -2,7 +2,8 @@ use ln_decode::{
     application::DecodeBlocks,
     domain::{
         BlockDecodeError, BlockDecodeErrorKind, DecodePhase, DecodeRequest, FamilyFormat,
-        ParagraphStyle, ParsedBlock, PayloadRef, SourceFormatId, SourceSpan,
+        ParagraphStyle, ParsedBlock, PayloadRef, SourceFormatId, SourceLocation, SourceSpan,
+        SourceStreamId,
     },
     ports::BlockDecoderPort,
 };
@@ -18,7 +19,10 @@ impl BlockDecoderPort for SuccessfulDecoder {
             "Статья 1. Предмет регулирования.".to_owned(),
             Some("P1".to_owned()),
             ParagraphStyle::BodyText,
-            SourceSpan::try_new(10, 96).expect("valid source span"),
+            SourceLocation::new(
+                SourceStreamId::parse("fixture:block-decoder").unwrap(),
+                SourceSpan::try_new(10, 96).expect("valid source span"),
+            ),
             SourceFormatId::ConsultantWordMl,
         )
         .expect("valid parsed block")])
@@ -58,8 +62,12 @@ fn fallible_block_use_case_returns_validated_blocks_atomically() {
 
     assert_eq!(blocks.len(), 1);
     assert_eq!(blocks[0].text(), "Статья 1. Предмет регулирования.");
-    assert_eq!(blocks[0].source_span().start(), 10);
-    assert_eq!(blocks[0].source_span().end(), 96);
+    assert_eq!(
+        blocks[0].source_location().stream().as_str(),
+        "fixture:block-decoder"
+    );
+    assert_eq!(blocks[0].source_location().span().start(), 10);
+    assert_eq!(blocks[0].source_location().span().end(), 96);
 }
 
 #[test]
