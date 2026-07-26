@@ -14,12 +14,26 @@ A **citation-safe, evidence-verifiable legal graph for Russian normative acts**.
 Goal (PRD `prd/01_general_idea.md`): turn a normative act into a graph-vector
 representation for exact article/semantic search, temporal filtering by
 edition/effective-date, and provable answers with legal citations. **LLM is not
-legal authority** — all checkable operations are algorithmic via FalkorDB +
-formal Legal KnowQL.
+legal authority** — all checkable operations remain deterministic and
+source-anchored. Rust owns product behavior; formal Legal KnowQL remains a
+law-nexus application concern.
 
-**Current status: `[bounded]` Python product reference with real parser artifacts;
-artifact baseline reconciliation and complete Rust transition are `[proposed]`;
-product is NOT ready.**
+**Current status:** 20/20 hostile contracts have `[bounded]` synthetic Rust
+runtime PASS. Universal parser and RuVector integration remain `[proposed]`;
+real-corpus retrieval and citation safety are not validated. Python is prior art
+or repository-control harness only, not the product reference specification.
+
+## Active Direction Contract
+
+```text
+runtime=rust-only
+python=repository-control-only
+graph_vector=ruvector
+infrastructure_lifecycle=proposed
+embedding=tei-user-bge-m3-1024d
+acp_git_lex=archive-only
+falkordb=historical-only
+```
 
 ## Where we actually are (truth, not optimism)
 
@@ -71,14 +85,26 @@ M108 ACP/git-lex runtime disconnection  [bounded]
    pre-commit/CI/ADR gates neutralized; 43 tests + onion 4/0
    bulk archive NOT started; .lex and historical ACP artifacts still present
    ▼
-[YOU ARE HERE] — run three parallel tracks: manifest-driven history archive,
-parser baseline reconciliation, and Rust workspace + Python harness tracer
+M109-M129 Rust baseline and hostile contract closure  [bounded]
+   root Cargo workspace + thin Python repository harness
+   20 hostile cases: 20 PASS / 0 FAIL / 0 unsupported-case
+   real WordML streaming decoder: 22 MB / 53,119 paragraphs without OOM
+   ▼
+ADR-0013 universal parser + ADR-0014 RuVector  [proposed]
+   independent Consultant WordML and Garant ODT adapters
+   TEI USER-bge-m3 1024d embedding boundary
+   RVF vectors + redb GraphDB CRUD; no ruvector-graph Cypher execution claim
+   ▼
+[YOU ARE HERE] M130 — close process/source-of-truth/requirements governor debt,
+then resume parser-first implementation before storage/retrieval integration
 ```
 
 ## Current layer (where work happens now)
 
-**`src/law_nexus` onion package** — `[bounded]` Python behavioral reference
-(historical ADR-0001 is archived under `python_archive/adr/`). The
+**`src/law_nexus` onion package** — `[bounded]` Python historical prior art
+kept intact until the controlled archival cutover (historical ADR-0001 is
+archived under `python_archive/adr/`). It is not the target product
+specification. The
 deterministic-first package surface remains dependency-directed during the Rust
 transition: `domain/` (SourceDocument, SourceBlock, ActEdition,
 EvidenceSpan, NormStatement, LegalUnit, Citation, SourceHierarchy), `ports/`
@@ -99,12 +125,15 @@ hierarchy records) and freezes both in
 artifacts currently contain 1,567 norm candidates, 7,568 relation candidates,
 and 271 materialized hierarchy nodes in the staging graph. These counts are
 `[bounded]` deterministic evidence, not parser completeness or legal correctness.
-Retrieval, FalkorDB product runtime, and KnowQL remain `[proposed]`/`[deferred]`
-(see `prd/02_architecture.md` per-layer tags).
+Retrieval and KnowQL remain `[proposed]`/`[bounded]` prior proof only.
+FalkorDB is historical evidence, not active product infrastructure. ADR-0014
+selects RuVector only at `[proposed]`; real TEI→RVF, graph materialization,
+cross-store recovery and citation gates remain open.
 
 **Python library boundary (historical ADR-0003):** Pydantic/domain and parser
-record decisions remain part of the Python behavioral reference, not the Rust
-target. Rust equivalents are serde/schemars types and traits per ADR-0005.
+record decisions remain prior-art evidence, not the Rust target specification.
+Rust equivalents are independently defined serde/schemars types and traits
+behind the current Rust hexagonal boundaries.
 
 **Consultant XML parser hardening** — `[bounded]` through M086–M105: 81 XML
 source files, multi-level hierarchy, FRBR IDs, internal/external references,
@@ -120,12 +149,12 @@ completeness, Consultant/Garant parity, or production graph readiness.
 
 | Capability | Status | Why blocked |
 |---|---|---|
-| Retrieval / citation-safe answers | `[bounded]` smoke only (M012-M016, M021-M026) | needs real EvidenceSpan/SourceBlock fixtures from parsed corpus |
-| FalkorDB legal graph (production) | `[bounded]` synthetic smoke (M001/S04, M021) | needs materialized graph from parsed data |
-| KnowQL / generated-Cypher | `[bounded]` synthetic proof (M003) | needs real legal graph schema |
-| R035 (ontology architecture) | `[proposed]` active, not validated | needs registry extractor integration |
-| R037 (FalkorDB ingest/runtime) | `[bounded]` active, partially evidenced | needs production ingest from real corpus |
-| R038 (independent review) | `[bounded]` active | standing review gate |
+| Universal parser | `[proposed]`; WordML streaming seam `[bounded]` | needs shared domain types, hierarchy/reference/temporal/deontic extraction, independent Garant ODT and golden corpus |
+| RuVector graph-vector infrastructure | `[proposed]`; synthetic capability checks only | needs TEI 1024d real corpus, RVF/redb materialization, crash consistency and citation contract |
+| Retrieval / citation-safe answers | `[bounded]` prior smoke only | needs real EvidenceSpan/SourceBlock fixtures, quality metrics and exact byte round-trip |
+| KnowQL | `[bounded]` hand-coded AST demo only | needs real parser and typed application executor; `ruvector-graph` Cypher execution is not relied upon |
+| R035 | `[proposed]` active, not validated | standing graph-vector proof-boundary requirement |
+| R038 | `[bounded]` active | standing independent review gate |
 
 ## ACP / git-lex status
 
@@ -143,9 +172,10 @@ and ACP history remain only until manifest-driven D3-D6 archive waves.
 
 ## What law-nexus does NOT have (non-claims)
 
-- production retrieval; legal answers; FalkorDB product runtime; KnowQL product
-- parser completeness; multi-document Consultant expansion; link/cross-ref
-  extraction; legal correctness; Garant parity
+- production retrieval; legal answers; RuVector product runtime; KnowQL product
+- parser completeness; Consultant/Garant parity; real-corpus link, temporal or
+  deontic correctness
+- cross-store atomicity, recovery, concurrency, scale or citation byte safety
 - any `[validated]` product capability — all product work is `[bounded]`/`[smoke]`/`[proposed]`
 
 ## Repository truth rules

@@ -8,6 +8,7 @@ from pathlib import Path
 from law_nexus_harness.cli import main
 from law_nexus_harness.governor import (
     GOVERNOR_SCHEMA_VERSION,
+    check_architecture_direction,
     check_hostile_proof_chain,
     check_roadmap_freshness,
     run_governor,
@@ -122,6 +123,131 @@ def test_open_next_wave_milestone_is_not_residual_debt(tmp_path: Path) -> None:
     by_id = {item.check_id: item for item in findings}
     assert by_id["gsd-no-open-registry-debt"].status == "pass"
     assert by_id["gsd-phase-complete-consistent"].status == "pass"
+
+
+ACTIVE_DIRECTION = """## Active Direction Contract
+
+```text
+runtime=rust-only
+python=repository-control-only
+graph_vector=ruvector
+infrastructure_lifecycle=proposed
+embedding=tei-user-bge-m3-1024d
+acp_git_lex=archive-only
+falkordb=historical-only
+```
+"""
+
+
+def write_direction_surfaces(root: Path, contract: str = ACTIVE_DIRECTION) -> None:
+    paths = (
+        root / "prd" / "ARCHITECTURE.md",
+        root / "prd" / "project-state" / "roadmap.md",
+    )
+    for path in paths:
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(
+            "# Current state\n\n"
+            "Historical note: FalkorDB and ACP/git-lex were assessed previously.\n\n"
+            f"{contract}\n",
+            encoding="utf-8",
+        )
+
+
+def test_architecture_direction_accepts_current_contract_and_historical_mentions(
+    tmp_path: Path,
+) -> None:
+    write_direction_surfaces(tmp_path)
+
+    findings = check_architecture_direction(tmp_path)
+
+    assert len(findings) == 1
+    assert findings[0].check_id == "architecture-direction-contract"
+    assert findings[0].status == "pass"
+    assert findings[0].severity == "ok"
+
+
+def test_architecture_direction_rejects_stale_or_inflated_values(tmp_path: Path) -> None:
+    stale_contract = (
+        ACTIVE_DIRECTION.replace("graph_vector=ruvector", "graph_vector=falkordb")
+        .replace("infrastructure_lifecycle=proposed", "infrastructure_lifecycle=validated")
+        .replace("acp_git_lex=archive-only", "acp_git_lex=active")
+    )
+    write_direction_surfaces(tmp_path, stale_contract)
+
+    finding = check_architecture_direction(tmp_path)[0]
+
+    assert finding.check_id == "architecture-direction-contract"
+    assert finding.status == "fail"
+    assert finding.severity == "error"
+    assert "graph_vector" in finding.observed
+    assert "infrastructure_lifecycle" in finding.observed
+    assert "acp_git_lex" in finding.observed
+
+
+def test_architecture_direction_fails_closed_on_missing_duplicate_or_unknown_keys(
+    tmp_path: Path,
+) -> None:
+    malformed = ACTIVE_DIRECTION.replace("falkordb=historical-only\n", "").replace(
+        "runtime=rust-only\n",
+        "runtime=rust-only\nruntime=python\nunknown_key=value\n",
+    )
+    write_direction_surfaces(tmp_path, malformed)
+
+    finding = check_architecture_direction(tmp_path)[0]
+
+    assert finding.status == "fail"
+    assert "missing=falkordb" in finding.observed
+    assert "mismatch=falkordb" not in finding.observed
+    assert "duplicate=runtime" in finding.observed
+    assert "unknown=unknown_key" in finding.observed
+
+
+def test_architecture_direction_reports_missing_contract_without_false_mismatches(
+    tmp_path: Path,
+) -> None:
+    write_direction_surfaces(tmp_path)
+    architecture = tmp_path / "prd" / "ARCHITECTURE.md"
+    architecture.write_text("# Missing active contract\n", encoding="utf-8")
+
+    finding = check_architecture_direction(tmp_path)[0]
+
+    assert finding.status == "fail"
+    assert "prd/ARCHITECTURE.md: missing-contract" in finding.observed
+    assert "missing=" not in finding.observed
+    assert "mismatch=" not in finding.observed
+
+
+def test_architecture_direction_rejects_duplicate_contract_blocks(tmp_path: Path) -> None:
+    write_direction_surfaces(tmp_path)
+    architecture = tmp_path / "prd" / "ARCHITECTURE.md"
+    architecture.write_text(
+        architecture.read_text(encoding="utf-8") + "\n" + ACTIVE_DIRECTION,
+        encoding="utf-8",
+    )
+
+    finding = check_architecture_direction(tmp_path)[0]
+
+    assert finding.status == "fail"
+    assert "prd/ARCHITECTURE.md" in finding.observed
+    assert "contract_blocks=2" in finding.observed
+
+
+def test_architecture_direction_requires_all_tracked_surfaces_to_match(tmp_path: Path) -> None:
+    write_direction_surfaces(tmp_path)
+    roadmap = tmp_path / "prd" / "project-state" / "roadmap.md"
+    roadmap.write_text(
+        roadmap.read_text(encoding="utf-8").replace(
+            "graph_vector=ruvector", "graph_vector=falkordb"
+        ),
+        encoding="utf-8",
+    )
+
+    finding = check_architecture_direction(tmp_path)[0]
+
+    assert finding.status == "fail"
+    assert "prd/project-state/roadmap.md" in finding.observed
+    assert "graph_vector" in finding.observed
 
 
 def test_stale_open_milestone_behind_last_completed_is_debt(tmp_path: Path) -> None:

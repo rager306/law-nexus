@@ -104,3 +104,5 @@ jobs:
           tests/test_harness_status_tracer.py
           tests/test_harness_subprocess_failure_modes.py
           tests/test_harness_no_forbidden_imports.py
+          tests/test_harness_governor.py
+          tests/test_harness_cli_entrypoints.py

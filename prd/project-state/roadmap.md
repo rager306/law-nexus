@@ -6,10 +6,22 @@
 >
 > Refreshed 2026-07-24 after M129 completion — all 20 hostile cases PASS.
 
+## Active Direction Contract
+
+```text
+runtime=rust-only
+python=repository-control-only
+graph_vector=ruvector
+infrastructure_lifecycle=proposed
+embedding=tei-user-bge-m3-1024d
+acp_git_lex=archive-only
+falkordb=historical-only
+```
+
 ## Current position
 
 - **Latest completed milestone:** M129-yec916, HC-16 through HC-20 Final Hostile Cases.
-- **Active milestone:** none (next: whole-system parity).
+- **Active milestone:** M130-bzeiq1, process debt and governor hardening before further product implementation.
 - **M111 result:** final `[bounded]` implementation-neutral semantic baseline for heterogeneous Russian legal evidence.
 - **M112 result:** ADR-0005 topology superseded; ADR-0008 through ADR-0012 authored `[bounded]`; executable ADR/decision/owner drift checks active in pre-commit and CI.
 - **M113 result:** first hostile-case Rust runtime proof. `S10-HC-01-RT` is bounded PASS.
@@ -27,7 +39,10 @@
 - **M125 result:** thirteenth hostile-case Rust runtime proof. `S10-HC-13-RT` is bounded PASS.
 - **M129 result:** All 5 remaining hostile cases closed. **20 PASS / 0 FAIL / 0 unsupported-case**. All 20 HC cases have bounded runtime PASS.
 - **Product target:** Rust-only runtime under ADR-0004; Python may remain only as ADR-0007 subprocess repository harness.
-- **Implementation topology:** not selected. Database, FalkorDB schema, storage, queue/ledger, product crate map, API, concurrency runtime and deployment remain evidence-gated future decisions.
+- **Parser direction:** ADR-0013 universal parser is `[proposed]`; Consultant WordML and Garant ODT keep independent adapters behind shared domain contracts.
+- **Graph-vector direction:** ADR-0014 selects RuVector at `[proposed]`: RVF vectors and redb GraphDB CRUD behind law-nexus ports. FalkorDB is historical-only.
+- **Embedding boundary:** local TEI serves USER-bge-m3 1024d; product adapter and TEI→RVF integration remain unproven.
+- **Still unselected:** cross-store journal/recovery implementation, product API, concurrency runtime and deployment topology remain evidence-gated.
 - **Product readiness:** not proven.
 
 ## Completed milestone bands
@@ -97,16 +112,20 @@ Proof anchors:
 - `prd/migration/rust-evidence/probes/hc01-observe-source-runtime.json`
 - `prd/migration/rust-evidence/probes/hc01-observe-source-runtime.md`
 
-## Recommended next milestone
+## Active and forward milestones
 
-After M127 closeout, execute HC-16 Publish Provisional Acceleration:
+M130 closes repository-control debt before product work:
 
-1. pure sole Publication Authority for one complete H1 unit and one writer;
-2. reject concurrent writers, partial candidates and duplicate mutation;
-3. dependency-free process runner and tracked `S10-HC-15-RT` PASS or FAIL;
-4. update aggregates honestly and gate HC-16 only if HC-15 PASS.
+1. executable governor CLI;
+2. semantic direction drift gate and living document synchronization;
+3. active requirement contradiction closure;
+4. unified preflight and renumbered long-horizon roadmap.
 
-Do not select product filesystem/storage/graph/agent backends as part of the next thin hostile slice.
+After M130, continue parser-first thin slices: shared domain/morphology contracts,
+real Consultant hierarchy, independent Garant ODT, shared extractors and golden
+corpus. Only then integrate TEI + RuVector behind ports, followed by KnowQL,
+product CLI, whole-system parity and Python product archival. See
+`prd/migration/forward-roadmap.md`; numbering will be refreshed in M130/S04.
 
 ## Downstream gates
 
@@ -131,7 +150,8 @@ Do not select product filesystem/storage/graph/agent backends as part of the nex
 | HC-15 publish authoritative H1 unit | One writer and one complete authoritative effect | `[proposed]` active next |
 | Temporal resolver | Five-clock runtime plus complete substitution/conflict fixtures | `[proposed]` |
 | Promotion/publication | Idempotent D116 and complete H1/D120 hostile fixtures | `[proposed]` |
-| FalkorDB product integration | ADR-0012 evidence pass and disposable runtime probes after an owning capability needs it | `[deferred]` |
+| RuVector product integration | Real parser output, TEI 1024d embeddings, RVF/redb recovery contract and exact citation gates | `[proposed]` |
+| FalkorDB product integration | Historical evidence only; no active product role under ADR-0014 | `[deferred]` historical |
 | Retrieval/citations | Real EvidenceSpan fixtures and evidence-bounded answer/citation runtime | `[bounded]` prior evidence only |
 | E1-E3 capacity | Comparable local measurements for selected runtime | `[proposed]` unknown |
 | Python archival | Complete Rust whole-system parity and one controlled cutover | `[deferred]` |
@@ -142,7 +162,7 @@ Do not select product filesystem/storage/graph/agent backends as part of the nex
 - PyO3, C ABI, FFI, embedded Python and shared-library product bridges remain forbidden.
 - ADR-0005 named crate topology is not a default or implementation plan.
 - Generated registry JSONL/reports/views are diagnostics, not architecture authority.
-- Product storage remains unselected after M113 D128.
+- RuVector is the `[proposed]` graph-vector direction, not validated product storage; RVF/redb journal, recovery and concurrency policy remain unselected.
 
 ## Non-claims
 

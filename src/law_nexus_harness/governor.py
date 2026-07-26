@@ -39,6 +39,24 @@ _BASELINE_AGG_RE = re.compile(
     r"PASS\s+(\d+)/20;\s*FAIL\s+(\d+)/20;\s*`?unsupported-case`?\s+(\d+)/20",
     re.IGNORECASE,
 )
+_DIRECTION_BLOCK_RE = re.compile(
+    r"^## Active Direction Contract\s*$.*?^```text\s*$\n(?P<body>.*?)^```\s*$",
+    re.MULTILINE | re.DOTALL,
+)
+_DIRECTION_ROW_RE = re.compile(r"^(?P<key>[a-z_]+)=(?P<value>[a-z0-9-]+)$")
+_DIRECTION_PATHS = (
+    "prd/ARCHITECTURE.md",
+    "prd/project-state/roadmap.md",
+)
+_EXPECTED_DIRECTION = {
+    "runtime": "rust-only",
+    "python": "repository-control-only",
+    "graph_vector": "ruvector",
+    "infrastructure_lifecycle": "proposed",
+    "embedding": "tei-user-bge-m3-1024d",
+    "acp_git_lex": "archive-only",
+    "falkordb": "historical-only",
+}
 
 
 @dataclass(frozen=True)
@@ -108,6 +126,97 @@ def _last_completed_seq(state_text: str) -> int | None:
 
 def _load_json(path: Path) -> dict[str, Any]:
     return json.loads(path.read_text(encoding="utf-8"))
+
+
+def _parse_direction_contract(
+    text: str,
+) -> tuple[dict[str, str], list[str], list[str], int]:
+    matches = list(_DIRECTION_BLOCK_RE.finditer(text))
+    if not matches:
+        return {}, [], [], 0
+
+    values: dict[str, str] = {}
+    duplicates: list[str] = []
+    unknown: list[str] = []
+    for raw_line in matches[0].group("body").splitlines():
+        line = raw_line.strip()
+        if not line:
+            continue
+        row = _DIRECTION_ROW_RE.fullmatch(line)
+        if row is None:
+            unknown.append(line)
+            continue
+        key = row.group("key")
+        if key not in _EXPECTED_DIRECTION:
+            unknown.append(key)
+        elif key in values:
+            duplicates.append(key)
+        else:
+            values[key] = row.group("value")
+    return values, duplicates, unknown, len(matches)
+
+
+def check_architecture_direction(root: Path) -> list[GovernorFinding]:
+    """Require one coherent active-direction contract across living surfaces."""
+
+    errors: list[str] = []
+    for rel_path in _DIRECTION_PATHS:
+        path = root / rel_path
+        if not path.is_file():
+            errors.append(f"{rel_path}: missing-surface")
+            continue
+        values, duplicates, unknown, block_count = _parse_direction_contract(
+            path.read_text(encoding="utf-8")
+        )
+        missing = sorted(set(_EXPECTED_DIRECTION) - set(values))
+        mismatches = sorted(
+            key
+            for key, expected in _EXPECTED_DIRECTION.items()
+            if key in values and values[key] != expected
+        )
+        details: list[str] = []
+        if block_count == 0:
+            details.append("missing-contract")
+        elif block_count != 1:
+            details.append(f"contract_blocks={block_count}")
+        else:
+            if missing:
+                details.append(f"missing={','.join(missing)}")
+            if duplicates:
+                details.append(f"duplicate={','.join(sorted(set(duplicates)))}")
+            if unknown:
+                details.append(f"unknown={','.join(sorted(set(unknown)))}")
+            if mismatches:
+                details.append(f"mismatch={','.join(mismatches)}")
+        if details:
+            errors.append(f"{rel_path}: {'; '.join(details)}")
+
+    if errors:
+        return [
+            GovernorFinding(
+                check_id="architecture-direction-contract",
+                status="fail",
+                severity="error",
+                message="Living architecture direction is missing, stale, or inconsistent",
+                observed=" | ".join(errors),
+                remediation=(
+                    "Update _EXPECTED_DIRECTION, tests ACTIVE_DIRECTION, and the tracked "
+                    "Active Direction Contract blocks in prd/ARCHITECTURE.md and "
+                    "prd/project-state/roadmap.md together; do not rewrite historical "
+                    "evidence or raise lifecycle proof ceilings"
+                ),
+            )
+        ]
+    return [
+        GovernorFinding(
+            check_id="architecture-direction-contract",
+            status="pass",
+            severity="ok",
+            message="Living architecture direction is coherent across all required surfaces",
+            observed="; ".join(f"{key}={value}" for key, value in _EXPECTED_DIRECTION.items()),
+            remediation="none",
+        )
+    ]
 
 
 def check_roadmap_freshness(root: Path) -> list[GovernorFinding]:
@@ -542,7 +651,8 @@ def run_governor(root: Path | None = None) -> GovernorReport:
 
     resolved = (root or Path.cwd()).resolve()
     findings = (
-        check_roadmap_freshness(resolved)
+        check_architecture_direction(resolved)
+        + check_roadmap_freshness(resolved)
         + check_hostile_proof_chain(resolved)
         + check_gsd_residual_debt(resolved)
     )
