@@ -295,26 +295,25 @@ system). The parser must handle morphological variation at specific layers.
 |-------|----------------|----------|--------------------------|
 | I/O adapter | None | N/A | Pure XML/text extraction |
 | Hierarchy | Minimal | Pure regex | Markers ("\u0413\u043b\u0430\u0432\u0430 N", "\u0421\u0442\u0430\u0442\u044c\u044f N") are standardized, always nominative case |
-| References | HIGH: 6 cases for "\u0441\u0442\u0430\u0442\u044c\u044f" | Stem-based regex | One pattern `\u0441\u0442\u0430\u0442\u044c[\u044c\u044f\u0435\u0439\u0451\u044e\u044c\u044e\u044e]` covers all case forms; no lemmatization needed |
+| References | HIGH: case forms for structural terms | Explicit bounded token forms | M131 proves selected forms only; reference extraction remains future work |
 | Temporal | Medium: verb forms + date parsing | Stem regex + date parser | Legal verbs are a closed set: "\u0432\u0441\u0442\u0443\u043f\u0430\u0435\u0442/\u0432\u0441\u0442\u0443\u043f\u0430\u044e\u0442/\u0432\u0441\u0442\u0443\u043f\u0438\u043b" |
-| Deontic | MAXIMAL: modal verb morphology | Stem dictionary + negation context | Legal modality set is closed: "\u043e\u0431\u044f\u0437\u0430\u043d", "\u0432\u043f\u0440\u0430\u0432\u0435", "\u0437\u0430\u043f\u0440\u0435\u0449\u0430\u0435\u0442\u0441\u044f" + gender/number variants |
+| Deontic | MAXIMAL: modal verb morphology | Bounded token dictionary + lexical negation context | M131 emits markers only; legal modality remains future application work |
 | Embedding | Implicit | Handled by USER-bge-m3 | Model trained on Russian corpus; morphology handled internally |
 
-### Stem-based regex (primary approach)
+### Bounded token scan (implemented contract)
 
-Instead of full morphological analysis (pymorphy2) or rule-based tokenization
-(razdel), the parser uses Unicode-aware regex patterns `[proposed]` that cover all
-morphological variants of legal markers with single patterns:
+M131 uses a dependency-free Unicode token scan rather than regex or a morphology
+library. Exact supported inflection lists classify lexical markers for `статья`,
+`пункт`, `обязан`, `вправе` and bounded `запрещ*` forms. Results preserve source
+order and exact UTF-8 byte spans.
 
-```rust
-// "\u0441\u0442\u0430\u0442\u044c\u044f" in all 6 cases:
-// \u0441\u0442\u0430\u0442\u044c[\u044c\u044f\u0435\u0439\u0451\u044e] covers: \u0441\u0442\u0430\u0442\u044c\u044f, \u0441\u0442\u0430\u0442\u044c\u0438, \u0441\u0442\u0430\u0442\u044c\u0435, \u0441\u0442\u0430\u0442\u044c\u0439, \u0441\u0442\u0430\u0442\u044c\u0451\u0439, \u0441\u0442\u0430\u0442\u044c\u044e
-static STATYA_RE: &str = r"(?i)\u0441\u0442\u0430\u0442\u044c[\u044c\u044f\u0435\u0439\u0451\u044e]\s+(\d+(?:\.\d+)*)";
+The immediate preceding whitespace-separated token `не` sets a `negated` flag.
+Punctuation or distant negation does not. This flag is lexical context only: the
+primitive does not infer permission, prohibition, obligation, legal effect or
+confidence. Prefix words such as `обязанность` and `пунктуация` do not match.
 
-// Modal verbs in all gender/number forms:
-// \u043e\u0431\u044f\u0437\u0430\u043d, \u043e\u0431\u044f\u0437\u0430\u043d\u0430, \u043e\u0431\u044f\u0437\u0430\u043d\u043e, \u043e\u0431\u044f\u0437\u0430\u043d\u044b
-static OBLIGATION_RE: &str = r"\u043e\u0431\u044f\u0437\u0430\u043d(?:\u0430|\u043e|\u044b)?";
-```
+This is `[bounded]` contract evidence for the primitive only. It does not validate
+Russian morphology coverage, NormStatement extraction or real-corpus legal facts.
 
 ### Sentence splitting: custom LegalSentenceSplitter
 
@@ -330,17 +329,12 @@ Implementation: ~50 lines of rule-based logic with a HashSet of legal
 abbreviations. No external dependency. No neural model. razdel solves a broader
 problem (literary text, dialogues, URLs) that legal documents do not need.
 
-### Self-improvement of morphological coverage
+### Future morphology coverage feedback
 
-The parser includes a feedback loop for morphological gaps:
-
-1. **Unknown form collector:** when a deontic/reference regex fails to match a
-   sentence that clearly contains a legal marker, the unmatched text is logged.
-2. **Marker hit-rate metrics:** track match rate per regex per document.
-3. **Periodic review:** logged unknown forms are reviewed; new stem patterns
-   are added to the regex dictionary.
-4. **Cross-format validation:** the same law parsed from both Consultant XML and
-   Garant ODT must produce the same hierarchy tree; diffs reveal morphology gaps.
+Unknown-form collection, hit-rate metrics and cross-format comparison remain
+`[proposed]`. They are not implemented in M131 and must not log raw legal text.
+Any future feedback surface needs bounded fingerprints/counts, tracked review
+fixtures and separate proof before adding forms to the explicit dictionary.
 
 ### Why morph-rs is excluded
 
@@ -352,8 +346,8 @@ However:
    this introduces license complexity incompatible with a potential future
    commercial use of law-nexus.
 2. **Low activity:** no significant updates after the 0.2.0 release.
-3. **Unnecessary for extraction:** stem-based regex covers the parser's actual
-   need (pattern matching for legal markers), not full morphological analysis.
+3. **Unnecessary for the bounded primitive:** explicit token forms cover the
+   current marker contract; full morphological analysis is not yet justified.
 4. **OpenCorpora dictionary licensing:** the dictionary itself has separate
    LGPL-style terms that add complexity.
 
@@ -362,35 +356,18 @@ If morph-rs proves necessary in the future for graph node normalization
 flag `morphology` behind a separate license review. The default build must
 remain dependency-light and NC-free.
 
-### Module layout for morphology
+### Current morphology module
 
-```
+```text
 crates/ln-decode/
-\u2514\u2500\u2500 src/
-    \u251c\u2500\u2500 morphology.rs         # Cyrillic morphology utilities
-    \u2502   \u251c\u2500\u2500 stems.rs           # stem_match(word, stem) -> bool
-    \u2502   \u251c\u2500\u2500 patterns.rs        # Pre-built regex for \u0441\u0442\u0430\u0442\u044c[\u044c\u044f\u0435\u0439\u0451\u044e], \u043f\u0443\u043d\u043a\u0442[\u0430\u0443\u043e\u043c\u044b], etc.
-    \u2502   \u2514\u2500\u2500 negation.rs        # detect_negation(text, pos) -> bool
-    \u251c\u2500\u2500 sentence_split.rs     # LegalSentenceSplitter
-    \u2502   \u251c\u2500\u2500 abbreviations.rs   # HashSet of legal abbreviations
-    \u2502   \u2514\u2500\u2500 rules.rs           # Rule-based boundary detection
-    \u251c\u2500\u2500 hierarchy.rs           # Pure regex, no morphology
-    \u251c\u2500\u2500 references.rs          # Stem patterns + sentence split
-    \u251c\u2500\u2500 temporal.rs            # Verb-form regex + date parser
-    \u2514\u2500\u2500 deontic.rs             # Modal stem dictionary + negation
+├── src/morphology.rs
+└── tests/morphology_contract.rs
 ```
 
-Dependencies remain minimal:
-
-```toml
-[dependencies]
-quick-xml = "0.36"
-zip = "2.1"
-regex = "1"
-once_cell = "1"
-```
-
-No morph-rs. No pymorphy2. No natasha. No razdel. Full control.
+The module uses only the Rust standard library and the existing `SourceSpan`
+domain type. No regex, once_cell, morph-rs, pymorphy2, natasha or razdel
+dependency is introduced. Sentence splitting, hierarchy extraction, references,
+temporal extraction and deontic interpretation remain separate future slices.
 
 ## Alternatives Considered
 
