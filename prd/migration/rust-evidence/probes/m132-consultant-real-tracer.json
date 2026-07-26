@@ -1,0 +1,41 @@
+{
+  "schema_version": "law-nexus-consultant-real-tracer/v1",
+  "evidence_id": "M132-S05-CONSULTANT-REAL-TRACER",
+  "lifecycle": "bounded",
+  "verdict": "PASS",
+  "source": {
+    "path": "law-source/consultant/federalnyi-zakon-ot-22-12-2020-n-435-fz-red-ot-25-12-2023-o-publichno-pravovoi-kompanii-edinyi-zakazchik-v-sfere-stroitelstva-i-o-vnese--d71bf702.xml",
+    "byte_count": 193726,
+    "sha256": "62810fd14c12ca5b239178385d0fc53b3377c05da6a1ff9a834acd2e46fafb9d",
+    "runtime_fingerprint": "fnv1a64:d7697a0ea8cc3970"
+  },
+  "runtime": {
+    "test": "crates/ln-decode/tests/consultant_real_tracer.rs",
+    "command": "cargo test -p ln-decode --test consultant_real_tracer --offline",
+    "repeat_decode_equal": true,
+    "parsed_block_count": 167,
+    "bounded_hierarchy_count": 22,
+    "artifact_paragraph_spans_valid": true,
+    "decoded_marker_spans_in_bounds": true,
+    "truncated_control_failed_atomically": true,
+    "truncated_control_phase": "Parse",
+    "truncated_control_kind": "MalformedInput",
+    "raw_legal_text_persisted": false
+  },
+  "architecture": {
+    "product_runtime": "rust-only",
+    "adapter": "ConsultantWordMlBlockDecoder",
+    "port": "BlockDecoderPort",
+    "shared_hierarchy_has_adapter_dependency": false,
+    "source_span_text_span_translation_claimed": false
+  },
+  "non_claims": [
+    "No Consultant corpus completeness claim",
+    "No parser parity or full style coverage claim",
+    "No legal hierarchy completeness claim",
+    "No Part, Punkt, or Podpunkt extraction claim",
+    "No automatic artifact-to-decoded coordinate mapping claim",
+    "No temporal, deontic, relation, retrieval, citation, storage, RuVector, or TEI readiness claim",
+    "No Garant ODT behavior claim"
+  ]
+}

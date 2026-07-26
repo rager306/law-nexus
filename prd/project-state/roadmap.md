@@ -135,6 +135,13 @@ boundaries now have contract tests. Original-artifact `SourceSpan` and decoded
 validate parser completeness, real Consultant/Garant offsets, legal structure,
 NormStatement extraction or citation safety.
 
+M132 Consultant progress is `[bounded]`: the fail-closed Rust WordML adapter,
+shared start-marker hierarchy extractor, and one tracked real federal-law tracer
+produce deterministic blocks and bounded marker counts. Paragraph `SourceSpan`
+integrity is proven for that fixture, while automatic `SourceSpan`/`TextSpan`
+translation, corpus completeness, full hierarchy coverage, legal correctness,
+Garant behavior, retrieval and citation readiness remain unproven.
+
 ## Downstream gates
 
 | Capability | Gate | Current lifecycle |
