@@ -171,21 +171,27 @@
       "theme": "Repository-control debt closure and governor trajectory hardening",
       "status": "complete",
       "boundary": "Executable CLI, semantic direction and requirement gates, unified preflight, corrected ADR-0014 and M131-M140 roadmap. Repository-control proof only; no parser, RuVector product or legal-readiness claim."
+    },
+    {
+      "range": "M131-M131",
+      "theme": "Provider-neutral Rust parser domain and bounded morphology/sentence foundation",
+      "status": "complete",
+      "boundary": "Validated types and decoded-text primitives only. Does not prove Consultant/Garant adapters, source mapping, parser completeness, legal correctness, retrieval or citations."
     }
   ],
   "current_milestone": {
-    "id": "M130-bzeiq1",
-    "title": "Закрытие процессного долга и усиление governor CLI",
+    "id": "M131-oisbcv",
+    "title": "Parser domain contracts and morphology foundation",
     "status": "complete",
-    "goal": "Close repository-control, source-of-truth, requirement, roadmap and governor drift before parser product work."
+    "goal": "Provide validated provider-neutral Rust parser records, bounded lexical/sentence primitives and type-safe artifact versus decoded-text coordinates."
   },
   "recommended_next": {
-    "title": "M131 Parser domain contracts and morphology foundation",
+    "title": "M132 Consultant WordML adapter and hierarchy foundation",
     "priority": 1,
-    "why": "M130 closed repository-control debt. The next safe product work begins with provider-neutral Rust parser domain contracts before independent Consultant and Garant adapters.",
-    "plan_reference": "prd/migration/forward-roadmap.md M131; doc/adr/0013-universal-multi-source-parser.md; prd/ARCHITECTURE.md",
-    "slices": "First close post-M130 projection debt, then shared parser domain types, morphology, legal sentence boundaries and bounded integration closure.",
-    "non_validation": "M130 repository-control proof does not validate parser completeness, Russian legal correctness, TEI integration, RuVector product readiness, retrieval quality or citation safety."
+    "why": "M131 closed the provider-neutral domain seam. The next bounded tracer is a fallible Consultant adapter with honest paragraph provenance before shared hierarchy and real-fixture evidence.",
+    "plan_reference": "M132-gjjem8; prd/migration/forward-roadmap.md M132; doc/adr/0013-universal-multi-source-parser.md",
+    "slices": "First close post-M131 projection/remediation debt; then fallible block port, Consultant ParsedBlock adapter, shared hierarchy and one real Consultant tracer.",
+    "non_validation": "M131 primitives do not validate WordML/ODT adapter correctness, artifact-to-decoded mapping, parser completeness, legal hierarchy, temporal/deontic facts, retrieval or citations."
   },
   "downstream_blocked": [
     {

@@ -147,6 +147,15 @@ def _last_completed_seq(state_text: str) -> int | None:
     return None
 
 
+def _last_completed_id(state_text: str, expected_seq: int) -> str:
+    for line in state_text.splitlines():
+        match = _LAST_COMPLETED_RE.match(line.strip())
+        if match and int(match.group("seq")) == expected_seq:
+            suffix = match.group("rand")
+            return f"M{expected_seq}" + (f"-{suffix}" if suffix else "")
+    return f"M{expected_seq}"
+
+
 def _load_json(path: Path) -> dict[str, Any]:
     return json.loads(path.read_text(encoding="utf-8"))
 
@@ -458,6 +467,7 @@ def check_roadmap_freshness(root: Path) -> list[GovernorFinding]:
         )
         return findings
 
+    latest_completed_id = _last_completed_id(state_text, latest_completed)
     accepted = {latest_completed}
     if active_seq is not None:
         accepted.add(active_seq)
@@ -481,8 +491,9 @@ def check_roadmap_freshness(root: Path) -> list[GovernorFinding]:
                 message="roadmap current_milestone lags GSD completed state",
                 observed=f"current={current_id!r}; latest_completed=M{latest_completed}; active={active_seq}",
                 remediation=(
-                    "Refresh prd/project-state/data/roadmap.json and roadmap.md so "
-                    f"current_milestone is M{latest_completed} (or the active milestone)"
+                    "Set prd/project-state/data/roadmap.json "
+                    f"current_milestone.id={latest_completed_id} and status=complete "
+                    "(or use the active milestone with status=active); update roadmap.md current prose"
                 ),
             )
         )
@@ -540,8 +551,9 @@ def check_roadmap_freshness(root: Path) -> list[GovernorFinding]:
                 message="completed_milestone_groups do not cover latest completed GSD milestone",
                 observed=f"max_upper=M{max_upper}; latest_completed=M{latest_completed}",
                 remediation=(
-                    f"Add completed range M{latest_completed}-M{latest_completed} "
-                    "(or extend an existing range) in roadmap.json"
+                    "Set prd/project-state/data/roadmap.json "
+                    f"completed_milestone_groups[].range=M{latest_completed}-M{latest_completed} "
+                    "(or extend an existing completed range)"
                 ),
             )
         )

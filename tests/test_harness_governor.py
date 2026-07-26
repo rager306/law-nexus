@@ -69,6 +69,11 @@ def test_roadmap_freshness_fails_when_range_lags(tmp_path: Path) -> None:
     failed = {item.check_id: item for item in findings if item.status == "fail"}
     assert "roadmap-current-tracks-gsd" in failed
     assert "roadmap-range-coverage" in failed
+    assert "current_milestone.id=M117-a06sez" in failed["roadmap-current-tracks-gsd"].remediation
+    assert (
+        "completed_milestone_groups[].range=M117-M117"
+        in failed["roadmap-range-coverage"].remediation
+    )
 
 
 def test_hostile_proof_chain_detects_aggregate_mismatch(tmp_path: Path) -> None:
