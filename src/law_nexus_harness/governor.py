@@ -48,6 +48,19 @@ _DIRECTION_PATHS = (
     "prd/ARCHITECTURE.md",
     "prd/project-state/roadmap.md",
 )
+_LEGACY_ACTIVE_REQUIREMENT_IDS = {
+    "R037",
+    "R041",
+    "R042",
+    "R043",
+    "R046",
+    "R047",
+    "R048",
+    "R055",
+    "R056",
+    "R057",
+}
+_REQUIREMENT_HEADING_RE = re.compile(r"^### (?P<id>R\d+) — (?P<title>.+)$", re.MULTILINE)
 _EXPECTED_DIRECTION = {
     "runtime": "rust-only",
     "python": "repository-control-only",
@@ -214,6 +227,77 @@ def check_architecture_direction(root: Path) -> list[GovernorFinding]:
             severity="ok",
             message="Living architecture direction is coherent across all required surfaces",
             observed="; ".join(f"{key}={value}" for key, value in _EXPECTED_DIRECTION.items()),
+            remediation="none",
+        )
+    ]
+
+
+def check_active_requirement_contradictions(root: Path) -> list[GovernorFinding]:
+    """Inspect the local GSD requirements projection without making CI depend on it."""
+
+    path = root / ".gsd" / "REQUIREMENTS.md"
+    if not path.is_file():
+        return [
+            GovernorFinding(
+                check_id="active-requirement-contradictions",
+                status="pass",
+                severity="ok",
+                message="Local GSD requirements projection is unavailable",
+                observed="unavailable-local-projection; portable tracked checks still apply",
+                remediation="none",
+            )
+        ]
+
+    text = path.read_text(encoding="utf-8")
+    active_match = re.search(
+        r"^## Active\s*$\n(?P<body>.*?)(?=^## |\Z)", text, re.MULTILINE | re.DOTALL
+    )
+    if active_match is None:
+        return [
+            GovernorFinding(
+                check_id="active-requirement-contradictions",
+                status="fail",
+                severity="error",
+                message="Local GSD requirements projection is malformed",
+                observed="missing-active-section",
+                remediation="Regenerate the GSD requirements projection from the requirements DB",
+            )
+        ]
+    active = active_match.group("body")
+    headings = list(_REQUIREMENT_HEADING_RE.finditer(active))
+    conflicts: list[str] = []
+    for index, heading in enumerate(headings):
+        requirement_id = heading.group("id")
+        block_end = headings[index + 1].start() if index + 1 < len(headings) else len(active)
+        block = active[heading.start() : block_end]
+        if requirement_id in _LEGACY_ACTIVE_REQUIREMENT_IDS:
+            conflicts.append(requirement_id)
+        if requirement_id == "R065" and "behavioral reference" in block.lower():
+            conflicts.append(requirement_id)
+
+    unique_conflicts = sorted(set(conflicts))
+    if unique_conflicts:
+        return [
+            GovernorFinding(
+                check_id="active-requirement-contradictions",
+                status="fail",
+                severity="error",
+                message="Active requirement contract contradicts the current architecture direction",
+                observed=f"active_conflicts={unique_conflicts}",
+                remediation=(
+                    "Use GSD requirement tools to move legacy ACP/git-lex/FalkorDB "
+                    "obligations out of active scope and keep R065 as prior-art comparison "
+                    "plus controlled cutover, not a normative Python specification"
+                ),
+            )
+        ]
+    return [
+        GovernorFinding(
+            check_id="active-requirement-contradictions",
+            status="pass",
+            severity="ok",
+            message="Active requirement contract matches the current architecture direction",
+            observed="active_conflicts=[]",
             remediation="none",
         )
     ]
@@ -652,6 +736,7 @@ def run_governor(root: Path | None = None) -> GovernorReport:
     resolved = (root or Path.cwd()).resolve()
     findings = (
         check_architecture_direction(resolved)
+        + check_active_requirement_contradictions(resolved)
         + check_roadmap_freshness(resolved)
         + check_hostile_proof_chain(resolved)
         + check_gsd_residual_debt(resolved)

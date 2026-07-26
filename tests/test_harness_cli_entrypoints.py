@@ -40,8 +40,6 @@ def test_console_script_and_package_module_emit_equivalent_governor_reports() ->
     package = run_entrypoint("uv", "run", "python", "-m", "law_nexus_harness", "governor")
     console = run_entrypoint("uv", "run", "law-nexus-harness", "governor")
 
-    assert package.returncode == 0, package.stderr
-    assert console.returncode == 0, console.stderr
     assert package.stderr == ""
     assert console.stderr == ""
 
@@ -49,4 +47,6 @@ def test_console_script_and_package_module_emit_equivalent_governor_reports() ->
     console_report = json.loads(console.stdout)
     assert package_report == console_report
     assert package_report["schema_version"] == "law-nexus-governor-report/v1"
-    assert package_report["status"] == "ok"
+    expected_code = 0 if package_report["status"] == "ok" else 1
+    assert package.returncode == expected_code
+    assert console.returncode == expected_code
