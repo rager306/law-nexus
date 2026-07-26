@@ -82,13 +82,13 @@ fn parsed_block_rejects_empty_text_and_empty_provider_style() {
 }
 
 #[test]
-fn hierarchy_node_encodes_level_number_title_text_and_span() {
+fn hierarchy_node_encodes_level_number_title_text_and_decoded_marker_span() {
     let node = HierarchyNode::try_new(
         HierarchyLevel::Statya,
         "5.1".to_owned(),
         Some("Сфера применения".to_owned()),
         "Статья 5.1. Сфера применения".to_owned(),
-        SourceSpan::try_new(200, 248).expect("valid span"),
+        TextSpan::try_new(0, 11).expect("valid decoded marker span"),
     )
     .expect("valid hierarchy node");
 
@@ -96,12 +96,12 @@ fn hierarchy_node_encodes_level_number_title_text_and_span() {
     assert_eq!(node.number(), "5.1");
     assert_eq!(node.title(), Some("Сфера применения"));
     assert_eq!(node.text(), "Статья 5.1. Сфера применения");
-    assert_eq!(node.source_span().end(), 248);
+    assert_eq!(node.marker_span(), TextSpan::try_new(0, 11).unwrap());
 }
 
 #[test]
 fn hierarchy_node_rejects_empty_title_or_text() {
-    let span = SourceSpan::try_new(1, 20).expect("valid span");
+    let span = TextSpan::try_new(1, 20).expect("valid decoded marker span");
     assert_eq!(
         HierarchyNode::try_new(
             HierarchyLevel::Glava,
@@ -113,7 +113,7 @@ fn hierarchy_node_rejects_empty_title_or_text() {
         Err(ParserDomainError::EmptyHierarchyTitle)
     );
 
-    let span = SourceSpan::try_new(1, 20).expect("valid span");
+    let span = TextSpan::try_new(1, 20).expect("valid decoded marker span");
     assert_eq!(
         HierarchyNode::try_new(
             HierarchyLevel::Glava,
@@ -133,7 +133,7 @@ fn hierarchy_node_rejects_missing_marker_data_without_echoing_text() {
         " ".to_owned(),
         None,
         "CANARY::RAW-LEGAL-TEXT".to_owned(),
-        SourceSpan::try_new(1, 20).expect("valid span"),
+        TextSpan::try_new(1, 20).expect("valid decoded marker span"),
     )
     .expect_err("empty hierarchy number must fail");
 

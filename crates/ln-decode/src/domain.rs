@@ -412,14 +412,14 @@ pub enum HierarchyLevel {
     Podpunkt,
 }
 
-/// A validated hierarchy marker and its exact source span.
+/// A validated hierarchy marker and its exact span in decoded block text.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct HierarchyNode {
     level: HierarchyLevel,
     number: String,
     title: Option<String>,
     text: String,
-    source_span: SourceSpan,
+    marker_span: TextSpan,
 }
 
 impl HierarchyNode {
@@ -428,7 +428,7 @@ impl HierarchyNode {
         number: String,
         title: Option<String>,
         text: String,
-        source_span: SourceSpan,
+        marker_span: TextSpan,
     ) -> Result<Self, ParserDomainError> {
         if number.trim().is_empty() {
             return Err(ParserDomainError::EmptyHierarchyNumber);
@@ -447,7 +447,7 @@ impl HierarchyNode {
             number,
             title,
             text,
-            source_span,
+            marker_span,
         })
     }
 
@@ -467,8 +467,8 @@ impl HierarchyNode {
         &self.text
     }
 
-    pub fn source_span(&self) -> SourceSpan {
-        self.source_span
+    pub fn marker_span(&self) -> TextSpan {
+        self.marker_span
     }
 }
 

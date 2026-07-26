@@ -9,6 +9,7 @@
 pub mod adapters;
 pub mod application;
 pub mod domain;
+pub mod hierarchy;
 pub mod morphology;
 pub mod ports;
 pub mod sentence;
