@@ -9,6 +9,9 @@ dependencies = [
     "pydantic>=2",
 ]
 
+[project.scripts]
+law-nexus-harness = "law_nexus_harness.cli:main"
+
 [dependency-groups]
 dev = [
     "adaptix",
