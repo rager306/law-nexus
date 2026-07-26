@@ -225,6 +225,46 @@ def test_dirty_worktree_marks_gitnexus_freshness_warning(tmp_path: Path) -> None
     assert "working tree has uncommitted changes" in by_id["gitnexus-index-freshness"]["observed"]
 
 
+def test_completed_gsd_state_without_active_milestone_passes(tmp_path: Path) -> None:
+    write_gitnexus_meta(tmp_path)
+    write_docs(tmp_path)
+    gsd = tmp_path / ".gsd"
+    gsd.mkdir()
+    (gsd / "STATE.md").write_text(
+        "# GSD State\n\n"
+        "**Last Completed Milestone:** M130-bzeiq1: Governor debt closure\n"
+        "**Active Slice:** None\n"
+        "**Phase:** complete\n",
+        encoding="utf-8",
+    )
+
+    payload = run_test_preflight(tmp_path).to_dict()
+    finding = {item["check_id"]: item for item in payload["checks"]}["gsd-state-surface"]
+
+    assert finding["status"] == "pass"
+    assert "completed terminal state" in finding["observed"]
+
+
+def test_executing_gsd_state_without_active_milestone_warns(tmp_path: Path) -> None:
+    write_gitnexus_meta(tmp_path)
+    write_docs(tmp_path)
+    gsd = tmp_path / ".gsd"
+    gsd.mkdir()
+    (gsd / "STATE.md").write_text(
+        "# GSD State\n\n"
+        "**Last Completed Milestone:** M130-bzeiq1: Governor debt closure\n"
+        "**Active Slice:** S01\n"
+        "**Phase:** executing\n",
+        encoding="utf-8",
+    )
+
+    payload = run_test_preflight(tmp_path).to_dict()
+    finding = {item["check_id"]: item for item in payload["checks"]}["gsd-state-surface"]
+
+    assert finding["status"] == "warn"
+    assert "Active Milestone" in finding["observed"]
+
+
 def test_missing_gsd_state_surface_is_warn_not_db_access(tmp_path: Path) -> None:
     write_gitnexus_meta(tmp_path)
     write_docs(tmp_path)
@@ -237,10 +277,20 @@ def test_missing_gsd_state_surface_is_warn_not_db_access(tmp_path: Path) -> None
     assert "GSD tools" in by_id["gsd-state-surface"]["remediation"]
 
 
-def test_docs_freshness_uses_only_tracked_portable_authority_surfaces() -> None:
+def test_docs_freshness_uses_only_tracked_portable_authority_surfaces(
+    tmp_path: Path,
+) -> None:
     assert ".gsd/REQUIREMENTS.md" not in DOCS_FRESHNESS_PATHS
     assert "prd/project-state/roadmap.md" in DOCS_FRESHNESS_PATHS
     assert "doc/adr/0014-ruvector-primary-infrastructure.md" in DOCS_FRESHNESS_PATHS
+
+    write_gitnexus_meta(tmp_path)
+    write_gsd_state(tmp_path)
+    write_docs(tmp_path)
+    payload = run_test_preflight(tmp_path).to_dict()
+    finding = {item["check_id"]: item for item in payload["checks"]}["docs-freshness-surface"]
+    assert finding["status"] == "pass"
+    assert "requirements" not in finding["observed"].lower()
 
 
 def test_portable_governor_failure_fails_preflight(tmp_path: Path) -> None:

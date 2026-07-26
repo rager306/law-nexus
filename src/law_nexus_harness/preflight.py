@@ -321,7 +321,12 @@ def _gsd_state_surface_check(root: Path) -> PreflightCheck:
             remediation=remediation,
         )
     state_text = state_path.read_text(encoding="utf-8")
-    required = ("**Active Milestone:**", "**Active Slice:**", "**Phase:**")
+    terminal = "**Phase:** complete" in state_text
+    required = (
+        ("**Last Completed Milestone:**", "**Active Slice:**", "**Phase:**")
+        if terminal
+        else ("**Active Milestone:**", "**Active Slice:**", "**Phase:**")
+    )
     missing = [field for field in required if field not in state_text]
     if missing:
         return _warning_check(
@@ -335,7 +340,11 @@ def _gsd_state_surface_check(root: Path) -> PreflightCheck:
         check_id="gsd-state-surface",
         phase="gsd-state",
         command=command,
-        observed="GSD STATE.md exposes active milestone, slice, and phase surface.",
+        observed=(
+            "GSD STATE.md exposes a completed terminal state."
+            if terminal
+            else "GSD STATE.md exposes active milestone, slice, and phase surface."
+        ),
     )
 
 
@@ -380,7 +389,7 @@ def _trajectory_governor_check(root: Path, governor_runner: GovernorRunner) -> P
 def _docs_freshness_surface_check(root: Path) -> PreflightCheck:
     command = ("read", *DOCS_FRESHNESS_PATHS)
     remediation = (
-        "Assess and update architecture, ADR, and requirements documents after each wave; "
+        "Assess and update tracked architecture, roadmap, and ADR surfaces after each wave; "
         "preserve lifecycle tags and do not promote generated projections to source truth."
     )
     missing: list[str] = []
@@ -400,7 +409,7 @@ def _docs_freshness_surface_check(root: Path) -> PreflightCheck:
         check_id="docs-freshness-surface",
         phase="docs-freshness",
         command=command,
-        observed="All required architecture, ADR, and requirements documents are present.",
+        observed="All required tracked architecture, roadmap, and ADR surfaces are present.",
     )
 
 

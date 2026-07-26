@@ -1,6 +1,6 @@
 {
   "schema_version": "law-nexus-project-state-roadmap/v2",
-  "generated_at": "2026-07-23",
+  "generated_at": "2026-07-26",
   "non_authoritative": true,
   "source_of_truth": "prd/ARCHITECTURE.md (living truth oracle) and .gsd/milestones/* (GSD state). This roadmap is a derived cold-reader summary; when it disagrees with the oracle or GSD state, those win.",
   "completed_milestone_groups": [
@@ -165,47 +165,43 @@
       "theme": "HC-16 through HC-20 Final Hostile Cases",
       "status": "complete",
       "boundary": "All 5 remaining hostile cases closed in one wave. 20 PASS / 0 FAIL / 0 unsupported aggregate. No product storage or infrastructure selected."
+    },
+    {
+      "range": "M130-M130",
+      "theme": "Repository-control debt closure and governor trajectory hardening",
+      "status": "complete",
+      "boundary": "Executable CLI, semantic direction and requirement gates, unified preflight, corrected ADR-0014 and M131-M140 roadmap. Repository-control proof only; no parser, RuVector product or legal-readiness claim."
     }
   ],
   "current_milestone": {
-    "id": "M129-yec916",
-    "title": "HC-16 through HC-20 Final Hostile Cases",
+    "id": "M130-bzeiq1",
+    "title": "Закрытие процессного долга и усиление governor CLI",
     "status": "complete",
-    "goal": "Close all 5 remaining hostile cases and reach 20/0/0 aggregate."
+    "goal": "Close repository-control, source-of-truth, requirement, roadmap and governor drift before parser product work."
   },
   "recommended_next": {
-    "title": "HC-15 Publish Authoritative H1 Unit runtime proof",
+    "title": "M131 Parser domain contracts and morphology foundation",
     "priority": 1,
-    "why": "M126 admits only the next hostile case after HC-14 PASS. HC-15 is the next P0 publication boundary: sole Publication Authority permits one writer and one complete authoritative H1 effect.",
-    "plan_reference": "prd/architecture/m111-system-skeleton-contract.md HC-15, prd/architecture/m111-final-architecture-baseline.md, doc/adr/0012-consequential-evidence-protocol.md",
-    "slices": "Close post-M126 roadmap debt, implement pure publication domain/ports, seal hostile dual-writer contracts, add dependency-free runtime runner, produce S10-HC-15-RT PASS or FAIL, then validate and gate HC-16 only if HC-15 PASS.",
-    "non_validation": "HC-01 through HC-14 bounded synthetic runtime PASS do not prove source completeness, legal correctness, real filesystem intake, product storage readiness, FalkorDB readiness, retrieval quality or E1-E3 capacity. HC-15 through HC-20 remain unsupported until their own runtime proof exists."
+    "why": "M130 closed repository-control debt. The next safe product work begins with provider-neutral Rust parser domain contracts before independent Consultant and Garant adapters.",
+    "plan_reference": "prd/migration/forward-roadmap.md M131; doc/adr/0013-universal-multi-source-parser.md; prd/ARCHITECTURE.md",
+    "slices": "First close post-M130 projection debt, then shared parser domain types, morphology, legal sentence boundaries and bounded integration closure.",
+    "non_validation": "M130 repository-control proof does not validate parser completeness, Russian legal correctness, TEI integration, RuVector product readiness, retrieval quality or citation safety."
   },
   "downstream_blocked": [
     {
-      "capability": "FalkorDB legal graph (production)",
-      "blocker": "needs materialized graph from parsed corpus",
-      "current_status": "[bounded] synthetic smoke"
+      "capability": "RuVector graph-vector product integration",
+      "blocker": "needs validated parser records, TEI 1024d adapter, RVF/redb recovery and exact citation gates",
+      "current_status": "[proposed] direction; bounded external synthetic research only"
     },
     {
-      "capability": "Retrieval / citation-safe answers",
-      "blocker": "needs real EvidenceSpan/SourceBlock fixtures from parsed corpus",
-      "current_status": "[bounded] smoke only"
+      "capability": "Retrieval and citation-safe answers",
+      "blocker": "needs real temporal corpus, EvidenceSpan/source-span round trip and tamper matrix",
+      "current_status": "[bounded] prior evidence only; product path unproven"
     },
     {
-      "capability": "Rust parity baseline",
-      "blocker": "Rust has not reproduced the frozen mode-separated Python artifacts or product behavior",
-      "current_status": "[bounded] M111 semantic baseline, M112 ADR enforcement, M113-M126 HC-01 through HC-14 synthetic runtime PASS complete; whole-system Rust product parity unproven"
-    },
-    {
-      "capability": "R037 (FalkorDB ingest/runtime)",
-      "blocker": "needs production ingest from real corpus",
-      "current_status": "[bounded] active, partially evidenced"
-    },
-    {
-      "capability": "R038 (independent review)",
-      "blocker": "standing review gate",
-      "current_status": "[bounded] active"
+      "capability": "Python archival",
+      "blocker": "needs complete Rust whole-system acceptance and controlled cutover",
+      "current_status": "[deferred]"
     }
   ],
   "alternatives": [
