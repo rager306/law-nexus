@@ -131,8 +131,8 @@ sequence and proof gates.
 M131 foundation progress is `[bounded]`: provider-neutral validated block and
 hierarchy types, dependency-free lexical morphology markers, and legal sentence
 boundaries now have contract tests. Explicit source-stream `SourceLocation` and
-decoded `TextSpan` are distinct; adapter-owned mapping remains unproven. This does not
-validate parser completeness, real Consultant/Garant offsets, legal structure,
+decoded `TextSpan` are distinct; adapter-owned mapping remains unproven. This
+does not validate parser completeness, real Consultant/Garant offsets, legal structure,
 NormStatement extraction or citation safety.
 
 M132 Consultant progress is `[bounded]`: the fail-closed Rust WordML adapter,
@@ -142,6 +142,16 @@ produce deterministic blocks and bounded marker counts. Paragraph
 while automatic cross-stream or source-to-`TextSpan` translation, corpus
 completeness, full hierarchy coverage, legal correctness,
 Garant behavior, retrieval and citation readiness remain unproven.
+
+M133 Garant progress is `[bounded]`: in-memory ODT package intake and an
+independent namespace-aware `content.xml` adapter have hostile synthetic runtime
+contracts. The package reader enforces archive/member limits without filesystem
+extraction; the XML adapter emits `package-member:content.xml` locations and
+fails atomically on malformed topology, DTD/entity input, unknown ODF text
+semantics and decoded whitespace amplification. This does not validate a real
+Garant document, provider style completeness, shared hierarchy composition,
+corpus coverage, legal correctness or citation mapping; those remain S05/S06
+work.
 
 ## Downstream gates
 

@@ -208,8 +208,8 @@ pub struct HierarchyNode {
 
 These types are `[bounded]` contract evidence only. They do not prove that
 either source adapter emits correct offsets or hierarchy. `ParsedBlock` keeps a
-`SourceLocation`: Consultant currently uses `artifact:whole`, while Garant ODT
-will use `package-member:content.xml` because decompressed member offsets are not
+`SourceLocation`: Consultant uses `artifact:whole`, while Garant ODT uses
+`package-member:content.xml` because decompressed member offsets are not
 compressed package offsets. Morphology, sentence and hierarchy markers return
 `TextSpan` relative to decoded block text. No automatic cross-stream or
 source-to-decoded translation exists. Each adapter must separately prove any
@@ -260,19 +260,23 @@ pub static SUBITEM_RE: Lazy<Regex> = Lazy::new(|| {
 
 ### ODT adapter specifics
 
-ODT files are ZIP archives. The adapter needs:
+ODT files are ZIP archives. The bounded adapter contract is:
 
 1. pinned `zip` 8.6.0 with defaults disabled and only Deflate support;
    in-memory intake rejects packages above 16 MiB, more than 16 entries,
    unsafe/duplicate/missing members and `content.xml` above 8 MiB
 2. `quick-xml` `NsReader` on bounded in-memory `content.xml` bytes; no
    filesystem extraction
-3. Parse ODF elements:
-   - `<text:p>` → paragraph (like `<w:p>`)
-   - `text:style-name` attribute → style classification
-   - `<text:span>` → text runs (like `<w:r><w:t>`)
-   - `<text:h>` → heading elements
-4. Filter Garant provider comments (style names s9, s9header)
+3. Parse only a namespace-verified ODF subset independently of WordML:
+   - `<text:p>` → paragraph
+   - `text:style-name` attribute → bounded style classification
+   - `<text:span>` → nested text
+   - `<text:h>` → heading
+   - empty `<text:s>` → one to 64 spaces, with a 1 MiB decoded-block cap
+4. Reject DTD/entity declarations, malformed or multiple roots, nested blocks,
+   unknown `text:*` semantics and non-whitespace text outside a block atomically
+5. Classify Garant provider-comment styles `s9` and `s9header` as
+   `ProviderComment`; do not silently discard them in the adapter
 
 ```toml
 # Cargo.toml additions for ODT support
