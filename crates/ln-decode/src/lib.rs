@@ -14,3 +14,4 @@ pub mod morphology;
 pub mod ports;
 pub mod references;
 pub mod sentence;
+pub mod temporal;
