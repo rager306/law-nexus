@@ -1,0 +1,64 @@
+{
+  "schema_version": "law-nexus-golden-real-enrichment/v1",
+  "evidence_id": "M135-S04-GOLDEN-REAL-ENRICHMENT",
+  "lifecycle": "bounded",
+  "verdict": "PASS",
+  "runtime": {
+    "test": "crates/ln-decode/tests/golden_real_enrichment.rs",
+    "command": "cargo test -p ln-decode --test golden_real_enrichment --offline",
+    "repeat_evaluate_equal": true,
+    "raw_legal_text_persisted": false
+  },
+  "sources": [
+    {
+      "provider": "consultant-wordml",
+      "path": "law-source/consultant/federalnyi-zakon-ot-22-12-2020-n-435-fz-red-ot-25-12-2023-o-publichno-pravovoi-kompanii-edinyi-zakazchik-v-sfere-stroitelstva-i-o-vnese--d71bf702.xml",
+      "byte_count": 193726,
+      "sha256": "62810fd14c12ca5b239178385d0fc53b3377c05da6a1ff9a834acd2e46fafb9d",
+      "runtime_fingerprint": "fnv1a64:d7697a0ea8cc3970",
+      "counts": {
+        "blocks": 167,
+        "annotations": 96,
+        "layers": 4
+      },
+      "metrics": {
+        "hierarchy": { "tp": 22, "fp": 0, "fn": 0, "precision": 1.0, "recall": 1.0, "f1": 1.0 },
+        "reference": { "tp": 69, "fp": 0, "fn": 0, "precision": 1.0, "recall": 1.0, "f1": 1.0 },
+        "temporal": { "tp": 1, "fp": 0, "fn": 0, "precision": 1.0, "recall": 1.0, "f1": 1.0 },
+        "deontic": { "tp": 4, "fp": 0, "fn": 0, "precision": 1.0, "recall": 1.0, "f1": 1.0 }
+      }
+    },
+    {
+      "provider": "garant-odt",
+      "path": "law-source/garant/44-fz.odt",
+      "byte_count": 247971,
+      "sha256": "73777d4741fa1b65229a8b22b97eb2cff4c5180105affb79b058d7007e3e4337",
+      "runtime_fingerprint": "fnv1a64:d4143a172688f8c3",
+      "counts": {
+        "blocks": 5124,
+        "annotations": 2286,
+        "layers": 4
+      },
+      "metrics": {
+        "hierarchy": { "tp": 140, "fp": 0, "fn": 0, "precision": 1.0, "recall": 1.0, "f1": 1.0 },
+        "reference": { "tp": 1882, "fp": 0, "fn": 0, "precision": 1.0, "recall": 1.0, "f1": 1.0 },
+        "temporal": { "tp": 36, "fp": 0, "fn": 0, "precision": 1.0, "recall": 1.0, "f1": 1.0 },
+        "deontic": { "tp": 228, "fp": 0, "fn": 0, "precision": 1.0, "recall": 1.0, "f1": 1.0 }
+      }
+    }
+  ],
+  "architecture": {
+    "product_runtime": "rust-only",
+    "fixture_source": "self-consistent: annotations derived from parser output",
+    "metrics_meaning": "pipeline composition proof; metrics are trivially 1.0 because fixtures are self-derived",
+    "provider_comment_candidates_excluded": true,
+    "raw_legal_text_persisted": false
+  },
+  "non_claims": [
+    "Self-consistent fixtures produce P=R=F1=1.0 by construction; this is a pipeline composition proof, not parser quality measurement.",
+    "No human-reviewed golden annotations exist yet; real quality measurement requires M135/S06 or later.",
+    "No corpus completeness, cross-format legal parity, resolved-reference correctness or citation authority claim.",
+    "No legal correctness, NormStatement semantics, five-clock assignment or legal temporal applicability claim.",
+    "No retrieval, storage, RuVector or TEI readiness claim."
+  ]
+}
