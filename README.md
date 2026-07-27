@@ -25,7 +25,7 @@ governance layer (D098 anti-drift).
 | It is | It is not |
 |---|---|
 | Structural foundation: an enforced onion package + ADR standard + compliance gate | A working product. No retrieval, no legal answers, no production runtime yet. |
-| A bounded parser baseline (`M009`) + a proof-gated hardening roadmap | Parser-complete for all sources. |
+| A bounded parser baseline (`M009`) + a bounded Rust-only universal parser (`M131`–`M134`: Consultant XML and Garant ODT adapters, shared hierarchy/morphology/sentence and reference/temporal/deontic lexical candidates) | Parser-complete for all sources, corpus coverage, cross-format parity, legal correctness or any product capability. |
 | An anti-drift discipline (D098 lifecycle tags, living truth oracle) | A FalkorDB production deployment. |
 
 ## Current status (D098 lifecycle tags)
@@ -37,10 +37,13 @@ governance layer (D098 anti-drift).
   M069  library boundary contract (ADR-0003) + gate-green tree        [bounded]
   M070  project-state roadmap freshness guard (pytest)                [bounded]
 
-[PRODUCT TRACK — RESUMES HERE]
-  Consultant XML Parser Hardening (M034 roadmap)                      [proposed]  ← next
-    baseline lock → lxml eval → structural rules → semantic diagnostics →
-    razdel/pymorphy3 → source-span/stable-ID → final proof package
+[PRODUCT TRACK — RESUMED]
+  Rust-only universal parser (ADR-0013 `[bounded]`)
+    M131  domain types and morphology foundation           [bounded]
+    M132  Consultant WordML adapter and hierarchy tracer  [bounded]
+    M133  Garant ODT adapter and real-document tracer    [bounded]
+    M134  shared reference/temporal/deontic lexical candidates, synthetic provider equality and tracked real-source census [bounded]
+  M135  Representative golden corpus, parser quality convergence, legal resolution and citation mapping — recommended next
 
 [DOWNSTREAM — BLOCKED until parser data is ready]
   graph materialization → retrieval / citation-safe answers →
@@ -135,8 +138,9 @@ uv run pytest -q
 Following the D098 anti-smoothing discipline, law-nexus today does **not** claim:
 
 - any `[validated]` product capability — all product work is `[bounded]`/`[smoke]`/`[proposed]`;
-- parser completeness, multi-document Consultant expansion, or Garant parity;
-- legal correctness or authoritative legal interpretation;
+- parser completeness, multi-document Consultant expansion, or Garant cross-format parity;
+- legal correctness, authoritative legal interpretation or resolved reference/temporal/deontic claims;
+- representative golden corpus or parser quality validation;
 - citation-safe retrieval quality or legal-answer correctness;
 - a FalkorDB production runtime or KnowQL product;
 - R035 / R037 / R038 validation.

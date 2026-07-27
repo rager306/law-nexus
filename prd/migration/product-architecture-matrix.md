@@ -43,9 +43,9 @@ synthetic hexagonal seams. They do NOT prove real product behavior.
 
 | Module | Crates | Deficiency | Feature needed | ruVector/Other | Depends |
 |--------|--------|------------|----------------|----------------|---------|
-| Consultant XML parser | ln-decode | Synthetic decoder only | Real `quick-xml` streaming parser for Consultant XML: hierarchy, FRBR IDs, references, temporal markers, deontic lexemes | None | R3 domain types |
-| Garant ODT parser | ln-decode | Not started | ODT XML parser for Garant source documents | None | R3, Consultant parser |
-| Parser pipeline | ln-decode | No artifact builder | Hierarchy/relation/norm builders, staging graph builder, golden evaluator | None | Both parsers |
+| Consultant XML parser | ln-decode | Bounded real WordML adapter (M132); no FRBR IDs, relation builders or full corpus coverage | Real `quick-xml` streaming parser for Consultant XML: FRBR IDs, relation builders, golden evaluator | None | R3 domain types |
+| Garant ODT parser | ln-decode | Bounded real ODT adapter (M133); no full ODF/style coverage or corpus coverage | Full ODF element/style coverage and multi-document Garant corpus | None | R3, Consultant parser |
+| Parser pipeline | ln-decode | Shared hierarchy/morphology/sentence and reference/temporal/deontic lexical candidates (M131-M134); no relation/norm builders, staging graph builder or golden evaluator | Hierarchy/relation/norm builders, staging graph builder, golden evaluator | None | Both parsers |
 
 ### Layer 3: Graph (R5-R6)
 
