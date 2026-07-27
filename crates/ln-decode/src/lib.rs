@@ -8,6 +8,7 @@
 
 pub mod adapters;
 pub mod application;
+pub mod deontic;
 pub mod domain;
 pub mod hierarchy;
 pub mod morphology;
