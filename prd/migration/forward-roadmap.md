@@ -83,7 +83,7 @@ not relied upon; law-nexus owns a typed application executor over storage ports.
 | 0010 | Evidence kernel | `[bounded]` | HC-05/07/08/10/14 PASS | Real graph evidence storage |
 | 0011 | KOF-DA ownership | `[bounded]` | 20 owners proven | Production enforcement |
 | 0012 | Evidence protocol | `[bounded]` | M111/M112 applied | Applied to every future selection |
-| 0013 | Universal parser | `[bounded]` | Independent Consultant/Garant adapters, shared hierarchy/morphology/sentence primitives and one tracked real document per provider | References/temporal/deontic candidates, representative golden corpus and citation mapping |
+| 0013 | Universal parser | `[bounded]` | Independent Consultant/Garant adapters; shared hierarchy/morphology/sentence plus reference/temporal/deontic lexical candidates; bounded tracked observations for one source per provider | Representative golden corpus, quality convergence, legal resolution and citation mapping |
 | 0014 | RuVector infra | `[proposed]` | Bounded external synthetic research only | TEI, real corpus, recovery, typed queries and exact citations |
 
 ## Roadmap
@@ -120,11 +120,13 @@ M133: ODT Adapter + Garant Bounded Parse [complete]
 ```
 
 ```text
-M134: Shared Lexical Candidate Extractors [active]
-   ReferenceMention: bounded forms of статья/пункт + number; no endpoint resolution
-   TemporalPhrase: вступает/утрачивает силу forms; no date or five-clock fact
-   DeonticLexeme: обязан/вправе/запрещается + lexical negation; no NormStatement
-   All operate on ParsedBlock text and exclude ProviderComment blocks
+M134: Shared Lexical Candidate Extractors [active, implementation complete]
+   ReferenceMention: bounded статья/пункт forms + decimal/dotted number
+   TemporalPhrase: bounded entry/loss-of-force forms without date or clock fact
+   DeonticLexeme: obligation/permission/prohibition + lexical negation only
+   Provider-neutral ParsedBlock input; exact decoded TextSpan; ProviderComment excluded
+   Synthetic provider equality + deterministic counts on one tracked source per provider
+   Non-claims: no target resolution, legal effect, corpus coverage or format quality parity
 ```
 
 ```text

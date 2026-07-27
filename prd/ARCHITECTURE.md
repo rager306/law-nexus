@@ -92,15 +92,18 @@ M109-M129 Rust baseline and hostile contract closure  [bounded]
    20 hostile cases: 20 PASS / 0 FAIL / 0 unsupported-case
    real WordML streaming decoder: 22 MB / 53,119 paragraphs without OOM
    ▼
-ADR-0013 universal parser + ADR-0014 RuVector  [proposed]
+ADR-0013 universal parser  [bounded] + ADR-0014 RuVector  [proposed]
    independent Consultant WordML and Garant ODT adapters
-   TEI USER-bge-m3 1024d embedding boundary
+   shared bounded hierarchy, sentence, reference, temporal and deontic candidates
+   TEI USER-bge-m3 1024d embedding boundary remains proposed
    RVF vectors + redb GraphDB CRUD; no ruvector-graph Cypher execution claim
    ▼
 [ACTIVE] M134 — shared reference mention, temporal phrase and deontic lexeme
-candidates over provider-neutral `ParsedBlock`; these remain lexical-only and
-cannot imply resolved relations, five-clock facts or `NormStatement` conclusions
-before M135 golden-corpus convergence
+candidates over provider-neutral `ParsedBlock`; hostile contracts, synthetic
+provider independence and deterministic aggregate censuses on one tracked source
+per provider are `[bounded]`. These remain lexical-only and cannot imply resolved
+relations, five-clock facts, `NormStatement`, corpus coverage or cross-format
+quality before M135 golden-corpus convergence.
 ```
 
 ## Current layer (where work happens now)

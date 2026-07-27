@@ -158,12 +158,17 @@ crates/ln-decode/
 │   │   └── garant_odt.rs
 │   ├── hierarchy.rs        # shared bounded hierarchy extraction
 │   ├── morphology.rs       # shared bounded lexical marker scan
-│   └── sentence.rs         # shared bounded sentence spans
+│   ├── sentence.rs         # shared bounded sentence spans
+│   ├── references.rs       # article/point mentions without target resolution
+│   ├── temporal.rs         # entry/loss-of-force phrases without clock facts
+│   └── deontic.rs          # morphology projection without NormStatement
 └── tests/                  # hostile, integration and tracked real tracers
 
-M134 adds `references.rs`, `temporal.rs` and `deontic.rs` only after their
-lexical-candidate contracts pass independently. These modules remain shared and
-must not import provider adapters.
+M134 proves all three candidate modules independently and composes them across
+synthetic Consultant/Garant identities plus one tracked real source per
+provider. The modules remain shared, import no provider adapters and return no
+candidates for `ProviderComment` blocks. The tracked sources are different
+legal documents, so their aggregate counts do not prove cross-format parity.
 ```
 
 ### Shared domain types
@@ -319,9 +324,9 @@ system). The parser must handle morphological variation at specific layers.
 |-------|----------------|----------|--------------------------|
 | I/O adapter | None | N/A | Pure XML/text extraction |
 | Hierarchy | Minimal | Dependency-free bounded start-marker grammar | Only `Раздел`, `Глава`, `§`, `Статья` are implemented; broader hierarchy remains open |
-| References | HIGH: case forms for structural terms | Explicit bounded token/number grammar | M131 proves selected terms only; M134 adds lexical mentions without resolution |
-| Temporal | Medium: bounded phrase forms | Explicit token-sequence grammar | M134 emits phrases only; dates, five clocks and legal applicability remain future work |
-| Deontic | High: modal verb forms and local negation | Existing bounded token dictionary + lexical negation context | M134 emits lexemes only; legal modality and `NormStatement` remain future application work |
+| References | HIGH: case forms for structural terms | Explicit bounded token/number grammar | M134 emits article/point mentions and exact decoded spans without target resolution |
+| Temporal | Medium: bounded phrase forms | Explicit token-sequence grammar | M134 emits entry/loss-of-force phrases only; dates, five clocks and legal applicability remain future work |
+| Deontic | High: modal verb forms and local negation | Existing bounded token dictionary + lexical negation context | M134 emits obligation/permission/prohibition lexemes only; legal modality and `NormStatement` remain future application work |
 | Embedding | Implicit | Handled by USER-bge-m3 | Model trained on Russian corpus; morphology handled internally |
 
 ### Bounded token scan (implemented contract)
@@ -393,8 +398,9 @@ The module uses only the Rust standard library and the decoded-text `TextSpan`
 domain type. No regex, once_cell, morph-rs, pymorphy2, natasha or razdel
 dependency is introduced. Sentence splitting and hierarchy extraction are
 already separate bounded modules. M134 keeps references, temporal phrases and
-deontic lexemes in separate slices so one taxonomy cannot silently authorize
-another.
+deontic lexemes in separate modules so one taxonomy cannot silently authorize
+another. Synthetic cross-provider equality and tracked aggregate censuses prove
+composition mechanics only; M135 owns representative golden-corpus evaluation.
 
 ## Alternatives Considered
 
