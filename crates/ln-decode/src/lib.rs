@@ -10,6 +10,7 @@ pub mod adapters;
 pub mod application;
 pub mod deontic;
 pub mod domain;
+pub mod evaluator;
 pub mod golden;
 pub mod hierarchy;
 pub mod morphology;
