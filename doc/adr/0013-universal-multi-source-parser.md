@@ -233,30 +233,18 @@ Consultant and Garant adapter contracts are planned.
 
 ### Hierarchy extraction (shared, format-independent)
 
-Regex markers derived from `Old_project/structures/44fz.yaml` and validated
-against real documents:
+The Rust extractor is dependency-free and provider-neutral. It accepts only
+bounded start markers `Раздел`, `Глава`, `§` and `Статья`, with decimal numbers
+for `§`/`Статья` and decimal or Roman numbers for `Раздел`/`Глава`. `Часть`,
+`пункт` and `подпункт` remain unsupported rather than inferred from generic
+numbered prose. It returns a decoded-text `TextSpan`; the owning `ParsedBlock`
+retains the separate source-stream `SourceLocation`.
 
-```rust
-pub static CHAPTER_RE: Lazy<Regex> = Lazy::new(|| {
-    Regex::new(r"^Глава\s+(\d+)\.?\s*(.*)$").unwrap()
-});
-
-pub static ARTICLE_RE: Lazy<Regex> = Lazy::new(|| {
-    Regex::new(r"^Статья\s+(\d+(?:\.\d+)?)\.?\s*(.*)$").unwrap()
-});
-
-pub static PART_RE: Lazy<Regex> = Lazy::new(|| {
-    Regex::new(r"^(\d+)\.\s").unwrap()
-});
-
-pub static ITEM_RE: Lazy<Regex> = Lazy::new(|| {
-    Regex::new(r"^(\d+(?:\.\d+)*)\)\s").unwrap()
-});
-
-pub static SUBITEM_RE: Lazy<Regex> = Lazy::new(|| {
-    Regex::new(r"^([а-яё])\)\s").unwrap()
-});
-```
+Synthetic Consultant and Garant adapter integration contracts feed their
+`ParsedBlock` values directly to the same `extract_hierarchy` function. This is
+`[bounded]` cross-adapter evidence only: real Consultant marker counts are
+fixture-specific, and real Garant hierarchy behavior remains unproven until the
+tracked ODT tracer.
 
 ### ODT adapter specifics
 

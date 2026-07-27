@@ -148,10 +148,12 @@ independent namespace-aware `content.xml` adapter have hostile synthetic runtime
 contracts. The package reader enforces archive/member limits without filesystem
 extraction; the XML adapter emits `package-member:content.xml` locations and
 fails atomically on malformed topology, DTD/entity input, unknown ODF text
-semantics and decoded whitespace amplification. This does not validate a real
-Garant document, provider style completeness, shared hierarchy composition,
-corpus coverage, legal correctness or citation mapping; those remain S05/S06
-work.
+semantics and decoded whitespace amplification. Synthetic Garant blocks compose
+directly with the shared provider-neutral hierarchy extractor while preserving
+member `SourceLocation` and decoded marker `TextSpan` as distinct coordinates.
+This does not validate a real Garant document, provider style completeness,
+real-document hierarchy counts, corpus coverage, legal correctness or citation
+mapping; those remain S06 work.
 
 ## Downstream gates
 

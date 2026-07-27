@@ -5,8 +5,9 @@ use crate::domain::{HierarchyLevel, HierarchyNode, ParsedBlock, TextSpan};
 /// Extract a supported hierarchy marker at the start of decoded block text.
 ///
 /// This function intentionally does not translate decoded [`TextSpan`] values
-/// into artifact coordinates. The owning [`ParsedBlock`] retains its separate
-/// source span for an adapter to map with additional evidence.
+/// into source-stream coordinates. The owning [`ParsedBlock`] retains its
+/// separate [`crate::domain::SourceLocation`] for an adapter to map with
+/// additional evidence.
 pub fn extract_hierarchy(block: &ParsedBlock) -> Option<HierarchyNode> {
     let text = block.text();
     let marker_start = text
