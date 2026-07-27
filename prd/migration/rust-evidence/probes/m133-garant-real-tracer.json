@@ -1,0 +1,51 @@
+{
+  "schema_version": "law-nexus-garant-real-tracer/v1",
+  "evidence_id": "M133-S06-GARANT-REAL-TRACER",
+  "lifecycle": "bounded",
+  "verdict": "PASS",
+  "source": {
+    "path": "law-source/garant/44-fz.odt",
+    "byte_count": 247971,
+    "sha256": "73777d4741fa1b65229a8b22b97eb2cff4c5180105affb79b058d7007e3e4337",
+    "runtime_fingerprint": "fnv1a64:d4143a172688f8c3",
+    "package_entry_count": 8,
+    "content_xml_byte_count": 2387452
+  },
+  "runtime": {
+    "test": "crates/ln-decode/tests/garant_real_tracer.rs",
+    "command": "cargo test -p ln-decode --test garant_real_tracer --offline",
+    "repeat_decode_equal": true,
+    "parsed_block_count": 5124,
+    "bounded_hierarchy_count": 140,
+    "content_member_spans_valid": true,
+    "decoded_marker_spans_in_bounds": true,
+    "raw_legal_text_persisted": false
+  },
+  "evidence_required_odf_subset": {
+    "paragraph": true,
+    "heading": true,
+    "span": true,
+    "space": true,
+    "link": true,
+    "bookmark": true,
+    "filesystem_extraction": false,
+    "external_entity_resolution": false
+  },
+  "architecture": {
+    "product_runtime": "rust-only",
+    "adapter": "GarantOdtBlockDecoder",
+    "port": "BlockDecoderPort",
+    "source_stream": "package-member:content.xml",
+    "shared_hierarchy_has_adapter_dependency": false,
+    "source_location_text_span_translation_claimed": false
+  },
+  "non_claims": [
+    "No Garant corpus completeness claim",
+    "No full ODF element or provider style coverage claim",
+    "No legal hierarchy completeness or legal correctness claim",
+    "No Part, Punkt, or Podpunkt extraction claim",
+    "No automatic package-member-to-decoded coordinate mapping claim",
+    "No temporal, deontic, relation, retrieval, citation, storage, RuVector, or TEI readiness claim",
+    "No Consultant/Garant parity claim"
+  ]
+}

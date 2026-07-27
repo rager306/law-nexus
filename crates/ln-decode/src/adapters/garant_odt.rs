@@ -36,6 +36,12 @@ enum BlockKind {
     Paragraph,
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum InlineKind {
+    Link,
+    Span,
+}
+
 struct OpenBlock {
     kind: BlockKind,
     start: usize,
@@ -57,6 +63,7 @@ fn parse_content_xml(bytes: &[u8]) -> Result<Vec<ParsedBlock>, BlockDecodeError>
     let mut buffer = Vec::with_capacity(4096);
     let mut blocks = Vec::new();
     let mut open_block: Option<OpenBlock> = None;
+    let mut inline_stack = Vec::new();
     let mut open_elements = 0usize;
     let mut seen_root = false;
     let mut in_root = false;
@@ -125,12 +132,17 @@ fn parse_content_xml(bytes: &[u8]) -> Result<Vec<ParsedBlock>, BlockDecodeError>
                         text: String::new(),
                         provider_style_id,
                     });
-                } else if local == b"span" {
+                } else if matches!(local, b"a" | b"span") {
                     require_namespace(namespace, NamespaceKind::Text, event_start)?;
                     if open_block.is_none() {
                         return Err(parse_error(event_start));
                     }
-                } else if local == b"s" {
+                    inline_stack.push(if local == b"a" {
+                        InlineKind::Link
+                    } else {
+                        InlineKind::Span
+                    });
+                } else if matches!(local, b"bookmark" | b"s") {
                     require_namespace(namespace, NamespaceKind::Text, event_start)?;
                     return Err(parse_error(event_start));
                 } else if open_block.is_some()
@@ -154,7 +166,7 @@ fn parse_content_xml(bytes: &[u8]) -> Result<Vec<ParsedBlock>, BlockDecodeError>
                     if !in_document_text || open_block.is_some() {
                         return Err(parse_error(event_start));
                     }
-                } else if local == b"span" {
+                } else if matches!(local, b"a" | b"span" | b"bookmark") {
                     require_namespace(namespace, NamespaceKind::Text, event_start)?;
                     if open_block.is_none() {
                         return Err(parse_error(event_start));
@@ -197,6 +209,9 @@ fn parse_content_xml(bytes: &[u8]) -> Result<Vec<ParsedBlock>, BlockDecodeError>
 
                 if is_block_name(local) {
                     require_namespace(namespace, NamespaceKind::Text, event_start)?;
+                    if !inline_stack.is_empty() {
+                        return Err(parse_error(event_start));
+                    }
                     let expected = if local == b"h" {
                         BlockKind::Heading
                     } else {
@@ -222,11 +237,22 @@ fn parse_content_xml(bytes: &[u8]) -> Result<Vec<ParsedBlock>, BlockDecodeError>
                         .map_err(|_| validate_error(Some(block.start)))?;
                         blocks.push(parsed);
                     }
-                } else if local == b"span" {
+                } else if matches!(local, b"a" | b"span") {
                     require_namespace(namespace, NamespaceKind::Text, event_start)?;
                     if open_block.is_none() {
                         return Err(parse_error(event_start));
                     }
+                    let expected = if local == b"a" {
+                        InlineKind::Link
+                    } else {
+                        InlineKind::Span
+                    };
+                    if inline_stack.pop() != Some(expected) {
+                        return Err(parse_error(event_start));
+                    }
+                } else if local == b"bookmark" {
+                    require_namespace(namespace, NamespaceKind::Text, event_start)?;
+                    return Err(parse_error(event_start));
                 } else if local == b"text" {
                     require_namespace(namespace, NamespaceKind::Office, event_start)?;
                     if !in_document_text || open_block.is_some() {
@@ -257,6 +283,7 @@ fn parse_content_xml(bytes: &[u8]) -> Result<Vec<ParsedBlock>, BlockDecodeError>
                     && !in_body
                     && !in_document_text
                     && open_block.is_none()
+                    && inline_stack.is_empty()
                     && open_elements == 0 =>
             {
                 return Ok(blocks);

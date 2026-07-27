@@ -263,8 +263,16 @@ ODT files are ZIP archives. The bounded adapter contract is:
    - empty `<text:s>` → one to 64 spaces, with a 1 MiB decoded-block cap
 4. Reject DTD/entity declarations, malformed or multiple roots, nested blocks,
    unknown `text:*` semantics and non-whitespace text outside a block atomically
-5. Classify Garant provider-comment styles `s9` and `s9header` as
+5. Preserve evidence-required inline `text:a` content and ignore only empty
+   `text:bookmark` anchors; non-empty bookmarks, mismatched inline topology and
+   unknown `text:*` semantics remain fail-closed
+6. Classify Garant provider-comment styles `s9` and `s9header` as
    `ProviderComment`; do not silently discard them in the adapter
+
+The tracked `law-source/garant/44-fz.odt` tracer is `[bounded]`: two Rust decodes
+produce 5,124 identical non-empty blocks and 140 supported hierarchy markers.
+This proves one fixture and the required ODF subset only, not full ODF/provider
+style coverage, corpus completeness, legal correctness or citation mapping.
 
 ```toml
 # Cargo.toml additions for ODT support

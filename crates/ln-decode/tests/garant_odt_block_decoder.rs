@@ -118,9 +118,27 @@ fn rejects_target_elements_outside_the_odf_text_namespace() {
 }
 
 #[test]
+fn preserves_real_required_inline_links_and_ignores_empty_bookmark_anchors() {
+    let xml = document(
+        r##"<text:p>До <text:bookmark text:name="anchor"/><text:a xlink:type="simple" xlink:href="#anchor" xmlns:xlink="http://www.w3.org/1999/xlink">ссылки</text:a> после.</text:p>"##,
+    );
+    let blocks = decode(&xml).expect("bounded ODF inline semantics");
+    assert_eq!(blocks.len(), 1);
+    assert_eq!(blocks[0].text(), "До ссылки после.");
+}
+
+#[test]
 fn rejects_nested_blocks_unknown_text_semantics_and_invalid_space_expansion() {
     assert_parse_error(&document("<text:p>outer<text:p>CANARY</text:p></text:p>"));
-    assert_parse_error(&document("<text:p>before<text:a>CANARY</text:a></text:p>"));
+    assert_parse_error(&document(
+        "<text:p>before<text:note>CANARY</text:note></text:p>",
+    ));
+    assert_parse_error(&document(
+        "<text:p><text:bookmark text:name=\"CANARY\">bad</text:bookmark></text:p>",
+    ));
+    assert_parse_error(&document(
+        "<text:p><text:a><text:span>CANARY</text:a></text:span></text:p>",
+    ));
     assert_parse_error(&document("CANARY<text:p>block</text:p>"));
     assert_parse_error(&document(
         r#"<text:p>before<text:s text:c="65"/>CANARY</text:p>"#,

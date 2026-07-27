@@ -21,7 +21,7 @@ falkordb=historical-only
 ## Current position
 
 - **Latest completed milestone:** M129-yec916, HC-16 through HC-20 Final Hostile Cases.
-- **Active milestone:** M130-bzeiq1, process debt and governor hardening before further product implementation.
+- **Active milestone:** M133-iv4yu0, bounded independent Garant ODT adapter and real-document tracer closure.
 - **M111 result:** final `[bounded]` implementation-neutral semantic baseline for heterogeneous Russian legal evidence.
 - **M112 result:** ADR-0005 topology superseded; ADR-0008 through ADR-0012 authored `[bounded]`; executable ADR/decision/owner drift checks active in pre-commit and CI.
 - **M113 result:** first hostile-case Rust runtime proof. `S10-HC-01-RT` is bounded PASS.
@@ -151,9 +151,11 @@ fails atomically on malformed topology, DTD/entity input, unknown ODF text
 semantics and decoded whitespace amplification. Synthetic Garant blocks compose
 directly with the shared provider-neutral hierarchy extractor while preserving
 member `SourceLocation` and decoded marker `TextSpan` as distinct coordinates.
-This does not validate a real Garant document, provider style completeness,
-real-document hierarchy counts, corpus coverage, legal correctness or citation
-mapping; those remain S06 work.
+One tracked real Garant ODT now produces 5,124 deterministic non-empty blocks
+and 140 supported hierarchy markers with exact `content.xml` member spans. This
+single-document proof does not validate provider style completeness, full ODF
+coverage, corpus coverage, legal correctness, Consultant/Garant parity or
+citation mapping.
 
 ## Downstream gates
 

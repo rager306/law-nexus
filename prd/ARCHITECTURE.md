@@ -19,8 +19,10 @@ source-anchored. Rust owns product behavior; formal Legal KnowQL remains a
 law-nexus application concern.
 
 **Current status:** 20/20 hostile contracts have `[bounded]` synthetic Rust
-runtime PASS. Universal parser and RuVector integration remain `[proposed]`;
-real-corpus retrieval and citation safety are not validated. Python is prior art
+runtime PASS. The parser foundation has `[bounded]` independent Consultant and
+Garant adapters plus one tracked real document per provider; RuVector integration
+remains `[proposed]`, and real-corpus retrieval and citation safety are not
+validated. Python is prior art
 or repository-control harness only, not the product reference specification.
 
 ## Active Direction Contract
@@ -95,8 +97,9 @@ ADR-0013 universal parser + ADR-0014 RuVector  [proposed]
    TEI USER-bge-m3 1024d embedding boundary
    RVF vectors + redb GraphDB CRUD; no ruvector-graph Cypher execution claim
    ▼
-[YOU ARE HERE] M130 — close process/source-of-truth/requirements governor debt,
-then resume parser-first implementation before storage/retrieval integration
+[YOU ARE HERE] M133 — independent Garant ODT package/XML adapter and one tracked
+real-document tracer `[bounded]`; parser completeness, corpus parity and
+citation mapping remain open before storage/retrieval integration
 ```
 
 ## Current layer (where work happens now)
@@ -149,7 +152,7 @@ completeness, Consultant/Garant parity, or production graph readiness.
 
 | Capability | Status | Why blocked |
 |---|---|---|
-| Universal parser | `[proposed]`; WordML streaming seam `[bounded]` | needs shared domain types, hierarchy/reference/temporal/deontic extraction, independent Garant ODT and golden corpus |
+| Universal parser | `[bounded]` independent Consultant/Garant block adapters and one tracked real document per provider | needs reference/temporal/deontic extraction, representative golden corpus and citation mapping |
 | RuVector graph-vector infrastructure | `[proposed]`; synthetic capability checks only | needs TEI 1024d real corpus, RVF/redb materialization, crash consistency and citation contract |
 | Retrieval / citation-safe answers | `[bounded]` prior smoke only | needs real EvidenceSpan/SourceBlock fixtures, quality metrics and exact byte round-trip |
 | KnowQL | `[bounded]` hand-coded AST demo only | needs real parser and typed application executor; `ruvector-graph` Cypher execution is not relied upon |

@@ -186,18 +186,18 @@
     }
   ],
   "current_milestone": {
-    "id": "M132-gjjem8",
-    "title": "Consultant WordML adapter and hierarchy foundation",
-    "status": "complete",
-    "goal": "Provide a fail-closed independent Consultant adapter, provider-neutral bounded hierarchy and one real deterministic tracer."
+    "id": "M133-iv4yu0",
+    "title": "Garant ODT adapter and independent parser proof",
+    "status": "active",
+    "goal": "Provide bounded in-memory ODT package safety, an independent Garant content.xml adapter, shared hierarchy composition and one tracked real-document tracer."
   },
   "recommended_next": {
-    "title": "M133 Garant ODT adapter and independent parser proof",
+    "title": "M134 References Temporal and Deontic Extractors",
     "priority": 1,
-    "why": "M132 proved Consultant WordML only. Garant ODT has a separate ZIP/package and content.xml risk profile that must be retired independently behind the shared block port.",
-    "plan_reference": "M133-iv4yu0; prd/migration/forward-roadmap.md M133; doc/adr/0013-universal-multi-source-parser.md",
-    "slices": "First close post-M132 projection debt; then safe in-memory ODT package intake, independent content.xml adapter, shared hierarchy composition and one real ODT tracer.",
-    "non_validation": "M132 does not validate ODT package safety, Garant XML topology, parser/corpus completeness, legal correctness, temporal/deontic facts, retrieval, storage or citations."
+    "why": "M131-M133 provide provider-neutral blocks, bounded morphology/sentence primitives, independent Consultant/Garant adapters and shared hierarchy. The next format-independent layer is references, temporal markers and deontic lexemes over ParsedBlock text.",
+    "plan_reference": "prd/migration/forward-roadmap.md M134; doc/adr/0013-universal-multi-source-parser.md",
+    "slices": "Close post-M133 terminal projection debt first, then add reference, temporal and deontic extractors as shared domain/application behavior with hostile contracts before M135 golden-corpus convergence.",
+    "non_validation": "M133 does not validate corpus completeness, Consultant/Garant parity, full ODF/provider styles, legal correctness, temporal/deontic/reference extraction, retrieval, storage or citations."
   },
   "downstream_blocked": [
     {
