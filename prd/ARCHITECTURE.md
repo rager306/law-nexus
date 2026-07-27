@@ -97,10 +97,10 @@ ADR-0013 universal parser + ADR-0014 RuVector  [proposed]
    TEI USER-bge-m3 1024d embedding boundary
    RVF vectors + redb GraphDB CRUD; no ruvector-graph Cypher execution claim
    ▼
-[LATEST COMPLETED] M133 — independent Garant ODT package/XML adapter and one
-tracked real-document tracer `[bounded]`; M134 shared extractors are next, while
-parser completeness, corpus parity and citation mapping remain open before
-storage/retrieval integration
+[ACTIVE] M134 — shared reference mention, temporal phrase and deontic lexeme
+candidates over provider-neutral `ParsedBlock`; these remain lexical-only and
+cannot imply resolved relations, five-clock facts or `NormStatement` conclusions
+before M135 golden-corpus convergence
 ```
 
 ## Current layer (where work happens now)

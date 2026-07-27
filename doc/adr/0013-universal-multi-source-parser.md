@@ -2,7 +2,7 @@
 id: ADR-0013
 title: Universal multi-source parser architecture for Russian legal documents
 status: Accepted
-lifecycle: "[proposed]"
+lifecycle: "[bounded]"
 date: 2026-07-24
 superseds: none
 related: [ADR-0004, ADR-0005]
@@ -12,9 +12,11 @@ related: [ADR-0004, ADR-0005]
 
 ## Status
 
-**Accepted [proposed]** — architecture designed. Moves to `[bounded]` when both
-Consultant XML and Garant ODT adapters parse real documents into the shared
-domain types with passing tests.
+**Accepted [bounded]** — independent Consultant XML and Garant ODT adapters
+parse one tracked real document per provider into shared domain types with
+hostile, integration and deterministic tracer tests. Parser/corpus completeness,
+full provider semantics, references, temporal facts, NormStatement extraction
+and citation mapping remain open.
 
 **Critical boundary:** ConsultantPlus WordML/XML extraction assumptions are
 incompatible with the Garant ODT parser direction. The two adapters are
@@ -127,13 +129,19 @@ we can design the universal architecture properly.
    Each adapter maps its provider-specific style IDs to the shared
    `ParagraphStyle` enum (Title, BodyText, JurTerm, ProviderComment, etc.).
 
-4. **Provider comments are filtered.** Garant embeds ГАРАНТ annotations in
-   styled paragraphs. These must be classified as `ProviderComment` and excluded
-   from legal text extraction.
+4. **Provider comments remain classified, not silently deleted.** Adapters emit
+   `ProviderComment` blocks so provenance is not lost. Shared legal-text
+   post-processors introduced after M133 return no candidates for those blocks.
 
-5. **Regex-based hierarchy markers are the source of truth.** Russian legal
-   documents follow standardized textual markers ("Глава N", "Статья N",
-   "1.", "1)", "а)"). These markers are format-independent.
+5. **Bounded Rust rules are the implementation truth.** The shared hierarchy
+   extractor supports only `Раздел`, `Глава`, `§` and `Статья` start markers.
+   Lexical post-processors use explicit token/phrase grammars and exact decoded
+   `TextSpan` values; prior-art regexes and provider topology are not normative.
+
+6. **Candidate outputs do not imply legal conclusions.** A reference mention is
+   not a resolved relation or citation, a temporal phrase is not a five-clock
+   assignment or applicability fact, and a deontic lexeme is not a
+   `NormStatement` or legal effect. Those fields are absent by type.
 
 ### Crate layout
 
@@ -141,23 +149,21 @@ we can design the universal architecture properly.
 crates/ln-decode/
 ├── src/
 │   ├── lib.rs
-│   ├── domain.rs           # ParsedBlock, ParagraphStyle, HierarchyNode, ...
-│   ├── ports.rs            # SourceFormat trait
-│   ├── application.rs      # DecodeAndAnchor (existing)
+│   ├── domain.rs           # ParsedBlock, SourceLocation, TextSpan, hierarchy types
+│   ├── ports.rs            # BlockDecoderPort and legacy HC-05 ports
+│   ├── application.rs      # DecodeBlocks and legacy DecodeAndAnchor
+│   ├── adapters.rs         # Consultant adapter and legacy synthetic adapters
 │   ├── adapters/
-│   │   ├── mod.rs          # re-exports
-│   │   ├── wordml.rs       # Consultant WordML adapter (existing, refactored)
-│   │   ├── odt.rs          # Garant ODT adapter (new)
-│   │   └── synthetic.rs    # Legacy synthetic adapters for HC-05 tests
-│   ├── hierarchy.rs        # HierarchyExtractor (shared)
-│   ├── references.rs       # ReferenceExtractor (shared)
-│   ├── temporal.rs         # TemporalMarkerExtractor (shared)
-│   └── deontic.rs          # DeonticLexemeDetector (shared)
-└── tests/
-    ├── hc05_decode_anchor.rs
-    ├── hc05_hostile_decoder.rs
-    ├── wordml_real_fixture.rs   # Real Consultant XML tests
-    └── odt_real_fixture.rs      # Real Garant ODT tests
+│   │   ├── garant_odt_package.rs
+│   │   └── garant_odt.rs
+│   ├── hierarchy.rs        # shared bounded hierarchy extraction
+│   ├── morphology.rs       # shared bounded lexical marker scan
+│   └── sentence.rs         # shared bounded sentence spans
+└── tests/                  # hostile, integration and tracked real tracers
+
+M134 adds `references.rs`, `temporal.rs` and `deontic.rs` only after their
+lexical-candidate contracts pass independently. These modules remain shared and
+must not import provider adapters.
 ```
 
 ### Shared domain types
@@ -225,11 +231,11 @@ pub enum SourceFormatId {
 }
 ```
 
-Format detection is adapter-owned because paths, extensions, ZIP signatures and
-XML roots are external concerns. A future port accepts bounded input and returns
-`Result<Vec<ParsedBlock>, AdapterError>`; it must not silently return partial
-records on malformed input. M131 intentionally defines no I/O trait before the
-Consultant and Garant adapter contracts are planned.
+Format validation is adapter-owned because family identity, ZIP signatures and
+XML roots are external concerns. `BlockDecoderPort` accepts a bounded
+`DecodeRequest` and returns `Result<Vec<ParsedBlock>, BlockDecodeError>`.
+`ConsultantWordMlBlockDecoder` and `GarantOdtBlockDecoder` implement it and fail
+atomically: malformed input never returns previously collected blocks.
 
 ### Hierarchy extraction (shared, format-independent)
 
@@ -312,10 +318,10 @@ system). The parser must handle morphological variation at specific layers.
 | Layer | Linguistic need | Approach | Why not pymorphy2/razdel? |
 |-------|----------------|----------|--------------------------|
 | I/O adapter | None | N/A | Pure XML/text extraction |
-| Hierarchy | Minimal | Pure regex | Markers ("\u0413\u043b\u0430\u0432\u0430 N", "\u0421\u0442\u0430\u0442\u044c\u044f N") are standardized, always nominative case |
-| References | HIGH: case forms for structural terms | Explicit bounded token forms | M131 proves selected forms only; reference extraction remains future work |
-| Temporal | Medium: verb forms + date parsing | Stem regex + date parser | Legal verbs are a closed set: "\u0432\u0441\u0442\u0443\u043f\u0430\u0435\u0442/\u0432\u0441\u0442\u0443\u043f\u0430\u044e\u0442/\u0432\u0441\u0442\u0443\u043f\u0438\u043b" |
-| Deontic | MAXIMAL: modal verb morphology | Bounded token dictionary + lexical negation context | M131 emits markers only; legal modality remains future application work |
+| Hierarchy | Minimal | Dependency-free bounded start-marker grammar | Only `Раздел`, `Глава`, `§`, `Статья` are implemented; broader hierarchy remains open |
+| References | HIGH: case forms for structural terms | Explicit bounded token/number grammar | M131 proves selected terms only; M134 adds lexical mentions without resolution |
+| Temporal | Medium: bounded phrase forms | Explicit token-sequence grammar | M134 emits phrases only; dates, five clocks and legal applicability remain future work |
+| Deontic | High: modal verb forms and local negation | Existing bounded token dictionary + lexical negation context | M134 emits lexemes only; legal modality and `NormStatement` remain future application work |
 | Embedding | Implicit | Handled by USER-bge-m3 | Model trained on Russian corpus; morphology handled internally |
 
 ### Bounded token scan (implemented contract)
@@ -385,8 +391,10 @@ crates/ln-decode/
 
 The module uses only the Rust standard library and the decoded-text `TextSpan`
 domain type. No regex, once_cell, morph-rs, pymorphy2, natasha or razdel
-dependency is introduced. Sentence splitting, hierarchy extraction, references,
-temporal extraction and deontic interpretation remain separate future slices.
+dependency is introduced. Sentence splitting and hierarchy extraction are
+already separate bounded modules. M134 keeps references, temporal phrases and
+deontic lexemes in separate slices so one taxonomy cannot silently authorize
+another.
 
 ## Alternatives Considered
 

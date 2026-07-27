@@ -83,7 +83,7 @@ not relied upon; law-nexus owns a typed application executor over storage ports.
 | 0010 | Evidence kernel | `[bounded]` | HC-05/07/08/10/14 PASS | Real graph evidence storage |
 | 0011 | KOF-DA ownership | `[bounded]` | 20 owners proven | Production enforcement |
 | 0012 | Evidence protocol | `[bounded]` | M111/M112 applied | Applied to every future selection |
-| 0013 | Universal parser | `[proposed]` | WordML adapter works | ODT adapter, hierarchy/morphology/refs/temporal/deontic extractors |
+| 0013 | Universal parser | `[bounded]` | Independent Consultant/Garant adapters, shared hierarchy/morphology/sentence primitives and one tracked real document per provider | References/temporal/deontic candidates, representative golden corpus and citation mapping |
 | 0014 | RuVector infra | `[proposed]` | Bounded external synthetic research only | TEI, real corpus, recovery, typed queries and exact citations |
 
 ## Roadmap
@@ -103,27 +103,28 @@ M131: Parser Domain Types + Morphology
 ```
 
 ```text
-M132: Hierarchy Extractor + Consultant Full Parse
-   Real 44-FZ file parsing: Глава → § → Статья → Часть → Пункт → Подпункт
-   Tests against real consultant/ fixtures
-   Verify: hierarchy matches frozen manifest for known files
+M132: Hierarchy Extractor + Consultant Bounded Parse [complete]
+   Independent fail-closed WordML adapter behind BlockDecoderPort
+   Shared bounded markers: Раздел, Глава, §, Статья
+   One tracked real Consultant fixture: 167 blocks / 22 supported markers
+   Non-claims: no full hierarchy, corpus parity or citation mapping
 ```
 
 ```text
-M133: ODT Adapter + Garant Parse
-   zip crate + quick-xml NsReader on content.xml
-   Style map: s1=BodyText, s9=Comment (ГАРАНТ), s15=Heading
-   Provider comment filtering
-   Critical: do NOT inherit WordML assumptions (per ADR-0013 correction)
-   Verify: parse 44-fz.odt without OOM, extract structural text
+M133: ODT Adapter + Garant Bounded Parse [complete]
+   Pinned minimal zip + in-memory bounded content.xml intake
+   Independent fail-closed ODF adapter; no WordML assumptions
+   Provider comments retained as classified blocks and excluded by later shared extractors
+   One tracked real 44-fz.odt: 5,124 blocks / 140 supported markers
+   Non-claims: no full ODF/style coverage, corpus parity or citation mapping
 ```
 
 ```text
-M134: References + Temporal + Deontic Extractors
-   ReferenceExtractor: стать[ьяейёю] N, пункт N
-   TemporalMarkerExtractor: вступает в силу, утрачивает силу
-   DeonticDetector: обязан/вправе/запрещается + negation context
-   All operate on ParsedBlock text (format-independent)
+M134: Shared Lexical Candidate Extractors [active]
+   ReferenceMention: bounded forms of статья/пункт + number; no endpoint resolution
+   TemporalPhrase: вступает/утрачивает силу forms; no date or five-clock fact
+   DeonticLexeme: обязан/вправе/запрещается + lexical negation; no NormStatement
+   All operate on ParsedBlock text and exclude ProviderComment blocks
 ```
 
 ```text

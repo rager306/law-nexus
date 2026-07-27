@@ -192,18 +192,18 @@
     }
   ],
   "current_milestone": {
-    "id": "M133-iv4yu0",
-    "title": "Garant ODT adapter and independent parser proof",
-    "status": "complete",
-    "goal": "Provide bounded in-memory ODT package safety, an independent Garant content.xml adapter, shared hierarchy composition and one tracked real-document tracer."
+    "id": "M134-ibpozq",
+    "title": "Shared lexical extractors for references temporal and deontic candidates",
+    "status": "active",
+    "goal": "Add provider-neutral lexical candidates over ParsedBlock while keeping reference resolution, five-clock facts and NormStatement conclusions absent by type."
   },
   "recommended_next": {
-    "title": "M134 References Temporal and Deontic Extractors",
+    "title": "M135 Parser Golden Pipeline",
     "priority": 1,
-    "why": "M131-M133 provide provider-neutral blocks, bounded morphology/sentence primitives, independent Consultant/Garant adapters and shared hierarchy. The next format-independent layer is references, temporal markers and deontic lexemes over ParsedBlock text.",
-    "plan_reference": "prd/migration/forward-roadmap.md M134; doc/adr/0013-universal-multi-source-parser.md",
-    "slices": "Close post-M133 terminal projection debt first, then add reference, temporal and deontic extractors as shared domain/application behavior with hostile contracts before M135 golden-corpus convergence.",
-    "non_validation": "M133 does not validate corpus completeness, Consultant/Garant parity, full ODF/provider styles, legal correctness, temporal/deontic/reference extraction, retrieval, storage or citations."
+    "why": "M134 completes bounded format-independent lexical candidate mechanics. M135 must evaluate hierarchy and lexical outputs against representative human-reviewed fixtures before any parser validation or downstream product claims.",
+    "plan_reference": "prd/migration/forward-roadmap.md M135; doc/adr/0013-universal-multi-source-parser.md",
+    "slices": "Close post-M134 terminal projection debt first, define representative golden fixtures and evaluator contracts, measure deterministic quality/unknown forms, then assess bounded cross-format behavior.",
+    "non_validation": "M134 lexical candidates do not validate resolved references, legal temporal state, NormStatement semantics, parser/corpus completeness, legal correctness, retrieval, storage or citations."
   },
   "downstream_blocked": [
     {
