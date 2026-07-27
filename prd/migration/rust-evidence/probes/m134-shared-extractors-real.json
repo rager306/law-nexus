@@ -1,0 +1,68 @@
+{
+  "schema_version": "law-nexus-shared-extractors-real/v1",
+  "evidence_id": "M134-S05-SHARED-EXTRACTORS-REAL",
+  "lifecycle": "bounded",
+  "verdict": "PASS",
+  "runtime": {
+    "test": "crates/ln-decode/tests/shared_extractors_real_tracer.rs",
+    "command": "cargo test -p ln-decode --test shared_extractors_real_tracer --offline",
+    "repeat_decode_and_census_equal": true,
+    "raw_legal_text_persisted": false
+  },
+  "sources": [
+    {
+      "provider": "consultant-wordml",
+      "path": "law-source/consultant/federalnyi-zakon-ot-22-12-2020-n-435-fz-red-ot-25-12-2023-o-publichno-pravovoi-kompanii-edinyi-zakazchik-v-sfere-stroitelstva-i-o-vnese--d71bf702.xml",
+      "byte_count": 193726,
+      "sha256": "62810fd14c12ca5b239178385d0fc53b3377c05da6a1ff9a834acd2e46fafb9d",
+      "runtime_fingerprint": "fnv1a64:d7697a0ea8cc3970",
+      "counts": {
+        "parsed_blocks": 167,
+        "provider_comments": 0,
+        "article_mentions": 53,
+        "point_mentions": 16,
+        "enters_force_phrases": 1,
+        "loses_force_phrases": 0,
+        "obligation_lexemes": 0,
+        "permission_lexemes": 4,
+        "prohibition_lexemes": 0,
+        "negated_deontic_lexemes": 1
+      }
+    },
+    {
+      "provider": "garant-odt",
+      "path": "law-source/garant/44-fz.odt",
+      "byte_count": 247971,
+      "sha256": "73777d4741fa1b65229a8b22b97eb2cff4c5180105affb79b058d7007e3e4337",
+      "runtime_fingerprint": "fnv1a64:d4143a172688f8c3",
+      "counts": {
+        "parsed_blocks": 5124,
+        "provider_comments": 355,
+        "article_mentions": 976,
+        "point_mentions": 906,
+        "enters_force_phrases": 9,
+        "loses_force_phrases": 27,
+        "obligation_lexemes": 50,
+        "permission_lexemes": 176,
+        "prohibition_lexemes": 2,
+        "negated_deontic_lexemes": 10
+      }
+    }
+  ],
+  "architecture": {
+    "product_runtime": "rust-only",
+    "input": "provider-neutral ParsedBlock decoded text",
+    "provider_comment_candidates_excluded": true,
+    "candidate_coordinates": "TextSpan",
+    "source_location_translation_claimed": false,
+    "extractors_have_adapter_dependency": false
+  },
+  "non_claims": [
+    "No Consultant or Garant corpus completeness claim",
+    "No cross-format legal or count parity claim; the tracked sources are different legal documents",
+    "No resolved-reference or citation correctness claim",
+    "No effective-date, five-clock, applicability, or edition-state claim",
+    "No NormStatement, actor/action scope, modality, or legal-effect claim",
+    "No parser recall, precision, legal correctness, retrieval, storage, RuVector, or TEI readiness claim"
+  ]
+}
