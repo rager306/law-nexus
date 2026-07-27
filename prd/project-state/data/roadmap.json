@@ -183,12 +183,18 @@
       "theme": "Independent Consultant WordML adapter and bounded real-document hierarchy tracer",
       "status": "complete",
       "boundary": "Fail-closed Rust adapter, four bounded hierarchy markers and one tracked real federal-law tracer only. No corpus, legal, citation, source/text mapping, Garant, retrieval or infrastructure readiness claim."
+    },
+    {
+      "range": "M133-M133",
+      "theme": "Independent Garant ODT package XML adapter and bounded real-document tracer",
+      "status": "complete",
+      "boundary": "In-memory bounded ZIP intake, independent fail-closed ODF adapter, member coordinates, shared hierarchy composition and one tracked real 44-fz.odt tracer only. No corpus, full ODF/provider style, legal, citation, retrieval or infrastructure readiness claim."
     }
   ],
   "current_milestone": {
     "id": "M133-iv4yu0",
     "title": "Garant ODT adapter and independent parser proof",
-    "status": "active",
+    "status": "complete",
     "goal": "Provide bounded in-memory ODT package safety, an independent Garant content.xml adapter, shared hierarchy composition and one tracked real-document tracer."
   },
   "recommended_next": {
