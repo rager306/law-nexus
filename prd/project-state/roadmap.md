@@ -21,8 +21,7 @@ falkordb=historical-only
 ## Current position
 
 - **Latest completed milestone:** M129-yec916, HC-16 through HC-20 Final Hostile Cases.
-- **Latest completed milestone:** M133-iv4yu0, bounded independent Garant ODT adapter and real-document tracer closure.
-- **Active milestone:** M134-ibpozq, shared lexical reference, temporal and deontic candidates with strict non-authority ceilings.
+- **Latest completed milestone:** M134-ibpozq, bounded provider-neutral reference, temporal and deontic lexical candidates with synthetic provider equality and two tracked-source aggregate observations.
 - **Recommended next milestone:** M135, representative golden-corpus evaluation and bounded cross-format convergence.
 - **M111 result:** final `[bounded]` implementation-neutral semantic baseline for heterogeneous Russian legal evidence.
 - **M112 result:** ADR-0005 topology superseded; ADR-0008 through ADR-0012 authored `[bounded]`; executable ADR/decision/owner drift checks active in pre-commit and CI.

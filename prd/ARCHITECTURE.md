@@ -98,12 +98,12 @@ ADR-0013 universal parser  [bounded] + ADR-0014 RuVector  [proposed]
    TEI USER-bge-m3 1024d embedding boundary remains proposed
    RVF vectors + redb GraphDB CRUD; no ruvector-graph Cypher execution claim
    ▼
-[ACTIVE] M134 — shared reference mention, temporal phrase and deontic lexeme
-candidates over provider-neutral `ParsedBlock`; hostile contracts, synthetic
-provider independence and deterministic aggregate censuses on one tracked source
-per provider are `[bounded]`. These remain lexical-only and cannot imply resolved
-relations, five-clock facts, `NormStatement`, corpus coverage or cross-format
-quality before M135 golden-corpus convergence.
+[LATEST COMPLETED] M134 — shared reference mention, temporal phrase and deontic
+lexeme candidates over provider-neutral `ParsedBlock`; hostile contracts,
+synthetic provider independence and deterministic aggregate censuses on one
+tracked source per provider are `[bounded]`. These remain lexical-only and cannot
+imply resolved relations, five-clock facts, `NormStatement`, corpus coverage or
+cross-format quality. M135 golden-corpus convergence is next.
 ```
 
 ## Current layer (where work happens now)

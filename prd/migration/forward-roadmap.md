@@ -120,7 +120,7 @@ M133: ODT Adapter + Garant Bounded Parse [complete]
 ```
 
 ```text
-M134: Shared Lexical Candidate Extractors [active, implementation complete]
+M134: Shared Lexical Candidate Extractors [complete, bounded]
    ReferenceMention: bounded статья/пункт forms + decimal/dotted number
    TemporalPhrase: bounded entry/loss-of-force forms without date or clock fact
    DeonticLexeme: obligation/permission/prohibition + lexical negation only

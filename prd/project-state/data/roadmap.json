@@ -189,12 +189,18 @@
       "theme": "Independent Garant ODT package XML adapter and bounded real-document tracer",
       "status": "complete",
       "boundary": "In-memory bounded ZIP intake, independent fail-closed ODF adapter, member coordinates, shared hierarchy composition and one tracked real 44-fz.odt tracer only. No corpus, full ODF/provider style, legal, citation, retrieval or infrastructure readiness claim."
+    },
+    {
+      "range": "M134-M134",
+      "theme": "Provider-neutral reference temporal and deontic lexical candidates",
+      "status": "complete",
+      "boundary": "Bounded lexical candidates, exact decoded TextSpan, ProviderComment exclusion, synthetic provider equality and deterministic aggregate observations on one tracked source per provider only. No resolved target, five-clock fact, NormStatement, corpus coverage, format quality parity, legal correctness, retrieval or citation claim."
     }
   ],
   "current_milestone": {
     "id": "M134-ibpozq",
     "title": "Shared lexical extractors for references temporal and deontic candidates",
-    "status": "active",
+    "status": "complete",
     "goal": "Add provider-neutral lexical candidates over ParsedBlock while keeping reference resolution, five-clock facts and NormStatement conclusions absent by type."
   },
   "recommended_next": {
