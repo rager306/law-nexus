@@ -402,6 +402,37 @@ deontic lexemes in separate modules so one taxonomy cannot silently authorize
 another. Synthetic cross-provider equality and tracked aggregate censuses prove
 composition mechanics only; M135 owns representative golden-corpus evaluation.
 
+### Golden pipeline boundary (M135)
+
+M135 adds a Rust-only golden pipeline that evaluates parser output against
+human-reviewed structural annotations. The boundary is explicit:
+
+1. **Golden fixtures are structural annotations, not legal interpretation.**
+   A fixture carries provider, source identity and expected decoded
+   `TextSpan` values for hierarchy markers, reference mentions, temporal
+   phrases and deontic lexemes. It contains no resolved target identity,
+   five-clock fact, `NormStatement`, citation authority or legal effect.
+
+2. **GoldenEvaluator metrics are parser quality, not legal correctness.**
+   Per-layer precision, recall and F1 measure exact decoded `TextSpan`
+   agreement between parser output and fixture annotations. They do not
+   validate legal meaning, citation mapping or corpus coverage.
+
+3. **Unknown-form collector is bounded discovery, not completeness.**
+   It emits typed unknown-form kinds, counts and deterministic fingerprints
+   over tracked fixtures without persisting raw legal text. It is coverage
+   gap evidence, not exhaustive corpus proof.
+
+4. **ADR-0013 `[bounded]`→`[validated]` promotion is gated on representative
+   real corpus end-to-end evidence.** Synthetic metrics alone cannot promote
+   the lifecycle. Promotion requires multiple tracked fixtures per provider,
+   deterministic quality metrics and explicit unknown-form reporting.
+
+Golden pipeline modules consume `ParsedBlock` and validated structural
+annotations. They import no provider adapters, storage, graph, retrieval,
+citation modules or Python product logic. `ProviderComment` blocks produce no
+golden annotations or unknown-form candidates.
+
 ## Alternatives Considered
 
 ### Option A: Separate crates per format (`ln-consultant`, `ln-garant`)

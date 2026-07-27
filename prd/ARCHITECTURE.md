@@ -98,12 +98,10 @@ ADR-0013 universal parser  [bounded] + ADR-0014 RuVector  [proposed]
    TEI USER-bge-m3 1024d embedding boundary remains proposed
    RVF vectors + redb GraphDB CRUD; no ruvector-graph Cypher execution claim
    ▼
-[LATEST COMPLETED] M134 — shared reference mention, temporal phrase and deontic
-lexeme candidates over provider-neutral `ParsedBlock`; hostile contracts,
-synthetic provider independence and deterministic aggregate censuses on one
-tracked source per provider are `[bounded]`. These remain lexical-only and cannot
-imply resolved relations, five-clock facts, `NormStatement`, corpus coverage or
-cross-format quality. M135 golden-corpus convergence is next.
+[ACTIVE] M135 — Rust golden pipeline: manifest, evaluator and unknown-form
+collector over representative fixtures; per-layer precision/recall/F1 under
+D138 authority ceiling. Metrics are parser quality, not legal correctness.
+ADR-0013 `[bounded]`→`[validated]` promotion is gated on real corpus evidence.
 ```
 
 ## Current layer (where work happens now)

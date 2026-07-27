@@ -131,13 +131,12 @@ M134: Shared Lexical Candidate Extractors [complete, bounded]
 ```
 
 ```text
-M135: Parser Golden Pipeline
-   GoldenEvaluator: parse vs human-verified fixtures
-   Corpus coverage report
-   Cross-format validation (Consultant vs Garant same law)
-   Parser self-improvement: marker hit-rate, unknown form collector
-   Verify: parser quality stable across corpus
-   Promotes: ADR-0013 [bounded] → [validated]
+M135: Parser Golden Pipeline [active]
+   GoldenManifest: Rust-only structural annotations, not legal interpretation
+   GoldenEvaluator: per-layer precision/recall/F1 over exact TextSpan matches
+   UnknownFormCollector: bounded kind/span counts and fingerprints, no raw text
+   ADR-0013 [bounded] → [validated] promotion gated on representative real corpus evidence
+   Non-claims: no legal correctness, citation authority, corpus completeness or cross-format legal parity
 ```
 
 ```text

@@ -198,18 +198,18 @@
     }
   ],
   "current_milestone": {
-    "id": "M134-ibpozq",
-    "title": "Shared lexical extractors for references temporal and deontic candidates",
-    "status": "complete",
-    "goal": "Add provider-neutral lexical candidates over ParsedBlock while keeping reference resolution, five-clock facts and NormStatement conclusions absent by type."
+    "id": "M135-efwlce",
+    "title": "Rust golden pipeline representative fixtures evaluator and unknown-form collector",
+    "status": "active",
+    "goal": "Add a Rust-only bounded golden pipeline that evaluates parser output against human-reviewed structural annotations without claiming legal correctness, corpus completeness or citation authority."
   },
   "recommended_next": {
-    "title": "M135 Parser Golden Pipeline",
+    "title": "M136 RuVector Integration",
     "priority": 1,
-    "why": "M134 completes bounded format-independent lexical candidate mechanics. M135 must evaluate hierarchy and lexical outputs against representative human-reviewed fixtures before any parser validation or downstream product claims.",
-    "plan_reference": "prd/migration/forward-roadmap.md M135; doc/adr/0013-universal-multi-source-parser.md",
-    "slices": "Close post-M134 terminal projection debt first, define representative golden fixtures and evaluator contracts, measure deterministic quality/unknown forms, then assess bounded cross-format behavior.",
-    "non_validation": "M134 lexical candidates do not validate resolved references, legal temporal state, NormStatement semantics, parser/corpus completeness, legal correctness, retrieval, storage or citations."
+    "why": "M135 completes bounded parser quality measurement. M136 must define storage port contracts, bounded RuVector dependency probe, TEI embedding integration and recovery evidence before product pipeline claims.",
+    "plan_reference": "prd/migration/forward-roadmap.md M136; doc/adr/0014-ruvector-primary-infrastructure.md",
+    "slices": "Close post-M135 terminal projection debt first, define storage port contracts, run bounded RuVector dependency probe, then integrate TEI embeddings and recovery evidence.",
+    "non_validation": "M135 parser quality metrics do not validate legal correctness, corpus completeness, citation authority, storage integration, RuVector readiness or product pipeline behavior."
   },
   "downstream_blocked": [
     {
