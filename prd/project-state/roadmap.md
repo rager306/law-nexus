@@ -40,7 +40,7 @@ falkordb=historical-only
 - **M125 result:** thirteenth hostile-case Rust runtime proof. `S10-HC-13-RT` is bounded PASS.
 - **M129 result:** All 5 remaining hostile cases closed. **20 PASS / 0 FAIL / 0 unsupported-case**. All 20 HC cases have bounded runtime PASS.
 - **Product target:** Rust-only runtime under ADR-0004; Python may remain only as ADR-0007 subprocess repository harness.
-- **Parser direction:** ADR-0013 universal parser is `[proposed]`; Consultant WordML and Garant ODT keep independent adapters behind shared domain contracts.
+- **Parser direction:** ADR-0013 universal parser is `[bounded]`; Consultant WordML and Garant ODT keep independent adapters behind shared domain contracts, and M131–M134 add shared reference, temporal and deontic lexical candidates. Representative golden corpus and citation mapping remain open for M135.
 - **Graph-vector direction:** ADR-0014 selects RuVector at `[proposed]`: RVF vectors and redb GraphDB CRUD behind law-nexus ports. FalkorDB is historical-only.
 - **Embedding boundary:** local TEI serves USER-bge-m3 1024d; product adapter and TEI→RVF integration remain unproven.
 - **Still unselected:** cross-store journal/recovery implementation, product API, concurrency runtime and deployment topology remain evidence-gated.

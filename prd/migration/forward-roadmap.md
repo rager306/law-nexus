@@ -99,7 +99,8 @@ M131: Parser Domain Types + Morphology
    └── M131-S3: sentence_split.rs: LegalSentenceSplitter
                 with legal abbreviations allowlist
    Verify: cargo test -p ln-decode passes
-   Promotes: ADR-0013 [proposed] → [bounded] (domain types only)
+   Historical planning note: M131 targeted ADR-0013 [proposed] → [bounded] for domain types only.
+   Current ADR-0013 state after M131-M134: [bounded] adapters, hierarchy/morphology/sentence and lexical candidates; golden corpus remains open for M135.
 ```
 
 ```text

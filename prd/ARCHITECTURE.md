@@ -156,7 +156,7 @@ completeness, Consultant/Garant parity, or production graph readiness.
 
 | Capability | Status | Why blocked |
 |---|---|---|
-| Universal parser | `[bounded]` independent Consultant/Garant block adapters and one tracked real document per provider | needs reference/temporal/deontic extraction, representative golden corpus and citation mapping |
+| Universal parser | `[bounded]` independent Consultant/Garant block adapters, shared hierarchy/sentence/morphology and reference/temporal/deontic lexical candidates with one tracked real document per provider | needs representative golden corpus, quality convergence, legal resolution and citation mapping |
 | RuVector graph-vector infrastructure | `[proposed]`; synthetic capability checks only | needs TEI 1024d real corpus, RVF/redb materialization, crash consistency and citation contract |
 | Retrieval / citation-safe answers | `[bounded]` prior smoke only | needs real EvidenceSpan/SourceBlock fixtures, quality metrics and exact byte round-trip |
 | KnowQL | `[bounded]` hand-coded AST demo only | needs real parser and typed application executor; `ruvector-graph` Cypher execution is not relied upon |
