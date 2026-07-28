@@ -2,7 +2,11 @@
 
 All notable changes to law-nexus are documented in this file.
 
-### S02: Observable product CLI composition root
+### S03: CLI failure state persistence
+- Failure JSON now includes `attempt_count`, `fingerprint` (FNV1a64 of error message) and `duration_ms`
+- Tests verify all three new fields on truncated-fixture failure path
+- Success path contains no failure artifacts
+
 - New crate `ln-product-cli` with binary `law-nexus-inspect`
 - Subcommands: `health` (JSON status), `inspect <path>` (decode + extract + KnowQL composition)
 - Inspect decodes Consultant XML or Garant ODT through ln-decode adapters
