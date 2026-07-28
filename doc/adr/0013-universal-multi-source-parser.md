@@ -400,7 +400,7 @@ dependency is introduced. Sentence splitting and hierarchy extraction are
 already separate bounded modules. M134 keeps references, temporal phrases and
 deontic lexemes in separate modules so one taxonomy cannot silently authorize
 another. Synthetic cross-provider equality and tracked aggregate censuses prove
-composition mechanics only; M135 owns representative golden-corpus evaluation.
+composition mechanics only; M135 delivers bounded golden pipeline mechanics below.
 
 ### Golden pipeline boundary (M135)
 

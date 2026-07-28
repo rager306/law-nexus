@@ -131,7 +131,7 @@ M134: Shared Lexical Candidate Extractors [complete, bounded]
 ```
 
 ```text
-M135: Parser Golden Pipeline [active]
+M135: Parser Golden Pipeline [complete, bounded]
    GoldenManifest: Rust-only structural annotations, not legal interpretation
    GoldenEvaluator: per-layer precision/recall/F1 over exact TextSpan matches
    UnknownFormCollector: bounded kind/span counts and fingerprints, no raw text
