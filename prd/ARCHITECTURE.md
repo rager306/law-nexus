@@ -98,10 +98,11 @@ ADR-0013 universal parser  [bounded] + ADR-0014 RuVector  [proposed]
    TEI USER-bge-m3 1024d embedding boundary remains proposed
    RVF vectors + redb GraphDB CRUD; no ruvector-graph Cypher execution claim
    ▼
-[ACTIVE] M136 — RuVector integration: storage port contracts, TEI HTTP
-embedding adapter, RVF/redb persistence with recovery and real retrieval gate.
-Port traits are law-nexus-owned; external dependencies are adapter-only.
-ADR-0014 remains `[proposed]` until all four gates produce real evidence.
+[ACTIVE] M136 — RuVector storage port composition proof: law-nexus-owned
+`EmbeddingPort`, `VectorStorePort`, `GraphStorePort` traits; stub TEI
+transport adapter; in-memory vector/graph stores with operation journal;
+retrieval/citation gate composing all three ports. Real TEI HTTP, RVF, redb,
+corpus retrieval and ADR-0014 promotion remain open.
 ```
 
 ## Current layer (where work happens now)

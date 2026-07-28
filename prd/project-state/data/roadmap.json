@@ -207,7 +207,7 @@
     "id": "M136-yn0unv",
     "title": "RuVector integration storage ports TEI embedding and recovery evidence",
     "status": "active",
-    "goal": "Add Rust storage port contracts and prove bounded integration with TEI HTTP embeddings, RVF vector storage, redb graph storage and injected-failure recovery without claiming retrieval quality, citation correctness or legal authority."
+    "goal": "Define law-nexus-owned storage port traits and prove bounded port composition with stub TEI transport, in-memory vector/graph stores, operation journal replay and a retrieval/citation gate. Real TEI HTTP, RVF, redb, corpus retrieval and ADR-0014 promotion remain open."
   },
   "recommended_next": {
     "title": "M137 Typed KnowQL Executor",

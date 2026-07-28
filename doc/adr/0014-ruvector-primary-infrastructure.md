@@ -73,6 +73,29 @@ definitions before any external dependency:
    tracked real integration evidence. No synthetic-only check can promote the
    lifecycle.
 
+### M136 proven boundary
+
+M136 S02–S05 proved bounded **port composition** with stub and in-memory
+adapters, not real-service integration:
+
+- **Proven (bounded):** `EmbeddingPort`, `VectorStorePort` and `GraphStorePort`
+  trait definitions in `ln-storage` with zero external dependencies; a
+  `TeiEmbeddingAdapter` behind `EmbeddingPort` using an injectable
+  `EmbeddingTransport` trait (stub in tests); `InMemoryVectorStore` and
+  `InMemoryGraphStore` implementing the storage ports with an operation journal
+  and deterministic replay; a `RetrievalGate` composing all three ports with
+  citation tamper detection and fail-closed model/dimension boundaries.
+
+- **Not proven (gates 1–4 remain open):** no real TEI HTTP service call, no real
+  RVF vector persistence, no real redb graph CRUD, no real document corpus
+  retrieval, no measured dense/lexical complementarity, no crash consistency
+  against real dual-store failures.
+
+ADR-0014 therefore remains `[proposed]`. Promotion to `[bounded]` belongs to
+future slices that substitute real HTTP, RVF and redb adapters behind the
+already-proven port contracts and produce tracked real-service evidence for
+all four gates.
+
 ### Embeddings
 
 `[proposed]` `EmbeddingPort` will use an HTTP adapter to the separately operated
