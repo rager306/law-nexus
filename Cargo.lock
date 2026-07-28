@@ -262,6 +262,9 @@ version = "0.1.0"
 [[package]]
 name = "ln-query"
 version = "0.1.0"
+dependencies = [
+ "ln-storage",
+]
 
 [[package]]
 name = "ln-relation"

@@ -140,7 +140,7 @@ M135: Parser Golden Pipeline [complete, bounded]
 ```
 
 ```text
-M136: RuVector Integration [active, port-composition proof complete]
+M136: RuVector Integration [complete, bounded port-composition proof]
    Proven bounded: law-nexus-owned storage port traits plus stub TEI
        transport, in-memory vector/graph stores, operation journal replay
        and a retrieval/citation gate composing all three ports.
