@@ -201,12 +201,18 @@
       "theme": "Bounded Rust golden pipeline manifest evaluator and unknown-form collector",
       "status": "complete",
       "boundary": "Self-consistent P=R=F1=1.0 pipeline composition proof on one tracked source per provider. No human-reviewed golden annotations, corpus completeness, legal correctness, citation authority or cross-format parity claim."
+    },
+    {
+      "range": "M136-M136",
+      "theme": "Bounded Rust storage port composition with stub TEI adapter, in-memory stores and retrieval/citation gate",
+      "status": "complete",
+      "boundary": "Law-nexus-owned EmbeddingPort/VectorStorePort/GraphStorePort traits with zero external deps; TEI stub transport adapter; in-memory vector/graph stores with operation journal and replay; retrieval/citation gate composing all three ports. No real TEI HTTP, RVF, redb, corpus retrieval, citation correctness, legal authority or ADR-0014 promotion claim."
     }
   ],
   "current_milestone": {
     "id": "M136-yn0unv",
     "title": "RuVector integration storage ports TEI embedding and recovery evidence",
-    "status": "active",
+    "status": "complete",
     "goal": "Define law-nexus-owned storage port traits and prove bounded port composition with stub TEI transport, in-memory vector/graph stores, operation journal replay and a retrieval/citation gate. Real TEI HTTP, RVF, redb, corpus retrieval and ADR-0014 promotion remain open."
   },
   "recommended_next": {
