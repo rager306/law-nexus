@@ -98,12 +98,11 @@ ADR-0013 universal parser  [bounded] + ADR-0014 RuVector  [proposed]
    TEI USER-bge-m3 1024d embedding boundary remains proposed
    RVF vectors + redb GraphDB CRUD; no ruvector-graph Cypher execution claim
    ▼
-[LATEST COMPLETED] M137 — tokenizer consolidation and bounded typed KnowQL
-executor: a shared `tokenizer.rs` replaces 4 duplicate copies; `KnowQLOp`
-defines `Embed`, `FindSimilar` and `FindByLabel` over storage ports; the
-integration test proves parser-to-storage-to-retrieval composition over a
-167-block real Consultant fixture. ADR-0014 remains `[proposed]`; real TEI HTTP,
-RVF, redb and corpus retrieval gates are open. M138 product CLI is next.
+[LATEST COMPLETED] M138 — observable Rust product CLI (law-nexus-inspect)
+composing ln-decode + ln-storage + ln-query end-to-end over in-memory
+adapters. Structured JSON output with phase/status/duration_ms/result.
+Failure diagnostics include attempt_count, fingerprint and duration_ms.
+M139 whole-system acceptance is next.
 ```
 
 ## Current layer (where work happens now)

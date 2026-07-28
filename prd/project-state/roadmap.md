@@ -20,11 +20,8 @@ falkordb=historical-only
 
 ## Current position
 
-- **Latest completed milestone:** M129-yec916, HC-16 through HC-20 Final Hostile Cases.
-- **Latest completed milestone:** M134-ibpozq, bounded provider-neutral reference, temporal and deontic lexical candidates.
-- **Latest completed milestone:** M135-efwlce, bounded Rust golden pipeline.
-- **Latest completed milestone:** M136-yn0unv, bounded Rust storage port composition with TEI stub adapter, in-memory stores, journal replay and retrieval/citation gate.
-- **Recommended next milestone:** M137, typed KnowQL executor over graph/vector ports.
+- **Latest completed milestone:** M138-9fpfh9, observable Rust product CLI composing ln-decode + ln-storage + ln-query with failure diagnostics.
+- **Recommended next milestone:** M139, whole-system acceptance, parity benchmarks and final UAT.
 - **M111 result:** final `[bounded]` implementation-neutral semantic baseline for heterogeneous Russian legal evidence.
 - **M112 result:** ADR-0005 topology superseded; ADR-0008 through ADR-0012 authored `[bounded]`; executable ADR/decision/owner drift checks active in pre-commit and CI.
 - **M113 result:** first hostile-case Rust runtime proof. `S10-HC-01-RT` is bounded PASS.

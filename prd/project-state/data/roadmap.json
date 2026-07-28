@@ -213,21 +213,27 @@
       "theme": "Tokenizer consolidation and typed KnowQL executor foundation",
       "status": "complete",
       "boundary": "Single shared tokenizer replaces 4 duplicates; KnowQL AST defines Embed/FindSimilar/FindByLabel over storage ports; integration test proves parser-to-storage-to-retrieval composition over 167-block real Consultant fixture. No TEI HTTP, RVF, redb, retrieval-quality or legal-authority claim."
+    },
+    {
+      "range": "M138-M138",
+      "theme": "Observable product CLI composition root and failure surfaces",
+      "status": "complete",
+      "boundary": "Rust product CLI (law-nexus-inspect) composing ln-decode + ln-storage + ln-query end-to-end over in-memory adapters. Structured JSON output with failure diagnostics. No real TEI HTTP, RVF, redb, retrieval quality, citation correctness or legal authority claim."
     }
   ],
   "current_milestone": {
-    "id": "M137-q54574",
-    "title": "Tokenizer debt closure and KnowQL executor foundation",
+    "id": "M138-9fpfh9",
+    "title": "Observable product CLI composition root and failure surfaces",
     "status": "complete",
-    "goal": "Consolidate tokenizer debt and prove bounded typed KnowQL composition over storage ports."
+    "goal": "Build observable Rust product CLI over parser/storage/query layers with failure diagnostics."
   },
   "recommended_next": {
-    "title": "M138 Application Composition and Product CLI",
+    "title": "M139 Whole-System Acceptance",
     "priority": 1,
-    "why": "M137 closes bounded tokenizer + KnowQL AST/integration. M138 must compose query/storage/extraction into an observable Rust product CLI with failure surfaces before whole-system acceptance.",
-    "plan_reference": "prd/migration/forward-roadmap.md M138; doc/adr/0014-ruvector-primary-infrastructure.md",
-    "slices": "Close post-M137 terminal projection debt first, define product CLI and failure-surface contracts, then implement minimal application composition root.",
-    "non_validation": "M137 tokenizer + KnowQL proof does not validate retrieval quality, citation correctness, legal applicability or production pipeline behavior."
+    "why": "M138 closes bounded product CLI composition. M139 must prove whole-system acceptance with real-source end-to-end, performance, security and UAT evidence before Python archival.",
+    "plan_reference": "prd/migration/forward-roadmap.md M139",
+    "slices": "Close post-M138 terminal projection debt, define acceptance contract, run whole-system tests, then assess Python archival readiness.",
+    "non_validation": "M138 CLI does not validate retrieval quality, citation correctness, legal applicability or production readiness."
   },
   "downstream_blocked": [
     {
