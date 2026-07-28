@@ -2,7 +2,7 @@
 
 All notable changes to law-nexus are documented in this file.
 
-## M137 (in progress)
+## M137 (complete)
 
 ### S01: Tokenizer dedup and dead code audit
 - Extracted shared `tokenizer.rs` module in `ln-decode` replacing 4 duplicate copies
@@ -13,6 +13,25 @@ All notable changes to law-nexus are documented in this file.
 - All existing tests pass unchanged; zero external dependencies added
 - Dead code audit: no warnings found
 - Doc consistency: ADR-0014, ARCHITECTURE, roadmap all current
+
+### S02: KnowQL typed AST
+- Added `crates/ln-query/src/knowql.rs` with typed KnowQL AST over storage ports
+- `KnowQLOp` enum: Embed, FindSimilar, FindByLabel
+- `ValidatedOp` with construction-time validation
+- `KnowQLResult` typed output
+- `execute()` dispatcher over EmbeddingPort + VectorStorePort + GraphStorePort
+- 8 hostile tests, ln-query depends on ln-storage for port traits
+
+### S03: KnowQL integration proof
+- Integration test decodes tracked Consultant fixture (167 blocks)
+- Stores hierarchy annotations through InMemoryVectorStore and InMemoryGraphStore
+- Queries back through KnowQL FindSimilar and FindByLabel operations
+- Parser-to-storage-to-retrieval composition proven
+- ln-query depends on both ln-storage and ln-decode
+
+### S04: Validation and terminal closure
+- Structured UAT PASS (3 checks: KnowQL contracts, integration, tokenizer regression)
+- M137 formally complete
 
 ## M136 (complete)
 
