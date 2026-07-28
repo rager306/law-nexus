@@ -1,3 +1,5 @@
+pub mod adapters;
+
 /// Storage error type for port operations.
 #[derive(Debug, Clone, PartialEq)]
 pub enum StorageError {
