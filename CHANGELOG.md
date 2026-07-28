@@ -2,14 +2,15 @@
 
 All notable changes to law-nexus are documented in this file.
 
-## M138 (in progress)
-
-### S01: Post-M137 audit
-- Debt audit: 0 dead code, 0 unused imports, 0 stale projections
-- roadmap.json current=M137 complete, recommended=M138
-- ADR-0014 remains `[proposed]`; ARCHITECTURE says M138 next
-- CHANGELOG current through M137
-- R063 requirement updated for M138 CLI scope
+### S02: Observable product CLI composition root
+- New crate `ln-product-cli` with binary `law-nexus-inspect`
+- Subcommands: `health` (JSON status), `inspect <path>` (decode + extract + KnowQL composition)
+- Inspect decodes Consultant XML or Garant ODT through ln-decode adapters
+- Runs all four extractors + unknown-form census
+- Composes KnowQL FindSimilar over in-memory storage adapters
+- Structured JSON output with phase/status/duration_ms/source/result/non_claims
+- Exit codes: 0 success, 1 parse failure, 2 usage error
+- 5 integration tests
 
 ### S01: Tokenizer dedup and dead code audit
 - Extracted shared `tokenizer.rs` module in `ln-decode` replacing 4 duplicate copies
