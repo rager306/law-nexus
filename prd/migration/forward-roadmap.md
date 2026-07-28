@@ -140,23 +140,25 @@ M135: Parser Golden Pipeline [complete, bounded]
 ```
 
 ```text
-M136: RuVector Integration
-   M136-S1: Storage port contracts and bounded dependency probe
-             Define VectorStorePort and GraphStorePort before adapters
+M136: RuVector Integration [active]
+   S1: Storage port contracts (EmbeddingPort, VectorStorePort, GraphStorePort) — no external deps
+             Define law-nexus-owned trait definitions before adapters
              Verify selected crate revisions, licenses and minimal APIs
-   M136-S2: TEI HTTP embedding adapter
+   S2: TEI HTTP embedding adapter behind EmbeddingPort
              USER-bge-m3 1024d through EmbeddingPort
              Validate model identity, dimensions, finite values and failures
              Verify: real Russian legal text → exactly 1024d vector
-   M136-S3: RVF and redb adapters with recovery
+   S3: RVF and redb adapters with recovery
              Materialize real parser records through application ports
              Add operation journal, idempotent replay and failure injection
              Verify reopen, reconciliation and competing-writer behavior
-   M136-S4: Real retrieval and citation gate [PROMOTES ADR-0014]
+   S4: Real retrieval and citation gate [PROMOTES ADR-0014]
              Measure lexical/dense complementarity on a real temporal corpus
              Execute typed KnowQL operations without Cypher-stub reliance
              Enforce exact source-span citation and fail-closed no-answer
              Promotes ADR-0014 [proposed] → [bounded] only
+   Ports are law-nexus-owned trait definitions; adapters are external-dep slices
+   Non-claims: no retrieval quality, citation correctness or legal authority
 ```
 
 ```text

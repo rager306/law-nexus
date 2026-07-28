@@ -204,18 +204,18 @@
     }
   ],
   "current_milestone": {
-    "id": "M135-efwlce",
-    "title": "Rust golden pipeline representative fixtures evaluator and unknown-form collector",
-    "status": "complete",
-    "goal": "Add a Rust-only bounded golden pipeline that evaluates parser output against human-reviewed structural annotations without claiming legal correctness, corpus completeness or citation authority."
+    "id": "M136-yn0unv",
+    "title": "RuVector integration storage ports TEI embedding and recovery evidence",
+    "status": "active",
+    "goal": "Add Rust storage port contracts and prove bounded integration with TEI HTTP embeddings, RVF vector storage, redb graph storage and injected-failure recovery without claiming retrieval quality, citation correctness or legal authority."
   },
   "recommended_next": {
-    "title": "M136 RuVector Integration",
+    "title": "M137 Typed KnowQL Executor",
     "priority": 1,
-    "why": "M135 completes bounded parser quality measurement. M136 must define storage port contracts, bounded RuVector dependency probe, TEI embedding integration and recovery evidence before product pipeline claims.",
-    "plan_reference": "prd/migration/forward-roadmap.md M136; doc/adr/0014-ruvector-primary-infrastructure.md",
-    "slices": "Close post-M135 terminal projection debt first, define storage port contracts, run bounded RuVector dependency probe, then integrate TEI embeddings and recovery evidence.",
-    "non_validation": "M135 parser quality metrics do not validate legal correctness, corpus completeness, citation authority, storage integration, RuVector readiness or product pipeline behavior."
+    "why": "M136 delivers bounded storage integration. M137 must define a typed KnowQL executor over graph/vector ports before application composition and product CLI.",
+    "plan_reference": "prd/migration/forward-roadmap.md M137; doc/adr/0014-ruvector-primary-infrastructure.md",
+    "slices": "Close post-M136 terminal projection debt first, define typed KnowQL AST and executor, then validate against real graph/vector operations.",
+    "non_validation": "M136 storage integration does not validate retrieval quality, citation correctness, legal applicability, KnowQL production readiness or product pipeline behavior."
   },
   "downstream_blocked": [
     {

@@ -49,6 +49,30 @@ adapters
 Dependencies point inward. Adapters do not define domain policy. Python has no
 product role and no PyO3, FFI or shared-library bridge is allowed.
 
+### M136 storage port contracts
+
+M136 introduces storage port contracts as law-nexus-owned Rust trait
+definitions before any external dependency:
+
+1. **Port traits are law-nexus-owned.** `EmbeddingPort`, `VectorStorePort` and
+   `GraphStorePort` live in `ln-storage` (or `ln-decode`) and accept validated
+   domain types only. They reject adapter-specific types, raw payloads or
+   unvalidated external identifiers.
+
+2. **External dependencies are adapter-only.** RuVector, RVF, redb and TEI HTTP
+   client crates are introduced exclusively in adapter modules after port
+   contract proof, license verification at the selected revision and bounded
+   dependency probe. No external crate appears in the domain or port layer.
+
+3. **Storage ports do not assert retrieval quality, citation correctness,
+   legal authority or corpus completeness.** They are infrastructure seams for
+   persistence and retrieval mechanics, not legal-evidence guarantees.
+
+4. **ADR-0014 `[proposed]`→`[bounded]` promotion requires all four ADR gates**
+   (TEI→RVF, Graph materialization, Recovery, Retrieval/citation) to produce
+   tracked real integration evidence. No synthetic-only check can promote the
+   lifecycle.
+
 ### Embeddings
 
 `[proposed]` `EmbeddingPort` will use an HTTP adapter to the separately operated
