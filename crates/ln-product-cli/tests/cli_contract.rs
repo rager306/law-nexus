@@ -174,3 +174,90 @@ fn truncated_consultant_fixture_fails_atomically() {
 
     let _ = std::fs::remove_file(&tmp);
 }
+
+#[test]
+fn unsupported_format_rejected_as_parse_error() {
+    let tmp = std::env::temp_dir().join(format!("m139-unsupported-{}.txt", std::process::id()));
+    std::fs::write(&tmp, b"not legal text").expect("write tmp");
+    let out = Command::new(binary())
+        .args(["inspect", tmp.to_str().unwrap()])
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped())
+        .output()
+        .expect("spawn");
+    assert!(!out.status.success());
+    let stdout = String::from_utf8(out.stdout).unwrap();
+    assert!(
+        stdout.contains("\"phase\":\"Parse\""),
+        "expected parse phase; got: {}",
+        stdout
+    );
+    assert!(
+        stdout.contains("\"kind\":\"UnsupportedFamily\""),
+        "expected UnsupportedFamily; got: {}",
+        stdout
+    );
+    let _ = std::fs::remove_file(&tmp);
+}
+
+#[test]
+fn empty_xml_file_produces_zero_blocks() {
+    let tmp = std::env::temp_dir().join(format!("m139-empty-{}.xml", std::process::id()));
+    std::fs::write(&tmp, b"").expect("write tmp");
+    let out = Command::new(binary())
+        .args(["inspect", tmp.to_str().unwrap()])
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped())
+        .output()
+        .expect("spawn");
+    assert!(
+        out.status.success(),
+        "empty XML should produce zero blocks, not fail"
+    );
+    let stdout = String::from_utf8(out.stdout).unwrap();
+    assert!(
+        stdout.contains("\"blocks\":0"),
+        "expected 0 blocks; got: {}",
+        stdout
+    );
+    let _ = std::fs::remove_file(&tmp);
+}
+
+#[test]
+fn non_existent_file_rejected_as_io_error() {
+    let out = Command::new(binary())
+        .args(["inspect", "/nonexistent/path/file.xml"])
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped())
+        .output()
+        .expect("spawn");
+    assert!(!out.status.success());
+    let stdout = String::from_utf8(out.stdout).unwrap();
+    assert!(
+        stdout.contains("\"phase\":\"Io\""),
+        "expected Io phase; got: {}",
+        stdout
+    );
+    assert!(
+        stdout.contains("\"kind\":\"ReadFailure\""),
+        "expected ReadFailure; got: {}",
+        stdout
+    );
+}
+
+#[test]
+fn directory_as_path_rejected_as_io_error() {
+    let out = Command::new(binary())
+        .args(["inspect", "/tmp"])
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped())
+        .output()
+        .expect("spawn");
+    assert!(!out.status.success());
+    let stdout = String::from_utf8(out.stdout).unwrap();
+    assert!(
+        stdout.contains("\"phase\":\"Io\""),
+        "expected Io phase; got: {}",
+        stdout
+    );
+}
