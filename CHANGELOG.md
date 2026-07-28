@@ -2,7 +2,14 @@
 
 All notable changes to law-nexus are documented in this file.
 
-## M137 (complete)
+## M138 (in progress)
+
+### S01: Post-M137 audit
+- Debt audit: 0 dead code, 0 unused imports, 0 stale projections
+- roadmap.json current=M137 complete, recommended=M138
+- ADR-0014 remains `[proposed]`; ARCHITECTURE says M138 next
+- CHANGELOG current through M137
+- R063 requirement updated for M138 CLI scope
 
 ### S01: Tokenizer dedup and dead code audit
 - Extracted shared `tokenizer.rs` module in `ln-decode` replacing 4 duplicate copies
