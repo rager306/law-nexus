@@ -1,4 +1,5 @@
 pub mod adapters;
+pub mod retrieval;
 
 /// Storage error type for port operations.
 #[derive(Debug, Clone, PartialEq)]
