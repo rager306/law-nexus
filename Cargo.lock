@@ -263,6 +263,7 @@ version = "0.1.0"
 name = "ln-query"
 version = "0.1.0"
 dependencies = [
+ "ln-decode",
  "ln-storage",
 ]
 
