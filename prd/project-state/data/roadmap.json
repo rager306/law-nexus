@@ -207,21 +207,27 @@
       "theme": "Bounded Rust storage port composition with stub TEI adapter, in-memory stores and retrieval/citation gate",
       "status": "complete",
       "boundary": "Law-nexus-owned EmbeddingPort/VectorStorePort/GraphStorePort traits with zero external deps; TEI stub transport adapter; in-memory vector/graph stores with operation journal and replay; retrieval/citation gate composing all three ports. No real TEI HTTP, RVF, redb, corpus retrieval, citation correctness, legal authority or ADR-0014 promotion claim."
+    },
+    {
+      "range": "M137-M137",
+      "theme": "Tokenizer consolidation and typed KnowQL executor foundation",
+      "status": "complete",
+      "boundary": "Single shared tokenizer replaces 4 duplicates; KnowQL AST defines Embed/FindSimilar/FindByLabel over storage ports; integration test proves parser-to-storage-to-retrieval composition over 167-block real Consultant fixture. No TEI HTTP, RVF, redb, retrieval-quality or legal-authority claim."
     }
   ],
   "current_milestone": {
-    "id": "M136-yn0unv",
-    "title": "RuVector integration storage ports TEI embedding and recovery evidence",
+    "id": "M137-q54574",
+    "title": "Tokenizer debt closure and KnowQL executor foundation",
     "status": "complete",
-    "goal": "Define law-nexus-owned storage port traits and prove bounded port composition with stub TEI transport, in-memory vector/graph stores, operation journal replay and a retrieval/citation gate. Real TEI HTTP, RVF, redb, corpus retrieval and ADR-0014 promotion remain open."
+    "goal": "Consolidate tokenizer debt and prove bounded typed KnowQL composition over storage ports."
   },
   "recommended_next": {
-    "title": "M137 Typed KnowQL Executor",
+    "title": "M138 Application Composition and Product CLI",
     "priority": 1,
-    "why": "M136 delivers bounded storage integration. M137 must define a typed KnowQL executor over graph/vector ports before application composition and product CLI.",
-    "plan_reference": "prd/migration/forward-roadmap.md M137; doc/adr/0014-ruvector-primary-infrastructure.md",
-    "slices": "Close post-M136 terminal projection debt first, define typed KnowQL AST and executor, then validate against real graph/vector operations.",
-    "non_validation": "M136 storage integration does not validate retrieval quality, citation correctness, legal applicability, KnowQL production readiness or product pipeline behavior."
+    "why": "M137 closes bounded tokenizer + KnowQL AST/integration. M138 must compose query/storage/extraction into an observable Rust product CLI with failure surfaces before whole-system acceptance.",
+    "plan_reference": "prd/migration/forward-roadmap.md M138; doc/adr/0014-ruvector-primary-infrastructure.md",
+    "slices": "Close post-M137 terminal projection debt first, define product CLI and failure-surface contracts, then implement minimal application composition root.",
+    "non_validation": "M137 tokenizer + KnowQL proof does not validate retrieval quality, citation correctness, legal applicability or production pipeline behavior."
   },
   "downstream_blocked": [
     {
