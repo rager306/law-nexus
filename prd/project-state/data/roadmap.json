@@ -195,12 +195,18 @@
       "theme": "Provider-neutral reference temporal and deontic lexical candidates",
       "status": "complete",
       "boundary": "Bounded lexical candidates, exact decoded TextSpan, ProviderComment exclusion, synthetic provider equality and deterministic aggregate observations on one tracked source per provider only. No resolved target, five-clock fact, NormStatement, corpus coverage, format quality parity, legal correctness, retrieval or citation claim."
+    },
+    {
+      "range": "M135-M135",
+      "theme": "Bounded Rust golden pipeline manifest evaluator and unknown-form collector",
+      "status": "complete",
+      "boundary": "Self-consistent P=R=F1=1.0 pipeline composition proof on one tracked source per provider. No human-reviewed golden annotations, corpus completeness, legal correctness, citation authority or cross-format parity claim."
     }
   ],
   "current_milestone": {
     "id": "M135-efwlce",
     "title": "Rust golden pipeline representative fixtures evaluator and unknown-form collector",
-    "status": "active",
+    "status": "complete",
     "goal": "Add a Rust-only bounded golden pipeline that evaluates parser output against human-reviewed structural annotations without claiming legal correctness, corpus completeness or citation authority."
   },
   "recommended_next": {
