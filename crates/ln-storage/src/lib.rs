@@ -38,6 +38,7 @@ impl std::error::Error for StorageError {}
 
 // --- Embedding port ---
 
+#[derive(Debug, Clone, PartialEq)]
 pub struct EmbeddingRequest {
     text: String,
     model_id: String,
@@ -76,6 +77,7 @@ impl EmbeddingRequest {
     }
 }
 
+#[derive(Debug, Clone, PartialEq)]
 pub struct EmbeddingResponse {
     model_id: String,
     vector: Vec<f32>,
@@ -114,6 +116,7 @@ pub trait EmbeddingPort {
 
 // --- Vector store port ---
 
+#[derive(Debug, Clone, PartialEq)]
 pub struct VectorRecord {
     id: String,
     vector: Vec<f32>,
@@ -185,6 +188,7 @@ pub trait VectorStorePort {
 
 // --- Graph store port ---
 
+#[derive(Debug, Clone, PartialEq)]
 pub struct GraphNode {
     id: String,
     label: String,
@@ -217,6 +221,7 @@ impl GraphNode {
     }
 }
 
+#[derive(Debug, Clone, PartialEq)]
 pub struct GraphEdge {
     source: String,
     target: String,
