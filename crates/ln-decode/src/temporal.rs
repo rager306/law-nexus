@@ -1,4 +1,5 @@
 use crate::domain::{ParagraphStyle, ParsedBlock, TextSpan};
+use crate::tokenizer::tokenize;
 
 /// Bounded lexical temporal phrase classes. They do not assign a legal clock.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -26,38 +27,11 @@ impl TemporalPhrase {
     }
 }
 
-#[derive(Debug)]
-struct WordToken {
-    normalized: String,
-    start: usize,
-    end: usize,
-}
-
-fn words(text: &str) -> Vec<WordToken> {
-    let mut result = Vec::new();
-    let mut chars = text.char_indices().peekable();
-    while let Some((start, character)) = chars.next() {
-        if !character.is_alphabetic() {
-            continue;
-        }
-        let mut end = start + character.len_utf8();
-        while let Some(&(index, next)) = chars.peek() {
-            if !next.is_alphabetic() {
-                break;
-            }
-            chars.next();
-            end = index + next.len_utf8();
-        }
-        result.push(WordToken {
-            normalized: text[start..end].to_lowercase(),
-            start,
-            end,
-        });
-    }
-    result
-}
-
-fn is_horizontal_gap(text: &str, left: &WordToken, right: &WordToken) -> bool {
+fn is_horizontal_gap(
+    text: &str,
+    left: &crate::tokenizer::WordToken,
+    right: &crate::tokenizer::WordToken,
+) -> bool {
     let gap = &text[left.end..right.start];
     !gap.is_empty()
         && gap
@@ -83,7 +57,7 @@ pub fn extract_temporal_phrases(block: &ParsedBlock) -> Vec<TemporalPhrase> {
     }
 
     let text = block.text();
-    let words = words(text);
+    let words = tokenize(text);
     let mut phrases = Vec::new();
     for index in 0..words.len() {
         let first = &words[index];

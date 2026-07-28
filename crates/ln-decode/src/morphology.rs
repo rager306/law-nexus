@@ -1,4 +1,5 @@
 use crate::domain::TextSpan;
+use crate::tokenizer::tokenize;
 
 /// Bounded lexical marker classes. They are not legal-effect conclusions.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -40,37 +41,6 @@ impl MorphologyMatch {
     }
 }
 
-#[derive(Debug)]
-struct Token {
-    normalized: String,
-    start: usize,
-    end: usize,
-}
-
-fn tokens(text: &str) -> Vec<Token> {
-    let mut result = Vec::new();
-    let mut chars = text.char_indices().peekable();
-    while let Some((start, character)) = chars.next() {
-        if !character.is_alphabetic() {
-            continue;
-        }
-        let mut end = start + character.len_utf8();
-        while let Some(&(index, next)) = chars.peek() {
-            if !next.is_alphabetic() {
-                break;
-            }
-            chars.next();
-            end = index + next.len_utf8();
-        }
-        result.push(Token {
-            normalized: text[start..end].to_lowercase(),
-            start,
-            end,
-        });
-    }
-    result
-}
-
 fn classify(word: &str) -> Option<LegalMarkerKind> {
     match word {
         "статья" | "статьи" | "статье" | "статью" | "статьёй" | "статьей" | "статьями"
@@ -93,7 +63,7 @@ fn classify(word: &str) -> Option<LegalMarkerKind> {
 /// `negated` means only that the immediately preceding whitespace-separated
 /// token is `не`. It does not assign modality or legal effect.
 pub fn find_legal_markers(text: &str) -> Vec<MorphologyMatch> {
-    let tokens = tokens(text);
+    let tokens = tokenize(text);
     let mut matches = Vec::new();
     for (index, token) in tokens.iter().enumerate() {
         let Some(kind) = classify(&token.normalized) else {

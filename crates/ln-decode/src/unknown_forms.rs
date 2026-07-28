@@ -1,4 +1,5 @@
 use crate::domain::{ParagraphStyle, ParsedBlock, TextSpan};
+use crate::tokenizer::tokenize;
 
 /// Bounded unsupported-form classes discovered outside existing taxonomies.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -60,37 +61,6 @@ impl UnknownFormCensus {
         }
         c
     }
-}
-
-#[derive(Debug)]
-struct Token {
-    normalized: String,
-    start: usize,
-    end: usize,
-}
-
-fn tokens(text: &str) -> Vec<Token> {
-    let mut result = Vec::new();
-    let mut chars = text.char_indices().peekable();
-    while let Some((start, character)) = chars.next() {
-        if !character.is_alphabetic() {
-            continue;
-        }
-        let mut end = start + character.len_utf8();
-        while let Some(&(index, next)) = chars.peek() {
-            if !next.is_alphabetic() {
-                break;
-            }
-            chars.next();
-            end = index + next.len_utf8();
-        }
-        result.push(Token {
-            normalized: text[start..end].to_lowercase(),
-            start,
-            end,
-        });
-    }
-    result
 }
 
 const UNSUPPORTED_TEMPORAL: &[&str] = &[
@@ -163,7 +133,7 @@ fn classify_unknown(word: &str) -> Option<UnknownFormKind> {
 
 /// Collect unsupported lexical forms from raw decoded text.
 pub fn collect_unknown_forms_from_text(text: &str) -> Vec<UnknownForm> {
-    tokens(text)
+    tokenize(text)
         .into_iter()
         .filter_map(|t| {
             classify_unknown(&t.normalized).map(|kind| UnknownForm {

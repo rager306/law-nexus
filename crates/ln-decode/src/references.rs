@@ -1,4 +1,5 @@
 use crate::domain::{ParagraphStyle, ParsedBlock, TextSpan};
+use crate::tokenizer::tokenize;
 
 /// Bounded lexical reference classes. They do not identify a referenced target.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -39,37 +40,6 @@ impl ReferenceMention {
     pub fn number_span(&self) -> TextSpan {
         self.number_span
     }
-}
-
-#[derive(Debug)]
-struct WordToken {
-    normalized: String,
-    start: usize,
-    end: usize,
-}
-
-fn words(text: &str) -> Vec<WordToken> {
-    let mut result = Vec::new();
-    let mut chars = text.char_indices().peekable();
-    while let Some((start, character)) = chars.next() {
-        if !character.is_alphabetic() {
-            continue;
-        }
-        let mut end = start + character.len_utf8();
-        while let Some(&(index, next)) = chars.peek() {
-            if !next.is_alphabetic() {
-                break;
-            }
-            chars.next();
-            end = index + next.len_utf8();
-        }
-        result.push(WordToken {
-            normalized: text[start..end].to_lowercase(),
-            start,
-            end,
-        });
-    }
-    result
 }
 
 fn classify_term(term: &str) -> Option<ReferenceMentionKind> {
@@ -144,7 +114,7 @@ pub fn extract_reference_mentions(block: &ParsedBlock) -> Vec<ReferenceMention> 
         return Vec::new();
     }
 
-    words(block.text())
+    tokenize(block.text())
         .into_iter()
         .filter_map(|term| {
             let kind = classify_term(&term.normalized)?;
