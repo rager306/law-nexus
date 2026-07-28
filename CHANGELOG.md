@@ -2,6 +2,15 @@
 
 All notable changes to law-nexus are documented in this file.
 
+## M139 (in progress)
+
+### S01: Performance baseline and determinism proof
+- CLI inspect latency measured for both providers: Consultant 30ms (167 blocks), Garant 657ms avg (5124 blocks)
+- Output determinism verified: JSON identical across 3 repeat runs (excluding variable duration_ms)
+- Evidence persisted: `prd/migration/rust-evidence/probes/m139-performance-baseline.{json,md}`
+- Debug build; release build will be faster
+- No memory profiling, concurrent benchmark or production-scale claim
+
 ### S03: CLI failure state persistence
 - Failure JSON now includes `attempt_count`, `fingerprint` (FNV1a64 of error message) and `duration_ms`
 - Tests verify all three new fields on truncated-fixture failure path
