@@ -1,0 +1,63 @@
+{
+  "schema_version": "law-nexus-acceptance-evidence/v1",
+  "evidence_id": "M139-S03-END-TO-END-ACCEPTANCE",
+  "lifecycle": "bounded",
+  "verdict": "PASS",
+  "runtime": {
+    "binary": "target/debug/law-nexus-inspect",
+    "profile": "debug",
+    "command": "law-nexus-inspect inspect <fixture>"
+  },
+  "providers": [
+    {
+      "name": "consultant-wordml",
+      "fixture": "law-source/consultant/federalnyi-zakon-ot-22-12-2020-n-435-fz-red-ot-25-12-2023-o-publichno-pravovoi-kompanii-edinyi-zakazchik-v-sfere-stroitelstva-i-o-vnese--d71bf702.xml",
+      "bytes": 193726,
+      "fingerprint": "fnv1a64:d7697a0ea8cc3970",
+      "determinism": true,
+      "result": {
+        "blocks": 167,
+        "hierarchy_markers": 22,
+        "reference_mentions": 69,
+        "temporal_phrases": 1,
+        "deontic_lexemes": 4,
+        "unknown_forms": 29,
+        "provider_comment_candidates": 0,
+        "retrieval_count": 5
+      }
+    },
+    {
+      "name": "garant-odt",
+      "fixture": "law-source/garant/44-fz.odt",
+      "bytes": 247971,
+      "fingerprint": "fnv1a64:d4143a172688f8c3",
+      "determinism": true,
+      "result": {
+        "blocks": 5124,
+        "hierarchy_markers": 140,
+        "reference_mentions": 1882,
+        "temporal_phrases": 36,
+        "deontic_lexemes": 228,
+        "unknown_forms": 2144,
+        "provider_comment_candidates": 355,
+        "retrieval_count": 5
+      }
+    }
+  ],
+  "composition": {
+    "parser": "ln-decode (ConsultantWordMlBlockDecoder / GarantOdtBlockDecoder)",
+    "extractors": "hierarchy, references, temporal, deontic, unknown_forms",
+    "storage": "ln-storage InMemoryVectorStore / InMemoryGraphStore",
+    "query": "ln-query KnowQL FindSimilar over in-memory adapters",
+    "output": "law-nexus-inspect JSON"
+  },
+  "non_claims": [
+    "No legal correctness claim",
+    "No citation authority claim",
+    "No corpus completeness claim",
+    "No cross-format legal parity claim",
+    "No production-scale performance claim",
+    "No security hardening beyond bounded input validation",
+    "Debug build; release build will be faster"
+  ]
+}
