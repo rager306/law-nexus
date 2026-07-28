@@ -248,6 +248,15 @@ name = "ln-observe"
 version = "0.1.0"
 
 [[package]]
+name = "ln-product-cli"
+version = "0.1.0"
+dependencies = [
+ "ln-decode",
+ "ln-query",
+ "ln-storage",
+]
+
+[[package]]
 name = "ln-projection"
 version = "0.1.0"
 

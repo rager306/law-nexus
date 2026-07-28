@@ -1,0 +1,14 @@
+[package]
+name = "ln-product-cli"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[[bin]]
+name = "law-nexus-inspect"
+path = "src/main.rs"
+
+[dependencies]
+ln-decode = { path = "../ln-decode" }
+ln-query = { path = "../ln-query" }
+ln-storage = { path = "../ln-storage" }
