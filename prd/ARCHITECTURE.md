@@ -98,11 +98,11 @@ ADR-0013 universal parser  [bounded] + ADR-0014 RuVector  [proposed]
    TEI USER-bge-m3 1024d embedding boundary remains proposed
    RVF vectors + redb GraphDB CRUD; no ruvector-graph Cypher execution claim
    ▼
-[LATEST COMPLETED] M138 — observable Rust product CLI (law-nexus-inspect)
-composing ln-decode + ln-storage + ln-query end-to-end over in-memory
-adapters. Structured JSON output with phase/status/duration_ms/result.
-Failure diagnostics include attempt_count, fingerprint and duration_ms.
-M139 whole-system acceptance is next.
+[LATEST COMPLETED] M139 — bounded whole-system acceptance: Rust product CLI
+composing ln-decode + ln-storage + ln-query on both tracked real fixtures; 30ms
+Consultant / 657ms Garant debug performance baseline; hostile input security
+audit; deterministic end-to-end evidence. M140 production release hardening is
+next.
 ```
 
 ## Current layer (where work happens now)

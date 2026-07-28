@@ -219,21 +219,27 @@
       "theme": "Observable product CLI composition root and failure surfaces",
       "status": "complete",
       "boundary": "Rust product CLI (law-nexus-inspect) composing ln-decode + ln-storage + ln-query end-to-end over in-memory adapters. Structured JSON output with failure diagnostics. No real TEI HTTP, RVF, redb, retrieval quality, citation correctness or legal authority claim."
+    },
+    {
+      "range": "M139-M139",
+      "theme": "Whole-system acceptance with performance baseline, security audit and end-to-end evidence",
+      "status": "complete",
+      "boundary": "Rust product CLI composes ln-decode + ln-storage + ln-query on both tracked real fixtures. Performance baselined at 30ms Consultant / 657ms Garant debug build. Security audit with hostile input tests. No production readiness, legal correctness, retrieval quality or corpus completeness claim."
     }
   ],
   "current_milestone": {
-    "id": "M138-9fpfh9",
-    "title": "Observable product CLI composition root and failure surfaces",
+    "id": "M139-sfytqy",
+    "title": "Whole-System Acceptance",
     "status": "complete",
-    "goal": "Build observable Rust product CLI over parser/storage/query layers with failure diagnostics."
+    "goal": "Bounded whole-system acceptance: performance baseline, security audit and end-to-end evidence on both providers."
   },
   "recommended_next": {
-    "title": "M139 Whole-System Acceptance",
+    "title": "M140 Production Release Hardening",
     "priority": 1,
-    "why": "M138 closes bounded product CLI composition. M139 must prove whole-system acceptance with real-source end-to-end, performance, security and UAT evidence before Python archival.",
-    "plan_reference": "prd/migration/forward-roadmap.md M139",
-    "slices": "Close post-M138 terminal projection debt, define acceptance contract, run whole-system tests, then assess Python archival readiness.",
-    "non_validation": "M138 CLI does not validate retrieval quality, citation correctness, legal applicability or production readiness."
+    "why": "M139 closes bounded whole-system acceptance. M140 must prove release build performance, deployment packaging and production hardening.",
+    "plan_reference": "prd/migration/forward-roadmap.md M140",
+    "slices": "Close post-M139 terminal projection debt, define release build performance targets, then validate production hardening.",
+    "non_validation": "M139 CLI does not validate production readiness, deployment, release build performance or legal correctness."
   },
   "downstream_blocked": [
     {
