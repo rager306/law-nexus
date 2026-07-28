@@ -276,6 +276,10 @@ name = "ln-status"
 version = "0.1.0"
 
 [[package]]
+name = "ln-storage"
+version = "0.1.0"
+
+[[package]]
 name = "ln-temporal"
 version = "0.1.0"
 
