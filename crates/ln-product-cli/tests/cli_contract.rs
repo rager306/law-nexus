@@ -156,6 +156,21 @@ fn truncated_consultant_fixture_fails_atomically() {
         "expected failed status; got: {}",
         stdout
     );
+    assert!(
+        stdout.contains("\"attempt_count\":1"),
+        "expected attempt_count=1; got: {}",
+        stdout
+    );
+    assert!(
+        stdout.contains("\"fingerprint\":\"fnv1a64:"),
+        "expected fingerprint; got: {}",
+        stdout
+    );
+    assert!(
+        stdout.contains("\"duration_ms\":"),
+        "expected duration_ms; got: {}",
+        stdout
+    );
 
     let _ = std::fs::remove_file(&tmp);
 }

@@ -39,9 +39,11 @@ fn json_escape(s: &str) -> String {
     s.replace('\\', "\\\\").replace('"', "\\\"")
 }
 
-fn print_failure(phase: &str, kind: &str, message: &str) -> ! {
+fn print_failure(phase: &str, kind: &str, message: &str, start: std::time::Instant) -> ! {
+    let duration_ms = start.elapsed().as_millis();
+    let fp = fingerprint_bytes(message.as_bytes());
     println!(
-        "{{\"phase\":\"{phase}\",\"status\":\"failed\",\"kind\":\"{kind}\",\"message\":\"{}\"}}",
+        "{{\"phase\":\"{phase}\",\"status\":\"failed\",\"kind\":\"{kind}\",\"message\":\"{}\",\"attempt_count\":1,\"fingerprint\":\"{fp}\",\"duration_ms\":{duration_ms}}}",
         json_escape(message)
     );
     process::exit(1);
@@ -58,7 +60,7 @@ fn inspect(path: &str) {
 
     let bytes = match fs::read(path) {
         Ok(b) => b,
-        Err(e) => print_failure("Io", "ReadFailure", &e.to_string()),
+        Err(e) => print_failure("Io", "ReadFailure", &e.to_string(), start),
     };
     let byte_count = bytes.len();
     let fingerprint = fingerprint_bytes(&bytes);
@@ -68,7 +70,7 @@ fn inspect(path: &str) {
     } else if path.to_lowercase().ends_with(".odt") {
         FamilyFormat::parse("family:garant-odt").unwrap()
     } else {
-        print_failure("Parse", "UnsupportedFamily", path);
+        print_failure("Parse", "UnsupportedFamily", path, start);
     };
     let fid = family.as_str().to_owned();
 
@@ -83,11 +85,13 @@ fn inspect(path: &str) {
                     "Parse",
                     "MalformedInput",
                     &format!("{:?}: offset={:?}", e.kind(), e.byte_offset()),
+                    start,
                 )
             })
     } else {
-        read_odt_content_xml(&request)
-            .unwrap_or_else(|e| print_failure("Parse", "MalformedInput", &format!("ODT: {e}")));
+        read_odt_content_xml(&request).unwrap_or_else(|e| {
+            print_failure("Parse", "MalformedInput", &format!("ODT: {e}"), start)
+        });
         GarantOdtBlockDecoder
             .decode_blocks(&request)
             .unwrap_or_else(|e| {
@@ -95,6 +99,7 @@ fn inspect(path: &str) {
                     "Parse",
                     "MalformedInput",
                     &format!("{:?}: offset={:?}", e.kind(), e.byte_offset()),
+                    start,
                 )
             })
     };
