@@ -2,6 +2,18 @@
 
 All notable changes to law-nexus are documented in this file.
 
+## M153 (in progress)
+
+### S01: Admission and closure residual hostile shared negatives
+- BoundObservationPort honest + HostileVendorCapacity negative
+- DependencyEvidencePort honest + HostileProgressCompleteness negative
+- Allowlist 44 edges; hostile inventory gaps 4→2
+
+### S02: Projection and work residual hostile shared negatives
+- RebuildExecutorPort honest + HostileAuthoritativeExecutor negative
+- DomainEvidencePort honest + HostileMutatingEvidence negative
+- Allowlist 46 edges; hostile inventory 14/14 status ok; governor pass
+
 ## M152 (complete)
 
 ### S01: Hostile adapter inventory and governor advisory

@@ -296,8 +296,11 @@ Treat the following as process debt or gate failures, not style nits:
    **M152 `[bounded]` hostile process surface:**
    `scripts/verify-hostile-negative-suite-coverage.py` plus governor finding
    `hostile-negative-suite-coverage` (mention-based; debt = non-blocking warn).
-   Publish dual-writer and relation open-hostile shared negatives landed;
-   residual hostiles without shared negatives remain advisory debt.
+   Publish dual-writer and relation open-hostile shared negatives landed.
+   **M153 `[bounded]` residual hostiles closed:** admission/closure/projection/
+   work shared honest+negative suites landed; hostile inventory and governor
+   finding `hostile-negative-suite-coverage` now 14/14 with_shared_negative
+   (mention-based; not product readiness).
 6. ~~Expand shared suites beyond storage ports (decode, citation, promote, …).~~
    **M146 `[bounded]`:** citation + promotion shared contracts landed in
    ln-testkit with InMemory (and hostile citation negative).
