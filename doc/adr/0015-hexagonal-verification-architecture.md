@@ -99,8 +99,10 @@ Minimum contract concerns by port class:
 
 Shared suite packaging is landed as `[bounded]` in `crates/ln-testkit` for
 InMemory/hostile adapters and selected real-adapter prep (TEI stub transport).
-Residual multi-adapter real ports without a shared suite remain process debt
-until closed (for example BlockDecoder family isolation).
+**M154 `[bounded]`:** `BlockDecoderPort` multi-adapter family isolation is now
+shared for Consultant WordML and Garant ODT (own-family non-empty decode +
+foreign-family `UnsupportedFormat`). Synthetic fixtures only; not corpus
+completeness or product parser readiness.
 
 ### 3. Semantic oracles over choreography `[bounded]`
 
@@ -309,6 +311,9 @@ Treat the following as process debt or gate failures, not style nits:
    work shared honest+negative suites landed; hostile inventory and governor
    finding `hostile-negative-suite-coverage` now 14/14 with_shared_negative
    (mention-based; not product readiness).
+   **M154 `[bounded]` process honesty + BlockDecoder shared suite:** ADR-0015
+   stale non-claims repaired; `assert_block_decoder_port_contract` exercises
+   Consultant WordML and Garant ODT family isolation (synthetic fixtures only).
 6. ~~Expand shared suites beyond storage ports (decode, citation, promote, …).~~
    **M146 `[bounded]`:** citation + promotion shared contracts landed in
    ln-testkit with InMemory (and hostile citation negative).

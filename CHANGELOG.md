@@ -2,11 +2,18 @@
 
 All notable changes to law-nexus are documented in this file.
 
-## M154 (in progress)
+## M154 (complete)
 
 ### S01: ADR-0015 stale non-claims honesty repair
 - Critical ceiling and Non-claims no longer deny landed ln-testkit/allowlist
 - TEI/RuVector/product non-claims preserved
+
+### S02: BlockDecoderPort shared family-isolation suite
+- Consultant WordML + Garant ODT pass shared own-family / foreign-family contract
+- No cross-provider golden coupling; synthetic fixtures only
+
+### S03: Docs validation and terminal closure
+- Structured UAT PASS; terminal projections closed
 
 ## M153 (complete)
 
