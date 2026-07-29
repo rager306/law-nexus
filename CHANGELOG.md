@@ -2,14 +2,37 @@
 
 All notable changes to law-nexus are documented in this file.
 
-## M139 (in progress)
+## M139 (complete)
 
 ### S01: Performance baseline and determinism proof
-- CLI inspect latency measured for both providers: Consultant 30ms (167 blocks), Garant 657ms avg (5124 blocks)
-- Output determinism verified: JSON identical across 3 repeat runs (excluding variable duration_ms)
-- Evidence persisted: `prd/migration/rust-evidence/probes/m139-performance-baseline.{json,md}`
-- Debug build; release build will be faster
-- No memory profiling, concurrent benchmark or production-scale claim
+- CLI inspect latency: Consultant 30ms (167 blocks), Garant 657ms avg (5124 blocks)
+- Output deterministic across 3 repeat runs (excluding variable duration_ms)
+- Evidence: `prd/migration/rust-evidence/probes/m139-performance-baseline.{json,md}`
+
+### S02: CLI security audit and hostile input tests
+- Unsupported format (.txt) rejected as Parse/UnsupportedFamily
+- Empty XML file produces zero blocks (not failure)
+- Non-existent file rejected as Io/ReadFailure
+- Directory as path rejected as Io/ReadFailure
+- 4 new hostile tests, total 9 CLI integration tests
+
+### S03: End-to-end acceptance evidence
+- Both Consultant and Garant fixtures produce deterministic structured JSON
+- Consultant: 167 blocks, 22 hierarchy, 69 refs, 1 temporal, 4 deontic, 29 unknown
+- Garant: 5124 blocks, 140 hierarchy, 1882 refs, 36 temporal, 228 deontic, 2144 unknown
+- KnowQL composition proven over in-memory adapters
+- Evidence: `prd/migration/rust-evidence/probes/m139-end-to-end-acceptance.{json,md}`
+
+### S04: Validation and terminal closure
+- Structured UAT PASS (3 checks: CLI hostile tests, evidence portability, real CLI execution)
+- M139 formally complete
+
+## M140 (in progress)
+
+### S01: Post-M139 debt audit
+- Governor 30/0, preflight 6/0, dead code 0, unused 0, stale projections 0
+- CHANGELOG corrected: M139 marked complete
+- 157 test suites pass, 378 tests total, 23495 lines Rust code
 
 ### S03: CLI failure state persistence
 - Failure JSON now includes `attempt_count`, `fingerprint` (FNV1a64 of error message) and `duration_ms`
