@@ -2,6 +2,12 @@
 
 All notable changes to law-nexus are documented in this file.
 
+## M154 (in progress)
+
+### S01: ADR-0015 stale non-claims honesty repair
+- Critical ceiling and Non-claims no longer deny landed ln-testkit/allowlist
+- TEI/RuVector/product non-claims preserved
+
 ## M153 (complete)
 
 ### S01: Admission and closure residual hostile shared negatives

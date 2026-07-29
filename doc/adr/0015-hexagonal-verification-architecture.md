@@ -16,14 +16,15 @@ related: [ADR-0004, ADR-0005, ADR-0007, ADR-0010, ADR-0012, ADR-0013, ADR-0014, 
 verification contours (domain/application tests, port-oriented contracts,
 hostile adapter proofs, thin system journeys, governor/preflight process gates,
 and lifecycle-tagged evidence). This ADR freezes that architecture as durable
-policy and names the next process increments without claiming they are already
-implemented.
+policy and records landed process increments without overclaiming product or
+live-infrastructure readiness.
 
-**Critical ceiling:** this ADR does **not** claim that shared `ln-testkit`
-contract crates, executable crate-dependency allowlists, proptest/mutation
-nightlies, real RuVector/TEI adapter contracts, or production packaging
-verification already exist as complete infrastructure. Those remain
-`[proposed]` follow-ons unless separately proven.
+**Critical ceiling:** shared `ln-testkit` port-contract packaging and the
+executable crate-dependency allowlist are landed as `[bounded]` process
+infrastructure (M145–M153). This ADR still does **not** claim that
+proptest/mutation nightlies, real RuVector/TEI adapter contracts, production
+packaging verification, corpus completeness, legal correctness, or product
+readiness exist. Those remain `[proposed]` or unproven unless separately shown.
 
 ## Context
 
@@ -70,7 +71,7 @@ These contours are mandatory as **policy**. Not every contour is fully instrumen
 yet; missing instrumentation is process debt, not permission to skip the contour
 when changing related code.
 
-### 2. Port contract rule `[proposed]` for shared suite infra, `[bounded]` for intent
+### 2. Port contract rule `[bounded]` for shared suite infra and intent
 
 Every outbound port that has more than one adapter **must** have one semantic
 contract suite exercised by:
@@ -96,8 +97,10 @@ Minimum contract concerns by port class:
   authoritative; promote only after independent verification; retry does not
   double-promote.
 
-Shared suite packaging (`ln-testkit` or equivalent) is `[proposed]` until the
-crate and first suites exist.
+Shared suite packaging is landed as `[bounded]` in `crates/ln-testkit` for
+InMemory/hostile adapters and selected real-adapter prep (TEI stub transport).
+Residual multi-adapter real ports without a shared suite remain process debt
+until closed (for example BlockDecoder family isolation).
 
 ### 3. Semantic oracles over choreography `[bounded]`
 
@@ -157,7 +160,7 @@ Tests must not depend on wall-clock sleeps, shared mutable global ports, or
 unordered golden output without canonicalization. CLI/JSON comparisons may
 exclude explicit timing fields such as `duration_ms`.
 
-### 7. Architecture dependency checks `[proposed]` executable, `[bounded]` design
+### 7. Architecture dependency checks `[bounded]` executable and design
 
 Target dependency direction:
 
@@ -171,9 +174,12 @@ adapters/*
 bootstrap / product-cli / hc runners
 ```
 
-Executable allowlist checking via `cargo metadata` (xtask or governor check) is
-`[proposed]` until implemented. Design intent is already binding: domain must
-not depend on adapters, Tokio, HTTP clients, or vendor SDKs.
+Executable allowlist checking is landed as `[bounded]` via
+`scripts/verify-crate-dependency-allowlist.py` and tracked
+`prd/architecture/crate-dependency-allowlist.json`, wired into preflight,
+pre-commit, and CI. Full domain/application/adapter layer tagging remains open.
+Design intent remains binding: domain must not depend on adapters, Tokio, HTTP
+clients, or vendor SDKs.
 
 ### 8. Property, model-based, metamorphic, mutation, fuzz `[proposed]`
 
@@ -238,8 +244,8 @@ Treat the following as process debt or gate failures, not style nits:
 - Fake adapters stop being a silent source of false confidence.
 - Hostile proofs, real tracers, and process gates remain first-class rather than
   being replaced by generic E2E volume.
-- Future `ln-testkit`, crate allowlist, proptest, and mutation work have a home
-  without premature implementation.
+- Landed `ln-testkit` and crate allowlist process gates have a home; proptest and
+  mutation work remain selective follow-ons without premature product claims.
 
 ### Negative / costs
 
@@ -256,9 +262,11 @@ Treat the following as process debt or gate failures, not style nits:
 
 ## Non-claims
 
-- No claim that `ln-testkit` already exists.
-- No claim that crate-dependency allowlist is already enforced in CI.
-- No claim that RuVector/TEI/redb contracts are validated.
+- No claim that landed `ln-testkit` suites validate live TEI/RuVector/redb or
+  product readiness; coverage is `[bounded]` InMemory/hostile/stub process proof.
+- No claim that the crate-dependency allowlist proves full onion layer tagging
+  beyond tracked path-dependency edges.
+- No claim that RuVector/TEI/redb contracts are validated against real infrastructure.
 - No claim that release packaging/deployment is proven.
 - No claim of corpus completeness, legal correctness, or citation completeness.
 - No claim that proptest/mutants/fuzz/Loom/Turmoil are currently required on every PR.
