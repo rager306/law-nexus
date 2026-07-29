@@ -60,7 +60,8 @@ use ln_replay::domain::{
 };
 use ln_replay::ports::{CheckpointPort, EffectLedgerPort};
 use ln_storage::{
-    GraphEdge, GraphNode, GraphStorePort, StorageError, VectorQuery, VectorRecord, VectorStorePort,
+    EmbeddingPort, EmbeddingRequest, GraphEdge, GraphNode, GraphStorePort, StorageError,
+    VectorQuery, VectorRecord, VectorStorePort,
 };
 use ln_temporal::domain::ClockKind;
 use ln_temporal::ports::ClockEvidencePort;
@@ -1044,4 +1045,29 @@ pub fn contract_sample_checkpoint() -> ln_replay::domain::CheckpointRecord {
         "ef:contract-1",
         "history:contract-1",
     )
+}
+
+/// Shared semantic contract for honest [`EmbeddingPort`] adapters.
+///
+/// Expects a successful embed for a matching request to return the requested
+/// model identity and dimensions with finite values. Rejection semantics for
+/// model/dimension drift are adapter-policy and covered by TEI-style suites
+/// (see embedding_port_contracts tests). Not live TEI/RuVector validation.
+pub fn assert_embedding_port_contract<E: EmbeddingPort>(
+    embedder: &E,
+    model_id: &str,
+    dimensions: usize,
+) {
+    let request = EmbeddingRequest::try_new("contract legal text", model_id, dimensions)
+        .expect("valid embedding request");
+    let response = embedder
+        .embed(&request)
+        .expect("honest embedder must return a validated response");
+    assert_eq!(response.model_id(), model_id);
+    assert_eq!(response.dimensions(), dimensions);
+    assert_eq!(response.vector().len(), dimensions);
+    assert!(
+        response.vector().iter().all(|v| v.is_finite()),
+        "embedding vector must be finite"
+    );
 }
