@@ -2,7 +2,7 @@
 
 All notable changes to law-nexus are documented in this file.
 
-## M142 (in progress)
+## M142 (complete)
 
 ### S01: Repair active CI and quality gate contracts
 - Removed dead `uv run lint-imports` and missing `verify-m112-adr-sync.py` CI steps
@@ -16,6 +16,12 @@ All notable changes to law-nexus are documented in this file.
 ### S03: Archive orphan residual scripts
 - Archived 8 residual scripts only consumed by archived historical tests
 - Active scripts: 106; archived product scripts: 37
+
+### S04: Active hygiene verification and docs
+- CHANGELOG synchronized; gates green after reindex
+
+### S05: Validation and terminal closure
+- Structured UAT PASS; M142 formally complete; terminal projections closed
 
 ## M139 (complete)
 

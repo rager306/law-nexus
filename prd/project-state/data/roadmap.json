@@ -237,21 +237,27 @@
       "theme": "Post-archival process debt closure and residual Python dependency archival",
       "status": "complete",
       "boundary": "Residual product-dependent tests/scripts archived under python_archive/product/. Harness historical-only FalkorDB vocabulary allowed. No production readiness, release build or deployment claim."
+    },
+    {
+      "range": "M142-M142",
+      "theme": "Active control-plane hygiene and residual historical archive gate",
+      "status": "complete",
+      "boundary": "Active CI/quality-gate contracts repaired for harness-only control plane. Residual historical failing tests and orphan scripts archived under python_archive/product/. No production readiness, release build or deployment claim."
     }
   ],
   "current_milestone": {
-    "id": "M141-ocnld7",
-    "title": "Post-Archival Process Debt Closure",
+    "id": "M142-rouwpn",
+    "title": "Active Control Plane Hygiene",
     "status": "complete",
-    "goal": "Close residual process debt after incomplete M140 archival; harness CI green; hard-import hits 0."
+    "goal": "Repair active CI and quality-gate contracts; archive residual historical Python tests and scripts after M140/M141 archival."
   },
   "recommended_next": {
-    "title": "M142 Production Release Hardening",
+    "title": "M143 Production Release Hardening",
     "priority": 1,
-    "why": "M141 closed residual process debt after M140 archival. M142 must prove release build performance, deployment packaging and production hardening.",
-    "plan_reference": "prd/migration/forward-roadmap.md post-M141",
+    "why": "M142 closed residual control-plane hygiene after archival. M143 must prove release build performance, deployment packaging and production hardening.",
+    "plan_reference": "prd/migration/forward-roadmap.md post-M142",
     "slices": "Define release build targets, measure release performance, then validate packaging and production hardening.",
-    "non_validation": "M141 residual archival does not validate production readiness, release build performance or deployment."
+    "non_validation": "M142 control-plane hygiene does not validate production readiness, release build performance or deployment."
   },
   "downstream_blocked": [
     {
