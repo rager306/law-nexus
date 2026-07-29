@@ -7,3 +7,5 @@ description = "Shared port-contract helpers for law-nexus hexagonal verification
 
 [dependencies]
 ln-storage = { path = "../ln-storage" }
+ln-citation = { path = "../ln-citation" }
+ln-promote = { path = "../ln-promote" }

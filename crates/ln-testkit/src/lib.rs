@@ -7,6 +7,12 @@
 //! Lifecycle: foundation is `[bounded]`. Real-infrastructure validation is not
 //! claimed by the existence of this crate.
 
+use ln_citation::domain::{SourceAuthority, SourceRef};
+use ln_citation::ports::CitationSourcePort;
+use ln_promote::domain::{
+    AcceptedSetId, InputDigest, PromotionAttemptState, PromotionOpId, PromotionRecord,
+};
+use ln_promote::ports::PromotionStorePort;
 use ln_storage::{
     GraphEdge, GraphNode, GraphStorePort, StorageError, VectorQuery, VectorRecord, VectorStorePort,
 };
@@ -131,4 +137,106 @@ pub fn assert_graph_store_contract<S: GraphStorePort>(store: &mut S) {
         "unknown label must return empty set, got {}",
         missing.len()
     );
+}
+
+/// Shared semantic contract for honest [`CitationSourcePort`] adapters.
+///
+/// Expects resolve/missing semantics and authority preservation. Hostile
+/// adapters that invent Official authority from Mirror data must fail this
+/// suite (see [`assert_hostile_mirror_fails_honest_citation_contract`]).
+pub fn assert_citation_source_contract<S: CitationSourcePort>(source: &S) {
+    let known = SourceRef::parse("src:contract-known").expect("source ref");
+    let missing = SourceRef::parse("src:contract-missing").expect("source ref");
+
+    let resolved = source.resolve(&known).expect("known source must resolve");
+    assert_eq!(resolved.0.as_str(), "anchor:contract-1");
+    assert_eq!(resolved.1, SourceAuthority::Official);
+
+    assert!(
+        source.resolve(&missing).is_none(),
+        "unknown source must return None, not invented anchor"
+    );
+
+    let mirror = SourceRef::parse("src:contract-mirror").expect("source ref");
+    let mirror_resolved = source
+        .resolve(&mirror)
+        .expect("mirror source must resolve with honest authority");
+    assert_eq!(mirror_resolved.0.as_str(), "anchor:contract-2");
+    assert_eq!(
+        mirror_resolved.1,
+        SourceAuthority::Mirror,
+        "honest adapter must not relabel Mirror as Official"
+    );
+}
+
+/// Negative contract: hostile mirror relabeler must not pass the honest suite.
+pub fn assert_hostile_mirror_fails_honest_citation_contract<S: CitationSourcePort>(source: &S) {
+    let mirror = SourceRef::parse("src:contract-mirror").expect("source ref");
+    let resolved = source
+        .resolve(&mirror)
+        .expect("hostile fixture must still resolve the mirror source");
+    assert_eq!(
+        resolved.1,
+        SourceAuthority::Official,
+        "hostile fixture expected to invent Official authority"
+    );
+    // The honest contract requires Mirror authority for this source key.
+    assert_ne!(
+        resolved.1,
+        SourceAuthority::Mirror,
+        "hostile adapter must fail honest authority preservation"
+    );
+}
+
+/// Shared semantic contract for [`PromotionStorePort`].
+pub fn assert_promotion_store_contract<S: PromotionStorePort>(store: &mut S) {
+    let op = PromotionOpId::parse("P-contract-1").expect("op id");
+    let set = AcceptedSetId::parse("I-contract-1").expect("set id");
+    let digest = InputDigest::parse("D-contract-1").expect("digest");
+
+    assert!(store.get(&op).is_none(), "empty store has no record");
+    assert_eq!(store.committed_count(), 0);
+    assert!(!store.has_curated_effect_for(&op));
+
+    let commit_id = store.next_commit_id();
+    let record = PromotionRecord {
+        op_id: op.clone(),
+        accepted_set_id: set,
+        input_digest: digest.clone(),
+        state: PromotionAttemptState::Committed,
+        commit_id: Some(commit_id.clone()),
+        commit_digest: Some(digest.clone()),
+        publication_authority: None,
+    };
+    store.put(record);
+
+    let loaded = store.get(&op).expect("committed record is readable");
+    assert_eq!(loaded.state, PromotionAttemptState::Committed);
+    assert_eq!(loaded.commit_id.as_ref(), Some(&commit_id));
+    assert_eq!(store.committed_count(), 1);
+    assert!(store.has_curated_commit(&commit_id));
+    assert!(store.has_curated_effect_for(&op));
+    assert_eq!(
+        store
+            .commit_digest_for(&commit_id)
+            .as_ref()
+            .map(|d| d.as_str()),
+        Some(digest.as_str())
+    );
+
+    // Idempotent put of same committed identity must not create a second commit effect.
+    store.put(loaded.clone());
+    assert_eq!(store.committed_count(), 1);
+
+    // Cancel/incomplete replacement removes curated effect for the op.
+    let cancelled = PromotionRecord {
+        state: PromotionAttemptState::Cancelled,
+        commit_id: None,
+        commit_digest: None,
+        publication_authority: None,
+        ..loaded
+    };
+    store.put(cancelled);
+    assert_eq!(store.committed_count(), 0);
+    assert!(!store.has_curated_effect_for(&op));
 }

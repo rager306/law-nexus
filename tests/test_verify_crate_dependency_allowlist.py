@@ -27,7 +27,7 @@ def test_allowlist_file_matches_current_workspace_edges() -> None:
     allowlist = module.load_allowlist(ALLOWLIST)
     observed = module.workspace_path_edges(ROOT)
     assert observed == allowlist["_allowed_set"]
-    assert len(observed) == 26
+    assert len(observed) == 28
 
 
 def test_current_repository_passes_cli() -> None:
@@ -42,7 +42,7 @@ def test_current_repository_passes_cli() -> None:
     payload = json.loads(result.stdout)
     assert payload["status"] == "ok"
     assert payload["finding_count"] == 0
-    assert payload["observed_edge_count"] == 26
+    assert payload["observed_edge_count"] == 28
 
 
 def test_undeclared_edge_is_reported() -> None:

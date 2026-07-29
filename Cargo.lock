@@ -300,6 +300,8 @@ version = "0.1.0"
 name = "ln-testkit"
 version = "0.1.0"
 dependencies = [
+ "ln-citation",
+ "ln-promote",
  "ln-storage",
 ]
 
