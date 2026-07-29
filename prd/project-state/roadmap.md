@@ -20,8 +20,8 @@ falkordb=historical-only
 
 ## Current position
 
-- **Latest completed milestone:** M147-01c8l6, preflight coverage advisory and ln-testkit query/publish shared contracts (6 covered / 14 uncovered).
-- **Recommended next milestone:** M148, expand shared port contracts to decode and remaining high-value capabilities.
+- **Latest completed milestone:** M148-k6u419, crate-qualified coverage identity and decode/observe/diagnostic shared contracts (10 covered / 12 uncovered of 22).
+- **Recommended next milestone:** M149, expand shared port contracts to remaining high-value capabilities.
 - **M111 result:** final `[bounded]` implementation-neutral semantic baseline for heterogeneous Russian legal evidence.
 - **M112 result:** ADR-0005 topology superseded; ADR-0008 through ADR-0012 authored `[bounded]`; executable ADR/decision/owner drift checks active in pre-commit and CI.
 - **M113 result:** first hostile-case Rust runtime proof. `S10-HC-01-RT` is bounded PASS.

@@ -2,7 +2,7 @@
 
 All notable changes to law-nexus are documented in this file.
 
-## M148 (in progress)
+## M148 (complete)
 
 ### S01: Crate-qualified port-contract coverage identity
 - Inventory schema v2 keys adapters as `crate::StructName`

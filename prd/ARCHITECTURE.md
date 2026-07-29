@@ -98,8 +98,8 @@ ADR-0013 universal parser  [bounded] + ADR-0014 RuVector  [proposed]
    TEI USER-bge-m3 1024d embedding boundary remains proposed
    RVF vectors + redb GraphDB CRUD; no ruvector-graph Cypher execution claim
    ▼
-[LATEST COMPLETED] M147 — preflight coverage advisory + query/publish shared contracts;
-6/20 InMemory adapters shared-contracted. M148 further contract expansion is next.
+[LATEST COMPLETED] M148 — crate-qualified coverage identity + decode/observe/diagnostic shared contracts;
+10/22 InMemory adapters shared-contracted. M149 further contract expansion is next.
 ```
 
 ## Current layer (where work happens now)
