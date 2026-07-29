@@ -36,6 +36,12 @@ CI_PROCESS_SUITE = {
     "tests/test_verify_hostile_negative_suite_coverage.py",
     "tests/test_verify_multi_adapter_port_coverage.py",
     "tests/test_verify_live_adapter_readiness.py",
+    "tests/test_architecture_views.py",
+    "tests/test_architecture_analysis_views.py",
+    "tests/test_architecture_remediation_matrix.py",
+    "tests/test_architecture_track_split.py",
+    "tests/test_architecture_closure_roadmap.py",
+    "tests/test_architecture_registry_schema.py",
 }
 CI_INVENTORY_SCRIPTS = {
     "scripts/verify-port-contract-coverage.py",
