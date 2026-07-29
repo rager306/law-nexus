@@ -1,8 +1,8 @@
-# Repository quality gate for the Python behavioral reference and Rust baseline.
+# Repository quality gate for the Rust product runtime and Python harness.
 # Rust runs in a separate job through the ADR-0007 process-only harness boundary.
-# This workflow has no dependency on archived architecture tooling or generated
-# semantic projections. The final Rust cutover removes Python product checks but
-# keeps repository ADR/document/architecture checks through the harness.
+# Python product code is archived prior art; active Python checks cover the
+# repository-control harness only. This workflow has no dependency on archived
+# architecture tooling or generated semantic projections.
 
 name: repository-quality
 
@@ -19,8 +19,8 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  python-reference-quality:
-    name: Python reference and repository architecture checks
+  python-harness-quality:
+    name: Python harness and repository architecture checks
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -38,29 +38,23 @@ jobs:
       - name: Install dependencies
         run: uv sync --frozen
 
-      - name: Ruff lint current Python reference
+      - name: Ruff lint active Python harness
         run: uv run ruff check src/
 
-      - name: Ruff format current Python reference
+      - name: Ruff format active Python harness
         run: uv run ruff format --check src/
 
-      - name: Python onion dependency contracts
-        run: uv run lint-imports
-
-      - name: Basedpyright current Python reference
+      - name: Basedpyright active Python harness
         run: uv run basedpyright src/
 
-      - name: Ty current Python reference
+      - name: Ty active Python harness
         run: uv run ty check src/
 
-      - name: Pyrefly current Python reference
+      - name: Pyrefly active Python harness
         run: uv run pyrefly check src/
 
       - name: Architecture lifecycle tags and ADR references
         run: uv run python scripts/verify-adr-conformance.py
-
-      - name: Post-M111 ADR decision and owner synchronization
-        run: uv run python scripts/verify-m112-adr-sync.py
 
   rust-harness-quality:
     name: Rust workspace and process harness checks

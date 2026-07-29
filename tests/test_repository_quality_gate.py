@@ -14,6 +14,14 @@ OLD_WORKFLOW = ROOT / ".github/workflows/compliance-gate.yml"
 VERIFIER = ROOT / "scripts/verify-adr-conformance.py"
 INVENTORY = ROOT / "prd/migration/decommission/repository-quality-gate.json"
 FORBIDDEN = ("git-lex", "git lex", "d098", "acp checkpoint", ".lex/")
+ACTIVE_HOOK_IDS = {
+    "ruff-check-python",
+    "ruff-format-python",
+    "cargo-fmt-rust",
+    "cargo-check-rust",
+    "architecture-claim-conformance",
+}
+RUST_PATHS = r"^(Cargo\.(toml|lock)|crates/.*\.(rs|toml))$"
 
 
 def load_verifier():
@@ -36,26 +44,22 @@ def test_pre_commit_commands_are_expected_and_non_mutating() -> None:
     payload = yaml.safe_load(PRE_COMMIT.read_text(encoding="utf-8"))
     hooks = payload["repos"][0]["hooks"]
     by_id = {hook["id"]: hook for hook in hooks}
-    assert set(by_id) == {
-        "ruff-check-python",
-        "ruff-format-python",
-        "cargo-fmt-rust",
-        "cargo-check-rust",
-        "python-onion-dependencies",
-        "architecture-claim-conformance",
-    }
+    assert set(by_id) == ACTIVE_HOOK_IDS
     commands = "\n".join(hook["entry"] for hook in hooks)
     assert "git-lex" not in commands
     assert ".lex" not in commands
+    assert "lint-imports" not in commands
+    assert "python-onion-dependencies" not in by_id
     assert by_id["cargo-fmt-rust"]["entry"] == "cargo fmt --all -- --check"
     assert by_id["cargo-check-rust"]["entry"] == "cargo check --workspace --offline"
     rust_paths = by_id["cargo-fmt-rust"]["files"]
     assert rust_paths == by_id["cargo-check-rust"]["files"]
-    assert rust_paths == r"^(Cargo\.(toml|lock)|crates/.*\.(rs|toml))$"
+    assert rust_paths == RUST_PATHS
     assert "always_run" not in by_id["cargo-fmt-rust"]
     assert "always_run" not in by_id["cargo-check-rust"]
-    assert by_id["python-onion-dependencies"]["always_run"] is True
     assert by_id["architecture-claim-conformance"]["always_run"] is True
+    assert by_id["ruff-check-python"].get("exclude") == "^python_archive/"
+    assert by_id["ruff-format-python"].get("exclude") == "^python_archive/"
 
 
 def test_ci_workflow_replaces_old_compliance_name_and_keeps_required_checks() -> None:
@@ -65,7 +69,6 @@ def test_ci_workflow_replaces_old_compliance_name_and_keeps_required_checks() ->
     for command in (
         "uv run ruff check src/",
         "uv run ruff format --check src/",
-        "uv run lint-imports",
         "uv run basedpyright src/",
         "uv run ty check src/",
         "uv run pyrefly check src/",
@@ -79,6 +82,9 @@ def test_ci_workflow_replaces_old_compliance_name_and_keeps_required_checks() ->
         "tests/test_harness_no_forbidden_imports.py",
     ):
         assert command in text
+    assert "uv run lint-imports" not in text
+    assert "verify-m112-adr-sync.py" not in text
+    assert "python-onion-dependencies" not in text
     assert "rust-harness-quality:" in text
     assert "dtolnay/rust-toolchain@stable" in text
 
@@ -98,7 +104,10 @@ def test_gate_inventory_matches_active_paths_and_boundary() -> None:
     assert payload["local_config"] == ".pre-commit-config.yaml"
     assert payload["ci_workflow"] == ".github/workflows/repository-quality.yml"
     assert payload["product_logic_in_python_harness_allowed"] is False
-    assert len(payload["checks"]) == 6
+    assert len(payload["checks"]) == 5
     by_id = {check["id"]: check for check in payload["checks"]}
+    assert set(by_id) == ACTIVE_HOOK_IDS
     assert by_id["cargo-fmt-rust"]["command"] == "cargo fmt --all -- --check"
     assert by_id["cargo-check-rust"]["command"] == "cargo check --workspace --offline"
+    assert "python-onion-dependencies" not in by_id
+    assert all("lint-imports" not in check["command"] for check in payload["checks"])

@@ -104,39 +104,28 @@ Python tests/scripts archived; harness CI green. M142 production release hardeni
 
 ## Current layer (where work happens now)
 
-**`src/law_nexus` onion package** — `[bounded]` Python historical prior art
-kept intact until the controlled archival cutover (historical ADR-0001 is
-archived under `python_archive/adr/`). It is not the target product
-specification. The
-deterministic-first package surface remains dependency-directed during the Rust
-transition: `domain/` (SourceDocument, SourceBlock, ActEdition,
-EvidenceSpan, NormStatement, LegalUnit, Citation, SourceHierarchy), `ports/`
-(Parser, GraphStore, Embedder, LLMClient protocols), `adapters/parsers/`
-(ConsultantWordMLParser — document-level seam), `adapters/sources/`
-(consultant_hierarchy.py — marker_for_text, hierarchy_records,
-extract_internal_references, extract_external_references,
-detect_temporal_markers, detect_deontic_lexemes, extract_norm_candidates,
-profile_document), `application/` (Ingest use case), `composition.py`
-(factory root). Existing import-linter and ADR checks remain general repository
-controls until the ADR-0007 harness replaces/consolidates them; they are not ACP
-mechanisms. The package is a `[bounded]` document-level seam with working
-structural hierarchy, temporal/deontic markers, norm candidates, and staging
-graph materialization. M109/R0 now keeps the historical single-fixture proof
-(2,185 hierarchy records) separate from the corpus parity baseline (15,249
-hierarchy records) and freezes both in
-`prd/parser/consultant_hierarchy_baseline_manifest.json`. Corpus-derived tracked
-artifacts currently contain 1,567 norm candidates, 7,568 relation candidates,
-and 271 materialized hierarchy nodes in the staging graph. These counts are
-`[bounded]` deterministic evidence, not parser completeness or legal correctness.
-Retrieval and KnowQL remain `[proposed]`/`[bounded]` prior proof only.
+**Rust product runtime** — `[validated]` direction (ADR-0004/0005) with active
+hexagonal crates under `crates/` and the observable product CLI
+`law-nexus-inspect`. Rust owns decode, storage ports, KnowQL composition and
+product behavior. One tracked real fixture per provider remains `[bounded]`
+evidence; no corpus/legal/citation completeness claims.
+
+**Python repository-control harness** — `[validated]` process boundary
+(ADR-0007) under `src/law_nexus_harness/`. Active Python is governor/preflight
+orchestration only: Cargo/ADR/document freshness/GSD glue. It must not import
+product domain packages, PyO3/FFI bridges, or active FalkorDB adapters.
+
+**`python_archive/product/`** — archived Python product prior art after M140/M141
+cutover and residual dependency closure. Historical onion package surfaces,
+legacy proof scripts and residual product-era tests live here only. They are not
+the target product specification and do not gate active CI product behavior.
+
+**Historical library boundary (ADR-0003):** Pydantic/domain and parser record
+decisions remain prior-art evidence only. Rust equivalents are independently
+defined serde/schemars types and traits behind current hexagonal boundaries.
 FalkorDB is historical evidence, not active product infrastructure. ADR-0014
 selects RuVector only at `[proposed]`; real TEI→RVF, graph materialization,
 cross-store recovery and citation gates remain open.
-
-**Python library boundary (historical ADR-0003):** Pydantic/domain and parser
-record decisions remain prior-art evidence, not the Rust target specification.
-Rust equivalents are independently defined serde/schemars types and traits
-behind the current Rust hexagonal boundaries.
 
 **Consultant XML parser hardening** — `[bounded]` through M086–M105: 81 XML
 source files, multi-level hierarchy, FRBR IDs, internal/external references,

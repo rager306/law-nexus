@@ -1,19 +1,19 @@
 {
   "schema_version": "law-nexus/repository-quality-gate/v1",
   "status": "active",
-  "phase": "python-reference-rust-baseline",
+  "phase": "rust-product-python-harness",
   "local_config": ".pre-commit-config.yaml",
   "ci_workflow": ".github/workflows/repository-quality.yml",
   "checks": [
     {
       "id": "ruff-check-python",
       "command": "uv run ruff check <staged-python-files>",
-      "scope": "staged Python files"
+      "scope": "staged active Python files; python_archive excluded"
     },
     {
       "id": "ruff-format-python",
       "command": "uv run ruff format --check <staged-python-files>",
-      "scope": "staged Python files"
+      "scope": "staged active Python files; python_archive excluded"
     },
     {
       "id": "cargo-fmt-rust",
@@ -26,11 +26,6 @@
       "scope": "staged Cargo and Rust paths"
     },
     {
-      "id": "python-onion-dependencies",
-      "command": "uv run lint-imports",
-      "scope": "current Python behavioral reference"
-    },
-    {
       "id": "architecture-claim-conformance",
       "command": "uv run python scripts/verify-adr-conformance.py",
       "scope": "living architecture and ADR records"
@@ -40,7 +35,8 @@
     "git-lex executable",
     ".lex generated state",
     "archived semantic kits",
-    "archived architecture projections"
+    "archived architecture projections",
+    "Python product package imports in harness"
   ],
   "future_additions": [
     "cargo clippy",

@@ -1,14 +1,13 @@
-# Repository quality checks during the Python-reference phase.
+# Repository quality checks for the Rust product runtime and Python harness.
 #
 # Commit profile:
-# - lint/format only staged Python files so new changes cannot add debt;
-# - always enforce current Python onion dependencies while it remains the
-#   behavioral reference;
-# - always verify architecture claims and ADR references.
+# - lint/format only staged active Python files so new changes cannot add debt;
+# - exclude python_archive/ from active Python lint/format;
+# - always verify architecture claims and ADR references;
+# - Cargo checks run only when staged Cargo/Rust paths change.
 #
-# Existing full-tree Ruff debt is tracked separately and must not be hidden.
-# ADR-0007 repository-harness Cargo checks run only when staged Cargo/Rust
-# paths change. Python reference checks remain in place until final cutover.
+# Python product code is archived prior art under python_archive/product/.
+# Active Python is the repository-control harness only (ADR-0007).
 #
 # Install exactly (forced overwrite prevents legacy hook chaining):
 #   uv run pre-commit install --install-hooks --overwrite
@@ -44,7 +43,7 @@ repos:
         entry: cargo check --workspace --offline
         language: system
         pass_filenames: false
-        files: ^(Cargo\.(toml|lock)|crates/.*\.(rs|toml)|python_archive/.*\.rs)$
+        files: ^(Cargo\.(toml|lock)|crates/.*\.(rs|toml))$
 
       - id: architecture-claim-conformance
         name: architecture lifecycle tags and ADR references
