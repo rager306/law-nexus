@@ -285,21 +285,27 @@
       "theme": "Inventory/gate/identity/temporal shared port contracts",
       "status": "complete",
       "boundary": "Inventory store/visibility, gate candidate, identity store, temporal clock evidence shared contracts with hostile negatives. Coverage 15/7 remaining of 22. No RuVector/TEI claim; no full coverage claim."
+    },
+    {
+      "range": "M150-M150",
+      "theme": "Residual capability shared port contracts",
+      "status": "complete",
+      "boundary": "Accelerate/conformance/dispose/relation/replay shared contracts with hostile negatives where available. Coverage inventory 22/22 crate-qualified InMemory adapters as bounded port suites only. No RuVector/TEI claim; no product-readiness claim."
     }
   ],
   "current_milestone": {
-    "id": "M149-0wfmf6",
-    "title": "Expand Shared Port Contracts to Inventory Gate Identity Temporal",
+    "id": "M150-5svwot",
+    "title": "Expand Shared Port Contracts to Residual Capability Adapters",
     "status": "complete",
-    "goal": "Expand ln-testkit shared contracts to inventory, gate, identity, and temporal ports with hostile negatives (ADR-0015)."
+    "goal": "Expand ln-testkit shared contracts to residual accelerate/conformance/dispose/relation/replay adapters; full InMemory inventory coverage 22/22 as bounded port suites (ADR-0015)."
   },
   "recommended_next": {
-    "title": "M150 Expand Shared Port Contracts to Residual Capability Adapters",
+    "title": "M151 Process Hardening and Real Adapter Preparation",
     "priority": 1,
-    "why": "M149 covered 15/22 crate-qualified InMemory adapters. Next expand accelerate/conformance/dispose/relation/replay residual contracts; keep strict coverage gate deferred.",
+    "why": "M150 closed residual InMemory shared-contract debt (22/22 bounded). Next process hardening: governor-native coverage check, optional strict coverage policy decision, and preparation for real TEI/RuVector adapter suites without overclaim.",
     "plan_reference": "doc/adr/0015-hexagonal-verification-architecture.md follow-on increments",
-    "slices": "Accelerate/conformance/dispose/relation/replay shared contracts; optional governor-native coverage check.",
-    "non_validation": "M149 does not validate RuVector/TEI or full InMemory shared-contract coverage."
+    "slices": "Governor-native coverage finding; strict-coverage policy decision; real-adapter contract preparation when infrastructure lands.",
+    "non_validation": "M150 does not validate RuVector/TEI or product readiness; full InMemory coverage is bounded port-suite coverage only."
   },
   "downstream_blocked": [
     {

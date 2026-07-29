@@ -2,7 +2,7 @@
 
 All notable changes to law-nexus are documented in this file.
 
-## M150 (in progress)
+## M150 (complete)
 
 ### S01: Accelerate and conformance shared contracts
 - AccelerationLedgerPort honest + HostileLabelMutator negative
