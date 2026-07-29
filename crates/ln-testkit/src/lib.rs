@@ -12,8 +12,12 @@ use ln_accelerate::domain::{
     WriterId as AccelWriterId,
 };
 use ln_accelerate::ports::AccelerationLedgerPort;
+use ln_admission::domain::{BoundId, BoundObservationKind};
+use ln_admission::ports::BoundObservationPort;
 use ln_citation::domain::{SourceAuthority, SourceRef};
 use ln_citation::ports::CitationSourcePort;
+use ln_closure::domain::{NodeId as ClosureNodeId, RuleVersion as ClosureRuleVersion};
+use ln_closure::ports::DependencyEvidencePort;
 use ln_conformance::domain::CaseVerdict;
 use ln_conformance::ports::ConformanceOraclePort;
 use ln_decode::domain::{
@@ -1105,5 +1109,91 @@ pub fn assert_embedding_port_contract<E: EmbeddingPort>(
     assert!(
         response.vector().iter().all(|v| v.is_finite()),
         "embedding vector must be finite"
+    );
+}
+
+/// Shared semantic contract for honest [`BoundObservationPort`] adapters.
+///
+/// Expects measured local bound without vendor throughput/latency/storage
+/// claims. Hostile vendor-capacity adapters that invent vendor numbers must
+/// fail this suite (see [`assert_hostile_vendor_capacity_fails_honest_bound_contract`]).
+pub fn assert_bound_observation_port_contract<B: BoundObservationPort>(bound: &B) {
+    let observation = bound.observe();
+    assert_eq!(
+        observation.kind,
+        BoundObservationKind::Measured,
+        "honest bound observation fixture must be measured"
+    );
+    assert!(
+        observation.bound_id.is_some(),
+        "honest measured bound must carry a local bound id"
+    );
+    assert!(
+        observation.vendor_throughput_claim.is_none()
+            && observation.vendor_latency_claim.is_none()
+            && observation.vendor_storage_claim.is_none(),
+        "honest bound observation must not invent vendor capacity numbers"
+    );
+}
+
+/// Negative contract: hostile vendor capacity invents vendor numbers and may
+/// pretend measured without honest local-only provenance.
+pub fn assert_hostile_vendor_capacity_fails_honest_bound_contract<B: BoundObservationPort>(
+    bound: &B,
+) {
+    let observation = bound.observe();
+    assert!(
+        observation.vendor_throughput_claim.is_some()
+            || observation.vendor_latency_claim.is_some()
+            || observation.vendor_storage_claim.is_some(),
+        "hostile vendor capacity expected to invent vendor numbers"
+    );
+}
+
+/// Shared semantic contract for honest [`DependencyEvidencePort`] adapters.
+///
+/// Expects registered nodes only, real deps for registered nodes, None for
+/// unregistered nodes, and non-inflated progress/queue signals. Hostile progress
+/// adapters that invent empty deps for unregistered nodes must fail this suite
+/// (see [`assert_hostile_progress_completeness_fails_honest_dependency_contract`]).
+pub fn assert_dependency_evidence_port_contract<D: DependencyEvidencePort>(evidence: &D) {
+    let registered = evidence.registered_nodes();
+    assert!(
+        !registered.is_empty(),
+        "honest dependency evidence fixture must register nodes"
+    );
+    let first = &registered[0];
+    assert!(
+        evidence.dependencies_of(first).is_some(),
+        "registered node must have dependency evidence (possibly empty leaf)"
+    );
+    let missing = ClosureNodeId::parse("node:unregistered-contract").expect("node id");
+    assert!(
+        evidence.dependencies_of(&missing).is_none(),
+        "unregistered node must return None, not invented empty deps"
+    );
+    assert!(
+        evidence.progress_count() < 1000 && evidence.queue_depth() < 1000,
+        "honest fixture must not inflate progress/queue as completeness evidence"
+    );
+    assert!(!evidence.rule_version().as_str().is_empty());
+    let _ = ClosureRuleVersion::parse(evidence.rule_version().as_str());
+}
+
+/// Negative contract: hostile progress completeness invents empty deps for
+/// unregistered nodes and inflates progress/queue signals.
+pub fn assert_hostile_progress_completeness_fails_honest_dependency_contract<
+    D: DependencyEvidencePort,
+>(
+    evidence: &D,
+) {
+    let missing = ClosureNodeId::parse("node:unregistered-contract").expect("node id");
+    assert!(
+        evidence.dependencies_of(&missing).is_some(),
+        "hostile progress adapter expected to invent empty deps for unregistered nodes"
+    );
+    assert!(
+        evidence.progress_count() >= 1000 || evidence.queue_depth() == 0,
+        "hostile progress adapter expected inflated progress and/or zero queue"
     );
 }

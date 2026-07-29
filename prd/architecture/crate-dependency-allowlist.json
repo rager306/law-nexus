@@ -49,7 +49,9 @@
     ["ln-testkit", "ln-conformance"],
     ["ln-testkit", "ln-dispose"],
     ["ln-testkit", "ln-relation"],
-    ["ln-testkit", "ln-replay"]
+    ["ln-testkit", "ln-replay"],
+    ["ln-testkit", "ln-admission"],
+    ["ln-testkit", "ln-closure"]
   ],
   "non_claims": [
     "Does not validate external crate licenses or versions.",
