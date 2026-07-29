@@ -31,6 +31,9 @@ COVERED_INMEMORY_ADAPTERS: frozenset[str] = frozenset(
         "ln-query::InMemoryQueryState",
         "ln-publish::InMemoryPublicationLedger",
         "ln-decode::InMemoryDiagnosticSink",
+        "ln-observe::InMemoryWorkState",
+        "ln-observe::InMemoryDiagnosticSink",
+        "ln-diagnostic::InMemoryDiagnosticSink",
     }
 )
 

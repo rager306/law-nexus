@@ -12,3 +12,5 @@ ln-promote = { path = "../ln-promote" }
 ln-query = { path = "../ln-query" }
 ln-publish = { path = "../ln-publish" }
 ln-decode = { path = "../ln-decode" }
+ln-observe = { path = "../ln-observe" }
+ln-diagnostic = { path = "../ln-diagnostic" }

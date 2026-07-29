@@ -169,7 +169,11 @@ pub struct WorkTransition {
 pub struct DiagnosticCode(&'static str);
 
 impl DiagnosticCode {
-    pub(crate) fn new(value: &'static str) -> Self {
+    /// Construct a diagnostic code token for observe-boundary events.
+    ///
+    /// Public so shared port-contract suites can build honest fixture events
+    /// without depending on application internals (ADR-0015).
+    pub fn new(value: &'static str) -> Self {
         Self(value)
     }
 

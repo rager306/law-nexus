@@ -302,6 +302,8 @@ version = "0.1.0"
 dependencies = [
  "ln-citation",
  "ln-decode",
+ "ln-diagnostic",
+ "ln-observe",
  "ln-promote",
  "ln-publish",
  "ln-query",

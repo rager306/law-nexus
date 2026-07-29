@@ -38,7 +38,9 @@
     ["ln-testkit", "ln-promote"],
     ["ln-testkit", "ln-query"],
     ["ln-testkit", "ln-publish"],
-    ["ln-testkit", "ln-decode"]
+    ["ln-testkit", "ln-decode"],
+    ["ln-testkit", "ln-observe"],
+    ["ln-testkit", "ln-diagnostic"]
   ],
   "non_claims": [
     "Does not validate external crate licenses or versions.",

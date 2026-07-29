@@ -13,6 +13,13 @@ use ln_decode::domain::{
     DecodeCategory, DecodeRequest, DiagnosticId, FamilyFormat, PayloadRef, SafeDiagnostic,
 };
 use ln_decode::ports::{DecoderPort, DiagnosticPort as DecodeDiagnosticPort};
+use ln_diagnostic::domain::SinkId;
+use ln_diagnostic::ports::DiagnosticSinkPort;
+use ln_observe::domain::{
+    DiagnosticCode, DiagnosticEvent, DiagnosticId as ObserveDiagnosticId, ObservationId,
+    ObservationRequestId, SourceChannelId, WorkPhase, WorkTransition,
+};
+use ln_observe::ports::{DiagnosticPort as ObserveDiagnosticPort, WorkStatePort};
 use ln_promote::domain::{
     AcceptedSetId, InputDigest, PromotionAttemptState, PromotionOpId, PromotionRecord,
 };
@@ -480,4 +487,80 @@ pub fn assert_decode_diagnostic_port_contract<S: DecodeDiagnosticPort>(sink: &mu
     assert_eq!(events[0].byte_count, 12);
     assert_eq!(events[0].fingerprint, "fp-contract-1");
     assert!(!events[0].positive_control);
+}
+
+/// Shared semantic contract for honest [`WorkStatePort`] adapters.
+pub fn assert_work_state_contract<S: WorkStatePort>(state: &mut S) {
+    assert!(
+        state.transitions().is_empty(),
+        "empty work state has no transitions"
+    );
+    let request_id = ObservationRequestId::parse("req:contract-1").expect("request id");
+    state.record_transition(WorkTransition {
+        request_id: request_id.clone(),
+        phase: WorkPhase::Started,
+    });
+    state.record_transition(WorkTransition {
+        request_id: request_id.clone(),
+        phase: WorkPhase::ObservationCompleted,
+    });
+    let transitions = state.transitions();
+    assert_eq!(transitions.len(), 2);
+    assert_eq!(transitions[0].request_id.as_str(), "req:contract-1");
+    assert_eq!(transitions[0].phase, WorkPhase::Started);
+    assert_eq!(transitions[1].phase, WorkPhase::ObservationCompleted);
+}
+
+/// Shared semantic contract for observe-crate [`ObserveDiagnosticPort`].
+pub fn assert_observe_diagnostic_port_contract<S: ObserveDiagnosticPort>(sink: &mut S) {
+    assert!(sink.events().is_empty(), "empty observe diagnostic sink");
+    let event = DiagnosticEvent {
+        diagnostic_id: ObserveDiagnosticId::parse("diag:observe-contract-1").expect("diag id"),
+        observation_id: ObservationId::parse("obs:contract-1").expect("obs id"),
+        source_channel_id: SourceChannelId::parse("channel:contract").expect("channel"),
+        phase: DiagnosticCode::new("observe-source"),
+        category: DiagnosticCode::new("timeout"),
+        retryable: true,
+        partial_byte_count: 4,
+        partial_fingerprint: "fp-partial".to_owned(),
+    };
+    sink.emit(event);
+    let events = sink.events();
+    assert_eq!(events.len(), 1);
+    assert_eq!(events[0].diagnostic_id.as_str(), "diag:observe-contract-1");
+    assert_eq!(events[0].phase.as_str(), "observe-source");
+    assert_eq!(events[0].category.as_str(), "timeout");
+    assert!(events[0].retryable);
+    assert_eq!(events[0].partial_byte_count, 4);
+}
+
+/// Shared semantic contract for honest [`DiagnosticSinkPort`] adapters.
+///
+/// Expects allowlist gating: only allowed sinks accept emit, disallowed sinks
+/// remain blocked. Hostile adapters that allow every sink must fail this suite
+/// (see [`assert_hostile_canary_fails_honest_diagnostic_sink_contract`]).
+pub fn assert_diagnostic_sink_port_contract<S: DiagnosticSinkPort>(sink: &mut S) {
+    let allowed = SinkId::parse("sink:contract-allowed").expect("sink");
+    let blocked = SinkId::parse("sink:contract-blocked").expect("sink");
+
+    assert!(
+        sink.is_allowed(&allowed),
+        "honest sink must allow configured sink"
+    );
+    assert!(
+        !sink.is_allowed(&blocked),
+        "honest sink must not allow unconfigured sink"
+    );
+    sink.emit(&allowed, "contract-safe-content");
+}
+
+/// Negative contract: hostile canary sink allows every sink id.
+pub fn assert_hostile_canary_fails_honest_diagnostic_sink_contract<S: DiagnosticSinkPort>(
+    sink: &S,
+) {
+    let blocked = SinkId::parse("sink:contract-blocked").expect("sink");
+    assert!(
+        sink.is_allowed(&blocked),
+        "hostile canary expected to allow unconfigured sink"
+    );
 }
