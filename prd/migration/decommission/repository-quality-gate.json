@@ -48,7 +48,8 @@
     "cargo test pre-commit gating",
     "cargo audit/deny",
     "repository harness document freshness",
-    "Rust artifact parity"
+    "Rust artifact parity",
+    "port-contract-coverage strict gate after shared suites cover remaining InMemory adapters"
   ],
   "product_logic_in_python_harness_allowed": false
 }

@@ -37,7 +37,7 @@ def failing_cargo_runner(command: tuple[str, ...], root: Path) -> CommandResult:
             stdout_tail="",
             stderr_tail="Diff in crates/example/src/lib.rs at line 7",
         )
-    return passing_runner(command, root)
+    return coverage_clean_runner(command, root)
 
 
 def write_gsd_state(root: Path) -> None:
@@ -108,25 +108,91 @@ EXPECTED_CHECK_IDS = [
     "cargo-fmt-workspace",
     "ruff-format-explicit-python-paths",
     "crate-dependency-allowlist",
+    "port-contract-coverage",
     "gitnexus-index-freshness",
     "gsd-state-surface",
     "docs-freshness-surface",
     "trajectory-governor",
 ]
 
+COVERAGE_COMMAND = (
+    "uv",
+    "run",
+    "python",
+    "scripts/verify-port-contract-coverage.py",
+)
+
+
+def coverage_debt_runner(command: tuple[str, ...], root: Path) -> CommandResult:
+    if command == COVERAGE_COMMAND:
+        payload = {
+            "schema_version": "law-nexus/port-contract-coverage/v1",
+            "lifecycle": "[bounded]",
+            "status": "debt",
+            "covered_count": 4,
+            "uncovered_count": 16,
+            "discovered_count": 20,
+            "covered": [],
+            "uncovered": [{"adapter": "InMemoryQueryState", "paths": []}],
+            "missing_declared_covered": [],
+        }
+        return CommandResult(
+            command=command,
+            duration_ms=1,
+            exit_code=0,
+            stdout_tail=json.dumps(payload),
+            stderr_tail="",
+        )
+    return passing_runner(command, root)
+
+
+def coverage_clean_runner(command: tuple[str, ...], root: Path) -> CommandResult:
+    if command == COVERAGE_COMMAND:
+        payload = {
+            "schema_version": "law-nexus/port-contract-coverage/v1",
+            "lifecycle": "[bounded]",
+            "status": "ok",
+            "covered_count": 1,
+            "uncovered_count": 0,
+            "discovered_count": 1,
+            "covered": [{"adapter": "InMemoryVectorStore", "paths": []}],
+            "uncovered": [],
+            "missing_declared_covered": [],
+        }
+        return CommandResult(
+            command=command,
+            duration_ms=1,
+            exit_code=0,
+            stdout_tail=json.dumps(payload),
+            stderr_tail="",
+        )
+    return passing_runner(command, root)
+
+
+def coverage_crash_runner(command: tuple[str, ...], root: Path) -> CommandResult:
+    if command == COVERAGE_COMMAND:
+        return CommandResult(
+            command=command,
+            duration_ms=1,
+            exit_code=2,
+            stdout_tail="",
+            stderr_tail="inventory crashed",
+        )
+    return passing_runner(command, root)
+
 
 def test_preflight_report_schema_and_formatter_profile_pass(tmp_path: Path) -> None:
     write_gitnexus_meta(tmp_path)
     write_gsd_state(tmp_path)
     write_docs(tmp_path)
-    report = run_test_preflight(tmp_path)
+    report = run_test_preflight(tmp_path, runner=coverage_clean_runner)
     payload = report.to_dict()
 
     assert payload["schema_version"] == PREFLIGHT_SCHEMA_VERSION
     assert payload["status"] == "ok"
     assert payload["root"] == str(tmp_path.resolve())
     assert [item["check_id"] for item in payload["checks"]] == EXPECTED_CHECK_IDS
-    assert payload["pass_count"] == 7
+    assert payload["pass_count"] == 8
     assert payload["warn_count"] == 0
     assert payload["error_count"] == 0
 
@@ -159,7 +225,7 @@ def test_ruff_format_check_includes_agent_skill_scripts() -> None:
 
     def recording_runner(command: tuple[str, ...], root: Path) -> CommandResult:
         commands.append(command)
-        return passing_runner(command, root)
+        return coverage_clean_runner(command, root)
 
     run_test_preflight(ROOT, runner=recording_runner)
 
@@ -183,6 +249,50 @@ def test_ruff_format_check_includes_agent_skill_scripts() -> None:
             ".agents/skills/pi-skill-creator/scripts/validate_pi_skill.py",
         )
     ]
+    assert COVERAGE_COMMAND in commands
+
+
+def test_port_contract_coverage_debt_is_advisory_warn(tmp_path: Path) -> None:
+    write_gitnexus_meta(tmp_path)
+    write_gsd_state(tmp_path)
+    write_docs(tmp_path)
+
+    payload = run_test_preflight(tmp_path, runner=coverage_debt_runner).to_dict()
+    by_id = {item["check_id"]: item for item in payload["checks"]}
+
+    assert payload["status"] == "ok"
+    assert payload["error_count"] == 0
+    assert payload["warn_count"] >= 1
+    assert by_id["port-contract-coverage"]["status"] == "warn"
+    assert "uncovered" in by_id["port-contract-coverage"]["observed"].lower()
+    assert "verify-port-contract-coverage.py" in " ".join(
+        by_id["port-contract-coverage"]["command"]
+    )
+
+
+def test_port_contract_coverage_clean_passes(tmp_path: Path) -> None:
+    write_gitnexus_meta(tmp_path)
+    write_gsd_state(tmp_path)
+    write_docs(tmp_path)
+
+    payload = run_test_preflight(tmp_path, runner=coverage_clean_runner).to_dict()
+    by_id = {item["check_id"]: item for item in payload["checks"]}
+
+    assert payload["status"] == "ok"
+    assert by_id["port-contract-coverage"]["status"] == "pass"
+
+
+def test_port_contract_coverage_script_failure_is_fail_closed(tmp_path: Path) -> None:
+    write_gitnexus_meta(tmp_path)
+    write_gsd_state(tmp_path)
+    write_docs(tmp_path)
+
+    payload = run_test_preflight(tmp_path, runner=coverage_crash_runner).to_dict()
+    by_id = {item["check_id"]: item for item in payload["checks"]}
+
+    assert payload["status"] == "failure"
+    assert by_id["port-contract-coverage"]["status"] == "fail"
+    assert "inventory crashed" in by_id["port-contract-coverage"]["stderr_tail"]
 
 
 def test_stale_gitnexus_metadata_is_warn_with_reindex_remediation(tmp_path: Path) -> None:
@@ -190,7 +300,7 @@ def test_stale_gitnexus_metadata_is_warn_with_reindex_remediation(tmp_path: Path
     write_gsd_state(tmp_path)
     write_docs(tmp_path)
 
-    report = run_test_preflight(tmp_path)
+    report = run_test_preflight(tmp_path, runner=coverage_clean_runner)
     payload = report.to_dict()
 
     assert payload["status"] == "ok"
@@ -217,7 +327,7 @@ def test_dirty_worktree_marks_gitnexus_freshness_warning(tmp_path: Path) -> None
                 stdout_tail=" M file.py\n",
                 stderr_tail="",
             )
-        return passing_runner(command, root)
+        return coverage_clean_runner(command, root)
 
     payload = run_test_preflight(tmp_path, runner=dirty_runner).to_dict()
     by_id = {item["check_id"]: item for item in payload["checks"]}
@@ -239,7 +349,7 @@ def test_completed_gsd_state_without_active_milestone_passes(tmp_path: Path) -> 
         encoding="utf-8",
     )
 
-    payload = run_test_preflight(tmp_path).to_dict()
+    payload = run_test_preflight(tmp_path, runner=coverage_clean_runner).to_dict()
     finding = {item["check_id"]: item for item in payload["checks"]}["gsd-state-surface"]
 
     assert finding["status"] == "pass"
@@ -259,7 +369,7 @@ def test_executing_gsd_state_without_active_milestone_warns(tmp_path: Path) -> N
         encoding="utf-8",
     )
 
-    payload = run_test_preflight(tmp_path).to_dict()
+    payload = run_test_preflight(tmp_path, runner=coverage_clean_runner).to_dict()
     finding = {item["check_id"]: item for item in payload["checks"]}["gsd-state-surface"]
 
     assert finding["status"] == "warn"
@@ -270,7 +380,7 @@ def test_missing_gsd_state_surface_is_warn_not_db_access(tmp_path: Path) -> None
     write_gitnexus_meta(tmp_path)
     write_docs(tmp_path)
 
-    payload = run_test_preflight(tmp_path).to_dict()
+    payload = run_test_preflight(tmp_path, runner=coverage_clean_runner).to_dict()
     by_id = {item["check_id"]: item for item in payload["checks"]}
 
     assert by_id["gsd-state-surface"]["status"] == "warn"
@@ -288,7 +398,7 @@ def test_docs_freshness_uses_only_tracked_portable_authority_surfaces(
     write_gitnexus_meta(tmp_path)
     write_gsd_state(tmp_path)
     write_docs(tmp_path)
-    payload = run_test_preflight(tmp_path).to_dict()
+    payload = run_test_preflight(tmp_path, runner=coverage_clean_runner).to_dict()
     finding = {item["check_id"]: item for item in payload["checks"]}["docs-freshness-surface"]
     assert finding["status"] == "pass"
     assert "requirements" not in finding["observed"].lower()
@@ -301,6 +411,7 @@ def test_portable_governor_failure_fails_preflight(tmp_path: Path) -> None:
 
     payload = run_test_preflight(
         tmp_path,
+        runner=coverage_clean_runner,
         governor_runner=lambda _root: governor_failure("architecture-direction-contract"),
     ).to_dict()
     finding = {item["check_id"]: item for item in payload["checks"]}["trajectory-governor"]
@@ -316,6 +427,7 @@ def test_portable_failure_is_not_hidden_by_missing_local_projection(tmp_path: Pa
 
     payload = run_test_preflight(
         tmp_path,
+        runner=coverage_clean_runner,
         governor_runner=lambda _root: governor_failure(
             "gsd-state-present", "architecture-direction-contract"
         ),
@@ -334,6 +446,7 @@ def test_existing_local_projection_debt_fails_preflight(tmp_path: Path) -> None:
 
     payload = run_test_preflight(
         tmp_path,
+        runner=coverage_clean_runner,
         governor_runner=lambda _root: governor_failure("gsd-no-open-registry-debt"),
     ).to_dict()
     finding = {item["check_id"]: item for item in payload["checks"]}["trajectory-governor"]
@@ -348,6 +461,7 @@ def test_local_projection_only_governor_failures_warn_in_preflight(tmp_path: Pat
 
     payload = run_test_preflight(
         tmp_path,
+        runner=coverage_clean_runner,
         governor_runner=lambda _root: governor_failure(
             "gsd-state-present", "roadmap-state-present"
         ),
@@ -363,7 +477,7 @@ def test_missing_docs_surface_warns_with_required_files(tmp_path: Path) -> None:
     write_gitnexus_meta(tmp_path)
     write_gsd_state(tmp_path)
 
-    payload = run_test_preflight(tmp_path).to_dict()
+    payload = run_test_preflight(tmp_path, runner=coverage_clean_runner).to_dict()
     by_id = {item["check_id"]: item for item in payload["checks"]}
 
     assert by_id["docs-freshness-surface"]["status"] == "warn"

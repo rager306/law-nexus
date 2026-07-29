@@ -386,6 +386,89 @@ def _trajectory_governor_check(root: Path, governor_runner: GovernorRunner) -> P
     )
 
 
+def _port_contract_coverage_check(root: Path, runner: Runner) -> PreflightCheck:
+    """Advisory inventory of InMemory adapters lacking shared ln-testkit contracts.
+
+    Debt remains non-blocking (warn) so remaining adapters stay visible without
+    thrashing every commit. Script crash or unreadable payload is fail-closed.
+    """
+    command = (
+        "uv",
+        "run",
+        "python",
+        "scripts/verify-port-contract-coverage.py",
+    )
+    result = runner(command, root)
+    remediation = (
+        "Expand ln-testkit shared port contracts for uncovered InMemory adapters "
+        "(ADR-0015) or inspect `uv run python scripts/verify-port-contract-coverage.py`. "
+        "Do not claim full coverage or real TEI/RuVector validation from inventory alone."
+    )
+    if result.exit_code != 0:
+        return PreflightCheck(
+            check_id="port-contract-coverage",
+            phase="architecture",
+            status="fail",
+            severity="error",
+            command=result.command,
+            duration_ms=result.duration_ms,
+            exit_code=result.exit_code,
+            stdout_tail=result.stdout_tail,
+            stderr_tail=result.stderr_tail,
+            observed="Port-contract coverage inventory script failed.",
+            remediation=remediation,
+        )
+    try:
+        payload = json.loads(result.stdout_tail or "{}")
+    except json.JSONDecodeError as error:
+        return PreflightCheck(
+            check_id="port-contract-coverage",
+            phase="architecture",
+            status="fail",
+            severity="error",
+            command=result.command,
+            duration_ms=result.duration_ms,
+            exit_code=result.exit_code,
+            stdout_tail=result.stdout_tail,
+            stderr_tail=str(error),
+            observed="Port-contract coverage inventory did not emit valid JSON.",
+            remediation=remediation,
+        )
+    uncovered = int(payload.get("uncovered_count") or 0)
+    covered = int(payload.get("covered_count") or 0)
+    discovered = int(payload.get("discovered_count") or 0)
+    status = str(payload.get("status") or "")
+    if uncovered > 0 or status == "debt":
+        return _warning_check(
+            check_id="port-contract-coverage",
+            phase="architecture",
+            command=result.command,
+            observed=(
+                f"InMemory port-contract coverage debt: covered={covered}, "
+                f"uncovered={uncovered}, discovered={discovered} "
+                f"(lifecycle [bounded]; not real-adapter validation)."
+            ),
+            remediation=remediation,
+            duration_ms=result.duration_ms,
+            exit_code=result.exit_code,
+            stdout_tail=result.stdout_tail,
+            stderr_tail=result.stderr_tail,
+        )
+    return _pass_check(
+        check_id="port-contract-coverage",
+        phase="architecture",
+        command=result.command,
+        observed=(
+            f"All discovered InMemory adapters are covered by ln-testkit shared "
+            f"contracts (covered={covered}, discovered={discovered})."
+        ),
+        duration_ms=result.duration_ms,
+        exit_code=result.exit_code,
+        stdout_tail=result.stdout_tail,
+        stderr_tail=result.stderr_tail,
+    )
+
+
 def _docs_freshness_surface_check(root: Path) -> PreflightCheck:
     command = ("read", *DOCS_FRESHNESS_PATHS)
     remediation = (
@@ -468,6 +551,7 @@ def run_preflight(
                 "hexagonal composition edges (ADR-0015)."
             ),
         ),
+        _port_contract_coverage_check(resolved_root, runner),
         _gitnexus_freshness_check(resolved_root, runner),
         _gsd_state_surface_check(resolved_root),
         _docs_freshness_surface_check(resolved_root),
