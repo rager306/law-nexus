@@ -30,6 +30,7 @@ def test_declared_covered_set_is_crate_qualified() -> None:
         "ln-promote::InMemoryPromotionStore",
         "ln-query::InMemoryQueryState",
         "ln-publish::InMemoryPublicationLedger",
+        "ln-decode::InMemoryDiagnosticSink",
     }
     assert module.SCHEMA_VERSION == "law-nexus/port-contract-coverage/v2"
 
@@ -55,14 +56,16 @@ def test_repository_report_lists_covered_and_uncovered() -> None:
         "ln-promote::InMemoryPromotionStore",
         "ln-query::InMemoryQueryState",
         "ln-publish::InMemoryPublicationLedger",
+        "ln-decode::InMemoryDiagnosticSink",
     }
-    assert payload["covered_count"] == 6
+    assert payload["covered_count"] == 7
     assert payload["uncovered_count"] > 0
     assert payload["status"] == "debt"
     uncovered = {item["identity"] for item in payload["uncovered"]}
     assert "ln-inventory::InMemoryInventoryStore" in uncovered
     assert "ln-query::InMemoryQueryState" not in uncovered
     assert "ln-publish::InMemoryPublicationLedger" not in uncovered
+    assert "ln-decode::InMemoryDiagnosticSink" not in uncovered
 
 
 def test_same_named_adapters_in_different_crates_are_distinct() -> None:
@@ -83,7 +86,8 @@ def test_same_named_adapters_in_different_crates_are_distinct() -> None:
     }
     assert diagnostic_sinks <= identities
     assert payload["discovered_count"] == 22
-    assert payload["uncovered_count"] == 16
+    assert payload["uncovered_count"] == 15
+    assert "ln-decode::InMemoryDiagnosticSink" in {item["identity"] for item in payload["covered"]}
 
 
 def test_strict_mode_fails_while_debt_remains() -> None:
@@ -107,5 +111,6 @@ def test_discover_inmemory_adapters_uses_crate_qualified_keys() -> None:
     assert "ln-promote::InMemoryPromotionStore" in found
     assert "ln-query::InMemoryQueryState" in found
     assert "ln-publish::InMemoryPublicationLedger" in found
+    assert "ln-decode::InMemoryDiagnosticSink" in found
     assert found["ln-decode::InMemoryDiagnosticSink"]["crate"] == "ln-decode"
     assert found["ln-observe::InMemoryDiagnosticSink"]["adapter"] == "InMemoryDiagnosticSink"

@@ -9,6 +9,10 @@
 
 use ln_citation::domain::{SourceAuthority, SourceRef};
 use ln_citation::ports::CitationSourcePort;
+use ln_decode::domain::{
+    DecodeCategory, DecodeRequest, DiagnosticId, FamilyFormat, PayloadRef, SafeDiagnostic,
+};
+use ln_decode::ports::{DecoderPort, DiagnosticPort as DecodeDiagnosticPort};
 use ln_promote::domain::{
     AcceptedSetId, InputDigest, PromotionAttemptState, PromotionOpId, PromotionRecord,
 };
@@ -385,4 +389,95 @@ pub fn assert_publication_ledger_contract<S: PublicationLedgerPort>(ledger: &mut
         "non-authoritative put must not replace exclusive writer"
     );
     assert_eq!(ledger.authoritative_count(), 1);
+}
+
+/// Shared semantic contract for honest [`DecoderPort`] adapters.
+///
+/// Expects structural emissions with anchors and no gate-owned categories or
+/// raw payload leakage. Malicious adapters that emit VerifiedAssertion /
+/// MergedIdentity / UnregisteredRelation / RawFailureContext or canary raw
+/// context must fail this suite (see
+/// [`assert_malicious_decoder_fails_honest_contract`]).
+pub fn assert_decoder_port_contract<D: DecoderPort>(decoder: &D) {
+    let request = DecodeRequest::new(
+        PayloadRef::parse("payload:contract-decode").expect("payload"),
+        FamilyFormat::parse("family:synthetic").expect("family"),
+        b"contract decode bytes",
+    );
+    let emissions = decoder.decode(&request);
+    assert!(
+        !emissions.is_empty(),
+        "honest decoder must emit at least one structural candidate"
+    );
+    for emission in &emissions {
+        assert_eq!(
+            emission.category,
+            DecodeCategory::StructuralCandidate,
+            "honest decoder must only emit structural candidates"
+        );
+        assert!(
+            emission.anchor.is_some(),
+            "honest structural emission must carry an evidence anchor"
+        );
+        assert!(
+            emission.raw_context.is_none(),
+            "honest decoder must not leak raw context"
+        );
+        if let Some(anchor) = &emission.anchor {
+            assert_eq!(anchor.start_offset, 0);
+            assert_eq!(anchor.end_offset, request.bytes.len());
+            assert!(
+                !anchor.fingerprint.is_empty(),
+                "anchor fingerprint must be present"
+            );
+        }
+    }
+}
+
+/// Negative contract: malicious decoder emits gate-owned categories and raw canaries.
+pub fn assert_malicious_decoder_fails_honest_contract<D: DecoderPort>(decoder: &D) {
+    let request = DecodeRequest::new(
+        PayloadRef::parse("payload:contract-hostile").expect("payload"),
+        FamilyFormat::parse("family:synthetic").expect("family"),
+        b"CANARY::SYNTHETIC-LEGAL-TEXT-DO-NOT-LEAK",
+    );
+    let emissions = decoder.decode(&request);
+    assert!(
+        !emissions.is_empty(),
+        "malicious fixture must still emit something"
+    );
+    let categories: Vec<DecodeCategory> = emissions.iter().map(|e| e.category).collect();
+    assert!(
+        categories
+            .iter()
+            .any(|c| *c != DecodeCategory::StructuralCandidate),
+        "malicious decoder expected to emit non-structural categories, got {categories:?}"
+    );
+    assert!(
+        emissions.iter().any(|e| e.raw_context.is_some()),
+        "malicious decoder expected to leak raw_context"
+    );
+}
+
+/// Shared semantic contract for decode-crate [`DecodeDiagnosticPort`].
+pub fn assert_decode_diagnostic_port_contract<S: DecodeDiagnosticPort>(sink: &mut S) {
+    assert!(
+        sink.events().is_empty(),
+        "empty diagnostic sink has no events"
+    );
+    let event = SafeDiagnostic {
+        diagnostic_id: DiagnosticId::parse("diag:contract-1").expect("diagnostic id"),
+        category: "contract".to_owned(),
+        positive_control: false,
+        byte_count: 12,
+        fingerprint: "fp-contract-1".to_owned(),
+    };
+    sink.record(event.clone());
+    let events = sink.events();
+    assert_eq!(events.len(), 1);
+    assert_eq!(events[0].diagnostic_id.as_str(), "diag:contract-1");
+    assert_eq!(events[0].category, "contract");
+    assert_eq!(events[0].byte_count, 12);
+    assert_eq!(events[0].fingerprint, "fp-contract-1");
+    assert!(!events[0].positive_control);
 }
