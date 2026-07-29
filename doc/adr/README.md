@@ -18,6 +18,7 @@
 - **ADR-0012** — Consequential evidence protocol (storage/ledger/workspace candidate assessment)
 - **ADR-0013** — Universal multi-source parser architecture (Consultant XML + Garant ODT, bounded morphology, sentence and lexical candidates)
 - **ADR-0014** — RuVector as primary graph+vector infrastructure (RVF + redb dual storage, replacing FalkorDB)
+- **ADR-0015** — Hexagonal verification architecture (overlapping contours, port contracts, lifecycle honesty)
 
 ## Archived (Python-specific, M068–M106)
 
