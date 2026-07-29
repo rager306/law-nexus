@@ -12,6 +12,7 @@ from law_nexus_harness.governor import (
     GOVERNOR_SCHEMA_VERSION,
     check_active_requirement_contradictions,
     check_architecture_direction,
+    check_ci_quality_gate_drift,
     check_forward_roadmap_sequence,
     check_hostile_negative_suite_coverage,
     check_hostile_proof_chain,
@@ -534,8 +535,76 @@ def test_live_governor_passes_live_adapter_readiness() -> None:
     assert report.error_count == 0
     assert report.warn_count == 0
     assert report.status == "ok"
+
+
+def test_live_governor_passes_ci_quality_gate_drift() -> None:
+    report = run_governor(ROOT)
+    by_id = {item.check_id: item for item in report.findings}
+    assert "ci-quality-gate-drift" in by_id
+    finding = by_id["ci-quality-gate-drift"]
+    assert finding.status == "pass"
+    assert finding.severity == "ok"
+    assert "hooks=" in finding.observed
+    assert "process_suite=" in finding.observed
+    assert "inventory_scripts=" in finding.observed
+    assert report.error_count == 0
     assert report.warn_count == 0
     assert report.status == "ok"
+
+
+def test_ci_quality_gate_drift_detects_hook_mismatch(tmp_path: Path) -> None:
+    import json as _json
+
+    inv = tmp_path / "prd" / "migration" / "decommission" / "repository-quality-gate.json"
+    inv.parent.mkdir(parents=True, exist_ok=True)
+    inv.write_text(
+        _json.dumps(
+            {
+                "checks": [{"id": "ruff-check-python"}, {"id": "fake-extra-hook"}],
+                "ci_process_suite": [],
+                "ci_inventory_scripts": [],
+            }
+        )
+    )
+    pre = tmp_path / ".pre-commit-config.yaml"
+    pre.write_text("repos:\n  - repo: local\n    hooks:\n      - id: ruff-check-python\n")
+    ci = tmp_path / ".github" / "workflows" / "repository-quality.yml"
+    ci.parent.mkdir(parents=True, exist_ok=True)
+    ci.write_text("")
+    findings = check_ci_quality_gate_drift(tmp_path)
+    assert len(findings) == 1
+    finding = findings[0]
+    assert finding.status == "fail"
+    assert finding.severity == "warn"
+    assert "pre_commit_vs_qg_checks" in finding.observed
+
+
+def test_ci_quality_gate_drift_detects_ci_suite_missing(tmp_path: Path) -> None:
+    import json as _json
+
+    inv = tmp_path / "prd" / "migration" / "decommission" / "repository-quality-gate.json"
+    inv.parent.mkdir(parents=True, exist_ok=True)
+    inv.write_text(
+        _json.dumps(
+            {
+                "checks": [{"id": "ruff-check-python"}],
+                "ci_process_suite": ["tests/test_missing_from_ci.py"],
+                "ci_inventory_scripts": ["scripts/verify-missing.py"],
+            }
+        )
+    )
+    pre = tmp_path / ".pre-commit-config.yaml"
+    pre.write_text("repos:\n  - repo: local\n    hooks:\n      - id: ruff-check-python\n")
+    ci = tmp_path / ".github" / "workflows" / "repository-quality.yml"
+    ci.parent.mkdir(parents=True, exist_ok=True)
+    ci.write_text("")
+    findings = check_ci_quality_gate_drift(tmp_path)
+    assert len(findings) == 1
+    finding = findings[0]
+    assert finding.status == "fail"
+    assert finding.severity == "warn"
+    assert "process_suite_missing_from_ci" in finding.observed
+    assert "inventory_scripts_missing_from_ci" in finding.observed
 
 
 def test_hostile_negative_suite_coverage_pass_when_no_hostiles(tmp_path: Path) -> None:

@@ -1221,6 +1221,105 @@ def check_live_adapter_readiness(root: Path) -> list[GovernorFinding]:
     ]
 
 
+def _extract_pre_commit_hook_ids(root: Path) -> set[str]:
+    """Extract local hook IDs from .pre-commit-config.yaml without yaml dependency."""
+    config = root / ".pre-commit-config.yaml"
+    if not config.is_file():
+        return set()
+    text = config.read_text(encoding="utf-8", errors="replace")
+    return set(re.findall(r"-\s+id:\s+(\S+)", text))
+
+
+def _extract_ci_content(root: Path) -> str:
+    """Read the CI workflow file content for drift detection."""
+    ci = root / ".github" / "workflows" / "repository-quality.yml"
+    if not ci.is_file():
+        return ""
+    return ci.read_text(encoding="utf-8", errors="replace")
+
+
+def check_ci_quality_gate_drift(root: Path) -> list[GovernorFinding]:
+    """Detect drift between pre-commit hooks, CI workflow, and quality-gate inventory.
+
+    Debt is non-blocking (fail + warn). Missing inventory file is fail-closed
+    (fail + error). This check enforces that process surfaces stay synchronized
+    so CI cannot silently drop inventory scripts or pre-commit hooks.
+    """
+    check_id = "ci-quality-gate-drift"
+    remediation = (
+        "Synchronize .pre-commit-config.yaml hook IDs, "
+        ".github/workflows/repository-quality.yml process suite/inventory scripts, "
+        "and prd/migration/decommission/repository-quality-gate.json. "
+        "Do not claim process readiness from a drifted inventory."
+    )
+
+    inventory_path = root / "prd" / "migration" / "decommission" / "repository-quality-gate.json"
+    try:
+        payload = json.loads(inventory_path.read_text(encoding="utf-8"))
+    except Exception as error:  # noqa: BLE001 - fail-closed process surface
+        return [
+            GovernorFinding(
+                check_id=check_id,
+                status="fail",
+                severity="error",
+                message="quality-gate inventory load failed",
+                observed=str(error),
+                remediation=remediation,
+            )
+        ]
+
+    qg_check_ids = {check["id"] for check in payload.get("checks", [])}
+    qg_process_suite = set(payload.get("ci_process_suite", []))
+    qg_inventory_scripts = set(payload.get("ci_inventory_scripts", []))
+
+    pre_commit_ids = _extract_pre_commit_hook_ids(root)
+    ci_text = _extract_ci_content(root)
+
+    drift_details: list[str] = []
+
+    pre_vs_qg_hooks = pre_commit_ids.symmetric_difference(qg_check_ids)
+    if pre_vs_qg_hooks:
+        drift_details.append(f"pre_commit_vs_qg_checks={sorted(pre_vs_qg_hooks)}")
+
+    suite_missing_from_ci = {t for t in qg_process_suite if t not in ci_text}
+    if suite_missing_from_ci:
+        drift_details.append(f"process_suite_missing_from_ci={sorted(suite_missing_from_ci)}")
+
+    scripts_missing_from_ci = {t for t in qg_inventory_scripts if t not in ci_text}
+    if scripts_missing_from_ci:
+        drift_details.append(f"inventory_scripts_missing_from_ci={sorted(scripts_missing_from_ci)}")
+
+    if drift_details:
+        return [
+            GovernorFinding(
+                check_id=check_id,
+                status="fail",
+                severity="warn",
+                message="CI/pre-commit/quality-gate inventory drift detected",
+                observed=(
+                    f"{'; '.join(drift_details)} "
+                    f"(lifecycle [bounded]; process anti-drift; not product readiness)."
+                ),
+                remediation=remediation,
+            )
+        ]
+
+    return [
+        GovernorFinding(
+            check_id=check_id,
+            status="pass",
+            severity="ok",
+            message="pre-commit hooks, CI process suite, and inventory scripts synchronized",
+            observed=(
+                f"hooks={len(pre_commit_ids)}, process_suite={len(qg_process_suite)}, "
+                f"inventory_scripts={len(qg_inventory_scripts)} "
+                f"(lifecycle [bounded]; process anti-drift; not product readiness)."
+            ),
+            remediation="none",
+        )
+    ]
+
+
 def run_governor(root: Path | None = None) -> GovernorReport:
     """Run all governor checks and return a machine-readable report."""
 
@@ -1236,6 +1335,7 @@ def run_governor(root: Path | None = None) -> GovernorReport:
         + check_hostile_negative_suite_coverage(resolved)
         + check_multi_adapter_port_coverage(resolved)
         + check_live_adapter_readiness(resolved)
+        + check_ci_quality_gate_drift(resolved)
     )
     error_count = sum(1 for item in findings if item.status == "fail" and item.severity == "error")
     warn_count = sum(1 for item in findings if item.status == "fail" and item.severity == "warn")
