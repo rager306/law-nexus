@@ -305,6 +305,7 @@ dependencies = [
  "ln-conformance",
  "ln-decode",
  "ln-diagnostic",
+ "ln-dispose",
  "ln-gate",
  "ln-identity",
  "ln-inventory",

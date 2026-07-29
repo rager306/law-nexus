@@ -20,3 +20,4 @@ ln-identity = { path = "../ln-identity" }
 ln-temporal = { path = "../ln-temporal" }
 ln-accelerate = { path = "../ln-accelerate" }
 ln-conformance = { path = "../ln-conformance" }
+ln-dispose = { path = "../ln-dispose" }

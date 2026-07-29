@@ -41,6 +41,8 @@ def test_declared_covered_set_is_crate_qualified() -> None:
         "ln-temporal::InMemoryClockEvidence",
         "ln-accelerate::InMemoryAccelerationLedger",
         "ln-conformance::InMemoryConformanceOracle",
+        "ln-dispose::InMemoryDispositionStore",
+        "ln-dispose::InMemoryPromotionGate",
     }
     assert module.SCHEMA_VERSION == "law-nexus/port-contract-coverage/v2"
 
@@ -77,8 +79,10 @@ def test_repository_report_lists_covered_and_uncovered() -> None:
         "ln-temporal::InMemoryClockEvidence",
         "ln-accelerate::InMemoryAccelerationLedger",
         "ln-conformance::InMemoryConformanceOracle",
+        "ln-dispose::InMemoryDispositionStore",
+        "ln-dispose::InMemoryPromotionGate",
     }
-    assert payload["covered_count"] == 17
+    assert payload["covered_count"] == 19
     assert payload["uncovered_count"] > 0
     assert payload["status"] == "debt"
     uncovered = {item["identity"] for item in payload["uncovered"]}
@@ -88,6 +92,8 @@ def test_repository_report_lists_covered_and_uncovered() -> None:
     assert "ln-temporal::InMemoryClockEvidence" not in uncovered
     assert "ln-accelerate::InMemoryAccelerationLedger" not in uncovered
     assert "ln-conformance::InMemoryConformanceOracle" not in uncovered
+    assert "ln-dispose::InMemoryDispositionStore" not in uncovered
+    assert "ln-dispose::InMemoryPromotionGate" not in uncovered
     assert "ln-replay::InMemoryCheckpointStore" in uncovered
     assert "ln-query::InMemoryQueryState" not in uncovered
     assert "ln-publish::InMemoryPublicationLedger" not in uncovered
@@ -114,7 +120,7 @@ def test_same_named_adapters_in_different_crates_are_distinct() -> None:
     }
     assert diagnostic_sinks <= identities
     assert payload["discovered_count"] == 22
-    assert payload["uncovered_count"] == 5
+    assert payload["uncovered_count"] == 3
     covered_ids = {item["identity"] for item in payload["covered"]}
     assert diagnostic_sinks <= covered_ids
     assert "ln-inventory::InMemoryInventoryStore" in covered_ids
@@ -124,6 +130,8 @@ def test_same_named_adapters_in_different_crates_are_distinct() -> None:
     assert "ln-temporal::InMemoryClockEvidence" in covered_ids
     assert "ln-accelerate::InMemoryAccelerationLedger" in covered_ids
     assert "ln-conformance::InMemoryConformanceOracle" in covered_ids
+    assert "ln-dispose::InMemoryDispositionStore" in covered_ids
+    assert "ln-dispose::InMemoryPromotionGate" in covered_ids
 
 
 def test_strict_mode_fails_while_debt_remains() -> None:

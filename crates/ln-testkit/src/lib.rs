@@ -22,6 +22,11 @@ use ln_decode::domain::{
 use ln_decode::ports::{DecoderPort, DiagnosticPort as DecodeDiagnosticPort};
 use ln_diagnostic::domain::SinkId;
 use ln_diagnostic::ports::DiagnosticSinkPort;
+use ln_dispose::domain::{
+    Disposition, DispositionReason, DispositionState, InventoryItemId as DisposeItemId,
+    PromotionOutcome,
+};
+use ln_dispose::ports::{DispositionStorePort, PromotionGatePort};
 use ln_gate::domain::{CandidateId, CandidateRecord, LifecycleType};
 use ln_gate::ports::CandidateStorePort;
 use ln_identity::domain::{IdentityId, IdentityRecord};
@@ -877,4 +882,56 @@ pub fn assert_hostile_verdict_inflator_fails_honest_conformance_contract<
         CaseVerdict::Pass,
         "hostile inflator expected to invent Pass for unknown cases"
     );
+}
+
+/// Shared semantic contract for honest [`DispositionStorePort`] adapters.
+pub fn assert_disposition_store_contract<S: DispositionStorePort>(store: &mut S) {
+    let item = DisposeItemId::parse("item:contract-1").expect("item id");
+    let missing = DisposeItemId::parse("item:missing").expect("item id");
+    assert!(store.get_disposition(&item).is_none());
+    assert!(store.get_disposition(&missing).is_none());
+
+    store.set_disposition(Disposition {
+        item_id: item.clone(),
+        state: DispositionState::Pending,
+        reason: DispositionReason::Incomplete,
+        evidence_ids: Vec::new(),
+        accepted_commit_id: None,
+        promotion_identity: None,
+    });
+    let loaded = store.get_disposition(&item).expect("disposition readable");
+    assert_eq!(loaded.state, DispositionState::Pending);
+    assert_eq!(loaded.reason, DispositionReason::Incomplete);
+    assert!(loaded.accepted_commit_id.is_none());
+
+    store.set_disposition(Disposition {
+        item_id: item.clone(),
+        state: DispositionState::Accepted,
+        reason: DispositionReason::Accepted,
+        evidence_ids: Vec::new(),
+        accepted_commit_id: None,
+        promotion_identity: None,
+    });
+    let accepted = store.get_disposition(&item).expect("accepted disposition");
+    assert_eq!(accepted.state, DispositionState::Accepted);
+    assert!(accepted.state.is_accepted());
+}
+
+/// Shared semantic contract for honest [`PromotionGatePort`] adapters.
+///
+/// Expects accepted disposition path to commit and non-accepted path to reject
+/// without a commit identity.
+pub fn assert_promotion_gate_port_contract<G: PromotionGatePort>(gate: &mut G) {
+    let item = DisposeItemId::parse("item:contract-gate").expect("item id");
+    let committed = gate.attempt_promotion(&item, true);
+    assert_eq!(committed.outcome, PromotionOutcome::Committed);
+    assert_eq!(committed.reason, DispositionReason::Accepted);
+    assert!(committed.commit_id.is_some());
+    assert!(committed.promotion_identity.is_some());
+
+    let rejected = gate.attempt_promotion(&item, false);
+    assert_eq!(rejected.outcome, PromotionOutcome::Rejected);
+    assert_eq!(rejected.reason, DispositionReason::Incomplete);
+    assert!(rejected.commit_id.is_none());
+    assert!(rejected.promotion_identity.is_none());
 }
