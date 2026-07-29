@@ -10,3 +10,4 @@ ln-storage = { path = "../ln-storage" }
 ln-citation = { path = "../ln-citation" }
 ln-promote = { path = "../ln-promote" }
 ln-query = { path = "../ln-query" }
+ln-publish = { path = "../ln-publish" }

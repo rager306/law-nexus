@@ -13,6 +13,12 @@ use ln_promote::domain::{
     AcceptedSetId, InputDigest, PromotionAttemptState, PromotionOpId, PromotionRecord,
 };
 use ln_promote::ports::PromotionStorePort;
+use ln_publish::domain::{
+    AuthoritySurface, CompletenessEvidence, CutoffId, H1UnitId, InputDigest as PubInputDigest,
+    OperationId as PubOperationId, PublicationAuthority, PublicationRecord, RuleVersion, ScopeId,
+    WriterId,
+};
+use ln_publish::ports::PublicationLedgerPort;
 use ln_query::domain::EvidenceId;
 use ln_query::ports::QueryStatePort;
 use ln_storage::{
@@ -287,4 +293,96 @@ pub fn assert_hostile_gap_inventor_fails_honest_query_contract<S: QueryStatePort
         !ids.contains(&"ev:contract-missing"),
         "hostile inventor still lists only real evidence_ids, got {ids:?}"
     );
+}
+
+/// Shared semantic contract for honest [`PublicationLedgerPort`] adapters.
+///
+/// Covers store-level put/get/writer/unit/count semantics. Application-owned
+/// exclusivity policy remains in `ln-publish` use-case tests.
+pub fn assert_publication_ledger_contract<S: PublicationLedgerPort>(ledger: &mut S) {
+    let op = PubOperationId::parse("op:contract-1").expect("op");
+    let writer = WriterId::parse("writer:contract-A").expect("writer");
+    let scope = ScopeId::parse("scope:contract-S1").expect("scope");
+    let unit = H1UnitId::parse("h1:contract-1").expect("unit");
+    let digest = PubInputDigest::parse("digest:contract-1").expect("digest");
+
+    assert!(
+        ledger.get_by_operation(&op).is_none(),
+        "empty ledger has no operation record"
+    );
+    assert_eq!(ledger.authoritative_count(), 0);
+    assert!(!ledger.has_unit(&unit));
+    assert!(ledger.writer_for_scope(&scope).is_none());
+
+    let record = PublicationRecord {
+        operation_id: op.clone(),
+        writer_id: writer.clone(),
+        scope_id: scope.clone(),
+        cutoff_id: CutoffId::parse("cutoff:contract").expect("cutoff"),
+        rule_version: RuleVersion::parse("rules:contract-v1").expect("rules"),
+        input_digest: digest,
+        h1_unit_id: unit.clone(),
+        completeness: CompletenessEvidence::Complete,
+        authoritative: true,
+        publication_authority: Some(PublicationAuthority::default()),
+        authority_surface: AuthoritySurface::Publication,
+    };
+    ledger.put(record.clone());
+
+    let loaded = ledger
+        .get_by_operation(&op)
+        .expect("operation record is readable");
+    assert_eq!(loaded.h1_unit_id.as_str(), unit.as_str());
+    assert!(loaded.authoritative);
+
+    let auth = ledger
+        .get_authoritative_for_scope(&scope)
+        .expect("authoritative scope record");
+    assert_eq!(auth.operation_id.as_str(), op.as_str());
+    assert_eq!(
+        ledger
+            .writer_for_scope(&scope)
+            .as_ref()
+            .map(WriterId::as_str),
+        Some(writer.as_str())
+    );
+    assert_eq!(ledger.authoritative_count(), 1);
+    assert!(ledger.has_unit(&unit));
+
+    // Non-authoritative put must not displace authoritative scope/writer maps.
+    let non_auth_op = PubOperationId::parse("op:contract-partial").expect("op");
+    let non_auth_unit = H1UnitId::parse("h1:contract-partial").expect("unit");
+    let non_auth = PublicationRecord {
+        operation_id: non_auth_op.clone(),
+        writer_id: WriterId::parse("writer:contract-B").expect("writer"),
+        scope_id: scope.clone(),
+        cutoff_id: CutoffId::parse("cutoff:contract").expect("cutoff"),
+        rule_version: RuleVersion::parse("rules:contract-v1").expect("rules"),
+        input_digest: PubInputDigest::parse("digest:contract-partial").expect("digest"),
+        h1_unit_id: non_auth_unit.clone(),
+        completeness: CompletenessEvidence::Partial,
+        authoritative: false,
+        publication_authority: None,
+        authority_surface: AuthoritySurface::Publication,
+    };
+    ledger.put(non_auth);
+
+    assert!(
+        ledger.get_by_operation(&non_auth_op).is_some(),
+        "non-authoritative operation remains readable"
+    );
+    assert!(ledger.has_unit(&non_auth_unit));
+    let still_auth = ledger
+        .get_authoritative_for_scope(&scope)
+        .expect("authoritative scope must remain first unit");
+    assert_eq!(still_auth.operation_id.as_str(), op.as_str());
+    assert_eq!(
+        ledger
+            .writer_for_scope(&scope)
+            .as_ref()
+            .map(WriterId::as_str),
+        Some(writer.as_str()),
+        "non-authoritative put must not replace exclusive writer"
+    );
+    assert_eq!(ledger.authoritative_count(), 1);
 }

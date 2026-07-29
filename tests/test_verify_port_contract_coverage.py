@@ -29,6 +29,7 @@ def test_declared_covered_set_matches_current_testkit_surface() -> None:
         "InMemoryCitationSource",
         "InMemoryPromotionStore",
         "InMemoryQueryState",
+        "InMemoryPublicationLedger",
     }
 
 
@@ -51,13 +52,15 @@ def test_repository_report_lists_covered_and_uncovered() -> None:
         "InMemoryCitationSource",
         "InMemoryPromotionStore",
         "InMemoryQueryState",
+        "InMemoryPublicationLedger",
     }
-    assert payload["covered_count"] == 5
+    assert payload["covered_count"] == 6
     assert payload["uncovered_count"] > 0
     assert payload["status"] == "debt"
     uncovered = {item["adapter"] for item in payload["uncovered"]}
     assert "InMemoryInventoryStore" in uncovered
     assert "InMemoryQueryState" not in uncovered
+    assert "InMemoryPublicationLedger" not in uncovered
 
 
 def test_strict_mode_fails_while_debt_remains() -> None:
@@ -80,3 +83,4 @@ def test_discover_inmemory_adapters_finds_storage_and_citation() -> None:
     assert "InMemoryCitationSource" in found
     assert "InMemoryPromotionStore" in found
     assert "InMemoryQueryState" in found
+    assert "InMemoryPublicationLedger" in found
