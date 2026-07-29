@@ -20,8 +20,8 @@ falkordb=historical-only
 
 ## Current position
 
-- **Latest completed milestone:** M152-hj78ox, hostile shared-negative process surface + TEI stub EmbeddingPort prep (10/14 hostiles shared-negative covered).
-- **Recommended next milestone:** M153, residual hostile shared negatives and live adapter path.
+- **Latest completed milestone:** M153-bot7tu, residual hostile shared negatives closed (14/14 hostiles shared-negative covered; mention-based).
+- **Recommended next milestone:** M154, live adapter path and remaining process debt outside port contracts.
 - **M111 result:** final `[bounded]` implementation-neutral semantic baseline for heterogeneous Russian legal evidence.
 - **M112 result:** ADR-0005 topology superseded; ADR-0008 through ADR-0012 authored `[bounded]`; executable ADR/decision/owner drift checks active in pre-commit and CI.
 - **M113 result:** first hostile-case Rust runtime proof. `S10-HC-01-RT` is bounded PASS.

@@ -303,21 +303,27 @@
       "theme": "Hostile process visibility and TEI stub embedding prep",
       "status": "complete",
       "boundary": "Hostile-negative-suite inventory + governor advisory; EmbeddingPort TEI stub suite; publish/relation shared negatives; preflight non-blocking advisory warns. Missing shared-negative hostiles 4 remain. No live TEI/RuVector claim."
+    },
+    {
+      "range": "M153-M153",
+      "theme": "Residual hostile shared-negative closure",
+      "status": "complete",
+      "boundary": "Admission/closure/projection/work shared honest+negative suites. Hostile inventory and governor finding 14/14 with_shared_negative. Allowlist 46 edges. Mention-based only; no product-readiness or live TEI/RuVector claim."
     }
   ],
   "current_milestone": {
-    "id": "M152-hj78ox",
-    "title": "Real Adapter Prep and Hostile Negative Process Debt",
+    "id": "M153-bot7tu",
+    "title": "Close Residual Hostile Shared Negative Suites",
     "status": "complete",
-    "goal": "Surface hostile shared-negative debt, prepare EmbeddingPort TEI stub suite, close publish/relation hostile gaps, keep advisory governor warns non-blocking (ADR-0015)."
+    "goal": "Close residual admission/closure/projection/work hostile shared honest+negative suites; hostile inventory and governor finding 14/14 pass (ADR-0015)."
   },
   "recommended_next": {
-    "title": "M153 Residual Hostile Shared Negatives and Live Adapter Path",
+    "title": "M154 Live Adapter Path and Remaining Process Debt Outside Port Contracts",
     "priority": 1,
-    "why": "M152 reduced missing shared-negative hostiles to 4 and prepared TEI stub embedding suite. Next: admission/closure/projection/work hostile shared negatives; live TEI/RuVector path only when infrastructure is available without overclaim.",
+    "why": "M153 closed residual hostile shared-negative debt (14/14). InMemory port contracts and hostile shared negatives are process-green. Next: live TEI/RuVector adapter path only when infrastructure is available without overclaim, and remaining process debt outside port/hostile contracts.",
     "plan_reference": "doc/adr/0015-hexagonal-verification-architecture.md follow-on increments",
-    "slices": "Residual hostile shared negatives; live adapter readiness gates; optional strict coverage CI policy.",
-    "non_validation": "M152 does not validate live TEI/RuVector or product readiness; TEI suite is stub-transport preparation only."
+    "slices": "Live adapter readiness gates; optional --strict coverage CI policy; residual process debt scan outside port contracts.",
+    "non_validation": "M153 does not validate live TEI/RuVector or product readiness; hostile inventory is mention-based shared-negative coverage only."
   },
   "downstream_blocked": [
     {

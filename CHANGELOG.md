@@ -2,7 +2,7 @@
 
 All notable changes to law-nexus are documented in this file.
 
-## M153 (in progress)
+## M153 (complete)
 
 ### S01: Admission and closure residual hostile shared negatives
 - BoundObservationPort honest + HostileVendorCapacity negative
@@ -13,6 +13,9 @@ All notable changes to law-nexus are documented in this file.
 - RebuildExecutorPort honest + HostileAuthoritativeExecutor negative
 - DomainEvidencePort honest + HostileMutatingEvidence negative
 - Allowlist 46 edges; hostile inventory 14/14 status ok; governor pass
+
+### S03: Docs validation and terminal closure
+- Structured UAT PASS; terminal projections closed
 
 ## M152 (complete)
 
