@@ -225,21 +225,27 @@
       "theme": "Whole-system acceptance with performance baseline, security audit and end-to-end evidence",
       "status": "complete",
       "boundary": "Rust product CLI composes ln-decode + ln-storage + ln-query on both tracked real fixtures. Performance baselined at 30ms Consultant / 657ms Garant debug build. Security audit with hostile input tests. No production readiness, legal correctness, retrieval quality or corpus completeness claim."
+    },
+    {
+      "range": "M140-M140",
+      "theme": "Python product archival cutover and ADR validation",
+      "status": "complete",
+      "boundary": "Python product code archived to python_archive/product/. Rust is the only active product runtime. ADR-0004/0005 promoted to [validated]. No production readiness, release build or deployment claim."
     }
   ],
   "current_milestone": {
-    "id": "M139-sfytqy",
-    "title": "Whole-System Acceptance",
+    "id": "M140-lwbg6j",
+    "title": "Python Product Archival Cutover",
     "status": "complete",
-    "goal": "Bounded whole-system acceptance: performance baseline, security audit and end-to-end evidence on both providers."
+    "goal": "Archive Python product code; Rust-only active runtime; ADR-0004/0005 validated."
   },
   "recommended_next": {
-    "title": "M140 Production Release Hardening",
+    "title": "M141 Production Release Hardening",
     "priority": 1,
-    "why": "M139 closes bounded whole-system acceptance. M140 must prove release build performance, deployment packaging and production hardening.",
-    "plan_reference": "prd/migration/forward-roadmap.md M140",
-    "slices": "Close post-M139 terminal projection debt, define release build performance targets, then validate production hardening.",
-    "non_validation": "M139 CLI does not validate production readiness, deployment, release build performance or legal correctness."
+    "why": "M140 closes Python archival. M141 must prove release build performance, deployment packaging and production hardening.",
+    "plan_reference": "prd/migration/forward-roadmap.md M141",
+    "slices": "Close post-M140 terminal projection debt, define release build targets, then validate production hardening.",
+    "non_validation": "M140 archival does not validate production readiness, release build performance or deployment."
   },
   "downstream_blocked": [
     {
