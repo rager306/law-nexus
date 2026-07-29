@@ -321,6 +321,7 @@ dependencies = [
  "ln-storage",
  "ln-temporal",
  "ln-work",
+ "zip",
 ]
 
 [[package]]

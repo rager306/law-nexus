@@ -12,7 +12,7 @@ use ln_accelerate::domain::{
     WriterId as AccelWriterId,
 };
 use ln_accelerate::ports::AccelerationLedgerPort;
-use ln_admission::domain::{BoundId, BoundObservationKind};
+use ln_admission::domain::BoundObservationKind;
 use ln_admission::ports::BoundObservationPort;
 use ln_citation::domain::{SourceAuthority, SourceRef};
 use ln_citation::ports::CitationSourcePort;
@@ -21,9 +21,10 @@ use ln_closure::ports::DependencyEvidencePort;
 use ln_conformance::domain::CaseVerdict;
 use ln_conformance::ports::ConformanceOraclePort;
 use ln_decode::domain::{
-    DecodeCategory, DecodeRequest, DiagnosticId, FamilyFormat, PayloadRef, SafeDiagnostic,
+    BlockDecodeErrorKind, DecodeCategory, DecodeRequest, DiagnosticId, FamilyFormat, PayloadRef,
+    SafeDiagnostic,
 };
-use ln_decode::ports::{DecoderPort, DiagnosticPort as DecodeDiagnosticPort};
+use ln_decode::ports::{BlockDecoderPort, DecoderPort, DiagnosticPort as DecodeDiagnosticPort};
 use ln_diagnostic::domain::SinkId;
 use ln_diagnostic::ports::DiagnosticSinkPort;
 use ln_dispose::domain::{
@@ -45,7 +46,7 @@ use ln_observe::domain::{
 };
 use ln_observe::ports::{DiagnosticPort as ObserveDiagnosticPort, WorkStatePort};
 use ln_projection::domain::{
-    BaselineId, CutoffId as ProjCutoffId, NodeId as ProjNodeId, RebuildOutcome, RebuildRequest,
+    BaselineId, CutoffId as ProjCutoffId, NodeId as ProjNodeId, RebuildRequest,
     RequestId as ProjRequestId, RuleVersion as ProjRuleVersion, ScopeId as ProjScopeId,
 };
 use ln_projection::ports::RebuildExecutorPort;
@@ -1308,5 +1309,65 @@ pub fn assert_hostile_mutating_evidence_fails_honest_domain_contract<D: DomainEv
         domain1.as_str(),
         domain2.as_str(),
         "hostile mutating evidence expected to rewrite domain snapshot after first read"
+    );
+}
+
+/// Shared semantic contract for multi-adapter [`BlockDecoderPort`] providers.
+///
+/// Expects:
+/// 1. own-family valid bytes produce at least one block with non-empty text and
+///    a valid source span;
+/// 2. foreign-family requests fail closed with [`BlockDecodeErrorKind::UnsupportedFormat`]
+///    before provider parsing invents cross-family success.
+///
+/// Provider-specific golden text is intentionally out of scope — this suite
+/// enforces family isolation and fail-closed wrong-format only (ADR-0013/0015).
+pub fn assert_block_decoder_port_contract<D: BlockDecoderPort>(
+    decoder: &D,
+    family: &str,
+    valid_bytes: &[u8],
+    foreign_family: &str,
+) {
+    assert_ne!(
+        family, foreign_family,
+        "contract fixture must use distinct own and foreign families"
+    );
+
+    let own = DecodeRequest::new(
+        PayloadRef::parse("payload:block-decoder-contract").expect("payload"),
+        FamilyFormat::parse(family).expect("family"),
+        valid_bytes,
+    );
+    let blocks = decoder
+        .decode_blocks(&own)
+        .expect("own-family valid fixture must decode");
+    assert!(
+        !blocks.is_empty(),
+        "own-family valid fixture must emit at least one block"
+    );
+    for block in &blocks {
+        assert!(
+            !block.text().trim().is_empty(),
+            "decoded block text must be non-empty"
+        );
+        let span = block.source_location().span();
+        assert!(
+            span.end() > span.start(),
+            "decoded block must carry a non-empty source span"
+        );
+    }
+
+    let foreign = DecodeRequest::new(
+        PayloadRef::parse("payload:block-decoder-contract-foreign").expect("payload"),
+        FamilyFormat::parse(foreign_family).expect("foreign family"),
+        valid_bytes,
+    );
+    let error = decoder
+        .decode_blocks(&foreign)
+        .expect_err("foreign family must fail closed");
+    assert_eq!(
+        error.kind(),
+        BlockDecodeErrorKind::UnsupportedFormat,
+        "foreign family must report UnsupportedFormat, not cross-family success"
     );
 }
