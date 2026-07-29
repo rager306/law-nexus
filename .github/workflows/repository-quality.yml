@@ -69,7 +69,7 @@ jobs:
       - name: Install Rust stable
         uses: dtolnay/rust-toolchain@stable
         with:
-          components: rustfmt
+          components: rustfmt, clippy
 
       - name: Install uv
         uses: astral-sh/setup-uv@v8.2.0
@@ -88,6 +88,9 @@ jobs:
 
       - name: Rust offline check
         run: cargo check --workspace --offline
+
+      - name: Rust clippy
+        run: cargo clippy --workspace --offline --all-targets -- -D warnings
 
       - name: Build Rust harness binaries
         run: cargo build --workspace --offline

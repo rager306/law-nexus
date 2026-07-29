@@ -26,6 +26,11 @@
       "scope": "staged Cargo and Rust paths"
     },
     {
+      "id": "cargo-clippy-rust",
+      "command": "cargo clippy --workspace --offline --all-targets -- -D warnings",
+      "scope": "staged Cargo and Rust paths"
+    },
+    {
       "id": "crate-dependency-allowlist",
       "command": "uv run python scripts/verify-crate-dependency-allowlist.py",
       "scope": "workspace path-dependency graph; Cargo and allowlist paths"
@@ -64,7 +69,6 @@
     "Python product package imports in harness"
   ],
   "future_additions": [
-    "cargo clippy",
     "cargo test pre-commit gating",
     "cargo audit/deny",
     "repository harness document freshness",

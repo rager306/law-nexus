@@ -19,6 +19,7 @@ ACTIVE_HOOK_IDS = {
     "ruff-format-python",
     "cargo-fmt-rust",
     "cargo-check-rust",
+    "cargo-clippy-rust",
     "crate-dependency-allowlist",
     "architecture-claim-conformance",
 }
@@ -73,11 +74,17 @@ def test_pre_commit_commands_are_expected_and_non_mutating() -> None:
     assert "python-onion-dependencies" not in by_id
     assert by_id["cargo-fmt-rust"]["entry"] == "cargo fmt --all -- --check"
     assert by_id["cargo-check-rust"]["entry"] == "cargo check --workspace --offline"
+    assert (
+        by_id["cargo-clippy-rust"]["entry"]
+        == "cargo clippy --workspace --offline --all-targets -- -D warnings"
+    )
     rust_paths = by_id["cargo-fmt-rust"]["files"]
     assert rust_paths == by_id["cargo-check-rust"]["files"]
+    assert rust_paths == by_id["cargo-clippy-rust"]["files"]
     assert rust_paths == RUST_PATHS
     assert "always_run" not in by_id["cargo-fmt-rust"]
     assert "always_run" not in by_id["cargo-check-rust"]
+    assert "always_run" not in by_id["cargo-clippy-rust"]
     assert by_id["architecture-claim-conformance"]["always_run"] is True
     assert by_id["ruff-check-python"].get("exclude") == "^python_archive/"
     assert by_id["ruff-format-python"].get("exclude") == "^python_archive/"
@@ -97,6 +104,7 @@ def test_ci_workflow_replaces_old_compliance_name_and_keeps_required_checks() ->
         "uv run python scripts/verify-crate-dependency-allowlist.py",
         "cargo fmt --all -- --check",
         "cargo check --workspace --offline",
+        "cargo clippy --workspace --offline --all-targets -- -D warnings",
         "cargo build --workspace --offline",
         "cargo test --workspace --offline",
         *sorted(CI_PROCESS_SUITE),
@@ -108,6 +116,7 @@ def test_ci_workflow_replaces_old_compliance_name_and_keeps_required_checks() ->
     assert "python-onion-dependencies" not in text
     assert "rust-harness-quality:" in text
     assert "dtolnay/rust-toolchain@stable" in text
+    assert "clippy" in text
     assert "Process inventory scripts (report-only)" in text
 
 
@@ -126,17 +135,21 @@ def test_gate_inventory_matches_active_paths_and_boundary() -> None:
     assert payload["local_config"] == ".pre-commit-config.yaml"
     assert payload["ci_workflow"] == ".github/workflows/repository-quality.yml"
     assert payload["product_logic_in_python_harness_allowed"] is False
-    assert len(payload["checks"]) == 6
+    assert len(payload["checks"]) == 7
     by_id = {check["id"]: check for check in payload["checks"]}
     assert set(by_id) == ACTIVE_HOOK_IDS
     assert by_id["cargo-fmt-rust"]["command"] == "cargo fmt --all -- --check"
     assert by_id["cargo-check-rust"]["command"] == "cargo check --workspace --offline"
+    assert (
+        by_id["cargo-clippy-rust"]["command"]
+        == "cargo clippy --workspace --offline --all-targets -- -D warnings"
+    )
     assert "python-onion-dependencies" not in by_id
     assert all("lint-imports" not in check["command"] for check in payload["checks"])
     assert set(payload["ci_process_suite"]) == CI_PROCESS_SUITE
     assert set(payload["ci_inventory_scripts"]) == CI_INVENTORY_SCRIPTS
     future = payload["future_additions"]
-    assert "cargo clippy" in future
+    assert "cargo clippy" not in future
     assert "cargo test pre-commit gating" in future
     assert any("optional inventory --strict" in item for item in future)
     assert not any(
