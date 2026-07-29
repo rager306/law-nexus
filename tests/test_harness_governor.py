@@ -508,6 +508,20 @@ def test_live_governor_passes_hostile_negative_suite_coverage() -> None:
     assert report.status == "ok"
 
 
+def test_live_governor_passes_multi_adapter_port_coverage() -> None:
+    report = run_governor(ROOT)
+    by_id = {item.check_id: item for item in report.findings}
+    assert "multi-adapter-port-coverage" in by_id
+    finding = by_id["multi-adapter-port-coverage"]
+    # After WordML shared suite, residual real multi-adapter gaps are closed.
+    assert finding.status == "pass"
+    assert finding.severity == "ok"
+    assert "missing_shared_suite=0" in finding.observed
+    assert report.error_count == 0
+    assert report.warn_count == 0
+    assert report.status == "ok"
+
+
 def test_hostile_negative_suite_coverage_pass_when_no_hostiles(tmp_path: Path) -> None:
     # Empty crates tree: no hostiles discovered -> pass (mention inventory empty).
     findings = check_hostile_negative_suite_coverage(tmp_path)
