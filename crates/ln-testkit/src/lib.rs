@@ -15,6 +15,10 @@ use ln_decode::domain::{
 use ln_decode::ports::{DecoderPort, DiagnosticPort as DecodeDiagnosticPort};
 use ln_diagnostic::domain::SinkId;
 use ln_diagnostic::ports::DiagnosticSinkPort;
+use ln_gate::domain::{CandidateId, CandidateRecord, LifecycleType};
+use ln_gate::ports::CandidateStorePort;
+use ln_identity::domain::{IdentityId, IdentityRecord};
+use ln_identity::ports::IdentityStorePort;
 use ln_inventory::domain::{
     DropReference, InventoryItemId, InventoryRequestId, ObservationAttempt, ObservationAttemptId,
 };
@@ -621,5 +625,131 @@ pub fn assert_visibility_port_contract<V: VisibilityPort>(view: &V) {
     assert!(
         view.inventory_review_visible(&item),
         "honest inventory visibility view must expose inventory/review surface"
+    );
+}
+
+/// Shared semantic contract for honest [`CandidateStorePort`] adapters.
+///
+/// Expects put/get/missing semantics and lifecycle_type preservation. Hostile
+/// stores that rewrite lifecycle on put must fail this suite (see
+/// [`assert_inplace_mutating_hostile_fails_honest_candidate_contract`]).
+pub fn assert_candidate_store_contract<S: CandidateStorePort>(store: &mut S) {
+    let id = CandidateId::parse("C-contract-1").expect("candidate id");
+    let missing = CandidateId::parse("C-contract-missing").expect("candidate id");
+    assert!(
+        store.get(&id).is_none(),
+        "empty candidate store has no record"
+    );
+    assert!(
+        store.get(&missing).is_none(),
+        "unknown candidate must return None"
+    );
+
+    let record = CandidateRecord {
+        candidate_id: id.clone(),
+        lifecycle_type: LifecycleType::ExtractedCandidate,
+        evidence_refs: Vec::new(),
+        predecessor: None,
+    };
+    store.put(record);
+
+    let loaded = store.get(&id).expect("stored candidate is readable");
+    assert_eq!(loaded.candidate_id.as_str(), "C-contract-1");
+    assert_eq!(
+        loaded.lifecycle_type,
+        LifecycleType::ExtractedCandidate,
+        "honest store must preserve lifecycle type"
+    );
+    assert!(loaded.predecessor.is_none());
+
+    // Idempotent put of same extracted identity must not invent verified lifecycle.
+    store.put(loaded.clone());
+    let again = store.get(&id).expect("candidate still present");
+    assert_eq!(again.lifecycle_type, LifecycleType::ExtractedCandidate);
+}
+
+/// Negative contract: in-place mutating hostile rewrites lifecycle to VerifiedAssertion.
+pub fn assert_inplace_mutating_hostile_fails_honest_candidate_contract<S: CandidateStorePort>(
+    store: &mut S,
+) {
+    let id = CandidateId::parse("C-contract-hostile").expect("candidate id");
+    store.put(CandidateRecord {
+        candidate_id: id.clone(),
+        lifecycle_type: LifecycleType::ExtractedCandidate,
+        evidence_refs: Vec::new(),
+        predecessor: None,
+    });
+    let loaded = store.get(&id).expect("hostile store still stores record");
+    assert_eq!(
+        loaded.lifecycle_type,
+        LifecycleType::VerifiedAssertion,
+        "hostile store expected to rewrite lifecycle on put"
+    );
+}
+
+/// Shared semantic contract for honest [`IdentityStorePort`] adapters.
+///
+/// Expects put/get/contains/remove and does not erase unrelated identities on put.
+pub fn assert_identity_store_contract<S: IdentityStorePort>(store: &mut S) {
+    let left = IdentityId::parse("ID-contract-A").expect("identity id");
+    let right = IdentityId::parse("ID-contract-B").expect("identity id");
+    assert!(!store.contains(&left));
+    assert!(store.get(&left).is_none());
+
+    store.put(IdentityRecord {
+        identity_id: left.clone(),
+        label: "Act edition A".to_owned(),
+    });
+    store.put(IdentityRecord {
+        identity_id: right.clone(),
+        label: "Act edition B".to_owned(),
+    });
+
+    assert!(store.contains(&left));
+    assert!(store.contains(&right));
+    let loaded = store.get(&left).expect("left identity readable");
+    assert_eq!(loaded.label, "Act edition A");
+    assert_eq!(
+        store.get(&right).expect("right identity readable").label,
+        "Act edition B"
+    );
+
+    // Put of left again must not erase right.
+    store.put(IdentityRecord {
+        identity_id: left.clone(),
+        label: "Act edition A updated".to_owned(),
+    });
+    assert!(
+        store.contains(&right),
+        "honest identity store must not erase unrelated identities on put"
+    );
+    assert_eq!(
+        store.get(&left).expect("left still present").label,
+        "Act edition A updated"
+    );
+
+    assert!(store.remove(&right));
+    assert!(!store.contains(&right));
+    assert!(store.get(&right).is_none());
+    assert!(store.contains(&left));
+}
+
+/// Negative contract: erasing merger hostile deletes a targeted right identity on put.
+pub fn assert_erasing_merger_hostile_fails_honest_identity_contract<S: IdentityStorePort>(
+    store: &mut S,
+    right_id: &IdentityId,
+) {
+    let left = IdentityId::parse("ID-contract-hostile-left").expect("identity id");
+    store.put(IdentityRecord {
+        identity_id: right_id.clone(),
+        label: "right".to_owned(),
+    });
+    store.put(IdentityRecord {
+        identity_id: left,
+        label: "left".to_owned(),
+    });
+    assert!(
+        !store.contains(right_id),
+        "hostile erasing merger expected to erase targeted right identity on put"
     );
 }

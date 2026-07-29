@@ -15,3 +15,5 @@ ln-decode = { path = "../ln-decode" }
 ln-observe = { path = "../ln-observe" }
 ln-diagnostic = { path = "../ln-diagnostic" }
 ln-inventory = { path = "../ln-inventory" }
+ln-gate = { path = "../ln-gate" }
+ln-identity = { path = "../ln-identity" }
