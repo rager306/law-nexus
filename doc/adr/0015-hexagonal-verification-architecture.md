@@ -282,6 +282,12 @@ Treat the following as process debt or gate failures, not style nits:
    script crash is fail-closed. Strict gate remains deferred.
    **M148 `[bounded]` identity honesty:** inventory keys are crate-qualified
    (`crate::StructName`) so same-named adapters across crates are not collapsed.
+   **M151 `[bounded]` governor trajectory:** `check_port_contract_coverage` is a
+   first-class governor finding. Debt is non-blocking **warn**; inventory load
+   failure is fail-closed **error**. Full coverage pass carries an explicit
+   evidence-ceiling non-claim (not TEI/RuVector validation or product readiness).
+   Optional `--strict` CI policy remains a future decision, not an automatic
+   promotion of bounded InMemory coverage to real-infrastructure proof.
 4. Add proptest to pure decode/query cores; mutants on domain/application nightlies.
 5. When real storage lands, run the **same** contracts against real adapters.
 6. ~~Expand shared suites beyond storage ports (decode, citation, promote, …).~~

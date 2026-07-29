@@ -2,6 +2,17 @@
 
 All notable changes to law-nexus are documented in this file.
 
+## M151 (in progress)
+
+### S01: Governor-native port-contract coverage check
+- Governor finding `port-contract-coverage` (debt = non-blocking warn; crash = error)
+- Full coverage pass includes explicit bounded non-claim (not TEI/RuVector/product readiness)
+- Preflight pass message matches the evidence ceiling
+
+### S02: Strict-gate wording and evidence-ceiling docs refresh
+- Quality-gate `future_additions` no longer implies remaining uncovered InMemory adapters
+- ADR-0015 records governor-native coverage trajectory
+
 ## M150 (complete)
 
 ### S01: Accelerate and conformance shared contracts
