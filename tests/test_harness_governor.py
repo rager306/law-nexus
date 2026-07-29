@@ -13,6 +13,7 @@ from law_nexus_harness.governor import (
     check_active_requirement_contradictions,
     check_architecture_direction,
     check_forward_roadmap_sequence,
+    check_hostile_negative_suite_coverage,
     check_hostile_proof_chain,
     check_port_contract_coverage,
     check_roadmap_freshness,
@@ -491,6 +492,30 @@ def test_live_governor_includes_port_contract_coverage_finding() -> None:
     assert by_id["port-contract-coverage"].status == "pass"
     assert report.error_count == 0
     assert report.status == "ok"
+
+
+def test_live_governor_warns_on_hostile_negative_suite_gaps() -> None:
+    report = run_governor(ROOT)
+    by_id = {item.check_id: item for item in report.findings}
+    assert "hostile-negative-suite-coverage" in by_id
+    finding = by_id["hostile-negative-suite-coverage"]
+    # Current residual: hostiles without shared negative mentions remain debt.
+    assert finding.status == "fail"
+    assert finding.severity == "warn"
+    assert "missing_shared_negative=" in finding.observed
+    assert report.error_count == 0
+    assert report.status == "ok"
+
+
+def test_hostile_negative_suite_coverage_pass_when_no_hostiles(tmp_path: Path) -> None:
+    # Empty crates tree: no hostiles discovered -> pass (mention inventory empty).
+    findings = check_hostile_negative_suite_coverage(tmp_path)
+    assert len(findings) == 1
+    finding = findings[0]
+    assert finding.check_id == "hostile-negative-suite-coverage"
+    assert finding.status == "pass"
+    assert finding.severity == "ok"
+    assert "missing_shared_negative=0" in finding.observed
 
 
 def test_stale_open_milestone_behind_last_completed_is_debt(tmp_path: Path) -> None:

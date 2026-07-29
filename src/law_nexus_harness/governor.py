@@ -937,6 +937,104 @@ def check_port_contract_coverage(root: Path) -> list[GovernorFinding]:
     ]
 
 
+def _load_hostile_negative_suite_module(root: Path):
+    candidates = (
+        root / "scripts" / "verify-hostile-negative-suite-coverage.py",
+        Path(__file__).resolve().parents[2]
+        / "scripts"
+        / "verify-hostile-negative-suite-coverage.py",
+    )
+    script = next((path for path in candidates if path.is_file()), None)
+    if script is None:
+        raise FileNotFoundError(
+            "missing hostile-negative inventory script under target root or harness repository"
+        )
+    module_name = f"verify_hostile_negative_suite_coverage_{abs(hash(str(script)))}"
+    spec = importlib.util.spec_from_file_location(module_name, script)
+    if spec is None or spec.loader is None:
+        raise ImportError(f"unable to load hostile-negative inventory script: {script}")
+    module = importlib.util.module_from_spec(spec)
+    sys.modules[module_name] = module
+    spec.loader.exec_module(module)
+    return module
+
+
+def check_hostile_negative_suite_coverage(root: Path) -> list[GovernorFinding]:
+    """Inventory hostile adapters vs shared ln-testkit negative-suite mentions.
+
+    Debt is non-blocking (fail + warn). Inventory script/load failures are
+    fail-closed (fail + error). Classification is mention-based and does not
+    prove negative-suite semantic completeness or real infrastructure readiness.
+    """
+    check_id = "hostile-negative-suite-coverage"
+    remediation = (
+        "Add shared negative suites in crates/ln-testkit for hostile adapters "
+        "missing mentions, or inspect "
+        "`uv run python scripts/verify-hostile-negative-suite-coverage.py`. "
+        "Crate-local HC hostile tests are not shared suites. Do not claim "
+        "product readiness from inventory alone."
+    )
+    try:
+        module = _load_hostile_negative_suite_module(root)
+        crates_root = root / "crates"
+        discovered = module.discover_hostile_adapters(crates_root, repo_root=root)
+        testkit_text = module.load_testkit_text(crates_root / "ln-testkit")
+        report = module.build_report(discovered, testkit_text=testkit_text)
+    except Exception as error:  # noqa: BLE001 - fail-closed process surface
+        return [
+            GovernorFinding(
+                check_id=check_id,
+                status="fail",
+                severity="error",
+                message="hostile-negative suite inventory failed",
+                observed=str(error),
+                remediation=remediation,
+            )
+        ]
+
+    discovered_count = int(report.get("discovered_count") or 0)
+    with_shared = int(report.get("with_shared_negative_count") or 0)
+    missing = int(report.get("missing_shared_negative_count") or 0)
+    status = str(report.get("status") or "")
+    missing_ids = [
+        item.get("identity", "?") for item in (report.get("missing_shared_negative") or [])
+    ]
+    missing_preview = ",".join(missing_ids[:6])
+    if len(missing_ids) > 6:
+        missing_preview += f",+{len(missing_ids) - 6}"
+
+    if missing > 0 or status == "debt":
+        return [
+            GovernorFinding(
+                check_id=check_id,
+                status="fail",
+                severity="warn",
+                message="hostile adapters lack shared negative-suite mentions",
+                observed=(
+                    f"discovered={discovered_count}, with_shared_negative={with_shared}, "
+                    f"missing_shared_negative={missing}, missing=[{missing_preview}] "
+                    f"(lifecycle [bounded]; mention-based; not product readiness)."
+                ),
+                remediation=remediation,
+            )
+        ]
+
+    return [
+        GovernorFinding(
+            check_id=check_id,
+            status="pass",
+            severity="ok",
+            message="hostile adapters have shared negative-suite mentions",
+            observed=(
+                f"discovered={discovered_count}, with_shared_negative={with_shared}, "
+                f"missing_shared_negative={missing} "
+                f"(lifecycle [bounded]; mention-based; not product readiness)."
+            ),
+            remediation="none",
+        )
+    ]
+
+
 def run_governor(root: Path | None = None) -> GovernorReport:
     """Run all governor checks and return a machine-readable report."""
 
@@ -949,6 +1047,7 @@ def run_governor(root: Path | None = None) -> GovernorReport:
         + check_hostile_proof_chain(resolved)
         + check_gsd_residual_debt(resolved)
         + check_port_contract_coverage(resolved)
+        + check_hostile_negative_suite_coverage(resolved)
     )
     error_count = sum(1 for item in findings if item.status == "fail" and item.severity == "error")
     warn_count = sum(1 for item in findings if item.status == "fail" and item.severity == "warn")
