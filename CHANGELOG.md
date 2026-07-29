@@ -2,6 +2,24 @@
 
 All notable changes to law-nexus are documented in this file.
 
+## M143 (in progress)
+
+### S01: Archive orphan residual scripts
+- Archived 19 residual scripts with zero active test or control-plane consumers
+- Active scripts: 87; archived product scripts: 56
+- Active pytest remains green: 1398 passed, 2 skipped
+
+### S02: Remove dead import-linter dependency
+- Removed unused `import-linter` from active dev dependencies after onion gate removal
+- Refreshed `uv.lock`
+
+### S03: Release build baseline and CLI smoke
+- `cargo build -p ln-product-cli --release --offline` PASS
+- Release health ok
+- Consultant release inspect avg 11.7ms / 167 blocks; Garant avg 186.5ms / 5124 blocks
+- Evidence: `prd/migration/rust-evidence/probes/m143-release-baseline.{json,md}` `[bounded]`
+- No production packaging claim
+
 ## M142 (complete)
 
 ### S01: Repair active CI and quality gate contracts
