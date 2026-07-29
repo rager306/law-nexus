@@ -36,6 +36,24 @@
       "scope": "living architecture and ADR records"
     }
   ],
+  "ci_process_suite": [
+    "tests/test_harness_status_tracer.py",
+    "tests/test_harness_subprocess_failure_modes.py",
+    "tests/test_harness_no_forbidden_imports.py",
+    "tests/test_harness_governor.py",
+    "tests/test_harness_cli_entrypoints.py",
+    "tests/test_harness_preflight.py",
+    "tests/test_repository_quality_gate.py",
+    "tests/test_verify_crate_dependency_allowlist.py",
+    "tests/test_verify_port_contract_coverage.py",
+    "tests/test_verify_hostile_negative_suite_coverage.py",
+    "tests/test_verify_multi_adapter_port_coverage.py"
+  ],
+  "ci_inventory_scripts": [
+    "scripts/verify-port-contract-coverage.py",
+    "scripts/verify-hostile-negative-suite-coverage.py",
+    "scripts/verify-multi-adapter-port-coverage.py"
+  ],
   "forbidden_active_dependencies": [
     "git-lex executable",
     ".lex generated state",
@@ -49,7 +67,11 @@
     "cargo audit/deny",
     "repository harness document freshness",
     "Rust artifact parity",
-    "optional port-contract-coverage --strict CI policy decision (InMemory inventory already 22/22 as bounded port suites; not TEI/RuVector validation)"
+    "optional inventory --strict CI policy decision (port/hostile/multi-adapter inventories already green as bounded mention-based process surfaces; not TEI/RuVector validation)"
   ],
-  "product_logic_in_python_harness_allowed": false
+  "product_logic_in_python_harness_allowed": false,
+  "non_claims": [
+    "CI process suite and inventory scripts are process honesty surfaces only.",
+    "Does not validate live TEI/RuVector adapters or product readiness."
+  ]
 }

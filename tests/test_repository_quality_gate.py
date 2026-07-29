@@ -22,6 +22,24 @@ ACTIVE_HOOK_IDS = {
     "crate-dependency-allowlist",
     "architecture-claim-conformance",
 }
+CI_PROCESS_SUITE = {
+    "tests/test_harness_status_tracer.py",
+    "tests/test_harness_subprocess_failure_modes.py",
+    "tests/test_harness_no_forbidden_imports.py",
+    "tests/test_harness_governor.py",
+    "tests/test_harness_cli_entrypoints.py",
+    "tests/test_harness_preflight.py",
+    "tests/test_repository_quality_gate.py",
+    "tests/test_verify_crate_dependency_allowlist.py",
+    "tests/test_verify_port_contract_coverage.py",
+    "tests/test_verify_hostile_negative_suite_coverage.py",
+    "tests/test_verify_multi_adapter_port_coverage.py",
+}
+CI_INVENTORY_SCRIPTS = {
+    "scripts/verify-port-contract-coverage.py",
+    "scripts/verify-hostile-negative-suite-coverage.py",
+    "scripts/verify-multi-adapter-port-coverage.py",
+}
 RUST_PATHS = r"^(Cargo\.(toml|lock)|crates/.*\.(rs|toml))$"
 
 
@@ -79,9 +97,8 @@ def test_ci_workflow_replaces_old_compliance_name_and_keeps_required_checks() ->
         "cargo check --workspace --offline",
         "cargo build --workspace --offline",
         "cargo test --workspace --offline",
-        "tests/test_harness_status_tracer.py",
-        "tests/test_harness_subprocess_failure_modes.py",
-        "tests/test_harness_no_forbidden_imports.py",
+        *sorted(CI_PROCESS_SUITE),
+        *sorted(CI_INVENTORY_SCRIPTS),
     ):
         assert command in text
     assert "uv run lint-imports" not in text
@@ -89,6 +106,7 @@ def test_ci_workflow_replaces_old_compliance_name_and_keeps_required_checks() ->
     assert "python-onion-dependencies" not in text
     assert "rust-harness-quality:" in text
     assert "dtolnay/rust-toolchain@stable" in text
+    assert "Process inventory scripts (report-only)" in text
 
 
 def test_verifier_default_paths_do_not_depend_on_archived_semantic_state() -> None:
@@ -113,3 +131,15 @@ def test_gate_inventory_matches_active_paths_and_boundary() -> None:
     assert by_id["cargo-check-rust"]["command"] == "cargo check --workspace --offline"
     assert "python-onion-dependencies" not in by_id
     assert all("lint-imports" not in check["command"] for check in payload["checks"])
+    assert set(payload["ci_process_suite"]) == CI_PROCESS_SUITE
+    assert set(payload["ci_inventory_scripts"]) == CI_INVENTORY_SCRIPTS
+    future = payload["future_additions"]
+    assert "cargo clippy" in future
+    assert "cargo test pre-commit gating" in future
+    assert any("optional inventory --strict" in item for item in future)
+    assert not any(
+        "optional port-contract-coverage --strict CI policy decision (InMemory inventory already 22/22"
+        in item
+        for item in future
+    )
+    assert "cargo test --workspace --offline" in WORKFLOW.read_text(encoding="utf-8")
