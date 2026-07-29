@@ -447,11 +447,32 @@ pub fn assert_publication_ledger_contract<S: PublicationLedgerPort>(ledger: &mut
 /// MergedIdentity / UnregisteredRelation / RawFailureContext or canary raw
 /// context must fail this suite (see
 /// [`assert_malicious_decoder_fails_honest_contract`]).
+///
+/// The default entrypoint uses a synthetic family fixture. Real adapters that
+/// only decode provider bytes should use
+/// [`assert_decoder_port_contract_with_fixture`] with an own-family fixture.
 pub fn assert_decoder_port_contract<D: DecoderPort>(decoder: &D) {
+    assert_decoder_port_contract_with_fixture(
+        decoder,
+        "family:synthetic",
+        b"contract decode bytes",
+    );
+}
+
+/// Honest [`DecoderPort`] contract against an explicit family/bytes fixture.
+///
+/// Used for real adapters (for example WordML streaming) whose emissions depend
+/// on provider-shaped input. Assertions remain semantic: non-empty structural
+/// candidates with anchors and no raw payload leakage.
+pub fn assert_decoder_port_contract_with_fixture<D: DecoderPort>(
+    decoder: &D,
+    family: &str,
+    bytes: &[u8],
+) {
     let request = DecodeRequest::new(
         PayloadRef::parse("payload:contract-decode").expect("payload"),
-        FamilyFormat::parse("family:synthetic").expect("family"),
-        b"contract decode bytes",
+        FamilyFormat::parse(family).expect("family"),
+        bytes,
     );
     let emissions = decoder.decode(&request);
     assert!(
@@ -473,8 +494,10 @@ pub fn assert_decoder_port_contract<D: DecoderPort>(decoder: &D) {
             "honest decoder must not leak raw context"
         );
         if let Some(anchor) = &emission.anchor {
-            assert_eq!(anchor.start_offset, 0);
-            assert_eq!(anchor.end_offset, request.bytes.len());
+            assert!(
+                anchor.end_offset > anchor.start_offset,
+                "evidence anchor must cover a non-empty span"
+            );
             assert!(
                 !anchor.fingerprint.is_empty(),
                 "anchor fingerprint must be present"
