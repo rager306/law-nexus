@@ -280,14 +280,18 @@ Treat the following as process debt or gate failures, not style nits:
    **M147 `[bounded]` process surface:** preflight check
    `port-contract-coverage` emits advisory **warn** while debt remains; inventory
    script crash is fail-closed. Strict gate remains deferred.
+   **M148 `[bounded]` identity honesty:** inventory keys are crate-qualified
+   (`crate::StructName`) so same-named adapters across crates are not collapsed.
 4. Add proptest to pure decode/query cores; mutants on domain/application nightlies.
 5. When real storage lands, run the **same** contracts against real adapters.
 6. ~~Expand shared suites beyond storage ports (decode, citation, promote, …).~~
    **M146 `[bounded]`:** citation + promotion shared contracts landed in
    ln-testkit with InMemory (and hostile citation negative).
-   **M147 `[bounded]`:** query + publication shared contracts landed; coverage
-   inventory now covers 6/20 InMemory adapters. Decode and remaining capability
-   InMemory adapters remain uncovered inventory debt.
+   **M147 `[bounded]`:** query + publication shared contracts landed.
+   **M148 `[bounded]`:** decode DecoderPort/DiagnosticPort, observe
+   WorkState/Diagnostic, and diagnostic DiagnosticSinkPort (with hostile
+   negatives) landed; coverage inventory now covers 10/22 crate-qualified
+   InMemory adapters. Remaining capability adapters stay uncovered debt.
 
 ## References
 

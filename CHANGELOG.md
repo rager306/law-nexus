@@ -2,6 +2,24 @@
 
 All notable changes to law-nexus are documented in this file.
 
+## M148 (in progress)
+
+### S01: Crate-qualified port-contract coverage identity
+- Inventory schema v2 keys adapters as `crate::StructName`
+- Same-named `InMemoryDiagnosticSink` across crates counted separately
+- Discovered 22 / uncovered 16 after identity fix (was collapsed to 20/14)
+
+### S02: Decode decoder and diagnostic shared contracts
+- `ln-testkit`: honest DecoderPort suite + malicious decoder negative
+- Decode `InMemoryDiagnosticSink` record/events suite
+- Allowlist 31 edges (`ln-testkit` → `ln-decode`)
+
+### S03: Observe and diagnostic sink shared contracts
+- WorkStatePort + observe DiagnosticPort suites
+- DiagnosticSinkPort honest allowlist + HostileCanary negative
+- `DiagnosticCode::new` public for shared fixtures
+- Allowlist 33 edges; coverage covered 10 / uncovered 12 / discovered 22
+
 ## M147 (complete)
 
 ### S01: Advisory preflight for port-contract coverage debt
