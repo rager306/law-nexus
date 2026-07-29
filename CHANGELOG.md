@@ -2,6 +2,21 @@
 
 All notable changes to law-nexus are documented in this file.
 
+## M152 (in progress)
+
+### S01: Hostile adapter inventory and governor advisory
+- `scripts/verify-hostile-negative-suite-coverage.py` inventory (mention-based)
+- Governor finding `hostile-negative-suite-coverage` (debt = non-blocking warn)
+
+### S02: EmbeddingPort shared contract for TEI stub transport
+- `assert_embedding_port_contract` + TeiEmbeddingAdapter stub transport suite
+- Honest embed + model/dimension/non-finite/transport rejection (not live TEI)
+
+### S03: Publish and relation hostile shared negatives
+- HostileDualWriterLedger fails honest publication suite
+- OpenRelationHostileRegistry illicit unknown-predicate storage surface
+- Hostile inventory gaps shrink 6→4 remaining
+
 ## M151 (complete)
 
 ### S01: Governor-native port-contract coverage check

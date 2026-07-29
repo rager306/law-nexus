@@ -473,6 +473,44 @@ def test_local_projection_only_governor_failures_warn_in_preflight(tmp_path: Pat
     assert "local-projection-unavailable" in finding["observed"]
 
 
+def test_advisory_governor_warn_findings_do_not_fail_preflight(tmp_path: Path) -> None:
+    write_gitnexus_meta(tmp_path)
+    write_gsd_state(tmp_path)
+    write_docs(tmp_path)
+
+    def advisory_governor(_root: Path) -> GovernorReport:
+        finding = GovernorFinding(
+            check_id="hostile-negative-suite-coverage",
+            status="fail",
+            severity="warn",
+            message="advisory debt",
+            observed="missing_shared_negative=4",
+            remediation="inspect",
+        )
+        return GovernorReport(
+            schema_version="law-nexus-governor-report/v1",
+            status="ok",
+            root=str(tmp_path),
+            findings=(finding,),
+            error_count=0,
+            warn_count=1,
+            pass_count=0,
+        )
+
+    payload = run_test_preflight(
+        tmp_path,
+        runner=coverage_clean_runner,
+        governor_runner=advisory_governor,
+    ).to_dict()
+    finding = {item["check_id"]: item for item in payload["checks"]}["trajectory-governor"]
+
+    assert payload["status"] == "ok"
+    assert payload["error_count"] == 0
+    assert finding["status"] == "warn"
+    assert "advisory_warn_checks" in finding["observed"]
+    assert "hostile-negative-suite-coverage" in finding["observed"]
+
+
 def test_missing_docs_surface_warns_with_required_files(tmp_path: Path) -> None:
     write_gitnexus_meta(tmp_path)
     write_gsd_state(tmp_path)

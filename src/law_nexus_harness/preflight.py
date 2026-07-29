@@ -350,39 +350,78 @@ def _gsd_state_surface_check(root: Path) -> PreflightCheck:
 
 def _trajectory_governor_check(root: Path, governor_runner: GovernorRunner) -> PreflightCheck:
     report = governor_runner(root)
-    failed_ids = sorted(item.check_id for item in report.findings if item.status == "fail")
+    error_fail_ids = sorted(
+        item.check_id
+        for item in report.findings
+        if item.status == "fail" and item.severity == "error"
+    )
+    warn_fail_ids = sorted(
+        item.check_id
+        for item in report.findings
+        if item.status == "fail" and item.severity == "warn"
+    )
+    portable_error_ids = sorted(
+        check_id
+        for check_id in error_fail_ids
+        if check_id not in _UNAVAILABLE_LOCAL_PROJECTION_CHECK_IDS
+    )
     command = ("internal", "trajectory-governor")
-    if not failed_ids:
+    if not error_fail_ids and not warn_fail_ids:
         return _pass_check(
             check_id="trajectory-governor",
             phase="trajectory",
             command=command,
-            observed=f"governor_pass={report.pass_count}; governor_errors=0",
+            observed=(f"governor_pass={report.pass_count}; governor_errors=0; governor_warns=0"),
         )
-    if set(failed_ids) <= _UNAVAILABLE_LOCAL_PROJECTION_CHECK_IDS:
-        return _warning_check(
+    # Portable error-severity failures remain fail-closed.
+    if portable_error_ids:
+        return PreflightCheck(
             check_id="trajectory-governor",
             phase="trajectory",
+            status="fail",
+            severity="error",
             command=command,
-            observed=f"local-projection-unavailable; failed_checks={failed_ids}",
-            remediation=(
-                "Materialize or repair local GSD projections and rerun governor; portable tracked "
-                "architecture checks remain authoritative in clean-clone CI"
-            ),
+            duration_ms=0,
             exit_code=1,
+            stdout_tail="",
+            stderr_tail="",
+            observed=f"failed_checks={portable_error_ids}",
+            remediation=(
+                "Run `uv run law-nexus-harness governor` and resolve every portable failure."
+            ),
         )
-    return PreflightCheck(
+    # Local-projection-only error findings and advisory warn findings stay non-blocking.
+    if error_fail_ids and not warn_fail_ids:
+        observed = f"local-projection-unavailable; failed_checks={error_fail_ids}"
+        remediation = (
+            "Materialize or repair local GSD projections and rerun governor; portable tracked "
+            "architecture checks remain authoritative in clean-clone CI"
+        )
+    elif error_fail_ids and warn_fail_ids:
+        observed = (
+            f"local-projection-unavailable; failed_checks={error_fail_ids}; "
+            f"advisory_warn_checks={warn_fail_ids}"
+        )
+        remediation = (
+            "Materialize or repair local GSD projections and inspect advisory governor warns; "
+            "portable tracked architecture checks remain authoritative in clean-clone CI"
+        )
+    else:
+        observed = (
+            f"advisory_warn_checks={warn_fail_ids}; "
+            f"governor_pass={report.pass_count}; governor_warns={report.warn_count}"
+        )
+        remediation = (
+            "Inspect advisory governor findings with "
+            "`uv run law-nexus-harness governor`; warn-severity debt is non-blocking."
+        )
+    return _warning_check(
         check_id="trajectory-governor",
         phase="trajectory",
-        status="fail",
-        severity="error",
         command=command,
-        duration_ms=0,
+        observed=observed,
+        remediation=remediation,
         exit_code=1,
-        stdout_tail="",
-        stderr_tail="",
-        observed=f"failed_checks={failed_ids}",
-        remediation="Run `uv run law-nexus-harness governor` and resolve every portable failure.",
     )
 
 

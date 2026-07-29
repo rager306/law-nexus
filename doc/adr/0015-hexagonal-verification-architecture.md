@@ -290,6 +290,14 @@ Treat the following as process debt or gate failures, not style nits:
    promotion of bounded InMemory coverage to real-infrastructure proof.
 4. Add proptest to pure decode/query cores; mutants on domain/application nightlies.
 5. When real storage lands, run the **same** contracts against real adapters.
+   **M152 `[bounded]` preparation:** EmbeddingPort shared suite exercises
+   `TeiEmbeddingAdapter` via injectable stub transport only (model/dimension/
+   non-finite/transport rejection). Not live TEI or RuVector validation.
+   **M152 `[bounded]` hostile process surface:**
+   `scripts/verify-hostile-negative-suite-coverage.py` plus governor finding
+   `hostile-negative-suite-coverage` (mention-based; debt = non-blocking warn).
+   Publish dual-writer and relation open-hostile shared negatives landed;
+   residual hostiles without shared negatives remain advisory debt.
 6. ~~Expand shared suites beyond storage ports (decode, citation, promote, …).~~
    **M146 `[bounded]`:** citation + promotion shared contracts landed in
    ln-testkit with InMemory (and hostile citation negative).
