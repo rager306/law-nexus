@@ -279,21 +279,27 @@
       "theme": "Coverage identity honesty and decode/observe/diagnostic shared suites",
       "status": "complete",
       "boundary": "Crate-qualified inventory v2; decode/observe/diagnostic shared contracts with hostile negatives. Coverage 10/12 remaining of 22. No RuVector/TEI claim; no full coverage claim."
+    },
+    {
+      "range": "M149-M149",
+      "theme": "Inventory/gate/identity/temporal shared port contracts",
+      "status": "complete",
+      "boundary": "Inventory store/visibility, gate candidate, identity store, temporal clock evidence shared contracts with hostile negatives. Coverage 15/7 remaining of 22. No RuVector/TEI claim; no full coverage claim."
     }
   ],
   "current_milestone": {
-    "id": "M148-k6u419",
-    "title": "Fix Coverage Identity and Expand Decode Observe Contracts",
+    "id": "M149-0wfmf6",
+    "title": "Expand Shared Port Contracts to Inventory Gate Identity Temporal",
     "status": "complete",
-    "goal": "Fix crate-qualified coverage inventory identity; expand ln-testkit shared contracts to decode, observe, and diagnostic sinks (ADR-0015)."
+    "goal": "Expand ln-testkit shared contracts to inventory, gate, identity, and temporal ports with hostile negatives (ADR-0015)."
   },
   "recommended_next": {
-    "title": "M149 Expand Shared Port Contracts to Remaining High Value Capabilities",
+    "title": "M150 Expand Shared Port Contracts to Residual Capability Adapters",
     "priority": 1,
-    "why": "M148 covered 10/22 crate-qualified InMemory adapters and fixed identity honesty. Next expand inventory/gate/identity/temporal and remaining high-value contracts; keep strict coverage gate deferred.",
+    "why": "M149 covered 15/22 crate-qualified InMemory adapters. Next expand accelerate/conformance/dispose/relation/replay residual contracts; keep strict coverage gate deferred.",
     "plan_reference": "doc/adr/0015-hexagonal-verification-architecture.md follow-on increments",
-    "slices": "Inventory/gate/identity/temporal shared contracts; optional governor-native coverage check.",
-    "non_validation": "M148 does not validate RuVector/TEI or full InMemory shared-contract coverage."
+    "slices": "Accelerate/conformance/dispose/relation/replay shared contracts; optional governor-native coverage check.",
+    "non_validation": "M149 does not validate RuVector/TEI or full InMemory shared-contract coverage."
   },
   "downstream_blocked": [
     {

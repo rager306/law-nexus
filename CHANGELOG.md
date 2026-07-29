@@ -2,7 +2,7 @@
 
 All notable changes to law-nexus are documented in this file.
 
-## M149 (in progress)
+## M149 (complete)
 
 ### S01: Inventory store and visibility shared contracts
 - InventoryStorePort append-only history suite
