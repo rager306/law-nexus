@@ -15,6 +15,10 @@ use ln_decode::domain::{
 use ln_decode::ports::{DecoderPort, DiagnosticPort as DecodeDiagnosticPort};
 use ln_diagnostic::domain::SinkId;
 use ln_diagnostic::ports::DiagnosticSinkPort;
+use ln_inventory::domain::{
+    DropReference, InventoryItemId, InventoryRequestId, ObservationAttempt, ObservationAttemptId,
+};
+use ln_inventory::ports::{InventoryStorePort, VisibilityPort};
 use ln_observe::domain::{
     DiagnosticCode, DiagnosticEvent, DiagnosticId as ObserveDiagnosticId, ObservationId,
     ObservationRequestId, SourceChannelId, WorkPhase, WorkTransition,
@@ -562,5 +566,60 @@ pub fn assert_hostile_canary_fails_honest_diagnostic_sink_contract<S: Diagnostic
     assert!(
         sink.is_allowed(&blocked),
         "hostile canary expected to allow unconfigured sink"
+    );
+}
+
+/// Shared semantic contract for honest [`InventoryStorePort`] adapters.
+///
+/// Expects append-only observation history: re-inventory appends without
+/// destroying prior attempts, and unknown items return empty history.
+pub fn assert_inventory_store_contract<S: InventoryStorePort>(store: &mut S) {
+    let item = InventoryItemId::parse("item:contract-D1:digest").expect("item id");
+    let missing = InventoryItemId::parse("item:contract-missing").expect("item id");
+    assert!(
+        store.attempts_for(&item).is_empty(),
+        "empty inventory store has no attempts"
+    );
+    assert!(
+        store.attempts_for(&missing).is_empty(),
+        "unknown item must return empty attempts"
+    );
+
+    let first = ObservationAttempt {
+        attempt_id: ObservationAttemptId::parse("attempt:1").expect("attempt id"),
+        request_id: InventoryRequestId::parse("INV-contract-1").expect("request id"),
+        drop_reference: DropReference::parse("D1").expect("drop"),
+        input_digest: "fnv1a64:contract-1".to_owned(),
+    };
+    let history = store.append_attempt(&item, first.clone());
+    assert_eq!(history.len(), 1);
+    assert_eq!(history[0].attempt_id.as_str(), "attempt:1");
+
+    let second = ObservationAttempt {
+        attempt_id: ObservationAttemptId::parse("attempt:2").expect("attempt id"),
+        request_id: InventoryRequestId::parse("INV-contract-2").expect("request id"),
+        drop_reference: DropReference::parse("D1").expect("drop"),
+        input_digest: "fnv1a64:contract-1".to_owned(),
+    };
+    let history = store.append_attempt(&item, second);
+    assert_eq!(
+        history.len(),
+        2,
+        "re-inventory must append, not rewrite prior attempts"
+    );
+    assert_eq!(history[0].attempt_id.as_str(), "attempt:1");
+    assert_eq!(history[1].attempt_id.as_str(), "attempt:2");
+
+    let listed = store.attempts_for(&item);
+    assert_eq!(listed.len(), 2);
+    assert_eq!(listed[0].input_digest, first.input_digest);
+}
+
+/// Shared semantic contract for honest [`VisibilityPort`] adapters.
+pub fn assert_visibility_port_contract<V: VisibilityPort>(view: &V) {
+    let item = InventoryItemId::parse("item:contract-D1:digest").expect("item id");
+    assert!(
+        view.inventory_review_visible(&item),
+        "honest inventory visibility view must expose inventory/review surface"
     );
 }

@@ -303,6 +303,7 @@ dependencies = [
  "ln-citation",
  "ln-decode",
  "ln-diagnostic",
+ "ln-inventory",
  "ln-observe",
  "ln-promote",
  "ln-publish",

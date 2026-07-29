@@ -34,6 +34,8 @@ COVERED_INMEMORY_ADAPTERS: frozenset[str] = frozenset(
         "ln-observe::InMemoryWorkState",
         "ln-observe::InMemoryDiagnosticSink",
         "ln-diagnostic::InMemoryDiagnosticSink",
+        "ln-inventory::InMemoryInventoryStore",
+        "ln-inventory::InMemoryVisibilityView",
     }
 )
 

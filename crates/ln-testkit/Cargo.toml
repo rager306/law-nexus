@@ -14,3 +14,4 @@ ln-publish = { path = "../ln-publish" }
 ln-decode = { path = "../ln-decode" }
 ln-observe = { path = "../ln-observe" }
 ln-diagnostic = { path = "../ln-diagnostic" }
+ln-inventory = { path = "../ln-inventory" }
