@@ -2,6 +2,24 @@
 
 All notable changes to law-nexus are documented in this file.
 
+## M144 (in progress)
+
+### S01: Write ADR-0015 verification architecture
+- Added `doc/adr/0015-hexagonal-verification-architecture.md`
+- Overlapping contours, port-contract policy, lifecycle honesty, anti-slop rules
+- Explicit non-claims for unbuilt testkit/allowlist/real-adapter infrastructure
+- ADR index updated
+
+### S02: Align Rust verification matrix to ADR-0015
+- Updated `.agents/skills/law-nexus-rust/references/verification-matrix.md`
+- Contours, port-contract rules, lifecycle/non-claims, anti-slop checks
+
+### S03: Bind concrete testing rules in AGENTS.md
+- Local `AGENTS.md` testing contract (gitignored overlay by project policy)
+- Always/never rules and change-class minimum proof table
+- Corrected active architecture note: Python product is archived prior art
+- Tracked skill entrypoint binds ADR-0015 in S04
+
 ## M143 (complete)
 
 ### S01: Archive orphan residual scripts
