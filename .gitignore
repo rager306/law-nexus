@@ -69,3 +69,4 @@ lpt[1-9].*
 
 # ── GSD baseline (auto-generated) ──
 .gsd-backups/
+*.egg-info/

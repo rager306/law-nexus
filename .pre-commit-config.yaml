@@ -23,12 +23,14 @@ repos:
         entry: uv run ruff check
         language: system
         types: [python]
+        exclude: ^python_archive/
 
       - id: ruff-format-python
         name: ruff format --check staged Python files
         entry: uv run ruff format --check
         language: system
         types: [python]
+        exclude: ^python_archive/
 
       - id: cargo-fmt-rust
         name: Rust workspace formatting
@@ -42,14 +44,7 @@ repos:
         entry: cargo check --workspace --offline
         language: system
         pass_filenames: false
-        files: ^(Cargo\.(toml|lock)|crates/.*\.(rs|toml))$
-
-      - id: python-onion-dependencies
-        name: Python reference onion dependency contracts
-        entry: uv run lint-imports
-        language: system
-        pass_filenames: false
-        always_run: true
+        files: ^(Cargo\.(toml|lock)|crates/.*\.(rs|toml)|python_archive/.*\.rs)$
 
       - id: architecture-claim-conformance
         name: architecture lifecycle tags and ADR references
