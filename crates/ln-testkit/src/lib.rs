@@ -1047,6 +1047,42 @@ pub fn contract_sample_checkpoint() -> ln_replay::domain::CheckpointRecord {
     )
 }
 
+/// Negative contract: hostile dual-writer ledger lies about exclusive writer
+/// and inflates authoritative counts after put.
+pub fn assert_hostile_dual_writer_fails_honest_publication_contract<S: PublicationLedgerPort>(
+    ledger: &mut S,
+) {
+    let op = PubOperationId::parse("op:hostile-dual-1").expect("op");
+    let writer = WriterId::parse("writer:hostile-A").expect("writer");
+    let scope = ScopeId::parse("scope:hostile-S1").expect("scope");
+    let unit = H1UnitId::parse("h1:hostile-1").expect("unit");
+    let digest = PubInputDigest::parse("digest:hostile-1").expect("digest");
+
+    ledger.put(PublicationRecord {
+        operation_id: op,
+        writer_id: writer.clone(),
+        scope_id: scope.clone(),
+        cutoff_id: CutoffId::parse("cutoff:hostile").expect("cutoff"),
+        rule_version: RuleVersion::parse("rules:hostile-v1").expect("rules"),
+        input_digest: digest,
+        h1_unit_id: unit,
+        completeness: CompletenessEvidence::Complete,
+        authoritative: true,
+        publication_authority: Some(PublicationAuthority::default()),
+        authority_surface: AuthoritySurface::Publication,
+    });
+
+    assert!(
+        ledger.writer_for_scope(&scope).is_none(),
+        "hostile dual-writer expected to lie that no exclusive writer exists"
+    );
+    assert!(
+        ledger.authoritative_count() > 1,
+        "hostile dual-writer expected to inflate authoritative_count"
+    );
+    let _ = writer;
+}
+
 /// Shared semantic contract for honest [`EmbeddingPort`] adapters.
 ///
 /// Expects a successful embed for a matching request to return the requested

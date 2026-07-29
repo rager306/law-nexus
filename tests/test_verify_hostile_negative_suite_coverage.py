@@ -35,13 +35,15 @@ def test_repository_report_lists_hostiles_with_and_without_shared_negatives() ->
     assert payload["lifecycle"] == "[bounded]"
     assert payload["identity_model"] == "crate-qualified"
     assert payload["discovered_count"] == 14
-    assert payload["with_shared_negative_count"] == 8
-    assert payload["missing_shared_negative_count"] == 6
+    assert payload["with_shared_negative_count"] == 10
+    assert payload["missing_shared_negative_count"] == 4
     assert payload["status"] == "debt"
     missing = {item["identity"] for item in payload["missing_shared_negative"]}
     covered = {item["identity"] for item in payload["with_shared_negative"]}
-    assert "ln-publish::HostileDualWriterLedger" in missing
-    assert "ln-relation::OpenRelationHostileRegistry" in missing
+    assert "ln-publish::HostileDualWriterLedger" in covered
+    assert "ln-relation::OpenRelationHostileRegistry" in covered
+    assert "ln-admission::HostileVendorCapacity" in missing
+    assert "ln-work::HostileMutatingEvidence" in missing
     assert "ln-citation::HostileMirrorRelabeler" in covered
     assert "ln-replay::HostileDuplicateEffectLedger" in covered
 
