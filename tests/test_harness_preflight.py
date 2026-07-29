@@ -107,6 +107,7 @@ def write_docs(root: Path) -> None:
 EXPECTED_CHECK_IDS = [
     "cargo-fmt-workspace",
     "ruff-format-explicit-python-paths",
+    "crate-dependency-allowlist",
     "gitnexus-index-freshness",
     "gsd-state-surface",
     "docs-freshness-surface",
@@ -125,7 +126,7 @@ def test_preflight_report_schema_and_formatter_profile_pass(tmp_path: Path) -> N
     assert payload["status"] == "ok"
     assert payload["root"] == str(tmp_path.resolve())
     assert [item["check_id"] for item in payload["checks"]] == EXPECTED_CHECK_IDS
-    assert payload["pass_count"] == 6
+    assert payload["pass_count"] == 7
     assert payload["warn_count"] == 0
     assert payload["error_count"] == 0
 

@@ -265,11 +265,18 @@ Treat the following as process debt or gate failures, not style nits:
 
 ## Follow-on process increments
 
-1. Introduce shared port-contract packaging and force InMemory through it.
-2. Add executable crate dependency allowlist (xtask and/or governor).
+1. ~~Introduce shared port-contract packaging and force InMemory through it.~~
+   **M145 `[bounded]`:** `crates/ln-testkit` provides VectorStore/GraphStore
+   shared helpers; InMemory adapters are exercised from ln-testkit tests.
+2. ~~Add executable crate dependency allowlist (xtask and/or governor).~~
+   **M145 `[bounded]`:** `scripts/verify-crate-dependency-allowlist.py` plus
+   tracked `prd/architecture/crate-dependency-allowlist.json`, wired into
+   preflight/pre-commit/CI. Full domain/application/adapter layer tagging
+   remains open.
 3. Extend governor diagnostics for fake-without-contract and overclaim patterns.
 4. Add proptest to pure decode/query cores; mutants on domain/application nightlies.
 5. When real storage lands, run the **same** contracts against real adapters.
+6. Expand shared suites beyond storage ports (decode, citation, promote, …).
 
 ## References
 

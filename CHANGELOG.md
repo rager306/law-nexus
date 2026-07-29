@@ -2,6 +2,22 @@
 
 All notable changes to law-nexus are documented in this file.
 
+## M145 (in progress)
+
+### S01: Executable crate dependency allowlist
+- Added `prd/architecture/crate-dependency-allowlist.json` (26 workspace path edges)
+- Added `scripts/verify-crate-dependency-allowlist.py` via `cargo metadata`
+- Tests cover undeclared edges, stale edges, capability→HC runner and capability→CLI bans
+
+### S02-S03: ln-testkit shared storage port contracts
+- Added `crates/ln-testkit` with VectorStorePort and GraphStorePort contract helpers
+- InMemory adapters exercise the shared suite from ln-testkit tests
+- One-way dependency only: `ln-testkit -> ln-storage` (no reverse dev-dep)
+
+### S04: Gate wiring and docs
+- Preflight check `crate-dependency-allowlist`
+- Pre-commit + CI + quality-gate inventory wired to allowlist script
+
 ## M144 (complete)
 
 ### S01: Write ADR-0015 verification architecture

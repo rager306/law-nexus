@@ -427,6 +427,15 @@ def run_preflight(
         ("uv", "run", "ruff", "format", "--check", *AGENT_SKILL_SCRIPT_PATHS),
         resolved_root,
     )
+    crate_allowlist = runner(
+        (
+            "uv",
+            "run",
+            "python",
+            "scripts/verify-crate-dependency-allowlist.py",
+        ),
+        resolved_root,
+    )
     checks = (
         _check_from_result(
             check_id="cargo-fmt-workspace",
@@ -445,6 +454,18 @@ def run_preflight(
             remediation=(
                 "Run `uv run ruff format .agents/skills/pi-skill-creator/scripts/*.py` "
                 "or format the listed files explicitly."
+            ),
+        ),
+        _check_from_result(
+            check_id="crate-dependency-allowlist",
+            phase="architecture",
+            result=crate_allowlist,
+            observed_ok="Workspace crate path-dependency allowlist is clean.",
+            observed_fail="Workspace crate path-dependency allowlist violations detected.",
+            remediation=(
+                "Run `uv run python scripts/verify-crate-dependency-allowlist.py` and "
+                "update prd/architecture/crate-dependency-allowlist.json only for intentional "
+                "hexagonal composition edges (ADR-0015)."
             ),
         ),
         _gitnexus_freshness_check(resolved_root, runner),

@@ -19,6 +19,7 @@ ACTIVE_HOOK_IDS = {
     "ruff-format-python",
     "cargo-fmt-rust",
     "cargo-check-rust",
+    "crate-dependency-allowlist",
     "architecture-claim-conformance",
 }
 RUST_PATHS = r"^(Cargo\.(toml|lock)|crates/.*\.(rs|toml))$"
@@ -73,6 +74,7 @@ def test_ci_workflow_replaces_old_compliance_name_and_keeps_required_checks() ->
         "uv run ty check src/",
         "uv run pyrefly check src/",
         "uv run python scripts/verify-adr-conformance.py",
+        "uv run python scripts/verify-crate-dependency-allowlist.py",
         "cargo fmt --all -- --check",
         "cargo check --workspace --offline",
         "cargo build --workspace --offline",
@@ -104,7 +106,7 @@ def test_gate_inventory_matches_active_paths_and_boundary() -> None:
     assert payload["local_config"] == ".pre-commit-config.yaml"
     assert payload["ci_workflow"] == ".github/workflows/repository-quality.yml"
     assert payload["product_logic_in_python_harness_allowed"] is False
-    assert len(payload["checks"]) == 5
+    assert len(payload["checks"]) == 6
     by_id = {check["id"]: check for check in payload["checks"]}
     assert set(by_id) == ACTIVE_HOOK_IDS
     assert by_id["cargo-fmt-rust"]["command"] == "cargo fmt --all -- --check"

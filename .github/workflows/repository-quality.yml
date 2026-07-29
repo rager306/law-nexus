@@ -53,6 +53,9 @@ jobs:
       - name: Pyrefly active Python harness
         run: uv run pyrefly check src/
 
+      - name: Workspace crate dependency allowlist
+        run: uv run python scripts/verify-crate-dependency-allowlist.py
+
       - name: Architecture lifecycle tags and ADR references
         run: uv run python scripts/verify-adr-conformance.py
 

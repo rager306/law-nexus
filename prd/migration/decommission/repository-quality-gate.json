@@ -26,6 +26,11 @@
       "scope": "staged Cargo and Rust paths"
     },
     {
+      "id": "crate-dependency-allowlist",
+      "command": "uv run python scripts/verify-crate-dependency-allowlist.py",
+      "scope": "workspace path-dependency graph; Cargo and allowlist paths"
+    },
+    {
       "id": "architecture-claim-conformance",
       "command": "uv run python scripts/verify-adr-conformance.py",
       "scope": "living architecture and ADR records"

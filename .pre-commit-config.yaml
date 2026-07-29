@@ -45,6 +45,13 @@ repos:
         pass_filenames: false
         files: ^(Cargo\.(toml|lock)|crates/.*\.(rs|toml))$
 
+      - id: crate-dependency-allowlist
+        name: workspace crate dependency allowlist
+        entry: uv run python scripts/verify-crate-dependency-allowlist.py
+        language: system
+        pass_filenames: false
+        files: ^(Cargo\.(toml|lock)|crates/.*\.(rs|toml)|prd/architecture/crate-dependency-allowlist\.json)$
+
       - id: architecture-claim-conformance
         name: architecture lifecycle tags and ADR references
         entry: uv run python scripts/verify-adr-conformance.py
