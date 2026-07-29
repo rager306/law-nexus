@@ -315,21 +315,27 @@
       "theme": "Process honesty and BlockDecoder shared family-isolation suite",
       "status": "complete",
       "boundary": "ADR-0015 stale non-claims repaired after M145-M153 landings. BlockDecoderPort shared suite for Consultant WordML and Garant ODT family isolation. Synthetic fixtures only; no live TEI/RuVector or product-readiness claim."
+    },
+    {
+      "range": "M155-M155",
+      "theme": "DecoderPort real adapter coverage and multi-adapter inventory",
+      "status": "complete",
+      "boundary": "WordMLStreamingDecoder shared DecoderPort suite. Multi-adapter real-port inventory + governor multi-adapter-port-coverage with residual missing=0. Mention-based only; no live TEI/RuVector or product-readiness claim."
     }
   ],
   "current_milestone": {
-    "id": "M154-a606i7",
-    "title": "Process Honesty and BlockDecoder Shared Contract",
+    "id": "M155-pig3nf",
+    "title": "DecoderPort Real Adapter Coverage and Multi-Adapter Inventory",
     "status": "complete",
-    "goal": "Repair stale ADR-0015 non-claims after M145-M153 landings and close BlockDecoderPort multi-adapter shared family-isolation suite (ADR-0015)."
+    "goal": "Exercise WordMLStreamingDecoder through shared DecoderPort suite and add multi-adapter real-port inventory/governor advisory (ADR-0015)."
   },
   "recommended_next": {
-    "title": "M155 Live Adapter Path and Remaining Process Debt Outside Verification Architecture",
+    "title": "M156 Live Adapter Path and Remaining Process Debt Outside Verification Architecture",
     "priority": 1,
-    "why": "M154 closed process-doc honesty drift and the residual multi-adapter BlockDecoder shared suite. Port contracts 22/22 and hostile inventory 14/14 remain green. Next: live TEI/RuVector only with real infrastructure and without overclaim, plus residual process debt outside verification architecture.",
+    "why": "M155 closed real DecoderPort suite gap and multi-adapter process visibility (residual real multi-adapter gaps=0). Port contracts 22/22, hostiles 14/14, multi-adapter 4/0 remain green. Next: live TEI/RuVector only with real infrastructure and without overclaim, plus residual process debt outside verification architecture.",
     "plan_reference": "doc/adr/0015-hexagonal-verification-architecture.md follow-on increments",
     "slices": "Live adapter readiness gates when infra exists; optional --strict coverage CI policy; residual process debt scan outside verification architecture.",
-    "non_validation": "M154 does not validate live TEI/RuVector or product readiness; BlockDecoder suite is synthetic family isolation only."
+    "non_validation": "M155 does not validate live TEI/RuVector or product readiness; multi-adapter inventory is mention-based; WordML suite is synthetic fixture only."
   },
   "downstream_blocked": [
     {
