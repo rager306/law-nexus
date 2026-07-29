@@ -2,7 +2,7 @@
 
 All notable changes to law-nexus are documented in this file.
 
-## M146 (in progress)
+## M146 (complete)
 
 ### S01: Citation source shared port contract
 - `ln-testkit`: `assert_citation_source_contract` for honest resolve/missing/authority preservation
@@ -18,6 +18,12 @@ All notable changes to law-nexus are documented in this file.
 - `scripts/verify-port-contract-coverage.py` report-only inventory
 - Covered 4 / uncovered 16 / discovered 20 InMemory adapters
 - `--strict` fails while debt remains; default does not block gates
+
+### S04: Docs CHANGELOG and ADR follow-on sync
+- CHANGELOG and ADR-0015 follow-ons updated honestly
+
+### S05: Validation and terminal closure
+- Structured UAT PASS; M146 formally complete; terminal projections closed
 
 ## M145 (complete)
 

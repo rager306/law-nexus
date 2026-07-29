@@ -261,21 +261,27 @@
       "theme": "Port-contract and crate-allowlist foundation",
       "status": "complete",
       "boundary": "Allowlist executable and process-gated. ln-testkit storage contracts for InMemory only. No RuVector/TEI validation; no full multi-port claim; no full layer tagging claim."
+    },
+    {
+      "range": "M146-M146",
+      "theme": "Expand shared port contracts beyond storage",
+      "status": "complete",
+      "boundary": "Citation and promotion shared contracts in ln-testkit with InMemory (plus hostile citation negative). Coverage inventory report-only 4/16. No RuVector/TEI claim; no full InMemory coverage claim."
     }
   ],
   "current_milestone": {
-    "id": "M145-c18zlo",
-    "title": "Port Contract and Crate Allowlist Foundation",
+    "id": "M146-ytxj0e",
+    "title": "Expand Shared Port Contracts Beyond Storage",
     "status": "complete",
-    "goal": "Executable crate-dependency allowlist and ln-testkit shared storage port contracts for InMemory adapters (ADR-0015 follow-on foundation)."
+    "goal": "Expand ln-testkit with citation and promotion shared contracts and report-only InMemory coverage inventory (ADR-0015)."
   },
   "recommended_next": {
-    "title": "M146 Expand Shared Port Contracts Beyond Storage",
+    "title": "M147 Expand Shared Port Contracts to Decode and Remaining Capabilities",
     "priority": 1,
-    "why": "M145 landed allowlist and storage shared contracts. Next expand ln-testkit suites to decode/citation/promote ports and optional governor fake-without-contract diagnostics.",
+    "why": "M146 covered storage/citation/promotion (4/20 InMemory). Next expand decode and high-value remaining InMemory adapters, optionally wire coverage inventory as advisory warn.",
     "plan_reference": "doc/adr/0015-hexagonal-verification-architecture.md follow-on increments",
-    "slices": "Add shared BlockDecoder/Citation/Promote contracts; force InMemory/Hostile through them; optional governor diagnostics.",
-    "non_validation": "M145 does not validate RuVector/TEI real adapters or full multi-port coverage."
+    "slices": "Add BlockDecoder and selected capability shared contracts; reduce uncovered inventory; optional preflight advisory.",
+    "non_validation": "M146 does not validate RuVector/TEI or full InMemory shared-contract coverage."
   },
   "downstream_blocked": [
     {
