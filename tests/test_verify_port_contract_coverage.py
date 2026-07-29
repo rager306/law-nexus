@@ -43,6 +43,9 @@ def test_declared_covered_set_is_crate_qualified() -> None:
         "ln-conformance::InMemoryConformanceOracle",
         "ln-dispose::InMemoryDispositionStore",
         "ln-dispose::InMemoryPromotionGate",
+        "ln-relation::InMemoryClosedRegistry",
+        "ln-replay::InMemoryCheckpointStore",
+        "ln-replay::InMemoryEffectLedger",
     }
     assert module.SCHEMA_VERSION == "law-nexus/port-contract-coverage/v2"
 
@@ -81,25 +84,20 @@ def test_repository_report_lists_covered_and_uncovered() -> None:
         "ln-conformance::InMemoryConformanceOracle",
         "ln-dispose::InMemoryDispositionStore",
         "ln-dispose::InMemoryPromotionGate",
+        "ln-relation::InMemoryClosedRegistry",
+        "ln-replay::InMemoryCheckpointStore",
+        "ln-replay::InMemoryEffectLedger",
     }
-    assert payload["covered_count"] == 19
-    assert payload["uncovered_count"] > 0
-    assert payload["status"] == "debt"
+    assert payload["covered_count"] == 22
+    assert payload["uncovered_count"] == 0
+    assert payload["status"] == "ok"
     uncovered = {item["identity"] for item in payload["uncovered"]}
-    assert "ln-inventory::InMemoryInventoryStore" not in uncovered
-    assert "ln-gate::InMemoryCandidateStore" not in uncovered
-    assert "ln-identity::InMemoryIdentityStore" not in uncovered
-    assert "ln-temporal::InMemoryClockEvidence" not in uncovered
-    assert "ln-accelerate::InMemoryAccelerationLedger" not in uncovered
-    assert "ln-conformance::InMemoryConformanceOracle" not in uncovered
-    assert "ln-dispose::InMemoryDispositionStore" not in uncovered
-    assert "ln-dispose::InMemoryPromotionGate" not in uncovered
-    assert "ln-replay::InMemoryCheckpointStore" in uncovered
-    assert "ln-query::InMemoryQueryState" not in uncovered
-    assert "ln-publish::InMemoryPublicationLedger" not in uncovered
-    assert "ln-decode::InMemoryDiagnosticSink" not in uncovered
-    assert "ln-observe::InMemoryWorkState" not in uncovered
-    assert "ln-diagnostic::InMemoryDiagnosticSink" not in uncovered
+    assert uncovered == set()
+    assert "ln-query::InMemoryQueryState" in {item["identity"] for item in payload["covered"]}
+    assert "ln-replay::InMemoryCheckpointStore" in {item["identity"] for item in payload["covered"]}
+    assert "ln-relation::InMemoryClosedRegistry" in {
+        item["identity"] for item in payload["covered"]
+    }
 
 
 def test_same_named_adapters_in_different_crates_are_distinct() -> None:
@@ -120,21 +118,16 @@ def test_same_named_adapters_in_different_crates_are_distinct() -> None:
     }
     assert diagnostic_sinks <= identities
     assert payload["discovered_count"] == 22
-    assert payload["uncovered_count"] == 3
+    assert payload["uncovered_count"] == 0
     covered_ids = {item["identity"] for item in payload["covered"]}
     assert diagnostic_sinks <= covered_ids
-    assert "ln-inventory::InMemoryInventoryStore" in covered_ids
-    assert "ln-inventory::InMemoryVisibilityView" in covered_ids
-    assert "ln-gate::InMemoryCandidateStore" in covered_ids
-    assert "ln-identity::InMemoryIdentityStore" in covered_ids
-    assert "ln-temporal::InMemoryClockEvidence" in covered_ids
-    assert "ln-accelerate::InMemoryAccelerationLedger" in covered_ids
-    assert "ln-conformance::InMemoryConformanceOracle" in covered_ids
-    assert "ln-dispose::InMemoryDispositionStore" in covered_ids
-    assert "ln-dispose::InMemoryPromotionGate" in covered_ids
+    assert len(covered_ids) == 22
+    assert "ln-relation::InMemoryClosedRegistry" in covered_ids
+    assert "ln-replay::InMemoryCheckpointStore" in covered_ids
+    assert "ln-replay::InMemoryEffectLedger" in covered_ids
 
 
-def test_strict_mode_fails_while_debt_remains() -> None:
+def test_strict_mode_passes_when_inventory_is_fully_covered() -> None:
     result = subprocess.run(
         [sys.executable, str(SCRIPT), "--strict"],
         cwd=ROOT,
@@ -142,9 +135,10 @@ def test_strict_mode_fails_while_debt_remains() -> None:
         capture_output=True,
         check=False,
     )
-    assert result.returncode == 1
+    assert result.returncode == 0, result.stdout + result.stderr
     payload = json.loads(result.stdout)
-    assert payload["uncovered_count"] > 0
+    assert payload["uncovered_count"] == 0
+    assert payload["status"] == "ok"
 
 
 def test_discover_inmemory_adapters_uses_crate_qualified_keys() -> None:

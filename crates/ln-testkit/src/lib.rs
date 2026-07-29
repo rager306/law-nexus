@@ -52,6 +52,13 @@ use ln_publish::domain::{
 use ln_publish::ports::PublicationLedgerPort;
 use ln_query::domain::EvidenceId;
 use ln_query::ports::QueryStatePort;
+use ln_relation::domain::{EndpointId, FamilyId, PredicateId, RelationFact};
+use ln_relation::ports::RelationRegistryPort;
+use ln_replay::adapters::sample_checkpoint;
+use ln_replay::domain::{
+    CheckpointDigest, CheckpointId, EffectId, OperationId as ReplayOperationId,
+};
+use ln_replay::ports::{CheckpointPort, EffectLedgerPort};
 use ln_storage::{
     GraphEdge, GraphNode, GraphStorePort, StorageError, VectorQuery, VectorRecord, VectorStorePort,
 };
@@ -934,4 +941,107 @@ pub fn assert_promotion_gate_port_contract<G: PromotionGatePort>(gate: &mut G) {
     assert_eq!(rejected.reason, DispositionReason::Incomplete);
     assert!(rejected.commit_id.is_none());
     assert!(rejected.promotion_identity.is_none());
+}
+
+/// Shared semantic contract for honest closed [`RelationRegistryPort`] adapters.
+pub fn assert_relation_registry_contract<R: RelationRegistryPort>(registry: &mut R) {
+    assert_eq!(registry.registered_count(), 1);
+    let known = PredicateId::parse("amends").expect("predicate");
+    let unknown = PredicateId::parse("relates-to").expect("predicate");
+    let subject = EndpointId::parse("E1").expect("endpoint");
+    let object = EndpointId::parse("E2").expect("endpoint");
+    let owner = FamilyId::parse("family-A").expect("family");
+
+    let registered = registry.lookup(&known).expect("known predicate");
+    assert_eq!(registered.predicate_id.as_str(), "amends");
+    assert_eq!(registered.owner_family.as_str(), "family-A");
+    assert!(registry.lookup(&unknown).is_none());
+    assert_eq!(registry.fact_count(), 0);
+
+    let fact = RelationFact {
+        predicate_id: known.clone(),
+        subject: subject.clone(),
+        object: object.clone(),
+        owner_family: owner,
+    };
+    assert!(registry.try_store_fact(fact));
+    assert_eq!(registry.fact_count(), 1);
+    assert!(registry.contains_fact(&known, &subject, &object));
+    assert!(!registry.contains_fact(&unknown, &subject, &object));
+    assert!(!registry.registry_version().as_str().is_empty());
+}
+
+/// Shared semantic contract for honest [`CheckpointPort`] adapters.
+pub fn assert_checkpoint_port_contract<C: CheckpointPort>(store: &C) {
+    let present = CheckpointId::parse("cp:contract-1").expect("checkpoint id");
+    let missing = CheckpointId::parse("cp:missing").expect("checkpoint id");
+    let loaded = store.load(&present).expect("seeded checkpoint");
+    assert_eq!(loaded.checkpoint_id.as_str(), "cp:contract-1");
+    assert!(!loaded.digest.as_str().is_empty());
+    assert!(store.load(&missing).is_none());
+}
+
+/// Shared semantic contract for honest [`EffectLedgerPort`] adapters.
+///
+/// Expects first apply success, second apply suppression, has_applied true,
+/// and prior digest preservation. Hostile ledgers that always report not-applied
+/// or always succeed on duplicate must fail this suite (see
+/// [`assert_hostile_duplicate_effect_ledger_fails_honest_contract`]).
+pub fn assert_effect_ledger_port_contract<L: EffectLedgerPort>(ledger: &mut L) {
+    let op = ReplayOperationId::parse("op:contract-1").expect("operation id");
+    let effect = EffectId::parse("ef:contract-1").expect("effect id");
+    let digest = CheckpointDigest::parse("digest:contract-1").expect("digest");
+
+    assert_eq!(ledger.applied_count(), 0);
+    assert!(!ledger.has_applied(&op, &effect));
+    assert!(ledger.prior_digest(&op, &effect).is_none());
+
+    assert!(ledger.try_apply(&op, &effect, &digest));
+    assert_eq!(ledger.applied_count(), 1);
+    assert!(ledger.has_applied(&op, &effect));
+    assert_eq!(
+        ledger
+            .prior_digest(&op, &effect)
+            .as_ref()
+            .map(|d| d.as_str()),
+        Some("digest:contract-1")
+    );
+
+    assert!(
+        !ledger.try_apply(&op, &effect, &digest),
+        "honest ledger must suppress duplicate external effect apply"
+    );
+    assert_eq!(ledger.applied_count(), 1);
+}
+
+/// Negative contract: hostile duplicate effect ledger lies about has_applied
+/// and duplicate try_apply success.
+pub fn assert_hostile_duplicate_effect_ledger_fails_honest_contract<L: EffectLedgerPort>(
+    ledger: &mut L,
+) {
+    let op = ReplayOperationId::parse("op:hostile-1").expect("operation id");
+    let effect = EffectId::parse("ef:hostile-1").expect("effect id");
+    let digest = CheckpointDigest::parse("digest:hostile-1").expect("digest");
+
+    assert!(ledger.try_apply(&op, &effect, &digest));
+    assert!(
+        !ledger.has_applied(&op, &effect),
+        "hostile ledger expected to claim not applied after apply"
+    );
+    assert!(
+        ledger.try_apply(&op, &effect, &digest),
+        "hostile ledger expected to report success on duplicate apply"
+    );
+}
+
+/// Helper re-export for replay checkpoint fixtures used by shared suites.
+pub fn contract_sample_checkpoint() -> ln_replay::domain::CheckpointRecord {
+    sample_checkpoint(
+        "cp:contract-1",
+        "digest:contract-1",
+        "rules:v1",
+        "op:contract-1",
+        "ef:contract-1",
+        "history:contract-1",
+    )
 }

@@ -21,3 +21,5 @@ ln-temporal = { path = "../ln-temporal" }
 ln-accelerate = { path = "../ln-accelerate" }
 ln-conformance = { path = "../ln-conformance" }
 ln-dispose = { path = "../ln-dispose" }
+ln-relation = { path = "../ln-relation" }
+ln-replay = { path = "../ln-replay" }

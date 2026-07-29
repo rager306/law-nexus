@@ -313,6 +313,8 @@ dependencies = [
  "ln-promote",
  "ln-publish",
  "ln-query",
+ "ln-relation",
+ "ln-replay",
  "ln-storage",
  "ln-temporal",
 ]
