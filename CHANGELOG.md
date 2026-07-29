@@ -2,7 +2,7 @@
 
 All notable changes to law-nexus are documented in this file.
 
-## M147 (in progress)
+## M147 (complete)
 
 ### S01: Advisory preflight for port-contract coverage debt
 - Preflight check `port-contract-coverage` runs inventory script
@@ -18,6 +18,9 @@ All notable changes to law-nexus are documented in this file.
 - `ln-testkit`: PublicationLedgerPort store-level suite for InMemory
 - Allowlist 30 edges (`ln-testkit` → `ln-publish`)
 - Coverage covered 6 / uncovered 14 / discovered 20
+
+### S04: Docs validation and terminal closure
+- CHANGELOG and ADR-0015 updated; structured UAT PASS; terminal projections closed
 
 ## M146 (complete)
 
