@@ -98,8 +98,8 @@ ADR-0013 universal parser  [bounded] + ADR-0014 RuVector  [proposed]
    TEI USER-bge-m3 1024d embedding boundary remains proposed
    RVF vectors + redb GraphDB CRUD; no ruvector-graph Cypher execution claim
    ▼
-[LATEST COMPLETED] M159 — architecture generator test CI coverage.
-M160 live adapter implementation path when infrastructure exists is next.
+[LATEST COMPLETED] M160 — verify test CI coverage and governor test-coverage drift.
+M161 live adapter implementation path when infrastructure exists is next.
 ```
 
 ## Current layer (where work happens now)
