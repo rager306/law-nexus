@@ -98,8 +98,8 @@ ADR-0013 universal parser  [bounded] + ADR-0014 RuVector  [proposed]
    TEI USER-bge-m3 1024d embedding boundary remains proposed
    RVF vectors + redb GraphDB CRUD; no ruvector-graph Cypher execution claim
    ▼
-[LATEST COMPLETED] M150 — residual capability shared contracts; InMemory inventory 22/22 covered as bounded port suites.
-M151 process hardening and real-adapter preparation is next.
+[LATEST COMPLETED] M151 — governor-native port-contract coverage with evidence-ceiling non-claims.
+M152 real-adapter preparation and remaining process debt is next.
 ```
 
 ## Current layer (where work happens now)

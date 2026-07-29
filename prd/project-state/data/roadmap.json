@@ -291,21 +291,27 @@
       "theme": "Residual capability shared port contracts",
       "status": "complete",
       "boundary": "Accelerate/conformance/dispose/relation/replay shared contracts with hostile negatives where available. Coverage inventory 22/22 crate-qualified InMemory adapters as bounded port suites only. No RuVector/TEI claim; no product-readiness claim."
+    },
+    {
+      "range": "M151-M151",
+      "theme": "Governor-native port-contract coverage process hardening",
+      "status": "complete",
+      "boundary": "Governor check_port_contract_coverage with debt warn / crash error and full-coverage non-claim. Quality-gate future_additions and ADR-0015 evidence ceiling honest after 22/22 bounded InMemory coverage. No RuVector/TEI claim; no product-readiness claim."
     }
   ],
   "current_milestone": {
-    "id": "M150-5svwot",
-    "title": "Expand Shared Port Contracts to Residual Capability Adapters",
+    "id": "M151-zeej4w",
+    "title": "Process Hardening for Port Contract Coverage Governor",
     "status": "complete",
-    "goal": "Expand ln-testkit shared contracts to residual accelerate/conformance/dispose/relation/replay adapters; full InMemory inventory coverage 22/22 as bounded port suites (ADR-0015)."
+    "goal": "Wire port-contract coverage into governor trajectory with evidence-ceiling non-claims; refresh stale strict-gate wording after full bounded InMemory coverage (ADR-0015)."
   },
   "recommended_next": {
-    "title": "M151 Process Hardening and Real Adapter Preparation",
+    "title": "M152 Real Adapter Preparation and Remaining Process Debt",
     "priority": 1,
-    "why": "M150 closed residual InMemory shared-contract debt (22/22 bounded). Next process hardening: governor-native coverage check, optional strict coverage policy decision, and preparation for real TEI/RuVector adapter suites without overclaim.",
+    "why": "M151 hardened governor coverage trajectory after 22/22 bounded InMemory coverage. Next: prepare real TEI/RuVector adapter suites without overclaim, optional --strict CI policy decision, and remaining process debt outside port contracts.",
     "plan_reference": "doc/adr/0015-hexagonal-verification-architecture.md follow-on increments",
-    "slices": "Governor-native coverage finding; strict-coverage policy decision; real-adapter contract preparation when infrastructure lands.",
-    "non_validation": "M150 does not validate RuVector/TEI or product readiness; full InMemory coverage is bounded port-suite coverage only."
+    "slices": "Real-adapter contract preparation; optional strict CI policy; residual process debt scan.",
+    "non_validation": "M151 does not validate RuVector/TEI or product readiness; full InMemory coverage remains bounded port-suite coverage only."
   },
   "downstream_blocked": [
     {

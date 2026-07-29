@@ -2,7 +2,7 @@
 
 All notable changes to law-nexus are documented in this file.
 
-## M151 (in progress)
+## M151 (complete)
 
 ### S01: Governor-native port-contract coverage check
 - Governor finding `port-contract-coverage` (debt = non-blocking warn; crash = error)
@@ -12,6 +12,9 @@ All notable changes to law-nexus are documented in this file.
 ### S02: Strict-gate wording and evidence-ceiling docs refresh
 - Quality-gate `future_additions` no longer implies remaining uncovered InMemory adapters
 - ADR-0015 records governor-native coverage trajectory
+
+### S03: Validation and terminal closure
+- Structured UAT PASS; terminal projections closed
 
 ## M150 (complete)
 
