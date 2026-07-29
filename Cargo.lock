@@ -297,6 +297,13 @@ name = "ln-temporal"
 version = "0.1.0"
 
 [[package]]
+name = "ln-testkit"
+version = "0.1.0"
+dependencies = [
+ "ln-storage",
+]
+
+[[package]]
 name = "ln-work"
 version = "0.1.0"
 

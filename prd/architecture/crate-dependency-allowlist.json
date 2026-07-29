@@ -32,7 +32,8 @@
     ["ln-product-cli", "ln-query"],
     ["ln-product-cli", "ln-storage"],
     ["ln-query", "ln-decode"],
-    ["ln-query", "ln-storage"]
+    ["ln-query", "ln-storage"],
+    ["ln-testkit", "ln-storage"]
   ],
   "non_claims": [
     "Does not validate external crate licenses or versions.",

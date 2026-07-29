@@ -1,0 +1,9 @@
+[package]
+name = "ln-testkit"
+version = "0.1.0"
+edition = "2021"
+publish = false
+description = "Shared port-contract helpers for law-nexus hexagonal verification (ADR-0015)"
+
+[dependencies]
+ln-storage = { path = "../ln-storage" }
