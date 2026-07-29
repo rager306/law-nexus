@@ -98,9 +98,8 @@ ADR-0013 universal parser  [bounded] + ADR-0014 RuVector  [proposed]
    TEI USER-bge-m3 1024d embedding boundary remains proposed
    RVF vectors + redb GraphDB CRUD; no ruvector-graph Cypher execution claim
    ▼
-[LATEST COMPLETED] M140 — Python product archival cutover; ADR-0004/0005
-promoted to `[validated]`. Rust is the only active product runtime.
-M141 production release hardening is next.
+[LATEST COMPLETED] M141 — post-archival process debt closure; residual product-dependent
+Python tests/scripts archived; harness CI green. M142 production release hardening is next.
 ```
 
 ## Current layer (where work happens now)

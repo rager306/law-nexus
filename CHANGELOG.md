@@ -27,7 +27,7 @@ All notable changes to law-nexus are documented in this file.
 - Structured UAT PASS (3 checks: CLI hostile tests, evidence portability, real CLI execution)
 - M139 formally complete
 
-## M141 (in progress)
+## M141 (complete)
 
 ### S01: Harness boundary false positive fix
 - CI harness suite failed because governor historical-only FalkorDB direction matched FORBIDDEN_SOURCE_TERMS
@@ -42,6 +42,13 @@ All notable changes to law-nexus are documented in this file.
 - Archived hard-import/load dependency closure: 9 residual scripts + 9 cascading tests
 - Active tree: 0 hard hits, 1695 tests collect cleanly, harness 39/39, governor 30/0
 - Archived totals under python_archive/product: 29 scripts, 67 tests
+
+### S04: Active collection hygiene and docs
+- CHANGELOG and residual archival verified
+- Governor 30/0, preflight 6/0 after reindex
+
+### S05: Validation and terminal closure
+- Structured UAT PASS; M141 formally complete; terminal projections closed
 
 ## M140 (complete)
 

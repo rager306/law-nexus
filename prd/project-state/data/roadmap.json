@@ -231,21 +231,27 @@
       "theme": "Python product archival cutover and ADR validation",
       "status": "complete",
       "boundary": "Python product code archived to python_archive/product/. Rust is the only active product runtime. ADR-0004/0005 promoted to [validated]. No production readiness, release build or deployment claim."
+    },
+    {
+      "range": "M141-M141",
+      "theme": "Post-archival process debt closure and residual Python dependency archival",
+      "status": "complete",
+      "boundary": "Residual product-dependent tests/scripts archived under python_archive/product/. Harness historical-only FalkorDB vocabulary allowed. No production readiness, release build or deployment claim."
     }
   ],
   "current_milestone": {
-    "id": "M140-lwbg6j",
-    "title": "Python Product Archival Cutover",
+    "id": "M141-ocnld7",
+    "title": "Post-Archival Process Debt Closure",
     "status": "complete",
-    "goal": "Archive Python product code; Rust-only active runtime; ADR-0004/0005 validated."
+    "goal": "Close residual process debt after incomplete M140 archival; harness CI green; hard-import hits 0."
   },
   "recommended_next": {
-    "title": "M141 Production Release Hardening",
+    "title": "M142 Production Release Hardening",
     "priority": 1,
-    "why": "M140 closes Python archival. M141 must prove release build performance, deployment packaging and production hardening.",
-    "plan_reference": "prd/migration/forward-roadmap.md M141",
-    "slices": "Close post-M140 terminal projection debt, define release build targets, then validate production hardening.",
-    "non_validation": "M140 archival does not validate production readiness, release build performance or deployment."
+    "why": "M141 closed residual process debt after M140 archival. M142 must prove release build performance, deployment packaging and production hardening.",
+    "plan_reference": "prd/migration/forward-roadmap.md post-M141",
+    "slices": "Define release build targets, measure release performance, then validate packaging and production hardening.",
+    "non_validation": "M141 residual archival does not validate production readiness, release build performance or deployment."
   },
   "downstream_blocked": [
     {
