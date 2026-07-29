@@ -2,6 +2,15 @@
 
 All notable changes to law-nexus are documented in this file.
 
+## M158 (complete)
+
+### S01: Governor CI quality-gate drift anti-drift check
+- Governor finding `ci-quality-gate-drift`
+- Detects pre-commit hook / CI process suite / inventory script drift
+
+### S02: Docs validation and terminal closure
+- Structured UAT PASS; terminal projections closed
+
 ## M157 (complete)
 
 ### S01: Live-adapter readiness governor and CI wiring
