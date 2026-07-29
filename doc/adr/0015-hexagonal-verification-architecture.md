@@ -314,6 +314,11 @@ Treat the following as process debt or gate failures, not style nits:
    **M154 `[bounded]` process honesty + BlockDecoder shared suite:** ADR-0015
    stale non-claims repaired; `assert_block_decoder_port_contract` exercises
    Consultant WordML and Garant ODT family isolation (synthetic fixtures only).
+   **M155 `[bounded]` real DecoderPort + multi-adapter inventory:**
+   `WordMLStreamingDecoder` exercises fixture-aware shared DecoderPort suite;
+   `scripts/verify-multi-adapter-port-coverage.py` plus governor finding
+   `multi-adapter-port-coverage` surfaces real multi-adapter adapters without
+   shared suite mentions (debt = non-blocking warn; residual missing=0).
 6. ~~Expand shared suites beyond storage ports (decode, citation, promote, …).~~
    **M146 `[bounded]`:** citation + promotion shared contracts landed in
    ln-testkit with InMemory (and hostile citation negative).

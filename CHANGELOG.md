@@ -2,6 +2,19 @@
 
 All notable changes to law-nexus are documented in this file.
 
+## M155 (complete)
+
+### S01: WordMLStreamingDecoder shared DecoderPort suite
+- Fixture-aware honest DecoderPort contract entrypoint
+- WordMLStreamingDecoder exercises shared suite on structural fixture
+
+### S02: Multi-adapter real-port inventory and governor advisory
+- `verify-multi-adapter-port-coverage.py` + governor `multi-adapter-port-coverage`
+- Residual real multi-adapter gaps: 0 after WordML suite
+
+### S03: Docs validation and terminal closure
+- Structured UAT PASS; terminal projections closed
+
 ## M154 (complete)
 
 ### S01: ADR-0015 stale non-claims honesty repair
