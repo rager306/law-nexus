@@ -319,6 +319,11 @@ Treat the following as process debt or gate failures, not style nits:
    `scripts/verify-multi-adapter-port-coverage.py` plus governor finding
    `multi-adapter-port-coverage` surfaces real multi-adapter adapters without
    shared suite mentions (debt = non-blocking warn; residual missing=0).
+   **M156 `[bounded]` CI process surface + live-adapter readiness inventory:**
+   CI process-only suite expanded with preflight/quality-gate/inventory tests and
+   report-only inventory scripts; `scripts/verify-live-adapter-readiness.py`
+   classifies TEI as `stub_transport_only` and RuVector as `proposed` with
+   overclaim scan (no live HTTP; not product readiness).
 6. ~~Expand shared suites beyond storage ports (decode, citation, promote, …).~~
    **M146 `[bounded]`:** citation + promotion shared contracts landed in
    ln-testkit with InMemory (and hostile citation negative).

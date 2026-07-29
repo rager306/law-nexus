@@ -2,6 +2,20 @@
 
 All notable changes to law-nexus are documented in this file.
 
+## M156 (complete)
+
+### S01: CI process suite expansion and quality-gate honesty
+- CI process-only suite includes preflight, quality-gate, inventory verifier tests
+- Report-only inventory script steps in CI
+- Quality-gate inventory `ci_process_suite` / `ci_inventory_scripts` honesty
+
+### S02: Live adapter readiness report-only process surface
+- `verify-live-adapter-readiness.py`: TEI `stub_transport_only`, RuVector `proposed`
+- Overclaim scan; no live HTTP
+
+### S03: Docs validation and terminal closure
+- Structured UAT PASS; terminal projections closed
+
 ## M155 (complete)
 
 ### S01: WordMLStreamingDecoder shared DecoderPort suite
