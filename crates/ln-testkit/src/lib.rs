@@ -43,6 +43,8 @@ use ln_query::ports::QueryStatePort;
 use ln_storage::{
     GraphEdge, GraphNode, GraphStorePort, StorageError, VectorQuery, VectorRecord, VectorStorePort,
 };
+use ln_temporal::domain::ClockKind;
+use ln_temporal::ports::ClockEvidencePort;
 
 fn vector_record(id: &str, dims: &[f32]) -> VectorRecord {
     VectorRecord::try_new(id, dims.to_vec(), Vec::new()).expect("valid vector record")
@@ -751,5 +753,24 @@ pub fn assert_erasing_merger_hostile_fails_honest_identity_contract<S: IdentityS
     assert!(
         !store.contains(right_id),
         "hostile erasing merger expected to erase targeted right identity on put"
+    );
+}
+
+/// Shared semantic contract for honest [`ClockEvidencePort`] adapters.
+///
+/// Expects present anchors to resolve and a missing governing clock to remain
+/// None. Application substitution policy remains in `ln-temporal` use-case tests.
+pub fn assert_clock_evidence_port_contract<E: ClockEvidencePort>(evidence: &E) {
+    // Fixture should include all clocks except SystemObservation.
+    let present = ClockKind::FactualEvent;
+    let missing = ClockKind::SystemObservation;
+
+    let anchor = evidence
+        .anchor_for(present)
+        .expect("present clock must resolve to an anchor");
+    assert!(!anchor.as_str().is_empty(), "anchor id must be non-empty");
+    assert!(
+        evidence.anchor_for(missing).is_none(),
+        "missing governing clock must return None, not a substitute anchor"
     );
 }

@@ -38,6 +38,7 @@ def test_declared_covered_set_is_crate_qualified() -> None:
         "ln-inventory::InMemoryVisibilityView",
         "ln-gate::InMemoryCandidateStore",
         "ln-identity::InMemoryIdentityStore",
+        "ln-temporal::InMemoryClockEvidence",
     }
     assert module.SCHEMA_VERSION == "law-nexus/port-contract-coverage/v2"
 
@@ -71,15 +72,17 @@ def test_repository_report_lists_covered_and_uncovered() -> None:
         "ln-inventory::InMemoryVisibilityView",
         "ln-gate::InMemoryCandidateStore",
         "ln-identity::InMemoryIdentityStore",
+        "ln-temporal::InMemoryClockEvidence",
     }
-    assert payload["covered_count"] == 14
+    assert payload["covered_count"] == 15
     assert payload["uncovered_count"] > 0
     assert payload["status"] == "debt"
     uncovered = {item["identity"] for item in payload["uncovered"]}
     assert "ln-inventory::InMemoryInventoryStore" not in uncovered
     assert "ln-gate::InMemoryCandidateStore" not in uncovered
     assert "ln-identity::InMemoryIdentityStore" not in uncovered
-    assert "ln-temporal::InMemoryClockEvidence" in uncovered
+    assert "ln-temporal::InMemoryClockEvidence" not in uncovered
+    assert "ln-replay::InMemoryCheckpointStore" in uncovered
     assert "ln-query::InMemoryQueryState" not in uncovered
     assert "ln-publish::InMemoryPublicationLedger" not in uncovered
     assert "ln-decode::InMemoryDiagnosticSink" not in uncovered
@@ -105,13 +108,14 @@ def test_same_named_adapters_in_different_crates_are_distinct() -> None:
     }
     assert diagnostic_sinks <= identities
     assert payload["discovered_count"] == 22
-    assert payload["uncovered_count"] == 8
+    assert payload["uncovered_count"] == 7
     covered_ids = {item["identity"] for item in payload["covered"]}
     assert diagnostic_sinks <= covered_ids
     assert "ln-inventory::InMemoryInventoryStore" in covered_ids
     assert "ln-inventory::InMemoryVisibilityView" in covered_ids
     assert "ln-gate::InMemoryCandidateStore" in covered_ids
     assert "ln-identity::InMemoryIdentityStore" in covered_ids
+    assert "ln-temporal::InMemoryClockEvidence" in covered_ids
 
 
 def test_strict_mode_fails_while_debt_remains() -> None:

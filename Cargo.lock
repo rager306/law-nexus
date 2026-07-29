@@ -311,6 +311,7 @@ dependencies = [
  "ln-publish",
  "ln-query",
  "ln-storage",
+ "ln-temporal",
 ]
 
 [[package]]

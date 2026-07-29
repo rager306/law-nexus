@@ -43,7 +43,8 @@
     ["ln-testkit", "ln-diagnostic"],
     ["ln-testkit", "ln-inventory"],
     ["ln-testkit", "ln-gate"],
-    ["ln-testkit", "ln-identity"]
+    ["ln-testkit", "ln-identity"],
+    ["ln-testkit", "ln-temporal"]
   ],
   "non_claims": [
     "Does not validate external crate licenses or versions.",
