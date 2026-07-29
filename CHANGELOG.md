@@ -2,6 +2,22 @@
 
 All notable changes to law-nexus are documented in this file.
 
+## M149 (in progress)
+
+### S01: Inventory store and visibility shared contracts
+- InventoryStorePort append-only history suite
+- VisibilityPort inventory/review surface suite
+- Allowlist 34 edges (`ln-testkit` → `ln-inventory`)
+
+### S02: Gate and identity store shared contracts
+- CandidateStorePort honest + InPlaceMutatingHostile negative
+- IdentityStorePort honest + ErasingMergerHostile negative
+- Allowlist 36 edges
+
+### S03: Temporal clock evidence shared contract
+- ClockEvidencePort present/missing anchor suite
+- Allowlist 37 edges; coverage covered 15 / uncovered 7 / discovered 22
+
 ## M148 (complete)
 
 ### S01: Crate-qualified port-contract coverage identity

@@ -290,8 +290,12 @@ Treat the following as process debt or gate failures, not style nits:
    **M147 `[bounded]`:** query + publication shared contracts landed.
    **M148 `[bounded]`:** decode DecoderPort/DiagnosticPort, observe
    WorkState/Diagnostic, and diagnostic DiagnosticSinkPort (with hostile
-   negatives) landed; coverage inventory now covers 10/22 crate-qualified
-   InMemory adapters. Remaining capability adapters stay uncovered debt.
+   negatives) landed.
+   **M149 `[bounded]`:** inventory store/visibility, gate candidate store,
+   identity store, and temporal clock evidence shared contracts landed (with
+   gate/identity hostile negatives); coverage inventory now covers 15/22
+   crate-qualified InMemory adapters. Remaining accelerate/conformance/
+   dispose/relation/replay adapters stay uncovered debt.
 
 ## References
 
