@@ -47,12 +47,14 @@
     "tests/test_verify_crate_dependency_allowlist.py",
     "tests/test_verify_port_contract_coverage.py",
     "tests/test_verify_hostile_negative_suite_coverage.py",
-    "tests/test_verify_multi_adapter_port_coverage.py"
+    "tests/test_verify_multi_adapter_port_coverage.py",
+    "tests/test_verify_live_adapter_readiness.py"
   ],
   "ci_inventory_scripts": [
     "scripts/verify-port-contract-coverage.py",
     "scripts/verify-hostile-negative-suite-coverage.py",
-    "scripts/verify-multi-adapter-port-coverage.py"
+    "scripts/verify-multi-adapter-port-coverage.py",
+    "scripts/verify-live-adapter-readiness.py"
   ],
   "forbidden_active_dependencies": [
     "git-lex executable",

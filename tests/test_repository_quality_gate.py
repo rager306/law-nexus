@@ -34,11 +34,13 @@ CI_PROCESS_SUITE = {
     "tests/test_verify_port_contract_coverage.py",
     "tests/test_verify_hostile_negative_suite_coverage.py",
     "tests/test_verify_multi_adapter_port_coverage.py",
+    "tests/test_verify_live_adapter_readiness.py",
 }
 CI_INVENTORY_SCRIPTS = {
     "scripts/verify-port-contract-coverage.py",
     "scripts/verify-hostile-negative-suite-coverage.py",
     "scripts/verify-multi-adapter-port-coverage.py",
+    "scripts/verify-live-adapter-readiness.py",
 }
 RUST_PATHS = r"^(Cargo\.(toml|lock)|crates/.*\.(rs|toml))$"
 

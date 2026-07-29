@@ -1131,6 +1131,96 @@ def check_multi_adapter_port_coverage(root: Path) -> list[GovernorFinding]:
     ]
 
 
+def _load_live_adapter_readiness_module(root: Path):
+    candidates = (
+        root / "scripts" / "verify-live-adapter-readiness.py",
+        Path(__file__).resolve().parents[2] / "scripts" / "verify-live-adapter-readiness.py",
+    )
+    script = next((path for path in candidates if path.is_file()), None)
+    if script is None:
+        raise FileNotFoundError(
+            "missing live-adapter readiness inventory script under target root or harness repository"
+        )
+    module_name = f"verify_live_adapter_readiness_{abs(hash(str(script)))}"
+    spec = importlib.util.spec_from_file_location(module_name, script)
+    if spec is None or spec.loader is None:
+        raise ImportError(f"unable to load live-adapter readiness inventory script: {script}")
+    module = importlib.util.module_from_spec(spec)
+    sys.modules[module_name] = module
+    spec.loader.exec_module(module)
+    return module
+
+
+def check_live_adapter_readiness(root: Path) -> list[GovernorFinding]:
+    """Inventory TEI/RuVector live-adapter readiness from repository evidence.
+
+    Overclaim debt is non-blocking (fail + warn). Inventory script/load failures
+    are fail-closed (fail + error). Stub/proposed classifications are process
+    honesty only and do not validate live TEI/RuVector adapters.
+    """
+    check_id = "live-adapter-readiness"
+    remediation = (
+        "Inspect `uv run python scripts/verify-live-adapter-readiness.py`. "
+        "Remove overclaim markers or restore TEI stub-transport / RuVector "
+        "proposed evidence ceilings. Do not claim live TEI/RuVector validation "
+        "or product readiness from inventory alone."
+    )
+    try:
+        module = _load_live_adapter_readiness_module(root)
+        report = module.build_report(root)
+    except Exception as error:  # noqa: BLE001 - fail-closed process surface
+        return [
+            GovernorFinding(
+                check_id=check_id,
+                status="fail",
+                severity="error",
+                message="live-adapter readiness inventory failed",
+                observed=str(error),
+                remediation=remediation,
+            )
+        ]
+
+    status = str(report.get("status") or "")
+    overclaim_count = int(report.get("overclaim_count") or 0)
+    tei = report.get("tei") or {}
+    ruvector = report.get("ruvector") or {}
+    tei_status = str(tei.get("status") or "unknown")
+    ruvector_status = str(ruvector.get("status") or "unknown")
+
+    if overclaim_count > 0 or status == "debt":
+        return [
+            GovernorFinding(
+                check_id=check_id,
+                status="fail",
+                severity="warn",
+                message="live-adapter readiness inventory reports overclaims",
+                observed=(
+                    f"status={status}, tei={tei_status}, ruvector={ruvector_status}, "
+                    f"overclaim_count={overclaim_count} "
+                    f"(lifecycle [bounded]; repository-evidence only; not live "
+                    f"TEI/RuVector validation or product readiness)."
+                ),
+                remediation=remediation,
+            )
+        ]
+
+    return [
+        GovernorFinding(
+            check_id=check_id,
+            status="pass",
+            severity="ok",
+            message="live-adapter readiness inventory within evidence ceiling",
+            observed=(
+                f"status={status}, tei={tei_status}, ruvector={ruvector_status}, "
+                f"overclaim_count={overclaim_count} "
+                f"(lifecycle [bounded]; repository-evidence only; not live "
+                f"TEI/RuVector validation or product readiness)."
+            ),
+            remediation="none",
+        )
+    ]
+
+
 def run_governor(root: Path | None = None) -> GovernorReport:
     """Run all governor checks and return a machine-readable report."""
 
@@ -1145,6 +1235,7 @@ def run_governor(root: Path | None = None) -> GovernorReport:
         + check_port_contract_coverage(resolved)
         + check_hostile_negative_suite_coverage(resolved)
         + check_multi_adapter_port_coverage(resolved)
+        + check_live_adapter_readiness(resolved)
     )
     error_count = sum(1 for item in findings if item.status == "fail" and item.severity == "error")
     warn_count = sum(1 for item in findings if item.status == "fail" and item.severity == "warn")

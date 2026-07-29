@@ -518,6 +518,22 @@ def test_live_governor_passes_multi_adapter_port_coverage() -> None:
     assert finding.severity == "ok"
     assert "missing_shared_suite=0" in finding.observed
     assert report.error_count == 0
+
+
+def test_live_governor_passes_live_adapter_readiness() -> None:
+    report = run_governor(ROOT)
+    by_id = {item.check_id: item for item in report.findings}
+    assert "live-adapter-readiness" in by_id
+    finding = by_id["live-adapter-readiness"]
+    # Repository-evidence ceiling: TEI stub transport only, RuVector proposed.
+    assert finding.status == "pass"
+    assert finding.severity == "ok"
+    assert "tei=stub_transport_only" in finding.observed
+    assert "ruvector=proposed" in finding.observed
+    assert "overclaim_count=0" in finding.observed
+    assert report.error_count == 0
+    assert report.warn_count == 0
+    assert report.status == "ok"
     assert report.warn_count == 0
     assert report.status == "ok"
 
