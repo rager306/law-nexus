@@ -333,21 +333,27 @@
       "theme": "Live-adapter readiness process surface and clippy quality gate",
       "status": "complete",
       "boundary": "Governor finding live-adapter-readiness plus CI process/inventory wiring. Cargo clippy -D warnings landed in pre-commit and CI quality-gate inventory. No live HTTP or product-readiness claim."
+    },
+    {
+      "range": "M158-M158",
+      "theme": "CI quality-gate drift anti-drift governor check",
+      "status": "complete",
+      "boundary": "Governor check ci-quality-gate-drift verifies pre-commit hook IDs, CI process suite, and inventory scripts match quality-gate inventory. No live HTTP or product-readiness claim."
     }
   ],
   "current_milestone": {
-    "id": "M157-3bma6s",
-    "title": "Live Adapter Readiness Process Surface and Clippy Gate",
+    "id": "M158-o8wzw9",
+    "title": "CI Quality-Gate Drift Governor Check",
     "status": "complete",
-    "goal": "Wire live-adapter readiness inventory into governor/CI and land cargo clippy as an active quality-gate check without live TEI/RuVector validation."
+    "goal": "Add governor anti-drift check that verifies pre-commit/CI/quality-gate inventory stay synchronized."
   },
   "recommended_next": {
-    "title": "M158 Live Adapter Implementation Path When Infrastructure Exists",
+    "title": "M159 Live Adapter Implementation Path When Infrastructure Exists",
     "priority": 1,
-    "why": "M157 made live-adapter readiness first-class in governor/CI and landed cargo clippy as an active quality gate. Port/hostile/multi-adapter inventories and readiness remain green with TEI stub_transport_only and RuVector proposed. Next: only when real TEI/RuVector infrastructure exists, implement live adapters behind ports without overclaim; otherwise residual optional process policy (cargo audit/deny, inventory --strict).",
+    "why": "M158 closed CI quality-gate drift anti-drift gap. All process surfaces (port/hostile/multi-adapter/readiness/CI-drift) remain green. Next: only when real TEI/RuVector infrastructure exists, implement live adapters behind ports without overclaim; otherwise residual optional process policy (cargo audit/deny, inventory --strict, generated doc staleness).",
     "plan_reference": "doc/adr/0014-ruvector-primary-infrastructure.md and doc/adr/0015-hexagonal-verification-architecture.md follow-on increments",
-    "slices": "Live TEI HTTP transport when service available; RuVector/redb adapters when selected and gated; optional cargo audit/deny and inventory --strict CI policy.",
-    "non_validation": "M157 does not validate live TEI/RuVector or product readiness; readiness remains repository-evidence only."
+    "slices": "Live TEI HTTP transport when service available; RuVector/redb adapters when selected and gated; optional cargo audit/deny, inventory --strict, generated doc staleness.",
+    "non_validation": "M158 does not validate live TEI/RuVector or product readiness."
   },
   "downstream_blocked": [
     {
