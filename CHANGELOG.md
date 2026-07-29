@@ -2,6 +2,21 @@
 
 All notable changes to law-nexus are documented in this file.
 
+## M142 (in progress)
+
+### S01: Repair active CI and quality gate contracts
+- Removed dead `uv run lint-imports` and missing `verify-m112-adr-sync.py` CI steps
+- Aligned pre-commit cargo path filters, gate inventory and quality-gate tests with harness-only control plane
+- Rewrote ARCHITECTURE current layer: Rust product runtime + Python harness + `python_archive/product` prior art
+
+### S02: Archive failing historical residual tests
+- Archived 25 residual ACP/FalkorDB/retrieval/parser proof tests that failed on the active tree
+- Active pytest: 1398 passed, 2 skipped, 0 failures
+
+### S03: Archive orphan residual scripts
+- Archived 8 residual scripts only consumed by archived historical tests
+- Active scripts: 106; archived product scripts: 37
+
 ## M139 (complete)
 
 ### S01: Performance baseline and determinism proof
