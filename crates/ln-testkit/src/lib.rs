@@ -7,8 +7,15 @@
 //! Lifecycle: foundation is `[bounded]`. Real-infrastructure validation is not
 //! claimed by the existence of this crate.
 
+use ln_accelerate::domain::{
+    AccelerationRequest, LabelId, ProvisionalId, ProvisionalTier, ScopeId as AccelScopeId,
+    WriterId as AccelWriterId,
+};
+use ln_accelerate::ports::AccelerationLedgerPort;
 use ln_citation::domain::{SourceAuthority, SourceRef};
 use ln_citation::ports::CitationSourcePort;
+use ln_conformance::domain::CaseVerdict;
+use ln_conformance::ports::ConformanceOraclePort;
 use ln_decode::domain::{
     DecodeCategory, DecodeRequest, DiagnosticId, FamilyFormat, PayloadRef, SafeDiagnostic,
 };
@@ -772,5 +779,102 @@ pub fn assert_clock_evidence_port_contract<E: ClockEvidencePort>(evidence: &E) {
     assert!(
         evidence.anchor_for(missing).is_none(),
         "missing governing clock must return None, not a substitute anchor"
+    );
+}
+
+/// Shared semantic contract for honest [`AccelerationLedgerPort`] adapters.
+///
+/// Expects provisional put/has/count/label semantics and non-authoritative
+/// counts. Hostile adapters that invent authority or mutate labels must fail
+/// this suite (see [`assert_hostile_label_mutator_fails_honest_acceleration_contract`]).
+pub fn assert_acceleration_ledger_contract<L: AccelerationLedgerPort>(ledger: &mut L) {
+    let id = ProvisionalId::parse("prov:contract-1").expect("provisional id");
+    let missing = ProvisionalId::parse("prov:missing").expect("provisional id");
+    assert!(!ledger.has_provisional(&id));
+    assert_eq!(ledger.provisional_count(), 0);
+    assert_eq!(ledger.authoritative_count(), 0);
+    assert!(ledger.label_for(&missing).is_none());
+
+    let request = AccelerationRequest {
+        provisional_id: id.clone(),
+        scope_id: AccelScopeId::parse("scope:contract").expect("scope"),
+        writer_id: AccelWriterId::parse("writer:contract").expect("writer"),
+        label: LabelId::parse("label:contract").expect("label"),
+        tier: ProvisionalTier::Accelerated,
+        direct_promotion_attempt: false,
+        label_mutation_attempt: false,
+    };
+    ledger.put(&request);
+
+    assert!(ledger.has_provisional(&id));
+    assert_eq!(ledger.provisional_count(), 1);
+    assert_eq!(
+        ledger.authoritative_count(),
+        0,
+        "honest acceleration ledger must not claim authority"
+    );
+    assert_eq!(
+        ledger.label_for(&id).as_deref(),
+        Some("label:contract"),
+        "honest ledger must preserve provisional label"
+    );
+}
+
+/// Negative contract: hostile label mutator invents authority and mutates labels.
+pub fn assert_hostile_label_mutator_fails_honest_acceleration_contract<
+    L: AccelerationLedgerPort,
+>(
+    ledger: &mut L,
+) {
+    let id = ProvisionalId::parse("prov:hostile-1").expect("provisional id");
+    let request = AccelerationRequest {
+        provisional_id: id.clone(),
+        scope_id: AccelScopeId::parse("scope:contract").expect("scope"),
+        writer_id: AccelWriterId::parse("writer:contract").expect("writer"),
+        label: LabelId::parse("label:contract").expect("label"),
+        tier: ProvisionalTier::Accelerated,
+        direct_promotion_attempt: false,
+        label_mutation_attempt: false,
+    };
+    ledger.put(&request);
+    assert!(
+        ledger.authoritative_count() > 0,
+        "hostile ledger expected to invent authoritative_count"
+    );
+    assert_eq!(
+        ledger.label_for(&id).as_deref(),
+        Some("authoritative:mutated"),
+        "hostile ledger expected to mutate labels"
+    );
+}
+
+/// Shared semantic contract for honest [`ConformanceOraclePort`] adapters.
+pub fn assert_conformance_oracle_contract<O: ConformanceOraclePort>(oracle: &O) {
+    assert_eq!(oracle.case_verdict("HC-01"), CaseVerdict::Pass);
+    assert_eq!(oracle.case_verdict("HC-02"), CaseVerdict::Fail);
+    assert_eq!(
+        oracle.case_verdict("HC-99"),
+        CaseVerdict::Unsupported,
+        "unknown case must remain unsupported"
+    );
+    let ids = oracle.all_case_ids();
+    assert!(ids.contains(&"HC-01".to_owned()));
+    assert!(ids.contains(&"HC-02".to_owned()));
+    assert!(
+        !ids.contains(&"HC-99".to_owned()),
+        "oracle must not invent unknown case ids"
+    );
+}
+
+/// Negative contract: hostile verdict inflator returns Pass for everything.
+pub fn assert_hostile_verdict_inflator_fails_honest_conformance_contract<
+    O: ConformanceOraclePort,
+>(
+    oracle: &O,
+) {
+    assert_eq!(
+        oracle.case_verdict("HC-99"),
+        CaseVerdict::Pass,
+        "hostile inflator expected to invent Pass for unknown cases"
     );
 }

@@ -39,6 +39,8 @@ COVERED_INMEMORY_ADAPTERS: frozenset[str] = frozenset(
         "ln-gate::InMemoryCandidateStore",
         "ln-identity::InMemoryIdentityStore",
         "ln-temporal::InMemoryClockEvidence",
+        "ln-accelerate::InMemoryAccelerationLedger",
+        "ln-conformance::InMemoryConformanceOracle",
     }
 )
 

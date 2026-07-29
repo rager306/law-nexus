@@ -18,3 +18,5 @@ ln-inventory = { path = "../ln-inventory" }
 ln-gate = { path = "../ln-gate" }
 ln-identity = { path = "../ln-identity" }
 ln-temporal = { path = "../ln-temporal" }
+ln-accelerate = { path = "../ln-accelerate" }
+ln-conformance = { path = "../ln-conformance" }
