@@ -25,3 +25,5 @@ ln-relation = { path = "../ln-relation" }
 ln-replay = { path = "../ln-replay" }
 ln-admission = { path = "../ln-admission" }
 ln-closure = { path = "../ln-closure" }
+ln-projection = { path = "../ln-projection" }
+ln-work = { path = "../ln-work" }

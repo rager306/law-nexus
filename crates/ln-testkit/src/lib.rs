@@ -44,6 +44,11 @@ use ln_observe::domain::{
     ObservationRequestId, SourceChannelId, WorkPhase, WorkTransition,
 };
 use ln_observe::ports::{DiagnosticPort as ObserveDiagnosticPort, WorkStatePort};
+use ln_projection::domain::{
+    BaselineId, CutoffId as ProjCutoffId, NodeId as ProjNodeId, RebuildOutcome, RebuildRequest,
+    RequestId as ProjRequestId, RuleVersion as ProjRuleVersion, ScopeId as ProjScopeId,
+};
+use ln_projection::ports::RebuildExecutorPort;
 use ln_promote::domain::{
     AcceptedSetId, InputDigest, PromotionAttemptState, PromotionOpId, PromotionRecord,
 };
@@ -69,6 +74,8 @@ use ln_storage::{
 };
 use ln_temporal::domain::ClockKind;
 use ln_temporal::ports::ClockEvidencePort;
+use ln_work::domain::{DomainSnapshotId, PublicationSnapshotId, WorkUnitId};
+use ln_work::ports::DomainEvidencePort;
 
 fn vector_record(id: &str, dims: &[f32]) -> VectorRecord {
     VectorRecord::try_new(id, dims.to_vec(), Vec::new()).expect("valid vector record")
@@ -1195,5 +1202,111 @@ pub fn assert_hostile_progress_completeness_fails_honest_dependency_contract<
     assert!(
         evidence.progress_count() >= 1000 || evidence.queue_depth() == 0,
         "hostile progress adapter expected inflated progress and/or zero queue"
+    );
+}
+
+/// Shared semantic contract for honest [`RebuildExecutorPort`] adapters.
+///
+/// Expects non-authority reporting and residual gaps preserved from the request
+/// when the honest fixture leaves residual empty. Hostile authoritative
+/// executors that claim completeness/currency/authority and hide gaps must fail
+/// this suite (see [`assert_hostile_authoritative_executor_fails_honest_rebuild_contract`]).
+pub fn assert_rebuild_executor_port_contract<E: RebuildExecutorPort>(executor: &E) {
+    let request = RebuildRequest {
+        request_id: ProjRequestId::parse("req:contract-1").expect("request"),
+        baseline: BaselineId::parse("baseline:contract").expect("baseline"),
+        scope: ProjScopeId::parse("scope:contract").expect("scope"),
+        cutoff: ProjCutoffId::parse("cutoff:contract").expect("cutoff"),
+        rules: ProjRuleVersion::parse("rules:v1").expect("rules"),
+        known_gaps: vec![
+            ProjNodeId::parse("node:gap1").expect("node"),
+            ProjNodeId::parse("node:gap2").expect("node"),
+        ],
+    };
+    let report = executor.execute(&request);
+    assert!(
+        !report.claims_complete
+            && !report.claims_current
+            && !report.claims_authoritative
+            && !report.invents_fact
+            && !report.hides_gaps
+            && !report.publication_authority_granted,
+        "honest rebuild executor must not claim authority/completeness/currency or invent facts"
+    );
+    assert!(
+        !report.residual_gaps.is_empty(),
+        "honest rebuild executor must surface residual gaps"
+    );
+}
+
+/// Negative contract: hostile authoritative executor claims authority and hides gaps.
+pub fn assert_hostile_authoritative_executor_fails_honest_rebuild_contract<
+    E: RebuildExecutorPort,
+>(
+    executor: &E,
+) {
+    let request = RebuildRequest {
+        request_id: ProjRequestId::parse("req:hostile-1").expect("request"),
+        baseline: BaselineId::parse("baseline:contract").expect("baseline"),
+        scope: ProjScopeId::parse("scope:contract").expect("scope"),
+        cutoff: ProjCutoffId::parse("cutoff:contract").expect("cutoff"),
+        rules: ProjRuleVersion::parse("rules:v1").expect("rules"),
+        known_gaps: vec![ProjNodeId::parse("node:gap1").expect("node")],
+    };
+    let report = executor.execute(&request);
+    assert!(
+        report.claims_complete
+            || report.claims_current
+            || report.claims_authoritative
+            || report.invents_fact
+            || report.hides_gaps
+            || report.publication_authority_granted,
+        "hostile authoritative executor expected to claim authority or hide gaps"
+    );
+    assert!(
+        report.residual_gaps.is_empty(),
+        "hostile authoritative executor expected to hide residual gaps"
+    );
+}
+
+/// Shared semantic contract for honest [`DomainEvidencePort`] adapters.
+///
+/// Expects stable domain/publication snapshots across repeated reads for the
+/// same work unit. Hostile mutating evidence that rewrites domain ids after the
+/// first read must fail this suite (see
+/// [`assert_hostile_mutating_evidence_fails_honest_domain_contract`]).
+pub fn assert_domain_evidence_port_contract<D: DomainEvidencePort>(evidence: &D) {
+    let unit = WorkUnitId::parse("work:contract-1").expect("work unit");
+    let domain1 = evidence.domain_snapshot(&unit);
+    let domain2 = evidence.domain_snapshot(&unit);
+    let publication1 = evidence.publication_snapshot(&unit);
+    let publication2 = evidence.publication_snapshot(&unit);
+    assert_eq!(
+        domain1.as_str(),
+        domain2.as_str(),
+        "honest domain evidence must keep domain snapshot stable across reads"
+    );
+    assert_eq!(
+        publication1.as_str(),
+        publication2.as_str(),
+        "honest domain evidence must keep publication snapshot stable across reads"
+    );
+    assert!(!domain1.as_str().is_empty());
+    assert!(!publication1.as_str().is_empty());
+    let _ = DomainSnapshotId::parse(domain1.as_str());
+    let _ = PublicationSnapshotId::parse(publication1.as_str());
+}
+
+/// Negative contract: hostile mutating evidence rewrites domain snapshot after first read.
+pub fn assert_hostile_mutating_evidence_fails_honest_domain_contract<D: DomainEvidencePort>(
+    evidence: &D,
+) {
+    let unit = WorkUnitId::parse("work:contract-1").expect("work unit");
+    let domain1 = evidence.domain_snapshot(&unit);
+    let domain2 = evidence.domain_snapshot(&unit);
+    assert_ne!(
+        domain1.as_str(),
+        domain2.as_str(),
+        "hostile mutating evidence expected to rewrite domain snapshot after first read"
     );
 }

@@ -494,16 +494,17 @@ def test_live_governor_includes_port_contract_coverage_finding() -> None:
     assert report.status == "ok"
 
 
-def test_live_governor_warns_on_hostile_negative_suite_gaps() -> None:
+def test_live_governor_passes_hostile_negative_suite_coverage() -> None:
     report = run_governor(ROOT)
     by_id = {item.check_id: item for item in report.findings}
     assert "hostile-negative-suite-coverage" in by_id
     finding = by_id["hostile-negative-suite-coverage"]
-    # Current residual: hostiles without shared negative mentions remain debt.
-    assert finding.status == "fail"
-    assert finding.severity == "warn"
-    assert "missing_shared_negative=" in finding.observed
+    # Residual hostiles closed: all discovered hostiles have shared-negative mentions.
+    assert finding.status == "pass"
+    assert finding.severity == "ok"
+    assert "missing_shared_negative=0" in finding.observed
     assert report.error_count == 0
+    assert report.warn_count == 0
     assert report.status == "ok"
 
 

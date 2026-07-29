@@ -35,22 +35,23 @@ def test_repository_report_lists_hostiles_with_and_without_shared_negatives() ->
     assert payload["lifecycle"] == "[bounded]"
     assert payload["identity_model"] == "crate-qualified"
     assert payload["discovered_count"] == 14
-    assert payload["with_shared_negative_count"] == 12
-    assert payload["missing_shared_negative_count"] == 2
-    assert payload["status"] == "debt"
+    assert payload["with_shared_negative_count"] == 14
+    assert payload["missing_shared_negative_count"] == 0
+    assert payload["status"] == "ok"
     missing = {item["identity"] for item in payload["missing_shared_negative"]}
     covered = {item["identity"] for item in payload["with_shared_negative"]}
+    assert missing == set()
     assert "ln-publish::HostileDualWriterLedger" in covered
     assert "ln-relation::OpenRelationHostileRegistry" in covered
     assert "ln-admission::HostileVendorCapacity" in covered
     assert "ln-closure::HostileProgressCompleteness" in covered
-    assert "ln-projection::HostileAuthoritativeExecutor" in missing
-    assert "ln-work::HostileMutatingEvidence" in missing
+    assert "ln-projection::HostileAuthoritativeExecutor" in covered
+    assert "ln-work::HostileMutatingEvidence" in covered
     assert "ln-citation::HostileMirrorRelabeler" in covered
     assert "ln-replay::HostileDuplicateEffectLedger" in covered
 
 
-def test_strict_mode_fails_while_gaps_remain() -> None:
+def test_strict_mode_passes_when_all_hostiles_have_shared_negatives() -> None:
     result = subprocess.run(
         [sys.executable, str(SCRIPT), "--strict"],
         cwd=ROOT,
@@ -58,9 +59,10 @@ def test_strict_mode_fails_while_gaps_remain() -> None:
         capture_output=True,
         check=False,
     )
-    assert result.returncode == 1
+    assert result.returncode == 0, result.stdout + result.stderr
     payload = json.loads(result.stdout)
-    assert payload["missing_shared_negative_count"] > 0
+    assert payload["missing_shared_negative_count"] == 0
+    assert payload["status"] == "ok"
 
 
 def test_discover_finds_crate_qualified_hostile_identities() -> None:

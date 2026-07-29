@@ -312,6 +312,7 @@ dependencies = [
  "ln-identity",
  "ln-inventory",
  "ln-observe",
+ "ln-projection",
  "ln-promote",
  "ln-publish",
  "ln-query",
@@ -319,6 +320,7 @@ dependencies = [
  "ln-replay",
  "ln-storage",
  "ln-temporal",
+ "ln-work",
 ]
 
 [[package]]
