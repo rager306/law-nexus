@@ -277,12 +277,17 @@ Treat the following as process debt or gate failures, not style nits:
    **M146 `[bounded]` inventory only:**
    `scripts/verify-port-contract-coverage.py` reports InMemory adapters not yet
    covered by ln-testkit (default report-only; `--strict` optional).
+   **M147 `[bounded]` process surface:** preflight check
+   `port-contract-coverage` emits advisory **warn** while debt remains; inventory
+   script crash is fail-closed. Strict gate remains deferred.
 4. Add proptest to pure decode/query cores; mutants on domain/application nightlies.
 5. When real storage lands, run the **same** contracts against real adapters.
 6. ~~Expand shared suites beyond storage ports (decode, citation, promote, …).~~
    **M146 `[bounded]`:** citation + promotion shared contracts landed in
-   ln-testkit with InMemory (and hostile citation negative). Decode and most
-   other capability InMemory adapters remain uncovered inventory debt.
+   ln-testkit with InMemory (and hostile citation negative).
+   **M147 `[bounded]`:** query + publication shared contracts landed; coverage
+   inventory now covers 6/20 InMemory adapters. Decode and remaining capability
+   InMemory adapters remain uncovered inventory debt.
 
 ## References
 

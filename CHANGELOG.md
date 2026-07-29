@@ -2,6 +2,23 @@
 
 All notable changes to law-nexus are documented in this file.
 
+## M147 (in progress)
+
+### S01: Advisory preflight for port-contract coverage debt
+- Preflight check `port-contract-coverage` runs inventory script
+- Remaining InMemory debt yields warn (status ok); script crash fails closed
+- Strict gate deferred to `future_additions`
+
+### S02: Query state shared port contract
+- `ln-testkit`: honest QueryStatePort suite + HostileGapInventor negative
+- Allowlist 29 edges (`ln-testkit` → `ln-query`)
+- Coverage covered set 5
+
+### S03: Publication ledger shared port contract
+- `ln-testkit`: PublicationLedgerPort store-level suite for InMemory
+- Allowlist 30 edges (`ln-testkit` → `ln-publish`)
+- Coverage covered 6 / uncovered 14 / discovered 20
+
 ## M146 (complete)
 
 ### S01: Citation source shared port contract
