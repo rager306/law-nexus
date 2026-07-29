@@ -293,9 +293,12 @@ Treat the following as process debt or gate failures, not style nits:
    negatives) landed.
    **M149 `[bounded]`:** inventory store/visibility, gate candidate store,
    identity store, and temporal clock evidence shared contracts landed (with
-   gate/identity hostile negatives); coverage inventory now covers 15/22
-   crate-qualified InMemory adapters. Remaining accelerate/conformance/
-   dispose/relation/replay adapters stay uncovered debt.
+   gate/identity hostile negatives).
+   **M150 `[bounded]`:** residual accelerate/conformance/dispose/relation/
+   replay shared contracts landed (with hostile negatives where available);
+   coverage inventory now covers 22/22 crate-qualified InMemory adapters as
+   bounded port suites only. This is not RuVector/TEI validation or product
+   readiness.
 
 ## References
 

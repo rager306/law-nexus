@@ -2,6 +2,22 @@
 
 All notable changes to law-nexus are documented in this file.
 
+## M150 (in progress)
+
+### S01: Accelerate and conformance shared contracts
+- AccelerationLedgerPort honest + HostileLabelMutator negative
+- ConformanceOraclePort honest + HostileVerdictInflator negative
+- Allowlist 39 edges
+
+### S02: Dispose disposition and promotion gate shared contracts
+- DispositionStorePort and PromotionGatePort suites
+- Allowlist 40 edges
+
+### S03: Relation and replay shared contracts
+- RelationRegistryPort closed-registry suite
+- CheckpointPort and EffectLedgerPort suites + HostileDuplicateEffectLedger negative
+- Allowlist 42 edges; coverage inventory 22/22 covered (bounded port suites only)
+
 ## M149 (complete)
 
 ### S01: Inventory store and visibility shared contracts
