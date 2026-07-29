@@ -2,6 +2,19 @@
 
 All notable changes to law-nexus are documented in this file.
 
+## M157 (complete)
+
+### S01: Live-adapter readiness governor and CI wiring
+- Governor finding `live-adapter-readiness`
+- CI process suite + inventory scripts include readiness
+
+### S02: Cargo clippy quality-gate landing
+- Pre-commit and CI: `cargo clippy --workspace --offline --all-targets -- -D warnings`
+- Quality-gate inventory active checks include clippy; removed from future_additions
+
+### S03: Docs validation and terminal closure
+- Structured UAT PASS; terminal projections closed
+
 ## M156 (complete)
 
 ### S01: CI process suite expansion and quality-gate honesty

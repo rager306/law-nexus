@@ -324,6 +324,10 @@ Treat the following as process debt or gate failures, not style nits:
    report-only inventory scripts; `scripts/verify-live-adapter-readiness.py`
    classifies TEI as `stub_transport_only` and RuVector as `proposed` with
    overclaim scan (no live HTTP; not product readiness).
+   **M157 `[bounded]` readiness process surface + clippy gate:** governor finding
+   `live-adapter-readiness` plus CI process/inventory wiring; cargo clippy
+   `-D warnings` landed in pre-commit and CI quality-gate inventory (no longer
+   only a future_addition). Still not live TEI/RuVector validation.
 6. ~~Expand shared suites beyond storage ports (decode, citation, promote, …).~~
    **M146 `[bounded]`:** citation + promotion shared contracts landed in
    ln-testkit with InMemory (and hostile citation negative).
