@@ -2,7 +2,7 @@
 
 All notable changes to law-nexus are documented in this file.
 
-## M144 (in progress)
+## M144 (complete)
 
 ### S01: Write ADR-0015 verification architecture
 - Added `doc/adr/0015-hexagonal-verification-architecture.md`
@@ -19,6 +19,14 @@ All notable changes to law-nexus are documented in this file.
 - Always/never rules and change-class minimum proof table
 - Corrected active architecture note: Python product is archived prior art
 - Tracked skill entrypoint binds ADR-0015 in S04
+
+### S04: Docs sync CHANGELOG and decision record
+- Decision D140 recorded
+- Tracked skill entrypoint cites ADR-0015
+- CHANGELOG synchronized; gates clean after reindex
+
+### S05: Validation and terminal closure
+- Structured UAT PASS; M144 formally complete; terminal projections closed
 
 ## M143 (complete)
 

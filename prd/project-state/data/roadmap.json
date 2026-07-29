@@ -249,21 +249,27 @@
       "theme": "Residual active-tree hygiene and bounded release baseline",
       "status": "complete",
       "boundary": "Orphan residual scripts archived; dead import-linter dependency removed; law-nexus-inspect release smoke recorded as [bounded] only. No production packaging or deployment claim."
+    },
+    {
+      "range": "M144-M144",
+      "theme": "Verification architecture ADR and agent testing contract",
+      "status": "complete",
+      "boundary": "ADR-0015 accepted as [bounded] process decision. Agent-facing matrix and local AGENTS rules bound. No ln-testkit, crate allowlist, RuVector contracts, or production packaging claim."
     }
   ],
   "current_milestone": {
-    "id": "M143-abgqr9",
-    "title": "Residual Active Tree Hygiene and Release Baseline",
+    "id": "M144-klgu1v",
+    "title": "Verification Architecture ADR and Agent Contract",
     "status": "complete",
-    "goal": "Archive orphan residual scripts, remove dead import-linter dependency, and record a bounded release-build CLI baseline without production packaging claims."
+    "goal": "Record ADR-0015 hexagonal verification architecture and bind agent-facing testing rules without overclaiming unbuilt infrastructure."
   },
   "recommended_next": {
-    "title": "M144 Production Packaging and Deployment Hardening",
+    "title": "M145 Port Contract and Crate Allowlist Foundation",
     "priority": 1,
-    "why": "M143 closed residual active-tree hygiene and recorded a bounded release baseline. M144 can continue packaging, install/distribution, and deployment hardening if needed.",
-    "plan_reference": "prd/migration/forward-roadmap.md post-M143",
-    "slices": "Define packaging targets, install contracts, and deployment hardening after the bounded release baseline.",
-    "non_validation": "M143 release baseline does not validate production packaging, install distribution, or deployment readiness."
+    "why": "M144 documented verification architecture. M145 should implement shared port-contract packaging and executable crate dependency allowlist under ADR-0015.",
+    "plan_reference": "doc/adr/0015-hexagonal-verification-architecture.md follow-on increments",
+    "slices": "Introduce ln-testkit or equivalent shared contracts for core ports; add cargo-metadata allowlist check; force InMemory adapters through contracts.",
+    "non_validation": "M144 documentation does not implement port-contract infrastructure or crate allowlist enforcement."
   },
   "downstream_blocked": [
     {
