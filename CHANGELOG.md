@@ -2,6 +2,15 @@
 
 All notable changes to law-nexus are documented in this file.
 
+## M159 (complete)
+
+### S01: Architecture generator tests in CI
+- 6 test files (159 tests) added to CI process suite and quality-gate inventory
+- ci-quality-gate-drift stays green with process_suite=18
+
+### S02: Docs validation and terminal closure
+- Structured UAT PASS; terminal projections closed
+
 ## M158 (complete)
 
 ### S01: Governor CI quality-gate drift anti-drift check
