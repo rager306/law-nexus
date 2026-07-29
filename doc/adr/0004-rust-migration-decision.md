@@ -2,7 +2,7 @@
 id: ADR-0004
 title: Rust migration decision for law-nexus
 status: Accepted
-lifecycle: "[proposed]"
+lifecycle: "[validated]"
 date: 2026-07-18
 superseds: none
 related: [M107-7xtx1c, D098]

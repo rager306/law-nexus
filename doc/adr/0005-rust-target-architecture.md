@@ -2,7 +2,7 @@
 id: ADR-0005
 title: Rust target architecture for law-nexus
 status: Accepted
-lifecycle: "[proposed]"
+lifecycle: "[validated]"
 date: 2026-07-18
 superseds: python_archive/adr/0001-onion-package-structure.md (for new code)
 related: [ADR-0004, M107-7xtx1c]

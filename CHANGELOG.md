@@ -34,6 +34,29 @@ All notable changes to law-nexus are documented in this file.
 - CHANGELOG corrected: M139 marked complete
 - 157 test suites pass, 378 tests total, 23495 lines Rust code
 
+### S02: Python product isolation verification
+- Harness (src/law_nexus_harness/): zero imports from product — confirmed
+- Tests: 26 files import from law_nexus.*
+- Scripts: 20 files import from law_nexus.*
+- pyproject.toml: import-linter contracts reference law_nexus.* modules
+
+### S03: Python product archival cutover
+- Moved src/law_nexus/ -> python_archive/product/law_nexus/ (62 files)
+- Moved 26 dependent test files -> python_archive/product/tests/
+- Moved 20 dependent scripts -> python_archive/product/scripts/
+- Removed tool.importlinter contracts from pyproject.toml
+- Added python_archive to basedpyright exclude
+- Added *.egg-info/ to .gitignore
+- Excluded python_archive/ from ruff pre-commit hooks
+- Removed python-onion-dependencies hook (import-linter config removed)
+- Harness (law_nexus_harness) and Rust workspace remain fully functional
+- Governor 30/0 after archival
+
+### S04: ADR promotion and docs synchronization
+- ADR-0004 promoted to [validated]
+- ADR-0005 promoted to [validated]
+- Forward roadmap ADR matrix updated
+
 ### S03: CLI failure state persistence
 - Failure JSON now includes `attempt_count`, `fingerprint` (FNV1a64 of error message) and `duration_ms`
 - Tests verify all three new fields on truncated-fixture failure path

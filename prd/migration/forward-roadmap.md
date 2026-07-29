@@ -75,8 +75,8 @@ not relied upon; law-nexus owns a typed application executor over storage ports.
 
 | ADR | Topic | Lifecycle | What it proves | What it needs |
 |-----|-------|-----------|----------------|----------------|
-| 0004 | Rust migration | `[proposed]` | 41 crates, 20 HC PASS, WordML parser | Full product pipeline, Python archival |
-| 0005 | Rust target architecture | `[proposed]` | Hexagonal pattern proven | ADR stale (proposes mega-crates; reality is per-HC ln-*) |
+| 0004 | Rust migration | `[validated]` | 43 crates, HC-01-HC-20 PASS, Rust-only product CLI (law-nexus-inspect) | Production release hardening |
+| 0005 | Rust target architecture | `[validated]` | Hexagonal pattern proven; per-HC ln-* crates | Production deployment packaging |
 | 0007 | Python harness | `[proposed]` | Executable governor and composed preflight contracts | Milestone-close operational evidence |
 | 0008 | Authority ceiling | `[bounded]` | HC-04/15/16 PASS | Real authority flow with corpus |
 | 0009 | Five-clock temporal | `[bounded]` | HC-09 PASS | Real legal-date parsing |
