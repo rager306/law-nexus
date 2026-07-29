@@ -2,7 +2,7 @@
 
 All notable changes to law-nexus are documented in this file.
 
-## M145 (in progress)
+## M145 (complete)
 
 ### S01: Executable crate dependency allowlist
 - Added `prd/architecture/crate-dependency-allowlist.json` (26 workspace path edges)

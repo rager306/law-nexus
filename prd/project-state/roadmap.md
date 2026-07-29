@@ -20,8 +20,8 @@ falkordb=historical-only
 
 ## Current position
 
-- **Latest completed milestone:** M144-klgu1v, verification architecture ADR-0015 and agent testing contract; port-contract policy recorded.
-- **Recommended next milestone:** M145, port-contract and crate-allowlist foundation under ADR-0015.
+- **Latest completed milestone:** M145-c18zlo, crate-dependency allowlist and ln-testkit storage port contracts for InMemory adapters.
+- **Recommended next milestone:** M146, expand shared port contracts beyond storage under ADR-0015.
 - **M111 result:** final `[bounded]` implementation-neutral semantic baseline for heterogeneous Russian legal evidence.
 - **M112 result:** ADR-0005 topology superseded; ADR-0008 through ADR-0012 authored `[bounded]`; executable ADR/decision/owner drift checks active in pre-commit and CI.
 - **M113 result:** first hostile-case Rust runtime proof. `S10-HC-01-RT` is bounded PASS.
