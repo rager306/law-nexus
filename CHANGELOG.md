@@ -2,7 +2,7 @@
 
 All notable changes to law-nexus are documented in this file.
 
-## M143 (in progress)
+## M143 (complete)
 
 ### S01: Archive orphan residual scripts
 - Archived 19 residual scripts with zero active test or control-plane consumers
@@ -19,6 +19,12 @@ All notable changes to law-nexus are documented in this file.
 - Consultant release inspect avg 11.7ms / 167 blocks; Garant avg 186.5ms / 5124 blocks
 - Evidence: `prd/migration/rust-evidence/probes/m143-release-baseline.{json,md}` `[bounded]`
 - No production packaging claim
+
+### S04: Docs verification and CHANGELOG
+- CHANGELOG synchronized; gates green after reindex
+
+### S05: Validation and terminal closure
+- Structured UAT PASS; M143 formally complete; terminal projections closed
 
 ## M142 (complete)
 

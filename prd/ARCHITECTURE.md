@@ -98,8 +98,8 @@ ADR-0013 universal parser  [bounded] + ADR-0014 RuVector  [proposed]
    TEI USER-bge-m3 1024d embedding boundary remains proposed
    RVF vectors + redb GraphDB CRUD; no ruvector-graph Cypher execution claim
    ▼
-[LATEST COMPLETED] M142 — active control-plane hygiene; residual historical tests/scripts
-archived; CI and quality-gate contracts repaired. M143 production release hardening is next.
+[LATEST COMPLETED] M143 — residual active-tree hygiene and bounded release baseline;
+orphan residual scripts archived; import-linter removed; release CLI smoke recorded. M144 production packaging is next.
 ```
 
 ## Current layer (where work happens now)

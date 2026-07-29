@@ -243,21 +243,27 @@
       "theme": "Active control-plane hygiene and residual historical archive gate",
       "status": "complete",
       "boundary": "Active CI/quality-gate contracts repaired for harness-only control plane. Residual historical failing tests and orphan scripts archived under python_archive/product/. No production readiness, release build or deployment claim."
+    },
+    {
+      "range": "M143-M143",
+      "theme": "Residual active-tree hygiene and bounded release baseline",
+      "status": "complete",
+      "boundary": "Orphan residual scripts archived; dead import-linter dependency removed; law-nexus-inspect release smoke recorded as [bounded] only. No production packaging or deployment claim."
     }
   ],
   "current_milestone": {
-    "id": "M142-rouwpn",
-    "title": "Active Control Plane Hygiene",
+    "id": "M143-abgqr9",
+    "title": "Residual Active Tree Hygiene and Release Baseline",
     "status": "complete",
-    "goal": "Repair active CI and quality-gate contracts; archive residual historical Python tests and scripts after M140/M141 archival."
+    "goal": "Archive orphan residual scripts, remove dead import-linter dependency, and record a bounded release-build CLI baseline without production packaging claims."
   },
   "recommended_next": {
-    "title": "M143 Production Release Hardening",
+    "title": "M144 Production Packaging and Deployment Hardening",
     "priority": 1,
-    "why": "M142 closed residual control-plane hygiene after archival. M143 must prove release build performance, deployment packaging and production hardening.",
-    "plan_reference": "prd/migration/forward-roadmap.md post-M142",
-    "slices": "Define release build targets, measure release performance, then validate packaging and production hardening.",
-    "non_validation": "M142 control-plane hygiene does not validate production readiness, release build performance or deployment."
+    "why": "M143 closed residual active-tree hygiene and recorded a bounded release baseline. M144 can continue packaging, install/distribution, and deployment hardening if needed.",
+    "plan_reference": "prd/migration/forward-roadmap.md post-M143",
+    "slices": "Define packaging targets, install contracts, and deployment hardening after the bounded release baseline.",
+    "non_validation": "M143 release baseline does not validate production packaging, install distribution, or deployment readiness."
   },
   "downstream_blocked": [
     {
