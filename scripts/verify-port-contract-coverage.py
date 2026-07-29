@@ -27,6 +27,7 @@ COVERED_INMEMORY_ADAPTERS: frozenset[str] = frozenset(
         "InMemoryGraphStore",
         "InMemoryCitationSource",
         "InMemoryPromotionStore",
+        "InMemoryQueryState",
     }
 )
 

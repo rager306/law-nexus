@@ -35,7 +35,8 @@
     ["ln-query", "ln-storage"],
     ["ln-testkit", "ln-storage"],
     ["ln-testkit", "ln-citation"],
-    ["ln-testkit", "ln-promote"]
+    ["ln-testkit", "ln-promote"],
+    ["ln-testkit", "ln-query"]
   ],
   "non_claims": [
     "Does not validate external crate licenses or versions.",

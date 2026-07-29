@@ -13,6 +13,8 @@ use ln_promote::domain::{
     AcceptedSetId, InputDigest, PromotionAttemptState, PromotionOpId, PromotionRecord,
 };
 use ln_promote::ports::PromotionStorePort;
+use ln_query::domain::EvidenceId;
+use ln_query::ports::QueryStatePort;
 use ln_storage::{
     GraphEdge, GraphNode, GraphStorePort, StorageError, VectorQuery, VectorRecord, VectorStorePort,
 };
@@ -239,4 +241,50 @@ pub fn assert_promotion_store_contract<S: PromotionStorePort>(store: &mut S) {
     store.put(cancelled);
     assert_eq!(store.committed_count(), 0);
     assert!(!store.has_curated_effect_for(&op));
+}
+
+/// Shared semantic contract for honest [`QueryStatePort`] adapters.
+///
+/// Expects known evidence to resolve, unknown evidence to remain missing, and
+/// `evidence_ids` to list only stored identities. Hostile gap inventors that
+/// claim missing evidence exists must fail this suite (see
+/// [`assert_hostile_gap_inventor_fails_honest_query_contract`]).
+pub fn assert_query_state_contract<S: QueryStatePort>(state: &S) {
+    let known = EvidenceId::parse("ev:contract-known").expect("evidence id");
+    let missing = EvidenceId::parse("ev:contract-missing").expect("evidence id");
+
+    assert!(
+        state.has_evidence(&known),
+        "honest state must report known evidence present"
+    );
+    assert!(
+        !state.has_evidence(&missing),
+        "honest state must not invent missing evidence"
+    );
+
+    let listed = state.evidence_ids();
+    let ids: Vec<&str> = listed.iter().map(EvidenceId::as_str).collect();
+    assert!(
+        ids.contains(&"ev:contract-known"),
+        "evidence_ids must include known evidence, got {ids:?}"
+    );
+    assert!(
+        !ids.contains(&"ev:contract-missing"),
+        "evidence_ids must not invent missing evidence, got {ids:?}"
+    );
+}
+
+/// Negative contract: hostile gap inventor must invent presence for missing ids.
+pub fn assert_hostile_gap_inventor_fails_honest_query_contract<S: QueryStatePort>(state: &S) {
+    let missing = EvidenceId::parse("ev:contract-missing").expect("evidence id");
+    assert!(
+        state.has_evidence(&missing),
+        "hostile gap inventor expected to invent missing evidence"
+    );
+    let listed = state.evidence_ids();
+    let ids: Vec<&str> = listed.iter().map(EvidenceId::as_str).collect();
+    assert!(
+        !ids.contains(&"ev:contract-missing"),
+        "hostile inventor still lists only real evidence_ids, got {ids:?}"
+    );
 }
