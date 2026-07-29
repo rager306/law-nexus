@@ -20,8 +20,8 @@ falkordb=historical-only
 
 ## Current position
 
-- **Latest completed milestone:** M158-o8wzw9, CI quality-gate drift anti-drift governor check.
-- **Recommended next milestone:** M159, live adapter implementation path when infrastructure exists.
+- **Latest completed milestone:** M159-08fl5d, architecture generator test CI coverage.
+- **Recommended next milestone:** M160, live adapter implementation path when infrastructure exists.
 - **M111 result:** final `[bounded]` implementation-neutral semantic baseline for heterogeneous Russian legal evidence.
 - **M112 result:** ADR-0005 topology superseded; ADR-0008 through ADR-0012 authored `[bounded]`; executable ADR/decision/owner drift checks active in pre-commit and CI.
 - **M113 result:** first hostile-case Rust runtime proof. `S10-HC-01-RT` is bounded PASS.

@@ -339,21 +339,27 @@
       "theme": "CI quality-gate drift anti-drift governor check",
       "status": "complete",
       "boundary": "Governor check ci-quality-gate-drift verifies pre-commit hook IDs, CI process suite, and inventory scripts match quality-gate inventory. No live HTTP or product-readiness claim."
+    },
+    {
+      "range": "M159-M159",
+      "theme": "Architecture generator test CI coverage",
+      "status": "complete",
+      "boundary": "6 architecture generator test files (159 tests) added to CI process suite and quality-gate inventory. No live HTTP or product-readiness claim."
     }
   ],
   "current_milestone": {
-    "id": "M158-o8wzw9",
-    "title": "CI Quality-Gate Drift Governor Check",
+    "id": "M159-08fl5d",
+    "title": "Architecture Generator Test CI Coverage",
     "status": "complete",
-    "goal": "Add governor anti-drift check that verifies pre-commit/CI/quality-gate inventory stay synchronized."
+    "goal": "Wire 6 architecture generator test files (159 tests) into CI process suite and quality-gate inventory."
   },
   "recommended_next": {
-    "title": "M159 Live Adapter Implementation Path When Infrastructure Exists",
+    "title": "M160 Live Adapter Implementation Path When Infrastructure Exists",
     "priority": 1,
-    "why": "M158 closed CI quality-gate drift anti-drift gap. All process surfaces (port/hostile/multi-adapter/readiness/CI-drift) remain green. Next: only when real TEI/RuVector infrastructure exists, implement live adapters behind ports without overclaim; otherwise residual optional process policy (cargo audit/deny, inventory --strict, generated doc staleness).",
+    "why": "M159 closed CI coverage gap for architecture generator tests. All process surfaces remain green. Next: only when real TEI/RuVector infrastructure exists, implement live adapters behind ports without overclaim; otherwise residual optional process policy (cargo audit/deny, inventory --strict, generated doc staleness, Rust artifact parity).",
     "plan_reference": "doc/adr/0014-ruvector-primary-infrastructure.md and doc/adr/0015-hexagonal-verification-architecture.md follow-on increments",
-    "slices": "Live TEI HTTP transport when service available; RuVector/redb adapters when selected and gated; optional cargo audit/deny, inventory --strict, generated doc staleness.",
-    "non_validation": "M158 does not validate live TEI/RuVector or product readiness."
+    "slices": "Live TEI HTTP transport when service available; optional cargo audit/deny, inventory --strict, generated doc staleness, Rust artifact parity.",
+    "non_validation": "M159 does not validate live TEI/RuVector or product readiness."
   },
   "downstream_blocked": [
     {
