@@ -309,21 +309,27 @@
       "theme": "Residual hostile shared-negative closure",
       "status": "complete",
       "boundary": "Admission/closure/projection/work shared honest+negative suites. Hostile inventory and governor finding 14/14 with_shared_negative. Allowlist 46 edges. Mention-based only; no product-readiness or live TEI/RuVector claim."
+    },
+    {
+      "range": "M154-M154",
+      "theme": "Process honesty and BlockDecoder shared family-isolation suite",
+      "status": "complete",
+      "boundary": "ADR-0015 stale non-claims repaired after M145-M153 landings. BlockDecoderPort shared suite for Consultant WordML and Garant ODT family isolation. Synthetic fixtures only; no live TEI/RuVector or product-readiness claim."
     }
   ],
   "current_milestone": {
-    "id": "M153-bot7tu",
-    "title": "Close Residual Hostile Shared Negative Suites",
+    "id": "M154-a606i7",
+    "title": "Process Honesty and BlockDecoder Shared Contract",
     "status": "complete",
-    "goal": "Close residual admission/closure/projection/work hostile shared honest+negative suites; hostile inventory and governor finding 14/14 pass (ADR-0015)."
+    "goal": "Repair stale ADR-0015 non-claims after M145-M153 landings and close BlockDecoderPort multi-adapter shared family-isolation suite (ADR-0015)."
   },
   "recommended_next": {
-    "title": "M154 Live Adapter Path and Remaining Process Debt Outside Port Contracts",
+    "title": "M155 Live Adapter Path and Remaining Process Debt Outside Verification Architecture",
     "priority": 1,
-    "why": "M153 closed residual hostile shared-negative debt (14/14). InMemory port contracts and hostile shared negatives are process-green. Next: live TEI/RuVector adapter path only when infrastructure is available without overclaim, and remaining process debt outside port/hostile contracts.",
+    "why": "M154 closed process-doc honesty drift and the residual multi-adapter BlockDecoder shared suite. Port contracts 22/22 and hostile inventory 14/14 remain green. Next: live TEI/RuVector only with real infrastructure and without overclaim, plus residual process debt outside verification architecture.",
     "plan_reference": "doc/adr/0015-hexagonal-verification-architecture.md follow-on increments",
-    "slices": "Live adapter readiness gates; optional --strict coverage CI policy; residual process debt scan outside port contracts.",
-    "non_validation": "M153 does not validate live TEI/RuVector or product readiness; hostile inventory is mention-based shared-negative coverage only."
+    "slices": "Live adapter readiness gates when infra exists; optional --strict coverage CI policy; residual process debt scan outside verification architecture.",
+    "non_validation": "M154 does not validate live TEI/RuVector or product readiness; BlockDecoder suite is synthetic family isolation only."
   },
   "downstream_blocked": [
     {

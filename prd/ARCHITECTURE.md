@@ -98,8 +98,8 @@ ADR-0013 universal parser  [bounded] + ADR-0014 RuVector  [proposed]
    TEI USER-bge-m3 1024d embedding boundary remains proposed
    RVF vectors + redb GraphDB CRUD; no ruvector-graph Cypher execution claim
    ▼
-[LATEST COMPLETED] M153 — residual hostile shared negatives closed; inventory/governor 14/14 pass.
-M154 live adapter path and remaining process debt outside port contracts is next.
+[LATEST COMPLETED] M154 — process honesty + BlockDecoder shared family-isolation suite.
+M155 live adapter path and remaining process debt outside verification architecture is next.
 ```
 
 ## Current layer (where work happens now)

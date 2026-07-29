@@ -20,8 +20,8 @@ falkordb=historical-only
 
 ## Current position
 
-- **Latest completed milestone:** M153-bot7tu, residual hostile shared negatives closed (14/14 hostiles shared-negative covered; mention-based).
-- **Recommended next milestone:** M154, live adapter path and remaining process debt outside port contracts.
+- **Latest completed milestone:** M154-a606i7, process honesty + BlockDecoder shared family-isolation suite.
+- **Recommended next milestone:** M155, live adapter path and remaining process debt outside verification architecture.
 - **M111 result:** final `[bounded]` implementation-neutral semantic baseline for heterogeneous Russian legal evidence.
 - **M112 result:** ADR-0005 topology superseded; ADR-0008 through ADR-0012 authored `[bounded]`; executable ADR/decision/owner drift checks active in pre-commit and CI.
 - **M113 result:** first hostile-case Rust runtime proof. `S10-HC-01-RT` is bounded PASS.
