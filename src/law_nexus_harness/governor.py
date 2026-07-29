@@ -1320,6 +1320,103 @@ def check_ci_quality_gate_drift(root: Path) -> list[GovernorFinding]:
     ]
 
 
+def check_verify_test_coverage_drift(root: Path) -> list[GovernorFinding]:
+    """Detect tests for active verify scripts that are missing from CI process suite.
+
+    Scans test_verify_*.py for references to scripts in active CI/pre-commit/quality-gate
+    inventory surfaces. Any such test must be in ci_process_suite. Debt is non-blocking
+    (fail + warn). Quality-gate inventory load failure is fail-closed (error).
+    """
+    check_id = "verify-test-coverage-drift"
+    remediation = (
+        "Add the missing test to the quality-gate ci_process_suite and CI workflow, "
+        "or remove the script from active CI/pre-commit surfaces. "
+        "Do not claim process readiness from a drifted test suite."
+    )
+
+    inventory_path = root / "prd" / "migration" / "decommission" / "repository-quality-gate.json"
+    try:
+        payload = json.loads(inventory_path.read_text(encoding="utf-8"))
+    except Exception as error:  # noqa: BLE001 - fail-closed process surface
+        return [
+            GovernorFinding(
+                check_id=check_id,
+                status="fail",
+                severity="error",
+                message="quality-gate inventory load failed",
+                observed=str(error),
+                remediation=remediation,
+            )
+        ]
+
+    ci_suite = set(payload.get("ci_process_suite", []))
+    ci_inventory_scripts = set(payload.get("ci_inventory_scripts", []))
+    pre_commit_ids_text = _extract_pre_commit_hook_ids_with_entries(root)
+    ci_text = _extract_ci_content(root)
+
+    # Build set of active verify script names from pre-commit entries and CI inventory
+    active_scripts: set[str] = set()
+    for script in ci_inventory_scripts:
+        active_scripts.add(Path(script).name)
+    for script in re.findall(r"scripts/(verify-[a-z0-9_-]+\.py)", ci_text):
+        active_scripts.add(script)
+    for script in re.findall(r"verify-[a-z0-9_-]+\.py", pre_commit_ids_text):
+        active_scripts.add(script)
+
+    # Scan test_verify_*.py for references to active scripts
+    tests_dir = root / "tests"
+    missing: list[str] = []
+    if tests_dir.is_dir():
+        for test_path in sorted(tests_dir.glob("test_verify_*.py")):
+            rel = f"tests/{test_path.name}"
+            if rel in ci_suite:
+                continue
+            text = test_path.read_text(encoding="utf-8", errors="replace")
+            referenced = {s for s in active_scripts if s in text}
+            if referenced:
+                missing.append(f"{rel}->{sorted(referenced)[0]}")
+
+    if missing:
+        preview = ",".join(missing[:8])
+        if len(missing) > 8:
+            preview += f",+{len(missing) - 8}"
+        return [
+            GovernorFinding(
+                check_id=check_id,
+                status="fail",
+                severity="warn",
+                message="verify tests for active scripts missing from CI process suite",
+                observed=(
+                    f"missing_count={len(missing)}, missing=[{preview}] "
+                    f"(lifecycle [bounded]; process anti-drift; not product readiness)."
+                ),
+                remediation=remediation,
+            )
+        ]
+
+    return [
+        GovernorFinding(
+            check_id=check_id,
+            status="pass",
+            severity="ok",
+            message="verify tests for active scripts are in CI process suite",
+            observed=(
+                f"active_scripts={len(active_scripts)}, ci_suite={len(ci_suite)} "
+                f"(lifecycle [bounded]; process anti-drift; not product readiness)."
+            ),
+            remediation="none",
+        )
+    ]
+
+
+def _extract_pre_commit_hook_ids_with_entries(root: Path) -> str:
+    """Return pre-commit config text for script reference scanning."""
+    config = root / ".pre-commit-config.yaml"
+    if not config.is_file():
+        return ""
+    return config.read_text(encoding="utf-8", errors="replace")
+
+
 def run_governor(root: Path | None = None) -> GovernorReport:
     """Run all governor checks and return a machine-readable report."""
 
@@ -1336,6 +1433,7 @@ def run_governor(root: Path | None = None) -> GovernorReport:
         + check_multi_adapter_port_coverage(resolved)
         + check_live_adapter_readiness(resolved)
         + check_ci_quality_gate_drift(resolved)
+        + check_verify_test_coverage_drift(resolved)
     )
     error_count = sum(1 for item in findings if item.status == "fail" and item.severity == "error")
     warn_count = sum(1 for item in findings if item.status == "fail" and item.severity == "warn")

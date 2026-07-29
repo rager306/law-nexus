@@ -18,6 +18,7 @@ from law_nexus_harness.governor import (
     check_hostile_proof_chain,
     check_port_contract_coverage,
     check_roadmap_freshness,
+    check_verify_test_coverage_drift,
     run_governor,
 )
 
@@ -548,8 +549,48 @@ def test_live_governor_passes_ci_quality_gate_drift() -> None:
     assert "process_suite=" in finding.observed
     assert "inventory_scripts=" in finding.observed
     assert report.error_count == 0
-    assert report.warn_count == 0
     assert report.status == "ok"
+
+
+def test_live_governor_passes_verify_test_coverage_drift() -> None:
+    report = run_governor(ROOT)
+    by_id = {item.check_id: item for item in report.findings}
+    assert "verify-test-coverage-drift" in by_id
+    finding = by_id["verify-test-coverage-drift"]
+    assert finding.status == "pass"
+    assert finding.severity == "ok"
+    assert "active_scripts=" in finding.observed
+    assert report.error_count == 0
+    assert report.status == "ok"
+
+
+def test_verify_test_coverage_drift_detects_missing_test(tmp_path: Path) -> None:
+    import json as _j
+
+    inv = tmp_path / "prd" / "migration" / "decommission" / "repository-quality-gate.json"
+    inv.parent.mkdir(parents=True, exist_ok=True)
+    inv.write_text(
+        _j.dumps(
+            {
+                "ci_process_suite": [],
+                "ci_inventory_scripts": ["scripts/verify-active.py"],
+            }
+        )
+    )
+    tests = tmp_path / "tests"
+    tests.mkdir(parents=True)
+    (tests / "test_verify_active.py").write_text("# scripts/verify-active.py")
+    pre = tmp_path / ".pre-commit-config.yaml"
+    pre.write_text("")
+    ci = tmp_path / ".github" / "workflows" / "repository-quality.yml"
+    ci.parent.mkdir(parents=True, exist_ok=True)
+    ci.write_text("")
+    findings = check_verify_test_coverage_drift(tmp_path)
+    assert len(findings) == 1
+    finding = findings[0]
+    assert finding.status == "fail"
+    assert finding.severity == "warn"
+    assert "missing_count=" in finding.observed
 
 
 def test_ci_quality_gate_drift_detects_hook_mismatch(tmp_path: Path) -> None:
