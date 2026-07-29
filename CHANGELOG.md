@@ -2,6 +2,23 @@
 
 All notable changes to law-nexus are documented in this file.
 
+## M146 (in progress)
+
+### S01: Citation source shared port contract
+- `ln-testkit`: `assert_citation_source_contract` for honest resolve/missing/authority preservation
+- Negative suite: HostileMirrorRelabeler fails honest Mirror→Official preservation
+- InMemoryCitationSource passes shared suite
+
+### S02: Promotion store shared port contract
+- `ln-testkit`: `assert_promotion_store_contract` for commit visibility, idempotent put, cancel clearing
+- InMemoryPromotionStore passes shared suite
+- Crate allowlist: 28 edges (`ln-testkit` → storage/citation/promote)
+
+### S03: InMemory port-contract coverage inventory
+- `scripts/verify-port-contract-coverage.py` report-only inventory
+- Covered 4 / uncovered 16 / discovered 20 InMemory adapters
+- `--strict` fails while debt remains; default does not block gates
+
 ## M145 (complete)
 
 ### S01: Executable crate dependency allowlist

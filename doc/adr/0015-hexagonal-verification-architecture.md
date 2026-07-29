@@ -274,9 +274,15 @@ Treat the following as process debt or gate failures, not style nits:
    preflight/pre-commit/CI. Full domain/application/adapter layer tagging
    remains open.
 3. Extend governor diagnostics for fake-without-contract and overclaim patterns.
+   **M146 `[bounded]` inventory only:**
+   `scripts/verify-port-contract-coverage.py` reports InMemory adapters not yet
+   covered by ln-testkit (default report-only; `--strict` optional).
 4. Add proptest to pure decode/query cores; mutants on domain/application nightlies.
 5. When real storage lands, run the **same** contracts against real adapters.
-6. Expand shared suites beyond storage ports (decode, citation, promote, …).
+6. ~~Expand shared suites beyond storage ports (decode, citation, promote, …).~~
+   **M146 `[bounded]`:** citation + promotion shared contracts landed in
+   ln-testkit with InMemory (and hostile citation negative). Decode and most
+   other capability InMemory adapters remain uncovered inventory debt.
 
 ## References
 
