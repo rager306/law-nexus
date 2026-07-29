@@ -1,0 +1,65 @@
+{
+  "evidence_id": "M143-S03-RELEASE-BASELINE",
+  "lifecycle": "[bounded]",
+  "verdict": "PASS",
+  "binary": "target/release/law-nexus-inspect",
+  "build": "cargo build -p ln-product-cli --release --offline",
+  "health": {
+    "phase": "Health",
+    "status": "ok",
+    "binary": "law-nexus-inspect",
+    "runtime": "rust",
+    "duration_ms": 0
+  },
+  "providers": {
+    "consultant": {
+      "fixture": "law-source/consultant/federalnyi-zakon-ot-22-12-2020-n-435-fz-red-ot-25-12-2023-o-publichno-pravovoi-kompanii-edinyi-zakazchik-v-sfere-stroitelstva-i-o-vnese--d71bf702.xml",
+      "fixture_sha256": "62810fd14c12ca5b239178385d0fc53b3377c05da6a1ff9a834acd2e46fafb9d",
+      "fixture_bytes": 193726,
+      "wall_ms": [
+        11.2,
+        11.8,
+        12.2
+      ],
+      "avg_wall_ms": 11.7,
+      "status": "ok",
+      "phase": "Inspect",
+      "block_count": 167,
+      "hierarchy_markers": 22,
+      "reference_mentions": 69,
+      "temporal_phrases": 1,
+      "deontic_lexemes": 4,
+      "unknown_forms": 29,
+      "retrieval_count": 5,
+      "deterministic_excluding_duration_ms": true
+    },
+    "garant": {
+      "fixture": "law-source/garant/44-fz.odt",
+      "fixture_sha256": "73777d4741fa1b65229a8b22b97eb2cff4c5180105affb79b058d7007e3e4337",
+      "fixture_bytes": 247971,
+      "wall_ms": [
+        194.7,
+        177.4,
+        187.3
+      ],
+      "avg_wall_ms": 186.5,
+      "status": "ok",
+      "phase": "Inspect",
+      "block_count": 5124,
+      "hierarchy_markers": 140,
+      "reference_mentions": 1882,
+      "temporal_phrases": 36,
+      "deontic_lexemes": 228,
+      "unknown_forms": 2144,
+      "retrieval_count": 5,
+      "deterministic_excluding_duration_ms": true
+    }
+  },
+  "non_claims": [
+    "No production packaging or deployment claim.",
+    "No multi-machine or concurrent benchmark.",
+    "No memory/RSS profiling.",
+    "One tracked real fixture per provider only.",
+    "No corpus completeness or legal correctness claim."
+  ]
+}
