@@ -14,6 +14,7 @@ from law_nexus_harness.governor import (
     check_architecture_direction,
     check_forward_roadmap_sequence,
     check_hostile_proof_chain,
+    check_port_contract_coverage,
     check_roadmap_freshness,
     run_governor,
 )
@@ -438,6 +439,58 @@ def test_requirement_contradictions_do_not_scan_validated_history(tmp_path: Path
     finding = check_active_requirement_contradictions(tmp_path)[0]
 
     assert finding.status == "pass"
+
+
+def test_port_contract_coverage_pass_includes_evidence_ceiling_non_claim() -> None:
+    findings = check_port_contract_coverage(ROOT)
+    assert len(findings) == 1
+    finding = findings[0]
+    assert finding.check_id == "port-contract-coverage"
+    assert finding.status == "pass"
+    assert finding.severity == "ok"
+    assert "covered=22" in finding.observed or "covered=" in finding.observed
+    assert "not real" in finding.observed.lower() or "not tei" in finding.observed.lower()
+    assert "bounded" in finding.observed.lower()
+
+
+def test_port_contract_coverage_debt_is_non_blocking_warn(tmp_path: Path) -> None:
+    crates = tmp_path / "crates" / "ln-example" / "src"
+    crates.mkdir(parents=True)
+    (crates / "adapters.rs").write_text(
+        "pub struct InMemoryExampleStore {\n    value: u8,\n}\n",
+        encoding="utf-8",
+    )
+    # Inventory module loads from the real harness repository; discovery runs
+    # against this temporary crates tree (declared covered set is missing).
+    findings = check_port_contract_coverage(tmp_path)
+    assert len(findings) == 1
+    finding = findings[0]
+    assert finding.check_id == "port-contract-coverage"
+    assert finding.status == "fail"
+    assert finding.severity == "warn"
+    assert "uncovered=" in finding.observed
+    assert "not real" in finding.observed.lower() or "not tei" in finding.observed.lower()
+
+
+def test_port_contract_coverage_missing_crates_tree_is_debt_warn(tmp_path: Path) -> None:
+    # Empty fixture root: discovery finds nothing, declared covered set is missing
+    # -> debt warn (non-blocking), not silent pass.
+    findings = check_port_contract_coverage(tmp_path)
+    assert len(findings) == 1
+    finding = findings[0]
+    assert finding.check_id == "port-contract-coverage"
+    assert finding.status == "fail"
+    assert finding.severity == "warn"
+    assert "missing_declared=" in finding.observed
+
+
+def test_live_governor_includes_port_contract_coverage_finding() -> None:
+    report = run_governor(ROOT)
+    by_id = {item.check_id: item for item in report.findings}
+    assert "port-contract-coverage" in by_id
+    assert by_id["port-contract-coverage"].status == "pass"
+    assert report.error_count == 0
+    assert report.status == "ok"
 
 
 def test_stale_open_milestone_behind_last_completed_is_debt(tmp_path: Path) -> None:

@@ -10,8 +10,10 @@ or legal-domain behavior (ADR-0007).
 
 from __future__ import annotations
 
+import importlib.util
 import json
 import re
+import sys
 from dataclasses import asdict, dataclass
 from pathlib import Path
 from typing import Any, Literal
@@ -844,6 +846,97 @@ def check_gsd_residual_debt(root: Path) -> list[GovernorFinding]:
     return findings
 
 
+def _load_port_contract_coverage_module(root: Path):
+    # Prefer the checked-out repository script under the target root; fall back to
+    # the harness package's repository so fixture roots can reuse inventory code.
+    candidates = (
+        root / "scripts" / "verify-port-contract-coverage.py",
+        Path(__file__).resolve().parents[2] / "scripts" / "verify-port-contract-coverage.py",
+    )
+    script = next((path for path in candidates if path.is_file()), None)
+    if script is None:
+        raise FileNotFoundError(
+            "missing coverage inventory script under target root or harness repository"
+        )
+    module_name = f"verify_port_contract_coverage_{abs(hash(str(script)))}"
+    spec = importlib.util.spec_from_file_location(module_name, script)
+    if spec is None or spec.loader is None:
+        raise ImportError(f"unable to load coverage inventory script: {script}")
+    module = importlib.util.module_from_spec(spec)
+    sys.modules[module_name] = module
+    spec.loader.exec_module(module)
+    return module
+
+
+def check_port_contract_coverage(root: Path) -> list[GovernorFinding]:
+    """Inventory InMemory adapters vs ln-testkit shared port-contract coverage.
+
+    Debt is non-blocking (fail + warn). Inventory script/load failures are
+    fail-closed (fail + error). Full coverage pass is bounded port-suite
+    evidence only and must not be read as TEI/RuVector validation.
+    """
+    check_id = "port-contract-coverage"
+    remediation = (
+        "Expand ln-testkit shared port contracts for uncovered InMemory adapters "
+        "(ADR-0015) or inspect `uv run python scripts/verify-port-contract-coverage.py`. "
+        "Do not claim real TEI/RuVector validation or product readiness from inventory alone."
+    )
+    try:
+        module = _load_port_contract_coverage_module(root)
+        crates_root = root / "crates"
+        discovered = module.discover_inmemory_adapters(crates_root, repo_root=root)
+        report = module.build_report(discovered)
+    except Exception as error:  # noqa: BLE001 - fail-closed process surface
+        return [
+            GovernorFinding(
+                check_id=check_id,
+                status="fail",
+                severity="error",
+                message="port-contract coverage inventory failed",
+                observed=str(error),
+                remediation=remediation,
+            )
+        ]
+
+    covered = int(report.get("covered_count") or 0)
+    uncovered = int(report.get("uncovered_count") or 0)
+    discovered_count = int(report.get("discovered_count") or 0)
+    status = str(report.get("status") or "")
+    identity_model = str(report.get("identity_model") or "unknown")
+    missing_declared = report.get("missing_declared_covered") or []
+
+    if uncovered > 0 or status == "debt" or missing_declared:
+        return [
+            GovernorFinding(
+                check_id=check_id,
+                status="fail",
+                severity="warn",
+                message="InMemory port-contract coverage debt remains",
+                observed=(
+                    f"covered={covered}, uncovered={uncovered}, discovered={discovered_count}, "
+                    f"identity_model={identity_model}, missing_declared={len(missing_declared)} "
+                    f"(lifecycle [bounded]; not real TEI/RuVector validation)."
+                ),
+                remediation=remediation,
+            )
+        ]
+
+    return [
+        GovernorFinding(
+            check_id=check_id,
+            status="pass",
+            severity="ok",
+            message="InMemory adapters are covered by ln-testkit shared port contracts",
+            observed=(
+                f"covered={covered}, uncovered={uncovered}, discovered={discovered_count}, "
+                f"identity_model={identity_model} "
+                f"(lifecycle [bounded]; not real TEI/RuVector validation or product readiness)."
+            ),
+            remediation="none",
+        )
+    ]
+
+
 def run_governor(root: Path | None = None) -> GovernorReport:
     """Run all governor checks and return a machine-readable report."""
 
@@ -855,6 +948,7 @@ def run_governor(root: Path | None = None) -> GovernorReport:
         + check_roadmap_freshness(resolved)
         + check_hostile_proof_chain(resolved)
         + check_gsd_residual_debt(resolved)
+        + check_port_contract_coverage(resolved)
     )
     error_count = sum(1 for item in findings if item.status == "fail" and item.severity == "error")
     warn_count = sum(1 for item in findings if item.status == "fail" and item.severity == "warn")

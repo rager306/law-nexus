@@ -460,7 +460,8 @@ def _port_contract_coverage_check(root: Path, runner: Runner) -> PreflightCheck:
         command=result.command,
         observed=(
             f"All discovered InMemory adapters are covered by ln-testkit shared "
-            f"contracts (covered={covered}, discovered={discovered})."
+            f"contracts (covered={covered}, discovered={discovered}; lifecycle "
+            f"[bounded]; not real TEI/RuVector validation or product readiness)."
         ),
         duration_ms=result.duration_ms,
         exit_code=result.exit_code,
