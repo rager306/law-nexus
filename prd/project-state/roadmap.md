@@ -20,8 +20,8 @@ falkordb=historical-only
 
 ## Current position
 
-- **Latest completed milestone:** M156-w36j3g, CI process surface + live-adapter readiness inventory (TEI stub-only, RuVector proposed).
-- **Recommended next milestone:** M157, live adapter implementation path when infrastructure exists.
+- **Latest completed milestone:** M157-3bma6s, live-adapter readiness governor/CI + cargo clippy quality gate.
+- **Recommended next milestone:** M158, live adapter implementation path when infrastructure exists.
 - **M111 result:** final `[bounded]` implementation-neutral semantic baseline for heterogeneous Russian legal evidence.
 - **M112 result:** ADR-0005 topology superseded; ADR-0008 through ADR-0012 authored `[bounded]`; executable ADR/decision/owner drift checks active in pre-commit and CI.
 - **M113 result:** first hostile-case Rust runtime proof. `S10-HC-01-RT` is bounded PASS.

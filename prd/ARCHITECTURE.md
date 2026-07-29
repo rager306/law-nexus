@@ -98,8 +98,8 @@ ADR-0013 universal parser  [bounded] + ADR-0014 RuVector  [proposed]
    TEI USER-bge-m3 1024d embedding boundary remains proposed
    RVF vectors + redb GraphDB CRUD; no ruvector-graph Cypher execution claim
    ▼
-[LATEST COMPLETED] M156 — CI process surface + live-adapter readiness inventory (TEI stub-only, RuVector proposed).
-M157 live adapter implementation path when infrastructure exists is next.
+[LATEST COMPLETED] M157 — live-adapter readiness governor/CI + cargo clippy quality gate.
+M158 live adapter implementation path when infrastructure exists is next.
 ```
 
 ## Current layer (where work happens now)

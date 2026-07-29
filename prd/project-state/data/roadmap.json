@@ -327,21 +327,27 @@
       "theme": "CI process surface and live-adapter readiness inventory",
       "status": "complete",
       "boundary": "CI process suite expanded with preflight/quality-gate/inventory tests and report-only inventory scripts. Live-adapter readiness inventory classifies TEI stub_transport_only and RuVector proposed. No live HTTP or product-readiness claim."
+    },
+    {
+      "range": "M157-M157",
+      "theme": "Live-adapter readiness process surface and clippy quality gate",
+      "status": "complete",
+      "boundary": "Governor finding live-adapter-readiness plus CI process/inventory wiring. Cargo clippy -D warnings landed in pre-commit and CI quality-gate inventory. No live HTTP or product-readiness claim."
     }
   ],
   "current_milestone": {
-    "id": "M156-w36j3g",
-    "title": "CI Process Surface and Quality Gate Honesty",
+    "id": "M157-3bma6s",
+    "title": "Live Adapter Readiness Process Surface and Clippy Gate",
     "status": "complete",
-    "goal": "Expand CI process suite and quality-gate inventory honesty; add live-adapter readiness report-only inventory (TEI stub-only, RuVector proposed)."
+    "goal": "Wire live-adapter readiness inventory into governor/CI and land cargo clippy as an active quality-gate check without live TEI/RuVector validation."
   },
   "recommended_next": {
-    "title": "M157 Live Adapter Implementation Path When Infrastructure Exists",
+    "title": "M158 Live Adapter Implementation Path When Infrastructure Exists",
     "priority": 1,
-    "why": "M156 closed CI process surface gap and made live-adapter ceiling machine-readable (TEI stub_transport_only, RuVector proposed). Process inventories and port/hostile/multi-adapter gates remain green. Next: only when real TEI/RuVector infrastructure exists, implement live adapters behind ports without overclaim; otherwise residual process debt outside CI/readiness (clippy/audit/strict optional policy).",
+    "why": "M157 made live-adapter readiness first-class in governor/CI and landed cargo clippy as an active quality gate. Port/hostile/multi-adapter inventories and readiness remain green with TEI stub_transport_only and RuVector proposed. Next: only when real TEI/RuVector infrastructure exists, implement live adapters behind ports without overclaim; otherwise residual optional process policy (cargo audit/deny, inventory --strict).",
     "plan_reference": "doc/adr/0014-ruvector-primary-infrastructure.md and doc/adr/0015-hexagonal-verification-architecture.md follow-on increments",
-    "slices": "Live TEI HTTP transport when service available; RuVector/redb adapters when selected and gated; optional clippy/audit/strict CI policy.",
-    "non_validation": "M156 does not validate live TEI/RuVector or product readiness; readiness inventory is repository-evidence only."
+    "slices": "Live TEI HTTP transport when service available; RuVector/redb adapters when selected and gated; optional cargo audit/deny and inventory --strict CI policy.",
+    "non_validation": "M157 does not validate live TEI/RuVector or product readiness; readiness remains repository-evidence only."
   },
   "downstream_blocked": [
     {
