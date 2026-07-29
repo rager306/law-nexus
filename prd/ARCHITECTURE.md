@@ -98,8 +98,8 @@ ADR-0013 universal parser  [bounded] + ADR-0014 RuVector  [proposed]
    TEI USER-bge-m3 1024d embedding boundary remains proposed
    RVF vectors + redb GraphDB CRUD; no ruvector-graph Cypher execution claim
    ▼
-[LATEST COMPLETED] M151 — governor-native port-contract coverage with evidence-ceiling non-claims.
-M152 real-adapter preparation and remaining process debt is next.
+[LATEST COMPLETED] M152 — hostile shared-negative process surface + TEI stub EmbeddingPort prep.
+M153 residual hostile negatives and live adapter path is next.
 ```
 
 ## Current layer (where work happens now)

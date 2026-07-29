@@ -2,7 +2,7 @@
 
 All notable changes to law-nexus are documented in this file.
 
-## M152 (in progress)
+## M152 (complete)
 
 ### S01: Hostile adapter inventory and governor advisory
 - `scripts/verify-hostile-negative-suite-coverage.py` inventory (mention-based)

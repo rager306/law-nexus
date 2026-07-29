@@ -297,21 +297,27 @@
       "theme": "Governor-native port-contract coverage process hardening",
       "status": "complete",
       "boundary": "Governor check_port_contract_coverage with debt warn / crash error and full-coverage non-claim. Quality-gate future_additions and ADR-0015 evidence ceiling honest after 22/22 bounded InMemory coverage. No RuVector/TEI claim; no product-readiness claim."
+    },
+    {
+      "range": "M152-M152",
+      "theme": "Hostile process visibility and TEI stub embedding prep",
+      "status": "complete",
+      "boundary": "Hostile-negative-suite inventory + governor advisory; EmbeddingPort TEI stub suite; publish/relation shared negatives; preflight non-blocking advisory warns. Missing shared-negative hostiles 4 remain. No live TEI/RuVector claim."
     }
   ],
   "current_milestone": {
-    "id": "M151-zeej4w",
-    "title": "Process Hardening for Port Contract Coverage Governor",
+    "id": "M152-hj78ox",
+    "title": "Real Adapter Prep and Hostile Negative Process Debt",
     "status": "complete",
-    "goal": "Wire port-contract coverage into governor trajectory with evidence-ceiling non-claims; refresh stale strict-gate wording after full bounded InMemory coverage (ADR-0015)."
+    "goal": "Surface hostile shared-negative debt, prepare EmbeddingPort TEI stub suite, close publish/relation hostile gaps, keep advisory governor warns non-blocking (ADR-0015)."
   },
   "recommended_next": {
-    "title": "M152 Real Adapter Preparation and Remaining Process Debt",
+    "title": "M153 Residual Hostile Shared Negatives and Live Adapter Path",
     "priority": 1,
-    "why": "M151 hardened governor coverage trajectory after 22/22 bounded InMemory coverage. Next: prepare real TEI/RuVector adapter suites without overclaim, optional --strict CI policy decision, and remaining process debt outside port contracts.",
+    "why": "M152 reduced missing shared-negative hostiles to 4 and prepared TEI stub embedding suite. Next: admission/closure/projection/work hostile shared negatives; live TEI/RuVector path only when infrastructure is available without overclaim.",
     "plan_reference": "doc/adr/0015-hexagonal-verification-architecture.md follow-on increments",
-    "slices": "Real-adapter contract preparation; optional strict CI policy; residual process debt scan.",
-    "non_validation": "M151 does not validate RuVector/TEI or product readiness; full InMemory coverage remains bounded port-suite coverage only."
+    "slices": "Residual hostile shared negatives; live adapter readiness gates; optional strict coverage CI policy.",
+    "non_validation": "M152 does not validate live TEI/RuVector or product readiness; TEI suite is stub-transport preparation only."
   },
   "downstream_blocked": [
     {
