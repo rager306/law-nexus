@@ -1,0 +1,42 @@
+{
+  "schema_version": "law-nexus/crate-dependency-allowlist/v1",
+  "lifecycle": "[bounded]",
+  "description": "Allowed workspace path-dependency edges for hexagonal composition. Product/domain crates must not depend on HC runners or product-cli. Composition edges are explicit.",
+  "rules": {
+    "forbid_domainish_depending_on_runners": true,
+    "forbid_capability_depending_on_product_cli": true,
+    "forbid_capability_depending_on_hc_runners": true
+  },
+  "allowed_edges": [
+    ["ln-hc01-runner", "ln-observe"],
+    ["ln-hc02-runner", "ln-inventory"],
+    ["ln-hc03-runner", "ln-dispose"],
+    ["ln-hc04-runner", "ln-promote"],
+    ["ln-hc05-runner", "ln-decode"],
+    ["ln-hc06-runner", "ln-gate"],
+    ["ln-hc07-runner", "ln-identity"],
+    ["ln-hc08-runner", "ln-relation"],
+    ["ln-hc09-runner", "ln-temporal"],
+    ["ln-hc10-runner", "ln-work"],
+    ["ln-hc11-runner", "ln-closure"],
+    ["ln-hc12-runner", "ln-projection"],
+    ["ln-hc13-runner", "ln-admission"],
+    ["ln-hc14-runner", "ln-replay"],
+    ["ln-hc15-runner", "ln-publish"],
+    ["ln-hc16-runner", "ln-accelerate"],
+    ["ln-hc17-runner", "ln-query"],
+    ["ln-hc18-runner", "ln-citation"],
+    ["ln-hc19-runner", "ln-diagnostic"],
+    ["ln-hc20-runner", "ln-conformance"],
+    ["ln-product-cli", "ln-decode"],
+    ["ln-product-cli", "ln-query"],
+    ["ln-product-cli", "ln-storage"],
+    ["ln-query", "ln-decode"],
+    ["ln-query", "ln-storage"]
+  ],
+  "non_claims": [
+    "Does not validate external crate licenses or versions.",
+    "Does not yet encode full domain/application/adapter layer tags per crate.",
+    "Does not replace cargo deny/audit."
+  ]
+}
