@@ -2,6 +2,15 @@
 
 All notable changes to law-nexus are documented in this file.
 
+## M160 (complete)
+
+### S01: Verify test CI coverage and governor test-coverage drift
+- test_verify_adr_conformance and test_verify_repository_pre_commit_hook in CI
+- Governor check `verify-test-coverage-drift` detects drift
+
+### S02: Docs validation and terminal closure
+- Structured UAT PASS; terminal projections closed
+
 ## M159 (complete)
 
 ### S01: Architecture generator tests in CI
