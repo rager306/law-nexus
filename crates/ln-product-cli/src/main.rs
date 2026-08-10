@@ -28,11 +28,39 @@ const BINARY: &str = "law-nexus-inspect";
 struct StubEmbedding;
 impl EmbeddingPort for StubEmbedding {
     fn embed(&self, req: &EmbeddingRequest) -> Result<EmbeddingResponse, StorageError> {
-        Ok(
-            EmbeddingResponse::try_new(req.model_id(), vec![0.5; req.expected_dimensions()])
-                .unwrap(),
+        Ok(EmbeddingResponse::try_new(
+            req.model_id(),
+            deterministic_vector(req.text(), req.expected_dimensions()),
         )
+        .unwrap_or_else(|_| {
+            EmbeddingResponse::try_new(req.model_id(), vec![0.0; req.expected_dimensions()])
+                .unwrap()
+        }))
     }
+}
+
+/// Derive a deterministic f32 vector from `text`. Same text + dims -> identical
+/// vector; different text -> different vector; deterministic across runs.
+///
+/// Bounded, NOT semantic: this is a DefaultHasher-seeded pseudo-random mapping
+/// used only so the CLI retrieval pipeline exercises real ranking over
+/// distinct document vectors instead of a hardcoded constant. Real semantic
+/// embedding requires TEI infrastructure (not available). Lifecycle [bounded].
+fn deterministic_vector(text: &str, dims: usize) -> Vec<f32> {
+    use std::collections::hash_map::DefaultHasher;
+    use std::hash::{Hash, Hasher};
+
+    let mut out = Vec::with_capacity(dims);
+    for index in 0..dims {
+        let mut hasher = DefaultHasher::new();
+        text.hash(&mut hasher);
+        index.hash(&mut hasher);
+        // Map the 64-bit hash to a deterministic f32 in [0.0, 1.0).
+        let bits = hasher.finish();
+        let scaled = (bits % 1_000_003) as f32 / 1_000_003.0_f32;
+        out.push(scaled);
+    }
+    out
 }
 
 fn json_escape(s: &str) -> String {
@@ -122,8 +150,12 @@ fn inspect(path: &str) {
         if extract_hierarchy(block).is_some() {
             hierarchy_markers += 1;
             let id = format!("block-{i}");
-            let _ =
-                vector_store.store(&VectorRecord::try_new(&id, vec![0.5; 4], Vec::new()).unwrap());
+            // Deterministic, content-derived vector (bounded, not semantic)
+            // replaces the prior hardcoded vec![0.5; 4] (M163).
+            let _ = vector_store.store(
+                &VectorRecord::try_new(&id, deterministic_vector(block.text(), 4), Vec::new())
+                    .unwrap(),
+            );
             let _ =
                 graph_store.upsert_node(&GraphNode::try_new(&id, "hierarchy", Vec::new()).unwrap());
         }
@@ -136,7 +168,10 @@ fn inspect(path: &str) {
     }
 
     let op = ValidatedOp::try_new(KnowQLOp::FindSimilar {
-        vector: vec![0.5; 4],
+        // Deterministic query vector derived from a representative inspector
+        // query (bounded, not semantic) replaces the prior hardcoded
+        // vec![0.5; 4] (M163).
+        vector: deterministic_vector("law-nexus-inspect:find-similar-hierarchy", 4),
         top_k: 5,
     })
     .unwrap();
@@ -160,7 +195,8 @@ fn inspect(path: &str) {
          \"retrieval_count\":{retrieval_count}\
          }},\
          \"non_claims\":[\"No legal correctness claim\",\"No citation authority claim\",\
-         \"No corpus completeness claim\",\"No five-clock assignment claim\"]}}",
+         \"No corpus completeness claim\",\"No five-clock assignment claim\",\
+         \"retrieval_count is deterministic-non-semantic: hash-derived vectors, not TEI semantic embedding\"]}}",
         json_escape(path),
         blocks.len(),
     );
@@ -182,5 +218,61 @@ fn main() {
             eprintln!("usage: law-nexus-inspect <health|inspect <path>>");
             process::exit(2);
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    // --- M163: deterministic embedding contracts ---
+    // The CLI retrieval pipeline must derive a deterministic vector from input
+    // text (replacing the prior hardcoded vec![0.5; dims] that made every
+    // document and query identical and retrieval a no-op). Bounded: hash-based,
+    // NOT semantic. Lifecycle [bounded].
+
+    #[test]
+    fn same_text_produces_identical_vector() {
+        let a = deterministic_vector("вступает в силу", 4);
+        let b = deterministic_vector("вступает в силу", 4);
+        assert_eq!(a, b, "same text must produce identical vector");
+        assert_eq!(a.len(), 4);
+    }
+
+    #[test]
+    fn different_text_produces_different_vector() {
+        let a = deterministic_vector("вступает в силу", 4);
+        let b = deterministic_vector("утрачивает силу", 4);
+        assert_ne!(a, b, "different text must produce a different vector");
+    }
+
+    #[test]
+    fn deterministic_across_repeated_calls() {
+        let text = "law-nexus inspector query";
+        let first = deterministic_vector(text, 8);
+        for _ in 0..10 {
+            assert_eq!(
+                deterministic_vector(text, 8),
+                first,
+                "must be deterministic"
+            );
+        }
+    }
+
+    #[test]
+    fn all_values_finite_and_in_unit_range() {
+        let v = deterministic_vector("sample block text", 16);
+        assert_eq!(v.len(), 16);
+        for x in &v {
+            assert!(x.is_finite(), "values must be finite: {v:?}");
+            assert!(*x >= 0.0 && *x <= 1.0, "values must be in [0,1]: {v:?}");
+        }
+    }
+
+    #[test]
+    fn dimension_is_respected() {
+        assert_eq!(deterministic_vector("x", 1).len(), 1);
+        assert_eq!(deterministic_vector("x", 7).len(), 7);
+        assert_eq!(deterministic_vector("x", 1024).len(), 1024);
     }
 }

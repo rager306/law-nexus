@@ -2,6 +2,21 @@
 
 All notable changes to law-nexus are documented in this file.
 
+## M163 (complete)
+
+### S01: CLI deterministic retrieval pipeline
+- Eliminated the hardcoded constant-vector retrieval cascade in `law-nexus-inspect`
+- Replaced 3 hardcoded `vec![0.5; 4]` sites (StubEmbedding, store loop, FindSimilar
+  query) with a `deterministic_vector(text, dims)` helper (DefaultHasher-seeded)
+- Same text -> identical vector; different text -> different vector; deterministic
+- The M161 cosine-ranking retrieval now ranks distinct document vectors instead
+  of returning constant cosine 1.0 for all (retrieval_count is no longer just a
+  hierarchy-block count)
+- TDD: 5 deterministic contract tests (same-text, different-text, deterministic,
+  finite+unit-range, dimension-respected)
+- Bounded, NOT semantic: hash-derived vectors; real semantic embedding needs TEI
+  infrastructure. JSON output now tags retrieval_count as deterministic-non-semantic
+
 ## M162 (complete)
 
 ### S01: Governor semantic-stub-in-product-code probe
