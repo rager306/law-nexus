@@ -2,6 +2,22 @@
 
 All notable changes to law-nexus are documented in this file.
 
+## M164 (complete)
+
+### S01: Governor historical-test-debt-visibility probe
+- New advisory governor check `historical-test-debt-visibility` (severity warn)
+- Inventories tests/test_*.py NOT in CI_PROCESS_SUITE that reference
+  decommissioned eras (ACP/git-lex, FalkorDB graph store, PyO3, MiniMax)
+- Live repo surfaces `historical_test_count=59` as a visible advisory warn
+  (non-blocking); governor overall stays ok
+- Serves AGENTS.md "Never silently keep residual scripts/tests that
+  hard-depend on archived product code" — non-destructive (nothing deleted)
+- Excludes active decommission-policy controls (decommission/no_acp/
+  no_forbidden/archive/verify_)
+- Complements the M162 product-code honesty probe with test-suite honesty
+- TDD: live-inventory + planted-detect + active-control-exclusion
+- FalkorDB allowlist extended for the probe's detection-keyword regex
+
 ## M163 (complete)
 
 ### S01: CLI deterministic retrieval pipeline

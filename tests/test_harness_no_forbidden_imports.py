@@ -28,6 +28,10 @@ _ALLOWED_FALKORDB_PATTERNS = (
     re.compile(r'"falkordb"\s*:\s*"historical-only"'),
     re.compile(r"legacy acp/git-lex/falkordb"),
     re.compile(r"falkordb=historical-only"),
+    # Governor historical-test-debt-visibility probe references the decommissioned
+    # era name 'falkordb' as a detection keyword; this is a historical-only
+    # mention by construction (the probe inventories historical debt).
+    re.compile(r"falkordb\|git"),
 )
 
 

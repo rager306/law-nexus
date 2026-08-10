@@ -98,8 +98,8 @@ ADR-0013 universal parser  [bounded] + ADR-0014 RuVector  [proposed]
    TEI USER-bge-m3 1024d embedding boundary remains proposed
    RVF vectors + redb GraphDB CRUD; no ruvector-graph Cypher execution claim
    ▼
-[LATEST COMPLETED] M163 — CLI deterministic retrieval pipeline (eliminated the hardcoded constant-vector cascade in law-nexus-inspect; retrieval now ranks distinct deterministic vectors, bounded non-semantic).
-M164 historical test triage is next.
+[LATEST COMPLETED] M164 — governor historical-test-debt-visibility probe (advisory inventory surfacing 59 non-CI tests referencing decommissioned eras; non-destructive, anti-silently-keep).
+Next: M165 test triage actions (retire/archive/add-to-CI per the surfaced inventory) or live-adapter when TEI infra exists.
 ```
 
 ## Current layer (where work happens now)

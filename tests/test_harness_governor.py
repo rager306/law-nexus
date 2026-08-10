@@ -14,6 +14,7 @@ from law_nexus_harness.governor import (
     check_architecture_direction,
     check_ci_quality_gate_drift,
     check_forward_roadmap_sequence,
+    check_historical_test_debt_visibility,
     check_hostile_negative_suite_coverage,
     check_hostile_proof_chain,
     check_port_contract_coverage,
@@ -507,7 +508,15 @@ def test_live_governor_passes_hostile_negative_suite_coverage() -> None:
     assert finding.severity == "ok"
     assert "missing_shared_negative=0" in finding.observed
     assert report.error_count == 0
-    assert report.warn_count == 0
+    # The historical-test-debt-visibility probe (M164) intentionally emits an
+    # advisory warn for carried historical tests; it is not a regression for
+    # this check.
+    other_warns = [
+        f
+        for f in report.findings
+        if f.severity == "warn" and f.check_id != "historical-test-debt-visibility"
+    ]
+    assert other_warns == []
     assert report.status == "ok"
 
 
@@ -535,7 +544,15 @@ def test_live_governor_passes_live_adapter_readiness() -> None:
     assert "ruvector=proposed" in finding.observed
     assert "overclaim_count=0" in finding.observed
     assert report.error_count == 0
-    assert report.warn_count == 0
+    # The historical-test-debt-visibility probe (M164) intentionally emits an
+    # advisory warn for carried historical tests; it is not a regression for
+    # this check.
+    other_warns = [
+        f
+        for f in report.findings
+        if f.severity == "warn" and f.check_id != "historical-test-debt-visibility"
+    ]
+    assert other_warns == []
     assert report.status == "ok"
 
 
@@ -718,6 +735,54 @@ def test_semantic_stub_in_product_code_ignores_tests_and_testkit(tmp_path: Path)
     testkit_file.parent.mkdir(parents=True)
     testkit_file.write_text("// stub in testkit, not product\n")
     findings = check_semantic_stub_in_product_code(tmp_path)
+    assert len(findings) == 1
+    assert findings[0].status == "pass"
+    assert findings[0].severity == "ok"
+
+
+def test_live_governor_reports_historical_test_debt_visibility() -> None:
+    report = run_governor(ROOT)
+    by_id = {item.check_id: item for item in report.findings}
+    assert "historical-test-debt-visibility" in by_id
+    finding = by_id["historical-test-debt-visibility"]
+    # Advisory inventory: status may be 'fail' (debt present, warn) but the
+    # governor overall stays ok. The observed field must carry a count.
+    assert "historical_test_count=" in finding.observed
+    assert finding.severity == "warn" or finding.severity == "ok"
+    assert report.status == "ok"
+
+
+def test_historical_test_debt_visibility_detects_planted(tmp_path: Path) -> None:
+    tests_dir = tmp_path / "tests"
+    tests_dir.mkdir()
+    (tests_dir / "test_zz_planted.py").write_text(
+        "# historical proof test referencing decommissioned eras\n"
+        "def test_falkordb_graph():\n"
+        "    assert 'falkordb' or 'git_lex' or 'minimax' or 'pyo3'\n"
+    )
+    findings = check_historical_test_debt_visibility(tmp_path)
+    assert len(findings) == 1
+    finding = findings[0]
+    assert finding.check_id == "historical-test-debt-visibility"
+    assert finding.status == "fail"
+    assert finding.severity == "warn"
+    assert "historical_test_count=" in finding.observed
+    assert "test_zz_planted.py" in finding.observed
+
+
+def test_historical_test_debt_visibility_excludes_active_controls(
+    tmp_path: Path,
+) -> None:
+    # A file whose name marks it as an active decommission-policy control
+    # must NOT be flagged even if it mentions 'acp'.
+    tests_dir = tmp_path / "tests"
+    tests_dir.mkdir()
+    (tests_dir / "test_verify_acp_decommission.py").write_text(
+        "# active control asserting ACP is decommissioned\n"
+        "def test_acp_decommissioned():\n"
+        "    assert 'acp' not in active_imports\n"
+    )
+    findings = check_historical_test_debt_visibility(tmp_path)
     assert len(findings) == 1
     assert findings[0].status == "pass"
     assert findings[0].severity == "ok"

@@ -1483,6 +1483,79 @@ def check_semantic_stub_in_product_code(root: Path) -> list[GovernorFinding]:
     ]
 
 
+def check_historical_test_debt_visibility(root: Path) -> list[GovernorFinding]:
+    """Inventory non-CI tests referencing decommissioned eras.
+
+    Surfaces tests/test_*.py that reference decommissioned-era technologies
+    (ACP/git-lex, the legacy graph store, PyO3, MiniMax) as an advisory inventory
+    so the silently-carried historical test debt is triage-visible (AGENTS.md
+    anti-silently-keep). Non-destructive: nothing is deleted or moved. Files whose
+    name marks them as active decommission-policy controls
+    (decommission/no_acp/no_forbidden/archive/verify_) are EXCLUDED so active
+    guards are not false-flagged. Lifecycle [bounded]; process visibility, not
+    product readiness.
+    """
+    check_id = "historical-test-debt-visibility"
+    remediation = (
+        "Triage the flagged historical tests: active regression coverage -> add to "
+        "CI_PROCESS_SUITE; pure historical/archival evidence -> document as such; "
+        "hard-dependency on archived product code -> retire/archive. Do not silently "
+        "keep residual tests that hard-depend on archived product code."
+    )
+
+    era_keywords = re.compile(r"(?i)falkordb|git[\-_]lex|\bacp\b|minimax|pyo3")
+    # File-name markers that indicate an ACTIVE decommission-policy control,
+    # not residual historical evidence.
+    active_control = re.compile(r"decommission|no_acp|no_forbidden|archive|verify_")
+
+    matches: list[str] = []
+    tests_dir = root / "tests"
+    if tests_dir.is_dir():
+        for test_file in tests_dir.glob("test_*.py"):
+            name = test_file.name
+            if active_control.search(name):
+                continue
+            try:
+                text = test_file.read_text(encoding="utf-8", errors="replace")
+            except OSError:
+                continue
+            if era_keywords.search(text):
+                matches.append(name)
+
+    if matches:
+        preview = ",".join(sorted(matches)[:12])
+        if len(matches) > 12:
+            preview += f",+{len(matches) - 12}"
+        return [
+            GovernorFinding(
+                check_id=check_id,
+                status="fail",
+                severity="warn",
+                message="non-CI tests reference decommissioned eras",
+                observed=(
+                    f"historical_test_count={len(matches)}, files=[{preview}] "
+                    f"(lifecycle [bounded]; process visibility, not product readiness; "
+                    f"advisory, not a hard gate)."
+                ),
+                remediation=remediation,
+            )
+        ]
+
+    return [
+        GovernorFinding(
+            check_id=check_id,
+            status="pass",
+            severity="ok",
+            message="no non-CI tests reference decommissioned eras",
+            observed=(
+                "historical_test_count=0 "
+                "(lifecycle [bounded]; process visibility, not product readiness)."
+            ),
+            remediation="none",
+        )
+    ]
+
+
 def _extract_pre_commit_hook_ids_with_entries(root: Path) -> str:
     """Return pre-commit config text for script reference scanning."""
     config = root / ".pre-commit-config.yaml"
@@ -1509,6 +1582,7 @@ def run_governor(root: Path | None = None) -> GovernorReport:
         + check_ci_quality_gate_drift(resolved)
         + check_verify_test_coverage_drift(resolved)
         + check_semantic_stub_in_product_code(resolved)
+        + check_historical_test_debt_visibility(resolved)
     )
     error_count = sum(1 for item in findings if item.status == "fail" and item.severity == "error")
     warn_count = sum(1 for item in findings if item.status == "fail" and item.severity == "warn")
