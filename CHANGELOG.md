@@ -2,6 +2,17 @@
 
 All notable changes to law-nexus are documented in this file.
 
+## M162 (complete)
+
+### S01: Governor semantic-stub-in-product-code probe
+- New advisory governor check `semantic-stub-in-product-code` (severity warn)
+- Scans active product Rust (crates/*/src/**/*.rs, excluding tests/ and ln-testkit)
+  for stub/fake/dummy/placeholder/hardcoded comment markers and
+  todo!()/unimplemented!()/panic!('not implemented') macros
+- Closes the process gap (MEM676/D142) that let the M161 fake retrieval cascade
+  pass every green process gate while product semantics were fabricated
+- Governor now 37/0 (was 36/0); TDD: live-pass + planted-detect + tests/testkit-ignore
+
 ## M161 (complete)
 
 ### S01: Retrieval ranking semantic honesty

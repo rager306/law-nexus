@@ -98,8 +98,8 @@ ADR-0013 universal parser  [bounded] + ADR-0014 RuVector  [proposed]
    TEI USER-bge-m3 1024d embedding boundary remains proposed
    RVF vectors + redb GraphDB CRUD; no ruvector-graph Cypher execution claim
    ▼
-[LATEST COMPLETED] M161 — retrieval ranking semantic honesty (real cosine-similarity ranking in InMemory adapter + RetrievalGate; constant score=1.0 cascade eliminated).
-M162 historical test triage / further stub elimination is next.
+[LATEST COMPLETED] M162 — governor semantic-stub-in-product-code probe (advisory anti-drift check that detects stub/fake markers in active product Rust, closing the process gap that let the M161 fake retrieval cascade pass green gates).
+M163 historical test triage / further stub elimination is next.
 ```
 
 ## Current layer (where work happens now)

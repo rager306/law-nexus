@@ -1409,6 +1409,80 @@ def check_verify_test_coverage_drift(root: Path) -> list[GovernorFinding]:
     ]
 
 
+def check_semantic_stub_in_product_code(root: Path) -> list[GovernorFinding]:
+    """Detect semantic stub/fake markers in active product Rust source.
+
+    Scans crates/*/src/**/*.rs (excluding */tests/* and the ln-testkit crate, which
+    are test infrastructure) for stub/fake/dummy/placeholder/hardcoded comment
+    markers and todo!()/unimplemented!()/panic!('not implemented') macros. This is
+    the advisory anti-drift probe (MEM676) for the class of fabricated-semantics
+    bug that passed every green process gate in M161. Debt is non-blocking
+    (fail + warn). Lifecycle [bounded]; process anti-drift, not product readiness.
+    """
+    check_id = "semantic-stub-in-product-code"
+    remediation = (
+        "Replace the flagged semantic stub/fake with functional, semantically verified "
+        "code, or reword the comment if it only documents historical behavior. "
+        "Do not ship fabricated product semantics under green process gates."
+    )
+
+    pattern = re.compile(
+        r"(?i)"
+        r"//\s*(stub|fake|dummy|placeholder|hardcoded)"  # comment markers
+        r"|todo!\s*\("  # rust unimplemented markers
+        r"|unimplemented!\s*\("
+        r"|panic!\s*\(\s*\"(not implemented|unimplemented|todo|stub)"
+    )
+
+    matches: list[str] = []
+    crates_dir = root / "crates"
+    if crates_dir.is_dir():
+        for src_file in crates_dir.glob("*/src/**/*.rs"):
+            rel = str(src_file.relative_to(root)).replace("\\", "/")
+            # Exclude test files and the shared ln-testkit crate (test infra).
+            if "/tests/" in rel or rel.startswith("crates/ln-testkit/"):
+                continue
+            try:
+                text = src_file.read_text(encoding="utf-8", errors="replace")
+            except OSError:
+                continue
+            for lineno, line in enumerate(text.splitlines(), start=1):
+                if pattern.search(line):
+                    snippet = line.strip()[:100]
+                    matches.append(f"{rel}:{lineno}:{snippet}")
+
+    if matches:
+        preview = ",".join(matches[:12])
+        if len(matches) > 12:
+            preview += f",+{len(matches) - 12}"
+        return [
+            GovernorFinding(
+                check_id=check_id,
+                status="fail",
+                severity="warn",
+                message="semantic stub/fake markers found in active product Rust source",
+                observed=(
+                    f"stub_count={len(matches)}, matches=[{preview}] "
+                    f"(lifecycle [bounded]; process anti-drift; not product readiness)."
+                ),
+                remediation=remediation,
+            )
+        ]
+
+    return [
+        GovernorFinding(
+            check_id=check_id,
+            status="pass",
+            severity="ok",
+            message="no semantic stub/fake markers in active product Rust source",
+            observed=(
+                "stub_count=0 (lifecycle [bounded]; process anti-drift; not product readiness)."
+            ),
+            remediation="none",
+        )
+    ]
+
+
 def _extract_pre_commit_hook_ids_with_entries(root: Path) -> str:
     """Return pre-commit config text for script reference scanning."""
     config = root / ".pre-commit-config.yaml"
@@ -1434,6 +1508,7 @@ def run_governor(root: Path | None = None) -> GovernorReport:
         + check_live_adapter_readiness(resolved)
         + check_ci_quality_gate_drift(resolved)
         + check_verify_test_coverage_drift(resolved)
+        + check_semantic_stub_in_product_code(resolved)
     )
     error_count = sum(1 for item in findings if item.status == "fail" and item.severity == "error")
     warn_count = sum(1 for item in findings if item.status == "fail" and item.severity == "warn")

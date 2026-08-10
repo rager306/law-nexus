@@ -18,6 +18,7 @@ from law_nexus_harness.governor import (
     check_hostile_proof_chain,
     check_port_contract_coverage,
     check_roadmap_freshness,
+    check_semantic_stub_in_product_code,
     check_verify_test_coverage_drift,
     run_governor,
 )
@@ -678,3 +679,45 @@ def test_stale_open_milestone_behind_last_completed_is_debt(tmp_path: Path) -> N
     failed = {item.check_id: item for item in findings if item.status == "fail"}
     assert "gsd-no-open-registry-debt" in failed
     assert "gsd-phase-complete-consistent" in failed
+
+
+def test_live_governor_passes_semantic_stub_in_product_code() -> None:
+    report = run_governor(ROOT)
+    by_id = {item.check_id: item for item in report.findings}
+    assert "semantic-stub-in-product-code" in by_id
+    finding = by_id["semantic-stub-in-product-code"]
+    assert finding.status == "pass"
+    assert finding.severity == "ok"
+    assert "stub_count=0" in finding.observed
+    assert report.error_count == 0
+    assert report.status == "ok"
+
+
+def test_semantic_stub_in_product_code_detects_planted_stub(tmp_path: Path) -> None:
+    crates_src = tmp_path / "crates" / "ln-fake" / "src"
+    crates_src.mkdir(parents=True)
+    (crates_src / "lib.rs").write_text(
+        "// real module\nfn thing() -> f64 {\n    let score = 1.0; // stub ranking\n    score\n}\n"
+    )
+    findings = check_semantic_stub_in_product_code(tmp_path)
+    assert len(findings) == 1
+    finding = findings[0]
+    assert finding.check_id == "semantic-stub-in-product-code"
+    assert finding.status == "fail"
+    assert finding.severity == "warn"
+    assert "stub_count=" in finding.observed
+    assert "lib.rs" in finding.observed
+
+
+def test_semantic_stub_in_product_code_ignores_tests_and_testkit(tmp_path: Path) -> None:
+    # A stub marker under tests/ and ln-testkit must NOT be flagged.
+    test_file = tmp_path / "crates" / "ln-fake" / "tests" / "x.rs"
+    test_file.parent.mkdir(parents=True)
+    test_file.write_text("// stub in test, not product\n")
+    testkit_file = tmp_path / "crates" / "ln-testkit" / "src" / "lib.rs"
+    testkit_file.parent.mkdir(parents=True)
+    testkit_file.write_text("// stub in testkit, not product\n")
+    findings = check_semantic_stub_in_product_code(tmp_path)
+    assert len(findings) == 1
+    assert findings[0].status == "pass"
+    assert findings[0].severity == "ok"

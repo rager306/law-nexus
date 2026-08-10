@@ -86,8 +86,8 @@ impl crate::VectorStorePort for InMemoryVectorStore {
             return Err(StorageError::EmptyInput);
         }
         // Rank by real cosine similarity to the query vector, then take the
-        // top_k most similar. This replaces the prior truncate-by-key-order
-        // stub that ignored the query vector entirely (M161).
+        // top_k most similar. This replaces the prior truncate-by-key-order path
+        // that ignored the query vector entirely (M161).
         let mut scored: Vec<(f64, VectorRecord)> = self
             .records
             .values()
