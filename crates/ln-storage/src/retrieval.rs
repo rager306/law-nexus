@@ -186,7 +186,11 @@ where
                     }
                 }
             }
-            let score = 1.0; // In-memory stub: exact match score
+            // Real cosine similarity between the embedded query and the stored
+            // record vector (M161). The gate has both vectors, so the score is
+            // computed here rather than fabricated. Bounded to vector-returning
+            // adapters; real ANN adapters will need scored-query port evolution.
+            let score = crate::cosine_similarity(query.vector(), record.vector())?;
             let citation =
                 Citation::try_new(record.id(), &format!("vector-store:{}", record.id()), score)
                     .unwrap_or_else(|_| Citation {
@@ -201,6 +205,14 @@ where
                 evidence_labels,
             });
         }
+
+        // Defensive ranking: ensure results are sorted by score descending even
+        // if a future adapter returns records unordered. Stable for equal scores.
+        results.sort_by(|a, b| {
+            b.score()
+                .partial_cmp(&a.score())
+                .unwrap_or(std::cmp::Ordering::Equal)
+        });
 
         Ok(results)
     }

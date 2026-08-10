@@ -106,3 +106,62 @@ fn graph_store_journal_records_upserts() {
     let journal = store.journal();
     assert_eq!(journal.events().len(), 3);
 }
+
+// --- M161: real cosine-similarity ranking contracts ---
+
+/// Three documents at known cosine distances from a query vector.
+/// q=[1,0], close=[1,0.01] (~1.0), mid=[1,1] (~0.707), far=[0,1] (0.0).
+fn ranked_record(id: &str, vector: Vec<f32>) -> VectorRecord {
+    VectorRecord::try_new(id, vector, Vec::new()).unwrap()
+}
+
+#[test]
+fn vector_query_ranks_by_cosine_similarity_descending() {
+    let mut store = InMemoryVectorStore::new();
+    // Insert in an order unrelated to similarity to defeat any key-order shortcut.
+    store.store(&ranked_record("far", vec![0.0, 1.0])).unwrap();
+    store
+        .store(&ranked_record("close", vec![1.0, 0.01]))
+        .unwrap();
+    store.store(&ranked_record("mid", vec![1.0, 1.0])).unwrap();
+
+    let q = VectorQuery::try_new(vec![1.0, 0.0], 10).unwrap();
+    let results = store.query(&q).unwrap();
+    let ids: Vec<&str> = results.iter().map(VectorRecord::id).collect();
+    assert_eq!(
+        ids,
+        vec!["close", "mid", "far"],
+        "query must rank by descending cosine similarity"
+    );
+}
+
+#[test]
+fn vector_query_top_k_returns_most_similar_not_arbitrary() {
+    let mut store = InMemoryVectorStore::new();
+    store.store(&ranked_record("far", vec![0.0, 1.0])).unwrap();
+    store
+        .store(&ranked_record("close", vec![1.0, 0.0]))
+        .unwrap();
+    store.store(&ranked_record("mid", vec![1.0, 1.0])).unwrap();
+
+    let q = VectorQuery::try_new(vec![1.0, 0.0], 1).unwrap();
+    let results = store.query(&q).unwrap();
+    assert_eq!(results.len(), 1);
+    assert_eq!(
+        results[0].id(),
+        "close",
+        "top_k=1 must return the most similar record"
+    );
+}
+
+#[test]
+fn vector_query_rejects_dimension_mismatch_with_stored_record() {
+    let mut store = InMemoryVectorStore::new();
+    // A stored record with a different dimensionality than the query.
+    store
+        .store(&ranked_record("dim3", vec![1.0, 0.0, 0.0]))
+        .unwrap();
+    let q = VectorQuery::try_new(vec![1.0, 0.0], 10).unwrap();
+    // The adapter must fail closed rather than silently truncating.
+    assert!(store.query(&q).is_err());
+}

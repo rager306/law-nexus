@@ -1,5 +1,8 @@
 pub mod adapters;
 pub mod retrieval;
+pub mod similarity;
+
+pub use similarity::cosine_similarity;
 
 /// Storage error type for port operations.
 #[derive(Debug, Clone, PartialEq)]

@@ -2,6 +2,17 @@
 
 All notable changes to law-nexus are documented in this file.
 
+## M161 (complete)
+
+### S01: Retrieval ranking semantic honesty
+- Replaced the fake retrieval cascade with real cosine-similarity ranking
+- `InMemoryVectorStore::query` now ranks by cosine similarity to the query vector (was: truncate-by-BTreeMap-key, ignoring the query vector)
+- `RetrievalGate::retrieve` now assigns real per-result cosine scores and sorts results descending (was: constant `score = 1.0`)
+- New pure `cosine_similarity` helper in ln-storage (scale-invariant, zero-norm=0, negative-clamped to [0,1] relevance)
+- TDD: similarity contract (8), adapter ranking (3 incl. dimension-mismatch fail-closed), gate ranking (4 incl. hostile constant-score regression)
+- VectorStorePort contract unchanged; blast radius LOW (RetrievalGate has 0 upstream callers)
+- Lifecycle: `[bounded]` InMemory/vector-returning-adapter path; real ANN adapters (RuVector) need future scored-query port evolution
+
 ## M160 (complete)
 
 ### S01: Verify test CI coverage and governor test-coverage drift

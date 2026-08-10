@@ -85,8 +85,25 @@ impl crate::VectorStorePort for InMemoryVectorStore {
         if query.top_k() == 0 {
             return Err(StorageError::EmptyInput);
         }
-        let mut results: Vec<VectorRecord> = self.records.values().cloned().collect();
-        results.truncate(query.top_k());
+        // Rank by real cosine similarity to the query vector, then take the
+        // top_k most similar. This replaces the prior truncate-by-key-order
+        // stub that ignored the query vector entirely (M161).
+        let mut scored: Vec<(f64, VectorRecord)> = self
+            .records
+            .values()
+            .map(|record| {
+                let score = crate::cosine_similarity(query.vector(), record.vector())?;
+                Ok((score, record.clone()))
+            })
+            .collect::<Result<Vec<_>, _>>()?;
+        // Stable sort by score descending; ties keep insertion (key) order so
+        // ranking is deterministic.
+        scored.sort_by(|a, b| b.0.partial_cmp(&a.0).unwrap_or(std::cmp::Ordering::Equal));
+        let results: Vec<VectorRecord> = scored
+            .into_iter()
+            .take(query.top_k())
+            .map(|(_, record)| record)
+            .collect();
         self.journal
             .borrow_mut()
             .push(OperationEvent::VectorQueried {

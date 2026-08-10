@@ -98,8 +98,8 @@ ADR-0013 universal parser  [bounded] + ADR-0014 RuVector  [proposed]
    TEI USER-bge-m3 1024d embedding boundary remains proposed
    RVF vectors + redb GraphDB CRUD; no ruvector-graph Cypher execution claim
    ▼
-[LATEST COMPLETED] M160 — verify test CI coverage and governor test-coverage drift.
-M161 live adapter implementation path when infrastructure exists is next.
+[LATEST COMPLETED] M161 — retrieval ranking semantic honesty (real cosine-similarity ranking in InMemory adapter + RetrievalGate; constant score=1.0 cascade eliminated).
+M162 historical test triage / further stub elimination is next.
 ```
 
 ## Current layer (where work happens now)
@@ -143,7 +143,7 @@ completeness, Consultant/Garant parity, or production graph readiness.
 |---|---|---|
 | Universal parser | `[bounded]` independent Consultant/Garant block adapters, shared hierarchy/sentence/morphology and reference/temporal/deontic lexical candidates with one tracked real document per provider | needs representative golden corpus, quality convergence, legal resolution and citation mapping |
 | RuVector graph-vector infrastructure | `[proposed]`; synthetic capability checks only | needs TEI 1024d real corpus, RVF/redb materialization, crash consistency and citation contract |
-| Retrieval / citation-safe answers | `[bounded]` prior smoke only | needs real EvidenceSpan/SourceBlock fixtures, quality metrics and exact byte round-trip |
+| Retrieval / citation-safe answers | `[bounded]` real cosine-similarity ranking in the InMemory adapter + RetrievalGate (M161); retrieval scores are real per-result cosine values, not a constant. No live corpus/embedding yet. | needs real EvidenceSpan/SourceBlock fixtures, TEI 1024d corpus, quality metrics and exact byte round-trip |
 | KnowQL | `[bounded]` hand-coded AST demo only | needs real parser and typed application executor; `ruvector-graph` Cypher execution is not relied upon |
 | R035 | `[proposed]` active, not validated | standing graph-vector proof-boundary requirement |
 | R038 | `[bounded]` active | standing independent review gate |
