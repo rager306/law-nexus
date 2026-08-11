@@ -1564,6 +1564,12 @@ _HISTORICAL_VAULT_PATHS: tuple[str, ...] = (
     "Old_project",
     "prd/archive/acp-git-lex",
     "prd/archive/pre-rust-prd",
+    "prd/archive/milestone-proofs-era",
+    "prd/archive/research-era",
+    "prd/archive/project-state-era",
+    "archive/agent-skills",
+    "archive/scripts",
+    "archive/tests",
 )
 
 # Ontology ADRs that must be cited in REQUIREMENTS + PROJECT after M165 weave.

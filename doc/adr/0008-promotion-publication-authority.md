@@ -57,6 +57,12 @@ publication path to bypass promotion curation.
    `Conflict`, `Cancelled`, `Failed`, `Duplicate`, `LabelMutationRejected`,
    `DirectPromotionRejected` — each is a typed outcome with explicit semantics.
 
+## Consequences
+
+- Promotion and publication remain separate singular authorities (D116/D120).
+- Incomplete, dual-writer, and direct provisional promotion paths fail closed with typed outcomes.
+- Downstream ontology/product layers must not invent a second publication authority.
+
 ## Non-claims
 
 - No product storage, fencing or transaction infrastructure is selected.

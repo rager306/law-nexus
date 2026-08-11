@@ -874,7 +874,13 @@ def test_archive_path_policy_passes_when_ignored(tmp_path: Path) -> None:
         "python_archive/\n"
         "Old_project/\n"
         "prd/archive/acp-git-lex/\n"
-        "prd/archive/pre-rust-prd/\n",
+        "prd/archive/pre-rust-prd/\n"
+        "prd/archive/milestone-proofs-era/\n"
+        "prd/archive/research-era/\n"
+        "prd/archive/project-state-era/\n"
+        "archive/agent-skills/\n"
+        "archive/scripts/\n"
+        "archive/tests/\n",
         encoding="utf-8",
     )
     # Not a git repo => tracked list empty; ignore-only is enough for pass.

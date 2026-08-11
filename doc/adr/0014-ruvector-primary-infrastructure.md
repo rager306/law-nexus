@@ -202,3 +202,10 @@ single synthetic check can promote the lifecycle.
 - Early repository orchestration: `law-nexus-harness preflight`.
 - Product proof: future Rust integration tests and tracked real-corpus evidence.
 - Architecture registry reports remain derived and non-authoritative.
+
+## References
+
+- ADR-0004, ADR-0005, ADR-0007, ADR-0009, ADR-0010, ADR-0012, ADR-0013
+- D130–D133 in `.gsd/DECISIONS.md`
+- `prd/ARCHITECTURE.md` living truth oracle (RuVector `[proposed]`)
+- `scripts/verify-live-adapter-readiness.py` (process inventory only)

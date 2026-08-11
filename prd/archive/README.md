@@ -1,12 +1,15 @@
-# Historical document vault
+# Historical PRD/document vault
 
-These trees are **not** active product architecture or requirements truth.
+Not active product architecture or requirements truth.
 
 | Path | Contents | Lifecycle |
 |------|----------|-----------|
-| `acp-git-lex/` | ACP/git-lex era milestone docs (M036–M067 era) | historical / archive-only (R066) |
-| `pre-rust-prd/` | Early PRD/review/recommendation docs (Python/FalkorDB/PyO3 era) | historical prior art |
+| `acp-git-lex/` | ACP/git-lex era milestone docs | archive-only (R066) |
+| `pre-rust-prd/` | Early PRD/review/recommendation docs | historical prior art |
+| `milestone-proofs-era/` | M001–M003 FalkorDB/MiniMax proof artifacts | historical |
+| `research-era/` | FalkorDB/git-lex/MiniMax research notes | historical |
+| `project-state-era/` | ACP project-state projections | historical |
 
-**Active truth:** `prd/ARCHITECTURE.md`, `doc/adr/**`, current migration roadmaps under `prd/migration/`.
+**Active truth:** `prd/ARCHITECTURE.md`, `doc/adr/**`, current `prd/migration/**` (incl. decommission roadmaps).
 
-Do not promote claims from this vault without re-validation against the living oracle and D098 lifecycle tags.
+Do not promote claims from this vault without re-validation (D098).

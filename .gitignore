@@ -20,6 +20,11 @@ Old_project/
 prd/archive/acp-git-lex/
 prd/archive/pre-rust-prd/
 
+# Historical agent/scripts/tests noise vault (FalkorDB skills, ACP/git-lex/M002-M067)
+archive/agent-skills/
+archive/scripts/
+archive/tests/
+
 # Generated skill verification reports
 .agents/skills/falkordb/evals/*-report.json
 .agents/skills/falkordb/evals/*-report.md
@@ -84,3 +89,7 @@ lpt[1-9].*
 # ── GSD baseline (auto-generated) ──
 .gsd-backups/
 *.egg-info/
+
+prd/archive/milestone-proofs-era/
+prd/archive/research-era/
+prd/archive/project-state-era/
