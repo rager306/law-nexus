@@ -889,6 +889,9 @@ def test_archive_path_policy_passes_when_ignored(tmp_path: Path) -> None:
         "prd/archive/research-era/\n"
         "prd/archive/project-state-era/\n"
         "prd/archive/architecture-era/\n"
+        "prd/archive/parser-dumps-era/\n"
+        "prd/archive/retrieval-era/\n"
+        "prd/archive/migration-era/\n"
         "archive/agent-skills/\n"
         "archive/scripts/\n"
         "archive/tests/\n",

@@ -161,3 +161,21 @@ Force-add only thin README maps: `archive/README.md`, `prd/archive/README.md`.
 - Ontology ADRs remain `[proposed]` design until TDD resolvers + real-corpus proof.
 - Derived architecture JSONL/reports are not the truth oracle.
 - GSD DECISIONS D001–D031 FalkorDB skill history is not current product direction.
+
+## 7. prd/ residual cleanup (follow-on wave)
+
+Tracked `prd/` reduced from ~279 → ~109 paths. Archived (gitignored vaults):
+
+| Vault | Content |
+|-------|---------|
+| `prd/archive/research-era/` | Full remaining research tree (ontology fixtures + narrative) |
+| `prd/archive/parser-dumps-era/` | Large Consultant dumps, golden_cases, staging graphs |
+| `prd/archive/retrieval-era/` | Pre-Rust retrieval contracts/fixtures/proofs |
+| `prd/archive/migration-era/` | Superseded matrices/roadmaps (not active decommission policy) |
+| `archive/scripts|tests/` | Non-CI research/retrieval/s05–s10 scripts+tests |
+
+**Active `prd/` keep set:** ARCHITECTURE.md, architecture registry+CI surfaces,
+migration (roadmaps, rust-evidence, decommission policy, quality-gate), thin
+parser contracts/schemas/profiles/examples, project-state roadmap pair.
+
+GitNexus reindex after this wave required for accurate residual-noise queries.
