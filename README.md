@@ -79,8 +79,13 @@ See [`prd/ARCHITECTURE.md`](prd/ARCHITECTURE.md) for the living truth oracle
 | Path | Role |
 |------|------|
 | `prd/ARCHITECTURE.md` | Living truth oracle — **read first** |
+| `prd/PRODUCT.md` + `prd/REQUIREMENTS.md` | `[proposed]` D2 Product Contract + tracked requirements projection; not yet accepted |
 | `doc/adr/` | MADR ADRs 0004–0022 (0001/0002/0003/0006 retired, not present) |
 | `doc/adr-architecture-cross-matrix.md` | ADR × surface matrix + governor design |
+| `prd/architecture/documentation-semantic-control-plan.md` | `[proposed]` documentation correction/control plan (non-authoritative process design) |
+| `prd/migration/external-architecture-assessment-roadmap.md` | `[proposed]` independent architecture-assessment roadmap (not product validation) |
+| `assessment/00-charter.md` | `[proposed]` D0/EA-00 assessment charter and packet entrypoint (not an accepted assessment) |
+| `doc/litho-runbook.md` | Optional Litho/deepwiki-rs derived wiki; local `litho.toml` is gitignored (non-authoritative) |
 | `crates/ln-*` | Rust product runtime |
 | `src/law_nexus_harness/` | Python control-plane only (governor/preflight/CI) |
 | `prd/architecture/` | Derived registry + CI views (non-authoritative) |
@@ -98,6 +103,9 @@ See [`prd/ARCHITECTURE.md`](prd/ARCHITECTURE.md) for the living truth oracle
 ## Architecture (pointers, not duplicates)
 
 - **Living truth oracle:** [`prd/ARCHITECTURE.md`](prd/ARCHITECTURE.md)
+- **Product Contract + requirements projection (`[proposed]` D2 drafts):**
+  [`prd/PRODUCT.md`](prd/PRODUCT.md) + [`prd/REQUIREMENTS.md`](prd/REQUIREMENTS.md).
+  They are not yet `ready-for-assessment` and do not validate product/legal readiness.
 - **Rust workspace:** `crates/ln-*` — twenty exclusive capability-owner crates
   (ADR-0011): `ln-domain`, `ln-temporal`, `ln-identity`, `ln-relation`,
   `ln-citation`, `ln-decode` (universal parser), `ln-storage`, `ln-query`,
@@ -116,6 +124,15 @@ See [`prd/ARCHITECTURE.md`](prd/ARCHITECTURE.md) for the living truth oracle
   **ADR-0021** transitional/risk (L6) → **ADR-0022** industry profiles (L7).
   Design only until each layer ships TDD + fail-closed resolver.
 - **ADR/process matrix:** [`doc/adr-architecture-cross-matrix.md`](doc/adr-architecture-cross-matrix.md)
+- **Documentation correction/control plan (`[proposed]`):**
+  [`prd/architecture/documentation-semantic-control-plan.md`](prd/architecture/documentation-semantic-control-plan.md)
+- **Independent assessment roadmap (`[proposed]`, documentation only):**
+  [`prd/migration/external-architecture-assessment-roadmap.md`](prd/migration/external-architecture-assessment-roadmap.md)
+- **D0/EA-00 assessment charter (`[proposed]`, not accepted/frozen):**
+  [`assessment/00-charter.md`](assessment/00-charter.md)
+- **Derived C4/repo-wiki (optional):** [`doc/litho-runbook.md`](doc/litho-runbook.md).
+  Local `litho.toml` and output under `litho.docs/` are gitignored and
+  **derived only**; never overwrite the living oracle or ADRs from them (D098).
 
 ## Quick start
 
@@ -161,12 +178,16 @@ cargo run -q -p ln-product-cli -- inspect <path> # structural + retrieval inspec
 ## Where to read next
 
 1. **[`prd/ARCHITECTURE.md`](prd/ARCHITECTURE.md)** — living truth oracle. Read first.
-2. **[`doc/adr/README.md`](doc/adr/README.md)** — ADR index: direction + temporal ontology chain.
-3. **[`doc/adr-architecture-cross-matrix.md`](doc/adr-architecture-cross-matrix.md)** — ADR × surface matrix.
-4. **`.gsd/REQUIREMENTS.md`** — capability/quality-attribute requirements.
-5. **`.gsd/DECISIONS.md`** — decision register (governance events; early D-rows may be historical).
-6. **`.gsd/ROADMAP.md`** — milestone trajectory.
-7. **[`prd/archive/README.md`](prd/archive/README.md)** — PRD vault map (not product truth). Root `archive/` is fully gitignored archaeology.
+2. **[`prd/PRODUCT.md`](prd/PRODUCT.md)** + **[`prd/REQUIREMENTS.md`](prd/REQUIREMENTS.md)** — `[proposed]` product clauses and tracked requirements projection; not yet accepted.
+3. **[`doc/adr/README.md`](doc/adr/README.md)** — ADR index: direction + temporal ontology chain.
+4. **[`doc/adr-architecture-cross-matrix.md`](doc/adr-architecture-cross-matrix.md)** — ADR × surface matrix.
+5. **[`prd/architecture/documentation-semantic-control-plan.md`](prd/architecture/documentation-semantic-control-plan.md)** — `[proposed]` documentation correction/control sequence.
+6. **[`assessment/00-charter.md`](assessment/00-charter.md)** — `[proposed]` external-assessment packet entrypoint; not an accepted assessment.
+7. **[`prd/migration/`](prd/migration/)** — tracked active planning surfaces; sequence is not readiness proof.
+8. **[`doc/litho-runbook.md`](doc/litho-runbook.md)** — optional Litho/deepwiki-rs regen (derived wiki only).
+9. **[`prd/archive/README.md`](prd/archive/README.md)** — PRD vault map (not product truth). Root `archive/` is fully gitignored archaeology.
+
+Local `.gsd/**` requirements, decisions, roadmap and execution records support repository workflow but are not published cold-reader authority or sole external proof. A tracked Product Contract and requirements projection remain explicit D2 gaps.
 
 ## Non-claims (what this project does **not** prove today)
 
@@ -191,8 +212,9 @@ These are explicit deferrals, tracked in the roadmap, not gaps being hidden.
   a bounded/proposed claim up to `[validated]`.
 - **D046** — adoption ladder: project-local evidence kernel is canon; external
   standards (LRMoo/CIDOC-CRM/AKML/ELI/LKIF) are compatibility references.
-- Decisions live in `.gsd/DECISIONS.md` (governance events) and
-  [`doc/adr/`](doc/adr/) (architectural substance) — complementary, not duplicate.
+- Architectural decision substance is published in [`doc/adr/`](doc/adr/).
+  Local `.gsd/DECISIONS.md` records workflow/governance events but is not a
+  cold-reader authority surface and cannot replace an ADR.
 - Historical ACP/git-lex is **archive-only**; historical FalkorDB is **not active**;
   the active graph/vector target is RuVector (ADR-0014 `[proposed]`).
 - Retired ADR IDs **0001/0002/0003/0006** have no files under `doc/adr/`; cite only

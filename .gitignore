@@ -46,6 +46,11 @@ law-source/consultant/runtime/
 *.swp
 *.swo
 
+# Litho / deepwiki-rs local config, derived wiki + cache (non-authoritative; see doc/litho-runbook.md)
+litho.toml
+.litho/
+litho.docs/
+
 # Dependencies and build outputs
 node_modules/
 dist/

@@ -5,13 +5,15 @@
 > D098 enforcement #2). Lifecycle tags are mandatory (D098 enforcement #1):
 > `[bounded]` / `[smoke]` / `[validated]` / `[proposed]` / `[deferred]`.
 >
-> Detailed architecture: `prd/02_architecture.md`. Decisions: `.gsd/DECISIONS.md`.
-> Requirements: `.gsd/REQUIREMENTS.md`.
+> Detailed decisions: [`doc/adr/**`](../doc/adr/README.md).
+> `.gsd/**` is local workflow state, not a cold-reader authority surface.
+> [`PRODUCT.md`](PRODUCT.md) and [`REQUIREMENTS.md`](REQUIREMENTS.md) are `[proposed]`
+> D2 drafts, not yet accepted and not product/legal readiness evidence.
 
 ## What law-nexus IS
 
 A **citation-safe, evidence-verifiable legal graph for Russian normative acts**.
-Goal (PRD `prd/01_general_idea.md`): turn a normative act into a graph-vector
+Current product direction `[bounded]`: turn a normative act into a graph-vector
 representation for exact article/semantic search, temporal filtering by
 edition/effective-date, and provable answers with legal citations. **LLM is not
 legal authority** — all checkable operations remain deterministic and
@@ -209,7 +211,8 @@ pre-commit hook has no legacy chain; real execution leaves `.lex` byte-identical
 
 ## Maintenance
 
+- Documentation correction and publication gaps are tracked in [`documentation-semantic-control-plan.md`](architecture/documentation-semantic-control-plan.md) and [`assessment/08-known-defects.md`](../assessment/08-known-defects.md); both are process evidence, not architecture authority.
 - **Mandatory update** at every milestone closeout (D098 enforcement #2).
-- One page. If it grows, split detail to `prd/02_architecture.md` / sub-docs.
+- One page. If it grows, split detail into tracked focused PRD sub-docs; do not restore retired pre-Rust filenames as active truth.
 - Truth over optimism. If a claim has no cited evidence + proof gate, it is
   `[bounded]` or `[smoke]`, never `[validated]`.

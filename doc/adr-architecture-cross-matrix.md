@@ -28,15 +28,17 @@ are narrative only.
 
 ## 2. Cross-surface citation matrix (active)
 
-| ADR | ARCHITECTURE | README | adr/README | REQUIREMENTS | PROJECT | DECISIONS (D-rows) |
-|-----|--------------|--------|------------|--------------|---------|---------------------|
-| 0004–0005 | yes + LC | yes | yes | partial | partial | historical D-rows |
-| 0007 | yes + LC | yes | yes | yes | weak | yes |
-| 0008 | yes + LC | yes | yes | weak | weak | sparse |
-| 0009–0011 | yes + LC | yes | yes | partial | partial | sparse |
-| 0012 | yes + LC | yes | yes | weak | weak | sparse |
-| 0013–0015 | yes + LC | yes | yes | partial | partial | yes |
-| 0016–0022 | yes + LC | yes | yes | yes (R074) | yes | sparse |
+`PRODUCT` and tracked `REQUIREMENTS` are `[proposed]` D2 drafts. Their `yes` entries mean citation/trace presence, not EA-02 acceptance or product proof. `ASSESSMENT` is A6 process evidence only. Local `.gsd/PROJECT.md` and decision rows are workflow context, never canonical substitutes.
+
+| ADR | ARCHITECTURE | README | adr/README | PRODUCT draft | tracked REQUIREMENTS draft | ASSESSMENT/process | Local GSD context |
+|-----|--------------|--------|------------|---------------|----------------------------|--------------------|-------------------|
+| 0004–0005 | yes + LC | yes | yes | yes | yes | authority boundary | historical/partial |
+| 0007 | yes + LC | yes | yes | yes | yes | authority boundary | workflow context |
+| 0008 | yes + LC | yes | yes | yes | yes | role separation | sparse |
+| 0009–0011 | yes + LC | yes | yes | yes | yes | temporal/authority boundary | sparse |
+| 0012 | yes + LC | yes | yes | yes | yes | evidence boundary | sparse |
+| 0013–0015 | yes + LC | yes | yes | yes | yes | proof/non-claim boundary | workflow context |
+| 0016–0022 | yes + LC | yes | yes | yes, `[proposed]` | yes, `[proposed]`/`[deferred]` | O1–O7 design ceiling | historical R074/local weave |
 
 Governor enforcement:
 
@@ -44,7 +46,7 @@ Governor enforcement:
 |-------|----------|--------|
 | `adr-truth-oracle-sync` | error on mismatch | ARCHITECTURE LC pairing for all present ADRs |
 | `adr-index-completeness` | warn | every `doc/adr/0*.md` listed in `doc/adr/README.md` |
-| `adr-doc-matrix-coverage` | warn | ontology 0016–0022 in REQUIREMENTS + PROJECT |
+| `adr-doc-matrix-coverage` | warn | current harness checks ontology 0016–0022 in local REQUIREMENTS + PROJECT; D2 adds tracked Product/requirements traces without treating local bodies as publication authority |
 | `adr-structure-hygiene` | warn | Status LC + MADR sections |
 | `adr-cross-surface-matrix` | warn | every ADR cited in ARCHITECTURE + README + adr/README |
 | `archive-path-policy` | warn | historical vaults gitignored + untracked |
@@ -108,7 +110,7 @@ Design principles:
 3. **Oracle pairing** — ARCHITECTURE may not promote an ADR’s lifecycle.
 4. **Cross-surface matrix** — every present ADR ID must be findable on the small
    set of living entrypoints (ARCHITECTURE, root README, adr README).
-5. **Ontology weave** — L1–L7 additionally required on REQUIREMENTS/PROJECT.
+5. **Ontology weave** — current governor requires L1–L7 in local REQUIREMENTS/PROJECT as workflow anti-drift; tracked D2 publication uses O1–O7 aliases in `prd/PRODUCT.md` and `prd/REQUIREMENTS.md`. Local presence is not external authority or proof.
 6. **Vault policy** — historical trees may exist on disk but must be gitignored
    and untracked so GitNexus/search do not treat them as active truth.
 7. **Advisory vs blocking** — structure/matrix/index/doc-matrix are warn until
