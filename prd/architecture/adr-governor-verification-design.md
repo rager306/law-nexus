@@ -131,8 +131,9 @@ Remaining before MVP B closure:
 
 - expand exact repository-relative `path:line` evidence beyond ADR lifecycle mismatch; generic authority-input paths remain for other checks;
 - migrate checks that internally swallow read/git errors to shared `tool-error` classification (uncaught runner failures already use exit 2 without exception text);
-- redact or omit source snippets in the separate ADR conformance script as well as governor findings;
 - add broader missing-file, unreadable-file and subprocess-failure contract tests.
+
+Closed in the current follow-up: `scripts/verify-adr-conformance.py` findings now retain only repository-relative `path:line`, kind and bounded message; raw claim snippets are neither stored nor printed.
 
 ### Stage C — matrix and graph checks (partially implemented)
 
@@ -170,6 +171,7 @@ An external/LLM review may submit cited findings, but the harness must force the
 11. A single ADR citation carrying both its real lifecycle and a stronger lifecycle → blocking failure.
 12. A historical-only token with an unrelated qualifier on an adjacent line → advisory finding, not a laundered pass.
 13. Semantic stub evidence exposes `path:line` but not the matched source text.
+14. ADR conformance findings retain `path:line` while secret-like claim text is absent from the finding object and formatted stderr.
 
 ## 8. Non-claims
 

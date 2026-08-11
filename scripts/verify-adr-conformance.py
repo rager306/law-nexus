@@ -139,16 +139,10 @@ class Finding:
     file: str
     line: int
     kind: str
-    snippet: str
     message: str
 
     def format(self) -> str:
-        snippet = self.snippet.strip().replace("\n", " ")
-        if len(snippet) > 120:
-            snippet = snippet[:117] + "..."
-        return (
-            f"{self.file}:{self.line} kind={self.kind} message={self.message} snippet={snippet!r}"
-        )
+        return f"{self.file}:{self.line} kind={self.kind} message={self.message}"
 
 
 def display_path(path: Path) -> str:
@@ -281,7 +275,6 @@ def find_claim_findings(name: str, text: str) -> list[Finding]:
                     file=name,
                     line=index + 1,
                     kind="untagged-claim",
-                    snippet=raw,
                     message=UNTIL_TAGGED_MESSAGE,
                 )
             )
@@ -294,7 +287,6 @@ def find_claim_findings(name: str, text: str) -> list[Finding]:
                     file=name,
                     line=index + 1,
                     kind="missing-adr-ref",
-                    snippet=raw,
                     message=MISSING_ADR_REF_MESSAGE,
                 )
             )

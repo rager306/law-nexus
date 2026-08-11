@@ -62,7 +62,8 @@ def test_untagged_architectural_claim_is_flagged() -> None:
     assert finding.file == "prd/ARCHITECTURE.md"
     assert finding.line == 1
     assert "lifecycle tag" in finding.message
-    assert "uses FalkorDB" in finding.snippet
+    assert not hasattr(finding, "snippet")
+    assert "uses FalkorDB" not in finding.format()
 
 
 def test_missing_adr_ref_in_non_adr_file_is_flagged() -> None:
@@ -75,6 +76,21 @@ def test_missing_adr_ref_in_non_adr_file_is_flagged() -> None:
     assert findings[0].kind == "missing-adr-ref"
     assert findings[0].line == 1
     assert "must reference an ADR" in findings[0].message
+
+
+def test_finding_format_redacts_secret_like_source_text() -> None:
+    verifier = load_verifier_module()
+    secret_like = "TOKEN=private-value law-nexus uses FalkorDB."
+
+    findings = verifier.find_claim_findings("prd/ARCHITECTURE.md", secret_like + "\n")
+
+    assert findings
+    for finding in findings:
+        rendered = finding.format()
+        assert rendered.startswith("prd/ARCHITECTURE.md:1 kind=")
+        assert "private-value" not in rendered
+        assert "TOKEN=" not in rendered
+        assert "snippet=" not in rendered
 
 
 def test_plain_prose_is_not_flagged_as_a_claim() -> None:
@@ -263,7 +279,8 @@ def test_imperative_decision_claim_in_adr_context_is_still_flagged() -> None:
     # imperative in ## Context (or any non-Decision section) is still flagged.
     untagged = [f for f in findings if f.kind == "untagged-claim"]
     assert len(untagged) == 1
-    assert "onion package structure" in untagged[0].snippet
+    assert untagged[0].line == 10
+    assert "onion package structure" not in untagged[0].format()
     assert all(f.kind != "missing-adr-ref" for f in findings)
 
 
@@ -278,7 +295,8 @@ def test_imperative_decision_claim_in_non_adr_file_is_still_flagged() -> None:
     # (and a missing-adr-ref claim, since it is a non-ADR claim file).
     untagged = [f for f in findings if f.kind == "untagged-claim"]
     assert len(untagged) == 1
-    assert "onion structure" in untagged[0].snippet
+    assert untagged[0].line == 3
+    assert "onion structure" not in untagged[0].format()
 
 
 def test_claim_verb_in_adr_decision_is_still_flagged() -> None:
@@ -300,7 +318,8 @@ def test_claim_verb_in_adr_decision_is_still_flagged() -> None:
     # ("We adopt Pydantic") inside ## Decision is still an untagged claim.
     untagged = [f for f in findings if f.kind == "untagged-claim"]
     assert len(untagged) == 1
-    assert "adopt Pydantic" in untagged[0].snippet
+    assert untagged[0].line == 10
+    assert "adopt Pydantic" not in untagged[0].format()
 
 
 def test_imperative_claim_tagged_is_clean() -> None:
