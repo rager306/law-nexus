@@ -1571,9 +1571,9 @@ _HISTORICAL_VAULT_PATHS: tuple[str, ...] = (
     "prd/archive/parser-dumps-era",
     "prd/archive/retrieval-era",
     "prd/archive/migration-era",
-    "archive/agent-skills",
-    "archive/scripts",
-    "archive/tests",
+    "archive",
+    "probes",
+    ".commandcode",
 )
 
 # Ontology ADRs that must be cited in REQUIREMENTS + PROJECT after M165 weave.

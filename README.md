@@ -91,9 +91,9 @@ See [`prd/ARCHITECTURE.md`](prd/ARCHITECTURE.md) for the living truth oracle
 
 **Do not treat as active truth** (on disk for archaeology; gitignored vaults):
 
-- `archive/{agent-skills,scripts,tests}/` — historical skills/scripts/tests only
+- `archive/` — historical skills/scripts/tests (gitignored vault)
 - `prd/archive/{acp-git-lex,pre-rust-prd,research-era,parser-dumps-era,retrieval-era,...}/` — historical ACP/git-lex and era PRD vaults
-- `python_archive/`, `.lex/`, `Old_project/` — historical prior art only
+- `python_archive/`, `.lex/`, `Old_project/`, `.commandcode/` — historical/local prior art only
 
 ## Architecture (pointers, not duplicates)
 
@@ -166,7 +166,7 @@ cargo run -q -p ln-product-cli -- inspect <path> # structural + retrieval inspec
 4. **`.gsd/REQUIREMENTS.md`** — capability/quality-attribute requirements.
 5. **`.gsd/DECISIONS.md`** — decision register (governance events; early D-rows may be historical).
 6. **`.gsd/ROADMAP.md`** — milestone trajectory.
-7. **[`prd/archive/README.md`](prd/archive/README.md)** / **[`archive/README.md`](archive/README.md)** — vault maps (not product truth).
+7. **[`prd/archive/README.md`](prd/archive/README.md)** — PRD vault map (not product truth). Root `archive/` is fully gitignored archaeology.
 
 ## Non-claims (what this project does **not** prove today)
 

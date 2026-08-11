@@ -3,6 +3,7 @@
 .gsd/
 .claude/
 .artifacts/
+.commandcode/
 CLAUDE.md
 AGENTS.md
 
@@ -20,10 +21,11 @@ Old_project/
 prd/archive/acp-git-lex/
 prd/archive/pre-rust-prd/
 
-# Historical agent/scripts/tests noise vault (FalkorDB skills, ACP/git-lex/M002-M067)
-archive/agent-skills/
-archive/scripts/
-archive/tests/
+# Historical noise vault (skills/scripts/tests). Entire tree ignored.
+archive/
+
+# Removed isolated storage probe packages (do not re-add)
+probes/
 
 # Generated skill verification reports
 .agents/skills/falkordb/evals/*-report.json
