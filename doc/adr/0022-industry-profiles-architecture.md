@@ -67,6 +67,12 @@ they must not leak into the neutral ontology kernel.
    `[bounded]` while a profile is still `[proposed]`; each profile graduates
    on its own evidence.
 
+6. **EA-04 clarification — profiles supply applicability inputs, not the
+   protocol.** Under ADR-0023, profiles provide versioned `CaseFacts` schemas,
+   predicate declarations, classifiers and industry lists. The neutral core
+   owns final decision, abstention and trace. Profile-specific industry
+   priority remains an input and never elevates `NormativeRank`.
+
 ## Consequences
 
 - Adds a Profile contract + four initial profile adapters as the top ontology

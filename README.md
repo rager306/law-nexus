@@ -61,6 +61,7 @@ Consultant/Garant parser, a temporal legal ontology, and citation-safe retrieval
   ADR-0020 [proposed] L5 practice overlay
   ADR-0021 [proposed] L6 transitional/risk
   ADR-0022 [proposed] L7 industry profiles
+  ADR-0023 [proposed] applicability ownership boundary; runtime [deferred]
 
 [DOWNSTREAM — BLOCKED until parser data + RuVector/TEI ready]
   graph materialization → citation-safe retrieval → R035/R038 validation
@@ -81,7 +82,7 @@ See [`prd/ARCHITECTURE.md`](prd/ARCHITECTURE.md) for the living truth oracle
 | `prd/ARCHITECTURE.md` | Living truth oracle — **read first** |
 | `prd/PRODUCT.md` + `prd/REQUIREMENTS.md` | `[proposed]` Product Contract + projection; EA-02 document state `ready-for-assessment`, not EA-10 accepted |
 | `prd/temporal-legal-model.md` | `[proposed]` D3/EA-03 crosswalk; human disposition `ACCEPT-AS-PROPOSED`, O1–O7 design only, no runtime |
-| `doc/adr/` | MADR ADRs 0004–0022 (0001/0002/0003/0006 retired, not present) |
+| `doc/adr/` | MADR ADRs 0004–0023 (0001/0002/0003/0006 retired, not present) |
 | `doc/adr-architecture-cross-matrix.md` | ADR × surface matrix + governor design |
 | `prd/architecture/documentation-semantic-control-plan.md` | `[proposed]` documentation correction/control plan (non-authoritative process design) |
 | `prd/migration/external-architecture-assessment-roadmap.md` | `[proposed]` independent architecture-assessment roadmap (not product validation) |
@@ -117,16 +118,19 @@ See [`prd/ARCHITECTURE.md`](prd/ARCHITECTURE.md) for the living truth oracle
   orchestration. No product/domain logic, no forbidden PyO3/FFI.
 - **ADRs:** [`doc/adr/`](doc/adr/) — MADR-format with mandatory D098 lifecycle
   tags. Direction (ADR-0004..0015) + temporal legal ontology chain
-  (ADR-0016..0022). Index: [`doc/adr/README.md`](doc/adr/README.md).
+  (ADR-0016..0022) + ADR-0023 applicability ownership boundary. Index:
+  [`doc/adr/README.md`](doc/adr/README.md).
 - **Temporal legal crosswalk (`[proposed]`, paper-only, `ACCEPT-AS-PROPOSED`):**
   [`prd/temporal-legal-model.md`](prd/temporal-legal-model.md) — glossary, fail-closed
-  invariants, TL-G01–12 gates, golden cases and explicit EA-04 applicability gap.
+  invariants, TL-G01–12 gates, golden cases and ADR-0023 ownership boundary; applicability runtime remains `[deferred]`.
 - **Temporal legal ontology (design spine, all `[proposed]`):** seven progressive
   layers — **ADR-0016** FRBR/LRMoo identity (L1) → **ADR-0017** CTV (L2, paper
   arXiv:2506.07853 v5 adapted) → **ADR-0018** NormativeState (L3) →
   **ADR-0019** hierarchy/conflict (L4) → **ADR-0020** practice overlay (L5) →
   **ADR-0021** transitional/risk (L6) → **ADR-0022** industry profiles (L7).
-  Design only until each layer ships TDD + fail-closed resolver.
+  Design only until each layer ships TDD + fail-closed resolver. **ADR-0023**
+  adds the `[proposed]` core applicability-ownership boundary; runtime remains
+  `[deferred]`.
 - **ADR/process matrix:** [`doc/adr-architecture-cross-matrix.md`](doc/adr-architecture-cross-matrix.md)
 - **Documentation correction/control plan (`[proposed]`):**
   [`prd/architecture/documentation-semantic-control-plan.md`](prd/architecture/documentation-semantic-control-plan.md)

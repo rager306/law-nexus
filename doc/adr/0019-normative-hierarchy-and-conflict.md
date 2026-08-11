@@ -73,6 +73,13 @@ D046). law-nexus needs its own explainable resolver, not a silent priority pick.
    hierarchy lives in the evidence kernel; RusLegalCore mappings are a
    deterministic, reversible projection for interoperability.
 
+### EA-04 clarification — profile priority is not rank elevation
+
+`industry priority` is a versioned profile-supplied input to the explainable
+ConflictResolver. It never changes `NormativeRank`, silently reorders the core
+maxims, or decides applicability outside ADR-0023. An underdetermined result
+remains `Conflict` for human review.
+
 ## Consequences
 
 - Adds NormativeRank + ConflictResolver above ADR-0018 NormativeState.

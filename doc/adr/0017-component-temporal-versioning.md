@@ -5,7 +5,8 @@ status: Accepted
 lifecycle: "[proposed]"
 date: 2026-08-11
 superseds: none
-related: [ADR-0009, ADR-0010, ADR-0016, ADR-0018]
+superseded_by: [ADR-0023] # §5 applicability-ownership sentence only; CTV substance remains current
+related: [ADR-0009, ADR-0010, ADR-0016, ADR-0018, ADR-0023]
 ---
 
 # ADR-0017: Component temporal versioning (CTV)
@@ -114,10 +115,16 @@ Legal time is bitemporal. Following Palmirani & Brighi and ELI:
   retroactive (ex tunc) effect, and lex mitior.
 
 law-nexus models valid-time decomposition through the five clocks (ADR-0009):
-`legal_act_effect` = enters-legal-order; applicability is a profile concern
-(ADR-0022, e.g. tax-anteriority). Transaction time is recorded independently.
-This is **not a full bitemporal database**; observation/correction history is a
-projection (ADR-0009 §3), but the valid/transaction distinction is explicit.
+`legal_act_effect` = enters-legal-order. The original sentence assigning applicability
+as a profile concern is narrowly superseded by ADR-0023: profiles supply versioned
+facts/predicate declarations, while the neutral core owns decision/abstention/trace.
+Transaction time is recorded independently. Under the ADR-0009 role model,
+transaction/recording evidence must identify `source_publication`,
+`system_observation`, or both as independent anchors; it is not one composite
+clock and cannot substitute for `legal_act_effect`. No applicability runtime is
+implied. This is **not a full bitemporal database**; observation/correction
+history is a projection (ADR-0009 decision 2), but the valid/transaction
+distinction is explicit.
 
 ### 6. URI form — LexML-compatible (project-local)
 
@@ -167,7 +174,7 @@ document snapshot; they do not reify the event as a queryable causal entity).
   applicability; vacatio legis; ex tunc; lex mitior).
 - D046 adoption-ladder (L6 compatibility for LRMoo/AKML/ELI)
 - R068 (five clocks), R070 (edition provenance)
-- ADR-0009 (five clocks; `legal_act_effect` = enters-legal-order; applicability
-  is profile-scoped)
+- ADR-0009 (five clocks; `legal_act_effect` = enters-legal-order)
+- ADR-0023 (narrow supersession of §5 applicability ownership; core protocol + profile inputs)
 - ADR-0010 (evidence kernel; C13 relation registry is revisioned here)
 - ADR-0016 (structural identity; CTV lives under Component Concept)

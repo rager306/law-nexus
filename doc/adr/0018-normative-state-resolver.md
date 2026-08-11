@@ -63,6 +63,13 @@ resolves clocks but not the *normative consequence* of those clocks.
    field itself, except where a constitutional court ruling annuls a norm ex
    tunc — modeled as a typed status event with its own provenance.
 
+### EA-04 clarification — canonical status name
+
+`NormativeState` is the canonical public name of this dimension and its future
+Rust domain type. Earlier `NormativeStatus` wording in this ADR is a deprecated
+alias for the same dimension, not a second concept. The enum values and
+fail-closed rules are unchanged.
+
 ## Consequences
 
 - Adds a NormativeState domain model + resolver above ADR-0017 CTV.

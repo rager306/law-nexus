@@ -33,6 +33,10 @@ status (ADR-0018).
 
 ## Decision
 
+**EA-04 clarification:** practice has first-class temporality over the closed
+ADR-0009 clock roles; “own clock” in the Context means its own temporal
+behavior/projection, not a sixth core clock.
+
 1. **PracticeEvidence as a separate, temporally-bounded port.** Sources:
 
    | Source | What it carries | Clock (ADR-0009) |

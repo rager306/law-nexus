@@ -56,6 +56,7 @@ falkordb=historical-only
 | ADR-0014 | RuVector primary infrastructure | `[proposed]` |
 | ADR-0015 | Hexagonal verification architecture | `[bounded]` |
 | ADR-0016..0022 | Temporal legal ontology L1→L7 | `[proposed]` each |
+| ADR-0023 | Applicability protocol ownership (core decision/trace + profile inputs; no runtime) | `[proposed]` |
 
 Index: `doc/adr/README.md`. Do not treat ACP/git-lex/FalkorDB-era docs as
 active ADR substance.
@@ -82,11 +83,13 @@ L3 ADR-0018 [proposed]  NormativeState(t)                text ≠ status (InForc
    ▼
 L4 ADR-0019 [proposed]  hierarchy + conflict             lex superior/specialis/posterior, explainable
    ▼
-L5 ADR-0020 [proposed]  practice overlay                 Суды/ФАС/Контроль (own clock, non-authoritative)
+L5 ADR-0020 [proposed]  practice overlay                 Суды/ФАС/Контроль (first-class temporality over five clocks; non-authoritative)
    ▼
 L6 ADR-0021 [proposed]  transitional + risk              derived, non-authoritative; limitation periods
    ▼
 L7 ADR-0022 [proposed]  industry profiles                бюджет/стройка/медицина/общий = adapters
+   ▼
+   ADR-0023 [proposed]  applicability ownership boundary neutral core protocol + versioned profile inputs; runtime absent
 ```
 
 Proposed semantic reconciliation, glossary and graduation gates are tracked in [`temporal-legal-model.md`](temporal-legal-model.md). That crosswalk is process/design evidence only; it does not amend these ADRs or promote O1–O7.

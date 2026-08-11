@@ -3,10 +3,10 @@
 **Status:** `[proposed]` D3 / EA-03 semantic reconciliation; human disposition `ACCEPT-AS-PROPOSED`
 **EA-03 tested revision:** `e1ac83a714e20a6b551d5305fc4fca9f29d91aa7` (`assessment/03-temporal-reconciliation.md`)
 **Method:** `paper-rehearsal`; documentation/design only
-**Authority:** `prd/ARCHITECTURE.md`, ADR-0009 and ADR-0016–0022
+**Authority:** `prd/ARCHITECTURE.md`, ADR-0009, ADR-0016–0022 and ADR-0023 (applicability ownership boundary only)
 **Product boundary:** `prd/PRODUCT.md` + `prd/REQUIREMENTS.md`
 **Non-authority:** `.gsd/**`, roadmaps, assessment artifacts, derived registry, LLM output, Litho, archive and external frameworks
-**Lifecycle ceiling:** five-clock role safety remains `[bounded]`; all ontology layers O1–O7 remain `[proposed]`; applicability protocol remains `[deferred]`
+**Lifecycle ceiling:** five-clock role safety remains `[bounded]`; all ontology layers O1–O7 remain `[proposed]`; ADR-0023 ownership is `[proposed]`, while applicability runtime/product capability remains `[deferred]`
 
 ## 1. Purpose and non-claims
 
@@ -19,7 +19,7 @@ It does not:
 - validate legal dates, legal correctness, case applicability or corpus completeness;
 - treat golden cases as authoritative legal conclusions;
 - adopt LRMoo, AKML, ELI, LKIF or any external framework as project canon;
-- close the residual `NormRule → ApplicabilityPredicate → CaseFacts → ApplicabilityDecision → ExplainableTrace` decision.
+- implement or validate the ADR-0023 `NormRule → ApplicabilityPredicate → CaseFacts → ApplicabilityDecision → ExplainableTrace` protocol.
 
 ## 2. Namespace and composition
 
@@ -61,7 +61,7 @@ Each layer consumes lower-layer evidence. No higher layer may rewrite source evi
 | CLV | language realization of a CTV | ADR-0017 | not a separate legal status |
 | NormativeState | time-indexed normative status (`InForce`, `Suspended`, `Repealed`, `Superseded`, `Transitional`, `Unknown`) | ADR-0018 | text presence does not imply `InForce` |
 | Force | informal product term for NormativeState/status at a governing time | ADR-0018 | force is not applicability or system knowledge |
-| Applicability | whether a norm/version governs supplied case facts, producing a typed decision and explainable trace | residual decision; conceptual parts in ADR-0017/0021/0022 | executable protocol absent; default is abstention |
+| Applicability | whether a norm/version governs supplied case facts, producing a typed decision and explainable trace | ADR-0023 ownership `[proposed]`; ADR-0017/0021/0022 prerequisites; runtime `[deferred]` | executable protocol absent; default is abstention |
 | Knowledge | what the system can support from observed evidence and practice coverage | ADR-0009 + ADR-0020 crosswalk | knowledge of a claim is not the claim's legal state |
 | Correction | a new immutable observation/evidence event and rebuilt projection | ADR-0009 + ADR-0017 crosswalk | no in-place rewrite or “latest scrape wins” |
 | Status transition | evidence-gated change of NormativeState anchored to `legal_act_effect` | ADR-0018 | absence of evidence is not a transition |
@@ -70,7 +70,7 @@ Each layer consumes lower-layer evidence. No higher layer may rewrite source evi
 | Risk | provenance-bearing advisory assessment with explicit unknowns | ADR-0021 | not actuarial probability or legal conclusion |
 | Profile | versioned adapter supplying industry priority, facts, special norms, practice weighting and risk factors | ADR-0022 | cannot mutate kernel evidence, ranks or clocks |
 
-`NormativeState` and `NormativeStatus` in ADR-0018 are treated as names for the same status dimension. A later amendment should normalize the public term before implementation.
+ADR-0018 EA-04 clarification makes `NormativeState` the canonical public term and treats `NormativeStatus` as a deprecated alias for the same dimension.
 
 ## 4. Five-clock contract
 
@@ -122,14 +122,13 @@ A CTV may remain retrievable for historical citation while status is `Suspended`
 
 ## 7. Applicability ownership boundary
 
-The governing documents currently distribute partial concerns:
+ADR-0023 resolves TQ-01 at `[proposed]` design level:
 
-- ADR-0017 separates enters-legal-order from applicability and calls applicability profile-sensitive;
-- ADR-0021 owns transitional version choice, not general case applicability;
-- ADR-0022 owns profile facts, special predicates and industry weighting, not the decision protocol;
-- Product clause PC-009 records the absent typed protocol.
-
-Proposed reconciliation for later ADR decision:
+- the neutral core owns predicate evaluation, typed decision outcomes, abstention/prerequisite gates and `ExplainableTrace`;
+- versioned profiles supply `CaseFacts` schemas/instances, predicate declarations, classifiers and industry lists as read-only inputs;
+- ADR-0021 continues to own transitional version choice;
+- ADR-0022 continues to own profile isolation and inputs;
+- profiles cannot emit final decisions outside the core protocol or mutate clocks, CTV, NormativeState or kernel ranks.
 
 ```text
 Neutral core (future)
@@ -138,13 +137,13 @@ Neutral core (future)
        abstention and ExplainableTrace.
 
 Versioned profiles
-  supply CaseFacts schemas,
-         special predicates,
+  supply CaseFacts schemas and instances,
+         special-predicate declarations,
          industry priority inputs,
          versioned lists/classifiers.
 ```
 
-This crosswalk does **not** adopt that boundary as architecture substance. Until EA-04 records a governing decision, every case-applicability request must abstain. Procurement remains a proving profile and cannot become a second ontology core.
+Ownership is decided; implementation is not. Until Rust domain/ports and proof gates exist, every case-applicability request must abstain. Procurement remains a proving profile and cannot become a second ontology core.
 
 ## 8. Practice, transition and risk boundaries
 
@@ -178,13 +177,13 @@ It must not resolve to “latest known text,” merge provider identities silent
 | TL-G03 | CTV event-to-interval | `[proposed]` | event-derived validity and fail-closed compilation | static interval as source or partial assembly | event-sourced resolver + hostile cases | no CTV runtime |
 | TL-G04 | observation/correction | `[bounded]` observation policy; correction design | immutable observations and projection rebuild | in-place overwrite/latest scrape wins | immutable log/rebuild tests | no legal completeness |
 | TL-G05 | text vs legal effect | `[proposed]` | CTV and status orthogonal | text present ⇒ `InForce` | dual resolver/join tests | no legal status correctness |
-| TL-G06 | force/applicability/knowledge | status/practice `[proposed]`; applicability `[deferred]` | triad and abstention explicit | `InForce` ⇒ Applicable | status/practice runtimes + future applicability ADR/runtime | applicability absent |
+| TL-G06 | force/applicability/knowledge | status/practice `[proposed]`; ADR-0023 ownership `[proposed]`; runtime `[deferred]` | triad, core/profile ownership and abstention explicit | `InForce` ⇒ Applicable | status/practice runtimes + applicability domain/ports | applicability runtime absent |
 | TL-G07 | cross-reference | candidate-only `[bounded]`; resolution design gap | target join and typed non-success described | latest-text guessing | temporal reference resolver | no resolved-link corpus claim |
 | TL-G08 | transition | `[proposed]` | transition choice separate from risk | chronology-only default | resolver + real transitional fixtures | no legal correctness |
 | TL-G09 | practice coverage | `[proposed]` | temporality/provenance/non-mutation explicit | practice rewrites kernel | practice port/projection tests | no practice corpus |
 | TL-G10 | risk | `[proposed]` | advisory/Unknown/provenance explicit | default low/legal conclusion | projection tests | no calibrated probability |
 | TL-G11 | profile lists/classifiers | `[proposed]` | profile inputs versioned; core neutral | core mutation/sixth clock | per-profile contracts | no profile completeness |
-| TL-G12 | applicability trace | `[deferred]` | absence and residual owner recorded; any derived NormRule graph remains non-authoritative | decision from force/text/LLM/derived graph | new ADR + Rust domain/ports + real cases | no executable applicability or NormRule source truth |
+| TL-G12 | applicability trace | ADR-0023 `[proposed]`; runtime `[deferred]` | core ownership recorded; runtime absence explicit; any derived NormRule graph remains non-authoritative | decision from force/text/LLM/derived graph/profile bypass | Rust domain/ports + hostile and representative real cases | no executable applicability or NormRule source truth |
 
 A paper PASS for any gate does not change its lifecycle.
 
@@ -213,19 +212,19 @@ These are semantic-shape oracles for future fixtures, not legal gold answers.
 | TL-GC17 | correction | new observation corrects prior projection | original evidence retained; projection rebuilt | in-place evidence rewrite |
 | TL-GC18 | constitutional practice | typed ex-tunc annulment evidence | separate provenance-backed status event | generic practice prose rewrites status |
 
-## 12. Open questions and EA-04 inputs
+## 12. EA-04 decisions and remaining open questions
 
 | ID | Open question | Current disposition | Required owner | Revisit trigger |
 |----|---------------|--------------------|----------------|-----------------|
-| TQ-01 | core applicability protocol vs profile-owned predicates | `[deferred]`; abstain | one residual ADR decision in EA-04 | before any applicability domain/port task, case-level claim or procurement applicability profile |
-| TQ-02 | exact mapping of transaction time to source publication and system observation | `[proposed]`; preserve both roles | ADR-0009/0017 clarification | before CTV event schema or bitemporal projection contract is frozen |
-| TQ-03 | canonical name `NormativeState` vs `NormativeStatus` | `[proposed]` alias | ADR-0018 clarification | before Rust status type/port naming is implemented |
+| TQ-01 | core applicability protocol vs profile-owned predicates | ownership resolved `[proposed]` by ADR-0023; runtime `[deferred]`; abstain until proof | ADR-0023 | revisit only through superseding ADR with cross-profile evidence, or before implementation if protocol details exceed the decided boundary |
+| TQ-02 | exact mapping of transaction time to source publication and system observation | resolved `[proposed]`: qualified independent anchors, never one composite clock | ADR-0009/0017 EA-04 clarification | revisit before schema freeze only if a transaction view cannot preserve both roles |
+| TQ-03 | canonical name `NormativeState` vs `NormativeStatus` | resolved `[proposed]`: `NormativeState` canonical; `NormativeStatus` deprecated alias | ADR-0018 EA-04 clarification | revisit before Rust type freeze only if compatibility requires an explicit migration alias |
 | TQ-04 | operational correction/supersession protocol | `[proposed]` invariant only | future evidence/temporal decision if load-bearing | before correction ingestion, projection rebuild or audit API work |
 | TQ-05 | temporal cross-reference resolution algorithm | `[proposed]` gap | future ADR or owning capability decision | before parser reference candidates can affect query/citation authority |
-| TQ-06 | practice “own clock” wording | interpret as first-class temporality over five clocks | ADR-0020 clarification | before practice event schema or projection implementation |
-| TQ-07 | industry-priority maxim vs neutral NormativeRank | profile input, never rank elevation | ADR-0019/0022 clarification | before any profile conflict resolver or versioned industry list implementation |
+| TQ-06 | practice “own clock” wording | resolved `[proposed]`: first-class temporality over five clocks, not sixth clock | ADR-0020 EA-04 clarification | revisit before practice schema only if existing clock roles cannot represent required evidence |
+| TQ-07 | industry-priority maxim vs neutral NormativeRank | resolved `[proposed]`: versioned profile input, never rank elevation | ADR-0019/0022 EA-04 clarification | revisit before profile resolver only with evidence that neutral ranks cannot preserve explainability |
 
-No package ADR-0023–0032 is justified by this crosswalk. Only TQ-01 is currently confirmed as a residual load-bearing new decision candidate; the remaining items are clarification/amendment candidates unless later review proves otherwise.
+ADR-0023 is the single residual applicability-ownership decision; it does not begin a package ADR-0023–0032. EA-04 clarification notes resolve TQ-02/03/06/07 at `[proposed]` design level without lifecycle promotion. TQ-04/05 remain deferred unless implementation makes them load-bearing.
 
 ## 13. EA-03 assessment checklist
 
@@ -239,11 +238,11 @@ No package ADR-0023–0032 is justified by this crosswalk. Only TQ-01 is current
 - [x] TL-G01–TL-G12 each have acceptance, hostile case, future proof and non-claim;
 - [x] golden cases are semantic-shape oracles, not legal truth;
 - [x] TQ-01–TQ-07 remain visible with owner/disposition/revisit trigger;
-- [x] O1–O7 remain `[proposed]`, applicability remains `[deferred]`;
+- [x] O1–O7 and ADR-0023 ownership remain `[proposed]`; applicability runtime remains `[deferred]`;
 - [x] semantic reviewer recorded a source-bound PASS for `e1ac83a`;
 - [x] user explicitly selected `ACCEPT-AS-PROPOSED`; no acceptance was fabricated.
 
-EA-03 acceptance is limited to this proposed paper reconciliation. EA-04 ADR decisions and EA-09/EA-10 assessment remain open.
+EA-03 acceptance is limited to this proposed paper reconciliation. EA-04 decision substance is recorded by ADR-0023 and targeted clarification notes; applicability implementation and EA-09/EA-10 assessment remain open.
 
 ## 14. Stop conditions
 
@@ -258,4 +257,4 @@ Stop and replan if any review:
 - lets practice rewrite kernel state without a typed status event;
 - treats risk as transition/applicability/legal decision;
 - uses `.gsd`, roadmap, assessment, derived registry, LLM, archive or external framework as architecture/product proof;
-- closes TQ-01 by assumption instead of a governing decision.
+- contradicts or bypasses ADR-0023 ownership without a superseding ADR.

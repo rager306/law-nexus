@@ -67,7 +67,7 @@ NormRule
 → ExplainableTrace
 ```
 
-This executable chain does not exist in the current product. ADR-0016–0022 provide an O1–O7 `[proposed]` design spine only.
+ADR-0023 decides ownership at `[proposed]` design level: the neutral core owns evaluation/decision/abstention/trace and profiles supply versioned inputs. This executable chain still does not exist in the current product. ADR-0016–0022 provide the O1–O7 `[proposed]` prerequisite design spine.
 
 ### UL-05 Industry proving profiles `[proposed]`
 
@@ -114,8 +114,8 @@ The lifecycle shown is the current maximum honest ceiling, not an implementation
 | PC-006 | Query outcomes remain bounded by admitted evidence and provenance | `[bounded]` | `port-contract` + `synthetic-hostile` | ADR-0011, 0015 | result carries source/provenance and real adapter score semantics | missing admission/provenance produces non-authoritative outcome | no production retrieval or RuVector runtime claim |
 | PC-007 | Five-clock anchors prevent silent temporal substitution | `[bounded]` | `synthetic-hostile` | ADR-0009, 0011 | available anchors are preserved by role | missing/competing anchors yield `Unknown`/`Conflict`, never default `InForce` | no computed legal applicability or CTV runtime claim |
 | PC-008 | O1–O7 temporal legal ontology remains an explicit design spine | `[proposed]` | `none-design` | ADR-0016–0022 | each layer has scope, invariants and future graduation criteria | no layer is represented as implemented from documentation alone | no ontology runtime or R035 validation |
-| PC-009 | Applicability uses a future typed `NormRule → … → ExplainableTrace` protocol | `[deferred]` | `none-design` | ADR-0017–0022 context; residual ADR decision pending | contract records absence and abstention requirements | no current surface may claim case applicability from temporal phrases alone | executable applicability is absent |
-| PC-010 | Procurement remains a proving profile over a neutral core | `[proposed]` | `none-design` | ADR-0022, 0015 | profile facts are versioned/provenanced and do not redefine core outcomes | provider/profile assumptions cannot leak into neutral kernel | no implemented procurement profile or legal completeness |
+| PC-009 | Applicability uses a future typed `NormRule → … → ExplainableTrace` protocol | `[deferred]` | `none-design` | ADR-0023 + ADR-0017–0022 prerequisites | ownership is decided; neutral core decision/abstention/trace consumes versioned profile inputs; runtime absence and abstention remain explicit | no current surface may claim case applicability from temporal phrases, CTV, `InForce`, profile code, derived graph or LLM | executable applicability is absent |
+| PC-010 | Procurement remains a proving profile over a neutral core | `[proposed]` | `none-design` | ADR-0022, 0023, 0015 | profile facts/predicate declarations are versioned/provenanced and do not redefine core outcomes | provider/profile assumptions cannot leak into neutral kernel or emit final decisions outside core protocol | no implemented procurement profile or legal completeness |
 
 ### Quality and safety clauses
 
@@ -189,8 +189,8 @@ This document may become `ready-for-assessment` only when:
 | PC-006 | RQ-006 | 0011, 0015 | `crates/ln-query/tests/hc17_query.rs`, `crates/ln-testkit/tests/query_port_contracts.rs` | port-contract + synthetic-hostile |
 | PC-007 | RQ-007 | 0009, 0011 | `crates/ln-temporal/tests/hc09_five_clock.rs`, `crates/ln-temporal/tests/hc09_hostile_clock.rs`, `crates/ln-testkit/tests/temporal_port_contracts.rs` | synthetic-hostile |
 | PC-008 | RQ-008 | 0016–0022 | `doc/adr/0016-*.md` … `0022-*.md` | design only |
-| PC-009 | RQ-009 | 0017–0022 context | none | deferred |
-| PC-010 | RQ-010 | 0022, 0015 | `doc/adr/0022-industry-profiles-architecture.md` | design only |
+| PC-009 | RQ-009 | 0023 + 0017–0022 prerequisites | `doc/adr/0023-applicability-protocol-ownership.md` | ownership design only; runtime deferred |
+| PC-010 | RQ-010 | 0022, 0023, 0015 | `doc/adr/0022-industry-profiles-architecture.md`, `doc/adr/0023-applicability-protocol-ownership.md` | design only |
 | PC-011 | RQ-011 | 0012, 0015 | `scripts/verify-adr-conformance.py`, harness governor tests | process gate |
 | PC-012 | RQ-012 | 0011, 0015 | shared `crates/ln-testkit/tests/*_port_contracts.rs` suites | bounded contracts |
 | PC-013 | RQ-013 | 0009, 0010, 0015, 0017–0021 | `crates/ln-temporal/tests/hc09_hostile_clock.rs`; future applicability hostile cases are absent | bounded kernel/design ontology |

@@ -22,7 +22,7 @@
 - **ADR-0014** — RuVector as primary graph+vector infrastructure (RVF + redb dual storage, replacing FalkorDB)
 - **ADR-0015** — Hexagonal verification architecture (overlapping contours, port contracts, lifecycle honesty)
 
-### Temporal legal ontology — progressive layer chain (L1→L7, all `[proposed]`)
+### Temporal legal ontology and applicability boundary (all `[proposed]`)
 
 A top-down ontology of what an agent needs to reason legally over time. Each
 layer depends on the one below it; all are fail-closed (R068) and follow the
@@ -36,6 +36,7 @@ LKIF are compatibility references, not canon replacements).
 - **ADR-0020 (L5)** — Judicial, FAS and control-organ practice overlay (EffectiveInterpretation; non-authoritative)
 - **ADR-0021 (L6)** — Transitional provisions and risk assessment (derived, non-authoritative)
 - **ADR-0022 (L7)** — Industry profiles architecture (budget/construction/medicine/general-control; adapter-isolated)
+- **ADR-0023** — Applicability protocol ownership: neutral core decision/abstention/trace with versioned profile inputs; runtime absent
 
 ## Archived (Python-specific, M068–M106)
 

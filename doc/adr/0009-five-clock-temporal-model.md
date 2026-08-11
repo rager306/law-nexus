@@ -47,6 +47,14 @@ into a single "timestamp" causes evidence corruption.
    system returns a typed `Unknown` or `Conflict` outcome, not a default or
    approximate value.
 
+### EA-04 clarification — closed role-bound anchors
+
+The five clocks are a closed set of role-bound evidence anchors. Generic terms
+such as transaction or recording time are qualified views, not additional
+clocks: they must state whether they refer to `source_publication`,
+`system_observation`, or both as independent facts. Neither may substitute for
+`legal_act_effect`.
+
 ## Consequences
 
 - Product temporal reasoning must name clocks explicitly and reject silent substitution.

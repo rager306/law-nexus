@@ -73,6 +73,13 @@ authoritative conclusions.
    bound** on the risk window, anchored to the `proceeding` / `factual_event`
    clocks (ADR-0009), not to wall-clock.
 
+### EA-04 clarification — transition, risk and applicability stay separate
+
+A RiskReport never selects `OldVersion`, `NewVersion` or `Transitional`, and a
+TransitionalResolver outcome never decides case applicability outside the
+ADR-0023 protocol. Both remain fail-closed and preserve their existing
+non-authoritative boundaries.
+
 ## Consequences
 
 - Adds TransitionalResolver + RiskAssessment above the normative and practice
