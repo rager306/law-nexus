@@ -378,13 +378,13 @@
     "goal": "Local GSD workflow marker only; its milestone numbering predates later tracked M161-M165 product/design commits and is not the product current-front authority."
   },
   "recommended_next": {
-    "title": "Complete EA-07 deterministic paper rehearsal",
+    "title": "Complete EA-08 advisory semantic review rehearsal",
     "priority": 1,
-    "why": "D7/EA-06 quarantine passed with a retained derived-registry staleness WARN; EA-07 must apply the paper gate catalog before semantic review.",
-    "plan_reference": "prd/migration/external-architecture-assessment-roadmap.md EA-07",
-    "slices": "Record every required check as method=paper-rehearsal; classify PASS/WARN/BLOCK; assign every WARN an owner, remediation and revisit trigger.",
-    "product_next": "L2 CTV TDD remains evidence-gated after parser data readiness; EA-07 does not unlock implementation.",
-    "non_validation": "EA-07 paper rehearsal is documentation/process evidence, not an automated gate, product readiness, legal correctness, ontology/applicability runtime, or release proof."
+    "why": "EA-07 completed with revision-bound NO-BLOCK at 430ebfd; semantic contradiction discovery is next but remains non-authoritative.",
+    "plan_reference": "prd/migration/external-architecture-assessment-roadmap.md EA-08",
+    "slices": "Atomize consequential claims, require exact source spans, classify support/contradiction/neutral/missing, independently review high-impact findings and record human disposition.",
+    "product_next": "L2 CTV TDD remains evidence-gated after parser data readiness; EA-08 does not unlock implementation.",
+    "non_validation": "EA-08 LLM review is advisory documentation/process evidence, not product readiness, legal correctness, ontology/applicability runtime, lifecycle authority, or release proof."
   },
   "downstream_blocked": [
     {
@@ -433,12 +433,12 @@
     "Keep Rust as the only target product runtime; Python may remain only as the repository harness defined by ADR-0007.",
     "Do not reintroduce ACP/git-lex outside explicit archive paths."
   ],
-  "source_revision": "bfe2ee6",
+  "source_revision": "430ebfd",
   "current_process_front": {
-    "id": "EA-07",
-    "title": "Deterministic Paper Rehearsal",
+    "id": "EA-08",
+    "title": "Advisory Semantic Review Rehearsal",
     "status": "active",
-    "boundary": "Documentation/process work only; method=paper-rehearsal is not automated-gate evidence and cannot promote lifecycle."
+    "boundary": "Documentation/process work only; every LLM finding requires exact citations and human disposition and cannot change authority or lifecycle."
   },
   "latest_completed_product_milestone": {
     "id": "M165",

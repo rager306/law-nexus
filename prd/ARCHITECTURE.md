@@ -128,9 +128,9 @@ M165 temporal legal ontology L1–L7  [proposed] design (ADR-0016..0022)
    Docs/process follow-up: truth-oracle sync, vault untrack, archive relocate
    ▼
 CURRENT PROCESS FRONT (no Rust)
-   EA-07 deterministic paper rehearsal after D7/EA-06 quarantine PASS + staleness WARN
-   method=paper-rehearsal; not automated-gate evidence; then EA-08..10 assessment
-   L2 CTV only when parser data ready; TEI/RuVector only when infrastructure exists
+   EA-08 advisory semantic review after EA-07 paper rehearsal NO-BLOCK at 430ebfd
+   exact citations + human disposition required; LLM cannot change authority/lifecycle
+   then EA-09..10; L2 CTV and TEI/RuVector remain evidence-gated
 ```
 
 ## Current layer (where work happens now)

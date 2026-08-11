@@ -3,7 +3,7 @@
 **Статус:** `[proposed]` assessment charter
 **Assessment root:** `assessment/`
 **Базовая ревизия:** `60fd8245ace999f3f29911844375dd7cc36a2a38` (2026-08-11)
-**Текущая стадия:** EA-07 — deterministic paper rehearsal after D7/EA-06 quarantine PASS with retained staleness WARN. `method=paper-rehearsal` is not automated-gate evidence. EA-00 charter remains the scope contract; the wider package is not EA-09/EA-10 accepted.
+**Текущая стадия:** EA-08 — advisory semantic review rehearsal after revision-bound EA-07 `NO-BLOCK` at `430ebfd`. Every semantic finding requires exact citations and human disposition; LLM output cannot change lifecycle or authority. EA-00 charter remains the scope contract; the wider package is not EA-09/EA-10 accepted.
 **Execution contract:** `prd/architecture/documentation-semantic-control-plan.md`
 **Assessment contract:** `prd/migration/external-architecture-assessment-roadmap.md`
 

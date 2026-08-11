@@ -31,7 +31,7 @@ Consultant/Garant parser, a temporal legal ontology, and citation-safe retrieval
 
 ## Current status (D098 lifecycle tags)
 
-Latest tracked product/design band: **M165** (`[proposed]` ontology design only). D5/D6/EA-05 alignment and D7/EA-06 derived-registry quarantine are complete as documentation/process stages; current front is **EA-07 deterministic paper rehearsal**. `method=paper-rehearsal` is not automated-gate evidence. See [`prd/project-state/roadmap.md`](prd/project-state/roadmap.md); sequence completion is not product readiness.
+Latest tracked product/design band: **M165** (`[proposed]` ontology design only). D5/D6/EA-05 alignment and D7/EA-06 derived-registry quarantine are complete as documentation/process stages; EA-07 deterministic paper rehearsal completed with `NO-BLOCK` at `430ebfd`; current front is **EA-08 semantic review rehearsal**. LLM findings are advisory and require exact citations plus human disposition. See [`prd/project-state/roadmap.md`](prd/project-state/roadmap.md); sequence completion is not product readiness.
 
 ```
 [FOUNDATION — COMPLETE]

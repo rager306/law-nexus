@@ -3,10 +3,10 @@
 **Assessment class:** deterministic control paper rehearsal
 **Method:** `paper-rehearsal` for every checklist row
 **Status:** `[bounded]` process evidence; technical `NO-BLOCK`; aggregate `WARN`
-**Repository HEAD:** `bfe2ee6b6462c137c8fdb05a5dd88491ca2678a5`
-**Tested corpus:** HEAD plus the current uncommitted D7/archive/governor documentation wave
+**Tested revision:** `430ebfdf57b8a8589a29b44bf1b8dc7809bf43ec`
+**Tested corpus:** committed D7/archive/governor documentation package
 **Review date:** 2026-08-11
-**Publication state:** not a frozen EA-09 packet; commit-bound revision still required
+**Publication state:** revision-bound EA-07 process evidence; not an EA-09 external packet
 
 ## 1. Boundary
 
@@ -35,11 +35,10 @@ Authority remains `prd/ARCHITECTURE.md` plus `doc/adr/**`. Product and requireme
 
 | ID | Finding | Owner | Remediation | Revisit trigger |
 |---|---|---|---|---|
-| EA07-W01 | Tested corpus is a dirty working tree, not a frozen external-assessment SHA | assessment author and acceptance authority | commit the reviewed packet, record the resulting revision, rerun the same checklist against that revision | before EA-09 packet freeze or any external distribution |
-| EA07-W02 | Derived graph verifier remains fail-closed: 243 source-anchor, 11 graph-integrity and 2 freshness findings; historical extractor/builder absent | architecture registry process owner | keep D7 quarantine and non-authority banners; do not invent anchors or restore ACP tooling; design a current non-ACP builder only as separate process work | any proposal to use registry/graph output as authority or a new builder proposal |
-| EA07-W03 | Governor still reports historical vocabulary in seven active test files | harness/CI process owner | retain qualified negative fixtures where they test policy; relocate only tests that depend on archived behavior, not historical-token assertions needed by governor | next archive hygiene closeout or CI process-suite change |
-| EA07-W04 | MADR `status: Accepted` coexists with lifecycle `[proposed]` for design ADRs and can be misread by naive tooling | ADR steward | keep lifecycle as the machine proof ceiling; explain this distinction in governor `--explain`; never infer lifecycle from MADR status alone | governor evidence/explain implementation or any lifecycle promotion |
-| EA07-W05 | Several cross-surface references are bare repository paths rather than clickable Markdown links | documentation process owner | retain path-existence checking; optionally normalize high-value Product/Requirements/temporal links before external packet publication | EA-09 cold-reader review |
+| EA07-W01 | Derived graph verifier remains fail-closed: 243 source-anchor, 11 graph-integrity and 2 freshness findings; historical extractor/builder absent | architecture registry process owner | keep D7 quarantine and non-authority banners; do not invent anchors or restore ACP tooling; design a current non-ACP builder only as separate process work | any proposal to use registry/graph output as authority or a new builder proposal |
+| EA07-W02 | Governor still reports historical vocabulary in seven active test files | harness/CI process owner | retain qualified negative fixtures where they test policy; relocate only tests that depend on archived behavior, not historical-token assertions needed by governor | next archive hygiene closeout or CI process-suite change |
+| EA07-W03 | MADR `status: Accepted` coexists with lifecycle `[proposed]` for design ADRs and can be misread by naive tooling | ADR steward | keep lifecycle as the machine proof ceiling; explain this distinction in governor `--explain`; never infer lifecycle from MADR status alone | governor evidence/explain implementation or any lifecycle promotion |
+| EA07-W04 | Several cross-surface references are bare repository paths rather than clickable Markdown links | documentation process owner | retain path-existence checking; optionally normalize high-value Product/Requirements/temporal links before external packet publication | EA-09 cold-reader review |
 
 Every WARN has an owner, remediation and revisit trigger. None authorizes lifecycle promotion or product work.
 
@@ -62,9 +61,9 @@ The derived graph verifier remains red as documented in EA07-W02. Its result is 
 
 **Technical disposition:** `NO-BLOCK`.
 
-All required EA-07 rows are PASS under `method=paper-rehearsal`; no BLOCK was found. The aggregate remains WARN because the packet is not frozen to a new commit and derived-registry staleness is intentionally unresolved.
+All required EA-07 rows are PASS under `method=paper-rehearsal`; no BLOCK was found. The aggregate remains WARN because derived-registry staleness is intentionally unresolved. The content packet was committed and rerun successfully at the tested revision.
 
-This permits preparation for EA-08 semantic review rehearsal after a revision-bound packet is created. It does not itself close EA-08, EA-09 or EA-10.
+This permits EA-08 semantic review rehearsal against the revision-bound packet. It does not itself close EA-08, EA-09 or EA-10.
 
 ## 6. Non-claims
 
