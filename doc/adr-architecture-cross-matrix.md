@@ -53,6 +53,7 @@ Governor enforcement:
 | `adr-cross-surface-matrix` | warn | every ADR cited in ARCHITECTURE + README + adr/README |
 | `archive-path-policy` | warn | historical vaults gitignored + untracked; active symlinks into vaults rejected |
 | `published-trace-contract` | warn | 11 consequential PC→RQ→ADR chains plus assessment process-only boundary; structure only, not requirement/product proof |
+| `document-freshness-triggers` | warn | non-authoritative dirty-tree change→companion catalog; a PASS is change-impact coverage, not semantic freshness |
 
 ## 3. Deviations / gaps / noise (classified)
 
@@ -151,7 +152,7 @@ Follow-on checks, initially warn-only unless a deterministic authority contract 
 - `adr-link-integrity` and `adr-supersession-graph`;
 - exact evidence-rich `path:line` findings and general tool/parser exit-2 handling (`--explain` is implemented);
 - expand the bounded 11-chain `published-trace-contract` only when a new consequential chain is accepted; do not turn it into requirement satisfaction;
-- event-triggered freshness catalog to close DOC-09;
+- extend the implemented freshness catalog only for proven consequential source classes; milestone/external-assessment/90-day events remain human-owned;
 - `derived-registry-staleness` tied to the D7 quarantine contract;
 - advisory semantic assessment ingestion that can never set a blocking verdict.
 

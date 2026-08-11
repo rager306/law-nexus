@@ -10,6 +10,7 @@ from law_nexus_harness.governor import (
     _ACTIVE_REQUIREMENT_POLICY,
     _EXPECTED_DIRECTION,
     GOVERNOR_SCHEMA_VERSION,
+    _freshness_trigger_gaps,
     check_active_requirement_contradictions,
     check_active_surface_era_noise,
     check_adr_cross_surface_matrix,
@@ -21,6 +22,7 @@ from law_nexus_harness.governor import (
     check_architecture_direction,
     check_archive_path_policy,
     check_ci_quality_gate_drift,
+    check_document_freshness_triggers,
     check_forward_roadmap_sequence,
     check_historical_test_debt_visibility,
     check_hostile_negative_suite_coverage,
@@ -212,7 +214,7 @@ def test_cli_governor_runner_failure_uses_tool_error_exit_two(tmp_path: Path, ca
         encoding="utf-8",
     )
 
-    code = main(["governor", "--root", str(tmp_path), "--only", "docs"])
+    code = main(["governor", "--root", str(tmp_path), "--check", "roadmap-freshness"])
     payload = json.loads(capsys.readouterr().out)
 
     assert code == 2
@@ -230,9 +232,10 @@ def test_cli_governor_without_local_gsd_projection_fails_with_coherent_exit_code
     code = main(["governor", "--root", str(tmp_path)])
     payload = json.loads(capsys.readouterr().out)
 
-    assert code == 1
+    assert code == 2
     assert payload["status"] == "failure"
     assert payload["error_count"] > 0
+    assert payload["tool_error_count"] > 0
     assert any(item["check_id"] == "gsd-state-present" for item in payload["findings"])
 
 
@@ -917,6 +920,60 @@ def test_live_governor_includes_adr_and_archive_checks() -> None:
     assert by_id["archive-path-policy"].status == "pass"
     assert report.error_count == 0
     assert report.status == "ok"
+
+
+def test_live_document_freshness_trigger_catalog_is_valid() -> None:
+    finding = check_document_freshness_triggers(ROOT)[0]
+
+    assert finding.status in {"pass", "fail"}
+    assert finding.severity in {"ok", "warn"}
+    assert "semantic validation" in finding.observed or finding.status == "fail"
+
+
+def test_document_freshness_trigger_gap_requires_distinct_companion() -> None:
+    catalog = {
+        "schema_version": "law-nexus-document-freshness-triggers/v1",
+        "authoritative": False,
+        "triggers": [
+            {
+                "id": "adr-change",
+                "sources": ["doc/adr/0*.md"],
+                "required_any": ["prd/ARCHITECTURE.md", "doc/adr/README.md"],
+                "review": "Recheck lifecycle projection.",
+            }
+        ],
+    }
+
+    assert _freshness_trigger_gaps(catalog, {"doc/adr/0024-new.md"}) == ["adr-change"]
+    assert (
+        _freshness_trigger_gaps(
+            catalog,
+            {"doc/adr/0024-new.md", "prd/ARCHITECTURE.md"},
+        )
+        == []
+    )
+
+
+def test_document_freshness_trigger_catalog_rejects_authority_promotion() -> None:
+    catalog = {
+        "schema_version": "law-nexus-document-freshness-triggers/v1",
+        "authoritative": True,
+        "triggers": [
+            {
+                "id": "x",
+                "sources": ["prd/PRODUCT.md"],
+                "required_any": ["prd/REQUIREMENTS.md"],
+                "review": "Review.",
+            }
+        ],
+    }
+
+    try:
+        _freshness_trigger_gaps(catalog, {"prd/PRODUCT.md"})
+    except ValueError as error:
+        assert "non-authoritative" in str(error)
+    else:
+        raise AssertionError("authoritative freshness catalog must be rejected")
 
 
 def test_live_published_trace_contract_covers_consequential_chains() -> None:

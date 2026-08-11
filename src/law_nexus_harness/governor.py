@@ -10,6 +10,7 @@ or legal-domain behavior (ADR-0007).
 
 from __future__ import annotations
 
+import fnmatch
 import importlib.util
 import json
 import os
@@ -2028,6 +2029,115 @@ def _table_line(
     return None
 
 
+_DOCUMENT_FRESHNESS_CATALOG = "prd/architecture/document-freshness-triggers.json"
+
+
+def _working_tree_paths(root: Path) -> set[str]:
+    commands = (
+        ("git", "-C", str(root), "diff", "--name-only", "HEAD"),
+        ("git", "-C", str(root), "ls-files", "--others", "--exclude-standard"),
+    )
+    changed: set[str] = set()
+    for command in commands:
+        completed = subprocess.run(
+            command,
+            check=False,
+            capture_output=True,
+            text=True,
+            timeout=30,
+        )
+        if completed.returncode != 0:
+            raise RuntimeError("git working-tree inventory failed")
+        changed.update(line.strip() for line in completed.stdout.splitlines() if line.strip())
+    return changed
+
+
+def _matches_any(path: str, patterns: list[str]) -> bool:
+    return any(fnmatch.fnmatchcase(path, pattern) for pattern in patterns)
+
+
+def _freshness_trigger_gaps(catalog: dict[str, Any], changed_paths: set[str]) -> list[str]:
+    if catalog.get("schema_version") != "law-nexus-document-freshness-triggers/v1":
+        raise ValueError("unsupported document freshness trigger schema")
+    if catalog.get("authoritative") is not False:
+        raise ValueError("document freshness trigger catalog must be non-authoritative")
+    triggers = catalog.get("triggers")
+    if not isinstance(triggers, list) or not triggers:
+        raise ValueError("document freshness trigger catalog has no triggers")
+
+    gaps: list[str] = []
+    seen_ids: set[str] = set()
+    for trigger in triggers:
+        if not isinstance(trigger, dict):
+            raise ValueError("document freshness trigger must be an object")
+        trigger_id = str(trigger.get("id") or "")
+        sources = trigger.get("sources")
+        required_any = trigger.get("required_any")
+        review = str(trigger.get("review") or "")
+        if (
+            not trigger_id
+            or trigger_id in seen_ids
+            or not isinstance(sources, list)
+            or not sources
+            or not isinstance(required_any, list)
+            or not required_any
+            or not review
+        ):
+            raise ValueError("invalid or duplicate document freshness trigger")
+        if not all(isinstance(item, str) and item for item in (*sources, *required_any)):
+            raise ValueError("document freshness patterns must be non-empty strings")
+        seen_ids.add(trigger_id)
+
+        source_matches = {path for path in changed_paths if _matches_any(path, sources)}
+        if not source_matches:
+            continue
+        companion_matches = {
+            path for path in changed_paths - source_matches if _matches_any(path, required_any)
+        }
+        if not companion_matches:
+            gaps.append(trigger_id)
+    return gaps
+
+
+def check_document_freshness_triggers(root: Path) -> list[GovernorFinding]:
+    """Warn when consequential document changes omit a catalogued companion refresh."""
+
+    path = root / _DOCUMENT_FRESHNESS_CATALOG
+    catalog = _load_json(path)
+    changed_paths = _working_tree_paths(root)
+    gaps = _freshness_trigger_gaps(catalog, changed_paths)
+    if gaps:
+        return [
+            GovernorFinding(
+                check_id="document-freshness-triggers",
+                status="fail",
+                severity="warn",
+                message="changed consequential surfaces lack a catalogued companion refresh",
+                observed=f"trigger_gaps={gaps}",
+                remediation=(
+                    "Refresh or review at least one required companion surface for each trigger, "
+                    "then rerun; do not treat a companion edit as semantic validation."
+                ),
+                rule_id="document-freshness.companion-gap",
+                expected="Every matched source change has a distinct changed companion surface.",
+                evidence=(GovernorEvidence(path=_DOCUMENT_FRESHNESS_CATALOG),),
+            )
+        ]
+    return [
+        GovernorFinding(
+            check_id="document-freshness-triggers",
+            status="pass",
+            severity="ok",
+            message="working-tree changes satisfy the bounded freshness trigger catalog",
+            observed=(
+                f"changed_paths={len(changed_paths)}, trigger_gaps=0 "
+                "(change-impact diagnostics only; not semantic validation)."
+            ),
+            remediation="none",
+        )
+    ]
+
+
 def check_published_trace_contract(root: Path) -> list[GovernorFinding]:
     """Verify consequential published PC→RQ→ADR trace structure.
 
@@ -2753,6 +2863,15 @@ GOVERNOR_CHECK_SPECS: tuple[CheckSpec, ...] = (
         check_adr_index_completeness,
         "Require every active ADR and lifecycle in the ADR index.",
         ("doc/adr/0*.md", "doc/adr/README.md"),
+        "warn",
+    ),
+    _check_spec(
+        "document-freshness-triggers",
+        "docs",
+        "deterministic",
+        check_document_freshness_triggers,
+        "Require a distinct companion refresh for consequential working-tree document changes.",
+        (_DOCUMENT_FRESHNESS_CATALOG,),
         "warn",
     ),
     _check_spec(

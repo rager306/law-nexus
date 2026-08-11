@@ -192,11 +192,19 @@ Hybrid:
 
 ### C6 — Change impact and freshness controls
 
-Детерминированно + human:
+Implemented bounded working-tree control: `prd/architecture/document-freshness-triggers.json` + governor `document-freshness-triggers`. It checks that a consequential changed source has a distinct changed companion surface; the catalog is explicitly `authoritative=false` and a PASS is not semantic validation.
 
-- changed ADR triggers oracle/index/matrix review;
+Current catalog triggers:
+
+- changed ADR → oracle/index/cross-matrix review;
+- changed architecture oracle → README/roadmap projection review;
+- changed Product/Requirements → inverse trace/authority review;
+- changed archive policy → governor/test/archive-audit review;
+- changed governor/CLI contract → tests/design review.
+
+Still human/event owned:
+
 - milestone close triggers roadmap/oracle freshness review;
-- changed Product clause triggers requirements/ADR coverage review;
 - external assessment expires when frozen SHA changes materially;
 - 90-day human review due date is an obligation, not a quality score.
 
@@ -422,14 +430,17 @@ EA-06 stop conditions: recreating retired PRDs to clear anchors; reviving archiv
 
 ## 10. Freshness obligations
 
-| Trigger | Обязательное обновление |
-|---------|-------------------------|
-| ADR status/decision changes | Oracle lifecycle table, ADR index, cross-matrix, affected Contract clauses |
-| Product clause changes | Requirements trace + governing ADR review + roadmap impact |
-| Milestone close | ARCHITECTURE current front + all active roadmap fronts |
-| Derived registry regeneration | source revision + diagnostic-only marker |
-| External assessment | freeze SHA, rerun checks, invalidate prior semantic findings on material diff |
-| 90 days without material change | human entrypoint review due; не автоматическая деградация lifecycle |
+| Trigger | Обязательное обновление | Enforcement |
+|---------|-------------------------|-------------|
+| ADR status/decision changes | Oracle lifecycle table, ADR index or cross-matrix review | bounded governor working-tree trigger; affected Contract clause review remains human |
+| Architecture oracle changes | README or roadmap projection review | bounded governor working-tree trigger |
+| Product/Requirements changes | inverse trace or authority-map review | bounded governor working-tree trigger |
+| Archive policy changes | governor/tests or archive-audit review | bounded governor working-tree trigger |
+| Governor/CLI contract changes | governor tests or verification-design review | bounded governor working-tree trigger |
+| Milestone close | ARCHITECTURE current front + all active roadmap fronts | human/process event |
+| Derived registry regeneration | source revision + diagnostic-only marker | generated freshness checks; registry remains non-authoritative |
+| External assessment | freeze SHA, rerun checks, invalidate prior semantic findings on material diff | human/process event |
+| 90 days without material change | human entrypoint review due; не автоматическая деградация lifecycle | human obligation |
 
 ## 11. Definition of done
 
@@ -448,7 +459,7 @@ EA-06 stop conditions: recreating retired PRDs to clear anchors; reviving archiv
 
 ## 12. Non-claims
 
-- Этот план не реализует governor checks или schemas.
+- Этот план сам не является executable governor/schema authority; implemented checks and catalogs remain repository-control diagnostics.
 - Он не меняет lifecycle существующих ADR.
 - Он не валидирует legal correctness, parser completeness, RuVector runtime, retrieval или citation safety.
 - Он не принимает CALM или community ADR tools как dependency.

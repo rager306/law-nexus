@@ -22,6 +22,7 @@ The governor checks publication consistency. It does not decide architecture, le
 | `active-surface-era-noise` | Require archive/historical/non-claim qualification for ACP, git-lex, FalkorDB and PyO3 vocabulary | advisory `warn` |
 | `archive-path-policy` | Require historical vaults ignored/untracked and reject known or generic active symlinks into them | advisory `warn` |
 | `published-trace-contract` | Check 11 consequential PC→RQ→ADR publication chains plus assessment process-only authority separation | advisory `warn` |
+| `document-freshness-triggers` | Validate a non-authoritative change-impact catalog and require a distinct companion refresh for matched dirty-tree sources | advisory `warn`; Git/catalog parser failure uses exit 2 |
 | `verify-adr-conformance.py` | Require lifecycle tags and ADR references on targeted binding claims | separate blocking gate |
 
 Default exit semantics remain stable: failed deterministic `error` checks produce exit 1 and warn-only debt produces exit 0. Unknown/conflicting selectors and uncaught check-runner IO/parser/tool failures produce structured exit 2 with `tool_error_count`; checks that currently swallow low-level read/git failures still need migration to this shared classification.

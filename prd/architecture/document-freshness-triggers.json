@@ -1,0 +1,37 @@
+{
+  "schema_version": "law-nexus-document-freshness-triggers/v1",
+  "authoritative": false,
+  "boundary": "Repository change-impact diagnostics only; matching or passing a trigger does not validate document semantics, product behavior, legal correctness, or lifecycle.",
+  "triggers": [
+    {
+      "id": "adr-contract-change",
+      "sources": ["doc/adr/0*.md"],
+      "required_any": ["prd/ARCHITECTURE.md", "doc/adr/README.md", "doc/adr-architecture-cross-matrix.md"],
+      "review": "Recheck lifecycle, index, supersession and living-oracle projection."
+    },
+    {
+      "id": "architecture-oracle-change",
+      "sources": ["prd/ARCHITECTURE.md"],
+      "required_any": ["README.md", "prd/project-state/roadmap.md", "prd/project-state/data/roadmap.json"],
+      "review": "Recheck cold-reader direction and process-front projections."
+    },
+    {
+      "id": "product-requirement-change",
+      "sources": ["prd/PRODUCT.md", "prd/REQUIREMENTS.md"],
+      "required_any": ["prd/PRODUCT.md", "prd/REQUIREMENTS.md", "assessment/01-authority-map.md"],
+      "review": "Recheck bidirectional PC/RQ trace, proof ceilings and assessment authority boundary."
+    },
+    {
+      "id": "archive-policy-change",
+      "sources": [".gitignore", "prd/migration/decommission/*.json", "prd/migration/*decommission*.md"],
+      "required_any": ["src/law_nexus_harness/governor.py", "tests/test_harness_governor.py", "assessment/07-adr-archive-governor-audit.md"],
+      "review": "Recheck ignored versus tracked vaults, active aliases and archive manifest integrity."
+    },
+    {
+      "id": "governor-contract-change",
+      "sources": ["src/law_nexus_harness/governor.py", "src/law_nexus_harness/cli.py"],
+      "required_any": ["tests/test_harness_governor.py", "prd/architecture/adr-governor-verification-design.md"],
+      "review": "Recheck report compatibility, exit semantics, negative tests and non-claims."
+    }
+  ]
+}
