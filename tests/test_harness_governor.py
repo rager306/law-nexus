@@ -26,6 +26,7 @@ from law_nexus_harness.governor import (
     check_hostile_negative_suite_coverage,
     check_hostile_proof_chain,
     check_port_contract_coverage,
+    check_published_trace_contract,
     check_roadmap_freshness,
     check_semantic_stub_in_product_code,
     check_verify_test_coverage_drift,
@@ -916,6 +917,43 @@ def test_live_governor_includes_adr_and_archive_checks() -> None:
     assert by_id["archive-path-policy"].status == "pass"
     assert report.error_count == 0
     assert report.status == "ok"
+
+
+def test_live_published_trace_contract_covers_consequential_chains() -> None:
+    finding = check_published_trace_contract(ROOT)[0]
+
+    assert finding.status == "pass"
+    assert finding.severity == "ok"
+    assert "chains=11" in finding.observed
+
+
+def test_published_trace_contract_warns_on_broken_chain_and_authority_boundary(
+    tmp_path: Path,
+) -> None:
+    prd = tmp_path / "prd"
+    prd.mkdir()
+    (prd / "PRODUCT.md").write_text(
+        "| PC-001 | RQ-001 | 0004 | tests/x.rs | bounded |\n",
+        encoding="utf-8",
+    )
+    (prd / "REQUIREMENTS.md").write_text(
+        "| RQ-001 | obligation | PC-999 | active `[bounded]` | process-gate | 0004 | tests/x.rs | no product proof |\n",
+        encoding="utf-8",
+    )
+    (prd / "ARCHITECTURE.md").write_text("ADR-0004 [bounded]\n", encoding="utf-8")
+    assessment = tmp_path / "assessment"
+    assessment.mkdir()
+    (assessment / "01-authority-map.md").write_text(
+        "Assessment is accepted product proof.\n",
+        encoding="utf-8",
+    )
+
+    finding = check_published_trace_contract(tmp_path)[0]
+
+    assert finding.status == "fail"
+    assert finding.severity == "warn"
+    assert "PC-001/RQ-001:requirements-link" in finding.observed
+    assert "assessment-process-only-boundary" in finding.observed
 
 
 def test_adr_truth_oracle_sync_detects_lifecycle_mismatch(tmp_path: Path) -> None:

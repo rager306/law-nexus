@@ -2003,6 +2003,129 @@ def check_adr_truth_oracle_sync(root: Path) -> list[GovernorFinding]:
     ]
 
 
+_CONSEQUENTIAL_TRACE_CHAINS: tuple[tuple[str, str, tuple[str, ...]], ...] = (
+    ("PC-001", "RQ-001", ("0004", "0005", "0007", "0011")),
+    ("PC-002", "RQ-002", ("0013", "0015")),
+    ("PC-003", "RQ-003", ("0010", "0011", "0015")),
+    ("PC-007", "RQ-007", ("0009", "0011")),
+    ("PC-008", "RQ-008", ("0016", "0022")),
+    ("PC-009", "RQ-009", ("0017", "0022", "0023")),
+    ("PC-010", "RQ-010", ("0015", "0022", "0023")),
+    ("PC-014", "RQ-014", ("0012", "0015")),
+    ("PC-016", "RQ-016", ()),
+    ("PC-019", "RQ-019", ("0014", "0015")),
+    ("PC-020", "RQ-020", ("0015",)),
+)
+
+
+def _table_line(
+    text: str, item_id: str, *, must_contain: str | None = None
+) -> tuple[int, str] | None:
+    prefix = f"| {item_id} |"
+    for line_number, line in enumerate(text.splitlines(), start=1):
+        if line.startswith(prefix) and (must_contain is None or must_contain in line):
+            return line_number, line
+    return None
+
+
+def check_published_trace_contract(root: Path) -> list[GovernorFinding]:
+    """Verify consequential published PC→RQ→ADR trace structure.
+
+    This is a bounded publication consistency check. It verifies stable IDs,
+    declared links, proof/lifecycle/non-claim cells and assessment role
+    separation; it does not validate the meaning or implementation of a claim.
+    """
+
+    check_id = "published-trace-contract"
+    paths = {
+        "product": root / "prd" / "PRODUCT.md",
+        "requirements": root / "prd" / "REQUIREMENTS.md",
+        "architecture": root / "prd" / "ARCHITECTURE.md",
+        "assessment": root / "assessment" / "01-authority-map.md",
+    }
+    missing_files = [
+        path.relative_to(root).as_posix() for path in paths.values() if not path.is_file()
+    ]
+    if missing_files:
+        return [
+            GovernorFinding(
+                check_id=check_id,
+                status="fail",
+                severity="warn",
+                message="published trace contract surfaces are incomplete",
+                observed=f"missing_files={missing_files}",
+                remediation="Restore the tracked Product, Requirements, oracle and authority-map surfaces.",
+                rule_id="published-trace.missing-surface",
+                expected="All tracked publication trace surfaces exist.",
+                evidence=tuple(GovernorEvidence(path=path) for path in missing_files),
+            )
+        ]
+
+    texts = {name: path.read_text(encoding="utf-8") for name, path in paths.items()}
+    gaps: list[str] = []
+    evidence: list[GovernorEvidence] = []
+    for pc_id, rq_id, adr_ids in _CONSEQUENTIAL_TRACE_CHAINS:
+        product_row = _table_line(texts["product"], pc_id, must_contain=rq_id)
+        requirement_row = _table_line(texts["requirements"], rq_id, must_contain=pc_id)
+        if product_row is None or rq_id not in product_row[1]:
+            gaps.append(f"{pc_id}/{rq_id}:product-link")
+            evidence.append(GovernorEvidence(path="prd/PRODUCT.md"))
+        elif len(product_row[1].split("|")) < 6:
+            gaps.append(f"{pc_id}/{rq_id}:product-proof-cells")
+            evidence.append(GovernorEvidence(path="prd/PRODUCT.md", line=product_row[0]))
+        if requirement_row is None or pc_id not in requirement_row[1]:
+            gaps.append(f"{pc_id}/{rq_id}:requirements-link")
+            evidence.append(GovernorEvidence(path="prd/REQUIREMENTS.md"))
+        elif len(requirement_row[1].split("|")) < 9:
+            gaps.append(f"{pc_id}/{rq_id}:requirements-proof-cells")
+            evidence.append(GovernorEvidence(path="prd/REQUIREMENTS.md", line=requirement_row[0]))
+        for adr_id in adr_ids:
+            if f"ADR-{adr_id}" not in texts["architecture"]:
+                gaps.append(f"{pc_id}/{rq_id}:oracle-ADR-{adr_id}")
+                evidence.append(GovernorEvidence(path="prd/ARCHITECTURE.md"))
+
+    assessment_lower = texts["assessment"].lower()
+    if not (
+        "assessmentpacket" in assessment_lower
+        and "process evidence" in assessment_lower
+        and ("не является product" in assessment_lower or "not product" in assessment_lower)
+    ):
+        gaps.append("assessment-process-only-boundary")
+        evidence.append(GovernorEvidence(path="assessment/01-authority-map.md"))
+
+    if gaps:
+        return [
+            GovernorFinding(
+                check_id=check_id,
+                status="fail",
+                severity="warn",
+                message="published consequential trace contract is incomplete",
+                observed=f"gaps={sorted(set(gaps))}",
+                remediation=(
+                    "Repair the tracked PC/RQ/ADR links, proof cells or assessment role boundary; "
+                    "do not use local GSD, registry or assessment output as product proof."
+                ),
+                rule_id="published-trace.chain-gap",
+                expected="Consequential PC/RQ rows resolve to oracle ADRs with process-only assessment.",
+                evidence=tuple(dict.fromkeys(evidence)),
+            )
+        ]
+
+    return [
+        GovernorFinding(
+            check_id=check_id,
+            status="pass",
+            severity="ok",
+            message="published consequential trace contract is structurally complete",
+            observed=(
+                f"chains={len(_CONSEQUENTIAL_TRACE_CHAINS)} "
+                "(lifecycle [bounded]; publication structure only; not product validation)."
+            ),
+            remediation="none",
+        )
+    ]
+
+
 def check_adr_doc_matrix_coverage(root: Path) -> list[GovernorFinding]:
     """Require ontology ADR-0016..0022 cites in REQUIREMENTS and PROJECT.
 
@@ -2630,6 +2753,20 @@ GOVERNOR_CHECK_SPECS: tuple[CheckSpec, ...] = (
         check_adr_index_completeness,
         "Require every active ADR and lifecycle in the ADR index.",
         ("doc/adr/0*.md", "doc/adr/README.md"),
+        "warn",
+    ),
+    _check_spec(
+        "published-trace-contract",
+        "docs",
+        "deterministic",
+        check_published_trace_contract,
+        "Keep consequential Product, Requirement, ADR and assessment-role traces connected.",
+        (
+            "prd/PRODUCT.md",
+            "prd/REQUIREMENTS.md",
+            "prd/ARCHITECTURE.md",
+            "assessment/01-authority-map.md",
+        ),
         "warn",
     ),
     _check_spec(
