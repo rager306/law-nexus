@@ -7,6 +7,13 @@
 **Disposition date:** 2026-08-11
 **Decision reference:** D150
 
+> **Revision-currentness notice (2026-08-11):** D150 remains the human disposition
+> for the frozen packet revision above. Consequential Product, Requirements, oracle
+> and ADR changes were committed after that revision, and
+> `assessment/13-current-head-gap-audit.md` records the bounded delta. D150 must not
+> be read as acceptance of a later HEAD; a successor revision-bound assessment is
+> required before such a claim.
+
 ## 1. Human decision
 
 The human acceptance authority selected:

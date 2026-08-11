@@ -12,14 +12,17 @@ related: [ADR-0005, ADR-0007, ADR-0011, D098, D103, D105, D106]
 
 ## Status
 
-**Accepted [bounded].** The decision is recorded and the Rust product runtime
-is real: the `ln-*` crate workspace (ADR-0011) implements domain types, the
-parser pipeline (ADR-0013), storage/retrieval, KnowQL, and the `law-nexus-inspect`
-CLI. Python product code is archived under `python_archive/product/`; only the
-thin repository harness (`src/law_nexus_harness/`, ADR-0007) remains. Moves to
-`[validated]` when the full parser pipeline runs end-to-end against a
-representative corpus with retrieval-quality proof (blocked on RuVector/TEI
-infrastructure, ADR-0014).
+**Accepted [bounded].** The migration decision and Rust-only product ownership
+are recorded. The `ln-*` workspace (ADR-0011) provides bounded domain, parser,
+storage-port, evidence-bounded query, typed KnowQL-operation and inspect-CLI
+contracts. Current storage/retrieval evidence is InMemory or synthetic, and
+KnowQL is a typed operation/port contract rather than a complete user query
+language or production executor. Python product code is archived under
+`python_archive/product/`; only the thin repository harness
+(`src/law_nexus_harness/`, ADR-0007) remains. Moves to `[validated]` only after
+the full parser and retrieval path runs end-to-end against a representative
+corpus with retrieval-quality proof and the declared release acceptance
+contract (blocked on RuVector/TEI infrastructure, ADR-0014).
 
 ## Context
 

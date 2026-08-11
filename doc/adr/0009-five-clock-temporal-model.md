@@ -31,7 +31,7 @@ into a single "timestamp" causes evidence corruption.
    |-------|----------------|-------|
    | `factual_event` | When a real-world fact occurred | HC-10 (`ln-work`) |
    | `proceeding` | When a legal proceeding started | HC-10 (`ln-work`) |
-   | `legal_act_effect` | When a legal act takes effect | HC-09 (`ln-temporal`) |
+   | `legal_act_effect` | When a proven act/status event enters the legal order; not publication, an `InForce` determination, or case applicability | HC-09 (`ln-temporal`) |
    | `source_publication` | When the source document was published | HC-01 (`ln-observe`) |
    | `system_observation` | When the system observed/ingested the data | HC-02 (`ln-inventory`) |
 

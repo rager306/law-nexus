@@ -1,0 +1,20 @@
+{
+  "schema_version": "law-nexus-temporal-vocabulary-contract/v1",
+  "authoritative": false,
+  "boundary": "Repository vocabulary-presence diagnostics only; this catalog does not define legal semantics, validate product behavior, satisfy requirements, or promote lifecycle.",
+  "model_path": "prd/temporal-legal-model.md",
+  "gap_register_path": "prd/architecture/temporal-semantic-gap-register.md",
+  "rows": [
+    {"id": "legal-act-effect", "needle": "| `legal_act_effect` |", "required_fragments": ["canonical", "[bounded]"]},
+    {"id": "edition-date", "needle": "| `edition_date` |", "required_fragments": ["deferred-undefined"]},
+    {"id": "effective-interval", "needle": "| `effective_from` / `effective_to` |", "required_fragments": ["projection-only", "[proposed]"]},
+    {"id": "EvidenceSpan", "needle": "| `EvidenceSpan` |", "required_fragments": ["deferred-undefined"]},
+    {"id": "SourceBlockRecord", "needle": "| `SourceBlockRecord` |", "required_fragments": ["canonical parser-record term", "[bounded]"]},
+    {"id": "SourceBlock", "needle": "| `SourceBlock` |", "required_fragments": ["deferred-undefined"]},
+    {"id": "NormativeState", "needle": "| NormativeState |", "required_fragments": ["canonical", "[proposed]"]},
+    {"id": "NormativeStatus", "needle": "| NormativeStatus |", "required_fragments": ["deprecated-alias", "[proposed]"]},
+    {"id": "applicability", "needle": "| Applicability |", "required_fragments": ["runtime deferred"]},
+    {"id": "correction", "needle": "| Correction |", "required_fragments": ["canonical invariant", "[proposed]"]}
+  ],
+  "gap_ids": ["TSG-001", "TSG-002", "TSG-003", "TSG-004", "TSG-005", "TSG-006", "TSG-007", "TSG-008", "TSG-009", "TSG-010", "TSG-011", "TSG-012", "TSG-013", "TSG-014", "TSG-015", "TSG-016"]
+}

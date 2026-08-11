@@ -6,7 +6,7 @@
 
 This directory defines the law-nexus architecture registry contract (historical M004-era name: LegalGraph Nexus). The registry is a git-tracked, machine-readable projection of architecture knowledge; it is not itself the architecture source of truth.
 
-The `[proposed]` documentation correction and semantic-control sequence is defined in [`documentation-semantic-control-plan.md`](documentation-semantic-control-plan.md). Its independent documentation-assessment track is [`../migration/external-architecture-assessment-roadmap.md`](../migration/external-architecture-assessment-roadmap.md), with the D0/EA-00 packet entrypoint at [`../../assessment/00-charter.md`](../../assessment/00-charter.md). These artifacts do not change ADR lifecycle, grant authority to this registry, or constitute an accepted assessment or product/legal validation.
+The `[proposed]` documentation correction and semantic-control sequence is defined in [`documentation-semantic-control-plan.md`](documentation-semantic-control-plan.md). Its independent documentation-assessment track is [`../migration/external-architecture-assessment-roadmap.md`](../migration/external-architecture-assessment-roadmap.md), with the D0/EA-00 packet entrypoint at [`../../assessment/00-charter.md`](../../assessment/00-charter.md). The residual temporal/design inventory is tracked in [`temporal-semantic-gap-register.md`](temporal-semantic-gap-register.md) as a non-authoritative gap projection; [`temporal-vocabulary-contract.json`](temporal-vocabulary-contract.json) catalogues bounded presence checks without defining semantics. These artifacts do not change ADR lifecycle, grant authority to this registry, satisfy requirements, or constitute product/legal validation.
 
 ## Three derived views
 

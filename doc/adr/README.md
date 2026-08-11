@@ -11,11 +11,11 @@
 
 ### Direction & foundation
 
-- **ADR-0004** — Full Rust product transition (measured baseline, parity-gated cutover) `[bounded]`
+- **ADR-0004** — Rust-only product ownership with bounded crate/port/CLI contracts; production storage/retrieval and complete KnowQL remain outside current proof `[bounded]`
 - **ADR-0005** — Rust target architecture (crate and port map; **crate map superseded by ADR-0011/D127**) `[bounded]`
 - **ADR-0007** — Python repository control-plane harness (process orchestration only) `[validated]`
 - **ADR-0008** — Promotion and publication authority ceiling (D116/D120 separate singular authorities) `[bounded]`
-- **ADR-0009** — Five-clock event-anchored temporal model (D118) `[bounded]`
+- **ADR-0009** — Five-clock event-anchored temporal model; `legal_act_effect` enters the legal order but does not by itself establish `InForce` or case applicability (D118) `[bounded]`
 - **ADR-0010** — Evidence kernel gates (D119 C10/C12/C13) `[bounded]`
 - **ADR-0011** — KOF-DA ownership — twenty exclusive capability owners (D123) `[bounded]`
 - **ADR-0012** — Consequential evidence protocol (storage/ledger/workspace candidate assessment) `[bounded]`

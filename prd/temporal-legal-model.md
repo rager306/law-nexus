@@ -44,33 +44,39 @@ Each layer consumes lower-layer evidence. No higher layer may rewrite source evi
 
 ## 3. Glossary and ownership
 
-| Term | Crosswalk meaning | Primary owner | Fail-closed boundary |
-|------|-------------------|---------------|----------------------|
-| Clock | one of five closed, role-bound temporal dimensions | ADR-0009 | no silent substitution or sixth core clock |
-| Temporal anchor | provenance-bound value or explicit absence for a named clock | ADR-0009 | missing → `Unknown`; competing → `Conflict` |
-| `factual_event` | when a real-world fact occurred | ADR-0009 | not proceeding, publication or legal effect |
-| `proceeding` | when a legal proceeding started | ADR-0009 | not factual event or legal effect |
-| `legal_act_effect` | when an act/status event enters legal order | ADR-0009 | not publication, observation or case applicability |
-| `source_publication` | when the source document was published | ADR-0009 | not system observation or legal effect |
-| `system_observation` | when the system observed/ingested evidence | ADR-0009 | not publication, force or applicability |
-| Event time | not a closed domain term; must be qualified by one of the five clock roles | ADR-0009 crosswalk | unqualified `event_time` is ambiguous |
-| Transaction time | recording dimension; must state whether the fact is source publication or system observation | ADR-0017 §5 + ADR-0009 | cannot collapse two ADR-0009 clocks into one source of truth |
-| Valid/effective time | legal-order effect anchored to `legal_act_effect` | ADR-0017 + ADR-0009 | does not imply case applicability |
-| CC | stable Component Concept identity | ADR-0017 | not text, force or applicability |
-| CTV | semantic component content version derived from events | ADR-0017 | not a static interval, force or legal fact from lexical evidence alone |
-| CLV | language realization of a CTV | ADR-0017 | not a separate legal status |
-| NormativeState | time-indexed normative status (`InForce`, `Suspended`, `Repealed`, `Superseded`, `Transitional`, `Unknown`) | ADR-0018 | text presence does not imply `InForce` |
-| Force | informal product term for NormativeState/status at a governing time | ADR-0018 | force is not applicability or system knowledge |
-| Applicability | whether a norm/version governs supplied case facts, producing a typed decision and explainable trace | ADR-0023 ownership `[proposed]`; ADR-0017/0021/0022 prerequisites; runtime `[deferred]` | executable protocol absent; default is abstention |
-| Knowledge | what the system can support from observed evidence and practice coverage | ADR-0009 + ADR-0020 crosswalk | knowledge of a claim is not the claim's legal state |
-| Correction | a new immutable observation/evidence event and rebuilt projection | ADR-0009 + ADR-0017 crosswalk | no in-place rewrite or “latest scrape wins” |
-| Status transition | evidence-gated change of NormativeState anchored to `legal_act_effect` | ADR-0018 | absence of evidence is not a transition |
-| Transitional resolution | deterministic design for choosing a version across amendment rules | ADR-0021 | no chronology-only default; distinct from risk |
-| Practice overlay | non-authoritative, temporally bounded `EffectiveInterpretation` projection | ADR-0020 | does not rewrite CTV/status except typed ex-tunc status event |
-| Risk | provenance-bearing advisory assessment with explicit unknowns | ADR-0021 | not actuarial probability or legal conclusion |
-| Profile | versioned adapter supplying industry priority, facts, special norms, practice weighting and risk factors | ADR-0022 | cannot mutate kernel evidence, ranks or clocks |
+| Term | Crosswalk meaning | Primary owner | Vocabulary status | Fail-closed boundary |
+|------|-------------------|---------------|-------------------|----------------------|
+| Clock | one of five closed, role-bound temporal dimensions | ADR-0009 | canonical `[bounded]` | no silent substitution or sixth core clock |
+| Temporal anchor | provenance-bound value or explicit absence for a named clock | ADR-0009 | canonical `[bounded]` | missing → `Unknown`; competing → `Conflict` |
+| `factual_event` | when a real-world fact occurred | ADR-0009 | canonical `[bounded]` | not proceeding, publication or legal effect |
+| `proceeding` | when a legal proceeding started | ADR-0009 | canonical `[bounded]` | not factual event or legal effect |
+| `legal_act_effect` | when a proven act/status event enters the legal order | ADR-0009 | canonical `[bounded]` | not publication, observation, an `InForce` determination or case applicability |
+| `source_publication` | when the source document was published | ADR-0009 | canonical `[bounded]` | not system observation or legal effect |
+| `system_observation` | when the system observed/ingested evidence | ADR-0009 | canonical `[bounded]` | not publication, force or applicability |
+| Event time | not a closed domain term; must be qualified by one of the five clock roles | ADR-0009 crosswalk | qualified-view only | unqualified `event_time` is ambiguous |
+| Transaction time | recording dimension; must state whether the fact is source publication or system observation | ADR-0017 §5 + ADR-0009 | qualified-view only `[proposed]` | cannot collapse two ADR-0009 clocks into one source of truth |
+| Valid/effective time | legal-order effect anchored to `legal_act_effect` | ADR-0017 + ADR-0009 | qualified-view only `[proposed]` | does not imply case applicability |
+| `edition_date` | legacy/provider field with no active canonical temporal semantics | future identity/CTV schema decision | deferred-undefined | must not substitute for Expression identity, CTV event time or legal effect |
+| `effective_from` / `effective_to` | interval projections derived from proven CTV/status events, never source facts by themselves | ADR-0017 + ADR-0018 | projection-only `[proposed]` | static fields cannot override event provenance or decide applicability |
+| CC | stable Component Concept identity | ADR-0017 | canonical `[proposed]` | not text, force or applicability |
+| CTV | semantic component content version derived from events | ADR-0017 | canonical `[proposed]` | not a static interval, force or legal fact from lexical evidence alone |
+| CLV | language realization of a CTV | ADR-0017 | canonical `[proposed]` | not a separate legal status |
+| `EvidenceSpan` | future source-bound byte-span evidence contract referenced by readiness prose | ADR-0010 + future evidence schema | deferred-undefined | wording does not assert a current public type, real-corpus coverage or legal truth |
+| `SourceBlockRecord` | tracked non-authoritative parser inspection record contract | ADR-0013 + `prd/parser/parser_record_contract.md` | canonical parser-record term `[bounded]` | not an authoritative legal evidence entity, active Rust domain type or proof of a future `SourceBlock` contract |
+| `SourceBlock` | future evidence-domain entity named in readiness prose | ADR-0010 + future evidence schema | deferred-undefined | must not be inferred from `SourceBlockRecord` or archive terminology |
+| NormativeState | time-indexed normative status (`InForce`, `Suspended`, `Repealed`, `Superseded`, `Transitional`, `Unknown`) | ADR-0018 | canonical `[proposed]` | text presence does not imply `InForce` |
+| NormativeStatus | compatibility alias for NormativeState | ADR-0018 | deprecated-alias `[proposed]` | unqualified use must not create a second status dimension |
+| Force | informal product term for NormativeState/status at a governing time | ADR-0018 | informal `[proposed]` | force is not applicability or system knowledge |
+| Applicability | whether a norm/version governs supplied case facts, producing a typed decision and explainable trace | ADR-0023 ownership `[proposed]`; ADR-0017/0021/0022 prerequisites; runtime `[deferred]` | canonical design term; runtime deferred | executable protocol absent; default is abstention |
+| Knowledge | what the system can support from observed evidence and practice coverage | ADR-0009 + ADR-0020 crosswalk | canonical crosswalk `[proposed]` | knowledge of a claim is not the claim's legal state |
+| Correction | a new immutable observation/evidence event and rebuilt projection | ADR-0009 + ADR-0017 crosswalk | canonical invariant `[proposed]` | no in-place rewrite or “latest scrape wins” |
+| Status transition | evidence-gated change of NormativeState anchored to `legal_act_effect` | ADR-0018 | canonical `[proposed]` | absence of evidence is not a transition |
+| Transitional resolution | deterministic design for choosing a version across amendment rules | ADR-0021 | canonical `[proposed]` | no chronology-only default; distinct from risk |
+| Practice overlay | non-authoritative, temporally bounded `EffectiveInterpretation` projection | ADR-0020 | canonical `[proposed]` | does not rewrite CTV/status except typed ex-tunc status event |
+| Risk | provenance-bearing advisory assessment with explicit unknowns | ADR-0021 | canonical `[proposed]` | not actuarial probability or legal conclusion |
+| Profile | versioned adapter supplying industry priority, facts, special norms, practice weighting and risk factors | ADR-0022 | canonical `[proposed]` | cannot mutate kernel evidence, ranks or clocks |
 
-ADR-0018 EA-04 clarification makes `NormativeState` the canonical public term and treats `NormativeStatus` as a deprecated alias for the same dimension.
+ADR-0018 EA-04 clarification makes `NormativeState` the canonical public term and treats `NormativeStatus` as a deprecated alias for the same dimension. Residual documentation, design, implementation and evidence gaps are inventoried in [`architecture/temporal-semantic-gap-register.md`](architecture/temporal-semantic-gap-register.md); that register is non-authoritative and cannot close or promote any row by itself.
 
 ## 4. Five-clock contract
 

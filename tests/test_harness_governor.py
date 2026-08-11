@@ -33,6 +33,7 @@ from law_nexus_harness.governor import (
     check_published_trace_contract,
     check_roadmap_freshness,
     check_semantic_stub_in_product_code,
+    check_temporal_vocabulary_contract,
     check_verify_test_coverage_drift,
     run_governor,
 )
@@ -988,6 +989,77 @@ def test_document_freshness_trigger_catalog_rejects_authority_promotion() -> Non
         assert "non-authoritative" in str(error)
     else:
         raise AssertionError("authoritative freshness catalog must be rejected")
+
+
+def test_live_temporal_vocabulary_contract_is_complete() -> None:
+    finding = check_temporal_vocabulary_contract(ROOT)[0]
+
+    assert finding.status == "pass"
+    assert finding.severity == "ok"
+    assert "terms=10" in finding.observed
+    assert "gaps=16" in finding.observed
+    assert "not semantic validation" in finding.observed
+
+
+def test_temporal_vocabulary_contract_warns_on_missing_term_and_gap(tmp_path: Path) -> None:
+    prd = tmp_path / "prd"
+    architecture = prd / "architecture"
+    architecture.mkdir(parents=True)
+    (prd / "temporal-legal-model.md").write_text(
+        "# Model\ncanonical `[bounded]` `legal_act_effect`\n",
+        encoding="utf-8",
+    )
+    (architecture / "temporal-semantic-gap-register.md").write_text(
+        "# Gaps\n| TSG-001 | x |\n",
+        encoding="utf-8",
+    )
+    (architecture / "temporal-vocabulary-contract.json").write_text(
+        json.dumps(
+            {
+                "schema_version": "law-nexus-temporal-vocabulary-contract/v1",
+                "authoritative": False,
+                "model_path": "prd/temporal-legal-model.md",
+                "gap_register_path": "prd/architecture/temporal-semantic-gap-register.md",
+                "rows": [
+                    {
+                        "id": "EvidenceSpan",
+                        "needle": "| `EvidenceSpan` |",
+                        "required_fragments": ["deferred-undefined"],
+                    }
+                ],
+                "gap_ids": ["TSG-001", "TSG-016"],
+            }
+        ),
+        encoding="utf-8",
+    )
+
+    finding = check_temporal_vocabulary_contract(tmp_path)[0]
+
+    assert finding.status == "fail"
+    assert finding.severity == "warn"
+    assert "term:EvidenceSpan" in finding.observed
+    assert "gap:TSG-016" in finding.observed
+    assert finding.rule_id == "temporal-vocabulary.contract-gap"
+
+
+def test_temporal_vocabulary_catalog_rejects_authority_promotion(tmp_path: Path) -> None:
+    architecture = tmp_path / "prd" / "architecture"
+    architecture.mkdir(parents=True)
+    (architecture / "temporal-vocabulary-contract.json").write_text(
+        json.dumps(
+            {
+                "schema_version": "law-nexus-temporal-vocabulary-contract/v1",
+                "authoritative": True,
+            }
+        ),
+        encoding="utf-8",
+    )
+
+    report = run_governor(tmp_path, check="temporal-vocabulary-contract")
+
+    assert report.status == "failure"
+    assert report.tool_error_count == 1
+    assert report.findings[0].rule_id == "tool-error"
 
 
 def test_live_published_trace_contract_covers_consequential_chains() -> None:

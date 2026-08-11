@@ -2035,6 +2035,8 @@ def _table_line(
 
 
 _DOCUMENT_FRESHNESS_CATALOG = "prd/architecture/document-freshness-triggers.json"
+_TEMPORAL_VOCABULARY_CATALOG = "prd/architecture/temporal-vocabulary-contract.json"
+_TEMPORAL_VOCABULARY_SCHEMA = "law-nexus-temporal-vocabulary-contract/v1"
 
 
 def _working_tree_paths(root: Path) -> set[str]:
@@ -2139,6 +2141,94 @@ def check_document_freshness_triggers(root: Path) -> list[GovernorFinding]:
                 "(change-impact diagnostics only; not semantic validation)."
             ),
             remediation="none",
+        )
+    ]
+
+
+def check_temporal_vocabulary_contract(root: Path) -> list[GovernorFinding]:
+    """Check catalogued vocabulary rows and semantic-gap inventory continuity."""
+
+    catalog = _load_json(root / _TEMPORAL_VOCABULARY_CATALOG)
+    if catalog.get("schema_version") != _TEMPORAL_VOCABULARY_SCHEMA:
+        raise ValueError("unsupported temporal vocabulary catalog schema")
+    if catalog.get("authoritative") is not False:
+        raise ValueError("temporal vocabulary catalog must be non-authoritative")
+
+    model_rel = str(catalog.get("model_path") or "")
+    register_rel = str(catalog.get("gap_register_path") or "")
+    rows = catalog.get("rows")
+    gap_ids = catalog.get("gap_ids")
+    if not model_rel or not register_rel or not isinstance(rows, list) or not rows:
+        raise ValueError("invalid temporal vocabulary catalog surfaces or rows")
+    if not isinstance(gap_ids, list) or not gap_ids:
+        raise ValueError("invalid temporal vocabulary gap inventory")
+
+    model_path = root / model_rel
+    register_path = root / register_rel
+    missing: list[str] = []
+    if not model_path.is_file():
+        missing.append(f"surface:{model_rel}")
+    else:
+        lines = model_path.read_text(encoding="utf-8", errors="replace").splitlines()
+        for item in rows:
+            if not isinstance(item, dict):
+                raise ValueError("temporal vocabulary row must be an object")
+            row_id = str(item.get("id") or "")
+            needle = str(item.get("needle") or "")
+            fragments = item.get("required_fragments")
+            if not row_id or not needle or not isinstance(fragments, list) or not fragments:
+                raise ValueError("invalid temporal vocabulary row")
+            row = next((line for line in lines if needle in line), None)
+            if row is None or not all(str(fragment) in row for fragment in fragments):
+                missing.append(f"term:{row_id}")
+
+    if not register_path.is_file():
+        missing.append(f"surface:{register_rel}")
+    else:
+        register_text = register_path.read_text(encoding="utf-8", errors="replace")
+        for gap_id in gap_ids:
+            if not isinstance(gap_id, str) or not gap_id:
+                raise ValueError("invalid temporal vocabulary gap id")
+            if f"| {gap_id} |" not in register_text:
+                missing.append(f"gap:{gap_id}")
+
+    evidence = (
+        GovernorEvidence(path=_TEMPORAL_VOCABULARY_CATALOG),
+        GovernorEvidence(path=model_rel),
+        GovernorEvidence(path=register_rel),
+    )
+    if missing:
+        return [
+            GovernorFinding(
+                check_id="temporal-vocabulary-contract",
+                status="fail",
+                severity="warn",
+                message="temporal vocabulary or semantic-gap inventory is incomplete",
+                observed=f"missing={missing}",
+                remediation=(
+                    "Restore the bounded catalogued row/status marker or gap inventory row. "
+                    "Use the governing ADR for semantic changes; do not promote lifecycle from this check."
+                ),
+                rule_id="temporal-vocabulary.contract-gap",
+                expected="Catalogued controlled-vocabulary rows and gap IDs remain visible.",
+                evidence=evidence,
+            )
+        ]
+
+    return [
+        GovernorFinding(
+            check_id="temporal-vocabulary-contract",
+            status="pass",
+            severity="ok",
+            message="bounded temporal vocabulary and semantic-gap inventory are present",
+            observed=(
+                f"terms={len(rows)}, gaps={len(gap_ids)} "
+                "(repository structure only; not semantic validation or product proof)."
+            ),
+            remediation="none",
+            rule_id="temporal-vocabulary.contract",
+            expected="Catalogued controlled-vocabulary rows and gap IDs remain visible.",
+            evidence=evidence,
         )
     ]
 
@@ -3191,6 +3281,15 @@ GOVERNOR_CHECK_SPECS: tuple[CheckSpec, ...] = (
         check_document_freshness_triggers,
         "Require a distinct companion refresh for consequential working-tree document changes.",
         (_DOCUMENT_FRESHNESS_CATALOG,),
+        "warn",
+    ),
+    _check_spec(
+        "temporal-vocabulary-contract",
+        "docs",
+        "deterministic",
+        check_temporal_vocabulary_contract,
+        "Keep bounded controlled-vocabulary rows and semantic-gap IDs visible.",
+        (_TEMPORAL_VOCABULARY_CATALOG,),
         "warn",
     ),
     _check_spec(
