@@ -155,6 +155,11 @@ The bounded evidence packet and exact primary anchors are maintained in
 threat and probe details are maintained in
 `prd/research/agentfs-filesystem-isolation-assessment-2026-07-23.md`.
 
+## Non-claims
+
+- Protocol compliance is process honesty, not legal correctness or product readiness.
+- Storage/ledger/workspace technology choices remain open unless a later ADR promotes them.
+
 ## References
 
 - `prd/architecture/m111-final-architecture-baseline.md`

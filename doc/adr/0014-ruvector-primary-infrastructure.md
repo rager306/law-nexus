@@ -14,6 +14,10 @@ related: [ADR-0004, ADR-0005, ADR-0007, ADR-0009, ADR-0010, ADR-0012, ADR-0013, 
 **Accepted `[proposed]`.** The direction is selected, but product integration and
 readiness are not proven. Synthetic capability checks are bounded evidence only.
 
+## Context
+
+law-nexus needs a primary graph+vector infrastructure after FalkorDB was retired from the active product direction. ADR-0014 records the RuVector selection and dual-storage boundary as `[proposed]` until real corpus, crash consistency, and citation contracts land.
+
 ## Decision
 
 Use selected RuVector components behind law-nexus ports as the proposed graph and

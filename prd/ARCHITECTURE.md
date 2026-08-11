@@ -94,67 +94,34 @@ profile projection over the five clocks (ADR-0009), NOT a sixth clock.
 ## Where we actually are (truth, not optimism)
 
 ```
-M009 Consultant XML hierarchy parser  [bounded]
-   2185 records, 7 levels, HIER-CONS-*, stdlib xml.etree, 1 fixture (44-FZ-2026.xml)
-   Consultant-primary / Garant-deferred
+[HISTORICAL FOOTNOTE — not active product work]
+  Python-era parser/ACP/git-lex/FalkorDB milestones (M001–M108 era) are prior art.
+  Detail lives under prd/archive/ and python_archive/ (R066 archive-only).
+  Meta-drift lesson: anti-drift infrastructure must not replace product delivery.
    ▼
-M034 Workline Recovery Audit (2026-05)  [validated]
-   identified M031-M033 drift (lifecycle/discovery upper layers, NOT parser foundation)
-   produced corrected parser-hardening roadmap:
-   prd/research/source_structuring/25-corrected-consultant-xml-parser-roadmap.md
+M109-M129 Rust baseline + 20 hostile contracts  [bounded]
+   root Cargo workspace + thin Python repository harness (ADR-0007 [validated])
+   20 PASS / 0 FAIL synthetic hostile cases; not product readiness
    ▼
-╳╳╳ GAP — parser-hardening NOT executed (project drifted to ACP M035-M067) ╳╳╳
+M131-M140 parser foundation + archival cutover  [bounded]
+   ADR-0013 universal parser [bounded] (Consultant WordML + Garant ODT)
+   shared hierarchy/sentence/reference/temporal/deontic lexical candidates
+   Python product → python_archive/; ACP/git-lex disconnected from active plane
    ▼
-M067 ACP/git-lex externalization  [validated]
-   reusable core → /root/git-lex-kit-acp/ (published github.com/rager306/git-lex-kit-acp v0.2.0)
-   law-nexus = profile consumer; ACP-inline era CLOSED
+M141-M160 process/port-contract hardening  [bounded]
+   shared port contracts, CI/governor honesty, clippy gates
    ▼
-M086-M105 Parser-hardening wave (2026-06–07)  [bounded]
-   M086-M090 debt closure (+115 tests restored)
-   M088 RawBlock IR in ports/source_hierarchy.py (6 additive fields)
-   M091 razdel level + M092 abzac diagnostic + M093 zone detection
-   M094 FRBR act_id/edition_id derivation in consultant_wordml.py
-   M095-M096 internal + external reference extraction
-   M097 temporal markers (entry_into_force, invalidity, secrecy)
-   M098 NormStatement deontic lexeme detection (22 patterns, 6 categories)
-   M099-M100 Layer 2 YAML profiles (consultant_wordml.yaml + garant_odt.yaml)
-   M101 internal reference resolution (83 hierarchy nodes in staging)
-   M102 Pass A document profiler (profile_document census)
-   M103 NormStatement candidate emission (1426 candidates)
-   M104 NormStatement staging graph integration
-   M105 Consultant source corpus migration 41→81 files
-       15249 hierarchy records / 1378 relation candidates / 1567 norm candidates
-       10 in-scope / 84 out-of-scope fixtures, 94-fixture inventory
-   M106 test performance: session-scoped fixtures + slow markers
-       fast run 32s (was 65+ min), 120x speedup
+M161-M164 retrieval/process honesty  [bounded]
+   real cosine ranking (InMemory); semantic-stub + historical-test-debt probes
+   deterministic CLI vectors (non-semantic)
    ▼
-M107 architecture crystallization  [bounded/proposed]
-   Rust-only product transition selected (ADR-0004/0005, R063/R065)
-   Python repository-control harness allowed (ADR-0007, R064)
-   ACP/git-lex active role rejected; archive-only decommission planned (R066)
-   parser artifact baseline mismatch detected; reconciliation required before parity
+M165 temporal legal ontology L1–L7  [proposed] design (ADR-0016..0022)
+   Foundation LC hygiene: ADR-0004/0005 [bounded], ADR-0007 [validated]
+   Docs/process follow-up: truth-oracle sync, vault untrack, archive relocate
    ▼
-M108 ACP/git-lex runtime disconnection  [bounded]
-   750-path manifest: 546 archive candidates / 204 manual review
-   git-lex-managed pre-commit removed with forced standard installation
-   real hook proof: exit 0, .lex fingerprint unchanged
-   pre-commit/CI/ADR gates neutralized; 43 tests + onion 4/0
-   bulk archive NOT started; .lex and historical ACP artifacts still present
-   ▼
-M109-M129 Rust baseline and hostile contract closure  [bounded]
-   root Cargo workspace + thin Python repository harness
-   20 hostile cases: 20 PASS / 0 FAIL / 0 unsupported-case
-   real WordML streaming decoder: 22 MB / 53,119 paragraphs without OOM
-   ▼
-ADR-0013 universal parser  [bounded] + ADR-0014 RuVector  [proposed]
-   independent Consultant WordML and Garant ODT adapters
-   shared bounded hierarchy, sentence, reference, temporal and deontic candidates
-   TEI USER-bge-m3 1024d embedding boundary remains proposed
-   RVF vectors + redb GraphDB CRUD; no ruvector-graph Cypher execution claim
-   ▼
-[LATEST COMPLETED] M165 — temporal legal ontology crystallization (ADR-0016..0022 L1→L7 chain, all [proposed], fail-closed).
-Foundation lifecycle hygiene for ADR-0004 [bounded], ADR-0005 [bounded], ADR-0007 [validated] landed in the same docs wave.
-Next: document revision waves (C1 README / C2 PRD / C7 AGENTS / C8 truth-oracle ontology integration) then live-adapter when TEI/RuVector infra exists.
+NEXT (no Rust required first)
+   REQUIREMENTS/PROJECT ontology weave (R074); archive vault hygiene
+   Then L2 CTV implementation when parser data ready; TEI/RuVector when infra exists
 ```
 
 ## Current layer (where work happens now)

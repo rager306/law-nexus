@@ -123,7 +123,8 @@ MISSING_ADR_REF_MESSAGE = (
 
 DEFAULT_CLAIM_FILES: tuple[str, ...] = (
     "prd/ARCHITECTURE.md",
-    "prd/02_architecture.md",
+    # Historical pre-rust PRD claim surface relocated under prd/archive/pre-rust-prd/
+    # (R066 / archive-path-policy). Active claim scanning uses the living oracle only.
 )
 
 # The most recent verification result, for in-process inspection (parity with

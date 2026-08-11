@@ -139,3 +139,14 @@ ADR-0007 advances from `[proposed]` to `[bounded]` only when:
 5. failure diagnostics include command, phase, duration, exit code, and bounded
    stderr without secrets;
 6. the harness has no PyO3/FFI/shared-library dependency.
+
+## Non-claims
+
+- The harness is not a product runtime and does not validate legal correctness.
+- Subprocess orchestration success is not product readiness or live TEI/RuVector validation.
+- Historical options discussing PyO3 are rejected alternatives, not active design.
+
+## References
+
+- ADR-0004, ADR-0005, D105, D106, M107-7xtx1c
+- `src/law_nexus_harness/`

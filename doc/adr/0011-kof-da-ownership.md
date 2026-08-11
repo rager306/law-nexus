@@ -71,6 +71,12 @@ No two capabilities share a primary owner. Each crate owns exactly one
 capability. Cross-capability composition happens through ports, not through
 shared mutable state.
 
+## Consequences
+
+- Product capabilities map to exclusive `ln-*` owners; shared ownership is rejected.
+- ADR-0005 crate sketches that conflict with this map are historical.
+- Ownership map is not product readiness proof.
+
 ## Non-claims
 
 - Ownership is proven in bounded synthetic hostile-case tests only.

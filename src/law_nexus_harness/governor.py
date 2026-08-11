@@ -1562,6 +1562,15 @@ _HISTORICAL_VAULT_PATHS: tuple[str, ...] = (
     ".lex",
     "python_archive",
     "Old_project",
+    "prd/archive/acp-git-lex",
+    "prd/archive/pre-rust-prd",
+)
+
+# Ontology ADRs that must be cited in REQUIREMENTS + PROJECT after M165 weave.
+_ONTOLOGY_DOC_MATRIX_ADRS: tuple[str, ...] = tuple(f"{n:04d}" for n in range(16, 23))
+_ONTOLOGY_DOC_MATRIX_SURFACES: tuple[str, ...] = (
+    ".gsd/REQUIREMENTS.md",
+    ".gsd/PROJECT.md",
 )
 
 # ADR IDs that must appear in prd/ARCHITECTURE.md with a matching lifecycle tag
@@ -1778,6 +1787,63 @@ def check_adr_truth_oracle_sync(root: Path) -> list[GovernorFinding]:
     ]
 
 
+def check_adr_doc_matrix_coverage(root: Path) -> list[GovernorFinding]:
+    """Require ontology ADR-0016..0022 cites in REQUIREMENTS and PROJECT.
+
+    Closes the post-M165 coverage hole where the living ontology spine existed
+    only in ARCHITECTURE/adr README. Lifecycle [bounded]; process anti-drift.
+    """
+    check_id = "adr-doc-matrix-coverage"
+    remediation = (
+        "Cite each ADR-0016..0022 in .gsd/REQUIREMENTS.md (e.g. R074 / R068 / R070 "
+        "notes) and .gsd/PROJECT.md ontology section so the requirement/project "
+        "contract tracks the design spine."
+    )
+
+    missing: list[str] = []
+    for rel in _ONTOLOGY_DOC_MATRIX_SURFACES:
+        path = root / rel
+        if not path.is_file():
+            missing.append(f"{rel}:missing_file")
+            continue
+        text = path.read_text(encoding="utf-8", errors="replace")
+        for adr_id in _ONTOLOGY_DOC_MATRIX_ADRS:
+            if f"ADR-{adr_id}" not in text:
+                missing.append(f"{rel}:ADR-{adr_id}")
+
+    if missing:
+        preview = missing[:16]
+        extra = len(missing) - len(preview)
+        observed = f"missing={preview}"
+        if extra > 0:
+            observed += f" +{extra}"
+        return [
+            GovernorFinding(
+                check_id=check_id,
+                status="fail",
+                severity="warn",
+                message="ontology ADR×doc matrix coverage incomplete",
+                observed=(f"{observed} (lifecycle [bounded]; process anti-drift; advisory)."),
+                remediation=remediation,
+            )
+        ]
+
+    return [
+        GovernorFinding(
+            check_id=check_id,
+            status="pass",
+            severity="ok",
+            message="ontology ADR-0016..0022 cited in REQUIREMENTS and PROJECT",
+            observed=(
+                f"surfaces={list(_ONTOLOGY_DOC_MATRIX_SURFACES)} "
+                f"adrs={list(_ONTOLOGY_DOC_MATRIX_ADRS)} "
+                f"(lifecycle [bounded]; process anti-drift)."
+            ),
+            remediation="none",
+        )
+    ]
+
+
 def check_adr_index_completeness(root: Path) -> list[GovernorFinding]:
     """Every doc/adr/0*.md (except README) must be listed in doc/adr/README.md."""
     check_id = "adr-index-completeness"
@@ -1866,6 +1932,7 @@ def run_governor(root: Path | None = None) -> GovernorReport:
         + check_archive_path_policy(resolved)
         + check_adr_truth_oracle_sync(resolved)
         + check_adr_index_completeness(resolved)
+        + check_adr_doc_matrix_coverage(resolved)
     )
     error_count = sum(1 for item in findings if item.status == "fail" and item.severity == "error")
     warn_count = sum(1 for item in findings if item.status == "fail" and item.severity == "warn")

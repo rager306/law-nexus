@@ -14,6 +14,12 @@ AGENTS.md
 python_archive/
 Old_project/
 
+# Historical PRD/ACP vault (relocated from active prd/ paths). Keep the vault
+# README tracked if present under a non-ignored path; deep trees are ignored to
+# reduce index noise. Use `git add -f prd/archive/README.md` when updating.
+prd/archive/acp-git-lex/
+prd/archive/pre-rust-prd/
+
 # Generated skill verification reports
 .agents/skills/falkordb/evals/*-report.json
 .agents/skills/falkordb/evals/*-report.md

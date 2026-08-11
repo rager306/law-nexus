@@ -174,6 +174,12 @@ ecosystem recommends.
 `cargo test` run, cross-crate refactoring). The accepted plan keeps the Rust
 crates in one workspace.
 
+## Non-claims
+
+- The four-crate sketch in this ADR is **not** the current workspace map (superseded by ADR-0011 / D127).
+- No claim that every Python module has a one-to-one Rust crate today.
+- Parser completeness and legal correctness are not claimed (see ADR-0013).
+
 ## References
 
 - **ADR-0004** — the migration decision this architecture serves.

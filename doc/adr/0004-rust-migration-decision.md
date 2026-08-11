@@ -160,6 +160,12 @@ migration starts from zero under pressure. Preparing the ADRs, target
 architecture, and roadmap now (M107) is cheap; doing it under a production
 latency incident is expensive.
 
+## Non-claims
+
+- Full product readiness, legal correctness, and real-corpus retrieval quality are not claimed.
+- Python performance baselines in Context are historical measurement context, not an active Python product runtime claim.
+- RuVector/TEI infrastructure readiness is out of scope for this ADR (see ADR-0014).
+
 ## References
 
 - **M107-7xtx1c** — this milestone: crystallize requirements/architecture/ADRs

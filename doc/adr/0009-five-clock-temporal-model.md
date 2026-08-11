@@ -47,6 +47,12 @@ into a single "timestamp" causes evidence corruption.
    system returns a typed `Unknown` or `Conflict` outcome, not a default or
    approximate value.
 
+## Consequences
+
+- Product temporal reasoning must name clocks explicitly and reject silent substitution.
+- Derived intervals and bitemporal views are projections over immutable evidence, not source truth.
+- Ontology layers (ADR-0016..0022) consume these clocks; they do not invent a sixth core clock.
+
 ## Non-claims
 
 - Applicable-law or effective-date legal correctness is not claimed.

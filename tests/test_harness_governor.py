@@ -11,6 +11,7 @@ from law_nexus_harness.governor import (
     _EXPECTED_DIRECTION,
     GOVERNOR_SCHEMA_VERSION,
     check_active_requirement_contradictions,
+    check_adr_doc_matrix_coverage,
     check_adr_index_completeness,
     check_adr_truth_oracle_sync,
     check_architecture_direction,
@@ -796,13 +797,12 @@ def test_live_governor_includes_adr_and_archive_checks() -> None:
     by_id = {item.check_id: item for item in report.findings}
     assert "adr-truth-oracle-sync" in by_id
     assert "adr-index-completeness" in by_id
+    assert "adr-doc-matrix-coverage" in by_id
     assert "archive-path-policy" in by_id
-    # Truth-oracle and index must pass after LC hygiene; archive may still warn
-    # while vaults remain git-tracked pending untrack wave.
     assert by_id["adr-truth-oracle-sync"].status == "pass"
     assert by_id["adr-index-completeness"].status == "pass"
-    assert by_id["archive-path-policy"].check_id == "archive-path-policy"
-    assert by_id["archive-path-policy"].severity in {"ok", "warn"}
+    assert by_id["adr-doc-matrix-coverage"].status == "pass"
+    assert by_id["archive-path-policy"].status == "pass"
     assert report.error_count == 0
     assert report.status == "ok"
 
@@ -870,7 +870,11 @@ def test_archive_path_policy_warns_when_not_ignored(tmp_path: Path) -> None:
 
 def test_archive_path_policy_passes_when_ignored(tmp_path: Path) -> None:
     (tmp_path / ".gitignore").write_text(
-        ".lex/\npython_archive/\nOld_project/\n",
+        ".lex/\n"
+        "python_archive/\n"
+        "Old_project/\n"
+        "prd/archive/acp-git-lex/\n"
+        "prd/archive/pre-rust-prd/\n",
         encoding="utf-8",
     )
     # Not a git repo => tracked list empty; ignore-only is enough for pass.
@@ -892,3 +896,20 @@ def test_adr_index_completeness_detects_missing(tmp_path: Path) -> None:
     assert finding.status == "fail"
     assert finding.severity == "warn"
     assert "0099-missing.md" in finding.observed
+
+
+def test_adr_doc_matrix_coverage_detects_missing_surface(tmp_path: Path) -> None:
+    gsd = tmp_path / ".gsd"
+    gsd.mkdir()
+    (gsd / "REQUIREMENTS.md").write_text(
+        "# R\nADR-0016 ADR-0017 ADR-0018 ADR-0019 ADR-0020 ADR-0021 ADR-0022\n",
+        encoding="utf-8",
+    )
+    # PROJECT missing entirely
+    findings = check_adr_doc_matrix_coverage(tmp_path)
+    assert len(findings) == 1
+    finding = findings[0]
+    assert finding.check_id == "adr-doc-matrix-coverage"
+    assert finding.status == "fail"
+    assert finding.severity == "warn"
+    assert "PROJECT.md" in finding.observed

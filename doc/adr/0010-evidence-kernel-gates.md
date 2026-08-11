@@ -62,6 +62,12 @@ its ports, but no family module can assert authority over another family's
 evidence. The composition root wires families together; families do not
 import each other directly.
 
+## Consequences
+
+- Identity, lifecycle, and relation registries are fail-closed process gates for evidence admission.
+- Downstream ontology resolvers (ADR-0016..0022) must not bypass C10/C12/C13.
+- Kernel gates do not by themselves prove legal correctness of admitted content.
+
 ## Non-claims
 
 - No product evidence storage or graph database is selected.

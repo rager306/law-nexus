@@ -454,6 +454,12 @@ text. Manual streaming is faster and simpler for our use case.
 **Cons:** adds a transformation step, doubles memory for large files, and
 the transformation is just as complex as parsing directly. Not worth it.
 
+## Non-claims
+
+- Bounded adapters and lexical candidates are not legal facts or complete parser quality.
+- Consultant/Garant parity and corpus completeness are not claimed.
+- NormStatement/deontic candidates are not validated normative content.
+
 ## References
 
 - **ADR-0005** — crate structure proposal (this ADR refines the parser section)
