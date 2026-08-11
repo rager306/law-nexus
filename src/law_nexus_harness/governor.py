@@ -1567,6 +1567,7 @@ _HISTORICAL_VAULT_PATHS: tuple[str, ...] = (
     "prd/archive/milestone-proofs-era",
     "prd/archive/research-era",
     "prd/archive/project-state-era",
+    "prd/archive/architecture-era",
     "archive/agent-skills",
     "archive/scripts",
     "archive/tests",
@@ -1585,8 +1586,11 @@ _ADR_TRUTH_ORACLE_EXPECTATIONS: dict[str, str] = {
     "0004": "bounded",
     "0005": "bounded",
     "0007": "validated",
+    "0008": "bounded",
     "0009": "bounded",
     "0010": "bounded",
+    "0011": "bounded",
+    "0012": "bounded",
     "0013": "bounded",
     "0014": "proposed",
     "0015": "bounded",
@@ -1598,6 +1602,22 @@ _ADR_TRUTH_ORACLE_EXPECTATIONS: dict[str, str] = {
     "0021": "proposed",
     "0022": "proposed",
 }
+
+# Surfaces that must cite every present ADR file (cross-surface matrix).
+_ADR_CROSS_SURFACE_PATHS: tuple[str, ...] = (
+    "prd/ARCHITECTURE.md",
+    "README.md",
+    "doc/adr/README.md",
+)
+
+# Required MADR section headings for every ADR file (hygiene).
+_ADR_REQUIRED_SECTIONS: tuple[str, ...] = (
+    "Status",
+    "Context",
+    "Decision",
+    "Consequences",
+    "Non-claims",
+)
 
 _LIFECYCLE_TAG_RE = re.compile(r"\[(proposed|bounded|smoke|validated|deferred)\]", re.IGNORECASE)
 
@@ -1908,6 +1928,164 @@ def check_adr_index_completeness(root: Path) -> list[GovernorFinding]:
     ]
 
 
+def _adr_status_lifecycle(text: str) -> str | None:
+    """Extract the primary lifecycle tag from an ADR Status section first line."""
+    match = re.search(r"(?ims)^##\s*Status\s*\n+(.+)$", text)
+    if not match:
+        return None
+    first = match.group(1).splitlines()[0]
+    tags = _LIFECYCLE_TAG_RE.findall(first)
+    return tags[0].lower() if tags else None
+
+
+def check_adr_structure_hygiene(root: Path) -> list[GovernorFinding]:
+    """Require MADR sections + Status lifecycle on every ADR file.
+
+    Makes ADRs machine-verifiable: Status must carry a D098 lifecycle tag on the
+    first Status line; required section headings must exist. Gaps are advisory
+    (warn) so historical ADR prose can be repaired without blocking the tree.
+    Lifecycle [bounded]; process anti-drift.
+    """
+    check_id = "adr-structure-hygiene"
+    remediation = (
+        "For each ADR under doc/adr/0*.md: put a D098 lifecycle tag on the first "
+        "Status line (Accepted [proposed|bounded|smoke|validated|deferred]) and "
+        "ensure ## Status/Context/Decision/Consequences/Non-claims headings exist."
+    )
+
+    adr_dir = root / "doc" / "adr"
+    if not adr_dir.is_dir():
+        return [
+            GovernorFinding(
+                check_id=check_id,
+                status="fail",
+                severity="error",
+                message="doc/adr directory missing",
+                observed="doc/adr not found",
+                remediation="restore doc/adr with MADR ADR files",
+            )
+        ]
+
+    missing_status_lc: list[str] = []
+    missing_sections: list[str] = []
+    for path in sorted(adr_dir.glob("0*.md")):
+        text = path.read_text(encoding="utf-8", errors="replace")
+        if _adr_status_lifecycle(text) is None:
+            missing_status_lc.append(path.name)
+        for section in _ADR_REQUIRED_SECTIONS:
+            if not re.search(rf"(?im)^##\s*{re.escape(section)}\s*$", text):
+                missing_sections.append(f"{path.name}:##{section}")
+
+    if missing_status_lc or missing_sections:
+        return [
+            GovernorFinding(
+                check_id=check_id,
+                status="fail",
+                severity="warn",
+                message="ADR structure or Status lifecycle incomplete",
+                observed=(
+                    f"missing_status_lifecycle={missing_status_lc or '[]'}, "
+                    f"missing_sections={missing_sections[:20] or '[]'} "
+                    f"(lifecycle [bounded]; ADR hygiene; advisory)."
+                ),
+                remediation=remediation,
+            )
+        ]
+
+    return [
+        GovernorFinding(
+            check_id=check_id,
+            status="pass",
+            severity="ok",
+            message="all ADRs have Status lifecycle and required MADR sections",
+            observed=("adr_structure_complete=true (lifecycle [bounded]; ADR hygiene)."),
+            remediation="none",
+        )
+    ]
+
+
+def check_adr_cross_surface_matrix(root: Path) -> list[GovernorFinding]:
+    """Require every present ADR to be cited on core living surfaces.
+
+    Cross-surface matrix: each doc/adr/0*.md ID must appear in
+    ARCHITECTURE + root README + doc/adr/README. Ontology ADRs (0016-0022)
+    additionally remain covered by adr-doc-matrix-coverage (REQ/PROJECT).
+    Advisory until gaps are closed. Lifecycle [bounded]; process anti-drift.
+    """
+    check_id = "adr-cross-surface-matrix"
+    remediation = (
+        "Cite every ADR-NNNN present under doc/adr/ in prd/ARCHITECTURE.md, "
+        "README.md, and doc/adr/README.md. Prefer the foundation ADR table in "
+        "ARCHITECTURE with matching lifecycle tags (see adr-truth-oracle-sync)."
+    )
+
+    adr_dir = root / "doc" / "adr"
+    if not adr_dir.is_dir():
+        return [
+            GovernorFinding(
+                check_id=check_id,
+                status="fail",
+                severity="error",
+                message="doc/adr directory missing",
+                observed="doc/adr not found",
+                remediation="restore doc/adr",
+            )
+        ]
+
+    adr_ids: list[str] = []
+    for path in sorted(adr_dir.glob("0*.md")):
+        match = re.search(r"(\d{4})", path.name)
+        if match:
+            adr_ids.append(match.group(1))
+
+    surface_text: dict[str, str] = {}
+    missing_surface: list[str] = []
+    for rel in _ADR_CROSS_SURFACE_PATHS:
+        path = root / rel
+        if not path.is_file():
+            missing_surface.append(rel)
+            surface_text[rel] = ""
+        else:
+            surface_text[rel] = path.read_text(encoding="utf-8", errors="replace")
+
+    gaps: list[str] = []
+    for adr_id in adr_ids:
+        needle = f"ADR-{adr_id}"
+        for rel, text in surface_text.items():
+            if needle not in text and f"{adr_id}-" not in text:
+                gaps.append(f"{needle}@{rel}")
+
+    if missing_surface or gaps:
+        return [
+            GovernorFinding(
+                check_id=check_id,
+                status="fail",
+                severity="warn",
+                message="ADR cross-surface citation matrix incomplete",
+                observed=(
+                    f"missing_surfaces={missing_surface or '[]'}, "
+                    f"gaps={gaps[:24] or '[]'} "
+                    f"(lifecycle [bounded]; matrix anti-drift; advisory)."
+                ),
+                remediation=remediation,
+            )
+        ]
+
+    return [
+        GovernorFinding(
+            check_id=check_id,
+            status="pass",
+            severity="ok",
+            message="every ADR is cited on core living surfaces",
+            observed=(
+                f"adrs={adr_ids} surfaces={list(_ADR_CROSS_SURFACE_PATHS)} "
+                f"(lifecycle [bounded]; matrix anti-drift)."
+            ),
+            remediation="none",
+        )
+    ]
+
+
 def _extract_pre_commit_hook_ids_with_entries(root: Path) -> str:
     """Return pre-commit config text for script reference scanning."""
     config = root / ".pre-commit-config.yaml"
@@ -1939,6 +2117,8 @@ def run_governor(root: Path | None = None) -> GovernorReport:
         + check_adr_truth_oracle_sync(resolved)
         + check_adr_index_completeness(resolved)
         + check_adr_doc_matrix_coverage(resolved)
+        + check_adr_structure_hygiene(resolved)
+        + check_adr_cross_surface_matrix(resolved)
     )
     error_count = sum(1 for item in findings if item.status == "fail" and item.severity == "error")
     warn_count = sum(1 for item in findings if item.status == "fail" and item.severity == "warn")

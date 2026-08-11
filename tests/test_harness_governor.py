@@ -11,8 +11,10 @@ from law_nexus_harness.governor import (
     _EXPECTED_DIRECTION,
     GOVERNOR_SCHEMA_VERSION,
     check_active_requirement_contradictions,
+    check_adr_cross_surface_matrix,
     check_adr_doc_matrix_coverage,
     check_adr_index_completeness,
+    check_adr_structure_hygiene,
     check_adr_truth_oracle_sync,
     check_architecture_direction,
     check_archive_path_policy,
@@ -798,10 +800,14 @@ def test_live_governor_includes_adr_and_archive_checks() -> None:
     assert "adr-truth-oracle-sync" in by_id
     assert "adr-index-completeness" in by_id
     assert "adr-doc-matrix-coverage" in by_id
+    assert "adr-structure-hygiene" in by_id
+    assert "adr-cross-surface-matrix" in by_id
     assert "archive-path-policy" in by_id
     assert by_id["adr-truth-oracle-sync"].status == "pass"
     assert by_id["adr-index-completeness"].status == "pass"
     assert by_id["adr-doc-matrix-coverage"].status == "pass"
+    assert by_id["adr-structure-hygiene"].status == "pass"
+    assert by_id["adr-cross-surface-matrix"].status == "pass"
     assert by_id["archive-path-policy"].status == "pass"
     assert report.error_count == 0
     assert report.status == "ok"
@@ -814,6 +820,7 @@ def test_adr_truth_oracle_sync_detects_lifecycle_mismatch(tmp_path: Path) -> Non
         "# ARCH\n\n"
         "Rust direction [validated] (ADR-0004/0005)\n"
         "Harness ADR-0007 [validated]\n"
+        "Authority ADR-0008 [bounded] ADR-0011 [bounded] ADR-0012 [bounded]\n"
         "Clocks ADR-0009 [bounded] ADR-0010 [bounded]\n"
         "Parser ADR-0013 [bounded] ADR-0014 [proposed] ADR-0015 [bounded]\n"
         "Ontology ADR-0016 [proposed] ADR-0017 [proposed] ADR-0018 [proposed]\n"
@@ -838,8 +845,11 @@ def test_adr_truth_oracle_sync_passes_matching_tags(tmp_path: Path) -> None:
         "ADR-0004 [bounded]\n"
         "ADR-0005 [bounded]\n"
         "ADR-0007 [validated]\n"
+        "ADR-0008 [bounded]\n"
         "ADR-0009 [bounded]\n"
         "ADR-0010 [bounded]\n"
+        "ADR-0011 [bounded]\n"
+        "ADR-0012 [bounded]\n"
         "ADR-0013 [bounded]\n"
         "ADR-0014 [proposed]\n"
         "ADR-0015 [bounded]\n"
@@ -878,6 +888,7 @@ def test_archive_path_policy_passes_when_ignored(tmp_path: Path) -> None:
         "prd/archive/milestone-proofs-era/\n"
         "prd/archive/research-era/\n"
         "prd/archive/project-state-era/\n"
+        "prd/archive/architecture-era/\n"
         "archive/agent-skills/\n"
         "archive/scripts/\n"
         "archive/tests/\n",
@@ -919,3 +930,48 @@ def test_adr_doc_matrix_coverage_detects_missing_surface(tmp_path: Path) -> None
     assert finding.status == "fail"
     assert finding.severity == "warn"
     assert "PROJECT.md" in finding.observed
+
+
+def test_adr_structure_hygiene_detects_missing_status_lifecycle(tmp_path: Path) -> None:
+    adr = tmp_path / "doc" / "adr"
+    adr.mkdir(parents=True)
+    (adr / "0004-bad.md").write_text(
+        "# ADR-0004\n\n"
+        "## Status\n\nAccepted without tag.\n\n"
+        "## Context\n\nx\n\n"
+        "## Decision\n\ny\n\n"
+        "## Consequences\n\nz\n\n"
+        "## Non-claims\n\nnone\n",
+        encoding="utf-8",
+    )
+    findings = check_adr_structure_hygiene(tmp_path)
+    assert len(findings) == 1
+    finding = findings[0]
+    assert finding.check_id == "adr-structure-hygiene"
+    assert finding.status == "fail"
+    assert finding.severity == "warn"
+    assert "0004-bad.md" in finding.observed
+
+
+def test_adr_cross_surface_matrix_detects_gap(tmp_path: Path) -> None:
+    adr = tmp_path / "doc" / "adr"
+    adr.mkdir(parents=True)
+    (adr / "0004-rust.md").write_text(
+        "# ADR-0004\n\n## Status\n\nAccepted [bounded].\n\n"
+        "## Context\n\nx\n\n## Decision\n\ny\n\n"
+        "## Consequences\n\nz\n\n## Non-claims\n\nnone\n",
+        encoding="utf-8",
+    )
+    (adr / "README.md").write_text("# ADR\n\nADR-0004\n", encoding="utf-8")
+    prd = tmp_path / "prd"
+    prd.mkdir()
+    (prd / "ARCHITECTURE.md").write_text("# A\n\nADR-0004 [bounded]\n", encoding="utf-8")
+    (tmp_path / "README.md").write_text("# root\n\nno citation\n", encoding="utf-8")
+    findings = check_adr_cross_surface_matrix(tmp_path)
+    assert len(findings) == 1
+    finding = findings[0]
+    assert finding.check_id == "adr-cross-surface-matrix"
+    assert finding.status == "fail"
+    assert finding.severity == "warn"
+    assert "ADR-0008" not in finding.observed
+    assert "ADR-0004@README.md" in finding.observed

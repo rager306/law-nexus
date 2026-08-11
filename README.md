@@ -37,7 +37,9 @@ Consultant/Garant parser, a temporal legal ontology, and citation-safe retrieval
   Python repository-control harness (ADR-0007 [validated])
   Five-clock temporal model (ADR-0009 [bounded]) + evidence kernel (ADR-0010 [bounded])
     HC-09/kernel gates prove clock substitution fail-closed; not legal-act correctness
+  Promotion/publication authority ceiling (ADR-0008 [bounded])
   KOF-DA ownership: twenty ln-* capability crates (ADR-0011/D123) [bounded]
+  Consequential evidence protocol (ADR-0012 [bounded])
   Hexagonal verification architecture (ADR-0015 [bounded])
   20/20 hostile contracts PASS [bounded]
 

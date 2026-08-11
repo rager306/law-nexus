@@ -6,7 +6,7 @@ so they are not discovered as active guidance and are gitignored from the index.
 | Path | Contents |
 |------|----------|
 | `agent-skills/` | FalkorDB skill pack + M001 LegalGraph routers |
-| `scripts/` | Era prove/verify/smoke scripts (ACP, git-lex, FalkorDB, M002/M003, M048–M067) |
+| `scripts/` | Era prove/verify/smoke scripts (ACP, git-lex, FalkorDB, M002/M003, M048–M067, s09/s10) |
 | `tests/` | Matching historical tests/fixtures |
 
 **Active skills under** `.agents/skills/`:
