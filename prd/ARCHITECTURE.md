@@ -37,6 +37,40 @@ acp_git_lex=archive-only
 falkordb=historical-only
 ```
 
+## Temporal legal ontology — design spine (all `[proposed]`)
+
+A progressive top-down ontology of what an agent needs to reason legally over
+time. Each layer depends on the one below; all are **fail-closed** (missing
+provenance → `Unknown`, never smoothed) and follow the D046 adoption ladder
+(project-local evidence kernel is canon; LRMoo/AKML/ELI/LKIF are compatibility
+references, not canon replacements). Full substance: `doc/adr/0016`..`0022`.
+
+```text
+L1 ADR-0016  FRBR/LRMoo structural identity   WEMI: Work/Expression/Manifestation/Item
+             date + authority = identity canon (act numbers are non-unique)
+   ▼
+L2 ADR-0017  Component Temporal Versioning ◄── temporal core
+             CC/CTV/CLV (F1/F2); validity DERIVED from events (event-sourcing);
+             macro/micro events (P9 consists of); F27∩E64 amendment typing;
+             bitemporal valid/transaction time; fail-closed resolver (R070/R068).
+             Adapted from de Martim arXiv:2506.07853 v5 (LRMoo, 2026).
+   ▼
+L3 ADR-0018  NormativeState(t)                text ≠ status (InForce/Suspended/Repealed/…)
+   ▼
+L4 ADR-0019  hierarchy + conflict             lex superior/specialis/posterior, explainable
+   ▼
+L5 ADR-0020  practice overlay                 Суды/ФАС/Контроль (own clock, non-authoritative)
+   ▼
+L6 ADR-0021  transitional + risk              derived, non-authoritative; limitation periods
+   ▼
+L7 ADR-0022  industry profiles                бюджет/стройка/медицина/общий = adapters
+```
+
+**Kernel canon, standards compatibility (D046):** the project-local evidence
+kernel (D119 C10/C12/C13) owns substance; LRMoo/CIDOC-CRM/AKML/ELI/LKIF are
+deterministic reversible projections for interoperability. Budget cycle is a
+profile projection over the five clocks (ADR-0009), NOT a sixth clock.
+
 ## Where we actually are (truth, not optimism)
 
 ```
@@ -98,8 +132,8 @@ ADR-0013 universal parser  [bounded] + ADR-0014 RuVector  [proposed]
    TEI USER-bge-m3 1024d embedding boundary remains proposed
    RVF vectors + redb GraphDB CRUD; no ruvector-graph Cypher execution claim
    ▼
-[LATEST COMPLETED] M164 — governor historical-test-debt-visibility probe (advisory inventory surfacing 59 non-CI tests referencing decommissioned eras; non-destructive, anti-silently-keep).
-Next: M165 test triage actions (retire/archive/add-to-CI per the surfaced inventory) or live-adapter when TEI infra exists.
+[LATEST COMPLETED] M165 — temporal legal ontology crystallization (ADR-0016..0022 L1→L7 chain, all [proposed], fail-closed; ADR-0004/0005/0007 lifecycle hygiene).
+Next: document revision waves (C1 README / C2 PRD / C7 AGENTS / C8 truth-oracle ontology integration) then live-adapter when TEI/RuVector infra exists.
 ```
 
 ## Current layer (where work happens now)
@@ -147,6 +181,7 @@ completeness, Consultant/Garant parity, or production graph readiness.
 | KnowQL | `[bounded]` hand-coded AST demo only | needs real parser and typed application executor; `ruvector-graph` Cypher execution is not relied upon |
 | R035 | `[proposed]` active, not validated | standing graph-vector proof-boundary requirement |
 | R038 | `[bounded]` active | standing independent review gate |
+| Temporal legal ontology L1-L7 | `[proposed]` (ADR-0016..0022) | design crystallized M165; each layer graduates to `[bounded]` when its TDD Rust domain + fail-closed resolver ships, to `[validated]` only with real-corpus proof. L2 CTV is the first implementation priority once parser data is ready. |
 
 ## ACP / git-lex status
 
