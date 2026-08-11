@@ -1,3 +1,14 @@
+> **Direction has evolved [bounded].** This document is the founding product
+> vision (Legal Knowledge Operating Layer for Russian normative acts). The
+> goal and the "LLM is not legal authority" principle are still current, but
+> the concrete architecture direction has changed: the product runtime is
+> **Rust-only** (ADR-0004/0005), not Python/FalkorDB; the graph/vector target is
+> **RuVector** (ADR-0014), not FalkorDB; the temporal legal ontology is
+> crystallized as **ADR-0016..0022**. For the authoritative current state read
+> [`prd/ARCHITECTURE.md`](../ARCHITECTURE.md) (the living truth oracle) and
+> [`doc/adr/README.md`](../../doc/adr/README.md). Historical FalkorDB/Python
+> language below is superseded, retained as founding context.
+
 # 1. Общая идея
 
 ## Legal Knowledge Operating Layer для нормативных актов

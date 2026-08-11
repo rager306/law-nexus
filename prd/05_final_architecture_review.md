@@ -1,3 +1,11 @@
+> **HISTORICAL — superseded.** This document is from the Python / FalkorDB /
+> ACP era and is retained as historical context only. It does NOT describe the
+> current law-nexus architecture. The authoritative current state is
+> [`prd/ARCHITECTURE.md`](ARCHITECTURE.md) (the living truth oracle) and the ADR chain
+> [`doc/adr/`](doc/adr/). Active product direction: Rust-only runtime
+> (ADR-0004/0005), RuVector (ADR-0014), temporal legal ontology L1-L7
+> (ADR-0016..0022). Do not implement from this document.
+
 # 5. Final Architecture Review: M001 Closure and M002-M007 Proof Gates
 
 > **Reader and action.** This report is for a cold reader planning M002, M003, M004, M005, M006, or M007. After reading it, the planner should know which M001 architecture findings are fixed, which proof gates remain blocked, who owns each resolution path, and which claims must stay bounded until later executable evidence exists.

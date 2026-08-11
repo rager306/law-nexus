@@ -1,3 +1,11 @@
+> **HISTORICAL — superseded.** This document is from the Python / FalkorDB /
+> ACP era and is retained as historical context only. It does NOT describe the
+> current law-nexus architecture. The authoritative current state is
+> [`prd/ARCHITECTURE.md`](../ARCHITECTURE.md) (the living truth oracle) and the ADR chain
+> [`doc/adr/`](../../doc/adr/). Active product direction: Rust-only runtime
+> (ADR-0004/0005), RuVector (ADR-0014), temporal legal ontology L1-L7
+> (ADR-0016..0022). Do not implement from this document.
+
 # M047 Project-State Documentation Reader Test
 
 ## Status
