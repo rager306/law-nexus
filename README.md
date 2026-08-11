@@ -31,7 +31,7 @@ Consultant/Garant parser, a temporal legal ontology, and citation-safe retrieval
 
 ## Current status (D098 lifecycle tags)
 
-Latest tracked product/design band: **M165** (`[proposed]` ontology design only). Current documentation/process front: **D5 + documentation D6 / EA-05** roadmap and readiness alignment. See [`prd/project-state/roadmap.md`](prd/project-state/roadmap.md); sequence completion is not product readiness.
+Latest tracked product/design band: **M165** (`[proposed]` ontology design only). D5/D6/EA-05 roadmap/readiness alignment is accepted with findings; current documentation/process front is **D7 / EA-06** derived-registry quarantine. See [`prd/project-state/roadmap.md`](prd/project-state/roadmap.md); sequence completion is not product readiness.
 
 ```
 [FOUNDATION — COMPLETE]

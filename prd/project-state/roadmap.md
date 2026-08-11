@@ -4,7 +4,7 @@
 > non-authoritative cold-reader projection of
 > `prd/project-state/data/roadmap.json`; local `.gsd/**` is workflow state only.
 >
-> Refreshed 2026-08-11 at `50173de` after M165 and EA-04. Roadmap completion is not product readiness.
+> Refreshed 2026-08-11 after frozen EA-05 review at `94d58ea`. Roadmap completion is not product readiness.
 
 ## Active Direction Contract
 
@@ -22,7 +22,8 @@ falkordb=historical-only
 
 - **Latest completed product milestone:** M165, temporal legal ontology O1–O7 crystallized at `[proposed]` design; no ontology runtime.
 - **Completed retrieval-honesty band:** M161–M164 `[bounded]` (real cosine ranking in memory, semantic-stub and historical-test-debt probes, deterministic CLI vectors); no live corpus or citation-safe answers.
-- **Current documentation/process front:** D5 + documentation D6 / EA-05 — synchronize one roadmap front and integrate TL-G01–12 readiness criteria.
+- **Completed documentation alignment:** D5 + documentation D6 / EA-05 accepted with findings at `94d58ea`; roadmap-front-sync and TL-G01–12 coverage PASS.
+- **Current documentation/process front:** D7 / EA-06 — quarantine and refresh the derived registry without granting it authority.
 - **Local GSD workflow marker:** M161-2som4e remains active in local workflow state; it is not the tracked product/design current-front authority and its numbering predates later M161–M165 git history.
 - **Product next remains evidence-gated:** L2 CTV TDD after parser data readiness; TEI/RuVector only after real infrastructure/evidence. Neither is unlocked by EA-05.
 - **M111 result:** final `[bounded]` implementation-neutral semantic baseline for heterogeneous Russian legal evidence.

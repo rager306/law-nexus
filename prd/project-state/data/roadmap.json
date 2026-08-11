@@ -378,13 +378,13 @@
     "goal": "Local GSD workflow marker only; its milestone numbering predates later tracked M161-M165 product/design commits and is not the product current-front authority."
   },
   "recommended_next": {
-    "title": "Complete D5/D6 and EA-05 documentation readiness alignment",
+    "title": "Complete D7/EA-06 derived registry quarantine",
     "priority": 1,
-    "why": "M161-M165 are complete historical product/design bands and EA-02..EA-04 documentation assessments are complete. Active work is one current-front narrative plus TL-G01..12 graduation/readiness integration.",
-    "plan_reference": "prd/architecture/documentation-semantic-control-plan.md D5-D6 and prd/migration/external-architecture-assessment-roadmap.md EA-05",
-    "slices": "Synchronize roadmap projections; integrate readiness columns into prd/temporal-legal-model.md; freeze and assess EA-05.",
-    "product_next": "L2 CTV TDD only after parser data readiness; TEI/RuVector only with real infrastructure/evidence.",
-    "non_validation": "D5/D6/EA-05 completion is paper/process evidence, not product readiness, legal correctness, ontology runtime, applicability runtime, or release proof."
+    "why": "D5/D6/EA-05 roadmap-front synchronization and TL-G01..12 readiness coverage passed at frozen revision 94d58ea with human ACCEPT-WITH-FINDINGS.",
+    "plan_reference": "prd/architecture/documentation-semantic-control-plan.md D7 and prd/migration/external-architecture-assessment-roadmap.md EA-06",
+    "slices": "Reclassify stale FalkorDB/ACP/PyO3 and missing-anchor derived rows; add source revision and non-authority markers; define safe regeneration.",
+    "product_next": "L2 CTV TDD remains evidence-gated after parser data readiness; D7 does not unlock implementation.",
+    "non_validation": "D7/EA-06 completion is derived-process hygiene, not product readiness, legal correctness, ontology/applicability runtime, or release proof."
   },
   "downstream_blocked": [
     {
@@ -433,12 +433,12 @@
     "Keep Rust as the only target product runtime; Python may remain only as the repository harness defined by ADR-0007.",
     "Do not reintroduce ACP/git-lex outside explicit archive paths."
   ],
-  "source_revision": "50173de",
+  "source_revision": "94d58ea",
   "current_process_front": {
-    "id": "D5-D6/EA-05",
-    "title": "Roadmap Front Sync and Temporal Readiness Matrix",
+    "id": "D7/EA-06",
+    "title": "Derived Registry Quarantine",
     "status": "active",
-    "boundary": "Documentation/process work only; completion does not promote product or ontology lifecycle."
+    "boundary": "Documentation/process work only; derived registry remains non-authoritative and cannot promote lifecycle."
   },
   "latest_completed_product_milestone": {
     "id": "M165",
