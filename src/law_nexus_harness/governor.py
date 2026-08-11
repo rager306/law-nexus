@@ -1643,8 +1643,8 @@ _HISTORICAL_VAULT_PATHS: tuple[str, ...] = (
 # Ontology ADRs that must be cited in REQUIREMENTS + PROJECT after M165 weave.
 _ONTOLOGY_DOC_MATRIX_ADRS: tuple[str, ...] = tuple(f"{n:04d}" for n in range(16, 23))
 _ONTOLOGY_DOC_MATRIX_SURFACES: tuple[str, ...] = (
-    ".gsd/REQUIREMENTS.md",
-    ".gsd/PROJECT.md",
+    "prd/PRODUCT.md",
+    "prd/REQUIREMENTS.md",
 )
 
 # ADR IDs that must appear in prd/ARCHITECTURE.md with a matching lifecycle tag
@@ -1713,7 +1713,7 @@ def _gitignore_covers(gitignore_text: str, path: str) -> bool:
 
 
 def _git_tracked_paths(root: Path, path: str) -> list[str]:
-    """List git-tracked files under ``path`` (empty if not a git worktree)."""
+    """List git-tracked files under ``path`` and fail closed on inventory errors."""
     try:
         completed = subprocess.run(
             ["git", "-C", str(root), "ls-files", "--", path],
@@ -1722,10 +1722,10 @@ def _git_tracked_paths(root: Path, path: str) -> list[str]:
             text=True,
             timeout=30,
         )
-    except (OSError, subprocess.TimeoutExpired):
-        return []
+    except (OSError, subprocess.TimeoutExpired) as error:
+        raise RuntimeError("git tracked-path inventory unavailable") from error
     if completed.returncode != 0:
-        return []
+        raise RuntimeError("git tracked-path inventory failed")
     return [line for line in completed.stdout.splitlines() if line.strip()]
 
 
@@ -2242,16 +2242,12 @@ def check_published_trace_contract(root: Path) -> list[GovernorFinding]:
 
 
 def check_adr_doc_matrix_coverage(root: Path) -> list[GovernorFinding]:
-    """Require ontology ADR-0016..0022 cites in REQUIREMENTS and PROJECT.
-
-    Closes the post-M165 coverage hole where the living ontology spine existed
-    only in ARCHITECTURE/adr README. Lifecycle [bounded]; process anti-drift.
-    """
+    """Require proposed ontology ADR-0016..0022 cites in tracked Product and RQ."""
     check_id = "adr-doc-matrix-coverage"
     remediation = (
-        "Cite each ADR-0016..0022 in .gsd/REQUIREMENTS.md (e.g. R074 / R068 / R070 "
-        "notes) and .gsd/PROJECT.md ontology section so the requirement/project "
-        "contract tracks the design spine."
+        "Cite each ADR-0016..0022 explicitly on the [proposed] PC-008 and RQ-008 "
+        "rows in tracked prd/PRODUCT.md and prd/REQUIREMENTS.md. Local .gsd "
+        "projections do not satisfy published ontology-weave coverage."
     )
 
     missing: list[str] = []
@@ -2260,10 +2256,13 @@ def check_adr_doc_matrix_coverage(root: Path) -> list[GovernorFinding]:
         if not path.is_file():
             missing.append(f"{rel}:missing_file")
             continue
-        text = path.read_text(encoding="utf-8", errors="replace")
+        lines = path.read_text(encoding="utf-8", errors="replace").splitlines()
         for adr_id in _ONTOLOGY_DOC_MATRIX_ADRS:
-            if f"ADR-{adr_id}" not in text:
+            matching_lines = [line for line in lines if f"ADR-{adr_id}" in line]
+            if not matching_lines:
                 missing.append(f"{rel}:ADR-{adr_id}")
+            elif not any("proposed" in _line_lifecycle_tags(line) for line in matching_lines):
+                missing.append(f"{rel}:ADR-{adr_id}:expected=proposed")
 
     if missing:
         preview = missing[:16]
@@ -2287,7 +2286,7 @@ def check_adr_doc_matrix_coverage(root: Path) -> list[GovernorFinding]:
             check_id=check_id,
             status="pass",
             severity="ok",
-            message="ontology ADR-0016..0022 cited in REQUIREMENTS and PROJECT",
+            message="proposed ontology ADR-0016..0022 cited in tracked Product and Requirements",
             observed=(
                 f"surfaces={list(_ONTOLOGY_DOC_MATRIX_SURFACES)} "
                 f"adrs={list(_ONTOLOGY_DOC_MATRIX_ADRS)} "
@@ -3213,7 +3212,7 @@ GOVERNOR_CHECK_SPECS: tuple[CheckSpec, ...] = (
         "adr",
         "deterministic",
         check_adr_doc_matrix_coverage,
-        "Keep the bounded ontology ADR workflow weave visible.",
+        "Keep the proposed ontology ADR weave visible in tracked Product and Requirements.",
         _ONTOLOGY_DOC_MATRIX_SURFACES,
         "warn",
     ),

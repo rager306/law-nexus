@@ -932,6 +932,18 @@ def test_live_document_freshness_trigger_catalog_is_valid() -> None:
     assert "semantic validation" in finding.observed or finding.status == "fail"
 
 
+def test_live_freshness_catalog_rejects_derived_matrix_as_sole_companion() -> None:
+    catalog = json.loads(
+        (ROOT / "prd/architecture/document-freshness-triggers.json").read_text(encoding="utf-8")
+    )
+    changed = {
+        "doc/adr/0009-five-clock-temporal-model.md",
+        "prd/architecture/adr-matrix.json",
+    }
+
+    assert _freshness_trigger_gaps(catalog, changed) == ["adr-contract-change"]
+
+
 def test_document_freshness_trigger_gap_requires_distinct_companion() -> None:
     catalog = {
         "schema_version": "law-nexus-document-freshness-triggers/v1",
@@ -1139,7 +1151,8 @@ def test_adr_truth_oracle_sync_passes_matching_tags(tmp_path: Path) -> None:
     assert findings[0].status == "pass"
 
 
-def test_archive_path_policy_warns_when_not_ignored(tmp_path: Path) -> None:
+def test_archive_path_policy_warns_when_not_ignored(tmp_path: Path, monkeypatch) -> None:
+    monkeypatch.setattr("law_nexus_harness.governor._git_tracked_paths", lambda root, path: [])
     (tmp_path / ".gitignore").write_text("# empty policy\n", encoding="utf-8")
     findings = check_archive_path_policy(tmp_path)
     assert len(findings) == 1
@@ -1150,7 +1163,8 @@ def test_archive_path_policy_warns_when_not_ignored(tmp_path: Path) -> None:
     assert "missing_gitignore=" in finding.observed
 
 
-def test_archive_path_policy_warns_on_active_alias_into_vault(tmp_path: Path) -> None:
+def test_archive_path_policy_warns_on_active_alias_into_vault(tmp_path: Path, monkeypatch) -> None:
+    monkeypatch.setattr("law_nexus_harness.governor._git_tracked_paths", lambda root, path: [])
     (tmp_path / ".gitignore").write_text(
         "\n".join(
             [
@@ -1182,7 +1196,10 @@ def test_archive_path_policy_warns_on_active_alias_into_vault(tmp_path: Path) ->
     assert "active_aliases=['prd/architecture/acp']" in findings[0].observed
 
 
-def test_archive_path_policy_warns_on_unlisted_symlink_into_vault(tmp_path: Path) -> None:
+def test_archive_path_policy_warns_on_unlisted_symlink_into_vault(
+    tmp_path: Path, monkeypatch
+) -> None:
+    monkeypatch.setattr("law_nexus_harness.governor._git_tracked_paths", lambda root, path: [])
     (tmp_path / ".gitignore").write_text(
         "\n".join(
             [
@@ -1218,7 +1235,8 @@ def test_archive_path_policy_warns_on_unlisted_symlink_into_vault(tmp_path: Path
     assert "prd/current/legacy-source->python_archive/product" in finding.observed
 
 
-def test_archive_path_policy_passes_when_ignored(tmp_path: Path) -> None:
+def test_archive_path_policy_passes_when_ignored(tmp_path: Path, monkeypatch) -> None:
+    monkeypatch.setattr("law_nexus_harness.governor._git_tracked_paths", lambda root, path: [])
     (tmp_path / ".gitignore").write_text(
         ".lex/\n"
         "python_archive/\n"
@@ -1237,11 +1255,28 @@ def test_archive_path_policy_passes_when_ignored(tmp_path: Path) -> None:
         ".commandcode/\n",
         encoding="utf-8",
     )
-    # Not a git repo => tracked list empty; ignore-only is enough for pass.
     findings = check_archive_path_policy(tmp_path)
     assert len(findings) == 1
     assert findings[0].status == "pass"
     assert findings[0].severity == "ok"
+
+
+def test_archive_path_policy_reports_tool_error_when_git_inventory_fails(
+    tmp_path: Path, monkeypatch
+) -> None:
+    (tmp_path / ".gitignore").write_text("# inventory must run\n", encoding="utf-8")
+
+    def unavailable(*args, **kwargs):
+        raise OSError("git unavailable")
+
+    monkeypatch.setattr("law_nexus_harness.governor.subprocess.run", unavailable)
+    report = run_governor(tmp_path, check="archive-path-policy")
+
+    assert report.status == "failure"
+    assert report.tool_error_count == 1
+    assert report.findings[0].check_id == "archive-path-policy"
+    assert report.findings[0].rule_id == "tool-error"
+    assert report.findings[0].severity == "error"
 
 
 def test_adr_index_completeness_detects_missing(tmp_path: Path) -> None:
@@ -1274,21 +1309,36 @@ def test_adr_index_completeness_detects_missing_lifecycle(tmp_path: Path) -> Non
     assert "ADR-0004:expected=bounded" in finding.observed
 
 
-def test_adr_doc_matrix_coverage_detects_missing_surface(tmp_path: Path) -> None:
+def test_adr_doc_matrix_coverage_rejects_gsd_only_projection(tmp_path: Path) -> None:
     gsd = tmp_path / ".gsd"
     gsd.mkdir()
-    (gsd / "REQUIREMENTS.md").write_text(
-        "# R\nADR-0016 ADR-0017 ADR-0018 ADR-0019 ADR-0020 ADR-0021 ADR-0022\n",
-        encoding="utf-8",
-    )
-    # PROJECT missing entirely
-    findings = check_adr_doc_matrix_coverage(tmp_path)
-    assert len(findings) == 1
-    finding = findings[0]
+    ontology_ids = " ".join(f"ADR-{number:04d}" for number in range(16, 23))
+    (gsd / "REQUIREMENTS.md").write_text(f"# R\n[proposed] {ontology_ids}\n", encoding="utf-8")
+    (gsd / "PROJECT.md").write_text(f"# P\n[proposed] {ontology_ids}\n", encoding="utf-8")
+
+    finding = check_adr_doc_matrix_coverage(tmp_path)[0]
+
     assert finding.check_id == "adr-doc-matrix-coverage"
     assert finding.status == "fail"
     assert finding.severity == "warn"
-    assert "PROJECT.md" in finding.observed
+    assert "prd/PRODUCT.md:missing_file" in finding.observed
+    assert "prd/REQUIREMENTS.md:missing_file" in finding.observed
+    assert ".gsd" not in finding.observed
+
+
+def test_adr_doc_matrix_coverage_requires_proposed_ceiling(tmp_path: Path) -> None:
+    prd = tmp_path / "prd"
+    prd.mkdir()
+    ontology_ids = " ".join(f"ADR-{number:04d}" for number in range(16, 23))
+    (prd / "PRODUCT.md").write_text(f"# Product\n[proposed] {ontology_ids}\n", encoding="utf-8")
+    (prd / "REQUIREMENTS.md").write_text(
+        f"# Requirements\n[validated] {ontology_ids}\n", encoding="utf-8"
+    )
+
+    finding = check_adr_doc_matrix_coverage(tmp_path)[0]
+
+    assert finding.status == "fail"
+    assert "prd/REQUIREMENTS.md:ADR-0016:expected=proposed" in finding.observed
 
 
 def test_adr_structure_hygiene_detects_missing_status_lifecycle(tmp_path: Path) -> None:

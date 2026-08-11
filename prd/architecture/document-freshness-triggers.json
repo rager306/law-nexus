@@ -6,7 +6,7 @@
     {
       "id": "adr-contract-change",
       "sources": ["doc/adr/0*.md"],
-      "required_any": ["prd/ARCHITECTURE.md", "doc/adr/README.md", "doc/adr-architecture-cross-matrix.md", "prd/architecture/adr-matrix.json"],
+      "required_any": ["prd/ARCHITECTURE.md", "doc/adr/README.md", "doc/adr-architecture-cross-matrix.md"],
       "review": "Recheck lifecycle, index, supersession and living-oracle projection."
     },
     {
@@ -16,10 +16,16 @@
       "review": "Recheck cold-reader direction and process-front projections."
     },
     {
-      "id": "product-requirement-change",
-      "sources": ["prd/PRODUCT.md", "prd/REQUIREMENTS.md"],
-      "required_any": ["prd/PRODUCT.md", "prd/REQUIREMENTS.md", "assessment/01-authority-map.md"],
-      "review": "Recheck bidirectional PC/RQ trace, proof ceilings and assessment authority boundary."
+      "id": "product-change",
+      "sources": ["prd/PRODUCT.md"],
+      "required_any": ["prd/REQUIREMENTS.md"],
+      "review": "Recheck the Product-to-Requirement trace and proof ceilings."
+    },
+    {
+      "id": "requirement-change",
+      "sources": ["prd/REQUIREMENTS.md"],
+      "required_any": ["prd/PRODUCT.md"],
+      "review": "Recheck the Requirement-to-Product inverse trace and proof ceilings."
     },
     {
       "id": "archive-policy-change",
