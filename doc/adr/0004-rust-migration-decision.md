@@ -43,12 +43,13 @@ an emergency fix.
 
 ## Decision
 
-**Transition all law-nexus product and domain functionality to Rust [proposed].**
-The existing Python product implementation remains intact as a behavioral
-reference until the complete Rust implementation passes all parity, integration,
-performance, and failure-surface gates. Then the Python product code moves
-wholesale to `python_archive/` in one controlled cutover. A thin Python
+**Transition all law-nexus product and domain functionality to Rust [bounded].**
+The Rust product runtime is the active implementation surface (`ln-*` crates,
+ADR-0011). Python product code is archived under `python_archive/product/` as
+prior art only (not a behavioral source of truth). A thin Python
 repository-control CLI is allowed under ADR-0007; it contains no product logic.
+Promotion of this ADR to `[validated]` still requires end-to-end parser +
+retrieval proof on a representative corpus (blocked on RuVector/TEI, ADR-0014).
 
 ### Migration triggers (when Rust pays off)
 

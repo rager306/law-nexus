@@ -28,10 +28,11 @@ behavior.
 
 ## Decision
 
-**Keep one thin Python repository-control CLI [proposed]** that invokes Rust
+**Keep one thin Python repository-control CLI [validated]** that invokes Rust
 binaries and standard tools across process boundaries. It may read repository
 metadata and generated reports. It must not import Rust in-process, expose PyO3
-bindings, or implement product/domain behavior.
+bindings, or implement product/domain behavior. The harness at
+`src/law_nexus_harness/` realizes this boundary.
 
 ### Allowed responsibilities
 

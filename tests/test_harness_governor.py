@@ -11,7 +11,10 @@ from law_nexus_harness.governor import (
     _EXPECTED_DIRECTION,
     GOVERNOR_SCHEMA_VERSION,
     check_active_requirement_contradictions,
+    check_adr_index_completeness,
+    check_adr_truth_oracle_sync,
     check_architecture_direction,
+    check_archive_path_policy,
     check_ci_quality_gate_drift,
     check_forward_roadmap_sequence,
     check_historical_test_debt_visibility,
@@ -508,13 +511,13 @@ def test_live_governor_passes_hostile_negative_suite_coverage() -> None:
     assert finding.severity == "ok"
     assert "missing_shared_negative=0" in finding.observed
     assert report.error_count == 0
-    # The historical-test-debt-visibility probe (M164) intentionally emits an
-    # advisory warn for carried historical tests; it is not a regression for
-    # this check.
+    # Advisory probes may warn without failing the governor overall.
+    advisory_warn_ids = {
+        "historical-test-debt-visibility",
+        "archive-path-policy",
+    }
     other_warns = [
-        f
-        for f in report.findings
-        if f.severity == "warn" and f.check_id != "historical-test-debt-visibility"
+        f for f in report.findings if f.severity == "warn" and f.check_id not in advisory_warn_ids
     ]
     assert other_warns == []
     assert report.status == "ok"
@@ -544,13 +547,13 @@ def test_live_governor_passes_live_adapter_readiness() -> None:
     assert "ruvector=proposed" in finding.observed
     assert "overclaim_count=0" in finding.observed
     assert report.error_count == 0
-    # The historical-test-debt-visibility probe (M164) intentionally emits an
-    # advisory warn for carried historical tests; it is not a regression for
-    # this check.
+    # Advisory probes may warn without failing the governor overall.
+    advisory_warn_ids = {
+        "historical-test-debt-visibility",
+        "archive-path-policy",
+    }
     other_warns = [
-        f
-        for f in report.findings
-        if f.severity == "warn" and f.check_id != "historical-test-debt-visibility"
+        f for f in report.findings if f.severity == "warn" and f.check_id not in advisory_warn_ids
     ]
     assert other_warns == []
     assert report.status == "ok"
@@ -786,3 +789,106 @@ def test_historical_test_debt_visibility_excludes_active_controls(
     assert len(findings) == 1
     assert findings[0].status == "pass"
     assert findings[0].severity == "ok"
+
+
+def test_live_governor_includes_adr_and_archive_checks() -> None:
+    report = run_governor(ROOT)
+    by_id = {item.check_id: item for item in report.findings}
+    assert "adr-truth-oracle-sync" in by_id
+    assert "adr-index-completeness" in by_id
+    assert "archive-path-policy" in by_id
+    # Truth-oracle and index must pass after LC hygiene; archive may still warn
+    # while vaults remain git-tracked pending untrack wave.
+    assert by_id["adr-truth-oracle-sync"].status == "pass"
+    assert by_id["adr-index-completeness"].status == "pass"
+    assert by_id["archive-path-policy"].check_id == "archive-path-policy"
+    assert by_id["archive-path-policy"].severity in {"ok", "warn"}
+    assert report.error_count == 0
+    assert report.status == "ok"
+
+
+def test_adr_truth_oracle_sync_detects_lifecycle_mismatch(tmp_path: Path) -> None:
+    arch = tmp_path / "prd"
+    arch.mkdir()
+    (arch / "ARCHITECTURE.md").write_text(
+        "# ARCH\n\n"
+        "Rust direction [validated] (ADR-0004/0005)\n"
+        "Harness ADR-0007 [validated]\n"
+        "Clocks ADR-0009 [bounded] ADR-0010 [bounded]\n"
+        "Parser ADR-0013 [bounded] ADR-0014 [proposed] ADR-0015 [bounded]\n"
+        "Ontology ADR-0016 [proposed] ADR-0017 [proposed] ADR-0018 [proposed]\n"
+        "ADR-0019 [proposed] ADR-0020 [proposed] ADR-0021 [proposed] ADR-0022 [proposed]\n",
+        encoding="utf-8",
+    )
+    findings = check_adr_truth_oracle_sync(tmp_path)
+    assert len(findings) == 1
+    finding = findings[0]
+    assert finding.check_id == "adr-truth-oracle-sync"
+    assert finding.status == "fail"
+    assert finding.severity == "error"
+    assert "mismatched=" in finding.observed
+    assert "ADR-0004" in finding.observed
+
+
+def test_adr_truth_oracle_sync_passes_matching_tags(tmp_path: Path) -> None:
+    arch = tmp_path / "prd"
+    arch.mkdir()
+    (arch / "ARCHITECTURE.md").write_text(
+        "# ARCH\n\n"
+        "ADR-0004 [bounded]\n"
+        "ADR-0005 [bounded]\n"
+        "ADR-0007 [validated]\n"
+        "ADR-0009 [bounded]\n"
+        "ADR-0010 [bounded]\n"
+        "ADR-0013 [bounded]\n"
+        "ADR-0014 [proposed]\n"
+        "ADR-0015 [bounded]\n"
+        "ADR-0016 [proposed]\n"
+        "ADR-0017 [proposed]\n"
+        "ADR-0018 [proposed]\n"
+        "ADR-0019 [proposed]\n"
+        "ADR-0020 [proposed]\n"
+        "ADR-0021 [proposed]\n"
+        "ADR-0022 [proposed]\n",
+        encoding="utf-8",
+    )
+    findings = check_adr_truth_oracle_sync(tmp_path)
+    assert len(findings) == 1
+    assert findings[0].status == "pass"
+
+
+def test_archive_path_policy_warns_when_not_ignored(tmp_path: Path) -> None:
+    (tmp_path / ".gitignore").write_text("# empty policy\n", encoding="utf-8")
+    findings = check_archive_path_policy(tmp_path)
+    assert len(findings) == 1
+    finding = findings[0]
+    assert finding.check_id == "archive-path-policy"
+    assert finding.status == "fail"
+    assert finding.severity == "warn"
+    assert "missing_gitignore=" in finding.observed
+
+
+def test_archive_path_policy_passes_when_ignored(tmp_path: Path) -> None:
+    (tmp_path / ".gitignore").write_text(
+        ".lex/\npython_archive/\nOld_project/\n",
+        encoding="utf-8",
+    )
+    # Not a git repo => tracked list empty; ignore-only is enough for pass.
+    findings = check_archive_path_policy(tmp_path)
+    assert len(findings) == 1
+    assert findings[0].status == "pass"
+    assert findings[0].severity == "ok"
+
+
+def test_adr_index_completeness_detects_missing(tmp_path: Path) -> None:
+    adr = tmp_path / "doc" / "adr"
+    adr.mkdir(parents=True)
+    (adr / "README.md").write_text("# ADRs\n\n- ADR-0004 only\n", encoding="utf-8")
+    (adr / "0004-rust.md").write_text("# x\n", encoding="utf-8")
+    (adr / "0099-missing.md").write_text("# y\n", encoding="utf-8")
+    findings = check_adr_index_completeness(tmp_path)
+    assert len(findings) == 1
+    finding = findings[0]
+    assert finding.status == "fail"
+    assert finding.severity == "warn"
+    assert "0099-missing.md" in finding.observed

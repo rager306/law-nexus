@@ -1,8 +1,0 @@
-date | hasValue | 2026-07-18
-id | hasValue | ADR-0005
-lifecycle | hasValue | [proposed]
-related | hasValue | ADR-0004
-related | hasValue | M107-7xtx1c
-status | hasValue | Accepted
-superseds | hasValue | python_archive/adr/0001-onion-package-structure.md (for new code)
-title | hasValue | Rust target architecture for law-nexus

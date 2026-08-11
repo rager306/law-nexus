@@ -37,6 +37,26 @@ acp_git_lex=archive-only
 falkordb=historical-only
 ```
 
+## Foundation ADR map (active, not archive)
+
+| ADR | Topic | Lifecycle |
+|-----|-------|-----------|
+| ADR-0004 | Rust product transition | `[bounded]` |
+| ADR-0005 | Rust target architecture (crate map superseded by ADR-0011) | `[bounded]` |
+| ADR-0007 | Python repository-control harness | `[validated]` |
+| ADR-0008 | Promotion / publication authority | `[bounded]` |
+| ADR-0009 | Five-clock temporal model | `[bounded]` |
+| ADR-0010 | Evidence kernel gates (C10/C12/C13) | `[bounded]` |
+| ADR-0011 | KOF-DA exclusive ownership (`ln-*`) | `[bounded]` |
+| ADR-0012 | Consequential evidence protocol | `[bounded]` |
+| ADR-0013 | Universal multi-source parser | `[bounded]` |
+| ADR-0014 | RuVector primary infrastructure | `[proposed]` |
+| ADR-0015 | Hexagonal verification architecture | `[bounded]` |
+| ADR-0016..0022 | Temporal legal ontology L1→L7 | `[proposed]` each |
+
+Index: `doc/adr/README.md`. Do not treat ACP/git-lex/FalkorDB-era docs as
+active ADR substance.
+
 ## Temporal legal ontology — design spine (all `[proposed]`)
 
 A progressive top-down ontology of what an agent needs to reason legally over
@@ -46,24 +66,24 @@ provenance → `Unknown`, never smoothed) and follow the D046 adoption ladder
 references, not canon replacements). Full substance: `doc/adr/0016`..`0022`.
 
 ```text
-L1 ADR-0016  FRBR/LRMoo structural identity   WEMI: Work/Expression/Manifestation/Item
+L1 ADR-0016 [proposed]  FRBR/LRMoo structural identity   WEMI: Work/Expression/Manifestation/Item
              date + authority = identity canon (act numbers are non-unique)
    ▼
-L2 ADR-0017  Component Temporal Versioning ◄── temporal core
+L2 ADR-0017 [proposed]  Component Temporal Versioning ◄── temporal core
              CC/CTV/CLV (F1/F2); validity DERIVED from events (event-sourcing);
              macro/micro events (P9 consists of); F27∩E64 amendment typing;
              bitemporal valid/transaction time; fail-closed resolver (R070/R068).
              Adapted from de Martim arXiv:2506.07853 v5 (LRMoo, 2026).
    ▼
-L3 ADR-0018  NormativeState(t)                text ≠ status (InForce/Suspended/Repealed/…)
+L3 ADR-0018 [proposed]  NormativeState(t)                text ≠ status (InForce/Suspended/Repealed/…)
    ▼
-L4 ADR-0019  hierarchy + conflict             lex superior/specialis/posterior, explainable
+L4 ADR-0019 [proposed]  hierarchy + conflict             lex superior/specialis/posterior, explainable
    ▼
-L5 ADR-0020  practice overlay                 Суды/ФАС/Контроль (own clock, non-authoritative)
+L5 ADR-0020 [proposed]  practice overlay                 Суды/ФАС/Контроль (own clock, non-authoritative)
    ▼
-L6 ADR-0021  transitional + risk              derived, non-authoritative; limitation periods
+L6 ADR-0021 [proposed]  transitional + risk              derived, non-authoritative; limitation periods
    ▼
-L7 ADR-0022  industry profiles                бюджет/стройка/медицина/общий = adapters
+L7 ADR-0022 [proposed]  industry profiles                бюджет/стройка/медицина/общий = adapters
 ```
 
 **Kernel canon, standards compatibility (D046):** the project-local evidence
@@ -138,11 +158,14 @@ Next: document revision waves (C1 README / C2 PRD / C7 AGENTS / C8 truth-oracle 
 
 ## Current layer (where work happens now)
 
-**Rust product runtime** — `[validated]` direction (ADR-0004/0005) with active
+**Rust product runtime** — `[bounded]` direction (ADR-0004/0005) with active
 hexagonal crates under `crates/` and the observable product CLI
 `law-nexus-inspect`. Rust owns decode, storage ports, KnowQL composition and
-product behavior. One tracked real fixture per provider remains `[bounded]`
-evidence; no corpus/legal/citation completeness claims.
+product behavior. Direction is accepted and the runtime exists; this is not
+product readiness (blocked on RuVector/TEI infrastructure + real-corpus proof;
+no `[validated]` product capability claim).
+One tracked real fixture per provider remains `[bounded]` evidence; no
+corpus/legal/citation completeness claims.
 
 **Python repository-control harness** — `[validated]` process boundary
 (ADR-0007) under `src/law_nexus_harness/`. Active Python is governor/preflight

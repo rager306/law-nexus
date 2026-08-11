@@ -1,8 +1,0 @@
-date | hasValue | 2026-07-18
-id | hasValue | ADR-0004
-lifecycle | hasValue | [proposed]
-related | hasValue | D098
-related | hasValue | M107-7xtx1c
-status | hasValue | Accepted
-superseds | hasValue | none
-title | hasValue | Rust migration decision for law-nexus

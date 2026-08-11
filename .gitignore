@@ -6,6 +6,14 @@
 CLAUDE.md
 AGENTS.md
 
+# Historical vaults — not active product truth (R066 / ADR-0014 era / D104).
+# Trees may remain on disk for human archaeology; they must not be git-tracked
+# or treated as GitNexus/active-governor source surfaces. Use
+# `git rm -r --cached <path>` if still tracked, then keep ignore entries.
+.lex/
+python_archive/
+Old_project/
+
 # Generated skill verification reports
 .agents/skills/falkordb/evals/*-report.json
 .agents/skills/falkordb/evals/*-report.md

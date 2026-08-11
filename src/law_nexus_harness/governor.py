@@ -13,6 +13,7 @@ from __future__ import annotations
 import importlib.util
 import json
 import re
+import subprocess
 import sys
 from dataclasses import asdict, dataclass
 from pathlib import Path
@@ -1556,6 +1557,285 @@ def check_historical_test_debt_visibility(root: Path) -> list[GovernorFinding]:
     ]
 
 
+# Historical vaults that must not be active product truth / index surfaces.
+_HISTORICAL_VAULT_PATHS: tuple[str, ...] = (
+    ".lex",
+    "python_archive",
+    "Old_project",
+)
+
+# ADR IDs that must appear in prd/ARCHITECTURE.md with a matching lifecycle tag
+# on the same line or an adjacent line (truth-oracle sync, D098).
+_ADR_TRUTH_ORACLE_EXPECTATIONS: dict[str, str] = {
+    "0004": "bounded",
+    "0005": "bounded",
+    "0007": "validated",
+    "0009": "bounded",
+    "0010": "bounded",
+    "0013": "bounded",
+    "0014": "proposed",
+    "0015": "bounded",
+    "0016": "proposed",
+    "0017": "proposed",
+    "0018": "proposed",
+    "0019": "proposed",
+    "0020": "proposed",
+    "0021": "proposed",
+    "0022": "proposed",
+}
+
+_LIFECYCLE_TAG_RE = re.compile(r"\[(proposed|bounded|smoke|validated|deferred)\]", re.IGNORECASE)
+
+
+def _gitignore_covers(gitignore_text: str, path: str) -> bool:
+    """Return True if a simple gitignore entry covers ``path``.
+
+    Accepts exact path, trailing-slash directory form, or a leading-slash form.
+    Does not implement full gitignore semantics — sufficient for vault policy.
+    """
+    candidates = {
+        path,
+        f"{path}/",
+        f"/{path}",
+        f"/{path}/",
+    }
+    for raw in gitignore_text.splitlines():
+        line = raw.strip()
+        if not line or line.startswith("#"):
+            continue
+        if line in candidates:
+            return True
+    return False
+
+
+def _git_tracked_paths(root: Path, path: str) -> list[str]:
+    """List git-tracked files under ``path`` (empty if not a git worktree)."""
+    try:
+        completed = subprocess.run(
+            ["git", "-C", str(root), "ls-files", "--", path],
+            check=False,
+            capture_output=True,
+            text=True,
+            timeout=30,
+        )
+    except (OSError, subprocess.TimeoutExpired):
+        return []
+    if completed.returncode != 0:
+        return []
+    return [line for line in completed.stdout.splitlines() if line.strip()]
+
+
+def check_archive_path_policy(root: Path) -> list[GovernorFinding]:
+    """Ensure historical vaults are gitignored and not git-tracked.
+
+    Enforces the archive-only boundary for ACP/git-lex residue (``.lex``),
+    Python product prior art (``python_archive``), and ``Old_project`` so they
+    do not re-enter active index/governor surfaces. Trees may remain on disk.
+    Lifecycle [bounded]; process anti-drift, not product readiness.
+    """
+    check_id = "archive-path-policy"
+    remediation = (
+        "Add vault paths to .gitignore (.lex/, python_archive/, Old_project/), "
+        "then `git rm -r --cached <path>` to untrack while keeping on-disk history. "
+        "Do not delete vaults without an explicit archive decision."
+    )
+
+    gitignore_path = root / ".gitignore"
+    gitignore_text = (
+        gitignore_path.read_text(encoding="utf-8", errors="replace")
+        if gitignore_path.is_file()
+        else ""
+    )
+
+    missing_ignore: list[str] = []
+    still_tracked: list[str] = []
+    for vault in _HISTORICAL_VAULT_PATHS:
+        if not _gitignore_covers(gitignore_text, vault):
+            missing_ignore.append(vault)
+        tracked = _git_tracked_paths(root, vault)
+        if tracked:
+            still_tracked.append(f"{vault}:{len(tracked)}")
+
+    if missing_ignore or still_tracked:
+        return [
+            GovernorFinding(
+                check_id=check_id,
+                status="fail",
+                severity="warn",
+                message="historical vaults not fully ignored/untracked",
+                observed=(
+                    f"missing_gitignore={missing_ignore or '[]'}, "
+                    f"tracked={still_tracked or '[]'} "
+                    f"(lifecycle [bounded]; process anti-drift; advisory until "
+                    f"untrack wave lands)."
+                ),
+                remediation=remediation,
+            )
+        ]
+
+    return [
+        GovernorFinding(
+            check_id=check_id,
+            status="pass",
+            severity="ok",
+            message="historical vaults are gitignored and untracked",
+            observed=(
+                f"vaults={list(_HISTORICAL_VAULT_PATHS)} ignored+untracked "
+                f"(lifecycle [bounded]; process anti-drift)."
+            ),
+            remediation="none",
+        )
+    ]
+
+
+def _line_lifecycle_tags(line: str) -> set[str]:
+    return {m.group(1).lower() for m in _LIFECYCLE_TAG_RE.finditer(line)}
+
+
+def check_adr_truth_oracle_sync(root: Path) -> list[GovernorFinding]:
+    """Require key ADRs in ARCHITECTURE with matching lifecycle tags.
+
+    Prevents D098 smoothing where the living truth oracle cites an ADR under a
+    stronger lifecycle than the ADR Status/frontmatter (e.g. ADR-0004 as
+    [validated] while the ADR is [bounded]). Also requires ontology L1-L7 IDs
+    to appear in ARCHITECTURE. Lifecycle [bounded]; process anti-drift.
+    """
+    check_id = "adr-truth-oracle-sync"
+    remediation = (
+        "Cite each required ADR in prd/ARCHITECTURE.md with the ADR's real "
+        "lifecycle tag on the same line (or keep a foundation ADR map table). "
+        "Never upgrade [bounded]/[proposed] ADR direction to [validated] in the "
+        "oracle without promoting the ADR itself."
+    )
+
+    arch_path = root / "prd" / "ARCHITECTURE.md"
+    if not arch_path.is_file():
+        return [
+            GovernorFinding(
+                check_id=check_id,
+                status="fail",
+                severity="error",
+                message="prd/ARCHITECTURE.md missing",
+                observed="ARCHITECTURE.md not found",
+                remediation="restore the living truth oracle at prd/ARCHITECTURE.md",
+            )
+        ]
+
+    lines = arch_path.read_text(encoding="utf-8", errors="replace").splitlines()
+    missing: list[str] = []
+    mismatched: list[str] = []
+
+    for adr_id, expected_lc in _ADR_TRUTH_ORACLE_EXPECTATIONS.items():
+        needle = f"ADR-{adr_id}"
+        hit_indexes = [i for i, line in enumerate(lines) if needle in line]
+        if not hit_indexes:
+            missing.append(needle)
+            continue
+
+        # Accept expected lifecycle on the hit line or an adjacent line (table rows).
+        found_expected = False
+        found_wrong: set[str] = set()
+        for i in hit_indexes:
+            window = lines[max(0, i - 1) : min(len(lines), i + 2)]
+            tags: set[str] = set()
+            for wline in window:
+                tags |= _line_lifecycle_tags(wline)
+            if expected_lc in tags:
+                found_expected = True
+                break
+            found_wrong |= tags
+        if not found_expected:
+            wrong = ",".join(sorted(found_wrong)) if found_wrong else "none"
+            mismatched.append(f"{needle}:expected={expected_lc}:seen={wrong}")
+
+    if missing or mismatched:
+        return [
+            GovernorFinding(
+                check_id=check_id,
+                status="fail",
+                severity="error",
+                message="ARCHITECTURE ADR lifecycle sync failed",
+                observed=(
+                    f"missing={missing or '[]'}, mismatched={mismatched or '[]'} "
+                    f"(lifecycle [bounded]; truth-oracle anti-drift)."
+                ),
+                remediation=remediation,
+            )
+        ]
+
+    return [
+        GovernorFinding(
+            check_id=check_id,
+            status="pass",
+            severity="ok",
+            message="ARCHITECTURE cites required ADRs with matching lifecycle",
+            observed=(
+                f"adr_checked={len(_ADR_TRUTH_ORACLE_EXPECTATIONS)} "
+                f"(lifecycle [bounded]; truth-oracle anti-drift)."
+            ),
+            remediation="none",
+        )
+    ]
+
+
+def check_adr_index_completeness(root: Path) -> list[GovernorFinding]:
+    """Every doc/adr/0*.md (except README) must be listed in doc/adr/README.md."""
+    check_id = "adr-index-completeness"
+    remediation = (
+        "Add the missing ADR file name or ADR-NNNN id to doc/adr/README.md so the "
+        "index remains the navigable catalog of architectural decisions."
+    )
+    adr_dir = root / "doc" / "adr"
+    readme = adr_dir / "README.md"
+    if not adr_dir.is_dir() or not readme.is_file():
+        return [
+            GovernorFinding(
+                check_id=check_id,
+                status="fail",
+                severity="error",
+                message="doc/adr index surface missing",
+                observed=f"adr_dir={adr_dir.is_dir()}, readme={readme.is_file()}",
+                remediation="restore doc/adr/ and doc/adr/README.md",
+            )
+        ]
+
+    readme_text = readme.read_text(encoding="utf-8", errors="replace")
+    missing: list[str] = []
+    for path in sorted(adr_dir.glob("0*.md")):
+        adr_id_match = re.search(r"(\d{4})", path.name)
+        if not adr_id_match:
+            continue
+        adr_id = adr_id_match.group(1)
+        if f"ADR-{adr_id}" not in readme_text and path.name not in readme_text:
+            missing.append(path.name)
+
+    if missing:
+        return [
+            GovernorFinding(
+                check_id=check_id,
+                status="fail",
+                severity="warn",
+                message="ADR files missing from doc/adr/README.md index",
+                observed=(
+                    f"missing_count={len(missing)}, files={missing[:12]} "
+                    f"(lifecycle [bounded]; index anti-drift; advisory)."
+                ),
+                remediation=remediation,
+            )
+        ]
+
+    return [
+        GovernorFinding(
+            check_id=check_id,
+            status="pass",
+            severity="ok",
+            message="all ADR files are listed in doc/adr/README.md",
+            observed="adr_index_complete=true (lifecycle [bounded]; index anti-drift).",
+            remediation="none",
+        )
+    ]
+
+
 def _extract_pre_commit_hook_ids_with_entries(root: Path) -> str:
     """Return pre-commit config text for script reference scanning."""
     config = root / ".pre-commit-config.yaml"
@@ -1583,6 +1863,9 @@ def run_governor(root: Path | None = None) -> GovernorReport:
         + check_verify_test_coverage_drift(resolved)
         + check_semantic_stub_in_product_code(resolved)
         + check_historical_test_debt_visibility(resolved)
+        + check_archive_path_policy(resolved)
+        + check_adr_truth_oracle_sync(resolved)
+        + check_adr_index_completeness(resolved)
     )
     error_count = sum(1 for item in findings if item.status == "fail" and item.severity == "error")
     warn_count = sum(1 for item in findings if item.status == "fail" and item.severity == "warn")
