@@ -106,7 +106,7 @@ M109-M129 Rust baseline + 20 hostile contracts  [bounded]
 M131-M140 parser foundation + archival cutover  [bounded]
    ADR-0013 universal parser [bounded] (Consultant WordML + Garant ODT)
    shared hierarchy/sentence/reference/temporal/deontic lexical candidates
-   Python product → python_archive/; ACP/git-lex disconnected from active plane
+   Python product → python_archive/; historical ACP/git-lex disconnected from active plane
    ▼
 M141-M160 process/port-contract hardening  [bounded]
    shared port contracts, CI/governor honesty, clippy gates
@@ -138,19 +138,21 @@ corpus/legal/citation completeness claims.
 **Python repository-control harness** — `[validated]` process boundary
 (ADR-0007) under `src/law_nexus_harness/`. Active Python is governor/preflight
 orchestration only: Cargo/ADR/document freshness/GSD glue. It must not import
-product domain packages, PyO3/FFI bridges, or active FalkorDB adapters.
+product domain packages, forbidden PyO3/FFI bridges, or historical FalkorDB adapters.
 
 **`python_archive/product/`** — archived Python product prior art after M140/M141
 cutover and residual dependency closure. Historical onion package surfaces,
 legacy proof scripts and residual product-era tests live here only. They are not
 the target product specification and do not gate active CI product behavior.
 
-**Historical library boundary (ADR-0003):** Pydantic/domain and parser record
-decisions remain prior-art evidence only. Rust equivalents are independently
-defined serde/schemars types and traits behind current hexagonal boundaries.
-FalkorDB is historical evidence, not active product infrastructure. ADR-0014
-selects RuVector only at `[proposed]`; real TEI→RVF, graph materialization,
-cross-store recovery and citation gates remain open.
+**Historical library boundary (retired ADR-0003, prior art only):**
+Pydantic/domain and parser-record decisions from the Python era remain
+prior-art evidence only — not an active ADR file under `doc/adr/`. Rust
+equivalents are independently defined serde/schemars types and traits behind
+current hexagonal boundaries. FalkorDB is historical evidence, not active
+product infrastructure. ADR-0014 selects RuVector only at `[proposed]`; real
+TEI→RVF, graph materialization, cross-store recovery and citation gates remain
+open.
 
 **Consultant XML parser hardening** — `[bounded]` through M086–M105: 81 XML
 source files, multi-level hierarchy, FRBR IDs, internal/external references,
@@ -174,19 +176,19 @@ completeness, Consultant/Garant parity, or production graph readiness.
 | R038 | `[bounded]` active | standing independent review gate |
 | Temporal legal ontology L1-L7 | `[proposed]` (ADR-0016..0022) | design crystallized M165; each layer graduates to `[bounded]` when its TDD Rust domain + fail-closed resolver ships, to `[validated]` only with real-corpus proof. L2 CTV is the first implementation priority once parser data is ready. |
 
-## ACP / git-lex status
+## ACP / git-lex status (historical decommission only)
 
-**`[proposed]` decommission, decision accepted (D104/R066).** ACP/git-lex has no
-place in the target law-nexus architecture, runtime, CI, skills, requirements or
-source of truth. Project-local history will move to
-`python_archive/acp_git_lex/`; the external `/root/git-lex-kit-acp/` repository
-is not modified. General ADR, evidence, requirement/state consistency and
-fail-closed checks survive only after being rewritten without ACP/git-lex
-runtime or vocabulary dependencies.
+**`[proposed]` decommission, decision accepted (D104/R066).** Historical
+ACP/git-lex has no place in the target law-nexus architecture, runtime, CI,
+skills, requirements or source of truth. Project-local history lives under
+`python_archive/acp_git_lex/` (archive-only); the external
+`/root/git-lex-kit-acp/` repository is not modified. General ADR, evidence,
+requirement/state consistency and fail-closed checks survive only after being
+rewritten without historical ACP/git-lex runtime or vocabulary dependencies.
 
-M108 disconnected the git-lex-managed hook. The installed standard pre-commit
-hook has no legacy chain; real execution leaves `.lex` byte-identical. `.lex`
-and ACP history remain only until manifest-driven D3-D6 archive waves.
+M108 disconnected the historical git-lex-managed hook. The installed standard
+pre-commit hook has no legacy chain; real execution leaves `.lex` byte-identical.
+`.lex` and ACP history remain archive-only until manifest-driven D3-D6 waves.
 
 ## What law-nexus does NOT have (non-claims)
 

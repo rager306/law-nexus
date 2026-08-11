@@ -11,9 +11,11 @@ from law_nexus_harness.governor import (
     _EXPECTED_DIRECTION,
     GOVERNOR_SCHEMA_VERSION,
     check_active_requirement_contradictions,
+    check_active_surface_era_noise,
     check_adr_cross_surface_matrix,
     check_adr_doc_matrix_coverage,
     check_adr_index_completeness,
+    check_adr_retired_id_ban,
     check_adr_structure_hygiene,
     check_adr_truth_oracle_sync,
     check_architecture_direction,
@@ -802,12 +804,16 @@ def test_live_governor_includes_adr_and_archive_checks() -> None:
     assert "adr-doc-matrix-coverage" in by_id
     assert "adr-structure-hygiene" in by_id
     assert "adr-cross-surface-matrix" in by_id
+    assert "adr-retired-id-ban" in by_id
+    assert "active-surface-era-noise" in by_id
     assert "archive-path-policy" in by_id
     assert by_id["adr-truth-oracle-sync"].status == "pass"
     assert by_id["adr-index-completeness"].status == "pass"
     assert by_id["adr-doc-matrix-coverage"].status == "pass"
     assert by_id["adr-structure-hygiene"].status == "pass"
     assert by_id["adr-cross-surface-matrix"].status == "pass"
+    assert by_id["adr-retired-id-ban"].status == "pass"
+    assert by_id["active-surface-era-noise"].status == "pass"
     assert by_id["archive-path-policy"].status == "pass"
     assert report.error_count == 0
     assert report.status == "ok"
@@ -978,3 +984,57 @@ def test_adr_cross_surface_matrix_detects_gap(tmp_path: Path) -> None:
     assert finding.severity == "warn"
     assert "ADR-0008" not in finding.observed
     assert "ADR-0004@README.md" in finding.observed
+
+
+def test_adr_retired_id_ban_detects_unqualified_cite(tmp_path: Path) -> None:
+    (tmp_path / "prd").mkdir()
+    (tmp_path / "prd" / "ARCHITECTURE.md").write_text(
+        "# A\n\nUse ADR-0003 for library boundary.\n",
+        encoding="utf-8",
+    )
+    (tmp_path / "README.md").write_text("# r\n", encoding="utf-8")
+    findings = check_adr_retired_id_ban(tmp_path)
+    assert len(findings) == 1
+    finding = findings[0]
+    assert finding.check_id == "adr-retired-id-ban"
+    assert finding.status == "fail"
+    assert finding.severity == "warn"
+    assert "ADR-0003" in finding.observed
+
+
+def test_adr_retired_id_ban_allows_historical_qualifier(tmp_path: Path) -> None:
+    (tmp_path / "prd").mkdir()
+    (tmp_path / "prd" / "ARCHITECTURE.md").write_text(
+        "# A\n\nHistorical library boundary (retired ADR-0003, prior art only).\n",
+        encoding="utf-8",
+    )
+    (tmp_path / "README.md").write_text("# r\n", encoding="utf-8")
+    findings = check_adr_retired_id_ban(tmp_path)
+    assert len(findings) == 1
+    assert findings[0].status == "pass"
+
+
+def test_active_surface_era_noise_detects_unqualified_token(tmp_path: Path) -> None:
+    (tmp_path / "prd").mkdir()
+    (tmp_path / "prd" / "ARCHITECTURE.md").write_text(
+        "# A\n\nDeploy FalkorDB for production graph.\n",
+        encoding="utf-8",
+    )
+    findings = check_active_surface_era_noise(tmp_path)
+    assert len(findings) == 1
+    finding = findings[0]
+    assert finding.check_id == "active-surface-era-noise"
+    assert finding.status == "fail"
+    assert finding.severity == "warn"
+    assert "falkordb" in finding.observed.lower()
+
+
+def test_active_surface_era_noise_allows_qualified_token(tmp_path: Path) -> None:
+    (tmp_path / "prd").mkdir()
+    (tmp_path / "prd" / "ARCHITECTURE.md").write_text(
+        "# A\n\nFalkorDB is historical evidence, not active infrastructure.\n",
+        encoding="utf-8",
+    )
+    findings = check_active_surface_era_noise(tmp_path)
+    assert len(findings) == 1
+    assert findings[0].status == "pass"

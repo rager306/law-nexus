@@ -2089,6 +2089,157 @@ def check_adr_cross_surface_matrix(root: Path) -> list[GovernorFinding]:
     ]
 
 
+# Retired Python-era ADR IDs (files absent). Living entrypoints may mention them
+# only with an explicit retirement qualifier on the same line.
+_RETIRED_ADR_IDS: tuple[str, ...] = ("0001", "0002", "0003", "0006")
+_RETIRED_ADR_LINE_RE = re.compile(r"\bADR[-\s]?0*([1236])\b", re.IGNORECASE)
+_RETIRED_ADR_QUALIFIER_RE = re.compile(
+    r"(?i)\b(historical|retired|rejected|superseded|prior[- ]art|archive-only|"
+    r"archived|not present|not active|python[- ]era|python-specific)\b"
+)
+_RETIRED_ADR_SCAN_PATHS: tuple[str, ...] = (
+    "prd/ARCHITECTURE.md",
+    "README.md",
+    "doc/adr/README.md",
+    "prd/project-state/roadmap.md",
+)
+
+# Entrypoint surfaces for residual era-token noise (historical-only backends).
+# Mentions are allowed only with historical/non-claim qualifiers nearby.
+_ERA_NOISE_SCAN_PATHS: tuple[str, ...] = (
+    "prd/ARCHITECTURE.md",
+    "README.md",
+    "doc/adr/README.md",
+    "prd/architecture/README.md",
+    "prd/parser/README.md",
+    "prd/project-state/roadmap.md",
+)
+# Detection keyword set: falkordb|git-lex|acp|pyo3|minimax (historical-only ban).
+_ERA_NOISE_TOKEN_RE = re.compile(r"(?i)\b(falkordb(?:lite)?|git[-_]lex|\bacp\b|pyo3|minimax)\b")
+_ERA_NOISE_QUALIFIER_RE = re.compile(
+    r"(?i)\b(historical|history|archived|archive-only|prior[- ]art|decommission|"
+    r"decommissioned|rejected|superseded|not active|non-claim|non-claims|"
+    r"does not|do not|must not|never|forbidden|no production|production-scale "
+    r"claim|replacing|replaced|→|ruvector)\b"
+)
+
+
+def check_adr_retired_id_ban(root: Path) -> list[GovernorFinding]:
+    """Ban unqualified live cites of retired ADR-0001/0002/0003/0006.
+
+    Those IDs have no files under doc/adr/ (Python-onion / PyO3-bridge era).
+    Living entrypoints may mention them only with an explicit retirement
+    qualifier on the same line (historical/retired/rejected/superseded/...)."""
+    check_id = "adr-retired-id-ban"
+    remediation = (
+        "Rewrite living entrypoints so ADR-0001/0002/0003/0006 appear only with "
+        "historical/retired/rejected/superseded qualifiers on the same line, or "
+        "remove the cite and point at the current ADR (0004+)."
+    )
+
+    hits: list[str] = []
+    for rel in _RETIRED_ADR_SCAN_PATHS:
+        path = root / rel
+        if not path.is_file():
+            continue
+        lines = path.read_text(encoding="utf-8", errors="replace").splitlines()
+        for idx, line in enumerate(lines):
+            if not _RETIRED_ADR_LINE_RE.search(line):
+                continue
+            window = " ".join(lines[j] for j in (idx - 1, idx, idx + 1) if 0 <= j < len(lines))
+            if _RETIRED_ADR_QUALIFIER_RE.search(window):
+                continue
+            ids = sorted({f"000{m.group(1)}" for m in _RETIRED_ADR_LINE_RE.finditer(line)})
+            hits.append(f"{rel}:{idx + 1}:ADR-{','.join(ids)}")
+
+    if hits:
+        return [
+            GovernorFinding(
+                check_id=check_id,
+                status="fail",
+                severity="warn",
+                message="unqualified retired ADR IDs cited on living entrypoints",
+                observed=(f"hits={hits[:20]} (lifecycle [bounded]; retired-id ban; advisory)."),
+                remediation=remediation,
+            )
+        ]
+
+    return [
+        GovernorFinding(
+            check_id=check_id,
+            status="pass",
+            severity="ok",
+            message="no unqualified retired ADR IDs on living entrypoints",
+            observed=(
+                f"scanned={list(_RETIRED_ADR_SCAN_PATHS)} retired={list(_RETIRED_ADR_IDS)} "
+                f"(lifecycle [bounded]; retired-id ban)."
+            ),
+            remediation="none",
+        )
+    ]
+
+
+def check_active_surface_era_noise(root: Path) -> list[GovernorFinding]:
+    """Warn on unqualified historical-only era tokens on living entrypoints.
+
+    Living entrypoints may mention era tokens (falkordb|git-lex|acp|pyo3|minimax)
+    only with historical/non-claim qualifiers nearby. Dense derived registry/CI
+    views are out of scope (still non-authoritative). Advisory only."""
+    check_id = "active-surface-era-noise"
+    remediation = (
+        "On living entrypoints (ARCHITECTURE, README, adr/README, architecture/parser "
+        "README, project-state roadmap), qualify every historical-only era token "
+        "(falkordb/acp/git-lex/pyo3/minimax) as historical/archive-only/non-claim, "
+        "or remove the token."
+    )
+
+    hits: list[str] = []
+    for rel in _ERA_NOISE_SCAN_PATHS:
+        path = root / rel
+        if not path.is_file():
+            continue
+        lines = path.read_text(encoding="utf-8", errors="replace").splitlines()
+        for idx, line in enumerate(lines):
+            tokens = _ERA_NOISE_TOKEN_RE.findall(line)
+            if not tokens:
+                continue
+            # Accept historical/non-claim qualifiers on the same line or an
+            # adjacent line (markdown wrap / section header + body).
+            window = " ".join(lines[j] for j in (idx - 1, idx, idx + 1) if 0 <= j < len(lines))
+            if _ERA_NOISE_QUALIFIER_RE.search(window):
+                continue
+            uniq = sorted({t.lower() for t in tokens})
+            hits.append(f"{rel}:{idx + 1}:{','.join(uniq)}")
+
+    if hits:
+        return [
+            GovernorFinding(
+                check_id=check_id,
+                status="fail",
+                severity="warn",
+                message="unqualified era tokens on living entrypoints",
+                observed=(
+                    f"hit_count={len(hits)}, hits={hits[:24]} "
+                    f"(lifecycle [bounded]; era-noise ban; advisory)."
+                ),
+                remediation=remediation,
+            )
+        ]
+
+    return [
+        GovernorFinding(
+            check_id=check_id,
+            status="pass",
+            severity="ok",
+            message="living entrypoints qualify era tokens",
+            observed=(
+                f"scanned={list(_ERA_NOISE_SCAN_PATHS)} (lifecycle [bounded]; era-noise ban)."
+            ),
+            remediation="none",
+        )
+    ]
+
+
 def _extract_pre_commit_hook_ids_with_entries(root: Path) -> str:
     """Return pre-commit config text for script reference scanning."""
     config = root / ".pre-commit-config.yaml"
@@ -2122,6 +2273,8 @@ def run_governor(root: Path | None = None) -> GovernorReport:
         + check_adr_doc_matrix_coverage(resolved)
         + check_adr_structure_hygiene(resolved)
         + check_adr_cross_surface_matrix(resolved)
+        + check_adr_retired_id_ban(resolved)
+        + check_active_surface_era_noise(resolved)
     )
     error_count = sum(1 for item in findings if item.status == "fail" and item.severity == "error")
     warn_count = sum(1 for item in findings if item.status == "fail" and item.severity == "warn")

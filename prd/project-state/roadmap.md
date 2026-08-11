@@ -49,7 +49,7 @@ falkordb=historical-only
 
 | Range | Theme | Boundary |
 |---|---|---|
-| M001-M034 | Architecture, parser direction, FalkorDB/retrieval evidence and source structuring | Foundational and bounded proof, not product readiness. |
+| M001-M034 | Architecture, parser direction, historical FalkorDB/retrieval evidence and source structuring | Foundational and bounded proof, not product readiness. |
 | M035-M067 | ACP/git-lex construction and externalization | Closed historical era; derived projections are non-authoritative. |
 | M068-M085 | Onion architecture, compliance gates, parser foundation and repository health | Structural and parser groundwork; no whole-system parity. |
 | M086-M110 | Debt repair, corpus stabilization, Rust-only transition, ACP/git-lex decommission, first Rust tracer and capability evidence map | Rust workspace/harness and bounded acceptance evidence exist; product/domain parity remains unproven. |

@@ -1,12 +1,22 @@
-# Parser Fixture Contract
+# Parser contract (active thin surface)
 
-This directory contains the canonical source-fixture inventory for M006 parser and graph staging work. Future parser slices should inspect the machine-readable manifest first and should not glob `law-source/` directly when choosing source paths.
+Active tracked artifacts under `prd/parser/` are **thin contracts** for the
+Rust universal multi-source parser (ADR-0013 `[bounded]`): schemas, profiles,
+examples, golden-test contract, ODT smoke records, and this README.
 
-## Canonical artifacts
+Large Python-era dumps (hierarchy corpus JSONL, staging graphs, golden_cases
+bodies, fixture inventories) were relocated to
+`prd/archive/parser-dumps-era/` (gitignored archaeology). Do not treat that
+vault as product truth. Prefer real `law-source/` fixtures + Rust crate tests.
 
-- Manifest: `prd/parser/source_fixture_inventory.json` (schema `parser-source-fixture-inventory/v2`, M072 — discovery-based, extended source-role taxonomy)
-- Human report: `prd/parser/source_fixture_inventory.md`
-- Fixture generator/check command: `uv run python scripts/inventory-parser-fixtures.py --check`
+## Canonical active artifacts
+
+- Schemas: `prd/parser/schemas/*.json`
+- Profiles: `prd/parser/profiles/{consultant_wordml,garant_odt}.yaml`
+- Examples: `prd/parser/examples/*.jsonl`
+- Contracts: `parser_record_contract.md`, `golden_test_contract.md`
+- Bounded smoke: `odt_smoke_records.{json,md}`
+- Historical dumps (archive-only): `prd/archive/parser-dumps-era/`
 
 ## Source discovery and document-type taxonomy (M072)
 
@@ -100,7 +110,7 @@ Real-corpus current snapshot (53 fixtures):
   exists.
 
 NON-CLAIMS: the probe does not validate parser completeness, legal
-correctness, R035/R037/R038, FalkorDB, retrieval, or multi-source readiness.
+correctness, R035/R037/R038, historical FalkorDB, retrieval, or multi-source readiness.
 It is observability of the existing document-level seam against the
 expanded corpus, and its output is the input to S03 extension work.
 - Parser record schema/example/report generator: `uv run python scripts/validate-parser-records.py --write`
@@ -186,12 +196,12 @@ S04 remains non-authoritative. It does not claim parser completeness, legal corr
 
 ## NetworkX parser staging graph artifacts
 
-S05 adds deterministic NetworkX `MultiDiGraph` staging/debug reports over the S02-valid S03 ODT records and S04 Consultant relation candidates. The builder preserves keyed relation-candidate edges, emits unresolved-reference nodes instead of rewriting Consultant references into ODT document IDs, and reports graph invariant diagnostics before any later FalkorDB load-shape work.
+S05 adds deterministic NetworkX `MultiDiGraph` staging/debug reports over the S02-valid S03 ODT records and S04 Consultant relation candidates. The builder preserves keyed relation-candidate edges, emits unresolved-reference nodes instead of rewriting Consultant references into ODT document IDs, and reports graph invariant diagnostics before any later historical FalkorDB load-shape work.
 
 | Path | Contract |
 |---|---|
-| `prd/parser/parser_staging_graph.json` | Machine-readable S05 report with status, artifact freshness, `document_count`, `source_block_count`, `relation_candidate_count`, keyed relation edge IDs, unresolved endpoints, diagnostics, and explicit non-claims. |
-| `prd/parser/parser_staging_graph.md` | Human-readable S05 report with bounded counts, current warning set, R031 scope, future FalkorDB load-shape notes, and non-authoritative boundaries. |
+| `prd/archive/parser-dumps-era/parser_staging_graph.json` | Historical machine-readable S05 report (archive-only). |
+| `prd/archive/parser-dumps-era/parser_staging_graph.md` | Historical S05 report (archive-only) with bounded counts, R031 scope, future historical FalkorDB load-shape notes, and non-authoritative boundaries. |
 
 S05 commands:
 
@@ -213,7 +223,7 @@ S02 adds deterministic generated golden-case artifacts for future S03 evaluator 
 
 | Path | Contract |
 |---|---|
-| `prd/parser/golden_cases.json` | Machine-readable S02 report with `status`, `artifact_freshness`, `case_count`, `case_class_counts`, `source_artifacts`, `stale_paths`, source anchors, blocked claims, and S01-shaped diagnostics. |
+| `prd/archive/parser-dumps-era/golden_cases.json` | Historical machine-readable S02 golden cases (archive-only). |
 | `prd/parser/golden_cases.md` | Human-readable S02 report exposing case inventory, source anchors, source artifact hashes, diagnostics, and explicit non-claim boundaries. |
 
 S02 commands:
@@ -263,7 +273,7 @@ S04/R032 validation is bounded to executable golden tests over tracked artifacts
 
 - S03 ODT parsing should emit `DocumentRecord` and `SourceBlockRecord` JSONL that validates with `uv run python scripts/validate-parser-records.py --kind <kind> <file>` and preserves `non_authoritative: true`.
 - S04 Consultant WordML work may emit only `RelationCandidateRecord` candidate evidence until later validation upgrades or rejects individual candidates.
-- S05 NetworkX staging may consume validated parser records as deterministic staging/debug inputs, not as product graph truth, legal authority, or FalkorDB runtime proof.
+- S05 NetworkX staging may consume validated parser records as deterministic staging/debug inputs, not as product graph truth, legal authority, or historical FalkorDB runtime proof.
 - Later FalkorDB load-shape work may use the S05 node/edge kinds, keyed relation edge IDs, and path/rule-qualified diagnostics as a staging contract, but must run its own loading/runtime proof before narrowing the FalkorDB loading/runtime readiness non-claim.
 - All downstream consumers must preserve bounded excerpts/hashes and non-claims unless a later proof slice explicitly narrows one claim.
 

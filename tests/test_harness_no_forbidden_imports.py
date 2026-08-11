@@ -32,6 +32,12 @@ _ALLOWED_FALKORDB_PATTERNS = (
     # era name 'falkordb' as a detection keyword; this is a historical-only
     # mention by construction (the probe inventories historical debt).
     re.compile(r"falkordb\|git"),
+    # active-surface-era-noise probe: detection keyword regex source fragment
+    # plus historical-only ban language in docstrings/remediation.
+    re.compile(r"falkordb\(\?:lite\)"),
+    re.compile(r"falkordb/acp/git-lex/pyo3/minimax", re.IGNORECASE),
+    re.compile(r"historical[- ]only.*falkordb|falkordb.*historical", re.IGNORECASE),
+    re.compile(r"unqualified historical-only era", re.IGNORECASE),
 )
 
 

@@ -86,7 +86,7 @@ The architecture lives in tracked substance — this README only points at it.
   Hexagonal boundaries (ADR-0015): domain → ports → application → adapters.
 - **Python harness:** `src/law_nexus_harness/` (ADR-0007 `[validated]`) —
   repository control-plane only: governor, preflight, ADR/Cargo/GSD/CI
-  orchestration. No product/domain logic, no PyO3/FFI.
+  orchestration. No product/domain logic, no forbidden PyO3/FFI.
 - **ADRs:** [`doc/adr/`](doc/adr/) — MADR-format with mandatory D098 lifecycle
   tags. Direction (ADR-0004..0015) + temporal legal ontology chain
   (ADR-0016..0022). Index: [`doc/adr/README.md`](doc/adr/README.md).

@@ -1,6 +1,6 @@
 # Architecture registry contract
 
-This directory defines the LegalGraph Nexus architecture registry contract for M004 and later slices. The registry is a git-tracked, machine-readable projection of architecture knowledge; it is not itself the architecture source of truth.
+This directory defines the law-nexus architecture registry contract (historical M004-era name: LegalGraph Nexus). The registry is a git-tracked, machine-readable projection of architecture knowledge; it is not itself the architecture source of truth.
 
 ## Three derived views
 
@@ -18,7 +18,7 @@ All three views are derived, non-authoritative planning artifacts. Source-of-tru
 
 Authoritative claims remain in the source documents and evidence artifacts that the registry anchors to:
 
-- PRD and research notes under `prd/`, especially `prd/09_architecture_planning_verification_research.md`.
+- Living architecture truth: `prd/ARCHITECTURE.md` and `doc/adr/**`. Historical research notes live under `prd/archive/` (not active truth).
 - GSD requirements, decisions, plans, summaries, and validation artifacts.
 - Source code, tests, runtime smoke artifacts, and real-document proof artifacts when a claim requires implementation or runtime evidence.
 - External references only when recorded as explicit `external-reference` anchors; they do not override local PRD/GSD decisions.
@@ -30,13 +30,18 @@ Registry records in JSONL form are derived projections for graph analysis, cover
 Use this lifecycle whenever an agent changes architecture claims, architecture registry mappings, graph/report logic, verifier policy, or project guidance that summarizes architecture state:
 
 1. **Update source evidence first.** The source of truth is the PRD/GSD/ADR/source/runtime evidence listed above. Do not make the JSONL registry, NetworkX report, verifier summary, or router skill the authority for a claim that lacks anchored source evidence.
-2. **Regenerate the conservative JSONL projection.** Run:
+2. **Regenerate the conservative JSONL projection.** Historical extractor
+   (may live under `archive/scripts/` if relocated from active `scripts/`):
 
    ```bash
-   uv run python scripts/extract-prd-architecture-items.py
+   # uv run python scripts/extract-prd-architecture-items.py
    ```
 
-   This emits `prd/architecture/architecture_items.jsonl` and `prd/architecture/architecture_edges.jsonl` from curated mappings only. Treat both files as derived, non-authoritative projections. If a row is stale or wrong, fix the source anchor or extractor mapping and regenerate; do not hand-edit JSONL to make a claim appear current.
+   Emits `prd/architecture/architecture_items.jsonl` and
+   `prd/architecture/architecture_edges.jsonl` from curated mappings only.
+   Treat both as derived, non-authoritative projections. Prefer living
+   truth (`prd/ARCHITECTURE.md`, `doc/adr/**`) over regenerating stale
+   registry rows from archived research.
 3. **Rebuild the derived NetworkX views.** Run:
 
    ```bash
@@ -53,7 +58,7 @@ Use this lifecycle whenever an agent changes architecture claims, architecture r
    On default paths the verifier first runs the extractor and graph builder freshness gates in read-only mode:
 
    ```bash
-   uv run python scripts/extract-prd-architecture-items.py --check
+   # historical: uv run python scripts/extract-prd-architecture-items.py --check
    uv run python scripts/build-architecture-graph.py --check
    ```
 
@@ -122,7 +127,7 @@ The current M018/D047-D048-derived inventory is classified as follows:
 | Enforce status and proof-level transition rules. | `P1` | `proposed` in this taxonomy; pending executable tests. | Keeps `validated`, `bounded`, `blocked`, and `deferred` from being used interchangeably. | S01/S02. |
 | Harden source-anchor and evidence-class distinctions. | `P1` | `blocked` until unsafe anchors and evidence misuse fail deterministically. | Required for credible source-traceable architecture validation. | S02. |
 | Add R035 ontology and external-standard promotion gates. | `P1` | `blocked` until bounded evidence, proof gates, and source mappings are present. | R035 remains active and must protect Akoma Ntoso, FRBR, LKIF, RusLegalCore, BFO, GOST, OWL, Common Logic, graph-vector, and pilot-scale claims. | S03. |
-| Detect unsafe positive overclaims across generated views and guidance. | `P1` | `bounded` by existing S04 overclaim scanning; extend only with evidence. | Prevents runtime, parser, retrieval, legal-answer, FalkorDB-scale, generated-Cypher, and LLM-authority overclaims. | Existing verifier plus S02/S03 refinements. |
+| Detect unsafe positive overclaims across generated views and guidance. | `P1` | `bounded` by existing S04 overclaim scanning; extend only with evidence. | Prevents runtime, parser, retrieval, legal-answer, historical FalkorDB-scale, generated-Cypher, and LLM-authority overclaims. | Existing verifier plus S02/S03 refinements. |
 | Add typed architecture drift diagnostics following derive, detect, repair-or-block, re-derive. | `P2` | `proposed` diagnostics-only. | Helps future agents remediate stale or inconsistent architecture projections without changing sources automatically. | S04. |
 | Produce actionable remediation classes without auto-promoting evidence. | `P2` | `proposed` diagnostics-only. | Makes failures fixable while preserving source-of-truth boundaries. | S04. |
 | Limit deterministic repair to generated projection freshness where safe. | `P2` | `deferred` unless a future slice explicitly implements repair. | Avoids accidental edits to PRD/GSD/ADR/source evidence. | S04 diagnostics only; no automatic source repair. |
@@ -154,13 +159,13 @@ Verifier diagnostics for this gate use `rule=ontology-promotion-gate` and name t
 
 The expected verifier failures are meant to be actionable and should include rule, record ID, field, path, and source-anchor context where available:
 
-- **Extractor freshness drift:** `extract-prd-architecture-items.py --check` reports that generated JSONL differs from the extractor output. Remediate by regenerating the JSONL after confirming the curated source mapping is correct.
+- **Extractor freshness drift (historical):** the archived `extract-prd-architecture-items.py --check` path is not an active product gate. Prefer ADR/ARCHITECTURE truth; do not hand-edit JSONL into authority.
 - **Graph/report freshness drift:** `build-architecture-graph.py --check` reports stale JSON or Markdown reports. Remediate by rebuilding the graph reports from current JSONL.
 - **Malformed or invalid JSONL:** malformed lines, wrong `record_kind`, duplicate IDs, missing required fields, enum violations, or invalid path/date/identifier shapes fail deterministically. Remediate the extractor mapping, schema-aware fixture, or source record that produced the bad row, then regenerate.
 - **Unsafe or stale source anchors:** absolute paths, ignored local-only paths, missing files, unbounded line ranges, or selectors/sections that no longer appear in the source fail. Remediate by updating the authoritative source document or the repository-relative anchor.
 - **Graph integrity failures:** missing edge endpoints, orphan traceability-critical records, unresolved active contradictions, and unresolved proof-gate metadata gaps fail when they would make the registry misleading. Remediate by adding anchored relationships, resolving/superseding contradictions, or documenting owner/status/verification metadata.
 - **Decision fitness failures:** active decisions without consequences, superseded decisions without successor coverage, or high/critical active decisions lacking `checked_by`/`validated_by` proof-gate coverage fail. Remediate in the source decision evidence and regenerate the registry.
-- **Positive overclaim failures:** generated artifacts or policy prose that assert unproven runtime, Legal KnowQL parser, ODT/parser completeness, retrieval-quality, FalkorDB production-scale, generated-Cypher safety, legal-answer correctness, or LLM-authority claims fail. Remediate by downgrading to source-anchored boundary language or adding the required deterministic/runtime/real-document proof before raising the claim.
+- **Positive overclaim failures:** generated artifacts or policy prose that assert unproven runtime, Legal KnowQL parser, ODT/parser completeness, retrieval-quality, historical FalkorDB production-scale, generated-Cypher safety, legal-answer correctness, or LLM-authority claims fail. Remediate by downgrading to source-anchored boundary language or adding the required deterministic/runtime/real-document proof before raising the claim.
 
 Negative boundary language such as “derived,” “non-authoritative,” “does not validate,” and “must not be used as legal authority” is part of the claim-safety contract, not an overclaim.
 
@@ -176,21 +181,14 @@ Verifier hard failures include a stable `drift_kind`, affected record ID, affect
 | `decision-fitness-drift` | Missing decision consequences, supersession coverage, or proof-gate coverage for high-risk decisions | Update source decision evidence and its proof-gate/workflow-check links. |
 | `proof-gate-drift` | Unresolved proof-gate metadata, evidence-class mismatch, unsafe lifecycle promotion, ontology promotion gaps | Add earned proof evidence, owner/gate metadata, or downgrade the claim in source evidence. |
 | `contradiction-drift` | Active/hypothesis/bounded `contradicts` edges | Resolve, reject, or supersede the contradiction in source evidence. |
-| `overclaim-drift` | Positive unproven product/runtime/parser/retrieval/legal/FalkorDB/Cypher/LLM authority claims | Downgrade to bounded non-authoritative language or add required proof before promotion. |
+| `overclaim-drift` | Positive unproven product/runtime/parser/retrieval/legal/historical-FalkorDB/Cypher/LLM authority claims | Downgrade to bounded non-authoritative language or add required proof before promotion. |
 
 ## S02 extractor contract
 
-The canonical S02 extractor is `scripts/extract-prd-architecture-items.py`. Run it from the repository root to regenerate the tracked projection files:
-
-```bash
-uv run python scripts/extract-prd-architecture-items.py
-```
-
-The canonical freshness check is:
-
-```bash
-uv run python scripts/extract-prd-architecture-items.py --check
-```
+The historical S02 extractor was `scripts/extract-prd-architecture-items.py`
+(now often under `archive/scripts/` after residual noise cleanup). Do **not**
+treat it as active product truth regeneration. Prefer ADR/ARCHITECTURE
+updates; keep tracked JSONL only as a derived CI-bound registry snapshot.
 
 The extractor owns these generated JSONL projections:
 
@@ -254,7 +252,8 @@ uv run python scripts/verify-architecture-graph.py
 The verifier is read-only. On default paths it first composes these freshness gates before applying S04 policy checks:
 
 ```bash
-uv run python scripts/extract-prd-architecture-items.py --check
+# historical extractor (archive/scripts if relocated):
+# uv run python scripts/extract-prd-architecture-items.py --check
 uv run python scripts/build-architecture-graph.py --check
 ```
 
@@ -340,7 +339,7 @@ uv run python scripts/generate-architecture-views.py --check
 `architecture_health.md` is a derived, non-authoritative projection. It does not:
 - Prove product runtime behavior
 - Validate legal-answer correctness
-- Establish FalkorDB production-scale readiness
+- Establish historical FalkorDB production-scale readiness (non-claim: does not)
 - Confer LLM authority on any claim
 - Replace PRD, GSD, ADR, or source anchor evidence
 
@@ -348,7 +347,7 @@ Before acting on dashboard findings, verify against the source anchors recorded 
 
 ## Product Readiness Blockers Report
 
-The product readiness blockers report (`prd/architecture/product_readiness_blockers.md`) is a planning artifact that maps active proof gates, blocked evidence, and non-claims to the six capability areas required for LegalGraph Nexus product readiness.
+The product readiness blockers report (`prd/architecture/product_readiness_blockers.md`) is a planning artifact that maps active proof gates, blocked evidence, and non-claims to the six capability areas required for law-nexus product readiness.
 
 ### What it shows
 
