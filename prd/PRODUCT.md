@@ -1,7 +1,8 @@
 # law-nexus Product Contract
 
-**Document status:** `[proposed]` D2 draft; not yet `ready-for-assessment`
-**Baseline revision:** `60fd8245ace999f3f29911844375dd7cc36a2a38` (2026-08-11)
+**Document status:** `[proposed]` Product Contract; document state `ready-for-assessment`
+**Planning baseline:** `60fd8245ace999f3f29911844375dd7cc36a2a38` (2026-08-11)
+**EA-02 tested revision:** `37f82c4245642f7c1e9104f288db43df762178fe` (`assessment/02-product-contract.md`)
 **Authority:** canonical product intent (A3) once accepted; architecture state remains governed by `prd/ARCHITECTURE.md` and `doc/adr/**`
 **Requirements projection:** `prd/REQUIREMENTS.md`
 **Non-claim:** publication of this contract does not validate product runtime, legal correctness, corpus coverage, or release readiness

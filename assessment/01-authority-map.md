@@ -12,8 +12,8 @@
 | A0 | vault/retired-ID policy (включая active-plane/archive classification) | определяет допустимый publication plane | не доказывает product behavior |
 | A1 | `prd/ARCHITECTURE.md` | living architecture truth oracle | обязан отражать ADR ceilings и explicit non-claims |
 | A2 | `doc/adr/**` | каноническое decision substance | `[proposed]` design не является implementation proof |
-| A3 | `prd/PRODUCT.md` — `[proposed]` D2 draft | tracked Product Contract после EA-02 readiness review | до принятия остаётся draft и не может превышать ADR/proof ceilings |
-| A4 | `prd/REQUIREMENTS.md` — `[proposed]` D2 projection | published capability obligations после EA-02 readiness review | local `.gsd` body не заменяет projection; draft не является accepted contract |
+| A3 | `prd/PRODUCT.md` — `[proposed]`, document state `ready-for-assessment` | tracked Product Contract reviewed at `37f82c4` | document readiness не является EA-10 acceptance и не может превышать ADR/proof ceilings |
+| A4 | `prd/REQUIREMENTS.md` — `[proposed]`, document state `ready-for-assessment` | tracked capability-obligation projection reviewed at `37f82c4` | local `.gsd` body не заменяет projection; readiness не является product proof |
 | A5 | `prd/migration/**`, `prd/project-state/**` | sequence и current-front planning | completion не является readiness proof |
 | A6 | cross-matrices и control catalog; `assessment/**` как `AssessmentPacket` process evidence | process evidence и disposition | AssessmentPacket никогда не получает A1–A4 authority и не является product/runtime proof |
 | A7 | `prd/architecture/**`, generated wiki/reports, LLM outputs | derived diagnostics | не удовлетворяют requirement и не повышают lifecycle |
@@ -28,8 +28,8 @@
 |---------|----------------|-------------------------|
 | `prd/ARCHITECTURE.md` | canonical architecture | tracked, self-contained entrypoint |
 | `doc/adr/**` | canonical decisions | tracked, indexed, status/lifecycle explicit |
-| `prd/PRODUCT.md` | proposed canonical product intent | D2 draft существует, но ещё не `ready-for-assessment`/accepted |
-| `prd/REQUIREMENTS.md` | proposed tracked requirements projection | D2 draft существует; не копия `.gsd` и не accepted proof |
+| `prd/PRODUCT.md` | proposed canonical product intent | EA-02 document state `ready-for-assessment`; не EA-10 accepted и не product proof |
+| `prd/REQUIREMENTS.md` | proposed tracked requirements projection | EA-02 document state `ready-for-assessment`; не копия `.gsd` и не accepted proof |
 
 ### Planning/process
 
@@ -128,10 +128,10 @@ NormRule
 - Human disposition должен ссылаться на frozen revision и evidence.
 - Assessment packet не использует raw legal corpus, secrets, ignored paths или raw provider payloads.
 
-## 6. Open publication gaps after D0/D1 drafts
+## 6. Open publication gaps after D0–D2
 
-- Product Contract и tracked requirements projection существуют как `[proposed]` D2 working-tree drafts, но ещё не frozen/tracked at revision и не `ready-for-assessment`.
-- Living entrypoint corrections существуют в working tree; D1 closure требует frozen tracked-link scan и disposition.
+- Product Contract и tracked requirements projection проверены на frozen revision `37f82c4245642f7c1e9104f288db43df762178fe` и имеют document state `ready-for-assessment`; EA-09/EA-10 acceptance остаётся open.
+- Living entrypoint corrections tracked at `37f82c4`; D1 final disposition остаётся частью wider assessment closeout.
 - Roadmap current-front surfaces требуют D5 synchronization.
 - Derived registry требует D7 quarantine/refresh.
 - Deterministic controls пока существуют как paper catalog, а не implemented gates.

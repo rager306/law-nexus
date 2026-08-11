@@ -47,7 +47,7 @@ Assessor получает frozen tracked revision и читает authority в �
 
 1. `prd/ARCHITECTURE.md` — living architecture truth oracle;
 2. `doc/adr/**` — каноническое decision substance и lifecycle ceilings;
-3. будущий `prd/PRODUCT.md` — канонический product contract после публикации;
+3. `prd/PRODUCT.md` — `[proposed]` Product Contract с EA-02 document state `ready-for-assessment`; не EA-10 accepted;
 4. tracked requirements projection — capability obligations после публикации;
 5. active roadmaps — sequence/planning authority only;
 6. matrices, controls и `assessment/**` — process evidence;

@@ -1,8 +1,9 @@
 # Published Requirements Projection
 
 **Kind:** requirements projection (A4)
-**Document status:** `[proposed]` D2 draft; not yet `ready-for-assessment`
-**Baseline revision:** `60fd8245ace999f3f29911844375dd7cc36a2a38` (2026-08-11)
+**Document status:** `[proposed]` requirements projection; document state `ready-for-assessment`
+**Planning baseline:** `60fd8245ace999f3f29911844375dd7cc36a2a38` (2026-08-11)
+**EA-02 tested revision:** `37f82c4245642f7c1e9104f288db43df762178fe` (`assessment/02-product-contract.md`)
 **Derives from:** `prd/PRODUCT.md`
 **Architecture ceilings:** `prd/ARCHITECTURE.md` + `doc/adr/**`
 **Local workflow source:** `.gsd/REQUIREMENTS.md` is non-published seed/state and is not authority for cold readers
@@ -109,16 +110,18 @@ This omission table does not assert that every local row has been reconciled. A 
 
 ## 6. D2 exit checklist
 
-- [ ] `prd/PRODUCT.md` and this projection are tracked at a frozen revision.
-- [ ] Every consequential Product statement has a stable `PC-###`.
-- [ ] PC/RQ IDs are unique and bidirectionally covered.
-- [ ] Every runtime-bearing row includes positive and hostile acceptance.
-- [ ] All evidence paths are tracked, repository-relative and exist.
-- [ ] No Product/RQ lifecycle exceeds ADR or evidence ceiling.
-- [ ] No validated product capability is claimed.
-- [ ] Product Contract is distinct from architecture state and roadmap sequence.
-- [ ] Independent EA-02 reviewer confirms typed abstention, human authority and non-claims.
-- [ ] Document state is changed to `ready-for-assessment` only after the checklist passes.
+- [x] `prd/PRODUCT.md` and this projection are tracked at tested revision `37f82c4245642f7c1e9104f288db43df762178fe`.
+- [x] Every consequential Product statement has a stable `PC-###`.
+- [x] PC/RQ IDs are unique and bidirectionally covered.
+- [x] Every runtime-bearing row includes positive and hostile acceptance.
+- [x] All evidence paths are tracked, repository-relative and exist at the tested revision.
+- [x] No Product/RQ lifecycle exceeds ADR or evidence ceiling.
+- [x] No validated product capability is claimed.
+- [x] Product Contract is distinct from architecture state and roadmap sequence.
+- [x] Independent EA-02 reviewer confirmed typed abstention, human authority and non-claims in `assessment/02-product-contract.md`.
+- [x] Document state changed to `ready-for-assessment` after the checklist passed.
+
+These checks establish document readiness only. EA-09 external assessment and EA-10 human disposition remain pending.
 
 ## 7. Non-claims
 

@@ -7,8 +7,9 @@
 >
 > Detailed decisions: [`doc/adr/**`](../doc/adr/README.md).
 > `.gsd/**` is local workflow state, not a cold-reader authority surface.
-> [`PRODUCT.md`](PRODUCT.md) and [`REQUIREMENTS.md`](REQUIREMENTS.md) are `[proposed]`
-> D2 drafts, not yet accepted and not product/legal readiness evidence.
+> [`PRODUCT.md`](PRODUCT.md) and [`REQUIREMENTS.md`](REQUIREMENTS.md) remain `[proposed]`;
+> EA-02 marked their document state `ready-for-assessment` at `37f82c4`. This is
+> not EA-10 acceptance and not product/legal readiness evidence.
 
 ## What law-nexus IS
 
