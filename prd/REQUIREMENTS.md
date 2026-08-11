@@ -121,7 +121,7 @@ This omission table does not assert that every local row has been reconciled. A 
 - [x] Independent EA-02 reviewer confirmed typed abstention, human authority and non-claims in `assessment/02-product-contract.md`.
 - [x] Document state changed to `ready-for-assessment` after the checklist passed.
 
-These checks establish document readiness only. EA-09 external assessment and EA-10 human disposition remain pending.
+These checks establish document readiness only. EA-09 independent assessment completed at packet revision `120d44b`, and EA-10 human decision D150 accepted the documentation/process packet with findings. That process disposition does not promote this `[proposed]` projection or validate product, runtime or legal behavior.
 
 ## 7. Non-claims
 

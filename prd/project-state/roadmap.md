@@ -4,7 +4,7 @@
 > non-authoritative cold-reader projection of
 > `prd/project-state/data/roadmap.json`; local `.gsd/**` is workflow state only.
 >
-> Refreshed 2026-08-11 after frozen EA-05 review at `94d58ea`. Roadmap completion is not product readiness.
+> Initial front synchronization was frozen in EA-05 at `94d58ea`; current documentation/process state is EA-10 D150 `accepted-with-findings` at packet `120d44b`. Roadmap completion is not product readiness.
 
 ## Active Direction Contract
 

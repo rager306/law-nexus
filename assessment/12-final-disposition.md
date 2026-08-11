@@ -42,7 +42,7 @@ This disposition does not erase findings or convert warnings to PASS.
 | EA09-W03 derived graph staleness and local-GSD-anchored registry rows | accepted finding; quarantine remains mandatory | architecture registry process owner; revisit on authority use/new builder |
 | EA09-W04 packet naming differs from illustrative template | accepted finding; phase-index files remain canonical packet history | assessment process owner; revisit on packet tooling |
 | EA09-W05 historical vocabulary in policy tests | accepted finding | harness/CI owner; revisit on CI/archive changes |
-| EA09-W06 semantic aliases/terminology | accepted finding under D149 | ADR/Product owners; revisit at listed type/schema triggers |
+| EA09-W06 semantic aliases/terminology | accepted finding under D149; EA08-W05 was resolved after its EA-09 revisit trigger by replacing `InForce` shorthand in PC-007 with a clock-only outcome | ADR/Product owners; remaining aliases revisit at listed type/schema triggers |
 | EA09-W07 paper catalog exceeds implemented governor subset | accepted process debt | governor owner; revisit in verification implementation slices |
 | Derived registry staleness WARN | accepted finding, not closure | never promote or invent anchors |
 

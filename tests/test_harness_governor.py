@@ -731,7 +731,9 @@ def test_semantic_stub_in_product_code_detects_planted_stub(tmp_path: Path) -> N
     assert finding.status == "fail"
     assert finding.severity == "warn"
     assert "stub_count=" in finding.observed
-    assert "lib.rs" in finding.observed
+    assert "crates/ln-fake/src/lib.rs:3" in finding.observed
+    assert "stub ranking" not in finding.observed
+    assert "let score" not in finding.observed
 
 
 def test_semantic_stub_in_product_code_ignores_tests_and_testkit(tmp_path: Path) -> None:
@@ -844,6 +846,26 @@ def test_adr_truth_oracle_sync_detects_lifecycle_mismatch(tmp_path: Path) -> Non
     assert "ADR-0004" in finding.observed
 
 
+def test_adr_truth_oracle_sync_rejects_dual_lifecycle_overclaim(tmp_path: Path) -> None:
+    adr = tmp_path / "doc" / "adr"
+    adr.mkdir(parents=True)
+    (adr / "0024-future.md").write_text(
+        "# ADR-0024\n\n## Status\n\nAccepted `[proposed]`.\n",
+        encoding="utf-8",
+    )
+    prd = tmp_path / "prd"
+    prd.mkdir()
+    (prd / "ARCHITECTURE.md").write_text(
+        "# ARCH\n\nADR-0024 [proposed] [validated]\n",
+        encoding="utf-8",
+    )
+
+    finding = check_adr_truth_oracle_sync(tmp_path)[0]
+    assert finding.status == "fail"
+    assert finding.severity == "error"
+    assert "ADR-0024:expected=proposed:seen=proposed,validated" in finding.observed
+
+
 def test_adr_truth_oracle_sync_discovers_future_adr(tmp_path: Path) -> None:
     adr = tmp_path / "doc" / "adr"
     adr.mkdir(parents=True)
@@ -953,6 +975,42 @@ def test_archive_path_policy_warns_on_active_alias_into_vault(tmp_path: Path) ->
     findings = check_archive_path_policy(tmp_path)
     assert findings[0].status == "fail"
     assert "active_aliases=['prd/architecture/acp']" in findings[0].observed
+
+
+def test_archive_path_policy_warns_on_unlisted_symlink_into_vault(tmp_path: Path) -> None:
+    (tmp_path / ".gitignore").write_text(
+        "\n".join(
+            [
+                ".lex/",
+                "python_archive/",
+                "Old_project/",
+                "prd/archive/acp-git-lex/",
+                "prd/archive/pre-rust-prd/",
+                "prd/archive/milestone-proofs-era/",
+                "prd/archive/research-era/",
+                "prd/archive/project-state-era/",
+                "prd/archive/architecture-era/",
+                "prd/archive/parser-dumps-era/",
+                "prd/archive/retrieval-era/",
+                "prd/archive/migration-era/",
+                "archive/",
+                "probes/",
+                ".commandcode/",
+            ]
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+    vault = tmp_path / "python_archive" / "product"
+    vault.mkdir(parents=True)
+    active = tmp_path / "prd" / "current"
+    active.mkdir(parents=True)
+    (active / "legacy-source").symlink_to(vault)
+
+    finding = check_archive_path_policy(tmp_path)[0]
+    assert finding.status == "fail"
+    assert finding.severity == "warn"
+    assert "prd/current/legacy-source->python_archive/product" in finding.observed
 
 
 def test_archive_path_policy_passes_when_ignored(tmp_path: Path) -> None:
@@ -1111,6 +1169,21 @@ def test_active_surface_era_noise_detects_unqualified_token(tmp_path: Path) -> N
     assert len(findings) == 1
     finding = findings[0]
     assert finding.check_id == "active-surface-era-noise"
+    assert finding.status == "fail"
+    assert finding.severity == "warn"
+    assert "falkordb" in finding.observed.lower()
+
+
+def test_active_surface_era_noise_rejects_adjacent_qualifier_laundering(
+    tmp_path: Path,
+) -> None:
+    (tmp_path / "prd").mkdir()
+    (tmp_path / "prd" / "ARCHITECTURE.md").write_text(
+        "# A\n\nRuVector is proposed.\nDeploy FalkorDB for production.\n",
+        encoding="utf-8",
+    )
+
+    finding = check_active_surface_era_noise(tmp_path)[0]
     assert finding.status == "fail"
     assert finding.severity == "warn"
     assert "falkordb" in finding.observed.lower()

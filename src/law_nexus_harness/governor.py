@@ -12,6 +12,7 @@ from __future__ import annotations
 
 import importlib.util
 import json
+import os
 import re
 import subprocess
 import sys
@@ -1449,8 +1450,7 @@ def check_semantic_stub_in_product_code(root: Path) -> list[GovernorFinding]:
                 continue
             for lineno, line in enumerate(text.splitlines(), start=1):
                 if pattern.search(line):
-                    snippet = line.strip()[:100]
-                    matches.append(f"{rel}:{lineno}:{snippet}")
+                    matches.append(f"{rel}:{lineno}")
 
     if matches:
         preview = ",".join(matches[:12])
@@ -1637,6 +1637,7 @@ _ADR_REQUIRED_SECTIONS: tuple[str, ...] = (
 )
 
 _LIFECYCLE_TAG_RE = re.compile(r"\[(proposed|bounded|smoke|validated|deferred)\]", re.IGNORECASE)
+_ADR_ID_RE = re.compile(r"\bADR-(?P<id>\d{4})\b", re.IGNORECASE)
 
 
 def _gitignore_covers(gitignore_text: str, path: str) -> bool:
@@ -1677,6 +1678,49 @@ def _git_tracked_paths(root: Path, path: str) -> list[str]:
     return [line for line in completed.stdout.splitlines() if line.strip()]
 
 
+def _active_symlinks_into_vaults(root: Path) -> list[str]:
+    """Find active-tree symlinks whose resolved target is inside a historical vault."""
+
+    root = root.resolve()
+    vaults = tuple((root / path).resolve() for path in _HISTORICAL_VAULT_PATHS)
+    excluded_roots = {".git", ".gitnexus", ".venv", "target"}
+    hits: list[str] = []
+
+    def is_vault_path(path: Path) -> bool:
+        return any(path == vault or vault in path.parents for vault in vaults)
+
+    def inspect(path: Path) -> None:
+        if not path.is_symlink():
+            return
+        target = path.resolve(strict=False)
+        if not is_vault_path(target):
+            return
+        rel = path.relative_to(root).as_posix()
+        try:
+            target_label = target.relative_to(root).as_posix()
+        except ValueError:
+            target_label = "external-vault-target"
+        hits.append(f"{rel}->{target_label}")
+
+    for current, dirnames, filenames in os.walk(root, topdown=True, followlinks=False):
+        current_path = Path(current)
+        retained_dirs: list[str] = []
+        for name in dirnames:
+            candidate = current_path / name
+            rel_parts = candidate.relative_to(root).parts
+            if rel_parts and rel_parts[0] in excluded_roots:
+                continue
+            inspect(candidate)
+            if is_vault_path(candidate.resolve(strict=False)):
+                continue
+            retained_dirs.append(name)
+        dirnames[:] = retained_dirs
+        for name in filenames:
+            inspect(current_path / name)
+
+    return sorted(hits)
+
+
 def check_archive_path_policy(root: Path) -> list[GovernorFinding]:
     """Ensure historical vaults are gitignored and not git-tracked.
 
@@ -1706,6 +1750,13 @@ def check_archive_path_policy(root: Path) -> list[GovernorFinding]:
         for path in _HISTORICAL_ACTIVE_ALIASES
         if (root / path).exists() or (root / path).is_symlink()
     ]
+    known_aliases = set(active_aliases)
+    active_aliases.extend(
+        item
+        for item in _active_symlinks_into_vaults(root)
+        if item.split("->", 1)[0] not in known_aliases
+    )
+    active_aliases = sorted(set(active_aliases))
     for vault in _HISTORICAL_VAULT_PATHS:
         if not _gitignore_covers(gitignore_text, vault):
             missing_ignore.append(vault)
@@ -1808,18 +1859,36 @@ def check_adr_truth_oracle_sync(root: Path) -> list[GovernorFinding]:
             missing.append(needle)
             continue
 
-        # Accept expected lifecycle on the hit line or an adjacent line (table rows).
+        # Prefer lifecycle tags on the citation line. When the line cites one
+        # ADR only, reject dual or conflicting tags instead of accepting the
+        # expected tag beside an overclaim. Multi-ADR summary rows may carry
+        # distinct tags for different IDs, so they retain presence semantics.
         found_expected = False
         found_wrong: set[str] = set()
         for i in hit_indexes:
-            window = lines[max(0, i - 1) : min(len(lines), i + 2)]
-            tags: set[str] = set()
-            for wline in window:
-                tags |= _line_lifecycle_tags(wline)
-            if expected_lc in tags:
+            line_tags = _line_lifecycle_tags(lines[i])
+            cited_ids = {match.group("id") for match in _ADR_ID_RE.finditer(lines[i])}
+            if line_tags:
+                if len(cited_ids) == 1 and cited_ids == {adr_id}:
+                    if line_tags == {expected_lc}:
+                        found_expected = True
+                    else:
+                        found_wrong |= line_tags
+                    continue
+                if expected_lc in line_tags:
+                    found_expected = True
+                else:
+                    found_wrong |= line_tags
+                continue
+
+            adjacent_tags: set[str] = set()
+            for adjacent in lines[max(0, i - 1) : min(len(lines), i + 2)]:
+                adjacent_tags |= _line_lifecycle_tags(adjacent)
+            if adjacent_tags == {expected_lc}:
                 found_expected = True
-                break
-            found_wrong |= tags
+            else:
+                found_wrong |= adjacent_tags
+
         if not found_expected:
             wrong = ",".join(sorted(found_wrong)) if found_wrong else "none"
             mismatched.append(f"{needle}:expected={expected_lc}:seen={wrong}")
@@ -2253,10 +2322,10 @@ def check_active_surface_era_noise(root: Path) -> list[GovernorFinding]:
             tokens = _ERA_NOISE_TOKEN_RE.findall(line)
             if not tokens:
                 continue
-            # Accept historical/non-claim qualifiers on the same line or an
-            # adjacent line (markdown wrap / section header + body).
-            window = " ".join(lines[j] for j in (idx - 1, idx, idx + 1) if 0 <= j < len(lines))
-            if _ERA_NOISE_QUALIFIER_RE.search(window):
+            # Require the historical/non-claim polarity on the token line.
+            # Adjacent infrastructure or heading vocabulary must not launder
+            # an active production assertion for a historical-only backend.
+            if _ERA_NOISE_QUALIFIER_RE.search(line):
                 continue
             uniq = sorted({t.lower() for t in tokens})
             hits.append(f"{rel}:{idx + 1}:{','.join(uniq)}")

@@ -130,11 +130,11 @@ NormRule
 
 ## 6. D0–D2 gaps and later disposition status
 
-- Product Contract и tracked requirements projection проверены на frozen revision `37f82c4245642f7c1e9104f288db43df762178fe` и имеют document state `ready-for-assessment`; EA-10 acceptance остаётся open.
-- Living entrypoint corrections tracked at `37f82c4`; final process disposition remains EA-10-owned.
-- Roadmap current-front synchronization completed in EA-05 and remained aligned through EA-09.
+- Product Contract и tracked requirements projection проверены на frozen revision `37f82c4245642f7c1e9104f288db43df762178fe` и имеют document state `ready-for-assessment`; EA-10 D150 принял assessment packet, но не Product/Requirements как validated product contract.
+- Living entrypoint corrections tracked at `37f82c4`; final documentation/process disposition is D150 `accepted-with-findings` at packet `120d44b`.
+- Roadmap current-front synchronization completed in EA-05 and remained aligned through EA-10.
 - Derived registry quarantine completed in EA-06; staleness remains an explicit WARN and never becomes authority.
 - Deterministic paper controls were rehearsed in EA-07; governor implements a bounded subset but paper PASS is not automated-gate evidence.
-- Two independent non-authoring reviewers completed EA-09 at frozen revision `d96a903`; their recommendation is advisory until EA-10 human disposition.
+- Two independent non-authoring reviewers completed EA-09; their recommendation remained advisory until the separate human D150 disposition recorded in `assessment/12-final-disposition.md`.
 
 These statuses remain documentation/process evidence and do not smooth `[proposed]` Product/Requirement/ontology state into product readiness.

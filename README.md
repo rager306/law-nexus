@@ -82,7 +82,7 @@ See [`prd/ARCHITECTURE.md`](prd/ARCHITECTURE.md) for the living truth oracle
 | Path | Role |
 |------|------|
 | `prd/ARCHITECTURE.md` | Living truth oracle — **read first** |
-| `prd/PRODUCT.md` + `prd/REQUIREMENTS.md` | `[proposed]` Product Contract + projection; EA-02 document state `ready-for-assessment`, not EA-10 accepted |
+| `prd/PRODUCT.md` + `prd/REQUIREMENTS.md` | `[proposed]` Product Contract + projection; EA-10 D150 accepted the assessment packet, not these documents as a validated product contract |
 | `prd/temporal-legal-model.md` | `[proposed]` D3/EA-03 crosswalk; human disposition `ACCEPT-AS-PROPOSED`, O1–O7 design only, no runtime |
 | `doc/adr/` | MADR ADRs 0004–0023 (0001/0002/0003/0006 retired, not present) |
 | `doc/adr-architecture-cross-matrix.md` | ADR × surface matrix + governor design |
@@ -109,7 +109,7 @@ See [`prd/ARCHITECTURE.md`](prd/ARCHITECTURE.md) for the living truth oracle
 - **Living truth oracle:** [`prd/ARCHITECTURE.md`](prd/ARCHITECTURE.md)
 - **Product Contract + requirements projection (`[proposed]`, EA-02 `ready-for-assessment`):**
   [`prd/PRODUCT.md`](prd/PRODUCT.md) + [`prd/REQUIREMENTS.md`](prd/REQUIREMENTS.md).
-  This document state is not EA-10 acceptance and does not validate product/legal readiness.
+  EA-10 D150 accepted the documentation/process assessment packet with findings; it did not promote these `[proposed]` documents or validate product/legal readiness.
 - **Rust workspace:** `crates/ln-*` — twenty exclusive capability-owner crates
   (ADR-0011): `ln-domain`, `ln-temporal`, `ln-identity`, `ln-relation`,
   `ln-citation`, `ln-decode` (universal parser), `ln-storage`, `ln-query`,
@@ -188,16 +188,16 @@ cargo run -q -p ln-product-cli -- inspect <path> # structural + retrieval inspec
 ## Where to read next
 
 1. **[`prd/ARCHITECTURE.md`](prd/ARCHITECTURE.md)** — living truth oracle. Read first.
-2. **[`prd/PRODUCT.md`](prd/PRODUCT.md)** + **[`prd/REQUIREMENTS.md`](prd/REQUIREMENTS.md)** — `[proposed]` product clauses/projection; EA-02 document state `ready-for-assessment`, not EA-10 accepted.
+2. **[`prd/PRODUCT.md`](prd/PRODUCT.md)** + **[`prd/REQUIREMENTS.md`](prd/REQUIREMENTS.md)** — `[proposed]` product clauses/projection; EA-10 D150 accepted the assessment packet, not these documents as a validated product contract.
 3. **[`doc/adr/README.md`](doc/adr/README.md)** — ADR index: direction + temporal ontology chain.
 4. **[`doc/adr-architecture-cross-matrix.md`](doc/adr-architecture-cross-matrix.md)** — ADR × surface matrix.
 5. **[`prd/architecture/documentation-semantic-control-plan.md`](prd/architecture/documentation-semantic-control-plan.md)** — `[proposed]` documentation correction/control sequence.
-6. **[`assessment/00-charter.md`](assessment/00-charter.md)** — `[proposed]` external-assessment packet entrypoint; not an accepted assessment.
+6. **[`assessment/00-charter.md`](assessment/00-charter.md)** — assessment packet entrypoint; EA-10 D150 final disposition is recorded in [`assessment/12-final-disposition.md`](assessment/12-final-disposition.md).
 7. **[`prd/migration/`](prd/migration/)** — tracked active planning surfaces; sequence is not readiness proof.
 8. **[`doc/litho-runbook.md`](doc/litho-runbook.md)** — optional Litho/deepwiki-rs regen (derived wiki only).
 9. **[`prd/archive/README.md`](prd/archive/README.md)** — PRD vault map (not product truth). Root `archive/` is fully gitignored archaeology.
 
-Local `.gsd/**` requirements, decisions, roadmap and execution records support repository workflow but are not published cold-reader authority or sole external proof. The tracked Product Contract and requirements projection are published `[proposed]` documents with EA-02 state `ready-for-assessment`; they are not EA-10 accepted or product-validation evidence.
+Local `.gsd/**` requirements, decisions, roadmap and execution records support repository workflow but are not published cold-reader authority or sole external proof. The tracked Product Contract and requirements projection are published `[proposed]` documents with EA-02 state `ready-for-assessment`; EA-10 D150 accepted the assessment packet, not product behavior or these documents as validated product authority.
 
 ## Non-claims (what this project does **not** prove today)
 

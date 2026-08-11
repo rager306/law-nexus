@@ -187,9 +187,9 @@ completeness, Consultant/Garant parity, or production graph readiness.
 
 ## ACP / git-lex status (historical decommission only)
 
-**Decommission decision accepted; active authority is archive-only (D104/R066).** Historical ACP/git-lex has no place in the target law-nexus architecture, runtime, CI, skills, requirements or source of truth. Remaining D3–D6 manifest/archive hygiene is `[proposed]` process work only and cannot reopen the accepted architecture boundary. Project-local history lives under
+**Decommission decision accepted; active authority is archive-only (D104/R066).** Historical/archive-only ACP/git-lex has no place in the target law-nexus architecture, runtime, CI, skills, requirements or source of truth. Remaining D3–D6 manifest/archive hygiene is `[proposed]` process work only and cannot reopen the accepted architecture boundary. Project-local history lives under
 `python_archive/acp_git_lex/` (archive-only); the external
-`/root/git-lex-kit-acp/` repository is not modified. General ADR, evidence,
+`/root/git-lex-kit-acp/` repository is historical-only and is not modified. General ADR, evidence,
 requirement/state consistency and fail-closed checks survive only after being
 rewritten without historical ACP/git-lex runtime or vocabulary dependencies.
 
