@@ -2,21 +2,24 @@
 id: ADR-0004
 title: Rust migration decision for law-nexus
 status: Accepted
-lifecycle: "[validated]"
+lifecycle: "[bounded]"
 date: 2026-07-18
 superseds: none
-related: [M107-7xtx1c, D098]
+related: [ADR-0005, ADR-0007, ADR-0011, D098, D103, D105, D106]
 ---
 
 # ADR-0004: Rust migration decision for law-nexus
 
 ## Status
 
-**Accepted [proposed]** — the decision is recorded, the migration plan is written
-(`prd/migration/`), but no Rust code exists yet. This ADR moves to `[bounded]`
-when the first Rust component (domain types) ships with parity tests, and to
-`[validated]` when the full parser pipeline runs end-to-end in Rust with Python
-removed from the hot path.
+**Accepted [bounded].** The decision is recorded and the Rust product runtime
+is real: the `ln-*` crate workspace (ADR-0011) implements domain types, the
+parser pipeline (ADR-0013), storage/retrieval, KnowQL, and the `law-nexus-inspect`
+CLI. Python product code is archived under `python_archive/product/`; only the
+thin repository harness (`src/law_nexus_harness/`, ADR-0007) remains. Moves to
+`[validated]` when the full parser pipeline runs end-to-end against a
+representative corpus with retrieval-quality proof (blocked on RuVector/TEI
+infrastructure, ADR-0014).
 
 ## Context
 

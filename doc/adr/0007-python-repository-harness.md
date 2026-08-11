@@ -2,7 +2,7 @@
 id: ADR-0007
 title: Python repository control-plane harness for the Rust product
 status: Accepted
-lifecycle: "[proposed]"
+lifecycle: "[validated]"
 date: 2026-07-20
 superseds: none
 related: [ADR-0004, ADR-0005, D105, D106, M107-7xtx1c]
@@ -12,9 +12,10 @@ related: [ADR-0004, ADR-0005, D105, D106, M107-7xtx1c]
 
 ## Status
 
-**Accepted [proposed].** The boundary is decided; the consolidated harness CLI
-has not been implemented. Existing Python verification scripts are prior art to
-inventory and simplify, not automatically part of the target harness.
+**Accepted [validated].** The boundary is decided and realized: the consolidated
+harness CLI lives at `src/law_nexus_harness/` (governor, preflight, parity
+orchestration, ADR/Cargo/GSD/CI process orchestration) and contains no product/
+domain logic, no PyO3/FFI. The product runtime is Rust-only (ADR-0004/0005).
 
 ## Context
 

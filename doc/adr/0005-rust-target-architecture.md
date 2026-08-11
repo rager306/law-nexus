@@ -2,19 +2,25 @@
 id: ADR-0005
 title: Rust target architecture for law-nexus
 status: Accepted
-lifecycle: "[validated]"
+lifecycle: "[bounded]"
 date: 2026-07-18
 superseds: python_archive/adr/0001-onion-package-structure.md (for new code)
-related: [ADR-0004, M107-7xtx1c]
+superseded_by: [ADR-0011] # crate map below is superseded by ADR-0011 (D127)
+related: [ADR-0004, ADR-0007, ADR-0011, ADR-0013, ADR-0014, D123, D127]
 ---
 
 # ADR-0005: Rust target architecture for law-nexus
 
 ## Status
 
-**Accepted [proposed]** — target architecture documented. No Rust code exists
-yet. Moves to `[bounded]` when `law-nexus-core` crate (domain types) ships with
-parity tests, and to `[validated]` when the full onion is ported.
+**Accepted [bounded].** The onion layering direction is realized in the Rust
+product runtime, but the **crate map below is superseded by ADR-0011 (D127)** —
+the actual workspace is twenty exclusive `ln-*` capability-owner crates, not the
+four-crate `law-nexus-core/parser/adapters/app` sketch in this ADR. ADR-0013
+supersedes the parser crate section with the `ln-decode` universal parser.
+Read the crate map below as historical planning, superseded by ADR-0011/0013.
+The onion/hexagonal layering principle (domain → ports → application → adapters)
+survives intact and is enforced in the real `ln-*` workspace.
 
 ## Context
 
@@ -39,6 +45,11 @@ implementation language and the idioms within each layer.
 ## Decision
 
 ### Crate structure
+
+> **⚠️ SUPERSEDED by ADR-0011 (D127) and ADR-0013.** The four-crate sketch below
+> was pre-implementation planning. The real workspace is twenty exclusive `ln-*`
+capability-owner crates (ADR-0011 KOF-DA ownership) plus `ln-decode` universal
+parser (ADR-0013). It is retained as historical context for the onion intent.
 
 ```
 law-nexus-core/     # Phase 1: domain types + ports (no I/O)
