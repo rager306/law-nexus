@@ -38,7 +38,7 @@ This disposition does not erase findings or convert warnings to PASS.
 | Finding group | Disposition | Owner / revisit |
 |---|---|---|
 | EA09-W01 final source-revision binding | closed by this EA-10 packet binding | project-state steward on future assessment freeze |
-| EA09-W02 open DOC rows | DOC-07 publication-structure debt closed by frozen `published-trace-contract` at `23eb715`; DOC-09 freshness-trigger adoption remains debt | owners in known-defect register |
+| EA09-W02 open DOC rows | DOC-07 publication structure closed at `23eb715`; DOC-09 bounded working-tree freshness catalog closed at `d484224`; both remain process-only non-validation evidence | owners in known-defect register |
 | EA09-W03 derived graph staleness and local-GSD-anchored registry rows | accepted finding; quarantine remains mandatory | architecture registry process owner; revisit on authority use/new builder |
 | EA09-W04 packet naming differs from illustrative template | accepted finding; phase-index files remain canonical packet history | assessment process owner; revisit on packet tooling |
 | EA09-W05 historical vocabulary in policy tests | accepted finding | harness/CI owner; revisit on CI/archive changes |
@@ -53,7 +53,7 @@ This disposition does not erase findings or convert warnings to PASS.
 - DOC-03/04/05/06: retain previous documentation/process closures.
 - DOC-07: `verified-closed` in publication-structure scope by frozen `published-trace-contract` at `23eb715`; this does not validate claim semantics or satisfy requirements.
 - DOC-08: `verified-closed`; deterministic paper review, advisory semantic review and human acceptance were applied separately.
-- DOC-09: remains `addressed-in-draft`; event-triggered freshness catalog adoption is incomplete.
+- DOC-09: `verified-closed` in bounded working-tree change-impact scope by frozen `document-freshness-triggers` at `d484224`; semantic freshness and human milestone/external/90-day events are not automated.
 - DOC-10: `verified-closed`; revision-bound packet, independent EA-09 report and human EA-10 disposition now exist.
 
 All closure labels are process/publication scope only.
