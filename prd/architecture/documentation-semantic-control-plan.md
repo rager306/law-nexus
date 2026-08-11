@@ -45,7 +45,7 @@ LLM может только формировать advisory findings. Lifecycle 
 | DOC-04 | `prd/project-state/roadmap.md` сообщает M160/M161, хотя M161–M165 уже завершены | freshness/navigation | P0 |
 | DOC-05 | Derived registry/readiness содержит active-looking FalkorDB/ACP rows и устаревшие source anchors | derived-authority/staleness | P1 |
 | DOC-06 | Temporal readiness представлен в основном `GATE-G005`; нет gates для CTV, applicability, correction, status separation, case timeline | proof coverage | P1 |
-| DOC-07 | Cross-surface matrix не описывает Product Contract и external assessment authority | traceability gap | P1 |
+| DOC-07 | Cross-surface matrix не описывала Product Contract и external assessment authority; `published-trace-contract` closed 11 consequential chains at frozen `23eb715` | verified-closed publication-structure gap; not semantic/product proof | P1 |
 | DOC-08 | Нет формализованного разделения deterministic semantic checks, LLM review и human acceptance | governance ambiguity | P1 |
 | DOC-09 | Нет event-triggered freshness policy для living documents | continuity gap | P2 |
 | DOC-10 | Нет revision-bound external assessment packet | independent review gap | P1 |
@@ -59,7 +59,7 @@ Authority направлена сверху вниз; evidence поднимае�
 | A0 | vault/retired-ID policy | определяет active plane | policy authority |
 | A1 | `prd/ARCHITECTURE.md` | living architecture truth oracle | canonical architecture |
 | A2 | `doc/adr/**` | append-only decision substance | canonical decisions |
-| A3 | tracked `prd/PRODUCT.md` (`[proposed]`, EA-02 `ready-for-assessment`) | пользовательский/product contract | canonical product intent after final acceptance; not EA-10 accepted yet |
+| A3 | tracked `prd/PRODUCT.md` (`[proposed]`, EA-02 `ready-for-assessment`) | пользовательский/product contract | canonical proposed product intent; EA-10 D150 accepted the assessment packet, not Product behavior or a validated product contract |
 | A4 | tracked `prd/REQUIREMENTS.md` (не локальные `.gsd` bodies) | `[proposed]` capability obligations | tracked projection; not requirement-validation proof |
 | A5 | migration/project roadmaps | последовательность, а не readiness | planning authority only |
 | A6 | cross-matrices и control catalog | проверка связности | process evidence |

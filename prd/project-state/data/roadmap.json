@@ -382,7 +382,7 @@
     "priority": 1,
     "why": "EA-10 human disposition D150 accepted the documentation/process packet with findings after independent EA-09 report 120d44b.",
     "plan_reference": "assessment/12-final-disposition.md",
-    "slices": "Keep EA09-W01..W07 and DOC-07/DOC-09 visible; open any product work only through separately planned evidence-gated milestones.",
+    "slices": "Keep EA09-W01..W07 visible; DOC-07 is closed only for publication structure at 23eb715, while DOC-09 freshness-trigger adoption remains open; open any product work only through separately planned evidence-gated milestones.",
     "product_next": "L2 CTV TDD remains first temporal implementation priority only after parser data readiness; TEI/RuVector remains infrastructure-evidence gated.",
     "non_validation": "EA-10 accepted-with-findings is documentation/process acceptance, not product readiness, legal correctness, ontology/applicability runtime, lifecycle promotion, or release proof."
   },
