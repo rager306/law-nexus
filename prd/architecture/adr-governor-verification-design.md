@@ -23,7 +23,7 @@ The governor checks publication consistency. It does not decide architecture, le
 | `archive-path-policy` | Require historical vaults ignored/untracked and reject known active aliases into them | advisory `warn` |
 | `verify-adr-conformance.py` | Require lifecycle tags and ADR references on targeted binding claims | separate blocking gate |
 
-Default exit semantics remain stable: failed `error` checks produce exit 1; warn-only debt produces exit 0; tool/contract failures should eventually use exit 2.
+Default exit semantics remain stable: failed `error` checks produce exit 1 and warn-only debt produces exit 0. Unknown/conflicting CLI selectors now produce structured tool-error exit 2; unreadable required inputs and subprocess/tool failures still need the same exit-2 classification instead of silent skip or ordinary policy failure.
 
 ## 3. Machine-readable matrix contract
 
@@ -80,7 +80,19 @@ Every fail must identify `rule_id`, expected/observed values and repository-rela
 
 ## 5. Understandable CLI
 
-Proposed control-plane UX:
+Implemented bounded CLI subset:
+
+```text
+uv run python -m law_nexus_harness governor --only adr
+uv run python -m law_nexus_harness governor --only semantic
+uv run python -m law_nexus_harness governor --check adr-truth-oracle-sync
+uv run python -m law_nexus_harness governor --explain adr-truth-oracle-sync
+uv run python -m law_nexus_harness governor --format text
+```
+
+The default command remains backward-compatible JSON. Unknown or conflicting selectors return structured exit 2. `--explain` is read-only and reports purpose, group, deterministic/heuristic kind, authority inputs, default severity and non-claim.
+
+Still proposed:
 
 ```text
 uv run python -m law_nexus_harness governor --only adr
@@ -104,12 +116,22 @@ uv run python -m law_nexus_harness adr-verify --matrix generate --stdout
 - reject active aliases into historical vaults;
 - retain existing schema and exit behavior.
 
-### MVP B — evidence and explain
+### MVP B — evidence and explain (partially implemented)
 
-- add `Evidence` and `rule_id` fields additively;
-- implement `--only adr`, `--check`, `--explain` and text output;
-- preserve current JSON fields for preflight and existing consumers;
-- test mismatch, missing file, unreadable file and warn-only paths.
+Implemented:
+
+- additive `rule_id`, `expected` and `evidence` fields while preserving report v1 fields;
+- static check registry with group, deterministic/heuristic kind, inputs and non-claim;
+- `--only`, `--check`, `--explain` and text output;
+- selector contract failures use exit 2; warn-only semantic selection stays exit 0;
+- default JSON remains compatible with preflight and existing consumers.
+
+Remaining before MVP B closure:
+
+- populate exact repository-relative `path:line` evidence for every failure rather than generic input paths;
+- classify unreadable required files and subprocess/parser failures as tool errors with exit 2;
+- redact or omit source snippets in the separate ADR conformance script as well as governor findings;
+- add missing-file, unreadable-file and tool-failure contract tests.
 
 ### Stage C — matrix and graph checks
 
@@ -135,6 +157,9 @@ An external/LLM review may submit cited findings, but the harness must force the
 8. Local `python_archive/adr` exists → default active conformance still ignores it.
 9. Advisory semantic report contains `critical` → no blocking exit when deterministic checks pass.
 10. Matrix output attempts to target an authority path → reject.
+11. A single ADR citation carrying both its real lifecycle and a stronger lifecycle → blocking failure.
+12. A historical-only token with an unrelated qualifier on an adjacent line → advisory finding, not a laundered pass.
+13. Semantic stub evidence exposes `path:line` but not the matched source text.
 
 ## 8. Non-claims
 

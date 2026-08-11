@@ -123,18 +123,18 @@ Design principles:
 7. **Advisory vs blocking** — structure/matrix/index/doc-matrix are warn until
    the surface is considered launch-critical; truth-oracle LC mismatch is error.
 
-Suggested CLI UX (current + next):
+Implemented CLI UX:
 
 ```text
 uv run python -m law_nexus_harness governor
-# findings include:
-#   adr-truth-oracle-sync
-#   adr-index-completeness
-#   adr-doc-matrix-coverage
-#   adr-structure-hygiene
-#   adr-cross-surface-matrix
-#   archive-path-policy
+uv run python -m law_nexus_harness governor --only adr
+uv run python -m law_nexus_harness governor --only semantic
+uv run python -m law_nexus_harness governor --check adr-truth-oracle-sync
+uv run python -m law_nexus_harness governor --explain adr-truth-oracle-sync
+uv run python -m law_nexus_harness governor --format text
 ```
+
+Default JSON remains report-v1 compatible. Selector contract failures use exit 2; policy errors use exit 1; warn-only semantic debt uses exit 0. Exact `path:line` evidence and general tool/parser exit-2 classification remain follow-on work.
 
 Implemented deterministic checks:
 
@@ -145,10 +145,12 @@ Implemented deterministic checks:
 - `adr-index-completeness`: warns when an ADR or its per-entry lifecycle is absent;
 - `archive-path-policy`: verifies ignored and untracked vault roots.
 
-Follow-on checks, initially warn-only:
+Follow-on checks, initially warn-only unless a deterministic authority contract is violated:
 
 - `adr-link-integrity` and `adr-supersession-graph`;
-- evidence-rich `path:line` findings and `--explain` output;
+- exact evidence-rich `path:line` findings and general tool/parser exit-2 handling (`--explain` is implemented);
+- tracked Product/Requirement/assessment trace matrix to close DOC-07;
+- event-triggered freshness catalog to close DOC-09;
 - `derived-registry-staleness` tied to the D7 quarantine contract;
 - advisory semantic assessment ingestion that can never set a blocking verdict.
 

@@ -3,11 +3,17 @@
 from __future__ import annotations
 
 import argparse
+import json
 import sys
 from collections.abc import Sequence
 from pathlib import Path
 
-from law_nexus_harness.governor import run_governor
+from law_nexus_harness.governor import (
+    GovernorSelectionError,
+    format_governor_report_text,
+    get_governor_check_spec,
+    run_governor,
+)
 from law_nexus_harness.preflight import run_preflight
 from law_nexus_harness.subprocess_runner import (
     DEFAULT_MAX_OUTPUT_BYTES,
@@ -38,6 +44,15 @@ def build_parser() -> argparse.ArgumentParser:
         default=Path.cwd(),
         help="Repository root (default: current working directory).",
     )
+    governor.add_argument("--only", help="Run one check group (for example: adr or semantic).")
+    governor.add_argument("--check", help="Run one exact check ID.")
+    governor.add_argument("--explain", help="Explain one check contract without running it.")
+    governor.add_argument(
+        "--format",
+        choices=("json", "text"),
+        default="json",
+        help="Output format for executed checks (default: json).",
+    )
     preflight = subcommands.add_parser(
         "preflight",
         help="Run early non-mutating repository preflight checks before completion/commit.",
@@ -63,8 +78,45 @@ def main(argv: Sequence[str] | None = None) -> int:
         sys.stdout.write(result.to_json())
         return 0 if result.status == "ok" else 1
     if args.command == "governor":
-        report = run_governor(args.root)
-        sys.stdout.write(report.to_json())
+        try:
+            if args.explain:
+                if args.only or args.check:
+                    raise GovernorSelectionError(
+                        "conflicting-selectors",
+                        "--explain cannot be combined with --only or --check",
+                    )
+                explanation = get_governor_check_spec(args.explain).to_explanation()
+                sys.stdout.write(
+                    json.dumps(
+                        explanation,
+                        ensure_ascii=False,
+                        sort_keys=True,
+                        separators=(",", ":"),
+                    )
+                    + "\n"
+                )
+                return 0
+            report = run_governor(args.root, only=args.only, check=args.check)
+        except GovernorSelectionError as error:
+            sys.stdout.write(
+                json.dumps(
+                    {
+                        "schema_version": "law-nexus-governor-tool-error/v1",
+                        "status": "tool-error",
+                        "error": error.error,
+                        "value": error.value,
+                    },
+                    ensure_ascii=False,
+                    sort_keys=True,
+                    separators=(",", ":"),
+                )
+                + "\n"
+            )
+            return 2
+        if args.format == "text":
+            sys.stdout.write(format_governor_report_text(report))
+        else:
+            sys.stdout.write(report.to_json())
         return 0 if report.status == "ok" else 1
     if args.command == "preflight":
         report = run_preflight(args.root)

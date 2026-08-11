@@ -16,7 +16,8 @@ import os
 import re
 import subprocess
 import sys
-from dataclasses import asdict, dataclass
+from collections.abc import Callable
+from dataclasses import asdict, dataclass, replace
 from pathlib import Path
 from typing import Any, Literal
 
@@ -87,6 +88,12 @@ _EXPECTED_DIRECTION = {
 
 
 @dataclass(frozen=True)
+class GovernorEvidence:
+    path: str
+    line: int | None = None
+
+
+@dataclass(frozen=True)
 class GovernorFinding:
     check_id: str
     status: CheckStatus
@@ -94,6 +101,43 @@ class GovernorFinding:
     message: str
     observed: str
     remediation: str
+    rule_id: str = ""
+    expected: str = ""
+    evidence: tuple[GovernorEvidence, ...] = ()
+
+
+CheckRunner = Callable[[Path], list[GovernorFinding]]
+CheckKind = Literal["deterministic", "heuristic"]
+
+
+@dataclass(frozen=True)
+class CheckSpec:
+    check_id: str
+    group: str
+    kind: CheckKind
+    runner: CheckRunner
+    purpose: str
+    authority_inputs: tuple[str, ...]
+    default_severity: Severity
+    non_claim: str
+
+    def to_explanation(self) -> dict[str, Any]:
+        return {
+            "check_id": self.check_id,
+            "group": self.group,
+            "kind": self.kind,
+            "purpose": self.purpose,
+            "authority_inputs": list(self.authority_inputs),
+            "default_severity": self.default_severity,
+            "non_claim": self.non_claim,
+        }
+
+
+class GovernorSelectionError(ValueError):
+    def __init__(self, error: str, value: str) -> None:
+        super().__init__(f"{error}: {value}")
+        self.error = error
+        self.value = value
 
 
 @dataclass(frozen=True)
@@ -2367,34 +2411,301 @@ def _extract_pre_commit_hook_ids_with_entries(root: Path) -> str:
     return config.read_text(encoding="utf-8", errors="replace")
 
 
-def run_governor(root: Path | None = None) -> GovernorReport:
-    """Run all governor checks and return a machine-readable report."""
+_PROCESS_NON_CLAIM = (
+    "Repository-control evidence only; no product, runtime, legal, requirement or "
+    "lifecycle validation."
+)
+
+
+def _check_spec(
+    check_id: str,
+    group: str,
+    kind: CheckKind,
+    runner: CheckRunner,
+    purpose: str,
+    authority_inputs: tuple[str, ...],
+    default_severity: Severity,
+) -> CheckSpec:
+    return CheckSpec(
+        check_id=check_id,
+        group=group,
+        kind=kind,
+        runner=runner,
+        purpose=purpose,
+        authority_inputs=authority_inputs,
+        default_severity=default_severity,
+        non_claim=_PROCESS_NON_CLAIM,
+    )
+
+
+GOVERNOR_CHECK_SPECS: tuple[CheckSpec, ...] = (
+    _check_spec(
+        "architecture-direction-contract",
+        "docs",
+        "deterministic",
+        check_architecture_direction,
+        "Keep the active direction contract coherent across living projections.",
+        _DIRECTION_PATHS,
+        "error",
+    ),
+    _check_spec(
+        "active-requirement-contradictions",
+        "docs",
+        "deterministic",
+        check_active_requirement_contradictions,
+        "Reject active local requirement text that contradicts the Rust-only direction.",
+        (".gsd/REQUIREMENTS.md",),
+        "error",
+    ),
+    _check_spec(
+        "forward-roadmap-sequence",
+        "docs",
+        "deterministic",
+        check_forward_roadmap_sequence,
+        "Keep the tracked forward roadmap sequence unique and complete.",
+        ("prd/migration/forward-roadmap.md",),
+        "error",
+    ),
+    _check_spec(
+        "roadmap-freshness",
+        "docs",
+        "deterministic",
+        check_roadmap_freshness,
+        "Keep tracked roadmap state aligned with local GSD workflow state.",
+        (".gsd/STATE.md", "prd/project-state/data/roadmap.json"),
+        "error",
+    ),
+    _check_spec(
+        "hostile-proof-chain",
+        "proof",
+        "deterministic",
+        check_hostile_proof_chain,
+        "Keep hostile proof packages contiguous and baseline aggregates coherent.",
+        (
+            "prd/migration/rust-evidence/probes/",
+            "prd/architecture/m111-final-architecture-baseline.md",
+        ),
+        "error",
+    ),
+    _check_spec(
+        "gsd-residual-debt",
+        "docs",
+        "deterministic",
+        check_gsd_residual_debt,
+        "Expose stale or contradictory local GSD milestone state.",
+        (".gsd/STATE.md",),
+        "error",
+    ),
+    _check_spec(
+        "port-contract-coverage",
+        "verification",
+        "deterministic",
+        check_port_contract_coverage,
+        "Inventory bounded shared port-contract coverage.",
+        ("crates/", "crates/ln-testkit/"),
+        "warn",
+    ),
+    _check_spec(
+        "hostile-negative-suite-coverage",
+        "verification",
+        "deterministic",
+        check_hostile_negative_suite_coverage,
+        "Inventory bounded shared hostile-negative coverage.",
+        ("crates/", "crates/ln-testkit/"),
+        "warn",
+    ),
+    _check_spec(
+        "multi-adapter-port-coverage",
+        "verification",
+        "deterministic",
+        check_multi_adapter_port_coverage,
+        "Inventory shared suites for real adapters on multi-adapter ports.",
+        ("crates/", "crates/ln-testkit/"),
+        "warn",
+    ),
+    _check_spec(
+        "live-adapter-readiness",
+        "verification",
+        "deterministic",
+        check_live_adapter_readiness,
+        "Keep TEI and RuVector repository claims within their evidence ceiling.",
+        ("crates/", "doc/adr/0014-ruvector-primary-infrastructure.md"),
+        "warn",
+    ),
+    _check_spec(
+        "ci-quality-gate-drift",
+        "verification",
+        "deterministic",
+        check_ci_quality_gate_drift,
+        "Keep quality-gate inventory, pre-commit and CI synchronized.",
+        (".pre-commit-config.yaml", ".github/workflows/repository-quality.yml"),
+        "warn",
+    ),
+    _check_spec(
+        "verify-test-coverage-drift",
+        "verification",
+        "deterministic",
+        check_verify_test_coverage_drift,
+        "Keep tests for active verification scripts in the CI process suite.",
+        ("scripts/verify-*.py", "tests/test_verify_*.py"),
+        "warn",
+    ),
+    _check_spec(
+        "semantic-stub-in-product-code",
+        "semantic",
+        "heuristic",
+        check_semantic_stub_in_product_code,
+        "Surface explicit semantic stub markers in active Rust product source.",
+        ("crates/*/src/**/*.rs",),
+        "warn",
+    ),
+    _check_spec(
+        "historical-test-debt-visibility",
+        "semantic",
+        "heuristic",
+        check_historical_test_debt_visibility,
+        "Surface tests that still reference decommissioned eras.",
+        ("tests/test_*.py",),
+        "warn",
+    ),
+    _check_spec(
+        "archive-path-policy",
+        "adr",
+        "deterministic",
+        check_archive_path_policy,
+        "Keep historical vaults ignored, untracked and unreachable from active symlinks.",
+        (".gitignore", "python_archive/", "archive/", "prd/archive/"),
+        "warn",
+    ),
+    _check_spec(
+        "adr-truth-oracle-sync",
+        "adr",
+        "deterministic",
+        check_adr_truth_oracle_sync,
+        "Require every active ADR lifecycle to match its living-oracle citation.",
+        ("doc/adr/0*.md", "prd/ARCHITECTURE.md"),
+        "error",
+    ),
+    _check_spec(
+        "adr-index-completeness",
+        "adr",
+        "deterministic",
+        check_adr_index_completeness,
+        "Require every active ADR and lifecycle in the ADR index.",
+        ("doc/adr/0*.md", "doc/adr/README.md"),
+        "warn",
+    ),
+    _check_spec(
+        "adr-doc-matrix-coverage",
+        "adr",
+        "deterministic",
+        check_adr_doc_matrix_coverage,
+        "Keep the bounded ontology ADR workflow weave visible.",
+        _ONTOLOGY_DOC_MATRIX_SURFACES,
+        "warn",
+    ),
+    _check_spec(
+        "adr-structure-hygiene",
+        "adr",
+        "deterministic",
+        check_adr_structure_hygiene,
+        "Require lifecycle Status and core MADR sections.",
+        ("doc/adr/0*.md",),
+        "warn",
+    ),
+    _check_spec(
+        "adr-cross-surface-matrix",
+        "adr",
+        "deterministic",
+        check_adr_cross_surface_matrix,
+        "Require active ADR citations on core living entrypoints.",
+        _ADR_CROSS_SURFACE_PATHS,
+        "warn",
+    ),
+    _check_spec(
+        "adr-retired-id-ban",
+        "adr",
+        "heuristic",
+        check_adr_retired_id_ban,
+        "Surface unqualified retired ADR IDs on living entrypoints.",
+        _RETIRED_ADR_SCAN_PATHS,
+        "warn",
+    ),
+    _check_spec(
+        "active-surface-era-noise",
+        "semantic",
+        "heuristic",
+        check_active_surface_era_noise,
+        "Surface unqualified decommissioned-era vocabulary on living entrypoints.",
+        _ERA_NOISE_SCAN_PATHS,
+        "warn",
+    ),
+)
+
+
+def get_governor_check_spec(check_id: str) -> CheckSpec:
+    for spec in GOVERNOR_CHECK_SPECS:
+        if spec.check_id == check_id:
+            return spec
+    raise GovernorSelectionError("unknown-check", check_id)
+
+
+def governor_groups() -> tuple[str, ...]:
+    return tuple(sorted({spec.group for spec in GOVERNOR_CHECK_SPECS}))
+
+
+def _selected_specs(only: str | None, check: str | None) -> tuple[CheckSpec, ...]:
+    if only is not None and check is not None:
+        raise GovernorSelectionError("conflicting-selectors", f"only={only},check={check}")
+    if check is not None:
+        return (get_governor_check_spec(check),)
+    if only is None:
+        return GOVERNOR_CHECK_SPECS
+    selected = tuple(spec for spec in GOVERNOR_CHECK_SPECS if spec.group == only)
+    if not selected:
+        raise GovernorSelectionError("unknown-group", only)
+    return selected
+
+
+def _enrich_finding(finding: GovernorFinding, spec: CheckSpec) -> GovernorFinding:
+    evidence = finding.evidence or tuple(
+        GovernorEvidence(path=path) for path in spec.authority_inputs
+    )
+    return replace(
+        finding,
+        rule_id=finding.rule_id or f"{finding.check_id}.contract",
+        expected=finding.expected or spec.purpose,
+        evidence=evidence,
+    )
+
+
+def format_governor_report_text(report: GovernorReport) -> str:
+    lines = [
+        f"governor status={report.status} pass={report.pass_count} "
+        f"warn={report.warn_count} error={report.error_count}"
+    ]
+    for finding in report.findings:
+        lines.append(
+            f"[{finding.status.upper()}/{finding.severity}] {finding.check_id}: {finding.message}"
+        )
+        if finding.status == "fail":
+            lines.append(f"  observed: {finding.observed}")
+            lines.append(f"  remediation: {finding.remediation}")
+    return "\n".join(lines) + "\n"
+
+
+def run_governor(
+    root: Path | None = None,
+    *,
+    only: str | None = None,
+    check: str | None = None,
+) -> GovernorReport:
+    """Run selected governor checks and return a machine-readable report."""
 
     resolved = (root or Path.cwd()).resolve()
-    findings = (
-        check_architecture_direction(resolved)
-        + check_active_requirement_contradictions(resolved)
-        + check_forward_roadmap_sequence(resolved)
-        + check_roadmap_freshness(resolved)
-        + check_hostile_proof_chain(resolved)
-        + check_gsd_residual_debt(resolved)
-        + check_port_contract_coverage(resolved)
-        + check_hostile_negative_suite_coverage(resolved)
-        + check_multi_adapter_port_coverage(resolved)
-        + check_live_adapter_readiness(resolved)
-        + check_ci_quality_gate_drift(resolved)
-        + check_verify_test_coverage_drift(resolved)
-        + check_semantic_stub_in_product_code(resolved)
-        + check_historical_test_debt_visibility(resolved)
-        + check_archive_path_policy(resolved)
-        + check_adr_truth_oracle_sync(resolved)
-        + check_adr_index_completeness(resolved)
-        + check_adr_doc_matrix_coverage(resolved)
-        + check_adr_structure_hygiene(resolved)
-        + check_adr_cross_surface_matrix(resolved)
-        + check_adr_retired_id_ban(resolved)
-        + check_active_surface_era_noise(resolved)
-    )
+    findings: list[GovernorFinding] = []
+    for spec in _selected_specs(only, check):
+        findings.extend(_enrich_finding(item, spec) for item in spec.runner(resolved))
     error_count = sum(1 for item in findings if item.status == "fail" and item.severity == "error")
     warn_count = sum(1 for item in findings if item.status == "fail" and item.severity == "warn")
     pass_count = sum(1 for item in findings if item.status == "pass")

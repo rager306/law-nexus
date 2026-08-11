@@ -126,6 +126,79 @@ def test_cli_governor_command_emits_report(capsys) -> None:
     assert code == expected_code
 
 
+def test_cli_governor_supports_adr_group_selection(capsys) -> None:
+    code = main(["governor", "--only", "adr"])
+    payload = json.loads(capsys.readouterr().out)
+
+    assert code == 0
+    assert payload["findings"]
+    assert all(
+        item["check_id"].startswith("adr-") or item["check_id"] == "archive-path-policy"
+        for item in payload["findings"]
+    )
+    assert all("rule_id" in item for item in payload["findings"])
+    assert all("expected" in item for item in payload["findings"])
+    assert all("evidence" in item for item in payload["findings"])
+
+
+def test_cli_governor_supports_exact_check_selection(capsys) -> None:
+    code = main(["governor", "--check", "adr-truth-oracle-sync"])
+    payload = json.loads(capsys.readouterr().out)
+
+    assert code == 0
+    assert [item["check_id"] for item in payload["findings"]] == ["adr-truth-oracle-sync"]
+
+
+def test_cli_governor_explain_is_read_only_and_structured(capsys) -> None:
+    code = main(["governor", "--explain", "adr-truth-oracle-sync"])
+    payload = json.loads(capsys.readouterr().out)
+
+    assert code == 0
+    assert payload["check_id"] == "adr-truth-oracle-sync"
+    assert payload["group"] == "adr"
+    assert payload["kind"] == "deterministic"
+    assert payload["authority_inputs"] == [
+        "doc/adr/0*.md",
+        "prd/ARCHITECTURE.md",
+    ]
+    assert payload["non_claim"]
+
+
+def test_cli_governor_text_format_is_human_readable(capsys) -> None:
+    code = main(
+        [
+            "governor",
+            "--check",
+            "adr-truth-oracle-sync",
+            "--format",
+            "text",
+        ]
+    )
+    out = capsys.readouterr().out
+
+    assert code == 0
+    assert "governor status=ok" in out
+    assert "[PASS/ok] adr-truth-oracle-sync" in out
+
+
+def test_cli_governor_unknown_selector_is_contract_error(capsys) -> None:
+    code = main(["governor", "--check", "does-not-exist"])
+    payload = json.loads(capsys.readouterr().out)
+
+    assert code == 2
+    assert payload["status"] == "tool-error"
+    assert payload["error"] == "unknown-check"
+
+
+def test_cli_governor_warn_only_semantic_selection_exits_zero(capsys) -> None:
+    code = main(["governor", "--only", "semantic"])
+    payload = json.loads(capsys.readouterr().out)
+
+    assert code == 0
+    assert payload["status"] == "ok"
+    assert all(item["severity"] in {"ok", "warn"} for item in payload["findings"])
+
+
 def test_cli_governor_without_local_gsd_projection_fails_with_coherent_exit_code(
     tmp_path: Path, capsys
 ) -> None:
