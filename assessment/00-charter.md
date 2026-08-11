@@ -66,17 +66,17 @@ Assessor получает frozen tracked revision и читает authority в �
 
 Минимальная независимость: independent assessor не является единственным автором оцениваемого consequential документа.
 
-### EA-00 declaration stub
+### EA-09 independence and source-access declaration
 
-| Поле | D0 / EA-00 состояние |
-|------|----------------------|
-| Independent assessor | `unassigned` |
-| Independence statement | `pending appointment` |
-| Conflict-of-interest declaration | `pending appointment` |
-| Source-access declaration | `pending appointment` |
-| Acceptance authority | `unassigned` |
+| Поле | EA-09 состояние |
+|------|-----------------|
+| Independent assessor | two non-authoring model-assisted desk reviewers at frozen revision `d96a903` |
+| Independence statement | reviewers did not author or edit the assessed packet and hold no lifecycle, release or acceptance authority |
+| Conflict-of-interest declaration | no ownership of product runtime claims, legal interpretation, requirement closure or EA-10 disposition |
+| Source-access declaration | tracked repository tree and read-only deterministic controls only; no private legal corpus, secrets, raw provider payloads or archive content as authority |
+| Acceptance authority | human project owner; disposition pending EA-10 |
 
-Назначенный assessor обязан заполнить independence, conflict-of-interest, недоступные источники и ограничения доступа до freeze EA-09. Этот stub задаёт schema ожиданий, но не является заполненной декларацией и не закрывает EA-00 acceptance.
+Detailed declarations and limitations are recorded in `assessment/11-independent-external-assessment.md`. This declaration satisfies assessor/source-access transparency only; it does not accept the packet or close EA-10.
 
 ## 5. Finding classes и severity
 

@@ -128,13 +128,13 @@ NormRule
 - Human disposition должен ссылаться на frozen revision и evidence.
 - Assessment packet не использует raw legal corpus, secrets, ignored paths или raw provider payloads.
 
-## 6. Open publication gaps after D0–D2
+## 6. D0–D2 gaps and later disposition status
 
-- Product Contract и tracked requirements projection проверены на frozen revision `37f82c4245642f7c1e9104f288db43df762178fe` и имеют document state `ready-for-assessment`; EA-09/EA-10 acceptance остаётся open.
-- Living entrypoint corrections tracked at `37f82c4`; D1 final disposition остаётся частью wider assessment closeout.
-- Roadmap current-front surfaces требуют D5 synchronization.
-- Derived registry требует D7 quarantine/refresh.
-- Deterministic controls пока существуют как paper catalog, а не implemented gates.
-- Independent assessor ещё не назначен; EA-09 не начат.
+- Product Contract и tracked requirements projection проверены на frozen revision `37f82c4245642f7c1e9104f288db43df762178fe` и имеют document state `ready-for-assessment`; EA-10 acceptance остаётся open.
+- Living entrypoint corrections tracked at `37f82c4`; final process disposition remains EA-10-owned.
+- Roadmap current-front synchronization completed in EA-05 and remained aligned through EA-09.
+- Derived registry quarantine completed in EA-06; staleness remains an explicit WARN and never becomes authority.
+- Deterministic paper controls were rehearsed in EA-07; governor implements a bounded subset but paper PASS is not automated-gate evidence.
+- Two independent non-authoring reviewers completed EA-09 at frozen revision `d96a903`; their recommendation is advisory until EA-10 human disposition.
 
-Эти gaps являются явными `[proposed]`/open состояниями и не сглаживаются в readiness.
+These statuses remain documentation/process evidence and do not smooth `[proposed]` Product/Requirement/ontology state into product readiness.
