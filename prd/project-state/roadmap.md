@@ -23,7 +23,7 @@ falkordb=historical-only
 - **Latest completed product milestone:** M165, temporal legal ontology O1–O7 crystallized at `[proposed]` design; no ontology runtime.
 - **Completed retrieval-honesty band:** M161–M164 `[bounded]` (real cosine ranking in memory, semantic-stub and historical-test-debt probes, deterministic CLI vectors); no live corpus or citation-safe answers.
 - **Completed documentation alignment:** D5 + documentation D6 / EA-05 accepted with findings at `94d58ea`; roadmap-front-sync and TL-G01–12 coverage PASS.
-- **Current documentation/process front:** EA-09 — independent external desk assessment after EA-08 `COMPLETE-WITH-WARNINGS`, human disposition D149 and verified remediation `962a4e7`; assessor cannot author or promote lifecycle.
+- **Documentation/process assessment:** EA-10 complete — human D150 `accepted-with-findings` after independent EA-09 report `120d44b`; retained findings remain visible and no product work is unlocked.
 - **Local GSD workflow marker:** M161-2som4e remains active in local workflow state; it is not the tracked product/design current-front authority and its numbering predates later M161–M165 git history.
 - **Product next remains evidence-gated:** L2 CTV TDD after parser data readiness; TEI/RuVector only after real infrastructure/evidence. Neither is unlocked by EA-05.
 - **M111 result:** final `[bounded]` implementation-neutral semantic baseline for heterogeneous Russian legal evidence.
@@ -122,7 +122,7 @@ Proof anchors:
 
 ## Historical product sequence and current process front
 
-M130–M165 are completed historical planning bands. D5/D6→EA-05 and D7/EA-06 are complete as documentation/process stages; EA-07 completed at `430ebfd`, and EA-08 completed with warnings at verified remediation `962a4e7`; the current front is EA-09 independent desk assessment, followed by EA-10. LLM output is never automated authority. Product implementation remains evidence-gated; sequence completion never supplies proof.
+M130–M165 are completed historical planning bands. D5/D6→EA-05 and D7/EA-06 are complete as documentation/process stages; EA-07 completed at `430ebfd`, EA-08 at verified remediation `962a4e7`, EA-09 independent assessment at `120d44b`, and EA-10 human D150 accepted the documentation/process packet with findings. LLM output is never automated authority. Product implementation remains evidence-gated; sequence completion never supplies proof.
 
 Historical M130 plan:
 

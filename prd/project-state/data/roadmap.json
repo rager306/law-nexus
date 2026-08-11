@@ -378,13 +378,13 @@
     "goal": "Local GSD workflow marker only; its milestone numbering predates later tracked M161-M165 product/design commits and is not the product current-front authority."
   },
   "recommended_next": {
-    "title": "Complete EA-09 independent external desk assessment",
+    "title": "Retain EA-10 findings and resume evidence-gated product planning only through a new milestone",
     "priority": 1,
-    "why": "EA-08 completed with warnings under human disposition D149 and frozen remediation 962a4e7; an independent assessor must now review the packet without authoring it.",
-    "plan_reference": "prd/migration/external-architecture-assessment-roadmap.md EA-09",
-    "slices": "Review artifact, semantic, process and reproducibility modes; sample Product-to-Requirement-to-ADR-to-Oracle-to-Roadmap chains; record exact evidence and retained non-claims.",
-    "product_next": "L2 CTV TDD remains evidence-gated after parser data readiness; EA-09 does not unlock implementation.",
-    "non_validation": "EA-09 is independent documentation/process assessment, not product readiness, legal correctness, ontology/applicability runtime, lifecycle authority, or release proof."
+    "why": "EA-10 human disposition D150 accepted the documentation/process packet with findings after independent EA-09 report 120d44b.",
+    "plan_reference": "assessment/12-final-disposition.md",
+    "slices": "Keep EA09-W01..W07 and DOC-07/DOC-09 visible; open any product work only through separately planned evidence-gated milestones.",
+    "product_next": "L2 CTV TDD remains first temporal implementation priority only after parser data readiness; TEI/RuVector remains infrastructure-evidence gated.",
+    "non_validation": "EA-10 accepted-with-findings is documentation/process acceptance, not product readiness, legal correctness, ontology/applicability runtime, lifecycle promotion, or release proof."
   },
   "downstream_blocked": [
     {
@@ -433,12 +433,12 @@
     "Keep Rust as the only target product runtime; Python may remain only as the repository harness defined by ADR-0007.",
     "Do not reintroduce ACP/git-lex outside explicit archive paths."
   ],
-  "source_revision": "962a4e7",
+  "source_revision": "120d44b",
   "current_process_front": {
-    "id": "EA-09",
-    "title": "Independent External Desk Assessment",
-    "status": "active",
-    "boundary": "Documentation/process assessment only; assessor cannot author changes, satisfy requirements, or promote lifecycle."
+    "id": "EA-10",
+    "title": "Final Human Assessment Disposition",
+    "status": "complete",
+    "boundary": "D150 accepted-with-findings applies to documentation/process only and cannot satisfy product requirements or promote lifecycle."
   },
   "latest_completed_product_milestone": {
     "id": "M165",

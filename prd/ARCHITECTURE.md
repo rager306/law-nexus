@@ -127,10 +127,10 @@ M165 temporal legal ontology L1–L7  [proposed] design (ADR-0016..0022)
    Foundation LC hygiene: ADR-0004/0005 [bounded], ADR-0007 [validated]
    Docs/process follow-up: truth-oracle sync, vault untrack, archive relocate
    ▼
-CURRENT PROCESS FRONT (no Rust)
-   EA-09 independent external desk assessment after EA-08 complete-with-warnings
-   verified remediation 962a4e7; assessor cannot author or promote lifecycle
-   then EA-10 human disposition; L2 CTV and TEI/RuVector remain evidence-gated
+ASSESSMENT FRONT (no Rust)
+   EA-10 complete: D150 accepted-with-findings after independent EA-09 at 120d44b
+   retained process/staleness findings remain open; no lifecycle promotion
+   product work is unchanged: L2 CTV and TEI/RuVector remain evidence-gated
 ```
 
 ## Current layer (where work happens now)

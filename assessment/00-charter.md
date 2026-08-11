@@ -3,7 +3,7 @@
 **Статус:** `[proposed]` assessment charter
 **Assessment root:** `assessment/`
 **Базовая ревизия:** `60fd8245ace999f3f29911844375dd7cc36a2a38` (2026-08-11)
-**Текущая стадия:** EA-09 — independent external desk assessment after EA-08 `COMPLETE-WITH-WARNINGS` and human disposition D149 at verified remediation `962a4e7`. Assessor remains non-authoring; findings cannot promote lifecycle or authority. EA-00 charter remains the scope contract; the wider package is not EA-09/EA-10 accepted.
+**Текущая стадия:** EA-10 complete — human disposition D150 `accepted-with-findings` for the documentation/process packet frozen through independent EA-09 report `120d44b`. Findings remain visible; no product/legal/runtime acceptance or lifecycle promotion. EA-00 charter remains the scope contract.
 **Execution contract:** `prd/architecture/documentation-semantic-control-plan.md`
 **Assessment contract:** `prd/migration/external-architecture-assessment-roadmap.md`
 
@@ -74,9 +74,9 @@ Assessor получает frozen tracked revision и читает authority в �
 | Independence statement | reviewers did not author or edit the assessed packet and hold no lifecycle, release or acceptance authority |
 | Conflict-of-interest declaration | no ownership of product runtime claims, legal interpretation, requirement closure or EA-10 disposition |
 | Source-access declaration | tracked repository tree and read-only deterministic controls only; no private legal corpus, secrets, raw provider payloads or archive content as authority |
-| Acceptance authority | human project owner; disposition pending EA-10 |
+| Acceptance authority | human project owner; D150 `accepted-with-findings` recorded in `assessment/12-final-disposition.md` |
 
-Detailed declarations and limitations are recorded in `assessment/11-independent-external-assessment.md`. This declaration satisfies assessor/source-access transparency only; it does not accept the packet or close EA-10.
+Detailed assessor declarations and limitations are recorded in `assessment/11-independent-external-assessment.md`; human acceptance is recorded separately in `assessment/12-final-disposition.md`. Assessor evidence did not auto-accept the packet.
 
 ## 5. Finding classes и severity
 
@@ -130,4 +130,4 @@ EA-09 не начинается, пока:
 - Этот charter не закрывает DOC-01..DOC-10 автоматически.
 - Он не назначает конкретного assessor и не имитирует независимую оценку.
 - Базовая ревизия — planning baseline, а не SHA принятого assessment packet.
-- D0 / EA-00 фиксирует процесс; D1–D8 и EA-01–EA-10 ещё требуют отдельного evidence и disposition.
+- D0 / EA-00 фиксирует процесс; D1–D8 and EA-01–EA-10 now have revision-bound evidence and D150 `accepted-with-findings`; retained findings remain open under their recorded triggers.
