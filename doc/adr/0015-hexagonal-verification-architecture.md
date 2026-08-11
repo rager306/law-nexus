@@ -4,7 +4,7 @@ title: Hexagonal verification architecture for law-nexus
 status: Accepted
 lifecycle: "[bounded]"
 date: 2026-07-29
-superseds: none
+supersedes: none
 related: [ADR-0004, ADR-0005, ADR-0007, ADR-0010, ADR-0012, ADR-0013, ADR-0014, D098, D056]
 ---
 

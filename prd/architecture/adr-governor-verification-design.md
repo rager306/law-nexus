@@ -141,7 +141,7 @@ Implemented bounded checks:
 
 - `published-trace-contract` checks 11 consequential Product→Requirement→ADR chains and the assessment process-only boundary;
 - `adr-link-integrity` resolves relative Markdown files and heading fragments inside the repository;
-- `adr-supersession-graph` reads frontmatter `supersedes`/`superseded_by`, validates optional `#scope` reciprocity and target existence, and rejects cycles;
+- `adr-supersession-graph` reads canonical active frontmatter `supersedes`/`superseded_by`, rejects legacy `superseds` on active ADRs, validates optional `#scope` reciprocity and target existence, and rejects cycles; parser compatibility may still read the legacy key from historical inputs, but it is not valid active metadata;
 - active partial edges are metadata-normalized as `ADR-0011 → ADR-0005#crate-map-only` and `ADR-0023 → ADR-0017#applicability-ownership`;
 - `adr-verify --matrix generate|check` implements `law-nexus-adr-matrix/v1` with stdout-only generation, explicit check target and authority-target rejection;
 - `adr-matrix-freshness` keeps tracked `prd/architecture/adr-matrix.json` synchronized.

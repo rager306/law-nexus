@@ -4,7 +4,7 @@ title: Evidence kernel gates (D119 C10/C12/C13)
 status: Accepted
 lifecycle: "[bounded]"
 date: 2026-07-22
-superseds: none
+supersedes: none
 related: [ADR-0008, ADR-0009, ADR-0011, D119]
 ---
 

@@ -4,7 +4,7 @@ title: Normative hierarchy and conflict resolution (ontology layer L4)
 status: Accepted
 lifecycle: "[proposed]"
 date: 2026-08-11
-superseds: none
+supersedes: none
 related: [ADR-0018, ADR-0020, ADR-0022]
 ---
 

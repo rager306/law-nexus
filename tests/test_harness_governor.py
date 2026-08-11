@@ -1067,7 +1067,7 @@ def test_live_published_trace_contract_covers_consequential_chains() -> None:
 
     assert finding.status == "pass"
     assert finding.severity == "ok"
-    assert "chains=11" in finding.observed
+    assert "chains=20" in finding.observed
 
 
 def test_published_trace_contract_warns_on_broken_chain_and_authority_boundary(
@@ -1097,6 +1097,32 @@ def test_published_trace_contract_warns_on_broken_chain_and_authority_boundary(
     assert finding.severity == "warn"
     assert "PC-001/RQ-001:requirements-link" in finding.observed
     assert "assessment-process-only-boundary" in finding.observed
+
+
+def test_published_trace_contract_rejects_undeclared_future_clause(tmp_path: Path) -> None:
+    prd = tmp_path / "prd"
+    prd.mkdir()
+    (prd / "PRODUCT.md").write_text(
+        "| PC-021 | future | `[proposed]` | none-design | none | absent | hostile | none |\n",
+        encoding="utf-8",
+    )
+    (prd / "REQUIREMENTS.md").write_text(
+        "| RQ-021 | future | PC-021 | `[proposed]` | none-design | none | absent | none |\n",
+        encoding="utf-8",
+    )
+    (prd / "ARCHITECTURE.md").write_text("# A\n", encoding="utf-8")
+    assessment = tmp_path / "assessment"
+    assessment.mkdir()
+    (assessment / "01-authority-map.md").write_text(
+        "AssessmentPacket is process evidence and not product proof.\n",
+        encoding="utf-8",
+    )
+
+    finding = check_published_trace_contract(tmp_path)[0]
+
+    assert finding.status == "fail"
+    assert "undeclared-published:PC-021" in finding.observed
+    assert "undeclared-published:RQ-021" in finding.observed
 
 
 def test_adr_truth_oracle_sync_detects_lifecycle_mismatch(tmp_path: Path) -> None:
@@ -1518,6 +1544,22 @@ def test_adr_supersession_graph_allows_reciprocal_partial_edge(tmp_path: Path) -
 
     assert finding.status == "pass"
     assert finding.severity == "ok"
+
+
+def test_adr_supersession_graph_rejects_legacy_active_key(tmp_path: Path) -> None:
+    adr = tmp_path / "doc" / "adr"
+    adr.mkdir(parents=True)
+    (adr / "0004-legacy.md").write_text(
+        "---\nid: ADR-0004\nsuperseds: none\n---\n",
+        encoding="utf-8",
+    )
+
+    finding = check_adr_supersession_graph(tmp_path)[0]
+
+    assert finding.status == "fail"
+    assert finding.severity == "warn"
+    assert "legacy-key:ADR-0004:superseds" in finding.observed
+    assert finding.evidence[0].line == 3
 
 
 def test_adr_supersession_graph_detects_missing_nonreciprocal_and_cycle(

@@ -4,7 +4,7 @@ title: Judicial, FAS and control-organ practice overlay (ontology layer L5)
 status: Accepted
 lifecycle: "[proposed]"
 date: 2026-08-11
-superseds: none
+supersedes: none
 related: [ADR-0009, ADR-0018, ADR-0019, ADR-0021]
 ---
 

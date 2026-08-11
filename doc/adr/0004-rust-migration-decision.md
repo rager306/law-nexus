@@ -4,7 +4,7 @@ title: Rust migration decision for law-nexus
 status: Accepted
 lifecycle: "[bounded]"
 date: 2026-07-18
-superseds: none
+supersedes: none
 related: [ADR-0005, ADR-0007, ADR-0011, D098, D103, D105, D106]
 ---
 

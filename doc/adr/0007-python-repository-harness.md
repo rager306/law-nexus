@@ -4,7 +4,7 @@ title: Python repository control-plane harness for the Rust product
 status: Accepted
 lifecycle: "[validated]"
 date: 2026-07-20
-superseds: none
+supersedes: none
 related: [ADR-0004, ADR-0005, D105, D106, M107-7xtx1c]
 ---
 

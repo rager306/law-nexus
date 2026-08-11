@@ -4,7 +4,7 @@ title: Promotion and publication authority ceiling (D116/D120)
 status: Accepted
 lifecycle: "[bounded]"
 date: 2026-07-22
-superseds: none
+supersedes: none
 related: [ADR-0009, ADR-0010, ADR-0011, D116, D120]
 ---
 

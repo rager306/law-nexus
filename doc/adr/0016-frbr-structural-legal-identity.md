@@ -4,7 +4,7 @@ title: FRBR structural legal identity (ontology layer L1)
 status: Accepted
 lifecycle: "[proposed]"
 date: 2026-08-11
-superseds: none
+supersedes: none
 related: [ADR-0009, ADR-0010, ADR-0013]
 ---
 

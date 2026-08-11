@@ -6,6 +6,10 @@
 >
 > **D098 lifecycle tags** are mandatory on every architectural/state claim:
 > `[bounded]` / `[smoke]` / `[validated]` / `[proposed]` / `[deferred]`.
+>
+> **Supersession metadata:** active ADR frontmatter uses canonical `supersedes`
+> and `superseded_by` keys. The legacy misspelling `superseds` may be read only
+> for historical-input compatibility and is rejected on active ADRs by Governor.
 
 ## Current ADRs
 

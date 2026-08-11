@@ -4,7 +4,7 @@ title: Universal multi-source parser architecture for Russian legal documents
 status: Accepted
 lifecycle: "[bounded]"
 date: 2026-07-24
-superseds: none
+supersedes: none
 related: [ADR-0004, ADR-0005]
 ---
 

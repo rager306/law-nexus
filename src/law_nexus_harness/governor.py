@@ -2013,12 +2013,21 @@ _CONSEQUENTIAL_TRACE_CHAINS: tuple[tuple[str, str, tuple[str, ...]], ...] = (
     ("PC-001", "RQ-001", ("0004", "0005", "0007", "0011")),
     ("PC-002", "RQ-002", ("0013", "0015")),
     ("PC-003", "RQ-003", ("0010", "0011", "0015")),
+    ("PC-004", "RQ-004", ("0008", "0011")),
+    ("PC-005", "RQ-005", ("0010", "0011", "0015")),
+    ("PC-006", "RQ-006", ("0011", "0015")),
     ("PC-007", "RQ-007", ("0009", "0011")),
-    ("PC-008", "RQ-008", ("0016", "0022")),
-    ("PC-009", "RQ-009", ("0017", "0022", "0023")),
+    ("PC-008", "RQ-008", tuple(f"{number:04d}" for number in range(16, 23))),
+    ("PC-009", "RQ-009", ("0017", "0018", "0019", "0020", "0021", "0022", "0023")),
     ("PC-010", "RQ-010", ("0015", "0022", "0023")),
+    ("PC-011", "RQ-011", ("0012", "0015")),
+    ("PC-012", "RQ-012", ("0011", "0015")),
+    ("PC-013", "RQ-013", ("0009", "0010", "0015", "0017", "0018", "0019", "0020", "0021")),
     ("PC-014", "RQ-014", ("0012", "0015")),
+    ("PC-015", "RQ-015", ("0008", "0011")),
     ("PC-016", "RQ-016", ()),
+    ("PC-017", "RQ-017", ("0011", "0015")),
+    ("PC-018", "RQ-018", ("0005", "0013", "0015")),
     ("PC-019", "RQ-019", ("0014", "0015")),
     ("PC-020", "RQ-020", ("0015",)),
 )
@@ -2269,6 +2278,23 @@ def check_published_trace_contract(root: Path) -> list[GovernorFinding]:
     texts = {name: path.read_text(encoding="utf-8") for name, path in paths.items()}
     gaps: list[str] = []
     evidence: list[GovernorEvidence] = []
+    published_pc_ids = set(re.findall(r"(?m)^\| (PC-\d{3}) \|", texts["product"]))
+    published_rq_ids = set(re.findall(r"(?m)^\| (RQ-\d{3}) \|", texts["requirements"]))
+    declared_pc_ids = {pc_id for pc_id, _, _ in _CONSEQUENTIAL_TRACE_CHAINS}
+    declared_rq_ids = {rq_id for _, rq_id, _ in _CONSEQUENTIAL_TRACE_CHAINS}
+    for item in sorted(published_pc_ids - declared_pc_ids):
+        gaps.append(f"undeclared-published:{item}")
+        evidence.append(GovernorEvidence(path="prd/PRODUCT.md"))
+    for item in sorted(declared_pc_ids - published_pc_ids):
+        gaps.append(f"missing-published:{item}")
+        evidence.append(GovernorEvidence(path="prd/PRODUCT.md"))
+    for item in sorted(published_rq_ids - declared_rq_ids):
+        gaps.append(f"undeclared-published:{item}")
+        evidence.append(GovernorEvidence(path="prd/REQUIREMENTS.md"))
+    for item in sorted(declared_rq_ids - published_rq_ids):
+        gaps.append(f"missing-published:{item}")
+        evidence.append(GovernorEvidence(path="prd/REQUIREMENTS.md"))
+
     for pc_id, rq_id, adr_ids in _CONSEQUENTIAL_TRACE_CHAINS:
         product_row = _table_line(texts["product"], pc_id, must_contain=rq_id)
         requirement_row = _table_line(texts["requirements"], rq_id, must_contain=pc_id)
@@ -2716,6 +2742,12 @@ def check_adr_supersession_graph(root: Path) -> list[GovernorFinding]:
 
     gaps: list[str] = [f"duplicate-id:ADR-{adr_id}" for adr_id in sorted(duplicate_ids)]
     affected: set[tuple[str, str]] = set()
+    for adr_id, (_, fields) in records.items():
+        legacy_field = fields.get("superseds")
+        if legacy_field is not None:
+            gaps.append(f"legacy-key:ADR-{adr_id}:superseds")
+            source_lines[(adr_id, "supersedes")] = legacy_field[1]
+            affected.add((adr_id, "supersedes"))
     for new_id, old_refs in outgoing.items():
         for old_id, scope in old_refs:
             edge = f"ADR-{new_id}->ADR-{old_id}" + (f"#{scope}" if scope else "")

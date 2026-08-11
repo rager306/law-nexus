@@ -4,7 +4,7 @@ title: Five-clock event-anchored temporal model (D118)
 status: Accepted
 lifecycle: "[bounded]"
 date: 2026-07-22
-superseds: none
+supersedes: none
 related: [ADR-0008, ADR-0010, D118]
 ---
 

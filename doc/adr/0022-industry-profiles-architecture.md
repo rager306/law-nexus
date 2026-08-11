@@ -4,7 +4,7 @@ title: Industry profiles architecture (ontology layer L7)
 status: Accepted
 lifecycle: "[proposed]"
 date: 2026-08-11
-superseds: none
+supersedes: none
 related: [ADR-0019, ADR-0020, ADR-0021]
 ---
 
