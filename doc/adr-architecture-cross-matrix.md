@@ -54,6 +54,8 @@ Governor enforcement:
 | `archive-path-policy` | warn | historical vaults gitignored + untracked; active symlinks into vaults rejected |
 | `published-trace-contract` | warn | 11 consequential PC→RQ→ADR chains plus assessment process-only boundary; structure only, not requirement/product proof |
 | `document-freshness-triggers` | warn | non-authoritative dirty-tree change→companion catalog; a PASS is change-impact coverage, not semantic freshness |
+| `adr-link-integrity` | warn | relative ADR Markdown target/fragment resolution; repository structure only |
+| `adr-supersession-graph` | warn | scoped supersession target/reciprocity/DAG integrity; does not amend ADR authority |
 
 ## 3. Deviations / gaps / noise (classified)
 

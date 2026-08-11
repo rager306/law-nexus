@@ -4,8 +4,8 @@ title: Rust target architecture for law-nexus
 status: Accepted
 lifecycle: "[bounded]"
 date: 2026-07-18
-superseds: python_archive/adr/0001-onion-package-structure.md (for new code)
-superseded_by: [ADR-0011] # crate map below is superseded by ADR-0011 (D127)
+supersedes: none
+superseded_by: [ADR-0011#crate-map-only] # narrow D127 supersession; archived Python ADR is prior art
 related: [ADR-0004, ADR-0007, ADR-0011, ADR-0013, ADR-0014, D123, D127]
 ---
 

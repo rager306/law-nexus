@@ -4,8 +4,8 @@ title: Component temporal versioning (CTV) — ontology layer L2
 status: Accepted
 lifecycle: "[proposed]"
 date: 2026-08-11
-superseds: none
-superseded_by: [ADR-0023] # §5 applicability-ownership sentence only; CTV substance remains current
+supersedes: none
+superseded_by: [ADR-0023#applicability-ownership] # §5 sentence only; CTV remains current
 related: [ADR-0009, ADR-0010, ADR-0016, ADR-0018, ADR-0023]
 ---
 

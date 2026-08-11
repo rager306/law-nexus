@@ -18,6 +18,8 @@ The governor checks publication consistency. It does not decide architecture, le
 | `adr-doc-matrix-coverage` | Require ontology design citations on workflow projection surfaces | advisory `warn` |
 | `adr-structure-hygiene` | Require Status lifecycle plus Context, Decision, Consequences and Non-claims | advisory `warn` |
 | `adr-cross-surface-matrix` | Require every present ADR on the living oracle, root README and ADR index | advisory `warn` |
+| `adr-link-integrity` | Resolve relative Markdown targets and local heading fragments in active ADR files | advisory `warn` |
+| `adr-supersession-graph` | Validate metadata-owned partial/whole supersession targets, reciprocity and DAG shape | advisory `warn` |
 | `adr-retired-id-ban` | Reject unqualified living references to retired ADR-0001/0002/0003/0006 | advisory `warn` |
 | `active-surface-era-noise` | Require archive/historical/non-claim qualification for ACP, git-lex, FalkorDB and PyO3 vocabulary | advisory `warn` |
 | `archive-path-policy` | Require historical vaults ignored/untracked and reject known or generic active symlinks into them | advisory `warn` |
@@ -135,16 +137,20 @@ Remaining before MVP B closure:
 - redact or omit source snippets in the separate ADR conformance script as well as governor findings;
 - add broader missing-file, unreadable-file and subprocess-failure contract tests.
 
-### Stage C — matrix and graph checks
+### Stage C — matrix and graph checks (partially implemented)
 
-A bounded `published-trace-contract` now checks 11 consequential Product→Requirement→ADR chains and the assessment process-only boundary. It validates trace structure only and does not create a general matrix or satisfy requirements.
+Implemented bounded checks:
+
+- `published-trace-contract` checks 11 consequential Product→Requirement→ADR chains and the assessment process-only boundary;
+- `adr-link-integrity` resolves relative Markdown files and heading fragments inside the repository;
+- `adr-supersession-graph` reads frontmatter `supersedes`/`superseded_by`, validates optional `#scope` reciprocity and target existence, and rejects cycles;
+- active partial edges are metadata-normalized as `ADR-0011 → ADR-0005#crate-map-only` and `ADR-0023 → ADR-0017#applicability-ownership`.
+
+These checks validate publication/metadata structure only and do not satisfy requirements or amend an ADR.
 
 Remaining:
 
 - generate/check `law-nexus-adr-matrix/v1`;
-- check relative Markdown links;
-- validate partial and whole-ADR supersession targets;
-- reject supersession cycles;
 - add optional review/revisit dates as warn-only staleness signals.
 
 ### Stage D — semantic advisory input

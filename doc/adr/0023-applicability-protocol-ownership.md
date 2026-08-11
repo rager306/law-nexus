@@ -4,7 +4,7 @@ title: Applicability protocol ownership and profile inputs
 status: Accepted
 lifecycle: "[proposed]"
 date: 2026-08-11
-superseds: ADR-0017 §5 applicability-ownership sentence only
+supersedes: [ADR-0017#applicability-ownership] # §5 sentence only
 related: [ADR-0009, ADR-0017, ADR-0018, ADR-0019, ADR-0020, ADR-0021, ADR-0022]
 ---
 

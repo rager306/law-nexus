@@ -16,8 +16,10 @@ from law_nexus_harness.governor import (
     check_adr_cross_surface_matrix,
     check_adr_doc_matrix_coverage,
     check_adr_index_completeness,
+    check_adr_link_integrity,
     check_adr_retired_id_ban,
     check_adr_structure_hygiene,
+    check_adr_supersession_graph,
     check_adr_truth_oracle_sync,
     check_architecture_direction,
     check_archive_path_policy,
@@ -1332,6 +1334,95 @@ def test_adr_cross_surface_matrix_detects_gap(tmp_path: Path) -> None:
     assert finding.severity == "warn"
     assert "ADR-0008" not in finding.observed
     assert "ADR-0004@README.md" in finding.observed
+
+
+def test_adr_link_integrity_allows_existing_relative_target_and_fragment(
+    tmp_path: Path,
+) -> None:
+    adr = tmp_path / "doc" / "adr"
+    adr.mkdir(parents=True)
+    (adr / "0004-source.md").write_text(
+        "# ADR-0004\n\nSee [the target](0005-target.md#decision).\n",
+        encoding="utf-8",
+    )
+    (adr / "0005-target.md").write_text(
+        "# ADR-0005\n\n## Decision\n\nBounded decision.\n",
+        encoding="utf-8",
+    )
+
+    finding = check_adr_link_integrity(tmp_path)[0]
+
+    assert finding.status == "pass"
+    assert finding.severity == "ok"
+
+
+def test_adr_link_integrity_detects_missing_target_and_fragment(tmp_path: Path) -> None:
+    adr = tmp_path / "doc" / "adr"
+    adr.mkdir(parents=True)
+    (adr / "0004-source.md").write_text(
+        "# ADR-0004\n\n"
+        "See [missing file](0099-missing.md) and "
+        "[missing section](0005-target.md#absent).\n",
+        encoding="utf-8",
+    )
+    (adr / "0005-target.md").write_text(
+        "# ADR-0005\n\n## Decision\n\nBounded decision.\n",
+        encoding="utf-8",
+    )
+
+    finding = check_adr_link_integrity(tmp_path)[0]
+
+    assert finding.status == "fail"
+    assert finding.severity == "warn"
+    assert "missing-target" in finding.observed
+    assert "missing-fragment" in finding.observed
+    assert {item.line for item in finding.evidence} == {3}
+    assert "Bounded decision" not in finding.observed
+
+
+def test_adr_supersession_graph_allows_reciprocal_partial_edge(tmp_path: Path) -> None:
+    adr = tmp_path / "doc" / "adr"
+    adr.mkdir(parents=True)
+    (adr / "0004-old.md").write_text(
+        "---\nid: ADR-0004\nsuperseded_by: [ADR-0005#scope-a]\n---\n",
+        encoding="utf-8",
+    )
+    (adr / "0005-new.md").write_text(
+        "---\nid: ADR-0005\nsupersedes: [ADR-0004#scope-a]\n---\n",
+        encoding="utf-8",
+    )
+
+    finding = check_adr_supersession_graph(tmp_path)[0]
+
+    assert finding.status == "pass"
+    assert finding.severity == "ok"
+
+
+def test_adr_supersession_graph_detects_missing_nonreciprocal_and_cycle(
+    tmp_path: Path,
+) -> None:
+    adr = tmp_path / "doc" / "adr"
+    adr.mkdir(parents=True)
+    (adr / "0004-a.md").write_text(
+        "---\nid: ADR-0004\nsupersedes: [ADR-0005#scope-a, ADR-0099]\n---\n",
+        encoding="utf-8",
+    )
+    (adr / "0005-b.md").write_text(
+        "---\nid: ADR-0005\nsupersedes: [ADR-0004#scope-a]\n---\n",
+        encoding="utf-8",
+    )
+
+    finding = check_adr_supersession_graph(tmp_path)[0]
+
+    assert finding.status == "fail"
+    assert finding.severity == "warn"
+    assert "missing-target" in finding.observed
+    assert "non-reciprocal" in finding.observed
+    assert "cycle" in finding.observed
+    assert {item.path for item in finding.evidence} == {
+        "doc/adr/0004-a.md",
+        "doc/adr/0005-b.md",
+    }
 
 
 def test_adr_retired_id_ban_detects_unqualified_cite(tmp_path: Path) -> None:

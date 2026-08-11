@@ -2440,6 +2440,282 @@ def check_adr_structure_hygiene(root: Path) -> list[GovernorFinding]:
     ]
 
 
+_MARKDOWN_LINK_RE = re.compile(r"(?<!!)\[[^\]]+\]\((?P<target>[^)]+)\)")
+_ADR_SUPERSESSION_REF_RE = re.compile(
+    r"\bADR-(?P<id>\d{4})(?:#(?P<scope>[a-z0-9][a-z0-9-]*))?\b",
+    re.IGNORECASE,
+)
+
+
+def _markdown_heading_slugs(text: str) -> set[str]:
+    slugs: set[str] = set()
+    counts: dict[str, int] = {}
+    for line in text.splitlines():
+        match = re.match(r"^#{1,6}\s+(.+?)\s*#*\s*$", line)
+        if match is None:
+            continue
+        slug = match.group(1).strip().lower()
+        slug = re.sub(r"[^\w\- ]", "", slug, flags=re.UNICODE)
+        slug = re.sub(r"\s+", "-", slug).strip("-")
+        count = counts.get(slug, 0)
+        counts[slug] = count + 1
+        slugs.add(slug if count == 0 else f"{slug}-{count}")
+    return slugs
+
+
+def check_adr_link_integrity(root: Path) -> list[GovernorFinding]:
+    """Resolve relative Markdown links and local heading fragments in active ADRs."""
+    check_id = "adr-link-integrity"
+    adr_dir = root / "doc" / "adr"
+    if not adr_dir.is_dir():
+        return [
+            GovernorFinding(
+                check_id=check_id,
+                status="fail",
+                severity="error",
+                message="doc/adr directory missing",
+                observed="doc/adr not found",
+                remediation="restore doc/adr before checking ADR links",
+            )
+        ]
+
+    gaps: list[str] = []
+    evidence: list[GovernorEvidence] = []
+    for source in sorted(adr_dir.glob("0*.md")):
+        for line_number, line in enumerate(
+            source.read_text(encoding="utf-8", errors="replace").splitlines(), start=1
+        ):
+            for match in _MARKDOWN_LINK_RE.finditer(line):
+                raw_target = match.group("target").strip().strip("<>")
+                if not raw_target or re.match(r"^[a-z][a-z0-9+.-]*:", raw_target, re.I):
+                    continue
+                path_part, separator, fragment = raw_target.partition("#")
+                if not path_part:
+                    target = source
+                else:
+                    target = (source.parent / path_part).resolve()
+                    try:
+                        target.relative_to(root.resolve())
+                    except ValueError:
+                        gaps.append(f"outside-root:{source.name}:{line_number}")
+                        evidence.append(
+                            GovernorEvidence(
+                                path=source.relative_to(root).as_posix(), line=line_number
+                            )
+                        )
+                        continue
+                if not target.is_file():
+                    gaps.append(f"missing-target:{source.name}:{line_number}")
+                    evidence.append(
+                        GovernorEvidence(path=source.relative_to(root).as_posix(), line=line_number)
+                    )
+                    continue
+                if separator and fragment:
+                    headings = _markdown_heading_slugs(
+                        target.read_text(encoding="utf-8", errors="replace")
+                    )
+                    if fragment.lower() not in headings:
+                        gaps.append(f"missing-fragment:{source.name}:{line_number}")
+                        evidence.append(
+                            GovernorEvidence(
+                                path=source.relative_to(root).as_posix(), line=line_number
+                            )
+                        )
+
+    if gaps:
+        return [
+            GovernorFinding(
+                check_id=check_id,
+                status="fail",
+                severity="warn",
+                message="ADR relative Markdown links are unresolved",
+                observed=f"gaps={gaps[:40]} (repository-link diagnostics only).",
+                remediation=(
+                    "Repair each relative target or heading fragment in doc/adr; do not "
+                    "replace a missing authority link with unlinked prose."
+                ),
+                rule_id="adr-links.relative-target",
+                expected="Every relative ADR Markdown link resolves inside the repository.",
+                evidence=tuple(dict.fromkeys(evidence)),
+            )
+        ]
+
+    return [
+        GovernorFinding(
+            check_id=check_id,
+            status="pass",
+            severity="ok",
+            message="ADR relative Markdown links resolve",
+            observed="relative_link_gaps=0 (repository-link diagnostics only).",
+            remediation="none",
+        )
+    ]
+
+
+def _adr_frontmatter(text: str) -> tuple[dict[str, tuple[str, int]], int]:
+    lines = text.splitlines()
+    if not lines or lines[0].strip() != "---":
+        return {}, 0
+    fields: dict[str, tuple[str, int]] = {}
+    for line_number, line in enumerate(lines[1:], start=2):
+        if line.strip() == "---":
+            return fields, line_number
+        match = re.match(r"^(?P<key>[a-z_]+):\s*(?P<value>.*)$", line, re.I)
+        if match is not None:
+            fields[match.group("key").lower()] = (
+                match.group("value").split(" #", 1)[0].strip(),
+                line_number,
+            )
+    return {}, 0
+
+
+def _supersession_refs(value: str) -> set[tuple[str, str]]:
+    return {
+        (match.group("id"), (match.group("scope") or "").lower())
+        for match in _ADR_SUPERSESSION_REF_RE.finditer(value)
+    }
+
+
+def check_adr_supersession_graph(root: Path) -> list[GovernorFinding]:
+    """Validate metadata-owned ADR supersession targets, reciprocity and acyclicity."""
+    check_id = "adr-supersession-graph"
+    adr_dir = root / "doc" / "adr"
+    if not adr_dir.is_dir():
+        return [
+            GovernorFinding(
+                check_id=check_id,
+                status="fail",
+                severity="error",
+                message="doc/adr directory missing",
+                observed="doc/adr not found",
+                remediation="restore doc/adr before checking supersession metadata",
+            )
+        ]
+
+    records: dict[str, tuple[Path, dict[str, tuple[str, int]]]] = {}
+    duplicate_ids: set[str] = set()
+    for path in sorted(adr_dir.glob("0*.md")):
+        fields, _ = _adr_frontmatter(path.read_text(encoding="utf-8", errors="replace"))
+        id_value = fields.get("id", ("", 1))[0]
+        match = re.fullmatch(r"ADR-(\d{4})", id_value, re.I)
+        if match is None:
+            continue
+        adr_id = match.group(1)
+        if adr_id in records:
+            duplicate_ids.add(adr_id)
+        records[adr_id] = (path, fields)
+
+    outgoing: dict[str, set[tuple[str, str]]] = {}
+    incoming: dict[str, set[tuple[str, str]]] = {}
+    source_lines: dict[tuple[str, str], int] = {}
+    for adr_id, (_, fields) in records.items():
+        supersedes_field = fields.get("supersedes") or fields.get("superseds")
+        superseded_by_field = fields.get("superseded_by")
+        outgoing[adr_id] = _supersession_refs(supersedes_field[0]) if supersedes_field else set()
+        incoming[adr_id] = (
+            _supersession_refs(superseded_by_field[0]) if superseded_by_field else set()
+        )
+        if supersedes_field:
+            source_lines[(adr_id, "supersedes")] = supersedes_field[1]
+        if superseded_by_field:
+            source_lines[(adr_id, "superseded_by")] = superseded_by_field[1]
+
+    gaps: list[str] = [f"duplicate-id:ADR-{adr_id}" for adr_id in sorted(duplicate_ids)]
+    affected: set[tuple[str, str]] = set()
+    for new_id, old_refs in outgoing.items():
+        for old_id, scope in old_refs:
+            edge = f"ADR-{new_id}->ADR-{old_id}" + (f"#{scope}" if scope else "")
+            if old_id not in records:
+                gaps.append(f"missing-target:{edge}")
+                affected.add((new_id, "supersedes"))
+                continue
+            if (new_id, scope) not in incoming.get(old_id, set()):
+                gaps.append(f"non-reciprocal:{edge}")
+                affected.update(((new_id, "supersedes"), (old_id, "superseded_by")))
+
+    for old_id, new_refs in incoming.items():
+        for new_id, scope in new_refs:
+            edge = f"ADR-{old_id}<-ADR-{new_id}" + (f"#{scope}" if scope else "")
+            if new_id not in records:
+                gaps.append(f"missing-target:{edge}")
+                affected.add((old_id, "superseded_by"))
+                continue
+            if (old_id, scope) not in outgoing.get(new_id, set()):
+                gaps.append(f"non-reciprocal:{edge}")
+                affected.update(((old_id, "superseded_by"), (new_id, "supersedes")))
+
+    adjacency = {
+        adr_id: {target for target, _ in refs if target in records}
+        for adr_id, refs in outgoing.items()
+    }
+    visiting: set[str] = set()
+    visited: set[str] = set()
+    cycle_nodes: set[str] = set()
+
+    def visit(adr_id: str, path: tuple[str, ...]) -> None:
+        if adr_id in visiting:
+            cycle_nodes.update(path[path.index(adr_id) :])
+            return
+        if adr_id in visited:
+            return
+        visiting.add(adr_id)
+        for target in adjacency.get(adr_id, set()):
+            visit(target, (*path, target))
+        visiting.remove(adr_id)
+        visited.add(adr_id)
+
+    for adr_id in sorted(records):
+        visit(adr_id, (adr_id,))
+    if cycle_nodes:
+        gaps.append("cycle:" + "->".join(f"ADR-{item}" for item in sorted(cycle_nodes)))
+        affected.update((item, "supersedes") for item in cycle_nodes)
+
+    if gaps:
+        evidence: list[GovernorEvidence] = []
+        for adr_id, field in sorted(affected):
+            record = records.get(adr_id)
+            if record is None:
+                continue
+            path, _ = record
+            evidence.append(
+                GovernorEvidence(
+                    path=path.relative_to(root).as_posix(),
+                    line=source_lines.get((adr_id, field), 1),
+                )
+            )
+        return [
+            GovernorFinding(
+                check_id=check_id,
+                status="fail",
+                severity="warn",
+                message="ADR supersession metadata graph is inconsistent",
+                observed=f"gaps={gaps[:40]} (metadata graph diagnostics only).",
+                remediation=(
+                    "Repair supersedes/superseded_by ADR metadata with matching optional "
+                    "#scope references; remove missing targets and cycles."
+                ),
+                rule_id="adr-supersession.graph-integrity",
+                expected="Supersession targets exist, are reciprocal by scope, and form a DAG.",
+                evidence=tuple(dict.fromkeys(evidence)),
+            )
+        ]
+
+    edge_count = sum(len(refs) for refs in outgoing.values())
+    return [
+        GovernorFinding(
+            check_id=check_id,
+            status="pass",
+            severity="ok",
+            message="ADR supersession metadata graph is coherent",
+            observed=(
+                f"adr_nodes={len(records)}, supersession_edges={edge_count}, cycles=0 "
+                "(metadata graph diagnostics only)."
+            ),
+            remediation="none",
+        )
+    ]
+
+
 def check_adr_cross_surface_matrix(root: Path) -> list[GovernorFinding]:
     """Require every present ADR to be cited on core living surfaces.
 
@@ -2903,6 +3179,24 @@ GOVERNOR_CHECK_SPECS: tuple[CheckSpec, ...] = (
         "deterministic",
         check_adr_structure_hygiene,
         "Require lifecycle Status and core MADR sections.",
+        ("doc/adr/0*.md",),
+        "warn",
+    ),
+    _check_spec(
+        "adr-link-integrity",
+        "adr",
+        "deterministic",
+        check_adr_link_integrity,
+        "Resolve relative Markdown links and local heading fragments in active ADRs.",
+        ("doc/adr/0*.md",),
+        "warn",
+    ),
+    _check_spec(
+        "adr-supersession-graph",
+        "adr",
+        "deterministic",
+        check_adr_supersession_graph,
+        "Validate metadata-owned supersession targets, reciprocity and acyclicity.",
         ("doc/adr/0*.md",),
         "warn",
     ),

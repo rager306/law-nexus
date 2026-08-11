@@ -4,7 +4,7 @@ title: KOF-DA ownership — twenty exclusive capability owners (D123)
 status: Accepted
 lifecycle: "[bounded]"
 date: 2026-07-22
-superseds: [ADR-0005#crate-map-only]
+supersedes: [ADR-0005#crate-map-only]
 related: [ADR-0005, ADR-0008, ADR-0009, ADR-0010, D123]
 ---
 
