@@ -1,7 +1,8 @@
 # ACP/git-lex decommission roadmap
 
-**Status:** `[proposed]`, решение принято (D104), исполнение не начато.  
-**Requirement:** R066.  
+**Status:** `[proposed]`, решение принято (D104), частично исполнено: active hook/runtime/CI/skill authority disconnected and ACP/git-lex is archive-only; residual manifest/archive hygiene may remain.
+**As-of:** 2026-08-11 at `50173de`; not a current product roadmap.
+**Requirement:** R066.
 **Boundary:** внешний репозиторий `/root/git-lex-kit-acp/` не изменяется.
 
 ## Цель
@@ -17,7 +18,7 @@ requirement/state consistency, доказуемость, fail-closed прове�
 
 ## Инвентарь на входе
 
-Снимок 2026-07-20, tracked paths по ACP/git-lex паттернам: **555**.
+Historical input snapshot from 2026-07-20 (before later disconnect/archive work), tracked paths by ACP/git-lex patterns: **555**. It is not a current inventory.
 
 | Группа | Файлы | Действие |
 |---|---:|---|
@@ -35,20 +36,14 @@ requirement/state consistency, доказуемость, fail-closed прове�
 Name-based inventory — нижняя граница. Перед каждой archive wave нужен точный
 manifest (`source_path`, `archive_path`, `sha256`, class, reason).
 
-## Критическая операционная находка
+## Historical critical operational finding (pre-D1 snapshot)
 
-`.git/hooks/pre-commit` сейчас полностью управляется git-lex и выполняет:
-
-```sh
-git-lex hook pre-commit
-```
-
-Последний ADR commit автоматически изменил `.lex/extract`, доказав, что git-lex
-остаётся активным mutating dependency. `.pre-commit-config.yaml` сам `.lex` не
-мутирует; он запускает ruff, import-linter и ADR verifier.
-
-Первая волна обязана отключить именно git-managed `.git/hooks/pre-commit`, а не
-удалить полезные structural checks.
+Before the disconnect wave, `.git/hooks/pre-commit` was fully managed by git-lex
+and executed `git-lex hook pre-commit`; an ADR commit mutated `.lex/extract`.
+That finding justified D1. It is superseded operationally by M108: the active
+standard pre-commit hook has no git-lex chain and real execution leaves `.lex`
+byte-identical. Residual work is manifest/archive hygiene only; useful structural
+checks remain independently active.
 
 ## Архивная политика
 

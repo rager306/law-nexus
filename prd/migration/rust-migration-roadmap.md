@@ -1,6 +1,7 @@
 # Complete Rust transition roadmap
 
-**Status:** `[proposed]`.  
+**Status:** `[proposed]` historical R0–R10 transition plan; not current-front authority after M165. Current position is `prd/ARCHITECTURE.md`.
+**As-of note:** frozen as transition history on 2026-08-11 at `50173de`; completed sequence does not prove product readiness.
 **Goal:** Rust-only product runtime, process-level Python repository harness,
 complete ACP/git-lex decommission, and one parity-gated Python archival cutover.
 

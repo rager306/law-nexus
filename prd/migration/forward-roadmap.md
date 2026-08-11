@@ -1,8 +1,8 @@
 # law-nexus Forward Roadmap
 
-**Date:** 2026-07-24
-**Status:** `[proposed]`
-**Sequence authority:** M130 is repository-control debt; this roadmap owns the non-conflicting product sequence M131–M140 and supersedes older product milestone numbering.
+**Date:** 2026-07-24; frozen as historical sequence on 2026-08-11 at `50173de`
+**Status:** `[proposed]` historical M131–M140 plan; not current-front authority after M165
+**Sequence authority:** historical product sequence only. Current position lives in `prd/ARCHITECTURE.md`; documentation/assessment sequence lives in the D0–D8 control plan and EA-00–EA-10 roadmap.
 **Source ADR set:** 0004, 0005, 0007, 0008, 0009, 0010, 0011, 0012, 0013, 0014
 **Decisions:** D130 (KnowQL), D131 (stem morphology), D132 (RuVector), D133 (proof ceiling)
 
@@ -56,12 +56,12 @@ Real corpus, TEI embedding, cross-store recovery, typed KnowQL execution and
 citation byte traceability are not verified. `ruvector-graph` Cypher execution is
 not relied upon; law-nexus owns a typed application executor over storage ports.
 
-### What's missing (critical gaps)
+### Historical gap snapshot (superseded by later milestone evidence where noted)
 
 | Gap | Severity | Blocks |
 |-----|----------|--------|
-| ODT adapter (Garant .odt) | CRITICAL | Reading Garant source files |
-| hierarchy.rs, references.rs, temporal.rs, deontic.rs | CRITICAL | Legal structure extraction |
+| Garant ODT adapter | CLOSED at `[bounded]` provider-isolated scope by M133 / ADR-0013; representative corpus remains open | Historical M131 snapshot, not a current critical gap |
+| hierarchy/reference/temporal/deontic lexical candidates | CLOSED at `[bounded]` candidate scope by M131–M134; legal resolution remains open | Candidate extraction does not prove legal semantics |
 | Real TEI HTTP embedding (USER-bge-m3 1024d, not HashEmbedding) | HIGH | Semantic retrieval quality |
 | RuVector integration into law-nexus workspace | HIGH | Storage runtime |
 | Authority flow: parser → ln-promote → ln-publish → store | HIGH | Real product pipeline |
@@ -75,9 +75,9 @@ not relied upon; law-nexus owns a typed application executor over storage ports.
 
 | ADR | Topic | Lifecycle | What it proves | What it needs |
 |-----|-------|-----------|----------------|----------------|
-| 0004 | Rust migration | `[validated]` | 43 crates, HC-01-HC-20 PASS, Rust-only product CLI (law-nexus-inspect) | Production release hardening |
-| 0005 | Rust target architecture | `[validated]` | Hexagonal pattern proven; per-HC ln-* crates | Production deployment packaging |
-| 0007 | Python harness | `[proposed]` | Executable governor and composed preflight contracts | Milestone-close operational evidence |
+| 0004 | Rust migration | `[bounded]` | Rust-only direction and hostile contracts | Whole-system/release proof |
+| 0005 | Rust target architecture | `[bounded]` | Hexagonal pattern and crate ownership | Production deployment proof |
+| 0007 | Python harness | `[validated]` | Repository-control-only boundary and operational gates | Does not validate product capability |
 | 0008 | Authority ceiling | `[bounded]` | HC-04/15/16 PASS | Real authority flow with corpus |
 | 0009 | Five-clock temporal | `[bounded]` | HC-09 PASS | Real legal-date parsing |
 | 0010 | Evidence kernel | `[bounded]` | HC-05/07/08/10/14 PASS | Real graph evidence storage |

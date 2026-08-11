@@ -187,6 +187,27 @@ It must not resolve to “latest known text,” merge provider identities silent
 
 A paper PASS for any gate does not change its lifecycle.
 
+### 10.1. D6 graduation and dependency integration
+
+This is the single tracked temporal readiness matrix. Derived blocker reports may diagnose drift but cannot replace or satisfy it.
+
+| Gate | Graduation criteria | Evidence owner | Current state | Dependencies |
+|------|---------------------|----------------|---------------|--------------|
+| TL-G01 | `[bounded]` product-temporal scope requires role-preserving real-fixture anchors; `[validated]` requires representative legal-date corpus + human scope acceptance | ADR-0009, `ln-temporal` contracts | HC-09 synthetic safety `[bounded]`; legal-time correctness unvalidated | real provider fixtures for stronger claim |
+| TL-G02 | `[bounded]` requires Rust Work/Expression/Manifestation and CC/CTV/CLV identity with conflict tests; `[validated]` needs multi-provider identity corpus | ADR-0016 | design only `[proposed]` | parser identity candidates as inputs, never legal facts |
+| TL-G03 | `[bounded]` requires event-sourced CTV resolver and fail-closed whole-act compilation; `[validated]` needs real amendment fixtures | ADR-0017 | design only `[proposed]`; first implementation priority after parser data | TL-G01, TL-G02, provenance-ready parser components |
+| TL-G04 | `[bounded]` correction requires immutable observation log and projection rebuild with no in-place rewrite | ADR-0009/0017; TQ-04 future owner if load-bearing | observation policy partial; correction protocol deferred | evidence kernel and storage ports, not RuVector alone |
+| TL-G05 | `[bounded]` requires orthogonal CTV and NormativeState resolvers with join/hostile tests | ADR-0018 | design only `[proposed]` | TL-G03 and status evidence anchors |
+| TL-G06 | paper graduation records triad/ownership/abstention only; runtime graduation follows TL-G12 | ADR-0018/0020/0023 | ownership `[proposed]`; applicability runtime `[deferred]` | TL-G05 and ADR-0023; never force alone |
+| TL-G07 | `[bounded]` requires reference candidate → identity → CTV → NormativeState or typed non-success | TQ-05 future capability owner | candidates `[bounded]`; authoritative join deferred | TL-G02, TL-G03, TL-G05 and parser candidate quality |
+| TL-G08 | `[bounded]` requires TransitionalResolver, risk separation and real transitional fixtures | ADR-0021 | design only `[proposed]` | TL-G03, TL-G05 and sourced transitional provisions |
+| TL-G09 | `[bounded]` requires PracticeEvidence port/projection, clock-role tests and kernel non-mutation | ADR-0020 | design only `[proposed]`; no practice corpus | TL-G01, provenance, typed ex-tunc exception |
+| TL-G10 | `[bounded]` requires advisory RiskReport with missing analog → `Unknown` | ADR-0021 | design only `[proposed]` | must not decide transition or applicability |
+| TL-G11 | `[bounded]` requires versioned profile inputs and hostile core-neutrality contracts | ADR-0022 | design only `[proposed]` | neutral clocks/ranks/CTV/status remain stable |
+| TL-G12 | `[bounded]` runtime requires Rust domain/ports and hostile abstention; any positive case outcome additionally requires representative real cases + human acceptance | ADR-0023 core; profiles input-only | ownership `[proposed]`; executable protocol `[deferred]` | TL-G03/05/08/09/11 snapshots; parser NormRule candidates; RuVector is not substitute proof |
+
+Product/RQ links: TL-G01 → PC/RQ-007; TL-G02–05 and 08–11 → PC/RQ-008 plus PC/RQ-013; TL-G06/12 → PC/RQ-009 and profile inputs PC/RQ-010. PC/RQ-016 non-claims govern every gate. RuVector PC/RQ-019 and release PC/RQ-020 remain separate proof programs.
+
 ## 11. Staged golden-case catalog
 
 These are semantic-shape oracles for future fixtures, not legal gold answers.

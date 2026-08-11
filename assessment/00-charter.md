@@ -3,7 +3,7 @@
 **Статус:** `[proposed]` assessment charter
 **Assessment root:** `assessment/`
 **Базовая ревизия:** `60fd8245ace999f3f29911844375dd7cc36a2a38` (2026-08-11)
-**Текущая стадия:** D0 / EA-00 — scope freeze; пакет ещё не принят и не является frozen acceptance packet
+**Текущая стадия:** D5 + documentation D6 / EA-05 — roadmap/readiness alignment; EA-00 charter remains the scope contract, while EA-02..EA-04 records are complete. The wider package is not EA-09/EA-10 accepted.
 **Execution contract:** `prd/architecture/documentation-semantic-control-plan.md`
 **Assessment contract:** `prd/migration/external-architecture-assessment-roadmap.md`
 

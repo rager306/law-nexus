@@ -336,7 +336,9 @@ prd/temporal-legal-model.md
 - practice coverage;
 - versioned lists/classifiers.
 
-**Exit:** каждый `[proposed]` layer имеет graduation criteria, hostile case и explicit non-claims.
+**Readiness home:** единственная tracked matrix — `prd/temporal-legal-model.md` §10–10.1 (TL-G01..TL-G12 + TL-GC01..18). Derived registry/readiness reports may diagnose drift but cannot replace or satisfy it.
+
+**Exit:** каждый `[proposed]` layer имеет graduation criteria, hostile case, evidence owner, dependency, current state и explicit non-claims; paper PASS не меняет lifecycle.
 
 ### D7 — Derived registry quarantine and refresh plan
 

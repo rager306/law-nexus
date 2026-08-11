@@ -207,7 +207,7 @@ Deliverables:
 - исправленные lifecycle mismatches;
 - historical/superseded FalkorDB/ACP notes;
 - documentation milestones before implementation milestones;
-- temporal readiness gates;
+- temporal readiness gates from the single tracked matrix `prd/temporal-legal-model.md` §10–10.1 (TL-G01..12), not from derived readiness views;
 - external assessment milestones;
 - explicit dependencies and non-claims.
 

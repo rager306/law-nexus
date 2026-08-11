@@ -31,6 +31,8 @@ Consultant/Garant parser, a temporal legal ontology, and citation-safe retrieval
 
 ## Current status (D098 lifecycle tags)
 
+Latest tracked product/design band: **M165** (`[proposed]` ontology design only). Current documentation/process front: **D5 + documentation D6 / EA-05** roadmap and readiness alignment. See [`prd/project-state/roadmap.md`](prd/project-state/roadmap.md); sequence completion is not product readiness.
+
 ```
 [FOUNDATION — COMPLETE]
   Rust-only product transition (ADR-0004 [bounded], ADR-0005 [bounded])

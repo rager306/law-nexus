@@ -1,10 +1,10 @@
 # Roadmap
 
-> **Source of truth:** `prd/ARCHITECTURE.md` and GSD state. This document is a
+> **Source of truth:** `prd/ARCHITECTURE.md` + `doc/adr/**`. This document is a
 > non-authoritative cold-reader projection of
-> `prd/project-state/data/roadmap.json`.
+> `prd/project-state/data/roadmap.json`; local `.gsd/**` is workflow state only.
 >
-> Refreshed 2026-07-24 after M129 completion — all 20 hostile cases PASS.
+> Refreshed 2026-08-11 at `50173de` after M165 and EA-04. Roadmap completion is not product readiness.
 
 ## Active Direction Contract
 
@@ -20,8 +20,11 @@ falkordb=historical-only
 
 ## Current position
 
-- **Latest completed milestone:** M160-65pdoz, verify test CI coverage and governor test-coverage drift.
-- **Recommended next milestone:** M161, live adapter implementation path when infrastructure exists.
+- **Latest completed product milestone:** M165, temporal legal ontology O1–O7 crystallized at `[proposed]` design; no ontology runtime.
+- **Completed retrieval-honesty band:** M161–M164 `[bounded]` (real cosine ranking in memory, semantic-stub and historical-test-debt probes, deterministic CLI vectors); no live corpus or citation-safe answers.
+- **Current documentation/process front:** D5 + documentation D6 / EA-05 — synchronize one roadmap front and integrate TL-G01–12 readiness criteria.
+- **Local GSD workflow marker:** M161-2som4e remains active in local workflow state; it is not the tracked product/design current-front authority and its numbering predates later M161–M165 git history.
+- **Product next remains evidence-gated:** L2 CTV TDD after parser data readiness; TEI/RuVector only after real infrastructure/evidence. Neither is unlocked by EA-05.
 - **M111 result:** final `[bounded]` implementation-neutral semantic baseline for heterogeneous Russian legal evidence.
 - **M112 result:** ADR-0005 topology superseded; ADR-0008 through ADR-0012 authored `[bounded]`; executable ADR/decision/owner drift checks active in pre-commit and CI.
 - **M113 result:** first hostile-case Rust runtime proof. `S10-HC-01-RT` is bounded PASS.
@@ -54,7 +57,7 @@ falkordb=historical-only
 | M068-M085 | Onion architecture, compliance gates, parser foundation and repository health | Structural and parser groundwork; no whole-system parity. |
 | M086-M110 | Debt repair, corpus stabilization, Rust-only transition, ACP/git-lex decommission, first Rust tracer and capability evidence map | Rust workspace/harness and bounded acceptance evidence exist; product/domain parity remains unproven. |
 | M111-M112 | Zero-based legal evidence architecture and post-M111 ADR synchronization | Semantic owners, authorities, clocks, gates and hostile oracles are bounded; ADR enforcement is executable. |
-| M113-M113 | HC-01 Observe Source first Rust hostile-case runtime proof | Bounded synthetic interrupted-source PASS only; 19 hostile cases remain unsupported; no product storage/backend selection. |
+| M113-M113 | HC-01 Observe Source first Rust hostile-case runtime proof | Historical M113 state: bounded synthetic interrupted-source PASS and 19 then-unsupported cases; the counter was later closed by M129. No product storage/backend selection. |
 | M114-M114 | HC-02 Inventory Immutable Intake second Rust hostile-case runtime proof | Bounded synthetic re-inventory PASS; 18 hostile cases remained unsupported at that point. |
 | M115-M115 | HC-03 Dispose Review third Rust hostile-case runtime proof | Bounded synthetic non-accepted rejection PASS; 17 hostile cases remain unsupported; no product storage/backend selection. |
 | M116-M116 | HC-04 Commit Curated Promotion fourth Rust hostile-case runtime proof | Bounded synthetic cancel/retry/mismatch PASS; 16 hostile cases remain unsupported; no product storage/backend selection. |
@@ -69,6 +72,10 @@ falkordb=historical-only
 | M125-M125 | HC-13 Decide Admission thirteenth Rust hostile-case runtime proof | Bounded synthetic bound-unknown/saturated/retry fail-closed and vendor-capacity rejection PASS; 7 hostile cases remain unsupported; no product storage, queue, hardware or throughput selected; E1-E3 product capacity unproven. |
 | M126-M126 | HC-14 Coordinate Checkpoint and Replay fourteenth Rust hostile-case runtime proof | Bounded synthetic suppress-by-identity and corrupt/version-skew fail-closed PASS; 6 hostile cases remain unsupported; no product storage, checkpoint store or exactly-once infrastructure selected. |
 | M127-M127 | HC-15 Publish Authoritative H1 Unit fifteenth Rust hostile-case runtime proof | Bounded synthetic complete-publish, duplicate, competing-writer, partial-incomplete and hostile dual-writer PASS; 5 hostile cases remain unsupported; no product storage, fencing or transaction infrastructure selected. |
+| M128-M160 | Remaining hostile closures and repository-control quality gates | 20/20 hostile contracts and process gates are bounded evidence; no product readiness. |
+| M161-M164 | Retrieval honesty and anti-drift probes | Real cosine ranking in memory and deterministic CLI vectors are `[bounded]`; no live TEI/RuVector corpus or legal-answer validation. |
+| M165-M165 | Temporal legal ontology and lifecycle hygiene | ADR-0016–0022 O1–O7 design only `[proposed]`; no executable ontology. |
+| D0-EA04 | Documentation contract and semantic/ADR assessment package | Product/RQ ready for assessment; temporal crosswalk accepted as proposed; ADR-0023 ownership decided `[proposed]`; not EA-09/EA-10 acceptance. |
 
 ## M111 semantic baseline
 
@@ -81,7 +88,7 @@ M111 selected:
 - D123 KOF-DA with exactly twenty primary capability owners;
 - HC-01 through HC-20 and twelve selection-time rejection oracles.
 
-Architecture-static checks passed. Runtime hostile cases remain mostly unsupported; only HC-01 now has a bounded synthetic Rust process proof.
+As of M111/M113, architecture-static checks had passed and only HC-01 had bounded synthetic Rust process proof. This historical counter was later closed by M129: 20/20 hostile contracts have bounded synthetic PASS; that still does not prove product readiness.
 
 ## M112 ADR and enforcement result
 
@@ -112,16 +119,18 @@ Proof anchors:
 - `prd/migration/rust-evidence/probes/hc01-observe-source-runtime.json`
 - `prd/migration/rust-evidence/probes/hc01-observe-source-runtime.md`
 
-## Active and forward milestones
+## Historical product sequence and current process front
 
-M130 closes repository-control debt before product work:
+M130–M165 are completed historical planning bands. The current process sequence is D5/D6→EA-05, then D7/EA-06 and EA-07..10. Product implementation remains evidence-gated; sequence completion never supplies proof.
+
+Historical M130 plan:
 
 1. executable governor CLI;
 2. semantic direction drift gate and living document synchronization;
 3. active requirement contradiction closure;
 4. unified preflight and renumbered long-horizon roadmap.
 
-After M130, the non-conflicting product sequence is M131–M140: shared parser
+The historical non-conflicting product sequence M131–M140 planned: shared parser
 domain/morphology contracts; real Consultant hierarchy; independent Garant ODT;
 shared extractors; golden corpus; TEI + RuVector components behind ports with
 recovery; typed KnowQL; product composition/CLI; whole-system acceptance; and

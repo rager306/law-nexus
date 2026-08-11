@@ -196,7 +196,7 @@ rewritten without historical ACP/git-lex runtime or vocabulary dependencies.
 
 M108 disconnected the historical git-lex-managed hook. The installed standard
 pre-commit hook has no legacy chain; real execution leaves `.lex` byte-identical.
-`.lex` and ACP history remain archive-only until manifest-driven D3-D6 waves.
+Active authority is already archive-only after M108. Any residual D3–D6 work is manifest/archive hygiene and cannot restore runtime, hook, CI or source-of-truth authority.
 
 ## What law-nexus does NOT have (non-claims)
 

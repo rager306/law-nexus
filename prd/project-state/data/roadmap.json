@@ -1,8 +1,8 @@
 {
   "schema_version": "law-nexus-project-state-roadmap/v2",
-  "generated_at": "2026-07-26",
+  "generated_at": "2026-08-11",
   "non_authoritative": true,
-  "source_of_truth": "prd/ARCHITECTURE.md (living truth oracle) and .gsd/milestones/* (GSD state). This roadmap is a derived cold-reader summary; when it disagrees with the oracle or GSD state, those win.",
+  "source_of_truth": "prd/ARCHITECTURE.md (living truth oracle) and doc/adr/** (decision/lifecycle authority). This file is a non-authoritative cold-reader projection; local .gsd/** is workflow state only.",
   "completed_milestone_groups": [
     {
       "range": "M001-M010",
@@ -351,21 +351,40 @@
       "theme": "Verify test CI coverage and governor test-coverage drift",
       "status": "complete",
       "boundary": "test_verify_adr_conformance and test_verify_repository_pre_commit_hook in CI. Governor verify-test-coverage-drift prevents future drift. No live HTTP or product-readiness claim."
+    },
+    {
+      "range": "M161-M164",
+      "theme": "Retrieval honesty and anti-drift probes",
+      "status": "complete",
+      "boundary": "Real cosine ranking in memory, semantic-stub and historical-test-debt probes, and deterministic CLI vectors are [bounded]. No live TEI/RuVector corpus, citation-safe answers, or product readiness."
+    },
+    {
+      "range": "M165-M165",
+      "theme": "Temporal legal ontology and lifecycle hygiene",
+      "status": "complete",
+      "boundary": "ADR-0016..0022 O1-O7 crystallized at [proposed] design only. No executable ontology or case applicability."
+    },
+    {
+      "range": "D0-EA04",
+      "theme": "Documentation contract, temporal crosswalk and ADR assessment package",
+      "status": "complete",
+      "boundary": "Product/RQ document readiness, accepted-as-proposed temporal crosswalk, and ADR-0023 ownership decision are process/design evidence only; not EA-09/EA-10 or product/legal validation."
     }
   ],
   "current_milestone": {
-    "id": "M160-65pdoz",
-    "title": "Verify Test CI Coverage and Governor Drift Check",
-    "status": "complete",
-    "goal": "Add verify tests for active scripts to CI and governor check verify-test-coverage-drift."
+    "id": "M161-2som4e",
+    "title": "Retrieval ranking semantic honesty",
+    "status": "active",
+    "goal": "Local GSD workflow marker only; its milestone numbering predates later tracked M161-M165 product/design commits and is not the product current-front authority."
   },
   "recommended_next": {
-    "title": "M161 Live Adapter Implementation Path When Infrastructure Exists",
+    "title": "Complete D5/D6 and EA-05 documentation readiness alignment",
     "priority": 1,
-    "why": "M160 closed verify test CI coverage gap and added governor test-coverage drift check. All process surfaces remain green. Next: only when real TEI/RuVector infrastructure exists, implement live adapters behind ports without overclaim; otherwise residual optional process policy (cargo audit/deny, inventory --strict, remaining historical test triage, Rust artifact parity).",
-    "plan_reference": "doc/adr/0014-ruvector-primary-infrastructure.md and doc/adr/0015-hexagonal-verification-architecture.md follow-on increments",
-    "slices": "Live TEI HTTP transport when service available; optional cargo audit/deny, inventory --strict, historical test CI coverage triage, Rust artifact parity.",
-    "non_validation": "M160 does not validate live TEI/RuVector or product readiness."
+    "why": "M161-M165 are complete historical product/design bands and EA-02..EA-04 documentation assessments are complete. Active work is one current-front narrative plus TL-G01..12 graduation/readiness integration.",
+    "plan_reference": "prd/architecture/documentation-semantic-control-plan.md D5-D6 and prd/migration/external-architecture-assessment-roadmap.md EA-05",
+    "slices": "Synchronize roadmap projections; integrate readiness columns into prd/temporal-legal-model.md; freeze and assess EA-05.",
+    "product_next": "L2 CTV TDD only after parser data readiness; TEI/RuVector only with real infrastructure/evidence.",
+    "non_validation": "D5/D6/EA-05 completion is paper/process evidence, not product readiness, legal correctness, ontology runtime, applicability runtime, or release proof."
   },
   "downstream_blocked": [
     {
@@ -376,7 +395,7 @@
     {
       "capability": "Retrieval and citation-safe answers",
       "blocker": "needs real temporal corpus, EvidenceSpan/source-span round trip and tamper matrix",
-      "current_status": "[bounded] prior evidence only; product path unproven"
+      "current_status": "[bounded] M161/M163 in-memory ranking and deterministic CLI honesty; live corpus/citation-safe product path unproven"
     },
     {
       "capability": "Python archival",
@@ -386,19 +405,19 @@
   ],
   "alternatives": [
     {
-      "title": "FalkorDB graph materialization",
-      "why": "Only after parser proof yields a stable record stream; would then exercise the graph-store port and EvidenceSpan fail-closed contract.",
-      "constraint": "Do not start before parser-hardening proof; no R037 claim from synthetic smoke."
+      "title": "L2 CTV implementation",
+      "why": "First temporal implementation priority after parser data is provenance-ready.",
+      "constraint": "Requires TL-G02 identity and TL-G03 event-sourced fail-closed tests; paper/roadmap completion is not proof."
     },
     {
-      "title": "Adaptix boundary-record↔domain-form mapping",
-      "why": "ADR-0003 reserves this as [deferred]; activates only when the parser product wires the boundary-record stream into the domain and mappings become non-trivial.",
-      "constraint": "Premature until parser-hardening produces the consumer."
+      "title": "RuVector graph materialization",
+      "why": "Exercise graph/vector ports only when TEI and real-corpus evidence exist.",
+      "constraint": "ADR-0014 remains [proposed]; infrastructure checks cannot validate CTV/status/applicability."
     },
     {
-      "title": "Python repository harness",
-      "why": "Build architecture/ADR/Cargo/docs/parity/CI/GSD control surfaces while Rust product crates are implemented.",
-      "constraint": "Process-level Rust binary orchestration only; no product/domain logic, PyO3 or FFI."
+      "title": "Temporal reference resolution",
+      "why": "Resolve parser candidates through identity, CTV and NormativeState when citation/query authority needs it.",
+      "constraint": "TQ-05 remains deferred; latest-text guessing is forbidden."
     }
   ],
   "frozen": {
@@ -413,5 +432,18 @@
     "Use explicit lifecycle tags ([proposed]/[bounded]/[smoke]/[validated]/[deferred]) on architectural/state claims; never smooth a bounded/proposed claim up to validated.",
     "Keep Rust as the only target product runtime; Python may remain only as the repository harness defined by ADR-0007.",
     "Do not reintroduce ACP/git-lex outside explicit archive paths."
-  ]
+  ],
+  "source_revision": "50173de",
+  "current_process_front": {
+    "id": "D5-D6/EA-05",
+    "title": "Roadmap Front Sync and Temporal Readiness Matrix",
+    "status": "active",
+    "boundary": "Documentation/process work only; completion does not promote product or ontology lifecycle."
+  },
+  "latest_completed_product_milestone": {
+    "id": "M165",
+    "title": "Temporal Legal Ontology L1-L7 and Lifecycle Hygiene",
+    "status": "complete",
+    "boundary": "Tracked git/product-design history; O1-O7 remain [proposed] and no ontology runtime is implied."
+  }
 }
