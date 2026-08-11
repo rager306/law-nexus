@@ -15,7 +15,7 @@ The governor checks publication consistency. It does not decide architecture, le
 |---|---|---|
 | `adr-truth-oracle-sync` | Discover every `doc/adr/0*.md`, read the lifecycle from its Status, and require the same lifecycle beside its citation in `prd/ARCHITECTURE.md` | blocking `error` |
 | `adr-index-completeness` | Require every present ADR and its own lifecycle tag on the corresponding `doc/adr/README.md` line | advisory `warn` |
-| `adr-doc-matrix-coverage` | Require ontology design citations on workflow projection surfaces | advisory `warn` |
+| `adr-doc-matrix-coverage` | Require explicit ADR-0016..0022 citations with `[proposed]` ceiling in tracked Product and Requirements | advisory `warn` |
 | `adr-structure-hygiene` | Require Status lifecycle plus Context, Decision, Consequences and Non-claims | advisory `warn` |
 | `adr-cross-surface-matrix` | Require every present ADR on the living oracle, root README and ADR index | advisory `warn` |
 | `adr-link-integrity` | Resolve relative Markdown targets and local heading fragments in active ADR files | advisory `warn` |
@@ -24,8 +24,9 @@ The governor checks publication consistency. It does not decide architecture, le
 | `adr-retired-id-ban` | Reject unqualified living references to retired ADR-0001/0002/0003/0006 | advisory `warn` |
 | `active-surface-era-noise` | Require archive/historical/non-claim qualification for ACP, git-lex, FalkorDB and PyO3 vocabulary | advisory `warn` |
 | `archive-path-policy` | Require historical vaults ignored/untracked and reject known or generic active symlinks into them | advisory `warn` |
-| `published-trace-contract` | Check 11 consequential PC→RQ→ADR publication chains plus assessment process-only authority separation | advisory `warn` |
-| `document-freshness-triggers` | Validate a non-authoritative change-impact catalog and require a distinct companion refresh for matched dirty-tree sources | advisory `warn`; Git/catalog parser failure uses exit 2 |
+| `published-trace-contract` | Check every published PC-001..020→RQ-001..020 chain, detect future undeclared IDs, and preserve assessment process-only authority separation | advisory `warn` |
+| `document-freshness-triggers` | Validate a non-authoritative change-impact catalog and require a distinct non-derived companion refresh for matched dirty-tree sources | advisory `warn`; Git/catalog parser failure uses exit 2 |
+| `temporal-vocabulary-contract` | Validate the non-authoritative vocabulary catalog, required glossary rows/status markers and TSG gap-ID continuity | advisory `warn`; catalog/parser failure uses exit 2 |
 | `verify-adr-conformance.py` | Require lifecycle tags and ADR references on targeted binding claims | separate blocking gate |
 
 Default exit semantics remain stable: failed deterministic `error` checks produce exit 1 and warn-only debt produces exit 0. Unknown/conflicting selectors and uncaught check-runner IO/parser/tool failures produce structured exit 2 with `tool_error_count`; checks that currently swallow low-level read/git failures still need migration to this shared classification.
@@ -93,9 +94,11 @@ uv run python -m law_nexus_harness governor --only semantic
 uv run python -m law_nexus_harness governor --check adr-truth-oracle-sync
 uv run python -m law_nexus_harness governor --explain adr-truth-oracle-sync
 uv run python -m law_nexus_harness governor --format text
+uv run python -m law_nexus_harness governor --list-checks
+uv run python -m law_nexus_harness governor --only semantic --fail-on-warn
 ```
 
-The default command remains backward-compatible JSON. Unknown or conflicting selectors return structured exit 2. `--explain` is read-only and reports purpose, group, deterministic/heuristic kind, authority inputs, default severity and non-claim.
+The default command remains backward-compatible JSON with advisory warnings returning exit 0. Unknown or conflicting selectors return structured exit 2. `--explain` is read-only and reports purpose, group, deterministic/heuristic kind, authority inputs, default severity and non-claim. `--list-checks` emits a non-authoritative machine-readable inventory without running checks. `--fail-on-warn` is opt-in execution policy: retained warnings return exit 1 without changing report status, finding severity or the default behavior.
 
 Implemented matrix CLI:
 

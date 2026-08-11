@@ -205,6 +205,39 @@ def test_cli_governor_warn_only_semantic_selection_exits_zero(capsys) -> None:
     assert all(item["severity"] in {"ok", "warn"} for item in payload["findings"])
 
 
+def test_cli_governor_fail_on_warn_is_opt_in(capsys) -> None:
+    code = main(["governor", "--only", "semantic", "--fail-on-warn"])
+    payload = json.loads(capsys.readouterr().out)
+
+    assert code == 1
+    assert payload["status"] == "ok"
+    assert payload["warn_count"] > 0
+    assert payload["tool_error_count"] == 0
+
+
+def test_cli_governor_lists_machine_readable_check_inventory(capsys) -> None:
+    code = main(["governor", "--list-checks"])
+    payload = json.loads(capsys.readouterr().out)
+
+    assert code == 0
+    assert payload["schema_version"] == "law-nexus-governor-check-inventory/v1"
+    assert payload["non_authoritative"] is True
+    ids = [item["check_id"] for item in payload["checks"]]
+    assert len(ids) == len(set(ids))
+    assert "temporal-vocabulary-contract" in ids
+    assert all(item["kind"] in {"deterministic", "heuristic"} for item in payload["checks"])
+    assert all(item["non_claim"] for item in payload["checks"])
+
+
+def test_cli_governor_list_checks_rejects_execution_selectors(capsys) -> None:
+    code = main(["governor", "--list-checks", "--check", "adr-truth-oracle-sync"])
+    payload = json.loads(capsys.readouterr().out)
+
+    assert code == 2
+    assert payload["status"] == "tool-error"
+    assert payload["error"] == "conflicting-selectors"
+
+
 def test_cli_governor_runner_failure_uses_tool_error_exit_two(tmp_path: Path, capsys) -> None:
     roadmap = tmp_path / "prd" / "project-state" / "data"
     roadmap.mkdir(parents=True)

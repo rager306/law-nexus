@@ -15,6 +15,7 @@ from law_nexus_harness.adr_matrix import (
     render_adr_matrix,
 )
 from law_nexus_harness.governor import (
+    GOVERNOR_CHECK_SPECS,
     GovernorSelectionError,
     format_governor_report_text,
     get_governor_check_spec,
@@ -53,6 +54,16 @@ def build_parser() -> argparse.ArgumentParser:
     governor.add_argument("--only", help="Run one check group (for example: adr or semantic).")
     governor.add_argument("--check", help="Run one exact check ID.")
     governor.add_argument("--explain", help="Explain one check contract without running it.")
+    governor.add_argument(
+        "--list-checks",
+        action="store_true",
+        help="List the machine-readable Governor check inventory without running checks.",
+    )
+    governor.add_argument(
+        "--fail-on-warn",
+        action="store_true",
+        help="Return exit 1 when executed checks retain advisory warnings; default remains exit 0.",
+    )
     governor.add_argument(
         "--format",
         choices=("json", "text"),
@@ -106,11 +117,36 @@ def main(argv: Sequence[str] | None = None) -> int:
         return 0 if result.status == "ok" else 1
     if args.command == "governor":
         try:
-            if args.explain:
-                if args.only or args.check:
+            if args.list_checks:
+                if args.only or args.check or args.explain or args.fail_on_warn:
                     raise GovernorSelectionError(
                         "conflicting-selectors",
-                        "--explain cannot be combined with --only or --check",
+                        "--list-checks cannot be combined with execution or explanation selectors",
+                    )
+                inventory = {
+                    "schema_version": "law-nexus-governor-check-inventory/v1",
+                    "non_authoritative": True,
+                    "checks": [spec.to_explanation() for spec in GOVERNOR_CHECK_SPECS],
+                    "non_claim": (
+                        "Inventory presence does not validate repository state, product behavior, "
+                        "legal correctness, or lifecycle."
+                    ),
+                }
+                sys.stdout.write(
+                    json.dumps(
+                        inventory,
+                        ensure_ascii=False,
+                        sort_keys=True,
+                        separators=(",", ":"),
+                    )
+                    + "\n"
+                )
+                return 0
+            if args.explain:
+                if args.only or args.check or args.fail_on_warn:
+                    raise GovernorSelectionError(
+                        "conflicting-selectors",
+                        "--explain cannot be combined with execution selectors",
                     )
                 explanation = get_governor_check_spec(args.explain).to_explanation()
                 sys.stdout.write(
@@ -146,6 +182,8 @@ def main(argv: Sequence[str] | None = None) -> int:
             sys.stdout.write(report.to_json())
         if report.tool_error_count:
             return 2
+        if args.fail_on_warn and report.warn_count:
+            return 1
         return 0 if report.status == "ok" else 1
     if args.command == "adr-verify":
         try:
