@@ -20,6 +20,7 @@ The governor checks publication consistency. It does not decide architecture, le
 | `adr-cross-surface-matrix` | Require every present ADR on the living oracle, root README and ADR index | advisory `warn` |
 | `adr-link-integrity` | Resolve relative Markdown targets and local heading fragments in active ADR files | advisory `warn` |
 | `adr-supersession-graph` | Validate metadata-owned partial/whole supersession targets, reciprocity and DAG shape | advisory `warn` |
+| `adr-matrix-freshness` | Compare tracked non-authoritative `law-nexus-adr-matrix/v1` output with current ADR inputs | advisory `warn`; parser/I/O failures use exit 2 |
 | `adr-retired-id-ban` | Reject unqualified living references to retired ADR-0001/0002/0003/0006 | advisory `warn` |
 | `active-surface-era-noise` | Require archive/historical/non-claim qualification for ACP, git-lex, FalkorDB and PyO3 vocabulary | advisory `warn` |
 | `archive-path-policy` | Require historical vaults ignored/untracked and reject known or generic active symlinks into them | advisory `warn` |
@@ -31,7 +32,7 @@ Default exit semantics remain stable: failed deterministic `error` checks produc
 
 ## 3. Machine-readable matrix contract
 
-A future matrix must be derived from present ADR files, not hand-maintained ID lists.
+The implemented matrix is derived from present ADR files and living citation surfaces, not hand-maintained ID lists. Tracked output: `prd/architecture/adr-matrix.json`; it is guarded by `adr-matrix-freshness` and remains explicitly non-authoritative.
 
 ```json
 {
@@ -96,18 +97,14 @@ uv run python -m law_nexus_harness governor --format text
 
 The default command remains backward-compatible JSON. Unknown or conflicting selectors return structured exit 2. `--explain` is read-only and reports purpose, group, deterministic/heuristic kind, authority inputs, default severity and non-claim.
 
-Still proposed:
+Implemented matrix CLI:
 
 ```text
-uv run python -m law_nexus_harness governor --only adr
-uv run python -m law_nexus_harness governor --check adr-truth-oracle-sync
-uv run python -m law_nexus_harness governor --explain adr-truth-oracle-sync
-uv run python -m law_nexus_harness governor --format text
-uv run python -m law_nexus_harness adr-verify --matrix check
 uv run python -m law_nexus_harness adr-verify --matrix generate --stdout
+uv run python -m law_nexus_harness adr-verify --matrix check --output prd/architecture/adr-matrix.json
 ```
 
-`--explain` must show purpose, authority inputs, deterministic rule, severity, evidence and remediation. `--matrix generate` writes only to stdout or an explicitly derived/non-authoritative path.
+`--matrix generate` writes only to stdout; check requires an explicit repository-local derived path and rejects living authority targets. `--explain` shows purpose, authority inputs, deterministic/heuristic kind, default severity and non-claim; exact per-rule evidence expansion remains MVP B debt.
 
 ## 6. Staged implementation
 
@@ -144,13 +141,14 @@ Implemented bounded checks:
 - `published-trace-contract` checks 11 consequential Product→Requirement→ADR chains and the assessment process-only boundary;
 - `adr-link-integrity` resolves relative Markdown files and heading fragments inside the repository;
 - `adr-supersession-graph` reads frontmatter `supersedes`/`superseded_by`, validates optional `#scope` reciprocity and target existence, and rejects cycles;
-- active partial edges are metadata-normalized as `ADR-0011 → ADR-0005#crate-map-only` and `ADR-0023 → ADR-0017#applicability-ownership`.
+- active partial edges are metadata-normalized as `ADR-0011 → ADR-0005#crate-map-only` and `ADR-0023 → ADR-0017#applicability-ownership`;
+- `adr-verify --matrix generate|check` implements `law-nexus-adr-matrix/v1` with stdout-only generation, explicit check target and authority-target rejection;
+- `adr-matrix-freshness` keeps tracked `prd/architecture/adr-matrix.json` synchronized.
 
-These checks validate publication/metadata structure only and do not satisfy requirements or amend an ADR.
+These checks and the matrix validate publication/metadata structure only and do not satisfy requirements or amend an ADR.
 
 Remaining:
 
-- generate/check `law-nexus-adr-matrix/v1`;
 - add optional review/revisit dates as warn-only staleness signals.
 
 ### Stage D — semantic advisory input

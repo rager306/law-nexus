@@ -8,6 +8,12 @@ import sys
 from collections.abc import Sequence
 from pathlib import Path
 
+from law_nexus_harness.adr_matrix import (
+    AdrMatrixError,
+    build_adr_matrix,
+    check_adr_matrix_output,
+    render_adr_matrix,
+)
 from law_nexus_harness.governor import (
     GovernorSelectionError,
     format_governor_report_text,
@@ -52,6 +58,27 @@ def build_parser() -> argparse.ArgumentParser:
         choices=("json", "text"),
         default="json",
         help="Output format for executed checks (default: json).",
+    )
+    adr_verify = subcommands.add_parser(
+        "adr-verify",
+        help="Generate or check the non-authoritative ADR metadata matrix.",
+    )
+    adr_verify.add_argument(
+        "--root",
+        type=Path,
+        default=Path.cwd(),
+        help="Repository root (default: current working directory).",
+    )
+    adr_verify.add_argument("--matrix", choices=("generate", "check"), required=True)
+    adr_verify.add_argument(
+        "--stdout",
+        action="store_true",
+        help="Emit generated matrix to stdout; required for generate.",
+    )
+    adr_verify.add_argument(
+        "--output",
+        type=Path,
+        help="Explicit derived matrix path for check; authority paths are rejected.",
     )
     preflight = subcommands.add_parser(
         "preflight",
@@ -120,6 +147,42 @@ def main(argv: Sequence[str] | None = None) -> int:
         if report.tool_error_count:
             return 2
         return 0 if report.status == "ok" else 1
+    if args.command == "adr-verify":
+        try:
+            if args.matrix == "generate":
+                if not args.stdout or args.output is not None:
+                    raise AdrMatrixError(
+                        "invalid-matrix-output",
+                        "generate requires --stdout and rejects --output",
+                    )
+                sys.stdout.write(render_adr_matrix(build_adr_matrix(args.root)))
+                return 0
+            if args.stdout or args.output is None:
+                raise AdrMatrixError(
+                    "invalid-matrix-output",
+                    "check requires --output and rejects --stdout",
+                )
+            result = check_adr_matrix_output(args.root, args.output)
+        except AdrMatrixError as error:
+            sys.stdout.write(
+                json.dumps(
+                    {
+                        "schema_version": "law-nexus-adr-matrix-tool-error/v1",
+                        "status": "tool-error",
+                        "error": error.error,
+                        "value": error.value,
+                    },
+                    ensure_ascii=False,
+                    sort_keys=True,
+                    separators=(",", ":"),
+                )
+                + "\n"
+            )
+            return 2
+        sys.stdout.write(
+            json.dumps(result, ensure_ascii=False, sort_keys=True, separators=(",", ":")) + "\n"
+        )
+        return 0 if result["status"] == "ok" else 1
     if args.command == "preflight":
         report = run_preflight(args.root)
         sys.stdout.write(report.to_json())

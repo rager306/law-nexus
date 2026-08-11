@@ -6,7 +6,7 @@
     {
       "id": "adr-contract-change",
       "sources": ["doc/adr/0*.md"],
-      "required_any": ["prd/ARCHITECTURE.md", "doc/adr/README.md", "doc/adr-architecture-cross-matrix.md"],
+      "required_any": ["prd/ARCHITECTURE.md", "doc/adr/README.md", "doc/adr-architecture-cross-matrix.md", "prd/architecture/adr-matrix.json"],
       "review": "Recheck lifecycle, index, supersession and living-oracle projection."
     },
     {
@@ -29,8 +29,8 @@
     },
     {
       "id": "governor-contract-change",
-      "sources": ["src/law_nexus_harness/governor.py", "src/law_nexus_harness/cli.py"],
-      "required_any": ["tests/test_harness_governor.py", "prd/architecture/adr-governor-verification-design.md"],
+      "sources": ["src/law_nexus_harness/governor.py", "src/law_nexus_harness/cli.py", "src/law_nexus_harness/adr_matrix.py"],
+      "required_any": ["tests/test_harness_governor.py", "tests/test_harness_adr_matrix.py", "prd/architecture/adr-governor-verification-design.md"],
       "review": "Recheck report compatibility, exit semantics, negative tests and non-claims."
     }
   ]

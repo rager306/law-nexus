@@ -22,6 +22,11 @@ from dataclasses import asdict, dataclass, replace
 from pathlib import Path
 from typing import Any, Literal
 
+from law_nexus_harness.adr_matrix import (
+    DEFAULT_ADR_MATRIX_PATH,
+    check_adr_matrix_output,
+)
+
 GOVERNOR_SCHEMA_VERSION = "law-nexus-governor-report/v1"
 
 Severity = Literal["error", "warn", "ok"]
@@ -2716,6 +2721,45 @@ def check_adr_supersession_graph(root: Path) -> list[GovernorFinding]:
     ]
 
 
+def check_adr_matrix_freshness(root: Path) -> list[GovernorFinding]:
+    """Require the tracked non-authoritative ADR matrix to match current inputs."""
+    check_id = "adr-matrix-freshness"
+    result = check_adr_matrix_output(root, root / DEFAULT_ADR_MATRIX_PATH)
+    if result["status"] != "ok":
+        return [
+            GovernorFinding(
+                check_id=check_id,
+                status="fail",
+                severity="warn",
+                message="derived ADR matrix is missing or stale",
+                observed=(
+                    f"output={result['output']}, reason={result['reason']} "
+                    "(derived diagnostics only)."
+                ),
+                remediation=(
+                    "Regenerate with `uv run python -m law_nexus_harness adr-verify "
+                    "--matrix generate --stdout > prd/architecture/adr-matrix.json`, "
+                    "then review the diff; never treat the matrix as authority."
+                ),
+                rule_id="adr-matrix.derived-freshness",
+                expected="Tracked non-authoritative ADR matrix matches active ADR inputs.",
+                evidence=(GovernorEvidence(path=DEFAULT_ADR_MATRIX_PATH.as_posix()),),
+            )
+        ]
+    return [
+        GovernorFinding(
+            check_id=check_id,
+            status="pass",
+            severity="ok",
+            message="derived ADR matrix matches current inputs",
+            observed=(
+                f"output={result['output']}, authoritative=false (derived diagnostics only)."
+            ),
+            remediation="none",
+        )
+    ]
+
+
 def check_adr_cross_surface_matrix(root: Path) -> list[GovernorFinding]:
     """Require every present ADR to be cited on core living surfaces.
 
@@ -3198,6 +3242,15 @@ GOVERNOR_CHECK_SPECS: tuple[CheckSpec, ...] = (
         check_adr_supersession_graph,
         "Validate metadata-owned supersession targets, reciprocity and acyclicity.",
         ("doc/adr/0*.md",),
+        "warn",
+    ),
+    _check_spec(
+        "adr-matrix-freshness",
+        "adr",
+        "deterministic",
+        check_adr_matrix_freshness,
+        "Keep the tracked non-authoritative ADR matrix synchronized with active inputs.",
+        ("doc/adr/0*.md", "prd/ARCHITECTURE.md", DEFAULT_ADR_MATRIX_PATH.as_posix()),
         "warn",
     ),
     _check_spec(

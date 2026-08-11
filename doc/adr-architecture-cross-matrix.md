@@ -56,6 +56,7 @@ Governor enforcement:
 | `document-freshness-triggers` | warn | non-authoritative dirty-tree change→companion catalog; a PASS is change-impact coverage, not semantic freshness |
 | `adr-link-integrity` | warn | relative ADR Markdown target/fragment resolution; repository structure only |
 | `adr-supersession-graph` | warn | scoped supersession target/reciprocity/DAG integrity; does not amend ADR authority |
+| `adr-matrix-freshness` | warn | tracked `law-nexus-adr-matrix/v1` derivation freshness; matrix is explicitly non-authoritative |
 
 ## 3. Deviations / gaps / noise (classified)
 

@@ -1,0 +1,293 @@
+{
+  "authoritative": false,
+  "generated_from": [
+    "doc/adr/0*.md",
+    "prd/ARCHITECTURE.md",
+    "doc/adr/README.md"
+  ],
+  "non_claims": [
+    "This matrix is derived repository-control evidence only.",
+    "A matrix row does not amend an ADR, satisfy a requirement, promote lifecycle, or validate product, runtime, legal, parser, retrieval, citation, ontology, applicability, TEI, or RuVector behavior."
+  ],
+  "rows": [
+    {
+      "adr_id": "ADR-0004",
+      "index_lifecycle": "bounded",
+      "oracle_lifecycle": "bounded",
+      "path": "doc/adr/0004-rust-migration-decision.md",
+      "status_lifecycle": "bounded",
+      "superseded_by": [],
+      "supersedes": [],
+      "surfaces": {
+        "adr_index": true,
+        "architecture": true,
+        "root_readme": true
+      }
+    },
+    {
+      "adr_id": "ADR-0005",
+      "index_lifecycle": "bounded",
+      "oracle_lifecycle": "bounded",
+      "path": "doc/adr/0005-rust-target-architecture.md",
+      "status_lifecycle": "bounded",
+      "superseded_by": [
+        "ADR-0011#crate-map-only"
+      ],
+      "supersedes": [],
+      "surfaces": {
+        "adr_index": true,
+        "architecture": true,
+        "root_readme": true
+      }
+    },
+    {
+      "adr_id": "ADR-0007",
+      "index_lifecycle": "validated",
+      "oracle_lifecycle": "validated",
+      "path": "doc/adr/0007-python-repository-harness.md",
+      "status_lifecycle": "validated",
+      "superseded_by": [],
+      "supersedes": [],
+      "surfaces": {
+        "adr_index": true,
+        "architecture": true,
+        "root_readme": true
+      }
+    },
+    {
+      "adr_id": "ADR-0008",
+      "index_lifecycle": "bounded",
+      "oracle_lifecycle": "bounded",
+      "path": "doc/adr/0008-promotion-publication-authority.md",
+      "status_lifecycle": "bounded",
+      "superseded_by": [],
+      "supersedes": [],
+      "surfaces": {
+        "adr_index": true,
+        "architecture": true,
+        "root_readme": true
+      }
+    },
+    {
+      "adr_id": "ADR-0009",
+      "index_lifecycle": "bounded",
+      "oracle_lifecycle": "bounded",
+      "path": "doc/adr/0009-five-clock-temporal-model.md",
+      "status_lifecycle": "bounded",
+      "superseded_by": [],
+      "supersedes": [],
+      "surfaces": {
+        "adr_index": true,
+        "architecture": true,
+        "root_readme": true
+      }
+    },
+    {
+      "adr_id": "ADR-0010",
+      "index_lifecycle": "bounded",
+      "oracle_lifecycle": "bounded",
+      "path": "doc/adr/0010-evidence-kernel-gates.md",
+      "status_lifecycle": "bounded",
+      "superseded_by": [],
+      "supersedes": [],
+      "surfaces": {
+        "adr_index": true,
+        "architecture": true,
+        "root_readme": true
+      }
+    },
+    {
+      "adr_id": "ADR-0011",
+      "index_lifecycle": "bounded",
+      "oracle_lifecycle": "bounded",
+      "path": "doc/adr/0011-kof-da-ownership.md",
+      "status_lifecycle": "bounded",
+      "superseded_by": [],
+      "supersedes": [
+        "ADR-0005#crate-map-only"
+      ],
+      "surfaces": {
+        "adr_index": true,
+        "architecture": true,
+        "root_readme": true
+      }
+    },
+    {
+      "adr_id": "ADR-0012",
+      "index_lifecycle": "bounded",
+      "oracle_lifecycle": "bounded",
+      "path": "doc/adr/0012-consequential-evidence-protocol.md",
+      "status_lifecycle": "bounded",
+      "superseded_by": [],
+      "supersedes": [],
+      "surfaces": {
+        "adr_index": true,
+        "architecture": true,
+        "root_readme": true
+      }
+    },
+    {
+      "adr_id": "ADR-0013",
+      "index_lifecycle": "bounded",
+      "oracle_lifecycle": "bounded",
+      "path": "doc/adr/0013-universal-multi-source-parser.md",
+      "status_lifecycle": "bounded",
+      "superseded_by": [],
+      "supersedes": [],
+      "surfaces": {
+        "adr_index": true,
+        "architecture": true,
+        "root_readme": true
+      }
+    },
+    {
+      "adr_id": "ADR-0014",
+      "index_lifecycle": "proposed",
+      "oracle_lifecycle": "proposed",
+      "path": "doc/adr/0014-ruvector-primary-infrastructure.md",
+      "status_lifecycle": "proposed",
+      "superseded_by": [],
+      "supersedes": [],
+      "surfaces": {
+        "adr_index": true,
+        "architecture": true,
+        "root_readme": true
+      }
+    },
+    {
+      "adr_id": "ADR-0015",
+      "index_lifecycle": "bounded",
+      "oracle_lifecycle": "bounded",
+      "path": "doc/adr/0015-hexagonal-verification-architecture.md",
+      "status_lifecycle": "bounded",
+      "superseded_by": [],
+      "supersedes": [],
+      "surfaces": {
+        "adr_index": true,
+        "architecture": true,
+        "root_readme": true
+      }
+    },
+    {
+      "adr_id": "ADR-0016",
+      "index_lifecycle": "proposed",
+      "oracle_lifecycle": "proposed",
+      "path": "doc/adr/0016-frbr-structural-legal-identity.md",
+      "status_lifecycle": "proposed",
+      "superseded_by": [],
+      "supersedes": [],
+      "surfaces": {
+        "adr_index": true,
+        "architecture": true,
+        "root_readme": true
+      }
+    },
+    {
+      "adr_id": "ADR-0017",
+      "index_lifecycle": "proposed",
+      "oracle_lifecycle": "proposed",
+      "path": "doc/adr/0017-component-temporal-versioning.md",
+      "status_lifecycle": "proposed",
+      "superseded_by": [
+        "ADR-0023#applicability-ownership"
+      ],
+      "supersedes": [],
+      "surfaces": {
+        "adr_index": true,
+        "architecture": true,
+        "root_readme": true
+      }
+    },
+    {
+      "adr_id": "ADR-0018",
+      "index_lifecycle": "proposed",
+      "oracle_lifecycle": "proposed",
+      "path": "doc/adr/0018-normative-state-resolver.md",
+      "status_lifecycle": "proposed",
+      "superseded_by": [],
+      "supersedes": [],
+      "surfaces": {
+        "adr_index": true,
+        "architecture": true,
+        "root_readme": true
+      }
+    },
+    {
+      "adr_id": "ADR-0019",
+      "index_lifecycle": "proposed",
+      "oracle_lifecycle": "proposed",
+      "path": "doc/adr/0019-normative-hierarchy-and-conflict.md",
+      "status_lifecycle": "proposed",
+      "superseded_by": [],
+      "supersedes": [],
+      "surfaces": {
+        "adr_index": true,
+        "architecture": true,
+        "root_readme": true
+      }
+    },
+    {
+      "adr_id": "ADR-0020",
+      "index_lifecycle": "proposed",
+      "oracle_lifecycle": "proposed",
+      "path": "doc/adr/0020-judicial-fas-practice-overlay.md",
+      "status_lifecycle": "proposed",
+      "superseded_by": [],
+      "supersedes": [],
+      "surfaces": {
+        "adr_index": true,
+        "architecture": true,
+        "root_readme": true
+      }
+    },
+    {
+      "adr_id": "ADR-0021",
+      "index_lifecycle": "proposed",
+      "oracle_lifecycle": "proposed",
+      "path": "doc/adr/0021-transitional-provisions-and-risk.md",
+      "status_lifecycle": "proposed",
+      "superseded_by": [],
+      "supersedes": [],
+      "surfaces": {
+        "adr_index": true,
+        "architecture": true,
+        "root_readme": true
+      }
+    },
+    {
+      "adr_id": "ADR-0022",
+      "index_lifecycle": "proposed",
+      "oracle_lifecycle": "proposed",
+      "path": "doc/adr/0022-industry-profiles-architecture.md",
+      "status_lifecycle": "proposed",
+      "superseded_by": [],
+      "supersedes": [],
+      "surfaces": {
+        "adr_index": true,
+        "architecture": true,
+        "root_readme": true
+      }
+    },
+    {
+      "adr_id": "ADR-0023",
+      "index_lifecycle": "proposed",
+      "oracle_lifecycle": "proposed",
+      "path": "doc/adr/0023-applicability-protocol-ownership.md",
+      "status_lifecycle": "proposed",
+      "superseded_by": [],
+      "supersedes": [
+        "ADR-0017#applicability-ownership"
+      ],
+      "surfaces": {
+        "adr_index": true,
+        "architecture": true,
+        "root_readme": true
+      }
+    }
+  ],
+  "schema_version": "law-nexus-adr-matrix/v1",
+  "summary": {
+    "adr_count": 19,
+    "supersession_edge_count": 2
+  }
+}
