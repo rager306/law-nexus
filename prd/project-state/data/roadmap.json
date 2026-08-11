@@ -378,13 +378,13 @@
     "goal": "Local GSD workflow marker only; its milestone numbering predates later tracked M161-M165 product/design commits and is not the product current-front authority."
   },
   "recommended_next": {
-    "title": "Complete D7/EA-06 derived registry quarantine",
+    "title": "Complete EA-07 deterministic paper rehearsal",
     "priority": 1,
-    "why": "D5/D6/EA-05 roadmap-front synchronization and TL-G01..12 readiness coverage passed at frozen revision 94d58ea with human ACCEPT-WITH-FINDINGS.",
-    "plan_reference": "prd/architecture/documentation-semantic-control-plan.md D7 and prd/migration/external-architecture-assessment-roadmap.md EA-06",
-    "slices": "Reclassify stale FalkorDB/ACP/PyO3 and missing-anchor derived rows; add source revision and non-authority markers; define safe regeneration.",
-    "product_next": "L2 CTV TDD remains evidence-gated after parser data readiness; D7 does not unlock implementation.",
-    "non_validation": "D7/EA-06 completion is derived-process hygiene, not product readiness, legal correctness, ontology/applicability runtime, or release proof."
+    "why": "D7/EA-06 quarantine passed with a retained derived-registry staleness WARN; EA-07 must apply the paper gate catalog before semantic review.",
+    "plan_reference": "prd/migration/external-architecture-assessment-roadmap.md EA-07",
+    "slices": "Record every required check as method=paper-rehearsal; classify PASS/WARN/BLOCK; assign every WARN an owner, remediation and revisit trigger.",
+    "product_next": "L2 CTV TDD remains evidence-gated after parser data readiness; EA-07 does not unlock implementation.",
+    "non_validation": "EA-07 paper rehearsal is documentation/process evidence, not an automated gate, product readiness, legal correctness, ontology/applicability runtime, or release proof."
   },
   "downstream_blocked": [
     {
@@ -433,12 +433,12 @@
     "Keep Rust as the only target product runtime; Python may remain only as the repository harness defined by ADR-0007.",
     "Do not reintroduce ACP/git-lex outside explicit archive paths."
   ],
-  "source_revision": "94d58ea",
+  "source_revision": "bfe2ee6",
   "current_process_front": {
-    "id": "D7/EA-06",
-    "title": "Derived Registry Quarantine",
+    "id": "EA-07",
+    "title": "Deterministic Paper Rehearsal",
     "status": "active",
-    "boundary": "Documentation/process work only; derived registry remains non-authoritative and cannot promote lifecycle."
+    "boundary": "Documentation/process work only; method=paper-rehearsal is not automated-gate evidence and cannot promote lifecycle."
   },
   "latest_completed_product_milestone": {
     "id": "M165",

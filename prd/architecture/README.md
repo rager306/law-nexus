@@ -1,5 +1,9 @@
 # Architecture registry contract
 
+> **DERIVED / NON-AUTHORITATIVE / D7-QUARANTINED PROJECTION**
+> Disposition baseline: `bfe2ee6` · As-of: 2026-08-11 · Schema: `legalgraph-architecture-registry/v1`
+> Canonical truth: `prd/ARCHITECTURE.md` + `doc/adr/**` + `prd/PRODUCT.md`. Registry rows cannot promote lifecycle, satisfy requirements, or prove product/legal/runtime/parser/retrieval claims. Historical FalkorDB/ACP/git-lex/PyO3/pre-Rust rows are superseded archaeology; missing-anchor rows are blocked diagnostics. Extractor/builder are currently absent, so generated views remain stale/quarantined until safe regeneration.
+
 This directory defines the law-nexus architecture registry contract (historical M004-era name: LegalGraph Nexus). The registry is a git-tracked, machine-readable projection of architecture knowledge; it is not itself the architecture source of truth.
 
 The `[proposed]` documentation correction and semantic-control sequence is defined in [`documentation-semantic-control-plan.md`](documentation-semantic-control-plan.md). Its independent documentation-assessment track is [`../migration/external-architecture-assessment-roadmap.md`](../migration/external-architecture-assessment-roadmap.md), with the D0/EA-00 packet entrypoint at [`../../assessment/00-charter.md`](../../assessment/00-charter.md). These artifacts do not change ADR lifecycle, grant authority to this registry, or constitute an accepted assessment or product/legal validation.
@@ -14,14 +18,14 @@ Three human-readable views are generated from the registry and graph:
 | `product_readiness_blockers.md` | Next proof work by capability area: active gates, blocked evidence, non-claims | `python scripts/generate-architecture-views.py` |
 | `claims_ledger.md` | Claim safety classifications: safe-to-say, bounded, blocked, unsafe-to-assert | `python scripts/generate-architecture-views.py` |
 
-All three views are derived, non-authoritative planning artifacts. Source-of-truth remains with PRD, GSD, ADR, and source anchor evidence.
+All three views are derived, non-authoritative and currently D7-quarantined planning artifacts. Source-of-truth remains with `prd/ARCHITECTURE.md`, `doc/adr/**`, `prd/PRODUCT.md` and tracked source/runtime evidence. Local `.gsd/**` is workflow state only.
 
 ## Source-of-truth boundary
 
 Authoritative claims remain in the source documents and evidence artifacts that the registry anchors to:
 
-- Living architecture truth: `prd/ARCHITECTURE.md` and `doc/adr/**`. Historical research notes live under `prd/archive/` (not active truth).
-- GSD requirements, decisions, plans, summaries, and validation artifacts.
+- Living architecture truth: `prd/ARCHITECTURE.md` and `doc/adr/**`; product intent/obligations: `prd/PRODUCT.md` and `prd/REQUIREMENTS.md`. Historical research notes live under `prd/archive/` (not active truth).
+- Local GSD requirements, decisions, plans and summaries are workflow inputs only; tracked publication and canonical documents govern cold readers.
 - Source code, tests, runtime smoke artifacts, and real-document proof artifacts when a claim requires implementation or runtime evidence.
 - External references only when recorded as explicit `external-reference` anchors; they do not override local PRD/GSD decisions.
 

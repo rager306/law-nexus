@@ -4484,37 +4484,37 @@
       "source_sha256": "ca8b229bd95764901be536f15951cab8ae6fa4368bf7c2132fc241f185c761d4"
     },
     {
-      "action": "review_or_rewrite",
-      "archive_path": null,
-      "classification": "manual_review_reference",
+      "action": "archive",
+      "archive_path": "archive/scripts/s02-cold-path-install-proof.sh",
+      "classification": "historical_script",
       "source_path": "scripts/s02-cold-path-install-proof.sh",
       "source_sha256": "397ad5e89c13ae4de3cb384410ff31be48879e6836a056e30b613dca50a7c5c9"
     },
     {
-      "action": "review_or_rewrite",
-      "archive_path": null,
-      "classification": "manual_review_reference",
+      "action": "archive",
+      "archive_path": "archive/scripts/s02-first-proof.sh",
+      "classification": "historical_script",
       "source_path": "scripts/s02-first-proof.sh",
       "source_sha256": "9b80d36d02b3727dbc7e90dc672f56e7977cf4b60e5596307023a73d71c5d270"
     },
     {
-      "action": "review_or_rewrite",
-      "archive_path": null,
-      "classification": "manual_review_reference",
+      "action": "archive",
+      "archive_path": "archive/scripts/s02-self-check.sh",
+      "classification": "historical_script",
       "source_path": "scripts/s02-self-check.sh",
       "source_sha256": "2a669027dd2a18c28e59ffd7a505f08ae9b37b55493d0c9659d890cb55e13b67"
     },
     {
-      "action": "review_or_rewrite",
-      "archive_path": null,
-      "classification": "manual_review_reference",
+      "action": "archive",
+      "archive_path": "archive/scripts/s03-install-rehearsal-workflow-proof.sh",
+      "classification": "historical_script",
       "source_path": "scripts/s03-install-rehearsal-workflow-proof.sh",
       "source_sha256": "275a337b56c232a719a3854f1644af3945c74311c90d23434c43f60e019c10fa"
     },
     {
-      "action": "review_or_rewrite",
-      "archive_path": null,
-      "classification": "manual_review_reference",
+      "action": "archive",
+      "archive_path": "archive/scripts/s03-validate-reject-proof.sh",
+      "classification": "historical_script",
       "source_path": "scripts/s03-validate-reject-proof.sh",
       "source_sha256": "bb4116810934b73120296a19d9a9babfa6f0be4a8c734406f8bb7fd5b0a396b2"
     },

@@ -27,6 +27,20 @@ R035_RUNTIME_PROOF_PATH = "prd/research/ontology_architecture_requirements/ontol
 R035_RUNTIME_REMEDIATION_PATH = (
     "prd/research/ontology_architecture_requirements/13-r035-runtime-integration-remediation.md"
 )
+D7_QUARANTINE_BASELINE = "bfe2ee6"
+D7_QUARANTINE_DATE = "2026-08-11"
+
+
+def d7_quarantine_banner(detail: str) -> list[str]:
+    """Return the mandatory non-authority banner for derived D7 views."""
+    return [
+        f"> **D7 QUARANTINE — DERIVED VIEW.** Disposition baseline `{D7_QUARANTINE_BASELINE}`, "
+        f"as-of {D7_QUARANTINE_DATE}. {detail}",
+        "> This view cannot satisfy requirements, promote lifecycle, or prove "
+        "product/legal/runtime/parser/retrieval claims. Canonical truth: "
+        "`prd/ARCHITECTURE.md`, `doc/adr/**`, `prd/PRODUCT.md`.",
+        "",
+    ]
 
 
 def escape_md(value: Any) -> str:
@@ -268,6 +282,9 @@ def render_health_dashboard(
     lines = [
         "# Architecture Health Dashboard",
         "",
+        *d7_quarantine_banner(
+            "JSONL rows use fail-closed era/missing-anchor dispositions; graph report counts may remain stale while extractor/builder are absent."
+        ),
         f"**Status:** {health_status}",
         "**Non-Authoritative:** This dashboard is derived from graph artifacts and does not validate product/runtime/legal claims. "
         "PRD, GSD, ADR, source anchors, and runtime evidence remain the authoritative source of truth.",
@@ -760,6 +777,9 @@ def render_blockers_report(
     lines: list[str] = [
         "# Product Readiness Blockers Report",
         "",
+        *d7_quarantine_banner(
+            "Legacy GATE-G005/G008/G011/G015 and ACP/FalkorDB/PyO3 rows are not the current readiness map; use `prd/temporal-legal-model.md` §10–10.1."
+        ),
         "> **Scope:** This report maps active proof gates, blocked evidence, and non-claims "
         "to the six capability areas required for LegalGraph Nexus product readiness. "
         "It is a derived, non-authoritative planning artifact only — it does **not** assert product readiness and "
@@ -1004,6 +1024,9 @@ def render_claims_ledger(
     lines: list[str] = [
         "# Claims Ledger",
         "",
+        *d7_quarantine_banner(
+            "Historical/era and missing-anchor records are quarantined diagnostics; classifications remain non-authoritative."
+        ),
         "> **Scope:** This ledger classifies each architecture registry item by the safety "
         "of asserting its claims in future planning, PRDs, or agent handoffs. "
         "It is a derived, non-authoritative planning artifact — do not use it as proof. "

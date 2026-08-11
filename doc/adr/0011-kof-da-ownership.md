@@ -4,8 +4,8 @@ title: KOF-DA ownership — twenty exclusive capability owners (D123)
 status: Accepted
 lifecycle: "[bounded]"
 date: 2026-07-22
-superseds: none
-related: [ADR-0008, ADR-0009, ADR-0010, D123]
+superseds: [ADR-0005#crate-map-only]
+related: [ADR-0005, ADR-0008, ADR-0009, ADR-0010, D123]
 ---
 
 # ADR-0011: KOF-DA ownership — twenty exclusive capability owners
@@ -74,7 +74,7 @@ shared mutable state.
 ## Consequences
 
 - Product capabilities map to exclusive `ln-*` owners; shared ownership is rejected.
-- ADR-0005 crate sketches that conflict with this map are historical.
+- This ADR reciprocally supersedes only ADR-0005's crate-map sketch; ADR-0005 remains `[bounded]` authority for Rust layering. Conflicting historical crate sketches are non-prescriptive.
 - Ownership map is not product readiness proof.
 
 ## Non-claims

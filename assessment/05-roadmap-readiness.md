@@ -6,6 +6,11 @@
 **Review date:** 2026-08-11
 **Recorded user response:** `ACCEPT-WITH-FINDINGS (Recommended)`
 
+> **Later-stage notice:** this is the frozen EA-05 record. EA-06 subsequently
+> recorded derived-registry quarantine PASS with a retained staleness WARN in
+> `assessment/06-derived-registry-quarantine.md`; EA-07 is now the process front.
+> The historical open-stage wording below is not the current front.
+
 ## 1. Scope
 
 This record assesses D5 roadmap-front synchronization and documentation D6 temporal readiness integration. It does not assess product runtime, legal correctness, parser completeness, RuVector/TEI readiness, citation-safe answers, ontology implementation, applicability runtime, release readiness or EA-09/EA-10 package acceptance.

@@ -1,5 +1,7 @@
 # Architecture Graph Report
 
+> **D7 QUARANTINE — STALE DERIVED VIEW.** Disposition baseline `bfe2ee6`, as-of 2026-08-11. The report was generated before the fail-closed JSONL disposition pass and its rows/counts are diagnostic history only. Extractor/builder are absent; no safe regeneration has occurred. It cannot prove current architecture, satisfy requirements or promote lifecycle.
+
 This report is derived, non-authoritative, and generated from the S02 architecture JSONL registry.
 These graph/report outputs do not validate product/runtime/legal claims; PRD, GSD, ADR, source, and runtime evidence remain the source of truth.
 Current orphans, unresolved proof gates, contradictions, and risk rows are findings for S04 or later verifier work, not automatic S03 build failures.

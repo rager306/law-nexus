@@ -830,7 +830,8 @@ def test_adr_truth_oracle_sync_detects_lifecycle_mismatch(tmp_path: Path) -> Non
         "Clocks ADR-0009 [bounded] ADR-0010 [bounded]\n"
         "Parser ADR-0013 [bounded] ADR-0014 [proposed] ADR-0015 [bounded]\n"
         "Ontology ADR-0016 [proposed] ADR-0017 [proposed] ADR-0018 [proposed]\n"
-        "ADR-0019 [proposed] ADR-0020 [proposed] ADR-0021 [proposed] ADR-0022 [proposed]\n",
+        "ADR-0019 [proposed] ADR-0020 [proposed] ADR-0021 [proposed] ADR-0022 [proposed]\n"
+        "ADR-0023 [proposed]\n",
         encoding="utf-8",
     )
     findings = check_adr_truth_oracle_sync(tmp_path)
@@ -841,6 +842,43 @@ def test_adr_truth_oracle_sync_detects_lifecycle_mismatch(tmp_path: Path) -> Non
     assert finding.severity == "error"
     assert "mismatched=" in finding.observed
     assert "ADR-0004" in finding.observed
+
+
+def test_adr_truth_oracle_sync_discovers_future_adr(tmp_path: Path) -> None:
+    adr = tmp_path / "doc" / "adr"
+    adr.mkdir(parents=True)
+    (adr / "0024-future.md").write_text(
+        "# ADR-0024\n\n## Status\n\nAccepted `[proposed]`.\n",
+        encoding="utf-8",
+    )
+    prd = tmp_path / "prd"
+    prd.mkdir()
+    (prd / "ARCHITECTURE.md").write_text("# ARCH\n", encoding="utf-8")
+
+    finding = check_adr_truth_oracle_sync(tmp_path)[0]
+    assert finding.status == "fail"
+    assert finding.severity == "error"
+    assert "ADR-0024" in finding.observed
+
+
+def test_adr_truth_oracle_sync_rejects_adr_without_status_lifecycle(tmp_path: Path) -> None:
+    adr = tmp_path / "doc" / "adr"
+    adr.mkdir(parents=True)
+    (adr / "0024-bad.md").write_text(
+        "# ADR-0024\n\n## Status\n\nAccepted without lifecycle.\n",
+        encoding="utf-8",
+    )
+    prd = tmp_path / "prd"
+    prd.mkdir()
+    (prd / "ARCHITECTURE.md").write_text(
+        "# ARCH\n\nADR-0024 [proposed]\n",
+        encoding="utf-8",
+    )
+
+    finding = check_adr_truth_oracle_sync(tmp_path)[0]
+    assert finding.status == "fail"
+    assert finding.severity == "error"
+    assert "expected=status-lifecycle:seen=none" in finding.observed
 
 
 def test_adr_truth_oracle_sync_passes_matching_tags(tmp_path: Path) -> None:
@@ -865,7 +903,8 @@ def test_adr_truth_oracle_sync_passes_matching_tags(tmp_path: Path) -> None:
         "ADR-0019 [proposed]\n"
         "ADR-0020 [proposed]\n"
         "ADR-0021 [proposed]\n"
-        "ADR-0022 [proposed]\n",
+        "ADR-0022 [proposed]\n"
+        "ADR-0023 [proposed]\n",
         encoding="utf-8",
     )
     findings = check_adr_truth_oracle_sync(tmp_path)
@@ -882,6 +921,38 @@ def test_archive_path_policy_warns_when_not_ignored(tmp_path: Path) -> None:
     assert finding.status == "fail"
     assert finding.severity == "warn"
     assert "missing_gitignore=" in finding.observed
+
+
+def test_archive_path_policy_warns_on_active_alias_into_vault(tmp_path: Path) -> None:
+    (tmp_path / ".gitignore").write_text(
+        "\n".join(
+            [
+                ".lex/",
+                "python_archive/",
+                "Old_project/",
+                "prd/archive/acp-git-lex/",
+                "prd/archive/pre-rust-prd/",
+                "prd/archive/milestone-proofs-era/",
+                "prd/archive/research-era/",
+                "prd/archive/project-state-era/",
+                "prd/archive/architecture-era/",
+                "prd/archive/parser-dumps-era/",
+                "prd/archive/retrieval-era/",
+                "prd/archive/migration-era/",
+                "archive/",
+                "probes/",
+                ".commandcode/",
+            ]
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+    active = tmp_path / "prd" / "architecture"
+    active.mkdir(parents=True)
+    (active / "acp").symlink_to("../archive/acp-git-lex")
+    findings = check_archive_path_policy(tmp_path)
+    assert findings[0].status == "fail"
+    assert "active_aliases=['prd/architecture/acp']" in findings[0].observed
 
 
 def test_archive_path_policy_passes_when_ignored(tmp_path: Path) -> None:
@@ -922,6 +993,22 @@ def test_adr_index_completeness_detects_missing(tmp_path: Path) -> None:
     assert finding.status == "fail"
     assert finding.severity == "warn"
     assert "0099-missing.md" in finding.observed
+
+
+def test_adr_index_completeness_detects_missing_lifecycle(tmp_path: Path) -> None:
+    adr = tmp_path / "doc" / "adr"
+    adr.mkdir(parents=True)
+    (adr / "README.md").write_text("# ADRs\n\n- ADR-0004 Rust\n", encoding="utf-8")
+    (adr / "0004-rust.md").write_text(
+        "# ADR-0004\n\n## Status\n\nAccepted `[bounded]`.\n",
+        encoding="utf-8",
+    )
+    findings = check_adr_index_completeness(tmp_path)
+    assert len(findings) == 1
+    finding = findings[0]
+    assert finding.status == "fail"
+    assert finding.severity == "warn"
+    assert "ADR-0004:expected=bounded" in finding.observed
 
 
 def test_adr_doc_matrix_coverage_detects_missing_surface(tmp_path: Path) -> None:

@@ -22,6 +22,19 @@ Old_project/
 prd/archive/acp-git-lex/
 prd/archive/pre-rust-prd/
 
+# Retired active-plane aliases/proofs. Canonical copies live only in ignored
+# archive vaults; these exact paths must not be recreated or indexed.
+prd/architecture/acp
+scripts/s02-cold-path-install-proof.sh
+scripts/s02-first-proof.sh
+scripts/s02-self-check.sh
+scripts/s03-install-rehearsal-workflow-proof.sh
+scripts/s03-validate-reject-proof.sh
+tests/test_consultant_parser_proof.py
+tests/test_hierarchy_metadata_completeness.py
+tests/test_local_retrieval_runtime_check_cli.py
+tests/test_source_structuring_protocol.py
+
 # Historical noise vault (skills/scripts/tests). Entire tree ignored.
 archive/
 

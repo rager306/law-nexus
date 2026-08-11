@@ -23,7 +23,7 @@ falkordb=historical-only
 - **Latest completed product milestone:** M165, temporal legal ontology O1–O7 crystallized at `[proposed]` design; no ontology runtime.
 - **Completed retrieval-honesty band:** M161–M164 `[bounded]` (real cosine ranking in memory, semantic-stub and historical-test-debt probes, deterministic CLI vectors); no live corpus or citation-safe answers.
 - **Completed documentation alignment:** D5 + documentation D6 / EA-05 accepted with findings at `94d58ea`; roadmap-front-sync and TL-G01–12 coverage PASS.
-- **Current documentation/process front:** D7 / EA-06 — quarantine and refresh the derived registry without granting it authority.
+- **Current documentation/process front:** EA-07 — deterministic paper rehearsal after D7/EA-06 quarantine PASS with retained derived-registry staleness WARN; `method=paper-rehearsal` is not automated-gate evidence.
 - **Local GSD workflow marker:** M161-2som4e remains active in local workflow state; it is not the tracked product/design current-front authority and its numbering predates later M161–M165 git history.
 - **Product next remains evidence-gated:** L2 CTV TDD after parser data readiness; TEI/RuVector only after real infrastructure/evidence. Neither is unlocked by EA-05.
 - **M111 result:** final `[bounded]` implementation-neutral semantic baseline for heterogeneous Russian legal evidence.
@@ -94,7 +94,7 @@ As of M111/M113, architecture-static checks had passed and only HC-01 had bounde
 ## M112 ADR and enforcement result
 
 - ADR-0004 retains Rust-only whole-system migration and no in-process bridge.
-- ADR-0005 pre-M111 crate/port topology is superseded `[deferred]`.
+- ADR-0005 remains `[bounded]` for Rust layering; only its pre-M111 crate/port topology is superseded and no longer prescriptive.
 - ADR-0007 retains a subprocess-only Python repository harness with no product logic.
 - ADR-0008 records authority separation, complete H1 and provisional ceilings.
 - ADR-0009 records the five-clock temporal model.
@@ -122,7 +122,7 @@ Proof anchors:
 
 ## Historical product sequence and current process front
 
-M130–M165 are completed historical planning bands. The current process sequence is D5/D6→EA-05, then D7/EA-06 and EA-07..10. Product implementation remains evidence-gated; sequence completion never supplies proof.
+M130–M165 are completed historical planning bands. D5/D6→EA-05 and D7/EA-06 are complete as documentation/process stages; the current front is EA-07 deterministic paper rehearsal, followed by EA-08..10. `method=paper-rehearsal` is not automated-gate evidence. Product implementation remains evidence-gated; sequence completion never supplies proof.
 
 Historical M130 plan:
 

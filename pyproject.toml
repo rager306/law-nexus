@@ -27,7 +27,6 @@ dev = [
 local-embeddings = [
     "accelerate",
     "einops",
-    "falkordb>=1.6.1",
     "sentence-transformers>=5.1.1",
     "torch",
     "transformers==4.51.0",
@@ -74,9 +73,6 @@ exclude = [
 [tool.ruff.lint]
 select = ["E", "F", "I"]
 ignore = ["E501"]
-
-[tool.ruff.lint.per-file-ignores]
-"scripts/verify-s02-skills.py" = ["F401"]
 
 [tool.ruff.format]
 quote-style = "double"

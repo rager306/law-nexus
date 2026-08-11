@@ -134,6 +134,7 @@ def test_verifier_default_paths_do_not_depend_on_archived_semantic_state() -> No
     assert relative
     assert not any(path.startswith(".lex/") for path in relative)
     assert not any(path.startswith("prd/architecture/acp/") for path in relative)
+    assert not any(path.startswith("python_archive/") for path in relative)
     assert all("git-lex-kit" not in path for path in relative)
 
 

@@ -128,8 +128,9 @@ M165 temporal legal ontology L1–L7  [proposed] design (ADR-0016..0022)
    Docs/process follow-up: truth-oracle sync, vault untrack, archive relocate
    ▼
 CURRENT PROCESS FRONT (no Rust)
-   D7 / EA-06 derived-registry quarantine after D5/D6/EA-05 PASS at 94d58ea
-   Then EA-07..10 assessment; L2 CTV only when parser data ready; TEI/RuVector when infra exists
+   EA-07 deterministic paper rehearsal after D7/EA-06 quarantine PASS + staleness WARN
+   method=paper-rehearsal; not automated-gate evidence; then EA-08..10 assessment
+   L2 CTV only when parser data ready; TEI/RuVector only when infrastructure exists
 ```
 
 ## Current layer (where work happens now)

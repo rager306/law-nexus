@@ -63,6 +63,15 @@ def test_health_dashboard_has_status_line() -> None:
     assert "**Status:**" in content
 
 
+def test_generated_views_preserve_d7_quarantine_banner() -> None:
+    """All generated human views must retain the revision-bound D7 warning."""
+    for path in (HEALTH_MD_PATH, BLOCKERS_MD_PATH, CLAIMS_MD_PATH):
+        content = path.read_text(encoding="utf-8")
+        assert "D7 QUARANTINE — DERIVED VIEW" in content
+        assert "Disposition baseline `bfe2ee6`" in content
+        assert "cannot satisfy requirements, promote lifecycle" in content
+
+
 def test_health_dashboard_has_non_authoritative_disclaimer() -> None:
     """Dashboard must include the non-authoritative disclaimer."""
     content = HEALTH_MD_PATH.read_text(encoding="utf-8")
@@ -594,13 +603,13 @@ def test_blockers_report_includes_gate_g011() -> None:
     )
 
 
-def test_blockers_report_includes_r034_validator_proof_as_bounded_evidence() -> None:
-    """Blocker report must surface the validator proof without closing retrieval gates."""
+def test_blockers_report_quarantines_r034_validator_proof_with_missing_anchors() -> None:
+    """D7 keeps the historical proof visible but blocks its missing-anchor claim."""
     content = _load_blockers_content()
     assert "EVID-RETRIEVAL-OUTPUT-ID-VALIDATOR-PROOF" in content
-    assert "Retrieval output ID validator bounded proof" in content
+    assert "Quarantined missing-anchor: Retrieval output ID validator bounded proof" in content
     assert "Blocked / Bounded Evidence" in content
-    assert "unit/CLI behavior for required M012 diagnostic cases only" in content
+    assert "Blocked diagnostic until every claimed anchor is retargeted" in content
     assert "Does not prove product retrieval quality." in content
     assert "Does not prove legal-answer correctness." in content
     assert "GATE-G008" in content
@@ -841,43 +850,47 @@ ALL_TRACKED_IDS = {
 ALL_26_IDS = ALL_TRACKED_IDS
 
 SAFE_IDS = {
+    "REQ-R001",
+    "REQ-R009",
+    "REQ-R010",
+    "REQ-R022",
+    "REQ-R029",
+    "REQ-R034",
+}
+
+# D7 is fail-closed: previously bounded records with retired/missing anchors no
+# longer remain in the bounded section merely because historical proof existed.
+BOUNDED_IDS: set[str] = set()
+
+BLOCKED_IDS = {
     "ASSUMP-PRD-SOURCE-TRUTH",
     "CHECK-ARCHITECTURE-EXTRACTOR",
     "DEC-D031",
     "DEC-D032",
-    "REQ-R001",
-    "REQ-R009",
-    "REQ-R010",
-    "REQ-R017",
-    "REQ-R022",
-    "REQ-R029",
-    "REQ-R034",
-    "RISK-OVERCLAIM-RUNTIME",
-}
-
-BOUNDED_IDS = {
-    "S04-FALKORDB-RUNTIME-BOUNDED",
-    "S05-OLD-PROJECT-PRIOR-ART",
-    "S05-PARSER-ODT-BOUNDARY",
-    "S07-FIXED-PRD-CONSISTENCY",
-    "S10-USER-BGE-M3-BASELINE",
-    "EVID-PARSER-GOLDEN-TEST-PROOF",
     "EVID-PARSER-CONSULTANT-HIERARCHY-PROOF",
-    "EVID-RESEARCH-GRAPHRAG-MATH-ANALYSIS",
-    "EVID-RETRIEVAL-OUTPUT-ID-VALIDATOR-PROOF",
+    "EVID-PARSER-GOLDEN-TEST-PROOF",
     "EVID-REAL-ARTIFACT-RETRIEVAL-PROOF",
     "EVID-REPRESENTATIVE-RETRIEVAL-RUNTIME-BENCHMARK-PROOF",
-}
-
-BLOCKED_IDS = {
+    "EVID-RETRIEVAL-OUTPUT-ID-VALIDATOR-PROOF",
     "GATE-G005",
     "GATE-G008",
     "GATE-G011",
-    "GATE-G015",
+    "M001-ARCHITECTURE-ONLY-GUARDRAIL",
+    "RISK-OVERCLAIM-RUNTIME",
+    "S05-OLD-PROJECT-PRIOR-ART",
+    "S05-PARSER-ODT-BOUNDARY",
+    "S07-FIXED-PRD-CONSISTENCY",
     "S10-GIGAEMBEDDINGS-CHALLENGER-BLOCKED",
 }
 
-UNSAFE_IDS = {"M001-ARCHITECTURE-ONLY-GUARDRAIL", "REQ-R028"}
+UNSAFE_IDS = {
+    "EVID-RESEARCH-GRAPHRAG-MATH-ANALYSIS",
+    "GATE-G015",
+    "REQ-R017",
+    "REQ-R028",
+    "S04-FALKORDB-RUNTIME-BOUNDED",
+    "S10-USER-BGE-M3-BASELINE",
+}
 
 
 def _load_claims_content() -> str:
@@ -980,18 +993,17 @@ def test_claims_ledger_all_bounded_items_present() -> None:
 
 
 def test_claims_ledger_classifies_r034_and_validator_proof_conservatively() -> None:
-    """R034 is safe source-anchor scope; validator proof is bounded unit-test evidence only."""
+    """R034 stays diagnostic-safe while its retired-anchor proof is blocked."""
     content = _load_claims_content()
     safe_section = _claims_section(content, "safe-to-say")
-    bounded_section = _claims_section(content, "bounded")
     blocked_section = _claims_section(content, "blocked/open")
 
     assert "REQ-R034" in safe_section
     assert "Retrieval output evidence identifiers fail closed" in safe_section
-    assert "EVID-RETRIEVAL-OUTPUT-ID-VALIDATOR-PROOF" in bounded_section
-    assert "| unit-test |" in bounded_section
-    assert "Does not prove product retrieval quality." in bounded_section
-    assert "Does not prove legal-answer correctness." in bounded_section
+    assert "EVID-RETRIEVAL-OUTPUT-ID-VALIDATOR-PROOF" in blocked_section
+    assert "| blocked | none |" in blocked_section
+    assert "Does not prove product retrieval quality." in blocked_section
+    assert "Does not prove legal-answer correctness." in blocked_section
     assert "GATE-G008" in blocked_section
     assert "GATE-G011" in blocked_section
     for gate_id in ("GATE-G008", "GATE-G011"):
@@ -999,27 +1011,22 @@ def test_claims_ledger_classifies_r034_and_validator_proof_conservatively() -> N
         assert "| none |" in blocked_section[gate_pos : gate_pos + 320]
 
 
-def test_claims_ledger_classifies_m016_runtime_benchmark_as_bounded_evidence() -> None:
-    """M016 runtime benchmark proof is bounded evidence and does not close GATE-G011."""
+def test_claims_ledger_quarantines_m016_runtime_benchmark_missing_anchors() -> None:
+    """M016 history remains visible but cannot retain bounded status with missing anchors."""
     content = _load_claims_content()
-    bounded_section = _claims_section(content, "bounded")
     blocked_section = _claims_section(content, "blocked/open")
 
     m016_id = "EVID-REPRESENTATIVE-RETRIEVAL-RUNTIME-BENCHMARK-PROOF"
-    assert m016_id in bounded_section
-    m016_pos = bounded_section.find(m016_id)
-    m016_row = bounded_section[m016_pos : bounded_section.find("\n", m016_pos)]
-    assert "| runtime-smoke |" in m016_row
+    assert m016_id in blocked_section
+    m016_pos = blocked_section.find(m016_id)
+    m016_row = blocked_section[m016_pos : blocked_section.find("\n", m016_pos)]
+    assert "| blocked | none |" in m016_row
     assert "bounded-technical-proof" in m016_row
     assert "Does not prove product retrieval quality." in m016_row
     assert "Does not prove legal-answer correctness." in m016_row
-    assert "Does not prove parser completeness." in m016_row
-    assert "Does not allow managed embedding API fallback." in m016_row
-    assert "Does not close GATE-G011." in m016_row
-
     assert "GATE-G011" in blocked_section
     gate_pos = blocked_section.find("GATE-G011")
-    assert "| active |" in blocked_section[gate_pos : gate_pos + 320]
+    assert "| blocked |" in blocked_section[gate_pos : gate_pos + 320]
     assert "| none |" in blocked_section[gate_pos : gate_pos + 320]
 
 
@@ -1089,16 +1096,12 @@ def test_claims_ledger_no_duplicate_item_ids() -> None:
 # ---------------------------------------------------------------------------
 
 
-def test_claims_ledger_includes_m001_guardrail() -> None:
-    """M001 architecture-only guardrail must appear as unsafe-to-assert."""
+def test_claims_ledger_quarantines_m001_guardrail_missing_anchor() -> None:
+    """M001 archaeology remains visible as blocked when its proof anchor is missing."""
     content = _load_claims_content()
-    assert "M001-ARCHITECTURE-ONLY-GUARDRAIL" in content
-    # Must appear in the unsafe-to-assert section, not any other
-    section_start = content.find("## unsafe-to-assert")
-    assert section_start >= 0
-    section_end = len(content)
-    unsafe_section = content[section_start:section_end]
-    assert "M001-ARCHITECTURE-ONLY-GUARDRAIL" in unsafe_section
+    blocked_section = _claims_section(content, "blocked/open")
+    assert "M001-ARCHITECTURE-ONLY-GUARDRAIL" in blocked_section
+    assert "Quarantined missing-anchor" in blocked_section
 
 
 def test_claims_ledger_includes_r028_llm_not_legal_authority() -> None:
@@ -1112,20 +1115,16 @@ def test_claims_ledger_includes_r028_llm_not_legal_authority() -> None:
     assert "REQ-R028" in unsafe_section
 
 
-def test_claims_ledger_unsafe_items_have_out_of_scope_status() -> None:
-    """Both unsafe-to-assert items must show 'out-of-scope' status in the ledger."""
+def test_claims_ledger_unsafe_items_are_out_of_scope_or_superseded() -> None:
+    """Unsafe D7 rows must be explicitly non-current."""
     content = _load_claims_content()
-    section_start = content.find("## unsafe-to-assert")
-    section_end = len(content)
-    unsafe_section = content[section_start:section_end]
+    unsafe_section = _claims_section(content, "unsafe-to-assert")
     for rid in UNSAFE_IDS:
         assert rid in unsafe_section
-        # The row should contain "| out-of-scope |" for these items
         rid_pos = unsafe_section.find(rid)
-        # Check the next ~200 chars after the ID contains "| out-of-scope |"
-        row_snippet = unsafe_section[rid_pos : rid_pos + 300]
-        assert "out-of-scope" in row_snippet, (
-            f"{rid} should show 'out-of-scope' status in the unsafe-to-assert table"
+        row_snippet = unsafe_section[rid_pos : rid_pos + 400]
+        assert "out-of-scope" in row_snippet or "superseded" in row_snippet, (
+            f"{rid} should be out-of-scope or superseded"
         )
 
 
@@ -1221,7 +1220,7 @@ def test_claims_ledger_bounded_items_show_specific_proof_levels() -> None:
 def test_claims_ledger_blocked_gates_have_no_proof() -> None:
     """Blocked/open items with proof_level=none must show 'none' in their row."""
     content = _load_claims_content()
-    for gate_id in ["GATE-G005", "GATE-G008", "GATE-G011", "GATE-G015"]:
+    for gate_id in ["GATE-G005", "GATE-G008", "GATE-G011"]:
         section_start = content.find("## blocked/open")
         section_end = content.find("\n## ", section_start + 1)
         blocked_section = content[section_start:section_end]

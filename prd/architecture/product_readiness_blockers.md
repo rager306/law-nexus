@@ -1,5 +1,8 @@
 # Product Readiness Blockers Report
 
+> **D7 QUARANTINE — DERIVED VIEW.** Disposition baseline `bfe2ee6`, as-of 2026-08-11. Legacy GATE-G005/G008/G011/G015 and ACP/FalkorDB/PyO3 rows are not the current readiness map; use `prd/temporal-legal-model.md` §10–10.1.
+> This view cannot satisfy requirements, promote lifecycle, or prove product/legal/runtime/parser/retrieval claims. Canonical truth: `prd/ARCHITECTURE.md`, `doc/adr/**`, `prd/PRODUCT.md`.
+
 > **Scope:** This report maps active proof gates, blocked evidence, and non-claims to the six capability areas required for LegalGraph Nexus product readiness. It is a derived, non-authoritative planning artifact only — it does **not** assert product readiness and does not validate runtime behavior, retrieval quality, parser completeness, generated-Cypher safety, FalkorDB production scale, or legal-answer correctness.
 
 ---
@@ -33,7 +36,7 @@ This snapshot is a triage view only; priority does not prove readiness or promot
 
 | ID | Title | Priority | Status | Risk | Verification | Owner |
 | --- | --- | --- | --- | --- | --- | --- |
-| `GATE-G008` | Product parser and retrieval readiness gate | P1 / high-priority-blocker | active | high | Future product proof demonstrates parser completeness boundaries, citation-safe retrieval behavior, and retrieval quality over real legal source fixtures. | future-product-parser-retrieval-proof |
+| `GATE-G008` | Quarantined missing-anchor: Product parser and retrieval readiness gate | P1 / high-priority-blocker | blocked | high | Future product proof demonstrates parser completeness boundaries, citation-safe retrieval behavior, and retrieval quality over real legal source fixtures. | future-product-parser-retrieval-proof |
 |  | No parser completeness claim. | — | — | — | — | — |
 |  | No product retrieval quality claim. | — | — | — | — | — |
 
@@ -44,10 +47,10 @@ This snapshot is a triage view only; priority does not prove readiness or promot
 | `EVID-PARSER-ODT-SMOKE` | Bounded ODT smoke-record evidence | P1 / high-priority-blocker | bounded-evidence | high | real-document-proof | `uv run python scripts/build-odt-smoke-records.py --check` verifies ODT smoke artifact freshness. | M006/S03 |
 |  | No final legal hierarchy extraction claim. | — | — | — | — | — | — |
 |  | No parser completeness claim. | — | — | — | — | — | — |
-| `S05-OLD-PROJECT-PRIOR-ART` | Old_project artifacts remain prior art | P1 / high-priority-blocker | bounded-evidence | high | source-anchor | Downstream designs classify legacy reuse as prior art and avoid blessing ConsultantPlus behavior for Garant ODT. | S08 final architecture review / future parser owners |
+| `S05-OLD-PROJECT-PRIOR-ART` | Quarantined missing-anchor: Old_project artifacts remain prior art | P1 / high-priority-blocker | blocked | high | source-anchor | Blocked diagnostic until every claimed anchor is retargeted to tracked canonical/current evidence or explicitly historical evidence. | S08 final architecture review / future parser owners |
 |  | No Old_project artifact accepted unchanged. | — | — | — | — | — | — |
 |  | No parser completeness claim. | — | — | — | — | — | — |
-| `S05-PARSER-ODT-BOUNDARY` | Real ODT parser evidence boundary | P1 / high-priority-blocker | bounded-evidence | high | real-document-proof | S05 verifier passes; future parser tests prove final extraction behavior before promotion. | S05/S08 parser evidence consolidation |
+| `S05-PARSER-ODT-BOUNDARY` | Quarantined missing-anchor: Real ODT parser evidence boundary | P1 / high-priority-blocker | blocked | high | real-document-proof | Blocked diagnostic until every claimed anchor is retargeted to tracked canonical/current evidence or explicitly historical evidence. | S05/S08 parser evidence consolidation |
 |  | No final legal hierarchy extraction claim. | — | — | — | — | — | — |
 |  | No parser completeness claim. | — | — | — | — | — | — |
 |  | No production SourceBlock/EvidenceSpan creation claim. | — | — | — | — | — | — |
@@ -70,8 +73,8 @@ Proof work for this area should:
 
 - Address [`GATE-G008`](#proof-gates): Future product proof demonstrates parser completeness boundaries, citation-safe retrieval behavior, and retrieval quality over real legal source fixtures.
 - Resolve [`EVID-PARSER-ODT-SMOKE`](#blocked--bounded-evidence): `uv run python scripts/build-odt-smoke-records.py --check` verifies ODT smoke artifact freshness.
-- Resolve [`S05-OLD-PROJECT-PRIOR-ART`](#blocked--bounded-evidence): Downstream designs classify legacy reuse as prior art and avoid blessing ConsultantPlus behavior for Garant ODT.
-- Resolve [`S05-PARSER-ODT-BOUNDARY`](#blocked--bounded-evidence): S05 verifier passes; future parser tests prove final extraction behavior before promotion.
+- Resolve [`S05-OLD-PROJECT-PRIOR-ART`](#blocked--bounded-evidence): Blocked diagnostic until every claimed anchor is retargeted to tracked canonical/current evidence or explicitly historical evidence.
+- Resolve [`S05-PARSER-ODT-BOUNDARY`](#blocked--bounded-evidence): Blocked diagnostic until every claimed anchor is retargeted to tracked canonical/current evidence or explicitly historical evidence.
 
 ## Graph Runtime
 
@@ -79,7 +82,7 @@ Proof work for this area should:
 
 | ID | Title | Priority | Status | Risk | Verification | Owner |
 | --- | --- | --- | --- | --- | --- | --- |
-| `GATE-G015` | FalkorDBLite to Docker migration runbook | P2 / medium-diagnostic | active | medium | Migration runbook is executed against bounded fixtures and runtime diagnostics. | future-runtime-migration-proof |
+| `GATE-G015` | Historical/superseded: FalkorDBLite to Docker migration runbook | P2 / medium-diagnostic | superseded | medium | Migration runbook is executed against bounded fixtures and runtime diagnostics. | future-runtime-migration-proof |
 |  | No production-scale FalkorDB claim. | — | — | — | — | — |
 
 ### What This Area Does Not Prove
@@ -102,11 +105,11 @@ Proof work for this area should:
 
 | ID | Title | Priority | Status | Risk | Verification | Owner |
 | --- | --- | --- | --- | --- | --- | --- |
-| `GATE-EMBEDDING-SUPPLY-CHAIN` | Embedding model supply-chain integrity gate | P1 / high-priority-blocker | active | high | Future embedding proof records model source, checksum or revision, local runtime envelope, vector dimension, and no-secret/no-raw-vector leakage checks. | future-embedding-supply-chain-proof |
+| `GATE-EMBEDDING-SUPPLY-CHAIN` | Quarantined missing-anchor: Embedding model supply-chain integrity gate | P1 / high-priority-blocker | blocked | high | Future embedding proof records model source, checksum or revision, local runtime envelope, vector dimension, and no-secret/no-raw-vector leakage checks. | future-embedding-supply-chain-proof |
 |  | Does not allow managed embedding API fallback. | — | — | — | — | — |
 |  | Does not promote any embedding model to product default. | — | — | — | — | — |
 |  | Does not prove product retrieval quality. | — | — | — | — | — |
-| `GATE-LEGAL-NEXUS-ACCESS-CONTROL` | Legal Nexus access-control proof gate | P1 / high-priority-blocker | active | high | Future security proof defines caller boundaries, authorization policy, audit logging, and denial diagnostics for Legal Nexus operations. | future-api-security-proof |
+| `GATE-LEGAL-NEXUS-ACCESS-CONTROL` | Quarantined missing-anchor: Legal Nexus access-control proof gate | P1 / high-priority-blocker | blocked | high | Future security proof defines caller boundaries, authorization policy, audit logging, and denial diagnostics for Legal Nexus operations. | future-api-security-proof |
 |  | Does not assert current product is insecure. | — | — | — | — | — |
 |  | Does not define a production API surface. | — | — | — | — | — |
 |  | Does not prove access-control enforcement. | — | — | — | — | — |
@@ -137,7 +140,7 @@ Proof work for this area should:
 
 | ID | Title | Priority | Status | Risk | Verification | Owner |
 | --- | --- | --- | --- | --- | --- | --- |
-| `GATE-GENERATED-CYPHER-SAFETY` | Generated-Cypher safety and validation gate | P0 / critical-gate | active | critical | A future product proof demonstrates validator acceptance/rejection behavior across representative Legal KnowQL tasks and live graph schemas. | future-generated-cypher-safety-proof |
+| `GATE-GENERATED-CYPHER-SAFETY` | Quarantined missing-anchor: Generated-Cypher safety and validation gate | P0 / critical-gate | blocked | critical | A future product proof demonstrates validator acceptance/rejection behavior across representative Legal KnowQL tasks and live graph schemas. | future-generated-cypher-safety-proof |
 |  | Does not authorize executing raw generated Cypher. | — | — | — | — | — |
 |  | Does not prove production Legal KnowQL behavior. | — | — | — | — | — |
 |  | Does not prove provider generation quality. | — | — | — | — | — |
@@ -164,7 +167,7 @@ Proof work for this area should:
 
 | ID | Title | Priority | Status | Risk | Verification | Owner |
 | --- | --- | --- | --- | --- | --- | --- |
-| `GATE-G011` | Local embedding quality proof | P1 / high-priority-blocker | active | high | Retrieval quality benchmark passes under local/open-weight embedding constraints. | future-retrieval-quality-proof |
+| `GATE-G011` | Quarantined missing-anchor: Local embedding quality proof | P1 / high-priority-blocker | blocked | high | Retrieval quality benchmark passes under local/open-weight embedding constraints. | future-retrieval-quality-proof |
 |  | No managed embedding API fallback claim. | — | — | — | — | — |
 |  | No product retrieval quality claim. | — | — | — | — | — |
 
@@ -172,7 +175,7 @@ Proof work for this area should:
 
 | ID | Title | Priority | Status | Risk | Proof Level | Verification | Owner |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| `EVID-LOCAL-RETRIEVAL-QUALITY-BENCHMARK-PROOF` | Local retrieval quality benchmark proof | P1 / high-priority-blocker | bounded-evidence | high | unit-test | `uv run python scripts/verify-local-retrieval-quality-benchmark.py` proves 6 seed benchmark cases with positive_query_count=2, all fixture metrics=1.0, threshold_passed=true, model_id=deepvk/USER-bge-m3, managed_api_used=false, raw_vectors_persisted=false, and mismatch_count=0. | M015/S02 |
+| `EVID-LOCAL-RETRIEVAL-QUALITY-BENCHMARK-PROOF` | Quarantined missing-anchor: Local retrieval quality benchmark proof | P1 / high-priority-blocker | blocked | high | unit-test | Blocked diagnostic until every claimed anchor is retargeted to tracked canonical/current evidence or explicitly historical evidence. | M015/S02 |
 |  | Does not allow managed embedding API fallback. | — | — | — | — | — | — |
 |  | Does not close GATE-G008. | — | — | — | — | — | — |
 |  | Does not close GATE-G011. | — | — | — | — | — | — |
@@ -184,7 +187,7 @@ Proof work for this area should:
 |  | Does not prove product retrieval quality. | — | — | — | — | — | — |
 |  | Does not prove production FalkorDB runtime behavior. | — | — | — | — | — | — |
 |  | Does not prove production graph schema readiness. | — | — | — | — | — | — |
-| `EVID-OFFLINE-CITATION-RETRIEVAL-PROOF` | Offline citation-safe retrieval proof | P1 / high-priority-blocker | bounded-evidence | high | unit-test | `uv run python scripts/verify-offline-citation-retrieval-proof.py` proves 6 offline citation retrieval cases with selected_count=2, scoped_no_answer_count=1, rejected_count=3, validator_accepted_count=3, validator_rejected_count=1, and mismatch_count=0. | M014/S02 |
+| `EVID-OFFLINE-CITATION-RETRIEVAL-PROOF` | Quarantined missing-anchor: Offline citation-safe retrieval proof | P1 / high-priority-blocker | blocked | high | unit-test | Blocked diagnostic until every claimed anchor is retargeted to tracked canonical/current evidence or explicitly historical evidence. | M014/S02 |
 |  | Does not close GATE-G008. | — | — | — | — | — | — |
 |  | Does not close GATE-G011. | — | — | — | — | — | — |
 |  | Does not make LLM output legal authority. | — | — | — | — | — | — |
@@ -195,7 +198,7 @@ Proof work for this area should:
 |  | Does not prove product retrieval quality. | — | — | — | — | — | — |
 |  | Does not prove production FalkorDB runtime behavior. | — | — | — | — | — | — |
 |  | Does not prove production graph schema readiness. | — | — | — | — | — | — |
-| `EVID-REAL-ARTIFACT-RETRIEVAL-PROOF` | Real-artifact retrieval output ID proof | P1 / high-priority-blocker | bounded-evidence | high | unit-test | `uv run python scripts/verify-real-artifact-retrieval-proof.py` proves 7 real-artifact-derived cases with 2 accepted, 5 rejected, and mismatch_count=0; M012 validator regression remains green. | M013/S02 |
+| `EVID-REAL-ARTIFACT-RETRIEVAL-PROOF` | Quarantined missing-anchor: Real-artifact retrieval output ID proof | P1 / high-priority-blocker | blocked | high | unit-test | Blocked diagnostic until every claimed anchor is retargeted to tracked canonical/current evidence or explicitly historical evidence. | M013/S02 |
 |  | Does not close GATE-G008. | — | — | — | — | — | — |
 |  | Does not close GATE-G011. | — | — | — | — | — | — |
 |  | Does not make LLM output legal authority. | — | — | — | — | — | — |
@@ -206,7 +209,7 @@ Proof work for this area should:
 |  | Does not prove product retrieval quality. | — | — | — | — | — | — |
 |  | Does not prove production FalkorDB runtime behavior. | — | — | — | — | — | — |
 |  | Does not prove production graph schema readiness. | — | — | — | — | — | — |
-| `EVID-REPRESENTATIVE-RETRIEVAL-RUNTIME-BENCHMARK-PROOF` | Representative retrieval runtime benchmark proof | P1 / high-priority-blocker | bounded-evidence | high | runtime-smoke | `uv run python scripts/verify-representative-retrieval-runtime-benchmark.py --allow-runtime-blocker` records metrics_confirmed with mrr=1.0, recall_at_1=1.0, recall_at_3=1.0, no_answer_accuracy=1.0, rejection metrics=1.0, runtime_boundary_confirmed=true, managed_api_used=false, and GATE-G011 status=open. | M016/S03 |
+| `EVID-REPRESENTATIVE-RETRIEVAL-RUNTIME-BENCHMARK-PROOF` | Quarantined missing-anchor: Representative retrieval runtime benchmark proof | P1 / high-priority-blocker | blocked | high | runtime-smoke | Blocked diagnostic until every claimed anchor is retargeted to tracked canonical/current evidence or explicitly historical evidence. | M016/S03 |
 |  | Does not allow managed embedding API fallback. | — | — | — | — | — | — |
 |  | Does not authorize GigaChat or GigaEmbeddings runtime use. | — | — | — | — | — | — |
 |  | Does not close GATE-G011. | — | — | — | — | — | — |
@@ -218,19 +221,19 @@ Proof work for this area should:
 |  | Does not prove production FalkorDB runtime behavior. | — | — | — | — | — | — |
 |  | Does not prove production graph schema readiness. | — | — | — | — | — | — |
 |  | Does not prove production ranker quality. | — | — | — | — | — | — |
-| `EVID-RESEARCH-GRAPHRAG-MATH-ANALYSIS` | GraphRAG/FalkorDB mathematical analysis research input | P1 / high-priority-blocker | bounded-evidence | high | source-anchor | Assessment classifies ideas into applicable-now principles, proof-gated candidates, and deferred/not-adopted claims; future proof must validate any runtime, SDK, benchmark, or retrieval-quality claim. | M011/S01 |
+| `EVID-RESEARCH-GRAPHRAG-MATH-ANALYSIS` | Historical/superseded: GraphRAG/FalkorDB mathematical analysis research input | P1 / high-priority-blocker | superseded | high | source-anchor | D7 quarantine classification only; record cannot satisfy requirements or promote lifecycle. | M011/S01 |
 |  | Does not prove FalkorDB production-scale behavior. | — | — | — | — | — | — |
 |  | Does not prove GraphRAG-SDK compatibility. | — | — | — | — | — | — |
 |  | Does not prove legal-answer correctness. | — | — | — | — | — | — |
 |  | Does not prove product retrieval quality. | — | — | — | — | — | — |
 |  | Does not validate benchmark, cost, or latency claims. | — | — | — | — | — | — |
-| `EVID-RESEARCH-HABR-LEGAL-RAG-ITERATION-SCALING` | Habr Legal RAG iteration and scaling research input | P1 / high-priority-blocker | bounded-evidence | high | source-anchor | Human-reviewed JSON comparison classifies all transferable ideas as requiring project-specific verification before adoption; future proof must validate retrieval IDs, evidence precision, no-answer behavior, scale/noise degradation, and any runtime or model claim. | D045 / future-retrieval-quality-proof |
+| `EVID-RESEARCH-HABR-LEGAL-RAG-ITERATION-SCALING` | Historical/superseded: Habr Legal RAG iteration and scaling research input | P1 / high-priority-blocker | superseded | high | source-anchor | D7 quarantine classification only; record cannot satisfy requirements or promote lifecycle. | D045 / future-retrieval-quality-proof |
 |  | Does not authorize generated Cypher execution. | — | — | — | — | — | — |
 |  | Does not prove FalkorDB runtime/vector/full-text/rerank behavior. | — | — | — | — | — | — |
 |  | Does not prove legal-answer correctness. | — | — | — | — | — | — |
 |  | Does not prove parser completeness. | — | — | — | — | — | — |
 |  | Does not prove product retrieval quality. | — | — | — | — | — | — |
-| `EVID-RETRIEVAL-OUTPUT-ID-VALIDATOR-PROOF` | Retrieval output ID validator bounded proof | P1 / high-priority-blocker | bounded-evidence | high | unit-test | `uv run python scripts/verify-retrieval-output-validator.py` and `uv run pytest tests/test_retrieval_output_validator.py -q` prove fixture/unit/CLI behavior for required M012 diagnostic cases only. | M012/S02 |
+| `EVID-RETRIEVAL-OUTPUT-ID-VALIDATOR-PROOF` | Quarantined missing-anchor: Retrieval output ID validator bounded proof | P1 / high-priority-blocker | blocked | high | unit-test | Blocked diagnostic until every claimed anchor is retargeted to tracked canonical/current evidence or explicitly historical evidence. | M012/S02 |
 |  | Does not make LLM output legal authority. | — | — | — | — | — | — |
 |  | Does not make fixture IDs production IDs. | — | — | — | — | — | — |
 |  | Does not promote D045 research into validated product behavior. | — | — | — | — | — | — |
@@ -278,13 +281,13 @@ _Below non-claims are drawn directly from architecture registry records. They ar
 Proof work for this area should:
 
 - Address [`GATE-G011`](#proof-gates): Retrieval quality benchmark passes under local/open-weight embedding constraints.
-- Resolve [`EVID-LOCAL-RETRIEVAL-QUALITY-BENCHMARK-PROOF`](#blocked--bounded-evidence): `uv run python scripts/verify-local-retrieval-quality-benchmark.py` proves 6 seed benchmark cases with positive_query_count=2, all fixture metrics=1.0, threshold_passed=true, model_id=deepvk/USER-bge-m3, managed_api_used=false, raw_vectors_persisted=false, and mismatch_count=0.
-- Resolve [`EVID-OFFLINE-CITATION-RETRIEVAL-PROOF`](#blocked--bounded-evidence): `uv run python scripts/verify-offline-citation-retrieval-proof.py` proves 6 offline citation retrieval cases with selected_count=2, scoped_no_answer_count=1, rejected_count=3, validator_accepted_count=3, validator_rejected_count=1, and mismatch_count=0.
-- Resolve [`EVID-REAL-ARTIFACT-RETRIEVAL-PROOF`](#blocked--bounded-evidence): `uv run python scripts/verify-real-artifact-retrieval-proof.py` proves 7 real-artifact-derived cases with 2 accepted, 5 rejected, and mismatch_count=0; M012 validator regression remains green.
-- Resolve [`EVID-REPRESENTATIVE-RETRIEVAL-RUNTIME-BENCHMARK-PROOF`](#blocked--bounded-evidence): `uv run python scripts/verify-representative-retrieval-runtime-benchmark.py --allow-runtime-blocker` records metrics_confirmed with mrr=1.0, recall_at_1=1.0, recall_at_3=1.0, no_answer_accuracy=1.0, rejection metrics=1.0, runtime_boundary_confirmed=true, managed_api_used=false, and GATE-G011 status=open.
-- Resolve [`EVID-RESEARCH-GRAPHRAG-MATH-ANALYSIS`](#blocked--bounded-evidence): Assessment classifies ideas into applicable-now principles, proof-gated candidates, and deferred/not-adopted claims; future proof must validate any runtime, SDK, benchmark, or retrieval-quality claim.
-- Resolve [`EVID-RESEARCH-HABR-LEGAL-RAG-ITERATION-SCALING`](#blocked--bounded-evidence): Human-reviewed JSON comparison classifies all transferable ideas as requiring project-specific verification before adoption; future proof must validate retrieval IDs, evidence precision, no-answer behavior, scale/noise degradation, and any runtime or model claim.
-- Resolve [`EVID-RETRIEVAL-OUTPUT-ID-VALIDATOR-PROOF`](#blocked--bounded-evidence): `uv run python scripts/verify-retrieval-output-validator.py` and `uv run pytest tests/test_retrieval_output_validator.py -q` prove fixture/unit/CLI behavior for required M012 diagnostic cases only.
+- Resolve [`EVID-LOCAL-RETRIEVAL-QUALITY-BENCHMARK-PROOF`](#blocked--bounded-evidence): Blocked diagnostic until every claimed anchor is retargeted to tracked canonical/current evidence or explicitly historical evidence.
+- Resolve [`EVID-OFFLINE-CITATION-RETRIEVAL-PROOF`](#blocked--bounded-evidence): Blocked diagnostic until every claimed anchor is retargeted to tracked canonical/current evidence or explicitly historical evidence.
+- Resolve [`EVID-REAL-ARTIFACT-RETRIEVAL-PROOF`](#blocked--bounded-evidence): Blocked diagnostic until every claimed anchor is retargeted to tracked canonical/current evidence or explicitly historical evidence.
+- Resolve [`EVID-REPRESENTATIVE-RETRIEVAL-RUNTIME-BENCHMARK-PROOF`](#blocked--bounded-evidence): Blocked diagnostic until every claimed anchor is retargeted to tracked canonical/current evidence or explicitly historical evidence.
+- Resolve [`EVID-RESEARCH-GRAPHRAG-MATH-ANALYSIS`](#blocked--bounded-evidence): D7 quarantine classification only; record cannot satisfy requirements or promote lifecycle.
+- Resolve [`EVID-RESEARCH-HABR-LEGAL-RAG-ITERATION-SCALING`](#blocked--bounded-evidence): D7 quarantine classification only; record cannot satisfy requirements or promote lifecycle.
+- Resolve [`EVID-RETRIEVAL-OUTPUT-ID-VALIDATOR-PROOF`](#blocked--bounded-evidence): Blocked diagnostic until every claimed anchor is retargeted to tracked canonical/current evidence or explicitly historical evidence.
 
 ## Temporal Model
 
@@ -292,7 +295,7 @@ Proof work for this area should:
 
 | ID | Title | Priority | Status | Risk | Verification | Owner |
 | --- | --- | --- | --- | --- | --- | --- |
-| `GATE-G005` | Temporal same-date multi-edition conflict policy | P1 / high-priority-blocker | active | high | A future proof slice defines and verifies same-date/multi-edition conflict policy. | future-temporal-proof |
+| `GATE-G005` | Quarantined missing-anchor: Temporal same-date multi-edition conflict policy | P1 / high-priority-blocker | blocked | high | A future proof slice defines and verifies same-date/multi-edition conflict policy. | future-temporal-proof |
 |  | Does not validate temporal conflict resolution. | — | — | — | — | — |
 
 ### What This Area Does Not Prove
@@ -320,7 +323,7 @@ Proof work for this area should:
 
 | ID | Title | Priority | Status | Risk | Proof Level | Verification | Owner |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| `ACP-AHF-0001` | ACP runtime adoption is blocked until fixture validation exists | P1 / high-priority-blocker | blocked | high | static-check | Generated by scripts/extract-prd-architecture-items.py and checked by uv run python scripts/verify-architecture-graph.py. | architecture-control-plane |
+| `ACP-AHF-0001` | Historical/superseded: ACP runtime adoption is blocked until fixture validation exists | P1 / high-priority-blocker | superseded | high | static-check | D7 quarantine classification only; record cannot satisfy requirements or promote lifecycle. | architecture-control-plane |
 |  | Does not prove FalkorDB ingestion or runtime loading. | — | — | — | — | — | — |
 |  | Does not prove graph-vector retrieval quality. | — | — | — | — | — | — |
 |  | Does not prove independent external review. | — | — | — | — | — | — |
@@ -331,7 +334,7 @@ Proof work for this area should:
 |  | Does not validate R037. | — | — | — | — | — | — |
 |  | Does not validate R038. | — | — | — | — | — | — |
 |  | Health finding is a governance blocker, not product readiness evidence. | — | — | — | — | — | — |
-| `EVID-RESEARCH-ONTOLOGY-AKOMA-LKIF-BFO` | Ontology architecture intake research evidence | P1 / high-priority-blocker | bounded-evidence | high | source-anchor | Keep as bounded source-anchor evidence until primary-source, benchmark, runtime, or real-document proof exists and verifier gates pass. | architecture registry owner / M017 ontology intake |
+| `EVID-RESEARCH-ONTOLOGY-AKOMA-LKIF-BFO` | Quarantined missing-anchor: Ontology architecture intake research evidence | P1 / high-priority-blocker | blocked | high | source-anchor | Blocked diagnostic until every claimed anchor is retargeted to tracked canonical/current evidence or explicitly historical evidence. | architecture registry owner / M017 ontology intake |
 |  | Does not make LLM output legal authority. | — | — | — | — | — | — |
 |  | Does not prove FalkorDB graph-vector/runtime capability. | — | — | — | — | — | — |
 |  | Does not prove GOST/BFO source correctness. | — | — | — | — | — | — |
@@ -375,8 +378,8 @@ _Below non-claims are drawn directly from architecture registry records. They ar
 
 Proof work for this area should:
 
-- Resolve [`ACP-AHF-0001`](#blocked--bounded-evidence): Generated by scripts/extract-prd-architecture-items.py and checked by uv run python scripts/verify-architecture-graph.py.
-- Resolve [`EVID-RESEARCH-ONTOLOGY-AKOMA-LKIF-BFO`](#blocked--bounded-evidence): Keep as bounded source-anchor evidence until primary-source, benchmark, runtime, or real-document proof exists and verifier gates pass.
+- Resolve [`ACP-AHF-0001`](#blocked--bounded-evidence): D7 quarantine classification only; record cannot satisfy requirements or promote lifecycle.
+- Resolve [`EVID-RESEARCH-ONTOLOGY-AKOMA-LKIF-BFO`](#blocked--bounded-evidence): Blocked diagnostic until every claimed anchor is retargeted to tracked canonical/current evidence or explicitly historical evidence.
 
 ---
 

@@ -1,5 +1,8 @@
 # Architecture Health Dashboard
 
+> **D7 QUARANTINE — DERIVED VIEW.** Disposition baseline `bfe2ee6`, as-of 2026-08-11. JSONL rows use fail-closed era/missing-anchor dispositions; graph report counts may remain stale while extractor/builder are absent.
+> This view cannot satisfy requirements, promote lifecycle, or prove product/legal/runtime/parser/retrieval claims. Canonical truth: `prd/ARCHITECTURE.md`, `doc/adr/**`, `prd/PRODUCT.md`.
+
 **Status:** ⚠️  Needs Attention
 **Non-Authoritative:** This dashboard is derived from graph artifacts and does not validate product/runtime/legal claims. PRD, GSD, ADR, source anchors, and runtime evidence remain the authoritative source of truth.
 
@@ -38,36 +41,30 @@ Priority and gate rows below are compact triage metadata only. They do not promo
 
 | ID | Status | Proof Level | Remediation Class |
 | --- | --- | --- | --- |
-| `GATE-GENERATED-CYPHER-SAFETY` | active | none | add-proof-gate |
+| `ASSUMP-PRD-SOURCE-TRUTH` | blocked | none | add-proof-gate |
+| `DEC-D031` | blocked | none | add-proof-gate |
+| `GATE-GENERATED-CYPHER-SAFETY` | blocked | none | add-proof-gate |
+| `M001-ARCHITECTURE-ONLY-GUARDRAIL` | blocked | none | add-proof-gate |
+| `RISK-OVERCLAIM-RUNTIME` | blocked | none | add-proof-gate |
 
 ### High-Priority Validator Failures
 
 | ID | Status | Proof Level | Remediation Class |
 | --- | --- | --- | --- |
-| `ACP-AHF-0001` | blocked | static-check | add-evidence-class |
-| `GATE-AKOMA-FRBR-NORMALIZATION` | proposed | source-anchor | add-evidence-class |
-| `GATE-EMBEDDING-SUPPLY-CHAIN` | active | none | add-proof-gate |
-| `GATE-G005` | active | none | add-proof-gate |
-| `GATE-G008` | active | none | add-proof-gate |
-| `GATE-G011` | active | none | add-proof-gate |
-| `GATE-LEGAL-COLLISION-POLICY` | proposed | source-anchor | add-evidence-class |
-| `GATE-LEGAL-NEXUS-ACCESS-CONTROL` | active | none | add-proof-gate |
-| `GATE-LKIF-DEONTIC-BENCHMARK` | proposed | source-anchor | add-evidence-class |
-| `GATE-ONTOLOGY-GRAPHRAG-INTEGRATION` | proposed | source-anchor | add-evidence-class |
+| `ACP-AHF-0001` | superseded | none | add-proof-gate |
+| `CHECK-ARCHITECTURE-EXTRACTOR` | blocked | none | add-proof-gate |
+| `COMP-LEGAL-NEXUS-ORCHESTRATOR` | blocked | none | add-proof-gate |
+| `DATA-LEGAL-DOCUMENT-IDENTITY-FRBR` | blocked | none | add-proof-gate |
+| `DATA-LEGAL-EVIDENCE-CORE` | blocked | none | add-proof-gate |
+| `DATA-LEGAL-SOURCE-HIERARCHY` | blocked | none | add-proof-gate |
+| `DATA-LKIF-DEONTIC-MAPPING` | blocked | none | add-proof-gate |
+| `DATA-RUSLEGALCORE-DOMAIN-ONTOLOGY` | blocked | none | add-proof-gate |
+| `DATA-TEMPORAL-PROPERTY-BUNDLE` | blocked | none | add-proof-gate |
+| `EVID-LOCAL-RETRIEVAL-QUALITY-BENCHMARK-PROOF` | blocked | none | add-proof-gate |
 
 ### Deferred Candidates
 
-| ID | Priority | Status | Safe Handling |
-| --- | --- | --- | --- |
-| `ACP-AP-0001` | P2 / medium-diagnostic | proposed | defer-to-backlog |
-| `ACP-DC-0001` | P2 / medium-diagnostic | proposed | defer-to-backlog |
-| `GATE-AKOMA-FRBR-NORMALIZATION` | P1 / high-priority-blocker | proposed | defer-to-backlog |
-| `GATE-BFO-GOST-ALIGNMENT` | P2 / medium-diagnostic | proposed | defer-to-backlog |
-| `GATE-LEGAL-COLLISION-POLICY` | P1 / high-priority-blocker | proposed | defer-to-backlog |
-| `GATE-LKIF-DEONTIC-BENCHMARK` | P1 / high-priority-blocker | proposed | defer-to-backlog |
-| `GATE-ONTOLOGY-GRAPHRAG-INTEGRATION` | P1 / high-priority-blocker | proposed | defer-to-backlog |
-| `GATE-PILOT-SCALE-READINESS` | P1 / high-priority-blocker | proposed | defer-to-backlog |
-| `GATE-RUSLEGALCORE-SCOPE` | P1 / high-priority-blocker | proposed | defer-to-backlog |
+No deferred or proposed backlog candidates in the generated registry view.
 
 ### Non-Authoritative Warnings
 

@@ -352,6 +352,47 @@ prd/temporal-legal-model.md
 
 **Exit:** registry отражает канон как derived projection и не содержит пути к lifecycle promotion.
 
+#### Annex D7 — Derived Registry Quarantine Contract
+
+**Baseline:** `bfe2ee6`; **method:** fail-closed data disposition; **authority effect:** none.
+
+Every registry item/edge is always `non-authoritative-derived`; it cannot satisfy a living requirement, promote/demote ADR/Product lifecycle, or replace canonical evidence. D7 preserves IDs and archaeology while changing active-reader visibility.
+
+Disposition rules:
+
+| Condition | Item disposition | Edge disposition | Reader effect |
+|-----------|------------------|------------------|---------------|
+| ACP/git-lex/FalkorDB/PyO3/pre-Rust active-looking row | `superseded`, proof `none`, `sunsetting` | `superseded` | historical archaeology only |
+| any claimed anchor missing from active tracked plane | `blocked`, proof `none` | `hypothesis` | blocked diagnostic; never current claim |
+| derived `satisfies`/`validated_by`/`implements` authority-like edge | endpoint retained; no lifecycle effect | `superseded` | cannot satisfy Product/RQ |
+| current Rust-direction row with all tracked anchors | existing honest status may remain | diagnostic edge only | still non-authoritative |
+
+Hard invariants:
+
+```text
+lifecycle_effect = none
+requirement_effect = cannot-satisfy
+preserve_record = true
+archive symlink existence ≠ active authority anchor
+missing anchor ≠ current claim
+verifier/view PASS ≠ product readiness
+```
+
+Safe regeneration sequence:
+
+1. update canonical docs/evidence first;
+2. freeze source revision;
+3. inventory era tokens, missing anchors and authority-like edges;
+4. apply dispositions while preserving IDs;
+5. regenerate only if both declared extractor and graph builder exist and consume current mappings;
+6. regenerate health/blocker/claims/remediation views downstream;
+7. run graph verifier and process gates;
+8. interpret PASS as artifact health only.
+
+At the D7 baseline, historical extractor and graph builder are absent. Therefore JSONL quarantine is applied directly and generated Markdown views are marked stale/quarantined instead of pretending a safe rebuild occurred. Restoring generators is separate process work, not a product or lifecycle gate.
+
+EA-06 stop conditions: recreating retired PRDs to clear anchors; reviving archive ACP/Falkor scripts; deleting unique archaeology; using registry rows to validate R035/R038; inventing active anchors; treating clean counts as product proof.
+
 ### D8 — Semantic review protocol
 
 **Depends:** D1–D7.

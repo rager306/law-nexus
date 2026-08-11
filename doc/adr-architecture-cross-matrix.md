@@ -57,18 +57,18 @@ Governor enforcement:
 
 ### P0 — logical / authority gaps
 
-1. **Missing ADR files 0001/0002/0003/0006** still referenced in residual prose
-   (`onion-migration-contract` was archived; ARCHITECTURE still names “Historical
-   library boundary (ADR-0003)”). Action: keep as historical narrative **or** add
-   a one-line “superseded/retired” stub ADR if agents keep treating the ID as live.
-2. **DECISIONS.md** is append-only M001 FalkorDB/skill history; it does **not**
-   mirror modern ADR index. Not a bug (D0xx ≠ ADR), but agents over-read early
-   D-rows as current architecture. Action: point agents at ADR index first;
-   optional future “active decision window” projection.
-3. **Derived architecture registry** (`architecture_items/edges/report`) still
-   contains dense FalkorDB/ACP vocabulary. CI still consumes it. Action: regenerate
-   or mark derived surfaces non-authoritative (already policy); do not treat as
-   truth oracle.
+No unresolved P0 lifecycle contradiction was found in the 2026-08-11 repeat
+review: all 19 present ADR Status lifecycles match the foundation map in
+`prd/ARCHITECTURE.md`.
+
+1. **Retired IDs 0001/0002/0003/0006** remain absent by design. Living prose may
+   name them only with an explicit retired/archive qualifier; no stub ADR should
+   be added because that would re-create an active-looking index surface.
+2. **DECISIONS.md** is workflow history and does not mirror the ADR index. Agents
+   must read the living oracle and ADR index first.
+3. **Derived architecture registry** is under D7 quarantine: IDs are preserved,
+   authority-like edges are demoted and missing-anchor rows are blocked. Its
+   stale graph report remains a visible WARN, not architecture authority.
 
 ### P1 — process / matrix gaps (governor now covers)
 
@@ -90,13 +90,18 @@ Governor enforcement:
 
 **Intentionally tracked era names (policy, not noise):**
 
-- `prd/architecture/acp` symlink → archive fixtures for CI architecture tests
-- `prd/migration/acp-git-lex-decommission-roadmap.md` + decommission manifests
+- `prd/migration/acp-git-lex-decommission-roadmap.md` + decommission manifests;
+- qualified historical/non-claim wording in the oracle, ADRs and governor tests.
+
+The former tracked `prd/architecture/acp` symlink and five ACP/git-lex proof
+scripts were active-plane leaks, not required CI fixtures; they are removed from
+the active index in the archive hygiene wave.
 
 ### P3 — still-on-active-tree but mention-heavy
 
 - `prd/architecture/claims_ledger.md`, `product_readiness_blockers.md`,
-  `architecture_graph_report.json` — derived / CI-bound; rewrite later, not delete.
+  `architecture_graph_report.json` — derived / CI-bound. Claims/blockers are D7
+  quarantined; the graph report is explicitly stale until its retired builder is replaced.
 - `prd/parser/README.md`, retrieval contracts — may mention historical FalkorDB;
   keep if still product-relevant; tag lifecycle carefully.
 - `historical-test-debt-visibility` warn — remaining tests mention era terms in
@@ -131,12 +136,21 @@ uv run python -m law_nexus_harness governor
 #   archive-path-policy
 ```
 
-Future optional checks (not implemented in this wave):
+Implemented deterministic checks:
 
-- `adr-retired-id-ban`: fail if active docs cite ADR-0001/0002/0003/0006 as current.
-- `adr-decisions-link`: require each ADR References to list governing D-row when one exists.
-- `active-surface-era-noise`: warn on high-density FalkorDB/ACP tokens outside allowlist.
-- `derived-registry-staleness`: warn if architecture_items lifecycle disagrees with ADR Status.
+- `adr-retired-id-ban`: warns on unqualified active references to retired ADR IDs;
+- `active-surface-era-noise`: warns on unqualified era vocabulary on living entrypoints;
+- `adr-truth-oracle-sync`: derives all present ADR lifecycles from their Status and
+  fails on missing/mismatched oracle citations;
+- `adr-index-completeness`: warns when an ADR or its per-entry lifecycle is absent;
+- `archive-path-policy`: verifies ignored and untracked vault roots.
+
+Follow-on checks, initially warn-only:
+
+- `adr-link-integrity` and `adr-supersession-graph`;
+- evidence-rich `path:line` findings and `--explain` output;
+- `derived-registry-staleness` tied to the D7 quarantine contract;
+- advisory semantic assessment ingestion that can never set a blocking verdict.
 
 ## 5. Archive + gitignore contract
 

@@ -1558,6 +1558,19 @@ def check_historical_test_debt_visibility(root: Path) -> list[GovernorFinding]:
 
 
 # Historical vaults that must not be active product truth / index surfaces.
+_HISTORICAL_ACTIVE_ALIASES: tuple[str, ...] = (
+    "prd/architecture/acp",
+    "scripts/s02-cold-path-install-proof.sh",
+    "scripts/s02-first-proof.sh",
+    "scripts/s02-self-check.sh",
+    "scripts/s03-install-rehearsal-workflow-proof.sh",
+    "scripts/s03-validate-reject-proof.sh",
+    "tests/test_consultant_parser_proof.py",
+    "tests/test_hierarchy_metadata_completeness.py",
+    "tests/test_local_retrieval_runtime_check_cli.py",
+    "tests/test_source_structuring_protocol.py",
+)
+
 _HISTORICAL_VAULT_PATHS: tuple[str, ...] = (
     ".lex",
     "python_archive",
@@ -1604,6 +1617,7 @@ _ADR_TRUTH_ORACLE_EXPECTATIONS: dict[str, str] = {
     "0020": "proposed",
     "0021": "proposed",
     "0022": "proposed",
+    "0023": "proposed",
 }
 
 # Surfaces that must cite every present ADR file (cross-surface matrix).
@@ -1687,6 +1701,11 @@ def check_archive_path_policy(root: Path) -> list[GovernorFinding]:
 
     missing_ignore: list[str] = []
     still_tracked: list[str] = []
+    active_aliases = [
+        path
+        for path in _HISTORICAL_ACTIVE_ALIASES
+        if (root / path).exists() or (root / path).is_symlink()
+    ]
     for vault in _HISTORICAL_VAULT_PATHS:
         if not _gitignore_covers(gitignore_text, vault):
             missing_ignore.append(vault)
@@ -1694,7 +1713,7 @@ def check_archive_path_policy(root: Path) -> list[GovernorFinding]:
         if tracked:
             still_tracked.append(f"{vault}:{len(tracked)}")
 
-    if missing_ignore or still_tracked:
+    if missing_ignore or still_tracked or active_aliases:
         return [
             GovernorFinding(
                 check_id=check_id,
@@ -1703,7 +1722,8 @@ def check_archive_path_policy(root: Path) -> list[GovernorFinding]:
                 message="historical vaults not fully ignored/untracked",
                 observed=(
                     f"missing_gitignore={missing_ignore or '[]'}, "
-                    f"tracked={still_tracked or '[]'} "
+                    f"tracked={still_tracked or '[]'}, "
+                    f"active_aliases={active_aliases or '[]'} "
                     f"(lifecycle [bounded]; process anti-drift; advisory until "
                     f"untrack wave lands)."
                 ),
@@ -1728,6 +1748,20 @@ def check_archive_path_policy(root: Path) -> list[GovernorFinding]:
 
 def _line_lifecycle_tags(line: str) -> set[str]:
     return {m.group(1).lower() for m in _LIFECYCLE_TAG_RE.finditer(line)}
+
+
+def _adr_truth_expectations(root: Path) -> dict[str, str | None]:
+    """Derive every present ADR lifecycle from its own Status, fail-closed."""
+    adr_dir = root / "doc" / "adr"
+    expectations: dict[str, str | None] = {}
+    if adr_dir.is_dir():
+        for path in sorted(adr_dir.glob("0*.md")):
+            adr_id_match = re.match(r"(?P<id>\d{4})-", path.name)
+            if adr_id_match is None:
+                continue
+            lifecycle = _adr_status_lifecycle(path.read_text(encoding="utf-8", errors="replace"))
+            expectations[adr_id_match.group("id")] = lifecycle
+    return expectations or dict(_ADR_TRUTH_ORACLE_EXPECTATIONS)
 
 
 def check_adr_truth_oracle_sync(root: Path) -> list[GovernorFinding]:
@@ -1763,8 +1797,12 @@ def check_adr_truth_oracle_sync(root: Path) -> list[GovernorFinding]:
     missing: list[str] = []
     mismatched: list[str] = []
 
-    for adr_id, expected_lc in _ADR_TRUTH_ORACLE_EXPECTATIONS.items():
+    expectations = _adr_truth_expectations(root)
+    for adr_id, expected_lc in expectations.items():
         needle = f"ADR-{adr_id}"
+        if expected_lc is None:
+            mismatched.append(f"{needle}:expected=status-lifecycle:seen=none")
+            continue
         hit_indexes = [i for i, line in enumerate(lines) if needle in line]
         if not hit_indexes:
             missing.append(needle)
@@ -1808,8 +1846,7 @@ def check_adr_truth_oracle_sync(root: Path) -> list[GovernorFinding]:
             severity="ok",
             message="ARCHITECTURE cites required ADRs with matching lifecycle",
             observed=(
-                f"adr_checked={len(_ADR_TRUTH_ORACLE_EXPECTATIONS)} "
-                f"(lifecycle [bounded]; truth-oracle anti-drift)."
+                f"adr_checked={len(expectations)} (lifecycle [bounded]; truth-oracle anti-drift)."
             ),
             remediation="none",
         )
@@ -1895,27 +1932,40 @@ def check_adr_index_completeness(root: Path) -> list[GovernorFinding]:
         ]
 
     readme_text = readme.read_text(encoding="utf-8", errors="replace")
+    readme_lines = readme_text.splitlines()
     missing: list[str] = []
+    lifecycle_missing: list[str] = []
     for path in sorted(adr_dir.glob("0*.md")):
         adr_id_match = re.search(r"(\d{4})", path.name)
         if not adr_id_match:
             continue
         adr_id = adr_id_match.group(1)
-        if f"ADR-{adr_id}" not in readme_text and path.name not in readme_text:
+        needle = f"ADR-{adr_id}"
+        matching_lines = [line for line in readme_lines if needle in line or path.name in line]
+        if not matching_lines:
             missing.append(path.name)
+            continue
+        lifecycle = _adr_status_lifecycle(path.read_text(encoding="utf-8", errors="replace"))
+        if lifecycle is not None and not any(
+            lifecycle in _line_lifecycle_tags(line) for line in matching_lines
+        ):
+            lifecycle_missing.append(f"{needle}:expected={lifecycle}")
 
-    if missing:
+    if missing or lifecycle_missing:
         return [
             GovernorFinding(
                 check_id=check_id,
                 status="fail",
                 severity="warn",
-                message="ADR files missing from doc/adr/README.md index",
+                message="ADR index is missing files or per-entry lifecycle tags",
                 observed=(
-                    f"missing_count={len(missing)}, files={missing[:12]} "
+                    f"missing={missing or '[]'}, lifecycle_missing={lifecycle_missing or '[]'} "
                     f"(lifecycle [bounded]; index anti-drift; advisory)."
                 ),
-                remediation=remediation,
+                remediation=(
+                    remediation
+                    + " Include the ADR Status lifecycle tag on that ADR's own index line."
+                ),
             )
         ]
 

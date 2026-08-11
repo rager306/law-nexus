@@ -35,7 +35,7 @@
         }
       ],
       "target_track": "M007/S03 retrieval-embedding track",
-      "title": "Embedding model supply-chain integrity gate"
+      "title": "Quarantined missing-anchor: Embedding model supply-chain integrity gate"
     },
     {
       "disposition": "product-decision",
@@ -61,7 +61,7 @@
         }
       ],
       "target_track": "M007/S03 temporal-model track",
-      "title": "Temporal same-date multi-edition conflict policy"
+      "title": "Quarantined missing-anchor: Temporal same-date multi-edition conflict policy"
     },
     {
       "disposition": "proof-now",
@@ -87,7 +87,7 @@
         }
       ],
       "target_track": "M007/S03 parser-retrieval track",
-      "title": "Product parser and retrieval readiness gate"
+      "title": "Quarantined missing-anchor: Product parser and retrieval readiness gate"
     },
     {
       "disposition": "runtime-experiment",
@@ -114,7 +114,7 @@
         }
       ],
       "target_track": "M007/S03 retrieval-embedding track",
-      "title": "Local embedding quality proof"
+      "title": "Quarantined missing-anchor: Local embedding quality proof"
     },
     {
       "disposition": "runtime-experiment",
@@ -135,12 +135,17 @@
       "source_anchors": [
         {
           "kind": "prd",
-          "path": "prd/04_review_findings.md",
-          "selector": "G-015"
+          "path": "prd/ARCHITECTURE.md",
+          "section": "Where we actually are (truth, not optimism)"
+        },
+        {
+          "kind": "prd",
+          "path": "doc/adr/0014-ruvector-primary-infrastructure.md",
+          "section": "Status"
         }
       ],
       "target_track": "M007/S03 graph-runtime track",
-      "title": "FalkorDBLite to Docker migration runbook"
+      "title": "Historical/superseded: FalkorDBLite to Docker migration runbook"
     },
     {
       "disposition": "proof-now",
@@ -167,7 +172,7 @@
         }
       ],
       "target_track": "M007/S03 generated-cypher track",
-      "title": "Generated-Cypher safety and validation gate"
+      "title": "Quarantined missing-anchor: Generated-Cypher safety and validation gate"
     },
     {
       "disposition": "product-decision",
@@ -193,7 +198,7 @@
         }
       ],
       "target_track": "M007/S03 api-product/security track",
-      "title": "Legal Nexus access-control proof gate"
+      "title": "Quarantined missing-anchor: Legal Nexus access-control proof gate"
     }
   ],
   "non_authoritative": true,

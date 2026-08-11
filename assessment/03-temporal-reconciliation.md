@@ -7,6 +7,12 @@
 **Primary artifact:** `prd/temporal-legal-model.md`
 **Recommended disposition:** `ACCEPT-AS-PROPOSED`
 
+> **Later decision notice:** this file is a frozen EA-03 snapshot. EA-04 and
+> ADR-0023 subsequently resolved TQ-01 applicability ownership and clarified
+> TQ-03/TQ-06 terminology at `[proposed]` design level. Use
+> `assessment/04-adr-amendments.md` for the later disposition; do not read the
+> open wording below as current architecture or runtime proof.
+
 ## 1. Boundary
 
 This record assesses the crosswalk as a `[proposed]` design/document contract. It does not assess or accept a temporal runtime, CTV resolver, normative-status resolver, applicability engine, practice corpus, risk model, industry profile implementation, legal correctness or product readiness.

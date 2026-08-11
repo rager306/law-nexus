@@ -126,18 +126,21 @@ comparison and explicit non-claims. No component cutover.
 Proof: canonical corpus outputs and all failure surfaces match the frozen
 contract or document an explicitly accepted safer difference.
 
-### R6 — FalkorDB and graph execution
+### R6 — Historical graph execution plan, superseded by ADR-0014
 
-**Risk:** high. **Depends:** R3, R5.
+**Status:** `[deferred]` historical transition step; its FalkorDB-specific design
+was retired and must not guide current implementation. Current RuVector work is
+owned by ADR-0014 `[proposed]` and requires a separate evidence-backed roadmap.
 
-- choose/verify Rust FalkorDB client against tracked capability evidence;
-- parameterized graph access, timeouts and error taxonomy;
-- idempotent ingest and cleanup;
-- relation/reference materialization;
-- deterministic generated-Cypher safety before execution;
-- real FalkorDB integration tests, resource profile and recovery.
+**Risk:** high. **Historical dependencies:** R3, R5.
 
-Do not claim production scale from synthetic smoke.
+The original R6 planned a database client, parameterized graph access,
+idempotent ingest, relation materialization, deterministic query safety,
+integration tests, resource profiling and recovery. Those capability concerns
+remain useful questions, but no historical backend, API, test, or deployment
+assumption carries into current architecture.
+
+This record proves neither RuVector readiness nor historical production scale.
 
 ### R7 — Retrieval and citation safety
 
