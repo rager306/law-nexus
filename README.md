@@ -27,7 +27,7 @@ Consultant/Garant parser, a temporal legal ontology, and citation-safe retrieval
 | A Rust workspace of twenty exclusive `ln-*` capability crates (ADR-0011) with 20/20 hostile contracts `[bounded]` green | Parser-complete, corpus-ready, or a working product. No `[validated]` capability. |
 | Bounded real adapters: Consultant WordML + Garant ODT parsers (ADR-0013 `[bounded]`); real cosine-similarity retrieval (M161 `[bounded]`); deterministic CLI pipeline (M163) | Legal correctness, citation-safe answers, live RuVector/TEI, or real-corpus validation. |
 | A temporal legal ontology design spine L1→L7 (ADR-0016..0022, all `[proposed]`) | An implemented ontology runtime. All seven layers are design substance awaiting TDD implementation. |
-| An anti-drift discipline: D098 lifecycle tags, living truth oracle, advisory governor probes (M162/M164) | A Python product, a FalkorDB deployment, or an ACP/git-lex runtime (all archived/historical). |
+| An anti-drift discipline: D098 lifecycle tags, living truth oracle, governor ADR/archive/era probes | A Python product, a historical FalkorDB deployment, or a historical ACP/git-lex runtime (all archive-only). |
 
 ## Current status (D098 lifecycle tags)
 
@@ -65,20 +65,39 @@ Consultant/Garant parser, a temporal legal ontology, and citation-safe retrieval
 [DOWNSTREAM — BLOCKED until parser data + RuVector/TEI ready]
   graph materialization → citation-safe retrieval → R035/R038 validation
 
-[ARCHIVED / HISTORICAL — not active]
+[ARCHIVED / HISTORICAL — not active truth]
   ACP/git-lex (archive-only, R066); FalkorDB (historical, ADR-0014 → RuVector);
-  Python product code (python_archive/product/, prior art)
+  Python product code (python_archive/); era skills/scripts/tests (archive/);
+  residual PRD research/parser dumps/retrieval proofs (prd/archive/*)
 ```
 
 See [`prd/ARCHITECTURE.md`](prd/ARCHITECTURE.md) for the living truth oracle
 (**read that first**, not this README).
 
+## Active tree (what agents should open)
+
+| Path | Role |
+|------|------|
+| `prd/ARCHITECTURE.md` | Living truth oracle — **read first** |
+| `doc/adr/` | MADR ADRs 0004–0022 (0001/0002/0003/0006 retired, not present) |
+| `doc/adr-architecture-cross-matrix.md` | ADR × surface matrix + governor design |
+| `crates/ln-*` | Rust product runtime |
+| `src/law_nexus_harness/` | Python control-plane only (governor/preflight/CI) |
+| `prd/architecture/` | Derived registry + CI views (non-authoritative) |
+| `prd/parser/` | Thin contracts/schemas/profiles/examples only |
+| `prd/migration/` | Active roadmaps, rust-evidence, decommission policy |
+| `prd/project-state/` | `roadmap.md` + `data/roadmap.json` only |
+| `.agents/skills/` | **Active:** `law-nexus-rust`, `russian-legal-evidence`, `pi-skill-creator` |
+
+**Do not treat as active truth** (on disk for archaeology; gitignored vaults):
+
+- `archive/{agent-skills,scripts,tests}/` — historical skills/scripts/tests only
+- `prd/archive/{acp-git-lex,pre-rust-prd,research-era,parser-dumps-era,retrieval-era,...}/` — historical ACP/git-lex and era PRD vaults
+- `python_archive/`, `.lex/`, `Old_project/` — historical prior art only
+
 ## Architecture (pointers, not duplicates)
 
-The architecture lives in tracked substance — this README only points at it.
-
-- **Living truth oracle:** [`prd/ARCHITECTURE.md`](prd/ARCHITECTURE.md) — the
-  single-page forced truth about law-nexus state. **Read this first.**
+- **Living truth oracle:** [`prd/ARCHITECTURE.md`](prd/ARCHITECTURE.md)
 - **Rust workspace:** `crates/ln-*` — twenty exclusive capability-owner crates
   (ADR-0011): `ln-domain`, `ln-temporal`, `ln-identity`, `ln-relation`,
   `ln-citation`, `ln-decode` (universal parser), `ln-storage`, `ln-query`,
@@ -96,6 +115,7 @@ The architecture lives in tracked substance — this README only points at it.
   **ADR-0019** hierarchy/conflict (L4) → **ADR-0020** practice overlay (L5) →
   **ADR-0021** transitional/risk (L6) → **ADR-0022** industry profiles (L7).
   Design only until each layer ships TDD + fail-closed resolver.
+- **ADR/process matrix:** [`doc/adr-architecture-cross-matrix.md`](doc/adr-architecture-cross-matrix.md)
 
 ## Quick start
 
@@ -113,9 +133,9 @@ Run the gates:
 
 ```bash
 # Python repository-control gates
-uv run python -m law_nexus_harness.governor     # process gates + ADR/archive advisory probes
+uv run python -m law_nexus_harness.governor     # process + ADR/archive/era advisory probes
 uv run python -m law_nexus_harness.preflight
-uv run pytest -q
+uv run pytest -q                               # full suite; CI process suite is a subset
 uv run python scripts/verify-adr-conformance.py
 
 # Rust product gates
@@ -123,6 +143,13 @@ cargo fmt --check --all
 cargo clippy --workspace --offline --all-targets -- -D warnings
 cargo test --workspace --offline
 ```
+
+Governor ADR/archive probes (advisory unless noted) include:
+
+- `adr-truth-oracle-sync` (error on lifecycle mismatch)
+- `adr-index-completeness`, `adr-doc-matrix-coverage`, `adr-structure-hygiene`
+- `adr-cross-surface-matrix`, `adr-retired-id-ban`, `active-surface-era-noise`
+- `archive-path-policy` (historical vaults gitignored + untracked)
 
 Inspect the product:
 
@@ -135,9 +162,11 @@ cargo run -q -p ln-product-cli -- inspect <path> # structural + retrieval inspec
 
 1. **[`prd/ARCHITECTURE.md`](prd/ARCHITECTURE.md)** — living truth oracle. Read first.
 2. **[`doc/adr/README.md`](doc/adr/README.md)** — ADR index: direction + temporal ontology chain.
-3. **`.gsd/REQUIREMENTS.md`** — capability/quality-attribute requirements.
-4. **`.gsd/DECISIONS.md`** — decision register (governance events).
-5. **`.gsd/ROADMAP.md`** — milestone trajectory.
+3. **[`doc/adr-architecture-cross-matrix.md`](doc/adr-architecture-cross-matrix.md)** — ADR × surface matrix.
+4. **`.gsd/REQUIREMENTS.md`** — capability/quality-attribute requirements.
+5. **`.gsd/DECISIONS.md`** — decision register (governance events; early D-rows may be historical).
+6. **`.gsd/ROADMAP.md`** — milestone trajectory.
+7. **[`prd/archive/README.md`](prd/archive/README.md)** / **[`archive/README.md`](archive/README.md)** — vault maps (not product truth).
 
 ## Non-claims (what this project does **not** prove today)
 
@@ -149,7 +178,9 @@ Following the D098 anti-smoothing discipline, law-nexus today does **not** claim
 - citation-safe retrieval quality or legal-answer correctness;
 - a live RuVector/TEI runtime or real-corpus retrieval;
 - an implemented temporal legal ontology runtime — ADR-0016..0022 are `[proposed]` design only;
-- R035 / R038 validation.
+- R035 / R038 validation;
+- that derived architecture registry views (`prd/architecture/*.jsonl`, claims ledger)
+  are source of truth — they are non-authoritative projections.
 
 These are explicit deferrals, tracked in the roadmap, not gaps being hidden.
 
@@ -162,5 +193,7 @@ These are explicit deferrals, tracked in the roadmap, not gaps being hidden.
   standards (LRMoo/CIDOC-CRM/AKML/ELI/LKIF) are compatibility references.
 - Decisions live in `.gsd/DECISIONS.md` (governance events) and
   [`doc/adr/`](doc/adr/) (architectural substance) — complementary, not duplicate.
-- ACP/git-lex is **archive-only**; FalkorDB is **historical**; the active
-  graph/vector target is RuVector (ADR-0014).
+- Historical ACP/git-lex is **archive-only**; historical FalkorDB is **not active**;
+  the active graph/vector target is RuVector (ADR-0014 `[proposed]`).
+- Retired ADR IDs **0001/0002/0003/0006** have no files under `doc/adr/`; cite only
+  with historical/retired/rejected qualifiers (governor `adr-retired-id-ban`).
