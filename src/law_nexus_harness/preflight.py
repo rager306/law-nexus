@@ -536,6 +536,17 @@ def _docs_freshness_surface_check(root: Path) -> PreflightCheck:
     )
 
 
+def _present_agent_skill_script_paths(root: Path) -> tuple[str, ...]:
+    """Return skill script paths that exist on disk.
+
+    `.agents/skills/` is local/gitignored agent tooling, not product source.
+    Fresh CI clones may omit the directory; preflight must not fail closed on
+    that absence.
+    """
+
+    return tuple(rel_path for rel_path in AGENT_SKILL_SCRIPT_PATHS if (root / rel_path).is_file())
+
+
 def run_preflight(
     root: Path,
     *,
@@ -546,10 +557,33 @@ def run_preflight(
 
     resolved_root = root.resolve()
     cargo_fmt = runner(("cargo", "fmt", "--all", "--", "--check"), resolved_root)
-    ruff_format = runner(
-        ("uv", "run", "ruff", "format", "--check", *AGENT_SKILL_SCRIPT_PATHS),
-        resolved_root,
-    )
+    skill_script_paths = _present_agent_skill_script_paths(resolved_root)
+    if skill_script_paths:
+        ruff_format = runner(
+            ("uv", "run", "ruff", "format", "--check", *skill_script_paths),
+            resolved_root,
+        )
+        ruff_format_check = _check_from_result(
+            check_id="ruff-format-explicit-python-paths",
+            phase="formatter",
+            result=ruff_format,
+            observed_ok="Explicit local agent skill Python paths are Ruff-formatted.",
+            observed_fail="Explicit local agent skill Python path formatting drift detected.",
+            remediation=(
+                "Run `uv run ruff format .agents/skills/pi-skill-creator/scripts/*.py` "
+                "or format the listed local skill files explicitly."
+            ),
+        )
+    else:
+        ruff_format_check = _pass_check(
+            check_id="ruff-format-explicit-python-paths",
+            phase="formatter",
+            command=("uv", "run", "ruff", "format", "--check"),
+            observed=(
+                "Local agent skill scripts absent (`.agents/skills/` gitignored); "
+                "skipped Ruff format check for skill tooling."
+            ),
+        )
     crate_allowlist = runner(
         (
             "uv",
@@ -568,17 +602,7 @@ def run_preflight(
             observed_fail="Rust workspace formatting drift detected.",
             remediation="Run `cargo fmt --all` before committing Rust/Cargo changes.",
         ),
-        _check_from_result(
-            check_id="ruff-format-explicit-python-paths",
-            phase="formatter",
-            result=ruff_format,
-            observed_ok="Explicit Python harness/tooling paths are Ruff-formatted.",
-            observed_fail="Explicit Python harness/tooling path formatting drift detected.",
-            remediation=(
-                "Run `uv run ruff format .agents/skills/pi-skill-creator/scripts/*.py` "
-                "or format the listed files explicitly."
-            ),
-        ),
+        ruff_format_check,
         _check_from_result(
             check_id="crate-dependency-allowlist",
             phase="architecture",

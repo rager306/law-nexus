@@ -220,7 +220,7 @@ def test_cargo_formatter_failure_is_fail_closed_and_actionable() -> None:
     assert "crates/example/src/lib.rs" in failed["cargo-fmt-workspace"]["stderr_tail"]
 
 
-def test_ruff_format_check_includes_agent_skill_scripts() -> None:
+def test_ruff_format_check_includes_agent_skill_scripts_when_present() -> None:
     commands: list[tuple[str, ...]] = []
 
     def recording_runner(command: tuple[str, ...], root: Path) -> CommandResult:
@@ -230,25 +230,29 @@ def test_ruff_format_check_includes_agent_skill_scripts() -> None:
     run_test_preflight(ROOT, runner=recording_runner)
 
     ruff_commands = [command for command in commands if command[:3] == ("uv", "run", "ruff")]
-    assert ruff_commands == [
-        (
-            "uv",
-            "run",
-            "ruff",
-            "format",
-            "--check",
-            ".agents/skills/pi-skill-creator/scripts/aggregate_pi_skill_benchmark.py",
-            ".agents/skills/pi-skill-creator/scripts/analyze_skill_triggers.py",
-            ".agents/skills/pi-skill-creator/scripts/execute_pi_skill_eval.py",
-            ".agents/skills/pi-skill-creator/scripts/generate_pi_skill_report.py",
-            ".agents/skills/pi-skill-creator/scripts/grade_pi_skill_eval.py",
-            ".agents/skills/pi-skill-creator/scripts/package_pi_skill.py",
-            ".agents/skills/pi-skill-creator/scripts/run_pi_skill_eval.py",
-            ".agents/skills/pi-skill-creator/scripts/run_pi_skill_loop.py",
-            ".agents/skills/pi-skill-creator/scripts/suggest_description.py",
-            ".agents/skills/pi-skill-creator/scripts/validate_pi_skill.py",
+    # Local/gitignored skills may be present on this host; if present, preflight
+    # must format-check them. If absent (fresh clone), the check is skipped.
+    skill_prefix = ".agents/skills/pi-skill-creator/scripts/"
+    present = tuple(
+        rel
+        for rel in (
+            f"{skill_prefix}aggregate_pi_skill_benchmark.py",
+            f"{skill_prefix}analyze_skill_triggers.py",
+            f"{skill_prefix}execute_pi_skill_eval.py",
+            f"{skill_prefix}generate_pi_skill_report.py",
+            f"{skill_prefix}grade_pi_skill_eval.py",
+            f"{skill_prefix}package_pi_skill.py",
+            f"{skill_prefix}run_pi_skill_eval.py",
+            f"{skill_prefix}run_pi_skill_loop.py",
+            f"{skill_prefix}suggest_description.py",
+            f"{skill_prefix}validate_pi_skill.py",
         )
-    ]
+        if (ROOT / rel).is_file()
+    )
+    if present:
+        assert ruff_commands == [("uv", "run", "ruff", "format", "--check", *present)]
+    else:
+        assert ruff_commands == []
     assert COVERAGE_COMMAND in commands
 
 

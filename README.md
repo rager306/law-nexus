@@ -87,7 +87,7 @@ See [`prd/ARCHITECTURE.md`](prd/ARCHITECTURE.md) for the living truth oracle
 | `prd/parser/` | Thin contracts/schemas/profiles/examples only |
 | `prd/migration/` | Active roadmaps, rust-evidence, decommission policy |
 | `prd/project-state/` | `roadmap.md` + `data/roadmap.json` only |
-| `.agents/skills/` | **Active:** `law-nexus-rust`, `russian-legal-evidence`, `pi-skill-creator` |
+| `.agents/skills/` (local only, gitignored) | **Active on disk:** `law-nexus-rust`, `russian-legal-evidence`, `pi-skill-creator` |
 
 **Do not treat as active truth** (on disk for archaeology; gitignored vaults):
 
