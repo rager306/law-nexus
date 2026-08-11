@@ -1,9 +1,10 @@
 # EA-08 Advisory semantic review rehearsal
 
 **Assessment class:** semantic contradiction discovery and human disposition
-**Status:** `[bounded]` process evidence; advisory findings disposed; factual remediation verified in working tree and pending frozen remediation SHA
+**Status:** `[bounded]` process evidence; `COMPLETE-WITH-WARNINGS`
 **Frozen source revision:** `430ebfdf57b8a8589a29b44bf1b8dc7809bf43ec`
 **Review orchestration revision:** `1f7cc61918c6ddc33e299cff4cbeee71e07c55c1`
+**Verified remediation revision:** `962a4e77d1c363fa1a0d5281cc16c15379dee361`
 **Review date:** 2026-08-11
 **Authority ceiling:** LLM findings are advisory; exact citations and human disposition are mandatory
 
@@ -92,11 +93,11 @@ Required evidence before closing this rehearsal:
 
 ## 8. Disposition
 
-**EA-08 semantic review rehearsal:** `REMEDIATION-VERIFIED-PENDING-FREEZE`.
+**EA-08 semantic review rehearsal:** `COMPLETE-WITH-WARNINGS`.
 
-Confirmed factual contradictions are remediated under human disposition D149, and the §7 checks passed in the working tree. Retained semantic warnings have explicit owners and revisit triggers. No semantic finding changed lifecycle automatically, and no product/legal/runtime claim was accepted.
+Confirmed factual contradictions are remediated under human disposition D149. The remediation was committed at the verified revision and all §7 checks were rerun successfully against that frozen SHA. Retained semantic warnings have explicit owners and revisit triggers. No semantic finding changed lifecycle automatically, and no product/legal/runtime claim was accepted.
 
-EA-08 becomes `COMPLETE-WITH-WARNINGS` only after the remediation is committed, the frozen SHA is recorded, and the §7 checks are rerun against that SHA. Only then may EA-09 packet preparation begin.
+This permits EA-09 independent external desk-assessment preparation.
 
 ## 9. Non-claims
 

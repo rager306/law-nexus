@@ -128,9 +128,9 @@ M165 temporal legal ontology L1–L7  [proposed] design (ADR-0016..0022)
    Docs/process follow-up: truth-oracle sync, vault untrack, archive relocate
    ▼
 CURRENT PROCESS FRONT (no Rust)
-   EA-08 advisory semantic review after EA-07 paper rehearsal NO-BLOCK at 430ebfd
-   exact citations + human disposition required; LLM cannot change authority/lifecycle
-   then EA-09..10; L2 CTV and TEI/RuVector remain evidence-gated
+   EA-09 independent external desk assessment after EA-08 complete-with-warnings
+   verified remediation 962a4e7; assessor cannot author or promote lifecycle
+   then EA-10 human disposition; L2 CTV and TEI/RuVector remain evidence-gated
 ```
 
 ## Current layer (where work happens now)

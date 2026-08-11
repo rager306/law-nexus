@@ -378,13 +378,13 @@
     "goal": "Local GSD workflow marker only; its milestone numbering predates later tracked M161-M165 product/design commits and is not the product current-front authority."
   },
   "recommended_next": {
-    "title": "Complete EA-08 advisory semantic review rehearsal",
+    "title": "Complete EA-09 independent external desk assessment",
     "priority": 1,
-    "why": "EA-07 completed with revision-bound NO-BLOCK at 430ebfd; semantic contradiction discovery is next but remains non-authoritative.",
-    "plan_reference": "prd/migration/external-architecture-assessment-roadmap.md EA-08",
-    "slices": "Atomize consequential claims, require exact source spans, classify support/contradiction/neutral/missing, independently review high-impact findings and record human disposition.",
-    "product_next": "L2 CTV TDD remains evidence-gated after parser data readiness; EA-08 does not unlock implementation.",
-    "non_validation": "EA-08 LLM review is advisory documentation/process evidence, not product readiness, legal correctness, ontology/applicability runtime, lifecycle authority, or release proof."
+    "why": "EA-08 completed with warnings under human disposition D149 and frozen remediation 962a4e7; an independent assessor must now review the packet without authoring it.",
+    "plan_reference": "prd/migration/external-architecture-assessment-roadmap.md EA-09",
+    "slices": "Review artifact, semantic, process and reproducibility modes; sample Product-to-Requirement-to-ADR-to-Oracle-to-Roadmap chains; record exact evidence and retained non-claims.",
+    "product_next": "L2 CTV TDD remains evidence-gated after parser data readiness; EA-09 does not unlock implementation.",
+    "non_validation": "EA-09 is independent documentation/process assessment, not product readiness, legal correctness, ontology/applicability runtime, lifecycle authority, or release proof."
   },
   "downstream_blocked": [
     {
@@ -433,12 +433,12 @@
     "Keep Rust as the only target product runtime; Python may remain only as the repository harness defined by ADR-0007.",
     "Do not reintroduce ACP/git-lex outside explicit archive paths."
   ],
-  "source_revision": "430ebfd",
+  "source_revision": "962a4e7",
   "current_process_front": {
-    "id": "EA-08",
-    "title": "Advisory Semantic Review Rehearsal",
+    "id": "EA-09",
+    "title": "Independent External Desk Assessment",
     "status": "active",
-    "boundary": "Documentation/process work only; every LLM finding requires exact citations and human disposition and cannot change authority or lifecycle."
+    "boundary": "Documentation/process assessment only; assessor cannot author changes, satisfy requirements, or promote lifecycle."
   },
   "latest_completed_product_milestone": {
     "id": "M165",
