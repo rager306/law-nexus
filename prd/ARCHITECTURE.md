@@ -89,6 +89,8 @@ L6 ADR-0021 [proposed]  transitional + risk              derived, non-authoritat
 L7 ADR-0022 [proposed]  industry profiles                бюджет/стройка/медицина/общий = adapters
 ```
 
+Proposed semantic reconciliation, glossary and graduation gates are tracked in [`temporal-legal-model.md`](temporal-legal-model.md). That crosswalk is process/design evidence only; it does not amend these ADRs or promote O1–O7.
+
 **Kernel canon, standards compatibility (D046):** the project-local evidence
 kernel (D119 C10/C12/C13) owns substance; LRMoo/CIDOC-CRM/AKML/ELI/LKIF are
 deterministic reversible projections for interoperability. Budget cycle is a
