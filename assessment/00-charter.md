@@ -24,8 +24,8 @@
 
 - `prd/ARCHITECTURE.md`;
 - `doc/adr/**` и `doc/adr-architecture-cross-matrix.md`;
-- будущий tracked Product Contract;
-- tracked requirements projection, когда она будет опубликована;
+- tracked `prd/PRODUCT.md` (`[proposed]`, EA-02 `ready-for-assessment`);
+- tracked `prd/REQUIREMENTS.md` projection (`[proposed]`, not requirement-validation proof);
 - active migration/project-state roadmaps;
 - documentation semantic-control catalog;
 - temporal/applicability crosswalk;
@@ -48,7 +48,7 @@ Assessor получает frozen tracked revision и читает authority в �
 1. `prd/ARCHITECTURE.md` — living architecture truth oracle;
 2. `doc/adr/**` — каноническое decision substance и lifecycle ceilings;
 3. `prd/PRODUCT.md` — `[proposed]` Product Contract с EA-02 document state `ready-for-assessment`; не EA-10 accepted;
-4. tracked requirements projection — capability obligations после публикации;
+4. `prd/REQUIREMENTS.md` — tracked `[proposed]` capability obligations; не requirement-validation proof и не замена governing ADR;
 5. active roadmaps — sequence/planning authority only;
 6. matrices, controls и `assessment/**` — process evidence;
 7. `prd/architecture/**`, generated/LLM reports — derived diagnostic input only.

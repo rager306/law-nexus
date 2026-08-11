@@ -23,8 +23,8 @@ No unresolved P0 contradiction was found between ADR Status lifecycle and the li
 
 - ADR-0004/0005 and ADR-0008–0013/0015: `[bounded]`;
 - ADR-0007 repository harness: `[validated]` process boundary only;
-- ADR-0014 and ADR-0016–0023: `[proposed]`;
-- ADR-0023 runtime capability: `[deferred]`.
+- ADR-0014 and ADR-0016–0023 decision/ownership designs: `[proposed]`;
+- ADR-0023 executable applicability runtime: absent and `[deferred]`; this does not lower the ownership ADR itself below `[proposed]`.
 
 The full per-ADR matrix and remediation list lives in `doc/adr-architecture-cross-matrix.md`.
 
@@ -60,7 +60,7 @@ Archived test hashes:
 2. historical vault bodies remain on disk, ignored and untracked;
 3. tracked aliases and executable copies that expose vault content are removed from the active index;
 4. exact retired script/symlink paths are ignored and checked by governor;
-5. decommission manifests retain source hashes and archive destinations;
+5. the decommission manifest retains source hashes and archive destinations for removed scripts and archive-dependent tests;
 6. GitNexus must be reindexed after the change is committed; until then the existing index may still contain retired aliases and is not closure evidence.
 
 The Python harness is intentionally not archived: ADR-0007 defines it as the active repository-control boundary. Python product/domain code remains archive-only.

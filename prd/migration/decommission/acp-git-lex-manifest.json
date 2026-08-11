@@ -1,11 +1,13 @@
 {
-  "archive_candidate_count": 511,
+  "archive_candidate_count": 520,
   "counts_by_classification": {
     "active_script": 15,
     "active_test": 21,
     "derived_lex_state": 281,
     "historical_architecture": 194,
-    "manual_review_reference": 204
+    "historical_script": 5,
+    "historical_test": 4,
+    "manual_review_reference": 199
   },
   "decision": "D104",
   "duplicate_archive_targets": [],
@@ -4771,6 +4773,13 @@
       "source_sha256": "1800420d9225a1c580ad87ec1cb065b10f84f6cded93b957680147b2bc14b009"
     },
     {
+      "action": "archive",
+      "archive_path": "archive/tests/test_consultant_parser_proof.py",
+      "classification": "historical_test",
+      "source_path": "tests/test_consultant_parser_proof.py",
+      "source_sha256": "8800f548c5607ca47e68f4a2b6a7fb2e84d39b6e04bf85bd858a7bd875c71cb4"
+    },
+    {
       "action": "review_or_rewrite",
       "archive_path": null,
       "classification": "manual_review_reference",
@@ -4790,6 +4799,20 @@
       "classification": "active_test",
       "source_path": "tests/test_git_lex_diagnostic_adapter.py",
       "source_sha256": "ce0786ed1b8752597f03e959ec33e1b4cfd9dde1d30deb0559e12c93b8e7a6d5"
+    },
+    {
+      "action": "archive",
+      "archive_path": "archive/tests/test_hierarchy_metadata_completeness.py",
+      "classification": "historical_test",
+      "source_path": "tests/test_hierarchy_metadata_completeness.py",
+      "source_sha256": "9bd0a91ddabcbbae911a158647908e10e2079e33874a32b310f5187bf6f9a612"
+    },
+    {
+      "action": "archive",
+      "archive_path": "archive/tests/test_local_retrieval_runtime_check_cli.py",
+      "classification": "historical_test",
+      "source_path": "tests/test_local_retrieval_runtime_check_cli.py",
+      "source_sha256": "44219ffd86ee499724ac2a165ebd7107ebb7fb032d0e5dab996ee19f22ca814e"
     },
     {
       "action": "review_or_rewrite",
@@ -4944,6 +4967,13 @@
       "classification": "manual_review_reference",
       "source_path": "tests/test_script_retirement_candidates_review.py",
       "source_sha256": "0aa70447b7acbbdbfdb48c32f5b47519ef24069a982834d2f2f173de719b03c1"
+    },
+    {
+      "action": "archive",
+      "archive_path": "archive/tests/test_source_structuring_protocol.py",
+      "classification": "historical_test",
+      "source_path": "tests/test_source_structuring_protocol.py",
+      "source_sha256": "4f6baa7d4d418aba0b3236b62c2bad20f2f82b8ed5a93e042bb2d61eb9c6043b"
     },
     {
       "action": "archive",

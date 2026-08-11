@@ -102,7 +102,7 @@ As of M111/M113, architecture-static checks had passed and only HC-01 had bounde
 - ADR-0011 records KOF-DA and exact twenty owners.
 - ADR-0012 records the ongoing evidence-before-selection protocol.
 - `scripts/verify-m112-adr-sync.py` checks index, lifecycle, decision/contract markers, owner parity, stale topology, authority/clock/gate/composite-owner regressions, technology adoption and proof inflation.
-- The derived architecture registry now has 69 items and 109 edges; it remains non-authoritative.
+- The M112 derived architecture registry snapshot had 69 items and 109 edges. After D7 quarantine the current non-authoritative registry has 63 items and 98 edges; count changes do not establish product proof.
 
 R072 is validated only for ADR synchronization and static enforcement. R067, R068 and R071 remain active.
 

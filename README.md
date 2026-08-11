@@ -197,7 +197,7 @@ cargo run -q -p ln-product-cli -- inspect <path> # structural + retrieval inspec
 8. **[`doc/litho-runbook.md`](doc/litho-runbook.md)** — optional Litho/deepwiki-rs regen (derived wiki only).
 9. **[`prd/archive/README.md`](prd/archive/README.md)** — PRD vault map (not product truth). Root `archive/` is fully gitignored archaeology.
 
-Local `.gsd/**` requirements, decisions, roadmap and execution records support repository workflow but are not published cold-reader authority or sole external proof. A tracked Product Contract and requirements projection remain explicit D2 gaps.
+Local `.gsd/**` requirements, decisions, roadmap and execution records support repository workflow but are not published cold-reader authority or sole external proof. The tracked Product Contract and requirements projection are published `[proposed]` documents with EA-02 state `ready-for-assessment`; they are not EA-10 accepted or product-validation evidence.
 
 ## Non-claims (what this project does **not** prove today)
 

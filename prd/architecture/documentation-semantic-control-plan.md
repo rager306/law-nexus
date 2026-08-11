@@ -3,7 +3,7 @@
 **Статус:** `[proposed]` process design
 **Базовая ревизия:** `60fd8245ace999f3f29911844375dd7cc36a2a38` (2026-08-11)
 **Область:** только архитектурные, продуктовые и process-документы; без изменений product runtime
-**Authority:** `prd/ARCHITECTURE.md` + `doc/adr/**`; будущий tracked Product Contract определяет продуктовый контракт
+**Authority:** `prd/ARCHITECTURE.md` + `doc/adr/**`; tracked `prd/PRODUCT.md` defines the `[proposed]` Product Contract and remains below governing ADR ceilings
 **Non-authority:** `.gsd/**` как локальная workflow-поверхность, `prd/architecture/**` как derived registry, LLM-отчёты и внешние framework/tool outputs
 **Внешний assessment track:** `prd/migration/external-architecture-assessment-roadmap.md`
 
@@ -59,8 +59,8 @@ Authority направлена сверху вниз; evidence поднимае�
 | A0 | vault/retired-ID policy | определяет active plane | policy authority |
 | A1 | `prd/ARCHITECTURE.md` | living architecture truth oracle | canonical architecture |
 | A2 | `doc/adr/**` | append-only decision substance | canonical decisions |
-| A3 | будущий `prd/PRODUCT.md` | пользовательский/product contract | canonical product intent |
-| A4 | published tracked requirements projection (не локальные `.gsd` bodies) | capability obligations | tracked projection required for external review |
+| A3 | tracked `prd/PRODUCT.md` (`[proposed]`, EA-02 `ready-for-assessment`) | пользовательский/product contract | canonical product intent after final acceptance; not EA-10 accepted yet |
+| A4 | tracked `prd/REQUIREMENTS.md` (не локальные `.gsd` bodies) | `[proposed]` capability obligations | tracked projection; not requirement-validation proof |
 | A5 | migration/project roadmaps | последовательность, а не readiness | planning authority only |
 | A6 | cross-matrices и control catalog | проверка связности | process evidence |
 | A7 | `prd/architecture/**`, generated reports, LLM reports | диагностика и поиск | derived, non-authoritative |
@@ -82,10 +82,10 @@ Authority направлена сверху вниз; evidence поднимае�
 |------|-------------------|-----------------|
 | `TruthOracle` | `prd/ARCHITECTURE.md` | revision, direction contract, ADR lifecycle table, current front, non-claims |
 | `ADR` | `doc/adr/0NNN-*.md` | id, status + D098 LC, context, decision, consequences, scope, supersession, references |
-| `ProductContract` | будущий `prd/PRODUCT.md` | clause id, class, lifecycle, proof class, evidence refs, acceptance criteria, non-claims |
-| `Requirement` | published projection / local GSD source | id, class, status, owning clauses, governing ADRs, validation route |
+| `ProductContract` | tracked `prd/PRODUCT.md` (`[proposed]`) | clause id, class, lifecycle, proof class, evidence refs, acceptance criteria, non-claims |
+| `Requirement` | tracked `prd/REQUIREMENTS.md` / local GSD workflow source | id, class, status, owning clauses, governing ADRs, validation route |
 | `RoadmapSurface` | `prd/migration/**`, `prd/project-state/**` | current front, revision/as-of, depends, exit criteria, non-claims |
-| `TemporalCrosswalk` | будущий `prd/temporal-legal-model.md` | glossary, invariants, ADR crosswalk, readiness gates, unresolved questions, non-claims; не lifecycle authority |
+| `TemporalCrosswalk` | tracked `prd/temporal-legal-model.md` (`[proposed]`) | glossary, invariants, ADR crosswalk, readiness gates, unresolved questions, non-claims; не lifecycle authority |
 | `ControlCatalog` | этот документ / process annex | control id, severity, authority, evidence class, remediation |
 | `AssessmentPacket` | tracked root `assessment/`, зафиксированный D0 / EA-00; пакет пока `[proposed]`, не frozen/accepted | revision, inventory, gate results, findings, dispositions, signatures |
 | `DerivedRegistry` | `prd/architecture/**` | source revision, `derived=true`, diagnostic-only banner |
