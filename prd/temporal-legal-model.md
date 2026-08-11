@@ -1,6 +1,7 @@
 # Temporal Legal Model Crosswalk
 
-**Status:** `[proposed]` D3 / EA-03 semantic reconciliation
+**Status:** `[proposed]` D3 / EA-03 semantic reconciliation; human disposition `ACCEPT-AS-PROPOSED`
+**EA-03 tested revision:** `e1ac83a714e20a6b551d5305fc4fca9f29d91aa7` (`assessment/03-temporal-reconciliation.md`)
 **Method:** `paper-rehearsal`; documentation/design only
 **Authority:** `prd/ARCHITECTURE.md`, ADR-0009 and ADR-0016–0022
 **Product boundary:** `prd/PRODUCT.md` + `prd/REQUIREMENTS.md`
@@ -228,19 +229,21 @@ No package ADR-0023–0032 is justified by this crosswalk. Only TQ-01 is current
 
 ## 13. EA-03 assessment checklist
 
-- [ ] authority limited to ARCHITECTURE, governing ADRs and Product/requirements boundaries;
-- [ ] five clocks represented as role-bound evidence anchors;
-- [ ] publication, observation, legal effect, CTV, status and applicability remain separate;
-- [ ] CTV does not imply `InForce`;
-- [ ] force does not imply applicability;
-- [ ] practice and risk remain derived/non-authoritative;
-- [ ] procurement remains a proving profile over neutral core;
-- [ ] TL-G01–TL-G12 each have acceptance, hostile case, future proof and non-claim;
-- [ ] golden cases are semantic-shape oracles, not legal truth;
-- [ ] TQ-01–TQ-07 remain visible with owner/disposition;
-- [ ] O1–O7 remain `[proposed]`, applicability remains `[deferred]`;
-- [ ] semantic reviewer records a source-bound disposition;
-- [ ] architecture acceptance authority is not fabricated; human disposition remains pending.
+- [x] authority limited to ARCHITECTURE, governing ADRs and Product/requirements boundaries;
+- [x] five clocks represented as role-bound evidence anchors;
+- [x] publication, observation, legal effect, CTV, status and applicability remain separate;
+- [x] CTV does not imply `InForce`;
+- [x] force does not imply applicability;
+- [x] practice and risk remain derived/non-authoritative;
+- [x] procurement remains a proving profile over neutral core;
+- [x] TL-G01–TL-G12 each have acceptance, hostile case, future proof and non-claim;
+- [x] golden cases are semantic-shape oracles, not legal truth;
+- [x] TQ-01–TQ-07 remain visible with owner/disposition/revisit trigger;
+- [x] O1–O7 remain `[proposed]`, applicability remains `[deferred]`;
+- [x] semantic reviewer recorded a source-bound PASS for `e1ac83a`;
+- [x] user explicitly selected `ACCEPT-AS-PROPOSED`; no acceptance was fabricated.
+
+EA-03 acceptance is limited to this proposed paper reconciliation. EA-04 ADR decisions and EA-09/EA-10 assessment remain open.
 
 ## 14. Stop conditions
 
