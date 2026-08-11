@@ -152,7 +152,8 @@ ADR-0013 universal parser  [bounded] + ADR-0014 RuVector  [proposed]
    TEI USER-bge-m3 1024d embedding boundary remains proposed
    RVF vectors + redb GraphDB CRUD; no ruvector-graph Cypher execution claim
    ▼
-[LATEST COMPLETED] M165 — temporal legal ontology crystallization (ADR-0016..0022 L1→L7 chain, all [proposed], fail-closed; ADR-0004/0005/0007 lifecycle hygiene).
+[LATEST COMPLETED] M165 — temporal legal ontology crystallization (ADR-0016..0022 L1→L7 chain, all [proposed], fail-closed).
+Foundation lifecycle hygiene for ADR-0004 [bounded], ADR-0005 [bounded], ADR-0007 [validated] landed in the same docs wave.
 Next: document revision waves (C1 README / C2 PRD / C7 AGENTS / C8 truth-oracle ontology integration) then live-adapter when TEI/RuVector infra exists.
 ```
 
