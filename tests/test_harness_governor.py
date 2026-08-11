@@ -199,6 +199,30 @@ def test_cli_governor_warn_only_semantic_selection_exits_zero(capsys) -> None:
     assert all(item["severity"] in {"ok", "warn"} for item in payload["findings"])
 
 
+def test_cli_governor_runner_failure_uses_tool_error_exit_two(tmp_path: Path, capsys) -> None:
+    roadmap = tmp_path / "prd" / "project-state" / "data"
+    roadmap.mkdir(parents=True)
+    (roadmap / "roadmap.json").write_text("{not-json", encoding="utf-8")
+    state = tmp_path / ".gsd"
+    state.mkdir()
+    (state / "STATE.md").write_text(
+        "# GSD State\n\n**Last Completed Milestone:** M001: x\n"
+        "## Milestone Registry\n- ✅ **M001:** x\n",
+        encoding="utf-8",
+    )
+
+    code = main(["governor", "--root", str(tmp_path), "--only", "docs"])
+    payload = json.loads(capsys.readouterr().out)
+
+    assert code == 2
+    assert payload["status"] == "failure"
+    assert payload["tool_error_count"] == 1
+    tool_errors = [item for item in payload["findings"] if item["rule_id"] == "tool-error"]
+    assert len(tool_errors) == 1
+    assert tool_errors[0]["check_id"] == "roadmap-freshness"
+    assert "not-json" not in tool_errors[0]["observed"]
+
+
 def test_cli_governor_without_local_gsd_projection_fails_with_coherent_exit_code(
     tmp_path: Path, capsys
 ) -> None:
@@ -895,6 +919,12 @@ def test_live_governor_includes_adr_and_archive_checks() -> None:
 
 
 def test_adr_truth_oracle_sync_detects_lifecycle_mismatch(tmp_path: Path) -> None:
+    adr = tmp_path / "doc" / "adr"
+    adr.mkdir(parents=True)
+    (adr / "0004-rust-migration-decision.md").write_text(
+        "# ADR-0004\n\n## Status\n\nAccepted `[bounded]`.\n",
+        encoding="utf-8",
+    )
     arch = tmp_path / "prd"
     arch.mkdir()
     (arch / "ARCHITECTURE.md").write_text(
@@ -917,6 +947,11 @@ def test_adr_truth_oracle_sync_detects_lifecycle_mismatch(tmp_path: Path) -> Non
     assert finding.severity == "error"
     assert "mismatched=" in finding.observed
     assert "ADR-0004" in finding.observed
+    assert {item.path for item in finding.evidence} == {
+        "doc/adr/0004-rust-migration-decision.md",
+        "prd/ARCHITECTURE.md",
+    }
+    assert all(item.line is not None for item in finding.evidence)
 
 
 def test_adr_truth_oracle_sync_rejects_dual_lifecycle_overclaim(tmp_path: Path) -> None:

@@ -134,7 +134,7 @@ uv run python -m law_nexus_harness governor --explain adr-truth-oracle-sync
 uv run python -m law_nexus_harness governor --format text
 ```
 
-Default JSON remains report-v1 compatible. Selector contract failures use exit 2; policy errors use exit 1; warn-only semantic debt uses exit 0. Exact `path:line` evidence and general tool/parser exit-2 classification remain follow-on work.
+Default JSON remains report-v1 compatible. Selector and uncaught check-runner tool failures use exit 2; policy errors use exit 1; warn-only semantic debt uses exit 0. ADR lifecycle mismatches carry both ADR Status and oracle `path:line` evidence without source snippets. Exact evidence for other checks and migration of internally swallowed IO/git failures remain follow-on work.
 
 Implemented deterministic checks:
 

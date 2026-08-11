@@ -117,6 +117,8 @@ def main(argv: Sequence[str] | None = None) -> int:
             sys.stdout.write(format_governor_report_text(report))
         else:
             sys.stdout.write(report.to_json())
+        if report.tool_error_count:
+            return 2
         return 0 if report.status == "ok" else 1
     if args.command == "preflight":
         report = run_preflight(args.root)

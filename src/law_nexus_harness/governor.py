@@ -149,6 +149,7 @@ class GovernorReport:
     error_count: int
     warn_count: int
     pass_count: int
+    tool_error_count: int = 0
 
     def to_dict(self) -> dict[str, Any]:
         payload = asdict(self)
@@ -1859,6 +1860,34 @@ def _adr_truth_expectations(root: Path) -> dict[str, str | None]:
     return expectations or dict(_ADR_TRUTH_ORACLE_EXPECTATIONS)
 
 
+def _adr_lifecycle_evidence(
+    root: Path, adr_ids: set[str], lines: list[str]
+) -> tuple[GovernorEvidence, ...]:
+    evidence: list[GovernorEvidence] = []
+    adr_dir = root / "doc" / "adr"
+    for adr_id in sorted(adr_ids):
+        path = next(iter(sorted(adr_dir.glob(f"{adr_id}-*.md"))), None)
+        if path is not None:
+            adr_lines = path.read_text(encoding="utf-8", errors="replace").splitlines()
+            status_line = next(
+                (
+                    index
+                    for index, line in enumerate(adr_lines, start=1)
+                    if line.strip() == "## Status"
+                ),
+                1,
+            )
+            evidence.append(
+                GovernorEvidence(path=path.relative_to(root).as_posix(), line=status_line)
+            )
+        oracle_line = next(
+            (index for index, line in enumerate(lines, start=1) if f"ADR-{adr_id}" in line),
+            1,
+        )
+        evidence.append(GovernorEvidence(path="prd/ARCHITECTURE.md", line=oracle_line))
+    return tuple(evidence)
+
+
 def check_adr_truth_oracle_sync(root: Path) -> list[GovernorFinding]:
     """Require key ADRs in ARCHITECTURE with matching lifecycle tags.
 
@@ -1938,6 +1967,11 @@ def check_adr_truth_oracle_sync(root: Path) -> list[GovernorFinding]:
             mismatched.append(f"{needle}:expected={expected_lc}:seen={wrong}")
 
     if missing or mismatched:
+        affected_ids = {
+            match.group("id")
+            for value in (*missing, *mismatched)
+            if (match := _ADR_ID_RE.search(value)) is not None
+        }
         return [
             GovernorFinding(
                 check_id=check_id,
@@ -1949,6 +1983,9 @@ def check_adr_truth_oracle_sync(root: Path) -> list[GovernorFinding]:
                     f"(lifecycle [bounded]; truth-oracle anti-drift)."
                 ),
                 remediation=remediation,
+                rule_id="truth-oracle.lifecycle-mismatch",
+                expected="Each ADR citation carries exactly its Status lifecycle without promotion.",
+                evidence=_adr_lifecycle_evidence(root, affected_ids, lines),
             )
         ]
 
@@ -2682,7 +2719,7 @@ def _enrich_finding(finding: GovernorFinding, spec: CheckSpec) -> GovernorFindin
 def format_governor_report_text(report: GovernorReport) -> str:
     lines = [
         f"governor status={report.status} pass={report.pass_count} "
-        f"warn={report.warn_count} error={report.error_count}"
+        f"warn={report.warn_count} error={report.error_count} tool_error={report.tool_error_count}"
     ]
     for finding in report.findings:
         lines.append(
@@ -2705,10 +2742,26 @@ def run_governor(
     resolved = (root or Path.cwd()).resolve()
     findings: list[GovernorFinding] = []
     for spec in _selected_specs(only, check):
-        findings.extend(_enrich_finding(item, spec) for item in spec.runner(resolved))
+        try:
+            findings.extend(_enrich_finding(item, spec) for item in spec.runner(resolved))
+        except Exception as error:  # noqa: BLE001 - bounded tool-error report
+            findings.append(
+                GovernorFinding(
+                    check_id=spec.check_id,
+                    status="fail",
+                    severity="error",
+                    message="governor check could not read or parse its required inputs",
+                    observed=f"tool_error={type(error).__name__}",
+                    remediation="Repair the required repository inputs or tool environment and rerun.",
+                    rule_id="tool-error",
+                    expected="The check runner reads and parses every required input.",
+                    evidence=tuple(GovernorEvidence(path=path) for path in spec.authority_inputs),
+                )
+            )
     error_count = sum(1 for item in findings if item.status == "fail" and item.severity == "error")
     warn_count = sum(1 for item in findings if item.status == "fail" and item.severity == "warn")
     pass_count = sum(1 for item in findings if item.status == "pass")
+    tool_error_count = sum(1 for item in findings if item.rule_id == "tool-error")
     status: Literal["ok", "failure"] = "ok" if error_count == 0 else "failure"
     return GovernorReport(
         schema_version=GOVERNOR_SCHEMA_VERSION,
@@ -2718,4 +2771,5 @@ def run_governor(
         error_count=error_count,
         warn_count=warn_count,
         pass_count=pass_count,
+        tool_error_count=tool_error_count,
     )

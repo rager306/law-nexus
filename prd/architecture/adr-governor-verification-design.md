@@ -23,7 +23,7 @@ The governor checks publication consistency. It does not decide architecture, le
 | `archive-path-policy` | Require historical vaults ignored/untracked and reject known active aliases into them | advisory `warn` |
 | `verify-adr-conformance.py` | Require lifecycle tags and ADR references on targeted binding claims | separate blocking gate |
 
-Default exit semantics remain stable: failed `error` checks produce exit 1 and warn-only debt produces exit 0. Unknown/conflicting CLI selectors now produce structured tool-error exit 2; unreadable required inputs and subprocess/tool failures still need the same exit-2 classification instead of silent skip or ordinary policy failure.
+Default exit semantics remain stable: failed deterministic `error` checks produce exit 1 and warn-only debt produces exit 0. Unknown/conflicting selectors and uncaught check-runner IO/parser/tool failures produce structured exit 2 with `tool_error_count`; checks that currently swallow low-level read/git failures still need migration to this shared classification.
 
 ## 3. Machine-readable matrix contract
 
@@ -128,10 +128,10 @@ Implemented:
 
 Remaining before MVP B closure:
 
-- populate exact repository-relative `path:line` evidence for every failure rather than generic input paths;
-- classify unreadable required files and subprocess/parser failures as tool errors with exit 2;
+- expand exact repository-relative `path:line` evidence beyond ADR lifecycle mismatch; generic authority-input paths remain for other checks;
+- migrate checks that internally swallow read/git errors to shared `tool-error` classification (uncaught runner failures already use exit 2 without exception text);
 - redact or omit source snippets in the separate ADR conformance script as well as governor findings;
-- add missing-file, unreadable-file and tool-failure contract tests.
+- add broader missing-file, unreadable-file and subprocess-failure contract tests.
 
 ### Stage C — matrix and graph checks
 
