@@ -3,7 +3,7 @@
 **Lifecycle:** `[bounded]` repository-control assessment  
 **Audited revision:** `ce46f43db783c7ce2c145d51c8ea3d80fc2ef82c`  
 **Assessment date:** 2026-08-11  
-**Authority boundary:** this artifact records documentation and repository-control findings. It is not product, parser, retrieval, legal, ontology-runtime, infrastructure, release, or lifecycle validation.
+**Authority boundary:** this artifact records documentation and repository-control findings. It is not product, parser, retrieval, legal, ontology-runtime, infrastructure, release, or lifecycle validation. Its control disposition is historical at audited revision `ce46f43` and is superseded for later remediation status by `assessment/14-post-remediation-gap-disposition.md`; this does not alter the frozen D150 boundary.
 
 ## 1. Recovered source criticism
 

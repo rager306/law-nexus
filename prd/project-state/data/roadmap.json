@@ -434,12 +434,23 @@
     "Do not reintroduce ACP/git-lex outside explicit archive paths."
   ],
   "source_revision": "120d44b",
+  "source_revision_role": "Frozen EA-09/EA-10 assessment packet revision; not the current repository HEAD and not acceptance of later revisions.",
   "current_process_front": {
     "id": "EA-10",
     "title": "Final Human Assessment Disposition",
     "status": "complete",
-    "boundary": "D150 accepted-with-findings applies to documentation/process only and cannot satisfy product requirements or promote lifecycle."
+    "boundary": "D150 accepted-with-findings applies only to packet revision 120d44b in documentation/process scope and cannot satisfy product requirements, promote lifecycle, or accept later HEADs."
   },
+  "post_d150_process_evidence": [
+    {
+      "path": "assessment/13-current-head-gap-audit.md",
+      "role": "bounded repository-control gap audit; not successor acceptance"
+    },
+    {
+      "path": "assessment/14-post-remediation-gap-disposition.md",
+      "role": "bounded remediation disposition; not successor acceptance"
+    }
+  ],
   "latest_completed_product_milestone": {
     "id": "M165",
     "title": "Temporal Legal Ontology L1-L7 and Lifecycle Hygiene",

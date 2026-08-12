@@ -4,7 +4,7 @@
 > non-authoritative cold-reader projection of
 > `prd/project-state/data/roadmap.json`; local `.gsd/**` is workflow state only.
 >
-> Initial front synchronization was frozen in EA-05 at `94d58ea`; current documentation/process state is EA-10 D150 `accepted-with-findings` at packet `120d44b`. Roadmap completion is not product readiness.
+> Initial front synchronization was frozen in EA-05 at `94d58ea`. EA-10 D150 remains revision-bound `accepted-with-findings` for packet `120d44b`; post-D150 repository-control remediation is recorded separately in `assessment/13-current-head-gap-audit.md` and `assessment/14-post-remediation-gap-disposition.md` and does not extend D150. Roadmap completion is not product readiness.
 
 ## Active Direction Contract
 
@@ -23,7 +23,7 @@ falkordb=historical-only
 - **Latest completed product milestone:** M165, temporal legal ontology O1–O7 crystallized at `[proposed]` design; no ontology runtime.
 - **Completed retrieval-honesty band:** M161–M164 `[bounded]` (real cosine ranking in memory, semantic-stub and historical-test-debt probes, deterministic CLI vectors); no live corpus or citation-safe answers.
 - **Completed documentation alignment:** D5 + documentation D6 / EA-05 accepted with findings at `94d58ea`; roadmap-front-sync and TL-G01–12 coverage PASS.
-- **Documentation/process assessment:** EA-10 complete — human D150 `accepted-with-findings` after independent EA-09 report `120d44b`; retained findings remain visible and no product work is unlocked.
+- **Documentation/process assessment:** EA-10 complete — human D150 `accepted-with-findings` after independent EA-09 report `120d44b`; post-D150 assessments 13/14 record bounded repository-control remediation and remaining gaps without successor acceptance, lifecycle promotion or product unlock.
 - **Local GSD workflow marker:** M161-2som4e remains active in local workflow state; it is not the tracked product/design current-front authority and its numbering predates later M161–M165 git history.
 - **Product next remains evidence-gated:** L2 CTV TDD after parser data readiness; TEI/RuVector only after real infrastructure/evidence. Neither is unlocked by EA-05.
 - **M111 result:** final `[bounded]` implementation-neutral semantic baseline for heterogeneous Russian legal evidence.

@@ -35,20 +35,22 @@ Product intent
 
 LLM может только формировать advisory findings. Lifecycle promotion, acceptance и BLOCK без детерминированного подтверждения остаются за человеком.
 
-## 2. Подтверждённые дефекты
+## 2. Реестр закрытия подтверждённых дефектов
 
-| ID | Дефект | Класс | Приоритет |
-|----|--------|-------|-----------|
-| DOC-01 | `prd/ARCHITECTURE.md` ссылается на отсутствующие `prd/01_general_idea.md` и `prd/02_architecture.md` | publication integrity | P0 |
-| DOC-02 | README/ARCHITECTURE представляют `.gsd/*.md` как cold-reader поверхности, хотя `.gsd` не tracked | authority/publication boundary | P0 |
-| DOC-03 | Нет современного tracked Product Contract: ARCHITECTURE описывает направление, но не полный продуктовый контракт | product intent gap | P0 |
-| DOC-04 | `prd/project-state/roadmap.md` сообщает M160/M161, хотя M161–M165 уже завершены | freshness/navigation | P0 |
-| DOC-05 | Derived registry/readiness содержит active-looking FalkorDB/ACP rows и устаревшие source anchors | derived-authority/staleness | P1 |
-| DOC-06 | Temporal readiness представлен в основном `GATE-G005`; нет gates для CTV, applicability, correction, status separation, case timeline | proof coverage | P1 |
-| DOC-07 | Cross-surface matrix не описывала Product Contract и external assessment authority; `published-trace-contract` closed 11 consequential chains at frozen `23eb715` | verified-closed publication-structure gap; not semantic/product proof | P1 |
-| DOC-08 | Нет формализованного разделения deterministic semantic checks, LLM review и human acceptance | governance ambiguity | P1 |
-| DOC-09 | Нет event-triggered freshness policy для living documents | continuity gap | P2 |
-| DOC-10 | Нет revision-bound external assessment packet | independent review gap | P1 |
+DOC-01..DOC-10 закрыты только в documentation/process scope `[bounded]`; frozen evidence и исходные формулировки сохранены в `assessment/08-known-defects.md`. Ни одна строка ниже не подтверждает product/runtime/legal readiness.
+
+| ID | Current state | Closure summary | Residual non-claim |
+|----|---------------|-----------------|--------------------|
+| DOC-01 | `verified-closed` | Living-link scans не находят отсутствующие `prd/01_general_idea.md` / `prd/02_architecture.md` targets | Publication integrity не проверяет смысл документов. |
+| DOC-02 | `verified-closed` | `.gsd/**` явно ограничен local workflow ролью; tracked cold-reader поверхности не зависят от него как sole authority/proof | `.gsd` может использоваться только как process state, не product evidence. |
+| DOC-03 | `verified-closed` | Опубликованы tracked `prd/PRODUCT.md` и `prd/REQUIREMENTS.md` с `[proposed]` ceilings | Публикация контракта не означает product validation или requirement satisfaction. |
+| DOC-04 | `verified-closed` | Roadmap front синхронизирован с завершённым M165 product/design history и отдельно показывает local workflow marker | Roadmap completion не означает readiness. |
+| DOC-05 | `verified-closed` with retained WARN | Derived registry quarantined; obsolete ACP/FalkorDB rows не имеют active authority | Historical anchors могут оставаться stale diagnostics и не являются current product blockers. |
+| DOC-06 | `verified-closed` | `prd/temporal-legal-model.md` публикует TL-G01..12 и ontology crosswalk | Gate inventory не реализует CTV, applicability, correction или legal resolution. |
+| DOC-07 | `verified-closed` | Initial frozen closure at `23eb715` covered 11 chains; current `published-trace-contract` structurally covers PC-001..020 / RQ-001..020 and rejects undeclared future IDs | Structural trace coverage не подтверждает семантику или product behavior. |
+| DOC-08 | `verified-closed` | Deterministic checks, advisory semantic review и human acceptance разделены по ролям | Stage D intake не реализован; LLM finding не может принять решение. |
+| DOC-09 | `verified-closed` with human-owned residuals | Dirty-tree event catalog and `document-freshness-triggers` implemented at frozen `d484224` | Clean-tree/commit-range, external и periodic freshness требуют отдельного human-owned policy decision. |
+| DOC-10 | `verified-closed` | EA-09 packet frozen at `120d44b`; EA-10 D150 human disposition is revision-bound `accepted-with-findings` | D150 не распространяется на later HEAD и не принимает product behavior. |
 
 ## 3. Authority stack A0–A7
 
@@ -87,7 +89,7 @@ Authority направлена сверху вниз; evidence поднимае�
 | `RoadmapSurface` | `prd/migration/**`, `prd/project-state/**` | current front, revision/as-of, depends, exit criteria, non-claims |
 | `TemporalCrosswalk` | tracked `prd/temporal-legal-model.md` (`[proposed]`) | glossary, invariants, ADR crosswalk, readiness gates, unresolved questions, non-claims; не lifecycle authority |
 | `ControlCatalog` | этот документ / process annex | control id, severity, authority, evidence class, remediation |
-| `AssessmentPacket` | tracked root `assessment/`, зафиксированный D0 / EA-00; пакет пока `[proposed]`, не frozen/accepted | revision, inventory, gate results, findings, dispositions, signatures |
+| `AssessmentPacket` | tracked root `assessment/`; EA-09 packet frozen at `120d44b`, human D150 `accepted-with-findings` for documentation/process only; post-D150 assessments 13/14 are bounded process records and do not extend D150 | revision, inventory, gate results, findings, dispositions, signatures |
 | `DerivedRegistry` | `prd/architecture/**` | source revision, `derived=true`, diagnostic-only banner |
 
 ### 4.2. Разрешённые edges

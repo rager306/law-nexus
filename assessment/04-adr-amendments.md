@@ -56,7 +56,7 @@ Profiles cannot add clocks, mutate CC/CTV/CLV or NormativeState, elevate kernel 
 
 - ADR-0018 historical body still contains `NormativeStatus`; the EA-04 note explicitly marks it a deprecated alias rather than deleting history.
 - ADR-0020 historical Context still says “own clock”; the EA-04 Decision note and oracle clarify that this means first-class temporality over five clocks.
-- The project-wide `superseds` front-matter spelling is retained for compatibility; fixing it requires a separate schema migration, not a one-file cleanup.
+- At tested revision `93ce8a79`, the project-wide `superseds` front-matter spelling was retained for compatibility and required a separate migration rather than a one-file cleanup. That active-plane migration was completed later in `28a51fc`: active ADRs now use canonical `supersedes` / `superseded_by`, while legacy-key parsing remains historical-input compatibility only.
 - TQ-04 and TQ-05 remain future decisions only if their implementation triggers become load-bearing.
 
 ## 5. Result
