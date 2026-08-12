@@ -119,6 +119,46 @@ class VerificationStatus(StrEnum):
     STALE = "stale"
 
 
+class RelationType(StrEnum):
+    REFINES = "refines"
+    REASSESSES = "reassesses"
+    DUPLICATES = "duplicates"
+    SUPERSEDES = "supersedes"
+    CONFLICTS_WITH = "conflicts_with"
+    SPLITS_INTO = "splits_into"
+    DEPENDS_ON = "depends_on"
+    BLOCKED_BY = "blocked_by"
+    MAPS_TO = "maps_to"
+    PROMOTED_TO = "promoted_to"
+    IMPLEMENTED_BY = "implemented_by"
+    VERIFIED_BY = "verified_by"
+
+
+class RelationStatus(StrEnum):
+    CANDIDATE = "candidate"
+    ACCEPTED = "accepted"
+    REJECTED = "rejected"
+
+
+class EventType(StrEnum):
+    PACKET_REGISTERED = "packet_registered"
+    FINDING_EXTRACTED = "finding_extracted"
+    SPAN_VERIFIED = "span_verified"
+    NORMALIZATION_REVIEWED = "normalization_reviewed"
+    DISPOSITION_RECORDED = "disposition_recorded"
+    EDGE_ASSERTED = "edge_asserted"
+    EXECUTION_LINKED = "execution_linked"
+    VERIFICATION_RECORDED = "verification_recorded"
+    REOPENED = "reopened"
+    MARKED_STALE = "marked_stale"
+
+
+class ActorClass(StrEnum):
+    HUMAN = "human"
+    TOOL = "tool"
+    LLM = "llm"
+
+
 class CandidateSurface(StrEnum):
     TSG = "tsg"
     ADR = "adr"
@@ -449,6 +489,137 @@ class CandidateTarget:
 
 
 @dataclass(frozen=True, slots=True)
+class ReviewEdge:
+    type: RelationType
+    from_id: str
+    to_id: str
+    status: RelationStatus
+    note: str | None = None
+
+    def __post_init__(self) -> None:
+        violations: list[ReviewCaseViolation] = []
+        if not isinstance(self.type, RelationType):
+            violations.append(
+                ReviewCaseViolation(
+                    "invalid_enum",
+                    "edge.type",
+                    "expected RelationType",
+                    self.type,
+                )
+            )
+        if not isinstance(self.status, RelationStatus):
+            violations.append(
+                ReviewCaseViolation(
+                    "invalid_enum",
+                    "edge.status",
+                    "expected RelationStatus",
+                    self.status,
+                )
+            )
+        _collect(
+            violations,
+            _require_id(self.from_id, field_path="edge.from_id"),
+            _require_id(self.to_id, field_path="edge.to_id"),
+        )
+        if self.note is not None:
+            _collect(
+                violations,
+                _require_nonempty_text(
+                    self.note,
+                    field_path="edge.note",
+                    code="empty_text",
+                ),
+            )
+        _raise_if(violations)
+
+
+@dataclass(frozen=True, slots=True)
+class ReviewEvent:
+    event_id: str
+    event_type: EventType
+    at: str
+    actor_class: ActorClass
+    actor_id: str | None = None
+    finding_id: str | None = None
+    source_revision: str | None = None
+    rationale: str | None = None
+    disposition: DispositionStatus | None = None
+    edge_type: RelationType | None = None
+    from_id: str | None = None
+    to_id: str | None = None
+
+    def __post_init__(self) -> None:
+        violations: list[ReviewCaseViolation] = []
+        _collect(
+            violations,
+            _require_id(self.event_id, field_path="event.event_id"),
+            _validate_timestamp(self.at, field_path="event.at"),
+        )
+        if not isinstance(self.event_type, EventType):
+            violations.append(
+                ReviewCaseViolation(
+                    "invalid_enum",
+                    "event.event_type",
+                    "expected EventType",
+                    self.event_type,
+                )
+            )
+        if not isinstance(self.actor_class, ActorClass):
+            violations.append(
+                ReviewCaseViolation(
+                    "invalid_enum",
+                    "event.actor_class",
+                    "expected ActorClass",
+                    self.actor_class,
+                )
+            )
+        if self.actor_id is not None:
+            _collect(violations, _require_id(self.actor_id, field_path="event.actor_id"))
+        if self.finding_id is not None:
+            _collect(violations, _require_id(self.finding_id, field_path="event.finding_id"))
+        if self.source_revision is not None:
+            _collect(
+                violations,
+                _validate_git_revision(
+                    self.source_revision,
+                    field_path="event.source_revision",
+                ),
+            )
+        if self.rationale is not None:
+            _collect(
+                violations,
+                _require_nonempty_text(
+                    self.rationale,
+                    field_path="event.rationale",
+                    code="empty_text",
+                ),
+            )
+        if self.disposition is not None and not isinstance(self.disposition, DispositionStatus):
+            violations.append(
+                ReviewCaseViolation(
+                    "invalid_enum",
+                    "event.disposition",
+                    "expected DispositionStatus",
+                    self.disposition,
+                )
+            )
+        if self.edge_type is not None and not isinstance(self.edge_type, RelationType):
+            violations.append(
+                ReviewCaseViolation(
+                    "invalid_enum",
+                    "event.edge_type",
+                    "expected RelationType",
+                    self.edge_type,
+                )
+            )
+        if self.from_id is not None:
+            _collect(violations, _require_id(self.from_id, field_path="event.from_id"))
+        if self.to_id is not None:
+            _collect(violations, _require_id(self.to_id, field_path="event.to_id"))
+        _raise_if(violations)
+
+
+@dataclass(frozen=True, slots=True)
 class Finding:
     finding_id: str
     kind: FindingKind
@@ -557,6 +728,8 @@ class ReviewPacket:
     normalization: NormalizationRecord
     non_claims: tuple[str, ...]
     findings: tuple[Finding, ...]
+    edges: tuple[ReviewEdge, ...] = ()
+    events: tuple[ReviewEvent, ...] = ()
     schema_version: str = field(default=SCHEMA_VERSION, init=False)
     authoritative: bool = field(default=False, init=False)
     authority_required: bool = field(default=True, init=False)
@@ -615,6 +788,24 @@ class ReviewPacket:
                     type(self.findings).__name__,
                 )
             )
+        if not isinstance(self.edges, tuple):
+            violations.append(
+                ReviewCaseViolation(
+                    "invalid_collection",
+                    "edges",
+                    "expected immutable tuple",
+                    type(self.edges).__name__,
+                )
+            )
+        if not isinstance(self.events, tuple):
+            violations.append(
+                ReviewCaseViolation(
+                    "invalid_collection",
+                    "events",
+                    "expected immutable tuple",
+                    type(self.events).__name__,
+                )
+            )
         seen: set[str] = set()
         for index, finding in enumerate(self.findings if isinstance(self.findings, tuple) else ()):
             if not isinstance(finding, Finding):
@@ -647,4 +838,36 @@ class ReviewPacket:
                             span.path,
                         )
                     )
+        for index, edge in enumerate(self.edges if isinstance(self.edges, tuple) else ()):
+            if not isinstance(edge, ReviewEdge):
+                violations.append(
+                    ReviewCaseViolation(
+                        "invalid_type",
+                        f"edges[{index}]",
+                        "expected ReviewEdge",
+                        edge,
+                    )
+                )
+        event_ids: set[str] = set()
+        for index, event in enumerate(self.events if isinstance(self.events, tuple) else ()):
+            if not isinstance(event, ReviewEvent):
+                violations.append(
+                    ReviewCaseViolation(
+                        "invalid_type",
+                        f"events[{index}]",
+                        "expected ReviewEvent",
+                        event,
+                    )
+                )
+                continue
+            if event.event_id in event_ids:
+                violations.append(
+                    ReviewCaseViolation(
+                        "duplicate_event_id",
+                        f"events[{index}].event_id",
+                        "event ids must be unique within a packet",
+                        event.event_id,
+                    )
+                )
+            event_ids.add(event.event_id)
         _raise_if(violations)
