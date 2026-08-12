@@ -27,6 +27,11 @@ from law_nexus_harness.review_case.application import (
     review_case_status,
     validate_review_cases,
 )
+from law_nexus_harness.review_case.delta import (
+    DELTA_MAP_SCHEMA_VERSION,
+    ReviewDeltaMap,
+    build_review_delta_map,
+)
 from law_nexus_harness.review_case.domain import (
     EVENT_LEDGER_SCHEMA_VERSION,
     SCHEMA_VERSION,
@@ -82,9 +87,11 @@ from law_nexus_harness.review_case.ports import (
 
 __all__ = [
     "APP_REPORT_SCHEMA_VERSION",
+    "DELTA_MAP_SCHEMA_VERSION",
     "EVENT_LEDGER_SCHEMA_VERSION",
     "SCHEMA_VERSION",
     "AppendEventReport",
+    "ReviewDeltaMap",
     "ContentHasher",
     "EventLedger",
     "EventLedgerEnvelope",
@@ -129,6 +136,7 @@ __all__ = [
     "VerificationStatus",
     "apply_event",
     "assert_relation",
+    "build_review_delta_map",
     "derive_finding_status",
     "derive_packet_statuses",
     "mark_stale",

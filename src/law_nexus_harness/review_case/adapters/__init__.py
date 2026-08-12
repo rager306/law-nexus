@@ -20,6 +20,7 @@ from law_nexus_harness.review_case.adapters.pydantic_codec import (
     load_envelope,
     load_event,
     load_packet,
+    load_packets,
 )
 
 __all__ = [
@@ -36,4 +37,5 @@ __all__ = [
     "load_envelope",
     "load_event",
     "load_packet",
+    "load_packets",
 ]

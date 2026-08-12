@@ -69,6 +69,7 @@ _REVIEW_CASE_INNER_MODULE_PATHS = frozenset(
         "review_case/policy.py",
         "review_case/ports.py",
         "review_case/application.py",
+        "review_case/delta.py",
     }
 )
 _REVIEW_CASE_FORBIDDEN_LOCAL_MODULES = frozenset(

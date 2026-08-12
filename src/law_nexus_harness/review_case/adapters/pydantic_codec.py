@@ -601,6 +601,76 @@ def load_packet(data: bytes) -> ReviewPacket:
     return packet
 
 
+def load_packets(data: bytes) -> tuple[ReviewPacket, ...]:
+    """Load one packet object or a JSON array of packets and validate jointly.
+
+    Cross-packet finding endpoints require multi-packet policy validation; this
+    is the public path for two-review fixtures. Still non-authoritative.
+    """
+    if not isinstance(data, (bytes, bytearray)):
+        raise ReviewCaseCodecError(
+            code="invalid_json",
+            field_path=(),
+            message="packet input must be UTF-8 JSON bytes",
+        )
+    try:
+        text = bytes(data).decode("utf-8")
+    except UnicodeDecodeError as error:
+        raise ReviewCaseCodecError(
+            code="invalid_json",
+            field_path=(),
+            message="packet input is not valid UTF-8 JSON",
+        ) from error
+    try:
+        payload = json.loads(text)
+    except json.JSONDecodeError as error:
+        raise ReviewCaseCodecError(
+            code="invalid_json",
+            field_path=(),
+            message="packet input is not valid JSON",
+        ) from error
+    if isinstance(payload, dict):
+        items: list[Any] = [payload]
+    elif isinstance(payload, list):
+        items = list(payload)
+    else:
+        raise ReviewCaseCodecError(
+            code="invalid_json",
+            field_path=(),
+            message="packet payload must be an object or array of objects",
+        )
+    packets: list[ReviewPacket] = []
+    for index, item in enumerate(items):
+        try:
+            # Re-encode each object so enum/string wire values follow the same
+            # path as load_packet (model_validate_json), then convert to domain.
+            wire = PacketWire.model_validate_json(
+                json.dumps(item, ensure_ascii=False, separators=(",", ":")),
+                strict=True,
+            )
+            packets.append(_to_packet(wire))
+        except ValidationError as error:
+            raise _from_validation_error(error) from error
+        except ReviewCaseValidationError as error:
+            first = error.violations[0]
+            raise ReviewCaseCodecError(
+                code="domain_validation",
+                field_path=(index, *tuple(part for part in first.field_path.split(".") if part)),
+                message=first.message,
+            ) from error
+    ordered = tuple(packets)
+    try:
+        validate_review_policy(ordered)
+    except ReviewCaseValidationError as error:
+        first = error.violations[0]
+        raise ReviewCaseCodecError(
+            code="policy_validation",
+            field_path=tuple(part for part in first.field_path.split(".") if part),
+            message=first.message,
+        ) from error
+    return ordered
+
+
 def dump_packet(packet: ReviewPacket) -> bytes:
     try:
         validate_review_policy((packet,))
