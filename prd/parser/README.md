@@ -110,17 +110,19 @@ Historical M072 probe snapshot at its frozen input revision (53 fixtures; not th
   exists.
 
 NON-CLAIMS: the historical probe snapshot does not validate parser completeness, legal correctness, R035/R037/R038, historical FalkorDB, retrieval, multi-source readiness or the current tracked corpus inventory. It is observability of the M072 document-level seam at its frozen inputs. Current representative claims must use the tracked manifest, provider isolation, annotation provenance and evidence ladder defined by `representative_golden_corpus_acceptance_protocol.md`.
-- Parser record schema/example/report generator: `uv run python scripts/validate-parser-records.py --write`
-- Parser record contract check: `uv run python scripts/validate-parser-records.py --check`
-- Golden-test contract term check: `rg -n "evidence-present|no-answer|candidate-only|unresolved-reference|non-authoritative|parser completeness|retrieval quality|legal-answer correctness" prd/parser/golden_test_contract.md`
-- Golden-case generator/check command: `uv run python scripts/build-parser-golden-cases.py --check`
-- Full S01 fixture verification: `uv run python scripts/inventory-parser-fixtures.py --check && uv run pytest -q tests/test_parser_fixture_inventory.py`
-- Full S02 parser-record verification: `uv run python scripts/validate-parser-records.py --check && test -s prd/parser/schemas/parser_record.schema.json && test -s prd/parser/parser_record_contract.md`
-- ODT smoke artifact generator/check command: `uv run python scripts/build-odt-smoke-records.py --check`
-- ODT smoke document validation: `uv run python scripts/validate-parser-records.py --kind document prd/parser/odt_document_records.jsonl`
-- ODT smoke source-block validation: `uv run python scripts/validate-parser-records.py --kind source_block prd/parser/odt_source_block_records.jsonl`
+Current Rust verification routes:
 
-## Source priority for M009
+- `cargo test -p ln-decode --offline`
+- `cargo test -p ln-testkit --test block_decoder_port_contracts --offline`
+- `rg -n "evidence-present|no-answer|candidate-only|unresolved-reference|non-authoritative|parser completeness|retrieval quality|legal-answer correctness" prd/parser/golden_test_contract.md`
+
+The Python M006–M009 generator/evaluator scripts and their large JSONL/staging outputs are no longer active-plane verification routes. Their absent paths below are retained only as historical workflow names; do not execute them or cite them as current proof.
+
+## Historical M006–M009 workflow reference
+
+Everything from this heading through the historical S02–S05/golden workflow sections records prior process shape. Many named scripts, tests and generated JSONL/staging artifacts are absent from the active plane after archive cleanup. Their old counts and commands are non-runnable archaeology, not current Rust acceptance. Active verification uses the protocol and Cargo routes above.
+
+### Source priority for M009 (historical)
 
 M009 treats Consultant Plus WordML as the primary source contract and active parser priority for full normative-act source-shape evidence. The canonical full-act fixture is `law-source/consultant/44-FZ-2026.xml`, and the canonical Consultant document-list fixture remains prior-art relation evidence only. Garant ODT work is lower-priority/deferred from M009; no M009 success criterion requires fresh Garant regression proof. Earlier ODT smoke/parser-record artifacts remain bounded evidence surfaces and must not be read as M009 multi-source readiness.
 
@@ -142,9 +144,9 @@ The tracked inventory and prior-art reports expose hashes, shape diagnostics, mi
 - Classification: `removed-root-level-byte-identical-duplicate-must-remain-absent`
 - The inventory fails if the duplicate reappears, and the manifest records any such path under `fixture_hygiene.unexpected_duplicate_paths`.
 
-## Parser record contract artifacts
+### Parser record contract artifacts (active schemas/examples; historical generated rows)
 
-Generated parser record artifacts live alongside the fixture inventory and are checked by `scripts/validate-parser-records.py`.
+The schemas, examples and human-readable contracts in the table remain active thin surfaces. Generated JSONL rows and the historical Python validator referenced by later sections are absent unless the path currently exists; absence must not be interpreted as fresh proof.
 
 | Path | Contract |
 |---|---|
@@ -158,7 +160,7 @@ Generated parser record artifacts live alongside the fixture inventory and are c
 | `prd/parser/examples/relation_candidate_records.jsonl` | Positive relation-candidate examples using the Consultant WordML fixture as prior-art/candidate evidence only. |
 | `prd/parser/parser_record_contract.md` | Human-readable contract report, CLI usage, downstream notes, diagnostics, and explicit non-claims. |
 
-## ODT smoke parser artifacts
+### ODT smoke parser artifacts (historical workflow)
 
 S03 adds deterministic smoke artifacts for only the two canonical Garant ODT fixtures. The generator reads raw `content.xml` heading/paragraph traversal order, emits bounded `DocumentRecord` and `SourceBlockRecord` JSONL that validates against the S02 parser-record CLI, and writes a compact JSON/Markdown report with schema version, generator name, status, cap, per-document raw/emitted counts, source hashes, table counts, truncation state, first/last emitted excerpt hashes, non-claims, and artifact freshness diagnostics.
 
@@ -171,7 +173,7 @@ S03 adds deterministic smoke artifacts for only the two canonical Garant ODT fix
 
 S03 advances only the ODT portion of R031 by proving that the canonical Garant ODT fixtures can produce deterministic, bounded parser-record smoke artifacts. It does not prove parser completeness, legal correctness, product ETL readiness, FalkorDB readiness, legal answer generation, or citation-safe retrieval. S05 may consume these validated records as NetworkX/FalkorDB staging/debug inputs, but S05 still owns graph compatibility proof and any later narrowing of these non-claims.
 
-## Consultant WordML relation candidate artifacts
+### Consultant WordML relation candidate artifacts (historical workflow)
 
 S04 adds deterministic Consultant WordML relation-candidate artifacts for future S05 consumers. These artifacts are generated only from the canonical prior-art fixture `law-source/consultant/Список документов (5).xml`; future consumers should use the tracked outputs below instead of reparsing or globbing Consultant XML directly.
 
@@ -191,7 +193,7 @@ Current fixture result: the canonical Consultant WordML fixture currently yields
 
 S04 remains non-authoritative. It does not claim parser completeness, legal correctness, product ETL readiness, FalkorDB product runtime readiness, FalkorDB loading/runtime readiness, Consultant WordML legal authority, relation correctness, NetworkX graph invariants, ODT endpoint resolution, or product graph truth.
 
-## NetworkX parser staging graph artifacts
+### NetworkX parser staging graph artifacts (historical workflow)
 
 S05 adds deterministic NetworkX `MultiDiGraph` staging/debug reports over the S02-valid S03 ODT records and S04 Consultant relation candidates. The builder preserves keyed relation-candidate edges, emits unresolved-reference nodes instead of rewriting Consultant references into ODT document IDs, and reports graph invariant diagnostics before any later historical FalkorDB load-shape work.
 
@@ -210,11 +212,11 @@ Current canonical S05 result: `document_count=2`, `source_block_count=48`, `rela
 
 S05 advances R031 only for deterministic NetworkX `MultiDiGraph` staging invariants over the current validated parser-record artifacts. It does not claim parser completeness, legal correctness, product ETL readiness, FalkorDB loading/runtime readiness, relation correctness, legal answer generation, citation-safe retrieval, or product graph truth.
 
-## Parser/retrieval golden-test contract
+### Parser/retrieval golden-test contract (historical record vocabulary)
 
 M008 adds `prd/parser/golden_test_contract.md` as the static contract for future parser/retrieval golden tests over tracked M006 parser artifacts and R032. The contract defines the allowed case classes (`evidence-present`, `no-answer`, `candidate-only`, `unresolved-reference`, and `non-authoritative`), required evaluator result/diagnostic fields, source-anchor rules, allowed non-claims, and explicit out-of-scope claims. It is implementation-ready for later executable tests, but it does not itself prove parser completeness, retrieval quality, legal-answer correctness, citation-safe retrieval, product ETL readiness, or FalkorDB loading/runtime readiness.
 
-## Parser golden-case artifacts
+### Parser golden-case artifacts (historical workflow)
 
 S02 adds deterministic generated golden-case artifacts for future S03 evaluator work. The generator consumes only tracked M006 parser artifacts under `prd/parser/` and the static golden-test contract; future agents should use these tracked outputs instead of rescanning `law-source/`, reparsing raw ODT/XML fixtures, or globbing source directories to assemble golden tests.
 
@@ -231,7 +233,7 @@ S02 commands:
 
 Current canonical S02 golden-case result: five bounded cases, one for each allowed class (`evidence-present`, `no-answer`, `candidate-only`, `unresolved-reference`, and `non-authoritative`). These artifacts are evaluator inputs only. A passing golden-case check does not claim parser completeness, retrieval quality, legal-answer correctness, citation-safe retrieval readiness, product ETL readiness, FalkorDB loading/runtime readiness, Consultant WordML legal authority, relation correctness, or product graph truth.
 
-## Parser golden-case evaluator
+### Parser golden-case evaluator (historical workflow)
 
 S03 adds an executable evaluator for the tracked golden cases. Use `uv run python scripts/build-parser-golden-cases.py --check` first to verify that `prd/parser/golden_cases.json` is fresh against the tracked parser artifacts, then use `uv run python scripts/evaluate-parser-golden-cases.py --check` to evaluate the bounded case outcomes against those artifacts.
 
@@ -241,7 +243,7 @@ The evaluator reads only tracked local inputs under `prd/parser/`: `golden_cases
 
 Current canonical S03 evaluator scope: it verifies the required evidence-present, no-answer, candidate-only, unresolved-reference, and non-authoritative outcomes for the current tracked M006/S02 parser artifacts. A passing evaluator run does not claim product retrieval readiness, citation-safe answer readiness, parser completeness, relation correctness, FalkorDB runtime readiness, legal-answer correctness, Consultant WordML legal authority, or product graph truth.
 
-## Parser golden-test closure proof and S04 handoff
+### Parser golden-test closure proof and S04 handoff (historical workflow)
 
 S04 closes the M008/R032 golden-test proof chain with `prd/parser/golden_test_proof_report.md`, a cold-reader inspection surface over the tracked parser golden-case artifacts and executable local checks. Use it as the handoff report that records the current command evidence, observed public evaluator fields, required case coverage, blocked claims, and downstream limitations without echoing raw full legal text or introducing runtime/network dependencies.
 
@@ -266,7 +268,7 @@ The three golden-test surfaces are intentionally separate:
 
 S04/R032 validation is bounded to executable golden tests over tracked artifacts. It does not validate parser completeness, product retrieval quality, citation-safe retrieval readiness, legal-answer correctness, relation correctness, Consultant WordML legal authority, FalkorDB loading/runtime readiness, product ETL readiness, or product graph truth. R031 remains the separate M006 parser proof/staging gate, R017 remains the separate Legal KnowQL/generated-Cypher proof gate, and future retrieval/product/FalkorDB work must provide its own proof before narrowing any of these non-claims.
 
-## Consumer boundary for S03/S04/S05
+### Consumer boundary for S03/S04/S05 (historical workflow)
 
 - S03 ODT parsing should emit `DocumentRecord` and `SourceBlockRecord` JSONL that validates with `uv run python scripts/validate-parser-records.py --kind <kind> <file>` and preserves `non_authoritative: true`.
 - S04 Consultant WordML work may emit only `RelationCandidateRecord` candidate evidence until later validation upgrades or rejects individual candidates.
@@ -274,7 +276,7 @@ S04/R032 validation is bounded to executable golden tests over tracked artifacts
 - Later FalkorDB load-shape work may use the S05 node/edge kinds, keyed relation edge IDs, and path/rule-qualified diagnostics as a staging contract, but must run its own loading/runtime proof before narrowing the FalkorDB loading/runtime readiness non-claim.
 - All downstream consumers must preserve bounded excerpts/hashes and non-claims unless a later proof slice explicitly narrows one claim.
 
-## Non-claims and boundary
+### Historical workflow non-claims and boundary
 
 This fixture and parser-record contract is non-authoritative. It does not claim parser completeness, legal correctness, product ETL readiness, FalkorDB product runtime readiness, FalkorDB loading/runtime readiness, citation-safe retrieval readiness, or multi-source parser readiness. The Consultant Plus full-act WordML fixture is M009 primary only for full normative-act source-shape/hash evidence; it does not prove parsed legal semantics or Consultant WordML legal authority. The Consultant document-list WordML legal-authority non-claims mean the Consultant WordML XML fixture may only propose bounded relation-candidate evidence until later validation proves candidate relations. Garant ODT work is deferred/lower-priority from M009 and remains limited to earlier bounded ODT smoke/parser-record evidence.
 
