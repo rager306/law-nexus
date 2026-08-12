@@ -44,6 +44,17 @@ All notable changes to law-nexus are documented in this file.
 
 ## M166 review governance lifecycle (2026-08-12)
 
+### S05 Governor and clean-clone integration
+- CLI `validate`/`status` rematerialize base packets through the append-only
+  event ledger and fail closed on chain breaks; `register` remains base-only and
+  still does not invent human disposition.
+- Added Governor check `review-case-integrity` for authority laundering,
+  source-hash mismatch, orphan promotion, class-mismatched closure, and ledger
+  defects as hard structural findings; open findings stay advisory inventory.
+- Wired Review Case CLI, Governor, schema, and delta-fixture tests into the
+  repository-quality process suite and CI workflow for clean-clone coverage.
+  Real review findings remain open pending S06 human acceptance.
+
 ### S04 append-only disposition ledger
 - Added pure `apply_event` / `replay_events` so a clean base packet plus ordered
   consequential events deterministically materialize current status, including

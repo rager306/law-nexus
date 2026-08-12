@@ -84,7 +84,7 @@ proof class, tested revision, and durable evidence anchors.
 
 ## Codecs and runtime contour
 
-Measured S02–S04 shape under `src/law_nexus_harness/review_case/`:
+Measured S02–S05 shape under `src/law_nexus_harness/review_case/` and Governor:
 
 - **Inner model (S02/S04):** pure stdlib frozen values, policy, ports, and
   application use cases. No pydantic, pathlib, CLI, Governor, or GSD imports.
@@ -107,11 +107,16 @@ Measured S02–S04 shape under `src/law_nexus_harness/review_case/`:
   Application commands append only after pure apply succeeds, then rematerialize
   from durable ledger state. External IDs remain opaque references — no GSD or
   authority lifecycle is created or mirrored.
-- **CLI (S03):** `law-nexus-harness review-case {register,validate,status}` emits
-  deterministic JSON reports. Exit `0` success, `1` validation/policy, `2`
-  tool/adapter. Commands do not record human disposition, promote authority, or
-  create GSD work. Human disposition remains an application/port surface that
-  requires an authenticated parent interaction to supply actor identity.
+- **CLI (S03/S05):** `law-nexus-harness review-case {register,validate,status}`
+  emits deterministic JSON reports. Exit `0` success, `1` validation/policy, `2`
+  tool/adapter. `validate`/`status` rematerialize base packets through the ledger;
+  `register` remains base-only. Commands do not record human disposition, promote
+  authority, or create GSD work.
+- **Governor (S05):** check `review-case-integrity` hard-fails on authority
+  laundering, source-hash mismatch, orphan promotion, class-mismatched closure,
+  and ledger chain defects. Undispositioned open findings are advisory inventory
+  only and never elevate overall Governor status to failure. Portable process
+  suite coverage includes CLI, schema, delta fixture, and Governor checks.
 - **Adaptix:** still deferred. No measured mapping pain required it on the v1
   critical path; it remains absent from runtime and tests.
 
@@ -124,10 +129,9 @@ These **non-claims** are mandatory reading for any packet consumer:
 
 - Packets are **non-authoritative**. Green schema validation or CLI exit 0 is not
   semantic acceptance, product readiness, or legal correctness.
-- The S03 CLI is a control-plane vertical slice only. No Governor check or hosted
-  CI gate is claimed for disposition. S04 adds an append-only ledger and pure
-  application commands; it does **not** auto-disposition real reviews or create
-  GSD work.
+- S05 process gates prove structural integrity and clean-clone coverage only.
+  They do **not** auto-disposition real reviews, accept findings, or create GSD
+  work. Open findings remain advisory inventory.
 - No finding is accepted, rejected, or closed merely by existing as a packet or
   by being registered through the CLI.
 - Real review-11/review-12 findings remain `open / unplanned / unverified` until

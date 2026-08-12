@@ -733,6 +733,7 @@ def test_live_governor_passes_hostile_negative_suite_coverage() -> None:
     advisory_warn_ids = {
         "historical-test-debt-visibility",
         "archive-path-policy",
+        "review-case-integrity.open-findings",
     }
     other_warns = [
         f for f in report.findings if f.severity == "warn" and f.check_id not in advisory_warn_ids
@@ -769,6 +770,7 @@ def test_live_governor_passes_live_adapter_readiness() -> None:
     advisory_warn_ids = {
         "historical-test-debt-visibility",
         "archive-path-policy",
+        "review-case-integrity.open-findings",
     }
     other_warns = [
         f for f in report.findings if f.severity == "warn" and f.check_id not in advisory_warn_ids
