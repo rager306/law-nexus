@@ -21,7 +21,7 @@ from collections.abc import Callable
 from dataclasses import asdict, dataclass, replace
 from datetime import UTC, date, datetime
 from pathlib import Path
-from typing import Any, Literal
+from typing import Any, Literal, cast
 
 from law_nexus_harness.adr_matrix import (
     DEFAULT_ADR_MATRIX_PATH,
@@ -3613,6 +3613,369 @@ _PROCESS_NON_CLAIM = (
     "lifecycle validation."
 )
 
+_REVIEW_CASE_ROOT = "prd/architecture/review-cases"
+_REVIEW_CASE_FIXTURES = f"{_REVIEW_CASE_ROOT}/fixtures"
+_REVIEW_CASE_PACKETS = f"{_REVIEW_CASE_ROOT}/packets"
+_ACCEPTING_DISPOSITIONS = frozenset(
+    {
+        "accepted_as_gap",
+        "accepted_as_requirement_candidate",
+        "accepted_as_decision_candidate",
+        "accepted_as_process_defect",
+        "already_satisfied",
+    }
+)
+_PASSING_VERIFICATION = frozenset({"passed_bounded", "passed_smoke", "passed_validated"})
+
+
+def _review_case_json_paths(root: Path) -> list[Path]:
+    paths: list[Path] = []
+    for relative in (_REVIEW_CASE_FIXTURES, _REVIEW_CASE_PACKETS):
+        base = root / relative
+        if not base.exists():
+            continue
+        if base.is_file() and base.suffix == ".json":
+            paths.append(base)
+            continue
+        if not base.is_dir():
+            continue
+        for path in sorted(base.rglob("*.json")):
+            if path.is_file() and not path.name.startswith("."):
+                # Envelope history lives under packets/<id>/events/; scanned separately.
+                if "/events/" in path.as_posix() or path.parent.name == "events":
+                    continue
+                paths.append(path)
+    return paths
+
+
+def _review_case_packets_from_payload(payload: object) -> list[dict[str, Any]]:
+    if isinstance(payload, dict):
+        return [cast(dict[str, Any], payload)]
+    if isinstance(payload, list):
+        packets: list[dict[str, Any]] = []
+        for item in payload:
+            if isinstance(item, dict):
+                packets.append(cast(dict[str, Any], item))
+        return packets
+    return []
+
+
+def _review_case_structural_violations(packet: dict[str, Any]) -> list[str]:
+    violations: list[str] = []
+    if packet.get("schema_version") != "review-case/v1":
+        violations.append("invalid_schema_version")
+    if packet.get("authoritative") is not False:
+        violations.append("authority_laundering")
+    if packet.get("authority_required") is not True:
+        violations.append("authority_required_missing")
+    if "derived_status" in packet:
+        violations.append("author_written_derived_status")
+
+    source = packet.get("source")
+    normalization = packet.get("normalization")
+    if not isinstance(source, dict):
+        violations.append("missing_source")
+        source = {}
+    if not isinstance(normalization, dict):
+        violations.append("missing_normalization")
+        normalization = {}
+    source_hash = source.get("content_sha256")
+    norm_hash = normalization.get("source_hash")
+    if (
+        isinstance(source_hash, str)
+        and isinstance(norm_hash, str)
+        and source_hash
+        and norm_hash
+        and source_hash != norm_hash
+    ):
+        violations.append("source_hash_mismatch")
+
+    findings = packet.get("findings")
+    if not isinstance(findings, list):
+        violations.append("invalid_findings")
+        findings = []
+    finding_ids = {
+        item.get("finding_id")
+        for item in findings
+        if isinstance(item, dict) and isinstance(item.get("finding_id"), str)
+    }
+    for item in findings:
+        if not isinstance(item, dict):
+            violations.append("invalid_finding")
+            continue
+        if "derived_status" in item:
+            violations.append("author_written_derived_status")
+        if item.get("disposition_status") in _ACCEPTING_DISPOSITIONS:
+            # Accepting disposition requires a matching human event later.
+            pass
+        if item.get("verification_status") in _PASSING_VERIFICATION and item.get(
+            "required_proof_class"
+        ) in {"implementation", "evidence"}:
+            # Proof class matching is checked against verification events below.
+            pass
+
+    events = packet.get("events")
+    if not isinstance(events, list):
+        violations.append("invalid_events")
+        events = []
+    human_accepting: set[str] = set()
+    for event in events:
+        if not isinstance(event, dict):
+            violations.append("invalid_event")
+            continue
+        payload = event.get("payload")
+        if not isinstance(payload, dict):
+            payload = {}
+        event_type = event.get("event_type")
+        actor_class = event.get("actor_class")
+        finding_id = event.get("finding_id")
+        disposition = payload.get("disposition")
+        if event_type == "disposition_recorded":
+            if actor_class != "human":
+                violations.append("non_human_disposition")
+            if disposition in _ACCEPTING_DISPOSITIONS and isinstance(finding_id, str):
+                human_accepting.add(finding_id)
+        if event_type == "verification_recorded":
+            proof_class = payload.get("proof_class")
+            result = payload.get("verification_result")
+            target = next(
+                (
+                    item
+                    for item in findings
+                    if isinstance(item, dict) and item.get("finding_id") == finding_id
+                ),
+                None,
+            )
+            required = None if target is None else target.get("required_proof_class")
+            if result in _PASSING_VERIFICATION and required in {
+                "implementation",
+                "evidence",
+            }:
+                if proof_class != required:
+                    violations.append("class_mismatched_closure")
+                if proof_class in {"docs", "process"}:
+                    violations.append("docs_process_cannot_close_implementation")
+            if result == "passed_validated":
+                violations.append("validated_proof_forbidden")
+
+    for item in findings:
+        if not isinstance(item, dict):
+            continue
+        finding_id = item.get("finding_id")
+        if (
+            item.get("disposition_status") in _ACCEPTING_DISPOSITIONS
+            and isinstance(finding_id, str)
+            and finding_id not in human_accepting
+        ):
+            violations.append("accepting_disposition_without_human_event")
+
+    edges = packet.get("edges")
+    if not isinstance(edges, list):
+        violations.append("invalid_edges")
+        edges = []
+    for edge in edges:
+        if not isinstance(edge, dict):
+            violations.append("invalid_edge")
+            continue
+        if edge.get("type") == "maps_to" and edge.get("status") != "candidate":
+            violations.append("maps_to_must_remain_candidate")
+        if edge.get("type") == "promoted_to":
+            from_id = edge.get("from")
+            if not isinstance(from_id, str) or from_id not in human_accepting:
+                violations.append("orphan_promotion")
+            # promoted_to may target external IDs; from_id should be a finding.
+            if isinstance(from_id, str) and from_id not in finding_ids:
+                violations.append("promotion_from_unknown_finding")
+
+    return sorted(set(violations))
+
+
+def _review_case_open_inventory(packet: dict[str, Any]) -> int:
+    findings = packet.get("findings")
+    if not isinstance(findings, list):
+        return 0
+    count = 0
+    for item in findings:
+        if not isinstance(item, dict):
+            continue
+        if (
+            item.get("disposition_status") == "open"
+            and item.get("execution_status") == "unplanned"
+            and item.get("verification_status") == "unverified"
+        ):
+            count += 1
+    return count
+
+
+def _review_case_ledger_violations(root: Path) -> list[str]:
+    """Structural integrity for append-only envelope directories only."""
+    packets_root = root / _REVIEW_CASE_PACKETS
+    if not packets_root.exists():
+        return []
+    violations: list[str] = []
+    for packet_dir in sorted(path for path in packets_root.iterdir() if path.is_dir()):
+        events_dir = packet_dir / "events"
+        if not events_dir.exists():
+            continue
+        if events_dir.is_symlink() or not events_dir.is_dir():
+            violations.append("ledger_unavailable")
+            continue
+        names = sorted(
+            path.name
+            for path in events_dir.iterdir()
+            if path.is_file() and path.suffix == ".json" and not path.name.startswith(".")
+        )
+        previous_hash: str | None = None
+        for index, name in enumerate(names, start=1):
+            match = re.fullmatch(
+                r"(\d{6})-([A-Za-z0-9][A-Za-z0-9._-]{0,127})\.json",
+                name,
+            )
+            if match is None:
+                violations.append("corrupt_ledger")
+                continue
+            sequence = int(match.group(1))
+            if sequence != index:
+                violations.append("ledger_gap_or_fork")
+            path = events_dir / name
+            if path.is_symlink():
+                violations.append("symlink_rejected")
+                continue
+            try:
+                payload = json.loads(path.read_text(encoding="utf-8"))
+            except (OSError, UnicodeDecodeError, json.JSONDecodeError):
+                violations.append("corrupt_envelope")
+                continue
+            if not isinstance(payload, dict):
+                violations.append("corrupt_envelope")
+                continue
+            if payload.get("schema_version") != "review-case-event-ledger/v1":
+                violations.append("invalid_ledger_schema_version")
+            if payload.get("authoritative") is not False:
+                violations.append("authority_laundering")
+            if payload.get("sequence") != sequence:
+                violations.append("envelope_name_mismatch")
+            if payload.get("previous_envelope_sha256") != previous_hash:
+                violations.append("ledger_chain_break")
+            previous_hash = payload.get("envelope_sha256")
+            if not isinstance(previous_hash, str):
+                violations.append("corrupt_envelope")
+                previous_hash = None
+    return sorted(set(violations))
+
+
+def check_review_case_integrity(root: Path) -> list[GovernorFinding]:
+    """Structural integrity for non-authoritative Review Case projections.
+
+    Hard findings are structural/provenance only: authority laundering, hash
+    mismatch, orphan promotion, class-mismatched closure, and ledger chain
+    defects. Undispositioned open findings are advisory inventory, never error.
+    """
+    check_id = "review-case-integrity"
+    remediation = (
+        "Repair structural packet/ledger defects under "
+        "prd/architecture/review-cases/; do not treat open findings as product "
+        "failures or invent human disposition."
+    )
+    paths = _review_case_json_paths(root)
+    structural: list[str] = []
+    open_count = 0
+    packet_count = 0
+    scanned: list[str] = []
+
+    fixtures_present = (root / _REVIEW_CASE_FIXTURES).exists()
+    packets_present = (root / _REVIEW_CASE_PACKETS).exists()
+    if not paths and not fixtures_present and not packets_present:
+        return [
+            GovernorFinding(
+                check_id=check_id,
+                status="pass",
+                severity="ok",
+                message="no Review Case fixtures or packets present",
+                observed=(
+                    "packet_count=0, open_count=0 "
+                    "(lifecycle [bounded]; process integrity only; not semantic acceptance)."
+                ),
+                remediation="none",
+            )
+        ]
+
+    for path in paths:
+        rel = path.relative_to(root).as_posix()
+        scanned.append(rel)
+        try:
+            payload = json.loads(path.read_text(encoding="utf-8"))
+        except (OSError, UnicodeDecodeError, json.JSONDecodeError):
+            structural.append(f"{rel}:corrupt_packet")
+            continue
+        packets = _review_case_packets_from_payload(payload)
+        if not packets:
+            structural.append(f"{rel}:invalid_packet_payload")
+            continue
+        for packet in packets:
+            packet_count += 1
+            open_count += _review_case_open_inventory(packet)
+            for code in _review_case_structural_violations(packet):
+                structural.append(f"{rel}:{code}")
+
+    for code in _review_case_ledger_violations(root):
+        structural.append(f"{_REVIEW_CASE_PACKETS}:{code}")
+
+    findings: list[GovernorFinding] = []
+    if structural:
+        preview = ",".join(sorted(structural)[:12])
+        if len(structural) > 12:
+            preview += f",+{len(structural) - 12}"
+        findings.append(
+            GovernorFinding(
+                check_id=check_id,
+                status="fail",
+                severity="error",
+                message="Review Case structural integrity defects detected",
+                observed=(
+                    f"packet_count={packet_count}, defect_count={len(structural)}, "
+                    f"defects=[{preview}] (lifecycle [bounded]; process integrity only; "
+                    f"not product readiness)."
+                ),
+                remediation=remediation,
+            )
+        )
+    else:
+        findings.append(
+            GovernorFinding(
+                check_id=check_id,
+                status="pass",
+                severity="ok",
+                message="Review Case packets/ledgers satisfy structural integrity",
+                observed=(
+                    f"packet_count={packet_count}, scanned={len(scanned)}, "
+                    f"open_count={open_count} (lifecycle [bounded]; process integrity only; "
+                    f"open findings are advisory, not failures)."
+                ),
+                remediation="none",
+            )
+        )
+
+    if open_count:
+        findings.append(
+            GovernorFinding(
+                check_id=f"{check_id}.open-findings",
+                status="fail",
+                severity="warn",
+                message="undispositioned Review Case findings remain open",
+                observed=(
+                    f"open_count={open_count}, packet_count={packet_count} "
+                    f"(lifecycle [bounded]; advisory inventory only; human disposition "
+                    f"required before acceptance)."
+                ),
+                remediation=(
+                    "Record explicit human disposition in S06 or later; do not auto-accept "
+                    "or promote findings from open inventory."
+                ),
+            )
+        )
+    return findings
+
 
 def _check_spec(
     check_id: str,
@@ -3922,6 +4285,19 @@ GOVERNOR_CHECK_SPECS: tuple[CheckSpec, ...] = (
         "Surface unqualified decommissioned-era vocabulary on living entrypoints.",
         _ERA_NOISE_SCAN_PATHS,
         "warn",
+    ),
+    _check_spec(
+        "review-case-integrity",
+        "docs",
+        "deterministic",
+        check_review_case_integrity,
+        "Detect Review Case authority laundering, hash drift, orphan promotion, class-mismatched closure, and ledger chain defects; open findings stay advisory.",
+        (
+            f"{_REVIEW_CASE_FIXTURES}/**/*.json",
+            f"{_REVIEW_CASE_PACKETS}/**/*.json",
+            "prd/architecture/review-case.schema.json",
+        ),
+        "error",
     ),
 )
 
