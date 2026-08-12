@@ -519,6 +519,13 @@ def test_schema_root_contract(schema: Mapping[str, Any]) -> None:
     assert schema["properties"]["authoritative"]["const"] is False
     assert schema["properties"]["authority_required"]["const"] is True
     finding_props = schema["$defs"]["finding"]["properties"]
+    event_payload_props = schema["$defs"]["event"]["properties"]["payload"]["properties"]
+    assert event_payload_props["verification_result"]["enum"] == [
+        "passed_bounded",
+        "passed_smoke",
+        "failed",
+        "inconclusive",
+    ]
     assert "derived_status" not in finding_props
     assert "derived_status" not in schema["properties"]
 

@@ -119,6 +119,16 @@ class VerificationStatus(StrEnum):
     STALE = "stale"
 
 
+class DerivedStatus(StrEnum):
+    OPEN = "open"
+    BLOCKED = "blocked"
+    PARTIAL = "partial"
+    READY_FOR_CLOSURE = "ready_for_closure"
+    CLOSED = "closed"
+    TERMINAL_WITHOUT_IMPLEMENTATION = "terminal_without_implementation"
+    STALE = "stale"
+
+
 class RelationType(StrEnum):
     REFINES = "refines"
     REASSESSES = "reassesses"
@@ -533,6 +543,55 @@ class ReviewEdge:
         _raise_if(violations)
 
 
+def _validate_text_tuple(
+    values: object,
+    *,
+    field_path: str,
+    allow_empty: bool,
+    path_items: bool = False,
+) -> list[ReviewCaseViolation]:
+    violations: list[ReviewCaseViolation] = []
+    if not isinstance(values, tuple):
+        return [
+            ReviewCaseViolation(
+                "invalid_collection",
+                field_path,
+                "expected immutable tuple",
+                type(values).__name__,
+            )
+        ]
+    if not values and not allow_empty:
+        violations.append(
+            ReviewCaseViolation(
+                "missing_items",
+                field_path,
+                "expected at least one item",
+                values,
+            )
+        )
+        return violations
+    for index, item in enumerate(values):
+        item_path = f"{field_path}[{index}]"
+        if not isinstance(item, str):
+            violations.append(
+                ReviewCaseViolation(
+                    "invalid_type",
+                    item_path,
+                    "expected string",
+                    type(item).__name__,
+                )
+            )
+            continue
+        if path_items:
+            _collect(violations, _validate_repo_relative_path(item, field_path=item_path))
+        else:
+            _collect(
+                violations,
+                _require_nonempty_text(item, field_path=item_path, code="empty_text"),
+            )
+    return violations
+
+
 @dataclass(frozen=True, slots=True)
 class ReviewEvent:
     event_id: str
@@ -547,6 +606,13 @@ class ReviewEvent:
     edge_type: RelationType | None = None
     from_id: str | None = None
     to_id: str | None = None
+    proof_class: ProofClass | None = None
+    verification_result: VerificationStatus | None = None
+    tested_revision: str | None = None
+    evidence_anchors: tuple[str, ...] | None = None
+    completed_scope: tuple[str, ...] | None = None
+    residual_scope: tuple[str, ...] | None = None
+    non_claims: tuple[str, ...] | None = None
 
     def __post_init__(self) -> None:
         violations: list[ReviewCaseViolation] = []
@@ -616,6 +682,67 @@ class ReviewEvent:
             _collect(violations, _require_id(self.from_id, field_path="event.from_id"))
         if self.to_id is not None:
             _collect(violations, _require_id(self.to_id, field_path="event.to_id"))
+        if self.proof_class is not None and not isinstance(self.proof_class, ProofClass):
+            violations.append(
+                ReviewCaseViolation(
+                    "invalid_enum",
+                    "event.proof_class",
+                    "expected ProofClass",
+                    self.proof_class,
+                )
+            )
+        if self.verification_result is not None and not isinstance(
+            self.verification_result, VerificationStatus
+        ):
+            violations.append(
+                ReviewCaseViolation(
+                    "invalid_enum",
+                    "event.verification_result",
+                    "expected VerificationStatus",
+                    self.verification_result,
+                )
+            )
+        if self.tested_revision is not None:
+            _collect(
+                violations,
+                _validate_git_revision(
+                    self.tested_revision,
+                    field_path="event.tested_revision",
+                ),
+            )
+        if self.evidence_anchors is not None:
+            violations.extend(
+                _validate_text_tuple(
+                    self.evidence_anchors,
+                    field_path="event.evidence_anchors",
+                    allow_empty=False,
+                    path_items=True,
+                )
+            )
+        if self.completed_scope is not None:
+            violations.extend(
+                _validate_text_tuple(
+                    self.completed_scope,
+                    field_path="event.completed_scope",
+                    allow_empty=True,
+                )
+            )
+        if self.residual_scope is not None:
+            violations.extend(
+                _validate_text_tuple(
+                    self.residual_scope,
+                    field_path="event.residual_scope",
+                    allow_empty=True,
+                )
+            )
+        if self.non_claims is not None:
+            violations.extend(
+                _validate_text_tuple(
+                    self.non_claims,
+                    field_path="event.non_claims",
+                    allow_empty=False,
+                )
+            )
         _raise_if(violations)
 
 

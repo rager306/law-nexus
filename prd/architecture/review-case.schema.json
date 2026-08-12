@@ -513,6 +513,15 @@
             "proof_class": {
               "$ref": "#/$defs/proof_class"
             },
+            "verification_result": {
+              "type": "string",
+              "enum": [
+                "passed_bounded",
+                "passed_smoke",
+                "failed",
+                "inconclusive"
+              ]
+            },
             "tested_revision": {
               "$ref": "#/$defs/git_revision"
             },
