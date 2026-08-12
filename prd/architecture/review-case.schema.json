@@ -1,0 +1,473 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://law-nexus.local/prd/architecture/review-case.schema.json",
+  "title": "law-nexus Review Case packet",
+  "description": "Non-authoritative Review Case wire schema (review-case/v1). Packets are projections over immutable review sources. They are not architecture, Product, Requirements, ADR, roadmap, legal, or execution authority. Semantic promotion requires a human disposition event outside this schema. This schema is a structural contract only; cross-field lifecycle invariants are enforced by application/test oracles.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "authoritative",
+    "authority_required",
+    "packet_id",
+    "source",
+    "normalization",
+    "non_claims",
+    "findings",
+    "edges",
+    "events"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "const": "review-case/v1"
+    },
+    "authoritative": {
+      "type": "boolean",
+      "const": false
+    },
+    "authority_required": {
+      "type": "boolean",
+      "const": true
+    },
+    "packet_id": {
+      "$ref": "#/$defs/non_empty_string"
+    },
+    "source": {
+      "$ref": "#/$defs/source_record"
+    },
+    "normalization": {
+      "$ref": "#/$defs/normalization"
+    },
+    "non_claims": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/non_empty_string"
+      }
+    },
+    "findings": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/finding"
+      }
+    },
+    "edges": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/edge"
+      }
+    },
+    "events": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/event"
+      }
+    }
+  },
+  "$defs": {
+    "non_empty_string": {
+      "type": "string",
+      "minLength": 1
+    },
+    "path_string": {
+      "type": "string",
+      "minLength": 1,
+      "not": {
+        "pattern": "^/"
+      }
+    },
+    "sha256": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "git_revision": {
+      "type": "string",
+      "minLength": 40,
+      "maxLength": 40,
+      "pattern": "^[a-f0-9]{40}$"
+    },
+    "timestamp": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T"
+    },
+    "proof_class": {
+      "type": "string",
+      "enum": [
+        "docs",
+        "design",
+        "implementation",
+        "evidence",
+        "process"
+      ]
+    },
+    "source_record": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "path",
+        "content_sha256",
+        "reviewed_git_revision",
+        "received_at",
+        "source_kind"
+      ],
+      "properties": {
+        "path": {
+          "$ref": "#/$defs/path_string"
+        },
+        "content_sha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "reviewed_git_revision": {
+          "$ref": "#/$defs/git_revision"
+        },
+        "received_at": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "source_kind": {
+          "type": "string",
+          "enum": [
+            "human_external",
+            "human_internal",
+            "mixed",
+            "tool_generated"
+          ]
+        }
+      }
+    },
+    "normalization": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "status",
+        "method",
+        "source_hash"
+      ],
+      "properties": {
+        "status": {
+          "type": "string",
+          "enum": [
+            "draft_extracted",
+            "source_verified",
+            "human_reviewed",
+            "stale"
+          ]
+        },
+        "method": {
+          "type": "string",
+          "enum": [
+            "manual",
+            "script_assisted",
+            "llm_assisted"
+          ]
+        },
+        "source_hash": {
+          "$ref": "#/$defs/sha256"
+        },
+        "extractor_version": {
+          "$ref": "#/$defs/non_empty_string"
+        }
+      }
+    },
+    "source_span": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "path",
+        "line_start",
+        "line_end",
+        "quote_sha256"
+      ],
+      "properties": {
+        "path": {
+          "$ref": "#/$defs/path_string"
+        },
+        "heading": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "line_start": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "line_end": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "quote_sha256": {
+          "$ref": "#/$defs/sha256"
+        }
+      }
+    },
+    "candidate_target": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "surface",
+        "id"
+      ],
+      "properties": {
+        "surface": {
+          "type": "string",
+          "enum": [
+            "tsg",
+            "adr",
+            "product",
+            "requirement",
+            "assessment",
+            "code",
+            "roadmap",
+            "other"
+          ]
+        },
+        "id": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "note": {
+          "$ref": "#/$defs/non_empty_string"
+        }
+      }
+    },
+    "finding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "finding_id",
+        "kind",
+        "concern_class",
+        "reviewer_severity",
+        "summary",
+        "source_spans",
+        "candidate_targets",
+        "required_proof_class",
+        "normalization_status",
+        "disposition_status",
+        "execution_status",
+        "verification_status",
+        "non_claims"
+      ],
+      "properties": {
+        "finding_id": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "kind": {
+          "type": "string",
+          "enum": [
+            "strength",
+            "defect",
+            "gap",
+            "risk",
+            "recommendation",
+            "question",
+            "research_need",
+            "decision_need",
+            "roadmap_proposal"
+          ]
+        },
+        "concern_class": {
+          "type": "string",
+          "enum": [
+            "docs",
+            "design",
+            "implementation",
+            "evidence",
+            "process"
+          ]
+        },
+        "reviewer_severity": {
+          "type": "string",
+          "enum": [
+            "info",
+            "low",
+            "medium",
+            "high",
+            "critical"
+          ]
+        },
+        "summary": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "source_spans": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/source_span"
+          }
+        },
+        "candidate_targets": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/candidate_target"
+          }
+        },
+        "required_proof_class": {
+          "$ref": "#/$defs/proof_class"
+        },
+        "normalization_status": {
+          "type": "string",
+          "enum": [
+            "draft_extracted",
+            "source_verified",
+            "human_reviewed",
+            "stale"
+          ]
+        },
+        "disposition_status": {
+          "type": "string",
+          "enum": [
+            "open",
+            "needs_discussion",
+            "needs_research",
+            "accepted_as_gap",
+            "accepted_as_requirement_candidate",
+            "accepted_as_decision_candidate",
+            "accepted_as_process_defect",
+            "already_satisfied",
+            "rejected",
+            "deferred",
+            "duplicate",
+            "superseded",
+            "not_applicable"
+          ]
+        },
+        "execution_status": {
+          "type": "string",
+          "enum": [
+            "not_required",
+            "unplanned",
+            "planned",
+            "blocked",
+            "in_progress",
+            "partially_implemented",
+            "implemented",
+            "cancelled"
+          ]
+        },
+        "verification_status": {
+          "type": "string",
+          "enum": [
+            "not_applicable",
+            "unverified",
+            "inconclusive",
+            "failed",
+            "passed_bounded",
+            "passed_smoke",
+            "passed_validated",
+            "stale"
+          ]
+        },
+        "non_claims": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/non_empty_string"
+          }
+        }
+      }
+    },
+    "edge": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "type",
+        "from",
+        "to",
+        "status"
+      ],
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": [
+            "refines",
+            "reassesses",
+            "duplicates",
+            "supersedes",
+            "conflicts_with",
+            "splits_into",
+            "depends_on",
+            "blocked_by",
+            "maps_to",
+            "promoted_to",
+            "implemented_by",
+            "verified_by"
+          ]
+        },
+        "from": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "to": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "candidate",
+            "accepted",
+            "rejected"
+          ]
+        },
+        "note": {
+          "$ref": "#/$defs/non_empty_string"
+        }
+      }
+    },
+    "event": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "event_id",
+        "event_type",
+        "at",
+        "actor_class"
+      ],
+      "properties": {
+        "event_id": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "event_type": {
+          "type": "string",
+          "enum": [
+            "packet_registered",
+            "finding_extracted",
+            "span_verified",
+            "disposition_recorded",
+            "edge_asserted",
+            "execution_linked",
+            "verification_recorded",
+            "reopened",
+            "marked_stale"
+          ]
+        },
+        "at": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "actor_class": {
+          "type": "string",
+          "enum": [
+            "human",
+            "tool",
+            "llm"
+          ]
+        },
+        "actor_id": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "finding_id": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "source_revision": {
+          "$ref": "#/$defs/git_revision"
+        },
+        "tested_revision": {
+          "$ref": "#/$defs/git_revision"
+        },
+        "rationale": {
+          "$ref": "#/$defs/non_empty_string"
+        },
+        "payload": {
+          "type": "object"
+        }
+      }
+    }
+  }
+}
