@@ -44,6 +44,17 @@ All notable changes to law-nexus are documented in this file.
 
 ## M166 review governance lifecycle (2026-08-12)
 
+### S06 two-review delta map and hardening
+- Added pure `build_review_delta_map` projection and multi-packet `load_packets`
+  codec path for cross-review fixtures.
+- Tracked non-authoritative `review-11-12-delta-map.md` with empty confirmed
+  closures/accepted promotions, residual open inventory of 16 findings, and
+  explicit non-claims. No human disposition was invented; real findings remain
+  `open / unplanned / unverified`.
+- Process proof only: Review Case suites, Governor structural integrity, and
+  clean-clone process coverage remain green. Review-proposed roadmap sequences
+  stay proposals, not adopted authority.
+
 ### S05 Governor and clean-clone integration
 - CLI `validate`/`status` rematerialize base packets through the append-only
   event ledger and fail closed on chain breaks; `register` remains base-only and

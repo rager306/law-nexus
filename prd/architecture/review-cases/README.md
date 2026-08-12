@@ -84,7 +84,7 @@ proof class, tested revision, and durable evidence anchors.
 
 ## Codecs and runtime contour
 
-Measured S02–S05 shape under `src/law_nexus_harness/review_case/` and Governor:
+Measured S02–S06 shape under `src/law_nexus_harness/review_case/` and Governor:
 
 - **Inner model (S02/S04):** pure stdlib frozen values, policy, ports, and
   application use cases. No pydantic, pathlib, CLI, Governor, or GSD imports.
@@ -117,6 +117,9 @@ Measured S02–S05 shape under `src/law_nexus_harness/review_case/` and Governor
   and ledger chain defects. Undispositioned open findings are advisory inventory
   only and never elevate overall Governor status to failure. Portable process
   suite coverage includes CLI, schema, delta fixture, and Governor checks.
+- **Delta map (S06):** pure `build_review_delta_map` plus tracked
+  `review-11-12-delta-map.md` inventory residual open findings and candidate
+  cross-review relations. Confirmed closures remain empty without human events.
 - **Adaptix:** still deferred. No measured mapping pain required it on the v1
   critical path; it remains absent from runtime and tests.
 
