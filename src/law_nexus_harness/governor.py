@@ -676,13 +676,20 @@ def check_hostile_proof_chain(root: Path) -> list[GovernorFinding]:
         ]
 
     by_case: dict[int, dict[str, Any]] = {}
+    probe_evidence: list[GovernorEvidence] = []
     for path in sorted(probes.glob("hc*-runtime.json")):
         match = _HC_PROOF_RE.match(path.name)
         if not match:
             continue
         case_num = int(match.group(1))
-        payload = _load_json(path)
+        probe_text = path.read_text(encoding="utf-8")
+        payload = json.loads(probe_text)
         by_case[case_num] = payload
+        item_evidence = GovernorEvidence(
+            path=path.relative_to(root).as_posix(),
+            line=_line_containing(probe_text, '"evidence_id"'),
+        )
+        probe_evidence.append(item_evidence)
         evidence_id = str(payload.get("evidence_id", ""))
         expected_evidence = f"S10-HC-{case_num:02d}-RT"
         verdict = str(payload.get("verdict", ""))
@@ -718,6 +725,7 @@ def check_hostile_proof_chain(root: Path) -> list[GovernorFinding]:
                         "Rewrite the tracked proof package so evidence_id, verdict and "
                         "remaining_unsupported_cases match the contiguous PASS prefix"
                     ),
+                    evidence=(item_evidence,),
                 )
             )
 
@@ -764,6 +772,17 @@ def check_hostile_proof_chain(root: Path) -> list[GovernorFinding]:
     if baseline_path.is_file():
         text = baseline_path.read_text(encoding="utf-8")
         match = _BASELINE_AGG_RE.search(text)
+        baseline_evidence = GovernorEvidence(
+            path="prd/architecture/m111-final-architecture-baseline.md",
+            line=next(
+                (
+                    line_number
+                    for line_number, line in enumerate(text.splitlines(), start=1)
+                    if _BASELINE_AGG_RE.search(line)
+                ),
+                None,
+            ),
+        )
         expected_pass = max_case
         expected_fail = 0
         expected_unsupported = 20 - max_case
@@ -798,6 +817,7 @@ def check_hostile_proof_chain(root: Path) -> list[GovernorFinding]:
                         "Update current-state aggregate rows in "
                         "prd/architecture/m111-final-architecture-baseline.md after each HC PASS"
                     ),
+                    evidence=(baseline_evidence, *probe_evidence),
                 )
             )
     else:

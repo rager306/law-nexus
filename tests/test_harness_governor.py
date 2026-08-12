@@ -128,6 +128,15 @@ def test_hostile_proof_chain_detects_aggregate_mismatch(tmp_path: Path) -> None:
     findings = check_hostile_proof_chain(tmp_path)
     failed = {item.check_id: item for item in findings if item.status == "fail"}
     assert "hostile-baseline-aggregate" in failed
+    assert failed["hostile-baseline-aggregate"].evidence == (
+        GovernorEvidence(path="prd/architecture/m111-final-architecture-baseline.md", line=1),
+        GovernorEvidence(
+            path="prd/migration/rust-evidence/probes/hc01-example-runtime.json", line=1
+        ),
+        GovernorEvidence(
+            path="prd/migration/rust-evidence/probes/hc02-example-runtime.json", line=1
+        ),
+    )
 
 
 def test_cli_governor_command_emits_report(capsys) -> None:
