@@ -318,6 +318,75 @@ def _event_shape_violations(event: ReviewEvent, *, field_path: str) -> list[Revi
                     event.event_id,
                 )
             )
+    elif event.event_type is EventType.EXECUTION_LINKED:
+        if event.actor_class is not ActorClass.HUMAN:
+            violations.append(
+                ReviewCaseViolation(
+                    "human_actor_required",
+                    field_path,
+                    "execution_linked requires actor_class=human",
+                    event.actor_class.value,
+                )
+            )
+        if (
+            event.finding_id is None
+            or event.source_revision is None
+            or event.rationale is None
+            or event.to_id is None
+            or not event.completed_scope
+            or not event.non_claims
+        ):
+            violations.append(
+                ReviewCaseViolation(
+                    "invalid_event_shape",
+                    field_path,
+                    "execution_linked requires finding, opaque reference, status scope, revision, rationale, and non-claims",
+                    event.event_id,
+                )
+            )
+        if event.completed_scope is not None:
+            if len(event.completed_scope) != 1:
+                violations.append(
+                    ReviewCaseViolation(
+                        "invalid_event_shape",
+                        field_path,
+                        "execution_linked completed_scope must carry exactly one ExecutionStatus value",
+                        event.event_id,
+                    )
+                )
+            else:
+                try:
+                    ExecutionStatus(event.completed_scope[0])
+                except ValueError:
+                    violations.append(
+                        ReviewCaseViolation(
+                            "invalid_execution_status",
+                            field_path,
+                            "execution_linked completed_scope must be a valid ExecutionStatus",
+                            event.completed_scope[0],
+                        )
+                    )
+        if any(
+            value is not None
+            for value in (
+                event.disposition,
+                event.edge_type,
+                event.from_id,
+                event.proof_class,
+                event.verification_result,
+                event.tested_revision,
+                event.evidence_anchors,
+                event.residual_scope,
+            )
+        ):
+            violations.append(
+                ReviewCaseViolation(
+                    "invalid_event_shape",
+                    field_path,
+                    "execution_linked cannot carry disposition, relation endpoints, or proof payload",
+                    event.event_id,
+                )
+            )
     return violations
 
 
@@ -1242,6 +1311,210 @@ def mark_stale(packet: ReviewPacket, event: ReviewEvent) -> ReviewPacket:
     )
     validate_review_policy((provisional,))
     return provisional
+
+
+_REPLAYABLE_EVENT_TYPES = frozenset(
+    {
+        EventType.NORMALIZATION_REVIEWED,
+        EventType.DISPOSITION_RECORDED,
+        EventType.EDGE_ASSERTED,
+        EventType.EXECUTION_LINKED,
+        EventType.VERIFICATION_RECORDED,
+        EventType.REOPENED,
+        EventType.MARKED_STALE,
+    }
+)
+_BASE_ONLY_EVENT_TYPES = frozenset(
+    {
+        EventType.PACKET_REGISTERED,
+        EventType.FINDING_EXTRACTED,
+        EventType.SPAN_VERIFIED,
+    }
+)
+
+
+def record_execution_link(packet: ReviewPacket, event: ReviewEvent) -> ReviewPacket:
+    """Record an opaque execution reference and materialize execution_status.
+
+    Does not create or mutate GSD/task lifecycle. The external ID is opaque.
+    """
+    violations = _event_shape_violations(event, field_path="event")
+    if event.event_type is not EventType.EXECUTION_LINKED:
+        violations.append(
+            ReviewCaseViolation(
+                "invalid_event_shape",
+                "event.event_type",
+                "expected execution_linked",
+                event.event_type.value,
+            )
+        )
+    if any(item.event_id == event.event_id for item in packet.events):
+        violations.append(
+            ReviewCaseViolation(
+                "duplicate_event_id",
+                "event.event_id",
+                "event ids must be unique within a packet",
+                event.event_id,
+            )
+        )
+    finding_index = _finding_index(packet, event.finding_id)
+    if event.finding_id is not None and finding_index is None:
+        violations.append(
+            ReviewCaseViolation(
+                "unknown_finding",
+                "event.finding_id",
+                "execution link target finding is unknown",
+                event.finding_id,
+            )
+        )
+    _raise_if(violations)
+    assert finding_index is not None
+    assert event.completed_scope is not None and len(event.completed_scope) == 1
+    current = packet.findings[finding_index]
+    if current.disposition_status not in _ACCEPTING_DISPOSITIONS:
+        violations.append(
+            ReviewCaseViolation(
+                "accepting_disposition_required",
+                f"findings[{current.finding_id}].disposition_status",
+                "execution_linked requires accepted or already_satisfied disposition",
+                current.disposition_status.value,
+            )
+        )
+    try:
+        next_status = ExecutionStatus(event.completed_scope[0])
+    except ValueError:
+        violations.append(
+            ReviewCaseViolation(
+                "invalid_execution_status",
+                "event.completed_scope",
+                "execution_linked completed_scope must be a valid ExecutionStatus",
+                event.completed_scope[0],
+            )
+        )
+        _raise_if(violations)
+        raise AssertionError("unreachable")  # pragma: no cover
+    if next_status is ExecutionStatus.UNPLANNED:
+        violations.append(
+            ReviewCaseViolation(
+                "invalid_execution_status",
+                "event.completed_scope",
+                "execution_linked cannot materialize unplanned; use reopen instead",
+                next_status.value,
+            )
+        )
+    _raise_if(violations)
+    findings = list(packet.findings)
+    findings[finding_index] = replace(current, execution_status=next_status)
+    provisional = replace(
+        packet,
+        findings=tuple(findings),
+        events=(*packet.events, event),
+    )
+    validate_review_policy((provisional,))
+    return provisional
+
+
+def apply_event(packet: ReviewPacket, event: ReviewEvent) -> ReviewPacket:
+    """Apply one consequential event to a materialized packet.
+
+    Registration/extraction events belong on the immutable base and are not
+    replayed through this path.
+    """
+    if event.event_type is EventType.DISPOSITION_RECORDED:
+        return record_disposition(packet, event)
+    if event.event_type is EventType.EDGE_ASSERTED:
+        if event.edge_type is None or event.from_id is None or event.to_id is None:
+            raise ReviewCaseValidationError(
+                (
+                    ReviewCaseViolation(
+                        "invalid_event_shape",
+                        "event",
+                        "edge_asserted requires type and endpoints",
+                        event.event_id,
+                    ),
+                )
+            )
+        status = (
+            RelationStatus.CANDIDATE
+            if event.edge_type is RelationType.MAPS_TO
+            else RelationStatus.ACCEPTED
+        )
+        edge = ReviewEdge(
+            type=event.edge_type,
+            from_id=event.from_id,
+            to_id=event.to_id,
+            status=status,
+        )
+        return assert_relation(packet, edge, event)
+    if event.event_type is EventType.NORMALIZATION_REVIEWED:
+        return record_normalization_review(packet, event)
+    if event.event_type is EventType.EXECUTION_LINKED:
+        return record_execution_link(packet, event)
+    if event.event_type is EventType.VERIFICATION_RECORDED:
+        if event.verification_result is None:
+            raise ReviewCaseValidationError(
+                (
+                    ReviewCaseViolation(
+                        "invalid_event_shape",
+                        "event.verification_result",
+                        "verification_recorded requires verification_result",
+                        event.event_id,
+                    ),
+                )
+            )
+        return record_verification(
+            packet,
+            event,
+            status=event.verification_result,
+        )
+    if event.event_type is EventType.MARKED_STALE:
+        return mark_stale(packet, event)
+    if event.event_type is EventType.REOPENED:
+        return reopen_finding(packet, event)
+    raise ReviewCaseValidationError(
+        (
+            ReviewCaseViolation(
+                "unsupported_replay_event",
+                "event.event_type",
+                "event type cannot be applied through pure replay",
+                event.event_type.value,
+            ),
+        )
+    )
+
+
+def replay_events(
+    base: ReviewPacket,
+    events: Sequence[ReviewEvent],
+) -> ReviewPacket:
+    """Materialize current state from a clean base packet plus ordered events."""
+    violations: list[ReviewCaseViolation] = []
+    for event_index, event in enumerate(base.events):
+        if event.event_type in _REPLAYABLE_EVENT_TYPES:
+            violations.append(
+                ReviewCaseViolation(
+                    "base_packet_not_clean",
+                    f"base.events[{event_index}]",
+                    "base packet must not already contain replayable consequential history",
+                    event.event_id,
+                )
+            )
+        elif event.event_type not in _BASE_ONLY_EVENT_TYPES:
+            violations.append(
+                ReviewCaseViolation(
+                    "base_packet_not_clean",
+                    f"base.events[{event_index}]",
+                    "base packet may only retain registration/extraction events",
+                    event.event_type.value,
+                )
+            )
+    _raise_if(violations)
+    # Validate the immutable base before replaying the ledger tail.
+    validate_review_policy((base,))
+    current = base
+    for event in events:
+        current = apply_event(current, event)
+    return current
 
 
 def reopen_finding(packet: ReviewPacket, event: ReviewEvent) -> ReviewPacket:
