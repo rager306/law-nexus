@@ -82,12 +82,27 @@ proof cannot close implementation or evidence gaps. Parent findings cannot close
 while required children or active blockers remain open. Verification records need
 proof class, tested revision, and durable evidence anchors.
 
-## Codecs
+## Codecs and runtime contour
 
-- **Inner model (future S02+):** pure stdlib types / ports only.
-- **Pydantic v2:** candidate **adapter-only** strict JSON codec and schema helper
-  for a later bounded probe. Not an inner-layer domain model.
-- **Adaptix:** deferred. Not on the v1 critical path.
+Measured S02/S03 shape under `src/law_nexus_harness/review_case/`:
+
+- **Inner model (S02):** pure stdlib frozen values, policy, ports, and
+  application use cases. No pydantic, pathlib, CLI, Governor, or GSD imports.
+- **Pydantic v2 (S03, adapter-only):** strict `extra=forbid` JSON codec mapping
+  `review-case/v1` bytes ↔ pure `ReviewPacket`. Public APIs return domain types
+  only; `BaseModel` stays inside the adapter. Generated schema is diagnostic and
+  must resolve through native `$ref` enums — it is not a second authority.
+- **Filesystem + hashlib adapters (S03):** root-confined source reads and atomic
+  packet persistence under
+  `prd/architecture/review-cases/packets/` by default. Symlinks, path escape,
+  forbidden local/historical prefixes, duplicate IDs, and corrupt packets fail
+  closed.
+- **CLI (S03):** `law-nexus-harness review-case {register,validate,status}` emits
+  deterministic JSON reports. Exit `0` success, `1` validation/policy, `2`
+  tool/adapter. Commands do not record human disposition, promote authority, or
+  create GSD work.
+- **Adaptix:** still deferred. No measured mapping pain required it on the v1
+  critical path; it remains absent from runtime and tests.
 
 Tracked JSON Schema remains the explicit wire contract. A generated schema may
 be checked against it; it must not silently become a second authority.
@@ -96,13 +111,15 @@ be checked against it; it must not silently become a second authority.
 
 These **non-claims** are mandatory reading for any packet consumer:
 
-- Packets are **non-authoritative**. Green schema validation is not semantic
-  acceptance, product readiness, or legal correctness.
-- No Review Case runtime, CLI, Governor check, or GSD integration is implied by
-  this README alone.
-- No finding is accepted, rejected, or closed merely by existing as a packet.
+- Packets are **non-authoritative**. Green schema validation or CLI exit 0 is not
+  semantic acceptance, product readiness, or legal correctness.
+- The S03 CLI is a control-plane vertical slice only. No Governor check, hosted
+  CI gate, disposition ledger, or GSD integration is claimed yet (S04/S05).
+- No finding is accepted, rejected, or closed merely by existing as a packet or
+  by being registered through the CLI.
 - Roadmap proposals inside reviews remain proposals until separately adopted.
 - No product-domain Rust type, temporal resolver, applicability engine, parser
   completeness, RuVector, retrieval quality, or citation safety is claimed.
 - The test-side structural oracle under `tests/test_review_case_schema.py` is
-  not the future runtime validator.
+  not product authority; runtime validation is the pure domain/policy path plus
+  the outer codec adapter.

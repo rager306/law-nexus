@@ -44,6 +44,27 @@ All notable changes to law-nexus are documented in this file.
 
 ## M166 review governance lifecycle (2026-08-12)
 
+### S03 persistence codec and CLI vertical slice
+- Added outer Pydantic v2 codec adapter with strict/extra-forbid wire models,
+  payload-only `tested_revision`, exact JSON authority booleans, deterministic
+  canonical bytes, and honest generated-schema diagnostics resolved via `$ref`.
+- Added root-confined filesystem source reader and atomic packet store adapters
+  (symlink/path-escape/forbidden-prefix/duplicate/corrupt fail-closed) plus a
+  stdlib hashlib ContentHasher.
+- Wired `law-nexus-harness review-case register|validate|status` with
+  deterministic JSON reports and exit classes 0/1/2. Commands do not disposition,
+  promote authority, or create GSD work. Adaptix remains deferred with measured
+  non-need on the v1 path.
+- Process proof only: codec/filesystem/CLI suites and typing gates pass. No
+  Governor check, hosted CI gate, or semantic acceptance claim is made.
+
+### S02 pure Review Case core
+- Added pure stdlib domain values, disposition/relation policy, proof/rollup
+  derivation, and application ports/use cases under
+  `src/law_nexus_harness/review_case/` with a recursive inner-module vendor ban.
+- Kept derived status non-persisted, verification audit reconstructable, and
+  human disposition / promotion firewalls fail-closed in pure policy.
+
 ### S01 authority and Review Case contract
 - Added ADR-0024 `[proposed]` to define immutable review sources, a
   non-authoritative Review Case projection, append-only human disposition,
