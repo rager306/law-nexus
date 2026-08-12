@@ -350,7 +350,7 @@
       "range": "M160-M160",
       "theme": "Verify test CI coverage and governor test-coverage drift",
       "status": "complete",
-      "boundary": "test_verify_adr_conformance and test_verify_repository_pre_commit_hook in CI. Governor verify-test-coverage-drift prevents future drift. No live HTTP or product-readiness claim."
+      "boundary": "M160 originally placed test_verify_adr_conformance and the installed-hook test in CI. The current clean-clone correction keeps ADR conformance in hosted CI but returns installed-hook verification to local-only execution because GitHub checkout does not install hooks. Governor verify-test-coverage-drift still covers tests for tracked active CI scripts. No live HTTP or product-readiness claim."
     },
     {
       "range": "M161-M164",

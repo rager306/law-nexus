@@ -34,6 +34,13 @@ All notable changes to law-nexus are documented in this file.
 - Removed local-only and historical repository navigation from the root README
   and added a tracked-Markdown regression test that rejects links to those
   surfaces; decommission facts remain prose boundaries rather than destinations.
+- Removed fresh-clone CI dependence on unpublished local GSD state: tracked
+  roadmap inputs remain required, while absent local GSD projections are
+  reported as not-applicable and present malformed/inconsistent projections
+  still fail closed.
+- Returned installed pre-commit-hook verification to local execution instead of
+  hosted CI, where `actions/checkout` intentionally provides no installed hook;
+  synthetic hostile hook tests remain in the repository.
 
 ## Post-M165 architecture assessment and semantic-control remediation (2026-08-11–12)
 

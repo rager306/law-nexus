@@ -44,7 +44,6 @@ CI_PROCESS_SUITE = {
     "tests/test_architecture_closure_roadmap.py",
     "tests/test_architecture_registry_schema.py",
     "tests/test_verify_adr_conformance.py",
-    "tests/test_verify_repository_pre_commit_hook.py",
 }
 CI_INVENTORY_SCRIPTS = {
     "scripts/verify-port-contract-coverage.py",

@@ -325,17 +325,28 @@ def test_governor_quality_inventory_read_failures_are_tool_errors(
         assert "quality inventory unavailable" not in report.findings[0].observed
 
 
-def test_cli_governor_without_local_gsd_projection_fails_with_coherent_exit_code(
+def test_selected_local_projection_checks_are_portable_without_gsd_state(
     tmp_path: Path, capsys
 ) -> None:
-    code = main(["governor", "--root", str(tmp_path)])
-    payload = json.loads(capsys.readouterr().out)
+    roadmap = tmp_path / "prd" / "project-state" / "data"
+    roadmap.mkdir(parents=True)
+    (roadmap / "roadmap.json").write_text("{}", encoding="utf-8")
 
-    assert code == 2
-    assert payload["status"] == "failure"
-    assert payload["error_count"] > 0
-    assert payload["tool_error_count"] > 0
-    assert any(item["check_id"] == "gsd-state-present" for item in payload["findings"])
+    for check_id in ("roadmap-freshness", "gsd-residual-debt"):
+        code = main(["governor", "--root", str(tmp_path), "--check", check_id])
+        payload = json.loads(capsys.readouterr().out)
+        assert code == 0
+        assert payload["status"] == "ok"
+        assert payload["error_count"] == 0
+        assert payload["findings"][0]["status"] == "pass"
+        assert "not-applicable" in payload["findings"][0]["observed"]
+
+
+def test_tracked_roadmap_is_required_without_local_gsd_state(tmp_path: Path) -> None:
+    findings = check_roadmap_freshness(tmp_path)
+    assert findings[0].check_id == "roadmap-json-present"
+    assert findings[0].status == "fail"
+    assert findings[0].severity == "error"
 
 
 def test_open_next_wave_milestone_is_not_residual_debt(tmp_path: Path) -> None:

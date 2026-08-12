@@ -33,6 +33,15 @@ The governor checks publication consistency. It does not decide architecture, le
 
 Default exit semantics remain stable: failed deterministic policy `error` checks produce exit 1 and warn-only debt produces exit 0. Unknown/conflicting selectors and check-runner IO/parser/tool failures produce structured exit 2 with `tool_error_count`. Archive Git inventory, semantic-stub/historical-test reads, dynamic coverage/readiness verifier loads and quality-gate inventory reads now use this shared classification without exposing exception text.
 
+Clean-clone portability is explicit: tracked roadmap JSON remains a required
+input, while checks that only compare an optional unpublished local workflow
+projection return a passing `not-applicable` observation when that projection
+is absent. If the local projection exists, parse failures and semantic
+inconsistency remain fail-closed. Hosted CI does not assert the presence or hash
+of an installed Git hook because checkout does not install one; that verifier is
+a local-environment control with synthetic hostile tests, not a repository
+content gate.
+
 ## 3. Machine-readable matrix contract
 
 The implemented matrix is derived from present ADR files and living citation surfaces, not hand-maintained ID lists. Tracked output: `prd/architecture/adr-matrix.json`; it is guarded by `adr-matrix-freshness` and remains explicitly non-authoritative.

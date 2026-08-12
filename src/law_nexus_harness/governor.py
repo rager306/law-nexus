@@ -494,17 +494,6 @@ def check_roadmap_freshness(root: Path) -> list[GovernorFinding]:
     findings: list[GovernorFinding] = []
     state_path = root / ".gsd" / "STATE.md"
     roadmap_path = root / "prd" / "project-state" / "data" / "roadmap.json"
-    if not state_path.is_file():
-        return [
-            GovernorFinding(
-                check_id="roadmap-state-present",
-                status="fail",
-                severity="error",
-                message="GSD STATE.md is missing",
-                observed=str(state_path),
-                remediation="Restore .gsd/STATE.md from GSD engine state",
-            )
-        ]
     if not roadmap_path.is_file():
         return [
             GovernorFinding(
@@ -514,6 +503,17 @@ def check_roadmap_freshness(root: Path) -> list[GovernorFinding]:
                 message="roadmap.json is missing",
                 observed=str(roadmap_path),
                 remediation="Restore prd/project-state/data/roadmap.json",
+            )
+        ]
+    if not state_path.is_file():
+        return [
+            GovernorFinding(
+                check_id="roadmap-state-present",
+                status="pass",
+                severity="ok",
+                message="local GSD roadmap projection is unavailable; tracked roadmap remains authoritative",
+                observed="local_projection=absent; comparison=not-applicable",
+                remediation="none",
             )
         ]
 
@@ -851,11 +851,11 @@ def check_gsd_residual_debt(root: Path) -> list[GovernorFinding]:
         return [
             GovernorFinding(
                 check_id="gsd-state-present",
-                status="fail",
-                severity="error",
-                message="GSD STATE.md is missing",
-                observed=str(state_path),
-                remediation="Restore .gsd/STATE.md",
+                status="pass",
+                severity="ok",
+                message="local GSD milestone projection is unavailable in this checkout",
+                observed="local_projection=absent; residual-debt-check=not-applicable",
+                remediation="none",
             )
         ]
 

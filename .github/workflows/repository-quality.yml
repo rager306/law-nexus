@@ -124,7 +124,6 @@ jobs:
           tests/test_architecture_closure_roadmap.py
           tests/test_architecture_registry_schema.py
           tests/test_verify_adr_conformance.py
-          tests/test_verify_repository_pre_commit_hook.py
 
       - name: Process inventory scripts (report-only)
         run: >-
