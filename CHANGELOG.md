@@ -2,6 +2,163 @@
 
 All notable changes to law-nexus are documented in this file.
 
+## Unreleased — current architecture landing and repository map
+
+### README current-state snapshot
+- Expanded the root README from an architecture pointer into a detailed
+  cold-reader landing page while preserving `prd/ARCHITECTURE.md` + active ADRs
+  as canonical authority.
+- Clarified the exact Rust workspace shape: 44 members consisting of 20
+  exclusive ADR-0011 capability owners, 20 HC runners, `ln-product-cli`,
+  `ln-testkit`, shared-infrastructure `ln-storage`, and repository-tracer
+  `ln-status`; the latter four are not KOF-DA primary owners.
+- Added architecture explanations for exclusive ownership, per-capability
+  hexagonal boundaries, evidence-before-authority, five-clock/event-derived
+  state, provider-isolated parsing, infrastructure ports, the Rust/Python
+  control-plane split, and lifecycle anti-drift.
+- Added a tracked repository map covering product, contracts, governance,
+  fixtures, tests, generated views, assessments, historical vaults, and
+  local-only surfaces with their authority boundaries.
+- Added a short evidence-gated roadmap linked to
+  `prd/project-state/roadmap.md` and `prd/migration/`, without silently choosing
+  the human-owned parser-G2/CTV/infrastructure ordering.
+- Recorded the clean post-remediation `f09416f` process snapshot: 435 Python
+  tests passed with 4 skipped; Governor 54 PASS / 1 advisory WARN / 0 ERROR / 0
+  TOOL ERROR; preflight 7 PASS / 1 advisory WARN / 0 ERROR. These are process
+  checks, not product readiness proof.
+
+## Post-M165 architecture assessment and semantic-control remediation (2026-08-11–12)
+
+### M165 temporal legal ontology design
+- Added ADR-0016 through ADR-0022 as the `[proposed]` L1–L7 temporal legal
+  ontology spine: FRBR/LRMoo identity, component temporal versioning,
+  NormativeState, hierarchy/conflict, practice overlay, transitional/risk, and
+  industry profiles.
+- Integrated the ontology into the living truth oracle and root README while
+  keeping external LRMoo/AKML/ELI/LKIF models as D046 compatibility references,
+  not replacements for the project-local evidence kernel.
+- Kept all ontology layers design-only: no event-sourced CTV runtime, NormRule
+  graph, applicability evaluator, correction ledger, or legal validation was
+  promoted.
+
+### Rust-only active-plane and archive cleanup
+- Reaffirmed Rust-only product ownership and the thin ADR-0007 Python
+  repository-harness boundary; removed local probes/noise and kept
+  `.agents/skills/**` local-only and gitignored.
+- Removed or archived residual FalkorDB, ACP/git-lex, PyO3, pre-Rust PRD,
+  research, parser-dump, and retrieval-era surfaces from the active plane.
+- Added Governor entrypoint checks for retired ADR IDs and unqualified
+  historical-era vocabulary. Historical ACP/git-lex and FalkorDB remain
+  archive-only and cannot regain runtime, CI, hook, or authority status.
+- Reworked the root README and active PRD surfaces around the post-cleanup tree;
+  historical local vaults remain prior art rather than clean-clone proof.
+
+### Product/requirements and temporal assessment packet
+- Published `prd/PRODUCT.md` and `prd/REQUIREMENTS.md` as `[proposed]`
+  cold-reader contract/projection surfaces and reconciled their requirement
+  inventory and trace chains. Document readiness did not validate product
+  behavior.
+- Added `prd/temporal-legal-model.md` with controlled glossary, fail-closed
+  invariants, TL-G01–12 proof gates, paper semantic-shape cases, and the
+  ontology crosswalk.
+- Added ADR-0023 for `[proposed]` applicability decision/trace ownership while
+  explicitly deferring the runtime DSL/AST, field schema, evaluator, and API.
+- Completed D0/EA-10 documentation/process assessment stages. Independent EA-09
+  assessed revision `120d44b`; human D150 accepted that exact packet with
+  findings. Later remediation commits have no successor acceptance and do not
+  inherit D150.
+
+### Governor, ADR, trace, and freshness hardening
+- Added selectable Governor explain/inventory controls and exact tracked
+  evidence anchors for semantic, ADR, hostile-proof, and roadmap findings.
+- Distinguished policy findings from tool failures and made unreadable scans,
+  malformed catalogs, and failed inventory producers fail closed as structured
+  tool errors instead of false passes.
+- Added deterministic validation of ADR links, supersession graph, index/matrix
+  coverage, lifecycle synchronization, published authority trace chains, and
+  retired-ID boundaries.
+- Added the non-authoritative generated ADR cross-matrix and redacted source
+  snippets from ADR conformance diagnostics to avoid leaking unnecessary
+  content.
+- Added `prd/architecture/document-freshness-triggers.json`, companion-surface
+  policy, review dates, and exact evidence locations for consequential-document
+  changes.
+- Closed discovered Governor audit false passes while retaining semantic/free-
+  text checks as advisory where deterministic legal interpretation is unsafe.
+
+### Project-document reconciliation
+- Reconciled the living oracle, root README, product/requirements projections,
+  roadmap, ADR matrix, assessment packet, and published trace controls.
+- Added post-D150 assessments 13–18 to distinguish current-head facts,
+  deterministic remediation, parser evidence gaps, glossary control, and
+  remaining human/Rust-owned work.
+- Kept architecture registries, claims ledgers, roadmaps, assessments,
+  Governor output, `.gsd/**`, and GitNexus as process/derived evidence only;
+  none can satisfy product requirements or promote lifecycle.
+
+### Parser protocol and historical workflow quarantine
+- Added `prd/parser/representative_golden_corpus_acceptance_protocol.md` with
+  explicit G0–G3 evidence levels, provider isolation, manifest/provenance
+  requirements, hostile cases, metric/threshold ownership, and lifecycle
+  ceilings.
+- Classified current parser evidence as G1 `[bounded]`: one tracked real
+  Consultant fixture and one tracked real Garant fixture plus structural and
+  hostile contracts. G2 multi-fixture independent annotation and G3 human
+  source-bound acceptance remain open.
+- Quarantined removed M006–M009 Python generator/probe workflows as historical
+  references rather than runnable current verification, and added tests that
+  preserve active Cargo verification routes and non-claims.
+- Added assessments 15–16 to record that protocols specify proof but do not
+  create representative fixtures, independent annotations, thresholds, legal
+  correctness, or readiness.
+
+### Temporal glossary and coding-injection governance
+- Expanded the temporal glossary from 29 to 42 controlled rows and catalogued
+  the complete row inventory plus TSG-001..TSG-016 continuity in
+  `temporal-vocabulary-contract.json`.
+- Added critique vocabulary including TextChangeEvent, NormativeEffectEvent,
+  ComponentMembershipVersion, NormRule/Condition/LegalEffect/Defeater,
+  ApplicabilitySelector, legal lists/classifiers, procurement resolution,
+  practice coverage, and bitemporal correction ledger as
+  `deferred-undefined` where no human-owned semantics exists.
+- Added `glossary-governance.md` with required read order, ownership/update
+  protocol, stop-signals, lifecycle boundaries, deterministic versus heuristic
+  controls, and explicit non-claims.
+- Hardened `temporal-vocabulary-contract` checks with glossary-local parsing,
+  bidirectional glossary/catalog set equality, exact TSG set equality, required
+  governance fragments, malformed-schema tool errors, and hostile regressions
+  for decoys, omissions, stale IDs, and authority promotion.
+- Added advisory deprecated-alias and temporal-vocabulary-presentation-drift
+  checks. Product-domain policy tokens live in the non-authoritative JSON
+  catalog rather than Python harness source, preserving ADR-0007.
+- Corrected active wording around NormativeState, future EvidenceSpan/SourceBlock
+  schemas, event-derived intervals, and practice temporality over the five
+  clocks without inventing a sixth clock or applicability semantics.
+
+### Historical readiness view and temporal completeness accounting
+- Converted generated `product_readiness_blockers.md` from a current-looking
+  priority/next-work report into a D7 historical registry archaeology index.
+- Preserved all legacy gate/evidence IDs, recorded verification text, and
+  non-claims while explicitly denying current readiness, priority, or work-queue
+  authority; generator and tests prevent regeneration from restoring the old
+  presentation.
+- Added a 14-area temporal-contract completeness matrix covering glossary,
+  entities, events, clocks, applicability, status, provenance, conflict,
+  correction, invariants, API, goldens, errors, and proof gates.
+- Marked event taxonomy and applicability DSL `deferred-undefined`, deterministic
+  API and error taxonomy absent, and other areas honestly present/partial/paper-
+  only. The matrix cannot close a TSG or generate a public Rust contract.
+
+### Remaining explicit gaps
+- Human decisions remain required for the ADR-0021 transition/risk split,
+  typed event taxonomy, NormRule IR, applicability DSL, correction/reference
+  ownership, stable APIs/errors, clean-tree comparison base, Stage D consumer,
+  successor acceptance, and post-M165 investment sequence.
+- Rust and real-evidence work remains required for parser G2/G3, CTV,
+  NormativeState, applicability, conflict/practice/profile/procurement logic,
+  correction/reference resolution, live TEI/RuVector, citation-safe retrieval,
+  executable legal goldens, operational proof, R035/R038, and release readiness.
+
 ## M164 (complete)
 
 ### S01: Governor historical-test-debt-visibility probe
