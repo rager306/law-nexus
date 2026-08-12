@@ -30,6 +30,7 @@ CI_PROCESS_SUITE = {
     "tests/test_harness_governor.py",
     "tests/test_harness_cli_entrypoints.py",
     "tests/test_harness_preflight.py",
+    "tests/test_documentation_navigation.py",
     "tests/test_repository_quality_gate.py",
     "tests/test_verify_crate_dependency_allowlist.py",
     "tests/test_verify_port_contract_coverage.py",
@@ -110,6 +111,7 @@ def test_ci_workflow_replaces_old_compliance_name_and_keeps_required_checks() ->
         "uv run pyrefly check src/",
         "uv run python scripts/verify-adr-conformance.py",
         "uv run python scripts/verify-crate-dependency-allowlist.py",
+        "cargo fetch --locked",
         "cargo fmt --all -- --check",
         "cargo check --workspace --offline",
         "cargo clippy --workspace --offline --all-targets -- -D warnings",
@@ -122,6 +124,7 @@ def test_ci_workflow_replaces_old_compliance_name_and_keeps_required_checks() ->
     assert "uv run lint-imports" not in text
     assert "verify-m112-adr-sync.py" not in text
     assert "python-onion-dependencies" not in text
+    assert text.index("cargo fetch --locked") < text.index("cargo check --workspace --offline")
     assert "rust-harness-quality:" in text
     assert "dtolnay/rust-toolchain@stable" in text
     assert "clippy" in text

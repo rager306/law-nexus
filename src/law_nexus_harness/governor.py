@@ -1869,7 +1869,12 @@ def _adr_truth_expectations(root: Path) -> dict[str, str | None]:
                 continue
             lifecycle = _adr_status_lifecycle(path.read_text(encoding="utf-8", errors="replace"))
             expectations[adr_id_match.group("id")] = lifecycle
-    return expectations or dict(_ADR_TRUTH_ORACLE_EXPECTATIONS)
+    if expectations:
+        return expectations
+    fallback: dict[str, str | None] = {
+        adr_id: lifecycle for adr_id, lifecycle in _ADR_TRUTH_ORACLE_EXPECTATIONS.items()
+    }
+    return fallback
 
 
 def _adr_lifecycle_evidence(

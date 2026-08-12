@@ -131,7 +131,8 @@ Implemented:
 - static check registry with group, deterministic/heuristic kind, inputs and non-claim;
 - `--only`, `--check`, `--explain` and text output;
 - selector contract failures use exit 2; warn-only semantic selection stays exit 0;
-- default JSON remains compatible with preflight and existing consumers.
+- default JSON remains compatible with preflight and existing consumers;
+- ADR truth expectations are derived from present ADR Status sections and use an explicitly typed static fallback only when no active ADR directory entries are discoverable; the typing repair preserves fail-closed lifecycle comparison semantics and does not add or promote an ADR expectation.
 
 Remaining before MVP B closure:
 

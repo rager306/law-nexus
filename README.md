@@ -30,7 +30,7 @@ Consultant/Garant parser, a temporal legal ontology, and citation-safe retrieval
 | A Rust workspace of twenty exclusive `ln-*` capability crates (ADR-0011) with 20/20 hostile contracts `[bounded]` green | Parser-complete, corpus-ready, or a working product. No `[validated]` capability. |
 | Bounded real adapters: Consultant WordML + Garant ODT parsers (ADR-0013 `[bounded]`); real cosine-similarity retrieval (M161 `[bounded]`); deterministic CLI pipeline (M163) | Legal correctness, citation-safe answers, live RuVector/TEI, or real-corpus validation. |
 | A temporal legal ontology design spine L1→L7 (ADR-0016..0022, all `[proposed]`) | An implemented ontology runtime. All seven layers are design substance awaiting TDD implementation. |
-| An anti-drift discipline: D098 lifecycle tags, living truth oracle, governor ADR/archive/era probes | A Python product, a historical FalkorDB deployment, or a historical ACP/git-lex runtime (all archive-only). |
+| An anti-drift discipline: D098 lifecycle tags, living truth oracle, and Governor ADR/lifecycle/retired-era probes | A Python product, a historical FalkorDB deployment, or a historical ACP/git-lex runtime (all decommissioned). |
 
 ## Current status (D098 lifecycle tags)
 
@@ -91,10 +91,9 @@ completion and green repository checks are not product readiness.
 [DOWNSTREAM — BLOCKED until parser data + RuVector/TEI ready]
   graph materialization → citation-safe retrieval → R035/R038 validation
 
-[ARCHIVED / HISTORICAL — not active truth]
-  ACP/git-lex (archive-only, R066); FalkorDB (historical, ADR-0014 → RuVector);
-  Python product code (python_archive/); era skills/scripts/tests (archive/);
-  residual PRD research/parser dumps/retrieval proofs (prd/archive/*)
+[RETIRED DIRECTIONS — not active truth]
+  ACP/git-lex and the Python product runtime are decommissioned;
+  FalkorDB is superseded by the proposed RuVector direction.
 ```
 
 See [`prd/ARCHITECTURE.md`](prd/ARCHITECTURE.md) for the living truth oracle
@@ -202,8 +201,8 @@ no PyO3/FFI bridge. Archived Python product code is prior art only.
 ### 8. Anti-drift without authority laundering
 
 D098 lifecycle tags keep claims at their evidence ceiling. Governor, generated
-registries, assessments, roadmaps, GitNexus, and `.gsd/**` diagnose consistency;
-they do not define architecture or legal meaning. Canonical authority is the
+registries, assessments, roadmaps, and GitNexus diagnose consistency; they do
+not define architecture or legal meaning. Canonical authority is the
 living oracle plus accepted active ADRs, while product claims additionally need
 source, tests, runtime, and real-document evidence appropriate to the claim.
 
@@ -245,16 +244,8 @@ The root [`Cargo.toml`](Cargo.toml) is the executable workspace inventory.
 | `.github/workflows/`, `.pre-commit-config.yaml` | CI and local quality-gate wiring. |
 | `CHANGELOG.md` | Human-readable delivery history; not architecture authority. |
 
-### Historical and local-only surfaces
-
-| Path | Classification |
-|---|---|
-| `python_archive/product/` | Archived Python product implementation and dependent prior-art tests/scripts. |
-| `python_archive/acp_git_lex/` | Project-local ACP/git-lex history; decommissioned from the active plane. |
-| `archive/`, `prd/archive/` | Historical era artifacts and large prior projections; archaeology only. |
-| `Old_project/`, `.lex/`, `.commandcode/` | Local/prior-art surfaces; never active guidance or proof. |
-| `.gsd/` | Local workflow database/plans/evidence; not published cold-reader authority. |
-| `.agents/skills/` | Useful local agent guidance but gitignored; cannot be counted as clean-clone proof. |
+Only tracked active surfaces are listed here. Retired implementations and local
+tooling are intentionally omitted from cold-reader navigation.
 
 ## Active tree (what agents should open)
 
@@ -275,13 +266,6 @@ The root [`Cargo.toml`](Cargo.toml) is the executable workspace inventory.
 | `prd/parser/` | Thin contracts/schemas/profiles/examples only |
 | `prd/migration/` | Active roadmaps, rust-evidence, decommission policy |
 | `prd/project-state/` | `roadmap.md` + `data/roadmap.json` only |
-| `.agents/skills/` (local only, gitignored) | **Active on disk:** `law-nexus-rust`, `russian-legal-evidence`, `pi-skill-creator` |
-
-**Do not treat as active truth** (on disk for archaeology; gitignored vaults):
-
-- `archive/` — historical skills/scripts/tests (gitignored vault)
-- `prd/archive/{acp-git-lex,pre-rust-prd,research-era,parser-dumps-era,retrieval-era,...}/` — historical ACP/git-lex and era PRD vaults
-- `python_archive/`, `.lex/`, `Old_project/`, `.commandcode/` — historical/local prior art only
 
 ## Architecture (pointers, not duplicates)
 
@@ -380,7 +364,7 @@ Run the gates:
 
 ```bash
 # Python repository-control gates
-uv run python -m law_nexus_harness.governor     # process + ADR/archive/era advisory probes
+uv run python -m law_nexus_harness.governor     # process + ADR/lifecycle/retired-era probes
 uv run python -m law_nexus_harness.preflight
 uv run pytest -q                               # full suite; CI process suite is a subset
 uv run python scripts/verify-adr-conformance.py
@@ -391,7 +375,7 @@ cargo clippy --workspace --offline --all-targets -- -D warnings
 cargo test --workspace --offline
 ```
 
-Governor ADR/archive probes (advisory unless noted) include:
+Governor ADR/lifecycle probes (advisory unless noted) include:
 
 - `adr-truth-oracle-sync` (error on lifecycle mismatch)
 - `adr-index-completeness`, `adr-doc-matrix-coverage`, `adr-structure-hygiene`
@@ -415,9 +399,11 @@ cargo run -q -p ln-product-cli -- inspect <path> # structural + retrieval inspec
 6. **[`assessment/00-charter.md`](assessment/00-charter.md)** — assessment packet entrypoint; EA-10 D150 final disposition is recorded in [`assessment/12-final-disposition.md`](assessment/12-final-disposition.md).
 7. **[`prd/migration/`](prd/migration/)** — tracked active planning surfaces; sequence is not readiness proof.
 8. **[`doc/litho-runbook.md`](doc/litho-runbook.md)** — optional Litho/deepwiki-rs regen (derived wiki only).
-9. **[`prd/archive/README.md`](prd/archive/README.md)** — PRD vault map (not product truth). Root `archive/` is fully gitignored archaeology.
 
-Local `.gsd/**` requirements, decisions, roadmap and execution records support repository workflow but are not published cold-reader authority or sole external proof. The tracked Product Contract and requirements projection are published `[proposed]` documents with EA-02 state `ready-for-assessment`; EA-10 D150 accepted the assessment packet, not product behavior or these documents as validated product authority.
+The tracked Product Contract and requirements projection are published
+`[proposed]` documents with EA-02 state `ready-for-assessment`; EA-10 D150
+accepted the assessment packet, not product behavior or these documents as
+validated product authority.
 
 ## Non-claims (what this project does **not** prove today)
 
@@ -442,9 +428,8 @@ These are explicit deferrals, tracked in the roadmap, not gaps being hidden.
   a bounded/proposed claim up to `[validated]`.
 - **D046** — adoption ladder: project-local evidence kernel is canon; external
   standards (LRMoo/CIDOC-CRM/AKML/ELI/LKIF) are compatibility references.
-- Architectural decision substance is published in [`doc/adr/`](doc/adr/).
-  Local `.gsd/DECISIONS.md` records workflow/governance events but is not a
-  cold-reader authority surface and cannot replace an ADR.
+- Architectural decision substance is published in [`doc/adr/`](doc/adr/);
+  unpublished workflow state cannot replace an ADR.
 - Historical ACP/git-lex is **archive-only**; historical FalkorDB is **not active**;
   the active graph/vector target is RuVector (ADR-0014 `[proposed]`).
 - Retired ADR IDs **0001/0002/0003/0006** have no files under `doc/adr/`; cite only

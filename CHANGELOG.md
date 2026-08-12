@@ -16,9 +16,10 @@ All notable changes to law-nexus are documented in this file.
   hexagonal boundaries, evidence-before-authority, five-clock/event-derived
   state, provider-isolated parsing, infrastructure ports, the Rust/Python
   control-plane split, and lifecycle anti-drift.
-- Added a tracked repository map covering product, contracts, governance,
-  fixtures, tests, generated views, assessments, historical vaults, and
-  local-only surfaces with their authority boundaries.
+- Added a tracked repository map covering active product, contracts,
+  governance, fixtures, tests, generated views, and assessment surfaces with
+  their authority boundaries. Local-only and historical paths are deliberately
+  excluded from cold-reader navigation.
 - Added a short evidence-gated roadmap linked to
   `prd/project-state/roadmap.md` and `prd/migration/`, without silently choosing
   the human-owned parser-G2/CTV/infrastructure ordering.
@@ -26,6 +27,13 @@ All notable changes to law-nexus are documented in this file.
   tests passed with 4 skipped; Governor 54 PASS / 1 advisory WARN / 0 ERROR / 0
   TOOL ERROR; preflight 7 PASS / 1 advisory WARN / 0 ERROR. These are process
   checks, not product readiness proof.
+- Published the corrected `repository-quality` badge, then repaired the two
+  fresh-runner failures it exposed: `ty`-compatible ADR expectation fallback
+  typing and a locked online Cargo fetch before offline Rust check/build/test
+  gates. Offline verification semantics remain unchanged after bootstrap.
+- Removed local-only and historical repository navigation from the root README
+  and added a tracked-Markdown regression test that rejects links to those
+  surfaces; decommission facts remain prose boundaries rather than destinations.
 
 ## Post-M165 architecture assessment and semantic-control remediation (2026-08-11–12)
 
