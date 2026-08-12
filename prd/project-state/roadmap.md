@@ -25,7 +25,7 @@ falkordb=historical-only
 - **Completed documentation alignment:** D5 + documentation D6 / EA-05 accepted with findings at `94d58ea`; roadmap-front-sync and TL-G01–12 coverage PASS.
 - **Documentation/process assessment:** EA-10 complete — human D150 `accepted-with-findings` after independent EA-09 report `120d44b`; post-D150 assessments 13/14 record bounded repository-control remediation and remaining gaps without successor acceptance, lifecycle promotion or product unlock.
 - **Local GSD workflow marker:** M161-2som4e remains active in local workflow state; it is not the tracked product/design current-front authority and its numbering predates later M161–M165 git history.
-- **Product next remains evidence-gated:** L2 CTV TDD after parser data readiness; TEI/RuVector only after real infrastructure/evidence. Neither is unlocked by EA-05.
+- **Product next remains evidence-gated:** the parser golden-corpus protocol now defines G0–G3, but current evidence reaches only G1 `[bounded]`; G2 requires multi-fixture human-reviewed structural goldens and human-owned thresholds before parser-data readiness. L2 CTV TDD follows that readiness decision; TEI/RuVector still requires real infrastructure/evidence. Documentation does not unlock any of these steps.
 - **M111 result:** final `[bounded]` implementation-neutral semantic baseline for heterogeneous Russian legal evidence.
 - **M112 result:** ADR-0005 topology superseded; ADR-0008 through ADR-0012 authored `[bounded]`; executable ADR/decision/owner drift checks active in pre-commit and CI.
 - **M113 result:** first hostile-case Rust runtime proof. `S10-HC-01-RT` is bounded PASS.

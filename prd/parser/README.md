@@ -14,7 +14,7 @@ vault as product truth. Prefer real `law-source/` fixtures + Rust crate tests.
 - Schemas: `prd/parser/schemas/*.json`
 - Profiles: `prd/parser/profiles/{consultant_wordml,garant_odt}.yaml`
 - Examples: `prd/parser/examples/*.jsonl`
-- Contracts: `parser_record_contract.md`, `golden_test_contract.md`
+- Contracts: `parser_record_contract.md`, `golden_test_contract.md`, `representative_golden_corpus_acceptance_protocol.md`
 - Bounded smoke: `odt_smoke_records.{json,md}`
 - Historical dumps (archive-only): `prd/archive/parser-dumps-era/`
 
@@ -98,7 +98,7 @@ The probe is idempotent: re-running it against the same inputs produces a
 byte-identical JSON. `elapsed_ms` is intentionally not stored in the durable
 artifact (perf is a separate observability concern).
 
-Real-corpus current snapshot (53 fixtures):
+Historical M072 probe snapshot at its frozen input revision (53 fixtures; not the current tracked corpus inventory and not representative acceptance):
 
 - 2 `success-classified` (`44-FZ-2026.xml`, `223-ФЗ.xml`)
 - 39 `success-as-other` — the parser's regex only knows `Федеральный закон`;
@@ -109,10 +109,7 @@ Real-corpus current snapshot (53 fixtures):
 - 0 unhandled exceptions; classification gap is the entire reason S03
   exists.
 
-NON-CLAIMS: the probe does not validate parser completeness, legal
-correctness, R035/R037/R038, historical FalkorDB, retrieval, or multi-source readiness.
-It is observability of the existing document-level seam against the
-expanded corpus, and its output is the input to S03 extension work.
+NON-CLAIMS: the historical probe snapshot does not validate parser completeness, legal correctness, R035/R037/R038, historical FalkorDB, retrieval, multi-source readiness or the current tracked corpus inventory. It is observability of the M072 document-level seam at its frozen inputs. Current representative claims must use the tracked manifest, provider isolation, annotation provenance and evidence ladder defined by `representative_golden_corpus_acceptance_protocol.md`.
 - Parser record schema/example/report generator: `uv run python scripts/validate-parser-records.py --write`
 - Parser record contract check: `uv run python scripts/validate-parser-records.py --check`
 - Golden-test contract term check: `rg -n "evidence-present|no-answer|candidate-only|unresolved-reference|non-authoritative|parser completeness|retrieval quality|legal-answer correctness" prd/parser/golden_test_contract.md`

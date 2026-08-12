@@ -1,6 +1,6 @@
 # Parser/Retrieval Golden-Test Contract
 
-> **Scope:** M008/S01 static contract for future executable golden tests over tracked M006 parser artifacts. This artifact is non-authoritative: it defines bounded parser/retrieval fixture expectations and diagnostics, not product retrieval quality or legal-answer correctness.
+> **Scope:** historical M008/S01 static contract for executable-case vocabulary over the then-tracked M006 parser artifacts. Several JSONL/staging artifacts named below moved to archive-only parser dumps and are absent from the active thin surface; they are not current acceptance inputs. Current Rust structural acceptance is governed by `representative_golden_corpus_acceptance_protocol.md`. This artifact remains non-authoritative and does not prove product retrieval quality or legal-answer correctness.
 
 ## Purpose
 
@@ -8,9 +8,9 @@ R032 requires a parser/retrieval golden-test proof before citation-safe retrieva
 
 Golden tests built from this contract must answer one question only: given the tracked `prd/parser/` artifacts, does the evaluator report the expected bounded evidence/no-answer/candidate-only/non-claim state with inspectable diagnostics?
 
-## Source artifacts
+## Historical source-artifact baseline
 
-Golden tests must consume tracked repository artifacts, not rescan undocumented local source directories.
+The table records the frozen M008 baseline. Rows whose paths are absent from the current active thin surface are historical expectations, not current files and not evidence that may satisfy the representative protocol. Current runs must consume a tracked manifest and existing repository-relative sources under `representative_golden_corpus_acceptance_protocol.md`; archive-only artifacts cannot re-enter as product truth.
 
 | Artifact | Role in golden tests | Current S01 baseline |
 | --- | --- | --- |

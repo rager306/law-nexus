@@ -177,7 +177,7 @@ completeness, Consultant/Garant parity, or production graph readiness.
 
 | Capability | Status | Why blocked |
 |---|---|---|
-| Universal parser | `[bounded]` independent Consultant/Garant block adapters, shared hierarchy/sentence/morphology and reference/temporal/deontic lexical candidates with one tracked real document per provider | needs representative golden corpus, quality convergence, legal resolution and citation mapping |
+| Universal parser | `[bounded]` independent Consultant/Garant block adapters, shared hierarchy/sentence/morphology and reference/temporal/deontic lexical candidates with one tracked real document per provider; `prd/parser/representative_golden_corpus_acceptance_protocol.md` defines the fail-closed G0–G3 evidence ladder | current evidence reaches G1 only; needs G2 multi-fixture human-reviewed structural goldens plus human-owned quality/representativeness criteria, then separate legal resolution and citation mapping |
 | RuVector graph-vector infrastructure | `[proposed]`; synthetic capability checks only | needs TEI 1024d real corpus, RVF/redb materialization, crash consistency and citation contract |
 | Retrieval / citation-safe answers | `[bounded]` real cosine-similarity ranking in the InMemory adapter + RetrievalGate (M161); retrieval scores are real per-result cosine values, not a constant. No live corpus/embedding yet. | needs real EvidenceSpan/SourceBlock fixtures, TEI 1024d corpus, quality metrics and exact byte round-trip |
 | KnowQL | `[bounded]` hand-coded AST demo only | needs real parser and typed application executor; `ruvector-graph` Cypher execution is not relied upon |

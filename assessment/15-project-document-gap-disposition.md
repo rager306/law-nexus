@@ -57,24 +57,13 @@ applicability or legal correctness.
 
 ### 3.2 Representative parser golden-corpus acceptance criteria
 
-**Status:** under-specified.
+**Status:** protocol specification closed after the assessed revision; evidence execution remains open.
 
-`prd/parser/README.md` and parser record contracts preserve provider isolation
-and parser non-claims, while `prd/ARCHITECTURE.md` still blocks representative
-golden-corpus proof. The tracked documentation does not yet provide one
-self-contained acceptance protocol covering provider mix, fixture selection,
-span validity, candidate-vs-legal-resolution boundaries, error classes and
-minimum evidence needed to claim representative parser behavior.
+`prd/parser/representative_golden_corpus_acceptance_protocol.md` now defines provider-isolated strata, tracked manifest fields, positive/hostile gates, source/text span separation, annotation provenance, deterministic failure visibility and a G0–G3 evidence ladder. It explicitly classifies current one-real-fixture-per-provider proof as G1 `[bounded]` and parser-self-derived enrichment as self-consistency rather than independent gold.
 
-**Difficulty:** medium. Criteria can be specified on paper, but fixture selection
-and thresholds require human/product ownership and later real-document runs.
+**Remaining difficulty:** G2 still requires human-selected representative fixtures, independently reviewed structural annotations and human-owned quality thresholds. G3 requires an independent source-bound packet and human lifecycle disposition.
 
-**Safe closure route:** a parser golden-corpus protocol document that keeps
-Consultant WordML and Garant ODT fixtures independent and labels all current
-results `[bounded]` or `[smoke]` until representative execution exists.
-
-**Non-claim:** acceptance criteria do not prove parser completeness, parity or
-legal resolution.
+**Non-claim:** protocol completeness and current G1 evidence do not prove parser completeness, Consultant/Garant parity, legal resolution or citation-safe answers.
 
 ### 3.3 Thin current-front product sequence
 
