@@ -16,6 +16,7 @@ from law_nexus_harness.review_case.application import (
     validate_review_cases,
 )
 from law_nexus_harness.review_case.domain import (
+    EVENT_LEDGER_SCHEMA_VERSION,
     SCHEMA_VERSION,
     ActorClass,
     CandidateSurface,
@@ -23,6 +24,7 @@ from law_nexus_harness.review_case.domain import (
     ConcernClass,
     DerivedStatus,
     DispositionStatus,
+    EventLedgerEnvelope,
     EventType,
     ExecutionStatus,
     Finding,
@@ -60,6 +62,7 @@ from law_nexus_harness.review_case.policy import (
 )
 from law_nexus_harness.review_case.ports import (
     ContentHasher,
+    EventLedger,
     ReviewCasePortError,
     ReviewPacketStore,
     ReviewSourceReader,
@@ -67,8 +70,11 @@ from law_nexus_harness.review_case.ports import (
 
 __all__ = [
     "APP_REPORT_SCHEMA_VERSION",
+    "EVENT_LEDGER_SCHEMA_VERSION",
     "SCHEMA_VERSION",
     "ContentHasher",
+    "EventLedger",
+    "EventLedgerEnvelope",
     "RegisterReviewCaseCommand",
     "RegisterReviewCaseReport",
     "ReviewCaseApplicationError",

@@ -998,3 +998,89 @@ class ReviewPacket:
                 )
             event_ids.add(event.event_id)
         _raise_if(violations)
+
+
+EVENT_LEDGER_SCHEMA_VERSION = "review-case-event-ledger/v1"
+
+
+@dataclass(frozen=True, slots=True)
+class EventLedgerEnvelope:
+    """Immutable append-only ledger envelope around one ReviewEvent.
+
+    Non-authoritative process contour only. Sequence and previous-hash chain
+    protect ordering; envelope_sha256 covers the durable envelope bytes.
+    """
+
+    packet_id: str
+    sequence: int
+    previous_envelope_sha256: str | None
+    event: ReviewEvent
+    event_sha256: str
+    source_revision: str
+    envelope_sha256: str
+    schema_version: str = field(default=EVENT_LEDGER_SCHEMA_VERSION, init=False)
+    authoritative: bool = field(default=False, init=False)
+    authority_required: bool = field(default=True, init=False)
+
+    def __post_init__(self) -> None:
+        violations: list[ReviewCaseViolation] = []
+        _collect(violations, _require_id(self.packet_id, field_path="envelope.packet_id"))
+        if (
+            not isinstance(self.sequence, int)
+            or isinstance(self.sequence, bool)
+            or self.sequence < 1
+        ):
+            violations.append(
+                ReviewCaseViolation(
+                    "invalid_sequence",
+                    "envelope.sequence",
+                    "sequence must be a positive integer starting at 1",
+                    self.sequence,
+                )
+            )
+        if self.sequence == 1:
+            if self.previous_envelope_sha256 is not None:
+                violations.append(
+                    ReviewCaseViolation(
+                        "invalid_previous_hash",
+                        "envelope.previous_envelope_sha256",
+                        "first envelope must have previous_envelope_sha256=null",
+                        self.previous_envelope_sha256,
+                    )
+                )
+        elif self.previous_envelope_sha256 is None:
+            violations.append(
+                ReviewCaseViolation(
+                    "invalid_previous_hash",
+                    "envelope.previous_envelope_sha256",
+                    "non-first envelope requires previous_envelope_sha256",
+                    None,
+                )
+            )
+        else:
+            _collect(
+                violations,
+                _validate_sha256(
+                    self.previous_envelope_sha256,
+                    field_path="envelope.previous_envelope_sha256",
+                ),
+            )
+        if not isinstance(self.event, ReviewEvent):
+            violations.append(
+                ReviewCaseViolation(
+                    "invalid_type",
+                    "envelope.event",
+                    "expected ReviewEvent",
+                    self.event,
+                )
+            )
+        _collect(
+            violations,
+            _validate_sha256(self.event_sha256, field_path="envelope.event_sha256"),
+            _validate_git_revision(
+                self.source_revision,
+                field_path="envelope.source_revision",
+            ),
+            _validate_sha256(self.envelope_sha256, field_path="envelope.envelope_sha256"),
+        )
+        _raise_if(violations)

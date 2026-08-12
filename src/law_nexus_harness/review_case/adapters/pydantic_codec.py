@@ -20,11 +20,13 @@ from pydantic import (
 )
 
 from law_nexus_harness.review_case.domain import (
+    EVENT_LEDGER_SCHEMA_VERSION,
     ActorClass,
     CandidateSurface,
     CandidateTarget,
     ConcernClass,
     DispositionStatus,
+    EventLedgerEnvelope,
     EventType,
     ExecutionStatus,
     Finding,
@@ -218,6 +220,36 @@ class EventWire(_WireModel):
         if self.tested_revision is not None:
             raise ValueError("tested_revision is payload-only in the codec wire policy")
         return self
+
+
+class EnvelopeWire(_WireModel):
+    schema_version: Literal["review-case-event-ledger/v1"]
+    authoritative: Literal[False]
+    authority_required: Literal[True]
+    packet_id: str = Field(min_length=1)
+    sequence: int = Field(ge=1)
+    previous_envelope_sha256: str | None = Field(
+        default=None,
+        pattern=r"^[a-f0-9]{64}$",
+    )
+    event: EventWire
+    event_sha256: str = Field(pattern=r"^[a-f0-9]{64}$")
+    source_revision: str = Field(min_length=40, max_length=40, pattern=r"^[a-f0-9]{40}$")
+    envelope_sha256: str = Field(pattern=r"^[a-f0-9]{64}$")
+
+    @field_validator("authoritative", mode="before")
+    @classmethod
+    def _require_json_false(cls, value: object) -> object:
+        if value is not False:
+            raise ValueError("authoritative must be JSON false")
+        return value
+
+    @field_validator("authority_required", mode="before")
+    @classmethod
+    def _require_json_true(cls, value: object) -> object:
+        if value is not True:
+            raise ValueError("authority_required must be JSON true")
+        return value
 
 
 class PacketWire(_WireModel):
@@ -594,6 +626,157 @@ def dump_packet(packet: ReviewPacket) -> bytes:
         ) from error
     payload = wire.model_dump(mode="json", by_alias=True, exclude_none=True)
     return _canonical_json_bytes(cast(Mapping[str, Any], payload))
+
+
+def dump_event(event: ReviewEvent) -> bytes:
+    """Canonical JSON bytes for one pure ReviewEvent."""
+    try:
+        wire = _from_event(event)
+    except ReviewCaseCodecError:
+        raise
+    except ValidationError as error:
+        raise _from_validation_error(error) from error
+    except ReviewCaseValidationError as error:
+        first = error.violations[0]
+        raise ReviewCaseCodecError(
+            code="domain_validation",
+            field_path=tuple(part for part in first.field_path.split(".") if part),
+            message=first.message,
+        ) from error
+    payload = wire.model_dump(mode="json", by_alias=True, exclude_none=True)
+    return _canonical_json_bytes(cast(Mapping[str, Any], payload))
+
+
+def load_event(data: bytes) -> ReviewEvent:
+    if not isinstance(data, (bytes, bytearray)):
+        raise ReviewCaseCodecError(
+            code="invalid_json",
+            field_path=(),
+            message="event input must be UTF-8 JSON bytes",
+        )
+    try:
+        text = bytes(data).decode("utf-8")
+    except UnicodeDecodeError as error:
+        raise ReviewCaseCodecError(
+            code="invalid_json",
+            field_path=(),
+            message="event input is not valid UTF-8 JSON",
+        ) from error
+    try:
+        wire = EventWire.model_validate_json(text, strict=True)
+    except ValidationError as error:
+        errors = error.errors(include_url=False)
+        if errors and errors[0].get("type") == "json_invalid":
+            raise ReviewCaseCodecError(
+                code="invalid_json",
+                field_path=(),
+                message="event input is not valid JSON",
+            ) from error
+        raise _from_validation_error(error) from error
+    try:
+        return _to_event(wire)
+    except ReviewCaseValidationError as error:
+        first = error.violations[0]
+        raise ReviewCaseCodecError(
+            code="domain_validation",
+            field_path=tuple(part for part in first.field_path.split(".") if part),
+            message=first.message,
+        ) from error
+
+
+def _envelope_wire(envelope: EventLedgerEnvelope) -> EnvelopeWire:
+    try:
+        return EnvelopeWire(
+            schema_version=EVENT_LEDGER_SCHEMA_VERSION,
+            authoritative=False,
+            authority_required=True,
+            packet_id=envelope.packet_id,
+            sequence=envelope.sequence,
+            previous_envelope_sha256=envelope.previous_envelope_sha256,
+            event=_from_event(envelope.event),
+            event_sha256=envelope.event_sha256,
+            source_revision=envelope.source_revision,
+            envelope_sha256=envelope.envelope_sha256,
+        )
+    except ValidationError as error:
+        raise _from_validation_error(error) from error
+    except ReviewCaseValidationError as error:
+        first = error.violations[0]
+        raise ReviewCaseCodecError(
+            code="domain_validation",
+            field_path=tuple(part for part in first.field_path.split(".") if part),
+            message=first.message,
+        ) from error
+
+
+def _envelope_body_dict(envelope: EventLedgerEnvelope) -> dict[str, Any]:
+    # Hash covers durable fields excluding envelope_sha256 itself.
+    payload = _envelope_wire(envelope).model_dump(
+        mode="json",
+        by_alias=True,
+        exclude_none=True,
+    )
+    payload.pop("envelope_sha256", None)
+    return cast(dict[str, Any], payload)
+
+
+def envelope_body_bytes(envelope: EventLedgerEnvelope) -> bytes:
+    """Canonical body bytes used to compute envelope_sha256 (hash excluded)."""
+    return _canonical_json_bytes(_envelope_body_dict(envelope))
+
+
+def dump_envelope(envelope: EventLedgerEnvelope) -> bytes:
+    """Canonical durable envelope bytes including envelope_sha256."""
+    wire = _envelope_wire(envelope)
+    payload = wire.model_dump(mode="json", by_alias=True, exclude_none=True)
+    return _canonical_json_bytes(cast(Mapping[str, Any], payload))
+
+
+def load_envelope(data: bytes) -> EventLedgerEnvelope:
+    if not isinstance(data, (bytes, bytearray)):
+        raise ReviewCaseCodecError(
+            code="invalid_json",
+            field_path=(),
+            message="envelope input must be UTF-8 JSON bytes",
+        )
+    try:
+        text = bytes(data).decode("utf-8")
+    except UnicodeDecodeError as error:
+        raise ReviewCaseCodecError(
+            code="invalid_json",
+            field_path=(),
+            message="envelope input is not valid UTF-8 JSON",
+        ) from error
+    try:
+        wire = EnvelopeWire.model_validate_json(text, strict=True)
+    except ValidationError as error:
+        errors = error.errors(include_url=False)
+        if errors and errors[0].get("type") == "json_invalid":
+            raise ReviewCaseCodecError(
+                code="invalid_json",
+                field_path=(),
+                message="envelope input is not valid JSON",
+            ) from error
+        raise _from_validation_error(error) from error
+    try:
+        event = _to_event(wire.event)
+        envelope = EventLedgerEnvelope(
+            packet_id=wire.packet_id,
+            sequence=wire.sequence,
+            previous_envelope_sha256=wire.previous_envelope_sha256,
+            event=event,
+            event_sha256=wire.event_sha256,
+            source_revision=wire.source_revision,
+            envelope_sha256=wire.envelope_sha256,
+        )
+    except ReviewCaseValidationError as error:
+        first = error.violations[0]
+        raise ReviewCaseCodecError(
+            code="domain_validation",
+            field_path=tuple(part for part in first.field_path.split(".") if part),
+            message=first.message,
+        ) from error
+    return envelope
 
 
 def generated_wire_schema() -> dict[str, Any]:

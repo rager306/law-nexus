@@ -8,7 +8,7 @@ from __future__ import annotations
 
 from typing import Protocol, runtime_checkable
 
-from law_nexus_harness.review_case.domain import ReviewPacket
+from law_nexus_harness.review_case.domain import EventLedgerEnvelope, ReviewEvent, ReviewPacket
 
 
 class ReviewCasePortError(Exception):
@@ -49,4 +49,21 @@ class ReviewPacketStore(Protocol):
 
     def list_all(self) -> tuple[ReviewPacket, ...]:
         """Return all stored packets in deterministic order."""
+        ...
+
+
+@runtime_checkable
+class EventLedger(Protocol):
+    def append(
+        self,
+        packet_id: str,
+        event: ReviewEvent,
+        *,
+        source_revision: str,
+    ) -> EventLedgerEnvelope:
+        """Append one event envelope for a packet. Fail closed on races/forks."""
+        ...
+
+    def list_envelopes(self, packet_id: str) -> tuple[EventLedgerEnvelope, ...]:
+        """Return ordered envelopes for a packet after integrity checks."""
         ...
