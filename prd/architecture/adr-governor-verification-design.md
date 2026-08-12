@@ -139,7 +139,7 @@ Remaining before MVP B closure:
 
 Closed in the current follow-up: `scripts/verify-adr-conformance.py` findings now retain only repository-relative `path:line`, kind and bounded message; raw claim snippets are neither stored nor printed.
 
-### Stage C — matrix and graph checks (partially implemented)
+### Stage C — matrix and graph checks (implemented in bounded scope)
 
 Implemented bounded checks:
 
@@ -148,13 +148,10 @@ Implemented bounded checks:
 - `adr-supersession-graph` reads canonical active frontmatter `supersedes`/`superseded_by`, rejects legacy `superseds` on active ADRs, validates optional `#scope` reciprocity and target existence, and rejects cycles; parser compatibility may still read the legacy key from historical inputs, but it is not valid active metadata;
 - active partial edges are metadata-normalized as `ADR-0011 → ADR-0005#crate-map-only` and `ADR-0023 → ADR-0017#applicability-ownership`;
 - `adr-verify --matrix generate|check` implements `law-nexus-adr-matrix/v1` with stdout-only generation, explicit check target and authority-target rejection;
-- `adr-matrix-freshness` keeps tracked `prd/architecture/adr-matrix.json` synchronized.
+- `adr-matrix-freshness` keeps tracked `prd/architecture/adr-matrix.json` synchronized;
+- `adr-review-date-staleness` treats optional active-ADR frontmatter `review_by` and `revisit_by` dates as deterministic warn-only scheduling metadata: absent/current dates pass, stale or malformed dates warn with exact `path:line`, and unreadable files reach the shared tool-error boundary. Dates are not required and the check records no review disposition.
 
-These checks and the matrix validate publication/metadata structure only and do not satisfy requirements or amend an ADR.
-
-Remaining:
-
-- add optional review/revisit dates as warn-only staleness signals.
+These checks and the matrix validate publication/metadata structure and optional review scheduling only; they do not satisfy requirements, amend an ADR, promote lifecycle or substitute for human review.
 
 ### Stage D — semantic advisory input
 
@@ -176,6 +173,7 @@ An external/LLM review may submit cited findings, but the harness must force the
 12. A historical-only token with an unrelated qualifier on an adjacent line → advisory finding, not a laundered pass.
 13. Semantic stub evidence exposes `path:line` but not the matched source text.
 14. ADR conformance findings retain `path:line` while secret-like claim text is absent from the finding object and formatted stderr.
+15. A stale or malformed optional ADR review date remains warn-only with exact metadata-line evidence; default exit stays 0, strict warn mode exits 1, and unreadable ADR input exits 2 through sanitized tool-error handling.
 
 ## 8. Non-claims
 

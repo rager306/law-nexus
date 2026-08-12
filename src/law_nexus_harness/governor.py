@@ -19,6 +19,7 @@ import subprocess
 import sys
 from collections.abc import Callable
 from dataclasses import asdict, dataclass, replace
+from datetime import UTC, date, datetime
 from pathlib import Path
 from typing import Any, Literal
 
@@ -2749,6 +2750,118 @@ def _adr_frontmatter(text: str) -> tuple[dict[str, tuple[str, int]], int]:
     return {}, 0
 
 
+_ADR_REVIEW_DATE_KEYS: tuple[str, ...] = ("review_by", "revisit_by")
+_ADR_REVIEW_DATE_RE = re.compile(r"^\d{4}-\d{2}-\d{2}$")
+
+
+def check_adr_review_date_staleness(
+    root: Path, *, as_of: date | None = None
+) -> list[GovernorFinding]:
+    """Warn on stale or malformed optional ADR review/revisit dates."""
+    check_id = "adr-review-date-staleness"
+    adr_dir = root / "doc" / "adr"
+    if not adr_dir.is_dir():
+        return [
+            GovernorFinding(
+                check_id=check_id,
+                status="fail",
+                severity="error",
+                message="doc/adr directory missing",
+                observed="doc/adr not found",
+                remediation="restore doc/adr before checking optional review dates",
+                rule_id="adr-review-date.missing-directory",
+                expected="Active ADRs are available for optional review-date inspection.",
+                evidence=(GovernorEvidence(path="doc/adr"),),
+            )
+        ]
+
+    effective_date = as_of or datetime.now(UTC).date()
+    stale: list[str] = []
+    invalid: list[str] = []
+    stale_evidence: list[GovernorEvidence] = []
+    invalid_evidence: list[GovernorEvidence] = []
+    optional_date_count = 0
+
+    for path in sorted(adr_dir.glob("0*.md")):
+        fields, _ = _adr_frontmatter(path.read_text(encoding="utf-8", errors="replace"))
+        rel = path.relative_to(root).as_posix()
+        for key in _ADR_REVIEW_DATE_KEYS:
+            field = fields.get(key)
+            if field is None:
+                continue
+            optional_date_count += 1
+            value, line_number = field
+            evidence = GovernorEvidence(path=rel, line=line_number)
+            try:
+                if not _ADR_REVIEW_DATE_RE.fullmatch(value):
+                    raise ValueError("review date must use YYYY-MM-DD")
+                parsed = date.fromisoformat(value)
+            except ValueError:
+                invalid.append(f"{path.name}:{key}")
+                invalid_evidence.append(evidence)
+                continue
+            if effective_date > parsed:
+                stale.append(f"{path.name}:{key}:{parsed.isoformat()}")
+                stale_evidence.append(evidence)
+
+    findings: list[GovernorFinding] = []
+    if stale:
+        findings.append(
+            GovernorFinding(
+                check_id=check_id,
+                status="fail",
+                severity="warn",
+                message="optional ADR review dates are stale",
+                observed=(
+                    f"as_of={effective_date.isoformat()}; stale={stale} "
+                    "(advisory scheduling metadata only)."
+                ),
+                remediation=(
+                    "Human-review each cited ADR, then update or remove its optional "
+                    "review_by/revisit_by metadata; do not promote lifecycle from this warning."
+                ),
+                rule_id="adr-review-date.stale",
+                expected="Optional ADR review dates are current when declared.",
+                evidence=tuple(dict.fromkeys(stale_evidence)),
+            )
+        )
+    if invalid:
+        findings.append(
+            GovernorFinding(
+                check_id=check_id,
+                status="fail",
+                severity="warn",
+                message="optional ADR review dates are malformed",
+                observed=f"invalid={invalid} (expected YYYY-MM-DD; advisory metadata only).",
+                remediation=(
+                    "Use YYYY-MM-DD for optional review_by/revisit_by metadata, or remove "
+                    "the optional field; do not infer a review disposition from this check."
+                ),
+                rule_id="adr-review-date.invalid",
+                expected="Optional ADR review dates use YYYY-MM-DD when declared.",
+                evidence=tuple(dict.fromkeys(invalid_evidence)),
+            )
+        )
+    if findings:
+        return findings
+
+    return [
+        GovernorFinding(
+            check_id=check_id,
+            status="pass",
+            severity="ok",
+            message="optional ADR review dates are current or absent",
+            observed=(
+                f"as_of={effective_date.isoformat()}; optional_dates={optional_date_count} "
+                "(advisory scheduling metadata only)."
+            ),
+            remediation="none",
+            rule_id="adr-review-date.current",
+            expected="Optional ADR review dates are current when declared.",
+        )
+    ]
+
+
 def _supersession_refs(value: str) -> set[tuple[str, str]]:
     return {
         (match.group("id"), (match.group("scope") or "").lower())
@@ -3445,6 +3558,15 @@ GOVERNOR_CHECK_SPECS: tuple[CheckSpec, ...] = (
         "deterministic",
         check_adr_supersession_graph,
         "Validate metadata-owned supersession targets, reciprocity and acyclicity.",
+        ("doc/adr/0*.md",),
+        "warn",
+    ),
+    _check_spec(
+        "adr-review-date-staleness",
+        "adr",
+        "deterministic",
+        check_adr_review_date_staleness,
+        "Surface stale or malformed optional ADR review scheduling metadata.",
         ("doc/adr/0*.md",),
         "warn",
     ),

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+from datetime import date
 from pathlib import Path
 
 from law_nexus_harness.cli import main
@@ -19,6 +20,7 @@ from law_nexus_harness.governor import (
     check_adr_index_completeness,
     check_adr_link_integrity,
     check_adr_retired_id_ban,
+    check_adr_review_date_staleness,
     check_adr_structure_hygiene,
     check_adr_supersession_graph,
     check_adr_truth_oracle_sync,
@@ -1675,6 +1677,99 @@ def test_adr_link_integrity_detects_missing_target_and_fragment(tmp_path: Path) 
     assert "missing-fragment" in finding.observed
     assert {item.line for item in finding.evidence} == {3}
     assert "Bounded decision" not in finding.observed
+
+
+def test_adr_review_date_staleness_allows_absent_and_future_dates(tmp_path: Path) -> None:
+    adr = tmp_path / "doc" / "adr"
+    adr.mkdir(parents=True)
+    (adr / "0004-undated.md").write_text(
+        "---\nid: ADR-0004\n---\n",
+        encoding="utf-8",
+    )
+    (adr / "0005-future.md").write_text(
+        "---\nid: ADR-0005\nreview_by: 2026-08-12\nrevisit_by: 2027-01-01\n---\n",
+        encoding="utf-8",
+    )
+
+    finding = check_adr_review_date_staleness(tmp_path, as_of=date(2026, 8, 12))[0]
+
+    assert finding.status == "pass"
+    assert finding.severity == "ok"
+    assert "optional_dates=2" in finding.observed
+
+
+def test_adr_review_date_staleness_warns_on_stale_and_invalid_dates(tmp_path: Path) -> None:
+    adr = tmp_path / "doc" / "adr"
+    adr.mkdir(parents=True)
+    (adr / "0004-review.md").write_text(
+        "---\nid: ADR-0004\nreview_by: 2026-08-11\nrevisit_by: not-a-date\n---\n",
+        encoding="utf-8",
+    )
+
+    findings = check_adr_review_date_staleness(tmp_path, as_of=date(2026, 8, 12))
+    by_rule = {finding.rule_id: finding for finding in findings}
+
+    assert set(by_rule) == {"adr-review-date.stale", "adr-review-date.invalid"}
+    assert all(finding.status == "fail" for finding in findings)
+    assert all(finding.severity == "warn" for finding in findings)
+    assert by_rule["adr-review-date.stale"].evidence == (
+        GovernorEvidence(path="doc/adr/0004-review.md", line=3),
+    )
+    assert by_rule["adr-review-date.invalid"].evidence == (
+        GovernorEvidence(path="doc/adr/0004-review.md", line=4),
+    )
+
+
+def test_adr_review_date_unreadable_file_is_tool_error(tmp_path: Path, monkeypatch) -> None:
+    adr_file = tmp_path / "doc" / "adr" / "0004-review.md"
+    adr_file.parent.mkdir(parents=True)
+    adr_file.write_text("---\nid: ADR-0004\n---\n", encoding="utf-8")
+    original = Path.read_text
+
+    def fail_selected(path: Path, *args, **kwargs):
+        if path == adr_file:
+            raise OSError("private unreadable detail")
+        return original(path, *args, **kwargs)
+
+    monkeypatch.setattr(Path, "read_text", fail_selected)
+    report = run_governor(tmp_path, check="adr-review-date-staleness")
+
+    assert report.status == "failure"
+    assert report.tool_error_count == 1
+    assert report.findings[0].rule_id == "tool-error"
+    assert "private unreadable detail" not in report.findings[0].observed
+
+
+def test_adr_review_date_warning_preserves_default_and_strict_exit_codes(
+    tmp_path: Path, capsys
+) -> None:
+    adr = tmp_path / "doc" / "adr"
+    adr.mkdir(parents=True)
+    (adr / "0004-review.md").write_text(
+        "---\nid: ADR-0004\nreview_by: 2000-01-01\n---\n",
+        encoding="utf-8",
+    )
+
+    default_code = main(
+        ["governor", "--root", str(tmp_path), "--check", "adr-review-date-staleness"]
+    )
+    default_payload = json.loads(capsys.readouterr().out)
+    strict_code = main(
+        [
+            "governor",
+            "--root",
+            str(tmp_path),
+            "--check",
+            "adr-review-date-staleness",
+            "--fail-on-warn",
+        ]
+    )
+    strict_payload = json.loads(capsys.readouterr().out)
+
+    assert default_code == 0
+    assert strict_code == 1
+    assert default_payload["findings"][0]["severity"] == "warn"
+    assert strict_payload["findings"][0]["severity"] == "warn"
 
 
 def test_adr_supersession_graph_allows_reciprocal_partial_edge(tmp_path: Path) -> None:
