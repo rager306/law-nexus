@@ -4021,12 +4021,63 @@ def _review_case_ledger_violations(root: Path) -> list[str]:
     return sorted(set(violations))
 
 
+def _review_case_open_inventory_from_store(root: Path) -> tuple[int, int] | None:
+    """Open inventory from packets store rematerialized through the event ledger.
+
+    When a live packets store exists, fixtures are structural evidence only and must
+    not double-count residual open findings. Returns None when the store is absent
+    or empty so callers can fall back to fixture snapshots.
+    """
+    packets_root = root / _REVIEW_CASE_PACKETS
+    if not packets_root.is_dir():
+        return None
+    try:
+        from law_nexus_harness.review_case.adapters.filesystem import (
+            FilesystemReviewPacketStore,
+        )
+        from law_nexus_harness.review_case.adapters.filesystem_ledger import (
+            FilesystemEventLedger,
+        )
+        from law_nexus_harness.review_case.application import materialize_review_packet
+        from law_nexus_harness.review_case.domain import DispositionStatus
+    except Exception:
+        return None
+
+    try:
+        store = FilesystemReviewPacketStore(root)
+        ledger = FilesystemEventLedger(root)
+        bases = store.list_all()
+    except Exception:
+        return None
+    if not bases:
+        return None
+
+    open_count = 0
+    for base in bases:
+        try:
+            packet = materialize_review_packet(store, ledger, base.packet_id)
+        except Exception:
+            # Fail closed to base snapshot if materialize cannot run.
+            packet = base
+        for finding in packet.findings:
+            if (
+                finding.disposition_status is DispositionStatus.OPEN
+                and finding.execution_status.value == "unplanned"
+                and finding.verification_status.value == "unverified"
+            ):
+                open_count += 1
+    return len(bases), open_count
+
+
 def check_review_case_integrity(root: Path) -> list[GovernorFinding]:
     """Structural integrity for non-authoritative Review Case projections.
 
     Hard findings are structural/provenance only: authority laundering, hash
     mismatch, orphan promotion, class-mismatched closure, and ledger chain
     defects. Undispositioned open findings are advisory inventory, never error.
+    Open inventory prefers packets-store rematerialization through the ledger so
+    human disposition events clear residual open counts without double-counting
+    the immutable fixture snapshot.
     """
     check_id = "review-case-integrity"
     remediation = (
@@ -4039,6 +4090,7 @@ def check_review_case_integrity(root: Path) -> list[GovernorFinding]:
     open_count = 0
     packet_count = 0
     scanned: list[str] = []
+    open_source = "none"
 
     fixtures_present = (root / _REVIEW_CASE_FIXTURES).exists()
     packets_present = (root / _REVIEW_CASE_PACKETS).exists()
@@ -4057,6 +4109,11 @@ def check_review_case_integrity(root: Path) -> list[GovernorFinding]:
             )
         ]
 
+    store_inventory = _review_case_open_inventory_from_store(root)
+    fixture_open = 0
+    fixture_packets = 0
+    store_packet_files = 0
+
     for path in paths:
         rel = path.relative_to(root).as_posix()
         scanned.append(rel)
@@ -4069,11 +4126,35 @@ def check_review_case_integrity(root: Path) -> list[GovernorFinding]:
         if not packets:
             structural.append(f"{rel}:invalid_packet_payload")
             continue
+        under_packets = f"/{_REVIEW_CASE_PACKETS}/" in f"/{rel}" or rel.startswith(
+            f"{_REVIEW_CASE_PACKETS}/"
+        )
+        under_fixtures = f"/{_REVIEW_CASE_FIXTURES}/" in f"/{rel}" or rel.startswith(
+            f"{_REVIEW_CASE_FIXTURES}/"
+        )
         for packet in packets:
             packet_count += 1
-            open_count += _review_case_open_inventory(packet)
+            if under_packets:
+                store_packet_files += 1
+            if under_fixtures:
+                fixture_packets += 1
+                fixture_open += _review_case_open_inventory(packet)
+            elif store_inventory is None:
+                # No rematerialized store inventory available: count base snapshot.
+                open_count += _review_case_open_inventory(packet)
             for code in _review_case_structural_violations(packet):
                 structural.append(f"{rel}:{code}")
+
+    if store_inventory is not None:
+        packet_count_store, open_count = store_inventory
+        # Prefer live store packet count for inventory messaging.
+        packet_count = max(packet_count_store, store_packet_files)
+        open_source = "packets_store+ledger"
+    elif fixture_packets:
+        open_count = fixture_open
+        open_source = "fixtures"
+    else:
+        open_source = "base_snapshots"
 
     for code in _review_case_ledger_violations(root):
         structural.append(f"{_REVIEW_CASE_PACKETS}:{code}")
@@ -4106,7 +4187,8 @@ def check_review_case_integrity(root: Path) -> list[GovernorFinding]:
                 message="Review Case packets/ledgers satisfy structural integrity",
                 observed=(
                     f"packet_count={packet_count}, scanned={len(scanned)}, "
-                    f"open_count={open_count} (lifecycle [bounded]; process integrity only; "
+                    f"open_count={open_count}, open_source={open_source} "
+                    f"(lifecycle [bounded]; process integrity only; "
                     f"open findings are advisory, not failures)."
                 ),
                 remediation="none",
@@ -4121,13 +4203,14 @@ def check_review_case_integrity(root: Path) -> list[GovernorFinding]:
                 severity="warn",
                 message="undispositioned Review Case findings remain open",
                 observed=(
-                    f"open_count={open_count}, packet_count={packet_count} "
+                    f"open_count={open_count}, packet_count={packet_count}, "
+                    f"open_source={open_source} "
                     f"(lifecycle [bounded]; advisory inventory only; human disposition "
                     f"required before acceptance)."
                 ),
                 remediation=(
-                    "Record explicit human disposition in S06 or later; do not auto-accept "
-                    "or promote findings from open inventory."
+                    "Record explicit human disposition events on the packets store ledger; "
+                    "do not auto-accept or promote findings from open inventory."
                 ),
             )
         )

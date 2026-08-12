@@ -44,6 +44,14 @@ All notable changes to law-nexus are documented in this file.
 
 ## Unreleased — process debt triage
 
+### Human Review Case ledger dispositions (session)
+- Seeded live packets store from the two-review fixture (cross-packet finding
+  endpoints filtered for policy) and recorded human `disposition_recorded`
+  events for all 16 findings as actor `rager306`.
+- Governor open inventory now rematerializes packets store through the event
+  ledger so fixture snapshots no longer double-count residual opens; live
+  `open_count=0` after session dispositions (still non-authoritative).
+
 ### Governor GSD registry visibility and residual-debt honesty
 - Registry parser now accepts planned marker `⬜` (white large square) in addition
   to legacy `⚪`, so M162+ planned rows are no longer silently invisible.

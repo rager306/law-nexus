@@ -27,10 +27,27 @@ Source packets:
 ```text
 authoritative = false
 authority_required = true
-ledger_written = false
+ledger_written = true
+actor_id = rager306
 confirmed_closures = []
 accepted_promotions = []
 ```
+
+## Ledger write (2026-08-12)
+
+Human actor `rager306` recorded `disposition_recorded` events for all 16 findings
+on the packets store under `prd/architecture/review-cases/packets/`:
+
+- base packets seeded from `fixtures/review-11-12-delta-v1.json` with
+  cross-packet finding-endpoint edges dropped (policy requires in-packet
+  endpoints; `maps_to` opaque targets retained);
+- 10 events on `RC-2026-08-11-001`, 6 events on `RC-2026-08-12-001`;
+- disposition statuses match the recommended table below;
+- RC12-F03 `duplicate` rationale links to RC11-F03 (cross-packet edge not stored
+  in base packet).
+
+Non-claims remain: no Product/Requirements/ADR/roadmap/GSD promotion, no
+implementation proof, no accepted promotions or confirmed closures.
 
 ## Recommended dispositions (session only)
 

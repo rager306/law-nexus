@@ -28,6 +28,8 @@ The governor checks publication consistency. It does not decide architecture, le
 | `document-freshness-triggers` | Validate a non-authoritative change-impact catalog and require a distinct non-derived companion refresh for matched dirty-tree sources | advisory `warn`; Git/catalog parser failure uses exit 2 |
 | `temporal-vocabulary-contract` | Validate the non-authoritative complete glossary-row inventory, required status fragments, governance boundaries and exact TSG gap-ID continuity | advisory `warn`; catalog/parser failure uses exit 2 |
 | `temporal-vocabulary-drift` | Surface unqualified deprecated temporal aliases on a bounded living/ADR path allowlist; no semantic equivalence or ADR amendment is inferred | heuristic advisory `warn` |
+| `review-case-integrity` | Structural packet/ledger integrity for non-authoritative Review Cases; open inventory prefers packets-store rematerialization through the human event ledger so fixture snapshots do not double-count residual opens | structural defects `error`; residual opens advisory `warn` |
+| `gsd-residual-debt` | Hard residual only for in-flight markers (`🔄`/`⏸`/`🟡`); planned-only `⬜`/`⚪` inventory and SUMMARY-vs-registry code-complete lag are advisory process visibility and never invent GSD Attempts | hard residual `error`; planned/lag advisory `warn` |
 | `temporal-vocabulary-presentation-drift` | On a bounded living-surface allowlist, surface deferred terms presented with implementation cues, static interval fields called source truth and unqualified sixth-clock-like wording | heuristic advisory `warn`; human disposition required |
 | `verify-adr-conformance.py` | Require lifecycle tags and ADR references on targeted binding claims | separate blocking gate |
 

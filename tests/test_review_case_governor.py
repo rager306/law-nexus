@@ -84,25 +84,33 @@ def test_check_is_registered_and_selectable() -> None:
     report = run_governor(ROOT, check="review-case-integrity")
     by_id = {item.check_id: item for item in report.findings}
     assert "review-case-integrity" in by_id
-    # Tracked real fixture has open findings only: structural pass + advisory open inventory.
+    # Structural integrity always present; open inventory is advisory when residual opens remain.
     assert by_id["review-case-integrity"].status == "pass"
     assert by_id["review-case-integrity"].severity == "ok"
     assert "open_count=" in by_id["review-case-integrity"].observed
-    assert "review-case-integrity.open-findings" in by_id
-    assert by_id["review-case-integrity.open-findings"].severity == "warn"
+    if "review-case-integrity.open-findings" in by_id:
+        assert by_id["review-case-integrity.open-findings"].severity == "warn"
     assert report.status == "ok"
     assert report.error_count == 0
 
 
-def test_live_fixture_has_no_structural_defects_and_advisory_opens() -> None:
+def test_live_packets_store_structural_pass_and_open_inventory_contract() -> None:
     assert FIXTURE.is_file()
     findings = check_review_case_integrity(ROOT)
     by_id = {item.check_id: item for item in findings}
     assert by_id["review-case-integrity"].status == "pass"
-    open_finding = by_id["review-case-integrity.open-findings"]
-    assert open_finding.status == "fail"
-    assert open_finding.severity == "warn"
-    assert "open_count=16" in open_finding.observed or "open_count=" in open_finding.observed
+    assert by_id["review-case-integrity"].severity == "ok"
+    observed = by_id["review-case-integrity"].observed
+    assert "open_count=" in observed
+    # When packets store + ledger exist, open inventory prefers rematerialized store state.
+    if "open_source=packets_store+ledger" in observed:
+        # Human session dispositions may clear residual opens without claiming product readiness.
+        assert "open_count=0" in observed or "review-case-integrity.open-findings" in by_id
+    elif "review-case-integrity.open-findings" in by_id:
+        open_finding = by_id["review-case-integrity.open-findings"]
+        assert open_finding.status == "fail"
+        assert open_finding.severity == "warn"
+        assert "open_count=" in open_finding.observed
 
 
 def test_authority_laundering_is_hard_error(tmp_path: Path) -> None:

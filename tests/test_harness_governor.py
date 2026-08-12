@@ -228,9 +228,9 @@ def test_cli_governor_warn_only_semantic_selection_exits_zero(capsys) -> None:
 
 
 def test_cli_governor_fail_on_warn_is_opt_in(capsys) -> None:
-    # Use a check that currently emits advisory inventory (open Review Case findings),
-    # not a semantic group that may be fully green after debt triage.
-    code = main(["governor", "--check", "review-case-integrity", "--fail-on-warn"])
+    # Use residual GSD process inventory, which currently emits advisory warns
+    # (planned rows / code-complete lag) without failing overall governor status.
+    code = main(["governor", "--check", "gsd-residual-debt", "--fail-on-warn"])
     payload = json.loads(capsys.readouterr().out)
 
     assert code == 1
@@ -238,7 +238,12 @@ def test_cli_governor_fail_on_warn_is_opt_in(capsys) -> None:
     assert payload["warn_count"] > 0
     assert payload["tool_error_count"] == 0
     assert any(
-        item["check_id"] == "review-case-integrity.open-findings" for item in payload["findings"]
+        item["check_id"]
+        in {
+            "gsd-planned-inventory-visibility",
+            "gsd-code-complete-lag",
+        }
+        for item in payload["findings"]
     )
 
 
