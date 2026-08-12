@@ -873,6 +873,29 @@ def test_semantic_stub_in_product_code_detects_planted_stub(tmp_path: Path) -> N
     assert "let score" not in finding.observed
 
 
+def test_semantic_stub_in_product_code_unreadable_source_is_tool_error(
+    tmp_path: Path, monkeypatch
+) -> None:
+    source = tmp_path / "crates" / "ln-scan" / "src" / "lib.rs"
+    source.parent.mkdir(parents=True)
+    source.write_text("pub fn value() -> u8 { 1 }\n", encoding="utf-8")
+    original = Path.read_text
+
+    def fail_selected(path: Path, *args, **kwargs):
+        if path == source:
+            raise OSError("unreadable source")
+        return original(path, *args, **kwargs)
+
+    monkeypatch.setattr(Path, "read_text", fail_selected)
+    report = run_governor(tmp_path, check="semantic-stub-in-product-code")
+
+    assert report.status == "failure"
+    assert report.tool_error_count == 1
+    assert report.findings[0].rule_id == "tool-error"
+    assert report.findings[0].severity == "error"
+    assert "unreadable source" not in report.findings[0].observed
+
+
 def test_semantic_stub_in_product_code_ignores_tests_and_testkit(tmp_path: Path) -> None:
     # A stub marker under tests/ and ln-testkit must NOT be flagged.
     test_file = tmp_path / "crates" / "ln-fake" / "tests" / "x.rs"
@@ -915,6 +938,27 @@ def test_historical_test_debt_visibility_detects_planted(tmp_path: Path) -> None
     assert finding.severity == "warn"
     assert "historical_test_count=" in finding.observed
     assert "test_zz_planted.py" in finding.observed
+
+
+def test_historical_test_debt_unreadable_test_is_tool_error(tmp_path: Path, monkeypatch) -> None:
+    test_file = tmp_path / "tests" / "test_policy_history.py"
+    test_file.parent.mkdir()
+    test_file.write_text("def test_policy(): assert True\n", encoding="utf-8")
+    original = Path.read_text
+
+    def fail_selected(path: Path, *args, **kwargs):
+        if path == test_file:
+            raise OSError("unreadable policy test")
+        return original(path, *args, **kwargs)
+
+    monkeypatch.setattr(Path, "read_text", fail_selected)
+    report = run_governor(tmp_path, check="historical-test-debt-visibility")
+
+    assert report.status == "failure"
+    assert report.tool_error_count == 1
+    assert report.findings[0].rule_id == "tool-error"
+    assert report.findings[0].severity == "error"
+    assert "unreadable policy test" not in report.findings[0].observed
 
 
 def test_historical_test_debt_visibility_excludes_active_controls(

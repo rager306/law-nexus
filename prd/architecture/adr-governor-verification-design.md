@@ -29,7 +29,7 @@ The governor checks publication consistency. It does not decide architecture, le
 | `temporal-vocabulary-contract` | Validate the non-authoritative vocabulary catalog, required glossary rows/status markers and TSG gap-ID continuity | advisory `warn`; catalog/parser failure uses exit 2 |
 | `verify-adr-conformance.py` | Require lifecycle tags and ADR references on targeted binding claims | separate blocking gate |
 
-Default exit semantics remain stable: failed deterministic `error` checks produce exit 1 and warn-only debt produces exit 0. Unknown/conflicting selectors and uncaught check-runner IO/parser/tool failures produce structured exit 2 with `tool_error_count`; checks that currently swallow low-level read/git failures still need migration to this shared classification.
+Default exit semantics remain stable: failed deterministic `error` checks produce exit 1 and warn-only debt produces exit 0. Unknown/conflicting selectors and uncaught check-runner IO/parser/tool failures produce structured exit 2 with `tool_error_count`. Archive Git inventory plus the semantic-stub and historical-test scanners now fail closed on unavailable reads; remaining internal inventory catch paths still need migration to this shared classification.
 
 ## 3. Machine-readable matrix contract
 
@@ -133,7 +133,7 @@ Implemented:
 Remaining before MVP B closure:
 
 - expand exact repository-relative `path:line` evidence beyond ADR lifecycle mismatch; generic authority-input paths remain for other checks;
-- migrate checks that internally swallow read/git errors to shared `tool-error` classification (uncaught runner failures already use exit 2 without exception text);
+- migrate remaining checks that internally reclassify inventory read/tool errors as policy failures to shared `tool-error` classification (archive Git inventory and unreadable semantic-stub/historical-test scans already use exit 2 without exception text);
 - add broader missing-file, unreadable-file and subprocess-failure contract tests.
 
 Closed in the current follow-up: `scripts/verify-adr-conformance.py` findings now retain only repository-relative `path:line`, kind and bounded message; raw claim snippets are neither stored nor printed.

@@ -1495,10 +1495,7 @@ def check_semantic_stub_in_product_code(root: Path) -> list[GovernorFinding]:
             # Exclude test files and the shared ln-testkit crate (test infra).
             if "/tests/" in rel or rel.startswith("crates/ln-testkit/"):
                 continue
-            try:
-                text = src_file.read_text(encoding="utf-8", errors="replace")
-            except OSError:
-                continue
+            text = src_file.read_text(encoding="utf-8", errors="replace")
             for lineno, line in enumerate(text.splitlines(), start=1):
                 if pattern.search(line):
                     matches.append(f"{rel}:{lineno}")
@@ -1567,10 +1564,7 @@ def check_historical_test_debt_visibility(root: Path) -> list[GovernorFinding]:
             name = test_file.name
             if active_control.search(name):
                 continue
-            try:
-                text = test_file.read_text(encoding="utf-8", errors="replace")
-            except OSError:
-                continue
+            text = test_file.read_text(encoding="utf-8", errors="replace")
             if era_keywords.search(text):
                 matches.append(name)
 
