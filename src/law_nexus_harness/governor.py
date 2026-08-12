@@ -169,6 +169,13 @@ class GovernorReport:
         )
 
 
+def _line_containing(text: str, needle: str) -> int | None:
+    for line_number, line in enumerate(text.splitlines(), start=1):
+        if needle in line:
+            return line_number
+    return None
+
+
 def _registry_milestones(state_text: str) -> list[tuple[int, str, str]]:
     rows: list[tuple[int, str, str]] = []
     in_registry = False
@@ -510,7 +517,8 @@ def check_roadmap_freshness(root: Path) -> list[GovernorFinding]:
         ]
 
     state_text = state_path.read_text(encoding="utf-8")
-    roadmap = _load_json(roadmap_path)
+    roadmap_text = roadmap_path.read_text(encoding="utf-8")
+    roadmap = json.loads(roadmap_text)
     rows = _registry_milestones(state_text)
     completed_seqs = [seq for seq, marker, _ in rows if marker == "✅"]
     latest_completed = max(completed_seqs) if completed_seqs else None
@@ -534,6 +542,22 @@ def check_roadmap_freshness(root: Path) -> list[GovernorFinding]:
         return findings
 
     latest_completed_id = _last_completed_id(state_text, latest_completed)
+    latest_completed_line = next(
+        (
+            line_number
+            for line_number, line in enumerate(state_text.splitlines(), start=1)
+            if (match := _REGISTRY_ROW_RE.match(line))
+            and int(match.group("seq")) == latest_completed
+        ),
+        None,
+    )
+    current_roadmap_line = _line_containing(roadmap_text, current_id) or _line_containing(
+        roadmap_text, '"current_milestone"'
+    )
+    state_evidence = GovernorEvidence(path=".gsd/STATE.md", line=latest_completed_line)
+    current_roadmap_evidence = GovernorEvidence(
+        path="prd/project-state/data/roadmap.json", line=current_roadmap_line
+    )
     accepted = {latest_completed}
     if active_seq is not None:
         accepted.add(active_seq)
@@ -561,6 +585,7 @@ def check_roadmap_freshness(root: Path) -> list[GovernorFinding]:
                     f"current_milestone.id={latest_completed_id} and status=complete "
                     "(or use the active milestone with status=active); update roadmap.md current prose"
                 ),
+                evidence=(current_roadmap_evidence, state_evidence),
             )
         )
 
@@ -587,6 +612,7 @@ def check_roadmap_freshness(root: Path) -> list[GovernorFinding]:
                 message="roadmap current_milestone status disagrees with GSD marker",
                 observed=f"claimed={claimed_status!r}; expected={expected_status!r}; marker={marker!r}",
                 remediation="Set current_milestone.status to match GSD complete/active marker",
+                evidence=(current_roadmap_evidence, state_evidence),
             )
         )
 
@@ -597,6 +623,10 @@ def check_roadmap_freshness(root: Path) -> list[GovernorFinding]:
         match = _RANGE_RE.search(str(group.get("range", "")))
         if match:
             max_upper = max(max_upper, int(match.group(2)))
+    range_roadmap_evidence = GovernorEvidence(
+        path="prd/project-state/data/roadmap.json",
+        line=_line_containing(roadmap_text, '"completed_milestone_groups"'),
+    )
     if max_upper >= latest_completed:
         findings.append(
             GovernorFinding(
@@ -621,6 +651,7 @@ def check_roadmap_freshness(root: Path) -> list[GovernorFinding]:
                     f"completed_milestone_groups[].range=M{latest_completed}-M{latest_completed} "
                     "(or extend an existing completed range)"
                 ),
+                evidence=(range_roadmap_evidence, state_evidence),
             )
         )
 

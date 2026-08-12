@@ -91,9 +91,17 @@ def test_roadmap_freshness_fails_when_range_lags(tmp_path: Path) -> None:
     assert "roadmap-current-tracks-gsd" in failed
     assert "roadmap-range-coverage" in failed
     assert "current_milestone.id=M117-a06sez" in failed["roadmap-current-tracks-gsd"].remediation
+    assert failed["roadmap-current-tracks-gsd"].evidence == (
+        GovernorEvidence(path="prd/project-state/data/roadmap.json", line=1),
+        GovernorEvidence(path=".gsd/STATE.md", line=9),
+    )
     assert (
         "completed_milestone_groups[].range=M117-M117"
         in failed["roadmap-range-coverage"].remediation
+    )
+    assert failed["roadmap-range-coverage"].evidence == (
+        GovernorEvidence(path="prd/project-state/data/roadmap.json", line=1),
+        GovernorEvidence(path=".gsd/STATE.md", line=9),
     )
 
 
