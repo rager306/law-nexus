@@ -125,7 +125,7 @@ uv run python -m law_nexus_harness adr-verify --matrix check --output prd/archit
 Implemented:
 
 - additive `rule_id`, `expected` and `evidence` fields while preserving report v1 fields;
-- exact repository-relative line evidence for ADR lifecycle, link, supersession, index lifecycle, ontology weave, structure and cross-surface citation findings when a concrete source line exists; missing surfaces remain honest path-only evidence;
+- exact repository-relative line evidence for ADR lifecycle, link, supersession, index lifecycle, ontology weave, structure, cross-surface citation, semantic-stub, retired-ID and era-noise findings when a concrete source line exists; missing surfaces remain honest path-only evidence;
 - static check registry with group, deterministic/heuristic kind, inputs and non-claim;
 - `--only`, `--check`, `--explain` and text output;
 - selector contract failures use exit 2; warn-only semantic selection stays exit 0;

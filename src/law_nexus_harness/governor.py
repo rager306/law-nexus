@@ -1434,6 +1434,7 @@ def check_semantic_stub_in_product_code(root: Path) -> list[GovernorFinding]:
     )
 
     matches: list[str] = []
+    evidence: list[GovernorEvidence] = []
     crates_dir = root / "crates"
     if crates_dir.is_dir():
         for src_file in crates_dir.glob("*/src/**/*.rs"):
@@ -1445,6 +1446,7 @@ def check_semantic_stub_in_product_code(root: Path) -> list[GovernorFinding]:
             for lineno, line in enumerate(text.splitlines(), start=1):
                 if pattern.search(line):
                     matches.append(f"{rel}:{lineno}")
+                    evidence.append(GovernorEvidence(path=rel, line=lineno))
 
     if matches:
         preview = ",".join(matches[:12])
@@ -1461,6 +1463,7 @@ def check_semantic_stub_in_product_code(root: Path) -> list[GovernorFinding]:
                     f"(lifecycle [bounded]; process anti-drift; not product readiness)."
                 ),
                 remediation=remediation,
+                evidence=tuple(dict.fromkeys(evidence)),
             )
         ]
 
@@ -3001,6 +3004,7 @@ def check_adr_retired_id_ban(root: Path) -> list[GovernorFinding]:
     )
 
     hits: list[str] = []
+    evidence: list[GovernorEvidence] = []
     for rel in _RETIRED_ADR_SCAN_PATHS:
         path = root / rel
         if not path.is_file():
@@ -3014,6 +3018,7 @@ def check_adr_retired_id_ban(root: Path) -> list[GovernorFinding]:
                 continue
             ids = sorted({f"000{m.group(1)}" for m in _RETIRED_ADR_LINE_RE.finditer(line)})
             hits.append(f"{rel}:{idx + 1}:ADR-{','.join(ids)}")
+            evidence.append(GovernorEvidence(path=rel, line=idx + 1))
 
     if hits:
         return [
@@ -3024,6 +3029,7 @@ def check_adr_retired_id_ban(root: Path) -> list[GovernorFinding]:
                 message="unqualified retired ADR IDs cited on living entrypoints",
                 observed=(f"hits={hits[:20]} (lifecycle [bounded]; retired-id ban; advisory)."),
                 remediation=remediation,
+                evidence=tuple(dict.fromkeys(evidence)),
             )
         ]
 
@@ -3057,6 +3063,7 @@ def check_active_surface_era_noise(root: Path) -> list[GovernorFinding]:
     )
 
     hits: list[str] = []
+    evidence: list[GovernorEvidence] = []
     for rel in _ERA_NOISE_SCAN_PATHS:
         path = root / rel
         if not path.is_file():
@@ -3073,6 +3080,7 @@ def check_active_surface_era_noise(root: Path) -> list[GovernorFinding]:
                 continue
             uniq = sorted({t.lower() for t in tokens})
             hits.append(f"{rel}:{idx + 1}:{','.join(uniq)}")
+            evidence.append(GovernorEvidence(path=rel, line=idx + 1))
 
     if hits:
         return [
@@ -3086,6 +3094,7 @@ def check_active_surface_era_noise(root: Path) -> list[GovernorFinding]:
                     f"(lifecycle [bounded]; era-noise ban; advisory)."
                 ),
                 remediation=remediation,
+                evidence=tuple(dict.fromkeys(evidence)),
             )
         ]
 

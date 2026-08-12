@@ -913,6 +913,7 @@ def test_semantic_stub_in_product_code_detects_planted_stub(tmp_path: Path) -> N
     assert "crates/ln-fake/src/lib.rs:3" in finding.observed
     assert "stub ranking" not in finding.observed
     assert "let score" not in finding.observed
+    assert finding.evidence == (GovernorEvidence(path="crates/ln-fake/src/lib.rs", line=3),)
 
 
 def test_semantic_stub_in_product_code_unreadable_source_is_tool_error(
@@ -1728,6 +1729,7 @@ def test_adr_retired_id_ban_detects_unqualified_cite(tmp_path: Path) -> None:
     assert finding.status == "fail"
     assert finding.severity == "warn"
     assert "ADR-0003" in finding.observed
+    assert finding.evidence == (GovernorEvidence(path="prd/ARCHITECTURE.md", line=3),)
 
 
 def test_adr_retired_id_ban_allows_historical_qualifier(tmp_path: Path) -> None:
@@ -1755,6 +1757,7 @@ def test_active_surface_era_noise_detects_unqualified_token(tmp_path: Path) -> N
     assert finding.status == "fail"
     assert finding.severity == "warn"
     assert "falkordb" in finding.observed.lower()
+    assert finding.evidence == (GovernorEvidence(path="prd/ARCHITECTURE.md", line=3),)
 
 
 def test_active_surface_era_noise_rejects_adjacent_qualifier_laundering(
