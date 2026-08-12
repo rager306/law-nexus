@@ -38,6 +38,30 @@
       "sources": ["src/law_nexus_harness/governor.py", "src/law_nexus_harness/cli.py", "src/law_nexus_harness/adr_matrix.py"],
       "required_any": ["tests/test_harness_governor.py", "tests/test_harness_adr_matrix.py", "prd/architecture/adr-governor-verification-design.md"],
       "review": "Recheck report compatibility, exit semantics, negative tests and non-claims."
+    },
+    {
+      "id": "temporal-glossary-change",
+      "sources": ["prd/temporal-legal-model.md"],
+      "required_any": ["prd/architecture/temporal-vocabulary-contract.json", "prd/architecture/temporal-semantic-gap-register.md", "prd/architecture/glossary-governance.md"],
+      "review": "Recheck owning ADR, canonical name, status, fail-closed boundary, catalog row and unresolved semantic gaps."
+    },
+    {
+      "id": "temporal-vocabulary-catalog-change",
+      "sources": ["prd/architecture/temporal-vocabulary-contract.json"],
+      "required_any": ["prd/temporal-legal-model.md", "prd/architecture/temporal-semantic-gap-register.md", "prd/architecture/glossary-governance.md"],
+      "review": "Recheck complete glossary-row and gap-ID inventory without treating the catalog as semantic authority."
+    },
+    {
+      "id": "temporal-gap-register-change",
+      "sources": ["prd/architecture/temporal-semantic-gap-register.md"],
+      "required_any": ["prd/temporal-legal-model.md", "prd/architecture/temporal-vocabulary-contract.json", "prd/architecture/glossary-governance.md"],
+      "review": "Recheck glossary impact and vocabulary inventory; a companion edit does not close or promote a gap."
+    },
+    {
+      "id": "glossary-governance-change",
+      "sources": ["prd/architecture/glossary-governance.md"],
+      "required_any": ["prd/temporal-legal-model.md", "prd/architecture/temporal-vocabulary-contract.json", "prd/architecture/adr-governor-verification-design.md"],
+      "review": "Recheck injection/update rules against the live glossary and Governor boundary; governance remains non-authoritative."
     }
   ]
 }

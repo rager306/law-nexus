@@ -26,7 +26,8 @@ The governor checks publication consistency. It does not decide architecture, le
 | `archive-path-policy` | Require historical vaults ignored/untracked and reject known or generic active symlinks into them | advisory `warn` |
 | `published-trace-contract` | Check every published PC-001..020→RQ-001..020 chain, detect future undeclared IDs, and preserve assessment process-only authority separation | advisory `warn` |
 | `document-freshness-triggers` | Validate a non-authoritative change-impact catalog and require a distinct non-derived companion refresh for matched dirty-tree sources | advisory `warn`; Git/catalog parser failure uses exit 2 |
-| `temporal-vocabulary-contract` | Validate the non-authoritative vocabulary catalog, required glossary rows/status markers and TSG gap-ID continuity | advisory `warn`; catalog/parser failure uses exit 2 |
+| `temporal-vocabulary-contract` | Validate the non-authoritative complete glossary-row inventory, required status fragments, governance boundaries and exact TSG gap-ID continuity | advisory `warn`; catalog/parser failure uses exit 2 |
+| `temporal-vocabulary-drift` | Surface unqualified deprecated temporal aliases on a bounded living/ADR path allowlist; no semantic equivalence or ADR amendment is inferred | heuristic advisory `warn` |
 | `verify-adr-conformance.py` | Require lifecycle tags and ADR references on targeted binding claims | separate blocking gate |
 
 Default exit semantics remain stable: failed deterministic policy `error` checks produce exit 1 and warn-only debt produces exit 0. Unknown/conflicting selectors and check-runner IO/parser/tool failures produce structured exit 2 with `tool_error_count`. Archive Git inventory, semantic-stub/historical-test reads, dynamic coverage/readiness verifier loads and quality-gate inventory reads now use this shared classification without exposing exception text.

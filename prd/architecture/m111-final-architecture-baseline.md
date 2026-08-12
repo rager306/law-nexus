@@ -89,7 +89,7 @@ D118 preserves five distinct clocks:
 |---|---|
 | `factual_event` | conduct, condition or transaction that anchors the legal question |
 | `proceeding` | complaint, hearing, decision, appeal, remand, enforcement or other procedural event |
-| `legal_act_effect` | adoption, amendment, commencement, scoped applicability, suspension, invalidity, repeal or finality supported by evidence |
+| `legal_act_effect` | a proven act/status event entering the legal order, including commencement, suspension, invalidity, repeal or finality; not case applicability (ADR-0009/0023) |
 | `source_publication` | official/public manifestation publication, correction, replacement, redaction or removal |
 | `system_observation` | fetch, ingestion, timeout, retry, review, quarantine or promotion observation |
 

@@ -37,6 +37,7 @@ from law_nexus_harness.governor import (
     check_roadmap_freshness,
     check_semantic_stub_in_product_code,
     check_temporal_vocabulary_contract,
+    check_temporal_vocabulary_drift,
     check_verify_test_coverage_drift,
     run_governor,
 )
@@ -1137,17 +1138,40 @@ def test_live_temporal_vocabulary_contract_is_complete() -> None:
 
     assert finding.status == "pass"
     assert finding.severity == "ok"
-    assert "terms=10" in finding.observed
+    assert "terms=42" in finding.observed
     assert "gaps=16" in finding.observed
+    assert "complete glossary-row inventory" in finding.observed
     assert "not semantic validation" in finding.observed
+
+
+def test_live_temporal_vocabulary_drift_is_clean() -> None:
+    finding = check_temporal_vocabulary_drift(ROOT)[0]
+
+    assert finding.status == "pass"
+    assert finding.severity == "ok"
+    assert "deprecated aliases" in finding.observed
+
+
+def _write_temporal_governance_fixture(architecture: Path) -> None:
+    (architecture / "glossary-governance.md").write_text(
+        "[bounded]` repository-control contract\n"
+        "does not define legal meaning\n"
+        "must not read the JSON catalog\n",
+        encoding="utf-8",
+    )
 
 
 def test_temporal_vocabulary_contract_warns_on_missing_term_and_gap(tmp_path: Path) -> None:
     prd = tmp_path / "prd"
     architecture = prd / "architecture"
     architecture.mkdir(parents=True)
+    _write_temporal_governance_fixture(architecture)
     (prd / "temporal-legal-model.md").write_text(
-        "# Model\ncanonical `[bounded]` `legal_act_effect`\n",
+        "# Model\n\n## 3. Glossary and ownership\n\n"
+        "| Term | Meaning | Owner | Status | Boundary |\n"
+        "|------|---------|-------|--------|----------|\n"
+        "| Alpha | alpha | ADR | canonical | bounded |\n\n"
+        "## 4. Next\n",
         encoding="utf-8",
     )
     (architecture / "temporal-semantic-gap-register.md").write_text(
@@ -1159,8 +1183,15 @@ def test_temporal_vocabulary_contract_warns_on_missing_term_and_gap(tmp_path: Pa
             {
                 "schema_version": "law-nexus-temporal-vocabulary-contract/v1",
                 "authoritative": False,
+                "coverage_mode": "complete-glossary-table",
                 "model_path": "prd/temporal-legal-model.md",
                 "gap_register_path": "prd/architecture/temporal-semantic-gap-register.md",
+                "governance_path": "prd/architecture/glossary-governance.md",
+                "governance_required_fragments": [
+                    "[bounded]` repository-control contract",
+                    "does not define legal meaning",
+                    "must not read the JSON catalog",
+                ],
                 "rows": [
                     {
                         "id": "EvidenceSpan",
@@ -1181,6 +1212,257 @@ def test_temporal_vocabulary_contract_warns_on_missing_term_and_gap(tmp_path: Pa
     assert "term:EvidenceSpan" in finding.observed
     assert "gap:TSG-016" in finding.observed
     assert finding.rule_id == "temporal-vocabulary.contract-gap"
+
+
+def test_temporal_vocabulary_contract_warns_when_catalog_omits_glossary_row(
+    tmp_path: Path,
+) -> None:
+    prd = tmp_path / "prd"
+    architecture = prd / "architecture"
+    architecture.mkdir(parents=True)
+    _write_temporal_governance_fixture(architecture)
+    (prd / "temporal-legal-model.md").write_text(
+        "# Model\n\n## 3. Glossary and ownership\n\n"
+        "| Term | Meaning | Owner | Status | Boundary |\n"
+        "|------|---------|-------|--------|----------|\n"
+        "| Alpha | alpha | ADR | canonical | bounded |\n"
+        "| Beta | beta | ADR | canonical | bounded |\n\n"
+        "## 4. Next\n",
+        encoding="utf-8",
+    )
+    (architecture / "temporal-semantic-gap-register.md").write_text(
+        "| TSG-001 | gap |\n",
+        encoding="utf-8",
+    )
+    (architecture / "temporal-vocabulary-contract.json").write_text(
+        json.dumps(
+            {
+                "schema_version": "law-nexus-temporal-vocabulary-contract/v1",
+                "authoritative": False,
+                "coverage_mode": "complete-glossary-table",
+                "model_path": "prd/temporal-legal-model.md",
+                "gap_register_path": "prd/architecture/temporal-semantic-gap-register.md",
+                "governance_path": "prd/architecture/glossary-governance.md",
+                "governance_required_fragments": [
+                    "[bounded]` repository-control contract",
+                    "does not define legal meaning",
+                    "must not read the JSON catalog",
+                ],
+                "rows": [
+                    {"id": "alpha", "needle": "| Alpha |", "required_fragments": ["canonical"]}
+                ],
+                "gap_ids": ["TSG-001"],
+            }
+        ),
+        encoding="utf-8",
+    )
+
+    finding = check_temporal_vocabulary_contract(tmp_path)[0]
+
+    assert finding.status == "fail"
+    assert finding.severity == "warn"
+    assert "uncatalogued_glossary=['| Beta |']" in finding.observed
+
+
+def test_temporal_vocabulary_contract_warns_on_unlisted_register_gap(tmp_path: Path) -> None:
+    prd = tmp_path / "prd"
+    architecture = prd / "architecture"
+    architecture.mkdir(parents=True)
+    _write_temporal_governance_fixture(architecture)
+    (prd / "temporal-legal-model.md").write_text(
+        "# Model\n\n## 3. Glossary and ownership\n\n"
+        "| Term | Meaning | Owner | Status | Boundary |\n"
+        "|------|---------|-------|--------|----------|\n"
+        "| Alpha | alpha | ADR | canonical | bounded |\n\n"
+        "## 4. Next\n",
+        encoding="utf-8",
+    )
+    (architecture / "temporal-semantic-gap-register.md").write_text(
+        "| TSG-001 | gap |\n| TSG-002 | gap |\n",
+        encoding="utf-8",
+    )
+    (architecture / "temporal-vocabulary-contract.json").write_text(
+        json.dumps(
+            {
+                "schema_version": "law-nexus-temporal-vocabulary-contract/v1",
+                "authoritative": False,
+                "coverage_mode": "complete-glossary-table",
+                "model_path": "prd/temporal-legal-model.md",
+                "gap_register_path": "prd/architecture/temporal-semantic-gap-register.md",
+                "governance_path": "prd/architecture/glossary-governance.md",
+                "governance_required_fragments": [
+                    "[bounded]` repository-control contract",
+                    "does not define legal meaning",
+                    "must not read the JSON catalog",
+                ],
+                "rows": [
+                    {"id": "alpha", "needle": "| Alpha |", "required_fragments": ["canonical"]}
+                ],
+                "gap_ids": ["TSG-001"],
+            }
+        ),
+        encoding="utf-8",
+    )
+
+    finding = check_temporal_vocabulary_contract(tmp_path)[0]
+
+    assert finding.status == "fail"
+    assert finding.severity == "warn"
+    assert "uncatalogued_gaps=['TSG-002']" in finding.observed
+
+
+def test_temporal_vocabulary_contract_rejects_catalog_row_outside_glossary(
+    tmp_path: Path,
+) -> None:
+    prd = tmp_path / "prd"
+    architecture = prd / "architecture"
+    architecture.mkdir(parents=True)
+    _write_temporal_governance_fixture(architecture)
+    (prd / "temporal-legal-model.md").write_text(
+        "# Model\n\n## 3. Glossary and ownership\n\n"
+        "| Term | Meaning | Owner | Status | Boundary |\n"
+        "|------|---------|-------|--------|----------|\n"
+        "| Alpha | alpha | ADR | canonical | bounded |\n\n"
+        "## 4. Next\n\n| Beta | decoy | ADR | canonical | bounded |\n",
+        encoding="utf-8",
+    )
+    (architecture / "temporal-semantic-gap-register.md").write_text(
+        "| TSG-001 | gap |\n", encoding="utf-8"
+    )
+    (architecture / "temporal-vocabulary-contract.json").write_text(
+        json.dumps(
+            {
+                "schema_version": "law-nexus-temporal-vocabulary-contract/v1",
+                "authoritative": False,
+                "coverage_mode": "complete-glossary-table",
+                "model_path": "prd/temporal-legal-model.md",
+                "gap_register_path": "prd/architecture/temporal-semantic-gap-register.md",
+                "governance_path": "prd/architecture/glossary-governance.md",
+                "governance_required_fragments": [
+                    "[bounded]` repository-control contract",
+                    "does not define legal meaning",
+                    "must not read the JSON catalog",
+                ],
+                "rows": [
+                    {"id": "alpha", "needle": "| Alpha |", "required_fragments": ["canonical"]},
+                    {"id": "beta", "needle": "| Beta |", "required_fragments": ["canonical"]},
+                ],
+                "gap_ids": ["TSG-001"],
+            }
+        ),
+        encoding="utf-8",
+    )
+
+    finding = check_temporal_vocabulary_contract(tmp_path)[0]
+
+    assert finding.status == "fail"
+    assert "stale_catalog_glossary=['| Beta |']" in finding.observed
+
+
+def test_temporal_vocabulary_contract_ignores_decoy_row_before_glossary(
+    tmp_path: Path,
+) -> None:
+    prd = tmp_path / "prd"
+    architecture = prd / "architecture"
+    architecture.mkdir(parents=True)
+    _write_temporal_governance_fixture(architecture)
+    (prd / "temporal-legal-model.md").write_text(
+        "# Model\n\n| Alpha | decoy | ADR | canonical | bounded |\n\n"
+        "## 3. Glossary and ownership\n\n"
+        "| Term | Meaning | Owner | Status | Boundary |\n"
+        "|------|---------|-------|--------|----------|\n"
+        "| Alpha | alpha | ADR | proposed | bounded |\n\n"
+        "## 4. Next\n",
+        encoding="utf-8",
+    )
+    (architecture / "temporal-semantic-gap-register.md").write_text(
+        "| TSG-001 | gap |\n", encoding="utf-8"
+    )
+    (architecture / "temporal-vocabulary-contract.json").write_text(
+        json.dumps(
+            {
+                "schema_version": "law-nexus-temporal-vocabulary-contract/v1",
+                "authoritative": False,
+                "coverage_mode": "complete-glossary-table",
+                "model_path": "prd/temporal-legal-model.md",
+                "gap_register_path": "prd/architecture/temporal-semantic-gap-register.md",
+                "governance_path": "prd/architecture/glossary-governance.md",
+                "governance_required_fragments": [
+                    "[bounded]` repository-control contract",
+                    "does not define legal meaning",
+                    "must not read the JSON catalog",
+                ],
+                "rows": [
+                    {"id": "alpha", "needle": "| Alpha |", "required_fragments": ["canonical"]}
+                ],
+                "gap_ids": ["TSG-001"],
+            }
+        ),
+        encoding="utf-8",
+    )
+
+    finding = check_temporal_vocabulary_contract(tmp_path)[0]
+
+    assert finding.status == "fail"
+    assert "term:alpha" in finding.observed
+
+
+def test_temporal_vocabulary_contract_requires_declared_governance_surface(
+    tmp_path: Path,
+) -> None:
+    prd = tmp_path / "prd"
+    architecture = prd / "architecture"
+    architecture.mkdir(parents=True)
+    (prd / "temporal-legal-model.md").write_text(
+        "# Model\n\n## 3. Glossary and ownership\n\n"
+        "| Term | Meaning | Owner | Status | Boundary |\n"
+        "|------|---------|-------|--------|----------|\n"
+        "| Alpha | alpha | ADR | canonical | bounded |\n\n## 4. Next\n",
+        encoding="utf-8",
+    )
+    (architecture / "temporal-semantic-gap-register.md").write_text(
+        "| TSG-001 | gap |\n", encoding="utf-8"
+    )
+    (architecture / "temporal-vocabulary-contract.json").write_text(
+        json.dumps(
+            {
+                "schema_version": "law-nexus-temporal-vocabulary-contract/v1",
+                "authoritative": False,
+                "coverage_mode": "complete-glossary-table",
+                "model_path": "prd/temporal-legal-model.md",
+                "gap_register_path": "prd/architecture/temporal-semantic-gap-register.md",
+                "rows": [
+                    {"id": "alpha", "needle": "| Alpha |", "required_fragments": ["canonical"]}
+                ],
+                "gap_ids": ["TSG-001"],
+            }
+        ),
+        encoding="utf-8",
+    )
+
+    report = run_governor(tmp_path, check="temporal-vocabulary-contract")
+
+    assert report.status == "failure"
+    assert report.tool_error_count == 1
+    assert report.findings[0].rule_id == "tool-error"
+
+
+def test_temporal_vocabulary_drift_warns_on_unqualified_deprecated_alias(
+    tmp_path: Path,
+) -> None:
+    adr = tmp_path / "doc" / "adr"
+    adr.mkdir(parents=True)
+    (adr / "0018-normative-state-resolver.md").write_text(
+        "# Resolver\n\nThe NormativeStatus resolver returns Unknown.\n",
+        encoding="utf-8",
+    )
+
+    finding = check_temporal_vocabulary_drift(tmp_path)[0]
+
+    assert finding.status == "fail"
+    assert finding.severity == "warn"
+    assert "0018-normative-state-resolver.md:3:NormativeStatus" in finding.observed
+    assert finding.rule_id == "temporal-vocabulary.unqualified-alias"
 
 
 def test_temporal_vocabulary_catalog_rejects_authority_promotion(tmp_path: Path) -> None:

@@ -13,7 +13,7 @@ related: [ADR-0009, ADR-0017, ADR-0019, ADR-0021]
 ## Status
 
 **Accepted [proposed]** — normative status model designed. Not implemented.
-Moves to `[bounded]` when a NormativeStatus resolver with provenance-backed
+Moves to `[bounded]` when a NormativeState resolver with provenance-backed
 transitions and a fail path ships in Rust; to `[validated]` only with real-corpus
 status-edge proof.
 
@@ -31,7 +31,7 @@ resolves clocks but not the *normative consequence* of those clocks.
 
 ## Decision
 
-1. **NormativeStatus enum, provenance-backed:**
+1. **NormativeState enum, provenance-backed:**
 
    | Status | Meaning |
    |-------|---------|
@@ -59,7 +59,7 @@ resolves clocks but not the *normative consequence* of those clocks.
    R068 anti-smoothing boundary applied to status.
 
 5. **Practice does not mutate NormativeState directly.** Judicial/FAS practice
-   (ADR-0020) influences *effective interpretation*, not the NormativeStatus
+   (ADR-0020) influences *effective interpretation*, not the NormativeState
    field itself, except where a constitutional court ruling annuls a norm ex
    tunc — modeled as a typed status event with its own provenance.
 

@@ -48,7 +48,7 @@ behavior/projection, not a sixth core clock.
 
 2. **Practice is NON-AUTHORITATIVE for evidence-kernel mutation.** Practice
    overlays *effective interpretation*; it does NOT rewrite CTV text (ADR-0017)
-   or NormativeStatus (ADR-0018) directly. Exception: a typed КС РФ ex-tunc
+   or NormativeState (ADR-0018) directly. Exception: a typed КС РФ ex-tunc
    annulment is modeled as a status event with its own provenance, not a
    practice mutation. This honors D116/D120 authority singularity.
 
@@ -93,6 +93,6 @@ behavior/projection, not a sixth core clock.
 
 - ADR-0009 (practice has its own clock)
 - ADR-0010 (kernel authority; practice is non-authoritative for mutation)
-- ADR-0018 (practice does not mutate NormativeStatus except typed ex-tunc)
+- ADR-0018 (practice does not mutate NormativeState except typed ex-tunc)
 - ADR-0019 (practice can surface conflicts, not rank-mutate)
 - ADR-0021 (risk consumes EffectiveInterpretation)

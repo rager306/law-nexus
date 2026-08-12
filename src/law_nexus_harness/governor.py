@@ -2052,6 +2052,23 @@ def _table_line(
 _DOCUMENT_FRESHNESS_CATALOG = "prd/architecture/document-freshness-triggers.json"
 _TEMPORAL_VOCABULARY_CATALOG = "prd/architecture/temporal-vocabulary-contract.json"
 _TEMPORAL_VOCABULARY_SCHEMA = "law-nexus-temporal-vocabulary-contract/v1"
+_TEMPORAL_VOCABULARY_COVERAGE = "complete-glossary-table"
+_TEMPORAL_GLOSSARY_HEADING = "## 3. Glossary and ownership"
+_TEMPORAL_DRIFT_SCAN_PATHS: tuple[str, ...] = (
+    "prd/ARCHITECTURE.md",
+    "prd/PRODUCT.md",
+    "prd/REQUIREMENTS.md",
+    "doc/adr/0018-normative-state-resolver.md",
+    "doc/adr/0020-judicial-fas-practice-overlay.md",
+)
+_TEMPORAL_DEPRECATED_ALIASES: tuple[str, ...] = ("NormativeStatus",)
+_TEMPORAL_ALIAS_QUALIFIERS: tuple[str, ...] = (
+    "deprecated",
+    "earlier",
+    "alias",
+    "compatibility",
+    "historical",
+)
 
 
 def _working_tree_paths(root: Path) -> set[str]:
@@ -2160,31 +2177,72 @@ def check_document_freshness_triggers(root: Path) -> list[GovernorFinding]:
     ]
 
 
+def _temporal_glossary_rows(model_text: str) -> dict[str, str]:
+    """Return first-cell needles and exact rows from the bounded glossary table."""
+
+    if _TEMPORAL_GLOSSARY_HEADING not in model_text:
+        raise ValueError("temporal model is missing the glossary heading")
+    body = model_text.split(_TEMPORAL_GLOSSARY_HEADING, maxsplit=1)[1]
+    body = body.split("\n## ", maxsplit=1)[0]
+    rows: dict[str, str] = {}
+    for line in body.splitlines():
+        if not line.startswith("|") or line.startswith("|---") or line.startswith("| Term |"):
+            continue
+        cells = [cell.strip() for cell in line.split("|")[1:-1]]
+        if len(cells) != 5 or not cells[0]:
+            raise ValueError("invalid temporal glossary row")
+        needle = f"| {cells[0]} |"
+        if needle in rows:
+            raise ValueError("duplicate temporal glossary row")
+        rows[needle] = line
+    if not rows:
+        raise ValueError("temporal glossary rows are empty")
+    return rows
+
+
+def _temporal_gap_ids(register_text: str) -> set[str]:
+    return set(re.findall(r"^\| (TSG-\d{3}) \|", register_text, flags=re.MULTILINE))
+
+
 def check_temporal_vocabulary_contract(root: Path) -> list[GovernorFinding]:
-    """Check catalogued vocabulary rows and semantic-gap inventory continuity."""
+    """Check complete glossary-row and semantic-gap inventory continuity."""
 
     catalog = _load_json(root / _TEMPORAL_VOCABULARY_CATALOG)
     if catalog.get("schema_version") != _TEMPORAL_VOCABULARY_SCHEMA:
         raise ValueError("unsupported temporal vocabulary catalog schema")
     if catalog.get("authoritative") is not False:
         raise ValueError("temporal vocabulary catalog must be non-authoritative")
+    if catalog.get("coverage_mode") != _TEMPORAL_VOCABULARY_COVERAGE:
+        raise ValueError("temporal vocabulary catalog must declare complete glossary coverage")
 
     model_rel = str(catalog.get("model_path") or "")
     register_rel = str(catalog.get("gap_register_path") or "")
+    governance_rel = str(catalog.get("governance_path") or "")
+    governance_fragments = catalog.get("governance_required_fragments")
     rows = catalog.get("rows")
     gap_ids = catalog.get("gap_ids")
     if not model_rel or not register_rel or not isinstance(rows, list) or not rows:
         raise ValueError("invalid temporal vocabulary catalog surfaces or rows")
+    if not governance_rel or not isinstance(governance_fragments, list) or not governance_fragments:
+        raise ValueError("complete temporal vocabulary coverage requires governance boundaries")
     if not isinstance(gap_ids, list) or not gap_ids:
         raise ValueError("invalid temporal vocabulary gap inventory")
 
     model_path = root / model_rel
     register_path = root / register_rel
+    governance_path = root / governance_rel
     missing: list[str] = []
+    uncatalogued_glossary: list[str] = []
+    stale_catalog_glossary: list[str] = []
+    uncatalogued_gaps: list[str] = []
+    stale_catalog_gaps: list[str] = []
+    catalog_needles: list[str] = []
     if not model_path.is_file():
         missing.append(f"surface:{model_rel}")
     else:
-        lines = model_path.read_text(encoding="utf-8", errors="replace").splitlines()
+        model_text = model_path.read_text(encoding="utf-8", errors="replace")
+        glossary_rows = _temporal_glossary_rows(model_text)
+        glossary_needles = set(glossary_rows)
         for item in rows:
             if not isinstance(item, dict):
                 raise ValueError("temporal vocabulary row must be an object")
@@ -2193,39 +2251,77 @@ def check_temporal_vocabulary_contract(root: Path) -> list[GovernorFinding]:
             fragments = item.get("required_fragments")
             if not row_id or not needle or not isinstance(fragments, list) or not fragments:
                 raise ValueError("invalid temporal vocabulary row")
-            row = next((line for line in lines if needle in line), None)
+            catalog_needles.append(needle)
+            row = glossary_rows.get(needle)
             if row is None or not all(str(fragment) in row for fragment in fragments):
                 missing.append(f"term:{row_id}")
+        if len(catalog_needles) != len(set(catalog_needles)):
+            raise ValueError("duplicate temporal vocabulary needles")
+        uncatalogued_glossary = sorted(glossary_needles - set(catalog_needles))
+        stale_catalog_glossary = sorted(set(catalog_needles) - glossary_needles)
+
+    if governance_rel:
+        if not governance_path.is_file():
+            missing.append(f"surface:{governance_rel}")
+        else:
+            governance_text = governance_path.read_text(encoding="utf-8", errors="replace")
+            if not all(
+                isinstance(fragment, str) and fragment and fragment in governance_text
+                for fragment in governance_fragments
+            ):
+                missing.append("governance:required-boundaries")
 
     if not register_path.is_file():
         missing.append(f"surface:{register_rel}")
     else:
         register_text = register_path.read_text(encoding="utf-8", errors="replace")
+        catalog_gap_ids: set[str] = set()
         for gap_id in gap_ids:
-            if not isinstance(gap_id, str) or not gap_id:
+            if not isinstance(gap_id, str) or not re.fullmatch(r"TSG-\d{3}", gap_id):
                 raise ValueError("invalid temporal vocabulary gap id")
+            catalog_gap_ids.add(gap_id)
             if f"| {gap_id} |" not in register_text:
                 missing.append(f"gap:{gap_id}")
+        if len(catalog_gap_ids) != len(gap_ids):
+            raise ValueError("duplicate temporal vocabulary gap id")
+        register_gap_ids = _temporal_gap_ids(register_text)
+        uncatalogued_gaps = sorted(register_gap_ids - catalog_gap_ids)
+        stale_catalog_gaps = sorted(catalog_gap_ids - register_gap_ids)
 
-    evidence = (
-        GovernorEvidence(path=_TEMPORAL_VOCABULARY_CATALOG),
-        GovernorEvidence(path=model_rel),
-        GovernorEvidence(path=register_rel),
+    evidence = tuple(
+        GovernorEvidence(path=path)
+        for path in (
+            _TEMPORAL_VOCABULARY_CATALOG,
+            model_rel,
+            register_rel,
+            governance_rel,
+        )
+        if path
     )
-    if missing:
+    if (
+        missing
+        or uncatalogued_glossary
+        or stale_catalog_glossary
+        or uncatalogued_gaps
+        or stale_catalog_gaps
+    ):
         return [
             GovernorFinding(
                 check_id="temporal-vocabulary-contract",
                 status="fail",
                 severity="warn",
                 message="temporal vocabulary or semantic-gap inventory is incomplete",
-                observed=f"missing={missing}",
+                observed=(
+                    f"missing={missing}, uncatalogued_glossary={uncatalogued_glossary}, "
+                    f"stale_catalog_glossary={stale_catalog_glossary}, "
+                    f"uncatalogued_gaps={uncatalogued_gaps}, stale_catalog_gaps={stale_catalog_gaps}"
+                ),
                 remediation=(
-                    "Restore the bounded catalogued row/status marker or gap inventory row. "
-                    "Use the governing ADR for semantic changes; do not promote lifecycle from this check."
+                    "Restore complete glossary-row and gap inventories. Use the governing ADR for "
+                    "semantic changes; do not promote lifecycle or close a gap from this check."
                 ),
                 rule_id="temporal-vocabulary.contract-gap",
-                expected="Catalogued controlled-vocabulary rows and gap IDs remain visible.",
+                expected="Every glossary row and semantic-gap ID remains structurally catalogued.",
                 evidence=evidence,
             )
         ]
@@ -2237,13 +2333,66 @@ def check_temporal_vocabulary_contract(root: Path) -> list[GovernorFinding]:
             severity="ok",
             message="bounded temporal vocabulary and semantic-gap inventory are present",
             observed=(
-                f"terms={len(rows)}, gaps={len(gap_ids)} "
+                f"terms={len(rows)}, gaps={len(gap_ids)}, complete glossary-row inventory "
                 "(repository structure only; not semantic validation or product proof)."
             ),
             remediation="none",
             rule_id="temporal-vocabulary.contract",
-            expected="Catalogued controlled-vocabulary rows and gap IDs remain visible.",
+            expected="Every glossary row and semantic-gap ID remains structurally catalogued.",
             evidence=evidence,
+        )
+    ]
+
+
+def check_temporal_vocabulary_drift(root: Path) -> list[GovernorFinding]:
+    """Surface unqualified deprecated temporal aliases on bounded living surfaces."""
+
+    hits: list[str] = []
+    evidence: list[GovernorEvidence] = []
+    scanned: list[str] = []
+    for rel in _TEMPORAL_DRIFT_SCAN_PATHS:
+        path = root / rel
+        if not path.is_file():
+            continue
+        scanned.append(rel)
+        for line_number, line in enumerate(
+            path.read_text(encoding="utf-8", errors="replace").splitlines(), start=1
+        ):
+            lower = line.lower()
+            for alias in _TEMPORAL_DEPRECATED_ALIASES:
+                if alias not in line:
+                    continue
+                if any(qualifier in lower for qualifier in _TEMPORAL_ALIAS_QUALIFIERS):
+                    continue
+                hits.append(f"{rel}:{line_number}:{alias}")
+                evidence.append(GovernorEvidence(path=rel, line=line_number))
+    if hits:
+        return [
+            GovernorFinding(
+                check_id="temporal-vocabulary-drift",
+                status="fail",
+                severity="warn",
+                message="living surfaces use a deprecated temporal alias without qualification",
+                observed=f"hits={hits}",
+                remediation=(
+                    "Use the canonical glossary term or qualify the compatibility/historical alias. "
+                    "Human review decides semantic changes; this heuristic cannot amend an ADR."
+                ),
+                rule_id="temporal-vocabulary.unqualified-alias",
+                expected="Deprecated temporal aliases are absent or explicitly qualified.",
+                evidence=tuple(evidence),
+            )
+        ]
+    return [
+        GovernorFinding(
+            check_id="temporal-vocabulary-drift",
+            status="pass",
+            severity="ok",
+            message="bounded living surfaces qualify deprecated temporal aliases",
+            observed=f"scanned={scanned}; deprecated aliases absent or qualified (advisory only).",
+            remediation="none",
+            rule_id="temporal-vocabulary.alias-boundary",
+            expected="Deprecated temporal aliases are absent or explicitly qualified.",
         )
     ]
 
@@ -3507,8 +3656,17 @@ GOVERNOR_CHECK_SPECS: tuple[CheckSpec, ...] = (
         "docs",
         "deterministic",
         check_temporal_vocabulary_contract,
-        "Keep bounded controlled-vocabulary rows and semantic-gap IDs visible.",
+        "Keep the complete glossary-row inventory, governance boundary and semantic-gap IDs visible.",
         (_TEMPORAL_VOCABULARY_CATALOG,),
+        "warn",
+    ),
+    _check_spec(
+        "temporal-vocabulary-drift",
+        "semantic",
+        "heuristic",
+        check_temporal_vocabulary_drift,
+        "Surface unqualified deprecated temporal aliases on bounded living surfaces.",
+        _TEMPORAL_DRIFT_SCAN_PATHS,
         "warn",
     ),
     _check_spec(
