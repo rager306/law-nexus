@@ -151,9 +151,9 @@ Governor must not:
 
 - The complete temporal contract remains partial despite complete vocabulary
   inventory.
-- Local skills are gitignored, so portable CI cannot prove their contents;
-  tracked `AGENTS.md` and governance instructions are the clone-safe injection
-  path.
+- Local `AGENTS.md` and skills are gitignored, so portable CI cannot prove their
+  contents. The tracked clone-safe injection path is the living-oracle pointer
+  in `prd/ARCHITECTURE.md` plus `glossary-governance.md` and the glossary itself.
 - D150 remains bound to revision `120d44be610b20ee537f402140eb3828e8e9a0f4`;
   this assessment is not successor acceptance.
 - Clean-tree/commit-range freshness base, periodic external review and Stage D
