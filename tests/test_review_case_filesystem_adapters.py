@@ -230,6 +230,24 @@ def test_packet_store_rejects_symlink_packet_and_directory(tmp_path: Path) -> No
     assert list_exc.value.code == "symlink_rejected"
 
 
+def test_packet_store_rejects_paths_outside_dedicated_projection_root(
+    tmp_path: Path,
+) -> None:
+    root = _repo(tmp_path)
+    for forbidden in (
+        "doc/adr/review-packets",
+        "prd/architecture",
+        "prd/architecture/review-cases",
+        "prd/architecture/review-cases/fixtures",
+        "prd/architecture/review-cases/other",
+        "prd/PRODUCT.md",
+        "prd/REQUIREMENTS.md",
+    ):
+        with pytest.raises(ReviewCasePortError) as exc:
+            FilesystemReviewPacketStore(root, packets_dir=forbidden)
+        assert exc.value.code == "invalid_store_path"
+
+
 def test_packet_store_default_path_not_authority_or_gsd(tmp_path: Path) -> None:
     root = _repo(tmp_path)
     store = FilesystemReviewPacketStore(root)

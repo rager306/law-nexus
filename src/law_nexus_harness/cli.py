@@ -189,6 +189,7 @@ def _review_case_exit_class(code: str, *, cause_code: str | None = None) -> str:
         "invalid_path",
         "invalid_packet_id",
         "invalid_packet",
+        "invalid_store_path",
         "source_hash_drift",
         "packet_not_found",
     }

@@ -19,6 +19,7 @@ from law_nexus_harness.review_case.domain import ReviewPacket
 from law_nexus_harness.review_case.ports import ReviewCasePortError
 
 _PACKET_ID_SAFE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$")
+_ALLOWED_PACKETS_ROOT = "prd/architecture/review-cases/packets"
 _FORBIDDEN_PREFIXES = (
     ".gsd/",
     ".agents/",
@@ -166,6 +167,14 @@ class FilesystemReviewPacketStore:
             )
         self._root = root
         relative = _validate_repo_relative_path(packets_dir, operation="__init__")
+        if relative != _ALLOWED_PACKETS_ROOT and not relative.startswith(
+            f"{_ALLOWED_PACKETS_ROOT}/"
+        ):
+            raise _port_error(
+                code="invalid_store_path",
+                operation="__init__",
+                message="packet store must stay under the dedicated non-authoritative packets root",
+            )
         self._packets_dir_rel = relative
         self._packets_dir = _resolve_under_root(root, relative, operation="__init__")
         # Directory may not exist yet; create only on first successful add.

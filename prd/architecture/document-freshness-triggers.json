@@ -36,7 +36,7 @@
     {
       "id": "governor-contract-change",
       "sources": ["src/law_nexus_harness/governor.py", "src/law_nexus_harness/cli.py", "src/law_nexus_harness/adr_matrix.py"],
-      "required_any": ["tests/test_harness_governor.py", "tests/test_harness_adr_matrix.py", "prd/architecture/adr-governor-verification-design.md"],
+      "required_any": ["tests/test_harness_governor.py", "tests/test_harness_adr_matrix.py", "tests/test_harness_review_case_cli.py", "prd/architecture/adr-governor-verification-design.md"],
       "review": "Recheck report compatibility, exit semantics, negative tests and non-claims."
     },
     {

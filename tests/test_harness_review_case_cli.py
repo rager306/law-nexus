@@ -119,6 +119,19 @@ def test_missing_source_is_tool_exit(tmp_path: Path, capsys) -> None:
     assert report["error"]["code"] == "source_not_found"
 
 
+def test_authority_like_packet_store_path_is_validation_exit(tmp_path: Path, capsys) -> None:
+    root = _repo(tmp_path)
+    args = _register_args(root)
+    index = args.index("--packets-dir")
+    args[index + 1] = "doc/adr/review-packets"
+    code = main(args)
+    report = json.loads(capsys.readouterr().out)
+    assert code == 1
+    assert report["status"] == "validation-error"
+    assert report["error"]["code"] == "invalid_store_path"
+    assert not (root / "doc/adr/review-packets").exists()
+
+
 def test_invalid_path_is_validation_exit(tmp_path: Path, capsys) -> None:
     root = _repo(tmp_path)
     args = _register_args(root)
