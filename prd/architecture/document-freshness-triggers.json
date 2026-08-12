@@ -62,6 +62,12 @@
       "sources": ["prd/architecture/glossary-governance.md"],
       "required_any": ["prd/temporal-legal-model.md", "prd/architecture/temporal-vocabulary-contract.json", "prd/architecture/adr-governor-verification-design.md"],
       "review": "Recheck injection/update rules against the live glossary and Governor boundary; governance remains non-authoritative."
+    },
+    {
+      "id": "review-case-contract-change",
+      "sources": ["prd/architecture/review-case.schema.json", "prd/architecture/review-cases/**/*.json"],
+      "required_any": ["doc/adr/0024-review-case-intake-and-disposition.md", "prd/architecture/review-cases/README.md", "tests/test_review_case_schema.py", "tests/test_review_case_delta_fixture.py"],
+      "review": "Recheck packet non-authority constants, source hashes and spans, human disposition firewall, revision-bound proof classes, and explicit non-claims; a valid packet does not accept or close findings."
     }
   ]
 }

@@ -42,6 +42,30 @@ All notable changes to law-nexus are documented in this file.
   hosted CI, where `actions/checkout` intentionally provides no installed hook;
   synthetic hostile hook tests remain in the repository.
 
+## M166 review governance lifecycle (2026-08-12)
+
+### S01 authority and Review Case contract
+- Added ADR-0024 `[proposed]` to define immutable review sources, a
+  non-authoritative Review Case projection, append-only human disposition,
+  canonical promotion through existing authority, reference-only GSD execution
+  links, and class-matched revision-bound closure.
+- Fixed the onion boundary before implementation: pure standard-library
+  contracts point inward; filesystem, CLI, Governor and codecs remain outer
+  adapters. Pydantic v2 is an adapter-only candidate for later bounded probes;
+  Adaptix remains deferred pending measured mapping complexity.
+- Added the explicit `review-case/v1` JSON Schema and hostile contract tests for
+  authority laundering, source/hash drift, invalid status/relationship kinds,
+  non-human promotion, class-mismatched proof and blocked-parent closure. These
+  are process contracts, not a runtime or semantic-acceptance claim.
+- Added a two-packet, 16-finding review-11/review-12 delta fixture with exact
+  tracked source hashes and span hashes. All 21 relations are candidates and all
+  real findings remain `open / unplanned / unverified` until human disposition;
+  the review-proposed M166–M176 sequence remains a roadmap proposal only.
+- Added a document-freshness trigger for Review Case schema/packet changes and
+  synchronized ADR truth, index, cross-matrix and cold-reader surfaces. No
+  Product, Requirements, temporal-ontology, parser, applicability or legal
+  lifecycle was promoted.
+
 ## Post-M165 architecture assessment and semantic-control remediation (2026-08-11–12)
 
 ### M165 temporal legal ontology design

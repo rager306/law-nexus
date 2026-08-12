@@ -20,6 +20,7 @@ Authority for live direction remains `prd/ARCHITECTURE.md` + `doc/adr/**`.
 | 0015 | bounded | complete | — | Hexagonal verification |
 | 0016–0022 | proposed each | complete | — | Temporal legal ontology L1–L7 |
 | 0023 | proposed | complete | — | Applicability protocol ownership; runtime absent |
+| 0024 | proposed | complete | — | Review Case intake/disposition; non-authoritative projection and runtime absent |
 
 **Numbering gaps (intentional):** ADR-0001, 0002, 0003, 0006 are **not present**.
 They belonged to the Python-onion / MADR-gate / library-boundary / PyO3-bridge era
@@ -41,6 +42,7 @@ are narrative only.
 | 0013–0015 | yes + LC | yes | yes | yes | yes | proof/non-claim boundary | workflow context |
 | 0016–0022 | yes + LC | yes | yes | yes, `[proposed]` | yes, `[proposed]`/`[deferred]` | O1–O7 design ceiling | historical R074/local weave |
 | 0023 | yes + LC | yes | yes | yes, ownership `[proposed]`/runtime `[deferred]` | yes, ownership `[proposed]`/runtime `[deferred]` | D148 + EA-04 decision boundary | local D148 workflow record only |
+| 0024 | yes + LC | yes | yes | no product trace; process contour only | no product trace; process contour only | D151/D152 authority and adapter boundary | local execution references only; no state mirror |
 
 Governor enforcement:
 
@@ -63,7 +65,7 @@ Governor enforcement:
 ### P0 — logical / authority gaps
 
 No unresolved P0 lifecycle contradiction was found in the 2026-08-11 repeat
-review: all 19 present ADR Status lifecycles match the foundation map in
+review: all 20 present ADR Status lifecycles match the foundation map in
 `prd/ARCHITECTURE.md`.
 
 1. **Retired IDs 0001/0002/0003/0006** remain absent by design. Living prose may

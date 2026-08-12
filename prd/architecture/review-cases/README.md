@@ -43,13 +43,16 @@ v1 is deliberately small:
 
 Packets and events are immutable projections of evidence and decisions already
 made. Correcting a review means a new source revision and new packet/events, not
-silent rewrite of hashes or history.
+silent rewrite of hashes or history. Every non-`open` disposition requires a
+matching human `disposition_recorded` event; `human_reviewed` normalization
+requires a human `normalization_reviewed` event. Event payload keys are closed by
+the v1 wire schema so metadata cannot smuggle authority-like fields.
 
 ## Candidate mapping vs human promotion
 
 | Relation | Meaning |
 |---|---|
-| `maps_to` | candidate interpretation only; never acceptance or closure |
+| `maps_to` | candidate interpretation only; its edge status is always `candidate` |
 | `promoted_to` | accepted canonical relationship **after** a human disposition event |
 
 Tool or LLM actors may extract and propose. They may not record accepting

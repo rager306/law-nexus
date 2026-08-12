@@ -279,6 +279,24 @@ def invariant_errors(packet: Mapping[str, Any]) -> list[str]:
     if "derived_status" in packet:
         errors.append("packet.derived_status is author-written and forbidden")
 
+    human_dispositions = {
+        (event.get("finding_id"), event["payload"].get("disposition"))
+        for event in events
+        if event.get("event_type") == "disposition_recorded"
+        and event.get("actor_class") == "human"
+        and isinstance(event.get("payload"), Mapping)
+    }
+    if (
+        isinstance(normalization, Mapping)
+        and normalization.get("status") == "human_reviewed"
+        and not any(
+            event.get("event_type") == "normalization_reviewed"
+            and event.get("actor_class") == "human"
+            for event in events
+        )
+    ):
+        errors.append("human_reviewed requires human normalization_reviewed event")
+
     for finding_id, finding in findings.items():
         if "derived_status" in finding:
             errors.append(f"{finding_id}.derived_status is author-written and forbidden")
@@ -293,6 +311,11 @@ def invariant_errors(packet: Mapping[str, Any]) -> list[str]:
                 )
 
         disposition = finding.get("disposition_status")
+        if disposition != "open" and (finding_id, disposition) not in human_dispositions:
+            errors.append(
+                f"{finding_id} disposition {disposition} requires matching human "
+                "disposition_recorded event"
+            )
         execution = finding.get("execution_status")
         if disposition in TERMINAL_WITHOUT_WORK and execution not in {
             "not_required",
@@ -325,10 +348,13 @@ def invariant_errors(packet: Mapping[str, Any]) -> list[str]:
                     "process",
                 }:
                     errors.append(f"{finding_id} verification missing proof_class")
-                if not isinstance(payload.get("tested_revision"), str) or not payload.get(
-                    "tested_revision"
-                ):
+                tested_revision = payload.get("tested_revision")
+                if not isinstance(tested_revision, str) or not tested_revision:
                     errors.append(f"{finding_id} verification missing tested_revision")
+                elif re.fullmatch(r"[a-f0-9]{40}", tested_revision) is None:
+                    errors.append(
+                        f"{finding_id} verification tested_revision must be 40 lowercase hex"
+                    )
                 anchors = payload.get("evidence_anchors")
                 if not isinstance(anchors, list) or not anchors:
                     errors.append(f"{finding_id} verification missing evidence_anchors")
@@ -369,10 +395,28 @@ def invariant_errors(packet: Mapping[str, Any]) -> list[str]:
         edge_type = edge.get("type")
         status = edge.get("status")
         source = edge.get("from")
-        if edge_type == "promoted_to" and status == "accepted":
+        if edge_type == "maps_to" and status != "candidate":
+            errors.append(f"edges[{index}] maps_to must remain candidate")
+        if edge_type != "maps_to" and status != "candidate":
+            matching_human_events = [
+                event
+                for event in events
+                if event.get("event_type") == "edge_asserted"
+                and event.get("actor_class") == "human"
+                and isinstance(event.get("payload"), Mapping)
+                and event["payload"].get("edge_type") == edge_type
+                and event["payload"].get("from") == source
+                and event["payload"].get("to") == edge.get("to")
+            ]
+            if not matching_human_events:
+                errors.append(
+                    f"edges[{index}] non-candidate relation requires matching human "
+                    "edge_asserted event"
+                )
+        if edge_type == "promoted_to":
             if source not in human_accepting:
                 errors.append(
-                    f"edges[{index}] promoted_to accepted without prior human accepting disposition"
+                    f"edges[{index}] promoted_to requires prior human accepting disposition"
                 )
             promoting_events = [
                 event
@@ -382,11 +426,10 @@ def invariant_errors(packet: Mapping[str, Any]) -> list[str]:
                 and isinstance(event.get("payload"), Mapping)
                 and event["payload"].get("edge_type") == "promoted_to"
                 and event["payload"].get("from") == source
+                and event["payload"].get("to") == edge.get("to")
             ]
             if not promoting_events:
-                errors.append(
-                    f"edges[{index}] promoted_to accepted lacks human edge_asserted event"
-                )
+                errors.append(f"edges[{index}] promoted_to lacks human edge_asserted event")
         if edge_type in {"promoted_to", "implemented_by", "verified_by"} and status == "accepted":
             if any(
                 event.get("actor_class") in {"tool", "llm"}
@@ -540,21 +583,112 @@ def test_invalid_edge_type_fails(schema: Mapping[str, Any]) -> None:
     assert any("type" in error and "enum" in error for error in errors)
 
 
-def test_promotion_without_human_disposition_fails(schema: Mapping[str, Any]) -> None:
+def test_non_open_disposition_without_matching_human_event_fails(
+    schema: Mapping[str, Any],
+) -> None:
+    for disposition in (
+        "accepted_as_gap",
+        "already_satisfied",
+        "rejected",
+        "deferred",
+        "duplicate",
+        "superseded",
+        "not_applicable",
+    ):
+        packet = minimal_packet()
+        packet["findings"][0]["disposition_status"] = disposition
+        if disposition in TERMINAL_WITHOUT_WORK:
+            packet["findings"][0]["execution_status"] = "not_required"
+        errors = validate_packet(packet, schema)
+        assert any(
+            "requires matching human disposition_recorded event" in error for error in errors
+        )
+
+
+def test_maps_to_edge_is_always_candidate(schema: Mapping[str, Any]) -> None:
     packet = minimal_packet()
-    packet["findings"][0]["disposition_status"] = "accepted_as_gap"
-    packet["edges"].append(
+    packet["edges"][0]["status"] = "accepted"
+    errors = validate_packet(packet, schema)
+    assert any("maps_to must remain candidate" in error for error in errors)
+
+
+def test_non_candidate_relation_requires_matching_human_event(
+    schema: Mapping[str, Any],
+) -> None:
+    packet = minimal_packet()
+    packet["findings"].append(copy.deepcopy(packet["findings"][0]))
+    packet["findings"][1]["finding_id"] = "RC11-F05"
+    packet["edges"][0] = {
+        "type": "refines",
+        "from": "RC11-F05",
+        "to": "RC11-F04",
+        "status": "accepted",
+    }
+    errors = validate_packet(packet, schema)
+    assert any(
+        "non-candidate relation requires matching human edge_asserted" in error for error in errors
+    )
+
+
+def test_event_payload_rejects_authority_like_unknown_fields(
+    schema: Mapping[str, Any],
+) -> None:
+    packet = minimal_packet()
+    packet["events"][0]["payload"] = {"authoritative": True}
+    errors = validate_packet(packet, schema)
+    assert any(
+        "payload.authoritative" in error and "additionalProperties=false" in error
+        for error in errors
+    )
+
+
+def test_verification_payload_requires_git_revision(schema: Mapping[str, Any]) -> None:
+    packet = minimal_packet()
+    packet["findings"][0]["required_proof_class"] = "docs"
+    packet["findings"][0]["verification_status"] = "passed_bounded"
+    packet["events"].append(
         {
-            "type": "promoted_to",
-            "from": "RC11-F04",
-            "to": "TSG-006",
-            "status": "accepted",
+            "event_id": "E-BAD-REV",
+            "event_type": "verification_recorded",
+            "at": "2026-08-12T00:00:00Z",
+            "actor_class": "human",
+            "finding_id": "RC11-F04",
+            "payload": {
+                "proof_class": "docs",
+                "tested_revision": "not-a-git-revision",
+                "evidence_anchors": ["prd/ARCHITECTURE.md"],
+            },
         }
     )
     errors = validate_packet(packet, schema)
+    assert any("verification tested_revision must be 40 lowercase hex" in error for error in errors)
+
+
+def test_human_reviewed_normalization_requires_human_event(
+    schema: Mapping[str, Any],
+) -> None:
+    packet = minimal_packet()
+    packet["normalization"]["status"] = "human_reviewed"
+    errors = validate_packet(packet, schema)
     assert any(
-        "promoted_to accepted without prior human accepting disposition" in e for e in errors
+        "human_reviewed requires human normalization_reviewed event" in error for error in errors
     )
+
+
+def test_promotion_without_human_disposition_fails(schema: Mapping[str, Any]) -> None:
+    for status in ("candidate", "accepted"):
+        packet = minimal_packet()
+        packet["findings"][0]["disposition_status"] = "accepted_as_gap"
+        packet["edges"].append(
+            {
+                "type": "promoted_to",
+                "from": "RC11-F04",
+                "to": "TSG-006",
+                "status": status,
+            }
+        )
+        errors = validate_packet(packet, schema)
+        assert any("promoted_to requires prior human accepting disposition" in e for e in errors)
 
 
 def test_tool_cannot_accept_or_promote(schema: Mapping[str, Any]) -> None:

@@ -430,6 +430,7 @@
             "packet_registered",
             "finding_extracted",
             "span_verified",
+            "normalization_reviewed",
             "disposition_recorded",
             "edge_asserted",
             "execution_linked",
@@ -465,7 +466,82 @@
           "$ref": "#/$defs/non_empty_string"
         },
         "payload": {
-          "type": "object"
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "disposition": {
+              "type": "string",
+              "enum": [
+                "open",
+                "needs_discussion",
+                "needs_research",
+                "accepted_as_gap",
+                "accepted_as_requirement_candidate",
+                "accepted_as_decision_candidate",
+                "accepted_as_process_defect",
+                "already_satisfied",
+                "rejected",
+                "deferred",
+                "duplicate",
+                "superseded",
+                "not_applicable"
+              ]
+            },
+            "edge_type": {
+              "type": "string",
+              "enum": [
+                "refines",
+                "reassesses",
+                "duplicates",
+                "supersedes",
+                "conflicts_with",
+                "splits_into",
+                "depends_on",
+                "blocked_by",
+                "maps_to",
+                "promoted_to",
+                "implemented_by",
+                "verified_by"
+              ]
+            },
+            "from": {
+              "$ref": "#/$defs/non_empty_string"
+            },
+            "to": {
+              "$ref": "#/$defs/non_empty_string"
+            },
+            "proof_class": {
+              "$ref": "#/$defs/proof_class"
+            },
+            "tested_revision": {
+              "$ref": "#/$defs/git_revision"
+            },
+            "evidence_anchors": {
+              "type": "array",
+              "minItems": 1,
+              "items": {
+                "$ref": "#/$defs/path_string"
+              }
+            },
+            "completed_scope": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/non_empty_string"
+              }
+            },
+            "residual_scope": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/non_empty_string"
+              }
+            },
+            "non_claims": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/non_empty_string"
+              }
+            }
+          }
         }
       }
     }
