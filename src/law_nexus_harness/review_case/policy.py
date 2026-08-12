@@ -249,6 +249,15 @@ def _event_shape_violations(event: ReviewEvent, *, field_path: str) -> list[Revi
                     event.event_id,
                 )
             )
+        if event.residual_scope and not event.completed_scope:
+            violations.append(
+                ReviewCaseViolation(
+                    "partial_scope_requires_completed_scope",
+                    field_path,
+                    "partial verification requires non-empty completed_scope",
+                    event.event_id,
+                )
+            )
         if any(
             value is not None
             for value in (
