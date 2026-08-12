@@ -484,6 +484,8 @@ def test_forward_roadmap_rejects_old_gap_or_duplicate_numbering(tmp_path: Path) 
     assert "unexpected=M130" in finding.observed
     assert "duplicate=M131" in finding.observed
     assert "missing=M132" in finding.observed
+    assert GovernorEvidence(path="prd/migration/forward-roadmap.md") in finding.evidence
+    assert {item.line for item in finding.evidence if item.line is not None} == {3, 4, 5}
 
 
 def write_requirements(root: Path, active_blocks: str) -> None:
@@ -1217,6 +1219,8 @@ def test_published_trace_contract_warns_on_broken_chain_and_authority_boundary(
     assert finding.severity == "warn"
     assert "PC-001/RQ-001:requirements-link" in finding.observed
     assert "assessment-process-only-boundary" in finding.observed
+    assert GovernorEvidence(path="prd/REQUIREMENTS.md", line=1) in finding.evidence
+    assert GovernorEvidence(path="assessment/01-authority-map.md") in finding.evidence
 
 
 def test_published_trace_contract_rejects_undeclared_future_clause(tmp_path: Path) -> None:
@@ -1243,6 +1247,8 @@ def test_published_trace_contract_rejects_undeclared_future_clause(tmp_path: Pat
     assert finding.status == "fail"
     assert "undeclared-published:PC-021" in finding.observed
     assert "undeclared-published:RQ-021" in finding.observed
+    assert GovernorEvidence(path="prd/PRODUCT.md", line=1) in finding.evidence
+    assert GovernorEvidence(path="prd/REQUIREMENTS.md", line=1) in finding.evidence
 
 
 def test_adr_truth_oracle_sync_detects_lifecycle_mismatch(tmp_path: Path) -> None:

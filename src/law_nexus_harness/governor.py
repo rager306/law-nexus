@@ -430,10 +430,13 @@ def check_forward_roadmap_sequence(root: Path) -> list[GovernorFinding]:
                 remediation="Restore the tracked M131-M140 forward roadmap",
             )
         ]
-    sequences = [
-        int(match.group("seq"))
-        for match in _FORWARD_MILESTONE_RE.finditer(path.read_text(encoding="utf-8"))
+    roadmap_text = path.read_text(encoding="utf-8")
+    sequence_entries = [
+        (int(match.group("seq")), line_number)
+        for line_number, line in enumerate(roadmap_text.splitlines(), start=1)
+        for match in _FORWARD_MILESTONE_RE.finditer(line)
     ]
+    sequences = [seq for seq, _ in sequence_entries]
     expected = set(_EXPECTED_FORWARD_MILESTONES)
     counts = {seq: sequences.count(seq) for seq in set(sequences)}
     missing = sorted(expected - set(sequences))
@@ -447,6 +450,13 @@ def check_forward_roadmap_sequence(root: Path) -> list[GovernorFinding]:
     if unexpected:
         details.append(f"unexpected={','.join(f'M{seq}' for seq in unexpected)}")
     if details:
+        evidence = [
+            GovernorEvidence(path="prd/migration/forward-roadmap.md", line=line_number)
+            for seq, line_number in sequence_entries
+            if seq in duplicate or seq in unexpected
+        ]
+        if missing:
+            evidence.append(GovernorEvidence(path="prd/migration/forward-roadmap.md"))
         return [
             GovernorFinding(
                 check_id="forward-roadmap-sequence",
@@ -455,6 +465,7 @@ def check_forward_roadmap_sequence(root: Path) -> list[GovernorFinding]:
                 message="Forward product roadmap numbering conflicts with M130 debt milestone",
                 observed="; ".join(details),
                 remediation="Keep M130 for repository-control debt and product milestones exactly M131-M140",
+                evidence=tuple(dict.fromkeys(evidence)),
             )
         ]
     return [
@@ -2221,19 +2232,29 @@ def check_published_trace_contract(root: Path) -> list[GovernorFinding]:
     texts = {name: path.read_text(encoding="utf-8") for name, path in paths.items()}
     gaps: list[str] = []
     evidence: list[GovernorEvidence] = []
-    published_pc_ids = set(re.findall(r"(?m)^\| (PC-\d{3}) \|", texts["product"]))
-    published_rq_ids = set(re.findall(r"(?m)^\| (RQ-\d{3}) \|", texts["requirements"]))
+    published_pc_rows = {
+        match.group(1): line_number
+        for line_number, line in enumerate(texts["product"].splitlines(), start=1)
+        if (match := re.match(r"^\| (PC-\d{3}) \|", line))
+    }
+    published_rq_rows = {
+        match.group(1): line_number
+        for line_number, line in enumerate(texts["requirements"].splitlines(), start=1)
+        if (match := re.match(r"^\| (RQ-\d{3}) \|", line))
+    }
+    published_pc_ids = set(published_pc_rows)
+    published_rq_ids = set(published_rq_rows)
     declared_pc_ids = {pc_id for pc_id, _, _ in _CONSEQUENTIAL_TRACE_CHAINS}
     declared_rq_ids = {rq_id for _, rq_id, _ in _CONSEQUENTIAL_TRACE_CHAINS}
     for item in sorted(published_pc_ids - declared_pc_ids):
         gaps.append(f"undeclared-published:{item}")
-        evidence.append(GovernorEvidence(path="prd/PRODUCT.md"))
+        evidence.append(GovernorEvidence(path="prd/PRODUCT.md", line=published_pc_rows[item]))
     for item in sorted(declared_pc_ids - published_pc_ids):
         gaps.append(f"missing-published:{item}")
         evidence.append(GovernorEvidence(path="prd/PRODUCT.md"))
     for item in sorted(published_rq_ids - declared_rq_ids):
         gaps.append(f"undeclared-published:{item}")
-        evidence.append(GovernorEvidence(path="prd/REQUIREMENTS.md"))
+        evidence.append(GovernorEvidence(path="prd/REQUIREMENTS.md", line=published_rq_rows[item]))
     for item in sorted(declared_rq_ids - published_rq_ids):
         gaps.append(f"missing-published:{item}")
         evidence.append(GovernorEvidence(path="prd/REQUIREMENTS.md"))
@@ -2243,13 +2264,17 @@ def check_published_trace_contract(root: Path) -> list[GovernorFinding]:
         requirement_row = _table_line(texts["requirements"], rq_id, must_contain=pc_id)
         if product_row is None or rq_id not in product_row[1]:
             gaps.append(f"{pc_id}/{rq_id}:product-link")
-            evidence.append(GovernorEvidence(path="prd/PRODUCT.md"))
+            evidence.append(
+                GovernorEvidence(path="prd/PRODUCT.md", line=published_pc_rows.get(pc_id))
+            )
         elif len(product_row[1].split("|")) < 6:
             gaps.append(f"{pc_id}/{rq_id}:product-proof-cells")
             evidence.append(GovernorEvidence(path="prd/PRODUCT.md", line=product_row[0]))
         if requirement_row is None or pc_id not in requirement_row[1]:
             gaps.append(f"{pc_id}/{rq_id}:requirements-link")
-            evidence.append(GovernorEvidence(path="prd/REQUIREMENTS.md"))
+            evidence.append(
+                GovernorEvidence(path="prd/REQUIREMENTS.md", line=published_rq_rows.get(rq_id))
+            )
         elif len(requirement_row[1].split("|")) < 9:
             gaps.append(f"{pc_id}/{rq_id}:requirements-proof-cells")
             evidence.append(GovernorEvidence(path="prd/REQUIREMENTS.md", line=requirement_row[0]))
