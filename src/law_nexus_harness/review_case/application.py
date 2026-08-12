@@ -12,23 +12,31 @@ from typing import Sequence
 from law_nexus_harness.review_case.domain import (
     ActorClass,
     DerivedStatus,
+    DispositionStatus,
     EventType,
+    ExecutionStatus,
     NormalizationMethod,
     NormalizationRecord,
     NormalizationStatus,
+    ProofClass,
+    RelationType,
     ReviewCaseValidationError,
     ReviewEvent,
     ReviewPacket,
     ReviewSource,
     SourceKind,
+    VerificationStatus,
 )
 from law_nexus_harness.review_case.policy import (
+    apply_event,
     derive_finding_status,
     derive_packet_statuses,
+    replay_events,
     validate_review_policy,
 )
 from law_nexus_harness.review_case.ports import (
     ContentHasher,
+    EventLedger,
     ReviewCasePortError,
     ReviewPacketStore,
     ReviewSourceReader,
@@ -122,6 +130,96 @@ class ReviewCaseStatusReport:
         ...,
     ]
     open_blockers: tuple[tuple[str, str], ...]
+    non_claims: tuple[str, ...]
+
+
+@dataclass(frozen=True, slots=True)
+class RecordDispositionCommand:
+    packet_id: str
+    finding_id: str
+    disposition: DispositionStatus
+    actor_id: str
+    rationale: str
+    source_revision: str
+    at: str
+    event_id: str
+    actor_class: ActorClass = ActorClass.HUMAN
+
+
+@dataclass(frozen=True, slots=True)
+class RecordRelationCommand:
+    packet_id: str
+    edge_type: RelationType
+    from_id: str
+    to_id: str
+    actor_id: str
+    rationale: str
+    source_revision: str
+    at: str
+    event_id: str
+    actor_class: ActorClass = ActorClass.HUMAN
+
+
+@dataclass(frozen=True, slots=True)
+class RecordExecutionLinkCommand:
+    packet_id: str
+    finding_id: str
+    execution_status: ExecutionStatus
+    external_ref: str
+    actor_id: str
+    rationale: str
+    source_revision: str
+    at: str
+    event_id: str
+    actor_class: ActorClass = ActorClass.HUMAN
+
+
+@dataclass(frozen=True, slots=True)
+class RecordVerificationCommand:
+    packet_id: str
+    finding_id: str
+    verification_result: VerificationStatus
+    proof_class: ProofClass
+    tested_revision: str
+    evidence_anchors: tuple[str, ...]
+    completed_scope: tuple[str, ...]
+    residual_scope: tuple[str, ...]
+    non_claims: tuple[str, ...]
+    actor_id: str
+    rationale: str
+    source_revision: str
+    at: str
+    event_id: str
+    actor_class: ActorClass = ActorClass.HUMAN
+
+
+@dataclass(frozen=True, slots=True)
+class ReopenFindingCommand:
+    packet_id: str
+    finding_id: str
+    actor_id: str
+    rationale: str
+    source_revision: str
+    at: str
+    event_id: str
+    actor_class: ActorClass = ActorClass.HUMAN
+
+
+@dataclass(frozen=True, slots=True)
+class AppendEventReport:
+    schema_version: str
+    authoritative: bool
+    authority_required: bool
+    packet_id: str
+    event_id: str
+    sequence: int
+    finding_id: str | None
+    disposition_status: DispositionStatus | None
+    execution_status: ExecutionStatus | None
+    verification_status: VerificationStatus | None
+    edge_type: RelationType | None
+    derived_status: DerivedStatus | None
+    envelope_sha256: str
     non_claims: tuple[str, ...]
 
 
@@ -348,4 +446,323 @@ def review_case_status(
         packets=tuple(packet_rows),
         open_blockers=tuple(open_blockers),
         non_claims=_DEFAULT_NON_CLAIMS,
+    )
+
+
+def _require_human_actor(*, actor_class: ActorClass, actor_id: str, operation: str) -> None:
+    if actor_class is not ActorClass.HUMAN:
+        raise ReviewCaseApplicationError(
+            code="human_actor_required",
+            operation=operation,
+            message="only actor_class=human may record disposition, relation, execution, or reopen",
+        )
+    if not isinstance(actor_id, str) or not actor_id.strip() or actor_id != actor_id.strip():
+        raise ReviewCaseApplicationError(
+            code="invalid_actor",
+            operation=operation,
+            message="human actor_id is required",
+        )
+
+
+def materialize_review_packet(
+    store: ReviewPacketStore,
+    ledger: EventLedger,
+    packet_id: str,
+) -> ReviewPacket:
+    """Load immutable base packet and replay append-only ledger events."""
+    operation = "materialize_review_packet"
+    try:
+        base = store.get(packet_id)
+        envelopes = ledger.list_envelopes(packet_id)
+        events = tuple(item.event for item in envelopes)
+        return replay_events(base, events)
+    except ReviewCasePortError as error:
+        raise _map_port_error(error, operation=operation) from error
+    except ReviewCaseValidationError as error:
+        raise _map_validation_error(error, operation=operation) from error
+    except ReviewCaseApplicationError:
+        raise
+    except Exception as error:  # pragma: no cover - defensive boundary
+        raise ReviewCaseApplicationError(
+            code="unexpected_failure",
+            operation=operation,
+            message="unexpected application failure",
+        ) from error
+
+
+def _append_event(
+    *,
+    operation: str,
+    packet_id: str,
+    event: ReviewEvent,
+    source_revision: str,
+    store: ReviewPacketStore,
+    ledger: EventLedger,
+    finding_id: str | None,
+) -> AppendEventReport:
+    try:
+        current = materialize_review_packet(store, ledger, packet_id)
+        # Pure apply first so invalid transitions never touch the ledger.
+        projected = apply_event(current, event)
+        envelope = ledger.append(packet_id, event, source_revision=source_revision)
+        # Re-materialize from durable state after append.
+        materialized = materialize_review_packet(store, ledger, packet_id)
+        if materialized != projected:
+            raise ReviewCaseApplicationError(
+                code="ledger_projection_mismatch",
+                operation=operation,
+                message="materialized state diverged from pure apply projection",
+            )
+    except ReviewCasePortError as error:
+        raise _map_port_error(error, operation=operation) from error
+    except ReviewCaseValidationError as error:
+        raise _map_validation_error(error, operation=operation) from error
+    except ReviewCaseApplicationError:
+        raise
+    except Exception as error:  # pragma: no cover - defensive boundary
+        raise ReviewCaseApplicationError(
+            code="unexpected_failure",
+            operation=operation,
+            message="unexpected application failure",
+        ) from error
+
+    finding = next(
+        (item for item in materialized.findings if item.finding_id == finding_id),
+        None,
+    )
+    derived = (
+        derive_finding_status(materialized, finding.finding_id) if finding is not None else None
+    )
+    return AppendEventReport(
+        schema_version=APP_REPORT_SCHEMA_VERSION,
+        authoritative=False,
+        authority_required=True,
+        packet_id=packet_id,
+        event_id=event.event_id,
+        sequence=envelope.sequence,
+        finding_id=finding_id,
+        disposition_status=None if finding is None else finding.disposition_status,
+        execution_status=None if finding is None else finding.execution_status,
+        verification_status=None if finding is None else finding.verification_status,
+        edge_type=event.edge_type,
+        derived_status=derived,
+        envelope_sha256=envelope.envelope_sha256,
+        non_claims=_DEFAULT_NON_CLAIMS,
+    )
+
+
+def record_human_disposition(
+    command: RecordDispositionCommand,
+    store: ReviewPacketStore,
+    ledger: EventLedger,
+) -> AppendEventReport:
+    operation = "record_human_disposition"
+    _require_human_actor(
+        actor_class=command.actor_class,
+        actor_id=command.actor_id,
+        operation=operation,
+    )
+    if not command.rationale.strip():
+        raise ReviewCaseApplicationError(
+            code="empty_text",
+            operation=operation,
+            message="disposition rationale is required",
+        )
+    event = ReviewEvent(
+        event_id=command.event_id,
+        event_type=EventType.DISPOSITION_RECORDED,
+        at=command.at,
+        actor_class=command.actor_class,
+        actor_id=command.actor_id,
+        finding_id=command.finding_id,
+        source_revision=command.source_revision,
+        rationale=command.rationale,
+        disposition=command.disposition,
+    )
+    return _append_event(
+        operation=operation,
+        packet_id=command.packet_id,
+        event=event,
+        source_revision=command.source_revision,
+        store=store,
+        ledger=ledger,
+        finding_id=command.finding_id,
+    )
+
+
+def record_relation(
+    command: RecordRelationCommand,
+    store: ReviewPacketStore,
+    ledger: EventLedger,
+) -> AppendEventReport:
+    operation = "record_relation"
+    _require_human_actor(
+        actor_class=command.actor_class,
+        actor_id=command.actor_id,
+        operation=operation,
+    )
+    if not command.rationale.strip():
+        raise ReviewCaseApplicationError(
+            code="empty_text",
+            operation=operation,
+            message="relation rationale is required",
+        )
+    event = ReviewEvent(
+        event_id=command.event_id,
+        event_type=EventType.EDGE_ASSERTED,
+        at=command.at,
+        actor_class=command.actor_class,
+        actor_id=command.actor_id,
+        finding_id=command.from_id,
+        source_revision=command.source_revision,
+        rationale=command.rationale,
+        edge_type=command.edge_type,
+        from_id=command.from_id,
+        to_id=command.to_id,
+    )
+    return _append_event(
+        operation=operation,
+        packet_id=command.packet_id,
+        event=event,
+        source_revision=command.source_revision,
+        store=store,
+        ledger=ledger,
+        finding_id=command.from_id,
+    )
+
+
+def record_execution_link_command(
+    command: RecordExecutionLinkCommand,
+    store: ReviewPacketStore,
+    ledger: EventLedger,
+) -> AppendEventReport:
+    operation = "record_execution_link_command"
+    _require_human_actor(
+        actor_class=command.actor_class,
+        actor_id=command.actor_id,
+        operation=operation,
+    )
+    if not command.rationale.strip():
+        raise ReviewCaseApplicationError(
+            code="empty_text",
+            operation=operation,
+            message="execution-link rationale is required",
+        )
+    if not command.external_ref.strip():
+        raise ReviewCaseApplicationError(
+            code="empty_text",
+            operation=operation,
+            message="opaque external execution reference is required",
+        )
+    event = ReviewEvent(
+        event_id=command.event_id,
+        event_type=EventType.EXECUTION_LINKED,
+        at=command.at,
+        actor_class=command.actor_class,
+        actor_id=command.actor_id,
+        finding_id=command.finding_id,
+        source_revision=command.source_revision,
+        rationale=command.rationale,
+        to_id=command.external_ref,
+        completed_scope=(command.execution_status.value,),
+        non_claims=("Does not create or mutate GSD lifecycle",),
+    )
+    return _append_event(
+        operation=operation,
+        packet_id=command.packet_id,
+        event=event,
+        source_revision=command.source_revision,
+        store=store,
+        ledger=ledger,
+        finding_id=command.finding_id,
+    )
+
+
+def record_verification_event(
+    command: RecordVerificationCommand,
+    store: ReviewPacketStore,
+    ledger: EventLedger,
+) -> AppendEventReport:
+    operation = "record_verification_event"
+    if command.actor_class not in {ActorClass.HUMAN, ActorClass.TOOL}:
+        raise ReviewCaseApplicationError(
+            code="human_or_tool_actor_required",
+            operation=operation,
+            message="verification requires actor_class=human or tool",
+        )
+    if command.actor_class is ActorClass.HUMAN:
+        _require_human_actor(
+            actor_class=command.actor_class,
+            actor_id=command.actor_id,
+            operation=operation,
+        )
+    elif not command.actor_id.strip():
+        raise ReviewCaseApplicationError(
+            code="invalid_actor",
+            operation=operation,
+            message="tool actor_id is required for verification",
+        )
+    event = ReviewEvent(
+        event_id=command.event_id,
+        event_type=EventType.VERIFICATION_RECORDED,
+        at=command.at,
+        actor_class=command.actor_class,
+        actor_id=command.actor_id,
+        finding_id=command.finding_id,
+        source_revision=command.source_revision,
+        rationale=command.rationale,
+        proof_class=command.proof_class,
+        verification_result=command.verification_result,
+        tested_revision=command.tested_revision,
+        evidence_anchors=command.evidence_anchors,
+        completed_scope=command.completed_scope,
+        residual_scope=command.residual_scope,
+        non_claims=command.non_claims,
+    )
+    return _append_event(
+        operation=operation,
+        packet_id=command.packet_id,
+        event=event,
+        source_revision=command.source_revision,
+        store=store,
+        ledger=ledger,
+        finding_id=command.finding_id,
+    )
+
+
+def reopen_finding_command(
+    command: ReopenFindingCommand,
+    store: ReviewPacketStore,
+    ledger: EventLedger,
+) -> AppendEventReport:
+    operation = "reopen_finding"
+    _require_human_actor(
+        actor_class=command.actor_class,
+        actor_id=command.actor_id,
+        operation=operation,
+    )
+    if not command.rationale.strip():
+        raise ReviewCaseApplicationError(
+            code="empty_text",
+            operation=operation,
+            message="reopen rationale is required",
+        )
+    event = ReviewEvent(
+        event_id=command.event_id,
+        event_type=EventType.REOPENED,
+        at=command.at,
+        actor_class=command.actor_class,
+        actor_id=command.actor_id,
+        finding_id=command.finding_id,
+        source_revision=command.source_revision,
+        rationale=command.rationale,
+    )
+    return _append_event(
+        operation=operation,
+        packet_id=command.packet_id,
+        event=event,
+        source_revision=command.source_revision,
+        store=store,
+        ledger=ledger,
+        finding_id=command.finding_id,
     )
