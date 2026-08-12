@@ -4,6 +4,10 @@ Vendor codecs and filesystem adapters live here. Pure domain/application/ports
 remain free of pydantic/pathlib/CLI/Governor/GSD imports.
 """
 
+from law_nexus_harness.review_case.adapters.filesystem import (
+    FilesystemReviewPacketStore,
+    FilesystemReviewSourceReader,
+)
 from law_nexus_harness.review_case.adapters.pydantic_codec import (
     ReviewCaseCodecError,
     dump_packet,
@@ -12,6 +16,8 @@ from law_nexus_harness.review_case.adapters.pydantic_codec import (
 )
 
 __all__ = [
+    "FilesystemReviewPacketStore",
+    "FilesystemReviewSourceReader",
     "ReviewCaseCodecError",
     "dump_packet",
     "generated_wire_schema",
