@@ -57,6 +57,7 @@ falkordb=historical-only
 | ADR-0015 | Hexagonal verification architecture | `[bounded]` |
 | ADR-0016..0022 | Temporal legal ontology L1→L7 | `[proposed]` each |
 | ADR-0023 | Applicability protocol ownership (core decision/trace + profile inputs; no runtime) | `[proposed]` |
+| ADR-0024 | Review Case intake and disposition (non-authoritative projection + human promotion gate; no runtime) | `[proposed]` |
 
 Index: `doc/adr/README.md`. Do not treat ACP/git-lex/FalkorDB-era docs as
 active ADR substance.
@@ -146,8 +147,11 @@ corpus/legal/citation completeness claims.
 
 **Python repository-control harness** — `[validated]` process boundary
 (ADR-0007) under `src/law_nexus_harness/`. Active Python is governor/preflight
-orchestration only: Cargo/ADR/document freshness/GSD glue. It must not import
-product domain packages, forbidden PyO3/FFI bridges, or historical FalkorDB adapters.
+orchestration only: Cargo/ADR/document freshness/GSD glue. ADR-0024 `[proposed]`
+places future Review Case intake and disposition in this control plane as a
+non-authoritative, human-gated, hexagonal contour; no Review Case runtime exists
+at the current head. The harness must not import product domain packages,
+forbidden PyO3/FFI bridges, or historical FalkorDB adapters.
 
 **`python_archive/product/`** — archived Python product prior art after M140/M141
 cutover and residual dependency closure. Historical onion package surfaces,

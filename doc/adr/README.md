@@ -43,6 +43,10 @@ LKIF are compatibility references, not canon replacements).
 - **ADR-0022 (L7/O7)** — Industry profiles architecture (budget/construction/medicine/general-control; adapter-isolated) `[proposed]`
 - **ADR-0023** — Applicability protocol ownership: neutral core decision/abstention/trace with versioned profile inputs; runtime absent `[proposed]`
 
+### Repository governance contours
+
+- **ADR-0024** — Review Case intake and disposition: immutable review evidence, non-authoritative AST, human promotion gate, revision-bound closure, and hexagonal harness boundary `[proposed]`
+
 ## Retired Python-era records
 
 ADR-0001, ADR-0002 and ADR-0003 governed the retired Python product. ADR-0006
