@@ -939,17 +939,8 @@ def check_port_contract_coverage(root: Path) -> list[GovernorFinding]:
         crates_root = root / "crates"
         discovered = module.discover_inmemory_adapters(crates_root, repo_root=root)
         report = module.build_report(discovered)
-    except Exception as error:  # noqa: BLE001 - fail-closed process surface
-        return [
-            GovernorFinding(
-                check_id=check_id,
-                status="fail",
-                severity="error",
-                message="port-contract coverage inventory failed",
-                observed=str(error),
-                remediation=remediation,
-            )
-        ]
+    except Exception as error:  # noqa: BLE001 - normalized at runner boundary
+        raise RuntimeError("port-contract coverage inventory failed") from error
 
     covered = int(report.get("covered_count") or 0)
     uncovered = int(report.get("uncovered_count") or 0)
@@ -1033,17 +1024,8 @@ def check_hostile_negative_suite_coverage(root: Path) -> list[GovernorFinding]:
         discovered = module.discover_hostile_adapters(crates_root, repo_root=root)
         testkit_text = module.load_testkit_text(crates_root / "ln-testkit")
         report = module.build_report(discovered, testkit_text=testkit_text)
-    except Exception as error:  # noqa: BLE001 - fail-closed process surface
-        return [
-            GovernorFinding(
-                check_id=check_id,
-                status="fail",
-                severity="error",
-                message="hostile-negative suite inventory failed",
-                observed=str(error),
-                remediation=remediation,
-            )
-        ]
+    except Exception as error:  # noqa: BLE001 - normalized at runner boundary
+        raise RuntimeError("hostile-negative suite inventory failed") from error
 
     discovered_count = int(report.get("discovered_count") or 0)
     with_shared = int(report.get("with_shared_negative_count") or 0)
@@ -1129,17 +1111,8 @@ def check_multi_adapter_port_coverage(root: Path) -> list[GovernorFinding]:
         ports = module.discover_port_impls(crates_root, repo_root=root)
         testkit_text = module.load_testkit_text(crates_root / "ln-testkit")
         report = module.build_report(ports, testkit_text=testkit_text)
-    except Exception as error:  # noqa: BLE001 - fail-closed process surface
-        return [
-            GovernorFinding(
-                check_id=check_id,
-                status="fail",
-                severity="error",
-                message="multi-adapter port inventory failed",
-                observed=str(error),
-                remediation=remediation,
-            )
-        ]
+    except Exception as error:  # noqa: BLE001 - normalized at runner boundary
+        raise RuntimeError("multi-adapter port inventory failed") from error
 
     multi_ports = int(report.get("multi_adapter_port_count") or 0)
     real_count = int(report.get("real_adapter_count") or 0)
@@ -1221,17 +1194,8 @@ def check_live_adapter_readiness(root: Path) -> list[GovernorFinding]:
     try:
         module = _load_live_adapter_readiness_module(root)
         report = module.build_report(root)
-    except Exception as error:  # noqa: BLE001 - fail-closed process surface
-        return [
-            GovernorFinding(
-                check_id=check_id,
-                status="fail",
-                severity="error",
-                message="live-adapter readiness inventory failed",
-                observed=str(error),
-                remediation=remediation,
-            )
-        ]
+    except Exception as error:  # noqa: BLE001 - normalized at runner boundary
+        raise RuntimeError("live-adapter readiness inventory failed") from error
 
     status = str(report.get("status") or "")
     overclaim_count = int(report.get("overclaim_count") or 0)
@@ -1309,17 +1273,8 @@ def check_ci_quality_gate_drift(root: Path) -> list[GovernorFinding]:
     inventory_path = root / "prd" / "migration" / "decommission" / "repository-quality-gate.json"
     try:
         payload = json.loads(inventory_path.read_text(encoding="utf-8"))
-    except Exception as error:  # noqa: BLE001 - fail-closed process surface
-        return [
-            GovernorFinding(
-                check_id=check_id,
-                status="fail",
-                severity="error",
-                message="quality-gate inventory load failed",
-                observed=str(error),
-                remediation=remediation,
-            )
-        ]
+    except Exception as error:  # noqa: BLE001 - normalized at runner boundary
+        raise RuntimeError("quality-gate inventory load failed") from error
 
     qg_check_ids = {check["id"] for check in payload.get("checks", [])}
     qg_process_suite = set(payload.get("ci_process_suite", []))
@@ -1390,17 +1345,8 @@ def check_verify_test_coverage_drift(root: Path) -> list[GovernorFinding]:
     inventory_path = root / "prd" / "migration" / "decommission" / "repository-quality-gate.json"
     try:
         payload = json.loads(inventory_path.read_text(encoding="utf-8"))
-    except Exception as error:  # noqa: BLE001 - fail-closed process surface
-        return [
-            GovernorFinding(
-                check_id=check_id,
-                status="fail",
-                severity="error",
-                message="quality-gate inventory load failed",
-                observed=str(error),
-                remediation=remediation,
-            )
-        ]
+    except Exception as error:  # noqa: BLE001 - normalized at runner boundary
+        raise RuntimeError("quality-gate inventory load failed") from error
 
     ci_suite = set(payload.get("ci_process_suite", []))
     ci_inventory_scripts = set(payload.get("ci_inventory_scripts", []))

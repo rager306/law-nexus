@@ -263,6 +263,47 @@ def test_cli_governor_runner_failure_uses_tool_error_exit_two(tmp_path: Path, ca
     assert "not-json" not in tool_errors[0]["observed"]
 
 
+def test_governor_inventory_loader_failures_are_tool_errors(tmp_path: Path, monkeypatch) -> None:
+    def unavailable(*args, **kwargs):
+        raise OSError("inventory unavailable")
+
+    loader_checks = (
+        ("_load_port_contract_coverage_module", "port-contract-coverage"),
+        ("_load_hostile_negative_suite_module", "hostile-negative-suite-coverage"),
+        ("_load_multi_adapter_port_coverage_module", "multi-adapter-port-coverage"),
+        ("_load_live_adapter_readiness_module", "live-adapter-readiness"),
+    )
+    for loader, check_id in loader_checks:
+        monkeypatch.setattr(f"law_nexus_harness.governor.{loader}", unavailable)
+        report = run_governor(tmp_path, check=check_id)
+        assert report.status == "failure"
+        assert report.tool_error_count == 1
+        assert report.findings[0].rule_id == "tool-error"
+        assert "inventory unavailable" not in report.findings[0].observed
+
+
+def test_governor_quality_inventory_read_failures_are_tool_errors(
+    tmp_path: Path, monkeypatch
+) -> None:
+    inventory = tmp_path / "prd" / "migration" / "decommission" / "repository-quality-gate.json"
+    inventory.parent.mkdir(parents=True)
+    inventory.write_text("{}", encoding="utf-8")
+    original = Path.read_text
+
+    def fail_selected(path: Path, *args, **kwargs):
+        if path == inventory:
+            raise OSError("quality inventory unavailable")
+        return original(path, *args, **kwargs)
+
+    monkeypatch.setattr(Path, "read_text", fail_selected)
+    for check_id in ("ci-quality-gate-drift", "verify-test-coverage-drift"):
+        report = run_governor(tmp_path, check=check_id)
+        assert report.status == "failure"
+        assert report.tool_error_count == 1
+        assert report.findings[0].rule_id == "tool-error"
+        assert "quality inventory unavailable" not in report.findings[0].observed
+
+
 def test_cli_governor_without_local_gsd_projection_fails_with_coherent_exit_code(
     tmp_path: Path, capsys
 ) -> None:
