@@ -125,6 +125,7 @@ uv run python -m law_nexus_harness adr-verify --matrix check --output prd/archit
 Implemented:
 
 - additive `rule_id`, `expected` and `evidence` fields while preserving report v1 fields;
+- exact repository-relative line evidence for ADR lifecycle, link, supersession, index lifecycle, ontology weave, structure and cross-surface citation findings when a concrete source line exists; missing surfaces remain honest path-only evidence;
 - static check registry with group, deterministic/heuristic kind, inputs and non-claim;
 - `--only`, `--check`, `--explain` and text output;
 - selector contract failures use exit 2; warn-only semantic selection stays exit 0;
@@ -132,7 +133,7 @@ Implemented:
 
 Remaining before MVP B closure:
 
-- expand exact repository-relative `path:line` evidence beyond ADR lifecycle mismatch; generic authority-input paths remain for other checks;
+- expand exact repository-relative `path:line` evidence beyond the implemented ADR-group checks; generic authority-input paths remain for other checks and aggregate inventories;
 - migrate remaining checks that internally reclassify inventory read/tool errors as policy failures to shared `tool-error` classification (archive Git inventory and unreadable semantic-stub/historical-test scans already use exit 2 without exception text);
 - add broader missing-file, unreadable-file and subprocess-failure contract tests.
 
@@ -142,7 +143,7 @@ Closed in the current follow-up: `scripts/verify-adr-conformance.py` findings no
 
 Implemented bounded checks:
 
-- `published-trace-contract` checks 11 consequential Product→Requirement→ADR chains and the assessment process-only boundary;
+- `published-trace-contract` checks all published PC-001..020→RQ-001..020 chains, rejects undeclared future IDs and preserves the assessment process-only boundary;
 - `adr-link-integrity` resolves relative Markdown files and heading fragments inside the repository;
 - `adr-supersession-graph` reads canonical active frontmatter `supersedes`/`superseded_by`, rejects legacy `superseds` on active ADRs, validates optional `#scope` reciprocity and target existence, and rejects cycles; parser compatibility may still read the legacy key from historical inputs, but it is not valid active metadata;
 - active partial edges are metadata-normalized as `ADR-0011 → ADR-0005#crate-map-only` and `ADR-0023 → ADR-0017#applicability-ownership`;

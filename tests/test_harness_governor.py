@@ -10,6 +10,7 @@ from law_nexus_harness.governor import (
     _ACTIVE_REQUIREMENT_POLICY,
     _EXPECTED_DIRECTION,
     GOVERNOR_SCHEMA_VERSION,
+    GovernorEvidence,
     _freshness_trigger_gaps,
     check_active_requirement_contradictions,
     check_active_surface_era_noise,
@@ -1482,6 +1483,7 @@ def test_adr_index_completeness_detects_missing_lifecycle(tmp_path: Path) -> Non
     assert finding.status == "fail"
     assert finding.severity == "warn"
     assert "ADR-0004:expected=bounded" in finding.observed
+    assert finding.evidence == (GovernorEvidence(path="doc/adr/README.md", line=3),)
 
 
 def test_adr_doc_matrix_coverage_rejects_gsd_only_projection(tmp_path: Path) -> None:
@@ -1514,6 +1516,8 @@ def test_adr_doc_matrix_coverage_requires_proposed_ceiling(tmp_path: Path) -> No
 
     assert finding.status == "fail"
     assert "prd/REQUIREMENTS.md:ADR-0016:expected=proposed" in finding.observed
+    assert GovernorEvidence(path="prd/REQUIREMENTS.md", line=2) in finding.evidence
+    assert all(item.line == 2 for item in finding.evidence)
 
 
 def test_adr_structure_hygiene_detects_missing_status_lifecycle(tmp_path: Path) -> None:
@@ -1535,6 +1539,7 @@ def test_adr_structure_hygiene_detects_missing_status_lifecycle(tmp_path: Path) 
     assert finding.status == "fail"
     assert finding.severity == "warn"
     assert "0004-bad.md" in finding.observed
+    assert finding.evidence == (GovernorEvidence(path="doc/adr/0004-bad.md", line=3),)
 
 
 def test_adr_cross_surface_matrix_detects_gap(tmp_path: Path) -> None:
@@ -1559,6 +1564,8 @@ def test_adr_cross_surface_matrix_detects_gap(tmp_path: Path) -> None:
     assert finding.severity == "warn"
     assert "ADR-0008" not in finding.observed
     assert "ADR-0004@README.md" in finding.observed
+    assert GovernorEvidence(path="README.md") in finding.evidence
+    assert GovernorEvidence(path="doc/adr/0004-rust.md", line=1) in finding.evidence
 
 
 def test_adr_link_integrity_allows_existing_relative_target_and_fragment(

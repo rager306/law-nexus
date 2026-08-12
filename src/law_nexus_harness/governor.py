@@ -2361,18 +2361,29 @@ def check_adr_doc_matrix_coverage(root: Path) -> list[GovernorFinding]:
     )
 
     missing: list[str] = []
+    evidence: list[GovernorEvidence] = []
     for rel in _ONTOLOGY_DOC_MATRIX_SURFACES:
         path = root / rel
         if not path.is_file():
             missing.append(f"{rel}:missing_file")
+            evidence.append(GovernorEvidence(path=rel))
             continue
         lines = path.read_text(encoding="utf-8", errors="replace").splitlines()
         for adr_id in _ONTOLOGY_DOC_MATRIX_ADRS:
-            matching_lines = [line for line in lines if f"ADR-{adr_id}" in line]
+            matching_lines = [
+                (line_number, line)
+                for line_number, line in enumerate(lines, start=1)
+                if f"ADR-{adr_id}" in line
+            ]
             if not matching_lines:
                 missing.append(f"{rel}:ADR-{adr_id}")
-            elif not any("proposed" in _line_lifecycle_tags(line) for line in matching_lines):
+                evidence.append(GovernorEvidence(path=rel))
+            elif not any("proposed" in _line_lifecycle_tags(line) for _, line in matching_lines):
                 missing.append(f"{rel}:ADR-{adr_id}:expected=proposed")
+                evidence.extend(
+                    GovernorEvidence(path=rel, line=line_number)
+                    for line_number, _ in matching_lines
+                )
 
     if missing:
         preview = missing[:16]
@@ -2388,6 +2399,7 @@ def check_adr_doc_matrix_coverage(root: Path) -> list[GovernorFinding]:
                 message="ontology ADR×doc matrix coverage incomplete",
                 observed=(f"{observed} (lifecycle [bounded]; process anti-drift; advisory)."),
                 remediation=remediation,
+                evidence=tuple(dict.fromkeys(evidence)),
             )
         ]
 
@@ -2432,21 +2444,36 @@ def check_adr_index_completeness(root: Path) -> list[GovernorFinding]:
     readme_lines = readme_text.splitlines()
     missing: list[str] = []
     lifecycle_missing: list[str] = []
+    evidence: list[GovernorEvidence] = []
     for path in sorted(adr_dir.glob("0*.md")):
         adr_id_match = re.search(r"(\d{4})", path.name)
         if not adr_id_match:
             continue
         adr_id = adr_id_match.group(1)
         needle = f"ADR-{adr_id}"
-        matching_lines = [line for line in readme_lines if needle in line or path.name in line]
+        matching_lines = [
+            (line_number, line)
+            for line_number, line in enumerate(readme_lines, start=1)
+            if needle in line or path.name in line
+        ]
         if not matching_lines:
             missing.append(path.name)
+            evidence.extend(
+                (
+                    GovernorEvidence(path="doc/adr/README.md"),
+                    GovernorEvidence(path=path.relative_to(root).as_posix(), line=1),
+                )
+            )
             continue
         lifecycle = _adr_status_lifecycle(path.read_text(encoding="utf-8", errors="replace"))
         if lifecycle is not None and not any(
-            lifecycle in _line_lifecycle_tags(line) for line in matching_lines
+            lifecycle in _line_lifecycle_tags(line) for _, line in matching_lines
         ):
             lifecycle_missing.append(f"{needle}:expected={lifecycle}")
+            evidence.extend(
+                GovernorEvidence(path="doc/adr/README.md", line=line_number)
+                for line_number, _ in matching_lines
+            )
 
     if missing or lifecycle_missing:
         return [
@@ -2463,6 +2490,7 @@ def check_adr_index_completeness(root: Path) -> list[GovernorFinding]:
                     remediation
                     + " Include the ADR Status lifecycle tag on that ADR's own index line."
                 ),
+                evidence=tuple(dict.fromkeys(evidence)),
             )
         ]
 
@@ -2518,13 +2546,25 @@ def check_adr_structure_hygiene(root: Path) -> list[GovernorFinding]:
 
     missing_status_lc: list[str] = []
     missing_sections: list[str] = []
+    evidence: list[GovernorEvidence] = []
     for path in sorted(adr_dir.glob("0*.md")):
         text = path.read_text(encoding="utf-8", errors="replace")
+        rel = path.relative_to(root).as_posix()
         if _adr_status_lifecycle(text) is None:
             missing_status_lc.append(path.name)
+            status_line = next(
+                (
+                    line_number
+                    for line_number, line in enumerate(text.splitlines(), start=1)
+                    if re.match(r"(?i)^##\s*Status\s*$", line)
+                ),
+                1,
+            )
+            evidence.append(GovernorEvidence(path=rel, line=status_line))
         for section in _ADR_REQUIRED_SECTIONS:
             if not re.search(rf"(?im)^##\s*{re.escape(section)}\s*$", text):
                 missing_sections.append(f"{path.name}:##{section}")
+                evidence.append(GovernorEvidence(path=rel, line=1))
 
     if missing_status_lc or missing_sections:
         return [
@@ -2539,6 +2579,7 @@ def check_adr_structure_hygiene(root: Path) -> list[GovernorFinding]:
                     f"(lifecycle [bounded]; ADR hygiene; advisory)."
                 ),
                 remediation=remediation,
+                evidence=tuple(dict.fromkeys(evidence)),
             )
         ]
 
@@ -2920,11 +2961,18 @@ def check_adr_cross_surface_matrix(root: Path) -> list[GovernorFinding]:
             surface_text[rel] = path.read_text(encoding="utf-8", errors="replace")
 
     gaps: list[str] = []
+    evidence: list[GovernorEvidence] = [GovernorEvidence(path=rel) for rel in missing_surface]
     for adr_id in adr_ids:
         needle = f"ADR-{adr_id}"
+        source = next(iter(sorted(adr_dir.glob(f"{adr_id}-*.md"))), None)
         for rel, text in surface_text.items():
             if needle not in text and f"{adr_id}-" not in text:
                 gaps.append(f"{needle}@{rel}")
+                evidence.append(GovernorEvidence(path=rel))
+                if source is not None:
+                    evidence.append(
+                        GovernorEvidence(path=source.relative_to(root).as_posix(), line=1)
+                    )
 
     if missing_surface or gaps:
         return [
@@ -2939,6 +2987,7 @@ def check_adr_cross_surface_matrix(root: Path) -> list[GovernorFinding]:
                     f"(lifecycle [bounded]; matrix anti-drift; advisory)."
                 ),
                 remediation=remediation,
+                evidence=tuple(dict.fromkeys(evidence)),
             )
         ]
 
