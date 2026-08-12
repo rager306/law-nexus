@@ -24,7 +24,9 @@ falkordb=historical-only
 - **Completed retrieval-honesty band:** M161–M164 `[bounded]` (real cosine ranking in memory, semantic-stub and historical-test-debt probes, deterministic CLI vectors); no live corpus or citation-safe answers.
 - **Completed documentation alignment:** D5 + documentation D6 / EA-05 accepted with findings at `94d58ea`; roadmap-front-sync and TL-G01–12 coverage PASS.
 - **Documentation/process assessment:** EA-10 complete — human D150 `accepted-with-findings` after independent EA-09 report `120d44b`; post-D150 assessments 13–18 record bounded repository-control/parser-protocol/glossary/semantic-presentation remediation and remaining gaps without successor acceptance, lifecycle promotion or product unlock. Glossary governance now inventories all crosswalk rows and controls coding terminology structurally through the tracked living-oracle read pointer; it does not close TSG-001 or define product semantics.
-- **Local GSD workflow marker:** M161-2som4e remains active in local workflow state; it is not the tracked product/design current-front authority and its numbering predates later M161–M165 git history.
+- **Local GSD workflow marker:** M161-2som4e remains active in local workflow state; it is not the tracked product/design current-front authority and its numbering predates later M161–M166 git history. Governor surfaces planned/orphan SUMMARY lag for M162–M166 without inventing Attempts.
+- **Review governance process contour:** ADR-0024 Review Case intake/disposition/ledger landed; human dispositions recorded for review-11/12 (`actor_id=rager306`). Non-authoritative; no Product/ADR/roadmap promotion.
+- **Applicability kernel:** `ln-applicability` v0 fail-closed abstention-only under ADR-0023 `[proposed]`; no Applicable/NotApplicable product claim.
 - **Product next remains evidence-gated:** the parser golden-corpus protocol now defines G0–G3, but current evidence reaches only G1 `[bounded]`; G2 requires multi-fixture human-reviewed structural goldens and human-owned thresholds before parser-data readiness. L2 CTV TDD follows that readiness decision; TEI/RuVector still requires real infrastructure/evidence. Documentation does not unlock any of these steps.
 - **M111 result:** final `[bounded]` implementation-neutral semantic baseline for heterogeneous Russian legal evidence.
 - **M112 result:** ADR-0005 topology superseded; ADR-0008 through ADR-0012 authored `[bounded]`; executable ADR/decision/owner drift checks active in pre-commit and CI.
@@ -76,6 +78,7 @@ falkordb=historical-only
 | M128-M160 | Remaining hostile closures and repository-control quality gates | 20/20 hostile contracts and process gates are bounded evidence; no product readiness. |
 | M161-M164 | Retrieval honesty and anti-drift probes | Real cosine ranking in memory and deterministic CLI vectors are `[bounded]`; no live TEI/RuVector corpus or legal-answer validation. |
 | M165-M165 | Temporal legal ontology and lifecycle hygiene | ADR-0016–0022 O1–O7 design only `[proposed]`; no executable ontology. |
+| M166-M166 | Review governance lifecycle contour (process) | ADR-0024 Review Case intake/disposition/ledger/governor landed as non-authoritative process evidence; human dispositions for review-11/12 recorded; GSD Attempt lag remains; not product readiness. |
 | D0-EA04 | Documentation contract and semantic/ADR assessment package | Product/RQ ready for assessment; temporal crosswalk accepted as proposed; ADR-0023 ownership decided `[proposed]`; not EA-09/EA-10 acceptance. |
 
 ## M111 semantic baseline

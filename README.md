@@ -9,9 +9,10 @@ every checkable operation is deterministic and source-anchored.
 
 > **Status:** `[bounded]` product runtime foundation — twenty exclusive Rust
 > capability-owner crates with hostile contracts green, real Consultant/Garant
-> parser adapters, and a bounded retrieval pipeline. The workspace has 44
+> parser adapters, and a bounded retrieval pipeline. The workspace has 45
 > members in total: 20 capability owners, 20 hostile-case runners,
-> `ln-product-cli`, `ln-testkit`, `ln-storage`, and `ln-status`. **No**
+> `ln-product-cli`, `ln-testkit`, `ln-storage`, `ln-status`, and proposed
+> `ln-applicability` (fail-closed abstention kernel only). **No**
 > `[validated]` product capability
 > exists yet: real-corpus retrieval, citation safety, and live RuVector/TEI
 > remain `[proposed]`. Truth over optimism (D098): every state claim is
@@ -208,7 +209,7 @@ source, tests, runtime, and real-document evidence appropriate to the claim.
 
 ## Repository map
 
-### Rust workspace: 44 members
+### Rust workspace: 45 members
 
 | Group | Members | Responsibility |
 |---|---|---|
@@ -218,6 +219,7 @@ source, tests, runtime, and real-document evidence appropriate to the claim.
 | Shared infrastructure | `ln-storage` | Graph, vector, and embedding port contracts plus bounded InMemory adapters; not a KOF-DA primary owner. |
 | Shared verification | `ln-testkit` | Reusable port-contract suites and hostile fixtures; test support, not product authority. |
 | Repository tracer | `ln-status` | Deterministic status/failure/sleep/output subprocess tracer for repository-harness verification; not a product capability owner. |
+| Proposed protocol kernel | `ln-applicability` | ADR-0023 fail-closed abstention-only applicability evaluator `[proposed]`; not a KOF-DA owner and not Applicable/NotApplicable product proof. |
 
 Most capability crates use `domain.rs`, `ports.rs`, `application.rs`, and
 `adapters.rs`; crate integration/hostile tests live under `crates/*/tests/`.

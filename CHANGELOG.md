@@ -44,6 +44,17 @@ All notable changes to law-nexus are documented in this file.
 
 ## Unreleased — process debt triage
 
+### Fail-closed applicability kernel (`ln-applicability` v0)
+- New workspace crate `ln-applicability` implements ADR-0023 hexagonal domain/
+  ports/application/adapters with **abstention-only** evaluation.
+- Prerequisite gates (CTV, NormativeState, transitional, provenance) fail closed
+  in stable order; complete prerequisites still abstain with
+  `ProtocolUnimplemented` — no Applicable/NotApplicable product claim.
+- Mandatory `ExplainableTrace` + non-claims on every outcome. Not a KOF-DA owner
+  (ADR-0011 remains 20 exclusive owners).
+- Project-state roadmap records M166 review-governance process band and
+  applicability downstream blocker honestly; GSD Attempt lag remains advisory.
+
 ### Review Case derived-status honesty for already_satisfied
 - `already_satisfied` is now a terminal residual disposition (`terminal_without_implementation`)
   with `execution_status=not_required`, not residual-open work.

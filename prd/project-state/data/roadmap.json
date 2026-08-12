@@ -369,6 +369,12 @@
       "theme": "Documentation contract, temporal crosswalk and ADR assessment package",
       "status": "complete",
       "boundary": "Product/RQ document readiness, accepted-as-proposed temporal crosswalk, and ADR-0023 ownership decision are process/design evidence only; not EA-09/EA-10 or product/legal validation."
+    },
+    {
+      "range": "M166-M166",
+      "theme": "Review governance lifecycle contour (process)",
+      "status": "complete",
+      "boundary": "ADR-0024 and Review Case intake/disposition/ledger/governor contour landed as non-authoritative process evidence. Human dispositions recorded for review-11/12 findings. GSD Attempt bookkeeping lag remains; not product readiness, ontology runtime, or applicability validation."
     }
   ],
   "current_milestone": {
@@ -378,15 +384,20 @@
     "goal": "Local GSD workflow marker only; its milestone numbering predates later tracked M161-M165 product/design commits and is not the product current-front authority."
   },
   "recommended_next": {
-    "title": "Retain EA-10 findings and resume evidence-gated product planning only through a new milestone",
+    "title": "Process reconcile GSD lag; continue evidence-gated product work",
     "priority": 1,
-    "why": "EA-10 human disposition D150 accepted the documentation/process packet with findings after independent EA-09 report 120d44b.",
+    "why": "Review Case human dispositions and process inventory are visible; GSD STATE/Attempt lag remains for M161-M166. Applicability kernel is fail-closed abstention-only under ADR-0023 [proposed].",
     "plan_reference": "assessment/12-final-disposition.md",
-    "slices": "Keep EA09-W01..W07 visible; DOC-07 publication structure closed at 23eb715 and DOC-09 bounded working-tree freshness catalog closed at d484224, without product or semantic validation; open product work only through separately planned evidence-gated milestones.",
-    "product_next": "L2 CTV TDD remains first temporal implementation priority only after parser data readiness; TEI/RuVector remains infrastructure-evidence gated.",
-    "non_validation": "EA-10 accepted-with-findings is documentation/process acceptance, not product readiness, legal correctness, ontology/applicability runtime, lifecycle promotion, or release proof."
+    "slices": "Keep GSD planned/orphan SUMMARY inventory visible; do not invent Attempts. Expand applicability predicate algebra only with TDD + ADR-0015 proof classes.",
+    "product_next": "L2 CTV TDD remains first temporal implementation priority only after parser data readiness; applicability stays abstention-only until NormRule IR and hostile proof land; TEI/RuVector remains infrastructure-evidence gated.",
+    "non_validation": "Review Case dispositions, Governor process warns, and applicability abstention are not product readiness, legal correctness, ontology/applicability runtime validation, lifecycle promotion, or release proof."
   },
   "downstream_blocked": [
+    {
+      "capability": "Case applicability protocol runtime",
+      "blocker": "needs NormRule IR, predicate algebra, CaseFacts, ExplainableTrace proof, and representative real-case evidence under ADR-0015/0023",
+      "current_status": "[proposed] fail-closed abstention kernel only (ln-applicability v0); no Applicable/NotApplicable product claim"
+    },
     {
       "capability": "RuVector graph-vector product integration",
       "blocker": "needs validated parser records, TEI 1024d adapter, RVF/redb recovery and exact citation gates",

@@ -12,7 +12,7 @@ related: [ADR-0009, ADR-0017, ADR-0018, ADR-0019, ADR-0020, ADR-0021, ADR-0022]
 
 ## Status
 
-**Accepted [proposed]** — ownership and fail-closed protocol boundaries are decided. No applicability runtime, domain types, ports, procurement profile implementation, or case-level result exists. The decision may move to `[bounded]` only after Rust domain/port contracts and hostile abstention paths ship; any stronger product claim additionally requires representative real-case evidence and human acceptance under ADR-0015.
+**Accepted [proposed]** — ownership and fail-closed protocol boundaries are decided. A minimal fail-closed abstention kernel exists in `ln-applicability` v0 (prerequisite gates + mandatory trace only). No Applicable/NotApplicable product result, NormRule IR, predicate algebra, procurement profile pipeline, or case-level legal claim exists. The decision may move to `[bounded]` only after Rust domain/port contracts and hostile abstention paths ship; any stronger product claim additionally requires representative real-case evidence and human acceptance under ADR-0015.
 
 This ADR narrowly supersedes only the ADR-0017 §5 sentence that assigns applicability as a profile concern. ADR-0017 remains authoritative for CTV, event-sourced validity, bitemporal awareness and the distinction between enters-legal-order and applicability.
 
@@ -125,12 +125,13 @@ Revisit only with a superseding ADR when at least one is true:
 
 ## Non-claims
 
-- `[deferred]` No `NormRule`, predicate evaluator, `CaseFacts`, decision or trace runtime is implemented by this ADR.
+- `[deferred]` No `NormRule` IR, predicate algebra, product `CaseFacts` pipeline, or Applicable/NotApplicable decision is implemented by this ADR. A minimal fail-closed abstention kernel (`ln-applicability` v0) only gates prerequisites and emits a mandatory trace.
 - No applicability result, legal correctness or authoritative legal interpretation is validated.
 - No procurement profile, classifier, register or legal rule set is complete.
 - No derived NormRule graph, LLM output, semantic similarity or profile adapter is source truth.
 - No lifecycle in ADR-0016–0022 is promoted.
 - This decision does not replace human legal judgment.
+- `ln-applicability` is not a KOF-DA exclusive capability owner under ADR-0011 and does not expand the 20 HC owner table.
 
 ## References
 

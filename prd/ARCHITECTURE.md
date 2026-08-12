@@ -90,7 +90,7 @@ L6 ADR-0021 [proposed]  transitional + risk              derived, non-authoritat
    ▼
 L7 ADR-0022 [proposed]  industry profiles                бюджет/стройка/медицина/общий = adapters
    ▼
-   ADR-0023 [proposed]  applicability ownership boundary neutral core protocol + versioned profile inputs; runtime absent
+   ADR-0023 [proposed]  applicability ownership boundary neutral core protocol + versioned profile inputs; `ln-applicability` v0 is fail-closed abstention-only (no Applicable/NotApplicable product claim)
 ```
 
 Proposed semantic reconciliation, glossary and graduation gates are tracked in [`temporal-legal-model.md`](temporal-legal-model.md). For work that changes temporal, parser, evidence, citation, retrieval, applicability, practice, risk or profile vocabulary, maintainers and coding agents must read its §3 glossary plus the owning active ADR before naming a public contract or Rust type; `deferred-undefined` and `runtime deferred` are stop-signs. The tracked update/injection process is [`architecture/glossary-governance.md`](architecture/glossary-governance.md). Governor checks inventory the glossary and warn on narrowly allowlisted presentation drift across vocabulary lifecycle and closed-clock boundaries; they remain advisory process controls. These process/design surfaces do not amend ADRs, generate product types or promote O1–O7.

@@ -64,6 +64,10 @@ name = "ln-admission"
 version = "0.1.0"
 
 [[package]]
+name = "ln-applicability"
+version = "0.1.0"
+
+[[package]]
 name = "ln-citation"
 version = "0.1.0"
 
