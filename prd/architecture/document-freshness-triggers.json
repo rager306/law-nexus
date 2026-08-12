@@ -66,8 +66,8 @@
     {
       "id": "review-case-contract-change",
       "sources": ["prd/architecture/review-case.schema.json", "prd/architecture/review-cases/**/*.json", "src/law_nexus_harness/review_case/**/*.py"],
-      "required_any": ["doc/adr/0024-review-case-intake-and-disposition.md", "prd/architecture/review-cases/README.md", "tests/test_review_case_schema.py", "tests/test_review_case_delta_fixture.py", "tests/test_review_case_pydantic_codec.py", "tests/test_review_case_filesystem_adapters.py", "tests/test_harness_review_case_cli.py"],
-      "review": "Recheck packet non-authority constants, source hashes and spans, human disposition firewall, revision-bound proof classes, adapter-only codec/filesystem boundaries, CLI non-promotion, and explicit non-claims; a valid packet or CLI exit 0 does not accept or close findings."
+      "required_any": ["doc/adr/0024-review-case-intake-and-disposition.md", "prd/architecture/review-cases/README.md", "tests/test_review_case_schema.py", "tests/test_review_case_delta_fixture.py", "tests/test_review_case_pydantic_codec.py", "tests/test_review_case_filesystem_adapters.py", "tests/test_harness_review_case_cli.py", "tests/test_review_case_replay.py", "tests/test_review_case_event_ledger.py", "tests/test_review_case_ledger_application.py"],
+      "review": "Recheck packet non-authority constants, source hashes and spans, human disposition firewall, revision-bound proof classes, adapter-only codec/filesystem/ledger boundaries, CLI non-promotion, append-only envelope integrity, and explicit non-claims; a valid packet, CLI exit 0, or ledger receipt does not accept or close findings."
     }
   ]
 }

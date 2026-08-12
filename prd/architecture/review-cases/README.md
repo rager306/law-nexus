@@ -84,23 +84,34 @@ proof class, tested revision, and durable evidence anchors.
 
 ## Codecs and runtime contour
 
-Measured S02/S03 shape under `src/law_nexus_harness/review_case/`:
+Measured S02–S04 shape under `src/law_nexus_harness/review_case/`:
 
-- **Inner model (S02):** pure stdlib frozen values, policy, ports, and
+- **Inner model (S02/S04):** pure stdlib frozen values, policy, ports, and
   application use cases. No pydantic, pathlib, CLI, Governor, or GSD imports.
-- **Pydantic v2 (S03, adapter-only):** strict `extra=forbid` JSON codec mapping
-  `review-case/v1` bytes ↔ pure `ReviewPacket`. Public APIs return domain types
-  only; `BaseModel` stays inside the adapter. Generated schema is diagnostic and
-  must resolve through native `$ref` enums — it is not a second authority.
+  Pure `apply_event` / `replay_events` materialize state from a clean base packet
+  plus ordered consequential events, including opaque `execution_linked` status.
+- **Pydantic v2 (S03/S04, adapter-only):** strict `extra=forbid` JSON codec mapping
+  `review-case/v1` packets and `review-case-event-ledger/v1` envelopes ↔ pure
+  domain values. Public APIs return domain types only; `BaseModel` stays inside
+  the adapter. Generated schema is diagnostic and must resolve through native
+  `$ref` enums — it is not a second authority.
 - **Filesystem + hashlib adapters (S03):** root-confined source reads and atomic
   packet persistence under
   `prd/architecture/review-cases/packets/` by default. Symlinks, path escape,
   forbidden local/historical prefixes, duplicate IDs, and corrupt packets fail
   closed.
+- **Append-only event ledger (S04):** one immutable envelope file per sequence
+  under `prd/architecture/review-cases/packets/<packet-id>/events/`. Envelopes
+  carry sequence, previous-envelope hash, event hash, and envelope hash. Gaps,
+  forks, hash tamper, duplicates, partial temps, and path escape fail closed.
+  Application commands append only after pure apply succeeds, then rematerialize
+  from durable ledger state. External IDs remain opaque references — no GSD or
+  authority lifecycle is created or mirrored.
 - **CLI (S03):** `law-nexus-harness review-case {register,validate,status}` emits
   deterministic JSON reports. Exit `0` success, `1` validation/policy, `2`
   tool/adapter. Commands do not record human disposition, promote authority, or
-  create GSD work.
+  create GSD work. Human disposition remains an application/port surface that
+  requires an authenticated parent interaction to supply actor identity.
 - **Adaptix:** still deferred. No measured mapping pain required it on the v1
   critical path; it remains absent from runtime and tests.
 
@@ -113,13 +124,20 @@ These **non-claims** are mandatory reading for any packet consumer:
 
 - Packets are **non-authoritative**. Green schema validation or CLI exit 0 is not
   semantic acceptance, product readiness, or legal correctness.
-- The S03 CLI is a control-plane vertical slice only. No Governor check, hosted
-  CI gate, disposition ledger, or GSD integration is claimed yet (S04/S05).
+- The S03 CLI is a control-plane vertical slice only. No Governor check or hosted
+  CI gate is claimed for disposition. S04 adds an append-only ledger and pure
+  application commands; it does **not** auto-disposition real reviews or create
+  GSD work.
 - No finding is accepted, rejected, or closed merely by existing as a packet or
   by being registered through the CLI.
+- Real review-11/review-12 findings remain `open / unplanned / unverified` until
+  explicit human disposition in S06. Ledger capability does not itself accept
+  those findings.
 - Roadmap proposals inside reviews remain proposals until separately adopted.
+- Opaque `execution_linked` / `promoted_to` references do not mutate GSD,
+  Product, Requirements, ADR, or roadmap lifecycle state.
 - No product-domain Rust type, temporal resolver, applicability engine, parser
   completeness, RuVector, retrieval quality, or citation safety is claimed.
 - The test-side structural oracle under `tests/test_review_case_schema.py` is
   not product authority; runtime validation is the pure domain/policy path plus
-  the outer codec adapter.
+  the outer codec adapter and ledger integrity checks.

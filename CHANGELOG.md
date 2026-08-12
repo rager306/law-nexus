@@ -44,6 +44,20 @@ All notable changes to law-nexus are documented in this file.
 
 ## M166 review governance lifecycle (2026-08-12)
 
+### S04 append-only disposition ledger
+- Added pure `apply_event` / `replay_events` so a clean base packet plus ordered
+  consequential events deterministically materialize current status, including
+  opaque `execution_linked` transitions.
+- Added `EventLedgerEnvelope`, `EventLedger` port, event/envelope codec helpers,
+  and a root-confined filesystem ledger under
+  `prd/architecture/review-cases/packets/<id>/events/` with sequence and hash
+  chaining. Gaps, forks, hash tamper, duplicates, partial temps, and path escape
+  fail closed.
+- Added application commands for human disposition, relation, execution-link,
+  verification, and reopen that pure-apply first, append receipts, then rematerialize.
+  No unauthenticated CLI disposition surface; no GSD/Product/Requirements/ADR
+  mutation. Real review findings remain open pending S06 human acceptance.
+
 ### S03 persistence codec and CLI vertical slice
 - Added outer Pydantic v2 codec adapter with strict/extra-forbid wire models,
   payload-only `tested_revision`, exact JSON authority booleans, deterministic
