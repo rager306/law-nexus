@@ -1014,10 +1014,12 @@ def check_gsd_residual_debt(root: Path) -> list[GovernorFinding]:
         )
 
     # Code/docs landed but registry not closed: SUMMARY present, marker not ✅.
+    # Also surface SUMMARY directories absent from the registry entirely (orphan lag).
     lag: list[str] = []
+    registry_by_seq = {seq: marker for seq, marker, _ in rows}
     milestones_root = root / ".gsd" / "milestones"
     if milestones_root.is_dir():
-        for seq, marker, title in rows:
+        for seq, marker, _title in rows:
             if marker == "✅":
                 continue
             # Match directories like M166-iyy4ak or M165-2som4e.
@@ -1028,6 +1030,18 @@ def check_gsd_residual_debt(root: Path) -> list[GovernorFinding]:
                 if any(mdir.glob(f"M{seq}*-SUMMARY.md")) or (mdir / f"M{seq}-SUMMARY.md").is_file():
                     lag.append(f"M{seq}({marker})")
                     break
+        for mdir in sorted(path for path in milestones_root.iterdir() if path.is_dir()):
+            match = re.fullmatch(r"M(\d+)(?:-[A-Za-z0-9]+)?", mdir.name)
+            if match is None:
+                continue
+            seq = int(match.group(1))
+            if seq in registry_by_seq:
+                continue
+            has_summary = (
+                any(mdir.glob(f"M{seq}*-SUMMARY.md")) or (mdir / f"M{seq}-SUMMARY.md").is_file()
+            )
+            if has_summary:
+                lag.append(f"M{seq}(orphan)")
     if lag:
         preview = ",".join(lag[:12])
         if len(lag) > 12:
@@ -1037,7 +1051,10 @@ def check_gsd_residual_debt(root: Path) -> list[GovernorFinding]:
                 check_id="gsd-code-complete-lag",
                 status="fail",
                 severity="warn",
-                message="Milestone SUMMARY present while registry marker is not complete",
+                message=(
+                    "Milestone SUMMARY present while registry marker is not complete "
+                    "or SUMMARY is orphaned from STATE registry"
+                ),
                 observed=(
                     f"lag_count={len(lag)}, ids=[{preview}] "
                     f"(lifecycle [bounded]; process visibility only; does not invent "
@@ -1045,7 +1062,8 @@ def check_gsd_residual_debt(root: Path) -> list[GovernorFinding]:
                 ),
                 remediation=(
                     "Reconcile via supported GSD Attempt/closeout workflow when ceremony is "
-                    "available. Do not fabricate gsd_task_complete receipts without Attempts."
+                    "available. Do not fabricate gsd_task_complete receipts without Attempts. "
+                    "Orphan SUMMARY rows need registry inclusion or explicit process import."
                 ),
             )
         )

@@ -57,12 +57,12 @@ All notable changes to law-nexus are documented in this file.
   to legacy `⚪`, so M162+ planned rows are no longer silently invisible.
 - Hard residual debt uses only in-flight markers (`🔄`/`⏸`/`🟡`). Planned-only
   rows emit advisory `gsd-planned-inventory-visibility`.
-- New advisory `gsd-code-complete-lag` when a milestone SUMMARY exists while the
-  registry marker is not complete (Attempt/closeout lag; no fabricated closes).
+- Advisory `gsd-code-complete-lag` when a milestone SUMMARY exists while the
+  registry marker is not complete, **or** when a SUMMARY directory is orphaned
+  from the STATE registry entirely (e.g. M165 SUMMARY without a registry row).
 - Direct `.gsd/STATE.md` mutation remains engine-owned; this wave surfaces lag
-  instead of rewriting GSD projections.
-- Session-only non-authoritative triage sheet:
-  `prd/architecture/review-cases/session-triage-2026-08-12.md` (ledger not written).
+  instead of rewriting GSD projections or fabricating Attempts.
+- Session triage sheet + human ledger dispositions recorded under review-cases.
 
 ### Governor historical-test-debt precision
 - Narrowed `historical-test-debt-visibility` so CI process-suite tests and pure

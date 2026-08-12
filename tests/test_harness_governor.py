@@ -452,6 +452,32 @@ def test_code_complete_lag_warns_when_summary_exists_but_marker_open(
     assert "M166" in by_id["gsd-code-complete-lag"].observed
 
 
+def test_orphan_summary_outside_registry_is_advisory_inventory(tmp_path: Path) -> None:
+    """SUMMARY dirs not listed in STATE registry must still surface as lag."""
+    state = tmp_path / ".gsd"
+    state.mkdir()
+    (state / "STATE.md").write_text(
+        "# GSD State\n\n"
+        "**Active Milestone:** M161-2som4e: Retrieval ranking\n"
+        "**Phase:** executing\n\n"
+        "## Milestone Registry\n"
+        "- ✅ **M160-65pdoz:** Verify Test CI Coverage\n"
+        "- 🔄 **M161-2som4e:** Retrieval ranking\n",
+        encoding="utf-8",
+    )
+    orphan = state / "milestones" / "M165-2som4e"
+    orphan.mkdir(parents=True)
+    (orphan / "M165-2som4e-SUMMARY.md").write_text("# orphan summary\n", encoding="utf-8")
+    from law_nexus_harness.governor import check_gsd_residual_debt
+
+    findings = check_gsd_residual_debt(tmp_path)
+    by_id = {item.check_id: item for item in findings}
+    assert by_id["gsd-code-complete-lag"].status == "fail"
+    assert by_id["gsd-code-complete-lag"].severity == "warn"
+    assert "M165" in by_id["gsd-code-complete-lag"].observed
+    assert "orphan" in by_id["gsd-code-complete-lag"].observed
+
+
 ACTIVE_DIRECTION = (
     "## Active Direction Contract\n\n```text\n"
     + "\n".join(f"{key}={value}" for key, value in _EXPECTED_DIRECTION.items())
