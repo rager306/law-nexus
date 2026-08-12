@@ -375,6 +375,78 @@ def test_open_next_wave_milestone_is_not_residual_debt(tmp_path: Path) -> None:
     assert by_id["gsd-phase-complete-consistent"].status == "pass"
 
 
+def test_registry_parser_includes_white_large_square_planned_marker() -> None:
+    """STATE.md planned rows use ⬜; residual debt must not silently drop them."""
+    from law_nexus_harness.governor import _registry_milestones
+
+    text = (
+        "## Milestone Registry\n"
+        "- ✅ **M160-65pdoz:** Verify Test CI Coverage\n"
+        "- 🔄 **M161-2som4e:** Retrieval ranking\n"
+        "- ⬜ **M162-t9mjgj:** Governor semantic-stub probe\n"
+        "- ⬜ **M166-iyy4ak:** Review Governance Lifecycle\n"
+        "## Recent Decisions\n"
+    )
+    rows = _registry_milestones(text)
+    by_seq = {seq: marker for seq, marker, _ in rows}
+    assert by_seq[160] == "✅"
+    assert by_seq[161] == "🔄"
+    assert by_seq[162] == "⬜"
+    assert by_seq[166] == "⬜"
+
+
+def test_planned_white_square_next_wave_is_inventory_not_hard_debt(tmp_path: Path) -> None:
+    """Planned ⬜ next-wave is advisory inventory, not hard residual debt."""
+    state = tmp_path / ".gsd"
+    state.mkdir()
+    (state / "STATE.md").write_text(
+        "# GSD State\n\n"
+        "**Last Completed Milestone:** M165-2som4e: Temporal ontology\n"
+        "**Active Milestone:** M166-iyy4ak: Review Governance Lifecycle\n"
+        "**Phase:** planning\n\n"
+        "## Milestone Registry\n"
+        "- ✅ **M165-2som4e:** Temporal ontology\n"
+        "- ⬜ **M166-iyy4ak:** Review Governance Lifecycle\n",
+        encoding="utf-8",
+    )
+    from law_nexus_harness.governor import check_gsd_residual_debt
+
+    findings = check_gsd_residual_debt(tmp_path)
+    by_id = {item.check_id: item for item in findings}
+    assert by_id["gsd-no-open-registry-debt"].status == "pass"
+    assert by_id["gsd-no-open-registry-debt"].severity == "ok"
+    assert by_id["gsd-planned-inventory-visibility"].status == "fail"
+    assert by_id["gsd-planned-inventory-visibility"].severity == "warn"
+    assert "M166" in by_id["gsd-planned-inventory-visibility"].observed
+    assert by_id["gsd-phase-complete-consistent"].status == "pass"
+
+
+def test_code_complete_lag_warns_when_summary_exists_but_marker_open(
+    tmp_path: Path,
+) -> None:
+    state = tmp_path / ".gsd"
+    state.mkdir()
+    (state / "STATE.md").write_text(
+        "# GSD State\n\n"
+        "**Active Milestone:** M166-iyy4ak: Review Governance\n"
+        "**Phase:** planning\n\n"
+        "## Milestone Registry\n"
+        "- ✅ **M165-2som4e:** Temporal ontology\n"
+        "- ⬜ **M166-iyy4ak:** Review Governance\n",
+        encoding="utf-8",
+    )
+    mdir = state / "milestones" / "M166-iyy4ak"
+    mdir.mkdir(parents=True)
+    (mdir / "M166-iyy4ak-SUMMARY.md").write_text("# summary\n", encoding="utf-8")
+    from law_nexus_harness.governor import check_gsd_residual_debt
+
+    findings = check_gsd_residual_debt(tmp_path)
+    by_id = {item.check_id: item for item in findings}
+    assert by_id["gsd-code-complete-lag"].status == "fail"
+    assert by_id["gsd-code-complete-lag"].severity == "warn"
+    assert "M166" in by_id["gsd-code-complete-lag"].observed
+
+
 ACTIVE_DIRECTION = (
     "## Active Direction Contract\n\n```text\n"
     + "\n".join(f"{key}={value}" for key, value in _EXPECTED_DIRECTION.items())
@@ -739,6 +811,8 @@ def test_live_governor_passes_hostile_negative_suite_coverage() -> None:
         "historical-test-debt-visibility",
         "archive-path-policy",
         "review-case-integrity.open-findings",
+        "gsd-planned-inventory-visibility",
+        "gsd-code-complete-lag",
     }
     other_warns = [
         f for f in report.findings if f.severity == "warn" and f.check_id not in advisory_warn_ids
@@ -776,6 +850,8 @@ def test_live_governor_passes_live_adapter_readiness() -> None:
         "historical-test-debt-visibility",
         "archive-path-policy",
         "review-case-integrity.open-findings",
+        "gsd-planned-inventory-visibility",
+        "gsd-code-complete-lag",
     }
     other_warns = [
         f for f in report.findings if f.severity == "warn" and f.check_id not in advisory_warn_ids

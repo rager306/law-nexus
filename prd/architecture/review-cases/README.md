@@ -136,6 +136,9 @@ Built from the pure `build_review_delta_map` projection over
 duplicate, roadmap-proposal, new, and residual-open findings. Confirmed closures
 and accepted promotions are empty until human disposition events exist.
 
+Session recommendations (non-authoritative, ledger not written):
+[`session-triage-2026-08-12.md`](session-triage-2026-08-12.md)
+
 ## Non-claims
 
 These **non-claims** are mandatory reading for any packet consumer:

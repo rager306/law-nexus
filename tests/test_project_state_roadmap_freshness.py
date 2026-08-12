@@ -31,9 +31,11 @@ ROADMAP_JSON_PATH = ROOT / "prd/project-state/data/roadmap.json"
 # Matches a Milestone Registry row, in either form:
 #   "- ✅ **M069-sl591m:** Title"
 #   "- 🔄 **M068-xi4034:** Title"
+#   "- ⬜ **M166-iyy4ak:** Title"  (planned; white large square)
 # (the random suffix is optional; some legacy rows are bare "M047:").
+# Keep marker set in sync with src/law_nexus_harness/governor.py.
 _REGISTRY_ROW_RE = re.compile(
-    r"^\s*-\s*(?P<marker>✅|🔄|⏸|🟡|⚪)\s*\*\*M(?P<seq>\d+)(?:-[a-z0-9]+)?:\*\*\s*(?P<title>.+?)\s*$"
+    r"^\s*-\s*(?P<marker>✅|🔄|⏸|🟡|⚪|⬜)\s*\*\*M(?P<seq>\d+)(?:-[a-z0-9]+)?:\*\*\s*(?P<title>.+?)\s*$"
 )
 
 # Matches the "Active Milestone:" header line in STATE.md.

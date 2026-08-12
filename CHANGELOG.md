@@ -44,18 +44,28 @@ All notable changes to law-nexus are documented in this file.
 
 ## Unreleased — process debt triage
 
+### Governor GSD registry visibility and residual-debt honesty
+- Registry parser now accepts planned marker `⬜` (white large square) in addition
+  to legacy `⚪`, so M162+ planned rows are no longer silently invisible.
+- Hard residual debt uses only in-flight markers (`🔄`/`⏸`/`🟡`). Planned-only
+  rows emit advisory `gsd-planned-inventory-visibility`.
+- New advisory `gsd-code-complete-lag` when a milestone SUMMARY exists while the
+  registry marker is not complete (Attempt/closeout lag; no fabricated closes).
+- Direct `.gsd/STATE.md` mutation remains engine-owned; this wave surfaces lag
+  instead of rewriting GSD projections.
+- Session-only non-authoritative triage sheet:
+  `prd/architecture/review-cases/session-triage-2026-08-12.md` (ledger not written).
+
 ### Governor historical-test-debt precision
 - Narrowed `historical-test-debt-visibility` so CI process-suite tests and pure
   anti-era control language are not treated as residual hard-dependency debt.
   Residual debt now requires hard-dependency signals (archived imports/clients).
 - Live inventory dropped from 7 false-positive process tests to 0 residual
-  non-CI hard dependencies. Open Review Case findings remain the sole advisory
-  warn on the full Governor run.
+  non-CI hard dependencies.
 - Process note: M166-iyy4ak Review Governance Lifecycle is code/docs complete on
-  `main` through S01–S06 with green suite/Governor/preflight, but GSD DB still
-  shows planned/pending because manual execution did not create canonical Task
-  Attempts. Do not invent completion receipts; reconcile through supported GSD
-  Attempt workflow or explicit process import later.
+  `main` through S01–S06 with green suite, but GSD DB/STATE still show planned/
+  pending because manual execution did not create canonical Task Attempts. Do not
+  invent completion receipts; reconcile through supported GSD Attempt workflow.
 
 ## M166 review governance lifecycle (2026-08-12)
 

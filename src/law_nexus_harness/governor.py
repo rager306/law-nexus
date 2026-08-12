@@ -33,8 +33,10 @@ GOVERNOR_SCHEMA_VERSION = "law-nexus-governor-report/v1"
 Severity = Literal["error", "warn", "ok"]
 CheckStatus = Literal["pass", "fail"]
 
+# Markers: ✅ complete, 🔄 active, ⏸ paused, 🟡 blocked, ⚪/⬜ planned.
+# ⬜ (white large square) is the live STATE.md planned glyph; ⚪ is legacy.
 _REGISTRY_ROW_RE = re.compile(
-    r"^\s*-\s*(?P<marker>✅|🔄|⏸|🟡|⚪)\s*\*\*M(?P<seq>\d+)(?:-[a-z0-9]+)?:\*\*\s*(?P<title>.+?)\s*$"
+    r"^\s*-\s*(?P<marker>✅|🔄|⏸|🟡|⚪|⬜)\s*\*\*M(?P<seq>\d+)(?:-[a-z0-9]+)?:\*\*\s*(?P<title>.+?)\s*$"
 )
 _ACTIVE_MILESTONE_RE = re.compile(
     r"^\*\*Active Milestone:\*\*\s*M(?P<seq>\d+)(?:-(?P<rand>[a-z0-9]+))?",
@@ -836,13 +838,20 @@ def check_hostile_proof_chain(root: Path) -> list[GovernorFinding]:
     return findings
 
 
+# Registry markers that mean an in-flight incomplete wave (hard residual candidates).
+_HARD_OPEN_MARKERS = frozenset({"🔄", "⏸", "🟡"})
+# Planned-only markers: inventory visibility, not hard residual debt by themselves.
+_PLANNED_MARKERS = frozenset({"⬜", "⚪"})
+
+
 def check_gsd_residual_debt(root: Path) -> list[GovernorFinding]:
     """Detect residual incomplete GSD milestones that are true debt.
 
-    One open milestone is allowed when it is exactly the next sequence after the
-    latest completed milestone (the currently planned/active wave). Residual debt
-    is: multiple open milestones, an open milestone at or behind last completed,
-    or a gap ahead of last_completed+1.
+    Hard residual debt uses only in-flight markers (🔄/⏸/🟡). Planned-only rows
+    (⬜/⚪) are inventory and are reported separately as advisory visibility so a
+    blocked STATE.md projection cannot thrash the Governor with false hard debt
+    while still remaining triage-visible. One hard-open milestone is allowed when
+    it is exactly the next sequence after the latest completed milestone.
     """
 
     findings: list[GovernorFinding] = []
@@ -861,35 +870,42 @@ def check_gsd_residual_debt(root: Path) -> list[GovernorFinding]:
 
     state_text = state_path.read_text(encoding="utf-8")
     rows = _registry_milestones(state_text)
-    incomplete = [(seq, title) for seq, marker, title in rows if marker != "✅"]
+    hard_open = [(seq, title) for seq, marker, title in rows if marker in _HARD_OPEN_MARKERS]
+    planned = [(seq, title) for seq, marker, title in rows if marker in _PLANNED_MARKERS]
     completed_seqs = [seq for seq, marker, _ in rows if marker == "✅"]
     latest_completed = max(completed_seqs) if completed_seqs else _last_completed_seq(state_text)
     active = _active_milestone_seq(state_text)
 
-    if not incomplete:
+    if not hard_open:
         findings.append(
             GovernorFinding(
                 check_id="gsd-no-open-registry-debt",
                 status="pass",
                 severity="ok",
-                message="GSD registry has no open non-complete milestones",
-                observed=f"last_completed={latest_completed}; active={active}",
+                message="GSD registry has no hard-open incomplete milestones",
+                observed=(
+                    f"last_completed={latest_completed}; active={active}; "
+                    f"planned_inventory={len(planned)}"
+                ),
                 remediation="none",
             )
         )
     elif (
-        len(incomplete) == 1
+        len(hard_open) == 1
         and latest_completed is not None
-        and incomplete[0][0] == latest_completed + 1
+        and hard_open[0][0] == latest_completed + 1
     ):
         findings.append(
             GovernorFinding(
                 check_id="gsd-no-open-registry-debt",
                 status="pass",
                 severity="ok",
-                message=("Exactly one open next-wave milestone is allowed after last completed"),
+                message=(
+                    "Exactly one hard-open next-wave milestone is allowed after last completed"
+                ),
                 observed=(
-                    f"open={incomplete}; last_completed=M{latest_completed}; active={active}"
+                    f"open={hard_open}; last_completed=M{latest_completed}; active={active}; "
+                    f"planned_inventory={len(planned)}"
                 ),
                 remediation="none",
             )
@@ -900,13 +916,51 @@ def check_gsd_residual_debt(root: Path) -> list[GovernorFinding]:
                 check_id="gsd-no-open-registry-debt",
                 status="fail",
                 severity="error",
-                message="GSD registry has residual open-milestone debt",
-                observed=(f"open={incomplete}; last_completed={latest_completed}; active={active}"),
-                remediation=(
-                    "Close leftover incomplete milestones at or behind the last completed "
-                    "wave, or collapse multiple open milestones to a single next-wave "
-                    "active milestone before product work continues"
+                message="GSD registry has residual hard-open milestone debt",
+                observed=(
+                    f"open={hard_open}; last_completed={latest_completed}; active={active}; "
+                    f"planned_inventory={len(planned)}"
                 ),
+                remediation=(
+                    "Close leftover hard-open milestones (🔄/⏸/🟡) at or behind the last "
+                    "completed wave, or collapse multiple hard-open milestones to a single "
+                    "next-wave active milestone before product work continues. Planned-only "
+                    "⬜/⚪ rows are inventory and require GSD engine reconcile, not silent drop."
+                ),
+            )
+        )
+
+    if planned:
+        preview = ",".join(f"M{seq}" for seq, _ in sorted(planned)[:12])
+        if len(planned) > 12:
+            preview += f",+{len(planned) - 12}"
+        findings.append(
+            GovernorFinding(
+                check_id="gsd-planned-inventory-visibility",
+                status="fail",
+                severity="warn",
+                message="GSD registry has planned-only milestones still open",
+                observed=(
+                    f"planned_count={len(planned)}, ids=[{preview}] "
+                    f"(lifecycle [bounded]; process inventory only; planned ⬜/⚪ is not "
+                    f"hard residual debt and does not auto-close)."
+                ),
+                remediation=(
+                    "Reconcile planned rows through supported GSD Attempt/closeout workflow, "
+                    "or keep them visible as process inventory. Do not invent completion "
+                    "receipts or silently rewrite STATE.md outside the engine."
+                ),
+            )
+        )
+    else:
+        findings.append(
+            GovernorFinding(
+                check_id="gsd-planned-inventory-visibility",
+                status="pass",
+                severity="ok",
+                message="GSD registry has no planned-only open milestones",
+                observed="planned_count=0",
+                remediation="none",
             )
         )
 
@@ -955,6 +1009,54 @@ def check_gsd_residual_debt(root: Path) -> list[GovernorFinding]:
                 severity="ok",
                 message="GSD active/last-completed relationship is coherent",
                 observed=f"active={active}; last_completed={latest_completed}; {phase_line}",
+                remediation="none",
+            )
+        )
+
+    # Code/docs landed but registry not closed: SUMMARY present, marker not ✅.
+    lag: list[str] = []
+    milestones_root = root / ".gsd" / "milestones"
+    if milestones_root.is_dir():
+        for seq, marker, title in rows:
+            if marker == "✅":
+                continue
+            # Match directories like M166-iyy4ak or M165-2som4e.
+            matches = sorted(milestones_root.glob(f"M{seq}-*"))
+            if not matches:
+                matches = sorted(milestones_root.glob(f"M{seq}"))
+            for mdir in matches:
+                if any(mdir.glob(f"M{seq}*-SUMMARY.md")) or (mdir / f"M{seq}-SUMMARY.md").is_file():
+                    lag.append(f"M{seq}({marker})")
+                    break
+    if lag:
+        preview = ",".join(lag[:12])
+        if len(lag) > 12:
+            preview += f",+{len(lag) - 12}"
+        findings.append(
+            GovernorFinding(
+                check_id="gsd-code-complete-lag",
+                status="fail",
+                severity="warn",
+                message="Milestone SUMMARY present while registry marker is not complete",
+                observed=(
+                    f"lag_count={len(lag)}, ids=[{preview}] "
+                    f"(lifecycle [bounded]; process visibility only; does not invent "
+                    f"GSD Attempts or close milestones)."
+                ),
+                remediation=(
+                    "Reconcile via supported GSD Attempt/closeout workflow when ceremony is "
+                    "available. Do not fabricate gsd_task_complete receipts without Attempts."
+                ),
+            )
+        )
+    else:
+        findings.append(
+            GovernorFinding(
+                check_id="gsd-code-complete-lag",
+                status="pass",
+                severity="ok",
+                message="No code-complete lag between SUMMARY artifacts and registry markers",
+                observed="lag_count=0",
                 remediation="none",
             )
         )
