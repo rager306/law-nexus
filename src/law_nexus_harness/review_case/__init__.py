@@ -4,6 +4,17 @@ Non-authoritative process contour only. Semantic promotion remains human-owned
 outside this package.
 """
 
+from law_nexus_harness.review_case.application import (
+    APP_REPORT_SCHEMA_VERSION,
+    RegisterReviewCaseCommand,
+    RegisterReviewCaseReport,
+    ReviewCaseApplicationError,
+    ReviewCaseStatusReport,
+    ValidateReviewCasesReport,
+    register_review_case,
+    review_case_status,
+    validate_review_cases,
+)
 from law_nexus_harness.review_case.domain import (
     SCHEMA_VERSION,
     ActorClass,
@@ -44,9 +55,25 @@ from law_nexus_harness.review_case.policy import (
     reopen_finding,
     validate_review_policy,
 )
+from law_nexus_harness.review_case.ports import (
+    ContentHasher,
+    ReviewCasePortError,
+    ReviewPacketStore,
+    ReviewSourceReader,
+)
 
 __all__ = [
+    "APP_REPORT_SCHEMA_VERSION",
     "SCHEMA_VERSION",
+    "ContentHasher",
+    "RegisterReviewCaseCommand",
+    "RegisterReviewCaseReport",
+    "ReviewCaseApplicationError",
+    "ReviewCasePortError",
+    "ReviewCaseStatusReport",
+    "ReviewPacketStore",
+    "ReviewSourceReader",
+    "ValidateReviewCasesReport",
     "ActorClass",
     "CandidateSurface",
     "CandidateTarget",
@@ -81,5 +108,8 @@ __all__ = [
     "record_normalization_review",
     "record_verification",
     "reopen_finding",
+    "register_review_case",
+    "review_case_status",
+    "validate_review_cases",
     "validate_review_policy",
 ]

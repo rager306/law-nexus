@@ -42,7 +42,53 @@ _ALLOWED_FALKORDB_PATTERNS = (
 
 
 def _python_sources() -> list[Path]:
-    return sorted(HARNESS_ROOT.glob("*.py"))
+    return sorted(
+        path
+        for path in HARNESS_ROOT.rglob("*.py")
+        if "__pycache__" not in path.parts and ".venv" not in path.parts
+    )
+
+
+_REVIEW_CASE_FORBIDDEN_IMPORT_ROOTS = frozenset(
+    {
+        "pydantic",
+        "adaptix",
+        "pathlib",
+        "argparse",
+        "gsd",
+        "law_nexus",
+        "ctypes",
+        "cffi",
+        "pyo3",
+    }
+)
+_REVIEW_CASE_INNER_MODULE_PATHS = frozenset(
+    {
+        "review_case/__init__.py",
+        "review_case/domain.py",
+        "review_case/policy.py",
+        "review_case/ports.py",
+        "review_case/application.py",
+    }
+)
+_REVIEW_CASE_FORBIDDEN_LOCAL_MODULES = frozenset(
+    {
+        "law_nexus_harness.cli",
+        "law_nexus_harness.governor",
+        "law_nexus_harness.preflight",
+    }
+)
+
+
+def _imported_modules(path: Path) -> list[str]:
+    tree = ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
+    imported: list[str] = []
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Import):
+            imported.extend(alias.name for alias in node.names)
+        elif isinstance(node, ast.ImportFrom) and node.module:
+            imported.append(node.module)
+    return imported
 
 
 def test_harness_imports_no_product_or_in_process_bridge_modules() -> None:
@@ -113,10 +159,35 @@ def test_rust_status_tracer_has_zero_third_party_dependencies() -> None:
 def test_harness_package_is_separate_from_python_product_package() -> None:
     assert HARNESS_ROOT.is_dir()
     assert HARNESS_ROOT.parent / "law_nexus" != HARNESS_ROOT
-    assert {path.name for path in _python_sources()} >= {
+    names = {path.name for path in _python_sources()}
+    assert {
         "__init__.py",
         "__main__.py",
         "cli.py",
         "result_schema.py",
         "subprocess_runner.py",
-    }
+    } <= names
+    assert any(
+        path.relative_to(HARNESS_ROOT).parts[0] == "review_case" for path in _python_sources()
+    )
+
+
+def test_review_case_inner_modules_reject_outer_framework_imports() -> None:
+    violations: list[str] = []
+    for path in _python_sources():
+        relative = path.relative_to(HARNESS_ROOT)
+        if relative.as_posix() not in _REVIEW_CASE_INNER_MODULE_PATHS:
+            continue
+        for module in _imported_modules(path):
+            root = module.split(".", 1)[0].lower()
+            if root in _REVIEW_CASE_FORBIDDEN_IMPORT_ROOTS:
+                violations.append(f"{relative} imports {module}")
+            if module in _REVIEW_CASE_FORBIDDEN_LOCAL_MODULES:
+                violations.append(f"{relative} imports {module}")
+            if module.startswith("law_nexus_harness.") and module.split(".")[1] in {
+                "cli",
+                "governor",
+                "preflight",
+            }:
+                violations.append(f"{relative} imports {module}")
+    assert violations == []
