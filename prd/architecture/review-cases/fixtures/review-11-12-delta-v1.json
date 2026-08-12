@@ -1,0 +1,810 @@
+[
+  {
+    "schema_version": "review-case/v1",
+    "authoritative": false,
+    "authority_required": true,
+    "packet_id": "RC-2026-08-11-001",
+    "source": {
+      "path": "doc/review/review-11-08-2026.md",
+      "content_sha256": "7add3730e7cb821f152126091bda7b77538e5c40400973d27bb7d26fcf7ebeb8",
+      "reviewed_git_revision": "60fd8245ace999f3f29911844375dd7cc36a2a38",
+      "received_at": "2026-08-11T10:33:40Z",
+      "source_kind": "human_external"
+    },
+    "normalization": {
+      "status": "source_verified",
+      "method": "manual",
+      "source_hash": "7add3730e7cb821f152126091bda7b77538e5c40400973d27bb7d26fcf7ebeb8",
+      "extractor_version": "review-case-delta-fixture/v1"
+    },
+    "non_claims": [
+      "Non-authoritative review projection",
+      "Does not promote requirements, ADRs, roadmap, or lifecycle",
+      "Does not assert legal or runtime correctness"
+    ],
+    "findings": [
+      {
+        "finding_id": "RC11-F01",
+        "kind": "gap",
+        "concern_class": "docs",
+        "reviewer_severity": "high",
+        "summary": "No modern Product Contract / PRD on active cold-reader surfaces",
+        "source_spans": [
+          {
+            "path": "doc/review/review-11-08-2026.md",
+            "heading": "## 13.1. В активном репозитории фактически нет полного современного PRD",
+            "line_start": 773,
+            "line_end": 796,
+            "quote_sha256": "603895f395a2750da7187cd5ae5b1b956130d804569c95c3c8d93354e9143cb5"
+          }
+        ],
+        "candidate_targets": [
+          {
+            "surface": "product",
+            "id": "PC-set",
+            "note": "candidate existence check only"
+          },
+          {
+            "surface": "requirement",
+            "id": "RQ-set",
+            "note": "candidate existence check only"
+          }
+        ],
+        "required_proof_class": "docs",
+        "normalization_status": "source_verified",
+        "disposition_status": "open",
+        "execution_status": "unplanned",
+        "verification_status": "unverified",
+        "non_claims": [
+          "Not an accepted requirement",
+          "Not a runtime capability",
+          "Non-authoritative review projection"
+        ]
+      },
+      {
+        "finding_id": "RC11-F03",
+        "kind": "gap",
+        "concern_class": "process",
+        "reviewer_severity": "high",
+        "summary": "Roadmap is not a synchronized current-front plan",
+        "source_spans": [
+          {
+            "path": "doc/review/review-11-08-2026.md",
+            "heading": "## 13.5. Roadmap не синхронизирован",
+            "line_start": 862,
+            "line_end": 868,
+            "quote_sha256": "b1abbc5a72bc82be8d26ca1a0f546d32ac34db79e73ce94b6882bfadc599f94d"
+          }
+        ],
+        "candidate_targets": [
+          {
+            "surface": "roadmap",
+            "id": "prd/project-state/roadmap.md"
+          }
+        ],
+        "required_proof_class": "process",
+        "normalization_status": "source_verified",
+        "disposition_status": "open",
+        "execution_status": "unplanned",
+        "verification_status": "unverified",
+        "non_claims": [
+          "Not an accepted requirement",
+          "Not a runtime capability",
+          "Non-authoritative review projection"
+        ]
+      },
+      {
+        "finding_id": "RC11-F04",
+        "kind": "gap",
+        "concern_class": "design",
+        "reviewer_severity": "critical",
+        "summary": "Missing core NormRule and applicability chain between text and case decision",
+        "source_spans": [
+          {
+            "path": "doc/review/review-11-08-2026.md",
+            "heading": "# 2. Главный системный недостаток",
+            "line_start": 125,
+            "line_end": 180,
+            "quote_sha256": "123ac24559c7f25211fe892c25f2e68f68ed5b8d04f0cb2e3427d1b17183182f"
+          },
+          {
+            "path": "doc/review/review-11-08-2026.md",
+            "heading": "# 4. Applicability — наиболее критичный отсутствующий элемент",
+            "line_start": 307,
+            "line_end": 365,
+            "quote_sha256": "6471e71824d050e7667967e2014b2c64b154ff9a2e50a23a216cd146ea71eefe"
+          }
+        ],
+        "candidate_targets": [
+          {
+            "surface": "tsg",
+            "id": "TSG-005"
+          },
+          {
+            "surface": "tsg",
+            "id": "TSG-006"
+          },
+          {
+            "surface": "adr",
+            "id": "ADR-0023"
+          },
+          {
+            "surface": "product",
+            "id": "PC-009"
+          }
+        ],
+        "required_proof_class": "implementation",
+        "normalization_status": "source_verified",
+        "disposition_status": "open",
+        "execution_status": "unplanned",
+        "verification_status": "unverified",
+        "non_claims": [
+          "Not an accepted requirement",
+          "Not a runtime capability",
+          "Non-authoritative review projection"
+        ]
+      },
+      {
+        "finding_id": "RC11-F04a",
+        "kind": "gap",
+        "concern_class": "design",
+        "reviewer_severity": "critical",
+        "summary": "NormRule IR is undefined (conditions, exceptions, defeaters, temporal scope)",
+        "source_spans": [
+          {
+            "path": "doc/review/review-11-08-2026.md",
+            "heading": "# 2. Главный системный недостаток",
+            "line_start": 125,
+            "line_end": 180,
+            "quote_sha256": "123ac24559c7f25211fe892c25f2e68f68ed5b8d04f0cb2e3427d1b17183182f"
+          }
+        ],
+        "candidate_targets": [
+          {
+            "surface": "tsg",
+            "id": "TSG-005"
+          }
+        ],
+        "required_proof_class": "design",
+        "normalization_status": "source_verified",
+        "disposition_status": "open",
+        "execution_status": "unplanned",
+        "verification_status": "unverified",
+        "non_claims": [
+          "Not an accepted requirement",
+          "Not a runtime capability",
+          "Non-authoritative review projection"
+        ]
+      },
+      {
+        "finding_id": "RC11-F04b",
+        "kind": "gap",
+        "concern_class": "design",
+        "reviewer_severity": "critical",
+        "summary": "Applicability selector/runtime is core, not a profile-only concern",
+        "source_spans": [
+          {
+            "path": "doc/review/review-11-08-2026.md",
+            "heading": "# 4. Applicability — наиболее критичный отсутствующий элемент",
+            "line_start": 307,
+            "line_end": 365,
+            "quote_sha256": "6471e71824d050e7667967e2014b2c64b154ff9a2e50a23a216cd146ea71eefe"
+          }
+        ],
+        "candidate_targets": [
+          {
+            "surface": "tsg",
+            "id": "TSG-006"
+          },
+          {
+            "surface": "adr",
+            "id": "ADR-0023"
+          }
+        ],
+        "required_proof_class": "implementation",
+        "normalization_status": "source_verified",
+        "disposition_status": "open",
+        "execution_status": "unplanned",
+        "verification_status": "unverified",
+        "non_claims": [
+          "Not an accepted requirement",
+          "Not a runtime capability",
+          "Non-authoritative review projection"
+        ]
+      },
+      {
+        "finding_id": "RC11-F06",
+        "kind": "gap",
+        "concern_class": "design",
+        "reviewer_severity": "high",
+        "summary": "Five-clock model is a safety contract, not a complete temporal algebra",
+        "source_spans": [
+          {
+            "path": "doc/review/review-11-08-2026.md",
+            "heading": "# 3. Проблемы пятичасовой модели",
+            "line_start": 182,
+            "line_end": 214,
+            "quote_sha256": "68bc1b98408a2f1b4058e10783685f68288021f562f3047922d8a37692f20889"
+          }
+        ],
+        "candidate_targets": [
+          {
+            "surface": "adr",
+            "id": "ADR-0009"
+          },
+          {
+            "surface": "tsg",
+            "id": "TSG-001"
+          }
+        ],
+        "required_proof_class": "design",
+        "normalization_status": "source_verified",
+        "disposition_status": "open",
+        "execution_status": "unplanned",
+        "verification_status": "unverified",
+        "non_claims": [
+          "Not an accepted requirement",
+          "Not a runtime capability",
+          "Non-authoritative review projection"
+        ]
+      },
+      {
+        "finding_id": "RC11-F07",
+        "kind": "gap",
+        "concern_class": "design",
+        "reviewer_severity": "high",
+        "summary": "TextChangeEvent and NormativeEffectEvent are not separated",
+        "source_spans": [
+          {
+            "path": "doc/review/review-11-08-2026.md",
+            "heading": "# 5. Не разведены текстовое изменение и юридический эффект",
+            "line_start": 367,
+            "line_end": 408,
+            "quote_sha256": "b94ac565e519e7bccdad5c7284a1b3880f636118eb9cd75e62d952f7821b6538"
+          }
+        ],
+        "candidate_targets": [
+          {
+            "surface": "tsg",
+            "id": "TSG-002"
+          },
+          {
+            "surface": "adr",
+            "id": "ADR-0017"
+          }
+        ],
+        "required_proof_class": "design",
+        "normalization_status": "source_verified",
+        "disposition_status": "open",
+        "execution_status": "unplanned",
+        "verification_status": "unverified",
+        "non_claims": [
+          "Not an accepted requirement",
+          "Not a runtime capability",
+          "Non-authoritative review projection"
+        ]
+      },
+      {
+        "finding_id": "RC11-F08",
+        "kind": "gap",
+        "concern_class": "implementation",
+        "reviewer_severity": "high",
+        "summary": "CTV needs structural membership and industrial operations (renumber/move/split/merge)",
+        "source_spans": [
+          {
+            "path": "doc/review/review-11-08-2026.md",
+            "heading": "# 6. CTV-модель требует расширения",
+            "line_start": 410,
+            "line_end": 446,
+            "quote_sha256": "9769ff9b0c3748b7de9971196b2c9f7fe4021089929eea8b9981c6ae8a8fdc52"
+          }
+        ],
+        "candidate_targets": [
+          {
+            "surface": "tsg",
+            "id": "TSG-003"
+          },
+          {
+            "surface": "tsg",
+            "id": "TSG-013"
+          },
+          {
+            "surface": "adr",
+            "id": "ADR-0017"
+          }
+        ],
+        "required_proof_class": "implementation",
+        "normalization_status": "source_verified",
+        "disposition_status": "open",
+        "execution_status": "unplanned",
+        "verification_status": "unverified",
+        "non_claims": [
+          "Not an accepted requirement",
+          "Not a runtime capability",
+          "Non-authoritative review projection"
+        ]
+      },
+      {
+        "finding_id": "RC11-F09",
+        "kind": "decision_need",
+        "concern_class": "design",
+        "reviewer_severity": "high",
+        "summary": "NormativeState mixes force, version relation, applicability, and epistemic outcome",
+        "source_spans": [
+          {
+            "path": "doc/review/review-11-08-2026.md",
+            "heading": "# 7. NormativeState моделируется как один enum, хотя это несколько ортогональных измерений",
+            "line_start": 479,
+            "line_end": 544,
+            "quote_sha256": "a7f8219c19b70b3ff948fb9dd83b89159dcf3f6bb63c38deef75e5c2608e1a3c"
+          }
+        ],
+        "candidate_targets": [
+          {
+            "surface": "tsg",
+            "id": "TSG-004"
+          },
+          {
+            "surface": "adr",
+            "id": "ADR-0018"
+          }
+        ],
+        "required_proof_class": "design",
+        "normalization_status": "source_verified",
+        "disposition_status": "open",
+        "execution_status": "unplanned",
+        "verification_status": "unverified",
+        "non_claims": [
+          "Not an accepted requirement",
+          "Not a runtime capability",
+          "Non-authoritative review projection"
+        ]
+      },
+      {
+        "finding_id": "RC11-F13",
+        "kind": "gap",
+        "concern_class": "design",
+        "reviewer_severity": "high",
+        "summary": "Missing first-class Procurement Case Graph and regime resolution",
+        "source_spans": [
+          {
+            "path": "doc/review/review-11-08-2026.md",
+            "heading": "# 11. Не хватает Procurement Case Graph",
+            "line_start": 695,
+            "line_end": 754,
+            "quote_sha256": "23703f65f028a278003e58d9a4a6dd0c3a1fde11d37c6e00c6b3db0d7819dc59"
+          }
+        ],
+        "candidate_targets": [
+          {
+            "surface": "tsg",
+            "id": "TSG-010"
+          },
+          {
+            "surface": "adr",
+            "id": "ADR-0022"
+          },
+          {
+            "surface": "product",
+            "id": "PC-010"
+          }
+        ],
+        "required_proof_class": "design",
+        "normalization_status": "source_verified",
+        "disposition_status": "open",
+        "execution_status": "unplanned",
+        "verification_status": "unverified",
+        "non_claims": [
+          "Not an accepted requirement",
+          "Not a runtime capability",
+          "Non-authoritative review projection"
+        ]
+      }
+    ],
+    "edges": [
+      {
+        "type": "splits_into",
+        "from": "RC11-F04",
+        "to": "RC11-F04a",
+        "status": "candidate",
+        "note": "design split: NormRule IR"
+      },
+      {
+        "type": "splits_into",
+        "from": "RC11-F04",
+        "to": "RC11-F04b",
+        "status": "candidate",
+        "note": "design split: applicability runtime"
+      },
+      {
+        "type": "blocked_by",
+        "from": "RC11-F04a",
+        "to": "RC11-F04",
+        "status": "candidate",
+        "note": "parent design undecided"
+      },
+      {
+        "type": "blocked_by",
+        "from": "RC11-F04b",
+        "to": "RC11-F04",
+        "status": "candidate",
+        "note": "parent design undecided"
+      },
+      {
+        "type": "maps_to",
+        "from": "RC11-F04",
+        "to": "TSG-005",
+        "status": "candidate"
+      },
+      {
+        "type": "maps_to",
+        "from": "RC11-F04",
+        "to": "TSG-006",
+        "status": "candidate"
+      },
+      {
+        "type": "maps_to",
+        "from": "RC11-F04b",
+        "to": "ADR-0023",
+        "status": "candidate"
+      },
+      {
+        "type": "maps_to",
+        "from": "RC11-F07",
+        "to": "TSG-002",
+        "status": "candidate"
+      },
+      {
+        "type": "maps_to",
+        "from": "RC11-F08",
+        "to": "TSG-003",
+        "status": "candidate"
+      },
+      {
+        "type": "maps_to",
+        "from": "RC11-F09",
+        "to": "TSG-004",
+        "status": "candidate"
+      },
+      {
+        "type": "maps_to",
+        "from": "RC11-F13",
+        "to": "TSG-010",
+        "status": "candidate"
+      }
+    ],
+    "events": [
+      {
+        "event_id": "RC11-E001",
+        "event_type": "packet_registered",
+        "at": "2026-08-11T10:33:40Z",
+        "actor_class": "human",
+        "source_revision": "60fd8245ace999f3f29911844375dd7cc36a2a38",
+        "rationale": "Register immutable review-11 source for non-authoritative delta fixture"
+      }
+    ]
+  },
+  {
+    "schema_version": "review-case/v1",
+    "authoritative": false,
+    "authority_required": true,
+    "packet_id": "RC-2026-08-12-001",
+    "source": {
+      "path": "doc/review/review-12-08-2026.md",
+      "content_sha256": "83b0eacf6df840a24edfd98c444101c29b87bb1d59ef67c6f83398df42a3b1c6",
+      "reviewed_git_revision": "1092ef435947d74080818f69dd08dbb27bfb8f9c",
+      "received_at": "2026-08-12T05:56:35Z",
+      "source_kind": "human_external"
+    },
+    "normalization": {
+      "status": "source_verified",
+      "method": "manual",
+      "source_hash": "83b0eacf6df840a24edfd98c444101c29b87bb1d59ef67c6f83398df42a3b1c6",
+      "extractor_version": "review-case-delta-fixture/v1"
+    },
+    "non_claims": [
+      "Non-authoritative review projection",
+      "Does not promote requirements, ADRs, roadmap, or lifecycle",
+      "Roadmap proposals remain proposals until separately adopted",
+      "Does not assert legal or runtime correctness"
+    ],
+    "findings": [
+      {
+        "finding_id": "RC12-F01",
+        "kind": "gap",
+        "concern_class": "docs",
+        "reviewer_severity": "medium",
+        "summary": "Modern PRODUCT.md and REQUIREMENTS.md now exist after prior PRD gap",
+        "source_spans": [
+          {
+            "path": "doc/review/review-12-08-2026.md",
+            "heading": "## Закрыто или существенно улучшено",
+            "line_start": 15,
+            "line_end": 56,
+            "quote_sha256": "1fddfb55822d13e7733517198721a25d8ab2fba831ac9915eac2dda9b3583518"
+          }
+        ],
+        "candidate_targets": [
+          {
+            "surface": "product",
+            "id": "prd/PRODUCT.md"
+          },
+          {
+            "surface": "requirement",
+            "id": "prd/REQUIREMENTS.md"
+          }
+        ],
+        "required_proof_class": "docs",
+        "normalization_status": "source_verified",
+        "disposition_status": "open",
+        "execution_status": "unplanned",
+        "verification_status": "unverified",
+        "non_claims": [
+          "Docs existence only; not product readiness",
+          "Not lifecycle promotion of PRODUCT/REQUIREMENTS beyond proposed",
+          "Non-authoritative review projection"
+        ]
+      },
+      {
+        "finding_id": "RC12-F05",
+        "kind": "gap",
+        "concern_class": "design",
+        "reviewer_severity": "critical",
+        "summary": "Applicability ownership moved to neutral core (ADR-0023), but runtime and NormRule remain open",
+        "source_spans": [
+          {
+            "path": "doc/review/review-12-08-2026.md",
+            "heading": "# 3. Что пока не закрыто",
+            "line_start": 85,
+            "line_end": 113,
+            "quote_sha256": "c783b0b6eb8b3b1482cd5b825ade8411febe1e027c2a8970e1c2524bc0ab6e05"
+          }
+        ],
+        "candidate_targets": [
+          {
+            "surface": "adr",
+            "id": "ADR-0023"
+          },
+          {
+            "surface": "tsg",
+            "id": "TSG-005"
+          },
+          {
+            "surface": "tsg",
+            "id": "TSG-006"
+          }
+        ],
+        "required_proof_class": "implementation",
+        "normalization_status": "source_verified",
+        "disposition_status": "open",
+        "execution_status": "unplanned",
+        "verification_status": "unverified",
+        "non_claims": [
+          "Ownership design improvement is not runtime capability",
+          "Not an accepted requirement",
+          "Non-authoritative review projection"
+        ]
+      },
+      {
+        "finding_id": "RC12-F17",
+        "kind": "defect",
+        "concern_class": "docs",
+        "reviewer_severity": "medium",
+        "summary": "README misstates five-clock canonical names",
+        "source_spans": [
+          {
+            "path": "doc/review/review-12-08-2026.md",
+            "heading": "## 4.1. README неверно пересказывает пять часов",
+            "line_start": 291,
+            "line_end": 311,
+            "quote_sha256": "71453aee09416dedd642be97e243cd8026c43a3dc2fc8c8eafba91f7a1402175"
+          }
+        ],
+        "candidate_targets": [
+          {
+            "surface": "adr",
+            "id": "ADR-0009"
+          },
+          {
+            "surface": "other",
+            "id": "README.md"
+          }
+        ],
+        "required_proof_class": "docs",
+        "normalization_status": "source_verified",
+        "disposition_status": "open",
+        "execution_status": "unplanned",
+        "verification_status": "unverified",
+        "non_claims": [
+          "Not an accepted requirement",
+          "Not a runtime capability",
+          "Non-authoritative review projection"
+        ]
+      },
+      {
+        "finding_id": "RC12-F18",
+        "kind": "defect",
+        "concern_class": "process",
+        "reviewer_severity": "medium",
+        "summary": "Active ADRs still cite missing foundations / local-only surfaces",
+        "source_spans": [
+          {
+            "path": "doc/review/review-12-08-2026.md",
+            "heading": "## 4.2. Активные ADR всё ещё ссылаются на отсутствующие основания",
+            "line_start": 313,
+            "line_end": 331,
+            "quote_sha256": "3dcf60082ef4013b2d3203171d8a3897c25700d5d075392f03be35f5e75b50fd"
+          }
+        ],
+        "candidate_targets": [
+          {
+            "surface": "adr",
+            "id": "ADR-0016"
+          },
+          {
+            "surface": "adr",
+            "id": "ADR-0022"
+          }
+        ],
+        "required_proof_class": "docs",
+        "normalization_status": "source_verified",
+        "disposition_status": "open",
+        "execution_status": "unplanned",
+        "verification_status": "unverified",
+        "non_claims": [
+          "No verification or disposition has been recorded",
+          "Not a closed process defect",
+          "Non-authoritative review projection"
+        ]
+      },
+      {
+        "finding_id": "RC12-F03",
+        "kind": "gap",
+        "concern_class": "process",
+        "reviewer_severity": "high",
+        "summary": "Roadmap remains historical and is not a short active current-front plan",
+        "source_spans": [
+          {
+            "path": "doc/review/review-12-08-2026.md",
+            "heading": "## 4.3. Roadmap всё ещё не является current-front планом",
+            "line_start": 333,
+            "line_end": 341,
+            "quote_sha256": "37f4874de3e18f20e7407d7b3cb64442fcba0529ee5f8d0234ac116f368668c7"
+          }
+        ],
+        "candidate_targets": [
+          {
+            "surface": "roadmap",
+            "id": "prd/project-state/roadmap.md"
+          }
+        ],
+        "required_proof_class": "process",
+        "normalization_status": "source_verified",
+        "disposition_status": "open",
+        "execution_status": "unplanned",
+        "verification_status": "unverified",
+        "non_claims": [
+          "Not an accepted requirement",
+          "Not a runtime capability",
+          "Non-authoritative review projection"
+        ]
+      },
+      {
+        "finding_id": "RC12-F19",
+        "kind": "roadmap_proposal",
+        "concern_class": "process",
+        "reviewer_severity": "high",
+        "summary": "Proposed M166–M176 Ontology Requirements Baseline and follow-on sequence",
+        "source_spans": [
+          {
+            "path": "doc/review/review-12-08-2026.md",
+            "heading": "# 7. Скорректированный roadmap после M165",
+            "line_start": 605,
+            "line_end": 639,
+            "quote_sha256": "646073bfc5e34cc9d508c2ce17fc47be9c93328cffda2a7f05ac37400f1c2cb8"
+          },
+          {
+            "path": "doc/review/review-12-08-2026.md",
+            "heading": "# Итоговая рекомендация",
+            "line_start": 727,
+            "line_end": 746,
+            "quote_sha256": "04b7b8dfd26fed51a5bc069320b23fc68a53925a1150b7ed60503ad97346f33b"
+          }
+        ],
+        "candidate_targets": [
+          {
+            "surface": "roadmap",
+            "id": "review-12-m166-m176-proposal"
+          }
+        ],
+        "required_proof_class": "process",
+        "normalization_status": "source_verified",
+        "disposition_status": "open",
+        "execution_status": "unplanned",
+        "verification_status": "unverified",
+        "non_claims": [
+          "Roadmap proposal only; not adopted project plan",
+          "Does not create GSD milestones",
+          "Non-authoritative review projection"
+        ]
+      }
+    ],
+    "edges": [
+      {
+        "type": "reassesses",
+        "from": "RC12-F01",
+        "to": "RC11-F01",
+        "status": "candidate",
+        "note": "docs PRD gap reassessed after PRODUCT/REQUIREMENTS landed"
+      },
+      {
+        "type": "reassesses",
+        "from": "RC12-F05",
+        "to": "RC11-F04",
+        "status": "candidate",
+        "note": "applicability ownership reassessed after ADR-0023"
+      },
+      {
+        "type": "refines",
+        "from": "RC12-F05",
+        "to": "RC11-F04",
+        "status": "candidate",
+        "note": "separates ownership partial progress from runtime residual"
+      },
+      {
+        "type": "refines",
+        "from": "RC12-F17",
+        "to": "RC11-F06",
+        "status": "candidate",
+        "note": "README wording defect split from temporal algebra gap"
+      },
+      {
+        "type": "duplicates",
+        "from": "RC12-F03",
+        "to": "RC11-F03",
+        "status": "candidate",
+        "note": "current-front roadmap gap repeated"
+      },
+      {
+        "type": "maps_to",
+        "from": "RC12-F01",
+        "to": "prd/PRODUCT.md",
+        "status": "candidate"
+      },
+      {
+        "type": "maps_to",
+        "from": "RC12-F05",
+        "to": "ADR-0023",
+        "status": "candidate"
+      },
+      {
+        "type": "maps_to",
+        "from": "RC12-F05",
+        "to": "TSG-006",
+        "status": "candidate"
+      },
+      {
+        "type": "maps_to",
+        "from": "RC12-F17",
+        "to": "ADR-0009",
+        "status": "candidate"
+      },
+      {
+        "type": "maps_to",
+        "from": "RC12-F19",
+        "to": "review-12-m166-m176-proposal",
+        "status": "candidate"
+      }
+    ],
+    "events": [
+      {
+        "event_id": "RC12-E001",
+        "event_type": "packet_registered",
+        "at": "2026-08-12T05:56:35Z",
+        "actor_class": "human",
+        "source_revision": "1092ef435947d74080818f69dd08dbb27bfb8f9c",
+        "rationale": "Register immutable review-12 source for non-authoritative delta fixture"
+      }
+    ]
+  }
+]
