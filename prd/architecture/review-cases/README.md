@@ -123,6 +123,16 @@ Measured S02–S05 shape under `src/law_nexus_harness/review_case/` and Governor
 Tracked JSON Schema remains the explicit wire contract. A generated schema may
 be checked against it; it must not silently become a second authority.
 
+## Two-review delta map
+
+Tracked inventory:
+[`review-11-12-delta-map.md`](review-11-12-delta-map.md)
+
+Built from the pure `build_review_delta_map` projection over
+`fixtures/review-11-12-delta-v1.json`. It classifies reassessed, refined,
+duplicate, roadmap-proposal, new, and residual-open findings. Confirmed closures
+and accepted promotions are empty until human disposition events exist.
+
 ## Non-claims
 
 These **non-claims** are mandatory reading for any packet consumer:
@@ -134,9 +144,9 @@ These **non-claims** are mandatory reading for any packet consumer:
   work. Open findings remain advisory inventory.
 - No finding is accepted, rejected, or closed merely by existing as a packet or
   by being registered through the CLI.
-- Real review-11/review-12 findings remain `open / unplanned / unverified` until
-  explicit human disposition in S06. Ledger capability does not itself accept
-  those findings.
+- The S06 delta map is an inventory only. Real review-11/review-12 findings remain
+  `open / unplanned / unverified` until explicit human disposition later. Ledger
+  capability and the delta map do not themselves accept those findings.
 - Roadmap proposals inside reviews remain proposals until separately adopted.
 - Opaque `execution_linked` / `promoted_to` references do not mutate GSD,
   Product, Requirements, ADR, or roadmap lifecycle state.

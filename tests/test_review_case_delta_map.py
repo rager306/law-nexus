@@ -302,6 +302,34 @@ def test_split_children_are_refined_not_closures() -> None:
     assert len(delta.residual_open) == 3
 
 
+def test_tracked_delta_map_artifact_matches_pure_projection() -> None:
+    artifact = (
+        Path(__file__).resolve().parents[1]
+        / "prd/architecture/review-cases/review-11-12-delta-map.md"
+    )
+    assert artifact.is_file()
+    text = artifact.read_text(encoding="utf-8")
+    assert "authoritative = false" in text
+    assert "confirmed_closures = []" in text
+    assert "accepted_promotions = []" in text
+    assert "Non-authoritative" in text or "non-authoritative" in text.lower()
+    packets = load_packets(FIXTURE.read_bytes())
+    delta = build_review_delta_map(packets)
+    assert delta.confirmed_closures == ()
+    assert delta.accepted_promotions == ()
+    assert len(delta.residual_open) == 16
+    for finding_id in delta.residual_open:
+        assert finding_id in text
+    for finding_id in delta.reassessed:
+        assert finding_id in text
+    for finding_id in delta.duplicates:
+        assert finding_id in text
+    assert "RC12-F19" in text
+    # No invented acceptance language for real findings.
+    assert "confirmed_closures = []" in text
+    assert "M166–M176" in text or "M166-M176" in text or "roadmap_proposal" in text
+
+
 def test_delta_module_is_pure_stdlib_only() -> None:
     import ast
     from pathlib import Path
