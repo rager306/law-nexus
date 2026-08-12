@@ -378,19 +378,19 @@
     }
   ],
   "current_milestone": {
-    "id": "M161-2som4e",
-    "title": "Retrieval ranking semantic honesty",
-    "status": "active",
-    "goal": "Local GSD workflow marker only; its milestone numbering predates later tracked M161-M165 product/design commits and is not the product current-front authority."
+    "id": "M166-iyy4ak",
+    "title": "Review Governance Lifecycle",
+    "status": "complete",
+    "goal": "Non-authoritative Review Case intake/disposition contour and process closeout; GSD registry reconciled through M166. Not product readiness, ontology runtime, or applicability validation."
   },
   "recommended_next": {
-    "title": "Process reconcile GSD lag; continue evidence-gated product work",
+    "title": "Evidence-gated product next after process reconcile",
     "priority": 1,
-    "why": "Review Case human dispositions and process inventory are visible; GSD STATE/Attempt lag remains for M161-M166. Applicability kernel is fail-closed abstention-only under ADR-0023 [proposed].",
-    "plan_reference": "assessment/12-final-disposition.md",
-    "slices": "Keep GSD planned/orphan SUMMARY inventory visible; do not invent Attempts. Expand applicability predicate algebra only with TDD + ADR-0015 proof classes.",
-    "product_next": "L2 CTV TDD remains first temporal implementation priority only after parser data readiness; applicability stays abstention-only until NormRule IR and hostile proof land; TEI/RuVector remains infrastructure-evidence gated.",
-    "non_validation": "Review Case dispositions, Governor process warns, and applicability abstention are not product readiness, legal correctness, ontology/applicability runtime validation, lifecycle promotion, or release proof."
+    "why": "M161-M166 process/product honesty waves are complete in GSD registry; open product work remains evidence-gated.",
+    "plan_reference": "prd/project-state/roadmap.md",
+    "slices": "Open new milestone only through evidence-gated planning. Applicability remains abstention-only until NormRule IR and hostile proof land.",
+    "product_next": "Parser golden-corpus G2 readiness decision first if needed; else L2 CTV TDD; applicability predicate algebra stays fail-closed under ADR-0023 [proposed]; TEI/RuVector remains infrastructure-evidence gated.",
+    "non_validation": "GSD completion of M161-M166 is process/registry truth only; not product readiness, legal correctness, ontology/applicability runtime validation, lifecycle promotion of ADRs, or release proof."
   },
   "downstream_blocked": [
     {

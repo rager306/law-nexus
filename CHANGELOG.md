@@ -44,6 +44,14 @@ All notable changes to law-nexus are documented in this file.
 
 ## Unreleased — process debt triage
 
+### GSD registry reconcile M161–M166
+- Reconciled code-complete M161–M166 into GSD hierarchy via supported engine
+  APIs: task summary repair, lifecycle shadow repair, STATE/QUEUE projection
+  rebuild. Last completed milestone is M166-iyy4ak; phase complete.
+- Project-state roadmap `current_milestone` advanced to M166 complete with
+  explicit non-claims (process/registry truth only).
+- No fabricated Attempts; no product readiness claim.
+
 ### Fail-closed applicability kernel (`ln-applicability` v0)
 - New workspace crate `ln-applicability` implements ADR-0023 hexagonal domain/
   ports/application/adapters with **abstention-only** evaluation.
