@@ -42,6 +42,21 @@ All notable changes to law-nexus are documented in this file.
   hosted CI, where `actions/checkout` intentionally provides no installed hook;
   synthetic hostile hook tests remain in the repository.
 
+## Unreleased — process debt triage
+
+### Governor historical-test-debt precision
+- Narrowed `historical-test-debt-visibility` so CI process-suite tests and pure
+  anti-era control language are not treated as residual hard-dependency debt.
+  Residual debt now requires hard-dependency signals (archived imports/clients).
+- Live inventory dropped from 7 false-positive process tests to 0 residual
+  non-CI hard dependencies. Open Review Case findings remain the sole advisory
+  warn on the full Governor run.
+- Process note: M166-iyy4ak Review Governance Lifecycle is code/docs complete on
+  `main` through S01–S06 with green suite/Governor/preflight, but GSD DB still
+  shows planned/pending because manual execution did not create canonical Task
+  Attempts. Do not invent completion receipts; reconcile through supported GSD
+  Attempt workflow or explicit process import later.
+
 ## M166 review governance lifecycle (2026-08-12)
 
 ### S06 two-review delta map and hardening

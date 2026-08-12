@@ -228,13 +228,18 @@ def test_cli_governor_warn_only_semantic_selection_exits_zero(capsys) -> None:
 
 
 def test_cli_governor_fail_on_warn_is_opt_in(capsys) -> None:
-    code = main(["governor", "--only", "semantic", "--fail-on-warn"])
+    # Use a check that currently emits advisory inventory (open Review Case findings),
+    # not a semantic group that may be fully green after debt triage.
+    code = main(["governor", "--check", "review-case-integrity", "--fail-on-warn"])
     payload = json.loads(capsys.readouterr().out)
 
     assert code == 1
     assert payload["status"] == "ok"
     assert payload["warn_count"] > 0
     assert payload["tool_error_count"] == 0
+    assert any(
+        item["check_id"] == "review-case-integrity.open-findings" for item in payload["findings"]
+    )
 
 
 def test_cli_governor_lists_machine_readable_check_inventory(capsys) -> None:
@@ -1005,9 +1010,10 @@ def test_historical_test_debt_visibility_detects_planted(tmp_path: Path) -> None
     tests_dir = tmp_path / "tests"
     tests_dir.mkdir()
     (tests_dir / "test_zz_planted.py").write_text(
-        "# historical proof test referencing decommissioned eras\n"
+        "# residual historical hard dependency on decommissioned eras\n"
+        "from archived_product import FalkorDBClient\n"
         "def test_falkordb_graph():\n"
-        "    assert 'falkordb' or 'git_lex' or 'minimax' or 'pyo3'\n"
+        "    assert FalkorDBClient().ping()\n"
     )
     findings = check_historical_test_debt_visibility(tmp_path)
     assert len(findings) == 1
@@ -1056,6 +1062,52 @@ def test_historical_test_debt_visibility_excludes_active_controls(
     assert len(findings) == 1
     assert findings[0].status == "pass"
     assert findings[0].severity == "ok"
+
+
+def test_historical_test_debt_excludes_ci_process_suite_and_anti_era_controls(
+    tmp_path: Path,
+) -> None:
+    """CI process-suite and pure anti-era control language are not residual debt."""
+    tests_dir = tmp_path / "tests"
+    tests_dir.mkdir()
+    inventory = tmp_path / "prd/migration/decommission/repository-quality-gate.json"
+    inventory.parent.mkdir(parents=True)
+    inventory.write_text(
+        json.dumps(
+            {
+                "schema_version": "law-nexus/repository-quality-gate/v1",
+                "ci_process_suite": ["tests/test_ci_anti_era.py"],
+            }
+        ),
+        encoding="utf-8",
+    )
+    (tests_dir / "test_ci_anti_era.py").write_text(
+        "# active CI process control\n"
+        "def test_no_production_falkordb():\n"
+        "    assert 'No production-scale FalkorDB claim'\n",
+        encoding="utf-8",
+    )
+    (tests_dir / "test_skill_reject_pyo3.py").write_text(
+        "# active skill/process control\n"
+        "def test_reject_pyo3():\n"
+        "    assert 'Reject PyO3' in skill\n",
+        encoding="utf-8",
+    )
+    (tests_dir / "test_residual_hard_dep.py").write_text(
+        "# residual historical hard dependency, not anti-era control\n"
+        "from archived_product import FalkorDBClient\n"
+        "def test_old_graph():\n"
+        "    assert FalkorDBClient().ping()\n",
+        encoding="utf-8",
+    )
+    findings = check_historical_test_debt_visibility(tmp_path)
+    assert len(findings) == 1
+    finding = findings[0]
+    assert finding.status == "fail"
+    assert finding.severity == "warn"
+    assert "test_residual_hard_dep.py" in finding.observed
+    assert "test_ci_anti_era.py" not in finding.observed
+    assert "test_skill_reject_pyo3.py" not in finding.observed
 
 
 def test_live_governor_includes_adr_and_archive_checks() -> None:

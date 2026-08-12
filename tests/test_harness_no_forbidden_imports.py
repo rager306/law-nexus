@@ -38,6 +38,14 @@ _ALLOWED_FALKORDB_PATTERNS = (
     re.compile(r"falkordb/acp/git-lex/pyo3/minimax", re.IGNORECASE),
     re.compile(r"historical[- ]only.*falkordb|falkordb.*historical", re.IGNORECASE),
     re.compile(r"unqualified historical-only era", re.IGNORECASE),
+    # historical-test-debt-visibility anti-era / residual-hard-dep detection
+    # keywords used only to classify tests, never to revive product imports.
+    re.compile(r"no\\s\+production\[- \]scale\\s\+falkordb", re.IGNORECASE),
+    re.compile(r"does\\s\+not\\s\+prove\\s\+falkordb", re.IGNORECASE),
+    re.compile(r"not\\s\+\.\*falkordb\\s\+runtime", re.IGNORECASE),
+    re.compile(r"legacy\\s\+acp/git-lex/falkordb", re.IGNORECASE),
+    re.compile(r"production-scale\\s\+falkordb", re.IGNORECASE),
+    re.compile(r"falkordbclient", re.IGNORECASE),
 )
 
 

@@ -1545,20 +1545,19 @@ def check_semantic_stub_in_product_code(root: Path) -> list[GovernorFinding]:
 
 
 def check_historical_test_debt_visibility(root: Path) -> list[GovernorFinding]:
-    """Inventory non-CI tests referencing decommissioned eras.
+    """Inventory residual non-CI tests with decommissioned-era hard dependencies.
 
-    Surfaces tests/test_*.py that reference decommissioned-era technologies
-    (ACP/git-lex, the legacy graph store, PyO3, MiniMax) as an advisory inventory
-    so the silently-carried historical test debt is triage-visible (AGENTS.md
-    anti-silently-keep). Non-destructive: nothing is deleted or moved. Files whose
-    name marks them as active decommission-policy controls
-    (decommission/no_acp/no_forbidden/archive/verify_) are EXCLUDED so active
-    guards are not false-flagged. Lifecycle [bounded]; process visibility, not
-    product readiness.
+    Surfaces tests/test_*.py that still appear to hard-depend on decommissioned-era
+    technologies (ACP/git-lex, the legacy graph store, PyO3, MiniMax) outside the
+    CI process suite. Active decommission-policy controls are excluded by filename
+    markers and by pure anti-era control language (reject/historical-only/no
+    production-scale). Tests already listed in repository-quality ci_process_suite
+    are treated as active coverage, not residual debt. Lifecycle [bounded]; process
+    visibility, not product readiness.
     """
     check_id = "historical-test-debt-visibility"
     remediation = (
-        "Triage the flagged historical tests: active regression coverage -> add to "
+        "Triage residual historical tests: active regression coverage -> add to "
         "CI_PROCESS_SUITE; pure historical/archival evidence -> document as such; "
         "hard-dependency on archived product code -> retire/archive. Do not silently "
         "keep residual tests that hard-depend on archived product code."
@@ -1568,16 +1567,71 @@ def check_historical_test_debt_visibility(root: Path) -> list[GovernorFinding]:
     # File-name markers that indicate an ACTIVE decommission-policy control,
     # not residual historical evidence.
     active_control = re.compile(r"decommission|no_acp|no_forbidden|archive|verify_")
+    # Content that only enforces anti-era / historical-only policy is active control
+    # language, not residual hard dependency debt.
+    anti_era_control = re.compile(
+        r"(?is)"
+        r"(?:reject\s+pyo3|"
+        r"no\s+production[- ]scale\s+falkordb|"
+        r"falkordb\s+is\s+historical|"
+        r"historical[- ]only|"
+        r"decommissioned|"
+        r"does\s+not\s+prove\s+falkordb|"
+        r"not\s+.*falkordb\s+runtime|"
+        r"legacy\s+acp/git-lex/falkordb|"
+        r"falkordb=historical-only|"
+        r"\"falkordb\"\s*:\s*\"historical-only\"|"
+        r"assert\s+['\"](?:reject\s+)?pyo3|"
+        r"assert\s+['\"]no\s+production-scale\s+falkordb)"
+    )
+    hard_dep = re.compile(
+        r"(?is)"
+        r"(?:from\s+\S*(?:falkordb|git[_-]?lex|acp|pyo3|minimax)\S*\s+import|"
+        r"import\s+\S*(?:falkordb|git[_-]?lex|acp|pyo3|minimax)|"
+        r"archived_product|"
+        r"python_archive|"
+        r"old_project)"
+    )
+
+    ci_suite: set[str] = set()
+    inventory = root / "prd/migration/decommission/repository-quality-gate.json"
+    if inventory.is_file():
+        try:
+            payload = json.loads(inventory.read_text(encoding="utf-8"))
+            suite = payload.get("ci_process_suite", [])
+            if isinstance(suite, list):
+                ci_suite = {str(item).replace("\\", "/") for item in suite if isinstance(item, str)}
+        except (OSError, UnicodeDecodeError, json.JSONDecodeError):
+            # Inventory unreadable: fall back to filename markers only.
+            ci_suite = set()
 
     matches: list[str] = []
     tests_dir = root / "tests"
     if tests_dir.is_dir():
         for test_file in tests_dir.glob("test_*.py"):
             name = test_file.name
+            rel = f"tests/{name}"
             if active_control.search(name):
                 continue
+            if rel in ci_suite:
+                continue
             text = test_file.read_text(encoding="utf-8", errors="replace")
-            if era_keywords.search(text):
+            if not era_keywords.search(text):
+                continue
+            # Residual debt requires a hard-dependency signal. Pure anti-era / historical
+            # narrative mentions are active policy or context, not silent archived imports.
+            if hard_dep.search(text):
+                matches.append(name)
+                continue
+            if anti_era_control.search(text):
+                continue
+            # Soft era mentions without hard dependency or anti-era framing remain
+            # advisory triage candidates only when they look like executable product
+            # coupling (import-like or client construction), not docstring history.
+            if re.search(
+                r"(?is)(?:FalkorDBClient|GitLex|from\s+acp|import\s+acp|pyo3\.|minimax\.)",
+                text,
+            ):
                 matches.append(name)
 
     if matches:
@@ -1589,7 +1643,7 @@ def check_historical_test_debt_visibility(root: Path) -> list[GovernorFinding]:
                 check_id=check_id,
                 status="fail",
                 severity="warn",
-                message="non-CI tests reference decommissioned eras",
+                message="residual non-CI tests still hard-depend on decommissioned eras",
                 observed=(
                     f"historical_test_count={len(matches)}, files=[{preview}] "
                     f"(lifecycle [bounded]; process visibility, not product readiness; "
@@ -1604,10 +1658,11 @@ def check_historical_test_debt_visibility(root: Path) -> list[GovernorFinding]:
             check_id=check_id,
             status="pass",
             severity="ok",
-            message="no non-CI tests reference decommissioned eras",
+            message="no residual non-CI decommissioned-era hard dependencies",
             observed=(
                 "historical_test_count=0 "
-                "(lifecycle [bounded]; process visibility, not product readiness)."
+                "(lifecycle [bounded]; process visibility, not product readiness; "
+                "CI process-suite and pure anti-era controls excluded)."
             ),
             remediation="none",
         )
