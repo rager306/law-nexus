@@ -106,7 +106,23 @@ Local `.gsd/REQUIREMENTS.md` may contain historical, milestone-specific, superse
 | duplicate clauses already represented by an RQ row | avoid dual canon and contradictory lifecycle |
 | archive/parser-dump/research-only candidates | prior art or candidate evidence, not accepted obligation |
 
-This omission table does not assert that every local row has been reconciled. A full local-to-published inventory is future process work and cannot promote lifecycle.
+### Local-to-published inventory
+
+The inventory below classifies the complete local ID set observed on 2026-08-12 (15 Active, 37 Validated, 6 Deferred and 6 Out of Scope rows). It records publication disposition only. Local status, validation prose and `.gsd` evidence are not copied into the tracked lifecycle and cannot satisfy an `RQ-###`.
+
+| Local IDs | Local class | Published disposition | Published coverage / reason |
+|-----------|-------------|-----------------------|-----------------------------|
+| R035, R074 | active ontology/evidence guardrails | aggregated | RQ-008 and RQ-019 preserve ontology and infrastructure proof ceilings; neither local row is validated by the projection. |
+| R038, R071 | active proof-review/prior-art quality attributes | aggregated | RQ-011, RQ-012 and RQ-015 preserve lifecycle, hostile-proof and human-authority obligations; detailed milestone choreography remains local. |
+| R060, R061, R062 | active future async/observability constraints | partially aggregated; detail omitted | RQ-017 and RQ-018 publish safe diagnostics and deterministic failure surfaces. Queue/job/trace implementation detail remains future workflow design and creates no current product claim. |
+| R063, R064, R065, R066 | active Rust/harness/cutover/archive boundaries | aggregated | RQ-001, RQ-011, RQ-014, RQ-016 and RQ-018 publish the Rust-only, repository-harness, non-authority and CLI boundaries. Historical Python and ACP/git-lex text is not republished as product substance. |
+| R067, R069 | active architecture/intake obligations | aggregated at product boundary | RQ-002, RQ-003, RQ-005, RQ-012 and RQ-013 cover provider isolation, identity/provenance, hostile contracts and abstention. Corpus intake workflow detail remains local and unvalidated. |
+| R068, R070 | active temporal/applicability/provenance obligations | aggregated | RQ-007, RQ-008, RQ-009 and RQ-013 preserve five-clock, CTV/applicability and fail-closed provenance obligations. No temporal resolver or legal-applicability proof exists. |
+| R001–R022, R029–R034, R036, R039, R040, R044, R045, R058, R059, R072, R073 | validated local scoped/history rows (37) | not status-projected; evidence routes selectively aggregated | Relevant current-plane contracts appear in RQ-001..RQ-018. Local `validated` means its historical/milestone scope only and is never transferred to Product lifecycle. |
+| R023, R024, R025, R049, R050, R051 | deferred local rows | omitted unless represented by an explicit current PC/RQ obligation | Deferred historical planning cannot become a current requirement through publication inventory. |
+| R026, R027, R028, R052, R053, R054 | out-of-scope local rows | omitted | Out-of-scope rows do not enter the current Product contract. |
+
+Every observed local ID belongs to exactly one row above. This is a reconciliation inventory, not a verbatim publication, closure record, requirement-satisfaction result or lifecycle promotion. New local IDs require a future classification update before anyone may claim the inventory remains complete.
 
 ## 6. D2 exit checklist
 

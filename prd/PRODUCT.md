@@ -170,7 +170,7 @@ This document may become `ready-for-assessment` only when:
 
 - all consequential product statements have stable clause IDs;
 - each clause has lifecycle, proof class, governing ADRs, requirement links, positive and hostile acceptance, and non-claims;
-- `prd/REQUIREMENTS.md` provides an inverse trace without stronger lifecycle;
+- `prd/REQUIREMENTS.md` provides an inverse trace without stronger lifecycle and classifies every observed local GSD requirement ID as aggregated, detail-omitted, deferred-omitted or out-of-scope without transferring local status;
 - all local Markdown links resolve in a frozen tracked revision;
 - no current clause claims a validated product capability;
 - an independent reviewer confirms typed abstention and human authority boundaries.
