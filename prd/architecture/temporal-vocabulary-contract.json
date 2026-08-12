@@ -7,6 +7,17 @@
   "gap_register_path": "prd/architecture/temporal-semantic-gap-register.md",
   "governance_path": "prd/architecture/glossary-governance.md",
   "governance_required_fragments": ["[bounded]` repository-control contract", "does not define legal meaning", "must not read the JSON catalog"],
+  "presentation_drift": {
+    "scan_patterns": ["README.md", "prd/ARCHITECTURE.md", "prd/PRODUCT.md", "prd/REQUIREMENTS.md", "prd/project-state/roadmap.md", "prd/migration/*.md", "doc/adr/0*.md"],
+    "deferred_terms": ["EvidenceSpan", "SourceBlock", "edition_date", "TextChangeEvent", "NormativeEffectEvent", "ComponentMembershipVersion", "NormRule", "ApplicabilitySelector", "LegalList", "ListEntry", "ClassifierCode", "ProcurementCase", "ProcurementRegimeResolution", "PracticeCoverageOutcome", "BitemporalCorrectionLedger"],
+    "presentation_cues": ["real ", "fixtures", "assembly", "struct ", "structs:", "models ", "domain type", "public type", "implemented", "runtime type", "before citation or", "core source-backed", "central temporal semantics"],
+    "presentation_qualifiers": ["deferred-undefined", "runtime deferred", "[deferred]", "future-schema", "future ", "historical", "legacy", "superseded", "archive", "non-authoritative", "non-claim", "no production", "not implemented", "no active", "absent", "stop-signal", "if/when"],
+    "interval_fields": ["effective_from", "effective_to", "valid_from", "valid_to"],
+    "source_truth_cues": ["source truth", "canonical field", "stored as", "central temporal", "data_entity"],
+    "interval_qualifiers": ["projection-only", "event-sourced", "not source truth"],
+    "clock_tokens": ["own clock", "sixth clock", "sixth core clock", "practice clock", "budget clock"],
+    "clock_qualifiers": ["not a sixth", "not sixth", "over the five", "five clocks", "five adr-0009 clock", "projection"]
+  },
   "rows": [
     {"id": "clock", "needle": "| Clock |", "required_fragments": ["canonical", "[bounded]"]},
     {"id": "temporal-anchor", "needle": "| Temporal anchor |", "required_fragments": ["canonical", "[bounded]"]},

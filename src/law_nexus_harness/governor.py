@@ -2397,6 +2397,151 @@ def check_temporal_vocabulary_drift(root: Path) -> list[GovernorFinding]:
     ]
 
 
+def _temporal_presentation_config(root: Path) -> dict[str, tuple[str, ...]]:
+    catalog = _load_json(root / _TEMPORAL_VOCABULARY_CATALOG)
+    if catalog.get("schema_version") != _TEMPORAL_VOCABULARY_SCHEMA:
+        raise ValueError("unsupported temporal vocabulary catalog schema")
+    if catalog.get("authoritative") is not False:
+        raise ValueError("temporal vocabulary catalog must be non-authoritative")
+    raw = catalog.get("presentation_drift")
+    required = (
+        "scan_patterns",
+        "deferred_terms",
+        "presentation_cues",
+        "presentation_qualifiers",
+        "interval_fields",
+        "source_truth_cues",
+        "interval_qualifiers",
+        "clock_tokens",
+        "clock_qualifiers",
+    )
+    if not isinstance(raw, dict) or set(raw) != set(required):
+        raise ValueError("invalid temporal vocabulary presentation policy")
+    config: dict[str, tuple[str, ...]] = {}
+    for key in required:
+        values = raw.get(key)
+        if (
+            not isinstance(values, list)
+            or not values
+            or not all(isinstance(value, str) and value for value in values)
+            or len(values) != len(set(values))
+        ):
+            raise ValueError("invalid temporal vocabulary presentation policy values")
+        config[key] = tuple(values)
+    return config
+
+
+def _temporal_presentation_paths(root: Path, patterns: tuple[str, ...]) -> list[Path]:
+    paths = {path for pattern in patterns for path in root.glob(pattern) if path.is_file()}
+    return sorted(paths)
+
+
+def check_temporal_vocabulary_presentation_drift(root: Path) -> list[GovernorFinding]:
+    """Surface narrow presentation drift for deferred terms and temporal clocks."""
+
+    config = _temporal_presentation_config(root)
+    hits_by_rule: dict[str, list[tuple[str, int, str]]] = {
+        "temporal-vocabulary.deferred-as-present": [],
+        "temporal-vocabulary.static-interval-as-source": [],
+        "temporal-vocabulary.sixth-clock-like": [],
+    }
+    scanned: list[str] = []
+    for path in _temporal_presentation_paths(root, config["scan_patterns"]):
+        rel = path.relative_to(root).as_posix()
+        scanned.append(rel)
+        lines = path.read_text(encoding="utf-8", errors="replace").splitlines()
+        for line_number, line in enumerate(lines, start=1):
+            lower = line.lower()
+            context_lower = " ".join(
+                lines[index].lower()
+                for index in range(max(0, line_number - 2), min(len(lines), line_number + 1))
+            )
+            presentation_qualified = any(
+                qualifier in lower for qualifier in config["presentation_qualifiers"]
+            )
+            if not presentation_qualified and any(
+                cue in lower for cue in config["presentation_cues"]
+            ):
+                for term in config["deferred_terms"]:
+                    if re.search(rf"(?<![A-Za-z0-9_]){re.escape(term)}(?![A-Za-z0-9_])", line):
+                        hits_by_rule["temporal-vocabulary.deferred-as-present"].append(
+                            (rel, line_number, term)
+                        )
+            if any(cue in lower for cue in config["source_truth_cues"]) and not any(
+                qualifier in lower for qualifier in config["interval_qualifiers"]
+            ):
+                for field in config["interval_fields"]:
+                    if field in line:
+                        hits_by_rule["temporal-vocabulary.static-interval-as-source"].append(
+                            (rel, line_number, field)
+                        )
+            if not any(qualifier in context_lower for qualifier in config["clock_qualifiers"]):
+                for token in config["clock_tokens"]:
+                    if token in lower:
+                        hits_by_rule["temporal-vocabulary.sixth-clock-like"].append(
+                            (rel, line_number, token)
+                        )
+
+    findings: list[GovernorFinding] = []
+    rule_messages = {
+        "temporal-vocabulary.deferred-as-present": (
+            "living surface presents a deferred temporal term without qualification",
+            "Qualify the term as future-schema/deferred-undefined or use the current bounded "
+            "contract name; do not define a product type from this heuristic.",
+        ),
+        "temporal-vocabulary.static-interval-as-source": (
+            "living surface presents a static interval field as temporal source truth",
+            "Describe static intervals as event-derived projections and preserve provenance; "
+            "human review owns any semantic change.",
+        ),
+        "temporal-vocabulary.sixth-clock-like": (
+            "living surface uses sixth-clock-like wording without qualification",
+            "Describe first-class temporality over the five ADR-0009 clocks; do not mint a "
+            "sixth core clock from prose.",
+        ),
+    }
+    for rule_id, hits in hits_by_rule.items():
+        if not hits:
+            continue
+        message, remediation = rule_messages[rule_id]
+        findings.append(
+            GovernorFinding(
+                check_id="temporal-vocabulary-presentation-drift",
+                status="fail",
+                severity="warn",
+                message=message,
+                observed=f"hits={[f'{path}:{line}:{token}' for path, line, token in hits]}",
+                remediation=remediation,
+                rule_id=rule_id,
+                expected=(
+                    "Deferred terms, static intervals and first-class temporality remain "
+                    "explicitly qualified on bounded living surfaces."
+                ),
+                evidence=tuple(GovernorEvidence(path=path, line=line) for path, line, _ in hits),
+            )
+        )
+    if findings:
+        return findings
+    return [
+        GovernorFinding(
+            check_id="temporal-vocabulary-presentation-drift",
+            status="pass",
+            severity="ok",
+            message="bounded living surfaces qualify deferred terms and temporal clocks",
+            observed=(
+                f"scanned={scanned}; no narrow presentation drift detected "
+                "(heuristic advisory only)."
+            ),
+            remediation="none",
+            rule_id="temporal-vocabulary.presentation-boundary",
+            expected=(
+                "Deferred terms, static intervals and first-class temporality remain "
+                "explicitly qualified on bounded living surfaces."
+            ),
+        )
+    ]
+
+
 def check_published_trace_contract(root: Path) -> list[GovernorFinding]:
     """Verify consequential published PC→RQ→ADR trace structure.
 
@@ -3667,6 +3812,15 @@ GOVERNOR_CHECK_SPECS: tuple[CheckSpec, ...] = (
         check_temporal_vocabulary_drift,
         "Surface unqualified deprecated temporal aliases on bounded living surfaces.",
         _TEMPORAL_DRIFT_SCAN_PATHS,
+        "warn",
+    ),
+    _check_spec(
+        "temporal-vocabulary-presentation-drift",
+        "semantic",
+        "heuristic",
+        check_temporal_vocabulary_presentation_drift,
+        "Surface unqualified deferred terms, static interval source-truth claims and sixth-clock-like wording.",
+        (_TEMPORAL_VOCABULARY_CATALOG,),
         "warn",
     ),
     _check_spec(

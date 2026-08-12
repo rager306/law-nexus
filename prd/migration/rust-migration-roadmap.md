@@ -148,7 +148,7 @@ This record proves neither RuVector readiness nor historical production scale.
 
 - local/open-weight embedding adapter;
 - exact/vector/graph-filtered retrieval;
-- EvidenceSpan and Citation assembly;
+- future-schema `EvidenceSpan` (`deferred-undefined`) and Citation assembly after an owning evidence contract exists;
 - no-answer and candidate-only behavior;
 - output validator and reason codes;
 - golden, representative and real-artifact cases;

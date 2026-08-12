@@ -28,8 +28,9 @@ conclusions. The user's core requirement is that agents reason with practice.
 
 Practice has its **own temporality**: a Plenum resolution changes interpretation
 from its effective date (ex nunc), while a КС РФ annulment can operate ex tunc.
-This is a distinct overlay with its own clock, not a mutation of the normative
-status (ADR-0018).
+This is a distinct overlay with first-class temporality over the five ADR-0009
+clock roles, not a sixth core clock and not a mutation of NormativeState
+(ADR-0018).
 
 ## Decision
 
@@ -91,7 +92,7 @@ behavior/projection, not a sixth core clock.
 
 ## References
 
-- ADR-0009 (practice has its own clock)
+- ADR-0009 (practice temporality projects over the five clocks; no sixth core clock)
 - ADR-0010 (kernel authority; practice is non-authoritative for mutation)
 - ADR-0018 (practice does not mutate NormativeState except typed ex-tunc)
 - ADR-0019 (practice can surface conflicts, not rank-mutate)

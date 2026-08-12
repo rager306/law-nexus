@@ -32,7 +32,7 @@ The Python codebase (M106 state) is a four-layer onion package
 
 ```
 src/law_nexus/
-├── domain/          # Pydantic v2 models (SourceDocument, SourceBlock, ...)
+├── domain/          # historical Pydantic models (SourceDocument, legacy SourceBlock, ...)
 ├── ports/           # typing.Protocol contracts (Parser, GraphStore, ...)
 ├── application/     # use cases (Ingest)
 ├── adapters/        # infrastructure (parsers, sources, graph, retrieval)
@@ -54,7 +54,7 @@ parser (ADR-0013). It is retained as historical context for the onion intent.
 ```
 law-nexus-core/     # Phase 1: domain types + ports (no I/O)
 ├── src/
-│   ├── domain/     # structs: SourceDocument, SourceBlock, NormStatement, ...
+│   ├── domain/     # superseded sketch: SourceDocument, legacy SourceBlock, NormStatement, ...
 │   └── ports/      # trait definitions: Parser, GraphStore, Embedder, LLMClient
 └── Cargo.toml
 

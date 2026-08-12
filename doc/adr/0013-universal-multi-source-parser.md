@@ -224,7 +224,8 @@ either source adapter emits correct offsets or hierarchy. `ParsedBlock` keeps a
 compressed package offsets. Morphology, sentence and hierarchy markers return
 `TextSpan` relative to decoded block text. No automatic cross-stream or
 source-to-decoded translation exists. Each adapter must separately prove any
-mapping before citation or EvidenceSpan use. Serialization is not added until a
+mapping before citation or any future-schema `EvidenceSpan` use; that term remains
+`deferred-undefined`. Serialization is not added until a
 concrete versioned boundary requires it.
 
 ### Format detection

@@ -191,7 +191,7 @@ citation mapping.
 | Promotion/publication | Idempotent D116 and complete H1/D120 hostile fixtures | `[proposed]` |
 | RuVector product integration | Real parser output, TEI 1024d embeddings, RVF/redb recovery contract and exact citation gates | `[proposed]` |
 | FalkorDB product integration | Historical evidence only; no active product role under ADR-0014 | `[deferred]` historical |
-| Retrieval/citations | Real EvidenceSpan fixtures and evidence-bounded answer/citation runtime | `[bounded]` prior evidence only |
+| Retrieval/citations | Future-schema `EvidenceSpan` fixtures (`deferred-undefined`) and evidence-bounded answer/citation runtime; no public EvidenceSpan type exists | `[bounded]` InMemory retrieval evidence only |
 | E1-E3 capacity | Comparable local measurements for selected runtime | `[proposed]` unknown |
 | Python archival | Complete Rust whole-system parity and one controlled cutover | `[deferred]` |
 

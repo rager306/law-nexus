@@ -38,6 +38,7 @@ from law_nexus_harness.governor import (
     check_semantic_stub_in_product_code,
     check_temporal_vocabulary_contract,
     check_temporal_vocabulary_drift,
+    check_temporal_vocabulary_presentation_drift,
     check_verify_test_coverage_drift,
     run_governor,
 )
@@ -1463,6 +1464,136 @@ def test_temporal_vocabulary_drift_warns_on_unqualified_deprecated_alias(
     assert finding.severity == "warn"
     assert "0018-normative-state-resolver.md:3:NormativeStatus" in finding.observed
     assert finding.rule_id == "temporal-vocabulary.unqualified-alias"
+
+
+def _write_temporal_presentation_catalog(root: Path) -> None:
+    architecture = root / "prd" / "architecture"
+    architecture.mkdir(parents=True, exist_ok=True)
+    (architecture / "temporal-vocabulary-contract.json").write_text(
+        json.dumps(
+            {
+                "schema_version": "law-nexus-temporal-vocabulary-contract/v1",
+                "authoritative": False,
+                "presentation_drift": {
+                    "scan_patterns": [
+                        "prd/project-state/roadmap.md",
+                        "prd/migration/*.md",
+                        "doc/adr/0*.md",
+                    ],
+                    "deferred_terms": ["EvidenceSpan", "SourceBlock"],
+                    "presentation_cues": ["real ", "fixtures", "implemented"],
+                    "presentation_qualifiers": ["future-schema", "deferred-undefined"],
+                    "interval_fields": ["effective_from"],
+                    "source_truth_cues": ["source truth", "canonical field"],
+                    "interval_qualifiers": ["projection-only", "not source truth"],
+                    "clock_tokens": ["own clock", "sixth core clock"],
+                    "clock_qualifiers": ["not a sixth", "over the five", "five clocks"],
+                },
+            }
+        ),
+        encoding="utf-8",
+    )
+
+
+def test_temporal_vocabulary_presentation_drift_warns_on_deferred_type(
+    tmp_path: Path,
+) -> None:
+    _write_temporal_presentation_catalog(tmp_path)
+    roadmap = tmp_path / "prd" / "project-state"
+    roadmap.mkdir(parents=True)
+    (roadmap / "roadmap.md").write_text(
+        "Real EvidenceSpan fixtures are bounded.\n",
+        encoding="utf-8",
+    )
+
+    finding = check_temporal_vocabulary_presentation_drift(tmp_path)[0]
+
+    assert finding.status == "fail"
+    assert finding.severity == "warn"
+    assert finding.rule_id == "temporal-vocabulary.deferred-as-present"
+    assert "prd/project-state/roadmap.md:1:EvidenceSpan" in finding.observed
+
+
+def test_temporal_vocabulary_presentation_drift_warns_on_sixth_clock_like_wording(
+    tmp_path: Path,
+) -> None:
+    _write_temporal_presentation_catalog(tmp_path)
+    adr = tmp_path / "doc" / "adr"
+    adr.mkdir(parents=True)
+    (adr / "0020-judicial-fas-practice-overlay.md").write_text(
+        "Practice has its own clock.\n",
+        encoding="utf-8",
+    )
+
+    finding = check_temporal_vocabulary_presentation_drift(tmp_path)[0]
+
+    assert finding.status == "fail"
+    assert finding.rule_id == "temporal-vocabulary.sixth-clock-like"
+    assert "0020-judicial-fas-practice-overlay.md:1:own clock" in finding.observed
+
+
+def test_temporal_vocabulary_presentation_drift_accepts_explicit_qualifiers(
+    tmp_path: Path,
+) -> None:
+    _write_temporal_presentation_catalog(tmp_path)
+    roadmap = tmp_path / "prd" / "project-state"
+    roadmap.mkdir(parents=True)
+    (roadmap / "roadmap.md").write_text(
+        "Future-schema EvidenceSpan remains deferred-undefined.\n",
+        encoding="utf-8",
+    )
+    adr = tmp_path / "doc" / "adr"
+    adr.mkdir(parents=True)
+    (adr / "0020-judicial-fas-practice-overlay.md").write_text(
+        "Practice has first-class temporality over the five clocks, not a sixth core clock.\n",
+        encoding="utf-8",
+    )
+
+    finding = check_temporal_vocabulary_presentation_drift(tmp_path)[0]
+
+    assert finding.status == "pass"
+    assert finding.severity == "ok"
+
+
+def test_temporal_vocabulary_presentation_drift_warns_on_static_interval_source_truth(
+    tmp_path: Path,
+) -> None:
+    _write_temporal_presentation_catalog(tmp_path)
+    migration = tmp_path / "prd" / "migration"
+    migration.mkdir(parents=True)
+    (migration / "rust-migration-roadmap.md").write_text(
+        "effective_from is a canonical field and source truth.\n",
+        encoding="utf-8",
+    )
+
+    finding = check_temporal_vocabulary_presentation_drift(tmp_path)[0]
+
+    assert finding.status == "fail"
+    assert finding.rule_id == "temporal-vocabulary.static-interval-as-source"
+    assert "rust-migration-roadmap.md:1:effective_from" in finding.observed
+
+
+def test_temporal_vocabulary_presentation_policy_parse_failure_is_tool_error(
+    tmp_path: Path,
+) -> None:
+    architecture = tmp_path / "prd" / "architecture"
+    architecture.mkdir(parents=True)
+    (architecture / "temporal-vocabulary-contract.json").write_text(
+        json.dumps(
+            {
+                "schema_version": "law-nexus-temporal-vocabulary-contract/v1",
+                "authoritative": False,
+                "presentation_drift": {"scan_patterns": []},
+            }
+        ),
+        encoding="utf-8",
+    )
+
+    report = run_governor(tmp_path, check="temporal-vocabulary-presentation-drift")
+
+    assert report.status == "failure"
+    assert report.tool_error_count == 1
+    assert report.findings[0].rule_id == "tool-error"
 
 
 def test_temporal_vocabulary_catalog_rejects_authority_promotion(tmp_path: Path) -> None:

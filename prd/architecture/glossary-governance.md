@@ -66,9 +66,16 @@ Governor may deterministically verify:
 Governor may only warn heuristically about:
 
 - unqualified deprecated aliases on a bounded path allowlist;
-- a deferred term presented as an implemented public type;
-- a sixth-clock-like label or a static date field used as source truth;
+- a deferred term presented with an implementation/publication cue;
+- a sixth-clock-like label without a five-clock/projection qualifier;
+- a static interval field presented with a strong source-truth cue;
 - skill wording that appears stronger than the glossary ceiling.
+
+The token, cue, qualifier and tracked-path policy for these presentation checks
+lives in the non-authoritative vocabulary catalog rather than Python harness
+source. This preserves the ADR-0007 process/product boundary. Catalog schema or
+policy parse failures are tool errors; findings remain advisory and require
+human disposition.
 
 Heuristic findings require human disposition. They are non-blocking by default
 and must not be converted into legal or semantic approval when absent.
