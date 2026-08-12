@@ -339,15 +339,47 @@ def register_review_case(
     )
 
 
+def _materialize_store_packets(
+    store: ReviewPacketStore,
+    ledger: EventLedger | None,
+    *,
+    packet_id: str | None = None,
+    operation: str,
+) -> tuple[ReviewPacket, ...]:
+    """Load base packets and optionally rematerialize through the append-only ledger."""
+    try:
+        if packet_id is None:
+            bases = store.list_all()
+        else:
+            bases = (store.get(packet_id),)
+        if ledger is None:
+            return bases
+        return tuple(materialize_review_packet(store, ledger, packet.packet_id) for packet in bases)
+    except ReviewCasePortError as error:
+        raise _map_port_error(error, operation=operation) from error
+    except ReviewCaseValidationError as error:
+        raise _map_validation_error(error, operation=operation) from error
+    except ReviewCaseApplicationError:
+        raise
+    except Exception as error:  # pragma: no cover - defensive boundary
+        raise ReviewCaseApplicationError(
+            code="unexpected_failure",
+            operation=operation,
+            message="unexpected application failure",
+        ) from error
+
+
 def validate_review_cases(
     reader: ReviewSourceReader,
     hasher: ContentHasher,
     store: ReviewPacketStore,
+    ledger: EventLedger | None = None,
 ) -> ValidateReviewCasesReport:
     operation = "validate_review_cases"
     try:
-        packets = store.list_all()
-        for packet in packets:
+        # Source-hash checks use the immutable base packet; policy uses materialized state.
+        bases = store.list_all()
+        for packet in bases:
             source_bytes = reader.read_bytes(packet.source.path)
             current_hash = hasher.sha256(source_bytes)
             if (
@@ -359,6 +391,11 @@ def validate_review_cases(
                     operation=operation,
                     message="current source hash does not match stored packet hashes",
                 )
+        packets = _materialize_store_packets(
+            store,
+            ledger,
+            operation=operation,
+        )
         validate_review_policy(packets)
     except ReviewCasePortError as error:
         raise _map_port_error(error, operation=operation) from error
@@ -394,21 +431,15 @@ def validate_review_cases(
 def review_case_status(
     store: ReviewPacketStore,
     packet_id: str | None = None,
+    ledger: EventLedger | None = None,
 ) -> ReviewCaseStatusReport:
     operation = "review_case_status"
-    try:
-        if packet_id is None:
-            packets = store.list_all()
-        else:
-            packets = (store.get(packet_id),)
-    except ReviewCasePortError as error:
-        raise _map_port_error(error, operation=operation) from error
-    except Exception as error:  # pragma: no cover - defensive boundary
-        raise ReviewCaseApplicationError(
-            code="unexpected_failure",
-            operation=operation,
-            message="unexpected application failure",
-        ) from error
+    packets = _materialize_store_packets(
+        store,
+        ledger,
+        packet_id=packet_id,
+        operation=operation,
+    )
 
     ordered = tuple(sorted(packets, key=lambda item: item.packet_id))
     packet_rows: list[

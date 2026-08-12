@@ -189,23 +189,225 @@ def test_status_missing_packet_is_validation_exit(tmp_path: Path, capsys) -> Non
 def test_cli_has_no_disposition_or_gsd_surface() -> None:
     from law_nexus_harness import cli as cli_module
 
-    source = Path(cli_module.__file__).read_text(encoding="utf-8")
-    forbidden = (
-        "disposition",
+    source = Path(cli_module.__file__).read_text(encoding="utf-8").lower()
+    # No command surface for human decisions or GSD mutation.
+    forbidden_commands = (
+        "record_human_disposition",
+        "record_relation",
+        "record_execution_link",
+        "reopen_finding",
         "promoted_to",
         "gsd_plan",
         "gsd_task",
         "create_milestone",
         "accept_finding",
     )
-    for token in forbidden:
-        assert (
-            token not in source.lower()
-            or token
-            in {
-                # allow non-claims text mentioning GSD non-creation only in report module, not cli
-            }
+    for token in forbidden_commands:
+        assert token not in source
+    help_ops = {"register", "validate", "status"}
+    assert help_ops.issubset(set(source.split()))
+
+
+def test_status_materializes_ledger_disposition(tmp_path: Path, capsys) -> None:
+    from dataclasses import replace
+
+    from law_nexus_harness.review_case import (
+        ActorClass,
+        ConcernClass,
+        DispositionStatus,
+        EventType,
+        ExecutionStatus,
+        Finding,
+        FindingKind,
+        ProofClass,
+        ReviewerSeverity,
+        ReviewEvent,
+        SourceSpan,
+        VerificationStatus,
+        materialize_review_packet,
+    )
+    from law_nexus_harness.review_case.adapters.filesystem_ledger import (
+        FilesystemEventLedger,
+    )
+    from law_nexus_harness.review_case.adapters.pydantic_codec import dump_packet
+
+    root = _repo(tmp_path)
+    assert main(_register_args(root, packet_id="RC-CLI-LEDGER")) == 0
+    capsys.readouterr()
+
+    store = FilesystemReviewPacketStore(root, packets_dir=PACKETS_DIR)
+    base = store.get("RC-CLI-LEDGER")
+    finding = Finding(
+        finding_id="RC-CLI-F01",
+        kind=FindingKind.GAP,
+        concern_class=ConcernClass.DESIGN,
+        reviewer_severity=ReviewerSeverity.CRITICAL,
+        summary="CLI materialize fixture",
+        source_spans=(
+            SourceSpan(
+                path=SOURCE_REL,
+                line_start=1,
+                line_end=1,
+                quote_sha256="b" * 64,
+            ),
+        ),
+        candidate_targets=(),
+        required_proof_class=ProofClass.IMPLEMENTATION,
+        normalization_status=base.normalization.status,
+        disposition_status=DispositionStatus.OPEN,
+        execution_status=ExecutionStatus.UNPLANNED,
+        verification_status=VerificationStatus.UNVERIFIED,
+        non_claims=("Not an accepted requirement",),
+    )
+    enriched = replace(base, findings=(finding,))
+    (root / PACKETS_DIR / "RC-CLI-LEDGER.json").write_bytes(dump_packet(enriched))
+
+    ledger = FilesystemEventLedger(root, packets_dir=PACKETS_DIR)
+    ledger.append(
+        "RC-CLI-LEDGER",
+        ReviewEvent(
+            event_id="E-CLI-DISP-1",
+            event_type=EventType.DISPOSITION_RECORDED,
+            at="2026-08-12T00:00:00Z",
+            actor_class=ActorClass.HUMAN,
+            actor_id="human-reviewer-1",
+            finding_id="RC-CLI-F01",
+            source_revision=REV,
+            rationale="Human disposition recorded outside CLI",
+            disposition=DispositionStatus.ACCEPTED_AS_GAP,
+        ),
+        source_revision=REV,
+    )
+
+    # Base store remains open; materialization and CLI status use ledger.
+    assert store.get("RC-CLI-LEDGER").findings[0].disposition_status is DispositionStatus.OPEN
+    materialized = materialize_review_packet(store, ledger, "RC-CLI-LEDGER")
+    assert materialized.findings[0].disposition_status is DispositionStatus.ACCEPTED_AS_GAP
+
+    code = main(
+        [
+            "review-case",
+            "--root",
+            str(root),
+            "--packets-dir",
+            PACKETS_DIR,
+            "status",
+            "--packet-id",
+            "RC-CLI-LEDGER",
+        ]
+    )
+    report = json.loads(capsys.readouterr().out)
+    assert code == 0
+    assert report["status"] == "ok"
+    finding_rows = report["result"]["packets"][0][4]
+    assert finding_rows[0][0] == "RC-CLI-F01"
+    # Accepted without proof remains derived open; finding is visible after materialize.
+    assert finding_rows[0][1] == "open"
+
+    code = main(
+        [
+            "review-case",
+            "--root",
+            str(root),
+            "--packets-dir",
+            PACKETS_DIR,
+            "validate",
+        ]
+    )
+    validate_report = json.loads(capsys.readouterr().out)
+    assert code == 0
+    assert validate_report["result"]["ok"] is True
+    assert validate_report["result"]["finding_count"] == 1
+
+
+def test_status_fails_closed_on_ledger_chain_break(tmp_path: Path, capsys) -> None:
+    import hashlib
+
+    from law_nexus_harness.review_case import (
+        ActorClass,
+        EventType,
+        ReviewEvent,
+    )
+    from law_nexus_harness.review_case.adapters.pydantic_codec import (
+        dump_envelope,
+        dump_event,
+        envelope_body_bytes,
+    )
+    from law_nexus_harness.review_case.domain import EventLedgerEnvelope
+
+    root = _repo(tmp_path)
+    assert main(_register_args(root, packet_id="RC-CLI-BREAK")) == 0
+    capsys.readouterr()
+
+    event1 = ReviewEvent(
+        event_id="E-BREAK-1",
+        event_type=EventType.NORMALIZATION_REVIEWED,
+        at="2026-08-12T00:00:00Z",
+        actor_class=ActorClass.HUMAN,
+        actor_id="human-reviewer-1",
+        source_revision=REV,
+        rationale="First normalization review",
+    )
+    event2 = ReviewEvent(
+        event_id="E-BREAK-2",
+        event_type=EventType.NORMALIZATION_REVIEWED,
+        at="2026-08-12T01:00:00Z",
+        actor_class=ActorClass.HUMAN,
+        actor_id="human-reviewer-1",
+        source_revision=REV,
+        rationale="Second normalization review with broken chain",
+    )
+
+    def _env(
+        *,
+        sequence: int,
+        previous: str | None,
+        event: ReviewEvent,
+    ) -> EventLedgerEnvelope:
+        event_bytes = dump_event(event)
+        provisional = EventLedgerEnvelope(
+            packet_id="RC-CLI-BREAK",
+            sequence=sequence,
+            previous_envelope_sha256=previous,
+            event=event,
+            event_sha256=hashlib.sha256(event_bytes).hexdigest(),
+            source_revision=REV,
+            envelope_sha256="0" * 64,
         )
+        body = envelope_body_bytes(provisional)
+        return EventLedgerEnvelope(
+            packet_id="RC-CLI-BREAK",
+            sequence=sequence,
+            previous_envelope_sha256=previous,
+            event=event,
+            event_sha256=provisional.event_sha256,
+            source_revision=REV,
+            envelope_sha256=hashlib.sha256(body).hexdigest(),
+        )
+
+    env1 = _env(sequence=1, previous=None, event=event1)
+    env2 = _env(sequence=2, previous="e" * 64, event=event2)
+    events_dir = root / PACKETS_DIR / "RC-CLI-BREAK" / "events"
+    events_dir.mkdir(parents=True)
+    (events_dir / "000001-E-BREAK-1.json").write_bytes(dump_envelope(env1))
+    (events_dir / "000002-E-BREAK-2.json").write_bytes(dump_envelope(env2))
+
+    code = main(
+        [
+            "review-case",
+            "--root",
+            str(root),
+            "--packets-dir",
+            PACKETS_DIR,
+            "status",
+            "--packet-id",
+            "RC-CLI-BREAK",
+        ]
+    )
+    report = json.loads(capsys.readouterr().out)
+    assert code == 1
+    assert report["status"] == "validation-error"
+    assert report["error"]["code"] == "ledger_chain_break"
 
 
 def test_cli_help_exposes_review_case_ops(capsys) -> None:

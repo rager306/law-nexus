@@ -35,6 +35,7 @@ from law_nexus_harness.review_case.adapters.filesystem import (
     FilesystemReviewPacketStore,
     FilesystemReviewSourceReader,
 )
+from law_nexus_harness.review_case.adapters.filesystem_ledger import FilesystemEventLedger
 from law_nexus_harness.review_case.adapters.hashlib_adapter import HashlibContentHasher
 from law_nexus_harness.review_case.ports import ReviewCasePortError
 from law_nexus_harness.review_case.report import render_failure_report, render_success_report
@@ -202,6 +203,12 @@ def _review_case_exit_class(code: str, *, cause_code: str | None = None) -> str:
         "store_read_failed",
         "store_list_failed",
         "corrupt_packet",
+        "corrupt_envelope",
+        "corrupt_ledger",
+        "ledger_unavailable",
+        "ledger_read_failed",
+        "ledger_list_failed",
+        "ledger_write_failed",
         "symlink_rejected",
         "path_escape",
         "hash_failed",
@@ -209,6 +216,23 @@ def _review_case_exit_class(code: str, *, cause_code: str | None = None) -> str:
         "invalid_hash_input",
         "unexpected_failure",
     }
+    ledger_user_codes = {
+        "ledger_gap_or_fork",
+        "ledger_chain_break",
+        "ledger_fork",
+        "envelope_hash_mismatch",
+        "event_hash_mismatch",
+        "packet_id_mismatch",
+        "envelope_name_mismatch",
+        "duplicate_event_id",
+        "invalid_event_id",
+        "invalid_source_revision",
+        "invalid_event",
+        "base_packet_not_clean",
+        "unsupported_replay_event",
+        "ledger_projection_mismatch",
+    }
+    user_codes = user_codes | ledger_user_codes
     if code in user_codes:
         return "validation-error"
     if code in tool_codes:
@@ -225,6 +249,9 @@ def _run_review_case(args: argparse.Namespace) -> int:
         reader = FilesystemReviewSourceReader(args.root)
         hasher = HashlibContentHasher()
         store = FilesystemReviewPacketStore(args.root, packets_dir=args.packets_dir)
+        # validate/status rematerialize base packets through the append-only ledger.
+        # register remains base-only and does not invent human decisions.
+        ledger = FilesystemEventLedger(args.root, packets_dir=args.packets_dir)
         if args.review_case_command == "register":
             non_claims = tuple(args.non_claims) or ("Non-authoritative review projection",)
             report = register_review_case(
@@ -245,11 +272,11 @@ def _run_review_case(args: argparse.Namespace) -> int:
             sys.stdout.write(render_success_report(operation=operation, payload=report))
             return 0
         if args.review_case_command == "validate":
-            report = validate_review_cases(reader, hasher, store)
+            report = validate_review_cases(reader, hasher, store, ledger=ledger)
             sys.stdout.write(render_success_report(operation=operation, payload=report))
             return 0
         if args.review_case_command == "status":
-            report = review_case_status(store, packet_id=args.packet_id)
+            report = review_case_status(store, packet_id=args.packet_id, ledger=ledger)
             sys.stdout.write(render_success_report(operation=operation, payload=report))
             return 0
         raise AssertionError(f"unhandled review-case command: {args.review_case_command}")
