@@ -128,7 +128,7 @@ def test_health_view_surfaces_priority_buckets_and_non_authoritative_warnings() 
     assert "A passing generated view check is not product/runtime/legal validation" in content
 
 
-def test_blockers_report_adds_priority_snapshot_without_raw_payloads() -> None:
+def test_blockers_report_preserves_historical_priority_metadata_without_raw_payloads() -> None:
     generator = load_view_generator_module()
     report = minimal_report()
     report["unresolved_proof_gates"][0]["title"] = "Generated-Cypher safety gate"
@@ -148,9 +148,11 @@ def test_blockers_report_adds_priority_snapshot_without_raw_payloads() -> None:
 
     content = generator.render_blockers_report(report, items_lookup=items)
 
-    assert "## Priority Snapshot" in content
+    assert "## Historical Priority Metadata" in content
     assert "| P0 | 1 | `GATE-CRITICAL` |" in content
     assert "| ID | Title | Priority | Status | Risk | Verification | Owner |" in content
+    assert "not current triage or implementation order" in content
+    assert "Historical Recorded Verification Text" in content
     assert "P0 / critical-gate" in content
     assert "Does not authorize generated Cypher execution." in content
     assert "SECRET" not in content

@@ -651,10 +651,10 @@ def render_blockers_report(
     report: dict[str, Any],
     items_lookup: dict[str, dict[str, Any]] | None = None,
 ) -> str:
-    """Render a product-readiness blockers report mapping gates/non-claims to proof work.
+    """Render a historical registry-blocker archaeology index.
 
-    This is a planning artifact for future milestone work. It does NOT assert
-    product readiness; it makes next proof obligations visible.
+    This preserves legacy IDs, recorded verification text and non-claims without
+    presenting the D7-quarantined registry as the current readiness map or plan.
 
     Args:
         report: The architecture graph report dict.
@@ -771,20 +771,20 @@ def render_blockers_report(
 
     # ── Summary table ───────────────────────────────────────────────────────────
     lines: list[str] = [
-        "# Product Readiness Blockers Report",
+        "# Historical Product Readiness Registry Index",
         "",
         *d7_quarantine_banner(
             "Legacy GATE-G005/G008/G011/G015 and ACP/FalkorDB/PyO3 rows are not the current readiness map; use `prd/temporal-legal-model.md` §10–10.1."
         ),
-        "> **Scope:** This report maps active proof gates, blocked evidence, and non-claims "
-        "to the six capability areas required for LegalGraph Nexus product readiness. "
+        "> **Scope:** This report preserves historical registry gates, evidence rows and non-claims "
+        "by legacy capability area. It is an archaeology index, not a current readiness map or work queue. "
         "It is a derived, non-authoritative planning artifact only — it does **not** assert product readiness and "
         "does not validate runtime behavior, retrieval quality, parser completeness, "
         "generated-Cypher safety, FalkorDB production scale, or legal-answer correctness.",
         "",
         "---",
         "",
-        "## Summary Table",
+        "## Historical Snapshot Summary",
         "",
         "| Capability Area | Gate Count | Blocked / Bounded Count |",
         "| --- | ---: | ---: |",
@@ -797,9 +797,9 @@ def render_blockers_report(
         lines.extend(
             [
                 "",
-                "## Priority Snapshot",
+                "## Historical Priority Metadata",
                 "",
-                "This snapshot is a triage view only; priority does not prove readiness or promote claims.",
+                "These priorities are frozen registry metadata, not current triage or implementation order.",
                 "",
                 "| Priority | Count | Representative Blockers |",
                 "| --- | ---: | --- |",
@@ -830,7 +830,7 @@ def render_blockers_report(
         if gate_list or blocked_list:
             lines.extend(
                 [
-                    "### Proof Gates",
+                    "### Historical Registry Gates",
                     "",
                     "| ID | Title | Priority | Status | Risk | Verification | Owner |",
                     "| --- | --- | --- | --- | --- | --- | --- |",
@@ -843,7 +843,7 @@ def render_blockers_report(
                 lines.extend(
                     [
                         "",
-                        "### Blocked / Bounded Evidence",
+                        "### Historical Blocked / Bounded Evidence",
                         "",
                         "| ID | Title | Priority | Status | Risk | Proof Level | Verification | Owner |",
                         "| --- | --- | --- | --- | --- | --- | --- | --- |",
@@ -857,7 +857,7 @@ def render_blockers_report(
             lines.extend(
                 [
                     "",
-                    "### What This Area Does Not Prove",
+                    "### Preserved Non-Claims",
                     "",
                     "_Below non-claims are drawn directly from architecture registry records. "
                     "They are not exhaustive._",
@@ -875,26 +875,24 @@ def render_blockers_report(
             lines.extend(
                 [
                     "",
-                    "### Next Proof Work",
+                    "### Historical Recorded Verification Text",
                     "",
-                    "Proof work for this area should:",
+                    "The frozen registry recorded the following text. It is not a current plan; use the living oracle, TL-G01–12, TSG register and parser protocol for current decisions:",
                     "",
                 ]
             )
             for gate in gate_list:
                 lines.append(
-                    f"- Address [`{gate.get('id', '')}`](#proof-gates): "
+                    f"- Legacy gate `{gate.get('id', '')}`: "
                     f"{gate.get('verification') or _full_verification(gate.get('id', ''))}"
                 )
             for node in blocked_list:
                 nid = node.get("id", "")
-                lines.append(
-                    f"- Resolve [`{nid}`](#blocked--bounded-evidence): {_full_verification(nid)}"
-                )
+                lines.append(f"- Legacy evidence `{nid}`: {_full_verification(nid)}")
         else:
             lines.extend(
                 [
-                    "No active proof gates or blocked evidence for this area in the current architecture registry.",
+                    "No gate or blocked-evidence rows were recorded for this area in the frozen registry snapshot.",
                     "",
                 ]
             )
@@ -928,9 +926,10 @@ def render_blockers_report(
             "",
             "---",
             "",
-            "*Blockers report generated from `prd/architecture/architecture_graph_report.json`. "
-            "This is a derived, non-authoritative planning artifact — it makes next proof work visible without asserting "
-            "product readiness. Source-of-truth remains with PRD, GSD, ADR, and source anchor evidence.*",
+            "*Historical blockers index generated from `prd/architecture/architecture_graph_report.json`. "
+            "This derived, non-authoritative archaeology view preserves legacy IDs and non-claims without asserting "
+            "current priority or product readiness. Current source-of-truth remains `prd/ARCHITECTURE.md`, active ADRs, "
+            "tracked Product/Requirements and source/runtime evidence.*",
         ]
     )
 

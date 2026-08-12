@@ -639,6 +639,22 @@ def test_blockers_report_includes_gate_g015() -> None:
     )
 
 
+def test_blockers_report_preserves_core_legacy_ids_as_archaeology() -> None:
+    """Core legacy IDs survive regeneration without becoming current authority."""
+    content = _load_blockers_content()
+    for legacy_id in (
+        "GATE-G005",
+        "GATE-G008",
+        "GATE-G011",
+        "GATE-G015",
+        "GATE-GENERATED-CYPHER-SAFETY",
+        "EVID-PARSER-ODT-SMOKE",
+        "ACP-AHF-0001",
+    ):
+        assert f"`{legacy_id}`" in content
+    assert "not a current readiness map or work queue" in content
+
+
 def test_blockers_report_includes_all_four_gates() -> None:
     """Blocker report must cite all four required gates G005, G008, G011, G015."""
     content = _load_blockers_content()
@@ -710,12 +726,12 @@ def test_blockers_report_does_not_claim_legal_knowql_works() -> None:
         assert phrase not in content_lower, f"Blocker report must NOT claim '{phrase}'"
 
 
-def test_blockers_report_has_summary_table() -> None:
-    """Blocker report must have a Summary Table mapping capability areas to gate counts."""
+def test_blockers_report_has_historical_snapshot_summary() -> None:
+    """Historical index must preserve capability areas and recorded gate counts."""
     content = _load_blockers_content()
-    assert "| Capability Area | Gate Count |" in content, (
-        "Blocker report must include a Summary Table with capability areas"
-    )
+    assert "## Historical Snapshot Summary" in content
+    assert "| Capability Area | Gate Count |" in content
+    assert "not a current readiness map or work queue" in content
 
 
 def test_blockers_report_lists_etl_parser_area() -> None:
@@ -801,11 +817,19 @@ def test_blockers_report_blocked_evidence_cites_architecture_ids() -> None:
     )
 
 
-def test_blockers_report_next_proof_work_section_present() -> None:
-    """Each capability area must have a 'Next Proof Work' section."""
+def test_architecture_readme_does_not_restore_current_blocker_authority() -> None:
+    content = (ROOT / "prd/architecture/README.md").read_text(encoding="utf-8")
+    assert "## Historical Product Readiness Registry Index" in content
+    assert "shows exactly which gates remain open" not in content
+    assert "does not state which gates are currently open or what work is next" in content
+
+
+def test_blockers_report_keeps_legacy_verification_text_out_of_current_planning() -> None:
+    """Recorded verification text remains archaeology, not a current work queue."""
     content = _load_blockers_content()
-    # Check that at least one area has "Next Proof Work"
-    assert "Next Proof Work" in content, "Blocker report must include 'Next Proof Work' sections"
+    assert "Historical Recorded Verification Text" in content
+    assert "It is not a current plan" in content
+    assert "### Next Proof Work" not in content
 
 
 # ---------------------------------------------------------------------------
@@ -1598,7 +1622,7 @@ def test_generate_script_write_produces_all_three_views(tmp_path: Path) -> None:
     assert claims.exists(), "Claims ledger not written"
     # Spot-check content
     assert health.read_text().startswith("# Architecture Health Dashboard")
-    assert blockers.read_text().startswith("# Product Readiness Blockers Report")
+    assert blockers.read_text().startswith("# Historical Product Readiness Registry Index")
     assert claims.read_text().startswith("# Claims Ledger")
 
 

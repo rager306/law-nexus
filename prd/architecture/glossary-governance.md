@@ -98,7 +98,9 @@ Governor must never decide:
 - `NormativeStatus` is a deprecated compatibility alias for canonical
   `NormativeState`, not a second dimension.
 - The temporal model remains a `[proposed]` crosswalk, not the complete
-  executable temporal contract requested by the 2026-08-11 assessment.
+  executable temporal contract requested by the 2026-08-11 assessment. Its
+  fourteen-area completeness matrix must preserve `partial`, `absent` and
+  `deferred-undefined` cells until governing decisions and executable proof exist.
 - Skills may be absent in a clean clone; tracked process controls cannot claim
   full skill-surface coverage from local-only files.
 

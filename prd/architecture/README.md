@@ -15,7 +15,7 @@ Three human-readable views are generated from the registry and graph:
 | View | Purpose | Run to generate |
 |---|---|---|
 | `architecture_health.md` | Architecture registry health: coverage, gates, risk, non-claims, orphans | `python scripts/generate-architecture-views.py` |
-| `product_readiness_blockers.md` | Next proof work by capability area: active gates, blocked evidence, non-claims | `python scripts/generate-architecture-views.py` |
+| `product_readiness_blockers.md` | Historical D7 registry archaeology index: legacy gates, evidence rows and non-claims; not current readiness or next-work authority | `python scripts/generate-architecture-views.py` |
 | `claims_ledger.md` | Claim safety classifications: safe-to-say, bounded, blocked, unsafe-to-assert | `python scripts/generate-architecture-views.py` |
 
 All three views are derived, non-authoritative and currently D7-quarantined planning artifacts. Source-of-truth remains with `prd/ARCHITECTURE.md`, `doc/adr/**`, `prd/PRODUCT.md` and tracked source/runtime evidence. Local `.gsd/**` is workflow state only.
@@ -298,7 +298,7 @@ The minimal report fields are:
 Generated view ownership stays split:
 
 - `architecture_health.md` should show global counts, typed drift counts, open proof gates, high/critical risks, non-claims, and later priority bucket summaries.
-- `product_readiness_blockers.md` should show promotion blockers by capability area, including proof-gate status and next proof work.
+- `product_readiness_blockers.md` should preserve historical registry blockers by capability area, including legacy status, recorded verification text and non-claims, without presenting current priority or next proof work.
 - `claims_ledger.md` should show claim-safety buckets and, when implemented, the R035 gate status needed before ontology or external-standard claims can move out of bounded/proposed/deferred language.
 
 Do not add raw legal text, provider payloads, credentials, local-only `.gsd/exec` paths, live telemetry dashboards, graph exploration widgets, or product-readiness assertions to these reports. Milestone validation should cite `uv run python scripts/verify-architecture-graph.py` for currentness proof and then use the generated views only to explain what is current, blocked, deferred, and unsafe to assert.
@@ -351,16 +351,16 @@ uv run python scripts/generate-architecture-views.py --check
 
 Before acting on dashboard findings, verify against the source anchors recorded in `architecture_items.jsonl` and `architecture_edges.jsonl`.
 
-## Product Readiness Blockers Report
+## Historical Product Readiness Registry Index
 
-The product readiness blockers report (`prd/architecture/product_readiness_blockers.md`) is a planning artifact that maps active proof gates, blocked evidence, and non-claims to the six capability areas required for law-nexus product readiness.
+The historical product readiness registry index (`prd/architecture/product_readiness_blockers.md`) is a D7-quarantined planning artifact that preserves legacy proof-gate, blocked-evidence and non-claim rows by capability area. It is not the current readiness map or work queue.
 
 ### What it shows
 
-- **Per-area proof gates** — active gates that block product-readiness claims, with risk level, verification description, and owner.
-- **Blocked/bounded evidence** — evidence items that carry restrictions or caveats tied to proof gates.
-- **Non-claims** — explicit statements of what each area does NOT validate (e.g., "No parser completeness claim", "No production-scale FalkorDB claim").
-- **Next proof work** — actionable items that unblock the gate.
+- **Historical registry gates** — legacy IDs, recorded status/risk, verification text and owner as-of the quarantined snapshot.
+- **Historical blocked/bounded evidence** — evidence rows and restrictions retained for archaeology.
+- **Preserved non-claims** — explicit statements of what the old registry did not validate.
+- **Historical verification text** — frozen wording retained for traceability, not a current action list.
 
 The six capability areas covered are: ETL/Parser, Graph Runtime, Legal Answering, Legal KnowQL/Generated Cypher, Retrieval/Embedding, and Temporal Model.
 
@@ -382,30 +382,23 @@ uv run python scripts/generate-architecture-views.py --check
 
 A passing architecture verifier (`verify-architecture-graph.py`) means the registry artifacts are current, well-formed, graph-consistent, and claim-safe against static evidence. It is a **static artifact health check**.
 
-The blockers report does not run as part of the verifier. It is a **planning artifact** that answers a different question: *what blocks product-readiness claims, and what must future proof slices address?*
+The historical index does not run as part of the verifier. It is a **planning/archaeology artifact** that answers only: *which blocker IDs, verification text and non-claims were present in the quarantined registry snapshot?*
 
-| | Architecture Verifier | Blockers Report |
+| | Architecture Verifier | Historical Index |
 |---|---|---|
-| Purpose | Artifact health and claim safety | Next proof work prioritization |
+| Purpose | Artifact health and claim safety | Historical blocker/non-claim traceability |
 | Trigger | Any registry/graph change | Explicit generation via `generate-architecture-views.py` |
 | What it proves | Graph integrity, schema validity, claim-safety, source-anchor freshness | Nothing — it enumerates what is NOT proven |
 | Pass/fail | Deterministic pass/fail | Always generated; interpretation is manual |
-| Authoritative for | Architecture registry state at a point in time | No — it is a derived view, same as the dashboard |
+| Authoritative for | Architecture registry state at a point in time | Nothing — it is a derived D7 archaeology view |
 
-Verifier pass **does not** mean a capability area is product-ready. The blockers report shows exactly which gates remain open for every area.
+Verifier pass **does not** mean a capability area is product-ready. The historical index only enumerates which legacy gates and evidence rows were present in the quarantined registry snapshot; it does not state which gates are currently open or what work is next.
 
-### Using it during milestone planning
+### Using it for archaeology only
 
-Before choosing the next proof slice, read `product_readiness_blockers.md` to identify:
+Use `product_readiness_blockers.md` only to resolve legacy gate/evidence IDs cited by historical assessments. Current planning starts from `prd/ARCHITECTURE.md`, `prd/PRODUCT.md`, `prd/REQUIREMENTS.md`, TL-G01–12, the TSG register and the parser G0–G3 protocol.
 
-1. **Which gates are active** in the capability area you plan to address — each gate names the verification condition that must be met.
-2. **Which blocked evidence items** are already available and just need a proof gate owner assigned — those are lower-risk to pick up.
-3. **What non-claims apply** to the area — any claim you might be tempted to make must not contradict them.
-4. **What next proof work is listed** — each listed item is the owner-addressable action that unblocks the gate.
-
-Do not treat a blocker report entry as a commitment. It is a snapshot of the current registry state. Regenerate the report after significant milestone completions to refresh the next-proof-work guidance.
-
-The blockers report does not itself prove product behavior. A capability area with zero listed gates means the current registry has no active blockers — it does not mean the product is ready for that area.
+Do not treat an index entry, old priority, verification sentence or zero count as a current commitment, blocker disposition or readiness claim. Regeneration preserves the quarantined registry snapshot; it does not refresh current next-work guidance.
 
 ## Claims Ledger
 

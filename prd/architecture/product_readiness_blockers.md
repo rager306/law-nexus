@@ -1,13 +1,13 @@
-# Product Readiness Blockers Report
+# Historical Product Readiness Registry Index
 
 > **D7 QUARANTINE — DERIVED VIEW.** Disposition baseline `bfe2ee6`, as-of 2026-08-11. Legacy GATE-G005/G008/G011/G015 and ACP/FalkorDB/PyO3 rows are not the current readiness map; use `prd/temporal-legal-model.md` §10–10.1.
 > This view cannot satisfy requirements, promote lifecycle, or prove product/legal/runtime/parser/retrieval claims. Canonical truth: `prd/ARCHITECTURE.md`, `doc/adr/**`, `prd/PRODUCT.md`.
 
-> **Scope:** This report maps active proof gates, blocked evidence, and non-claims to the six capability areas required for LegalGraph Nexus product readiness. It is a derived, non-authoritative planning artifact only — it does **not** assert product readiness and does not validate runtime behavior, retrieval quality, parser completeness, generated-Cypher safety, FalkorDB production scale, or legal-answer correctness.
+> **Scope:** This report preserves historical registry gates, evidence rows and non-claims by legacy capability area. It is an archaeology index, not a current readiness map or work queue. It is a derived, non-authoritative planning artifact only — it does **not** assert product readiness and does not validate runtime behavior, retrieval quality, parser completeness, generated-Cypher safety, FalkorDB production scale, or legal-answer correctness.
 
 ---
 
-## Summary Table
+## Historical Snapshot Summary
 
 | Capability Area | Gate Count | Blocked / Bounded Count |
 | --- | ---: | ---: |
@@ -19,9 +19,9 @@
 | Temporal Model | 1 | 0 |
 | architecture-governance | 0 | 2 |
 
-## Priority Snapshot
+## Historical Priority Metadata
 
-This snapshot is a triage view only; priority does not prove readiness or promote claims.
+These priorities are frozen registry metadata, not current triage or implementation order.
 
 | Priority | Count | Representative Blockers |
 | --- | ---: | --- |
@@ -32,7 +32,7 @@ This snapshot is a triage view only; priority does not prove readiness or promot
 
 ## ETL / Parser
 
-### Proof Gates
+### Historical Registry Gates
 
 | ID | Title | Priority | Status | Risk | Verification | Owner |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -40,7 +40,7 @@ This snapshot is a triage view only; priority does not prove readiness or promot
 |  | No parser completeness claim. | — | — | — | — | — |
 |  | No product retrieval quality claim. | — | — | — | — | — |
 
-### Blocked / Bounded Evidence
+### Historical Blocked / Bounded Evidence
 
 | ID | Title | Priority | Status | Risk | Proof Level | Verification | Owner |
 | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -55,7 +55,7 @@ This snapshot is a triage view only; priority does not prove readiness or promot
 |  | No parser completeness claim. | — | — | — | — | — | — |
 |  | No production SourceBlock/EvidenceSpan creation claim. | — | — | — | — | — | — |
 
-### What This Area Does Not Prove
+### Preserved Non-Claims
 
 _Below non-claims are drawn directly from architecture registry records. They are not exhaustive._
 
@@ -67,25 +67,25 @@ _Below non-claims are drawn directly from architecture registry records. They ar
 | No Old_project artifact accepted unchanged. |
 | No production SourceBlock/EvidenceSpan creation claim. |
 
-### Next Proof Work
+### Historical Recorded Verification Text
 
-Proof work for this area should:
+The frozen registry recorded the following text. It is not a current plan; use the living oracle, TL-G01–12, TSG register and parser protocol for current decisions:
 
-- Address [`GATE-G008`](#proof-gates): Future product proof demonstrates parser completeness boundaries, citation-safe retrieval behavior, and retrieval quality over real legal source fixtures.
-- Resolve [`EVID-PARSER-ODT-SMOKE`](#blocked--bounded-evidence): `uv run python scripts/build-odt-smoke-records.py --check` verifies ODT smoke artifact freshness.
-- Resolve [`S05-OLD-PROJECT-PRIOR-ART`](#blocked--bounded-evidence): Blocked diagnostic until every claimed anchor is retargeted to tracked canonical/current evidence or explicitly historical evidence.
-- Resolve [`S05-PARSER-ODT-BOUNDARY`](#blocked--bounded-evidence): Blocked diagnostic until every claimed anchor is retargeted to tracked canonical/current evidence or explicitly historical evidence.
+- Legacy gate `GATE-G008`: Future product proof demonstrates parser completeness boundaries, citation-safe retrieval behavior, and retrieval quality over real legal source fixtures.
+- Legacy evidence `EVID-PARSER-ODT-SMOKE`: `uv run python scripts/build-odt-smoke-records.py --check` verifies ODT smoke artifact freshness.
+- Legacy evidence `S05-OLD-PROJECT-PRIOR-ART`: Blocked diagnostic until every claimed anchor is retargeted to tracked canonical/current evidence or explicitly historical evidence.
+- Legacy evidence `S05-PARSER-ODT-BOUNDARY`: Blocked diagnostic until every claimed anchor is retargeted to tracked canonical/current evidence or explicitly historical evidence.
 
 ## Graph Runtime
 
-### Proof Gates
+### Historical Registry Gates
 
 | ID | Title | Priority | Status | Risk | Verification | Owner |
 | --- | --- | --- | --- | --- | --- | --- |
 | `GATE-G015` | Historical/superseded: FalkorDBLite to Docker migration runbook | P2 / medium-diagnostic | superseded | medium | Migration runbook is executed against bounded fixtures and runtime diagnostics. | future-runtime-migration-proof |
 |  | No production-scale FalkorDB claim. | — | — | — | — | — |
 
-### What This Area Does Not Prove
+### Preserved Non-Claims
 
 _Below non-claims are drawn directly from architecture registry records. They are not exhaustive._
 
@@ -93,15 +93,15 @@ _Below non-claims are drawn directly from architecture registry records. They ar
 | --- |
 | No production-scale FalkorDB claim. |
 
-### Next Proof Work
+### Historical Recorded Verification Text
 
-Proof work for this area should:
+The frozen registry recorded the following text. It is not a current plan; use the living oracle, TL-G01–12, TSG register and parser protocol for current decisions:
 
-- Address [`GATE-G015`](#proof-gates): Migration runbook is executed against bounded fixtures and runtime diagnostics.
+- Legacy gate `GATE-G015`: Migration runbook is executed against bounded fixtures and runtime diagnostics.
 
 ## Legal Answering
 
-### Proof Gates
+### Historical Registry Gates
 
 | ID | Title | Priority | Status | Risk | Verification | Owner |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -114,7 +114,7 @@ Proof work for this area should:
 |  | Does not define a production API surface. | — | — | — | — | — |
 |  | Does not prove access-control enforcement. | — | — | — | — | — |
 
-### What This Area Does Not Prove
+### Preserved Non-Claims
 
 _Below non-claims are drawn directly from architecture registry records. They are not exhaustive._
 
@@ -127,16 +127,16 @@ _Below non-claims are drawn directly from architecture registry records. They ar
 | Does not define a production API surface. |
 | Does not prove access-control enforcement. |
 
-### Next Proof Work
+### Historical Recorded Verification Text
 
-Proof work for this area should:
+The frozen registry recorded the following text. It is not a current plan; use the living oracle, TL-G01–12, TSG register and parser protocol for current decisions:
 
-- Address [`GATE-EMBEDDING-SUPPLY-CHAIN`](#proof-gates): Future embedding proof records model source, checksum or revision, local runtime envelope, vector dimension, and no-secret/no-raw-vector leakage checks.
-- Address [`GATE-LEGAL-NEXUS-ACCESS-CONTROL`](#proof-gates): Future security proof defines caller boundaries, authorization policy, audit logging, and denial diagnostics for Legal Nexus operations.
+- Legacy gate `GATE-EMBEDDING-SUPPLY-CHAIN`: Future embedding proof records model source, checksum or revision, local runtime envelope, vector dimension, and no-secret/no-raw-vector leakage checks.
+- Legacy gate `GATE-LEGAL-NEXUS-ACCESS-CONTROL`: Future security proof defines caller boundaries, authorization policy, audit logging, and denial diagnostics for Legal Nexus operations.
 
 ## Legal KnowQL / Generated Cypher
 
-### Proof Gates
+### Historical Registry Gates
 
 | ID | Title | Priority | Status | Risk | Verification | Owner |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -145,7 +145,7 @@ Proof work for this area should:
 |  | Does not prove production Legal KnowQL behavior. | — | — | — | — | — |
 |  | Does not prove provider generation quality. | — | — | — | — | — |
 
-### What This Area Does Not Prove
+### Preserved Non-Claims
 
 _Below non-claims are drawn directly from architecture registry records. They are not exhaustive._
 
@@ -155,15 +155,15 @@ _Below non-claims are drawn directly from architecture registry records. They ar
 | Does not prove production Legal KnowQL behavior. |
 | Does not prove provider generation quality. |
 
-### Next Proof Work
+### Historical Recorded Verification Text
 
-Proof work for this area should:
+The frozen registry recorded the following text. It is not a current plan; use the living oracle, TL-G01–12, TSG register and parser protocol for current decisions:
 
-- Address [`GATE-GENERATED-CYPHER-SAFETY`](#proof-gates): A future product proof demonstrates validator acceptance/rejection behavior across representative Legal KnowQL tasks and live graph schemas.
+- Legacy gate `GATE-GENERATED-CYPHER-SAFETY`: A future product proof demonstrates validator acceptance/rejection behavior across representative Legal KnowQL tasks and live graph schemas.
 
 ## Retrieval / Embedding
 
-### Proof Gates
+### Historical Registry Gates
 
 | ID | Title | Priority | Status | Risk | Verification | Owner |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -171,7 +171,7 @@ Proof work for this area should:
 |  | No managed embedding API fallback claim. | — | — | — | — | — |
 |  | No product retrieval quality claim. | — | — | — | — | — |
 
-### Blocked / Bounded Evidence
+### Historical Blocked / Bounded Evidence
 
 | ID | Title | Priority | Status | Risk | Proof Level | Verification | Owner |
 | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -243,7 +243,7 @@ Proof work for this area should:
 |  | Does not prove production FalkorDB runtime behavior. | — | — | — | — | — | — |
 |  | Does not prove raw legal text evidence quality. | — | — | — | — | — | — |
 
-### What This Area Does Not Prove
+### Preserved Non-Claims
 
 _Below non-claims are drawn directly from architecture registry records. They are not exhaustive._
 
@@ -276,29 +276,29 @@ _Below non-claims are drawn directly from architecture registry records. They ar
 | Does not promote D045 research into validated product behavior. |
 | Does not prove raw legal text evidence quality. |
 
-### Next Proof Work
+### Historical Recorded Verification Text
 
-Proof work for this area should:
+The frozen registry recorded the following text. It is not a current plan; use the living oracle, TL-G01–12, TSG register and parser protocol for current decisions:
 
-- Address [`GATE-G011`](#proof-gates): Retrieval quality benchmark passes under local/open-weight embedding constraints.
-- Resolve [`EVID-LOCAL-RETRIEVAL-QUALITY-BENCHMARK-PROOF`](#blocked--bounded-evidence): Blocked diagnostic until every claimed anchor is retargeted to tracked canonical/current evidence or explicitly historical evidence.
-- Resolve [`EVID-OFFLINE-CITATION-RETRIEVAL-PROOF`](#blocked--bounded-evidence): Blocked diagnostic until every claimed anchor is retargeted to tracked canonical/current evidence or explicitly historical evidence.
-- Resolve [`EVID-REAL-ARTIFACT-RETRIEVAL-PROOF`](#blocked--bounded-evidence): Blocked diagnostic until every claimed anchor is retargeted to tracked canonical/current evidence or explicitly historical evidence.
-- Resolve [`EVID-REPRESENTATIVE-RETRIEVAL-RUNTIME-BENCHMARK-PROOF`](#blocked--bounded-evidence): Blocked diagnostic until every claimed anchor is retargeted to tracked canonical/current evidence or explicitly historical evidence.
-- Resolve [`EVID-RESEARCH-GRAPHRAG-MATH-ANALYSIS`](#blocked--bounded-evidence): D7 quarantine classification only; record cannot satisfy requirements or promote lifecycle.
-- Resolve [`EVID-RESEARCH-HABR-LEGAL-RAG-ITERATION-SCALING`](#blocked--bounded-evidence): D7 quarantine classification only; record cannot satisfy requirements or promote lifecycle.
-- Resolve [`EVID-RETRIEVAL-OUTPUT-ID-VALIDATOR-PROOF`](#blocked--bounded-evidence): Blocked diagnostic until every claimed anchor is retargeted to tracked canonical/current evidence or explicitly historical evidence.
+- Legacy gate `GATE-G011`: Retrieval quality benchmark passes under local/open-weight embedding constraints.
+- Legacy evidence `EVID-LOCAL-RETRIEVAL-QUALITY-BENCHMARK-PROOF`: Blocked diagnostic until every claimed anchor is retargeted to tracked canonical/current evidence or explicitly historical evidence.
+- Legacy evidence `EVID-OFFLINE-CITATION-RETRIEVAL-PROOF`: Blocked diagnostic until every claimed anchor is retargeted to tracked canonical/current evidence or explicitly historical evidence.
+- Legacy evidence `EVID-REAL-ARTIFACT-RETRIEVAL-PROOF`: Blocked diagnostic until every claimed anchor is retargeted to tracked canonical/current evidence or explicitly historical evidence.
+- Legacy evidence `EVID-REPRESENTATIVE-RETRIEVAL-RUNTIME-BENCHMARK-PROOF`: Blocked diagnostic until every claimed anchor is retargeted to tracked canonical/current evidence or explicitly historical evidence.
+- Legacy evidence `EVID-RESEARCH-GRAPHRAG-MATH-ANALYSIS`: D7 quarantine classification only; record cannot satisfy requirements or promote lifecycle.
+- Legacy evidence `EVID-RESEARCH-HABR-LEGAL-RAG-ITERATION-SCALING`: D7 quarantine classification only; record cannot satisfy requirements or promote lifecycle.
+- Legacy evidence `EVID-RETRIEVAL-OUTPUT-ID-VALIDATOR-PROOF`: Blocked diagnostic until every claimed anchor is retargeted to tracked canonical/current evidence or explicitly historical evidence.
 
 ## Temporal Model
 
-### Proof Gates
+### Historical Registry Gates
 
 | ID | Title | Priority | Status | Risk | Verification | Owner |
 | --- | --- | --- | --- | --- | --- | --- |
 | `GATE-G005` | Quarantined missing-anchor: Temporal same-date multi-edition conflict policy | P1 / high-priority-blocker | blocked | high | A future proof slice defines and verifies same-date/multi-edition conflict policy. | future-temporal-proof |
 |  | Does not validate temporal conflict resolution. | — | — | — | — | — |
 
-### What This Area Does Not Prove
+### Preserved Non-Claims
 
 _Below non-claims are drawn directly from architecture registry records. They are not exhaustive._
 
@@ -306,20 +306,20 @@ _Below non-claims are drawn directly from architecture registry records. They ar
 | --- |
 | Does not validate temporal conflict resolution. |
 
-### Next Proof Work
+### Historical Recorded Verification Text
 
-Proof work for this area should:
+The frozen registry recorded the following text. It is not a current plan; use the living oracle, TL-G01–12, TSG register and parser protocol for current decisions:
 
-- Address [`GATE-G005`](#proof-gates): A future proof slice defines and verifies same-date/multi-edition conflict policy.
+- Legacy gate `GATE-G005`: A future proof slice defines and verifies same-date/multi-edition conflict policy.
 
 ## architecture-governance
 
-### Proof Gates
+### Historical Registry Gates
 
 | ID | Title | Priority | Status | Risk | Verification | Owner |
 | --- | --- | --- | --- | --- | --- | --- |
 
-### Blocked / Bounded Evidence
+### Historical Blocked / Bounded Evidence
 
 | ID | Title | Priority | Status | Risk | Proof Level | Verification | Owner |
 | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -347,7 +347,7 @@ Proof work for this area should:
 |  | Does not prove pilot-scale readiness. | — | — | — | — | — | — |
 |  | Does not prove product Legal KnowQL behavior. | — | — | — | — | — | — |
 
-### What This Area Does Not Prove
+### Preserved Non-Claims
 
 _Below non-claims are drawn directly from architecture registry records. They are not exhaustive._
 
@@ -374,12 +374,12 @@ _Below non-claims are drawn directly from architecture registry records. They ar
 | Does not prove pilot-scale readiness. |
 | Does not prove product Legal KnowQL behavior. |
 
-### Next Proof Work
+### Historical Recorded Verification Text
 
-Proof work for this area should:
+The frozen registry recorded the following text. It is not a current plan; use the living oracle, TL-G01–12, TSG register and parser protocol for current decisions:
 
-- Resolve [`ACP-AHF-0001`](#blocked--bounded-evidence): D7 quarantine classification only; record cannot satisfy requirements or promote lifecycle.
-- Resolve [`EVID-RESEARCH-ONTOLOGY-AKOMA-LKIF-BFO`](#blocked--bounded-evidence): Blocked diagnostic until every claimed anchor is retargeted to tracked canonical/current evidence or explicitly historical evidence.
+- Legacy evidence `ACP-AHF-0001`: D7 quarantine classification only; record cannot satisfy requirements or promote lifecycle.
+- Legacy evidence `EVID-RESEARCH-ONTOLOGY-AKOMA-LKIF-BFO`: Blocked diagnostic until every claimed anchor is retargeted to tracked canonical/current evidence or explicitly historical evidence.
 
 ---
 
@@ -521,4 +521,4 @@ _The following statements appear across one or more architecture records and col
 
 ---
 
-*Blockers report generated from `prd/architecture/architecture_graph_report.json`. This is a derived, non-authoritative planning artifact — it makes next proof work visible without asserting product readiness. Source-of-truth remains with PRD, GSD, ADR, and source anchor evidence.*
+*Historical blockers index generated from `prd/architecture/architecture_graph_report.json`. This derived, non-authoritative archaeology view preserves legacy IDs and non-claims without asserting current priority or product readiness. Current source-of-truth remains `prd/ARCHITECTURE.md`, active ADRs, tracked Product/Requirements and source/runtime evidence.*

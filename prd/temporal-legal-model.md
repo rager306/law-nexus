@@ -286,7 +286,35 @@ ADR-0023 is the single residual applicability-ownership decision; it does not be
 
 EA-03 acceptance is limited to this proposed paper reconciliation. EA-04 decision substance is recorded by ADR-0023 and targeted clarification notes; applicability implementation and EA-09/EA-10 assessment remain open.
 
-## 14. Stop conditions
+## 14. Primary-critique contract completeness matrix
+
+This matrix preserves the fourteen self-contained temporal-contract areas
+requested by the recovered 2026-08-11 criticism. Status here describes paper
+coverage only. It neither accepts a schema nor closes a TSG row.
+
+| Contract area | Paper coverage | Current surface | Owner / open gap | Explicit boundary |
+|---------------|----------------|-----------------|------------------|-------------------|
+| Glossary | present | §3, 42 controlled rows | owning ADR per row; TSG-001 remains open | inventory completeness is not semantic completeness |
+| Entity model | partial | §§5–9 identity/CTV/status/applicability concepts | ADR-0016..0023; TSG-003..010 | cardinalities, stable public schemas and several entities remain unspecified |
+| Event taxonomy | deferred-undefined | glossary stop-signs only | future ADR-0017/0018/0021 decision; TSG-002 | no accepted `TextChangeEvent`/`NormativeEffectEvent` taxonomy |
+| Temporal axes | partial | §§4–6 five-clock safety and derived projections | ADR-0009/0017; TSG-011 | no complete interval/bitemporal algebra or legal-date validation |
+| Applicability DSL | deferred-undefined | §7 ownership and abstention boundary | ADR-0023 + TSG-005/006 | no accepted AST, fields, evaluator or runtime |
+| Status model | partial | §6 + ADR-0018 canonical `NormativeState` | ADR-0018; TSG-004 | dimensional model and resolver are not implemented |
+| Provenance | partial | §§4–9 fail-closed source/evidence boundaries | ADR-0010/0012/0015; TSG-011/012 | no complete correction/reference provenance API |
+| Conflict | partial | identity/status/reference typed non-success and ADR-0019 design | ADR-0016/0019; TSG-007/012 | no competence/jurisdiction graph or legal conflict runtime |
+| Correction | partial | immutable-observation invariant and TL-G04/TL-GC17 | future TQ-04 owner; TSG-011 | no accepted ledger schema, rebuild API or storage proof |
+| Invariants | present as paper rules | §§4–9, gates and stop conditions | governing ADRs | no claim that every invariant has executable proof |
+| Deterministic API | absent | no request/result public schema | future owner; TSG-014 | no stable Rust signature or wire contract may be inferred |
+| Golden cases | partial | §11 TL-GC01–18 semantic-shape catalog | human gold owners + TSG-015 | fewer than the requested 20–30; not executable legal gold |
+| Error taxonomy | absent | scattered typed non-success names only | future API owner; TSG-014 | no unified accepted enum or compatibility promise |
+| Proof gates | present as paper gates | §10 TL-G01–12 + §10.1 graduation matrix | ADR-0012/0015 and human acceptance | paper PASS cannot promote lifecycle or validate product behavior |
+
+The matrix is intentionally fail-closed: an `absent`, `partial` or
+`deferred-undefined` cell is owner-routed work, not an invitation for an agent
+to fill event enums, API signatures, error variants, applicability fields or
+legal expected outcomes by analogy.
+
+## 15. Stop conditions
 
 Stop and replan if any review:
 
