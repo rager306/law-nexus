@@ -44,6 +44,13 @@ All notable changes to law-nexus are documented in this file.
 
 ## Unreleased — process debt triage
 
+### Review Case derived-status honesty for already_satisfied
+- `already_satisfied` is now a terminal residual disposition (`terminal_without_implementation`)
+  with `execution_status=not_required`, not residual-open work.
+- Status CLI / derive_finding_status no longer report satisfied docs/process findings as
+  `derived_status=open`. Accepting dispositions that still need execution remain open/blocked.
+- `deferred` stays residual-open inventory until later human reopen/accept/reject.
+
 ### Human Review Case ledger dispositions (session)
 - Seeded live packets store from the two-review fixture (cross-packet finding
   endpoints filtered for policy) and recorded human `disposition_recorded`

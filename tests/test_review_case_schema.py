@@ -27,7 +27,6 @@ ACCEPTING_DISPOSITIONS = frozenset(
         "accepted_as_requirement_candidate",
         "accepted_as_decision_candidate",
         "accepted_as_process_defect",
-        "already_satisfied",
     }
 )
 PASSED_VERIFICATION = frozenset(
@@ -45,6 +44,7 @@ TERMINAL_WITHOUT_WORK = frozenset(
         "duplicate",
         "superseded",
         "not_applicable",
+        "already_satisfied",
     }
 )
 
@@ -451,9 +451,7 @@ def invariant_errors(packet: Mapping[str, Any]) -> list[str]:
         if child_finding is None:
             errors.append(f"splits_into target {child!r} is missing")
             continue
-        child_terminal = child_finding.get("disposition_status") in TERMINAL_WITHOUT_WORK | {
-            "already_satisfied"
-        } or (
+        child_terminal = child_finding.get("disposition_status") in TERMINAL_WITHOUT_WORK or (
             child_finding.get("execution_status") == "implemented"
             and child_finding.get("verification_status") in PASSED_VERIFICATION
         )
@@ -467,7 +465,7 @@ def invariant_errors(packet: Mapping[str, Any]) -> list[str]:
         blocker = edge.get("to")
         if isinstance(parent, str) and parent in findings and blocker in findings:
             blocker_status = findings[blocker].get("disposition_status")
-            if blocker_status not in TERMINAL_WITHOUT_WORK | {"already_satisfied"}:
+            if blocker_status not in TERMINAL_WITHOUT_WORK:
                 open_children.add(parent)
 
     for finding_id, finding in findings.items():

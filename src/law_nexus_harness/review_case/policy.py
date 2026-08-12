@@ -54,7 +54,8 @@ _ACCEPTING_DISPOSITIONS = frozenset(
         DispositionStatus.ACCEPTED_AS_REQUIREMENT_CANDIDATE,
         DispositionStatus.ACCEPTED_AS_DECISION_CANDIDATE,
         DispositionStatus.ACCEPTED_AS_PROCESS_DEFECT,
-        DispositionStatus.ALREADY_SATISFIED,
+        # already_satisfied is terminal residual (docs/process satisfaction),
+        # not an accepting path that still requires execution/proof work.
     }
 )
 _TERMINAL_WITHOUT_WORK = frozenset(
@@ -63,6 +64,7 @@ _TERMINAL_WITHOUT_WORK = frozenset(
         DispositionStatus.DUPLICATE,
         DispositionStatus.SUPERSEDED,
         DispositionStatus.NOT_APPLICABLE,
+        DispositionStatus.ALREADY_SATISFIED,
     }
 )
 _PASSING_VERIFICATION = frozenset(
@@ -411,17 +413,13 @@ def _has_active_blocker_or_open_child(packet: ReviewPacket, finding_id: str) -> 
             blocker = findings.get(edge.to_id)
             if blocker is None:
                 return True
-            if blocker.disposition_status not in _TERMINAL_WITHOUT_WORK | {
-                DispositionStatus.ALREADY_SATISFIED
-            }:
+            if blocker.disposition_status not in _TERMINAL_WITHOUT_WORK:
                 return True
         if edge.type is RelationType.SPLITS_INTO:
             child = findings.get(edge.to_id)
             if child is None:
                 return True
-            if child.disposition_status in _TERMINAL_WITHOUT_WORK | {
-                DispositionStatus.ALREADY_SATISFIED
-            }:
+            if child.disposition_status in _TERMINAL_WITHOUT_WORK:
                 continue
             if (
                 child.execution_status is ExecutionStatus.IMPLEMENTED
@@ -1187,7 +1185,7 @@ def record_verification(
             ReviewCaseViolation(
                 "accepting_disposition_required",
                 f"findings[{current.finding_id}].disposition_status",
-                "verification requires accepted or already_satisfied disposition",
+                "verification requires an accepting disposition (not terminal residual)",
                 current.disposition_status.value,
             )
         )
@@ -1376,7 +1374,7 @@ def record_execution_link(packet: ReviewPacket, event: ReviewEvent) -> ReviewPac
             ReviewCaseViolation(
                 "accepting_disposition_required",
                 f"findings[{current.finding_id}].disposition_status",
-                "execution_linked requires accepted or already_satisfied disposition",
+                "execution_linked requires an accepting disposition (not terminal residual)",
                 current.disposition_status.value,
             )
         )

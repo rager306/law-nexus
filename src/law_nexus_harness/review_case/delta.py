@@ -29,7 +29,6 @@ _ACCEPTING = frozenset(
         DispositionStatus.ACCEPTED_AS_REQUIREMENT_CANDIDATE,
         DispositionStatus.ACCEPTED_AS_DECISION_CANDIDATE,
         DispositionStatus.ACCEPTED_AS_PROCESS_DEFECT,
-        DispositionStatus.ALREADY_SATISFIED,
     }
 )
 _DEFAULT_NON_CLAIMS = (

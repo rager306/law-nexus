@@ -428,6 +428,29 @@ def test_orphan_scoped_events_and_stale_without_prior_proof_fail() -> None:
     assert "prior_verification_required" in codes(exc.value)
 
 
+def test_already_satisfied_is_terminal_without_implementation() -> None:
+    """Docs/process satisfaction is terminal residual, not residual-open work."""
+    satisfied = record_disposition(
+        packet(),
+        disposition_event(disposition=DispositionStatus.ALREADY_SATISFIED),
+    )
+    finding = next(item for item in satisfied.findings if item.finding_id == "RC11-F01")
+    assert finding.disposition_status is DispositionStatus.ALREADY_SATISFIED
+    assert finding.execution_status is ExecutionStatus.NOT_REQUIRED
+    assert (
+        derive_finding_status(satisfied, "RC11-F01")
+        is DerivedStatus.TERMINAL_WITHOUT_IMPLEMENTATION
+    )
+
+
+def test_deferred_remains_open_residual_inventory() -> None:
+    deferred = record_disposition(
+        packet(),
+        disposition_event(disposition=DispositionStatus.DEFERRED),
+    )
+    assert derive_finding_status(deferred, "RC11-F01") is DerivedStatus.OPEN
+
+
 def test_terminal_status_and_stale_after_proof() -> None:
     rejected = record_disposition(
         packet(),
