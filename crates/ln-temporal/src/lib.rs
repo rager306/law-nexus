@@ -9,6 +9,10 @@
 //! (role-bound anchors, no silent substitution). It is **not** a complete
 //! temporal/interval/bitemporal algebra. Deferred algebra capabilities are
 //! inventoried as explicit non-claims via `TemporalAlgebraCapability`.
+//!
+//! RC11-F07 design boundary: `TextChangeEvent` and `NormativeEffectEvent` are
+//! named and separated as **design-only** kinds (`LegislativeEventKind`). Lexical
+//! text change must not prove legal effect; taxonomy presence is not CTV runtime.
 
 pub mod adapters;
 pub mod application;

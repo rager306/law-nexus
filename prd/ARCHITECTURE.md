@@ -74,7 +74,7 @@ references, not canon replacements). Full substance: `doc/adr/0016`..`0022`.
 L1 ADR-0016 [proposed]  FRBR/LRMoo structural identity   WEMI: Work/Expression/Manifestation/Item
              date + authority = identity canon (act numbers are non-unique)
    ▼
-L2 ADR-0017 [proposed]  Component Temporal Versioning ◄── temporal core
+L2 ADR-0017 [proposed]  Component Temporal Versioning ◄── temporal core; TextChange≠NormativeEffect design taxonomy (RC11-F07)
              CC/CTV/CLV (F1/F2); validity DERIVED from events (event-sourcing);
              macro/micro events (P9 consists of); F27∩E64 amendment typing;
              bitemporal valid/transaction time; fail-closed resolver (R070/R068).

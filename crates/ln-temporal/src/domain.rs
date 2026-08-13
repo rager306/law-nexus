@@ -267,6 +267,93 @@ pub fn reject_derived_interval_as_source_truth() -> TemporalCapabilityBoundary {
     classify_temporal_capability(TemporalAlgebraCapability::DerivedEffectiveWindowAsSourceTruth)
 }
 
+/// Closed design inventory of legislative event kinds that must remain separated
+/// (RC11-F07 / TSG-002 / ADR-0017).
+///
+/// These names are design taxonomy only. Presence of the enum does not implement
+/// CTV event sourcing, amendment micro-events, or legal-effect determination.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub enum LegislativeEventKind {
+    /// Provenance-backed structural/content change (text/structure), not legal effect.
+    TextChange,
+    /// Proven change in legal consequence; must not be inferred from text alone.
+    NormativeEffect,
+}
+
+impl LegislativeEventKind {
+    pub fn as_str(self) -> &'static str {
+        match self {
+            Self::TextChange => "text_change_event",
+            Self::NormativeEffect => "normative_effect_event",
+        }
+    }
+
+    pub fn all() -> [LegislativeEventKind; 2] {
+        [Self::TextChange, Self::NormativeEffect]
+    }
+}
+
+/// Classification of a legislative event kind relative to executable CTV runtime.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub enum LegislativeEventKindClass {
+    /// Named and separated in design; not an executable product event type yet.
+    DesignOnly,
+    /// Reserved for a future executable CTV/event runtime owner.
+    ExecutableRuntime,
+}
+
+impl LegislativeEventKindClass {
+    pub fn as_str(self) -> &'static str {
+        match self {
+            Self::DesignOnly => "design_only",
+            Self::ExecutableRuntime => "executable_runtime",
+        }
+    }
+}
+
+/// Design-boundary answer for TextChange vs NormativeEffect (RC11-F07).
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct LegislativeEventKindBoundary {
+    pub kind: LegislativeEventKind,
+    pub class: LegislativeEventKindClass,
+    pub non_claims: Vec<&'static str>,
+}
+
+const F07_NON_CLAIMS: &[&str] = &[
+    "TextChangeEvent and NormativeEffectEvent are not separated as executable product types",
+    "Lexical or amendment text does not prove legal effect",
+    "TextChangeEvent must not be collapsed into NormativeEffectEvent",
+    "Design taxonomy is not CTV runtime, amendment micro-event execution, or legal correctness",
+    "Lifecycle: event taxonomy design [proposed]; executable separation remains deferred",
+];
+
+/// Classify a legislative event kind against the ADR-0017/TSG-002 boundary.
+///
+/// Always returns `DesignOnly` for the closed inventory. This is intentional:
+/// naming the separation must not mint an executable CTV event runtime.
+pub fn classify_legislative_event_kind(kind: LegislativeEventKind) -> LegislativeEventKindBoundary {
+    LegislativeEventKindBoundary {
+        kind,
+        class: LegislativeEventKindClass::DesignOnly,
+        non_claims: F07_NON_CLAIMS.to_vec(),
+    }
+}
+
+/// Fail-closed rejection of treating a text/structure change as normative effect
+/// (RC11-F07 / TSG-002).
+pub fn reject_text_change_as_normative_effect() -> LegislativeEventKindBoundary {
+    let mut boundary = classify_legislative_event_kind(LegislativeEventKind::TextChange);
+    boundary.non_claims = [
+        F07_NON_CLAIMS,
+        &[
+            "TextChangeEvent does not prove NormativeEffectEvent",
+            "Hostile substitution of text change for legal effect is rejected",
+        ],
+    ]
+    .concat();
+    boundary
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

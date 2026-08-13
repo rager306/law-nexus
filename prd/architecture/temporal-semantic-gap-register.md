@@ -46,6 +46,15 @@ made the five-clock vs algebra boundary explicit in `ln-temporal`:
 - Design boundary inventory ≠ interval algebra implementation and ≠ legal-date
   validation.
 
+
+### RC11-F07 TextChange vs NormativeEffect (non-closure)
+
+- `LegislativeEventKind` + `classify_legislative_event_kind` name and separate
+  TextChangeEvent vs NormativeEffectEvent as **design-only** kinds in `ln-temporal`.
+- Lexical text change must not prove legal effect (`reject_text_change_as_normative_effect`).
+- TSG-002 remains **active** until executable CTV event types, hostile substitution
+  tests at runtime, and provenance-backed micro-events ship. Design taxonomy ≠ runtime.
+
 ## 3. Disposition rules
 
 A row may move to `closed-bounded` only when:

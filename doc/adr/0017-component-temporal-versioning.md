@@ -162,6 +162,11 @@ document snapshot; they do not reify the event as a queryable causal entity).
   but correction-history is a projection.
 - LRMoo/CIDOC-CRM typing is a compatibility projection; the Rust domain types
   need not carry CRM class identifiers at runtime.
+- **TextChangeEvent vs NormativeEffectEvent** (RC11-F07 / TSG-002): the kinds are
+  named and separated as a **design-only** taxonomy in `ln-temporal`
+  (`LegislativeEventKind`). Lexical or amendment text does not prove legal
+  effect. Design taxonomy inventory is not an executable CTV event runtime,
+  amendment micro-event engine, or legal-effect determination.
 
 ## References
 

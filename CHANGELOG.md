@@ -4,6 +4,12 @@ All notable changes to law-nexus are documented in this file.
 
 ## Unreleased — current architecture landing and repository map
 
+### TextChange vs NormativeEffect design taxonomy (RC11-F07)
+- Added `LegislativeEventKind` design inventory in `ln-temporal` separating
+  text/structure change from normative effect as design-only kinds.
+- Fail-closed helper rejects treating text change as legal effect; taxonomy
+  presence is not CTV runtime (TSG-002 remains open for executable events).
+
 ### Five-clock safety vs temporal algebra boundary (RC11-F06)
 - Added `TemporalAlgebraCapability` design inventory in `ln-temporal` that
   classifies interval/bitemporal/legal-date capabilities as deferred algebra.
