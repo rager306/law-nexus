@@ -4,6 +4,15 @@ All notable changes to law-nexus are documented in this file.
 
 ## Unreleased — current architecture landing and repository map
 
+### NormRule IR fail-closed design spine (M167 / RC11-F04a)
+- Added pure `NormRule` IR in `ln-applicability` (conditions, exceptions,
+  defeaters, temporal scope) with closed kind vocabularies and fail-closed
+  validation.
+- IR-aware `evaluate_with_norm_rule` records structural IR observation in the
+  explainable trace and still only abstains under ADR-0023 `[proposed]`.
+- Non-claims: IR is design-only; no Applicable/NotApplicable; F04b runtime
+  algebra remains deferred.
+
 ### Review Case multi-axis FSM residual inventory
 - RC11-F03 process-closeable residual advanced via human ledger ceremony:
   `execution_linked` + class-matched `verification_recorded` (process proof) →
