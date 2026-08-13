@@ -961,3 +961,22 @@ fn count_ast_subtree_nodes(node: &StructuralAstNode) -> usize {
         .map(count_ast_subtree_nodes)
         .sum::<usize>()
 }
+
+// ─── S_fold: edition_ast_at = membership fold + presence fold + filter ────────
+// Combines three L2 canons: composition (membership) + edition (presence) →
+// filtered StructuralAst. Not CTV text, not force.
+
+/// Fold membership at t, fold presence at t, filter composition by presence.
+/// A component absent from the Expression's presence set is pruned from
+/// the edition AST even if it has a membership edge.
+pub fn edition_ast_at(
+    membership_log: &VersionedMembershipLog,
+    presence_log: &ComponentInExpressionLog,
+    expression_id: &ExpressionId,
+    as_of_day: i64,
+) -> Result<StructuralAst, WriteSetError> {
+    let composition = ln_temporal::domain::fold_membership_at(membership_log, as_of_day)
+        .map_err(|_| WriteSetError::MissingIdentity)?;
+    let presence = fold_expression_presence(presence_log, expression_id, as_of_day)?;
+    filter_ast_to_expression(&composition, &presence)
+}

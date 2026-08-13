@@ -297,7 +297,7 @@ vocabulary:
 assembly_fsm:
   name: temporal-ast-assembly
   initial: S_ingest
-  current: S_commit
+  current: S_fold
   meaning: process model for XML to events to AST; not readiness O-state
   states:
     S_design:
@@ -341,7 +341,7 @@ assembly_fsm:
       meaning: one fixture replay-ok; not S6 and not Applicable
   non_claims:
     - assembly_fsm is not kb-ontology-readiness and not O3 exit
-    - current S_commit appends admitted drafts to VersionedMembershipLog with synthetic provenance; not S_fold, not O3 gold
+    - current S_fold unifies membership fold + presence fold + filter (edition_ast_at); not S_verify, not resolve_CTV, not O3 gold
 
 non_claims:
   - YAML catalog is not production graph schema

@@ -4,6 +4,14 @@ All notable changes to law-nexus are documented in this file.
 
 ## Unreleased — current architecture landing and repository map
 
+### S_fold: edition_ast_at unifies 3 L2 canons (KBO-R045)
+- `edition_ast_at(membership_log, presence_log, expression_id, day)` =
+  `fold_membership_at` + `fold_expression_presence` + `filter_ast_to_expression`.
+- Edition AST prunes components absent from the Expression's presence set.
+- 3 tests: absent component excluded; all-present equals composition;
+  earlier day hides future events.
+- assembly_fsm.current: S_commit → S_fold.
+
 ### Review 5: de Martim v5 comparison and gap map (L0)
 - `doc/review/review-14-08-2026.md` — systematic comparison with arXiv:2506.07853v5.
 - Findings R5-01..R5-12: resolve_CTV gap, edition_ast_at, oracle diff, macro/micro P9,
