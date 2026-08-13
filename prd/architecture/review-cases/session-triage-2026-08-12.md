@@ -200,3 +200,25 @@ Human actor `rager306`:
 
 RC12 residual after F18: **F05 product_open** (applicability runtime/NormRule);
 F19 deferred; F01/F03/F17 terminal.
+
+## Follow-up implementation ceremony (2026-08-13, RC12-F05)
+
+Human actor `rager306`:
+
+- RC12-F05: `ApplicabilityCapability` landed-vs-deferred inventory in
+  `ln-applicability` (abstention kernel / NormRule IR / predicate algebra landed;
+  positive Applicable, product CaseFacts, profile specials, real-case acceptance
+  deferred); implementation ceremony → **closed** (tested_revision `f9c3255`).
+- Non-claims: not product Applicable/NotApplicable; TSG-005/006 remain open.
+
+## RC11+RC12 residual board (end of wave)
+
+| Residual | Findings |
+|---|---|
+| terminal | RC11-F01; RC12-F01, F03, F17 |
+| closed | RC11 F03/F04/F04a/F04b/F06/F07/F08/F09; RC12 F05/F18 |
+| deferred_parked | RC11-F13; RC12-F19 |
+| product_open | *(none)* |
+
+Review process residual wave complete except intentional deferred items.
+Product readiness / legal validation still not claimed.
