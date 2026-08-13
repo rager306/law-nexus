@@ -733,6 +733,82 @@ def test_kb_ontology_assembly_fsm_colliding_with_readiness_is_warned(
     assert "O2_calendar_ordinal" in findings[0].observed
 
 
+def test_kb_ontology_assembly_fsm_stale_non_claim_is_warned(tmp_path: Path) -> None:
+    """non_claims referencing a state that is no longer current must be flagged."""
+    arch = tmp_path / "prd" / "architecture"
+    arch.mkdir(parents=True)
+    (arch / "kb-ontology-requirements.md").write_text(
+        "# KB\n\n## Non-authority\n\nnot production graph schema; not Applicable.\n\n"
+        "| ID | x |\n|---|---|\n" + "\n".join(f"| KBO-R{i:03d} | r |" for i in range(1, 12)) + "\n",
+        encoding="utf-8",
+    )
+    (arch / "kb-ontology-l1-l3-draft.md").write_text(
+        "# draft\n\nNon-authority: not production graph schema, not Applicable.\n",
+        encoding="utf-8",
+    )
+    (arch / "kb-ontology-projection-contract.json").write_text(
+        """{
+          "schema_version": "law-nexus-kb-ontology-projection/v1",
+          "authoritative": false,
+          "fsm_state": "O2_calendar_ordinal",
+          "node_kinds": [{"kind": "Work"}],
+          "forbidden_node_kinds": ["ApplicableDecision"]
+        }""",
+        encoding="utf-8",
+    )
+    (arch / "kb-ontology.yaml").write_text(
+        "schema_version: law-nexus-kb-ontology/v1\n"
+        "authoritative: false\n"
+        "fsm:\n  current: O2_calendar_ordinal\n  states:\n"
+        "    O2_calendar_ordinal:\n      name: calendar\n"
+        "vocabulary:\n  hierarchy_levels:\n    - statya\n"
+        "  node_kinds:\n    - Work\n"
+        "  forbidden_node_kinds:\n    - ApplicableDecision\n"
+        "assembly_fsm:\n  current: S_commit\n  states:\n"
+        "    S_commit:\n      name: append_events\n"
+        "  non_claims:\n"
+        "    - current S_propose drafts attach from YAML ranks\n"
+        "    - not S_fold, not O3 gold\n",
+        encoding="utf-8",
+    )
+    import yaml
+
+    from law_nexus_harness.governor import _kb_assembly_fsm_gaps
+
+    catalog = yaml.safe_load((arch / "kb-ontology.yaml").read_text(encoding="utf-8"))
+    gaps = _kb_assembly_fsm_gaps(catalog)
+    assert any("stale_state" in g for g in gaps), f"expected stale_state gap, got {gaps}"
+    assert any("S_propose" in g for g in gaps)
+
+
+def test_kb_ontology_assembly_fsm_non_claim_matches_current_passes(tmp_path: Path) -> None:
+    """non_claims referencing the actual current must not be flagged."""
+    arch = tmp_path / "prd" / "architecture"
+    arch.mkdir(parents=True)
+    (arch / "kb-ontology.yaml").write_text(
+        "schema_version: law-nexus-kb-ontology/v1\n"
+        "authoritative: false\n"
+        "fsm:\n  current: O2_calendar_ordinal\n  states:\n"
+        "    O2_calendar_ordinal:\n      name: calendar\n"
+        "vocabulary:\n  hierarchy_levels:\n    - statya\n"
+        "  node_kinds:\n    - Work\n"
+        "  forbidden_node_kinds:\n    - ApplicableDecision\n"
+        "assembly_fsm:\n  current: S_commit\n  states:\n"
+        "    S_commit:\n      name: append_events\n"
+        "  non_claims:\n"
+        "    - current S_commit appends admitted drafts\n"
+        "    - not S_fold, not O3 gold\n",
+        encoding="utf-8",
+    )
+    import yaml
+
+    from law_nexus_harness.governor import _kb_assembly_fsm_gaps
+
+    catalog = yaml.safe_load((arch / "kb-ontology.yaml").read_text(encoding="utf-8"))
+    gaps = _kb_assembly_fsm_gaps(catalog)
+    assert not any("stale_state" in g for g in gaps), f"unexpected stale gap: {gaps}"
+
+
 def test_kb_ontology_prefix_key_outside_aliases_is_warned(tmp_path: Path) -> None:
     arch = tmp_path / "prd" / "architecture"
     arch.mkdir(parents=True)

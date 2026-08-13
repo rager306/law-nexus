@@ -60,6 +60,7 @@ _DIRECTION_BLOCK_RE = re.compile(
     re.MULTILINE | re.DOTALL,
 )
 _DIRECTION_ROW_RE = re.compile(r"^(?P<key>[a-z_]+)=(?P<value>[a-z0-9-]+)$")
+_STALE_STATE_RE = re.compile(r"current\s+(S_\w+)")
 _DIRECTION_PATHS = (
     "prd/ARCHITECTURE.md",
     "prd/project-state/roadmap.md",
@@ -1678,7 +1679,12 @@ def _kb_closed_vocabulary_gaps(
 
 
 def _kb_assembly_fsm_gaps(catalog: dict[str, Any]) -> list[str]:
-    """Keep assembly process inventory off the readiness FSM current."""
+    """Keep assembly process inventory off the readiness FSM current.
+
+    Also verifies that ``non_claims`` referencing ``current S_XXX`` match the
+    declared ``current``. This prevents stale state descriptions when the
+    FSM advances but prose is not updated.
+    """
 
     assembly = catalog.get("assembly_fsm")
     if assembly is None:
@@ -1699,6 +1705,19 @@ def _kb_assembly_fsm_gaps(catalog: dict[str, Any]) -> list[str]:
         gaps.append("assembly_fsm:current_equals_readiness_current")
     if assembly_current and assembly_current in readiness_states:
         gaps.append(f"assembly_fsm:current_is_readiness_state={assembly_current!r}")
+
+    non_claims = assembly.get("non_claims") or []
+    if isinstance(non_claims, list) and assembly_current:
+        for claim in non_claims:
+            if not isinstance(claim, str):
+                continue
+            for match in _STALE_STATE_RE.finditer(claim):
+                referenced = match.group(1)
+                if referenced != assembly_current:
+                    gaps.append(
+                        f"assembly_fsm:non_claim_references_stale_state="
+                        f"{referenced!r}!=current={assembly_current!r}"
+                    )
     return gaps
 
 

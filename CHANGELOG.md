@@ -4,6 +4,12 @@ All notable changes to law-nexus are documented in this file.
 
 ## Unreleased — current architecture landing and repository map
 
+### Governor: stale assembly_fsm non-claim detector
+- `_kb_assembly_fsm_gaps` now flags non_claims referencing `current S_XXX`
+  when XXX is no longer the declared `assembly_fsm.current`.
+- Prevents stale prose when the FSM advances but documentation is not updated.
+- Tests: stale-reference warns; matching-reference passes.
+
 ### S_commit + S_fold: assemble AST from admitted drafts (KBO-R044)
 - `commit_admitted_to_log` appends Attach events with synthetic provenance.
 - `assemble_membership_ast` runs commit + `fold_membership_at` in one call.
