@@ -28,6 +28,7 @@ from law_nexus_harness.review_case import (
     ReviewCaseApplicationError,
     SourceKind,
     register_review_case,
+    review_case_inventory,
     review_case_status,
     validate_review_cases,
 )
@@ -122,8 +123,8 @@ def build_parser() -> argparse.ArgumentParser:
     review_case = subcommands.add_parser(
         "review-case",
         help=(
-            "Non-authoritative Review Case register/validate/status operations. "
-            "Does not promote authority or create GSD work."
+            "Non-authoritative Review Case register/validate/status/inventory "
+            "operations. Does not promote authority or create GSD work."
         ),
     )
     review_case.add_argument(
@@ -175,6 +176,14 @@ def build_parser() -> argparse.ArgumentParser:
         help="Report deterministic non-authoritative packet/finding status rollups.",
     )
     status_cmd.add_argument("--packet-id", default=None)
+    inventory_cmd = review_ops.add_parser(
+        "inventory",
+        help=(
+            "Project multi-axis FSM residual inventory (read-only stage continuity). "
+            "Does not record dispositions or create GSD work."
+        ),
+    )
+    inventory_cmd.add_argument("--packet-id", default=None)
     return parser
 
 
@@ -277,6 +286,10 @@ def _run_review_case(args: argparse.Namespace) -> int:
             return 0
         if args.review_case_command == "status":
             report = review_case_status(store, packet_id=args.packet_id, ledger=ledger)
+            sys.stdout.write(render_success_report(operation=operation, payload=report))
+            return 0
+        if args.review_case_command == "inventory":
+            report = review_case_inventory(store, packet_id=args.packet_id, ledger=ledger)
             sys.stdout.write(render_success_report(operation=operation, payload=report))
             return 0
         raise AssertionError(f"unhandled review-case command: {args.review_case_command}")

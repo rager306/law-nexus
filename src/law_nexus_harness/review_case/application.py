@@ -27,6 +27,11 @@ from law_nexus_harness.review_case.domain import (
     SourceKind,
     VerificationStatus,
 )
+from law_nexus_harness.review_case.fsm import (
+    FSM_SCHEMA_VERSION,
+    ReviewFsmInventory,
+    build_review_fsm_inventory,
+)
 from law_nexus_harness.review_case.policy import (
     apply_event,
     derive_finding_status,
@@ -478,6 +483,32 @@ def review_case_status(
         open_blockers=tuple(open_blockers),
         non_claims=_DEFAULT_NON_CLAIMS,
     )
+
+
+def review_case_inventory(
+    store: ReviewPacketStore,
+    packet_id: str | None = None,
+    ledger: EventLedger | None = None,
+) -> ReviewFsmInventory:
+    """Materialize packets and project multi-axis FSM residual inventory.
+
+    Read-only. Does not append events, promote authority, or create GSD work.
+    """
+    operation = "review_case_inventory"
+    packets = _materialize_store_packets(
+        store,
+        ledger,
+        packet_id=packet_id,
+        operation=operation,
+    )
+    inventory = build_review_fsm_inventory(tuple(packets))
+    if inventory.schema_version != FSM_SCHEMA_VERSION:
+        raise ReviewCaseApplicationError(
+            code="fsm_schema_mismatch",
+            operation=operation,
+            message="FSM inventory schema mismatch",
+        )
+    return inventory
 
 
 def _require_human_actor(*, actor_class: ActorClass, actor_id: str, operation: str) -> None:

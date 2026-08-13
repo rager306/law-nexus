@@ -4,6 +4,18 @@ All notable changes to law-nexus are documented in this file.
 
 ## Unreleased — current architecture landing and repository map
 
+### Review Case multi-axis FSM residual inventory
+- Added pure `review_case/fsm.py` observer over ledger-rematerialized packets:
+  residual class, operator stages S0-S6, `next_admissible_events`, and
+  `missing_for_next` (event-sourced multi-axis FSM projection, not a writable
+  status field).
+- Application use case `review_case_inventory` + CLI
+  `law-nexus-harness review-case inventory` emit schema
+  `review-case-fsm-inventory/v1` with non-claims; no disposition/GSD writes.
+- Dogfood on `RC-2026-08-11-001`: terminal F01, process_closeable F03,
+  blocked_graph F04/F04a/F04b, product_open F06-F09, deferred F13.
+- Tests: pure FSM unit coverage + live RC11 residual board + CLI inventory path.
+
 ### README current-state snapshot
 - Expanded the root README from an architecture pointer into a detailed
   cold-reader landing page while preserving `prd/ARCHITECTURE.md` + active ADRs

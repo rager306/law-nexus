@@ -107,16 +107,24 @@ Measured S02–S06 shape under `src/law_nexus_harness/review_case/` and Governor
   Application commands append only after pure apply succeeds, then rematerialize
   from durable ledger state. External IDs remain opaque references — no GSD or
   authority lifecycle is created or mirrored.
-- **CLI (S03/S05):** `law-nexus-harness review-case {register,validate,status}`
-  emits deterministic JSON reports. Exit `0` success, `1` validation/policy, `2`
-  tool/adapter. `validate`/`status` rematerialize base packets through the ledger;
-  `register` remains base-only. Commands do not record human disposition, promote
-  authority, or create GSD work.
+- **CLI (S03/S05/S07):** `law-nexus-harness review-case
+  {register,validate,status,inventory}` emits deterministic JSON reports. Exit
+  `0` success, `1` validation/policy, `2` tool/adapter. `validate`/`status`/
+  `inventory` rematerialize base packets through the ledger; `register` remains
+  base-only. Commands do not record human disposition, promote authority, or
+  create GSD work.
+- **FSM residual inventory (S07):** pure multi-axis projection under
+  `review_case/fsm.py` (hex/onion inner layer). Fold axes + graph + derived
+  status into `residual_class`, operator stage `S0-S6`, `next_admissible_events`,
+  and `missing_for_next`. Read-only AST-like observer over ledger replay — not a
+  writable packet field and not an auto-disposition engine. Schema
+  `review-case-fsm-inventory/v1`.
 - **Governor (S05):** check `review-case-integrity` hard-fails on authority
   laundering, source-hash mismatch, orphan promotion, class-mismatched closure,
   and ledger chain defects. Undispositioned open findings are advisory inventory
   only and never elevate overall Governor status to failure. Portable process
-  suite coverage includes CLI, schema, delta fixture, and Governor checks.
+  suite coverage includes CLI, schema, delta fixture, FSM inventory, and Governor
+  checks.
 - **Delta map (S06):** pure `build_review_delta_map` plus tracked
   `review-11-12-delta-map.md` inventory residual open findings and candidate
   cross-review relations. Confirmed closures remain empty without human events.
@@ -139,12 +147,28 @@ and accepted promotions are empty until human disposition events exist.
 Session recommendations (non-authoritative, ledger not written):
 [`session-triage-2026-08-12.md`](session-triage-2026-08-12.md)
 
+## FSM residual board (operator continuity)
+
+```text
+uv run python -m law_nexus_harness review-case inventory
+uv run python -m law_nexus_harness review-case inventory --packet-id RC-2026-08-11-001
+```
+
+Per finding the inventory surfaces four axes, derived status, residual class
+(`terminal_without_implementation` / `deferred_parked` / `process_closeable` /
+`product_open` / `blocked_graph` / ...), operator stage, enabled next ledger event
+types, and missing ceremony fields. RC11 dogfood residual (disposition wave
+done): F01 terminal; F03 process_closeable; F04/F04a/F04b blocked_graph; F06-F09
+product_open; F13 deferred_parked.
+
 ## Non-claims
 
 These **non-claims** are mandatory reading for any packet consumer:
 
 - Packets are **non-authoritative**. Green schema validation or CLI exit 0 is not
   semantic acceptance, product readiness, or legal correctness.
+- FSM inventory `next_admissible_events` are suggestions only. Emitting those
+  events still requires the human-gated application/ledger path.
 - S05 process gates prove structural integrity and clean-clone coverage only.
   They do **not** auto-disposition real reviews, accept findings, or create GSD
   work. Open findings remain advisory inventory.

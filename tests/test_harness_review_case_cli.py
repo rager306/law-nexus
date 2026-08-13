@@ -166,6 +166,34 @@ def test_source_hash_drift_is_validation_exit(tmp_path: Path, capsys) -> None:
     assert report["error"]["code"] == "source_hash_drift"
 
 
+def test_inventory_cli_projects_fsm_residual(tmp_path: Path, capsys) -> None:
+    root = _repo(tmp_path)
+    assert main(_register_args(root)) == 0
+    capsys.readouterr()
+    code = main(
+        [
+            "review-case",
+            "--root",
+            str(root),
+            "--packets-dir",
+            PACKETS_DIR,
+            "inventory",
+            "--packet-id",
+            "RC-CLI-001",
+        ]
+    )
+    report = json.loads(capsys.readouterr().out)
+    assert code == 0
+    assert report["status"] == "ok"
+    assert report["operation"] == "review-case.inventory"
+    assert report["authoritative"] is False
+    result = report["result"]
+    assert result["schema_version"] == "review-case-fsm-inventory/v1"
+    assert result["packet_count"] == 1
+    assert result["finding_count"] == 0 or isinstance(result["finding_count"], int)
+    assert "Does not create GSD milestones or product claims" in " ".join(result["non_claims"])
+
+
 def test_status_missing_packet_is_validation_exit(tmp_path: Path, capsys) -> None:
     root = _repo(tmp_path)
     code = main(
@@ -204,7 +232,7 @@ def test_cli_has_no_disposition_or_gsd_surface() -> None:
     )
     for token in forbidden_commands:
         assert token not in source
-    help_ops = {"register", "validate", "status"}
+    help_ops = {"register", "validate", "status", "inventory"}
     assert help_ops.issubset(set(source.split()))
 
 
