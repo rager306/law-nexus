@@ -75,6 +75,7 @@ L4–L7 and Applicable remain deferred. Structural Governor check only. Offline 
 `join_force_with_membership` + FRBR `mint_work`/`compare_work_identities` (O2; number ≠ Work; membership ≠ InForce). Pure write-set crate
 `ln-kb-ontology` (no I/O; not O3/O4). Versioned membership fold:
 `fold_membership_at` → `StructuralAst` (projection, not CTV text).
+CC-in-Expression: `fold_expression_presence` (no silent inherit).
 
 ## Temporal legal ontology — design spine (all `[proposed]`)
 

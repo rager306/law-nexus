@@ -1,6 +1,7 @@
 //! Pure L1–L3 write-set types. No store I/O.
 
-use ln_identity::domain::{FrbrExpression, FrbrWork};
+use ln_identity::domain::{ExpressionId, FrbrExpression, FrbrWork};
+use ln_temporal::domain::ComponentConceptId;
 use ln_temporal::domain::{
     ForceMembershipJoin, ForceStatusEvent, MembershipEdge, NormativeState, StructuralAst,
     StructuralAstNode,
@@ -37,6 +38,7 @@ pub enum GraphEdgeKind {
     MembershipParent,
     ForceStatusOf,
     ProvAmendingAct,
+    ComponentInExpression,
 }
 
 impl GraphEdgeKind {
@@ -46,6 +48,7 @@ impl GraphEdgeKind {
             Self::MembershipParent => "membership_parent",
             Self::ForceStatusOf => "force_status_of",
             Self::ProvAmendingAct => "prov_amending_act",
+            Self::ComponentInExpression => "component_in_expression",
         }
     }
 }
@@ -112,6 +115,8 @@ pub enum WriteSetError {
     ForbiddenKind(String),
     MissingIdentity,
     UnknownNotWritable,
+    PresenceConflict,
+    MissingProvenance,
 }
 
 impl std::fmt::Display for WriteSetError {
@@ -125,6 +130,18 @@ impl std::fmt::Display for WriteSetError {
                 write!(
                     formatter,
                     "Unknown force is a read outcome, not a ForceStatusEvent write"
+                )
+            }
+            Self::PresenceConflict => {
+                write!(
+                    formatter,
+                    "same-day include and exclude of one component in one expression"
+                )
+            }
+            Self::MissingProvenance => {
+                write!(
+                    formatter,
+                    "component-in-expression event requires provenance"
                 )
             }
         }
@@ -281,4 +298,221 @@ fn project_ast_node(set: &mut WriteSet, node: &StructuralAstNode) {
         );
         project_ast_node(set, child);
     }
+}
+
+// ─── Component-in-Expression presence (not CTV text, not force) ─────────────
+
+/// Include or exclude a ComponentConcept from a dated Expression.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub enum PresenceChangeKind {
+    Include,
+    Exclude,
+}
+
+impl PresenceChangeKind {
+    pub fn as_str(self) -> &'static str {
+        match self {
+            Self::Include => "include",
+            Self::Exclude => "exclude",
+        }
+    }
+}
+
+/// Provenance-gated presence change of a CC in one Expression.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct ComponentInExpressionEvent {
+    kind: PresenceChangeKind,
+    expression_id: ExpressionId,
+    component: ComponentConceptId,
+    effect_day: i64,
+    provenance: String,
+}
+
+impl ComponentInExpressionEvent {
+    pub fn try_new(
+        kind: PresenceChangeKind,
+        expression_id: ExpressionId,
+        component: ComponentConceptId,
+        effect_day: i64,
+        provenance: &str,
+    ) -> Result<Self, WriteSetError> {
+        if expression_id.as_str().is_empty() || component.as_str().is_empty() {
+            return Err(WriteSetError::MissingIdentity);
+        }
+        if provenance.is_empty() {
+            return Err(WriteSetError::MissingProvenance);
+        }
+        Ok(Self {
+            kind,
+            expression_id,
+            component,
+            effect_day,
+            provenance: provenance.to_owned(),
+        })
+    }
+
+    pub fn kind(&self) -> PresenceChangeKind {
+        self.kind
+    }
+
+    pub fn expression_id(&self) -> &ExpressionId {
+        &self.expression_id
+    }
+
+    pub fn component(&self) -> &ComponentConceptId {
+        &self.component
+    }
+
+    pub fn effect_day(&self) -> i64 {
+        self.effect_day
+    }
+}
+
+/// Append-only presence log (offline synthetic).
+#[derive(Debug, Clone, PartialEq, Eq, Default)]
+pub struct ComponentInExpressionLog {
+    events: Vec<ComponentInExpressionEvent>,
+}
+
+impl ComponentInExpressionLog {
+    pub fn empty() -> Self {
+        Self::default()
+    }
+
+    pub fn append(&mut self, event: ComponentInExpressionEvent) -> Result<(), WriteSetError> {
+        self.events.push(event);
+        Ok(())
+    }
+}
+
+/// Folded presence set of components in one Expression at effect_day t.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct ExpressionPresenceSet {
+    expression_id: String,
+    as_of_day: i64,
+    components: Vec<ComponentConceptId>,
+}
+
+impl ExpressionPresenceSet {
+    pub fn is_projection(&self) -> bool {
+        true
+    }
+
+    pub fn components(&self) -> &[ComponentConceptId] {
+        &self.components
+    }
+}
+
+const PRESENCE_NON_CLAIMS: &[&str] = &[
+    "Expression presence is a fold projection, not CTV text and not force",
+    "A later Expression does not silently inherit earlier presence",
+    "Tree membership does not imply component_in_expression",
+    "Not Manifestation, not applicability, not corpus reconstruction",
+];
+
+/// Fold include/exclude events for one Expression at t.
+/// Same-day include+exclude of one CC → PresenceConflict.
+pub fn fold_expression_presence(
+    log: &ComponentInExpressionLog,
+    expression_id: &ExpressionId,
+    as_of_day: i64,
+) -> Result<ExpressionPresenceSet, WriteSetError> {
+    let mut applicable: Vec<&ComponentInExpressionEvent> = log
+        .events
+        .iter()
+        .filter(|e| e.expression_id.as_str() == expression_id.as_str() && e.effect_day <= as_of_day)
+        .collect();
+    applicable.sort_by_key(|e| {
+        (
+            e.effect_day,
+            e.kind.as_str(),
+            e.component.as_str().to_owned(),
+        )
+    });
+
+    let mut present: Vec<String> = Vec::new();
+    let mut i = 0;
+    while i < applicable.len() {
+        let day = applicable[i].effect_day;
+        let mut j = i;
+        while j < applicable.len() && applicable[j].effect_day == day {
+            j += 1;
+        }
+        let slice = &applicable[i..j];
+
+        let mut seen: Vec<(String, PresenceChangeKind)> = Vec::new();
+        for ev in slice.iter() {
+            let id = ev.component.as_str().to_owned();
+            if let Some((_, prior)) = seen.iter().find(|(c, _)| c == &id) {
+                if *prior != ev.kind {
+                    return Err(WriteSetError::PresenceConflict);
+                }
+            } else {
+                seen.push((id, ev.kind));
+            }
+        }
+
+        for ev in slice {
+            let id = ev.component.as_str().to_owned();
+            match ev.kind {
+                PresenceChangeKind::Include => {
+                    if !present.contains(&id) {
+                        present.push(id);
+                    }
+                }
+                PresenceChangeKind::Exclude => {
+                    present.retain(|c| c != &id);
+                }
+            }
+        }
+        i = j;
+    }
+
+    present.sort();
+    let components = present
+        .into_iter()
+        .map(|id| ComponentConceptId::parse(&id).expect("folded ids are valid"))
+        .collect();
+    let _ = PRESENCE_NON_CLAIMS;
+    Ok(ExpressionPresenceSet {
+        expression_id: expression_id.as_str().to_owned(),
+        as_of_day,
+        components,
+    })
+}
+
+pub fn expression_contains(set: &ExpressionPresenceSet, component: &ComponentConceptId) -> bool {
+    set.components
+        .iter()
+        .any(|c| c.as_str() == component.as_str())
+}
+
+/// Keep StructuralAst nodes that are present in the Expression (or have present descendants).
+pub fn filter_ast_to_expression(
+    ast: &StructuralAst,
+    presence: &ExpressionPresenceSet,
+) -> Result<StructuralAst, WriteSetError> {
+    let refs: Vec<&ComponentConceptId> = presence.components.iter().collect();
+    Ok(ast.filter_to_components(&refs))
+}
+
+/// Project presence as component_in_expression edges. No I/O.
+pub fn project_expression_presence(
+    expression: &FrbrExpression,
+    presence: &ExpressionPresenceSet,
+) -> Result<WriteSet, WriteSetError> {
+    if expression.expression_id.as_str().is_empty() {
+        return Err(WriteSetError::MissingIdentity);
+    }
+    let mut set = WriteSet::empty();
+    set.push_node(GraphNodeKind::Expression, expression.expression_id.as_str());
+    for component in &presence.components {
+        set.push_node(GraphNodeKind::ComponentConcept, component.as_str());
+        set.push_edge(
+            GraphEdgeKind::ComponentInExpression,
+            component.as_str(),
+            expression.expression_id.as_str(),
+        );
+    }
+    Ok(set)
 }

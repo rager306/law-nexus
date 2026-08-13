@@ -89,6 +89,10 @@ The four levels below are WEMI, LRMoo-compatible.
 
 ## Non-claims
 
+- `component_in_expression` / `fold_expression_presence` is **presence only**:
+  not CTV text, not force, not decode HierarchyNode→CC, not calendar legal_act_effect.
+  Later Expression does not silently inherit earlier presence.
+
 - Offline `mint_work`/`compare_work_identities` is **structural L1 only**: not C12
   merge, not ForceStatus, not Applicability, not ELI global resolution.
 - Same act number with divergent authority or enactment date is **Conflict**, never

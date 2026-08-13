@@ -4,6 +4,11 @@ All notable changes to law-nexus are documented in this file.
 
 ## Unreleased — current architecture landing and repository map
 
+### Component-in-Expression presence (KBO-R023)
+- Added include/exclude events and `fold_expression_presence` in `ln-kb-ontology`.
+- Later Expression does not inherit silently; same-day include+exclude conflicts.
+- `filter_ast_to_expression` keeps only present CC nodes. Not CTV text or decode lift.
+
 ### Versioned membership fold (TSG-013 / KBO-R022)
 - Added `VersionedMembershipLog` and `fold_membership_at` → `StructuralAst`
   in `ln-temporal` (projection at effect_day; same-day two-parent → Conflict).

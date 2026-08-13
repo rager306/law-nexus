@@ -90,6 +90,9 @@ made the five-clock vs algebra boundary explicit in `ln-temporal`:
 - TSG-003 and TSG-013 remain **active** until representative amendment fixtures,
   Expression binding, calendar `legal_act_effect`, and human scope acceptance land.
   Fold S3 ≠ full CTV product.
+- Offline **`fold_expression_presence`** binds CC to a dated Expression via
+  include/exclude events (KBO-R023). A later Expression does not inherit silently.
+  Still not CTV text, not HierarchyNode→CC lift, not corpus reconstruction.
 
 
 ### RC12-F05 applicability capability inventory (non-closure)

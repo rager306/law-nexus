@@ -1,7 +1,7 @@
 # KB Ontology Draft — L1–L3 Projection Contract
 
 **Lifecycle:** `[proposed]` design inventory  
-**FSM state:** O2 + write-set + fold (see `kb-ontology-requirements.md`)  
+**FSM state:** O2 + expression presence (see `kb-ontology-requirements.md`)  
 **Non-authority:** not production graph schema, not RuVector validation, not
 legal ontology completeness, not Applicable/practice/risk product types.
 
@@ -45,7 +45,7 @@ Graph/Vector ports (ADR-0014) ── adapters ── RuVector/redb/RVF
 |---|---|---|
 | `expression_of` | Expression → Work | edition of abstract act |
 | `manifestation_of` | Manifestation → Expression | format instance |
-| `component_in_expression` | ComponentConcept → Expression | structural placement (draft; cardinality open) |
+| `component_in_expression` | ComponentConcept → Expression | event-sourced include/exclude; later Expression does not inherit |
 | `membership_parent` | ComponentConcept → ComponentConcept | parent of child |
 | `industrial_op_subject` | StructuralIndustrialEvent → ComponentConcept | subject of op |
 | `industrial_op_target` | StructuralIndustrialEvent → ComponentConcept | target of op |
@@ -105,6 +105,7 @@ ON missing force evidence at query time:
 | `ln-kb-ontology::project_*` | typed write-set; no I/O; forbidden kinds rejected |
 | `fold_membership_at` / `StructuralAst` | versioned membership projection @ t; not canon |
 | `project_structural_ast` | write-set from folded tree; still no I/O |
+| `fold_expression_presence` / `filter_ast_to_expression` | CC in Expression @ t; not CTV text |
 
 ## 9. Explicit non-claims
 

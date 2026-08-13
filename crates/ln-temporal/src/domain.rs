@@ -1392,6 +1392,37 @@ impl StructuralAst {
     pub fn non_claims(&self) -> &[&'static str] {
         &self.non_claims
     }
+
+    /// Keep nodes that are present or have a present descendant. Projection only.
+    pub fn filter_to_components(&self, present: &[&ComponentConceptId]) -> Self {
+        let ids: Vec<&str> = present.iter().map(|c| c.as_str()).collect();
+        let roots: Vec<StructuralAstNode> = self
+            .roots
+            .iter()
+            .filter_map(|root| filter_node(root, &ids))
+            .collect();
+        Self {
+            as_of_day: self.as_of_day,
+            roots,
+            non_claims: self.non_claims.clone(),
+        }
+    }
+}
+
+fn filter_node(node: &StructuralAstNode, present: &[&str]) -> Option<StructuralAstNode> {
+    let children: Vec<StructuralAstNode> = node
+        .children()
+        .iter()
+        .filter_map(|child| filter_node(child, present))
+        .collect();
+    let keep = present.contains(&node.component().as_str()) || !children.is_empty();
+    if !keep {
+        return None;
+    }
+    Some(StructuralAstNode {
+        component: node.component().clone(),
+        children,
+    })
 }
 
 const FOLD_NON_CLAIMS: &[&str] = &[

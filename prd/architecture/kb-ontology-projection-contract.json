@@ -1,7 +1,7 @@
 {
   "schema_version": "law-nexus-kb-ontology-projection/v1",
   "lifecycle": "[proposed]",
-  "fsm_state": "O2_fold",
+  "fsm_state": "O2_expression_presence",
   "authoritative": false,
   "boundary": "Draft L1-L3 graph projection inventory only. Not production graph schema, not RuVector validation, not legal correctness, not applicability, not ontology conformance.",
   "non_authority_fragments": [
@@ -154,7 +154,8 @@
     "KBO-R017",
     "KBO-R020",
     "KBO-R021",
-    "KBO-R022"
+    "KBO-R022",
+    "KBO-R023"
   ],
   "related_tsg": [
     "TSG-003",
@@ -180,7 +181,7 @@
     "KBO-R011",
     "KBO-R012"
   ],
-  "notes": "Versioned membership fold is a projection (StructuralAst), not canon. Write-set can project the folded tree. Not CTV text, not Expression bind, not O3/O4.",
+  "notes": "component_in_expression is event-sourced presence, not CTV text. Later Expression does not inherit. Filter AST by presence set. Not decode lift/O3/O4.",
   "write_set_crate": "ln-kb-ontology",
   "write_set_fns": [
     "project_work",

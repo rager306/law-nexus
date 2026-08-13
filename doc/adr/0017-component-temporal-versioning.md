@@ -154,6 +154,10 @@ document snapshot; they do not reify the event as a queryable causal entity).
 
 ## Non-claims
 
+- `component_in_expression` / `fold_expression_presence` is **presence only**:
+  not CTV text, not force, not decode HierarchyNode→CC, not calendar legal_act_effect.
+  Later Expression does not silently inherit earlier presence.
+
 - `fold_membership_at` / `StructuralAst` (TSG-013) is a **projection** of versioned
   membership events at a synthetic effect day. It is not CTV text resolution, not
   Expression binding, not calendar `legal_act_effect`, and not whole-act text compile.

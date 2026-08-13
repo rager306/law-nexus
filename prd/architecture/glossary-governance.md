@@ -128,3 +128,5 @@ citation safety or lifecycle readiness.
 <!-- ln-kb-ontology write-set companion -->
 
 <!-- fold_membership_at StructuralAst companion -->
+
+<!-- fold_expression_presence KBO-R023 companion -->

@@ -35,9 +35,9 @@ O0 inventory_open
   → O6 closed_bounded | closed_validated   (corpus + non-claims)
 ```
 
-**Current state:** **O2 + write-set + fold** — identity/join offline, pure write-set,
-and versioned membership `fold_membership_at` → `StructuralAst` (projection, not canon).
-No store I/O (not O4). Not CTV text, not Expression binding.  
+**Current state:** **O2 + fold + expression presence** — membership fold plus
+`component_in_expression` include/exclude (later Expression does not inherit silently).
+Not CTV text, not decode lift, not O3/O4.  
 S4 fixtures (KBO-R013), Manifestation/Item, and port materialization remain open.  
 **Exit O1 / O2 spine:** done. **Write-set (toward O4):** landed, I/O-free.  
 **Not O3/O4:** no representative fixture edges, no graph-store adapter writes.  
@@ -79,6 +79,7 @@ S4 fixtures (KBO-R013), Manifestation/Item, and port materialization remain open
 | KBO-R020 | non-claim | KB ontology docs + Governor check are structural inventory only; not TSG S6 | D156 pattern | **accepted-draft** |
 | KBO-R021 | core-contract | Pure write-set projection (domain → typed graph ops) performs no I/O and rejects forbidden L4–L7 kinds | `ln-kb-ontology`; this wave | **accepted-draft** |
 | KBO-R022 | core-contract | StructuralAst is a fold projection of versioned membership events at effect_day t; not stored document AST, not CTV text | `fold_membership_at`; TSG-013 | **accepted-draft** |
+| KBO-R023 | core-contract | ComponentConcept presence in a dated Expression is event-sourced (include/exclude); later Expression does not inherit silently | `fold_expression_presence`; ADR-0016/17 | **accepted-draft** |
 
 ## 5. Functional preparation backlog (not implemented this wave)
 

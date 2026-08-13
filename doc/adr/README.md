@@ -60,3 +60,5 @@ ADR-0001, ADR-0002 and ADR-0003 governed the retired Python product. ADR-0006
 was a rejected PyO3 coexistence draft. Their local vault is gitignored,
 untracked and excluded from active conformance/indexing. Historical IDs may be
 named on living surfaces only with an explicit retired/archive qualifier.
+
+<!-- fold_expression_presence KBO-R023 companion -->
