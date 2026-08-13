@@ -4,6 +4,13 @@ fn binary() -> &'static str {
     env!("CARGO_BIN_EXE_law-nexus-inspect")
 }
 
+fn yaml_binding_count_for_needle(needle: &str) -> usize {
+    let yaml = include_str!("../../../prd/architecture/kb-hierarchy-registry.yaml");
+    yaml.lines()
+        .filter(|line| line.contains(&format!("path_needle: {needle}")))
+        .count()
+}
+
 fn consultant_fixture() -> String {
     [env!("CARGO_MANIFEST_DIR"), "..", "..", "law-source", "consultant",
      "federalnyi-zakon-ot-22-12-2020-n-435-fz-red-ot-25-12-2023-o-publichno-pravovoi-kompanii-edinyi-zakazchik-v-sfere-stroitelstva-i-o-vnese--d71bf702.xml"]
@@ -59,19 +66,20 @@ fn inspect_real_consultant_fixture_reports_bounded_summary() {
         "expected 167 blocks; got: {}",
         stdout
     );
+    let bound = yaml_binding_count_for_needle("n-435-fz");
     assert!(
-        stdout.contains("\"hierarchy_markers\":22"),
-        "expected 22 hierarchy markers; got: {}",
+        stdout.contains(&format!("\"hierarchy_markers\":{bound}")),
+        "marker count must match YAML bindings ({bound}); got: {}",
         stdout
     );
     assert!(
-        stdout.contains("\"hierarchy_lifts_unknown\":22"),
-        "empty registry must lift every marker as Unknown; got: {}",
+        stdout.contains("\"hierarchy_lifts_unknown\":0"),
+        "scoped 435-FZ registry must bind markers; got: {}",
         stdout
     );
     assert!(
-        stdout.contains("\"hierarchy_lifts_bound\":0"),
-        "empty registry must not bind CC; got: {}",
+        stdout.contains(&format!("\"hierarchy_lifts_bound\":{bound}")),
+        "scoped 435-FZ registry must bind every listed marker ({bound}); got: {}",
         stdout
     );
     assert!(
@@ -86,12 +94,17 @@ fn inspect_real_consultant_fixture_reports_bounded_summary() {
     );
     assert!(
         stdout.contains("\"membership_proposals\":0"),
-        "empty registry must propose no attach; got: {}",
+        "articles-only 435-FZ is a forest: no attach drafts; got: {}",
         stdout
     );
     assert!(
-        stdout.contains("\"membership_quarantined\":22"),
-        "empty registry must quarantine every marker; got: {}",
+        stdout.contains("\"membership_quarantined\":0"),
+        "bound same-level markers must not quarantine; got: {}",
+        stdout
+    );
+    assert!(
+        stdout.contains(&format!("\"membership_forest_roots\":{bound}")),
+        "each bound article is a forest root ({bound}); got: {}",
         stdout
     );
     assert!(

@@ -1,0 +1,37 @@
+# Explicit marker → ComponentConcept bindings (KBO-R013 / R041 companion)
+#
+# Lifecycle: [proposed]
+# Non-authority: not legal identity, not CTV text, not 44-FZ history,
+# not InForce, not Applicable. Bindings are human-admitted fixture keys.
+# A path that matches no needle gets an empty map (all markers Unknown).
+
+schema_version: law-nexus-kb-hierarchy-registry/v1
+lifecycle: "[proposed]"
+authoritative: false
+boundary: >
+  Scoped fixture registry only. Number+level still does not mint a CC
+  outside this table. Same-level articles form a forest, not a chapter tree.
+
+bindings:
+  - {path_needle: n-435-fz, level: statya, number: "1", cc: cc:435fz:statya-1}
+  - {path_needle: n-435-fz, level: statya, number: "2", cc: cc:435fz:statya-2}
+  - {path_needle: n-435-fz, level: statya, number: "3", cc: cc:435fz:statya-3}
+  - {path_needle: n-435-fz, level: statya, number: "4", cc: cc:435fz:statya-4}
+  - {path_needle: n-435-fz, level: statya, number: "5", cc: cc:435fz:statya-5}
+  - {path_needle: n-435-fz, level: statya, number: "6", cc: cc:435fz:statya-6}
+  - {path_needle: n-435-fz, level: statya, number: "7", cc: cc:435fz:statya-7}
+  - {path_needle: n-435-fz, level: statya, number: "8", cc: cc:435fz:statya-8}
+  - {path_needle: n-435-fz, level: statya, number: "9", cc: cc:435fz:statya-9}
+  - {path_needle: n-435-fz, level: statya, number: "10", cc: cc:435fz:statya-10}
+  - {path_needle: n-435-fz, level: statya, number: "11", cc: cc:435fz:statya-11}
+  - {path_needle: n-435-fz, level: statya, number: "12", cc: cc:435fz:statya-12}
+  - {path_needle: n-435-fz, level: statya, number: "13", cc: cc:435fz:statya-13}
+  - {path_needle: n-435-fz, level: statya, number: "14", cc: cc:435fz:statya-14}
+  - {path_needle: n-435-fz, level: statya, number: "15", cc: cc:435fz:statya-15}
+  - {path_needle: n-435-fz, level: statya, number: "16", cc: cc:435fz:statya-16}
+  - {path_needle: n-435-fz, level: statya, number: "17", cc: cc:435fz:statya-17}
+  - {path_needle: n-435-fz, level: statya, number: "18", cc: cc:435fz:statya-18}
+  - {path_needle: n-435-fz, level: statya, number: "19", cc: cc:435fz:statya-19}
+  - {path_needle: n-435-fz, level: statya, number: "20", cc: cc:435fz:statya-20}
+  - {path_needle: n-435-fz, level: statya, number: "21", cc: cc:435fz:statya-21}
+  - {path_needle: n-435-fz, level: statya, number: "22", cc: cc:435fz:statya-22}

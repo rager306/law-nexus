@@ -146,6 +146,7 @@ Governor check `kb-ontology-draft` is structural only.
 | 2026-08-13 | KBO-R032–R040 | Review 4 assembly vocabulary | AmendmentEvent facets, EditionOracle, corpus roles, assembly_fsm; readiness FSM unchanged |
 | 2026-08-13 | KBO-R034 | assembly `S_ingest` | YAML `corpus_role_signals` classify path/title; Unknown if unmatched |
 | 2026-08-13 | KBO-R041 | assembly `S_propose` | stack propose from YAML ranks; inspect 435-ФЗ 0 attach / 22 quarantine |
+| 2026-08-13 | KBO-R042 | scoped YAML registry | 435-FZ statya 1–22 Bound by path needle; forest roots, 0 attach |
 
 ## 6. Operator cycle (capability-only)
 

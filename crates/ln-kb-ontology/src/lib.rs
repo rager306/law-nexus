@@ -5,3 +5,4 @@
 
 pub mod catalog;
 pub mod domain;
+pub mod registry;

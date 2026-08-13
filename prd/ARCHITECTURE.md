@@ -86,8 +86,10 @@ Decode prefixes: YAML `decode_marker_prefixes` via `DecodePrefixCatalog` (KBO-R0
 Calendar ordinal: YAML `calendar` via `legal_act_effect_day_to_ordinal` (KBO-R031).
 Review 4 assembly inventory `[proposed]`: `doc/review/review-13-08-2026.md` (L0);
 YAML `assembly_fsm` current `S_propose` drafts attach edges from YAML ranks
-(KBO-R041). Empty registry quarantines. Readiness FSM stays `O2_calendar_ordinal`.
-Not membership log write, not `resolve_CTV`, not Applicable.
+(KBO-R041). Scoped registry `kb-hierarchy-registry.yaml` (KBO-R042) binds 435-FZ
+articles by path needle; unmatched paths stay Unknown. Same-level articles are a
+forest (0 attach). Readiness FSM stays `O2_calendar_ordinal`. Not membership log
+write, not `resolve_CTV`, not Applicable.
 
 ## Temporal legal ontology — design spine (all `[proposed]`)
 

@@ -22,6 +22,7 @@ use ln_kb_ontology::domain::{
     map_hierarchy_marker, marker_from_decode_token, propose_membership_from_markers, HierarchyMap,
     HierarchyMapOutcome, HierarchyMarker, WriteSetError,
 };
+use ln_kb_ontology::registry::load_hierarchy_map_for_path;
 use ln_query::knowql::{execute, KnowQLOp, KnowQLResult, ValidatedOp};
 use ln_storage::{
     adapters::in_memory::{InMemoryGraphStore, InMemoryVectorStore},
@@ -153,7 +154,7 @@ fn inspect(path: &str) {
     let mut hierarchy_lifts_unknown = 0usize;
     let mut hierarchy_lifts_bound = 0usize;
     let mut hierarchy_lifts_rejected = 0usize;
-    let hierarchy_map = HierarchyMap::empty();
+    let hierarchy_map = load_hierarchy_map_for_path(path).unwrap_or_else(|_| HierarchyMap::empty());
     let mut hierarchy_markers_seq: Vec<HierarchyMarker> = Vec::new();
     let mut reference_mentions = 0usize;
     let mut temporal_phrases = 0usize;

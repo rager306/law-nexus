@@ -173,7 +173,8 @@
     "KBO-R038",
     "KBO-R039",
     "KBO-R040",
-    "KBO-R041"
+    "KBO-R041",
+    "KBO-R042"
   ],
   "related_tsg": [
     "TSG-003",
@@ -188,9 +189,7 @@
     "ADR-0017",
     "ADR-0018"
   ],
-  "open_dependencies": [
-    "KBO-R013"
-  ],
+  "open_dependencies": [],
   "deferred": [
     "KBO-R014",
     "KBO-R015",
@@ -198,7 +197,8 @@
   ],
   "partial_dependencies": [
     "KBO-R011",
-    "KBO-R012"
+    "KBO-R012",
+    "KBO-R013"
   ],
   "notes": "YAML catalog owns FSM, kinds, aliases, prefixes, and civil-day calendar bounds. ISO legal_act_effect_day maps to a synthetic ordinal; Feb 30 fails closed (KBO-R031). Review 4 assembly vocabulary (KBO-R032-R040) lives in YAML tables and assembly_fsm; readiness fsm.current stays O2_calendar_ordinal. Not store types, not resolve_CTV.",
   "write_set_crate": "ln-kb-ontology",

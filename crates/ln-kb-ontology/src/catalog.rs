@@ -10,6 +10,12 @@ pub struct CatalogError {
     reason: &'static str,
 }
 
+impl CatalogError {
+    pub(crate) fn new(reason: &'static str) -> Self {
+        Self { reason }
+    }
+}
+
 impl fmt::Display for CatalogError {
     fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(formatter, "ontology catalog: {}", self.reason)
@@ -200,7 +206,7 @@ impl OntologyCatalog {
     }
 }
 
-fn strip_comment(line: &str) -> &str {
+pub(crate) fn strip_comment(line: &str) -> &str {
     match line.find('#') {
         Some(index) => line[..index].trim_end(),
         None => line.trim_end(),
@@ -414,9 +420,25 @@ fn parse_transitions(text: &str) -> Result<Vec<FsmTransition>, CatalogError> {
     Ok(edges)
 }
 
-fn flow_field(line: &str, key: &str) -> Option<String> {
+pub(crate) fn flow_field(line: &str, key: &str) -> Option<String> {
     let token = format!("{key}:");
-    let rest = line.split(&token).nth(1)?.trim_start();
+    let bytes = line.as_bytes();
+    let mut offset = 0usize;
+    let start = loop {
+        let rest = line.get(offset..)?;
+        let rel = rest.find(&token)?;
+        let abs = offset + rel;
+        let boundary = abs == 0
+            || matches!(
+                bytes.get(abs.saturating_sub(1)).copied(),
+                Some(b' ' | b',' | b'{' | b'-' | b'\t')
+            );
+        if boundary {
+            break abs + token.len();
+        }
+        offset = abs + token.len();
+    };
+    let rest = line.get(start..)?.trim_start();
     if let Some(quoted) = rest.strip_prefix('"') {
         let end = quoted.find('"')?;
         return Some(quoted[..end].to_owned());

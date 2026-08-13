@@ -72,7 +72,7 @@ S4 fixtures (KBO-R013), Manifestation/Item, and port materialization remain open
 | KBO-R010 | non-claim | RuVector / redb / RVF types are infrastructure, not domain law | ADR-0014 | **accepted-draft** |
 | KBO-R011 | dependency | Stable FRBR Work/Expression runtime identity (ADR-0016 ≥ S2) before freezing identity node cardinality | `mint_work`/`compare_work_identities` S2; number≠Work | **partial** |
 | KBO-R012 | dependency | Force↔CTV join by component offline before multi-store materialization of status+text | `join_force_with_membership` offline; membership≠InForce | **partial** |
-| KBO-R013 | dependency | Representative amendment / membership fixtures (S4 partial) before corpus edge claims | TSG-003/013 | **open** |
+| KBO-R013 | dependency | Representative amendment / membership fixtures (S4 partial) before corpus edge claims | TSG-003/013; KBO-R042 scoped 435-FZ article forest | **partial** |
 | KBO-R014 | deferred | L4 hierarchy/conflict, L5 practice, L6 transitional/risk, L7 profiles as **core store types** | ADR-0019..0022; TSG-007..010 | **deferred** |
 | KBO-R015 | deferred | Production graph schema, generated-Cypher safety, GraphRAG ontology quality | GATE-GENERATED-CYPHER-SAFETY; TSG-016 | **deferred** |
 | KBO-R016 | deferred | RusLegalCore / AKML / LKIF / BFO as canon or completeness claim | DATA-RUSLEGALCORE-*; EVID-RESEARCH-ONTOLOGY-* quarantined | **deferred** |
@@ -101,6 +101,7 @@ S4 fixtures (KBO-R013), Manifestation/Item, and port materialization remain open
 | KBO-R039 | fail-closed | Provider title «ред. от» and «вступ. в силу с» name different clocks; collapsing them is hostile | Review 4; ADR-0009 §5 | **accepted-draft** |
 | KBO-R040 | non-claim | Coverage / Unknown / Conflict are first-class assembly outcomes, not bugs to smooth | Review 4 §4 | **accepted-draft** |
 | KBO-R041 | core-contract | Document-order markers propose attach drafts via YAML hierarchy ranks; Unknown skips the stack and does not mint CC; proposals do not append the membership log | Review 4 P6; assembly S_propose | **accepted-draft** |
+| KBO-R042 | core-contract | Marker→CC bindings live in YAML (`kb-hierarchy-registry.yaml`); a path matches by needle; unmatched paths stay empty; same-level articles are a forest (0 attach) | Review 4 R3-02; KBO-R013 partial | **accepted-draft** |
 
 ## 5. Functional preparation backlog (not implemented this wave)
 

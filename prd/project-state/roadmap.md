@@ -255,3 +255,5 @@ This roadmap does not prove Rust product readiness, parser completeness, Russian
 <!-- assembly S_ingest corpus-role classifier KBO-R034 companion -->
 
 <!-- assembly S_propose stack attach drafts KBO-R041 companion -->
+
+<!-- scoped YAML hierarchy registry KBO-R042 companion -->

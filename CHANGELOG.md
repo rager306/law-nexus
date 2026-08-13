@@ -4,6 +4,11 @@ All notable changes to law-nexus are documented in this file.
 
 ## Unreleased — current architecture landing and repository map
 
+### Scoped YAML hierarchy registry (KBO-R042)
+- `kb-hierarchy-registry.yaml` binds 435-FZ `statya` 1–22 by path needle.
+- Unmatched paths stay empty. Articles-only act is a forest: 22 Bound, 0 attach.
+- CLI counts come from YAML binding length, not a hardcoded 22.
+
 ### Stack membership propose (assembly S_propose)
 - `propose_membership_from_markers` drafts attach edges from YAML level ranks.
 - Unknown markers quarantine; empty registry proposes nothing.
