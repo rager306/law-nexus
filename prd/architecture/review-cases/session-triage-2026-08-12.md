@@ -104,3 +104,14 @@ Human actor `rager306` recorded RC11-F03 continuity events on the packets store:
 - derived residual: **closed** (process defect only; product gaps F04–F09 remain open)
 
 Non-claims unchanged: not product readiness, legal correctness, ontology/applicability validation.
+
+## Follow-up design ceremony (2026-08-13)
+
+Human actor `rager306` recorded RC11-F04a continuity after NormRule IR landed (`1403294`):
+
+- graph semantics: split-parent `blocked_by` no longer freezes child work (mutual deadlock fix)
+- `execution_linked` → `implemented` (opaque refs to `ln-applicability` NormRule IR)
+- `verification_recorded` → `passed_bounded` with `proof_class=design`
+- derived residual: **closed** for F04a; parent F04 remains blocked on open sibling F04b; F04b product_open
+
+Non-claims: design proof only; not F04b runtime algebra, Applicable/NotApplicable, or product readiness.

@@ -280,11 +280,16 @@ def test_parent_split_children_blocked_graph() -> None:
         )
     parent_snap = build_finding_fsm_snapshot(material, "F-P")
     child_snap = build_finding_fsm_snapshot(material, "F-A")
+    # Parent stays blocked on open split children.
     assert parent_snap.residual_class == ResidualClass.BLOCKED_GRAPH.value
-    assert child_snap.residual_class == ResidualClass.BLOCKED_GRAPH.value
     assert "F-A" in parent_snap.graph.open_children
-    assert "F-P" in child_snap.graph.active_blockers
     assert derive_finding_status(material, "F-P").value == "blocked"
+    # Child blocked_by split parent is informational only — child can advance.
+    assert "F-P" in child_snap.graph.blocked_by
+    assert "F-P" not in child_snap.graph.active_blockers
+    assert child_snap.residual_class == ResidualClass.PRODUCT_OPEN.value
+    assert EventType.EXECUTION_LINKED.value in child_snap.next_admissible_events
+    assert derive_finding_status(material, "F-A").value == "open"
 
 
 def test_execution_link_advances_stage_toward_verification() -> None:
@@ -378,8 +383,8 @@ def test_classify_residual_helper_matches_snapshot() -> None:
                 "RC11-F01": ResidualClass.TERMINAL_WITHOUT_IMPLEMENTATION.value,
                 "RC11-F03": ResidualClass.CLOSED.value,
                 "RC11-F04": ResidualClass.BLOCKED_GRAPH.value,
-                "RC11-F04a": ResidualClass.BLOCKED_GRAPH.value,
-                "RC11-F04b": ResidualClass.BLOCKED_GRAPH.value,
+                "RC11-F04a": ResidualClass.CLOSED.value,
+                "RC11-F04b": ResidualClass.PRODUCT_OPEN.value,
                 "RC11-F13": ResidualClass.DEFERRED_PARKED.value,
             },
         ),

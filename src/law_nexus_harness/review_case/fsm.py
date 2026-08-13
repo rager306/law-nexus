@@ -199,14 +199,29 @@ def _graph_context(packet: ReviewPacket, finding_id: str) -> GraphContextView:
     open_children: list[str] = []
     active_blockers: list[str] = []
 
+    def _is_split_parent(parent_id: str, child_id: str) -> bool:
+        return any(
+            edge.from_id == parent_id
+            and edge.to_id == child_id
+            and edge.type is RelationType.SPLITS_INTO
+            for edge in packet.edges
+        )
+
     for edge in packet.edges:
         if edge.from_id != finding_id:
             continue
         if edge.type is RelationType.BLOCKED_BY:
             blocked_by.append(edge.to_id)
             blocker = findings.get(edge.to_id)
-            if blocker is None or blocker.disposition_status not in _TERMINAL_WITHOUT_WORK:
+            if blocker is None:
                 active_blockers.append(edge.to_id)
+                continue
+            if blocker.disposition_status in _TERMINAL_WITHOUT_WORK:
+                continue
+            # Mirror policy: split-parent blocked_by is informational for children.
+            if _is_split_parent(edge.to_id, finding_id):
+                continue
+            active_blockers.append(edge.to_id)
         if edge.type is RelationType.SPLITS_INTO:
             splits_into.append(edge.to_id)
             child = findings.get(edge.to_id)
@@ -337,8 +352,15 @@ def next_admissible_events(
     # Accepting / residual product-process paths.
     if finding.disposition_status in _ACCEPTING_DISPOSITIONS:
         if residual is ResidualClass.BLOCKED_GRAPH:
-            # Graph continuity first: resolve blockers/children before execution work.
+            # Parent with open children: graph first. Child-only residual can still
+            # advance execution when active_blockers is empty after split exemption.
             enabled.append(EventType.EDGE_ASSERTED.value)
+            if not graph.open_children and not graph.active_blockers:
+                if finding.execution_status is ExecutionStatus.UNPLANNED:
+                    enabled.append(EventType.EXECUTION_LINKED.value)
+                elif finding.execution_status in _COMPLETE_EXECUTION:
+                    if finding.verification_status not in _PASSING_VERIFICATION:
+                        enabled.append(EventType.VERIFICATION_RECORDED.value)
             enabled.append(EventType.REOPENED.value)
             return tuple(dict.fromkeys(enabled))
 

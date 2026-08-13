@@ -5,6 +5,11 @@ All notable changes to law-nexus are documented in this file.
 ## Unreleased — current architecture landing and repository map
 
 ### NormRule IR fail-closed design spine (M167 / RC11-F04a)
+- Review-case graph: split-parent `blocked_by` no longer freezes child residual
+  work (breaks RC11-F04↔F04a/b mutual deadlock for stage continuity).
+- Human design ceremony closed RC11-F04a (`execution_linked` + design
+  `verification_recorded`); parent F04 remains blocked on open F04b.
+
 - Added pure `NormRule` IR in `ln-applicability` (conditions, exceptions,
   defeaters, temporal scope) with closed kind vocabularies and fail-closed
   validation.

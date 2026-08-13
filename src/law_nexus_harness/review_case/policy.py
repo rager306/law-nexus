@@ -404,7 +404,39 @@ def _latest_event(
     return None
 
 
+def _is_split_parent_of(packet: ReviewPacket, parent_id: str, child_id: str) -> bool:
+    """True when parent_id --splits_into--> child_id (in-packet design split)."""
+    return any(
+        edge.from_id == parent_id
+        and edge.to_id == child_id
+        and edge.type is RelationType.SPLITS_INTO
+        for edge in packet.edges
+    )
+
+
+def _child_is_open_for_parent(packet: ReviewPacket, child_id: str) -> bool:
+    findings = {item.finding_id: item for item in packet.findings}
+    child = findings.get(child_id)
+    if child is None:
+        return True
+    if child.disposition_status in _TERMINAL_WITHOUT_WORK:
+        return False
+    if (
+        child.execution_status is ExecutionStatus.IMPLEMENTED
+        and child.verification_status in _PASSING_VERIFICATION
+    ):
+        return False
+    return True
+
+
 def _has_active_blocker_or_open_child(packet: ReviewPacket, finding_id: str) -> bool:
+    """Graph residual gate for derived_status.
+
+    Split parents stay blocked while open children remain. Children that are
+    only blocked_by their split parent are *not* hard-blocked so design/impl
+    work can complete (breaks mutual parent↔child deadlock on RC11-F04*).
+    Independent blocked_by edges still hard-block.
+    """
     findings = {item.finding_id: item for item in packet.findings}
     for edge in packet.edges:
         if edge.from_id != finding_id:
@@ -413,20 +445,15 @@ def _has_active_blocker_or_open_child(packet: ReviewPacket, finding_id: str) -> 
             blocker = findings.get(edge.to_id)
             if blocker is None:
                 return True
-            if blocker.disposition_status not in _TERMINAL_WITHOUT_WORK:
-                return True
-        if edge.type is RelationType.SPLITS_INTO:
-            child = findings.get(edge.to_id)
-            if child is None:
-                return True
-            if child.disposition_status in _TERMINAL_WITHOUT_WORK:
+            if blocker.disposition_status in _TERMINAL_WITHOUT_WORK:
                 continue
-            if (
-                child.execution_status is ExecutionStatus.IMPLEMENTED
-                and child.verification_status in _PASSING_VERIFICATION
-            ):
+            # Design split: child blocked_by parent does not freeze child work.
+            if _is_split_parent_of(packet, parent_id=edge.to_id, child_id=finding_id):
                 continue
             return True
+        if edge.type is RelationType.SPLITS_INTO:
+            if _child_is_open_for_parent(packet, edge.to_id):
+                return True
     return False
 
 
