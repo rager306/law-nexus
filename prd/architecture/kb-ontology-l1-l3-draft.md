@@ -120,6 +120,8 @@ ON missing force evidence at query time:
 | `load_hierarchy_map_for_path` | YAML path-needle bindings; unmatched empty; 402-FZ drafts attach; not legal identity |
 | `admit_membership_proposals` | two-parent / cycle / self-parent quarantine on drafts; not a log write |
 | `commit_admitted_to_log` / `assemble_membership_ast` | admit → commit (Attach events) → fold → StructuralAst; synthetic provenance for C2 |
+| `edition_ast_at(t)` [R5-03] | unify 3 canons: membership fold + presence fold + filter → «редакция на дату» |
+| `resolve_CTV(cc, t)` [R5-02, open] | deterministic text reconstruction of one component at date t; main gap vs de Martim v5 |
 
 ## 9. Explicit non-claims
 

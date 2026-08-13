@@ -4,6 +4,15 @@ All notable changes to law-nexus are documented in this file.
 
 ## Unreleased — current architecture landing and repository map
 
+### Review 5: de Martim v5 comparison and gap map (L0)
+- `doc/review/review-14-08-2026.md` — systematic comparison with arXiv:2506.07853v5.
+- Findings R5-01..R5-12: resolve_CTV gap, edition_ast_at, oracle diff, macro/micro P9,
+  cross-act edges S0→S1, ELI mapping, C1 acquisition, graph store, impact assessment,
+  language versioning, dead-code detector.
+- ADR amendments: 0016 (ELI), 0017 (resolve_CTV, edition_ast_at, P9, oracle diff),
+  0019 (cross-act S1, impact assessment).
+- KBO-R045..R050; TSG-017 updated.
+
 ### Governor: stale assembly_fsm non-claim detector
 - `_kb_assembly_fsm_gaps` now flags non_claims referencing `current S_XXX`
   when XXX is no longer the declared `assembly_fsm.current`.

@@ -87,10 +87,11 @@ Calendar ordinal: YAML `calendar` via `legal_act_effect_day_to_ordinal` (KBO-R03
 Review 4 assembly inventory `[proposed]`: `doc/review/review-13-08-2026.md` (L0);
 YAML `assembly_fsm` current `S_commit` appends admitted drafts to
 `VersionedMembershipLog` with synthetic provenance and edition `effect_day`, then
-`fold_membership_at` folds to `StructuralAst` (KBO-R044). `admit_membership_proposals`
-(KBO-R043) quarantines two-parent / cycle / self-parent before commit. Scoped
-registry binds 435-FZ (forest) and 402-FZ (AST 4 roots / 37 nodes). Readiness FSM
-stays `O2_calendar_ordinal`. Not `resolve_CTV`, not Applicable.
+`fold_membership_at` folds to `StructuralAst` (KBO-R044). Review 5
+(`doc/review/review-14-08-2026.md`) maps gaps vs de Martim v5: `resolve_CTV`
+(KBO-R046, open), `edition_ast_at` (KBO-R045), oracle diff (KBO-R047),
+macro/micro P9 (KBO-R048), cross-act S1 (KBO-R049), ELI mapping (KBO-R050).
+Readiness FSM stays `O2_calendar_ordinal`. Not `resolve_CTV`, not Applicable.
 
 ## Temporal legal ontology — design spine (all `[proposed]`)
 

@@ -150,6 +150,7 @@ Governor check `kb-ontology-draft` is structural only.
 | 2026-08-13 | KBO-R042 | 402-FZ chapter tree | 4 glava + 33 statya Bound; inspect drafts attach > 0; not a log write |
 | 2026-08-13 | KBO-R043 | assembly `S_admit` | two-parent / cycle / self-parent quarantine gate; 402-FZ 33 admitted 0 conflict |
 | 2026-08-13 | KBO-R044 | assembly `S_commit`/`S_fold` | admit → commit → fold → StructuralAst; 402-FZ 4 roots / 37 nodes; fold canon wired |
+| 2026-08-14 | KBO-R045..R050 | Review 5 gaps | edition_ast_at, resolve_CTV, oracle diff, macro/micro P9, cross-act S1, ELI mapping |
 
 ## 6. Operator cycle (capability-only)
 

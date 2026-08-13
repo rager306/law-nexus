@@ -368,3 +368,17 @@ Stop and replan if any review:
 <!-- YAML decode prefixes KBO-R030 companion -->
 
 <!-- calendar ordinal KBO-R031 companion -->
+
+<!-- edition_ast_at KBO-R045 companion -->
+
+<!-- resolve_CTV gap KBO-R046 companion -->
+
+<!-- oracle diff KBO-R047 companion -->
+
+<!-- macro/micro P9 KBO-R048 companion -->
+
+<!-- cross-act S1 KBO-R049 companion -->
+
+<!-- ELI mapping KBO-R050 companion -->
+
+<!-- Review 5 de Martim v5 comparison companion -->

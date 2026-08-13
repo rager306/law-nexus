@@ -109,6 +109,24 @@ remains `Conflict` for human review.
 - Industry-specific priority (budget vs construction) is deferred to profile
   adapters (ADR-0022), keeping the core hierarchy industry-neutral.
 
+## Review 5 amendments (2026-08-14, L0 `doc/review/review-14-08-2026.md`)
+
+### R5-06: cross-act edge port — S0 → S1 transition criteria
+
+Cross-act edges are S0 design (vocabulary in YAML). Transition to S1
+requires: (1) a typed `CrossActEdgePort` trait with `try_edge(kind, from_cc,
+to_cc, provenance)`; (2) hostile tests: delegation underdetermined → Conflict;
+circular `amends` chain → rejected; `cites` does not upgrade to authority;
+(3) at least one real edge from a C1 fixture (e.g. ФЗ-504 amends 44-ФЗ
+art. 93). Until S1, edges are inventory, not executable graph.
+
+### R5-10: impact assessment (future extension)
+
+Reverse traversal of cross-act edges enables "what acts are affected by a
+change to article X?". This is a future capability: traverse `amends`,
+`implements`, `specifies` edges backward from a target CC. Requires S1 edges
++ graph store materialization (R5-09). Not a near-term step.
+
 ## Non-claims
 
 - No legal correctness of conflict resolution without real conflict corpus.

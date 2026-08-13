@@ -196,6 +196,48 @@ document snapshot; they do not reify the event as a queryable causal entity).
   evidence kernel (D119 C10/C12/C13) owns the substance. LRMoo does not replace
   the kernel.
 
+## Review 5 amendments (2026-08-14, L0 `doc/review/review-14-08-2026.md`)
+
+### R5-02: `resolve_CTV` is the main gap vs de Martim v5
+
+de Martim v5 ships CTV/CLV with P190 symbolic content for deterministic
+point-in-time text reconstruction. law-nexus has the **event-sourced spine**
+(`VersionedMembershipLog`, `fold_membership_at` → `StructuralAst`) but no
+`resolve_CTV`. Text CTV canon (§1c above) remains **design-only**. This is
+the single largest capability gap versus the reference model. A bounded
+prototype on one component (e.g. `cc:402fz:statya-1` caput) with
+text-change micro-events is the recommended next step (R5-02 → TSG-003).
+
+### R5-03: `edition_ast_at(t)` unifies the three L2 canons
+
+The three canons (§1a: membership / presence / text) each have a separate
+fold. `edition_ast_at(t)` should combine them:
+`CompositionAst(t) = fold(membership ≤ t)`;
+`EditionAst(t) = filter(CompositionAst, fold_presence ≤ t)`;
+`TextAst(t) = resolve_CTV(cc, t)` [not shipped]. This function closes the
+S_fold exit criterion (currently partial — membership fold only).
+
+### R5-05: macro/micro event P9 consists of
+
+de Martim v5 models macro-event ("Enactment of Amending Act X") composed
+of micro-events via P9 consists of. law-nexus has `AmendmentEvent` as
+n-ary with facets (§1b) but no explicit macro→micro composition hierarchy.
+A macro-event = one AmendingAct (e.g. ФЗ-504); micro-events = per-CC
+operations (attach art. 93 п. 4, renumber art. 112). Formalizing this
+hierarchy makes provenance traceable from act-level to component-level.
+
+### R5-04: Oracle diff and heal
+
+`drift(t) = fold(events, t) Δ snapshot(oracle@t)`. Non-zero drift is healed
+by a new event or explicit waiver — never by writing the oracle tree back
+as canon (§1c above). On 402-ФЗ, `assemble_membership_ast` gives 4 roots /
+37 nodes; oracle diff against the WordML snapshot is the S_verify entry point.
+
+### R5-11: language versioning decision
+
+LV (Language Version) is not needed for monolingual Russian Federation.
+Defer until ЕАЭС/СНГ multilingual support is explicitly required.
+
 ## Non-claims
 
 - `HierarchyMarker` / `map_hierarchy_marker` is a **fail-closed candidate lift**:

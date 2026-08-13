@@ -96,6 +96,19 @@ The four levels below are WEMI, LRMoo-compatible.
 - Does NOT answer "what was the text of article X on date Y" (that is ADR-0017
   component versioning) nor "what did it legally mean" (ADR-0018+).
 
+## Review 5 amendments (2026-08-14, L0 `doc/review/review-14-08-2026.md`)
+
+### R5-07: ELI/AKN URI mapping for interoperability
+
+de Martim v5 and ELI employ URI-based identification
+(`eli/ru/{type}/{year}/{number}`). law-nexus employs project-local IDs
+(`cc:402fz:statya-1`, `amendingact:c2-oracle-edition`). A compatibility
+mapping layer (not a replacement) enables interop with AKN/ELI/LexML
+corpora when needed. This is a D046 L6 compatibility projection `[proposed]`,
+not a runtime requirement. When external corpus exchange is required, a
+`to_eli_uri(work, expression, cc)` adapter can be added without changing
+the internal ID canon.
+
 ## Non-claims
 
 - `HierarchyMarker` / `map_hierarchy_marker` is a **fail-closed candidate lift**:
