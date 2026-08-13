@@ -19,11 +19,11 @@ use ln_decode::{
     unknown_forms::census_unknown_forms,
 };
 use ln_kb_ontology::domain::{
-    admit_membership_proposals, map_hierarchy_marker, marker_from_decode_token,
-    propose_membership_from_markers, HierarchyMap, HierarchyMapOutcome, HierarchyMarker,
-    WriteSetError,
+    admit_membership_proposals, assemble_membership_ast, map_hierarchy_marker,
+    marker_from_decode_token, propose_membership_from_markers, HierarchyMap, HierarchyMapOutcome,
+    HierarchyMarker, WriteSetError,
 };
-use ln_kb_ontology::registry::load_hierarchy_map_for_path;
+use ln_kb_ontology::registry::{load_edition_day_for_path, load_hierarchy_map_for_path};
 use ln_query::knowql::{execute, KnowQLOp, KnowQLResult, ValidatedOp};
 use ln_storage::{
     adapters::in_memory::{InMemoryGraphStore, InMemoryVectorStore},
@@ -228,6 +228,18 @@ fn inspect(path: &str) {
     let membership_admitted = admit.admitted.len();
     let membership_conflict_quarantined = admit.quarantined.len();
 
+    // S_commit → S_fold: commit admitted drafts, then fold to StructuralAst.
+    // Provenance is synthetic (C2 oracle); effect_day from YAML edition_date.
+    let (membership_committed, ast_root_count, ast_node_count) =
+        if let Some(effect_day) = load_edition_day_for_path(path) {
+            match assemble_membership_ast(&admit, effect_day, "amendingact:c2-oracle-edition") {
+                Ok(summary) => (summary.committed, summary.root_count, summary.node_count),
+                Err(_) => (0, 0, 0),
+            }
+        } else {
+            (0, 0, 0)
+        };
+
     let duration_ms = start.elapsed().as_millis();
 
     println!(
@@ -245,6 +257,9 @@ fn inspect(path: &str) {
          \"membership_forest_roots\":{membership_forest_roots},\
          \"membership_admitted\":{membership_admitted},\
          \"membership_conflict_quarantined\":{membership_conflict_quarantined},\
+         \"membership_committed\":{membership_committed},\
+         \"ast_root_count\":{ast_root_count},\
+         \"ast_node_count\":{ast_node_count},\
          \"reference_mentions\":{reference_mentions},\
          \"temporal_phrases\":{temporal_phrases},\"deontic_lexemes\":{deontic_lexemes},\
          \"unknown_forms\":{unknown_forms},\"provider_comment_candidates\":{provider_comments},\
@@ -253,8 +268,9 @@ fn inspect(path: &str) {
          \"non_claims\":[\"No legal correctness claim\",\"No citation authority claim\",\
          \"No corpus completeness claim\",\"No five-clock assignment claim\",\
          \"Empty hierarchy registry yields Unknown; lift does not mint ComponentConcept\",\
-         \"Membership proposals and admitted drafts do not append VersionedMembershipLog\",\
-         \"retrieval_count is deterministic-non-semantic: hash-derived vectors, not TEI semantic embedding\"]}}",
+         \"Membership committed events are synthetic-provenance C2 drafts; fold is structural, not legal document tree\",\
+         \"retrieval_count is deterministic-non-semantic: hash-derived vectors, not TEI semantic embedding\",\
+         \"ast_root_count and ast_node_count are structural AST projections, not legal hierarchy or CTV text\"]}}",
         json_escape(path),
         blocks.len(),
     );

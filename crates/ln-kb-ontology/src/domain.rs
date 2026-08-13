@@ -4,8 +4,8 @@ use crate::catalog::OntologyCatalog;
 use ln_identity::domain::{ExpressionId, FrbrExpression, FrbrWork};
 use ln_temporal::domain::ComponentConceptId;
 use ln_temporal::domain::{
-    ForceMembershipJoin, ForceStatusEvent, MembershipEdge, NormativeState, StructuralAst,
-    StructuralAstNode,
+    AmendingActId, CtvOpsError, ForceMembershipJoin, ForceStatusEvent, MembershipChangeKind,
+    MembershipEdge, NormativeState, StructuralAst, StructuralAstNode, VersionedMembershipLog,
 };
 
 /// Catalog-validated node/edge kind token. Vocabulary lives in YAML, not Rust enums.
@@ -888,4 +888,76 @@ fn creates_cycle(
         };
         current = next;
     }
+}
+
+// ─── S_commit: append admitted drafts to VersionedMembershipLog ────────────────
+// Provenance is synthetic for C2 editions until S_identify mints Expression IDs.
+// Admitted edges become Attach events. Quarantined proposals are skipped.
+
+const MEMBERSHIP_COMMIT_NON_CLAIMS: &[&str] = &[
+    "Committed events are C2-oracle-derived; provenance is synthetic until S_identify",
+    "Commit does not resolve CTV text, legal hierarchy authority, or applicability",
+    "Not InForce, not corpus gold, not O3 representative fixtures",
+];
+
+/// Append each admitted edge as an Attach event with provenance and effect_day.
+/// Returns the number of events committed.
+pub fn commit_admitted_to_log(
+    admit: &MembershipAdmitReport,
+    log: &mut VersionedMembershipLog,
+    effect_day: i64,
+    provenance: &AmendingActId,
+) -> Result<usize, CtvOpsError> {
+    for edge in &admit.admitted {
+        let event = ln_temporal::domain::VersionedMembershipEvent::try_new(
+            MembershipChangeKind::Attach,
+            edge.parent.clone(),
+            edge.child.clone(),
+            effect_day,
+            provenance.clone(),
+        )?;
+        log.append(event)?;
+    }
+    Ok(admit.admitted.len())
+}
+
+pub fn membership_commit_non_claims() -> &'static [&'static str] {
+    MEMBERSHIP_COMMIT_NON_CLAIMS
+}
+
+/// Summary of the assembled AST after commit → fold. Primitive counts only so
+/// callers (CLI) do not need a direct ln-temporal dependency.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct MembershipAstSummary {
+    pub committed: usize,
+    pub root_count: usize,
+    pub node_count: usize,
+}
+
+/// Full assembly: admit → commit → fold. Returns primitive counts.
+/// Provenance is synthetic for C2 editions until S_identify.
+pub fn assemble_membership_ast(
+    admit: &MembershipAdmitReport,
+    effect_day: i64,
+    provenance: &str,
+) -> Result<MembershipAstSummary, CtvOpsError> {
+    let provenance = AmendingActId::parse(provenance)?;
+    let mut log = VersionedMembershipLog::empty();
+    let committed = commit_admitted_to_log(admit, &mut log, effect_day, &provenance)?;
+    let ast = ln_temporal::domain::fold_membership_at(&log, effect_day)?;
+    let root_count = ast.roots().len();
+    let node_count = ast.roots().iter().map(count_ast_subtree_nodes).sum();
+    Ok(MembershipAstSummary {
+        committed,
+        root_count,
+        node_count,
+    })
+}
+
+fn count_ast_subtree_nodes(node: &StructuralAstNode) -> usize {
+    1 + node
+        .children()
+        .iter()
+        .map(count_ast_subtree_nodes)
+        .sum::<usize>()
 }

@@ -261,3 +261,5 @@ This roadmap does not prove Rust product readiness, parser completeness, Russian
 <!-- 402-FZ glava+statya attach drafts companion -->
 
 <!-- S_admit conflict quarantine KBO-R043 companion -->
+
+<!-- S_commit + S_fold AST assembly KBO-R044 companion -->

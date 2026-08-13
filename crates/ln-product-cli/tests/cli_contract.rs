@@ -7,7 +7,7 @@ fn binary() -> &'static str {
 fn yaml_binding_count_for_needle(needle: &str) -> usize {
     let yaml = include_str!("../../../prd/architecture/kb-hierarchy-registry.yaml");
     yaml.lines()
-        .filter(|line| line.contains(&format!("path_needle: {needle}")))
+        .filter(|line| line.contains(&format!("path_needle: {needle}")) && line.contains("level:"))
         .count()
 }
 
@@ -149,6 +149,16 @@ fn inspect_real_consultant_fixture_reports_bounded_summary() {
         stdout
     );
     assert!(
+        stdout.contains("\"ast_root_count\":0"),
+        "435-FZ forest has no folded AST; got: {}",
+        stdout
+    );
+    assert!(
+        stdout.contains("\"ast_node_count\":0"),
+        "435-FZ forest has no folded nodes; got: {}",
+        stdout
+    );
+    assert!(
         stdout.contains("\"reference_mentions\":"),
         "inspect must report reference_mentions; got: {}",
         stdout
@@ -240,6 +250,21 @@ fn inspect_402_fz_reports_non_zero_attach_from_yaml_ranks() {
         inspect_u64(&stdout, "membership_conflict_quarantined"),
         0,
         "402-FZ has no two-parent or cycle conflicts; {stdout}"
+    );
+    assert_eq!(
+        inspect_u64(&stdout, "membership_committed"),
+        inspect_u64(&stdout, "membership_admitted"),
+        "all admitted 402-FZ edges must commit; {stdout}"
+    );
+    assert_eq!(
+        inspect_u64(&stdout, "ast_root_count"),
+        glava as u64,
+        "folded AST roots must equal glava count; {stdout}"
+    );
+    assert_eq!(
+        inspect_u64(&stdout, "ast_node_count"),
+        bound as u64,
+        "folded AST nodes must cover all bound markers; {stdout}"
     );
     assert!(
         !stdout.contains("ОБЩИЕ ПОЛОЖЕНИЯ"),

@@ -85,12 +85,12 @@ Composition lift: product-cli `lift_extracted_hierarchy` (KBO-R029); empty regis
 Decode prefixes: YAML `decode_marker_prefixes` via `DecodePrefixCatalog` (KBO-R030).
 Calendar ordinal: YAML `calendar` via `legal_act_effect_day_to_ordinal` (KBO-R031).
 Review 4 assembly inventory `[proposed]`: `doc/review/review-13-08-2026.md` (L0);
-YAML `assembly_fsm` current `S_admit` quarantines structural conflicts
-(two-parent, cycle, self-parent) before commit (KBO-R043). Scoped registry
-`kb-hierarchy-registry.yaml` (KBO-R042) binds 435-FZ articles (forest, 0 attach)
-and 402-FZ chapters+articles (admitted > 0) by path needle; unmatched paths
-stay Unknown. Readiness FSM stays `O2_calendar_ordinal`. Not membership log
-write, not `resolve_CTV`, not Applicable.
+YAML `assembly_fsm` current `S_commit` appends admitted drafts to
+`VersionedMembershipLog` with synthetic provenance and edition `effect_day`, then
+`fold_membership_at` folds to `StructuralAst` (KBO-R044). `admit_membership_proposals`
+(KBO-R043) quarantines two-parent / cycle / self-parent before commit. Scoped
+registry binds 435-FZ (forest) and 402-FZ (AST 4 roots / 37 nodes). Readiness FSM
+stays `O2_calendar_ordinal`. Not `resolve_CTV`, not Applicable.
 
 ## Temporal legal ontology — design spine (all `[proposed]`)
 

@@ -103,6 +103,7 @@ S4 fixtures (KBO-R013), Manifestation/Item, and port materialization remain open
 | KBO-R041 | core-contract | Document-order markers propose attach drafts via YAML hierarchy ranks; Unknown skips the stack and does not mint CC; proposals do not append the membership log | Review 4 P6; assembly S_propose | **accepted-draft** |
 | KBO-R042 | core-contract | Marker→CC bindings live in YAML (`kb-hierarchy-registry.yaml`); a path matches by needle; unmatched paths stay empty; same-level articles are a forest (0 attach); a glava+statya fixture drafts attach > 0 | Review 4 R3-02; 402-FZ tree; KBO-R013 partial | **accepted-draft** |
 | KBO-R043 | core-contract | `admit_membership_proposals` quarantines two-parent conflicts, cycles, and self-parent before commit; first parent wins; exact duplicates are deduplicated; admitted drafts do not append the membership log | Review 4 R3-03; assembly S_admit | **accepted-draft** |
+| KBO-R044 | core-contract | `commit_admitted_to_log` + `assemble_membership_ast` close the pipeline: admit → commit (Attach events with synthetic provenance + edition effect_day) → fold (`fold_membership_at`) → StructuralAst; provenance is synthetic for C2 editions until S_identify | Review 4 R3-04; assembly S_commit/S_fold | **accepted-draft** |
 
 ## 5. Functional preparation backlog (not implemented this wave)
 

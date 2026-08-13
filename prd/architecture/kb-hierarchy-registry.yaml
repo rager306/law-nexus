@@ -73,3 +73,7 @@ bindings:
   - {path_needle: n-402-fz, level: statya, number: "30", cc: cc:402fz:statya-30}
   - {path_needle: n-402-fz, level: statya, number: "31", cc: cc:402fz:statya-31}
   - {path_needle: n-402-fz, level: statya, number: "32", cc: cc:402fz:statya-32}
+
+editions:
+  - {path_needle: n-435-fz, edition_date: "2023-12-25"}
+  - {path_needle: n-402-fz, edition_date: "2025-12-15"}

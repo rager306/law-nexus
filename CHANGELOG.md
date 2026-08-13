@@ -4,6 +4,13 @@ All notable changes to law-nexus are documented in this file.
 
 ## Unreleased — current architecture landing and repository map
 
+### S_commit + S_fold: assemble AST from admitted drafts (KBO-R044)
+- `commit_admitted_to_log` appends Attach events with synthetic provenance.
+- `assemble_membership_ast` runs commit + `fold_membership_at` in one call.
+- 402-FZ: 33 committed, AST 4 roots / 37 nodes.
+- `fold_membership_at` was previously dead code (0 callers); now wired.
+- Edition `effect_day` from YAML `editions` section via calendar ordinal.
+
 ### S_admit conflict quarantine (assembly S_admit)
 - `admit_membership_proposals` gates drafts against two-parent, cycle, self-parent.
 - 402-FZ: 33 admitted, 0 conflict-quarantined.

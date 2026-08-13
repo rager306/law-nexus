@@ -92,3 +92,28 @@ pub fn embedded_binding_count_for_path(path: &str) -> Result<usize, CatalogError
     let parsed = parse_hierarchy_registry(EMBEDDED_HIERARCHY_REGISTRY_YAML)?;
     Ok(bindings_matching_path(&parsed, path).len())
 }
+
+/// Load the civil-day ordinal for the edition matching `path`.
+/// Returns None if no edition is registered or the date is invalid.
+pub fn load_edition_day_for_path(path: &str) -> Option<i64> {
+    let iso = edition_date_for_path(path)?;
+    ln_temporal::calendar::legal_act_effect_day_to_ordinal(&iso).ok()
+}
+
+fn edition_date_for_path(path: &str) -> Option<String> {
+    let text = EMBEDDED_HIERARCHY_REGISTRY_YAML;
+    let edition_start = text.find("\neditions:")?;
+    let slice = &text[edition_start..];
+    let path_lc = path.to_lowercase();
+    for raw in slice.lines() {
+        let trimmed = strip_comment(raw);
+        if !trimmed.trim().starts_with('-') {
+            continue;
+        }
+        let needle = flow_field(trimmed.trim(), "path_needle")?;
+        if path_lc.contains(&needle.to_lowercase()) {
+            return flow_field(trimmed.trim(), "edition_date");
+        }
+    }
+    None
+}
