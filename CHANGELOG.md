@@ -4,6 +4,14 @@ All notable changes to law-nexus are documented in this file.
 
 ## Unreleased — current architecture landing and repository map
 
+### S_verify: oracle diff (KBO-R047)
+- `oracle_diff(ast, expected_ccs)` compares folded AST against registry CCs.
+- `assemble_with_oracle_diff` wraps commit → fold → diff in one call.
+- 402-FZ: drift=0 (37 expected, 37 actual).
+- 4 TDD tests: zero drift, phantom, missing, empty.
+- CLI reports `oracle_drift`, `oracle_missing`, `oracle_phantom`.
+- assembly_fsm.current: S_fold → S_verify.
+
 ### S_fold: edition_ast_at unifies 3 L2 canons (KBO-R045)
 - `edition_ast_at(membership_log, presence_log, expression_id, day)` =
   `fold_membership_at` + `fold_expression_presence` + `filter_ast_to_expression`.

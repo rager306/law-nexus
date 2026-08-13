@@ -266,6 +266,11 @@ fn inspect_402_fz_reports_non_zero_attach_from_yaml_ranks() {
         bound as u64,
         "folded AST nodes must cover all bound markers; {stdout}"
     );
+    assert_eq!(
+        inspect_u64(&stdout, "oracle_drift"),
+        0,
+        "402-FZ event log must reconstruct the oracle with zero drift; {stdout}"
+    );
     assert!(
         !stdout.contains("ОБЩИЕ ПОЛОЖЕНИЯ"),
         "raw legal text must not be persisted; got first 400 chars: {}",

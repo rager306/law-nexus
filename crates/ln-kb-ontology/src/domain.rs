@@ -613,6 +613,10 @@ impl HierarchyBinding {
             component,
         })
     }
+
+    pub fn component(&self) -> &ComponentConceptId {
+        &self.component
+    }
 }
 
 /// Fail-closed registry. Duplicate key with a different CC is Conflict.
@@ -954,6 +958,45 @@ pub fn assemble_membership_ast(
     })
 }
 
+/// Full assembly + oracle diff. Returns counts plus drift report.
+/// Expected CCs come from the registry (Bound markers). Zero drift means
+/// the event log perfectly reconstructs the oracle snapshot.
+pub fn assemble_with_oracle_diff(
+    admit: &MembershipAdmitReport,
+    map: &HierarchyMap,
+    effect_day: i64,
+    provenance: &str,
+) -> Result<AssemblyReport, CtvOpsError> {
+    let prov = AmendingActId::parse(provenance)?;
+    let mut log = VersionedMembershipLog::empty();
+    let committed = commit_admitted_to_log(admit, &mut log, effect_day, &prov)?;
+    let ast = ln_temporal::domain::fold_membership_at(&log, effect_day)?;
+    let root_count = ast.roots().len();
+    let node_count = ast.roots().iter().map(count_ast_subtree_nodes).sum();
+    let expected: Vec<ComponentConceptId> =
+        map.bindings.iter().map(|b| b.component().clone()).collect();
+    let diff = oracle_diff(&ast, &expected);
+    Ok(AssemblyReport {
+        committed,
+        root_count,
+        node_count,
+        drift: diff.drift,
+        missing: diff.missing,
+        phantom: diff.phantom,
+    })
+}
+
+/// Assembly + oracle diff summary. Primitive counts only.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct AssemblyReport {
+    pub committed: usize,
+    pub root_count: usize,
+    pub node_count: usize,
+    pub drift: usize,
+    pub missing: usize,
+    pub phantom: usize,
+}
+
 fn count_ast_subtree_nodes(node: &StructuralAstNode) -> usize {
     1 + node
         .children()
@@ -979,4 +1022,44 @@ pub fn edition_ast_at(
         .map_err(|_| WriteSetError::MissingIdentity)?;
     let presence = fold_expression_presence(presence_log, expression_id, as_of_day)?;
     filter_ast_to_expression(&composition, &presence)
+}
+
+// ─── S_verify: oracle diff ────────────────────────────────────────────────────
+// Compare folded AST against expected CCs from the EditionOracle snapshot.
+// drift = missing (expected but not in AST) + phantom (in AST but not expected).
+
+/// Diff report: expected vs actual CCs in the folded AST.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct OracleDiffReport {
+    pub expected: usize,
+    pub actual: usize,
+    pub missing: usize,
+    pub phantom: usize,
+    pub drift: usize,
+}
+
+/// Compare a folded StructuralAst against the set of CCs the oracle expects.
+/// Zero drift means the event log perfectly reconstructs the oracle snapshot.
+pub fn oracle_diff(ast: &StructuralAst, expected: &[ComponentConceptId]) -> OracleDiffReport {
+    let actual_set: std::collections::HashSet<&str> =
+        ast.roots().iter().flat_map(collect_subtree_ccs).collect();
+    let expected_set: std::collections::HashSet<&str> =
+        expected.iter().map(|c| c.as_str()).collect();
+    let missing = expected_set.difference(&actual_set).count();
+    let phantom = actual_set.difference(&expected_set).count();
+    OracleDiffReport {
+        expected: expected.len(),
+        actual: actual_set.len(),
+        missing,
+        phantom,
+        drift: missing + phantom,
+    }
+}
+
+fn collect_subtree_ccs(node: &StructuralAstNode) -> Vec<&str> {
+    let mut result = vec![node.component().as_str()];
+    for child in node.children() {
+        result.extend(collect_subtree_ccs(child));
+    }
+    result
 }

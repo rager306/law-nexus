@@ -19,7 +19,7 @@ use ln_decode::{
     unknown_forms::census_unknown_forms,
 };
 use ln_kb_ontology::domain::{
-    admit_membership_proposals, assemble_membership_ast, map_hierarchy_marker,
+    admit_membership_proposals, assemble_with_oracle_diff, map_hierarchy_marker,
     marker_from_decode_token, propose_membership_from_markers, HierarchyMap, HierarchyMapOutcome,
     HierarchyMarker, WriteSetError,
 };
@@ -228,17 +228,35 @@ fn inspect(path: &str) {
     let membership_admitted = admit.admitted.len();
     let membership_conflict_quarantined = admit.quarantined.len();
 
-    // S_commit → S_fold: commit admitted drafts, then fold to StructuralAst.
+    // S_commit → S_fold → S_verify: commit, fold, then diff against oracle.
     // Provenance is synthetic (C2 oracle); effect_day from YAML edition_date.
-    let (membership_committed, ast_root_count, ast_node_count) =
-        if let Some(effect_day) = load_edition_day_for_path(path) {
-            match assemble_membership_ast(&admit, effect_day, "amendingact:c2-oracle-edition") {
-                Ok(summary) => (summary.committed, summary.root_count, summary.node_count),
-                Err(_) => (0, 0, 0),
-            }
-        } else {
-            (0, 0, 0)
-        };
+    let (
+        membership_committed,
+        ast_root_count,
+        ast_node_count,
+        oracle_drift,
+        oracle_missing,
+        oracle_phantom,
+    ) = if let Some(effect_day) = load_edition_day_for_path(path) {
+        match assemble_with_oracle_diff(
+            &admit,
+            &hierarchy_map,
+            effect_day,
+            "amendingact:c2-oracle-edition",
+        ) {
+            Ok(r) => (
+                r.committed,
+                r.root_count,
+                r.node_count,
+                r.drift,
+                r.missing,
+                r.phantom,
+            ),
+            Err(_) => (0, 0, 0, 0, 0, 0),
+        }
+    } else {
+        (0, 0, 0, 0, 0, 0)
+    };
 
     let duration_ms = start.elapsed().as_millis();
 
@@ -260,6 +278,9 @@ fn inspect(path: &str) {
          \"membership_committed\":{membership_committed},\
          \"ast_root_count\":{ast_root_count},\
          \"ast_node_count\":{ast_node_count},\
+         \"oracle_drift\":{oracle_drift},\
+         \"oracle_missing\":{oracle_missing},\
+         \"oracle_phantom\":{oracle_phantom},\
          \"reference_mentions\":{reference_mentions},\
          \"temporal_phrases\":{temporal_phrases},\"deontic_lexemes\":{deontic_lexemes},\
          \"unknown_forms\":{unknown_forms},\"provider_comment_candidates\":{provider_comments},\

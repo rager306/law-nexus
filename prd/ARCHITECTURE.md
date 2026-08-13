@@ -85,11 +85,10 @@ Composition lift: product-cli `lift_extracted_hierarchy` (KBO-R029); empty regis
 Decode prefixes: YAML `decode_marker_prefixes` via `DecodePrefixCatalog` (KBO-R030).
 Calendar ordinal: YAML `calendar` via `legal_act_effect_day_to_ordinal` (KBO-R031).
 Review 4 assembly inventory `[proposed]`: `doc/review/review-13-08-2026.md` (L0);
-YAML `assembly_fsm` current `S_fold` unifies three L2 canons via `edition_ast_at`
-(KBO-R045): membership fold + presence fold + filter → edition AST. Review 5
-(`doc/review/review-14-08-2026.md`) maps gaps vs de Martim v5: `resolve_CTV`
-(KBO-R046, open), oracle diff (KBO-R047), macro/micro P9 (KBO-R048),
-cross-act S1 (KBO-R049), ELI mapping (KBO-R050).
+YAML `assembly_fsm` current `S_verify` runs oracle diff: `fold(events, t)`
+compared against registry CCs (KBO-R047). Zero drift on 402-ФЗ (37 expected /
+37 actual). `edition_ast_at` (KBO-R045) unifies 3 L2 canons. Review 5
+(`doc/review/review-14-08-2026.md`) maps remaining gaps.
 Readiness FSM stays `O2_calendar_ordinal`. Not `resolve_CTV`, not Applicable.
 
 ## Temporal legal ontology — design spine (all `[proposed]`)
