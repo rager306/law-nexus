@@ -140,6 +140,32 @@ vocabulary:
     - ProfileCodeAsClock
     - NormRuleAsAuthority
     - NormativeBlob
+  presence_change_kinds:
+    - include
+    - exclude
+  membership_change_kinds:
+    - attach
+    - detach
+  industrial_op_kinds:
+    - renumber
+    - move
+    - split
+    - merge
+  force_status_values:
+    - in_force
+    - suspended
+    - repealed
+    - superseded
+    - transitional
+    - unknown
+  decode_level_aliases:
+    Razdel: razdel
+    Glava: glava
+    Paragraph: paragraph
+    Statya: statya
+    Chast: chast
+    Punkt: punkt
+    Podpunkt: podpunkt
 
 non_claims:
   - YAML catalog is not production graph schema

@@ -78,6 +78,7 @@ L4–L7 and Applicable remain deferred. Structural Governor check only. Offline 
 CC-in-Expression: `fold_expression_presence` (no silent inherit).
 Decode lift: `map_hierarchy_marker` (Unknown if unmapped; not legal fact).
 Ontology FSM/vocabulary: `prd/architecture/kb-ontology.yaml` (not hardcoded).
+Decode aliases: YAML `decode_level_aliases` via `marker_from_decode_token`.
 
 ## Temporal legal ontology — design spine (all `[proposed]`)
 

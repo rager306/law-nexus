@@ -108,6 +108,7 @@ ON missing force evidence at query time:
 | `fold_expression_presence` / `filter_ast_to_expression` | CC in Expression @ t; not CTV text |
 | `map_hierarchy_marker` / `HierarchyMap` | decode candidate → CC or Unknown; not legal fact |
 | `kb-ontology.yaml` + `OntologyCatalog` | meta-prompt FSM + vocabulary source |
+| `marker_from_decode_token` | YAML decode aliases → HierarchyMarker; no ln-decode dep |
 
 ## 9. Explicit non-claims
 

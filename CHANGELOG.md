@@ -4,6 +4,11 @@ All notable changes to law-nexus are documented in this file.
 
 ## Unreleased — current architecture landing and repository map
 
+### YAML decode-level aliases (KBO-R026)
+- Catalog now owns presence/membership/industrial/force vocabularies and
+  `decode_level_aliases` (Statya→statya).
+- `marker_from_decode_token` lifts decode tokens through YAML only.
+
 ### YAML ontology FSM catalog (KBO-R025)
 - Added `prd/architecture/kb-ontology.yaml` as the meta-prompt FSM and
   vocabulary source (states, transitions, hierarchy levels, forbidden kinds).

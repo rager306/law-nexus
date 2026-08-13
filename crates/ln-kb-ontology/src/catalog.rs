@@ -34,6 +34,11 @@ pub struct OntologyCatalog {
     pub node_kinds: Vec<String>,
     pub edge_kinds: Vec<String>,
     pub forbidden_node_kinds: Vec<String>,
+    pub presence_change_kinds: Vec<String>,
+    pub membership_change_kinds: Vec<String>,
+    pub industrial_op_kinds: Vec<String>,
+    pub force_status_values: Vec<String>,
+    pub decode_level_aliases: Vec<(String, String)>,
 }
 
 impl OntologyCatalog {
@@ -69,10 +74,22 @@ impl OntologyCatalog {
         let node_kinds = list_under_vocabulary(text, "node_kinds:")?;
         let edge_kinds = list_under_vocabulary(text, "edge_kinds:")?;
         let forbidden_node_kinds = list_under_vocabulary(text, "forbidden_node_kinds:")?;
+        let presence_change_kinds = list_under_vocabulary(text, "presence_change_kinds:")?;
+        let membership_change_kinds = list_under_vocabulary(text, "membership_change_kinds:")?;
+        let industrial_op_kinds = list_under_vocabulary(text, "industrial_op_kinds:")?;
+        let force_status_values = list_under_vocabulary(text, "force_status_values:")?;
+        let decode_level_aliases = map_pairs_under_vocabulary(text, "decode_level_aliases:")?;
         if hierarchy_levels.is_empty() || node_kinds.is_empty() || forbidden_node_kinds.is_empty() {
             return Err(CatalogError {
                 reason: "vocabulary lists are incomplete",
             });
+        }
+        for (_, target) in &decode_level_aliases {
+            if !hierarchy_levels.iter().any(|level| level == target) {
+                return Err(CatalogError {
+                    reason: "decode alias target is not a hierarchy level",
+                });
+            }
         }
         Ok(Self {
             schema_version,
@@ -83,6 +100,11 @@ impl OntologyCatalog {
             node_kinds,
             edge_kinds,
             forbidden_node_kinds,
+            presence_change_kinds,
+            membership_change_kinds,
+            industrial_op_kinds,
+            force_status_values,
+            decode_level_aliases,
         })
     }
 
@@ -102,6 +124,36 @@ impl OntologyCatalog {
         self.transitions
             .iter()
             .any(|edge| edge.from == from && edge.to == to)
+    }
+
+    pub fn is_presence_change_kind(&self, kind: &str) -> bool {
+        self.presence_change_kinds.iter().any(|item| item == kind)
+    }
+
+    pub fn is_membership_change_kind(&self, kind: &str) -> bool {
+        self.membership_change_kinds.iter().any(|item| item == kind)
+    }
+
+    pub fn is_industrial_op_kind(&self, kind: &str) -> bool {
+        self.industrial_op_kinds.iter().any(|item| item == kind)
+    }
+
+    pub fn is_force_status(&self, value: &str) -> bool {
+        self.force_status_values.iter().any(|item| item == value)
+    }
+
+    pub fn resolve_decode_level_alias(&self, token: &str) -> Option<String> {
+        self.decode_level_aliases
+            .iter()
+            .find(|(source, _)| source == token)
+            .map(|(_, target)| target.clone())
+            .or_else(|| {
+                if self.is_hierarchy_level(token) {
+                    Some(token.to_owned())
+                } else {
+                    None
+                }
+            })
     }
 }
 
@@ -230,6 +282,54 @@ fn list_under_vocabulary(text: &str, heading: &str) -> Result<Vec<String>, Catal
     Ok(items)
 }
 
+fn map_pairs_under_vocabulary(
+    text: &str,
+    heading: &str,
+) -> Result<Vec<(String, String)>, CatalogError> {
+    let vocab_start = text.find("\nvocabulary:").or_else(|| {
+        if text.starts_with("vocabulary:") {
+            Some(0)
+        } else {
+            None
+        }
+    });
+    let Some(start) = vocab_start else {
+        return Err(CatalogError {
+            reason: "vocabulary section missing",
+        });
+    };
+    let slice = &text[start..];
+    let mut pairs = Vec::new();
+    let mut in_map = false;
+    let mut heading_indent = 0usize;
+    for raw in slice.lines() {
+        let trimmed = strip_comment(raw);
+        if trimmed.trim().is_empty() {
+            continue;
+        }
+        let indent = raw.len() - raw.trim_start().len();
+        if trimmed.trim() == heading {
+            in_map = true;
+            heading_indent = indent;
+            continue;
+        }
+        if in_map && indent <= heading_indent {
+            break;
+        }
+        if in_map {
+            let line = trimmed.trim();
+            if let Some((key, value)) = line.split_once(':') {
+                let key = key.trim();
+                let value = value.trim();
+                if !key.is_empty() && !value.is_empty() {
+                    pairs.push((key.to_owned(), value.to_owned()));
+                }
+            }
+        }
+    }
+    Ok(pairs)
+}
+
 fn parse_transitions(text: &str) -> Result<Vec<FsmTransition>, CatalogError> {
     let mut edges = Vec::new();
     let mut in_transitions = false;
@@ -290,5 +390,12 @@ mod tests {
         assert!(catalog.is_forbidden_kind("ApplicableDecision"));
         assert!(catalog.allows_transition("O2_expression_presence", "O2_decode_lift"));
         assert!(!catalog.allows_transition("O1", "O6_closed_validated"));
+        assert_eq!(
+            catalog.resolve_decode_level_alias("Statya").as_deref(),
+            Some("statya")
+        );
+        assert!(catalog.is_presence_change_kind("include"));
+        assert!(catalog.is_industrial_op_kind("split"));
+        assert!(catalog.is_force_status("unknown"));
     }
 }

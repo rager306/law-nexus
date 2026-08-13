@@ -157,7 +157,8 @@
     "KBO-R022",
     "KBO-R023",
     "KBO-R024",
-    "KBO-R025"
+    "KBO-R025",
+    "KBO-R026"
   ],
   "related_tsg": [
     "TSG-003",
@@ -183,7 +184,7 @@
     "KBO-R011",
     "KBO-R012"
   ],
-  "notes": "YAML catalog is the FSM/vocabulary source. Rust loads kinds, levels, and allowed transitions; it does not invent them. Not production schema.",
+  "notes": "YAML catalog owns FSM, kinds, levels, op vocabularies, and decode aliases. marker_from_decode_token resolves Statya\u2192statya; unknown tokens fail closed.",
   "write_set_crate": "ln-kb-ontology",
   "write_set_fns": [
     "project_work",

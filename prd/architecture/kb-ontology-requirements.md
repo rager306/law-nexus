@@ -82,6 +82,7 @@ S4 fixtures (KBO-R013), Manifestation/Item, and port materialization remain open
 | KBO-R023 | core-contract | ComponentConcept presence in a dated Expression is event-sourced (include/exclude); later Expression does not inherit silently | `fold_expression_presence`; ADR-0016/17 | **accepted-draft** |
 | KBO-R024 | fail-closed | HierarchyMarker (decode candidate) maps to CC only via explicit registry; missing → Unknown; same key + different CC → Conflict | `map_hierarchy_marker`; R3-02 | **accepted-draft** |
 | KBO-R025 | core-contract | Ontology vocabulary and readiness FSM live in YAML (`kb-ontology.yaml`); Rust/Governor load the catalog and must not invent kinds, levels, or transitions | meta-prompt FSM | **accepted-draft** |
+| KBO-R026 | core-contract | Decode hierarchy tokens map to catalog levels only via YAML `decode_level_aliases`; unknown tokens fail closed | `marker_from_decode_token` | **accepted-draft** |
 
 ## 5. Functional preparation backlog (not implemented this wave)
 

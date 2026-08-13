@@ -549,6 +549,20 @@ fn catalog_level(level: &str) -> Result<String, WriteSetError> {
     Err(WriteSetError::UnknownHierarchyLevel)
 }
 
+/// Resolve a decode-facing token (`Statya`) through YAML aliases, then build a marker.
+pub fn marker_from_decode_token(
+    work_id: Option<&str>,
+    decode_token: &str,
+    number: &str,
+    title: Option<&str>,
+) -> Result<HierarchyMarker, WriteSetError> {
+    let catalog = OntologyCatalog::embedded().map_err(|_| WriteSetError::UnknownHierarchyLevel)?;
+    let level = catalog
+        .resolve_decode_level_alias(decode_token)
+        .ok_or(WriteSetError::UnknownHierarchyLevel)?;
+    HierarchyMarker::try_new(work_id, &level, number, title)
+}
+
 /// Decode-facing candidate marker. Number+level is not a ComponentConcept.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct HierarchyMarker {

@@ -134,3 +134,5 @@ citation safety or lifecycle readiness.
 <!-- map_hierarchy_marker KBO-R024 companion -->
 
 <!-- kb-ontology.yaml FSM catalog companion -->
+
+<!-- decode_level_aliases KBO-R026 companion -->
