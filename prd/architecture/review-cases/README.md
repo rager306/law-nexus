@@ -184,3 +184,10 @@ These **non-claims** are mandatory reading for any packet consumer:
 - The test-side structural oracle under `tests/test_review_case_schema.py` is
   not product authority; runtime validation is the pure domain/policy path plus
   the outer codec adapter and ledger integrity checks.
+
+## RC12 residual board (after F18 ceremony)
+
+- terminal: F01, F03, F17
+- closed: F18 (ADR citation hygiene)
+- deferred_parked: F19
+- product_open: F05 (applicability runtime / NormRule residual)

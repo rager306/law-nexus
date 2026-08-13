@@ -187,3 +187,16 @@ Human actor `rager306`:
 
 RC11 process residual wave complete except intentional deferred F13 (Procurement
 Case Graph after core applicability). Product readiness is still not claimed.
+
+## Follow-up process ceremony (2026-08-13, RC12-F18)
+
+Human actor `rager306`:
+
+- RC12-F18: active ADR citations remapped off missing `prd/research/` and
+  gitignored `AGENTS.md` rule anchors to tracked `prd/archive/research-era/`
+  prior art and living oracles (`prd/ARCHITECTURE.md`, ADR-0015); process
+  ceremony → **closed** (tested_revision `3e60a31`).
+- Non-claims: docs hygiene only; does not close RC12-F05 product residual.
+
+RC12 residual after F18: **F05 product_open** (applicability runtime/NormRule);
+F19 deferred; F01/F03/F17 terminal.
