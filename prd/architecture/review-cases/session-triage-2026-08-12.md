@@ -126,3 +126,17 @@ Human actor `rager306`:
 - Top-level product decision remains Abstain-only under ADR-0023 `[proposed]`
 
 Residual open on RC11: F06–F09 product_open; F13 deferred; F01 terminal; F03/F04/F04a/F04b closed.
+
+## Follow-up design ceremony (2026-08-13, F06)
+
+Human actor `rager306`:
+
+- RC11-F06: five-clock safety vs complete temporal algebra boundary inventoried in
+  `ln-temporal` (`TemporalAlgebraCapability` / `classify_temporal_capability`);
+  ADR-0009 non-claims updated; design `execution_linked` + `verification_recorded`
+  → **closed** (tested_revision `fbf2d34`).
+- Non-claims: not interval/bitemporal algebra implementation; TSG-011 and
+  incomplete temporal axes remain open.
+
+RC11 residual after F06: F07/F08/F09 product_open; F13 deferred; F01 terminal;
+F03/F04/F04a/F04b/F06 closed.
