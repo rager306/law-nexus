@@ -65,6 +65,17 @@ made the five-clock vs algebra boundary explicit in `ln-temporal`:
 - TSG-004 remains **active** until an executable NormativeState resolver with
   provenance-backed transitions and hostile joins ships. Design inventory ≠ runtime.
 
+
+### RC11-F08 CTV membership + industrial ops spine (non-closure)
+
+- `MembershipGraph` + `plan_industrial_op` + `whole_act_structural_compile` in
+  `ln-temporal` provide a **fail-closed structural** spine for renumber/move/split/merge
+  and whole-act membership completeness (RC11-F08 / TSG-003/013).
+- Structural plans require amending-act provenance and never claim legal effect,
+  temporal CTV resolution, or real-amendment corpus correctness.
+- TSG-003 and TSG-013 remain **active** until event-sourced CTV runtime, representative
+  amendment fixtures, and human scope acceptance land. Structural spine ≠ full CTV product.
+
 ## 3. Disposition rules
 
 A row may move to `closed-bounded` only when:

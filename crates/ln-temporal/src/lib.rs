@@ -17,6 +17,10 @@
 //! RC11-F09 design boundary: force/status, version relation, applicability, and
 //! epistemic outcome are **orthogonal** (`NormativeDimension`). They must not be
 //! mixed into one mega-type; design inventory is not a NormativeState resolver.
+//!
+//! RC11-F08 implementation spine: structural membership graph + industrial op
+//! planner (`renumber`/`move`/`split`/`merge`) with fail-closed whole-act compile.
+//! Structural only — not full CTV temporal resolution or legal amendment proof.
 
 pub mod adapters;
 pub mod application;

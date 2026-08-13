@@ -4,6 +4,13 @@ All notable changes to law-nexus are documented in this file.
 
 ## Unreleased — current architecture landing and repository map
 
+### CTV structural membership + industrial ops spine (RC11-F08)
+- Added fail-closed `MembershipGraph` and industrial op planner
+  (`renumber`/`move`/`split`/`merge`) in `ln-temporal` with provenance-required
+  plans and whole-act compile fail-closed on incomplete membership.
+- Structural only: not full CTV temporal resolution, not legal amendment
+  correctness; TSG-003/013 remain open for runtime/corpus proof.
+
 ### NormativeState dimensional separation design (RC11-F09)
 - Added `NormativeDimension` design inventory in `ln-temporal`: force/status,
   version relation, applicability, and epistemic outcome are orthogonal.

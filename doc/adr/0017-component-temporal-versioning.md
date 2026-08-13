@@ -167,6 +167,12 @@ document snapshot; they do not reify the event as a queryable causal entity).
   (`LegislativeEventKind`). Lexical or amendment text does not prove legal
   effect. Design taxonomy inventory is not an executable CTV event runtime,
   amendment micro-event engine, or legal-effect determination.
+- **Structural membership + industrial ops (RC11-F08 / TSG-003/013):** `ln-temporal`
+  hosts a fail-closed structural membership graph and industrial op planner
+  (`renumber`/`move`/`split`/`merge`) with whole-act compile fail-closed on
+  incomplete membership. This is a **structural implementation spine**, not a
+  full event-sourced CTV resolver, not legal amendment correctness, and not
+  representative-corpus compilation product readiness.
 
 ## References
 
