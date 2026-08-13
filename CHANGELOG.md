@@ -4,6 +4,11 @@ All notable changes to law-nexus are documented in this file.
 
 ## Unreleased — current architecture landing and repository map
 
+### Force↔membership join offline (KBO-R012 / O2 partial)
+- Added `join_force_with_membership` in `ln-temporal`: force status + structural
+  membership context by `ComponentConceptId`; membership never implies InForce.
+- KB ontology FSM → O2 partial; KBO-R012 partial; R011/R013 still open.
+
 ### KB ontology draft O1 (requirements + L1–L3 projection)
 - Added `kb-ontology-requirements.md` (KBO-R001..R020), L1–L3 draft, and
   `kb-ontology-projection-contract.json` (authoritative=false).

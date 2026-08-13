@@ -223,3 +223,5 @@ This roadmap does not prove Rust product readiness, parser completeness, Russian
 <!-- TSG-004 resolve_force_status_at companion -->
 
 <!-- kb-ontology O1 companion -->
+
+<!-- join_force_with_membership O2 companion -->

@@ -338,3 +338,5 @@ Stop and replan if any review:
 <!-- TSG-004 force resolver companion -->
 
 <!-- kb-ontology O1 projection companion -->
+
+<!-- join_force_with_membership O2 companion -->

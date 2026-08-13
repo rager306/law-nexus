@@ -1,7 +1,7 @@
 # KB Ontology Draft — L1–L3 Projection Contract
 
 **Lifecycle:** `[proposed]` design inventory  
-**FSM state:** O1 (see `kb-ontology-requirements.md`)  
+**FSM state:** O2 partial (see `kb-ontology-requirements.md`)  
 **Non-authority:** not production graph schema, not RuVector validation, not
 legal ontology completeness, not Applicable/practice/risk product types.
 
@@ -98,6 +98,7 @@ ON missing force evidence at query time:
 | `ComponentConceptId` | `ComponentConcept` |
 | `MembershipGraph` / `apply_industrial_op` | `MembershipEdge`, `StructuralIndustrialEvent` |
 | `ForceStatusTimeline` / `resolve_force_status_at` | `ForceStatusEvent` + read Unknown |
+| `join_force_with_membership` | force + membership context; never Applicable |
 | `NormativeDimension` | **not** a graph node (design inventory) |
 | `ln-identity` C12 digest identity | **not** FRBR Work yet (separate; KBO-R011) |
 

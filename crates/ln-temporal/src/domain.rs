@@ -715,6 +715,71 @@ pub fn resolve_force_status_at(
     })
 }
 
+// ─── KBO-R012 / O2: offline force↔CTV membership join ───────────────────────
+// Pure join by ComponentConceptId. Not CTV text store, not Applicable, not corpus.
+
+/// Offline join of force-status resolution with structural membership context.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct ForceMembershipJoin {
+    pub component: ComponentConceptId,
+    pub as_of_day: i64,
+    pub force: ForceStatusResolution,
+    /// True when component appears as parent or child in membership edges.
+    pub structural_known: bool,
+    pub parent: Option<ComponentConceptId>,
+    pub children: Vec<ComponentConceptId>,
+    /// Always false: join never mints applicability decisions.
+    pub claims_applicability: bool,
+    pub non_claims: Vec<&'static str>,
+}
+
+const FORCE_CTV_JOIN_NON_CLAIMS: &[&str] = &[
+    "Force↔membership join is offline structural only; not CTV text edition store",
+    "Structural membership does not imply ForceStatus InForce",
+    "InForce after join still does not imply Applicability",
+    "Not multi-provider identity, not corpus status edges, not product readiness",
+    "Lifecycle [proposed]; KBO-R012 partial; not O3 fixture edges",
+];
+
+/// Join force-status resolution with CTV structural membership for one component.
+///
+/// Fail-closed rules:
+/// - force via `resolve_force_status_at` (missing/conflict → Unknown)
+/// - membership presence never upgrades force to InForce
+/// - never sets `claims_applicability`
+pub fn join_force_with_membership(
+    timeline: &ForceStatusTimeline,
+    graph: &MembershipGraph,
+    component: &ComponentConceptId,
+    as_of_day: i64,
+) -> Result<ForceMembershipJoin, NormativeStateError> {
+    let force = resolve_force_status_at(timeline, component, as_of_day)?;
+    let parent = graph.parent_of(component).cloned();
+    let children: Vec<ComponentConceptId> =
+        graph.children_of(component).into_iter().cloned().collect();
+    let structural_known = parent.is_some()
+        || !children.is_empty()
+        || graph.edges().iter().any(|e| {
+            e.parent().as_str() == component.as_str() || e.child().as_str() == component.as_str()
+        });
+
+    Ok(ForceMembershipJoin {
+        component: component.clone(),
+        as_of_day,
+        force,
+        structural_known,
+        parent,
+        children,
+        claims_applicability: false,
+        non_claims: [
+            F09_NON_CLAIMS,
+            FORCE_RESOLVER_NON_CLAIMS,
+            FORCE_CTV_JOIN_NON_CLAIMS,
+        ]
+        .concat(),
+    })
+}
+
 // ─── RC11-F08 / TSG-003/013: CTV structural membership + industrial ops ─────
 // Fail-closed pure structural spine only. Not a full CTV resolver, not legal
 // amendment correctness, not corpus compilation product readiness.

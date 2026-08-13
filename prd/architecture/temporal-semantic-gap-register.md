@@ -68,8 +68,11 @@ made the five-clock vs algebra boundary explicit in `ln-temporal`:
 
 - Bounded offline **`resolve_force_status_at`** + `ForceStatusTimeline` in
   `ln-temporal` implement **ForceStatus only** (ladder **S2–S3**): missing/conflicting
-  evidence → `Unknown` (never assume `InForce`). Still not CTV join, not applicability,
-  not corpus status-edge proof. TSG-004 remains **active**.
+  evidence → `Unknown` (never assume `InForce`).
+- Offline **`join_force_with_membership`** joins force resolution with structural
+  membership context (KBO-R012 / O2 partial). Membership presence never upgrades
+  force to `InForce`; join never claims Applicability. Still not CTV text edition
+  store, not corpus status-edge proof. TSG-004 remains **active**.
 
 ### RC11-F08 CTV membership + industrial ops spine (non-closure)
 

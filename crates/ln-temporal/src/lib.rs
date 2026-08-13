@@ -16,8 +16,9 @@
 //!
 //! RC11-F09 / TSG-004: force/status, version relation, applicability, and
 //! epistemic outcome are **orthogonal** (`NormativeDimension`). Bounded offline
-//! `resolve_force_status_at` covers **ForceStatus only** — not CTV join, not
-//! applicability, not legal corpus proof. Design inventory alone is not enough.
+//! `resolve_force_status_at` covers **ForceStatus only**. KBO-R012 O2 adds
+//! `join_force_with_membership` (force + structural membership by component) —
+//! still not CTV text store, not applicability, not legal corpus proof.
 //!
 //! RC11-F08 / TSG-003/013: structural membership graph + industrial op planner
 //! and bounded-runtime `apply_industrial_op` with append-only structural event log.

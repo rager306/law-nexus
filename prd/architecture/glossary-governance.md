@@ -120,3 +120,5 @@ citation safety or lifecycle readiness.
 <!-- TSG-004 force resolver companion -->
 
 <!-- kb-ontology O1 companion -->
+
+<!-- join_force_with_membership O2 companion -->
