@@ -297,7 +297,7 @@ coverage only. It neither accepts a schema nor closes a TSG row.
 | Glossary | present | §3, 42 controlled rows | owning ADR per row; TSG-001 remains open | inventory completeness is not semantic completeness |
 | Entity model | partial | §§5–9 identity/CTV/status/applicability concepts | ADR-0016..0023; TSG-003..010 | cardinalities, stable public schemas and several entities remain unspecified |
 | Event taxonomy | deferred-undefined | glossary stop-signs only | future ADR-0017/0018/0021 decision; TSG-002 | no accepted `TextChangeEvent`/`NormativeEffectEvent` taxonomy |
-| Temporal axes | partial | §§4–6 five-clock safety and derived projections | ADR-0009/0017; TSG-011 | no complete interval/bitemporal algebra or legal-date validation |
+| Temporal axes | partial | §§4–6 five-clock safety and derived projections; RC11-F06 design inventory of deferred algebra in `ln-temporal` | ADR-0009/0017; TSG-011 | no complete interval/bitemporal algebra or legal-date validation |
 | Applicability DSL | deferred-undefined | §7 ownership and abstention boundary | ADR-0023 + TSG-005/006 | no accepted AST, fields, evaluator or runtime |
 | Status model | partial | §6 + ADR-0018 canonical `NormativeState` | ADR-0018; TSG-004 | dimensional model and resolver are not implemented |
 | Provenance | partial | §§4–9 fail-closed source/evidence boundaries | ADR-0010/0012/0015; TSG-011/012 | no complete correction/reference provenance API |

@@ -32,6 +32,20 @@ Closure requires the governing authority and proof named in the row. A documenta
 | TSG-015 | Golden-case catalog breadth and executable promotion | evidence | temporal model TL-G01..TL-G12 | 18 paper cases; mixed ceilings | paper cases are semantic-shape oracles, not legal gold answers | each promoted case has an owner, executable positive/hostile proof, revision-bound fixture and honest non-claim | active |
 | TSG-016 | Retrieval scoring and ranking honesty beyond InMemory synthetic contracts | evidence | ADR-0014, ADR-0015, PC/RQ-006 and 019 | InMemory scoring `[bounded]`; live infrastructure `[proposed]` | real cosine values do not establish Russian legal retrieval quality | representative EvidenceSpan/SourceBlock contract, real 1024d corpus, quality metrics, exact citation round-trip and human acceptance | active |
 
+## 2.1 Design-boundary inventory (non-closure)
+
+The following is **not** a TSG row closure. It records that RC11-F06 design proof
+made the five-clock vs algebra boundary explicit in `ln-temporal`:
+
+- `TemporalAlgebraCapability` + `classify_temporal_capability` inventory deferred
+  interval/bitemporal/legal-date/applicable-law capabilities as
+  `DeferredAlgebra` with mandatory non-claims.
+- Five-clock HC-09 safety remains `[bounded]`; algebra/runtime gaps (including
+  TSG-011 and incomplete temporal axes) remain **active** until their own
+  proof triggers fire.
+- Design boundary inventory ≠ interval algebra implementation and ≠ legal-date
+  validation.
+
 ## 3. Disposition rules
 
 A row may move to `closed-bounded` only when:

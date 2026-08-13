@@ -48,7 +48,7 @@ falkordb=historical-only
 | ADR-0005 | Rust target architecture (crate map superseded by ADR-0011) | `[bounded]` |
 | ADR-0007 | Python repository-control harness | `[validated]` |
 | ADR-0008 | Promotion / publication authority | `[bounded]` |
-| ADR-0009 | Five-clock temporal model | `[bounded]` |
+| ADR-0009 | Five-clock temporal model (safety contract; not full temporal algebra — RC11-F06) | `[bounded]` |
 | ADR-0010 | Evidence kernel gates (C10/C12/C13) | `[bounded]` |
 | ADR-0011 | KOF-DA exclusive ownership (`ln-*`) | `[bounded]` |
 | ADR-0012 | Consequential evidence protocol | `[bounded]` |

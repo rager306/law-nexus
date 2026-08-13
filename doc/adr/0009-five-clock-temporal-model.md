@@ -66,6 +66,12 @@ clocks: they must state whether they refer to `source_publication`,
 - Applicable-law or effective-date legal correctness is not claimed.
 - No product temporal database or bitemporal storage is selected.
 - Clock values are synthetic in proof; real legal dates are not validated.
+- The five-clock model is a **safety contract** (role-bound anchors, no silent
+  substitution), **not** a complete temporal algebra. Interval overlap/merge,
+  bitemporal correction ledgers, treating derived `effective_from/to` as source
+  truth, legal-date validation, and applicable-law selection remain deferred
+  algebra capabilities (RC11-F06 / `TemporalAlgebraCapability` inventory in
+  `ln-temporal`). Inventory of deferred capabilities is not an implementation.
 
 ## References
 

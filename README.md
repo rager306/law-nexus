@@ -61,7 +61,7 @@ completion and green repository checks are not product readiness.
 [FOUNDATION — COMPLETE]
   Rust-only product transition (ADR-0004 [bounded], ADR-0005 [bounded])
   Python repository-control harness (ADR-0007 [validated])
-  Five-clock temporal model (ADR-0009 [bounded]) + evidence kernel (ADR-0010 [bounded])
+  Five-clock temporal model (ADR-0009 [bounded] safety contract, not full algebra — RC11-F06) + evidence kernel (ADR-0010 [bounded])
     HC-09/kernel gates prove clock substitution fail-closed; not legal-act correctness
   Promotion/publication authority ceiling (ADR-0008 [bounded])
   KOF-DA ownership: twenty ln-* capability crates (ADR-0011/D123) [bounded]

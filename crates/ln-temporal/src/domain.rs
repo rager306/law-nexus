@@ -169,6 +169,104 @@ pub struct ResolutionResult {
     pub trace: DecisionTrace,
 }
 
+/// Closed set of temporal reasoning capabilities that five-clock safety does
+/// **not** provide (RC11-F06 design boundary / ADR-0009 non-claims).
+///
+/// These names are design inventory only. Presence of the enum does not implement
+/// interval algebra, bitemporal storage, legal-date validation, or applicable-law
+/// reasoning.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub enum TemporalAlgebraCapability {
+    IntervalOverlap,
+    IntervalContainment,
+    IntervalMerge,
+    BitemporalCorrectionLedger,
+    DerivedEffectiveWindowAsSourceTruth,
+    LegalDateValidation,
+    ApplicableLawSelection,
+}
+
+impl TemporalAlgebraCapability {
+    pub fn as_str(self) -> &'static str {
+        match self {
+            Self::IntervalOverlap => "interval_overlap",
+            Self::IntervalContainment => "interval_containment",
+            Self::IntervalMerge => "interval_merge",
+            Self::BitemporalCorrectionLedger => "bitemporal_correction_ledger",
+            Self::DerivedEffectiveWindowAsSourceTruth => "derived_effective_window_as_source_truth",
+            Self::LegalDateValidation => "legal_date_validation",
+            Self::ApplicableLawSelection => "applicable_law_selection",
+        }
+    }
+
+    pub fn all() -> [TemporalAlgebraCapability; 7] {
+        [
+            Self::IntervalOverlap,
+            Self::IntervalContainment,
+            Self::IntervalMerge,
+            Self::BitemporalCorrectionLedger,
+            Self::DerivedEffectiveWindowAsSourceTruth,
+            Self::LegalDateValidation,
+            Self::ApplicableLawSelection,
+        ]
+    }
+}
+
+/// Fail-closed classification of a requested temporal capability relative to
+/// the five-clock safety contract.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub enum TemporalCapabilityClass {
+    /// Covered by five-clock role safety (anchor resolve / no substitution).
+    FiveClockSafety,
+    /// Explicitly outside five-clock safety; requires a later design/runtime owner.
+    DeferredAlgebra,
+}
+
+impl TemporalCapabilityClass {
+    pub fn as_str(self) -> &'static str {
+        match self {
+            Self::FiveClockSafety => "five_clock_safety",
+            Self::DeferredAlgebra => "deferred_algebra",
+        }
+    }
+}
+
+/// Design-boundary answer: five-clock safety vs deferred algebra (RC11-F06).
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct TemporalCapabilityBoundary {
+    pub capability: TemporalAlgebraCapability,
+    pub class: TemporalCapabilityClass,
+    pub non_claims: Vec<&'static str>,
+}
+
+const F06_NON_CLAIMS: &[&str] = &[
+    "Five-clock model is a safety contract, not a complete temporal algebra",
+    "Does not implement interval or bitemporal algebra",
+    "Does not validate real legal dates or applicable-law selection",
+    "Derived effective_from/to windows are projections, not source truth",
+    "Lifecycle: five-clock safety [bounded]; algebra remains deferred/proposed",
+];
+
+/// Classify a temporal capability against the ADR-0009 safety boundary.
+///
+/// Always returns `DeferredAlgebra` for the closed algebra inventory. This is
+/// intentional: five-clock resolve cannot silently expand into algebra APIs.
+pub fn classify_temporal_capability(
+    capability: TemporalAlgebraCapability,
+) -> TemporalCapabilityBoundary {
+    TemporalCapabilityBoundary {
+        capability,
+        class: TemporalCapabilityClass::DeferredAlgebra,
+        non_claims: F06_NON_CLAIMS.to_vec(),
+    }
+}
+
+/// Fail-closed rejection of treating a derived interval projection as a sixth
+/// clock or source-of-truth anchor (RC11-F06 / ADR-0009).
+pub fn reject_derived_interval_as_source_truth() -> TemporalCapabilityBoundary {
+    classify_temporal_capability(TemporalAlgebraCapability::DerivedEffectiveWindowAsSourceTruth)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

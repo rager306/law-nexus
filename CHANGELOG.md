@@ -4,6 +4,12 @@ All notable changes to law-nexus are documented in this file.
 
 ## Unreleased — current architecture landing and repository map
 
+### Five-clock safety vs temporal algebra boundary (RC11-F06)
+- Added `TemporalAlgebraCapability` design inventory in `ln-temporal` that
+  classifies interval/bitemporal/legal-date capabilities as deferred algebra.
+- Hard non-claim: five-clock HC-09 safety is not a complete temporal algebra;
+  derived intervals remain projections, not source truth.
+
 ### NormRule IR fail-closed design spine (M167 / RC11-F04a)
 - Added pure predicate algebra over NormRule IR + synthetic `CaseFactSet`
   (conditions/exceptions/defeaters composition) with explainable steps.
