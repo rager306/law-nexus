@@ -429,6 +429,7 @@ impl ParsedBlock {
 }
 
 /// Format-independent hierarchy levels for Russian legal acts.
+/// Decode tokens (`as_str`) are catalog keys in YAML `decode_level_aliases`.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum HierarchyLevel {
     Razdel,
@@ -438,6 +439,33 @@ pub enum HierarchyLevel {
     Chast,
     Punkt,
     Podpunkt,
+}
+
+impl HierarchyLevel {
+    pub const fn all() -> [Self; 7] {
+        [
+            Self::Razdel,
+            Self::Glava,
+            Self::Paragraph,
+            Self::Statya,
+            Self::Chast,
+            Self::Punkt,
+            Self::Podpunkt,
+        ]
+    }
+
+    /// Decode-facing token. Mapping into ontology levels is YAML, not this match.
+    pub const fn as_str(self) -> &'static str {
+        match self {
+            Self::Razdel => "Razdel",
+            Self::Glava => "Glava",
+            Self::Paragraph => "Paragraph",
+            Self::Statya => "Statya",
+            Self::Chast => "Chast",
+            Self::Punkt => "Punkt",
+            Self::Podpunkt => "Podpunkt",
+        }
+    }
 }
 
 /// A validated hierarchy marker and its exact span in decoded block text.

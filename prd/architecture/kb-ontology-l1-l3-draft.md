@@ -110,6 +110,7 @@ ON missing force evidence at query time:
 | `kb-ontology.yaml` + `OntologyCatalog` | meta-prompt FSM + vocabulary source |
 | `marker_from_decode_token` | YAML decode aliases → HierarchyMarker; no ln-decode dep |
 | `try_push_node` / `try_push_edge` | catalog-validated kind tokens; unknown fails closed |
+| `closed_vocabularies` | YAML table: Rust closed enums ⊆ catalog lists/maps |
 
 ## 9. Explicit non-claims
 

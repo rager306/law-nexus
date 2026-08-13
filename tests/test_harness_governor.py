@@ -609,6 +609,60 @@ def test_kb_ontology_draft_pass_when_complete(tmp_path: Path) -> None:
     assert "kbo_r_count=" in findings[0].observed
 
 
+def test_kb_ontology_closed_vocab_warns_when_rust_token_missing_from_yaml(
+    tmp_path: Path,
+) -> None:
+    arch = tmp_path / "prd" / "architecture"
+    arch.mkdir(parents=True)
+    (arch / "kb-ontology-requirements.md").write_text(
+        "# KB\n\n## Non-authority\n\nnot production graph schema; not Applicable.\n\n"
+        "| ID | x |\n|---|---|\n" + "\n".join(f"| KBO-R{i:03d} | r |" for i in range(1, 12)) + "\n",
+        encoding="utf-8",
+    )
+    (arch / "kb-ontology-l1-l3-draft.md").write_text(
+        "# draft\n\nNon-authority: not production graph schema, not Applicable.\n",
+        encoding="utf-8",
+    )
+    (arch / "kb-ontology-projection-contract.json").write_text(
+        """{
+          "schema_version": "law-nexus-kb-ontology-projection/v1",
+          "authoritative": false,
+          "fsm_state": "O2_catalog_coverage",
+          "node_kinds": [{"kind": "Work"}],
+          "forbidden_node_kinds": ["ApplicableDecision"]
+        }""",
+        encoding="utf-8",
+    )
+    (arch / "kb-ontology.yaml").write_text(
+        "schema_version: law-nexus-kb-ontology/v1\n"
+        "authoritative: false\n"
+        "fsm:\n  current: O2_catalog_coverage\n  states:\n    O2_catalog_coverage:\n      name: cov\n"
+        "vocabulary:\n  hierarchy_levels:\n    - statya\n"
+        "  node_kinds:\n    - Work\n"
+        "  forbidden_node_kinds:\n    - ApplicableDecision\n"
+        "  decode_level_aliases:\n    Statya: statya\n"
+        "  closed_vocabularies:\n"
+        "    - id: decode_hierarchy_level\n"
+        "      rust_path: crates/ln-decode/src/domain.rs\n"
+        "      rust_enum: HierarchyLevel\n"
+        "      yaml_map: decode_level_aliases\n"
+        "      compare: variant_names_are_map_keys\n",
+        encoding="utf-8",
+    )
+    rust = tmp_path / "crates" / "ln-decode" / "src"
+    rust.mkdir(parents=True)
+    (rust / "domain.rs").write_text(
+        "pub enum HierarchyLevel {\n    Statya,\n    ExtraLevel,\n}\n",
+        encoding="utf-8",
+    )
+    from law_nexus_harness.governor import check_kb_ontology_draft
+
+    findings = check_kb_ontology_draft(tmp_path)
+    assert findings[0].status == "fail"
+    assert findings[0].severity == "warn"
+    assert "ExtraLevel" in findings[0].observed
+
+
 def test_orphan_summary_outside_registry_is_advisory_inventory(tmp_path: Path) -> None:
     """SUMMARY dirs not listed in STATE registry must still surface as lag."""
     state = tmp_path / ".gsd"

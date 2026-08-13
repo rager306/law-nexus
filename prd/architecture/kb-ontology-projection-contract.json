@@ -1,7 +1,7 @@
 {
   "schema_version": "law-nexus-kb-ontology-projection/v1",
   "lifecycle": "[proposed]",
-  "fsm_state": "O2_catalog_kinds",
+  "fsm_state": "O2_catalog_coverage",
   "authoritative": false,
   "boundary": "Draft L1-L3 graph projection inventory only. Not production graph schema, not RuVector validation, not legal correctness, not applicability, not ontology conformance.",
   "non_authority_fragments": [
@@ -159,7 +159,8 @@
     "KBO-R024",
     "KBO-R025",
     "KBO-R026",
-    "KBO-R027"
+    "KBO-R027",
+    "KBO-R028"
   ],
   "related_tsg": [
     "TSG-003",
@@ -185,7 +186,7 @@
     "KBO-R011",
     "KBO-R012"
   ],
-  "notes": "YAML catalog owns FSM, kinds, levels, op vocabularies, decode aliases, and presence fold ops. Write-set kinds are catalog tokens; unknown kinds fail closed (KBO-R027).",
+  "notes": "YAML catalog owns FSM, kinds, levels, op vocabularies, decode aliases, and closed-vocabulary coverage. Rust closed enums must be subsets of YAML tables (KBO-R028).",
   "write_set_crate": "ln-kb-ontology",
   "write_set_fns": [
     "project_work",

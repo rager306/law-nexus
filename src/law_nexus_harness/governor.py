@@ -1211,6 +1211,12 @@ _KB_ONTOLOGY_NON_AUTHORITY_FRAGMENTS = (
     "not production graph schema",
     "not Applicable",
 )
+_RUST_ENUM_RE = re.compile(
+    r"pub enum (?P<name>[A-Za-z0-9_]+) \{(?P<body>.*?)\n\}",
+    re.DOTALL,
+)
+_RUST_VARIANT_RE = re.compile(r"^\s*([A-Z][A-Za-z0-9_]*)\s*[,{]", re.MULTILINE)
+_RUST_AS_STR_RE = re.compile(r'Self::[A-Za-z0-9_]+\s*=>\s*"([^"]+)"')
 
 
 def check_capability_promotion_board(root: Path) -> list[GovernorFinding]:
@@ -1532,6 +1538,28 @@ def check_kb_ontology_draft(root: Path) -> list[GovernorFinding]:
             )
         ]
 
+    coverage_rows = list((vocabulary or {}).get("closed_vocabularies") or [])
+    coverage_gaps = _kb_closed_vocabulary_gaps(root, vocabulary or {}, coverage_rows)
+    if coverage_gaps:
+        return [
+            GovernorFinding(
+                check_id=check_id,
+                status="fail",
+                severity="warn",
+                message="KB ontology closed vocabularies drift from Rust enums",
+                observed=f"gaps={coverage_gaps}",
+                remediation=(
+                    "Keep YAML closed_vocabularies aligned with the named Rust enums; "
+                    "Rust tokens must be a subset of the YAML list/map."
+                ),
+                evidence=[
+                    GovernorEvidence(path=str(_KB_ONTOLOGY_YAML_REL)),
+                    GovernorEvidence(path="crates/ln-decode/src/domain.rs"),
+                    GovernorEvidence(path="crates/ln-temporal/src/domain.rs"),
+                ],
+            )
+        ]
+
     return [
         GovernorFinding(
             check_id=check_id,
@@ -1541,7 +1569,7 @@ def check_kb_ontology_draft(root: Path) -> list[GovernorFinding]:
             observed=(
                 f"kbo_r_count={len(req_ids)}; node_kinds={len(node_kinds)}; "
                 f"forbidden={len(forbidden)}; fsm_state={yaml_current!r} "
-                f"yaml_states={len(yaml_states)} "
+                f"yaml_states={len(yaml_states)}; closed_vocabs={len(coverage_rows)} "
                 f"(lifecycle [proposed]; YAML FSM is source; not production schema)."
             ),
             remediation="none",
@@ -1553,6 +1581,72 @@ def check_kb_ontology_draft(root: Path) -> list[GovernorFinding]:
             ],
         )
     ]
+
+
+def _rust_enum_variants(source: str, enum_name: str) -> list[str]:
+    match = None
+    for found in _RUST_ENUM_RE.finditer(source):
+        if found.group("name") == enum_name:
+            match = found
+            break
+    if match is None:
+        return []
+    return [name for name in _RUST_VARIANT_RE.findall(match.group("body"))]
+
+
+def _rust_as_str_tokens(source: str, enum_name: str) -> list[str]:
+    match = None
+    for found in _RUST_ENUM_RE.finditer(source):
+        if found.group("name") == enum_name:
+            match = found
+            break
+    if match is None:
+        return []
+    after = source[match.end() :]
+    impl_marker = f"impl {enum_name}"
+    impl_at = after.find(impl_marker)
+    window = after[impl_at : impl_at + 4000] if impl_at >= 0 else after[:4000]
+    return _RUST_AS_STR_RE.findall(window)
+
+
+def _kb_closed_vocabulary_gaps(
+    root: Path,
+    vocabulary: dict[str, Any],
+    rows: list[Any],
+) -> list[str]:
+    gaps: list[str] = []
+    for row in rows:
+        if not isinstance(row, dict):
+            gaps.append("malformed_closed_vocabulary_row")
+            continue
+        row_id = str(row.get("id") or "unnamed")
+        rust_path = root / str(row.get("rust_path") or "")
+        enum_name = str(row.get("rust_enum") or "")
+        if not rust_path.is_file() or not enum_name:
+            # Fixture roots without crates skip coverage; live repo must have rows.
+            continue
+        source = rust_path.read_text(encoding="utf-8")
+        compare = str(row.get("compare") or "")
+        if compare == "variant_names_are_map_keys":
+            yaml_map = vocabulary.get(str(row.get("yaml_map") or "")) or {}
+            yaml_keys = set(yaml_map) if isinstance(yaml_map, dict) else set()
+            rust_tokens = set(_rust_enum_variants(source, enum_name))
+            missing = sorted(rust_tokens - yaml_keys)
+            if not rust_tokens:
+                gaps.append(f"{row_id}:enum_unparsed")
+            elif missing:
+                gaps.append(f"{row_id}:missing_yaml_keys={missing}")
+        elif compare == "as_str_tokens_are_list_items":
+            yaml_list = set(vocabulary.get(str(row.get("yaml_list") or "")) or [])
+            rust_tokens = set(_rust_as_str_tokens(source, enum_name))
+            missing = sorted(rust_tokens - yaml_list)
+            if not rust_tokens:
+                gaps.append(f"{row_id}:as_str_unparsed")
+            elif missing:
+                gaps.append(f"{row_id}:missing_yaml_items={missing}")
+        else:
+            gaps.append(f"{row_id}:unknown_compare={compare!r}")
+    return gaps
 
 
 def _load_port_contract_coverage_module(root: Path):

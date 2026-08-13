@@ -241,3 +241,5 @@ This roadmap does not prove Rust product readiness, parser completeness, Russian
 <!-- decode_level_aliases KBO-R026 companion -->
 
 <!-- catalog kinds KBO-R027 companion -->
+
+<!-- closed_vocabularies KBO-R028 companion -->

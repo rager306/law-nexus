@@ -108,6 +108,7 @@ fn hierarchy_node_encodes_level_number_title_text_and_decoded_marker_span() {
     .expect("valid hierarchy node");
 
     assert_eq!(node.level(), HierarchyLevel::Statya);
+    assert_eq!(node.level().as_str(), "Statya");
     assert_eq!(node.number(), "5.1");
     assert_eq!(node.title(), Some("Сфера применения"));
     assert_eq!(node.text(), "Статья 5.1. Сфера применения");

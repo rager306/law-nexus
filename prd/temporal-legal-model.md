@@ -356,3 +356,5 @@ Stop and replan if any review:
 <!-- decode_level_aliases KBO-R026 companion -->
 
 <!-- catalog kinds KBO-R027 companion -->
+
+<!-- closed_vocabularies KBO-R028 companion -->

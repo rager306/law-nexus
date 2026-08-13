@@ -4,6 +4,11 @@ All notable changes to law-nexus are documented in this file.
 
 ## Unreleased — current architecture landing and repository map
 
+### YAML closed-vocabulary coverage (KBO-R028)
+- `HierarchyLevel::as_str` emits decode tokens that YAML aliases cover.
+- Governor compares named Rust enums to YAML `closed_vocabularies`.
+- FSM current is `O2_catalog_coverage`.
+
 ### YAML catalog kinds (KBO-R027)
 - Graph node/edge/presence kinds are catalog tokens, not Rust enums.
 - Unknown kinds fail closed; Manifestation is accepted because YAML lists it.

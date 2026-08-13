@@ -16,7 +16,7 @@ boundary: >
 fsm:
   name: kb-ontology-readiness
   initial: O0
-  current: O2_catalog_kinds
+  current: O2_catalog_coverage
   terminal:
     - O6_closed_bounded
     - O6_closed_validated
@@ -53,6 +53,10 @@ fsm:
       name: catalog_validated_kinds
       meaning: node/edge/presence tokens come from YAML, not Rust enums
       exit: unknown kind fails closed; Manifestation is catalog-legal
+    O2_catalog_coverage:
+      name: closed_vocab_coverage
+      meaning: closed Rust enums are subsets of YAML vocabularies
+      exit: Governor coverage table; no invented tokens
     O3:
       name: representative_fixture_edges
       meaning: bounded fixtures, not corpus gold
@@ -81,7 +85,8 @@ fsm:
     - {from: O2_fold, to: O2_expression_presence, when: cc_presence_per_expression}
     - {from: O2_expression_presence, to: O2_decode_lift, when: hierarchy_marker_map_fail_closed}
     - {from: O2_decode_lift, to: O2_catalog_kinds, when: kinds_are_catalog_tokens}
-    - {from: O2_catalog_kinds, to: O3, when: representative_fixtures}
+    - {from: O2_catalog_kinds, to: O2_catalog_coverage, when: closed_enums_covered_by_yaml}
+    - {from: O2_catalog_coverage, to: O3, when: representative_fixtures}
     - {from: O3, to: O4, when: port_write_no_live_claim}
     - {from: O4, to: O5, when: human_scope}
     - {from: O5, to: O6_closed_bounded, when: bounded_disposition}
@@ -89,6 +94,7 @@ fsm:
   forbidden_jumps:
     - {from: O2_decode_lift, to: O6_closed_validated, why: no skip of fixtures and human gate}
     - {from: O2_catalog_kinds, to: O6_closed_validated, why: no skip of fixtures and human gate}
+    - {from: O2_catalog_coverage, to: O6_closed_validated, why: no skip of fixtures and human gate}
     - {from: O1, to: O4, why: no store I/O before offline join and fold}
   guards:
     - id: kernel_owns_substance
@@ -175,6 +181,27 @@ vocabulary:
     Chast: chast
     Punkt: punkt
     Podpunkt: podpunkt
+  closed_vocabularies:
+    - id: decode_hierarchy_level
+      rust_path: crates/ln-decode/src/domain.rs
+      rust_enum: HierarchyLevel
+      yaml_map: decode_level_aliases
+      compare: variant_names_are_map_keys
+    - id: force_status
+      rust_path: crates/ln-temporal/src/domain.rs
+      rust_enum: NormativeState
+      yaml_list: force_status_values
+      compare: as_str_tokens_are_list_items
+    - id: industrial_ops
+      rust_path: crates/ln-temporal/src/domain.rs
+      rust_enum: CtvIndustrialOpKind
+      yaml_list: industrial_op_kinds
+      compare: as_str_tokens_are_list_items
+    - id: membership_change
+      rust_path: crates/ln-temporal/src/domain.rs
+      rust_enum: MembershipChangeKind
+      yaml_list: membership_change_kinds
+      compare: as_str_tokens_are_list_items
 
 non_claims:
   - YAML catalog is not production graph schema
