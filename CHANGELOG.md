@@ -4,6 +4,12 @@ All notable changes to law-nexus are documented in this file.
 
 ## Unreleased — current architecture landing and repository map
 
+### CTV structural apply bounded runtime (TSG-003/013 S3)
+- Added `apply_industrial_op` + `StructuralEventLog` in `ln-temporal`: offline
+  membership mutation for renumber/move/split/merge with plan-match and
+  duplicate-op fail-closed guards.
+- Promotion board: TSG-003 → S3; TSG-013 → S2–S3. Not legal CTV product or corpus.
+
 ### Capability promotion board (L_capability / P3)
 - Added `prd/architecture/capability-promotion-board.md`: ladder S0–S6, promotion
   packet rules, current TSG progress after RC11/RC12 spine wave.

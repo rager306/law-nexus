@@ -71,10 +71,13 @@ made the five-clock vs algebra boundary explicit in `ln-temporal`:
 - `MembershipGraph` + `plan_industrial_op` + `whole_act_structural_compile` in
   `ln-temporal` provide a **fail-closed structural** spine for renumber/move/split/merge
   and whole-act membership completeness (RC11-F08 / TSG-003/013).
-- Structural plans require amending-act provenance and never claim legal effect,
-  temporal CTV resolution, or real-amendment corpus correctness.
-- TSG-003 and TSG-013 remain **active** until event-sourced CTV runtime, representative
-  amendment fixtures, and human scope acceptance land. Structural spine ≠ full CTV product.
+- Bounded-runtime **`apply_industrial_op`** mutates membership and appends
+  `StructuralEventLog` events offline with hostile plan-mismatch / duplicate-op
+  guards (ladder **S3**). Still not temporal CTV store or legal amendment proof.
+- Structural plans/applies require amending-act provenance and never claim legal
+  effect, temporal CTV resolution, or real-amendment corpus correctness.
+- TSG-003 and TSG-013 remain **active** until representative amendment fixtures,
+  versioned cardinality, and human scope acceptance land. S3 ≠ full CTV product.
 
 
 ### RC12-F05 applicability capability inventory (non-closure)

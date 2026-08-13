@@ -154,6 +154,11 @@ document snapshot; they do not reify the event as a queryable causal entity).
 
 ## Non-claims
 
+- Bounded-runtime `apply_industrial_op` / `StructuralEventLog` in `ln-temporal`
+  (TSG-003/013 ladder S3) mutates synthetic membership only; it is not event-sourced
+  CTV product runtime, not legal amendment correctness, and not corpus compilation.
+
+
 - No corpus completeness; provenance gaps are expected and reported, not hidden.
 - No claim that lexical component extraction (current `ln-decode` candidates) is
   a proven legal fact — candidates feed the CTV model only with anchored

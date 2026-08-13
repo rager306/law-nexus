@@ -18,9 +18,10 @@
 //! epistemic outcome are **orthogonal** (`NormativeDimension`). They must not be
 //! mixed into one mega-type; design inventory is not a NormativeState resolver.
 //!
-//! RC11-F08 implementation spine: structural membership graph + industrial op
-//! planner (`renumber`/`move`/`split`/`merge`) with fail-closed whole-act compile.
-//! Structural only — not full CTV temporal resolution or legal amendment proof.
+//! RC11-F08 / TSG-003/013: structural membership graph + industrial op planner
+//! and bounded-runtime `apply_industrial_op` with append-only structural event log.
+//! Structural offline apply only — not full CTV temporal resolution, not legal
+//! amendment proof, not representative corpus compilation.
 
 pub mod adapters;
 pub mod application;

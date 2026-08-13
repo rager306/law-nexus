@@ -114,3 +114,5 @@ citation safety or lifecycle readiness.
 <!-- continuity-contract cross-check: gap-register disposition vs review residual -->
 
 <!-- capability-promotion-board cross-check -->
+
+<!-- TSG-003/013 S3 apply companion -->

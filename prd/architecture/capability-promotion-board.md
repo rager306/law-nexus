@@ -95,7 +95,7 @@ M167 complete (design IR); dual-truth lag resolved.
 |---|---|---|---|---|
 | TSG-001 | S0–S1 partial | vocabulary/glossary surfaces exist; not complete controlled vocabulary | gap register active | complete crosswalk + drift checks |
 | TSG-002 | **S1** | `LegislativeEventKind` design taxonomy | RC11-F07 non-closure | executable events + hostile substitution (S2/S3) |
-| TSG-003 | **S2** | structural industrial ops planner + whole-act fail-closed compile | RC11-F08 non-closure | event-sourced CTV runtime + fixtures (S3/S4) |
+| TSG-003 | **S3** | planner + bounded-runtime `apply_industrial_op` + structural event log (offline/hostile) | RC11-F08 non-closure; not corpus | representative amendment fixtures + human scope (S4/S5); still not legal CTV product |
 | TSG-004 | **S1** | `NormativeDimension` orthogonal inventory | RC11-F09 non-closure | public resolver + hostile joins (S2/S3) |
 | TSG-005 | **S1–S2** | NormRule IR + fail-closed validation (M167/F04a); not full rule graph | RC12-F05 + F04a non-closure | provenance graph + promotion tests; **not** product Applicable |
 | TSG-006 | **S1–S2** | abstention kernel + predicate algebra spine; top-level Abstain only | RC12-F05 / F04b non-closure | product CaseFacts + real cases before any Applicable (S3–S5) |
@@ -105,7 +105,7 @@ M167 complete (design IR); dual-truth lag resolved.
 | TSG-010 | S0 | ADR-0022/0023; F13 deferred | RC11-F13 deferred | after core applicability path |
 | TSG-011 | S0–S1 | five-clock safety ≠ algebra; deferred inventory | RC11-F06 non-closure | correction ledger + rebuild equivalence |
 | TSG-012 | S0 | gap named | — | owner decision + resolver |
-| TSG-013 | **S2** | membership graph spine (with TSG-003 structural) | RC11-F08 non-closure | versioned cardinality + multi-provider fixtures |
+| TSG-013 | **S2–S3** | membership mutate via apply (move/split/merge/renumber); not versioned cardinality store | RC11-F08 non-closure | versioned cardinality + multi-provider fixtures (S4) |
 | TSG-014 | S0 | partial paper shapes | — | port-tied schemas |
 | TSG-015 | S0 | paper golden catalog | — | executable promotion per case |
 | TSG-016 | S0–S1 | InMemory scoring `[bounded]` | — | real 1024d corpus + metrics |
@@ -120,8 +120,10 @@ M167 complete (design IR); dual-truth lag resolved.
 | 2026-08-13 | TSG-005 | → S1–S2 | M167 + F04a IR | GSD skip-waiver + review |
 | 2026-08-13 | TSG-006 | → S1–S2 | F04b algebra + F05 inventory | review ceremony |
 | 2026-08-13 | TSG-011 | → S0–S1 | F06 five-clock vs algebra | review ceremony |
+| 2026-08-13 | TSG-003 | S2 → **S3** | `apply_industrial_op` + `StructuralEventLog` offline/hostile | product TDD slice |
+| 2026-08-13 | TSG-013 | S2 → **S2–S3** | membership mutation under apply | product TDD slice |
 
-No row advanced to S3+ or S6 in this wave.
+No row advanced to S6 in the spine wave; S3 apply landed later (see history).
 
 ## 6. Operator cycle (capability-only)
 

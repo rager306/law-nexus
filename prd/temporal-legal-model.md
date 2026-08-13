@@ -332,3 +332,5 @@ Stop and replan if any review:
 <!-- continuity: L_review closed ≠ L_capability TSG closed; see review-cases/continuity-contract.md -->
 
 <!-- capability-promotion-board: L_capability ladder companion -->
+
+<!-- TSG-003/013 S3 apply_industrial_op companion -->

@@ -217,3 +217,5 @@ This roadmap does not prove Rust product readiness, parser completeness, Russian
 <!-- continuity-contract: L_review/L_delivery/L_capability adopted as process note -->
 
 <!-- capability-promotion-board companion after ARCHITECTURE continuity note -->
+
+<!-- TSG-003/013 S3 apply_industrial_op companion -->

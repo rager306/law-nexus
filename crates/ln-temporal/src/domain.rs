@@ -595,6 +595,8 @@ pub enum CtvOpsError {
     UnknownSubject,
     TargetCollision,
     WholeActIncomplete,
+    PlanMismatch,
+    DuplicateOpId,
 }
 
 impl fmt::Display for CtvOpsError {
@@ -622,6 +624,12 @@ impl fmt::Display for CtvOpsError {
                     formatter,
                     "whole-act compile is fail-closed on incomplete membership"
                 )
+            }
+            Self::PlanMismatch => {
+                write!(formatter, "apply requires a plan matching the request")
+            }
+            Self::DuplicateOpId => {
+                write!(formatter, "industrial op id already present in event log")
             }
         }
     }
@@ -760,6 +768,172 @@ pub fn whole_act_structural_compile(
         }
     }
     Ok(())
+}
+
+// ─── TSG-003/013 S3: bounded-runtime apply + structural event log ───────────
+// Offline synthetic apply only. Not temporal CTV store, not legal effect.
+
+/// Append-only structural industrial-op event (not NormativeEffect).
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct StructuralIndustrialEvent {
+    pub op_id: IndustrialOpId,
+    pub kind: CtvIndustrialOpKind,
+    pub subjects: Vec<ComponentConceptId>,
+    pub targets: Vec<ComponentConceptId>,
+    pub provenance: AmendingActId,
+}
+
+/// In-memory append-only log of applied structural ops.
+#[derive(Debug, Clone, PartialEq, Eq, Default)]
+pub struct StructuralEventLog {
+    events: Vec<StructuralIndustrialEvent>,
+}
+
+impl StructuralEventLog {
+    pub fn empty() -> Self {
+        Self::default()
+    }
+
+    pub fn events(&self) -> &[StructuralIndustrialEvent] {
+        &self.events
+    }
+
+    fn contains_op(&self, op_id: &IndustrialOpId) -> bool {
+        self.events
+            .iter()
+            .any(|e| e.op_id.as_str() == op_id.as_str())
+    }
+}
+
+/// Receipt from a successful structural apply (bounded runtime).
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct IndustrialOpApplyReceipt {
+    pub op_id: IndustrialOpId,
+    pub kind: CtvIndustrialOpKind,
+    pub non_claims: Vec<&'static str>,
+}
+
+const S3_APPLY_NON_CLAIMS: &[&str] = &[
+    "Structural membership apply is not full CTV temporal resolution",
+    "Does not prove legal amendment correctness or real-corpus compilation",
+    "Append-only structural events are not NormativeEffectEvent runtime",
+    "Bounded offline apply only; lifecycle [proposed]; not product readiness",
+];
+
+fn remove_edges_involving(graph: &mut MembershipGraph, id: &ComponentConceptId) {
+    graph
+        .edges
+        .retain(|e| e.parent.as_str() != id.as_str() && e.child.as_str() != id.as_str());
+}
+
+fn rewrite_component_id(
+    graph: &mut MembershipGraph,
+    from: &ComponentConceptId,
+    to: &ComponentConceptId,
+) -> Result<(), CtvOpsError> {
+    if from.as_str() == to.as_str() {
+        return Err(CtvOpsError::TargetCollision);
+    }
+    // Collision if `to` already appears as any endpoint.
+    if graph
+        .edges
+        .iter()
+        .any(|e| e.parent.as_str() == to.as_str() || e.child.as_str() == to.as_str())
+    {
+        return Err(CtvOpsError::TargetCollision);
+    }
+    for edge in &mut graph.edges {
+        if edge.parent.as_str() == from.as_str() {
+            edge.parent = to.clone();
+        }
+        if edge.child.as_str() == from.as_str() {
+            edge.child = to.clone();
+        }
+    }
+    Ok(())
+}
+
+/// Apply a planned industrial op: mutate membership graph and append a
+/// structural event. Requires `plan` to match `request` (op_id, kind, provenance).
+///
+/// Not a temporal CTV resolver and not legal-effect determination.
+pub fn apply_industrial_op(
+    graph: &mut MembershipGraph,
+    log: &mut StructuralEventLog,
+    request: &IndustrialOpRequest,
+    plan: &IndustrialOpPlan,
+) -> Result<IndustrialOpApplyReceipt, CtvOpsError> {
+    if plan.op_id.as_str() != request.op_id.as_str()
+        || plan.kind != request.kind
+        || plan.provenance.as_str() != request.provenance.as_str()
+    {
+        return Err(CtvOpsError::PlanMismatch);
+    }
+    // Re-validate against current graph (fail-closed; plan is not a capability claim).
+    plan_industrial_op(graph, request)?;
+    if log.contains_op(&request.op_id) {
+        return Err(CtvOpsError::DuplicateOpId);
+    }
+
+    match request.kind {
+        CtvIndustrialOpKind::Move => {
+            let subject = &request.subjects[0];
+            let new_parent = &request.targets[0];
+            // Drop existing parent edge for subject if any.
+            graph.edges.retain(|e| e.child.as_str() != subject.as_str());
+            graph.insert(MembershipEdge::try_new(
+                new_parent.clone(),
+                subject.clone(),
+            )?)?;
+        }
+        CtvIndustrialOpKind::Renumber => {
+            let from = &request.subjects[0];
+            let to = &request.targets[0];
+            rewrite_component_id(graph, from, to)?;
+        }
+        CtvIndustrialOpKind::Split => {
+            let subject = &request.subjects[0];
+            let parent = graph.parent_of(subject).cloned();
+            remove_edges_involving(graph, subject);
+            if let Some(parent) = parent {
+                for target in &request.targets {
+                    graph.insert(MembershipEdge::try_new(parent.clone(), target.clone())?)?;
+                }
+            }
+            // Free subject with no parent: targets remain free (structure only).
+        }
+        CtvIndustrialOpKind::Merge => {
+            let target = &request.targets[0];
+            // Prefer parent of first subject that has one.
+            let mut parent: Option<ComponentConceptId> = None;
+            for subject in &request.subjects {
+                if let Some(p) = graph.parent_of(subject) {
+                    parent = Some(p.clone());
+                    break;
+                }
+            }
+            for subject in &request.subjects {
+                remove_edges_involving(graph, subject);
+            }
+            if let Some(parent) = parent {
+                graph.insert(MembershipEdge::try_new(parent, target.clone())?)?;
+            }
+        }
+    }
+
+    log.events.push(StructuralIndustrialEvent {
+        op_id: request.op_id.clone(),
+        kind: request.kind,
+        subjects: request.subjects.clone(),
+        targets: request.targets.clone(),
+        provenance: request.provenance.clone(),
+    });
+
+    Ok(IndustrialOpApplyReceipt {
+        op_id: request.op_id.clone(),
+        kind: request.kind,
+        non_claims: [F08_NON_CLAIMS, S3_APPLY_NON_CLAIMS].concat(),
+    })
 }
 
 #[cfg(test)]
