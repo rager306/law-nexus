@@ -4,6 +4,11 @@ All notable changes to law-nexus are documented in this file.
 
 ## Unreleased — current architecture landing and repository map
 
+### S_admit conflict quarantine (assembly S_admit)
+- `admit_membership_proposals` gates drafts against two-parent, cycle, self-parent.
+- 402-FZ: 33 admitted, 0 conflict-quarantined.
+- CLI reports `membership_admitted` and `membership_conflict_quarantined`.
+
 ### Scoped YAML hierarchy registry (KBO-R042)
 - `kb-hierarchy-registry.yaml` binds 435-FZ `statya` 1–22 by path needle.
 - Unmatched paths stay empty. Articles-only act is a forest: 22 Bound, 0 attach.

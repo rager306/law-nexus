@@ -747,3 +747,145 @@ pub fn map_hierarchy_marker(map: &HierarchyMap, marker: &HierarchyMarker) -> Hie
         None => HierarchyMapOutcome::Unknown,
     }
 }
+
+// ─── S_admit: conflict quarantine on proposed drafts ───────────────────────────
+// Admitted drafts are still not VersionedMembershipLog writes. Structural checks
+// (cycle, two-parent, self-parent) are graph integrity, not legal hierarchy.
+
+/// A proposal that survived the conflict gate.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct AdmittedMembership {
+    pub parent: ComponentConceptId,
+    pub child: ComponentConceptId,
+}
+
+/// Why a proposal was quarantined during admission.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum QuarantineReason {
+    /// Child already has a different parent from an earlier admitted proposal.
+    TwoParentConflict { other_parent: ComponentConceptId },
+    /// Admitting this edge would create a parent-cycle.
+    Cycle,
+    /// Parent and child are the same CC.
+    SelfParent,
+}
+
+/// A proposal quarantined during admission, with a structural reason.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct QuarantinedProposal {
+    pub parent: ComponentConceptId,
+    pub child: ComponentConceptId,
+    pub reason: QuarantineReason,
+}
+
+/// S_admit report: admitted drafts + quarantined conflicts.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct MembershipAdmitReport {
+    pub admitted: Vec<AdmittedMembership>,
+    pub quarantined: Vec<QuarantinedProposal>,
+    pub forest_roots: usize,
+}
+
+const MEMBERSHIP_ADMIT_NON_CLAIMS: &[&str] = &[
+    "Admitted proposals are still drafts; they do not append VersionedMembershipLog",
+    "Quarantined proposals need human or provenance resolution before commit",
+    "Not CTV text, not Expression include, not Applicable",
+    "Cycle and two-parent checks are structural graph integrity, not legal hierarchy authority",
+];
+
+impl MembershipAdmitReport {
+    pub fn non_claims(&self) -> &'static [&'static str] {
+        MEMBERSHIP_ADMIT_NON_CLAIMS
+    }
+}
+
+/// Admit proposed drafts through a structural conflict gate.
+/// First parent wins; exact duplicates are silently deduplicated.
+pub fn admit_membership_proposals(proposals: &[MembershipProposal]) -> MembershipAdmitReport {
+    let mut admitted: Vec<AdmittedMembership> = Vec::new();
+    let mut quarantined: Vec<QuarantinedProposal> = Vec::new();
+    // (child, parent) for admitted edges, used for two-parent and cycle checks.
+    let mut child_parents: Vec<(ComponentConceptId, ComponentConceptId)> = Vec::new();
+
+    for proposal in proposals {
+        if proposal.parent.as_str() == proposal.child.as_str() {
+            quarantined.push(QuarantinedProposal {
+                parent: proposal.parent.clone(),
+                child: proposal.child.clone(),
+                reason: QuarantineReason::SelfParent,
+            });
+            continue;
+        }
+        if admitted.iter().any(|edge| {
+            edge.parent.as_str() == proposal.parent.as_str()
+                && edge.child.as_str() == proposal.child.as_str()
+        }) {
+            continue;
+        }
+        if let Some((_, existing_parent)) = child_parents
+            .iter()
+            .find(|(child, _)| child.as_str() == proposal.child.as_str())
+        {
+            quarantined.push(QuarantinedProposal {
+                parent: proposal.parent.clone(),
+                child: proposal.child.clone(),
+                reason: QuarantineReason::TwoParentConflict {
+                    other_parent: existing_parent.clone(),
+                },
+            });
+            continue;
+        }
+        if creates_cycle(&child_parents, &proposal.parent, &proposal.child) {
+            quarantined.push(QuarantinedProposal {
+                parent: proposal.parent.clone(),
+                child: proposal.child.clone(),
+                reason: QuarantineReason::Cycle,
+            });
+            continue;
+        }
+        child_parents.push((proposal.child.clone(), proposal.parent.clone()));
+        admitted.push(AdmittedMembership {
+            parent: proposal.parent.clone(),
+            child: proposal.child.clone(),
+        });
+    }
+
+    let parents: std::collections::HashSet<&str> =
+        admitted.iter().map(|e| e.parent.as_str()).collect();
+    let children: std::collections::HashSet<&str> =
+        admitted.iter().map(|e| e.child.as_str()).collect();
+    let forest_roots = parents.difference(&children).count();
+
+    MembershipAdmitReport {
+        admitted,
+        quarantined,
+        forest_roots,
+    }
+}
+
+/// Walk the admitted parent chain from `parent`. If `child` is reachable,
+/// admitting (parent → child) would close a cycle.
+fn creates_cycle(
+    edges: &[(ComponentConceptId, ComponentConceptId)],
+    parent: &ComponentConceptId,
+    child: &ComponentConceptId,
+) -> bool {
+    let mut current = parent.as_str();
+    let mut visited = std::collections::HashSet::new();
+    loop {
+        if current == child.as_str() {
+            return true;
+        }
+        if !visited.insert(current) {
+            return false;
+        }
+        let Some(next) = edges
+            .iter()
+            .find(|(c, _)| c.as_str() == current)
+            .map(|(_, p)| p.as_str())
+        else {
+            return false;
+        };
+        current = next;
+    }
+}

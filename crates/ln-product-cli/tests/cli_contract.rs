@@ -139,6 +139,16 @@ fn inspect_real_consultant_fixture_reports_bounded_summary() {
         stdout
     );
     assert!(
+        stdout.contains("\"membership_admitted\":0"),
+        "articles-only 435-FZ admits no edges; got: {}",
+        stdout
+    );
+    assert!(
+        stdout.contains("\"membership_conflict_quarantined\":0"),
+        "no conflicts in 435-FZ forest; got: {}",
+        stdout
+    );
+    assert!(
         stdout.contains("\"reference_mentions\":"),
         "inspect must report reference_mentions; got: {}",
         stdout
@@ -220,6 +230,16 @@ fn inspect_402_fz_reports_non_zero_attach_from_yaml_ranks() {
         inspect_u64(&stdout, "membership_quarantined"),
         0,
         "bound 402-FZ markers must not quarantine; {stdout}"
+    );
+    assert_eq!(
+        inspect_u64(&stdout, "membership_admitted"),
+        inspect_u64(&stdout, "membership_proposals"),
+        "clean 402-FZ proposals must all survive the conflict gate; {stdout}"
+    );
+    assert_eq!(
+        inspect_u64(&stdout, "membership_conflict_quarantined"),
+        0,
+        "402-FZ has no two-parent or cycle conflicts; {stdout}"
     );
     assert!(
         !stdout.contains("ОБЩИЕ ПОЛОЖЕНИЯ"),
