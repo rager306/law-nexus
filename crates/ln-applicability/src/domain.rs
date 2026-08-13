@@ -636,3 +636,140 @@ pub fn compose_norm_rule_predicates(
         steps,
     }
 }
+
+// ─── RC12-F05 / TSG-005/006: applicability capability inventory ─────────────
+// Explicit landed-vs-deferred boundary for the ADR-0023 protocol surface.
+// Naming a capability does not mint Applicable/NotApplicable or legal correctness.
+
+/// Closed inventory of applicability protocol capabilities (RC12-F05).
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub enum ApplicabilityCapability {
+    /// Fail-closed prerequisite gates + mandatory ExplainableTrace (v0 kernel).
+    AbstentionKernel,
+    /// Structural NormRule IR (conditions/exceptions/defeaters/temporal scope).
+    NormRuleIr,
+    /// Pure predicate algebra over synthetic CaseFactSet (trace-only outcomes).
+    PredicateAlgebraSpine,
+    /// Product Applicable / NotApplicable decision emission.
+    PositiveApplicabilityDecision,
+    /// Versioned product CaseFacts pipeline with provenance (not synthetic bag).
+    ProductCaseFactsPipeline,
+    /// Profile-supplied special predicates beyond closed synthetic kinds.
+    ProfileSpecialPredicates,
+    /// Representative real-case corpus + human legal-scope acceptance.
+    RealCaseEvidenceAcceptance,
+}
+
+impl ApplicabilityCapability {
+    pub fn as_str(self) -> &'static str {
+        match self {
+            Self::AbstentionKernel => "abstention_kernel",
+            Self::NormRuleIr => "norm_rule_ir",
+            Self::PredicateAlgebraSpine => "predicate_algebra_spine",
+            Self::PositiveApplicabilityDecision => "positive_applicability_decision",
+            Self::ProductCaseFactsPipeline => "product_case_facts_pipeline",
+            Self::ProfileSpecialPredicates => "profile_special_predicates",
+            Self::RealCaseEvidenceAcceptance => "real_case_evidence_acceptance",
+        }
+    }
+
+    pub fn all() -> [ApplicabilityCapability; 7] {
+        [
+            Self::AbstentionKernel,
+            Self::NormRuleIr,
+            Self::PredicateAlgebraSpine,
+            Self::PositiveApplicabilityDecision,
+            Self::ProductCaseFactsPipeline,
+            Self::ProfileSpecialPredicates,
+            Self::RealCaseEvidenceAcceptance,
+        ]
+    }
+}
+
+/// Landed structural spine vs deferred product capability (RC12-F05).
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub enum ApplicabilityCapabilityClass {
+    /// Present as fail-closed structural/protocol spine under [proposed].
+    LandedSpine,
+    /// Explicitly deferred; not product-ready under ADR-0023 [proposed].
+    DeferredProduct,
+}
+
+impl ApplicabilityCapabilityClass {
+    pub fn as_str(self) -> &'static str {
+        match self {
+            Self::LandedSpine => "landed_spine",
+            Self::DeferredProduct => "deferred_product",
+        }
+    }
+}
+
+/// Design/runtime boundary answer for an applicability capability (RC12-F05).
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct ApplicabilityCapabilityBoundary {
+    pub capability: ApplicabilityCapability,
+    pub class: ApplicabilityCapabilityClass,
+    pub non_claims: Vec<&'static str>,
+}
+
+const F05_NON_CLAIMS: &[&str] = &[
+    "Landed applicability spines are not product Applicable/NotApplicable decisions",
+    "NormRule IR and predicate algebra do not prove legal correctness",
+    "Ownership under ADR-0023 is not complete runtime product readiness",
+    "Positive applicability remains deferred while lifecycle is [proposed]",
+    "Synthetic CaseFactSet is not product CaseFacts authority",
+    "TSG-006 remains open for real-case evidence and human acceptance",
+];
+
+/// Classify an applicability capability against the ADR-0023 residual boundary.
+pub fn classify_applicability_capability(
+    capability: ApplicabilityCapability,
+) -> ApplicabilityCapabilityBoundary {
+    let class = match capability {
+        ApplicabilityCapability::AbstentionKernel
+        | ApplicabilityCapability::NormRuleIr
+        | ApplicabilityCapability::PredicateAlgebraSpine => {
+            ApplicabilityCapabilityClass::LandedSpine
+        }
+        ApplicabilityCapability::PositiveApplicabilityDecision
+        | ApplicabilityCapability::ProductCaseFactsPipeline
+        | ApplicabilityCapability::ProfileSpecialPredicates
+        | ApplicabilityCapability::RealCaseEvidenceAcceptance => {
+            ApplicabilityCapabilityClass::DeferredProduct
+        }
+    };
+    ApplicabilityCapabilityBoundary {
+        capability,
+        class,
+        non_claims: F05_NON_CLAIMS.to_vec(),
+    }
+}
+
+/// Fail-closed rejection of treating algebra Satisfied as product Applicable.
+pub fn reject_algebra_satisfied_as_applicable() -> ApplicabilityCapabilityBoundary {
+    let mut boundary =
+        classify_applicability_capability(ApplicabilityCapability::PositiveApplicabilityDecision);
+    boundary.non_claims = [
+        F05_NON_CLAIMS,
+        &[
+            "PredicateOutcome::Satisfied does not mint ApplicabilityDecision::Applicable",
+            "Hostile substitution of algebra success for product Applicable is rejected",
+        ],
+    ]
+    .concat();
+    boundary
+}
+
+/// Fail-closed rejection of treating NormRule IR presence as runtime completeness.
+pub fn reject_norm_rule_ir_as_product_runtime() -> ApplicabilityCapabilityBoundary {
+    let mut boundary = classify_applicability_capability(ApplicabilityCapability::NormRuleIr);
+    boundary.non_claims = [
+        F05_NON_CLAIMS,
+        &[
+            "NormRule IR presence is not product applicability runtime completeness",
+            "Hostile substitution of IR inventory for TSG-006 closure is rejected",
+        ],
+    ]
+    .concat();
+    boundary
+}

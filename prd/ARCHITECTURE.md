@@ -58,7 +58,7 @@ falkordb=historical-only
 | ADR-0014 | RuVector primary infrastructure | `[proposed]` |
 | ADR-0015 | Hexagonal verification architecture | `[bounded]` |
 | ADR-0016..0022 | Temporal legal ontology L1→L7 | `[proposed]` each |
-| ADR-0023 | Applicability protocol ownership (core decision/trace + profile inputs; no runtime) | `[proposed]` |
+| ADR-0023 | Applicability protocol ownership (core decision/trace + profile inputs; no runtime) | `[proposed]` |; capability inventory (RC12-F05)
 | ADR-0024 | Review Case intake and disposition (non-authoritative projection + human promotion gate; no runtime) | `[proposed]` |
 
 Index: `doc/adr/README.md`. Do not treat ACP/git-lex/FalkorDB-era docs as

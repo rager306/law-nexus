@@ -48,7 +48,7 @@ LKIF are compatibility references, not canon replacements).
 - **ADR-0020 (L5/O5)** — Judicial, FAS and control-organ practice overlay (EffectiveInterpretation; non-authoritative) `[proposed]`
 - **ADR-0021 (L6/O6)** — Transitional provisions and risk assessment (derived, non-authoritative) `[proposed]`
 - **ADR-0022 (L7/O7)** — Industry profiles architecture (budget/construction/medicine/general-control; adapter-isolated) `[proposed]`
-- **ADR-0023** — Applicability protocol ownership: neutral core decision/abstention/trace with versioned profile inputs; runtime absent `[proposed]`
+- **ADR-0023** — Applicability protocol ownership: neutral core decision/abstention/trace with versioned profile inputs; runtime absent `[proposed]`; capability inventory (RC12-F05)
 
 ### Repository governance contours
 

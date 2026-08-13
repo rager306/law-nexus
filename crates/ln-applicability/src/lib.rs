@@ -10,6 +10,10 @@
 //! algebra outcomes, and LLM prose cannot mint a positive applicability claim.
 //! NormRule IR (RC11-F04a) and pure predicate algebra (RC11-F04b) are fail-closed
 //! design/implementation spines, not product legal validation.
+//!
+//! RC12-F05 capability inventory (`ApplicabilityCapability`) names landed spines
+//! versus deferred product capabilities. Inventory presence is not TSG-006 closure
+//! and cannot mint Applicable/NotApplicable.
 
 pub mod adapters;
 pub mod application;

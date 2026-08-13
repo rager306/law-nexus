@@ -76,6 +76,18 @@ made the five-clock vs algebra boundary explicit in `ln-temporal`:
 - TSG-003 and TSG-013 remain **active** until event-sourced CTV runtime, representative
   amendment fixtures, and human scope acceptance land. Structural spine ≠ full CTV product.
 
+
+### RC12-F05 applicability capability inventory (non-closure)
+
+- `ApplicabilityCapability` + `classify_applicability_capability` name landed
+  spines (abstention kernel, NormRule IR, predicate algebra) vs deferred product
+  capabilities (positive decision, product CaseFacts, profile specials, real-case
+  acceptance) in `ln-applicability`.
+- Fail-closed helpers reject algebra Satisfied → Applicable and IR presence →
+  product runtime completeness.
+- TSG-005/006 remain **active** until positive applicability with real-case
+  evidence and human acceptance. Inventory ≠ product readiness.
+
 ## 3. Disposition rules
 
 A row may move to `closed-bounded` only when:

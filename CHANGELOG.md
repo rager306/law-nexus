@@ -4,6 +4,11 @@ All notable changes to law-nexus are documented in this file.
 
 ## Unreleased — current architecture landing and repository map
 
+### Applicability capability inventory (RC12-F05)
+- Added `ApplicabilityCapability` landed-vs-deferred inventory in
+  `ln-applicability`; algebra Satisfied still cannot mint product Applicable;
+  TSG-006 remains open for real-case evidence.
+
 ### ADR citation hygiene (RC12-F18)
 - Relocated active ADR references from missing `prd/research/` and gitignored
   `AGENTS.md` rule anchors to tracked archive-only prior art and living

@@ -126,6 +126,11 @@ Revisit only with a superseding ADR when at least one is true:
 ## Non-claims
 
 - `[deferred]` No predicate evaluation algebra, product `CaseFacts` pipeline, or Applicable/NotApplicable decision is implemented by this ADR. A minimal fail-closed abstention kernel (`ln-applicability` v0) gates prerequisites and emits a mandatory trace. Structural NormRule IR types are design-only (RC11-F04a). A pure predicate algebra over IR+CaseFactSet exists (RC11-F04b) and records compositional outcomes in the explainable trace, but top-level product decisions remain Abstain-only under [proposed] and do not mint Applicable/NotApplicable or legal correctness.
+- **Capability inventory (RC12-F05):** `ApplicabilityCapability` in `ln-applicability`
+  names landed spines (abstention kernel, NormRule IR, predicate algebra) versus
+  deferred product capabilities (positive Applicable/NotApplicable, product
+  CaseFacts pipeline, profile special predicates, real-case acceptance). Inventory
+  presence is not TSG-006 closure and cannot mint product Applicable.
 - No applicability result, legal correctness or authoritative legal interpretation is validated.
 - No procurement profile, classifier, register or legal rule set is complete.
 - No derived NormRule graph, LLM output, semantic similarity or profile adapter is source truth.
