@@ -162,3 +162,10 @@ Before claiming “aligned”:
 
 - Human accepted continuity P2 after D153 three-lifecycle contract.
 - First registered dual-truth incident: **M167 / RC11-F04a** (this document).
+
+## 9. Governor visibility
+
+Advisory check `gsd-review-dual-truth` (group docs) surfaces DT-lag when this
+register declares `class: DT-lag` for a milestone still active/hard-open in
+`.gsd/STATE.md`. Overall Governor status stays `ok` unless `--fail-on-warn`.
+The check never invents Attempts or closes milestones.

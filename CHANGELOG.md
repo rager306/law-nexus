@@ -4,6 +4,12 @@ All notable changes to law-nexus are documented in this file.
 
 ## Unreleased — current architecture landing and repository map
 
+### Governor dual-truth visibility and fail-on-warn test fix
+- Added advisory Governor check `gsd-review-dual-truth` (D154): warns when the
+  GSD↔Review bridge register declares DT-lag for an active/hard-open milestone.
+- Made `fail-on-warn` CLI test use a deterministic tmp fixture instead of live
+  residual inventory (live registry may be clean).
+
 ### GSD↔Review bridge policy (P2)
 - Documented B1/B2 delivery intents, dual-truth classes, and M167/RC11-F04a
   DT-lag register (`prd/architecture/review-cases/gsd-review-bridge.md`).

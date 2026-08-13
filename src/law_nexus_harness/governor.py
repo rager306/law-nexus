@@ -1082,6 +1082,119 @@ def check_gsd_residual_debt(root: Path) -> list[GovernorFinding]:
     return findings
 
 
+_GSD_REVIEW_BRIDGE_REL = Path("prd/architecture/review-cases/gsd-review-bridge.md")
+_DT_LAG_MARKER = "class: DT-lag"
+_DT_LAG_MILESTONE_RE = re.compile(r"\bM(\d{3})\b")
+
+
+def check_gsd_review_dual_truth(root: Path) -> list[GovernorFinding]:
+    """Advisory visibility for declared GSD↔Review dual-truth lag (D154).
+
+    When the bridge register documents DT-lag for an active hard-open GSD
+    milestone, surface a non-blocking warn so cold-readers cannot miss
+    delivery lag behind review/product evidence. Absence of a register is not
+    an error (fresh clones / pre-bridge history). Does not invent GSD Attempts
+    or close milestones.
+    """
+
+    check_id = "gsd-review-dual-truth"
+    bridge_path = root / _GSD_REVIEW_BRIDGE_REL
+    state_path = root / ".gsd" / "STATE.md"
+
+    if not bridge_path.is_file():
+        return [
+            GovernorFinding(
+                check_id=check_id,
+                status="pass",
+                severity="ok",
+                message="GSD↔Review dual-truth bridge register not present",
+                observed="bridge=absent; dual-truth-check=not-applicable",
+                remediation="none",
+                evidence=[GovernorEvidence(path=str(_GSD_REVIEW_BRIDGE_REL))],
+            )
+        ]
+
+    bridge_text = bridge_path.read_text(encoding="utf-8")
+    if _DT_LAG_MARKER not in bridge_text:
+        return [
+            GovernorFinding(
+                check_id=check_id,
+                status="pass",
+                severity="ok",
+                message="GSD↔Review bridge register has no DT-lag class entries",
+                observed="dt_lag_declared=false",
+                remediation="none",
+                evidence=[GovernorEvidence(path=str(_GSD_REVIEW_BRIDGE_REL))],
+            )
+        ]
+
+    declared_seqs = sorted({int(m.group(1)) for m in _DT_LAG_MILESTONE_RE.finditer(bridge_text)})
+    if not state_path.is_file():
+        return [
+            GovernorFinding(
+                check_id=check_id,
+                status="pass",
+                severity="ok",
+                message="DT-lag declared but local GSD STATE projection unavailable",
+                observed=(
+                    f"dt_lag_declared=true; milestones={declared_seqs}; local_projection=absent"
+                ),
+                remediation="none",
+                evidence=[GovernorEvidence(path=str(_GSD_REVIEW_BRIDGE_REL))],
+            )
+        ]
+
+    state_text = state_path.read_text(encoding="utf-8")
+    hard_open_seqs = {
+        seq
+        for seq, marker, _title in _registry_milestones(state_text)
+        if marker in _HARD_OPEN_MARKERS
+    }
+    active = _active_milestone_seq(state_text)
+    matched = sorted(seq for seq in declared_seqs if seq in hard_open_seqs or seq == active)
+
+    if matched:
+        preview = ",".join(f"M{seq}" for seq in matched)
+        return [
+            GovernorFinding(
+                check_id=check_id,
+                status="fail",
+                severity="warn",
+                message=("Declared GSD↔Review DT-lag overlaps an active/hard-open GSD milestone"),
+                observed=(
+                    f"dt_lag_active=[{preview}]; active={active}; "
+                    f"bridge={_GSD_REVIEW_BRIDGE_REL.as_posix()} "
+                    f"(lifecycle [bounded]; process visibility only; not GSD complete, "
+                    f"not product readiness, not automatic close)."
+                ),
+                remediation=(
+                    "Keep DT-lag visible, complete via real GSD Attempts, or apply an "
+                    "explicit planning waiver. Do not fabricate gsd_task_complete or "
+                    "rewrite STATE.md outside the engine (D154)."
+                ),
+                evidence=[
+                    GovernorEvidence(path=str(_GSD_REVIEW_BRIDGE_REL)),
+                    GovernorEvidence(path=".gsd/STATE.md"),
+                ],
+            )
+        ]
+
+    return [
+        GovernorFinding(
+            check_id=check_id,
+            status="pass",
+            severity="ok",
+            message="Declared DT-lag milestones are not active/hard-open in GSD registry",
+            observed=(
+                f"dt_lag_declared={declared_seqs}; hard_open={sorted(hard_open_seqs)}; "
+                f"active={active} (historical bridge note only)."
+            ),
+            remediation="none",
+            evidence=[GovernorEvidence(path=str(_GSD_REVIEW_BRIDGE_REL))],
+        )
+    ]
+
+
 def _load_port_contract_coverage_module(root: Path):
     # Prefer the checked-out repository script under the target root; fall back to
     # the harness package's repository so fixture roots can reuse inventory code.
@@ -4313,6 +4426,18 @@ GOVERNOR_CHECK_SPECS: tuple[CheckSpec, ...] = (
         "Expose stale or contradictory local GSD milestone state.",
         (".gsd/STATE.md",),
         "error",
+    ),
+    _check_spec(
+        "gsd-review-dual-truth",
+        "docs",
+        "deterministic",
+        check_gsd_review_dual_truth,
+        "Surface declared GSD↔Review DT-lag when active GSD milestones still lag (D154).",
+        (
+            ".gsd/STATE.md",
+            "prd/architecture/review-cases/gsd-review-bridge.md",
+        ),
+        "warn",
     ),
     _check_spec(
         "port-contract-coverage",

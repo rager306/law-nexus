@@ -227,10 +227,31 @@ def test_cli_governor_warn_only_semantic_selection_exits_zero(capsys) -> None:
     assert all(item["severity"] in {"ok", "warn"} for item in payload["findings"])
 
 
-def test_cli_governor_fail_on_warn_is_opt_in(capsys) -> None:
-    # Use residual GSD process inventory, which currently emits advisory warns
-    # (planned rows / code-complete lag) without failing overall governor status.
-    code = main(["governor", "--check", "gsd-residual-debt", "--fail-on-warn"])
+def test_cli_governor_fail_on_warn_is_opt_in(tmp_path: Path, capsys) -> None:
+    # Deterministic fixture: planned-only inventory emits advisory warn without
+    # hard residual debt. Live registry may be clean; do not depend on it.
+    state = tmp_path / ".gsd"
+    state.mkdir()
+    (state / "STATE.md").write_text(
+        "# GSD State\n\n"
+        "**Last Completed Milestone:** M165-2som4e: Temporal ontology\n"
+        "**Active Milestone:** M166-iyy4ak: Review Governance Lifecycle\n"
+        "**Phase:** planning\n\n"
+        "## Milestone Registry\n"
+        "- ✅ **M165-2som4e:** Temporal ontology\n"
+        "- ⬜ **M166-iyy4ak:** Review Governance Lifecycle\n",
+        encoding="utf-8",
+    )
+    code = main(
+        [
+            "governor",
+            "--root",
+            str(tmp_path),
+            "--check",
+            "gsd-residual-debt",
+            "--fail-on-warn",
+        ]
+    )
     payload = json.loads(capsys.readouterr().out)
 
     assert code == 1
@@ -450,6 +471,43 @@ def test_code_complete_lag_warns_when_summary_exists_but_marker_open(
     assert by_id["gsd-code-complete-lag"].status == "fail"
     assert by_id["gsd-code-complete-lag"].severity == "warn"
     assert "M166" in by_id["gsd-code-complete-lag"].observed
+
+
+def test_gsd_review_dual_truth_warns_when_dt_lag_matches_active(tmp_path: Path) -> None:
+    """Declared DT-lag for active hard-open milestone is advisory warn (D154)."""
+    state = tmp_path / ".gsd"
+    state.mkdir()
+    (state / "STATE.md").write_text(
+        "# GSD State\n\n"
+        "**Active Milestone:** M167-odlgt8: NormRule IR\n"
+        "**Phase:** evaluating-gates\n\n"
+        "## Milestone Registry\n"
+        "- ✅ **M166-iyy4ak:** Review Governance\n"
+        "- 🔄 **M167-odlgt8:** NormRule IR\n",
+        encoding="utf-8",
+    )
+    bridge = tmp_path / "prd" / "architecture" / "review-cases"
+    bridge.mkdir(parents=True)
+    (bridge / "gsd-review-bridge.md").write_text(
+        "# bridge\n\n```text\nclass: DT-lag\ndelivery_unit=gsd:M167-odlgt8\n```\n",
+        encoding="utf-8",
+    )
+    from law_nexus_harness.governor import check_gsd_review_dual_truth
+
+    findings = check_gsd_review_dual_truth(tmp_path)
+    assert len(findings) == 1
+    assert findings[0].check_id == "gsd-review-dual-truth"
+    assert findings[0].status == "fail"
+    assert findings[0].severity == "warn"
+    assert "M167" in findings[0].observed
+
+
+def test_gsd_review_dual_truth_pass_when_bridge_absent(tmp_path: Path) -> None:
+    from law_nexus_harness.governor import check_gsd_review_dual_truth
+
+    findings = check_gsd_review_dual_truth(tmp_path)
+    assert findings[0].status == "pass"
+    assert findings[0].severity == "ok"
 
 
 def test_orphan_summary_outside_registry_is_advisory_inventory(tmp_path: Path) -> None:
@@ -844,6 +902,7 @@ def test_live_governor_passes_hostile_negative_suite_coverage() -> None:
         "review-case-integrity.open-findings",
         "gsd-planned-inventory-visibility",
         "gsd-code-complete-lag",
+        "gsd-review-dual-truth",
     }
     other_warns = [
         f for f in report.findings if f.severity == "warn" and f.check_id not in advisory_warn_ids
@@ -883,6 +942,7 @@ def test_live_governor_passes_live_adapter_readiness() -> None:
         "review-case-integrity.open-findings",
         "gsd-planned-inventory-visibility",
         "gsd-code-complete-lag",
+        "gsd-review-dual-truth",
     }
     other_warns = [
         f for f in report.findings if f.severity == "warn" and f.check_id not in advisory_warn_ids
