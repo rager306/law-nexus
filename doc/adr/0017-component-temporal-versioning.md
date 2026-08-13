@@ -202,11 +202,12 @@ document snapshot; they do not reify the event as a queryable causal entity).
 
 de Martim v5 ships CTV/CLV with P190 symbolic content for deterministic
 point-in-time text reconstruction. law-nexus has the **event-sourced spine**
-(`VersionedMembershipLog`, `fold_membership_at` → `StructuralAst`) but no
-`resolve_CTV`. Text CTV canon (§1c above) remains **design-only**. This is
-the single largest capability gap versus the reference model. A bounded
-prototype on one component (e.g. `cc:402fz:statya-1` caput) with
-text-change micro-events is the recommended next step (R5-02 → TSG-003).
+(`VersionedMembershipLog`, `fold_membership_at` → `StructuralAst`) and now
+ships a **bounded prototype** `resolve_ctv` (KBO-R046): `TextVersionLog` +
+`TextVersionEvent` + `resolve_ctv(log, cc, day)` returning `Resolved { text }`,
+`Unknown`, or `Conflict`. 6 TDD tests green. Text is a runtime value, not
+persisted legal text. Full integration (extracting text from real XML, wiring
+into CLI) remains future work.
 
 ### R5-03: `edition_ast_at(t)` unifies the three L2 canons
 

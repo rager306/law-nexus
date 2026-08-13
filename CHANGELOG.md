@@ -4,6 +4,15 @@ All notable changes to law-nexus are documented in this file.
 
 ## Unreleased — current architecture landing and repository map
 
+### resolve_CTV prototype (KBO-R046)
+- `TextVersionLog` + `TextVersionEvent` + `resolve_ctv(log, cc, day)`.
+- Deterministic point-in-time text reconstruction: latest event ≤ day.
+- Outcome: Resolved { text } | Unknown | Conflict.
+- 6 TDD tests: latest text, unknown before first, unknown untracked,
+  same-day conflict, multiple CCs independent, empty provenance rejected.
+- Main gap vs de Martim v5: closed at prototype level. Text is runtime
+  value, not persisted legal text.
+
 ### S_verify: oracle diff (KBO-R047)
 - `oracle_diff(ast, expected_ccs)` compares folded AST against registry CCs.
 - `assemble_with_oracle_diff` wraps commit → fold → diff in one call.

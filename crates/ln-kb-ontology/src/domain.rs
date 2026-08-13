@@ -1063,3 +1063,124 @@ fn collect_subtree_ccs(node: &StructuralAstNode) -> Vec<&str> {
     }
     result
 }
+
+// ─── resolve_CTV: deterministic text reconstruction (KBO-R046) ──────────────────
+// Main gap vs de Martim v5. Text is a runtime value, not persisted legal text.
+// resolve_ctv(log, cc, day) returns the text of cc as it stood at day t.
+
+const CTV_NON_CLAIMS: &[&str] = &[
+    "resolve_ctv returns raw text content, not legal interpretation or applicability",
+    "Text CTV is not force, not membership, not InForce",
+    "Same-day different text is Conflict; same text is deduplicated",
+    "Missing provenance or text is fail-closed Unknown",
+];
+
+/// A text-change event: the wording of a component at effect_day.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct TextVersionEvent {
+    component: ComponentConceptId,
+    text: String,
+    effect_day: i64,
+    provenance: AmendingActId,
+}
+
+impl TextVersionEvent {
+    pub fn try_new(
+        component: ComponentConceptId,
+        text: &str,
+        effect_day: i64,
+        provenance: &str,
+    ) -> Result<Self, WriteSetError> {
+        let provenance =
+            AmendingActId::parse(provenance).map_err(|_| WriteSetError::MissingProvenance)?;
+        if text.is_empty() {
+            return Err(WriteSetError::MissingIdentity);
+        }
+        Ok(Self {
+            component,
+            text: text.to_owned(),
+            effect_day,
+            provenance,
+        })
+    }
+
+    pub fn component(&self) -> &ComponentConceptId {
+        &self.component
+    }
+    pub fn text(&self) -> &str {
+        &self.text
+    }
+    pub fn effect_day(&self) -> i64 {
+        self.effect_day
+    }
+}
+
+/// Append-only log of text-change events.
+#[derive(Debug, Clone, Default, PartialEq, Eq)]
+pub struct TextVersionLog {
+    events: Vec<TextVersionEvent>,
+}
+
+impl TextVersionLog {
+    pub fn empty() -> Self {
+        Self::default()
+    }
+    pub fn append(&mut self, event: TextVersionEvent) -> Result<(), WriteSetError> {
+        self.events.push(event);
+        Ok(())
+    }
+    pub fn events(&self) -> &[TextVersionEvent] {
+        &self.events
+    }
+}
+
+/// Outcome of resolving a CTV at date t.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum CtvResolution {
+    /// Deterministic text reconstruction succeeded.
+    Resolved { text: String },
+    /// No text-change event covers this CC at or before day t.
+    Unknown,
+    /// Two events on the same latest day carry different text.
+    Conflict { texts: Vec<String> },
+}
+
+impl CtvResolution {
+    pub fn non_claims(&self) -> &'static [&'static str] {
+        CTV_NON_CLAIMS
+    }
+}
+
+/// Deterministic point-in-time text reconstruction.
+/// Walks the text-version log for `cc` at or before `as_of_day`.
+/// Returns the latest text, or Unknown if no event covers the day,
+/// or Conflict if two events on the same latest day disagree.
+pub fn resolve_ctv(log: &TextVersionLog, cc: &ComponentConceptId, as_of_day: i64) -> CtvResolution {
+    let applicable: Vec<&TextVersionEvent> = log
+        .events
+        .iter()
+        .filter(|e| e.component.as_str() == cc.as_str() && e.effect_day <= as_of_day)
+        .collect();
+
+    if applicable.is_empty() {
+        return CtvResolution::Unknown;
+    }
+
+    let max_day = applicable.iter().map(|e| e.effect_day).max().unwrap();
+    let latest: Vec<&TextVersionEvent> = applicable
+        .iter()
+        .filter(|e| e.effect_day == max_day)
+        .copied()
+        .collect();
+
+    let texts: std::collections::HashSet<&str> = latest.iter().map(|e| e.text.as_str()).collect();
+    if texts.len() > 1 {
+        return CtvResolution::Conflict {
+            texts: latest.iter().map(|e| e.text.clone()).collect(),
+        };
+    }
+
+    CtvResolution::Resolved {
+        text: latest[0].text.clone(),
+    }
+}

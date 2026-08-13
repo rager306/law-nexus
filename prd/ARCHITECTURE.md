@@ -89,7 +89,8 @@ YAML `assembly_fsm` current `S_verify` runs oracle diff: `fold(events, t)`
 compared against registry CCs (KBO-R047). Zero drift on 402-ФЗ (37 expected /
 37 actual). `edition_ast_at` (KBO-R045) unifies 3 L2 canons. Review 5
 (`doc/review/review-14-08-2026.md`) maps remaining gaps.
-Readiness FSM stays `O2_calendar_ordinal`. Not `resolve_CTV`, not Applicable.
+Readiness FSM stays `O2_calendar_ordinal`. `resolve_ctv` (KBO-R046, prototype)
+closes the main text-reconstruction gap vs de Martim v5. Not Applicable.
 
 ## Temporal legal ontology — design spine (all `[proposed]`)
 
