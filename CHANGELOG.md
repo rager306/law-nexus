@@ -4,6 +4,11 @@ All notable changes to law-nexus are documented in this file.
 
 ## Unreleased — current architecture landing and repository map
 
+### Stack membership propose (assembly S_propose)
+- `propose_membership_from_markers` drafts attach edges from YAML level ranks.
+- Unknown markers quarantine; empty registry proposes nothing.
+- Inspect on 435-ФЗ reports proposals=0 / quarantined=22. Not a log write.
+
 ### YAML corpus-role classifier (KBO-R034 / assembly S_ingest)
 - `corpus_role_signals` in `kb-ontology.yaml` classify path/title needles.
 - Unclassified files stay Unknown; overview beats `red-ot` by rank.

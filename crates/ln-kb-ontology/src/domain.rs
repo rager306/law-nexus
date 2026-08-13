@@ -664,6 +664,76 @@ const HIERARCHY_LIFT_NON_CLAIMS: &[&str] = &[
     "Not calendar legal_act_effect, not corpus reconstruction, not parser legal fact",
 ];
 
+/// Draft attach from document-order markers. Not a membership log write.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct MembershipProposal {
+    pub parent: ComponentConceptId,
+    pub child: ComponentConceptId,
+}
+
+/// Stack-propose report. Unknown markers stay quarantined.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct MembershipProposeReport {
+    pub proposals: Vec<MembershipProposal>,
+    pub quarantined: usize,
+    pub forest_roots: usize,
+}
+
+const MEMBERSHIP_PROPOSE_NON_CLAIMS: &[&str] = &[
+    "Membership proposals are drafts; they do not append VersionedMembershipLog",
+    "Unknown markers are quarantined and do not mint ComponentConcept",
+    "Forest roots are unbound tops, not Work children and not InForce",
+    "Not CTV text, not Expression include, not Applicable",
+];
+
+impl MembershipProposeReport {
+    pub fn non_claims(&self) -> &'static [&'static str] {
+        MEMBERSHIP_PROPOSE_NON_CLAIMS
+    }
+}
+
+/// Propose attach edges from document-order markers using YAML level ranks.
+/// Unknown markers skip the stack. Empty registry yields only quarantine.
+pub fn propose_membership_from_markers(
+    map: &HierarchyMap,
+    markers: &[HierarchyMarker],
+) -> Result<MembershipProposeReport, WriteSetError> {
+    let catalog = OntologyCatalog::embedded().map_err(|_| WriteSetError::UnknownHierarchyLevel)?;
+    let mut stack: Vec<(usize, ComponentConceptId)> = Vec::new();
+    let mut proposals = Vec::new();
+    let mut quarantined = 0usize;
+    let mut forest_roots = 0usize;
+    for marker in markers {
+        let Some(rank) = catalog.hierarchy_level_rank(marker.level()) else {
+            return Err(WriteSetError::UnknownHierarchyLevel);
+        };
+        match map_hierarchy_marker(map, marker) {
+            HierarchyMapOutcome::Unknown => {
+                quarantined = quarantined.saturating_add(1);
+            }
+            HierarchyMapOutcome::Bound { component } => {
+                while stack.last().is_some_and(|(top_rank, _)| *top_rank >= rank) {
+                    stack.pop();
+                }
+                if let Some((_, parent)) = stack.last() {
+                    proposals.push(MembershipProposal {
+                        parent: parent.clone(),
+                        child: component.clone(),
+                    });
+                } else {
+                    forest_roots = forest_roots.saturating_add(1);
+                }
+                stack.push((rank, component));
+            }
+        }
+    }
+    Ok(MembershipProposeReport {
+        proposals,
+        quarantined,
+        forest_roots,
+    })
+}
+
 /// Map a marker through an explicit registry. Missing key → Unknown.
 pub fn map_hierarchy_marker(map: &HierarchyMap, marker: &HierarchyMarker) -> HierarchyMapOutcome {
     match map.bindings.iter().find(|item| {

@@ -85,6 +85,16 @@ fn inspect_real_consultant_fixture_reports_bounded_summary() {
         stdout
     );
     assert!(
+        stdout.contains("\"membership_proposals\":0"),
+        "empty registry must propose no attach; got: {}",
+        stdout
+    );
+    assert!(
+        stdout.contains("\"membership_quarantined\":22"),
+        "empty registry must quarantine every marker; got: {}",
+        stdout
+    );
+    assert!(
         stdout.contains("\"reference_mentions\":69"),
         "expected 69 references; got: {}",
         stdout

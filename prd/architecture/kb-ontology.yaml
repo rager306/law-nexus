@@ -297,7 +297,7 @@ vocabulary:
 assembly_fsm:
   name: temporal-ast-assembly
   initial: S_ingest
-  current: S_ingest
+  current: S_propose
   meaning: process model for XML to events to AST; not readiness O-state
   states:
     S_design:

@@ -19,8 +19,8 @@ use ln_decode::{
     unknown_forms::census_unknown_forms,
 };
 use ln_kb_ontology::domain::{
-    map_hierarchy_marker, marker_from_decode_token, HierarchyMap, HierarchyMapOutcome,
-    WriteSetError,
+    map_hierarchy_marker, marker_from_decode_token, propose_membership_from_markers, HierarchyMap,
+    HierarchyMapOutcome, HierarchyMarker, WriteSetError,
 };
 use ln_query::knowql::{execute, KnowQLOp, KnowQLResult, ValidatedOp};
 use ln_storage::{
@@ -154,6 +154,7 @@ fn inspect(path: &str) {
     let mut hierarchy_lifts_bound = 0usize;
     let mut hierarchy_lifts_rejected = 0usize;
     let hierarchy_map = HierarchyMap::empty();
+    let mut hierarchy_markers_seq: Vec<HierarchyMarker> = Vec::new();
     let mut reference_mentions = 0usize;
     let mut temporal_phrases = 0usize;
     let mut deontic_lexemes = 0usize;
@@ -174,6 +175,11 @@ fn inspect(path: &str) {
                 Ok(HierarchyMapOutcome::Unknown) => hierarchy_lifts_unknown += 1,
                 Ok(HierarchyMapOutcome::Bound { .. }) => hierarchy_lifts_bound += 1,
                 Err(_) => hierarchy_lifts_rejected += 1,
+            }
+            if let Ok(marker) =
+                marker_from_decode_token(None, node.level().as_str(), node.number(), node.title())
+            {
+                hierarchy_markers_seq.push(marker);
             }
             let id = format!("block-{i}");
             // Deterministic, content-derived vector (bounded, not semantic)
@@ -206,6 +212,16 @@ fn inspect(path: &str) {
         _ => 0,
     };
 
+    let propose = propose_membership_from_markers(&hierarchy_map, &hierarchy_markers_seq)
+        .unwrap_or_else(|_| ln_kb_ontology::domain::MembershipProposeReport {
+            proposals: Vec::new(),
+            quarantined: hierarchy_markers_seq.len(),
+            forest_roots: 0,
+        });
+    let membership_proposals = propose.proposals.len();
+    let membership_quarantined = propose.quarantined;
+    let membership_forest_roots = propose.forest_roots;
+
     let duration_ms = start.elapsed().as_millis();
 
     println!(
@@ -218,6 +234,9 @@ fn inspect(path: &str) {
          \"hierarchy_lifts_unknown\":{hierarchy_lifts_unknown},\
          \"hierarchy_lifts_bound\":{hierarchy_lifts_bound},\
          \"hierarchy_lifts_rejected\":{hierarchy_lifts_rejected},\
+         \"membership_proposals\":{membership_proposals},\
+         \"membership_quarantined\":{membership_quarantined},\
+         \"membership_forest_roots\":{membership_forest_roots},\
          \"reference_mentions\":{reference_mentions},\
          \"temporal_phrases\":{temporal_phrases},\"deontic_lexemes\":{deontic_lexemes},\
          \"unknown_forms\":{unknown_forms},\"provider_comment_candidates\":{provider_comments},\
@@ -226,6 +245,7 @@ fn inspect(path: &str) {
          \"non_claims\":[\"No legal correctness claim\",\"No citation authority claim\",\
          \"No corpus completeness claim\",\"No five-clock assignment claim\",\
          \"Empty hierarchy registry yields Unknown; lift does not mint ComponentConcept\",\
+         \"Membership proposals are drafts and do not append VersionedMembershipLog\",\
          \"retrieval_count is deterministic-non-semantic: hash-derived vectors, not TEI semantic embedding\"]}}",
         json_escape(path),
         blocks.len(),

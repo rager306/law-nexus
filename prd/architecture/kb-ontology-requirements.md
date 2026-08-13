@@ -39,8 +39,8 @@ O0 inventory_open
 Vocabulary and transitions are YAML-sourced; Rust only validates/executes.
 HierarchyMarker→CC: unmapped → Unknown. Not CTV text, not O3/O4.  
 Review 4 added assembly vocabulary (`assembly_fsm`, corpus roles, evidence
-classes) without moving readiness `fsm.current`. Assembly current is `S_ingest`
-(YAML needle classify only).  
+classes) without moving readiness `fsm.current`. Assembly current is `S_propose`
+(draft attach from YAML ranks; empty registry quarantines).  
 S4 fixtures (KBO-R013), Manifestation/Item, and port materialization remain open.  
 **Exit O1 / O2 spine:** done. **Write-set (toward O4):** landed, I/O-free.  
 **Not O3/O4:** no representative fixture edges, no graph-store adapter writes.  
@@ -100,6 +100,7 @@ S4 fixtures (KBO-R013), Manifestation/Item, and port materialization remain open
 | KBO-R038 | non-claim | Current 44-ФЗ disk set is C2 + C2hint + C3; C0/C1 absent; Coverage into the past is Unknown | Review 4 R4-08 | **accepted-draft** |
 | KBO-R039 | fail-closed | Provider title «ред. от» and «вступ. в силу с» name different clocks; collapsing them is hostile | Review 4; ADR-0009 §5 | **accepted-draft** |
 | KBO-R040 | non-claim | Coverage / Unknown / Conflict are first-class assembly outcomes, not bugs to smooth | Review 4 §4 | **accepted-draft** |
+| KBO-R041 | core-contract | Document-order markers propose attach drafts via YAML hierarchy ranks; Unknown skips the stack and does not mint CC; proposals do not append the membership log | Review 4 P6; assembly S_propose | **accepted-draft** |
 
 ## 5. Functional preparation backlog (not implemented this wave)
 

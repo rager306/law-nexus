@@ -181,6 +181,10 @@ impl OntologyCatalog {
             .map(|(_, op)| op.as_str())
     }
 
+    pub fn hierarchy_level_rank(&self, level: &str) -> Option<usize> {
+        self.hierarchy_levels.iter().position(|item| item == level)
+    }
+
     pub fn resolve_decode_level_alias(&self, token: &str) -> Option<String> {
         self.decode_level_aliases
             .iter()
@@ -578,5 +582,8 @@ mod tests {
             .iter()
             .any(|role| role == "C2_edition_oracle"));
         assert!(!catalog.corpus_role_signals.is_empty());
+        assert_eq!(catalog.hierarchy_level_rank("razdel"), Some(0));
+        assert_eq!(catalog.hierarchy_level_rank("statya"), Some(3));
+        assert_eq!(catalog.hierarchy_level_rank("Article"), None);
     }
 }
