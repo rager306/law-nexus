@@ -13,6 +13,10 @@
 //! RC11-F07 design boundary: `TextChangeEvent` and `NormativeEffectEvent` are
 //! named and separated as **design-only** kinds (`LegislativeEventKind`). Lexical
 //! text change must not prove legal effect; taxonomy presence is not CTV runtime.
+//!
+//! RC11-F09 design boundary: force/status, version relation, applicability, and
+//! epistemic outcome are **orthogonal** (`NormativeDimension`). They must not be
+//! mixed into one mega-type; design inventory is not a NormativeState resolver.
 
 pub mod adapters;
 pub mod application;

@@ -83,6 +83,12 @@ fail-closed rules are unchanged.
 - No legal correctness of status resolution without real corpus + provenance.
 - Practice overlay (ADR-0020) is separate and non-authoritative for status.
 - Transitional status resolution depends on ADR-0021 `[proposed]`.
+- **Dimensional separation (RC11-F09 / TSG-004):** force/status, version/text
+  relation, applicability, and epistemic outcome are orthogonal design dimensions
+  (`NormativeDimension` inventory in `ln-temporal`). Naming the separation does
+  not implement a NormativeState resolver, CTV join, applicability decision, or
+  knowledge base. Text presence ≠ `InForce`; `InForce` ≠ Applicable; Unknown is
+  not a force or applicability success.
 
 ## References
 

@@ -354,6 +354,119 @@ pub fn reject_text_change_as_normative_effect() -> LegislativeEventKindBoundary 
     boundary
 }
 
+/// Orthogonal normative reasoning dimensions that must not be collapsed
+/// (RC11-F09 / TSG-004 / ADR-0018 + temporal model §6).
+///
+/// Design inventory only. Presence of the enum does not implement a
+/// NormativeState resolver, CTV join, applicability decision, or epistemic
+/// knowledge base.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub enum NormativeDimension {
+    /// Force/status at a governing time (`InForce`, `Suspended`, …) — ADR-0018.
+    ForceStatus,
+    /// Version/text relation (CTV/edition lineage) — ADR-0017; not force.
+    VersionRelation,
+    /// Case applicability decision/trace — ADR-0023; not force or text.
+    Applicability,
+    /// System/epistemic knowledge outcome (what is known vs Unknown/Conflict).
+    EpistemicOutcome,
+}
+
+impl NormativeDimension {
+    pub fn as_str(self) -> &'static str {
+        match self {
+            Self::ForceStatus => "force_status",
+            Self::VersionRelation => "version_relation",
+            Self::Applicability => "applicability",
+            Self::EpistemicOutcome => "epistemic_outcome",
+        }
+    }
+
+    pub fn all() -> [NormativeDimension; 4] {
+        [
+            Self::ForceStatus,
+            Self::VersionRelation,
+            Self::Applicability,
+            Self::EpistemicOutcome,
+        ]
+    }
+}
+
+/// Classification of a normative dimension relative to executable product runtime.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub enum NormativeDimensionClass {
+    /// Named and separated in design; not a mixed mega-type runtime.
+    DesignOrthogonal,
+    /// Reserved for a future executable dimension owner/resolver.
+    ExecutableRuntime,
+}
+
+impl NormativeDimensionClass {
+    pub fn as_str(self) -> &'static str {
+        match self {
+            Self::DesignOrthogonal => "design_orthogonal",
+            Self::ExecutableRuntime => "executable_runtime",
+        }
+    }
+}
+
+/// Design-boundary answer for NormativeState dimensional separation (RC11-F09).
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct NormativeDimensionBoundary {
+    pub dimension: NormativeDimension,
+    pub class: NormativeDimensionClass,
+    pub non_claims: Vec<&'static str>,
+}
+
+const F09_NON_CLAIMS: &[&str] = &[
+    "NormativeState must not mix force, version relation, applicability, and epistemic outcome",
+    "Text/CTV presence does not imply InForce",
+    "InForce does not imply Applicable",
+    "Unknown/Conflict epistemic outcomes are not force or applicability decisions",
+    "Design dimensional separation is not a NormativeState resolver or product legal correctness",
+    "Lifecycle: NormativeState design [proposed]; executable dimensional resolvers remain deferred",
+];
+
+/// Classify a normative dimension against the ADR-0018/TSG-004 boundary.
+///
+/// Always returns `DesignOrthogonal` for the closed inventory. Naming the
+/// separation must not mint a mixed mega-type or executable resolver.
+pub fn classify_normative_dimension(dimension: NormativeDimension) -> NormativeDimensionBoundary {
+    NormativeDimensionBoundary {
+        dimension,
+        class: NormativeDimensionClass::DesignOrthogonal,
+        non_claims: F09_NON_CLAIMS.to_vec(),
+    }
+}
+
+/// Fail-closed rejection of collapsing force into applicability (RC11-F09).
+pub fn reject_force_as_applicability() -> NormativeDimensionBoundary {
+    let mut boundary = classify_normative_dimension(NormativeDimension::ForceStatus);
+    boundary.non_claims = [
+        F09_NON_CLAIMS,
+        &[
+            "ForceStatus does not decide Applicability",
+            "Hostile substitution of InForce for Applicable is rejected",
+        ],
+    ]
+    .concat();
+    boundary
+}
+
+/// Fail-closed rejection of treating version/text presence as force (RC11-F09).
+pub fn reject_version_relation_as_force() -> NormativeDimensionBoundary {
+    let mut boundary = classify_normative_dimension(NormativeDimension::VersionRelation);
+    boundary.non_claims = [
+        F09_NON_CLAIMS,
+        &[
+            "VersionRelation/CTV presence does not imply ForceStatus InForce",
+            "Hostile substitution of text presence for InForce is rejected",
+        ],
+    ]
+    .concat();
+    boundary
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

@@ -55,6 +55,16 @@ made the five-clock vs algebra boundary explicit in `ln-temporal`:
 - TSG-002 remains **active** until executable CTV event types, hostile substitution
   tests at runtime, and provenance-backed micro-events ship. Design taxonomy ≠ runtime.
 
+
+### RC11-F09 NormativeState dimensional separation (non-closure)
+
+- `NormativeDimension` + `classify_normative_dimension` name force/status,
+  version relation, applicability, and epistemic outcome as **orthogonal**
+  design dimensions in `ln-temporal`.
+- Fail-closed helpers reject force→applicability and version/text→force collapse.
+- TSG-004 remains **active** until an executable NormativeState resolver with
+  provenance-backed transitions and hostile joins ships. Design inventory ≠ runtime.
+
 ## 3. Disposition rules
 
 A row may move to `closed-bounded` only when:

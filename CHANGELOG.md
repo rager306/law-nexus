@@ -4,6 +4,12 @@ All notable changes to law-nexus are documented in this file.
 
 ## Unreleased — current architecture landing and repository map
 
+### NormativeState dimensional separation design (RC11-F09)
+- Added `NormativeDimension` design inventory in `ln-temporal`: force/status,
+  version relation, applicability, and epistemic outcome are orthogonal.
+- Fail-closed helpers reject force→applicability and version/text→force collapse;
+  design inventory is not a NormativeState resolver (TSG-004 remains open).
+
 ### TextChange vs NormativeEffect design taxonomy (RC11-F07)
 - Added `LegislativeEventKind` design inventory in `ln-temporal` separating
   text/structure change from normative effect as design-only kinds.
