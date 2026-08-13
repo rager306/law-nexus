@@ -245,3 +245,5 @@ This roadmap does not prove Rust product readiness, parser completeness, Russian
 <!-- closed_vocabularies KBO-R028 companion -->
 
 <!-- composition lift KBO-R029 companion -->
+
+<!-- YAML decode prefixes KBO-R030 companion -->

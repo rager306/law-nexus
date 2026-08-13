@@ -139,6 +139,7 @@ Governor check `kb-ontology-draft` is structural only.
 | 2026-08-13 | KBO-R027 | catalog kinds | node/edge/presence tokens from YAML; no Rust enums |
 | 2026-08-13 | KBO-R028 | closed vocab coverage | Governor compares Rust enums to YAML tables |
 | 2026-08-13 | KBO-R029 | composition lift | product-cli HierarchyNode → YAML alias; empty registry Unknown |
+| 2026-08-13 | KBO-R030 | YAML decode prefixes | Статья/Глава/§ live in YAML; inspect count unchanged |
 
 ## 6. Operator cycle (capability-only)
 

@@ -4,6 +4,11 @@ All notable changes to law-nexus are documented in this file.
 
 ## Unreleased — current architecture landing and repository map
 
+### YAML decode marker prefixes (KBO-R030)
+- `decode_marker_prefixes` / `decode_number_styles` live in `kb-ontology.yaml`.
+- `ln-decode` loads them via `DecodePrefixCatalog`; no ontology crate edge.
+- Inspect hierarchy marker count stays 22 on the 435-FZ fixture.
+
 ### Composition decode lift (KBO-R029)
 - `law-nexus-inspect` lifts extracted HierarchyNode through YAML aliases.
 - Empty registry reports `hierarchy_lifts_unknown`; no ComponentConcept mint.

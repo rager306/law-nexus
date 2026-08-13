@@ -15,6 +15,7 @@ pub mod golden;
 pub mod hierarchy;
 pub mod morphology;
 pub mod ports;
+pub mod prefix_catalog;
 pub mod references;
 pub mod sentence;
 pub mod temporal;

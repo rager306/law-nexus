@@ -466,6 +466,12 @@ impl HierarchyLevel {
             Self::Podpunkt => "Podpunkt",
         }
     }
+
+    pub fn from_token(token: &str) -> Option<Self> {
+        Self::all()
+            .into_iter()
+            .find(|level| level.as_str() == token)
+    }
 }
 
 /// A validated hierarchy marker and its exact span in decoded block text.

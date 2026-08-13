@@ -1,6 +1,7 @@
 //! Bounded provider-neutral hierarchy extraction from decoded block text.
 
 use crate::domain::{HierarchyLevel, HierarchyNode, ParsedBlock, TextSpan};
+use crate::prefix_catalog::{DecodePrefixCatalog, NumberStyle, SpacePolicy};
 
 /// Extract a supported hierarchy marker at the start of decoded block text.
 ///
@@ -43,44 +44,30 @@ pub fn extract_hierarchy(block: &ParsedBlock) -> Option<HierarchyNode> {
 }
 
 fn marker_prefix(candidate: &str) -> Option<(HierarchyLevel, usize)> {
-    for (variants, level) in [
-        (
-            ["Раздел", "РАЗДЕЛ", "раздел"].as_slice(),
-            HierarchyLevel::Razdel,
-        ),
-        (
-            ["Глава", "ГЛАВА", "глава"].as_slice(),
-            HierarchyLevel::Glava,
-        ),
-        (
-            ["Статья", "СТАТЬЯ", "статья"].as_slice(),
-            HierarchyLevel::Statya,
-        ),
-    ] {
-        for marker in variants {
-            if let Some(rest) = candidate.strip_prefix(marker) {
-                let whitespace_len = rest
-                    .char_indices()
-                    .take_while(|(_, character)| character.is_whitespace())
-                    .map(|(_, character)| character.len_utf8())
-                    .sum::<usize>();
-                if whitespace_len > 0 {
-                    return Some((level, marker.len() + whitespace_len));
-                }
-            }
+    let catalog = DecodePrefixCatalog::embedded().ok()?;
+    for rule in &catalog.prefixes {
+        let Some(rest) = candidate.strip_prefix(rule.marker.as_str()) else {
+            continue;
+        };
+        let whitespace_len = rest
+            .char_indices()
+            .take_while(|(_, character)| character.is_whitespace())
+            .map(|(_, character)| character.len_utf8())
+            .sum::<usize>();
+        let space_ok = match rule.space {
+            SpacePolicy::Required => whitespace_len > 0,
+            SpacePolicy::Optional => true,
+        };
+        if space_ok {
+            return Some((rule.level, rule.marker.len() + whitespace_len));
         }
     }
-
-    let rest = candidate.strip_prefix('§')?;
-    let whitespace_len = rest
-        .char_indices()
-        .take_while(|(_, character)| character.is_whitespace())
-        .map(|(_, character)| character.len_utf8())
-        .sum::<usize>();
-    Some((HierarchyLevel::Paragraph, '§'.len_utf8() + whitespace_len))
+    None
 }
 
 fn number_end(candidate: &str, start: usize, level: HierarchyLevel) -> Option<usize> {
+    let catalog = DecodePrefixCatalog::embedded().ok()?;
+    let style = catalog.number_style(level)?;
     let bytes = candidate.as_bytes();
     let first = *bytes.get(start)?;
     if first.is_ascii_digit() {
@@ -96,11 +83,9 @@ fn number_end(candidate: &str, start: usize, level: HierarchyLevel) -> Option<us
         }
         return (end > start).then_some(end);
     }
-
-    if !matches!(level, HierarchyLevel::Razdel | HierarchyLevel::Glava) {
+    if style != NumberStyle::RomanOrDigit {
         return None;
     }
-
     let mut end = start;
     while bytes.get(end).is_some_and(|byte| {
         matches!(

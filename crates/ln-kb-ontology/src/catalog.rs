@@ -406,7 +406,7 @@ mod tests {
         assert!(catalog.is_known_state(&catalog.current_state));
         assert!(catalog.is_hierarchy_level("statya"));
         assert!(catalog.is_forbidden_kind("ApplicableDecision"));
-        assert!(catalog.allows_transition("O2_catalog_coverage", "O2_composition_lift"));
+        assert!(catalog.allows_transition("O2_composition_lift", "O2_decode_prefixes"));
         assert!(!catalog.allows_transition("O1", "O6_closed_validated"));
         assert!(catalog.is_node_kind("Manifestation"));
         assert!(!catalog.is_node_kind("NormativeBlobAsWork"));

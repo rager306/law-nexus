@@ -112,6 +112,7 @@ ON missing force evidence at query time:
 | `try_push_node` / `try_push_edge` | catalog-validated kind tokens; unknown fails closed |
 | `closed_vocabularies` | YAML table: Rust closed enums ⊆ catalog lists/maps |
 | `lift_extracted_hierarchy` | product-cli composition: HierarchyNode → YAML alias → Unknown without registry |
+| `DecodePrefixCatalog` | YAML prefixes/number styles; decode loads data, no ontology crate edge |
 
 ## 9. Explicit non-claims
 

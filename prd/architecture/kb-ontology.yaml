@@ -16,7 +16,7 @@ boundary: >
 fsm:
   name: kb-ontology-readiness
   initial: O0
-  current: O2_composition_lift
+  current: O2_decode_prefixes
   terminal:
     - O6_closed_bounded
     - O6_closed_validated
@@ -61,6 +61,10 @@ fsm:
       name: composition_decode_lift
       meaning: product-cli lifts HierarchyNode through YAML aliases; empty registry is Unknown
       exit: inspect reports lifts_unknown; no CC mint
+    O2_decode_prefixes:
+      name: yaml_decode_prefixes
+      meaning: marker prefixes and number styles live in YAML, not Rust tables
+      exit: extract_hierarchy reads catalog; inspect marker count unchanged
     O3:
       name: representative_fixture_edges
       meaning: bounded fixtures, not corpus gold
@@ -91,7 +95,8 @@ fsm:
     - {from: O2_decode_lift, to: O2_catalog_kinds, when: kinds_are_catalog_tokens}
     - {from: O2_catalog_kinds, to: O2_catalog_coverage, when: closed_enums_covered_by_yaml}
     - {from: O2_catalog_coverage, to: O2_composition_lift, when: composition_lifts_decode_nodes}
-    - {from: O2_composition_lift, to: O3, when: representative_fixtures}
+    - {from: O2_composition_lift, to: O2_decode_prefixes, when: prefixes_are_yaml_data}
+    - {from: O2_decode_prefixes, to: O3, when: representative_fixtures}
     - {from: O3, to: O4, when: port_write_no_live_claim}
     - {from: O4, to: O5, when: human_scope}
     - {from: O5, to: O6_closed_bounded, when: bounded_disposition}
@@ -101,6 +106,7 @@ fsm:
     - {from: O2_catalog_kinds, to: O6_closed_validated, why: no skip of fixtures and human gate}
     - {from: O2_catalog_coverage, to: O6_closed_validated, why: no skip of fixtures and human gate}
     - {from: O2_composition_lift, to: O6_closed_validated, why: no skip of fixtures and human gate}
+    - {from: O2_decode_prefixes, to: O6_closed_validated, why: no skip of fixtures and human gate}
     - {from: O1, to: O4, why: no store I/O before offline join and fold}
   guards:
     - id: kernel_owns_substance
@@ -187,6 +193,22 @@ vocabulary:
     Chast: chast
     Punkt: punkt
     Podpunkt: podpunkt
+  decode_marker_prefixes:
+    Razdel: [Раздел, РАЗДЕЛ, раздел]
+    Glava: [Глава, ГЛАВА, глава]
+    Statya: [Статья, СТАТЬЯ, статья]
+    Paragraph: ["§"]
+  decode_prefix_space_policy:
+    default: required
+    Paragraph: optional
+  decode_number_styles:
+    Razdel: roman_or_digit
+    Glava: roman_or_digit
+    Paragraph: digit
+    Statya: digit
+    Chast: digit
+    Punkt: digit
+    Podpunkt: digit
   closed_vocabularies:
     - id: decode_hierarchy_level
       rust_path: crates/ln-decode/src/domain.rs

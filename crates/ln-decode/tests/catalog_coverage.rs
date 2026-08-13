@@ -19,6 +19,32 @@ fn every_hierarchy_level_token_is_a_yaml_alias_key() {
 }
 
 #[test]
+fn yaml_prefixes_cover_currently_extractable_tokens() {
+    let keys = yaml_map_keys(YAML, "decode_marker_prefixes:");
+    for token in ["Razdel", "Glava", "Statya", "Paragraph"] {
+        assert!(
+            keys.iter().any(|key| key == token),
+            "decode_marker_prefixes missing {token}"
+        );
+    }
+}
+
+#[test]
+fn unknown_prefix_token_is_rejected_by_catalog() {
+    let yaml = concat!(
+        "decode_marker_prefixes:\n",
+        "  Article: [Article]\n",
+        "decode_prefix_space_policy:\n",
+        "  default: required\n",
+        "decode_number_styles:\n",
+        "  Article: digit\n",
+    );
+    let err = ln_decode::prefix_catalog::DecodePrefixCatalog::parse_yaml(yaml)
+        .expect_err("unknown token");
+    assert!(err.contains("decode token") || err.contains("prefix key"));
+}
+
+#[test]
 fn hierarchy_level_tokens_are_unique() {
     let mut seen = Vec::new();
     for level in HierarchyLevel::all() {

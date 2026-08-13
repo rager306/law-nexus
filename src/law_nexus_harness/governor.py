@@ -1540,6 +1540,11 @@ def check_kb_ontology_draft(root: Path) -> list[GovernorFinding]:
 
     coverage_rows = list((vocabulary or {}).get("closed_vocabularies") or [])
     coverage_gaps = _kb_closed_vocabulary_gaps(root, vocabulary or {}, coverage_rows)
+    alias_keys = set((vocabulary or {}).get("decode_level_aliases") or {})
+    prefix_keys = set((vocabulary or {}).get("decode_marker_prefixes") or {})
+    extra_prefix_keys = sorted(prefix_keys - alias_keys)
+    if extra_prefix_keys:
+        coverage_gaps.append(f"decode_prefixes:not_in_aliases={extra_prefix_keys}")
     if coverage_gaps:
         return [
             GovernorFinding(
@@ -1569,7 +1574,8 @@ def check_kb_ontology_draft(root: Path) -> list[GovernorFinding]:
             observed=(
                 f"kbo_r_count={len(req_ids)}; node_kinds={len(node_kinds)}; "
                 f"forbidden={len(forbidden)}; fsm_state={yaml_current!r} "
-                f"yaml_states={len(yaml_states)}; closed_vocabs={len(coverage_rows)} "
+                f"yaml_states={len(yaml_states)}; closed_vocabs={len(coverage_rows)}; "
+                f"prefix_keys={len(prefix_keys)} "
                 f"(lifecycle [proposed]; YAML FSM is source; not production schema)."
             ),
             remediation="none",
