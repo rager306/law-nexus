@@ -165,3 +165,25 @@ Human actor `rager306`:
 
 RC11 residual after F09: **only F08 product_open** (CTV industrial ops impl);
 F13 deferred; F01 terminal; all other reviewed findings closed or terminal.
+
+## Follow-up implementation ceremony (2026-08-13, F08)
+
+Human actor `rager306`:
+
+- RC11-F08: fail-closed structural `MembershipGraph` + industrial op planner
+  (`renumber`/`move`/`split`/`merge`) + whole-act compile fail-closed in
+  `ln-temporal`; implementation ceremony → **closed** (tested_revision `79178df`).
+- Non-claims: not full CTV temporal resolution; TSG-003/013 remain open for
+  runtime/corpus proof.
+
+## RC11 residual board (end of wave)
+
+| Residual | Findings |
+|---|---|
+| terminal | F01 |
+| closed | F03, F04, F04a, F04b, F06, F07, F08, F09 |
+| deferred_parked | F13 |
+| product_open | *(none)* |
+
+RC11 process residual wave complete except intentional deferred F13 (Procurement
+Case Graph after core applicability). Product readiness is still not claimed.
