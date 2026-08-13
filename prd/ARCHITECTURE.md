@@ -81,6 +81,7 @@ Ontology FSM/vocabulary: `prd/architecture/kb-ontology.yaml` (not hardcoded).
 Decode aliases: YAML `decode_level_aliases` via `marker_from_decode_token`.
 Write-set kinds: YAML tokens via `try_push_node`/`try_push_edge` (KBO-R027).
 Closed vocab coverage: YAML `closed_vocabularies` vs Rust enums (KBO-R028).
+Composition lift: product-cli `lift_extracted_hierarchy` (KBO-R029); empty registry is Unknown.
 
 ## Temporal legal ontology — design spine (all `[proposed]`)
 

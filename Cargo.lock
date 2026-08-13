@@ -264,6 +264,7 @@ name = "ln-product-cli"
 version = "0.1.0"
 dependencies = [
  "ln-decode",
+ "ln-kb-ontology",
  "ln-query",
  "ln-storage",
 ]

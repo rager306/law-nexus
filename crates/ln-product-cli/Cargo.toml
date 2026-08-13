@@ -10,5 +10,6 @@ path = "src/main.rs"
 
 [dependencies]
 ln-decode = { path = "../ln-decode" }
+ln-kb-ontology = { path = "../ln-kb-ontology" }
 ln-query = { path = "../ln-query" }
 ln-storage = { path = "../ln-storage" }

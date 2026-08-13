@@ -29,6 +29,7 @@
     ["ln-hc19-runner", "ln-diagnostic"],
     ["ln-hc20-runner", "ln-conformance"],
     ["ln-product-cli", "ln-decode"],
+    ["ln-product-cli", "ln-kb-ontology"],
     ["ln-product-cli", "ln-query"],
     ["ln-product-cli", "ln-storage"],
     ["ln-query", "ln-decode"],

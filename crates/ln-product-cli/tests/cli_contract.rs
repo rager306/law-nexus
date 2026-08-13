@@ -65,6 +65,26 @@ fn inspect_real_consultant_fixture_reports_bounded_summary() {
         stdout
     );
     assert!(
+        stdout.contains("\"hierarchy_lifts_unknown\":22"),
+        "empty registry must lift every marker as Unknown; got: {}",
+        stdout
+    );
+    assert!(
+        stdout.contains("\"hierarchy_lifts_bound\":0"),
+        "empty registry must not bind CC; got: {}",
+        stdout
+    );
+    assert!(
+        stdout.contains("\"hierarchy_lifts_rejected\":0"),
+        "decode tokens must resolve through YAML aliases; got: {}",
+        stdout
+    );
+    assert!(
+        stdout.contains("Empty hierarchy registry yields Unknown"),
+        "missing lift non-claim; got: {}",
+        stdout
+    );
+    assert!(
         stdout.contains("\"reference_mentions\":69"),
         "expected 69 references; got: {}",
         stdout

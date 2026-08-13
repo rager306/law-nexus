@@ -16,7 +16,7 @@ boundary: >
 fsm:
   name: kb-ontology-readiness
   initial: O0
-  current: O2_catalog_coverage
+  current: O2_composition_lift
   terminal:
     - O6_closed_bounded
     - O6_closed_validated
@@ -57,6 +57,10 @@ fsm:
       name: closed_vocab_coverage
       meaning: closed Rust enums are subsets of YAML vocabularies
       exit: Governor coverage table; no invented tokens
+    O2_composition_lift:
+      name: composition_decode_lift
+      meaning: product-cli lifts HierarchyNode through YAML aliases; empty registry is Unknown
+      exit: inspect reports lifts_unknown; no CC mint
     O3:
       name: representative_fixture_edges
       meaning: bounded fixtures, not corpus gold
@@ -86,7 +90,8 @@ fsm:
     - {from: O2_expression_presence, to: O2_decode_lift, when: hierarchy_marker_map_fail_closed}
     - {from: O2_decode_lift, to: O2_catalog_kinds, when: kinds_are_catalog_tokens}
     - {from: O2_catalog_kinds, to: O2_catalog_coverage, when: closed_enums_covered_by_yaml}
-    - {from: O2_catalog_coverage, to: O3, when: representative_fixtures}
+    - {from: O2_catalog_coverage, to: O2_composition_lift, when: composition_lifts_decode_nodes}
+    - {from: O2_composition_lift, to: O3, when: representative_fixtures}
     - {from: O3, to: O4, when: port_write_no_live_claim}
     - {from: O4, to: O5, when: human_scope}
     - {from: O5, to: O6_closed_bounded, when: bounded_disposition}
@@ -95,6 +100,7 @@ fsm:
     - {from: O2_decode_lift, to: O6_closed_validated, why: no skip of fixtures and human gate}
     - {from: O2_catalog_kinds, to: O6_closed_validated, why: no skip of fixtures and human gate}
     - {from: O2_catalog_coverage, to: O6_closed_validated, why: no skip of fixtures and human gate}
+    - {from: O2_composition_lift, to: O6_closed_validated, why: no skip of fixtures and human gate}
     - {from: O1, to: O4, why: no store I/O before offline join and fold}
   guards:
     - id: kernel_owns_substance

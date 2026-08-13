@@ -9,12 +9,18 @@ use ln_decode::{
         ConsultantWordMlBlockDecoder,
     },
     deontic::extract_deontic_lexemes,
-    domain::{fingerprint_bytes, DecodeRequest, FamilyFormat, ParagraphStyle, PayloadRef},
+    domain::{
+        fingerprint_bytes, DecodeRequest, FamilyFormat, HierarchyNode, ParagraphStyle, PayloadRef,
+    },
     hierarchy::extract_hierarchy,
     ports::BlockDecoderPort,
     references::extract_reference_mentions,
     temporal::extract_temporal_phrases,
     unknown_forms::census_unknown_forms,
+};
+use ln_kb_ontology::domain::{
+    map_hierarchy_marker, marker_from_decode_token, HierarchyMap, HierarchyMapOutcome,
+    WriteSetError,
 };
 use ln_query::knowql::{execute, KnowQLOp, KnowQLResult, ValidatedOp};
 use ln_storage::{
@@ -24,6 +30,17 @@ use ln_storage::{
 };
 
 const BINARY: &str = "law-nexus-inspect";
+
+/// Composition adapter: decode HierarchyNode → YAML catalog token → registry map.
+/// Empty registry is Unknown. Number+level never mints a ComponentConcept.
+fn lift_extracted_hierarchy(
+    node: &HierarchyNode,
+    map: &HierarchyMap,
+) -> Result<HierarchyMapOutcome, WriteSetError> {
+    let marker =
+        marker_from_decode_token(None, node.level().as_str(), node.number(), node.title())?;
+    Ok(map_hierarchy_marker(map, &marker))
+}
 
 struct StubEmbedding;
 impl EmbeddingPort for StubEmbedding {
@@ -133,6 +150,10 @@ fn inspect(path: &str) {
     };
 
     let mut hierarchy_markers = 0usize;
+    let mut hierarchy_lifts_unknown = 0usize;
+    let mut hierarchy_lifts_bound = 0usize;
+    let mut hierarchy_lifts_rejected = 0usize;
+    let hierarchy_map = HierarchyMap::empty();
     let mut reference_mentions = 0usize;
     let mut temporal_phrases = 0usize;
     let mut deontic_lexemes = 0usize;
@@ -147,8 +168,13 @@ fn inspect(path: &str) {
             provider_comments += 1;
             continue;
         }
-        if extract_hierarchy(block).is_some() {
+        if let Some(node) = extract_hierarchy(block) {
             hierarchy_markers += 1;
+            match lift_extracted_hierarchy(&node, &hierarchy_map) {
+                Ok(HierarchyMapOutcome::Unknown) => hierarchy_lifts_unknown += 1,
+                Ok(HierarchyMapOutcome::Bound { .. }) => hierarchy_lifts_bound += 1,
+                Err(_) => hierarchy_lifts_rejected += 1,
+            }
             let id = format!("block-{i}");
             // Deterministic, content-derived vector (bounded, not semantic)
             // replaces the prior hardcoded vec![0.5; 4] (M163).
@@ -189,6 +215,9 @@ fn inspect(path: &str) {
          \"family\":\"{fid}\",\
          \"result\":{{\
          \"blocks\":{},\"hierarchy_markers\":{hierarchy_markers},\
+         \"hierarchy_lifts_unknown\":{hierarchy_lifts_unknown},\
+         \"hierarchy_lifts_bound\":{hierarchy_lifts_bound},\
+         \"hierarchy_lifts_rejected\":{hierarchy_lifts_rejected},\
          \"reference_mentions\":{reference_mentions},\
          \"temporal_phrases\":{temporal_phrases},\"deontic_lexemes\":{deontic_lexemes},\
          \"unknown_forms\":{unknown_forms},\"provider_comment_candidates\":{provider_comments},\
@@ -196,6 +225,7 @@ fn inspect(path: &str) {
          }},\
          \"non_claims\":[\"No legal correctness claim\",\"No citation authority claim\",\
          \"No corpus completeness claim\",\"No five-clock assignment claim\",\
+         \"Empty hierarchy registry yields Unknown; lift does not mint ComponentConcept\",\
          \"retrieval_count is deterministic-non-semantic: hash-derived vectors, not TEI semantic embedding\"]}}",
         json_escape(path),
         blocks.len(),
@@ -274,5 +304,31 @@ mod tests {
         assert_eq!(deterministic_vector("x", 1).len(), 1);
         assert_eq!(deterministic_vector("x", 7).len(), 7);
         assert_eq!(deterministic_vector("x", 1024).len(), 1024);
+    }
+
+    fn sample_node(level: ln_decode::domain::HierarchyLevel, number: &str) -> HierarchyNode {
+        HierarchyNode::try_new(
+            level,
+            number.to_owned(),
+            Some("title".to_owned()),
+            format!("marker {number} title"),
+            ln_decode::domain::TextSpan::try_new(0, 6).expect("span"),
+        )
+        .expect("node")
+    }
+
+    #[test]
+    fn empty_registry_lifts_statya_as_unknown() {
+        let map = HierarchyMap::empty();
+        let outcome = lift_extracted_hierarchy(
+            &sample_node(ln_decode::domain::HierarchyLevel::Statya, "93"),
+            &map,
+        )
+        .expect("alias");
+        assert_eq!(outcome, HierarchyMapOutcome::Unknown);
+        assert!(outcome
+            .non_claims()
+            .iter()
+            .any(|claim| claim.contains("Unknown") || claim.contains("ComponentConcept")));
     }
 }

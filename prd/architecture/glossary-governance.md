@@ -140,3 +140,5 @@ citation safety or lifecycle readiness.
 <!-- catalog kinds KBO-R027 companion -->
 
 <!-- closed_vocabularies KBO-R028 companion -->
+
+<!-- composition lift KBO-R029 companion -->

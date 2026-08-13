@@ -35,7 +35,7 @@ O0 inventory_open
   → O6 closed_bounded | closed_validated   (corpus + non-claims)
 ```
 
-**Current state:** **O2_catalog_coverage** (declared in `kb-ontology.yaml` FSM).
+**Current state:** **O2_composition_lift** (declared in `kb-ontology.yaml` FSM).
 Vocabulary and transitions are YAML-sourced; Rust only validates/executes.
 HierarchyMarker→CC: unmapped → Unknown. Not CTV text, not O3/O4.  
 S4 fixtures (KBO-R013), Manifestation/Item, and port materialization remain open.  
@@ -85,6 +85,7 @@ S4 fixtures (KBO-R013), Manifestation/Item, and port materialization remain open
 | KBO-R026 | core-contract | Decode hierarchy tokens map to catalog levels only via YAML `decode_level_aliases`; unknown tokens fail closed | `marker_from_decode_token` | **accepted-draft** |
 | KBO-R027 | core-contract | Graph node/edge/presence kinds are YAML catalog tokens; Rust/Governor must not invent kinds or keep a second hardcoded required-kinds list | `try_push_node` / Governor YAML subset | **accepted-draft** |
 | KBO-R028 | core-contract | Closed Rust vocabularies (HierarchyLevel, NormativeState, industrial/membership kinds) are subsets of YAML tables; Governor coverage is data-driven via `closed_vocabularies` | Governor + `HierarchyLevel::as_str` | **accepted-draft** |
+| KBO-R029 | core-contract | Composition (product-cli) lifts decode HierarchyNode through YAML aliases; empty registry is Unknown and does not mint CC | `lift_extracted_hierarchy` | **accepted-draft** |
 
 ## 5. Functional preparation backlog (not implemented this wave)
 

@@ -4,6 +4,11 @@ All notable changes to law-nexus are documented in this file.
 
 ## Unreleased — current architecture landing and repository map
 
+### Composition decode lift (KBO-R029)
+- `law-nexus-inspect` lifts extracted HierarchyNode through YAML aliases.
+- Empty registry reports `hierarchy_lifts_unknown`; no ComponentConcept mint.
+- Allowlist gained `ln-product-cli -> ln-kb-ontology`; tests use `len(allowlist)`.
+
 ### YAML closed-vocabulary coverage (KBO-R028)
 - `HierarchyLevel::as_str` emits decode tokens that YAML aliases cover.
 - Governor compares named Rust enums to YAML `closed_vocabularies`.
