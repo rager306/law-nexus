@@ -86,18 +86,19 @@ fn evaluate_with_norm_rule_records_ir_and_still_abstains() {
         result.decision,
         ApplicabilityDecision::Abstain(AbstentionKind::ProtocolUnimplemented)
     );
-    assert_eq!(result.trace.predicate_steps.len(), 1);
     assert!(
-        result.trace.predicate_steps[0]
-            .predicate_id
-            .starts_with("norm_rule_ir:"),
+        result
+            .trace
+            .predicate_steps
+            .iter()
+            .any(|s| s.predicate_id.starts_with("norm_rule_ir:")),
         "trace must mark IR revision structurally"
     );
     assert!(
-        result.trace.predicate_steps[0]
-            .outcome
-            .contains("abstain_only"),
-        "IR observation must not claim evaluation success"
+        result.trace.predicate_steps.iter().any(|s| {
+            s.predicate_id == "algebra:skipped" || s.outcome.contains("no_case_facts_supplied")
+        }),
+        "IR-only path must not claim algebra evaluation without facts"
     );
     assert!(!matches!(
         result.decision,

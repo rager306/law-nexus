@@ -12,7 +12,7 @@ related: [ADR-0009, ADR-0017, ADR-0018, ADR-0019, ADR-0020, ADR-0021, ADR-0022]
 
 ## Status
 
-**Accepted [proposed]** — ownership and fail-closed protocol boundaries are decided. A minimal fail-closed abstention kernel exists in `ln-applicability` v0 (prerequisite gates + mandatory trace only). A structural NormRule IR (conditions, exceptions, defeaters, temporal scope) exists as a **design-only** fail-closed spine for RC11-F04a; IR presence never mints Applicable/NotApplicable. No Applicable/NotApplicable product result, predicate evaluation algebra, procurement profile pipeline, or case-level legal claim exists. The decision may move to `[bounded]` only after Rust domain/port contracts and hostile abstention paths ship; any stronger product claim additionally requires representative real-case evidence and human acceptance under ADR-0015.
+**Accepted [proposed]** — ownership and fail-closed protocol boundaries are decided. A minimal fail-closed abstention kernel exists in `ln-applicability` v0 (prerequisite gates + mandatory trace only). A structural NormRule IR (conditions, exceptions, defeaters, temporal scope) exists as a **design-only** fail-closed spine for RC11-F04a; IR presence never mints Applicable/NotApplicable. No Applicable/NotApplicable product result, procurement profile pipeline, or case-level legal claim exists. Pure predicate algebra over synthetic CaseFactSet is implementation-spine only and cannot mint product Applicable/NotApplicable while lifecycle is [proposed]. The decision may move to `[bounded]` only after Rust domain/port contracts and hostile abstention paths ship; any stronger product claim additionally requires representative real-case evidence and human acceptance under ADR-0015.
 
 This ADR narrowly supersedes only the ADR-0017 §5 sentence that assigns applicability as a profile concern. ADR-0017 remains authoritative for CTV, event-sourced validity, bitemporal awareness and the distinction between enters-legal-order and applicability.
 
@@ -125,7 +125,7 @@ Revisit only with a superseding ADR when at least one is true:
 
 ## Non-claims
 
-- `[deferred]` No predicate evaluation algebra, product `CaseFacts` pipeline, or Applicable/NotApplicable decision is implemented by this ADR. A minimal fail-closed abstention kernel (`ln-applicability` v0) gates prerequisites and emits a mandatory trace. Structural NormRule IR types are design-only (RC11-F04a) and do not evaluate applicability or legal correctness.
+- `[deferred]` No predicate evaluation algebra, product `CaseFacts` pipeline, or Applicable/NotApplicable decision is implemented by this ADR. A minimal fail-closed abstention kernel (`ln-applicability` v0) gates prerequisites and emits a mandatory trace. Structural NormRule IR types are design-only (RC11-F04a). A pure predicate algebra over IR+CaseFactSet exists (RC11-F04b) and records compositional outcomes in the explainable trace, but top-level product decisions remain Abstain-only under [proposed] and do not mint Applicable/NotApplicable or legal correctness.
 - No applicability result, legal correctness or authoritative legal interpretation is validated.
 - No procurement profile, classifier, register or legal rule set is complete.
 - No derived NormRule graph, LLM output, semantic similarity or profile adapter is source truth.

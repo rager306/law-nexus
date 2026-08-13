@@ -219,7 +219,7 @@ source, tests, runtime, and real-document evidence appropriate to the claim.
 | Shared infrastructure | `ln-storage` | Graph, vector, and embedding port contracts plus bounded InMemory adapters; not a KOF-DA primary owner. |
 | Shared verification | `ln-testkit` | Reusable port-contract suites and hostile fixtures; test support, not product authority. |
 | Repository tracer | `ln-status` | Deterministic status/failure/sleep/output subprocess tracer for repository-harness verification; not a product capability owner. |
-| Proposed protocol kernel | `ln-applicability` | ADR-0023 fail-closed abstention-only applicability evaluator `[proposed]`; not a KOF-DA owner and not Applicable/NotApplicable product proof. |
+| Proposed protocol kernel | `ln-applicability` | ADR-0023 fail-closed abstention-only evaluator with NormRule IR + pure predicate algebra spines `[proposed]`; not a KOF-DA owner and not Applicable/NotApplicable product proof. |
 
 Most capability crates use `domain.rs`, `ports.rs`, `application.rs`, and
 `adapters.rs`; crate integration/hostile tests live under `crates/*/tests/`.

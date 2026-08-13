@@ -382,9 +382,9 @@ def test_classify_residual_helper_matches_snapshot() -> None:
             {
                 "RC11-F01": ResidualClass.TERMINAL_WITHOUT_IMPLEMENTATION.value,
                 "RC11-F03": ResidualClass.CLOSED.value,
-                "RC11-F04": ResidualClass.BLOCKED_GRAPH.value,
+                "RC11-F04": ResidualClass.CLOSED.value,
                 "RC11-F04a": ResidualClass.CLOSED.value,
-                "RC11-F04b": ResidualClass.PRODUCT_OPEN.value,
+                "RC11-F04b": ResidualClass.CLOSED.value,
                 "RC11-F13": ResidualClass.DEFERRED_PARKED.value,
             },
         ),

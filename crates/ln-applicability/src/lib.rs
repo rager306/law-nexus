@@ -6,9 +6,10 @@
 //! While lifecycle remains `[proposed]`, the evaluator never emits
 //! `Applicable` / `NotApplicable`. Every evaluation abstains with a typed
 //! kind and a mandatory `ExplainableTrace`. Documentation, CTV presence,
-//! NormativeState labels, roadmap completion, NormRule IR presence, and LLM
-//! prose cannot mint a positive applicability claim. NormRule IR is a
-//! fail-closed design spine (RC11-F04a), not product legal validation.
+//! NormativeState labels, roadmap completion, NormRule IR presence, predicate
+//! algebra outcomes, and LLM prose cannot mint a positive applicability claim.
+//! NormRule IR (RC11-F04a) and pure predicate algebra (RC11-F04b) are fail-closed
+//! design/implementation spines, not product legal validation.
 
 pub mod adapters;
 pub mod application;

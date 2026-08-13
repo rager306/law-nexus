@@ -435,8 +435,204 @@ pub fn default_non_claims() -> Vec<String> {
         "Non-authoritative applicability protocol evaluation".to_owned(),
         "Abstention is not Applicable and not NotApplicable".to_owned(),
         "Does not prove legal correctness or product readiness".to_owned(),
-        "Does not invent CaseFacts or profile decisions".to_owned(),
-        "NormRule IR is structural design only and is not an applicability decision".to_owned(),
+        "CaseFactSet is synthetic structural input, not legal fact authority".to_owned(),
+        "NormRule IR and predicate algebra are not product applicability decisions".to_owned(),
         "Lifecycle [proposed]; positive applicability claims remain deferred".to_owned(),
     ]
+}
+
+/// Intermediate pure algebra outcome (not the product ApplicabilityDecision).
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub enum PredicateOutcome {
+    Satisfied,
+    Unsatisfied,
+    Abstain(AbstentionKind),
+}
+
+impl PredicateOutcome {
+    pub fn as_str(self) -> &'static str {
+        match self {
+            Self::Satisfied => "satisfied",
+            Self::Unsatisfied => "unsatisfied",
+            Self::Abstain(_) => "abstain",
+        }
+    }
+}
+
+/// Fail-closed structural fact bag for algebra evaluation (not legal authority).
+#[derive(Debug, Clone, PartialEq, Eq, Default)]
+pub struct CaseFactSet {
+    facts: Vec<(String, bool)>,
+}
+
+impl CaseFactSet {
+    pub fn empty() -> Self {
+        Self::default()
+    }
+
+    pub fn try_from_pairs(pairs: &[(&str, bool)]) -> Result<Self, IdError> {
+        let mut facts = Vec::with_capacity(pairs.len());
+        for (id, value) in pairs {
+            let id = parse_id("case fact id", id, MAX_ID_LEN)?;
+            facts.push((id, *value));
+        }
+        Ok(Self { facts })
+    }
+
+    pub fn get(&self, id: &str) -> Option<bool> {
+        self.facts
+            .iter()
+            .find(|(key, _)| key == id)
+            .map(|(_, value)| *value)
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct ComposedPredicateResult {
+    pub outcome: PredicateOutcome,
+    pub steps: Vec<PredicateStep>,
+}
+
+fn lookup_bool(facts: &CaseFactSet, id: &str) -> Result<bool, AbstentionKind> {
+    match facts.get(id) {
+        Some(value) => Ok(value),
+        None => Err(AbstentionKind::MissingOrAmbiguousFacts),
+    }
+}
+
+/// Evaluate one closed-kind condition against synthetic facts.
+pub fn evaluate_condition(condition: &NormRuleCondition, facts: &CaseFactSet) -> PredicateOutcome {
+    match condition.kind() {
+        "fact_required" => match lookup_bool(facts, condition.id()) {
+            Ok(true) => PredicateOutcome::Satisfied,
+            Ok(false) => PredicateOutcome::Unsatisfied,
+            Err(kind) => PredicateOutcome::Abstain(kind),
+        },
+        "fact_forbidden" => match lookup_bool(facts, condition.id()) {
+            Ok(false) => PredicateOutcome::Satisfied,
+            Ok(true) => PredicateOutcome::Unsatisfied,
+            Err(kind) => PredicateOutcome::Abstain(kind),
+        },
+        "status_required" => match lookup_bool(facts, condition.id()) {
+            Ok(true) => PredicateOutcome::Satisfied,
+            Ok(false) => PredicateOutcome::Unsatisfied,
+            Err(kind) => PredicateOutcome::Abstain(kind),
+        },
+        _ => PredicateOutcome::Abstain(AbstentionKind::UnsupportedPredicateKind),
+    }
+}
+
+fn evaluate_exception(exception: &Exception, facts: &CaseFactSet) -> PredicateOutcome {
+    // Closed kinds: exception fires only when its id fact is explicitly true.
+    // Missing fact means the exception does not apply (not an algebra abstention).
+    match facts.get(exception.id()) {
+        Some(true) => PredicateOutcome::Satisfied,
+        Some(false) | None => PredicateOutcome::Unsatisfied,
+    }
+}
+
+fn evaluate_defeater(defeater: &Defeater, facts: &CaseFactSet) -> PredicateOutcome {
+    // Defeater fires only on explicit true; missing means inactive.
+    match facts.get(defeater.id()) {
+        Some(true) => PredicateOutcome::Satisfied,
+        Some(false) | None => PredicateOutcome::Unsatisfied,
+    }
+}
+
+/// Compose NormRule IR predicates deterministically.
+///
+/// Order: conditions (all must be satisfied unless exception carves out),
+/// then defeaters (any firing defeater forces Unsatisfied).
+/// First Abstain wins. This is algebra only — not product Applicable.
+pub fn compose_norm_rule_predicates(
+    rule: &NormRule,
+    facts: &CaseFactSet,
+) -> ComposedPredicateResult {
+    let mut steps = Vec::new();
+    let mut condition_outcome = PredicateOutcome::Satisfied;
+
+    for condition in rule.conditions() {
+        let outcome = evaluate_condition(condition, facts);
+        steps.push(PredicateStep {
+            predicate_id: condition.id().to_owned(),
+            outcome: format!("algebra:{}", outcome.as_str()),
+        });
+        match outcome {
+            PredicateOutcome::Abstain(kind) => {
+                return ComposedPredicateResult {
+                    outcome: PredicateOutcome::Abstain(kind),
+                    steps,
+                };
+            }
+            PredicateOutcome::Unsatisfied => condition_outcome = PredicateOutcome::Unsatisfied,
+            PredicateOutcome::Satisfied => {}
+        }
+    }
+
+    if matches!(condition_outcome, PredicateOutcome::Unsatisfied) {
+        let mut carved = false;
+        for exception in rule.exceptions() {
+            let outcome = evaluate_exception(exception, facts);
+            steps.push(PredicateStep {
+                predicate_id: exception.id().to_owned(),
+                outcome: format!("algebra:exception:{}", outcome.as_str()),
+            });
+            match outcome {
+                PredicateOutcome::Abstain(kind) => {
+                    return ComposedPredicateResult {
+                        outcome: PredicateOutcome::Abstain(kind),
+                        steps,
+                    };
+                }
+                PredicateOutcome::Satisfied => carved = true,
+                PredicateOutcome::Unsatisfied => {}
+            }
+        }
+        if carved {
+            condition_outcome = PredicateOutcome::Satisfied;
+        }
+    } else {
+        // Still record inactive exceptions for determinism/trace completeness.
+        for exception in rule.exceptions() {
+            let outcome = evaluate_exception(exception, facts);
+            steps.push(PredicateStep {
+                predicate_id: exception.id().to_owned(),
+                outcome: format!("algebra:exception:{}", outcome.as_str()),
+            });
+            if let PredicateOutcome::Abstain(kind) = outcome {
+                return ComposedPredicateResult {
+                    outcome: PredicateOutcome::Abstain(kind),
+                    steps,
+                };
+            }
+        }
+    }
+
+    for defeater in rule.defeaters() {
+        let outcome = evaluate_defeater(defeater, facts);
+        steps.push(PredicateStep {
+            predicate_id: defeater.id().to_owned(),
+            outcome: format!("algebra:defeater:{}", outcome.as_str()),
+        });
+        match outcome {
+            PredicateOutcome::Abstain(kind) => {
+                return ComposedPredicateResult {
+                    outcome: PredicateOutcome::Abstain(kind),
+                    steps,
+                };
+            }
+            PredicateOutcome::Satisfied => {
+                return ComposedPredicateResult {
+                    outcome: PredicateOutcome::Unsatisfied,
+                    steps,
+                };
+            }
+            PredicateOutcome::Unsatisfied => {}
+        }
+    }
+
+    ComposedPredicateResult {
+        outcome: condition_outcome,
+        steps,
+    }
 }

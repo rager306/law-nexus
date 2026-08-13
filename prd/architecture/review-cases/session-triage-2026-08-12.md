@@ -115,3 +115,14 @@ Human actor `rager306` recorded RC11-F04a continuity after NormRule IR landed (`
 - derived residual: **closed** for F04a; parent F04 remains blocked on open sibling F04b; F04b product_open
 
 Non-claims: design proof only; not F04b runtime algebra, Applicable/NotApplicable, or product readiness.
+
+## Follow-up implementation ceremony (2026-08-13, F04 chain)
+
+Human actor `rager306`:
+
+- RC11-F04b: pure fail-closed predicate algebra over NormRule IR + synthetic CaseFactSet;
+  `execution_linked` + implementation `verification_recorded` → **closed**
+- RC11-F04 parent: unblocked after F04a+F04b children closed; implementation ceremony → **closed**
+- Top-level product decision remains Abstain-only under ADR-0023 `[proposed]`
+
+Residual open on RC11: F06–F09 product_open; F13 deferred; F01 terminal; F03/F04/F04a/F04b closed.

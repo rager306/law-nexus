@@ -5,6 +5,11 @@ All notable changes to law-nexus are documented in this file.
 ## Unreleased — current architecture landing and repository map
 
 ### NormRule IR fail-closed design spine (M167 / RC11-F04a)
+- Added pure predicate algebra over NormRule IR + synthetic `CaseFactSet`
+  (conditions/exceptions/defeaters composition) with explainable steps.
+- Top-level evaluator still only Abstains under ADR-0023 `[proposed]`;
+  algebra outcomes never mint Applicable/NotApplicable.
+
 - Review-case graph: split-parent `blocked_by` no longer freezes child residual
   work (breaks RC11-F04↔F04a/b mutual deadlock for stage continuity).
 - Human design ceremony closed RC11-F04a (`execution_linked` + design

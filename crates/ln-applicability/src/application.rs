@@ -1,9 +1,9 @@
 //! Application use case: evaluate case applicability fail-closed (ADR-0023).
 
 use crate::domain::{
-    default_non_claims, first_prerequisite_abstention, AbstentionKind, ApplicabilityDecision,
-    ApplicabilityRequest, ApplicabilityResult, ExplainableTrace, NormRule, PredicateStep,
-    PROTOCOL_VERSION,
+    compose_norm_rule_predicates, default_non_claims, first_prerequisite_abstention,
+    AbstentionKind, ApplicabilityDecision, ApplicabilityRequest, ApplicabilityResult, CaseFactSet,
+    ExplainableTrace, NormRule, PredicateOutcome, PredicateStep, PROTOCOL_VERSION,
 };
 
 /// Pure evaluator. No I/O. Never returns Applicable/NotApplicable in v0.
@@ -16,41 +16,89 @@ impl EvaluateApplicability {
     }
 
     pub fn evaluate(&self, request: ApplicabilityRequest) -> ApplicabilityResult {
-        self.evaluate_inner(request, None)
+        self.evaluate_inner(request, None, None)
     }
 
-    /// IR-aware path: records NormRule identity/revision structurally, still only abstains.
-    ///
-    /// Presence of validated IR is not an applicability decision (RC11-F04a / ADR-0023).
+    /// IR-aware path without facts: structural IR observation + abstain only.
     pub fn evaluate_with_norm_rule(
         &self,
         request: ApplicabilityRequest,
         rule: &NormRule,
     ) -> ApplicabilityResult {
-        self.evaluate_inner(request, Some(rule))
+        self.evaluate_inner(request, Some(rule), None)
+    }
+
+    /// IR + synthetic facts: run pure predicate algebra, still top-level Abstain only.
+    ///
+    /// Algebra outcomes are recorded in the trace. Product Applicable/NotApplicable
+    /// remains forbidden while lifecycle is `[proposed]` (RC11-F04b / ADR-0023).
+    pub fn evaluate_with_norm_rule_and_facts(
+        &self,
+        request: ApplicabilityRequest,
+        rule: &NormRule,
+        facts: &CaseFactSet,
+    ) -> ApplicabilityResult {
+        self.evaluate_inner(request, Some(rule), Some(facts))
     }
 
     fn evaluate_inner(
         &self,
         request: ApplicabilityRequest,
         rule: Option<&NormRule>,
+        facts: Option<&CaseFactSet>,
     ) -> ApplicabilityResult {
-        let kind = first_prerequisite_abstention(&request.prerequisites)
-            .unwrap_or(AbstentionKind::ProtocolUnimplemented);
-        let decision = ApplicabilityDecision::Abstain(kind);
+        if let Some(kind) = first_prerequisite_abstention(&request.prerequisites) {
+            return self.finish(request, ApplicabilityDecision::Abstain(kind), Vec::new());
+        }
+
         let mut predicate_steps = Vec::new();
         if let Some(rule) = rule {
-            // Structural observation only — not predicate algebra evaluation.
             predicate_steps.push(PredicateStep {
                 predicate_id: format!("norm_rule_ir:{}", rule.revision().as_str()),
                 outcome: format!(
-                    "ir_present_conditions={};exceptions={};defeaters={};abstain_only",
+                    "ir_present_conditions={};exceptions={};defeaters={}",
                     rule.conditions().len(),
                     rule.exceptions().len(),
                     rule.defeaters().len()
                 ),
             });
+
+            if let Some(facts) = facts {
+                let composed = compose_norm_rule_predicates(rule, facts);
+                predicate_steps.extend(composed.steps);
+                predicate_steps.push(PredicateStep {
+                    predicate_id: "algebra:composed".to_owned(),
+                    outcome: match composed.outcome {
+                        PredicateOutcome::Satisfied => "algebra:satisfied".to_owned(),
+                        PredicateOutcome::Unsatisfied => "algebra:unsatisfied".to_owned(),
+                        PredicateOutcome::Abstain(kind) => {
+                            format!("algebra:abstain:{}", kind.as_str())
+                        }
+                    },
+                });
+                // Algebra ran, but product decision stays ProtocolUnimplemented.
+                // Mapping Satisfied/Unsatisfied → Applicable/NotApplicable is deferred.
+            } else {
+                predicate_steps.push(PredicateStep {
+                    predicate_id: "algebra:skipped".to_owned(),
+                    outcome: "no_case_facts_supplied".to_owned(),
+                });
+            }
         }
+
+        self.finish(
+            request,
+            ApplicabilityDecision::Abstain(AbstentionKind::ProtocolUnimplemented),
+            predicate_steps,
+        )
+    }
+
+    fn finish(
+        &self,
+        request: ApplicabilityRequest,
+        decision: ApplicabilityDecision,
+        predicate_steps: Vec<PredicateStep>,
+    ) -> ApplicabilityResult {
         let trace = ExplainableTrace {
             protocol_version: PROTOCOL_VERSION.to_owned(),
             rule_id: request.rule_id.clone(),
