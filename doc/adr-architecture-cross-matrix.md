@@ -216,3 +216,5 @@ GitNexus reindex after this wave required for accurate residual-noise queries.
 <!-- TSG-004 force resolve_force_status_at companion -->
 
 <!-- FRBR mint_work KBO-R011 S2 companion -->
+
+<!-- fold_membership_at StructuralAst companion -->

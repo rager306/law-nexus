@@ -1,7 +1,7 @@
 {
   "schema_version": "law-nexus-kb-ontology-projection/v1",
   "lifecycle": "[proposed]",
-  "fsm_state": "O2_writeset",
+  "fsm_state": "O2_fold",
   "authoritative": false,
   "boundary": "Draft L1-L3 graph projection inventory only. Not production graph schema, not RuVector validation, not legal correctness, not applicability, not ontology conformance.",
   "non_authority_fragments": [
@@ -153,7 +153,8 @@
     "KBO-R010",
     "KBO-R017",
     "KBO-R020",
-    "KBO-R021"
+    "KBO-R021",
+    "KBO-R022"
   ],
   "related_tsg": [
     "TSG-003",
@@ -179,7 +180,7 @@
     "KBO-R011",
     "KBO-R012"
   ],
-  "notes": "Pure write-set in ln-kb-ontology; no I/O; forbidden kinds rejected; membership/Work do not emit InForce; Unknown force is read-only. Not O3 fixtures or O4 port materialization.",
+  "notes": "Versioned membership fold is a projection (StructuralAst), not canon. Write-set can project the folded tree. Not CTV text, not Expression bind, not O3/O4.",
   "write_set_crate": "ln-kb-ontology",
   "write_set_fns": [
     "project_work",
@@ -187,6 +188,12 @@
     "project_membership",
     "project_force_event",
     "project_join",
-    "reject_forbidden_kind"
-  ]
+    "reject_forbidden_kind",
+    "project_structural_ast"
+  ],
+  "fold": {
+    "fn": "fold_membership_at",
+    "view": "StructuralAst",
+    "canonical": "VersionedMembershipLog"
+  }
 }

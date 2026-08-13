@@ -2,12 +2,14 @@
 
 use ln_identity::domain::mint_work;
 use ln_kb_ontology::domain::{
-    project_expression, project_force_event, project_join, project_membership, project_work,
-    reject_forbidden_kind, GraphEdgeKind, GraphNodeKind, WriteSetError,
+    project_expression, project_force_event, project_join, project_membership,
+    project_structural_ast, project_work, reject_forbidden_kind, GraphEdgeKind, GraphNodeKind,
+    WriteSetError,
 };
 use ln_temporal::domain::{
-    join_force_with_membership, AmendingActId, ComponentConceptId, ForceStatusEvent,
-    ForceStatusTimeline, MembershipEdge, MembershipGraph, NormativeState,
+    fold_membership_at, join_force_with_membership, AmendingActId, ComponentConceptId,
+    ForceStatusEvent, ForceStatusTimeline, MembershipChangeKind, MembershipEdge, MembershipGraph,
+    NormativeState, VersionedMembershipEvent, VersionedMembershipLog,
 };
 
 fn cc(id: &str) -> ComponentConceptId {
@@ -129,4 +131,32 @@ fn write_set_never_claims_store_io() {
         .non_claims
         .iter()
         .any(|c| c.contains("I/O") || c.contains("RuVector") || c.contains("store")));
+}
+
+#[test]
+fn project_folded_ast_emits_membership_not_force() {
+    let mut log = VersionedMembershipLog::empty();
+    log.append(
+        VersionedMembershipEvent::try_new(
+            MembershipChangeKind::Attach,
+            cc("cc:ch-3"),
+            cc("cc:art-93"),
+            1,
+            act("act:p"),
+        )
+        .expect("ev"),
+    )
+    .expect("append");
+    let ast = fold_membership_at(&log, 1).expect("fold");
+    let set = project_structural_ast(&ast).expect("project");
+    assert!(set.structural_known);
+    assert!(set
+        .edges
+        .iter()
+        .any(|e| e.kind == GraphEdgeKind::MembershipParent));
+    assert!(!set
+        .nodes
+        .iter()
+        .any(|n| n.kind == GraphNodeKind::ForceStatusEvent));
+    assert!(!set.performs_io);
 }

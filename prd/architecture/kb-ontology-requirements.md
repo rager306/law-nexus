@@ -35,9 +35,9 @@ O0 inventory_open
   → O6 closed_bounded | closed_validated   (corpus + non-claims)
 ```
 
-**Current state:** **O2 + write-set** — identity/join offline **and** pure
-`ln-kb-ontology` projection (`project_work` / `project_expression` / `project_membership` /
-`project_force_event` / `project_join`). No store I/O (not O4).  
+**Current state:** **O2 + write-set + fold** — identity/join offline, pure write-set,
+and versioned membership `fold_membership_at` → `StructuralAst` (projection, not canon).
+No store I/O (not O4). Not CTV text, not Expression binding.  
 S4 fixtures (KBO-R013), Manifestation/Item, and port materialization remain open.  
 **Exit O1 / O2 spine:** done. **Write-set (toward O4):** landed, I/O-free.  
 **Not O3/O4:** no representative fixture edges, no graph-store adapter writes.  
@@ -78,6 +78,7 @@ S4 fixtures (KBO-R013), Manifestation/Item, and port materialization remain open
 | KBO-R019 | core-contract | Parser emits structural carriers only; does not mint NormativeState or Applicable | ADR-0013; ADR-0016 §5 | **accepted-draft** |
 | KBO-R020 | non-claim | KB ontology docs + Governor check are structural inventory only; not TSG S6 | D156 pattern | **accepted-draft** |
 | KBO-R021 | core-contract | Pure write-set projection (domain → typed graph ops) performs no I/O and rejects forbidden L4–L7 kinds | `ln-kb-ontology`; this wave | **accepted-draft** |
+| KBO-R022 | core-contract | StructuralAst is a fold projection of versioned membership events at effect_day t; not stored document AST, not CTV text | `fold_membership_at`; TSG-013 | **accepted-draft** |
 
 ## 5. Functional preparation backlog (not implemented this wave)
 

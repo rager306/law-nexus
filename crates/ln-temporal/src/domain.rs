@@ -910,6 +910,7 @@ pub enum CtvOpsError {
     WholeActIncomplete,
     PlanMismatch,
     DuplicateOpId,
+    MembershipConflict,
 }
 
 impl fmt::Display for CtvOpsError {
@@ -943,6 +944,12 @@ impl fmt::Display for CtvOpsError {
             }
             Self::DuplicateOpId => {
                 write!(formatter, "industrial op id already present in event log")
+            }
+            Self::MembershipConflict => {
+                write!(
+                    formatter,
+                    "child has conflicting parents at the same effect day"
+                )
             }
         }
     }
@@ -1247,6 +1254,292 @@ pub fn apply_industrial_op(
         kind: request.kind,
         non_claims: [F08_NON_CLAIMS, S3_APPLY_NON_CLAIMS].concat(),
     })
+}
+
+// ─── TSG-013 / KBO fold: versioned membership → StructuralAst projection ─────
+// Canonical source is the event log. AST is a view at effect_day t, not canon,
+// not CTV text, not force, not a stored document tree.
+
+/// Attach or detach a child under a parent at a governing effect day.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub enum MembershipChangeKind {
+    Attach,
+    Detach,
+}
+
+impl MembershipChangeKind {
+    pub fn as_str(self) -> &'static str {
+        match self {
+            Self::Attach => "attach",
+            Self::Detach => "detach",
+        }
+    }
+}
+
+/// Provenance-gated membership change (not CTV text, not legal effect).
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct VersionedMembershipEvent {
+    kind: MembershipChangeKind,
+    parent: ComponentConceptId,
+    child: ComponentConceptId,
+    effect_day: i64,
+    provenance: AmendingActId,
+}
+
+impl VersionedMembershipEvent {
+    pub fn try_new(
+        kind: MembershipChangeKind,
+        parent: ComponentConceptId,
+        child: ComponentConceptId,
+        effect_day: i64,
+        provenance: AmendingActId,
+    ) -> Result<Self, CtvOpsError> {
+        if parent.as_str() == child.as_str() {
+            return Err(CtvOpsError::SelfMembership);
+        }
+        if provenance.as_str().is_empty() {
+            return Err(CtvOpsError::MissingProvenance);
+        }
+        Ok(Self {
+            kind,
+            parent,
+            child,
+            effect_day,
+            provenance,
+        })
+    }
+
+    pub fn kind(&self) -> MembershipChangeKind {
+        self.kind
+    }
+
+    pub fn parent(&self) -> &ComponentConceptId {
+        &self.parent
+    }
+
+    pub fn child(&self) -> &ComponentConceptId {
+        &self.child
+    }
+
+    pub fn effect_day(&self) -> i64 {
+        self.effect_day
+    }
+
+    pub fn provenance(&self) -> &AmendingActId {
+        &self.provenance
+    }
+}
+
+/// Append-only versioned membership log (offline synthetic).
+#[derive(Debug, Clone, PartialEq, Eq, Default)]
+pub struct VersionedMembershipLog {
+    events: Vec<VersionedMembershipEvent>,
+}
+
+impl VersionedMembershipLog {
+    pub fn empty() -> Self {
+        Self::default()
+    }
+
+    pub fn events(&self) -> &[VersionedMembershipEvent] {
+        &self.events
+    }
+
+    pub fn append(&mut self, event: VersionedMembershipEvent) -> Result<(), CtvOpsError> {
+        self.events.push(event);
+        Ok(())
+    }
+}
+
+/// One node of a structural AST projection (not a stored document node).
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct StructuralAstNode {
+    component: ComponentConceptId,
+    children: Vec<StructuralAstNode>,
+}
+
+impl StructuralAstNode {
+    pub fn component(&self) -> &ComponentConceptId {
+        &self.component
+    }
+
+    pub fn children(&self) -> &[StructuralAstNode] {
+        &self.children
+    }
+}
+
+/// Folded membership tree at a governing effect day.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct StructuralAst {
+    as_of_day: i64,
+    roots: Vec<StructuralAstNode>,
+    non_claims: Vec<&'static str>,
+}
+
+impl StructuralAst {
+    pub fn as_of_day(&self) -> i64 {
+        self.as_of_day
+    }
+
+    pub fn roots(&self) -> &[StructuralAstNode] {
+        &self.roots
+    }
+
+    pub fn is_projection(&self) -> bool {
+        true
+    }
+
+    pub fn non_claims(&self) -> &[&'static str] {
+        &self.non_claims
+    }
+}
+
+const FOLD_NON_CLAIMS: &[&str] = &[
+    "StructuralAst is a fold projection, not canon and not a stored document tree",
+    "Versioned membership is not CTV text resolution or legal amendment correctness",
+    "Tree presence does not imply ForceStatus InForce",
+    "Not Expression binding, not Manifestation, not applicability, not corpus proof",
+    "Lifecycle [proposed]; TSG-013 fold spine; not O3 representative fixtures",
+];
+
+/// Fold membership events with `effect_day <= as_of_day` into a StructuralAst.
+///
+/// Same-day attach of one child under two parents → MembershipConflict.
+/// Future events are invisible. Detach then attach is a move.
+pub fn fold_membership_at(
+    log: &VersionedMembershipLog,
+    as_of_day: i64,
+) -> Result<StructuralAst, CtvOpsError> {
+    let mut applicable: Vec<&VersionedMembershipEvent> = log
+        .events()
+        .iter()
+        .filter(|e| e.effect_day() <= as_of_day)
+        .collect();
+    applicable.sort_by_key(|e| {
+        (
+            e.effect_day(),
+            e.kind().as_str(),
+            e.child().as_str(),
+            e.parent().as_str(),
+        )
+    });
+
+    // child → parent after replay
+    let mut parent_of: Vec<(String, String)> = Vec::new();
+
+    let mut i = 0;
+    while i < applicable.len() {
+        let day = applicable[i].effect_day();
+        let mut j = i;
+        while j < applicable.len() && applicable[j].effect_day() == day {
+            j += 1;
+        }
+        let slice = &applicable[i..j];
+
+        // Same-day attach of one child under distinct parents is a conflict,
+        // even if an intervening detach exists in the same day (ambiguous order).
+        let mut attach_parents: Vec<(String, String)> = Vec::new();
+        for ev in slice.iter() {
+            if ev.kind() == MembershipChangeKind::Attach {
+                attach_parents.push((
+                    ev.child().as_str().to_owned(),
+                    ev.parent().as_str().to_owned(),
+                ));
+            }
+        }
+        attach_parents.sort();
+        let mut k = 0;
+        while k < attach_parents.len() {
+            let child = attach_parents[k].0.clone();
+            let mut parents = vec![attach_parents[k].1.clone()];
+            k += 1;
+            while k < attach_parents.len() && attach_parents[k].0 == child {
+                if !parents.contains(&attach_parents[k].1) {
+                    parents.push(attach_parents[k].1.clone());
+                }
+                k += 1;
+            }
+            if parents.len() > 1 {
+                return Err(CtvOpsError::MembershipConflict);
+            }
+        }
+
+        for ev in slice {
+            match ev.kind() {
+                MembershipChangeKind::Detach => {
+                    parent_of
+                        .retain(|(c, p)| !(c == ev.child().as_str() && p == ev.parent().as_str()));
+                }
+                MembershipChangeKind::Attach => {
+                    parent_of.retain(|(c, _)| c != ev.child().as_str());
+                    parent_of.push((
+                        ev.child().as_str().to_owned(),
+                        ev.parent().as_str().to_owned(),
+                    ));
+                }
+            }
+        }
+        i = j;
+    }
+
+    let ast = build_structural_ast(as_of_day, &parent_of)?;
+    Ok(ast)
+}
+
+fn build_structural_ast(
+    as_of_day: i64,
+    parent_of: &[(String, String)],
+) -> Result<StructuralAst, CtvOpsError> {
+    let mut children_of: Vec<(String, Vec<String>)> = Vec::new();
+    let mut child_set: Vec<String> = Vec::new();
+    let mut parent_set: Vec<String> = Vec::new();
+    for (child, parent) in parent_of {
+        if !child_set.contains(child) {
+            child_set.push(child.clone());
+        }
+        if !parent_set.contains(parent) {
+            parent_set.push(parent.clone());
+        }
+        if let Some((_, kids)) = children_of.iter_mut().find(|(p, _)| p == parent) {
+            if !kids.contains(child) {
+                kids.push(child.clone());
+            }
+        } else {
+            children_of.push((parent.clone(), vec![child.clone()]));
+        }
+    }
+    for (_, kids) in &mut children_of {
+        kids.sort();
+    }
+
+    let mut roots: Vec<String> = parent_set
+        .into_iter()
+        .filter(|p| !child_set.contains(p))
+        .collect();
+    roots.sort();
+
+    let nodes: Vec<StructuralAstNode> = roots
+        .iter()
+        .map(|root| build_node(root, &children_of))
+        .collect();
+
+    Ok(StructuralAst {
+        as_of_day,
+        roots: nodes,
+        non_claims: FOLD_NON_CLAIMS.to_vec(),
+    })
+}
+
+fn build_node(id: &str, children_of: &[(String, Vec<String>)]) -> StructuralAstNode {
+    let kids = children_of
+        .iter()
+        .find(|(p, _)| p == id)
+        .map(|(_, k)| k.clone())
+        .unwrap_or_default();
+    StructuralAstNode {
+        component: ComponentConceptId::parse(id).expect("folded ids are already valid"),
+        children: kids.iter().map(|k| build_node(k, children_of)).collect(),
+    }
 }
 
 #[cfg(test)]

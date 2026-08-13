@@ -344,3 +344,5 @@ Stop and replan if any review:
 <!-- FRBR mint_work KBO-R011 S2 companion -->
 
 <!-- ln-kb-ontology write-set companion -->
+
+<!-- fold_membership_at StructuralAst companion -->

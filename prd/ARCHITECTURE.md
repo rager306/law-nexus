@@ -73,7 +73,8 @@ Accumulating **materialization** requirements (not production schema):
 L1–L3 only (identity carriers, membership/CTV structure, force status);
 L4–L7 and Applicable remain deferred. Structural Governor check only. Offline force↔membership join:
 `join_force_with_membership` + FRBR `mint_work`/`compare_work_identities` (O2; number ≠ Work; membership ≠ InForce). Pure write-set crate
-`ln-kb-ontology` (no I/O; not O3/O4).
+`ln-kb-ontology` (no I/O; not O3/O4). Versioned membership fold:
+`fold_membership_at` → `StructuralAst` (projection, not CTV text).
 
 ## Temporal legal ontology — design spine (all `[proposed]`)
 

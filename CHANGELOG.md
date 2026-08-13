@@ -4,6 +4,12 @@ All notable changes to law-nexus are documented in this file.
 
 ## Unreleased — current architecture landing and repository map
 
+### Versioned membership fold (TSG-013 / KBO-R022)
+- Added `VersionedMembershipLog` and `fold_membership_at` → `StructuralAst`
+  in `ln-temporal` (projection at effect_day; same-day two-parent → Conflict).
+- `project_structural_ast` in `ln-kb-ontology` emits membership edges only.
+- Not CTV text, not Expression bind, not corpus reconstruction.
+
 ### KB ontology write-set projection (`ln-kb-ontology`)
 - New crate `ln-kb-ontology`: pure `project_work` / `project_expression` /
   `project_membership` / `project_force_event` / `project_join` (no store I/O).

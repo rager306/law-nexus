@@ -154,6 +154,10 @@ document snapshot; they do not reify the event as a queryable causal entity).
 
 ## Non-claims
 
+- `fold_membership_at` / `StructuralAst` (TSG-013) is a **projection** of versioned
+  membership events at a synthetic effect day. It is not CTV text resolution, not
+  Expression binding, not calendar `legal_act_effect`, and not whole-act text compile.
+
 - Bounded-runtime `apply_industrial_op` / `StructuralEventLog` in `ln-temporal`
   (TSG-003/013 ladder S3) mutates synthetic membership only; it is not event-sourced
   CTV product runtime, not legal amendment correctness, and not corpus compilation.

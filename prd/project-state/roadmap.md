@@ -229,3 +229,5 @@ This roadmap does not prove Rust product readiness, parser completeness, Russian
 <!-- FRBR mint_work KBO-R011 S2 companion -->
 
 <!-- ln-kb-ontology write-set companion -->
+
+<!-- fold_membership_at StructuralAst companion -->

@@ -22,8 +22,8 @@
 //!
 //! RC11-F08 / TSG-003/013: structural membership graph + industrial op planner
 //! and bounded-runtime `apply_industrial_op` with append-only structural event log.
-//! Structural offline apply only — not full CTV temporal resolution, not legal
-//! amendment proof, not representative corpus compilation.
+//! Versioned membership fold (`fold_membership_at` → `StructuralAst`) is a
+//! projection at effect_day t, not a stored document tree, not CTV text.
 
 pub mod adapters;
 pub mod application;

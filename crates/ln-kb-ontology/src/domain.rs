@@ -1,7 +1,10 @@
 //! Pure L1–L3 write-set types. No store I/O.
 
 use ln_identity::domain::{FrbrExpression, FrbrWork};
-use ln_temporal::domain::{ForceMembershipJoin, ForceStatusEvent, MembershipEdge, NormativeState};
+use ln_temporal::domain::{
+    ForceMembershipJoin, ForceStatusEvent, MembershipEdge, NormativeState, StructuralAst,
+    StructuralAstNode,
+};
 
 /// Graph node kinds allowed in the L1–L3 draft projection.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -255,4 +258,27 @@ pub fn project_join(joined: &ForceMembershipJoin) -> Result<WriteSet, WriteSetEr
     // `project_force_event`. Unknown/conflict must never invent InForce nodes.
     let _ = joined.force.status;
     Ok(set)
+}
+
+/// Project a folded StructuralAst. The AST remains a view; this is not I/O.
+pub fn project_structural_ast(ast: &StructuralAst) -> Result<WriteSet, WriteSetError> {
+    let mut set = WriteSet::empty();
+    set.structural_known = !ast.roots().is_empty();
+    for root in ast.roots() {
+        project_ast_node(&mut set, root);
+    }
+    Ok(set)
+}
+
+fn project_ast_node(set: &mut WriteSet, node: &StructuralAstNode) {
+    set.push_node(GraphNodeKind::ComponentConcept, node.component().as_str());
+    for child in node.children() {
+        set.push_node(GraphNodeKind::ComponentConcept, child.component().as_str());
+        set.push_edge(
+            GraphEdgeKind::MembershipParent,
+            node.component().as_str(),
+            child.component().as_str(),
+        );
+        project_ast_node(set, child);
+    }
 }

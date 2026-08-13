@@ -84,8 +84,12 @@ made the five-clock vs algebra boundary explicit in `ln-temporal`:
   guards (ladder **S3**). Still not temporal CTV store or legal amendment proof.
 - Structural plans/applies require amending-act provenance and never claim legal
   effect, temporal CTV resolution, or real-amendment corpus correctness.
+- Offline **`fold_membership_at`** builds a `StructuralAst` projection from
+  versioned attach/detach events (TSG-013 S3). Same-day two-parent attach is
+  `MembershipConflict`. The AST is not canon, not CTV text, not Expression bind.
 - TSG-003 and TSG-013 remain **active** until representative amendment fixtures,
-  versioned cardinality, and human scope acceptance land. S3 ≠ full CTV product.
+  Expression binding, calendar `legal_act_effect`, and human scope acceptance land.
+  Fold S3 ≠ full CTV product.
 
 
 ### RC12-F05 applicability capability inventory (non-closure)

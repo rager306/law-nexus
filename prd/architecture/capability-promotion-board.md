@@ -105,7 +105,7 @@ M167 complete (design IR); dual-truth lag resolved.
 | TSG-010 | S0 | ADR-0022/0023; F13 deferred | RC11-F13 deferred | after core applicability path |
 | TSG-011 | S0–S1 | five-clock safety ≠ algebra; deferred inventory | RC11-F06 non-closure | correction ledger + rebuild equivalence |
 | TSG-012 | S0 | gap named | — | owner decision + resolver |
-| TSG-013 | **S2–S3** | membership mutate via apply (move/split/merge/renumber); not versioned cardinality store | RC11-F08 non-closure | versioned cardinality + multi-provider fixtures (S4) |
+| TSG-013 | **S3** | apply + versioned membership fold → StructuralAst (projection); not CTV text / Expression bind | RC11-F08 non-closure | Expression bind + calendar effect + fixtures (S4) |
 | TSG-014 | S0 | partial paper shapes | — | port-tied schemas |
 | TSG-015 | S0 | paper golden catalog | — | executable promotion per case |
 | TSG-016 | S0–S1 | InMemory scoring `[bounded]` | — | real 1024d corpus + metrics |
@@ -129,7 +129,7 @@ No row advanced to S6 in the spine wave; S3 apply landed later (see history).
 
 Parallel inventory (not TSG S6): `prd/architecture/kb-ontology-requirements.md`,
 `kb-ontology-l1-l3-draft.md`, `kb-ontology-projection-contract.json`.
-FSM **O2 + write-set** (`ln-kb-ontology` project_*); open dep KBO-R013; not O3/O4 I/O.
+FSM **O2 + fold** (`fold_membership_at`); open dep KBO-R013; not CTV text / O3/O4.
 Governor check `kb-ontology-draft` is structural only.
 
 ## 6. Operator cycle (capability-only)
