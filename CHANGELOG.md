@@ -5,6 +5,10 @@ All notable changes to law-nexus are documented in this file.
 ## Unreleased — current architecture landing and repository map
 
 ### Review Case multi-axis FSM residual inventory
+- RC11-F03 process-closeable residual advanced via human ledger ceremony:
+  `execution_linked` + class-matched `verification_recorded` (process proof) →
+  derived closed. Product residuals F04–F09 unchanged.
+
 - Added pure `review_case/fsm.py` observer over ledger-rematerialized packets:
   residual class, operator stages S0-S6, `next_admissible_events`, and
   `missing_for_next` (event-sourced multi-axis FSM projection, not a writable

@@ -376,7 +376,7 @@ def test_classify_residual_helper_matches_snapshot() -> None:
             "RC-2026-08-11-001",
             {
                 "RC11-F01": ResidualClass.TERMINAL_WITHOUT_IMPLEMENTATION.value,
-                "RC11-F03": ResidualClass.PROCESS_CLOSEABLE.value,
+                "RC11-F03": ResidualClass.CLOSED.value,
                 "RC11-F04": ResidualClass.BLOCKED_GRAPH.value,
                 "RC11-F04a": ResidualClass.BLOCKED_GRAPH.value,
                 "RC11-F04b": ResidualClass.BLOCKED_GRAPH.value,
@@ -413,6 +413,7 @@ def test_dogfood_rc11_live_packet_residual_board(
     # Product open residual remains for design/impl gaps without graph block.
     assert by_id["RC11-F06"].residual_class == ResidualClass.PRODUCT_OPEN.value
     assert by_id["RC11-F09"].residual_class == ResidualClass.PRODUCT_OPEN.value
-    # Continuity: F03 next step is execution link, not fake close.
-    assert EventType.EXECUTION_LINKED.value in by_id["RC11-F03"].next_admissible_events
+    # Continuity: F03 process ceremony completed (exec+verify); only reopen remains.
+    assert by_id["RC11-F03"].operator_stage == OperatorStage.S6_TERMINAL_OR_CLOSED.value
+    assert by_id["RC11-F03"].next_admissible_events == (EventType.REOPENED.value,)
     assert material.packet_id == packet_id
