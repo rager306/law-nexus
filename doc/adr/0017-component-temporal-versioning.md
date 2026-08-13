@@ -154,6 +154,10 @@ document snapshot; they do not reify the event as a queryable causal entity).
 
 ## Non-claims
 
+- `HierarchyMarker` / `map_hierarchy_marker` is a **fail-closed candidate lift**:
+  unmapped markers are `Unknown`; number+level does not mint ComponentConcept,
+  force, Expression presence, or legal fact. Parser output remains a candidate.
+
 - `component_in_expression` / `fold_expression_presence` is **presence only**:
   not CTV text, not force, not decode HierarchyNode→CC, not calendar legal_act_effect.
   Later Expression does not silently inherit earlier presence.

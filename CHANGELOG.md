@@ -4,6 +4,21 @@ All notable changes to law-nexus are documented in this file.
 
 ## Unreleased — current architecture landing and repository map
 
+### YAML ontology FSM catalog (KBO-R025)
+- Added `prd/architecture/kb-ontology.yaml` as the meta-prompt FSM and
+  vocabulary source (states, transitions, hierarchy levels, forbidden kinds).
+- `ln-kb-ontology` loads the catalog; unknown levels/transitions fail closed.
+- Governor `kb-ontology-draft` requires the YAML catalog.
+
+### HierarchyMarker to CC lift (KBO-R024 / R3-02)
+- Explicit `HierarchyMap`; unmapped → Unknown; same key + different CC → Conflict.
+- Levels come from YAML, not a Rust enum. No `ln-decode` dependency.
+
+### HierarchyMarker to CC lift (KBO-R024 / R3-02)
+- Added `HierarchyMap` / `map_hierarchy_marker` in `ln-kb-ontology`:
+  explicit registry only; unmapped → Unknown; same key + different CC → Conflict.
+- No `ln-decode` dependency. Number+level is not a ComponentConcept.
+
 ### Component-in-Expression presence (KBO-R023)
 - Added include/exclude events and `fold_expression_presence` in `ln-kb-ontology`.
 - Later Expression does not inherit silently; same-day include+exclude conflicts.

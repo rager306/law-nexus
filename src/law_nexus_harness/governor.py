@@ -1205,6 +1205,7 @@ _CAPABILITY_BOARD_NON_AUTHORITY_FRAGMENTS = (
 _KB_ONTOLOGY_REQUIREMENTS_REL = Path("prd/architecture/kb-ontology-requirements.md")
 _KB_ONTOLOGY_DRAFT_REL = Path("prd/architecture/kb-ontology-l1-l3-draft.md")
 _KB_ONTOLOGY_CONTRACT_REL = Path("prd/architecture/kb-ontology-projection-contract.json")
+_KB_ONTOLOGY_YAML_REL = Path("prd/architecture/kb-ontology.yaml")
 _KB_ONTOLOGY_NON_AUTHORITY_FRAGMENTS = (
     "Non-authority",
     "not production graph schema",
@@ -1349,6 +1350,7 @@ def check_kb_ontology_draft(root: Path) -> list[GovernorFinding]:
     req_path = root / _KB_ONTOLOGY_REQUIREMENTS_REL
     draft_path = root / _KB_ONTOLOGY_DRAFT_REL
     contract_path = root / _KB_ONTOLOGY_CONTRACT_REL
+    yaml_path = root / _KB_ONTOLOGY_YAML_REL
 
     missing_files = [
         rel.as_posix()
@@ -1356,6 +1358,7 @@ def check_kb_ontology_draft(root: Path) -> list[GovernorFinding]:
             (_KB_ONTOLOGY_REQUIREMENTS_REL, req_path),
             (_KB_ONTOLOGY_DRAFT_REL, draft_path),
             (_KB_ONTOLOGY_CONTRACT_REL, contract_path),
+            (_KB_ONTOLOGY_YAML_REL, yaml_path),
         )
         if not path.is_file()
     ]
@@ -1368,13 +1371,14 @@ def check_kb_ontology_draft(root: Path) -> list[GovernorFinding]:
                 message="KB ontology draft surfaces are missing",
                 observed=f"missing_files={missing_files}",
                 remediation=(
-                    "Add kb-ontology-requirements.md, kb-ontology-l1-l3-draft.md, and "
-                    "kb-ontology-projection-contract.json under prd/architecture/."
+                    "Add kb-ontology.yaml plus requirements, draft, and projection "
+                    "contract under prd/architecture/."
                 ),
                 evidence=[
                     GovernorEvidence(path=str(_KB_ONTOLOGY_REQUIREMENTS_REL)),
                     GovernorEvidence(path=str(_KB_ONTOLOGY_DRAFT_REL)),
                     GovernorEvidence(path=str(_KB_ONTOLOGY_CONTRACT_REL)),
+                    GovernorEvidence(path=str(_KB_ONTOLOGY_YAML_REL)),
                 ],
             )
         ]
@@ -1471,6 +1475,48 @@ def check_kb_ontology_draft(root: Path) -> list[GovernorFinding]:
             )
         ]
 
+    try:
+        import yaml
+
+        catalog = yaml.safe_load(yaml_path.read_text(encoding="utf-8")) or {}
+    except (OSError, yaml.YAMLError) as exc:
+        return [
+            GovernorFinding(
+                check_id=check_id,
+                status="fail",
+                severity="warn",
+                message="KB ontology YAML catalog is not valid",
+                observed=f"error={exc}",
+                remediation="Fix prd/architecture/kb-ontology.yaml as the FSM/vocabulary source.",
+                evidence=[GovernorEvidence(path=str(_KB_ONTOLOGY_YAML_REL))],
+            )
+        ]
+
+    fsm = catalog.get("fsm") if isinstance(catalog, dict) else None
+    yaml_current = fsm.get("current") if isinstance(fsm, dict) else None
+    yaml_states = list((fsm or {}).get("states") or {}) if isinstance(fsm, dict) else []
+    yaml_levels = list(
+        ((catalog.get("vocabulary") or {}) if isinstance(catalog, dict) else {}).get(
+            "hierarchy_levels"
+        )
+        or []
+    )
+    if not yaml_current or yaml_current not in yaml_states or "statya" not in yaml_levels:
+        return [
+            GovernorFinding(
+                check_id=check_id,
+                status="fail",
+                severity="warn",
+                message="KB ontology YAML FSM/vocabulary is incomplete",
+                observed=(
+                    f"yaml_current={yaml_current!r}; states={len(yaml_states)}; "
+                    f"levels={yaml_levels}"
+                ),
+                remediation="Declare fsm.current, fsm.states, and vocabulary.hierarchy_levels in YAML.",
+                evidence=[GovernorEvidence(path=str(_KB_ONTOLOGY_YAML_REL))],
+            )
+        ]
+
     return [
         GovernorFinding(
             check_id=check_id,
@@ -1479,14 +1525,16 @@ def check_kb_ontology_draft(root: Path) -> list[GovernorFinding]:
             message="KB ontology draft L1–L3 inventory is structurally present",
             observed=(
                 f"kbo_r_count={len(req_ids)}; node_kinds={len(node_kinds)}; "
-                f"forbidden={len(forbidden)}; fsm_state={contract.get('fsm_state')!r} "
-                f"(lifecycle [proposed]; not production schema or legal ontology proof)."
+                f"forbidden={len(forbidden)}; fsm_state={yaml_current!r} "
+                f"yaml_states={len(yaml_states)} "
+                f"(lifecycle [proposed]; YAML FSM is source; not production schema)."
             ),
             remediation="none",
             evidence=[
                 GovernorEvidence(path=str(_KB_ONTOLOGY_REQUIREMENTS_REL)),
                 GovernorEvidence(path=str(_KB_ONTOLOGY_DRAFT_REL)),
                 GovernorEvidence(path=str(_KB_ONTOLOGY_CONTRACT_REL)),
+                GovernorEvidence(path=str(_KB_ONTOLOGY_YAML_REL)),
             ],
         )
     ]
@@ -4753,11 +4801,12 @@ GOVERNOR_CHECK_SPECS: tuple[CheckSpec, ...] = (
         "docs",
         "deterministic",
         check_kb_ontology_draft,
-        "Keep draft KB ontology L1–L3 requirements + projection contract (O1 inventory).",
+        "Keep YAML FSM catalog plus KB ontology L1-L3 draft inventory.",
         (
             "prd/architecture/kb-ontology-requirements.md",
             "prd/architecture/kb-ontology-l1-l3-draft.md",
             "prd/architecture/kb-ontology-projection-contract.json",
+            "prd/architecture/kb-ontology.yaml",
         ),
         "warn",
     ),

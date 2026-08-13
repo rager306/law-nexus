@@ -35,9 +35,9 @@ O0 inventory_open
   → O6 closed_bounded | closed_validated   (corpus + non-claims)
 ```
 
-**Current state:** **O2 + fold + expression presence** — membership fold plus
-`component_in_expression` include/exclude (later Expression does not inherit silently).
-Not CTV text, not decode lift, not O3/O4.  
+**Current state:** **O2_decode_lift** (declared in `kb-ontology.yaml` FSM).
+Vocabulary and transitions are YAML-sourced; Rust only validates/executes.
+HierarchyMarker→CC: unmapped → Unknown. Not CTV text, not O3/O4.  
 S4 fixtures (KBO-R013), Manifestation/Item, and port materialization remain open.  
 **Exit O1 / O2 spine:** done. **Write-set (toward O4):** landed, I/O-free.  
 **Not O3/O4:** no representative fixture edges, no graph-store adapter writes.  
@@ -80,6 +80,8 @@ S4 fixtures (KBO-R013), Manifestation/Item, and port materialization remain open
 | KBO-R021 | core-contract | Pure write-set projection (domain → typed graph ops) performs no I/O and rejects forbidden L4–L7 kinds | `ln-kb-ontology`; this wave | **accepted-draft** |
 | KBO-R022 | core-contract | StructuralAst is a fold projection of versioned membership events at effect_day t; not stored document AST, not CTV text | `fold_membership_at`; TSG-013 | **accepted-draft** |
 | KBO-R023 | core-contract | ComponentConcept presence in a dated Expression is event-sourced (include/exclude); later Expression does not inherit silently | `fold_expression_presence`; ADR-0016/17 | **accepted-draft** |
+| KBO-R024 | fail-closed | HierarchyMarker (decode candidate) maps to CC only via explicit registry; missing → Unknown; same key + different CC → Conflict | `map_hierarchy_marker`; R3-02 | **accepted-draft** |
+| KBO-R025 | core-contract | Ontology vocabulary and readiness FSM live in YAML (`kb-ontology.yaml`); Rust/Governor load the catalog and must not invent kinds, levels, or transitions | meta-prompt FSM | **accepted-draft** |
 
 ## 5. Functional preparation backlog (not implemented this wave)
 

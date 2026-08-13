@@ -62,3 +62,5 @@ untracked and excluded from active conformance/indexing. Historical IDs may be
 named on living surfaces only with an explicit retired/archive qualifier.
 
 <!-- fold_expression_presence KBO-R023 companion -->
+
+<!-- map_hierarchy_marker KBO-R024 companion -->

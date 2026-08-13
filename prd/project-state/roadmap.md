@@ -233,3 +233,7 @@ This roadmap does not prove Rust product readiness, parser completeness, Russian
 <!-- fold_membership_at StructuralAst companion -->
 
 <!-- fold_expression_presence KBO-R023 companion -->
+
+<!-- map_hierarchy_marker KBO-R024 companion -->
+
+<!-- kb-ontology.yaml FSM catalog companion -->

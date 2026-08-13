@@ -92,7 +92,10 @@ made the five-clock vs algebra boundary explicit in `ln-temporal`:
   Fold S3 ≠ full CTV product.
 - Offline **`fold_expression_presence`** binds CC to a dated Expression via
   include/exclude events (KBO-R023). A later Expression does not inherit silently.
-  Still not CTV text, not HierarchyNode→CC lift, not corpus reconstruction.
+  Still not CTV text, not corpus reconstruction.
+- Offline **`map_hierarchy_marker`** lifts a decode-facing `HierarchyMarker` to CC
+  only through an explicit registry (KBO-R024 / R3-02). Unmapped → `Unknown`;
+  number+level never mints a CC. Ontology crate does not depend on `ln-decode`.
 
 
 ### RC12-F05 applicability capability inventory (non-closure)

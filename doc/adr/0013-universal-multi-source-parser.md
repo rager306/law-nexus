@@ -457,6 +457,10 @@ the transformation is just as complex as parsing directly. Not worth it.
 
 ## Non-claims
 
+- `HierarchyMarker` / `map_hierarchy_marker` is a **fail-closed candidate lift**:
+  unmapped markers are `Unknown`; number+level does not mint ComponentConcept,
+  force, Expression presence, or legal fact. Parser output remains a candidate.
+
 - Bounded adapters and lexical candidates are not legal facts or complete parser quality.
 - Consultant/Garant parity and corpus completeness are not claimed.
 - NormStatement/deontic candidates are not validated normative content.

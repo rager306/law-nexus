@@ -1,7 +1,7 @@
 {
   "schema_version": "law-nexus-kb-ontology-projection/v1",
   "lifecycle": "[proposed]",
-  "fsm_state": "O2_expression_presence",
+  "fsm_state": "O2_decode_lift",
   "authoritative": false,
   "boundary": "Draft L1-L3 graph projection inventory only. Not production graph schema, not RuVector validation, not legal correctness, not applicability, not ontology conformance.",
   "non_authority_fragments": [
@@ -155,7 +155,9 @@
     "KBO-R020",
     "KBO-R021",
     "KBO-R022",
-    "KBO-R023"
+    "KBO-R023",
+    "KBO-R024",
+    "KBO-R025"
   ],
   "related_tsg": [
     "TSG-003",
@@ -181,7 +183,7 @@
     "KBO-R011",
     "KBO-R012"
   ],
-  "notes": "component_in_expression is event-sourced presence, not CTV text. Later Expression does not inherit. Filter AST by presence set. Not decode lift/O3/O4.",
+  "notes": "YAML catalog is the FSM/vocabulary source. Rust loads kinds, levels, and allowed transitions; it does not invent them. Not production schema.",
   "write_set_crate": "ln-kb-ontology",
   "write_set_fns": [
     "project_work",
@@ -196,5 +198,6 @@
     "fn": "fold_membership_at",
     "view": "StructuralAst",
     "canonical": "VersionedMembershipLog"
-  }
+  },
+  "catalog": "prd/architecture/kb-ontology.yaml"
 }

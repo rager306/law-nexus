@@ -76,6 +76,8 @@ L4–L7 and Applicable remain deferred. Structural Governor check only. Offline 
 `ln-kb-ontology` (no I/O; not O3/O4). Versioned membership fold:
 `fold_membership_at` → `StructuralAst` (projection, not CTV text).
 CC-in-Expression: `fold_expression_presence` (no silent inherit).
+Decode lift: `map_hierarchy_marker` (Unknown if unmapped; not legal fact).
+Ontology FSM/vocabulary: `prd/architecture/kb-ontology.yaml` (not hardcoded).
 
 ## Temporal legal ontology — design spine (all `[proposed]`)
 

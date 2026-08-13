@@ -1,7 +1,7 @@
 # KB Ontology Draft — L1–L3 Projection Contract
 
 **Lifecycle:** `[proposed]` design inventory  
-**FSM state:** O2 + expression presence (see `kb-ontology-requirements.md`)  
+**FSM state:** declared in `kb-ontology.yaml` (`fsm.current`)  
 **Non-authority:** not production graph schema, not RuVector validation, not
 legal ontology completeness, not Applicable/practice/risk product types.
 
@@ -106,6 +106,8 @@ ON missing force evidence at query time:
 | `fold_membership_at` / `StructuralAst` | versioned membership projection @ t; not canon |
 | `project_structural_ast` | write-set from folded tree; still no I/O |
 | `fold_expression_presence` / `filter_ast_to_expression` | CC in Expression @ t; not CTV text |
+| `map_hierarchy_marker` / `HierarchyMap` | decode candidate → CC or Unknown; not legal fact |
+| `kb-ontology.yaml` + `OntologyCatalog` | meta-prompt FSM + vocabulary source |
 
 ## 9. Explicit non-claims
 

@@ -1,0 +1,148 @@
+# Knowledge-base ontology + meta-prompt FSM (source of truth)
+#
+# Lifecycle: [proposed]
+# Non-authority: not production graph schema, not Applicable, not legal
+# correctness, not RuVector validation, not ontology conformance.
+# Rust/Python load this file; they must not invent kinds, levels, or
+# transitions that are absent here.
+
+schema_version: law-nexus-kb-ontology/v1
+lifecycle: "[proposed]"
+authoritative: false
+boundary: >
+  Meta-prompt FSM and L1-L3 vocabulary only. Not production graph schema,
+  not legal correctness, not applicability.
+
+fsm:
+  name: kb-ontology-readiness
+  initial: O0
+  current: O2_decode_lift
+  terminal:
+    - O6_closed_bounded
+    - O6_closed_validated
+  states:
+    O0:
+      name: inventory_open
+      meaning: surfaces named; no projection contract
+      exit: draft kinds, forbidden list, and this FSM exist
+    O1:
+      name: draft_l1_l3_projection
+      meaning: node/edge inventory + non-claims
+      exit: Governor structural coverage + forbidden kinds
+    O2:
+      name: identity_ctv_force_join_offline
+      meaning: Work/Expression, force, membership join offline
+      exit: join + FRBR mint + non-claims
+    O2_writeset:
+      name: pure_write_set
+      meaning: domain to typed graph ops, no I/O
+      exit: project_* functions + forbidden reject
+    O2_fold:
+      name: membership_fold
+      meaning: StructuralAst is a fold projection at t
+      exit: fold_membership_at + MembershipConflict
+    O2_expression_presence:
+      name: expression_presence
+      meaning: CC include/exclude in one Expression
+      exit: later Expression does not inherit
+    O2_decode_lift:
+      name: decode_lift_fail_closed
+      meaning: HierarchyMarker maps to CC only via registry
+      exit: unmapped is Unknown; number+level is not a CC
+    O3:
+      name: representative_fixture_edges
+      meaning: bounded fixtures, not corpus gold
+      exit: KBO-R013 partial fixtures
+    O4:
+      name: port_materialization_bounded
+      meaning: write-set through graph-store port
+      exit: InMemory adapter, still not live RuVector proof
+    O5:
+      name: human_scope_acceptance
+      meaning: human gate on legal/semantic scope
+      exit: recorded acceptance
+    O6_closed_bounded:
+      name: closed_bounded
+      meaning: class-matched bounded close
+      exit: TSG disposition rules
+    O6_closed_validated:
+      name: closed_validated
+      meaning: corpus-backed close
+      exit: representative corpus + non-claims
+  transitions:
+    - {from: O0, to: O1, when: draft_surfaces_present}
+    - {from: O1, to: O2, when: identity_and_force_join_offline}
+    - {from: O2, to: O2_writeset, when: write_set_pure_no_io}
+    - {from: O2_writeset, to: O2_fold, when: membership_fold_projection}
+    - {from: O2_fold, to: O2_expression_presence, when: cc_presence_per_expression}
+    - {from: O2_expression_presence, to: O2_decode_lift, when: hierarchy_marker_map_fail_closed}
+    - {from: O2_decode_lift, to: O3, when: representative_fixtures}
+    - {from: O3, to: O4, when: port_write_no_live_claim}
+    - {from: O4, to: O5, when: human_scope}
+    - {from: O5, to: O6_closed_bounded, when: bounded_disposition}
+    - {from: O5, to: O6_closed_validated, when: corpus_disposition}
+  forbidden_jumps:
+    - {from: O2_decode_lift, to: O6_closed_validated, why: no skip of fixtures and human gate}
+    - {from: O1, to: O4, why: no store I/O before offline join and fold}
+  guards:
+    - id: kernel_owns_substance
+      rule: external standards are compatibility only
+    - id: unmapped_marker_is_unknown
+      rule: HierarchyMarker without registry binding is Unknown
+    - id: number_plus_level_is_not_cc
+      rule: marker number and level never mint ComponentConcept
+    - id: later_expression_does_not_inherit
+      rule: presence log is per ExpressionId
+    - id: membership_is_not_in_force
+      rule: tree presence does not write ForceStatus InForce
+    - id: in_force_is_not_applicable
+      rule: force edges must not write ApplicableDecision
+    - id: no_sixth_clock
+      rule: profile or budget cycle is not a clock
+
+vocabulary:
+  join_keys:
+    - ComponentConceptId
+    - AmendingActId
+    - effect_day
+    - work_id
+    - expression_id
+  hierarchy_levels:
+    - razdel
+    - glava
+    - paragraph
+    - statya
+    - chast
+    - punkt
+    - podpunkt
+  node_kinds:
+    - Work
+    - Expression
+    - Manifestation
+    - ComponentConcept
+    - AmendingAct
+    - MembershipEdge
+    - StructuralIndustrialEvent
+    - ForceStatusEvent
+  edge_kinds:
+    - expression_of
+    - manifestation_of
+    - component_in_expression
+    - membership_parent
+    - industrial_op_subject
+    - industrial_op_target
+    - force_status_of
+    - prov_amending_act
+  forbidden_node_kinds:
+    - ApplicableDecision
+    - PracticeRulingAsForce
+    - RiskScoreAsStatus
+    - ProfileCodeAsClock
+    - NormRuleAsAuthority
+    - NormativeBlob
+
+non_claims:
+  - YAML catalog is not production graph schema
+  - FSM current state is inventory, not product readiness
+  - Hierarchy lift is not legal fact and not CTV text
+  - InForce does not imply Applicability

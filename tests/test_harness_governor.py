@@ -579,7 +579,7 @@ def test_kb_ontology_draft_pass_when_complete(tmp_path: Path) -> None:
         """{
           "schema_version": "law-nexus-kb-ontology-projection/v1",
           "authoritative": false,
-          "fsm_state": "O1",
+          "fsm_state": "O2_decode_lift",
           "node_kinds": [
             {"kind": "Work"},
             {"kind": "Expression"},
@@ -589,6 +589,13 @@ def test_kb_ontology_draft_pass_when_complete(tmp_path: Path) -> None:
           ],
           "forbidden_node_kinds": ["ApplicableDecision", "NormativeBlob"]
         }""",
+        encoding="utf-8",
+    )
+    (arch / "kb-ontology.yaml").write_text(
+        "schema_version: law-nexus-kb-ontology/v1\n"
+        "authoritative: false\n"
+        "fsm:\n  current: O2_decode_lift\n  states:\n    O2_decode_lift:\n      name: lift\n"
+        "vocabulary:\n  hierarchy_levels:\n    - statya\n",
         encoding="utf-8",
     )
     from law_nexus_harness.governor import check_kb_ontology_draft

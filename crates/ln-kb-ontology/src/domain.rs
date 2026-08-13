@@ -1,5 +1,6 @@
 //! Pure L1–L3 write-set types. No store I/O.
 
+use crate::catalog::OntologyCatalog;
 use ln_identity::domain::{ExpressionId, FrbrExpression, FrbrWork};
 use ln_temporal::domain::ComponentConceptId;
 use ln_temporal::domain::{
@@ -117,6 +118,9 @@ pub enum WriteSetError {
     UnknownNotWritable,
     PresenceConflict,
     MissingProvenance,
+    HierarchyMapConflict,
+    UnknownHierarchyLevel,
+    UnknownFsmTransition,
 }
 
 impl std::fmt::Display for WriteSetError {
@@ -144,6 +148,21 @@ impl std::fmt::Display for WriteSetError {
                     "component-in-expression event requires provenance"
                 )
             }
+            Self::HierarchyMapConflict => {
+                write!(
+                    formatter,
+                    "hierarchy marker already bound to a different ComponentConcept"
+                )
+            }
+            Self::UnknownHierarchyLevel => {
+                write!(formatter, "hierarchy level is not in the YAML catalog")
+            }
+            Self::UnknownFsmTransition => {
+                write!(
+                    formatter,
+                    "FSM transition is not declared in the YAML catalog"
+                )
+            }
         }
     }
 }
@@ -158,21 +177,22 @@ const WRITE_SET_NON_CLAIMS: &[&str] = &[
     "Lifecycle [proposed]; KBO O2 write-set; not O3 fixture edges or O4 port I/O",
 ];
 
-const FORBIDDEN_KINDS: &[&str] = &[
-    "ApplicableDecision",
-    "PracticeRulingAsForce",
-    "RiskScoreAsStatus",
-    "ProfileCodeAsClock",
-    "NormRuleAsAuthority",
-    "NormativeBlob",
-];
-
-/// Reject L4–L7 / mixed kinds that must not enter the L1–L3 write-set.
+/// Reject L4–L7 / mixed kinds listed in the YAML catalog.
 pub fn reject_forbidden_kind(kind: &str) -> Result<(), WriteSetError> {
-    if FORBIDDEN_KINDS.contains(&kind) {
+    let catalog = OntologyCatalog::embedded().map_err(|_| WriteSetError::MissingIdentity)?;
+    if catalog.is_forbidden_kind(kind) {
         return Err(WriteSetError::ForbiddenKind(kind.to_owned()));
     }
     Ok(())
+}
+
+/// Advance the meta-prompt FSM only along YAML-declared edges.
+pub fn advance_ontology_fsm(from: &str, to: &str) -> Result<(), WriteSetError> {
+    let catalog = OntologyCatalog::embedded().map_err(|_| WriteSetError::UnknownFsmTransition)?;
+    if catalog.allows_transition(from, to) {
+        return Ok(());
+    }
+    Err(WriteSetError::UnknownFsmTransition)
 }
 
 /// Project a FRBR Work to a Work node (no force, no Applicable).
@@ -515,4 +535,148 @@ pub fn project_expression_presence(
         );
     }
     Ok(set)
+}
+
+// ─── HierarchyMarker → CC lift (KBO-R024 / R3-02). Decode remains a candidate. ─
+// Levels come from prd/architecture/kb-ontology.yaml, not a Rust enum.
+
+fn catalog_level(level: &str) -> Result<String, WriteSetError> {
+    let catalog = OntologyCatalog::embedded().map_err(|_| WriteSetError::UnknownHierarchyLevel)?;
+    let level = level.trim();
+    if catalog.is_hierarchy_level(level) {
+        return Ok(level.to_owned());
+    }
+    Err(WriteSetError::UnknownHierarchyLevel)
+}
+
+/// Decode-facing candidate marker. Number+level is not a ComponentConcept.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct HierarchyMarker {
+    work_id: Option<String>,
+    level: String,
+    number: String,
+    title: Option<String>,
+}
+
+impl HierarchyMarker {
+    pub fn try_new(
+        work_id: Option<&str>,
+        level: &str,
+        number: &str,
+        title: Option<&str>,
+    ) -> Result<Self, WriteSetError> {
+        let number = number.trim();
+        if number.is_empty() {
+            return Err(WriteSetError::MissingIdentity);
+        }
+        if title.is_some_and(|value| value.trim().is_empty()) {
+            return Err(WriteSetError::MissingIdentity);
+        }
+        Ok(Self {
+            work_id: work_id.map(str::to_owned),
+            level: catalog_level(level)?,
+            number: number.to_owned(),
+            title: title.map(str::to_owned),
+        })
+    }
+
+    pub fn level(&self) -> &str {
+        &self.level
+    }
+
+    pub fn number(&self) -> &str {
+        &self.number
+    }
+}
+
+/// Explicit binding of a marker key to a stable ComponentConcept.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct HierarchyBinding {
+    work_id: Option<String>,
+    level: String,
+    number: String,
+    component: ComponentConceptId,
+}
+
+impl HierarchyBinding {
+    pub fn try_new(
+        work_id: Option<&str>,
+        level: &str,
+        number: &str,
+        component: ComponentConceptId,
+    ) -> Result<Self, WriteSetError> {
+        let number = number.trim();
+        if number.is_empty() || component.as_str().is_empty() {
+            return Err(WriteSetError::MissingIdentity);
+        }
+        Ok(Self {
+            work_id: work_id.map(str::to_owned),
+            level: catalog_level(level)?,
+            number: number.to_owned(),
+            component,
+        })
+    }
+}
+
+/// Fail-closed registry. Duplicate key with a different CC is Conflict.
+#[derive(Debug, Clone, PartialEq, Eq, Default)]
+pub struct HierarchyMap {
+    bindings: Vec<HierarchyBinding>,
+}
+
+impl HierarchyMap {
+    pub fn empty() -> Self {
+        Self::default()
+    }
+
+    pub fn register(&mut self, binding: HierarchyBinding) -> Result<(), WriteSetError> {
+        if let Some(existing) = self.bindings.iter().find(|item| same_key(item, &binding)) {
+            if existing.component.as_str() != binding.component.as_str() {
+                return Err(WriteSetError::HierarchyMapConflict);
+            }
+            return Ok(());
+        }
+        self.bindings.push(binding);
+        Ok(())
+    }
+}
+
+fn same_key(left: &HierarchyBinding, right: &HierarchyBinding) -> bool {
+    left.work_id.as_deref() == right.work_id.as_deref()
+        && left.level == right.level
+        && left.number == right.number
+}
+
+/// Lift outcome. Unknown is honest absence, never an invented CC.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum HierarchyMapOutcome {
+    Bound { component: ComponentConceptId },
+    Unknown,
+}
+
+impl HierarchyMapOutcome {
+    pub fn non_claims(&self) -> &'static [&'static str] {
+        HIERARCHY_LIFT_NON_CLAIMS
+    }
+}
+
+const HIERARCHY_LIFT_NON_CLAIMS: &[&str] = &[
+    "HierarchyMarker is a decode candidate; number+level does not mint a ComponentConcept",
+    "Unmapped marker resolves Unknown, never an invented CC or InForce",
+    "Lift does not imply Expression presence, CTV text, or applicability",
+    "Not calendar legal_act_effect, not corpus reconstruction, not parser legal fact",
+];
+
+/// Map a marker through an explicit registry. Missing key → Unknown.
+pub fn map_hierarchy_marker(map: &HierarchyMap, marker: &HierarchyMarker) -> HierarchyMapOutcome {
+    match map.bindings.iter().find(|item| {
+        item.work_id.as_deref() == marker.work_id.as_deref()
+            && item.level == marker.level
+            && item.number == marker.number
+    }) {
+        Some(binding) => HierarchyMapOutcome::Bound {
+            component: binding.component.clone(),
+        },
+        None => HierarchyMapOutcome::Unknown,
+    }
 }
