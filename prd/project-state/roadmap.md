@@ -251,3 +251,5 @@ This roadmap does not prove Rust product readiness, parser completeness, Russian
 <!-- calendar ordinal KBO-R031 companion -->
 
 <!-- Review 4 assembly inventory KBO-R032-R040 companion -->
+
+<!-- assembly S_ingest corpus-role classifier KBO-R034 companion -->

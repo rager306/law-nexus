@@ -89,6 +89,11 @@ def build_parser() -> argparse.ArgumentParser:
         default="json",
         help="Output format for executed checks (default: json).",
     )
+    governor.add_argument(
+        "--json",
+        action="store_true",
+        help="Compatibility alias for --format json (Governor default is already json).",
+    )
     adr_verify = subcommands.add_parser(
         "adr-verify",
         help="Generate or check the non-authoritative ADR metadata matrix.",
@@ -329,6 +334,8 @@ def _run_review_case(args: argparse.Namespace) -> int:
 
 def main(argv: Sequence[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
+    if args.command == "governor" and getattr(args, "json", False):
+        args.format = "json"
     if args.command == "status":
         result = run_rust_binary(
             args.binary,

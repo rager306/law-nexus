@@ -25,6 +25,14 @@ pub struct FsmTransition {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
+pub struct CorpusRoleSignal {
+    pub role: String,
+    pub field: String,
+    pub needle: String,
+    pub rank: u32,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct OntologyCatalog {
     pub schema_version: String,
     pub current_state: String,
@@ -40,6 +48,8 @@ pub struct OntologyCatalog {
     pub force_status_values: Vec<String>,
     pub decode_level_aliases: Vec<(String, String)>,
     pub presence_fold_ops: Vec<(String, String)>,
+    pub corpus_roles: Vec<String>,
+    pub corpus_role_signals: Vec<CorpusRoleSignal>,
 }
 
 impl OntologyCatalog {
@@ -81,6 +91,15 @@ impl OntologyCatalog {
         let force_status_values = list_under_vocabulary(text, "force_status_values:")?;
         let decode_level_aliases = map_pairs_under_vocabulary(text, "decode_level_aliases:")?;
         let presence_fold_ops = map_pairs_under_vocabulary(text, "presence_fold_ops:")?;
+        let corpus_roles = list_under_vocabulary(text, "corpus_roles:")?;
+        let corpus_role_signals = parse_corpus_role_signals(text)?;
+        for signal in &corpus_role_signals {
+            if !corpus_roles.iter().any(|role| role == &signal.role) {
+                return Err(CatalogError {
+                    reason: "corpus_role_signal names an unknown role",
+                });
+            }
+        }
         if hierarchy_levels.is_empty() || node_kinds.is_empty() || forbidden_node_kinds.is_empty() {
             return Err(CatalogError {
                 reason: "vocabulary lists are incomplete",
@@ -108,6 +127,8 @@ impl OntologyCatalog {
             force_status_values,
             decode_level_aliases,
             presence_fold_ops,
+            corpus_roles,
+            corpus_role_signals,
         })
     }
 
@@ -391,9 +412,143 @@ fn parse_transitions(text: &str) -> Result<Vec<FsmTransition>, CatalogError> {
 
 fn flow_field(line: &str, key: &str) -> Option<String> {
     let token = format!("{key}:");
-    let rest = line.split(&token).nth(1)?;
+    let rest = line.split(&token).nth(1)?.trim_start();
+    if let Some(quoted) = rest.strip_prefix('"') {
+        let end = quoted.find('"')?;
+        return Some(quoted[..end].to_owned());
+    }
     let value = rest.split([',', '}', ' ']).find(|part| !part.is_empty())?;
     Some(value.trim().to_owned())
+}
+
+fn parse_corpus_role_signals(text: &str) -> Result<Vec<CorpusRoleSignal>, CatalogError> {
+    let vocab_start = text.find("\nvocabulary:").or_else(|| {
+        if text.starts_with("vocabulary:") {
+            Some(0)
+        } else {
+            None
+        }
+    });
+    let Some(start) = vocab_start else {
+        return Err(CatalogError {
+            reason: "vocabulary section missing",
+        });
+    };
+    let slice = &text[start..];
+    let mut signals = Vec::new();
+    let mut in_list = false;
+    let mut heading_indent = 0usize;
+    for raw in slice.lines() {
+        let trimmed = strip_comment(raw);
+        if trimmed.trim().is_empty() {
+            continue;
+        }
+        let indent = raw.len() - raw.trim_start().len();
+        if trimmed.trim() == "corpus_role_signals:" {
+            in_list = true;
+            heading_indent = indent;
+            continue;
+        }
+        if in_list && indent <= heading_indent && !trimmed.trim().starts_with('-') {
+            break;
+        }
+        if !in_list {
+            continue;
+        }
+        let line = trimmed.trim();
+        if !line.starts_with('-') {
+            continue;
+        }
+        let Some(role) = flow_field(line, "role") else {
+            return Err(CatalogError {
+                reason: "corpus_role_signal missing role",
+            });
+        };
+        let Some(field) = flow_field(line, "field") else {
+            return Err(CatalogError {
+                reason: "corpus_role_signal missing field",
+            });
+        };
+        let Some(needle) = flow_field(line, "needle") else {
+            return Err(CatalogError {
+                reason: "corpus_role_signal missing needle",
+            });
+        };
+        let rank = match flow_field(line, "rank") {
+            Some(raw_rank) => raw_rank.parse::<u32>().map_err(|_| CatalogError {
+                reason: "corpus_role_signal rank is not an integer",
+            })?,
+            None => {
+                return Err(CatalogError {
+                    reason: "corpus_role_signal missing rank",
+                })
+            }
+        };
+        if needle.is_empty() || (field != "path" && field != "title") {
+            return Err(CatalogError {
+                reason: "corpus_role_signal field or needle is invalid",
+            });
+        }
+        signals.push(CorpusRoleSignal {
+            role,
+            field,
+            needle,
+            rank,
+        });
+    }
+    Ok(signals)
+}
+
+/// Classify a provider file from path/title needles. Unknown if no signal matches.
+/// Same-rank different roles is Conflict. Lower rank wins (more specific).
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum CorpusRoleOutcome {
+    Bound { role: String },
+    Unknown,
+    Conflict { roles: Vec<String> },
+}
+
+impl OntologyCatalog {
+    pub fn classify_corpus_role(&self, path: &str, title: &str) -> CorpusRoleOutcome {
+        let path_lc = path.to_lowercase();
+        let title_lc = title.to_lowercase();
+        let mut best_rank: Option<u32> = None;
+        let mut best_roles: Vec<String> = Vec::new();
+        for signal in &self.corpus_role_signals {
+            let haystack = match signal.field.as_str() {
+                "path" => path_lc.as_str(),
+                "title" => title_lc.as_str(),
+                _ => continue,
+            };
+            if !haystack.contains(&signal.needle.to_lowercase()) {
+                continue;
+            }
+            match best_rank {
+                None => {
+                    best_rank = Some(signal.rank);
+                    best_roles = vec![signal.role.clone()];
+                }
+                Some(rank) if signal.rank < rank => {
+                    best_rank = Some(signal.rank);
+                    best_roles = vec![signal.role.clone()];
+                }
+                Some(rank)
+                    if signal.rank == rank && !best_roles.iter().any(|r| r == &signal.role) =>
+                {
+                    best_roles.push(signal.role.clone());
+                }
+                _ => {}
+            }
+        }
+        match best_roles.as_slice() {
+            [] => CorpusRoleOutcome::Unknown,
+            [role] => CorpusRoleOutcome::Bound { role: role.clone() },
+            _ => {
+                best_roles.sort();
+                CorpusRoleOutcome::Conflict { roles: best_roles }
+            }
+        }
+    }
 }
 
 #[cfg(test)]
@@ -418,5 +573,10 @@ mod tests {
         assert!(catalog.is_presence_change_kind("include"));
         assert!(catalog.is_industrial_op_kind("split"));
         assert!(catalog.is_force_status("unknown"));
+        assert!(catalog
+            .corpus_roles
+            .iter()
+            .any(|role| role == "C2_edition_oracle"));
+        assert!(!catalog.corpus_role_signals.is_empty());
     }
 }

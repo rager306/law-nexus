@@ -281,13 +281,23 @@ vocabulary:
     - specifies
     - conflicts_with
     - cites
+  corpus_role_signals:
+    - {role: C2hint_change_overview, field: path, needle: obzor-izmenenii, rank: 10}
+    - {role: C2hint_change_overview, field: title, needle: "Обзор изменений", rank: 10}
+    - {role: C2_edition_oracle, field: path, needle: red-ot-, rank: 20}
+    - {role: C2_edition_oracle, field: title, needle: "ред. от", rank: 20}
+    - {role: C1_amending_act, field: title, needle: "внести в", rank: 15}
+    - {role: C3_alien_work, field: path, needle: reshenie-fas, rank: 5}
+    - {role: C3_alien_work, field: path, needle: postanovlenie-pravitelstva, rank: 5}
+    - {role: C3_alien_work, field: path, needle: prikaz-, rank: 5}
+    - {role: C3_alien_work, field: path, needle: opredelenie-, rank: 5}
 
 # Separate from fsm (readiness). Governor compares contract.fsm_state to
 # fsm.current only. Do not move readiness current for design inventory.
 assembly_fsm:
   name: temporal-ast-assembly
   initial: S_ingest
-  current: S_design
+  current: S_ingest
   meaning: process model for XML to events to AST; not readiness O-state
   states:
     S_design:
@@ -331,7 +341,7 @@ assembly_fsm:
       meaning: one fixture replay-ok; not S6 and not Applicable
   non_claims:
     - assembly_fsm is not kb-ontology-readiness and not O3 exit
-    - current S_design means vocabulary only
+    - current S_ingest is classify-only; not stack propose, fold, or O3 fixtures
 
 non_claims:
   - YAML catalog is not production graph schema

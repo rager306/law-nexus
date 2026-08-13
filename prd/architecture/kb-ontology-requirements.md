@@ -38,8 +38,9 @@ O0 inventory_open
 **Current state:** **O2_calendar_ordinal** (declared in `kb-ontology.yaml` FSM).
 Vocabulary and transitions are YAML-sourced; Rust only validates/executes.
 HierarchyMarker→CC: unmapped → Unknown. Not CTV text, not O3/O4.  
-Review 4 added assembly vocabulary (`assembly_fsm` current `S_design`, corpus
-roles, evidence classes) without moving readiness `fsm.current`.  
+Review 4 added assembly vocabulary (`assembly_fsm`, corpus roles, evidence
+classes) without moving readiness `fsm.current`. Assembly current is `S_ingest`
+(YAML needle classify only).  
 S4 fixtures (KBO-R013), Manifestation/Item, and port materialization remain open.  
 **Exit O1 / O2 spine:** done. **Write-set (toward O4):** landed, I/O-free.  
 **Not O3/O4:** no representative fixture edges, no graph-store adapter writes.  

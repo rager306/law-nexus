@@ -85,8 +85,9 @@ Composition lift: product-cli `lift_extracted_hierarchy` (KBO-R029); empty regis
 Decode prefixes: YAML `decode_marker_prefixes` via `DecodePrefixCatalog` (KBO-R030).
 Calendar ordinal: YAML `calendar` via `legal_act_effect_day_to_ordinal` (KBO-R031).
 Review 4 assembly inventory `[proposed]`: `doc/review/review-13-08-2026.md` (L0);
-YAML `assembly_fsm` / corpus roles / evidence classes (KBO-R032–R040); readiness
-FSM stays `O2_calendar_ordinal`. Not O3 fixtures, not `resolve_CTV`, not Applicable.
+YAML `assembly_fsm` current `S_ingest` classifies path/title via `corpus_role_signals`
+(KBO-R034). Readiness FSM stays `O2_calendar_ordinal`. Not stack propose, not
+`resolve_CTV`, not Applicable.
 
 ## Temporal legal ontology — design spine (all `[proposed]`)
 

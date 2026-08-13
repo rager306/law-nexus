@@ -192,6 +192,15 @@ def test_cli_governor_explain_is_read_only_and_structured(capsys) -> None:
     assert payload["non_claim"]
 
 
+def test_cli_governor_json_flag_is_format_alias(capsys) -> None:
+    code = main(["governor", "--json", "--check", "adr-truth-oracle-sync"])
+    payload = json.loads(capsys.readouterr().out)
+
+    assert code == 0
+    assert payload["schema_version"] == GOVERNOR_SCHEMA_VERSION
+    assert [item["check_id"] for item in payload["findings"]] == ["adr-truth-oracle-sync"]
+
+
 def test_cli_governor_text_format_is_human_readable(capsys) -> None:
     code = main(
         [
@@ -1624,10 +1633,17 @@ def test_document_freshness_trigger_catalog_rejects_authority_promotion() -> Non
 def test_live_temporal_vocabulary_contract_is_complete() -> None:
     finding = check_temporal_vocabulary_contract(ROOT)[0]
 
+    catalog = json.loads(
+        (ROOT / "prd" / "architecture" / "temporal-vocabulary-contract.json").read_text(
+            encoding="utf-8"
+        )
+    )
+    expected_terms = len(catalog["rows"])
+    expected_gaps = len(catalog["gap_ids"])
     assert finding.status == "pass"
     assert finding.severity == "ok"
-    assert "terms=46" in finding.observed
-    assert "gaps=17" in finding.observed
+    assert f"terms={expected_terms}" in finding.observed
+    assert f"gaps={expected_gaps}" in finding.observed
     assert "complete glossary-row inventory" in finding.observed
     assert "not semantic validation" in finding.observed
 

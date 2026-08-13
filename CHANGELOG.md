@@ -4,6 +4,14 @@ All notable changes to law-nexus are documented in this file.
 
 ## Unreleased — current architecture landing and repository map
 
+### YAML corpus-role classifier (KBO-R034 / assembly S_ingest)
+- `corpus_role_signals` in `kb-ontology.yaml` classify path/title needles.
+- Unclassified files stay Unknown; overview beats `red-ot` by rank.
+- Governor `--json` is an alias for `--format json`; glossary live counts
+  come from the vocabulary catalog, not hardcoded 42/16.
+- Assembly FSM current is `S_ingest`. Readiness stays `O2_calendar_ordinal`.
+  Not stack propose, not fold, not 44-ФЗ history.
+
 ### Review 4 temporal-AST assembly inventory (KBO-R032–R040, TSG-017)
 - L0 source: `doc/review/review-13-08-2026.md` (not a Review Case packet).
 - ADR-0009/0013/0016/0017/0019 record Work-stable, three L2 canons,
