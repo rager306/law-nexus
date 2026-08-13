@@ -341,7 +341,7 @@ assembly_fsm:
       meaning: one fixture replay-ok; not S6 and not Applicable
   non_claims:
     - assembly_fsm is not kb-ontology-readiness and not O3 exit
-    - current S_ingest is classify-only; not stack propose, fold, or O3 fixtures
+    - current S_propose drafts attach from YAML ranks; not membership log write, fold, or O3 gold
 
 non_claims:
   - YAML catalog is not production graph schema

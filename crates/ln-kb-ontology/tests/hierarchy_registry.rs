@@ -36,6 +36,39 @@ fn fz435_needle_binds_statya_one() {
 }
 
 #[test]
+fn fz402_needle_binds_glava_and_statya() {
+    let parsed = parse_hierarchy_registry(EMBEDDED_HIERARCHY_REGISTRY_YAML).expect("parse");
+    let matched = bindings_matching_path(
+        &parsed,
+        "federalnyi-zakon-ot-06-12-2011-n-402-fz-red-ot-15-12-2025.xml",
+    );
+    assert!(matched
+        .iter()
+        .any(|row| row.level == "glava" && row.number == "1"));
+    assert!(matched
+        .iter()
+        .any(|row| row.level == "statya" && row.number == "25.1"));
+    let map = load_hierarchy_map_for_path(
+        "law-source/consultant/federalnyi-zakon-ot-06-12-2011-n-402-fz.xml",
+    )
+    .expect("load");
+    let glava = HierarchyMarker::try_new(None, "glava", "1", None).expect("glava");
+    let dotted = HierarchyMarker::try_new(None, "statya", "25.1", None).expect("dotted");
+    assert!(matches!(
+        map_hierarchy_marker(&map, &glava),
+        HierarchyMapOutcome::Bound { .. }
+    ));
+    assert!(matches!(
+        map_hierarchy_marker(&map, &dotted),
+        HierarchyMapOutcome::Bound { .. }
+    ));
+    assert_eq!(
+        embedded_binding_count_for_path("n-402-fz").expect("count"),
+        matched.len()
+    );
+}
+
+#[test]
 fn missing_fields_fail_closed() {
     let err = parse_hierarchy_registry(
         "schema_version: x\nbindings:\n  - {path_needle: n-435-fz, level: statya}\n",

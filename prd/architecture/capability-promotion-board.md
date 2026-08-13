@@ -147,6 +147,7 @@ Governor check `kb-ontology-draft` is structural only.
 | 2026-08-13 | KBO-R034 | assembly `S_ingest` | YAML `corpus_role_signals` classify path/title; Unknown if unmatched |
 | 2026-08-13 | KBO-R041 | assembly `S_propose` | stack propose from YAML ranks; inspect 435-ФЗ 0 attach / 22 quarantine |
 | 2026-08-13 | KBO-R042 | scoped YAML registry | 435-FZ statya 1–22 Bound by path needle; forest roots, 0 attach |
+| 2026-08-13 | KBO-R042 | 402-FZ chapter tree | 4 glava + 33 statya Bound; inspect drafts attach > 0; not a log write |
 
 ## 6. Operator cycle (capability-only)
 

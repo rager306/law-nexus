@@ -8,6 +8,8 @@ All notable changes to law-nexus are documented in this file.
 - `kb-hierarchy-registry.yaml` binds 435-FZ `statya` 1–22 by path needle.
 - Unmatched paths stay empty. Articles-only act is a forest: 22 Bound, 0 attach.
 - CLI counts come from YAML binding length, not a hardcoded 22.
+- 402-FZ binds 4 `glava` + 33 `statya` (incl. 25.1). Inspect drafts attach > 0.
+- CLI no longer hardcodes 435-FZ `blocks`/`reference_mentions` oracles.
 
 ### Stack membership propose (assembly S_propose)
 - `propose_membership_from_markers` drafts attach edges from YAML level ranks.

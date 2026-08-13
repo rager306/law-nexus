@@ -10,7 +10,8 @@ lifecycle: "[proposed]"
 authoritative: false
 boundary: >
   Scoped fixture registry only. Number+level still does not mint a CC
-  outside this table. Same-level articles form a forest, not a chapter tree.
+  outside this table. Same-level articles form a forest. A fixture with
+  glava then statya drafts attach; it still does not write the membership log.
 
 bindings:
   - {path_needle: n-435-fz, level: statya, number: "1", cc: cc:435fz:statya-1}
@@ -35,3 +36,40 @@ bindings:
   - {path_needle: n-435-fz, level: statya, number: "20", cc: cc:435fz:statya-20}
   - {path_needle: n-435-fz, level: statya, number: "21", cc: cc:435fz:statya-21}
   - {path_needle: n-435-fz, level: statya, number: "22", cc: cc:435fz:statya-22}
+  - {path_needle: n-402-fz, level: glava, number: "1", cc: cc:402fz:glava-1}
+  - {path_needle: n-402-fz, level: statya, number: "1", cc: cc:402fz:statya-1}
+  - {path_needle: n-402-fz, level: statya, number: "2", cc: cc:402fz:statya-2}
+  - {path_needle: n-402-fz, level: statya, number: "3", cc: cc:402fz:statya-3}
+  - {path_needle: n-402-fz, level: statya, number: "4", cc: cc:402fz:statya-4}
+  - {path_needle: n-402-fz, level: glava, number: "2", cc: cc:402fz:glava-2}
+  - {path_needle: n-402-fz, level: statya, number: "5", cc: cc:402fz:statya-5}
+  - {path_needle: n-402-fz, level: statya, number: "6", cc: cc:402fz:statya-6}
+  - {path_needle: n-402-fz, level: statya, number: "7", cc: cc:402fz:statya-7}
+  - {path_needle: n-402-fz, level: statya, number: "8", cc: cc:402fz:statya-8}
+  - {path_needle: n-402-fz, level: statya, number: "9", cc: cc:402fz:statya-9}
+  - {path_needle: n-402-fz, level: statya, number: "10", cc: cc:402fz:statya-10}
+  - {path_needle: n-402-fz, level: statya, number: "11", cc: cc:402fz:statya-11}
+  - {path_needle: n-402-fz, level: statya, number: "12", cc: cc:402fz:statya-12}
+  - {path_needle: n-402-fz, level: statya, number: "13", cc: cc:402fz:statya-13}
+  - {path_needle: n-402-fz, level: statya, number: "14", cc: cc:402fz:statya-14}
+  - {path_needle: n-402-fz, level: statya, number: "15", cc: cc:402fz:statya-15}
+  - {path_needle: n-402-fz, level: statya, number: "16", cc: cc:402fz:statya-16}
+  - {path_needle: n-402-fz, level: statya, number: "17", cc: cc:402fz:statya-17}
+  - {path_needle: n-402-fz, level: statya, number: "18", cc: cc:402fz:statya-18}
+  - {path_needle: n-402-fz, level: statya, number: "19", cc: cc:402fz:statya-19}
+  - {path_needle: n-402-fz, level: glava, number: "3", cc: cc:402fz:glava-3}
+  - {path_needle: n-402-fz, level: statya, number: "20", cc: cc:402fz:statya-20}
+  - {path_needle: n-402-fz, level: statya, number: "21", cc: cc:402fz:statya-21}
+  - {path_needle: n-402-fz, level: statya, number: "22", cc: cc:402fz:statya-22}
+  - {path_needle: n-402-fz, level: statya, number: "23", cc: cc:402fz:statya-23}
+  - {path_needle: n-402-fz, level: statya, number: "24", cc: cc:402fz:statya-24}
+  - {path_needle: n-402-fz, level: statya, number: "25", cc: cc:402fz:statya-25}
+  - {path_needle: n-402-fz, level: statya, number: "25.1", cc: cc:402fz:statya-25.1}
+  - {path_needle: n-402-fz, level: statya, number: "26", cc: cc:402fz:statya-26}
+  - {path_needle: n-402-fz, level: statya, number: "27", cc: cc:402fz:statya-27}
+  - {path_needle: n-402-fz, level: statya, number: "28", cc: cc:402fz:statya-28}
+  - {path_needle: n-402-fz, level: glava, number: "4", cc: cc:402fz:glava-4}
+  - {path_needle: n-402-fz, level: statya, number: "29", cc: cc:402fz:statya-29}
+  - {path_needle: n-402-fz, level: statya, number: "30", cc: cc:402fz:statya-30}
+  - {path_needle: n-402-fz, level: statya, number: "31", cc: cc:402fz:statya-31}
+  - {path_needle: n-402-fz, level: statya, number: "32", cc: cc:402fz:statya-32}

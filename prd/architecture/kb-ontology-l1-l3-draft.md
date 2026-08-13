@@ -117,7 +117,7 @@ ON missing force evidence at query time:
 | Review 4 `AmendmentEvent` / `EditionOracle` / `assembly_fsm` | design inventory in YAML (KBO-R032–R040); **not** store node kinds |
 | `classify_corpus_role` | YAML `corpus_role_signals` on path/title; Unknown if unmatched; not legislative history |
 | `propose_membership_from_markers` | YAML rank stack drafts attach; Unknown quarantines; not a log write |
-| `load_hierarchy_map_for_path` | YAML path-needle bindings; unmatched empty; not legal identity |
+| `load_hierarchy_map_for_path` | YAML path-needle bindings; unmatched empty; 402-FZ drafts attach; not legal identity |
 
 ## 9. Explicit non-claims
 
