@@ -679,6 +679,51 @@ def test_closed_vocab_as_str_stays_inside_named_impl() -> None:
     assert "interval_overlap" not in tokens
 
 
+def test_kb_ontology_assembly_fsm_colliding_with_readiness_is_warned(
+    tmp_path: Path,
+) -> None:
+    arch = tmp_path / "prd" / "architecture"
+    arch.mkdir(parents=True)
+    (arch / "kb-ontology-requirements.md").write_text(
+        "# KB\n\n## Non-authority\n\nnot production graph schema; not Applicable.\n\n"
+        "| ID | x |\n|---|---|\n" + "\n".join(f"| KBO-R{i:03d} | r |" for i in range(1, 12)) + "\n",
+        encoding="utf-8",
+    )
+    (arch / "kb-ontology-l1-l3-draft.md").write_text(
+        "# draft\n\nNon-authority: not production graph schema, not Applicable.\n",
+        encoding="utf-8",
+    )
+    (arch / "kb-ontology-projection-contract.json").write_text(
+        """{
+          "schema_version": "law-nexus-kb-ontology-projection/v1",
+          "authoritative": false,
+          "fsm_state": "O2_calendar_ordinal",
+          "node_kinds": [{"kind": "Work"}],
+          "forbidden_node_kinds": ["ApplicableDecision"]
+        }""",
+        encoding="utf-8",
+    )
+    (arch / "kb-ontology.yaml").write_text(
+        "schema_version: law-nexus-kb-ontology/v1\n"
+        "authoritative: false\n"
+        "fsm:\n  current: O2_calendar_ordinal\n  states:\n"
+        "    O2_calendar_ordinal:\n      name: calendar\n"
+        "vocabulary:\n  hierarchy_levels:\n    - statya\n"
+        "  node_kinds:\n    - Work\n"
+        "  forbidden_node_kinds:\n    - ApplicableDecision\n"
+        "assembly_fsm:\n  current: O2_calendar_ordinal\n  states:\n"
+        "    O2_calendar_ordinal:\n      name: leaked\n",
+        encoding="utf-8",
+    )
+    from law_nexus_harness.governor import check_kb_ontology_draft
+
+    findings = check_kb_ontology_draft(tmp_path)
+    assert findings[0].status == "fail"
+    assert findings[0].severity == "warn"
+    assert "assembly_fsm" in findings[0].observed
+    assert "O2_calendar_ordinal" in findings[0].observed
+
+
 def test_kb_ontology_prefix_key_outside_aliases_is_warned(tmp_path: Path) -> None:
     arch = tmp_path / "prd" / "architecture"
     arch.mkdir(parents=True)
@@ -1581,8 +1626,8 @@ def test_live_temporal_vocabulary_contract_is_complete() -> None:
 
     assert finding.status == "pass"
     assert finding.severity == "ok"
-    assert "terms=42" in finding.observed
-    assert "gaps=16" in finding.observed
+    assert "terms=46" in finding.observed
+    assert "gaps=17" in finding.observed
     assert "complete glossary-row inventory" in finding.observed
     assert "not semantic validation" in finding.observed
 

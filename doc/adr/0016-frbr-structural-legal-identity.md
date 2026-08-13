@@ -78,6 +78,15 @@ The four levels below are WEMI, LRMoo-compatible.
    `ln-decode` (ADR-0013) emits Work/Expression/Manifestation carriers from
    real Consultant/Garant sources; normative substance is layered above (L2+).
 
+6. **Work is stable across amendments (Review 4 R4-01).** de Martim v5 models
+   each Temporal Version as a distinct F1 Work. law-nexus does **not** adopt
+   that identity rule. Russian act identity is number + enactment date +
+   authority (decision 2). Each dated edition is an **Expression** of the
+   same Work. A new Work is minted only for a different act (divergent
+   number/authority/enactment), never for an amending ФЗ that revises 44-ФЗ.
+   LRMoo/ELI remain compatibility projections (D046); they are not a licence
+   to mint Work-per-amendment.
+
 ## Consequences
 
 - Adds a structural-identity domain model above the raw parser output and below
@@ -101,6 +110,10 @@ The four levels below are WEMI, LRMoo-compatible.
   merge, not ForceStatus, not Applicability, not ELI global resolution.
 - Same act number with divergent authority or enactment date is **Conflict**, never
   a silent pick.
+- de Martim Temporal Version ≠ law-nexus Work. Copying TV=new-Work would
+  break this ADR and Russian identity (Review 4 §3).
+- A Consultant/Garant file is a **Manifestation** of an Expression, not a
+  new Work and not the edition canon.
 
 - No legal correctness of identity resolution.
 - No claim that ELI URNs are globally resolvable beyond this project.

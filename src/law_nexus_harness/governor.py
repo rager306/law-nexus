@@ -1565,6 +1565,24 @@ def check_kb_ontology_draft(root: Path) -> list[GovernorFinding]:
             )
         ]
 
+    assembly_gaps = _kb_assembly_fsm_gaps(catalog if isinstance(catalog, dict) else {})
+    if assembly_gaps:
+        return [
+            GovernorFinding(
+                check_id=check_id,
+                status="fail",
+                severity="warn",
+                message="KB ontology assembly_fsm collides with readiness FSM",
+                observed=f"gaps={assembly_gaps}",
+                remediation=(
+                    "Keep assembly_fsm as a separate named process inventory: "
+                    "its current must be one of its own states and must not replace "
+                    "fsm.current or contract.fsm_state."
+                ),
+                evidence=[GovernorEvidence(path=str(_KB_ONTOLOGY_YAML_REL))],
+            )
+        ]
+
     return [
         GovernorFinding(
             check_id=check_id,
@@ -1656,6 +1674,31 @@ def _kb_closed_vocabulary_gaps(
                 gaps.append(f"{row_id}:missing_yaml_items={missing}")
         else:
             gaps.append(f"{row_id}:unknown_compare={compare!r}")
+    return gaps
+
+
+def _kb_assembly_fsm_gaps(catalog: dict[str, Any]) -> list[str]:
+    """Keep assembly process inventory off the readiness FSM current."""
+
+    assembly = catalog.get("assembly_fsm")
+    if assembly is None:
+        return []
+    if not isinstance(assembly, dict):
+        return ["assembly_fsm:not_a_mapping"]
+    readiness = catalog.get("fsm") if isinstance(catalog.get("fsm"), dict) else {}
+    readiness_current = readiness.get("current")
+    readiness_states = set(readiness.get("states") or {})
+    assembly_current = assembly.get("current")
+    assembly_states = set(assembly.get("states") or {})
+    gaps: list[str] = []
+    if not assembly_current:
+        gaps.append("assembly_fsm:missing_current")
+    elif assembly_current not in assembly_states:
+        gaps.append(f"assembly_fsm:current_not_in_own_states={assembly_current!r}")
+    if assembly_current and assembly_current == readiness_current:
+        gaps.append("assembly_fsm:current_equals_readiness_current")
+    if assembly_current and assembly_current in readiness_states:
+        gaps.append(f"assembly_fsm:current_is_readiness_state={assembly_current!r}")
     return gaps
 
 

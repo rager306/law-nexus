@@ -60,7 +60,11 @@
     {"id": "procurement-case", "needle": "| `ProcurementCase` |", "required_fragments": ["deferred-undefined"]},
     {"id": "procurement-regime-resolution", "needle": "| `ProcurementRegimeResolution` |", "required_fragments": ["deferred-undefined"]},
     {"id": "practice-coverage-outcome", "needle": "| `PracticeCoverageOutcome` |", "required_fragments": ["deferred-undefined"]},
-    {"id": "bitemporal-correction-ledger", "needle": "| `BitemporalCorrectionLedger` |", "required_fragments": ["deferred-undefined"]}
+    {"id": "bitemporal-correction-ledger", "needle": "| `BitemporalCorrectionLedger` |", "required_fragments": ["deferred-undefined"]},
+    {"id": "amendment-event", "needle": "| `AmendmentEvent` |", "required_fragments": ["canonical design term", "[proposed]"]},
+    {"id": "edition-oracle", "needle": "| `EditionOracle` |", "required_fragments": ["canonical design term", "[proposed]"]},
+    {"id": "edition-snapshot", "needle": "| `EditionSnapshot` |", "required_fragments": ["canonical design term", "[proposed]"]},
+    {"id": "coverage", "needle": "| Coverage |", "required_fragments": ["canonical design term", "[proposed]"]}
   ],
-  "gap_ids": ["TSG-001", "TSG-002", "TSG-003", "TSG-004", "TSG-005", "TSG-006", "TSG-007", "TSG-008", "TSG-009", "TSG-010", "TSG-011", "TSG-012", "TSG-013", "TSG-014", "TSG-015", "TSG-016"]
+  "gap_ids": ["TSG-001", "TSG-002", "TSG-003", "TSG-004", "TSG-005", "TSG-006", "TSG-007", "TSG-008", "TSG-009", "TSG-010", "TSG-011", "TSG-012", "TSG-013", "TSG-014", "TSG-015", "TSG-016", "TSG-017"]
 }

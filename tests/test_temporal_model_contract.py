@@ -40,6 +40,7 @@ def test_primary_critique_contract_matrix_accounts_for_all_fourteen_areas() -> N
         "partial",
         "absent",
         "deferred-undefined",
+        "design-only inventory",
     }
     assert {line.split("|")[2].strip() for line in area_rows} <= allowed_statuses
     assert "paper coverage only" in " ".join(section.split())
@@ -53,7 +54,7 @@ def test_primary_critique_matrix_preserves_absent_and_deferred_cells() -> None:
         1
     ].split("\n## ", maxsplit=1)[0]
 
-    assert "| Event taxonomy | deferred-undefined |" in section
+    assert "| Event taxonomy | design-only inventory |" in section
     assert "| Applicability DSL | deferred-undefined |" in section
     assert "| Deterministic API | absent |" in section
     assert "| Error taxonomy | absent |" in section

@@ -84,6 +84,9 @@ Closed vocab coverage: YAML `closed_vocabularies` vs Rust enums (KBO-R028).
 Composition lift: product-cli `lift_extracted_hierarchy` (KBO-R029); empty registry is Unknown.
 Decode prefixes: YAML `decode_marker_prefixes` via `DecodePrefixCatalog` (KBO-R030).
 Calendar ordinal: YAML `calendar` via `legal_act_effect_day_to_ordinal` (KBO-R031).
+Review 4 assembly inventory `[proposed]`: `doc/review/review-13-08-2026.md` (L0);
+YAML `assembly_fsm` / corpus roles / evidence classes (KBO-R032–R040); readiness
+FSM stays `O2_calendar_ordinal`. Not O3 fixtures, not `resolve_CTV`, not Applicable.
 
 ## Temporal legal ontology — design spine (all `[proposed]`)
 
@@ -101,7 +104,9 @@ L2 ADR-0017 [proposed]  Component Temporal Versioning ◄── temporal core; T
              CC/CTV/CLV (F1/F2); validity DERIVED from events (event-sourcing);
              macro/micro events (P9 consists of); F27∩E64 amendment typing;
              bitemporal valid/transaction time; fail-closed resolver (R070/R068).
-             Adapted from de Martim arXiv:2506.07853 v5 (LRMoo, 2026).
+             Adapted from de Martim arXiv:2506.07853 v5 (LRMoo, 2026);
+             Review 4: Work stays stable (not TV=new Work); three L2 canons;
+             AmendmentEvent n-ary; EditionOracle is checksum not canon.
    ▼
 L3 ADR-0018 [proposed]  NormativeState(t)                text ≠ status (InForce/Suspended/Repealed/…); dimensional separation design (RC11-F09); force resolver S2–S3
    ▼

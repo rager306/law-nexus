@@ -40,7 +40,8 @@ the five clocks (ADR-0009) and the evidence kernel (ADR-0010). The v5 model is
 chosen over ELI/AKN/LexML precisely because it **reifies each legislative event
 as a single first-class node** with global identity, making amendment correlation
 *deterministic* rather than heuristic — the property our fail-closed resolver
-requires.
+requires. Review 4 keeps that event-centric pattern and **rejects** de Martim's
+identity rule that each Temporal Version is a new F1 Work (see ADR-0016 §6).
 
 ## Decision
 
@@ -55,6 +56,49 @@ requires.
 Russian jurisdiction is monolingual (ru), so each CTV typically has one CLV;
 the CC/CTV/CLV distinction is retained for semantic integrity (R10 conceptual
 membership ≠ R67 work composition ≠ R3 realization ≠ R5 textual incorporation).
+
+### 1a. Three L2 canons, not one “CTV” blob (Review 4 R4-02)
+
+Keep these event logs distinct. Projections may join them; they must not
+collapse into a `NormativeBlob` store type.
+
+| Canon | Event log | Projection | Not |
+|-------|-----------|------------|-----|
+| Structural membership | attach/detach | `StructuralAst` / `fold_membership_at` | text, force |
+| Expression presence | include/exclude | `fold_expression_presence` | inheritance across Expressions |
+| Text CTV | text-change micro-events | `resolve_CTV(cc, t)` | **not shipped**; still design |
+
+Industrial ops (`renumber`/`move`/`split`/`merge`) feed the membership log.
+Force is ADR-0018 overlay, never a tree field.
+
+### 1b. AmendmentEvent is the n-ary causal node (Review 4 R4-03)
+
+A legislative change binds author, target CC, resulting text/structure, clocks
+and legal-effect facet. Collapsing it to binary `eli:amends` discards that
+structure. One `AmendmentEvent` may carry several **facets** without merging
+them into one field:
+
+- `structural` — attach/detach, include/exclude;
+- `industrial` — renumber / move / split / merge;
+- `text` — CTV wording (still design-only);
+- `force` — NormativeEffect, never inferred from TextChange.
+
+Evidence class is mandatory: `legislative` (from an amending act) >
+`hypothesized_from_oracle_diff` (from two consolidated editions) >
+`editorial_hint` (Consultant «обзор изменений»). A later legislative event
+supersedes a hypothesized one. An overview file never upgrades to
+`legislative`.
+
+### 1c. EditionOracle is a checksum, not canon (Review 4 R4-04)
+
+A Consultant/Garant consolidated edition (`ред. от …`) is an
+`EditionOracle`: observed composition + text at a title date. It is a
+**Manifestation** of an Expression, not the parent of the next edition and
+not the event log. Control rule: `fold(events, t) ≈ snapshot(oracle@t)`.
+Drift is healed by a new event or an explicit waiver, never by writing the
+oracle tree back as canon. Current 44-ФЗ disk corpus is one late C2 oracle
+plus a C2hint overview; C0 (2013 seed) and C1 (amending ФЗ files) are
+absent — Coverage into the past is Unknown, not reconstructed from 2025.
 
 ### 2. Validity is event-sourced, NOT stored as a static attribute
 
@@ -190,6 +234,10 @@ document snapshot; they do not reify the event as a queryable causal entity).
   incomplete membership. This is a **structural implementation spine**, not a
   full event-sourced CTV resolver, not legal amendment correctness, and not
   representative-corpus compilation product readiness.
+- Review 4 assembly vocabulary (`AmendmentEvent`, `EditionOracle`, corpus
+  roles C0–C3, evidence classes, assembly FSM) is **design inventory** in
+  YAML/KBO. It is not a store node kind, not `resolve_CTV`, and not a 44-ФЗ
+  history reconstructed from one 2025 XML.
 
 ## References
 

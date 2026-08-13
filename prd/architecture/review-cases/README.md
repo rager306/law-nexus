@@ -215,3 +215,11 @@ These **non-claims** are mandatory reading for any packet consumer:
 - product_open: *(none)*
 
 KB ontology draft (O1): `../kb-ontology-requirements.md` — not production schema.
+
+## Review 4 L0 (not yet a packet)
+
+Immutable source: [`../../../doc/review/review-13-08-2026.md`](../../../doc/review/review-13-08-2026.md)
+(HEAD context `68e989e`). Reviews 11/12 remain the only registered packets.
+Review 4 is intake prose: temporal-AST assembly, 44-ФЗ corpus honesty, de
+Martim identity rejection. No RC-2026-08-13 packet, no human disposition, no
+TSG closure. Session Review 3 had no file; Review 4 ingests it.

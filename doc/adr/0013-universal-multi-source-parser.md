@@ -461,6 +461,16 @@ the transformation is just as complex as parsing directly. Not worth it.
   unmapped markers are `Unknown`; number+level does not mint ComponentConcept,
   force, Expression presence, or legal fact. Parser output remains a candidate.
 
+- **EditionSnapshot ≠ AST (Review 4 R4-06).** Decode emits blocks, hierarchy
+  markers, reference mentions and temporal phrases. That observation is not
+  `StructuralAst`, not membership attach, and not `resolve_CTV`. Marker
+  prefixes and number styles live in YAML (`DecodePrefixCatalog`); decode
+  must not depend on `ln-kb-ontology`.
+- **Consultant WordML and Garant ODT remain independent oracles.** A fixture,
+  style map or failure expectation from one provider must not close Unknown
+  on the other. A change-overview / «обзор изменений» is C2hint inventory,
+  not an amending-act event log.
+
 - Bounded adapters and lexical candidates are not legal facts or complete parser quality.
 - Consultant/Garant parity and corpus completeness are not claimed.
 - NormStatement/deontic candidates are not validated normative content.

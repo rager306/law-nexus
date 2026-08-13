@@ -380,7 +380,7 @@
       "range": "M167-M167",
       "theme": "NormRule IR fail-closed design spine (design-only under ADR-0023)",
       "status": "complete",
-      "boundary": "IR types, fail-closed validation, IR-aware Abstain-only evaluate path, honesty docs. GSD closed via skip waivers after out-of-band product evidence (D154). Does NOT implement Applicable/NotApplicable, product CaseFacts, or TSG-006 runtime."
+      "boundary": "IR types, fail-closed validation, IR-aware Abstain-only evaluate path, honesty docs. GSD closed via skip waivers after out-of-band product evidence (D154). Does NOT implement Applicable/NotApplicable, product CaseFacts, or TSG-006 runtime. Review 4 L0 (`doc/review/review-13-08-2026.md`) later recorded temporal-AST assembly vocabulary only; readiness FSM remains O2_calendar_ordinal; not O3 fixtures or resolve_CTV."
     }
   ],
   "current_milestone": {

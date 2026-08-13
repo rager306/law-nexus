@@ -109,6 +109,7 @@ M167 complete (design IR); dual-truth lag resolved.
 | TSG-014 | S0 | partial paper shapes | — | port-tied schemas |
 | TSG-015 | S0 | paper golden catalog | — | executable promotion per case |
 | TSG-016 | S0–S1 | InMemory scoring `[bounded]` | — | real 1024d corpus + metrics |
+| TSG-017 | **S0–S1** | Review 4 assembly design: EditionOracle vs AmendmentEvent; YAML corpus roles / evidence classes / `assembly_fsm` | Review 4 L0; not a packet | classify XML + one-fixture propose/fold/oracle-diff (S2/S3); still not 44-ФЗ history |
 
 ### Promotion history (append-only)
 
@@ -122,6 +123,7 @@ M167 complete (design IR); dual-truth lag resolved.
 | 2026-08-13 | TSG-011 | → S0–S1 | F06 five-clock vs algebra | review ceremony |
 | 2026-08-13 | TSG-003 | S2 → **S3** | `apply_industrial_op` + `StructuralEventLog` offline/hostile | product TDD slice |
 | 2026-08-13 | TSG-013 | S2 → **S2–S3** | membership mutation under apply | product TDD slice |
+| 2026-08-13 | TSG-017 | → **S0–S1** | Review 4 L0 + ADR-0013/16/17/19 design inventory | review intake |
 
 No row advanced to S6 in the spine wave; S3 apply landed later (see history).
 
@@ -141,6 +143,7 @@ Governor check `kb-ontology-draft` is structural only.
 | 2026-08-13 | KBO-R029 | composition lift | product-cli HierarchyNode → YAML alias; empty registry Unknown |
 | 2026-08-13 | KBO-R030 | YAML decode prefixes | Статья/Глава/§ live in YAML; inspect count unchanged |
 | 2026-08-13 | KBO-R031 | calendar ordinal | ISO legal_act_effect_day → civil-day ordinal; Feb 30 fail-closed |
+| 2026-08-13 | KBO-R032–R040 | Review 4 assembly vocabulary | AmendmentEvent facets, EditionOracle, corpus roles, assembly_fsm; readiness FSM unchanged |
 
 ## 6. Operator cycle (capability-only)
 

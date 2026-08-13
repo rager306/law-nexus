@@ -31,6 +31,7 @@ Closure requires the governing authority and proof named in the row. A documenta
 | TSG-014 | Self-contained temporal API contract and unified typed error taxonomy | documentation/design | temporal model plus future owning ADRs | partial `[proposed]` | paper signatures and golden shapes are not a stable public API | declared request/result/error schemas tied to owning ports and hostile-negative contracts | active |
 | TSG-015 | Golden-case catalog breadth and executable promotion | evidence | temporal model TL-G01..TL-G12 | 18 paper cases; mixed ceilings | paper cases are semantic-shape oracles, not legal gold answers | each promoted case has an owner, executable positive/hostile proof, revision-bound fixture and honest non-claim | active |
 | TSG-016 | Retrieval scoring and ranking honesty beyond InMemory synthetic contracts | evidence | ADR-0014, ADR-0015, PC/RQ-006 and 019 | InMemory scoring `[bounded]`; live infrastructure `[proposed]` | real cosine values do not establish Russian legal retrieval quality | representative EvidenceSpan/SourceBlock contract, real 1024d corpus, quality metrics, exact citation round-trip and human acceptance | active |
+| TSG-017 | EditionOracle-versus-AmendmentEvent assembly of a temporal AST from provider XML (corpus roles, evidence classes, checksum fold) | design | ADR-0013, ADR-0016, ADR-0017 | `[proposed]` design inventory (Review 4) | one consolidated XML or a change-overview is not legislative history; fold projection is not CTV text | owning ADR amendments landed as design; executable classify/propose/admit/fold/oracle-diff plus representative C0/C1 or second C2 fixture | active |
 
 ## 2.1 Design-boundary inventory (non-closure)
 
@@ -96,6 +97,17 @@ made the five-clock vs algebra boundary explicit in `ln-temporal`:
 - Offline **`map_hierarchy_marker`** lifts a decode-facing `HierarchyMarker` to CC
   only through an explicit registry (KBO-R024 / R3-02). Unmapped → `Unknown`;
   number+level never mints a CC. Ontology crate does not depend on `ln-decode`.
+
+### Review 4 assembly process (non-closure)
+
+- Review 4 (`doc/review/review-13-08-2026.md`) names `AmendmentEvent`,
+  `EditionOracle`, corpus roles C0–C3, evidence classes and a separate
+  `assembly_fsm`. This is **design inventory**, not S4 fixtures and not
+  `resolve_CTV`.
+- TSG-002/003/013 remain the event/text/membership spines. **TSG-017** is the
+  process gap: how XML roles become events and how oracles checksum the fold.
+- Current 44-ФЗ disk set (one `ред. от 28.12.2025` + overview) does not close
+  TSG-017. C2hint lexical counts are not legislative events.
 
 
 ### RC12-F05 applicability capability inventory (non-closure)

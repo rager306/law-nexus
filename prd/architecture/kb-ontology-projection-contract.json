@@ -163,13 +163,23 @@
     "KBO-R028",
     "KBO-R029",
     "KBO-R030",
-    "KBO-R031"
+    "KBO-R031",
+    "KBO-R032",
+    "KBO-R033",
+    "KBO-R034",
+    "KBO-R035",
+    "KBO-R036",
+    "KBO-R037",
+    "KBO-R038",
+    "KBO-R039",
+    "KBO-R040"
   ],
   "related_tsg": [
     "TSG-003",
     "TSG-004",
     "TSG-013",
-    "TSG-016"
+    "TSG-016",
+    "TSG-017"
   ],
   "related_adrs": [
     "ADR-0014",
@@ -189,7 +199,7 @@
     "KBO-R011",
     "KBO-R012"
   ],
-  "notes": "YAML catalog owns FSM, kinds, aliases, prefixes, and civil-day calendar bounds. ISO legal_act_effect_day maps to a synthetic ordinal; Feb 30 fails closed (KBO-R031).",
+  "notes": "YAML catalog owns FSM, kinds, aliases, prefixes, and civil-day calendar bounds. ISO legal_act_effect_day maps to a synthetic ordinal; Feb 30 fails closed (KBO-R031). Review 4 assembly vocabulary (KBO-R032-R040) lives in YAML tables and assembly_fsm; readiness fsm.current stays O2_calendar_ordinal. Not store types, not resolve_CTV.",
   "write_set_crate": "ln-kb-ontology",
   "write_set_fns": [
     "project_work",

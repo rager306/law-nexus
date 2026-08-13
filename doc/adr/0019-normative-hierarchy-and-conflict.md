@@ -75,6 +75,25 @@ its own explainable resolver, not a silent priority pick.
    hierarchy lives in the evidence kernel; RusLegalCore mappings are a
    deterministic, reversible projection for interoperability.
 
+### Review 4 clarification — cross-act edges live between ASTs
+
+Each normative act has its own Work, event logs and `edition_ast_at`.
+Links to subordinate, industry or related legislation are **edges between
+those ASTs**, not children inside the source tree (R4-07). Design vocabulary
+(YAML `cross_act_edge_kinds`, not L1–L3 store types):
+
+| Edge | Ends | Means | Does not mean |
+|------|------|-------|----------------|
+| `amends` | AmendingAct.CC → target CC | causal micro-event (ADR-0017) | text already new without fold |
+| `implements` | decree/order CC → statute CC | concretisation | rank elevation |
+| `specifies` | industry act → general norm | profile overlay | not a sixth clock or Applicable |
+| `conflicts_with` | CC ↔ CC | this ADR's maxim input | auto-win |
+| `cites` | mention → CC | unresolved reference | citation authority (TSG-012) |
+
+Practice (FAS/courts) remains ADR-0020 overlay and must not write membership
+or force into the target AST. Edge kinds are S0 design until typed ports and
+hostile delegation exist (TSG-007).
+
 ### EA-04 clarification — profile priority is not rank elevation
 
 `industry priority` is a versioned profile-supplied input to the explainable
@@ -93,6 +112,8 @@ remains `Conflict` for human review.
 ## Non-claims
 
 - No legal correctness of conflict resolution without real conflict corpus.
+- Cross-act edge vocabulary is not an implemented graph and not a merged
+  “legislation of the Russian Federation” tree (Review 4 R4-07).
 - Industry priority rules are profile-defined, not core-resolved.
 - Constitutional-court annulment effects (ex tunc) modeled via ADR-0018/0020,
   not by rank mutation.

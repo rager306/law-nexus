@@ -38,6 +38,8 @@ O0 inventory_open
 **Current state:** **O2_calendar_ordinal** (declared in `kb-ontology.yaml` FSM).
 Vocabulary and transitions are YAML-sourced; Rust only validates/executes.
 HierarchyMarker→CC: unmapped → Unknown. Not CTV text, not O3/O4.  
+Review 4 added assembly vocabulary (`assembly_fsm` current `S_design`, corpus
+roles, evidence classes) without moving readiness `fsm.current`.  
 S4 fixtures (KBO-R013), Manifestation/Item, and port materialization remain open.  
 **Exit O1 / O2 spine:** done. **Write-set (toward O4):** landed, I/O-free.  
 **Not O3/O4:** no representative fixture edges, no graph-store adapter writes.  
@@ -88,6 +90,15 @@ S4 fixtures (KBO-R013), Manifestation/Item, and port materialization remain open
 | KBO-R029 | core-contract | Composition (product-cli) lifts decode HierarchyNode through YAML aliases; empty registry is Unknown and does not mint CC | `lift_extracted_hierarchy` | **accepted-draft** |
 | KBO-R030 | core-contract | Decode marker prefixes and number styles are YAML data; ln-decode loads them without depending on ln-kb-ontology | `DecodePrefixCatalog` | **accepted-draft** |
 | KBO-R031 | core-contract | ISO `legal_act_effect_day` maps to a YAML-bounded civil-day ordinal; invalid civil days fail closed; not a legal calendar or CTV text | `legal_act_effect_day_to_ordinal` | **accepted-draft** |
+| KBO-R032 | core-contract | AmendmentEvent is an n-ary causal node with distinct facets (structural / industrial / text / force); facets must not collapse into NormativeBlob | Review 4 R4-03; ADR-0017 §1b | **accepted-draft** |
+| KBO-R033 | core-contract | EditionOracle (consolidated `ред. от`) is a checksum of fold(events, t), never the parent of the next edition and never the event canon | Review 4 R4-04; ADR-0017 §1c | **accepted-draft** |
+| KBO-R034 | core-contract | XML files classify into YAML `corpus_roles` (C0/C1/C2/C2hint/C3); unclassified files do not enter a Work log | Review 4 §5 | **accepted-draft** |
+| KBO-R035 | fail-closed | Evidence class is closed: legislative > hypothesized_from_oracle_diff > editorial_hint; C2hint never upgrades to legislative | Review 4 R4-11 | **accepted-draft** |
+| KBO-R036 | core-contract | Assembly process states live in YAML `assembly_fsm`, separate from readiness `fsm.current`; Rust must not invent assembly states | Review 4 R4-09 | **accepted-draft** |
+| KBO-R037 | core-contract | Cross-act edges (amends/implements/specifies/conflicts_with/cites) link ASTs; they are not children of the source tree | Review 4 R4-07; ADR-0019 | **accepted-draft** |
+| KBO-R038 | non-claim | Current 44-ФЗ disk set is C2 + C2hint + C3; C0/C1 absent; Coverage into the past is Unknown | Review 4 R4-08 | **accepted-draft** |
+| KBO-R039 | fail-closed | Provider title «ред. от» and «вступ. в силу с» name different clocks; collapsing them is hostile | Review 4; ADR-0009 §5 | **accepted-draft** |
+| KBO-R040 | non-claim | Coverage / Unknown / Conflict are first-class assembly outcomes, not bugs to smooth | Review 4 §4 | **accepted-draft** |
 
 ## 5. Functional preparation backlog (not implemented this wave)
 

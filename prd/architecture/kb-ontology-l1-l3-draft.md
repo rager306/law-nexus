@@ -114,6 +114,7 @@ ON missing force evidence at query time:
 | `lift_extracted_hierarchy` | product-cli composition: HierarchyNode → YAML alias → Unknown without registry |
 | `DecodePrefixCatalog` | YAML prefixes/number styles; decode loads data, no ontology crate edge |
 | `legal_act_effect_day_to_ordinal` | YAML-bounded ISO→ordinal; not a legal calendar |
+| Review 4 `AmendmentEvent` / `EditionOracle` / `assembly_fsm` | design inventory in YAML (KBO-R032–R040); **not** store node kinds |
 
 ## 9. Explicit non-claims
 

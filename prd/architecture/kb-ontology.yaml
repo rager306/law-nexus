@@ -260,9 +260,83 @@ vocabulary:
     non_claims:
       - civil-day ordinal is not a legal calendar and not CTV text
       - ISO-to-ordinal does not imply InForce or applicability
+  corpus_roles:
+    - C0_seed
+    - C1_amending_act
+    - C2_edition_oracle
+    - C2hint_change_overview
+    - C3_alien_work
+  evidence_classes:
+    - legislative
+    - hypothesized_from_oracle_diff
+    - editorial_hint
+  amendment_event_facets:
+    - structural
+    - industrial
+    - text
+    - force
+  cross_act_edge_kinds:
+    - amends
+    - implements
+    - specifies
+    - conflicts_with
+    - cites
+
+# Separate from fsm (readiness). Governor compares contract.fsm_state to
+# fsm.current only. Do not move readiness current for design inventory.
+assembly_fsm:
+  name: temporal-ast-assembly
+  initial: S_ingest
+  current: S_design
+  meaning: process model for XML to events to AST; not readiness O-state
+  states:
+    S_design:
+      name: design_inventory
+      meaning: Review 4 vocabulary named; no executable stack propose
+    S_ingest:
+      name: classify_bytes
+      meaning: assign corpus_roles; reject unclassified
+    S_decode:
+      name: provider_blocks
+      meaning: WordML or ODT to ParsedBlock; wrong family fail-closed
+    S_extract:
+      name: snapshot_candidates
+      meaning: markers mentions phrases; not AST
+    S_identify:
+      name: work_expression
+      meaning: mint identity; bad ISO fail-closed
+    S_bind:
+      name: marker_to_cc
+      meaning: registry only; Unknown is legal
+    S_propose:
+      name: stack_attach_drafts
+      meaning: document-order stack; not committed
+    S_admit:
+      name: conflict_quarantine
+      meaning: two-parent / presence conflict / no provenance stop
+    S_commit:
+      name: append_events
+      meaning: append-only with evidence_class
+    S_fold:
+      name: edition_ast_at
+      meaning: fold membership then presence at ordinal t
+    S_verify:
+      name: replay_and_oracle_diff
+      meaning: fold replay and EditionOracle checksum
+    S_heal:
+      name: new_event_or_waiver
+      meaning: never edit the tree
+    S_ready_bounded:
+      name: bounded_fixture_ready
+      meaning: one fixture replay-ok; not S6 and not Applicable
+  non_claims:
+    - assembly_fsm is not kb-ontology-readiness and not O3 exit
+    - current S_design means vocabulary only
 
 non_claims:
   - YAML catalog is not production graph schema
   - FSM current state is inventory, not product readiness
   - Hierarchy lift is not legal fact and not CTV text
   - InForce does not imply Applicability
+  - assembly_fsm and corpus_roles are design inventory, not store types
+  - C2hint overview is not a legislative event log

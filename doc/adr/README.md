@@ -26,11 +26,11 @@ and the ADR corpus itself.
 - **ADR-0005** — Rust target architecture (crate and port map; **crate map superseded by ADR-0011/D127**) `[bounded]`
 - **ADR-0007** — Python repository control-plane harness (process orchestration only) `[validated]`
 - **ADR-0008** — Promotion and publication authority ceiling (D116/D120 separate singular authorities) `[bounded]`
-- **ADR-0009** — Five-clock event-anchored temporal model; `legal_act_effect` enters the legal order but does not by itself establish `InForce` or case applicability (D118) `[bounded]`
+- **ADR-0009** — Five-clock event-anchored temporal model; `legal_act_effect` enters the legal order but does not by itself establish `InForce` or case applicability (D118) `[bounded]`; civil-day ordinal is a projection, not a sixth clock (Review 4)
 - **ADR-0010** — Evidence kernel gates (D119 C10/C12/C13) `[bounded]`
 - **ADR-0011** — KOF-DA ownership — twenty exclusive capability owners (D123) `[bounded]`
 - **ADR-0012** — Consequential evidence protocol (storage/ledger/workspace candidate assessment) `[bounded]`
-- **ADR-0013** — Universal multi-source parser architecture (Consultant XML + Garant ODT, bounded morphology, sentence and lexical candidates) `[bounded]`
+- **ADR-0013** — Universal multi-source parser architecture (Consultant XML + Garant ODT, bounded morphology, sentence and lexical candidates) `[bounded]`; EditionSnapshot ≠ AST; provider oracles stay isolated (Review 4)
 - **ADR-0014** — RuVector as primary graph+vector infrastructure (RVF + redb dual storage; FalkorDB historical-only) `[proposed]`
 - **ADR-0015** — Hexagonal verification architecture (overlapping contours, port contracts, lifecycle honesty) `[bounded]`
 
@@ -41,10 +41,10 @@ layer depends on the one below it; all are fail-closed (R068) and follow the
 D046 adoption ladder (project-local evidence kernel is canon; Akoma/FRBR/ELI/
 LKIF are compatibility references, not canon replacements).
 
-- **ADR-0016 (L1/O1)** — FRBR structural legal identity (Work/Expression/Manifestation/Item; date+authority identity) `[proposed]`; Work/Expression S2 (KBO-R011)
-- **ADR-0017 (L2/O2)** — Component Temporal Versioning (CTV) — component-level provenance & fail-closed resolver (R070); TextChange≠NormativeEffect design taxonomy (RC11-F07) `[proposed]`; structural CTV ops spine (RC11-F08); structural apply S3 (TSG-003); membership fold S3 (TSG-013)
+- **ADR-0016 (L1/O1)** — FRBR structural legal identity (Work/Expression/Manifestation/Item; date+authority identity) `[proposed]`; Work/Expression S2 (KBO-R011); Work stays stable across amendments (Review 4; de Martim TV ≠ Work)
+- **ADR-0017 (L2/O2)** — Component Temporal Versioning (CTV) — component-level provenance & fail-closed resolver (R070); TextChange≠NormativeEffect design taxonomy (RC11-F07) `[proposed]`; structural CTV ops spine (RC11-F08); structural apply S3 (TSG-003); membership fold S3 (TSG-013); three L2 canons + AmendmentEvent/EditionOracle design (Review 4)
 - **ADR-0018 (L3/O3)** — NormativeState(t) — normative status resolver (text ≠ status) `[proposed]`; dimensional separation design (RC11-F09); force resolver S2–S3 (TSG-004)
-- **ADR-0019 (L4/O4)** — Normative hierarchy and conflict resolution (lex superior/specialis/posterior; explainable) `[proposed]`
+- **ADR-0019 (L4/O4)** — Normative hierarchy and conflict resolution (lex superior/specialis/posterior; explainable) `[proposed]`; cross-act edges between ASTs (Review 4)
 - **ADR-0020 (L5/O5)** — Judicial, FAS and control-organ practice overlay (EffectiveInterpretation; non-authoritative) `[proposed]`
 - **ADR-0021 (L6/O6)** — Transitional provisions and risk assessment (derived, non-authoritative) `[proposed]`
 - **ADR-0022 (L7/O7)** — Industry profiles architecture (budget/construction/medicine/general-control; adapter-isolated) `[proposed]`

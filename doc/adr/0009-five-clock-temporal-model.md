@@ -47,6 +47,14 @@ into a single "timestamp" causes evidence corruption.
    system returns a typed `Unknown` or `Conflict` outcome, not a default or
    approximate value.
 
+5. **Civil-day ordinal is a projection of `legal_act_effect`, not a sixth
+   clock (Review 4 / KBO-R031).** YAML `calendar` bounds map an ISO day to a
+   synthetic ordinal for fold/join. Impossible civil days (`2014-02-30`)
+   fail closed. Provider title phrases such as «ред. от …» and «вступ. в
+   силу с …» name different clocks and must not be collapsed. The ordinal
+   is not a legal calendar, not vacatio legis, not CTV text, and not
+   `InForce`.
+
 ### EA-04 clarification — closed role-bound anchors
 
 The five clocks are a closed set of role-bound evidence anchors. Generic terms
@@ -66,6 +74,8 @@ clocks: they must state whether they refer to `source_publication`,
 - Applicable-law or effective-date legal correctness is not claimed.
 - No product temporal database or bitemporal storage is selected.
 - Clock values are synthetic in proof; real legal dates are not validated.
+- Civil-day ordinal arithmetic is not a legal calendar, not a sixth clock,
+  and does not decide force/applicability (Review 4 R4-05).
 - The five-clock model is a **safety contract** (role-bound anchors, no silent
   substitution), **not** a complete temporal algebra. Interval overlap/merge,
   bitemporal correction ledgers, treating derived `effective_from/to` as source

@@ -88,6 +88,10 @@ Each layer consumes lower-layer evidence. No higher layer may rewrite source evi
 | `ProcurementRegimeResolution` | critique vocabulary for a future traced regime-choice result | future profile/application ADR + TSG-010 | deferred-undefined | no chronology-only or profile-private final decision |
 | `PracticeCoverageOutcome` | critique vocabulary for typed coverage states such as no applicable practice versus search/corpus unknown | future ADR-0020 amendment + TSG-008 | deferred-undefined | missing search result cannot imply absence of applicable practice |
 | `BitemporalCorrectionLedger` | critique vocabulary for immutable correction/observation history beyond current five-clock safety | future ADR-0009/0017 amendment + TSG-011 | deferred-undefined | no in-place rewrite or latest-observation authority |
+| `AmendmentEvent` | n-ary causal amendment node with structural/industrial/text/force facets and a mandatory evidence class | ADR-0017 §1b `[proposed]` | canonical design term `[proposed]` | not a store node kind, not `eli:amends`, not inferred from a change-overview |
+| `EditionOracle` | observed consolidated edition used as fold checksum, not event canon | ADR-0017 §1c `[proposed]` | canonical design term `[proposed]` | not the parent of the next edition; not C0 seed; not legislative history |
+| `EditionSnapshot` | decode observation (blocks, markers, mentions, phrases) from one Manifestation | ADR-0013 `[bounded]` decode + Review 4 | canonical design term `[proposed]` | not `StructuralAst`, not membership attach, not `resolve_CTV` |
+| Coverage | first-class assembly metric: Bound CCs versus Oracle CCs at t | ADR-0017 + TSG-017 | canonical design term `[proposed]` | low Coverage is Unknown past, not a reconstructed 2013 text |
 
 These deferred critique terms are stop-signals recovered from the 2026-08-11 independent architecture criticism. Listing them does not adopt their names, fields, ontology, ownership or implementation. A future human-owned ADR may rename, split, reject or define them.
 
@@ -294,7 +298,7 @@ coverage only. It neither accepts a schema nor closes a TSG row.
 
 | Contract area | Paper coverage | Current surface | Owner / open gap | Explicit boundary |
 |---------------|----------------|-----------------|------------------|-------------------|
-| Glossary | present | §3, 42 controlled rows | owning ADR per row; TSG-001 remains open | inventory completeness is not semantic completeness |
+| Glossary | present | §3, 46 controlled rows | owning ADR per row; TSG-001 remains open | inventory completeness is not semantic completeness |
 | Entity model | partial | §§5–9 identity/CTV/status/applicability concepts | ADR-0016..0023; TSG-003..010 | cardinalities, stable public schemas and several entities remain unspecified |
 | Event taxonomy | design-only inventory | glossary stop-signs + `LegislativeEventKind` design boundary in `ln-temporal` (RC11-F07) | ADR-0017/0018; TSG-002 | no executable `TextChangeEvent`/`NormativeEffectEvent` runtime taxonomy |
 | Temporal axes | partial | §§4–6 five-clock safety and derived projections; RC11-F06 design inventory of deferred algebra in `ln-temporal` | ADR-0009/0017; TSG-011 | no complete interval/bitemporal algebra or legal-date validation |

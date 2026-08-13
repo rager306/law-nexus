@@ -4,6 +4,13 @@ All notable changes to law-nexus are documented in this file.
 
 ## Unreleased — current architecture landing and repository map
 
+### Review 4 temporal-AST assembly inventory (KBO-R032–R040, TSG-017)
+- L0 source: `doc/review/review-13-08-2026.md` (not a Review Case packet).
+- ADR-0009/0013/0016/0017/0019 record Work-stable, three L2 canons,
+  AmendmentEvent facets, EditionOracle checksum, snapshot≠AST, cross-act edges.
+- YAML adds corpus roles, evidence classes, facets, `assembly_fsm` (current
+  `S_design`). Readiness FSM stays `O2_calendar_ordinal`. Not O3 code.
+
 ### Civil-day ordinal for legal_act_effect (KBO-R031)
 - YAML `calendar` bounds own the ISO↔ordinal bridge in `ln-temporal`.
 - Impossible civil days (`2014-02-30`) fail closed in identity mint and ordinal map.
