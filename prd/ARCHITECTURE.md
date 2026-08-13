@@ -4,6 +4,8 @@
 > truth about law-nexus state. Updated at every milestone closeout (mandatory,
 > D098 enforcement #2). Lifecycle tags are mandatory (D098 enforcement #1):
 > `[bounded]` / `[smoke]` / `[validated]` / `[proposed]` / `[deferred]`.
+> Active ADRs must not depend on missing `prd/research/` or gitignored
+> `AGENTS.md` as durable authority (RC12-F18).
 >
 > Detailed decisions: [`doc/adr/**`](../doc/adr/README.md).
 > `.gsd/**` is local workflow state, not a cold-reader authority surface.

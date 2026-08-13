@@ -152,8 +152,9 @@ ledger. Cloud sync and remote exposure are outside the candidate role.
 
 The bounded evidence packet and exact primary anchors are maintained in
 `prd/architecture/storage-ledger-workspace-candidate-assessment.md`; AgentFS
-threat and probe details are maintained in
-`prd/research/agentfs-filesystem-isolation-assessment-2026-07-23.md`.
+threat and probe details are archive-only prior art under
+`prd/archive/research-era/agentfs-filesystem-isolation-assessment-2026-07-23.md`
+(not an active `prd/research/` surface).
 
 ## Non-claims
 
@@ -164,7 +165,7 @@ threat and probe details are maintained in
 
 - `prd/architecture/m111-final-architecture-baseline.md`
 - `prd/architecture/m111-prior-art-reconciliation.md`
-- `prd/research/m111/hexagonal-onion-boundary-comparison.md`
-- `prd/research/m111/whole-system-adversarial-closure.md`
-- `prd/research/m112/active-adr-drift-audit.md`
+- Archive-only prior art (not active product authority):
+  `prd/archive/research-era/m111/whole-system-adversarial-closure.md`
+  and related research-era M111/M112 packets under `prd/archive/research-era/`
 - D121, D127 and R071

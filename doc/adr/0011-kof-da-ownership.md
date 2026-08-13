@@ -89,4 +89,5 @@ shared mutable state.
 - D123 in `.gsd/DECISIONS.md`
 - HC-01 through HC-20 (all hostile-case runtime proofs)
 - `prd/architecture/m111-system-skeleton-contract.md`
-- `prd/research/m111/whole-system-adversarial-closure.md`
+- Archive-only prior art (not active product authority):
+  `prd/archive/research-era/m111/whole-system-adversarial-closure.md`

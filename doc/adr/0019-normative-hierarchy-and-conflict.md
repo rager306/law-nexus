@@ -26,10 +26,12 @@ derogat priori). In practice these collide constantly: Budget Code vs Civil Code
 vs 44-FZ vs 61-FZ; a Government resolution vs a Federal Law; a later general law
 vs an earlier special law.
 
-Prior research (`prd/research/ontology_architecture_requirements/05-03`) selected
-the RusLegalCore domain ontology as a compatibility reference for hierarchy and
-the conflict maxims, at adoption-ladder level L5 (compatibility, proof-gated per
-D046). law-nexus needs its own explainable resolver, not a silent priority pick.
+Prior research (archive-only prior art under
+`prd/archive/research-era/ontology_architecture_requirements/`, not an active
+`prd/research/` surface) selected the RusLegalCore domain ontology as a
+compatibility reference for hierarchy and the conflict maxims, at
+adoption-ladder level L5 (compatibility, proof-gated per D046). law-nexus needs
+its own explainable resolver, not a silent priority pick.
 
 ## Decision
 
@@ -97,9 +99,11 @@ remains `Conflict` for human review.
 
 ## References
 
-- `prd/research/ontology_architecture_requirements/05-03-ruslegalcore-domain-ontology-collisions.md`
+- Archive-only prior art (not active product authority):
+  `prd/archive/research-era/ontology_architecture_requirements/05-03-ruslegalcore-domain-ontology-collisions.md`
 - D046 adoption-ladder (L5 compatibility)
 - ADR-0009 (five clocks; conflict resolved at governing date)
 - ADR-0018 (status-aware comparison)
 - ADR-0020 (practice can surface, not rank-mutate, conflicts)
 - ADR-0022 (industry priority profiles)
+- `prd/ARCHITECTURE.md` (living architecture truth oracle)

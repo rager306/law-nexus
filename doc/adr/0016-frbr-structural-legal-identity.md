@@ -26,11 +26,13 @@ with non-unique numbering (e.g. "188-ФЗ" exists in both 2013 and 2015). Withou
 a stable, comparable identity layer, every downstream comparison (is this the
 same article? the same edition?) is ambiguous.
 
-Prior research (`prd/research/ontology_architecture_requirements/05-01`) selected
-the **FRBR four-level model** (Work / Expression / Manifestation / Item) as the
-structural normalization standard at adoption-ladder level L3
-(compatibility/proof-gated per D046): project-local evidence kernel stays
-authoritative, FRBR is the compatible structural reference.
+Prior research (archive-only prior art under
+`prd/archive/research-era/ontology_architecture_requirements/`, not an active
+`prd/research/` surface) selected the **FRBR four-level model**
+(Work / Expression / Manifestation / Item) as the structural normalization
+standard at adoption-ladder level L3 (compatibility/proof-gated per D046):
+project-local evidence kernel stays authoritative, FRBR is the compatible
+structural reference.
 
 Note: the **LRMoo** ontology (IFLA LRM object-oriented formalization, harmonized
 with CIDOC CRM) is the current successor of FRBRoo and preserves the WEMI
@@ -90,7 +92,10 @@ The four levels below are WEMI, LRMoo-compatible.
 ## References
 
 - D046 adoption-ladder (L3 structural)
-- `prd/research/ontology_architecture_requirements/05-01-structural-normalization-akoma-ntoso.md`
+- Archive-only prior art (not active product authority):
+  `prd/archive/research-era/ontology_architecture_requirements/`
+  (historical FRBR/Akoma Ntoso intake; superseded by this ADR + `prd/ARCHITECTURE.md`)
 - ADR-0009 (five clocks; Expression uses `legal_act_effect`)
 - ADR-0010 (evidence kernel; C12 identity authority)
 - ADR-0013 (universal parser — structural carrier source)
+- `prd/ARCHITECTURE.md` (living architecture truth oracle)

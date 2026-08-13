@@ -269,7 +269,9 @@ tooling are intentionally omitted from cold-reader navigation.
 | `prd/migration/` | Active roadmaps, rust-evidence, decommission policy |
 | `prd/project-state/` | `roadmap.md` + `data/roadmap.json` only |
 
-## Architecture (pointers, not duplicates)
+## Architecture
+
+Citation hygiene: active ADRs use archive-only prior art or living oracles only (RC12-F18). (pointers, not duplicates)
 
 - **Living truth oracle:** [`prd/ARCHITECTURE.md`](prd/ARCHITECTURE.md)
 - **Product Contract + requirements projection (`[proposed]`, EA-02 `ready-for-assessment`):**

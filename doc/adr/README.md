@@ -1,5 +1,12 @@
 # ADRs — law-nexus architectural decisions
 
+## Citation hygiene (RC12-F18)
+
+Active ADRs must not cite missing `prd/research/` paths or gitignored
+`AGENTS.md` as durable authority. Archive-only prior art lives under
+`prd/archive/research-era/`; living authorities are `prd/ARCHITECTURE.md`
+and the ADR corpus itself.
+
 > **Format:** MADR-lite with YAML front matter. Retired Python-specific ADRs
 > (M068–M106) are archive-only local archaeology and are intentionally absent
 > from active links, default indexing and conformance scans.

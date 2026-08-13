@@ -4,6 +4,11 @@ All notable changes to law-nexus are documented in this file.
 
 ## Unreleased — current architecture landing and repository map
 
+### ADR citation hygiene (RC12-F18)
+- Relocated active ADR references from missing `prd/research/` and gitignored
+  `AGENTS.md` rule anchors to tracked archive-only prior art and living
+  architecture authorities (`prd/ARCHITECTURE.md`, ADR-0015).
+
 ### CTV structural membership + industrial ops spine (RC11-F08)
 - Added fail-closed `MembershipGraph` and industrial op planner
   (`renumber`/`move`/`split`/`merge`) in `ln-temporal` with provenance-required

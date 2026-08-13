@@ -26,9 +26,11 @@ Russian law. But real use is industry-specific: budget accounting (БК, каз�
 медизделия), and general control (КоАП, давность). Each vertical has
 industry-specific conflict priorities, special norms, and practice traditions.
 
-AGENTS.md rule #5 mandates that law-nexus-specific constraints live in a
-**profile/adapter layer**, not in the core. The same applies to industry rules:
-they must not leak into the neutral ontology kernel.
+Tracked architecture policy (ADR-0015 hexagonal verification + living
+`prd/ARCHITECTURE.md` profile boundary) mandates that law-nexus-specific and
+industry-specific constraints live in a **profile/adapter layer**, not in the
+neutral core. Session-local `AGENTS.md` may restate this for agents but is
+gitignored and is **not** the durable authority for the decision.
 
 ## Decision
 
@@ -77,7 +79,7 @@ they must not leak into the neutral ontology kernel.
 
 - Adds a Profile contract + four initial profile adapters as the top ontology
   layer, consumed by L4/L5/L6.
-- Keeps the core industry-neutral and reusable, per AGENTS.md rule #5.
+- Keeps the core industry-neutral and reusable, per ADR-0015 / profile-adapter isolation.
 - Lets industry depth (budget/construction/medicine) advance independently of
   the common temporal engine.
 
@@ -90,8 +92,9 @@ they must not leak into the neutral ontology kernel.
 
 ## References
 
-- AGENTS.md rule #5 (profile/adapter isolation)
 - ADR-0015 (hexagonal verification; profile = adapter)
+- `prd/ARCHITECTURE.md` (living profile/core isolation boundary)
 - ADR-0019 (industry priority consumed by conflict resolver)
 - ADR-0020 (industry practice weighting)
 - ADR-0021 (industry risk factors)
+- ADR-0023 (profiles supply applicability inputs, not final decisions)

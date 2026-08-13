@@ -206,3 +206,5 @@ migration (roadmaps, rust-evidence, decommission policy, quality-gate), thin
 parser contracts/schemas/profiles/examples, project-state roadmap pair.
 
 GitNexus reindex after this wave required for accurate residual-noise queries.
+
+<!-- RC12-F18: ADR citation hygiene rechecked with archive-only prior art remaps -->
