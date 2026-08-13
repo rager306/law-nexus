@@ -20,6 +20,26 @@ L5 evidence and closure             class-matched, revision-bound proof
 Each layer keeps its own ownership. A link does not copy or replace the target
 system's lifecycle state.
 
+## Three lifecycles (do not collapse)
+
+Orthogonal to L0–L5 packaging, residual continuity uses three lifecycles:
+
+| Lifecycle | Meaning | Closed means |
+|---|---|---|
+| **L_review** | finding residual on this contour | residual terminal/closed/deferred at a declared **closure ceiling** |
+| **L_delivery** | GSD Attempt or explicit non-GSD work | delivery system verified its own unit |
+| **L_capability** | TSG + owning ADR + ADR-0015 proof | capability row actually satisfied |
+
+Operator contract: [`continuity-contract.md`](continuity-contract.md).
+
+Closure ceilings: `spine` | `bounded_runtime` | `evidence` | `accepted`.
+RC11/RC12 product closeouts were mostly **`spine`** — TSG rows stay active unless
+B3 records a real capability closure.
+
+Bridges (human, mandatory for new ceremonies): B1 delivery intent, B2
+execution_linked, B3 TSG non-closure/close, B4 ADR promotion proposal only via
+rules, B5 drift/reopen risk.
+
 ## Packet contract
 
 Wire schema: [`../review-case.schema.json`](../review-case.schema.json)

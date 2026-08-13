@@ -328,3 +328,5 @@ Stop and replan if any review:
 - treats risk as transition/applicability/legal decision;
 - uses `.gsd`, roadmap, assessment, derived registry, LLM, archive or external framework as architecture/product proof;
 - contradicts or bypasses ADR-0023 ownership without a superseding ADR.
+
+<!-- continuity: L_review closed ≠ L_capability TSG closed; see review-cases/continuity-contract.md -->

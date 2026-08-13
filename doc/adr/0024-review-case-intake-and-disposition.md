@@ -200,6 +200,39 @@ No review recommendation may create a milestone automatically. In particular,
 the M166–M176 sequence proposed in the 12 August review remains a
 `roadmap_proposal` unless separately adopted through project planning authority.
 
+### 9a. Three orthogonal lifecycles and continuity bridges (P0/P1)
+
+Review residual, delivery execution, and semantic capability are **three
+lifecycles**. They must not collapse into one status field:
+
+```text
+L_review      Review Case residual (this ADR)
+L_delivery    GSD Attempts or explicit non-GSD work
+L_capability  TSG register + owning ADR lifecycle + ADR-0015 proof
+```
+
+Rules:
+
+1. Success on one lifecycle never implies success on another.
+2. Closing an L_review finding requires a declared **closure ceiling**
+   (`spine` | `bounded_runtime` | `evidence` | `accepted`) matching completed
+   scope and proof class.
+3. Human ceremony must bridge, not promote:
+   - **B1** disposition → delivery_ref or `delivery:none` + reason;
+   - **B2** delivery evidence → `execution_linked`;
+   - **B3** verification → TSG/ADR close **or** explicit non-closure note;
+   - **B4** capability proof → ADR lifecycle proposal only via promotion rules;
+   - **B5** drift past `tested_revision` → reopen or continuity risk when the
+     claimed ceiling is at least `bounded_runtime`.
+4. `spine` closeouts (design inventory, structural planner, IR, pure algebra,
+   capability maps) are valid L_review terminals only when B3 keeps the related
+   TSG rows active or honestly updates them.
+5. Inventory `next_admissible_events` remain suggestions; Governor green remains
+   structural honesty only.
+
+Durable operator contract (non-authoritative process note):
+`prd/architecture/review-cases/continuity-contract.md`.
+
 ### 10. Use a hexagonal and onion dependency direction
 
 The active implementation remains in the Python repository-control harness and
@@ -341,17 +374,24 @@ measured friction. Further tooling is not the default outcome.
 
 ## Non-claims
 
-- `[proposed]` No Review Case runtime, codec, CLI, ledger or Governor integration is implemented by this ADR.
+- `[proposed]` Review Case contour components exist as a bounded harness path;
+  this ADR still does not make packets authoritative or auto-disposing.
 - Review Case packets and generated views are not architecture, Product,
   Requirements, ADR, roadmap, legal or execution authority.
 - No finding from either saved review is accepted, rejected or closed by this
   decision alone.
 - No M166–M176 roadmap proposal from a review is adopted by this ADR.
+- Three-lifecycle continuity and closure ceilings do not close TSG rows, complete
+  GSD work, promote ADR lifecycle, or authorize Applicable/NotApplicable.
+- L_review residual `closed` at ceiling `spine` is not L_capability readiness.
+- `[deferred]` Full schema-enforced bridge fields and automatic HEAD-drift reopen
+  remain future process hardening; docs-first bridges are mandatory for new
+  ceremonies until then.
 - `[deferred]` No product-domain Rust type, temporal resolver, applicability
   engine, parser, RuVector path, retrieval quality or citation safety is
-  implemented or validated by this contour.
+  implemented or validated by this contour alone.
 - Pydantic is not admitted into inner layers and has no positive adoption claim
-  before the bounded adapter probes pass.
+  beyond the adapter path already selected for wire codecs.
 - Adaptix is deferred and is not required by the Review Case v1 critical path.
 - Passing Review Case or Governor checks does not replace human architectural or
   legal judgment.

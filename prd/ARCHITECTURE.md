@@ -150,10 +150,15 @@ corpus/legal/citation completeness claims.
 **Python repository-control harness** — `[validated]` process boundary
 (ADR-0007) under `src/law_nexus_harness/`. Active Python is governor/preflight
 orchestration only: Cargo/ADR/document freshness/GSD glue. ADR-0024 `[proposed]`
-places future Review Case intake and disposition in this control plane as a
-non-authoritative, human-gated, hexagonal contour; no Review Case runtime exists
-at the current head. The harness must not import product domain packages,
-forbidden PyO3/FFI bridges, or historical FalkorDB adapters.
+places Review Case intake, disposition, residual inventory and continuity
+bridges in this control plane as a non-authoritative, human-gated, hexagonal
+contour. Live packets/ledger/CLI/Governor integrity exist as process machinery;
+they do not accept findings or claim product readiness. Continuity keeps three
+lifecycles orthogonal — L_review (residual), L_delivery (GSD/work), L_capability
+(TSG/ADR proof) — with closure ceilings and B1–B5 bridges
+(`prd/architecture/review-cases/continuity-contract.md`). The harness must not
+import product domain packages, forbidden PyO3/FFI bridges, or historical-only
+graph-database adapters from retired eras.
 
 **`python_archive/product/`** — archived Python product prior art after M140/M141
 cutover and residual dependency closure. Historical onion package surfaces,

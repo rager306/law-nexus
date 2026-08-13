@@ -88,6 +88,17 @@ made the five-clock vs algebra boundary explicit in `ln-temporal`:
 - TSG-005/006 remain **active** until positive applicability with real-case
   evidence and human acceptance. Inventory ≠ product readiness.
 
+## 2.2 Continuity vs gap closure
+
+Review Case residual closeout (L_review) is not TSG closure (L_capability).
+Operator continuity contract:
+`prd/architecture/review-cases/continuity-contract.md` and ADR-0024 §9a.
+
+When a review finding closes at ceiling `spine` / `bounded_runtime` / `evidence`,
+the related TSG row stays **active** until that row's own closure trigger fires.
+Section 2.1 non-closure notes (RC11-F06…F09, RC12-F05) are the current B3
+record for those spines.
+
 ## 3. Disposition rules
 
 A row may move to `closed-bounded` only when:

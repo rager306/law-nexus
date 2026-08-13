@@ -211,3 +211,5 @@ citation mapping.
 This roadmap does not prove Rust product readiness, parser completeness, Russian legal correctness, source completeness, FalkorDB production readiness, retrieval quality, diagnostic sink safety, E1-E3 capacity or whole-system parity. HC-01 through HC-15 bounded synthetic runtime PASS proofs do not establish aggregate conformance or product storage readiness.
 
 <!-- RC12-F18 companion: ADR citation hygiene rechecked with living oracle -->
+
+<!-- continuity-contract: L_review/L_delivery/L_capability adopted as process note -->

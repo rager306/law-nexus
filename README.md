@@ -271,7 +271,9 @@ tooling are intentionally omitted from cold-reader navigation.
 
 ## Architecture
 
-Citation hygiene: active ADRs use archive-only prior art or living oracles only (RC12-F18). (pointers, not duplicates)
+Citation hygiene: active ADRs use archive-only prior art or living oracles only (RC12-F18).
+
+Continuity: review residual, GSD delivery, and TSG/ADR capability are three lifecycles (`prd/architecture/review-cases/continuity-contract.md`). (pointers, not duplicates)
 
 - **Living truth oracle:** [`prd/ARCHITECTURE.md`](prd/ARCHITECTURE.md)
 - **Product Contract + requirements projection (`[proposed]`, EA-02 `ready-for-assessment`):**

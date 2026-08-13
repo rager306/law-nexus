@@ -52,7 +52,7 @@ LKIF are compatibility references, not canon replacements).
 
 ### Repository governance contours
 
-- **ADR-0024** — Review Case intake and disposition: immutable review evidence, non-authoritative AST, human promotion gate, revision-bound closure, and hexagonal harness boundary `[proposed]`
+- **ADR-0024** — Review Case intake and disposition: immutable review evidence, non-authoritative AST, human promotion gate, revision-bound closure, and hexagonal harness boundary `[proposed]`; three-lifecycle continuity (L_review/L_delivery/L_capability)
 
 ## Retired Python-era records
 

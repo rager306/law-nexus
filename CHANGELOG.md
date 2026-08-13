@@ -4,6 +4,12 @@ All notable changes to law-nexus are documented in this file.
 
 ## Unreleased — current architecture landing and repository map
 
+### Review continuity contract (three lifecycles)
+- Adopted docs-first continuity contract separating L_review, L_delivery, and
+  L_capability with closure ceilings and B1–B5 bridges (ADR-0024 §9a,
+  `prd/architecture/review-cases/continuity-contract.md`).
+- RC residual closed ≠ TSG closed; spine ceilings keep gap-register rows active.
+
 ### Applicability capability inventory (RC12-F05)
 - Added `ApplicabilityCapability` landed-vs-deferred inventory in
   `ln-applicability`; algebra Satisfied still cannot mint product Applicable;

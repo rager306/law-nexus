@@ -110,3 +110,5 @@ A green vocabulary check means only that the tracked rows, markers and gap IDs
 remain structurally visible. It does not establish semantic completeness,
 product implementation, legal correctness, parser quality, applicability,
 citation safety or lifecycle readiness.
+
+<!-- continuity-contract cross-check: gap-register disposition vs review residual -->
