@@ -467,6 +467,254 @@ pub fn reject_version_relation_as_force() -> NormativeDimensionBoundary {
     boundary
 }
 
+// ─── TSG-004 S2/S3: force-status NormativeState bounded resolver (ADR-0018) ──
+// Force dimension only. Not CTV join, not applicability, not legal corpus proof.
+
+/// Canonical force/status values (ADR-0018). `Unknown` is fail-closed outcome only,
+/// never a transition target written into the timeline.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub enum NormativeState {
+    InForce,
+    Suspended,
+    Repealed,
+    Superseded,
+    Transitional,
+    Unknown,
+}
+
+impl NormativeState {
+    pub fn as_str(self) -> &'static str {
+        match self {
+            Self::InForce => "in_force",
+            Self::Suspended => "suspended",
+            Self::Repealed => "repealed",
+            Self::Superseded => "superseded",
+            Self::Transitional => "transitional",
+            Self::Unknown => "unknown",
+        }
+    }
+
+    pub fn is_transition_target(self) -> bool {
+        !matches!(self, Self::Unknown)
+    }
+}
+
+/// Fail-closed errors for force-status timeline / resolver.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum NormativeStateError {
+    InvalidId(IdError),
+    MissingProvenance,
+    UnknownNotTransition,
+    EmptyComponent,
+}
+
+impl fmt::Display for NormativeStateError {
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::InvalidId(err) => write!(formatter, "{err}"),
+            Self::MissingProvenance => {
+                write!(
+                    formatter,
+                    "force-status event requires amending-act provenance"
+                )
+            }
+            Self::UnknownNotTransition => {
+                write!(
+                    formatter,
+                    "Unknown is a fail-closed outcome, not a transition status"
+                )
+            }
+            Self::EmptyComponent => write!(formatter, "component concept id is required"),
+        }
+    }
+}
+
+impl Error for NormativeStateError {}
+
+impl From<IdError> for NormativeStateError {
+    fn from(value: IdError) -> Self {
+        Self::InvalidId(value)
+    }
+}
+
+/// Evidence-gated force-status transition (not CTV text, not applicability).
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct ForceStatusEvent {
+    component: ComponentConceptId,
+    status: NormativeState,
+    /// Governing legal-act-effect day ordinal (synthetic offline unit; not wall clock).
+    effect_day: i64,
+    provenance: AmendingActId,
+}
+
+impl ForceStatusEvent {
+    pub fn try_new(
+        component: ComponentConceptId,
+        status: NormativeState,
+        effect_day: i64,
+        provenance: AmendingActId,
+    ) -> Result<Self, NormativeStateError> {
+        if !status.is_transition_target() {
+            return Err(NormativeStateError::UnknownNotTransition);
+        }
+        if provenance.as_str().is_empty() {
+            return Err(NormativeStateError::MissingProvenance);
+        }
+        if component.as_str().is_empty() {
+            return Err(NormativeStateError::EmptyComponent);
+        }
+        Ok(Self {
+            component,
+            status,
+            effect_day,
+            provenance,
+        })
+    }
+
+    /// Test/helper path that parses component + provenance and rejects empty provenance.
+    pub fn try_new_raw(
+        component: &str,
+        status: NormativeState,
+        effect_day: i64,
+        provenance: &str,
+    ) -> Result<Self, NormativeStateError> {
+        if provenance.is_empty() {
+            return Err(NormativeStateError::MissingProvenance);
+        }
+        let component = ComponentConceptId::parse(component)?;
+        let provenance = AmendingActId::parse(provenance)?;
+        Self::try_new(component, status, effect_day, provenance)
+    }
+
+    pub fn component(&self) -> &ComponentConceptId {
+        &self.component
+    }
+
+    pub fn status(&self) -> NormativeState {
+        self.status
+    }
+
+    pub fn effect_day(&self) -> i64 {
+        self.effect_day
+    }
+
+    pub fn provenance(&self) -> &AmendingActId {
+        &self.provenance
+    }
+}
+
+/// Append-only force-status timeline (offline synthetic; not product corpus store).
+#[derive(Debug, Clone, PartialEq, Eq, Default)]
+pub struct ForceStatusTimeline {
+    events: Vec<ForceStatusEvent>,
+}
+
+impl ForceStatusTimeline {
+    pub fn empty() -> Self {
+        Self::default()
+    }
+
+    pub fn events(&self) -> &[ForceStatusEvent] {
+        &self.events
+    }
+
+    pub fn append(&mut self, event: ForceStatusEvent) -> Result<(), NormativeStateError> {
+        // Re-validate transition target (defense in depth).
+        if !event.status.is_transition_target() {
+            return Err(NormativeStateError::UnknownNotTransition);
+        }
+        self.events.push(event);
+        Ok(())
+    }
+}
+
+/// Force-status resolution result (ADR-0018 force dimension only).
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct ForceStatusResolution {
+    pub component: ComponentConceptId,
+    pub as_of_day: i64,
+    pub status: NormativeState,
+    pub conflict: bool,
+    pub dimension: NormativeDimension,
+    pub non_claims: Vec<&'static str>,
+}
+
+const FORCE_RESOLVER_NON_CLAIMS: &[&str] = &[
+    "ForceStatus resolution is not CTV text presence or version join",
+    "InForce does not imply Applicability",
+    "Offline synthetic force timeline is not legal corpus status proof",
+    "Unknown is fail-closed default when evidence is missing or conflicting",
+    "Lifecycle [proposed]; not product readiness or legal validation",
+];
+
+/// Resolve force/status for a component at a governing effect day.
+///
+/// Rules (fail-closed, ADR-0018):
+/// - no prior event → `Unknown` (never assume `InForce`)
+/// - latest event with `effect_day <= as_of_day` wins
+/// - same max day with distinct statuses → `Unknown` + conflict
+/// - never mixes version relation or applicability
+pub fn resolve_force_status_at(
+    timeline: &ForceStatusTimeline,
+    component: &ComponentConceptId,
+    as_of_day: i64,
+) -> Result<ForceStatusResolution, NormativeStateError> {
+    if component.as_str().is_empty() {
+        return Err(NormativeStateError::EmptyComponent);
+    }
+
+    let applicable: Vec<&ForceStatusEvent> = timeline
+        .events()
+        .iter()
+        .filter(|e| e.component().as_str() == component.as_str() && e.effect_day() <= as_of_day)
+        .collect();
+
+    if applicable.is_empty() {
+        return Ok(ForceStatusResolution {
+            component: component.clone(),
+            as_of_day,
+            status: NormativeState::Unknown,
+            conflict: false,
+            dimension: NormativeDimension::ForceStatus,
+            non_claims: [F09_NON_CLAIMS, FORCE_RESOLVER_NON_CLAIMS].concat(),
+        });
+    }
+
+    let max_day = applicable
+        .iter()
+        .map(|e| e.effect_day())
+        .max()
+        .expect("non-empty applicable");
+    let at_max: Vec<&ForceStatusEvent> = applicable
+        .into_iter()
+        .filter(|e| e.effect_day() == max_day)
+        .collect();
+
+    let mut statuses: Vec<NormativeState> = at_max.iter().map(|e| e.status()).collect();
+    statuses.sort_by_key(|s| s.as_str());
+    statuses.dedup();
+
+    if statuses.len() > 1 {
+        return Ok(ForceStatusResolution {
+            component: component.clone(),
+            as_of_day,
+            status: NormativeState::Unknown,
+            conflict: true,
+            dimension: NormativeDimension::ForceStatus,
+            non_claims: [F09_NON_CLAIMS, FORCE_RESOLVER_NON_CLAIMS].concat(),
+        });
+    }
+
+    Ok(ForceStatusResolution {
+        component: component.clone(),
+        as_of_day,
+        status: statuses[0],
+        conflict: false,
+        dimension: NormativeDimension::ForceStatus,
+        non_claims: [F09_NON_CLAIMS, FORCE_RESOLVER_NON_CLAIMS].concat(),
+    })
+}
+
 // ─── RC11-F08 / TSG-003/013: CTV structural membership + industrial ops ─────
 // Fail-closed pure structural spine only. Not a full CTV resolver, not legal
 // amendment correctness, not corpus compilation product readiness.

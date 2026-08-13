@@ -116,3 +116,5 @@ citation safety or lifecycle readiness.
 <!-- capability-promotion-board cross-check -->
 
 <!-- TSG-003/013 S3 apply companion -->
+
+<!-- TSG-004 force resolver companion -->

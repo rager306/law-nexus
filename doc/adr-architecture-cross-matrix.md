@@ -212,3 +212,5 @@ GitNexus reindex after this wave required for accurate residual-noise queries.
 <!-- continuity: ADR-0024 three-lifecycle / closure ceilings rechecked -->
 
 <!-- TSG-003/013 S3 apply_industrial_op -->
+
+<!-- TSG-004 force resolve_force_status_at companion -->

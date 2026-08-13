@@ -66,6 +66,11 @@ made the five-clock vs algebra boundary explicit in `ln-temporal`:
   provenance-backed transitions and hostile joins ships. Design inventory ≠ runtime.
 
 
+- Bounded offline **`resolve_force_status_at`** + `ForceStatusTimeline` in
+  `ln-temporal` implement **ForceStatus only** (ladder **S2–S3**): missing/conflicting
+  evidence → `Unknown` (never assume `InForce`). Still not CTV join, not applicability,
+  not corpus status-edge proof. TSG-004 remains **active**.
+
 ### RC11-F08 CTV membership + industrial ops spine (non-closure)
 
 - `MembershipGraph` + `plan_industrial_op` + `whole_act_structural_compile` in

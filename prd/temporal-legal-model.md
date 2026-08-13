@@ -334,3 +334,5 @@ Stop and replan if any review:
 <!-- capability-promotion-board: L_capability ladder companion -->
 
 <!-- TSG-003/013 S3 apply_industrial_op companion -->
+
+<!-- TSG-004 force resolver companion -->

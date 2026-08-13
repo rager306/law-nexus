@@ -12,10 +12,11 @@ related: [ADR-0009, ADR-0017, ADR-0019, ADR-0021]
 
 ## Status
 
-**Accepted [proposed]** — normative status model designed. Not implemented.
-Moves to `[bounded]` when a NormativeState resolver with provenance-backed
-transitions and a fail path ships in Rust; to `[validated]` only with real-corpus
-status-edge proof.
+**Accepted [proposed]** — normative status model designed; **force dimension** has a
+bounded offline Rust resolver (`resolve_force_status_at` / `ForceStatusTimeline` in
+`ln-temporal`, TSG-004 S2–S3). Still not full multi-dimension product runtime.
+Moves to `[bounded]` when provenance-backed force + CTV join + fail path are product-
+shaped with representative fixtures; to `[validated]` only with real-corpus status-edge proof.
 
 ## Context
 
@@ -79,6 +80,11 @@ fail-closed rules are unchanged.
   `Unknown`, never smoothed to `InForce`.
 
 ## Non-claims
+
+- Offline `resolve_force_status_at` is **ForceStatus only**: not CTV/version join,
+  not applicability, not practice overlay, not legal corpus correctness.
+- `Unknown` on missing/conflicting same-day evidence is fail-closed, not a transition
+  written into the timeline.
 
 - No legal correctness of status resolution without real corpus + provenance.
 - Practice overlay (ADR-0020) is separate and non-authoritative for status.

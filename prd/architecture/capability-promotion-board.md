@@ -96,7 +96,7 @@ M167 complete (design IR); dual-truth lag resolved.
 | TSG-001 | S0–S1 partial | vocabulary/glossary surfaces exist; not complete controlled vocabulary | gap register active | complete crosswalk + drift checks |
 | TSG-002 | **S1** | `LegislativeEventKind` design taxonomy | RC11-F07 non-closure | executable events + hostile substitution (S2/S3) |
 | TSG-003 | **S3** | planner + bounded-runtime `apply_industrial_op` + structural event log (offline/hostile) | RC11-F08 non-closure; not corpus | representative amendment fixtures + human scope (S4/S5); still not legal CTV product |
-| TSG-004 | **S1** | `NormativeDimension` orthogonal inventory | RC11-F09 non-closure | public resolver + hostile joins (S2/S3) |
+| TSG-004 | **S2–S3** | dimension inventory + force-status `resolve_force_status_at` (offline/hostile); not CTV join/applicability | RC11-F09 non-closure | CTV join + multi-dim provenance + corpus status edges (S4) |
 | TSG-005 | **S1–S2** | NormRule IR + fail-closed validation (M167/F04a); not full rule graph | RC12-F05 + F04a non-closure | provenance graph + promotion tests; **not** product Applicable |
 | TSG-006 | **S1–S2** | abstention kernel + predicate algebra spine; top-level Abstain only | RC12-F05 / F04b non-closure | product CaseFacts + real cases before any Applicable (S3–S5) |
 | TSG-007 | S0 | ADR-0019 `[proposed]` | — | design types + hostile delegation |

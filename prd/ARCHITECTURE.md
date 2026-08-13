@@ -82,7 +82,7 @@ L2 ADR-0017 [proposed]  Component Temporal Versioning ◄── temporal core; T
              bitemporal valid/transaction time; fail-closed resolver (R070/R068).
              Adapted from de Martim arXiv:2506.07853 v5 (LRMoo, 2026).
    ▼
-L3 ADR-0018 [proposed]  NormativeState(t)                text ≠ status (InForce/Suspended/Repealed/…); dimensional separation design (RC11-F09)
+L3 ADR-0018 [proposed]  NormativeState(t)                text ≠ status (InForce/Suspended/Repealed/…); dimensional separation design (RC11-F09); force resolver S2–S3
    ▼
 L4 ADR-0019 [proposed]  hierarchy + conflict             lex superior/specialis/posterior, explainable
    ▼

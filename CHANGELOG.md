@@ -4,6 +4,11 @@ All notable changes to law-nexus are documented in this file.
 
 ## Unreleased — current architecture landing and repository map
 
+### NormativeState force-status bounded resolver (TSG-004 S2–S3)
+- Added `NormativeState`, `ForceStatusTimeline`, and `resolve_force_status_at` in
+  `ln-temporal` (force dimension only; missing/conflict → `Unknown`).
+- Promotion board: TSG-004 → S2–S3. Not CTV join, not applicability, not corpus proof.
+
 ### CTV structural apply bounded runtime (TSG-003/013 S3)
 - Added `apply_industrial_op` + `StructuralEventLog` in `ln-temporal`: offline
   membership mutation for renumber/move/split/merge with plan-match and
