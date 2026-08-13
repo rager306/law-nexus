@@ -158,7 +158,7 @@ Per finding the inventory surfaces four axes, derived status, residual class
 (`terminal_without_implementation` / `deferred_parked` / `process_closeable` /
 `product_open` / `blocked_graph` / ...), operator stage, enabled next ledger event
 types, and missing ceremony fields. RC11 dogfood residual (disposition wave
-done): F01 terminal; F03/F04/F04a/F04b/F06/F07 closed; F08-F09 product_open; F13 deferred_parked.
+done): F01 terminal; F03/F04/F04a/F04b/F06/F07/F09 closed; F08 product_open (CTV ops); F13 deferred_parked.
 
 ## Non-claims
 

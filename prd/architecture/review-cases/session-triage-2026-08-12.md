@@ -152,3 +152,16 @@ Human actor `rager306`:
 
 RC11 residual after F07: F08 product_open (impl), F09 product_open (design/decision);
 F13 deferred; F01 terminal; F03/F04/F04a/F04b/F06/F07 closed.
+
+## Follow-up design ceremony (2026-08-13, F09)
+
+Human actor `rager306`:
+
+- RC11-F09: force/status, version relation, applicability, and epistemic outcome
+  named as orthogonal `NormativeDimension` kinds in `ln-temporal`; ADR-0018
+  non-claims updated; design ceremony → **closed** (tested_revision `b209550`).
+- Non-claims: not NormativeState resolver; TSG-004 remains open for executable
+  dimensional resolvers; InForce ≠ Applicable.
+
+RC11 residual after F09: **only F08 product_open** (CTV industrial ops impl);
+F13 deferred; F01 terminal; all other reviewed findings closed or terminal.
