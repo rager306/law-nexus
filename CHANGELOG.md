@@ -4,6 +4,12 @@ All notable changes to law-nexus are documented in this file.
 
 ## Unreleased — current architecture landing and repository map
 
+### KB ontology write-set projection (`ln-kb-ontology`)
+- New crate `ln-kb-ontology`: pure `project_work` / `project_expression` /
+  `project_membership` / `project_force_event` / `project_join` (no store I/O).
+- Forbidden L4–L7 kinds rejected; Unknown force is not a writable node.
+- KBO-R021 accepted-draft; FSM O2 + write-set. Not O3 fixtures or RuVector.
+
 ### FRBR Work/Expression identity spine (KBO-R011 S2)
 - Added `mint_work`, `mint_expression`, and `compare_work_identities` in
   `ln-identity`: authority+date+number required; same number + divergent

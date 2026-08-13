@@ -35,11 +35,12 @@ O0 inventory_open
   → O6 closed_bounded | closed_validated   (corpus + non-claims)
 ```
 
-**Current state:** **O2** — force↔membership join (KBO-R012 partial→join landed) **and**
-FRBR Work/Expression spine S2 (`mint_work` / `mint_expression` / `compare_work_identities`).
-S4 fixtures (KBO-R013) and Manifestation/Item store remain open.  
-**Exit O1:** done. **Exit O2 (identity+join offline):** done at spine/S2.  
-**Not full O2 freeze:** no corpus identity, no Manifestation runtime, no C12↔FRBR merge.  
+**Current state:** **O2 + write-set** — identity/join offline **and** pure
+`ln-kb-ontology` projection (`project_work` / `project_expression` / `project_membership` /
+`project_force_event` / `project_join`). No store I/O (not O4).  
+S4 fixtures (KBO-R013), Manifestation/Item, and port materialization remain open.  
+**Exit O1 / O2 spine:** done. **Write-set (toward O4):** landed, I/O-free.  
+**Not O3/O4:** no representative fixture edges, no graph-store adapter writes.  
 **Not exit criteria:** RuVector live, Cypher product surface, Applicable, S6 TSG.
 
 ## 3. Requirement classes
@@ -76,6 +77,7 @@ S4 fixtures (KBO-R013) and Manifestation/Item store remain open.
 | KBO-R018 | fail-closed | Identity collision (divergent authority/date) must project Conflict/Unknown, not silent pick | ADR-0016 | **accepted-draft** |
 | KBO-R019 | core-contract | Parser emits structural carriers only; does not mint NormativeState or Applicable | ADR-0013; ADR-0016 §5 | **accepted-draft** |
 | KBO-R020 | non-claim | KB ontology docs + Governor check are structural inventory only; not TSG S6 | D156 pattern | **accepted-draft** |
+| KBO-R021 | core-contract | Pure write-set projection (domain → typed graph ops) performs no I/O and rejects forbidden L4–L7 kinds | `ln-kb-ontology`; this wave | **accepted-draft** |
 
 ## 5. Functional preparation backlog (not implemented this wave)
 
@@ -85,7 +87,8 @@ Ordered for debt-first product depth **toward** O2–O4:
    `join_force_with_membership` (not full CTV text edition join).  
 2. **FRBR identity spine S2** — **partial**: `ln-identity` Work/Expression mint+compare
    (distinct from C12). Manifestation/Item + corpus stability still open.  
-3. Projection pure functions: domain event → typed write-set (no store I/O).  
+3. Projection pure functions: domain event → typed write-set (no store I/O) — **landed**
+   in `ln-kb-ontology` (`project_*`).  
 4. Hostile projection suite: forbidden edge, missing provenance, InForce≠Applicable.  
 5. Bounded port adapter write behind graph-store port (still synthetic).  
 6. Only then representative fixture edges (O3).

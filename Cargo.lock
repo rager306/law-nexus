@@ -248,6 +248,14 @@ name = "ln-inventory"
 version = "0.1.0"
 
 [[package]]
+name = "ln-kb-ontology"
+version = "0.1.0"
+dependencies = [
+ "ln-identity",
+ "ln-temporal",
+]
+
+[[package]]
 name = "ln-observe"
 version = "0.1.0"
 

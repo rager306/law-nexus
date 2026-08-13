@@ -1,7 +1,7 @@
 # KB Ontology Draft — L1–L3 Projection Contract
 
 **Lifecycle:** `[proposed]` design inventory  
-**FSM state:** O2 (see `kb-ontology-requirements.md`)  
+**FSM state:** O2 + write-set (see `kb-ontology-requirements.md`)  
 **Non-authority:** not production graph schema, not RuVector validation, not
 legal ontology completeness, not Applicable/practice/risk product types.
 
@@ -102,6 +102,7 @@ ON missing force evidence at query time:
 | `NormativeDimension` | **not** a graph node (design inventory) |
 | `ln-identity` C12 digest identity | **not** FRBR Work (separate gate) |
 | `mint_work` / `mint_expression` / `compare_work_identities` | Work/Expression S2; number≠Work |
+| `ln-kb-ontology::project_*` | typed write-set; no I/O; forbidden kinds rejected |
 
 ## 9. Explicit non-claims
 

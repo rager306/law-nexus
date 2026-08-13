@@ -1,0 +1,9 @@
+[package]
+name = "ln-kb-ontology"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[dependencies]
+ln-identity = { path = "../ln-identity" }
+ln-temporal = { path = "../ln-temporal" }

@@ -53,7 +53,9 @@
     ["ln-testkit", "ln-admission"],
     ["ln-testkit", "ln-closure"],
     ["ln-testkit", "ln-projection"],
-    ["ln-testkit", "ln-work"]
+    ["ln-testkit", "ln-work"],
+    ["ln-kb-ontology", "ln-identity"],
+    ["ln-kb-ontology", "ln-temporal"]
   ],
   "non_claims": [
     "Does not validate external crate licenses or versions.",

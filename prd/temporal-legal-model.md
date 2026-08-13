@@ -342,3 +342,5 @@ Stop and replan if any review:
 <!-- join_force_with_membership O2 companion -->
 
 <!-- FRBR mint_work KBO-R011 S2 companion -->
+
+<!-- ln-kb-ontology write-set companion -->
