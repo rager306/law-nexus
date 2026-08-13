@@ -185,6 +185,263 @@ pub fn digest_pair(
     InputChainDigest::parse(&format!("fnv1a64:{hash:016x}")).expect("static digest")
 }
 
+// ─── ADR-0016 / KBO-R011: FRBR Work/Expression spine (not C12 digest) ───────
+// Number alone is never Work identity. ELI is compatibility projection only.
+
+id_type!(WorkId, "work id");
+id_type!(ExpressionId, "expression id");
+
+/// Issuing authority token (not a legal competence graph).
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub struct IssuingAuthority(String);
+
+impl IssuingAuthority {
+    pub fn parse(value: &str) -> Result<Self, FrbrIdentityError> {
+        if value.is_empty() {
+            return Err(FrbrIdentityError::MissingAuthority);
+        }
+        if value.len() > 32 {
+            return Err(FrbrIdentityError::InvalidAuthority);
+        }
+        if !value
+            .bytes()
+            .all(|b| b.is_ascii_lowercase() || b.is_ascii_digit() || b == b'-')
+        {
+            return Err(FrbrIdentityError::InvalidAuthority);
+        }
+        Ok(Self(value.to_owned()))
+    }
+
+    pub fn as_str(&self) -> &str {
+        &self.0
+    }
+}
+
+/// Act number token (e.g. `44-fz`). Never sufficient as Work identity alone.
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub struct LegalActNumber(String);
+
+impl LegalActNumber {
+    pub fn parse(value: &str) -> Result<Self, FrbrIdentityError> {
+        if value.is_empty() {
+            return Err(FrbrIdentityError::MissingActNumber);
+        }
+        if value.len() > 24 {
+            return Err(FrbrIdentityError::InvalidActNumber);
+        }
+        if !value
+            .bytes()
+            .all(|b| b.is_ascii_lowercase() || b.is_ascii_digit() || matches!(b, b'-' | b'.'))
+        {
+            return Err(FrbrIdentityError::InvalidActNumber);
+        }
+        Ok(Self(value.to_owned()))
+    }
+
+    pub fn as_str(&self) -> &str {
+        &self.0
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum FrbrIdentityError {
+    MissingAuthority,
+    InvalidAuthority,
+    MissingEnactmentDate,
+    InvalidEnactmentDate,
+    MissingActNumber,
+    InvalidActNumber,
+    InvalidEffectDay,
+    InvalidId(IdError),
+}
+
+impl fmt::Display for FrbrIdentityError {
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::MissingAuthority => write!(formatter, "work identity requires issuing authority"),
+            Self::InvalidAuthority => write!(formatter, "issuing authority token is invalid"),
+            Self::MissingEnactmentDate => {
+                write!(formatter, "work identity requires enactment date")
+            }
+            Self::InvalidEnactmentDate => {
+                write!(formatter, "enactment date must be ISO YYYY-MM-DD")
+            }
+            Self::MissingActNumber => write!(formatter, "work identity requires act number"),
+            Self::InvalidActNumber => write!(formatter, "act number token is invalid"),
+            Self::InvalidEffectDay => {
+                write!(formatter, "expression effect day must be ISO YYYY-MM-DD")
+            }
+            Self::InvalidId(err) => write!(formatter, "{err}"),
+        }
+    }
+}
+
+impl Error for FrbrIdentityError {}
+
+impl From<IdError> for FrbrIdentityError {
+    fn from(value: IdError) -> Self {
+        Self::InvalidId(value)
+    }
+}
+
+fn is_iso_day(value: &str) -> bool {
+    if value.len() != 10
+        || value.as_bytes().get(4) != Some(&b'-')
+        || value.as_bytes().get(7) != Some(&b'-')
+    {
+        return false;
+    }
+    let bytes = value.as_bytes();
+    if !bytes.iter().enumerate().all(|(i, b)| match i {
+        4 | 7 => *b == b'-',
+        _ => b.is_ascii_digit(),
+    }) {
+        return false;
+    }
+    let year: u16 = value[0..4].parse().unwrap_or(0);
+    let month: u8 = value[5..7].parse().unwrap_or(0);
+    let day: u8 = value[8..10].parse().unwrap_or(0);
+    (1800..=2100).contains(&year) && (1..=12).contains(&month) && (1..=31).contains(&day)
+}
+
+const FRBR_NON_CLAIMS: &[&str] = &[
+    "FRBR Work/Expression spine is structural identity only; not C12 digest merge",
+    "Work identity does not imply ForceStatus InForce",
+    "Work/Expression presence does not imply Applicability",
+    "ELI URN is a compatibility projection, not project-local canon",
+    "Not corpus identity stability, not Manifestation/Item store, not legal validation",
+    "Lifecycle [proposed]; KBO-R011 S2; not O3 fixture edges",
+];
+
+/// Abstract normative act (undated Work). Identity = authority + date + number.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct FrbrWork {
+    pub work_id: WorkId,
+    pub authority: IssuingAuthority,
+    pub enactment_date: String,
+    pub act_number: LegalActNumber,
+    pub kind: &'static str,
+    pub non_claims: Vec<&'static str>,
+}
+
+impl FrbrWork {
+    pub fn eli_projection(&self) -> String {
+        format!(
+            "urn:lex:ru:{}:{}:{};{}",
+            self.authority.as_str(),
+            self.kind,
+            self.enactment_date,
+            self.act_number.as_str()
+        )
+    }
+}
+
+/// Dated edition of a Work (Expression). Temporal via legal_act_effect day.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct FrbrExpression {
+    pub expression_id: ExpressionId,
+    pub work_id: WorkId,
+    pub legal_act_effect_day: String,
+    pub non_claims: Vec<&'static str>,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum FrbrCompareOutcome {
+    Same,
+    Different,
+    Conflict,
+}
+
+impl FrbrCompareOutcome {
+    pub fn as_str(self) -> &'static str {
+        match self {
+            Self::Same => "same",
+            Self::Different => "different",
+            Self::Conflict => "conflict",
+        }
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct FrbrCompareResult {
+    pub outcome: FrbrCompareOutcome,
+    /// Always false: FRBR compare is not C12 digest identity.
+    pub used_c12_digest: bool,
+    pub non_claims: Vec<&'static str>,
+}
+
+/// Mint a Work. Number alone is rejected (missing authority/date).
+pub fn mint_work(
+    authority: &str,
+    enactment_date: &str,
+    act_number: &str,
+) -> Result<FrbrWork, FrbrIdentityError> {
+    let authority = IssuingAuthority::parse(authority)?;
+    if enactment_date.is_empty() {
+        return Err(FrbrIdentityError::MissingEnactmentDate);
+    }
+    if !is_iso_day(enactment_date) {
+        return Err(FrbrIdentityError::InvalidEnactmentDate);
+    }
+    let act_number = LegalActNumber::parse(act_number)?;
+    let kind = "zakon";
+    let work_id = WorkId::parse(&format!(
+        "work:ru:{}:{}:{}:{}",
+        authority.as_str(),
+        kind,
+        enactment_date,
+        act_number.as_str()
+    ))?;
+    Ok(FrbrWork {
+        work_id,
+        authority,
+        enactment_date: enactment_date.to_owned(),
+        act_number,
+        kind,
+        non_claims: FRBR_NON_CLAIMS.to_vec(),
+    })
+}
+
+/// Mint an Expression of a Work at a governing legal-act-effect day.
+pub fn mint_expression(
+    work: &FrbrWork,
+    legal_act_effect_day: &str,
+) -> Result<FrbrExpression, FrbrIdentityError> {
+    if legal_act_effect_day.is_empty() || !is_iso_day(legal_act_effect_day) {
+        return Err(FrbrIdentityError::InvalidEffectDay);
+    }
+    let expression_id = ExpressionId::parse(&format!(
+        "expr:ru:{}:{}:{}:{}:{}",
+        work.authority.as_str(),
+        work.kind,
+        work.enactment_date,
+        work.act_number.as_str(),
+        legal_act_effect_day
+    ))?;
+    Ok(FrbrExpression {
+        expression_id,
+        work_id: work.work_id.clone(),
+        legal_act_effect_day: legal_act_effect_day.to_owned(),
+        non_claims: FRBR_NON_CLAIMS.to_vec(),
+    })
+}
+
+/// Compare two Works: same keys → Same; same number + divergent authority/date → Conflict.
+pub fn compare_work_identities(left: &FrbrWork, right: &FrbrWork) -> FrbrCompareResult {
+    let outcome = if left.work_id.as_str() == right.work_id.as_str() {
+        FrbrCompareOutcome::Same
+    } else if left.act_number.as_str() == right.act_number.as_str() {
+        FrbrCompareOutcome::Conflict
+    } else {
+        FrbrCompareOutcome::Different
+    };
+    FrbrCompareResult {
+        outcome,
+        used_c12_digest: false,
+        non_claims: FRBR_NON_CLAIMS.to_vec(),
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

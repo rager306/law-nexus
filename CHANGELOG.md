@@ -4,6 +4,12 @@ All notable changes to law-nexus are documented in this file.
 
 ## Unreleased — current architecture landing and repository map
 
+### FRBR Work/Expression identity spine (KBO-R011 S2)
+- Added `mint_work`, `mint_expression`, and `compare_work_identities` in
+  `ln-identity`: authority+date+number required; same number + divergent
+  authority/date → Conflict. Distinct from C12 digest identity.
+- KB ontology FSM → O2; KBO-R011 partial. Not Manifestation store or corpus.
+
 ### Force↔membership join offline (KBO-R012 / O2 partial)
 - Added `join_force_with_membership` in `ln-temporal`: force status + structural
   membership context by `ComponentConceptId`; membership never implies InForce.

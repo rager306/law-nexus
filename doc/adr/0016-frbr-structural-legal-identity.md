@@ -12,10 +12,14 @@ related: [ADR-0009, ADR-0010, ADR-0013]
 
 ## Status
 
-**Accepted [proposed]** — structural identity model designed. Not implemented.
-Moves to `[bounded]` when a Rust FRBR Work/Expression adapter with fail-closed
-identity resolution ships with TDD parity tests; to `[validated]` only when
-identity is proven stable across the representative corpus.
+**Accepted [proposed]** — structural identity model designed; **Work/Expression**
+offline spine shipped (`mint_work` / `mint_expression` / `compare_work_identities`
+in `ln-identity`, KBO-R011 S2). Number alone is never Work; same number +
+divergent authority/date → Conflict. Still not Manifestation/Item store or corpus
+identity stability. Distinct from C12 digest identity.
+Moves to `[bounded]` when Manifestation carriers + fail-closed parser identity
+join land; to `[validated]` only when identity is proven stable across the
+representative corpus.
 
 ## Context
 
@@ -84,6 +88,11 @@ The four levels below are WEMI, LRMoo-compatible.
   component versioning) nor "what did it legally mean" (ADR-0018+).
 
 ## Non-claims
+
+- Offline `mint_work`/`compare_work_identities` is **structural L1 only**: not C12
+  merge, not ForceStatus, not Applicability, not ELI global resolution.
+- Same act number with divergent authority or enactment date is **Conflict**, never
+  a silent pick.
 
 - No legal correctness of identity resolution.
 - No claim that ELI URNs are globally resolvable beyond this project.

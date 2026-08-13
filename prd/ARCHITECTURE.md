@@ -72,7 +72,7 @@ Accumulating **materialization** requirements (not production schema):
 `prd/architecture/kb-ontology-projection-contract.json`.
 L1–L3 only (identity carriers, membership/CTV structure, force status);
 L4–L7 and Applicable remain deferred. Structural Governor check only. Offline force↔membership join:
-`join_force_with_membership` (O2 partial; membership ≠ InForce).
+`join_force_with_membership` + FRBR `mint_work`/`compare_work_identities` (O2; number ≠ Work; membership ≠ InForce).
 
 ## Temporal legal ontology — design spine (all `[proposed]`)
 

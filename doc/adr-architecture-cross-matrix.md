@@ -214,3 +214,5 @@ GitNexus reindex after this wave required for accurate residual-noise queries.
 <!-- TSG-003/013 S3 apply_industrial_op -->
 
 <!-- TSG-004 force resolve_force_status_at companion -->
+
+<!-- FRBR mint_work KBO-R011 S2 companion -->

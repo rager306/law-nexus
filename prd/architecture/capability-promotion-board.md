@@ -129,7 +129,7 @@ No row advanced to S6 in the spine wave; S3 apply landed later (see history).
 
 Parallel inventory (not TSG S6): `prd/architecture/kb-ontology-requirements.md`,
 `kb-ontology-l1-l3-draft.md`, `kb-ontology-projection-contract.json`.
-FSM **O2 partial** (`join_force_with_membership`); open deps KBO-R011/R013; R012 partial.
+FSM **O2** (join + FRBR Work/Expression S2); open dep KBO-R013; R011/R012 partial.
 Governor check `kb-ontology-draft` is structural only.
 
 ## 6. Operator cycle (capability-only)

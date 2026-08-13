@@ -1,7 +1,7 @@
 {
   "schema_version": "law-nexus-kb-ontology-projection/v1",
   "lifecycle": "[proposed]",
-  "fsm_state": "O2_partial",
+  "fsm_state": "O2",
   "authoritative": false,
   "boundary": "Draft L1-L3 graph projection inventory only. Not production graph schema, not RuVector validation, not legal correctness, not applicability, not ontology conformance.",
   "non_authority_fragments": [
@@ -167,7 +167,6 @@
     "ADR-0018"
   ],
   "open_dependencies": [
-    "KBO-R011",
     "KBO-R013"
   ],
   "deferred": [
@@ -176,7 +175,8 @@
     "KBO-R016"
   ],
   "partial_dependencies": [
+    "KBO-R011",
     "KBO-R012"
   ],
-  "notes": "join_force_with_membership offline in ln-temporal; membership does not imply InForce; not FRBR Work/Expression runtime; not corpus edges."
+  "notes": "join_force_with_membership + mint_work/mint_expression/compare_work_identities offline; number alone is never Work; membership does not imply InForce; not corpus edges."
 }

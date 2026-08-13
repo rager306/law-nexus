@@ -35,10 +35,11 @@ O0 inventory_open
   → O6 closed_bounded | closed_validated   (corpus + non-claims)
 ```
 
-**Current state:** **O2 partial** — offline `join_force_with_membership` (KBO-R012)
-landed; FRBR identity runtime (KBO-R011) and S4 fixtures (KBO-R013) still open.  
-**Exit O1:** done (draft + KBO-R + Governor).  
-**Exit O2:** force↔membership join **and** FRBR identity spine ≥ S2 offline.  
+**Current state:** **O2** — force↔membership join (KBO-R012 partial→join landed) **and**
+FRBR Work/Expression spine S2 (`mint_work` / `mint_expression` / `compare_work_identities`).
+S4 fixtures (KBO-R013) and Manifestation/Item store remain open.  
+**Exit O1:** done. **Exit O2 (identity+join offline):** done at spine/S2.  
+**Not full O2 freeze:** no corpus identity, no Manifestation runtime, no C12↔FRBR merge.  
 **Not exit criteria:** RuVector live, Cypher product surface, Applicable, S6 TSG.
 
 ## 3. Requirement classes
@@ -65,7 +66,7 @@ landed; FRBR identity runtime (KBO-R011) and S4 fixtures (KBO-R013) still open.
 | KBO-R008 | non-claim | `InForce` projection must not imply Applicable; force edges must not write applicability nodes | RC11-F09; ADR-0023 | **accepted-draft** |
 | KBO-R009 | non-claim | CTV text/membership presence must not imply `InForce` | ADR-0017/18; TSG-004 | **accepted-draft** |
 | KBO-R010 | non-claim | RuVector / redb / RVF types are infrastructure, not domain law | ADR-0014 | **accepted-draft** |
-| KBO-R011 | dependency | Stable FRBR Work/Expression runtime identity (ADR-0016 ≥ S2) before freezing identity node cardinality | TSG identity / DATA-LEGAL-DOCUMENT-IDENTITY-FRBR | **open** |
+| KBO-R011 | dependency | Stable FRBR Work/Expression runtime identity (ADR-0016 ≥ S2) before freezing identity node cardinality | `mint_work`/`compare_work_identities` S2; number≠Work | **partial** |
 | KBO-R012 | dependency | Force↔CTV join by component offline before multi-store materialization of status+text | `join_force_with_membership` offline; membership≠InForce | **partial** |
 | KBO-R013 | dependency | Representative amendment / membership fixtures (S4 partial) before corpus edge claims | TSG-003/013 | **open** |
 | KBO-R014 | deferred | L4 hierarchy/conflict, L5 practice, L6 transitional/risk, L7 profiles as **core store types** | ADR-0019..0022; TSG-007..010 | **deferred** |
@@ -82,7 +83,8 @@ Ordered for debt-first product depth **toward** O2–O4:
 
 1. Offline **force↔membership join** by `ComponentConceptId` (KBO-R012) — **partial** via
    `join_force_with_membership` (not full CTV text edition join).  
-2. **FRBR identity spine S2** in product domain (KBO-R011) — distinct from C12 digest identity.  
+2. **FRBR identity spine S2** — **partial**: `ln-identity` Work/Expression mint+compare
+   (distinct from C12). Manifestation/Item + corpus stability still open.  
 3. Projection pure functions: domain event → typed write-set (no store I/O).  
 4. Hostile projection suite: forbidden edge, missing provenance, InForce≠Applicable.  
 5. Bounded port adapter write behind graph-store port (still synthetic).  
