@@ -595,7 +595,10 @@ def test_kb_ontology_draft_pass_when_complete(tmp_path: Path) -> None:
         "schema_version: law-nexus-kb-ontology/v1\n"
         "authoritative: false\n"
         "fsm:\n  current: O2_decode_lift\n  states:\n    O2_decode_lift:\n      name: lift\n"
-        "vocabulary:\n  hierarchy_levels:\n    - statya\n",
+        "vocabulary:\n  hierarchy_levels:\n    - statya\n"
+        "  node_kinds:\n    - Work\n    - Expression\n    - ComponentConcept\n"
+        "    - ForceStatusEvent\n    - MembershipEdge\n"
+        "  forbidden_node_kinds:\n    - ApplicableDecision\n    - NormativeBlob\n",
         encoding="utf-8",
     )
     from law_nexus_harness.governor import check_kb_ontology_draft

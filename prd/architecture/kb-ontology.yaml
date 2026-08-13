@@ -16,7 +16,7 @@ boundary: >
 fsm:
   name: kb-ontology-readiness
   initial: O0
-  current: O2_decode_lift
+  current: O2_catalog_kinds
   terminal:
     - O6_closed_bounded
     - O6_closed_validated
@@ -49,6 +49,10 @@ fsm:
       name: decode_lift_fail_closed
       meaning: HierarchyMarker maps to CC only via registry
       exit: unmapped is Unknown; number+level is not a CC
+    O2_catalog_kinds:
+      name: catalog_validated_kinds
+      meaning: node/edge/presence tokens come from YAML, not Rust enums
+      exit: unknown kind fails closed; Manifestation is catalog-legal
     O3:
       name: representative_fixture_edges
       meaning: bounded fixtures, not corpus gold
@@ -76,13 +80,15 @@ fsm:
     - {from: O2_writeset, to: O2_fold, when: membership_fold_projection}
     - {from: O2_fold, to: O2_expression_presence, when: cc_presence_per_expression}
     - {from: O2_expression_presence, to: O2_decode_lift, when: hierarchy_marker_map_fail_closed}
-    - {from: O2_decode_lift, to: O3, when: representative_fixtures}
+    - {from: O2_decode_lift, to: O2_catalog_kinds, when: kinds_are_catalog_tokens}
+    - {from: O2_catalog_kinds, to: O3, when: representative_fixtures}
     - {from: O3, to: O4, when: port_write_no_live_claim}
     - {from: O4, to: O5, when: human_scope}
     - {from: O5, to: O6_closed_bounded, when: bounded_disposition}
     - {from: O5, to: O6_closed_validated, when: corpus_disposition}
   forbidden_jumps:
     - {from: O2_decode_lift, to: O6_closed_validated, why: no skip of fixtures and human gate}
+    - {from: O2_catalog_kinds, to: O6_closed_validated, why: no skip of fixtures and human gate}
     - {from: O1, to: O4, why: no store I/O before offline join and fold}
   guards:
     - id: kernel_owns_substance
@@ -143,6 +149,9 @@ vocabulary:
   presence_change_kinds:
     - include
     - exclude
+  presence_fold_ops:
+    include: add
+    exclude: remove
   membership_change_kinds:
     - attach
     - detach

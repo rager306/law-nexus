@@ -8,61 +8,16 @@ use ln_temporal::domain::{
     StructuralAstNode,
 };
 
-/// Graph node kinds allowed in the L1–L3 draft projection.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-pub enum GraphNodeKind {
-    Work,
-    Expression,
-    ComponentConcept,
-    AmendingAct,
-    MembershipEdge,
-    ForceStatusEvent,
-}
-
-impl GraphNodeKind {
-    pub fn as_str(self) -> &'static str {
-        match self {
-            Self::Work => "Work",
-            Self::Expression => "Expression",
-            Self::ComponentConcept => "ComponentConcept",
-            Self::AmendingAct => "AmendingAct",
-            Self::MembershipEdge => "MembershipEdge",
-            Self::ForceStatusEvent => "ForceStatusEvent",
-        }
-    }
-}
-
-/// Graph edge kinds allowed in the L1–L3 draft projection.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-pub enum GraphEdgeKind {
-    ExpressionOf,
-    MembershipParent,
-    ForceStatusOf,
-    ProvAmendingAct,
-    ComponentInExpression,
-}
-
-impl GraphEdgeKind {
-    pub fn as_str(self) -> &'static str {
-        match self {
-            Self::ExpressionOf => "expression_of",
-            Self::MembershipParent => "membership_parent",
-            Self::ForceStatusOf => "force_status_of",
-            Self::ProvAmendingAct => "prov_amending_act",
-            Self::ComponentInExpression => "component_in_expression",
-        }
-    }
-}
-
+/// Catalog-validated node/edge kind token. Vocabulary lives in YAML, not Rust enums.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct GraphNode {
-    pub kind: GraphNodeKind,
+    pub kind: String,
     pub id: String,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct GraphEdge {
-    pub kind: GraphEdgeKind,
+    pub kind: String,
     pub from_id: String,
     pub to_id: String,
 }
@@ -79,7 +34,7 @@ pub struct WriteSet {
 }
 
 impl WriteSet {
-    fn empty() -> Self {
+    pub fn empty() -> Self {
         Self {
             nodes: Vec::new(),
             edges: Vec::new(),
@@ -90,24 +45,32 @@ impl WriteSet {
         }
     }
 
-    fn push_node(&mut self, kind: GraphNodeKind, id: impl Into<String>) {
+    pub fn try_push_node(
+        &mut self,
+        kind: &str,
+        id: impl Into<String>,
+    ) -> Result<(), WriteSetError> {
+        let kind = catalog_node_kind(kind)?;
         let id = id.into();
         if !self.nodes.iter().any(|n| n.kind == kind && n.id == id) {
             self.nodes.push(GraphNode { kind, id });
         }
+        Ok(())
     }
 
-    fn push_edge(
+    pub fn try_push_edge(
         &mut self,
-        kind: GraphEdgeKind,
+        kind: &str,
         from_id: impl Into<String>,
         to_id: impl Into<String>,
-    ) {
+    ) -> Result<(), WriteSetError> {
+        let kind = catalog_edge_kind(kind)?;
         self.edges.push(GraphEdge {
             kind,
             from_id: from_id.into(),
             to_id: to_id.into(),
         });
+        Ok(())
     }
 }
 
@@ -121,6 +84,9 @@ pub enum WriteSetError {
     HierarchyMapConflict,
     UnknownHierarchyLevel,
     UnknownFsmTransition,
+    UnknownNodeKind,
+    UnknownEdgeKind,
+    UnknownPresenceKind,
 }
 
 impl std::fmt::Display for WriteSetError {
@@ -163,6 +129,15 @@ impl std::fmt::Display for WriteSetError {
                     "FSM transition is not declared in the YAML catalog"
                 )
             }
+            Self::UnknownNodeKind => {
+                write!(formatter, "node kind is not in the YAML catalog")
+            }
+            Self::UnknownEdgeKind => {
+                write!(formatter, "edge kind is not in the YAML catalog")
+            }
+            Self::UnknownPresenceKind => {
+                write!(formatter, "presence change kind is not in the YAML catalog")
+            }
         }
     }
 }
@@ -201,7 +176,7 @@ pub fn project_work(work: &FrbrWork) -> Result<WriteSet, WriteSetError> {
         return Err(WriteSetError::MissingIdentity);
     }
     let mut set = WriteSet::empty();
-    set.push_node(GraphNodeKind::Work, work.work_id.as_str());
+    set.try_push_node("Work", work.work_id.as_str())?;
     Ok(set)
 }
 
@@ -211,13 +186,13 @@ pub fn project_expression(expression: &FrbrExpression) -> Result<WriteSet, Write
         return Err(WriteSetError::MissingIdentity);
     }
     let mut set = WriteSet::empty();
-    set.push_node(GraphNodeKind::Expression, expression.expression_id.as_str());
-    set.push_node(GraphNodeKind::Work, expression.work_id.as_str());
-    set.push_edge(
-        GraphEdgeKind::ExpressionOf,
+    set.try_push_node("Expression", expression.expression_id.as_str())?;
+    set.try_push_node("Work", expression.work_id.as_str())?;
+    set.try_push_edge(
+        "expression_of",
         expression.expression_id.as_str(),
         expression.work_id.as_str(),
-    );
+    )?;
     Ok(set)
 }
 
@@ -225,17 +200,17 @@ pub fn project_expression(expression: &FrbrExpression) -> Result<WriteSet, Write
 pub fn project_membership(edge: &MembershipEdge) -> Result<WriteSet, WriteSetError> {
     let mut set = WriteSet::empty();
     set.structural_known = true;
-    set.push_node(GraphNodeKind::ComponentConcept, edge.parent().as_str());
-    set.push_node(GraphNodeKind::ComponentConcept, edge.child().as_str());
-    set.push_node(
-        GraphNodeKind::MembershipEdge,
+    set.try_push_node("ComponentConcept", edge.parent().as_str())?;
+    set.try_push_node("ComponentConcept", edge.child().as_str())?;
+    set.try_push_node(
+        "MembershipEdge",
         format!("{}->{}", edge.parent().as_str(), edge.child().as_str()),
-    );
-    set.push_edge(
-        GraphEdgeKind::MembershipParent,
+    )?;
+    set.try_push_edge(
+        "membership_parent",
         edge.parent().as_str(),
         edge.child().as_str(),
-    );
+    )?;
     Ok(set)
 }
 
@@ -254,19 +229,11 @@ pub fn project_force_event(event: &ForceStatusEvent) -> Result<WriteSet, WriteSe
         event.effect_day(),
         event.provenance().as_str()
     );
-    set.push_node(GraphNodeKind::ForceStatusEvent, &event_id);
-    set.push_node(GraphNodeKind::ComponentConcept, event.component().as_str());
-    set.push_node(GraphNodeKind::AmendingAct, event.provenance().as_str());
-    set.push_edge(
-        GraphEdgeKind::ForceStatusOf,
-        &event_id,
-        event.component().as_str(),
-    );
-    set.push_edge(
-        GraphEdgeKind::ProvAmendingAct,
-        &event_id,
-        event.provenance().as_str(),
-    );
+    set.try_push_node("ForceStatusEvent", &event_id)?;
+    set.try_push_node("ComponentConcept", event.component().as_str())?;
+    set.try_push_node("AmendingAct", event.provenance().as_str())?;
+    set.try_push_edge("force_status_of", &event_id, event.component().as_str())?;
+    set.try_push_edge("prov_amending_act", &event_id, event.provenance().as_str())?;
     Ok(set)
 }
 
@@ -274,22 +241,22 @@ pub fn project_force_event(event: &ForceStatusEvent) -> Result<WriteSet, WriteSe
 pub fn project_join(joined: &ForceMembershipJoin) -> Result<WriteSet, WriteSetError> {
     let mut set = WriteSet::empty();
     set.structural_known = joined.structural_known;
-    set.push_node(GraphNodeKind::ComponentConcept, joined.component.as_str());
+    set.try_push_node("ComponentConcept", joined.component.as_str())?;
     if let Some(parent) = &joined.parent {
-        set.push_node(GraphNodeKind::ComponentConcept, parent.as_str());
-        set.push_edge(
-            GraphEdgeKind::MembershipParent,
+        set.try_push_node("ComponentConcept", parent.as_str())?;
+        set.try_push_edge(
+            "membership_parent",
             parent.as_str(),
             joined.component.as_str(),
-        );
+        )?;
     }
     for child in &joined.children {
-        set.push_node(GraphNodeKind::ComponentConcept, child.as_str());
-        set.push_edge(
-            GraphEdgeKind::MembershipParent,
+        set.try_push_node("ComponentConcept", child.as_str())?;
+        set.try_push_edge(
+            "membership_parent",
             joined.component.as_str(),
             child.as_str(),
-        );
+        )?;
     }
     // Join projects structural context only. Force events come from
     // `project_force_event`. Unknown/conflict must never invent InForce nodes.
@@ -302,46 +269,32 @@ pub fn project_structural_ast(ast: &StructuralAst) -> Result<WriteSet, WriteSetE
     let mut set = WriteSet::empty();
     set.structural_known = !ast.roots().is_empty();
     for root in ast.roots() {
-        project_ast_node(&mut set, root);
+        project_ast_node(&mut set, root)?;
     }
     Ok(set)
 }
 
-fn project_ast_node(set: &mut WriteSet, node: &StructuralAstNode) {
-    set.push_node(GraphNodeKind::ComponentConcept, node.component().as_str());
+fn project_ast_node(set: &mut WriteSet, node: &StructuralAstNode) -> Result<(), WriteSetError> {
+    set.try_push_node("ComponentConcept", node.component().as_str())?;
     for child in node.children() {
-        set.push_node(GraphNodeKind::ComponentConcept, child.component().as_str());
-        set.push_edge(
-            GraphEdgeKind::MembershipParent,
+        set.try_push_node("ComponentConcept", child.component().as_str())?;
+        set.try_push_edge(
+            "membership_parent",
             node.component().as_str(),
             child.component().as_str(),
-        );
-        project_ast_node(set, child);
+        )?;
+        project_ast_node(set, child)?;
     }
+    Ok(())
 }
 
 // ─── Component-in-Expression presence (not CTV text, not force) ─────────────
 
-/// Include or exclude a ComponentConcept from a dated Expression.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-pub enum PresenceChangeKind {
-    Include,
-    Exclude,
-}
-
-impl PresenceChangeKind {
-    pub fn as_str(self) -> &'static str {
-        match self {
-            Self::Include => "include",
-            Self::Exclude => "exclude",
-        }
-    }
-}
-
 /// Provenance-gated presence change of a CC in one Expression.
+/// `kind` is a YAML catalog token (`include` / `exclude`), not a Rust enum.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ComponentInExpressionEvent {
-    kind: PresenceChangeKind,
+    kind: String,
     expression_id: ExpressionId,
     component: ComponentConceptId,
     effect_day: i64,
@@ -350,12 +303,13 @@ pub struct ComponentInExpressionEvent {
 
 impl ComponentInExpressionEvent {
     pub fn try_new(
-        kind: PresenceChangeKind,
+        kind: &str,
         expression_id: ExpressionId,
         component: ComponentConceptId,
         effect_day: i64,
         provenance: &str,
     ) -> Result<Self, WriteSetError> {
+        let kind = catalog_presence_kind(kind)?;
         if expression_id.as_str().is_empty() || component.as_str().is_empty() {
             return Err(WriteSetError::MissingIdentity);
         }
@@ -371,8 +325,8 @@ impl ComponentInExpressionEvent {
         })
     }
 
-    pub fn kind(&self) -> PresenceChangeKind {
-        self.kind
+    pub fn kind(&self) -> &str {
+        &self.kind
     }
 
     pub fn expression_id(&self) -> &ExpressionId {
@@ -450,6 +404,7 @@ pub fn fold_expression_presence(
         )
     });
 
+    let catalog = OntologyCatalog::embedded().map_err(|_| WriteSetError::UnknownPresenceKind)?;
     let mut present: Vec<String> = Vec::new();
     let mut i = 0;
     while i < applicable.len() {
@@ -460,29 +415,30 @@ pub fn fold_expression_presence(
         }
         let slice = &applicable[i..j];
 
-        let mut seen: Vec<(String, PresenceChangeKind)> = Vec::new();
+        let mut seen: Vec<(String, String)> = Vec::new();
         for ev in slice.iter() {
             let id = ev.component.as_str().to_owned();
             if let Some((_, prior)) = seen.iter().find(|(c, _)| c == &id) {
-                if *prior != ev.kind {
+                if prior != &ev.kind {
                     return Err(WriteSetError::PresenceConflict);
                 }
             } else {
-                seen.push((id, ev.kind));
+                seen.push((id, ev.kind.clone()));
             }
         }
 
         for ev in slice {
             let id = ev.component.as_str().to_owned();
-            match ev.kind {
-                PresenceChangeKind::Include => {
+            match catalog.presence_fold_op(&ev.kind) {
+                Some("add") => {
                     if !present.contains(&id) {
                         present.push(id);
                     }
                 }
-                PresenceChangeKind::Exclude => {
+                Some("remove") => {
                     present.retain(|c| c != &id);
                 }
+                _ => return Err(WriteSetError::UnknownPresenceKind),
             }
         }
         i = j;
@@ -525,20 +481,47 @@ pub fn project_expression_presence(
         return Err(WriteSetError::MissingIdentity);
     }
     let mut set = WriteSet::empty();
-    set.push_node(GraphNodeKind::Expression, expression.expression_id.as_str());
+    set.try_push_node("Expression", expression.expression_id.as_str())?;
     for component in &presence.components {
-        set.push_node(GraphNodeKind::ComponentConcept, component.as_str());
-        set.push_edge(
-            GraphEdgeKind::ComponentInExpression,
+        set.try_push_node("ComponentConcept", component.as_str())?;
+        set.try_push_edge(
+            "component_in_expression",
             component.as_str(),
             expression.expression_id.as_str(),
-        );
+        )?;
     }
     Ok(set)
 }
 
 // ─── HierarchyMarker → CC lift (KBO-R024 / R3-02). Decode remains a candidate. ─
 // Levels come from prd/architecture/kb-ontology.yaml, not a Rust enum.
+
+fn catalog_node_kind(kind: &str) -> Result<String, WriteSetError> {
+    let catalog = OntologyCatalog::embedded().map_err(|_| WriteSetError::UnknownNodeKind)?;
+    if catalog.is_forbidden_kind(kind) {
+        return Err(WriteSetError::ForbiddenKind(kind.to_owned()));
+    }
+    if catalog.is_node_kind(kind) {
+        return Ok(kind.to_owned());
+    }
+    Err(WriteSetError::UnknownNodeKind)
+}
+
+fn catalog_edge_kind(kind: &str) -> Result<String, WriteSetError> {
+    let catalog = OntologyCatalog::embedded().map_err(|_| WriteSetError::UnknownEdgeKind)?;
+    if catalog.is_edge_kind(kind) {
+        return Ok(kind.to_owned());
+    }
+    Err(WriteSetError::UnknownEdgeKind)
+}
+
+fn catalog_presence_kind(kind: &str) -> Result<String, WriteSetError> {
+    let catalog = OntologyCatalog::embedded().map_err(|_| WriteSetError::UnknownPresenceKind)?;
+    if catalog.is_presence_change_kind(kind) {
+        return Ok(kind.to_owned());
+    }
+    Err(WriteSetError::UnknownPresenceKind)
+}
 
 fn catalog_level(level: &str) -> Result<String, WriteSetError> {
     let catalog = OntologyCatalog::embedded().map_err(|_| WriteSetError::UnknownHierarchyLevel)?;

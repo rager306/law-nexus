@@ -1211,17 +1211,6 @@ _KB_ONTOLOGY_NON_AUTHORITY_FRAGMENTS = (
     "not production graph schema",
     "not Applicable",
 )
-_KB_ONTOLOGY_REQUIRED_KINDS = (
-    "Work",
-    "Expression",
-    "ComponentConcept",
-    "ForceStatusEvent",
-    "MembershipEdge",
-)
-_KB_ONTOLOGY_REQUIRED_FORBIDDEN = (
-    "ApplicableDecision",
-    "NormativeBlob",
-)
 
 
 def check_capability_promotion_board(root: Path) -> list[GovernorFinding]:
@@ -1342,7 +1331,8 @@ def check_kb_ontology_draft(root: Path) -> list[GovernorFinding]:
     """Advisory structural check: KB ontology draft L1–L3 inventory is present.
 
     Validates requirements register + draft + machine contract exist, declare
-    non-authority, and list required node kinds / forbidden kinds. Does not
+    non-authority, and keep contract kinds/FSM aligned with kb-ontology.yaml.
+    Required kinds come from YAML, not a hardcoded Python tuple. Does not
     validate semantic completeness, RuVector readiness, or production schema.
     """
 
@@ -1439,9 +1429,7 @@ def check_kb_ontology_draft(root: Path) -> list[GovernorFinding]:
     node_kinds = {
         item.get("kind") for item in contract.get("node_kinds") or [] if isinstance(item, dict)
     }
-    missing_kinds = sorted(set(_KB_ONTOLOGY_REQUIRED_KINDS) - node_kinds)
     forbidden = set(contract.get("forbidden_node_kinds") or [])
-    missing_forbidden = sorted(set(_KB_ONTOLOGY_REQUIRED_FORBIDDEN) - forbidden)
 
     req_ids = set(re.findall(r"\bKBO-R\d{3}\b", req_text))
     if len(req_ids) < 10:
@@ -1454,24 +1442,6 @@ def check_kb_ontology_draft(root: Path) -> list[GovernorFinding]:
                 observed=f"kbo_r_count={len(req_ids)}",
                 remediation="Keep append-only KBO-R### requirement rows in the register.",
                 evidence=[GovernorEvidence(path=str(_KB_ONTOLOGY_REQUIREMENTS_REL))],
-            )
-        ]
-
-    if missing_kinds or missing_forbidden:
-        return [
-            GovernorFinding(
-                check_id=check_id,
-                status="fail",
-                severity="warn",
-                message="KB ontology projection contract missing required kinds",
-                observed=(
-                    f"missing_node_kinds={missing_kinds}; missing_forbidden={missing_forbidden}"
-                ),
-                remediation=(
-                    "Include Work/Expression/ComponentConcept/ForceStatusEvent/"
-                    "MembershipEdge and forbidden ApplicableDecision/NormativeBlob."
-                ),
-                evidence=[GovernorEvidence(path=str(_KB_ONTOLOGY_CONTRACT_REL))],
             )
         ]
 
@@ -1514,6 +1484,51 @@ def check_kb_ontology_draft(root: Path) -> list[GovernorFinding]:
                 ),
                 remediation="Declare fsm.current, fsm.states, and vocabulary.hierarchy_levels in YAML.",
                 evidence=[GovernorEvidence(path=str(_KB_ONTOLOGY_YAML_REL))],
+            )
+        ]
+
+    vocabulary = catalog.get("vocabulary") if isinstance(catalog, dict) else {}
+    yaml_node_kinds = set((vocabulary or {}).get("node_kinds") or [])
+    yaml_forbidden = set((vocabulary or {}).get("forbidden_node_kinds") or [])
+    extra_contract_kinds = sorted(kind for kind in node_kinds if kind not in yaml_node_kinds)
+    extra_contract_forbidden = sorted(kind for kind in forbidden if kind not in yaml_forbidden)
+    missing_yaml_kinds = sorted(kind for kind in yaml_node_kinds if kind not in node_kinds)
+    contract_fsm = contract.get("fsm_state")
+    if extra_contract_kinds or extra_contract_forbidden or missing_yaml_kinds:
+        return [
+            GovernorFinding(
+                check_id=check_id,
+                status="fail",
+                severity="warn",
+                message="KB ontology contract kinds are not a catalog subset",
+                observed=(
+                    f"extra_contract_kinds={extra_contract_kinds}; "
+                    f"missing_yaml_kinds={missing_yaml_kinds}; "
+                    f"extra_forbidden={extra_contract_forbidden}"
+                ),
+                remediation=(
+                    "Keep projection-contract node/forbidden kinds aligned with "
+                    "prd/architecture/kb-ontology.yaml vocabulary."
+                ),
+                evidence=[
+                    GovernorEvidence(path=str(_KB_ONTOLOGY_CONTRACT_REL)),
+                    GovernorEvidence(path=str(_KB_ONTOLOGY_YAML_REL)),
+                ],
+            )
+        ]
+    if contract_fsm and contract_fsm != yaml_current:
+        return [
+            GovernorFinding(
+                check_id=check_id,
+                status="fail",
+                severity="warn",
+                message="KB ontology contract fsm_state differs from YAML fsm.current",
+                observed=f"contract={contract_fsm!r}; yaml={yaml_current!r}",
+                remediation="Set contract.fsm_state to kb-ontology.yaml fsm.current.",
+                evidence=[
+                    GovernorEvidence(path=str(_KB_ONTOLOGY_CONTRACT_REL)),
+                    GovernorEvidence(path=str(_KB_ONTOLOGY_YAML_REL)),
+                ],
             )
         ]
 

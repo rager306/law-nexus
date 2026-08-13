@@ -39,6 +39,7 @@ pub struct OntologyCatalog {
     pub industrial_op_kinds: Vec<String>,
     pub force_status_values: Vec<String>,
     pub decode_level_aliases: Vec<(String, String)>,
+    pub presence_fold_ops: Vec<(String, String)>,
 }
 
 impl OntologyCatalog {
@@ -79,6 +80,7 @@ impl OntologyCatalog {
         let industrial_op_kinds = list_under_vocabulary(text, "industrial_op_kinds:")?;
         let force_status_values = list_under_vocabulary(text, "force_status_values:")?;
         let decode_level_aliases = map_pairs_under_vocabulary(text, "decode_level_aliases:")?;
+        let presence_fold_ops = map_pairs_under_vocabulary(text, "presence_fold_ops:")?;
         if hierarchy_levels.is_empty() || node_kinds.is_empty() || forbidden_node_kinds.is_empty() {
             return Err(CatalogError {
                 reason: "vocabulary lists are incomplete",
@@ -105,11 +107,20 @@ impl OntologyCatalog {
             industrial_op_kinds,
             force_status_values,
             decode_level_aliases,
+            presence_fold_ops,
         })
     }
 
     pub fn is_hierarchy_level(&self, level: &str) -> bool {
         self.hierarchy_levels.iter().any(|item| item == level)
+    }
+
+    pub fn is_node_kind(&self, kind: &str) -> bool {
+        self.node_kinds.iter().any(|item| item == kind)
+    }
+
+    pub fn is_edge_kind(&self, kind: &str) -> bool {
+        self.edge_kinds.iter().any(|item| item == kind)
     }
 
     pub fn is_forbidden_kind(&self, kind: &str) -> bool {
@@ -140,6 +151,13 @@ impl OntologyCatalog {
 
     pub fn is_force_status(&self, value: &str) -> bool {
         self.force_status_values.iter().any(|item| item == value)
+    }
+
+    pub fn presence_fold_op(&self, kind: &str) -> Option<&str> {
+        self.presence_fold_ops
+            .iter()
+            .find(|(source, _)| source == kind)
+            .map(|(_, op)| op.as_str())
     }
 
     pub fn resolve_decode_level_alias(&self, token: &str) -> Option<String> {
@@ -388,8 +406,11 @@ mod tests {
         assert!(catalog.is_known_state(&catalog.current_state));
         assert!(catalog.is_hierarchy_level("statya"));
         assert!(catalog.is_forbidden_kind("ApplicableDecision"));
-        assert!(catalog.allows_transition("O2_expression_presence", "O2_decode_lift"));
+        assert!(catalog.allows_transition("O2_decode_lift", "O2_catalog_kinds"));
         assert!(!catalog.allows_transition("O1", "O6_closed_validated"));
+        assert!(catalog.is_node_kind("Manifestation"));
+        assert!(!catalog.is_node_kind("NormativeBlobAsWork"));
+        assert_eq!(catalog.presence_fold_op("include"), Some("add"));
         assert_eq!(
             catalog.resolve_decode_level_alias("Statya").as_deref(),
             Some("statya")

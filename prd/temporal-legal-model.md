@@ -354,3 +354,5 @@ Stop and replan if any review:
 <!-- kb-ontology.yaml FSM catalog companion -->
 
 <!-- decode_level_aliases KBO-R026 companion -->
+
+<!-- catalog kinds KBO-R027 companion -->

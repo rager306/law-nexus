@@ -239,3 +239,5 @@ This roadmap does not prove Rust product readiness, parser completeness, Russian
 <!-- kb-ontology.yaml FSM catalog companion -->
 
 <!-- decode_level_aliases KBO-R026 companion -->
+
+<!-- catalog kinds KBO-R027 companion -->

@@ -130,7 +130,7 @@ fn unknown_yaml_level_is_rejected() {
 
 #[test]
 fn fsm_only_allows_yaml_declared_edges() {
-    advance_ontology_fsm("O2_expression_presence", "O2_decode_lift").expect("declared");
+    advance_ontology_fsm("O2_decode_lift", "O2_catalog_kinds").expect("declared");
     let err = advance_ontology_fsm("O1", "O6_closed_validated").expect_err("jump");
     assert!(matches!(err, WriteSetError::UnknownFsmTransition));
 }

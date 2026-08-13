@@ -7,7 +7,7 @@ use ln_identity::domain::{mint_expression, mint_work};
 use ln_kb_ontology::domain::{
     expression_contains, filter_ast_to_expression, fold_expression_presence,
     project_expression_presence, ComponentInExpressionEvent, ComponentInExpressionLog,
-    GraphEdgeKind, PresenceChangeKind,
+    WriteSetError,
 };
 use ln_temporal::domain::{
     fold_membership_at, ComponentConceptId, MembershipChangeKind, VersionedMembershipEvent,
@@ -34,7 +34,7 @@ fn include(
     day: i64,
 ) -> ComponentInExpressionEvent {
     ComponentInExpressionEvent::try_new(
-        PresenceChangeKind::Include,
+        "include",
         expr.expression_id.clone(),
         cc(component),
         day,
@@ -49,7 +49,7 @@ fn exclude(
     day: i64,
 ) -> ComponentInExpressionEvent {
     ComponentInExpressionEvent::try_new(
-        PresenceChangeKind::Exclude,
+        "exclude",
         expr.expression_id.clone(),
         cc(component),
         day,
@@ -175,10 +175,21 @@ fn project_presence_emits_component_in_expression_edge() {
     log.append(include(&expr, "cc:art-93", 1)).expect("i");
     let set = fold_expression_presence(&log, &expr.expression_id, 1).expect("fold");
     let ws = project_expression_presence(&expr, &set).expect("ws");
-    assert!(ws
-        .edges
-        .iter()
-        .any(|e| e.kind == GraphEdgeKind::ComponentInExpression));
+    assert!(ws.edges.iter().any(|e| e.kind == "component_in_expression"));
     assert!(!ws.performs_io);
     assert!(!ws.claims_applicability);
+}
+
+#[test]
+fn unknown_presence_kind_is_rejected() {
+    let expr = expr_2014();
+    let err = ComponentInExpressionEvent::try_new(
+        "upsert",
+        expr.expression_id.clone(),
+        cc("cc:art-93"),
+        1,
+        "act:p",
+    )
+    .expect_err("unknown");
+    assert!(matches!(err, WriteSetError::UnknownPresenceKind));
 }

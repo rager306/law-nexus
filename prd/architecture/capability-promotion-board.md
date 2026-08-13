@@ -132,6 +132,12 @@ Parallel inventory (not TSG S6): `prd/architecture/kb-ontology-requirements.md`,
 FSM current is `fsm.current` in `kb-ontology.yaml`; open dep KBO-R013.
 Governor check `kb-ontology-draft` is structural only.
 
+| Date | Req | Change | Proof |
+|---|---|---|---|
+| 2026-08-13 | KBO-R025 | YAML FSM catalog | `kb-ontology.yaml` drives states/kinds/levels |
+| 2026-08-13 | KBO-R026 | decode aliases | YAML Statya→statya; unknown token fail-closed |
+| 2026-08-13 | KBO-R027 | catalog kinds | node/edge/presence tokens from YAML; no Rust enums |
+
 ## 6. Operator cycle (capability-only)
 
 ```text

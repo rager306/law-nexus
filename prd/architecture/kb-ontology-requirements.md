@@ -35,7 +35,7 @@ O0 inventory_open
   → O6 closed_bounded | closed_validated   (corpus + non-claims)
 ```
 
-**Current state:** **O2_decode_lift** (declared in `kb-ontology.yaml` FSM).
+**Current state:** **O2_catalog_kinds** (declared in `kb-ontology.yaml` FSM).
 Vocabulary and transitions are YAML-sourced; Rust only validates/executes.
 HierarchyMarker→CC: unmapped → Unknown. Not CTV text, not O3/O4.  
 S4 fixtures (KBO-R013), Manifestation/Item, and port materialization remain open.  
@@ -83,6 +83,7 @@ S4 fixtures (KBO-R013), Manifestation/Item, and port materialization remain open
 | KBO-R024 | fail-closed | HierarchyMarker (decode candidate) maps to CC only via explicit registry; missing → Unknown; same key + different CC → Conflict | `map_hierarchy_marker`; R3-02 | **accepted-draft** |
 | KBO-R025 | core-contract | Ontology vocabulary and readiness FSM live in YAML (`kb-ontology.yaml`); Rust/Governor load the catalog and must not invent kinds, levels, or transitions | meta-prompt FSM | **accepted-draft** |
 | KBO-R026 | core-contract | Decode hierarchy tokens map to catalog levels only via YAML `decode_level_aliases`; unknown tokens fail closed | `marker_from_decode_token` | **accepted-draft** |
+| KBO-R027 | core-contract | Graph node/edge/presence kinds are YAML catalog tokens; Rust/Governor must not invent kinds or keep a second hardcoded required-kinds list | `try_push_node` / Governor YAML subset | **accepted-draft** |
 
 ## 5. Functional preparation backlog (not implemented this wave)
 

@@ -1,7 +1,7 @@
 {
   "schema_version": "law-nexus-kb-ontology-projection/v1",
   "lifecycle": "[proposed]",
-  "fsm_state": "O2_decode_lift",
+  "fsm_state": "O2_catalog_kinds",
   "authoritative": false,
   "boundary": "Draft L1-L3 graph projection inventory only. Not production graph schema, not RuVector validation, not legal correctness, not applicability, not ontology conformance.",
   "non_authority_fragments": [
@@ -158,7 +158,8 @@
     "KBO-R023",
     "KBO-R024",
     "KBO-R025",
-    "KBO-R026"
+    "KBO-R026",
+    "KBO-R027"
   ],
   "related_tsg": [
     "TSG-003",
@@ -184,7 +185,7 @@
     "KBO-R011",
     "KBO-R012"
   ],
-  "notes": "YAML catalog owns FSM, kinds, levels, op vocabularies, and decode aliases. marker_from_decode_token resolves Statya\u2192statya; unknown tokens fail closed.",
+  "notes": "YAML catalog owns FSM, kinds, levels, op vocabularies, decode aliases, and presence fold ops. Write-set kinds are catalog tokens; unknown kinds fail closed (KBO-R027).",
   "write_set_crate": "ln-kb-ontology",
   "write_set_fns": [
     "project_work",
@@ -193,7 +194,9 @@
     "project_force_event",
     "project_join",
     "reject_forbidden_kind",
-    "project_structural_ast"
+    "project_structural_ast",
+    "try_push_node",
+    "try_push_edge"
   ],
   "fold": {
     "fn": "fold_membership_at",

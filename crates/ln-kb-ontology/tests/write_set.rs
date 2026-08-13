@@ -3,8 +3,7 @@
 use ln_identity::domain::mint_work;
 use ln_kb_ontology::domain::{
     project_expression, project_force_event, project_join, project_membership,
-    project_structural_ast, project_work, reject_forbidden_kind, GraphEdgeKind, GraphNodeKind,
-    WriteSetError,
+    project_structural_ast, project_work, reject_forbidden_kind, WriteSet, WriteSetError,
 };
 use ln_temporal::domain::{
     fold_membership_at, join_force_with_membership, AmendingActId, ComponentConceptId,
@@ -24,11 +23,8 @@ fn act(id: &str) -> AmendingActId {
 fn project_work_emits_work_node_not_force() {
     let work = mint_work("federal", "2013-04-05", "44-fz").expect("work");
     let set = project_work(&work).expect("project");
-    assert!(set.nodes.iter().any(|n| n.kind == GraphNodeKind::Work));
-    assert!(!set
-        .nodes
-        .iter()
-        .any(|n| n.kind == GraphNodeKind::ForceStatusEvent));
+    assert!(set.nodes.iter().any(|n| n.kind == "Work"));
+    assert!(!set.nodes.iter().any(|n| n.kind == "ForceStatusEvent"));
     assert!(!set.claims_applicability);
     assert!(set
         .non_claims
@@ -41,32 +37,17 @@ fn project_expression_links_to_work() {
     let work = mint_work("federal", "2013-04-05", "44-fz").expect("work");
     let expr = ln_identity::domain::mint_expression(&work, "2014-01-01").expect("expr");
     let set = project_expression(&expr).expect("project");
-    assert!(set
-        .nodes
-        .iter()
-        .any(|n| n.kind == GraphNodeKind::Expression));
-    assert!(set
-        .edges
-        .iter()
-        .any(|e| e.kind == GraphEdgeKind::ExpressionOf));
+    assert!(set.nodes.iter().any(|n| n.kind == "Expression"));
+    assert!(set.edges.iter().any(|e| e.kind == "expression_of"));
 }
 
 #[test]
 fn project_membership_does_not_emit_in_force() {
     let edge = MembershipEdge::try_new(cc("cc:ch"), cc("cc:art-1")).expect("e");
     let set = project_membership(&edge).expect("project");
-    assert!(set
-        .nodes
-        .iter()
-        .any(|n| n.kind == GraphNodeKind::ComponentConcept));
-    assert!(set
-        .edges
-        .iter()
-        .any(|e| e.kind == GraphEdgeKind::MembershipParent));
-    assert!(!set
-        .nodes
-        .iter()
-        .any(|n| n.kind == GraphNodeKind::ForceStatusEvent));
+    assert!(set.nodes.iter().any(|n| n.kind == "ComponentConcept"));
+    assert!(set.edges.iter().any(|e| e.kind == "membership_parent"));
+    assert!(!set.nodes.iter().any(|n| n.kind == "ForceStatusEvent"));
 }
 
 #[test]
@@ -75,18 +56,9 @@ fn project_force_event_requires_transition_and_provenance() {
         ForceStatusEvent::try_new(cc("cc:art-1"), NormativeState::InForce, 10, act("act:p"))
             .expect("ev");
     let set = project_force_event(&event).expect("project");
-    assert!(set
-        .nodes
-        .iter()
-        .any(|n| n.kind == GraphNodeKind::ForceStatusEvent));
-    assert!(set
-        .edges
-        .iter()
-        .any(|e| e.kind == GraphEdgeKind::ForceStatusOf));
-    assert!(set
-        .edges
-        .iter()
-        .any(|e| e.kind == GraphEdgeKind::ProvAmendingAct));
+    assert!(set.nodes.iter().any(|n| n.kind == "ForceStatusEvent"));
+    assert!(set.edges.iter().any(|e| e.kind == "force_status_of"));
+    assert!(set.edges.iter().any(|e| e.kind == "prov_amending_act"));
     assert!(!set.claims_applicability);
 }
 
@@ -100,10 +72,7 @@ fn project_join_unknown_force_does_not_invent_in_force_node() {
     let joined = join_force_with_membership(&timeline, &graph, &cc("cc:art-1"), 10).expect("j");
     let set = project_join(&joined).expect("project");
     assert!(set.structural_known);
-    assert!(!set
-        .nodes
-        .iter()
-        .any(|n| n.kind == GraphNodeKind::ForceStatusEvent));
+    assert!(!set.nodes.iter().any(|n| n.kind == "ForceStatusEvent"));
     assert_eq!(joined.force.status, NormativeState::Unknown);
 }
 
@@ -150,13 +119,31 @@ fn project_folded_ast_emits_membership_not_force() {
     let ast = fold_membership_at(&log, 1).expect("fold");
     let set = project_structural_ast(&ast).expect("project");
     assert!(set.structural_known);
-    assert!(set
-        .edges
-        .iter()
-        .any(|e| e.kind == GraphEdgeKind::MembershipParent));
-    assert!(!set
-        .nodes
-        .iter()
-        .any(|n| n.kind == GraphNodeKind::ForceStatusEvent));
+    assert!(set.edges.iter().any(|e| e.kind == "membership_parent"));
+    assert!(!set.nodes.iter().any(|n| n.kind == "ForceStatusEvent"));
     assert!(!set.performs_io);
+}
+
+#[test]
+fn unknown_node_kind_is_rejected() {
+    let err = WriteSet::empty()
+        .try_push_node("NormativeBlobAsWork", "x")
+        .expect_err("unknown");
+    assert!(matches!(err, WriteSetError::UnknownNodeKind));
+}
+
+#[test]
+fn catalog_declared_manifestation_is_accepted() {
+    let mut set = WriteSet::empty();
+    set.try_push_node("Manifestation", "man:44fz:pdf")
+        .expect("yaml-declared");
+    assert!(set.nodes.iter().any(|n| n.kind == "Manifestation"));
+}
+
+#[test]
+fn unknown_edge_kind_is_rejected() {
+    let err = WriteSet::empty()
+        .try_push_edge("applies_as_force", "a", "b")
+        .expect_err("unknown");
+    assert!(matches!(err, WriteSetError::UnknownEdgeKind));
 }

@@ -109,6 +109,7 @@ ON missing force evidence at query time:
 | `map_hierarchy_marker` / `HierarchyMap` | decode candidate → CC or Unknown; not legal fact |
 | `kb-ontology.yaml` + `OntologyCatalog` | meta-prompt FSM + vocabulary source |
 | `marker_from_decode_token` | YAML decode aliases → HierarchyMarker; no ln-decode dep |
+| `try_push_node` / `try_push_edge` | catalog-validated kind tokens; unknown fails closed |
 
 ## 9. Explicit non-claims
 
