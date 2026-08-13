@@ -4,6 +4,12 @@ All notable changes to law-nexus are documented in this file.
 
 ## Unreleased — current architecture landing and repository map
 
+### M167 GSD closeout (DT-lag resolved)
+- Completed GSD milestone M167-odlgt8 (NormRule IR design spine) via authorized
+  skip-slice waivers after out-of-band product evidence, validation pass, and
+  engine residual gate omit — not fabricated Attempts (D154 option C).
+- Project-state roadmap current marker advanced to M167; dual-truth note resolved.
+
 ### Governor dual-truth visibility and fail-on-warn test fix
 - Added advisory Governor check `gsd-review-dual-truth` (D154): warns when the
   GSD↔Review bridge register declares DT-lag for an active/hard-open milestone.

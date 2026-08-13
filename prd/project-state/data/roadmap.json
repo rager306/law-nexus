@@ -375,13 +375,19 @@
       "theme": "Review governance lifecycle contour (process)",
       "status": "complete",
       "boundary": "ADR-0024 and Review Case intake/disposition/ledger/governor contour landed as non-authoritative process evidence. Human dispositions recorded for review-11/12 findings. GSD Attempt bookkeeping lag remains; not product readiness, ontology runtime, or applicability validation."
+    },
+    {
+      "range": "M167-M167",
+      "theme": "NormRule IR fail-closed design spine (design-only under ADR-0023)",
+      "status": "complete",
+      "boundary": "IR types, fail-closed validation, IR-aware Abstain-only evaluate path, honesty docs. GSD closed via skip waivers after out-of-band product evidence (D154). Does NOT implement Applicable/NotApplicable, product CaseFacts, or TSG-006 runtime."
     }
   ],
   "current_milestone": {
-    "id": "M166-iyy4ak",
-    "title": "Review Governance Lifecycle",
+    "id": "M167-odlgt8",
     "status": "complete",
-    "goal": "Non-authoritative Review Case intake/disposition contour and process closeout; GSD registry reconciled through M166. Not product readiness, ontology runtime, or applicability validation."
+    "title": "NormRule IR fail-closed design spine",
+    "goal": "Design-only NormRule IR in ln-applicability under ADR-0023 [proposed]; L_delivery catch-up via authorized skip waivers after out-of-band RC11-F04a evidence. Not Applicable/NotApplicable, not TSG-006 product runtime, not product readiness."
   },
   "recommended_next": {
     "title": "Evidence-gated product next after process reconcile",
@@ -470,9 +476,9 @@
   },
   "notes": [
     {
-      "id": "gsd-dt-lag-m167-f04a",
+      "id": "gsd-dt-lag-m167-f04a-resolved",
       "lifecycle": "proposed",
-      "text": "Local GSD M167-odlgt8 is active/Attempt-incomplete while RC11-F04a L_review is closed at spine ceiling on NormRule IR evidence 1403294. Class DT-lag; see prd/architecture/review-cases/gsd-review-bridge.md. Not GSD complete or product readiness."
+      "text": "RESOLVED: M167-odlgt8 completed in GSD (2026-08-13) via authorized skip_slice waivers + validation pass + markAllGatesOmitted for residual gates after skip. Product evidence remained 1403294+; L_review F04a closed; TSG-005/006 still open. See prd/architecture/review-cases/gsd-review-bridge.md."
     }
   ]
 }

@@ -107,7 +107,21 @@ L_delivery debt: M167 registry not Attempt-complete
 - Does **not** close F04b, Applicable/NotApplicable, or TSG-006.
 - Does **not** make opaque `gsd:M167-odlgt8` in execution_linked a GSD status write.
 
-### 4.4 Allowed next moves for M167 (human chooses one)
+### 4.4 Resolution (2026-08-13)
+
+**Chosen: Option C (planning waiver / skip catch-up), executed.**
+
+| Step | Result |
+|---|---|
+| `gsd_skip_slice` S01/S02/S03 | authorized waivers citing product evidence `1403294+` and RC11-F04a |
+| `gsd_validate_milestone` | pass (Contract/Integration/Operational/UAT structured evidence) |
+| Residual Q5–Q8 after skip | closed via engine `markAllGatesOmitted` (not STATE rewrite) |
+| `gsd_complete_milestone` | M167 status **complete** |
+
+Governor `gsd-review-dual-truth` should now report historical note only (no active hard-open lag).
+
+### 4.4b Historical options (pre-resolution)
+
 
 | Option | Action | Effect |
 |---|---|---|
@@ -127,7 +141,7 @@ B1=delivery:out-of-band
 B2=git:1403294:ln-applicability#NormRuleIR + EVT-VER-2026-08-13-02-RC11-F04a
 delivery_unit=gsd:M167-odlgt8 (reference only; Attempt-incomplete)
 capability=TSG-005 active; Applicable deferred
-dual_truth=DT-lag
+dual_truth=DT-lag → RESOLVED (M167 complete 2026-08-13)
 ```
 
 ## 5. Operator checklist (P2)

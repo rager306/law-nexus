@@ -235,3 +235,13 @@ Human direction: adopt GSD↔Review bridge policy after three-lifecycle contract
   - L_capability: TSG-005 / Applicable still open
 - Default resolution: keep lag visible; engine-true GSD catch-up or explicit
   planning waiver only — never STATE/db rewrite.
+
+## Continuity P2 exit — M167 resolved (2026-08-13)
+
+- Executed D154 **option C**: `gsd_skip_slice` S01–S03 with evidence-backed reasons,
+  milestone validation pass, residual quality gates closed via engine
+  `markAllGatesOmitted`, `gsd_complete_milestone` → **M167 complete**.
+- No fake Attempts; product IR evidence unchanged (`1403294+`); L_review F04a
+  already closed; TSG-005/006 still open.
+- Lesson: skip_slice does not auto-close Q5–Q8; `gsd_save_gate_result` fails plan
+  render on skipped-task slices — use `markAllGatesOmitted` for residual gates.
