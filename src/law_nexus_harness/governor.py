@@ -1195,6 +1195,129 @@ def check_gsd_review_dual_truth(root: Path) -> list[GovernorFinding]:
     ]
 
 
+_CAPABILITY_PROMOTION_BOARD_REL = Path("prd/architecture/capability-promotion-board.md")
+_TEMPORAL_GAP_REGISTER_REL = Path("prd/architecture/temporal-semantic-gap-register.md")
+_CAPABILITY_BOARD_NON_AUTHORITY_FRAGMENTS = (
+    "Non-authority",
+    "does not close TSG rows",
+    "L_capability",
+)
+
+
+def check_capability_promotion_board(root: Path) -> list[GovernorFinding]:
+    """Advisory structural check: L_capability promotion board covers active TSG ids.
+
+    Ensures the promotion board exists, declares non-authority, and names every
+    TSG-XXX row present in the temporal semantic gap register table. Does not
+    validate ladder-state semantics, close gaps, or claim product readiness.
+    """
+
+    check_id = "capability-promotion-board"
+    board_path = root / _CAPABILITY_PROMOTION_BOARD_REL
+    register_path = root / _TEMPORAL_GAP_REGISTER_REL
+
+    if not board_path.is_file():
+        return [
+            GovernorFinding(
+                check_id=check_id,
+                status="fail",
+                severity="warn",
+                message="Capability promotion board is missing",
+                observed=f"board=absent; path={_CAPABILITY_PROMOTION_BOARD_REL.as_posix()}",
+                remediation=(
+                    "Add prd/architecture/capability-promotion-board.md with non-authority "
+                    "declaration and a §5 board table covering every active TSG id."
+                ),
+                evidence=[GovernorEvidence(path=str(_CAPABILITY_PROMOTION_BOARD_REL))],
+            )
+        ]
+
+    board_text = board_path.read_text(encoding="utf-8")
+    missing_fragments = [
+        fragment
+        for fragment in _CAPABILITY_BOARD_NON_AUTHORITY_FRAGMENTS
+        if fragment not in board_text
+    ]
+    if missing_fragments:
+        return [
+            GovernorFinding(
+                check_id=check_id,
+                status="fail",
+                severity="warn",
+                message="Capability promotion board missing required non-authority fragments",
+                observed=f"missing_fragments={missing_fragments}",
+                remediation=(
+                    "Keep explicit Non-authority language: board does not close TSG rows "
+                    "and is L_capability inventory only."
+                ),
+                evidence=[GovernorEvidence(path=str(_CAPABILITY_PROMOTION_BOARD_REL))],
+            )
+        ]
+
+    if not register_path.is_file():
+        return [
+            GovernorFinding(
+                check_id=check_id,
+                status="pass",
+                severity="ok",
+                message="Promotion board present; gap register absent (not applicable)",
+                observed="gap_register=absent",
+                remediation="none",
+                evidence=[GovernorEvidence(path=str(_CAPABILITY_PROMOTION_BOARD_REL))],
+            )
+        ]
+
+    register_text = register_path.read_text(encoding="utf-8")
+    register_ids = sorted(_temporal_gap_ids(register_text))
+    board_ids = set(re.findall(r"\bTSG-\d{3}\b", board_text))
+    missing_on_board = sorted(set(register_ids) - board_ids)
+
+    if missing_on_board:
+        preview = ",".join(missing_on_board[:12])
+        if len(missing_on_board) > 12:
+            preview += f",+{len(missing_on_board) - 12}"
+        return [
+            GovernorFinding(
+                check_id=check_id,
+                status="fail",
+                severity="warn",
+                message="Active gap-register TSG ids missing from capability promotion board",
+                observed=(
+                    f"missing_on_board=[{preview}]; register_count={len(register_ids)}; "
+                    f"board_named={len(board_ids)} "
+                    f"(lifecycle [bounded]; structural inventory only; not TSG closure)."
+                ),
+                remediation=(
+                    "Name every gap-register TSG-XXX id in capability-promotion-board.md §5 "
+                    "with ladder state and next honest step."
+                ),
+                evidence=[
+                    GovernorEvidence(path=str(_CAPABILITY_PROMOTION_BOARD_REL)),
+                    GovernorEvidence(path=str(_TEMPORAL_GAP_REGISTER_REL)),
+                ],
+            )
+        ]
+
+    return [
+        GovernorFinding(
+            check_id=check_id,
+            status="pass",
+            severity="ok",
+            message="Capability promotion board covers gap-register TSG ids",
+            observed=(
+                f"register_count={len(register_ids)}; board_named={len(board_ids)}; "
+                f"missing_on_board=0 "
+                f"(lifecycle [bounded]; not product readiness or TSG semantic validation)."
+            ),
+            remediation="none",
+            evidence=[
+                GovernorEvidence(path=str(_CAPABILITY_PROMOTION_BOARD_REL)),
+                GovernorEvidence(path=str(_TEMPORAL_GAP_REGISTER_REL)),
+            ],
+        )
+    ]
+
+
 def _load_port_contract_coverage_module(root: Path):
     # Prefer the checked-out repository script under the target root; fall back to
     # the harness package's repository so fixture roots can reuse inventory code.
@@ -4436,6 +4559,18 @@ GOVERNOR_CHECK_SPECS: tuple[CheckSpec, ...] = (
         (
             ".gsd/STATE.md",
             "prd/architecture/review-cases/gsd-review-bridge.md",
+        ),
+        "warn",
+    ),
+    _check_spec(
+        "capability-promotion-board",
+        "docs",
+        "deterministic",
+        check_capability_promotion_board,
+        "Keep L_capability promotion board covering every gap-register TSG id (D153/D156).",
+        (
+            "prd/architecture/capability-promotion-board.md",
+            "prd/architecture/temporal-semantic-gap-register.md",
         ),
         "warn",
     ),

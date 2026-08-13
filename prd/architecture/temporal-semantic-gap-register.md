@@ -99,6 +99,10 @@ the related TSG row stays **active** until that row's own closure trigger fires.
 Section 2.1 non-closure notes (RC11-F06…F09, RC12-F05) are the current B3
 record for those spines.
 
+L_capability ladder, promotion packet rules, and current TSG progress board:
+`prd/architecture/capability-promotion-board.md` (Governor check
+`capability-promotion-board`).
+
 ## 3. Disposition rules
 
 A row may move to `closed-bounded` only when:

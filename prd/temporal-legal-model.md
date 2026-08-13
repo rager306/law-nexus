@@ -330,3 +330,5 @@ Stop and replan if any review:
 - contradicts or bypasses ADR-0023 ownership without a superseding ADR.
 
 <!-- continuity: L_review closed ≠ L_capability TSG closed; see review-cases/continuity-contract.md -->
+
+<!-- capability-promotion-board: L_capability ladder companion -->

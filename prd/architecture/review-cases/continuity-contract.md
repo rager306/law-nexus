@@ -137,6 +137,9 @@ Reopen (or record continuity risk) when:
 
 ## 7. Capability ladder (L_capability only)
 
+Operational board (states, current TSG progress, promotion history):
+`prd/architecture/capability-promotion-board.md`.
+
 Default order for ontology/runtime depth (debt-first):
 
 ```text

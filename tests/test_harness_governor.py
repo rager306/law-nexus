@@ -510,6 +510,49 @@ def test_gsd_review_dual_truth_pass_when_bridge_absent(tmp_path: Path) -> None:
     assert findings[0].severity == "ok"
 
 
+def test_capability_promotion_board_warns_when_tsg_missing(tmp_path: Path) -> None:
+    arch = tmp_path / "prd" / "architecture"
+    arch.mkdir(parents=True)
+    (arch / "temporal-semantic-gap-register.md").write_text(
+        "# gaps\n\n| Gap ID | x |\n|---|---|\n| TSG-001 | a |\n| TSG-002 | b |\n",
+        encoding="utf-8",
+    )
+    (arch / "capability-promotion-board.md").write_text(
+        "# board\n\n## Non-authority\n\n"
+        "does not close TSG rows; L_capability inventory only.\n\n"
+        "| TSG | state |\n|---|---|\n| TSG-001 | S0 |\n",
+        encoding="utf-8",
+    )
+    from law_nexus_harness.governor import check_capability_promotion_board
+
+    findings = check_capability_promotion_board(tmp_path)
+    assert findings[0].check_id == "capability-promotion-board"
+    assert findings[0].status == "fail"
+    assert findings[0].severity == "warn"
+    assert "TSG-002" in findings[0].observed
+
+
+def test_capability_promotion_board_pass_when_complete(tmp_path: Path) -> None:
+    arch = tmp_path / "prd" / "architecture"
+    arch.mkdir(parents=True)
+    (arch / "temporal-semantic-gap-register.md").write_text(
+        "# gaps\n\n| Gap ID | x |\n|---|---|\n| TSG-001 | a |\n| TSG-002 | b |\n",
+        encoding="utf-8",
+    )
+    (arch / "capability-promotion-board.md").write_text(
+        "# board\n\n## Non-authority\n\n"
+        "does not close TSG rows; L_capability inventory only.\n\n"
+        "| TSG | state |\n|---|---|\n| TSG-001 | S0 |\n| TSG-002 | S1 |\n",
+        encoding="utf-8",
+    )
+    from law_nexus_harness.governor import check_capability_promotion_board
+
+    findings = check_capability_promotion_board(tmp_path)
+    assert findings[0].status == "pass"
+    assert findings[0].severity == "ok"
+    assert "missing_on_board=0" in findings[0].observed
+
+
 def test_orphan_summary_outside_registry_is_advisory_inventory(tmp_path: Path) -> None:
     """SUMMARY dirs not listed in STATE registry must still surface as lag."""
     state = tmp_path / ".gsd"

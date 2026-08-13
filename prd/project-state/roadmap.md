@@ -215,3 +215,5 @@ This roadmap does not prove Rust product readiness, parser completeness, Russian
 <!-- RC12-F18 companion: ADR citation hygiene rechecked with living oracle -->
 
 <!-- continuity-contract: L_review/L_delivery/L_capability adopted as process note -->
+
+<!-- capability-promotion-board companion after ARCHITECTURE continuity note -->

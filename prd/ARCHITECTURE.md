@@ -156,7 +156,7 @@ contour. Live packets/ledger/CLI/Governor integrity exist as process machinery;
 they do not accept findings or claim product readiness. Continuity keeps three
 lifecycles orthogonal — L_review (residual), L_delivery (GSD/work), L_capability
 (TSG/ADR proof) — with closure ceilings and B1–B5 bridges
-(`prd/architecture/review-cases/continuity-contract.md`; GSD dual-truth bridge: `prd/architecture/review-cases/gsd-review-bridge.md`). The harness must not
+(`prd/architecture/review-cases/continuity-contract.md`; GSD dual-truth bridge: `prd/architecture/review-cases/gsd-review-bridge.md`; L_capability promotion board: `prd/architecture/capability-promotion-board.md`). The harness must not
 import product domain packages, forbidden PyO3/FFI bridges, or historical-only
 graph-database adapters from retired eras.
 

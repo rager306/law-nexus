@@ -32,6 +32,7 @@ Orthogonal to L0–L5 packaging, residual continuity uses three lifecycles:
 
 Operator contract: [`continuity-contract.md`](continuity-contract.md).
 GSD bridge / dual-truth: [`gsd-review-bridge.md`](gsd-review-bridge.md).
+L_capability promotion board: [`../capability-promotion-board.md`](../capability-promotion-board.md).
 
 Closure ceilings: `spine` | `bounded_runtime` | `evidence` | `accepted`.
 RC11/RC12 product closeouts were mostly **`spine`** — TSG rows stay active unless

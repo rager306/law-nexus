@@ -112,3 +112,5 @@ product implementation, legal correctness, parser quality, applicability,
 citation safety or lifecycle readiness.
 
 <!-- continuity-contract cross-check: gap-register disposition vs review residual -->
+
+<!-- capability-promotion-board cross-check -->

@@ -4,6 +4,12 @@ All notable changes to law-nexus are documented in this file.
 
 ## Unreleased — current architecture landing and repository map
 
+### Capability promotion board (L_capability / P3)
+- Added `prd/architecture/capability-promotion-board.md`: ladder S0–S6, promotion
+  packet rules, current TSG progress after RC11/RC12 spine wave.
+- Governor advisory check `capability-promotion-board` requires every gap-register
+  TSG id to be named on the board (structural only; not TSG closure).
+
 ### M167 GSD closeout (DT-lag resolved)
 - Completed GSD milestone M167-odlgt8 (NormRule IR design spine) via authorized
   skip-slice waivers after out-of-band product evidence, validation pass, and
