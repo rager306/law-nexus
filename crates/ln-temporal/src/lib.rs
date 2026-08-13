@@ -27,5 +27,6 @@
 
 pub mod adapters;
 pub mod application;
+pub mod calendar;
 pub mod domain;
 pub mod ports;

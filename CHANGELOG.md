@@ -4,6 +4,11 @@ All notable changes to law-nexus are documented in this file.
 
 ## Unreleased — current architecture landing and repository map
 
+### Civil-day ordinal for legal_act_effect (KBO-R031)
+- YAML `calendar` bounds own the ISO↔ordinal bridge in `ln-temporal`.
+- Impossible civil days (`2014-02-30`) fail closed in identity mint and ordinal map.
+- Not a legal calendar, not CTV text, not InForce.
+
 ### YAML decode marker prefixes (KBO-R030)
 - `decode_marker_prefixes` / `decode_number_styles` live in `kb-ontology.yaml`.
 - `ln-decode` loads them via `DecodePrefixCatalog`; no ontology crate edge.

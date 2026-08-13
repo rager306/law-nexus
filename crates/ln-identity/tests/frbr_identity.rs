@@ -88,6 +88,13 @@ fn expression_rejects_bad_effect_day() {
 }
 
 #[test]
+fn expression_rejects_impossible_civil_day() {
+    let work = mint_work("federal", "2013-04-05", "44-fz").expect("w");
+    let err = mint_expression(&work, "2014-02-30").expect_err("feb 30");
+    assert!(matches!(err, FrbrIdentityError::InvalidEffectDay));
+}
+
+#[test]
 fn work_does_not_imply_force_or_applicability() {
     let work = mint_work("federal", "2013-04-05", "44-fz").expect("w");
     assert!(work

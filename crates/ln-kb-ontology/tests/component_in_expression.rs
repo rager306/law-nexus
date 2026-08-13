@@ -193,3 +193,20 @@ fn unknown_presence_kind_is_rejected() {
     .expect_err("unknown");
     assert!(matches!(err, WriteSetError::UnknownPresenceKind));
 }
+
+#[test]
+fn calendar_day_of_expression_is_fold_as_of() {
+    use ln_temporal::calendar::legal_act_effect_day_to_ordinal;
+    let expr = expr_2014();
+    let as_of = legal_act_effect_day_to_ordinal(&expr.legal_act_effect_day).expect("iso");
+    let mut log = ComponentInExpressionLog::empty();
+    log.append(include(&expr, "cc:art-93", as_of)).expect("i");
+    let set = fold_expression_presence(&log, &expr.expression_id, as_of).expect("fold");
+    assert!(expression_contains(&set, &cc("cc:art-93")));
+    assert!(
+        fold_expression_presence(&log, &expr.expression_id, as_of - 1)
+            .expect("before")
+            .components()
+            .is_empty()
+    );
+}

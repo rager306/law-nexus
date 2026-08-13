@@ -663,6 +663,22 @@ def test_kb_ontology_closed_vocab_warns_when_rust_token_missing_from_yaml(
     assert "ExtraLevel" in findings[0].observed
 
 
+def test_closed_vocab_as_str_stays_inside_named_impl() -> None:
+    from law_nexus_harness.governor import _rust_as_str_tokens
+
+    source = Path("crates/ln-temporal/src/domain.rs").read_text(encoding="utf-8")
+    tokens = set(_rust_as_str_tokens(source, "ClockKind"))
+    assert tokens == {
+        "factual_event",
+        "proceeding",
+        "legal_act_effect",
+        "source_publication",
+        "system_observation",
+    }
+    assert "edition_order" not in tokens
+    assert "interval_overlap" not in tokens
+
+
 def test_kb_ontology_prefix_key_outside_aliases_is_warned(tmp_path: Path) -> None:
     arch = tmp_path / "prd" / "architecture"
     arch.mkdir(parents=True)

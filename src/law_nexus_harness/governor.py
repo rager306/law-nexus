@@ -1611,7 +1611,11 @@ def _rust_as_str_tokens(source: str, enum_name: str) -> list[str]:
     after = source[match.end() :]
     impl_marker = f"impl {enum_name}"
     impl_at = after.find(impl_marker)
-    window = after[impl_at : impl_at + 4000] if impl_at >= 0 else after[:4000]
+    if impl_at < 0:
+        return []
+    impl_body = after[impl_at + len(impl_marker) :]
+    next_impl = impl_body.find("\nimpl ")
+    window = impl_body if next_impl < 0 else impl_body[:next_impl]
     return _RUST_AS_STR_RE.findall(window)
 
 

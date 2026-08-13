@@ -284,6 +284,60 @@ impl From<IdError> for FrbrIdentityError {
     }
 }
 
+const EMBEDDED_ONTOLOGY_YAML: &str = include_str!("../../../prd/architecture/kb-ontology.yaml");
+
+fn calendar_year_bounds() -> Option<(i32, i32)> {
+    let min_year = yaml_calendar_scalar("min_year:")?.parse().ok()?;
+    let max_year = yaml_calendar_scalar("max_year:")?.parse().ok()?;
+    (min_year <= max_year).then_some((min_year, max_year))
+}
+
+fn yaml_calendar_scalar(key: &str) -> Option<String> {
+    let mut in_calendar = false;
+    let mut heading_indent = 0usize;
+    for raw in EMBEDDED_ONTOLOGY_YAML.lines() {
+        let trimmed = match raw.find('#') {
+            Some(index) => raw[..index].trim_end(),
+            None => raw.trim_end(),
+        };
+        if trimmed.trim().is_empty() {
+            continue;
+        }
+        let indent = raw.len() - raw.trim_start().len();
+        if trimmed.trim() == "calendar:" {
+            in_calendar = true;
+            heading_indent = indent;
+            continue;
+        }
+        if in_calendar && indent <= heading_indent && trimmed.trim().ends_with(':') {
+            in_calendar = false;
+        }
+        if in_calendar {
+            if let Some(rest) = trimmed.trim().strip_prefix(key) {
+                let value = rest.trim().trim_matches('"');
+                if !value.is_empty() {
+                    return Some(value.to_owned());
+                }
+            }
+        }
+    }
+    None
+}
+
+fn is_leap_year(year: i32) -> bool {
+    year % 4 == 0 && (year % 100 != 0 || year % 400 == 0)
+}
+
+fn days_in_month(year: i32, month: u8) -> u8 {
+    match month {
+        1 | 3 | 5 | 7 | 8 | 10 | 12 => 31,
+        4 | 6 | 9 | 11 => 30,
+        2 if is_leap_year(year) => 29,
+        2 => 28,
+        _ => 0,
+    }
+}
+
 fn is_iso_day(value: &str) -> bool {
     if value.len() != 10
         || value.as_bytes().get(4) != Some(&b'-')
@@ -298,10 +352,13 @@ fn is_iso_day(value: &str) -> bool {
     }) {
         return false;
     }
-    let year: u16 = value[0..4].parse().unwrap_or(0);
+    let year: i32 = value[0..4].parse().unwrap_or(0);
     let month: u8 = value[5..7].parse().unwrap_or(0);
     let day: u8 = value[8..10].parse().unwrap_or(0);
-    (1800..=2100).contains(&year) && (1..=12).contains(&month) && (1..=31).contains(&day)
+    let Some((min_year, max_year)) = calendar_year_bounds() else {
+        return false;
+    };
+    (min_year..=max_year).contains(&year) && day >= 1 && day <= days_in_month(year, month)
 }
 
 const FRBR_NON_CLAIMS: &[&str] = &[

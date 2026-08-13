@@ -83,6 +83,7 @@ Write-set kinds: YAML tokens via `try_push_node`/`try_push_edge` (KBO-R027).
 Closed vocab coverage: YAML `closed_vocabularies` vs Rust enums (KBO-R028).
 Composition lift: product-cli `lift_extracted_hierarchy` (KBO-R029); empty registry is Unknown.
 Decode prefixes: YAML `decode_marker_prefixes` via `DecodePrefixCatalog` (KBO-R030).
+Calendar ordinal: YAML `calendar` via `legal_act_effect_day_to_ordinal` (KBO-R031).
 
 ## Temporal legal ontology — design spine (all `[proposed]`)
 

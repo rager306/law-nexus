@@ -362,3 +362,5 @@ Stop and replan if any review:
 <!-- composition lift KBO-R029 companion -->
 
 <!-- YAML decode prefixes KBO-R030 companion -->
+
+<!-- calendar ordinal KBO-R031 companion -->

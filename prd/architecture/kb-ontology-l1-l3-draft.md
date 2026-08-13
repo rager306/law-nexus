@@ -113,6 +113,7 @@ ON missing force evidence at query time:
 | `closed_vocabularies` | YAML table: Rust closed enums ⊆ catalog lists/maps |
 | `lift_extracted_hierarchy` | product-cli composition: HierarchyNode → YAML alias → Unknown without registry |
 | `DecodePrefixCatalog` | YAML prefixes/number styles; decode loads data, no ontology crate edge |
+| `legal_act_effect_day_to_ordinal` | YAML-bounded ISO→ordinal; not a legal calendar |
 
 ## 9. Explicit non-claims
 

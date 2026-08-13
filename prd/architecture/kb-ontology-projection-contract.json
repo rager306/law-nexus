@@ -1,7 +1,7 @@
 {
   "schema_version": "law-nexus-kb-ontology-projection/v1",
   "lifecycle": "[proposed]",
-  "fsm_state": "O2_decode_prefixes",
+  "fsm_state": "O2_calendar_ordinal",
   "authoritative": false,
   "boundary": "Draft L1-L3 graph projection inventory only. Not production graph schema, not RuVector validation, not legal correctness, not applicability, not ontology conformance.",
   "non_authority_fragments": [
@@ -162,7 +162,8 @@
     "KBO-R027",
     "KBO-R028",
     "KBO-R029",
-    "KBO-R030"
+    "KBO-R030",
+    "KBO-R031"
   ],
   "related_tsg": [
     "TSG-003",
@@ -188,7 +189,7 @@
     "KBO-R011",
     "KBO-R012"
   ],
-  "notes": "YAML catalog owns FSM, kinds, aliases, closed vocabularies, and decode marker prefixes. ln-decode loads prefixes/number styles from YAML without an ontology crate edge (KBO-R030).",
+  "notes": "YAML catalog owns FSM, kinds, aliases, prefixes, and civil-day calendar bounds. ISO legal_act_effect_day maps to a synthetic ordinal; Feb 30 fails closed (KBO-R031).",
   "write_set_crate": "ln-kb-ontology",
   "write_set_fns": [
     "project_work",

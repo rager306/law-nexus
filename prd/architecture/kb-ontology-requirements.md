@@ -35,7 +35,7 @@ O0 inventory_open
   → O6 closed_bounded | closed_validated   (corpus + non-claims)
 ```
 
-**Current state:** **O2_decode_prefixes** (declared in `kb-ontology.yaml` FSM).
+**Current state:** **O2_calendar_ordinal** (declared in `kb-ontology.yaml` FSM).
 Vocabulary and transitions are YAML-sourced; Rust only validates/executes.
 HierarchyMarker→CC: unmapped → Unknown. Not CTV text, not O3/O4.  
 S4 fixtures (KBO-R013), Manifestation/Item, and port materialization remain open.  
@@ -87,6 +87,7 @@ S4 fixtures (KBO-R013), Manifestation/Item, and port materialization remain open
 | KBO-R028 | core-contract | Closed Rust vocabularies (HierarchyLevel, NormativeState, industrial/membership kinds) are subsets of YAML tables; Governor coverage is data-driven via `closed_vocabularies` | Governor + `HierarchyLevel::as_str` | **accepted-draft** |
 | KBO-R029 | core-contract | Composition (product-cli) lifts decode HierarchyNode through YAML aliases; empty registry is Unknown and does not mint CC | `lift_extracted_hierarchy` | **accepted-draft** |
 | KBO-R030 | core-contract | Decode marker prefixes and number styles are YAML data; ln-decode loads them without depending on ln-kb-ontology | `DecodePrefixCatalog` | **accepted-draft** |
+| KBO-R031 | core-contract | ISO `legal_act_effect_day` maps to a YAML-bounded civil-day ordinal; invalid civil days fail closed; not a legal calendar or CTV text | `legal_act_effect_day_to_ordinal` | **accepted-draft** |
 
 ## 5. Functional preparation backlog (not implemented this wave)
 

@@ -144,3 +144,5 @@ citation safety or lifecycle readiness.
 <!-- composition lift KBO-R029 companion -->
 
 <!-- YAML decode prefixes KBO-R030 companion -->
+
+<!-- calendar ordinal KBO-R031 companion -->
