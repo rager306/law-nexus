@@ -31,6 +31,7 @@ Orthogonal to L0–L5 packaging, residual continuity uses three lifecycles:
 | **L_capability** | TSG + owning ADR + ADR-0015 proof | capability row actually satisfied |
 
 Operator contract: [`continuity-contract.md`](continuity-contract.md).
+GSD bridge / dual-truth: [`gsd-review-bridge.md`](gsd-review-bridge.md).
 
 Closure ceilings: `spine` | `bounded_runtime` | `evidence` | `accepted`.
 RC11/RC12 product closeouts were mostly **`spine`** — TSG rows stay active unless

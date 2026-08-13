@@ -4,6 +4,11 @@ All notable changes to law-nexus are documented in this file.
 
 ## Unreleased — current architecture landing and repository map
 
+### GSD↔Review bridge policy (P2)
+- Documented B1/B2 delivery intents, dual-truth classes, and M167/RC11-F04a
+  DT-lag register (`prd/architecture/review-cases/gsd-review-bridge.md`).
+- Forbids fake GSD completion; L_review closed ≠ L_delivery complete.
+
 ### Review continuity contract (three lifecycles)
 - Adopted docs-first continuity contract separating L_review, L_delivery, and
   L_capability with closure ceilings and B1–B5 bridges (ADR-0024 §9a,

@@ -182,6 +182,15 @@ As of the continuity adoption wave:
 
 That split is **expected and healthy** if B3 non-closure notes remain visible.
 
+### 9.1 GSD bridge (P2)
+
+B1/B2 details, dual-truth classes, and the M167 / RC11-F04a incident register:
+`prd/architecture/review-cases/gsd-review-bridge.md`.
+
+Default for that incident: **DT-lag** with reconstructed
+`B1=delivery:out-of-band` — product/review evidence ahead of GSD Attempts.
+Do not fake `gsd_task_complete` or rewrite `.gsd` state to erase the lag.
+
 ## 10. Non-claims
 
 - This contract is not product readiness, legal correctness, or TSG closure.

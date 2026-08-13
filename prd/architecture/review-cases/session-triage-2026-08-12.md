@@ -222,3 +222,16 @@ Human actor `rager306`:
 
 Review process residual wave complete except intentional deferred items.
 Product readiness / legal validation still not claimed.
+
+## Continuity P2 — GSD dual-truth (2026-08-13)
+
+Human direction: adopt GSD↔Review bridge policy after three-lifecycle contract.
+
+- Document: `prd/architecture/review-cases/gsd-review-bridge.md`
+- Incident: **M167-odlgt8 / RC11-F04a** classified **DT-lag**
+  - B1 reconstructed: `delivery:out-of-band` (residual wave before Attempts)
+  - B2: git `1403294` + design verification for F04a (ceiling `spine`)
+  - L_delivery: M167 still active; S01–S03 pending; no fake GSD complete
+  - L_capability: TSG-005 / Applicable still open
+- Default resolution: keep lag visible; engine-true GSD catch-up or explicit
+  planning waiver only — never STATE/db rewrite.

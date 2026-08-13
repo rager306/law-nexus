@@ -467,5 +467,12 @@
     "title": "Temporal Legal Ontology L1-L7 and Lifecycle Hygiene",
     "status": "complete",
     "boundary": "Tracked git/product-design history; O1-O7 remain [proposed] and no ontology runtime is implied."
-  }
+  },
+  "notes": [
+    {
+      "id": "gsd-dt-lag-m167-f04a",
+      "lifecycle": "proposed",
+      "text": "Local GSD M167-odlgt8 is active/Attempt-incomplete while RC11-F04a L_review is closed at spine ceiling on NormRule IR evidence 1403294. Class DT-lag; see prd/architecture/review-cases/gsd-review-bridge.md. Not GSD complete or product readiness."
+    }
+  ]
 }

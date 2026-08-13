@@ -233,6 +233,12 @@ Rules:
 Durable operator contract (non-authoritative process note):
 `prd/architecture/review-cases/continuity-contract.md`.
 
+GSD bridge policy (B1/B2, dual-truth classes, M167 lag register):
+`prd/architecture/review-cases/gsd-review-bridge.md`. Opaque `gsd:…` strings in
+`execution_linked` payloads are references only; they never mutate GSD Attempt
+state. Review-first out-of-band delivery is allowed only with explicit B1 and a
+dual-truth register entry when GSD units remain Attempt-incomplete.
+
 ### 10. Use a hexagonal and onion dependency direction
 
 The active implementation remains in the Python repository-control harness and
