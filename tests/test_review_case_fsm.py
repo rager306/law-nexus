@@ -415,9 +415,9 @@ def test_dogfood_rc11_live_packet_residual_board(
     for finding_id, residual in expected.items():
         assert finding_id in by_id, finding_id
         assert by_id[finding_id].residual_class == residual, finding_id
-    # F06 design boundary closed; residual product design/impl gaps remain.
+    # F06/F07 design boundaries closed; residual product design/impl gaps remain.
     assert by_id["RC11-F06"].residual_class == ResidualClass.CLOSED.value
-    assert by_id["RC11-F07"].residual_class == ResidualClass.PRODUCT_OPEN.value
+    assert by_id["RC11-F07"].residual_class == ResidualClass.CLOSED.value
     assert by_id["RC11-F08"].residual_class == ResidualClass.PRODUCT_OPEN.value
     assert by_id["RC11-F09"].residual_class == ResidualClass.PRODUCT_OPEN.value
     # Continuity: F03 process ceremony completed (exec+verify); only reopen remains.

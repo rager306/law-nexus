@@ -140,3 +140,15 @@ Human actor `rager306`:
 
 RC11 residual after F06: F07/F08/F09 product_open; F13 deferred; F01 terminal;
 F03/F04/F04a/F04b/F06 closed.
+
+## Follow-up design ceremony (2026-08-13, F07)
+
+Human actor `rager306`:
+
+- RC11-F07: TextChangeEvent vs NormativeEffectEvent named/separated as design-only
+  `LegislativeEventKind` in `ln-temporal`; ADR-0017 non-claims updated;
+  design ceremony → **closed** (tested_revision `5801d5b`).
+- Non-claims: not CTV runtime; TSG-002 remains open for executable events.
+
+RC11 residual after F07: F08 product_open (impl), F09 product_open (design/decision);
+F13 deferred; F01 terminal; F03/F04/F04a/F04b/F06/F07 closed.
