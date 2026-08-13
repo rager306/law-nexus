@@ -1202,6 +1202,25 @@ _CAPABILITY_BOARD_NON_AUTHORITY_FRAGMENTS = (
     "does not close TSG rows",
     "L_capability",
 )
+_KB_ONTOLOGY_REQUIREMENTS_REL = Path("prd/architecture/kb-ontology-requirements.md")
+_KB_ONTOLOGY_DRAFT_REL = Path("prd/architecture/kb-ontology-l1-l3-draft.md")
+_KB_ONTOLOGY_CONTRACT_REL = Path("prd/architecture/kb-ontology-projection-contract.json")
+_KB_ONTOLOGY_NON_AUTHORITY_FRAGMENTS = (
+    "Non-authority",
+    "not production graph schema",
+    "not Applicable",
+)
+_KB_ONTOLOGY_REQUIRED_KINDS = (
+    "Work",
+    "Expression",
+    "ComponentConcept",
+    "ForceStatusEvent",
+    "MembershipEdge",
+)
+_KB_ONTOLOGY_REQUIRED_FORBIDDEN = (
+    "ApplicableDecision",
+    "NormativeBlob",
+)
 
 
 def check_capability_promotion_board(root: Path) -> list[GovernorFinding]:
@@ -1313,6 +1332,161 @@ def check_capability_promotion_board(root: Path) -> list[GovernorFinding]:
             evidence=[
                 GovernorEvidence(path=str(_CAPABILITY_PROMOTION_BOARD_REL)),
                 GovernorEvidence(path=str(_TEMPORAL_GAP_REGISTER_REL)),
+            ],
+        )
+    ]
+
+
+def check_kb_ontology_draft(root: Path) -> list[GovernorFinding]:
+    """Advisory structural check: KB ontology draft L1–L3 inventory is present.
+
+    Validates requirements register + draft + machine contract exist, declare
+    non-authority, and list required node kinds / forbidden kinds. Does not
+    validate semantic completeness, RuVector readiness, or production schema.
+    """
+
+    check_id = "kb-ontology-draft"
+    req_path = root / _KB_ONTOLOGY_REQUIREMENTS_REL
+    draft_path = root / _KB_ONTOLOGY_DRAFT_REL
+    contract_path = root / _KB_ONTOLOGY_CONTRACT_REL
+
+    missing_files = [
+        rel.as_posix()
+        for rel, path in (
+            (_KB_ONTOLOGY_REQUIREMENTS_REL, req_path),
+            (_KB_ONTOLOGY_DRAFT_REL, draft_path),
+            (_KB_ONTOLOGY_CONTRACT_REL, contract_path),
+        )
+        if not path.is_file()
+    ]
+    if missing_files:
+        return [
+            GovernorFinding(
+                check_id=check_id,
+                status="fail",
+                severity="warn",
+                message="KB ontology draft surfaces are missing",
+                observed=f"missing_files={missing_files}",
+                remediation=(
+                    "Add kb-ontology-requirements.md, kb-ontology-l1-l3-draft.md, and "
+                    "kb-ontology-projection-contract.json under prd/architecture/."
+                ),
+                evidence=[
+                    GovernorEvidence(path=str(_KB_ONTOLOGY_REQUIREMENTS_REL)),
+                    GovernorEvidence(path=str(_KB_ONTOLOGY_DRAFT_REL)),
+                    GovernorEvidence(path=str(_KB_ONTOLOGY_CONTRACT_REL)),
+                ],
+            )
+        ]
+
+    req_text = req_path.read_text(encoding="utf-8")
+    draft_text = draft_path.read_text(encoding="utf-8")
+    combined = f"{req_text}\n{draft_text}"
+    missing_fragments = [
+        fragment for fragment in _KB_ONTOLOGY_NON_AUTHORITY_FRAGMENTS if fragment not in combined
+    ]
+    if missing_fragments:
+        return [
+            GovernorFinding(
+                check_id=check_id,
+                status="fail",
+                severity="warn",
+                message="KB ontology draft missing required non-authority fragments",
+                observed=f"missing_fragments={missing_fragments}",
+                remediation=(
+                    "Keep explicit Non-authority language: not production graph schema, "
+                    "not Applicable, inventory only."
+                ),
+                evidence=[
+                    GovernorEvidence(path=str(_KB_ONTOLOGY_REQUIREMENTS_REL)),
+                    GovernorEvidence(path=str(_KB_ONTOLOGY_DRAFT_REL)),
+                ],
+            )
+        ]
+
+    try:
+        contract = json.loads(contract_path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as exc:
+        return [
+            GovernorFinding(
+                check_id=check_id,
+                status="fail",
+                severity="warn",
+                message="KB ontology projection contract is not valid JSON",
+                observed=f"error={exc}",
+                remediation="Fix kb-ontology-projection-contract.json to valid JSON.",
+                evidence=[GovernorEvidence(path=str(_KB_ONTOLOGY_CONTRACT_REL))],
+            )
+        ]
+
+    if contract.get("authoritative") is not False:
+        return [
+            GovernorFinding(
+                check_id=check_id,
+                status="fail",
+                severity="warn",
+                message="KB ontology projection contract must set authoritative=false",
+                observed=f"authoritative={contract.get('authoritative')!r}",
+                remediation="Set authoritative to false on the draft contract.",
+                evidence=[GovernorEvidence(path=str(_KB_ONTOLOGY_CONTRACT_REL))],
+            )
+        ]
+
+    node_kinds = {
+        item.get("kind") for item in contract.get("node_kinds") or [] if isinstance(item, dict)
+    }
+    missing_kinds = sorted(set(_KB_ONTOLOGY_REQUIRED_KINDS) - node_kinds)
+    forbidden = set(contract.get("forbidden_node_kinds") or [])
+    missing_forbidden = sorted(set(_KB_ONTOLOGY_REQUIRED_FORBIDDEN) - forbidden)
+
+    req_ids = set(re.findall(r"\bKBO-R\d{3}\b", req_text))
+    if len(req_ids) < 10:
+        return [
+            GovernorFinding(
+                check_id=check_id,
+                status="fail",
+                severity="warn",
+                message="KB ontology requirements register has too few KBO-R ids",
+                observed=f"kbo_r_count={len(req_ids)}",
+                remediation="Keep append-only KBO-R### requirement rows in the register.",
+                evidence=[GovernorEvidence(path=str(_KB_ONTOLOGY_REQUIREMENTS_REL))],
+            )
+        ]
+
+    if missing_kinds or missing_forbidden:
+        return [
+            GovernorFinding(
+                check_id=check_id,
+                status="fail",
+                severity="warn",
+                message="KB ontology projection contract missing required kinds",
+                observed=(
+                    f"missing_node_kinds={missing_kinds}; missing_forbidden={missing_forbidden}"
+                ),
+                remediation=(
+                    "Include Work/Expression/ComponentConcept/ForceStatusEvent/"
+                    "MembershipEdge and forbidden ApplicableDecision/NormativeBlob."
+                ),
+                evidence=[GovernorEvidence(path=str(_KB_ONTOLOGY_CONTRACT_REL))],
+            )
+        ]
+
+    return [
+        GovernorFinding(
+            check_id=check_id,
+            status="pass",
+            severity="ok",
+            message="KB ontology draft L1–L3 inventory is structurally present",
+            observed=(
+                f"kbo_r_count={len(req_ids)}; node_kinds={len(node_kinds)}; "
+                f"forbidden={len(forbidden)}; fsm_state={contract.get('fsm_state')!r} "
+                f"(lifecycle [proposed]; not production schema or legal ontology proof)."
+            ),
+            remediation="none",
+            evidence=[
+                GovernorEvidence(path=str(_KB_ONTOLOGY_REQUIREMENTS_REL)),
+                GovernorEvidence(path=str(_KB_ONTOLOGY_DRAFT_REL)),
+                GovernorEvidence(path=str(_KB_ONTOLOGY_CONTRACT_REL)),
             ],
         )
     ]
@@ -4571,6 +4745,19 @@ GOVERNOR_CHECK_SPECS: tuple[CheckSpec, ...] = (
         (
             "prd/architecture/capability-promotion-board.md",
             "prd/architecture/temporal-semantic-gap-register.md",
+        ),
+        "warn",
+    ),
+    _check_spec(
+        "kb-ontology-draft",
+        "docs",
+        "deterministic",
+        check_kb_ontology_draft,
+        "Keep draft KB ontology L1–L3 requirements + projection contract (O1 inventory).",
+        (
+            "prd/architecture/kb-ontology-requirements.md",
+            "prd/architecture/kb-ontology-l1-l3-draft.md",
+            "prd/architecture/kb-ontology-projection-contract.json",
         ),
         "warn",
     ),

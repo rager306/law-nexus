@@ -213,3 +213,5 @@ These **non-claims** are mandatory reading for any packet consumer:
 - closed: F05 (applicability capability inventory), F18 (ADR citation hygiene)
 - deferred_parked: F19
 - product_open: *(none)*
+
+KB ontology draft (O1): `../kb-ontology-requirements.md` — not production schema.

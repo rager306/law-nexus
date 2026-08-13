@@ -4,6 +4,12 @@ All notable changes to law-nexus are documented in this file.
 
 ## Unreleased — current architecture landing and repository map
 
+### KB ontology draft O1 (requirements + L1–L3 projection)
+- Added `kb-ontology-requirements.md` (KBO-R001..R020), L1–L3 draft, and
+  `kb-ontology-projection-contract.json` (authoritative=false).
+- Governor advisory check `kb-ontology-draft` (structural only).
+- Not production graph schema, not RuVector validation, not Applicable.
+
 ### NormativeState force-status bounded resolver (TSG-004 S2–S3)
 - Added `NormativeState`, `ForceStatusTimeline`, and `resolve_force_status_at` in
   `ln-temporal` (force dimension only; missing/conflict → `Unknown`).

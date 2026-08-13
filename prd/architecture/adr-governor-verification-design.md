@@ -197,3 +197,7 @@ An external/LLM review may submit cited findings, but the harness must force the
 - The governor does not author ADRs or resolve architectural trade-offs.
 - A generated matrix is diagnostic only.
 - Archived Python/ACP/git-lex evidence cannot re-enter active authority through an index, symlink, test fixture or semantic review.
+
+### kb-ontology-draft
+
+Advisory structural check for O1 KB ontology surfaces (requirements + L1–L3 draft + JSON). Not production schema or legal ontology proof.

@@ -64,6 +64,15 @@ falkordb=historical-only
 Index: `doc/adr/README.md`. Do not treat ACP/git-lex/FalkorDB-era docs as
 active ADR substance.
 
+## Knowledge-base ontology draft (O1, `[proposed]`)
+
+Accumulating **materialization** requirements (not production schema):
+`prd/architecture/kb-ontology-requirements.md`,
+`prd/architecture/kb-ontology-l1-l3-draft.md`,
+`prd/architecture/kb-ontology-projection-contract.json`.
+L1–L3 only (identity carriers, membership/CTV structure, force status);
+L4–L7 and Applicable remain deferred. Structural Governor check only.
+
 ## Temporal legal ontology — design spine (all `[proposed]`)
 
 A progressive top-down ontology of what an agent needs to reason legally over

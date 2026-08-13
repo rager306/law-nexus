@@ -118,3 +118,5 @@ citation safety or lifecycle readiness.
 <!-- TSG-003/013 S3 apply companion -->
 
 <!-- TSG-004 force resolver companion -->
+
+<!-- kb-ontology O1 companion -->

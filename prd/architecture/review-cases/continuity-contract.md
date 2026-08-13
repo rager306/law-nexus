@@ -209,3 +209,5 @@ Do not fake `gsd_task_complete` or rewrite `.gsd` state to erase the lag.
   wave (session continuation).
 - Living companions: ADR-0024 amendment section, `prd/ARCHITECTURE.md`, this file,
   gap-register disposition cross-link, review-cases README operator section.
+
+<!-- kb-ontology O1: L_capability materialization inventory, not L_review closure -->

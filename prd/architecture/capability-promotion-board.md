@@ -125,6 +125,13 @@ M167 complete (design IR); dual-truth lag resolved.
 
 No row advanced to S6 in the spine wave; S3 apply landed later (see history).
 
+## 5b. KB ontology draft (O1)
+
+Parallel inventory (not TSG S6): `prd/architecture/kb-ontology-requirements.md`,
+`kb-ontology-l1-l3-draft.md`, `kb-ontology-projection-contract.json`.
+FSM O1 draft L1–L3 projection only; open deps KBO-R011/R012/R013.
+Governor check `kb-ontology-draft` is structural only.
+
 ## 6. Operator cycle (capability-only)
 
 ```text

@@ -273,7 +273,7 @@ tooling are intentionally omitted from cold-reader navigation.
 
 Citation hygiene: active ADRs use archive-only prior art or living oracles only (RC12-F18).
 
-Continuity: review residual, GSD delivery, and TSG/ADR capability are three lifecycles (`prd/architecture/review-cases/continuity-contract.md`; L_capability board: `prd/architecture/capability-promotion-board.md`). CTV structural apply S3: `apply_industrial_op` in ln-temporal (not legal CTV product). NormativeState force S2–S3: `resolve_force_status_at` (not applicability/corpus). (pointers, not duplicates)
+Continuity: review residual, GSD delivery, and TSG/ADR capability are three lifecycles (`prd/architecture/review-cases/continuity-contract.md`; L_capability board: `prd/architecture/capability-promotion-board.md`). CTV structural apply S3: `apply_industrial_op` in ln-temporal (not legal CTV product). NormativeState force S2–S3: `resolve_force_status_at` (not applicability/corpus). KB ontology draft O1: `prd/architecture/kb-ontology-requirements.md` (not production schema). (pointers, not duplicates)
 
 - **Living truth oracle:** [`prd/ARCHITECTURE.md`](prd/ARCHITECTURE.md)
 - **Product Contract + requirements projection (`[proposed]`, EA-02 `ready-for-assessment`):**

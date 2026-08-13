@@ -1,0 +1,95 @@
+{
+  "schema_version": "law-nexus-kb-ontology-projection/v1",
+  "lifecycle": "[proposed]",
+  "fsm_state": "O1",
+  "authoritative": false,
+  "boundary": "Draft L1-L3 graph projection inventory only. Not production graph schema, not RuVector validation, not legal correctness, not applicability, not ontology conformance.",
+  "non_authority_fragments": [
+    "Not production graph schema",
+    "not legal correctness",
+    "not applicability"
+  ],
+  "join_keys": [
+    "ComponentConceptId",
+    "AmendingActId",
+    "effect_day",
+    "work_id",
+    "expression_id"
+  ],
+  "node_kinds": [
+    {
+      "kind": "Work",
+      "layer": "L1",
+      "required_properties": ["work_id", "authority", "enactment_date"]
+    },
+    {
+      "kind": "Expression",
+      "layer": "L1",
+      "required_properties": ["expression_id", "work_id", "legal_act_effect_day"]
+    },
+    {
+      "kind": "Manifestation",
+      "layer": "L1",
+      "required_properties": ["manifestation_id", "expression_id", "format"]
+    },
+    {
+      "kind": "ComponentConcept",
+      "layer": "L2",
+      "required_properties": ["component_concept_id"]
+    },
+    {
+      "kind": "AmendingAct",
+      "layer": "L2",
+      "required_properties": ["amending_act_id"]
+    },
+    {
+      "kind": "MembershipEdge",
+      "layer": "L2",
+      "required_properties": ["parent_cc", "child_cc"]
+    },
+    {
+      "kind": "StructuralIndustrialEvent",
+      "layer": "L2",
+      "required_properties": ["op_id", "kind", "subjects", "targets", "provenance"]
+    },
+    {
+      "kind": "ForceStatusEvent",
+      "layer": "L3",
+      "required_properties": ["component_concept_id", "status", "effect_day", "provenance"]
+    }
+  ],
+  "edge_kinds": [
+    {"kind": "expression_of", "from": "Expression", "to": "Work"},
+    {"kind": "manifestation_of", "from": "Manifestation", "to": "Expression"},
+    {"kind": "component_in_expression", "from": "ComponentConcept", "to": "Expression"},
+    {"kind": "membership_parent", "from": "ComponentConcept", "to": "ComponentConcept"},
+    {"kind": "industrial_op_subject", "from": "StructuralIndustrialEvent", "to": "ComponentConcept"},
+    {"kind": "industrial_op_target", "from": "StructuralIndustrialEvent", "to": "ComponentConcept"},
+    {"kind": "force_status_of", "from": "ForceStatusEvent", "to": "ComponentConcept"},
+    {"kind": "prov_amending_act", "from": "Event", "to": "AmendingAct"}
+  ],
+  "forbidden_node_kinds": [
+    "ApplicableDecision",
+    "PracticeRulingAsForce",
+    "RiskScoreAsStatus",
+    "ProfileCodeAsClock",
+    "NormRuleAsAuthority",
+    "NormativeBlob"
+  ],
+  "allowed_layers": ["L1", "L2", "L3"],
+  "requirement_ids": [
+    "KBO-R001",
+    "KBO-R002",
+    "KBO-R003",
+    "KBO-R004",
+    "KBO-R007",
+    "KBO-R008",
+    "KBO-R010",
+    "KBO-R017",
+    "KBO-R020"
+  ],
+  "related_tsg": ["TSG-003", "TSG-004", "TSG-013", "TSG-016"],
+  "related_adrs": ["ADR-0014", "ADR-0016", "ADR-0017", "ADR-0018"],
+  "open_dependencies": ["KBO-R011", "KBO-R012", "KBO-R013"],
+  "deferred": ["KBO-R014", "KBO-R015", "KBO-R016"]
+}

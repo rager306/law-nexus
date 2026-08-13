@@ -553,6 +553,52 @@ def test_capability_promotion_board_pass_when_complete(tmp_path: Path) -> None:
     assert "missing_on_board=0" in findings[0].observed
 
 
+def test_kb_ontology_draft_warns_when_missing(tmp_path: Path) -> None:
+    from law_nexus_harness.governor import check_kb_ontology_draft
+
+    findings = check_kb_ontology_draft(tmp_path)
+    assert findings[0].check_id == "kb-ontology-draft"
+    assert findings[0].status == "fail"
+    assert findings[0].severity == "warn"
+    assert "missing_files" in findings[0].observed
+
+
+def test_kb_ontology_draft_pass_when_complete(tmp_path: Path) -> None:
+    arch = tmp_path / "prd" / "architecture"
+    arch.mkdir(parents=True)
+    (arch / "kb-ontology-requirements.md").write_text(
+        "# KB\n\n## Non-authority\n\nnot production graph schema; not Applicable.\n\n"
+        "| ID | x |\n|---|---|\n" + "\n".join(f"| KBO-R{i:03d} | r |" for i in range(1, 12)) + "\n",
+        encoding="utf-8",
+    )
+    (arch / "kb-ontology-l1-l3-draft.md").write_text(
+        "# draft\n\nNon-authority: not production graph schema, not Applicable.\n",
+        encoding="utf-8",
+    )
+    (arch / "kb-ontology-projection-contract.json").write_text(
+        """{
+          "schema_version": "law-nexus-kb-ontology-projection/v1",
+          "authoritative": false,
+          "fsm_state": "O1",
+          "node_kinds": [
+            {"kind": "Work"},
+            {"kind": "Expression"},
+            {"kind": "ComponentConcept"},
+            {"kind": "ForceStatusEvent"},
+            {"kind": "MembershipEdge"}
+          ],
+          "forbidden_node_kinds": ["ApplicableDecision", "NormativeBlob"]
+        }""",
+        encoding="utf-8",
+    )
+    from law_nexus_harness.governor import check_kb_ontology_draft
+
+    findings = check_kb_ontology_draft(tmp_path)
+    assert findings[0].status == "pass"
+    assert findings[0].severity == "ok"
+    assert "kbo_r_count=" in findings[0].observed
+
+
 def test_orphan_summary_outside_registry_is_advisory_inventory(tmp_path: Path) -> None:
     """SUMMARY dirs not listed in STATE registry must still surface as lag."""
     state = tmp_path / ".gsd"
