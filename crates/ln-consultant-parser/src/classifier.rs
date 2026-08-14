@@ -20,6 +20,7 @@ pub struct ClassifiedLink {
     pub text: String,
     pub kind: String,
     pub confidence: f64,
+    pub context: String,
 }
 
 /// Load classifier rules from the embedded YAML.
@@ -37,6 +38,7 @@ pub fn classify_link(link: &RawLink, rules: &[ClassifierRule]) -> ClassifiedLink
                 text: link.text.clone(),
                 kind: rule.kind.clone(),
                 confidence: rule.confidence,
+                context: link.context.clone(),
             };
         }
     }
@@ -45,6 +47,7 @@ pub fn classify_link(link: &RawLink, rules: &[ClassifierRule]) -> ClassifiedLink
         text: link.text.clone(),
         kind: "unknown".to_owned(),
         confidence: 0.1,
+        context: link.context.clone(),
     }
 }
 
@@ -158,6 +161,7 @@ pub fn classify_link_scored(link: &RawLink, templates: &[Template]) -> Classifie
         text: link.text.clone(),
         kind: "unknown".to_owned(),
         confidence: 0.1,
+        context: link.context.clone(),
     };
     for t in templates {
         let score = score_template(t, link);
@@ -167,6 +171,7 @@ pub fn classify_link_scored(link: &RawLink, templates: &[Template]) -> Classifie
                 text: link.text.clone(),
                 kind: t.kind.clone(),
                 confidence: score,
+                context: link.context.clone(),
             };
         }
     }

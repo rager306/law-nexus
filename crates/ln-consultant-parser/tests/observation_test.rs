@@ -11,6 +11,7 @@ fn cl(kind: &str, dest: &str, text: &str) -> ClassifiedLink {
         text: text.to_owned(),
         kind: kind.to_owned(),
         confidence: 0.5,
+        context: String::new(),
     }
 }
 

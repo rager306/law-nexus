@@ -24,7 +24,7 @@ pub fn collect_observations(classified: &[ClassifiedLink]) -> Vec<Observation> {
     for c in classified.iter().filter(|c| c.kind == "unknown") {
         let entry = groups
             .entry(c.text.clone())
-            .or_insert_with(|| (0, c.dest.clone(), std::collections::HashSet::new()));
+            .or_insert_with(|| (0, c.context.clone(), std::collections::HashSet::new()));
         entry.0 += 1;
         entry.2.insert(c.dest.clone());
     }

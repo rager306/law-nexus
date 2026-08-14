@@ -311,7 +311,7 @@ vocabulary:
   classifier_templates:
     - {name: amends_v_red, kind: amends, confidence: "0.9", match: all, needles: "в ред.|ФЗ"}
     - {name: amends_changes, kind: amends, confidence: "0.85", match: any, needles: "изменениями|дополнен|признать утратившим"}
-    - {name: cites_according, kind: cites, confidence: "0.7", match: any, needles: "в соответствии с|согласно|предусмотренном|на основании|руководствуясь"}
+    - {name: cites_according, kind: cites, confidence: "0.7", match: any, needles: "в соответствии с|согласно|предусмотренном|на основании|руководствуясь|установленным законом|им законом|предусмотренным законом"}
     - {name: implements_order, kind: implements, confidence: "0.5", match: any, needles: "в порядке|установленном|во исполнение"}
     - {name: specifies_list, kind: specifies, confidence: "0.4", match: any, needles: "перечень|требования|классификаци"}
 
