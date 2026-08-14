@@ -98,6 +98,18 @@ fn tracked_435fz_pipeline_is_deterministic_and_bounded() {
     let first = run_pipeline(&xml, &source_path);
     let second = run_pipeline(&xml, &source_path);
 
+    eprintln!(
+        "tracked 435-FZ pipeline: links={} classified={} kinds={:?} edges={} edge_kinds={:?} observations={} occ={} unique_dests={}",
+        first.link_count,
+        first.classified_count,
+        first.kind_counts,
+        first.edge_count,
+        first.edge_kind_counts,
+        first.observation_count,
+        first.observation_occurrence_total,
+        first.observation_unique_dest_total
+    );
+
     assert_eq!(first, second, "repeat pipeline must be deterministic");
     assert!(
         first.link_count > 0,
@@ -207,16 +219,42 @@ fn tracked_435fz_pipeline_is_deterministic_and_bounded() {
         unknown
     );
 
-    // Short dest/text/context triple present in the tracked fixture.
-    // Failure message stays bounded: no large legal text, no full dest dump.
-    let selected = classified.iter().find(|c| {
+    // Independently inspectable dest/text/context triples from the tracked fixture.
+    // Failure messages stay bounded: no large legal text, no full dest dump.
+    let brand_anchor = classified.iter().find(|c| {
         c.dest == "https://www.consultant.ru"
             && c.text == "КонсультантПлюс"
             && c.context.contains("КонсультантПлюс")
     });
     assert!(
-        selected.is_some(),
-        "selected tracked anchor dest/text/context must be present"
+        brand_anchor.is_some(),
+        "brand tracked anchor dest/text/context must be present"
+    );
+
+    let host_anchor = classified.iter().find(|c| {
+        c.dest == "https://www.consultant.ru"
+            && c.text == "www.consultant.ru"
+            && c.context.contains("www.consultant.ru")
+    });
+    assert!(
+        host_anchor.is_some(),
+        "host tracked anchor dest/text/context must be present"
+    );
+
+    let amendment_anchor = classified.iter().find(|c| {
+        c.dest.starts_with("consultantplus://offline/ref=")
+            && c.text == "закона"
+            && c.context.contains("в ред.")
+            && c.context.contains("Федерального закона")
+    });
+    assert!(
+        amendment_anchor.is_some(),
+        "internal amendment-context dest/text/context must be present"
+    );
+    assert_ne!(
+        brand_anchor.map(|c| c.text.as_str()),
+        host_anchor.map(|c| c.text.as_str()),
+        "selected anchors must be independently inspectable"
     );
 }
 
