@@ -13,22 +13,30 @@ pub fn extract_hyperlinks(xml: &[u8]) -> Vec<RawLink> {
     while let Some(hlink_start) = text[search_from..].find("<w:hlink") {
         let abs_start = search_from + hlink_start;
 
+        // Find enclosing <w:p> for context
+        let para_start = text[..abs_start].rfind("<w:p").unwrap_or(0);
+        let para_end = text[abs_start..]
+            .find("</w:p>")
+            .map(|p| abs_start + p + 6)
+            .unwrap_or(text.len());
+        let context = extract_text_content(&text[para_start..para_end]);
+
         // Find w:dest attribute
         let dest = extract_attr(text, abs_start, "w:dest");
 
         // Find closing </w:hlink>
         if let Some(close_pos) = text[abs_start..].find("</w:hlink>") {
             let inner = &text[abs_start..abs_start + close_pos];
-            // Extract visible text from <w:t> elements
             let link_text = extract_text_content(inner);
 
             if let Some(dest) = dest {
                 links.push(RawLink {
                     dest,
                     text: link_text,
+                    context,
                 });
             }
-            search_from = abs_start + close_pos + 10; // length of "</w:hlink>"
+            search_from = abs_start + close_pos + 10;
         } else {
             break;
         }

@@ -295,6 +295,19 @@ vocabulary:
     - {role: C3_alien_work, field: path, needle: postanovlenie-pravitelstva, rank: 5}
     - {role: C3_alien_work, field: path, needle: prikaz-, rank: 5}
     - {role: C3_alien_work, field: path, needle: opredelenie-, rank: 5}
+  link_classifiers:
+    - {kind: amends, context_needle: "в ред.", confidence: 0.9}
+    - {kind: amends, context_needle: "изменениями", confidence: 0.85}
+    - {kind: amends, context_needle: "дополнен", confidence: 0.8}
+    - {kind: amends, context_needle: "признать утратившим", confidence: 0.85}
+    - {kind: cites, context_needle: "согласно", confidence: 0.6}
+    - {kind: cites, context_needle: "в соответствии с", confidence: 0.6}
+    - {kind: cites, context_needle: "предусмотренном", confidence: 0.55}
+    - {kind: cites, context_needle: "на основании", confidence: 0.55}
+    - {kind: implements, context_needle: "в порядке", confidence: 0.5}
+    - {kind: implements, context_needle: "установленном", confidence: 0.5}
+    - {kind: specifies, context_needle: "перечень", confidence: 0.4}
+    - {kind: specifies, context_needle: "требования", confidence: 0.4}
 
 # Separate from fsm (readiness). Governor compares contract.fsm_state to
 # fsm.current only. Do not move readiness current for design inventory.

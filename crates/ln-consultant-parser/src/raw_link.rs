@@ -8,6 +8,8 @@ pub struct RawLink {
     pub dest: String,
     /// Visible text inside the hyperlink element.
     pub text: String,
+    /// Surrounding paragraph text (context for classification).
+    pub context: String,
 }
 
 impl RawLink {

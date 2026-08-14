@@ -6,8 +6,12 @@
 //! and derives CrossActEdge instances. It does NOT decode blocks (that's
 //! ln-decode) and does NOT own the edge vocabulary (that's ln-kb-ontology).
 
+pub mod classifier;
 pub mod hyperlink;
 pub mod raw_link;
 
+pub use classifier::{
+    classify_all, classify_link, load_classifier_rules, ClassifiedLink, ClassifierRule,
+};
 pub use hyperlink::extract_hyperlinks;
 pub use raw_link::RawLink;
