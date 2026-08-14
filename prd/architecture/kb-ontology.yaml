@@ -309,7 +309,8 @@ vocabulary:
     - {kind: specifies, context_needle: "перечень", confidence: 0.4}
   document_profiles:
     - {name: federal_law, path_needles: "federalnyi-zakon|law_", boost: "1.0"}
-    - {name: government_resolution, path_needles: "postanovlenie-pravitelstva|resolution_", boost: "0.9"}
+    - {name: government_act, path_needles: "postanovlenie-pravitelstva|rasporyazhenie-pravitelstva|resolution_|directive_", boost: "0.9"}
+    - {name: departmental_act, path_needles: "prikaz-|order_|instruktsiya", boost: "0.85"}
     - {name: court_decision, path_needles: "postanovlenie-arbitrazhnogo|opredelenie|decision_", boost: "0.8"}
     - {name: code, path_needles: "kodeks", boost: "1.0"}
     - {name: default, path_needles: "", boost: "0.7"}

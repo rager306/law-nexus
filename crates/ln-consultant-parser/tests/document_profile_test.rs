@@ -7,7 +7,7 @@ fn profiles_loaded_from_yaml() {
     let profiles = load_profiles();
     assert!(!profiles.is_empty());
     assert!(profiles.iter().any(|p| p.name == "federal_law"));
-    assert!(profiles.iter().any(|p| p.name == "court_decision"));
+    assert!(profiles.iter().any(|p| p.name == "government_act"));
     assert!(profiles.iter().any(|p| p.name == "default"));
 }
 
@@ -20,6 +20,43 @@ fn federal_law_detected() {
     );
     assert_eq!(d.name, "federal_law");
     assert!((d.boost - 1.0).abs() < 0.01);
+}
+
+#[test]
+fn government_resolution_detected() {
+    let profiles = load_profiles();
+    let d = detect_profile(
+        &profiles,
+        "exports/npa/postanovlenie-pravitelstva-rf-ot-08-02-2017-n-145.xml",
+    );
+    assert_eq!(d.name, "government_act");
+    assert!((d.boost - 0.9).abs() < 0.01);
+}
+
+#[test]
+fn government_directive_detected() {
+    // Распоряжение Правительства — тоже нормативный акт
+    let profiles = load_profiles();
+    let d = detect_profile(
+        &profiles,
+        "exports/npa/rasporyazhenie-pravitelstva-rf-ot-28-04-2018-n-824-r.xml",
+    );
+    assert_eq!(
+        d.name, "government_act",
+        "распоряжение Правительства = government_act"
+    );
+    assert!((d.boost - 0.9).abs() < 0.01);
+}
+
+#[test]
+fn departmental_act_detected() {
+    let profiles = load_profiles();
+    let d = detect_profile(
+        &profiles,
+        "exports/npa/prikaz-minstroya-rossii-ot-08-10-2024-n-149n.xml",
+    );
+    assert_eq!(d.name, "departmental_act");
+    assert!((d.boost - 0.85).abs() < 0.01);
 }
 
 #[test]

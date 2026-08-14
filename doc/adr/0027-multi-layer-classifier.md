@@ -57,12 +57,24 @@ document_profiles:
   federal_law:
     path_needles: [federalnyi-zakon, law_]
     confidence_boost: 1.0
+  government_act:            # постановления И распоряжения Правительства
+    path_needles: [postanovlenie-pravitelstva, rasporyazhenie-pravitelstva, resolution_, directive_]
+    confidence_boost: 0.9
+  departmental_act:
+    path_needles: [prikaz-, order_, instruktsiya]
+    confidence_boost: 0.85
   court_decision:
     path_needles: [postanovlenie-arbitrazhnogo, opredelenie]
     confidence_boost: 0.8
   default:
     confidence_boost: 0.7
 ```
+
+Постановления и распоряжения Правительства — **оба нормативные акты**
+(иерархия: ФКЗ > ФЗ > указы Президента > постановления и распоряжения
+Правительства > ведомственные акты). Оба отнесены к `government_act`
+с одинаковым boost 0.9; различие постановление/распоряжение сохраняется
+как subtype в полном документном типе, но не влияет на classification boost.
 
 ### Layer 2: Signal matchers
 
