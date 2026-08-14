@@ -6,12 +6,14 @@
 //! and derives CrossActEdge instances. It does NOT decode blocks (that's
 //! ln-decode) and does NOT own the edge vocabulary (that's ln-kb-ontology).
 
+pub mod catalog;
 pub mod classifier;
 pub mod edge_deriver;
 pub mod hyperlink;
 pub mod observation;
 pub mod raw_link;
 
+pub use catalog::{coverage_summary, resolve_consids, CatalogPort, CatalogRecord, InMemoryCatalog};
 pub use classifier::{
     classify_all, classify_all_scored, classify_link, classify_link_scored, load_classifier_rules,
     load_templates, score_template, ClassifiedLink, ClassifierRule, Template,
