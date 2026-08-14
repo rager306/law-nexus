@@ -382,3 +382,5 @@ Stop and replan if any review:
 <!-- ELI mapping KBO-R050 companion -->
 
 <!-- Review 5 de Martim v5 comparison companion -->
+
+<!-- Review 6 progress audit KBO-R051..R053 companion -->

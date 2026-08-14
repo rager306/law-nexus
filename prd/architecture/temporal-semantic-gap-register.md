@@ -155,3 +155,5 @@ A row may move to `closed-bounded` only when:
 - It does not revive archived Python, ACP/git-lex or FalkorDB architecture.
 - It does not validate Product, Requirements, parser behavior, retrieval quality, temporal legal correctness, case applicability, RuVector/TEI infrastructure or release readiness.
 - Governor checks may verify deterministic register structure or orphaned terms, but heuristic semantic findings must remain advisory and human-disposed.
+
+<!-- Review 6 progress audit companion -->

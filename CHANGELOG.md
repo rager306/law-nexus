@@ -4,6 +4,14 @@ All notable changes to law-nexus are documented in this file.
 
 ## Unreleased — current architecture landing and repository map
 
+### Review 6: progress audit, updated scorecard, cross-act roadmap (L0)
+- `doc/review/review-15-08-2026.md` — audit of progress since Review 5.
+- resolve_ctv gap: 2.5/10 → 6.5/10 (prototype works).
+- Scorecard: law-nexus now leads on executability + engineering maturity.
+- 13 findings R6-01..R6-13: text extraction, S_identify, S_heal, cross-act S1,
+  macro/micro P9, graph store, C1 acquisition, ELI mapping, impact assessment.
+- KBO-R051..R053 added.
+
 ### resolve_CTV prototype (KBO-R046)
 - `TextVersionLog` + `TextVersionEvent` + `resolve_ctv(log, cc, day)`.
 - Deterministic point-in-time text reconstruction: latest event ≤ day.
