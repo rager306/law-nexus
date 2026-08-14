@@ -19,6 +19,12 @@ All notable changes to law-nexus are documented in this file.
 - 138-ФЗ registered as C1 amending act in YAML works section
 - ADR-0019 S0→S1: **complete** (typed port + hostile tests + real C1 edge)
 
+### ADR-0025: Consultant parser crate (ln-consultant-parser)
+- Separate crate for Consultant-specific extraction: hyperlinks, catalog,
+  cross-act edges, edition chains.
+- ln-decode stays unchanged (port + shared types + hierarchy + text analysis).
+- Boundary: ln-consultant-parser → ln-decode (ParsedBlock) + ln-kb-ontology (CrossActEdge).
+
 ### Review 7: C1 corpus acquisition + integration plan (L0)
 - `doc/review/review-16-08-2026.md` — consru_export integration plan.
 - 125 C1 amending editions, 118 редакций 44-ФЗ, 921 подзаконный акт, 36K практика.
