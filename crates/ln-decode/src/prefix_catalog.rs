@@ -26,6 +26,7 @@ pub struct NumberedMarkerRule {
     pub level: HierarchyLevel,
     pub number_style: NumberedStyle,
     pub suffix: char,
+    pub allow_compound: bool,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -280,6 +281,7 @@ fn parse_numbered_markers(text: &str) -> Vec<NumberedMarkerRule> {
             level,
             number_style,
             suffix,
+            allow_compound: rest.contains("allow_compound: true"),
         });
     }
     rules

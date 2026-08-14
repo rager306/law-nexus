@@ -80,6 +80,22 @@ fn marker_without_title_remains_valid_and_does_not_infer_one() {
 }
 
 #[test]
+fn extracts_compound_punkt_number() {
+    let node =
+        extract_hierarchy(&block("4.1) поставщик подрядчик исполнитель")).expect("compound punkt");
+    assert_eq!(node.level(), HierarchyLevel::Punkt);
+    assert_eq!(node.number(), "4.1");
+}
+
+#[test]
+fn extracts_compound_chast_number() {
+    let node = extract_hierarchy(&block("4.1. Поставщик определяется по результатам"))
+        .expect("compound chast");
+    assert_eq!(node.level(), HierarchyLevel::Chast);
+    assert_eq!(node.number(), "4.1");
+}
+
+#[test]
 fn prose_missing_numbers_and_unsupported_context_do_not_become_hierarchy() {
     for text in [
         "В статье 5 описаны требования.",

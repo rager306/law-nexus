@@ -103,6 +103,7 @@ fn number_end(candidate: &str, start: usize, level: HierarchyLevel) -> Option<us
 
 /// Try to match a numbered-list pattern (digit., digit), letter)) as a hierarchy marker.
 /// Falls back when explicit prefixes (Статья, Глава) don't match.
+/// All matching logic is driven by YAML NumberedMarkerRule fields.
 fn numbered_marker_prefix(candidate: &str) -> Option<(HierarchyLevel, usize)> {
     let catalog = DecodePrefixCatalog::embedded().ok()?;
     let first_byte = candidate.as_bytes().first()?;
@@ -110,29 +111,31 @@ fn numbered_marker_prefix(candidate: &str) -> Option<(HierarchyLevel, usize)> {
         let matches = match rule.number_style {
             NumberedStyle::Digit => first_byte.is_ascii_digit(),
             NumberedStyle::LetterCyrillic => {
-                // Cyrillic lowercase letters а-я (UTF-8: 0xD0 0xB0..0xD0 0xBF, 0xD1 0x80..0xD1 0x8F)
                 candidate.starts_with(|c: char| ('а'..='я').contains(&c))
             }
         };
         if !matches {
             continue;
         }
-        // Find the number end, then check suffix
-        let num_end = if first_byte.is_ascii_digit() {
-            candidate
-                .bytes()
-                .position(|b| !b.is_ascii_digit())
-                .unwrap_or(0)
-        } else {
-            // Single Cyrillic letter as the "number"
-            candidate.char_indices().nth(1).map(|(i, _)| i).unwrap_or(0)
-        };
-        if num_end == 0 {
+        // Walk the number: digits, and optionally dots-between-digits (YAML allow_compound)
+        let bytes = candidate.as_bytes();
+        let mut end = 0;
+        while end < bytes.len() {
+            let is_digit = bytes[end].is_ascii_digit();
+            let is_compound_dot = rule.allow_compound
+                && bytes[end] == b'.'
+                && bytes.get(end + 1).is_some_and(u8::is_ascii_digit);
+            if is_digit || is_compound_dot {
+                end += 1;
+            } else {
+                break;
+            }
+        }
+        if end == 0 {
             continue;
         }
         // Check that the suffix matches
-        let suffix_pos = num_end;
-        if let Some(&suffix_byte) = candidate.as_bytes().get(suffix_pos) {
+        if let Some(&suffix_byte) = bytes.get(end) {
             if suffix_byte as char == rule.suffix {
                 return Some((rule.level, 0));
             }
