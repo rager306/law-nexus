@@ -289,7 +289,7 @@ Continuity: review residual, GSD delivery, and TSG/ADR capability are three life
   orchestration. No product/domain logic, no forbidden PyO3/FFI.
 - **ADRs:** [`doc/adr/`](doc/adr/) — MADR-format with mandatory D098 lifecycle
   tags. Direction (ADR-0004..0015) + temporal legal ontology chain
-  (ADR-0016..0027): identity, CTV, force, hierarchy, practice, risk, profiles, applicability, review-case, consultant-parser, ruvector-memory, multi-layer-classifier
+  (ADR-0016..0027): identity, CTV, force, hierarchy, practice, risk, profiles, applicability, review-case, consultant-parser (ADR-0025), ruvector-memory (ADR-0026), multi-layer-classifier (ADR-0027)
   non-authoritative Review Case intake/disposition contour `[proposed]`. Index:
   [`doc/adr/README.md`](doc/adr/README.md).
 - **Temporal legal crosswalk (`[proposed]`, paper-only, `ACCEPT-AS-PROPOSED`):**

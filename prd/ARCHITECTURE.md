@@ -62,6 +62,7 @@ falkordb=historical-only
 | ADR-0024 | Review Case intake and disposition (non-authoritative projection + human promotion gate; no runtime) | `[proposed]` |
 | ADR-0025 | Consultant parser — separate crate for provider-specific extraction (hyperlinks, catalog, cross-act edges) | `[proposed]` |
 | ADR-0026 | RuVector as agent memory layer for the meta-parser (graph + vectors + SONA + GNN) | `[proposed]` |
+| ADR-0027 | Multi-layer manifest classifier for document-specific link classification | `[proposed]` |
 
 Index: `doc/adr/README.md`. Do not treat ACP/git-lex/FalkorDB-era docs as
 active ADR substance.
