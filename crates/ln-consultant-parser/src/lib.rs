@@ -10,6 +10,7 @@ pub mod catalog;
 pub mod classifier;
 pub mod edge_deriver;
 pub mod hyperlink;
+pub mod multi_edition;
 pub mod observation;
 pub mod raw_link;
 
@@ -20,5 +21,6 @@ pub use classifier::{
 };
 pub use edge_deriver::{derive_edges, DerivedEdge};
 pub use hyperlink::extract_hyperlinks;
+pub use multi_edition::{delta, parse_edition_filename, process_edition, EditionSummary};
 pub use observation::{collect_observations, format_observations_yaml, Observation};
 pub use raw_link::RawLink;
