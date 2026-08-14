@@ -2,7 +2,7 @@
 id: ADR-0027
 title: Multi-layer manifest classifier for document-specific link classification
 status: Accepted
-lifecycle: "[proposed]"
+lifecycle: "[bounded]"
 date: 2026-08-14
 supersedes: none
 related: [ADR-0025, ADR-0026, ADR-0019, ADR-0013]
@@ -12,18 +12,21 @@ related: [ADR-0025, ADR-0026, ADR-0019, ADR-0013]
 
 ## Status
 
-**Accepted [bounded]** — scoring engine shipped with AND/OR multi-signal
-logic. Verified on real 44-ФЗ corpus: 3641 classified links, 1025 amends,
-1223 cites, 209 implements, 502 unknown patterns in learning backlog.
-Document profiles and morph signals are `[proposed]` (not yet implemented).
-Moves to `[validated]` when cross-edition validation confirms edge accuracy.
+**Accepted [bounded]** only for the current **contains + AND/OR scoring**
+subset (YAML templates, best-score-wins). Document-profile functions exist
+(`load_profiles` / `detect_profile` / `apply_boost`) but are **not composed**
+into `classify_all_scored`. Morph, proximity, prefix, regex, position,
+profile-restricted templates, and top-2 closest-template backlog remain
+`[proposed]`. `consru_export` classification counts are local `[smoke]`,
+skip-capable, not promotion proof (R082). No `[validated]` promotion.
 
 ## Context
 
 The initial link classifier (`classifier.rs` in `ln-consultant-parser`)
-uses single-signal `contains(needle)` matching with first-match-wins. On
-the real 44-ФЗ corpus this classifies 3641 links (1025 amends, 1416 cites,
-47 implements, 1153 unknown).
+uses single-signal `contains(needle)` matching with first-match-wins. A
+local `[smoke]` `consru_export` 44-ФЗ run (skip-capable, not promotion
+proof) classified 3641 links (1025 amends, 1416 cites, 47 implements,
+1153 unknown).
 
 However, Russian legal documents have **diverse structures** across types:
 
@@ -42,12 +45,15 @@ morphological variants (`в ред.` vs `в редакции` vs `редакци
 
 ## Decision
 
-Implement a **four-layer manifest-driven classifier** where all logic lives
-in YAML and the Rust engine interprets it.
+Target design: a **four-layer manifest-driven classifier** where all logic
+lives in YAML and the Rust engine interprets it. Only the contains+AND/OR
+scoring subset is `[bounded]`; remaining layers/signals stay `[proposed]`.
 
-### Layer 1: Document profiles
+### Layer 1: Document profiles `[proposed]` composition
 
-Each document type gets a profile that:
+Functions exist (`load_profiles` / `detect_profile` / `apply_boost`) but
+are not composed into `classify_all_scored`. Target: each document type
+gets a profile that:
 - Identifies the type from path/title needles (YAML)
 - Applies a `confidence_boost` multiplier
 - Selects which templates are active (some templates are profile-restricted)
@@ -78,7 +84,9 @@ document_profiles:
 
 ### Layer 2: Signal matchers
 
-Each template is composed of **signals** — atomic checks described in YAML:
+Shipped `[bounded]` signal is `contains` only. Proximity, prefix, morph,
+regex and position remain `[proposed]`. Target: each template is composed
+of **signals** — atomic checks described in YAML:
 
 | Signal type | YAML fields | Rust check |
 |---|---|---|
@@ -91,14 +99,20 @@ Each template is composed of **signals** — atomic checks described in YAML:
 
 A template specifies `match_mode: all` (AND) or `match_mode: any` (OR).
 
-### Layer 3: Scoring engine
+### Layer 3: Scoring engine `[bounded]` contains+AND/OR subset
 
-Instead of first-match-wins, the engine **scores** every template:
+The shipped engine **scores** every template on `contains` needles:
+AND (`match_all`) requires all needles; OR scales confidence by
+matched/total. Highest score wins; ties broken by YAML order.
+`profile.confidence_boost` is `[proposed]` and is not applied on the
+shipped path.
+
+Target formula (boost not composed today):
 
 ```
 template_score = base_confidence
   × Π(signal_match: 1.0 if match, 0.0 if not)
-  × profile.confidence_boost
+  × profile.confidence_boost   # [proposed]; not applied
 ```
 
 - If `match_mode: all`: all signals must match (product = 0 if any fails)
@@ -108,15 +122,20 @@ template_score = base_confidence
 
 ### Layer 4: Learning backlog
 
-Links classified as `unknown` (score < threshold) are recorded:
+Unknown-link observation store exists `[bounded]` (text/context/count).
+Top-2 closest templates and their scores remain `[proposed]`.
+Target records:
 - Link text, context, occurrence count
-- Top-2 closest templates and their scores
+- Top-2 closest templates and their scores `[proposed]`
 - Status: `candidate` for agent review
 
 The agent (human or LLM) reads the backlog, proposes new templates, and
 updates the YAML manifest. The system improves with each cycle.
 
 ### Template structure
+
+Target YAML vocabulary `[proposed]` for proximity/profile restrictions.
+Shipped templates use `contains` needles + AND/OR only `[bounded]`.
 
 ```yaml
 templates:
@@ -144,33 +163,43 @@ templates:
 2. **NLP/LLM**: heavyweight, non-deterministic, requires API calls, not
    YAML-configurable. Suitable for the **agent** layer (proposing new
    templates from unknown backlog), not the **parser** layer.
-3. **Manifest signals** `[proposed]`: deterministic, composable, YAML-driven, fast,
-   auditable. The agent employs NLP offline to PROPOSE templates; the parser
-   applies templates online to CLASSIFY.
+3. **Manifest signals**: the shipped `[bounded]` subset is `contains` needles
+   with AND/OR scoring. Proximity, prefix, morph, regex, position, and
+   profile restrictions remain `[proposed]`. Deterministic and YAML-driven
+   for the shipped subset. The agent may employ NLP offline to PROPOSE
+   templates; the parser applies shipped templates online to CLASSIFY.
 
 ## Consequences
 
-- `classifier.rs` gains a scoring engine (no first-match-wins).
-- YAML `classifier_manifest` section replaces flat `link_classifiers`.
-- Document profiles enable type-specific templates.
-- Unknown links (1153 in 44-ФЗ) become learning backlog, not lost data.
-- Templates are composable: multi-signal AND/OR logic per template.
-- Profile-restricted templates (e.g. court-only `руководствуясь`) prevent
-  false positives in other document types.
-- The classifier is **omnivorous**: new document types = new profiles +
-  new templates in YAML, without Rust changes.
+- `classifier.rs` gains a `[bounded]` contains+AND/OR scoring engine
+  (best-score-wins on the scored path; first-match-wins remains as fallback).
+- YAML `classifier_templates` drive the shipped subset; a full four-layer
+  `classifier_manifest` remains `[proposed]`.
+- Document-profile functions exist but are not composed into scoring.
+- Unknown-link observation store exists; top-2 closest-template backlog
+  remains `[proposed]`. `consru_export` unknown counts are local `[smoke]`.
+- Profile-restricted templates (e.g. court-only `руководствуясь`) remain
+  `[proposed]` and do not yet prevent false positives by profile.
+- New document types still require composition work before profiles affect
+  classification; YAML-only omnivorous routing is `[proposed]`.
 
 ## Non-claims
 
-- `[proposed]` design: scoring engine not yet implemented.
-- Document profiles are heuristic (path/title needles), not legal type
-  classification authority.
-- Morphological matching is variant-list-based, not full Russian NLP
-  morphology engine.
+- `[bounded]` covers only the shipped contains+AND/OR scoring subset.
+  Morph, proximity, prefix, regex, position, profile restrictions, and
+  top-2 backlog remain `[proposed]` — not implemented in the scoring path.
+- Document-profile functions are not composed into classification; path
+  needles are heuristic, not legal type-classification authority.
+- Morphological matching, if added later, is variant-list-based, not a
+  full Russian NLP morphology engine.
 - Learning backlog observations are candidates for human/agent review,
-  not auto-promoted YAML patches without a gate.
-- `regex` signal type requires careful YAML input validation to avoid
-  ReDoS or invalid patterns.
+  not auto-promoted YAML patches without a gate. Top-2 closest templates
+  are not recorded today.
+- `regex` signal type is `[proposed]` and, if added, requires YAML input
+  validation to avoid ReDoS or invalid patterns.
+- `consru_export` classification counts are local `[smoke]`, skip-capable,
+  not durable bounded or `[validated]` proof (R082).
+- No legal correctness, citation authority, or `[validated]` promotion.
 
 ## References
 

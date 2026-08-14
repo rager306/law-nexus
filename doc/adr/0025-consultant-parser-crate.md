@@ -2,7 +2,7 @@
 id: ADR-0025
 title: Consultant parser — separate crate for provider-specific extraction
 status: Accepted
-lifecycle: "[proposed]"
+lifecycle: "[bounded]"
 date: 2026-08-14
 supersedes: none
 related: [ADR-0013, ADR-0015, ADR-0019]
@@ -12,13 +12,14 @@ related: [ADR-0013, ADR-0015, ADR-0019]
 
 ## Status
 
-**Accepted [bounded]** — crate shipped with 8 modules and 34 tests (all green).
-Full pipeline verified on real 44-ФЗ corpus (consru_export): hyperlink
-extraction (3772 links), YAML-driven classification (AND/OR scoring),
-edge derivation (2619 edges), observation store (502 patterns), catalog
-port (hexagonal), multi-edition temporal graph (118 editions).
-Moves to `[validated]` when provenance closes across the representative
-corpus and edges are validated against multiple editions.
+**Accepted [bounded]** — crate shipped with 8 modules and 42 integration
+test functions covering synthetic/tracked mechanics: hyperlink extraction,
+YAML-driven contains+AND/OR classification, edge derivation, observation
+store, hexagonal catalog **port**, and multi-edition filename/delta helpers.
+`consru_export` metrics (hyperlink/edge/observation counts; 118 editions)
+are local `[smoke]`, skip-capable when the gitignored corpus is absent,
+and are not promotion proof (R082). SQLite catalog adapter remains open.
+No `[validated]` promotion.
 
 ## Context
 
@@ -26,28 +27,32 @@ corpus and edges are validated against multiple editions.
 plus shared infrastructure (hierarchy extraction, prefix catalog, text
 analysis). The crate is 2947 lines and growing.
 
-The consru_export corpus (43 785 XML, 561 MB) introduced new
-Consultant-specific capabilities that do not belong in a generic decode crate:
+The gitignored `consru_export` corpus (local `[smoke]` inventory: 43 785 XML,
+561 MB) motivated Consultant-specific capabilities that do not belong in a
+generic decode crate:
 
-1. **Hyperlink extraction**: 44-ФЗ alone has 1766 `w:hlink` elements pointing
-   to other documents. Each link is a potential cross-act edge (`amends`,
-   `cites`, `implements`). This is WordML/Consultant-specific.
+1. **Hyperlink extraction**: local `[smoke]` 44-ФЗ export has 1766 `w:hlink`
+   elements pointing to other documents. Each link is a potential cross-act
+   edge (`amends`, `cites`, `implements`). This is WordML/Consultant-specific.
 2. **Catalog integration**: `consid` tokens (`consultantplus://offline/ref=...`)
    map to a SQLite catalog with sha256, edition metadata, and document
-   identity. This is ConsultantPlus infrastructure, not domain law.
+   identity. This is ConsultantPlus infrastructure, not domain law. The
+   SQLite adapter remains open.
 3. **Cross-act edge derivation**: link context classification ("в ред." →
    `amends`, "согласно закону" → `cites`, "в порядке" → `implements`) is
    Consultant-format-specific text analysis.
-4. **Edition chain**: 118 editions of 44-ФЗ require multi-edition diff and
-   replay. This is corpus-management logic, not parsing.
+4. **Edition chain**: local `[smoke]` 118 editions of 44-ФЗ motivate
+   multi-edition diff and replay. That count is not promotion proof.
 
 ADR-0013 mandates provider isolation: Consultant ≠ Garant, shared fixture
 forbidden. ADR-0015 requires hexagonal separation of concerns.
 
 ## Decision
 
-Create a new crate `ln-consultant-parser` `[proposed]` for Consultant-specific
-extraction capabilities that go beyond block decoding.
+Create a new crate `ln-consultant-parser` `[bounded]` for Consultant-specific
+extraction capabilities that go beyond block decoding. Shipped proof is the
+synthetic/tracked integration suite (42 test functions). `consru_export`
+runs stay local `[smoke]`.
 
 ### Crate boundary
 
@@ -102,11 +107,16 @@ ln-kb-ontology (CrossActEdge, diff_marker_sets, MarkerDiff)
 
 ## Non-claims
 
-- This ADR does not implement the crate; it records the architectural decision.
-- `ln-consultant-parser` is `[proposed]` until TDD-covered code ships.
-- Catalog SQLite integration is ConsultantPlus infrastructure, not domain law
-  or legal correctness proof.
+- `[bounded]` covers shipped synthetic/tracked mechanics only; not legal
+  correctness, not citation authority, not G2/G3 corpus acceptance (D180).
+- `consru_export` metrics and the 118-edition temporal graph are local
+  `[smoke]`, skip-capable, gitignored, and not durable bounded or
+  `[validated]` proof (R082).
+- Catalog SQLite adapter is not shipped; only the hexagonal port plus
+  in-memory test adapter exist. SQLite is ConsultantPlus infrastructure,
+  not domain law or legal correctness proof.
 - Hyperlink classification is text-pattern-based, not semantic NLP.
+- No `[validated]` promotion from local smoke or InMemory catalog success.
 
 ## References
 

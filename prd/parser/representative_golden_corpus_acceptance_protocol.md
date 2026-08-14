@@ -89,8 +89,14 @@ the corpus representative.
 
 | Stratum | Tracked fixture | Runtime fingerprint | Blocks | Hierarchy nodes | Evidence class |
 |---------|-----------------|---------------------|--------|-----------------|----------------|
-| Consultant WordML | `law-source/consultant/federalnyi-zakon-ot-22-12-2020-n-435-fz-red-ot-25-12-2023-o-publichno-pravovoi-kompanii-edinyi-zakazchik-v-sfere-stroitelstva-i-o-vnese--d71bf702.xml` | `fnv1a64:d7697a0ea8cc3970` | 167 | 22 | tracked real tracer, one fixture `[bounded]` |
+| Consultant WordML | `law-source/consultant/federalnyi-zakon-ot-22-12-2020-n-435-fz-red-ot-25-12-2023-o-publichno-pravovoi-kompanii-edinyi-zakazchik-v-sfere-stroitelstva-i-o-vnese--d71bf702.xml` | `fnv1a64:d7697a0ea8cc3970` | 167 | 119 | tracked real tracer, one fixture `[bounded]` |
 | Garant ODT | `law-source/garant/44-fz.odt` | `fnv1a64:d4143a172688f8c3` | 5124 | 140 | tracked real tracer, one fixture `[bounded]` |
+
+The Consultant `119` count is the current `EXPECTED_HIERARCHY_COUNT` in
+`crates/ln-decode/tests/consultant_real_tracer.rs`. It includes numbered
+sub-article candidates (`1.`, `1)`, `а)`) from the bounded hierarchy layer.
+Those candidates are structural decode markers only; they do not prove legal
+hierarchy correctness, article/part/item identity, or citation completeness.
 
 A new fixture MUST be registered and reviewed independently for its own stratum.
 The counts above MUST NOT be generalized into a quality threshold, provider

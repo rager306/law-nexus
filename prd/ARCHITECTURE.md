@@ -96,9 +96,14 @@ Readiness FSM stays `O2_calendar_ordinal`. Assembly FSM complete: all 12
 states reached (S_ready_bounded). 402-ФЗ passes full pipeline with real
 Expression ID, zero drift, resolvable CTVs. C1 corpus acquired (Review 7):
 138-ФЗ/333-ФЗ/484-ФЗ amending acts available for real cross-act edges.
-Consultant parser (ADR-0025/0027): 8 modules, 34 tests. Full 118-edition
-temporal graph: 44-ФЗ grew from 6 amends (2013) to 1025 (2025), 171×.
-Not TSG S6, not Applicable.
+Consultant parser (ADR-0025/0027): `ln-consultant-parser` has 9 source
+modules including `lib.rs` and 42 integration test functions. Tracked
+crate mechanics remain `[bounded]`. Values 3772/3641/2619/502 and the
+118-edition temporal graph (44-ФЗ 6→1025 amends, 171×) come from
+gitignored `consru_export`; they are local `[smoke]`, skip-capable when
+the export is absent, and not durable promotion evidence. Not a
+`[validated]` parser, not corpus/legal/citation completeness, not G2/G3,
+not TSG S6, not Applicable. Parser evidence ceiling stays G1.
 
 ## Temporal legal ontology — design spine (all `[proposed]`)
 

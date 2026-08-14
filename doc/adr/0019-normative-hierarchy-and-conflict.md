@@ -12,8 +12,11 @@ related: [ADR-0018, ADR-0020, ADR-0022]
 
 ## Status
 
-**Accepted [proposed]** — hierarchy and conflict-resolution model designed.
-Not implemented. Moves to `[bounded]` when a ConflictResolver with explainable
+**Accepted [proposed]** — hierarchy and ConflictResolver remain design-only.
+Partial cross-act edge mechanics exist (`try_cross_act_edge` constructor,
+hostile constructor tests, C1 fixture constructors). That is not a
+ConflictResolver, not an executable conflict graph, and not full S1
+criteria. Moves to `[bounded]` when a ConflictResolver with explainable
 maxim selection ships in Rust; to `[validated]` with real conflict corpus.
 
 ## Context
@@ -111,29 +114,32 @@ remains `Conflict` for human review.
 
 ## Review 5 amendments (2026-08-14, L0 `doc/review/review-14-08-2026.md`)
 
-## Review 5 amendments (2026-08-14, L0 `doc/review/review-14-08-2026.md`)
+### Cross-act edge mechanics vs full S1 (2026-08-14)
 
-### Cross-act edge S1 status (2026-08-14)
+Shipped **partial** constructor mechanics `[proposed]` inventory, not S1:
+`try_cross_act_edge` (typed constructor) + constructor-hostile tests
+(unknown kind / self-edge / empty provenance) + C1 fixture constructors
+(138-ФЗ→44-ФЗ ст.31/43, 333-ФЗ→44-ФЗ ст.95). Edge direction in the
+parser deriver: `amends` reversed (amending→amended), others forward.
+Consultant-parser `consru_export` edge counts (ADR-0025) are local
+`[smoke]`, skip-capable, not S1 or legal proof.
 
-S1 reached: `try_cross_act_edge` (typed port) + hostile tests + **real C1
-edges**: 138-ФЗ→44-ФЗ ст.31/43, 333-ФЗ→44-ФЗ ст.95. Consultant parser
-(ADR-0025) derives 2619 edges from real 44-ФЗ hyperlinks (1025 amends,
-1223 cites, 209 implements). Edge direction: `amends` reversed (amending→amended),
-others forward (source→target).
+This is **not** a ConflictResolver and **not** full S1. Full S1 remains
+absent: no `CrossActEdgePort` trait as specified, no S1 hostile cases
+(delegation underdetermined → Conflict; circular `amends` → rejected;
+`cites` does not upgrade to authority), no executable graph.
 
 ### R5-06: cross-act edge port — S0 → S1 transition criteria
 
-Cross-act edges are S0 design (vocabulary in YAML). Transition to S1
-requires: (1) a typed `CrossActEdgePort` trait with `try_edge(kind, from_cc,
-to_cc, provenance)`; (2) hostile tests: delegation underdetermined → Conflict;
-circular `amends` chain → rejected; `cites` does not upgrade to authority;
-(3) at least one real edge from a C1 fixture (e.g. ФЗ-504 amends 44-ФЗ
-art. 93). Until S1, edges are inventory, not executable graph.
-
-**Update (Review 7)**: typed port + hostile tests shipped (`try_cross_act_edge`,
-6 tests green). C1 corpus now available: 138-ФЗ amends 44-ФЗ ст. 31/43,
-333-ФЗ amends 44-ФЗ ст. 95. First real `amends` edge creation is the next
-thin slice.
+Cross-act edges remain S0 design (vocabulary in YAML) until full S1.
+Transition to S1 requires: (1) a typed `CrossActEdgePort` trait with
+`try_edge(kind, from_cc, to_cc, provenance)`; (2) hostile tests:
+delegation underdetermined → Conflict; circular `amends` chain →
+rejected; `cites` does not upgrade to authority; (3) at least one real
+edge from a C1 fixture (e.g. ФЗ-504 amends 44-ФЗ art. 93) as an
+executable graph fact, not only a constructor call. Until S1, edges are
+inventory, not an executable graph. ConflictResolver stays out of the
+current parser wave (D180).
 
 ### R5-10: impact assessment (future extension)
 
@@ -145,8 +151,14 @@ change to article X?". This is a future capability: traverse `amends`,
 ## Non-claims
 
 - No legal correctness of conflict resolution without real conflict corpus.
+- ConflictResolver is absent; no maxim-selection runtime and no `[bounded]`
+  or `[validated]` promotion of this ADR.
+- Partial `try_cross_act_edge` constructors are not full S1, not a
+  `CrossActEdgePort` trait as specified, and not an executable graph.
 - Cross-act edge vocabulary is not an implemented graph and not a merged
   “legislation of the Russian Federation” tree (Review 4 R4-07).
+- Consultant-parser `consru_export` metrics are local `[smoke]`, not S1
+  or legal proof (R082).
 - Industry priority rules are profile-defined, not core-resolved.
 - Constitutional-court annulment effects (ex tunc) modeled via ADR-0018/0020,
   not by rank mutation.
