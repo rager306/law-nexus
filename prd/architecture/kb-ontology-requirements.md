@@ -72,7 +72,7 @@ S4 fixtures (KBO-R013), Manifestation/Item, and port materialization remain open
 | KBO-R010 | non-claim | RuVector / redb / RVF types are infrastructure, not domain law | ADR-0014 | **accepted-draft** |
 | KBO-R011 | dependency | Stable FRBR Work/Expression runtime identity (ADR-0016 ≥ S2) before freezing identity node cardinality | `mint_work`/`compare_work_identities` S2; number≠Work | **partial** |
 | KBO-R012 | dependency | Force↔CTV join by component offline before multi-store materialization of status+text | `join_force_with_membership` offline; membership≠InForce | **partial** |
-| KBO-R013 | dependency | Representative amendment / membership fixtures (S4 partial) before corpus edge claims | TSG-003/013; KBO-R042 435-FZ forest + 402-FZ chapter tree drafts | **partial** |
+| KBO-R013 | dependency | Representative amendment / membership fixtures (S4 partial) before corpus edge claims | TSG-003/013; KBO-R042 435-FZ forest + 402-FZ chapter tree drafts; **C1 corpus acquired**: consru_export has 121 amending laws + 118 editions of 44-ФЗ | **partial** (advanced: C1 available, integration pending) |
 | KBO-R014 | deferred | L4 hierarchy/conflict, L5 practice, L6 transitional/risk, L7 profiles as **core store types** | ADR-0019..0022; TSG-007..010 | **deferred** |
 | KBO-R015 | deferred | Production graph schema, generated-Cypher safety, GraphRAG ontology quality | GATE-GENERATED-CYPHER-SAFETY; TSG-016 | **deferred** |
 | KBO-R016 | deferred | RusLegalCore / AKML / LKIF / BFO as canon or completeness claim | DATA-RUSLEGALCORE-*; EVID-RESEARCH-ONTOLOGY-* quarantined | **deferred** |

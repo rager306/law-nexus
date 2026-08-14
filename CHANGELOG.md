@@ -4,6 +4,15 @@ All notable changes to law-nexus are documented in this file.
 
 ## Unreleased — current architecture landing and repository map
 
+### C1 corpus acquired: consru_export (561MB, 43K+ documents)
+- 118 editions of 44-ФЗ (initial 2013 → latest)
+- 121 amending laws in layer1 manifest (188-ФЗ, 416-ФЗ, 138-ФЗ, 333-ФЗ, ...)
+- 921 subordinate acts (layer2), 36K practice (layer3)
+- SQLite catalog with sha256, source_id, edition_id, revision_date
+- Cross-reference locators: 4,141 document links
+- KBO-R013: partial → advanced (C1 available, integration pending)
+- Enables: legislative replay, real cross-act amends edges, multi-edition oracle diff
+
 ### Cross-act edge port S0→S1 (KBO-R049)
 - `try_cross_act_edge(kind, from_cc, to_cc, prov)` validates kind against YAML
   `cross_act_edge_kinds`; rejects self-edges, unknown kinds, empty provenance.
