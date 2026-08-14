@@ -70,3 +70,31 @@ pub fn delta(from: &EditionSummary, to: &EditionSummary) -> EditionDelta {
         unknown_change: to.unknown_count as i64 - from.unknown_count as i64,
     }
 }
+
+/// Run the pipeline on multiple edition files from a directory.
+/// Returns summaries sorted by edition_number.
+pub fn process_editions_directory(dir: &std::path::Path) -> Vec<EditionSummary> {
+    let mut results = Vec::new();
+    let Ok(entries) = std::fs::read_dir(dir) else {
+        return results;
+    };
+    let mut files: Vec<_> = entries
+        .filter_map(|e| e.ok())
+        .map(|e| e.path())
+        .filter(|p| p.extension().is_some_and(|ext| ext == "xml"))
+        .filter(|p| {
+            p.file_name()
+                .is_some_and(|n| n.to_string_lossy().starts_with("edition-"))
+        })
+        .collect();
+    files.sort();
+    for path in files {
+        let filename = path.file_name().unwrap().to_string_lossy().into_owned();
+        if let Some((num, rev)) = parse_edition_filename(&filename) {
+            if let Ok(xml) = std::fs::read(&path) {
+                results.push(process_edition(&xml, num, &rev));
+            }
+        }
+    }
+    results
+}
