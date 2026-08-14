@@ -97,8 +97,11 @@ states reached (S_ready_bounded). 402-ФЗ passes full pipeline with real
 Expression ID, zero drift, resolvable CTVs. C1 corpus acquired (Review 7):
 138-ФЗ/333-ФЗ/484-ФЗ amending acts available for real cross-act edges.
 Consultant parser (ADR-0025/0027): `ln-consultant-parser` has 9 source
-modules including `lib.rs`, 51 integration test functions and 4 source-unit
-tests. Tracked crate mechanics remain `[bounded]`: contains+bounded-morph
+modules including `lib.rs`, 53 integration test functions and 4 source-unit
+tests. A non-skipping tracked 435-ФЗ system contract covers hyperlink →
+path-aware classification → edge candidate → unknown observation mechanics
+and an atomic malformed decode diagnostic. Tracked crate mechanics remain
+`[bounded]`: contains+bounded-morph
 AND/OR scoring, path-aware profile confidence composition, edge candidates,
 observations and edition helpers. Values 3772/3641/2619/502 and the
 118-edition temporal graph (44-ФЗ 6→1025 amends, 171×) come from

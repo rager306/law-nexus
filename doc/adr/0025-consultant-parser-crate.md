@@ -12,8 +12,9 @@ related: [ADR-0013, ADR-0015, ADR-0019]
 
 ## Status
 
-**Accepted [bounded]** — crate shipped with 8 modules and 42 integration
-test functions covering synthetic/tracked mechanics: hyperlink extraction,
+**Accepted [bounded]** — crate shipped with 8 functional modules plus `lib.rs`,
+53 integration test functions and 4 source-unit tests covering
+synthetic/tracked mechanics: hyperlink extraction,
 YAML-driven contains+AND/OR classification, edge derivation, observation
 store, hexagonal catalog **port**, and multi-edition filename/delta helpers.
 `consru_export` metrics (hyperlink/edge/observation counts; 118 editions)
@@ -51,8 +52,11 @@ forbidden. ADR-0015 requires hexagonal separation of concerns.
 
 Create a new crate `ln-consultant-parser` `[bounded]` for Consultant-specific
 extraction capabilities that go beyond block decoding. Shipped proof is the
-synthetic/tracked integration suite (42 test functions). `consru_export`
-runs stay local `[smoke]`.
+synthetic/tracked suite. A non-skipping 435-ФЗ system contract executes
+hyperlink extraction → path-aware scored classification → edge derivation →
+unknown observations twice with deterministic bounded anchors, plus an atomic
+malformed-decode diagnostic at the owning `ln-decode` boundary.
+`consru_export` runs stay local `[smoke]`.
 
 ### Crate boundary
 
