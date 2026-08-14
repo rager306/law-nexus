@@ -7,6 +7,7 @@
 //! ln-decode) and does NOT own the edge vocabulary (that's ln-kb-ontology).
 
 pub mod classifier;
+pub mod edge_deriver;
 pub mod hyperlink;
 pub mod raw_link;
 
@@ -14,5 +15,6 @@ pub use classifier::{
     classify_all, classify_all_scored, classify_link, classify_link_scored, load_classifier_rules,
     load_templates, score_template, ClassifiedLink, ClassifierRule, Template,
 };
+pub use edge_deriver::{derive_edges, DerivedEdge};
 pub use hyperlink::extract_hyperlinks;
 pub use raw_link::RawLink;
