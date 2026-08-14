@@ -76,3 +76,30 @@ fn missing_fields_fail_closed() {
     .expect_err("missing cc");
     assert!(err.to_string().contains("missing"));
 }
+
+#[test]
+fn load_expression_id_for_402_fz() {
+    use ln_kb_ontology::registry::load_expression_id_for_path;
+    let expr_id = load_expression_id_for_path(
+        "federalnyi-zakon-ot-06-12-2011-n-402-fz-red-ot-15-12-2025.xml",
+    )
+    .expect("402 expression");
+    assert!(
+        expr_id.contains("402-fz"),
+        "expression must contain act number: {expr_id}"
+    );
+    assert!(
+        expr_id.contains("2011-12-06"),
+        "expression must contain enactment date: {expr_id}"
+    );
+    assert!(
+        expr_id.contains("2025-12-15"),
+        "expression must contain edition date: {expr_id}"
+    );
+}
+
+#[test]
+fn load_expression_id_unknown_returns_none() {
+    use ln_kb_ontology::registry::load_expression_id_for_path;
+    assert!(load_expression_id_for_path("unknown-act.xml").is_none());
+}

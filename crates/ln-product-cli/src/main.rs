@@ -23,7 +23,9 @@ use ln_kb_ontology::domain::{
     map_hierarchy_marker, marker_from_decode_token, propose_membership_from_markers, HierarchyMap,
     HierarchyMapOutcome, HierarchyMarker, WriteSetError,
 };
-use ln_kb_ontology::registry::{load_edition_day_for_path, load_hierarchy_map_for_path};
+use ln_kb_ontology::registry::{
+    load_edition_day_for_path, load_expression_id_for_path, load_hierarchy_map_for_path,
+};
 use ln_query::knowql::{execute, KnowQLOp, KnowQLResult, ValidatedOp};
 use ln_storage::{
     adapters::in_memory::{InMemoryGraphStore, InMemoryVectorStore},
@@ -228,8 +230,11 @@ fn inspect(path: &str) {
     let membership_admitted = admit.admitted.len();
     let membership_conflict_quarantined = admit.quarantined.len();
 
-    // S_commit → S_fold → S_verify: commit, fold, then diff against oracle.
-    // Provenance is synthetic (C2 oracle); effect_day from YAML edition_date.
+    // S_identify → S_commit → S_fold → S_verify: mint identity, commit, fold, diff.
+    let expression_id = load_expression_id_for_path(path);
+    let provenance = expression_id
+        .as_deref()
+        .unwrap_or("amendingact:c2-oracle-edition");
     let (
         membership_committed,
         ast_root_count,
@@ -238,12 +243,7 @@ fn inspect(path: &str) {
         oracle_missing,
         oracle_phantom,
     ) = if let Some(effect_day) = load_edition_day_for_path(path) {
-        match assemble_with_oracle_diff(
-            &admit,
-            &hierarchy_map,
-            effect_day,
-            "amendingact:c2-oracle-edition",
-        ) {
+        match assemble_with_oracle_diff(&admit, &hierarchy_map, effect_day, provenance) {
             Ok(r) => (
                 r.committed,
                 r.root_count,
@@ -264,7 +264,7 @@ fn inspect(path: &str) {
             &hierarchy_map,
             &hierarchy_markers_seq,
             effect_day,
-            "amendingact:c2-oracle-edition",
+            provenance,
         );
         text_log.events().len()
     } else {
@@ -272,6 +272,7 @@ fn inspect(path: &str) {
     };
 
     let duration_ms = start.elapsed().as_millis();
+    let expression_id_str = json_escape(&expression_id.clone().unwrap_or_default());
 
     println!(
         "{{\"phase\":\"Inspect\",\"status\":\"ok\",\"binary\":\"{BINARY}\",\"runtime\":\"rust\",\
@@ -295,6 +296,7 @@ fn inspect(path: &str) {
          \"oracle_missing\":{oracle_missing},\
          \"oracle_phantom\":{oracle_phantom},\
          \"ctv_resolved\":{ctv_resolved},\
+         \"expression_id\":\"{expression_id_str}\",\
          \"reference_mentions\":{reference_mentions},\
          \"temporal_phrases\":{temporal_phrases},\"deontic_lexemes\":{deontic_lexemes},\
          \"unknown_forms\":{unknown_forms},\"provider_comment_candidates\":{provider_comments},\

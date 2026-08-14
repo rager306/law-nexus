@@ -4,6 +4,14 @@ All notable changes to law-nexus are documented in this file.
 
 ## Unreleased — current architecture landing and repository map
 
+### S_identify: mint Work/Expression from YAML (KBO-R053)
+- `load_expression_id_for_path` mints FrbrWork + FrbrExpression from YAML
+  `works:` section (authority, enactment_date, act_number, edition_date).
+- CLI uses real Expression ID as provenance instead of synthetic string.
+- 402-ФЗ provenance: `expr:ru:federal:zakon:2011-12-06:402-fz:2025-12-15`.
+- CLI reports `expression_id` in JSON output.
+- 2 new tests: 402-ФЗ identity minted; unknown → None.
+
 ### Text extraction: marker titles → TextVersionEvent (KBO-R051)
 - `build_text_log_from_markers(map, markers, day, provenance)` extracts titles
   from bound markers into a TextVersionLog.

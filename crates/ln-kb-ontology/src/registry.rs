@@ -117,3 +117,32 @@ fn edition_date_for_path(path: &str) -> Option<String> {
     }
     None
 }
+
+/// Mint a Work + Expression for the fixture matching `path`.
+/// Returns the Expression ID string for use as provenance.
+/// Falls back to None if no `works:` entry matches.
+pub fn load_expression_id_for_path(path: &str) -> Option<String> {
+    let text = EMBEDDED_HIERARCHY_REGISTRY_YAML;
+    let works_start = text.find("\nworks:")?;
+    let slice = &text[works_start..];
+    let path_lc = path.to_lowercase();
+    for raw in slice.lines() {
+        let trimmed = strip_comment(raw);
+        if !trimmed.trim().starts_with('-') {
+            continue;
+        }
+        let line = trimmed.trim();
+        let needle = flow_field(line, "path_needle")?;
+        if !path_lc.contains(&needle.to_lowercase()) {
+            continue;
+        }
+        let authority = flow_field(line, "authority")?;
+        let enactment_date = flow_field(line, "enactment_date")?;
+        let act_number = flow_field(line, "act_number")?;
+        let edition_date = flow_field(line, "edition_date")?;
+        let work = ln_identity::domain::mint_work(&authority, &enactment_date, &act_number).ok()?;
+        let expression = ln_identity::domain::mint_expression(&work, &edition_date).ok()?;
+        return Some(expression.expression_id.as_str().to_owned());
+    }
+    None
+}
