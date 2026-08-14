@@ -1,7 +1,7 @@
 //! Multi-edition pipeline: run consultant-parser on multiple editions
 //! of the same act and track how cross-act edges evolve over time.
 
-use crate::{classify_all_scored, extract_hyperlinks};
+use crate::{classify_all_scored, classify_all_scored_for_path, extract_hyperlinks};
 
 /// Summary of one edition's parser output.
 #[derive(Debug, Clone)]
@@ -17,9 +17,24 @@ pub struct EditionSummary {
 }
 
 /// Run the full pipeline on a single edition file.
+/// Compatibility wrapper: empty source path → default document profile.
 pub fn process_edition(xml: &[u8], edition_number: u32, revision_date: &str) -> EditionSummary {
+    process_edition_for_path(xml, edition_number, revision_date, "")
+}
+
+/// Run the pipeline using path-aware scored classification.
+pub fn process_edition_for_path(
+    xml: &[u8],
+    edition_number: u32,
+    revision_date: &str,
+    source_path: &str,
+) -> EditionSummary {
     let links = extract_hyperlinks(xml);
-    let classified = classify_all_scored(&links);
+    let classified = if source_path.is_empty() {
+        classify_all_scored(&links)
+    } else {
+        classify_all_scored_for_path(&links, source_path)
+    };
 
     let count_kind = |k: &str| classified.iter().filter(|c| c.kind == k).count();
 
@@ -92,7 +107,12 @@ pub fn process_editions_directory(dir: &std::path::Path) -> Vec<EditionSummary> 
         let filename = path.file_name().unwrap().to_string_lossy().into_owned();
         if let Some((num, rev)) = parse_edition_filename(&filename) {
             if let Ok(xml) = std::fs::read(&path) {
-                results.push(process_edition(&xml, num, &rev));
+                results.push(process_edition_for_path(
+                    &xml,
+                    num,
+                    &rev,
+                    &path.to_string_lossy(),
+                ));
             }
         }
     }

@@ -274,7 +274,7 @@ fn inspect(path: &str) {
     // Consultant parser pipeline: hyperlinks → classify → edges → observations
     let (hyperlink_count, edge_amends, edge_cites, edge_implements, obs_patterns) = {
         let links = ln_consultant_parser::extract_hyperlinks(&bytes);
-        let classified = ln_consultant_parser::classify_all_scored(&links);
+        let classified = ln_consultant_parser::classify_all_scored_for_path(&links, path);
         let source_consider = expression_id
             .as_deref()
             .unwrap_or("consultantplus://offline/ref=unknown");

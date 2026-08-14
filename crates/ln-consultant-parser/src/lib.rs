@@ -17,14 +17,17 @@ pub mod raw_link;
 
 pub use catalog::{coverage_summary, resolve_consids, CatalogPort, CatalogRecord, InMemoryCatalog};
 pub use classifier::{
-    classify_all, classify_all_scored, classify_link, classify_link_scored, load_classifier_rules,
-    load_templates, score_template, ClassifiedLink, ClassifierRule, Template,
+    classify_all, classify_all_scored, classify_all_scored_for_path, classify_link,
+    classify_link_scored, load_classifier_rules, load_templates, score_template, ClassifiedLink,
+    ClassifierRule, Template,
 };
 pub use document_profile::{
     apply_boost, detect_profile, load_profiles, DetectedProfile, DocumentProfile,
 };
 pub use edge_deriver::{derive_edges, DerivedEdge};
 pub use hyperlink::extract_hyperlinks;
-pub use multi_edition::{delta, parse_edition_filename, process_edition, EditionSummary};
+pub use multi_edition::{
+    delta, parse_edition_filename, process_edition, process_edition_for_path, EditionSummary,
+};
 pub use observation::{collect_observations, format_observations_yaml, Observation};
 pub use raw_link::RawLink;

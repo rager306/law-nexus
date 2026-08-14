@@ -85,3 +85,31 @@ fn boost_applied() {
     let boosted = apply_boost(0.9, &d);
     assert!((boosted - 0.9).abs() < 0.01); // 1.0 boost
 }
+
+#[test]
+fn sibling_classifier_templates_do_not_leak_into_profiles() {
+    let profiles = load_profiles();
+    let names: Vec<&str> = profiles.iter().map(|p| p.name.as_str()).collect();
+    assert_eq!(
+        names,
+        [
+            "federal_law",
+            "government_act",
+            "departmental_act",
+            "court_decision",
+            "code",
+            "default",
+        ],
+        "document_profiles must stop at the next same-indent sibling (classifier_templates)"
+    );
+    assert!(
+        !profiles.iter().any(|p| p.name == "amends_v_red"),
+        "classifier_templates rows must not be parsed as document profiles"
+    );
+    assert!(
+        !profiles
+            .iter()
+            .any(|p| p.path_needles.iter().any(|n| n == "требования")),
+        "orphan classifier row must not remain under document_profiles"
+    );
+}

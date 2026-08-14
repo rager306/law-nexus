@@ -12,13 +12,14 @@ related: [ADR-0025, ADR-0026, ADR-0019, ADR-0013]
 
 ## Status
 
-**Accepted [bounded]** only for the current **contains + AND/OR scoring**
-subset (YAML templates, best-score-wins). Document-profile functions exist
-(`load_profiles` / `detect_profile` / `apply_boost`) but are **not composed**
-into `classify_all_scored`. Morph, proximity, prefix, regex, position,
-profile-restricted templates, and top-2 closest-template backlog remain
-`[proposed]`. `consru_export` classification counts are local `[smoke]`,
-skip-capable, not promotion proof (R082). No `[validated]` promotion.
+**Accepted [bounded]** for the current **contains + bounded morph variants +
+AND/OR scoring** subset (YAML templates, best-score-wins). Path-aware
+classification composes `load_profiles` / `detect_profile` / `apply_boost` in
+CLI and multi-edition flows; the compatibility wrapper uses the deterministic
+default profile. Proximity, prefix, regex, position, profile-restricted
+templates, and top-2 closest-template backlog remain `[proposed]`.
+`consru_export` classification counts are local `[smoke]`, skip-capable, not
+promotion proof (R082). No `[validated]` promotion.
 
 ## Context
 
@@ -46,14 +47,17 @@ morphological variants (`в ред.` vs `в редакции` vs `редакци
 ## Decision
 
 Target design: a **four-layer manifest-driven classifier** where all logic
-lives in YAML and the Rust engine interprets it. Only the contains+AND/OR
-scoring subset is `[bounded]`; remaining layers/signals stay `[proposed]`.
+lives in YAML and the Rust engine interprets it. The contains+bounded-morph AND/OR
+scoring and profile-confidence composition are `[bounded]`; remaining
+signals/layers stay `[proposed]`.
 
-### Layer 1: Document profiles `[proposed]` composition
+### Layer 1: Document profiles `[bounded]` confidence composition
 
-Functions exist (`load_profiles` / `detect_profile` / `apply_boost`) but
-are not composed into `classify_all_scored`. Target: each document type
-gets a profile that:
+`classify_all_scored_for_path` detects a profile and applies its confidence
+boost to the winning known classification. CLI inspect and multi-edition
+processing pass the actual source path; `classify_all_scored` remains a
+compatibility wrapper using the deterministic default profile. Profiles do not
+change the legal kind. Each document type gets a profile that:
 - Identifies the type from path/title needles (YAML)
 - Applies a `confidence_boost` multiplier
 - Selects which templates are active (some templates are profile-restricted)
@@ -84,8 +88,10 @@ document_profiles:
 
 ### Layer 2: Signal matchers
 
-Shipped `[bounded]` signal is `contains` only. Proximity, prefix, morph,
-regex and position remain `[proposed]`. Target: each template is composed
+Shipped `[bounded]` signals are `contains` and a bounded `morph_needles`
+variant list. Morph variants use exact configured substring containment and
+are not general linguistic morphology. Proximity, prefix, regex and position
+remain `[proposed]`. Target: each template is composed
 of **signals** — atomic checks described in YAML:
 
 | Signal type | YAML fields | Rust check |
@@ -99,20 +105,21 @@ of **signals** — atomic checks described in YAML:
 
 A template specifies `match_mode: all` (AND) or `match_mode: any` (OR).
 
-### Layer 3: Scoring engine `[bounded]` contains+AND/OR subset
+### Layer 3: Scoring engine `[bounded]` contains+morph AND/OR subset
 
-The shipped engine **scores** every template on `contains` needles:
-AND (`match_all`) requires all needles; OR scales confidence by
-matched/total. Highest score wins; ties broken by YAML order.
-`profile.confidence_boost` is `[proposed]` and is not applied on the
-shipped path.
+The shipped engine **scores** every template on `contains` needles plus one
+optional bounded morph signal (matched when any configured variant occurs).
+AND (`match_all`) requires every signal; OR scales confidence by
+matched/total. Highest score wins; ties are broken by YAML order. The winning
+known classification is multiplied by `profile.confidence_boost`; `unknown`
+remains at the explicit 0.1 baseline.
 
-Target formula (boost not composed today):
+Shipped formula:
 
 ```
 template_score = base_confidence
   × Π(signal_match: 1.0 if match, 0.0 if not)
-  × profile.confidence_boost   # [proposed]; not applied
+  × profile.confidence_boost
 ```
 
 - If `match_mode: all`: all signals must match (product = 0 if any fails)
@@ -135,7 +142,8 @@ updates the YAML manifest. The system improves with each cycle.
 ### Template structure
 
 Target YAML vocabulary `[proposed]` for proximity/profile restrictions.
-Shipped templates use `contains` needles + AND/OR only `[bounded]`.
+Shipped templates use `contains` needles, optional `morph_needles`, and
+AND/OR scoring `[bounded]`.
 
 ```yaml
 templates:
@@ -164,34 +172,37 @@ templates:
    YAML-configurable. Suitable for the **agent** layer (proposing new
    templates from unknown backlog), not the **parser** layer.
 3. **Manifest signals**: the shipped `[bounded]` subset is `contains` needles
-   with AND/OR scoring. Proximity, prefix, morph, regex, position, and
-   profile restrictions remain `[proposed]`. Deterministic and YAML-driven
+   plus bounded `morph_needles` variants with AND/OR scoring. Proximity,
+   prefix, regex, position, and profile restrictions remain `[proposed]`.
+   Deterministic and YAML-driven
    for the shipped subset. The agent may employ NLP offline to PROPOSE
    templates; the parser applies shipped templates online to CLASSIFY.
 
 ## Consequences
 
-- `classifier.rs` gains a `[bounded]` contains+AND/OR scoring engine
-  (best-score-wins on the scored path; first-match-wins remains as fallback).
+- `classifier.rs` gains a `[bounded]` contains+bounded-morph AND/OR scoring
+  engine (best-score-wins on the scored path; first-match-wins remains as
+  fallback).
 - YAML `classifier_templates` drive the shipped subset; a full four-layer
   `classifier_manifest` remains `[proposed]`.
-- Document-profile functions exist but are not composed into scoring.
+- Path-aware scoring composes document-profile confidence boost; profiles
+  remain heuristic and cannot change classification kind or legal authority.
 - Unknown-link observation store exists; top-2 closest-template backlog
   remains `[proposed]`. `consru_export` unknown counts are local `[smoke]`.
 - Profile-restricted templates (e.g. court-only `руководствуясь`) remain
   `[proposed]` and do not yet prevent false positives by profile.
-- New document types still require composition work before profiles affect
-  classification; YAML-only omnivorous routing is `[proposed]`.
+- New document types can receive confidence boosts through YAML profiles;
+  profile-restricted template routing remains `[proposed]`.
 
 ## Non-claims
 
-- `[bounded]` covers only the shipped contains+AND/OR scoring subset.
-  Morph, proximity, prefix, regex, position, profile restrictions, and
-  top-2 backlog remain `[proposed]` — not implemented in the scoring path.
-- Document-profile functions are not composed into classification; path
-  needles are heuristic, not legal type-classification authority.
-- Morphological matching, if added later, is variant-list-based, not a
-  full Russian NLP morphology engine.
+- `[bounded]` covers only the shipped contains+bounded-morph AND/OR scoring
+  and profile-confidence composition. Proximity, prefix, regex, position,
+  profile restrictions, and top-2 backlog remain `[proposed]`.
+- Path needles and confidence boosts are heuristic, not legal
+  type-classification authority; they never change classification kind.
+- Morphological matching is a configured variant list (`в ред.`, `в редакции`,
+  `редакции`), not a full Russian NLP morphology engine.
 - Learning backlog observations are candidates for human/agent review,
   not auto-promoted YAML patches without a gate. Top-2 closest templates
   are not recorded today.

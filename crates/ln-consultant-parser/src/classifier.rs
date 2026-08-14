@@ -59,22 +59,15 @@ pub fn classify_all(links: &[RawLink]) -> Vec<ClassifiedLink> {
 
 /// Parse `link_classifiers:` section from YAML text.
 fn parse_link_classifiers(text: &str) -> Vec<ClassifierRule> {
-    let heading = "link_classifiers:";
-    let start = match text.find(heading) {
-        Some(pos) => pos + heading.len(),
-        None => return Vec::new(),
-    };
+    parse_link_classifiers_from(text)
+}
+
+/// Parse link classifiers from YAML text. Test/helper surface; not a product API.
+pub(crate) fn parse_link_classifiers_from(text: &str) -> Vec<ClassifierRule> {
     let mut rules = Vec::new();
-    for raw in text[start..].lines() {
+    for raw in crate::document_profile::yaml_section_lines(text, "link_classifiers:") {
         let line = raw.trim();
-        if line.is_empty() || line.starts_with('#') {
-            continue;
-        }
-        // Stop at next top-level key
-        if !raw.starts_with(' ') && !raw.starts_with('\t') && line.ends_with(':') {
-            break;
-        }
-        if !line.starts_with('-') {
+        if line.is_empty() || line.starts_with('#') || !line.starts_with('-') {
             continue;
         }
         let kind = extract_field(line, "kind");
@@ -120,6 +113,8 @@ pub struct Template {
     pub confidence: f64,
     pub match_all: bool,
     pub needles: Vec<String>,
+    /// Bounded morph variants. Any configured variant counts as one morph signal.
+    pub morph_needles: Vec<String>,
 }
 
 /// Load multi-signal templates from YAML `classifier_templates`.
@@ -129,18 +124,31 @@ pub fn load_templates() -> Vec<Template> {
 
 /// Score a link against one template. Returns confidence if match, 0.0 if not.
 ///
-/// - match_all (AND): all needles must match → full confidence
-/// - match_any (OR): at least one → confidence × (matched / total)
+/// - match_all (AND): all contains needles and the morph signal (if configured) must match → full confidence
+/// - match_any (OR): at least one contains needle or morph signal → confidence × (matched / total)
+///
+/// Morph is one extra signal: it matches when any configured variant is contained.
+/// Empty morph_needles is not a signal (no extra slot).
 pub fn score_template(template: &Template, link: &RawLink) -> f64 {
-    let total = template.needles.len();
+    let needle_total = template.needles.len();
+    let morph_slot = usize::from(!template.morph_needles.is_empty());
+    let total = needle_total + morph_slot;
     if total == 0 {
         return 0.0;
     }
-    let matched = template
+    let needle_matched = template
         .needles
         .iter()
         .filter(|n| link.context.contains(n.as_str()))
         .count();
+    let morph_matched = usize::from(
+        !template.morph_needles.is_empty()
+            && template
+                .morph_needles
+                .iter()
+                .any(|n| link.context.contains(n.as_str())),
+    );
+    let matched = needle_matched + morph_matched;
     if template.match_all {
         if matched == total {
             template.confidence
@@ -179,34 +187,45 @@ pub fn classify_link_scored(link: &RawLink, templates: &[Template]) -> Classifie
 }
 
 /// Classify all links using the scoring engine (templates preferred).
+/// Compatibility wrapper: empty path → default document profile (boost only).
 pub fn classify_all_scored(links: &[RawLink]) -> Vec<ClassifiedLink> {
+    classify_all_scored_for_path(links, "")
+}
+
+/// Path-aware scored classification: detect a YAML document profile from
+/// `source_path` and multiply the winning template confidence by `apply_boost`.
+/// Legal kind is never changed by the profile. Unknown stays at baseline 0.1.
+pub fn classify_all_scored_for_path(links: &[RawLink], source_path: &str) -> Vec<ClassifiedLink> {
     let templates = load_templates();
     if templates.is_empty() {
         return classify_all(links);
     }
+    let profiles = crate::document_profile::load_profiles();
+    let profile = crate::document_profile::detect_profile(&profiles, source_path);
     links
         .iter()
-        .map(|l| classify_link_scored(l, &templates))
+        .map(|l| {
+            let mut classified = classify_link_scored(l, &templates);
+            if classified.kind != "unknown" {
+                classified.confidence =
+                    crate::document_profile::apply_boost(classified.confidence, &profile);
+            }
+            classified
+        })
         .collect()
 }
 
 /// Parse `classifier_templates:` section from YAML.
 fn parse_classifier_templates(text: &str) -> Vec<Template> {
-    let heading = "classifier_templates:";
-    let start = match text.find(heading) {
-        Some(pos) => pos + heading.len(),
-        None => return Vec::new(),
-    };
+    parse_classifier_templates_from(text)
+}
+
+/// Parse classifier templates from YAML text. Test/helper surface; not a product API.
+pub(crate) fn parse_classifier_templates_from(text: &str) -> Vec<Template> {
     let mut templates = Vec::new();
-    for raw in text[start..].lines() {
+    for raw in crate::document_profile::yaml_section_lines(text, "classifier_templates:") {
         let line = raw.trim();
-        if line.is_empty() || line.starts_with('#') {
-            continue;
-        }
-        if !raw.starts_with(' ') && !raw.starts_with('\t') && line.ends_with(':') {
-            break;
-        }
-        if !line.starts_with('-') {
+        if line.is_empty() || line.starts_with('#') || !line.starts_with('-') {
             continue;
         }
         let name = extract_field(line, "name").unwrap_or_default();
@@ -219,17 +238,69 @@ fn parse_classifier_templates(text: &str) -> Vec<Template> {
             .unwrap_or(0.5);
         let match_all = extract_field(line, "match").is_some_and(|m| m == "all");
         let needles: Vec<String> = extract_field(line, "needles")
-            .map(|s| s.split('|').map(|n| n.trim().to_owned()).collect())
+            .map(|s| {
+                s.split('|')
+                    .map(|n| n.trim().to_owned())
+                    .filter(|n| !n.is_empty())
+                    .collect()
+            })
             .unwrap_or_default();
-        if !needles.is_empty() {
+        let morph_needles: Vec<String> = extract_field(line, "morph_needles")
+            .map(|s| {
+                s.split('|')
+                    .map(|n| n.trim().to_owned())
+                    .filter(|n| !n.is_empty())
+                    .collect()
+            })
+            .unwrap_or_default();
+        if !needles.is_empty() || !morph_needles.is_empty() {
             templates.push(Template {
                 name,
                 kind,
                 confidence,
                 match_all,
                 needles,
+                morph_needles,
             });
         }
     }
     templates
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    const NESTED: &str = r#"
+vocabulary:
+  link_classifiers:
+    - {kind: amends, context_needle: "в ред.", confidence: 0.9}
+  document_profiles:
+    - {name: federal_law, path_needles: "law_", boost: "1.0"}
+  classifier_templates:
+    - {name: amends_v_red, kind: amends, confidence: "0.9", match: all, needles: "ФЗ", morph_needles: "в ред.|в редакции"}
+assembly_fsm:
+  current: S_ready_bounded
+"#;
+
+    #[test]
+    fn sibling_sections_do_not_leak_into_link_classifiers() {
+        let rules = parse_link_classifiers_from(NESTED);
+        assert_eq!(rules.len(), 1);
+        assert_eq!(rules[0].kind, "amends");
+        assert_eq!(rules[0].context_needle, "в ред.");
+        assert!(!rules.iter().any(|r| r.kind == "federal_law"));
+    }
+
+    #[test]
+    fn sibling_sections_do_not_leak_into_templates() {
+        let templates = parse_classifier_templates_from(NESTED);
+        assert_eq!(templates.len(), 1);
+        assert_eq!(templates[0].name, "amends_v_red");
+        assert_eq!(templates[0].needles, vec!["ФЗ".to_owned()]);
+        assert_eq!(
+            templates[0].morph_needles,
+            vec!["в ред.".to_owned(), "в редакции".to_owned()]
+        );
+    }
 }

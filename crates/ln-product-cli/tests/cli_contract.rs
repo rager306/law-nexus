@@ -447,3 +447,46 @@ fn directory_as_path_rejected_as_io_error() {
         stdout
     );
 }
+
+#[test]
+fn inspect_path_aware_classifier_counts_federal_law_amendment() {
+    let tmp = std::env::temp_dir().join(format!(
+        "federalnyi-zakon-s03-classifier-{}.xml",
+        std::process::id()
+    ));
+    let xml = r#"<?xml version="1.0" encoding="UTF-8"?>
+<w:wordDocument xmlns:w="http://schemas.microsoft.com/office/word/2003/wordml">
+<w:body>
+<w:p><w:pPr><w:pStyle w:val="0"/></w:pPr>
+  <w:r><w:t>(в ред. </w:t></w:r>
+  <w:hlink w:dest="consultantplus://offline/ref=TOKEN360">
+    <w:r><w:t>N 360-ФЗ</w:t></w:r>
+  </w:hlink>
+  <w:r><w:t>)</w:t></w:r>
+</w:p>
+</w:body>
+</w:wordDocument>"#;
+    std::fs::write(&tmp, xml).expect("write classifier fixture");
+    let out = Command::new(binary())
+        .args(["inspect", tmp.to_str().unwrap()])
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped())
+        .output()
+        .expect("spawn");
+    let _ = std::fs::remove_file(&tmp);
+    assert!(
+        out.status.success(),
+        "inspect must exit 0; stderr={}",
+        String::from_utf8_lossy(&out.stderr)
+    );
+    let stdout = String::from_utf8(out.stdout).unwrap();
+    assert_eq!(
+        inspect_u64(&stdout, "hyperlink_count"),
+        1,
+        "fixture must expose one hyperlink; {stdout}"
+    );
+    assert!(
+        inspect_u64(&stdout, "edge_amends") >= 1,
+        "path-aware inspect must classify «в ред. ФЗ» as amends; {stdout}"
+    );
+}

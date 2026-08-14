@@ -307,6 +307,7 @@ vocabulary:
     - {kind: implements, context_needle: "в порядке", confidence: 0.5}
     - {kind: implements, context_needle: "установленном", confidence: 0.5}
     - {kind: specifies, context_needle: "перечень", confidence: 0.4}
+    - {kind: specifies, context_needle: "требования", confidence: 0.4}
   document_profiles:
     - {name: federal_law, path_needles: "federalnyi-zakon|law_", boost: "1.0"}
     - {name: government_act, path_needles: "postanovlenie-pravitelstva|rasporyazhenie-pravitelstva|resolution_|directive_", boost: "0.9"}
@@ -314,9 +315,8 @@ vocabulary:
     - {name: court_decision, path_needles: "postanovlenie-arbitrazhnogo|opredelenie|decision_", boost: "0.8"}
     - {name: code, path_needles: "kodeks", boost: "1.0"}
     - {name: default, path_needles: "", boost: "0.7"}
-    - {kind: specifies, context_needle: "требования", confidence: 0.4}
   classifier_templates:
-    - {name: amends_v_red, kind: amends, confidence: "0.9", match: all, needles: "в ред.|ФЗ"}
+    - {name: amends_v_red, kind: amends, confidence: "0.9", match: all, needles: "ФЗ", morph_needles: "в ред.|в редакции|редакции"}
     - {name: amends_changes, kind: amends, confidence: "0.85", match: any, needles: "изменениями|дополнен|признать утратившим"}
     - {name: cites_according, kind: cites, confidence: "0.7", match: any, needles: "в соответствии с|согласно|предусмотренном|на основании|руководствуясь|установленным законом|им законом|предусмотренным законом"}
     - {name: implements_order, kind: implements, confidence: "0.5", match: any, needles: "в порядке|установленном|во исполнение"}

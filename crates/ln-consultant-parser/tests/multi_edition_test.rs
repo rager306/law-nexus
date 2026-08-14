@@ -1,6 +1,9 @@
 //! Multi-edition pipeline tests: temporal edge evolution across 44-ФЗ editions.
 
-use ln_consultant_parser::multi_edition::{delta, parse_edition_filename, process_edition};
+use ln_consultant_parser::multi_edition::{
+    delta, parse_edition_filename, process_edition, process_edition_for_path,
+    process_editions_directory,
+};
 
 fn editions_dir() -> std::path::PathBuf {
     std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"))
@@ -73,4 +76,59 @@ fn real_44fz_first_vs_last_edition() {
         last.amends_count,
         first.amends_count
     );
+}
+
+fn amendment_xml() -> Vec<u8> {
+    r#"<?xml version="1.0" encoding="UTF-8"?>
+<w:wordDocument xmlns:w="http://schemas.microsoft.com/office/word/2003/wordml">
+<w:body>
+<w:p><w:r><w:t>(в ред. </w:t></w:r>
+  <w:hlink w:dest="consultantplus://offline/ref=TOKEN360">
+    <w:r><w:t>N 360-ФЗ</w:t></w:r>
+  </w:hlink>
+<w:r><w:t>)</w:t></w:r></w:p>
+</w:body>
+</w:wordDocument>"#
+        .as_bytes()
+        .to_vec()
+}
+
+#[test]
+fn process_edition_wrapper_uses_default_profile_path() {
+    let xml = amendment_xml();
+    let wrapped = process_edition(&xml, 1, "2024-01-01");
+    let empty_path = process_edition_for_path(&xml, 1, "2024-01-01", "");
+    assert_eq!(wrapped.hyperlink_count, 1);
+    assert_eq!(wrapped.amends_count, empty_path.amends_count);
+    assert_eq!(wrapped.amends_count, 1);
+    assert_eq!(wrapped.unknown_count, empty_path.unknown_count);
+}
+
+#[test]
+fn process_edition_for_path_classifies_federal_law_source() {
+    let xml = amendment_xml();
+    let summary = process_edition_for_path(
+        &xml,
+        5,
+        "2024-01-01",
+        "exports/npa/federalnyi-zakon-ot-05-04-2013-n-44-fz/edition-0005.xml",
+    );
+    assert_eq!(summary.edition_number, 5);
+    assert_eq!(summary.hyperlink_count, 1);
+    assert_eq!(summary.amends_count, 1);
+    assert_eq!(summary.unknown_count, 0);
+}
+
+#[test]
+fn process_editions_directory_passes_source_path() {
+    let dir = std::env::temp_dir().join(format!("ln-s03-editions-{}", std::process::id()));
+    let _ = std::fs::remove_dir_all(&dir);
+    std::fs::create_dir_all(&dir).expect("temp editions dir");
+    let file = dir.join("edition-0007_rev-2024-01-01_from-2024-01-01_deadbeef.xml");
+    std::fs::write(&file, amendment_xml()).expect("write edition xml");
+    let summaries = process_editions_directory(&dir);
+    let _ = std::fs::remove_dir_all(&dir);
+    assert_eq!(summaries.len(), 1);
+    assert_eq!(summaries[0].edition_number, 7);
+    assert_eq!(summaries[0].amends_count, 1);
 }
