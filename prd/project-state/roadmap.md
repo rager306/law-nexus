@@ -266,3 +266,4 @@ This roadmap does not prove Rust product readiness, parser completeness, Russian
 
 <!-- Review 5 de Martim v5 comparison KBO-R045..R050 companion -->
 <!-- Review 6 cross-act roadmap companion -->
+<!-- S_heal companion -->

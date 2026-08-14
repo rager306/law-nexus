@@ -1068,6 +1068,69 @@ fn collect_subtree_ccs(node: &StructuralAstNode) -> Vec<&str> {
     result
 }
 
+// ─── S_heal: drift → heal event or waiver (KBO-R052) ───────────────────────────
+// Never edit existing events. Heal = append new Attach. Waiver = explicit record.
+
+/// Explicit waiver of non-zero drift. Records what was accepted and why.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct DriftWaiver {
+    pub drift: usize,
+    pub missing: usize,
+    pub phantom: usize,
+    pub reason: String,
+}
+
+/// Waive non-zero drift with a human-readable reason.
+/// The waiver does not modify the log; it records that drift was observed and accepted.
+pub fn waive_drift(diff: &OracleDiffReport, reason: &str) -> DriftWaiver {
+    DriftWaiver {
+        drift: diff.drift,
+        missing: diff.missing,
+        phantom: diff.phantom,
+        reason: reason.to_owned(),
+    }
+}
+
+/// Report of how many CCs were healed (Attach events added).
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct HealReport {
+    pub healed: usize,
+}
+
+/// Heal missing CCs by appending Attach events for expected parent→child edges
+/// where the child is absent from the folded AST. Never edits existing events.
+pub fn heal_missing(
+    log: &mut VersionedMembershipLog,
+    ast: &StructuralAst,
+    expected_edges: &[(ComponentConceptId, ComponentConceptId)],
+    effect_day: i64,
+    provenance: &str,
+) -> HealReport {
+    let present: std::collections::HashSet<&str> =
+        ast.roots().iter().flat_map(collect_subtree_ccs).collect();
+    let prov = AmendingActId::parse(provenance).unwrap_or_else(|_| {
+        AmendingActId::parse("amendingact:heal-fallback").expect("fallback provenance")
+    });
+    let mut healed = 0usize;
+    for (parent, child) in expected_edges {
+        if present.contains(child.as_str()) {
+            continue;
+        }
+        if let Ok(event) = ln_temporal::domain::VersionedMembershipEvent::try_new(
+            MembershipChangeKind::Attach,
+            parent.clone(),
+            child.clone(),
+            effect_day,
+            prov.clone(),
+        ) {
+            if log.append(event).is_ok() {
+                healed += 1;
+            }
+        }
+    }
+    HealReport { healed }
+}
+
 // ─── resolve_CTV: deterministic text reconstruction (KBO-R046) ──────────────────
 // Main gap vs de Martim v5. Text is a runtime value, not persisted legal text.
 // resolve_ctv(log, cc, day) returns the text of cc as it stood at day t.

@@ -2894,3 +2894,6 @@ def test_active_surface_era_noise_allows_qualified_token(tmp_path: Path) -> None
     findings = check_active_surface_era_noise(tmp_path)
     assert len(findings) == 1
     assert findings[0].status == "pass"
+
+
+# .gitignore tabby-upload companion

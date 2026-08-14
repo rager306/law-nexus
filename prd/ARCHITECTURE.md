@@ -92,7 +92,7 @@ compared against registry CCs (KBO-R047). Zero drift on 402-ФЗ (37 expected /
 Readiness FSM stays `O2_calendar_ordinal`. `resolve_ctv` (KBO-R046, prototype)
 closes the main text-reconstruction gap vs de Martim v5. Review 6
 (`doc/review/review-15-08-2026.md`) audits progress: scorecard 2.5→6.5.
-Not Applicable.
+S_heal implemented: heal_missing + waive_drift. Not Applicable.
 
 ## Temporal legal ontology — design spine (all `[proposed]`)
 

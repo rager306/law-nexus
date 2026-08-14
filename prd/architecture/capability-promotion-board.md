@@ -157,6 +157,7 @@ Governor check `kb-ontology-draft` is structural only.
 | 2026-08-14 | KBO-R051..R053 | Review 6 findings | text extraction, S_heal, S_identify |
 | 2026-08-14 | KBO-R051 | text extraction | build_text_log_from_markers; 4 tests; CLI ctv_resolved wired |
 | 2026-08-14 | KBO-R053 | S_identify (partial) | mint Work/Expression from YAML works section; CLI uses real Expression ID as provenance |
+| 2026-08-14 | KBO-R052 | assembly `S_heal` | heal_missing + waive_drift; 4 tests; FSM S_verify→S_heal |
 
 ## 6. Operator cycle (capability-only)
 

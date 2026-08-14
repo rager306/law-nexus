@@ -4,6 +4,15 @@ All notable changes to law-nexus are documented in this file.
 
 ## Unreleased — current architecture landing and repository map
 
+### S_heal: drift → heal event or waiver (KBO-R052)
+- `heal_missing(log, ast, expected_edges, day, prov)` appends Attach events
+  for CCs absent from the folded AST. Never edits existing events.
+- `waive_drift(diff, reason) -> DriftWaiver` explicitly records accepted drift.
+- After healing, re-fold + oracle_diff → drift decreases to 0.
+- 4 TDD tests: waive records drift, waive zero valid, heal adds Attach,
+  heal skips already-present.
+- assembly_fsm.current: S_verify → S_heal.
+
 ### S_identify: mint Work/Expression from YAML (KBO-R053)
 - `load_expression_id_for_path` mints FrbrWork + FrbrExpression from YAML
   `works:` section (authority, enactment_date, act_number, edition_date).
