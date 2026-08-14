@@ -35,8 +35,10 @@ Current Rust evidence is `[bounded]`:
   under test and therefore proves self-consistency only.
 
 The tracked source corpus contains additional documents, but corpus existence is
-not parser proof. No current result establishes representative multi-fixture
-quality, Consultant/Garant parity, legal resolution, citation mapping or parser
+not parser proof. Gitignored `consru_export` inventories, including the Review 7
+118-edition 44-ФЗ count, are local `[smoke]` and are not protocol fixtures.
+No current result establishes representative multi-fixture quality,
+Consultant/Garant parity, legal resolution, citation mapping or parser
 completeness.
 
 ## 3. Provider strata
@@ -97,6 +99,11 @@ The Consultant `119` count is the current `EXPECTED_HIERARCHY_COUNT` in
 sub-article candidates (`1.`, `1)`, `а)`) from the bounded hierarchy layer.
 Those candidates are structural decode markers only; they do not prove legal
 hierarchy correctness, article/part/item identity, or citation completeness.
+That `119` count is the current G1 Consultant marker ceiling for this one
+tracked fixture. Review 7 / gitignored `consru_export` 118-edition metrics
+(and the 44-ФЗ 6→1025 / 171× temporal-graph observations) remain local
+`[smoke]`. They MUST NOT be rewritten as this G1 marker anchor, used as a
+corpus-size promotion proof, or treated as G2/G3 evidence.
 
 A new fixture MUST be registered and reviewed independently for its own stratum.
 The counts above MUST NOT be generalized into a quality threshold, provider
@@ -270,7 +277,8 @@ Every corpus result MUST state that it does not prove:
 - temporal applicability or NormativeState;
 - retrieval quality, product ETL or graph readiness;
 - production RuVector/TEI behavior;
-- requirement satisfaction, release readiness or lifecycle promotion.
+- requirement satisfaction, release readiness or lifecycle promotion;
+- local `consru_export` / 118-edition smoke metrics as G1 or G2 proof.
 
 ## 14. Current verification routes
 

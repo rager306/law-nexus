@@ -483,3 +483,36 @@ def test_parser_adrs_keep_lifecycle_and_non_claims_honest() -> None:
     assert "a full four-layer" in adr_0027
     assert "remain `[proposed]`" in adr_0027
     assert 'lifecycle: "[bounded]"' in adr_0027
+
+
+def test_architecture_and_protocol_keep_g1_and_smoke_anchors_honest() -> None:
+    architecture = (ROOT / "prd/ARCHITECTURE.md").read_text(encoding="utf-8")
+    protocol = (ROOT / "prd/parser/representative_golden_corpus_acceptance_protocol.md").read_text(
+        encoding="utf-8"
+    )
+
+    assert "64 integration test functions and 4 source-unit" in architecture
+    assert "G1 Consultant protocol/tracer anchor is 119" in architecture
+    assert "EXPECTED_HIERARCHY_COUNT" in architecture
+    assert "Parser evidence ceiling stays G1." in architecture
+    assert "118-edition temporal graph" in architecture
+    assert "local `[smoke]`" in architecture
+    assert "must not be rewritten as the 119 G1 marker anchor" in architecture
+    assert "deferred-undefined" in architecture
+    assert "not G2/G3" in architecture
+    assert "G1 Consultant marker ceiling is 118" not in architecture
+    assert "118 Consultant markers" not in architecture
+
+    assert "Hierarchy nodes" in protocol
+    assert "| 167 | 119 |" in protocol
+    assert "EXPECTED_HIERARCHY_COUNT" in protocol
+    assert "current G1 Consultant marker ceiling" in protocol
+    assert "Current evidence reaches G1." in protocol
+    assert "does not satisfy G2" in protocol
+    assert "118-edition" in protocol
+    assert "local `[smoke]`" in protocol
+    assert "consru_export" in protocol
+    assert "MUST NOT be rewritten as this G1 marker anchor" in protocol
+    assert "118-edition smoke metrics as G1 or G2 proof" in protocol
+    assert "EXPECTED_HIERARCHY_COUNT` is 118" not in protocol
+    assert "G1 Consultant marker ceiling is 118" not in protocol
