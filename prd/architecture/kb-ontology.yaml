@@ -308,6 +308,12 @@ vocabulary:
     - {kind: implements, context_needle: "установленном", confidence: 0.5}
     - {kind: specifies, context_needle: "перечень", confidence: 0.4}
     - {kind: specifies, context_needle: "требования", confidence: 0.4}
+  classifier_templates:
+    - {name: amends_v_red, kind: amends, confidence: "0.9", match: all, needles: "в ред.|ФЗ"}
+    - {name: amends_changes, kind: amends, confidence: "0.85", match: any, needles: "изменениями|дополнен|признать утратившим"}
+    - {name: cites_according, kind: cites, confidence: "0.7", match: any, needles: "в соответствии с|согласно|предусмотренном|на основании|руководствуясь"}
+    - {name: implements_order, kind: implements, confidence: "0.5", match: any, needles: "в порядке|установленном|во исполнение"}
+    - {name: specifies_list, kind: specifies, confidence: "0.4", match: any, needles: "перечень|требования|классификаци"}
 
 # Separate from fsm (readiness). Governor compares contract.fsm_state to
 # fsm.current only. Do not move readiness current for design inventory.

@@ -11,7 +11,8 @@ pub mod hyperlink;
 pub mod raw_link;
 
 pub use classifier::{
-    classify_all, classify_link, load_classifier_rules, ClassifiedLink, ClassifierRule,
+    classify_all, classify_all_scored, classify_link, classify_link_scored, load_classifier_rules,
+    load_templates, score_template, ClassifiedLink, ClassifierRule, Template,
 };
 pub use hyperlink::extract_hyperlinks;
 pub use raw_link::RawLink;
