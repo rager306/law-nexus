@@ -4,6 +4,14 @@ All notable changes to law-nexus are documented in this file.
 
 ## Unreleased — current architecture landing and repository map
 
+### Text extraction: marker titles → TextVersionEvent (KBO-R051)
+- `build_text_log_from_markers(map, markers, day, provenance)` extracts titles
+  from bound markers into a TextVersionLog.
+- CLI reports `ctv_resolved` count — how many CTVs have text at effect_day.
+- 4 TDD tests: titled bound markers, untitled skipped, unknown skipped,
+  earlier day unknown.
+- Wires `resolve_ctv` into the real assembly pipeline on 402-ФЗ.
+
 ### Review 6: progress audit, updated scorecard, cross-act roadmap (L0)
 - `doc/review/review-15-08-2026.md` — audit of progress since Review 5.
 - resolve_ctv gap: 2.5/10 → 6.5/10 (prototype works).

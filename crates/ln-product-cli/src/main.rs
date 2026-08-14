@@ -19,9 +19,9 @@ use ln_decode::{
     unknown_forms::census_unknown_forms,
 };
 use ln_kb_ontology::domain::{
-    admit_membership_proposals, assemble_with_oracle_diff, map_hierarchy_marker,
-    marker_from_decode_token, propose_membership_from_markers, HierarchyMap, HierarchyMapOutcome,
-    HierarchyMarker, WriteSetError,
+    admit_membership_proposals, assemble_with_oracle_diff, build_text_log_from_markers,
+    map_hierarchy_marker, marker_from_decode_token, propose_membership_from_markers, HierarchyMap,
+    HierarchyMapOutcome, HierarchyMarker, WriteSetError,
 };
 use ln_kb_ontology::registry::{load_edition_day_for_path, load_hierarchy_map_for_path};
 use ln_query::knowql::{execute, KnowQLOp, KnowQLResult, ValidatedOp};
@@ -258,6 +258,19 @@ fn inspect(path: &str) {
         (0, 0, 0, 0, 0, 0)
     };
 
+    // S_verify text CTV: build TextVersionLog from marker titles, count resolved.
+    let ctv_resolved = if let Some(effect_day) = load_edition_day_for_path(path) {
+        let text_log = build_text_log_from_markers(
+            &hierarchy_map,
+            &hierarchy_markers_seq,
+            effect_day,
+            "amendingact:c2-oracle-edition",
+        );
+        text_log.events().len()
+    } else {
+        0
+    };
+
     let duration_ms = start.elapsed().as_millis();
 
     println!(
@@ -281,6 +294,7 @@ fn inspect(path: &str) {
          \"oracle_drift\":{oracle_drift},\
          \"oracle_missing\":{oracle_missing},\
          \"oracle_phantom\":{oracle_phantom},\
+         \"ctv_resolved\":{ctv_resolved},\
          \"reference_mentions\":{reference_mentions},\
          \"temporal_phrases\":{temporal_phrases},\"deontic_lexemes\":{deontic_lexemes},\
          \"unknown_forms\":{unknown_forms},\"provider_comment_candidates\":{provider_comments},\

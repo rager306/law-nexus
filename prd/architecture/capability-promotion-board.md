@@ -155,6 +155,7 @@ Governor check `kb-ontology-draft` is structural only.
 | 2026-08-14 | KBO-R047 | assembly `S_verify` | oracle_diff: fold Δ expected; 402-ФЗ drift=0; 4 tests; FSM S_fold→S_verify |
 | 2026-08-14 | KBO-R046 | resolve_CTV prototype | TextVersionLog + resolve_ctv; 6 tests; main gap vs de Martim closed at prototype |
 | 2026-08-14 | KBO-R051..R053 | Review 6 findings | text extraction, S_heal, S_identify |
+| 2026-08-14 | KBO-R051 | text extraction | build_text_log_from_markers; 4 tests; CLI ctv_resolved wired |
 
 ## 6. Operator cycle (capability-only)
 

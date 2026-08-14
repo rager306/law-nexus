@@ -584,6 +584,10 @@ impl HierarchyMarker {
     pub fn number(&self) -> &str {
         &self.number
     }
+
+    pub fn title(&self) -> Option<&str> {
+        self.title.as_deref()
+    }
 }
 
 /// Explicit binding of a marker key to a stable ComponentConcept.
@@ -1183,4 +1187,29 @@ pub fn resolve_ctv(log: &TextVersionLog, cc: &ComponentConceptId, as_of_day: i64
     CtvResolution::Resolved {
         text: latest[0].text.clone(),
     }
+}
+
+/// Build a TextVersionLog from markers that have a title and are Bound in the map.
+/// Each marker's title becomes the text of its CC at effect_day.
+pub fn build_text_log_from_markers(
+    map: &HierarchyMap,
+    markers: &[HierarchyMarker],
+    effect_day: i64,
+    provenance: &str,
+) -> TextVersionLog {
+    let mut log = TextVersionLog::empty();
+    for marker in markers {
+        if let HierarchyMapOutcome::Bound { component } = map_hierarchy_marker(map, marker) {
+            if let Some(title) = marker.title() {
+                if !title.trim().is_empty() {
+                    if let Ok(event) =
+                        TextVersionEvent::try_new(component.clone(), title, effect_day, provenance)
+                    {
+                        let _ = log.append(event);
+                    }
+                }
+            }
+        }
+    }
+    log
 }
