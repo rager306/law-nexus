@@ -4,6 +4,13 @@ All notable changes to law-nexus are documented in this file.
 
 ## Unreleased — current architecture landing and repository map
 
+### S_ready_bounded: assembly FSM complete (all 12 states)
+- 402-ФЗ passes full pipeline: decode → extract → bind → propose → admit
+  → commit → fold → oracle diff (drift=0) → text CTV (resolved>0)
+  → heal (not needed) → real Expression ID provenance.
+- assembly_fsm.current: S_heal → S_ready_bounded. **12/12 states reached.**
+- NOT TSG S6 (not validated corpus), NOT Applicable (not legal decision).
+
 ### S_heal: drift → heal event or waiver (KBO-R052)
 - `heal_missing(log, ast, expected_edges, day, prov)` appends Attach events
   for CCs absent from the folded AST. Never edits existing events.

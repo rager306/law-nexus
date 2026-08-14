@@ -276,6 +276,10 @@ fn inspect_402_fz_reports_non_zero_attach_from_yaml_ranks() {
         "402-FZ titled articles must produce resolvable CTVs; {stdout}"
     );
     assert!(
+        stdout.contains("402-fz"),
+        "expression_id must contain the act number (not synthetic fallback); {stdout}"
+    );
+    assert!(
         !stdout.contains("ОБЩИЕ ПОЛОЖЕНИЯ"),
         "raw legal text must not be persisted; got first 400 chars: {}",
         &stdout[..stdout.len().min(400)]
