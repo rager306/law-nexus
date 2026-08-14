@@ -80,6 +80,14 @@ name = "ln-conformance"
 version = "0.1.0"
 
 [[package]]
+name = "ln-consultant-parser"
+version = "0.1.0"
+dependencies = [
+ "ln-decode",
+ "ln-kb-ontology",
+]
+
+[[package]]
 name = "ln-decode"
 version = "0.1.0"
 dependencies = [

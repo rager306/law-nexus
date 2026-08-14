@@ -8,55 +8,210 @@
     "forbid_capability_depending_on_hc_runners": true
   },
   "allowed_edges": [
-    ["ln-hc01-runner", "ln-observe"],
-    ["ln-hc02-runner", "ln-inventory"],
-    ["ln-hc03-runner", "ln-dispose"],
-    ["ln-hc04-runner", "ln-promote"],
-    ["ln-hc05-runner", "ln-decode"],
-    ["ln-hc06-runner", "ln-gate"],
-    ["ln-hc07-runner", "ln-identity"],
-    ["ln-hc08-runner", "ln-relation"],
-    ["ln-hc09-runner", "ln-temporal"],
-    ["ln-hc10-runner", "ln-work"],
-    ["ln-hc11-runner", "ln-closure"],
-    ["ln-hc12-runner", "ln-projection"],
-    ["ln-hc13-runner", "ln-admission"],
-    ["ln-hc14-runner", "ln-replay"],
-    ["ln-hc15-runner", "ln-publish"],
-    ["ln-hc16-runner", "ln-accelerate"],
-    ["ln-hc17-runner", "ln-query"],
-    ["ln-hc18-runner", "ln-citation"],
-    ["ln-hc19-runner", "ln-diagnostic"],
-    ["ln-hc20-runner", "ln-conformance"],
-    ["ln-product-cli", "ln-decode"],
-    ["ln-product-cli", "ln-kb-ontology"],
-    ["ln-product-cli", "ln-query"],
-    ["ln-product-cli", "ln-storage"],
-    ["ln-query", "ln-decode"],
-    ["ln-query", "ln-storage"],
-    ["ln-testkit", "ln-storage"],
-    ["ln-testkit", "ln-citation"],
-    ["ln-testkit", "ln-promote"],
-    ["ln-testkit", "ln-query"],
-    ["ln-testkit", "ln-publish"],
-    ["ln-testkit", "ln-decode"],
-    ["ln-testkit", "ln-observe"],
-    ["ln-testkit", "ln-diagnostic"],
-    ["ln-testkit", "ln-inventory"],
-    ["ln-testkit", "ln-gate"],
-    ["ln-testkit", "ln-identity"],
-    ["ln-testkit", "ln-temporal"],
-    ["ln-testkit", "ln-accelerate"],
-    ["ln-testkit", "ln-conformance"],
-    ["ln-testkit", "ln-dispose"],
-    ["ln-testkit", "ln-relation"],
-    ["ln-testkit", "ln-replay"],
-    ["ln-testkit", "ln-admission"],
-    ["ln-testkit", "ln-closure"],
-    ["ln-testkit", "ln-projection"],
-    ["ln-testkit", "ln-work"],
-    ["ln-kb-ontology", "ln-identity"],
-    ["ln-kb-ontology", "ln-temporal"]
+    [
+      "ln-hc01-runner",
+      "ln-observe"
+    ],
+    [
+      "ln-hc02-runner",
+      "ln-inventory"
+    ],
+    [
+      "ln-hc03-runner",
+      "ln-dispose"
+    ],
+    [
+      "ln-hc04-runner",
+      "ln-promote"
+    ],
+    [
+      "ln-hc05-runner",
+      "ln-decode"
+    ],
+    [
+      "ln-hc06-runner",
+      "ln-gate"
+    ],
+    [
+      "ln-hc07-runner",
+      "ln-identity"
+    ],
+    [
+      "ln-hc08-runner",
+      "ln-relation"
+    ],
+    [
+      "ln-hc09-runner",
+      "ln-temporal"
+    ],
+    [
+      "ln-hc10-runner",
+      "ln-work"
+    ],
+    [
+      "ln-hc11-runner",
+      "ln-closure"
+    ],
+    [
+      "ln-hc12-runner",
+      "ln-projection"
+    ],
+    [
+      "ln-hc13-runner",
+      "ln-admission"
+    ],
+    [
+      "ln-hc14-runner",
+      "ln-replay"
+    ],
+    [
+      "ln-hc15-runner",
+      "ln-publish"
+    ],
+    [
+      "ln-hc16-runner",
+      "ln-accelerate"
+    ],
+    [
+      "ln-hc17-runner",
+      "ln-query"
+    ],
+    [
+      "ln-hc18-runner",
+      "ln-citation"
+    ],
+    [
+      "ln-hc19-runner",
+      "ln-diagnostic"
+    ],
+    [
+      "ln-hc20-runner",
+      "ln-conformance"
+    ],
+    [
+      "ln-product-cli",
+      "ln-decode"
+    ],
+    [
+      "ln-product-cli",
+      "ln-kb-ontology"
+    ],
+    [
+      "ln-product-cli",
+      "ln-query"
+    ],
+    [
+      "ln-product-cli",
+      "ln-storage"
+    ],
+    [
+      "ln-query",
+      "ln-decode"
+    ],
+    [
+      "ln-query",
+      "ln-storage"
+    ],
+    [
+      "ln-testkit",
+      "ln-storage"
+    ],
+    [
+      "ln-testkit",
+      "ln-citation"
+    ],
+    [
+      "ln-testkit",
+      "ln-promote"
+    ],
+    [
+      "ln-testkit",
+      "ln-query"
+    ],
+    [
+      "ln-testkit",
+      "ln-publish"
+    ],
+    [
+      "ln-testkit",
+      "ln-decode"
+    ],
+    [
+      "ln-testkit",
+      "ln-observe"
+    ],
+    [
+      "ln-testkit",
+      "ln-diagnostic"
+    ],
+    [
+      "ln-testkit",
+      "ln-inventory"
+    ],
+    [
+      "ln-testkit",
+      "ln-gate"
+    ],
+    [
+      "ln-testkit",
+      "ln-identity"
+    ],
+    [
+      "ln-testkit",
+      "ln-temporal"
+    ],
+    [
+      "ln-testkit",
+      "ln-accelerate"
+    ],
+    [
+      "ln-testkit",
+      "ln-conformance"
+    ],
+    [
+      "ln-testkit",
+      "ln-dispose"
+    ],
+    [
+      "ln-testkit",
+      "ln-relation"
+    ],
+    [
+      "ln-testkit",
+      "ln-replay"
+    ],
+    [
+      "ln-testkit",
+      "ln-admission"
+    ],
+    [
+      "ln-testkit",
+      "ln-closure"
+    ],
+    [
+      "ln-testkit",
+      "ln-projection"
+    ],
+    [
+      "ln-testkit",
+      "ln-work"
+    ],
+    [
+      "ln-kb-ontology",
+      "ln-identity"
+    ],
+    [
+      "ln-kb-ontology",
+      "ln-temporal"
+    ],
+    [
+      "ln-consultant-parser",
+      "ln-decode"
+    ],
+    [
+      "ln-consultant-parser",
+      "ln-kb-ontology"
+    ]
   ],
   "non_claims": [
     "Does not validate external crate licenses or versions.",

@@ -1,0 +1,9 @@
+[package]
+name = "ln-consultant-parser"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[dependencies]
+ln-decode = { path = "../ln-decode" }
+ln-kb-ontology = { path = "../ln-kb-ontology" }
