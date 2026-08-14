@@ -272,3 +272,4 @@ This roadmap does not prove Rust product readiness, parser completeness, Russian
 <!-- ADR-0025 companion -->
 <!-- ADR-0026 companion -->
 <!-- ADR-0027 companion -->
+<!-- Full 118-edition temporal graph companion -->

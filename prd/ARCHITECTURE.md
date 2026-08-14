@@ -95,6 +95,8 @@ Readiness FSM stays `O2_calendar_ordinal`. Assembly FSM complete: all 12
 states reached (S_ready_bounded). 402-ФЗ passes full pipeline with real
 Expression ID, zero drift, resolvable CTVs. C1 corpus acquired (Review 7):
 138-ФЗ/333-ФЗ/484-ФЗ amending acts available for real cross-act edges.
+Consultant parser (ADR-0025/0027): 8 modules, 34 tests. Full 118-edition
+temporal graph: 44-ФЗ grew from 6 amends (2013) to 1025 (2025), 171×.
 Not TSG S6, not Applicable.
 
 ## Temporal legal ontology — design spine (all `[proposed]`)

@@ -4,6 +4,12 @@ All notable changes to law-nexus are documented in this file.
 
 ## Unreleased — current architecture landing and repository map
 
+### Full 118-edition temporal graph (44-ФЗ, 12 years)
+- `process_editions_directory` scans all editions, processes each through the full pipeline.
+- Temporal: 890 links (2013) → 3772 (2025); 6 amends → 1025 amends (171×).
+- Biggest jump: edition 44 (+170). Mass repeal: edition 81 (−70). 12 repeal editions.
+- `ln-consultant-parser`: 8 modules, 34 tests, XML→hyperlinks→classify→edges→observations.
+
 ### Legislative replay foundation: diff_marker_sets (KBO-R054)
 - `diff_marker_sets(before, after) -> MarkerDiff { added, removed }`
 - Compares hierarchy markers of two consecutive editions by (level, number).
