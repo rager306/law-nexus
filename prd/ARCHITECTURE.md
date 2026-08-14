@@ -91,7 +91,9 @@ compared against registry CCs (KBO-R047). Zero drift on 402-ФЗ (37 expected /
 (`doc/review/review-14-08-2026.md`) maps remaining gaps.
 Readiness FSM stays `O2_calendar_ordinal`. Assembly FSM complete: all 12
 states reached (S_ready_bounded). 402-ФЗ passes full pipeline with real
-Expression ID, zero drift, resolvable CTVs. Not TSG S6, not Applicable.
+Expression ID, zero drift, resolvable CTVs. C1 corpus acquired (Review 7):
+138-ФЗ/333-ФЗ/484-ФЗ amending acts available for real cross-act edges.
+Not TSG S6, not Applicable.
 
 ## Temporal legal ontology — design spine (all `[proposed]`)
 

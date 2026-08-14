@@ -4,6 +4,13 @@ All notable changes to law-nexus are documented in this file.
 
 ## Unreleased — current architecture landing and repository map
 
+### Review 7: C1 corpus acquisition + integration plan (L0)
+- `doc/review/review-16-08-2026.md` — consru_export integration plan.
+- 125 C1 amending editions, 118 редакций 44-ФЗ, 921 подзаконный акт, 36K практика.
+- 138-ФЗ amends ст. 31/43; 333-ФЗ amends ст. 95; 484-ФЗ amends 44-ФЗ.
+- ADR-0019 amended: C1 corpus available for real cross-act edges.
+- KBO-R013: partial → advanced.
+
 ### C1 corpus acquired: consru_export (561MB, 43K+ documents)
 - 118 editions of 44-ФЗ (initial 2013 → latest)
 - 121 amending laws in layer1 manifest (188-ФЗ, 416-ФЗ, 138-ФЗ, 333-ФЗ, ...)

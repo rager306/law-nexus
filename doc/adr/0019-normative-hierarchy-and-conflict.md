@@ -120,6 +120,11 @@ circular `amends` chain → rejected; `cites` does not upgrade to authority;
 (3) at least one real edge from a C1 fixture (e.g. ФЗ-504 amends 44-ФЗ
 art. 93). Until S1, edges are inventory, not executable graph.
 
+**Update (Review 7)**: typed port + hostile tests shipped (`try_cross_act_edge`,
+6 tests green). C1 corpus now available: 138-ФЗ amends 44-ФЗ ст. 31/43,
+333-ФЗ amends 44-ФЗ ст. 95. First real `amends` edge creation is the next
+thin slice.
+
 ### R5-10: impact assessment (future extension)
 
 Reverse traversal of cross-act edges enables "what acts are affected by a

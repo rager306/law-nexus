@@ -268,3 +268,4 @@ This roadmap does not prove Rust product readiness, parser completeness, Russian
 <!-- Review 6 cross-act roadmap companion -->
 <!-- S_heal companion -->
 <!-- S_ready_bounded companion -->
+<!-- Review 7 C1 corpus integration companion -->
