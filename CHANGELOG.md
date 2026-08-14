@@ -4,6 +4,15 @@ All notable changes to law-nexus are documented in this file.
 
 ## Unreleased — current architecture landing and repository map
 
+### First real cross-act `amends` edges from C1 corpus (KBO-R049 S1)
+- 138-ФЗ → 44-ФЗ ст. 31 (amends planning article)
+- 138-ФЗ → 44-ФЗ ст. 43 (amends contract conclusion)
+- 333-ФЗ → 44-ФЗ ст. 95 (amends contract conclusion)
+- 5 tests: 3 real edges + 2 Expression ID minting (44-fz, 138-fz)
+- 44-ФЗ bindings added to YAML (glava 3/6, statya 31/43/95)
+- 138-ФЗ registered as C1 amending act in YAML works section
+- ADR-0019 S0→S1: **complete** (typed port + hostile tests + real C1 edge)
+
 ### Review 7: C1 corpus acquisition + integration plan (L0)
 - `doc/review/review-16-08-2026.md` — consru_export integration plan.
 - 125 C1 amending editions, 118 редакций 44-ФЗ, 921 подзаконный акт, 36K практика.

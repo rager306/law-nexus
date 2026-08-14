@@ -73,11 +73,20 @@ bindings:
   - {path_needle: n-402-fz, level: statya, number: "30", cc: cc:402fz:statya-30}
   - {path_needle: n-402-fz, level: statya, number: "31", cc: cc:402fz:statya-31}
   - {path_needle: n-402-fz, level: statya, number: "32", cc: cc:402fz:statya-32}
+  - {path_needle: n-44-fz, level: glava, number: "3", cc: cc:44-fz:glava-3}
+  - {path_needle: n-44-fz, level: statya, number: "31", cc: cc:44-fz:statya-31}
+  - {path_needle: n-44-fz, level: glava, number: "6", cc: cc:44-fz:glava-6}
+  - {path_needle: n-44-fz, level: statya, number: "43", cc: cc:44-fz:statya-43}
+  - {path_needle: n-44-fz, level: statya, number: "95", cc: cc:44-fz:statya-95}
 
 editions:
   - {path_needle: n-435-fz, edition_date: "2023-12-25"}
   - {path_needle: n-402-fz, edition_date: "2025-12-15"}
+  - {path_needle: n-44-fz, edition_date: "2025-12-28"}
+  - {path_needle: n-138-fz, edition_date: "2025-06-07"}
 
 works:
   - {path_needle: n-435-fz, authority: federal, enactment_date: "2020-12-22", act_number: "435-fz", edition_date: "2023-12-25"}
   - {path_needle: n-402-fz, authority: federal, enactment_date: "2011-12-06", act_number: "402-fz", edition_date: "2025-12-15"}
+  - {path_needle: n-44-fz, authority: federal, enactment_date: "2013-04-05", act_number: "44-fz", edition_date: "2025-12-28"}
+  - {path_needle: n-138-fz, authority: federal, enactment_date: "2025-06-07", act_number: "138-fz", edition_date: "2025-06-07"}
