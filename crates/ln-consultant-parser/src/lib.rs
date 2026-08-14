@@ -9,6 +9,7 @@
 pub mod classifier;
 pub mod edge_deriver;
 pub mod hyperlink;
+pub mod observation;
 pub mod raw_link;
 
 pub use classifier::{
@@ -17,4 +18,5 @@ pub use classifier::{
 };
 pub use edge_deriver::{derive_edges, DerivedEdge};
 pub use hyperlink::extract_hyperlinks;
+pub use observation::{collect_observations, format_observations_yaml, Observation};
 pub use raw_link::RawLink;
