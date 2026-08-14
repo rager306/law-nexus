@@ -14,7 +14,7 @@ use ln_decode::{
 const FIXTURE: &str = "law-source/consultant/federalnyi-zakon-ot-22-12-2020-n-435-fz-red-ot-25-12-2023-o-publichno-pravovoi-kompanii-edinyi-zakazchik-v-sfere-stroitelstva-i-o-vnese--d71bf702.xml";
 const EXPECTED_SOURCE_FINGERPRINT: &str = "fnv1a64:d7697a0ea8cc3970";
 const EXPECTED_BLOCK_COUNT: usize = 167;
-const EXPECTED_HIERARCHY_COUNT: usize = 22;
+const EXPECTED_HIERARCHY_COUNT: usize = 119;
 
 fn fixture_path() -> PathBuf {
     PathBuf::from(env!("CARGO_MANIFEST_DIR"))

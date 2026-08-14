@@ -90,8 +90,10 @@ fn prose_missing_numbers_and_unsupported_context_do_not_become_hierarchy() {
         "Глава",
         "§ IV. Не numeric paragraph",
         "Часть 1. Общие положения",
-        "1. Общие положения",
         "Подпункт а) применяется.",
+        // Note: "1. Общие положения" and "а) текст" are now VALID numbered
+        // markers (Chast/Podpunkt) extracted by numbered_marker_prefix.
+        // They are filtered downstream by the registry lift (Unknown if unregistered).
     ] {
         assert_eq!(extract_hierarchy(&block(text)), None, "fixture={text}");
     }

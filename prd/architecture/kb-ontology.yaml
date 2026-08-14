@@ -206,6 +206,10 @@ vocabulary:
     Glava: [Глава, ГЛАВА, глава]
     Statya: [Статья, СТАТЬЯ, статья]
     Paragraph: ["§"]
+  decode_numbered_markers:
+    Chast: {number_style: digit, suffix: "."}
+    Punkt: {number_style: digit, suffix: ")"}
+    Podpunkt: {number_style: letter_cyrillic, suffix: ")"}
   decode_prefix_space_policy:
     default: required
     Paragraph: optional

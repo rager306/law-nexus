@@ -13,6 +13,21 @@ pub enum NumberStyle {
     RomanOrDigit,
 }
 
+/// Number style for numbered markers (Часть/Пункт/Подпункт).
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum NumberedStyle {
+    Digit,
+    LetterCyrillic,
+}
+
+/// A numbered-list hierarchy rule: «digit.» → Chast, «digit)» → Punkt.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct NumberedMarkerRule {
+    pub level: HierarchyLevel,
+    pub number_style: NumberedStyle,
+    pub suffix: char,
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum SpacePolicy {
     Required,
@@ -30,6 +45,7 @@ pub struct PrefixRule {
 pub struct DecodePrefixCatalog {
     pub prefixes: Vec<PrefixRule>,
     pub number_styles: Vec<(HierarchyLevel, NumberStyle)>,
+    pub numbered_markers: Vec<NumberedMarkerRule>,
 }
 
 impl DecodePrefixCatalog {
@@ -84,9 +100,11 @@ impl DecodePrefixCatalog {
         if number_styles.is_empty() {
             return Err("decode_number_styles missing");
         }
+        let numbered_markers = parse_numbered_markers(text);
         Ok(Self {
             prefixes,
             number_styles,
+            numbered_markers,
         })
     }
 
@@ -211,6 +229,60 @@ fn parse_inline_list(raw: &str) -> Result<Vec<String>, &'static str> {
 
 fn unquote(value: &str) -> String {
     value.trim().trim_matches('"').trim_matches('\'').to_owned()
+}
+
+/// Parse `decode_numbered_markers:` section from YAML.
+/// Lines: `Chast: {number_style: digit, suffix: "."}`
+fn parse_numbered_markers(text: &str) -> Vec<NumberedMarkerRule> {
+    let heading = "decode_numbered_markers:";
+    let start = match text.find(heading) {
+        Some(pos) => pos + heading.len(),
+        None => return Vec::new(),
+    };
+    let mut rules = Vec::new();
+    for raw in text[start..].lines() {
+        let line = raw.trim();
+        if line.is_empty() || line.starts_with('#') {
+            continue;
+        }
+        // Stop at the next top-level key (non-indented, ends with ':')
+        if !raw.starts_with(' ') && !raw.starts_with('\t') && line.ends_with(':') {
+            break;
+        }
+        // Must look like: Level: {number_style: ..., suffix: ...}
+        let Some(colon_pos) = line.find(':') else {
+            continue;
+        };
+        let token = line[..colon_pos].trim();
+        let Some(level) = HierarchyLevel::from_token(token) else {
+            continue;
+        };
+        let rest = &line[colon_pos + 1..];
+        let number_style = if rest.contains("letter_cyrillic") {
+            NumberedStyle::LetterCyrillic
+        } else {
+            NumberedStyle::Digit
+        };
+        // Extract suffix: look for suffix: "X" or suffix: X
+        let suffix = rest
+            .split("suffix:")
+            .nth(1)
+            .and_then(|s| {
+                let s = s.trim();
+                if let Some(quoted) = s.strip_prefix('"') {
+                    quoted.chars().next()
+                } else {
+                    s.chars().next()
+                }
+            })
+            .unwrap_or('.');
+        rules.push(NumberedMarkerRule {
+            level,
+            number_style,
+            suffix,
+        });
+    }
+    rules
 }
 
 #[cfg(test)]
