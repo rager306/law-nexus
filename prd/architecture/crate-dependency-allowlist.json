@@ -211,6 +211,10 @@
     [
       "ln-consultant-parser",
       "ln-kb-ontology"
+    ],
+    [
+      "ln-product-cli",
+      "ln-consultant-parser"
     ]
   ],
   "non_claims": [

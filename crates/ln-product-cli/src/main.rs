@@ -271,6 +271,21 @@ fn inspect(path: &str) {
         0
     };
 
+    // Consultant parser pipeline: hyperlinks → classify → edges → observations
+    let (hyperlink_count, edge_amends, edge_cites, edge_implements, obs_patterns) = {
+        let links = ln_consultant_parser::extract_hyperlinks(&bytes);
+        let classified = ln_consultant_parser::classify_all_scored(&links);
+        let source_consider = expression_id
+            .as_deref()
+            .unwrap_or("consultantplus://offline/ref=unknown");
+        let edges = ln_consultant_parser::derive_edges(&classified, source_consider);
+        let obs = ln_consultant_parser::collect_observations(&classified);
+        let amends = edges.iter().filter(|e| e.kind == "amends").count();
+        let cites = edges.iter().filter(|e| e.kind == "cites").count();
+        let implements = edges.iter().filter(|e| e.kind == "implements").count();
+        (links.len(), amends, cites, implements, obs.len())
+    };
+
     let duration_ms = start.elapsed().as_millis();
     let expression_id_str = json_escape(&expression_id.clone().unwrap_or_default());
 
@@ -300,6 +315,11 @@ fn inspect(path: &str) {
          \"reference_mentions\":{reference_mentions},\
          \"temporal_phrases\":{temporal_phrases},\"deontic_lexemes\":{deontic_lexemes},\
          \"unknown_forms\":{unknown_forms},\"provider_comment_candidates\":{provider_comments},\
+         \"hyperlink_count\":{hyperlink_count},\
+         \"edge_amends\":{edge_amends},\
+         \"edge_cites\":{edge_cites},\
+         \"edge_implements\":{edge_implements},\
+         \"observation_patterns\":{obs_patterns},\
          \"retrieval_count\":{retrieval_count}\
          }},\
          \"non_claims\":[\"No legal correctness claim\",\"No citation authority claim\",\

@@ -9,6 +9,7 @@ name = "law-nexus-inspect"
 path = "src/main.rs"
 
 [dependencies]
+ln-consultant-parser = { path = "../ln-consultant-parser" }
 ln-decode = { path = "../ln-decode" }
 ln-kb-ontology = { path = "../ln-kb-ontology" }
 ln-query = { path = "../ln-query" }
