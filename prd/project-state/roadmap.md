@@ -270,3 +270,4 @@ This roadmap does not prove Rust product readiness, parser completeness, Russian
 <!-- S_ready_bounded companion -->
 <!-- Review 7 C1 corpus integration companion -->
 <!-- ADR-0025 companion -->
+<!-- ADR-0026 companion -->

@@ -65,3 +65,4 @@ named on living surfaces only with an explicit retired/archive qualifier.
 
 <!-- map_hierarchy_marker KBO-R024 companion -->
 | [ADR-0025](0025-consultant-parser-crate.md) | Consultant parser — separate crate for provider-specific extraction | Accepted | [proposed] |
+| [ADR-0026](0026-ruvector-agent-memory.md) | RuVector as agent memory layer for the meta-parser | Accepted | [proposed] |
