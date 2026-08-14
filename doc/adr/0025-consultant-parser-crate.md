@@ -12,15 +12,17 @@ related: [ADR-0013, ADR-0015, ADR-0019]
 
 ## Status
 
-**Accepted [bounded]** — crate shipped with 8 functional modules plus `lib.rs`,
-53 integration test functions and 4 source-unit tests covering
-synthetic/tracked mechanics: hyperlink extraction,
-YAML-driven contains+AND/OR classification, edge derivation, observation
-store, hexagonal catalog **port**, and multi-edition filename/delta helpers.
+**Accepted [bounded]** — crate shipped with 9 functional modules plus `lib.rs`,
+64 integration test functions and 4 source-unit tests covering
+synthetic/tracked mechanics: hyperlink extraction, YAML-driven
+contains+bounded-morph AND/OR classification, edge derivation, observation
+store, a read-only SQLite adapter behind `CatalogPort`, and multi-edition
+filename/delta helpers.
 `consru_export` metrics (hyperlink/edge/observation counts; 118 editions)
 are local `[smoke]`, skip-capable when the gitignored corpus is absent,
-and are not promotion proof (R082). SQLite catalog adapter remains open.
-No `[validated]` promotion.
+and are not promotion proof (R082). The SQLite adapter has `[bounded]`
+shared-contract and production-like temporary-schema proof; it is not legal or
+corpus validation. No `[validated]` promotion.
 
 ## Context
 
@@ -37,8 +39,10 @@ generic decode crate:
    edge (`amends`, `cites`, `implements`). This is WordML/Consultant-specific.
 2. **Catalog integration**: `consid` tokens (`consultantplus://offline/ref=...`)
    map to a SQLite catalog with sha256, edition metadata, and document
-   identity. This is ConsultantPlus infrastructure, not domain law. The
-   SQLite adapter remains open.
+   identity. The read-only `SqliteCatalog` resolves locator → document →
+   deterministic edition metadata and distinguishes a genuine miss from
+   open/schema/decode failure. This is ConsultantPlus infrastructure, not
+   domain law.
 3. **Cross-act edge derivation**: link context classification ("в ред." →
    `amends`, "согласно закону" → `cites`, "в порядке" → `implements`) is
    Consultant-format-specific text analysis.
@@ -116,9 +120,10 @@ ln-kb-ontology (CrossActEdge, diff_marker_sets, MarkerDiff)
 - `consru_export` metrics and the 118-edition temporal graph are local
   `[smoke]`, skip-capable, gitignored, and not durable bounded or
   `[validated]` proof (R082).
-- Catalog SQLite adapter is not shipped; only the hexagonal port plus
-  in-memory test adapter exist. SQLite is ConsultantPlus infrastructure,
-  not domain law or legal correctness proof.
+- The read-only SQLite adapter is `[bounded]` by a shared InMemory/SQLite
+  contract and production-like temporary schema. The gitignored local catalog
+  remains optional `[smoke]`, not a durable proof anchor, domain law, legal
+  correctness or catalog completeness proof.
 - Hyperlink classification is text-pattern-based, not semantic NLP.
 - No `[validated]` promotion from local smoke or InMemory catalog success.
 

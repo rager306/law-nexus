@@ -7,3 +7,4 @@ publish = false
 [dependencies]
 ln-decode = { path = "../ln-decode" }
 ln-kb-ontology = { path = "../ln-kb-ontology" }
+rusqlite = { version = "0.40.2", default-features = false, features = ["bundled"] }
