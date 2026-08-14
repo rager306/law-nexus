@@ -4,6 +4,12 @@ All notable changes to law-nexus are documented in this file.
 
 ## Unreleased — current architecture landing and repository map
 
+### Legislative replay foundation: diff_marker_sets (KBO-R054)
+- `diff_marker_sets(before, after) -> MarkerDiff { added, removed }`
+- Compares hierarchy markers of two consecutive editions by (level, number).
+- 5 TDD tests: added, removed, no-change, multiple, empty-before.
+- Foundation for: edition-1 → edition-2 diff → AmendmentEvents → replay.
+
 ### First real cross-act `amends` edges from C1 corpus (KBO-R049 S1)
 - 138-ФЗ → 44-ФЗ ст. 31 (amends planning article)
 - 138-ФЗ → 44-ФЗ ст. 43 (amends contract conclusion)

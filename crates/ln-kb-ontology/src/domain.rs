@@ -1328,3 +1328,35 @@ pub fn try_cross_act_edge(
         provenance: prov,
     })
 }
+
+// ─── Legislative replay: diff between consecutive editions ────────────────────
+// Structural diff of hierarchy markers. Added/removed markers are candidates
+// for AmendmentEvents (KBO-R054, Review 7 R7-02).
+
+/// Structural difference between two editions' marker sets.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct MarkerDiff {
+    pub added: Vec<HierarchyMarker>,
+    pub removed: Vec<HierarchyMarker>,
+}
+
+/// Compare hierarchy markers of two consecutive editions.
+/// Identity = (level, number); order is ignored.
+pub fn diff_marker_sets(before: &[HierarchyMarker], after: &[HierarchyMarker]) -> MarkerDiff {
+    let key = |m: &HierarchyMarker| (m.level().to_owned(), m.number().to_owned());
+    let before_set: std::collections::HashSet<(String, String)> = before.iter().map(key).collect();
+    let after_set: std::collections::HashSet<(String, String)> = after.iter().map(key).collect();
+
+    let added: Vec<HierarchyMarker> = after
+        .iter()
+        .filter(|m| !before_set.contains(&key(m)))
+        .cloned()
+        .collect();
+    let removed: Vec<HierarchyMarker> = before
+        .iter()
+        .filter(|m| !after_set.contains(&key(m)))
+        .cloned()
+        .collect();
+
+    MarkerDiff { added, removed }
+}
