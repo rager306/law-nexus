@@ -455,3 +455,31 @@ def test_cli_default_paths_scan_known_claim_files() -> None:
         assert "kind=untagged-claim" in result.stderr or "kind=missing-adr-ref" in result.stderr
     else:
         assert result.returncode == 0
+
+
+def test_parser_adrs_keep_lifecycle_and_non_claims_honest() -> None:
+    adr_0019 = (ROOT / "doc/adr/0019-normative-hierarchy-and-conflict.md").read_text(
+        encoding="utf-8"
+    )
+    adr_0025 = (ROOT / "doc/adr/0025-consultant-parser-crate.md").read_text(encoding="utf-8")
+    adr_0027 = (ROOT / "doc/adr/0027-multi-layer-classifier.md").read_text(encoding="utf-8")
+
+    assert adr_0019.count("# ADR-0019") == 1
+    assert "Adds NormativeRank + ConflictResolver" not in adr_0019
+    assert "ConflictResolver remain design-only" in adr_0019
+    assert "ConflictResolver is absent" in adr_0019
+    assert 'lifecycle: "[proposed]"' in adr_0019
+
+    assert "Review 7 local" in adr_0025
+    assert "118 editions" in adr_0025
+    assert "local `[smoke]`" in adr_0025
+    assert "No `[validated]` promotion from local smoke" in adr_0025
+    assert 'lifecycle: "[bounded]"' in adr_0025
+
+    assert (
+        "Selects which templates are active (some templates are profile-restricted)" not in adr_0027
+    )
+    assert "profile-restricted\n  template routing remains `[proposed]`" in adr_0027
+    assert "a full four-layer" in adr_0027
+    assert "remain `[proposed]`" in adr_0027
+    assert 'lifecycle: "[bounded]"' in adr_0027

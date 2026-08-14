@@ -18,9 +18,10 @@ synthetic/tracked mechanics: hyperlink extraction, YAML-driven
 contains+bounded-morph AND/OR classification, edge derivation, observation
 store, a read-only SQLite adapter behind `CatalogPort`, and multi-edition
 filename/delta helpers.
-`consru_export` metrics (hyperlink/edge/observation counts; 118 editions)
-are local `[smoke]`, skip-capable when the gitignored corpus is absent,
-and are not promotion proof (R082). The SQLite adapter has `[bounded]`
+`consru_export` metrics (hyperlink/edge/observation counts; Review 7 local
+inventory of 118 editions) are local `[smoke]`, skip-capable when the
+gitignored corpus is absent, and are not a G1 corpus-size promotion or other
+promotion proof (R082). The SQLite adapter has `[bounded]`
 shared-contract and production-like temporary-schema proof; it is not legal or
 corpus validation. No `[validated]` promotion.
 

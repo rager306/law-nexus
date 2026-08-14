@@ -106,11 +106,16 @@ remains `Conflict` for human review.
 
 ## Consequences
 
-- Adds NormativeRank + ConflictResolver above ADR-0018 NormativeState.
-- Enables an agent to reason about which norm governs a situation at date `t`
-  with explainable provenance.
+- Records the `[proposed]` L4 design: `NormativeRank` plus an explainable
+  ConflictResolver above ADR-0018 NormativeState. The resolver itself is
+  design-only; no maxim-selection runtime ships in this wave.
+- Does not yet enable an agent to decide which norm governs a situation at
+  date `t`. That capability waits on a shipped ConflictResolver plus a real
+  conflict corpus.
 - Industry-specific priority (budget vs construction) is deferred to profile
   adapters (ADR-0022), keeping the core hierarchy industry-neutral.
+- Partial `try_cross_act_edge` constructors remain `[proposed]` inventory,
+  not S1 and not a ConflictResolver.
 
 ## Review 5 amendments (2026-08-14, L0 `doc/review/review-14-08-2026.md`)
 

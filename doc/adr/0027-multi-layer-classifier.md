@@ -60,7 +60,8 @@ compatibility wrapper using the deterministic default profile. Profiles do not
 change the legal kind. Each document type gets a profile that:
 - Identifies the type from path/title needles (YAML)
 - Applies a `confidence_boost` multiplier
-- Selects which templates are active (some templates are profile-restricted)
+- Does not yet select which templates are active; profile-restricted
+  template routing remains `[proposed]`
 
 ```yaml
 document_profiles:
