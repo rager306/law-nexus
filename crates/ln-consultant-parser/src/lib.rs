@@ -8,6 +8,7 @@
 
 pub mod catalog;
 pub mod classifier;
+pub mod document_profile;
 pub mod edge_deriver;
 pub mod hyperlink;
 pub mod multi_edition;
@@ -18,6 +19,9 @@ pub use catalog::{coverage_summary, resolve_consids, CatalogPort, CatalogRecord,
 pub use classifier::{
     classify_all, classify_all_scored, classify_link, classify_link_scored, load_classifier_rules,
     load_templates, score_template, ClassifiedLink, ClassifierRule, Template,
+};
+pub use document_profile::{
+    apply_boost, detect_profile, load_profiles, DetectedProfile, DocumentProfile,
 };
 pub use edge_deriver::{derive_edges, DerivedEdge};
 pub use hyperlink::extract_hyperlinks;
