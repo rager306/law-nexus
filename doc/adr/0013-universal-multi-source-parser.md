@@ -455,6 +455,27 @@ text. Manual streaming is faster and simpler for our use case.
 **Cons:** adds a transformation step, doubles memory for large files, and
 the transformation is just as complex as parsing directly. Not worth it.
 
+## Parser Enhancement Amendments (2026-08-14)
+
+### YAML-driven sub-article markers
+
+The decoder now extracts numbered-list patterns as hierarchy markers
+alongside explicit prefixes. YAML `decode_numbered_markers` config:
+Chast=digit+".", Punkt=digit+")", Podpunkt=letter_cyrillic+")".
+Compound numbers (4.1, 4.1.2) supported via YAML `allow_compound: true`.
+435-ФЗ: 22→119 markers (97 sub-article candidates filtered by registry).
+
+### XML entity decoding
+
+`&#167;` (§) correctly decodes to U+00A7 via quick_xml `unescape()`.
+Paragraph markers (`§ 1. Общие положения`) extracted via `Paragraph: ["§"]`
+prefix rule. 44-ФЗ Chapter 3 has 9 paragraph markers, all correctly decoded.
+
+### HierarchyMarker.title accessor
+
+`HierarchyMarker` now exposes `title()` for TextVersionEvent construction.
+Enables `build_text_log_from_markers` → `resolve_ctv` pipeline.
+
 ## Non-claims
 
 - `HierarchyMarker` / `map_hierarchy_marker` is a **fail-closed candidate lift**:

@@ -12,9 +12,11 @@ related: [ADR-0025, ADR-0026, ADR-0019, ADR-0013]
 
 ## Status
 
-**Accepted [proposed]** — architecture decision recorded. Moves to `[bounded]`
-when the scoring engine, document profiles, and multi-signal templates ship
-with TDD coverage on real corpus data.
+**Accepted [bounded]** — scoring engine shipped with AND/OR multi-signal
+logic. Verified on real 44-ФЗ corpus: 3641 classified links, 1025 amends,
+1223 cites, 209 implements, 502 unknown patterns in learning backlog.
+Document profiles and morph signals are `[proposed]` (not yet implemented).
+Moves to `[validated]` when cross-edition validation confirms edge accuracy.
 
 ## Context
 

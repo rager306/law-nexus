@@ -12,9 +12,13 @@ related: [ADR-0013, ADR-0015, ADR-0019]
 
 ## Status
 
-**Accepted [proposed]** — architecture decision recorded. Moves to `[bounded]`
-when `ln-consultant-parser` ships with hyperlink extraction + catalog port +
-cross-act edge derivation, all TDD-covered.
+**Accepted [bounded]** — crate shipped with 8 modules and 34 tests (all green).
+Full pipeline verified on real 44-ФЗ corpus (consru_export): hyperlink
+extraction (3772 links), YAML-driven classification (AND/OR scoring),
+edge derivation (2619 edges), observation store (502 patterns), catalog
+port (hexagonal), multi-edition temporal graph (118 editions).
+Moves to `[validated]` when provenance closes across the representative
+corpus and edges are validated against multiple editions.
 
 ## Context
 

@@ -111,6 +111,16 @@ remains `Conflict` for human review.
 
 ## Review 5 amendments (2026-08-14, L0 `doc/review/review-14-08-2026.md`)
 
+## Review 5 amendments (2026-08-14, L0 `doc/review/review-14-08-2026.md`)
+
+### Cross-act edge S1 status (2026-08-14)
+
+S1 reached: `try_cross_act_edge` (typed port) + hostile tests + **real C1
+edges**: 138-ФЗ→44-ФЗ ст.31/43, 333-ФЗ→44-ФЗ ст.95. Consultant parser
+(ADR-0025) derives 2619 edges from real 44-ФЗ hyperlinks (1025 amends,
+1223 cites, 209 implements). Edge direction: `amends` reversed (amending→amended),
+others forward (source→target).
+
 ### R5-06: cross-act edge port — S0 → S1 transition criteria
 
 Cross-act edges are S0 design (vocabulary in YAML). Transition to S1
