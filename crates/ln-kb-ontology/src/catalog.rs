@@ -56,6 +56,7 @@ pub struct OntologyCatalog {
     pub presence_fold_ops: Vec<(String, String)>,
     pub corpus_roles: Vec<String>,
     pub corpus_role_signals: Vec<CorpusRoleSignal>,
+    pub cross_act_edge_kinds: Vec<String>,
 }
 
 impl OntologyCatalog {
@@ -99,6 +100,8 @@ impl OntologyCatalog {
         let presence_fold_ops = map_pairs_under_vocabulary(text, "presence_fold_ops:")?;
         let corpus_roles = list_under_vocabulary(text, "corpus_roles:")?;
         let corpus_role_signals = parse_corpus_role_signals(text)?;
+        let cross_act_edge_kinds =
+            list_under_vocabulary(text, "cross_act_edge_kinds:").unwrap_or_default();
         for signal in &corpus_role_signals {
             if !corpus_roles.iter().any(|role| role == &signal.role) {
                 return Err(CatalogError {
@@ -135,6 +138,7 @@ impl OntologyCatalog {
             presence_fold_ops,
             corpus_roles,
             corpus_role_signals,
+            cross_act_edge_kinds,
         })
     }
 
@@ -148,6 +152,10 @@ impl OntologyCatalog {
 
     pub fn is_edge_kind(&self, kind: &str) -> bool {
         self.edge_kinds.iter().any(|item| item == kind)
+    }
+
+    pub fn is_cross_act_edge_kind(&self, kind: &str) -> bool {
+        self.cross_act_edge_kinds.iter().any(|item| item == kind)
     }
 
     pub fn is_forbidden_kind(&self, kind: &str) -> bool {

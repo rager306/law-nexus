@@ -1276,3 +1276,55 @@ pub fn build_text_log_from_markers(
     }
     log
 }
+
+// ─── Cross-act edge port: typed edges between ASTs of different acts ──────────
+// Kind vocabulary from YAML cross_act_edge_kinds (ADR-0019). S0→S1 transition.
+
+/// A typed edge between ComponentConcepts of different normative acts.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct CrossActEdge {
+    pub kind: String,
+    pub from_cc: ComponentConceptId,
+    pub to_cc: ComponentConceptId,
+    provenance: AmendingActId,
+}
+
+impl CrossActEdge {
+    pub fn provenance(&self) -> &AmendingActId {
+        &self.provenance
+    }
+}
+
+/// Error creating a cross-act edge.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum CrossActEdgeError {
+    UnknownKind(String),
+    SelfEdge,
+    MissingProvenance,
+}
+
+/// Create a cross-act edge with YAML-validated kind. Rejects self-edges,
+/// unknown kinds, and empty provenance.
+pub fn try_cross_act_edge(
+    kind: &str,
+    from_cc: &ComponentConceptId,
+    to_cc: &ComponentConceptId,
+    provenance: &str,
+) -> Result<CrossActEdge, CrossActEdgeError> {
+    if from_cc.as_str() == to_cc.as_str() {
+        return Err(CrossActEdgeError::SelfEdge);
+    }
+    let catalog =
+        OntologyCatalog::embedded().map_err(|_| CrossActEdgeError::UnknownKind(kind.to_owned()))?;
+    if !catalog.is_cross_act_edge_kind(kind) {
+        return Err(CrossActEdgeError::UnknownKind(kind.to_owned()));
+    }
+    let prov =
+        AmendingActId::parse(provenance).map_err(|_| CrossActEdgeError::MissingProvenance)?;
+    Ok(CrossActEdge {
+        kind: kind.to_owned(),
+        from_cc: from_cc.clone(),
+        to_cc: to_cc.clone(),
+        provenance: prov,
+    })
+}

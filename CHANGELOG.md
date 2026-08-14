@@ -4,6 +4,14 @@ All notable changes to law-nexus are documented in this file.
 
 ## Unreleased — current architecture landing and repository map
 
+### Cross-act edge port S0→S1 (KBO-R049)
+- `try_cross_act_edge(kind, from_cc, to_cc, prov)` validates kind against YAML
+  `cross_act_edge_kinds`; rejects self-edges, unknown kinds, empty provenance.
+- `OntologyCatalog` gains `cross_act_edge_kinds` field + `is_cross_act_edge_kind`.
+- 6 TDD tests: amends, implements, cites, unknown rejected, self rejected,
+  empty provenance rejected.
+- ADR-0019 S0→S1 partial: typed port + hostile tests done; real C1 edge pending.
+
 ### S_ready_bounded: assembly FSM complete (all 12 states)
 - 402-ФЗ passes full pipeline: decode → extract → bind → propose → admit
   → commit → fold → oracle diff (drift=0) → text CTV (resolved>0)
