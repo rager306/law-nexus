@@ -79,6 +79,114 @@ bindings:
   - {path_needle: n-44-fz, level: statya, number: "43", cc: cc:44-fz:statya-43}
   - {path_needle: n-44-fz, level: statya, number: "95", cc: cc:44-fz:statya-95}
 
+# 44-FZ corpus bindings (M169 S02): generated from edition-0118
+# (rev-2025-12-28) by crates/ln-decode/tests/registry_bindings_generator.rs;
+# scope glava+statya only, Chast/Punkt stay Unknown (KBO-R042 precedent).
+# needle law_2013-04-05_44-fz matches real consru_export edition paths;
+# the pre-existing n-44-fz needle covers fixture/toy paths only.
+  - {path_needle: law_2013-04-05_44-fz, level: glava, number: "1", cc: cc:44-fz:glava-1}
+  - {path_needle: law_2013-04-05_44-fz, level: statya, number: "1", cc: cc:44-fz:statya-1}
+  - {path_needle: law_2013-04-05_44-fz, level: statya, number: "2", cc: cc:44-fz:statya-2}
+  - {path_needle: law_2013-04-05_44-fz, level: statya, number: "3", cc: cc:44-fz:statya-3}
+  - {path_needle: law_2013-04-05_44-fz, level: statya, number: "4", cc: cc:44-fz:statya-4}
+  - {path_needle: law_2013-04-05_44-fz, level: statya, number: "5", cc: cc:44-fz:statya-5}
+  - {path_needle: law_2013-04-05_44-fz, level: statya, number: "6", cc: cc:44-fz:statya-6}
+  - {path_needle: law_2013-04-05_44-fz, level: statya, number: "7", cc: cc:44-fz:statya-7}
+  - {path_needle: law_2013-04-05_44-fz, level: statya, number: "8", cc: cc:44-fz:statya-8}
+  - {path_needle: law_2013-04-05_44-fz, level: statya, number: "9", cc: cc:44-fz:statya-9}
+  - {path_needle: law_2013-04-05_44-fz, level: statya, number: "10", cc: cc:44-fz:statya-10}
+  - {path_needle: law_2013-04-05_44-fz, level: statya, number: "11", cc: cc:44-fz:statya-11}
+  - {path_needle: law_2013-04-05_44-fz, level: statya, number: "12", cc: cc:44-fz:statya-12}
+  - {path_needle: law_2013-04-05_44-fz, level: statya, number: "13", cc: cc:44-fz:statya-13}
+  - {path_needle: law_2013-04-05_44-fz, level: statya, number: "14", cc: cc:44-fz:statya-14}
+  - {path_needle: law_2013-04-05_44-fz, level: statya, number: "15", cc: cc:44-fz:statya-15}
+  - {path_needle: law_2013-04-05_44-fz, level: glava, number: "2", cc: cc:44-fz:glava-2}
+  - {path_needle: law_2013-04-05_44-fz, level: statya, number: "16", cc: cc:44-fz:statya-16}
+  - {path_needle: law_2013-04-05_44-fz, level: statya, number: "17", cc: cc:44-fz:statya-17}
+  - {path_needle: law_2013-04-05_44-fz, level: statya, number: "18", cc: cc:44-fz:statya-18}
+  - {path_needle: law_2013-04-05_44-fz, level: statya, number: "19", cc: cc:44-fz:statya-19}
+  - {path_needle: law_2013-04-05_44-fz, level: statya, number: "20", cc: cc:44-fz:statya-20}
+  - {path_needle: law_2013-04-05_44-fz, level: statya, number: "21", cc: cc:44-fz:statya-21}
+  - {path_needle: law_2013-04-05_44-fz, level: statya, number: "22", cc: cc:44-fz:statya-22}
+  - {path_needle: law_2013-04-05_44-fz, level: statya, number: "23", cc: cc:44-fz:statya-23}
+  - {path_needle: law_2013-04-05_44-fz, level: glava, number: "3", cc: cc:44-fz:glava-3}
+  - {path_needle: law_2013-04-05_44-fz, level: statya, number: "24", cc: cc:44-fz:statya-24}
+  - {path_needle: law_2013-04-05_44-fz, level: statya, number: "24.1", cc: cc:44-fz:statya-24.1}
+  - {path_needle: law_2013-04-05_44-fz, level: statya, number: "24.2", cc: cc:44-fz:statya-24.2}
+  - {path_needle: law_2013-04-05_44-fz, level: statya, number: "25", cc: cc:44-fz:statya-25}
+  - {path_needle: law_2013-04-05_44-fz, level: statya, number: "26", cc: cc:44-fz:statya-26}
+  - {path_needle: law_2013-04-05_44-fz, level: statya, number: "27", cc: cc:44-fz:statya-27}
+  - {path_needle: law_2013-04-05_44-fz, level: statya, number: "28", cc: cc:44-fz:statya-28}
+  - {path_needle: law_2013-04-05_44-fz, level: statya, number: "29", cc: cc:44-fz:statya-29}
+  - {path_needle: law_2013-04-05_44-fz, level: statya, number: "30", cc: cc:44-fz:statya-30}
+  - {path_needle: law_2013-04-05_44-fz, level: statya, number: "30.1", cc: cc:44-fz:statya-30.1}
+  - {path_needle: law_2013-04-05_44-fz, level: statya, number: "31", cc: cc:44-fz:statya-31}
+  - {path_needle: law_2013-04-05_44-fz, level: statya, number: "32", cc: cc:44-fz:statya-32}
+  - {path_needle: law_2013-04-05_44-fz, level: statya, number: "33", cc: cc:44-fz:statya-33}
+  - {path_needle: law_2013-04-05_44-fz, level: statya, number: "34", cc: cc:44-fz:statya-34}
+  - {path_needle: law_2013-04-05_44-fz, level: statya, number: "35", cc: cc:44-fz:statya-35}
+  - {path_needle: law_2013-04-05_44-fz, level: statya, number: "36", cc: cc:44-fz:statya-36}
+  - {path_needle: law_2013-04-05_44-fz, level: statya, number: "37", cc: cc:44-fz:statya-37}
+  - {path_needle: law_2013-04-05_44-fz, level: statya, number: "38", cc: cc:44-fz:statya-38}
+  - {path_needle: law_2013-04-05_44-fz, level: statya, number: "39", cc: cc:44-fz:statya-39}
+  - {path_needle: law_2013-04-05_44-fz, level: statya, number: "40", cc: cc:44-fz:statya-40}
+  - {path_needle: law_2013-04-05_44-fz, level: statya, number: "41", cc: cc:44-fz:statya-41}
+  - {path_needle: law_2013-04-05_44-fz, level: statya, number: "42", cc: cc:44-fz:statya-42}
+  - {path_needle: law_2013-04-05_44-fz, level: statya, number: "43", cc: cc:44-fz:statya-43}
+  - {path_needle: law_2013-04-05_44-fz, level: statya, number: "44", cc: cc:44-fz:statya-44}
+  - {path_needle: law_2013-04-05_44-fz, level: statya, number: "45", cc: cc:44-fz:statya-45}
+  - {path_needle: law_2013-04-05_44-fz, level: statya, number: "46", cc: cc:44-fz:statya-46}
+  - {path_needle: law_2013-04-05_44-fz, level: statya, number: "47", cc: cc:44-fz:statya-47}
+  - {path_needle: law_2013-04-05_44-fz, level: statya, number: "48", cc: cc:44-fz:statya-48}
+  - {path_needle: law_2013-04-05_44-fz, level: statya, number: "49", cc: cc:44-fz:statya-49}
+  - {path_needle: law_2013-04-05_44-fz, level: statya, number: "50", cc: cc:44-fz:statya-50}
+  - {path_needle: law_2013-04-05_44-fz, level: statya, number: "51", cc: cc:44-fz:statya-51}
+  - {path_needle: law_2013-04-05_44-fz, level: statya, number: "52", cc: cc:44-fz:statya-52}
+  - {path_needle: law_2013-04-05_44-fz, level: statya, number: "60", cc: cc:44-fz:statya-60}
+  - {path_needle: law_2013-04-05_44-fz, level: statya, number: "61", cc: cc:44-fz:statya-61}
+  - {path_needle: law_2013-04-05_44-fz, level: statya, number: "62", cc: cc:44-fz:statya-62}
+  - {path_needle: law_2013-04-05_44-fz, level: statya, number: "70", cc: cc:44-fz:statya-70}
+  - {path_needle: law_2013-04-05_44-fz, level: statya, number: "71", cc: cc:44-fz:statya-71}
+  - {path_needle: law_2013-04-05_44-fz, level: statya, number: "72", cc: cc:44-fz:statya-72}
+  - {path_needle: law_2013-04-05_44-fz, level: statya, number: "73", cc: cc:44-fz:statya-73}
+  - {path_needle: law_2013-04-05_44-fz, level: statya, number: "74", cc: cc:44-fz:statya-74}
+  - {path_needle: law_2013-04-05_44-fz, level: statya, number: "75", cc: cc:44-fz:statya-75}
+  - {path_needle: law_2013-04-05_44-fz, level: statya, number: "76", cc: cc:44-fz:statya-76}
+  - {path_needle: law_2013-04-05_44-fz, level: statya, number: "77", cc: cc:44-fz:statya-77}
+  - {path_needle: law_2013-04-05_44-fz, level: statya, number: "93", cc: cc:44-fz:statya-93}
+  - {path_needle: law_2013-04-05_44-fz, level: statya, number: "94", cc: cc:44-fz:statya-94}
+  - {path_needle: law_2013-04-05_44-fz, level: statya, number: "95", cc: cc:44-fz:statya-95}
+  - {path_needle: law_2013-04-05_44-fz, level: statya, number: "96", cc: cc:44-fz:statya-96}
+  - {path_needle: law_2013-04-05_44-fz, level: glava, number: "4", cc: cc:44-fz:glava-4}
+  - {path_needle: law_2013-04-05_44-fz, level: statya, number: "97", cc: cc:44-fz:statya-97}
+  - {path_needle: law_2013-04-05_44-fz, level: statya, number: "98", cc: cc:44-fz:statya-98}
+  - {path_needle: law_2013-04-05_44-fz, level: glava, number: "5", cc: cc:44-fz:glava-5}
+  - {path_needle: law_2013-04-05_44-fz, level: statya, number: "99", cc: cc:44-fz:statya-99}
+  - {path_needle: law_2013-04-05_44-fz, level: statya, number: "100", cc: cc:44-fz:statya-100}
+  - {path_needle: law_2013-04-05_44-fz, level: statya, number: "101", cc: cc:44-fz:statya-101}
+  - {path_needle: law_2013-04-05_44-fz, level: statya, number: "102", cc: cc:44-fz:statya-102}
+  - {path_needle: law_2013-04-05_44-fz, level: statya, number: "103", cc: cc:44-fz:statya-103}
+  - {path_needle: law_2013-04-05_44-fz, level: statya, number: "104", cc: cc:44-fz:statya-104}
+  - {path_needle: law_2013-04-05_44-fz, level: glava, number: "6", cc: cc:44-fz:glava-6}
+  - {path_needle: law_2013-04-05_44-fz, level: statya, number: "105", cc: cc:44-fz:statya-105}
+  - {path_needle: law_2013-04-05_44-fz, level: statya, number: "106", cc: cc:44-fz:statya-106}
+  - {path_needle: law_2013-04-05_44-fz, level: statya, number: "107", cc: cc:44-fz:statya-107}
+  - {path_needle: law_2013-04-05_44-fz, level: glava, number: "7", cc: cc:44-fz:glava-7}
+  - {path_needle: law_2013-04-05_44-fz, level: statya, number: "108", cc: cc:44-fz:statya-108}
+  - {path_needle: law_2013-04-05_44-fz, level: statya, number: "109", cc: cc:44-fz:statya-109}
+  - {path_needle: law_2013-04-05_44-fz, level: statya, number: "110", cc: cc:44-fz:statya-110}
+  - {path_needle: law_2013-04-05_44-fz, level: statya, number: "110.1", cc: cc:44-fz:statya-110.1}
+  - {path_needle: law_2013-04-05_44-fz, level: statya, number: "110.2", cc: cc:44-fz:statya-110.2}
+  - {path_needle: law_2013-04-05_44-fz, level: statya, number: "111", cc: cc:44-fz:statya-111}
+  - {path_needle: law_2013-04-05_44-fz, level: statya, number: "111.1", cc: cc:44-fz:statya-111.1}
+  - {path_needle: law_2013-04-05_44-fz, level: statya, number: "111.2", cc: cc:44-fz:statya-111.2}
+  - {path_needle: law_2013-04-05_44-fz, level: statya, number: "111.3", cc: cc:44-fz:statya-111.3}
+  - {path_needle: law_2013-04-05_44-fz, level: statya, number: "111.4", cc: cc:44-fz:statya-111.4}
+  - {path_needle: law_2013-04-05_44-fz, level: glava, number: "8", cc: cc:44-fz:glava-8}
+  - {path_needle: law_2013-04-05_44-fz, level: statya, number: "112", cc: cc:44-fz:statya-112}
+  - {path_needle: law_2013-04-05_44-fz, level: statya, number: "113", cc: cc:44-fz:statya-113}
+  - {path_needle: law_2013-04-05_44-fz, level: statya, number: "114", cc: cc:44-fz:statya-114}
+
 editions:
   - {path_needle: n-435-fz, edition_date: "2023-12-25"}
   - {path_needle: n-402-fz, edition_date: "2025-12-15"}

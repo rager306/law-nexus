@@ -1,5 +1,28 @@
 # Changelog
 
+## [Unreleased]
+
+### M169-yi017n — Parser corpus grounding и 44-ФЗ temporal AST
+
+### Added
+- `CONSULTANT_EXPORT_DIR` env (default `consru_export`) + `.env.example`;
+  tests and the product CLI resolve the real ConsultantPlus export without
+  hardcoded relative paths.
+- Corpus-role signals for real export paths: `edition-` (C2_edition_oracle)
+  and `внесении изменений` (C1_amending_act title form).
+- Filename-grounded identity: `law_YYYY-MM-DD_N-fz` + `edition-XXXX_rev-DATE`
+  mint per-edition Work+Expression via `ln-identity`; fail-closed on unknown
+  acts and enactment-date mismatches; table needles stay primary.
+- 44-ФЗ corpus bindings (102: 8 glava + 94 statya) in
+  `kb-hierarchy-registry.yaml`, generated from edition-0118 by
+  `ln-decode/tests/registry_bindings_generator.rs` (human-gated paste).
+- Real-corpus E2E `real_44fz_edition_0118_full_assembly_zero_drift`
+  (`ln-product-cli`): decode→extract→bind→propose→admit→commit→fold→oracle
+  diff on real bytes — roots=8, nodes=102, committed=94, drift=0.
+- CLI `inspect` on edition-0118 now reports a real minted expression id
+  (`expr:ru:federal:zakon:2013-04-05:44-fz:2025-12-28`) instead of the
+  synthetic fallback.
+
 All notable changes to law-nexus are documented in this file.
 
 ## Unreleased — current architecture landing and repository map
