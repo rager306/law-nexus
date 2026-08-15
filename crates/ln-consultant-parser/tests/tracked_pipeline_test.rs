@@ -269,6 +269,16 @@ fn malformed_consultant_wordml_fails_atomically_in_decode() {
         malformed,
     );
 
+    // Bounded scanner boundary: extract_hyperlinks scans for <w:hlink without
+    // validating XML, so the same malformed input yields an empty scan, never
+    // a panic and never a partial link.
+    assert!(
+        extract_hyperlinks(malformed).is_empty(),
+        "bounded scanner must not validate malformed XML"
+    );
+
+    // Decode owns XML validation: the same input fails atomically with a typed
+    // error and no partial blocks (decode_blocks returns Err, not Ok(partial)).
     let error = ConsultantWordMlBlockDecoder
         .decode_blocks(&request)
         .expect_err("malformed Consultant WordML must fail atomically");

@@ -197,6 +197,10 @@
       "ln-work"
     ],
     [
+      "ln-testkit",
+      "ln-consultant-parser"
+    ],
+    [
       "ln-kb-ontology",
       "ln-identity"
     ],

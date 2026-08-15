@@ -27,6 +27,8 @@ ln-admission = { path = "../ln-admission" }
 ln-closure = { path = "../ln-closure" }
 ln-projection = { path = "../ln-projection" }
 ln-work = { path = "../ln-work" }
+ln-consultant-parser = { path = "../ln-consultant-parser" }
 
 [dev-dependencies]
 zip = { version = "=8.6.0", default-features = false, features = ["deflate-flate2-zlib-rs"] }
+rusqlite = { version = "0.40.2", default-features = false, features = ["bundled"] }

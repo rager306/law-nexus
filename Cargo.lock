@@ -373,6 +373,7 @@ dependencies = [
  "ln-citation",
  "ln-closure",
  "ln-conformance",
+ "ln-consultant-parser",
  "ln-decode",
  "ln-diagnostic",
  "ln-dispose",
@@ -389,6 +390,7 @@ dependencies = [
  "ln-storage",
  "ln-temporal",
  "ln-work",
+ "rusqlite",
  "zip",
 ]
 

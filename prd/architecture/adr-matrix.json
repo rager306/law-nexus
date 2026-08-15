@@ -297,11 +297,53 @@
         "architecture": true,
         "root_readme": true
       }
+    },
+    {
+      "adr_id": "ADR-0025",
+      "index_lifecycle": "bounded",
+      "oracle_lifecycle": "bounded",
+      "path": "doc/adr/0025-consultant-parser-crate.md",
+      "status_lifecycle": "bounded",
+      "superseded_by": [],
+      "supersedes": [],
+      "surfaces": {
+        "adr_index": true,
+        "architecture": true,
+        "root_readme": true
+      }
+    },
+    {
+      "adr_id": "ADR-0026",
+      "index_lifecycle": "proposed",
+      "oracle_lifecycle": "proposed",
+      "path": "doc/adr/0026-ruvector-agent-memory.md",
+      "status_lifecycle": "proposed",
+      "superseded_by": [],
+      "supersedes": [],
+      "surfaces": {
+        "adr_index": true,
+        "architecture": true,
+        "root_readme": true
+      }
+    },
+    {
+      "adr_id": "ADR-0027",
+      "index_lifecycle": "bounded",
+      "oracle_lifecycle": "bounded",
+      "path": "doc/adr/0027-multi-layer-classifier.md",
+      "status_lifecycle": "bounded",
+      "superseded_by": [],
+      "supersedes": [],
+      "surfaces": {
+        "adr_index": true,
+        "architecture": true,
+        "root_readme": true
+      }
     }
   ],
   "schema_version": "law-nexus-adr-matrix/v1",
   "summary": {
-    "adr_count": 20,
+    "adr_count": 23,
     "supersession_edge_count": 2
   }
 }
