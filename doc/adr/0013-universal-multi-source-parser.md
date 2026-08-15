@@ -476,6 +476,35 @@ prefix rule. 44-ФЗ Chapter 3 has 9 paragraph markers, all correctly decoded.
 `HierarchyMarker` now exposes `title()` for TextVersionEvent construction.
 Enables `build_text_log_from_markers` → `resolve_ctv` pipeline.
 
+## Corpus Grounding Amendments (2026-08-15, M169-yi017n)
+
+Real-corpus grounding for the consru_export layout (118 editions of 44-ФЗ,
+C1 amending acts, read-only SQLite catalog):
+
+1. **Corpus-role signals cover export paths.** `kb-ontology.yaml`
+   `corpus_role_signals` includes `edition-` (path) for C2_edition_oracle
+   and the title form "внесении изменений" for C1_amending_act. Unclassified
+   files still fail closed to Unknown.
+2. **Identity comes from the edition filename, authority from the works
+   table.** `law_YYYY-MM-DD_N-fz` + `edition-XXXX_rev-DATE` mint a
+   per-edition Work/Expression through `ln-identity`; `rev-initial` uses the
+   enactment day. The authority is looked up by act number in
+   `kb-hierarchy-registry.yaml` `works:`; unknown acts and enactment-date
+   mismatches fail closed instead of inventing identity.
+3. **Corpus location is env-driven.** `CONSULTANT_EXPORT_DIR` (default
+   `consru_export`) resolves the export root for tests and the product CLI;
+   no hardcoded relative corpus paths.
+4. **Registry needles match real paths.** The 44-ФЗ binding block uses
+   `law_2013-04-05_44-fz` (matches real edition paths); the legacy
+   `n-44-fz` needle remains for fixture paths.
+5. **Replay effect day is the from-date.** Structural changes take effect
+   at the target edition's `from-YYYY-MM-DD` (in force), not the shared
+   rev-date (signing). The `replay` CLI command applies this rule.
+
+These remain `[bounded]`: filename/table grounding is deterministic
+mechanics for one export layout, not corpus completeness or legal identity
+proof.
+
 ## Non-claims
 
 - `HierarchyMarker` / `map_hierarchy_marker` is a **fail-closed candidate lift**:

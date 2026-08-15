@@ -29,6 +29,10 @@
 - Honest finding locked by test: 44-ФЗ edition 0001→0002 (rev 2013-07-02)
   is text-only at marker level — zero structural drafts; text-facet CTV
   wording is out of scope for the structural bridge.
+- CLI `replay <seed> <target>` report: markers/diff/drafts/applied/drift for
+  any edition pair; effect day from the target `from-` date (476-ФЗ pair:
+  added=24 removed=57, applied detach=40, drift=0). ADR-0013 gains a
+  Corpus Grounding Amendments section.
 - First real legislative replay on corpus: `real_44fz_edition_0080_to_0081_replay_chain`
   — 476-ФЗ paper-procedure purge (marker diff added=24 removed=57 → drafts
   81), seed commit + draft apply reproduces the edition-0081 snapshot with
