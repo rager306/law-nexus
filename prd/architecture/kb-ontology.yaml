@@ -298,6 +298,8 @@ vocabulary:
     - {role: C3_alien_work, field: path, needle: prikaz-, rank: 5}
     - {role: C3_alien_work, field: path, needle: opredelenie-, rank: 5}
   link_classifiers:
+    - {kind: amends, context_needle: "внесении изменений", confidence: 0.9}
+    - {kind: amends, context_needle: "внести изменения", confidence: 0.85}
     - {kind: amends, context_needle: "в ред.", confidence: 0.9}
     - {kind: amends, context_needle: "изменениями", confidence: 0.85}
     - {kind: amends, context_needle: "дополнен", confidence: 0.8}
@@ -376,6 +378,8 @@ assembly_fsm:
     - current S_ready_bounded: one fixture (402-FZ) passes full pipeline (drift=0, ctv_resolved>0, real expression_id); NOT TSG S6, NOT Applicable; assembly FSM complete
 
 non_claims:
+  - classifier P/R is one-catalog bounded evidence, not corpus-wide quality
+  - ranked unknown-form census carries lexemes only, never raw legal text
   - YAML catalog is not production graph schema
   - FSM current state is inventory, not product readiness
   - Hierarchy lift is not legal fact and not CTV text

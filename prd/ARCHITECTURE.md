@@ -96,6 +96,14 @@ Readiness FSM stays `O2_calendar_ordinal`. Assembly FSM complete: all 12
 states reached (S_ready_bounded). 402-ФЗ passes full pipeline with real
 Expression ID, zero drift, resolvable CTVs. C1 corpus acquired (Review 7):
 138-ФЗ/333-ФЗ/484-ФЗ amending acts available for real cross-act edges.
+M169-yi017n grounds the pipeline on real corpus paths: per-edition identity
+from `law_DATE_N-fz/edition-XXXX_rev-DATE` filenames (fail-closed), 44-ФЗ
+registry bindings (8 glava + 94 statya), full assembly on edition-0118 with
+drift=0, first legislative replay 0080→0081 (476-ФЗ purge: added=24
+removed=57, drift=0), CLI `replay` report, ranked unknown-form census with
+YAML patch candidates, and measured classifier P/R on the 120-row explicit
+amends golden set (recall 0.883, precision 1.000 after the title-form
+needle patch; residual misses tracked as dictionary follow-up).
 Consultant parser (ADR-0025/0027): `ln-consultant-parser` has 10 source
 modules including `lib.rs`, 64 integration test functions and 4 source-unit
 tests. The G1 Consultant protocol/tracer anchor is 119 structural hierarchy

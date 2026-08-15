@@ -47,6 +47,46 @@ impl SqliteCatalog {
             .is_readonly("main")
             .map_err(|err| map_sqlite("read-only-check", err))
     }
+
+    /// One golden relation row for classifier P/R measurement (M169 S04).
+    /// Carries only the relation type and the source tooltip; no raw text
+    /// beyond the catalog's own title strings.
+    pub fn golden_relation_rows(&self) -> Result<Vec<(String, String)>, CatalogError> {
+        let mut stmt = self
+            .conn
+            .prepare(
+                "SELECT relation_type, raw_tooltip FROM legal_relation_items
+                 WHERE raw_tooltip IS NOT NULL AND length(raw_tooltip) > 0",
+            )
+            .map_err(|err| map_sqlite("prepare", err))?;
+        let rows = stmt
+            .query_map([], |row| {
+                Ok((row.get::<_, String>(0)?, row.get::<_, String>(1)?))
+            })
+            .map_err(|err| map_sqlite("query", err))?;
+        rows.collect::<Result<Vec<_>, _>>()
+            .map_err(|err| map_sqlite("rows", err))
+    }
+
+    /// Negative titles for precision measurement: normative documents whose
+    /// titles are not amending acts. Bounded by `limit`.
+    pub fn non_amending_titles(&self, limit: u32) -> Result<Vec<String>, CatalogError> {
+        let mut stmt = self
+            .conn
+            .prepare(
+                "SELECT title FROM documents
+                 WHERE kind = 'normative' AND title IS NOT NULL
+                   AND title NOT LIKE '%внесении изменений%'
+                   AND title NOT LIKE '%внести изменения%'
+                 ORDER BY source_id LIMIT ?1",
+            )
+            .map_err(|err| map_sqlite("prepare", err))?;
+        let rows = stmt
+            .query_map([limit], |row| row.get::<_, String>(0))
+            .map_err(|err| map_sqlite("query", err))?;
+        rows.collect::<Result<Vec<_>, _>>()
+            .map_err(|err| map_sqlite("rows", err))
+    }
 }
 
 impl CatalogPort for SqliteCatalog {

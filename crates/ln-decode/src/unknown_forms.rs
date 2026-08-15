@@ -154,3 +154,97 @@ pub fn census_unknown_forms(block: &ParsedBlock) -> UnknownFormCensus {
     }
     UnknownFormCensus::from_forms(&collect_unknown_forms_from_text(block.text()))
 }
+
+// ─── M169 S04 T01: ranked census + YAML patch candidate ─────────────────────
+//
+// Learning-loop surface (bounded): ranked frequencies of unsupported forms
+// across blocks, plus a deterministic YAML patch candidate a human reviews
+// and applies. Emits lexemes only — never raw legal prose — and performs no
+// writes: applying a candidate is a human/PR action, not runtime mutation.
+
+/// One ranked unsupported-form entry: kind, lexeme, occurrence count.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct RankedUnknownForm {
+    kind: UnknownFormKind,
+    token: String,
+    count: usize,
+}
+
+impl RankedUnknownForm {
+    pub fn kind(&self) -> UnknownFormKind {
+        self.kind
+    }
+
+    pub fn token(&self) -> &str {
+        &self.token
+    }
+
+    pub fn count(&self) -> usize {
+        self.count
+    }
+}
+
+fn kind_label(kind: UnknownFormKind) -> &'static str {
+    match kind {
+        UnknownFormKind::UnsupportedTemporalNearMiss => "UnsupportedTemporalNearMiss",
+        UnknownFormKind::UnsupportedDeonticNearMiss => "UnsupportedDeonticNearMiss",
+        UnknownFormKind::UnsupportedHierarchyPrefix => "UnsupportedHierarchyPrefix",
+    }
+}
+
+fn kind_from_label(label: &str) -> UnknownFormKind {
+    match label {
+        "UnsupportedTemporalNearMiss" => UnknownFormKind::UnsupportedTemporalNearMiss,
+        "UnsupportedDeonticNearMiss" => UnknownFormKind::UnsupportedDeonticNearMiss,
+        _ => UnknownFormKind::UnsupportedHierarchyPrefix,
+    }
+}
+
+/// Rank unsupported forms across parsed blocks by occurrence count
+/// (descending; ties by lexeme ascending). `ProviderComment` blocks are
+/// excluded. Deterministic; carries no block text beyond the lexemes.
+pub fn rank_unknown_forms(blocks: &[ParsedBlock]) -> Vec<RankedUnknownForm> {
+    use std::collections::BTreeMap;
+    let mut counts: BTreeMap<(&'static str, String), usize> = BTreeMap::new();
+    for block in blocks {
+        if block.style() == ParagraphStyle::ProviderComment {
+            continue;
+        }
+        for form in collect_unknown_forms_from_text(block.text()) {
+            let span = form.span();
+            let token = block.text()[span.start()..span.end()].trim().to_lowercase();
+            *counts.entry((kind_label(form.kind()), token)).or_insert(0) += 1;
+        }
+    }
+    let mut ranked: Vec<RankedUnknownForm> = counts
+        .into_iter()
+        .map(|((label, token), count)| RankedUnknownForm {
+            kind: kind_from_label(label),
+            token,
+            count,
+        })
+        .collect();
+    ranked.sort_by(|a, b| b.count.cmp(&a.count).then_with(|| a.token.cmp(&b.token)));
+    ranked
+}
+
+/// Render a deterministic YAML patch-candidate block for human review.
+///
+/// Lines list `kind`, lexeme `token` and `count`. This is a proposal for a
+/// tracked dictionary change; nothing is applied at runtime.
+pub fn render_yaml_patch_candidates(ranked: &[RankedUnknownForm]) -> String {
+    let mut out = String::from("# ranked unknown-form candidates (human review required)\n");
+    if ranked.is_empty() {
+        out.push_str("(none)\n");
+        return out;
+    }
+    for r in ranked {
+        out.push_str(&format!(
+            "- {{kind: {}, token: {}, count: {}}}\n",
+            kind_label(r.kind),
+            r.token,
+            r.count
+        ));
+    }
+    out
+}
