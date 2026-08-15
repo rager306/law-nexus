@@ -105,6 +105,10 @@
       "ln-storage"
     ],
     [
+      "ln-product-cli",
+      "ln-temporal"
+    ],
+    [
       "ln-query",
       "ln-decode"
     ],

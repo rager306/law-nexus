@@ -84,6 +84,13 @@ bindings:
 # scope glava+statya only, Chast/Punkt stay Unknown (KBO-R042 precedent).
 # needle law_2013-04-05_44-fz matches real consru_export edition paths;
 # the pre-existing n-44-fz needle covers fixture/toy paths only.
+#
+# Historical replay layer (M169 S03 T02): statya removed before edition-0118
+# (e.g. "paper" procedures 53-59, 63-69, 78-92 dropped by 476-FZ in force
+# 2022-01-01) are NOT in this snapshot registry. The replay test
+# real_44fz_edition_0080_to_0081_replay_chain re-binds them locally as a
+# historical layer so the seed (0080) can attach and the diff can detach
+# them; that is a fixture decision, not a registry change.
   - {path_needle: law_2013-04-05_44-fz, level: glava, number: "1", cc: cc:44-fz:glava-1}
   - {path_needle: law_2013-04-05_44-fz, level: statya, number: "1", cc: cc:44-fz:statya-1}
   - {path_needle: law_2013-04-05_44-fz, level: statya, number: "2", cc: cc:44-fz:statya-2}
