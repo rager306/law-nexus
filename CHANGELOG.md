@@ -22,6 +22,13 @@
 - CLI `inspect` on edition-0118 now reports a real minted expression id
   (`expr:ru:federal:zakon:2013-04-05:44-fz:2025-12-28`) instead of the
   synthetic fallback.
+- Replay bridge domain (M169 S03): `AmendmentEventDraft` +
+  `drafts_from_marker_diff` — marker diff to attach/detach drafts with
+  `evidence_class=hypothesized_from_oracle_diff`, facet `structural`,
+  fail-closed on empty provenance. Drafts are NOT log writes.
+- Honest finding locked by test: 44-ФЗ edition 0001→0002 (rev 2013-07-02)
+  is text-only at marker level — zero structural drafts; text-facet CTV
+  wording is out of scope for the structural bridge.
 
 All notable changes to law-nexus are documented in this file.
 

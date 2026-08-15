@@ -112,3 +112,67 @@ fn real_44fz_edition_0118_full_assembly_zero_drift() {
         report.drift
     );
 }
+
+#[test]
+fn real_44fz_edition_0001_to_0002_replay_drafts() {
+    let Some(dir) = edition_path().and_then(|p| p.parent().map(|d| d.to_owned())) else {
+        eprintln!("SKIP: consru_export not available");
+        return;
+    };
+    let read_markers = |file: &str| -> Vec<ln_kb_ontology::domain::HierarchyMarker> {
+        let bytes = std::fs::read(dir.join(file)).expect("read edition");
+        let request = DecodeRequest::new(
+            PayloadRef::parse("payload:m169-replay").unwrap(),
+            FamilyFormat::parse("family:consultant-wordml").unwrap(),
+            &bytes,
+        );
+        let blocks = ConsultantWordMlBlockDecoder
+            .decode_blocks(&request)
+            .expect("decode");
+        let mut markers = Vec::new();
+        for block in &blocks {
+            if let Some(node) = extract_hierarchy(block) {
+                if let Ok(m) = marker_from_decode_token(
+                    None,
+                    node.level().as_str(),
+                    node.number(),
+                    node.title(),
+                ) {
+                    markers.push(m);
+                }
+            }
+        }
+        markers
+    };
+    let seed = read_markers("edition-0001_rev-initial_from-unknown_19d3c051.xml");
+    let next = read_markers("edition-0002_rev-2013-07-02_from-unknown_f4bfa020.xml");
+    eprintln!("seed markers={} next markers={}", seed.len(), next.len());
+    let prov = load_expression_id_for_path(
+        &dir.join("edition-0002_rev-2013-07-02_from-unknown_f4bfa020.xml")
+            .to_string_lossy(),
+    )
+    .expect("edition-0002 expression");
+    let drafts =
+        ln_kb_ontology::domain::drafts_from_marker_diff(&seed, &next, &prov).expect("drafts");
+    eprintln!(
+        "drafts={} attach={} detach={}",
+        drafts.len(),
+        drafts
+            .iter()
+            .filter(|d| d.op == ln_kb_ontology::domain::AmendmentDraftOp::Attach)
+            .count(),
+        drafts
+            .iter()
+            .filter(|d| d.op == ln_kb_ontology::domain::AmendmentDraftOp::Detach)
+            .count()
+    );
+    assert!(!seed.is_empty() && !next.is_empty());
+
+    // Honest bounded finding: the 2013-07-02 revision changed article TEXT,
+    // not structure — the marker-level diff is empty. Text-facet amendments
+    // (CTV wording) are out of scope for the structural replay bridge.
+    assert!(
+        drafts.is_empty(),
+        "0001->0002 must be text-only at marker level, got {drafts:?}"
+    );
+}

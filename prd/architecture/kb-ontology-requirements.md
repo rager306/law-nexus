@@ -114,6 +114,7 @@ S4 fixtures (KBO-R013), Manifestation/Item, and port materialization remain open
 | KBO-R052 | core-contract | S_heal: when `oracle_diff` drift ≠ 0, create a new event or explicit waiver; never write oracle tree back as canon | Review 6 R6-03; ADR-0017 §1c; assembly S_heal | **accepted-draft** (implemented: heal_missing + waive_drift, 4 tests green) |
 | KBO-R053 | core-contract | S_identify: mint FrbrWork + FrbrExpression from XML (type/number/date/authority); replaces synthetic provenance with real Expression ID | Review 6 R6-02/R6-07; ADR-0016; assembly S_identify | **accepted-draft** (partial: YAML works section → mint_work + mint_expression; CLI uses expression_id as provenance) |
 | KBO-R054 | core-contract | `diff_marker_sets(before, after) -> MarkerDiff` compares hierarchy markers of two consecutive editions; added/removed markers are candidates for AmendmentEvents; foundation for legislative replay | Review 7 R7-02; ADR-0017; C1 corpus | **accepted-draft** (5 tests green) |
+| KBO-R055 | core-contract | Replay bridge: `drafts_from_marker_diff` turns a marker diff between editions into attach/detach `AmendmentEventDraft`s with evidence_class `hypothesized_from_oracle_diff` and facet `structural`; fail-closed on empty provenance; drafts never write the membership log directly | M169 S03; KBO-R054; ADR-0017 | **accepted-draft** (4 tests green; consecutive text-only editions yield zero drafts — honest bounded result) |
 
 ## 5. Functional preparation backlog (not implemented this wave)
 

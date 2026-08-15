@@ -1342,6 +1342,66 @@ pub struct MarkerDiff {
 
 /// Compare hierarchy markers of two consecutive editions.
 /// Identity = (level, number); order is ignored.
+/// Structural operation proposed by an oracle diff between two editions.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum AmendmentDraftOp {
+    Attach,
+    Detach,
+}
+
+/// One replay draft derived from a marker diff (KBO-R054 bridge).
+///
+/// Bounded: `evidence_class` is always `hypothesized_from_oracle_diff`
+/// (the diff observes consolidated snapshots, not the amending act itself).
+/// A draft is NOT a VersionedMembershipLog write; admission and commit stay
+/// separate explicit steps.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct AmendmentEventDraft {
+    pub op: AmendmentDraftOp,
+    pub level: String,
+    pub number: String,
+    pub facet: &'static str,
+    pub evidence_class: &'static str,
+    pub provenance: String,
+}
+
+/// Fail-closed replay bridge: marker diff → amendment event drafts.
+///
+/// Added markers draft `Attach`, removed markers draft `Detach`. Empty
+/// provenance is rejected; unknown provenance invents nothing.
+pub fn drafts_from_marker_diff(
+    before: &[HierarchyMarker],
+    after: &[HierarchyMarker],
+    provenance: &str,
+) -> Result<Vec<AmendmentEventDraft>, WriteSetError> {
+    if provenance.is_empty() {
+        return Err(WriteSetError::MissingProvenance);
+    }
+    let diff = diff_marker_sets(before, after);
+    let mut drafts = Vec::with_capacity(diff.added.len() + diff.removed.len());
+    for marker in diff.added {
+        drafts.push(AmendmentEventDraft {
+            op: AmendmentDraftOp::Attach,
+            level: marker.level().to_owned(),
+            number: marker.number().to_owned(),
+            facet: "structural",
+            evidence_class: "hypothesized_from_oracle_diff",
+            provenance: provenance.to_owned(),
+        });
+    }
+    for marker in diff.removed {
+        drafts.push(AmendmentEventDraft {
+            op: AmendmentDraftOp::Detach,
+            level: marker.level().to_owned(),
+            number: marker.number().to_owned(),
+            facet: "structural",
+            evidence_class: "hypothesized_from_oracle_diff",
+            provenance: provenance.to_owned(),
+        });
+    }
+    Ok(drafts)
+}
+
 pub fn diff_marker_sets(before: &[HierarchyMarker], after: &[HierarchyMarker]) -> MarkerDiff {
     let key = |m: &HierarchyMarker| (m.level().to_owned(), m.number().to_owned());
     let before_set: std::collections::HashSet<(String, String)> = before.iter().map(key).collect();

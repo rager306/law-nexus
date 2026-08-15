@@ -82,3 +82,60 @@ fn diff_empty_before_all_added() {
     assert_eq!(diff.added.len(), 2);
     assert!(diff.removed.is_empty());
 }
+
+// ─── AmendmentEventDraft bridge (M169 S03 T01) ─────────────────────────────
+
+use ln_kb_ontology::domain::{drafts_from_marker_diff, AmendmentDraftOp};
+
+fn draft_marker(level: &str, number: &str) -> HierarchyMarker {
+    HierarchyMarker::try_new(None, level, number, None).expect("marker")
+}
+
+#[test]
+fn added_marker_becomes_attach_draft_with_oracle_evidence_class() {
+    let before = vec![draft_marker("glava", "1"), draft_marker("statya", "1")];
+    let after = vec![
+        draft_marker("glava", "1"),
+        draft_marker("statya", "1"),
+        draft_marker("statya", "2"),
+    ];
+    let drafts = drafts_from_marker_diff(
+        &before,
+        &after,
+        "expr:ru:federal:zakon:2013-04-05:44-fz:2014-01-01",
+    )
+    .expect("drafts");
+    assert_eq!(drafts.len(), 1);
+    assert_eq!(drafts[0].op, AmendmentDraftOp::Attach);
+    assert_eq!(drafts[0].level, "statya");
+    assert_eq!(drafts[0].number, "2");
+    assert_eq!(drafts[0].facet, "structural");
+    assert_eq!(drafts[0].evidence_class, "hypothesized_from_oracle_diff");
+    assert!(drafts[0].provenance.contains("44-fz"));
+}
+
+#[test]
+fn removed_marker_becomes_detach_draft() {
+    let before = vec![draft_marker("statya", "1"), draft_marker("statya", "2")];
+    let after = vec![draft_marker("statya", "1")];
+    let drafts = drafts_from_marker_diff(&before, &after, "expr:test:1").expect("drafts");
+    assert_eq!(drafts.len(), 1);
+    assert_eq!(drafts[0].op, AmendmentDraftOp::Detach);
+    assert_eq!(drafts[0].number, "2");
+}
+
+#[test]
+fn empty_provenance_fails_closed() {
+    let before = vec![draft_marker("statya", "1")];
+    let after = vec![draft_marker("statya", "1"), draft_marker("statya", "2")];
+    let err = drafts_from_marker_diff(&before, &after, "").expect_err("empty provenance");
+    assert!(err.to_string().contains("provenance"));
+}
+
+#[test]
+fn identical_sets_produce_no_drafts() {
+    let before = vec![draft_marker("statya", "1")];
+    let after = vec![draft_marker("statya", "1")];
+    let drafts = drafts_from_marker_diff(&before, &after, "expr:test:1").expect("drafts");
+    assert!(drafts.is_empty());
+}
