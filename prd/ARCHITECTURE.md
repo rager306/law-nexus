@@ -106,9 +106,9 @@ completeness. A non-skipping tracked 435-ФЗ system contract covers hyperlink �
 path-aware classification → edge candidate → unknown observation mechanics
 and an atomic malformed decode diagnostic. Tracked crate mechanics remain
 `[bounded]`: contains+bounded-morph
-AND/OR scoring, path-aware profile confidence composition, edge candidates,
-observations, edition helpers and read-only SQLite catalog lookup with typed
-miss/error separation. Temporary production-like schema and shared adapter
+AND/OR scoring, path-aware profile confidence composition, YAML
+sibling-section isolation, edge candidates, observations, edition helpers
+and read-only SQLite catalog lookup with typed miss/error separation. Temporary production-like schema and shared adapter
 contracts are bounded proof; the local catalog remains smoke. Values
 3772/3641/2619/502 and the
 118-edition temporal graph (44-ФЗ 6→1025 amends, 171×) come from

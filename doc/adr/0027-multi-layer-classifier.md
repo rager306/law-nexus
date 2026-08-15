@@ -16,7 +16,10 @@ related: [ADR-0025, ADR-0026, ADR-0019, ADR-0013]
 AND/OR scoring** subset (YAML templates, best-score-wins). Path-aware
 classification composes `load_profiles` / `detect_profile` / `apply_boost` in
 CLI and multi-edition flows; the compatibility wrapper uses the deterministic
-default profile. Proximity, prefix, regex, position, profile-restricted
+default profile. YAML manifest sections (`link_classifiers`,
+`classifier_templates`, `document_profiles`) are scanned with a bounded
+sibling-key stop at section indentation, so sibling sections cannot leak into
+each other. Proximity, prefix, regex, position, profile-restricted
 templates, and top-2 closest-template backlog remain `[proposed]`.
 `consru_export` classification counts are local `[smoke]`, skip-capable, not
 promotion proof (R082). No `[validated]` promotion.
@@ -186,6 +189,10 @@ templates:
   fallback).
 - YAML `classifier_templates` drive the shipped subset; a full four-layer
   `classifier_manifest` remains `[proposed]`.
+- YAML manifest sections are isolated by indentation: every scanner stops at
+  the next sibling mapping key at the heading's indent or at a shallower key;
+  list items are not sibling keys. Sibling sections cannot leak into each
+  other.
 - Path-aware scoring composes document-profile confidence boost; profiles
   remain heuristic and cannot change classification kind or legal authority.
 - Unknown-link observation store exists; top-2 closest-template backlog
