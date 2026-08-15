@@ -103,3 +103,124 @@ fn load_expression_id_unknown_returns_none() {
     use ln_kb_ontology::registry::load_expression_id_for_path;
     assert!(load_expression_id_for_path("unknown-act.xml").is_none());
 }
+
+/// Real consru_export edition paths (skip when the export is absent).
+fn real_editions_dir() -> Option<std::path::PathBuf> {
+    let dir = std::env::var("CONSULTANT_EXPORT_DIR").unwrap_or_else(|_| "consru_export".to_owned());
+    let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+        .join("../..")
+        .join(&dir)
+        .join("consru_export/exports/npa/law_2013-04-05_44-fz");
+    if root
+        .join("edition-0001_rev-initial_from-unknown_19d3c051.xml")
+        .exists()
+    {
+        Some(root)
+    } else {
+        None
+    }
+}
+
+#[test]
+fn real_edition_seed_mints_initial_expression() {
+    use ln_kb_ontology::registry::load_expression_id_for_path;
+    let Some(dir) = real_editions_dir() else {
+        eprintln!("SKIP: consru_export not available");
+        return;
+    };
+    let path = dir
+        .join("edition-0001_rev-initial_from-unknown_19d3c051.xml")
+        .to_string_lossy()
+        .to_string();
+    let expr = load_expression_id_for_path(&path)
+        .unwrap_or_else(|| panic!("seed edition must mint, path={path}"));
+    assert!(expr.contains("44-fz"), "work act number: {expr}");
+    assert!(expr.contains("2013-04-05"), "enactment date: {expr}");
+    // initial edition: edition day equals the enactment day
+    assert!(
+        expr.matches("2013-04-05").count() >= 2,
+        "initial edition uses enactment date as edition date: {expr}"
+    );
+}
+
+#[test]
+fn real_edition_0118_mints_dated_expression() {
+    use ln_kb_ontology::registry::load_expression_id_for_path;
+    let Some(dir) = real_editions_dir() else {
+        eprintln!("SKIP: consru_export not available");
+        return;
+    };
+    let path = dir
+        .join("edition-0118_rev-2025-12-28_from-2026-07-01_6d1ba238.xml")
+        .to_string_lossy()
+        .to_string();
+    let expr = load_expression_id_for_path(&path)
+        .unwrap_or_else(|| panic!("edition-0118 must mint, path={path}"));
+    assert!(expr.contains("44-fz"), "same work: {expr}");
+    assert!(expr.contains("2013-04-05"), "enactment date: {expr}");
+    assert!(
+        expr.contains("2025-12-28"),
+        "edition date from rev-: {expr}"
+    );
+}
+
+#[test]
+fn real_editions_same_work_different_expressions() {
+    use ln_kb_ontology::registry::load_expression_id_for_path;
+    let Some(dir) = real_editions_dir() else {
+        eprintln!("SKIP: consru_export not available");
+        return;
+    };
+    let seed = dir
+        .join("edition-0001_rev-initial_from-unknown_19d3c051.xml")
+        .to_string_lossy()
+        .to_string();
+    let latest = dir
+        .join("edition-0118_rev-2025-12-28_from-2026-07-01_6d1ba238.xml")
+        .to_string_lossy()
+        .to_string();
+    let a = load_expression_id_for_path(&seed).expect("seed");
+    let b = load_expression_id_for_path(&latest).expect("latest");
+    assert_ne!(a, b, "different editions mint different expressions");
+}
+
+#[test]
+fn unknown_act_number_in_filename_fails_closed() {
+    use ln_kb_ontology::registry::load_expression_id_for_path;
+    // act 999-fz is not in works: -> no authority -> None (fail-closed)
+    assert!(load_expression_id_for_path(
+        "consru_export/exports/npa/law_2013-04-05_999-fz/edition-0001_rev-2014-01-01_x.xml"
+    )
+    .is_none());
+}
+
+#[test]
+fn enactment_date_mismatch_fails_closed() {
+    use ln_kb_ontology::registry::load_expression_id_for_path;
+    // works: says 44-fz was enacted 2013-04-05; filename says 2013-04-06
+    assert!(load_expression_id_for_path(
+        "consru_export/exports/npa/law_2013-04-06_44-fz/edition-0001_rev-2014-01-01_x.xml"
+    )
+    .is_none());
+}
+
+#[test]
+fn edition_day_from_filename_per_edition() {
+    use ln_kb_ontology::registry::load_edition_day_for_path;
+    let Some(dir) = real_editions_dir() else {
+        eprintln!("SKIP: consru_export not available");
+        return;
+    };
+    let seed = dir
+        .join("edition-0001_rev-initial_from-unknown_19d3c051.xml")
+        .to_string_lossy()
+        .to_string();
+    let latest = dir
+        .join("edition-0118_rev-2025-12-28_from-2026-07-01_6d1ba238.xml")
+        .to_string_lossy()
+        .to_string();
+    let seed_day = load_edition_day_for_path(&seed).expect("seed day");
+    let latest_day = load_edition_day_for_path(&latest).expect("latest day");
+    assert_ne!(seed_day, latest_day, "per-edition effect day must differ");
+    assert!(latest_day > seed_day, "edition 118 is later than edition 1");
+}

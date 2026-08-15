@@ -289,8 +289,10 @@ vocabulary:
     - {role: C2hint_change_overview, field: path, needle: obzor-izmenenii, rank: 10}
     - {role: C2hint_change_overview, field: title, needle: "Обзор изменений", rank: 10}
     - {role: C2_edition_oracle, field: path, needle: red-ot-, rank: 20}
+    - {role: C2_edition_oracle, field: path, needle: edition-, rank: 20}
     - {role: C2_edition_oracle, field: title, needle: "ред. от", rank: 20}
     - {role: C1_amending_act, field: title, needle: "внести в", rank: 15}
+    - {role: C1_amending_act, field: title, needle: "внесении изменений", rank: 15}
     - {role: C3_alien_work, field: path, needle: reshenie-fas, rank: 5}
     - {role: C3_alien_work, field: path, needle: postanovlenie-pravitelstva, rank: 5}
     - {role: C3_alien_work, field: path, needle: prikaz-, rank: 5}

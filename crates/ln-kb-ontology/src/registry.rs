@@ -101,9 +101,24 @@ pub fn load_edition_day_for_path(path: &str) -> Option<i64> {
 }
 
 fn edition_date_for_path(path: &str) -> Option<String> {
+    if let Some(date) = edition_date_from_table(path) {
+        return Some(date);
+    }
+    // Filename grounding: rev-DATE per edition; rev-initial uses enactment.
+    let (enactment_date, act_number) = parse_law_dir(path)?;
+    let entry = works_entry_for_act(&act_number)?;
+    if entry.enactment_date != enactment_date {
+        return None;
+    }
+    parse_edition_rev(path).or(Some(enactment_date))
+}
+
+fn edition_date_from_table(path: &str) -> Option<String> {
     let text = EMBEDDED_HIERARCHY_REGISTRY_YAML;
     let edition_start = text.find("\neditions:")?;
     let slice = &text[edition_start..];
+    let works_start = slice.find("\nworks:");
+    let slice = works_start.map(|i| &slice[..i]).unwrap_or(slice);
     let path_lc = path.to_lowercase();
     for raw in slice.lines() {
         let trimmed = strip_comment(raw);
@@ -118,9 +133,134 @@ fn edition_date_for_path(path: &str) -> Option<String> {
     None
 }
 
+/// One `works:` entry used for filename-grounded identity minting.
+struct WorkEntry {
+    authority: String,
+    enactment_date: String,
+}
+
+/// Parse `law_YYYY-MM-DD_N-fz` from a consru_export path.
+/// Returns (enactment_date, act_number). Bounded: only the `law_` prefix
+/// (federal laws exported under exports/npa) is recognized; other act
+/// families fail closed and need their own `works:` needle.
+fn parse_law_dir(path: &str) -> Option<(String, String)> {
+    let marker = "law_";
+    let bytes = path.as_bytes();
+    let mut from = 0usize;
+    while let Some(rel) = path[from..].find(marker) {
+        let start = from + rel + marker.len();
+        // YYYY-MM-DD
+        if bytes.len() < start + 10 {
+            return None;
+        }
+        let date = &path[start..start + 10];
+        if !is_iso_day_ascii(date) {
+            from = start;
+            continue;
+        }
+        // _N-fz until '/', '_' or end
+        if bytes.get(start + 10) != Some(&b'_') {
+            from = start;
+            continue;
+        }
+        let number_start = start + 11;
+        let number_end = path[number_start..]
+            .find(['/', '_'])
+            .map(|i| number_start + i)
+            .unwrap_or(path.len());
+        let act = &path[number_start..number_end];
+        if !act.ends_with("-fz") || act.len() <= 3 {
+            from = start;
+            continue;
+        }
+        return Some((date.to_owned(), act.to_owned()));
+    }
+    None
+}
+
+fn is_iso_day_ascii(candidate: &str) -> bool {
+    let b = candidate.as_bytes();
+    b.len() == 10
+        && b[..4].iter().all(u8::is_ascii_digit)
+        && b[4] == b'-'
+        && b[5..7].iter().all(u8::is_ascii_digit)
+        && b[7] == b'-'
+        && b[8..].iter().all(u8::is_ascii_digit)
+}
+
+/// Parse the edition date from `edition-XXXX_rev-YYYY-MM-DD` in a path.
+/// `rev-initial` returns None: the seed edition uses the enactment day.
+fn parse_edition_rev(path: &str) -> Option<String> {
+    let marker = "rev-";
+    let bytes = path.as_bytes();
+    let mut from = 0usize;
+    while let Some(rel) = path[from..].find(marker) {
+        let start = from + rel + marker.len();
+        if bytes.len() < start + 10 {
+            return None;
+        }
+        let date = &path[start..start + 10];
+        if !is_iso_day_ascii(date) {
+            from = start;
+            continue;
+        }
+        // must be terminated by '_', '/' or end (not a longer token)
+        let terminator = bytes.get(start + 10).copied();
+        if let Some(c) = terminator {
+            if c != b'_' && c != b'/' {
+                from = start;
+                continue;
+            }
+        }
+        return Some(date.to_owned());
+    }
+    None
+}
+
+/// Ground identity from a consru_export edition path.
+/// Authority comes from the `works:` table (act_number lookup); the filename
+/// enactment date must match the table (fail-closed). Unknown acts fail
+/// closed rather than inventing an authority.
+fn expression_id_from_edition_path(path: &str) -> Option<String> {
+    let (enactment_date, act_number) = parse_law_dir(path)?;
+    let entry = works_entry_for_act(&act_number)?;
+    if entry.enactment_date != enactment_date {
+        return None;
+    }
+    let edition_date = parse_edition_rev(path).unwrap_or(enactment_date.clone());
+    let work =
+        ln_identity::domain::mint_work(&entry.authority, &enactment_date, &act_number).ok()?;
+    let expression = ln_identity::domain::mint_expression(&work, &edition_date).ok()?;
+    Some(expression.expression_id.as_str().to_owned())
+}
+
+fn works_entry_for_act(act_number: &str) -> Option<WorkEntry> {
+    let text = EMBEDDED_HIERARCHY_REGISTRY_YAML;
+    let works_start = text.find("\nworks:")?;
+    let slice = &text[works_start..];
+    for raw in slice.lines() {
+        let trimmed = strip_comment(raw);
+        let line = trimmed.trim();
+        if !line.starts_with('-') {
+            continue;
+        }
+        let number = flow_field(line, "act_number")?;
+        if number != act_number {
+            continue;
+        }
+        return Some(WorkEntry {
+            authority: flow_field(line, "authority")?,
+            enactment_date: flow_field(line, "enactment_date")?,
+        });
+    }
+    None
+}
+
 /// Mint a Work + Expression for the fixture matching `path`.
 /// Returns the Expression ID string for use as provenance.
-/// Falls back to None if no `works:` entry matches.
+/// Order: `works:` needle match (fixture paths), then consru_export edition
+/// filename grounding (`law_DATE_N-fz` + `edition-XXXX_rev-DATE`).
+/// Falls back to None if neither grounds (fail-closed).
 pub fn load_expression_id_for_path(path: &str) -> Option<String> {
     let text = EMBEDDED_HIERARCHY_REGISTRY_YAML;
     let works_start = text.find("\nworks:")?;
@@ -144,5 +284,6 @@ pub fn load_expression_id_for_path(path: &str) -> Option<String> {
         let expression = ln_identity::domain::mint_expression(&work, &edition_date).ok()?;
         return Some(expression.expression_id.as_str().to_owned());
     }
-    None
+    // No needle matched: try consru_export edition filename grounding.
+    expression_id_from_edition_path(path)
 }

@@ -58,6 +58,68 @@ fn overview_beats_red_ot_in_same_filename() {
     }
 }
 
+/// Real consru_export corpus paths (skip when the export is absent).
+fn real_corpus_dir() -> Option<std::path::PathBuf> {
+    let dir = std::env::var("CONSULTANT_EXPORT_DIR").unwrap_or_else(|_| "consru_export".to_owned());
+    let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+        .join("../..")
+        .join(&dir)
+        .join("consru_export/exports/npa/law_2013-04-05_44-fz");
+    if root
+        .join("edition-0001_rev-initial_from-unknown_19d3c051.xml")
+        .exists()
+    {
+        Some(root)
+    } else {
+        None
+    }
+}
+
+#[test]
+fn real_edition_seed_path_is_edition_oracle() {
+    let Some(dir) = real_corpus_dir() else {
+        eprintln!("SKIP: consru_export not available");
+        return;
+    };
+    let path = dir
+        .join("edition-0001_rev-initial_from-unknown_19d3c051.xml")
+        .to_string_lossy()
+        .to_string();
+    match catalog().classify_corpus_role(&path, "") {
+        CorpusRoleOutcome::Bound { role } => assert_eq!(role, "C2_edition_oracle"),
+        other => panic!("edition seed must classify, got {other:?} for {path}"),
+    }
+}
+
+#[test]
+fn real_edition_latest_path_is_edition_oracle() {
+    let Some(dir) = real_corpus_dir() else {
+        eprintln!("SKIP: consru_export not available");
+        return;
+    };
+    let path = dir
+        .join("edition-0118_rev-2025-12-28_from-2026-07-01_6d1ba238.xml")
+        .to_string_lossy()
+        .to_string();
+    match catalog().classify_corpus_role(&path, "") {
+        CorpusRoleOutcome::Bound { role } => assert_eq!(role, "C2_edition_oracle"),
+        other => panic!("edition latest must classify, got {other:?}"),
+    }
+}
+
+#[test]
+fn real_c1_amending_act_title_classifies_as_c1() {
+    // C1 amending act: path has no signal; the catalog title carries the marker.
+    let cat = catalog();
+    match cat.classify_corpus_role(
+        "consru_export/consru_export/exports/npa/law_2025-06-07_138-fz_rev-unknown_1c01dbd3.xml",
+        "Федеральный закон от 07.06.2025 N 138-ФЗ \"О внесении изменений в статьи 31 и 43",
+    ) {
+        CorpusRoleOutcome::Bound { role } => assert_eq!(role, "C1_amending_act"),
+        other => panic!("C1 title must classify, got {other:?}"),
+    }
+}
+
 #[test]
 fn unknown_role_token_in_signal_fails_catalog_parse() {
     let yaml = r#"

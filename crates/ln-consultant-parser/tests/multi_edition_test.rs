@@ -6,9 +6,12 @@ use ln_consultant_parser::multi_edition::{
 };
 
 fn editions_dir() -> std::path::PathBuf {
+    let root =
+        std::env::var("CONSULTANT_EXPORT_DIR").unwrap_or_else(|_| "consru_export".to_owned());
     std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .join("../../")
-        .join("consru_export/consru_export/exports/npa/law_2013-04-05_44-fz")
+        .join("../..")
+        .join(root)
+        .join("consru_export/exports/npa/law_2013-04-05_44-fz")
 }
 
 #[test]
