@@ -100,10 +100,19 @@ M169-yi017n grounds the pipeline on real corpus paths: per-edition identity
 from `law_DATE_N-fz/edition-XXXX_rev-DATE` filenames (fail-closed), 44-ФЗ
 registry bindings (8 glava + 94 statya), full assembly on edition-0118 with
 drift=0, first legislative replay 0080→0081 (476-ФЗ purge: added=24
-removed=57, drift=0), CLI `replay` report, ranked unknown-form census with
-YAML patch candidates, and measured classifier P/R on the 120-row explicit
-amends golden set (recall 0.883, precision 1.000 after the title-form
-needle patch; residual misses tracked as dictionary follow-up).
+removed=57, drift=0), CLI `replay` report, and a closed learning loop: the
+ranked unknown-form census (fingerprint ids only, never raw text) emits
+deterministic YAML patch candidates that a human applies via the public
+`apply_patch_candidates` API — applying a full candidate drops the census to
+zero (KBO-R057; candidates are never auto-applied). The classifier P/R is
+measured on the real catalog golden set — 120 explicit amends positives /
+300 non-amending negatives: the singular title-form needle «внесении
+изменения» closed the measured gap and both engines (rules and templates)
+score recall=1.000, precision=1.000 against floors P>=0.8/R>=0.5 (KBO-R058;
+one-catalog bounded evidence, not corpus-wide quality). Governor runs an
+advisory corpus-grounding check (KBO-R059): registry needles must match real
+export paths when CONSULTANT_EXPORT_DIR is present, so grounding cannot
+regress to toy-path-only.
 Consultant parser (ADR-0025/0027): `ln-consultant-parser` has 10 source
 modules including `lib.rs`, 64 integration test functions and 4 source-unit
 tests. The G1 Consultant protocol/tracer anchor is 119 structural hierarchy

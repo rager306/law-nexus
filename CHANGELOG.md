@@ -50,13 +50,19 @@
 - Honest finding locked by test: 44-ФЗ edition 0001→0002 (rev 2013-07-02)
   is text-only at marker level — zero structural drafts; text-facet CTV
   wording is out of scope for the structural bridge.
-- Learning loop (M169 S04): ranked unknown-form census + deterministic YAML
-  patch candidates (lexeme-only, human-applied); classifier P/R measured on
-  the 120-row explicit amends golden set — recall 0.000 exposed the title
-  inflection gap, two YAML needles («внесении изменений», «внести
-  изменения») closed it to recall 0.883 / precision 1.000 (floors 0.8/0.7
-  now tracked); KBO-R057/R058 accepted-draft, Governor grounding check
-  proposed as KBO-R059.
+- Learning loop (M169 S04): ranked unknown-form census (fingerprint ids,
+  lexeme-only, never raw text) + deterministic YAML patch candidates; public
+  `apply_patch_candidates` is a human-gated PR action, never auto-applied —
+  TDD: applying a full candidate drops the census to zero. Classifier P/R
+  measured on the real catalog golden set — 120 explicit amends positives /
+  300 non-amending negatives: recall 0.000 exposed the title inflection gap,
+  the singular needle «внесении изменения» closed it — both engines (rules
+  and templates) now score recall 1.000 / precision 1.000 against floors
+  P>=0.8/R>=0.5 (KBO-R058). KBO-R059 Governor corpus-grounding advisory
+  check implemented (`corpus-grounding`): registry needles must match real
+  export paths when CONSULTANT_EXPORT_DIR is present; live corpus grounded
+  via law_2013-04-05_44-fz, fixture-only needles (n-402-fz/n-435-fz/n-44-fz/
+  n-138-fz) reported ungrounded.
 - CLI `replay <seed> <target>` report: markers/diff/drafts/applied/drift for
   any edition pair; effect day from the target `from-` date (476-ФЗ pair:
   added=24 removed=57, applied detach=40, drift=0). ADR-0013 gains a

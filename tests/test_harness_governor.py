@@ -618,6 +618,71 @@ def test_kb_ontology_draft_pass_when_complete(tmp_path: Path) -> None:
     assert "kbo_r_count=" in findings[0].observed
 
 
+def test_corpus_grounding_pass_when_needle_matches_real_path(tmp_path: Path, monkeypatch) -> None:
+    arch = tmp_path / "prd" / "architecture"
+    arch.mkdir(parents=True)
+    (arch / "kb-hierarchy-registry.yaml").write_text(
+        "# fixture registry\n"
+        "bindings:\n"
+        '  - {path_needle: law_2013-04-05_44-fz, level: glava, number: "1", cc: cc:44-fz:glava-1}\n'
+        '  - {path_needle: n-44-fz, level: statya, number: "31", cc: cc:44-fz:statya-31}\n',
+        encoding="utf-8",
+    )
+    edition = (
+        tmp_path / "consru_export" / "consru_export" / "exports" / "npa" / "law_2013-04-05_44-fz"
+    )
+    edition.mkdir(parents=True)
+    (edition / "edition-0118_rev-2025-12-28_from-2026-07-01_6d1ba238.xml").write_text(
+        "<doc/>", encoding="utf-8"
+    )
+    monkeypatch.delenv("CONSULTANT_EXPORT_DIR", raising=False)
+    from law_nexus_harness.governor import check_corpus_grounding
+
+    findings = check_corpus_grounding(tmp_path)
+    assert findings[0].status == "pass"
+    assert findings[0].severity == "ok"
+    assert "grounded=1" in findings[0].observed
+    assert "ungrounded=1" in findings[0].observed
+
+
+def test_corpus_grounding_warns_when_no_needle_matches(tmp_path: Path, monkeypatch) -> None:
+    arch = tmp_path / "prd" / "architecture"
+    arch.mkdir(parents=True)
+    (arch / "kb-hierarchy-registry.yaml").write_text(
+        "bindings:\n"
+        '  - {path_needle: n-44-fz, level: statya, number: "31", cc: cc:44-fz:statya-31}\n',
+        encoding="utf-8",
+    )
+    toy = tmp_path / "consru_export" / "consru_export" / "exports" / "npa"
+    toy.mkdir(parents=True)
+    (toy / "decree_2020-09-14_558_rev-2024-07-08_a6d600ea.xml").write_text(
+        "<doc/>", encoding="utf-8"
+    )
+    monkeypatch.delenv("CONSULTANT_EXPORT_DIR", raising=False)
+    from law_nexus_harness.governor import check_corpus_grounding
+
+    findings = check_corpus_grounding(tmp_path)
+    assert findings[0].status == "fail"
+    assert findings[0].severity == "warn"
+    assert "grounded=0" in findings[0].observed
+
+
+def test_corpus_grounding_skips_without_corpus(tmp_path: Path, monkeypatch) -> None:
+    arch = tmp_path / "prd" / "architecture"
+    arch.mkdir(parents=True)
+    (arch / "kb-hierarchy-registry.yaml").write_text(
+        "bindings:\n"
+        '  - {path_needle: n-44-fz, level: statya, number: "31", cc: cc:44-fz:statya-31}\n',
+        encoding="utf-8",
+    )
+    monkeypatch.delenv("CONSULTANT_EXPORT_DIR", raising=False)
+    from law_nexus_harness.governor import check_corpus_grounding
+
+    findings = check_corpus_grounding(tmp_path)
+    assert findings[0].status == "pass"
+    assert "skipped" in findings[0].observed
+
+
 def test_kb_ontology_closed_vocab_warns_when_rust_token_missing_from_yaml(
     tmp_path: Path,
 ) -> None:

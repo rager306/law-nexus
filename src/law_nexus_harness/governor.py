@@ -1212,6 +1212,10 @@ _KB_ONTOLOGY_NON_AUTHORITY_FRAGMENTS = (
     "not production graph schema",
     "not Applicable",
 )
+_CORPUS_GROUNDING_REGISTRY_REL = Path("prd/architecture/kb-hierarchy-registry.yaml")
+_CORPUS_GROUNDING_ENV = "CONSULTANT_EXPORT_DIR"
+_CORPUS_GROUNDING_NEEDLE_RE = re.compile(r"path_needle:\s*([^\s,}]+)")
+_CORPUS_GROUNDING_DEFAULT_EXPORT = "consru_export"
 _RUST_ENUM_RE = re.compile(
     r"pub enum (?P<name>[A-Za-z0-9_]+) \{(?P<body>.*?)\n\}",
     re.DOTALL,
@@ -1604,6 +1608,125 @@ def check_kb_ontology_draft(root: Path) -> list[GovernorFinding]:
                 GovernorEvidence(path=str(_KB_ONTOLOGY_CONTRACT_REL)),
                 GovernorEvidence(path=str(_KB_ONTOLOGY_YAML_REL)),
             ],
+        )
+    ]
+
+
+def check_corpus_grounding(root: Path) -> list[GovernorFinding]:
+    """Advisory (KBO-R059): registry needles (works/bindings) match real corpus paths.
+
+    When CONSULTANT_EXPORT_DIR (default consru_export) resolves to a real
+    ConsultantPlus export under <root>/<export>/consru_export/exports, at
+    least one path_needle from kb-hierarchy-registry.yaml must substring-match
+    a real corpus path (same rule as ln-kb-ontology bindings_matching_path).
+    This prevents a toy-path-only grounding regression where bindings only
+    ever hit fixture paths. Missing corpus -> pass + skipped (advisory not
+    applicable). Fixture-only needles (e.g. n-402-fz without a real corpus
+    dir) legitimately stay ungrounded and are reported, not blocked.
+    Never blocks the build; not product readiness.
+    """
+
+    check_id = "corpus-grounding"
+    registry_path = root / _CORPUS_GROUNDING_REGISTRY_REL
+    if not registry_path.is_file():
+        return [
+            GovernorFinding(
+                check_id=check_id,
+                status="fail",
+                severity="warn",
+                message="hierarchy registry missing, corpus grounding not assessable",
+                observed="missing registry",
+                remediation="Add prd/architecture/kb-hierarchy-registry.yaml.",
+                evidence=[GovernorEvidence(path=str(_CORPUS_GROUNDING_REGISTRY_REL))],
+            )
+        ]
+
+    registry_text = registry_path.read_text(encoding="utf-8")
+    needles = sorted(
+        {match.group(1) for match in _CORPUS_GROUNDING_NEEDLE_RE.finditer(registry_text)}
+    )
+    if not needles:
+        return [
+            GovernorFinding(
+                check_id=check_id,
+                status="fail",
+                severity="warn",
+                message="no path_needle rows in hierarchy registry",
+                observed="needles_total=0",
+                remediation="Add path_needle rows to the registry bindings/works/editions.",
+                evidence=[GovernorEvidence(path=str(_CORPUS_GROUNDING_REGISTRY_REL))],
+            )
+        ]
+
+    export_dir = os.environ.get(_CORPUS_GROUNDING_ENV, _CORPUS_GROUNDING_DEFAULT_EXPORT)
+    exports_root = root / export_dir / "consru_export" / "exports"
+    if not exports_root.is_dir():
+        return [
+            GovernorFinding(
+                check_id=check_id,
+                status="pass",
+                severity="ok",
+                message="corpus absent; advisory corpus-grounding check skipped",
+                observed=(
+                    f"skipped=corpus-not-present needles_total={len(needles)} "
+                    "(advisory; not applicable without a real export)."
+                ),
+                remediation="none",
+                evidence=[GovernorEvidence(path=str(_CORPUS_GROUNDING_REGISTRY_REL))],
+            )
+        ]
+
+    real_paths = [
+        path.relative_to(exports_root).as_posix().lower() for path in exports_root.rglob("*")
+    ]
+    grounded: list[str] = []
+    ungrounded: list[str] = []
+    examples: list[str] = []
+    for needle in needles:
+        needle_lc = needle.lower()
+        matches = [real for real in real_paths if needle_lc in real]
+        if matches:
+            grounded.append(needle)
+            if len(examples) < 3:
+                examples.append(f"{needle}->{matches[0]}")
+        else:
+            ungrounded.append(needle)
+
+    if not grounded:
+        return [
+            GovernorFinding(
+                check_id=check_id,
+                status="fail",
+                severity="warn",
+                message="no registry needle matches a real corpus path (toy-path-only grounding)",
+                observed=(
+                    f"needles_total={len(needles)} grounded=0 "
+                    f"paths_scanned={len(real_paths)} "
+                    f"ungrounded=[{','.join(ungrounded[:8])}] "
+                    "(advisory [bounded]; prevents toy-path-only grounding regressions)."
+                ),
+                remediation=(
+                    "Align at least one hierarchy-registry path_needle with a real "
+                    "consru_export path (see ln-decode/tests/registry_bindings_generator.rs)."
+                ),
+                evidence=[GovernorEvidence(path=str(_CORPUS_GROUNDING_REGISTRY_REL))],
+            )
+        ]
+
+    return [
+        GovernorFinding(
+            check_id=check_id,
+            status="pass",
+            severity="ok",
+            message="registry needles ground on real corpus paths",
+            observed=(
+                f"needles_total={len(needles)} grounded={len(grounded)} "
+                f"ungrounded={len(ungrounded)} paths_scanned={len(real_paths)} "
+                f"examples=[{','.join(examples)}] "
+                "(advisory [bounded]; fixture-only needles may stay ungrounded)."
+            ),
+            remediation="none",
+            evidence=[GovernorEvidence(path=str(_CORPUS_GROUNDING_REGISTRY_REL))],
         )
     ]
 
@@ -4989,6 +5112,15 @@ GOVERNOR_CHECK_SPECS: tuple[CheckSpec, ...] = (
             "prd/architecture/kb-ontology-projection-contract.json",
             "prd/architecture/kb-ontology.yaml",
         ),
+        "warn",
+    ),
+    _check_spec(
+        "corpus-grounding",
+        "verification",
+        "deterministic",
+        check_corpus_grounding,
+        "Prevent toy-path-only grounding: registry needles match real corpus paths when the export is present.",
+        ("prd/architecture/kb-hierarchy-registry.yaml",),
         "warn",
     ),
     _check_spec(

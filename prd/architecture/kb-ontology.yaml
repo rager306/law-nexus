@@ -381,6 +381,7 @@ assembly_fsm:
 non_claims:
   - classifier P/R is one-catalog bounded evidence, not corpus-wide quality
   - ranked unknown-form census carries lexemes only, never raw legal text
+  - YAML patch candidates are human-review suggestions, never auto-applied runtime mutations
   - YAML catalog is not production graph schema
   - FSM current state is inventory, not product readiness
   - Hierarchy lift is not legal fact and not CTV text

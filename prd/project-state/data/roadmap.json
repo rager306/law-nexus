@@ -1,6 +1,6 @@
 {
   "schema_version": "law-nexus-project-state-roadmap/v2",
-  "generated_at": "2026-08-11",
+  "generated_at": "2026-08-16",
   "non_authoritative": true,
   "source_of_truth": "prd/ARCHITECTURE.md (living truth oracle) and doc/adr/** (decision/lifecycle authority). This file is a non-authoritative cold-reader projection; local .gsd/** is workflow state only.",
   "completed_milestone_groups": [
@@ -381,13 +381,19 @@
       "theme": "NormRule IR fail-closed design spine (design-only under ADR-0023)",
       "status": "complete",
       "boundary": "IR types, fail-closed validation, IR-aware Abstain-only evaluate path, honesty docs. GSD closed via skip waivers after out-of-band product evidence (D154). Does NOT implement Applicable/NotApplicable, product CaseFacts, or TSG-006 runtime. Review 4 L0 (`doc/review/review-13-08-2026.md`) later recorded temporal-AST assembly vocabulary only; readiness FSM remains O2_calendar_ordinal; not O3 fixtures or resolve_CTV."
+    },
+    {
+      "range": "M168-M168",
+      "theme": "Consultant parser remediation wave (Устранение долга текущей волны Consultant parser)",
+      "status": "complete",
+      "boundary": "Honest ADR/ARCHITECTURE/protocol evidence ceilings; tracked e2e contract; scored classifier composition; bounded morph signals; YAML isolation; read-only SQLite CatalogPort adapter (rusqlite bundled, SQLITE_OPEN_READ_ONLY). Not G2/G3 corpus acceptance, not ConflictResolver, not RuVector, not product readiness."
     }
   ],
   "current_milestone": {
-    "id": "M167-odlgt8",
+    "id": "M168-vbbcxj",
     "status": "complete",
-    "title": "NormRule IR fail-closed design spine",
-    "goal": "Design-only NormRule IR in ln-applicability under ADR-0023 [proposed]; L_delivery catch-up via authorized skip waivers after out-of-band RC11-F04a evidence. Not Applicable/NotApplicable, not TSG-006 product runtime, not product readiness."
+    "title": "Consultant parser remediation wave (Устранение долга текущей волны Consultant parser)",
+    "goal": "Consultant parser remediation wave: honest ADR/ARCHITECTURE/protocol evidence ceilings; tracked end-to-end contract (hyperlink -> classification -> edges -> observations); document-profile scoring composition; bounded morph signals; YAML sibling-section isolation; read-only SQLite CatalogPort adapter (rusqlite bundled, SQLITE_OPEN_READ_ONLY). Not G2/G3 corpus acceptance, not ConflictResolver, not RuVector, not product readiness."
   },
   "recommended_next": {
     "title": "Evidence-gated product next after process reconcile",
@@ -479,6 +485,11 @@
       "id": "gsd-dt-lag-m167-f04a-resolved",
       "lifecycle": "proposed",
       "text": "RESOLVED: M167-odlgt8 completed in GSD (2026-08-13) via authorized skip_slice waivers + validation pass + markAllGatesOmitted for residual gates after skip. Product evidence remained 1403294+; L_review F04a closed; TSG-005/006 still open. See prd/architecture/review-cases/gsd-review-bridge.md."
+    },
+    {
+      "id": "roadmap-m168-complete",
+      "lifecycle": "proposed",
+      "text": "M168-vbbcxj completed in GSD (2026-08-15): Consultant parser remediation wave (read-only SQLite catalog adapter, tracked e2e contract, scored classifier composition). GSD completion is not product readiness; parser evidence ceiling stays G1 [bounded]."
     }
   ]
 }
