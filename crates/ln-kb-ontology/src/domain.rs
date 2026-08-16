@@ -1254,6 +1254,44 @@ pub fn resolve_ctv(log: &TextVersionLog, cc: &ComponentConceptId, as_of_day: i64
 
 /// Build a TextVersionLog from markers that have a title and are Bound in the map.
 /// Each marker's title becomes the text of its CC at effect_day.
+/// Build a TextVersionLog from full article bodies (M170 S01 T02).
+///
+/// Items are `(level, number, title, body)` tuples — the ontology consumes
+/// plain data and does not depend on ln-decode. An empty body falls back to
+/// the marker title (backward-compatible with `build_text_log_from_markers`);
+/// unbound markers mint nothing (fail-closed Unknown downstream).
+pub fn build_text_log_from_articles<'a, I>(
+    map: &HierarchyMap,
+    articles: I,
+    effect_day: i64,
+    provenance: &str,
+) -> TextVersionLog
+where
+    I: IntoIterator<Item = (&'a str, &'a str, Option<&'a str>, &'a str)>,
+{
+    let mut log = TextVersionLog::empty();
+    for (level, number, title, body) in articles {
+        if let Ok(marker) = HierarchyMarker::try_new(None, level, number, title) {
+            if let HierarchyMapOutcome::Bound { component } = map_hierarchy_marker(map, &marker) {
+                let text = if body.trim().is_empty() {
+                    title.unwrap_or("").trim()
+                } else {
+                    body.trim()
+                };
+                if text.is_empty() {
+                    continue;
+                }
+                if let Ok(event) =
+                    TextVersionEvent::try_new(component.clone(), text, effect_day, provenance)
+                {
+                    let _ = log.append(event);
+                }
+            }
+        }
+    }
+    log
+}
+
 pub fn build_text_log_from_markers(
     map: &HierarchyMap,
     markers: &[HierarchyMarker],

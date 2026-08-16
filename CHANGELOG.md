@@ -2,6 +2,21 @@
 
 ## [Unreleased]
 
+### M170-2gh5r6 — Text CTV полный текст статей
+
+### Added
+- `collect_marker_bodies` (ln-decode): per-marker body between hierarchy
+  markers; `collect_article_texts`: full statute text with nested
+  chast/punkt/podpunkt marker lines accumulated into the owning statya
+  (ProviderComment never contributes; empty stays empty — fail-closed).
+- `build_text_log_from_articles` (ln-kb-ontology): TextVersionLog from
+  (level, number, title, body) tuples — ontology consumes plain data, no
+  ln-decode dependency; empty body falls back to the title.
+- Real-corpus text CTV (`real_44fz_statya_1_resolves_to_full_article_text`):
+  edition-0118 — 86/94 articles carry full text; statya-1 resolves to 6231
+  chars of real article text; 85 bound statya resolve (residual: no-prose
+  articles + one duplicate-number same-day Conflict — honest count).
+
 ### M169-yi017n — Parser corpus grounding и 44-ФЗ temporal AST
 
 ### Added
