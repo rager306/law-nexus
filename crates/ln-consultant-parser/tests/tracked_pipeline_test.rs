@@ -23,14 +23,16 @@ const TRACKED_FIXTURE: &str = "law-source/consultant/federalnyi-zakon-ot-22-12-2
 const SOURCE_CONSID: &str = "consultantplus://offline/ref=TRACKED_435_FZ";
 
 /// Counts observed independently on two pipeline runs before locking.
+/// M169 S04 T02: classifier gained the singular amending needle
+/// (`внесении изменения`) — 20 article-header links moved unknown → amends.
 const EXPECTED_LINKS: usize = 61;
-const EXPECTED_AMENDS: usize = 2;
+const EXPECTED_AMENDS: usize = 22;
 const EXPECTED_IMPLEMENTS: usize = 2;
-const EXPECTED_UNKNOWN: usize = 57;
-const EXPECTED_EDGES: usize = 4;
-const EXPECTED_OBSERVATIONS: usize = 45;
-const EXPECTED_OCCURRENCE_TOTAL: usize = 57;
-const EXPECTED_UNIQUE_DEST_TOTAL: usize = 52;
+const EXPECTED_UNKNOWN: usize = 37;
+const EXPECTED_EDGES: usize = 24;
+const EXPECTED_OBSERVATIONS: usize = 30;
+const EXPECTED_OCCURRENCE_TOTAL: usize = 37;
+const EXPECTED_UNIQUE_DEST_TOTAL: usize = 34;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 struct PipelineSummary {

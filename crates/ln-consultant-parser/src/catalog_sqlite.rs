@@ -48,20 +48,28 @@ impl SqliteCatalog {
             .map_err(|err| map_sqlite("read-only-check", err))
     }
 
-    /// One golden relation row for classifier P/R measurement (M169 S04).
-    /// Carries only the relation type and the source tooltip; no raw text
-    /// beyond the catalog's own title strings.
-    pub fn golden_relation_rows(&self) -> Result<Vec<(String, String)>, CatalogError> {
+    /// One golden relation row for classifier P/R measurement (M169 S04 T02).
+    /// Returns `(item_id, relation_type, raw_tooltip)` for the golden set:
+    /// explicit `amends` edges only. Carries no raw text beyond the catalog's
+    /// own title strings; item ids let the recall report name misses without
+    /// echoing tooltip text.
+    pub fn golden_relation_rows(&self) -> Result<Vec<(i64, String, String)>, CatalogError> {
         let mut stmt = self
             .conn
             .prepare(
-                "SELECT relation_type, raw_tooltip FROM legal_relation_items
-                 WHERE raw_tooltip IS NOT NULL AND length(raw_tooltip) > 0",
+                "SELECT item_id, relation_type, raw_tooltip FROM legal_relation_items
+                 WHERE relation_type = 'amends'
+                   AND normalization_status = 'explicit'
+                   AND raw_tooltip IS NOT NULL AND length(raw_tooltip) > 0",
             )
             .map_err(|err| map_sqlite("prepare", err))?;
         let rows = stmt
             .query_map([], |row| {
-                Ok((row.get::<_, String>(0)?, row.get::<_, String>(1)?))
+                Ok((
+                    row.get::<_, i64>(0)?,
+                    row.get::<_, String>(1)?,
+                    row.get::<_, String>(2)?,
+                ))
             })
             .map_err(|err| map_sqlite("query", err))?;
         rows.collect::<Result<Vec<_>, _>>()
@@ -69,7 +77,9 @@ impl SqliteCatalog {
     }
 
     /// Negative titles for precision measurement: normative documents whose
-    /// titles are not amending acts. Bounded by `limit`.
+    /// titles are not amending acts. Bounded by `limit`. Excludes both the
+    /// plural (`внесении изменений`) and singular (`внесении изменения`)
+    /// amending phrasings so the negative sample is honest.
     pub fn non_amending_titles(&self, limit: u32) -> Result<Vec<String>, CatalogError> {
         let mut stmt = self
             .conn
@@ -77,7 +87,9 @@ impl SqliteCatalog {
                 "SELECT title FROM documents
                  WHERE kind = 'normative' AND title IS NOT NULL
                    AND title NOT LIKE '%внесении изменений%'
+                   AND title NOT LIKE '%внесении изменения%'
                    AND title NOT LIKE '%внести изменения%'
+                   AND title NOT LIKE '%внести изменение%'
                  ORDER BY source_id LIMIT ?1",
             )
             .map_err(|err| map_sqlite("prepare", err))?;

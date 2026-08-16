@@ -1,14 +1,24 @@
 //! Classifier recall/precision on the real catalog golden set (M169 S04 T02).
 //!
-//! Positives: 120 `legal_relation_items` rows with relation_type=amends,
-//! normalization_status=explicit; the classifier sees the C1 tooltip as
-//! link context. Negatives: normative titles that are not amending acts.
+//! Golden set: 120 explicit `amends` rows of `legal_relation_items` (121 rows
+//! total in the 2026-08-14 export; the extra row is `affects_legal_state`
+//! / review and is not part of the amends golden set). The classifier sees
+//! the C1 tooltip (`raw_tooltip`) as link context.
 //!
-//! Skip-capable without CONSULTANT_EXPORT_DIR. Metrics print as counts and
-//! ratios only; no raw legal text beyond catalog title lexemes is persisted.
+//! Both engines are measured:
+//! - single-signal rules (`link_classifiers` via `classify_link`)
+//! - multi-signal templates (`classifier_templates` via `classify_link_scored`)
+//!
+//! Baseline floors per the slice plan: P >= 0.8, R >= 0.5. Below that the
+//! test fails honestly with a task to extend templates in kb-ontology.yaml.
+//!
+//! Skip-capable without CONSULTANT_EXPORT_DIR. Metrics print as counts,
+//! ratios and catalog item ids only; raw legal text is never echoed.
 
 use ln_consultant_parser::catalog_sqlite::SqliteCatalog;
-use ln_consultant_parser::classifier::{classify_link, load_classifier_rules};
+use ln_consultant_parser::classifier::{
+    classify_link, classify_link_scored, load_classifier_rules, load_templates,
+};
 use ln_consultant_parser::raw_link::RawLink;
 
 fn catalog_path() -> Option<std::path::PathBuf> {
@@ -28,6 +38,50 @@ fn link(context: &str) -> RawLink {
     }
 }
 
+/// One golden row: (catalog item_id, relation_type, raw_tooltip).
+type GoldenRow = (i64, String, String);
+
+struct Measured {
+    name: String,
+    hits: usize,
+    miss_item_ids: Vec<i64>,
+    false_positives: usize,
+    recall: f64,
+    precision: f64,
+}
+
+fn measure(
+    name: &str,
+    golden: &[GoldenRow],
+    negatives: &[String],
+    is_amends: impl Fn(&str) -> bool,
+) -> Measured {
+    let hits = golden
+        .iter()
+        .filter(|(_, _, tooltip)| is_amends(tooltip))
+        .count();
+    let miss_item_ids: Vec<i64> = golden
+        .iter()
+        .filter(|(_, _, tooltip)| !is_amends(tooltip))
+        .map(|(item_id, _, _)| *item_id)
+        .collect();
+    let false_positives = negatives.iter().filter(|t| is_amends(t)).count();
+    let recall = hits as f64 / golden.len() as f64;
+    let precision = if hits + false_positives == 0 {
+        1.0
+    } else {
+        hits as f64 / (hits + false_positives) as f64
+    };
+    Measured {
+        name: name.to_owned(),
+        hits,
+        miss_item_ids,
+        false_positives,
+        recall,
+        precision,
+    }
+}
+
 #[test]
 fn classifier_recall_on_real_amends_golden_set() {
     let Some(path) = catalog_path() else {
@@ -35,55 +89,68 @@ fn classifier_recall_on_real_amends_golden_set() {
         return;
     };
     let catalog = SqliteCatalog::open_read_only(&path).expect("open catalog read-only");
-    let rules = load_classifier_rules();
-    let rows = catalog.golden_relation_rows().expect("golden rows");
+    let golden = catalog.golden_relation_rows().expect("golden rows");
     assert!(
-        rows.len() >= 120,
-        "expected the 120+ explicit relation rows, got {}",
-        rows.len()
+        golden.len() >= 120,
+        "expected the 120 explicit amends rows, got {}",
+        golden.len()
     );
-
-    let positives: Vec<&(String, String)> =
-        rows.iter().filter(|(kind, _)| kind == "amends").collect();
-    let hits = positives
-        .iter()
-        .filter(|(_, tooltip)| classify_link(&link(tooltip), &rules).kind == "amends")
-        .count();
-    let recall = hits as f64 / positives.len() as f64;
-
+    assert!(
+        golden.iter().all(|(_, kind, _)| kind == "amends"),
+        "golden set must contain amends edges only"
+    );
     let negatives = catalog.non_amending_titles(300).expect("negatives");
-    let false_positives = negatives
-        .iter()
-        .filter(|title| classify_link(&link(title), &rules).kind == "amends")
-        .count();
-    let precision_denom = hits + false_positives;
-    let precision = if precision_denom == 0 {
-        1.0
-    } else {
-        hits as f64 / precision_denom as f64
-    };
 
-    eprintln!(
-        "golden classifier P/R: positives={} hits={} recall={:.3}; negatives={} fp={} precision={:.3}",
-        positives.len(),
-        hits,
-        recall,
-        negatives.len(),
-        false_positives,
-        precision
+    let rules = load_classifier_rules();
+    let templates = load_templates();
+    assert!(!rules.is_empty(), "link_classifiers must not be empty");
+    assert!(
+        !templates.is_empty(),
+        "classifier_templates must not be empty"
     );
 
-    // Baseline floors (measured 2026-08-15): recall floor keeps every
-    // explicit amends tooltip classifiable; precision floor guards against
-    // 'в ред.'-style consolidated-edition tooltips flooding amends.
-    assert!(
-        recall >= 0.8,
-        "recall {recall:.3} below 0.8 baseline (hits {hits}/{})",
-        positives.len()
-    );
-    assert!(
-        precision >= 0.7,
-        "precision {precision:.3} below 0.7 baseline (fp {false_positives}/{})",
-        negatives.len()
-    );
+    let rules_m = measure("rules", &golden, &negatives, |ctx| {
+        classify_link(&link(ctx), &rules).kind == "amends"
+    });
+    let templates_m = measure("templates", &golden, &negatives, |ctx| {
+        classify_link_scored(&link(ctx), &templates).kind == "amends"
+    });
+
+    for m in [&rules_m, &templates_m] {
+        eprintln!(
+            "[{}] positives={} hits={} recall={:.3}; negatives={} fp={} precision={:.3}",
+            m.name,
+            golden.len(),
+            m.hits,
+            m.recall,
+            negatives.len(),
+            m.false_positives,
+            m.precision
+        );
+        eprintln!(
+            "[{}] miss_item_ids={:?} (counts and catalog ids only, no raw text)",
+            m.name, m.miss_item_ids
+        );
+    }
+    // Baseline floors (slice plan): P >= 0.8, R >= 0.5. Honest FAIL below
+    // with a task to extend classifier_templates / link_classifiers.
+    for m in [&rules_m, &templates_m] {
+        assert!(
+            m.recall >= 0.5,
+            "[{}] recall {:.3} < 0.5 (hits {}/{}) — extend templates, misses item_ids {:?}",
+            m.name,
+            m.recall,
+            m.hits,
+            golden.len(),
+            m.miss_item_ids
+        );
+        assert!(
+            m.precision >= 0.8,
+            "[{}] precision {:.3} < 0.8 (fp {}/{}) — extend templates, tighten amends needles",
+            m.name,
+            m.precision,
+            m.false_positives,
+            negatives.len()
+        );
+    }
 }
