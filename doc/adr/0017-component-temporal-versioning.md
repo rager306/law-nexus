@@ -239,6 +239,29 @@ as canon (§1c above). On 402-ФЗ, `assemble_membership_ast` gives 4 roots /
 LV (Language Version) is not needed for monolingual Russian Federation.
 Defer until ЕАЭС/СНГ multilingual support is explicitly required.
 
+## Real-Corpus Text CTV Evidence (2026-08-15, M170-2gh5r6)
+
+`resolve_ctv` now carries real article text, not marker titles:
+
+- `collect_article_texts` (ln-decode) accumulates the statya marker line,
+  direct prose and nested chast/punkt/podpunkt lines up to the next
+  statya/glava boundary; ProviderComment never contributes.
+- `build_text_log_from_articles` (ln-kb-ontology) mints TextVersionEvents
+  from plain tuples — no ln-decode dependency, empty body falls back to
+  the title.
+- Measured on the real corpus: edition-0118 — 86/94 articles carry full
+  text, `resolve_ctv(cc:44-fz:statya-1)` returns 6231 chars of real text,
+  85 bound statya resolve (residual: no-prose articles plus one same-day
+  duplicate-number Conflict — honest count).
+- Text facet between editions: 0001→0002 (rev 2013-07-02) is structurally
+  empty at marker level yet `changed_article_texts` drafts 3 text-facet
+  events; `resolve_ctv` on the merged two-day timeline returns different
+  real texts at the two days with no future leakage at the seed day.
+  The CLI `replay` command reports `text: {facet_drafts: N}`.
+
+Bounded: extraction/resolution mechanics on one export layout; not legal
+correctness, not corpus coverage, not an Applicable claim.
+
 ## Non-claims
 
 - `HierarchyMarker` / `map_hierarchy_marker` is a **fail-closed candidate lift**:

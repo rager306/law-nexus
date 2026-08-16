@@ -1407,6 +1407,66 @@ pub struct AmendmentEventDraft {
 ///
 /// Added markers draft `Attach`, removed markers draft `Detach`. Empty
 /// provenance is rejected; unknown provenance invents nothing.
+/// Text-facet replay bridge (M170 S02 T02): compare full article texts of
+/// two editions and draft `facet: "text"` AmendmentEvents for changed,
+/// added, and removed articles.
+///
+/// Bounded: `evidence_class` is always `hypothesized_from_oracle_diff` (we
+/// observe consolidated snapshots, not the amending act). Empty provenance
+/// fails closed. Drafts are NOT log writes.
+pub fn changed_article_texts<'a, 'b, I1, I2>(
+    before: I1,
+    after: I2,
+    provenance: &str,
+) -> Result<Vec<AmendmentEventDraft>, WriteSetError>
+where
+    I1: IntoIterator<Item = (&'a str, &'a str, Option<&'a str>, &'a str)>,
+    I2: IntoIterator<Item = (&'b str, &'b str, Option<&'b str>, &'b str)>,
+{
+    if provenance.is_empty() {
+        return Err(WriteSetError::MissingProvenance);
+    }
+    let before: Vec<(&str, &str, Option<&str>, &str)> = before.into_iter().collect();
+    let after: Vec<(&str, &str, Option<&str>, &str)> = after.into_iter().collect();
+    fn find<'x>(
+        list: &'x [(&'x str, &'x str, Option<&'x str>, &'x str)],
+        number: &str,
+    ) -> Option<&'x (&'x str, &'x str, Option<&'x str>, &'x str)> {
+        list.iter().find(|(_, n, _, _)| *n == number)
+    }
+    let mut drafts = Vec::new();
+    // changed + removed
+    for (level, number, _, text) in &before {
+        let draft_op = match find(&after, number) {
+            Some((_, _, _, new_text)) if new_text == text => continue,
+            Some(_) => AmendmentDraftOp::Attach,
+            None => AmendmentDraftOp::Detach,
+        };
+        drafts.push(AmendmentEventDraft {
+            op: draft_op,
+            level: (*level).to_owned(),
+            number: (*number).to_owned(),
+            facet: "text",
+            evidence_class: "hypothesized_from_oracle_diff",
+            provenance: provenance.to_owned(),
+        });
+    }
+    // added
+    for (level, number, _, _) in &after {
+        if find(&before, number).is_none() {
+            drafts.push(AmendmentEventDraft {
+                op: AmendmentDraftOp::Attach,
+                level: (*level).to_owned(),
+                number: (*number).to_owned(),
+                facet: "text",
+                evidence_class: "hypothesized_from_oracle_diff",
+                provenance: provenance.to_owned(),
+            });
+        }
+    }
+    Ok(drafts)
+}
+
 pub fn drafts_from_marker_diff(
     before: &[HierarchyMarker],
     after: &[HierarchyMarker],

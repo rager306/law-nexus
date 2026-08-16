@@ -399,6 +399,16 @@ fn replay(seed_path: &str, target_path: &str) {
         }
         Ok((markers, block_count))
     };
+    let read_articles = |path: &str| -> Result<Vec<ln_decode::article_body::ArticleText>, String> {
+        let bytes = fs::read(path).map_err(|e| e.to_string())?;
+        let family = FamilyFormat::parse("family:consultant-wordml").map_err(|e| e.to_string())?;
+        let payload = PayloadRef::parse("payload:law-nexus-replay").map_err(|e| e.to_string())?;
+        let request = DecodeRequest::new(payload, family, &bytes);
+        let blocks = ConsultantWordMlBlockDecoder
+            .decode_blocks(&request)
+            .map_err(|e| format!("{:?}: offset={:?}", e.kind(), e.byte_offset()))?;
+        Ok(ln_decode::article_body::collect_article_texts(&blocks))
+    };
     let (seed_markers, seed_blocks) = match read_markers(seed_path) {
         Ok(v) => v,
         Err(e) => {
@@ -427,6 +437,25 @@ fn replay(seed_path: &str, target_path: &str) {
         .iter()
         .filter(|d| d.op == AmendmentDraftOp::Detach)
         .count();
+
+    // Text facet (M170 S02 T03): full article texts compared between editions.
+    let text_draft_count = (|| -> Option<usize> {
+        let seed_articles = read_articles(seed_path).ok()?;
+        let target_articles = read_articles(target_path).ok()?;
+        let text_drafts = ln_kb_ontology::domain::changed_article_texts(
+            seed_articles
+                .iter()
+                .map(|a| ("statya", a.number(), a.title(), a.text() as &str)),
+            target_articles
+                .iter()
+                .map(|a| ("statya", a.number(), a.title(), a.text() as &str)),
+            &target_expr,
+        )
+        .ok()?;
+        eprintln!("text facet: drafts={} (facet=text)", text_drafts.len());
+        Some(text_drafts.len())
+    })()
+    .unwrap_or(0);
 
     // Historical layer: re-bind diff statya locally (fixture decision).
     let mut map = load_hierarchy_map_for_path(seed_path).unwrap_or_else(|_| HierarchyMap::empty());
@@ -570,7 +599,7 @@ fn replay(seed_path: &str, target_path: &str) {
     let target_esc = json_escape(&target_expr);
     let drift_label = if drift < 0 { "unavailable" } else { "ok" };
     println!(
-        "{{\"phase\":\"Replay\",\"status\":\"ok\",\"binary\":\"{BINARY}\",\"runtime\":\"rust\",\"duration_ms\":{},\"seed\":{{\"path\":\"{}\",\"blocks\":{},\"markers\":{},\"expression_id\":\"{seed_esc}\"}},\"target\":{{\"path\":\"{}\",\"blocks\":{},\"markers\":{},\"expression_id\":\"{target_esc}\"}},\"diff\":{{\"added\":{},\"removed\":{}}},\"drafts\":{{\"total\":{},\"attach\":{},\"detach\":{}}},\"applied\":{{\"attach\":{},\"detach\":{}}},\"verify\":{{\"drift\":{},\"missing\":{},\"phantom\":{},\"status\":\"{drift_label}\"}},\"non_claims\":[\"Two editions prove replay mechanics, not corpus history\",\"Drafts are hypothesized_from_oracle_diff, not legislative events\",\"Historical layer rebinding is a fixture decision\"]}}",
+        "{{\"phase\":\"Replay\",\"status\":\"ok\",\"binary\":\"{BINARY}\",\"runtime\":\"rust\",\"duration_ms\":{},\"seed\":{{\"path\":\"{}\",\"blocks\":{},\"markers\":{},\"expression_id\":\"{seed_esc}\"}},\"target\":{{\"path\":\"{}\",\"blocks\":{},\"markers\":{},\"expression_id\":\"{target_esc}\"}},\"diff\":{{\"added\":{},\"removed\":{}}},\"drafts\":{{\"total\":{},\"attach\":{},\"detach\":{}}},\"applied\":{{\"attach\":{},\"detach\":{}}},\"text\":{{\"facet_drafts\":{}}},\"verify\":{{\"drift\":{},\"missing\":{},\"phantom\":{},\"status\":\"{drift_label}\"}},\"non_claims\":[\"Two editions prove replay mechanics, not corpus history\",\"Drafts are hypothesized_from_oracle_diff, not legislative events\",\"Historical layer rebinding is a fixture decision\"]}}",
         start.elapsed().as_millis(),
         json_escape(seed_path),
         seed_blocks,
@@ -585,6 +614,7 @@ fn replay(seed_path: &str, target_path: &str) {
         detach,
         committed_attach,
         committed_detach,
+        text_draft_count,
         drift,
         missing,
         phantom,

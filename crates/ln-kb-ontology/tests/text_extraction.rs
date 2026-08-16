@@ -187,3 +187,77 @@ fn unbound_article_mints_nothing() {
         CtvResolution::Unknown
     ));
 }
+
+// ─── M170 S02 T02: text-facet AmendmentEventDraft bridge ────────────────────
+
+use ln_kb_ontology::domain::{changed_article_texts, AmendmentDraftOp};
+
+#[test]
+fn changed_text_becomes_text_facet_draft() {
+    let before = [(
+        "statya",
+        "3",
+        Some("Законодательство о контрактной системе"),
+        "Старый текст статьи.",
+    )];
+    let after = [(
+        "statya",
+        "3",
+        Some("Законодательство о контрактной системе"),
+        "Новый текст статьи после правки.",
+    )];
+    let drafts = changed_article_texts(
+        before.into_iter().map(|(a, b, c, d)| (a, b, c, d as &str)),
+        after.into_iter().map(|(a, b, c, d)| (a, b, c, d as &str)),
+        "expr:ru:federal:zakon:2013-04-05:44-fz:2013-07-02",
+    )
+    .expect("drafts");
+    assert_eq!(drafts.len(), 1);
+    assert_eq!(drafts[0].op, AmendmentDraftOp::Attach);
+    assert_eq!(drafts[0].facet, "text");
+    assert_eq!(drafts[0].level, "statya");
+    assert_eq!(drafts[0].number, "3");
+    assert_eq!(drafts[0].evidence_class, "hypothesized_from_oracle_diff");
+    assert!(drafts[0].provenance.contains("2013-07-02"));
+}
+
+#[test]
+fn unchanged_text_yields_no_draft() {
+    let same = [("statya", "1", Some("Сфера"), "Одинаковый текст.")];
+    let drafts = changed_article_texts(
+        same.into_iter().map(|(a, b, c, d)| (a, b, c, d as &str)),
+        same.into_iter().map(|(a, b, c, d)| (a, b, c, d as &str)),
+        "expr:test:1",
+    )
+    .expect("drafts");
+    assert!(drafts.is_empty());
+}
+
+#[test]
+fn empty_provenance_fails_closed_text_facet() {
+    let before = [("statya", "1", None, "текст")];
+    let after = [("statya", "1", None, "другой текст")];
+    let err = changed_article_texts(
+        before.into_iter().map(|(a, b, c, d)| (a, b, c, d as &str)),
+        after.into_iter().map(|(a, b, c, d)| (a, b, c, d as &str)),
+        "",
+    )
+    .expect_err("empty provenance");
+    assert!(err.to_string().contains("provenance"));
+}
+
+#[test]
+fn added_and_removed_articles_reported_as_text_drafts() {
+    let before = [("statya", "2", Some("t"), "текст два")];
+    let after = [("statya", "5", Some("t"), "новая статья")];
+    let drafts = changed_article_texts(
+        before.into_iter().map(|(a, b, c, d)| (a, b, c, d as &str)),
+        after.into_iter().map(|(a, b, c, d)| (a, b, c, d as &str)),
+        "expr:test:1",
+    )
+    .expect("drafts");
+    // removed statya-2 and added statya-5 are structural news surfaced here
+    // as text-facet drafts too (facet=text covers presence+wording changes
+    // of the same level in this bounded bridge)
+    assert_eq!(drafts.len(), 2);
+}

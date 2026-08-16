@@ -12,6 +12,12 @@
 - `build_text_log_from_articles` (ln-kb-ontology): TextVersionLog from
   (level, number, title, body) tuples — ontology consumes plain data, no
   ln-decode dependency; empty body falls back to the title.
+- Text facet between editions (M170 S02): `changed_article_texts` drafts
+  `facet: "text"` AmendmentEvents for changed/added/removed articles
+  (fail-closed provenance); real corpus 0001→0002: structurally empty diff
+  yet 3 text-facet drafts, `resolve_ctv` differs across days with no future
+  leakage; CLI `replay` gains `text: {facet_drafts}`; ADR-0017 gains a
+  Real-Corpus Text CTV Evidence section; KBO-R061.
 - Real-corpus text CTV (`real_44fz_statya_1_resolves_to_full_article_text`):
   edition-0118 — 86/94 articles carry full text; statya-1 resolves to 6231
   chars of real article text; 85 bound statya resolve (residual: no-prose
