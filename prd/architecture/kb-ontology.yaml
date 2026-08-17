@@ -327,6 +327,61 @@ vocabulary:
     - {name: implements_order, kind: implements, confidence: "0.5", match: any, needles: "в порядке|установленном|во исполнение"}
     - {name: specifies_list, kind: specifies, confidence: "0.4", match: any, needles: "перечень|требования|классификаци"}
 
+# Document structural profiles: system_observation heuristics (ADR-0020).
+# Not legal classification, not an AST. Roles are a closed vocabulary;
+# ladder tokens must resolve inside the decode-token catalog.
+document_groups:
+  non_claims:
+    - "document group binding is a system_observation heuristic, not legal classification"
+    - "court practice (court_practice) is text-only: practice text is not an AST (ADR-0020)"
+  structural_roles:
+    - container
+    - unit
+    - subunit
+    - subunit-text
+    - text-only
+  structural_only_tokens:
+    - primechanie
+    - prilozhenie
+  groups:
+    - id: federal_law@v1
+      granularity: statya
+      text_boundary: [unit, container]
+      ladder:
+        - {token: razdel, role: container}
+        - {token: glava, role: container}
+        - {token: paragraph, role: container}
+        - {token: statya, role: unit}
+        - {token: chast, role: subunit, suffix: ".", number_style: digit, compound: true}
+        - {token: punkt, role: subunit, recursive: true, max_depth: 2, suffix: ")", number_style: digit, compound: true}
+        - {token: podpunkt, role: subunit, suffix: ")", number_style: letter_cyrillic, compound: false}
+    - id: code
+      granularity: statya
+      text_boundary: [unit, container]
+      max_depth: 2
+      ladder:
+        - {token: razdel, role: container}
+        - {token: glava, role: container}
+        - {token: statya, role: unit}
+    - id: government_resolution
+      granularity: punkt
+      text_boundary: [unit, container]
+      ladder:
+        - {token: punkt, role: unit, recursive: true, max_depth: 3, suffix: ".", number_style: digit}
+        - {token: podpunkt, role: subunit, suffix: ")", number_style: letter_cyrillic}
+        - {token: prilozhenie, role: container}
+    - id: departmental_order
+      granularity: punkt
+      text_boundary: [unit, container]
+      ladder:
+        - {token: punkt, role: unit, recursive: true, max_depth: 4, suffix: ")", number_style: digit}
+        - {token: podpunkt, role: subunit, suffix: ")", number_style: letter_cyrillic}
+        - {token: primechanie, role: subunit-text}
+        - {token: prilozhenie, role: container}
+    - id: court_practice
+      text_only: true
+      ladder: []
+
 # Separate from fsm (readiness). Governor compares contract.fsm_state to
 # fsm.current only. Do not move readiness current for design inventory.
 assembly_fsm:

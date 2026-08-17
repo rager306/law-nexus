@@ -38,6 +38,42 @@ pub struct CorpusRoleSignal {
     pub rank: u32,
 }
 
+/// One ladder entry of a document structural profile: token + role + style.
+/// The token is a hierarchy marker name (decode token or structural-only
+/// pseudo-token); the role comes from the closed `structural_roles` set.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct LadderEntry {
+    pub token: String,
+    pub role: String,
+    pub recursive: bool,
+    pub max_depth: Option<u32>,
+    pub compound: Option<bool>,
+    pub suffix: Option<String>,
+    pub number_style: Option<String>,
+}
+
+/// A document structural profile from `document_groups` (system_observation
+/// heuristic, never legal classification; practice is not an AST, ADR-0020).
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct DocumentGroup {
+    pub id: String,
+    pub granularity: Option<String>,
+    pub text_boundary: Vec<String>,
+    pub max_depth: Option<u32>,
+    pub text_only: bool,
+    pub ladder: Vec<LadderEntry>,
+}
+
+/// Parsed `document_groups:` section: closed role vocabulary, structural-only
+/// tokens, non-claims, and the groups themselves.
+#[derive(Debug, Clone, PartialEq, Eq, Default)]
+pub struct DocumentGroupsSection {
+    pub structural_roles: Vec<String>,
+    pub structural_only_tokens: Vec<String>,
+    pub non_claims: Vec<String>,
+    pub groups: Vec<DocumentGroup>,
+}
+
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct OntologyCatalog {
     pub schema_version: String,
@@ -57,6 +93,10 @@ pub struct OntologyCatalog {
     pub corpus_roles: Vec<String>,
     pub corpus_role_signals: Vec<CorpusRoleSignal>,
     pub cross_act_edge_kinds: Vec<String>,
+    pub structural_roles: Vec<String>,
+    pub structural_only_tokens: Vec<String>,
+    pub document_group_non_claims: Vec<String>,
+    pub document_groups: Vec<DocumentGroup>,
 }
 
 impl OntologyCatalog {
@@ -121,6 +161,8 @@ impl OntologyCatalog {
                 });
             }
         }
+        let document_groups_section = parse_document_groups(text)?;
+        validate_document_groups(&document_groups_section, &decode_level_aliases)?;
         Ok(Self {
             schema_version,
             current_state,
@@ -139,6 +181,10 @@ impl OntologyCatalog {
             corpus_roles,
             corpus_role_signals,
             cross_act_edge_kinds,
+            structural_roles: document_groups_section.structural_roles,
+            structural_only_tokens: document_groups_section.structural_only_tokens,
+            document_group_non_claims: document_groups_section.non_claims,
+            document_groups: document_groups_section.groups,
         })
     }
 
@@ -211,6 +257,16 @@ impl OntologyCatalog {
                     None
                 }
             })
+    }
+
+    /// Look up a document structural profile by id.
+    pub fn document_group(&self, id: &str) -> Option<&DocumentGroup> {
+        self.document_groups.iter().find(|group| group.id == id)
+    }
+
+    /// True when `role` is a declared structural role (closed vocabulary).
+    pub fn is_structural_role(&self, role: &str) -> bool {
+        self.structural_roles.iter().any(|item| item == role)
     }
 }
 
@@ -531,6 +587,356 @@ fn parse_corpus_role_signals(text: &str) -> Result<Vec<CorpusRoleSignal>, Catalo
         });
     }
     Ok(signals)
+}
+
+// ─── document_groups parsing and validation ─────────────────────────────────
+
+/// Lines of a top-level mapping section starting at `heading`, with original
+/// indentation, until the next line at or above the heading indent.
+fn section_lines<'a>(text: &'a str, heading: &str) -> Option<Vec<(&'a str, usize)>> {
+    let mut found = false;
+    let mut heading_indent = 0usize;
+    let mut out = Vec::new();
+    for raw in text.lines() {
+        let trimmed = strip_comment(raw);
+        if trimmed.trim().is_empty() {
+            continue;
+        }
+        let indent = raw.len() - raw.trim_start().len();
+        if !found {
+            if trimmed.trim() == heading {
+                found = true;
+                heading_indent = indent;
+            }
+            continue;
+        }
+        if indent <= heading_indent {
+            break;
+        }
+        out.push((raw, indent));
+    }
+    found.then_some(out)
+}
+
+/// Collect `- item` lines under a sub-heading (lines deeper than
+/// `heading_indent`); returns items and the index after the list.
+fn dash_list(lines: &[(&str, usize)], start: usize, heading_indent: usize) -> (Vec<String>, usize) {
+    let mut items = Vec::new();
+    let mut index = start;
+    while index < lines.len() {
+        let (raw, indent) = lines[index];
+        if indent <= heading_indent {
+            break;
+        }
+        let trimmed = raw.trim();
+        if let Some(item) = trimmed.strip_prefix("- ") {
+            items.push(item.trim().trim_matches('"').trim().to_owned());
+        }
+        index += 1;
+    }
+    (items, index)
+}
+
+/// Parse the top-level `document_groups:` section; absent section yields
+/// empty defaults so legacy catalogs keep loading.
+fn parse_document_groups(text: &str) -> Result<DocumentGroupsSection, CatalogError> {
+    let Some(lines) = section_lines(text, "document_groups:") else {
+        return Ok(DocumentGroupsSection::default());
+    };
+    let mut section = DocumentGroupsSection::default();
+    let mut index = 0usize;
+    while index < lines.len() {
+        let (raw, indent) = lines[index];
+        let trimmed = raw.trim();
+        match trimmed {
+            "structural_roles:" => {
+                let (items, next) = dash_list(&lines, index + 1, indent);
+                section.structural_roles = items;
+                index = next;
+            }
+            "structural_only_tokens:" => {
+                let (items, next) = dash_list(&lines, index + 1, indent);
+                section.structural_only_tokens = items;
+                index = next;
+            }
+            "non_claims:" => {
+                let (items, next) = dash_list(&lines, index + 1, indent);
+                section.non_claims = items;
+                index = next;
+            }
+            "groups:" => {
+                let (groups, next) = parse_groups(&lines, index + 1, indent)?;
+                section.groups = groups;
+                index = next;
+            }
+            _ => index += 1,
+        }
+    }
+    Ok(section)
+}
+
+/// Parse the `groups:` list: each block starts with `- id:` at the same
+/// indent and extends to the next `- id:` or the list end.
+fn parse_groups(
+    lines: &[(&str, usize)],
+    start: usize,
+    heading_indent: usize,
+) -> Result<(Vec<DocumentGroup>, usize), CatalogError> {
+    let mut groups = Vec::new();
+    let mut index = start;
+    while index < lines.len() {
+        let (raw, indent) = lines[index];
+        if indent <= heading_indent {
+            break;
+        }
+        if !raw.trim().starts_with("- id:") {
+            index += 1;
+            continue;
+        }
+        let mut block: Vec<(&str, usize)> = Vec::new();
+        block.push((raw, indent));
+        let mut next = index + 1;
+        while next < lines.len() {
+            let (next_raw, next_indent) = lines[next];
+            if next_indent <= heading_indent {
+                break;
+            }
+            if next_indent == indent && next_raw.trim().starts_with("- id:") {
+                break;
+            }
+            block.push((next_raw, next_indent));
+            next += 1;
+        }
+        groups.push(parse_group_block(&block)?);
+        index = next;
+    }
+    Ok((groups, index))
+}
+
+/// Parse one `- id:` block: scalar fields plus the optional `ladder:` list.
+fn parse_group_block(block: &[(&str, usize)]) -> Result<DocumentGroup, CatalogError> {
+    let mut id: Option<String> = None;
+    let mut granularity: Option<String> = None;
+    let mut text_boundary: Vec<String> = Vec::new();
+    let mut max_depth: Option<u32> = None;
+    let mut text_only = false;
+    let mut ladder: Vec<LadderEntry> = Vec::new();
+    let mut in_ladder = false;
+    let mut ladder_indent = 0usize;
+    for (raw, indent) in block {
+        let trimmed = raw.trim();
+        if in_ladder {
+            if *indent <= ladder_indent {
+                in_ladder = false;
+            } else if let Some(flow) = trimmed.strip_prefix("- ") {
+                ladder.push(parse_ladder_entry(flow)?);
+                continue;
+            } else {
+                continue;
+            }
+        }
+        if let Some(rest) = trimmed.strip_prefix("- id:") {
+            id = Some(rest.trim().to_owned());
+            continue;
+        }
+        if let Some(rest) = trimmed.strip_prefix("granularity:") {
+            granularity = Some(rest.trim().to_owned());
+            continue;
+        }
+        if let Some(rest) = trimmed.strip_prefix("text_boundary:") {
+            text_boundary = parse_inline_list(rest)?;
+            continue;
+        }
+        if let Some(rest) = trimmed.strip_prefix("max_depth:") {
+            max_depth = Some(rest.trim().parse::<u32>().map_err(|_| CatalogError {
+                reason: "document group max_depth is not an integer",
+            })?);
+            continue;
+        }
+        if let Some(rest) = trimmed.strip_prefix("text_only:") {
+            text_only = rest.trim() == "true";
+            continue;
+        }
+        if let Some(rest) = trimmed.strip_prefix("ladder:") {
+            let rest = rest.trim();
+            if rest.is_empty() {
+                in_ladder = true;
+                ladder_indent = *indent;
+            } else {
+                let items = parse_inline_list(rest)?;
+                if !items.is_empty() {
+                    return Err(CatalogError {
+                        reason: "inline ladder list must be empty",
+                    });
+                }
+                ladder = Vec::new();
+            }
+            continue;
+        }
+    }
+    let id = id.ok_or(CatalogError {
+        reason: "document group missing id",
+    })?;
+    Ok(DocumentGroup {
+        id,
+        granularity,
+        text_boundary,
+        max_depth,
+        text_only,
+        ladder,
+    })
+}
+
+/// Parse one flow-style ladder entry: `{token: X, role: Y, ...}`.
+fn parse_ladder_entry(flow: &str) -> Result<LadderEntry, CatalogError> {
+    let token = flow_field(flow, "token").ok_or(CatalogError {
+        reason: "ladder entry missing token",
+    })?;
+    let role = flow_field(flow, "role").ok_or(CatalogError {
+        reason: "ladder entry missing role",
+    })?;
+    let recursive = flow.contains("recursive: true");
+    let max_depth = match flow_field(flow, "max_depth") {
+        Some(value) => Some(value.parse::<u32>().map_err(|_| CatalogError {
+            reason: "ladder entry max_depth is not an integer",
+        })?),
+        None => None,
+    };
+    let compound = flow_field(flow, "compound").map(|value| value == "true");
+    let suffix = flow_field(flow, "suffix");
+    let number_style = flow_field(flow, "number_style");
+    Ok(LadderEntry {
+        token,
+        role,
+        recursive,
+        max_depth,
+        compound,
+        suffix,
+        number_style,
+    })
+}
+
+/// Parse an inline YAML list `[a, b, c]` into items.
+fn parse_inline_list(raw: &str) -> Result<Vec<String>, CatalogError> {
+    let body = raw
+        .trim()
+        .strip_prefix('[')
+        .and_then(|value| value.strip_suffix(']'))
+        .ok_or(CatalogError {
+            reason: "inline list expected",
+        })?;
+    let mut items = Vec::new();
+    for part in body.split(',') {
+        let item = part.trim();
+        if !item.is_empty() {
+            items.push(item.to_owned());
+        }
+    }
+    Ok(items)
+}
+
+/// Fail-closed validation of the parsed `document_groups:` section.
+///
+/// - ladder roles must come from the closed `structural_roles` vocabulary;
+/// - ladder tokens must be decode tokens (`decode_level_aliases` keys,
+///   case-insensitive) or declared structural-only tokens;
+/// - granularity must be a decode token; `text_boundary` items must be roles;
+/// - recursive entries require `max_depth`; suffixes and number styles are
+///   bounded; group ids are unique.
+fn validate_document_groups(
+    section: &DocumentGroupsSection,
+    decode_level_aliases: &[(String, String)],
+) -> Result<(), CatalogError> {
+    let decode_tokens: Vec<&str> = decode_level_aliases
+        .iter()
+        .map(|(key, _)| key.as_str())
+        .collect();
+    if !section.groups.is_empty() && section.structural_roles.is_empty() {
+        return Err(CatalogError {
+            reason: "document_groups requires structural_roles",
+        });
+    }
+    let mut seen_ids: Vec<&str> = Vec::new();
+    for group in &section.groups {
+        if group.id.is_empty() {
+            return Err(CatalogError {
+                reason: "document group id is empty",
+            });
+        }
+        if seen_ids.contains(&group.id.as_str()) {
+            return Err(CatalogError {
+                reason: "duplicate document group id",
+            });
+        }
+        seen_ids.push(&group.id);
+        for entry in &group.ladder {
+            if !section
+                .structural_roles
+                .iter()
+                .any(|role| role == &entry.role)
+            {
+                return Err(CatalogError {
+                    reason: "ladder entry names an unknown structural role",
+                });
+            }
+            let token_known = section
+                .structural_only_tokens
+                .iter()
+                .any(|token| token == &entry.token)
+                || decode_tokens
+                    .iter()
+                    .any(|token| token.eq_ignore_ascii_case(&entry.token));
+            if !token_known {
+                return Err(CatalogError {
+                    reason: "ladder token is outside the decode-token catalog",
+                });
+            }
+            if entry.recursive && entry.max_depth.is_none() {
+                return Err(CatalogError {
+                    reason: "recursive ladder entry requires max_depth",
+                });
+            }
+            if let Some(suffix) = &entry.suffix {
+                if suffix != "." && suffix != ")" {
+                    return Err(CatalogError {
+                        reason: "ladder entry suffix is invalid",
+                    });
+                }
+            }
+            if let Some(style) = &entry.number_style {
+                if !matches!(
+                    style.as_str(),
+                    "digit" | "letter_cyrillic" | "roman_or_digit"
+                ) {
+                    return Err(CatalogError {
+                        reason: "ladder entry number_style is invalid",
+                    });
+                }
+            }
+        }
+        if let Some(granularity) = &group.granularity {
+            let known = decode_tokens
+                .iter()
+                .any(|token| token.eq_ignore_ascii_case(granularity));
+            if !known {
+                return Err(CatalogError {
+                    reason: "document group granularity is not a decode token",
+                });
+            }
+        }
+        for role in &group.text_boundary {
+            if !section
+                .structural_roles
+                .iter()
+                .any(|declared| declared == role)
+            {
+                return Err(CatalogError {
+                    reason: "text_boundary names an unknown structural role",
+                });
+            }
+        }
+    }
+    Ok(())
 }
 
 /// Classify a provider file from path/title needles. Unknown if no signal matches.
