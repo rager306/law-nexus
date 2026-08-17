@@ -427,7 +427,7 @@ fn text_boundary_unknown_role_fails_load() {
 #[test]
 fn duplicate_group_id_fails_load() {
     let yaml = format!(
-        "{ROLES_AND_TOKENS}    - id: dup\n      ladder: []\n    - id: dup\n      ladder: []\n"
+        "{ROLES_AND_TOKENS}    - id: dup\n      ladder:\n        - {{token: statya, role: unit}}\n    - id: dup\n      ladder:\n        - {{token: statya, role: unit}}\n"
     );
     let err = parse_with_document_groups(&yaml).expect_err("duplicate group id must fail closed");
     assert!(err.to_string().contains("duplicate"), "unexpected: {err}");
@@ -451,6 +451,125 @@ fn missing_document_groups_section_is_tolerated() {
     let catalog = OntologyCatalog::parse_yaml(yaml).expect("legacy catalog still loads");
     assert!(catalog.document_groups.is_empty());
     assert!(catalog.structural_roles.is_empty());
+}
+
+// ─── needles (factor A of two-factor detection, T02) ───────────────────────
+
+#[test]
+fn every_document_group_declares_needles_with_valid_fields() {
+    let catalog = catalog();
+    for group in &catalog.document_groups {
+        assert!(
+            !group.needles.is_empty(),
+            "group {} must declare at least one metadata needle",
+            group.id
+        );
+        for needle in &group.needles {
+            assert!(
+                matches!(needle.field.as_str(), "kind" | "type" | "path"),
+                "group {} needle field {} is invalid",
+                group.id,
+                needle.field
+            );
+            assert!(
+                !needle.needle.is_empty(),
+                "group {} has an empty needle",
+                group.id
+            );
+        }
+    }
+}
+
+#[test]
+fn invalid_needle_field_fails_load() {
+    let yaml = format!(
+        "{ROLES_AND_TOKENS}    - id: federal_law@v1\n      needles:\n        - {{field: bogus, needle: x, rank: 10}}\n      ladder:\n        - {{token: statya, role: unit}}\n"
+    );
+    let err = parse_with_document_groups(&yaml).expect_err("invalid needle field must fail closed");
+    assert!(
+        err.to_string().contains("needle field"),
+        "unexpected error: {err}"
+    );
+}
+
+#[test]
+fn structural_group_without_unit_role_fails_load() {
+    let yaml = format!("{ROLES_AND_TOKENS}    - id: broken\n      ladder: []\n");
+    let err = parse_with_document_groups(&yaml)
+        .expect_err("structural group without a unit role must fail closed");
+    assert!(
+        err.to_string().contains("unit role"),
+        "unexpected error: {err}"
+    );
+}
+
+#[test]
+fn classify_document_group_binds_by_ranked_needle() {
+    use ln_kb_ontology::catalog::DocumentGroupOutcome;
+    let catalog = catalog();
+    match catalog.classify_document_group(Some("federalnyi-zakon-44-fz"), None, None) {
+        DocumentGroupOutcome::Bound { group, needle } => {
+            assert_eq!(group, "federal_law@v1");
+            // Lower rank wins: federalnyi-zakon (10) beats law_ (20).
+            assert_eq!(needle, "federalnyi-zakon");
+        }
+        other => panic!("expected Bound, got {other:?}"),
+    }
+    match catalog.classify_document_group(Some("reshenie-fas-2024-123"), None, None) {
+        DocumentGroupOutcome::Bound { group, .. } => assert_eq!(group, "court_practice"),
+        other => panic!("expected Bound court_practice, got {other:?}"),
+    }
+    match catalog.classify_document_group(Some("prikaz-minzdrava-2024"), None, None) {
+        DocumentGroupOutcome::Bound { group, .. } => assert_eq!(group, "departmental_order"),
+        other => panic!("expected Bound departmental_order, got {other:?}"),
+    }
+}
+
+#[test]
+fn classify_document_group_kind_field_binds() {
+    use ln_kb_ontology::catalog::DocumentGroupOutcome;
+    let catalog = catalog();
+    match catalog.classify_document_group(None, Some("law"), None) {
+        DocumentGroupOutcome::Bound { group, .. } => assert_eq!(group, "federal_law@v1"),
+        other => panic!("expected Bound federal_law@v1, got {other:?}"),
+    }
+    match catalog.classify_document_group(None, Some("court"), None) {
+        DocumentGroupOutcome::Bound { group, .. } => assert_eq!(group, "court_practice"),
+        other => panic!("expected Bound court_practice, got {other:?}"),
+    }
+    match catalog.classify_document_group(None, None, Some("order")) {
+        DocumentGroupOutcome::Bound { group, .. } => assert_eq!(group, "departmental_order"),
+        other => panic!("expected Bound departmental_order, got {other:?}"),
+    }
+}
+
+#[test]
+fn classify_document_group_unknown_when_no_needle_matches() {
+    use ln_kb_ontology::catalog::DocumentGroupOutcome;
+    let catalog = catalog();
+    assert_eq!(
+        catalog.classify_document_group(Some("mystery-file.docx"), None, None),
+        DocumentGroupOutcome::Unknown
+    );
+    assert_eq!(
+        catalog.classify_document_group(None, None, None),
+        DocumentGroupOutcome::Unknown
+    );
+}
+
+#[test]
+fn classify_document_group_same_rank_different_groups_is_conflict() {
+    use ln_kb_ontology::catalog::DocumentGroupOutcome;
+    let yaml = format!(
+        "{ROLES_AND_TOKENS}    - id: alpha\n      needles:\n        - {{field: path, needle: shared-doc, rank: 10}}\n      ladder:\n        - {{token: statya, role: unit}}\n    - id: beta\n      needles:\n        - {{field: path, needle: shared-doc, rank: 10}}\n      ladder:\n        - {{token: punkt, role: unit}}\n"
+    );
+    let catalog = parse_with_document_groups(&yaml).expect("fixture loads");
+    match catalog.classify_document_group(Some("shared-doc-1"), None, None) {
+        DocumentGroupOutcome::Conflict { groups } => {
+            assert_eq!(groups, ["alpha", "beta"]);
+        }
+        other => panic!("expected Conflict, got {other:?}"),
+    }
 }
 
 // ─── local YAML decode-section helpers (mirror catalog_coverage.rs) ────────

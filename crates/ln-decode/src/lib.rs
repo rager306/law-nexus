@@ -19,6 +19,7 @@ pub mod ports;
 pub mod prefix_catalog;
 pub mod references;
 pub mod sentence;
+pub mod structural_profile;
 pub mod temporal;
 mod tokenizer;
 pub mod unknown_forms;

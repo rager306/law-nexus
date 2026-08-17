@@ -347,6 +347,11 @@ document_groups:
     - id: federal_law@v1
       granularity: statya
       text_boundary: [unit, container]
+      needles:
+        - {field: path, needle: federalnyi-zakon, rank: 10}
+        - {field: path, needle: law_, rank: 20}
+        - {field: kind, needle: law, rank: 30}
+        - {field: type, needle: federal, rank: 30}
       ladder:
         - {token: razdel, role: container}
         - {token: glava, role: container}
@@ -359,6 +364,9 @@ document_groups:
       granularity: statya
       text_boundary: [unit, container]
       max_depth: 2
+      needles:
+        - {field: path, needle: kodeks, rank: 10}
+        - {field: kind, needle: code, rank: 20}
       ladder:
         - {token: razdel, role: container}
         - {token: glava, role: container}
@@ -366,6 +374,10 @@ document_groups:
     - id: government_resolution
       granularity: punkt
       text_boundary: [unit, container]
+      needles:
+        - {field: path, needle: postanovlenie-pravitelstva, rank: 10}
+        - {field: path, needle: rasporyazhenie-pravitelstva, rank: 10}
+        - {field: kind, needle: resolution, rank: 20}
       ladder:
         - {token: punkt, role: unit, recursive: true, max_depth: 3, suffix: ".", number_style: digit}
         - {token: podpunkt, role: subunit, suffix: ")", number_style: letter_cyrillic}
@@ -373,6 +385,11 @@ document_groups:
     - id: departmental_order
       granularity: punkt
       text_boundary: [unit, container]
+      needles:
+        - {field: path, needle: prikaz-, rank: 10}
+        - {field: path, needle: prikaz, rank: 20}
+        - {field: kind, needle: order, rank: 20}
+        - {field: type, needle: order, rank: 20}
       ladder:
         - {token: punkt, role: unit, recursive: true, max_depth: 4, suffix: ")", number_style: digit}
         - {token: podpunkt, role: subunit, suffix: ")", number_style: letter_cyrillic}
@@ -380,6 +397,15 @@ document_groups:
         - {token: prilozhenie, role: container}
     - id: court_practice
       text_only: true
+      needles:
+        - {field: path, needle: reshenie-fas, rank: 10}
+        - {field: path, needle: opredelenie-, rank: 10}
+        - {field: path, needle: postanovlenie-plenuma, rank: 10}
+        - {field: kind, needle: fas, rank: 20}
+        - {field: kind, needle: court, rank: 20}
+        - {field: kind, needle: decision, rank: 25}
+        - {field: kind, needle: prescription, rank: 25}
+        - {field: kind, needle: determination, rank: 25}
       ladder: []
 
 # Separate from fsm (readiness). Governor compares contract.fsm_state to

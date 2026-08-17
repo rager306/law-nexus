@@ -38,6 +38,16 @@ pub struct CorpusRoleSignal {
     pub rank: u32,
 }
 
+/// One ranked metadata needle of a document group (factor A of detection).
+/// `field` is one of `kind` / `type` / `path`; lower `rank` wins, mirroring
+/// `corpus_role_signals` ranking (same-rank different groups is Conflict).
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct GroupNeedle {
+    pub field: String,
+    pub needle: String,
+    pub rank: u32,
+}
+
 /// One ladder entry of a document structural profile: token + role + style.
 /// The token is a hierarchy marker name (decode token or structural-only
 /// pseudo-token); the role comes from the closed `structural_roles` set.
@@ -61,6 +71,7 @@ pub struct DocumentGroup {
     pub text_boundary: Vec<String>,
     pub max_depth: Option<u32>,
     pub text_only: bool,
+    pub needles: Vec<GroupNeedle>,
     pub ladder: Vec<LadderEntry>,
 }
 
@@ -720,11 +731,24 @@ fn parse_group_block(block: &[(&str, usize)]) -> Result<DocumentGroup, CatalogEr
     let mut text_boundary: Vec<String> = Vec::new();
     let mut max_depth: Option<u32> = None;
     let mut text_only = false;
+    let mut needles: Vec<GroupNeedle> = Vec::new();
     let mut ladder: Vec<LadderEntry> = Vec::new();
+    let mut in_needles = false;
+    let mut needles_indent = 0usize;
     let mut in_ladder = false;
     let mut ladder_indent = 0usize;
     for (raw, indent) in block {
         let trimmed = raw.trim();
+        if in_needles {
+            if *indent <= needles_indent {
+                in_needles = false;
+            } else if let Some(flow) = trimmed.strip_prefix("- ") {
+                needles.push(parse_group_needle(flow)?);
+                continue;
+            } else {
+                continue;
+            }
+        }
         if in_ladder {
             if *indent <= ladder_indent {
                 in_ladder = false;
@@ -757,6 +781,22 @@ fn parse_group_block(block: &[(&str, usize)]) -> Result<DocumentGroup, CatalogEr
             text_only = rest.trim() == "true";
             continue;
         }
+        if let Some(rest) = trimmed.strip_prefix("needles:") {
+            let rest = rest.trim();
+            if rest.is_empty() {
+                in_needles = true;
+                needles_indent = *indent;
+            } else {
+                let items = parse_inline_list(rest)?;
+                if !items.is_empty() {
+                    return Err(CatalogError {
+                        reason: "inline needles list must be empty",
+                    });
+                }
+                needles = Vec::new();
+            }
+            continue;
+        }
         if let Some(rest) = trimmed.strip_prefix("ladder:") {
             let rest = rest.trim();
             if rest.is_empty() {
@@ -783,7 +823,38 @@ fn parse_group_block(block: &[(&str, usize)]) -> Result<DocumentGroup, CatalogEr
         text_boundary,
         max_depth,
         text_only,
+        needles,
         ladder,
+    })
+}
+
+/// Parse one flow-style group needle entry: `{field: X, needle: Y, rank: N}`.
+fn parse_group_needle(flow: &str) -> Result<GroupNeedle, CatalogError> {
+    let field = flow_field(flow, "field").ok_or(CatalogError {
+        reason: "group needle missing field",
+    })?;
+    let needle = flow_field(flow, "needle").ok_or(CatalogError {
+        reason: "group needle missing needle",
+    })?;
+    let rank = match flow_field(flow, "rank") {
+        Some(raw) => raw.parse::<u32>().map_err(|_| CatalogError {
+            reason: "group needle rank is not an integer",
+        })?,
+        None => {
+            return Err(CatalogError {
+                reason: "group needle missing rank",
+            })
+        }
+    };
+    if needle.is_empty() {
+        return Err(CatalogError {
+            reason: "group needle is empty",
+        });
+    }
+    Ok(GroupNeedle {
+        field,
+        needle,
+        rank,
     })
 }
 
@@ -914,6 +985,18 @@ fn validate_document_groups(
                 }
             }
         }
+        for needle in &group.needles {
+            if !matches!(needle.field.as_str(), "kind" | "type" | "path") {
+                return Err(CatalogError {
+                    reason: "group needle field is invalid",
+                });
+            }
+            if needle.needle.is_empty() {
+                return Err(CatalogError {
+                    reason: "group needle is empty",
+                });
+            }
+        }
         if let Some(granularity) = &group.granularity {
             let known = decode_tokens
                 .iter()
@@ -935,8 +1018,88 @@ fn validate_document_groups(
                 });
             }
         }
+        // A structural group must declare a unit role: without one the
+        // two-factor probe (T02) can never confirm structure and the group
+        // would be permanently Unknown — a degenerate catalog entry.
+        let has_unit = group.ladder.iter().any(|entry| entry.role == "unit");
+        if !group.text_only && !has_unit {
+            return Err(CatalogError {
+                reason: "structural group requires a unit role",
+            });
+        }
     }
     Ok(())
+}
+
+/// Ranked group selection from kind/type/path needles (factor A of T02).
+/// Mirrors `classify_corpus_role`: lower rank wins; same-rank different
+/// groups is Conflict. Unknown when no needle matches.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum DocumentGroupOutcome {
+    Bound { group: String, needle: String },
+    Unknown,
+    Conflict { groups: Vec<String> },
+}
+
+impl OntologyCatalog {
+    pub fn classify_document_group(
+        &self,
+        path: Option<&str>,
+        kind: Option<&str>,
+        doc_type: Option<&str>,
+    ) -> DocumentGroupOutcome {
+        let path_lc = path.map(str::to_lowercase);
+        let kind_lc = kind.map(str::to_lowercase);
+        let type_lc = doc_type.map(str::to_lowercase);
+        let mut best_rank: Option<u32> = None;
+        let mut best_groups: Vec<String> = Vec::new();
+        let mut best_needle: Option<String> = None;
+        for group in &self.document_groups {
+            for needle in &group.needles {
+                let haystack = match needle.field.as_str() {
+                    "path" => path_lc.as_deref(),
+                    "kind" => kind_lc.as_deref(),
+                    "type" => type_lc.as_deref(),
+                    _ => None,
+                };
+                let Some(haystack) = haystack else { continue };
+                if !haystack.contains(&needle.needle.to_lowercase()) {
+                    continue;
+                }
+                match best_rank {
+                    None => {
+                        best_rank = Some(needle.rank);
+                        best_groups = vec![group.id.clone()];
+                        best_needle = Some(needle.needle.clone());
+                    }
+                    Some(rank) if needle.rank < rank => {
+                        best_rank = Some(needle.rank);
+                        best_groups = vec![group.id.clone()];
+                        best_needle = Some(needle.needle.clone());
+                    }
+                    Some(rank)
+                        if needle.rank == rank
+                            && !best_groups.iter().any(|item| item == &group.id) =>
+                    {
+                        best_groups.push(group.id.clone());
+                    }
+                    _ => {}
+                }
+            }
+        }
+        match best_groups.as_slice() {
+            [] => DocumentGroupOutcome::Unknown,
+            [group] => DocumentGroupOutcome::Bound {
+                group: group.clone(),
+                needle: best_needle.unwrap_or_default(),
+            },
+            _ => {
+                let mut groups = best_groups.clone();
+                groups.sort();
+                DocumentGroupOutcome::Conflict { groups }
+            }
+        }
+    }
 }
 
 /// Classify a provider file from path/title needles. Unknown if no signal matches.
