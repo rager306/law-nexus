@@ -11,7 +11,9 @@ use ln_decode::{
     domain::{DecodeRequest, FamilyFormat, PayloadRef},
     ports::BlockDecoderPort,
 };
-use ln_kb_ontology::domain::{build_text_log_from_articles, resolve_ctv, CtvResolution};
+use ln_kb_ontology::domain::{
+    build_text_log_from_articles, changed_article_texts, resolve_ctv, CtvResolution,
+};
 use ln_kb_ontology::registry::{
     load_edition_day_for_path, load_expression_id_for_path, load_hierarchy_map_for_path,
 };
@@ -144,6 +146,39 @@ fn text_changed_between_editions_resolves_differently() {
     assert!(target_day > seed_day);
     let seed_prov = load_expression_id_for_path(&seed_str).expect("seed expression");
     let target_prov = load_expression_id_for_path(&target_str).expect("target expression");
+
+    // Text-facet lock (M170 S02 T01): the same pair must draft exactly 3
+    // text-facet events via changed_article_texts — observed on 7a3592f,
+    // now asserted so the measurement cannot drift back into prose.
+    // Drafts are observations, never membership writes (KBO-R061).
+    let drafts = changed_article_texts(
+        seed_articles
+            .iter()
+            .map(|a| ("statya", a.number(), a.title(), a.text())),
+        target_articles
+            .iter()
+            .map(|a| ("statya", a.number(), a.title(), a.text())),
+        &target_prov,
+    )
+    .expect("changed_article_texts must succeed on 0001->0002");
+    eprintln!(
+        "text facet drafts 0001->0002: {} (facet=text)",
+        drafts.len()
+    );
+    assert_eq!(
+        drafts.len(),
+        3,
+        "0001->0002 must draft exactly 3 text-facet events, got {}",
+        drafts.len()
+    );
+    for d in &drafts {
+        assert_eq!(d.facet, "text", "draft {d:?} must be text-facet");
+        assert_eq!(d.evidence_class, "hypothesized_from_oracle_diff");
+        assert_eq!(
+            d.provenance, target_prov,
+            "provenance must be the target Expression ID"
+        );
+    }
 
     let seed_log = build_text_log_from_articles(
         &map,
