@@ -14,10 +14,12 @@ related: [ADR-0009, ADR-0010, ADR-0016, ADR-0018, ADR-0023]
 ## Status
 
 **Accepted [proposed]** — component-level temporal versioning model designed.
-Not implemented. Moves to `[bounded]` when a fail-closed event-sourced CTV
-resolver ships in Rust with TDD (Unknown/Conflict/MissingAnchor outcomes
-proven); to `[validated]` only when provenance closes across the representative
-corpus.
+The text-canon path is implemented as a `[bounded]` real-corpus prototype (M170
+S01/S02: `collect_article_texts`, `build_text_log_from_articles`, `resolve_ctv`),
+but the full event-sourced CTV resolver is not. Moves to `[bounded]` when a
+fail-closed event-sourced CTV resolver ships in Rust with TDD (Unknown/Conflict/
+MissingAnchor outcomes proven); to `[validated]` only when provenance closes
+across the representative corpus.
 
 ## Context
 
@@ -66,7 +68,7 @@ collapse into a `NormativeBlob` store type.
 |-------|-----------|------------|-----|
 | Structural membership | attach/detach | `StructuralAst` / `fold_membership_at` | text, force |
 | Expression presence | include/exclude | `fold_expression_presence` | inheritance across Expressions |
-| Text CTV | text-change micro-events | `resolve_CTV(cc, t)` | **not shipped**; still design |
+| Text CTV | text-change micro-events | `resolve_CTV(cc, t)` | **shipped** (bounded: real-corpus `resolve_ctv`, M170 S01) |
 
 Industrial ops (`renumber`/`move`/`split`/`merge`) feed the membership log.
 Force is ADR-0018 overlay, never a tree field.
@@ -80,7 +82,7 @@ them into one field:
 
 - `structural` — attach/detach, include/exclude;
 - `industrial` — renumber / move / split / merge;
-- `text` — CTV wording (still design-only);
+- `text` — CTV wording (bounded: text-facet drafts via `changed_article_texts`, KBO-R061);
 - `force` — NormativeEffect, never inferred from TextChange.
 
 Evidence class is mandatory: `legislative` (from an amending act) >
@@ -206,8 +208,11 @@ point-in-time text reconstruction. law-nexus has the **event-sourced spine**
 ships a **bounded prototype** `resolve_ctv` (KBO-R046): `TextVersionLog` +
 `TextVersionEvent` + `resolve_ctv(log, cc, day)` returning `Resolved { text }`,
 `Unknown`, or `Conflict`. 6 TDD tests green. Text is a runtime value, not
-persisted legal text. Full integration (extracting text from real XML, wiring
-into CLI) remains future work.
+persisted legal text. Full integration shipped in M170 S01: `collect_article_texts`
+(ln-decode) extracts article bodies from real XML, the CLI `inspect`/`replay`
+wire `build_text_log_from_articles`, and `resolve_ctv` returns the real article
+body on the corpus (see Real-Corpus Evidence below). Bounded: one export layout;
+not legal correctness, not corpus coverage, not an Applicable claim.
 
 ### R5-03: `edition_ast_at(t)` unifies the three L2 canons
 
@@ -215,8 +220,10 @@ The three canons (§1a: membership / presence / text) each have a separate
 fold. `edition_ast_at(t)` should combine them:
 `CompositionAst(t) = fold(membership ≤ t)`;
 `EditionAst(t) = filter(CompositionAst, fold_presence ≤ t)`;
-`TextAst(t) = resolve_CTV(cc, t)` [not shipped]. This function closes the
-S_fold exit criterion (currently partial — membership fold only).
+`TextAst(t) = resolve_CTV(cc, t)` [shipped as bounded `resolve_ctv`, M170 S01;
+full `edition_ast_at(t)` unifier still open]. This function closes the S_fold
+exit criterion (still partial: membership and presence folds landed, text canon
+bounded via `resolve_ctv`).
 
 ### R5-05: macro/micro event P9 consists of
 
@@ -243,9 +250,11 @@ Defer until ЕАЭС/СНГ multilingual support is explicitly required.
 
 `resolve_ctv` now carries real article text, not marker titles:
 
-- `collect_article_texts` (ln-decode) accumulates the statya marker line,
-  direct prose and nested chast/punkt/podpunkt lines up to the next
-  statya/glava boundary; ProviderComment never contributes.
+- `collect_article_texts` (ln-decode) stores the statya marker title
+  separately — the marker line never enters `ArticleText::text`; accumulation
+  starts after the marker and stops at the next Statya|Glava|Razdel|Paragraph(§)
+  boundary; nested chast/punkt/podpunkt lines belong to the owning article;
+  ProviderComment never contributes.
 - `build_text_log_from_articles` (ln-kb-ontology) mints TextVersionEvents
   from plain tuples — no ln-decode dependency, empty body falls back to
   the title.
