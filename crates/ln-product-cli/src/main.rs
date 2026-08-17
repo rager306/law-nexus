@@ -19,10 +19,10 @@ use ln_decode::{
     unknown_forms::census_unknown_forms,
 };
 use ln_kb_ontology::domain::{
-    admit_membership_proposals, assemble_with_oracle_diff, build_text_log_from_markers,
+    admit_membership_proposals, assemble_with_oracle_diff, build_text_log_from_articles,
     diff_marker_sets, drafts_from_marker_diff, map_hierarchy_marker, marker_from_decode_token,
-    propose_membership_from_markers, AmendmentDraftOp, HierarchyMap, HierarchyMapOutcome,
-    HierarchyMarker, WriteSetError,
+    propose_membership_from_markers, resolve_ctv, AmendmentDraftOp, CtvResolution, HierarchyMap,
+    HierarchyMapOutcome, HierarchyMarker, WriteSetError,
 };
 use ln_kb_ontology::registry::{
     load_edition_day_for_path, load_expression_id_for_path, load_hierarchy_map_for_path,
@@ -263,15 +263,33 @@ fn inspect(path: &str) {
         (0, 0, 0, 0, 0, 0)
     };
 
-    // S_verify text CTV: build TextVersionLog from marker titles, count resolved.
+    // S_verify text CTV: build TextVersionLog from full article bodies, count
+    // resolved. Honest Resolved count per unique CC (not event count): a CC
+    // whose latest same-day events disagree is a Conflict, not Resolved.
     let ctv_resolved = if let Some(effect_day) = load_edition_day_for_path(path) {
-        let text_log = build_text_log_from_markers(
+        let articles = ln_decode::article_body::collect_article_texts(&blocks);
+        let text_log = build_text_log_from_articles(
             &hierarchy_map,
-            &hierarchy_markers_seq,
+            articles
+                .iter()
+                .map(|a| ("statya", a.number(), a.title(), a.text() as &str)),
             effect_day,
             provenance,
         );
-        text_log.events().len()
+        let mut seen = std::collections::HashSet::new();
+        let mut resolved = 0usize;
+        for event in text_log.events() {
+            if !seen.insert(event.component().as_str()) {
+                continue;
+            }
+            if matches!(
+                resolve_ctv(&text_log, event.component(), effect_day),
+                CtvResolution::Resolved { .. }
+            ) {
+                resolved += 1;
+            }
+        }
+        resolved
     } else {
         0
     };
