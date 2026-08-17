@@ -456,7 +456,7 @@ fn replay(seed_path: &str, target_path: &str) {
         .filter(|d| d.op == AmendmentDraftOp::Detach)
         .count();
 
-    // Text facet (M170 S02 T03): full article texts compared between editions.
+    // Text facet (M170 S02 T02): full article texts compared between editions.
     let text_draft_count = (|| -> Option<usize> {
         let seed_articles = read_articles(seed_path).ok()?;
         let target_articles = read_articles(target_path).ok()?;

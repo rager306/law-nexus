@@ -18,6 +18,7 @@ use ln_kb_ontology::registry::{
     load_edition_day_for_path, load_expression_id_for_path, load_hierarchy_map_for_path,
 };
 use ln_temporal::domain::ComponentConceptId;
+use std::process::{Command, Stdio};
 
 #[test]
 fn real_44fz_statya_1_resolves_to_full_article_text() {
@@ -227,6 +228,112 @@ fn text_changed_between_editions_resolves_differently() {
             .text();
         assert_ne!(text, target_text, "no future leakage at seed day");
     }
+}
+
+/// Replay JSON key extraction: `"key":<u64>` (mirrors cli_contract.rs).
+fn inspect_u64(stdout: &str, key: &str) -> u64 {
+    let token = format!("\"{key}\":");
+    let rest = stdout
+        .split(&token)
+        .nth(1)
+        .unwrap_or_else(|| panic!("missing JSON key {key} in {stdout}"));
+    let digits: String = rest.chars().take_while(|ch| ch.is_ascii_digit()).collect();
+    digits
+        .parse()
+        .unwrap_or_else(|_| panic!("non-integer {key} in {stdout}"))
+}
+
+/// Replay JSON string value: `"key":"value"`; `n` is the occurrence index
+/// (1 = first).
+fn inspect_str_nth<'a>(stdout: &'a str, key: &str, n: usize) -> &'a str {
+    let token = format!("\"{key}\":");
+    let rest = stdout
+        .split(&token)
+        .nth(n)
+        .unwrap_or_else(|| panic!("missing JSON key {key} (occurrence {n}) in {stdout}"));
+    let rest = rest.trim_start();
+    let rest = rest.strip_prefix('"').expect("string value for JSON key");
+    let end = rest.find('"').expect("closing quote");
+    &rest[..end]
+}
+
+/// CLI replay contract (M170 S02 T02): the `replay <0001> <0002>` binary
+/// report must show the text facet (3 drafts) while the structural bridge
+/// stays an empty oracle, and must never dump raw legal text to stdout.
+#[test]
+fn real_44fz_edition_0001_to_0002_replay_json_facet_drafts() {
+    let Some(dir) = editions_dir() else {
+        eprintln!("SKIP: consru_export not available");
+        return;
+    };
+    let seed_path = dir.join("edition-0001_rev-initial_from-unknown_19d3c051.xml");
+    let target_path = dir.join("edition-0002_rev-2013-07-02_from-unknown_f4bfa020.xml");
+    let out = Command::new(env!("CARGO_BIN_EXE_law-nexus-inspect"))
+        .args([
+            "replay",
+            seed_path.to_str().unwrap(),
+            target_path.to_str().unwrap(),
+        ])
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped())
+        .output()
+        .expect("spawn replay");
+    assert!(
+        out.status.success(),
+        "replay must exit 0; stderr={}",
+        String::from_utf8_lossy(&out.stderr)
+    );
+    let stdout = String::from_utf8(out.stdout).unwrap();
+    let stderr = String::from_utf8(out.stderr).unwrap();
+
+    // Skip-capable stderr line: counts only, never article bodies.
+    assert!(
+        stderr.contains("text facet: drafts=3 (facet=text)"),
+        "stderr must report exactly 3 text-facet drafts; stderr={stderr}"
+    );
+
+    // JSON contract: text.facet_drafts == 3 while the structural bridge
+    // stays the M169 empty oracle (drafts.total == 0, diff.added/removed == 0).
+    assert_eq!(
+        inspect_u64(&stdout, "facet_drafts"),
+        3,
+        "replay must report 3 text-facet drafts; {stdout}"
+    );
+    assert_eq!(
+        inspect_u64(&stdout, "total"),
+        0,
+        "structural drafts must stay empty (M169 empty oracle); {stdout}"
+    );
+    assert_eq!(
+        inspect_u64(&stdout, "added"),
+        0,
+        "structural diff.added must stay empty; {stdout}"
+    );
+    assert_eq!(
+        inspect_u64(&stdout, "removed"),
+        0,
+        "structural diff.removed must stay empty; {stdout}"
+    );
+
+    // Failure visibility: an empty expression_id must not masquerade as
+    // "no changes". Both seed and target ids must be present.
+    let seed_expr = inspect_str_nth(&stdout, "expression_id", 1);
+    let target_expr = inspect_str_nth(&stdout, "expression_id", 2);
+    assert!(
+        !seed_expr.is_empty() && !target_expr.is_empty(),
+        "seed/target expression_id must be non-empty; {stdout}"
+    );
+    assert!(
+        stdout.contains("expr:ru:federal:zakon:2013-04-05:44-fz"),
+        "expression_id must carry the minted 44-fz expression; {stdout}"
+    );
+
+    // No raw legal text in stdout: the report is counts-only ASCII JSON.
+    assert!(
+        stdout.is_ascii(),
+        "replay stdout must not contain raw legal text; got first 400 chars: {}",
+        &stdout[..stdout.len().min(400)]
+    );
 }
 
 /// Merge two TextVersionLogs (re-exported events) into one timeline.

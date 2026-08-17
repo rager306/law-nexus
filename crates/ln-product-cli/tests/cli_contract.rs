@@ -490,3 +490,62 @@ fn inspect_path_aware_classifier_counts_federal_law_amendment() {
         "path-aware inspect must classify «в ред. ФЗ» as amends; {stdout}"
     );
 }
+
+#[test]
+fn replay_same_file_402_fz_reports_zero_facet_drafts() {
+    // M170 S02 T02: light replay contract on the tracked 402-FZ fixture
+    // (not the demo pair — that is covered skip-capably in real_44fz_text_ctv).
+    let fixture = accounting_fixture();
+    let out = Command::new(binary())
+        .args(["replay", &fixture, &fixture])
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped())
+        .output()
+        .expect("spawn");
+    assert!(
+        out.status.success(),
+        "same-file replay must exit 0; stderr={}",
+        String::from_utf8_lossy(&out.stderr)
+    );
+    let stdout = String::from_utf8(out.stdout).unwrap();
+    assert!(
+        stdout.contains("\"phase\":\"Replay\""),
+        "expected Replay phase; got: {}",
+        stdout
+    );
+    assert!(
+        stdout.contains("\"status\":\"ok\""),
+        "expected ok status; got: {}",
+        stdout
+    );
+    // Same file -> identical texts -> 0 drafts, with a real (non-empty)
+    // expression_id: a legitimate zero, not a masked failure.
+    assert_eq!(
+        inspect_u64(&stdout, "facet_drafts"),
+        0,
+        "same-file replay must report zero text-facet drafts; {stdout}"
+    );
+    assert!(
+        stdout.contains("expr:ru:federal:zakon:2011-12-06:402-fz"),
+        "expression_id must carry the minted 402-fz expression; {stdout}"
+    );
+    assert!(
+        !stdout.contains("ОБЩИЕ ПОЛОЖЕНИЯ"),
+        "raw legal text must not be persisted; got first 400 chars: {}",
+        &stdout[..stdout.len().min(400)]
+    );
+}
+
+#[test]
+fn replay_missing_args_exits_with_usage_error_code() {
+    for args in [vec!["replay"], vec!["replay", "/tmp/seed.xml"]] {
+        let out = Command::new(binary())
+            .args(&args)
+            .stdout(Stdio::piped())
+            .stderr(Stdio::piped())
+            .output()
+            .expect("spawn");
+        assert!(!out.status.success(), "replay {args:?} must fail");
+        assert_eq!(out.status.code(), Some(2), "replay {args:?} must exit 2");
+    }
+}
