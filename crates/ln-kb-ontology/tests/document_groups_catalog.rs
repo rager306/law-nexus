@@ -504,6 +504,63 @@ fn structural_group_without_unit_role_fails_load() {
 }
 
 #[test]
+fn structural_only_token_without_surface_fails_load() {
+    // R8-09: primechanie/prilozhenie have no decode HierarchyLevel — the
+    // collector recognizes them by their catalog `surface` marker. A
+    // structural-only token without a surface is a degenerate entry the
+    // collector can never recognize (fail-closed schema).
+    let yaml = format!(
+        "{ROLES_AND_TOKENS}    - id: broken\n      ladder:\n        - {{token: primechanie, role: subunit-text}}\n"
+    );
+    let err = parse_with_document_groups(&yaml)
+        .expect_err("structural-only token without surface must fail closed");
+    assert!(
+        err.to_string().contains("surface"),
+        "unexpected error: {err}"
+    );
+}
+
+#[test]
+fn decode_level_token_with_surface_fails_load() {
+    // Decode-level tokens (statya, punkt, ...) are recognized by
+    // extract_hierarchy; declaring a surface would shadow the marker.
+    let yaml = format!(
+        "{ROLES_AND_TOKENS}    - id: broken\n      ladder:\n        - {{token: statya, role: unit, surface: \"Статья\"}}\n"
+    );
+    let err = parse_with_document_groups(&yaml)
+        .expect_err("decode-level token with surface must fail closed");
+    assert!(
+        err.to_string().contains("surface"),
+        "unexpected error: {err}"
+    );
+}
+
+#[test]
+fn structural_only_tokens_declare_surfaces_in_embedded_catalog() {
+    let catalog = catalog();
+    let order = group(&catalog, "departmental_order");
+    let primechanie = order
+        .ladder
+        .iter()
+        .find(|entry| entry.token == "primechanie")
+        .expect("primechanie");
+    assert_eq!(primechanie.surface.as_deref(), Some("Примечание"));
+    let prilozhenie = order
+        .ladder
+        .iter()
+        .find(|entry| entry.token == "prilozhenie")
+        .expect("prilozhenie");
+    assert_eq!(prilozhenie.surface.as_deref(), Some("Приложение"));
+    let gr = group(&catalog, "government_resolution");
+    let prilozhenie_gr = gr
+        .ladder
+        .iter()
+        .find(|entry| entry.token == "prilozhenie")
+        .expect("prilozhenie");
+    assert_eq!(prilozhenie_gr.surface.as_deref(), Some("Приложение"));
+}
+
+#[test]
 fn classify_document_group_binds_by_ranked_needle() {
     use ln_kb_ontology::catalog::DocumentGroupOutcome;
     let catalog = catalog();

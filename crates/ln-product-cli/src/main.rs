@@ -15,6 +15,7 @@ use ln_decode::{
     hierarchy::extract_hierarchy,
     ports::BlockDecoderPort,
     references::extract_reference_mentions,
+    structural_profile::{DetectionFactor, GroupDetection, StructuralProfile, UnknownReason},
     temporal::extract_temporal_phrases,
     unknown_forms::census_unknown_forms,
 };
@@ -263,11 +264,80 @@ fn inspect(path: &str) {
         (0, 0, 0, 0, 0, 0)
     };
 
-    // S_verify text CTV: build TextVersionLog from full article bodies, count
+    // M171 S01 T03: two-factor document group detection (system_observation
+    // heuristic, never legal classification — ADR-0020). The report exposes
+    // the bound group, the detection factor, and explicit Unknown/Conflict
+    // quarantine counters: an absent group is a visible Unknown, not silence.
+    let embedded_profile = StructuralProfile::embedded();
+    let detection = embedded_profile
+        .as_ref()
+        .map(|profile| profile.detect(Some(path), None, None, &blocks));
+    let (
+        document_group,
+        detection_factor,
+        detection_unknown_reason,
+        detection_unknown,
+        detection_conflict,
+    ) = match &detection {
+        Ok(GroupDetection::Bound { group, factor }) => {
+            let factor_str = match factor {
+                DetectionFactor::Needle => "needle",
+                DetectionFactor::NeedleAndProbe => "needle_and_probe",
+            };
+            (
+                group.clone(),
+                factor_str.to_owned(),
+                String::new(),
+                0u64,
+                0u64,
+            )
+        }
+        Ok(GroupDetection::Unknown { reason }) => {
+            let reason_str = match reason {
+                UnknownReason::NoMetadata => "no_metadata",
+                UnknownReason::ProbeConflict { .. } => "probe_conflict",
+            };
+            (
+                "Unknown".to_owned(),
+                "none".to_owned(),
+                reason_str.to_owned(),
+                1u64,
+                0u64,
+            )
+        }
+        Ok(GroupDetection::Conflict { .. }) => (
+            "Conflict".to_owned(),
+            "none".to_owned(),
+            String::new(),
+            0u64,
+            1u64,
+        ),
+        Err(_) => (
+            "Unknown".to_owned(),
+            "none".to_owned(),
+            "catalog_unavailable".to_owned(),
+            1u64,
+            0u64,
+        ),
+    };
+
+    // S_verify text CTV: build TextVersionLog from unit bodies, count
     // resolved. Honest Resolved count per unique CC (not event count): a CC
     // whose latest same-day events disagree is a Conflict, not Resolved.
+    // Fail-closed: no bound group (Unknown/Conflict) means no unit bodies —
+    // an absent group is a visible Unknown, not a silent statya default.
     let ctv_resolved = if let Some(effect_day) = load_edition_day_for_path(path) {
-        let articles = ln_decode::article_body::collect_article_texts(&blocks);
+        let articles = match &detection {
+            Ok(GroupDetection::Bound { group, .. }) => embedded_profile
+                .as_ref()
+                .ok()
+                .and_then(|profile| profile.group(group))
+                .map(|group_profile| {
+                    ln_decode::article_body::collect_article_texts(group_profile, &blocks)
+                })
+                .unwrap_or_default(),
+            _ => Vec::new(),
+        };
         let text_log = build_text_log_from_articles(
             &hierarchy_map,
             articles
@@ -311,6 +381,9 @@ fn inspect(path: &str) {
 
     let duration_ms = start.elapsed().as_millis();
     let expression_id_str = json_escape(&expression_id.clone().unwrap_or_default());
+    let document_group_esc = json_escape(&document_group);
+    let detection_factor_esc = json_escape(&detection_factor);
+    let detection_unknown_reason_esc = json_escape(&detection_unknown_reason);
 
     println!(
         "{{\"phase\":\"Inspect\",\"status\":\"ok\",\"binary\":\"{BINARY}\",\"runtime\":\"rust\",\
@@ -334,6 +407,11 @@ fn inspect(path: &str) {
          \"oracle_missing\":{oracle_missing},\
          \"oracle_phantom\":{oracle_phantom},\
          \"ctv_resolved\":{ctv_resolved},\
+         \"document_group\":\"{document_group_esc}\",\
+         \"detection_factor\":\"{detection_factor_esc}\",\
+         \"detection_unknown\":{detection_unknown},\
+         \"detection_unknown_reason\":\"{detection_unknown_reason_esc}\",\
+         \"detection_conflict\":{detection_conflict},\
          \"expression_id\":\"{expression_id_str}\",\
          \"reference_mentions\":{reference_mentions},\
          \"temporal_phrases\":{temporal_phrases},\"deontic_lexemes\":{deontic_lexemes},\
@@ -350,7 +428,8 @@ fn inspect(path: &str) {
          \"Empty hierarchy registry yields Unknown; lift does not mint ComponentConcept\",\
          \"Membership committed events are synthetic-provenance C2 drafts; fold is structural, not legal document tree\",\
          \"retrieval_count is deterministic-non-semantic: hash-derived vectors, not TEI semantic embedding\",\
-         \"ast_root_count and ast_node_count are structural AST projections, not legal hierarchy or CTV text\"]}}",
+         \"ast_root_count and ast_node_count are structural AST projections, not legal hierarchy or CTV text\",\
+         \"document group binding is a system_observation heuristic (ADR-0020), not legal classification; Unknown/Conflict are explicit quarantine outcomes, never silence\"]}}",
         json_escape(path),
         blocks.len(),
     );
@@ -425,7 +504,18 @@ fn replay(seed_path: &str, target_path: &str) {
         let blocks = ConsultantWordMlBlockDecoder
             .decode_blocks(&request)
             .map_err(|e| format!("{:?}: offset={:?}", e.kind(), e.byte_offset()))?;
-        Ok(ln_decode::article_body::collect_article_texts(&blocks))
+        // M171 S01 T03: unit bodies come from the detected structural profile.
+        // Fail-closed: no bound group (Unknown/Conflict) means no unit bodies
+        // — never fall back to a silent statya default.
+        let embedded = StructuralProfile::embedded().map_err(|e| e.to_string())?;
+        let articles = match embedded.detect(Some(path), None, None, &blocks) {
+            GroupDetection::Bound { group, .. } => embedded
+                .group(&group)
+                .map(|profile| ln_decode::article_body::collect_article_texts(profile, &blocks))
+                .unwrap_or_default(),
+            _ => Vec::new(),
+        };
+        Ok(articles)
     };
     let (seed_markers, seed_blocks) = match read_markers(seed_path) {
         Ok(v) => v,

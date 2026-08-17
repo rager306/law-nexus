@@ -381,7 +381,7 @@ document_groups:
       ladder:
         - {token: punkt, role: unit, recursive: true, max_depth: 3, suffix: ".", number_style: digit}
         - {token: podpunkt, role: subunit, suffix: ")", number_style: letter_cyrillic}
-        - {token: prilozhenie, role: container}
+        - {token: prilozhenie, role: container, surface: "Приложение"}
     - id: departmental_order
       granularity: punkt
       text_boundary: [unit, container]
@@ -393,8 +393,8 @@ document_groups:
       ladder:
         - {token: punkt, role: unit, recursive: true, max_depth: 4, suffix: ")", number_style: digit}
         - {token: podpunkt, role: subunit, suffix: ")", number_style: letter_cyrillic}
-        - {token: primechanie, role: subunit-text}
-        - {token: prilozhenie, role: container}
+        - {token: primechanie, role: subunit-text, surface: "Примечание"}
+        - {token: prilozhenie, role: container, surface: "Приложение"}
     - id: court_practice
       text_only: true
       needles:

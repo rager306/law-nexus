@@ -147,6 +147,34 @@ fn extract_hierarchy_still_recognizes_builder_blocks() {
 // ─── M170 S01 T01: full article texts with nested sub-markers (contract) ────
 
 use ln_decode::article_body::collect_article_texts;
+use ln_decode::structural_profile::{GroupProfile, StructuralProfile};
+
+/// Embedded federal_law@v1 profile (M171 S01 T03: profile-driven bounds).
+fn federal_law() -> GroupProfile {
+    let profile = StructuralProfile::embedded().expect("embedded kb-ontology.yaml");
+    profile
+        .group("federal_law@v1")
+        .expect("federal_law@v1 group")
+        .clone()
+}
+
+/// Embedded departmental_order profile: unit=punkt, subunit-text=primechanie.
+fn departmental_order() -> GroupProfile {
+    let profile = StructuralProfile::embedded().expect("embedded kb-ontology.yaml");
+    profile
+        .group("departmental_order")
+        .expect("departmental_order group")
+        .clone()
+}
+
+/// Embedded court_practice profile: text-only, no structure.
+fn court_practice() -> GroupProfile {
+    let profile = StructuralProfile::embedded().expect("embedded kb-ontology.yaml");
+    profile
+        .group("court_practice")
+        .expect("court_practice group")
+        .clone()
+}
 
 #[test]
 fn article_text_accumulates_nested_markers() {
@@ -159,7 +187,7 @@ fn article_text_accumulates_nested_markers() {
         bb.push(ParagraphStyle::Heading, "Статья 2. Другая"),
         bb.push(ParagraphStyle::BodyText, "Текст второй."),
     ];
-    let articles = collect_article_texts(&blocks);
+    let articles = collect_article_texts(&federal_law(), &blocks);
     assert_eq!(articles.len(), 2);
     let a1 = &articles[0];
     assert!(a1.text().contains("Общая часть"), "{}", a1.text());
@@ -177,7 +205,7 @@ fn glava_boundary_ends_article_accumulation() {
         bb.push(ParagraphStyle::Heading, "Глава 2. Новая"),
         bb.push(ParagraphStyle::BodyText, "Текст главы не входит в статью."),
     ];
-    let articles = collect_article_texts(&blocks);
+    let articles = collect_article_texts(&federal_law(), &blocks);
     assert_eq!(articles.len(), 1);
     assert!(!articles[0].text().contains("Текст главы"));
 }
@@ -190,7 +218,7 @@ fn provider_comment_excluded_from_article_text() {
         bb.push(ParagraphStyle::ProviderComment, "ГАРАНТ: комментарий"),
         bb.push(ParagraphStyle::BodyText, "Текст."),
     ];
-    let articles = collect_article_texts(&blocks);
+    let articles = collect_article_texts(&federal_law(), &blocks);
     assert!(articles[0].text().contains("Текст."));
     assert!(!articles[0].text().contains("ГАРАНТ"));
 }
@@ -207,7 +235,7 @@ fn statya_marker_line_not_in_article_text() {
             "Настоящий закон регулирует отношения.",
         ),
     ];
-    let articles = collect_article_texts(&blocks);
+    let articles = collect_article_texts(&federal_law(), &blocks);
     assert_eq!(articles.len(), 1);
     let a1 = &articles[0];
     assert_eq!(a1.number(), "1");
@@ -237,7 +265,7 @@ fn razdel_boundary_ends_article_accumulation() {
             "Текст раздела не входит в статью.",
         ),
     ];
-    let articles = collect_article_texts(&blocks);
+    let articles = collect_article_texts(&federal_law(), &blocks);
     assert_eq!(articles.len(), 1);
     assert!(articles[0].text().contains("Текст первой статьи"));
     assert!(
@@ -263,7 +291,7 @@ fn paragraph_section_boundary_ends_article_accumulation() {
             "Текст параграфа не входит в статью.",
         ),
     ];
-    let articles = collect_article_texts(&blocks);
+    let articles = collect_article_texts(&federal_law(), &blocks);
     assert_eq!(articles.len(), 1);
     assert!(articles[0].text().contains("Текст первой статьи"));
     assert!(
@@ -287,7 +315,7 @@ fn chast_marker_line_belongs_to_article_text() {
         bb.push(ParagraphStyle::BodyText, "1) пункт первый;"),
         bb.push(ParagraphStyle::BodyText, "Текст пункта."),
     ];
-    let articles = collect_article_texts(&blocks);
+    let articles = collect_article_texts(&federal_law(), &blocks);
     assert_eq!(articles.len(), 1);
     let text = articles[0].text();
     assert!(text.contains("Часть первая"), "{text}");
@@ -306,7 +334,7 @@ fn empty_statya_emitted_with_empty_text_fail_closed() {
         bb.push(ParagraphStyle::Heading, "Статья 2. Содержательная"),
         bb.push(ParagraphStyle::BodyText, "Текст второй статьи."),
     ];
-    let articles = collect_article_texts(&blocks);
+    let articles = collect_article_texts(&federal_law(), &blocks);
     assert_eq!(articles.len(), 2);
     assert_eq!(
         articles[0].text(),
@@ -315,4 +343,242 @@ fn empty_statya_emitted_with_empty_text_fail_closed() {
     );
     assert_eq!(articles[0].title(), Some("Пустая"));
     assert!(articles[1].text().contains("Текст второй статьи"));
+}
+
+// ─── M171 S01 T03: profile-driven boundaries (TDD contract) ───────────────
+
+/// M170 legacy behavior as reference: statya starts an article; Glava/Razdel/
+/// Paragraph reset accumulation; nested sub-markers (chast/punkt/podpunkt)
+/// belong to the owning article; ProviderComment never contributes.
+fn legacy_collect_article_texts(blocks: &[ParsedBlock]) -> Vec<(String, Option<String>, String)> {
+    fn is_boundary(level: &str) -> bool {
+        matches!(level, "Glava" | "Razdel" | "Paragraph")
+    }
+    fn is_statya(level: &str) -> bool {
+        level == "Statya"
+    }
+    fn append(target: &mut String, line: &str) {
+        if target.is_empty() {
+            target.push_str(line);
+        } else {
+            target.push('\n');
+            target.push_str(line);
+        }
+    }
+    let mut out: Vec<(String, Option<String>, String)> = Vec::new();
+    let mut current: Option<usize> = None;
+    for block in blocks {
+        if block.style() == ParagraphStyle::ProviderComment {
+            continue;
+        }
+        if let Some(node) = extract_hierarchy(block) {
+            let level = node.level().as_str();
+            if is_statya(level) {
+                out.push((
+                    node.number().to_owned(),
+                    node.title().map(str::to_owned),
+                    String::new(),
+                ));
+                current = Some(out.len() - 1);
+                continue;
+            }
+            if is_boundary(level) {
+                current = None;
+                continue;
+            }
+            if let Some(idx) = current {
+                let line = block.text().trim();
+                if !line.is_empty() {
+                    append(&mut out[idx].2, line);
+                }
+            }
+            continue;
+        }
+        let text = block.text().trim();
+        if text.is_empty() {
+            continue;
+        }
+        if let Some(idx) = current {
+            append(&mut out[idx].2, text);
+        }
+    }
+    out
+}
+
+#[test]
+fn federal_law_profile_is_bitwise_equivalent_to_legacy_collector() {
+    // R8-14 regression anchor: the profile-driven collector must reproduce
+    // the M170 hardcoded is_statya/is_boundary behavior bit-for-bit for
+    // federal_law@v1 — articles own nested sub-marker lines, boundaries
+    // (Glava/Razdel/Paragraph) reset, ProviderComment is excluded.
+    let mut bb = BlockBuilder::new();
+    let blocks = vec![
+        bb.push(ParagraphStyle::Heading, "Глава 1. Общие положения"),
+        bb.push(ParagraphStyle::BodyText, "Текст главы."),
+        bb.push(ParagraphStyle::Heading, "Статья 1. Сфера применения"),
+        bb.push(
+            ParagraphStyle::BodyText,
+            "Настоящий закон регулирует отношения,",
+        ),
+        bb.push(ParagraphStyle::BodyText, "возникающие в сфере закупок."),
+        bb.push(ParagraphStyle::BodyText, "1. Часть первая"),
+        bb.push(ParagraphStyle::BodyText, "Текст части."),
+        bb.push(ParagraphStyle::BodyText, "1) пункт первый;"),
+        bb.push(ParagraphStyle::BodyText, "2) пункт второй;"),
+        bb.push(ParagraphStyle::ProviderComment, "ГАРАНТ: комментарий"),
+        bb.push(ParagraphStyle::Heading, "Статья 2. Другая"),
+        bb.push(ParagraphStyle::BodyText, "Текст второй."),
+        bb.push(ParagraphStyle::Heading, "Раздел II. Особенная часть"),
+        bb.push(ParagraphStyle::BodyText, "Текст раздела."),
+        bb.push(ParagraphStyle::Heading, "§ 1. Параграф"),
+        bb.push(ParagraphStyle::BodyText, "Текст параграфа."),
+    ];
+
+    let legacy_out = legacy_collect_article_texts(&blocks);
+    let profile_out = collect_article_texts(&federal_law(), &blocks);
+    assert_eq!(
+        legacy_out.len(),
+        profile_out.len(),
+        "article count must match legacy"
+    );
+    for (l, p) in legacy_out.iter().zip(profile_out.iter()) {
+        assert_eq!(l.0, p.number(), "number mismatch");
+        assert_eq!(l.1.as_deref(), p.title(), "title mismatch");
+        assert_eq!(l.2, p.text(), "text must be bitwise identical");
+    }
+}
+
+#[test]
+fn departmental_order_punkt_bodies_collect_until_next_unit() {
+    // unit=punkt: punkt bodies run until the next unit (or container);
+    // podpunkt prose belongs to the owning punkt body.
+    let mut bb = BlockBuilder::new();
+    let blocks = vec![
+        bb.push(ParagraphStyle::BodyText, "1) пункт первый"),
+        bb.push(ParagraphStyle::BodyText, "Текст первого пункта."),
+        bb.push(ParagraphStyle::BodyText, "а) подпункт первого;"),
+        bb.push(ParagraphStyle::BodyText, "Текст подпункта."),
+        bb.push(ParagraphStyle::BodyText, "2) пункт второй"),
+        bb.push(ParagraphStyle::BodyText, "Текст второго пункта."),
+    ];
+    let bodies = collect_article_texts(&departmental_order(), &blocks);
+    assert_eq!(bodies.len(), 2);
+    let p1 = &bodies[0];
+    assert_eq!(p1.number(), "1");
+    assert!(p1.text().contains("Текст первого пункта"), "{}", p1.text());
+    assert!(p1.text().contains("подпункт первого"), "{}", p1.text());
+    assert!(p1.text().contains("Текст подпункта"), "{}", p1.text());
+    assert!(
+        !p1.text().contains("Текст второго пункта"),
+        "body stops at next punkt: {}",
+        p1.text()
+    );
+    let p2 = &bodies[1];
+    assert_eq!(p2.number(), "2");
+    assert!(p2.text().contains("Текст второго пункта"), "{}", p2.text());
+}
+
+#[test]
+fn note_not_in_punkt_body_subunit_text() {
+    // primechanie is subunit-text: the note marker line and its text never
+    // join the owning punkt body ("Примечание" is a structural-only surface
+    // marker, R8-09; extract_hierarchy has no level for it).
+    let mut bb = BlockBuilder::new();
+    let blocks = vec![
+        bb.push(ParagraphStyle::BodyText, "1) пункт первый"),
+        bb.push(ParagraphStyle::BodyText, "Текст пункта."),
+        bb.push(ParagraphStyle::BodyText, "Примечание. Сноска к приказу."),
+        bb.push(ParagraphStyle::BodyText, "2) пункт второй"),
+        bb.push(ParagraphStyle::BodyText, "Текст второго пункта."),
+    ];
+    let bodies = collect_article_texts(&departmental_order(), &blocks);
+    assert_eq!(bodies.len(), 2);
+    let p1 = &bodies[0];
+    assert!(p1.text().contains("Текст пункта"), "{}", p1.text());
+    assert!(
+        !p1.text().contains("Примечание"),
+        "note must not enter the punkt body: {}",
+        p1.text()
+    );
+    assert!(
+        !p1.text().contains("Сноска"),
+        "note text must not enter the punkt body: {}",
+        p1.text()
+    );
+    let p2 = &bodies[1];
+    assert!(p2.text().contains("Текст второго пункта"), "{}", p2.text());
+    assert!(
+        !p2.text().contains("Примечание"),
+        "note must not leak into the next punkt: {}",
+        p2.text()
+    );
+}
+
+#[test]
+fn prilozhenie_container_resets_accumulation() {
+    // prilozhenie is a container recognized by its surface marker: the annex
+    // region is not part of any punkt body.
+    let mut bb = BlockBuilder::new();
+    let blocks = vec![
+        bb.push(ParagraphStyle::BodyText, "1) пункт первый"),
+        bb.push(ParagraphStyle::BodyText, "Текст пункта."),
+        bb.push(ParagraphStyle::BodyText, "Приложение N 1"),
+        bb.push(ParagraphStyle::BodyText, "Форма заявки."),
+    ];
+    let bodies = collect_article_texts(&departmental_order(), &blocks);
+    assert_eq!(bodies.len(), 1);
+    assert!(bodies[0].text().contains("Текст пункта"));
+    assert!(
+        !bodies[0].text().contains("Приложение"),
+        "{}",
+        bodies[0].text()
+    );
+    assert!(
+        !bodies[0].text().contains("Форма заявки"),
+        "{}",
+        bodies[0].text()
+    );
+}
+
+#[test]
+fn text_only_profile_collects_nothing() {
+    // court_practice is text-only: numbered lists are never structure
+    // (R8-05 hostile case) — the collector emits no unit bodies at all.
+    let mut bb = BlockBuilder::new();
+    let blocks = vec![
+        bb.push(ParagraphStyle::BodyText, "1. Комиссия решила"),
+        bb.push(ParagraphStyle::BodyText, "1.1. Рекомендовать заказчику"),
+        bb.push(ParagraphStyle::BodyText, "1.1.1. Принять меры"),
+        bb.push(ParagraphStyle::BodyText, "1.1.1.1. Уведомить стороны"),
+    ];
+    let bodies = collect_article_texts(&court_practice(), &blocks);
+    assert!(bodies.is_empty(), "text-only profile collects nothing");
+}
+
+#[test]
+fn undeclared_marker_level_fails_closed_to_boundary() {
+    // A marker level not declared in the profile's ladder is a fail-closed
+    // boundary: accumulation stops and the region never joins a unit body.
+    // departmental_order declares punkt/podpunkt but no chast — a "1. Часть"
+    // block (Chast level) must reset, not leak into the preceding punkt.
+    let mut bb = BlockBuilder::new();
+    let blocks = vec![
+        bb.push(ParagraphStyle::BodyText, "1) пункт первый"),
+        bb.push(ParagraphStyle::BodyText, "Текст пункта."),
+        bb.push(ParagraphStyle::BodyText, "1. Часть вне лестницы"),
+        bb.push(ParagraphStyle::BodyText, "Текст части."),
+    ];
+    let bodies = collect_article_texts(&departmental_order(), &blocks);
+    assert_eq!(bodies.len(), 1);
+    assert!(bodies[0].text().contains("Текст пункта"));
+    assert!(
+        !bodies[0].text().contains("Часть вне лестницы"),
+        "{}",
+        bodies[0].text()
+    );
+    assert!(
+        !bodies[0].text().contains("Текст части"),
+        "{}",
+        bodies[0].text()
+    );
 }

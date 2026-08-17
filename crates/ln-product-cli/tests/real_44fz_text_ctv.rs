@@ -10,6 +10,7 @@ use ln_decode::{
     article_body::collect_article_texts,
     domain::{DecodeRequest, FamilyFormat, PayloadRef},
     ports::BlockDecoderPort,
+    structural_profile::{GroupProfile, StructuralProfile},
 };
 use ln_kb_ontology::domain::{
     build_text_log_from_articles, changed_article_texts, resolve_ctv, CtvResolution,
@@ -19,6 +20,15 @@ use ln_kb_ontology::registry::{
 };
 use ln_temporal::domain::ComponentConceptId;
 use std::process::{Command, Stdio};
+
+/// Embedded federal_law@v1 profile (M171 S01 T03: profile-driven bounds).
+fn federal_law() -> GroupProfile {
+    let profile = StructuralProfile::embedded().expect("embedded kb-ontology.yaml");
+    profile
+        .group("federal_law@v1")
+        .expect("federal_law@v1 group")
+        .clone()
+}
 
 #[test]
 fn real_44fz_statya_1_resolves_to_full_article_text() {
@@ -37,7 +47,7 @@ fn real_44fz_statya_1_resolves_to_full_article_text() {
     let blocks = ConsultantWordMlBlockDecoder
         .decode_blocks(&request)
         .expect("decode");
-    let bodies = collect_article_texts(&blocks);
+    let bodies = collect_article_texts(&federal_law(), &blocks);
     let with_text = bodies
         .iter()
         .filter(|b| !b.text().trim().is_empty())
@@ -103,7 +113,7 @@ fn read_edition(path: &std::path::Path) -> Vec<ln_decode::article_body::ArticleT
     let blocks = ConsultantWordMlBlockDecoder
         .decode_blocks(&request)
         .expect("decode");
-    collect_article_texts(&blocks)
+    collect_article_texts(&federal_law(), &blocks)
 }
 
 #[test]

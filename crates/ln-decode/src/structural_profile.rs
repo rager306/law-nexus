@@ -42,6 +42,12 @@ pub struct LadderEntry {
     pub compound: Option<bool>,
     pub suffix: Option<String>,
     pub number_style: Option<String>,
+    /// Surface marker text for structural-only tokens (tokens outside the
+    /// decode `HierarchyLevel` set, e.g. primechanie -> "Примечание"). The
+    /// collector recognizes these markers by surface prefix because
+    /// `extract_hierarchy` has no level for them (R8-09). Decode-level
+    /// tokens must not declare a surface (the catalog validator enforces).
+    pub surface: Option<String>,
 }
 
 /// A document structural profile (system_observation heuristic).
@@ -612,6 +618,7 @@ fn parse_ladder_entry(flow: &str) -> Result<LadderEntry, &'static str> {
     let compound = flow_field(flow, "compound").map(|value| value == "true");
     let suffix = flow_field(flow, "suffix");
     let number_style = flow_field(flow, "number_style");
+    let surface = flow_field(flow, "surface");
     Ok(LadderEntry {
         token,
         role,
@@ -620,6 +627,7 @@ fn parse_ladder_entry(flow: &str) -> Result<LadderEntry, &'static str> {
         compound,
         suffix,
         number_style,
+        surface,
     })
 }
 
@@ -688,5 +696,26 @@ mod tests {
             joined.contains("not an AST"),
             "practice != AST must be declared (ADR-0020): {joined}"
         );
+    }
+
+    #[test]
+    fn structural_only_surfaces_are_parsed() {
+        // Parser-drift lock (mirror of document_groups_catalog): the ln-decode
+        // parser must read `surface` exactly like ln-kb-ontology so the
+        // collector can recognize primechanie/prilozhenie markers (R8-09).
+        let profile = StructuralProfile::embedded().expect("yaml");
+        let order = profile.group("departmental_order").expect("order");
+        let primechanie = order
+            .ladder
+            .iter()
+            .find(|entry| entry.token == "primechanie")
+            .expect("primechanie");
+        assert_eq!(primechanie.surface.as_deref(), Some("Примечание"));
+        let prilozhenie = order
+            .ladder
+            .iter()
+            .find(|entry| entry.token == "prilozhenie")
+            .expect("prilozhenie");
+        assert_eq!(prilozhenie.surface.as_deref(), Some("Приложение"));
     }
 }

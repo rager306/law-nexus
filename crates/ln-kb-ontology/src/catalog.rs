@@ -51,6 +51,9 @@ pub struct GroupNeedle {
 /// One ladder entry of a document structural profile: token + role + style.
 /// The token is a hierarchy marker name (decode token or structural-only
 /// pseudo-token); the role comes from the closed `structural_roles` set.
+/// `surface` is the marker text for structural-only tokens (e.g.
+/// primechanie -> "Примечание") — the collector recognizes these markers by
+/// surface prefix because they have no decode `HierarchyLevel` (R8-09).
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct LadderEntry {
     pub token: String,
@@ -60,6 +63,7 @@ pub struct LadderEntry {
     pub compound: Option<bool>,
     pub suffix: Option<String>,
     pub number_style: Option<String>,
+    pub surface: Option<String>,
 }
 
 /// A document structural profile from `document_groups` (system_observation
@@ -876,6 +880,7 @@ fn parse_ladder_entry(flow: &str) -> Result<LadderEntry, CatalogError> {
     let compound = flow_field(flow, "compound").map(|value| value == "true");
     let suffix = flow_field(flow, "suffix");
     let number_style = flow_field(flow, "number_style");
+    let surface = flow_field(flow, "surface");
     Ok(LadderEntry {
         token,
         role,
@@ -884,6 +889,7 @@ fn parse_ladder_entry(flow: &str) -> Result<LadderEntry, CatalogError> {
         compound,
         suffix,
         number_style,
+        surface,
     })
 }
 
@@ -960,6 +966,37 @@ fn validate_document_groups(
             if !token_known {
                 return Err(CatalogError {
                     reason: "ladder token is outside the decode-token catalog",
+                });
+            }
+            let is_structural_only = section
+                .structural_only_tokens
+                .iter()
+                .any(|token| token == &entry.token);
+            let is_decode_token = decode_tokens
+                .iter()
+                .any(|token| token.eq_ignore_ascii_case(&entry.token));
+            // Structural-only tokens (no decode HierarchyLevel, R8-09) must
+            // declare a surface: the collector can only recognize them by
+            // surface prefix. Decode-level tokens must NOT declare one:
+            // extract_hierarchy already recognizes them and a surface would
+            // shadow the marker (fail-closed schema).
+            if is_structural_only && entry.surface.is_none() {
+                return Err(CatalogError {
+                    reason: "structural-only ladder token must declare surface",
+                });
+            }
+            if is_decode_token && entry.surface.is_some() {
+                return Err(CatalogError {
+                    reason: "decode-level ladder token must not declare surface",
+                });
+            }
+            if entry
+                .surface
+                .as_ref()
+                .is_some_and(|surface| surface.is_empty())
+            {
+                return Err(CatalogError {
+                    reason: "ladder entry surface is empty",
                 });
             }
             if entry.recursive && entry.max_depth.is_none() {
