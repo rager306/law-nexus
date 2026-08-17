@@ -144,7 +144,7 @@ fn extract_hierarchy_still_recognizes_builder_blocks() {
     assert!(extract_hierarchy(&blocks[1]).is_none());
 }
 
-// ─── M170 S01 T03: full article texts with nested sub-markers ───────────────
+// ─── M170 S01 T01: full article texts with nested sub-markers (contract) ────
 
 use ln_decode::article_body::collect_article_texts;
 
@@ -193,4 +193,126 @@ fn provider_comment_excluded_from_article_text() {
     let articles = collect_article_texts(&blocks);
     assert!(articles[0].text().contains("Текст."));
     assert!(!articles[0].text().contains("ГАРАНТ"));
+}
+
+#[test]
+fn statya_marker_line_not_in_article_text() {
+    // Contract: the marker line "Статья N. …" never enters ArticleText::text;
+    // the marker title is stored separately.
+    let mut bb = BlockBuilder::new();
+    let blocks = vec![
+        bb.push(ParagraphStyle::Heading, "Статья 1. Сфера применения"),
+        bb.push(
+            ParagraphStyle::BodyText,
+            "Настоящий закон регулирует отношения.",
+        ),
+    ];
+    let articles = collect_article_texts(&blocks);
+    assert_eq!(articles.len(), 1);
+    let a1 = &articles[0];
+    assert_eq!(a1.number(), "1");
+    assert_eq!(a1.title(), Some("Сфера применения"));
+    assert!(a1.text().contains("Настоящий закон"), "{}", a1.text());
+    assert!(
+        !a1.text().contains("Статья"),
+        "marker line must not leak into text: {}",
+        a1.text()
+    );
+    assert!(
+        !a1.text().contains("Сфера применения"),
+        "title lives separately: {}",
+        a1.text()
+    );
+}
+
+#[test]
+fn razdel_boundary_ends_article_accumulation() {
+    let mut bb = BlockBuilder::new();
+    let blocks = vec![
+        bb.push(ParagraphStyle::Heading, "Статья 1. Первая"),
+        bb.push(ParagraphStyle::BodyText, "Текст первой статьи."),
+        bb.push(ParagraphStyle::Heading, "Раздел II. Особенная часть"),
+        bb.push(
+            ParagraphStyle::BodyText,
+            "Текст раздела не входит в статью.",
+        ),
+    ];
+    let articles = collect_article_texts(&blocks);
+    assert_eq!(articles.len(), 1);
+    assert!(articles[0].text().contains("Текст первой статьи"));
+    assert!(
+        !articles[0].text().contains("Текст раздела"),
+        "Razdel breaks accumulation"
+    );
+    assert!(
+        !articles[0].text().contains("Особенная часть"),
+        "Razdel marker line excluded"
+    );
+}
+
+#[test]
+fn paragraph_section_boundary_ends_article_accumulation() {
+    // "§" markers (Paragraph level) also break accumulation.
+    let mut bb = BlockBuilder::new();
+    let blocks = vec![
+        bb.push(ParagraphStyle::Heading, "Статья 1. Первая"),
+        bb.push(ParagraphStyle::BodyText, "Текст первой статьи."),
+        bb.push(ParagraphStyle::Heading, "§ 1. Применение к отношениям"),
+        bb.push(
+            ParagraphStyle::BodyText,
+            "Текст параграфа не входит в статью.",
+        ),
+    ];
+    let articles = collect_article_texts(&blocks);
+    assert_eq!(articles.len(), 1);
+    assert!(articles[0].text().contains("Текст первой статьи"));
+    assert!(
+        !articles[0].text().contains("Текст параграфа"),
+        "Paragraph (§) breaks accumulation"
+    );
+    assert!(
+        !articles[0].text().contains("Применение к отношениям"),
+        "Paragraph marker line excluded"
+    );
+}
+
+#[test]
+fn chast_marker_line_belongs_to_article_text() {
+    // Nested sub-markers (chast/punkt/podpunkt) ARE part of the article text.
+    let mut bb = BlockBuilder::new();
+    let blocks = vec![
+        bb.push(ParagraphStyle::Heading, "Статья 1. Первая"),
+        bb.push(ParagraphStyle::BodyText, "1. Часть первая"),
+        bb.push(ParagraphStyle::BodyText, "Текст части."),
+        bb.push(ParagraphStyle::BodyText, "1) пункт первый;"),
+        bb.push(ParagraphStyle::BodyText, "Текст пункта."),
+    ];
+    let articles = collect_article_texts(&blocks);
+    assert_eq!(articles.len(), 1);
+    let text = articles[0].text();
+    assert!(text.contains("Часть первая"), "{text}");
+    assert!(text.contains("Текст части"), "{text}");
+    assert!(text.contains("пункт первый"), "{text}");
+    assert!(text.contains("Текст пункта"), "{text}");
+}
+
+#[test]
+fn empty_statya_emitted_with_empty_text_fail_closed() {
+    // Contract: no title-fallback masquerade — a statya with no body blocks
+    // before the next marker keeps an empty text; the caller decides.
+    let mut bb = BlockBuilder::new();
+    let blocks = vec![
+        bb.push(ParagraphStyle::Heading, "Статья 1. Пустая"),
+        bb.push(ParagraphStyle::Heading, "Статья 2. Содержательная"),
+        bb.push(ParagraphStyle::BodyText, "Текст второй статьи."),
+    ];
+    let articles = collect_article_texts(&blocks);
+    assert_eq!(articles.len(), 2);
+    assert_eq!(
+        articles[0].text(),
+        "",
+        "empty body stays empty (fail-closed)"
+    );
+    assert_eq!(articles[0].title(), Some("Пустая"));
+    assert!(articles[1].text().contains("Текст второй статьи"));
 }

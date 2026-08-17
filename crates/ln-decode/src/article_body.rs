@@ -76,9 +76,12 @@ pub fn collect_marker_bodies(blocks: &[ParsedBlock]) -> Vec<MarkerBody> {
     out
 }
 
-/// One statute article's full text: the statya marker line, its direct prose
-/// and every nested sub-marker (chast/punkt/podpunkt/paragraph) line and body
-/// up to the next statya or glava marker (M170 S01 T03 correction).
+/// One statute article's full text (M170 S01 contract).
+///
+/// The statya marker line is NOT part of `text` — the marker title lives in
+/// `title`. `text` holds the direct prose and every nested sub-marker
+/// (chast/punkt/podpunkt) line and body up to the next Statya, Glava, Razdel
+/// or Paragraph (§) marker.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ArticleText {
     number: String,
@@ -95,8 +98,8 @@ impl ArticleText {
         self.title.as_deref()
     }
 
-    /// Full article text: marker line + nested prose, whitespace-normalized
-    /// lines joined with single newlines.
+    /// Full article text (statya marker line excluded): nested prose,
+    /// whitespace-normalized lines joined with single newlines.
     pub fn text(&self) -> &str {
         &self.text
     }
@@ -104,10 +107,13 @@ impl ArticleText {
 
 /// Collect full statute texts in document order.
 ///
-/// A statya owns everything after its marker until the next statya or glava
-/// marker: nested sub-marker lines become part of the article text.
-/// `ProviderComment` blocks never contribute. Statya markers with no content
-/// at all are emitted with an empty `text` (fail-closed, caller decides).
+/// Contract: the statya marker line never becomes part of `ArticleText::text`
+/// — the marker title is stored separately in `title`. Accumulation starts
+/// with the first block after the marker and stops at the next Statya, Glava,
+/// Razdel or Paragraph (§) marker; nested sub-marker (chast/punkt/podpunkt)
+/// lines belong to the owning article. `ProviderComment` blocks never
+/// contribute. Statya markers with no content at all are emitted with an
+/// empty `text` (fail-closed, caller decides).
 pub fn collect_article_texts(blocks: &[ParsedBlock]) -> Vec<ArticleText> {
     fn is_boundary(level: &str) -> bool {
         matches!(level, "Glava" | "Razdel" | "Paragraph")
