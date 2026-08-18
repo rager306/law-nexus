@@ -663,6 +663,45 @@ fn dash_list(lines: &[(&str, usize)], start: usize, heading_indent: usize) -> (V
     (items, index)
 }
 
+/// FNV-1a 64-bit hash of the raw `document_groups:` section lines (original
+/// indentation preserved, blank lines skipped, section heading excluded),
+/// hex-encoded as `fnv1a64-<16 lowercase hex>`.
+///
+/// Deterministic and language-portable: the harness Governor (T02) mirrors
+/// this algorithm in Python to detect catalog drift — a parsed_as binding
+/// carrying an older `catalog_version` is a visible warning, never a silent
+/// skip. Absent section yields an empty string (fail-closed).
+fn section_fnv1a64(text: &str, heading: &str) -> String {
+    const OFFSET_BASIS: u64 = 0xcbf29ce484222325;
+    const FNV_PRIME: u64 = 0x100000001b3;
+    let Some(lines) = section_lines(text, heading) else {
+        return String::new();
+    };
+    let mut hash = OFFSET_BASIS;
+    for (raw, _) in lines {
+        for byte in raw.as_bytes() {
+            hash ^= u64::from(*byte);
+            hash = hash.wrapping_mul(FNV_PRIME);
+        }
+        hash ^= u64::from(b'\n');
+        hash = hash.wrapping_mul(FNV_PRIME);
+    }
+    format!("fnv1a64-{hash:016x}")
+}
+
+/// Hash of the `document_groups:` section in an arbitrary YAML text.
+/// Exposed so tests can assert determinism and section sensitivity.
+pub fn document_groups_section_hash(text: &str) -> String {
+    section_fnv1a64(text, "document_groups:")
+}
+
+/// Current version of the embedded catalog's `document_groups:` section.
+/// The parsed_as binding carries this value; drift vs the live file is a
+/// visible Governor warning (T02), not a silent skip.
+pub fn document_groups_version() -> String {
+    document_groups_section_hash(EMBEDDED_ONTOLOGY_YAML)
+}
+
 /// Parse the top-level `document_groups:` section; absent section yields
 /// empty defaults so legacy catalogs keep loading.
 fn parse_document_groups(text: &str) -> Result<DocumentGroupsSection, CatalogError> {

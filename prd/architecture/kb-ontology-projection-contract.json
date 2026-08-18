@@ -86,6 +86,14 @@
         "effect_day",
         "provenance"
       ]
+    },
+    {
+      "kind": "DocumentGroupRef",
+      "layer": "L2",
+      "required_properties": [
+        "group",
+        "catalog_version"
+      ]
     }
   ],
   "edge_kinds": [
@@ -128,6 +136,11 @@
       "kind": "prov_amending_act",
       "from": "Event",
       "to": "AmendingAct"
+    },
+    {
+      "kind": "parsed_as",
+      "from": "Work",
+      "to": "DocumentGroupRef"
     }
   ],
   "forbidden_node_kinds": [
@@ -136,7 +149,10 @@
     "RiskScoreAsStatus",
     "ProfileCodeAsClock",
     "NormRuleAsAuthority",
-    "NormativeBlob"
+    "NormativeBlob",
+    "DocumentProfileAsAuthority",
+    "ProfileBindingAsForce",
+    "DocumentProfileAsClock"
   ],
   "allowed_layers": [
     "L1",
@@ -220,6 +236,7 @@
     "project_membership",
     "project_force_event",
     "project_join",
+    "project_document_group_binding",
     "reject_forbidden_kind",
     "project_structural_ast",
     "try_push_node",

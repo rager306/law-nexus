@@ -87,6 +87,7 @@ pub enum WriteSetError {
     UnknownNodeKind,
     UnknownEdgeKind,
     UnknownPresenceKind,
+    UnknownDocumentGroup,
 }
 
 impl std::fmt::Display for WriteSetError {
@@ -138,6 +139,9 @@ impl std::fmt::Display for WriteSetError {
             Self::UnknownPresenceKind => {
                 write!(formatter, "presence change kind is not in the YAML catalog")
             }
+            Self::UnknownDocumentGroup => {
+                write!(formatter, "document group is not in the YAML catalog")
+            }
         }
     }
 }
@@ -148,6 +152,7 @@ const WRITE_SET_NON_CLAIMS: &[&str] = &[
     "Write-set is pure projection; performs no store I/O and is not RuVector materialization",
     "Work/Expression/membership presence does not imply ForceStatus InForce",
     "ForceStatusEvent projection does not imply Applicability",
+    "parsed_as binding is a system_observation heuristic, never legal classification (ADR-0020)",
     "Not production graph schema, not corpus edges, not legal validation",
     "Lifecycle [proposed]; KBO O2 write-set; not O3 fixture edges or O4 port I/O",
 ];
@@ -177,6 +182,43 @@ pub fn project_work(work: &FrbrWork) -> Result<WriteSet, WriteSetError> {
     }
     let mut set = WriteSet::empty();
     set.try_push_node("Work", work.work_id.as_str())?;
+    Ok(set)
+}
+
+/// Project a `Work ──(parsed_as)──▶ DocumentGroupRef{group, catalog_version}`
+/// binding (KBO R8-10). Pure projection, no I/O.
+///
+/// The binding carries the catalog version — the FNV-1a 64 hash of the
+/// `document_groups:` YAML section (see `catalog::document_groups_version`)
+/// — so downstream process checks (Governor, T02) can detect catalog drift:
+/// a binding minted against an older catalog is a visible warning, never a
+/// silent skip. The vocabulary itself never transfers to the graph; only the
+/// ref node (group + version) and the `parsed_as` edge do.
+///
+/// Hostile contract: the binding never writes ForceStatusEvent, never mints
+/// ApplicableDecision-class nodes, and never claims applicability.
+pub fn project_document_group_binding(
+    work: &FrbrWork,
+    group: &str,
+    catalog_version: &str,
+) -> Result<WriteSet, WriteSetError> {
+    if work.work_id.as_str().is_empty() {
+        return Err(WriteSetError::MissingIdentity);
+    }
+    let group = group.trim();
+    let catalog_version = catalog_version.trim();
+    if group.is_empty() || catalog_version.is_empty() {
+        return Err(WriteSetError::MissingIdentity);
+    }
+    let catalog = OntologyCatalog::embedded().map_err(|_| WriteSetError::UnknownDocumentGroup)?;
+    if catalog.document_group(group).is_none() {
+        return Err(WriteSetError::UnknownDocumentGroup);
+    }
+    let mut set = WriteSet::empty();
+    set.try_push_node("Work", work.work_id.as_str())?;
+    let ref_id = format!("docgroupref:{group}:{catalog_version}");
+    set.try_push_node("DocumentGroupRef", &ref_id)?;
+    set.try_push_edge("parsed_as", work.work_id.as_str(), &ref_id)?;
     Ok(set)
 }
 

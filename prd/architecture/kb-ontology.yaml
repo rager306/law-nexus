@@ -127,6 +127,10 @@ fsm:
       rule: tree presence does not write ForceStatus InForce
     - id: in_force_is_not_applicable
       rule: force edges must not write ApplicableDecision
+    - id: parsed_as_is_not_force
+      rule: Work→DocumentGroupRef parsed_as binding never writes ForceStatusEvent or ApplicableDecision
+    - id: profile_is_not_authority
+      rule: document group profile is a system_observation heuristic, never legal authority
     - id: no_sixth_clock
       rule: profile or budget cycle is not a clock
     - id: calendar_is_not_legal_effect
@@ -156,6 +160,7 @@ vocabulary:
     - MembershipEdge
     - StructuralIndustrialEvent
     - ForceStatusEvent
+    - DocumentGroupRef
   edge_kinds:
     - expression_of
     - manifestation_of
@@ -165,6 +170,7 @@ vocabulary:
     - industrial_op_target
     - force_status_of
     - prov_amending_act
+    - parsed_as
   forbidden_node_kinds:
     - ApplicableDecision
     - PracticeRulingAsForce
@@ -172,6 +178,9 @@ vocabulary:
     - ProfileCodeAsClock
     - NormRuleAsAuthority
     - NormativeBlob
+    - DocumentProfileAsAuthority
+    - ProfileBindingAsForce
+    - DocumentProfileAsClock
   presence_change_kinds:
     - include
     - exclude
@@ -333,6 +342,8 @@ vocabulary:
 document_groups:
   non_claims:
     - "document group binding is a system_observation heuristic, not legal classification"
+    - "parsed_as Work→DocumentGroupRef binding is a system_observation heuristic, never legal authority (R8-10)"
+    - "the document_groups vocabulary stays in the YAML catalog; only the binding (group + catalog version) transfers to the graph"
     - "court practice (court_practice) is text-only: practice text is not an AST (ADR-0020)"
   structural_roles:
     - container
