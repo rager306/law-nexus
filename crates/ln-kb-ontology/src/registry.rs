@@ -12,6 +12,8 @@ pub struct HierarchyRegistryBinding {
     pub path_needle: String,
     pub level: String,
     pub number: String,
+    /// Optional CC-path ladder (`statya-93/punkt-4`). Absent → flat key (D192).
+    pub path: Option<String>,
     pub cc: String,
 }
 
@@ -48,10 +50,15 @@ pub fn parse_hierarchy_registry(text: &str) -> Result<Vec<HierarchyRegistryBindi
         if path_needle.is_empty() || level.is_empty() || number.is_empty() || cc.is_empty() {
             return Err(CatalogError::new("hierarchy binding has an empty field"));
         }
+        let path = flow_field(line, "path").map(|value| value.trim().to_owned());
+        if path.as_deref().is_some_and(str::is_empty) {
+            return Err(CatalogError::new("hierarchy binding has an empty path"));
+        }
         bindings.push(HierarchyRegistryBinding {
             path_needle,
             level,
             number,
+            path,
             cc,
         });
     }
@@ -78,10 +85,11 @@ pub fn load_hierarchy_map_for_path(path: &str) -> Result<HierarchyMap, WriteSetE
     for binding in bindings_matching_path(&parsed, path) {
         let component =
             ComponentConceptId::parse(&binding.cc).map_err(|_| WriteSetError::MissingIdentity)?;
-        map.register(HierarchyBinding::try_new(
+        map.register(HierarchyBinding::try_new_with_path(
             None,
             &binding.level,
             &binding.number,
+            binding.path.as_deref(),
             component,
         )?)?;
     }

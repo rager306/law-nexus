@@ -78,6 +78,89 @@ fn missing_fields_fail_closed() {
 }
 
 #[test]
+fn yaml_binding_with_path_parses_and_resolves() {
+    use ln_kb_ontology::domain::{
+        map_hierarchy_marker, HierarchyBinding, HierarchyMap, HierarchyMapOutcome, HierarchyMarker,
+    };
+    use ln_temporal::domain::ComponentConceptId;
+    // D192: path is optional; a binding may carry the CC-path ladder.
+    let text = r#"
+schema_version: x
+bindings:
+  - {path_needle: n-1-fz, level: punkt, number: "4", path: "statya-93/punkt-4", cc: cc:work:statya-93/punkt-4}
+"#;
+    let parsed = parse_hierarchy_registry(text).expect("parse");
+    assert_eq!(parsed.len(), 1);
+    assert_eq!(parsed[0].path.as_deref(), Some("statya-93/punkt-4"));
+    let mut map = HierarchyMap::empty();
+    for binding in &parsed {
+        let component = ComponentConceptId::parse(&binding.cc).expect("cc");
+        map.register(
+            HierarchyBinding::try_new_with_path(
+                None,
+                &binding.level,
+                &binding.number,
+                binding.path.as_deref(),
+                component,
+            )
+            .expect("bind"),
+        )
+        .expect("reg");
+    }
+    let marker =
+        HierarchyMarker::try_new_with_path(None, "punkt", "4", Some("statya-93/punkt-4"), None)
+            .expect("marker");
+    match map_hierarchy_marker(&map, &marker) {
+        HierarchyMapOutcome::Bound { component } => {
+            assert_eq!(component.as_str(), "cc:work:statya-93/punkt-4");
+        }
+        other => panic!("expected Bound, got {other:?}"),
+    }
+}
+
+#[test]
+fn yaml_without_path_is_flat_valid() {
+    use ln_kb_ontology::domain::{
+        map_hierarchy_marker, HierarchyBinding, HierarchyMap, HierarchyMapOutcome, HierarchyMarker,
+    };
+    use ln_temporal::domain::ComponentConceptId;
+    // D192: absent path keeps the flat key (default path = number).
+    let text = r#"
+schema_version: x
+bindings:
+  - {path_needle: n-2-fz, level: statya, number: "93", cc: cc:44fz:art-93}
+"#;
+    let parsed = parse_hierarchy_registry(text).expect("parse");
+    assert_eq!(parsed.len(), 1);
+    assert_eq!(parsed[0].path, None);
+    let mut map = HierarchyMap::empty();
+    for binding in &parsed {
+        let component = ComponentConceptId::parse(&binding.cc).expect("cc");
+        map.register(
+            HierarchyBinding::try_new(None, &binding.level, &binding.number, component)
+                .expect("bind"),
+        )
+        .expect("reg");
+    }
+    let marker = HierarchyMarker::try_new(None, "statya", "93", None).expect("marker");
+    match map_hierarchy_marker(&map, &marker) {
+        HierarchyMapOutcome::Bound { component } => {
+            assert_eq!(component.as_str(), "cc:44fz:art-93");
+        }
+        other => panic!("expected Bound, got {other:?}"),
+    }
+}
+
+#[test]
+fn yaml_with_empty_path_is_rejected() {
+    let err = parse_hierarchy_registry(
+        "schema_version: x\nbindings:\n  - {path_needle: n-3-fz, level: punkt, number: \"4\", path: \"  \", cc: cc:x}\n",
+    )
+    .expect_err("empty path");
+    assert!(err.to_string().contains("empty path"));
+}
+
+#[test]
 fn load_expression_id_for_402_fz() {
     use ln_kb_ontology::registry::load_expression_id_for_path;
     let expr_id = load_expression_id_for_path(

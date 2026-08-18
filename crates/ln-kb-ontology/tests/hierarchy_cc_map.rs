@@ -17,6 +17,15 @@ fn marker(level: &str, number: &str) -> HierarchyMarker {
     HierarchyMarker::try_new(None, level, number, None).expect("marker")
 }
 
+fn marker_with_path(level: &str, number: &str, path: &str) -> HierarchyMarker {
+    HierarchyMarker::try_new_with_path(None, level, number, Some(path), None).expect("marker")
+}
+
+fn binding_with_path(level: &str, number: &str, path: &str, component: &str) -> HierarchyBinding {
+    HierarchyBinding::try_new_with_path(None, level, number, Some(path), cc(component))
+        .expect("binding")
+}
+
 #[test]
 fn unmapped_marker_is_unknown_not_invented_cc() {
     let map = HierarchyMap::empty();
@@ -133,4 +142,135 @@ fn fsm_only_allows_yaml_declared_edges() {
     advance_ontology_fsm("O2_decode_prefixes", "O2_calendar_ordinal").expect("declared");
     let err = advance_ontology_fsm("O1", "O6_closed_validated").expect_err("jump");
     assert!(matches!(err, WriteSetError::UnknownFsmTransition));
+}
+
+// ─── CC-path keys (D192 / review R8-11) ───────────────────────────────────────
+
+#[test]
+fn same_number_different_paths_do_not_collide() {
+    // punkt-4 under statya-93 vs punkt-4 under statya-94 must be distinct keys.
+    let mut map = HierarchyMap::empty();
+    map.register(binding_with_path(
+        "punkt",
+        "4",
+        "statya-93/punkt-4",
+        "cc:work:statya-93/punkt-4",
+    ))
+    .expect("r93");
+    map.register(binding_with_path(
+        "punkt",
+        "4",
+        "statya-94/punkt-4",
+        "cc:work:statya-94/punkt-4",
+    ))
+    .expect("r94");
+    match map_hierarchy_marker(&map, &marker_with_path("punkt", "4", "statya-93/punkt-4")) {
+        HierarchyMapOutcome::Bound { component } => {
+            assert_eq!(component.as_str(), "cc:work:statya-93/punkt-4");
+        }
+        other => panic!("expected Bound, got {other:?}"),
+    }
+    match map_hierarchy_marker(&map, &marker_with_path("punkt", "4", "statya-94/punkt-4")) {
+        HierarchyMapOutcome::Bound { component } => {
+            assert_eq!(component.as_str(), "cc:work:statya-94/punkt-4");
+        }
+        other => panic!("expected Bound, got {other:?}"),
+    }
+}
+
+#[test]
+fn deep_path_binding_resolves() {
+    let mut map = HierarchyMap::empty();
+    map.register(binding_with_path(
+        "punkt",
+        "4.2",
+        "statya-93/punkt-4/punkt-4.2",
+        "cc:work:statya-93/punkt-4/punkt-4.2",
+    ))
+    .expect("deep");
+    match map_hierarchy_marker(
+        &map,
+        &marker_with_path("punkt", "4.2", "statya-93/punkt-4/punkt-4.2"),
+    ) {
+        HierarchyMapOutcome::Bound { component } => {
+            assert_eq!(component.as_str(), "cc:work:statya-93/punkt-4/punkt-4.2");
+        }
+        other => panic!("expected Bound, got {other:?}"),
+    }
+}
+
+#[test]
+fn marker_without_path_does_not_match_path_binding() {
+    // A flat marker `punkt 4` (effective path "4") must not hit a binding
+    // whose effective path is the ladder `statya-93/punkt-4`.
+    let mut map = HierarchyMap::empty();
+    map.register(binding_with_path(
+        "punkt",
+        "4",
+        "statya-93/punkt-4",
+        "cc:work:statya-93/punkt-4",
+    ))
+    .expect("r");
+    let outcome = map_hierarchy_marker(&map, &marker("punkt", "4"));
+    assert_eq!(outcome, HierarchyMapOutcome::Unknown);
+}
+
+#[test]
+fn flat_marker_matches_flat_binding() {
+    // Default path = number keeps the flat registry working (D192).
+    let mut map = HierarchyMap::empty();
+    map.register(HierarchyBinding::try_new(None, "statya", "93", cc("cc:44fz:art-93")).expect("b"))
+        .expect("reg");
+    match map_hierarchy_marker(&map, &marker("statya", "93")) {
+        HierarchyMapOutcome::Bound { component } => {
+            assert_eq!(component.as_str(), "cc:44fz:art-93");
+        }
+        other => panic!("expected Bound, got {other:?}"),
+    }
+}
+
+#[test]
+fn same_path_two_components_is_conflict() {
+    // Collision on the (level, path) key → typed conflict, no silent overwrite.
+    let mut map = HierarchyMap::empty();
+    map.register(binding_with_path(
+        "punkt",
+        "4",
+        "statya-93/punkt-4",
+        "cc:work:statya-93/punkt-4",
+    ))
+    .expect("r1");
+    let err = map
+        .register(binding_with_path(
+            "punkt",
+            "4",
+            "statya-93/punkt-4",
+            "cc:work:statya-93/punkt-4-other",
+        ))
+        .expect_err("conflict");
+    assert!(matches!(err, WriteSetError::HierarchyMapConflict));
+}
+
+#[test]
+fn empty_path_is_rejected() {
+    let err = HierarchyMarker::try_new_with_path(None, "punkt", "4", Some("  "), None)
+        .expect_err("empty path");
+    assert!(matches!(err, WriteSetError::MissingIdentity));
+    let err = HierarchyBinding::try_new_with_path(
+        None,
+        "punkt",
+        "4",
+        Some("  "),
+        cc("cc:work:statya-93/punkt-4"),
+    )
+    .expect_err("empty binding path");
+    assert!(matches!(err, WriteSetError::MissingIdentity));
+}
+
+#[test]
+fn marker_key_path_defaults_to_number() {
+    let flat = HierarchyMarker::try_new(None, "punkt", "4", None).expect("flat");
+    assert_eq!(flat.key_path(), "4");
+    let ladder = marker_with_path("punkt", "4", "statya-93/punkt-4");
+    assert_eq!(ladder.key_path(), "statya-93/punkt-4");
 }

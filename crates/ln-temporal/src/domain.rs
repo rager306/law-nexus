@@ -784,7 +784,54 @@ pub fn join_force_with_membership(
 // Fail-closed pure structural spine only. Not a full CTV resolver, not legal
 // amendment correctness, not corpus compilation product readiness.
 
-id_type!(ComponentConceptId, "component concept id");
+/// ComponentConceptId (D191): ASCII slash permitted only here, as a path
+/// separator (`cc:work:statya-93/punkt-4/punkt-4.2`). Every slash-separated
+/// segment must be non-empty — leading/trailing/double slash is IdError.
+/// Other id_type! parsers keep rejecting slash. MAX_ID_LEN stays 64;
+/// deeper paths quarantine in the caller, not by widening the charset.
+fn parse_component_concept_id(value: &str) -> Result<String, IdError> {
+    if value.is_empty() {
+        return Err(IdError {
+            kind: "component concept id",
+            reason: "empty",
+        });
+    }
+    if value.len() > MAX_ID_LEN {
+        return Err(IdError {
+            kind: "component concept id",
+            reason: "too long",
+        });
+    }
+    if !value
+        .bytes()
+        .all(|b| b.is_ascii_alphanumeric() || matches!(b, b'-' | b'_' | b':' | b'.' | b'/'))
+    {
+        return Err(IdError {
+            kind: "component concept id",
+            reason: "unsupported character",
+        });
+    }
+    if value.split('/').any(str::is_empty) {
+        return Err(IdError {
+            kind: "component concept id",
+            reason: "empty path segment",
+        });
+    }
+    Ok(value.to_owned())
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub struct ComponentConceptId(String);
+
+impl ComponentConceptId {
+    pub fn parse(value: &str) -> Result<Self, IdError> {
+        parse_component_concept_id(value).map(Self)
+    }
+    pub fn as_str(&self) -> &str {
+        &self.0
+    }
+}
+
 id_type!(CtvId, "ctv id");
 id_type!(AmendingActId, "amending act id");
 id_type!(IndustrialOpId, "industrial op id");

@@ -547,11 +547,13 @@ pub fn marker_from_decode_token(
 }
 
 /// Decode-facing candidate marker. Number+level is not a ComponentConcept.
+/// `path` (D192) is optional; the effective key path defaults to `number`.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct HierarchyMarker {
     work_id: Option<String>,
     level: String,
     number: String,
+    path: Option<String>,
     title: Option<String>,
 }
 
@@ -562,6 +564,18 @@ impl HierarchyMarker {
         number: &str,
         title: Option<&str>,
     ) -> Result<Self, WriteSetError> {
+        Self::try_new_with_path(work_id, level, number, None, title)
+    }
+
+    /// `path` is the ladder of component identifiers (`statya-93/punkt-4`).
+    /// `None` keeps the flat key: the effective path is then `number`.
+    pub fn try_new_with_path(
+        work_id: Option<&str>,
+        level: &str,
+        number: &str,
+        path: Option<&str>,
+        title: Option<&str>,
+    ) -> Result<Self, WriteSetError> {
         let number = number.trim();
         if number.is_empty() {
             return Err(WriteSetError::MissingIdentity);
@@ -569,10 +583,21 @@ impl HierarchyMarker {
         if title.is_some_and(|value| value.trim().is_empty()) {
             return Err(WriteSetError::MissingIdentity);
         }
+        let path = match path {
+            Some(value) => {
+                let trimmed = value.trim();
+                if trimmed.is_empty() {
+                    return Err(WriteSetError::MissingIdentity);
+                }
+                Some(trimmed.to_owned())
+            }
+            None => None,
+        };
         Ok(Self {
             work_id: work_id.map(str::to_owned),
             level: catalog_level(level)?,
             number: number.to_owned(),
+            path,
             title: title.map(str::to_owned),
         })
     }
@@ -583,6 +608,15 @@ impl HierarchyMarker {
 
     pub fn number(&self) -> &str {
         &self.number
+    }
+
+    pub fn path(&self) -> Option<&str> {
+        self.path.as_deref()
+    }
+
+    /// Effective registry key path: explicit `path`, else `number` (D192).
+    pub fn key_path(&self) -> &str {
+        self.path.as_deref().unwrap_or(self.number.as_str())
     }
 
     pub fn title(&self) -> Option<&str> {
@@ -596,6 +630,7 @@ pub struct HierarchyBinding {
     work_id: Option<String>,
     level: String,
     number: String,
+    path: Option<String>,
     component: ComponentConceptId,
 }
 
@@ -606,16 +641,56 @@ impl HierarchyBinding {
         number: &str,
         component: ComponentConceptId,
     ) -> Result<Self, WriteSetError> {
+        Self::try_new_with_path(work_id, level, number, None, component)
+    }
+
+    /// `path` is the ladder of component identifiers (`statya-93/punkt-4`).
+    /// `None` keeps the flat key: the effective path is then `number`.
+    pub fn try_new_with_path(
+        work_id: Option<&str>,
+        level: &str,
+        number: &str,
+        path: Option<&str>,
+        component: ComponentConceptId,
+    ) -> Result<Self, WriteSetError> {
         let number = number.trim();
         if number.is_empty() || component.as_str().is_empty() {
             return Err(WriteSetError::MissingIdentity);
         }
+        let path = match path {
+            Some(value) => {
+                let trimmed = value.trim();
+                if trimmed.is_empty() {
+                    return Err(WriteSetError::MissingIdentity);
+                }
+                Some(trimmed.to_owned())
+            }
+            None => None,
+        };
         Ok(Self {
             work_id: work_id.map(str::to_owned),
             level: catalog_level(level)?,
             number: number.to_owned(),
+            path,
             component,
         })
+    }
+
+    pub fn level(&self) -> &str {
+        &self.level
+    }
+
+    pub fn number(&self) -> &str {
+        &self.number
+    }
+
+    pub fn path(&self) -> Option<&str> {
+        self.path.as_deref()
+    }
+
+    /// Effective registry key path: explicit `path`, else `number` (D192).
+    pub fn key_path(&self) -> &str {
+        self.path.as_deref().unwrap_or(self.number.as_str())
     }
 
     pub fn component(&self) -> &ComponentConceptId {
@@ -649,7 +724,7 @@ impl HierarchyMap {
 fn same_key(left: &HierarchyBinding, right: &HierarchyBinding) -> bool {
     left.work_id.as_deref() == right.work_id.as_deref()
         && left.level == right.level
-        && left.number == right.number
+        && left.key_path() == right.key_path()
 }
 
 /// Lift outcome. Unknown is honest absence, never an invented CC.
@@ -747,7 +822,7 @@ pub fn map_hierarchy_marker(map: &HierarchyMap, marker: &HierarchyMarker) -> Hie
     match map.bindings.iter().find(|item| {
         item.work_id.as_deref() == marker.work_id.as_deref()
             && item.level == marker.level
-            && item.number == marker.number
+            && item.key_path() == marker.key_path()
     }) {
         Some(binding) => HierarchyMapOutcome::Bound {
             component: binding.component.clone(),
@@ -1501,7 +1576,7 @@ pub fn drafts_from_marker_diff(
 }
 
 pub fn diff_marker_sets(before: &[HierarchyMarker], after: &[HierarchyMarker]) -> MarkerDiff {
-    let key = |m: &HierarchyMarker| (m.level().to_owned(), m.number().to_owned());
+    let key = |m: &HierarchyMarker| (m.level().to_owned(), m.key_path().to_owned());
     let before_set: std::collections::HashSet<(String, String)> = before.iter().map(key).collect();
     let after_set: std::collections::HashSet<(String, String)> = after.iter().map(key).collect();
 
