@@ -549,3 +549,112 @@ fn replay_missing_args_exits_with_usage_error_code() {
         assert_eq!(out.status.code(), Some(2), "replay {args:?} must exit 2");
     }
 }
+
+// ─── M171 S03 T02: subordinate-acts report ─────────────────────────────────
+
+fn pp60_fixture() -> String {
+    [
+        env!("CARGO_MANIFEST_DIR"),
+        "..",
+        "..",
+        "law-source",
+        "garant",
+        "PP_60_27-01-2022.odt",
+    ]
+    .iter()
+    .collect::<std::path::PathBuf>()
+    .to_string_lossy()
+    .into_owned()
+}
+
+/// Bounded subordinate-acts report (M171 S03 T02): the binary reports CC
+/// punkt counts and resolve_ctv counters for a real ПП file without any
+/// YAML registry bindings and without the edition-day registry (both are
+/// federal_law-only). The report is counts-only JSON — no raw legal text.
+#[test]
+fn subordinates_report_on_tracked_pp_is_bounded_json() {
+    let fixture = pp60_fixture();
+    if !std::path::Path::new(&fixture).exists() {
+        eprintln!("SKIP: Garant corpus not available");
+        return;
+    }
+    let out = Command::new(binary())
+        .args(["subordinates", "resolution", &fixture])
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped())
+        .output()
+        .expect("spawn");
+    assert!(
+        out.status.success(),
+        "subordinates must exit 0; stderr={}",
+        String::from_utf8_lossy(&out.stderr)
+    );
+    let stdout = String::from_utf8(out.stdout).unwrap();
+    assert!(
+        stdout.contains("\"phase\":\"Subordinates\""),
+        "expected Subordinates phase; got: {}",
+        stdout
+    );
+    assert!(
+        stdout.contains("\"status\":\"ok\""),
+        "expected ok status; got: {}",
+        stdout
+    );
+    assert!(
+        stdout.contains("\"document_group\":\"government_resolution\""),
+        "kind=resolution must bind government_resolution; got: {}",
+        stdout
+    );
+    // Visible skip state: the document date is derivable from the filename,
+    // so the report is NOT skipped and the skip_reason is empty.
+    assert!(
+        stdout.contains("\"skip_reason\":\"\""),
+        "skip_reason must be empty when the date parses; got: {}",
+        stdout
+    );
+    // CC punkt count and resolve_ctv counters (the slice report contract).
+    assert!(
+        inspect_u64(&stdout, "punkt_units") > 0,
+        "punkt_units must be positive; {stdout}"
+    );
+    assert!(
+        inspect_u64(&stdout, "cc_punkts") > 0,
+        "cc_punkts must be positive; {stdout}"
+    );
+    assert!(
+        inspect_u64(&stdout, "ctv_resolved") > 0,
+        "ctv_resolved must be positive; {stdout}"
+    );
+    assert!(
+        inspect_u64(&stdout, "effect_day") > 0,
+        "effect_day must be a valid ordinal; {stdout}"
+    );
+    // Bounded non-claims and no raw legal text in the counts-only report.
+    assert!(
+        stdout.contains("Fixture-minted CCs are test-local, not registry identity"),
+        "non_claims must document the fixture boundary; {stdout}"
+    );
+    assert!(
+        !stdout.contains("Утвердить прилагаемые"),
+        "raw legal text must not leak into the report; got first 400 chars: {}",
+        &stdout[..stdout.len().min(400)]
+    );
+}
+
+#[test]
+fn subordinates_missing_args_exits_with_usage_error_code() {
+    for args in [vec!["subordinates"], vec!["subordinates", "resolution"]] {
+        let out = Command::new(binary())
+            .args(&args)
+            .stdout(Stdio::piped())
+            .stderr(Stdio::piped())
+            .output()
+            .expect("spawn");
+        assert!(!out.status.success(), "subordinates {args:?} must fail");
+        assert_eq!(
+            out.status.code(),
+            Some(2),
+            "subordinates {args:?} must exit 2"
+        );
+    }
+}

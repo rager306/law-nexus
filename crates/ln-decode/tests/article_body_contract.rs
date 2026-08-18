@@ -167,6 +167,16 @@ fn departmental_order() -> GroupProfile {
         .clone()
 }
 
+/// Embedded government_resolution profile: unit=punkt (dot style "."),
+/// container=prilozhenie (surface).
+fn government_resolution() -> GroupProfile {
+    let profile = StructuralProfile::embedded().expect("embedded kb-ontology.yaml");
+    profile
+        .group("government_resolution")
+        .expect("government_resolution group")
+        .clone()
+}
+
 /// Embedded court_practice profile: text-only, no structure.
 fn court_practice() -> GroupProfile {
     let profile = StructuralProfile::embedded().expect("embedded kb-ontology.yaml");
@@ -580,5 +590,36 @@ fn undeclared_marker_level_fails_closed_to_boundary() {
         !bodies[0].text().contains("Текст части"),
         "{}",
         bodies[0].text()
+    );
+}
+
+#[test]
+fn government_resolution_dot_style_punkt_units_via_group_style() {
+    // PP "1." points decode as Chast (global decode catalog), which the
+    // government_resolution ladder does not declare — the group's own dot
+    // style reclassifies them as punkt units (R8-04: group number styles
+    // are authoritative). federal_law@v1 declares all seven decode levels,
+    // so this fallback never fires for it (bitwise anchor preserved).
+    let mut bb = BlockBuilder::new();
+    let blocks = vec![
+        bb.push(ParagraphStyle::BodyText, "1. Утвердить прилагаемые:"),
+        bb.push(ParagraphStyle::BodyText, "Положение о системе."),
+        bb.push(ParagraphStyle::BodyText, "2. Установить, что:"),
+        bb.push(ParagraphStyle::BodyText, "Требование действует."),
+    ];
+    let bodies = collect_article_texts(&government_resolution(), &blocks);
+    assert_eq!(bodies.len(), 2, "dot-style points must be punkt units");
+    assert_eq!(bodies[0].number(), "1");
+    assert_eq!(bodies[0].title(), Some("Утвердить прилагаемые:"));
+    assert!(
+        bodies[0].text().contains("Положение о системе"),
+        "{}",
+        bodies[0].text()
+    );
+    assert_eq!(bodies[1].number(), "2");
+    assert!(
+        bodies[1].text().contains("Требование действует"),
+        "{}",
+        bodies[1].text()
     );
 }

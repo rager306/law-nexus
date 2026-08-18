@@ -8,6 +8,7 @@ use ln_decode::{
         garant_odt::GarantOdtBlockDecoder, garant_odt_package::read_odt_content_xml,
         ConsultantWordMlBlockDecoder,
     },
+    article_body::collect_article_texts,
     deontic::extract_deontic_lexemes,
     domain::{
         fingerprint_bytes, DecodeRequest, FamilyFormat, HierarchyNode, ParagraphStyle, PayloadRef,
@@ -22,8 +23,8 @@ use ln_decode::{
 use ln_kb_ontology::domain::{
     admit_membership_proposals, assemble_with_oracle_diff, build_text_log_from_articles,
     diff_marker_sets, drafts_from_marker_diff, map_hierarchy_marker, marker_from_decode_token,
-    propose_membership_from_markers, resolve_ctv, AmendmentDraftOp, CtvResolution, HierarchyMap,
-    HierarchyMapOutcome, HierarchyMarker, WriteSetError,
+    propose_membership_from_markers, resolve_ctv, AmendmentDraftOp, CtvResolution,
+    HierarchyBinding, HierarchyMap, HierarchyMapOutcome, HierarchyMarker, WriteSetError,
 };
 use ln_kb_ontology::registry::{
     load_edition_day_for_path, load_expression_id_for_path, load_hierarchy_map_for_path,
@@ -456,8 +457,19 @@ fn main() {
             }
             replay(&seed, &target);
         }
+        Some("subordinates") => {
+            let kind = args.get(1).cloned().unwrap_or_default();
+            let path = args.get(2).cloned().unwrap_or_default();
+            if kind.is_empty() || path.is_empty() {
+                eprintln!("usage: law-nexus-inspect subordinates <resolution|order> <path>");
+                process::exit(2);
+            }
+            subordinates(&kind, &path);
+        }
         _ => {
-            eprintln!("usage: law-nexus-inspect <health|inspect <path>|replay <seed> <target>>");
+            eprintln!(
+                "usage: law-nexus-inspect <health|inspect <path>|replay <seed> <target>|subordinates <resolution|order> <path>>"
+            );
             process::exit(2);
         }
     }
@@ -736,6 +748,315 @@ fn collect_ccs(node: &ln_temporal::domain::StructuralAstNode, out: &mut Vec<Comp
     }
 }
 
+/// Bounded subordinate-acts report (M171 S03 T02).
+///
+/// `kind` is the document-kind metadata input for group detection
+/// (`resolution` → government_resolution, `order` → departmental_order);
+/// the Cyrillic corpus filenames carry no Latin path needle, so the kind
+/// needle is passed explicitly. The report proves the punkt-atom groups
+/// applied on the real Garant ODT corpus:
+///
+/// - punkt units per the bound group's ladder (group number styles are
+///   authoritative, R8-04 — PP "1." points decode as Chast but collect as
+///   punkt units for government_resolution);
+/// - fixture-minted CCs for punkt units (explicitly NOT registry identity —
+///   the hierarchy registry has no subordinate-act bindings, only ФЗ);
+/// - a TextVersionLog + resolve_ctv on a synthetic effect day derived from
+///   the document date in the filename (NOT the edition-day registry, which
+///   parses only law_* paths);
+/// - an explicit `skip_reason` when the effect day cannot be derived
+///   (fail-closed: no day means no text-CTV, visibly reported).
+///
+/// Bounded non-claim: single-snapshot text-CTV; fixture CCs are test-local;
+/// duplicate punkt numbers across sections collide on the flat key and are
+/// reported as honest Conflicts (fail-closed), never silently merged.
+fn subordinates(kind: &str, path: &str) {
+    let start = Instant::now();
+
+    let bytes = match fs::read(path) {
+        Ok(b) => b,
+        Err(e) => print_failure("Io", "ReadFailure", &e.to_string(), start),
+    };
+    let byte_count = bytes.len();
+    let fingerprint = fingerprint_bytes(&bytes);
+
+    let family = FamilyFormat::parse("family:garant-odt").unwrap();
+    let payload = PayloadRef::parse("payload:law-nexus-subordinates").unwrap();
+    let request = DecodeRequest::new(payload, family, &bytes);
+    read_odt_content_xml(&request)
+        .unwrap_or_else(|e| print_failure("Parse", "MalformedInput", &format!("ODT: {e}"), start));
+    let blocks = GarantOdtBlockDecoder
+        .decode_blocks(&request)
+        .unwrap_or_else(|e| {
+            print_failure(
+                "Parse",
+                "MalformedInput",
+                &format!("{:?}: offset={:?}", e.kind(), e.byte_offset()),
+                start,
+            )
+        });
+
+    let embedded = StructuralProfile::embedded()
+        .unwrap_or_else(|e| print_failure("Catalog", "Unavailable", e, start));
+    let detection = embedded.detect(Some(path), Some(kind), None, &blocks);
+    let (document_group, detection_factor, detection_unknown, detection_conflict) = match &detection
+    {
+        GroupDetection::Bound { group, factor } => {
+            let factor_str = match factor {
+                DetectionFactor::Needle => "needle",
+                DetectionFactor::NeedleAndProbe => "needle_and_probe",
+            };
+            (group.clone(), factor_str.to_owned(), 0u64, 0u64)
+        }
+        GroupDetection::Unknown { .. } => ("Unknown".to_owned(), "none".to_owned(), 1u64, 0u64),
+        GroupDetection::Conflict { .. } => ("Conflict".to_owned(), "none".to_owned(), 0u64, 1u64),
+    };
+
+    // Punkt units via the bound group's ladder (fail-closed: no bound group
+    // means no unit bodies — an absent group is a visible Unknown).
+    let units: Vec<ln_decode::article_body::ArticleText> = match &detection {
+        GroupDetection::Bound { group, .. } => embedded
+            .group(group)
+            .map(|profile| collect_article_texts(profile, &blocks))
+            .unwrap_or_default(),
+        _ => Vec::new(),
+    };
+
+    // Fixture CC minting: flat `cc:<work>:punkt-<number>`. Duplicate numbers
+    // (PP punkt and an appended regulation punkt sharing "1") collide on the
+    // flat key and surface as resolve_ctv Conflicts — honest, not silent.
+    let act = subordinate_work_id(path);
+    let mut map = HierarchyMap::empty();
+    let mut cc_punkts = 0usize;
+    for unit in &units {
+        let Ok(cc) = ComponentConceptId::parse(&format!("cc:{act}:punkt-{}", unit.number())) else {
+            continue;
+        };
+        let Ok(binding) = HierarchyBinding::try_new(None, "punkt", unit.number(), cc) else {
+            continue;
+        };
+        if map.register(binding).is_ok() {
+            cc_punkts += 1;
+        }
+    }
+
+    // Synthetic effect day from the document date in the filename (bounded
+    // Russian-date extractor). NOT the edition-day registry — subordinate
+    // acts have no registry entries (the registry holds only ФЗ).
+    let effect_day = subordinate_effect_day_from_filename(path);
+    let skip_reason = if effect_day.is_some() {
+        String::new()
+    } else {
+        "no_document_date".to_owned()
+    };
+
+    let provenance = format!("fixture:subordinate:{act}");
+    let (text_log_events, ctv_resolved, ctv_conflict) = if let Some(day) = effect_day {
+        let log = build_text_log_from_articles(
+            &map,
+            units
+                .iter()
+                .map(|u| ("punkt", u.number(), u.title(), u.text() as &str)),
+            day,
+            &provenance,
+        );
+        let events = log.events().len();
+        let mut seen = std::collections::HashSet::new();
+        let mut resolved = 0usize;
+        let mut conflict = 0usize;
+        for event in log.events() {
+            if !seen.insert(event.component().as_str()) {
+                continue;
+            }
+            match resolve_ctv(&log, event.component(), day) {
+                CtvResolution::Resolved { .. } => resolved += 1,
+                CtvResolution::Conflict { .. } => conflict += 1,
+                _ => {}
+            }
+        }
+        (events, resolved, conflict)
+    } else {
+        (0, 0, 0)
+    };
+
+    let duration_ms = start.elapsed().as_millis();
+    let document_group_esc = json_escape(&document_group);
+    let skip_reason_esc = json_escape(&skip_reason);
+    println!(
+        "{{\"phase\":\"Subordinates\",\"status\":\"ok\",\"binary\":\"{BINARY}\",\"runtime\":\"rust\",\
+         \"duration_ms\":{duration_ms},\
+         \"source\":{{\"path\":\"{}\",\"bytes\":{byte_count},\"fingerprint\":\"{fingerprint}\"}},\
+         \"family\":\"family:garant-odt\",\
+         \"result\":{{\
+         \"document_group\":\"{document_group_esc}\",\
+         \"detection_factor\":\"{detection_factor}\",\
+         \"detection_unknown\":{detection_unknown},\
+         \"detection_conflict\":{detection_conflict},\
+         \"punkt_units\":{},\
+         \"cc_punkts\":{cc_punkts},\
+         \"text_log_events\":{text_log_events},\
+         \"ctv_resolved\":{ctv_resolved},\
+         \"ctv_conflict\":{ctv_conflict},\
+         \"effect_day\":{},\
+         \"skip_reason\":\"{skip_reason_esc}\",\
+         \"expression_id\":\"{provenance}\"\
+         }},\
+         \"non_claims\":[\"Fixture-minted CCs are test-local, not registry identity\",\
+         \"Synthetic effect day from document date; edition-day registry is federal_law-only\",\
+         \"Single-snapshot text-CTV; no corpus history claims\",\
+         \"Duplicate punkt numbers collide on flat fixture keys and surface as Conflicts, never silent merge\",\
+         \"document group binding is a system_observation heuristic (ADR-0020), not legal classification\"]}}",
+        json_escape(path),
+        units.len(),
+        effect_day.unwrap_or(0),
+    );
+}
+
+/// Bounded fixture work id for a subordinate act filename: `pp-<act number>`
+/// when the number is extractable (`PP_60_…`, `№ 60`, `N 1875`), else
+/// `subordinate` (documented fixture fallback). Deterministic per path.
+fn subordinate_work_id(path: &str) -> String {
+    let name = path.rsplit('/').next().unwrap_or(path);
+    let lower = name.to_lowercase();
+    // Prefer the act number after `N ` / `№` (Latin/№ markers) or `PP_`.
+    // The day/date runs come earlier in Cyrillic filenames and are NOT the
+    // act number, so the marker-anchored scan runs first.
+    for marker in ["n ", "№", "pp_"] {
+        if let Some(rel) = lower.find(marker) {
+            let after = &name[rel + marker.len()..];
+            let digits: String = after
+                .chars()
+                .skip_while(|c| !c.is_ascii_digit())
+                .take_while(|c| c.is_ascii_digit())
+                .take(5)
+                .collect();
+            if !digits.is_empty() {
+                return format!("pp-{digits}");
+            }
+        }
+    }
+    // Fallback: first short digit run (act-number heuristic).
+    let digits: Vec<&str> = name
+        .split(|c: char| !c.is_ascii_digit())
+        .filter(|part| !part.is_empty())
+        .collect();
+    if let Some(first) = digits.first() {
+        if first.len() <= 4 {
+            return format!("pp-{first}");
+        }
+    }
+    "subordinate".to_owned()
+}
+
+/// Bounded Russian-document-date extractor (fixture, M171 S03 T02).
+///
+/// Accepts `от <ДД> <месяц> <ГГГГ>` (Cyrillic month names) and
+/// `ДД-ММ-ГГГГ` / `ДД.ММ.ГГГГ` patterns in the basename; normalizes to
+/// ISO `ГГГГ-ММ-ДД` and converts via the temporal calendar. Returns None
+/// when no date is derivable — the caller reports a visible `skip_reason`.
+fn subordinate_effect_day_from_filename(path: &str) -> Option<i64> {
+    let name = path.rsplit('/').next().unwrap_or(path);
+    let iso = russian_date_to_iso(name)?;
+    ln_temporal::calendar::legal_act_effect_day_to_ordinal(&iso).ok()
+}
+
+/// Normalize a Russian document date found in `name` to `ГГГГ-ММ-ДД`.
+///
+/// Two bounded patterns, tried in order: `от <ДД> <месяц> <ГГГГ>` with
+/// Cyrillic month names, then any `ДД<sep>ММ<sep>ГГГГ` numeric triple
+/// (`-` or `.` separators) scanned anywhere in the basename.
+fn russian_date_to_iso(name: &str) -> Option<String> {
+    const MONTHS: [(&str, &str); 12] = [
+        ("января", "01"),
+        ("февраля", "02"),
+        ("марта", "03"),
+        ("апреля", "04"),
+        ("мая", "05"),
+        ("июня", "06"),
+        ("июля", "07"),
+        ("августа", "08"),
+        ("сентября", "09"),
+        ("октября", "10"),
+        ("ноября", "11"),
+        ("декабря", "12"),
+    ];
+    let lower = name.to_lowercase();
+    // `от 27 января 2022 г` → DD month YYYY.
+    for (month_ru, month_num) in MONTHS {
+        if let Some(rel) = lower.find(month_ru) {
+            let before = &lower[..rel];
+            let day: String = before
+                .trim_end()
+                .chars()
+                .rev()
+                .take_while(|c| c.is_ascii_digit())
+                .collect::<String>()
+                .chars()
+                .rev()
+                .collect();
+            let after = &lower[rel + month_ru.len()..];
+            let year: String = after
+                .chars()
+                .skip_while(|c| !c.is_ascii_digit())
+                .take_while(|c| c.is_ascii_digit())
+                .take(4)
+                .collect();
+            if day.len() == 2 && year.len() == 4 {
+                return Some(format!("{year}-{month_num}-{day}"));
+            }
+            if day.len() == 1 && year.len() == 4 {
+                return Some(format!("{year}-{month_num}-0{day}"));
+            }
+        }
+    }
+    // `27-01-2022` / `27.01.2022` — scan for a DD<sep>MM<sep>YYYY triple
+    // anywhere in the basename (the stem may carry `PP_60_`-style prefixes).
+    let bytes = name.as_bytes();
+    let mut i = 0usize;
+    while i < bytes.len() {
+        if !bytes[i].is_ascii_digit() {
+            i += 1;
+            continue;
+        }
+        let day_start = i;
+        while i < bytes.len() && bytes[i].is_ascii_digit() {
+            i += 1;
+        }
+        let day_len = i - day_start;
+        if !(1..=2).contains(&day_len) || i >= bytes.len() || !matches!(bytes[i], b'-' | b'.') {
+            continue;
+        }
+        let sep = bytes[i];
+        i += 1;
+        let month_start = i;
+        while i < bytes.len() && bytes[i].is_ascii_digit() {
+            i += 1;
+        }
+        let month_len = i - month_start;
+        if !(1..=2).contains(&month_len) || i >= bytes.len() || bytes[i] != sep {
+            continue;
+        }
+        i += 1;
+        let year_start = i;
+        while i < bytes.len() && bytes[i].is_ascii_digit() {
+            i += 1;
+        }
+        let year_len = i - year_start;
+        if year_len != 4 {
+            continue;
+        }
+        let day = &name[day_start..day_start + day_len];
+        let month = &name[month_start..month_start + month_len];
+        let year = &name[year_start..year_start + 4];
+        let dayn: u32 = day.parse().ok()?;
+        let monthn: u32 = month.parse().ok()?;
+        if (1..=31).contains(&dayn) && (1..=12).contains(&monthn) {
+            return Some(format!("{year}-{month:0>2}-{day:0>2}"));
+        }
+    }
+    None
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -815,5 +1136,70 @@ mod tests {
             .non_claims()
             .iter()
             .any(|claim| claim.contains("Unknown") || claim.contains("ComponentConcept")));
+    }
+
+    // --- M171 S03 T02: bounded subordinate-act fixture helpers ---
+
+    #[test]
+    fn subordinate_work_id_prefers_act_number() {
+        assert_eq!(
+            subordinate_work_id("law-source/garant/PP_60_27-01-2022.odt"),
+            "pp-60"
+        );
+        assert_eq!(
+            subordinate_work_id(
+                "law-source/garant/Постановление Правительства РФ от 23 декабря 2024 г N 1875 О м.odt"
+            ),
+            "pp-1875"
+        );
+    }
+
+    #[test]
+    fn subordinate_work_id_falls_back_to_subordinate() {
+        assert_eq!(subordinate_work_id("some/path/unknown.odt"), "subordinate");
+    }
+
+    #[test]
+    fn russian_date_to_iso_parses_cyrillic_month() {
+        assert_eq!(
+            russian_date_to_iso("Постановление Правительства РФ от 27 января 2022 г. № 60"),
+            Some("2022-01-27".to_owned())
+        );
+        assert_eq!(
+            russian_date_to_iso(
+                "Постановление Правительства Российской Федерации от 23 декабря 2024 г N 1875"
+            ),
+            Some("2024-12-23".to_owned())
+        );
+    }
+
+    #[test]
+    fn russian_date_to_iso_parses_dash_and_dot_dates() {
+        assert_eq!(
+            russian_date_to_iso("PP_60_27-01-2022.odt"),
+            Some("2022-01-27".to_owned())
+        );
+        assert_eq!(
+            russian_date_to_iso("PP_60_27.01.2022.odt"),
+            Some("2022-01-27".to_owned())
+        );
+    }
+
+    #[test]
+    fn russian_date_to_iso_rejects_missing_date() {
+        assert_eq!(russian_date_to_iso("44-fz.odt"), None);
+        assert_eq!(russian_date_to_iso("PP_60.odt"), None);
+    }
+
+    #[test]
+    fn subordinate_effect_day_converts_via_temporal_calendar() {
+        // PP_60 (27-01-2022) must map to a valid civil-day ordinal.
+        let day = subordinate_effect_day_from_filename("law-source/garant/PP_60_27-01-2022.odt");
+        assert!(day.is_some(), "PP_60 must yield an effect day");
+        // A path with no derivable date must be None -> visible skip_reason.
+        assert_eq!(
+            subordinate_effect_day_from_filename("law-source/garant/44-fz.odt"),
+            None
+        );
     }
 }

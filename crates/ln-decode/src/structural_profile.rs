@@ -349,11 +349,23 @@ impl StructuralProfile {
     /// dots are honored when the entry declares `compound: true` or is
     /// recursive (R8-03: ПП/orders reach compound depth 3–4).
     fn numbered_match(text: &str, entry: &LadderEntry) -> bool {
-        let Some(suffix) = entry.suffix.as_deref() else {
+        entry.numbered_matches(text)
+    }
+}
+
+impl LadderEntry {
+    /// Does `text` start with this entry's declared numbered-marker style
+    /// (suffix + number style + compound/recursive)? Shared by the group
+    /// probe (`block_matches_unit`) and the article-body collector fallback
+    /// (group number styles are authoritative, R8-04). Surface-only tokens
+    /// (primechanie/prilozhenie) never match here — they are recognized by
+    /// their surface prefix (R8-09).
+    pub(crate) fn numbered_matches(&self, text: &str) -> bool {
+        let Some(suffix) = self.suffix.as_deref() else {
             return false;
         };
-        let style = entry.number_style.as_deref().unwrap_or("digit");
-        let allow_compound = entry.compound == Some(true) || entry.recursive;
+        let style = self.number_style.as_deref().unwrap_or("digit");
+        let allow_compound = self.compound == Some(true) || self.recursive;
         let bytes = text.as_bytes();
         let end = match style {
             "letter_cyrillic" => {
@@ -385,6 +397,20 @@ impl StructuralProfile {
             }
         };
         text[end..].starts_with(suffix)
+    }
+}
+
+impl GroupProfile {
+    /// First ladder entry whose declared numbered-marker style matches
+    /// `text`. Used by the article-body collector to reclassify decode-level
+    /// markers that the group's ladder does not declare (e.g. PP "1." points
+    /// decode as Chast but are punkt units for government_resolution — the
+    /// group's dot style is authoritative, R8-04). Surface-only entries are
+    /// skipped (they never match numbered styles, R8-09).
+    pub(crate) fn style_match(&self, text: &str) -> Option<&LadderEntry> {
+        self.ladder
+            .iter()
+            .find(|entry| entry.surface.is_none() && entry.numbered_matches(text))
     }
 }
 

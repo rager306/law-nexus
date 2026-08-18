@@ -172,7 +172,17 @@ pub fn collect_article_texts(profile: &GroupProfile, blocks: &[ParsedBlock]) -> 
         }
         if let Some(node) = extract_hierarchy(block) {
             let level = node.level().as_str();
-            let Some(entry) = entry_for(&profile.ladder, level) else {
+            let entry = entry_for(&profile.ladder, level).or_else(|| {
+                // Decode-level marker not declared in this group's ladder:
+                // the group's own number styles are authoritative (R8-04).
+                // Reclassify the decoded node via the ladder style match
+                // (e.g. PP "1." points decode as Chast but are punkt units
+                // for government_resolution). No style match -> fail-closed
+                // boundary below. federal_law@v1 declares all seven decode
+                // levels, so this fallback never fires for it (anchor).
+                profile.style_match(text)
+            });
+            let Some(entry) = entry else {
                 // Undeclared marker level: fail-closed boundary (reset).
                 current = None;
                 continue;
