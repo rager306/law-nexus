@@ -1216,6 +1216,82 @@ _CORPUS_GROUNDING_REGISTRY_REL = Path("prd/architecture/kb-hierarchy-registry.ya
 _CORPUS_GROUNDING_ENV = "CONSULTANT_EXPORT_DIR"
 _CORPUS_GROUNDING_NEEDLE_RE = re.compile(r"path_needle:\s*([^\s,}]+)")
 _CORPUS_GROUNDING_DEFAULT_EXPORT = "consru_export"
+_DOCUMENT_GROUP_VERSION_RE = re.compile(r"^fnv1a64-[0-9a-f]{16}$")
+_DOCUMENT_GROUP_NEEDLE_FIELDS = {"kind", "type", "path"}
+_DOCUMENT_GROUP_SUFFIXES = {".", ")"}
+_DOCUMENT_GROUP_NUMBER_STYLES = {"digit", "letter_cyrillic", "roman_or_digit"}
+
+
+def _strip_comment(line: str) -> str:
+    """Mirror of ln-kb-ontology `strip_comment`: cut at first `#`, then rstrip."""
+    marker = line.find("#")
+    if marker < 0:
+        return line.rstrip()
+    return line[:marker].rstrip()
+
+
+def _section_lines(text: str, heading: str) -> list[str] | None:
+    """Mirror of ln-kb-ontology `section_lines`: raw section lines in order.
+
+    Returns the raw (original-indentation) lines of the top-level mapping
+    section starting at ``heading`` until the next line at or above the heading
+    indent. Blank and comment-only lines are skipped; the heading line itself
+    is excluded. ``None`` when the heading is absent (fail-closed, matches
+    Rust ``section_lines`` returning ``Option``).
+    """
+    found = False
+    heading_indent = 0
+    out: list[str] = []
+    for raw in text.split("\n"):
+        if raw.endswith("\r"):
+            raw = raw[:-1]
+        trimmed = _strip_comment(raw)
+        if not trimmed.strip():
+            continue
+        indent = len(raw) - len(raw.lstrip())
+        if not found:
+            if trimmed.strip() == heading:
+                found = True
+                heading_indent = indent
+            continue
+        if indent <= heading_indent:
+            break
+        out.append(raw)
+    return out if found else None
+
+
+def _section_fnv1a64(text: str, heading: str) -> str:
+    """FNV-1a 64-bit hash of raw section lines (Python mirror of Rust).
+
+    Deterministic and byte-identical to `ln-kb-ontology` catalog.rs
+    `section_fnv1a64`: each raw line's UTF-8 bytes feed the FNV-1a 64 state,
+    then a trailing ``\\n`` byte per line. Hex-encoded as
+    ``fnv1a64-<16 lowercase hex>``; absent section yields an empty string
+    (fail-closed). The harness Governor uses this to detect catalog drift: a
+    parsed_as binding carrying an older `catalog_version` is a visible
+    warning, never a silent skip.
+    """
+    const_offset: int = 0xCBF29CE484222325
+    const_prime: int = 0x100000001B3
+    mask = (1 << 64) - 1
+    lines = _section_lines(text, heading)
+    if lines is None:
+        return ""
+    hash_value = const_offset
+    for raw in lines:
+        for byte in raw.encode("utf-8"):
+            hash_value ^= byte
+            hash_value = (hash_value * const_prime) & mask
+        hash_value ^= 0x0A
+        hash_value = (hash_value * const_prime) & mask
+    return f"fnv1a64-{hash_value:016x}"
+
+
+def document_groups_section_hash(text: str) -> str:
+    """Python mirror of `ln-kb-ontology::catalog::document_groups_section_hash`."""
+    return _section_fnv1a64(text, "document_groups:")
+
+
 _RUST_ENUM_RE = re.compile(
     r"pub enum (?P<name>[A-Za-z0-9_]+) \{(?P<body>.*?)\n\}",
     re.DOTALL,
@@ -1612,6 +1688,238 @@ def check_kb_ontology_draft(root: Path) -> list[GovernorFinding]:
     ]
 
 
+def _document_groups_path_needles(root: Path) -> list[str]:
+    """Extract `field: path` needles from the document_groups catalog.
+
+    Advisory corpus-grounding source (KBO-R059 pattern extension): the
+    structural-profile groups declare path needles that must ground on real
+    corpus paths when a ConsultantPlus export is present. Empty list when the
+    YAML is absent, unparsable, or declares no path needles (fixture roots).
+    """
+    yaml_path = root / _KB_ONTOLOGY_YAML_REL
+    if not yaml_path.is_file():
+        return []
+    try:
+        import yaml
+
+        catalog = yaml.safe_load(yaml_path.read_text(encoding="utf-8")) or {}
+    except (OSError, yaml.YAMLError):
+        return []
+    doc_groups = catalog.get("document_groups") if isinstance(catalog, dict) else None
+    if not isinstance(doc_groups, dict):
+        return []
+    out: set[str] = set()
+    for group in doc_groups.get("groups") or []:
+        if not isinstance(group, dict):
+            continue
+        for needle in group.get("needles") or []:
+            if not isinstance(needle, dict):
+                continue
+            if needle.get("field") != "path":
+                continue
+            value = str(needle.get("needle") or "").strip()
+            if value:
+                out.add(value)
+    return sorted(out)
+
+
+def check_document_groups_coverage(root: Path) -> list[GovernorFinding]:
+    """Advisory (KBO-R062): document_groups structural profiles stay covered.
+
+    Validates the YAML ``document_groups`` vocabulary against the decode-token
+    catalog and the closed ``structural_roles`` list, requires the canonical
+    ``federal_law@v1`` group, and reports the FNV-1a 64 catalog version so a
+    parsed_as binding carrying a stale version is a visible warning, never a
+    silent skip. Mirrors `ln-kb-ontology` ``validate_document_groups`` as a
+    repository-level data check. Advisory process control; not TSG; not
+    production graph schema.
+    """
+
+    check_id = "document-groups-coverage"
+    yaml_path = root / _KB_ONTOLOGY_YAML_REL
+    if not yaml_path.is_file():
+        return [
+            GovernorFinding(
+                check_id=check_id,
+                status="fail",
+                severity="warn",
+                message="kb-ontology.yaml missing, document_groups coverage not assessable",
+                observed="missing kb-ontology.yaml",
+                remediation=(
+                    "Add prd/architecture/kb-ontology.yaml with a document_groups section."
+                ),
+                evidence=[GovernorEvidence(path=str(_KB_ONTOLOGY_YAML_REL))],
+            )
+        ]
+
+    try:
+        import yaml
+
+        text = yaml_path.read_text(encoding="utf-8")
+        catalog = yaml.safe_load(text) or {}
+    except (OSError, yaml.YAMLError) as exc:
+        return [
+            GovernorFinding(
+                check_id=check_id,
+                status="fail",
+                severity="warn",
+                message="KB ontology YAML catalog is not valid",
+                observed=f"error={exc}",
+                remediation="Fix prd/architecture/kb-ontology.yaml.",
+                evidence=[GovernorEvidence(path=str(_KB_ONTOLOGY_YAML_REL))],
+            )
+        ]
+
+    version = document_groups_section_hash(text)
+    if not version or not _DOCUMENT_GROUP_VERSION_RE.match(version):
+        return [
+            GovernorFinding(
+                check_id=check_id,
+                status="fail",
+                severity="warn",
+                message="document_groups catalog version is not detectable",
+                observed=(
+                    f"version={version!r} "
+                    "(advisory [bounded]; expected fnv1a64-<16 hex> mirror of "
+                    "ln-kb-ontology document_groups_version)."
+                ),
+                remediation=(
+                    "Keep the document_groups: section present in kb-ontology.yaml "
+                    "so the FNV-1a 64 catalog version stays computable."
+                ),
+                evidence=[GovernorEvidence(path=str(_KB_ONTOLOGY_YAML_REL))],
+            )
+        ]
+
+    doc_groups = catalog.get("document_groups") if isinstance(catalog, dict) else None
+    if not isinstance(doc_groups, dict):
+        return [
+            GovernorFinding(
+                check_id=check_id,
+                status="fail",
+                severity="warn",
+                message="document_groups section is not a mapping",
+                observed=f"document_groups={type(doc_groups).__name__}",
+                remediation="Declare document_groups: in kb-ontology.yaml.",
+                evidence=[GovernorEvidence(path=str(_KB_ONTOLOGY_YAML_REL))],
+            )
+        ]
+
+    structural_roles = doc_groups.get("structural_roles") or []
+    structural_only_tokens = doc_groups.get("structural_only_tokens") or []
+    vocabulary = catalog.get("vocabulary") if isinstance(catalog, dict) else {}
+    decode_aliases = vocabulary.get("decode_level_aliases") if isinstance(vocabulary, dict) else {}
+    decode_tokens = {str(key).lower() for key in (decode_aliases or {})}
+
+    groups = doc_groups.get("groups") or []
+    gaps: list[str] = []
+    seen_ids: set[str] = set()
+    for group in groups:
+        if not isinstance(group, dict):
+            gaps.append("group_row_not_a_mapping")
+            continue
+        group_id = str(group.get("id") or "")
+        if not group_id:
+            gaps.append("group_id_empty")
+        elif group_id in seen_ids:
+            gaps.append(f"duplicate_group_id={group_id}")
+        seen_ids.add(group_id)
+        text_only = bool(group.get("text_only"))
+        has_unit = False
+        for entry in group.get("ladder") or []:
+            if not isinstance(entry, dict):
+                gaps.append(f"{group_id}:ladder_row_not_a_mapping")
+                continue
+            token = str(entry.get("token") or "")
+            role = str(entry.get("role") or "")
+            if role not in structural_roles:
+                gaps.append(f"{group_id}:unknown_role={role}")
+            if role == "unit":
+                has_unit = True
+            token_known = token in structural_only_tokens or token.lower() in decode_tokens
+            if not token_known:
+                gaps.append(f"{group_id}:token_outside_catalog={token}")
+            is_structural_only = token in structural_only_tokens
+            is_decode = token.lower() in decode_tokens
+            surface = entry.get("surface")
+            if is_structural_only and surface is None:
+                gaps.append(f"{group_id}:structural_only_token_requires_surface={token}")
+            if is_decode and surface is not None:
+                gaps.append(f"{group_id}:decode_token_must_not_declare_surface={token}")
+            if surface is not None and not str(surface).strip():
+                gaps.append(f"{group_id}:surface_empty={token}")
+            if entry.get("recursive") and entry.get("max_depth") is None:
+                gaps.append(f"{group_id}:recursive_requires_max_depth={token}")
+            suffix = entry.get("suffix")
+            if suffix is not None and str(suffix) not in _DOCUMENT_GROUP_SUFFIXES:
+                gaps.append(f"{group_id}:invalid_suffix={suffix}")
+            style = entry.get("number_style")
+            if style is not None and str(style) not in _DOCUMENT_GROUP_NUMBER_STYLES:
+                gaps.append(f"{group_id}:invalid_number_style={style}")
+        if not text_only and not has_unit:
+            gaps.append(f"{group_id}:structural_group_requires_unit_role")
+        for needle in group.get("needles") or []:
+            if not isinstance(needle, dict):
+                gaps.append(f"{group_id}:needle_row_not_a_mapping")
+                continue
+            field = str(needle.get("field") or "")
+            if field not in _DOCUMENT_GROUP_NEEDLE_FIELDS:
+                gaps.append(f"{group_id}:invalid_needle_field={field}")
+            if not str(needle.get("needle") or "").strip():
+                gaps.append(f"{group_id}:empty_needle")
+        granularity = group.get("granularity")
+        if granularity is not None and str(granularity).lower() not in decode_tokens:
+            gaps.append(f"{group_id}:granularity_not_decode_token={granularity}")
+        for role in group.get("text_boundary") or []:
+            if role not in structural_roles:
+                gaps.append(f"{group_id}:text_boundary_unknown_role={role}")
+
+    if "federal_law@v1" not in seen_ids:
+        gaps.append("missing_federal_law_v1")
+
+    if gaps:
+        preview = ",".join(gaps[:12])
+        if len(gaps) > 12:
+            preview += f",+{len(gaps) - 12}"
+        return [
+            GovernorFinding(
+                check_id=check_id,
+                status="fail",
+                severity="warn",
+                message="document_groups coverage gaps found (ladder/role/version contract)",
+                observed=(
+                    f"gaps=[{preview}]; groups={len(groups)}; "
+                    f"catalog_version={version} "
+                    "(advisory [bounded]; parsed_as binding drift vs this version is "
+                    "a visible warning, not a silent skip; not TSG)."
+                ),
+                remediation=(
+                    "Keep ladder tokens inside the decode-token catalog or "
+                    "structural_only_tokens, roles inside structural_roles, and "
+                    "federal_law@v1 declared in document_groups."
+                ),
+                evidence=[GovernorEvidence(path=str(_KB_ONTOLOGY_YAML_REL))],
+            )
+        ]
+
+    return [
+        GovernorFinding(
+            check_id=check_id,
+            status="pass",
+            severity="ok",
+            message="document_groups structural profiles are covered by the token catalog",
+            observed=(
+                f"groups={len(groups)}; federal_law_v1=present; "
+                f"catalog_version={version} "
+                "(advisory [bounded]; parsed_as binding drift vs this version is a "
+                "visible warning, not a silent skip; not TSG)."
+            ),
+            remediation="none",
+            evidence=[GovernorEvidence(path=str(_KB_ONTOLOGY_YAML_REL))],
+        )
+    ]
+
+
 def check_corpus_grounding(root: Path) -> list[GovernorFinding]:
     """Advisory (KBO-R059): registry needles (works/bindings) match real corpus paths.
 
@@ -1658,6 +1966,11 @@ def check_corpus_grounding(root: Path) -> list[GovernorFinding]:
             )
         ]
 
+    # KBO-R059 pattern extension (T02): structural-profile groups in
+    # kb-ontology.yaml declare `field: path` needles; when the YAML is present
+    # they must also ground on real corpus paths (advisory).
+    group_needles = _document_groups_path_needles(root)
+
     export_dir = os.environ.get(_CORPUS_GROUNDING_ENV, _CORPUS_GROUNDING_DEFAULT_EXPORT)
     exports_root = root / export_dir / "consru_export" / "exports"
     if not exports_root.is_dir():
@@ -1669,6 +1982,7 @@ def check_corpus_grounding(root: Path) -> list[GovernorFinding]:
                 message="corpus absent; advisory corpus-grounding check skipped",
                 observed=(
                     f"skipped=corpus-not-present needles_total={len(needles)} "
+                    f"group_needles_total={len(group_needles)} "
                     "(advisory; not applicable without a real export)."
                 ),
                 remediation="none",
@@ -1692,6 +2006,16 @@ def check_corpus_grounding(root: Path) -> list[GovernorFinding]:
         else:
             ungrounded.append(needle)
 
+    group_grounded: list[str] = []
+    group_ungrounded: list[str] = []
+    for needle in group_needles:
+        needle_lc = needle.lower()
+        matches = [real for real in real_paths if needle_lc in real]
+        if matches:
+            group_grounded.append(needle)
+        else:
+            group_ungrounded.append(needle)
+
     if not grounded:
         return [
             GovernorFinding(
@@ -1713,20 +2037,52 @@ def check_corpus_grounding(root: Path) -> list[GovernorFinding]:
             )
         ]
 
+    if group_needles and not group_grounded:
+        return [
+            GovernorFinding(
+                check_id=check_id,
+                status="fail",
+                severity="warn",
+                message="document_groups path needles do not ground on real corpus paths",
+                observed=(
+                    f"group_needles_total={len(group_needles)} group_grounded=0 "
+                    f"paths_scanned={len(real_paths)} "
+                    f"ungrounded=[{','.join(group_ungrounded[:8])}] "
+                    "(advisory [bounded]; group needles are KBO-R059 corpus signals; "
+                    "at least one must match a real export path)."
+                ),
+                remediation=(
+                    "Align at least one document_groups path needle (field: path) with a "
+                    "real consru_export path in prd/architecture/kb-ontology.yaml."
+                ),
+                evidence=[
+                    GovernorEvidence(path=str(_CORPUS_GROUNDING_REGISTRY_REL)),
+                    GovernorEvidence(path=str(_KB_ONTOLOGY_YAML_REL)),
+                ],
+            )
+        ]
+
     return [
         GovernorFinding(
             check_id=check_id,
             status="pass",
             severity="ok",
-            message="registry needles ground on real corpus paths",
+            message="registry and document_groups needles ground on real corpus paths",
             observed=(
                 f"needles_total={len(needles)} grounded={len(grounded)} "
-                f"ungrounded={len(ungrounded)} paths_scanned={len(real_paths)} "
+                f"ungrounded={len(ungrounded)} "
+                f"group_needles_total={len(group_needles)} "
+                f"group_grounded={len(group_grounded)} "
+                f"group_ungrounded={len(group_ungrounded)} "
+                f"paths_scanned={len(real_paths)} "
                 f"examples=[{','.join(examples)}] "
                 "(advisory [bounded]; fixture-only needles may stay ungrounded)."
             ),
             remediation="none",
-            evidence=[GovernorEvidence(path=str(_CORPUS_GROUNDING_REGISTRY_REL))],
+            evidence=[
+                GovernorEvidence(path=str(_CORPUS_GROUNDING_REGISTRY_REL)),
+                GovernorEvidence(path=str(_KB_ONTOLOGY_YAML_REL)),
+            ],
         )
     ]
 
@@ -5115,12 +5471,24 @@ GOVERNOR_CHECK_SPECS: tuple[CheckSpec, ...] = (
         "warn",
     ),
     _check_spec(
+        "document-groups-coverage",
+        "docs",
+        "deterministic",
+        check_document_groups_coverage,
+        "Keep document_groups structural profiles covered by the token catalog and report the catalog version for binding-drift visibility.",
+        ("prd/architecture/kb-ontology.yaml",),
+        "warn",
+    ),
+    _check_spec(
         "corpus-grounding",
         "verification",
         "deterministic",
         check_corpus_grounding,
-        "Prevent toy-path-only grounding: registry needles match real corpus paths when the export is present.",
-        ("prd/architecture/kb-hierarchy-registry.yaml",),
+        "Prevent toy-path-only grounding: registry and document_groups needles match real corpus paths when the export is present.",
+        (
+            "prd/architecture/kb-hierarchy-registry.yaml",
+            "prd/architecture/kb-ontology.yaml",
+        ),
         "warn",
     ),
     _check_spec(

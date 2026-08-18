@@ -1,6 +1,6 @@
 {
   "schema_version": "law-nexus-project-state-roadmap/v2",
-  "generated_at": "2026-08-16",
+  "generated_at": "2026-08-18",
   "non_authoritative": true,
   "source_of_truth": "prd/ARCHITECTURE.md (living truth oracle) and doc/adr/** (decision/lifecycle authority). This file is a non-authoritative cold-reader projection; local .gsd/** is workflow state only.",
   "completed_milestone_groups": [
@@ -387,13 +387,19 @@
       "theme": "Consultant parser remediation wave (Устранение долга текущей волны Consultant parser)",
       "status": "complete",
       "boundary": "Honest ADR/ARCHITECTURE/protocol evidence ceilings; tracked e2e contract; scored classifier composition; bounded morph signals; YAML isolation; read-only SQLite CatalogPort adapter (rusqlite bundled, SQLITE_OPEN_READ_ONLY). Not G2/G3 corpus acceptance, not ConflictResolver, not RuVector, not product readiness."
+    },
+    {
+      "range": "M169-M170",
+      "theme": "Parser corpus grounding on the real corpus and full-text CTV resolution",
+      "status": "complete",
+      "boundary": "M169 grounded parser corpus needles (44-FZ temporal AST on the real corpus); M170 resolved full article text CTV on the real corpus. Corpus-grounding process evidence only; no parser completeness, legal correctness or product readiness claim."
     }
   ],
   "current_milestone": {
-    "id": "M168-vbbcxj",
-    "status": "complete",
-    "title": "Consultant parser remediation wave (Устранение долга текущей волны Consultant parser)",
-    "goal": "Consultant parser remediation wave: honest ADR/ARCHITECTURE/protocol evidence ceilings; tracked end-to-end contract (hyperlink -> classification -> edges -> observations); document-profile scoring composition; bounded morph signals; YAML sibling-section isolation; read-only SQLite CatalogPort adapter (rusqlite bundled, SQLITE_OPEN_READ_ONLY). Not G2/G3 corpus acceptance, not ConflictResolver, not RuVector, not product readiness."
+    "id": "M171-nr6y51",
+    "status": "active",
+    "title": "Document structural profiles и рекурсивная гранулярность",
+    "goal": "Document structural profiles (parsed_as Work→DocumentGroupRef bindings with catalog version), recursive granularity, and Governor coverage for document_groups in kb-ontology.yaml. Process/structural proof only: not legal classification, not TSG, not product readiness."
   },
   "recommended_next": {
     "title": "Evidence-gated product next after process reconcile",
@@ -490,6 +496,16 @@
       "id": "roadmap-m168-complete",
       "lifecycle": "proposed",
       "text": "M168-vbbcxj completed in GSD (2026-08-15): Consultant parser remediation wave (read-only SQLite catalog adapter, tracked e2e contract, scored classifier composition). GSD completion is not product readiness; parser evidence ceiling stays G1 [bounded]."
+    },
+    {
+      "id": "roadmap-m169-m170-complete",
+      "lifecycle": "proposed",
+      "text": "M169-yi017n (parser corpus grounding, 44-FZ temporal AST on real corpus) and M170-2gh5r6 (full article text CTV on real corpus) completed in GSD (2026-08): corpus-grounding process evidence only; GSD completion is not product readiness."
+    },
+    {
+      "id": "roadmap-m171-active",
+      "lifecycle": "proposed",
+      "text": "M171-nr6y51 active in GSD (2026-08-18): Document structural profiles и рекурсивная гранулярность — parsed_as Work→DocumentGroupRef bindings (system_observation heuristic), recursive granularity, Governor document_groups coverage. Not legal classification; not TSG."
     }
   ]
 }

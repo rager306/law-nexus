@@ -683,6 +683,209 @@ def test_corpus_grounding_skips_without_corpus(tmp_path: Path, monkeypatch) -> N
     assert "skipped" in findings[0].observed
 
 
+_VALID_DOCUMENT_GROUPS_YAML = (
+    "schema_version: law-nexus-kb-ontology/v1\n"
+    "authoritative: false\n"
+    "fsm:\n  current: O2_catalog_coverage\n  states:\n"
+    "    O2_catalog_coverage:\n      name: cov\n"
+    "vocabulary:\n"
+    "  hierarchy_levels:\n    - statya\n"
+    "  node_kinds:\n    - Work\n"
+    "  forbidden_node_kinds:\n    - ApplicableDecision\n"
+    "  decode_level_aliases:\n"
+    "    Statya: statya\n"
+    "    Glava: glava\n"
+    "document_groups:\n"
+    "  non_claims:\n"
+    '    - "document group binding is a system_observation heuristic"\n'
+    "  structural_roles:\n"
+    "    - container\n"
+    "    - unit\n"
+    "  structural_only_tokens:\n"
+    "    - primechanie\n"
+    "  groups:\n"
+    "    - id: federal_law@v1\n"
+    "      granularity: statya\n"
+    "      text_boundary: [unit, container]\n"
+    "      needles:\n"
+    "        - {field: path, needle: federalnyi-zakon, rank: 10}\n"
+    "      ladder:\n"
+    "        - {token: glava, role: container}\n"
+    "        - {token: statya, role: unit}\n"
+)
+
+
+def test_document_groups_coverage_pass_when_complete(tmp_path: Path) -> None:
+    arch = tmp_path / "prd" / "architecture"
+    arch.mkdir(parents=True)
+    (arch / "kb-ontology.yaml").write_text(_VALID_DOCUMENT_GROUPS_YAML, encoding="utf-8")
+    from law_nexus_harness.governor import check_document_groups_coverage
+
+    findings = check_document_groups_coverage(tmp_path)
+    assert findings[0].status == "pass"
+    assert findings[0].severity == "ok"
+    assert "groups=1" in findings[0].observed
+    assert "federal_law_v1=present" in findings[0].observed
+    assert "catalog_version=fnv1a64-" in findings[0].observed
+    assert "not TSG" in findings[0].observed
+
+
+def test_document_groups_coverage_warns_when_ladder_token_outside_catalog(
+    tmp_path: Path,
+) -> None:
+    arch = tmp_path / "prd" / "architecture"
+    arch.mkdir(parents=True)
+    yaml_text = _VALID_DOCUMENT_GROUPS_YAML.replace(
+        "        - {token: statya, role: unit}\n",
+        "        - {token: statya, role: unit}\n        - {token: zzz-unknown, role: container}\n",
+    )
+    (arch / "kb-ontology.yaml").write_text(yaml_text, encoding="utf-8")
+    from law_nexus_harness.governor import check_document_groups_coverage
+
+    findings = check_document_groups_coverage(tmp_path)
+    assert findings[0].status == "fail"
+    assert findings[0].severity == "warn"
+    assert "token_outside_catalog=zzz-unknown" in findings[0].observed
+
+
+def test_document_groups_coverage_warns_when_role_outside_closed_list(
+    tmp_path: Path,
+) -> None:
+    arch = tmp_path / "prd" / "architecture"
+    arch.mkdir(parents=True)
+    yaml_text = _VALID_DOCUMENT_GROUPS_YAML.replace(
+        "        - {token: glava, role: container}\n",
+        "        - {token: glava, role: bogus-role}\n",
+    )
+    (arch / "kb-ontology.yaml").write_text(yaml_text, encoding="utf-8")
+    from law_nexus_harness.governor import check_document_groups_coverage
+
+    findings = check_document_groups_coverage(tmp_path)
+    assert findings[0].status == "fail"
+    assert findings[0].severity == "warn"
+    assert "unknown_role=bogus-role" in findings[0].observed
+
+
+def test_document_groups_coverage_warns_when_federal_law_missing(tmp_path: Path) -> None:
+    arch = tmp_path / "prd" / "architecture"
+    arch.mkdir(parents=True)
+    yaml_text = _VALID_DOCUMENT_GROUPS_YAML.replace(
+        "    - id: federal_law@v1\n", "    - id: code\n"
+    )
+    (arch / "kb-ontology.yaml").write_text(yaml_text, encoding="utf-8")
+    from law_nexus_harness.governor import check_document_groups_coverage
+
+    findings = check_document_groups_coverage(tmp_path)
+    assert findings[0].status == "fail"
+    assert findings[0].severity == "warn"
+    assert "missing_federal_law_v1" in findings[0].observed
+
+
+def test_document_groups_coverage_warns_when_version_not_detectable(tmp_path: Path) -> None:
+    arch = tmp_path / "prd" / "architecture"
+    arch.mkdir(parents=True)
+    (arch / "kb-ontology.yaml").write_text(
+        "schema_version: law-nexus-kb-ontology/v1\n"
+        "authoritative: false\n"
+        "fsm:\n  current: O2_catalog_coverage\n  states:\n"
+        "    O2_catalog_coverage:\n      name: cov\n",
+        encoding="utf-8",
+    )
+    from law_nexus_harness.governor import check_document_groups_coverage
+
+    findings = check_document_groups_coverage(tmp_path)
+    assert findings[0].status == "fail"
+    assert findings[0].severity == "warn"
+    assert "not detectable" in findings[0].message
+
+
+def test_document_groups_section_hash_is_deterministic_fnv1a64() -> None:
+    from law_nexus_harness.governor import document_groups_section_hash
+
+    v1 = document_groups_section_hash(_VALID_DOCUMENT_GROUPS_YAML)
+    v2 = document_groups_section_hash(_VALID_DOCUMENT_GROUPS_YAML)
+    assert v1 == v2
+    assert v1.startswith("fnv1a64-")
+    assert len(v1) == len("fnv1a64-") + 16
+    assert all(c in "0123456789abcdef" for c in v1[len("fnv1a64-") :])
+    # Section sensitivity: a one-token edit changes the version (drift is a
+    # visible warning, not a silent skip).
+    edited = _VALID_DOCUMENT_GROUPS_YAML.replace(
+        "        - {token: statya, role: unit}\n",
+        '        - {token: statya, role: unit, suffix: ")"}\n',
+    )
+    assert document_groups_section_hash(edited) != v1
+    # Fail-closed: absent section yields an empty version, never a guess.
+    assert document_groups_section_hash("schema_version: law-nexus-kb-ontology/v1\n") == ""
+
+
+def test_corpus_grounding_reports_document_groups_group_needles(
+    tmp_path: Path, monkeypatch
+) -> None:
+    arch = tmp_path / "prd" / "architecture"
+    arch.mkdir(parents=True)
+    (arch / "kb-hierarchy-registry.yaml").write_text(
+        "bindings:\n"
+        '  - {path_needle: law_2013-04-05_44-fz, level: statya, number: "31", cc: cc:44-fz:statya-31}\n',
+        encoding="utf-8",
+    )
+    (arch / "kb-ontology.yaml").write_text(
+        _VALID_DOCUMENT_GROUPS_YAML.replace(
+            "needle: federalnyi-zakon, rank: 10",
+            "needle: law_, rank: 10",
+        ),
+        encoding="utf-8",
+    )
+    edition = (
+        tmp_path / "consru_export" / "consru_export" / "exports" / "npa" / "law_2013-04-05_44-fz"
+    )
+    edition.mkdir(parents=True)
+    (edition / "edition-0118_rev-2025-12-28_from-2026-07-01_6d1ba238.xml").write_text(
+        "<doc/>", encoding="utf-8"
+    )
+    monkeypatch.delenv("CONSULTANT_EXPORT_DIR", raising=False)
+    from law_nexus_harness.governor import check_corpus_grounding
+
+    findings = check_corpus_grounding(tmp_path)
+    assert findings[0].status == "pass"
+    assert findings[0].severity == "ok"
+    assert "group_needles_total=1" in findings[0].observed
+    assert "group_grounded=1" in findings[0].observed
+    assert "group_ungrounded=0" in findings[0].observed
+
+
+def test_corpus_grounding_warns_when_group_needles_ungrounded(tmp_path: Path, monkeypatch) -> None:
+    arch = tmp_path / "prd" / "architecture"
+    arch.mkdir(parents=True)
+    (arch / "kb-hierarchy-registry.yaml").write_text(
+        "bindings:\n"
+        '  - {path_needle: law_2013-04-05_44-fz, level: statya, number: "31", cc: cc:44-fz:statya-31}\n',
+        encoding="utf-8",
+    )
+    # Group needle names a corpus path that does not exist -> group_grounded=0.
+    (arch / "kb-ontology.yaml").write_text(
+        _VALID_DOCUMENT_GROUPS_YAML.replace(
+            "needle: federalnyi-zakon, rank: 10",
+            "needle: nonexistent-group-path, rank: 10",
+        ),
+        encoding="utf-8",
+    )
+    edition = (
+        tmp_path / "consru_export" / "consru_export" / "exports" / "npa" / "law_2013-04-05_44-fz"
+    )
+    edition.mkdir(parents=True)
+    (edition / "edition-0118_rev-2025-12-28_from-2026-07-01_6d1ba238.xml").write_text(
+        "<doc/>", encoding="utf-8"
+    )
+    monkeypatch.delenv("CONSULTANT_EXPORT_DIR", raising=False)
+    from law_nexus_harness.governor import check_corpus_grounding
+
+    findings = check_corpus_grounding(tmp_path)
+    assert findings[0].status == "fail"
+    assert findings[0].severity == "warn"
+    assert "group_grounded=0" in findings[0].observed
+
+
 def test_kb_ontology_closed_vocab_warns_when_rust_token_missing_from_yaml(
     tmp_path: Path,
 ) -> None:
