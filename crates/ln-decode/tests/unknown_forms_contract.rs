@@ -3,9 +3,12 @@ use ln_decode::{
         ParagraphStyle, ParsedBlock, SourceFormatId, SourceLocation, SourceSpan, SourceStreamId,
     },
     unknown_forms::{
-        apply_patch_candidates, census_unknown_forms, collect_unknown_forms_from_text,
-        rank_unknown_forms, render_ranked_census_report, render_yaml_patch_candidates,
-        PatchParseError, UnknownFormCensus, UnknownFormKind,
+        apply_patch_candidates, apply_structural_patch_candidates, census_structural_near_misses,
+        census_unknown_forms, collect_unknown_forms_from_text, rank_structural_near_misses,
+        rank_unknown_forms, render_ranked_census_report, render_structural_census_report,
+        render_structural_patch_candidates, render_yaml_patch_candidates, PatchParseError,
+        StructuralNearMiss, StructuralNearMissCensus, StructuralNearMissKind,
+        StructuralPatchParseError, UnknownFormCensus, UnknownFormKind,
     },
 };
 
@@ -320,4 +323,344 @@ fn ranked_report_is_deterministic_and_text_free() {
     assert_eq!(report, again);
     // empty case
     assert!(render_ranked_census_report(&[]).contains("(none)"));
+}
+
+// ─── M171 S03 T01: StructuralNearMiss census + profile-extension candidates ──
+
+#[test]
+fn structural_near_miss_events_carry_closed_kind_identity_and_fingerprint() {
+    let overflow = StructuralNearMiss::depth_overflow("government_resolution", "punkt", 4, 2);
+    assert_eq!(overflow.kind(), StructuralNearMissKind::DepthOverflow);
+    assert_eq!(overflow.group(), "government_resolution");
+    assert_eq!(overflow.token(), "punkt");
+    assert_eq!(overflow.observed_depth(), Some(4));
+    assert_eq!(overflow.profile_cap(), Some(2));
+    assert!(overflow.fingerprint().starts_with("fnv1a64:"));
+    assert_eq!(overflow.fingerprint().len(), "fnv1a64:".len() + 16);
+
+    let non_catalog = StructuralNearMiss::non_catalog_token("federal_law@v1", "razdel");
+    assert_eq!(non_catalog.kind(), StructuralNearMissKind::NonCatalogToken);
+    assert_eq!(non_catalog.observed_depth(), None);
+    assert_eq!(non_catalog.profile_cap(), None);
+
+    // same (kind, group, token) identity → same fingerprint across runs;
+    // distinct identities → distinct fingerprints (depth is not identity)
+    let deeper = StructuralNearMiss::depth_overflow("government_resolution", "punkt", 5, 2);
+    assert_eq!(deeper.fingerprint(), overflow.fingerprint());
+    assert_ne!(non_catalog.fingerprint(), overflow.fingerprint());
+    let other = StructuralNearMiss::depth_overflow("government_resolution", "podpunkt", 3, 2);
+    assert_ne!(other.fingerprint(), overflow.fingerprint());
+}
+
+#[test]
+fn structural_census_counts_by_kind_and_is_repeat_deterministic() {
+    let events = vec![
+        StructuralNearMiss::depth_overflow("government_resolution", "punkt", 4, 2),
+        StructuralNearMiss::depth_overflow("government_resolution", "punkt", 3, 2),
+        StructuralNearMiss::non_catalog_token("federal_law@v1", "razdel"),
+    ];
+    let first = census_structural_near_misses(&events);
+    let second = census_structural_near_misses(&events);
+    assert_eq!(first, second);
+    assert_eq!(first.depth_overflow(), 2);
+    assert_eq!(first.non_catalog_token(), 1);
+    assert_eq!(
+        census_structural_near_misses(&[]),
+        StructuralNearMissCensus::default()
+    );
+}
+
+#[test]
+fn structural_rank_sorts_by_count_then_token_and_aggregates_max_depth() {
+    let events = vec![
+        StructuralNearMiss::depth_overflow("government_resolution", "punkt", 4, 2),
+        StructuralNearMiss::depth_overflow("government_resolution", "punkt", 5, 2),
+        StructuralNearMiss::non_catalog_token("federal_law@v1", "razdel"),
+        StructuralNearMiss::non_catalog_token("federal_law@v1", "razdel"),
+        StructuralNearMiss::non_catalog_token("federal_law@v1", "razdel"),
+        StructuralNearMiss::depth_overflow("departmental_order", "podpunkt", 3, 2),
+    ];
+    let ranked = rank_structural_near_misses(&events);
+    assert_eq!(ranked.len(), 3);
+    // counts non-increasing; ties broken by token asc
+    for w in ranked.windows(2) {
+        assert!(
+            w[0].count() > w[1].count()
+                || (w[0].count() == w[1].count() && w[0].token() <= w[1].token()),
+            "sorted: {ranked:?}"
+        );
+    }
+    assert_eq!(ranked[0].token(), "razdel");
+    assert_eq!(ranked[0].count(), 3);
+    let punkt = ranked
+        .iter()
+        .find(|r| r.token() == "punkt")
+        .expect("punkt entry");
+    assert_eq!(punkt.count(), 2);
+    assert_eq!(punkt.kind(), StructuralNearMissKind::DepthOverflow);
+    // proposed cap = max observed depth across the aggregated events
+    assert_eq!(punkt.max_depth(), Some(5));
+    assert!(ranked
+        .iter()
+        .all(|r| r.fingerprint().starts_with("fnv1a64:")));
+}
+
+#[test]
+fn structural_census_report_is_fingerprint_only_and_text_free() {
+    let events = vec![
+        StructuralNearMiss::depth_overflow("government_resolution", "punkt", 4, 2),
+        StructuralNearMiss::non_catalog_token("federal_law@v1", "razdel"),
+        StructuralNearMiss::non_catalog_token("federal_law@v1", "razdel"),
+    ];
+    let ranked = rank_structural_near_misses(&events);
+    let report = render_structural_census_report(&ranked);
+    assert!(report.starts_with("# ranked structural near-miss census"));
+    assert!(report.contains("fingerprint: fnv1a64:"));
+    assert!(report.contains("count: 2"));
+    // fingerprint-only view: no group ids, no token names, no raw text
+    assert!(!report.contains("government_resolution"));
+    assert!(!report.contains("razdel"));
+    assert!(!report.contains("punkt"));
+    assert!(!report.contains("group:"));
+    assert!(!report.contains("token:"));
+    // deterministic across runs
+    let again = render_structural_census_report(&rank_structural_near_misses(&events));
+    assert_eq!(report, again);
+    // empty case
+    assert!(render_structural_census_report(&[]).contains("(none)"));
+}
+
+#[test]
+fn structural_patch_candidates_are_deterministic_profile_extensions() {
+    let events = vec![
+        StructuralNearMiss::depth_overflow("government_resolution", "punkt", 4, 2),
+        StructuralNearMiss::depth_overflow("government_resolution", "punkt", 5, 2),
+        StructuralNearMiss::non_catalog_token("federal_law@v1", "razdel"),
+        StructuralNearMiss::non_catalog_token("federal_law@v1", "razdel"),
+    ];
+    let ranked = rank_structural_near_misses(&events);
+    let yaml = render_structural_patch_candidates(&ranked);
+    assert!(
+        yaml.starts_with("# ranked structural profile-extension candidates"),
+        "{yaml}"
+    );
+    // depth overflow proposes raising the group cap to the max observed depth
+    assert!(
+        yaml.contains(
+            "- {kind: DepthOverflow, group: government_resolution, token: punkt, max_depth: 5, count: 2}"
+        ),
+        "{yaml}"
+    );
+    // non-catalog token proposes adding the token; no max_depth field
+    assert!(
+        yaml.contains("- {kind: NonCatalogToken, group: federal_law@v1, token: razdel, count: 2}"),
+        "{yaml}"
+    );
+    // deterministic across repeated renders
+    let rerendered = render_structural_patch_candidates(&rank_structural_near_misses(&events));
+    assert_eq!(yaml, rerendered);
+    // empty case
+    assert!(render_structural_patch_candidates(&[]).contains("(none)"));
+}
+
+#[test]
+fn structural_depth_overflow_apply_loop_drops_census_to_zero() {
+    // demo cycle: depth-переполнение → near-miss → apply → ноль
+    let events = vec![
+        StructuralNearMiss::depth_overflow("government_resolution", "punkt", 4, 2),
+        StructuralNearMiss::depth_overflow("government_resolution", "punkt", 5, 2),
+        StructuralNearMiss::non_catalog_token("federal_law@v1", "razdel"),
+        StructuralNearMiss::non_catalog_token("federal_law@v1", "razdel"),
+    ];
+    // census before apply is non-zero
+    let census = census_structural_near_misses(&events);
+    assert!(census.depth_overflow() > 0 && census.non_catalog_token() > 0);
+    assert!(!rank_structural_near_misses(&events).is_empty());
+    // render the candidates and apply them through the structural apply API
+    let yaml = render_structural_patch_candidates(&rank_structural_near_misses(&events));
+    let applied =
+        apply_structural_patch_candidates(&yaml).expect("rendered candidate applies cleanly");
+    assert!(!applied.is_empty());
+    assert_eq!(applied.len(), 2);
+    // after applying, the census for these classes drops to zero
+    assert!(applied.rank_structural_near_misses(&events).is_empty());
+    assert!(applied.collect_structural_near_misses(&events).is_empty());
+    assert_eq!(
+        applied.census_structural_near_misses(&events),
+        StructuralNearMissCensus::default()
+    );
+    let after = render_structural_census_report(&applied.rank_structural_near_misses(&events));
+    assert!(after.contains("(none)"), "{after}");
+}
+
+#[test]
+fn structural_patch_excludes_only_approved_classes() {
+    let events = vec![
+        StructuralNearMiss::depth_overflow("government_resolution", "punkt", 4, 2),
+        StructuralNearMiss::non_catalog_token("federal_law@v1", "razdel"),
+    ];
+    let yaml =
+        "- {kind: DepthOverflow, group: government_resolution, token: punkt, max_depth: 4, count: 1}\n";
+    let applied = apply_structural_patch_candidates(yaml).expect("patch applies");
+    assert_eq!(applied.len(), 1);
+    let ranked = rank_structural_near_misses(&events);
+    let punkt = ranked.iter().find(|r| r.token() == "punkt").expect("punkt");
+    assert!(applied.covers(punkt.kind(), punkt.fingerprint()));
+    let razdel = ranked
+        .iter()
+        .find(|r| r.token() == "razdel")
+        .expect("razdel");
+    assert!(!applied.covers(razdel.kind(), razdel.fingerprint()));
+    let remaining = applied.rank_structural_near_misses(&events);
+    assert_eq!(remaining.len(), 1);
+    assert_eq!(remaining[0].token(), "razdel");
+}
+
+#[test]
+fn structural_apply_deduplicates_identical_candidates() {
+    let yaml = "- {kind: NonCatalogToken, group: federal_law@v1, token: razdel, count: 3}\n\
+                - {kind: NonCatalogToken, group: federal_law@v1, token: razdel, count: 1}\n";
+    let applied = apply_structural_patch_candidates(yaml).expect("patch applies");
+    assert_eq!(applied.len(), 1);
+}
+
+#[test]
+fn applying_empty_structural_patch_is_a_noop() {
+    let events = vec![StructuralNearMiss::non_catalog_token(
+        "federal_law@v1",
+        "razdel",
+    )];
+    for yaml in ["", "# comment only\n", "(none)\n"] {
+        let applied = apply_structural_patch_candidates(yaml).expect("empty patch applies");
+        assert!(applied.is_empty());
+        assert_eq!(applied.rank_structural_near_misses(&events).len(), 1);
+    }
+}
+
+#[test]
+fn structural_apply_rejects_unknown_kind_label() {
+    let yaml = "- {kind: StructuralFoo, group: federal_law@v1, token: razdel, count: 1}\n";
+    let err = apply_structural_patch_candidates(yaml).unwrap_err();
+    assert!(
+        matches!(
+            &err,
+            StructuralPatchParseError::UnknownKind { label, line_number: 1 }
+                if label == "StructuralFoo"
+        ),
+        "{err}"
+    );
+}
+
+#[test]
+fn structural_apply_rejects_invalid_token_and_group() {
+    for bad in ["raz del", "razdel:", "razdel#", "{razdel}", ""] {
+        let yaml =
+            format!("- {{kind: NonCatalogToken, group: federal_law@v1, token: {bad}, count: 1}}\n");
+        let err = apply_structural_patch_candidates(&yaml).unwrap_err();
+        assert!(
+            matches!(&err, StructuralPatchParseError::InvalidToken { .. }),
+            "{bad:?} => {err}"
+        );
+    }
+    for bad in ["federal law@v1", "group{1}", ""] {
+        let yaml = format!("- {{kind: NonCatalogToken, group: {bad}, token: razdel, count: 1}}\n");
+        let err = apply_structural_patch_candidates(&yaml).unwrap_err();
+        assert!(
+            matches!(&err, StructuralPatchParseError::InvalidGroup { .. }),
+            "{bad:?} => {err}"
+        );
+    }
+}
+
+#[test]
+fn structural_apply_rejects_invalid_count_and_max_depth() {
+    let yaml = "- {kind: NonCatalogToken, group: federal_law@v1, token: razdel, count: nope}\n";
+    let err = apply_structural_patch_candidates(yaml).unwrap_err();
+    assert!(
+        matches!(&err, StructuralPatchParseError::InvalidCount { .. }),
+        "{err}"
+    );
+
+    let yaml =
+        "- {kind: DepthOverflow, group: government_resolution, token: punkt, max_depth: deep, count: 1}\n";
+    let err = apply_structural_patch_candidates(yaml).unwrap_err();
+    assert!(
+        matches!(&err, StructuralPatchParseError::InvalidMaxDepth { .. }),
+        "{err}"
+    );
+}
+
+#[test]
+fn structural_apply_requires_max_depth_for_depth_overflow_and_forbids_for_non_catalog() {
+    // DepthOverflow without the proposed cap → fail-closed
+    let yaml = "- {kind: DepthOverflow, group: government_resolution, token: punkt, count: 1}\n";
+    let err = apply_structural_patch_candidates(yaml).unwrap_err();
+    assert!(
+        matches!(
+            &err,
+            StructuralPatchParseError::MissingMaxDepth { line_number: 1 }
+        ),
+        "{err}"
+    );
+    // NonCatalogToken with max_depth → malformed (field meaningless for the class)
+    let yaml =
+        "- {kind: NonCatalogToken, group: federal_law@v1, token: razdel, max_depth: 2, count: 1}\n";
+    let err = apply_structural_patch_candidates(yaml).unwrap_err();
+    assert!(
+        matches!(&err, StructuralPatchParseError::MalformedLine { .. }),
+        "{err}"
+    );
+}
+
+#[test]
+fn structural_apply_rejects_malformed_lines() {
+    for yaml in [
+        "garbage line\n",
+        "- {kind: NonCatalogToken, count: 1}\n",
+        "- {kind: NonCatalogToken, group: federal_law@v1}\n",
+        "- kind: NonCatalogToken, group: federal_law@v1, token: razdel, count: 1\n",
+        "- {kind: NonCatalogToken, group: federal_law@v1, token: razdel, count: 1}\n- {broken}\n",
+        "- {kind: NonCatalogToken, group: federal_law@v1, token: razdel, max_depth: 1, count: 1}\n",
+    ] {
+        assert!(apply_structural_patch_candidates(yaml).is_err(), "{yaml:?}");
+    }
+}
+
+#[test]
+fn lexical_apply_grammar_remains_closed_to_structural_kinds() {
+    // D185 boundary: the existing apply grammar stays closed — a structural
+    // kind label is rejected by the lexical apply API, so the structural
+    // census routes through its own fail-closed apply instead.
+    let yaml = "- {kind: DepthOverflow, group: government_resolution, token: punkt, count: 1}\n";
+    let err = apply_patch_candidates(yaml).unwrap_err();
+    assert!(
+        matches!(
+            &err,
+            PatchParseError::UnknownKind { label, .. } if label == "DepthOverflow"
+        ),
+        "{err}"
+    );
+}
+
+#[test]
+fn structural_census_consumes_events_not_text() {
+    // No-lexical-scanner boundary: the structural census takes structural
+    // events only — there is no text/block input and no tokenizer in this
+    // contour. A token that would be a lexical near-miss in running text
+    // never appears here; only catalog identifiers reach the candidate view,
+    // and the report stays fingerprint-only.
+    let events = vec![StructuralNearMiss::depth_overflow(
+        "government_resolution",
+        "punkt",
+        3,
+        2,
+    )];
+    let ranked = rank_structural_near_misses(&events);
+    assert_eq!(ranked.len(), 1);
+    let report = render_structural_census_report(&ranked);
+    assert!(!report.contains("punkt"));
+    assert!(!report.contains("government_resolution"));
+    let yaml = render_structural_patch_candidates(&ranked);
+    assert!(yaml.contains("token: punkt"));
+    assert!(render_structural_patch_candidates(&[]).contains("(none)"));
 }
