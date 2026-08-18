@@ -202,6 +202,25 @@ templates:
 - New document types can receive confidence boosts through YAML profiles;
   profile-restricted template routing remains `[proposed]`.
 
+## Review 8 amendments (2026-08-18, M171-nr6y51)
+
+### R8-07: structural probe as detection factor B
+
+Review 8 (`doc/review/review-17-08-2026.md` R8-07) requires **two-factor
+group detection**: factor A is catalog metadata (path/kind/type needles with
+rank) and factor B is a structural probe (presence of `statya`, numbering
+distribution). ~10 % of laws carry no `statya` markers (small / ratification /
+"punkt-only" acts), so metadata alone cannot detect the group.
+
+Factor A is `[bounded]` YAML data today (`kb-ontology.yaml`
+`document_groups` needles). Factor B — the structural probe — is `[proposed]`:
+when it lands it composes into `detect_profile` as a deterministic second
+signal, mirroring how Layer 1 profile confidence composition stays
+YAML-driven. A conflict between factors fails closed to `Unknown` — the
+classifier never guesses the group. The probe is a detection signal, not a
+classification-kind change: it does not alter amends/cites/implements
+scoring, the legal kind, or profile authority (Layer 1 boundary unchanged).
+
 ## Non-claims
 
 - `[bounded]` covers only the shipped contains+bounded-morph AND/OR scoring

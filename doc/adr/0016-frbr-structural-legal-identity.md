@@ -109,6 +109,29 @@ not a runtime requirement. When external corpus exchange is required, a
 `to_eli_uri(work, expression, cc)` adapter can be added without changing
 the internal ID canon.
 
+## Review 8 amendments (2026-08-18, M171-nr6y51)
+
+### R8-10/R8-11: Work-level parsed_as binding and CC-path identity
+
+Review 8 (`doc/review/review-17-08-2026.md`) attaches the document-group
+type at the **Work** level (act type is a Work property, not Expression or
+Manifestation): the pure write-set binding
+`Work ──(parsed_as)──▶ DocumentGroupRef{group, catalog_version}` carries the
+catalog section hash (FNV-1a 64 of the `document_groups:` section) for drift
+checkability (EditionOracle philosophy). These mechanics are `[bounded]`
+(M171 S04 T01): write-set projection, no I/O, hostile guards — the binding
+never writes ForceStatusEvent or ApplicableDecision, and
+`DocumentProfileAsAuthority` / `ProfileBindingAsForce` /
+`DocumentProfileAsClock` are forbidden node kinds. The binding is a
+`system_observation` heuristic, never legal authority.
+
+CC-path identity (`cc:…:statya-93/punkt-4/punkt-4.2`, R8-11) generalizes
+flat registry bindings, fixes the `changed_article_texts` bare-number key
+defect, and prepares the TQ-05 reference channel; it remains `[proposed]` —
+the recursive path generator and path-lookup are a future wave. Work
+identity canon (number + authority + enactment date, decision 2) is
+unchanged; the parsed_as binding does not mint a new Work.
+
 ## Non-claims
 
 - `HierarchyMarker` / `map_hierarchy_marker` is a **fail-closed candidate lift**:

@@ -113,6 +113,15 @@ one-catalog bounded evidence, not corpus-wide quality). Governor runs an
 advisory corpus-grounding check (KBO-R059): registry needles must match real
 export paths when CONSULTANT_EXPORT_DIR is present, so grounding cannot
 regress to toy-path-only.
+Document-group structural profiles (`kb-ontology.yaml` `document_groups:`)
+are `[bounded]` YAML vocabulary — closed roles, per-group ladders with
+recursive `max_depth`, granularity as data — and the pure write-set binding
+`Work ──(parsed_as)──▶ DocumentGroupRef{group, catalog_version}` carries the
+FNV-1a 64 catalog section hash; the governor `document-groups-coverage`
+check (advisory, KBO-R062/R066) keeps ladders ⊆ token catalog and roles
+closed, so binding/catalog version drift is a visible warning (ADR-0013/0016/0027
+amendments; Review 8). Recursive walk, CC-path identity and StructuralNearMiss
+census remain `[proposed]`.
 Consultant parser (ADR-0025/0027): `ln-consultant-parser` has 10 source
 modules including `lib.rs`, 64 integration test functions and 4 source-unit
 tests. The G1 Consultant protocol/tracer anchor is 119 structural hierarchy

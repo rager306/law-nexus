@@ -505,6 +505,48 @@ These remain `[bounded]`: filename/table grounding is deterministic
 mechanics for one export layout, not corpus completeness or legal identity
 proof.
 
+## Document Groups Amendments (2026-08-18, M171-nr6y51)
+
+Review 8 (`doc/review/review-17-08-2026.md`) adds document-group structural
+profiles: per-document-type ladders, a closed role layer, recursive ladder
+tokens with `max_depth`, and two-factor group detection. The YAML vocabulary
+and the pure write-set binding are `[bounded]` data/projection mechanics
+(no I/O); the recursive walk, CC-path identity, StructuralNearMiss census
+and the structural-probe detection factor remain `[proposed]`. No lifecycle
+promotion; the `federal_law@v1` golden anchor (R8-14) is unchanged.
+
+### Group ladders and closed roles
+
+`kb-ontology.yaml` `document_groups:` declares per-group ladders: each group
+(`federal_law@v1`, `code`, `government_resolution`, `departmental_order`,
+`court_practice`) owns a ladder of tokens bound to a role from a **closed**
+role vocabulary (`container` / `unit` / `subunit` / `subunit-text` /
+`text-only`, KBO-R028 discipline). Ladder tokens resolve inside the
+decode-token catalog (`decode_level_aliases` ∪ `structural_only_tokens`);
+`structural_only_tokens` (`primechanie`, `prilozhenie`) declare a `surface`
+text anchor, decode tokens cannot. `granularity` and `text_boundary` are
+per-group data — the CC/text atom is a profile parameter, not code
+(R8-02: punkt-atom for subordinate acts). `court_practice` is text-only:
+practice text is not an AST (ADR-0020).
+
+### Recursion and max_depth
+
+Recursive ladder tokens (`recursive: true`) carry a per-level, per-group
+`max_depth` ceiling (federal law punkt=2, government resolution punkt=3,
+departmental order punkt=4), grounded in corpus reconnaissance (R8-03).
+Depth is policy, not syntax: exceeding `max_depth` or hitting a
+non-catalog token quarantines to a census candidate, never a heuristic
+guess. The recursive walk and the `(role_order, depth)` rank pair
+(R8-13) remain `[proposed]`.
+
+### Two-factor group detection
+
+Group detection is two-factor (R8-07): metadata needles (path/kind/type
+with rank) plus a structural probe (presence of `statya`, numbering
+distribution). The metadata factor is `[bounded]` YAML data; the
+structural-probe factor is `[proposed]` (see ADR-0027 amendment). A
+conflict between factors fails closed to `Unknown` — no guessing.
+
 ## Non-claims
 
 - `HierarchyMarker` / `map_hierarchy_marker` is a **fail-closed candidate lift**:

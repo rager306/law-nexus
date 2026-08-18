@@ -64,7 +64,10 @@
     {"id": "amendment-event", "needle": "| `AmendmentEvent` |", "required_fragments": ["canonical design term", "[proposed]"]},
     {"id": "edition-oracle", "needle": "| `EditionOracle` |", "required_fragments": ["canonical design term", "[proposed]"]},
     {"id": "edition-snapshot", "needle": "| `EditionSnapshot` |", "required_fragments": ["canonical design term", "[proposed]"]},
-    {"id": "coverage", "needle": "| Coverage |", "required_fragments": ["canonical design term", "[proposed]"]}
+    {"id": "coverage", "needle": "| Coverage |", "required_fragments": ["canonical design term", "[proposed]"]},
+    {"id": "document-group", "needle": "| document group |", "required_fragments": ["canonical design term", "[proposed]"]},
+    {"id": "structural-profile", "needle": "| structural profile |", "required_fragments": ["canonical design term", "[proposed]"]},
+    {"id": "cc-path", "needle": "| CC-path |", "required_fragments": ["canonical design term", "[proposed]"]}
   ],
   "gap_ids": ["TSG-001", "TSG-002", "TSG-003", "TSG-004", "TSG-005", "TSG-006", "TSG-007", "TSG-008", "TSG-009", "TSG-010", "TSG-011", "TSG-012", "TSG-013", "TSG-014", "TSG-015", "TSG-016", "TSG-017"]
 }
