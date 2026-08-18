@@ -145,7 +145,7 @@ fn structural_only_tokens_do_not_collide_with_decode_tokens() {
 }
 
 #[test]
-fn federal_law_v1_prefixes_cover_exactly_the_decode_marker_prefixes() {
+fn federal_law_v1_prefixes_are_a_subset_of_decode_marker_prefixes() {
     let catalog = catalog();
     let fl = catalog
         .document_group("federal_law@v1")
@@ -159,9 +159,22 @@ fn federal_law_v1_prefixes_cover_exactly_the_decode_marker_prefixes() {
     profile_levels.sort();
     let mut prefix_keys = yaml_section_keys(YAML, "decode_marker_prefixes:");
     prefix_keys.sort();
-    assert_eq!(
-        profile_levels, prefix_keys,
-        "federal_law@v1 unit+container levels must equal the current decode_marker_prefixes set"
+    // R8-08: razdel is active only in the code ladder — federal_law@v1's
+    // unit+container levels are a subset of the decode prefix catalog (the
+    // decode catalog keeps razdel for the code group).
+    for level in &profile_levels {
+        assert!(
+            prefix_keys.contains(level),
+            "federal_law@v1 level {level} must stay inside decode_marker_prefixes"
+        );
+    }
+    assert!(
+        prefix_keys.contains(&"Razdel".to_owned()),
+        "decode catalog must keep razdel for the code group"
+    );
+    assert!(
+        !profile_levels.contains(&"Razdel".to_owned()),
+        "federal_law@v1 must not declare razdel (R8-08)"
     );
 }
 

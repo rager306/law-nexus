@@ -116,6 +116,43 @@ fn prose_missing_numbers_and_unsupported_context_do_not_become_hierarchy() {
 }
 
 #[test]
+fn structural_only_surface_markers_are_not_hierarchy_levels() {
+    // R8-09 hostile: primechanie/prilozhenie are role tokens with catalog
+    // `surface` markers ("Примечание"/"Приложение") — they have no decode
+    // HierarchyLevel, so extract_hierarchy must return None (Unknown). A
+    // bare "Приложение" without a number is Unknown; the note marker
+    // "Примечание" never produces a hierarchy node (no CC source). The
+    // profile collector recognizes them by surface prefix (article_body.rs),
+    // never here.
+    for text in [
+        "Приложение",
+        "Приложение N 1",
+        "Приложение 1",
+        "Приложение к приказу",
+        "Примечание",
+        "Примечание 1.",
+        "примечание",
+        "приложение 1",
+        "Примечания к пункту",
+    ] {
+        assert_eq!(extract_hierarchy(&block(text)), None, "fixture={text}");
+    }
+}
+
+#[test]
+fn razdel_marker_still_decodes_for_code_group_documents() {
+    // R8-08: razdel is active only in the code ladder — the decode catalog
+    // keeps the РАЗДЕЛ prefix so code documents (ГК, НК, УК, ...) still
+    // extract. The profile-ladder assertion (federal_law@v1 declares no
+    // razdel) lives in document_groups_catalog.
+    let node = extract_hierarchy(&block("Раздел I. Общие положения"))
+        .expect("code-group razdel still decodes");
+    assert_eq!(node.level(), HierarchyLevel::Razdel);
+    assert_eq!(node.number(), "I");
+    assert_eq!(node.title(), Some("Общие положения"));
+}
+
+#[test]
 fn consultant_block_feeds_shared_hierarchy_without_coordinate_translation() {
     let xml = r#"<w:wordDocument xmlns:w="urn:word"><w:p><w:pPr><w:pStyle w:val="2"/></w:pPr><w:r><w:t>Статья 9. Полномочия</w:t></w:r></w:p></w:wordDocument>"#;
     let request = DecodeRequest::new(

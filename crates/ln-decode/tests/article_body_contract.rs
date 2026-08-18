@@ -265,6 +265,10 @@ fn statya_marker_line_not_in_article_text() {
 
 #[test]
 fn razdel_boundary_ends_article_accumulation() {
+    // R8-08: razdel is absent from the federal-law family (44-FZ: chapters
+    // only) and not declared in the federal_law@v1 ladder — a РАЗДЕЛ marker
+    // is an undeclared level that fails closed as a boundary (reset), so
+    // the observable behavior is identical to the legacy is_boundary.
     let mut bb = BlockBuilder::new();
     let blocks = vec![
         bb.push(ParagraphStyle::Heading, "Статья 1. Первая"),

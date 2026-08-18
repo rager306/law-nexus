@@ -3,9 +3,11 @@
 //! Contract (M171 S01 T01): structural roles form a closed vocabulary;
 //! ladder tokens must resolve inside the decode-token catalog; federal_law@v1
 //! must stay bitwise-identical to the current article-body boundaries
-//! (Statya unit; Glava/Razdel/Paragraph containers) and to the current decode
-//! styles (decode_numbered_markers / decode_marker_prefixes). A document group
-//! is a system_observation heuristic, never legal classification (ADR-0020).
+//! (Statya unit; Glava/Paragraph containers — R8-08: federal laws have no
+//! razdel, razdel is active only in the code ladder) and to the current
+//! decode styles (decode_numbered_markers / decode_marker_prefixes). A
+//! document group is a system_observation heuristic, never legal
+//! classification (ADR-0020).
 
 use ln_kb_ontology::catalog::{CatalogError, OntologyCatalog};
 
@@ -113,12 +115,14 @@ fn federal_law_v1_boundaries_match_current_article_body_behavior() {
     let catalog = catalog();
     let fl = group(&catalog, "federal_law@v1");
 
-    // Current collect_article_texts: statya starts an article; Glava/Razdel/
-    // Paragraph reset accumulation (article_body.rs is_statya/is_boundary).
+    // Current collect_article_texts: statya starts an article; Glava/Paragraph
+    // reset accumulation. R8-08: razdel is absent from the federal-law family
+    // (44-FZ: chapters only) — a РАЗДЕЛ marker in a federal law is an
+    // undeclared level and fails closed as a boundary (same reset behavior).
     assert_eq!(ladder_decode_tokens(fl, "unit"), ["Statya"]);
     assert_eq!(
         ladder_decode_tokens(fl, "container"),
-        ["Glava", "Paragraph", "Razdel"]
+        ["Glava", "Paragraph"]
     );
     assert_eq!(
         ladder_decode_tokens(fl, "subunit"),
@@ -182,7 +186,7 @@ fn federal_law_v1_punkt_is_recursive_with_max_depth_2() {
 }
 
 #[test]
-fn federal_law_v1_prefix_levels_match_decode_marker_prefixes() {
+fn federal_law_v1_prefix_levels_are_a_subset_of_decode_marker_prefixes() {
     let catalog = catalog();
     let fl = group(&catalog, "federal_law@v1");
     let prefix_keys = yaml_map_keys(YAML, "decode_marker_prefixes:");
@@ -191,8 +195,9 @@ fn federal_law_v1_prefix_levels_match_decode_marker_prefixes() {
         4,
         "decode_marker_prefixes must cover razdel/glava/statya/paragraph"
     );
-    // The prefix-bearing levels are exactly the unit+container levels of the
-    // profile: the current extractable prefix set must not grow or shrink.
+    // The decode catalog keeps razdel (the code group needs it); the
+    // federal_law@v1 profile's unit+container levels are a strict subset —
+    // razdel is active only in the code ladder (R8-08).
     let profile_levels: Vec<String> = fl
         .ladder
         .iter()
@@ -201,7 +206,39 @@ fn federal_law_v1_prefix_levels_match_decode_marker_prefixes() {
         .collect();
     let mut profile_levels = profile_levels;
     profile_levels.sort();
-    assert_eq!(profile_levels, prefix_keys);
+    for level in &profile_levels {
+        assert!(
+            prefix_keys.contains(level),
+            "federal_law@v1 level {level} must stay inside decode_marker_prefixes"
+        );
+    }
+    assert!(
+        prefix_keys.contains(&"Razdel".to_owned()),
+        "decode catalog must keep razdel for the code group"
+    );
+    assert!(
+        !profile_levels.contains(&"Razdel".to_owned()),
+        "federal_law@v1 must not declare razdel (R8-08)"
+    );
+}
+
+#[test]
+fn razdel_is_active_only_in_code_ladder() {
+    // R8-08: codes are a separate group with razdel+glava+statya, not a
+    // "big law"; the federal-law family (44-FZ) has chapters only.
+    let catalog = catalog();
+    for group in &catalog.document_groups {
+        let has_razdel = group.ladder.iter().any(|entry| entry.token == "razdel");
+        if group.id == "code" {
+            assert!(has_razdel, "code group must declare razdel");
+        } else {
+            assert!(
+                !has_razdel,
+                "group {} must not declare razdel (R8-08)",
+                group.id
+            );
+        }
+    }
 }
 
 // ─── per-group structure ───────────────────────────────────────────────────

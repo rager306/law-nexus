@@ -352,8 +352,10 @@ document_groups:
         - {field: path, needle: law_, rank: 20}
         - {field: kind, needle: law, rank: 30}
         - {field: type, needle: federal, rank: 30}
+      # R8-08: federal laws have no razdel (44-FZ: chapters only); razdel is
+      # active only in the code ladder. A РАЗДЕЛ marker in a federal-law
+      # document is an undeclared level and fails closed as a boundary.
       ladder:
-        - {token: razdel, role: container}
         - {token: glava, role: container}
         - {token: paragraph, role: container}
         - {token: statya, role: unit}

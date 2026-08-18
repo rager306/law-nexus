@@ -116,8 +116,9 @@ impl ArticleText {
 ///
 /// - `unit` markers start a new body (statya for federal_law@v1, punkt for
 ///   departmental_order / government_resolution);
-/// - `container` markers reset accumulation (razdel/glava/paragraph for
-///   federal_law@v1; prilozhenie recognized by its surface marker);
+/// - `container` markers reset accumulation (glava/paragraph for
+///   federal_law@v1 — razdel is absent from the federal-law family, R8-08;
+///   prilozhenie recognized by its surface marker);
 /// - `subunit` markers (chast/punkt/podpunkt) belong to the owning unit:
 ///   their marker line and following prose join the unit body;
 /// - `subunit-text` markers (primechanie — a note) are excluded from the

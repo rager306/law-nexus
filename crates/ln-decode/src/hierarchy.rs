@@ -5,6 +5,11 @@ use crate::prefix_catalog::{DecodePrefixCatalog, NumberStyle, NumberedStyle, Spa
 
 /// Extract a supported hierarchy marker at the start of decoded block text.
 ///
+/// Structural-only role tokens (primechanie/prilozhenie, R8-09) have no
+/// `HierarchyLevel` — "Примечание"/"Приложение" markers are recognized by
+/// the profile collector's catalog `surface` prefix (article_body.rs), never
+/// here. A bare surface marker ("Приложение" without a number) is Unknown.
+///
 /// This function intentionally does not translate decoded [`TextSpan`] values
 /// into source-stream coordinates. The owning [`ParsedBlock`] retains its
 /// separate [`crate::domain::SourceLocation`] for an adapter to map with
