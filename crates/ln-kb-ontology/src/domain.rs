@@ -1494,6 +1494,11 @@ pub struct AmendmentEventDraft {
     pub op: AmendmentDraftOp,
     pub level: String,
     pub number: String,
+    /// CC-path ladder (`statya-93/punkt-4`) for nested units (R8-11 / D192);
+    /// `None` for flat keys. Text-facet diff identity is (level, key_path)
+    /// with `key_path = path.unwrap_or(number)` — carried here so nested CC
+    /// identity survives the oracle-diff bridge.
+    pub path: Option<String>,
     pub facet: &'static str,
     pub evidence_class: &'static str,
     pub provenance: String,
@@ -1506,6 +1511,14 @@ pub struct AmendmentEventDraft {
 /// Text-facet replay bridge (M170 S02 T02): compare full article texts of
 /// two editions and draft `facet: "text"` AmendmentEvents for changed,
 /// added, and removed articles.
+///
+/// Identity (M171 S02 T03): items are `(level, number, path, text)` tuples.
+/// The diff key is `(level, key_path)` with `key_path = path.unwrap_or(number)`
+/// (D192) — `statya-4` and `punkt-4` with the same number do not collide
+/// (R8-11), and `punkt-4` under different statya ladders stay distinct.
+/// The first occurrence of a duplicate key within one edition wins (document
+/// order). `path` is carried into the draft so nested CC identity survives
+/// the bridge.
 ///
 /// Bounded: `evidence_class` is always `hypothesized_from_oracle_diff` (we
 /// observe consolidated snapshots, not the amending act). Empty provenance
@@ -1522,45 +1535,88 @@ where
     if provenance.is_empty() {
         return Err(WriteSetError::MissingProvenance);
     }
-    let before: Vec<(&str, &str, Option<&str>, &str)> = before.into_iter().collect();
-    let after: Vec<(&str, &str, Option<&str>, &str)> = after.into_iter().collect();
-    fn find<'x>(
-        list: &'x [(&'x str, &'x str, Option<&'x str>, &'x str)],
-        number: &str,
-    ) -> Option<&'x (&'x str, &'x str, Option<&'x str>, &'x str)> {
-        list.iter().find(|(_, n, _, _)| *n == number)
+    let owned =
+        |item: (&str, &str, Option<&str>, &str)| -> (String, String, Option<String>, String) {
+            (
+                item.0.to_owned(),
+                item.1.to_owned(),
+                item.2.map(str::to_owned),
+                item.3.to_owned(),
+            )
+        };
+    let before: Vec<(String, String, Option<String>, String)> =
+        before.into_iter().map(owned).collect();
+    let after: Vec<(String, String, Option<String>, String)> =
+        after.into_iter().map(owned).collect();
+
+    // Diff key: (level, key_path) — the same ladder identity the registry
+    // uses (D192). Container-free; flat items key on their number.
+    fn text_key(level: &str, number: &str, path: Option<&str>) -> (String, String) {
+        (level.to_owned(), path.unwrap_or(number).to_owned())
     }
+
+    // First occurrence wins for a duplicate key within one edition,
+    // mirroring the pre-path `find` (first-match) semantics.
+    let mut after_first: std::collections::HashMap<(String, String), String> =
+        std::collections::HashMap::new();
+    for (level, number, path, text) in &after {
+        after_first
+            .entry(text_key(level, number, path.as_deref()))
+            .or_insert_with(|| text.clone());
+    }
+    let before_keys: std::collections::HashSet<(String, String)> = before
+        .iter()
+        .map(|(level, number, path, _)| text_key(level, number, path.as_deref()))
+        .collect();
+
     let mut drafts = Vec::new();
     // changed + removed
-    for (level, number, _, text) in &before {
-        let draft_op = match find(&after, number) {
-            Some((_, _, _, new_text)) if new_text == text => continue,
+    for (level, number, path, text) in &before {
+        let matched = after_first.get(&text_key(level, number, path.as_deref()));
+        let op = match matched {
+            Some(new_text) if new_text == text => continue,
             Some(_) => AmendmentDraftOp::Attach,
             None => AmendmentDraftOp::Detach,
         };
-        drafts.push(AmendmentEventDraft {
-            op: draft_op,
-            level: (*level).to_owned(),
-            number: (*number).to_owned(),
-            facet: "text",
-            evidence_class: "hypothesized_from_oracle_diff",
-            provenance: provenance.to_owned(),
-        });
+        drafts.push(text_facet_draft(
+            op,
+            level,
+            number,
+            path.as_deref(),
+            provenance,
+        ));
     }
     // added
-    for (level, number, _, _) in &after {
-        if find(&before, number).is_none() {
-            drafts.push(AmendmentEventDraft {
-                op: AmendmentDraftOp::Attach,
-                level: (*level).to_owned(),
-                number: (*number).to_owned(),
-                facet: "text",
-                evidence_class: "hypothesized_from_oracle_diff",
-                provenance: provenance.to_owned(),
-            });
+    for (level, number, path, _) in &after {
+        if !before_keys.contains(&text_key(level, number, path.as_deref())) {
+            drafts.push(text_facet_draft(
+                AmendmentDraftOp::Attach,
+                level,
+                number,
+                path.as_deref(),
+                provenance,
+            ));
         }
     }
     Ok(drafts)
+}
+
+fn text_facet_draft(
+    op: AmendmentDraftOp,
+    level: &str,
+    number: &str,
+    path: Option<&str>,
+    provenance: &str,
+) -> AmendmentEventDraft {
+    AmendmentEventDraft {
+        op,
+        level: level.to_owned(),
+        number: number.to_owned(),
+        path: path.map(str::to_owned),
+        facet: "text",
+        evidence_class: "hypothesized_from_oracle_diff",
+        provenance: provenance.to_owned(),
+    }
 }
 
 pub fn drafts_from_marker_diff(
@@ -1578,6 +1634,7 @@ pub fn drafts_from_marker_diff(
             op: AmendmentDraftOp::Attach,
             level: marker.level().to_owned(),
             number: marker.number().to_owned(),
+            path: marker.path().map(str::to_owned),
             facet: "structural",
             evidence_class: "hypothesized_from_oracle_diff",
             provenance: provenance.to_owned(),
@@ -1588,6 +1645,7 @@ pub fn drafts_from_marker_diff(
             op: AmendmentDraftOp::Detach,
             level: marker.level().to_owned(),
             number: marker.number().to_owned(),
+            path: marker.path().map(str::to_owned),
             facet: "structural",
             evidence_class: "hypothesized_from_oracle_diff",
             provenance: provenance.to_owned(),

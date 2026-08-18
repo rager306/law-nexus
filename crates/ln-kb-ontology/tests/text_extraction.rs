@@ -189,23 +189,16 @@ fn unbound_article_mints_nothing() {
 }
 
 // ─── M170 S02 T02: text-facet AmendmentEventDraft bridge ────────────────────
+// M171 S02 T03: diff identity is (level, key_path) — statya-4 and punkt-4
+// with the same number never collide, and punkt-4 under different statya
+// ladders stay distinct (R8-11 / D192). Tuples are (level, number, path, text).
 
 use ln_kb_ontology::domain::{changed_article_texts, AmendmentDraftOp};
 
 #[test]
 fn changed_text_becomes_text_facet_draft() {
-    let before = [(
-        "statya",
-        "3",
-        Some("Законодательство о контрактной системе"),
-        "Старый текст статьи.",
-    )];
-    let after = [(
-        "statya",
-        "3",
-        Some("Законодательство о контрактной системе"),
-        "Новый текст статьи после правки.",
-    )];
+    let before = [("statya", "3", None, "Старый текст статьи.")];
+    let after = [("statya", "3", None, "Новый текст статьи после правки.")];
     let drafts = changed_article_texts(
         before.into_iter().map(|(a, b, c, d)| (a, b, c, d as &str)),
         after.into_iter().map(|(a, b, c, d)| (a, b, c, d as &str)),
@@ -217,13 +210,14 @@ fn changed_text_becomes_text_facet_draft() {
     assert_eq!(drafts[0].facet, "text");
     assert_eq!(drafts[0].level, "statya");
     assert_eq!(drafts[0].number, "3");
+    assert_eq!(drafts[0].path, None);
     assert_eq!(drafts[0].evidence_class, "hypothesized_from_oracle_diff");
     assert!(drafts[0].provenance.contains("2013-07-02"));
 }
 
 #[test]
 fn unchanged_text_yields_no_draft() {
-    let same = [("statya", "1", Some("Сфера"), "Одинаковый текст.")];
+    let same = [("statya", "1", None, "Одинаковый текст.")];
     let drafts = changed_article_texts(
         same.into_iter().map(|(a, b, c, d)| (a, b, c, d as &str)),
         same.into_iter().map(|(a, b, c, d)| (a, b, c, d as &str)),
@@ -248,8 +242,8 @@ fn empty_provenance_fails_closed_text_facet() {
 
 #[test]
 fn added_and_removed_articles_reported_as_text_drafts() {
-    let before = [("statya", "2", Some("t"), "текст два")];
-    let after = [("statya", "5", Some("t"), "новая статья")];
+    let before = [("statya", "2", None, "текст два")];
+    let after = [("statya", "5", None, "новая статья")];
     let drafts = changed_article_texts(
         before.into_iter().map(|(a, b, c, d)| (a, b, c, d as &str)),
         after.into_iter().map(|(a, b, c, d)| (a, b, c, d as &str)),
@@ -260,4 +254,144 @@ fn added_and_removed_articles_reported_as_text_drafts() {
     // as text-facet drafts too (facet=text covers presence+wording changes
     // of the same level in this bounded bridge)
     assert_eq!(drafts.len(), 2);
+}
+
+// ─── M171 S02 T03: (level, key_path) diff identity ────────────────────────────
+
+#[test]
+fn same_number_different_levels_do_not_collide() {
+    // statya-4 and punkt-4 share the number "4" — the old number-only key
+    // would pair punkt-4's text against statya-4's text (R8-11). The
+    // (level, key_path) key keeps them apart.
+    let before = [
+        ("statya", "4", None, "текст статьи 4 (старая)"),
+        ("punkt", "4", None, "текст пункта 4 (старая)"),
+    ];
+    let after = [
+        ("statya", "4", None, "текст статьи 4 (НОВАЯ)"),
+        ("punkt", "4", None, "текст пункта 4 (старая)"),
+    ];
+    let drafts = changed_article_texts(
+        before.into_iter().map(|(a, b, c, d)| (a, b, c, d as &str)),
+        after.into_iter().map(|(a, b, c, d)| (a, b, c, d as &str)),
+        "expr:test:1",
+    )
+    .expect("drafts");
+    assert_eq!(drafts.len(), 1, "only statya-4 changed: {drafts:?}");
+    assert_eq!(drafts[0].level, "statya");
+    assert_eq!(drafts[0].number, "4");
+    assert_eq!(drafts[0].op, AmendmentDraftOp::Attach);
+}
+
+#[test]
+fn same_number_different_paths_do_not_collide() {
+    // punkt-4 under statya-93 vs punkt-4 under statya-94: same level and
+    // number, different ladder paths — only the statya-93 one changes.
+    let before = [
+        (
+            "punkt",
+            "4",
+            Some("statya-93/punkt-4"),
+            "текст п.4 ст.93 (старая)",
+        ),
+        (
+            "punkt",
+            "4",
+            Some("statya-94/punkt-4"),
+            "текст п.4 ст.94 (старая)",
+        ),
+    ];
+    let after = [
+        (
+            "punkt",
+            "4",
+            Some("statya-93/punkt-4"),
+            "текст п.4 ст.93 (НОВАЯ)",
+        ),
+        (
+            "punkt",
+            "4",
+            Some("statya-94/punkt-4"),
+            "текст п.4 ст.94 (старая)",
+        ),
+    ];
+    let drafts = changed_article_texts(
+        before.into_iter().map(|(a, b, c, d)| (a, b, c, d as &str)),
+        after.into_iter().map(|(a, b, c, d)| (a, b, c, d as &str)),
+        "expr:test:1",
+    )
+    .expect("drafts");
+    assert_eq!(
+        drafts.len(),
+        1,
+        "only statya-93 punkt-4 changed: {drafts:?}"
+    );
+    assert_eq!(drafts[0].path.as_deref(), Some("statya-93/punkt-4"));
+    assert_eq!(drafts[0].op, AmendmentDraftOp::Attach);
+}
+
+#[test]
+fn nested_path_carried_into_text_draft() {
+    // A nested unit removed between editions keeps its ladder identity.
+    let before = [(
+        "punkt",
+        "4.2",
+        Some("statya-93/punkt-4/punkt-4.2"),
+        "текст 4.2",
+    )];
+    let after: [(&str, &str, Option<&str>, &str); 0] = [];
+    let drafts = changed_article_texts(
+        before.into_iter().map(|(a, b, c, d)| (a, b, c, d as &str)),
+        after.into_iter().map(|(a, b, c, d)| (a, b, c, d as &str)),
+        "expr:test:1",
+    )
+    .expect("drafts");
+    assert_eq!(drafts.len(), 1);
+    assert_eq!(drafts[0].op, AmendmentDraftOp::Detach);
+    assert_eq!(drafts[0].level, "punkt");
+    assert_eq!(drafts[0].number, "4.2");
+    assert_eq!(
+        drafts[0].path.as_deref(),
+        Some("statya-93/punkt-4/punkt-4.2")
+    );
+}
+
+#[test]
+fn flat_number_matches_flat_path_identity() {
+    // Flat marker without a path keys on its number (D192); a flat before
+    // item is found by a flat after item with the same number.
+    let before = [("statya", "1", None, "текст один")];
+    let after = [("statya", "1", None, "текст один")];
+    let drafts = changed_article_texts(
+        before.into_iter().map(|(a, b, c, d)| (a, b, c, d as &str)),
+        after.into_iter().map(|(a, b, c, d)| (a, b, c, d as &str)),
+        "expr:test:1",
+    )
+    .expect("drafts");
+    assert!(
+        drafts.is_empty(),
+        "identical flat texts stay unchanged: {drafts:?}"
+    );
+}
+
+#[test]
+fn flat_does_not_match_path_bound_item() {
+    // A flat `punkt 4` (key_path "4") and a ladder `punkt 4`
+    // (key_path "statya-93/punkt-4") are different identities — one side
+    // changed alone must not leak into the other (fail-closed, no invented
+    // pairing across key_path boundaries).
+    let before = [("punkt", "4", None, "плоский пункт 4")];
+    let after = [("punkt", "4", Some("statya-93/punkt-4"), "вложенный пункт 4")];
+    let drafts = changed_article_texts(
+        before.into_iter().map(|(a, b, c, d)| (a, b, c, d as &str)),
+        after.into_iter().map(|(a, b, c, d)| (a, b, c, d as &str)),
+        "expr:test:1",
+    )
+    .expect("drafts");
+    // Two separate identities: flat removed (Detach), ladder added (Attach).
+    assert_eq!(
+        drafts.len(),
+        2,
+        "flat and ladder identities stay apart: {drafts:?}"
+    );
 }

@@ -553,10 +553,10 @@ fn replay(seed_path: &str, target_path: &str) {
         let text_drafts = ln_kb_ontology::domain::changed_article_texts(
             seed_articles
                 .iter()
-                .map(|a| ("statya", a.number(), a.title(), a.text() as &str)),
+                .map(|a| ("statya", a.number(), None, a.text() as &str)),
             target_articles
                 .iter()
-                .map(|a| ("statya", a.number(), a.title(), a.text() as &str)),
+                .map(|a| ("statya", a.number(), None, a.text() as &str)),
             &target_expr,
         )
         .ok()?;

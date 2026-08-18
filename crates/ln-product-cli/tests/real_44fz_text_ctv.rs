@@ -165,10 +165,10 @@ fn text_changed_between_editions_resolves_differently() {
     let drafts = changed_article_texts(
         seed_articles
             .iter()
-            .map(|a| ("statya", a.number(), a.title(), a.text())),
+            .map(|a| ("statya", a.number(), None, a.text())),
         target_articles
             .iter()
-            .map(|a| ("statya", a.number(), a.title(), a.text())),
+            .map(|a| ("statya", a.number(), None, a.text())),
         &target_prov,
     )
     .expect("changed_article_texts must succeed on 0001->0002");
