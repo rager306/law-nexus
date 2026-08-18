@@ -260,6 +260,17 @@ impl OntologyCatalog {
         self.hierarchy_levels.iter().position(|item| item == level)
     }
 
+    /// R087/R8-13 recursive propose rank: (role order, ladder depth).
+    /// Role order is the declaration position in `hierarchy_levels`; depth is
+    /// the marker's path-segment count (flat markers are depth 1). Tuple
+    /// lexicographic ordering keeps `pop while top >= rank` unchanged, while
+    /// nested punkt ladders (4 -> 4.1 -> 4.1.2) no longer collapse to
+    /// siblings: their depths differ even though the role order is equal.
+    pub fn propose_rank(&self, level: &str, depth: usize) -> Option<(usize, usize)> {
+        self.hierarchy_level_rank(level)
+            .map(|role_order| (role_order, depth))
+    }
+
     pub fn resolve_decode_level_alias(&self, token: &str) -> Option<String> {
         self.decode_level_aliases
             .iter()
@@ -1221,5 +1232,11 @@ mod tests {
         assert_eq!(catalog.hierarchy_level_rank("razdel"), Some(0));
         assert_eq!(catalog.hierarchy_level_rank("statya"), Some(3));
         assert_eq!(catalog.hierarchy_level_rank("Article"), None);
+        // R8-13 recursive rank = (role order, depth); flat depth is 1.
+        assert_eq!(catalog.hierarchy_level_rank("punkt"), Some(5));
+        assert_eq!(catalog.propose_rank("punkt", 1), Some((5, 1)));
+        assert_eq!(catalog.propose_rank("punkt", 2), Some((5, 2)));
+        assert_eq!(catalog.propose_rank("statya", 1), Some((3, 1)));
+        assert_eq!(catalog.propose_rank("Article", 1), None);
     }
 }

@@ -619,6 +619,22 @@ impl HierarchyMarker {
         self.path.as_deref().unwrap_or(self.number.as_str())
     }
 
+    /// Recursive ladder depth (R8-13): count of non-empty path segments;
+    /// flat markers (no path) are depth 1. Nested punkt ladders like
+    /// `statya-93/punkt-4/punkt-4.1` report 3, so propose ranks
+    /// `(role order, depth)` keep 4 -> 4.1 -> 4.1.2 nested instead of
+    /// collapsing them to siblings.
+    pub fn depth(&self) -> usize {
+        self.path
+            .as_deref()
+            .map(|path| {
+                path.split('/')
+                    .filter(|segment| !segment.is_empty())
+                    .count()
+            })
+            .unwrap_or(1)
+    }
+
     pub fn title(&self) -> Option<&str> {
         self.title.as_deref()
     }
@@ -775,19 +791,24 @@ impl MembershipProposeReport {
     }
 }
 
-/// Propose attach edges from document-order markers using YAML level ranks.
-/// Unknown markers skip the stack. Empty registry yields only quarantine.
+/// Propose attach edges from document-order markers using YAML role ranks and
+/// the marker's recursive ladder depth (R8-13). Unknown markers skip the
+/// stack. Empty registry yields only quarantine.
 pub fn propose_membership_from_markers(
     map: &HierarchyMap,
     markers: &[HierarchyMarker],
 ) -> Result<MembershipProposeReport, WriteSetError> {
     let catalog = OntologyCatalog::embedded().map_err(|_| WriteSetError::UnknownHierarchyLevel)?;
-    let mut stack: Vec<(usize, ComponentConceptId)> = Vec::new();
+    // R8-13: rank = (role order, ladder depth). Flat markers are depth 1, so
+    // the legacy flat behavior is byte-identical; path-bearing markers get a
+    // strictly increasing rank down a nested ladder, so `pop while top >= rank`
+    // nests punkt 4 -> 4.1 -> 4.1.2 instead of treating them as siblings.
+    let mut stack: Vec<((usize, usize), ComponentConceptId)> = Vec::new();
     let mut proposals = Vec::new();
     let mut quarantined = 0usize;
     let mut forest_roots = 0usize;
     for marker in markers {
-        let Some(rank) = catalog.hierarchy_level_rank(marker.level()) else {
+        let Some(rank) = catalog.propose_rank(marker.level(), marker.depth()) else {
             return Err(WriteSetError::UnknownHierarchyLevel);
         };
         match map_hierarchy_marker(map, marker) {
