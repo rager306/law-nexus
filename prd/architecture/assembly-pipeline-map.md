@@ -26,8 +26,11 @@
 - **Cross-check provenance:** every row below was verified against
   `kb-ontology.yaml` `assembly_fsm` and the M168–M171 closeouts
   (M168 final `21286a7`; M170 verified at `82e53d6`; M171 final `db8d1db`).
-- **Drift control:** `tests/test_assembly_pipeline_map.py` pins this map to the
-  YAML states (delivered by the remainder of S01, task T03).
+- **Drift control:** `tests/test_assembly_pipeline_map.py` (S01 T03) pins this
+  map to the YAML: the state set and per-state names, the §1/§3 FSM head
+  quotes, the per-row lifecycle ceiling, the §5 document-group set, the §6 L2
+  canon names, the §7 non-goal headings, the §4 non-claims verbatim, and the
+  existence of every backticked repo-relative evidence anchor.
 - Document-group profiles (§5), the three L2 canons (§6), and the explicit
   non-goals (§7) were appended to this map by S01 T02; the FSM state table
   (§2) and the readiness distinction (§3) are the T01 deliverable.
@@ -131,6 +134,11 @@ Named so later slices cannot silently widen them:
    and nothing may be derived from `S_ready_bounded` toward
    applicability.
 
-## 8. Pending sections of this map (S01 remainder)
+## 8. S01 remainder (delivered)
 
-- Pytest drift contract `tests/test_assembly_pipeline_map.py` — T03.
+- Pytest drift contract `tests/test_assembly_pipeline_map.py` (T03, delivered):
+  it enforces the YAML state set and per-state names, the §1/§3 FSM head
+  quotes, the per-row lifecycle ceiling (`[proposed]`/`[bounded]`/`[smoke]`,
+  with promotions above that ceiling rejected), the §5 document-group set, the
+  §6 L2 canon names, the §7 non-goal headings, the §4 non-claims verbatim, and
+  the existence of every backticked repo-relative evidence anchor.
