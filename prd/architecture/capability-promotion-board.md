@@ -89,7 +89,8 @@ Until schema fields exist, packets live as:
 ## 5. Current board (RC11/RC12 spine wave)
 
 **As-of git head context:** process residual RC11+RC12 product_open empty;
-M167 complete (design IR); dual-truth lag resolved.
+M167 complete (design IR); dual-truth lag resolved. M171 final `db8d1db`;
+TSG-017 journal recorded at S3 (§5c, D204 packet).
 
 | TSG | Ladder now | Progress notes | L_review B3 / non-closure | Next honest step |
 |---|---|---|---|---|
@@ -109,7 +110,7 @@ M167 complete (design IR); dual-truth lag resolved.
 | TSG-014 | S0 | partial paper shapes | — | port-tied schemas |
 | TSG-015 | S0 | paper golden catalog | — | executable promotion per case |
 | TSG-016 | S0–S1 | InMemory scoring `[bounded]` | — | real 1024d corpus + metrics |
-| TSG-017 | **S0–S1** | Review 4 assembly design: EditionOracle vs AmendmentEvent; YAML corpus roles / evidence classes / `assembly_fsm` | Review 4 L0; not a packet | classify XML + one-fixture propose/fold/oracle-diff (S2/S3); still not 44-ФЗ history |
+| TSG-017 | **S3** (`bounded_runtime`) | M169–M171 packet (§5c journal): real-corpus classify/identify, 12-state `assembly_fsm` on 44-ФЗ edition-0118 drift=0, replay 0080→0081 drift=0, five document_groups anchors | register non-closure stands (S02 current-fact cell); not S4 | representative multi-edition replay + human scope (S4/S5); corpus-wide assembly and `resolve_CTV` product open |
 
 ### Promotion history (append-only)
 
@@ -124,6 +125,8 @@ M167 complete (design IR); dual-truth lag resolved.
 | 2026-08-13 | TSG-003 | S2 → **S3** | `apply_industrial_op` + `StructuralEventLog` offline/hostile | product TDD slice |
 | 2026-08-13 | TSG-013 | S2 → **S2–S3** | membership mutation under apply | product TDD slice |
 | 2026-08-13 | TSG-017 | → **S0–S1** | Review 4 L0 + ADR-0013/16/17/19 design inventory | review intake |
+| 2026-08-16 | TSG-017 | S0–S1 → **S2** | M169 implementation spine: classify/propose/admit/commit/fold grounded on real `consru_export` paths; 44-ФЗ registry 8 glava + 94 statya | GSD M169 product TDD |
+| 2026-08-18 | TSG-017 | S2 → **S3** | M169–M171 `bounded_runtime`: 402-ФЗ fixture full pipeline; 44-ФЗ edition-0118 drift=0; replay 0080→0081 (476-ФЗ purge) drift=0; five document_groups catalog | GSD M169–M171 closeout (D204) |
 
 No row advanced to S6 in the spine wave; S3 apply landed later (see history).
 
@@ -160,6 +163,64 @@ Governor check `kb-ontology-draft` is structural only.
 | 2026-08-14 | KBO-R052 | assembly `S_heal` | heal_missing + waive_drift; 4 tests; FSM S_verify→S_heal |
 | 2026-08-14 | KBO-R049 | cross-act S0→S1 | try_cross_act_edge + hostile tests; 6 tests; real C1 edge pending |
 | 2026-08-14 | KBO-R049 | cross-act **S1 complete** | real C1 edges: 138-ФЗ→ст.31/43, 333-ФЗ→ст.95; 5 tests green |
+
+## 5c. TSG-017 journal: Temporal AST assembly (ceiling S3)
+
+Packet D204 (M173 S03): two class-matched steps S0–S1 → S2 (2026-08-16, M169
+implementation spine) and S2 → S3 (2026-08-18, M169–M171 bounded runtime)
+recorded in §5 history. Ceiling is **S3 `bounded_runtime`** — not S4 (no
+representative multi-edition replay beyond named pairs) and not S6 (register
+disposition rules untouched). Neighbors TSG-003/TSG-013 stay S3; this journal
+adds no S6 and does not close TSG rows.
+
+### de Martim v5 scorecard (Review 5, `doc/review/review-14-08-2026.md`)
+
+| Axis | law-nexus | de Martim v5 |
+|---|---:|---:|
+| Theory completeness (clocks, canons, cross-act) | **8/10** | 6/10 |
+| Executability (Rust pipeline on live XML) | **7/10** | 1/10 |
+| CTV text reconstruction (`resolve_CTV`) | 2.5/10 | **8/10** |
+| Validated amendment corpus | 3/10 | **8/10** |
+| Formal ontology (LRMoo/ELI/AKN) | 5/10 | **8/10** |
+| Engineering maturity (TDD, hex, Governor, D098) | **7/10** | 2/10 |
+
+Axes kept ahead (Review 5 §1b): 5 clocks, 3 L2 canons (force ≠ text),
+InForce ≠ Applicable, cross-act edges, practice overlay. Axes still behind
+(Review 5 §1c): `resolve_CTV` product, validated corpus, ELI/AKN mapping.
+
+### Edition axis (44-ФЗ real corpus, M169/M170)
+
+- full 12-state `assembly_fsm` on edition-0118: propose=94 / commit=94 /
+  fold 8 roots / 102 nodes, `ctv_resolved=102`, drift=0;
+- legislative replay 0080→0081 (476-ФЗ purge): marker diff → drafts=81,
+  added=24 / removed=57, seed commit → apply → fold, drift=0;
+- text-only probe 0001→0002: empty structural diff — oracle assert, not a
+  replay proof;
+- non-claim: no 118-edition verify; file dates are process truth, not
+  legal truth (D116/D117).
+
+### Cross-act C1 axis (amending acts acquired; Review 7, `doc/review/review-16-08-2026.md`)
+
+| Act | Date | Targets 44-ФЗ | Status |
+|---|---|---|---|
+| 138-ФЗ | 2025-06-07 | ст. 31/43 | real C1 edge executed (KBO-R049 S1) |
+| 333-ФЗ | 2025-07-31 | ст. 95 | real C1 edge executed (KBO-R049 S1) |
+| 484-ФЗ | 2024-12-26 | general amendments | acquired; edge not executed |
+
+### Support acts by document_group (five groups, M171 catalog)
+
+| document_group | Anchor act | Executed proof |
+|---|---|---|
+| `federal_law@v1` | 402-ФЗ tracked fixture; real 44-ФЗ edition-0118 | full FSM to `S_ready_bounded`, `oracle_drift=0` |
+| `code` | 145-ФЗ (Budget kodeks XML, `law-source/consultant/`) | catalog-only; pipeline never run on `code` |
+| `government_resolution` | PP_60 (real Garant ПП corpus) | punkt units executed; recursive depth 3 |
+| `departmental_order` | Росгвардии приказ № 45 от 15.02.2021 (НМЦК; on disk, pipeline not run) | inline fixture: two punkt units resolve text-CTV (M171) |
+| `court_practice` | — (ADR-0020: practice ≠ AST) | probe-only; no parser surface |
+
+Anchor naming per D205: the on-disk приказ is a disk fact, not an executed
+run; the only executed `departmental_order` proof stays the M171 inline
+fixture. Map authority for group profiles:
+`prd/architecture/assembly-pipeline-map.md` §5.
 
 ## 6. Operator cycle (capability-only)
 
