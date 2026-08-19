@@ -120,8 +120,10 @@ recursive `max_depth`, granularity as data — and the pure write-set binding
 FNV-1a 64 catalog section hash; the governor `document-groups-coverage`
 check (advisory, KBO-R062/R066) keeps ladders ⊆ token catalog and roles
 closed, so binding/catalog version drift is a visible warning (ADR-0013/0016/0027
-amendments; Review 8). Recursive walk, CC-path identity and StructuralNearMiss
-census remain `[proposed]`.
+amendments; Review 8). Recursive walk is `[bounded]` on the subordinate act
+corpus (44-ФЗ registry stays a flat anchor, D192), CC-path identity
+(`cc:work:statya-93/punkt-4/punkt-4.2`, D191) and the StructuralNearMiss
+census → human-apply loop (D194) are `[bounded]`.
 Consultant parser (ADR-0025/0027): `ln-consultant-parser` has 10 source
 modules including `lib.rs`, 64 integration test functions and 4 source-unit
 tests. The G1 Consultant protocol/tracer anchor is 119 structural hierarchy
