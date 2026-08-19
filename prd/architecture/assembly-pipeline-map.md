@@ -28,9 +28,9 @@
   (M168 final `21286a7`; M170 verified at `82e53d6`; M171 final `db8d1db`).
 - **Drift control:** `tests/test_assembly_pipeline_map.py` pins this map to the
   YAML states (delivered by the remainder of S01, task T03).
-- Document-group profiles, the three L2 canons, and the explicit non-goals
-  section are appended to this map by S01 T02. The FSM state table and the
-  readiness distinction below are the T01 deliverable.
+- Document-group profiles (§5), the three L2 canons (§6), and the explicit
+  non-goals (§7) were appended to this map by S01 T02; the FSM state table
+  (§2) and the readiness distinction (§3) are the T01 deliverable.
 
 ## 2. State table: `assembly_fsm` (S_design … S_ready_bounded)
 
@@ -74,10 +74,63 @@
 These non-claims bound this map: a complete assembly FSM for one fixture is
 not product readiness, not legal correctness, and not applicability.
 
-## 5. Pending sections of this map (S01 remainder)
+## 5. Document-group profiles (YAML `document_groups`)
 
-- Document-group profiles (5 groups) and per-group pipeline differences — T02.
-- The three L2 canons — T02.
-- Explicit non-goals (fold cache, schedule/agent, event store, Force /
-  Applicable runtime) — T02.
+> Canonical source: `kb-ontology.yaml` `document_groups` (ADR-0020;
+> KBO-R062). The catalog contract (five groups, closed role vocabulary,
+> ladder tokens ⊆ decode-token catalog, non-claims declared) is pinned by
+> `crates/ln-kb-ontology/tests/document_groups_catalog.rs`; governor coverage
+> (`check_document_groups_coverage`, `src/law_nexus_harness/governor.py`) is
+> advisory. The `parsed_as` Work→DocumentGroupRef binding (group + catalog
+> version, KBO-R064) is a `system_observation` heuristic, never legal
+> classification.
+
+| Group | Granularity / ladder | Honest pipeline position | Tracked evidence | Gap |
+|---|---|---|---|---|
+| `federal_law@v1` | statya; glava(container)→paragraph(container)→statya(unit)→chast(subunit)→punkt(subunit, recursive max_depth 2)→podpunkt(subunit) | the only profile with an executed full FSM run to `S_ready_bounded` | `document_groups_catalog.rs` (`federal_law_v1_*`); `prd/architecture/kb-hierarchy-registry.yaml`; `crates/ln-product-cli/tests/cli_contract.rs` (tracked 402-FZ fixture); `crates/ln-product-cli/tests/real_44fz_text_ctv.rs` / `real_44fz_assembly.rs` (consru_export [smoke]) | registry binds glava+statya only; Chast/Punkt/Paragraph stay `Unknown` (D192); no razdel in this ladder — a РАЗДЕЛ marker fails closed (R8-08); edition-day registry parses only `law_*` paths |
+| `code` | statya; razdel(container)→glava(container)→statya(unit) — the only ladder with razdel (R8-08) | catalog-only: declared and contract-tested, never executed | `document_groups_catalog.rs` (5-group + ladder-token contract) | `group("code")` has zero call sites in `crates/`; three kodeks Consultant XMLs exist in `law-source/consultant/` (145-FZ, 195-FZ, 136-FZ) but no decode/extract/bind/fold run uses the `code` profile |
+| `government_resolution` | punkt; punkt(unit, recursive max_depth 3, suffix `.`)→podpunkt(subunit)→prilozhenie(container) | punkt unit collection executed on the real Garant ПП corpus (M171 S03): PP_60 primary + bounded breadth; nested sub-markers accumulate into the unit body | `crates/ln-product-cli/tests/real_subordinate_acts.rs` | CCs are fixture-minted, not registry identity; no edition-day registry for ПП; amendment PPs (lettered а/б) honestly yield 0 punkt units; one embedded-image ODT fails decode; depth-ranked recursive walk remains `[proposed]` (KBO-R063) |
+| `departmental_order` | punkt; punkt(unit, recursive max_depth 4, suffix `)`)→podpunkt(subunit)→primechanie(subunit-text)→prilozhenie(container) | executed on an inline fixture only (M171 S03): two punkt units resolve text-CTV | `crates/ln-product-cli/tests/real_subordinate_acts.rs` (`order_punkt_units_resolve_via_inline_fixture`) | no real приказ in the corpus — fixture-only proof, not corpus evidence |
+| `court_practice` | text-only (empty ladder; practice ≠ AST, ADR-0020) | stops before structure: the probe ignores numbering and statya markers; no `S_bind`/`S_propose`/`S_commit`/`S_fold` for practice documents | `crates/ln-decode/tests/structural_profile_contract.rs` (`probe_ignores_numbering_for_text_only`, `court_practice_ignores_statya_markers`, `court_practice_ignores_depth4_numbering`) | probe-only proof: no decode→bind pipeline run over a real practice document anywhere in M168–M171 |
+
+YAML `document_groups.non_claims` (§4) bound this table verbatim: the
+binding is a `system_observation` heuristic, the vocabulary stays in the
+catalog, court practice text is not an AST.
+
+## 6. The three L2 canons (`edition_ast_at(t)`)
+
+KBO-R045 (Review 5 R5-03; ADR-0017 §1a): a dated edition view is three pure
+folds/filters over event logs — never a stored document AST.
+
+| Canon | Definition | Function | Tracked evidence | Bound |
+|---|---|---|---|---|
+| CompositionAst | fold(membership ≤ t) | `ln_temporal::domain::fold_membership_at` | `crates/ln-temporal/tests/membership_fold.rs`; `crates/ln-kb-ontology/tests/edition_ast.rs` | structural membership only — presence in the tree is not `InForce` (KBO-R009) |
+| EditionAst | filter(CompositionAst, fold_presence ≤ t) | `ln_kb_ontology::domain::edition_ast_at` composing `fold_expression_presence` + `filter_ast_to_expression` | `crates/ln-kb-ontology/tests/edition_ast.rs` (incl. `edition_ast_at_earlier_day_hides_future`); presence surface in `membership_commit.rs`, `component_in_expression.rs` | per-Expression include/exclude at day t; an earlier day hides future events |
+| TextAst | resolve_CTV(cc, t) | `ln_kb_ontology::domain::resolve_ctv` over a `TextVersionLog` built by `build_text_log_from_markers` / `build_text_log_from_articles` | `crates/ln-kb-ontology/tests/resolve_ctv.rs`; `crates/ln-product-cli/tests/cli_contract.rs` (tracked 402-FZ fixture, `ctv_resolved > 0`); `crates/ln-product-cli/tests/real_44fz_text_ctv.rs` (consru_export [smoke]: ≥85 statya non-empty text, edition-0118) | text-facet drafts are observations, not membership records (KBO-R061); the real-corpus proof is skip-capable |
+
+All three recompute per run; no canon is cached or persisted (§7).
+
+## 7. Explicit non-goals of this map
+
+Named so later slices cannot silently widen them:
+
+1. **Fold cache / AST persistence** — none: every `fold_membership_at` /
+   `fold_expression_presence` / `resolve_ctv` call recomputes from event
+   logs; nothing persists an AST between runs.
+2. **Schedule / agent runtime** — none: the pipeline executes inside tests
+   and CLI invocations; no scheduler, daemon, or autonomous agent drives
+   acts through `assembly_fsm` states.
+3. **Durable event store** — none: membership and text event logs are
+   per-run in-memory structures; a durable event store is out of scope
+   (S_commit gap, §2).
+4. **Force runtime** — none: this map folds structure and text only and
+   never writes or implies a force status; the force↔membership join is
+   offline and partial (KBO-R012).
+5. **Applicable runtime** — none: `ApplicableDecision` stays a forbidden
+   node kind; `InForce` never implies `Applicable` (KBO-R008; RC11-F09),
+   and nothing may be derived from `S_ready_bounded` toward
+   applicability.
+
+## 8. Pending sections of this map (S01 remainder)
+
 - Pytest drift contract `tests/test_assembly_pipeline_map.py` — T03.
