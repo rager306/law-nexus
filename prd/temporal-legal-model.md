@@ -96,6 +96,16 @@ Each layer consumes lower-layer evidence. No higher layer may rewrite source evi
 | structural profile | synonym family for document group: closed role layer (container/unit/subunit/subunit-text/text-only) + open per-group token layer with recursive max_depth policy | ADR-0013 amendments + Review 8 | canonical design term `[proposed]` | role layer closed; tokens valid only inside the declaring group; depth is policy, not syntax |
 | CC-path | recursive component identity (`cc:…:statya-93/punkt-4/punkt-4.2`) generalizing flat registry bindings; repairs the changed_article_texts bare-number key defect; prepares the TQ-05 reference channel | ADR-0016 amendments (R8-11) | canonical design term `[proposed]` | not a new identity canon; Work identity stays number + authority + date; not minted by parsed_as binding |
 
+Russian citation labels for YAML `hierarchy_levels` / `document_groups` tokens (aliases in source-grounded answers, not extra ontology terms; mint level remains profile data). Do not treat a label as a LegalUnit or CC without WALK-I / registry bind:
+
+- `razdel` — раздел
+- `glava` — глава
+- `paragraph` — абзац / `§` (not formal Параграф unless the source uses that word)
+- `statya` — статья (`ст. N`)
+- `chast` — часть (`ч. N`)
+- `punkt` — пункт (`п. N`)
+- `podpunkt` — подпункт (`подп. …`)
+
 These deferred critique terms are stop-signals recovered from the 2026-08-11 independent architecture criticism. Listing them does not adopt their names, fields, ontology, ownership or implementation. A future human-owned ADR may rename, split, reject or define them.
 
 ADR-0018 EA-04 clarification makes `NormativeState` the canonical public term and treats `NormativeStatus` as a deprecated alias for the same dimension. Residual documentation, design, implementation and evidence gaps are inventoried in [`architecture/temporal-semantic-gap-register.md`](architecture/temporal-semantic-gap-register.md); that register is non-authoritative and cannot close or promote any row by itself.
