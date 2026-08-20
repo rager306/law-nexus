@@ -529,6 +529,17 @@ fn replay_same_file_402_fz_reports_zero_facet_drafts() {
         stdout.contains("expr:ru:federal:zakon:2011-12-06:402-fz"),
         "expression_id must carry the minted 402-fz expression; {stdout}"
     );
+    // S02 (M174): presence channel must be visible in replay JSON —
+    // edition_ast_at (membership fold + presence fold + filter) is part
+    // of the bounded replay report, not a hidden domain path.
+    assert!(
+        stdout.contains("\"presence\":{\"visible\":"),
+        "replay must report the presence channel; {stdout}"
+    );
+    assert!(
+        inspect_u64(&stdout, "visible") >= 1,
+        "same-file replay must have at least one visible CC; {stdout}"
+    );
     assert!(
         !stdout.contains("ОБЩИЕ ПОЛОЖЕНИЯ"),
         "raw legal text must not be persisted; got first 400 chars: {}",

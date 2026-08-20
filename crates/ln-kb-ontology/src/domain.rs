@@ -1,7 +1,8 @@
 //! Pure L1–L3 write-set types. No store I/O.
 
 use crate::catalog::OntologyCatalog;
-use ln_identity::domain::{ExpressionId, FrbrExpression, FrbrWork};
+pub use ln_identity::domain::ExpressionId;
+use ln_identity::domain::{FrbrExpression, FrbrWork};
 use ln_temporal::domain::ComponentConceptId;
 use ln_temporal::domain::{
     AmendingActId, CtvOpsError, ForceMembershipJoin, ForceStatusEvent, MembershipChangeKind,

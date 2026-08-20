@@ -22,8 +22,9 @@ use ln_decode::{
 };
 use ln_kb_ontology::domain::{
     admit_membership_proposals, assemble_with_oracle_diff, build_text_log_from_articles,
-    diff_marker_sets, drafts_from_marker_diff, map_hierarchy_marker, marker_from_decode_token,
-    propose_membership_from_markers, resolve_ctv, AmendmentDraftOp, CtvResolution,
+    diff_marker_sets, drafts_from_marker_diff, edition_ast_at, map_hierarchy_marker,
+    marker_from_decode_token, propose_membership_from_markers, resolve_ctv, AmendmentDraftOp,
+    ComponentInExpressionEvent, ComponentInExpressionLog, CtvResolution, ExpressionId,
     HierarchyBinding, HierarchyMap, HierarchyMapOutcome, HierarchyMarker, WriteSetError,
 };
 use ln_kb_ontology::registry::{
@@ -769,11 +770,92 @@ fn replay(seed_path: &str, target_path: &str) {
 
     let (committed_attach, committed_detach, drift, missing, phantom) =
         drift_report.unwrap_or((0, 0, -1, 0, 0));
+
+    // Presence channel (M174 S02): make edition_ast_at visible in the CLI.
+    // Membership fold from seed markers + include-events for the target
+    // oracle CCs → edition AST = membership ∩ expression presence.
+    // Bounded: offline synthetic presence log from the oracle snapshot;
+    // not expression inheritance, not CTV, not force.
+    let presence_report = (|| -> Option<(usize, usize)> {
+        let day = edition_effect_day(target_path)
+            .or_else(|| load_edition_day_for_path(target_path))
+            .or_else(|| load_edition_day_for_path(seed_path))?;
+        let expression = ExpressionId::parse(&target_expr).ok()?;
+        let prov = AmendingActId::parse(&target_expr).ok()?;
+        let mut map =
+            load_hierarchy_map_for_path(seed_path).unwrap_or_else(|_| HierarchyMap::empty());
+        for m in diff.removed.iter().chain(diff.added.iter()) {
+            if m.level() != "statya" {
+                continue;
+            }
+            if let Ok(cc) = ComponentConceptId::parse(&format!("cc:44-fz:statya-{}", m.number())) {
+                if let Ok(binding) = ln_kb_ontology::domain::HierarchyBinding::try_new(
+                    None,
+                    m.level(),
+                    m.number(),
+                    cc,
+                ) {
+                    let _ = map.register(binding);
+                }
+            }
+        }
+        let propose = propose_membership_from_markers(&map, &target_markers).ok()?;
+        let admit = admit_membership_proposals(&propose.proposals);
+        let mut mlog = VersionedMembershipLog::empty();
+        for edge in &admit.admitted {
+            mlog.append(
+                VersionedMembershipEvent::try_new(
+                    MembershipChangeKind::Attach,
+                    edge.parent.clone(),
+                    edge.child.clone(),
+                    day,
+                    prov.clone(),
+                )
+                .ok()?,
+            )
+            .ok()?;
+        }
+        let mut plog = ComponentInExpressionLog::empty();
+        for edge in &admit.admitted {
+            plog.append(
+                ComponentInExpressionEvent::try_new(
+                    "include",
+                    expression.clone(),
+                    edge.child.clone(),
+                    day,
+                    target_expr.as_str(),
+                )
+                .ok()?,
+            )
+            .ok()?;
+        }
+        let edition = edition_ast_at(&mlog, &plog, &expression, day).ok()?;
+        let mut visible: Vec<ComponentConceptId> = Vec::new();
+        for root in edition.roots() {
+            collect_ccs(root, &mut visible);
+        }
+        let mut membership: Vec<ComponentConceptId> = Vec::new();
+        let composition = fold_membership_at(&mlog, day).ok()?;
+        for root in composition.roots() {
+            collect_ccs(root, &mut membership);
+        }
+        let hidden = membership
+            .iter()
+            .filter(|cc| !visible.iter().any(|v| v == *cc))
+            .count();
+        Some((visible.len(), hidden))
+    })();
+    let presence_label = if presence_report.is_some() {
+        "ok"
+    } else {
+        "unavailable"
+    };
+    let (presence_visible, presence_hidden) = presence_report.unwrap_or((0, 0));
     let seed_esc = json_escape(&seed_expr);
     let target_esc = json_escape(&target_expr);
     let drift_label = if drift < 0 { "unavailable" } else { "ok" };
     println!(
-        "{{\"phase\":\"Replay\",\"status\":\"ok\",\"binary\":\"{BINARY}\",\"runtime\":\"rust\",\"duration_ms\":{},\"seed\":{{\"path\":\"{}\",\"blocks\":{},\"markers\":{},\"expression_id\":\"{seed_esc}\"}},\"target\":{{\"path\":\"{}\",\"blocks\":{},\"markers\":{},\"expression_id\":\"{target_esc}\"}},\"diff\":{{\"added\":{},\"removed\":{}}},\"drafts\":{{\"total\":{},\"attach\":{},\"detach\":{}}},\"applied\":{{\"attach\":{},\"detach\":{}}},\"text\":{{\"facet_drafts\":{}}},\"verify\":{{\"drift\":{},\"missing\":{},\"phantom\":{},\"status\":\"{drift_label}\"}},\"non_claims\":[\"Two editions prove replay mechanics, not corpus history\",\"Drafts are hypothesized_from_oracle_diff, not legislative events\",\"Historical layer rebinding is a fixture decision\"]}}",
+        "{{\"phase\":\"Replay\",\"status\":\"ok\",\"binary\":\"{BINARY}\",\"runtime\":\"rust\",\"duration_ms\":{},\"seed\":{{\"path\":\"{}\",\"blocks\":{},\"markers\":{},\"expression_id\":\"{seed_esc}\"}},\"target\":{{\"path\":\"{}\",\"blocks\":{},\"markers\":{},\"expression_id\":\"{target_esc}\"}},\"diff\":{{\"added\":{},\"removed\":{}}},\"drafts\":{{\"total\":{},\"attach\":{},\"detach\":{}}},\"applied\":{{\"attach\":{},\"detach\":{}}},\"text\":{{\"facet_drafts\":{}}},\"presence\":{{\"visible\":{},\"hidden\":{},\"status\":\"{presence_label}\"}},\"verify\":{{\"drift\":{},\"missing\":{},\"phantom\":{},\"status\":\"{drift_label}\"}},\"non_claims\":[\"Two editions prove replay mechanics, not corpus history\",\"Drafts are hypothesized_from_oracle_diff, not legislative events\",\"Historical layer rebinding is a fixture decision\",\"Presence log is oracle-synthesized, not expression inheritance\"]}}",
         start.elapsed().as_millis(),
         json_escape(seed_path),
         seed_blocks,
@@ -789,6 +871,8 @@ fn replay(seed_path: &str, target_path: &str) {
         committed_attach,
         committed_detach,
         text_draft_count,
+        presence_visible,
+        presence_hidden,
         drift,
         missing,
         phantom,
