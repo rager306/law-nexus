@@ -2,6 +2,33 @@
 
 ## [Unreleased]
 
+### M174-jm7fi2 — Волна 1: техдолг и процессные разрывы
+
+### Fixed
+- `heal_missing` fail-closed provenance (R9-08): removed the silent
+  `amendingact:heal-fallback` substitution; invalid provenance now returns
+  `WriteSetError::MissingProvenance` and appends no event (hostile test
+  `heal_missing_rejects_invalid_provenance_fail_closed`).
+
+### Added
+- Presence channel visible in CLI replay (M174 S02): the Replay JSON report
+  now includes `presence: {visible, hidden, status}` computed via the domain
+  `edition_ast_at` fold (membership ∩ expression presence); `ExpressionId`
+  re-exported from `ln-kb-ontology::domain` so the CLI adapter needs no new
+  crate edge; real pair 0080→0081 reports visible=102, drift=0. Bounded
+  non-claim: the presence log is oracle-synthesized, not expression
+  inheritance.
+
+### Docs
+- L0 reviews 9–14 committed (`doc/review/review-20..25-08-2026.md`): C1
+  commit model, citation tape, external critique re-verified, consolidated
+  bitemporal-event-compiler formula + ADR impact map + roadmap. Not canon;
+  G0 human disposition pending.
+- Honesty sync: `prd/ARCHITECTURE.md` where-we-are timeline extended to
+  M174 (was stale at M165); KBO-R038 wording (C1 acquired, not yet event
+  canon) and KBO-R065 wording (census exists; deferred remainder narrowed
+  to the StructuralNearMiss class).
+
 ### M170-2gh5r6 — Text CTV полный текст статей
 
 ### Added
