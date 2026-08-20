@@ -218,6 +218,27 @@ M165 temporal legal ontology L1–L7  [proposed] design (ADR-0016..0022)
    Foundation LC hygiene: ADR-0004/0005 [bounded], ADR-0007 [validated]
    Docs/process follow-up: truth-oracle sync, vault untrack, archive relocate
    ▼
+M166-M168 parser/assembly execution  [bounded]
+   real-corpus grounding, EditionOracle checksum fold, oracle drift verify
+   ▼
+M169-M172 real-corpus identity + text CTV + document groups  [bounded]
+   per-edition identity from filenames; 44-ФЗ edition-0118 assembly drift=0;
+   legislative replay 0080→0081 (476-ФЗ purge, drift=0, CLI replay report);
+   article text CTV (resolve_ctv real corpus 85/94 statya); document_groups
+   profiles (federal_law@v1, government_resolution, departmental_order);
+   punkt-granularity CTV on PP_60 (M172); unknown-form census→patch loop
+   ▼
+M173 inspect PP_60 class-matched punkt proof  [bounded]
+   ▼
+M174 wave-1 debt closure  [bounded]
+   heal_missing fail-closed provenance (R9-08 fixed); presence channel
+   (edition_ast_at) visible in CLI replay; L0 reviews 9-14 committed
+   ▼
+DESIGN FRONT (no Rust, L0 reviews)
+   Reviews 9-14 (doc/review/review-20..25-08-2026.md): C1-commit model,
+   citation tape, bitemporal legislative event compiler formula —
+   [proposed] direction only; G0 human disposition pending; no ADR change
+   ▼
 ASSESSMENT FRONT (no Rust)
    EA-10 complete: D150 accepted-with-findings after independent EA-09 at 120d44b
    retained process/staleness findings remain open; no lifecycle promotion
