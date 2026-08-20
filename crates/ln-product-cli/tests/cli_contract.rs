@@ -641,6 +641,88 @@ fn subordinates_report_on_tracked_pp_is_bounded_json() {
     );
 }
 
+/// S02 first proof: the thin `inspect` (kind=None) resolves punkt-as-unit
+/// text-CTV on the tracked Garant reference ПП_60 file. The `pp_` path
+/// needle binds government_resolution; ctv_resolved counts unique Resolved
+/// on the YAML punkt granularity. Fixture CCs stay local (membership
+/// registry is federal_law-only) and the JSON must not grow punkt_units/
+/// cc_punkts keys (that is the subordinates schema, R063 thin inspect).
+#[test]
+fn inspect_pp60_reports_punkt_ctv_resolved() {
+    let fixture = pp60_fixture();
+    if !std::path::Path::new(&fixture).exists() {
+        eprintln!("SKIP: Garant corpus not available");
+        return;
+    }
+    let out = Command::new(binary())
+        .args(["inspect", &fixture])
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped())
+        .output()
+        .expect("spawn");
+    assert!(
+        out.status.success(),
+        "inspect PP_60 must exit 0; stderr={}",
+        String::from_utf8_lossy(&out.stderr)
+    );
+    let stdout = String::from_utf8(out.stdout).unwrap();
+    assert!(
+        stdout.contains("\"phase\":\"Inspect\""),
+        "expected Inspect phase; got: {}",
+        stdout
+    );
+    assert!(
+        stdout.contains("\"status\":\"ok\""),
+        "expected ok status; got: {}",
+        stdout
+    );
+    assert!(
+        stdout.contains("\"document_group\":\"government_resolution\""),
+        "pp_ path needle must bind government_resolution with kind=None; got: {}",
+        stdout
+    );
+    assert_eq!(
+        inspect_u64(&stdout, "detection_unknown"),
+        0,
+        "PP_60 must not be Unknown; got: {}",
+        stdout
+    );
+    assert!(
+        inspect_u64(&stdout, "ctv_resolved") > 0,
+        "punkt text-CTV must resolve > 0; got: {}",
+        stdout
+    );
+    assert_eq!(
+        inspect_u64(&stdout, "membership_committed"),
+        0,
+        "fixture CCs must not enter the membership registry (PP has none); got: {}",
+        stdout
+    );
+    // R063 thin inspect: no subordinates-schema keys, no raw legal text.
+    assert!(
+        !stdout.contains("\"punkt_units\":"),
+        "inspect must not emit the subordinates punkt_units key (R063); got: {}",
+        stdout
+    );
+    assert!(
+        !stdout.contains("\"cc_punkts\":"),
+        "inspect must not emit the subordinates cc_punkts key (R063); got: {}",
+        stdout
+    );
+    assert!(
+        stdout.contains(
+            "punct-grade (punkt) text-CTV uses a local fixture CC map, not the membership registry"
+        ),
+        "non_claims must document the fixture-CC / registry boundary; got: {}",
+        stdout
+    );
+    assert!(
+        !stdout.contains("Утвердить прилагаемые"),
+        "raw legal text must not leak; got first 400 chars: {}",
+        &stdout[..stdout.len().min(400)]
+    );
+}
+
 #[test]
 fn subordinates_missing_args_exits_with_usage_error_code() {
     for args in [vec!["subordinates"], vec!["subordinates", "resolution"]] {

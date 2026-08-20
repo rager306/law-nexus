@@ -412,6 +412,52 @@ fn government_resolution_dot_punkt_binds() {
 }
 
 #[test]
+fn detect_pp60_basename_binds_government_resolution() {
+    // S02 anchor proof: the Garant reference filename `PP_60_27-01-2022.odt`
+    // carries no latin `postanovlenie-pravitelstva` token, so detect must
+    // bind government_resolution through the bounded `pp_` path needle with
+    // kind left at None (inspect stays `inspect <path>`).
+    let profile = profile();
+    let blocks = vec![
+        block(ParagraphStyle::Heading, "1. Утвердить правила"),
+        block(ParagraphStyle::Heading, "2. Признать утратившим силу"),
+        block(ParagraphStyle::BodyText, "Постановление вступает в силу."),
+    ];
+    match profile.detect_metadata(Some("PP_60_27-01-2022.odt"), None, None) {
+        MetadataOutcome::Bound { group, needle } => {
+            assert_eq!(group, "government_resolution");
+            assert_eq!(needle, "pp_");
+        }
+        other => panic!("expected Bound government_resolution via pp_, got {other:?}"),
+    }
+    assert_eq!(
+        profile.detect(Some("PP_60_27-01-2022.odt"), None, None, &blocks),
+        GroupDetection::Bound {
+            group: "government_resolution".to_owned(),
+            factor: DetectionFactor::NeedleAndProbe,
+        }
+    );
+}
+
+#[test]
+fn cyrillic_postanovlenie_does_not_invent_units_on_unknown_path() {
+    // Hostile guard for the new needle: a Cyrillic named resolution with no
+    // known path needle stays Unknown (no silent government_resolution
+    // guess), and lettered punkt (а/б) do not mint unit bodies.
+    let profile = profile();
+    let blocks = vec![
+        block(ParagraphStyle::Heading, "1. Утвердить правила"),
+        block(ParagraphStyle::BodyText, "а) подпункт"),
+    ];
+    assert_eq!(
+        profile.detect(Some("Постановление Пленума РФ"), None, None, &blocks),
+        GroupDetection::Unknown {
+            reason: UnknownReason::NoMetadata,
+        }
+    );
+}
+
+#[test]
 fn departmental_order_paren_punkt_binds() {
     let profile = profile();
     let blocks = vec![

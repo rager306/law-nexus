@@ -390,6 +390,15 @@ document_groups:
       needles:
         - {field: path, needle: postanovlenie-pravitelstva, rank: 10}
         - {field: path, needle: rasporyazhenie-pravitelstva, rank: 10}
+        # Bounded PP_60 ref anchor path needle (S02): Garant Cyrillic filenames
+        # do not carry the latin postanovlenie-pravitelstva token, so detect on
+        # `PP_60_27-01-2022.odt` stayed Unknown. The `pp_` marker (act-number
+        # form) lets the same inspect anchor bind government_resolution while
+        # inspect remains `kind=None`. Deliberately NOT the Cyrillic word
+        # postanovlenie (false positives on court_practice / postanovlenie-plenuma
+        # rank conflicts). Lower rank than the explicit latin needles so a real
+        # postanovlenie-pravitelstva path still wins on the more specific token.
+        - {field: path, needle: pp_, rank: 15}
         - {field: kind, needle: resolution, rank: 20}
       ladder:
         - {token: punkt, role: unit, recursive: true, max_depth: 3, suffix: ".", number_style: digit}

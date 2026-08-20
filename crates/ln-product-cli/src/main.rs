@@ -327,25 +327,80 @@ fn inspect(path: &str) {
     // whose latest same-day events disagree is a Conflict, not Resolved.
     // Fail-closed: no bound group (Unknown/Conflict) means no unit bodies —
     // an absent group is a visible Unknown, not a silent statya default.
-    let ctv_resolved = if let Some(effect_day) = load_edition_day_for_path(path) {
-        let articles = match &detection {
-            Ok(GroupDetection::Bound { group, .. }) => embedded_profile
-                .as_ref()
-                .ok()
-                .and_then(|profile| profile.group(group))
-                .map(|group_profile| {
-                    ln_decode::article_body::collect_article_texts(group_profile, &blocks)
-                })
-                .unwrap_or_default(),
-            _ => Vec::new(),
+    //
+    // Punkt-as-unit text-CTV (S02): the mint level comes from the YAML
+    // catalog group granularity (R086), the CC map for punctuation-grade
+    // (subordinate) groups is a local fixture map deliberately separate from
+    // the membership registry (invariant: fixture CCs never enter
+    // S_bind/S_propose/S_fold — membership_committed stays 0 for PP), and
+    // the effect day falls back to the filename document date only in the
+    // CTV branch and only for punkt groups. Registry-bound law/code groups
+    // keep the existing membership hierarchy_map and registry day unchanged.
+    let ctv_resolved = (|| -> usize {
+        // Mint level from the YAML catalog granularity (R086); fail-closed:
+        // a bound group with no declared granularity yields zero resolved.
+        let bound_group = match &detection {
+            Ok(GroupDetection::Bound { group, .. }) => group,
+            _ => return 0usize,
+        };
+        let mint_level = match ln_kb_ontology::catalog::OntologyCatalog::embedded() {
+            Ok(catalog) => catalog
+                .document_group(bound_group)
+                .and_then(|profile| profile.granularity.clone()),
+            Err(_) => None,
+        };
+        let Some(mint_level) = mint_level else {
+            return 0usize;
+        };
+        let is_punkt_group = mint_level == "punkt";
+        // Effect day: registry first; punkt groups fall back to the filename
+        // document date (subordinate fixtures have no registry day).
+        let effect_day = load_edition_day_for_path(path).or_else(|| {
+            if is_punkt_group {
+                subordinate_effect_day_from_filename(path)
+            } else {
+                None
+            }
+        });
+        let Some(effect_day) = effect_day else {
+            return 0usize;
+        };
+        let units: Vec<ln_decode::article_body::ArticleText> = embedded_profile
+            .as_ref()
+            .ok()
+            .and_then(|profile| profile.group(bound_group))
+            .map(|group_profile| {
+                ln_decode::article_body::collect_article_texts(group_profile, &blocks)
+            })
+            .unwrap_or_default();
+        // CTV mint map: fixture CCs for punkt groups (local, not the
+        // membership registry), else the registry hierarchy_map (law/code).
+        let (mint_map, ctv_provenance) = if is_punkt_group {
+            let act = subordinate_work_id(path);
+            let mut map = HierarchyMap::empty();
+            for unit in &units {
+                let Ok(cc) =
+                    ComponentConceptId::parse(&format!("cc:{act}:punkt-{}", unit.number()))
+                else {
+                    continue;
+                };
+                let Ok(binding) = HierarchyBinding::try_new(None, "punkt", unit.number(), cc)
+                else {
+                    continue;
+                };
+                let _ = map.register(binding);
+            }
+            (map, format!("fixture:subordinate:{act}"))
+        } else {
+            (hierarchy_map, provenance.to_owned())
         };
         let text_log = build_text_log_from_articles(
-            &hierarchy_map,
-            articles
+            &mint_map,
+            units
                 .iter()
-                .map(|a| ("statya", a.number(), a.title(), a.text() as &str)),
+                .map(|a| (mint_level.as_str(), a.number(), a.title(), a.text() as &str)),
             effect_day,
-            provenance,
+            &ctv_provenance,
         );
         let mut seen = std::collections::HashSet::new();
         let mut resolved = 0usize;
@@ -361,9 +416,7 @@ fn inspect(path: &str) {
             }
         }
         resolved
-    } else {
-        0
-    };
+    })();
 
     // Consultant parser pipeline: hyperlinks → classify → edges → observations
     let (hyperlink_count, edge_amends, edge_cites, edge_implements, obs_patterns) = {
@@ -430,6 +483,7 @@ fn inspect(path: &str) {
          \"Membership committed events are synthetic-provenance C2 drafts; fold is structural, not legal document tree\",\
          \"retrieval_count is deterministic-non-semantic: hash-derived vectors, not TEI semantic embedding\",\
          \"ast_root_count and ast_node_count are structural AST projections, not legal hierarchy or CTV text\",\
+         \"punct-grade (punkt) text-CTV uses a local fixture CC map, not the membership registry; fixture CCs are not registry identity and membership_committed stays unaffected\",\
          \"document group binding is a system_observation heuristic (ADR-0020), not legal classification; Unknown/Conflict are explicit quarantine outcomes, never silence\"]}}",
         json_escape(path),
         blocks.len(),
