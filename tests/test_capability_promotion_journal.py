@@ -29,7 +29,12 @@ BOARD_PATH = ROOT / "prd" / "architecture" / "capability-promotion-board.md"
 # D204 append-only contract: journal steps land strictly after the
 # pre-existing 2026-08-14 wave; the 2026-08-13 intake row must survive.
 _JOURNAL_CUTOFF = date(2026, 8, 14)
-_TSG017_HISTORY_DATES = (date(2026, 8, 13), date(2026, 8, 16), date(2026, 8, 18))
+_TSG017_HISTORY_DATES = (
+    date(2026, 8, 13),
+    date(2026, 8, 16),
+    date(2026, 8, 18),
+    date(2026, 8, 20),
+)
 
 # §5c de Martim v5 scorecard axes (Review 5, review-14-08-2026.md §1) with
 # the law-nexus column pinned; a doc edit may not silently rescore.
@@ -115,7 +120,7 @@ def _history_rows() -> list[list[str]]:
 
 def _tsg017_history() -> list[list[str]]:
     rows = [row for row in _history_rows() if row[1] == "TSG-017"]
-    assert len(rows) == 3, f"expected 3 TSG-017 history rows, found {len(rows)}"
+    assert len(rows) == 4, f"expected 4 TSG-017 history rows, found {len(rows)}"
     return rows
 
 
@@ -145,10 +150,11 @@ def test_board_row_pins_tsg017_at_s3_bounded_runtime() -> None:
     assert "`resolve_CTV` product open" in row[4], row[4]
 
 
-def test_history_records_two_class_matched_steps_after_cutoff() -> None:
-    intake, step_s2, step_s3 = _tsg017_history()
-    dates = [date.fromisoformat(row[0]) for row in (intake, step_s2, step_s3)]
+def test_history_records_class_matched_steps_after_cutoff() -> None:
+    intake, step_s2, step_s3, step_ctv = _tsg017_history()
+    dates = [date.fromisoformat(row[0]) for row in (intake, step_s2, step_s3, step_ctv)]
     assert dates == list(_TSG017_HISTORY_DATES), f"TSG-017 history dates drifted: {dates}"
+    # Append-only: the three D204 rows survive unwritten.
     # Append-only: the pre-cutoff Review-4 intake row survives unwritten…
     assert intake[2] == "→ **S0–S1**", intake[2]
     # …and both D204 steps land strictly after the 2026-08-14 wave.
@@ -162,6 +168,46 @@ def test_history_records_two_class_matched_steps_after_cutoff() -> None:
     for anchor in ("M169–M171", "402-ФЗ", "edition-0118", "0080→0081", "drift=0"):
         assert anchor in step_s3[3], f"step-2 evidence anchor missing: {anchor}"
     assert "D204" in step_s3[4], step_s3[4]
+
+
+def test_history_records_intra_s3_ctv_step() -> None:
+    """M172 S03 (D214): intra-S3 class-matched CTV step, not an S4 promotion."""
+    step_ctv = _tsg017_history()[3]
+    assert step_ctv[0] == "2026-08-20", step_ctv
+    assert step_ctv[2] == "S3 (class-matched CTV step)", step_ctv[2]
+    assert "S3 → **S4**" not in step_ctv[2], "ceiling inflated to S4"
+    for anchor in (
+        "PP_60",
+        "inspect",
+        "punkt",
+        "ctv_resolved>0",
+        "membership_committed=0",
+        "fixture-CC",
+    ):
+        assert anchor in step_ctv[3], f"intra-S3 CTV step anchor missing: {anchor}"
+    assert "D214" in step_ctv[4] and "M172" in step_ctv[4], step_ctv[4]
+
+
+def test_punkt_subunit_ctv_axis_pinned() -> None:
+    """§5c names the Punkt/subunit text-CTV axis with the S3 ceiling intact."""
+    journal = _normalized(_section("### Punkt/subunit text-CTV axis"))
+    # The heading itself carries the axis name; body carries the contract.
+    assert "Punkt/subunit text-CTV axis" in _board_text(), "axis heading missing"
+    for phrase in (
+        "**not** a promotion to S4",
+        "`PP_60` YAML mint level = punkt granularity",
+        "(D208, unexpanded)",
+        "`ctv_resolved>0`",
+        "`membership_committed=0`",
+        "fixture-CC local only",
+        "ADR-0017 (stays `[proposed]`)",
+    ):
+        assert phrase in journal, f"axis phrase missing: {phrase!r}"
+    # §5 as-of keeps the M172 append named without raising the ceiling.
+    board = _normalized(_board_text())
+    assert "M172 S03 appends the intra-S3 class-matched CTV step (2026-08-20)" in board
+    # Support-acts government_resolution names the inspect/ctv_resolved surface.
+    assert "inspect: YAML granularity punkt, ctv_resolved>0" in board
 
 
 def test_journal_section_declares_ceiling_and_non_authority() -> None:

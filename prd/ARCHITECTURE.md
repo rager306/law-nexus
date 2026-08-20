@@ -123,7 +123,11 @@ closed, so binding/catalog version drift is a visible warning (ADR-0013/0016/002
 amendments; Review 8). Recursive walk is `[bounded]` on the subordinate act
 corpus (44-ФЗ registry stays a flat anchor, D192), CC-path identity
 (`cc:work:statya-93/punkt-4/punkt-4.2`, D191) and the StructuralNearMiss
-census → human-apply loop (D194) are `[bounded]`.
+census → human-apply loop (D194) are `[bounded]`. `law-nexus-inspect` mints
+at the group's YAML granularity (M172 wiring): on the real Garant PP_60
+corpus the class-matched punkt text-CTV step shows `ctv_resolved` > 0 with
+`membership_committed` = 0 — intra-S3 TSG-017 journal only, no S4 raise
+and ADR-0017 stays `[proposed]`.
 Consultant parser (ADR-0025/0027): `ln-consultant-parser` has 10 source
 modules including `lib.rs`, 64 integration test functions and 4 source-unit
 tests. The G1 Consultant protocol/tracer anchor is 119 structural hierarchy

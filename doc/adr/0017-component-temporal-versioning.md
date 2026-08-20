@@ -296,8 +296,10 @@ records the boundary and adds no promotion: the ADR lifecycle stays
   path's mint level (Conflict/Unknown excluded); an empty unit body falls
   back to the title; an unbound number emits no event.
 - **Non-claims:** not S4, not Applicable, no nested 44-ФЗ punkt CC (the
-  registry stays 8 glava + 94 statya), no inspect wiring (inspect's
-  hardcoded statya mint yields an honest 0 on a ПП; wiring is M172 S02),
+  registry stays 8 glava + 94 statya), inspect wiring is M172-recorded
+  class-matched (inspect mints at the group's YAML granularity; on the real
+  Garant PP_60 corpus the punkt step shows ctv_resolved > 0,
+  membership_committed = 0 — intra-S3 honesty, not promotion),
   no raw legal text in CLI JSON or tracked artifacts, and no lifecycle
   promotion of ADR-0016..0022 (R074 stays active/bounded; TSG-017 ceiling
   S3).

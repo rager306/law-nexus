@@ -90,7 +90,8 @@ Until schema fields exist, packets live as:
 
 **As-of git head context:** process residual RC11+RC12 product_open empty;
 M167 complete (design IR); dual-truth lag resolved. M171 final `db8d1db`;
-TSG-017 journal recorded at S3 (§5c, D204 packet).
+TSG-017 journal recorded at S3 (§5c, D204 packet); M172 S03 appends
+the intra-S3 class-matched CTV step (2026-08-20), ceiling unchanged.
 
 | TSG | Ladder now | Progress notes | L_review B3 / non-closure | Next honest step |
 |---|---|---|---|---|
@@ -127,6 +128,7 @@ TSG-017 journal recorded at S3 (§5c, D204 packet).
 | 2026-08-13 | TSG-017 | → **S0–S1** | Review 4 L0 + ADR-0013/16/17/19 design inventory | review intake |
 | 2026-08-16 | TSG-017 | S0–S1 → **S2** | M169 implementation spine: classify/propose/admit/commit/fold grounded on real `consru_export` paths; 44-ФЗ registry 8 glava + 94 statya | GSD M169 product TDD |
 | 2026-08-18 | TSG-017 | S2 → **S3** | M169–M171 `bounded_runtime`: 402-ФЗ fixture full pipeline; 44-ФЗ edition-0118 drift=0; replay 0080→0081 (476-ФЗ purge) drift=0; five document_groups catalog | GSD M169–M171 closeout (D204) |
+| 2026-08-20 | TSG-017 | S3 (class-matched CTV step) | intra-S3 punkt/subunit text-CTV: inspect PP_60 YAML granularity punkt, ctv_resolved>0, membership_committed=0, fixture-CC local | GSD M172 S03 journal (D214) |
 
 No row advanced to S6 in the spine wave; S3 apply landed later (see history).
 
@@ -199,6 +201,15 @@ InForce ≠ Applicable, cross-act edges, practice overlay. Axes still behind
 - non-claim: no 118-edition verify; file dates are process truth, not
   legal truth (D116/D117).
 
+### Punkt/subunit text-CTV axis (M172 S03, intra-S3 step)
+
+Class-matched step inside the S3 ceiling — **not** a promotion to S4. Inspect
+surface (M172 S02 wiring): `PP_60` YAML mint level = punkt granularity
+(D208, unexpanded); text-CTV resolves punkt units with `ctv_resolved>0`;
+`membership_committed=0` (no registry commit); fixture-CC local only. No
+representative multi-edition replay, no replay/registry change, no
+lifecycle move for ADR-0017 (stays `[proposed]`).
+
 ### Cross-act C1 axis (amending acts acquired; Review 7, `doc/review/review-16-08-2026.md`)
 
 | Act | Date | Targets 44-ФЗ | Status |
@@ -213,7 +224,7 @@ InForce ≠ Applicable, cross-act edges, practice overlay. Axes still behind
 |---|---|---|
 | `federal_law@v1` | 402-ФЗ tracked fixture; real 44-ФЗ edition-0118 | full FSM to `S_ready_bounded`, `oracle_drift=0` |
 | `code` | 145-ФЗ (Budget kodeks XML, `law-source/consultant/`) | catalog-only; pipeline never run on `code` |
-| `government_resolution` | PP_60 (real Garant ПП corpus) | punkt units executed; recursive depth 3 |
+| `government_resolution` | PP_60 (real Garant ПП corpus) | inspect: YAML granularity punkt, ctv_resolved>0; punkt units executed; recursive depth 3 |
 | `departmental_order` | Росгвардии приказ № 45 от 15.02.2021 (НМЦК; on disk, pipeline not run) | inline fixture: two punkt units resolve text-CTV (M171) |
 | `court_practice` | — (ADR-0020: practice ≠ AST) | probe-only; no parser surface |
 
