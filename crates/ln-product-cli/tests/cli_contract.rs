@@ -567,6 +567,25 @@ fn pp60_fixture() -> String {
     .into_owned()
 }
 
+/// Amendment ПП 2368 (Cyrillic-only filename, lettered subunits): hostile
+/// fail-closed fixture. The filename carries no latin path needle, so the
+/// inspect pack must NOT mint a group or invent punkt units out of lettered
+/// а/б (or any) subunits.
+fn amendment_pp2368_fixture() -> String {
+    [
+        env!("CARGO_MANIFEST_DIR"),
+        "..",
+        "..",
+        "law-source",
+        "garant",
+        "Постановление Правительства РФ от 29 декабря 2023 г N 2368 О внесении изменений .odt",
+    ]
+    .iter()
+    .collect::<std::path::PathBuf>()
+    .to_string_lossy()
+    .into_owned()
+}
+
 /// Bounded subordinate-acts report (M171 S03 T02): the binary reports CC
 /// punkt counts and resolve_ctv counters for a real ПП file without any
 /// YAML registry bindings and without the edition-day registry (both are
@@ -714,6 +733,66 @@ fn inspect_pp60_reports_punkt_ctv_resolved() {
             "punct-grade (punkt) text-CTV uses a local fixture CC map, not the membership registry"
         ),
         "non_claims must document the fixture-CC / registry boundary; got: {}",
+        stdout
+    );
+    assert!(
+        !stdout.contains("Утвердить прилагаемые"),
+        "raw legal text must not leak; got first 400 chars: {}",
+        &stdout[..stdout.len().min(400)]
+    );
+}
+
+/// S02 hostile fail-closed: an amendment ПП with a Cyrillic-only filename
+/// (no latin path needle) and lettered а/б subunits must NOT mint a bound
+/// government_resolution or invent punkt CTV units. `inspect` reports the
+/// honest Unknown quarantine (detection_unknown=1, ctv_resolved=0) — never
+/// silence and never a synthetic group on an unbound executive path.
+#[test]
+fn inspect_amendment_pp2368_stays_fail_closed() {
+    let fixture = amendment_pp2368_fixture();
+    if !std::path::Path::new(&fixture).exists() {
+        eprintln!("SKIP: Garant corpus not available");
+        return;
+    }
+    let out = Command::new(binary())
+        .args(["inspect", &fixture])
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped())
+        .output()
+        .expect("spawn");
+    assert!(
+        out.status.success(),
+        "inspect ПП 2368 must exit 0; stderr={}",
+        String::from_utf8_lossy(&out.stderr)
+    );
+    let stdout = String::from_utf8(out.stdout).unwrap();
+    assert!(
+        stdout.contains("\"document_group\":\"Unknown\""),
+        "unbound Cyrillic-only amendment must quarantine as an explicit Unknown group, not a guessed one; got: {}",
+        stdout
+    );
+    assert_eq!(
+        inspect_u64(&stdout, "detection_unknown"),
+        1,
+        "Cyrillic-only amendment must stay detection-Unknown (no latin needle), never later silently; got: {}",
+        stdout
+    );
+    assert_eq!(
+        inspect_u64(&stdout, "hierarchy_markers"),
+        0,
+        "lettered а/б (and any) subunits must not mint unit markers on a no-bound path; got: {}",
+        stdout
+    );
+    assert_eq!(
+        inspect_u64(&stdout, "ctv_resolved"),
+        0,
+        "hostile fail-closed: a no-bound amendment must resolve no CTV rather than invent punkt units; got: {}",
+        stdout
+    );
+    assert_eq!(
+        inspect_u64(&stdout, "membership_committed"),
+        0,
+        "no fixture CCs may enter the membership ledger on an Unknown path; got: {}",
         stdout
     );
     assert!(
