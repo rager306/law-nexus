@@ -271,6 +271,37 @@ Defer until ЕАЭС/СНГ multilingual support is explicitly required.
 Bounded: extraction/resolution mechanics on one export layout; not legal
 correctness, not corpus coverage, not an Applicable claim.
 
+## Punkt/subunit text-CTV contract (KBO-R067, 2026-08-20, M172-tsa1j7)
+
+Design freeze of which layer any punkt/subunit text-CTV claim lives in; the
+binding three-layer table and contract clauses are tracked in
+`prd/architecture/kb-ontology-requirements.md` (KBO-R067). This section
+records the boundary and adds no promotion: the ADR lifecycle stays
+`[proposed]`.
+
+- **Three text-CTV layers, never merged into one «punkt CTV» claim:**
+  article unit-body CTV at `statya` level (KBO-R060, M170) `[bounded]`;
+  punkt-as-unit CTV on `government_resolution`/`departmental_order` — a
+  separate `ArticleText` per punkt at the group's YAML
+  `granularity: punkt`, executed surface being the `subordinates` CLI
+  report on the real Garant PP_60 corpus (M171 S03) `[bounded]`; and
+  punkt-as-subunit on `federal_law@v1`, which folds into the owning statya
+  body and never mints its own `ArticleText` or CC (D190/D192).
+- **Mint level is profile data, not a hardcoded `"statya"`:** the level is
+  the document group's YAML granularity; a wrong-level mint fails closed
+  (0 Resolved with Unknown — never a silent article-CTV). Locked by
+  `crates/ln-decode/tests/punkt_subunit_ctv_contract.rs` and
+  `crates/ln-kb-ontology/tests/punkt_subunit_ctv_contract.rs` `[bounded]`.
+- **Counting rule (D187):** `ctv_resolved` = unique Resolved CCs on the
+  path's mint level (Conflict/Unknown excluded); an empty unit body falls
+  back to the title; an unbound number emits no event.
+- **Non-claims:** not S4, not Applicable, no nested 44-ФЗ punkt CC (the
+  registry stays 8 glava + 94 statya), no inspect wiring (inspect's
+  hardcoded statya mint yields an honest 0 on a ПП; wiring is M172 S02),
+  no raw legal text in CLI JSON or tracked artifacts, and no lifecycle
+  promotion of ADR-0016..0022 (R074 stays active/bounded; TSG-017 ceiling
+  S3).
+
 ## Non-claims
 
 - `HierarchyMarker` / `map_hierarchy_marker` is a **fail-closed candidate lift**:
