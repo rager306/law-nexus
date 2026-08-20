@@ -76,7 +76,8 @@ fn heal_missing_adds_attach_for_missing_cc() {
         &expected_with_parents,
         80_000,
         "amendingact:heal",
-    );
+    )
+    .expect("heal");
 
     assert_eq!(report.healed, 1);
     assert_eq!(log.events().len(), events_before + 1);
@@ -86,6 +87,30 @@ fn heal_missing_adds_attach_for_missing_cc() {
     let full_expected = vec![cc("cc:glava-1"), cc("cc:statya-1"), cc("cc:statya-2")];
     let diff = oracle_diff(&healed_ast, &full_expected);
     assert_eq!(diff.drift, 0);
+}
+
+// R9-08 hostile: invalid provenance must be rejected, never silently
+// replaced by the removed `amendingact:heal-fallback` laundering path.
+#[test]
+fn heal_missing_rejects_invalid_provenance_fail_closed() {
+    let (mut log, ast) = build_ast_and_log(&[("cc:glava-1", "cc:statya-1")], 80_000);
+    let events_before = log.events().len();
+
+    let expected_with_parents = vec![(cc("cc:glava-1"), cc("cc:statya-2"))];
+    let result = heal_missing(
+        &mut log,
+        &ast,
+        &expected_with_parents,
+        80_000,
+        "not a valid provenance!",
+    );
+
+    assert!(matches!(
+        result,
+        Err(ln_kb_ontology::domain::WriteSetError::MissingProvenance)
+    ));
+    // Fail-closed: no event appended under laundered provenance.
+    assert_eq!(log.events().len(), events_before);
 }
 
 #[test]
@@ -101,7 +126,8 @@ fn heal_missing_skips_already_present_ccs() {
         &expected_with_parents,
         80_000,
         "amendingact:heal",
-    );
+    )
+    .expect("heal");
 
     assert_eq!(report.healed, 0);
     assert_eq!(log.events().len(), events_before);

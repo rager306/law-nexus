@@ -1237,18 +1237,18 @@ pub struct HealReport {
 
 /// Heal missing CCs by appending Attach events for expected parent→child edges
 /// where the child is absent from the folded AST. Never edits existing events.
+/// R9-08: fail-closed — invalid provenance is rejected with a typed error,
+/// never silently replaced by a fallback provenance.
 pub fn heal_missing(
     log: &mut VersionedMembershipLog,
     ast: &StructuralAst,
     expected_edges: &[(ComponentConceptId, ComponentConceptId)],
     effect_day: i64,
     provenance: &str,
-) -> HealReport {
+) -> Result<HealReport, WriteSetError> {
+    let prov = AmendingActId::parse(provenance).map_err(|_| WriteSetError::MissingProvenance)?;
     let present: std::collections::HashSet<&str> =
         ast.roots().iter().flat_map(collect_subtree_ccs).collect();
-    let prov = AmendingActId::parse(provenance).unwrap_or_else(|_| {
-        AmendingActId::parse("amendingact:heal-fallback").expect("fallback provenance")
-    });
     let mut healed = 0usize;
     for (parent, child) in expected_edges {
         if present.contains(child.as_str()) {
@@ -1266,7 +1266,7 @@ pub fn heal_missing(
             }
         }
     }
-    HealReport { healed }
+    Ok(HealReport { healed })
 }
 
 // ─── resolve_CTV: deterministic text reconstruction (KBO-R046) ──────────────────
