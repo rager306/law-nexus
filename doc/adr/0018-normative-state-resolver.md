@@ -79,6 +79,48 @@ fail-closed rules are unchanged.
 - Surfaces real gaps honestly: components with no status evidence resolve to
   `Unknown`, never smoothed to `InForce`.
 
+## G0 amendment (2026-08-20, L0 `doc/review/review-25-08-2026.md`, disposition D216)
+
+Human disposition G0 (D216) accepted the Reviews 10–14 compiler model. This
+amendment records the three ADR-0018 deltas at `[proposed]` design level;
+no lifecycle promotion and no Rust type changes.
+
+### G0(a) `NotYetInForce` added to the status vocabulary
+
+The vacatio case proves a hole in the enum: 44-ФЗ adopted 05.04.2013,
+published 08.04.2013, main entry into force **01.01.2014** (art. 114), while
+188-ФЗ amended its text in July 2013 — before the base act entered into
+force. The status model therefore gains `NotYetInForce` (adopted and/or
+published, not yet effective) alongside `Unknown`. The seed rule follows:
+a new Work's components default to `NotYetInForce` or `Unknown`, **never**
+an automatic `InForce`; entry into force is a separate, evidence-gated
+`EntryIntoForceEvent` per component (ADR-0017 G0 seed: Adoption /
+OfficialPublication / EntryIntoForce / ApplicabilityConstraint are four
+different events).
+
+### G0(b) Force is an event-derived interval **set**
+
+`resolve_force_status_at` returns one status at `t`, but the underlying
+model is a set of intervals derived from status events (commence, suspend,
+resume, repeal, expire, invalidate, restore — the ADR-0017 G0(g) Force op
+family applied through this overlay). Suspension and resumption produce
+multiple disjoint `InForce` intervals for the same component; any single
+interval is a projection of that set. Static `effective_from`/`effective_to`
+fields remain projections (ADR-0017 §2), never source truth.
+
+### G0(c) Fork F13-T: `Transitional` leaves the status enum
+
+Review 14 recommends removing `Transitional` from the force enum: being
+applicable only via a transitional provision is a **version-choice relation**
+(ADR-0021 `TransitionConstraint`), not a force state. Disposition: **fork
+accepted** — `Transitional` migrates to the ADR-0021 overlay as a typed
+effect/constraint; the NormativeState enum narrows to force states proper
+(`InForce`, `NotYetInForce`, `Suspended`, `Repealed`, `Superseded`, plus
+`Expired`/`Invalidated` as P1 design candidates). Until ADR-0021 carries the
+moved semantics and the glossary syncs (P0), `Transitional` stays in the
+table above as a **deprecated-in-design** value: no new runtime or glossary
+row may build on it.
+
 ## Non-claims
 
 - Offline `resolve_force_status_at` is **ForceStatus only**: not CTV/version join,
@@ -95,6 +137,11 @@ fail-closed rules are unchanged.
   not implement a NormativeState resolver, CTV join, applicability decision, or
   knowledge base. Text presence ≠ `InForce`; `InForce` ≠ Applicable; Unknown is
   not a force or applicability success.
+- **G0 amendment is design canon only:** `NotYetInForce`, the interval-set
+  model and fork F13-T are `[proposed]` design decisions; the bounded
+  `ForceStatusTimeline` runtime on HEAD does not implement them; no Rust
+  enum change is minted by this text (P2), and `Transitional` removal
+  completes only with the ADR-0021 + glossary sync (P0).
 
 ## References
 
