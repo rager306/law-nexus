@@ -22,10 +22,11 @@ use ln_decode::{
 };
 use ln_kb_ontology::domain::{
     admit_membership_proposals, assemble_with_oracle_diff, build_text_log_from_articles,
-    diff_marker_sets, drafts_from_marker_diff, edition_ast_at, map_hierarchy_marker,
-    marker_from_decode_token, propose_membership_from_markers, resolve_ctv, AmendmentDraftOp,
-    ComponentInExpressionEvent, ComponentInExpressionLog, CtvResolution, ExpressionId,
-    HierarchyBinding, HierarchyMap, HierarchyMapOutcome, HierarchyMarker, WriteSetError,
+    commit_admitted_to_log, diff_marker_sets, drafts_from_marker_diff, edition_ast_at,
+    map_hierarchy_marker, marker_from_decode_token, propose_membership_from_markers, resolve_ctv,
+    AmendmentDraftOp, ComponentInExpressionEvent, ComponentInExpressionLog, CtvResolution,
+    ExpressionId, HierarchyBinding, HierarchyMap, HierarchyMapOutcome, HierarchyMarker,
+    WriteSetError,
 };
 use ln_kb_ontology::registry::{
     load_edition_day_for_path, load_expression_id_for_path, load_hierarchy_map_for_path,
@@ -266,6 +267,59 @@ fn inspect(path: &str) {
         (0, 0, 0, 0, 0, 0)
     };
 
+    // Presence channel (M174 S02): make edition_ast_at visible in the CLI
+    // inspect report. Same oracle-synthesized composition as replay, without
+    // any act-specific hardcode: admitted membership edges + include events
+    // for the document's own expression → edition AST = membership ∩
+    // expression presence; hidden = membership − visible, computed in memory.
+    // Fail-closed: a missing registry day, an unparseable expression/provenance
+    // identity, or a fold error yields status "unavailable" with the key still
+    // present (never a silent omit). Not expression inheritance, not CTV, not
+    // force.
+    let presence_report = (|| -> Option<(usize, usize)> {
+        let day = load_edition_day_for_path(path)?;
+        let expr_str = expression_id.as_deref()?;
+        let expression = ExpressionId::parse(expr_str).ok()?;
+        let prov = AmendingActId::parse(expr_str).ok()?;
+        let mut mlog = VersionedMembershipLog::empty();
+        commit_admitted_to_log(&admit, &mut mlog, day, &prov).ok()?;
+        let mut plog = ComponentInExpressionLog::empty();
+        for edge in &admit.admitted {
+            plog.append(
+                ComponentInExpressionEvent::try_new(
+                    "include",
+                    expression.clone(),
+                    edge.child.clone(),
+                    day,
+                    expr_str,
+                )
+                .ok()?,
+            )
+            .ok()?;
+        }
+        let edition = edition_ast_at(&mlog, &plog, &expression, day).ok()?;
+        let mut visible: Vec<ComponentConceptId> = Vec::new();
+        for root in edition.roots() {
+            collect_ccs(root, &mut visible);
+        }
+        let composition = fold_membership_at(&mlog, day).ok()?;
+        let mut membership: Vec<ComponentConceptId> = Vec::new();
+        for root in composition.roots() {
+            collect_ccs(root, &mut membership);
+        }
+        let hidden = membership
+            .iter()
+            .filter(|cc| !visible.iter().any(|v| v == *cc))
+            .count();
+        Some((visible.len(), hidden))
+    })();
+    let presence_label = if presence_report.is_some() {
+        "ok"
+    } else {
+        "unavailable"
+    };
+    let (presence_visible, presence_hidden) = presence_report.unwrap_or((0, 0));
+
     // M171 S01 T03: two-factor document group detection (system_observation
     // heuristic, never legal classification — ADR-0020). The report exposes
     // the bound group, the detection factor, and explicit Unknown/Conflict
@@ -476,7 +530,8 @@ fn inspect(path: &str) {
          \"edge_cites\":{edge_cites},\
          \"edge_implements\":{edge_implements},\
          \"observation_patterns\":{obs_patterns},\
-         \"retrieval_count\":{retrieval_count}\
+         \"retrieval_count\":{retrieval_count},\
+         \"presence\":{{\"visible\":{presence_visible},\"hidden\":{presence_hidden},\"status\":\"{presence_label}\"}},\
          }},\
          \"non_claims\":[\"No legal correctness claim\",\"No citation authority claim\",\
          \"No corpus completeness claim\",\"No five-clock assignment claim\",\
@@ -485,7 +540,8 @@ fn inspect(path: &str) {
          \"retrieval_count is deterministic-non-semantic: hash-derived vectors, not TEI semantic embedding\",\
          \"ast_root_count and ast_node_count are structural AST projections, not legal hierarchy or CTV text\",\
          \"punct-grade (punkt) text-CTV uses a local fixture CC map, not the membership registry; fixture CCs are not registry identity and membership_committed stays unaffected\",\
-         \"document group binding is a system_observation heuristic (ADR-0020), not legal classification; Unknown/Conflict are explicit quarantine outcomes, never silence\"]}}",
+         \"document group binding is a system_observation heuristic (ADR-0020), not legal classification; Unknown/Conflict are explicit quarantine outcomes, never silence\",\
+         \"Presence log is oracle-synthesized from admitted membership, not expression inheritance, not CTV, not force\"]}}",
         json_escape(path),
         blocks.len(),
     );
