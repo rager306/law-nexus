@@ -94,9 +94,10 @@ force. The status model therefore gains `NotYetInForce` (adopted and/or
 published, not yet effective) alongside `Unknown`. The seed rule follows:
 a new Work's components default to `NotYetInForce` or `Unknown`, **never**
 an automatic `InForce`; entry into force is a separate, evidence-gated
-`EntryIntoForceEvent` per component (ADR-0017 G0 seed: Adoption /
-OfficialPublication / EntryIntoForce / ApplicabilityConstraint are four
-different events).
+`EntryIntoForceEvent` per component (L0 review §A.5 G0 seed:
+AdoptionEvent / OfficialPublicationEvent / EntryIntoForceEvent(s) /
+ApplicabilityConstraint are four different events; their ledger home is
+the ADR-0017 assertion ledger).
 
 ### G0(b) Force is an event-derived interval **set**
 

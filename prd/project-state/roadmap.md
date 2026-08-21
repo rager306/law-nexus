@@ -27,11 +27,11 @@ falkordb=historical-only
 - **Completed retrieval-honesty band:** M161–M164 `[bounded]` (real cosine ranking in memory, semantic-stub and historical-test-debt probes, deterministic CLI vectors); no live corpus or citation-safe answers.
 - **Completed documentation alignment:** D5 + documentation D6 / EA-05 accepted with findings at `94d58ea`; roadmap-front-sync and TL-G01–12 coverage PASS.
 - **Documentation/process assessment:** EA-10 complete — human D150 `accepted-with-findings` after independent EA-09 report `120d44b`; post-D150 assessments 13–18 record bounded repository-control/parser-protocol/glossary/semantic-presentation remediation and remaining gaps without successor acceptance, lifecycle promotion or product unlock. Glossary governance now inventories all crosswalk rows and controls coding terminology structurally through the tracked living-oracle read pointer; it does not close TSG-001 or define product semantics.
-- **Local GSD workflow marker:** M173-iyahbv is the latest completed milestone
-  in GSD registry (inspect PP_60 class-matched punkt proof); M174-jm7fi2
-  active — wave-1 debt closure (heal_missing fail-closed R9-08, presence
-  channel in CLI replay, honesty sync; work committed 1aa7d7c..739a3e6,
-  GSD receipts settle pending). GSD completion is not product readiness.
+- **Local GSD workflow marker:** M174-jm7fi2 is the latest completed milestone
+  in GSD registry (wave-1 debt closure: heal_missing fail-closed R9-08,
+  presence channel edition_ast_at in CLI inspect/replay, tracked-doc honesty
+  sync after D216); M175-g7k0q4 active — P0 model canonization for Reviews
+  10-14 after G0 (D216). GSD completion is not product readiness.
 - **GSD dual-truth M167:** **resolved** — M167 complete via authorized skip waivers + validation (D154 option C). Historical note in `gsd-review-bridge.md`. Not Applicable; TSG-005/006 still open.
 - **Review governance process contour:** ADR-0024 Review Case intake/disposition/ledger landed; human dispositions recorded for review-11/12 (`actor_id=rager306`). Non-authoritative; no Product/ADR/roadmap promotion.
 - **Applicability kernel:** `ln-applicability` v0 fail-closed abstention-only under ADR-0023 `[proposed]`, with NormRule IR + pure predicate algebra spines; no Applicable/NotApplicable product claim.
@@ -99,6 +99,7 @@ falkordb=historical-only
 | M168-M168 | Consultant parser remediation wave (Устранение долга текущей волны Consultant parser) | Honest ADR/ARCHITECTURE/protocol evidence ceilings; tracked e2e contract (hyperlink → classification → edges → observations); document-profile scoring composition; bounded morph signals; YAML sibling-section isolation; read-only SQLite CatalogPort adapter (rusqlite bundled, SQLITE_OPEN_READ_ONLY). Not G2/G3 corpus acceptance, not ConflictResolver, not RuVector, not product readiness. |
 | M169-M170 | Parser corpus grounding and full-text CTV on the real corpus | M169 grounded parser corpus needles (44-FZ temporal AST on real corpus); M170 resolved full article text CTV on real corpus. Corpus-grounding process evidence only; no parser completeness, legal correctness or product readiness claim. |
 | D0-EA04 | Documentation contract and semantic/ADR assessment package | Product/RQ ready for assessment; temporal crosswalk accepted as proposed; ADR-0023 ownership decided `[proposed]`; not EA-09/EA-10 acceptance. |
+| M174-M174 | Волна 1: техдолг и процессные разрывы после Review 14 (wave-1 debt closure) | Process/debt closure only: heal_missing fail-closed provenance (R9-08), presence channel edition_ast_at in CLI inspect/replay, tracked-doc honesty sync after D216; no lifecycle promotion, no product readiness. |
 
 ## M111 semantic baseline
 

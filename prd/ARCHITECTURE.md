@@ -228,7 +228,8 @@ M173 inspect PP_60 class-matched punkt proof  [bounded]
    ▼
 M174 wave-1 debt closure  [bounded]
    heal_missing fail-closed provenance (R9-08 fixed); presence channel
-   (edition_ast_at) visible in CLI replay; L0 reviews 9-14 committed
+   (edition_ast_at) visible in CLI replay and inspect result.presence;
+   L0 reviews 9-14 committed
    ▼
 DESIGN FRONT (no Rust, L0 reviews)
    Reviews 9-14 (doc/review/review-20..25-08-2026.md): C1-commit model,

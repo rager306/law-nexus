@@ -371,8 +371,8 @@ Run the gates:
 
 ```bash
 # Python repository-control gates
-uv run python -m law_nexus_harness.governor     # process + ADR/lifecycle/retired-era probes
-uv run python -m law_nexus_harness.preflight
+uv run python -m law_nexus_harness governor     # process + ADR/lifecycle/retired-era probes
+uv run python -m law_nexus_harness preflight
 uv run pytest -q                               # full suite; CI process suite is a subset
 uv run python scripts/verify-adr-conformance.py
 

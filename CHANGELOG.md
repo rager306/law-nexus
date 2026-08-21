@@ -18,6 +18,13 @@
   crate edge; real pair 0080→0081 reports visible=102, drift=0. Bounded
   non-claim: the presence log is oracle-synthesized, not expression
   inheritance.
+- Presence channel also exposed by the product inspect surface (M174 S02):
+  the inspect JSON report carries `result.presence`
+  (`{visible, hidden, status}`) computed by the same membership ∩
+  expression-presence fold over both tracked fixture paths (D218); the CLI
+  replay report above remains the earlier-shipped sibling surface. Same
+  bounded non-claim: the presence log is oracle-synthesized, not expression
+  inheritance.
 
 ### Docs
 - L0 reviews 9–14 committed (`doc/review/review-20..25-08-2026.md`): C1
@@ -38,6 +45,23 @@
   M174 (was stale at M165); KBO-R038 wording (C1 acquired, not yet event
   canon) and KBO-R065 wording (census exists; deferred remainder narrowed
   to the StructuralNearMiss class).
+- Session assessment of the live Governor and review logic (M174 S04): the
+  supported invocation is the CLI form
+  `python -m law_nexus_harness governor`; the module form
+  `law_nexus_harness.governor` exits 0 without running any probe
+  (documented no-op; hardening deferred to a later wave). Live report at
+  assessment time: `status=ok`, 63 pass / 1 advisory warn / 0 error — the
+  single warn is `gsd-planned-inventory-visibility` inventorying planned
+  M175 while its GSD registry row is still open (documentation-time-lag
+  signal, kept visible rather than silenced); review-case integrity checks
+  are live and fail-closed on structure; `scripts/verify-adr-conformance.py`
+  reports 0 findings. A where-we-are timeline advisory check remains a
+  deferred follow-up, not implemented in M174.
+- Honesty fixes: README "Run the gates" now shows the CLI invocation form
+  for the Governor/preflight gates (the previous module-form lines exited 0
+  without running any probe), and the ARCHITECTURE where-we-are M174
+  timeline names the inspect `result.presence` surface next to the shipped
+  CLI replay sibling.
 
 ### M170-2gh5r6 — Text CTV полный текст статей
 
