@@ -179,6 +179,25 @@ fn inspect_real_consultant_fixture_reports_bounded_summary() {
         "expected ProviderComment exclusion; got: {}",
         stdout
     );
+    // S02 presence channel must be visible even on empty-forest 435-FZ (fail-closed, not silent omit).
+    assert!(
+        stdout.contains("\"presence\":{\"visible\":"),
+        "435-FZ inspect must report the presence channel; {stdout}"
+    );
+    assert_eq!(
+        inspect_u64(&stdout, "visible"),
+        0,
+        "435-FZ inspect must report honest zero visible; {stdout}"
+    );
+    assert_eq!(
+        inspect_u64(&stdout, "hidden"),
+        0,
+        "435-FZ hidden must be 0; {stdout}"
+    );
+    assert!(
+        stdout.contains("Presence log is oracle-synthesized from admitted membership, not expression inheritance, not CTV, not force"),
+        "missing presence non-claim; {stdout}"
+    );
     assert!(
         !stdout.contains("Предмет регулирования"),
         "raw legal text must not be persisted; got first 400 chars: {}",
@@ -274,6 +293,24 @@ fn inspect_402_fz_reports_non_zero_attach_from_yaml_ranks() {
     assert!(
         stdout.contains("402-fz"),
         "expression_id must contain the act number (not synthetic fallback); {stdout}"
+    );
+    // S02 presence channel must be visible in Inspect JSON (oracle-synthesized, not inheritance).
+    assert!(
+        stdout.contains("\"presence\":{\"visible\":"),
+        "inspect must report the presence channel; {stdout}"
+    );
+    assert!(
+        inspect_u64(&stdout, "visible") >= 1,
+        "inspect must report at least one visible CC; {stdout}"
+    );
+    assert_eq!(
+        inspect_u64(&stdout, "hidden"),
+        0,
+        "inspect hidden must be 0 (no exclude in single-file oracle snapshot); {stdout}"
+    );
+    assert!(
+        stdout.contains("Presence log is oracle-synthesized from admitted membership, not expression inheritance, not CTV, not force"),
+        "missing presence non-claim; {stdout}"
     );
     assert!(
         !stdout.contains("ОБЩИЕ ПОЛОЖЕНИЯ"),
