@@ -292,7 +292,7 @@ These are semantic-shape oracles for future fixtures, not legal gold answers.
 | TQ-06 | practice “own clock” wording | resolved `[proposed]`: first-class temporality over five clocks, not sixth clock | ADR-0020 EA-04 clarification | revisit before practice schema only if existing clock roles cannot represent required evidence |
 | TQ-07 | industry-priority maxim vs neutral NormativeRank | resolved `[proposed]`: versioned profile input, never rank elevation | ADR-0019/0022 EA-04 clarification | revisit before profile resolver only with evidence that neutral ranks cannot preserve explainability |
 
-ADR-0023 is the single residual applicability-ownership decision; it does not begin a package ADR-0023–0032. EA-04 clarification notes resolve TQ-02/03/06/07 at `[proposed]` design level without lifecycle promotion. TQ-04/05 remain deferred unless implementation makes them load-bearing.
+ADR-0023 is the single residual applicability-ownership decision; it does not begin a package ADR-0023–0032. EA-04 clarification notes resolve TQ-02/03/06/07 at `[proposed]` design level without lifecycle promotion. TQ-04 remains `[deferred]` until a load-bearing correction protocol surfaces; TQ-05 design ownership is resolved by ADR-0017/0019 (G0 D216) while its runtime stays `[deferred]` until resolver phases 2–3 in P2.
 
 ## 13. EA-03 assessment checklist
 
