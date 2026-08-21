@@ -5356,7 +5356,19 @@ def check_review_case_integrity(root: Path) -> list[GovernorFinding]:
 
 _MODEL_CRYSTAL_REL = Path("prd/architecture/model-crystal.md")
 _MODEL_CRYSTAL_SOURCE_REL = Path("doc/review/review-25-08-2026.md")
-_MODEL_CRYSTAL_ANCHOR_RE = re.compile(r'<!--\s*anchor:\s*review-25\s+[^"]*"(?P<quote>[^"]+)"\s*-->')
+_MODEL_CRYSTAL_ANCHOR_RE = re.compile(
+    r'<!--\s*anchor:\s*(?P<src>[\w-]+)\s+(?P<seg>[^"]*)"(?P<quote>[^"]+)"\s*-->'
+)
+_MODEL_CRYSTAL_ANCHOR_SOURCES = {
+    "review": _MODEL_CRYSTAL_SOURCE_REL,
+    "adr-0013": Path("doc/adr/0013-universal-multi-source-parser.md"),
+    "adr-0016": Path("doc/adr/0016-frbr-structural-legal-identity.md"),
+    "adr-0017": Path("doc/adr/0017-component-temporal-versioning.md"),
+    "adr-0018": Path("doc/adr/0018-normative-state-resolver.md"),
+    "adr-0019": Path("doc/adr/0019-normative-hierarchy-and-conflict.md"),
+    "adr-0021": Path("doc/adr/0021-transitional-provisions-and-risk.md"),
+    "temporal-model": Path("prd/temporal-legal-model.md"),
+}
 _MODEL_CRYSTAL_SHA_RE = re.compile(r"sha256:(?P<digest>[0-9a-f]{64})")
 _MODEL_CRYSTAL_SECTIONS = (
     "## Layer 0",
@@ -5434,7 +5446,34 @@ def check_model_crystal_anchors(root: Path) -> list[GovernorFinding]:
         )
 
     quotes = [m.group("quote") for m in _MODEL_CRYSTAL_ANCHOR_RE.finditer(crystal_text)]
-    missing_quotes = [quote for quote in quotes if quote not in source_text]
+    missing_quotes: list[str] = []
+    unknown_sources: set[str] = set()
+    loaded_sources: dict[str, str] = {}
+    for m in _MODEL_CRYSTAL_ANCHOR_RE.finditer(crystal_text):
+        src = m.group("src")
+        quote = m.group("quote")
+        rel = _MODEL_CRYSTAL_ANCHOR_SOURCES.get(src)
+        if rel is None:
+            unknown_sources.add(src)
+            continue
+        text = loaded_sources.get(rel)
+        if text is None:
+            path = root / rel
+            if not path.is_file():
+                missing_quotes.append(f"{src}:<file absent:{rel}>")
+                continue
+            text = path.read_text(encoding="utf-8", errors="replace")
+            loaded_sources[rel] = text
+        if quote not in text:
+            missing_quotes.append(f"{src}:{quote!r}")
+    if unknown_sources:
+        findings.append(
+            _warn(
+                "model crystal anchors reference unknown sources",
+                f"unknown={sorted(unknown_sources)}",
+                "Anchor only to the catalogued source set (review/adr-0013/0016/0017/0018/0019/temporal-model).",
+            )
+        )
     if not quotes:
         findings.append(
             _warn(
@@ -5489,9 +5528,10 @@ def check_model_crystal_anchors(root: Path) -> list[GovernorFinding]:
                 check_id="model-crystal-anchors",
                 status="pass",
                 severity="ok",
-                message="model crystal is grounded on its immutable L0 source",
+                message="model crystal is grounded on its source canon (L0 + G0 ADR amendments)",
                 observed=(
-                    f"anchors={len(quotes)} verified; digest=ok; "
+                    f"anchors={len(quotes)} verified across "
+                    f"{len(loaded_sources)} source file(s); digest=ok; "
                     "inv_rows=10 (advisory [bounded]; projection only, no canon change)."
                 ),
                 remediation="",
@@ -5886,8 +5926,16 @@ GOVERNOR_CHECK_SPECS: tuple[CheckSpec, ...] = (
         "docs",
         "deterministic",
         check_model_crystal_anchors,
-        "Keep the Reviews 10-14 model crystal projection grounded on its immutable L0 source (digest + verbatim anchor quotes).",
-        ("prd/architecture/model-crystal.md", "doc/review/review-25-08-2026.md"),
+        "Keep the Reviews 10-14 model crystal projection grounded on its source canon (L0 digest + verbatim anchor quotes across review and G0 ADR amendments).",
+        (
+            "prd/architecture/model-crystal.md",
+            "doc/review/review-25-08-2026.md",
+            "doc/adr/0017-component-temporal-versioning.md",
+            "doc/adr/0018-normative-state-resolver.md",
+            "doc/adr/0016-frbr-structural-legal-identity.md",
+            "doc/adr/0019-normative-hierarchy-and-conflict.md",
+            "prd/temporal-legal-model.md",
+        ),
         "warn",
     ),
 )

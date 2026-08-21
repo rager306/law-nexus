@@ -5,16 +5,17 @@ amends no ADR, promotes no lifecycle, mints no Rust type, closes no TSG row.
 Part D candidates of the source stay candidates until human disposition G0
 (ADR-0024 L2).
 
-**Source (immutable L0):** `doc/review/review-25-08-2026.md` (Review 14,
-consolidating Reviews 10–13 + external critique) —
-sha256:c438ddfbe67181d439b5ed69a91e0adca833a9b84d26f1f2d85ea848070ea1b8
-**Created:** 2026-08-20 at git HEAD `b4c0d33` (pre-G0 anchoring). After G0 and
-P0 canonization, one mechanical pass re-grounds anchors onto ADR-0017/0018/0016
-amendments and re-versions this file (see Grounding log).
+**Source canon:** `doc/review/review-25-08-2026.md` (immutable L0) as the
+historical source, with G0 ADR amendments (`doc/adr/0016..0019`,
+`prd/temporal-legal-model.md`) as the canonical re-grounding after G0 (D216).
+L0 digest — sha256:c438ddfbe67181d439b5ed69a91e0adca833a9b84d26f1f2d85ea848070ea1b8.
+**Created:** 2026-08-20 (v1 pre-G0 at `b4c0d33`); **v2** re-grounded to G0
+ADR amendments after D216 (see Grounding log).
 
 **Verification:** governor check `model-crystal-anchors` (advisory `[bounded]`)
-verifies the source digest and every `<!-- anchor: ... -->` quote below
-verbatim against the L0 source. Drift = visible warning, never silent.
+verifies the L0 digest and every `<!-- anchor: <src> ... "quote" -->` below
+verbatim against the mapped source file (review or G0 ADR amendment). Drift =
+visible warning, never silent.
 
 **Reading contract:** inject Layer 0 always; Layer 1 by topic; read the source
 reviews only on demand via anchors. Cite IDs (`INV-02`, `AXIS-4`, `OP-T`,
@@ -28,7 +29,7 @@ vocabulary: no `prd/temporal-legal-model.md` §3 row is created or amended.
 
 ### MC-F. Formula
 
-<!-- anchor: review-25 §A.2 "официальные доказательства (Evidence Vault)" -->
+<!-- anchor: adr-0017 G0(a) "append-only bitemporal ledger of" -->
 
 ```text
 Evidence Vault
@@ -47,7 +48,7 @@ Merkle root, structural sharing), not domain identity:
 
 Three hard «no» of the formula:
 
-<!-- anchor: review-25 §A.2 "Snapshot ≠ commit" -->
+<!-- anchor: adr-0017 G0(a) "never rewrites the" -->
 
 1. **Snapshot ≠ commit** — a consolidated edition is an oracle/checksum
    (exam), never the source of history.
@@ -69,11 +70,11 @@ Three hard «no» of the formula:
 | AXIS-6 | TransitionConstraint | for which old relations the old version still applies | slot resurrection |
 | AXIS-7 | Reference Mention/Binding/Semantics | who cited what, binding, mode | `amends`, target force, editorial re-pointing |
 
-<!-- anchor: review-25 §A.3 "DocumentaryPresence" -->
+<!-- anchor: adr-0017 G0(f) "DocumentaryPresence is a separate repeal axis" -->
 
 Inequalities (verbatim, unsimplifiable):
 
-<!-- anchor: review-25 §A.3 "TransitionConstraint" -->
+<!-- anchor: adr-0021 G0 "`TransitionConstraint` is a typed effect" -->
 
 ```text
 текст существует        ≠  действует
@@ -100,8 +101,8 @@ Repealed-цель           ≠  сломанный биндинг
 | INV-09 | Exact-text reconstruction reproduces the official artifact (via CST). |
 | INV-10 | No `None` ever replaces a legally meaningful typed non-success. |
 
-<!-- anchor: review-25 §C "Повторный replay → тот же root hash" -->
-<!-- anchor: review-25 §C "Перестановка независимых событий не меняет snapshot" -->
+<!-- anchor: adr-0017 G0(d) "repeated replay" -->
+<!-- anchor: temporal-model §14.5 "Permutation of independent events does not change the snapshot" -->
 
 ---
 
@@ -109,7 +110,7 @@ Repealed-цель           ≠  сломанный биндинг
 
 ### MC-PIPE. Pipeline 0→8
 
-<!-- anchor: review-25 §B.1 "SourceArtifact + artifact_hash" -->
+<!-- anchor: adr-0013 G0 "Parser emits" -->
 
 ```mermaid
 flowchart TD
@@ -131,7 +132,7 @@ non-success.
 
 ### MC-OPS. Closed operation registry (P1)
 
-<!-- anchor: review-25 §B.4 "Text:         ReplaceText / InsertText / DeleteText / SubstituteRange / CorrectText" -->
+<!-- anchor: adr-0017 G0(g) "Text (`ReplaceText`" -->
 
 | Family | Operations (names only) |
 |--------|------------------------|
@@ -150,7 +151,7 @@ precondition, payload, effect selector, scope, postcondition, evidence span.
 BaseVersionMismatch | OrderingConflict | UnknownEffect |
 UnsupportedOperation | IncompleteSource`
 
-<!-- anchor: review-25 §B.4 "OrderingConflict" -->
+<!-- anchor: adr-0017 G0(c) "non-commuting underdetermined effects yield" -->
 
 ### MC-SEL. EffectSelector modes
 
@@ -160,7 +161,7 @@ RetroactiveTo / Unknown. These are projections of the five-clock roles
 
 ### MC-DAG. Causal order — DAG, not queue
 
-<!-- anchor: review-25 §A.6 "Instrument → Provision → MicroOperation → Effect" -->
+<!-- anchor: adr-0017 G0(b) "Instrument" -->
 
 ```mermaid
 flowchart TD
@@ -176,7 +177,7 @@ number.
 
 ### MC-SEED. Seed = four different events
 
-<!-- anchor: review-25 §A.5 "EntryIntoForceEvent" -->
+<!-- anchor: adr-0018 G0(a) "EntryIntoForceEvent" -->
 
 AdoptionEvent (created text) / OfficialPublicationEvent (authoritative
 expression) / EntryIntoForceEvent(s) (per-component commence) /
@@ -191,7 +192,7 @@ Tombstone; TextAvailability = HistoricalOnly (last CTV stays citable). Child
 cascade is a derived `RepealScope(parent, descendants=true)`, not physical
 deletion of child ids.
 
-<!-- anchor: review-25 §A.7 "HistoricalOnly" -->
+<!-- anchor: adr-0017 G0(f) "TextAvailability = HistoricalOnly" -->
 
 ### MC-ID. Identity floors
 
@@ -202,11 +203,11 @@ deletion of child ids.
 | addressable unnumbered paragraph | `AddressableTextUnit` + `IdentityContinuityDecision` (SameComponent / SplitFrom / MergedFrom / ReplacedByNewIdentity / IdentityUncertain) | |
 | word/phrase | version-local `TextAnchor` (token span + quoted_hash) | |
 
-<!-- anchor: review-25 §A.4 "AddressableTextUnit" -->
+<!-- anchor: adr-0017 G0(e) "identifies an unnumbered" -->
 
 ### MC-LEDGER. Assertion lifecycle
 
-<!-- anchor: review-25 §A.2 "Proposed/Validated/AuthoritativeInternal" -->
+<!-- anchor: adr-0017 G0(a) "AuthoritativeInternal" -->
 
 Statuses: Proposed / Validated / AuthoritativeInternal / Rejected /
 Superseded, plus `recorded_at` and `asserted_by`. Correction = new immutable
@@ -214,7 +215,7 @@ assertion + rebuilt projection; never in-place rewrite.
 
 ### MC-CHECKOUT. Bitemporal checkout
 
-<!-- anchor: review-25 §B.3 "Snapshot = fold" -->
+<!-- anchor: adr-0017 G0(d) "checkout(work, legal_as_of, known_as_of" -->
 
 ```text
 Snapshot = fold(
@@ -238,7 +239,7 @@ VIEW-HistoricalCitation (incl. repealed + tombstone), VIEW-Reference
 (mentions/bindings/target states); VIEW-CaseApplicable — later, ADR-0023
 runtime.
 
-<!-- anchor: review-25 §C "PromulgatedTextView" -->
+<!-- anchor: review §C "PromulgatedTextView" -->
 
 ### MC-REF. Reference binding modes
 
@@ -248,7 +249,7 @@ Repealed target) / Semantics modes: IdentityAmbulatory / DesignationLiteral /
 FixedExpression / AsOfSpecifiedDate / EventRelative / **Unclassified
 (default)**.
 
-<!-- anchor: review-25 §A.8 "IdentityAmbulatory / DesignationLiteral / FixedExpression / AsOfSpecifiedDate" -->
+<!-- anchor: adr-0019 G0 "IdentityAmbulatory" -->
 
 ### MC-GOLDEN. Golden list (P0 item 9, list only)
 
@@ -265,17 +266,17 @@ no resolver phases 2–3, no `NotYetInForce` in runtime. Present: oracle-anchore
 assembly `S_ready_bounded` (drift=0), mention phase 1 `[bounded]`, YAML edge
 vocabulary, `amends` constructors, bounded force-timeline in `ln-temporal`.
 
-<!-- anchor: review-25 §Non-claims "NotYetInForce" -->
+<!-- anchor: review §Non-claims "NotYetInForce" -->
 
 ## Non-claims
 
-- This file is a projection. It does not accept the model (G0 pending), does
-  not amend ADR-0016..0023, does not close TSG-002/003/012/013/017, does not
-  move `fsm.current` / O3 / TSG-017 S4.
+- This file is a projection. It does not amend ADR-0016..0023 beyond the
+  G0 amendments already recorded (D216), does not close TSG-002/003/012/013/017,
+  does not move `fsm.current` / O3 / TSG-017 S4.
 - IDs are citation anchors of this projection, not glossary rows; no public
   contract or Rust type may be inferred from them.
-- Mermaid diagrams are shape aids; the algebra lives in the source and in the
-  tables above.
+- Mermaid diagrams are shape aids; the algebra lives in the owning ADR
+  amendments and in the tables above.
 - The governor check is advisory (`warn`); it never blocks and never promotes.
 
 ## Grounding log
@@ -283,8 +284,11 @@ vocabulary, `amends` constructors, bounded force-timeline in `ln-temporal`.
 | Version | Date | Anchored to | Source digest | HEAD |
 |---------|------|-------------|---------------|------|
 | v1 | 2026-08-20 | review-25 (pre-G0) | sha256:c438ddfbe67181d439b5ed69a91e0adca833a9b84d26f1f2d85ea848070ea1b8 | b4c0d33 |
+| v2 | 2026-08-20 | G0 ADR amendments (D216): adr-0013/0016/0017/0018/0019 + temporal-model; historical anchors stay on review | sha256:c438ddfbe67181d439b5ed69a91e0adca833a9b84d26f1f2d85ea848070ea1b8 | 26095dc+ |
 
-Next entry: v2 after G0 — anchors move to ADR-0017/0018/0016 amendments in one
-mechanical pass; governor warns about stale anchors until then.
+v2 (D216) moved the model-definition anchors from the L0 review to the
+canonical G0 ADR amendments; historical/reality-boundary and non-claim anchors
+stay on the immutable review. The governor check now resolves anchors across
+the multi-source canon and warns on drift.
 
-<!-- anchor: review-25 §Non-claims "Git не хранится" -->
+<!-- anchor: review §Non-claims "закон в Git не хранится" -->

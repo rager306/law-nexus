@@ -3196,7 +3196,7 @@ def _write_crystal_fixture(
         + "\n"
         + inv_rows
         + "\n"
-        + f'<!-- anchor: review-25 \u00a7A.2 "{quote}" -->\n',
+        + f'<!-- anchor: review \u00a7A.2 "{quote}" -->\n',
         encoding="utf-8",
     )
 
