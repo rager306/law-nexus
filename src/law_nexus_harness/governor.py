@@ -11,6 +11,7 @@ or legal-domain behavior (ADR-0007).
 from __future__ import annotations
 
 import fnmatch
+import hashlib
 import importlib.util
 import json
 import os
@@ -5353,6 +5354,152 @@ def check_review_case_integrity(root: Path) -> list[GovernorFinding]:
     return findings
 
 
+_MODEL_CRYSTAL_REL = Path("prd/architecture/model-crystal.md")
+_MODEL_CRYSTAL_SOURCE_REL = Path("doc/review/review-25-08-2026.md")
+_MODEL_CRYSTAL_ANCHOR_RE = re.compile(r'<!--\s*anchor:\s*review-25\s+[^"]*"(?P<quote>[^"]+)"\s*-->')
+_MODEL_CRYSTAL_SHA_RE = re.compile(r"sha256:(?P<digest>[0-9a-f]{64})")
+_MODEL_CRYSTAL_SECTIONS = (
+    "## Layer 0",
+    "## Layer 1",
+    "## Reality boundary",
+    "## Non-claims",
+    "## Grounding",
+)
+_MODEL_CRYSTAL_INV_RE = re.compile(r"^\|\s*INV-(?P<num>\d{2})\b", re.MULTILINE)
+_MODEL_CRYSTAL_EXPECTED_INV = frozenset(f"{i:02d}" for i in range(1, 11))
+
+
+def check_model_crystal_anchors(root: Path) -> list[GovernorFinding]:
+    """Advisory grounding check for the Reviews 10-14 model crystal.
+
+    The crystal is a documentation-only projection of the immutable L0
+    review-25 file. This check verifies (1) the crystal-declared sha256 of the
+    source still matches, (2) every ``<!-- anchor: review-25 ... -->`` quote
+    still appears verbatim in the source, (3) required crystal sections and
+    the INV-01..INV-10 definition rows exist. All findings are advisory
+    ``warn``: drift is surfaced, never blocked, and nothing here amends an
+    ADR or promotes a lifecycle (ADR-0007 repository-control only).
+    """
+
+    def _warn(message: str, observed: str, remediation: str) -> GovernorFinding:
+        return GovernorFinding(
+            check_id="model-crystal-anchors",
+            status="fail",
+            severity="warn",
+            message=message,
+            observed=observed,
+            remediation=remediation,
+        )
+
+    crystal_path = root / _MODEL_CRYSTAL_REL
+    source_path = root / _MODEL_CRYSTAL_SOURCE_REL
+    if not crystal_path.is_file():
+        return [
+            _warn(
+                "model crystal projection absent",
+                f"crystal={_MODEL_CRYSTAL_REL} missing",
+                "Restore prd/architecture/model-crystal.md or drop the projection intent; the check is advisory.",
+            )
+        ]
+    if not source_path.is_file():
+        return [
+            _warn(
+                "model crystal L0 source absent",
+                f"source={_MODEL_CRYSTAL_SOURCE_REL} missing",
+                "Restore the immutable L0 review file; the crystal cannot be verified without it.",
+            )
+        ]
+
+    crystal_text = crystal_path.read_text(encoding="utf-8")
+    source_text = source_path.read_text(encoding="utf-8")
+    findings: list[GovernorFinding] = []
+
+    digest_match = _MODEL_CRYSTAL_SHA_RE.search(crystal_text)
+    actual_digest = hashlib.sha256(source_text.encode("utf-8")).hexdigest()
+    if digest_match is None:
+        findings.append(
+            _warn(
+                "model crystal declares no source sha256 digest",
+                "sha256:<64 hex> marker absent from crystal header",
+                "Add the source digest line so L0 drift is detectable.",
+            )
+        )
+    elif digest_match.group("digest") != actual_digest:
+        findings.append(
+            _warn(
+                "model crystal source digest drifted (L0 changed or crystal stale)",
+                f"declared={digest_match.group('digest')[:12]}... actual={actual_digest[:12]}...",
+                "Re-verify the crystal against the current source and bump the grounding log version.",
+            )
+        )
+
+    quotes = [m.group("quote") for m in _MODEL_CRYSTAL_ANCHOR_RE.finditer(crystal_text)]
+    missing_quotes = [quote for quote in quotes if quote not in source_text]
+    if not quotes:
+        findings.append(
+            _warn(
+                "model crystal has no anchor quotes",
+                "anchor markers=0",
+                "Anchor each section with a verbatim quote from review-25 (grounding contract).",
+            )
+        )
+    elif missing_quotes:
+        preview = "; ".join(repr(quote) for quote in missing_quotes[:5])
+        findings.append(
+            _warn(
+                "model crystal anchor quotes drifted from the L0 source",
+                f"missing={len(missing_quotes)}/{len(quotes)}: {preview}",
+                "Re-ground drifted sections verbatim or re-anchor to the post-G0 ADR amendments (one mechanical pass).",
+            )
+        )
+
+    missing_sections = [
+        section for section in _MODEL_CRYSTAL_SECTIONS if section not in crystal_text
+    ]
+    if missing_sections:
+        findings.append(
+            _warn(
+                "model crystal is missing required sections",
+                f"missing={missing_sections}",
+                "Restore the Layer 0 / Layer 1 / Reality boundary / Non-claims / Grounding structure.",
+            )
+        )
+
+    inv_rows = _MODEL_CRYSTAL_INV_RE.findall(crystal_text)
+    inv_set = set(inv_rows)
+    inv_problems: list[str] = []
+    if len(inv_rows) != len(inv_set):
+        inv_problems.append("duplicate INV definition rows")
+    if inv_set != _MODEL_CRYSTAL_EXPECTED_INV:
+        absent = sorted(_MODEL_CRYSTAL_EXPECTED_INV - inv_set)
+        extra = sorted(inv_set - _MODEL_CRYSTAL_EXPECTED_INV)
+        inv_problems.append(f"absent={absent} extra={extra}")
+    if inv_problems:
+        findings.append(
+            _warn(
+                "model crystal INV-01..INV-10 definition rows are incomplete",
+                "; ".join(inv_problems),
+                "Keep exactly one definition row per metamorphic invariant INV-01..INV-10.",
+            )
+        )
+
+    if not findings:
+        findings.append(
+            GovernorFinding(
+                check_id="model-crystal-anchors",
+                status="pass",
+                severity="ok",
+                message="model crystal is grounded on its immutable L0 source",
+                observed=(
+                    f"anchors={len(quotes)} verified; digest=ok; "
+                    "inv_rows=10 (advisory [bounded]; projection only, no canon change)."
+                ),
+                remediation="",
+            )
+        )
+    return findings
+
+
 def _check_spec(
     check_id: str,
     group: str,
@@ -5733,6 +5880,15 @@ GOVERNOR_CHECK_SPECS: tuple[CheckSpec, ...] = (
             "prd/architecture/review-case.schema.json",
         ),
         "error",
+    ),
+    _check_spec(
+        "model-crystal-anchors",
+        "docs",
+        "deterministic",
+        check_model_crystal_anchors,
+        "Keep the Reviews 10-14 model crystal projection grounded on its immutable L0 source (digest + verbatim anchor quotes).",
+        ("prd/architecture/model-crystal.md", "doc/review/review-25-08-2026.md"),
+        "warn",
     ),
 )
 

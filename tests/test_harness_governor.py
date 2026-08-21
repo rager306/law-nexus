@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import hashlib
 import json
 from datetime import date
 from pathlib import Path
@@ -32,6 +33,7 @@ from law_nexus_harness.governor import (
     check_historical_test_debt_visibility,
     check_hostile_negative_suite_coverage,
     check_hostile_proof_chain,
+    check_model_crystal_anchors,
     check_port_contract_coverage,
     check_published_trace_contract,
     check_roadmap_freshness,
@@ -3165,3 +3167,66 @@ def test_active_surface_era_noise_allows_qualified_token(tmp_path: Path) -> None
 
 
 # .gitignore tabby-upload companion
+
+
+# model-crystal-anchors companion
+def _write_crystal_fixture(
+    root: Path,
+    *,
+    quote: str = "Snapshot \u2260 commit",
+    digest_override: str | None = None,
+) -> None:
+    crystal = root / "prd" / "architecture" / "model-crystal.md"
+    crystal.parent.mkdir(parents=True, exist_ok=True)
+    source = root / "doc" / "review" / "review-25-08-2026.md"
+    source.parent.mkdir(parents=True, exist_ok=True)
+    source_text = "Snapshot \u2260 commit\n"
+    source.write_text(source_text, encoding="utf-8")
+    digest = digest_override or hashlib.sha256(source_text.encode("utf-8")).hexdigest()
+    sections = "\n".join(
+        f"## {name}"
+        for name in ("Layer 0", "Layer 1", "Reality boundary", "Non-claims", "Grounding")
+    )
+    inv_rows = "\n".join(f"| INV-{i:02d} | invariant row |" for i in range(1, 11))
+    crystal.write_text(
+        "Source: sha256:"
+        + digest
+        + "\n"
+        + sections
+        + "\n"
+        + inv_rows
+        + "\n"
+        + f'<!-- anchor: review-25 \u00a7A.2 "{quote}" -->\n',
+        encoding="utf-8",
+    )
+
+
+def test_model_crystal_anchors_pass_on_live_repo() -> None:
+    findings = check_model_crystal_anchors(ROOT)
+    assert findings, "live repo must produce at least one finding"
+    assert all(finding.status == "pass" for finding in findings)
+
+
+def test_model_crystal_anchors_warn_on_quote_drift(tmp_path: Path) -> None:
+    _write_crystal_fixture(tmp_path, quote="phrase absent from the L0 source")
+
+    findings = check_model_crystal_anchors(tmp_path)
+    failed = [finding for finding in findings if finding.status == "fail"]
+    assert failed, "drifted anchor quote must surface a finding"
+    assert all(finding.severity == "warn" for finding in failed)
+    assert any("anchor" in finding.message.lower() for finding in failed)
+
+
+def test_model_crystal_anchors_warn_on_source_digest_drift(tmp_path: Path) -> None:
+    _write_crystal_fixture(tmp_path, digest_override="0" * 64)
+
+    findings = check_model_crystal_anchors(tmp_path)
+    failed = [finding for finding in findings if finding.status == "fail"]
+    assert failed
+    assert any("digest" in finding.message.lower() for finding in failed)
+
+
+def test_model_crystal_anchors_warn_when_crystal_absent(tmp_path: Path) -> None:
+    findings = check_model_crystal_anchors(tmp_path)
+    assert findings[0].status == "fail"
+    assert findings[0].severity == "warn"
