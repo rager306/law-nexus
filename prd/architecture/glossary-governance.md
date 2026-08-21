@@ -15,7 +15,11 @@ close semantic gaps or promote lifecycle.
 The terminology projection lives in `prd/temporal-legal-model.md` §3. Each
 substantive meaning remains owned by its cited ADR. The machine catalog
 `temporal-vocabulary-contract.json` is a complete inventory of the glossary
-table and TSG identifiers, but is deliberately non-authoritative.
+table and TSG identifiers, but is deliberately non-authoritative. The
+Reviews 10–14 projection `architecture/model-crystal.md` (model crystal)
+follows the same rule: a non-authoritative navigation surface whose anchors
+must resolve to owning ADRs — the Governor `model-crystal-anchors` check
+verifies only grounding drift, never meaning.
 
 ## 2. Injection into coding work
 
@@ -26,8 +30,11 @@ applicability, practice, risk or profile vocabulary, the required read order is:
 2. the owning active ADR for substance;
 3. `prd/temporal-legal-model.md` §3 for canonical name, alias/status and
    fail-closed boundary;
-4. the relevant Rust skill and verification matrix;
-5. current Rust domain/port contracts and tests.
+4. `prd/architecture/model-crystal.md` Layer 0/1 as the Reviews 10–14 model
+   projection — navigation only (cite `INV-`/`AXIS-`/`OP-`/`RES-` IDs in
+   briefs); its anchors resolve back to items 2–3 and never replace them;
+5. the relevant Rust skill and verification matrix;
+6. current Rust domain/port contracts and tests.
 
 Agents and maintainers must carry a term into code only when an owning ADR and
 an active Rust contract exist. A `deferred-undefined` or `runtime deferred` row

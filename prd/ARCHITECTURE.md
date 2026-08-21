@@ -10,8 +10,7 @@
 > Detailed decisions: [`doc/adr/**`](../doc/adr/README.md).
 > `.gsd/**` is local workflow state, not a cold-reader authority surface.
 > [`PRODUCT.md`](PRODUCT.md) and [`REQUIREMENTS.md`](REQUIREMENTS.md) remain `[proposed]`;
-> EA-02 marked their document state `ready-for-assessment` at `37f82c4`. This is
-> not EA-10 acceptance and not product/legal readiness evidence.
+> EA-02 marked them `ready-for-assessment` (`37f82c4`) — not EA-10 acceptance.
 
 ## What law-nexus IS
 
@@ -183,7 +182,7 @@ L7 ADR-0022 [proposed]  industry profiles                бюджет/строй
    ADR-0023 [proposed]  applicability ownership boundary neutral core protocol + versioned profile inputs; `ln-applicability` v0 is fail-closed abstention-only with NormRule IR + pure predicate algebra spines (no Applicable/NotApplicable product claim)
 ```
 
-Proposed semantic reconciliation, glossary and graduation gates are tracked in [`temporal-legal-model.md`](temporal-legal-model.md). For work that changes temporal, parser, evidence, citation, retrieval, applicability, practice, risk or profile vocabulary, maintainers and coding agents must read its §3 glossary plus the owning active ADR before naming a public contract or Rust type; `deferred-undefined` and `runtime deferred` are stop-signs. The tracked update/injection process is [`architecture/glossary-governance.md`](architecture/glossary-governance.md). Governor checks inventory the glossary and warn on narrowly allowlisted presentation drift across vocabulary lifecycle and closed-clock boundaries; they remain advisory process controls. These process/design surfaces do not amend ADRs, generate product types or promote O1–O7.
+Proposed semantic reconciliation, glossary and graduation gates are tracked in [`temporal-legal-model.md`](temporal-legal-model.md). The Reviews 10–14 model has a tracked projection surface: [`architecture/model-crystal.md`](architecture/model-crystal.md) — Layer 0/1, `[proposed]` non-canon, governor-anchored; cite its INV-/AXIS-/OP- IDs in briefs instead of pasting reviews. For work that changes temporal, parser, evidence, citation, retrieval, applicability, practice, risk or profile vocabulary, maintainers and coding agents must read its §3 glossary plus the owning active ADR before naming a public contract or Rust type; `deferred-undefined` and `runtime deferred` are stop-signs. The tracked update/injection process is [`architecture/glossary-governance.md`](architecture/glossary-governance.md). Governor checks inventory the glossary and warn on narrowly allowlisted presentation drift across vocabulary lifecycle and closed-clock boundaries; they remain advisory process controls. These process/design surfaces do not amend ADRs, generate product types or promote O1–O7.
 
 **Kernel canon, standards compatibility (D046):** the project-local evidence
 kernel (D119 C10/C12/C13) owns substance; LRMoo/CIDOC-CRM/AKML/ELI/LKIF are
@@ -194,29 +193,26 @@ profile projection over the five clocks (ADR-0009), NOT a sixth clock.
 
 ```
 [HISTORICAL FOOTNOTE — not active product work]
-  Python-era parser/ACP/git-lex/FalkorDB milestones (M001–M108 era) are prior art.
-  Detail lives under prd/archive/ and python_archive/ (R066 archive-only).
-  Meta-drift lesson: anti-drift infrastructure must not replace product delivery.
+  Python-era M001–M108 (parser/ACP/git-lex/FalkorDB) are prior art:
+  prd/archive/ + python_archive/ (R066 archive-only). Meta-drift lesson:
+  anti-drift infrastructure must not replace product delivery.
    ▼
 M109-M129 Rust baseline + 20 hostile contracts  [bounded]
-   root Cargo workspace + thin Python repository harness (ADR-0007 [validated])
-   20 PASS / 0 FAIL synthetic hostile cases; not product readiness
+   root Cargo workspace + repository harness (ADR-0007 [validated]);
+   20 PASS / 0 FAIL synthetic hostile cases — not product readiness
    ▼
 M131-M140 parser foundation + archival cutover  [bounded]
-   ADR-0013 universal parser [bounded] (Consultant WordML + Garant ODT)
-   shared hierarchy/sentence/reference/temporal/deontic lexical candidates
-   Python product → python_archive/; historical ACP/git-lex disconnected from active plane
+   ADR-0013 universal parser (Consultant WordML + Garant ODT);
+   Python product → python_archive/; historical ACP/git-lex (archive-only)
+   disconnected from the active plane
    ▼
-M141-M160 process/port-contract hardening  [bounded]
-   shared port contracts, CI/governor honesty, clippy gates
-   ▼
-M161-M164 retrieval/process honesty  [bounded]
-   real cosine ranking (InMemory); semantic-stub + historical-test-debt probes
+M141-M164 hardening + retrieval honesty  [bounded]
+   shared port contracts, CI/governor honesty, clippy gates; real cosine
+   ranking (InMemory); semantic-stub + historical-test-debt probes;
    deterministic CLI vectors (non-semantic)
    ▼
 M165 temporal legal ontology L1–L7  [proposed] design (ADR-0016..0022)
-   Foundation LC hygiene: ADR-0004/0005 [bounded], ADR-0007 [validated]
-   Docs/process follow-up: truth-oracle sync, vault untrack, archive relocate
+   Foundation LC hygiene + truth-oracle sync, vault untrack, archive relocate
    ▼
 M166-M168 parser/assembly execution  [bounded]
    real-corpus grounding, EditionOracle checksum fold, oracle drift verify
@@ -224,9 +220,9 @@ M166-M168 parser/assembly execution  [bounded]
 M169-M172 real-corpus identity + text CTV + document groups  [bounded]
    per-edition identity from filenames; 44-ФЗ edition-0118 assembly drift=0;
    legislative replay 0080→0081 (476-ФЗ purge, drift=0, CLI replay report);
-   article text CTV (resolve_ctv real corpus 85/94 statya); document_groups
-   profiles (federal_law@v1, government_resolution, departmental_order);
-   punkt-granularity CTV on PP_60 (M172); unknown-form census→patch loop
+   article text CTV (resolve_ctv 85/94 statya); document_groups profiles
+   (federal_law@v1, government_resolution, departmental_order); punkt-CTV on
+   PP_60 (M172); unknown-form census→patch loop
    ▼
 M173 inspect PP_60 class-matched punkt proof  [bounded]
    ▼
@@ -236,13 +232,13 @@ M174 wave-1 debt closure  [bounded]
    ▼
 DESIGN FRONT (no Rust, L0 reviews)
    Reviews 9-14 (doc/review/review-20..25-08-2026.md): C1-commit model,
-   citation tape, bitemporal legislative event compiler formula —
-   [proposed] direction only; G0 human disposition pending; no ADR change
+   citation tape, bitemporal legislative event compiler formula — [proposed]
+   direction only; G0 human disposition pending; no ADR change;
+   tracked projection: architecture/model-crystal.md (non-canon)
    ▼
 ASSESSMENT FRONT (no Rust)
-   EA-10 complete: D150 accepted-with-findings after independent EA-09 at 120d44b
-   retained process/staleness findings remain open; no lifecycle promotion
-   product work is unchanged: L2 CTV and TEI/RuVector remain evidence-gated
+   EA-10 complete: D150 accepted-with-findings (EA-09 at 120d44b); retained
+   process/staleness findings open; L2 CTV and TEI/RuVector remain evidence-gated
 ```
 
 ## Current layer (where work happens now)
@@ -274,24 +270,14 @@ cutover and residual dependency closure. Historical onion package surfaces,
 legacy proof scripts and residual product-era tests live here only. They are not
 the target product specification and do not gate active CI product behavior.
 
-**Historical library boundary (retired ADR-0003, prior art only):**
-Pydantic/domain and parser-record decisions from the Python era remain
-prior-art evidence only — not an active ADR file under `doc/adr/`. Rust
-equivalents are independently defined serde/schemars types and traits behind
-current hexagonal boundaries. FalkorDB is historical evidence, not active
-product infrastructure. ADR-0014 selects RuVector only at `[proposed]`; real
-TEI→RVF, graph materialization, cross-store recovery and citation gates remain
-open.
+**Historical library boundary (retired ADR-0003, prior art only):** Python-era Pydantic/domain and parser-record decisions are prior-art evidence only, not active ADR substance; Rust equivalents are independently defined serde/schemars types behind current hexagonal boundaries. FalkorDB is historical evidence, not active product infrastructure. ADR-0014 selects RuVector only at `[proposed]`; real TEI→RVF, graph materialization, cross-store recovery and citation gates remain open.
 
 **Consultant XML parser hardening** — `[bounded]` through M086–M105: 81 XML
-source files, multi-level hierarchy, FRBR IDs, internal/external references,
-temporal/deontic markers, norm/relation candidates and staging graph artifacts.
-The tracked hierarchy baseline is `[bounded]` and frozen for Rust parity input:
-single and corpus modes use distinct outputs, their source/output hashes and
-semantic counts are recorded in the canonical baseline manifest, and CLI
-`--check` verifies selected artifacts plus manifest without filesystem writes.
-This closes the M105/current overwrite ambiguity; it does not prove parser
-completeness, Consultant/Garant parity, or production graph readiness.
+source files, multi-level hierarchy, FRBR IDs, references, temporal/deontic
+markers and staging artifacts; single/corpus modes record hashes and counts
+in the canonical baseline manifest and CLI `--check` verifies without writes.
+Frozen for Rust parity input; not parser completeness, Consultant/Garant
+parity or production graph readiness.
 
 ## What is downstream and BLOCKED until parser data ready
 
@@ -307,15 +293,7 @@ completeness, Consultant/Garant parity, or production graph readiness.
 
 ## ACP / git-lex status (historical decommission only)
 
-**Decommission decision accepted; active authority is archive-only (D104/R066).** Historical/archive-only ACP/git-lex has no place in the target law-nexus architecture, runtime, CI, skills, requirements or source of truth. Remaining D3–D6 manifest/archive hygiene is `[proposed]` process work only and cannot reopen the accepted architecture boundary. Project-local history lives under
-`python_archive/acp_git_lex/` (archive-only); the external
-`/root/git-lex-kit-acp/` repository is historical-only and is not modified. General ADR, evidence,
-requirement/state consistency and fail-closed checks survive only after being
-rewritten without historical ACP/git-lex runtime or vocabulary dependencies.
-
-M108 disconnected the historical git-lex-managed hook. The installed standard
-pre-commit hook has no legacy chain; real execution leaves `.lex` byte-identical.
-Active authority is already archive-only after M108. Any residual D3–D6 work is manifest/archive hygiene and cannot restore runtime, hook, CI or source-of-truth authority.
+**Decommission decision accepted; active authority is archive-only (D104/R066).** Historical ACP/git-lex has no place in target architecture, runtime, CI, skills, requirements or source of truth; residual D3–D6 work is `[proposed]` manifest/archive hygiene and cannot reopen the boundary. Project-local history: `python_archive/acp_git_lex/` (archive-only); external `/root/git-lex-kit-acp/` is historical-only and unmodified. M108 disconnected the git-lex hook (no legacy chain; `.lex` byte-identical); general ADR/evidence/consistency checks survive only when rewritten without historical runtime or vocabulary dependencies.
 
 ## What law-nexus does NOT have (non-claims)
 

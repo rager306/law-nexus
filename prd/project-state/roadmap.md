@@ -20,14 +20,27 @@ falkordb=historical-only
 
 ## Current position
 
-- **Latest completed product milestone:** M165, temporal legal ontology O1–O7 crystallized at `[proposed]` design; no ontology runtime.
+- **Latest completed product milestone:** M173, inspect PP_60 class-matched
+  punkt proof `[bounded]` — structural evidence only, no S4/TSG-017 raise,
+  ADR-0017 stays `[proposed]`. (M165 crystallized the O1–O7 `[proposed]`
+  design spine; no ontology runtime.)
 - **Completed retrieval-honesty band:** M161–M164 `[bounded]` (real cosine ranking in memory, semantic-stub and historical-test-debt probes, deterministic CLI vectors); no live corpus or citation-safe answers.
 - **Completed documentation alignment:** D5 + documentation D6 / EA-05 accepted with findings at `94d58ea`; roadmap-front-sync and TL-G01–12 coverage PASS.
 - **Documentation/process assessment:** EA-10 complete — human D150 `accepted-with-findings` after independent EA-09 report `120d44b`; post-D150 assessments 13–18 record bounded repository-control/parser-protocol/glossary/semantic-presentation remediation and remaining gaps without successor acceptance, lifecycle promotion or product unlock. Glossary governance now inventories all crosswalk rows and controls coding terminology structurally through the tracked living-oracle read pointer; it does not close TSG-001 or define product semantics.
-- **Local GSD workflow marker:** M170-2gh5r6 is the latest completed milestone in GSD registry (parser corpus grounding + full-text CTV on the real corpus; M171-nr6y51 active — document structural profiles / recursive granularity). GSD completion is not product readiness; product/design current-front remains evidence-gated.
+- **Local GSD workflow marker:** M173-iyahbv is the latest completed milestone
+  in GSD registry (inspect PP_60 class-matched punkt proof); M174-jm7fi2
+  active — wave-1 debt closure (heal_missing fail-closed R9-08, presence
+  channel in CLI replay, honesty sync; work committed 1aa7d7c..739a3e6,
+  GSD receipts settle pending). GSD completion is not product readiness.
 - **GSD dual-truth M167:** **resolved** — M167 complete via authorized skip waivers + validation (D154 option C). Historical note in `gsd-review-bridge.md`. Not Applicable; TSG-005/006 still open.
 - **Review governance process contour:** ADR-0024 Review Case intake/disposition/ledger landed; human dispositions recorded for review-11/12 (`actor_id=rager306`). Non-authoritative; no Product/ADR/roadmap promotion.
 - **Applicability kernel:** `ln-applicability` v0 fail-closed abstention-only under ADR-0023 `[proposed]`, with NormRule IR + pure predicate algebra spines; no Applicable/NotApplicable product claim.
+- **Design front (no Rust):** Reviews 9–14 committed as L0 (C1-commit model,
+  citation tape, bitemporal legislative event compiler formula); tracked
+  projection `prd/architecture/model-crystal.md` (non-canon, governor
+  `model-crystal-anchors` advisory). **G0 human disposition pending** — P0
+  canonization (ADR-0017/0018/0016 amendments, temporal-model glossary,
+  YAML `refers_to`) starts only after it.
 - **Product next remains evidence-gated:** the parser golden-corpus protocol now defines G0–G3, but current evidence reaches only G1 `[bounded]`; G2 requires multi-fixture human-reviewed structural goldens and human-owned thresholds before parser-data readiness. L2 CTV TDD follows that readiness decision; TEI/RuVector still requires real infrastructure/evidence. Documentation does not unlock any of these steps.
 - **M111 result:** final `[bounded]` implementation-neutral semantic baseline for heterogeneous Russian legal evidence.
 - **M112 result:** ADR-0005 topology superseded; ADR-0008 through ADR-0012 authored `[bounded]`; executable ADR/decision/owner drift checks active in pre-commit and CI.

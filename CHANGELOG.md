@@ -24,6 +24,14 @@
   commit model, citation tape, external critique re-verified, consolidated
   bitemporal-event-compiler formula + ADR impact map + roadmap. Not canon;
   G0 human disposition pending.
+- Model crystal projection (`prd/architecture/model-crystal.md`): Layer 0/1
+  verifiable projection of review-25 with INV-01..10 / AXIS / OP / RES
+  citation IDs, verbatim anchor quotes and grounding log; advisory governor
+  check `model-crystal-anchors` verifies source digest + anchors. Non-canon;
+  G0 disposition still pending.
+- Hygiene: `prd/ARCHITECTURE.md` condensed back under the 325-line page
+  budget (was 343) with a model-crystal pointer added; glossary governance
+  registers the crystal as an injection/navigation surface.
 - Honesty sync: `prd/ARCHITECTURE.md` where-we-are timeline extended to
   M174 (was stale at M165); KBO-R038 wording (C1 acquired, not yet event
   canon) and KBO-R065 wording (census exists; deferred remainder narrowed
