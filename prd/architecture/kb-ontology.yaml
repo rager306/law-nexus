@@ -294,6 +294,22 @@ vocabulary:
     - specifies
     - conflicts_with
     - cites
+    - refers_to
+  # G0 vocabulary (D216, review-25 §A.8 / ADR-0019 G0 note): refers_to is the
+  # superset family over cites; binding semantics are design-only [proposed]
+  # vocabulary — no Rust enum and no parser classification change is implied.
+  reference_binding_vocabulary:
+    statuses: [proposed, confirmed, rejected, superseded]
+    semantics_modes:
+      - identity_ambulatory
+      - designation_literal
+      - fixed_expression
+      - as_of_specified_date
+      - event_relative
+      - unclassified
+    non_claims:
+      - "binding survives a Repealed target; cites never upgrades to authority; refers_to is not amends and carries no target force"
+      - "design vocabulary only: no Rust types, no classification wiring, no TSG closure"
   corpus_role_signals:
     - {role: C2hint_change_overview, field: path, needle: obzor-izmenenii, rank: 10}
     - {role: C2hint_change_overview, field: title, needle: "Обзор изменений", rank: 10}
