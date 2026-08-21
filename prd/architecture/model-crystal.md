@@ -2,8 +2,9 @@
 
 **Status:** `[proposed]` documentation-only projection. **Non-canon.** This file
 amends no ADR, promotes no lifecycle, mints no Rust type, closes no TSG row.
-Part D candidates of the source stay candidates until human disposition G0
-(ADR-0024 L2).
+Part D candidates were disposed by human G0 (D216); their canonical substance
+now lives in the G0 ADR amendments (`doc/adr/0013/0016/0017/0018/0019`,
+`prd/temporal-legal-model.md`).
 
 **Source canon:** `doc/review/review-25-08-2026.md` (immutable L0) as the
 historical source, with G0 ADR amendments (`doc/adr/0016..0019`,

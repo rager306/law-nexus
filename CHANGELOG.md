@@ -23,12 +23,14 @@
 - L0 reviews 9–14 committed (`doc/review/review-20..25-08-2026.md`): C1
   commit model, citation tape, external critique re-verified, consolidated
   bitemporal-event-compiler formula + ADR impact map + roadmap. Not canon;
-  G0 human disposition pending.
+  immutable L0 history; human G0 disposition recorded (D216) with G0 ADR
+  amendments/notes landed (adr-0013/0016/0017/0018/0019 +
+  temporal-legal-model).
 - Model crystal projection (`prd/architecture/model-crystal.md`): Layer 0/1
   verifiable projection of review-25 with INV-01..10 / AXIS / OP / RES
   citation IDs, verbatim anchor quotes and grounding log; advisory governor
   check `model-crystal-anchors` verifies source digest + anchors. Non-canon;
-  G0 disposition still pending.
+  re-grounded v2 after human G0 (D216).
 - Hygiene: `prd/ARCHITECTURE.md` condensed back under the 325-line page
   budget (was 343) with a model-crystal pointer added; glossary governance
   registers the crystal as an injection/navigation surface.

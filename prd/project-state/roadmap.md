@@ -38,9 +38,11 @@ falkordb=historical-only
 - **Design front (no Rust):** Reviews 9–14 committed as L0 (C1-commit model,
   citation tape, bitemporal legislative event compiler formula); tracked
   projection `prd/architecture/model-crystal.md` (non-canon, governor
-  `model-crystal-anchors` advisory). **G0 human disposition pending** — P0
-  canonization (ADR-0017/0018/0016 amendments, temporal-model glossary,
-  YAML `refers_to`) starts only after it.
+  `model-crystal-anchors` advisory). Human G0 disposition recorded (D216):
+  G0 ADR amendments/notes landed (adr-0013/0016/0017/0018/0019/0021/0009 +
+  temporal-model glossary/TQ-05 design resolution/vacatio golden case
+  TL-GC19) and crystal re-grounded v2. Remaining P0: YAML `refers_to`,
+  gap-register closure triggers.
 - **Product next remains evidence-gated:** the parser golden-corpus protocol now defines G0–G3, but current evidence reaches only G1 `[bounded]`; G2 requires multi-fixture human-reviewed structural goldens and human-owned thresholds before parser-data readiness. L2 CTV TDD follows that readiness decision; TEI/RuVector still requires real infrastructure/evidence. Documentation does not unlock any of these steps.
 - **M111 result:** final `[bounded]` implementation-neutral semantic baseline for heterogeneous Russian legal evidence.
 - **M112 result:** ADR-0005 topology superseded; ADR-0008 through ADR-0012 authored `[bounded]`; executable ADR/decision/owner drift checks active in pre-commit and CI.

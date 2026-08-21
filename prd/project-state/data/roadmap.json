@@ -1,6 +1,6 @@
 {
   "schema_version": "law-nexus-project-state-roadmap/v2",
-  "generated_at": "2026-08-20",
+  "generated_at": "2026-08-21",
   "non_authoritative": true,
   "source_of_truth": "prd/ARCHITECTURE.md (living truth oracle) and doc/adr/** (decision/lifecycle authority). This file is a non-authoritative cold-reader projection; local .gsd/** is workflow state only.",
   "completed_milestone_groups": [
@@ -405,14 +405,14 @@
     "id": "M174-jm7fi2",
     "status": "active",
     "title": "Волна 1: техдолг и процессные разрывы после Review 14",
-    "goal": "Close named wave-1 debt: heal_missing fail-closed provenance (R9-08), presence channel (edition_ast_at) in CLI replay, tracked-doc honesty, L0 reviews 9-14 committed. Process/debt closure only; no lifecycle promotion, no ADR change; G0 disposition pending."
+    "goal": "Close named wave-1 debt: heal_missing fail-closed provenance (R9-08), presence channel (edition_ast_at) in CLI replay, tracked-doc honesty, L0 reviews 9-14 committed. Process/debt closure only; no lifecycle promotion; human G0 disposition was recorded by M175 (D216) with G0 ADR amendments - this milestone only syncs living-document honesty to that fact."
   },
   "recommended_next": {
-    "title": "G0 human disposition on Reviews 10-14, then P0 document canonization",
+    "title": "Remaining P0 canonization follow-ups: kb-ontology.yaml refers_to + gap-register closure triggers",
     "priority": 1,
-    "why": "The consolidated bitemporal legislative event compiler model (review-25) is [proposed] direction only; ADR amendments remain candidates until a human G0 disposition (ADR-0024 L2).",
+    "why": "Human G0 disposition is recorded (D216): G0 ADR amendments/notes landed (adr-0013/0016/0017/0018/0019 + prd/temporal-legal-model.md) and model-crystal is re-grounded v2; the review-25 compiler model stays [proposed] direction, evidence-gated until runtime proof.",
     "plan_reference": "doc/review/review-25-08-2026.md (Part E) + prd/architecture/model-crystal.md",
-    "slices": "After G0: thin P0 slices per review-25 E.1 - ADR-0017 amendment first, then ADR-0018/0016, ADR-0013/0019/0021/0009 notes, temporal-legal-model glossary + TQ-05 owner + vacatio golden case, kb-ontology.yaml refers_to, gap-register closure triggers, model-crystal v2 re-grounding (last).",
+    "slices": "Landed after D216: ADR-0017 amendment, ADR-0018/0016 amendments, ADR-0013/0019/0021/0009 notes, temporal-legal-model glossary + TQ-05 design resolution + vacatio golden case (TL-GC19), model-crystal v2 re-grounding. Remaining thin P0 slices per review-25 E.1: kb-ontology.yaml refers_to, gap-register closure triggers.",
     "product_next": "Product front stays evidence-gated: parser G2 readiness decision first if needed; else L2 CTV TDD; applicability stays abstention-only under ADR-0023 [proposed]; TEI/RuVector remains infrastructure-evidence gated.",
     "non_validation": "GSD completion of M171-M174 is process/registry truth only; not product readiness, legal correctness, ontology/applicability runtime validation, lifecycle promotion of ADRs, or release proof."
   },
@@ -516,7 +516,12 @@
     {
       "id": "roadmap-sync-20260820",
       "lifecycle": "proposed",
-      "text": "Sync after M174 wave-1 (commits 1aa7d7c..739a3e6): M171-M173 completed group added; current=M174-jm7fi2 active; model crystal projection tracked (prd/architecture/model-crystal.md, non-canon, governor model-crystal-anchors advisory); G0 disposition on Reviews 10-14 remains the gate for P0 canonization."
+      "text": "Sync after M174 wave-1 (commits 1aa7d7c..739a3e6): M171-M173 completed group added; current=M174-jm7fi2 active; model crystal projection tracked (prd/architecture/model-crystal.md, non-canon, governor model-crystal-anchors advisory); at write time G0 disposition was still the gate for P0 canonization - superseded 2026-08-21 by D216 (see roadmap-sync-20260821-honesty)."
+    },
+    {
+      "id": "roadmap-sync-20260821-honesty",
+      "lifecycle": "proposed",
+      "text": "Honesty sync (2026-08-21): human G0 disposition recorded by M175 (D216); G0 ADR amendments/notes landed (adr-0013/0016/0017/0018/0019 + prd/temporal-legal-model.md glossary/TQ-05 design resolution/vacatio golden case TL-GC19); model-crystal re-grounded v2. Living surfaces (prd/ARCHITECTURE.md, CHANGELOG.md, prd/project-state/roadmap.md, this file) no longer claim G0-pending; remaining P0 per review-25 E.1: kb-ontology.yaml refers_to, gap-register closure triggers."
     }
   ]
 }

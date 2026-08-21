@@ -233,8 +233,9 @@ M174 wave-1 debt closure  [bounded]
 DESIGN FRONT (no Rust, L0 reviews)
    Reviews 9-14 (doc/review/review-20..25-08-2026.md): C1-commit model,
    citation tape, bitemporal legislative event compiler formula — [proposed]
-   direction only; G0 human disposition pending; no ADR change;
-   tracked projection: architecture/model-crystal.md (non-canon)
+   direction; human G0 disposition recorded (D216); G0 ADR amendments/notes
+   landed (adr-0013/0016/0017/0018/0019 + temporal-legal-model), crystal v2;
+   reviews immutable L0; projection: architecture/model-crystal.md (non-canon)
    ▼
 ASSESSMENT FRONT (no Rust)
    EA-10 complete: D150 accepted-with-findings (EA-09 at 120d44b); retained
