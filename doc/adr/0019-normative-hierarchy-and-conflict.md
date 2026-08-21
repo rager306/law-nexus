@@ -153,6 +153,22 @@ change to article X?". This is a future capability: traverse `amends`,
 `implements`, `specifies` edges backward from a target CC. Requires S1 edges
 + graph store materialization (R5-09). Not a near-term step.
 
+## G0 note (2026-08-20, L0 `doc/review/review-25-08-2026.md`, disposition D216)
+
+Reference vocabulary clarification from the accepted compiler model —
+design level only:
+
+- **`refers_to` is the edge-family superset of `cites`.** Cross-act edges
+  split into `ReferenceMention` (a span + literal wording in a specific
+  CTV), `ReferenceBinding` (candidate/confirmed target + evidence +
+  status; a successful binding survives a `Repealed` target) and
+  `ReferenceSemantics` (kind + temporal binding mode:
+  `IdentityAmbulatory` / `DesignationLiteral` / `FixedExpression` /
+  `AsOfSpecifiedDate` / `EventRelative` / `Unclassified` — the honest
+  default). `cites` never upgrades to authority, and `refers_to ⊃ cites` in
+  the YAML vocabulary (P0 sync). A reference edge is not `amends` and
+  never carries the target's force.
+
 ## Non-claims
 
 - No legal correctness of conflict resolution without real conflict corpus.

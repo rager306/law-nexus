@@ -69,6 +69,23 @@ clocks: they must state whether they refer to `source_publication`,
 - Derived intervals and bitemporal views are projections over immutable evidence, not source truth.
 - Ontology layers (ADR-0016..0022) consume these clocks; they do not invent a sixth core clock.
 
+## G0 note (2026-08-20, L0 `doc/review/review-25-08-2026.md`, disposition D216)
+
+The five clocks are unchanged and remain closed. Two design projections
+from the accepted compiler model are documented so they are not mistaken
+for new clock roles:
+
+- **`EffectSelector` is a projection of clock roles, not a sixth clock.**
+  The ADR-0017 G0(c) selectors (`At`, `AfterPublication`, `OnEvent`,
+  `OnCondition`, `ForRelationsAfter`, `RetroactiveTo`, `Unknown`)
+  project `legal_act_effect` anchors plus explicit conditions; they add
+  no temporal dimension and never substitute a clock role.
+- **`known_as_of` binds `system_observation`.** In the deterministic
+  checkout contract (ADR-0017 G0(d)), `known_as_of` is the
+  `system_observation` role bound of the snapshot fold; `legal_as_of`
+  ranges over effect selectors. Neither collapses into the other, and
+  neither substitutes `source_publication` or `legal_act_effect`.
+
 ## Non-claims
 
 - Applicable-law or effective-date legal correctness is not claimed.

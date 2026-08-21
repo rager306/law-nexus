@@ -547,6 +547,22 @@ distribution). The metadata factor is `[bounded]` YAML data; the
 structural-probe factor is `[proposed]` (see ADR-0027 amendment). A
 conflict between factors fails closed to `Unknown` — no guessing.
 
+## G0 note (2026-08-20, L0 `doc/review/review-25-08-2026.md`, disposition D216)
+
+Two design clarifications from the accepted compiler model — no runtime
+change, no lifecycle promotion:
+
+- **Parser emits `Proposed` candidates into the assertion ledger, never
+  facts.** Under the ADR-0017 G0(a) ledger, every parser assertion
+  (mention, structural candidate, temporal/deontic marker) carries status
+  `Proposed` until independently validated; a candidate never becomes a
+  legal fact by parsing alone. This generalizes the existing fail-closed
+  candidate rules to the ledger lifecycle.
+- **The lossless CST is the target Manifestation-layer projection.** The
+  ADR-0017 G0(d) CST (green tree, exact-text reconstruction) is the future
+  projection target of this parser's decode output. The current parser and
+  its records are **not** a CST and must not be described as one.
+
 ## Non-claims
 
 - `HierarchyMarker` / `map_hierarchy_marker` is a **fail-closed candidate lift**:

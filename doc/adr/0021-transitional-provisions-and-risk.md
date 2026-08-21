@@ -89,6 +89,20 @@ non-authoritative boundaries.
 - Keeps risk honestly non-authoritative: it is the most an AI can offer without
   overclaiming legal authority (D098 anti-smoothing).
 
+## G0 note (2026-08-20, L0 `doc/review/review-25-08-2026.md`, disposition D216)
+
+Two deltas from the accepted compiler model — design level only:
+
+- **`TransitionConstraint` is a typed effect, and the `Transitional`
+  force value migrates here (fork F13-T, ADR-0018 G0(c)).** "Old version
+  still applies for relation R until date D" is a version-choice
+  constraint over the ADR-0017 G0(c) causal DAG (mode
+  `ForRelationsAfter`), not a NormativeState. This ADR owns the migrated
+  semantics; the glossary sync lands in P0.
+- **`EventRelative` reference binding modes dock here.** A reference whose
+  target fixes "as of event E" composes with `TransitionConstraint`
+  resolution; both stay non-authoritative overlays over ledger facts.
+
 ## Non-claims
 
 - No legal correctness; risk is advisory, not a determination.
