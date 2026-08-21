@@ -156,7 +156,11 @@ continues only through an explicit `IdentityContinuityDecision`
 (`SameComponent` / `SplitFrom` / `MergedFrom` / `ReplacedByNewIdentity` /
 `IdentityUncertain`), owned by the ADR-0017 G0(e) `AddressableTextUnit`
 layer. `IdentityUncertain` is fail-closed: it never silently merges or
-splits identities.
+splits identities. Renumbering alone never needs a continuity decision —
+a renumbered numbered component keeps its `ComponentId` and changes only
+its `DesignationVersion`; `SplitFrom` / `MergedFrom` are reserved for
+genuine split/join topology changes, and `ReplacedByNewIdentity` retires
+the old `ComponentId`.
 
 ## Non-claims
 

@@ -41,7 +41,7 @@ layer depends on the one below it; all are fail-closed (R068) and follow the
 D046 adoption ladder (project-local evidence kernel is canon; Akoma/FRBR/ELI/
 LKIF are compatibility references, not canon replacements).
 
-- **ADR-0016 (L1/O1)** — FRBR structural legal identity (Work/Expression/Manifestation/Item; date+authority identity) `[proposed]`; Work/Expression S2 (KBO-R011); Work stays stable across amendments (Review 4; de Martim TV ≠ Work)
+- **ADR-0016 (L1/O1)** — FRBR structural legal identity (Work/Expression/Manifestation/Item; date+authority identity) `[proposed]`; Work/Expression S2 (KBO-R011); Work stays stable across amendments (Review 4; de Martim TV ≠ Work); G0 clarification (D216): opaque ComponentId inside a Work, path/label/eId/wId = DesignationVersion, AKN/ELI stay compatibility projections, IdentityContinuityDecision for split/join/renumber
 - **ADR-0017 (L2/O2)** — Component Temporal Versioning (CTV) — component-level provenance & fail-closed resolver (R070); TextChange≠NormativeEffect design taxonomy (RC11-F07) `[proposed]`; structural CTV ops spine (RC11-F08); structural apply S3 (TSG-003); membership fold S3 (TSG-013); three L2 canons + AmendmentEvent/EditionOracle design (Review 4)
 - **ADR-0018 (L3/O3)** — NormativeState(t) — normative status resolver (text ≠ status) `[proposed]`; dimensional separation design (RC11-F09); force resolver S2–S3 (TSG-004)
 - **ADR-0019 (L4/O4)** — Normative hierarchy and conflict resolution (lex superior/specialis/posterior; explainable) `[proposed]`; cross-act edges between ASTs (Review 4)
