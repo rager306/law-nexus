@@ -304,6 +304,104 @@ records the boundary and adds no promotion: the ADR lifecycle stays
   promotion of ADR-0016..0022 (R074 stays active/bounded; TSG-017 ceiling
   S3).
 
+## G0 amendment (2026-08-20, L0 `doc/review/review-25-08-2026.md`, disposition D216)
+
+Human disposition G0 (D216) accepted the Reviews 10–14 model — **Bitemporal
+Legislative Event Compiler with Persistent Legal Syntax DAG** — as design
+direction. This amendment canonizes the compiler formula into ADR-0017 at
+`[proposed]` design level. It mints no Rust types (that is P2), promotes no
+lifecycle, and changes no Section status: on HEAD there is no ledger, no
+compiler, no CST, no bitemporal checkout and no resolver phases 2–3; what
+exists remains the bounded structural spine and `resolve_ctv` prototype
+recorded above.
+
+### G0(a) Canonical history is the assertion ledger
+
+The canonical history of a Work is the append-only bitemporal ledger of
+`LegalEventAssertion` records — each with evidence span, `recorded_at`,
+`asserted_by` and status (`Proposed` / `Validated` / `AuthoritativeInternal` /
+`Rejected` / `Superseded`) — not a raw event log and not a chain of
+consolidated snapshots. §2 event-sourcing is preserved and sharpened:
+validity intervals derive from **accepted assertions**; a late correction
+appends a new assertion and rebuilds projections, never rewrites the
+`known_as_of` past. Parser output enters the ledger only as `Proposed`
+candidates (see the ADR-0013 G0 note); a candidate is never a fact.
+
+### G0(b) Four-level amendment algebra
+
+`AmendmentInstrument` (the amending act) → `AmendingProvision` (an
+authorization slot in the instrument) → `MicroOperation` (a typed command
+with preconditions and expected base version) → `LegalEffect` (a typed
+outcome). This refines §1b facets and the §3 macro/micro hierarchy: the
+macro-event is the Instrument, provisions are the authorization slots,
+micro-events are MicroOperations, and effects are the typed results; P9
+"consists of" maps Instrument → Provision → MicroOperation. No hidden side
+effects: an effect exists only via its authorizing operation.
+
+### G0(c) Causal DAG, EffectSelector, OrderingConflict
+
+Effects form a **causal DAG** (`depends_on`, `targets_base_version`,
+`supersedes`, `cancels`, `modifies_pending_effect`), not a queue. Each effect
+carries an `EffectSelector` — `At` / `AfterPublication` / `OnEvent` /
+`OnCondition` / `ForRelationsAfter` / `RetroactiveTo` / `Unknown` — which is a
+**projection of the five-clock roles** (ADR-0009 `legal_act_effect` plus
+conditions), never a sixth clock. Linear order is only a proven projection of
+the DAG; non-commuting underdetermined effects yield `OrderingConflict`,
+never an ordering by act number. This upgrades the §4 fail-closed resolver
+contract: compilation is deterministic over the DAG and typed on conflict.
+
+### G0(d) CST (green) + AST (red) projections, three hashes
+
+Accepted assertions project deterministically into two trees: a **lossless
+CST** ("green") supporting exact-text reconstruction of official artifacts
+and a **semantic legal AST** ("red"). Both carry reproducible root hashes; a
+third hash binds the oracle exam (§1c): `fold(events, t) ≈
+snapshot(oracle@t)`. Projection ≠ truth — rebuild must be equivalent
+(repeated replay → the same root hash). The deterministic
+`checkout(work, legal_as_of, known_as_of, view_mode, scope)` reads these
+projections; `known_as_of` is the `system_observation` role bound (ADR-0009
+note) and never a composite clock.
+
+### G0(e) AddressableTextUnit, OrderedMembershipVersion, TextAnchor
+
+Below the numbered-component floor (ADR-0016 G0 clarification): an
+`AddressableTextUnit` identifies an unnumbered addressable paragraph with
+identity continuity through `IdentityContinuityDecision`
+(`SameComponent` / `SplitFrom` / `MergedFrom` / `ReplacedByNewIdentity` /
+`IdentityUncertain`); an `OrderedMembershipVersion` records versioned
+parent/position membership provenance; a `TextAnchor` (token span +
+`quoted_hash`) is a version-local word/phrase address. These refine the
+TSG-003/013 vocabulary as design terms; no public Rust contract is minted.
+
+### G0(f) DocumentaryPresence is a separate repeal axis
+
+Repeal is four axes, not detach: `ForceStatus = Repealed` (ADR-0018),
+`OperativeMembership = Absent`, `DocumentaryPresence = Tombstone`,
+`TextAvailability = HistoricalOnly` (the last CTV stays citable).
+`DocumentaryPresence` (Tombstone / Present / Absent in the document
+structure) is a distinct axis and never force-by-text. The child cascade is
+a derived `RepealScope(parent, descendants=true)`, not physical deletion of
+child identities.
+
+### G0(g) Closed operation registry with typed apply results
+
+The algebra operates over a **closed registry** (design data, catalog
+candidate — not hardcoded Rust enums): Text (`ReplaceText`, `InsertText`,
+`DeleteText`, `SubstituteRange`, `CorrectText`); Structural (`Attach`,
+`Detach`, `Move`, `Renumber`, `Redesignate`, `Split`, `Join`,
+`ReplaceStructure`, `ReserveDesignation`); Force (`Commence`, `Suspend`,
+`Resume`, `Repeal`, `Expire`, `Invalidate`, `Restore` — applied through the
+ADR-0018 overlay); Prospective (`ScheduleEffect`, `ModifyPendingEffect`,
+`CancelPendingEffect`); Table/List (`InsertEntry`, `DeleteEntry`,
+`SplitEntry`, `MergeEntries`, `ReclassifyEntry`). Every operation carries a
+target selector, expected base version, precondition, payload, effect
+selector, scope, postcondition and evidence span. Apply results are a closed
+set: `Applied | TargetNotFound | AmbiguousTarget | PreconditionMismatch |
+BaseVersionMismatch | OrderingConflict | UnknownEffect |
+UnsupportedOperation | IncompleteSource`. This extends §1a industrial ops and
+§3 event typing; the bounded runtime today covers only the structural spine
+(`apply_industrial_op`) and the `resolve_ctv` prototype.
+
 ## Non-claims
 
 - `HierarchyMarker` / `map_hierarchy_marker` is a **fail-closed candidate lift**:
@@ -346,6 +444,13 @@ records the boundary and adds no promotion: the ADR lifecycle stays
   roles C0–C3, evidence classes, assembly FSM) is **design inventory** in
   YAML/KBO. It is not a store node kind, not `resolve_CTV`, and not a 44-ФЗ
   history reconstructed from one 2025 XML.
+- **G0 amendment vocabulary is design canon only** (D216): the assertion
+  ledger, amendment compiler, lossless CST, bitemporal checkout, resolver
+  phases 2–3, the closed operation registry and every G0(a)–(g) term are
+  `[proposed]` design terms with no executable runtime on HEAD. Nothing here
+  mints Rust types (P2), promotes TSG-002/003/013 closure, or claims
+  `NotYetInForce`/`OrderingConflict` behavior in the current `ln-temporal` /
+  `ln-kb-ontology` bounded spine.
 
 ## References
 
