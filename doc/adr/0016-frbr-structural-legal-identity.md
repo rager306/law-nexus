@@ -132,6 +132,32 @@ the recursive path generator and path-lookup are a future wave. Work
 identity canon (number + authority + enactment date, decision 2) is
 unchanged; the parsed_as binding does not mint a new Work.
 
+## G0 clarification (2026-08-20, L0 `doc/review/review-25-08-2026.md`, disposition D216)
+
+Clarifies component identity language used by the ADR-0017 G0 amendment.
+Design-level only; no lifecycle change, no Rust types minted.
+
+### ComponentId is opaque inside the Work; path/label/eId/wId is a DesignationVersion
+
+A numbered component's persistent identity is an opaque `ComponentId`
+under the Work. Everything human-readable about addressing — the registry
+path (`cc:work:statya-93/punkt-4`), the Russian label («ст. 93»), AKN
+`eId`/`wId` — is a **`DesignationVersion`**: versioned addressing data bound
+to a `ComponentId`, never the identity itself. Renumbering can therefore
+change a DesignationVersion while the ComponentId persists (and conversely
+a reused designation does not resurrect identity). AKN wId/eId and ELI URIs
+remain compatibility projections (D046, decision 3) and never mint internal
+identity.
+
+### IdentityContinuityDecision for unnumbered continuity
+
+Identity of an addressable but unnumbered unit (e.g. «абзац первый п. 2»)
+continues only through an explicit `IdentityContinuityDecision`
+(`SameComponent` / `SplitFrom` / `MergedFrom` / `ReplacedByNewIdentity` /
+`IdentityUncertain`), owned by the ADR-0017 G0(e) `AddressableTextUnit`
+layer. `IdentityUncertain` is fail-closed: it never silently merges or
+splits identities.
+
 ## Non-claims
 
 - `HierarchyMarker` / `map_hierarchy_marker` is a **fail-closed candidate lift**:
