@@ -95,6 +95,14 @@ Each layer consumes lower-layer evidence. No higher layer may rewrite source evi
 | document group | per-act-type structural profile: own ladder of levels, own granularity atom (CC/text), own text boundaries; declared in kb-ontology.yaml `document_groups:`; act type is a Work property | ADR-0013 amendments + kb-ontology.yaml `[bounded]` vocabulary | canonical design term `[proposed]` | not legal classification, not an AST, not ADR-0022 industry profile, not ADR-0027 classification profile, not authority |
 | structural profile | synonym family for document group: closed role layer (container/unit/subunit/subunit-text/text-only) + open per-group token layer with recursive max_depth policy | ADR-0013 amendments + Review 8 | canonical design term `[proposed]` | role layer closed; tokens valid only inside the declaring group; depth is policy, not syntax |
 | CC-path | recursive component identity (`cc:…:statya-93/punkt-4/punkt-4.2`) generalizing flat registry bindings; repairs the changed_article_texts bare-number key defect; prepares the TQ-05 reference channel | ADR-0016 amendments (R8-11) | canonical design term `[proposed]` | not a new identity canon; Work identity stays number + authority + date; not minted by parsed_as binding |
+| `LegalEventAssertion` | append-only bitemporal ledger record of an asserted legal event: evidence span, `recorded_at`, `asserted_by`, status (Proposed / Validated / AuthoritativeInternal / Rejected / Superseded); the ledger is the canonical history of a Work | ADR-0017 G0(a) amendment (D216) | canonical design term `[proposed]` | candidate ≠ fact; correction appends a new assertion and rebuilds projections, never rewrites the known_as_of past |
+| `ComponentId` | opaque persistent identity of a numbered component inside a Work | ADR-0016 G0 clarification (D216) | canonical design term `[proposed]` | not path, hash or similarity; a reused designation never resurrects identity |
+| `DesignationVersion` | versioned addressing data (registry path, Russian label, AKN eId/wId) bound to a `ComponentId` | ADR-0016 G0 clarification (D216) | canonical design term `[proposed]` | never identity itself; AKN/ELI are compatibility projections (D046) |
+| `AddressableTextUnit` | identity carrier for an addressable unnumbered paragraph with continuity through `IdentityContinuityDecision` | ADR-0017 G0(e) amendment (D216) | canonical design term `[proposed]` | `IdentityUncertain` is fail-closed; no silent merge or split |
+| `TextAnchor` | version-local word/phrase address: token span + `quoted_hash` inside one CTV | ADR-0017 G0(e) amendment (D216) | canonical design term `[proposed]` | not cross-version identity; not a legal fact |
+| `DocumentaryPresence` | Tombstone / Present / Absent in the document structure — a separate repeal axis | ADR-0017 G0(f) amendment (D216) | canonical design term `[proposed]` | never force by text; text presence ≠ status; cascade is derived `RepealScope` |
+| `OrderedMembershipVersion` | versioned parent/position membership provenance record | ADR-0017 G0(e) amendment (D216) | canonical design term `[proposed]` | not a current-tree fact without the fold; TSG-013 stays active |
+| `EffectSelector` | At / AfterPublication / OnEvent / OnCondition / ForRelationsAfter / RetroactiveTo / Unknown — a projection of five-clock roles carried by a LegalEffect | ADR-0017 G0(c) + ADR-0009 G0 note (D216) | canonical design term `[proposed]` | not a sixth clock; `Unknown` never silently orders; non-commuting effects yield `OrderingConflict` |
 
 Russian citation labels for YAML `hierarchy_levels` / `document_groups` tokens (aliases in source-grounded answers, not extra ontology terms; mint level remains profile data). Do not treat a label as a LegalUnit or CC without WALK-I / registry bind:
 
@@ -270,6 +278,7 @@ These are semantic-shape oracles for future fixtures, not legal gold answers.
 | TL-GC16 | applicability | case request while protocol absent | explicit abstention; no decision/trace | Applicable from CTV/InForce/LLM |
 | TL-GC17 | correction | new observation corrects prior projection | original evidence retained; projection rebuilt | in-place evidence rewrite |
 | TL-GC18 | constitutional practice | typed ex-tunc annulment evidence | separate provenance-backed status event | generic practice prose rewrites status |
+| TL-GC19 | vacatio | base act text amended before main entry into force (44-ФЗ ст. 114 + 188-ФЗ, июль 2013) | at 2013-07-15 text is already T31₁ while force stays `NotYetInForce` (per-component commence pending) | text presence ⇒ `InForce`; publication ⇒ effect; automatic InForce seed |
 
 ## 12. EA-04 decisions and remaining open questions
 
@@ -279,7 +288,7 @@ These are semantic-shape oracles for future fixtures, not legal gold answers.
 | TQ-02 | exact mapping of transaction time to source publication and system observation | resolved `[proposed]`: qualified independent anchors, never one composite clock | ADR-0009/0017 EA-04 clarification | revisit before schema freeze only if a transaction view cannot preserve both roles |
 | TQ-03 | canonical name `NormativeState` vs `NormativeStatus` | resolved `[proposed]`: `NormativeState` canonical; `NormativeStatus` deprecated alias | ADR-0018 EA-04 clarification | revisit before Rust type freeze only if compatibility requires an explicit migration alias |
 | TQ-04 | operational correction/supersession protocol | `[proposed]` invariant only | future evidence/temporal decision if load-bearing | before correction ingestion, projection rebuild or audit API work |
-| TQ-05 | temporal cross-reference resolution algorithm | `[proposed]` gap | future ADR or owning capability decision | before parser reference candidates can affect query/citation authority |
+| TQ-05 | temporal cross-reference resolution algorithm | resolved `[proposed]` design: ADR-0017 + ADR-0019 own the ReferenceMention/Binding/Semantics design (G0 D216); runtime `[deferred]` | ADR-0017/0019 | before resolver phases 2–3 in P2, or on evidence the Unclassified default cannot preserve citation safety |
 | TQ-06 | practice “own clock” wording | resolved `[proposed]`: first-class temporality over five clocks, not sixth clock | ADR-0020 EA-04 clarification | revisit before practice schema only if existing clock roles cannot represent required evidence |
 | TQ-07 | industry-priority maxim vs neutral NormativeRank | resolved `[proposed]`: versioned profile input, never rank elevation | ADR-0019/0022 EA-04 clarification | revisit before profile resolver only with evidence that neutral ranks cannot preserve explainability |
 
@@ -330,6 +339,36 @@ The matrix is intentionally fail-closed: an `absent`, `partial` or
 `deferred-undefined` cell is owner-routed work, not an invitation for an agent
 to fill event enums, API signatures, error variants, applicability fields or
 legal expected outcomes by analogy.
+
+The `[proposed]` G0 vocabulary (D216: `LegalEventAssertion`, `ComponentId`,
+`DesignationVersion`, `AddressableTextUnit`, `TextAnchor`,
+`DocumentaryPresence`, `OrderedMembershipVersion`, `EffectSelector`) is
+added to the §3 glossary; it remains design canon and does not close any TSG
+or promote any lifecycle. A compact projection lives at
+[`architecture/model-crystal.md`](architecture/model-crystal.md) Layer 0/1 —
+navigation surface with governor-anchored quotes; its INV-/AXIS-/OP-/RES- IDs
+resolve back to the owning ADR amendments.
+
+## 14.5 Metamorphic acceptance invariants (INV-01..INV-10, D216)
+
+Adopted as executable acceptance gates from the Reviews 10–14 model
+(`doc/review/review-25-08-2026.md` Part C; projection
+`prd/architecture/model-crystal.md` Layer 0). Each starts as a design gate;
+it becomes an executable test only when its owning runtime (P2) ships. A
+failing gate is a stop condition, never a silent repair.
+
+| ID | Invariant | Owns (design) | Runtime owner (P2) |
+|----|-----------|---------------|--------------------|
+| INV-01 | Repeated replay → same root hash | ADR-0017 G0(d) | compiler fold |
+| INV-02 | Permutation of independent events does not change the snapshot | ADR-0017 G0(c) | compiler fold |
+| INV-03 | Permutation of dependent events is forbidden or `OrderingConflict` | ADR-0017 G0(c) | compiler fold |
+| INV-04 | Future effects never affect a historical checkout | ADR-0017 G0(d) | checkout |
+| INV-05 | Assertion correction never rewrites the `known_as_of` past | ADR-0017 G0(a) | ledger |
+| INV-06 | Changing a reference target does not change the source mention | ADR-0019 G0 note | reference resolver |
+| INV-07 | Changing source text closes the occurrence, may keep continuity | ADR-0017 G0(e) | parser/ledger |
+| INV-08 | Every snapshot node carries provenance or a typed Unknown | ADR-0010 + G0(d) | projection |
+| INV-09 | Exact-text reconstruction reproduces the official artifact (via CST) | ADR-0017 G0(d) | CST projection |
+| INV-10 | No `None` ever replaces a legally meaningful typed non-success | ADR-0023 + ADR-0017 | checkout/errors |
 
 ## 15. Stop conditions
 
