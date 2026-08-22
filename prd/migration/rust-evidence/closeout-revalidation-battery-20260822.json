@@ -1,0 +1,331 @@
+{
+  "schema_version": "law-nexus/closeout-revalidation-battery/v1",
+  "generated_at": "2026-08-22T03:40:22Z",
+  "purpose": "Closeout wave 2026-08-22: current-tree regression battery supporting milestone validation re-pins (M161-M175) after the M175 roadmap freshness sync. Executed commands and observations only; not a new product claim.",
+  "lifecycle": "[bounded]",
+  "non_claims": [
+    "Regression-level evidence only: it shows existing suites pass on the current tree; it does not add new capability proof.",
+    "No live TEI/RuVector validation, no corpus acceptance (G2/G3), no product readiness."
+  ],
+  "source_revision_at_execution": "sha256:8d50ca83259f33dc2e7bc691e428ad38cbe40fbaa85171effad20895b5bd2cde",
+  "commands": [
+    {
+      "id": "cargo-per-crate-offline",
+      "command": "cargo test -p <crate> --offline --tests (47 workspace crates)",
+      "working_directory": "/root/law-nexus",
+      "started_at": "2026-08-22T03:37:00Z",
+      "ended_at": "2026-08-22T03:40:22Z",
+      "observation": "47/47 crates exit 0; 978 tests passed; 0 failed (offline; cached artifacts)",
+      "per_crate": {
+        "ln-status": {
+          "exit_code": 0,
+          "passed": 3,
+          "failed": 0
+        },
+        "ln-observe": {
+          "exit_code": 0,
+          "passed": 8,
+          "failed": 0
+        },
+        "ln-hc01-runner": {
+          "exit_code": 0,
+          "passed": 4,
+          "failed": 0
+        },
+        "ln-inventory": {
+          "exit_code": 0,
+          "passed": 6,
+          "failed": 0
+        },
+        "ln-hc02-runner": {
+          "exit_code": 0,
+          "passed": 4,
+          "failed": 0
+        },
+        "ln-dispose": {
+          "exit_code": 0,
+          "passed": 6,
+          "failed": 0
+        },
+        "ln-hc03-runner": {
+          "exit_code": 0,
+          "passed": 3,
+          "failed": 0
+        },
+        "ln-promote": {
+          "exit_code": 0,
+          "passed": 12,
+          "failed": 0
+        },
+        "ln-hc04-runner": {
+          "exit_code": 0,
+          "passed": 3,
+          "failed": 0
+        },
+        "ln-decode": {
+          "exit_code": 0,
+          "passed": 204,
+          "failed": 0
+        },
+        "ln-product-cli": {
+          "exit_code": 0,
+          "passed": 38,
+          "failed": 0
+        },
+        "ln-storage": {
+          "exit_code": 0,
+          "passed": 47,
+          "failed": 0
+        },
+        "ln-hc05-runner": {
+          "exit_code": 0,
+          "passed": 3,
+          "failed": 0
+        },
+        "ln-gate": {
+          "exit_code": 0,
+          "passed": 9,
+          "failed": 0
+        },
+        "ln-hc06-runner": {
+          "exit_code": 0,
+          "passed": 3,
+          "failed": 0
+        },
+        "ln-identity": {
+          "exit_code": 0,
+          "passed": 21,
+          "failed": 0
+        },
+        "ln-hc07-runner": {
+          "exit_code": 0,
+          "passed": 3,
+          "failed": 0
+        },
+        "ln-relation": {
+          "exit_code": 0,
+          "passed": 8,
+          "failed": 0
+        },
+        "ln-hc08-runner": {
+          "exit_code": 0,
+          "passed": 3,
+          "failed": 0
+        },
+        "ln-temporal": {
+          "exit_code": 0,
+          "passed": 82,
+          "failed": 0
+        },
+        "ln-hc09-runner": {
+          "exit_code": 0,
+          "passed": 3,
+          "failed": 0
+        },
+        "ln-work": {
+          "exit_code": 0,
+          "passed": 10,
+          "failed": 0
+        },
+        "ln-hc10-runner": {
+          "exit_code": 0,
+          "passed": 3,
+          "failed": 0
+        },
+        "ln-closure": {
+          "exit_code": 0,
+          "passed": 12,
+          "failed": 0
+        },
+        "ln-hc11-runner": {
+          "exit_code": 0,
+          "passed": 3,
+          "failed": 0
+        },
+        "ln-projection": {
+          "exit_code": 0,
+          "passed": 10,
+          "failed": 0
+        },
+        "ln-hc12-runner": {
+          "exit_code": 0,
+          "passed": 3,
+          "failed": 0
+        },
+        "ln-admission": {
+          "exit_code": 0,
+          "passed": 11,
+          "failed": 0
+        },
+        "ln-hc13-runner": {
+          "exit_code": 0,
+          "passed": 3,
+          "failed": 0
+        },
+        "ln-replay": {
+          "exit_code": 0,
+          "passed": 11,
+          "failed": 0
+        },
+        "ln-hc14-runner": {
+          "exit_code": 0,
+          "passed": 3,
+          "failed": 0
+        },
+        "ln-publish": {
+          "exit_code": 0,
+          "passed": 23,
+          "failed": 0
+        },
+        "ln-hc15-runner": {
+          "exit_code": 0,
+          "passed": 4,
+          "failed": 0
+        },
+        "ln-accelerate": {
+          "exit_code": 0,
+          "passed": 6,
+          "failed": 0
+        },
+        "ln-query": {
+          "exit_code": 0,
+          "passed": 16,
+          "failed": 0
+        },
+        "ln-citation": {
+          "exit_code": 0,
+          "passed": 6,
+          "failed": 0
+        },
+        "ln-diagnostic": {
+          "exit_code": 0,
+          "passed": 9,
+          "failed": 0
+        },
+        "ln-conformance": {
+          "exit_code": 0,
+          "passed": 5,
+          "failed": 0
+        },
+        "ln-hc16-runner": {
+          "exit_code": 0,
+          "passed": 0,
+          "failed": 0
+        },
+        "ln-hc17-runner": {
+          "exit_code": 0,
+          "passed": 0,
+          "failed": 0
+        },
+        "ln-hc18-runner": {
+          "exit_code": 0,
+          "passed": 0,
+          "failed": 0
+        },
+        "ln-hc19-runner": {
+          "exit_code": 0,
+          "passed": 0,
+          "failed": 0
+        },
+        "ln-hc20-runner": {
+          "exit_code": 0,
+          "passed": 0,
+          "failed": 0
+        },
+        "ln-applicability": {
+          "exit_code": 0,
+          "passed": 39,
+          "failed": 0
+        },
+        "ln-kb-ontology": {
+          "exit_code": 0,
+          "passed": 207,
+          "failed": 0
+        },
+        "ln-testkit": {
+          "exit_code": 0,
+          "passed": 52,
+          "failed": 0
+        },
+        "ln-consultant-parser": {
+          "exit_code": 0,
+          "passed": 69,
+          "failed": 0
+        }
+      }
+    },
+    {
+      "id": "cargo-build-workspace-offline",
+      "command": "cargo build --workspace --offline",
+      "working_directory": "/root/law-nexus",
+      "started_at": "2026-08-22T03:39:03Z",
+      "ended_at": "2026-08-22T03:39:40Z",
+      "observation": "exit 0"
+    },
+    {
+      "id": "pytest-harness",
+      "command": "uv run pytest tests/ -q",
+      "working_directory": "/root/law-nexus",
+      "started_at": "2026-08-22T03:39:40Z",
+      "ended_at": "2026-08-22T03:40:13Z",
+      "observation": "689 passed, 4 skipped, 0 failed (68.79s)"
+    },
+    {
+      "id": "governor",
+      "command": "uv run python -m law_nexus_harness governor",
+      "working_directory": "/root/law-nexus",
+      "started_at": "2026-08-22T03:31:00Z",
+      "ended_at": "2026-08-22T03:31:58Z",
+      "observation": "status=ok; pass_count=64; warn_count=0 (pre-roadmap-sync tree)"
+    },
+    {
+      "id": "preflight",
+      "command": "uv run python -m law_nexus_harness preflight",
+      "working_directory": "/root/law-nexus",
+      "started_at": "2026-08-22T03:32:00Z",
+      "ended_at": "2026-08-22T03:32:11Z",
+      "observation": "status=ok; 7 pass; 1 warn (gitnexus index staleness, remedied by reindex before commit)"
+    },
+    {
+      "id": "adr-conformance",
+      "command": "uv run python scripts/verify-adr-conformance.py",
+      "working_directory": "/root/law-nexus",
+      "started_at": "2026-08-22T03:32:11Z",
+      "ended_at": "2026-08-22T03:32:11Z",
+      "observation": "status=ok; files_scanned=25; finding_count=0; untagged_claims=0"
+    },
+    {
+      "id": "cargo-fmt",
+      "command": "cargo fmt --all --check (via preflight formatter phase)",
+      "working_directory": "/root/law-nexus",
+      "started_at": "2026-08-22T03:32:00Z",
+      "ended_at": "2026-08-22T03:32:01Z",
+      "observation": "exit 0 — workspace formatting clean"
+    },
+    {
+      "id": "governor-post-sync",
+      "command": "uv run python -m law_nexus_harness governor",
+      "working_directory": "/root/law-nexus",
+      "started_at": "2026-08-22T04:12:00Z",
+      "ended_at": "2026-08-22T04:12:30Z",
+      "observation": "Post-M175-completion and post-roadmap-sync: status=ok; pass_count=64; warn_count=0; error_count=0 (roadmap-current-status pass: current=M175, marker=✅)"
+    },
+    {
+      "id": "preflight-post-sync",
+      "command": "uv run python -m law_nexus_harness preflight",
+      "working_directory": "/root/law-nexus",
+      "started_at": "2026-08-22T04:12:30Z",
+      "ended_at": "2026-08-22T04:12:40Z",
+      "observation": "status=ok; 7 pass; 1 warn (gitnexus index staleness — reindex before commit)"
+    },
+    {
+      "id": "adr-conformance-post-sync",
+      "command": "uv run python scripts/verify-adr-conformance.py",
+      "working_directory": "/root/law-nexus",
+      "started_at": "2026-08-22T04:12:40Z",
+      "ended_at": "2026-08-22T04:12:45Z",
+      "observation": "status=ok; files_scanned=25; finding_count=0; untagged_claims=0"
+    }
+  ],
+  "note": "Battery commands executed immediately before and after the 2026-08-22 docs-only roadmap freshness sync; no source-code changes occurred between battery runs and validation re-pins."
+}
