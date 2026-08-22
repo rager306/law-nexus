@@ -1,0 +1,144 @@
+# law-nexus reference binding contract - design-only data (D222 / D224 first proof).
+#
+# Names source: review-25 E.2.2, canonicalized names-only in ADR-0019 G0
+# (disposition D216) and projected in prd/architecture/model-crystal.md
+# (MC-REF). Token canon: prd/architecture/kb-ontology.yaml
+# vocabulary.reference_binding_vocabulary (P0 sync); snake_case tokens are
+# copied character-identical below and are never renamed or extended here.
+# This file adds the per-entity layer the token lists do not carry: required
+# fields per entity, closed typed non-success sets, strike behavior and
+# non-claims. It exists so pin tests can embed it as data; no runtime
+# component parses it and no Rust types are generated from it.
+
+schema_version: law-nexus-reference-binding-contract/v1
+lifecycle: "[proposed]"
+authoritative: false
+owner_adr: ADR-0019
+related_adr: [ADR-0017, ADR-0021]
+token_source: prd/architecture/kb-ontology.yaml#vocabulary.reference_binding_vocabulary
+default_semantics_mode: unclassified
+boundary: >
+  Design-only ReferenceMention/Binding/Semantics contract (review-25 E.2.2 /
+  ADR-0019 G0). Not a Rust enum, not a resolver, not citation authority, not
+  ln-decode::ReferenceMention. Pin tests embed this file as data.
+
+# Closed sets - character-identical to the kb-ontology token canon; this file
+# never invents a seventh mode, a fifth status, or a different order.
+binding_statuses:  # exactly 4 (vocabulary.reference_binding_vocabulary.statuses)
+  - proposed
+  - confirmed
+  - rejected
+  - superseded
+
+semantics_modes:  # exactly 6, canon order preserved (vocabulary.reference_binding_vocabulary.semantics_modes)
+  - identity_ambulatory
+  - designation_literal
+  - fixed_expression
+  - as_of_specified_date
+  - event_relative
+  - unclassified
+
+adr_aliases:  # bijection 6<->6; PascalCase spellings live ONLY here, never as entity keys below
+  identity_ambulatory: IdentityAmbulatory
+  designation_literal: DesignationLiteral
+  fixed_expression: FixedExpression
+  as_of_specified_date: AsOfSpecifiedDate
+  event_relative: EventRelative
+  unclassified: Unclassified
+
+edge_family:  # refers_to is the superset family over cites (ADR-0019 G0); NOT the full cross_act_edge_kinds list
+  superset: refers_to
+  subset: [cites]
+  never: [amends, authority, citation_authority]
+
+typed_non_success:  # exactly 4 - closed set; Bound/Applied are successes, not failures; RepealedTarget is not a failure (see strike.repealed_target)
+  - TargetNotFound
+  - AmbiguousTarget
+  - IncompleteSource
+  - UnclassifiedRequired
+
+# Three entities; each PascalCase key appears exactly once in this file.
+entities:
+  ReferenceMention:
+    definition: >
+      A span plus its literal wording inside one specific CTV: where a source
+      act speaks about another act. It locates a mention and resolves nothing.
+    required_fields:
+      span: >
+        TextAnchor (token span + quoted_hash) inside exactly one source CTV;
+        it locates the mention, it does not resolve it.
+      literal_wording: >
+        verbatim mention text as written in the source CTV; a mention wording,
+        not a resolved designation of the target.
+      source_ctv: >
+        the CTV in which the span occurs; a strike of the source revises this
+        occurrence (strike.on_source), never the target checkout.
+      occurrence_id: >
+        stable id of this mention occurrence; never the target ComponentId.
+    typed_non_success: [IncompleteSource]
+    runtime_today: lexical_decode  # extract_reference_mentions Article/Point candidates in ln-decode; not G0, not this contract
+
+  ReferenceBinding:
+    definition: >
+      Evidence-carried attachment of one mention to zero or more candidate
+      targets, with a lifecycle status; a successful binding survives a
+      Repealed target.
+    required_fields:
+      mention_ref: >
+        occurrence_id of the source ReferenceMention being bound.
+      candidates: >
+        zero or more candidate target ComponentIds, Proposed at parse; a
+        candidate is never asserted as fact.
+      evidence: >
+        evidence span plus asserted_by provenance; evidence supports
+        candidacy, it never upgrades a candidate to fact.
+      status: >
+        exactly one of binding_statuses.
+    confirmed_target: optional  # present only after confirmation; candidates remain the parse-time truth
+    survives_repealed_target: true  # invariant: force loss of the target is AXIS-5, binding continuity stays AXIS-7 (INV-06)
+    typed_non_success: [TargetNotFound, AmbiguousTarget, IncompleteSource]
+    runtime_today: none
+
+  ReferenceSemantics:
+    definition: >
+      Kind of reference plus its temporal binding mode; classifies how the
+      mention tracks its target across editions. Classifying is never
+      guessing.
+    required_fields:
+      kind: >
+        refers_to or cites; cites never means authority; amends is never a
+        reference kind (edge_family.never).
+      temporal_binding_mode: >
+        exactly one of semantics_modes; default unclassified; identity_ambulatory
+        is never inferred (F11-A: guessing ambulatory rewrites the legislator).
+    event_relative_owner: ADR-0021  # pointer to the owning ADR; no transitional runtime claim here
+    typed_non_success: [UnclassifiedRequired, IncompleteSource]
+    runtime_today: none
+
+# Strike behavior (review-25 §A.8 / INV-06 / INV-07 / AXIS-7).
+strike:
+  on_source: >
+    A strike of the source revises or closes the mention occurrence; it may
+    keep continuity (INV-07); it never rewrites the past known_as_of and never
+    silently re-points the mention at another target.
+  on_target: >
+    A strike of the target changes the target checkout only; the mention stays
+    unchanged (INV-06); it never destroys a successful binding and never edits
+    the source mention.
+  repealed_target: >
+    A Repealed target leaves the binding in place; losing force is AXIS-5,
+    not AXIS-7; a repealed target is never reported as a broken binding and
+    never upgrades cites to authority.
+
+non_claims:  # mandatory phrases; pinned by the S02 pin-test wave (T02 embeds this file via include_str!)
+  - No Rust types are minted from this file (D216 / D098).
+  - No closed_vocabularies row exists for this contract; kb-ontology.yaml keeps only the token lists.
+  - cites never upgrades to authority.
+  - refers_to is not amends and carries no target force.
+  - A successful binding survives a Repealed target.
+  - ln-decode ReferenceMention is a lexical Article/Point candidate, not this contract.
+  - Unclassified is the honest default.
+  - IdentityAmbulatory is not inferred.
+  - Not a resolver, not CrossActEdgePort S1, not TSG-012 closure.
+  - Not operation-registry (E.2.1).
+  - Merge/Join/ReplaceText are not binding entities.
