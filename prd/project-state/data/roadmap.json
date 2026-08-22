@@ -1,6 +1,6 @@
 {
   "schema_version": "law-nexus-project-state-roadmap/v2",
-  "generated_at": "2026-08-22T09:07:17Z",
+  "generated_at": "2026-08-22T10:20:45Z",
   "non_authoritative": true,
   "source_of_truth": "prd/ARCHITECTURE.md (living truth oracle) and doc/adr/** (decision/lifecycle authority). This file is a non-authoritative cold-reader projection; local .gsd/** is workflow state only.",
   "completed_milestone_groups": [
@@ -411,13 +411,19 @@
       "theme": "P0 canonization of Reviews 10-14 model after G0 (D216) (docs/ADR canonization)",
       "status": "complete",
       "boundary": "Docs/ADR canonization only: G0 ADR amendments (D216) verified across adr-0013/0016/0017/0018/0019 + temporal-legal-model glossary, model-crystal re-grounded v2, kb-ontology.yaml G0 vocabulary pinned by YAML-as-data tests; no Rust domain types minted (P2 out of scope), no lifecycle promotion, not product readiness."
+    },
+    {
+      "range": "M176-M176",
+      "theme": "P1 front of Reviews 10-14 model: operation registry and reference contract (E.2.1-E.2.2) (docs/design)",
+      "status": "complete",
+      "boundary": "Design-only P1 wave: closed 29-op registry (prd/architecture/operation-registry.yaml, lifecycle [proposed], owner ADR-0017) with per-op preconditions/typed failures pinned by include_str tests (17 passed); ReferenceMention/Binding/Semantics contract (reference-binding-contract.yaml, owner ADR-0019 G0) aligned with refers_to/cites vocabulary (16+10 passed, authority-never-edge-kind); honesty sync of living surfaces (roadmap marker, governor remediation hint + pin test). No Rust types minted, no lifecycle promotion, no resolver/runtime, not product readiness."
     }
   ],
   "current_milestone": {
-    "id": "M175-g7k0q4",
+    "id": "M176-ywawgy",
     "status": "complete",
-    "title": "P0 канонизация модели Reviews 10-14 после G0 (D216)",
-    "goal": "Canonize the Reviews 10-14 model after the human G0 disposition (D216): ADR amendments, glossary, kb-ontology.yaml G0 vocabulary, model-crystal v2 re-grounding. Documentation/design scope only; no Rust type minting, no lifecycle promotion."
+    "title": "P1 фронт Reviews 10-14 модели: операции и reference-контракт (E.2.1-E.2.2)",
+    "goal": "Close review-25 E.2.1 (closed operation registry with typed failures and preconditions) and E.2.2 (ReferenceMention/Binding/Semantics contract) as thin vertical design-only slices with YAML-as-data pin tests, then sync living-surface honesty and strengthen Governor. No Rust type minting (P2 boundary), no lifecycle promotion."
   },
   "recommended_next": {
     "title": "P1 design follow-ups: review-25 E.2.3–E.2.7 remain after design-only E.2.1–E.2.2 (M176 active)",
@@ -549,6 +555,11 @@
       "id": "roadmap-sync-20260822-m176-p1-front",
       "lifecycle": "proposed",
       "text": "P1 design-front sync (2026-08-22): M176-ywawgy S01/S02 landed review-25 E.2.1–E.2.2 as design-only YAML contracts (prd/architecture/operation-registry.yaml, prd/architecture/reference-binding-contract.yaml); the P0 remaining-marker was removed from living surfaces (P0 closed by M175 after D216); remaining P1 is E.2.3–E.2.7 and P2/resolver stay gated behind parser G2. M176 is still active in GSD, so the completed front stays M175-g7k0q4 complete. Design-only docs: no runtime, no resolver, not product readiness."
+    },
+    {
+      "id": "roadmap-sync-20260822-m176-complete",
+      "lifecycle": "proposed",
+      "text": "Closeout sync (2026-08-22): M176-ywawgy completed in GSD (3 slices: ops registry, reference contract, honesty/governor sync; validation pass round 2 after persisting the R071 external prior-art remediation as a DB RESEARCH artifact). Remaining P1 per review-25 E.2: prospective versions/pending effects (E.2.3), suspension/resumption interval set (E.2.4), scope-aware completeness (E.2.5), Merkle roots (E.2.6), assertion lifecycle (E.2.7). GSD completion is not product readiness."
     }
   ]
 }
