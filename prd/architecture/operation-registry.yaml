@@ -1,0 +1,454 @@
+# law-nexus operation registry — design-only data (D222: design-doc-as-data).
+#
+# Names source: review-25 (immutable L0) E.2.1 / section B.4, canonicalized in
+# ADR-0017 G0(g) and projected names-only in prd/architecture/model-crystal.md
+# (MC-OPS). This file adds the per-operation layer: preconditions,
+# postconditions and a closed failure set per operation. It exists for design
+# pin tests (include_str! YAML-as-data); no runtime component parses it.
+schema_version: law-nexus-operation-registry/v1
+lifecycle: "[proposed]"
+authoritative: false
+owner_adr: ADR-0017
+force_overlay_adr: ADR-0018
+boundary: >
+  Design-only closed operation registry (review-25 E.2.1 / ADR-0017 G0(g)).
+  Not a Rust enum, not apply_industrial_op, not a resolver, not legal effect.
+  No runtime component parses this file; pin tests embed it as data.
+
+# Closed sets — copied from canon, never invented here.
+apply_results:  # exactly 9 (ADR-0017 G0(g) / MC-RES)
+  - Applied
+  - TargetNotFound
+  - AmbiguousTarget
+  - PreconditionMismatch
+  - BaseVersionMismatch
+  - OrderingConflict
+  - UnknownEffect
+  - UnsupportedOperation
+  - IncompleteSource
+
+effect_selector_modes:  # exactly 7 (ADR-0017 G0(c)); projection of the five-clock roles (ADR-0009), not a sixth clock
+  - At
+  - AfterPublication
+  - OnEvent
+  - OnCondition
+  - ForRelationsAfter
+  - RetroactiveTo
+  - Unknown
+
+required_fields:  # exactly 8 (ADR-0017 G0(g)): every operation carries all of them
+  - target_selector
+  - expected_base_version
+  - precondition
+  - payload
+  - effect_selector
+  - scope
+  - postcondition
+  - evidence_span
+
+industrial_spine_kinds:  # runtime 4-set (CtvIndustrialOpKind / apply_industrial_op); NOT G0 operation names
+  - renumber
+  - move
+  - split
+  - merge
+
+# Load-bearing name mapping: which G0 names exist in runtime today.
+# Every operation not listed here carries runtime_today: none below.
+name_mapping:
+  industrial_spine: [Move, Renumber, Split]  # CtvIndustrialOpKind (crates/ln-temporal/src/domain.rs)
+  membership_graph: [Attach]                 # MembershipGraph::insert (membership edge only)
+
+non_claims:
+  - No Rust types are minted by this file (D216 / D098; ADR-0017 Non-claims).
+  - The industrial merge kind of industrial_spine_kinds is not G0 Join and not MergeEntries; no G0 operation key exists for it.
+  - Force operations are applied through the ADR-0018 force overlay, never as tree fields.
+  - OrderingConflict is a typed apply result (apply_results), not CtvOpsError and not a scheduler.
+  - This registry is not the S02 Reference Binding/Semantics contract (a separate vocabulary surface).
+  - cites and IdentityAmbulatory are reference-binding concepts, not operation ids in this registry.
+  - effect_selector on an operation is the selector carried into the authorized effect (G0(c)), not a sixth clock (ADR-0009).
+  - runtime_today names a runtime contour only; it never claims the G0 apply contract is implemented.
+
+families:
+  OP-T:
+    axis: AXIS-2 TextVersion
+    notes: >
+      Wording changes between strikes. Runtime today for the text canon is the
+      bounded resolve_ctv prototype (M170), which is not a G0 apply path; no
+      OP-T operation is implemented.
+    operations:
+      ReplaceText:
+        target_selector: "component id or TextAnchor within the expected base CTV"
+        expected_base_version: "CTV the amending provision expects to strike"
+        precondition: "quoted old wording or span hash resolves against the expected base CTV"
+        payload: "replacement wording for the whole target text"
+        effect_selector: "selector carried into the authorized Text effect (one of effect_selector_modes)"
+        scope: "wording of the target component only"
+        postcondition: "new CTV minted; the previous CTV remains citable for historical views"
+        evidence_span: "span of the amending provision wording that authorizes the replacement"
+        typed_failures: [TargetNotFound, AmbiguousTarget, PreconditionMismatch, BaseVersionMismatch, UnsupportedOperation, IncompleteSource]
+        runtime_today: none
+        notes: "not implemented; name reserved. Legal wording change — an editorial fix is CorrectText."
+      InsertText:
+        target_selector: "insertion anchor: component plus before/after reference span in the expected base CTV"
+        expected_base_version: "CTV the insertion anchor is resolved against"
+        precondition: "insertion anchor resolves and the insertion point is unambiguous in the expected base CTV"
+        payload: "wording to insert"
+        effect_selector: "selector carried into the authorized Text effect (one of effect_selector_modes)"
+        scope: "one insertion point in the target component"
+        postcondition: "new CTV with the inserted span at the anchor; no existing span removed"
+        evidence_span: "span of the amending provision wording that authorizes the insertion"
+        typed_failures: [TargetNotFound, AmbiguousTarget, PreconditionMismatch, BaseVersionMismatch, UnsupportedOperation, IncompleteSource]
+        runtime_today: none
+        notes: "not implemented; name reserved."
+      DeleteText:
+        target_selector: "TextAnchor of the span to delete"
+        expected_base_version: "CTV containing the span"
+        precondition: "span hash of the wording being deleted matches the expected base CTV"
+        payload: "span selector or quoted wording to remove"
+        effect_selector: "selector carried into the authorized Text effect (one of effect_selector_modes)"
+        scope: "one text span of the target component"
+        postcondition: "new CTV without the span; component identity and membership unchanged"
+        evidence_span: "span of the amending provision wording that authorizes the deletion"
+        typed_failures: [TargetNotFound, AmbiguousTarget, PreconditionMismatch, BaseVersionMismatch, UnsupportedOperation, IncompleteSource]
+        runtime_today: none
+        notes: "not implemented; name reserved. Deleting wording is not Detach (membership) and not Repeal (force)."
+      SubstituteRange:
+        target_selector: "two anchors bounding one contiguous range in the expected base CTV"
+        expected_base_version: "CTV the range anchors are resolved against"
+        precondition: "both anchors resolve in the expected base CTV and bound exactly one contiguous range"
+        payload: "new wording for the bounded range"
+        effect_selector: "selector carried into the authorized Text effect (one of effect_selector_modes)"
+        scope: "the bounded range only"
+        postcondition: "range wording replaced; new CTV minted; wording outside the range unchanged"
+        evidence_span: "span of the amending provision wording that authorizes the substitution"
+        typed_failures: [TargetNotFound, AmbiguousTarget, PreconditionMismatch, BaseVersionMismatch, UnsupportedOperation, IncompleteSource]
+        runtime_today: none
+        notes: "not implemented; name reserved. Range substitution between anchors; whole-text replacement is ReplaceText."
+      CorrectText:
+        target_selector: "TextAnchor of the editorial defect in the expected base CTV"
+        expected_base_version: "CTV containing the defect"
+        precondition: "base CTV matches and the change is editorial (typo, punctuation) without altering legal meaning"
+        payload: "corrected wording"
+        effect_selector: "selector carried into the authorized Text effect (one of effect_selector_modes)"
+        scope: "the editorial defect span only"
+        postcondition: "corrected CTV; legal meaning unchanged by design intent"
+        evidence_span: "span of the instrument wording that authorizes the correction"
+        typed_failures: [TargetNotFound, AmbiguousTarget, PreconditionMismatch, BaseVersionMismatch, UnsupportedOperation, IncompleteSource]
+        runtime_today: none
+        notes: "not implemented; name reserved. Editorial correction; a legal wording change is ReplaceText."
+  OP-S:
+    axis: AXIS-3 OperativeMembership and designation
+    notes: >
+      Structural membership and designation changes. The runtime structural
+      spine (apply_industrial_op) covers only Move, Renumber, Split as
+      industrial kinds; everything else is design-only here.
+    operations:
+      Attach:
+        target_selector: "parent component id and child component id"
+        expected_base_version: "membership/structure version the instrument expects"
+        precondition: "parent and child exist; the child is not already attached at the expected base; no designation conflict in the target scope"
+        payload: "child id plus position among siblings"
+        effect_selector: "selector carried into the authorized Membership effect (one of effect_selector_modes)"
+        scope: "one membership edge parent to child; force and wording untouched"
+        postcondition: "child is in the operative tree under the parent at effect time"
+        evidence_span: "span of the instrument wording that authorizes the attachment"
+        typed_failures: [TargetNotFound, AmbiguousTarget, PreconditionMismatch, BaseVersionMismatch, OrderingConflict, IncompleteSource]
+        runtime_today: membership_graph
+        notes: "runtime today only as MembershipGraph::insert (membership edge); the full G0 apply contract is design-only."
+      Detach:
+        target_selector: "membership edge: parent id plus child id"
+        expected_base_version: "membership/structure version the instrument expects"
+        precondition: "the membership edge exists at the expected base version"
+        payload: "the edge selector; no other payload"
+        effect_selector: "selector carried into the authorized Membership effect (one of effect_selector_modes)"
+        scope: "one membership edge; ComponentId, CTVs and force untouched"
+        postcondition: "child is outside the operative tree; documentary presence is a separate axis"
+        evidence_span: "span of the instrument wording that authorizes the detachment"
+        typed_failures: [TargetNotFound, AmbiguousTarget, PreconditionMismatch, BaseVersionMismatch, OrderingConflict, UnsupportedOperation, IncompleteSource]
+        runtime_today: none
+        notes: "not implemented; name reserved. Detach is membership-only — not Repeal (force) and not a Tombstone (DocumentaryPresence, see MC-REPEAL)."
+      Move:
+        target_selector: "component id plus source and destination parent/position"
+        expected_base_version: "membership/structure version the instrument expects"
+        precondition: "source membership edge exists and the destination slot resolves at the expected base"
+        payload: "destination parent and sibling order"
+        effect_selector: "selector carried into the authorized Membership effect (one of effect_selector_modes)"
+        scope: "one membership edge relocation; wording CTVs unchanged"
+        postcondition: "component is under the destination parent at the declared position"
+        evidence_span: "span of the instrument wording that authorizes the move"
+        typed_failures: [TargetNotFound, AmbiguousTarget, PreconditionMismatch, BaseVersionMismatch, OrderingConflict, IncompleteSource]
+        runtime_today: industrial_spine
+        notes: "runtime today as CtvIndustrialOpKind move (structural spine); the G0 apply contract is design-only."
+      Renumber:
+        target_selector: "component id whose designation number changes"
+        expected_base_version: "designation/membership version the instrument expects"
+        precondition: "component exists and the new designation is free or explicitly intended for it at the expected base"
+        payload: "new designation"
+        effect_selector: "selector carried into the authorized Designation effect (one of effect_selector_modes)"
+        scope: "designation of one component; identity and wording unchanged"
+        postcondition: "new DesignationVersion recorded; ComponentId unchanged; prior designation becomes historical"
+        evidence_span: "span of the instrument wording that authorizes the renumbering"
+        typed_failures: [TargetNotFound, AmbiguousTarget, PreconditionMismatch, BaseVersionMismatch, OrderingConflict, IncompleteSource]
+        runtime_today: industrial_spine
+        notes: "runtime today as CtvIndustrialOpKind renumber. Reserving a number without a component is ReserveDesignation."
+      Redesignate:
+        target_selector: "component id whose designation form changes"
+        expected_base_version: "designation/membership version the instrument expects"
+        precondition: "component exists and the instrument declares the new designation scheme"
+        payload: "new designation kind or label"
+        effect_selector: "selector carried into the authorized Designation effect (one of effect_selector_modes)"
+        scope: "designation form of one component; numbering and wording unchanged"
+        postcondition: "DesignationVersion replaced; ComponentId unchanged"
+        evidence_span: "span of the instrument wording that authorizes the redesignation"
+        typed_failures: [TargetNotFound, AmbiguousTarget, PreconditionMismatch, BaseVersionMismatch, OrderingConflict, UnsupportedOperation, IncompleteSource]
+        runtime_today: none
+        notes: "not implemented; name reserved. Redesignate changes the designation form; Renumber changes the number."
+      Split:
+        target_selector: "component id plus split boundaries in its expected base content/structure"
+        expected_base_version: "CTV/structure version the instrument expects"
+        precondition: "split boundaries resolve in the expected base and the resulting sibling order is declared"
+        payload: "boundaries and designations of the resulting components"
+        effect_selector: "selector carried into the authorized Membership/Designation effects (one of effect_selector_modes)"
+        scope: "one component becomes several within the same parent"
+        postcondition: "several components; IdentityContinuityDecision SplitFrom recorded for each result"
+        evidence_span: "span of the instrument wording that authorizes the split"
+        typed_failures: [TargetNotFound, AmbiguousTarget, PreconditionMismatch, BaseVersionMismatch, OrderingConflict, IncompleteSource]
+        runtime_today: industrial_spine
+        notes: "runtime today as CtvIndustrialOpKind split (structural spine); continuity decisions are design-only here."
+      Join:
+        target_selector: "component ids to join plus the destination parent"
+        expected_base_version: "membership/structure version the instrument expects"
+        precondition: "all source components exist at the expected base and the join order is declared"
+        payload: "designation of the joined component and its content assembly rule"
+        effect_selector: "selector carried into the authorized Membership/Designation effects (one of effect_selector_modes)"
+        scope: "several components become one within the same parent"
+        postcondition: "one component; MergedFrom continuity recorded for the sources"
+        evidence_span: "span of the instrument wording that authorizes the join"
+        typed_failures: [TargetNotFound, AmbiguousTarget, PreconditionMismatch, BaseVersionMismatch, OrderingConflict, UnsupportedOperation, IncompleteSource]
+        runtime_today: none
+        notes: "not implemented; name reserved. G0 structural join; the industrial merge kind is a different runtime contour and is not this operation."
+      ReplaceStructure:
+        target_selector: "subtree root id plus expected base structure version"
+        expected_base_version: "structure version of the subtree the instrument expects"
+        precondition: "base subtree version matches and the replacement structure is fully specified"
+        payload: "new subtree structure with designations"
+        effect_selector: "selector carried into the authorized Membership/Designation effects (one of effect_selector_modes)"
+        scope: "one subtree; wording outside the subtree untouched"
+        postcondition: "subtree replaced; identity continuity decisions recorded per affected node"
+        evidence_span: "span of the instrument wording that authorizes the replacement"
+        typed_failures: [TargetNotFound, AmbiguousTarget, PreconditionMismatch, BaseVersionMismatch, OrderingConflict, UnsupportedOperation, IncompleteSource]
+        runtime_today: none
+        notes: "not implemented; name reserved. Structure-level replacement; wording-level is SubstituteRange."
+      ReserveDesignation:
+        target_selector: "designation token within a parent scope"
+        expected_base_version: "designation/membership version the instrument expects"
+        precondition: "the designation is free in the parent scope at the expected base"
+        payload: "the reserved designation"
+        effect_selector: "selector carried into the authorized Designation effect (one of effect_selector_modes)"
+        scope: "designation namespace of one parent; no component target"
+        postcondition: "designation reserved and not mintable for another component while the reservation holds"
+        evidence_span: "span of the instrument wording that authorizes the reservation"
+        typed_failures: [TargetNotFound, AmbiguousTarget, PreconditionMismatch, BaseVersionMismatch, OrderingConflict, UnsupportedOperation, IncompleteSource]
+        runtime_today: none
+        notes: "not implemented; name reserved. A number without a component — not Renumber."
+  OP-F:
+    axis: AXIS-5 ForceStatus via ADR-0018 overlay
+    notes: >
+      Force interval-set operations, always applied through the ADR-0018 force
+      overlay — never as tree fields and never as membership edits. Nothing in
+      this family is implemented on HEAD.
+    operations:
+      Commence:
+        target_selector: "component id or whole-work selector whose force interval starts"
+        expected_base_version: "force state version the instrument expects"
+        precondition: "force state is known at the expected base and the commence rule is declared; seed default is never automatic InForce (MC-SEED)"
+        payload: "entry-into-force rule (date or selector condition)"
+        effect_selector: "selector carried into the authorized Force effect (one of effect_selector_modes)"
+        scope: "force axis of the target; wording and membership untouched"
+        postcondition: "InForce interval opens in the ADR-0018 interval set"
+        evidence_span: "span of the instrument wording that authorizes the commencement"
+        typed_failures: [TargetNotFound, AmbiguousTarget, PreconditionMismatch, BaseVersionMismatch, OrderingConflict, UnsupportedOperation, IncompleteSource]
+        runtime_today: none
+        notes: "not implemented; applied through the ADR-0018 overlay."
+      Suspend:
+        target_selector: "component id whose force is suspended"
+        expected_base_version: "force state version the instrument expects"
+        precondition: "the target is in force at the expected base and the suspension rule is declared"
+        payload: "suspension rule (date, event or condition)"
+        effect_selector: "selector carried into the authorized Force effect (one of effect_selector_modes)"
+        scope: "force axis of the target only"
+        postcondition: "Suspended interval opens; a later Resume is expected, not implied"
+        evidence_span: "span of the instrument wording that authorizes the suspension"
+        typed_failures: [TargetNotFound, AmbiguousTarget, PreconditionMismatch, BaseVersionMismatch, OrderingConflict, UnsupportedOperation, IncompleteSource]
+        runtime_today: none
+        notes: "not implemented; applied through the ADR-0018 overlay."
+      Resume:
+        target_selector: "component id whose force resumes"
+        expected_base_version: "force state version the instrument expects"
+        precondition: "an open Suspended interval exists at the expected base"
+        payload: "resume rule (date, event or condition)"
+        effect_selector: "selector carried into the authorized Force effect (one of effect_selector_modes)"
+        scope: "force axis of the target only"
+        postcondition: "Suspended interval closes and force continues per the overlay"
+        evidence_span: "span of the instrument wording that authorizes the resumption"
+        typed_failures: [TargetNotFound, AmbiguousTarget, PreconditionMismatch, BaseVersionMismatch, OrderingConflict, UnsupportedOperation, IncompleteSource]
+        runtime_today: none
+        notes: "not implemented; applied through the ADR-0018 overlay."
+      Repeal:
+        target_selector: "component id or scope being repealed"
+        expected_base_version: "force state version the instrument expects"
+        precondition: "the target is known and not already repealed at the expected base"
+        payload: "repeal scope (component with derived descendants or explicit list)"
+        effect_selector: "selector carried into the authorized Force effect (one of effect_selector_modes)"
+        scope: "force axis; derived consequences on other axes are projections, not payload"
+        postcondition: "ForceStatus Repealed; OperativeMembership Absent; DocumentaryPresence Tombstone; TextAvailability HistoricalOnly (MC-REPEAL)"
+        evidence_span: "span of the instrument wording that authorizes the repeal"
+        typed_failures: [TargetNotFound, AmbiguousTarget, PreconditionMismatch, BaseVersionMismatch, OrderingConflict, UnsupportedOperation, IncompleteSource]
+        runtime_today: none
+        notes: "not implemented; applied through the ADR-0018 overlay. Repeal is four axes, not a detach."
+      Expire:
+        target_selector: "component id or scope whose force ends by term"
+        expected_base_version: "force state version the instrument expects"
+        precondition: "the target is in force at the expected base and the expiry rule is declared"
+        payload: "expiry rule (term date or condition)"
+        effect_selector: "selector carried into the authorized Force effect (one of effect_selector_modes)"
+        scope: "force axis of the target only"
+        postcondition: "Expired interval recorded in the ADR-0018 interval set"
+        evidence_span: "span of the instrument wording or term that authorizes the expiry"
+        typed_failures: [TargetNotFound, AmbiguousTarget, PreconditionMismatch, BaseVersionMismatch, OrderingConflict, UnsupportedOperation, IncompleteSource]
+        runtime_today: none
+        notes: "not implemented; applied through the ADR-0018 overlay."
+      Invalidate:
+        target_selector: "component id or scope being invalidated"
+        expected_base_version: "force state version the instrument expects"
+        precondition: "the invalidating ground is asserted with evidence at the expected base"
+        payload: "invalidation ground and scope"
+        effect_selector: "selector carried into the authorized Force effect (one of effect_selector_modes)"
+        scope: "force axis of the target only"
+        postcondition: "Invalidated state recorded in the ADR-0018 interval set"
+        evidence_span: "span of the instrument wording that authorizes the invalidation"
+        typed_failures: [TargetNotFound, AmbiguousTarget, PreconditionMismatch, BaseVersionMismatch, OrderingConflict, UnsupportedOperation, IncompleteSource]
+        runtime_today: none
+        notes: "not implemented; applied through the ADR-0018 overlay."
+      Restore:
+        target_selector: "component id or scope whose force is restored"
+        expected_base_version: "force state version the instrument expects"
+        precondition: "a prior Repealed, Invalidated or Suspended state exists at the expected base"
+        payload: "restoration rule and scope"
+        effect_selector: "selector carried into the authorized Force effect (one of effect_selector_modes)"
+        scope: "force axis of the target only"
+        postcondition: "force interval re-opened per the ADR-0018 overlay"
+        evidence_span: "span of the instrument wording that authorizes the restoration"
+        typed_failures: [TargetNotFound, AmbiguousTarget, PreconditionMismatch, BaseVersionMismatch, OrderingConflict, UnsupportedOperation, IncompleteSource]
+        runtime_today: none
+        notes: "not implemented; applied through the ADR-0018 overlay."
+  OP-P:
+    axis: prospective effects (E.2.3 pending-effect bookkeeping)
+    notes: >
+      Prospective bookkeeping for scheduled effects. Names and preconditions
+      only — no pending-effect compiler exists; nothing in this family is
+      implemented on HEAD.
+    operations:
+      ScheduleEffect:
+        target_selector: "authorized effect (operation plus target) to schedule"
+        expected_base_version: "version of the authorizing instrument parse the schedule is grounded in"
+        precondition: "the authorizing instrument is parsed and a future-pointing selector is declared"
+        payload: "pending effect descriptor with its effect selector"
+        effect_selector: "the schedule's own selector carried into the authorized effect (one of effect_selector_modes)"
+        scope: "one pending effect; nothing applied before selector satisfaction"
+        postcondition: "pending effect registered and visible as excluded future until its selector is satisfied"
+        evidence_span: "span of the instrument wording that authorizes the scheduled effect"
+        typed_failures: [TargetNotFound, AmbiguousTarget, PreconditionMismatch, BaseVersionMismatch, OrderingConflict, UnknownEffect, UnsupportedOperation, IncompleteSource]
+        runtime_today: none
+        notes: "not implemented; name reserved (E.2.3 pending effects)."
+      ModifyPendingEffect:
+        target_selector: "pending effect to modify"
+        expected_base_version: "pending-effect registration version the instrument expects"
+        precondition: "the pending effect exists at the expected base and is still modifiable"
+        payload: "replacement pending effect descriptor"
+        effect_selector: "selector of the modifying authorization (one of effect_selector_modes)"
+        scope: "one pending effect; applied history untouched"
+        postcondition: "pending effect descriptor replaced; provenance of the modification kept"
+        evidence_span: "span of the instrument wording that authorizes the modification"
+        typed_failures: [TargetNotFound, AmbiguousTarget, PreconditionMismatch, BaseVersionMismatch, OrderingConflict, UnknownEffect, UnsupportedOperation, IncompleteSource]
+        runtime_today: none
+        notes: "not implemented; name reserved (E.2.3 pending effects)."
+      CancelPendingEffect:
+        target_selector: "pending effect to cancel"
+        expected_base_version: "pending-effect registration version the instrument expects"
+        precondition: "the pending effect exists at the expected base and has not been applied"
+        payload: "cancellation statement"
+        effect_selector: "selector of the cancelling authorization (one of effect_selector_modes)"
+        scope: "one pending effect; applied history untouched"
+        postcondition: "pending effect cancelled and never applied"
+        evidence_span: "span of the instrument wording that authorizes the cancellation"
+        typed_failures: [TargetNotFound, AmbiguousTarget, PreconditionMismatch, BaseVersionMismatch, OrderingConflict, UnknownEffect, UnsupportedOperation, IncompleteSource]
+        runtime_today: none
+        notes: "not implemented; name reserved (E.2.3 pending effects)."
+  OP-L:
+    axis: table/list entries (LegalList axis deferred)
+    notes: >
+      Table and list entries as first-class micro-operations (review-24 II.14:
+      names and preconditions only, not wave-1 runtime types). The LegalList
+      axis itself is deferred; nothing in this family is implemented on HEAD.
+    operations:
+      InsertEntry:
+        target_selector: "table or list component plus entry position"
+        expected_base_version: "table content version the instrument expects"
+        precondition: "the table resolves at the expected base and the entry position is declared"
+        payload: "entry content"
+        effect_selector: "selector carried into the authorized Text/Membership effect (one of effect_selector_modes)"
+        scope: "one entry of one table or list"
+        postcondition: "entry present in the table's next content version"
+        evidence_span: "span of the instrument wording that authorizes the insertion"
+        typed_failures: [TargetNotFound, AmbiguousTarget, PreconditionMismatch, BaseVersionMismatch, OrderingConflict, UnsupportedOperation, IncompleteSource]
+        runtime_today: none
+        notes: "not implemented; name reserved (LegalList axis deferred)."
+      DeleteEntry:
+        target_selector: "table or list component plus entry selector"
+        expected_base_version: "table content version the instrument expects"
+        precondition: "the entry resolves unambiguously at the expected base"
+        payload: "entry selector being removed"
+        effect_selector: "selector carried into the authorized Text/Membership effect (one of effect_selector_modes)"
+        scope: "one entry of one table or list"
+        postcondition: "entry absent from the table's next content version"
+        evidence_span: "span of the instrument wording that authorizes the deletion"
+        typed_failures: [TargetNotFound, AmbiguousTarget, PreconditionMismatch, BaseVersionMismatch, OrderingConflict, UnsupportedOperation, IncompleteSource]
+        runtime_today: none
+        notes: "not implemented; name reserved (LegalList axis deferred)."
+      SplitEntry:
+        target_selector: "table entry plus split boundaries"
+        expected_base_version: "table content version the instrument expects"
+        precondition: "the entry resolves and the split boundaries are declared at the expected base"
+        payload: "boundaries and designations of the resulting entries"
+        effect_selector: "selector carried into the authorized Text/Membership effect (one of effect_selector_modes)"
+        scope: "one entry of one table or list"
+        postcondition: "several entries with recorded continuity"
+        evidence_span: "span of the instrument wording that authorizes the split"
+        typed_failures: [TargetNotFound, AmbiguousTarget, PreconditionMismatch, BaseVersionMismatch, OrderingConflict, UnsupportedOperation, IncompleteSource]
+        runtime_today: none
+        notes: "not implemented; name reserved (LegalList axis deferred)."
+      MergeEntries:
+        target_selector: "table entries to merge"
+        expected_base_version: "table content version the instrument expects"
+        precondition: "all entries resolve at the expected base and the merge rule is declared"
+        payload: "content assembly rule and designation of the merged entry"
+        effect_selector: "selector carried into the authorized Text/Membership effect (one of effect_selector_modes)"
+        scope: "entries of one table or list"
+        postcondition: "single entry with recorded continuity for the sources"
+        evidence_span: "span of the instrument wording that authorizes the merge of entries"
+        typed_failures: [TargetNotFound, AmbiguousTarget, PreconditionMismatch, BaseVersionMismatch, OrderingConflict, UnsupportedOperation, IncompleteSource]
+        runtime_today: none
+        notes: "not implemented; name reserved. A table/list operation — not the industrial merge kind and not Join."
+      ReclassifyEntry:
+        target_selector: "table entry whose classification changes"
+        expected_base_version: "table content version the instrument expects"
+        precondition: "the entry resolves and the new classification is declared at the expected base"
+        payload: "new classification"
+        effect_selector: "selector carried into the authorized Text effect (one of effect_selector_modes)"
+        scope: "classification of one entry; content otherwise unchanged"
+        postcondition: "entry reclassified in the table's next content version"
+        evidence_span: "span of the instrument wording that authorizes the reclassification"
+        typed_failures: [TargetNotFound, AmbiguousTarget, PreconditionMismatch, BaseVersionMismatch, UnsupportedOperation, IncompleteSource]
+        runtime_today: none
+        notes: "not implemented; name reserved (LegalList axis deferred)."
