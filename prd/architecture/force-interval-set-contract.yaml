@@ -1,0 +1,178 @@
+# law-nexus force interval set contract - design-only data (D222 / D228 / D229).
+#
+# Names source: review-25 (immutable L0) E.2.4, canonicalized in ADR-0018
+# G0(b)/G0(c) (force is an event-derived interval set; status vocabulary
+# with NotYetInForce) and ADR-0017 G0(g) (OP-F operation names), projected
+# in prd/architecture/model-crystal.md (AXIS-5 / MC-OPS / MC-SEED /
+# MC-REPEAL / INV-04). Operation names and typed failures are copied
+# character-identical from prd/architecture/operation-registry.yaml
+# (families.OP-F keys and their typed_failures rows); per-operation
+# preconditions, postconditions and payloads live there and are never
+# duplicated here. This file adds the entity/interval layer the registry
+# does not carry: the written status vocabulary, the two force-interval
+# entities, the opens/closes transition algebra and the Suspend/Resume
+# name traps. It exists so pin tests can embed it as data; no runtime
+# component parses it and no Rust types are generated from it.
+
+schema_version: law-nexus-force-interval-set-contract/v1
+lifecycle: "[proposed]"
+authoritative: false
+owner_adr: ADR-0018
+related_adr: [ADR-0017, ADR-0021]
+op_source: prd/architecture/operation-registry.yaml#families.OP-F
+boundary: >
+  Design-only ForceInterval/ForceIntervalSet contract (review-25 E.2.4 /
+  ADR-0018 G0(b)). Not a Rust enum, not resolve_force_status_at or the
+  ForceStatusTimeline algebra, not the OP-P pending-effects contract
+  (E.2.3 / ADR-0017), not a TransitionConstraint (ADR-0021), not a Work
+  cancel_resume. Pin tests embed this file as data.
+
+# Closed sets - character-identical to canon (D229); this file never
+# invents an eighth OP-F name, an eighth written status or a new typed
+# token.
+op_f_names: [Commence, Suspend, Resume, Repeal, Expire, Invalidate, Restore]  # exactly 7, character-identical to the families.OP-F keys; Superseded is a status, not an operation; no Supersede / Vacate / Moratorium
+
+written_statuses:  # exactly 7; Unknown is the fail-closed point-query outcome (see point_query_outcomes), not a written status; Transitional is F13-T / ADR-0021, not a force interval; the runtime NormativeState 6-set (kb-ontology.yaml force_status_values) is not this list
+  - InForce
+  - NotYetInForce
+  - Suspended
+  - Repealed
+  - Superseded
+  - Expired
+  - Invalidated
+
+point_query_outcomes: [resolved_status, Unknown]  # exactly 2; Unknown lives here, never in written_statuses
+
+typed_non_success:  # exactly 7, character-identical to every OP-F typed_failures row; not aligned with the pending-effects 8-set (its extra token is lawful for OP-P bookkeeping, not for OP-F intervals); Resume without an open Suspended interval or Suspend on a target not InForce is PreconditionMismatch, never a new token
+  - TargetNotFound
+  - AmbiguousTarget
+  - PreconditionMismatch
+  - BaseVersionMismatch
+  - OrderingConflict
+  - UnsupportedOperation
+  - IncompleteSource
+
+# Two entities; each PascalCase key appears exactly once in this file.
+entities:
+  ForceInterval:
+    definition: >
+      One written force interval of one component: a written status holding
+      from an opening OP-F application to a closing OP-F application, or
+      still open. A projection of the underlying event ledger, never source
+      truth. Design data, never a runtime object.
+    required_fields:
+      component_id: >
+        opaque ComponentId of the component this interval belongs to
+        (ADR-0016 identity floor).
+      status: >
+        exactly one of written_statuses; never Unknown and never
+        Transitional.
+      opened_by: >
+        exactly one of op_f_names - the operation whose authorized effect
+        opened this interval.
+      closed_by: >
+        one of op_f_names or the literal open while no closing application
+        exists yet.
+      evidence_span: >
+        span of the instrument wording that authorizes the opening and the
+        closing applications.
+    typed_non_success: [TargetNotFound, AmbiguousTarget, PreconditionMismatch, BaseVersionMismatch, OrderingConflict, UnsupportedOperation, IncompleteSource]
+    runtime_today: none
+
+  ForceIntervalSet:
+    definition: >
+      The set of written force intervals of one component, derived by
+      folding OP-F applications (ADR-0018 G0(b)); any single interval or
+      single point status is a projection of this set. Design data, never a
+      runtime object.
+    required_fields:
+      component_id: >
+        opaque ComponentId whose force history this set carries.
+      intervals: >
+        zero or more ForceInterval rows (0..n); suspension and resumption
+        yield multiple disjoint InForce members.
+    in_force_members: pairwise_disjoint
+    source: projection_of_op_f_events
+    runtime_today: none
+    notes: >
+      An as_of point query reads the set and stores no sixth clock
+      (ADR-0009); the OP-F event ledger remains the source of truth and
+      intervals are its projection, never the reverse.
+
+# Transition algebra - exactly 7 rows with trigger/closes/opens, not
+# from/to: intervals open and close, they do not move between states.
+transitions:
+  - trigger: Commence  # seed; never automatic InForce (MC-SEED); seed default NotYetInForce/Unknown
+    closes: none
+    opens: InForce
+  - trigger: Suspend  # a later Resume is expected, not implied
+    closes: InForce
+    opens: Suspended
+  - trigger: Resume  # opens a new disjoint InForce member; not Restore
+    closes: Suspended
+    opens: InForce
+  - trigger: Repeal  # four axes (MC-REPEAL); not Detach
+    closes: current_force
+    opens: Repealed
+  - trigger: Expire
+    closes: InForce
+    opens: Expired
+  - trigger: Invalidate
+    closes: current_force
+    opens: Invalidated
+  - trigger: Restore  # distinct from Resume
+    closes: Repealed_or_Invalidated_or_Suspended
+    opens: force_per_overlay
+
+# The load-bearing name traps (as modifies_pending_effect is for the
+# pending-effects contract).
+suspend_is_not_a_status:
+  kind: operation
+  distinct_from_status: Suspended
+  opens: Suspended
+  closes: InForce
+  later_resume: expected_not_implied
+  notes: >
+    Suspend is an OP-F operation, not a status value; the written status it
+    opens is Suspended. A later Resume is expected, never implied by the
+    suspension itself.
+
+resume_is_not_restore:
+  kind: operation
+  distinct_from_op: Restore
+  requires_open: Suspended
+  notes: >
+    Resume closes an open Suspended interval and opens a new disjoint
+    InForce member; Restore re-opens force per the overlay decision from
+    Repealed, Invalidated or Suspended. Distinct operations with distinct
+    preconditions.
+
+# Projection rules (ADR-0018 G0(b) / INV-04).
+projection:
+  point_query: one_status_at_t_or_Unknown
+  set: multiple_disjoint_in_force_legal
+  effective_from_to: projection_never_source
+  invariant: INV-04
+  notes: >
+    Future OP-F applications never affect a historical checkout. The
+    excluded_future checkout rule is owned by the E.2.3 pending-effects
+    contract and is not restated here.
+
+non_claims:  # mandatory phrases; pinned by the pin-test wave (T02 embeds this file via include_str!)
+  - No Rust types are minted from this file (D216 / D098).
+  - No closed_vocabularies row exists for this contract; kb-ontology.yaml force_status_values stays the runtime 6-set.
+  - Suspend is not Suspended; the first is an OP-F operation, the second a written interval status.
+  - Resume is not Restore; Resume requires an open Suspended interval, Restore re-opens force per the overlay.
+  - Resume is not Work cancel_resume; the ln-hc10-runner cancel_resume scenario is a different contour.
+  - Unknown is not a written interval; it is the fail-closed point-query outcome.
+  - Transitional is not a force interval (F13-T / ADR-0021).
+  - ForceIntervalSet is not source truth; the OP-F event ledger remains the source.
+  - effective_from and effective_to remain projections, never source truth.
+  - Not the OP-P pending-effects contract (E.2.3 / ADR-0017).
+  - Commence is not ScheduleEffect; entering force is not pending bookkeeping.
+  - Repeal is not Detach (MC-REPEAL).
+  - Not resolve_force_status_at and not the ForceStatusTimeline algebra.
+  - Not a sixth clock (ADR-0009 five-clock roles).
+  - OP-F preconditions live in operation-registry.yaml, not duplicated here.
+  - Not a resolver and not the E.3 compiler.
+  - ForceStatusEvent is not a YAML entity; status events live in the assertion ledger.
