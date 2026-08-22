@@ -27,15 +27,13 @@ falkordb=historical-only
 - **Completed retrieval-honesty band:** M161–M164 `[bounded]` (real cosine ranking in memory, semantic-stub and historical-test-debt probes, deterministic CLI vectors); no live corpus or citation-safe answers.
 - **Completed documentation alignment:** D5 + documentation D6 / EA-05 accepted with findings at `94d58ea`; roadmap-front-sync and TL-G01–12 coverage PASS.
 - **Documentation/process assessment:** EA-10 complete — human D150 `accepted-with-findings` after independent EA-09 report `120d44b`; post-D150 assessments 13–18 record bounded repository-control/parser-protocol/glossary/semantic-presentation remediation and remaining gaps without successor acceptance, lifecycle promotion or product unlock. Glossary governance now inventories all crosswalk rows and controls coding terminology structurally through the tracked living-oracle read pointer; it does not close TSG-001 or define product semantics.
-- **Local GSD workflow marker:** M176-ywawgy is the latest completed milestone
-  in GSD registry (P1 front of Reviews 10-14 model: closed 29-op registry
-  with preconditions/typed failures + ReferenceMention/Binding/Semantics
-  contract as design-only YAML with include_str pin tests; honesty sync of
-  living surfaces; no Rust type minting, no lifecycle promotion). M175-g7k0q4
-  closed P0 canonization after G0 (D216). Active M177-q015bu S01/S02 landed
-  P1 E.2.3/E.2.4 design-only (`prd/architecture/pending-effects-contract.yaml`,
-  `prd/architecture/force-interval-set-contract.yaml`, D222 pins).
-  Remaining P1 = E.2.5–E.2.7 (scope-aware completeness, Merkle roots,
+- **Local GSD workflow marker:** M177-q015bu is the latest completed milestone
+  in GSD registry (P1 tail: pending-effects contract with
+  modifies_pending_effect DAG-edge semantics + suspension/resumption as force
+  interval set, design-only with 17+16 include_str pins; no Rust type minting,
+  no lifecycle promotion). M176-ywawgy closed the P1 front (29-op registry +
+  reference contract); M175-g7k0q4 closed P0 canonization after G0 (D216).
+  Remaining P1 = E.2.5-E.2.7 (scope-aware completeness, Merkle roots,
   assertion lifecycle). GSD completion is not product readiness.
 - **GSD dual-truth M167:** **resolved** — M167 complete via authorized skip waivers + validation (D154 option C). Historical note in `gsd-review-bridge.md`. Not Applicable; TSG-005/006 still open.
 - **Review governance process contour:** ADR-0024 Review Case intake/disposition/ledger landed; human dispositions recorded for review-11/12 (`actor_id=rager306`). Non-authoritative; no Product/ADR/roadmap promotion.
@@ -113,6 +111,7 @@ falkordb=historical-only
 | M174-M174 | Волна 1: техдолг и процессные разрывы после Review 14 (wave-1 debt closure) | Process/debt closure only: heal_missing fail-closed provenance (R9-08), presence channel edition_ast_at in CLI inspect/replay, tracked-doc honesty sync after D216; no lifecycle promotion, no product readiness. |
 | M175-M175 | P0 канонизация модели Reviews 10-14 после G0 (D216) (docs/ADR canonization) | Docs/ADR canonization only: G0 ADR amendments (D216) verified across adr-0013/0016/0017/0018/0019 + temporal-legal-model glossary, model-crystal re-grounded v2, kb-ontology.yaml G0 vocabulary pinned by YAML-as-data tests; no Rust domain types minted, no lifecycle promotion, not product readiness. |
 | M176-M176 | P1 фронт Reviews 10-14 модели: реестр операций и reference-контракт (E.2.1-E.2.2) (docs/design) | Design-only P1 wave: closed 29-op registry (operation-registry.yaml, [proposed], owner ADR-0017) pinned by include_str tests; ReferenceMention/Binding/Semantics contract aligned with refers_to/cites; honesty sync of living surfaces; no Rust types, no lifecycle promotion, not product readiness. |
+| M177-M177 | P1 хвост Reviews 10-14 модели: pending effects и interval sets (E.2.3-E.2.4) (docs/design) | Design-only P1 wave: pending-effects contract (modifies_pending_effect as DAG edge distinct from OP-P op) 17 pins; suspension/resumption as force interval set reconciling G0 status vocabulary with runtime spine, 16 pins; no Rust types, no lifecycle promotion, not product readiness. |
 
 ## M111 semantic baseline
 
