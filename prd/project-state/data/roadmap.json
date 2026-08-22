@@ -1,6 +1,6 @@
 {
   "schema_version": "law-nexus-project-state-roadmap/v2",
-  "generated_at": "2026-08-21",
+  "generated_at": "2026-08-22T03:49:07Z",
   "non_authoritative": true,
   "source_of_truth": "prd/ARCHITECTURE.md (living truth oracle) and doc/adr/** (decision/lifecycle authority). This file is a non-authoritative cold-reader projection; local .gsd/** is workflow state only.",
   "completed_milestone_groups": [
@@ -405,13 +405,19 @@
       "theme": "Волна 1: техдолг и процессные разрывы после Review 14 (wave-1 debt closure)",
       "status": "complete",
       "boundary": "Process/debt closure only: heal_missing fail-closed provenance (R9-08), presence channel (edition_ast_at) in CLI inspect/replay, tracked-doc honesty sync after D216; no lifecycle promotion, no product readiness."
+    },
+    {
+      "range": "M175-M175",
+      "theme": "P0 canonization of Reviews 10-14 model after G0 (D216) (docs/ADR canonization)",
+      "status": "complete",
+      "boundary": "Docs/ADR canonization only: G0 ADR amendments (D216) verified across adr-0013/0016/0017/0018/0019 + temporal-legal-model glossary, model-crystal re-grounded v2, kb-ontology.yaml G0 vocabulary pinned by YAML-as-data tests; no Rust domain types minted (P2 out of scope), no lifecycle promotion, not product readiness."
     }
   ],
   "current_milestone": {
-    "id": "M174-jm7fi2",
+    "id": "M175-g7k0q4",
     "status": "complete",
-    "title": "Волна 1: техдолг и процессные разрывы после Review 14",
-    "goal": "Close named wave-1 debt: heal_missing fail-closed provenance (R9-08), presence channel (edition_ast_at) in CLI replay, tracked-doc honesty, L0 reviews 9-14 committed. Process/debt closure only; no lifecycle promotion; human G0 disposition was recorded by M175 (D216) with G0 ADR amendments - this milestone only syncs living-document honesty to that fact."
+    "title": "P0 канонизация модели Reviews 10-14 после G0 (D216)",
+    "goal": "Canonize the Reviews 10-14 model after the human G0 disposition (D216): ADR amendments, glossary, kb-ontology.yaml G0 vocabulary, model-crystal v2 re-grounding. Documentation/design scope only; no Rust type minting, no lifecycle promotion."
   },
   "recommended_next": {
     "title": "Remaining P0 canonization follow-ups: kb-ontology.yaml refers_to + gap-register closure triggers",
@@ -533,6 +539,11 @@
       "id": "roadmap-sync-20260821-m174-complete",
       "lifecycle": "proposed",
       "text": "Freshness sync (2026-08-21): M174-jm7fi2 completed in GSD - M174-M174 completed group added and current_milestone.status=complete; M175-g7k0q4 active in GSD (P0 model canonization Reviews 10-14 after D216); roadmap stays on the latest completed milestone per the freshness guard. GSD completion is not product readiness."
+    },
+    {
+      "id": "roadmap-sync-20260822-m175-complete",
+      "lifecycle": "proposed",
+      "text": "Closeout sync (2026-08-22): M175-g7k0q4 completed in GSD (all 8 slices complete, validation pass 2026-08-22); M175-M175 group added and current_milestone=M175 complete per the freshness guard. Closeout wave also re-pinned M161-M174 milestone validations to the current tree (regression battery green: 47/47 crates offline 978p/0f, pytest 689p/0f/4s, governor 64/0, preflight ok, ADR conformance 0 findings). GSD completion is not product readiness."
     }
   ]
 }

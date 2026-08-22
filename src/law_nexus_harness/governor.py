@@ -5382,15 +5382,21 @@ _MODEL_CRYSTAL_EXPECTED_INV = frozenset(f"{i:02d}" for i in range(1, 11))
 
 
 def check_model_crystal_anchors(root: Path) -> list[GovernorFinding]:
-    """Advisory grounding check for the Reviews 10-14 model crystal.
+    """Advisory grounding check for the Reviews 10-14 model crystal (v2).
 
-    The crystal is a documentation-only projection of the immutable L0
-    review-25 file. This check verifies (1) the crystal-declared sha256 of the
-    source still matches, (2) every ``<!-- anchor: review-25 ... -->`` quote
-    still appears verbatim in the source, (3) required crystal sections and
-    the INV-01..INV-10 definition rows exist. All findings are advisory
-    ``warn``: drift is surfaced, never blocked, and nothing here amends an
-    ADR or promotes a lifecycle (ADR-0007 repository-control only).
+    Since v2 (D216) the crystal resolves anchors across the multi-source canon
+    catalogued in ``_MODEL_CRYSTAL_ANCHOR_SOURCES``: historical,
+    reality-boundary, and non-claim anchors stay on the immutable review-25 L0
+    file, while model-definition anchors cite the G0 ADR amendments
+    (adr-0013/0016/0017/0018/0019/0021) and ``prd/temporal-legal-model.md``.
+    This check verifies (1) the crystal-declared sha256 of the review-25 L0
+    source still matches, (2) every ``<!-- anchor: <src> ... "quote" -->``
+    quote still appears verbatim in its mapped catalogued source file, (3)
+    required crystal sections and the INV-01..INV-10 definition rows exist.
+    Unknown sources, absent catalogued files, and quote/digest drift each
+    surface an advisory ``warn``: drift is visible, never silent, never
+    blocking, and nothing here amends an ADR or promotes a lifecycle
+    (ADR-0007 repository-control only).
     """
 
     def _warn(message: str, observed: str, remediation: str) -> GovernorFinding:
@@ -5471,7 +5477,7 @@ def check_model_crystal_anchors(root: Path) -> list[GovernorFinding]:
             _warn(
                 "model crystal anchors reference unknown sources",
                 f"unknown={sorted(unknown_sources)}",
-                "Anchor only to the catalogued source set (review/adr-0013/0016/0017/0018/0019/temporal-model).",
+                "Anchor only to the catalogued source set (review/adr-0013/0016/0017/0018/0019/0021/temporal-model).",
             )
         )
     if not quotes:

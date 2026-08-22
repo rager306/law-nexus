@@ -27,11 +27,13 @@ falkordb=historical-only
 - **Completed retrieval-honesty band:** M161–M164 `[bounded]` (real cosine ranking in memory, semantic-stub and historical-test-debt probes, deterministic CLI vectors); no live corpus or citation-safe answers.
 - **Completed documentation alignment:** D5 + documentation D6 / EA-05 accepted with findings at `94d58ea`; roadmap-front-sync and TL-G01–12 coverage PASS.
 - **Documentation/process assessment:** EA-10 complete — human D150 `accepted-with-findings` after independent EA-09 report `120d44b`; post-D150 assessments 13–18 record bounded repository-control/parser-protocol/glossary/semantic-presentation remediation and remaining gaps without successor acceptance, lifecycle promotion or product unlock. Glossary governance now inventories all crosswalk rows and controls coding terminology structurally through the tracked living-oracle read pointer; it does not close TSG-001 or define product semantics.
-- **Local GSD workflow marker:** M174-jm7fi2 is the latest completed milestone
-  in GSD registry (wave-1 debt closure: heal_missing fail-closed R9-08,
-  presence channel edition_ast_at in CLI inspect/replay, tracked-doc honesty
-  sync after D216); M175-g7k0q4 active — P0 model canonization for Reviews
-  10-14 after G0 (D216). GSD completion is not product readiness.
+- **Local GSD workflow marker:** M175-g7k0q4 is the latest completed milestone
+  in GSD registry (P0 model canonization for Reviews 10-14 after G0 (D216):
+  G0 ADR amendments, temporal-model glossary, kb-ontology.yaml G0 vocabulary,
+  model-crystal v2 re-grounding; docs/ADR canonization only, no Rust type
+  minting, no lifecycle promotion). M174-jm7fi2 closed wave-1 debt (heal_missing
+  fail-closed R9-08, presence channel edition_ast_at in CLI inspect/replay,
+  tracked-doc honesty sync after D216). GSD completion is not product readiness.
 - **GSD dual-truth M167:** **resolved** — M167 complete via authorized skip waivers + validation (D154 option C). Historical note in `gsd-review-bridge.md`. Not Applicable; TSG-005/006 still open.
 - **Review governance process contour:** ADR-0024 Review Case intake/disposition/ledger landed; human dispositions recorded for review-11/12 (`actor_id=rager306`). Non-authoritative; no Product/ADR/roadmap promotion.
 - **Applicability kernel:** `ln-applicability` v0 fail-closed abstention-only under ADR-0023 `[proposed]`, with NormRule IR + pure predicate algebra spines; no Applicable/NotApplicable product claim.
@@ -100,6 +102,7 @@ falkordb=historical-only
 | M169-M170 | Parser corpus grounding and full-text CTV on the real corpus | M169 grounded parser corpus needles (44-FZ temporal AST on real corpus); M170 resolved full article text CTV on real corpus. Corpus-grounding process evidence only; no parser completeness, legal correctness or product readiness claim. |
 | D0-EA04 | Documentation contract and semantic/ADR assessment package | Product/RQ ready for assessment; temporal crosswalk accepted as proposed; ADR-0023 ownership decided `[proposed]`; not EA-09/EA-10 acceptance. |
 | M174-M174 | Волна 1: техдолг и процессные разрывы после Review 14 (wave-1 debt closure) | Process/debt closure only: heal_missing fail-closed provenance (R9-08), presence channel edition_ast_at in CLI inspect/replay, tracked-doc honesty sync after D216; no lifecycle promotion, no product readiness. |
+| M175-M175 | P0 канонизация модели Reviews 10-14 после G0 (D216) (docs/ADR canonization) | Docs/ADR canonization only: G0 ADR amendments (D216) verified across adr-0013/0016/0017/0018/0019 + temporal-legal-model glossary, model-crystal re-grounded v2, kb-ontology.yaml G0 vocabulary pinned by YAML-as-data tests; no Rust domain types minted, no lifecycle promotion, not product readiness. |
 
 ## M111 semantic baseline
 

@@ -3175,6 +3175,7 @@ def _write_crystal_fixture(
     *,
     quote: str = "Snapshot \u2260 commit",
     digest_override: str | None = None,
+    extra_anchor_lines: tuple[str, ...] = (),
 ) -> None:
     crystal = root / "prd" / "architecture" / "model-crystal.md"
     crystal.parent.mkdir(parents=True, exist_ok=True)
@@ -3196,7 +3197,8 @@ def _write_crystal_fixture(
         + "\n"
         + inv_rows
         + "\n"
-        + f'<!-- anchor: review \u00a7A.2 "{quote}" -->\n',
+        + f'<!-- anchor: review \u00a7A.2 "{quote}" -->\n'
+        + "".join(line if line.endswith("\n") else line + "\n" for line in extra_anchor_lines),
         encoding="utf-8",
     )
 
@@ -3230,3 +3232,46 @@ def test_model_crystal_anchors_warn_when_crystal_absent(tmp_path: Path) -> None:
     findings = check_model_crystal_anchors(tmp_path)
     assert findings[0].status == "fail"
     assert findings[0].severity == "warn"
+
+
+def test_model_crystal_anchors_pass_on_v2_multi_source_fixture(tmp_path: Path) -> None:
+    adr = tmp_path / "doc" / "adr" / "0017-component-temporal-versioning.md"
+    adr.parent.mkdir(parents=True)
+    adr.write_text("G0(a): append-only bitemporal ledger of record states.\n", encoding="utf-8")
+    _write_crystal_fixture(
+        tmp_path,
+        extra_anchor_lines=('<!-- anchor: adr-0017 G0(a) "append-only bitemporal ledger of" -->',),
+    )
+
+    findings = check_model_crystal_anchors(tmp_path)
+    assert findings
+    assert all(finding.status == "pass" for finding in findings)
+    assert "across 2 source file(s)" in findings[0].observed
+
+
+def test_model_crystal_anchors_warn_on_unknown_source(tmp_path: Path) -> None:
+    _write_crystal_fixture(
+        tmp_path,
+        extra_anchor_lines=('<!-- anchor: adr-9999 G0 "quote outside the source catalogue" -->',),
+    )
+
+    findings = check_model_crystal_anchors(tmp_path)
+    failed = [finding for finding in findings if finding.status == "fail"]
+    assert len(failed) == 1
+    assert all(finding.severity == "warn" for finding in failed)
+    assert any("unknown sources" in finding.message.lower() for finding in failed)
+
+
+def test_model_crystal_anchors_warn_when_catalogued_adr_absent(tmp_path: Path) -> None:
+    _write_crystal_fixture(
+        tmp_path,
+        extra_anchor_lines=(
+            '<!-- anchor: adr-0017 G0(a) "phrase absent from every catalogued source" -->',
+        ),
+    )
+
+    findings = check_model_crystal_anchors(tmp_path)
+    failed = [finding for finding in findings if finding.status == "fail"]
+    assert len(failed) == 1
+    assert "drifted" in failed[0].message.lower()
+    assert "file absent" in failed[0].observed
