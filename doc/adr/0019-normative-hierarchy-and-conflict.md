@@ -169,6 +169,17 @@ design level only:
   the YAML vocabulary (P0 sync). A reference edge is not `amends` and
   never carries the target's force.
 
+Design-only companion data for this G0 vocabulary lives in
+`prd/architecture/reference-binding-contract.yaml` (E.2.2): per-entity
+required fields, the closed typed non-success sets, strike behavior
+(`on_source` / `on_target` / `repealed_target`) and the claims/non-claims
+above rendered as data, with lifecycle `[proposed]` and
+`authoritative: false`. The YAML mints no Rust enum, is no resolver, and
+closes neither TSG-012 nor the S1 criteria above (ConflictResolver,
+CrossActEdgePort); `cites` never upgrades to authority is pinned there both
+as contract text and by the parser-free pin-test wave in `ln-kb-ontology`
+that embeds the file as data.
+
 ## Non-claims
 
 - No legal correctness of conflict resolution without real conflict corpus.

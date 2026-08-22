@@ -251,7 +251,11 @@ Mention (span + wording in a specific CTV) / Binding (candidate or confirmed
 target + evidence + status; a successful binding is not destroyed by a
 Repealed target) / Semantics modes: IdentityAmbulatory / DesignationLiteral /
 FixedExpression / AsOfSpecifiedDate / EventRelative / **Unclassified
-(default)**.
+(default)**. Per-entity required fields, closed typed non-success sets and
+strike behavior for these three entities live in
+`prd/architecture/reference-binding-contract.yaml` (design-only companion
+data, E.2.2, lifecycle `[proposed]`) — a navigation pointer, not a new anchor
+source.
 
 <!-- anchor: adr-0019 G0 "IdentityAmbulatory" -->
 
