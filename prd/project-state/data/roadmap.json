@@ -1,6 +1,6 @@
 {
   "schema_version": "law-nexus-project-state-roadmap/v2",
-  "generated_at": "2026-08-22T03:49:07Z",
+  "generated_at": "2026-08-22T09:07:17Z",
   "non_authoritative": true,
   "source_of_truth": "prd/ARCHITECTURE.md (living truth oracle) and doc/adr/** (decision/lifecycle authority). This file is a non-authoritative cold-reader projection; local .gsd/** is workflow state only.",
   "completed_milestone_groups": [
@@ -420,11 +420,11 @@
     "goal": "Canonize the Reviews 10-14 model after the human G0 disposition (D216): ADR amendments, glossary, kb-ontology.yaml G0 vocabulary, model-crystal v2 re-grounding. Documentation/design scope only; no Rust type minting, no lifecycle promotion."
   },
   "recommended_next": {
-    "title": "Remaining P0 canonization follow-ups: kb-ontology.yaml refers_to + gap-register closure triggers",
+    "title": "P1 design follow-ups: review-25 E.2.3–E.2.7 remain after design-only E.2.1–E.2.2 (M176 active)",
     "priority": 1,
-    "why": "Human G0 disposition is recorded (D216): G0 ADR amendments/notes landed (adr-0013/0016/0017/0018/0019 + prd/temporal-legal-model.md) and model-crystal is re-grounded v2; the review-25 compiler model stays [proposed] direction, evidence-gated until runtime proof.",
+    "why": "P0 (review-25 E.1) is closed by M175 (D216): G0 ADR amendments/notes, temporal-legal-model glossary and model-crystal v2 re-grounding landed; P1 E.2.1–E.2.2 landed design-only as M176-ywawgy S01/S02 YAML contracts; the review-25 compiler model stays [proposed] direction, evidence-gated until runtime proof — design docs are not runtime and not a resolver.",
     "plan_reference": "doc/review/review-25-08-2026.md (Part E) + prd/architecture/model-crystal.md",
-    "slices": "Landed after D216: ADR-0017 amendment, ADR-0018/0016 amendments, ADR-0013/0019/0021/0009 notes, temporal-legal-model glossary + TQ-05 design resolution + vacatio golden case (TL-GC19), model-crystal v2 re-grounding. Remaining thin P0 slices per review-25 E.1: kb-ontology.yaml refers_to, gap-register closure triggers.",
+    "slices": "Landed design-only (M176-ywawgy S01/S02): prd/architecture/operation-registry.yaml (E.2.1) and prd/architecture/reference-binding-contract.yaml (E.2.2). Remaining P1 per review-25 Part E: E.2.3–E.2.7; P2/resolver stay gated behind parser G2 (no runtime, no resolver).",
     "product_next": "Product front stays evidence-gated: parser G2 readiness decision first if needed; else L2 CTV TDD; applicability stays abstention-only under ADR-0023 [proposed]; TEI/RuVector remains infrastructure-evidence gated.",
     "non_validation": "GSD completion of M171-M174 is process/registry truth only; not product readiness, legal correctness, ontology/applicability runtime validation, lifecycle promotion of ADRs, or release proof."
   },
@@ -544,6 +544,11 @@
       "id": "roadmap-sync-20260822-m175-complete",
       "lifecycle": "proposed",
       "text": "Closeout sync (2026-08-22): M175-g7k0q4 completed in GSD (all 8 slices complete, validation pass 2026-08-22); M175-M175 group added and current_milestone=M175 complete per the freshness guard. Closeout wave also re-pinned M161-M174 milestone validations to the current tree (regression battery green: 47/47 crates offline 978p/0f, pytest 689p/0f/4s, governor 64/0, preflight ok, ADR conformance 0 findings). GSD completion is not product readiness."
+    },
+    {
+      "id": "roadmap-sync-20260822-m176-p1-front",
+      "lifecycle": "proposed",
+      "text": "P1 design-front sync (2026-08-22): M176-ywawgy S01/S02 landed review-25 E.2.1–E.2.2 as design-only YAML contracts (prd/architecture/operation-registry.yaml, prd/architecture/reference-binding-contract.yaml); the P0 remaining-marker was removed from living surfaces (P0 closed by M175 after D216); remaining P1 is E.2.3–E.2.7 and P2/resolver stay gated behind parser G2. M176 is still active in GSD, so the completed front stays M175-g7k0q4 complete. Design-only docs: no runtime, no resolver, not product readiness."
     }
   ]
 }

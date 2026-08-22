@@ -2,6 +2,30 @@
 
 ## [Unreleased]
 
+### M176-ywawgy Docs (operation-registry, reference-binding-contract, crystal/governor remediation v2, honesty Design front)
+
+### Docs
+- Design-only YAML contracts for review-25 Part E reference binding (no
+  Rust, no runtime, no resolver, no lifecycle promotion): E.2.1
+  `prd/architecture/operation-registry.yaml` (S01) and E.2.2
+  `prd/architecture/reference-binding-contract.yaml` (S02) — [proposed]
+  design vocabulary pinned by ln-kb-ontology YAML-as-data tests.
+- Governor `model-crystal-anchors` empty-quote remediation aligned with the
+  catalogued-sources contract (verbatim quote from a catalogued source:
+  review-25 L0 or G0 ADR amendments / temporal-model) and pinned by
+  `test_model_crystal_anchors_empty_quote_remediation_names_catalogued_sources`;
+  no new governor check_id.
+- Honesty Design-front sync: living roadmap markdown/JSON and
+  `prd/ARCHITECTURE.md` now record P0 (review-25 E.1) as closed by M175 and
+  P1 E.2.1–E.2.2 as design-only landed; remaining E.2.3–E.2.7 and P2/resolver
+  stay gated behind parser G2 (P1 is not fully closed).
+
+### M175-g7k0q4 (docs/ADR P0 canonization)
+- Docs/ADR-only closeout of review-25 P0 after D216: G0 ADR
+  amendments/notes, temporal-legal-model glossary, kb-ontology.yaml
+  `refers_to` vocabulary and model-crystal v2 re-grounding; no Rust type
+  minting, no lifecycle promotion.
+
 ### M174-jm7fi2 — Волна 1: техдолг и процессные разрывы
 
 ### Fixed
