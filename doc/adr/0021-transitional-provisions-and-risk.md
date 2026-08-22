@@ -110,6 +110,11 @@ this ADR. `EventRelative` reference binding and the `ForRelationsAfter`
 selector mode remain the docking points between this overlay and the
 ADR-0017 G0(c) causal DAG; this ADR carries a pointer only.
 
+`Transitional` is likewise not a force interval status. The E.2.4 force
+interval-set entities live in `prd/architecture/force-interval-set-contract.yaml`
+(ADR-0018 G0(b)); none of that contract migrates to this ADR — this is a
+pointer only.
+
 ## Non-claims
 
 - No legal correctness; risk is advisory, not a determination.

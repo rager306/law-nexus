@@ -419,6 +419,12 @@ postconditions and typed-failure subsets live in
 tests (D222); it mints no Rust enum and extends no `apply_industrial_op`
 runtime surface.
 
+The E.2.4 force interval-set projection and its `ForceInterval` /
+`ForceIntervalSet` entities are tracked as design-only data in
+`prd/architecture/force-interval-set-contract.yaml` (ADR-0018 G0(b)).
+This ADR owns the OP-F names and their registry metadata, not the interval
+algebra or written-status interval vocabulary carried by that contract.
+
 ## Non-claims
 
 - `HierarchyMarker` / `map_hierarchy_marker` is a **fail-closed candidate lift**:

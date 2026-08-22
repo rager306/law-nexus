@@ -118,6 +118,16 @@ multiple disjoint `InForce` intervals for the same component; any single
 interval is a projection of that set. Static `effective_from`/`effective_to`
 fields remain projections (ADR-0017 §2), never source truth.
 
+The E.2.4 `ForceInterval` / `ForceIntervalSet` entity contract for this
+interval-set model is tracked as design-only data in
+`prd/architecture/force-interval-set-contract.yaml` (lifecycle `[proposed]`;
+no runtime component parses it and no Rust type is minted). There,
+suspension and resumption are disjoint `InForce` intervals of one component:
+`Suspend` is the OP-F operation while `Suspended` is the written interval
+status. OP-F names and their preconditions remain solely in
+`prd/architecture/operation-registry.yaml` (ADR-0017 G0(g)) and are not
+duplicated by that contract.
+
 ### G0(c) Fork F13-T: `Transitional` leaves the status enum
 
 Review 14 recommends removing `Transitional` from the force enum: being

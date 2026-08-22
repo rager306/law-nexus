@@ -149,6 +149,13 @@ Per-operation design data (preconditions / postconditions / typed failures):
 `prd/architecture/operation-registry.yaml` — design-only YAML-as-data (D222),
 lifecycle `[proposed]`, `authoritative: false`.
 
+Force interval-set entity contract (E.2.4): `ForceInterval` /
+`ForceIntervalSet` — design-only YAML-as-data in
+`prd/architecture/force-interval-set-contract.yaml` (ADR-0018 G0(b),
+lifecycle `[proposed]`). OP-F names stay registry-only; AXIS-5 ForceStatus
+remains the interval-set axis; MC-SEED no-auto-InForce, MC-REPEAL four-axis,
+and INV-04 excluded-future boundaries are unchanged.
+
 ### MC-RES. Typed apply results (closed set)
 
 `Applied | TargetNotFound | AmbiguousTarget | PreconditionMismatch |
