@@ -2,6 +2,23 @@
 
 ## [Unreleased]
 
+### M177-q015bu Docs (pending-effects-contract, force-interval-set-contract, Remaining-P1 honesty sync)
+
+### Docs
+- Design-only wave continues (review-25 Part E, D222 include_str pin tests;
+  no Rust types, no runtime, no resolver, no lifecycle promotion): E.2.3
+  prospective/pending effects `prd/architecture/pending-effects-contract.yaml`
+  (S01) and E.2.4 suspension/resumption interval set
+  `prd/architecture/force-interval-set-contract.yaml` (S02) — `[proposed]`
+  design data.
+- Honesty sync: living roadmap markdown/JSON and `prd/ARCHITECTURE.md`
+  DESIGN FRONT name P1 E.2.1–E.2.4 design-only landed (M176 S01/S02 +
+  M177 S01/S02) and Remaining P1 = E.2.5–E.2.7 (scope-aware completeness,
+  Merkle roots, assertion lifecycle); P1 is not fully closed; P2/resolver
+  stay gated behind parser G2.
+- No new governor check_id (D230): governor strengthening stays a
+  session-learning retrospective proposal.
+
 ### M176-ywawgy Docs (operation-registry, reference-binding-contract, crystal/governor remediation v2, honesty Design front)
 
 ### Docs

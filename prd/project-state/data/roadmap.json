@@ -1,6 +1,6 @@
 {
   "schema_version": "law-nexus-project-state-roadmap/v2",
-  "generated_at": "2026-08-22T10:20:45Z",
+  "generated_at": "2026-08-22T18:14:49Z",
   "non_authoritative": true,
   "source_of_truth": "prd/ARCHITECTURE.md (living truth oracle) and doc/adr/** (decision/lifecycle authority). This file is a non-authoritative cold-reader projection; local .gsd/** is workflow state only.",
   "completed_milestone_groups": [
@@ -426,11 +426,11 @@
     "goal": "Close review-25 E.2.1 (closed operation registry with typed failures and preconditions) and E.2.2 (ReferenceMention/Binding/Semantics contract) as thin vertical design-only slices with YAML-as-data pin tests, then sync living-surface honesty and strengthen Governor. No Rust type minting (P2 boundary), no lifecycle promotion."
   },
   "recommended_next": {
-    "title": "P1 design follow-ups: review-25 E.2.3–E.2.7 remain after design-only E.2.1–E.2.2 (M176 active)",
+    "title": "P1 design follow-ups: review-25 E.2.5–E.2.7 remain after design-only E.2.1–E.2.4 (M177 active)",
     "priority": 1,
-    "why": "P0 (review-25 E.1) is closed by M175 (D216): G0 ADR amendments/notes, temporal-legal-model glossary and model-crystal v2 re-grounding landed; P1 E.2.1–E.2.2 landed design-only as M176-ywawgy S01/S02 YAML contracts; the review-25 compiler model stays [proposed] direction, evidence-gated until runtime proof — design docs are not runtime and not a resolver.",
+    "why": "P0 (review-25 E.1) is closed by M175 (D216): G0 ADR amendments/notes, temporal-legal-model glossary and model-crystal v2 re-grounding landed; P1 E.2.1–E.2.2 landed design-only as M176-ywawgy S01/S02 and P1 E.2.3–E.2.4 as M177-q015bu S01/S02 YAML contracts (M176 complete, M177 active); the review-25 compiler model stays [proposed] direction, evidence-gated until runtime proof — design docs are not runtime and not a resolver.",
     "plan_reference": "doc/review/review-25-08-2026.md (Part E) + prd/architecture/model-crystal.md",
-    "slices": "Landed design-only (M176-ywawgy S01/S02): prd/architecture/operation-registry.yaml (E.2.1) and prd/architecture/reference-binding-contract.yaml (E.2.2). Remaining P1 per review-25 Part E: E.2.3–E.2.7; P2/resolver stay gated behind parser G2 (no runtime, no resolver).",
+    "slices": "Landed design-only (M176-ywawgy S01/S02 + M177-q015bu S01/S02): prd/architecture/operation-registry.yaml (E.2.1), prd/architecture/reference-binding-contract.yaml (E.2.2), prd/architecture/pending-effects-contract.yaml (E.2.3) and prd/architecture/force-interval-set-contract.yaml (E.2.4). Remaining P1 per review-25 Part E: E.2.5–E.2.7; P2/resolver stay gated behind parser G2 (no runtime, no resolver).",
     "product_next": "Product front stays evidence-gated: parser G2 readiness decision first if needed; else L2 CTV TDD; applicability stays abstention-only under ADR-0023 [proposed]; TEI/RuVector remains infrastructure-evidence gated.",
     "non_validation": "GSD completion of M171-M174 is process/registry truth only; not product readiness, legal correctness, ontology/applicability runtime validation, lifecycle promotion of ADRs, or release proof."
   },
@@ -560,6 +560,11 @@
       "id": "roadmap-sync-20260822-m176-complete",
       "lifecycle": "proposed",
       "text": "Closeout sync (2026-08-22): M176-ywawgy completed in GSD (3 slices: ops registry, reference contract, honesty/governor sync; validation pass round 2 after persisting the R071 external prior-art remediation as a DB RESEARCH artifact). Remaining P1 per review-25 E.2: prospective versions/pending effects (E.2.3), suspension/resumption interval set (E.2.4), scope-aware completeness (E.2.5), Merkle roots (E.2.6), assertion lifecycle (E.2.7). GSD completion is not product readiness."
+    },
+    {
+      "id": "roadmap-sync-20260822-m177-p1-front",
+      "lifecycle": "proposed",
+      "text": "P1 design-front sync (2026-08-22): M177-q015bu S01/S02 landed review-25 E.2.3–E.2.4 as design-only YAML contracts (prd/architecture/pending-effects-contract.yaml, prd/architecture/force-interval-set-contract.yaml; D222 pins by include_str tests); remaining P1 is E.2.5–E.2.7 and P2/resolver stay gated behind parser G2. M176-ywawgy stays the latest completed milestone while M177-q015bu is active. Design-only docs: no runtime, no resolver, not product readiness."
     }
   ]
 }
