@@ -1,0 +1,178 @@
+# law-nexus pending effects contract - design-only data (D222 / D226).
+#
+# Names source: review-25 (immutable L0) E.2.3, canonicalized in ADR-0017
+# G0(b)/G0(c)/G0(g) (disposition D216) and projected names-only in
+# prd/architecture/model-crystal.md (MC-DAG / MC-SEL / MC-CHECKOUT).
+# Operation names and effect selector modes are copied character-identical
+# from prd/architecture/operation-registry.yaml (effect_selector_modes and
+# families.OP-P keys); per-operation preconditions, postconditions and typed
+# failure subsets live there and are never duplicated here. This file adds
+# the entity/FSM layer the registry does not carry: pending-effect states,
+# transitions, the modifies_pending_effect DAG edge and the checkout
+# exclusion rule. It exists so pin tests can embed it as data; no runtime
+# component parses it and no Rust types are generated from it.
+
+schema_version: law-nexus-pending-effects-contract/v1
+lifecycle: "[proposed]"
+authoritative: false
+owner_adr: ADR-0017
+force_overlay_adr: ADR-0018
+related_adr: [ADR-0021]
+op_source: prd/architecture/operation-registry.yaml#families.OP-P
+boundary: >
+  Design-only PendingEffect/ProspectiveVersion contract (review-25 E.2.3 /
+  ADR-0017 G0). Not a Rust enum, not a pending-effect compiler, not the OP-F
+  force interval set (ADR-0018), not a TransitionConstraint (ADR-0021
+  AXIS-6), not a Review Case pending state. Pin tests embed this file as
+  data.
+
+# Closed sets - character-identical to canon; this file never invents an
+# eighth selector mode, a fifth state, a sixth DAG edge or a new typed token.
+selector_modes:  # exactly 7, registry order preserved; projection of the five-clock roles (ADR-0009), not a sixth clock
+  - At
+  - AfterPublication
+  - OnEvent
+  - OnCondition
+  - ForRelationsAfter
+  - RetroactiveTo
+  - Unknown
+
+op_p_names: [ScheduleEffect, ModifyPendingEffect, CancelPendingEffect]  # exactly 3, character-identical to the families.OP-P keys
+
+states:  # exactly 4; no `modified` state - ModifyPendingEffect is the scheduled -> scheduled transition, not a state
+  - scheduled
+  - cancelled
+  - applied
+  - unknown
+
+dag_edges:  # exactly 5, G0(c) order preserved
+  - depends_on
+  - targets_base_version
+  - supersedes
+  - cancels
+  - modifies_pending_effect
+
+typed_non_success:  # exactly 8 (MC-RES minus Applied); Modify/Cancel on an applied or cancelled pending effect is PreconditionMismatch, never a new AlreadyApplied token
+  - TargetNotFound
+  - AmbiguousTarget
+  - PreconditionMismatch
+  - BaseVersionMismatch
+  - OrderingConflict
+  - UnknownEffect
+  - UnsupportedOperation
+  - IncompleteSource
+
+# Two entities; each PascalCase key appears exactly once in this file.
+entities:
+  PendingEffect:
+    definition: >
+      A scheduled-but-not-yet-applied authorized effect: the bookkeeping unit
+      between ScheduleEffect and selector satisfaction. Design data, never a
+      runtime object.
+    required_fields:
+      pending_id: >
+        stable id of this pending registration; never a ComponentId and
+        never the authorized effect's own identity.
+      authorized_effect: >
+        the operation plus target that has been authorized and scheduled; an
+        effect exists only via its authorizing operation (G0(b)).
+      effect_selector: >
+        exactly one of selector_modes; a projection of the five-clock roles
+        (ADR-0009), never a sixth clock.
+      expected_base_version: >
+        the base version the authorizing instrument parse expects; a
+        mismatch is BaseVersionMismatch, never a silent rebase.
+      state: >
+        exactly one of states.
+      evidence_span: >
+        span of the instrument wording that authorizes the scheduled effect.
+    modification_provenance: optional  # empty at schedule time; populated only by later ModifyPendingEffect applications
+    typed_non_success: [TargetNotFound, AmbiguousTarget, PreconditionMismatch, BaseVersionMismatch, OrderingConflict, UnknownEffect, UnsupportedOperation, IncompleteSource]
+    runtime_today: none
+
+  ProspectiveVersion:
+    definition: >
+      The post-schedule, pre-application view of one component: which text
+      version and force status would hold if the pending effects fire. A
+      checkout projection target, not a stored edition.
+    required_fields:
+      component_id: >
+        opaque ComponentId of the component this prospective view is about
+        (ADR-0016 identity floor).
+      text_version: >
+        CTV the prospective view is grounded in (AXIS-2); text presence
+        never implies InForce (MC-SEED).
+      force_status: >
+        AXIS-5 force status of the prospective view; seeded only from
+        force_status_seed, never automatic InForce.
+      as_of: >
+        the legal_as_of point this prospective view is computed for.
+      pending_effect_ids: >
+        zero or more pending_ids whose selectors are unsatisfied at as_of;
+        0..n, the list order carries no meaning.
+    force_status_seed: [NotYetInForce, Unknown]
+    typed_non_success: [IncompleteSource, UnknownEffect]
+    runtime_today: none
+    notes: >
+      188-ФЗ / 44-ФЗ vacatio (shape only: 44-ФЗ adopted 05.04.2013, the
+      188-ФЗ amendment effective 01.01.2014 - not fixtures) may coincide
+      with pending_effect_ids on the same component; the sets coincide,
+      they are not identical: vacatio is an AXIS-2 x AXIS-5 interval fact,
+      selector satisfaction is a checkout fold over the causal DAG.
+
+# FSM - exactly 4 transitions; selector_satisfied is the checkout fold, never an OP-P operation.
+transitions:
+  - trigger: ScheduleEffect
+    from: none
+    to: scheduled
+  - trigger: ModifyPendingEffect
+    from: scheduled
+    to: scheduled
+  - trigger: CancelPendingEffect
+    from: scheduled
+    to: cancelled
+  - trigger: selector_satisfied
+    from: scheduled
+    to: applied
+
+# The load-bearing DAG edge disambiguation (as strike is for the reference-binding contract).
+modifies_pending_effect:
+  kind: dag_edge
+  distinct_from_op: ModifyPendingEffect
+  target_state: scheduled
+  never_targets: [applied, cancelled]
+  notes: >
+    cancels is a LegalEffect -> LegalEffect DAG edge; CancelPendingEffect is
+    the OP-P operation driving scheduled -> cancelled. supersedes speaks
+    about already authorized or applied effects; a change to an effect still
+    pending travels through this edge, never through supersedes and never
+    through a `modified` state.
+
+# Checkout exclusion rule (MC-CHECKOUT / INV-04).
+checkout:
+  excluded_future: scheduled_and_selector_unsatisfied
+  applied_effects: >
+    selector satisfied for legal_as_of AND recorded_at <= known_as_of AND
+    assertion status in {Validated, AuthoritativeInternal}.
+  cancelled_appear_in_neither: true
+  invariant: INV-04
+  notes: >
+    Future effects never affect a historical checkout. excluded_future is
+    not Suspended (an AXIS-5 interval state) and not NotYetInForce (a seed
+    force status): it is a selector-satisfaction fact of the pending
+    bookkeeping.
+
+non_claims:  # mandatory phrases; pinned by the pin-test wave (T02 embeds this file via include_str!)
+  - No Rust types are minted from this file (D216 / D098).
+  - No closed_vocabularies row exists for this contract; kb-ontology.yaml keeps only the token lists.
+  - ProspectiveVersion is not PendingEffect; one is a component view, the other an effect registration.
+  - modifies_pending_effect is not ModifyPendingEffect; the first is a DAG edge, the second an OP-P operation.
+  - cancels is not CancelPendingEffect; the first is a LegalEffect-to-LegalEffect edge, the second an OP-P operation.
+  - excluded_future is not Suspended and not NotYetInForce.
+  - ScheduleEffect is not Commence; pending bookkeeping is not an OP-F force interval operation.
+  - Not the OP-F interval set (E.2.4; the ADR-0018 force overlay owns force intervals).
+  - Not a TransitionConstraint and not AXIS-6 (ADR-0021 owns transitional relations).
+  - EffectSelector is not a sixth clock (ADR-0009 five-clock roles).
+  - Not a Review Case set_pending or DisposeReview state; review case lifecycle is a different contour.
+  - Not a resolver and not the E.3 compiler.
+  - OP-P preconditions live in operation-registry.yaml, not duplicated here.
