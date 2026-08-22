@@ -103,6 +103,13 @@ Two deltas from the accepted compiler model — design level only:
   target fixes "as of event E" composes with `TransitionConstraint`
   resolution; both stay non-authoritative overlays over ledger facts.
 
+Pending-effect bookkeeping — scheduled-but-not-yet-applied effects tracked
+as design-only data in `prd/architecture/pending-effects-contract.yaml`
+(ADR-0017 E.2.3) — is not a `TransitionConstraint` and does not migrate to
+this ADR. `EventRelative` reference binding and the `ForRelationsAfter`
+selector mode remain the docking points between this overlay and the
+ADR-0017 G0(c) causal DAG; this ADR carries a pointer only.
+
 ## Non-claims
 
 - No legal correctness; risk is advisory, not a determination.

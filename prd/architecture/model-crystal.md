@@ -179,6 +179,13 @@ flowchart TD
 Linear order is only a proven projection of the DAG; never order by act
 number.
 
+Pending-effects design data (E.2.3 entities, FSM, `modifies_pending_effect`
+edge disambiguated from the OP-P operation):
+`prd/architecture/pending-effects-contract.yaml` — design-only YAML-as-data
+(D222/D226), lifecycle `[proposed]`, owner ADR-0017. The OP-P operation
+names stay in the registry above; checkout exclusion of unsatisfied
+scheduled effects is the INV-04 fold.
+
 ### MC-SEED. Seed = four different events
 
 <!-- anchor: adr-0018 G0(a) "EntryIntoForceEvent" -->

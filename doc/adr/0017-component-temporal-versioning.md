@@ -350,6 +350,16 @@ the DAG; non-commuting underdetermined effects yield `OrderingConflict`,
 never an ordering by act number. This upgrades the §4 fail-closed resolver
 contract: compilation is deterministic over the DAG and typed on conflict.
 
+The E.2.3 pending-effects contour of this DAG contract is tracked as
+design-only data: the `PendingEffect` / `ProspectiveVersion` entities, their
+closed state and transition sets, and the checkout exclusion rule live in
+`prd/architecture/pending-effects-contract.yaml` (lifecycle `[proposed]`;
+no runtime component parses it — pin tests embed it as data, D222). There,
+as here, `modifies_pending_effect` remains one of the five G0(c) DAG edges,
+never an OP-P operation, and the OP-P names with their preconditions stay
+solely in `prd/architecture/operation-registry.yaml` (G0(g)); the contract
+file adds no new DAG edge, selector mode or typed token.
+
 ### G0(d) CST (green) + AST (red) projections, three hashes
 
 Accepted assertions project deterministically into two trees: a **lossless

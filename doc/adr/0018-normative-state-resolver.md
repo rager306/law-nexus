@@ -99,6 +99,15 @@ AdoptionEvent / OfficialPublicationEvent / EntryIntoForceEvent(s) /
 ApplicabilityConstraint are four different events; their ledger home is
 the ADR-0017 assertion ledger).
 
+Prospective versions — the post-schedule, pre-application view of one
+component's text and force status while that component is `NotYetInForce`
+or `Unknown` during vacatio — are contracted as design-only data in
+`prd/architecture/pending-effects-contract.yaml` (ADR-0017 E.2.3, lifecycle
+`[proposed]`). A prospective version is not a pending effect and not a force
+interval set: suspension/resumption intervals are E.2.4 (M177 S02), not that
+file. The contract mints no Rust status enum — `NotYetInForce` stays a
+`[proposed]` design value here — and no lifecycle promotion is implied.
+
 ### G0(b) Force is an event-derived interval **set**
 
 `resolve_force_status_at` returns one status at `t`, but the underlying
