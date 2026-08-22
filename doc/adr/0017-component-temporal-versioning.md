@@ -402,6 +402,13 @@ UnsupportedOperation | IncompleteSource`. This extends §1a industrial ops and
 §3 event typing; the bounded runtime today covers only the structural spine
 (`apply_industrial_op`) and the `resolve_ctv` prototype.
 
+The registry exists as tracked design data: per-operation preconditions,
+postconditions and typed-failure subsets live in
+`prd/architecture/operation-registry.yaml` (design-only, lifecycle
+`[proposed]`, `authoritative: false`). The YAML is embedded as data by pin
+tests (D222); it mints no Rust enum and extends no `apply_industrial_op`
+runtime surface.
+
 ## Non-claims
 
 - `HierarchyMarker` / `map_hierarchy_marker` is a **fail-closed candidate lift**:

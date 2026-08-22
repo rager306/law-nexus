@@ -145,6 +145,9 @@ non-success.
 
 Every operation carries: target selector, expected base version,
 precondition, payload, effect selector, scope, postcondition, evidence span.
+Per-operation design data (preconditions / postconditions / typed failures):
+`prd/architecture/operation-registry.yaml` — design-only YAML-as-data (D222),
+lifecycle `[proposed]`, `authoritative: false`.
 
 ### MC-RES. Typed apply results (closed set)
 
