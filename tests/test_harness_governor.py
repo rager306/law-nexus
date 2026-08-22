@@ -3176,6 +3176,7 @@ def _write_crystal_fixture(
     quote: str = "Snapshot \u2260 commit",
     digest_override: str | None = None,
     extra_anchor_lines: tuple[str, ...] = (),
+    include_anchor: bool = True,
 ) -> None:
     crystal = root / "prd" / "architecture" / "model-crystal.md"
     crystal.parent.mkdir(parents=True, exist_ok=True)
@@ -3189,6 +3190,9 @@ def _write_crystal_fixture(
         for name in ("Layer 0", "Layer 1", "Reality boundary", "Non-claims", "Grounding")
     )
     inv_rows = "\n".join(f"| INV-{i:02d} | invariant row |" for i in range(1, 11))
+    anchor_lines: tuple[str, ...] = (
+        (f'<!-- anchor: review \u00a7A.2 "{quote}" -->\n',) if include_anchor else ()
+    )
     crystal.write_text(
         "Source: sha256:"
         + digest
@@ -3197,8 +3201,10 @@ def _write_crystal_fixture(
         + "\n"
         + inv_rows
         + "\n"
-        + f'<!-- anchor: review \u00a7A.2 "{quote}" -->\n'
-        + "".join(line if line.endswith("\n") else line + "\n" for line in extra_anchor_lines),
+        + "".join(
+            line if line.endswith("\n") else line + "\n"
+            for line in anchor_lines + extra_anchor_lines
+        ),
         encoding="utf-8",
     )
 
@@ -3275,3 +3281,22 @@ def test_model_crystal_anchors_warn_when_catalogued_adr_absent(tmp_path: Path) -
     assert len(failed) == 1
     assert "drifted" in failed[0].message.lower()
     assert "file absent" in failed[0].observed
+
+
+def test_model_crystal_anchors_empty_quote_remediation_names_catalogued_sources(
+    tmp_path: Path,
+) -> None:
+    _write_crystal_fixture(tmp_path, include_anchor=False)
+
+    findings = check_model_crystal_anchors(tmp_path)
+    failed = [finding for finding in findings if finding.status == "fail"]
+    assert len(failed) == 1
+    assert failed[0].severity == "warn"
+    assert "no anchor quotes" in failed[0].message.lower()
+    remediation = failed[0].remediation
+    # v2 pin (D216): review-25 stays a legitimate L0 source, but the empty-quote
+    # remediation must name the catalogued source set instead of presenting
+    # review-25 as the exclusive grounding source.
+    assert "catalogued source" in remediation
+    assert "G0 ADR amendments" in remediation
+    assert "from review-25 (grounding contract)" not in remediation

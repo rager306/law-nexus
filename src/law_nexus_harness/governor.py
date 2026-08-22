@@ -5485,7 +5485,8 @@ def check_model_crystal_anchors(root: Path) -> list[GovernorFinding]:
             _warn(
                 "model crystal has no anchor quotes",
                 "anchor markers=0",
-                "Anchor each section with a verbatim quote from review-25 (grounding contract).",
+                "Anchor each section with a verbatim quote from a catalogued source "
+                "(review-25 L0 or G0 ADR amendments / temporal-model).",
             )
         )
     elif missing_quotes:
