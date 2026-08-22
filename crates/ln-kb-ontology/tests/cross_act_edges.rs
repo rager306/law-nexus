@@ -106,3 +106,18 @@ fn semantics_mode_token_is_not_an_edge_kind() {
     let result = try_cross_act_edge("identity_ambulatory", &cc("cc:a"), &cc("cc:b"), prov());
     assert!(matches!(result, Err(CrossActEdgeError::UnknownKind(_))));
 }
+
+#[test]
+fn authority_is_not_an_edge_kind() {
+    // review-25 D.1 / ADR-0019 S0->S1 test requirement: "cites does not
+    // upgrade to authority" — neither `authority` nor `citation_authority`
+    // is minted as a cross_act_edge kind; both stay UnknownKind at the port
+    // surface (mirror of semantics_mode_token_is_not_an_edge_kind).
+    for kind in ["authority", "citation_authority"] {
+        let result = try_cross_act_edge(kind, &cc("cc:a"), &cc("cc:b"), prov());
+        assert!(
+            matches!(result, Err(CrossActEdgeError::UnknownKind(_))),
+            "{kind} must stay outside cross_act_edge_kinds"
+        );
+    }
+}
