@@ -246,6 +246,9 @@ INV-05 append-only correction invariant live in
 data, E.2.7, lifecycle `[proposed]`) — a navigation pointer under MC-LEDGER,
 not a new anchor source.
 
+The ledger evidence span (`evidence_span`) is the P0-7 EvidenceAnchor /
+EvidenceBundle contract at `prd/architecture/evidence-anchor-contract.yaml`.
+
 ### MC-CHECKOUT. Bitemporal checkout
 
 <!-- anchor: adr-0017 G0(d) "checkout(work, legal_as_of, known_as_of" -->

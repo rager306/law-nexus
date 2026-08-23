@@ -24,7 +24,7 @@ lifecycle: "[proposed]"
 authoritative: false
 owner_adr: ADR-0017
 related_adr: [ADR-0008, ADR-0010]
-ledger_source: ADR-0017 G0(a) - append-only bitemporal ledger of LegalEventAssertion records (evidence span, recorded_at, asserted_by, status)
+ledger_source: ADR-0017 G0(a) - append-only bitemporal ledger of LegalEventAssertion records (evidence span, recorded_at, asserted_by, status); evidence_span cites prd/architecture/evidence-anchor-contract.yaml (EvidenceAnchor / EvidenceBundle) by name, never copied into this file
 emit_source: ADR-0013 G0 note - parser output enters the ledger only as Proposed candidates
 boundary: >
   Design-only LegalEventAssertion / AssertionTransition contract
