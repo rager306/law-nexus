@@ -27,30 +27,16 @@ falkordb=historical-only
 - **Completed retrieval-honesty band:** M161–M164 `[bounded]` (real cosine ranking in memory, semantic-stub and historical-test-debt probes, deterministic CLI vectors); no live corpus or citation-safe answers.
 - **Completed documentation alignment:** D5 + documentation D6 / EA-05 accepted with findings at `94d58ea`; roadmap-front-sync and TL-G01–12 coverage PASS.
 - **Documentation/process assessment:** EA-10 complete — human D150 `accepted-with-findings` after independent EA-09 report `120d44b`; post-D150 assessments 13–18 record bounded repository-control/parser-protocol/glossary/semantic-presentation remediation and remaining gaps without successor acceptance, lifecycle promotion or product unlock. Glossary governance now inventories all crosswalk rows and controls coding terminology structurally through the tracked living-oracle read pointer; it does not close TSG-001 or define product semantics.
-- **Local GSD workflow marker:** M178-9xpo0n is the latest completed milestone
-  in GSD registry (P1 completion: scope-aware completeness + Merkle roots of
-  materialized sections + assertion lifecycle over ADR-0008/0010, design-only
-  with 16+16+17 include_str pins; no Rust type minting, no lifecycle
-  promotion). With M176/M177 this closes the entire review-25 E.2 P1
-  documentation front (E.2.1-E.2.7, ~49 pin tests green); M175-g7k0q4 closed
-  P0 canonization after G0 (D216). Next fork = G2 golden corpus vs P2 Rust
-  resolver, both human-gated. GSD completion is not product readiness.
-- **Review-26 P0 wave (active M179-vsd36f):** P0-1/P0-5b/P0-2/P0-7 landed
-  design-only in M179 S01–S03: living name `LegislativeEffect`
-  (ADR-0017/glossary; `LegalEffect`/`legal_act_effect` stay separate G0
-  wording), MC-CHECKOUT `disposition_as_of`/`causal_close`/
-  `projection_protocol_version` + INV-11, and
-  `prd/architecture/evidence-anchor-contract.yaml` (EvidenceAnchor/
-  EvidenceBundle; the crosswalk keeps a legacy alias row pointing at the
-  contract, not a public type);
-  S04 adds the `semantic-name-collision` advisory governor check (D246) and
-  this honesty sync. Remaining review-26 leftovers = the next human-gated
-  candidate (alongside the G2 vs P2 product fork): P0-3 DispositionEvent,
-  P0-4 ActivationTrigger/ApplicabilityPredicate, P0-5a Superseded (ADR-0018
-  Decision table still shows the deprecated-in-design 6-set — known lag,
-  table not rewritten here), P0-6 INV-09a/b/c, P0-8 CoverageCertificate,
-  S3/S4/S7 renames, P1-8 full semantic governor (§11); TSG-001 stays active.
-  No Rust types minted, no lifecycle promotion; not product readiness.
+- **Local GSD workflow marker:** M179-vsd36f is the latest completed milestone
+  in GSD registry (review-26 P0 wave: LegislativeEffect rename + NormativeState
+  drift sync + checkout disposition/causal/protocol formula + EvidenceAnchor
+  contract, design-only; new governor semantic-name-collision advisory D246,
+  65 checks green; no Rust type minting, no lifecycle promotion). M178 closed
+  the entire review-25 E.2 P1 documentation front (E.2.1-E.2.7 with M176/M177,
+  ~49 pin tests); M175-g7k0q4 closed P0 canonization after G0 (D216). Next
+  fork (human-gated): review-26 leftovers (P0-3/P0-4/P0-5a/P0-6/P0-8, S3/S4/S7
+  renames, G0-G3 golden corpus 30-40) vs G2 golden corpus vs P2 Rust resolver.
+  GSD completion is not product readiness.
 - **GSD dual-truth M167:** **resolved** — M167 complete via authorized skip waivers + validation (D154 option C). Historical note in `gsd-review-bridge.md`. Not Applicable; TSG-005/006 still open.
 - **Review governance process contour:** ADR-0024 Review Case intake/disposition/ledger landed; human dispositions recorded for review-11/12 (`actor_id=rager306`). Non-authoritative; no Product/ADR/roadmap promotion.
 - **Applicability kernel:** `ln-applicability` v0 fail-closed abstention-only under ADR-0023 `[proposed]`, with NormRule IR + pure predicate algebra spines; no Applicable/NotApplicable product claim.
@@ -139,6 +125,7 @@ falkordb=historical-only
 M111 selected:
 
 | M178-M178 | P1 завершение Reviews 10-14 модели: completeness Merkle и assertion lifecycle (E.2.5-E.2.7) (docs/design) | Design-only final P1 wave: scope-aware completeness (out-of-scope unknown never blocks, in-scope fail-closed) 16 pins; Merkle roots of sections (leaves/canonicalization/rebuild-equivalence, not proof-of-publication) 16 pins; assertion lifecycle Proposed/Validated/AuthoritativeInternal over ADR-0008/0010 (no-skip invariants, D120 boundary) 17 pins; closes the entire P1 front E.2.1-E.2.7; no Rust types, no lifecycle promotion, not product readiness. |
+| M179-M179 | Review-26 P0 волна: rename LegislativeEffect checkout-формула EvidenceAnchor (P0-1 P0-5b P0-2 P0-7) (docs/design) | Design-only P0 execution of review-26: LegalEffect→LegislativeEffect rename (historical G0(b) wording retained); NormativeState crosswalk drift synced to G0(c); MC-CHECKOUT disposition-as-of + causal closure + projection_protocol_version + INV-11; EvidenceAnchor/EvidenceBundle minimal contract; governor semantic-name-collision advisory D246 (65 checks). No Rust types, no lifecycle promotion, not product readiness. |
 - D116 sole Promotion Authority, separate from D120 Publication Authority;
 - D118 five clocks with no silent substitution;
 - D119 compositional evidence kernel with inward C10/C12/C13;
