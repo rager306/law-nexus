@@ -1,6 +1,6 @@
 {
   "schema_version": "law-nexus-project-state-roadmap/v2",
-  "generated_at": "2026-08-23T06:57:02Z",
+  "generated_at": "2026-08-23T09:19:57Z",
   "non_authoritative": true,
   "source_of_truth": "prd/ARCHITECTURE.md (living truth oracle) and doc/adr/** (decision/lifecycle authority). This file is a non-authoritative cold-reader projection; local .gsd/** is workflow state only.",
   "completed_milestone_groups": [
@@ -423,13 +423,19 @@
       "theme": "P1 tail of Reviews 10-14 model: pending effects and interval sets (E.2.3-E.2.4) (docs/design)",
       "status": "complete",
       "boundary": "Design-only P1 wave: pending-effects contract (prd/architecture/pending-effects-contract.yaml, [proposed], owner ADR-0017/0018, related ADR-0021) with modifies_pending_effect DAG-edge semantics pinned by include_str tests (17 passed); suspension/resumption as force interval set (force-interval-set contract, 16 pin tests) reconciling G0 status vocabulary with runtime spine. No Rust types minted, no lifecycle promotion, no resolver/runtime, not product readiness."
+    },
+    {
+      "range": "M178-M178",
+      "theme": "P1 completion of Reviews 10-14 model: completeness, Merkle and assertion lifecycle (E.2.5-E.2.7) (docs/design)",
+      "status": "complete",
+      "boundary": "Design-only final P1 wave: scope-aware completeness contract (unknown out-of-scope never blocks, in-scope stays fail-closed, 16 pins); Merkle roots of materialized sections (leaves/canonicalization/rebuild-equivalence, non-claims proof-of-publication, 16 pins); assertion lifecycle Proposed/Validated/AuthoritativeInternal over ADR-0008/0010 (no-skip invariants, D120 provisional boundary). No Rust types minted, no lifecycle promotion, no resolver/runtime, not product readiness. With M176/M177 this closes the entire review-25 E.2 P1 documentation front; the next fork (G2 golden corpus vs P2 Rust text core) stays human-gated."
     }
   ],
   "current_milestone": {
-    "id": "M177-q015bu",
+    "id": "M178-9xpo0n",
     "status": "complete",
-    "title": "P1 хвост Reviews 10-14 модели: pending effects и interval sets (E.2.3-E.2.4)",
-    "goal": "Close review-25 E.2.3 (prospective versions / pending effects / modifies_pending_effect) and E.2.4 (suspension/resumption as interval set) as thin vertical design-only slices with YAML-as-data pin tests, then sync living-surface honesty and Governor. No Rust type minting (P2 boundary), no lifecycle promotion."
+    "title": "P1 завершение Reviews 10-14 модели: completeness Merkle и assertion lifecycle (E.2.5-E.2.7)",
+    "goal": "Close review-25 E.2.5/E.2.6/E.2.7 as thin vertical design-only slices with YAML-as-data pin tests, then the final honesty sync recording the whole P1 front closed and the human-gated fork. No Rust type minting (P2 boundary), no lifecycle promotion."
   },
   "recommended_next": {
     "title": "Next fork after P1 documentation front E.2.1–E.2.7 design-only closed: G2 golden corpus vs P2 Rust resolver (both human-gated)",
@@ -581,6 +587,11 @@
       "id": "roadmap-sync-20260823-m178-p1-front",
       "lifecycle": "proposed",
       "text": "Honesty sync (2026-08-23): active M178-9xpo0n S01/S02/S03 landed review-25 E.2.5–E.2.7 as design-only YAML contracts (prd/architecture/scope-aware-completeness-contract.yaml, prd/architecture/merkle-roots-contract.yaml, prd/architecture/assertion-lifecycle-contract.yaml; D222 pins 16+16+17 by include_str tests). The P1 documentation front E.2.1–E.2.7 is design-only closed while product/runtime/resolver stay not closed; next fork = G2 golden corpus vs P2 Rust resolver, both human-gated. M177-q015bu stays the latest completed milestone while M178-9xpo0n is active. No Rust types minted, no new governor check_id (D234), no runtime, no resolver, not product readiness."
+    },
+    {
+      "id": "roadmap-sync-20260823-m178-complete",
+      "lifecycle": "proposed",
+      "text": "Closeout sync (2026-08-23): M178-9xpo0n completed in GSD - the review-25 E.2 P1 documentation front is now fully closed (E.2.1-E.2.7 via M176/M177/M178: op registry, reference contract, pending effects, interval sets, scope completeness, Merkle roots, assertion lifecycle; ~49 include_str pin tests green). Next fork is human-gated: G2 multi-fixture golden corpus (parser readiness) vs P2 Rust text core (resolver). GSD completion is not product readiness."
     }
   ]
 }

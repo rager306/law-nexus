@@ -27,19 +27,14 @@ falkordb=historical-only
 - **Completed retrieval-honesty band:** M161–M164 `[bounded]` (real cosine ranking in memory, semantic-stub and historical-test-debt probes, deterministic CLI vectors); no live corpus or citation-safe answers.
 - **Completed documentation alignment:** D5 + documentation D6 / EA-05 accepted with findings at `94d58ea`; roadmap-front-sync and TL-G01–12 coverage PASS.
 - **Documentation/process assessment:** EA-10 complete — human D150 `accepted-with-findings` after independent EA-09 report `120d44b`; post-D150 assessments 13–18 record bounded repository-control/parser-protocol/glossary/semantic-presentation remediation and remaining gaps without successor acceptance, lifecycle promotion or product unlock. Glossary governance now inventories all crosswalk rows and controls coding terminology structurally through the tracked living-oracle read pointer; it does not close TSG-001 or define product semantics.
-- **Local GSD workflow marker:** M177-q015bu is the latest completed milestone
-  in GSD registry (P1 tail: pending-effects contract with
-  modifies_pending_effect DAG-edge semantics + suspension/resumption as force
-  interval set, design-only with 17+16 include_str pins; no Rust type minting,
-  no lifecycle promotion). M176-ywawgy closed the P1 front (29-op registry +
-  reference contract); M175-g7k0q4 closed P0 canonization after G0 (D216).
-  Active M178-9xpo0n landed E.2.5/E.2.6/E.2.7 design-only
-  (`prd/architecture/scope-aware-completeness-contract.yaml`,
-  `prd/architecture/merkle-roots-contract.yaml`,
-  `prd/architecture/assertion-lifecycle-contract.yaml`, D222 pins
-  16+16+17); P1 documentation front E.2.1–E.2.7 is design-only closed;
-  next fork = G2 golden corpus vs P2 Rust resolver, both human-gated.
-  GSD completion is not product readiness.
+- **Local GSD workflow marker:** M178-9xpo0n is the latest completed milestone
+  in GSD registry (P1 completion: scope-aware completeness + Merkle roots of
+  materialized sections + assertion lifecycle over ADR-0008/0010, design-only
+  with 16+16+17 include_str pins; no Rust type minting, no lifecycle
+  promotion). With M176/M177 this closes the entire review-25 E.2 P1
+  documentation front (E.2.1-E.2.7, ~49 pin tests green); M175-g7k0q4 closed
+  P0 canonization after G0 (D216). Next fork = G2 golden corpus vs P2 Rust
+  resolver, both human-gated. GSD completion is not product readiness.
 - **GSD dual-truth M167:** **resolved** — M167 complete via authorized skip waivers + validation (D154 option C). Historical note in `gsd-review-bridge.md`. Not Applicable; TSG-005/006 still open.
 - **Review governance process contour:** ADR-0024 Review Case intake/disposition/ledger landed; human dispositions recorded for review-11/12 (`actor_id=rager306`). Non-authoritative; no Product/ADR/roadmap promotion.
 - **Applicability kernel:** `ln-applicability` v0 fail-closed abstention-only under ADR-0023 `[proposed]`, with NormRule IR + pure predicate algebra spines; no Applicable/NotApplicable product claim.
@@ -127,6 +122,7 @@ falkordb=historical-only
 
 M111 selected:
 
+| M178-M178 | P1 завершение Reviews 10-14 модели: completeness Merkle и assertion lifecycle (E.2.5-E.2.7) (docs/design) | Design-only final P1 wave: scope-aware completeness (out-of-scope unknown never blocks, in-scope fail-closed) 16 pins; Merkle roots of sections (leaves/canonicalization/rebuild-equivalence, not proof-of-publication) 16 pins; assertion lifecycle Proposed/Validated/AuthoritativeInternal over ADR-0008/0010 (no-skip invariants, D120 boundary) 17 pins; closes the entire P1 front E.2.1-E.2.7; no Rust types, no lifecycle promotion, not product readiness. |
 - D116 sole Promotion Authority, separate from D120 Publication Authority;
 - D118 five clocks with no silent substitution;
 - D119 compositional evidence kernel with inward C10/C12/C13;
