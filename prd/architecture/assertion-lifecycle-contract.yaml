@@ -1,0 +1,183 @@
+# law-nexus assertion lifecycle contract - design-only data (D233 / Approach A).
+#
+# Names source: review-25 (immutable L0) E.2.7 names the assertion lifecycle
+# (Proposed -> Validated -> AuthoritativeInternal) atop ADR-0008/0010;
+# ADR-0017 G0(a) (disposition D216) canonicalizes it as the append-only
+# bitemporal ledger of LegalEventAssertion records (MC-LEDGER projection in
+# prd/architecture/model-crystal.md; glossary row in
+# prd/temporal-legal-model.md section 3). The three E.2.7 names are the
+# promotion_path, not the closed status set. The data owner is ADR-0017
+# G0(a) alone (D233 / MEM992): ADR-0008 (D116/D120 corpus promotion and
+# publication, ln-promote / ln-publish) and ADR-0010 (C10/C12/C13 process
+# gates) are related_adr only - their authority/gates vocabulary is
+# homonymous with the lifecycle words, never the owner of this data. Parser
+# emission is anchored in the ADR-0013 G0 note (parser emits only Proposed)
+# as emit_source, never a fourth owner. This file adds the layer no sibling
+# contract carries: the two ledger entities, the closed five-status set,
+# the three-rung promotion path, the two-status fold set, the five-trigger
+# admission FSM with owners, the typed skip table and the INV-05 correction
+# invariant. No Rust-ledger runtime is minted and no new governor check is
+# added; pin tests embed this file as data (D222).
+
+schema_version: law-nexus-assertion-lifecycle-contract/v1
+lifecycle: "[proposed]"
+authoritative: false
+owner_adr: ADR-0017
+related_adr: [ADR-0008, ADR-0010]
+ledger_source: ADR-0017 G0(a) - append-only bitemporal ledger of LegalEventAssertion records (evidence span, recorded_at, asserted_by, status)
+emit_source: ADR-0013 G0 note - parser output enters the ledger only as Proposed candidates
+boundary: >
+  Design-only LegalEventAssertion / AssertionTransition contract
+  (review-25 E.2.7, ADR-0017 G0(a)). Not a Rust enum; not a ledger runtime;
+  not the reference-binding statuses (E.2.2); not the D098 ADR lifecycle
+  tags; not the ADR-0010 C10 promotion-outcomes; not the ADR-0008 D116
+  corpus mint; not a Review Case pending state; this contour is E.2.7,
+  never the E.2.6 Merkle roots and never the E.2.5 completeness outcomes.
+  Pin tests embed this file as data.
+
+# Closed vocabularies, inline list form (pin tests parse them as lists,
+# never as substring scans over the file - MEM951).
+
+statuses: [Proposed, Validated, AuthoritativeInternal, Rejected, Superseded]  # exactly 5, character-identical to ADR-0017 G0(a) / MC-LEDGER; Draft / Published / Promoted / Confirmed / Admitted / Bound never appear in this parsed list
+
+promotion_path: [Proposed, Validated, AuthoritativeInternal]  # exactly 3, the three named E.2.7 rungs; skipping a rung is typed below (skip_lifecycle); Rejected / Superseded are statuses members, never promotion_path members
+
+fold_statuses: [Validated, AuthoritativeInternal]  # exactly 2, character-identical to the MC-CHECKOUT fold / merkle INV-01 citation; Proposed / Rejected / Superseded never enter the snapshot fold; the fold formula itself stays cited by name in fold_filter_ref, never copied
+
+typed_non_success: [SkipLifecycle, DirectAuthoritativeMint, InPlaceRewrite]  # exactly 3; DirectPromotionRejected (an ADR-0008 token) / CompetingWriterRejected / Applied / Bound / Confirmed never appear in this parsed list
+
+# Entities. Exactly two: LegalEventAssertion (one ledger record) and
+# AssertionTransition (one admission-path FSM step). Each PascalCase key
+# appears exactly once in this file. No third entity is minted: not an
+# entity called Assertion, not Lifecycle, not Promotion, not QueryScope,
+# not CompletenessReport, not MaterializedSection, not ProjectionRoots,
+# not PendingEffect, not ForceInterval, not ReferenceMention, not Work,
+# not ComponentId, not Binding, not ReviewCase.
+
+entities:
+  LegalEventAssertion:
+    definition: >-
+      One asserted legal event in the append-only bitemporal ledger: the
+      canonical-history unit of a Work (ADR-0017 G0(a)). Design data,
+      never a runtime object.
+    required_fields: [evidence_span, recorded_at, asserted_by, status]
+    invariants: >
+      Status is exactly one of statuses. The ledger is append-only: a
+      committed record and its status are immutable after append. The
+      parser may mint only Proposed records (emit_source, the ADR-0013 G0
+      note); a candidate is never a fact.
+    runtime_today: none
+
+  AssertionTransition:
+    definition: >-
+      One admission-path FSM step of the lifecycle: realized as the append
+      of a new ledger record carrying to_status, never as an in-place edit
+      of an existing record (INV-05). Design data, never a runtime object.
+    required_fields: [trigger, from_status, to_status]
+    invariants: >
+      An admission-path transition is the append of a record whose status
+      is to_status, never a mutation of the same row. from none means there
+      is no predecessor status to read: the transition appends a fresh
+      record. supersede_append never edits the superseded record.
+    runtime_today: none
+
+# Admission-path FSM - exactly 5 transitions, pending-effects row shape
+# (trigger / from / to). from none = append of a new record, there is no
+# predecessor status-mutation. supersede_append leaves the superseded row
+# untouched (INV-05). No demotion rows (AuthoritativeInternal back down or
+# Validated back down) and no reject from Validated: the L0 names no such
+# edge, so none is invented.
+
+transitions:
+  - trigger: parser_emit
+    from: none
+    to: Proposed
+  - trigger: validate
+    from: Proposed
+    to: Validated
+  - trigger: authorize
+    from: Validated
+    to: AuthoritativeInternal
+  - trigger: reject
+    from: Proposed
+    to: Rejected
+  - trigger: supersede_append
+    from: none
+    to: Superseded
+
+# Related pointers per trigger - never a second owner_adr; the file-level
+# data owner stays ADR-0017 G0(a).
+
+transition_owners:  # exactly 5
+  - trigger: parser_emit
+    owner: ADR-0013
+  - trigger: validate
+    owner: ADR-0010
+  - trigger: authorize
+    owner: ADR-0008
+  - trigger: reject
+    owner: ADR-0010
+  - trigger: supersede_append
+    owner: ADR-0017
+
+# Load-bearing skip table (as canonical_form is for the E.2.6 contract):
+# exactly 6 rows. Row 6 outcome excluded_by_fold_filter is owned by the
+# E.2.6 fold filter and is deliberately not a typed_non_success token.
+
+skip_lifecycle:
+  - attempt: parser_emit_of_Validated
+    would_produce: Validated
+    outcome: SkipLifecycle
+  - attempt: parser_emit_of_AuthoritativeInternal
+    would_produce: AuthoritativeInternal
+    outcome: DirectAuthoritativeMint
+  - attempt: Proposed_to_AuthoritativeInternal
+    would_produce: AuthoritativeInternal
+    outcome: SkipLifecycle
+  - attempt: adapter_mint_AuthoritativeInternal
+    would_produce: AuthoritativeInternal
+    outcome: DirectAuthoritativeMint
+  - attempt: in_place_status_mutation
+    would_produce: mutated_committed_status
+    outcome: InPlaceRewrite
+  - attempt: fold_of_Proposed_or_Rejected_or_Superseded
+    would_produce: snapshot_membership
+    outcome: excluded_by_fold_filter
+
+# INV-05 / G0(a) as a contract property, not a runtime test.
+
+correction_invariant: >
+  An assertion correction never rewrites the known_as_of past (INV-05 /
+  ADR-0017 G0(a)): a late correction appends a new assertion record and
+  rebuilds projections; committed statuses are never rewritten in place
+  and no demotion transition exists.
+
+# Snapshot fold membership is cited by name, never re-canonicalized here.
+
+fold_filter_ref: >-
+  Snapshot membership is decided by the E.2.6 fold filter:
+  rebuild_equivalence in prd/architecture/merkle-roots-contract.yaml over
+  the MC-CHECKOUT bitemporal fold; fold_statuses above names the admitted
+  statuses, the fold formula itself is never copied into this file.
+
+# Non-claims. Mandatory name-trap phrases; pin tests match parsed items
+# and these phrases, never raw substring-absence over the whole file
+# (MEM951).
+
+non_claims:
+  - No Rust types are minted from this file (D216 / D098); design-only data embedded by pin tests via include_str! (D222); no ledger runtime is implied.
+  - The data owner is ADR-0017 G0(a); it is not ADR-0008 D116 corpus promotion and not ADR-0010 C10 process gates - related_adr homonyms only.
+  - The closed status set is exactly five; Draft / Published / Promoted / Confirmed / Admitted / Bound are never assertion statuses here.
+  - The three E.2.7 names (Proposed / Validated / AuthoritativeInternal) are the promotion_path, not the closed status set.
+  - The D098 ADR lifecycle tag [proposed] is not the assertion status Proposed.
+  - The reference-binding statuses proposed / confirmed / rejected / superseded (E.2.2) are not assertion statuses.
+  - C10 committed promotion / publication / admission is not this FSM; C12 / C13 are not statuses.
+  - D116 corpus promotion is not an AuthoritativeInternal mint; D120 publication completeness is not fold completeness (E.2.5).
+  - Not a Review Case pending or DisposeReview state.
+  - The G0(c) supersedes DAG edge (E.2.3) is not a status transition and never appears as a trigger here.
+  - Not the E.2.6 Merkle roots of materialized sections and not the E.2.5 scope-aware completeness outcomes.
+  - The parser may emit only Proposed (ADR-0013 G0 note); a candidate is never a fact.
+  - Status is immutable after append; correction appends a new assertion and rebuilds projections (INV-05), never rewriting the known_as_of past.
+  - Demotion (AuthoritativeInternal back to Validated, Validated back to Proposed) is not a transition; reject exists only from Proposed.
+  - ln-promote / ln-publish InputDigest and the HC-04 / HC-15 runtime are not this contour.
+  - SkipLifecycle / DirectAuthoritativeMint / InPlaceRewrite are the only typed non-success tokens; excluded_by_fold_filter belongs to the E.2.6 fold filter and is never a member of typed_non_success; DirectPromotionRejected (ADR-0008) is never used here.
