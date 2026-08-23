@@ -1,6 +1,6 @@
 {
   "schema_version": "law-nexus-project-state-roadmap/v2",
-  "generated_at": "2026-08-22T19:33:41Z",
+  "generated_at": "2026-08-23T06:57:02Z",
   "non_authoritative": true,
   "source_of_truth": "prd/ARCHITECTURE.md (living truth oracle) and doc/adr/** (decision/lifecycle authority). This file is a non-authoritative cold-reader projection; local .gsd/** is workflow state only.",
   "completed_milestone_groups": [
@@ -432,11 +432,11 @@
     "goal": "Close review-25 E.2.3 (prospective versions / pending effects / modifies_pending_effect) and E.2.4 (suspension/resumption as interval set) as thin vertical design-only slices with YAML-as-data pin tests, then sync living-surface honesty and Governor. No Rust type minting (P2 boundary), no lifecycle promotion."
   },
   "recommended_next": {
-    "title": "P1 design follow-ups: review-25 E.2.5–E.2.7 remain after design-only E.2.1–E.2.4 (M177 active)",
+    "title": "Next fork after P1 documentation front E.2.1–E.2.7 design-only closed: G2 golden corpus vs P2 Rust resolver (both human-gated)",
     "priority": 1,
-    "why": "P0 (review-25 E.1) is closed by M175 (D216): G0 ADR amendments/notes, temporal-legal-model glossary and model-crystal v2 re-grounding landed; P1 E.2.1–E.2.2 landed design-only as M176-ywawgy S01/S02 and P1 E.2.3–E.2.4 as M177-q015bu S01/S02 YAML contracts (M176 complete, M177 active); the review-25 compiler model stays [proposed] direction, evidence-gated until runtime proof — design docs are not runtime and not a resolver.",
+    "why": "P0 (review-25 E.1) is closed by M175 (D216); P1 E.2.1–E.2.2 landed design-only as M176-ywawgy S01/S02, P1 E.2.3–E.2.4 as M177-q015bu S01/S02 and P1 E.2.5–E.2.7 as active M178-9xpo0n S01/S02/S03 YAML contracts with D222 include_str pins 16+16+17: the P1 documentation front E.2.1–E.2.7 is design-only closed while product/runtime/resolver stay not closed. The review-25 compiler model stays [proposed] direction; next fork = G2 golden corpus vs P2 Rust resolver, both human-gated — design docs are not runtime and not a resolver (M177 complete, M178 active; no lifecycle promotion, not product readiness).",
     "plan_reference": "doc/review/review-25-08-2026.md (Part E) + prd/architecture/model-crystal.md",
-    "slices": "Landed design-only (M176-ywawgy S01/S02 + M177-q015bu S01/S02): prd/architecture/operation-registry.yaml (E.2.1), prd/architecture/reference-binding-contract.yaml (E.2.2), prd/architecture/pending-effects-contract.yaml (E.2.3) and prd/architecture/force-interval-set-contract.yaml (E.2.4). Remaining P1 per review-25 Part E: E.2.5–E.2.7; P2/resolver stay gated behind parser G2 (no runtime, no resolver).",
+    "slices": "Landed design-only (M176-ywawgy S01/S02 + M177-q015bu S01/S02 + M178-9xpo0n S01/S02/S03): prd/architecture/operation-registry.yaml (E.2.1), prd/architecture/reference-binding-contract.yaml (E.2.2), prd/architecture/pending-effects-contract.yaml (E.2.3), prd/architecture/force-interval-set-contract.yaml (E.2.4), prd/architecture/scope-aware-completeness-contract.yaml (E.2.5), prd/architecture/merkle-roots-contract.yaml (E.2.6), prd/architecture/assertion-lifecycle-contract.yaml (E.2.7). Remaining P1 per review-25 Part E: none of E.2.1–E.2.7; P2/resolver stay gated behind parser G2 (no runtime, no resolver).",
     "product_next": "Product front stays evidence-gated: parser G2 readiness decision first if needed; else L2 CTV TDD; applicability stays abstention-only under ADR-0023 [proposed]; TEI/RuVector remains infrastructure-evidence gated.",
     "non_validation": "GSD completion of M171-M174 is process/registry truth only; not product readiness, legal correctness, ontology/applicability runtime validation, lifecycle promotion of ADRs, or release proof."
   },
@@ -576,6 +576,11 @@
       "id": "roadmap-sync-20260822-m177-complete",
       "lifecycle": "proposed",
       "text": "Closeout sync (2026-08-22): M177-q015bu completed in GSD (3 slices: pending-effects contract 17 pins, force interval set 16 pins, honesty/governor sync; validation pass first attempt). Remaining P1 per review-25 E.2: E.2.5 scope-aware completeness, E.2.6 Merkle roots of materialized sections, E.2.7 assertion lifecycle (over ADR-0008/0010). GSD completion is not product readiness."
+    },
+    {
+      "id": "roadmap-sync-20260823-m178-p1-front",
+      "lifecycle": "proposed",
+      "text": "Honesty sync (2026-08-23): active M178-9xpo0n S01/S02/S03 landed review-25 E.2.5–E.2.7 as design-only YAML contracts (prd/architecture/scope-aware-completeness-contract.yaml, prd/architecture/merkle-roots-contract.yaml, prd/architecture/assertion-lifecycle-contract.yaml; D222 pins 16+16+17 by include_str tests). The P1 documentation front E.2.1–E.2.7 is design-only closed while product/runtime/resolver stay not closed; next fork = G2 golden corpus vs P2 Rust resolver, both human-gated. M177-q015bu stays the latest completed milestone while M178-9xpo0n is active. No Rust types minted, no new governor check_id (D234), no runtime, no resolver, not product readiness."
     }
   ]
 }

@@ -2,6 +2,25 @@
 
 ## [Unreleased]
 
+### M178-9xpo0n Docs (scope-aware-completeness-contract, merkle-roots-contract, assertion-lifecycle-contract, P1-front honesty sync)
+
+### Docs
+- Design-only wave completes review-25 Part E P1 (D222 include_str pin tests;
+  no Rust types, no runtime, no resolver, no lifecycle promotion): E.2.5
+  scope-aware completeness
+  `prd/architecture/scope-aware-completeness-contract.yaml` (S01), E.2.6
+  Merkle roots of materialized sections
+  `prd/architecture/merkle-roots-contract.yaml` (S02) and E.2.7 assertion
+  lifecycle `prd/architecture/assertion-lifecycle-contract.yaml` (S03) —
+  `[proposed]` design data, D222 pins 16+16+17.
+- Honesty sync: living roadmap markdown/JSON and `prd/ARCHITECTURE.md`
+  DESIGN FRONT name P1 documentation front E.2.1–E.2.7 as design-only closed
+  (M176 S01/S02 + M177 S01/S02 + M178 S01/S02/S03); product/runtime/resolver
+  stay not closed; next fork = G2 golden corpus vs P2 Rust resolver, both
+  human-gated.
+- No new governor check_id (D234): governor strengthening stays a
+  session-learning retrospective proposal.
+
 ### M177-q015bu Docs (pending-effects-contract, force-interval-set-contract, Remaining-P1 honesty sync)
 
 ### Docs
