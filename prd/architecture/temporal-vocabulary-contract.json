@@ -229,7 +229,9 @@
       "id": "EvidenceSpan",
       "needle": "| `EvidenceSpan` |",
       "required_fragments": [
-        "deferred-undefined"
+        "canonical design term",
+        "[proposed]",
+        "evidence-anchor-contract.yaml"
       ]
     },
     {

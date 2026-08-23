@@ -95,12 +95,17 @@ Governor must never decide:
 - representativeness or metric thresholds;
 - lifecycle promotion or TSG closure;
 - whether a future `SourceBlock`, `EvidenceSpan`, NormRule or applicability
-  schema should exist.
+  schema should exist; the design-only `EvidenceSpan` contract YAML at
+  `prd/architecture/evidence-anchor-contract.yaml` `[proposed]` changes
+  nothing here — a future runtime type behind that design is still not a
+  Governor decision.
 
 ## 5. Current bounded debt
 
-- `EvidenceSpan`, future `SourceBlock` and `edition_date` remain
-  `deferred-undefined`.
+- `EvidenceSpan` now points at the design-only
+  `prd/architecture/evidence-anchor-contract.yaml` `[proposed]`
+  (EvidenceAnchor/EvidenceBundle design data, not a runtime type); future
+  `SourceBlock` and `edition_date` remain `deferred-undefined`.
 - Applicability is a canonical design term while runtime remains `[deferred]`.
 - `NormativeStatus` is a deprecated compatibility alias for canonical
   `NormativeState`, not a second dimension.
