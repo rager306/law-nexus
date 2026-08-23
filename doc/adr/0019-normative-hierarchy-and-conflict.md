@@ -180,6 +180,17 @@ CrossActEdgePort); `cites` never upgrades to authority is pinned there both
 as contract text and by the parser-free pin-test wave in `ln-kb-ontology`
 that embeds the file as data.
 
+The E.2.5 scope-aware completeness contract introduces a same-named but
+distinct `Conflict`: a coverage `Conflict` is two CTVs claiming validity at
+`t` inside an in-scope subgraph (ADR-0017 §4) — it is not the maxim
+`Conflict` of this ADR (an underdetermined lex collision the resolver fails
+closed on) and is never a maxim input here. The `QueryScope` /
+`CompletenessReport` entities and the scope × gap → outcome table are
+tracked as design-only data in
+`prd/architecture/scope-aware-completeness-contract.yaml` (lifecycle
+`[proposed]`, owner ADR-0017; this ADR is `related_adr` for the homonym
+only). The pointer closes no S1 criteria and mints no ConflictResolver.
+
 ## Non-claims
 
 - No legal correctness of conflict resolution without real conflict corpus.

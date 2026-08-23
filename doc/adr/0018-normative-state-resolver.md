@@ -141,6 +141,18 @@ moved semantics and the glossary syncs (P0), `Transitional` stays in the
 table above as a **deprecated-in-design** value: no new runtime or glossary
 row may build on it.
 
+The E.2.5 scope-aware completeness contract introduces a same-named but
+distinct `Unknown`: a completeness `Unknown` is an in-scope component of a
+scoped checkout whose coverage cannot be established — it is not the force
+`Unknown` of this ADR (missing or conflicting status evidence at `t`) and
+it resolves no force state. The `QueryScope` / `CompletenessReport`
+entities, their closed outcome vocabulary and the scope × gap → outcome
+table are tracked as design-only data in
+`prd/architecture/scope-aware-completeness-contract.yaml` (lifecycle
+`[proposed]`, owner ADR-0017; this ADR is `related_adr` for the homonym
+only). The pointer mints no status enum change and implies no lifecycle
+promotion.
+
 ## Non-claims
 
 - Offline `resolve_force_status_at` is **ForceStatus only**: not CTV/version join,

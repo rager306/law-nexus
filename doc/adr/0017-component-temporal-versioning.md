@@ -372,6 +372,20 @@ snapshot(oracle@t)`. Projection ≠ truth — rebuild must be equivalent
 projections; `known_as_of` is the `system_observation` role bound (ADR-0009
 note) and never a composite clock.
 
+The E.2.5 scope-aware completeness contour of this checkout contract is
+tracked as design-only data: the `QueryScope` / `CompletenessReport`
+entities, the closed query-scope kinds, view modes, completeness outcomes
+and in-scope block reasons, and the scope × gap → outcome table live in
+`prd/architecture/scope-aware-completeness-contract.yaml` (lifecycle
+`[proposed]`; no runtime component parses it — pin tests embed it as data,
+D222/D231; ADR-0018/0019 are related for the Unknown/Conflict homonyms,
+ADR-0017 owns the data). The YAML **specializes** §4 and the G0(d) `scope`
+parameter, it does not delete them: WholeAct keeps the §4 any-gap-blocks
+rule (every component is in scope, one unresolved component fails the
+whole compilation); ComponentSubgraph is seed components plus an optional
+dependency subgraph, where an out-of-scope unknown is reported and never
+blocks the scoped query.
+
 ### G0(e) AddressableTextUnit, OrderedMembershipVersion, TextAnchor
 
 Below the numbered-component floor (ADR-0016 G0 clarification): an

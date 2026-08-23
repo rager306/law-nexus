@@ -259,6 +259,14 @@ runtime.
 
 <!-- anchor: review §C "PromulgatedTextView" -->
 
+Per-scope required fields, closed completeness outcomes and the scope × gap
+table live in `prd/architecture/scope-aware-completeness-contract.yaml`
+(design-only companion data, E.2.5, lifecycle `[proposed]`) — a navigation
+pointer, not a new anchor source. MC-CHECKOUT keeps the INV-08 (provenance
+or typed Unknown) and INV-10 (no `None` outcome) boundaries; the
+contract's WholeAct row preserves the ADR-0017 §4 any-gap-blocks rule, and
+an out-of-scope unknown is reported, never blocking.
+
 ### MC-REF. Reference binding modes
 
 Mention (span + wording in a specific CTV) / Binding (candidate or confirmed
