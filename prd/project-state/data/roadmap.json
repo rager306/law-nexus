@@ -1,6 +1,6 @@
 {
   "schema_version": "law-nexus-project-state-roadmap/v2",
-  "generated_at": "2026-08-23T09:19:57Z",
+  "generated_at": "2026-08-23T20:58:48Z",
   "non_authoritative": true,
   "source_of_truth": "prd/ARCHITECTURE.md (living truth oracle) and doc/adr/** (decision/lifecycle authority). This file is a non-authoritative cold-reader projection; local .gsd/** is workflow state only.",
   "completed_milestone_groups": [
@@ -438,9 +438,9 @@
     "goal": "Close review-25 E.2.5/E.2.6/E.2.7 as thin vertical design-only slices with YAML-as-data pin tests, then the final honesty sync recording the whole P1 front closed and the human-gated fork. No Rust type minting (P2 boundary), no lifecycle promotion."
   },
   "recommended_next": {
-    "title": "Next fork after P1 documentation front E.2.1–E.2.7 design-only closed: G2 golden corpus vs P2 Rust resolver (both human-gated)",
+    "title": "Next candidates after review-26 P0 design-only front (M179-vsd36f active): leftover P0-3/P0-4/P0-5a/P0-6/P0-8 + P1-8 full semantic governor, human-gated, alongside G2 golden corpus vs P2 Rust resolver",
     "priority": 1,
-    "why": "P0 (review-25 E.1) is closed by M175 (D216); P1 E.2.1–E.2.2 landed design-only as M176-ywawgy S01/S02, P1 E.2.3–E.2.4 as M177-q015bu S01/S02 and P1 E.2.5–E.2.7 as active M178-9xpo0n S01/S02/S03 YAML contracts with D222 include_str pins 16+16+17: the P1 documentation front E.2.1–E.2.7 is design-only closed while product/runtime/resolver stay not closed. The review-25 compiler model stays [proposed] direction; next fork = G2 golden corpus vs P2 Rust resolver, both human-gated — design docs are not runtime and not a resolver (M177 complete, M178 active; no lifecycle promotion, not product readiness).",
+    "why": "M178-9xpo0n is complete and stays the latest completed milestone (P0 review-25 E.1 closed by M175/D216; P1 E.2.1-E.2.7 design-only closed via M176/M177/M178, ~49 include_str pins). M179-vsd36f is active in GSD: review-26 P0-1/P0-5b/P0-2/P0-7 landed design-only in S01-S03 (living name LegislativeEffect with LegalEffect/legal_act_effect kept as separate G0 wording; MC-CHECKOUT disposition_as_of/causal_close/projection_protocol_version + INV-11; prd/architecture/evidence-anchor-contract.yaml with EvidenceSpan as crosswalk alias, not a public type, SourceBlock deferred-undefined) and S04 adds the honesty sync plus the semantic-name-collision advisory governor check (D246). Remaining review-26 P0-3 DispositionEvent, P0-4 ActivationTrigger/ApplicabilityPredicate, P0-5a Superseded (ADR-0018 Decision table still shows the deprecated-in-design 6-set), P0-6 INV-09a/b/c, P0-8 CoverageCertificate, S3/S4/S7 renames and the P1-8 full semantic governor are the next human-gated candidate, alongside the G2 golden corpus vs P2 Rust resolver product fork. TSG-001 stays active. No Rust types minted, no lifecycle promotion, not product readiness.",
     "plan_reference": "doc/review/review-25-08-2026.md (Part E) + prd/architecture/model-crystal.md",
     "slices": "Landed design-only (M176-ywawgy S01/S02 + M177-q015bu S01/S02 + M178-9xpo0n S01/S02/S03): prd/architecture/operation-registry.yaml (E.2.1), prd/architecture/reference-binding-contract.yaml (E.2.2), prd/architecture/pending-effects-contract.yaml (E.2.3), prd/architecture/force-interval-set-contract.yaml (E.2.4), prd/architecture/scope-aware-completeness-contract.yaml (E.2.5), prd/architecture/merkle-roots-contract.yaml (E.2.6), prd/architecture/assertion-lifecycle-contract.yaml (E.2.7). Remaining P1 per review-25 Part E: none of E.2.1–E.2.7; P2/resolver stay gated behind parser G2 (no runtime, no resolver).",
     "product_next": "Product front stays evidence-gated: parser G2 readiness decision first if needed; else L2 CTV TDD; applicability stays abstention-only under ADR-0023 [proposed]; TEI/RuVector remains infrastructure-evidence gated.",
@@ -592,6 +592,11 @@
       "id": "roadmap-sync-20260823-m178-complete",
       "lifecycle": "proposed",
       "text": "Closeout sync (2026-08-23): M178-9xpo0n completed in GSD - the review-25 E.2 P1 documentation front is now fully closed (E.2.1-E.2.7 via M176/M177/M178: op registry, reference contract, pending effects, interval sets, scope completeness, Merkle roots, assertion lifecycle; ~49 include_str pin tests green). Next fork is human-gated: G2 multi-fixture golden corpus (parser readiness) vs P2 Rust text core (resolver). GSD completion is not product readiness."
+    },
+    {
+      "id": "roadmap-sync-20260823-m179-p0-front",
+      "lifecycle": "proposed",
+      "text": "Review-26 P0 front sync (2026-08-23): M178-9xpo0n remains the latest completed milestone and current_milestone is unchanged; M179-vsd36f is active in GSD (review-26 P0-1/P0-5b/P0-2/P0-7 landed design-only S01-S03: living name LegislativeEffect with LegalEffect/legal_act_effect kept as separate G0 wording, MC-CHECKOUT disposition_as_of/causal_close/projection_protocol_version + INV-11, prd/architecture/evidence-anchor-contract.yaml with EvidenceSpan as crosswalk alias - not a public type - and SourceBlock deferred-undefined; S04 = semantic-name-collision advisory governor check D246 + honesty sync of roadmap/ARCHITECTURE/ADR-0013/CHANGELOG). Remaining review-26 leftovers are the next human-gated candidate alongside the G2 vs P2 product fork: P0-3 DispositionEvent, P0-4 ActivationTrigger/ApplicabilityPredicate, P0-5a Superseded (ADR-0018 Decision table still shows the deprecated-in-design 6-set), P0-6 INV-09a/b/c, P0-8 CoverageCertificate, S3/S4/S7 renames, P1-8 full semantic governor; TSG-001 stays active. No Rust types minted, no lifecycle promotion, not product readiness."
     }
   ]
 }

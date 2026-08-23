@@ -35,6 +35,21 @@ falkordb=historical-only
   documentation front (E.2.1-E.2.7, ~49 pin tests green); M175-g7k0q4 closed
   P0 canonization after G0 (D216). Next fork = G2 golden corpus vs P2 Rust
   resolver, both human-gated. GSD completion is not product readiness.
+- **Review-26 P0 wave (active M179-vsd36f):** P0-1/P0-5b/P0-2/P0-7 landed
+  design-only in M179 S01–S03: living name `LegislativeEffect`
+  (ADR-0017/glossary; `LegalEffect`/`legal_act_effect` stay separate G0
+  wording), MC-CHECKOUT `disposition_as_of`/`causal_close`/
+  `projection_protocol_version` + INV-11, and
+  `prd/architecture/evidence-anchor-contract.yaml` (EvidenceAnchor/
+  EvidenceBundle; `EvidenceSpan` is its crosswalk alias, not a public type);
+  S04 adds the `semantic-name-collision` advisory governor check (D246) and
+  this honesty sync. Remaining review-26 leftovers = the next human-gated
+  candidate (alongside the G2 vs P2 product fork): P0-3 DispositionEvent,
+  P0-4 ActivationTrigger/ApplicabilityPredicate, P0-5a Superseded (ADR-0018
+  Decision table still shows the deprecated-in-design 6-set — known lag,
+  table not rewritten here), P0-6 INV-09a/b/c, P0-8 CoverageCertificate,
+  S3/S4/S7 renames, P1-8 full semantic governor (§11); TSG-001 stays active.
+  No Rust types minted, no lifecycle promotion; not product readiness.
 - **GSD dual-truth M167:** **resolved** — M167 complete via authorized skip waivers + validation (D154 option C). Historical note in `gsd-review-bridge.md`. Not Applicable; TSG-005/006 still open.
 - **Review governance process contour:** ADR-0024 Review Case intake/disposition/ledger landed; human dispositions recorded for review-11/12 (`actor_id=rager306`). Non-authoritative; no Product/ADR/roadmap promotion.
 - **Applicability kernel:** `ln-applicability` v0 fail-closed abstention-only under ADR-0023 `[proposed]`, with NormRule IR + pure predicate algebra spines; no Applicable/NotApplicable product claim.
@@ -232,7 +247,7 @@ citation mapping.
 | Promotion/publication | Idempotent D116 and complete H1/D120 hostile fixtures | `[proposed]` |
 | RuVector product integration | Real parser output, TEI 1024d embeddings, RVF/redb recovery contract and exact citation gates | `[proposed]` |
 | FalkorDB product integration | Historical evidence only; no active product role under ADR-0014 | `[deferred]` historical |
-| Retrieval/citations | Future-schema `EvidenceSpan` fixtures (`deferred-undefined`) and evidence-bounded answer/citation runtime; no public EvidenceSpan type exists | `[bounded]` InMemory retrieval evidence only |
+| Retrieval/citations | Future-schema `EvidenceSpan` fixtures — `EvidenceSpan` is now the crosswalk alias of design-only `prd/architecture/evidence-anchor-contract.yaml` `[proposed]`, not a public type (`SourceBlock` stays `deferred-undefined`) — and evidence-bounded answer/citation runtime; no public EvidenceSpan type exists | `[bounded]` InMemory retrieval evidence only |
 | E1-E3 capacity | Comparable local measurements for selected runtime | `[proposed]` unknown |
 | Python archival | Complete Rust whole-system parity and one controlled cutover | `[deferred]` |
 

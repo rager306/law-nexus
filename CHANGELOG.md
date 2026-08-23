@@ -2,6 +2,36 @@
 
 ## [Unreleased]
 
+### M179-vsd36f Docs (review-26 P0 front: LegislativeEffect, MC-CHECKOUT, evidence anchors, semantic-name-collision advisory)
+
+### Docs
+- Design-only review-26 P0 wave, no Rust types, no runtime, no resolver, no
+  lifecycle promotion (S01–S03 landed; S04 = advisory + this honesty sync):
+  S01 living name `LegislativeEffect` + NormativeState glossary sync (P0-1/P0-5b;
+  `LegalEffect`/`legal_act_effect` stay separate G0 wording); S02 MC-CHECKOUT
+  `disposition_as_of` / `causal_close` / `projection_protocol_version` +
+  INV-11 (P0-2); S03 `prd/architecture/evidence-anchor-contract.yaml` (P0-7)
+  with `EvidenceSpan` as crosswalk alias, not a public type; S04 advisory
+  governor check `semantic-name-collision` (D246, group=semantic,
+  kind=heuristic, default_severity=warn) catching the unqualified
+  dual-owner PascalCase class while the documented `ln-decode::EvidenceAnchor`
+  homonym passes.
+- Honesty sync: living roadmap markdown/JSON and `prd/ARCHITECTURE.md`
+  DESIGN FRONT name review-26 P0-1/P0-5b/P0-2/P0-7 as design-only landed
+  M179 and the remaining P0-3, P0-4, P0-5a, P0-6, P0-8 + P1-8 full semantic
+  governor as the next human-gated candidate (alongside the G2 golden corpus
+  vs P2 Rust resolver fork); ARCHITECTURE Retrieval, ADR-0013 and the ADR
+  README companion now point `EvidenceSpan` at the design YAML `[proposed]`
+  with `SourceBlock` still `deferred-undefined`.
+- Not closed by this wave: P0-3 DispositionEvent, P0-4 ActivationTrigger/
+  ApplicabilityPredicate, P0-5a Superseded (ADR-0018 Decision table still
+  shows the deprecated-in-design 6-set), P0-6 INV-09a/b/c, P0-8
+  CoverageCertificate, S3/S4/S7 renames, P1-8 full semantic governor and
+  TSG-001 stay open and human-gated; M178-9xpo0n remains the latest completed
+  milestone.
+- Governor inventory after S04: 39 check specs; live full run pass_count 65,
+  warn_count 0, error_count 0.
+
 ### M178-9xpo0n Docs (scope-aware-completeness-contract, merkle-roots-contract, assertion-lifecycle-contract, P1-front honesty sync)
 
 ### Docs

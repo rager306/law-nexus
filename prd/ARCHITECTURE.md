@@ -232,11 +232,11 @@ M174 wave-1 debt closure  [bounded]
    L0 reviews 9-14 committed
    ▼
 DESIGN FRONT (no Rust, L0 reviews)
-   Reviews 9-14 (doc/review/review-20..25-08-2026.md): C1-commit model,
-   citation tape, bitemporal legislative event compiler formula — [proposed]
-   direction; G0 disposition (D216): P0 (E.1) closed M175; P1 E.2.1–E.2.7
-   design-only (M176–M178 YAML contracts, D222 pins), no runtime; next fork
-   G2 golden vs P2 resolver, human-gated; reviews immutable L0; projection:
+   Reviews 9-14 (doc/review/review-20..25-08-2026.md): C1-commit model, citation tape,
+   bitemporal legislative event compiler formula — [proposed] direction; G0 (D216):
+   P0 (E.1) closed M175; P1 E.2.1–E.2.7 design-only (M176–M178, D222 pins), no runtime;
+   review-26 P0-1/P0-5b/P0-2/P0-7 design-only M179, leftover P0-3/4/5a/6/8 and next fork
+   (G2 golden vs P2 resolver) human-gated; reviews immutable L0; projection:
    architecture/model-crystal.md (non-canon, v2)
    ▼
 ASSESSMENT FRONT (no Rust)
@@ -288,7 +288,7 @@ parity or production graph readiness.
 |---|---|---|
 | Universal parser | `[bounded]` independent Consultant/Garant block adapters, shared hierarchy/sentence/morphology and reference/temporal/deontic lexical candidates with one tracked real document per provider; `prd/parser/representative_golden_corpus_acceptance_protocol.md` defines the fail-closed G0–G3 evidence ladder | current evidence reaches G1 only; needs G2 multi-fixture human-reviewed structural goldens plus human-owned quality/representativeness criteria, then separate legal resolution and citation mapping |
 | RuVector graph-vector infrastructure | `[proposed]`; synthetic capability checks only | needs TEI 1024d real corpus, RVF/redb materialization, crash consistency and citation contract |
-| Retrieval / citation-safe answers | `[bounded]` real cosine-similarity ranking in the InMemory adapter + RetrievalGate (M161); retrieval scores are real per-result cosine values, not a constant. No live corpus/embedding yet. | needs future-schema `EvidenceSpan`/`SourceBlock` fixtures (both remain `deferred-undefined`), TEI 1024d corpus, quality metrics and exact byte round-trip |
+| Retrieval / citation-safe answers | `[bounded]` real cosine-similarity ranking in the InMemory adapter + RetrievalGate (M161); retrieval scores are real per-result cosine values, not a constant. No live corpus/embedding yet. | needs future-schema `EvidenceSpan` fixtures — `EvidenceSpan` is the crosswalk alias of design-only `prd/architecture/evidence-anchor-contract.yaml` `[proposed]`, not a public type (`ln-decode::EvidenceAnchor` stays a separate decoder homonym; `SourceBlock` remains `deferred-undefined`) — plus TEI 1024d corpus, quality metrics and exact byte round-trip |
 | KnowQL | `[bounded]` hand-coded AST demo only | needs real parser and typed application executor; `ruvector-graph` Cypher execution is not relied upon |
 | R035 | `[proposed]` active, not validated | standing graph-vector proof-boundary requirement |
 | R038 | `[bounded]` active | standing independent review gate |

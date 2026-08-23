@@ -224,8 +224,12 @@ either source adapter emits correct offsets or hierarchy. `ParsedBlock` keeps a
 compressed package offsets. Morphology, sentence and hierarchy markers return
 `TextSpan` relative to decoded block text. No automatic cross-stream or
 source-to-decoded translation exists. Each adapter must separately prove any
-mapping before citation or any future-schema `EvidenceSpan` use; that term remains
-`deferred-undefined`. Serialization is not added until a
+mapping before citation or any future-schema `EvidenceSpan` use; that term is
+the crosswalk alias of the design-only contract
+`prd/architecture/evidence-anchor-contract.yaml` `[proposed]` (ADR-0010 owns
+the anchor contract; `ln-decode::EvidenceAnchor` remains the decoder
+byte-offset homonym; this ADR still mints no parser→anchor mapping;
+`SourceBlock` stays `deferred-undefined`). Serialization is not added until a
 concrete versioned boundary requires it.
 
 ### Format detection
