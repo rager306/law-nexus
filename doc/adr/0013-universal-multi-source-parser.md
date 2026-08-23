@@ -563,6 +563,14 @@ change, no lifecycle promotion:
   projection target of this parser's decode output. The current parser and
   its records are **not** a CST and must not be described as one.
 
+E.2.6 homonymy note (design-only, D222/D232): the ingest `artifact_hash`
+(pipeline step 1, `SourceArtifact`) is not a section `CstRoot` and not any
+section Merkle root, and nothing here declares parser records a lossless
+green CST. The closed section-root vocabulary (`CstRoot` / `AstRoot` /
+`OracleExamBinding`) lives in `prd/architecture/merkle-roots-contract.yaml`
+(lifecycle `[proposed]`; ADR-0017 owns the data; this ADR is `related_adr`
+for this note only). No parser runtime is minted by it.
+
 ## Non-claims
 
 - `HierarchyMarker` / `map_hierarchy_marker` is a **fail-closed candidate lift**:

@@ -267,6 +267,13 @@ or typed Unknown) and INV-10 (no `None` outcome) boundaries; the
 contract's WholeAct row preserves the ADR-0017 §4 any-gap-blocks rule, and
 an out-of-scope unknown is reported, never blocking.
 
+The materialized-section checkout key, closed root kinds (CstRoot /
+AstRoot / OracleExamBinding) and INV-01 rebuild-equivalence live in
+`prd/architecture/merkle-roots-contract.yaml` (design-only companion data,
+E.2.6, lifecycle `[proposed]`) — a navigation pointer, not a new anchor
+source. MC-CHECKOUT singular `root_hash` is
+`ProjectionRoots.composed_checkout_root`, not a CompletenessReport field.
+
 ### MC-REF. Reference binding modes
 
 Mention (span + wording in a specific CTV) / Binding (candidate or confirmed

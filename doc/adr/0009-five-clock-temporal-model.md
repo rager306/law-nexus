@@ -86,6 +86,15 @@ for new clock roles:
   ranges over effect selectors. Neither collapses into the other, and
   neither substitutes `source_publication` or `legal_act_effect`.
 
+E.2.6 homonymy note (design-only, D222/D232): a Merkle section of a
+materialized checkout is identified by the existing checkout clocks —
+`legal_as_of` × `known_as_of` (ADR-0017 G0(d)); first-class temporality
+stays over the five ADR-0009 clocks, and the section mints no new clock
+role. That boundary is recorded in
+`prd/architecture/merkle-roots-contract.yaml` (lifecycle `[proposed]`;
+ADR-0017 owns the data; this ADR is `related_adr` for the
+not-a-sixth-clock note only).
+
 ## Non-claims
 
 - Applicable-law or effective-date legal correctness is not claimed.

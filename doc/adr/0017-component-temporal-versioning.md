@@ -372,6 +372,19 @@ snapshot(oracle@t)`. Projection ≠ truth — rebuild must be equivalent
 projections; `known_as_of` is the `system_observation` role bound (ADR-0009
 note) and never a composite clock.
 
+The E.2.6 merkle-roots contour of this checkout contract is tracked as
+design-only data: the `MaterializedSection` / `ProjectionRoots` entities,
+the closed root kinds (`CstRoot` / `AstRoot` / `OracleExamBinding`) and the
+INV-01 rebuild-equivalence property live in
+`prd/architecture/merkle-roots-contract.yaml` (lifecycle `[proposed]`; no
+runtime component parses it and no runtime hasher is minted — pin tests
+embed it as data, D222/D232; ADR-0013/0009 are related_adr for the
+parser-records-not-a-CST and not-a-sixth-clock notes only). The YAML
+**specializes** the three-hash G0(d) projection and its rebuild-equivalence
+invariant; it does not rewrite the checkout signature above.
+`composed_checkout_root` is the singular MC-CHECKOUT `root_hash` sibling,
+never a fourth root kind and never a `CompletenessReport` field.
+
 The E.2.5 scope-aware completeness contour of this checkout contract is
 tracked as design-only data: the `QueryScope` / `CompletenessReport`
 entities, the closed query-scope kinds, view modes, completeness outcomes
@@ -406,6 +419,16 @@ Repeal is four axes, not detach: `ForceStatus = Repealed` (ADR-0018),
 structure) is a distinct axis and never force-by-text. The child cascade is
 a derived `RepealScope(parent, descendants=true)`, not physical deletion of
 child identities.
+
+Homonymy guard (E.2.6): `DocumentaryPresence` (Tombstone / Present /
+Absent; AXIS-4 in `prd/architecture/model-crystal.md`) is this
+repeal / document-structure axis, never a Merkle root kind and never a
+third hash of a materialized section. Presence filtering selects which
+nodes survive inside a CST/AST projection (via scope plus
+`edition_ast_at`); it adds no `PresenceRoot` to the closed `root_kinds` of
+`prd/architecture/merkle-roots-contract.yaml` (lifecycle `[proposed]`),
+whose third root remains `OracleExamBinding` — that contract is owned by
+this same ADR (G0(d)), not by a related_adr.
 
 ### G0(g) Closed operation registry with typed apply results
 
