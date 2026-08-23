@@ -587,6 +587,9 @@ fn rebuild_equivalence_is_a_contract_property_not_a_hasher_test() {
     let normalized = section.split_whitespace().collect::<Vec<_>>().join(" ");
     for phrase in [
         "INV-01",
+        // INV-11 pins the projection protocol determinism clause
+        // (protocol version, view policy, ledger cut, source set, request).
+        "INV-11",
         "identical ProjectionRoots",
         "repeated replay returns the same root hash",
         "pure function of the ledger prefix",

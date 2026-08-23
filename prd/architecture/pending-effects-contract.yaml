@@ -154,7 +154,10 @@ checkout:
   excluded_future: scheduled_and_selector_unsatisfied
   applied_effects: >
     selector satisfied for legal_as_of AND recorded_at <= known_as_of AND
-    assertion status in {Validated, AuthoritativeInternal}.
+    disposition_as_of(a, known_as_of) = AcceptedForProjection - the
+    assertion cut is the living MC-CHECKOUT project fold in
+    prd/architecture/model-crystal.md, cited by name here, never copied
+    as a second formula.
   cancelled_appear_in_neither: true
   invariant: INV-04
   notes: >

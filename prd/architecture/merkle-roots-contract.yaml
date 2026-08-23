@@ -124,13 +124,20 @@ canonical_form:
 rebuild_equivalence: >
   Identical checkout key plus identical accepted assertion prefix yields
   identical ProjectionRoots - all three roots and the composed checkout
-  root (ADR-0017 G0(d); INV-01). The accepted prefix is the MC-CHECKOUT
-  fold: recorded_at <= known_as_of, status in {Validated,
-  AuthoritativeInternal}, effect_selector satisfied for legal_as_of
-  (review-25 B.3). Replaying the same accepted prefix under the same
-  checkout key returns the same root hash; the section roots are a pure
-  function of the ledger prefix, never of wall-clock time or insertion
-  order - repeated replay returns the same root hash (INV-01). This is a
+  root (ADR-0017 G0(d); INV-01). The accepted prefix is the living
+  MC-CHECKOUT project fold in prd/architecture/model-crystal.md, cited
+  by name here and never restated as a second formula: assertions enter
+  the cut where recorded_at <= known_as_of and
+  disposition_as_of(a, known_as_of) = AcceptedForProjection, effects
+  are causal_close over the compiled assertions, and
+  projection_protocol_version rides in the checkout input and the
+  result payload - never as a sixth MaterializedSection identity field.
+  The determinism clause is INV-11: identical ledger cut, source set,
+  protocol version, view policy and request yield the same snapshot
+  hash. Replaying the same accepted prefix under the same checkout key
+  returns the same root hash; the section roots are a pure function of
+  the ledger prefix, never of wall-clock time or insertion order -
+  repeated replay returns the same root hash (INV-01). This is a
   property of the contract, not a runtime hasher test (P2).
 
 # Checkout projection - an invariant about the payload contour, not a
