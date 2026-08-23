@@ -1,0 +1,168 @@
+# law-nexus merkle roots contract - design-only data (D232 / Approach A).
+#
+# Names source: review-25 (immutable L0) E.2.6 names the "Merkle root of a
+# materialized section"; review-24 unpacks it as the Git analogy
+# (content-addressed TextVersion, Merkle root checkout, structural sharing,
+# tamper-evident hashes - under the inequalities hash != ComponentId,
+# path != ComponentId, similarity != identity continuity) plus the precursor
+# hash triple (artifact_hash / lossless_root_hash / normalized_semantic_hash,
+# where the normalized hash is never an exact-text proof), and ADR-0017 G0(d)
+# canonicalizes the triple as lossless CST (green) + semantic legal AST (red)
+# + oracle exam binding with INV-01 rebuild-equivalence; MC-CHECKOUT carries
+# the singular root_hash in the checkout payload (review-25 B.3). Root kinds
+# are copied character-identical in meaning from G0(d); no fourth kind is
+# minted. ADR-0013 and ADR-0009 are related_adr for the parser-records-are-
+# not-a-CST note and the not-a-sixth-clock note only; the data owner is
+# ADR-0017 (D232). This file adds the layer no sibling contract carries: the
+# two section-root entities, the closed root / typed-non-success
+# vocabularies, the canonical-form table and the rebuild-equivalence
+# invariant. No runtime component parses it; pin tests embed it as data
+# (D222).
+
+schema_version: law-nexus-merkle-roots-contract/v1
+lifecycle: "[proposed]"
+authoritative: false
+owner_adr: ADR-0017
+related_adr: [ADR-0013, ADR-0009]
+checkout_source: ADR-0017 G0(d) - checkout(work, legal_as_of, known_as_of, view_mode, scope)
+boundary: >
+  Design-only MaterializedSection / ProjectionRoots contract (review-25
+  E.2.6, ADR-0017 G0(d)). Not a Rust enum; not a hasher; not a
+  CompletenessReport; not DocumentaryPresence; not the G0(e) TextAnchor
+  quoted_hash; not the ingest artifact_hash; not the assertion lifecycle
+  (E.2.7); not the ln-promote / ln-publish InputDigest. Pin tests embed
+  this file as data; the real hasher, its hash algorithm, byte layout and
+  tree encoding are P2.
+
+# Closed vocabularies, inline list form (pin tests parse them as lists,
+# never as substring scans over the file - MEM951).
+
+root_kinds: [CstRoot, AstRoot, OracleExamBinding]  # exactly 3, character-identical in meaning to ADR-0017 G0(d). CstRoot - reproducible root hash of the lossless green CST of the section; INV-09 exact-text reconstruction lives here alone; not identity, not parser records (ADR-0013 G0 note). AstRoot - reproducible root hash of the semantic red legal AST of the section; never an exact-text proof (review-25 B.2 stage 6 ban). OracleExamBinding - the third G0(d) hash binding fold(events, t) to snapshot(oracle@t); the EditionOracle is a checksum, not canon (ADR-0017 1c); not a canon of history, not oracle-tree-back. PresenceRoot / DocumentaryPresence / ArtifactHash / QuotedHash / ComposedCheckoutRoot / NormalizedSemanticHash (a review-24 precursor name for AstRoot, not a separate kind) / InputDigest / CommitDigest never appear in this parsed list.
+
+typed_non_success: [IncompleteProjection, CanonicalFormUnspecified]  # exactly 2. IncompleteProjection - the in-scope completeness outcome InScopeBlocked (E.2.5, by name) means the roots are not emitted: no partial hash, no None (INV-10 / R068). CanonicalFormUnspecified - a design-time hole in a serialization rule; a P2 runtime hasher must fail closed on it, never "hash anyway". Applied / OrderingConflict (MC-RES; INV-03 is named in non_claims) / InScopeBlocked (a completeness outcome, not a Merkle outcome) / MissingAnchor never appear in this parsed list.
+
+# Entities. Exactly two: MaterializedSection (the section being rooted)
+# and ProjectionRoots (its three roots plus the composed payload root).
+# No third entity is minted: not MerkleRoot, not QueryScope, not
+# CompletenessReport, not Assertion, not PendingEffect, not ForceInterval,
+# not ReferenceMention, not AddressableTextUnit.
+
+entities:
+  MaterializedSection:
+    definition: >-
+      The deterministic materialization of one Work's accepted assertion
+      prefix under a full checkout key: the green lossless CST tree and
+      the red semantic legal AST tree that
+      checkout(work, legal_as_of, known_as_of, view_mode, scope) produces
+      for that scope (ADR-0017 G0(d); Roslyn red/green analogy,
+      review-24 II.5). Design data, never a runtime object.
+    required_fields: [work, legal_as_of, known_as_of, view_mode, scope_kind]
+    scope_kind_ref: QueryScope.scope in scope-aware-completeness-contract.yaml (query_scope_kinds, E.2.5)
+    view_mode_ref: view_modes in scope-aware-completeness-contract.yaml (MC-CHECKOUT, E.2.5)
+    invariants: >
+      The five required fields together are the checkout key of the
+      section. view_mode is exactly one of the four MC-CHECKOUT views
+      (Promulgated / Operative / HistoricalCitation / Reference), named
+      here by kind; the view list stays owned by the E.2.5 YAML and is
+      never re-minted as a second canon. CaseApplicable is a later
+      ADR-0023 view, never a fifth view here. scope_kind is exactly one
+      of WholeAct / ComponentSubgraph, named here by kind; the scope x
+      gap -> outcome table stays owned by the E.2.5 YAML and is not
+      copied. A green tree of a C1 amending act and a green tree of a
+      section of the amended 44-FZ code are different
+      MaterializedSections (different work, different checkout key;
+      review-24 II.5); gluing them into one tree is a new error.
+      known_as_of stays the system_observation role bound (ADR-0009),
+      never a composite clock.
+    runtime_today: none
+
+  ProjectionRoots:
+    definition: >-
+      The three reproducible root hashes plus the composed payload root
+      of one MaterializedSection: what ADR-0017 G0(d) attaches beside
+      the completeness report in the checkout payload. Design data,
+      never a runtime object.
+    required_fields: [section, cst_root, ast_root, oracle_exam_binding, composed_checkout_root]
+    invariants: >
+      cst_root, ast_root and oracle_exam_binding are all present as
+      fields - none is optional and none is None (INV-10); a blocked
+      projection returns IncompleteProjection instead of partial roots.
+      composed_checkout_root is a function of the three roots plus the
+      checkout key; it is the singular root_hash of the checkout payload
+      (MC-CHECKOUT / review-25 B.3); its composition algorithm is P2; it
+      never replaces the triple and never becomes a fourth root kind.
+      Identical checkout key plus identical accepted assertion prefix
+      yields identical ProjectionRoots (INV-01; rebuild_equivalence
+      below).
+    runtime_today: none
+
+# Load-bearing table (as scope_gap_outcomes is for the E.2.5 contract):
+# exactly 6 rows, parsed as dash items; row_value cuts inline comments.
+
+canonical_form:
+  - root: CstRoot
+    serializes: lossless_green_tree_of_the_section  # green = full fidelity; INV-09 exact-text reconstruction lives here
+    never_as: component_id_or_ingest_artifact_or_parser_records  # hash is not a ComponentId; artifact_hash is pipeline step 1; parser records are not a CST (ADR-0013)
+  - root: AstRoot
+    serializes: semantic_red_tree_of_the_section  # red = semantic facade
+    never_as: exact_text_proof  # review-25 B.2 stage 6 ban; a normalized hash is never an exact-text proof
+  - root: OracleExamBinding
+    serializes: fold_vs_oracle_checksum  # fold(events, t) approximates snapshot(oracle@t); EditionOracle is a checksum, not canon (ADR-0017 1c)
+    never_as: canon_or_oracle_tree_back  # drift is healed by a new event or an explicit waiver, never by writing the oracle tree back as canon
+  - root: composed_checkout_root  # a ProjectionRoots field, not a root_kinds member
+    serializes: composition_of_three_plus_checkout_key
+    never_as: fourth_root_kind_or_completeness_report_field
+  - root: DocumentaryPresence  # G0(f) repeal axis (Tombstone / Present / Absent), AXIS-4
+    serializes: not_a_root
+    never_as: root_kinds_member
+  - root: artifact_hash  # ingest, pipeline step 1, SourceArtifact (review-25 B.2)
+    serializes: pipeline_step_1_source_artifact
+    never_as: section_root
+
+# INV-01 / G0(d) as a contract property, not a runtime hasher test.
+
+rebuild_equivalence: >
+  Identical checkout key plus identical accepted assertion prefix yields
+  identical ProjectionRoots - all three roots and the composed checkout
+  root (ADR-0017 G0(d); INV-01). The accepted prefix is the MC-CHECKOUT
+  fold: recorded_at <= known_as_of, status in {Validated,
+  AuthoritativeInternal}, effect_selector satisfied for legal_as_of
+  (review-25 B.3). Replaying the same accepted prefix under the same
+  checkout key returns the same root hash; the section roots are a pure
+  function of the ledger prefix, never of wall-clock time or insertion
+  order - repeated replay returns the same root hash (INV-01). This is a
+  property of the contract, not a runtime hasher test (P2).
+
+# Checkout projection - an invariant about the payload contour, not a
+# runtime API. The E.2.5 contract already pins its report field root_hash
+# as sibling_payload_checkout; this contract names that sibling and adds
+# no new API. root_hash never moves into CompletenessReport as a
+# projection-owned field.
+
+checkout_projection:
+  report_root_hash_sibling: ProjectionRoots.composed_checkout_root  # the E.2.5 sibling; MC-CHECKOUT singular root_hash (review-25 B.3)
+  three_roots_placement: beside_the_completeness_report_in_the_same_payload_contour
+  never_inside: CompletenessReport_fields
+  blocked_projection: IncompleteProjection_no_partial_hash  # InScopeBlocked (E.2.5) => roots not emitted (INV-10 / R068)
+
+# Non-claims. Mandatory name-trap phrases, as in the E.2.5 contract; pin
+# tests match parsed items and these phrases, never raw
+# substring-absence over the whole file (MEM951).
+
+non_claims:
+  - No Rust types are minted from this file (D216 / D098); design-only data, pin tests embed it via include_str! (D222).
+  - The data owner is ADR-0017 G0(d), not G0(e) AddressableTextUnit and not G0(f) DocumentaryPresence.
+  - The third root is OracleExamBinding (fold ~ oracle), not PresenceRoot and not artifact_hash.
+  - A hash is not a ComponentId; a path is not a ComponentId; similarity is not identity continuity (Git inequalities, review-24).
+  - AstRoot and any normalized semantic hash are never an exact-text proof; INV-09 exact-text reconstruction lives on CstRoot alone (review-25 B.2 stage 6 ban).
+  - composed_checkout_root is not a fourth root_kind and not a CompletenessReport field.
+  - quoted_hash (the G0(e) TextAnchor) is not a section Merkle root.
+  - Parser records are not a CST (ADR-0013 G0 note); the parser head is never declared a lossless green tree.
+  - Not a sixth clock (ADR-0009 five-clock roles); known_as_of stays system_observation.
+  - Not the assertion lifecycle (E.2.7) and not completeness outcomes (E.2.5).
+  - Not the ln-promote / ln-publish InputDigest and not the ln-identity FNV-1a digest_pair.
+  - Hash algorithm, byte layout and tree encoding are P2; no algorithm name (sha256 / blake3 / fnv) is a required field of any entity.
+  - Independent siblings hash in canonical order (INV-02), never in insertion order; the sort algorithm is P2.
+  - A dependent permutation is forbidden or typed OrderingConflict (INV-03); a hash never launders the conflict away.
+  - Future effects never enter a historical section (INV-04); Merkle roots do not redefine the pending-effects contour (E.2.3).
+  - InScopeBlocked is a completeness outcome, never a Merkle token; it projects to IncompleteProjection - no partial hash, no None (R068 / INV-10).
