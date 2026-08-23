@@ -399,6 +399,25 @@ snapshot(oracle@t)`. Projection ≠ truth — rebuild must be equivalent
 projections; `known_as_of` is the `system_observation` role bound (ADR-0009
 note) and never a composite clock.
 
+Additive note (review-26 P0-2, `doc/review/review-26-23-08-2026.md`): the
+living checkout key includes `projection_protocol_version` — the protocol
+version is part of the checkout input and of its result — and fold
+membership is decided by
+`disposition_as_of(a, known_as_of) = AcceptedForProjection`: an assertion
+contributes to a projection fold iff its disposition as of `known_as_of`
+is `AcceptedForProjection`. The disposition is an as-of function over the
+append-only ledger (G0(a)); `AcceptedForProjection` — its accepted-fold
+verdict — is not an entity, not a sixth status of the closed
+`LegalEventAssertion` set, and not a rename of `AuthoritativeInternal`.
+The living formula also names the precondition `causal_close`: the fold
+runs only over the causally closed set of accepted assertions; it is a
+named precondition of this G0(d) checkout, not a new YAML contract.
+INV-11 (projection protocol determinism) specializes INV-01: the replay
+root hash is reproducible only for a fixed protocol version, view policy,
+ledger cut, source set and request. Design-only at lifecycle
+`[proposed]`; no Rust type is minted, and no DispositionEvent is
+introduced here (the P0-3 redesign stays a separate candidate).
+
 The E.2.6 merkle-roots contour of this checkout contract is tracked as
 design-only data: the `MaterializedSection` / `ProjectionRoots` entities,
 the closed root kinds (`CstRoot` / `AstRoot` / `OracleExamBinding`) and the
