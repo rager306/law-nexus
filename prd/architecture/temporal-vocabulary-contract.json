@@ -545,6 +545,14 @@
         "canonical design term",
         "[proposed]"
       ]
+    },
+    {
+      "id": "legislative-effect",
+      "needle": "| `LegislativeEffect` |",
+      "required_fragments": [
+        "canonical design term",
+        "[proposed]"
+      ]
     }
   ],
   "gap_ids": [
