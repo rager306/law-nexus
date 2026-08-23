@@ -75,6 +75,15 @@ identity and relation registries, never ledger statuses. The closed assertion
 lifecycle lives in `prd/architecture/assertion-lifecycle-contract.yaml`
 (owner ADR-0017 G0(a); this ADR is related_adr for the gates homonym only).
 
+Evidence anchor contract (review-26 P0-7, design-only): the living evidence
+contract is `prd/architecture/evidence-anchor-contract.yaml` — EvidenceAnchor
+and EvidenceBundle as design-only `[proposed]` entities with a closed
+six-name selector_scheme. EvidenceSpan is the crosswalk alias for that
+contract, not a third entity. C10/C12/C13 do not own selector algebra or
+anchor shape; the gates stay Accepted [bounded] for kernel admission.
+ln-decode::EvidenceAnchor is a decoder byte-offset+fingerprint homonym, not
+this contract. No Rust type is minted from the YAML (D216/D098).
+
 ## Non-claims
 
 - No product evidence storage or graph database is selected.
