@@ -1,0 +1,143 @@
+# law-nexus scope-aware completeness contract - design-only data (D222 / D231).
+#
+# Names source: review-25 (immutable L0) E.2.5 (scope-aware completeness: an
+# unknown component must not block a scoped query), unpacked in review-11 §6
+# (fail-closed must be scope-aware: full-act reconstruction needs the closure
+# of all components, an answer about one article needs only the relevant
+# dependency subgraph) and canonicalized in ADR-0017 §4 (whole-act
+# fail-closed union) specialized by G0(d) (the checkout scope parameter),
+# projected names-only in prd/architecture/model-crystal.md (MC-CHECKOUT).
+# View modes are copied character-identical from MC-CHECKOUT; in-scope block
+# reasons are copied character-identical from ADR-0017 §4 resolve_CTV
+# non-success. This file adds the layer no sibling carries: the two
+# checkout-scope entities, the closed scope/outcome vocabularies and the
+# scope x gap -> outcome table. ADR-0018 and ADR-0019 are related_adr for
+# the Unknown/Conflict homonyms only; the data owner is ADR-0017 (D231). It
+# exists so pin tests can embed it as data; no runtime component parses it
+# and no Rust types are generated from it.
+
+schema_version: law-nexus-scope-aware-completeness-contract/v1
+lifecycle: "[proposed]"
+authoritative: false
+owner_adr: ADR-0017
+related_adr: [ADR-0018, ADR-0019]
+checkout_source: ADR-0017 G0(d) - checkout(work, legal_as_of, known_as_of, view_mode, scope)
+boundary: >
+  Design-only QueryScope/CompletenessReport contract (review-25 E.2.5 /
+  ADR-0017 G0(d)). Not a Rust enum, not the checkout runtime, not Merkle
+  root hashing of materialized sections (E.2.6), not the assertion
+  lifecycle (E.2.7), not the force Unknown (ADR-0018), not the maxim
+  Conflict (ADR-0019), not the per-operation registry scope. Pin tests
+  embed this file as data.
+
+# Closed sets - character-identical to canon; this file never invents a
+# third scope kind, a fifth view mode, a fourth outcome, a fourth block
+# reason or a new typed token.
+query_scope_kinds: [WholeAct, ComponentSubgraph]  # exactly 2; WholeAct preserves ADR-0017 §4 (every component in scope; any gap blocks); ComponentSubgraph is seeds plus an optional dependency subgraph, where an out-of-scope unknown never blocks; no Corpus / CrossAct / Appendix / WorkFamily / ArticleOnly is invented
+
+view_modes: [Promulgated, Operative, HistoricalCitation, Reference]  # exactly 4, character-identical to MC-CHECKOUT; CaseApplicable is ADR-0023 and appears only in comments/non-claims, never in this parsed list; a view is orthogonal to a scope kind - Operative with WholeAct and Operative with ComponentSubgraph are both lawful; a view is never a scope kind
+
+completeness_outcomes: [InScopeComplete, InScopeBlocked, OutOfScopeUnknownReported]  # exactly 3; report outcomes, never MC-RES apply results and never resolve_CTV returns; PartialSuccess / Degraded / None / Ok never appear here (INV-10)
+
+in_scope_block_reasons: [Unknown, Conflict, MissingAnchor]  # exactly 3, character-identical to ADR-0017 §4 resolve_CTV non-success; never widened with OrderingConflict / IncompleteSource / AmbiguousTarget; a coverage Conflict is two CTVs claiming validity at t inside the scope, not the ADR-0019 maxim Conflict
+
+typed_non_success: [UnderspecifiedScope, SeedNotFound]  # exactly 2; UnderspecifiedScope = ComponentSubgraph without a seed, or a WholeAct exclude-list emptying the in-scope set; SeedNotFound = a seed ComponentId absent from the Work; not the MC-RES 9-set; Applied / Bound / AlreadyApplied / Suspended / Transitional / UnknownEffect never appear here
+
+# Two entities; each PascalCase key appears exactly once in this file.
+entities:
+  QueryScope:
+    definition: >
+      The scope half of a checkout request: which components of the Work
+      the query is about. WholeAct preserves the ADR-0017 §4 union rule
+      (every component in scope); ComponentSubgraph is seeds plus an
+      optional dependency subgraph, where an out-of-scope unknown never
+      blocks. Design data, never a runtime object.
+    required_fields: [kind, seed_component_ids, include_dependency_subgraph, view_mode]
+    invariants: >
+      kind is exactly one of query_scope_kinds; view_mode is exactly one
+      of view_modes; WholeAct means seed_component_ids is empty or unused
+      and include_dependency_subgraph is irrelevant; ComponentSubgraph
+      requires at least one seed; include_dependency_subgraph is true or
+      false - false means seeds only, the query is still scoped, never
+      whole-act; a malformed scope fails typed with UnderspecifiedScope or
+      SeedNotFound, never silently coerced to WholeAct.
+    runtime_today: none
+
+  CompletenessReport:
+    definition: >
+      The completeness half of a checkout result: what the deterministic
+      fold could and could not establish inside the requested scope. A
+      projection of the assertion ledger fold, never source truth and
+      never a stored edition. Design data, never a runtime object.
+    required_fields: [query_scope, outcome, in_scope_unknowns, out_of_scope_unknowns, in_scope_conflicts, coverage, provenance]
+    invariants: >
+      outcome is exactly one of completeness_outcomes; under WholeAct
+      out_of_scope_unknowns is always empty; any in-scope Unknown,
+      Conflict or MissingAnchor forces InScopeBlocked;
+      OutOfScopeUnknownReported requires empty in-scope gaps; the report
+      always carries out_of_scope_unknowns - it may be an empty list, but
+      it is never smoothed away into an InScopeComplete without the list
+      (R068).
+    runtime_today: none
+
+# The load-bearing scope x gap -> outcome table (as strike is for the
+# reference-binding contract and transitions for the force interval set):
+# exactly 5 rows.
+scope_gap_outcomes:
+  - kind: WholeAct  # ADR-0017 §4 whole-act fail-closed preserved as a row, not deleted (R068)
+    in_scope_gap: any
+    out_of_scope_gap: impossible  # every component is in scope under WholeAct
+    outcome: InScopeBlocked
+  - kind: WholeAct
+    in_scope_gap: none
+    out_of_scope_gap: impossible
+    outcome: InScopeComplete
+  - kind: ComponentSubgraph
+    in_scope_gap: any
+    out_of_scope_gap: ignored_for_blocking  # out-of-scope gaps never block a scoped query
+    outcome: InScopeBlocked
+  - kind: ComponentSubgraph
+    in_scope_gap: none
+    out_of_scope_gap: any
+    outcome: OutOfScopeUnknownReported
+  - kind: ComponentSubgraph
+    in_scope_gap: none
+    out_of_scope_gap: none
+    outcome: InScopeComplete
+
+# E.2.5 invariant: an out-of-scope unknown never flips the outcome into
+# InScopeBlocked.
+scope_gap_invariant: >
+  No row above lets an out_of_scope_gap turn a ComponentSubgraph outcome
+  into InScopeBlocked; an out-of-scope unknown is reported, never blocking
+  (review-25 E.2.5).
+
+# Checkout projection (MC-CHECKOUT / ADR-0017 G0(d)): how a
+# CompletenessReport projects into the checkout payload - an invariant,
+# not a runtime API.
+checkout_projection:
+  coverage: projection_of_completeness_report
+  unknowns: in_scope_union_out_of_scope_distinguishable
+  conflicts: in_scope_ctv_conflicts_only
+  root_hash: sibling_payload_checkout  # E.2.6 / S02 Merkle contract; never a CompletenessReport field
+  applied_effects: owned_by_pending_effects_e23  # E.2.3, not completeness
+  excluded_future_effects: owned_by_pending_effects_e23
+  node_provenance: INV-08  # every in-scope node carries provenance or a typed Unknown
+  no_none_outcomes: INV-10  # no None ever replaces a typed non-success
+  whole_act_fail_closed: ADR-0017_s4_preserved_as_wholeact_row  # not deleted (R068 anti-smoothing)
+
+non_claims:  # mandatory phrases; pinned by the pin-test wave (T02 embeds this file via include_str!)
+  - No Rust types are minted from this file (D216 / D098).
+  - The ADR-0017 §4 whole-act fail-closed row is preserved, not deleted (R068 anti-smoothing).
+  - An out-of-scope unknown does not block a ComponentSubgraph query; it is reported (E.2.5).
+  - A completeness Unknown is not a NormativeState Unknown and not the force Unknown (ADR-0018).
+  - A coverage Conflict (two CTVs claiming validity at t inside the scope) is not the ADR-0019 maxim Conflict and not an OrderingConflict.
+  - QueryScope is not the per-operation registry scope (operation-registry.yaml) and not RepealScope.
+  - view_mode is not QueryScope; views and scope kinds are orthogonal dimensions.
+  - CaseApplicable is an ADR-0023 view, not part of this contract.
+  - Not Merkle root hashing of materialized sections (E.2.6) and not the assertion lifecycle (E.2.7).
+  - Not the pending-effects excluded_future rule (E.2.3) and not the force interval set (E.2.4).
+  - Not publication completeness (ln-publish HC-15) and not corpus completeness.
+  - Not a sixth clock (ADR-0009 five-clock roles).
+  - Not a resolver and not the E.3 compiler.
+  - The dependency-subgraph closure algorithm is not minted here; include_dependency_subgraph is a true/false flag, its computation is P2.
