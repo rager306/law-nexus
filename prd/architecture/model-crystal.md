@@ -178,13 +178,18 @@ RetroactiveTo / Unknown. These are projections of the five-clock roles
 flowchart TD
     I["AmendmentInstrument"] --> P["AmendingProvision"]
     P --> M["MicroOperation<br/>preconditions + effect selector"]
-    M --> E["LegalEffect<br/>Text Membership Designation Force Reference Transition"]
-    E -.->|"depends_on supersedes cancels modifies_pending_effect"| E2["LegalEffect"]
+    M --> E["LegislativeEffect<br/>Text Membership Designation Force Reference Transition"]
+    E -.->|"depends_on supersedes cancels modifies_pending_effect"| E2["LegislativeEffect"]
     M2["MicroOperation"] -.->|"non-commuting underdetermined = OrderingConflict"| E
 ```
 
 Linear order is only a proven projection of the DAG; never order by act
 number.
+
+Naming: the living name of the typed effect node is `LegislativeEffect`
+(review-26 P0-1; additive naming note in
+`doc/adr/0017-component-temporal-versioning.md` G0(b)); the historical G0(b)
+wording `LegalEffect` is retained unchanged.
 
 Pending-effects design data (E.2.3 entities, FSM, `modifies_pending_effect`
 edge disambiguated from the OP-P operation):

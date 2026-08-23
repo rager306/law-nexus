@@ -353,6 +353,18 @@ micro-events are MicroOperations, and effects are the typed results; P9
 "consists of" maps Instrument → Provision → MicroOperation. No hidden side
 effects: an effect exists only via its authorizing operation.
 
+Naming note (review-26 P0-1, `doc/review/review-26-23-08-2026.md`): the
+living name of the typed amendment-algebra outcome in this G0(b) chain is
+`LegislativeEffect`. The historical G0(b) wording above — `LegalEffect` as
+the typed outcome — is retained verbatim per the additive-only D216
+disposition and is not rewritten. The §3 crosswalk row ``| `LegalEffect` |``
+in `prd/temporal-legal-model.md` remains the other pole under that older
+name: the deferred-undefined NormRule consequence (TSG-005), a distinct
+concept that is not this outcome and is not renamed here. `LegislativeEffect`
+is likewise not ADR-0009 `legal_act_effect` and not the bounded-runtime
+`ClockKind::LegalActEffect` clock role. Design-only at lifecycle
+`[proposed]`: no Rust type is minted.
+
 ### G0(c) Causal DAG, EffectSelector, OrderingConflict
 
 Effects form a **causal DAG** (`depends_on`, `targets_base_version`,
