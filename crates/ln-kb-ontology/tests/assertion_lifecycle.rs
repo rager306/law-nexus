@@ -681,8 +681,10 @@ fn correction_invariant_and_fold_filter_stay_name_citations() {
     assert!(
         filter.contains("rebuild_equivalence")
             && filter.contains("merkle-roots-contract.yaml")
-            && filter.contains("MC-CHECKOUT"),
-        "fold_filter_ref must cite the E.2.6 fold filter by name: {filter}"
+            && filter.contains("MC-CHECKOUT")
+            && filter.contains("disposition_as_of")
+            && filter.contains("AcceptedForProjection"),
+        "fold_filter_ref must cite the living MC-CHECKOUT fold by name: {filter}"
     );
     assert!(
         normalized.contains("never copied into this file"),

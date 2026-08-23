@@ -42,7 +42,7 @@ statuses: [Proposed, Validated, AuthoritativeInternal, Rejected, Superseded]  # 
 
 promotion_path: [Proposed, Validated, AuthoritativeInternal]  # exactly 3, the three named E.2.7 rungs; skipping a rung is typed below (skip_lifecycle); Rejected / Superseded are statuses members, never promotion_path members
 
-fold_statuses: [Validated, AuthoritativeInternal]  # exactly 2, character-identical to the MC-CHECKOUT fold / merkle INV-01 citation; Proposed / Rejected / Superseded never enter the snapshot fold; the fold formula itself stays cited by name in fold_filter_ref, never copied
+fold_statuses: [Validated, AuthoritativeInternal]  # exactly 2, character-identical to the MC-CHECKOUT fold / merkle INV-01 citation; current-row proxy: per-row current status, while historical fold membership is disposition_as_of(a, known_as_of) per fold_filter_ref - a currently Superseded assertion may enter an earlier known_as_of cut, which is MC-CHECKOUT bitemporality, not a skip_lifecycle row-6 exception; Proposed / Rejected / Superseded rows never enter the snapshot fold on current status; the fold formula itself stays cited by name in fold_filter_ref, never copied
 
 typed_non_success: [SkipLifecycle, DirectAuthoritativeMint, InPlaceRewrite]  # exactly 3; DirectPromotionRejected (an ADR-0008 token) / CompetingWriterRejected / Applied / Bound / Confirmed never appear in this parsed list
 
@@ -155,10 +155,14 @@ correction_invariant: >
 # Snapshot fold membership is cited by name, never re-canonicalized here.
 
 fold_filter_ref: >-
-  Snapshot membership is decided by the E.2.6 fold filter:
-  rebuild_equivalence in prd/architecture/merkle-roots-contract.yaml over
-  the MC-CHECKOUT bitemporal fold; fold_statuses above names the admitted
-  statuses, the fold formula itself is never copied into this file.
+  Snapshot membership is decided by the living MC-CHECKOUT project fold:
+  assertions enter the cut where disposition_as_of(a, known_as_of) =
+  AcceptedForProjection and effects are causal_close over the compiled
+  assertions, with projection_protocol_version carried in both the
+  checkout input and the result payload; rebuild_equivalence in
+  prd/architecture/merkle-roots-contract.yaml pins fold rebuilds to the
+  same root hash. fold_statuses above is the current-row proxy for the
+  same fold; the fold formula itself is never copied into this file.
 
 # Non-claims. Mandatory name-trap phrases; pin tests match parsed items
 # and these phrases, never raw substring-absence over the whole file
