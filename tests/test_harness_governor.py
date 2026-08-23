@@ -3189,7 +3189,7 @@ def _write_crystal_fixture(
         f"## {name}"
         for name in ("Layer 0", "Layer 1", "Reality boundary", "Non-claims", "Grounding")
     )
-    inv_rows = "\n".join(f"| INV-{i:02d} | invariant row |" for i in range(1, 11))
+    inv_rows = "\n".join(f"| INV-{i:02d} | invariant row |" for i in range(1, 12))
     anchor_lines: tuple[str, ...] = (
         (f'<!-- anchor: review \u00a7A.2 "{quote}" -->\n',) if include_anchor else ()
     )

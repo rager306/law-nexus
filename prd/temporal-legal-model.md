@@ -371,6 +371,9 @@ failing gate is a stop condition, never a silent repair.
 | INV-09 | Exact-text reconstruction reproduces the official artifact (via CST) | ADR-0017 G0(d) | CST projection |
 | INV-10 | No `None` ever replaces a legally meaningful typed non-success | ADR-0023 + ADR-0017 | checkout/errors |
 
+INV-11 lives in crystal MC-INV / ADR-0017 G0(d) P0-2; the §14.5 D216 set
+remains INV-01..10 until a dedicated honesty pass (D240).
+
 ## 15. Stop conditions
 
 Stop and replan if any review:

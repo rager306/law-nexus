@@ -42,6 +42,8 @@ Evidence Vault
 + deterministic checkout(legal_as_of, known_as_of, view_mode)
 ```
 
+Living checkout key includes `projection_protocol_version` (review-26 P0-2 / INV-11).
+
 Target name: **Bitemporal Legislative Event Compiler with Persistent Legal
 Syntax DAG**. Git is an analogy of useful properties (content-addressing,
 Merkle root, structural sharing), not domain identity:
@@ -87,7 +89,7 @@ Repealed-цель           ≠  сломанный биндинг
 публикация              ≠  система знает
 ```
 
-### MC-INV. Metamorphic acceptance invariants (INV-01..INV-10)
+### MC-INV. Metamorphic acceptance invariants (INV-01..INV-11)
 
 | ID | Invariant (one line) |
 |----|----------------------|
@@ -101,6 +103,7 @@ Repealed-цель           ≠  сломанный биндинг
 | INV-08 | Every snapshot node carries provenance or a typed Unknown. |
 | INV-09 | Exact-text reconstruction reproduces the official artifact (via CST). |
 | INV-10 | No `None` ever replaces a legally meaningful typed non-success. |
+| INV-11 | Projection protocol determinism: identical ledger cut + source set + protocol version + view policy + request → same snapshot hash. |
 
 <!-- anchor: adr-0017 G0(d) "repeated replay" -->
 <!-- anchor: temporal-model §14.5 "Permutation of independent events does not change the snapshot" -->
@@ -248,20 +251,30 @@ not a new anchor source.
 <!-- anchor: adr-0017 G0(d) "checkout(work, legal_as_of, known_as_of" -->
 
 ```text
-Snapshot = fold(
-    assertions
-    where recorded_at <= known_as_of
-      and status in {Validated, AuthoritativeInternal}
-      and effect_selector satisfied for legal_as_of
+Snapshot = project(
+    projection_protocol_version,
+    legal_as_of,
+    known_as_of,
+    view_mode,
+    scope,
+    assertions = { a | a.recorded_at <= known_as_of
+                   AND disposition_as_of(a, known_as_of) = AcceptedForProjection },
+    effects = causal_close(compile(assertions),
+        trigger_state_as_of = known_as_of, legal_as_of = legal_as_of)
 )
+Result payload names: projection_protocol_version, ledger_cut_hash,
+source_set_hash, view_policy_hash, root_hash
+(= ProjectionRoots.composed_checkout_root), coverage_certificate,
+causal_conflicts, unknown_triggers.
 ```
 
 ```mermaid
 flowchart LR
-    LA["legal_as_of"] --> C["checkout fold"]
+    PV["projection_protocol_version"] --> C["checkout project fold"]
+    LA["legal_as_of"] --> C
     KA["known_as_of"] --> C
     VM["view_mode + scope"] --> C
-    C --> OUT["view + root_hash + coverage<br/>+ applied / excluded_future effects<br/>+ conflicts + unknowns + provenance"]
+    C --> OUT["view + root_hash + coverage_certificate<br/>+ applied / excluded_future effects<br/>+ causal_conflicts + unknown_triggers + provenance<br/>+ projection_protocol_version + ledger_cut_hash<br/>+ source_set_hash + view_policy_hash"]
 ```
 
 Views: VIEW-Promulgated (authoritative text), VIEW-Operative (in force at t),
