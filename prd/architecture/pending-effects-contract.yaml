@@ -142,8 +142,9 @@ modifies_pending_effect:
   target_state: scheduled
   never_targets: [applied, cancelled]
   notes: >
-    cancels is a LegalEffect -> LegalEffect DAG edge; CancelPendingEffect is
-    the OP-P operation driving scheduled -> cancelled. supersedes speaks
+    cancels is a LegislativeEffect -> LegislativeEffect DAG edge;
+    CancelPendingEffect is the OP-P operation driving scheduled ->
+    cancelled. supersedes speaks
     about already authorized or applied effects; a change to an effect still
     pending travels through this edge, never through supersedes and never
     through a `modified` state.
@@ -167,7 +168,7 @@ non_claims:  # mandatory phrases; pinned by the pin-test wave (T02 embeds this f
   - No closed_vocabularies row exists for this contract; kb-ontology.yaml keeps only the token lists.
   - ProspectiveVersion is not PendingEffect; one is a component view, the other an effect registration.
   - modifies_pending_effect is not ModifyPendingEffect; the first is a DAG edge, the second an OP-P operation.
-  - cancels is not CancelPendingEffect; the first is a LegalEffect-to-LegalEffect edge, the second an OP-P operation.
+  - cancels is not CancelPendingEffect; the first is a LegislativeEffect-to-LegislativeEffect edge, the second an OP-P operation.
   - excluded_future is not Suspended and not NotYetInForce.
   - ScheduleEffect is not Commence; pending bookkeeping is not an OP-F force interval operation.
   - Not the OP-F interval set (E.2.4; the ADR-0018 force overlay owns force intervals).
