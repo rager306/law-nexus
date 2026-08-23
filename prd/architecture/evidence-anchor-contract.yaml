@@ -1,0 +1,106 @@
+# law-nexus evidence anchor contract - design-only data (review-26 P0-7 /
+# D222 first proof).
+#
+# Names source: review-26 P0-7 canonical field list, owned by ADR-0010
+# (evidence kernel gates) with ADR-0013 (multi-source parser emission) and
+# ADR-0017 (G0(a) ledger assertion) as related homonym surfaces only. The
+# six selector_scheme names and the 8+5 required field names are copied
+# character-identical below and are never renamed, extended or
+# re-enumerated here: capture_method, extractor_version, selector and
+# source_authority_classes are required field names, not token lists
+# (D243 / MEM949). This file exists so pin tests can embed it as data; no
+# runtime component parses it and no Rust types are generated from it.
+
+schema_version: law-nexus-evidence-anchor-contract/v1
+lifecycle: "[proposed]"
+authoritative: false
+owner_adr: ADR-0010
+related_adr: [ADR-0013, ADR-0017]
+boundary: >
+  Design-only EvidenceAnchor/EvidenceBundle contract (review-26 P0-7 /
+  ADR-0010). Not a Rust enum, not ln-decode::EvidenceAnchor, not
+  SourceBlock / SourceBlockRecord, not PROV-O runtime, not the merkle
+  quoted_hash section root. Pin tests embed this file as data.
+
+# Closed set - character-identical to the review-26 P0-7 canon; this file
+# never invents a seventh scheme and never equates TokenRange with the
+# G0(e) TextAnchor identity floor.
+selector_scheme:  # exactly 6, canon order (review-26 P0-7)
+  - ByteRange
+  - CharacterRange
+  - XPath
+  - JsonPointer
+  - PageRegion
+  - TokenRange
+
+# Two entities; each PascalCase key appears exactly once in this file.
+entities:
+  EvidenceAnchor:
+    definition: >
+      One captured, hash-pinned location inside a specific artifact
+      rendition: the minimal unit of evidence an assertion can cite.
+      Design data, never a runtime object.
+    required_fields:
+      artifact_id: >
+        Stable id of the ingested artifact the anchor addresses; the
+        artifact, never a ComponentId and never a CTV.
+      artifact_hash: >
+        Content hash of the captured artifact recorded at capture time;
+        distinct from quoted_hash and from any merkle section root.
+      rendition_id: >
+        Which rendition of the artifact the selector addresses; selectors
+        are rendition-local and never portable across renditions.
+      selector_scheme: >
+        Exactly one of the closed selector_scheme list above; never a
+        seventh scheme and never the G0(e) TextAnchor identity floor.
+      selector: >
+        The scheme-specific selector payload under the declared
+        selector_scheme; a required field name, not an enum minted here.
+      quoted_hash: >
+        Hash of the quoted text as captured from the rendition; it pins
+        what was read, never where the artifact came from.
+      capture_method: >
+        How the quote was captured from the rendition; a required field
+        name, no capture token list is minted here.
+      extractor_version: >
+        Version of the extractor that captured this anchor; not the
+        review-case schema extractor_version field.
+    runtime_today: none
+
+  EvidenceBundle:
+    definition: >
+      The evidence carried by one assertion: a primary source anchor plus
+      supporting, contradicting and qualifying anchors that may coexist in
+      the same bundle (review-26 [11]). Design data, never a runtime
+      object.
+    required_fields:
+      supporting_anchors: >
+        Anchors whose content supports the assertion; support never turns
+        a candidate into a fact.
+      contradicting_anchors: >
+        Anchors whose content contradicts the assertion; contradiction is
+        recorded, never silently dropped.
+      qualifying_anchors: >
+        Anchors whose content qualifies the assertion without fully
+        supporting or contradicting it.
+      primary_source_anchor: >
+        The one anchor naming the primary source of the assertion;
+        supporting anchors never replace it.
+      source_authority_classes: >
+        Authority classes of the cited sources; a required field name, no
+        class token list is minted here (review-26 names the field, not
+        the classes).
+    runtime_today: none
+
+non_claims:  # mandatory phrases; pinned by the S03 pin suite (tests/evidence_anchor.rs embeds this file via include_str!)
+  - No Rust types are minted from this file (D216 / D098).
+  - ln-decode EvidenceAnchor is a decoder byte-offset+fingerprint homonym, not this contract.
+  - EvidenceSpan is the crosswalk alias for this contract, not a third entity.
+  - TokenRange is not the G0(e) TextAnchor identity floor.
+  - quoted_hash is not the ingest artifact_hash and not the merkle section root.
+  - Supporting, contradicting and qualifying anchors may coexist in one bundle (review-26 [11]).
+  - PROV-O is an external projection only; no Entity or Activity keys are minted here.
+  - SourceBlock stays deferred-undefined.
+  - Not the assertion FSM (E.2.7).
+  - Not CoverageCertificate (P0-8).
+  - The review-case extractor_version is not this field.
