@@ -327,6 +327,21 @@ appends a new assertion and rebuilds projections, never rewrites the
 `known_as_of` past. Parser output enters the ledger only as `Proposed`
 candidates (see the ADR-0013 G0 note); a candidate is never a fact.
 
+The E.2.7 assertion-lifecycle contour of this ledger is tracked as
+design-only data: the `LegalEventAssertion` / `AssertionTransition`
+entities, the closed five-status set (`Proposed` / `Validated` /
+`AuthoritativeInternal` / `Rejected` / `Superseded`), the three-rung
+promotion path (`Proposed → Validated → AuthoritativeInternal`, no rung
+skipping), the typed skip table and the INV-05 append-only correction
+invariant live in `prd/architecture/assertion-lifecycle-contract.yaml`
+(lifecycle `[proposed]`; design-only, not a runtime ledger; data owner
+ADR-0017 G0(a) — pin tests embed it as data, D222/D233). The YAML
+**specializes** the G0(a) status list above and does not rewrite it: the
+three E.2.7 names are the promotion_path, not the closed status set.
+ADR-0008/0010 are related_adr homonyms only — D116 corpus promotion is
+never an `AuthoritativeInternal` mint and C10 process gates are not this
+FSM.
+
 ### G0(b) Four-level amendment algebra
 
 `AmendmentInstrument` (the amending act) → `AmendingProvision` (an

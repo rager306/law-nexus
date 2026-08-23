@@ -231,6 +231,13 @@ Statuses: Proposed / Validated / AuthoritativeInternal / Rejected /
 Superseded, plus `recorded_at` and `asserted_by`. Correction = new immutable
 assertion + rebuilt projection; never in-place rewrite.
 
+The closed five statuses, the three-rung promotion path without skip
+(Proposed → Validated → AuthoritativeInternal), the skip-ban table and the
+INV-05 append-only correction invariant live in
+`prd/architecture/assertion-lifecycle-contract.yaml` (design-only companion
+data, E.2.7, lifecycle `[proposed]`) — a navigation pointer under MC-LEDGER,
+not a new anchor source.
+
 ### MC-CHECKOUT. Bitemporal checkout
 
 <!-- anchor: adr-0017 G0(d) "checkout(work, legal_as_of, known_as_of" -->

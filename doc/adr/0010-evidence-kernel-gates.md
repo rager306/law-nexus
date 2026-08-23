@@ -68,6 +68,13 @@ import each other directly.
 - Downstream ontology resolvers (ADR-0016..0022) must not bypass C10/C12/C13.
 - Kernel gates do not by themselves prove legal correctness of admitted content.
 
+Related contour (E.2.7, design-only): C10 immutability of committed outcomes
+specializes INV-05 for kernel records — committed outcomes are never
+rewritten — but C10 does not own the assertion admission FSM. C12/C13 govern
+identity and relation registries, never ledger statuses. The closed assertion
+lifecycle lives in `prd/architecture/assertion-lifecycle-contract.yaml`
+(owner ADR-0017 G0(a); this ADR is related_adr for the gates homonym only).
+
 ## Non-claims
 
 - No product evidence storage or graph database is selected.

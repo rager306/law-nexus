@@ -571,6 +571,12 @@ green CST. The closed section-root vocabulary (`CstRoot` / `AstRoot` /
 (lifecycle `[proposed]`; ADR-0017 owns the data; this ADR is `related_adr`
 for this note only). No parser runtime is minted by it.
 
+E.2.7 emission-seam note (design-only): the parser-emits-`Proposed` seam
+above is anchored as `emit_source` in
+`prd/architecture/assertion-lifecycle-contract.yaml` (lifecycle
+`[proposed]`; ADR-0017 G0(a) owns the data; this ADR is emit_source, never
+a fourth owner). No parser runtime is minted by it.
+
 ## Non-claims
 
 - `HierarchyMarker` / `map_hierarchy_marker` is a **fail-closed candidate lift**:

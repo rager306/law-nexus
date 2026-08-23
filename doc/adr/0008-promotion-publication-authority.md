@@ -63,6 +63,15 @@ publication path to bypass promotion curation.
 - Incomplete, dual-writer, and direct provisional promotion paths fail closed with typed outcomes.
 - Downstream ontology/product layers must not invent a second publication authority.
 
+Related contour (E.2.7, design-only): D116/D120 decide corpus promotion and
+publication authority over curated sources and complete H1 units; neither is
+a mint of `AuthoritativeInternal` on a `LegalEventAssertion` record. The same
+sole-authority logic applies by analogy: an adapter minting
+`AuthoritativeInternal` directly is rejected as the typed non-success
+`DirectAuthoritativeMint`. The closed assertion lifecycle lives in
+`prd/architecture/assertion-lifecycle-contract.yaml` (owner ADR-0017 G0(a);
+this ADR is related_adr for the authority homonym only).
+
 ## Non-claims
 
 - No product storage, fencing or transaction infrastructure is selected.
