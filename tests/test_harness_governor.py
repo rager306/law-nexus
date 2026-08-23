@@ -11,6 +11,7 @@ from law_nexus_harness.cli import main
 from law_nexus_harness.governor import (
     _ACTIVE_REQUIREMENT_POLICY,
     _EXPECTED_DIRECTION,
+    GOVERNOR_CHECK_SPECS,
     GOVERNOR_SCHEMA_VERSION,
     GovernorEvidence,
     _freshness_trigger_gaps,
@@ -37,6 +38,7 @@ from law_nexus_harness.governor import (
     check_port_contract_coverage,
     check_published_trace_contract,
     check_roadmap_freshness,
+    check_semantic_name_collision,
     check_semantic_stub_in_product_code,
     check_temporal_vocabulary_contract,
     check_temporal_vocabulary_drift,
@@ -1769,6 +1771,135 @@ def test_semantic_stub_in_product_code_ignores_tests_and_testkit(tmp_path: Path)
     assert len(findings) == 1
     assert findings[0].status == "pass"
     assert findings[0].severity == "ok"
+
+
+def test_live_governor_passes_semantic_name_collision() -> None:
+    report = run_governor(ROOT)
+    by_id = {item.check_id: item for item in report.findings}
+    assert "semantic-name-collision" in by_id
+    finding = by_id["semantic-name-collision"]
+    # Live EvidenceAnchor YAML entity vs ln-decode::EvidenceAnchor is a
+    # documented homonym (non_claims qualifier), not a dual-owner warn.
+    assert finding.status == "pass"
+    assert finding.severity == "ok"
+    assert "collision_count=0" in finding.observed
+    assert "documented_homonyms=EvidenceAnchor" in finding.observed
+    assert report.error_count == 0
+    assert report.status == "ok"
+
+
+def _write_semantic_collision_yaml(root: Path, *, homonym: bool) -> None:
+    target = root / "prd" / "architecture" / "evidence-anchor-contract.yaml"
+    target.parent.mkdir(parents=True)
+    non_claim = (
+        "  - ln-decode EvidenceAnchor is a decoder byte-offset+fingerprint "
+        "homonym, not this contract.\n"
+        if homonym
+        else "  - No Rust types are minted from this file.\n"
+    )
+    target.write_text(
+        "schema_version: law-nexus-evidence-anchor-contract/v1\n"
+        'lifecycle: "[proposed]"\n'
+        "authoritative: false\n"
+        "owner_adr: ADR-0010\n"
+        "entities:\n"
+        "  EvidenceAnchor:\n"
+        "    definition: >-\n"
+        "      One captured, hash-pinned location inside a rendition.\n"
+        "    runtime_today: none\n"
+        "non_claims:\n" + non_claim,
+        encoding="utf-8",
+    )
+
+
+def _write_semantic_collision_rust(root: Path) -> None:
+    source = root / "crates" / "ln-decode" / "src" / "domain.rs"
+    source.parent.mkdir(parents=True)
+    source.write_text(
+        "pub struct EvidenceAnchor {\n    pub span: SourceSpan,\n}\n",
+        encoding="utf-8",
+    )
+
+
+def test_semantic_name_collision_passes_on_documented_homonym(tmp_path: Path) -> None:
+    _write_semantic_collision_yaml(tmp_path, homonym=True)
+    _write_semantic_collision_rust(tmp_path)
+    findings = check_semantic_name_collision(tmp_path)
+    assert len(findings) == 1
+    finding = findings[0]
+    assert finding.check_id == "semantic-name-collision"
+    assert finding.status == "pass"
+    assert finding.severity == "ok"
+    assert "collision_count=0" in finding.observed
+    assert "documented_homonyms=EvidenceAnchor" in finding.observed
+
+
+def test_semantic_name_collision_warns_on_unqualified_dual_owner(tmp_path: Path) -> None:
+    _write_semantic_collision_yaml(tmp_path, homonym=False)
+    _write_semantic_collision_rust(tmp_path)
+    findings = check_semantic_name_collision(tmp_path)
+    assert len(findings) == 1
+    finding = findings[0]
+    assert finding.check_id == "semantic-name-collision"
+    assert finding.status == "fail"
+    assert finding.severity == "warn"
+    assert "collision_count=1" in finding.observed
+    assert "EvidenceAnchor" in finding.observed
+    assert finding.evidence == (
+        GovernorEvidence(path="prd/architecture/evidence-anchor-contract.yaml", line=6),
+        GovernorEvidence(path="crates/ln-decode/src/domain.rs", line=1),
+    )
+
+
+def test_semantic_name_collision_ignores_diverged_names(tmp_path: Path) -> None:
+    # LegislativeEffect / LegalEffect / legal_act_effect are distinct tokens,
+    # not one collision (review-26 P0-1 rename keeps them diverged).
+    glossary = tmp_path / "prd" / "temporal-legal-model.md"
+    glossary.parent.mkdir(parents=True)
+    glossary.write_text(
+        "| Term | Definition | Authority | Status | Boundary |\n"
+        "| --- | --- | --- | --- | --- |\n"
+        "| `LegislativeEffect` | typed amendment-algebra outcome | ADR-0017 G0(b) | canonical design term `[proposed]` | not `legal_act_effect` |\n"
+        "| `LegalEffect` | possible future NormRule consequence role | future ADR | deferred-undefined | not `legal_act_effect` |\n",
+        encoding="utf-8",
+    )
+    rust = tmp_path / "crates" / "ln-temporal" / "src" / "domain.rs"
+    rust.parent.mkdir(parents=True)
+    rust.write_text(
+        "// legal_act_effect is a distinct clock token, never merged here\n"
+        "pub enum ClockKind {\n"
+        "    LegalActEffect,\n"
+        "}\n",
+        encoding="utf-8",
+    )
+    findings = check_semantic_name_collision(tmp_path)
+    assert len(findings) == 1
+    finding = findings[0]
+    assert finding.check_id == "semantic-name-collision"
+    assert finding.status == "pass"
+    assert finding.severity == "ok"
+    assert "collision_count=0" in finding.observed
+
+
+def test_semantic_name_collision_ignores_review_prose(tmp_path: Path) -> None:
+    # doc/review/** is never a definition surface: planted dual-owner rows
+    # in review prose must not raise a finding.
+    review = tmp_path / "doc" / "review" / "review-26-p0.md"
+    review.parent.mkdir(parents=True)
+    review.write_text(
+        "| `EvidenceAnchor` | glossary-style row planted in review prose | ADR-9999 | `[proposed]` | none |\n"
+        "pub struct EvidenceAnchor { /* quoted rust snippet, second owner in prose */ }\n",
+        encoding="utf-8",
+    )
+    findings = check_semantic_name_collision(tmp_path)
+    assert len(findings) == 1
+    finding = findings[0]
+    assert finding.check_id == "semantic-name-collision"
+    assert finding.status == "pass"
+    assert finding.severity == "ok"
+    assert "collision_count=0" in finding.observed
+    spec = next(item for item in GOVERNOR_CHECK_SPECS if item.check_id == "semantic-name-collision")
+    assert not any(path.startswith("doc/review") for path in spec.authority_inputs)
 
 
 def test_live_governor_reports_historical_test_debt_visibility() -> None:

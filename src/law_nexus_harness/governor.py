@@ -2783,6 +2783,262 @@ def check_semantic_stub_in_product_code(root: Path) -> list[GovernorFinding]:
     ]
 
 
+_SEMANTIC_COLLISION_GLOSSARY_PATH = "prd/temporal-legal-model.md"
+_SEMANTIC_COLLISION_YAML_PATHS: tuple[str, ...] = (
+    "prd/architecture/assertion-lifecycle-contract.yaml",
+    "prd/architecture/evidence-anchor-contract.yaml",
+    "prd/architecture/force-interval-set-contract.yaml",
+    "prd/architecture/merkle-roots-contract.yaml",
+    "prd/architecture/pending-effects-contract.yaml",
+    "prd/architecture/reference-binding-contract.yaml",
+    "prd/architecture/scope-aware-completeness-contract.yaml",
+)
+# Closed qualifier set (pinned): a dual-site token counts as documented only
+# when one of these phrases appears in its qualification window. The homonym
+# subset decides the documented_homonyms bucket; deferred-undefined names a
+# deferred design term, not a homonym.
+_SEMANTIC_COLLISION_QUALIFIERS: tuple[str, ...] = (
+    "homonym",
+    "not this contract",
+    "not ln-decode",
+    "historical g0(b)",
+    "deferred-undefined",
+    "alias of",
+    "living name of the historical",
+)
+_SEMANTIC_COLLISION_HOMONYM_QUALIFIERS: tuple[str, ...] = (
+    "homonym",
+    "not this contract",
+    "not ln-decode",
+    "historical g0(b)",
+    "alias of",
+    "living name of the historical",
+)
+
+
+def check_semantic_name_collision(root: Path) -> list[GovernorFinding]:
+    """Surface one PascalCase token with two unqualified owners/senses.
+
+    Scans definition sites only (review-26 P0-1 class, D246): glossary first
+    cells in prd/temporal-legal-model.md, entity keys under ``entities:`` in
+    the tracked prd/architecture/*-contract.yaml files, and pub struct/enum
+    names in crates/*/src/domain.rs. A token defined in two or more of those
+    site classes with different owners or a different status/sense is a
+    documented homonym only when a pinned qualifier appears in the nearby
+    window (token line +/-2, the YAML non_claims block of that file, the
+    glossary fail-closed cell); otherwise it is an advisory warn. Diverged
+    tokens (LegislativeEffect vs LegalEffect vs legal_act_effect) are distinct
+    names, never one collision, and crystal mermaid/citations, review prose,
+    tests and archives are not definition sites. Lifecycle [bounded]; process
+    anti-drift, not product readiness; this heuristic does not decide which
+    name wins and does not amend an ADR.
+    """
+    check_id = "semantic-name-collision"
+    remediation = (
+        "Qualify the homonym with a pinned qualifier (homonym / not this contract / "
+        "not ln-decode / historical G0(b) / deferred-undefined / alias of / living name "
+        "of the historical) or split the names. This heuristic does not decide which "
+        "name wins and does not amend an ADR."
+    )
+
+    glossary_row_re = re.compile(r"^\|\s*`([A-Z][A-Za-z0-9]*)`")
+    yaml_entity_re = re.compile(r"^  ([A-Z][A-Za-z0-9]*):")
+    yaml_top_key_re = re.compile(r"^([A-Za-z][\w-]*):")
+    rust_type_re = re.compile(r"^\s*pub (?:struct|enum) ([A-Z][A-Za-z0-9]*)")
+    adr_id_re = re.compile(r"ADR-\d{4}")
+    status_bracket_re = re.compile(r"\[([A-Za-z-]+)\]")
+
+    def _status_key(text: str) -> str:
+        bracket = status_bracket_re.search(text)
+        return bracket.group(1).lower() if bracket else text.strip().strip("`").lower()
+
+    def _window(lines: list[str], line_number: int) -> list[str]:
+        return lines[max(0, line_number - 3) : line_number + 2]
+
+    token_sites: dict[str, list[dict[str, Any]]] = {}
+
+    def _register(token: str, site: dict[str, Any]) -> None:
+        token_sites.setdefault(token, []).append(site)
+
+    glossary_rows = 0
+    glossary_path = root / _SEMANTIC_COLLISION_GLOSSARY_PATH
+    if glossary_path.is_file():
+        glossary_lines = glossary_path.read_text(encoding="utf-8", errors="replace").splitlines()
+        for line_number, line in enumerate(glossary_lines, start=1):
+            row = glossary_row_re.match(line)
+            if not row:
+                continue
+            cells = [cell.strip() for cell in line.split("|")]
+            owner_text = cells[3] if len(cells) > 3 else ""
+            status_text = cells[4] if len(cells) > 4 else ""
+            fail_closed_text = " ".join(cells[5:]) if len(cells) > 5 else ""
+            owner_ids = frozenset(adr_id_re.findall(owner_text))
+            glossary_rows += 1
+            _register(
+                row.group(1),
+                {
+                    "class": "glossary",
+                    "path": _SEMANTIC_COLLISION_GLOSSARY_PATH,
+                    "line": line_number,
+                    "owner": ("adr", tuple(sorted(owner_ids)))
+                    if owner_ids
+                    else ("glossary-uncited",),
+                    "status": _status_key(status_text),
+                    "window": _window(glossary_lines, line_number) + [fail_closed_text],
+                },
+            )
+
+    yaml_entities = 0
+    for rel in _SEMANTIC_COLLISION_YAML_PATHS:
+        yaml_path = root / rel
+        if not yaml_path.is_file():
+            continue
+        yaml_lines = yaml_path.read_text(encoding="utf-8", errors="replace").splitlines()
+        owner_ids: frozenset[str] = frozenset()
+        lifecycle_text = ""
+        non_claims_lines: list[str] = []
+        entity_rows: list[tuple[str, int]] = []
+        section = ""
+        for line_number, line in enumerate(yaml_lines, start=1):
+            top_key = yaml_top_key_re.match(line)
+            if top_key:
+                section = top_key.group(1)
+                if section == "owner_adr":
+                    owner_ids = frozenset(adr_id_re.findall(line))
+                elif section == "lifecycle":
+                    lifecycle_text = line.split(":", 1)[1]
+                continue
+            if section == "non_claims":
+                non_claims_lines.append(line)
+            elif section == "entities":
+                entity = yaml_entity_re.match(line)
+                if entity:
+                    entity_rows.append((entity.group(1), line_number))
+        owner = ("adr", tuple(sorted(owner_ids))) if owner_ids else ("yaml", rel)
+        for token, line_number in entity_rows:
+            yaml_entities += 1
+            _register(
+                token,
+                {
+                    "class": "yaml",
+                    "path": rel,
+                    "line": line_number,
+                    "owner": owner,
+                    "status": _status_key(lifecycle_text),
+                    "window": _window(yaml_lines, line_number) + non_claims_lines,
+                },
+            )
+
+    rust_types = 0
+    crates_dir = root / "crates"
+    if crates_dir.is_dir():
+        for domain_file in sorted(crates_dir.glob("*/src/domain.rs")):
+            rel = str(domain_file.relative_to(root)).replace("\\", "/")
+            if rel.startswith("crates/ln-testkit/"):
+                continue
+            rust_lines = domain_file.read_text(encoding="utf-8", errors="replace").splitlines()
+            crate = rel.split("/")[1]
+            for line_number, line in enumerate(rust_lines, start=1):
+                rust_type = rust_type_re.match(line)
+                if not rust_type:
+                    continue
+                rust_types += 1
+                _register(
+                    rust_type.group(1),
+                    {
+                        "class": "rust",
+                        "path": rel,
+                        "line": line_number,
+                        "owner": ("rust", crate),
+                        "status": "rust-active",
+                        "window": _window(rust_lines, line_number),
+                    },
+                )
+
+    collisions: list[tuple[str, list[dict[str, Any]]]] = []
+    documented_homonyms: list[str] = []
+    qualified_dual_site: list[str] = []
+    for token in sorted(token_sites):
+        sites = token_sites[token]
+        if len({site["class"] for site in sites}) < 2:
+            continue
+        owners = {site["owner"] for site in sites}
+        statuses = {site["status"] for site in sites}
+        if len(owners) == 1 and len(statuses) == 1:
+            # One owner and one lifecycle sense: a single name, not a collision.
+            continue
+        window_lines: list[str] = []
+        for site in sites:
+            window_lines.extend(site["window"])
+        lowered = "\n".join(window_lines).lower()
+        if any(item in lowered for item in _SEMANTIC_COLLISION_QUALIFIERS):
+            if any(item in lowered for item in _SEMANTIC_COLLISION_HOMONYM_QUALIFIERS):
+                documented_homonyms.append(token)
+            else:
+                qualified_dual_site.append(token)
+            continue
+        collisions.append((token, sites))
+
+    homonyms_text = ",".join(sorted(documented_homonyms)) or "none"
+    if collisions:
+        collision_tokens = [token for token, _ in collisions]
+        preview = ",".join(collision_tokens[:12])
+        if len(collision_tokens) > 12:
+            preview += f",+{len(collision_tokens) - 12}"
+        evidence: list[GovernorEvidence] = []
+        for _, sites in collisions:
+            for site in sites:
+                evidence.append(GovernorEvidence(path=site["path"], line=site["line"]))
+        return [
+            GovernorFinding(
+                check_id=check_id,
+                status="fail",
+                severity="warn",
+                message=(
+                    "one PascalCase token is defined by two owners/senses without "
+                    "a pinned homonym qualifier"
+                ),
+                observed=(
+                    f"collision_count={len(collisions)}, tokens=[{preview}] "
+                    f"documented_homonyms={homonyms_text} "
+                    f"(lifecycle [bounded]; process anti-drift; not product readiness)."
+                ),
+                remediation=remediation,
+                rule_id="semantic-name-collision.dual-owner-unqualified",
+                expected=(
+                    "A PascalCase token names one owner and one sense per surface, "
+                    "or carries a pinned homonym qualifier."
+                ),
+                evidence=tuple(dict.fromkeys(evidence)),
+            )
+        ]
+
+    return [
+        GovernorFinding(
+            check_id=check_id,
+            status="pass",
+            severity="ok",
+            message=(
+                "no unqualified dual-owner PascalCase token across glossary, contract "
+                "YAML entities and Rust domain types"
+            ),
+            observed=(
+                f"collision_count=0 documented_homonyms={homonyms_text} "
+                f"qualified_dual_site={','.join(sorted(qualified_dual_site)) or 'none'} "
+                f"glossary_rows={glossary_rows} yaml_entities={yaml_entities} "
+                f"rust_types={rust_types} "
+                f"(lifecycle [bounded]; process anti-drift; not product readiness)."
+            ),
+            remediation="none",
+            rule_id="semantic-name-collision.documented-homonym-boundary",
+            expected=(
+                "A PascalCase token names one owner and one sense per surface, "
+                "or carries a pinned homonym qualifier."
+            ),
+        )
+    ]
+
+
 def check_historical_test_debt_visibility(root: Path) -> list[GovernorFinding]:
     """Inventory residual non-CI tests with decommissioned-era hard dependencies.
 
@@ -5913,6 +6169,26 @@ GOVERNOR_CHECK_SPECS: tuple[CheckSpec, ...] = (
         check_active_surface_era_noise,
         "Surface unqualified decommissioned-era vocabulary on living entrypoints.",
         _ERA_NOISE_SCAN_PATHS,
+        "warn",
+    ),
+    _check_spec(
+        "semantic-name-collision",
+        "semantic",
+        "heuristic",
+        check_semantic_name_collision,
+        "Surface one PascalCase token defined by two unqualified owners/senses across the glossary, contract YAML entities and Rust domain types (review-26 P0-1 class); a documented homonym such as EvidenceAnchor YAML vs ln-decode passes.",
+        (
+            "prd/architecture/model-crystal.md",
+            "prd/temporal-legal-model.md",
+            "prd/architecture/assertion-lifecycle-contract.yaml",
+            "prd/architecture/evidence-anchor-contract.yaml",
+            "prd/architecture/force-interval-set-contract.yaml",
+            "prd/architecture/merkle-roots-contract.yaml",
+            "prd/architecture/pending-effects-contract.yaml",
+            "prd/architecture/reference-binding-contract.yaml",
+            "prd/architecture/scope-aware-completeness-contract.yaml",
+            "crates/ln-decode/src/domain.rs",
+        ),
         "warn",
     ),
     _check_spec(
