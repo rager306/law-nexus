@@ -33,8 +33,13 @@ falkordb=historical-only
   interval set, design-only with 17+16 include_str pins; no Rust type minting,
   no lifecycle promotion). M176-ywawgy closed the P1 front (29-op registry +
   reference contract); M175-g7k0q4 closed P0 canonization after G0 (D216).
-  Remaining P1 = E.2.5-E.2.7 (scope-aware completeness, Merkle roots,
-  assertion lifecycle). GSD completion is not product readiness.
+  Active M178-9xpo0n landed E.2.5/E.2.6/E.2.7 design-only
+  (`prd/architecture/scope-aware-completeness-contract.yaml`,
+  `prd/architecture/merkle-roots-contract.yaml`,
+  `prd/architecture/assertion-lifecycle-contract.yaml`, D222 pins
+  16+16+17); P1 documentation front E.2.1–E.2.7 is design-only closed;
+  next fork = G2 golden corpus vs P2 Rust resolver, both human-gated.
+  GSD completion is not product readiness.
 - **GSD dual-truth M167:** **resolved** — M167 complete via authorized skip waivers + validation (D154 option C). Historical note in `gsd-review-bridge.md`. Not Applicable; TSG-005/006 still open.
 - **Review governance process contour:** ADR-0024 Review Case intake/disposition/ledger landed; human dispositions recorded for review-11/12 (`actor_id=rager306`). Non-authoritative; no Product/ADR/roadmap promotion.
 - **Applicability kernel:** `ln-applicability` v0 fail-closed abstention-only under ADR-0023 `[proposed]`, with NormRule IR + pure predicate algebra spines; no Applicable/NotApplicable product claim.
@@ -45,13 +50,18 @@ falkordb=historical-only
   P0 (review-25 E.1) closed by M175 — G0 ADR amendments/notes
   (adr-0013/0016/0017/0018/0019/0021/0009 + temporal-model glossary, TQ-05
   design resolution, vacatio golden case TL-GC19), kb-ontology.yaml
-  `refers_to` vocabulary, crystal re-grounded v2. P1 E.2.1–E.2.4 landed design-only (M176
-  S01/S02 + M177 S01/S02): `prd/architecture/operation-registry.yaml` (E.2.1),
+  `refers_to` vocabulary, crystal re-grounded v2. P1 E.2.1–E.2.7 landed
+  design-only (M176 S01/S02 + M177 S01/S02 + M178 S01/S02/S03):
+  `prd/architecture/operation-registry.yaml` (E.2.1),
   `prd/architecture/reference-binding-contract.yaml` (E.2.2),
   `prd/architecture/pending-effects-contract.yaml` (E.2.3),
-  `prd/architecture/force-interval-set-contract.yaml` (E.2.4); remaining
-  E.2.5–E.2.7 and P2/resolver stay evidence-gated behind parser G2 — no
-  runtime, no resolver, and P1 is not fully closed.
+  `prd/architecture/force-interval-set-contract.yaml` (E.2.4),
+  `prd/architecture/scope-aware-completeness-contract.yaml` (E.2.5),
+  `prd/architecture/merkle-roots-contract.yaml` (E.2.6),
+  `prd/architecture/assertion-lifecycle-contract.yaml` (E.2.7). P1
+  documentation front E.2.1–E.2.7 is design-only closed;
+  product/runtime/resolver not closed; next fork G2 vs P2, human-gated; no
+  runtime, no resolver.
 - **Product next remains evidence-gated:** the parser golden-corpus protocol now defines G0–G3, but current evidence reaches only G1 `[bounded]`; G2 requires multi-fixture human-reviewed structural goldens and human-owned thresholds before parser-data readiness. L2 CTV TDD follows that readiness decision; TEI/RuVector still requires real infrastructure/evidence. Documentation does not unlock any of these steps.
 - **M111 result:** final `[bounded]` implementation-neutral semantic baseline for heterogeneous Russian legal evidence.
 - **M112 result:** ADR-0005 topology superseded; ADR-0008 through ADR-0012 authored `[bounded]`; executable ADR/decision/owner drift checks active in pre-commit and CI.
