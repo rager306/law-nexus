@@ -41,7 +41,8 @@ falkordb=historical-only
   wording), MC-CHECKOUT `disposition_as_of`/`causal_close`/
   `projection_protocol_version` + INV-11, and
   `prd/architecture/evidence-anchor-contract.yaml` (EvidenceAnchor/
-  EvidenceBundle; `EvidenceSpan` is its crosswalk alias, not a public type);
+  EvidenceBundle; the crosswalk keeps a legacy alias row pointing at the
+  contract, not a public type);
   S04 adds the `semantic-name-collision` advisory governor check (D246) and
   this honesty sync. Remaining review-26 leftovers = the next human-gated
   candidate (alongside the G2 vs P2 product fork): P0-3 DispositionEvent,
