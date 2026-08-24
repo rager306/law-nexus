@@ -553,6 +553,25 @@ nodes survive inside a CST/AST projection (via scope plus
 whose third root remains `OracleExamBinding` — that contract is owned by
 this same ADR (G0(d)), not by a related_adr.
 
+Additive note (review-26 §3, `doc/review/review-26-23-08-2026.md`): the
+living names of the two G0(f) separation planes are `StructuralMembership`
+(historical `OperativeMembership`) and `EditorialPresence` (historical
+`DocumentaryPresence`); the historical G0(f) wording above is retained
+verbatim, and the historical names remain citation aliases — this note is
+not a rename of them. The merkle excluded-root key
+`canonical_form.root: DocumentaryPresence` in
+`prd/architecture/merkle-roots-contract.yaml` stays under the historical
+name; this note does not rename that key. `EditorialPresence` is a living
+alias of this repeal / document-structure plane, not a sixth Merkle root
+kind and not a glossary first-cell. The plane table in
+`prd/architecture/model-crystal.md` is now `MC-SEPARATION` (independent
+semantic planes) with the historical MC-AXES / AXIS-N labels retained as
+navigation aliases, so the `AXIS-4 in prd/architecture/model-crystal.md`
+citation above remains valid: AXIS-4 is still in that file. Design-only at
+lifecycle `[proposed]`: no Rust type is minted; the YAML and crystal
+tables are the definition surfaces, and this note is provenance, not a
+second canon.
+
 ### G0(g) Closed operation registry with typed apply results
 
 The algebra operates over a **closed registry** (design data, catalog

@@ -115,6 +115,16 @@ interval-set entities live in `prd/architecture/force-interval-set-contract.yaml
 (ADR-0018 G0(b)); none of that contract migrates to this ADR — this is a
 pointer only.
 
+Additive note (review-26 §3, `doc/review/review-26-23-08-2026.md`):
+`TransitionConstraint` remains a typed effect — the historical sentence
+above is retained verbatim — and in the living plane table it is a
+first-class data plane with its own valid/transaction anchors, not an
+independent temporal axis and not a living MC-AXES AXIS-6 heading. The
+historical `AXIS-6` label in YAML/crystal remains a citation alias of
+this plane. Pending-effect bookkeeping remains not a
+`TransitionConstraint`. Design-only at lifecycle `[proposed]`; no Rust
+type is minted.
+
 ## Non-claims
 
 - No legal correctness; risk is advisory, not a determination.
