@@ -2,6 +2,31 @@
 
 ## [Unreleased]
 
+### M180-cnzw84 Docs (review-26 P0 continuation: INV-09a/b/c, force-interval 6-set, VersionRelation, ActivationTrigger, honesty sync)
+
+### Docs
+- Design-only review-26 P0 continuation (P0-6/P0-5a/P0-4 landed in S01–S03),
+  no Rust types, no runtime, no resolver, no lifecycle promotion, no new
+  check_id (D253); governor inventory stays 39 check specs / live full run
+  pass_count 65, warn_count 0, error_count 0.
+- S01 (P0-6): living INV-09a/09b/09c in crystal MC-INV / ADR-0017 G0(d)
+  additive notes + merkle source-vs-reconstructed checks; governor
+  expected-set 13 rows (no bare composite INV-09).
+- S02 (P0-5a): force-interval written statuses drop `Superseded` (7→6) and
+  add the VersionRelation 3-set (Replaces / Supersedes / Corrects); runtime
+  `kb-ontology.yaml` `force_status_values` remains a different member set —
+  cardinality match is not a member match.
+- S03 (P0-4): ActivationTrigger selector modes 7→6 without
+  `ForRelationsAfter` (D252) + transition_predicates 1-set
+  (`RelationsArisingOnOrAfter`); `OnCondition` is a guard and an unproven
+  `OnCondition` yields `TriggerUnknown`, never false.
+- S04 honesty sync: living roadmap markdown/JSON, `prd/ARCHITECTURE.md`
+  DESIGN FRONT, the §14.5 INV-09a pointer and glossary known-lag entries
+  name P0-6/P0-5a/P0-4 as design-only landed M180 S01–S03; remaining
+  review-26 P0-3 DispositionEvent, P0-8 CoverageCertificate, S3/S4/S7
+  renames + P1-8 full semantic governor stay open and human-gated (next
+  product fork G2 golden corpus vs P2 Rust resolver).
+
 ### M179-vsd36f Docs (review-26 P0 front: LegislativeEffect, MC-CHECKOUT, evidence anchors, semantic-name-collision advisory)
 
 ### Docs

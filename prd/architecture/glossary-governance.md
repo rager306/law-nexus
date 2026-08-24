@@ -122,6 +122,14 @@ Governor must never decide:
   (`RelationsArisingOnOrAfter`) on the AXIS-6 plane, not a selector mode;
   `OnCondition` is a guard; an unproven `OnCondition` yields
   `TriggerUnknown`, not false.
+- Living INV-09a/09b/09c live in crystal MC-INV after review-26 P0-6
+  (M180-cnzw84 S01); the §14.5 table keeps the single D216 composite
+  `INV-09` row as a citation known-lag, not three split rows.
+- Citation/historical known-lag with YAML as the definition surface
+  (D252/D253): MC-SEL selector list, ADR-0009 7-list wording, the ADR-0021
+  `ForRelationsAfter` mode mention, the AXIS-5 ellipsis and the ADR-0018
+  Decision table stay historical prose; honesty passes do not rewrite them,
+  and the YAML contracts define the living sets.
 - The temporal model remains a `[proposed]` crosswalk, not the complete
   executable temporal contract requested by the 2026-08-11 assessment. Its
   fourteen-area completeness matrix must preserve `partial`, `absent` and

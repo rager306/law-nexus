@@ -374,6 +374,11 @@ failing gate is a stop condition, never a silent repair.
 INV-11 lives in crystal MC-INV / ADR-0017 G0(d) P0-2; the §14.5 D216 set
 remains INV-01..10 until a dedicated honesty pass (D240).
 
+Living split pointer (review-26 P0-6, M180-cnzw84 S01): living
+INV-09a/09b/09c live in crystal MC-INV / ADR-0017 G0(d) P0-6; this table
+stays the D216 composite `INV-09` row (known-lag, not rewritten into three
+rows).
+
 ## 15. Stop conditions
 
 Stop and replan if any review:

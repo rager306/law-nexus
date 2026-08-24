@@ -31,11 +31,17 @@ falkordb=historical-only
   in GSD registry (review-26 P0 wave: LegislativeEffect rename + NormativeState
   drift sync + checkout disposition/causal/protocol formula + EvidenceAnchor
   contract, design-only; new governor semantic-name-collision advisory D246,
-  65 checks green; no Rust type minting, no lifecycle promotion). M178 closed
-  the entire review-25 E.2 P1 documentation front (E.2.1-E.2.7 with M176/M177,
-  ~49 pin tests); M175-g7k0q4 closed P0 canonization after G0 (D216). Next
-  fork (human-gated): review-26 leftovers (P0-3/P0-4/P0-5a/P0-6/P0-8, S3/S4/S7
-  renames, G0-G3 golden corpus 30-40) vs G2 golden corpus vs P2 Rust resolver.
+  65 checks green; no Rust type minting, no lifecycle promotion); M180-cnzw84
+  is active. M180 S01-S03 landed review-26 P0-6 / P0-5a / P0-4 design-only on
+  three living surfaces: living INV-09a/b/c + merkle source-vs-reconstructed
+  checks (S01), force-interval written 6-set + VersionRelation 3-set (S02),
+  ActivationTrigger 6-set + transition_predicates 1-set (S03); no new
+  check_id (D253), no new contract files (living overlays re-pinned).
+  M178 closed the entire review-25 E.2 P1 documentation front
+  (E.2.1-E.2.7 with M176/M177, ~49 pin tests); M175-g7k0q4 closed P0
+  canonization after G0 (D216). Remaining review-26: P0-3 DispositionEvent,
+  P0-8 CoverageCertificate, S3/S4/S7 renames, P1-8 full semantic governor;
+  next product fork G2 golden corpus vs P2 Rust resolver stays human-gated.
   GSD completion is not product readiness.
 - **GSD dual-truth M167:** **resolved** — M167 complete via authorized skip waivers + validation (D154 option C). Historical note in `gsd-review-bridge.md`. Not Applicable; TSG-005/006 still open.
 - **Review governance process contour:** ADR-0024 Review Case intake/disposition/ledger landed; human dispositions recorded for review-11/12 (`actor_id=rager306`). Non-authoritative; no Product/ADR/roadmap promotion.
