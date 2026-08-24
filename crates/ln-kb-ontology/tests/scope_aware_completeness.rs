@@ -22,7 +22,7 @@
 //! This suite deliberately contains no `use` items at all: it imports
 //! neither `ln_kb_ontology` nor `ln_temporal`, and never references the
 //! checkout runtime, `resolve_ctv` or `CtvIndustrialOpKind` in code. The
-//! two entity names appear only as string data, exactly the shape every
+//! three entity names appear only as string data, exactly the shape every
 //! neighbor pin suite already uses; coupling this suite to runtime types
 //! would invert the D222 boundary, and the Unknown/Conflict homonymy
 //! stays prose in the YAML non_claims.
@@ -32,16 +32,17 @@
 //! `in_scope_block_reasons` (`OrderingConflict` / `IncompleteSource` /
 //! `AmbiguousTarget`) or `typed_non_success` (success/force/neighbor
 //! tokens), moving ownership off ADR-0017, promoting lifecycle beyond
-//! `[proposed]`, flipping `authoritative`, minting a third entity key or
-//! a neighbor-contract token (`MerkleRoot:`, `Assertion:`,
+//! `[proposed]`, flipping `authoritative`, minting a fourth entity key or
+//! a neighbor-contract token (`MerkleRoot:`, `CompleteFor:`,
 //! `PendingEffect:`, ...) at entity depth, widening `runtime_today` past
-//! `none`, or adding `root_hash` to the CompletenessReport required
-//! fields all turn pins red on the tracked file itself — no tmp fixtures,
-//! no runtime dependency. Absence pins over the vocabulary lists run on
-//! extracted items, not raw substrings, because the contract's own
-//! comments and non_claims legitimately name every excluded token
-//! (MEM951); entity-depth isolation excludes the non_claims section
-//! (MEM947).
+//! `none`, stating a percentage (`97%`) as a coverage verdict, embedding
+//! a second artifact, or adding `root_hash` to the CompletenessReport or
+//! CoverageCertificate required fields all turn pins red on the tracked
+//! file itself — no tmp fixtures, no runtime dependency. Absence pins
+//! over the vocabulary lists run on extracted items, not raw substrings,
+//! because the contract's own comments and non_claims legitimately name
+//! every excluded token (MEM951); entity-depth isolation excludes the
+//! non_claims section (MEM947).
 
 /// Embedded contract (T01): the E.2.5 scope/outcome layer. Path is
 /// relative to `crates/ln-kb-ontology/tests/`.
@@ -59,6 +60,17 @@ const NON_OUTCOME_TOKENS: [&str; 4] = ["PartialSuccess", "Degraded", "None", "Ok
 /// MC-RES apply results that must stay out of `in_scope_block_reasons`.
 const NON_BLOCK_REASON_TOKENS: [&str; 3] =
     ["OrderingConflict", "IncompleteSource", "AmbiguousTarget"];
+
+/// Tokens that must stay out of `closure_dimensions`: the illustrative
+/// `{Text, Membership, Force}` example set is not the closed seven, and
+/// `StructuralClosure` is never a dimension token.
+const NON_CLOSURE_DIMENSION_TOKENS: [&str; 4] =
+    ["Text", "Membership", "Force", "StructuralClosure"];
+
+/// Report outcomes and percentage words that must stay out of
+/// `coverage_verdicts` (a percentage is never a verdict).
+const NON_COVERAGE_VERDICT_TOKENS: [&str; 4] =
+    ["InScopeComplete", "PartialSuccess", "Ok", "Percent"];
 
 /// Successes, force states and neighbor-contract tokens that must stay
 /// out of `typed_non_success`.
@@ -177,8 +189,8 @@ fn entity_key_line_indices(yaml: &str) -> Vec<usize> {
 fn entity_blocks(yaml: &str) -> Vec<EntityBlock> {
     let key_lines = entity_key_line_indices(yaml);
     assert!(
-        key_lines.len() == 2,
-        "expected exactly two entity keys, found {}",
+        key_lines.len() == 3,
+        "expected exactly three entity keys, found {}",
         key_lines.len()
     );
     let lines: Vec<&str> = yaml.lines().collect();
@@ -420,12 +432,62 @@ fn typed_non_success_is_the_closed_two_set() {
 }
 
 #[test]
-fn two_entities_are_declared_exactly_once_at_entity_depth() {
+fn closure_dimensions_are_the_closed_seven_set() {
+    // Review-26 L677-683: exactly seven snake_case dimension names; the
+    // canon lives once in the contract and is pinned by size plus
+    // membership, never restated here (MEM951).
+    let dims = inline_bracket_items(top_level_row("closure_dimensions:"));
+    assert_eq!(dims.len(), 7, "closure dimension count drifted");
+    for dim in [
+        "structural",
+        "causal",
+        "temporal_anchor",
+        "evidence",
+        "force",
+        "reference",
+        "oracle_coverage",
+    ] {
+        assert!(dims.contains(&dim), "closure dimension {dim} lost");
+    }
+    // Parsed-list absence, not substrings: the illustrative {Text,
+    // Membership, Force} sample set and the PascalCase StructuralClosure
+    // token legitimately live in comments and non_claims (MEM951), but
+    // never in this list.
+    for token in NON_CLOSURE_DIMENSION_TOKENS {
+        assert!(
+            !dims.contains(&token),
+            "{token} is never a closure dimension"
+        );
+    }
+}
+
+#[test]
+fn coverage_verdicts_are_the_closed_two_set() {
+    let verdicts = inline_bracket_items(top_level_row("coverage_verdicts:"));
+    assert_eq!(verdicts.len(), 2, "coverage verdict count drifted");
+    assert!(verdicts.contains(&"CompleteFor"), "CompleteFor lost");
+    assert!(
+        verdicts.contains(&"IncompleteBecause"),
+        "IncompleteBecause lost"
+    );
+    // Parsed-list absence: InScopeComplete stays a completeness outcome,
+    // PartialSuccess/Ok stay out everywhere, and Percent is never a
+    // verdict (MEM951).
+    for token in NON_COVERAGE_VERDICT_TOKENS {
+        assert!(
+            !verdicts.contains(&token),
+            "{token} is never a coverage verdict"
+        );
+    }
+}
+
+#[test]
+fn three_entities_are_declared_exactly_once_at_entity_depth() {
     let blocks = entity_blocks(CONTRACT_YAML);
     let names: Vec<&str> = blocks.iter().map(|block| block.name.as_str()).collect();
     assert_eq!(
         names,
-        vec!["QueryScope", "CompletenessReport"],
+        vec!["QueryScope", "CompletenessReport", "CoverageCertificate"],
         "entity key set/order drifted"
     );
     for name in &names {
@@ -461,6 +523,26 @@ fn every_entity_carries_its_required_fields() {
                 "provenance",
             ],
         ),
+        (
+            "CoverageCertificate",
+            &[
+                "requested_scope",
+                "structural_closure",
+                "causal_closure",
+                "temporal_anchor_closure",
+                "evidence_closure",
+                "force_closure",
+                "reference_closure",
+                "oracle_coverage",
+                "unresolved_components",
+                "unresolved_effects",
+                "unresolved_references",
+                "excluded_sources",
+                "compiler_protocol_version",
+                "source_set_hash",
+                "verdict",
+            ],
+        ),
     ];
     let blocks = entity_blocks(CONTRACT_YAML);
     for (name, fields) in expected {
@@ -471,18 +553,51 @@ fn every_entity_carries_its_required_fields() {
         );
     }
     // root_hash is the E.2.6 sibling payload projection, never a report
-    // field (checked against the parsed list, not prose).
+    // field and never a certificate field — INV-22: the hash without the
+    // certificate is not a completeness claim (checked against the parsed
+    // lists, not prose).
+    for name in ["CompletenessReport", "CoverageCertificate"] {
+        let fields = required_field_keys(block_of(&blocks, name));
+        assert!(
+            !fields.contains(&"root_hash"),
+            "root_hash must never become a {name} field (E.2.6 is a sibling contract)"
+        );
+    }
+}
+
+#[test]
+fn coverage_certificate_is_proof_not_assembly_metric() {
+    // P0-8 metric/proof split: CompletenessReport.coverage stays the
+    // Bound-CC / Oracle-CC assembly metric; the certificate carries the
+    // proof and closes with a verdict, never the coverage field.
+    let blocks = entity_blocks(CONTRACT_YAML);
     let report_fields = required_field_keys(block_of(&blocks, "CompletenessReport"));
     assert!(
-        !report_fields.contains(&"root_hash"),
-        "root_hash must never become a CompletenessReport field (E.2.6 is a sibling contract)"
+        report_fields.contains(&"coverage"),
+        "CompletenessReport.coverage must remain the assembly metric"
+    );
+    let cert_fields = required_field_keys(block_of(&blocks, "CoverageCertificate"));
+    assert!(
+        cert_fields.contains(&"verdict"),
+        "CoverageCertificate must close with a coverage_verdicts verdict"
+    );
+    // Exact-element absence: oracle_coverage shares only a substring, so
+    // the parsed list decides (MEM951).
+    assert!(
+        !cert_fields.contains(&"coverage"),
+        "the certificate is the proof, never a rename of the coverage metric"
+    );
+    let claims = top_level_dash_items(CONTRACT_YAML, "non_claims:");
+    assert!(
+        claims.iter().any(|claim| claim.contains("not a rename")),
+        "metric-vs-proof not-a-rename non-claim lost"
     );
 }
 
 #[test]
-fn runtime_today_stays_design_only_for_both_entities() {
+fn runtime_today_stays_design_only_for_all_three_entities() {
     let blocks = entity_blocks(CONTRACT_YAML);
-    for name in ["QueryScope", "CompletenessReport"] {
+    for name in ["QueryScope", "CompletenessReport", "CoverageCertificate"] {
         assert_eq!(
             entity_scalar(block_of(&blocks, name), "runtime_today"),
             RUNTIME_TODAY_VALUE,
@@ -590,6 +705,11 @@ fn checkout_projection_stays_a_projection_never_the_payload() {
         "coverage is a projection of the report"
     );
     assert_eq!(
+        section_scalar(section, "coverage_certificate"),
+        "projection_of_coverage_certificate",
+        "the CoverageCertificate proof projects additively beside the metric"
+    );
+    assert_eq!(
         section_scalar(section, "unknowns"),
         "in_scope_union_out_of_scope_distinguishable",
         "in-scope and out-of-scope unknowns must stay distinguishable (INV-08)"
@@ -692,6 +812,26 @@ fn non_claims_carry_the_boundary_disclaimers() {
         has_claim("closure algorithm is not minted here"),
         "closure-algorithm-stays-P2 non-claim lost"
     );
+    assert!(
+        has_claim("not a rename"),
+        "coverage-metric-not-renamed-into-the-certificate non-claim lost"
+    );
+    assert!(
+        has_claim("A percentage is never a verdict"),
+        "percentage-is-never-a-verdict non-claim lost"
+    );
+    assert!(
+        has_claim("compiler_protocol_version is not projection_protocol_version"),
+        "INV-11 compiler-protocol homonymy non-claim lost"
+    );
+    assert!(
+        has_claim("not a completeness claim (INV-22)"),
+        "hash-without-certificate INV-22 non-claim lost"
+    );
+    assert!(
+        has_claim("not a fourth merkle root_kind"),
+        "source_set_hash root-kind separation non-claim lost"
+    );
 }
 
 #[test]
@@ -711,6 +851,12 @@ fn neighbor_contract_tokens_never_mint_entity_keys() {
         "CausalEdge",
         "ReplaceText",
         "Suspend",
+        "CompleteFor",
+        "IncompleteBecause",
+        "ProjectionRoots",
+        "MaterializedSection",
+        "ValidationReceipt",
+        "PercentCoverage",
     ] {
         assert!(!names.contains(&key), "{key} minted as an entity key");
         assert!(
@@ -718,4 +864,24 @@ fn neighbor_contract_tokens_never_mint_entity_keys() {
             "two-space `{key}:` entity-depth key detected in the contract body"
         );
     }
+}
+
+#[test]
+fn exactly_one_embed_exists_in_this_suite() {
+    // MEM990: the needle is assembled so this assertion adds no textual
+    // occurrence, and the suite source is read back from disk at test
+    // time — a second include_str! would import a sibling homonym into
+    // these pins.
+    let manifest_dir = env!("CARGO_MANIFEST_DIR");
+    let source_path = format!("{manifest_dir}/tests/scope_aware_completeness.rs");
+    let source = std::fs::read_to_string(&source_path)
+        .unwrap_or_else(|error| panic!("suite source unreadable: {error}"));
+    let embed_invocation = concat!("include_str", "!(");
+    assert_eq!(
+        source.matches(embed_invocation).count(),
+        1,
+        "exactly one embed is allowed; a second YAML embed (merkle or \
+         assertion-lifecycle \"for alignment\") would import sibling \
+         homonyms into these pins"
+    );
 }

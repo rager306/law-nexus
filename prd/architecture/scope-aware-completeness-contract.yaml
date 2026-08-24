@@ -9,10 +9,12 @@
 # projected names-only in prd/architecture/model-crystal.md (MC-CHECKOUT).
 # View modes are copied character-identical from MC-CHECKOUT; in-scope block
 # reasons are copied character-identical from ADR-0017 §4 resolve_CTV
-# non-success. This file adds the layer no sibling carries: the two
-# checkout-scope entities, the closed scope/outcome vocabularies and the
-# scope x gap -> outcome table. ADR-0018 and ADR-0019 are related_adr for
-# the Unknown/Conflict homonyms only; the data owner is ADR-0017 (D231). It
+# non-success. This file adds the layer no sibling carries: the three
+# checkout-scope entities (QueryScope, CompletenessReport and the
+# CoverageCertificate completeness proof), the closed scope/outcome
+# vocabularies and the scope x gap -> outcome table. ADR-0018 and
+# ADR-0019 are related_adr for the Unknown/Conflict homonyms only; the
+# data owner is ADR-0017 (D231). It
 # exists so pin tests can embed it as data; no runtime component parses it
 # and no Rust types are generated from it.
 
@@ -23,8 +25,9 @@ owner_adr: ADR-0017
 related_adr: [ADR-0018, ADR-0019]
 checkout_source: ADR-0017 G0(d) - checkout(work, legal_as_of, known_as_of, view_mode, scope)
 boundary: >
-  Design-only QueryScope/CompletenessReport contract (review-25 E.2.5 /
-  ADR-0017 G0(d)). Not a Rust enum, not the checkout runtime, not Merkle
+  Design-only QueryScope/CompletenessReport/CoverageCertificate contract
+  (review-25 E.2.5, review-26 L675-689 / ADR-0017 G0(d)). Not a Rust
+  enum, not the checkout runtime, not Merkle
   root hashing of materialized sections (E.2.6), not the assertion
   lifecycle (E.2.7), not the force Unknown (ADR-0018), not the maxim
   Conflict (ADR-0019), not the per-operation registry scope. Pin tests
@@ -43,7 +46,19 @@ in_scope_block_reasons: [Unknown, Conflict, MissingAnchor]  # exactly 3, charact
 
 typed_non_success: [UnderspecifiedScope, SeedNotFound]  # exactly 2; UnderspecifiedScope = ComponentSubgraph without a seed, or a WholeAct exclude-list emptying the in-scope set; SeedNotFound = a seed ComponentId absent from the Work; not the MC-RES 9-set; Applied / Bound / AlreadyApplied / Suspended / Transitional / UnknownEffect never appear here
 
-# Two entities; each PascalCase key appears exactly once in this file.
+# Review-26 L677-683: the seven closure dimensions a completeness proof is
+# stated over - field NAMES of the CoverageCertificate below, never a
+# Closed/Open/Unknown enum and never a computed algorithm (P2).
+closure_dimensions: [structural, causal, temporal_anchor, evidence, force, reference, oracle_coverage]  # exactly 7, snake_case; not the illustrative {Text, Membership, Force} example set from the CompleteFor sample and never a PascalCase StructuralClosure entity key
+
+# The only two coverage verdicts: VALUES of this list, never entity-depth
+# keys and never glossary first-cells.
+coverage_verdicts: [CompleteFor, IncompleteBecause]  # exactly 2; a percentage is never a verdict
+
+# Exactly three entities; each PascalCase key appears exactly once in this
+# file. Forbidden entity-depth keys (never minted here): CompleteFor,
+# IncompleteBecause (values of coverage_verdicts, never keys), MerkleRoot,
+# ProjectionRoots, MaterializedSection, ValidationReceipt, PercentCoverage.
 entities:
   QueryScope:
     definition: >
@@ -78,6 +93,35 @@ entities:
       always carries out_of_scope_unknowns - it may be an empty list, but
       it is never smoothed away into an InScopeComplete without the list
       (R068).
+    runtime_today: none
+
+  CoverageCertificate:
+    definition: >
+      The proof half of a checkout result: why the answer is complete for
+      the requested scope, or exactly what is missing. It carries the
+      seven closure dimensions, the unresolved component/effect/reference
+      lists, the sources excluded by scope, the compiler protocol
+      identity and the source-set binding, closed by a verdict. Design
+      data, never a runtime object.
+    required_fields: [requested_scope, structural_closure, causal_closure, temporal_anchor_closure, evidence_closure, force_closure, reference_closure, oracle_coverage, unresolved_components, unresolved_effects, unresolved_references, excluded_sources, compiler_protocol_version, source_set_hash, verdict]  # exactly 15, review-26 L675-689 order plus verdict; verdict is a coverage_verdicts value; requested_scope points at QueryScope, never copies it; no coverage metric and no root_hash here
+    invariants: >
+      requested_scope references the QueryScope of the same checkout and
+      never copies it; the seven closure_* fields and oracle_coverage are
+      named dimensions drawn from closure_dimensions - field names, never
+      a Closed/Open/Unknown enum and never a computed closure; CompleteFor
+      requires every unresolved_* list empty inside requested_scope, the
+      asserted dimensions drawn from closure_dimensions, and legal_as_of
+      plus known_as_of stated; IncompleteBecause requires at least one
+      unresolved_* entry or an excluded_sources entry carrying its reason;
+      excluded_sources is the INV-19 certificate projection - out-of-scope
+      material never blocks the answer, but it is named in the
+      certificate; compiler_protocol_version is not
+      projection_protocol_version (MC-CHECKOUT / INV-11) and mints no
+      hasher; source_set_hash binds the certificate to the same source
+      set as the checkout payload hash of the same name; a percentage is
+      never a verdict - verdict is exactly one of coverage_verdicts; a
+      root hash without a CoverageCertificate is not a completeness claim
+      (INV-22).
     runtime_today: none
 
 # The load-bearing scope x gap -> outcome table (as strike is for the
@@ -125,6 +169,7 @@ checkout_projection:
   node_provenance: INV-08  # every in-scope node carries provenance or a typed Unknown
   no_none_outcomes: INV-10  # no None ever replaces a typed non-success
   whole_act_fail_closed: ADR-0017_s4_preserved_as_wholeact_row  # not deleted (R068 anti-smoothing)
+  coverage_certificate: projection_of_coverage_certificate  # the completeness proof projects too; additive to the coverage metric, never replacing it
 
 non_claims:  # mandatory phrases; pinned by the pin-test wave (T02 embeds this file via include_str!)
   - No Rust types are minted from this file (D216 / D098).
@@ -141,3 +186,12 @@ non_claims:  # mandatory phrases; pinned by the pin-test wave (T02 embeds this f
   - Not a sixth clock (ADR-0009 five-clock roles).
   - Not a resolver and not the E.3 compiler.
   - The dependency-subgraph closure algorithm is not minted here; include_dependency_subgraph is a true/false flag, its computation is P2.
+  - CoverageCertificate is the completeness proof; CompletenessReport.coverage remains the Bound-CC / Oracle-CC assembly metric, not a rename.
+  - A percentage is never a verdict; the only verdicts are CompleteFor and IncompleteBecause.
+  - CompleteFor and IncompleteBecause are coverage_verdicts values, not entity keys and not glossary first-cells.
+  - compiler_protocol_version is not projection_protocol_version (INV-11) and not a hasher.
+  - source_set_hash on the certificate binds to the checkout payload hash of the same name; it is not a fourth merkle root_kind.
+  - Root hash without a CoverageCertificate is not a completeness claim (INV-22).
+  - INV-19 excluded-by-scope lives as excluded_sources[]; CompletenessReport OutOfScopeUnknownReported stays the report outcome; this slice does not mint crystal rows INV-12..INV-21.
+  - The seven closure fields are names, not a P2 closure algorithm; the closure-algorithm non-claim above is preserved.
+  - TGMS / DEC / TOKI are citations, not this contour.
