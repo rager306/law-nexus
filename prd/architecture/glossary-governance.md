@@ -115,6 +115,13 @@ Governor must never decide:
   (Replaces / Supersedes / Corrects), not a written force interval; runtime
   `kb-ontology.yaml` `force_status_values` remains a different 6-set (a
   cardinality match is not a member match).
+- The living `EffectSelector` / ActivationTrigger names are the
+  operation-registry YAML 6-set after review-26 P0-4 (`At`,
+  `AfterPublication`, `OnEvent`, `OnCondition`, `RetroactiveTo`, `Unknown`;
+  D252); `ForRelationsAfter` is a TransitionPredicate
+  (`RelationsArisingOnOrAfter`) on the AXIS-6 plane, not a selector mode;
+  `OnCondition` is a guard; an unproven `OnCondition` yields
+  `TriggerUnknown`, not false.
 - The temporal model remains a `[proposed]` crosswalk, not the complete
   executable temporal contract requested by the 2026-08-11 assessment. Its
   fourteen-area completeness matrix must preserve `partial`, `absent` and
