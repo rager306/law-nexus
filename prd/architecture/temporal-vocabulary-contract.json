@@ -493,6 +493,30 @@
       ]
     },
     {
+      "id": "validation-receipt",
+      "needle": "| `ValidationReceipt` |",
+      "required_fragments": [
+        "canonical design term",
+        "[proposed]"
+      ]
+    },
+    {
+      "id": "assertion-disposition-event",
+      "needle": "| `AssertionDispositionEvent` |",
+      "required_fragments": [
+        "canonical design term",
+        "[proposed]"
+      ]
+    },
+    {
+      "id": "assertion-relation",
+      "needle": "| `AssertionRelation` |",
+      "required_fragments": [
+        "canonical design term",
+        "[proposed]"
+      ]
+    },
+    {
       "id": "component-id",
       "needle": "| `ComponentId` |",
       "required_fragments": [

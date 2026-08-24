@@ -125,6 +125,14 @@ Governor must never decide:
 - Living INV-09a/09b/09c live in crystal MC-INV after review-26 P0-6
   (M180-cnzw84 S01); the §14.5 table keeps the single D216 composite
   `INV-09` row as a citation known-lag, not three split rows.
+- The living adjudicative overlay after review-26 P0-3 (M181-s0n6ls S01/S02)
+  lives in `prd/architecture/assertion-lifecycle-contract.yaml`; the three
+  glossary first-cells `ValidationReceipt` / `AssertionDispositionEvent` /
+  `AssertionRelation` are canonical `[proposed]` design terms owned by
+  ADR-0017 G0(a); `AcceptedForProjection` stays the living alias of the
+  `AuthoritativeInternal` projection-status slot, not a first-cell and not
+  a sixth status; the D216 five-status set remains the projection-status
+  surface.
 - Citation/historical known-lag with YAML as the definition surface
   (D252/D253): MC-SEL selector list, ADR-0009 7-list wording, the ADR-0021
   `ForRelationsAfter` mode mention, the AXIS-5 ellipsis and the ADR-0018
