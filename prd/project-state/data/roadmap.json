@@ -1,6 +1,6 @@
 {
   "schema_version": "law-nexus-project-state-roadmap/v2",
-  "generated_at": "2026-08-24T14:33:36Z",
+  "generated_at": "2026-08-24T15:48:25Z",
   "non_authoritative": true,
   "source_of_truth": "prd/ARCHITECTURE.md (living truth oracle) and doc/adr/** (decision/lifecycle authority). This file is a non-authoritative cold-reader projection; local .gsd/** is workflow state only.",
   "completed_milestone_groups": [
@@ -441,13 +441,19 @@
       "theme": "Review-26 P0 leftovers: INV-09 split, Superseded adjudication, ActivationTrigger split (P0-6 P0-5a P0-4) (docs/design)",
       "status": "complete",
       "boundary": "Design-only final review-26 leftovers wave: INV-09 split into 09a ArtifactPreservation / 09b SourceTextRoundTrip / 09c ProjectionAgreement (historical wording retained as quote, anchors green); Superseded adjudicated out of written force statuses into VersionRelation (written 7->6; Decision table + crosswalk synced); EffectSelector decomposed into ActivationTrigger (6 modes) + TransitionPredicate (RelationsArisingOnOrAfter, AXIS-6/ADR-0021 plane) with OnCondition=guard and TriggerUnknown-not-false. Runtime kb-ontology force_status_values stays known-lag non-claim (D251/MEM1041). No Rust types minted, no lifecycle promotion, not product readiness."
+    },
+    {
+      "range": "M181-M181",
+      "theme": "Review-26 P0 core: adjudication decomposition and CoverageCertificate (P0-3 P0-8) (docs/design)",
+      "status": "complete",
+      "boundary": "Design-only final P0-core wave: assertion adjudication decomposed into ValidationReceipt / AssertionDispositionEvent (AcceptedForProjection/Quarantined/Rejected/Retired) / AssertionRelation (6 kinds) over an additive ADR-0017 G0(a) amendment (D216 five-set retained verbatim as projection-status surface; AcceptedForProjection living alias); glossary/catalog/governance companion rows; CoverageCertificate entity in scope-aware-completeness contract (closure dimensions, CompleteFor/IncompleteBecause) + INV-22; governor companion-manifest advisory (D261) - 66 checks green. No Rust types minted, no lifecycle promotion, not product readiness."
     }
   ],
   "current_milestone": {
-    "id": "M180-cnzw84",
+    "id": "M181-s0n6ls",
     "status": "complete",
-    "title": "Review-26 P0 остатки: INV-сплит Superseded-адъюдикация ActivationTrigger-сплит (P0-6 P0-5a P0-4)",
-    "goal": "Close review-26 leftovers P0-6/P0-5a/P0-4 as thin vertical design-only slices with re-pinned closed sets and negative pins, then the honesty sync recording remaining candidates. No Rust type minting, no lifecycle promotion."
+    "title": "Review-26 P0 ядро: адъюдикационная декомпозиция и CoverageCertificate (P0-3 P0-8)",
+    "goal": "Close review-26 P0-3 (adjudication decomposition over ADR-0017 G0(a)) and P0-8 (CoverageCertificate + INV-22) as design-only slices, then the honesty sync with the companion-manifest governor advisory. No Rust type minting, no lifecycle promotion."
   },
   "recommended_next": {
     "title": "Next candidates after review-26 P0 waves (M180-cnzw84 complete / M181-s0n6ls active): P0-3/P0-8 landed design-only M181 S01-S03; leftover S3/S4/S7 renames + P1-8 full semantic governor, human-gated, alongside G2 golden corpus vs P2 Rust resolver",
@@ -624,6 +630,11 @@
       "id": "roadmap-sync-20260824-m181-p0-front",
       "lifecycle": "proposed",
       "text": "P0-front sync (2026-08-24): review-26 P0-3/P0-8 design docs landed design-only in M181-s0n6ls S01-S03 (assertion-lifecycle three-entity overlay ValidationReceipt / AssertionDispositionEvent / AssertionRelation with living alias AcceptedForProjection; CoverageCertificate overlay on E.2.5 with INV-22 in crystal MC-INV); no new contract files, no Rust types. S04 adds the governor companion-manifest advisory (D261): inventory 40 check specs, live pass_count 66, warn_count 0. Remaining named candidates stay human-gated: S3/S4/S7 renames (MC-SEPARATION planes), P1-8 full semantic governor, G0-G3 golden corpus, then the product fork (G2 corpus vs P2 Rust resolver). GSD completion is not product readiness."
+    },
+    {
+      "id": "roadmap-sync-20260823-m181-complete",
+      "lifecycle": "proposed",
+      "text": "Closeout sync (2026-08-23): M181-s0n6ls completed in GSD - review-26 P0-3/P0-8 closed. The review-26 P0 core is now fully executed across M179/M180/M181 (P0-1, P0-2, P0-3, P0-4, P0-5a, P0-5b, P0-6, P0-7, P0-8). Governor 66 checks green incl. semantic-name-collision D246, cross-contract closed-set consistency, companion-manifest D261. Remaining human-gated fork: S3/S4/S7 renames (MC-SEPARATION planes, WorkId opaque, VIEW-Promulgated set), G0-G3 golden corpus 30-40 cases, product fork G2-vs-P2. GSD completion is not product readiness."
     }
   ]
 }
