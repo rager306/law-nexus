@@ -56,10 +56,11 @@ The four levels below are WEMI, LRMoo-compatible.
    | **Manifestation** | a concrete format/file | ODT / XML / HTML carrier | no |
    | **Item** | a concrete stored copy | storage URI | no |
 
-2. **Identity includes date + authority, not number alone.** The canonical
-   identity of a Work ALWAYS includes the enactment date (YYYY-MM-DD) and
-   issuing authority, because Russian act numbers are non-unique across years
-   and authorities. A URN form (ELI-compatible, project-local):
+2. **Identity includes date + authority, not number alone.**
+   The canonical identity of a Work ALWAYS includes the enactment date
+   (YYYY-MM-DD) and issuing authority, because Russian act numbers are
+   non-unique across years and authorities. A URN form (ELI-compatible,
+   project-local):
 
    ```
    urn:lex:ru:federal:zakon:2013-04-05;44-fz                 # Work
@@ -161,6 +162,27 @@ a renumbered numbered component keeps its `ComponentId` and changes only
 its `DesignationVersion`; `SplitFrom` / `MergedFrom` are reserved for
 genuine split/join topology changes, and `ReplacedByNewIdentity` retires
 the old `ComponentId`.
+
+Additive note (review-26 §4, `doc/review/review-26-23-08-2026.md`): act-level
+identity is now symmetric with the component identity above — **WorkId** is an
+opaque persistent identifier of a Work (the model crystal MC-ID act row already
+names opaque `WorkId`), and **OfficialIdentityClaim** carries authority,
+enactment_date, number, act_type, jurisdiction, source, recorded_at as the
+natural key for reconciliation, not the internal identifier. Decision 2's
+triple (number + enactment date + authority) remains the OfficialIdentityClaim
+natural-key rule and a citation alias of the historical Work identity wording;
+this note does not rewrite Decision 2 or Decision 6 (Work stability across
+amendments), and the URN form of decision 3 stays a compatibility projection,
+never the internal WorkId. CC-path is the historical first-cell;
+**ComponentLocator** is the living alias (recursive structural locator, not
+identity canon); the R8-11 heading "CC-path identity" above remains a valid
+historical citation. No Rust type is minted: offline `mint_work`'s composed key
+`work:ru:{authority}:{kind}:{date}:{number}` is known-lag, not an opaque
+runtime WorkId. **StructuralAddressVersion is not adopted**; the locator is
+not folded into `DesignationVersion`, which remains addressing data bound to
+a `ComponentId`. The YAML contracts, the model crystal, and the glossary are
+the definition surfaces; this note is provenance, not a second canon.
+Design-only at lifecycle `[proposed]`.
 
 ## Non-claims
 
