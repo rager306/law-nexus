@@ -61,17 +61,33 @@ Three hard «no» of the formula:
 3. Projection ≠ truth — CST/AST/graph/slice are a deterministic fold of the
    ledger; root hash is reproducible; rebuild is equivalent.
 
-### MC-AXES. Seven independent axes (anti-drift core)
+### MC-SEPARATION. Independent semantic planes
 
-| ID | Axis | Answers | Never answers |
-|----|------|---------|---------------|
-| AXIS-1 | ComponentIdentity (opaque `ComponentId`) | which piece, forever | number/path (that is DesignationVersion), force |
-| AXIS-2 | TextVersion (CTV) | which wording between strikes | force, applicability |
-| AXIS-3 | OperativeMembership | in the operative tree at t? | force by text, documentary presence |
-| AXIS-4 | DocumentaryPresence | Tombstone / Present / Absent | legal force |
-| AXIS-5 | ForceStatus (interval set) | InForce / NotYetInForce / Suspended / Repealed / … | text, applicability |
-| AXIS-6 | TransitionConstraint | for which old relations the old version still applies | slot resurrection |
-| AXIS-7 | Reference Mention/Binding/Semantics | who cited what, binding, mode | `amends`, target force, editorial re-pointing |
+MC-AXES and AXIS-1..AXIS-7 remain historical navigation aliases of this table;
+they are not a second living set.
+
+| Plane | Answers | Never answers | Was |
+|-------|---------|---------------|-----|
+| Identity | opaque `WorkId` / `ComponentId` / `TextUnitId` — which piece, forever | number/path (that is Designation), force | AXIS-1 ComponentIdentity |
+| Designation | number, label, path, eId, wId, URI | identity, force | new (previously folded into AXIS-1 notes) |
+| SourceExpression | official expression, manifestation, rendition | text-content identity, force | new |
+| TextContent | CTV / which wording between strikes | force, applicability | AXIS-2 TextVersion |
+| StructuralMembership | parent, order, attach/detach/move — in the tree at t? | force-by-text, editorial presence | AXIS-3 OperativeMembership |
+| EditorialPresence | Present / Tombstone / Absent in a concrete expression/view | legal force | AXIS-4 DocumentaryPresence |
+| Force | interval-set InForce / NotYetInForce / Suspended / Repealed / … | text, applicability | AXIS-5 ForceStatus |
+| TransitionConstraint | for which old relations the old version still applies — source-grounded constraint with own valid/transaction anchors | slot resurrection; not an independent temporal axis | AXIS-6 |
+| ReferenceMention | literal source span | `amends`, target force | AXIS-7 split |
+| ReferenceBinding | target resolution | editorial re-pointing as identity | AXIS-7 split |
+| ReferenceSemantics | relation kind and temporal binding mode | target force | AXIS-7 split |
+| AssertionKnowledge | evidence, disposition, conflict, known-as-of | force, membership | new |
+
+Living-name overlay (review-26 §3, design-only, lifecycle `[proposed]`):
+StructuralMembership is the living name of historical OperativeMembership;
+EditorialPresence is the living name of historical DocumentaryPresence (the
+review-26 alternative ExpressionPresence is not adopted); TransitionConstraint
+is a first-class data plane with its own valid/transaction anchors, not an
+independent temporal axis; the historical AXIS-N labels remain citation
+aliases.
 
 <!-- anchor: adr-0017 G0(f) "DocumentaryPresence is a separate repeal axis" -->
 
@@ -221,7 +237,9 @@ be amended during vacatio (44-ФЗ art. 114 + 188-ФЗ).
 ForceStatus = Repealed; OperativeMembership = Absent; DocumentaryPresence =
 Tombstone; TextAvailability = HistoricalOnly (last CTV stays citable). Child
 cascade is a derived `RepealScope(parent, descendants=true)`, not physical
-deletion of child ids.
+deletion of child ids. Living names (review-26 §3): StructuralMembership /
+EditorialPresence; historical OperativeMembership / DocumentaryPresence
+retained.
 
 <!-- anchor: adr-0017 G0(f) "TextAvailability = HistoricalOnly" -->
 
@@ -371,6 +389,7 @@ vocabulary, `amends` constructors, bounded force-timeline in `ln-temporal`.
 |---------|------|-------------|---------------|------|
 | v1 | 2026-08-20 | review-25 (pre-G0) | sha256:c438ddfbe67181d439b5ed69a91e0adca833a9b84d26f1f2d85ea848070ea1b8 | b4c0d33 |
 | v2 | 2026-08-20 | G0 ADR amendments (D216): adr-0013/0016/0017/0018/0019 + temporal-model; historical anchors stay on review | sha256:c438ddfbe67181d439b5ed69a91e0adca833a9b84d26f1f2d85ea848070ea1b8 | 26095dc+ |
+| v3 | 2026-08-24 | review-26 §3 living overlay (M182 S01): MC-SEPARATION heading + 12 semantic planes; living names StructuralMembership / EditorialPresence; MC-AXES / AXIS-N remain historical aliases; no new anchor source, review-25 digest unchanged | sha256:c438ddfbe67181d439b5ed69a91e0adca833a9b84d26f1f2d85ea848070ea1b8 | 1d16782+ |
 
 v2 (D216) moved the model-definition anchors from the L0 review to the
 canonical G0 ADR amendments; historical/reality-boundary and non-claim anchors
