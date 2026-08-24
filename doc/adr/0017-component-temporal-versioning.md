@@ -377,6 +377,25 @@ the DAG; non-commuting underdetermined effects yield `OrderingConflict`,
 never an ordering by act number. This upgrades the §4 fail-closed resolver
 contract: compilation is deterministic over the DAG and typed on conflict.
 
+Additive note (review-26 P0-4, `doc/review/review-26-23-08-2026.md`): the
+living decomposition of the historical `EffectSelector` above is an
+ActivationTrigger plane plus a TransitionPredicate plane. The living
+ActivationTrigger names are the YAML 6-set (D252): `At` / `AfterPublication`
+/ `OnEvent` / `OnCondition` / `RetroactiveTo` / `Unknown`, pinned
+character-identical in `prd/architecture/operation-registry.yaml` and
+`prd/architecture/pending-effects-contract.yaml`. `ForRelationsAfter` leaves
+EffectSelector and is a TransitionPredicate with the closed 1-set
+`RelationsArisingOnOrAfter` on the AXIS-6 / ADR-0021 plane; it is not an
+ActivationTrigger and not a sixth clock. The review-26 rename tokens
+`AtInstant` / `AfterOfficialPublication` / `OnLegalEvent` / `RetroactiveFrom`
+are not living names, and the review-26 extra TransitionPredicate /
+ApplicabilityPredicate DSL names are out of this closed set (P2 / ADR-0023).
+`OnCondition` is a guard, not a clock; an unproven condition yields
+`TriggerUnknown`, never false, never a selector mode, never an apply_result.
+The historical G0(c) 7-list sentence above is retained, not rewritten. The
+YAML is the definition surface; this note is provenance, not a second canon.
+Design-only at lifecycle `[proposed]`; no Rust type is minted.
+
 The E.2.3 pending-effects contour of this DAG contract is tracked as
 design-only data: the `PendingEffect` / `ProspectiveVersion` entities, their
 closed state and transition sets, and the checkout exclusion rule live in
