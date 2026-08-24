@@ -154,6 +154,16 @@ Governor must never decide:
   first-cell and not catalog id `component-locator`; `StructuralAddressVersion`
   is not adopted and the locator is not folded into `DesignationVersion`;
   the runtime composed WorkId (`mint_work`) is known-lag.
+- Living review-26 §7 overlay (M182 S03): the named VIEW set (VIEW-SourceExpression /
+  VIEW-DerivedConsolidation / VIEW-Operative / VIEW-HistoricalCitation /
+  VIEW-PendingEffects / VIEW-Reference / VIEW-ChangeTrace / VIEW-Discrepancy) lives in
+  crystal MC-CHECKOUT as a design-only `[proposed]` overlay, not in the §3 glossary
+  table; the YAML E.2.5 closed four [Promulgated, Operative, HistoricalCitation,
+  Reference] stays the historical checkout-key token set, not a named-view catalog;
+  no VIEW-* first-cells and no catalog ids `view-source-expression` /
+  `view-pending-effects` are minted; `known_as_of` is a required checkout parameter of
+  every projection, never a view; VIEW-CaseApplicable remains ADR-0023 runtime; the
+  MC-SEPARATION plane SourceExpression is not the projection VIEW-SourceExpression.
 - Citation/historical known-lag with YAML as the definition surface
   (D252/D253): MC-SEL selector list, ADR-0009 7-list wording, the ADR-0021
   `ForRelationsAfter` mode mention, the AXIS-5 ellipsis and the ADR-0018

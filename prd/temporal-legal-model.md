@@ -355,7 +355,11 @@ The `[proposed]` G0 vocabulary (D216: `LegalEventAssertion`, `ComponentId`,
 added to the §3 glossary; it remains design canon and does not close any TSG
 or promote any lifecycle. Review-26 §4 adds the act-level identity pair
 `WorkId` / `OfficialIdentityClaim` to the same §3 glossary as a living
-overlay (M182 S02), likewise design-only `[proposed]`. A compact projection lives at
+overlay (M182 S02), likewise design-only `[proposed]`. Review-26 §7 keeps the
+named VIEW set outside this glossary: the eight named views live in crystal
+MC-CHECKOUT as a design-only `[proposed]` overlay (M182 S03), `known_as_of` is a
+checkout parameter of every projection rather than a separate view, and
+CaseApplicable remains ADR-0023 runtime. A compact projection lives at
 [`architecture/model-crystal.md`](architecture/model-crystal.md) Layer 0/1 —
 navigation surface with governor-anchored quotes; its INV-/AXIS-/OP-/RES- IDs
 resolve back to the owning ADR amendments.
