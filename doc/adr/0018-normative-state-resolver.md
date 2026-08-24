@@ -141,6 +141,21 @@ moved semantics and the glossary syncs (P0), `Transitional` stays in the
 table above as a **deprecated-in-design** value: no new runtime or glossary
 row may build on it.
 
+Additive note (review-26 P0-5a, `doc/review/review-26-23-08-2026.md`): the
+living written interval statuses are the force-interval YAML 6-set (D251,
+`prd/architecture/force-interval-set-contract.yaml`): `InForce`,
+`NotYetInForce`, `Suspended`, `Repealed`, `Expired`, `Invalidated`.
+`Superseded` leaves force: it is a `VersionRelation` — a relation between
+versions, not a state of force — with the closed three-set `Replaces` /
+`Supersedes` / `Corrects`; not a written interval and not an OP-F operation.
+The review-26 `DerivedFrom` is not a member of this closed set: it is the
+identity-continuity sibling on the MC-ID. The historical Decision table
+above and the G0(c) sentence above are retained, not rewritten. The runtime
+`kb-ontology.yaml` `force_status_values` 6-set is a different vocabulary
+(known-lag; a cardinality match is not a member match). The YAML is the
+definition surface; this note is provenance, not a second canon.
+Design-only at lifecycle `[proposed]`; no Rust type is minted.
+
 The E.2.5 scope-aware completeness contract introduces a same-named but
 distinct `Unknown`: a completeness `Unknown` is an in-scope component of a
 scoped checkout whose coverage cannot be established — it is not the force
