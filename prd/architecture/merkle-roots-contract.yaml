@@ -37,7 +37,7 @@ boundary: >
 # Closed vocabularies, inline list form (pin tests parse them as lists,
 # never as substring scans over the file - MEM951).
 
-root_kinds: [CstRoot, AstRoot, OracleExamBinding]  # exactly 3, character-identical in meaning to ADR-0017 G0(d). CstRoot - reproducible root hash of the lossless green CST of the section; INV-09 exact-text reconstruction lives here alone; not identity, not parser records (ADR-0013 G0 note). AstRoot - reproducible root hash of the semantic red legal AST of the section; never an exact-text proof (review-25 B.2 stage 6 ban). OracleExamBinding - the third G0(d) hash binding fold(events, t) to snapshot(oracle@t); the EditionOracle is a checksum, not canon (ADR-0017 1c); not a canon of history, not oracle-tree-back. PresenceRoot / DocumentaryPresence / ArtifactHash / QuotedHash / ComposedCheckoutRoot / NormalizedSemanticHash (a review-24 precursor name for AstRoot, not a separate kind) / InputDigest / CommitDigest never appear in this parsed list.
+root_kinds: [CstRoot, AstRoot, OracleExamBinding]  # exactly 3, character-identical in meaning to ADR-0017 G0(d). CstRoot - reproducible root hash of the lossless green CST of the section; INV-09b SourceTextRoundTrip lives here alone (source CST under a named normalization profile), not INV-09a artifact bytes and not INV-09c reconstructed-vs-oracle; not identity, not parser records (ADR-0013 G0 note). AstRoot - reproducible root hash of the semantic red legal AST of the section; never an exact-text proof (review-25 B.2 stage 6 ban). OracleExamBinding - the third G0(d) hash binding fold(events, t) to snapshot(oracle@t); INV-09c ProjectionAgreement lives here (the fold approximates the oracle by scope and normalization profile), never a source-text round trip; the EditionOracle is a checksum, not canon (ADR-0017 1c); not a canon of history, not oracle-tree-back. PresenceRoot / DocumentaryPresence / ArtifactHash / QuotedHash / ComposedCheckoutRoot / NormalizedSemanticHash (a review-24 precursor name for AstRoot, not a separate kind) / InputDigest / CommitDigest never appear in this parsed list.
 
 typed_non_success: [IncompleteProjection, CanonicalFormUnspecified]  # exactly 2. IncompleteProjection - the in-scope completeness outcome InScopeBlocked (E.2.5, by name) means the roots are not emitted: no partial hash, no None (INV-10 / R068). CanonicalFormUnspecified - a design-time hole in a serialization rule; a P2 runtime hasher must fail closed on it, never "hash anyway". Applied / OrderingConflict (MC-RES; INV-03 is named in non_claims) / InScopeBlocked (a completeness outcome, not a Merkle outcome) / MissingAnchor never appear in this parsed list.
 
@@ -101,13 +101,13 @@ entities:
 
 canonical_form:
   - root: CstRoot
-    serializes: lossless_green_tree_of_the_section  # green = full fidelity; INV-09 exact-text reconstruction lives here
-    never_as: component_id_or_ingest_artifact_or_parser_records  # hash is not a ComponentId; artifact_hash is pipeline step 1; parser records are not a CST (ADR-0013)
+    serializes: lossless_green_tree_of_the_section  # green = full fidelity; INV-09b SourceTextRoundTrip lives here (source CST + named normalization profile)
+    never_as: component_id_or_ingest_artifact_or_parser_records  # hash is not a ComponentId; artifact_hash is pipeline step 1; parser records are not a CST (ADR-0013); not INV-09a artifact bytes (artifact_hash row) and not INV-09c reconstructed-vs-oracle (OracleExamBinding)
   - root: AstRoot
     serializes: semantic_red_tree_of_the_section  # red = semantic facade
     never_as: exact_text_proof  # review-25 B.2 stage 6 ban; a normalized hash is never an exact-text proof
   - root: OracleExamBinding
-    serializes: fold_vs_oracle_checksum  # fold(events, t) approximates snapshot(oracle@t); EditionOracle is a checksum, not canon (ADR-0017 1c)
+    serializes: fold_vs_oracle_checksum  # fold(events, t) approximates snapshot(oracle@t); INV-09c ProjectionAgreement lives here (agreement by scope and normalization profile), never a source-text round trip; EditionOracle is a checksum, not canon (ADR-0017 1c)
     never_as: canon_or_oracle_tree_back  # drift is healed by a new event or an explicit waiver, never by writing the oracle tree back as canon
   - root: composed_checkout_root  # a ProjectionRoots field, not a root_kinds member
     serializes: composition_of_three_plus_checkout_key
@@ -115,7 +115,7 @@ canonical_form:
   - root: DocumentaryPresence  # G0(f) repeal axis (Tombstone / Present / Absent), AXIS-4
     serializes: not_a_root
     never_as: root_kinds_member
-  - root: artifact_hash  # ingest, pipeline step 1, SourceArtifact (review-25 B.2)
+  - root: artifact_hash  # ingest, pipeline step 1, SourceArtifact (review-25 B.2); INV-09a ArtifactPreservation lives here (original official-artifact bytes), never a CstRoot proof
     serializes: pipeline_step_1_source_artifact
     never_as: section_root
 
@@ -152,6 +152,23 @@ checkout_projection:
   never_inside: CompletenessReport_fields
   blocked_projection: IncompleteProjection_no_partial_hash  # InScopeBlocked (E.2.5) => roots not emitted (INV-10 / R068)
 
+# Source-vs-reconstructed boundary (review-26 P0-6): the former single
+# exact-text invariant is now three invariants with distinct semantic
+# owners, named once here as a contract property - never re-minted per
+# root kind and never a seventh canonical_form row.
+
+source_vs_reconstructed: >
+  INV-09a ArtifactPreservation owns the original official-artifact bytes
+  carried by the ingest artifact_hash (pipeline step 1); INV-09b
+  SourceTextRoundTrip owns the source CST reproducing canonical text
+  under a named normalization profile; INV-09c ProjectionAgreement owns
+  the reconstructed expression agreeing with the authoritative oracle
+  for a chosen scope and normalization profile. The owners never merge:
+  synthesized CST is not the source PDF/HTML bytes, and an oracle
+  agreement is not a source-text round trip. This is a property of the
+  contract, not a runtime hasher test; design-only at lifecycle
+  [proposed]; no Rust type is minted.
+
 # Non-claims. Mandatory name-trap phrases, as in the E.2.5 contract; pin
 # tests match parsed items and these phrases, never raw
 # substring-absence over the whole file (MEM951).
@@ -161,7 +178,7 @@ non_claims:
   - The data owner is ADR-0017 G0(d), not G0(e) AddressableTextUnit and not G0(f) DocumentaryPresence.
   - The third root is OracleExamBinding (fold ~ oracle), not PresenceRoot and not artifact_hash.
   - A hash is not a ComponentId; a path is not a ComponentId; similarity is not identity continuity (Git inequalities, review-24).
-  - AstRoot and any normalized semantic hash are never an exact-text proof; INV-09 exact-text reconstruction lives on CstRoot alone (review-25 B.2 stage 6 ban).
+  - AstRoot and any normalized semantic hash are never an exact-text proof; the source-vs-reconstructed boundary is explicit - INV-09a ArtifactPreservation owns the original artifact bytes on artifact_hash, INV-09b SourceTextRoundTrip owns the source CstRoot round trip, INV-09c ProjectionAgreement owns the reconstructed-vs-oracle fold (review-25 B.2 stage 6 ban; review-26 P0-6).
   - composed_checkout_root is not a fourth root_kind and not a CompletenessReport field.
   - quoted_hash (the G0(e) TextAnchor) is not a section Merkle root.
   - Parser records are not a CST (ADR-0013 G0 note); the parser head is never declared a lossless green tree.

@@ -52,6 +52,12 @@
 //! comments and non_claims legitimately name every excluded token
 //! (MEM951); entity-depth isolation excludes the non_claims section
 //! (MEM947).
+//!
+//! Review-26 P0-6 adds the source-vs-reconstructed boundary: collapsing
+//! the INV-09a / INV-09b / INV-09c owners back into a single exact-text
+//! contour, dropping the `source_vs_reconstructed` folded scalar, or
+//! re-adding a bare pre-split token turns the boundary pins red on the
+//! tracked files.
 
 /// Embedded contract (T01): the E.2.6 merkle-roots layer. Path is
 /// relative to `crates/ln-kb-ontology/tests/`.
@@ -530,8 +536,13 @@ fn canonical_form_rows_pin_serialization_boundaries() {
             .find(|row| row[0] == root)
             .unwrap_or_else(|| panic!("canonical_form row missing: {root}"))
     };
-    // Green CST: the only exact-text contour (INV-09); never an identity,
-    // ingest artifact or parser records (ADR-0013).
+    // Green CST: the source-text round-trip contour (INV-09b
+    // SourceTextRoundTrip, source CST under a named normalization
+    // profile); never an identity, ingest artifact or parser records
+    // (ADR-0013). INV-09a ArtifactPreservation lives on the
+    // artifact_hash row (pipeline step 1 bytes); INV-09c
+    // ProjectionAgreement lives on OracleExamBinding (reconstructed vs
+    // oracle).
     let cst = row_of("CstRoot");
     assert_eq!(cst[1], "lossless_green_tree_of_the_section");
     for needle in ["component_id", "ingest", "parser"] {
@@ -630,6 +641,13 @@ fn non_claims_carry_the_boundary_disclaimers() {
     assert!(
         has_claim("never an exact-text proof"),
         "AstRoot exact-text ban non-claim lost"
+    );
+    assert!(
+        has_claim("INV-09a")
+            && has_claim("INV-09b")
+            && has_claim("INV-09c")
+            && has_claim("source-vs-reconstructed"),
+        "source-vs-reconstructed boundary non-claims lost (review-26 P0-6)"
     );
     assert!(
         has_claim("not a fourth root_kind") && has_claim("not a CompletenessReport field"),
@@ -760,6 +778,32 @@ fn checkout_projection_names_the_sibling_singular_root_hash() {
         "IncompleteProjection_no_partial_hash",
         "a blocked projection emits no partial hash (INV-10 / R068)"
     );
+}
+
+#[test]
+fn source_vs_reconstructed_is_a_contract_property_not_a_hasher_test() {
+    let section = section_between(CONTRACT_YAML, "source_vs_reconstructed:", "non_claims:");
+    // The folded scalar wraps prose across lines; collapse whitespace so
+    // phrase pins stay independent of line breaks (review-26 P0-6 split
+    // of the former single exact-text invariant into three owners).
+    let normalized = section.split_whitespace().collect::<Vec<_>>().join(" ");
+    for phrase in [
+        "INV-09a",
+        "ArtifactPreservation",
+        "INV-09b",
+        "SourceTextRoundTrip",
+        "INV-09c",
+        "ProjectionAgreement",
+        "artifact_hash",
+        "normalization profile",
+        "synthesized CST is not the source PDF/HTML bytes",
+        "not a runtime hasher test",
+    ] {
+        assert!(
+            normalized.contains(phrase),
+            "source-vs-reconstructed lost phrase `{phrase}`"
+        );
+    }
 }
 
 #[test]
