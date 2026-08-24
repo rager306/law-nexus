@@ -7,8 +7,12 @@
 # dependency subgraph) and canonicalized in ADR-0017 §4 (whole-act
 # fail-closed union) specialized by G0(d) (the checkout scope parameter),
 # projected names-only in prd/architecture/model-crystal.md (MC-CHECKOUT).
-# View modes are copied character-identical from MC-CHECKOUT; in-scope block
-# reasons are copied character-identical from ADR-0017 §4 resolve_CTV
+# View modes are copied character-identical from MC-CHECKOUT: they are the
+# historical checkout-key four of the review-25 Part C / ADR-0017 G0(d)
+# view_mode parameter, not the review-26 §7 living named VIEW set - the
+# living named views live in the MC-CHECKOUT prose overlay
+# (prd/architecture/model-crystal.md), not in this parsed list. In-scope
+# block reasons are copied character-identical from ADR-0017 §4 resolve_CTV
 # non-success. This file adds the layer no sibling carries: the three
 # checkout-scope entities (QueryScope, CompletenessReport and the
 # CoverageCertificate completeness proof), the closed scope/outcome
@@ -38,7 +42,7 @@ boundary: >
 # reason or a new typed token.
 query_scope_kinds: [WholeAct, ComponentSubgraph]  # exactly 2; WholeAct preserves ADR-0017 §4 (every component in scope; any gap blocks); ComponentSubgraph is seeds plus an optional dependency subgraph, where an out-of-scope unknown never blocks; no Corpus / CrossAct / Appendix / WorkFamily / ArticleOnly is invented
 
-view_modes: [Promulgated, Operative, HistoricalCitation, Reference]  # exactly 4, character-identical to MC-CHECKOUT; CaseApplicable is ADR-0023 and appears only in comments/non-claims, never in this parsed list; a view is orthogonal to a scope kind - Operative with WholeAct and Operative with ComponentSubgraph are both lawful; a view is never a scope kind
+view_modes: [Promulgated, Operative, HistoricalCitation, Reference]  # exactly 4, character-identical to MC-CHECKOUT; these four are the historical checkout-key tokens of the review-25 Part C / ADR-0017 G0(d) view_mode parameter, not the review-26 §7 living named VIEW set - the living named views live in the MC-CHECKOUT prose overlay and are not additional parsed members of this list; CaseApplicable is ADR-0023 and appears only in comments/non-claims, never in this parsed list; a view is orthogonal to a scope kind - Operative with WholeAct and Operative with ComponentSubgraph are both lawful; a view is never a scope kind
 
 completeness_outcomes: [InScopeComplete, InScopeBlocked, OutOfScopeUnknownReported]  # exactly 3; report outcomes, never MC-RES apply results and never resolve_CTV returns; PartialSuccess / Degraded / None / Ok never appear here (INV-10)
 

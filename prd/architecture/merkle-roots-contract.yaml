@@ -65,7 +65,13 @@ entities:
       (Promulgated / Operative / HistoricalCitation / Reference), named
       here by kind; the view list stays owned by the E.2.5 YAML and is
       never re-minted as a second canon. CaseApplicable is a later
-      ADR-0023 view, never a fifth view here. scope_kind is exactly one
+      ADR-0023 view, never a fifth view here. The review-26 §7 living
+      named VIEW set lives in the MC-CHECKOUT prose overlay in
+      model-crystal.md, never in this checkout key:
+      living-named-views-are-not-additional-key-tokens - the living
+      named views in MC-CHECKOUT prose are not additional checkout-key
+      tokens of this five-field key, and the four above stay the
+      historical checkout-key four. scope_kind is exactly one
       of WholeAct / ComponentSubgraph, named here by kind; the scope x
       gap -> outcome table stays owned by the E.2.5 YAML and is not
       copied. A green tree of a C1 amending act and a green tree of a
