@@ -35,7 +35,7 @@ effect_selector_modes:  # exactly 6 living overlay (review-26 P0-4 / D252); proj
   - RetroactiveTo
   - Unknown
 
-transition_predicates:  # exactly 1 (review-26 P0-4 / D252); AXIS-6 / ADR-0021 plane, not an ActivationTrigger
+transition_predicates:  # exactly 1 (review-26 P0-4 / D252); AXIS-6 is the historical alias of the TransitionConstraint data plane (ADR-0021; review-26 §3), not an ActivationTrigger
   - RelationsArisingOnOrAfter
 
 on_condition_is_a_guard: "OnCondition is a guard referencing an event or confirmed state, not a clock and not a sixth clock role."
@@ -72,7 +72,7 @@ non_claims:
   - This registry is not the S02 Reference Binding/Semantics contract (a separate vocabulary surface).
   - cites and IdentityAmbulatory are reference-binding concepts, not operation ids in this registry.
   - effect_selector on an operation is the selector carried into the authorized effect (G0(c)), not a sixth clock (ADR-0009).
-  - ForRelationsAfter is not an effect_selector_mode; it is a TransitionPredicate RelationsArisingOnOrAfter on the AXIS-6 plane (review-26 P0-4 / D252).
+  - ForRelationsAfter is not an effect_selector_mode; it is a TransitionPredicate RelationsArisingOnOrAfter on the AXIS-6 plane (the historical alias of the TransitionConstraint data plane; review-26 P0-4 / D252 / §3).
   - OnCondition is a guard referencing an event or confirmed state, not a clock (review-26 P0-4 / D252).
   - TriggerUnknown is the fail-closed outcome of an unproven OnCondition, not a selector mode and not an apply_result (review-26 P0-4 / D252).
   - The review-26 rename tokens AtInstant / AfterOfficialPublication / OnLegalEvent / RetroactiveFrom are not living names.
@@ -148,7 +148,7 @@ families:
         runtime_today: none
         notes: "not implemented; name reserved. Editorial correction; a legal wording change is ReplaceText."
   OP-S:
-    axis: AXIS-3 OperativeMembership and designation
+    axis: AXIS-3 OperativeMembership / StructuralMembership and designation  # StructuralMembership is the living name of historical OperativeMembership (review-26 §3); AXIS-3 stays the historical alias
     notes: >
       Structural membership and designation changes. The runtime structural
       spine (apply_industrial_op) covers only Move, Renumber, Split as
@@ -177,7 +177,7 @@ families:
         evidence_span: "span of the instrument wording that authorizes the detachment"
         typed_failures: [TargetNotFound, AmbiguousTarget, PreconditionMismatch, BaseVersionMismatch, OrderingConflict, UnsupportedOperation, IncompleteSource]
         runtime_today: none
-        notes: "not implemented; name reserved. Detach is membership-only — not Repeal (force) and not a Tombstone (DocumentaryPresence, see MC-REPEAL)."
+        notes: "not implemented; name reserved. Detach is membership-only — not Repeal (force) and not a Tombstone (DocumentaryPresence, living name EditorialPresence, see MC-REPEAL)."
       Move:
         target_selector: "component id plus source and destination parent/position"
         expected_base_version: "membership/structure version the instrument expects"
@@ -316,7 +316,7 @@ families:
         evidence_span: "span of the instrument wording that authorizes the repeal"
         typed_failures: [TargetNotFound, AmbiguousTarget, PreconditionMismatch, BaseVersionMismatch, OrderingConflict, UnsupportedOperation, IncompleteSource]
         runtime_today: none
-        notes: "not implemented; applied through the ADR-0018 overlay. Repeal is four axes, not a detach."
+        notes: "not implemented; applied through the ADR-0018 overlay. Repeal is four axes, not a detach. The postcondition keeps the historical tokens; living plane names (review-26 §3): StructuralMembership for OperativeMembership, EditorialPresence for DocumentaryPresence."
       Expire:
         target_selector: "component id or scope whose force ends by term"
         expected_base_version: "force state version the instrument expects"

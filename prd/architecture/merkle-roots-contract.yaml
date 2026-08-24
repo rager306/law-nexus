@@ -112,7 +112,7 @@ canonical_form:
   - root: composed_checkout_root  # a ProjectionRoots field, not a root_kinds member
     serializes: composition_of_three_plus_checkout_key
     never_as: fourth_root_kind_or_completeness_report_field
-  - root: DocumentaryPresence  # G0(f) repeal axis (Tombstone / Present / Absent), AXIS-4
+  - root: DocumentaryPresence  # G0(f) repeal axis (Tombstone / Present / Absent), AXIS-4; EditorialPresence is the living name of historical DocumentaryPresence (review-26 §3): AXIS-4 stays the historical alias of that plane
     serializes: not_a_root
     never_as: root_kinds_member
   - root: artifact_hash  # ingest, pipeline step 1, SourceArtifact (review-25 B.2); INV-09a ArtifactPreservation lives here (original official-artifact bytes), never a CstRoot proof
