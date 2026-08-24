@@ -522,6 +522,33 @@ does not catalog INV-12..21 in this note. compiler_protocol_version is not
 projection_protocol_version. The YAML specializes E.2.5; it does not delete
 the WholeAct / ComponentSubgraph rows above.
 
+Additive note (review-26 §7, `doc/review/review-26-23-08-2026.md`): the
+living named VIEW set of this checkout lives in MC-CHECKOUT
+(`prd/architecture/model-crystal.md`, design-only, lifecycle `[proposed]`):
+VIEW-SourceExpression(expression_id), VIEW-DerivedConsolidation,
+VIEW-Operative, VIEW-HistoricalCitation, VIEW-PendingEffects,
+VIEW-Reference, VIEW-ChangeTrace, VIEW-Discrepancy. The historical
+checkout-key tokens are retained beside this set: this G0(d) signature keeps
+`view_mode` as a key parameter with its closed E.2.5 four [Promulgated,
+Operative, HistoricalCitation, Reference], and review-25 Part C
+PromulgatedTextView stays a checkout-key token of the source-text family;
+where a historical checkout key said only Promulgated, the living names
+distinguish SourceExpression vs DerivedConsolidation — Promulgated is that
+historical token, not a living sense that accepted ≡ published ≡ expression ≡
+consolidation. known_as_of is a required parameter of every projection,
+never a view. VIEW-CaseApplicable is not in the named set and remains
+ADR-0023 runtime. Qualifiers: VIEW-SourceExpression(expression_id) is design
+prose, not an API signature or YAML token; the MC-SEPARATION plane
+SourceExpression (official expression, manifestation, rendition) is not the
+checkout projection VIEW-SourceExpression; the name-only VIEW-PendingEffects
+does not execute the review-26 §13 P1 pending-effects view/FSM (that runtime
+view stays P1). This note clarifies scope, it does not rewrite the G0(d)
+signature, mint a view enum, or delete the WholeAct / ComponentSubgraph rows
+above: the closed E.2.5 YAML set remains the checkout key (`view_mode` key ≠
+named-view catalog). Design-only at lifecycle `[proposed]`; no Rust type is
+minted; MC-CHECKOUT is the definition surface, this note is provenance, not
+a second canon.
+
 ### G0(e) AddressableTextUnit, OrderedMembershipVersion, TextAnchor
 
 Below the numbered-component floor (ADR-0016 G0 clarification): an
