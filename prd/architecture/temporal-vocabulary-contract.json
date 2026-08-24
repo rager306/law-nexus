@@ -517,6 +517,22 @@
       ]
     },
     {
+      "id": "work-id",
+      "needle": "| `WorkId` |",
+      "required_fragments": [
+        "canonical design term",
+        "[proposed]"
+      ]
+    },
+    {
+      "id": "official-identity-claim",
+      "needle": "| `OfficialIdentityClaim` |",
+      "required_fragments": [
+        "canonical design term",
+        "[proposed]"
+      ]
+    },
+    {
       "id": "component-id",
       "needle": "| `ComponentId` |",
       "required_fragments": [

@@ -147,6 +147,13 @@ Governor must never decide:
   `EditorialPresence` is the living alias of the `DocumentaryPresence`
   cell, not a first-cell and not a merkle root kind; the review-26
   alternative `ExpressionPresence` is not adopted.
+- Living review-26 §4 overlay (M182 S02): the glossary first-cells
+  `WorkId` / `OfficialIdentityClaim` are canonical `[proposed]` design terms
+  owned by ADR-0016 (act-level identity symmetric with the component level);
+  `ComponentLocator` is the living alias of the CC-path cell, not a
+  first-cell and not catalog id `component-locator`; `StructuralAddressVersion`
+  is not adopted and the locator is not folded into `DesignationVersion`;
+  the runtime composed WorkId (`mint_work`) is known-lag.
 - Citation/historical known-lag with YAML as the definition surface
   (D252/D253): MC-SEL selector list, ADR-0009 7-list wording, the ADR-0021
   `ForRelationsAfter` mode mention, the AXIS-5 ellipsis and the ADR-0018
