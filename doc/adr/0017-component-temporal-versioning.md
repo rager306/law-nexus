@@ -506,6 +506,22 @@ whole compilation); ComponentSubgraph is seed components plus an optional
 dependency subgraph, where an out-of-scope unknown is reported and never
 blocks the scoped query.
 
+Additive note (review-26 P0-8, `doc/review/review-26-23-08-2026.md`): the
+living completeness proof for a scoped checkout is the third entity
+CoverageCertificate in
+`prd/architecture/scope-aware-completeness-contract.yaml` (design-only
+YAML, lifecycle `[proposed]`, no Rust type): seven closed closure
+dimensions (structural / causal / temporal_anchor / evidence / force /
+reference closures + oracle_coverage), unresolved component / effect /
+reference lists, excluded_sources[], compiler_protocol_version and
+source_set_hash, with closed verdicts CompleteFor / IncompleteBecause.
+CompletenessReport.coverage remains the assembly metric; the certificate is
+the proof. INV-22: root hash without coverage proof is not a completeness
+claim. INV-19 excluded-by-scope projects as excluded_sources[]; the crystal
+does not catalog INV-12..21 in this note. compiler_protocol_version is not
+projection_protocol_version. The YAML specializes E.2.5; it does not delete
+the WholeAct / ComponentSubgraph rows above.
+
 ### G0(e) AddressableTextUnit, OrderedMembershipVersion, TextAnchor
 
 Below the numbered-component floor (ADR-0016 G0 clarification): an

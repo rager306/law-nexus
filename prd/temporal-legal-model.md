@@ -91,7 +91,7 @@ Each layer consumes lower-layer evidence. No higher layer may rewrite source evi
 | `AmendmentEvent` | n-ary causal amendment node with structural/industrial/text/force facets and a mandatory evidence class | ADR-0017 §1b `[proposed]` | canonical design term `[proposed]` | not a store node kind, not `eli:amends`, not inferred from a change-overview |
 | `EditionOracle` | observed consolidated edition used as fold checksum, not event canon | ADR-0017 §1c `[proposed]` | canonical design term `[proposed]` | not the parent of the next edition; not C0 seed; not legislative history |
 | `EditionSnapshot` | decode observation (blocks, markers, mentions, phrases) from one Manifestation | ADR-0013 `[bounded]` decode + Review 4 | canonical design term `[proposed]` | not `StructuralAst`, not membership attach, not `resolve_CTV` |
-| Coverage | first-class assembly metric: Bound CCs versus Oracle CCs at t | ADR-0017 + TSG-017 | canonical design term `[proposed]` | low Coverage is Unknown past, not a reconstructed 2013 text |
+| Coverage | first-class assembly metric: Bound CCs versus Oracle CCs at t; the completeness proof is the CoverageCertificate in prd/architecture/scope-aware-completeness-contract.yaml with verdict CompleteFor / IncompleteBecause; INV-22 | ADR-0017 + TSG-017 + G0(d) P0-8 | canonical design term `[proposed]` | low Coverage is Unknown past, not a reconstructed 2013 text; a percentage is not CompleteFor; CompletenessReport.coverage is not CoverageCertificate; CompleteFor / IncompleteBecause are not first-cells |
 | document group | per-act-type structural profile: own ladder of levels, own granularity atom (CC/text), own text boundaries; declared in kb-ontology.yaml `document_groups:`; act type is a Work property | ADR-0013 amendments + kb-ontology.yaml `[bounded]` vocabulary | canonical design term `[proposed]` | not legal classification, not an AST, not ADR-0022 industry profile, not ADR-0027 classification profile, not authority |
 | structural profile | synonym family for document group: closed role layer (container/unit/subunit/subunit-text/text-only) + open per-group token layer with recursive max_depth policy | ADR-0013 amendments + Review 8 | canonical design term `[proposed]` | role layer closed; tokens valid only inside the declaring group; depth is policy, not syntax |
 | CC-path | recursive component identity (`cc:…:statya-93/punkt-4/punkt-4.2`) generalizing flat registry bindings; repairs the changed_article_texts bare-number key defect; prepares the TQ-05 reference channel | ADR-0016 amendments (R8-11) | canonical design term `[proposed]` | not a new identity canon; Work identity stays number + authority + date; not minted by parsed_as binding |
@@ -381,6 +381,10 @@ Living split pointer (review-26 P0-6, M180-cnzw84 S01): living
 INV-09a/09b/09c live in crystal MC-INV / ADR-0017 G0(d) P0-6; this table
 stays the D216 composite `INV-09` row (known-lag, not rewritten into three
 rows).
+
+Coverage pointer (review-26 P0-8, M181-s0n6ls S03): living INV-22 lives in
+crystal MC-INV / `prd/architecture/scope-aware-completeness-contract.yaml`;
+this table stays the D216 set.
 
 ## 15. Stop conditions
 

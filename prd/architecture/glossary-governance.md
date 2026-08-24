@@ -133,6 +133,11 @@ Governor must never decide:
   `AuthoritativeInternal` projection-status slot, not a first-cell and not
   a sixth status; the D216 five-status set remains the projection-status
   surface.
+- Living CoverageCertificate overlay after review-26 P0-8 / M181-s0n6ls S03
+  lives in `prd/architecture/scope-aware-completeness-contract.yaml`; the
+  glossary cell Coverage remains the assembly-metric term;
+  CoverageCertificate / CompleteFor / IncompleteBecause are not first-cells;
+  INV-22 is catalogued in crystal MC-INV (gap INV-12..21 stays L0).
 - Citation/historical known-lag with YAML as the definition surface
   (D252/D253): MC-SEL selector list, ADR-0009 7-list wording, the ADR-0021
   `ForRelationsAfter` mode mention, the AXIS-5 ellipsis and the ADR-0018

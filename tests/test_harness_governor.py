@@ -3335,6 +3335,7 @@ def _write_crystal_fixture(
             "| INV-09c | invariant row |",
             "| INV-10 | invariant row |",
             "| INV-11 | invariant row |",
+            "| INV-22 | invariant row |",
         )
     )
     anchor_lines: tuple[str, ...] = (
@@ -3360,8 +3361,8 @@ def test_model_crystal_anchors_pass_on_live_repo() -> None:
     findings = check_model_crystal_anchors(ROOT)
     assert findings, "live repo must produce at least one finding"
     assert all(finding.status == "pass" for finding in findings)
-    assert any("inv_rows=13" in finding.observed for finding in findings), (
-        "stale inv_rows=11 must not survive green fixture tests"
+    assert any("inv_rows=14" in finding.observed for finding in findings), (
+        "stale inv_rows=13 must not survive green fixture tests"
     )
 
 

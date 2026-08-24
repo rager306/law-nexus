@@ -5652,6 +5652,7 @@ _MODEL_CRYSTAL_EXPECTED_INV = frozenset(
         "09c",
         "10",
         "11",
+        "22",
     }
 )
 
@@ -5668,7 +5669,7 @@ def check_model_crystal_anchors(root: Path) -> list[GovernorFinding]:
     source still matches, (2) every ``<!-- anchor: <src> ... "quote" -->``
     quote still appears verbatim in its mapped catalogued source file, (3)
     required crystal sections and the catalogued MC-INV definition rows
-    (01..08, 09a/09b/09c, 10, 11) exist.
+    (01..08, 09a/09b/09c, 10, 11, 22) exist.
     Unknown sources, absent catalogued files, and quote/digest drift each
     surface an advisory ``warn``: drift is visible, never silent, never
     blocking, and nothing here amends an ADR or promotes a lifecycle
@@ -5802,7 +5803,7 @@ def check_model_crystal_anchors(root: Path) -> list[GovernorFinding]:
                 "model crystal catalogued MC-INV definition rows are incomplete",
                 "; ".join(inv_problems),
                 "Keep exactly one definition row per catalogued metamorphic invariant "
-                "(INV-01..INV-08, INV-09a/09b/09c, INV-10, INV-11).",
+                "(INV-01..INV-08, INV-09a/09b/09c, INV-10, INV-11, INV-22).",
             )
         )
 
@@ -5816,7 +5817,7 @@ def check_model_crystal_anchors(root: Path) -> list[GovernorFinding]:
                 observed=(
                     f"anchors={len(quotes)} verified across "
                     f"{len(loaded_sources)} source file(s); digest=ok; "
-                    "inv_rows=13 (advisory [bounded]; projection only, no canon change)."
+                    "inv_rows=14 (advisory [bounded]; projection only, no canon change)."
                 ),
                 remediation="",
             )

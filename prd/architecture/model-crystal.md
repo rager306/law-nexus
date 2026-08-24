@@ -89,7 +89,7 @@ Repealed-цель           ≠  сломанный биндинг
 публикация              ≠  система знает
 ```
 
-### MC-INV. Metamorphic acceptance invariants (INV-01..INV-11)
+### MC-INV. Metamorphic acceptance invariants (INV-01..INV-11 and INV-22)
 
 | ID | Invariant (one line) |
 |----|----------------------|
@@ -106,6 +106,9 @@ Repealed-цель           ≠  сломанный биндинг
 | INV-09c | ProjectionAgreement: reconstructed expression agrees with the authoritative oracle for a chosen scope and normalization profile. |
 | INV-10 | No `None` ever replaces a legally meaningful typed non-success. |
 | INV-11 | Projection protocol determinism: identical ledger cut + source set + protocol version + view policy + request → same snapshot hash. |
+| INV-22 | Root hash without coverage proof is not a completeness claim. |
+
+*review-26 also names INV-12..21; they stay L0 until an owning slice catalogs them.*
 
 <!-- anchor: adr-0017 G0(d) "repeated replay" -->
 <!-- anchor: temporal-model §14.5 "Permutation of independent events does not change the snapshot" -->
@@ -307,7 +310,11 @@ table live in `prd/architecture/scope-aware-completeness-contract.yaml`
 pointer, not a new anchor source. MC-CHECKOUT keeps the INV-08 (provenance
 or typed Unknown) and INV-10 (no `None` outcome) boundaries; the
 contract's WholeAct row preserves the ADR-0017 §4 any-gap-blocks rule, and
-an out-of-scope unknown is reported, never blocking.
+an out-of-scope unknown is reported, never blocking. Living overlay
+(review-26 P0-8): the same YAML also carries the third entity
+CoverageCertificate (closed closure dimensions and verdicts CompleteFor /
+IncompleteBecause); CompletenessReport.coverage stays the assembly metric;
+per INV-22 a root hash without that certificate is not a completeness claim.
 
 The materialized-section checkout key, closed root kinds (CstRoot /
 AstRoot / OracleExamBinding) and INV-01 rebuild-equivalence live in
