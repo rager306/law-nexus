@@ -27,17 +27,17 @@ boundary: >
   (E.2.3 / ADR-0017), not a TransitionConstraint (ADR-0021), not a Work
   cancel_resume. Pin tests embed this file as data.
 
-# Closed sets - character-identical to canon (D229); this file never
-# invents an eighth OP-F name, an eighth written status or a new typed
+# Closed sets - character-identical to canon (D229 for the OP-F name
+# canon, D251 for the written-status cardinality); this file never
+# invents an eighth OP-F name, a seventh written status or a new typed
 # token.
-op_f_names: [Commence, Suspend, Resume, Repeal, Expire, Invalidate, Restore]  # exactly 7, character-identical to the families.OP-F keys; Superseded is a status, not an operation; no Supersede / Vacate / Moratorium
+op_f_names: [Commence, Suspend, Resume, Repeal, Expire, Invalidate, Restore]  # exactly 7, character-identical to the families.OP-F keys; Superseded is a VersionRelation, not a written force status and not an OP-F operation; no Supersede / Vacate / Moratorium
 
-written_statuses:  # exactly 7; Unknown is the fail-closed point-query outcome (see point_query_outcomes), not a written status; Transitional is F13-T / ADR-0021, not a force interval; the runtime NormativeState 6-set (kb-ontology.yaml force_status_values) is not this list
+written_statuses:  # exactly 6 (D251; review-26 P0-5a moved Superseded to the version-relation layer); Unknown is the fail-closed point-query outcome (see point_query_outcomes), not a written status; Transitional is F13-T / ADR-0021, not a force interval; the runtime NormativeState 6-set (kb-ontology.yaml force_status_values) is not this list - a cardinality match is not a member match
   - InForce
   - NotYetInForce
   - Suspended
   - Repealed
-  - Superseded
   - Expired
   - Invalidated
 
@@ -147,6 +147,19 @@ resume_is_not_restore:
     Repealed, Invalidated or Suspended. Distinct operations with distinct
     preconditions.
 
+# Superseded adjudication (review-26 P0-5a / D251): a folded scalar in
+# the shape of the merkle-roots source_vs_reconstructed property - not
+# an entity, not a written status, not an OP-F operation.
+
+superseded_is_version_relation: >
+  Superseded is a VersionRelation between versions of one instrument,
+  not a written force interval and not an OP-F operation (review-26
+  P0-5a; ADR-0018 G0(c) amendment, D251). The relation vocabulary is the
+  closed three-set Replaces / Supersedes / Corrects; DerivedFrom is
+  identity continuity on the MC-ID and is not a member of this set. No
+  YAML entity VersionRelation is minted here and no Rust type is minted
+  from this prose; design-only at lifecycle [proposed].
+
 # Projection rules (ADR-0018 G0(b) / INV-04).
 projection:
   point_query: one_status_at_t_or_Unknown
@@ -160,12 +173,13 @@ projection:
 
 non_claims:  # mandatory phrases; pinned by the pin-test wave (T02 embeds this file via include_str!)
   - No Rust types are minted from this file (D216 / D098).
-  - No closed_vocabularies row exists for this contract; kb-ontology.yaml force_status_values stays the runtime 6-set.
+  - No closed_vocabularies row exists for this contract; kb-ontology.yaml force_status_values stays the runtime 6-set; a cardinality match is not a member match.
   - Suspend is not Suspended; the first is an OP-F operation, the second a written interval status.
   - Resume is not Restore; Resume requires an open Suspended interval, Restore re-opens force per the overlay.
   - Resume is not Work cancel_resume; the ln-hc10-runner cancel_resume scenario is a different contour.
   - Unknown is not a written interval; it is the fail-closed point-query outcome.
   - Transitional is not a force interval (F13-T / ADR-0021).
+  - Superseded is not a written force interval; it is a VersionRelation (Replaces / Supersedes / Corrects).
   - ForceIntervalSet is not source truth; the OP-F event ledger remains the source.
   - effective_from and effective_to remain projections, never source truth.
   - Not the OP-P pending-effects contract (E.2.3 / ADR-0017).

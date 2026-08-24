@@ -16,8 +16,9 @@
 //! checked against the embedded `operation-registry.yaml`: the name and
 //! failure canon lives only in `families.OP-F`. This suite extracts both
 //! sides and compares; it never restates that canon as a second list
-//! (MEM951). The written-status seven-set and the opens/closes transition
-//! algebra are owned by this contract itself (D229) and are pinned here
+//! (MEM951). The written-status six-set and the opens/closes transition
+//! algebra are owned by this contract itself (D251 pins the written-status
+//! cardinality; D229 keeps the OP-F name canon) and are pinned here
 //! directly, the way `pending_effects.rs` pins its own closed sets.
 //!
 //! This suite deliberately contains no `use` items at all: it imports
@@ -28,9 +29,9 @@
 //! invert the D222 boundary; status/operation homonymy stays prose in the
 //! YAML non_claims.
 //!
-//! Negative surface (Q7): minting an eighth OP-F name, an eighth written
-//! status, `Unknown`/`Transitional` inside `written_statuses`, a third
-//! entity key, widening `typed_non_success` with `UnknownEffect` or any
+//! Negative surface (Q7): minting an eighth OP-F name, a seventh written
+//! status, `Unknown`/`Transitional`/`Superseded` inside `written_statuses`,
+//! a third entity key, widening `typed_non_success` with `UnknownEffect` or any
 //! success/force/neighbor token, promoting lifecycle beyond `[proposed]`,
 //! flipping `authoritative`, moving ownership away from ADR-0018,
 //! collapsing Resume into Restore, `runtime_today` beyond `none`, or
@@ -38,8 +39,10 @@
 //! — no tmp fixtures, no runtime dependency. Absence pins over
 //! `written_statuses` and `typed_non_success` run on parsed items, not
 //! raw substrings, because the contract's own comments, sections and
-//! non_claims legitimately name `Unknown`, `Transitional` and `Suspended`
-//! (MEM951).
+//! non_claims legitimately name `Unknown`, `Transitional`, `Suspended`
+//! and `Superseded` (the latter lawfully lives in comments, non_claims
+//! and the `superseded_is_version_relation` folded scalar after
+//! review-26 P0-5a — MEM951).
 
 /// Embedded contract (T01): the E.2.4 force interval / interval-set layer.
 /// Path is relative to `crates/ln-kb-ontology/tests/`.
@@ -54,19 +57,19 @@ const REGISTRY_YAML: &str = include_str!("../../../prd/architecture/operation-re
 /// Closed canon sizes pinned inside the comparing tests (MEM951: sizes and
 /// cross-file equality only, never a restated OP-F token list).
 const OP_F_NAME_COUNT: usize = 7;
-const WRITTEN_STATUS_COUNT: usize = 7;
+const WRITTEN_STATUS_COUNT: usize = 6;
 const TRANSITION_COUNT: usize = 7;
 
-/// Closed written-status seven-set (ADR-0018 G0(c)), canonical order. This
-/// contract owns the canon, so the set is pinned here, not compared
+/// Closed written-status six-set (D251 / ADR-0018 G0(c)), canonical order.
+/// This contract owns the canon, so the set is pinned here, not compared
 /// against a second file; the runtime NormativeState six-set
-/// (kb-ontology.yaml force_status_values) is a different vocabulary.
-const WRITTEN_STATUSES: [&str; 7] = [
+/// (kb-ontology.yaml force_status_values) is a different vocabulary - a
+/// cardinality match is not a member match (MEM1041).
+const WRITTEN_STATUSES: [&str; 6] = [
     "InForce",
     "NotYetInForce",
     "Suspended",
     "Repealed",
-    "Superseded",
     "Expired",
     "Invalidated",
 ];
@@ -455,7 +458,7 @@ fn op_f_names_stay_character_identical_to_the_registry_family_keys() {
 }
 
 #[test]
-fn written_statuses_are_the_closed_seven_set_without_unknown_or_transitional() {
+fn written_statuses_are_the_closed_six_set_without_unknown_or_transitional_or_superseded() {
     let statuses = top_level_dash_items(CONTRACT_YAML, "written_statuses:");
     assert_eq!(
         statuses.len(),
@@ -468,9 +471,10 @@ fn written_statuses_are_the_closed_seven_set_without_unknown_or_transitional() {
         "closed written-status set drifted"
     );
     // Parsed-list absence, not substrings: the contract's own comments,
-    // sections and non_claims legitimately name both tokens while
+    // sections and non_claims legitimately name all three tokens while
     // excluding them (MEM951). Unknown is the point-query outcome;
-    // Transitional is F13-T / ADR-0021 territory.
+    // Transitional is F13-T / ADR-0021 territory; Superseded moved to the
+    // version-relation layer (review-26 P0-5a / D251).
     assert!(
         !statuses.contains(&"Unknown"),
         "Unknown is the fail-closed point-query outcome, never a written status"
@@ -478,6 +482,10 @@ fn written_statuses_are_the_closed_seven_set_without_unknown_or_transitional() {
     assert!(
         !statuses.contains(&"Transitional"),
         "Transitional is not a force interval (F13-T / ADR-0021)"
+    );
+    assert!(
+        !statuses.contains(&"Superseded"),
+        "Superseded is a VersionRelation (Replaces / Supersedes / Corrects), never a written force status"
     );
 }
 
@@ -500,10 +508,14 @@ fn two_entities_are_declared_exactly_once_at_entity_depth() {
     // Entity-depth absence: statuses, S01 tokens and OP-F operation names
     // are values and prose here, never entity keys. The two-space `X:`
     // pattern cannot collide with `  - ` non_claims dash items.
+    // VersionRelation stays prose in the superseded_is_version_relation
+    // folded scalar (review-26 P0-5a): a two-space entity key would
+    // collide with the ln-temporal NormativeDimension homonym (MEM1042).
     for key in [
         "ForceStatusEvent",
         "Suspended",
         "Transitional",
+        "VersionRelation",
         "PendingEffect",
         "ProspectiveVersion",
         "ScheduleEffect",
@@ -673,7 +685,14 @@ fn suspend_is_an_operation_never_a_written_status() {
 
 #[test]
 fn resume_stays_distinct_from_restore() {
-    let section = section_between(CONTRACT_YAML, "resume_is_not_restore:", "projection:");
+    // The end marker is the review-26 P0-5a neighbor key inserted between
+    // this section and `projection:`; keeping `projection:` here would
+    // silently widen the section across the new folded scalar.
+    let section = section_between(
+        CONTRACT_YAML,
+        "resume_is_not_restore:",
+        "superseded_is_version_relation:",
+    );
     assert_eq!(
         section_scalar(section, "kind"),
         "operation",
@@ -688,6 +707,45 @@ fn resume_stays_distinct_from_restore() {
         section_scalar(section, "requires_open"),
         "Suspended",
         "Resume requires an open Suspended interval"
+    );
+}
+
+#[test]
+fn superseded_is_a_version_relation_not_a_written_status() {
+    // review-26 P0-5a / D251: Superseded is version-relation continuity,
+    // not a state of force. Whitespace-collapsed prose pins, like the
+    // merkle-roots source_vs_reconstructed property; the closed
+    // three-set is never parsed as entity keys and never restated as a
+    // second list.
+    let section = section_between(
+        CONTRACT_YAML,
+        "superseded_is_version_relation:",
+        "projection:",
+    );
+    let collapsed = section.split_whitespace().collect::<Vec<_>>().join(" ");
+    for phrase in [
+        "Superseded is a VersionRelation",
+        "not a written force interval",
+        "Replaces / Supersedes / Corrects",
+        "DerivedFrom",
+        "not a member of this set",
+    ] {
+        assert!(
+            collapsed.contains(phrase),
+            "superseded_is_version_relation lost the phrase `{phrase}`"
+        );
+    }
+    // The folded scalar is a property, never a seventh written status and
+    // never an entity: the parsed list and the entity scan above carry
+    // those absences.
+    let statuses = top_level_dash_items(CONTRACT_YAML, "written_statuses:");
+    assert!(
+        !statuses.contains(&"Superseded"),
+        "Superseded is a VersionRelation, never a written force status"
+    );
+    assert!(
+        !CONTRACT_YAML.contains("\n  VersionRelation:"),
+        "VersionRelation minted as a two-space entity key"
     );
 }
 
@@ -710,6 +768,14 @@ fn non_claims_carry_the_boundary_disclaimers() {
     assert!(
         has_claim("Transitional is not a force interval"),
         "Transitional non-claim lost"
+    );
+    assert!(
+        has_claim("Superseded is not a written force interval"),
+        "Superseded-vs-VersionRelation non-claim lost"
+    );
+    assert!(
+        has_claim("VersionRelation (Replaces / Supersedes / Corrects)"),
+        "VersionRelation three-set non-claim lost"
     );
     assert!(
         has_claim("Not the OP-P pending-effects contract"),
