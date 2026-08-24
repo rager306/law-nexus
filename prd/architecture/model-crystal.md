@@ -248,6 +248,18 @@ INV-05 append-only correction invariant live in
 data, E.2.7, lifecycle `[proposed]`) — a navigation pointer under MC-LEDGER,
 not a new anchor source.
 
+Living adjudicative overlay (additive note after review-26 P0-3,
+design-only, lifecycle `[proposed]`, owner ADR-0017 G0(a)): the same
+`prd/architecture/assertion-lifecycle-contract.yaml` also carries the living
+adjudicative entities `ValidationReceipt`, `AssertionDispositionEvent` and
+`AssertionRelation`, the closed disposition 4-set AcceptedForProjection /
+Quarantined / Rejected / Retired, and the closed relation-kind 6-set Supports
+/ Contradicts / Corrects / Supersedes / Duplicates / Qualifies. In that
+overlay AcceptedForProjection is the living alias of the projection-status slot
+AuthoritativeInternal: not a sixth status, not a rename of the five statuses
+above; CanonicalInternal is not a living name. This note remains a navigation
+pointer under MC-LEDGER, not a new anchor source.
+
 The ledger evidence span (`evidence_span`) is the P0-7 EvidenceAnchor /
 EvidenceBundle contract at `prd/architecture/evidence-anchor-contract.yaml`.
 
