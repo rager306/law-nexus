@@ -247,7 +247,7 @@ retained.
 
 | Floor | Identity | Notes |
 |-------|----------|-------|
-| act | Work = number + date + authority (ADR-0016) | number alone is never identity |
+| act | historical G0 wording (D216) retained: Work = number + date + authority (ADR-0016); living overlay (review-26 §4, design-only, lifecycle `[proposed]`): opaque WorkId is the persistent internal identifier of a Work, symmetric with opaque ComponentId | number / date / authority / act_type / jurisdiction / source / recorded_at live on `OfficialIdentityClaim` as the natural key for reconciliation, not the internal identifier; number alone is never identity |
 | numbered component | opaque `ComponentId`; path/label/eId/wId = DesignationVersion | AKN wId/eId, ELI URI = compatibility projections (D046) |
 | addressable unnumbered paragraph | `AddressableTextUnit` + `IdentityContinuityDecision` (SameComponent / SplitFrom / MergedFrom / ReplacedByNewIdentity / IdentityUncertain) | |
 | word/phrase | version-local `TextAnchor` (token span + quoted_hash) | |
@@ -390,6 +390,7 @@ vocabulary, `amends` constructors, bounded force-timeline in `ln-temporal`.
 | v1 | 2026-08-20 | review-25 (pre-G0) | sha256:c438ddfbe67181d439b5ed69a91e0adca833a9b84d26f1f2d85ea848070ea1b8 | b4c0d33 |
 | v2 | 2026-08-20 | G0 ADR amendments (D216): adr-0013/0016/0017/0018/0019 + temporal-model; historical anchors stay on review | sha256:c438ddfbe67181d439b5ed69a91e0adca833a9b84d26f1f2d85ea848070ea1b8 | 26095dc+ |
 | v3 | 2026-08-24 | review-26 §3 living overlay (M182 S01): MC-SEPARATION heading + 12 semantic planes; living names StructuralMembership / EditorialPresence; MC-AXES / AXIS-N remain historical aliases; no new anchor source, review-25 digest unchanged | sha256:c438ddfbe67181d439b5ed69a91e0adca833a9b84d26f1f2d85ea848070ea1b8 | 1d16782+ |
+| v4 | 2026-08-24 | review-26 §4 living overlay (M182 S02): MC-ID act-row opaque WorkId / OfficialIdentityClaim as natural key for reconciliation; historical D216 Work = number + date + authority retained; no new anchor source, review-25 digest unchanged | sha256:c438ddfbe67181d439b5ed69a91e0adca833a9b84d26f1f2d85ea848070ea1b8 | 2cf0ce4+ |
 
 v2 (D216) moved the model-definition anchors from the L0 review to the
 canonical G0 ADR amendments; historical/reality-boundary and non-claim anchors
