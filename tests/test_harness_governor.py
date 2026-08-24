@@ -3320,7 +3320,23 @@ def _write_crystal_fixture(
         f"## {name}"
         for name in ("Layer 0", "Layer 1", "Reality boundary", "Non-claims", "Grounding")
     )
-    inv_rows = "\n".join(f"| INV-{i:02d} | invariant row |" for i in range(1, 12))
+    inv_rows = "\n".join(
+        (
+            "| INV-01 | invariant row |",
+            "| INV-02 | invariant row |",
+            "| INV-03 | invariant row |",
+            "| INV-04 | invariant row |",
+            "| INV-05 | invariant row |",
+            "| INV-06 | invariant row |",
+            "| INV-07 | invariant row |",
+            "| INV-08 | invariant row |",
+            "| INV-09a | invariant row |",
+            "| INV-09b | invariant row |",
+            "| INV-09c | invariant row |",
+            "| INV-10 | invariant row |",
+            "| INV-11 | invariant row |",
+        )
+    )
     anchor_lines: tuple[str, ...] = (
         (f'<!-- anchor: review \u00a7A.2 "{quote}" -->\n',) if include_anchor else ()
     )
@@ -3344,6 +3360,9 @@ def test_model_crystal_anchors_pass_on_live_repo() -> None:
     findings = check_model_crystal_anchors(ROOT)
     assert findings, "live repo must produce at least one finding"
     assert all(finding.status == "pass" for finding in findings)
+    assert any("inv_rows=13" in finding.observed for finding in findings), (
+        "stale inv_rows=11 must not survive green fixture tests"
+    )
 
 
 def test_model_crystal_anchors_warn_on_quote_drift(tmp_path: Path) -> None:

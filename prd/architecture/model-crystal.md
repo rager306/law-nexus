@@ -101,7 +101,9 @@ Repealed-цель           ≠  сломанный биндинг
 | INV-06 | Changing a reference target does not change the source mention. |
 | INV-07 | Changing source text closes the occurrence, may keep continuity. |
 | INV-08 | Every snapshot node carries provenance or a typed Unknown. |
-| INV-09 | Exact-text reconstruction reproduces the official artifact (via CST). |
+| INV-09a | ArtifactPreservation: original official-artifact bytes remain retrievable by artifact_hash. |
+| INV-09b | SourceTextRoundTrip: source CST reproduces canonical text under an explicit normalization profile. |
+| INV-09c | ProjectionAgreement: reconstructed expression agrees with the authoritative oracle for a chosen scope and normalization profile. |
 | INV-10 | No `None` ever replaces a legally meaningful typed non-success. |
 | INV-11 | Projection protocol determinism: identical ledger cut + source set + protocol version + view policy + request → same snapshot hash. |
 

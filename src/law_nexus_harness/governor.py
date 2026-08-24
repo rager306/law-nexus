@@ -5633,8 +5633,27 @@ _MODEL_CRYSTAL_SECTIONS = (
     "## Non-claims",
     "## Grounding",
 )
-_MODEL_CRYSTAL_INV_RE = re.compile(r"^\|\s*INV-(?P<num>\d{2})\b", re.MULTILINE)
-_MODEL_CRYSTAL_EXPECTED_INV = frozenset(f"{i:02d}" for i in range(1, 12))
+_MODEL_CRYSTAL_INV_RE = re.compile(
+    r"^\|\s*INV-(?P<num>\d{2}[a-z]?)(?!\w)",
+    re.MULTILINE,
+)
+_MODEL_CRYSTAL_EXPECTED_INV = frozenset(
+    {
+        "01",
+        "02",
+        "03",
+        "04",
+        "05",
+        "06",
+        "07",
+        "08",
+        "09a",
+        "09b",
+        "09c",
+        "10",
+        "11",
+    }
+)
 
 
 def check_model_crystal_anchors(root: Path) -> list[GovernorFinding]:
@@ -5648,7 +5667,8 @@ def check_model_crystal_anchors(root: Path) -> list[GovernorFinding]:
     This check verifies (1) the crystal-declared sha256 of the review-25 L0
     source still matches, (2) every ``<!-- anchor: <src> ... "quote" -->``
     quote still appears verbatim in its mapped catalogued source file, (3)
-    required crystal sections and the INV-01..INV-11 definition rows exist.
+    required crystal sections and the catalogued MC-INV definition rows
+    (01..08, 09a/09b/09c, 10, 11) exist.
     Unknown sources, absent catalogued files, and quote/digest drift each
     surface an advisory ``warn``: drift is visible, never silent, never
     blocking, and nothing here amends an ADR or promotes a lifecycle
@@ -5779,9 +5799,10 @@ def check_model_crystal_anchors(root: Path) -> list[GovernorFinding]:
     if inv_problems:
         findings.append(
             _warn(
-                "model crystal INV-01..INV-11 definition rows are incomplete",
+                "model crystal catalogued MC-INV definition rows are incomplete",
                 "; ".join(inv_problems),
-                "Keep exactly one definition row per metamorphic invariant INV-01..INV-11.",
+                "Keep exactly one definition row per catalogued metamorphic invariant "
+                "(INV-01..INV-08, INV-09a/09b/09c, INV-10, INV-11).",
             )
         )
 
@@ -5795,7 +5816,7 @@ def check_model_crystal_anchors(root: Path) -> list[GovernorFinding]:
                 observed=(
                     f"anchors={len(quotes)} verified across "
                     f"{len(loaded_sources)} source file(s); digest=ok; "
-                    "inv_rows=11 (advisory [bounded]; projection only, no canon change)."
+                    "inv_rows=13 (advisory [bounded]; projection only, no canon change)."
                 ),
                 remediation="",
             )
