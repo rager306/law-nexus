@@ -38,7 +38,7 @@
 //! statuses with a sixth member (Draft / Published / Promoted / Confirmed
 //! / Admitted / Bound), moving ownership off ADR-0017 G0(a) (including
 //! onto ADR-0008 / ADR-0010 / ADR-0013), promoting lifecycle past
-//! `[proposed]`, flipping `authoritative`, adding a third entity key
+//! `[proposed]`, flipping `authoritative`, adding a sixth entity key
 //! (Assertion / Lifecycle / Promotion / neighbor tokens) at entity depth,
 //! moving `runtime_today` past `none`, dropping or widening required
 //! fields (`binding_status` / `component_id` / `root_hash`), adding a
@@ -48,8 +48,13 @@
 //! with DirectPromotionRejected / CompetingWriterRejected / Applied /
 //! Bound / Confirmed / OrderingConflict, admitting Proposed / Rejected /
 //! Superseded into `fold_statuses`, copying the E.2.6 fold formula as a
-//! brace block, or adding a second embed all turn pins red on the tracked
-//! files themselves — no tmp fixtures, no runtime dependency. Absence
+//! brace block, widening `dispositions` past the closed four-set (a fifth
+//! disposition) or `relation_kinds` past the closed six-set (a seventh
+//! relation kind), admitting AcceptedForProjection / Quarantined / Retired /
+//! CanonicalInternal into `statuses` as a sixth projection-status or
+//! renaming the D216 five-set, or adding a second embed all turn pins red
+//! on the tracked files themselves — no tmp fixtures, no runtime
+//! dependency. Absence
 //! pins over the vocabulary lists run on extracted items, not raw
 //! substrings, because the contract's own comments and non_claims
 //! legitimately name every excluded token (MEM951); entity-depth
@@ -76,6 +81,17 @@ const NON_STATUS_TOKENS: [&str; 6] = [
     "Bound",
 ];
 
+/// Living-overlay tokens (review-26 P0-3) that must never widen the
+/// historical five-set `statuses`: the alias and living-disposition names
+/// and the non-living CanonicalInternal (extracted-item checks, not
+/// substrings — MEM951).
+const LIVING_OVERLAY_STATUS_TOKENS: [&str; 4] = [
+    "AcceptedForProjection",
+    "Quarantined",
+    "Retired",
+    "CanonicalInternal",
+];
+
 /// Terminal statuses that are legal `statuses` members but never
 /// promotion-path rungs.
 const NON_PROMOTION_TOKENS: [&str; 2] = ["Rejected", "Superseded"];
@@ -91,9 +107,9 @@ const NON_TYPED_NON_SUCCESS_TOKENS: [&str; 6] = [
     "OrderingConflict",
 ];
 
-/// S01/S02-family tokens that must never become a third entity key at
-/// entity depth.
-const NEIGHBOR_ENTITY_KEYS: [&str; 10] = [
+/// S01/S02-family and living-overlay tokens that must never become a
+/// further entity key at entity depth.
+const NEIGHBOR_ENTITY_KEYS: [&str; 16] = [
     "Assertion",
     "Lifecycle",
     "Promotion",
@@ -104,6 +120,12 @@ const NEIGHBOR_ENTITY_KEYS: [&str; 10] = [
     "PendingEffect",
     "ForceInterval",
     "ReferenceMention",
+    "DispositionEvent",
+    "AssertionKind",
+    "VersionRelation",
+    "CanonicalInternal",
+    "CoverageCertificate",
+    "ActivationTrigger",
 ];
 
 struct EntityBlock {
@@ -182,7 +204,7 @@ fn contract_without_non_claims() -> &'static str {
 /// shape of an entity entry under `entities:` (MEM968: the two-space
 /// entity scanner, never the six-space operation scanner). Deeper field
 /// lines, FSM dash rows and their four-space continuations and
-/// folded-scalar prose continuations never match, so a stray third entity
+/// folded-scalar prose continuations never match, so a stray sixth entity
 /// key would be caught here.
 fn entity_key_line_indices(yaml: &str) -> Vec<usize> {
     yaml.lines()
@@ -212,8 +234,8 @@ fn entity_key_line_indices(yaml: &str) -> Vec<usize> {
 fn entity_blocks(yaml: &str) -> Vec<EntityBlock> {
     let key_lines = entity_key_line_indices(yaml);
     assert!(
-        key_lines.len() == 2,
-        "expected exactly two entity keys, found {}",
+        key_lines.len() == 5,
+        "expected exactly five entity keys, found {}",
         key_lines.len()
     );
     let lines: Vec<&str> = yaml.lines().collect();
@@ -442,6 +464,15 @@ fn statuses_are_the_closed_five_set_without_homonyms() {
             "{token} is a publication / D098-tag / binding homonym, never an assertion status here"
         );
     }
+    // The living overlay (review-26 P0-3) never widens the historical
+    // five-set: the alias and the living dispositions stay out of
+    // `statuses`, preserving the D216 projection-status surface verbatim.
+    for token in LIVING_OVERLAY_STATUS_TOKENS {
+        assert!(
+            !statuses.contains(&token),
+            "{token} is a living-overlay / disposition token, never a sixth projection-status here"
+        );
+    }
 }
 
 #[test]
@@ -493,12 +524,98 @@ fn typed_non_success_is_the_closed_three_set() {
 }
 
 #[test]
-fn two_entities_are_declared_exactly_once_at_entity_depth() {
+fn dispositions_are_the_closed_four_set_without_projection_status_homonyms() {
+    let dispositions = inline_bracket_items(top_level_row("dispositions:"));
+    assert_eq!(
+        dispositions,
+        vec![
+            "AcceptedForProjection",
+            "Quarantined",
+            "Rejected",
+            "Retired"
+        ],
+        "closed disposition set or order drifted"
+    );
+    for token in [
+        "AuthoritativeInternal",
+        "Validated",
+        "Proposed",
+        "Superseded",
+        "CanonicalInternal",
+    ] {
+        assert!(
+            !dispositions.contains(&token),
+            "{token} is a projection-status homonym, never a living disposition here"
+        );
+    }
+}
+
+#[test]
+fn relation_kinds_are_the_closed_six_set() {
+    let kinds = inline_bracket_items(top_level_row("relation_kinds:"));
+    assert_eq!(
+        kinds,
+        vec![
+            "Supports",
+            "Contradicts",
+            "Corrects",
+            "Supersedes",
+            "Duplicates",
+            "Qualifies"
+        ],
+        "closed relation-kind set or order drifted"
+    );
+    for token in ["Replaces", "DerivedFrom", "ForRelationsAfter"] {
+        assert!(
+            !kinds.contains(&token),
+            "{token} is a VersionRelation / temporal-window homonym, never an assertion relation kind here"
+        );
+    }
+}
+
+#[test]
+fn accepted_for_projection_is_living_alias_not_a_sixth_status() {
+    // The living-alias property lives in the folded scalar between the
+    // closed lists and `entities:`; collapse the wrapped prose so phrase
+    // pins stay independent of line breaks (MEM990).
+    let section = section_between(
+        CONTRACT_YAML,
+        "accepted_for_projection_is_living_alias:",
+        "entities:",
+    );
+    let normalized = section.split_whitespace().collect::<Vec<_>>().join(" ");
+    for phrase in [
+        "living alias",
+        "AuthoritativeInternal",
+        "not a sixth status",
+        "not a rename",
+        "CanonicalInternal",
+    ] {
+        assert!(
+            normalized.contains(phrase),
+            "living-alias folded scalar lost phrase `{phrase}`"
+        );
+    }
+    let statuses = inline_bracket_items(top_level_row("statuses:"));
+    assert!(
+        !statuses.contains(&"AcceptedForProjection"),
+        "AcceptedForProjection is the living alias, never a sixth member of statuses"
+    );
+}
+
+#[test]
+fn five_entities_are_declared_exactly_once_at_entity_depth() {
     let blocks = entity_blocks(CONTRACT_YAML);
     let names: Vec<&str> = blocks.iter().map(|block| block.name.as_str()).collect();
     assert_eq!(
         names,
-        vec!["LegalEventAssertion", "AssertionTransition"],
+        vec![
+            "LegalEventAssertion",
+            "AssertionTransition",
+            "ValidationReceipt",
+            "AssertionDispositionEvent",
+            "AssertionRelation",
+        ],
         "entity key set/order drifted"
     );
     for name in &names {
@@ -520,6 +637,32 @@ fn every_entity_carries_its_required_fields() {
         (
             "AssertionTransition",
             &["trigger", "from_status", "to_status"],
+        ),
+        (
+            "ValidationReceipt",
+            &[
+                "assertion_id",
+                "validation_kind",
+                "result",
+                "validator",
+                "validated_at",
+                "validator_version",
+            ],
+        ),
+        (
+            "AssertionDispositionEvent",
+            &[
+                "assertion_id",
+                "disposition",
+                "decided_at",
+                "decided_by",
+                "policy_version",
+                "rationale",
+            ],
+        ),
+        (
+            "AssertionRelation",
+            &["from_assertion", "to_assertion", "kind"],
         ),
     ];
     let blocks = entity_blocks(CONTRACT_YAML);
@@ -544,9 +687,15 @@ fn every_entity_carries_its_required_fields() {
 }
 
 #[test]
-fn runtime_today_stays_design_only_for_both_entities() {
+fn runtime_today_stays_design_only_for_all_five_entities() {
     let blocks = entity_blocks(CONTRACT_YAML);
-    for name in ["LegalEventAssertion", "AssertionTransition"] {
+    for name in [
+        "LegalEventAssertion",
+        "AssertionTransition",
+        "ValidationReceipt",
+        "AssertionDispositionEvent",
+        "AssertionRelation",
+    ] {
         assert_eq!(
             entity_scalar(block_of(&blocks, name), "runtime_today"),
             RUNTIME_TODAY_VALUE,
@@ -761,6 +910,28 @@ fn non_claims_carry_the_boundary_disclaimers() {
     assert!(
         has_claim("Demotion") && has_claim("is not a transition"),
         "demotion-is-not-a-transition non-claim lost"
+    );
+    // Living-overlay boundary claims (review-26 P0-3): alias/homonymy
+    // disclaimers must exist as parsed dash items.
+    assert!(
+        has_claim("living alias"),
+        "living-alias-of-AuthoritativeInternal non-claim lost"
+    );
+    assert!(
+        has_claim("CanonicalInternal"),
+        "CanonicalInternal-is-not-living non-claim lost"
+    );
+    assert!(
+        has_claim("VersionRelation"),
+        "VersionRelation-homonymy non-claims lost"
+    );
+    assert!(
+        has_claim("DispositionEvent"),
+        "no-DispositionEvent-entity non-claim lost"
+    );
+    assert!(
+        has_claim("DEC") && has_claim("TOKI"),
+        "DEC/TOKI out-of-contour non-claims lost"
     );
 }
 

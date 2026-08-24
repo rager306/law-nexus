@@ -13,11 +13,16 @@
 # homonymous with the lifecycle words, never the owner of this data. Parser
 # emission is anchored in the ADR-0013 G0 note (parser emits only Proposed)
 # as emit_source, never a fourth owner. This file adds the layer no sibling
-# contract carries: the two ledger entities, the closed five-status set,
-# the three-rung promotion path, the two-status fold set, the five-trigger
-# admission FSM with owners, the typed skip table and the INV-05 correction
-# invariant. No Rust-ledger runtime is minted and no new governor check is
-# added; pin tests embed this file as data (D222).
+# contract carries: five entities (the two historical ledger entities
+# LegalEventAssertion / AssertionTransition plus the three living
+# adjudicative entities ValidationReceipt / AssertionDispositionEvent /
+# AssertionRelation of review-26 P0-3), the closed five-status set,
+# the three-rung promotion path, the two-status fold set, the closed
+# four-disposition set, the closed six-relation-kind set, the living-alias
+# property of AcceptedForProjection, the five-trigger admission FSM with
+# owners, the typed skip table and the INV-05 correction invariant.
+# No Rust-ledger runtime is minted and no new governor check is added;
+# pin tests embed this file as data (D222).
 
 schema_version: law-nexus-assertion-lifecycle-contract/v1
 lifecycle: "[proposed]"
@@ -46,13 +51,43 @@ fold_statuses: [Validated, AuthoritativeInternal]  # exactly 2, character-identi
 
 typed_non_success: [SkipLifecycle, DirectAuthoritativeMint, InPlaceRewrite]  # exactly 3; DirectPromotionRejected (an ADR-0008 token) / CompetingWriterRejected / Applied / Bound / Confirmed never appear in this parsed list
 
-# Entities. Exactly two: LegalEventAssertion (one ledger record) and
-# AssertionTransition (one admission-path FSM step). Each PascalCase key
-# appears exactly once in this file. No third entity is minted: not an
-# entity called Assertion, not Lifecycle, not Promotion, not QueryScope,
-# not CompletenessReport, not MaterializedSection, not ProjectionRoots,
-# not PendingEffect, not ForceInterval, not ReferenceMention, not Work,
-# not ComponentId, not Binding, not ReviewCase.
+# Living adjudicative overlay (review-26 P0-3, additive to the historical
+# five-status surface above): the closed disposition set, the closed
+# assertion-relation vocabulary and the living-alias property. Inline list
+# form like statuses; pin tests parse them as lists, never as substring
+# scans over the file (MEM951). No disposition-FSM rows are minted below:
+# transitions stays the historical five-row projection-status admission
+# FSM (D216).
+
+dispositions: [AcceptedForProjection, Quarantined, Rejected, Retired]  # exactly 4, the living adjudication outcomes; the projection-status homonyms AuthoritativeInternal / Validated / Proposed / Superseded and the non-living CanonicalInternal never appear in this parsed list
+
+relation_kinds: [Supports, Contradicts, Corrects, Supersedes, Duplicates, Qualifies]  # exactly 6, the closed assertion-relation vocabulary; the VersionRelation homonyms Replaces / DerivedFrom and the temporal window ForRelationsAfter never appear in this parsed list
+
+# Living alias property as [proposed] English prose (a folded scalar, not
+# an entity, not a status, not an FSM row; MEM1053: never stated as a
+# rename).
+
+accepted_for_projection_is_living_alias: >
+  AcceptedForProjection is the living alias of the projection-status slot
+  historically named AuthoritativeInternal: an assertion whose living
+  disposition is AcceptedForProjection enters projections while its stored
+  status remains AuthoritativeInternal. It is not a sixth status and not
+  a rename of the D216 five-set; the historical five statuses stay
+  verbatim as the projection-status surface. CanonicalInternal is not a
+  living name.
+
+# Entities. Exactly five: the two historical ledger entities -
+# LegalEventAssertion (one ledger record) and AssertionTransition (one
+# admission-path FSM step) - plus the three living adjudicative entities
+# ValidationReceipt, AssertionDispositionEvent and AssertionRelation
+# (review-26 P0-3). Each PascalCase key appears exactly once in this
+# file. No sixth entity is minted: not an entity called Assertion, not
+# Lifecycle, not Promotion, not QueryScope, not CompletenessReport, not
+# MaterializedSection, not ProjectionRoots, not PendingEffect, not
+# ForceInterval, not ReferenceMention, not Work, not ComponentId, not
+# Binding, not ReviewCase, not DispositionEvent, not AssertionKind, not
+# SourceAuthorityClass, not CanonicalInternal, not VersionRelation, not
+# CoverageCertificate.
 
 entities:
   LegalEventAssertion:
@@ -79,6 +114,44 @@ entities:
       is to_status, never a mutation of the same row. from none means there
       is no predecessor status to read: the transition appends a fresh
       record. supersede_append never edits the superseded record.
+    runtime_today: none
+
+  ValidationReceipt:
+    definition: >-
+      One validation act over an assertion candidate (review-26 P0-3 /
+      D255): who validated what, when, with which result and which validator
+      build. Living adjudicative design data, never a runtime object.
+    required_fields: [assertion_id, validation_kind, result, validator, validated_at, validator_version]
+    invariants: >
+      assertion_id cites an existing ledger record; validation_kind and
+      result are field names only, never closed enums here - the four typed
+      receipts of review-26 section 8.4 are not minted by this contract.
+    runtime_today: none
+
+  AssertionDispositionEvent:
+    definition: >-
+      One adjudication decision over an assertion (review-26 P0-3): which
+      living disposition was applied, when, by whom, under which policy
+      version and why. Living adjudicative design data, never a runtime
+      object.
+    required_fields: [assertion_id, disposition, decided_at, decided_by, policy_version, rationale]
+    invariants: >
+      disposition is exactly one of dispositions; the event appends
+      adjudication history beside the record and never mutates a committed
+      status in place (INV-05).
+    runtime_today: none
+
+  AssertionRelation:
+    definition: >-
+      One directed relation between two assertions (review-26 P0-3):
+      Supports / Contradicts / Corrects / Supersedes / Duplicates /
+      Qualifies, carried by kind. Living adjudicative design data, never a
+      runtime object.
+    required_fields: [from_assertion, to_assertion, kind]
+    invariants: >
+      kind is exactly one of relation_kinds; kind Supersedes here is the
+      assertion-level adjudication token, never the VersionRelation
+      version-layer homonym named in force-interval-set-contract.yaml.
     runtime_today: none
 
 # Admission-path FSM - exactly 5 transitions, pending-effects row shape
@@ -185,3 +258,14 @@ non_claims:
   - Demotion (AuthoritativeInternal back to Validated, Validated back to Proposed) is not a transition; reject exists only from Proposed.
   - ln-promote / ln-publish InputDigest and the HC-04 / HC-15 runtime are not this contour.
   - SkipLifecycle / DirectAuthoritativeMint / InPlaceRewrite are the only typed non-success tokens; excluded_by_fold_filter belongs to the E.2.6 fold filter and is never a member of typed_non_success; DirectPromotionRejected (ADR-0008) is never used here.
+  - AcceptedForProjection is the living alias of AuthoritativeInternal, not a sixth projection-status and not a rename of the D216 five-set.
+  - CanonicalInternal is not a living name.
+  - AssertionRelation.Supersedes is not VersionRelation.Supersedes; the M180 P0-5a closed three-set Replaces / Supersedes / Corrects lives in force-interval-set-contract.yaml as a folded scalar and no YAML entity VersionRelation is minted here either.
+  - AssertionRelation.Corrects is not VersionRelation.Corrects.
+  - Historical status Superseded is not living disposition Retired and not relation kind Supersedes; the three names are a homonym split.
+  - Historical status Rejected and living disposition Rejected share a spelling; the closed lists stay distinct (statuses vs dispositions).
+  - Quarantined here is an assertion disposition, not ln-dispose Review Case quarantine and not intake Quarantined corpus role (qualifier homonym, not this contract).
+  - Retired here is not ADR-status Retired.
+  - DEC provenance-stances / TOKI adjudicator protocol / AssertionKind / SourceAuthorityClass / the four typed receipts of review-26 section 8.4 are not this contour.
+  - No YAML entity DispositionEvent is minted; the living name is AssertionDispositionEvent.
+  - Fold membership stays cited by name in fold_filter_ref; fold_statuses remains the current-row proxy [Validated, AuthoritativeInternal].
