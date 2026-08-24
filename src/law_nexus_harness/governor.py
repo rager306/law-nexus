@@ -3039,6 +3039,141 @@ def check_semantic_name_collision(root: Path) -> list[GovernorFinding]:
     ]
 
 
+_COMPANION_MENTION_RE = re.compile(r"prd/architecture/[A-Za-z0-9._-]+\.ya?ml")
+_COMPANION_TOP_KEY_RE = re.compile(r"^([A-Za-z][\w-]*):\s*(.*)$")
+
+
+def check_companion_manifest(root: Path) -> list[GovernorFinding]:
+    """Verify crystal-mentioned companion YAML existence and three headers.
+
+    The mention surface is extracted from backtick spans in
+    prd/architecture/model-crystal.md that are exactly
+    ``prd/architecture/<file>.yaml`` paths (first-seen order, deduplicated);
+    the expected set is what the crystal mentions today, never a hardcoded
+    second canon, so removing a mention or adding a ninth one must fail on
+    its own. Each mentioned companion must exist and carry the three
+    design-only headers of review-26 11.5 fail-closed injection support: a
+    non-empty ``schema_version``, a ``lifecycle`` containing the
+    ``[proposed]`` token (quoted or unquoted) and ``authoritative`` exactly
+    ``false`` (rejecting true, missing, yes and 0). Headers are read with a
+    parser-free top-level ``key: value`` scan; YAML entities and lists are
+    never loaded, digests are not compared with the crystal, and unmentioned
+    YAML, doc/review prose and archive vaults stay out of surface. Lifecycle
+    [bounded]; process anti-drift, not product readiness; this check does not
+    decide which YAML is canonical, does not amend an ADR and does not mint
+    Rust types.
+    """
+    check_id = "companion-manifest"
+    expected = (
+        "Every companion YAML backtick-mentioned in the model crystal exists "
+        "and carries schema_version, lifecycle [proposed] and authoritative false."
+    )
+    remediation = (
+        "Add the missing companion YAML under prd/architecture/ or restore its "
+        "three design-only headers (schema_version, lifecycle [proposed], "
+        "authoritative: false). Do not invent fields from crystal prose: this "
+        "check does not decide which YAML is canonical and does not amend an ADR."
+    )
+
+    crystal_rel = "prd/architecture/model-crystal.md"
+    crystal_path = root / crystal_rel
+    if not crystal_path.is_file():
+        return [
+            GovernorFinding(
+                check_id=check_id,
+                status="fail",
+                severity="warn",
+                message="the crystal mention surface for companion YAML is unreadable",
+                observed=f"crystal={crystal_rel} present=false companion_count=0",
+                remediation=remediation,
+                rule_id="companion-manifest.mention-surface-missing",
+                expected=expected,
+                evidence=(GovernorEvidence(path=crystal_rel),),
+            )
+        ]
+
+    crystal_text = crystal_path.read_text(encoding="utf-8", errors="replace")
+    mentioned: list[str] = []
+    for span in re.findall(r"`([^`\n]+)`", crystal_text):
+        if _COMPANION_MENTION_RE.fullmatch(span) and span not in mentioned:
+            mentioned.append(span)
+
+    problems: list[str] = []
+    evidence = [GovernorEvidence(path=crystal_rel)]
+    for rel in mentioned:
+        companion_path = root / rel
+        if not companion_path.is_file():
+            problems.append(f"missing={rel}")
+            evidence.append(GovernorEvidence(path=rel))
+            continue
+        scalars: dict[str, tuple[str, int | None]] = {}
+        for line_number, line in enumerate(
+            companion_path.read_text(encoding="utf-8", errors="replace").splitlines(),
+            start=1,
+        ):
+            top_key = _COMPANION_TOP_KEY_RE.match(line)
+            if not top_key:
+                continue
+            scalars.setdefault(top_key.group(1), (top_key.group(2).strip(), line_number))
+        schema_version, schema_line = scalars.get("schema_version", ("", None))
+        lifecycle, lifecycle_line = scalars.get("lifecycle", ("", None))
+        authoritative, authoritative_line = scalars.get("authoritative", ("", None))
+        if not schema_version.strip("\"'"):
+            problems.append(f"schema_version-missing={rel}")
+            evidence.append(GovernorEvidence(path=rel, line=schema_line))
+        elif "[proposed]" not in lifecycle.strip("\"'"):
+            problems.append(f"lifecycle-not-proposed={rel}")
+            evidence.append(GovernorEvidence(path=rel, line=lifecycle_line))
+        elif authoritative.strip("\"'").lower() != "false":
+            problems.append(f"authoritative-not-false={rel}")
+            evidence.append(GovernorEvidence(path=rel, line=authoritative_line))
+
+    if problems:
+        preview = ";".join(problems[:12])
+        if len(problems) > 12:
+            preview += f";+{len(problems) - 12}"
+        return [
+            GovernorFinding(
+                check_id=check_id,
+                status="fail",
+                severity="warn",
+                message=(
+                    "a companion YAML backtick-mentioned in the crystal is missing "
+                    "or lacks its three design-only headers"
+                ),
+                observed=(
+                    f"companion_count={len(mentioned)} problems={len(problems)} "
+                    f"[{preview}] paths=[{','.join(mentioned)}] "
+                    "(lifecycle [bounded]; process anti-drift; not product readiness)."
+                ),
+                remediation=remediation,
+                rule_id="companion-manifest.headers-missing-or-bad",
+                expected=expected,
+                evidence=tuple(evidence),
+            )
+        ]
+
+    return [
+        GovernorFinding(
+            check_id=check_id,
+            status="pass",
+            severity="ok",
+            message=(
+                "every companion YAML mentioned in the crystal exists and carries "
+                "schema_version, lifecycle [proposed] and authoritative false"
+            ),
+            observed=(
+                f"companion_count={len(mentioned)} paths=[{','.join(mentioned)}] "
+                "(lifecycle [bounded]; process anti-drift; not product readiness)."
+            ),
+            remediation="none",
+            rule_id="companion-manifest.headers-ok",
+            expected=expected,
+            evidence=tuple(evidence),
+        )
+    ]
+
+
 def check_historical_test_debt_visibility(root: Path) -> list[GovernorFinding]:
     """Inventory residual non-CI tests with decommissioned-era hard dependencies.
 
@@ -6210,6 +6345,25 @@ GOVERNOR_CHECK_SPECS: tuple[CheckSpec, ...] = (
             "prd/architecture/reference-binding-contract.yaml",
             "prd/architecture/scope-aware-completeness-contract.yaml",
             "crates/ln-decode/src/domain.rs",
+        ),
+        "warn",
+    ),
+    _check_spec(
+        "companion-manifest",
+        "docs",
+        "deterministic",
+        check_companion_manifest,
+        "Verify every companion YAML backtick-mentioned in the model crystal exists and carries schema_version, lifecycle [proposed] and authoritative false (review-26 11.5 fail-closed injection support as a process net); the expected set is extracted from crystal mentions, never a hardcoded second canon, and this is not the full section 11 / P1-8 semantic governor and not a digest check.",
+        (
+            "prd/architecture/model-crystal.md",
+            "prd/architecture/operation-registry.yaml",
+            "prd/architecture/force-interval-set-contract.yaml",
+            "prd/architecture/pending-effects-contract.yaml",
+            "prd/architecture/assertion-lifecycle-contract.yaml",
+            "prd/architecture/evidence-anchor-contract.yaml",
+            "prd/architecture/scope-aware-completeness-contract.yaml",
+            "prd/architecture/merkle-roots-contract.yaml",
+            "prd/architecture/reference-binding-contract.yaml",
         ),
         "warn",
     ),

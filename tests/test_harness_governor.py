@@ -29,6 +29,7 @@ from law_nexus_harness.governor import (
     check_architecture_direction,
     check_archive_path_policy,
     check_ci_quality_gate_drift,
+    check_companion_manifest,
     check_document_freshness_triggers,
     check_forward_roadmap_sequence,
     check_historical_test_debt_visibility,
@@ -1900,6 +1901,198 @@ def test_semantic_name_collision_ignores_review_prose(tmp_path: Path) -> None:
     assert "collision_count=0" in finding.observed
     spec = next(item for item in GOVERNOR_CHECK_SPECS if item.check_id == "semantic-name-collision")
     assert not any(path.startswith("doc/review") for path in spec.authority_inputs)
+
+
+def _write_companion_manifest_crystal(root: Path, mention: str) -> None:
+    crystal = root / "prd" / "architecture" / "model-crystal.md"
+    crystal.parent.mkdir(parents=True, exist_ok=True)
+    crystal.write_text(
+        "# Model crystal fixture\n\n"
+        "CoverageCertificate and ValidationReceipt stay prose names, not YAML paths.\n"
+        f"Companion data lives in `{mention}` (design-only).\n",
+        encoding="utf-8",
+    )
+
+
+def _write_companion_manifest_yaml(root: Path, name: str, text: str | None = None) -> None:
+    target = root / "prd" / "architecture" / name
+    target.parent.mkdir(parents=True, exist_ok=True)
+    target.write_text(
+        text
+        if text is not None
+        else (
+            "schema_version: law-nexus-fixture-contract/v1\n"
+            'lifecycle: "[proposed]"\n'
+            "authoritative: false\n"
+            "owner_adr: ADR-0026\n"
+            "entities:\n"
+            "  FixtureEntity:\n"
+            "    definition: >-\n"
+            "      Fixture only; entities are never loaded.\n"
+        ),
+        encoding="utf-8",
+    )
+
+
+def test_companion_manifest_passes_when_mentioned_yaml_has_headers(tmp_path: Path) -> None:
+    _write_companion_manifest_crystal(tmp_path, "prd/architecture/evidence-anchor-contract.yaml")
+    _write_companion_manifest_yaml(tmp_path, "evidence-anchor-contract.yaml")
+    findings = check_companion_manifest(tmp_path)
+    assert len(findings) == 1
+    finding = findings[0]
+    assert finding.check_id == "companion-manifest"
+    assert finding.status == "pass"
+    assert finding.severity == "ok"
+    assert "companion_count=1" in finding.observed
+    assert "prd/architecture/evidence-anchor-contract.yaml" in finding.observed
+    assert "lifecycle [bounded]; process anti-drift; not product readiness" in finding.observed
+
+
+def test_companion_manifest_warns_on_missing_file(tmp_path: Path) -> None:
+    _write_companion_manifest_crystal(tmp_path, "prd/architecture/missing-contract.yaml")
+    findings = check_companion_manifest(tmp_path)
+    assert len(findings) == 1
+    finding = findings[0]
+    assert finding.check_id == "companion-manifest"
+    assert finding.status == "fail"
+    assert finding.severity == "warn"
+    assert "missing=prd/architecture/missing-contract.yaml" in finding.observed
+
+
+def test_companion_manifest_warns_on_missing_schema_version(tmp_path: Path) -> None:
+    _write_companion_manifest_crystal(tmp_path, "prd/architecture/evidence-anchor-contract.yaml")
+    _write_companion_manifest_yaml(
+        tmp_path,
+        "evidence-anchor-contract.yaml",
+        text='lifecycle: "[proposed]"\nauthoritative: false\n',
+    )
+    findings = check_companion_manifest(tmp_path)
+    assert len(findings) == 1
+    finding = findings[0]
+    assert finding.status == "fail"
+    assert finding.severity == "warn"
+    assert "schema_version-missing=prd/architecture/evidence-anchor-contract.yaml" in (
+        finding.observed
+    )
+
+
+def test_companion_manifest_warns_on_lifecycle_not_proposed(tmp_path: Path) -> None:
+    _write_companion_manifest_crystal(tmp_path, "prd/architecture/evidence-anchor-contract.yaml")
+    _write_companion_manifest_yaml(
+        tmp_path,
+        "evidence-anchor-contract.yaml",
+        text=(
+            "schema_version: law-nexus-fixture-contract/v1\n"
+            'lifecycle: "[bounded]"\n'
+            "authoritative: false\n"
+        ),
+    )
+    findings = check_companion_manifest(tmp_path)
+    assert len(findings) == 1
+    finding = findings[0]
+    assert finding.status == "fail"
+    assert finding.severity == "warn"
+    assert "lifecycle-not-proposed=prd/architecture/evidence-anchor-contract.yaml" in (
+        finding.observed
+    )
+
+
+def test_companion_manifest_warns_on_authoritative_true(tmp_path: Path) -> None:
+    _write_companion_manifest_crystal(tmp_path, "prd/architecture/evidence-anchor-contract.yaml")
+    _write_companion_manifest_yaml(
+        tmp_path,
+        "evidence-anchor-contract.yaml",
+        text=(
+            "schema_version: law-nexus-fixture-contract/v1\n"
+            'lifecycle: "[proposed]"\n'
+            "authoritative: true\n"
+        ),
+    )
+    findings = check_companion_manifest(tmp_path)
+    assert len(findings) == 1
+    finding = findings[0]
+    assert finding.status == "fail"
+    assert finding.severity == "warn"
+    assert "authoritative-not-false=prd/architecture/evidence-anchor-contract.yaml" in (
+        finding.observed
+    )
+
+
+def test_companion_manifest_ignores_unmentioned_yaml(tmp_path: Path) -> None:
+    _write_companion_manifest_crystal(tmp_path, "prd/architecture/evidence-anchor-contract.yaml")
+    _write_companion_manifest_yaml(tmp_path, "evidence-anchor-contract.yaml")
+    # Present in prd/architecture/ but never backtick-mentioned by the crystal.
+    _write_companion_manifest_yaml(
+        tmp_path,
+        "kb-ontology.yaml",
+        text="schema_version: law-nexus-kb-ontology/v1\n",
+    )
+    findings = check_companion_manifest(tmp_path)
+    assert len(findings) == 1
+    finding = findings[0]
+    assert finding.status == "pass"
+    assert "companion_count=1" in finding.observed
+    assert "kb-ontology.yaml" not in finding.observed
+
+
+def test_companion_manifest_ignores_review_prose(tmp_path: Path) -> None:
+    _write_companion_manifest_crystal(tmp_path, "prd/architecture/evidence-anchor-contract.yaml")
+    _write_companion_manifest_yaml(tmp_path, "evidence-anchor-contract.yaml")
+    review = tmp_path / "doc" / "review" / "review-99-99-9999.md"
+    review.parent.mkdir(parents=True, exist_ok=True)
+    review.write_text(
+        "Illustrative section 11.2 prose: `prd/architecture/coverage-certificate-contract.yaml`\n",
+        encoding="utf-8",
+    )
+    stray = tmp_path / "doc" / "review" / "coverage-certificate-contract.yaml"
+    stray.write_text(
+        "schema_version: law-nexus-coverage-certificate-contract/v1\n"
+        'lifecycle: "[bounded]"\n'
+        "authoritative: true\n",
+        encoding="utf-8",
+    )
+    findings = check_companion_manifest(tmp_path)
+    assert len(findings) == 1
+    finding = findings[0]
+    assert finding.status == "pass"
+    assert "companion_count=1" in finding.observed
+    assert "coverage-certificate-contract.yaml" not in finding.observed
+
+
+def test_companion_manifest_check_spec_is_docs_deterministic_warn() -> None:
+    matches = [item for item in GOVERNOR_CHECK_SPECS if item.check_id == "companion-manifest"]
+    assert len(matches) == 1
+    spec = matches[0]
+    assert spec.group == "docs"
+    assert spec.kind == "deterministic"
+    assert spec.default_severity == "warn"
+    assert "prd/architecture/model-crystal.md" in spec.authority_inputs
+    assert not any("*" in path for path in spec.authority_inputs)
+
+
+def test_live_governor_passes_companion_manifest() -> None:
+    report = run_governor(ROOT)
+    by_id = {item.check_id: item for item in report.findings}
+    assert "companion-manifest" in by_id
+    finding = by_id["companion-manifest"]
+    # Review-26 11.5 process net: all eight crystal-mentioned companions carry
+    # the three design-only headers; the live tree passes without any whitelist.
+    assert finding.status == "pass"
+    assert finding.severity == "ok"
+    assert "companion_count=8" in finding.observed
+    for rel in (
+        "prd/architecture/operation-registry.yaml",
+        "prd/architecture/force-interval-set-contract.yaml",
+        "prd/architecture/pending-effects-contract.yaml",
+        "prd/architecture/assertion-lifecycle-contract.yaml",
+        "prd/architecture/evidence-anchor-contract.yaml",
+        "prd/architecture/scope-aware-completeness-contract.yaml",
+        "prd/architecture/merkle-roots-contract.yaml",
+        "prd/architecture/reference-binding-contract.yaml",
+    ):
+        assert rel in finding.observed
+    assert report.error_count == 0
+    assert report.status == "ok"
 
 
 def test_live_governor_reports_historical_test_debt_visibility() -> None:
