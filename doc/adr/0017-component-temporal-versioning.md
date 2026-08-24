@@ -342,6 +342,29 @@ ADR-0008/0010 are related_adr homonyms only — D116 corpus promotion is
 never an `AuthoritativeInternal` mint and C10 process gates are not this
 FSM.
 
+Additive note (review-26 P0-3, `doc/review/review-26-23-08-2026.md`): the
+living adjudicative decomposition of this ledger is three entities in
+`prd/architecture/assertion-lifecycle-contract.yaml` — `ValidationReceipt`
+(one validation act over an assertion candidate),
+`AssertionDispositionEvent` (one adjudication decision carrying one
+living disposition) and `AssertionRelation` (one directed
+assertion-to-assertion relation). The closed disposition 4-set is
+`AcceptedForProjection` / `Quarantined` / `Rejected` / `Retired` and the
+closed relation 6-set is `Supports` / `Contradicts` / `Corrects` /
+`Supersedes` / `Duplicates` / `Qualifies` (After-this tokens;
+`CanonicalInternal` is not a living name). `AcceptedForProjection` is
+the **living alias** of the projection-status slot `AuthoritativeInternal`:
+it is not a sixth status of the closed five-status set above and not a
+rename of the D216 five-set — the historical five statuses remain
+verbatim as the projection-status surface, and the YAML specializes
+them without rewriting them. `AssertionRelation.Supersedes` is not
+`VersionRelation.Supersedes` (ADR-0018 G0(c) / M180 P0-5a). DEC/TOKI
+modal logic stays a non-claim: `AssertionKind`, `SourceAuthorityClass`
+and the four typed receipts of review-26 §8.4 are not minted here or by
+the contract. Design-only at lifecycle `[proposed]`; no Rust type is
+minted. The YAML is the definition surface; this note is provenance,
+not a second canon.
+
 ### G0(b) Four-level amendment algebra
 
 `AmendmentInstrument` (the amending act) → `AmendingProvision` (an
@@ -427,15 +450,18 @@ contributes to a projection fold iff its disposition as of `known_as_of`
 is `AcceptedForProjection`. The disposition is an as-of function over the
 append-only ledger (G0(a)); `AcceptedForProjection` — its accepted-fold
 verdict — is not an entity, not a sixth status of the closed
-`LegalEventAssertion` set, and not a rename of `AuthoritativeInternal`.
+`LegalEventAssertion` set, and not a rename of `AuthoritativeInternal`
+(it is the living alias of that projection-status slot).
 The living formula also names the precondition `causal_close`: the fold
 runs only over the causally closed set of accepted assertions; it is a
 named precondition of this G0(d) checkout, not a new YAML contract.
 INV-11 (projection protocol determinism) specializes INV-01: the replay
 root hash is reproducible only for a fixed protocol version, view policy,
-ledger cut, source set and request. Design-only at lifecycle
-`[proposed]`; no Rust type is minted, and no DispositionEvent is
-introduced here (the P0-3 redesign stays a separate candidate).
+ledger cut, source set and request. The adjudication event of that fold,
+`AssertionDispositionEvent`, lives in the G0(a) living model
+(review-26 P0-3, `prd/architecture/assertion-lifecycle-contract.yaml`);
+this G0(d) note does not mint it. Design-only at lifecycle `[proposed]`;
+no Rust type is minted.
 
 Additive note (review-26 P0-6, `doc/review/review-26-23-08-2026.md`): the
 living MC-INV set splits the former single `INV-09` into three invariants
