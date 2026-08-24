@@ -138,6 +138,15 @@ Governor must never decide:
   glossary cell Coverage remains the assembly-metric term;
   CoverageCertificate / CompleteFor / IncompleteBecause are not first-cells;
   INV-22 is catalogued in crystal MC-INV (gap INV-12..21 stays L0).
+- Living MC-SEPARATION overlay after review-26 §3 (M182-ivk7ww S01): the
+  crystal plane table is MC-SEPARATION (independent semantic planes) with
+  historical MC-AXES / AXIS-N labels kept as navigation aliases; the
+  glossary first-cells `StructuralMembership` (living name of historical
+  `OperativeMembership`) and `TransitionConstraint` are canonical
+  `[proposed]` design terms (ADR-0017 G0(f) overlay / ADR-0021);
+  `EditorialPresence` is the living alias of the `DocumentaryPresence`
+  cell, not a first-cell and not a merkle root kind; the review-26
+  alternative `ExpressionPresence` is not adopted.
 - Citation/historical known-lag with YAML as the definition surface
   (D252/D253): MC-SEL selector list, ADR-0009 7-list wording, the ADR-0021
   `ForRelationsAfter` mode mention, the AXIS-5 ellipsis and the ADR-0018
