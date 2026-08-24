@@ -315,10 +315,28 @@ flowchart LR
     C --> OUT["view + root_hash + coverage_certificate<br/>+ applied / excluded_future effects<br/>+ causal_conflicts + unknown_triggers + provenance<br/>+ projection_protocol_version + ledger_cut_hash<br/>+ source_set_hash + view_policy_hash"]
 ```
 
-Views: VIEW-Promulgated (authoritative text), VIEW-Operative (in force at t),
-VIEW-HistoricalCitation (incl. repealed + tombstone), VIEW-Reference
-(mentions/bindings/target states); VIEW-CaseApplicable — later, ADR-0023
-runtime.
+Named-view set — living overlay (review-26 §7; design-only, lifecycle
+`[proposed]`): VIEW-SourceExpression(expression_id) — exact text of one
+official expression/artifact (the expression_id parameterization stays prose,
+not an API signature and not a YAML token); VIEW-DerivedConsolidation — a
+derived consolidation synthesized from the ledger; VIEW-Operative — components
+and texts in force at t; VIEW-HistoricalCitation — historical text incl.
+repealed + tombstone; VIEW-PendingEffects — adopted but not-yet-activated,
+changed or repealed prospective effects; VIEW-Reference —
+mentions/bindings/target states; VIEW-ChangeTrace — amendment instrument →
+provision → instruction → effect → projection node; VIEW-Discrepancy —
+difference between the reconstructed expression and the edition oracle.
+Historical checkout-key tokens are retained beside this set: review-25 Part C /
+adr-0017 G0(d) `view_mode` keeps VIEW-Promulgated / PromulgatedTextView as
+checkout-key tokens of the source-text family, and the E.2.5 YAML closed four
+[Promulgated, Operative, HistoricalCitation, Reference] is that checkout key,
+not this named-view catalog; where the historical key said only Promulgated,
+the living names distinguish SourceExpression vs DerivedConsolidation.
+known_as_of is a required parameter of every projection, never a view.
+VIEW-CaseApplicable remains ADR-0023 runtime. Qualifiers: the MC-SEPARATION
+plane SourceExpression (official expression, manifestation, rendition) is not
+the checkout projection VIEW-SourceExpression; VIEW-PendingEffects is a named
+projection, not the YAML entity PendingEffect / ProspectiveVersion.
 
 <!-- anchor: review §C "PromulgatedTextView" -->
 
@@ -391,6 +409,7 @@ vocabulary, `amends` constructors, bounded force-timeline in `ln-temporal`.
 | v2 | 2026-08-20 | G0 ADR amendments (D216): adr-0013/0016/0017/0018/0019 + temporal-model; historical anchors stay on review | sha256:c438ddfbe67181d439b5ed69a91e0adca833a9b84d26f1f2d85ea848070ea1b8 | 26095dc+ |
 | v3 | 2026-08-24 | review-26 §3 living overlay (M182 S01): MC-SEPARATION heading + 12 semantic planes; living names StructuralMembership / EditorialPresence; MC-AXES / AXIS-N remain historical aliases; no new anchor source, review-25 digest unchanged | sha256:c438ddfbe67181d439b5ed69a91e0adca833a9b84d26f1f2d85ea848070ea1b8 | 1d16782+ |
 | v4 | 2026-08-24 | review-26 §4 living overlay (M182 S02): MC-ID act-row opaque WorkId / OfficialIdentityClaim as natural key for reconciliation; historical D216 Work = number + date + authority retained; no new anchor source, review-25 digest unchanged | sha256:c438ddfbe67181d439b5ed69a91e0adca833a9b84d26f1f2d85ea848070ea1b8 | 2cf0ce4+ |
+| v5 | 2026-08-24 | review-26 §7 living overlay (M182 S03): MC-CHECKOUT named VIEW set; historical VIEW-Promulgated / PromulgatedTextView retained as checkout-key; known_as_of is a parameter not a view; no new anchor source, review-25 digest unchanged | sha256:c438ddfbe67181d439b5ed69a91e0adca833a9b84d26f1f2d85ea848070ea1b8 | 1fa8279+ |
 
 v2 (D216) moved the model-definition anchors from the L0 review to the
 canonical G0 ADR amendments; historical/reality-boundary and non-claim anchors
