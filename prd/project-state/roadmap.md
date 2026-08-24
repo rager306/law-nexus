@@ -32,14 +32,20 @@ falkordb=historical-only
   Superseded adjudicated to VersionRelation with written force 6-set re-pin,
   ActivationTrigger/TransitionPredicate split with OnCondition=guard and
   TriggerUnknown-not-false; design-only, no Rust type minting, no lifecycle
-  promotion). M179 closed review-26 P0-1/P0-2/P0-5b/P0-7; M178 closed the
-  entire review-25 E.2 P1 documentation front (E.2.1-E.2.7 with M176/M177);
-  M175-g7k0q4 closed P0 canonization after G0 (D216). Governor 65 checks green
-  incl. semantic-name-collision D246 + cross-contract closed-set consistency.
-  Remaining named candidates for the next human-gated fork: P0-3
-  DispositionEvent redesign, P0-8 CoverageCertificate, S3/S4/S7 renames
-  (MC-SEPARATION planes), G0-G3 golden corpus 30-40 cases, then the product
-  fork (G2 corpus vs P2 Rust resolver). GSD completion is not product readiness.
+  promotion). Active M181-s0n6ls landed P0-3/P0-8 design-only in S01-S03 by
+  extending existing living overlays, not new files: assertion-lifecycle
+  three-entity overlay ValidationReceipt / AssertionDispositionEvent /
+  AssertionRelation with AcceptedForProjection as living alias, and
+  CoverageCertificate on E.2.5 with INV-22 in crystal MC-INV. M179 closed
+  review-26 P0-1/P0-2/P0-5b/P0-7; M178 closed the entire review-25 E.2 P1
+  documentation front (E.2.1-E.2.7 with M176/M177); M175-g7k0q4 closed P0
+  canonization after G0 (D216). Governor 66 checks green incl.
+  semantic-name-collision D246 + companion-manifest advisory D261 +
+  cross-contract closed-set consistency. Remaining named candidates for the
+  next human-gated fork: S3/S4/S7 renames (MC-SEPARATION planes, WorkId
+  opaque, views), P1-8 full semantic governor, G0-G3 golden corpus 30-40
+  cases, then the product fork (G2 corpus vs P2 Rust resolver). GSD
+  completion is not product readiness.
 - **GSD dual-truth M167:** **resolved** — M167 complete via authorized skip waivers + validation (D154 option C). Historical note in `gsd-review-bridge.md`. Not Applicable; TSG-005/006 still open.
 - **Review governance process contour:** ADR-0024 Review Case intake/disposition/ledger landed; human dispositions recorded for review-11/12 (`actor_id=rager306`). Non-authoritative; no Product/ADR/roadmap promotion.
 - **Applicability kernel:** `ln-applicability` v0 fail-closed abstention-only under ADR-0023 `[proposed]`, with NormRule IR + pure predicate algebra spines; no Applicable/NotApplicable product claim.

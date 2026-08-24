@@ -2,6 +2,36 @@
 
 ## [Unreleased]
 
+### M181-s0n6ls Docs (review-26 P0-3/P0-8: assertion-lifecycle three-entity overlay, CoverageCertificate, companion-manifest advisory)
+
+### Docs
+- S01 (P0-3, D254/D255): assertion-lifecycle extended additively to the
+  three-entity adjudicative overlay ValidationReceipt / AssertionDispositionEvent /
+  AssertionRelation with closed disposition 4-set and relation-kind 6-set;
+  `AcceptedForProjection` is the living alias of the `AuthoritativeInternal`
+  projection-status slot (not a sixth status, not a rename); pin suite 2→5
+  entity pins (20 tests offline). Design-only extension of the existing E.2.7
+  contract; no Rust types.
+- S02 (D256): crystal MC-LEDGER living-overlay sync (three entities, closed
+  sets, living alias, `disposition_as_of` in the checkout formula), crosswalk
+  `LegalEventAssertion` row and three glossary rows owned by ADR-0017 G0(a)
+  `[proposed]`; no new contract files.
+- S03 (P0-8): CoverageCertificate overlay on the existing E.2.5
+  scope-aware-completeness contract: 7 snake_case closure_dimensions +
+  oracle_coverage, closed verdicts `CompleteFor` / `IncompleteBecause`
+  (metric/proof split — `CompletenessReport.coverage` is not the certificate);
+  INV-22 catalogued in crystal MC-INV (14 rows; gap INV-12..21 stays L0).
+  Design-only, no Rust types.
+- S04 (D261): advisory governor check `companion-manifest` (group=docs,
+  kind=deterministic, default_severity=warn) — every companion YAML
+  backtick-mentioned in `prd/architecture/model-crystal.md` must exist and
+  carry `schema_version` + `lifecycle [proposed]` + `authoritative: false`
+  (review-26 §11.5 fail-closed injection as a process net; not §11/P1-8) —
+  plus this honesty sync. Explicit: no Rust types; remaining review-26
+  leftovers S3/S4/S7 renames + P1-8 full semantic governor stay human-gated;
+  governor inventory 40 check specs / live full run pass_count 66,
+  warn_count 0, error_count 0.
+
 ### M180-cnzw84 Docs (review-26 P0 continuation: INV-09a/b/c, force-interval 6-set, VersionRelation, ActivationTrigger, honesty sync)
 
 ### Docs
