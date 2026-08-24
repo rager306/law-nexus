@@ -418,6 +418,22 @@ ledger cut, source set and request. Design-only at lifecycle
 `[proposed]`; no Rust type is minted, and no DispositionEvent is
 introduced here (the P0-3 redesign stays a separate candidate).
 
+Additive note (review-26 P0-6, `doc/review/review-26-23-08-2026.md`): the
+living MC-INV set splits the former single `INV-09` into three invariants
+with distinct semantic owners — `INV-09a ArtifactPreservation` (original
+official-artifact bytes remain retrievable by `artifact_hash`),
+`INV-09b SourceTextRoundTrip` (the source CST reproduces canonical text
+under an explicit normalization profile), and `INV-09c ProjectionAgreement`
+(the reconstructed expression agrees with the authoritative oracle for a
+chosen scope and normalization profile). The owners never merge: preserved
+artifact bytes are not a source-text round trip, and neither is an
+oracle-agreement check on a reconstruction; a synthesized CST is not the
+source PDF/HTML bytes. The historical G0(d) wording above — exact-text
+reconstruction of official artifacts — is retained, not rewritten.
+Design-only at lifecycle `[proposed]`; no Rust type is minted. The MC-INV
+rows in `prd/architecture/model-crystal.md` are the definition surface;
+this note is provenance, not a second canon.
+
 The E.2.6 merkle-roots contour of this checkout contract is tracked as
 design-only data: the `MaterializedSection` / `ProjectionRoots` entities,
 the closed root kinds (`CstRoot` / `AstRoot` / `OracleExamBinding`) and the
