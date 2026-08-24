@@ -15,10 +15,17 @@
 //! Negative surface (Q7): deleting a G0 name, dropping a required field,
 //! emptying `typed_failures`, claiming `Applied` as a failure, minting a
 //! `Merge:` G0 key, promoting lifecycle beyond `[proposed]`, flipping
-//! `authoritative`, widening `runtime_today`, or leaking S02 binding tokens
+//! `authoritative`, widening `runtime_today`, leaking S02 binding tokens
 //! (`identity_ambulatory`, `reference_binding_vocabulary`, `cites` /
-//! `IdentityAmbulatory` as keys) all turn pins red on the tracked file
-//! itself — no tmp fixtures, no runtime dependency.
+//! `IdentityAmbulatory` as keys), returning a seventh selector mode
+//! (`ForRelationsAfter`) or review-26 rename tokens (`AtInstant`,
+//! `AfterOfficialPublication`, `OnLegalEvent`, `RetroactiveFrom`) into the
+//! parsed modes, minting two-space `ActivationTrigger:` /
+//! `TransitionPredicate:` YAML entity keys, laundering `TriggerUnknown`
+//! into `apply_results` or `effect_selector_modes`, widening
+//! `transition_predicates` beyond one, or adding P2 ApplicabilityPredicate
+//! DSL names to it all turn pins red on the tracked file itself — no tmp
+//! fixtures, no runtime dependency.
 
 /// Embedded registry, same lift as `kb-ontology.yaml` in `catalog.rs`.
 /// Path is relative to `crates/ln-kb-ontology/tests/`.
@@ -288,20 +295,156 @@ fn apply_results_are_the_closed_nine_result_set_in_canon_order() {
 }
 
 #[test]
-fn effect_selector_modes_are_the_closed_seven_mode_set() {
-    let section = section_between(REGISTRY_YAML, "effect_selector_modes:", "required_fields:");
+fn effect_selector_modes_are_the_closed_six_mode_set_without_for_relations_after() {
+    // review-26 P0-4 / D252: the mode list drops ForRelationsAfter (it is a
+    // TransitionPredicate, see below). The end marker is the new neighbor
+    // key `transition_predicates:`, not `required_fields:` — without the
+    // shift, dash_items would swallow RelationsArisingOnOrAfter as a
+    // seventh mode (MEM1044).
+    let section = section_between(
+        REGISTRY_YAML,
+        "effect_selector_modes:",
+        "transition_predicates:",
+    );
+    let modes = dash_items(section);
     assert_eq!(
-        dash_items(section),
+        modes,
         vec![
             "At",
             "AfterPublication",
             "OnEvent",
             "OnCondition",
-            "ForRelationsAfter",
             "RetroactiveTo",
             "Unknown"
         ]
     );
+    // Parsed-item absences, not raw substrings (MEM951): the folded
+    // scalars and non_claims legitimately name ForRelationsAfter after
+    // review-26 P0-4, and the registry comment names the review-26
+    // renames as non-living — only parsed modes must stay clean.
+    assert!(
+        !modes.contains(&"ForRelationsAfter"),
+        "ForRelationsAfter is a TransitionPredicate, never a selector mode"
+    );
+    for token in [
+        "AtInstant",
+        "AfterOfficialPublication",
+        "OnLegalEvent",
+        "RetroactiveFrom",
+    ] {
+        assert!(
+            !modes.contains(&token),
+            "review-26 rename token {token} must not become a living mode name"
+        );
+    }
+}
+
+#[test]
+fn transition_predicates_are_the_closed_one_set_relations_arising_on_or_after() {
+    // review-26 P0-4 / D252: applicability-plane predicates live in their
+    // own 1-set between the mode list and the folded scalars; the end
+    // marker is the first folded scalar, not `required_fields:`.
+    let section = section_between(
+        REGISTRY_YAML,
+        "transition_predicates:",
+        "on_condition_is_a_guard:",
+    );
+    let predicates = dash_items(section);
+    assert_eq!(
+        predicates,
+        vec!["RelationsArisingOnOrAfter"],
+        "transition_predicates must stay exactly the 1-set"
+    );
+    // ForRelationsAfter is the extracted old name, never a member; the
+    // P2 ApplicabilityPredicate DSL names are not members either.
+    for token in [
+        "ForRelationsAfter",
+        "NoticePublishedOnOrAfter",
+        "InvitationSentOnOrAfter",
+        "ContractConcludedBefore",
+        "PreserveOldRuleForOngoingProcedure",
+        "And",
+        "Or",
+        "Not",
+    ] {
+        assert!(
+            !predicates.contains(&token),
+            "{token} must not join the transition_predicates set"
+        );
+    }
+}
+
+#[test]
+fn on_condition_is_a_guard_and_unknown_is_trigger_unknown_not_false() {
+    // review-26 P0-4 / D252 folded scalars, pinned like the S02
+    // `superseded_is_version_relation` property (force_interval_set.rs):
+    // whitespace-collapsed phrases, never parsed as entity keys and never
+    // restated as a second list.
+    let guard = section_between(
+        REGISTRY_YAML,
+        "on_condition_is_a_guard:",
+        "unknown_condition_is_trigger_unknown_not_false:",
+    );
+    let collapsed = guard.split_whitespace().collect::<Vec<_>>().join(" ");
+    for phrase in [
+        "OnCondition is a guard",
+        "not a clock",
+        "not a sixth clock role",
+    ] {
+        assert!(
+            collapsed.contains(phrase),
+            "on_condition_is_a_guard lost the phrase `{phrase}`"
+        );
+    }
+    let trigger_unknown = section_between(
+        REGISTRY_YAML,
+        "unknown_condition_is_trigger_unknown_not_false:",
+        "required_fields:",
+    );
+    let collapsed = trigger_unknown
+        .split_whitespace()
+        .collect::<Vec<_>>()
+        .join(" ");
+    for phrase in [
+        "yields TriggerUnknown",
+        "never false",
+        "never a 7th selector mode",
+        "never a 10th apply_result",
+        "not crystal INV-15",
+        "not an unknown trigger",
+    ] {
+        assert!(
+            collapsed.contains(phrase),
+            "unknown_condition_is_trigger_unknown_not_false lost the phrase `{phrase}`"
+        );
+    }
+    // Fail-closed guards: TriggerUnknown is a prose fail-closed outcome,
+    // never laundered into the two closed sets (Q7).
+    let results = dash_items(section_between(
+        REGISTRY_YAML,
+        "apply_results:",
+        "effect_selector_modes:",
+    ));
+    assert!(
+        !results.contains(&"TriggerUnknown"),
+        "TriggerUnknown must never become a 10th apply_result"
+    );
+    let modes = dash_items(section_between(
+        REGISTRY_YAML,
+        "effect_selector_modes:",
+        "transition_predicates:",
+    ));
+    assert!(
+        !modes.contains(&"TriggerUnknown"),
+        "TriggerUnknown must never become a selector mode"
+    );
+    // The two review-26 planes stay prose, never YAML entity-depth keys.
+    for key in ["ActivationTrigger", "TransitionPredicate"] {
+        assert!(
+            !REGISTRY_YAML.contains(&format!("\n  {key}:")),
+            "two-space `{key}:` entity-depth key detected"
+        );
+    }
 }
 
 #[test]
@@ -480,5 +623,23 @@ fn boundary_and_non_claims_keep_the_registry_design_only() {
             .iter()
             .any(|claim| claim.contains("not G0 Join and not MergeEntries")),
         "industrial-merge vs Join/MergeEntries disclaimer lost"
+    );
+    // review-26 P0-4 / D252 boundary needles: the selector split and its
+    // fail-closed outcome stay design-only prose in non_claims.
+    assert!(
+        claims
+            .iter()
+            .any(|claim| claim.contains("TransitionPredicate")),
+        "TransitionPredicate boundary non-claim lost"
+    );
+    assert!(
+        claims
+            .iter()
+            .any(|claim| claim.contains("OnCondition is a guard")),
+        "OnCondition-as-guard non-claim lost"
+    );
+    assert!(
+        claims.iter().any(|claim| claim.contains("TriggerUnknown")),
+        "TriggerUnknown fail-closed non-claim lost"
     );
 }

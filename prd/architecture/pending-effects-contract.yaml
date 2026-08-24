@@ -26,16 +26,17 @@ boundary: >
   AXIS-6), not a Review Case pending state. Pin tests embed this file as
   data.
 
-# Closed sets - character-identical to canon; this file never invents an
-# eighth selector mode, a fifth state, a sixth DAG edge or a new typed token.
-selector_modes:  # exactly 7, registry order preserved; projection of the five-clock roles (ADR-0009), not a sixth clock
+# Closed sets - character-identical to canon; this file never invents a
+# seventh selector mode, a fifth state, a sixth DAG edge or a new typed token.
+selector_modes:  # exactly 6, registry order preserved; projection of the five-clock roles (ADR-0009), not a sixth clock
   - At
   - AfterPublication
   - OnEvent
   - OnCondition
-  - ForRelationsAfter
   - RetroactiveTo
   - Unknown
+
+for_relations_after_is_transition_predicate: "ForRelationsAfter is a TransitionPredicate RelationsArisingOnOrAfter on the AXIS-6 plane, not a selector mode (review-26 P0-4 / D252); the living 1-set lives in operation-registry.yaml transition_predicates; this contract copies selector_modes only."
 
 op_p_names: [ScheduleEffect, ModifyPendingEffect, CancelPendingEffect]  # exactly 3, character-identical to the families.OP-P keys
 
@@ -175,8 +176,8 @@ non_claims:  # mandatory phrases; pinned by the pin-test wave (T02 embeds this f
   - excluded_future is not Suspended and not NotYetInForce.
   - ScheduleEffect is not Commence; pending bookkeeping is not an OP-F force interval operation.
   - Not the OP-F interval set (E.2.4; the ADR-0018 force overlay owns force intervals).
-  - Not a TransitionConstraint and not AXIS-6 (ADR-0021 owns transitional relations).
-  - EffectSelector is not a sixth clock (ADR-0009 five-clock roles).
+  - Not a TransitionConstraint and not AXIS-6 (ADR-0021 owns transitional relations); ForRelationsAfter is a TransitionPredicate RelationsArisingOnOrAfter, not a selector mode (review-26 P0-4 / D252).
+  - EffectSelector is not a sixth clock (ADR-0009 five-clock roles); OnCondition is a guard, not a clock, and TriggerUnknown is the fail-closed outcome of an unproven OnCondition, never false (review-26 P0-4 / D252).
   - Not a Review Case set_pending or DisposeReview state; review case lifecycle is a different contour.
   - Not a resolver and not the E.3 compiler.
   - OP-P preconditions live in operation-registry.yaml, not duplicated here.

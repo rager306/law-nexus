@@ -11,11 +11,13 @@
 //! this suite stays parser-free string/section work over two embedded YAML
 //! files and adds no YAML crate dependency.
 //!
-//! Token alignment (7 selector modes x 3 OP-P names) is checked against
+//! Token alignment (6 selector modes x 3 OP-P names) is checked against
 //! the embedded `operation-registry.yaml`: the name canon lives only
 //! there (`effect_selector_modes` and `families.OP-P`). This suite
 //! extracts both sides and compares; it never restates a token list as a
-//! second canon (MEM951).
+//! second canon (MEM951). The review-26 P0-4 / D252 transition_predicates
+//! 1-set canon also lives only there; this suite pins its length and its
+//! disjointness from selector_modes, never the predicate name itself.
 //!
 //! This suite deliberately contains no `use` items at all: it imports
 //! neither `ln_kb_ontology` nor `ln_temporal`, and never references
@@ -24,18 +26,21 @@
 //! the runtime types it guards would invert the D222 boundary; entity and
 //! Review-Case homonymy stays prose in the YAML non_claims.
 //!
-//! Negative surface (Q7): minting an eighth selector mode, a `modified`
-//! state, a third entity key, widening `typed_non_success` with a success,
-//! force or neighbor-contract token, promoting lifecycle beyond
-//! `[proposed]`, flipping `authoritative`, moving ownership away from
-//! ADR-0017, `runtime_today` beyond `none`, seeding `InForce`, adding a
-//! fifth FSM row, or dropping a required field all turn pins red on the
-//! tracked file itself — no tmp fixtures, no runtime dependency. Absence
-//! pins over `states`, `typed_non_success` and `force_status_seed` run on
-//! parsed items, not raw substrings, because the contract's own comments
-//! legitimately name `modified`, `applied` and `InForce`-shaped tokens.
-//! Losing `Unclassified` is E.2.2 reference-binding territory, not this
-//! suite's negative surface.
+//! Negative surface (Q7): minting a seventh selector mode
+//! (`ForRelationsAfter` returning as a parsed selector_modes item), a
+//! `modified` state, a third entity key (including two-space
+//! `ActivationTrigger:` / `TransitionPredicate:` keys), widening
+//! `typed_non_success` with a success, force or neighbor-contract token,
+//! promoting lifecycle beyond `[proposed]`, flipping `authoritative`,
+//! moving ownership away from ADR-0017, `runtime_today` beyond `none`,
+//! seeding `InForce`, adding a fifth FSM row, or dropping a required
+//! field all turn pins red on the tracked file itself — no tmp fixtures,
+//! no runtime dependency. Absence pins over `states`, `typed_non_success`,
+//! `force_status_seed` and `selector_modes` run on parsed items, not raw
+//! substrings, because the contract's own comments and non_claims
+//! legitimately name `modified`, `applied`, `InForce`-shaped tokens and
+//! `ForRelationsAfter` after review-26 P0-4. Losing `Unclassified` is
+//! E.2.2 reference-binding territory, not this suite's negative surface.
 
 /// Embedded contract (T01): the E.2.3 entity/FSM layer.
 /// Path is relative to `crates/ln-kb-ontology/tests/`.
@@ -47,7 +52,7 @@ const REGISTRY_YAML: &str = include_str!("../../../prd/architecture/operation-re
 
 /// Closed canon sizes pinned inside the comparing tests (MEM951: sizes and
 /// cross-file equality only, never a restated token list).
-const SELECTOR_MODE_COUNT: usize = 7;
+const SELECTOR_MODE_COUNT: usize = 6;
 const OP_P_NAME_COUNT: usize = 3;
 
 /// Closed typed non-success set (MC-RES minus Applied), canonical order.
@@ -400,6 +405,46 @@ fn selector_modes_stay_character_identical_to_the_registry_canon() {
         contract_modes, registry_modes,
         "selector modes diverged from the registry canon"
     );
+    // review-26 P0-4 / D252: parsed-item absence, not a raw substring —
+    // the folded scalar and non_claims legitimately name ForRelationsAfter.
+    assert!(
+        !contract_modes.contains(&"ForRelationsAfter"),
+        "ForRelationsAfter is a TransitionPredicate, never a selector mode"
+    );
+}
+
+#[test]
+fn for_relations_after_stays_a_transition_predicate_pointer_not_a_mode() {
+    // review-26 P0-4 / D252: this contract copies selector_modes only; the
+    // living transition_predicates 1-set stays in the registry. MEM951: no
+    // second canon here — length plus identity with the registry extract,
+    // never the predicate name restated in this suite.
+    let scalar = top_level_row("for_relations_after_is_transition_predicate:");
+    let collapsed = scalar.split_whitespace().collect::<Vec<_>>().join(" ");
+    for phrase in [
+        "ForRelationsAfter is a TransitionPredicate",
+        "not a selector mode",
+        "operation-registry.yaml transition_predicates",
+        "this contract copies selector_modes only",
+    ] {
+        assert!(
+            collapsed.contains(phrase),
+            "for_relations_after_is_transition_predicate lost the phrase `{phrase}`"
+        );
+    }
+    let registry_predicates = top_level_dash_items(REGISTRY_YAML, "transition_predicates:");
+    assert_eq!(
+        registry_predicates.len(),
+        1,
+        "registry transition_predicates must stay exactly a 1-set"
+    );
+    let contract_modes = top_level_dash_items(CONTRACT_YAML, "selector_modes:");
+    for predicate in &registry_predicates {
+        assert!(
+            !contract_modes.contains(predicate),
+            "the transition predicate {predicate} must never appear as a selector mode"
+        );
+    }
 }
 
 #[test]
@@ -619,6 +664,25 @@ fn non_claims_carry_the_boundary_disclaimers() {
         has_claim("Not a TransitionConstraint"),
         "not-TransitionConstraint non-claim lost"
     );
+    // review-26 P0-4 / D252 boundary needles: the selector split, the
+    // guard reading of OnCondition and the fail-closed TriggerUnknown
+    // outcome stay prose in non_claims.
+    assert!(
+        has_claim("ForRelationsAfter"),
+        "ForRelationsAfter TransitionPredicate non-claim lost"
+    );
+    assert!(
+        has_claim("TransitionPredicate"),
+        "TransitionPredicate boundary non-claim lost"
+    );
+    assert!(
+        has_claim("OnCondition is a guard"),
+        "OnCondition-as-guard non-claim lost"
+    );
+    assert!(
+        has_claim("TriggerUnknown"),
+        "TriggerUnknown fail-closed non-claim lost"
+    );
     assert!(
         has_claim("preconditions live in operation-registry.yaml, not duplicated"),
         "OP-P precondition ownership non-claim lost"
@@ -644,6 +708,8 @@ fn neighbor_contract_tokens_never_mint_entity_keys() {
         "ReplaceText",
         "Suspend",
         "ReferenceMention",
+        "ActivationTrigger",
+        "TransitionPredicate",
     ] {
         assert!(!names.contains(&key), "{key} minted as an entity key");
         assert!(

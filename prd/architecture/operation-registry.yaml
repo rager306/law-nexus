@@ -27,14 +27,20 @@ apply_results:  # exactly 9 (ADR-0017 G0(g) / MC-RES)
   - UnsupportedOperation
   - IncompleteSource
 
-effect_selector_modes:  # exactly 7 (ADR-0017 G0(c)); projection of the five-clock roles (ADR-0009), not a sixth clock
+effect_selector_modes:  # exactly 6 living overlay (review-26 P0-4 / D252); projection of the five-clock roles (ADR-0009), not a sixth clock
   - At
   - AfterPublication
   - OnEvent
   - OnCondition
-  - ForRelationsAfter
   - RetroactiveTo
   - Unknown
+
+transition_predicates:  # exactly 1 (review-26 P0-4 / D252); AXIS-6 / ADR-0021 plane, not an ActivationTrigger
+  - RelationsArisingOnOrAfter
+
+on_condition_is_a_guard: "OnCondition is a guard referencing an event or confirmed state, not a clock and not a sixth clock role."
+
+unknown_condition_is_trigger_unknown_not_false: "An unproven OnCondition yields TriggerUnknown, never false, never a 7th selector mode, never a 10th apply_result, not crystal INV-15. UnknownEffect remains an MC-RES token about an unknown effect, not an unknown trigger."
 
 required_fields:  # exactly 8 (ADR-0017 G0(g)): every operation carries all of them
   - target_selector
@@ -66,6 +72,11 @@ non_claims:
   - This registry is not the S02 Reference Binding/Semantics contract (a separate vocabulary surface).
   - cites and IdentityAmbulatory are reference-binding concepts, not operation ids in this registry.
   - effect_selector on an operation is the selector carried into the authorized effect (G0(c)), not a sixth clock (ADR-0009).
+  - ForRelationsAfter is not an effect_selector_mode; it is a TransitionPredicate RelationsArisingOnOrAfter on the AXIS-6 plane (review-26 P0-4 / D252).
+  - OnCondition is a guard referencing an event or confirmed state, not a clock (review-26 P0-4 / D252).
+  - TriggerUnknown is the fail-closed outcome of an unproven OnCondition, not a selector mode and not an apply_result (review-26 P0-4 / D252).
+  - The review-26 rename tokens AtInstant / AfterOfficialPublication / OnLegalEvent / RetroactiveFrom are not living names.
+  - P2 ApplicabilityPredicate DSL names (NoticePublishedOnOrAfter, InvitationSentOnOrAfter, ContractConcludedBefore, PreserveOldRuleForOngoingProcedure, And, Or, Not) are not members of transition_predicates.
   - runtime_today names a runtime contour only; it never claims the G0 apply contract is implemented.
 
 families:
