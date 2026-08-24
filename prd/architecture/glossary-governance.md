@@ -109,6 +109,12 @@ Governor must never decide:
 - Applicability is a canonical design term while runtime remains `[deferred]`.
 - `NormativeStatus` is a deprecated compatibility alias for canonical
   `NormativeState`, not a second dimension.
+- The living `NormativeState` written statuses are the force-interval YAML
+  6-set after review-26 P0-5a (`InForce`, `NotYetInForce`, `Suspended`,
+  `Repealed`, `Expired`, `Invalidated`); `Superseded` is a VersionRelation
+  (Replaces / Supersedes / Corrects), not a written force interval; runtime
+  `kb-ontology.yaml` `force_status_values` remains a different 6-set (a
+  cardinality match is not a member match).
 - The temporal model remains a `[proposed]` crosswalk, not the complete
   executable temporal contract requested by the 2026-08-11 assessment. Its
   fourteen-area completeness matrix must preserve `partial`, `absent` and
