@@ -34,9 +34,17 @@ falkordb=historical-only
   CoverageCertificate + INV-22; governor companion-manifest advisory D261,
   66 checks green; no Rust type minting, no lifecycle promotion). With
   M179/M180 this completes the ENTIRE review-26 P0 core (P0-1..P0-8).
-  Remaining human-gated fork: S3/S4/S7 renames (MC-SEPARATION planes, WorkId
-  opaque, VIEW set), G0-G3 golden corpus 30-40 cases, product fork G2-vs-P2.
-  GSD completion is not product readiness.
+  Review-26 is fully executed within its §13.1 P0 items (P0-1..P0-8,
+  M179-M181) plus the §3/§4/§7 design overlays (M182-ivk7ww S01-S03):
+  MC-SEPARATION 12-plane with living names StructuralMembership /
+  EditorialPresence; WorkId opaque with OfficialIdentityClaim and
+  ComponentLocator as the living alias of the historical CC-path cell;
+  named eight-view catalog incl. VIEW-SourceExpression in crystal
+  MC-CHECKOUT while YAML view_modes four stays the frozen checkout-key.
+  Nothing beyond design: no runtime, no lifecycle promotion. Remaining
+  human-gated fork: P1-8 full semantic governor (review-26 §11), G0-G3
+  golden corpus 30-40 cases, product fork G2-vs-P2. GSD completion is
+  not product readiness.
 - **GSD dual-truth M167:** **resolved** — M167 complete via authorized skip waivers + validation (D154 option C). Historical note in `gsd-review-bridge.md`. Not Applicable; TSG-005/006 still open.
 - **Review governance process contour:** ADR-0024 Review Case intake/disposition/ledger landed; human dispositions recorded for review-11/12 (`actor_id=rager306`). Non-authoritative; no Product/ADR/roadmap promotion.
 - **Applicability kernel:** `ln-applicability` v0 fail-closed abstention-only under ADR-0023 `[proposed]`, with NormRule IR + pure predicate algebra spines; no Applicable/NotApplicable product claim.

@@ -121,7 +121,7 @@ check (advisory, KBO-R062/R066) keeps ladders ⊆ token catalog and roles
 closed, so binding/catalog version drift is a visible warning (ADR-0013/0016/0027
 amendments; Review 8). Recursive walk is `[bounded]` on the subordinate act
 corpus (44-ФЗ registry stays a flat anchor, D192), CC-path identity
-(`cc:work:statya-93/punkt-4/punkt-4.2`, D191) and the StructuralNearMiss
+(`cc:work:statya-93/punkt-4/punkt-4.2`, D191; living alias ComponentLocator, review-26 §4) and the StructuralNearMiss
 census → human-apply loop (D194) are `[bounded]`. `law-nexus-inspect` mints
 at the group's YAML granularity (M172 wiring): on the real Garant PP_60
 corpus the class-matched punkt text-CTV step shows `ctv_resolved` > 0 with
@@ -235,10 +235,10 @@ DESIGN FRONT (no Rust, L0 reviews)
    Reviews 9-14 (doc/review/review-20..25-08-2026.md): C1-commit model, citation tape,
    bitemporal legislative event compiler formula — [proposed] direction; G0 (D216):
    P0 (E.1) closed M175; P1 E.2.1–E.2.7 design-only (M176–M178, D222 pins), no runtime;
-   review-26 P0-1/P0-5b/P0-2/P0-7 design-only M179 + P0-6/P0-5a/P0-4 M180 +
-   P0-3/P0-8 design-only M181 S01-S03 (three-entity overlay, CoverageCertificate
-   E.2.5 + INV-22); leftover S3/S4/S7 renames + P1-8 and next fork (G2 golden vs
-   P2 resolver) human-gated; reviews immutable L0; projection: architecture/model-crystal.md (non-canon, v2)
+   review-26 P0-1..P0-8 design-only M179–M181 + §3/§4/§7 M182 S01-S03 (MC-SEPARATION
+   12-plane, WorkId opaque / OfficialIdentityClaim / ComponentLocator, named VIEW set
+   in crystal MC-CHECKOUT); leftover P1-8 governor + G0-G3 golden corpus vs G2/P2 fork
+   human-gated; reviews immutable L0; projection: architecture/model-crystal.md (non-canon, v2)
    ▼
 ASSESSMENT FRONT (no Rust)
    EA-10 complete: D150 accepted-with-findings (EA-09 at 120d44b); retained

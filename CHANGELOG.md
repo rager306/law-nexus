@@ -2,6 +2,21 @@
 
 ## [Unreleased]
 
+### M182-ivk7ww Docs (review-26 §3/§4/§7 overlays: MC-SEPARATION 12-plane, WorkId/OfficialIdentityClaim, named VIEW set; honesty sync)
+
+### Docs
+- S01 (review-26 §3, D262/D263): MC-SEPARATION extended to the 12-plane model
+  with living names StructuralMembership / EditorialPresence.
+- S02 (review-26 §4, D269/D270): WorkId opaque with OfficialIdentityClaim;
+  ComponentLocator as the living alias of the historical CC-path cell.
+- S03 (review-26 §7, D271): named eight-view set catalogued in crystal
+  MC-CHECKOUT incl. VIEW-SourceExpression with known_as_of as parameter;
+  YAML view_modes four frozen as checkout-key.
+- S04 (honesty sync, D272): living oracles synced to the wave fact with no new
+  governor check_id; remaining human-gated fork = P1-8 full semantic governor +
+  G0-G3 golden corpus 30-40 cases vs product fork G2-vs-P2. Explicit: no Rust
+  types; governor inventory stays 40 check specs / pass_count 66 / warn_count 0.
+
 ### M181-s0n6ls Docs (review-26 P0-3/P0-8: assertion-lifecycle three-entity overlay, CoverageCertificate, companion-manifest advisory)
 
 ### Docs
