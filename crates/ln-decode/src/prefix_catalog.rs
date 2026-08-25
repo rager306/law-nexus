@@ -89,7 +89,8 @@ impl DecodePrefixCatalog {
                 });
             }
         }
-        prefixes.sort_by(|left, right| right.marker.len().cmp(&left.marker.len()));
+        // Longest-first: marker_prefix returns the first strip_prefix hit.
+        prefixes.sort_by_key(|rule| std::cmp::Reverse(rule.marker.len()));
 
         let mut number_styles = Vec::new();
         for (token, style) in style_pairs {
@@ -309,6 +310,23 @@ mod tests {
         assert_eq!(
             catalog.number_style(HierarchyLevel::Statya),
             Some(NumberStyle::Digit)
+        );
+    }
+
+    #[test]
+    fn prefixes_are_sorted_longest_first_so_marker_prefix_is_greedy() {
+        let catalog = DecodePrefixCatalog::embedded().expect("yaml");
+        let lengths: Vec<usize> = catalog
+            .prefixes
+            .iter()
+            .map(|rule| rule.marker.len())
+            .collect();
+        let mut expected = lengths.clone();
+        expected.sort_by_key(|len| std::cmp::Reverse(*len));
+        assert_eq!(lengths, expected, "prefix catalog must stay longest-first");
+        assert!(
+            lengths.windows(2).all(|pair| pair[0] >= pair[1]),
+            "non-increasing marker lengths required for first-match extraction"
         );
     }
 }

@@ -2,6 +2,13 @@
 
 ## [Unreleased]
 
+### Process
+- Clippy `-D warnings` `unnecessary_sort_by` no longer blocks git closeout:
+  `ln-decode` prefix catalog sorts longest-first via `sort_by_key(Reverse(len))`
+  (greedy first-match in `marker_prefix` unchanged; pin
+  `prefixes_are_sorted_longest_first_so_marker_prefix_is_greedy`); Consultant
+  observation backlog sorts by `Reverse(occurrences)`.
+
 ### M183-t5u1dg Docs (review-26 §10 golden-corpus catalog: 40 cases, G0-G3 tiers, TL-GC map, advisory)
 
 ### Docs

@@ -40,8 +40,8 @@ pub fn collect_observations(classified: &[ClassifiedLink]) -> Vec<Observation> {
         })
         .collect();
 
-    // Sort by occurrences descending — most frequent first
-    observations.sort_by(|a, b| b.occurrences.cmp(&a.occurrences));
+    // Most frequent first (same order as the previous reverse cmp).
+    observations.sort_by_key(|obs| std::cmp::Reverse(obs.occurrences));
     observations
 }
 
