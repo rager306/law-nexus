@@ -1,0 +1,455 @@
+# Golden corpus catalog: the 40 numbered cases of review-26 section 10
+# (doc/review/review-26-23-08-2026.md), tracked as YAML-as-data (D222).
+# Design-only: no case is executed here, no runtime type is minted from
+# this file, and pin tests embed this file verbatim as data. Tier
+# assignment per D273: G0 Shape / G1 Official / G2 Hostile / G3
+# End-to-end. Lifecycle stays proposed; authority stays with the review
+# and the temporal model (owner: review-26-section-10).
+
+schema_version: law-nexus-golden-corpus-catalog/v1
+lifecycle: "[proposed]"
+authoritative: false
+owner: review-26-section-10
+related:
+  - prd/temporal-legal-model.md
+  - prd/architecture/model-crystal.md
+boundary: >
+  Design-only catalog of the forty cases numbered 1-40 in review-26
+  section 10, grouped as assertion-bitemporal, pending-effects,
+  structure-identity, source-cst, references and procurement, and
+  tiered per D273 as G0 Shape (synthetic semantic forms), G1 Official
+  (verified official Russian acts), G2 Hostile (conflicts,
+  incompleteness, corrections, ambiguous identity) and G3 End-to-end
+  (temporal QA and procurement case traces). Each case carries its
+  review anchor, group, tier, design-only status, a character-faithful
+  Russian summary transcribed from the review, and dependencies that
+  name only existing P1-companion contract YAML. Pin tests embed this
+  file as data (D222). Three G0 homonyms are distinct and must never
+  be collapsed: the parser evidence-ladder G0 of
+  prd/parser/representative_golden_corpus_acceptance_protocol.md, the
+  disposition/ADR labels G0(a-g) of the P1 dispositions, and the
+  corpus-tier G0 Shape of this catalog. This file is not case
+  execution, not legal gold, not the S02-owned sibling nineteen-case
+  series (no id from that series appears here), not a Rust enum, not
+  OntologyCatalog input and not a closed_vocabularies row.
+non_claims:
+  - "No case execution: the catalog names and classifies the forty cases; it never runs them and never ships corpus fixtures."
+  - "Not legal gold: summaries are character-faithful transcriptions of review-26 section 10 and carry no adjudicated legal truth."
+  - "Not the S02-owned sibling nineteen-case series: ids of that series never appear in this catalog."
+  - "No Rust enum, no serde types and no product code path is minted from or parses this file."
+  - "Not OntologyCatalog input."
+  - "Not a closed_vocabularies row and not a vocabulary token."
+  - "No lifecycle promotion: the catalog stays proposed and non-authoritative."
+  - "The parser evidence-ladder G0, the disposition G0(a-g) labels and the corpus-tier G0 Shape stay distinct and are never collapsed."
+tiers:
+  - G0
+  - G1
+  - G2
+  - G3
+groups:
+  - assertion-bitemporal
+  - pending-effects
+  - structure-identity
+  - source-cst
+  - references
+  - procurement
+statuses:
+  - design-only
+coverage:
+  assertion-bitemporal: 8
+  pending-effects: 6
+  structure-identity: 6
+  source-cst: 5
+  references: 9
+  procurement: 6
+allowed_deps:
+  - prd/architecture/assertion-lifecycle-contract.yaml
+  - prd/architecture/pending-effects-contract.yaml
+  - prd/architecture/operation-registry.yaml
+  - prd/architecture/reference-binding-contract.yaml
+  - prd/architecture/evidence-anchor-contract.yaml
+  - prd/architecture/merkle-roots-contract.yaml
+  - prd/architecture/force-interval-set-contract.yaml
+  - prd/architecture/scope-aware-completeness-contract.yaml
+cases:
+  -
+    id: GC-001
+    review_anchor: 1
+    group: assertion-bitemporal
+    tier: G0
+    status: design-only
+    summary: Validated, но не accepted.
+    deps:
+      - prd/architecture/assertion-lifecycle-contract.yaml
+  -
+    id: GC-002
+    review_anchor: 2
+    group: assertion-bitemporal
+    tier: G0
+    status: design-only
+    summary: Accepted, затем retired.
+    deps:
+      - prd/architecture/assertion-lifecycle-contract.yaml
+  -
+    id: GC-003
+    review_anchor: 3
+    group: assertion-bitemporal
+    tier: G2
+    status: design-only
+    summary: Два противоречащих accepted assertions.
+    deps:
+      - prd/architecture/assertion-lifecycle-contract.yaml
+  -
+    id: GC-004
+    review_anchor: 4
+    group: assertion-bitemporal
+    tier: G2
+    status: design-only
+    summary: Retroactive effect обнаружен позднее.
+    deps:
+      - prd/architecture/assertion-lifecycle-contract.yaml
+      - prd/architecture/evidence-anchor-contract.yaml
+  -
+    id: GC-005
+    review_anchor: 5
+    group: assertion-bitemporal
+    tier: G2
+    status: design-only
+    summary: Исправление parser assertion без изменения официального source.
+    deps:
+      - prd/architecture/assertion-lifecycle-contract.yaml
+      - prd/architecture/evidence-anchor-contract.yaml
+  -
+    id: GC-006
+    review_anchor: 6
+    group: assertion-bitemporal
+    tier: G0
+    status: design-only
+    summary: Один legal event поддержан несколькими артефактами.
+    deps:
+      - prd/architecture/assertion-lifecycle-contract.yaml
+      - prd/architecture/evidence-anchor-contract.yaml
+  -
+    id: GC-007
+    review_anchor: 7
+    group: assertion-bitemporal
+    tier: G2
+    status: design-only
+    summary: Более поздний официальный источник противоречит раннему вторичному.
+    deps:
+      - prd/architecture/assertion-lifecycle-contract.yaml
+      - prd/architecture/evidence-anchor-contract.yaml
+  -
+    id: GC-008
+    review_anchor: 8
+    group: assertion-bitemporal
+    tier: G0
+    status: design-only
+    summary: Изменение adjudication policy при неизменном ledger.
+    deps:
+      - prd/architecture/assertion-lifecycle-contract.yaml
+  -
+    id: GC-009
+    review_anchor: 9
+    group: pending-effects
+    tier: G0
+    status: design-only
+    summary: Scheduled effect изменён до активации.
+    deps:
+      - prd/architecture/pending-effects-contract.yaml
+      - prd/architecture/operation-registry.yaml
+  -
+    id: GC-010
+    review_anchor: 10
+    group: pending-effects
+    tier: G0
+    status: design-only
+    summary: Scheduled effect отменён.
+    deps:
+      - prd/architecture/pending-effects-contract.yaml
+      - prd/architecture/operation-registry.yaml
+  -
+    id: GC-011
+    review_anchor: 11
+    group: pending-effects
+    tier: G0
+    status: design-only
+    summary: Условие активации неизвестно.
+    deps:
+      - prd/architecture/pending-effects-contract.yaml
+      - prd/architecture/operation-registry.yaml
+  -
+    id: GC-012
+    review_anchor: 12
+    group: pending-effects
+    tier: G0
+    status: design-only
+    summary: Условие позднее подтверждено.
+    deps:
+      - prd/architecture/pending-effects-contract.yaml
+      - prd/architecture/operation-registry.yaml
+  -
+    id: GC-013
+    review_anchor: 13
+    group: pending-effects
+    tier: G0
+    status: design-only
+    summary: Будущий effect изменяет ещё не вступившую редакцию.
+    deps:
+      - prd/architecture/pending-effects-contract.yaml
+      - prd/architecture/operation-registry.yaml
+  -
+    id: GC-014
+    review_anchor: 14
+    group: pending-effects
+    tier: G0
+    status: design-only
+    summary: Два pending effects имеют causal dependency.
+    deps:
+      - prd/architecture/pending-effects-contract.yaml
+      - prd/architecture/operation-registry.yaml
+  -
+    id: GC-015
+    review_anchor: 15
+    group: structure-identity
+    tier: G2
+    status: design-only
+    summary: Batch renumber с коллизиями.
+    deps:
+      - prd/architecture/operation-registry.yaml
+  -
+    id: GC-016
+    review_anchor: 16
+    group: structure-identity
+    tier: G0
+    status: design-only
+    summary: Split с частичным сохранением identity.
+    deps:
+      - prd/architecture/operation-registry.yaml
+  -
+    id: GC-017
+    review_anchor: 17
+    group: structure-identity
+    tier: G0
+    status: design-only
+    summary: Join нескольких компонентов.
+    deps:
+      - prd/architecture/operation-registry.yaml
+  -
+    id: GC-018
+    review_anchor: 18
+    group: structure-identity
+    tier: G2
+    status: design-only
+    summary: Старое обозначение повторно используется новым компонентом.
+    deps:
+      - prd/architecture/operation-registry.yaml
+  -
+    id: GC-019
+    review_anchor: 19
+    group: structure-identity
+    tier: G0
+    status: design-only
+    summary: Move без изменения текста.
+    deps:
+      - prd/architecture/operation-registry.yaml
+  -
+    id: GC-020
+    review_anchor: 20
+    group: structure-identity
+    tier: G0
+    status: design-only
+    summary: ReplaceStructure с явным continuity map.
+    deps:
+      - prd/architecture/operation-registry.yaml
+  -
+    id: GC-021
+    review_anchor: 21
+    group: source-cst
+    tier: G1
+    status: design-only
+    summary: Одинаковый legal text в XML и HTML с разным formatting.
+    deps:
+      - prd/architecture/merkle-roots-contract.yaml
+      - prd/architecture/evidence-anchor-contract.yaml
+  -
+    id: GC-022
+    review_anchor: 22
+    group: source-cst
+    tier: G1
+    status: design-only
+    summary: PDF artifact сохранён, но extracted text normalization отличается.
+    deps:
+      - prd/architecture/merkle-roots-contract.yaml
+      - prd/architecture/evidence-anchor-contract.yaml
+  -
+    id: GC-023
+    review_anchor: 23
+    group: source-cst
+    tier: G2
+    status: design-only
+    summary: Oracle mismatch только в одном subtree.
+    deps:
+      - prd/architecture/merkle-roots-contract.yaml
+      - prd/architecture/evidence-anchor-contract.yaml
+  -
+    id: GC-024
+    review_anchor: 24
+    group: source-cst
+    tier: G2
+    status: design-only
+    summary: Source CST валиден, semantic AST неоднозначен.
+    deps:
+      - prd/architecture/merkle-roots-contract.yaml
+      - prd/architecture/evidence-anchor-contract.yaml
+  -
+    id: GC-025
+    review_anchor: 25
+    group: source-cst
+    tier: G0
+    status: design-only
+    summary: Parser correction не изменяет artifact hash.
+    deps:
+      - prd/architecture/merkle-roots-contract.yaml
+      - prd/architecture/evidence-anchor-contract.yaml
+  -
+    id: GC-026
+    review_anchor: 26
+    group: references
+    tier: G2
+    status: design-only
+    summary: Out-of-corpus target позднее загружен.
+    deps:
+      - prd/architecture/reference-binding-contract.yaml
+  -
+    id: GC-027
+    review_anchor: 27
+    group: references
+    tier: G0
+    status: design-only
+    summary: Range reference.
+    deps:
+      - prd/architecture/reference-binding-contract.yaml
+  -
+    id: GC-028
+    review_anchor: 28
+    group: references
+    tier: G0
+    status: design-only
+    summary: Ссылка на позицию таблицы.
+    deps:
+      - prd/architecture/reference-binding-contract.yaml
+  -
+    id: GC-029
+    review_anchor: 29
+    group: references
+    tier: G0
+    status: design-only
+    summary: Ссылка на классификационный код.
+    deps:
+      - prd/architecture/reference-binding-contract.yaml
+  -
+    id: GC-030
+    review_anchor: 30
+    group: references
+    tier: G2
+    status: design-only
+    summary: Stale designation после перенумерации.
+    deps:
+      - prd/architecture/reference-binding-contract.yaml
+  -
+    id: GC-031
+    review_anchor: 31
+    group: references
+    tier: G0
+    status: design-only
+    summary: External fixed-expression reference.
+    deps:
+      - prd/architecture/reference-binding-contract.yaml
+  -
+    id: GC-032
+    review_anchor: 32
+    group: references
+    tier: G0
+    status: design-only
+    summary: Relative reference «настоящей части».
+    deps:
+      - prd/architecture/reference-binding-contract.yaml
+  -
+    id: GC-033
+    review_anchor: 33
+    group: references
+    tier: G2
+    status: design-only
+    summary: Частично разрешённый reference set.
+    deps:
+      - prd/architecture/reference-binding-contract.yaml
+  -
+    id: GC-034
+    review_anchor: 34
+    group: references
+    tier: G2
+    status: design-only
+    summary: Circular references.
+    deps:
+      - prd/architecture/reference-binding-contract.yaml
+  -
+    id: GC-035
+    review_anchor: 35
+    group: procurement
+    tier: G3
+    status: design-only
+    summary: Старая редакция по дате извещения, новая по исполнению.
+    deps:
+      - prd/architecture/scope-aware-completeness-contract.yaml
+      - prd/architecture/force-interval-set-contract.yaml
+  -
+    id: GC-036
+    review_anchor: 36
+    group: procurement
+    tier: G3
+    status: design-only
+    summary: Отдельное правило по дате приглашения.
+    deps:
+      - prd/architecture/scope-aware-completeness-contract.yaml
+      - prd/architecture/force-interval-set-contract.yaml
+  -
+    id: GC-037
+    review_anchor: 37
+    group: procurement
+    tier: G3
+    status: design-only
+    summary: Изменение позиции перечня национального режима.
+    deps:
+      - prd/architecture/scope-aware-completeness-contract.yaml
+      - prd/architecture/force-interval-set-contract.yaml
+  -
+    id: GC-038
+    review_anchor: 38
+    group: procurement
+    tier: G3
+    status: design-only
+    summary: Версия положения о закупке по 223-ФЗ.
+    deps:
+      - prd/architecture/scope-aware-completeness-contract.yaml
+      - prd/architecture/force-interval-set-contract.yaml
+  -
+    id: GC-039
+    review_anchor: 39
+    group: procurement
+    tier: G3
+    status: design-only
+    summary: Смена статуса заказчика.
+    deps:
+      - prd/architecture/scope-aware-completeness-contract.yaml
+      - prd/architecture/force-interval-set-contract.yaml
+  -
+    id: GC-040
+    review_anchor: 40
+    group: procurement
+    tier: G3
+    status: design-only
+    summary: Mixed old/new rules в одной закупке.
+    deps:
+      - prd/architecture/scope-aware-completeness-contract.yaml
+      - prd/architecture/force-interval-set-contract.yaml
