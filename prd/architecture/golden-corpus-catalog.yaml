@@ -453,3 +453,4 @@ cases:
     deps:
       - prd/architecture/scope-aware-completeness-contract.yaml
       - prd/architecture/force-interval-set-contract.yaml
+

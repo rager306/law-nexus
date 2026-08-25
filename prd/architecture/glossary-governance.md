@@ -102,6 +102,12 @@ Governor must never decide:
 
 ## 5. Current bounded debt
 
+- The golden-corpus catalog row (`Golden corpus catalog`,
+  `prd/architecture/golden-corpus-catalog.yaml`, review-26 §10 / M183) is a
+  design-only case catalog `[proposed]`; the TL-GC01–19 paper oracles stay in
+  temporal-legal-model §11, and the reconciliation map lives beside them
+  (catalog cases exercise TL shapes; neither list replaces the other).
+
 - `EvidenceSpan` now points at the design-only
   `prd/architecture/evidence-anchor-contract.yaml` `[proposed]`
   (EvidenceAnchor/EvidenceBundle design data, not a runtime type); future

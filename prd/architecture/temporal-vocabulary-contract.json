@@ -611,6 +611,14 @@
         "canonical design term",
         "[proposed]"
       ]
+    },
+    {
+      "id": "golden-corpus-catalog",
+      "needle": "| Golden corpus catalog |",
+      "required_fragments": [
+        "[proposed]",
+        "review-26"
+      ]
     }
   ],
   "gap_ids": [

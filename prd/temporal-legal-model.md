@@ -111,6 +111,7 @@ Each layer consumes lower-layer evidence. No higher layer may rewrite source evi
 | `LegislativeEffect` | typed amendment-algebra outcome of its authorizing MicroOperation in the G0(b) chain; living name of the historical G0(b) `LegalEffect` wording (review-26 P0-1) | ADR-0017 G0(b) + review-26 P0-1 | canonical design term `[proposed]` | not the deferred NormRule `LegalEffect` (TSG-005), not `legal_act_effect`, not `ClockKind::LegalActEffect`; no Rust type minted |
 | `StructuralMembership` | parent / order / attach / detach / move — is the component in the tree at t?; living name of the historical `OperativeMembership` plane | ADR-0017 G0(f) overlay / review-26 §3 | canonical design term `[proposed]` | never force-by-text; not `ComponentMembershipVersion` (TSG-003 deferred-undefined) and not `OrderedMembershipVersion` |
 | `TransitionConstraint` | source-grounded constraint with its own valid/transaction anchors — for which old relations the old version still applies; a first-class data plane, not an independent temporal axis | ADR-0021 G0 note + review-26 §3 additive note | canonical design term `[proposed]` | not pending-effect bookkeeping; the historical AXIS-6 label is a citation alias of this plane |
+| Golden corpus catalog | design-only catalog of the 40 review-26 section-10 cases in prd/architecture/golden-corpus-catalog.yaml (schema law-nexus-golden-corpus-catalog/v1); four corpus tiers G0 Shape / G1 Official / G2 Hostile / G3 End-to-end are a level system over that list, not case execution | review-26 section 10 (related: temporal-legal-model section 11 TL-GC paper catalog is a different list; S02 maps) | canonical design term `[proposed]` | not case execution, not legal gold, not the parser G0-G3 evidence ladder, not disposition/ADR G0(a-g), not the TL-GC01-19 paper catalog, not a Rust enum, not OntologyCatalog input |
 
 Russian citation labels for YAML `hierarchy_levels` / `document_groups` tokens (aliases in source-grounded answers, not extra ontology terms; mint level remains profile data). Do not treat a label as a LegalUnit or CC without WALK-I / registry bind:
 
@@ -287,6 +288,15 @@ These are semantic-shape oracles for future fixtures, not legal gold answers.
 | TL-GC17 | correction | new observation corrects prior projection | original evidence retained; projection rebuilt | in-place evidence rewrite |
 | TL-GC18 | constitutional practice | typed ex-tunc annulment evidence | separate provenance-backed status event | generic practice prose rewrites status |
 | TL-GC19 | vacatio | base act text amended before main entry into force (44-ФЗ ст. 114 + 188-ФЗ, июль 2013) | at 2013-07-15 text is already T31₁ while force stays `NotYetInForce` (per-component commence pending) | text presence ⇒ `InForce`; publication ⇒ effect; automatic InForce seed |
+
+Corpus reconciliation (review-26 §10 / M183 S02, additive): the execution corpus catalog
+`prd/architecture/golden-corpus-catalog.yaml` (40 cases, tiers G0–G3) is the companion
+case list; each TL-GC01–19 remains a paper semantic-shape oracle owned by this section.
+Mapping: TL-GC cases whose shapes are exercised by catalog cases are marked covered-by in
+the catalog's `tl_gc_map` (e.g., vacatio → GC pending/commence family); cases without a
+catalog twin remain paper-only until their G-tier fixture is authored. Neither list replaces
+the other: TL-GC = semantic oracle wording here; GC = tiered execution case with deps and
+status. No lifecycle promotion follows from the mapping.
 
 ## 12. EA-04 decisions and remaining open questions
 
