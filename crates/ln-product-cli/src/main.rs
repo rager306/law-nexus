@@ -58,14 +58,13 @@ fn lift_extracted_hierarchy(
 struct StubEmbedding;
 impl EmbeddingPort for StubEmbedding {
     fn embed(&self, req: &EmbeddingRequest) -> Result<EmbeddingResponse, StorageError> {
-        Ok(EmbeddingResponse::try_new(
+        // Fail closed: a constructor error is a typed StorageError, never a
+        // silent all-zero vector (MEM676 fake-cascade class). Request already
+        // rejects empty text/model and zero dims; zeros would collapse cosine.
+        EmbeddingResponse::try_new(
             req.model_id(),
             deterministic_vector(req.text(), req.expected_dimensions()),
         )
-        .unwrap_or_else(|_| {
-            EmbeddingResponse::try_new(req.model_id(), vec![0.0; req.expected_dimensions()])
-                .unwrap()
-        }))
     }
 }
 
@@ -1304,6 +1303,19 @@ mod tests {
         assert_eq!(deterministic_vector("x", 1).len(), 1);
         assert_eq!(deterministic_vector("x", 7).len(), 7);
         assert_eq!(deterministic_vector("x", 1024).len(), 1024);
+    }
+
+    #[test]
+    fn stub_embedding_fail_closes_and_never_returns_all_zeros() {
+        let req = EmbeddingRequest::try_new("вступает в силу", "bounded-hash", 8).expect("request");
+        let response = StubEmbedding
+            .embed(&req)
+            .expect("constructor must not fail on a valid request");
+        assert_eq!(response.dimensions(), 8);
+        assert!(
+            response.vector().iter().any(|v| *v != 0.0),
+            "all-zero fallback would collapse cosine ranking"
+        );
     }
 
     fn sample_node(level: ln_decode::domain::HierarchyLevel, number: &str) -> HierarchyNode {

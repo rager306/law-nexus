@@ -3,6 +3,9 @@
 ## [Unreleased]
 
 ### Process
+- CLI `StubEmbedding` fail-closes on `EmbeddingResponse::try_new` instead of
+  substituting `vec![0.0; dims]` (silent constant vector / MEM676 class). Bounded
+  hash embedding is unchanged; pin `stub_embedding_fail_closes_and_never_returns_all_zeros`.
 - Clippy `-D warnings` `unnecessary_sort_by` no longer blocks git closeout:
   `ln-decode` prefix catalog sorts longest-first via `sort_by_key(Reverse(len))`
   (greedy first-match in `marker_prefix` unchanged; pin
