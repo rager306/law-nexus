@@ -105,8 +105,10 @@ Governor must never decide:
 - The golden-corpus catalog row (`Golden corpus catalog`,
   `prd/architecture/golden-corpus-catalog.yaml`, review-26 §10 / M183) is a
   design-only case catalog `[proposed]`; the TL-GC01–19 paper oracles stay in
-  temporal-legal-model §11, and the reconciliation map lives beside them
-  (catalog cases exercise TL shapes; neither list replaces the other).
+  temporal-legal-model §11. The covered-by / remains-TL-only map is additive
+  prose in that same section, not a catalog field (`tl_gc_map` and TL-GC
+  tokens stay out of the YAML). Catalog cases exercise TL shapes; neither
+  list replaces the other.
 
 - `EvidenceSpan` now points at the design-only
   `prd/architecture/evidence-anchor-contract.yaml` `[proposed]`
