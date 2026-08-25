@@ -150,6 +150,10 @@ fn inspect_real_consultant_fixture_reports_bounded_summary() {
         stdout
     );
     assert!(
+        stdout.contains("\"assembly_status\":"),
+        "435-FZ inspect must report assembly_status, never omit the channel; {stdout}"
+    );
+    assert!(
         stdout.contains("\"ast_node_count\":0"),
         "435-FZ forest has no folded nodes; got: {}",
         stdout
@@ -293,6 +297,10 @@ fn inspect_402_fz_reports_non_zero_attach_from_yaml_ranks() {
         inspect_u64(&stdout, "oracle_drift"),
         0,
         "402-FZ event log must reconstruct the oracle with zero drift; {stdout}"
+    );
+    assert!(
+        stdout.contains("\"assembly_status\":\"ok\""),
+        "402-FZ inspect assembly must be status ok, not a silent six-zero collapse; {stdout}"
     );
     assert!(
         inspect_u64(&stdout, "ctv_resolved") > 0,

@@ -3,6 +3,9 @@
 ## [Unreleased]
 
 ### Process
+- Inspect assembly counters keep numeric `inspect_u64` pins and add
+  `assembly_status` (`ok` / `no_edition_day` / `unavailable`) so six zeros
+  from a missing edition day or fold error are not a silent collapse.
 - Inspect retrieval channel is nested `retrieval.{count,status}` (ok /
   unavailable / unexpected_result), same fail-closed pattern as presence.
   Empty hits stay `count: 0, status: ok`; execute errors are not silent zeros.

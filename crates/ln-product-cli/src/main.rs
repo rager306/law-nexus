@@ -243,28 +243,25 @@ fn inspect(path: &str) {
     let provenance = expression_id
         .as_deref()
         .unwrap_or("amendingact:c2-oracle-edition");
-    let (
-        membership_committed,
-        ast_root_count,
-        ast_node_count,
-        oracle_drift,
-        oracle_missing,
-        oracle_phantom,
-    ) = if let Some(effect_day) = load_edition_day_for_path(path) {
-        match assemble_with_oracle_diff(&admit, &hierarchy_map, effect_day, provenance) {
-            Ok(r) => (
-                r.committed,
-                r.root_count,
-                r.node_count,
-                r.drift,
-                r.missing,
-                r.phantom,
-            ),
-            Err(_) => (0, 0, 0, 0, 0, 0),
-        }
-    } else {
-        (0, 0, 0, 0, 0, 0)
-    };
+    let assembly = classify_inspect_assembly(load_edition_day_for_path(path).map(|effect_day| {
+        assemble_with_oracle_diff(&admit, &hierarchy_map, effect_day, provenance).map(|r| {
+            InspectAssemblyCounts {
+                committed: r.committed,
+                root_count: r.root_count,
+                node_count: r.node_count,
+                drift: r.drift,
+                missing: r.missing,
+                phantom: r.phantom,
+            }
+        })
+    }));
+    let membership_committed = assembly.counts.committed;
+    let ast_root_count = assembly.counts.root_count;
+    let ast_node_count = assembly.counts.node_count;
+    let oracle_drift = assembly.counts.drift;
+    let oracle_missing = assembly.counts.missing;
+    let oracle_phantom = assembly.counts.phantom;
+    let assembly_status = assembly.status;
 
     // Presence channel (M174 S02): make edition_ast_at visible in the CLI
     // inspect report. Same oracle-synthesized composition as replay, without
@@ -514,6 +511,7 @@ fn inspect(path: &str) {
          \"oracle_drift\":{oracle_drift},\
          \"oracle_missing\":{oracle_missing},\
          \"oracle_phantom\":{oracle_phantom},\
+         \"assembly_status\":\"{assembly_status}\",\
          \"ctv_resolved\":{ctv_resolved},\
          \"document_group\":\"{document_group_esc}\",\
          \"detection_factor\":\"{detection_factor_esc}\",\
@@ -537,7 +535,7 @@ fn inspect(path: &str) {
          \"Empty hierarchy registry yields Unknown; lift does not mint ComponentConcept\",\
          \"Membership committed events are synthetic-provenance C2 drafts; fold is structural, not legal document tree\",\
          \"retrieval.count is deterministic-non-semantic: hash-derived vectors, not TEI semantic embedding; retrieval.status ok is a hit, unavailable is execute error, unexpected_result is a typed mismatch — never a silent zero\",\
-         \"ast_root_count and ast_node_count are structural AST projections, not legal hierarchy or CTV text\",\
+         \"ast_root_count and ast_node_count are structural AST projections, not legal hierarchy or CTV text; assembly_status ok is a completed fold, no_edition_day is a missing registry day, unavailable is assemble/fold error — six zeros are never a silent collapse\",\
          \"punct-grade (punkt) text-CTV uses a local fixture CC map, not the membership registry; fixture CCs are not registry identity and membership_committed stays unaffected\",\
          \"document group binding is a system_observation heuristic (ADR-0020), not legal classification; Unknown/Conflict are explicit quarantine outcomes, never silence\",\
          \"Presence log is oracle-synthesized from admitted membership, not expression inheritance, not CTV, not force\"]}}",
@@ -554,6 +552,53 @@ fn classify_knowql_retrieval(result: Result<KnowQLResult, StorageError>) -> (usi
         Ok(KnowQLResult::SimilarRecords { ids }) => (ids.len(), "ok"),
         Ok(_) => (0, "unexpected_result"),
         Err(_) => (0, "unavailable"),
+    }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+struct InspectAssemblyCounts {
+    committed: usize,
+    root_count: usize,
+    node_count: usize,
+    drift: usize,
+    missing: usize,
+    phantom: usize,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+struct InspectAssemblyView {
+    counts: InspectAssemblyCounts,
+    status: &'static str,
+}
+
+const EMPTY_ASSEMBLY_COUNTS: InspectAssemblyCounts = InspectAssemblyCounts {
+    committed: 0,
+    root_count: 0,
+    node_count: 0,
+    drift: 0,
+    missing: 0,
+    phantom: 0,
+};
+
+/// Inspect assembly counters stay numeric for existing `inspect_u64` pins.
+/// Status distinguishes honest empty/zero-drift from a missing edition day
+/// or an assemble/fold error — never a silent six-zero collapse.
+fn classify_inspect_assembly<E>(
+    outcome: Option<Result<InspectAssemblyCounts, E>>,
+) -> InspectAssemblyView {
+    match outcome {
+        None => InspectAssemblyView {
+            counts: EMPTY_ASSEMBLY_COUNTS,
+            status: "no_edition_day",
+        },
+        Some(Ok(counts)) => InspectAssemblyView {
+            counts,
+            status: "ok",
+        },
+        Some(Err(_)) => InspectAssemblyView {
+            counts: EMPTY_ASSEMBLY_COUNTS,
+            status: "unavailable",
+        },
     }
 }
 
@@ -1356,6 +1401,35 @@ mod tests {
             labels: vec!["hierarchy".into()],
         }));
         assert_eq!((count, status), (0, "unexpected_result"));
+    }
+
+    #[test]
+    fn classify_inspect_assembly_ok_preserves_counts() {
+        let counts = InspectAssemblyCounts {
+            committed: 3,
+            root_count: 2,
+            node_count: 5,
+            drift: 0,
+            missing: 0,
+            phantom: 0,
+        };
+        let out = classify_inspect_assembly::<()>(Some(Ok(counts)));
+        assert_eq!(out.status, "ok");
+        assert_eq!(out.counts, counts);
+    }
+
+    #[test]
+    fn classify_inspect_assembly_missing_day_is_not_silent_zero() {
+        let out = classify_inspect_assembly::<()>(None);
+        assert_eq!(out.status, "no_edition_day");
+        assert_eq!(out.counts, EMPTY_ASSEMBLY_COUNTS);
+    }
+
+    #[test]
+    fn classify_inspect_assembly_error_is_unavailable() {
+        let out = classify_inspect_assembly(Some(Err("fold")));
+        assert_eq!(out.status, "unavailable");
+        assert_eq!(out.counts, EMPTY_ASSEMBLY_COUNTS);
     }
 
     fn sample_node(level: ln_decode::domain::HierarchyLevel, number: &str) -> HierarchyNode {
