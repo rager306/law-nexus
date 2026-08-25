@@ -27,24 +27,19 @@ falkordb=historical-only
 - **Completed retrieval-honesty band:** M161–M164 `[bounded]` (real cosine ranking in memory, semantic-stub and historical-test-debt probes, deterministic CLI vectors); no live corpus or citation-safe answers.
 - **Completed documentation alignment:** D5 + documentation D6 / EA-05 accepted with findings at `94d58ea`; roadmap-front-sync and TL-G01–12 coverage PASS.
 - **Documentation/process assessment:** EA-10 complete — human D150 `accepted-with-findings` after independent EA-09 report `120d44b`; post-D150 assessments 13–18 record bounded repository-control/parser-protocol/glossary/semantic-presentation remediation and remaining gaps without successor acceptance, lifecycle promotion or product unlock. Glossary governance now inventories all crosswalk rows and controls coding terminology structurally through the tracked living-oracle read pointer; it does not close TSG-001 or define product semantics.
-- **Local GSD workflow marker:** M181-s0n6ls is the latest completed milestone
-  in GSD registry (review-26 P0 core: assertion adjudication decomposed into
-  ValidationReceipt/AssertionDispositionEvent/AssertionRelation over an
-  additive ADR-0017 G0(a) amendment with AcceptedForProjection as living alias;
-  CoverageCertificate + INV-22; governor companion-manifest advisory D261,
-  66 checks green; no Rust type minting, no lifecycle promotion). With
-  M179/M180 this completes the ENTIRE review-26 P0 core (P0-1..P0-8).
-  Review-26 is fully executed within its §13.1 P0 items (P0-1..P0-8,
-  M179-M181) plus the §3/§4/§7 design overlays (M182-ivk7ww S01-S03):
-  MC-SEPARATION 12-plane with living names StructuralMembership /
-  EditorialPresence; WorkId opaque with OfficialIdentityClaim and
-  ComponentLocator as the living alias of the historical CC-path cell;
-  named eight-view catalog incl. VIEW-SourceExpression in crystal
-  MC-CHECKOUT while YAML view_modes four stays the frozen checkout-key.
-  Nothing beyond design: no runtime, no lifecycle promotion. Remaining
-  human-gated fork: P1-8 full semantic governor (review-26 §11), G0-G3
-  golden corpus 30-40 cases, product fork G2-vs-P2. GSD completion is
-  not product readiness.
+- **Local GSD workflow marker:** M182-ivk7ww is the latest completed milestone
+  in GSD registry (review-26 finale: MC-SEPARATION 12 planes with living renames
+  StructuralMembership/EditorialPresence, WorkId opaque + OfficialIdentityClaim
+  via additive ADR-0016 amendment, ComponentLocator adjudication, named 8-view
+  set with known_as_of mandatory; design-only, no Rust type minting, no
+  lifecycle promotion). REVIEW-26 IS FULLY EXECUTED: P0-1..P0-8 (M179/M180/M181)
+  plus sections 3/4/7 (this wave). Governor 66 checks green incl. D246,
+  cross-contract closed-set consistency, companion-manifest D261.
+  Remaining human-gated fork: G0-G3 golden corpus 30-40 cases (review-26
+  section 10 list) as prerequisite for any [bounded] runtime, then the product
+  fork G2 corpus vs P2 Rust resolver; P2-layer items follow the stable text
+  core. Upstream run-uat persistence defect filed as open-gsd/gsd-pi#1993.
+  GSD completion is not product readiness.
 - **GSD dual-truth M167:** **resolved** — M167 complete via authorized skip waivers + validation (D154 option C). Historical note in `gsd-review-bridge.md`. Not Applicable; TSG-005/006 still open.
 - **Review governance process contour:** ADR-0024 Review Case intake/disposition/ledger landed; human dispositions recorded for review-11/12 (`actor_id=rager306`). Non-authoritative; no Product/ADR/roadmap promotion.
 - **Applicability kernel:** `ln-applicability` v0 fail-closed abstention-only under ADR-0023 `[proposed]`, with NormRule IR + pure predicate algebra spines; no Applicable/NotApplicable product claim.
@@ -129,6 +124,7 @@ falkordb=historical-only
 | M177-M177 | P1 хвост Reviews 10-14 модели: pending effects и interval sets (E.2.3-E.2.4) (docs/design) | Design-only P1 wave: pending-effects contract (modifies_pending_effect as DAG edge distinct from OP-P op) 17 pins; suspension/resumption as force interval set reconciling G0 status vocabulary with runtime spine, 16 pins; no Rust types, no lifecycle promotion, not product readiness. |
 | M180-M180 | Review-26 P0 остатки: INV-сплит Superseded-адъюдикация ActivationTrigger-сплит (P0-6 P0-5a P0-4) (docs/design) | Design-only final review-26 leftovers wave: INV-09 split 09a/09b/09c (anchors green); Superseded adjudicated to VersionRelation, written force 7→6 re-pinned; EffectSelector decomposed into ActivationTrigger (6) + TransitionPredicate with OnCondition=guard/TriggerUnknown-not-false; runtime kb-ontology force_status_values known-lag non-claim; no Rust types, no lifecycle promotion, not product readiness. |
 | M181-M181 | Review-26 P0 ядро: адъюдикационная декомпозиция и CoverageCertificate (P0-3 P0-8) (docs/design) | Design-only final P0-core wave: adjudication decomposition (ValidationReceipt/AssertionDispositionEvent with AcceptedForProjection alias/AssertionRelation 6 kinds; D216 five-set retained verbatim); glossary/catalog/governance rows; CoverageCertificate (closure dims, CompleteFor/IncompleteBecause) + INV-22; companion-manifest advisory D261. No Rust types, no lifecycle promotion, not product readiness. |
+| M182-M182 | Review-26 финал: SEPARATION-плоскости WorkId-identity VIEW-набор (S3 S4 S7) (docs/design) | Design-only final review-26 wave: MC-SEPARATION 12 planes (living renames StructuralMembership/EditorialPresence; historical names as alias/quotes; G0(f) anchor untouched); WorkId opaque + OfficialIdentityClaim (additive ADR-0016); CC-path adjudicated as ComponentLocator in DesignationVersion; named 8-view set resolving VIEW-Promulgated ambiguity, known_as_of mandatory; VIEW-CaseApplicable stays ADR-0023. Closes review-26 entirely. No Rust types, no lifecycle promotion, not product readiness. |
 
 ## M111 semantic baseline
 

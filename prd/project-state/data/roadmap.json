@@ -1,6 +1,6 @@
 {
   "schema_version": "law-nexus-project-state-roadmap/v2",
-  "generated_at": "2026-08-24T22:15:51Z",
+  "generated_at": "2026-08-24T23:58:54Z",
   "non_authoritative": true,
   "source_of_truth": "prd/ARCHITECTURE.md (living truth oracle) and doc/adr/** (decision/lifecycle authority). This file is a non-authoritative cold-reader projection; local .gsd/** is workflow state only.",
   "completed_milestone_groups": [
@@ -447,13 +447,19 @@
       "theme": "Review-26 P0 core: adjudication decomposition and CoverageCertificate (P0-3 P0-8) (docs/design)",
       "status": "complete",
       "boundary": "Design-only final P0-core wave: assertion adjudication decomposed into ValidationReceipt / AssertionDispositionEvent (AcceptedForProjection/Quarantined/Rejected/Retired) / AssertionRelation (6 kinds) over an additive ADR-0017 G0(a) amendment (D216 five-set retained verbatim as projection-status surface; AcceptedForProjection living alias); glossary/catalog/governance companion rows; CoverageCertificate entity in scope-aware-completeness contract (closure dimensions, CompleteFor/IncompleteBecause) + INV-22; governor companion-manifest advisory (D261) - 66 checks green. No Rust types minted, no lifecycle promotion, not product readiness."
+    },
+    {
+      "range": "M182-M182",
+      "theme": "Review-26 finale: SEPARATION planes, WorkId identity, named VIEW set (S3 S4 S7) (docs/design)",
+      "status": "complete",
+      "boundary": "Design-only final review-26 wave: MC-AXES renamed to MC-SEPARATION with a 12-plane table (living renames StructuralMembership/EditorialPresence; historical names retained as alias/quotes; ADR-0017 G0(f) anchor untouched); WorkId opaque + OfficialIdentityClaim via additive ADR-0016 amendment (historical act-row wording retained); CC-path adjudicated as ComponentLocator inside DesignationVersion (crosswalk self-contradiction removed); VIEW-Promulgated ambiguity resolved by the named 8-view set with known_as_of as mandatory projection parameter (VIEW-CaseApplicable stays ADR-0023). No Rust types minted, no lifecycle promotion, not product readiness."
     }
   ],
   "current_milestone": {
-    "id": "M181-s0n6ls",
+    "id": "M182-ivk7ww",
     "status": "complete",
-    "title": "Review-26 P0 ядро: адъюдикационная декомпозиция и CoverageCertificate (P0-3 P0-8)",
-    "goal": "Close review-26 P0-3 (adjudication decomposition over ADR-0017 G0(a)) and P0-8 (CoverageCertificate + INV-22) as design-only slices, then the honesty sync with the companion-manifest governor advisory. No Rust type minting, no lifecycle promotion."
+    "title": "Review-26 финал: SEPARATION-плоскости WorkId-identity VIEW-набор (S3 S4 S7)",
+    "goal": "Close the last executable review-26 items: MC-SEPARATION planes + living renames, WorkId opaque + OfficialIdentityClaim + ComponentLocator, named VIEW set with known_as_of mandatory - then the honesty sync recording review-26 fully executed."
   },
   "recommended_next": {
     "title": "Next candidates after review-26 P0 waves (M181-s0n6ls complete / M182-ivk7ww active): §3/§4/§7 landed design-only M182 S01-S03; leftover P1-8 full semantic governor + G0-G3 golden corpus vs G2-vs-P2 product fork, human-gated",
@@ -640,6 +646,11 @@
       "id": "roadmap-sync-20260824-m182-s3s4s7-front",
       "lifecycle": "proposed",
       "text": "Design-front sync (2026-08-24): review-26 §3/§4/§7 landed design-only in M182-ivk7ww S01-S03 on existing living surfaces (MC-SEPARATION 12-plane with living names StructuralMembership/EditorialPresence, D262/D263; WorkId opaque with OfficialIdentityClaim and ComponentLocator as the living alias of the historical CC-path cell, D269/D270; named eight-view catalog incl. VIEW-SourceExpression in crystal MC-CHECKOUT while YAML view_modes four stays the frozen checkout-key, D271). Honesty-only S04 with no new check_id (D272); governor inventory stays 40 check specs / pass_count 66 / warn_count 0. Remaining human-gated fork: P1-8 full semantic governor (review-26 §11), G0-G3 golden corpus 30-40 cases, product fork G2-vs-P2. M181-s0n6ls stays the latest completed milestone while M182-ivk7ww is active. No Rust types minted, no lifecycle promotion, not product readiness."
+    },
+    {
+      "id": "roadmap-sync-20260824-m182-complete",
+      "lifecycle": "proposed",
+      "text": "Closeout sync (2026-08-24): M182-ivk7ww completed in GSD. REVIEW-26 IS NOW FULLY EXECUTED across M179/M180/M181/M182: P0-1..P0-8 plus section 3 (SEPARATION planes), section 4 (WorkId/OfficialIdentityClaim/ComponentLocator), section 7 (named VIEW set). Governor 66 checks green incl. semantic-name-collision D246, cross-contract closed-set consistency, companion-manifest D261. Remaining human-gated fork per review-26 sections 10/13.3 and the model verdict: G0-G3 golden corpus 30-40 cases (list in review-26 section 10) as prerequisite for any [bounded] runtime, then the product fork G2 corpus vs P2 Rust resolver; P2-layer items (NormRule IR, LegalAlignmentGate, applicability DSL) follow the stable text core. Upstream run-uat persistence defect filed as open-gsd/gsd-pi#1993. GSD completion is not product readiness."
     }
   ]
 }
