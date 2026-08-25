@@ -2,6 +2,32 @@
 
 ## [Unreleased]
 
+### M183-t5u1dg Docs (review-26 §10 golden-corpus catalog: 40 cases, G0-G3 tiers, TL-GC map, advisory)
+
+### Docs
+- S01: `prd/architecture/golden-corpus-catalog.yaml` (schema
+  `law-nexus-golden-corpus-catalog/v1`, lifecycle `[proposed]`,
+  authoritative false) catalogs the 40 review-26 section 10 cases in four
+  closed tiers G0 Shape / G1 Official / G2 Hostile / G3 End-to-end with
+  group coverage 8/6/6/5/9/6; D222 pin suite
+  `crates/ln-kb-ontology/tests/golden_corpus_catalog.rs` (16 pins).
+  Design-only: the catalog names cases, it does not execute them and mints
+  no Rust types.
+- S02: additive TL-GC01-19 reconciliation map in
+  `prd/temporal-legal-model.md` section 11 (paper oracles stay owned there;
+  catalog cases exercise TL shapes; neither list replaces the other) plus
+  glossary row `Golden corpus catalog` and vocabulary-contract needle.
+- S03: advisory governor check `golden-corpus-catalog` (group=docs,
+  kind=deterministic, default_severity=warn) — headers, closed tiers,
+  unique GC-001..GC-040, coverage 8/6/6/5/9/6, deps naming existing
+  companion YAML; pytest fixture with a broken catalog is red, live tree
+  is green.
+- S04 honesty sync: living roadmap markdown/JSON, DESIGN FRONT, governor
+  verification-design row. Explicit: no Rust types, no case execution, no
+  lifecycle promotion; remaining human-gated fork = execute G1-G3 corpus
+  cases then G2-vs-P2. Governor inventory 41 check specs / live full run
+  pass_count 67, warn_count 0, error_count 0.
+
 ### M182-ivk7ww Docs (review-26 §3/§4/§7 overlays: MC-SEPARATION 12-plane, WorkId/OfficialIdentityClaim, named VIEW set; honesty sync)
 
 ### Docs

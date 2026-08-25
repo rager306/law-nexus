@@ -235,10 +235,10 @@ DESIGN FRONT (no Rust, L0 reviews)
    Reviews 9-14 (doc/review/review-20..25-08-2026.md): C1-commit model, citation tape,
    bitemporal legislative event compiler formula — [proposed] direction; G0 (D216):
    P0 (E.1) closed M175; P1 E.2.1–E.2.7 design-only (M176–M178, D222 pins), no runtime;
-   review-26 P0-1..P0-8 design-only M179–M181 + §3/§4/§7 M182 S01-S03 (MC-SEPARATION
-   12-plane, WorkId opaque / OfficialIdentityClaim / ComponentLocator, named VIEW set
-   in crystal MC-CHECKOUT); leftover P1-8 governor + G0-G3 golden corpus vs G2/P2 fork
-   human-gated; reviews immutable L0; projection: architecture/model-crystal.md (non-canon, v2)
+   review-26 P0-1..P0-8 design-only M179–M181 + §3/§4/§7 M182; M183 golden-corpus
+   catalog (40 cases, G0-G3, advisory `golden-corpus-catalog`); leftover execute
+   G1-G3 cases + G2/P2 fork human-gated; reviews immutable L0; projection:
+   architecture/model-crystal.md (non-canon, v2)
    ▼
 ASSESSMENT FRONT (no Rust)
    EA-10 complete: D150 accepted-with-findings (EA-09 at 120d44b); retained
