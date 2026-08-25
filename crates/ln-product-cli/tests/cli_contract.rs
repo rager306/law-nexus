@@ -170,9 +170,17 @@ fn inspect_real_consultant_fixture_reports_bounded_summary() {
         stdout
     );
     assert!(
-        stdout.contains("\"retrieval_count\":"),
-        "expected retrieval count; got: {}",
+        stdout.contains("\"retrieval\":{\"count\":"),
+        "expected retrieval channel; got: {}",
         stdout
+    );
+    assert!(
+        stdout.contains("\"status\":\"ok\"},\"presence\""),
+        "435-FZ inspect retrieval must be status ok, not a silent zero; {stdout}"
+    );
+    assert!(
+        stdout.contains("never a silent zero"),
+        "missing retrieval fail-closed non-claim; {stdout}"
     );
     assert!(
         stdout.contains("\"provider_comment_candidates\":0"),

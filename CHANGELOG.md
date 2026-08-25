@@ -3,6 +3,9 @@
 ## [Unreleased]
 
 ### Process
+- Inspect retrieval channel is nested `retrieval.{count,status}` (ok /
+  unavailable / unexpected_result), same fail-closed pattern as presence.
+  Empty hits stay `count: 0, status: ok`; execute errors are not silent zeros.
 - CLI `StubEmbedding` fail-closes on `EmbeddingResponse::try_new` instead of
   substituting `vec![0.0; dims]` (silent constant vector / MEM676 class). Bounded
   hash embedding is unchanged; pin `stub_embedding_fail_closes_and_never_returns_all_zeros`.

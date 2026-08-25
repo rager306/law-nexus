@@ -211,17 +211,17 @@ fn inspect(path: &str) {
             c.temporal_unsupported() + c.deontic_unsupported() + c.hierarchy_prefix_unsupported();
     }
 
-    let op = ValidatedOp::try_new(KnowQLOp::FindSimilar {
+    let (retrieval_count, retrieval_status) = match ValidatedOp::try_new(KnowQLOp::FindSimilar {
         // Deterministic query vector derived from a representative inspector
         // query (bounded, not semantic) replaces the prior hardcoded
         // vec![0.5; 4] (M163).
         vector: deterministic_vector("law-nexus-inspect:find-similar-hierarchy", 4),
         top_k: 5,
-    })
-    .unwrap();
-    let retrieval_count = match execute(&op, &StubEmbedding, &vector_store, &graph_store) {
-        Ok(KnowQLResult::SimilarRecords { ids }) => ids.len(),
-        _ => 0,
+    }) {
+        Ok(op) => {
+            classify_knowql_retrieval(execute(&op, &StubEmbedding, &vector_store, &graph_store))
+        }
+        Err(_) => (0, "unavailable"),
     };
 
     let propose = propose_membership_from_markers(&hierarchy_map, &hierarchy_markers_seq)
@@ -529,14 +529,14 @@ fn inspect(path: &str) {
          \"edge_cites\":{edge_cites},\
          \"edge_implements\":{edge_implements},\
          \"observation_patterns\":{obs_patterns},\
-         \"retrieval_count\":{retrieval_count},\
+         \"retrieval\":{{\"count\":{retrieval_count},\"status\":\"{retrieval_status}\"}},\
          \"presence\":{{\"visible\":{presence_visible},\"hidden\":{presence_hidden},\"status\":\"{presence_label}\"}},\
          }},\
          \"non_claims\":[\"No legal correctness claim\",\"No citation authority claim\",\
          \"No corpus completeness claim\",\"No five-clock assignment claim\",\
          \"Empty hierarchy registry yields Unknown; lift does not mint ComponentConcept\",\
          \"Membership committed events are synthetic-provenance C2 drafts; fold is structural, not legal document tree\",\
-         \"retrieval_count is deterministic-non-semantic: hash-derived vectors, not TEI semantic embedding\",\
+         \"retrieval.count is deterministic-non-semantic: hash-derived vectors, not TEI semantic embedding; retrieval.status ok is a hit, unavailable is execute error, unexpected_result is a typed mismatch — never a silent zero\",\
          \"ast_root_count and ast_node_count are structural AST projections, not legal hierarchy or CTV text\",\
          \"punct-grade (punkt) text-CTV uses a local fixture CC map, not the membership registry; fixture CCs are not registry identity and membership_committed stays unaffected\",\
          \"document group binding is a system_observation heuristic (ADR-0020), not legal classification; Unknown/Conflict are explicit quarantine outcomes, never silence\",\
@@ -544,6 +544,17 @@ fn inspect(path: &str) {
         json_escape(path),
         blocks.len(),
     );
+}
+
+/// Distinguish an empty KnowQL hit from an execute error or a typed mismatch.
+/// `count == 0` with status `ok` is a real empty result; `unavailable` / `unexpected_result`
+/// must never be reported as a silent zero.
+fn classify_knowql_retrieval(result: Result<KnowQLResult, StorageError>) -> (usize, &'static str) {
+    match result {
+        Ok(KnowQLResult::SimilarRecords { ids }) => (ids.len(), "ok"),
+        Ok(_) => (0, "unexpected_result"),
+        Err(_) => (0, "unavailable"),
+    }
 }
 
 fn main() {
@@ -1316,6 +1327,35 @@ mod tests {
             response.vector().iter().any(|v| *v != 0.0),
             "all-zero fallback would collapse cosine ranking"
         );
+    }
+
+    #[test]
+    fn classify_knowql_retrieval_empty_hit_is_ok_zero() {
+        let (count, status) =
+            classify_knowql_retrieval(Ok(KnowQLResult::SimilarRecords { ids: Vec::new() }));
+        assert_eq!((count, status), (0, "ok"));
+    }
+
+    #[test]
+    fn classify_knowql_retrieval_hits_are_ok() {
+        let (count, status) = classify_knowql_retrieval(Ok(KnowQLResult::SimilarRecords {
+            ids: vec!["a".into(), "b".into()],
+        }));
+        assert_eq!((count, status), (2, "ok"));
+    }
+
+    #[test]
+    fn classify_knowql_retrieval_error_is_unavailable_not_silent_zero() {
+        let (count, status) = classify_knowql_retrieval(Err(StorageError::Internal("boom".into())));
+        assert_eq!((count, status), (0, "unavailable"));
+    }
+
+    #[test]
+    fn classify_knowql_retrieval_wrong_variant_is_unexpected_result() {
+        let (count, status) = classify_knowql_retrieval(Ok(KnowQLResult::GraphNodes {
+            labels: vec!["hierarchy".into()],
+        }));
+        assert_eq!((count, status), (0, "unexpected_result"));
     }
 
     fn sample_node(level: ln_decode::domain::HierarchyLevel, number: &str) -> HierarchyNode {
