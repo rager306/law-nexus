@@ -289,6 +289,57 @@ These are semantic-shape oracles for future fixtures, not legal gold answers.
 | TL-GC18 | constitutional practice | typed ex-tunc annulment evidence | separate provenance-backed status event | generic practice prose rewrites status |
 | TL-GC19 | vacatio | base act text amended before main entry into force (44-ФЗ ст. 114 + 188-ФЗ, июль 2013) | at 2013-07-15 text is already T31₁ while force stays `NotYetInForce` (per-component commence pending) | text presence ⇒ `InForce`; publication ⇒ effect; automatic InForce seed |
 
+### 11.1 Corpus reconciliation with the golden-corpus catalog (additive, M183-t5u1dg S02)
+
+`prd/architecture/golden-corpus-catalog.yaml` is the companion case list of
+this section: the forty numbered cases of review-26 section 10 (GC-001..GC-040),
+tiered G0 Shape / G1 Official / G2 Hostile / G3 End-to-end per D273, tracked as
+YAML-as-data per D222, owner review-26-section-10, status design-only
+`[proposed]`. The catalog names and classifies cases; it never runs them and
+ships no fixtures. Neither list replaces the other: the catalog neither copies
+nor absorbs nor retires TL-GC01–19, this section does not own the catalog, and
+this reconciliation is not a lifecycle promotion — both lists stay design-only
+`[proposed]`, no historical TL-GC row above is rewritten, and no TL-GC
+identifier is added to the catalog (the sibling nineteen-case series stays out
+of it).
+
+Every TL-GC01–19 row remains a paper semantic-shape oracle owned by this
+section. The map below records the reconciliation verdict per row: whether the
+forty-case catalog carries a covering case (`covered-by`, with its GC anchor)
+or the shape stays TL-only (`remains-TL-only`). A `covered-by` verdict is a
+semantic-shape statement about future fixtures — not an executed case, not
+legal gold, and no Rust type is minted from it. Near-duplicates are separated
+by ownership, not merged: where a GC case and a TL-GC row share a shape, the
+GC id stays in the catalog and the TL-GC row keeps the paper oracle and its
+historical anchor.
+
+| TL-GC | Verdict | Anchor / note |
+| --- | --- | --- |
+| TL-GC01 | remains-TL-only | five-clock role primitives have no counterpart group among the forty |
+| TL-GC02 | remains-TL-only | interval-as-projection primitive is not among the forty |
+| TL-GC03 | remains-TL-only | Work natural-key collision (number + authority + date) has no GC case; GC-015 / GC-018 are component-plane analogs, not covers |
+| TL-GC04 | covered-by GC-021 | carrier/format identity; GC-022 is the extraction-normalization neighbor; TL-GC04 keeps the Manifestation-versus-Expression oracle |
+| TL-GC05 | covered-by GC-013 | wording amendment under stable component identity; GC-013 is the vacatio variant shared with TL-GC19 |
+| TL-GC06 | remains-TL-only | no whole-act fail-closed compilation case; GC-033 is reference-set partiality, not assembly abstention |
+| TL-GC07 | remains-TL-only | retrievable CTV under `Suspended` has no GC case; GC-001..GC-003 are assertion-plane, not force |
+| TL-GC08 | remains-TL-only | repealed norm with preserved citation history has no GC case; GC-002 retires an assertion, not a norm |
+| TL-GC09 | covered-by GC-004 | publication / effect / observation separation; GC-004 is the hostile retroactivity twin, TL-GC09 keeps the benign-ordering oracle |
+| TL-GC10 | covered-by GC-026, GC-030, GC-033 | temporal reference join or typed non-success (out-of-corpus target loaded later, stale designation, partial resolution) |
+| TL-GC11 | covered-by GC-035, GC-040 | explicit-rule old-version selection instantiated inside procurement traces; the non-procurement TransitionalResolver oracle stays here |
+| TL-GC12 | remains-TL-only | practice overlay (ex nunc interpretation) has no group among the forty |
+| TL-GC13 | remains-TL-only | risk with missing precedent analog resolving to `Unknown` has no group among the forty |
+| TL-GC14 | covered-by GC-035..GC-040 | procurement profile facts feed versioned profile predicate inputs over the neutral core |
+| TL-GC15 | remains-TL-only | two-profiles-one-kernel isolation is not exercised; the catalog's profile surface is procurement only |
+| TL-GC16 | remains-TL-only | no GC case asserts applicability abstention; the catalog is design-only and ADR-0023 runtime stays `[deferred]` |
+| TL-GC17 | covered-by GC-005, GC-025 | correction appends and rebuilds projections without source rewrite or artifact-hash change |
+| TL-GC18 | remains-TL-only | typed ex-tunc constitutional annulment has no GC case; GC-004 is effect-plane, not practice overlay |
+| TL-GC19 | covered-by GC-013 | near-duplicate separated: GC-013 is the catalog row; TL-GC19 owns the historical 44-ФЗ ст. 114 + 188-ФЗ July 2013 anchor and the force-side outcome |
+
+Eight rows are `covered-by` (TL-GC04, TL-GC05, TL-GC09, TL-GC10, TL-GC11,
+TL-GC14, TL-GC17, TL-GC19) and eleven `remains-TL-only`; the verdict set is
+per-row and exhaustive over TL-GC01–19. Future catalog growth revisits this map
+additively — new rows are appended, historical verdicts are not rewritten.
+
 ## 12. EA-04 decisions and remaining open questions
 
 | ID | Open question | Current disposition | Required owner | Revisit trigger |
