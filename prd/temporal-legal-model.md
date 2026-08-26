@@ -289,24 +289,6 @@ These are semantic-shape oracles for future fixtures, not legal gold answers.
 | TL-GC18 | constitutional practice | typed ex-tunc annulment evidence | separate provenance-backed status event | generic practice prose rewrites status |
 | TL-GC19 | vacatio | base act text amended before main entry into force (44-ФЗ ст. 114 + 188-ФЗ, июль 2013) | at 2013-07-15 text is already T31₁ while force stays `NotYetInForce` (per-component commence pending) | text presence ⇒ `InForce`; publication ⇒ effect; automatic InForce seed |
 
-Corpus reconciliation (review-26 §10 / M183 S02, additive): the execution corpus catalog
-`prd/architecture/golden-corpus-catalog.yaml` (40 cases, tiers G0–G3) is the companion
-case list; each TL-GC01–19 remains a paper semantic-shape oracle owned by this section.
-The catalog must not carry TL-GC tokens or a `tl_gc_map` key (pin
-`s02_sibling_series_stays_out_of_the_catalog`). Mapping lives here, design-only:
-covered-by (catalog cases exercise the same semantic shape; neither list is a fixture) —
-TL-GC01 clocks independence → GC-035..040; TL-GC03 same-number distinct Works → GC-015..020;
-TL-GC04 dual-format carriers → GC-021/022; TL-GC05 stable-CC wording amendment → GC-016/020;
-TL-GC07 text while Suspended → GC-009..014; TL-GC08 repealed retains history → GC-002;
-TL-GC09 publication ≠ effect → GC-004; TL-GC10 historical reference join → GC-026..034;
-TL-GC11 explicit old-version transition → GC-035; TL-GC14 44-ФЗ profile facts → GC-035..040;
-TL-GC17 correction retains original → GC-005; TL-GC19 vacatio text-before-force → GC-013.
-remains-TL-only (no catalog twin yet) — TL-GC02 interval-as-projection; TL-GC06 MissingAnchor
-whole-act abstain; TL-GC12 plenum ex nunc; TL-GC13 risk Unknown; TL-GC15 profile isolation;
-TL-GC16 protocol-absent abstention; TL-GC18 typed ex-tunc annulment.
-Neither list replaces the other: TL-GC = semantic oracle wording here; GC = tiered
-execution case with deps and status. No lifecycle promotion follows from the mapping.
-
 ## 12. EA-04 decisions and remaining open questions
 
 | ID | Open question | Current disposition | Required owner | Revisit trigger |
