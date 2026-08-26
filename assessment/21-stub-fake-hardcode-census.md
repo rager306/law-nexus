@@ -5,6 +5,7 @@
 **Census HEAD:** `c46ef0e872ff6f4c84630a97e557ddcc27c1b8e8` (branch `main`, dirty 0)
 **Дата фиксации:** 2026-08-26 (M185-wuj4zf / S02 / T01)
 **Проверка ревизии (T02):** слой L2 измерен на HEAD `834f77184e2b37dd92f7994b0dd14f2aa49c4deb` (dirty 0); `git diff --stat c46ef0e872ff6f4c84630a97e557ddcc27c1b8e8..HEAD -- crates src/law_nexus_harness` пуст — продуктовое дерево между ревизиями идентично, смешения замеров L1 (c46ef0e) и L2 (834f771) нет.
+**Проверка ревизии (T03):** слои L3 (env/hardcode) и GitNexus измерены на HEAD `227c439e284f01e211765cfb7ed4ca726d038975` (dirty 0 на момент замеров); `git diff --exit-code` между `c46ef0e872ff6f4c84630a97e557ddcc27c1b8e8..HEAD` на `-- crates src/law_nexus_harness tests .env.example` пуст (job `.gsd/exec/90b4bf76-87cf-44ae-8e9c-5c020049c7d8.stdout`) — дерева смешений L1/L2/L3 нет.
 **Область обследования:** продуктовый Rust `crates/*/src/**/*.rs` (исключая `crates/ln-testkit/**` и любые `**/tests/**`) плюс тонкий harness `src/law_nexus_harness/**` только как источник probes. Vault-каталоги (`python_archive/`, `.lex/`, `Old_project/`, `prd/archive/`, `archive/`) — вне поиска и вне таблиц: vaults не являются product truth.
 Счётчики исследовательской фазы ранних проходов каноном не считаются; все числа ниже воспроизводятся командами против Census HEAD (см. §L1 marker layer).
 
@@ -125,19 +126,72 @@ W1 по классу B пуста: остаток MEM1120 не пережил ч
 | N3 | фразы not implemented / design only | `rg -n -i -e 'not implemented' -e 'design only' crates -g '**/src/**/*.rs' -g '!ln-testkit/**'` | 4 — маркеры дизайн-границ `ln-applicability/src/domain.rs`:132,237,267,336 → DH-06; :336 поднято в CID-B-01 |
 | N4 | `panic!("not implemented"`-семейство (повтор губернаторской альтернативы) | `rg -n -i -e 'panic!\("[^"]*(not implemented\|unimplemented\|todo)' crates -g '**/src/**/*.rs' -g '!ln-testkit/**'` | **0** — см. также §L1 marker layer |
 
-**CID-C-ZERO:** класс C = **0 строк**. Ни одна функция продуктового src не молча возвращает константу либо вырожденный алгоритм при имени/доке, обещающих реальную работу: константные возвраты, найденные чтением, являются документированными fail-closed guard'ами (класс B / Dropped hits) или честными bounded-фикциями класса A. Негативный контроль, обязанный попасть в луч и осознанно снятый: `cosine_similarity` zero-norm → `Ok(0.0)` (`crates/ln-storage/src/similarity.rs`:52-53, DH-04) — показательно, что игла N1 его вообще не анкерит: у возврата нет идентификатора score/similarity/relevance. Это эмпирическое подтверждение MEM679 (§Residual blind spot). Ноль — **pass с evidence** (команды выше, разбор всех попаданий, прогон honesty-тестов `cargo test -p ln-product-cli --offline classify`), не skip: L1+L2 исполнены, класс D/env и GitNexus-слой остаются за S03/T03.
+**CID-C-ZERO:** класс C = **0 строк**. Ни одна функция продуктового src не молча возвращает константу либо вырожденный алгоритм при имени/доке, обещающих реальную работу: константные возвраты, найденные чтением, являются документированными fail-closed guard'ами (класс B / Dropped hits) или честными bounded-фикциями класса A. Негативный контроль, обязанный попасть в луч и осознанно снятый: `cosine_similarity` zero-norm → `Ok(0.0)` (`crates/ln-storage/src/similarity.rs`:52-53, DH-04) — показательно, что игла N1 его вообще не анкерит: у возврата нет идентификатора score/similarity/relevance. Это эмпирическое подтверждение MEM679 (§Residual blind spot). Ноль — **pass с evidence** (команды выше, разбор всех попаданий, прогон honesty-тестов `cargo test -p ln-product-cli --offline classify`), не skip: L1+L2 исполнены в T02; слой L3/env и GitNexus-слой исполнены в T03 ниже (§Class D, §Aggregated, §Приложение) — исполнение переносов остаётся за S03/M186+.
 
 ## Class D — hardcode/env candidates
 
-Заполняется в S03 (env-sweep: вынос настроек в `.env`, зеркало `.env.example`; дефолты в коде допустимы только как fail-closed значения). Placeholder, пусто; CID-номера класса D сейчас не присваиваются.
+Слой L3 исполнен в T03 на HEAD `227c439e284f01e211765cfb7ed4ca726d038975` (продуктовое дерево идентично Census HEAD, см. шапку). Иглы прогонялись отдельными командами без альтернаций, vaults вне поиска; полный stdout — `.gsd/exec/ec67f8cd-dc66-47e1-be30-dc230909dd4f.stdout`:
+
+| # | Игла | Команда (от корня репо) | Совпадений |
+|---|---|---|---|
+| E1 | `env::var(` | `rg -n 'env::var\(' crates src/law_nexus_harness` | 7 — все в `**/tests/**`; продуктовый `crates/*/src/**/*.rs`: **0** |
+| E2 | `var_os(` | `rg -n 'var_os\(' crates src/law_nexus_harness` | 0 |
+| E3 | `os.environ` (harness-Python) | `rg -n 'os\.environ' src/law_nexus_harness` | 1 — `governor.py`:1975 |
+| E4 | `getenv` | `rg -n 'getenv' src/law_nexus_harness` | 0 |
+| E5 | `env::vars(` | `rg -n 'env::vars\(' crates src/law_nexus_harness` | 0 |
+
+Полнота ключей: во всём объёме «продуктовый Rust + тонкий harness» найден ровно один runtime-ключ окружения — **`CONSULTANT_EXPORT_DIR`**, и он же уже документирован в `.env.example`:7 (`CONSULTANT_EXPORT_DIR=consru_export`, семантика пути — :3-6). Новых ключей относительно `.env.example` нет: S03 не invent-ит ничего сверх этого ключа. Компиляторный `env!("CARGO_MANIFEST_DIR")` ключом конфигурации не является (см. DH-07).
+
+Schema таблицы едина с классами A/B/C:
+
+| CID | Class | Path:line | Symbol | Description (short) | Repro (от корня репо) | Owner wave | Lifecycle | Non-claims |
+|---|---|---|---|---|---|---|---|---|
+| CID-D-01 | D | 7 тестовых сидов, одинаковый `unwrap_or_else(\|_\| "consru_export".to_owned())`: `crates/ln-product-cli/tests/real_44fz_assembly.rs`:31, `real_44fz_text_ctv.rs`:96, `crates/ln-kb-ontology/tests/hierarchy_registry.rs`:192, `corpus_role.rs`:63, `crates/ln-consultant-parser/tests/classifier_recall_test.rs`:25 (+ дококомментарий :15), `multi_edition_test.rs`:10, `crates/ln-decode/tests/registry_bindings_generator.rs`:230 | `std::env::var("CONSULTANT_EXPORT_DIR")` | Агрегированная строка тестовых консюмеров корпус-path: литерал дефолта `consru_export` повторён в 7 файлах, склейка `join(dir).join("consru_export…")` воспроизводит схему пути из `.env.example`:5; отсутствующий каталог → честный SKIP (skip-capable тесты); ключ уже в `.env.example` — S03 собирает рассыпанный литерал на единый конфиг-вход, нового ключа не создаёт. Документационный дрейф: `.env.example`:4 называет консюмером «the product CLI», тогда как L3 в продуктовом src не нашёл ни одного env-чтения — фактически читают только эти тесты и harness (CID-D-02); S03 вправе уточнить комментарий при переносе | `rg -nF 'CONSULTANT_EXPORT_DIR' crates` | W3 = S03 (M185-wuj4zf; только перенос конфигурации); непереносимые остатки литералов — M186+ | open | Дефолт `consru_export` остаётся допустимым fail-closed значением в коде; наличие корпуса не гарантируется; skip-семантика тестов не меняется |
+| CID-D-02 | D | `src/law_nexus_harness/governor.py`:1217, :1219, :1927, :1975 | `_CORPUS_GROUNDING_ENV` / `os.environ.get(_CORPUS_GROUNDING_ENV, _CORPUS_GROUNDING_DEFAULT_EXPORT)` | Harness-консюмер того же ключа: имя ключа спрятано в константе :1217, дефолт-литерал `consru_export` задублирован в константе :1219 и докомментарии :1927; отсутствие каталога экспортов → advisory-файндинг `status="pass" / severity="ok"` (fail-closed-absent, тело probe :1975+) | `sed -n '1217p;1219p;1975p' src/law_nexus_harness/governor.py` | W3 = S03 (конфигурация; логика probe не меняется) | open | Advisory-поведение при пустом корпусе сохраняется; governor-чекиды этой строкой не закрываются |
+
+Хардкод-литералы `consru_export` в продуктовом src отсутствуют: все 4 упоминания — комментарии схемы путей в `crates/ln-kb-ontology/src/registry.rs` (:150, :228, :269, :295) → DH-08; отдельных CID из них не заводится.
 
 ## Aggregated: test-infra-bounded
 
-Заполняется в T03 (сводка тестовой инфраструктуры). Зафиксированный факт к переносу: `StubTransport` в продуктовом src отсутствует — существует только в тестах (`crates/ln-storage/tests/retrieval_gate_contract.rs`:8, `crates/ln-storage/tests/tei_adapter_contract.rs`:6, `crates/ln-testkit/tests/embedding_port_contracts.rs`:12); `TeiEmbeddingAdapter` (`crates/ln-storage/src/adapters/tei.rs`:36) — реальный адаптер с транспортной инъекцией, заглушкой не считается.
+Тестовая инфраструктура — основной лексический носитель слов stub/fake (≈90% лексических попаданий по проекту), поэтому сведена сюда агрегатами и исключена из продуктовых таблиц классов A–D. Зафиксированный факт к переносу (T01): `StubTransport` в продуктовом src отсутствует — существует только в тестах (`crates/ln-storage/tests/retrieval_gate_contract.rs`:8, `crates/ln-storage/tests/tei_adapter_contract.rs`:6, `crates/ln-testkit/tests/embedding_port_contracts.rs`:12); `TeiEmbeddingAdapter` (`crates/ln-storage/src/adapters/tei.rs`:36) — реальный адаптер с транспортной инъекцией, заглушкой не считается. Инвентаризация исполнена в T03 (HEAD `227c439e`, диск = Census HEAD); прогоны — `.gsd/exec/f79eed86-dd2c-446e-9f92-6d83222c30b3.stdout`.
+
+| ID | Поверхность | Объём / содержание | Repro |
+|---|---|---|---|
+| TI-01 | `crates/ln-testkit/tests/` | Каталог целиком состоит из **24** общих port-contract сюит `*_port_contracts.rs` (ADR-0015 verification matrix): двойники портов прогоняются через общие assert-функции testkit'а; индивидуальные symbol-строки сознательно не ведутся — агрегата по glob достаточно | `ls crates/ln-testkit/tests/*_port_contracts.rs \| wc -l` → `24`; прочих тестовых файлов в каталоге нет |
+| TI-02 | `crates/ln-query/tests/knowql_contract.rs` | Контрактная репетиция KnowQL над тремя стабами: `StubEmbedding`:7 (честно отдаёт `vec![0.5; dims]`), `StubVectorStore`:20, `StubGraphStore`:35; негативная поверхность — пять validation-отказов (`validation_rejects_empty_embed_text`/`zero_dimensions`/`empty_find_similar_vector`/`nan_vector`/`empty_label`) | `rg -n 'struct Stub' crates/ln-query/tests/knowql_contract.rs` |
+| TI-03 | `crates/ln-storage/tests/` | Портовые контракты storage: `storage_ports_contract.rs` (`StubEmbedding.embed`:9-20, `vector_store_port_round_trips_through_stub`:127-134), `retrieval_gate_contract.rs` (:8 StubTransport), `tei_adapter_contract.rs` (:6 StubTransport) плюс `similarity_contract.rs`/`in_memory_adapters_contract.rs`; дубль записи DH-02 — новые CID не заводятся | `ls crates/ln-storage/tests/` |
+
+Oracle-quality remark (качество оракула, НЕ класс C и НЕ продуктовый баг): `crates/ln-query/tests/knowql_integration.rs` интегрирует реальные записи парсера (tracked Consultant fixture) с InMemory-адаптерами (CID-A-02/A-03), но локальный `StubEmbedding` (:32-38) возвращает нулевой вектор `vec![0.0; dims]` (:35) против блоков, засеянных `vec![0.5; 4]` (:56, :70): cosine нулевой стороны вырождается guard'ом DH-04 в `Ok(0.0)` и ранжирование теряет разрешающую силу — интеграционный позитив слабый фикстурный оракул. Кандидат на усиление поздней волны (различающиеся детерминированные векторы либо реальный embedding-провайдер за портом); filed здесь намеренно, поскольку это осознанная слабость тестовой фикстуры, а не функция, претендующая на работу.
 
 ## Приложение: GitNexus excerpt по stub-символам
 
-Заполняется в T03 (repo `law-nexus`; выдержка query по stub/InMemory-символам). Placeholder, пусто.
+Индекс `law-nexus`; четыре обязательных вызова исполнены 2026-08-26 (T03), продукт на момент вызовов = Census HEAD `c46ef0e`. Компактная свёртка без дампов:
+
+| Вызов | Результат (компактно) |
+|---|---|
+| `gitnexus_query {search_query:"stub placeholder adapter implementation", repo:"law-nexus"}` | Определения только в tests/harness/scripts: `ln-testkit/tests/embedding_port_contracts.rs` — `tei_stub_transport_satisfies_shared_embedding_port_contract`:26-33, `tei_stub_transport_rejects_model_identity_drift`:36-46, `tei_stub_transport_rejects_non_finite_values`:75-85; `governor.py` — `check_semantic_stub_in_product_code`:2712-2782, `check_live_adapter_readiness`:2481-2539; `ln-storage/tests/storage_ports_contract.rs` — `StubEmbedding.embed#1`:9-20, `vector_store_port_round_trips_through_stub`:127-134; `retrieval_gate_contract.rs` — `build_gate`:17-39; `scripts/verify-multi-adapter-port-coverage.py` — `discover_port_impls`:76-132; `tests/test_harness_governor.py`:1539-1737 (негативный контроль губернатора, включая `test_semantic_stub_in_product_code_detects_planted_stub`:1721). Определений в продуктовых `crates/*/src` — **ноль**: независимое от grep подтверждение пустоты класса C. `processes: []` — stub-символы не участвуют ни в одном execution flow индекса |
+| `gitnexus_context InMemoryVectorStore` (uid `Struct:crates/ln-storage/src/adapters/in_memory.rs:InMemoryVectorStore`) | struct :34-37; методы `default/store/query`; свойства `records`,`journal`; implements `VectorStorePort` (`ln-storage/src/lib.rs`). Epistemic `lower-bound` («интерфейс с 3 имплементациями»). Прямой вызов по имени вернул ambiguity Struct:34/Impl:39 в том же файле — разрешён явно uid'ом |
+| `gitnexus_context StubEmbedding` (`crates/ln-product-cli/src/main.rs`) | struct :57 (+ метод `embed#1`), implements `EmbeddingPort`; epistemic `lower-bound` («интерфейс с 5 имплементациями») — разнообразие реализаций шире, чем видит один символ |
+| `gitnexus_context check_semantic_stub_in_product_code` | Function `governor.py`:2712-2782, epistemic `exact`; входящих/исходящих рёбер нет — advisory-probe живёт вне кодового call-graph, `processes: []` |
+
+Примечание о свежести индекса: якоря строк расходятся с диском @Census HEAD на ±1 (`InMemoryVectorStore` :34 против :35 в L1-замере T01/CID-A-02; `StubEmbedding` :57 против :58 в CID-A-01) — индекс построен незадолго до Census HEAD; идентичность символов (файл+имя+тип) подтверждена. Reindex сознательно не исполнялся (делегирован S04 после tracked-коммита census) и продуктовым изменением не считается. Опциональный запрос «embedding stub panic» не исполнялся — четырёх обязательных достаточно для цели приложения.
+
+## Волны M186+ (wave map)
+
+Инвентарная сводка владения строками на конец S02/T03; живой план остаётся за `gsd_reassess_roadmap`, эта карта authority не является.
+
+| Волна | Владелец | Объём |
+|---|---|---|
+| W1 — inspect-honesty leftover | — | Пуста: класс B закрыт без открытых строк (B-02/B-03 `accepted-exception · honesty-present`; B-01 ADR-gated). Открывается только revisit-триггером этих строк |
+| W2 — replace class A | M186+ | 25 строк A (CID-A-01..A-24 + агрегат CID-A-RUNNERS): хранение/embedding/registers → durable за теми же портами либо реальный acquired-source; port-contract protection из TI-01 (24 сюиты `ln-testkit`) переиспользуется как safety-net |
+| W3 = S03 | M185-wuj4zf/S03 | Класс D: единый конфиг-вход для `CONSULTANT_EXPORT_DIR` — тестовые сиды CID-D-01 + harness-консюмер CID-D-02; зеркало в `.env.example` уже есть (:3-7); только перенос конфигурации, без изменения логики; уточнение комментария `.env.example`:4 («product CLI») при переносе. Литералы fail-closed дефолтов, которые S03 не поднимает, остаются M186+ и переклассифицируются следующим census-sweep |
+| ProtocolUnimplemented | вне волн M186 | Applicability: ADR-gated (R074) — не первая волна; положительные решения v0-оценщиком не чеканятся census'ом |
+
+Non-claims волн (усиливают документ-level non-claims ниже): **0** исполнений GC-001..040; **0** работ ConflictResolver; **0** чеканки enum под `[proposed]`-словари (D216); **0** функциональных замен заглушек в этом слайсе; **0** push. Класс D волной W3 не «закрывается», а переносится: closure по disposition protocol потребует отдельного frozen revision + tracked evidence.
+
+## Closeout T03 (honesty spot-check)
+
+Губернатор запущен package-формой `uv run python -m law_nexus_harness governor` (dotted-форма `law_nexus_harness.governor` — известный silent no-op, MEM935, не использовалась). Поля отчёта `law-nexus-governor-report/v1` (канон — поля отчёта, не exit code): `status:"ok"`, `pass_count:67` (наблюдаемое значение; пин конкретного числа запрещён MEM1143), `warn_count:0`, `tool_error_count:0`; процесс завершился кодом 0. Полный stdout — `.gsd/exec/ceb534dd-13e2-4a59-b0c5-08027a405a5f.stdout`. Battery не потревожена регистрацией markdown-регистра; финальная цепочка проверок задачи (needle-верify, повторный governor, чистота `git diff --exit-code -- crates src/law_nexus_harness tests .env.example`) зафиксирована в Verification Evidence задачи T03.
 
 ## Dropped hits
 
@@ -149,6 +203,8 @@ Lexical echoes и добросовестные случаи, сознатель�
 - **DH-04** `crates/ln-storage/src/similarity.rs`:52-53 — `return Ok(0.0)` при zero-norm любой из сторон (guard над константой `ZERO_NORM_EPSILON`:13) — документированный fail-closed отказ вырожденного входа с юнит-pin'ами в соседнем `#[cfg(test)]`, а не фиктивная функция; сам cosine-расчёт ранжирования — живая замена M161 (CID-A-02). Обязательный негативный контроль слоя L2 снят здесь (см. CID-C-ZERO); показательно, что идентификатор-игла N1 этот возврат не видит.
 - **DH-05** `crates/ln-product-cli/src/main.rs`:198,217,1315 — комментарии исторических замен M163 («replaces the prior hardcoded vec![0.5; …]»): живых конструкций `vec![0.5; n]` в src нет — это эхо замен, добирающее DH-01 по результатам L2-иглы N2.
 - **DH-06** `crates/ln-applicability/src/domain.rs`:132,237,267 — фразы «design only» в докомментариях типов NormRule IR (temporal window, defeater, structural marker): честные маркеры дизайн-границ, runtime-поведения не претендуют; четвёртое совпадение той же иглы (:336) поднято в CID-B-01. Совпадений иглы N3 вне этого файла нет.
+- **DH-07** `env!("CARGO_MANIFEST_DIR")` — compile-time макрос cargo build-system, встречается в 27 тестовых файлах (по одному попаданию; `cli_contract.rs` — четыре). Переменная сборки, а не runtime-конфиг приложения: ключом класса D не заносится намеренно, чтобы S03 не изобретал несуществующий env-ключ; иглы L3 (E1-E5) этот макрос не анкерят — проверено отдельной командой `rg -c 'env!\("CARGO_MANIFEST_DIR"\)' crates` (`.gsd/exec/f79eed86-dd2c-446e-9f92-6d83222c30b3.stdout`).
+- **DH-08** `consru_export` в продуктовом src — 4 упоминания, все комментарии схемы путей в `crates/ln-kb-ontology/src/registry.rs` (:150, :228, :269, :295, включая «No needle matched: try consru_export edition filename grounding»): лексическое эхо конвенции именования корпуса, runtime-литералов дефолта в src нет (конфиг-сид проходит только через env — CID-D-01/D-02); классом D не считаются, чтобы не дублировать строки класса D комментарием.
 
 ## Residual blind spot (MEM679)
 
