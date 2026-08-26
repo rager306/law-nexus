@@ -58,6 +58,8 @@ law-source/consultant/runtime/
 .DS_Store
 *.swp
 *.swo
+.idea/
+.cursor/
 
 # Litho / deepwiki-rs local config, derived wiki + cache (non-authoritative; see doc/litho-runbook.md)
 litho.toml

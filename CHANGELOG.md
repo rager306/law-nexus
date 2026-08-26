@@ -3,6 +3,8 @@
 ## [Unreleased]
 
 ### Process
+- Ignore local Cursor overlay (`.cursor/`) so GSD closeout porcelain is
+  not blocked by editor junk after a hook-content failure is already fixed.
 - Inspect assembly counters keep numeric `inspect_u64` pins and add
   `assembly_status` (`ok` / `no_edition_day` / `unavailable`) so six zeros
   from a missing edition day or fold error are not a silent collapse.
