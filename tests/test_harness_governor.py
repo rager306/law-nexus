@@ -765,6 +765,17 @@ def test_corpus_export_dir_env_states_contract(monkeypatch) -> None:
     assert corpus_export_dir() == "alt_export"
 
 
+def test_env_example_documents_corpus_grounding_export_dir() -> None:
+    text = (ROOT / ".env.example").read_text(encoding="utf-8")
+    # Key and fail-closed default stay pinned verbatim.
+    assert "CONSULTANT_EXPORT_DIR=consru_export" in text
+    # Census CID-D-01 non-claim guard: consumers are skip-capable tests and
+    # the harness corpus-grounding probe; never name the product CLI.
+    assert "product CLI" not in text
+    assert "harness" in text
+    assert "test" in text
+
+
 _VALID_DOCUMENT_GROUPS_YAML = (
     "schema_version: law-nexus-kb-ontology/v1\n"
     "authoritative: false\n"
