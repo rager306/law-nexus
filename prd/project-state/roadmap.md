@@ -26,7 +26,7 @@ falkordb=historical-only
   design spine; no ontology runtime.)
 - **Completed retrieval-honesty band:** M161–M164 `[bounded]` (real cosine ranking in memory, semantic-stub and historical-test-debt probes, deterministic CLI vectors); no live corpus or citation-safe answers.
 - **Completed documentation alignment:** D5 + documentation D6 / EA-05 accepted with findings at `94d58ea`; roadmap-front-sync and TL-G01–12 coverage PASS.
-- **Documentation/process assessment:** EA-10 complete — human D150 `accepted-with-findings` after independent EA-09 report `120d44b`; post-D150 assessments 13–18 record bounded repository-control/parser-protocol/glossary/semantic-presentation remediation and remaining gaps without successor acceptance, lifecycle promotion or product unlock. Glossary governance now inventories all crosswalk rows and controls coding terminology structurally through the tracked living-oracle read pointer; it does not close TSG-001 or define product semantics.
+- **Documentation/process assessment:** EA-10 complete — human D150 `accepted-with-findings` after independent EA-09 report `120d44b`; post-D150 assessments 13–19 record bounded repository-control/parser-protocol/glossary/semantic-presentation remediation and remaining gaps without successor acceptance, lifecycle promotion or product unlock. Glossary governance now inventories all crosswalk rows and controls coding terminology structurally through the tracked living-oracle read pointer; it does not close TSG-001 or define product semantics.
 - **Local GSD workflow marker:** M183-t5u1dg is the latest completed milestone
   in GSD registry (golden-corpus catalog of the 40 review-26 section 10 cases
   as YAML-as-data: four tiers G0 Shape / G1 Official / G2 Hostile / G3
@@ -36,9 +36,10 @@ falkordb=historical-only
   cases; it does not execute them and mints no Rust types. REVIEW-26 remains
   FULLY EXECUTED (P0-1..P0-8 + sections 3/4/7). Governor 67 checks green
   (companion-manifest D261 + golden-corpus-catalog). Remaining human-gated
-  fork: execute G1-G3 corpus cases (G0 Shape is design-only executable;
-  G1 needs the official corpus; G2-G3 need runtime) as prerequisite for any
-  [bounded] runtime, then the product fork G2 corpus vs P2 Rust resolver.
+  leftover (assessment/19): G1 (GC-021/022) is blocked without tracked official
+  corpus fixtures; 484-FZ C1 amends edge is acquired but not executed; R070
+  edition-delta provenance is open; then G2 corpus vs P2 Rust resolver.
+  Do not mint ConflictResolver or catalog enums this wave.
   Upstream run-uat persistence defect filed as open-gsd/gsd-pi#1993.
   GSD completion is not product readiness.
 - **GSD dual-truth M167:** **resolved** — M167 complete via authorized skip waivers + validation (D154 option C). Historical note in `gsd-review-bridge.md`. Not Applicable; TSG-005/006 still open.

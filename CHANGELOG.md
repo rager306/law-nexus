@@ -2,6 +2,20 @@
 
 ## [Unreleased]
 
+### M184-0k3xqb Docs (honesty debt after M183: assessment 19, MEM932, TSG-015, leftover)
+
+- Assessment `assessment/19-temporal-model-and-cross-act-progress.md`:
+  non-authoritative map of L1–L7 ceilings and cross-act constructor proof.
+  Does not close TSG rows or execute GC cases.
+- `roadmap.json` `current_milestone` status synced to complete for
+  M183-t5u1dg (MEM932). Catalog remains design-only.
+- TSG-015 no longer claims «18 paper cases»: 19 TL-GC paper oracles and
+  40 GC catalog rows are counted separately; companion sentence in
+  `temporal-legal-model.md` §11.1 (MEM940).
+- Leftover names G1 blocker (no official corpus), 484-FZ unexecuted C1
+  edge, and open R070. No Rust types, no case execution, no ConflictResolver,
+  no push.
+
 ### Process
 - Ignore local Cursor overlay (`.cursor/`) so GSD closeout porcelain is
   not blocked by editor junk after a hook-content failure is already fixed.

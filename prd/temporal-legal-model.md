@@ -301,7 +301,9 @@ nor absorbs nor retires TL-GC01–19, this section does not own the catalog, and
 this reconciliation is not a lifecycle promotion — both lists stay design-only
 `[proposed]`, no historical TL-GC row above is rewritten, and no TL-GC
 identifier is added to the catalog (the sibling nineteen-case series stays out
-of it).
+of it). Gap-register TSG-015 must count these 19 TL-GC rows and the 40 GC
+catalog rows separately; a collapsed «18 paper cases» figure is stale after
+M183 (assessment/19).
 
 Every TL-GC01–19 row remains a paper semantic-shape oracle owned by this
 section. The map below records the reconciliation verdict per row: whether the

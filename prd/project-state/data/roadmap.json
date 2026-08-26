@@ -1,6 +1,6 @@
 {
   "schema_version": "law-nexus-project-state-roadmap/v2",
-  "generated_at": "2026-08-25T10:22:58Z",
+  "generated_at": "2026-08-26T11:22:48Z",
   "non_authoritative": true,
   "source_of_truth": "prd/ARCHITECTURE.md (living truth oracle) and doc/adr/** (decision/lifecycle authority). This file is a non-authoritative cold-reader projection; local .gsd/** is workflow state only.",
   "completed_milestone_groups": [
@@ -463,18 +463,18 @@
   ],
   "current_milestone": {
     "id": "M183-t5u1dg",
-    "status": "active",
+    "status": "complete",
     "title": "G0-G3 golden corpus каталог и сверка TL-GC (review-26 §10)",
     "goal": "Catalog the 40 review-26 section 10 cases as YAML-as-data (G0-G3 tiers), reconcile TL-GC01-19 paper oracles, add the golden-corpus-catalog advisory, then honesty-sync living oracles. Design-only: no case execution, no Rust types."
   },
   "recommended_next": {
-    "title": "Next candidates after M183-t5u1dg (golden-corpus catalog complete): execute G1-G3 corpus cases (G0 Shape is design-only executable; G1 needs the official corpus; G2-G3 need runtime) as prerequisite for any [bounded] runtime, then the product fork G2 corpus vs P2 Rust resolver, human-gated",
+    "title": "After M183 catalog and M184 honesty sync: do not execute G1 until official corpus fixtures exist; 484-FZ C1 edge is acquired but not executed; R070 edition-delta provenance remains open. Human-gated product fork stays G2 corpus vs P2 resolver after G1.",
     "priority": 1,
-    "why": "M183-t5u1dg landed the review-26 section 10 golden-corpus catalog as YAML-as-data (40 cases, closed tiers G0-G3, group coverage 8/6/6/5/9/6, D222 pin suite), the additive TL-GC01-19 reconciliation map in temporal-legal-model section 11, and the advisory governor check golden-corpus-catalog (headers / unique ids / coverage / existing deps). The catalog names and classifies cases; it does not execute them and mints no Rust types. Remaining human-gated fork: execute G1-G3 corpus cases as prerequisite for any [bounded] runtime, then G2 corpus vs P2 Rust resolver. TSG-001 stays active. No lifecycle promotion, not product readiness. Upstream run-uat persistence defect filed as open-gsd/gsd-pi#1993.",
-    "plan_reference": "doc/review/review-26-23-08-2026.md section 10 + prd/architecture/golden-corpus-catalog.yaml",
+    "why": "M183-t5u1dg landed the review-26 section 10 golden-corpus catalog as YAML-as-data (40 GC cases, closed tiers G0-G3, group coverage 8/6/6/5/9/6, D222 pin suite) and the TL-GC01-19 map. M184-0k3xqb is the honesty/process wave: assessment/19 debt map, roadmap.json current_milestone status complete (MEM932), TSG-015 counts 19 TL-GC paper oracles and 40 GC catalog rows separately. Catalog does not execute cases and mints no Rust types. G1 (GC-021/022) is blocked without tracked official artifacts. C1 constructor proof covers 138-FZ and 333-FZ only; 484-FZ edge is not executed. R070 amending-act provenance for edition deltas remains open. TSG-012/007 unclosed. ConflictResolver is out of this wave (ADR-0019 S0). Upstream run-uat defect: open-gsd/gsd-pi#1993; Verify-prose classifier: open-gsd/gsd-pi#1994 (still on v1.16.2).",
+    "plan_reference": "assessment/19-temporal-model-and-cross-act-progress.md + prd/architecture/golden-corpus-catalog.yaml + doc/review/review-26-23-08-2026.md section 10",
     "slices": "Landed design-only (M183-t5u1dg): prd/architecture/golden-corpus-catalog.yaml (40 cases, G0-G3, group coverage 8/6/6/5/9/6) with D222 pin suite; TL-GC reconciliation map in prd/temporal-legal-model.md section 11; advisory governor check golden-corpus-catalog. Prior P1 companions remain: operation-registry.yaml, reference-binding-contract.yaml, pending-effects-contract.yaml, force-interval-set-contract.yaml, scope-aware-completeness-contract.yaml, merkle-roots-contract.yaml, assertion-lifecycle-contract.yaml, evidence-anchor-contract.yaml.",
-    "product_next": "Product front stays evidence-gated: execute G1-G3 corpus cases first if needed; else parser G2 readiness decision; L2 CTV TDD; applicability stays abstention-only under ADR-0023 [proposed]; TEI/RuVector remains infrastructure-evidence gated.",
-    "non_validation": "GSD completion of M183 is process/registry truth only; not product readiness, legal correctness, ontology/applicability runtime validation, lifecycle promotion of ADRs, case execution, or release proof."
+    "product_next": "Honesty leftover first (this wave). Then human-gated: official-corpus G1 or the narrow 484-FZ amends constructor — not both and not ConflictResolver. Then G2 references xor P2 Mention/Binding. Applicable and RuVector remain deferred.",
+    "non_validation": "GSD completion of M183/M184 is process/registry truth only; not product readiness, legal correctness, case execution, ConflictResolver, ontology runtime validation, or ADR lifecycle promotion."
   },
   "downstream_blocked": [
     {
@@ -657,6 +657,11 @@
       "id": "roadmap-sync-20260824-m182-complete",
       "lifecycle": "proposed",
       "text": "Closeout sync (2026-08-24): M182-ivk7ww completed in GSD. REVIEW-26 IS NOW FULLY EXECUTED across M179/M180/M181/M182: P0-1..P0-8 plus section 3 (SEPARATION planes), section 4 (WorkId/OfficialIdentityClaim/ComponentLocator), section 7 (named VIEW set). Governor 66 checks green incl. semantic-name-collision D246, cross-contract closed-set consistency, companion-manifest D261. Remaining human-gated fork per review-26 sections 10/13.3 and the model verdict: G0-G3 golden corpus 30-40 cases (list in review-26 section 10) as prerequisite for any [bounded] runtime, then the product fork G2 corpus vs P2 Rust resolver; P2-layer items (NormRule IR, LegalAlignmentGate, applicability DSL) follow the stable text core. Upstream run-uat persistence defect filed as open-gsd/gsd-pi#1993. GSD completion is not product readiness."
+    },
+    {
+      "id": "roadmap-m183-complete-mem932",
+      "lifecycle": "proposed",
+      "text": "M183-t5u1dg completed in GSD (2026-08-26): design-only golden-corpus catalog (40 GC cases, TL-GC01-19 map, advisory golden-corpus-catalog). JSON current_milestone status synced from active to complete (MEM932). GSD completion is not product readiness; cases are not executed; no Rust types. Remaining human-gated: execute G1-G3 (G1 needs official corpus), then G2 corpus vs P2 resolver. Assessment 19 records temporal/cross-act debt (484-FZ edge not executed, R070 open, TSG-015 counter drift)."
     }
   ]
 }
