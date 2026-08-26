@@ -301,9 +301,9 @@ nor absorbs nor retires TL-GC01–19, this section does not own the catalog, and
 this reconciliation is not a lifecycle promotion — both lists stay design-only
 `[proposed]`, no historical TL-GC row above is rewritten, and no TL-GC
 identifier is added to the catalog (the sibling nineteen-case series stays out
-of it). Gap-register TSG-015 must count these 19 TL-GC rows and the 40 GC
-catalog rows separately; a collapsed «18 paper cases» figure is stale after
-M183 (assessment/19).
+of it). Gap-register TSG-015 counts these 19 TL-GC rows and the 40 GC catalog
+rows (golden-corpus-catalog.yaml) separately since M184-0k3xqb S03; a
+collapsed «18 paper cases» figure is stale after M183 (assessment/19).
 
 Every TL-GC01–19 row remains a paper semantic-shape oracle owned by this
 section. The map below records the reconciliation verdict per row: whether the
@@ -393,7 +393,7 @@ coverage only. It neither accepts a schema nor closes a TSG row.
 | Correction | partial | immutable-observation invariant and TL-G04/TL-GC17 | future TQ-04 owner; TSG-011 | no accepted ledger schema, rebuild API or storage proof |
 | Invariants | present as paper rules | §§4–9, gates and stop conditions | governing ADRs | no claim that every invariant has executable proof |
 | Deterministic API | absent | no request/result public schema | future owner; TSG-014 | no stable Rust signature or wire contract may be inferred |
-| Golden cases | partial | §11 TL-GC01–18 semantic-shape catalog | human gold owners + TSG-015 | fewer than the requested 20–30; not executable legal gold |
+| Golden cases | partial | §11 TL-GC01–19 semantic-shape catalog | human gold owners + TSG-015 | fewer than the requested 20–30; not executable legal gold |
 | Error taxonomy | absent | scattered typed non-success names only | future API owner; TSG-014 | no unified accepted enum or compatibility promise |
 | Proof gates | present as paper gates | §10 TL-G01–12 + §10.1 graduation matrix | ADR-0012/0015 and human acceptance | paper PASS cannot promote lifecycle or validate product behavior |
 
