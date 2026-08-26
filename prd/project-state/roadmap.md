@@ -27,21 +27,22 @@ falkordb=historical-only
 - **Completed retrieval-honesty band:** M161–M164 `[bounded]` (real cosine ranking in memory, semantic-stub and historical-test-debt probes, deterministic CLI vectors); no live corpus or citation-safe answers.
 - **Completed documentation alignment:** D5 + documentation D6 / EA-05 accepted with findings at `94d58ea`; roadmap-front-sync and TL-G01–12 coverage PASS.
 - **Documentation/process assessment:** EA-10 complete — human D150 `accepted-with-findings` after independent EA-09 report `120d44b`; post-D150 assessments 13–19 record bounded repository-control/parser-protocol/glossary/semantic-presentation remediation and remaining gaps without successor acceptance, lifecycle promotion or product unlock. Glossary governance now inventories all crosswalk rows and controls coding terminology structurally through the tracked living-oracle read pointer; it does not close TSG-001 or define product semantics.
-- **Local GSD workflow marker:** M183-t5u1dg is the latest completed milestone
-  in GSD registry (golden-corpus catalog of the 40 review-26 section 10 cases
-  as YAML-as-data: four tiers G0 Shape / G1 Official / G2 Hostile / G3
-  End-to-end, group coverage 8/6/6/5/9/6, D222 pin suite, TL-GC01-19
-  reconciliation map in temporal-legal-model section 11, advisory governor
-  check golden-corpus-catalog). Design-only: the catalog names and classifies
-  cases; it does not execute them and mints no Rust types. REVIEW-26 remains
-  FULLY EXECUTED (P0-1..P0-8 + sections 3/4/7). Governor 67 checks green
-  (companion-manifest D261 + golden-corpus-catalog). Remaining human-gated
-  leftover (assessment/19): G1 (GC-021/022) is blocked without tracked official
-  corpus fixtures; 484-FZ C1 amends edge is acquired but not executed; R070
-  edition-delta provenance is open; then G2 corpus vs P2 Rust resolver.
-  Do not mint ConflictResolver or catalog enums this wave.
-  Upstream run-uat persistence defect filed as open-gsd/gsd-pi#1993.
-  GSD completion is not product readiness.
+- **Local GSD workflow marker:** M184-0k3xqb is the latest completed milestone
+  in GSD registry (docs-only honesty wave: tracked assessment/19 debt map of
+  L1-L7 plus cross-act; roadmap.json MEM932 sync to M183/complete; TSG-015 no
+  longer claims 18 paper cases — 19 TL-GC paper oracles and 40 GC catalog rows
+  are counted separately with a MEM940 companion; paired leftover on 484-FZ /
+  R070 / G1 / G2-vs-P2; validation battery artifact
+  m184-validation-battery-20260826.json with four verification classes,
+  governor 67/0, pytest 712p/4s). Previous M183-t5u1dg landed the golden-corpus
+  catalog (four tiers G0-G3, D222 pin suite, TL-GC01-19 map) design-only.
+  Standing execution directive recorded as assessment/20: M185 debt+census,
+  then M186+ first functional wave (484-FZ narrow C1 edge direction). G1
+  (GC-021/022) is blocked without tracked official corpus fixtures; 484-FZ C1
+  amends edge is acquired but not executed; R070 edition-delta provenance is
+  open; then G2 corpus vs P2 Rust resolver. Do not mint ConflictResolver or
+  catalog enums ahead of their waves. Upstream run-uat persistence defect
+  filed as open-gsd/gsd-pi#1993. GSD completion is not product readiness.
 - **GSD dual-truth M167:** **resolved** — M167 complete via authorized skip waivers + validation (D154 option C). Historical note in `gsd-review-bridge.md`. Not Applicable; TSG-005/006 still open.
 - **Review governance process contour:** ADR-0024 Review Case intake/disposition/ledger landed; human dispositions recorded for review-11/12 (`actor_id=rager306`). Non-authoritative; no Product/ADR/roadmap promotion.
 - **Applicability kernel:** `ln-applicability` v0 fail-closed abstention-only under ADR-0023 `[proposed]`, with NormRule IR + pure predicate algebra spines; no Applicable/NotApplicable product claim.

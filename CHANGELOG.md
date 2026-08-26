@@ -2,6 +2,18 @@
 
 ## [Unreleased]
 
+### Docs (standing execution directive adopted after M184)
+
+- `assessment/20-standing-execution-directive.md`: user directive recorded —
+  sequential GSD waves (tech debt and process/logic gaps first, then
+  stub/bug/fake replacement with functional, semantically verified code),
+  no-hardcode (settings to `.env` where possible), FSM-first design,
+  hexagonal/onion discipline with GitNexus impact checks, TDD per ADR-0015,
+  ADR updates for architectural decisions, session-end Governor/review
+  strengthening loop. Wave order: M185 debt+census, M186+ first functional
+  wave (484-FZ narrow C1 edge direction; G1 stays blocked without official
+  corpus). Canon boundaries unchanged (D098/D216/ADR-0019 S0).
+
 ### M184-0k3xqb Docs (honesty debt after M183: assessment 19, MEM932, TSG-015, leftover)
 
 - Assessment `assessment/19-temporal-model-and-cross-act-progress.md`:

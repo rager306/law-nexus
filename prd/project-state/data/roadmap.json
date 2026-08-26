@@ -1,6 +1,6 @@
 {
   "schema_version": "law-nexus-project-state-roadmap/v2",
-  "generated_at": "2026-08-26T11:22:48Z",
+  "generated_at": "2026-08-26T16:43:00Z",
   "non_authoritative": true,
   "source_of_truth": "prd/ARCHITECTURE.md (living truth oracle) and doc/adr/** (decision/lifecycle authority). This file is a non-authoritative cold-reader projection; local .gsd/** is workflow state only.",
   "completed_milestone_groups": [
@@ -459,13 +459,19 @@
       "theme": "G0-G3 golden corpus catalog and TL-GC reconciliation (review-26 §10) (docs/design)",
       "status": "complete",
       "boundary": "Design-only catalog of the 40 review-26 section 10 cases (golden-corpus-catalog.yaml, four closed tiers G0 Shape / G1 Official / G2 Hostile / G3 End-to-end, group coverage 8/6/6/5/9/6, D222 pin suite); TL-GC01-19 paper oracles stay in temporal-legal-model section 11 with an additive reconciliation map; advisory governor check golden-corpus-catalog. No case execution, no Rust types, no lifecycle promotion, not product readiness."
+    },
+    {
+      "range": "M184-M184",
+      "theme": "Post-M183 honesty/process debt closure (docs/process)",
+      "status": "complete",
+      "boundary": "Docs-only honesty wave: tracked assessment/19 debt map (L1-L7, cross-act, P-01..P-07), roadmap.json MEM932 sync to M183/complete, TSG-015 counter honesty (19 TL-GC paper oracles vs 40 GC catalog rows, companion per MEM940), paired 484-FZ/R070/G1/G2-vs-P2 leftover, validation battery artifact m184-validation-battery-20260826.json (4 verification classes, governor 67/0, pytest 712p/4s). No case execution, no Rust types, no lifecycle promotion, not product readiness."
     }
   ],
   "current_milestone": {
-    "id": "M183-t5u1dg",
+    "id": "M184-0k3xqb",
     "status": "complete",
-    "title": "G0-G3 golden corpus каталог и сверка TL-GC (review-26 §10)",
-    "goal": "Catalog the 40 review-26 section 10 cases as YAML-as-data (G0-G3 tiers), reconcile TL-GC01-19 paper oracles, add the golden-corpus-catalog advisory, then honesty-sync living oracles. Design-only: no case execution, no Rust types."
+    "title": "Honesty-долг после M183: процессные разрывы темпоральной модели",
+    "goal": "Close the post-M183 honesty/process debt as a docs-only wave: track assessment/19 as the L1-L7 plus cross-act debt map, sync roadmap.json current_milestone to M183/complete (MEM932), remove the TSG-015 18-paper-cases drift (19 TL-GC vs 40 GC counted separately), name the 484-FZ unexecuted edge / R070 / G1-blocker leftover, GitNexus reindex and CHANGELOG. No GC execution, no Rust types, no ConflictResolver, no push."
   },
   "recommended_next": {
     "title": "After M183 catalog and M184 honesty sync: do not execute G1 until official corpus fixtures exist; 484-FZ C1 edge is acquired but not executed; R070 edition-delta provenance remains open. Human-gated product fork stays G2 corpus vs P2 resolver after G1.",
@@ -662,6 +668,11 @@
       "id": "roadmap-m183-complete-mem932",
       "lifecycle": "proposed",
       "text": "M183-t5u1dg completed in GSD (2026-08-26): design-only golden-corpus catalog (40 GC cases, TL-GC01-19 map, advisory golden-corpus-catalog). JSON current_milestone status synced from active to complete (MEM932). GSD completion is not product readiness; cases are not executed; no Rust types. Remaining human-gated: execute G1-G3 (G1 needs official corpus), then G2 corpus vs P2 resolver. Assessment 19 records temporal/cross-act debt (484-FZ edge not executed, R070 open, TSG-015 counter drift)."
+    },
+    {
+      "id": "roadmap-m184-complete-mem932",
+      "lifecycle": "proposed",
+      "text": "M184-0k3xqb completed in GSD (2026-08-26): docs-only honesty wave closing the post-M183 process debt (assessment/19 tracked debt map, roadmap.json M183/complete sync, TSG-015 counter honesty 19 TL-GC + 40 GC, paired leftover, GitNexus reindex). JSON current_milestone synced from M183 to M184 complete (MEM932). Standing execution directive recorded as assessment/20 (M185 debt+census, M186+ 484-FZ narrow C1 edge direction; G1 stays blocked without official corpus). GSD completion is not product readiness; no Rust types, no case execution, no ConflictResolver, no push."
     }
   ]
 }
