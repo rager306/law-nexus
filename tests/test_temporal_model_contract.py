@@ -1,7 +1,10 @@
 """Repository-document contracts for the bounded temporal model crosswalk."""
 
 import re
+from collections.abc import Callable
 from pathlib import Path
+
+import pytest
 
 ROOT = Path(__file__).resolve().parents[1]
 MODEL = ROOT / "prd" / "temporal-legal-model.md"
@@ -147,3 +150,94 @@ def test_tsg015_live_surfaces_count_nineteen_tl_gc_and_forty_gc_separately() -> 
     model_text = MODEL.read_text(encoding="utf-8")
     register_text = REGISTER.read_text(encoding="utf-8")
     assert _tsg015_counter_drifts(model_text, register_text) == []
+
+
+# ---------------------------------------------------------------------------
+# Inline-negative fixtures (T02): known historical counter regressions the
+# detector must catch. All mutations are pure in-memory string edits of the
+# tracked canon texts -- no tmp_path, no writes to disk. The live §11.1 stale
+# disclaimer stays intact everywhere, so the live-positive test above must
+# remain green alongside these fixtures (MEM1145).
+# ---------------------------------------------------------------------------
+
+_LIVE_REGISTER_FORMULA = (
+    "19 TL-GC paper oracles in temporal-legal-model §11"
+    " plus 40 GC catalog rows in golden-corpus-catalog.yaml"
+)
+
+
+def _mutate_register_row_to_stale_collapsed_counter(
+    model_text: str, register_text: str
+) -> tuple[str, str]:
+    """M184 regression: the TSG-015 row re-claims the collapsed figure alone."""
+    assert _LIVE_REGISTER_FORMULA in register_text, (
+        "fixture drifted: live register no longer contains the pinned formula"
+    )
+    return model_text, register_text.replace(_LIVE_REGISTER_FORMULA, "18 paper cases")
+
+
+def _mutate_section11_to_drop_tl_gc19_table_row(
+    model_text: str, register_text: str
+) -> tuple[str, str]:
+    """Canonical id-set regression: section 11 loses the TL-GC19 table row."""
+    heading_start = model_text.index("## 11. Staged golden-case catalog")
+    subsection_start = model_text.index("\n### 11.1", heading_start)
+    table = model_text[heading_start:subsection_start]
+    trimmed_table, dropped_rows = re.subn(r"^.*\| TL-GC19 \|.*\n", "", table, flags=re.MULTILINE)
+    assert dropped_rows == 1, f"fixture expected one TL-GC19 row, found {dropped_rows}"
+    return (
+        model_text[:heading_start] + trimmed_table + model_text[subsection_start:],
+        register_text,
+    )
+
+
+def _mutate_register_row_to_merge_both_counters(
+    model_text: str, register_text: str
+) -> tuple[str, str]:
+    """Separateness regression: both counted series collapse into one figure."""
+    assert _LIVE_REGISTER_FORMULA in register_text, (
+        "fixture drifted: live register no longer contains the pinned formula"
+    )
+    return model_text, register_text.replace(
+        _LIVE_REGISTER_FORMULA, "59 cases in golden-corpus-catalog.yaml"
+    )
+
+
+@pytest.mark.parametrize(
+    ("drift_mutator", "expected_fragments"),
+    [
+        pytest.param(
+            _mutate_register_row_to_stale_collapsed_counter,
+            ("register TSG-015 row asserts the stale collapsed counter '18 paper cases'",),
+            id="register-row-reasserts-stale-18-paper-cases",
+        ),
+        pytest.param(
+            _mutate_section11_to_drop_tl_gc19_table_row,
+            ("section 11 staged catalog id set drifted from TL-GC01..TL-GC19",),
+            id="section-11-drops-the-tl-gc19-table-row",
+        ),
+        pytest.param(
+            _mutate_register_row_to_merge_both_counters,
+            (
+                "register TSG-015 row misses the canon claim '19 TL-GC paper oracles'",
+                "register TSG-015 row misses the canon claim '40 GC catalog rows'",
+            ),
+            id="register-row-merges-counters-into-one-figure",
+        ),
+    ],
+)
+def test_tsg015_counter_drift_detector_flags_known_counter_regressions(
+    drift_mutator: Callable[[str, str], tuple[str, str]],
+    expected_fragments: tuple[str, ...],
+) -> None:
+    """Red-on-fixture, green-as-test: each mutation produces a named drift."""
+    model_text = MODEL.read_text(encoding="utf-8")
+    register_text = REGISTER.read_text(encoding="utf-8")
+
+    drifted_model, drifted_register = drift_mutator(model_text, register_text)
+
+    drifts = _tsg015_counter_drifts(drifted_model, drifted_register)
+    assert drifts, f"{drift_mutator.__name__} produced no drift finding"
+    joined_findings = "\n".join(drifts)
+    for fragment in expected_fragments:
+        assert fragment in joined_findings
