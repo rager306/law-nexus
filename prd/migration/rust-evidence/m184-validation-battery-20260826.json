@@ -1,0 +1,98 @@
+{
+  "schema_version": "law-nexus/milestone-validation-battery/v1",
+  "milestone": "M184-0k3xqb",
+  "generated_at": "2026-08-26T16:18:16Z",
+  "tested_source_revision": "71e38bffe9a7cd1e5df49fe47d3fa5f6c03d35fd",
+  "working_directory": "/root/law-nexus",
+  "environment": {
+    "runner": "pi interactive parent session (validate-milestone)",
+    "python": "uv-managed CPython (uv run)",
+    "cargo": "offline workspace",
+    "git_state": "clean tree, ahead origin/main, not pushed",
+    "gitnexus": "repo law-nexus, index fresh vs HEAD"
+  },
+  "non_claims": [
+    "Docs-only honesty wave: no GC-001..040 execution, no Rust product types, no ConflictResolver, no push",
+    "Battery is process/verification evidence, not product readiness"
+  ],
+  "checks": [
+    {
+      "check_id": "contract-roadmap-freshness-pytest",
+      "verification_class": "Contract",
+      "evidence_class": "command",
+      "command": "uv run python -m pytest tests/test_project_state_roadmap_freshness.py -q",
+      "exit_code": 0,
+      "observation": "passed",
+      "started_at": "2026-08-26T16:18:16Z",
+      "ended_at": "2026-08-26T16:18:17Z",
+      "duration_ms": 1220,
+      "stdout_tail": ".....                                                                    [100%]\n5 passed in 0.32s"
+    },
+    {
+      "check_id": "integration-five-surface-sync",
+      "verification_class": "Integration",
+      "evidence_class": "command",
+      "command": "python3 five-surface assert: TSG-register 19 TL-GC + 40 GC (no '18 paper cases'), temporal-legal-model companion, roadmap.json M184/M183, roadmap.md leftover markers, CHANGELOG M184 x1",
+      "exit_code": 0,
+      "observation": "passed",
+      "started_at": "2026-08-26T16:18:17Z",
+      "ended_at": "2026-08-26T16:18:17Z",
+      "duration_ms": 42,
+      "stdout_tail": "five-surface sync OK: register/model/roadmap.json/roadmap.md/CHANGELOG"
+    },
+    {
+      "check_id": "operational-governor",
+      "verification_class": "Operational",
+      "evidence_class": "command",
+      "command": "uv run python -m law_nexus_harness governor",
+      "exit_code": 0,
+      "observation": "passed",
+      "started_at": "2026-08-26T16:18:17Z",
+      "ended_at": "2026-08-26T16:18:23Z",
+      "duration_ms": 5952,
+      "stdout_tail": "non (L0 + G0 ADR amendments)\",\"observed\":\"anchors=19 verified across 7 source file(s); digest=ok; inv_rows=14 (advisory [bounded]; projection only, no canon change).\",\"remediation\":\"\",\"rule_id\":\"model-crystal-anchors.contract\",\"severity\":\"ok\",\"status\":\"pass\"}],\"pass_count\":67,\"root\":\"/root/law-nexus\",\"schema_version\":\"law-nexus-governor-report/v1\",\"status\":\"ok\",\"tool_error_count\":0,\"warn_count\":0}"
+    },
+    {
+      "check_id": "operational-preflight",
+      "verification_class": "Operational",
+      "evidence_class": "command",
+      "command": "uv run python -m law_nexus_harness preflight",
+      "exit_code": 0,
+      "observation": "passed",
+      "started_at": "2026-08-26T16:18:23Z",
+      "ended_at": "2026-08-26T16:18:29Z",
+      "duration_ms": 5736,
+      "stdout_tail": "ory-governor\",\"command\":[\"internal\",\"trajectory-governor\"],\"duration_ms\":0,\"exit_code\":0,\"observed\":\"governor_pass=67; governor_errors=0; governor_warns=0\",\"phase\":\"trajectory\",\"remediation\":\"none\",\"severity\":\"ok\",\"status\":\"pass\",\"stderr_tail\":\"\",\"stdout_tail\":\"\"}],\"error_count\":0,\"pass_count\":8,\"root\":\"/root/law-nexus\",\"schema_version\":\"law-nexus-preflight-report/v1\",\"status\":\"ok\",\"warn_count\":0}"
+    },
+    {
+      "check_id": "operational-pytest-full",
+      "verification_class": "Operational",
+      "evidence_class": "command",
+      "command": "uv run python -m pytest tests/ -q",
+      "exit_code": 0,
+      "observation": "passed",
+      "started_at": "2026-08-26T16:18:29Z",
+      "ended_at": "2026-08-26T16:19:46Z",
+      "duration_ms": 76389,
+      "stdout_tail": "............................... [ 60%]\n........................................................................ [ 70%]\n........................................................................ [ 80%]\n........................................................................ [ 90%]\n....................................................................     [100%]\n712 passed, 4 skipped in 75.48s (0:01:15)"
+    },
+    {
+      "check_id": "uat-slice-assessments-pass",
+      "verification_class": "UAT",
+      "evidence_class": "command",
+      "command": "bash loop: grep -m1 '^verdict: PASS$' over 184-01..04-ASSESSMENT.md (artifact-driven UAT verdict carriers; UAT md files are specs)",
+      "exit_code": 0,
+      "observation": "passed",
+      "started_at": "2026-08-26T16:21:09Z",
+      "ended_at": "2026-08-26T16:21:09Z",
+      "duration_ms": 16,
+      "stdout_tail": "4/4 ASSESSMENT verdict PASS"
+    }
+  ],
+  "summary": {
+    "total": 6,
+    "passed": 6,
+    "failed": 0
+  },
+  "generated_at_final": "2026-08-26T16:21:09Z"
+}
