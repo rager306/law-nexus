@@ -3174,6 +3174,249 @@ def check_companion_manifest(root: Path) -> list[GovernorFinding]:
     ]
 
 
+_GOLDEN_CORPUS_CATALOG_REL = "prd/architecture/golden-corpus-catalog.yaml"
+_GOLDEN_CORPUS_CATALOG_SCHEMA = "law-nexus-golden-corpus-catalog/v1"
+_GOLDEN_CORPUS_CLOSED_TIERS = ("G0", "G1", "G2", "G3")
+_GOLDEN_CORPUS_EXPECTED_COVERAGE = {
+    "assertion-bitemporal": 8,
+    "pending-effects": 6,
+    "structure-identity": 6,
+    "source-cst": 5,
+    "references": 9,
+    "procurement": 6,
+}
+_GOLDEN_CORPUS_TOP_KEY_RE = re.compile(r"^([A-Za-z][\w-]*):\s*(.*)$")
+_GOLDEN_CORPUS_DEP_RE = re.compile(r"prd/architecture/[A-Za-z0-9._-]+\.ya?ml")
+
+
+def check_golden_corpus_catalog(root: Path) -> list[GovernorFinding]:
+    """Verify the golden corpus catalog of the forty review-26 section 10 cases.
+
+    The catalog at prd/architecture/golden-corpus-catalog.yaml is scanned with
+    a parser-free top-level ``key: value`` pass plus a line walk of the
+    ``tiers:``, ``coverage:`` and ``cases:`` sections: PyYAML is never
+    imported, YAML entities and folded scalars are out of surface. The check
+    enforces the design-only header canon (schema_version exactly
+    law-nexus-golden-corpus-catalog/v1, ``lifecycle`` carrying the
+    ``[proposed]`` token, ``authoritative`` exactly false), the closed tier
+    enumeration G0/G1/G2/G3 for the declared list and for every case tier,
+    the unique ordered id sequence GC-001 through GC-040, per-group coverage
+    against the review-26 section 10 counters 8/6/6/5/9/6
+    (assertion-bitemporal, pending-effects, structure-identity, source-cst,
+    references, procurement) for both the declared coverage block and the
+    actual case counts, and that every case dep names an existing companion
+    YAML under prd/architecture. The expected counters are the review canon,
+    never re-derived from the catalog, so catalog drift fails here. No case
+    is executed, no corpus fixture is shipped, no Rust type or enum is
+    minted, digests are not compared and lifecycle [bounded] process
+    anti-drift is all this is: not product readiness, not legal gold and
+    not an ADR amendment.
+    """
+    check_id = "golden-corpus-catalog"
+    expected = (
+        "The golden corpus catalog exists with the design-only headers, the "
+        "closed tier enumeration G0/G1/G2/G3, the unique ordered ids "
+        "GC-001..GC-040, per-group coverage 8/6/6/5/9/6 and deps naming "
+        "existing companion YAML under prd/architecture."
+    )
+    remediation = (
+        "Repair prd/architecture/golden-corpus-catalog.yaml back to the "
+        "review-26 section 10 canon: schema_version "
+        "law-nexus-golden-corpus-catalog/v1, lifecycle [proposed], "
+        "authoritative false, tiers G0/G1/G2/G3 closed, ids GC-001..GC-040 "
+        "unique and ordered, coverage 8/6/6/5/9/6 and deps pointing at "
+        "existing companion YAML. Do not execute cases, do not mint Rust "
+        "types and do not promote the catalog out of [proposed]."
+    )
+
+    catalog_path = root / _GOLDEN_CORPUS_CATALOG_REL
+    if not catalog_path.is_file():
+        return [
+            GovernorFinding(
+                check_id=check_id,
+                status="fail",
+                severity="warn",
+                message="the golden corpus catalog is missing",
+                observed=(f"catalog={_GOLDEN_CORPUS_CATALOG_REL} present=false case_count=0"),
+                remediation=remediation,
+                rule_id="golden-corpus-catalog.catalog-missing",
+                expected=expected,
+                evidence=(GovernorEvidence(path=_GOLDEN_CORPUS_CATALOG_REL),),
+            )
+        ]
+
+    lines = catalog_path.read_text(encoding="utf-8", errors="replace").splitlines()
+    scalars: dict[str, tuple[str, int | None]] = {}
+    section: str | None = None
+    declared_tiers: list[str] = []
+    declared_coverage: dict[str, int] = {}
+    case_records: list[dict[str, Any]] = []
+    record: dict[str, Any] | None = None
+    current_field: str | None = None
+    for line_number, line in enumerate(lines, start=1):
+        top_key = _GOLDEN_CORPUS_TOP_KEY_RE.match(line)
+        if top_key:
+            key, value = top_key.group(1), top_key.group(2).strip()
+            scalars.setdefault(key, (value, line_number))
+            section = key if not value else None
+            record = None
+            current_field = None
+            continue
+        if section == "tiers":
+            item = re.match(r"^\s+-\s+(\S+)\s*$", line)
+            if item:
+                declared_tiers.append(item.group(1))
+        elif section == "coverage":
+            pair = re.match(r"^\s+([\w-]+):\s*(\d+)\s*$", line)
+            if pair:
+                declared_coverage[pair.group(1)] = int(pair.group(2))
+        elif section == "cases":
+            field = re.match(r"^\s+([A-Za-z_][\w-]*):\s*(.*?)\s*$", line)
+            if field:
+                current_field = field.group(1)
+                value = field.group(2)
+                if current_field == "id" and value:
+                    record = {
+                        "id": value,
+                        "line": line_number,
+                        "group": "",
+                        "tier": "",
+                        "deps": [],
+                    }
+                    case_records.append(record)
+                elif record is not None:
+                    if current_field == "group" and value:
+                        record["group"] = value
+                    elif current_field == "tier" and value:
+                        record["tier"] = value
+            elif current_field == "deps" and record is not None:
+                item = re.match(r"^\s+-\s+(\S+)\s*$", line)
+                if item:
+                    record["deps"].append(item.group(1))
+
+    problems: list[str] = []
+    evidence = [GovernorEvidence(path=_GOLDEN_CORPUS_CATALOG_REL)]
+    schema_version, schema_line = scalars.get("schema_version", ("", None))
+    lifecycle, lifecycle_line = scalars.get("lifecycle", ("", None))
+    authoritative, authoritative_line = scalars.get("authoritative", ("", None))
+    if schema_version.strip("\"'") != _GOLDEN_CORPUS_CATALOG_SCHEMA:
+        observed_schema = schema_version.strip("\"'") or "missing"
+        problems.append(f"schema_version-mismatch={observed_schema}")
+        evidence.append(GovernorEvidence(path=_GOLDEN_CORPUS_CATALOG_REL, line=schema_line))
+    if "[proposed]" not in lifecycle.strip("\"'"):
+        problems.append("lifecycle-not-proposed")
+        evidence.append(GovernorEvidence(path=_GOLDEN_CORPUS_CATALOG_REL, line=lifecycle_line))
+    if authoritative.strip("\"'").lower() != "false":
+        problems.append("authoritative-not-false")
+        evidence.append(GovernorEvidence(path=_GOLDEN_CORPUS_CATALOG_REL, line=authoritative_line))
+    if tuple(declared_tiers) != _GOLDEN_CORPUS_CLOSED_TIERS:
+        problems.append(f"tiers-not-closed=[{','.join(declared_tiers)}]")
+    if declared_coverage != _GOLDEN_CORPUS_EXPECTED_COVERAGE:
+        declared_preview = ",".join(
+            f"{group}={count}" for group, count in declared_coverage.items()
+        )
+        problems.append(f"declared-coverage-drift=[{declared_preview}]")
+
+    expected_ids = [f"GC-{number:03d}" for number in range(1, 41)]
+    actual_ids = [str(item["id"]) for item in case_records]
+    if actual_ids != expected_ids:
+        duplicates = sorted({value for value in actual_ids if actual_ids.count(value) > 1})
+        problems.append(f"id-sequence-drift=expected=GC-001..GC-040:got={len(actual_ids)}")
+        if duplicates:
+            problems.append(f"duplicate-id={','.join(duplicates)}")
+        first_drift = next(
+            (item for item, want in zip(case_records, expected_ids) if str(item["id"]) != want),
+            None,
+        )
+        if first_drift is None and len(case_records) > len(expected_ids):
+            first_drift = case_records[len(expected_ids)]
+        if first_drift is not None:
+            evidence.append(
+                GovernorEvidence(path=_GOLDEN_CORPUS_CATALOG_REL, line=int(first_drift["line"]))
+            )
+
+    closed_tier_set = set(_GOLDEN_CORPUS_CLOSED_TIERS)
+    actual_counts: dict[str, int] = {}
+    for item in case_records:
+        group = str(item["group"])
+        tier = str(item["tier"])
+        actual_counts[group] = actual_counts.get(group, 0) + 1
+        if tier not in closed_tier_set:
+            problems.append(f"case-tier-unknown={item['id']}:{tier or 'missing'}")
+            evidence.append(
+                GovernorEvidence(path=_GOLDEN_CORPUS_CATALOG_REL, line=int(item["line"]))
+            )
+    for group, want in _GOLDEN_CORPUS_EXPECTED_COVERAGE.items():
+        got = actual_counts.get(group, 0)
+        if got != want:
+            problems.append(f"coverage-drift={group}:expected={want}:got={got}")
+    for group in sorted(set(actual_counts) - set(_GOLDEN_CORPUS_EXPECTED_COVERAGE)):
+        problems.append(f"coverage-drift=unknown-group={group}:count={actual_counts[group]}")
+
+    for item in case_records:
+        for dep in item["deps"]:
+            if not _GOLDEN_CORPUS_DEP_RE.fullmatch(dep):
+                problems.append(f"dep-outside-pattern={item['id']}:{dep}")
+                continue
+            if not (root / dep).is_file():
+                problems.append(f"missing-dep={item['id']}:{dep}")
+                evidence.append(GovernorEvidence(path=dep))
+
+    if problems:
+        preview = ";".join(problems[:12])
+        if len(problems) > 12:
+            preview += f";+{len(problems) - 12}"
+        return [
+            GovernorFinding(
+                check_id=check_id,
+                status="fail",
+                severity="warn",
+                message=(
+                    "the golden corpus catalog drifted from the review-26 "
+                    "section 10 canon (headers, closed tiers, id sequence, "
+                    "coverage or deps)"
+                ),
+                observed=(
+                    f"case_count={len(case_records)} problems={len(problems)} "
+                    f"[{preview}] (lifecycle [bounded]; process anti-drift; "
+                    "not product readiness)."
+                ),
+                remediation=remediation,
+                rule_id="golden-corpus-catalog.catalog-drift",
+                expected=expected,
+                evidence=tuple(evidence),
+            )
+        ]
+
+    coverage_preview = ",".join(
+        f"{group}={count}" for group, count in _GOLDEN_CORPUS_EXPECTED_COVERAGE.items()
+    )
+    unique_deps = sorted({dep for item in case_records for dep in item["deps"]})
+    return [
+        GovernorFinding(
+            check_id=check_id,
+            status="pass",
+            severity="ok",
+            message=(
+                "the golden corpus catalog matches the review-26 section 10 "
+                "canon: design-only headers, closed tiers, ordered unique ids "
+                "and coverage intact"
+            ),
+            observed=(
+                f"case_count={len(case_records)} id_range=GC-001..GC-040 "
+                f"tiers=[{','.join(_GOLDEN_CORPUS_CLOSED_TIERS)}] "
+                f"coverage=[{coverage_preview}] dep_paths={len(unique_deps)} "
+                "(lifecycle [bounded]; process anti-drift; not product "
+                "readiness)."
+            ),
+            remediation="none",
+            rule_id="golden-corpus-catalog.catalog-ok",
+            expected=expected,
+            evidence=tuple(evidence + [GovernorEvidence(path=dep) for dep in unique_deps]),
+        )
+    ]
+
+
 def check_historical_test_debt_visibility(root: Path) -> list[GovernorFinding]:
     """Inventory residual non-CI tests with decommissioned-era hard dependencies.
 
@@ -6364,6 +6607,26 @@ GOVERNOR_CHECK_SPECS: tuple[CheckSpec, ...] = (
             "prd/architecture/scope-aware-completeness-contract.yaml",
             "prd/architecture/merkle-roots-contract.yaml",
             "prd/architecture/reference-binding-contract.yaml",
+        ),
+        "warn",
+    ),
+    _check_spec(
+        "golden-corpus-catalog",
+        "docs",
+        "deterministic",
+        check_golden_corpus_catalog,
+        "Verify the golden corpus catalog of the forty review-26 section 10 cases keeps its design-only headers (schema_version law-nexus-golden-corpus-catalog/v1, lifecycle [proposed], authoritative false), the closed tier enumeration G0/G1/G2/G3, the unique ordered ids GC-001..GC-040, the per-group coverage counters 8/6/6/5/9/6 and deps naming existing companion YAML under prd/architecture, via a parser-free scan with no case execution (D222 catalog-as-data; drift net, not product readiness); this is not case execution, not legal gold, not a Rust type source and not a digest check.",
+        (
+            "prd/architecture/golden-corpus-catalog.yaml",
+            "doc/review/review-26-23-08-2026.md",
+            "prd/architecture/assertion-lifecycle-contract.yaml",
+            "prd/architecture/pending-effects-contract.yaml",
+            "prd/architecture/operation-registry.yaml",
+            "prd/architecture/reference-binding-contract.yaml",
+            "prd/architecture/evidence-anchor-contract.yaml",
+            "prd/architecture/merkle-roots-contract.yaml",
+            "prd/architecture/force-interval-set-contract.yaml",
+            "prd/architecture/scope-aware-completeness-contract.yaml",
         ),
         "warn",
     ),
