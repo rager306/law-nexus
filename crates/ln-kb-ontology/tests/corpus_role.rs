@@ -58,9 +58,21 @@ fn overview_beats_red_ot_in_same_filename() {
     }
 }
 
+const CONSULTANT_EXPORT_DIR_ENV: &str = "CONSULTANT_EXPORT_DIR";
+const CONSULTANT_EXPORT_DIR_DEFAULT: &str = "consru_export";
+
+/// CONSULTANT_EXPORT_DIR with empty-as-unset semantics (M185 S03): unset,
+/// empty, or whitespace-only values fall back to the default export dir.
+fn consultant_export_dir() -> String {
+    match std::env::var(CONSULTANT_EXPORT_DIR_ENV) {
+        Ok(value) if !value.trim().is_empty() => value,
+        _ => CONSULTANT_EXPORT_DIR_DEFAULT.to_owned(),
+    }
+}
+
 /// Real consru_export corpus paths (skip when the export is absent).
 fn real_corpus_dir() -> Option<std::path::PathBuf> {
-    let dir = std::env::var("CONSULTANT_EXPORT_DIR").unwrap_or_else(|_| "consru_export".to_owned());
+    let dir = consultant_export_dir();
     let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
         .join("../..")
         .join(&dir)

@@ -226,8 +226,20 @@ fn ladder_paths_and_flat_registry_inline_fixture() {
     assert_eq!(statyas, 2);
 }
 
+const CONSULTANT_EXPORT_DIR_ENV: &str = "CONSULTANT_EXPORT_DIR";
+const CONSULTANT_EXPORT_DIR_DEFAULT: &str = "consru_export";
+
+/// CONSULTANT_EXPORT_DIR with empty-as-unset semantics (M185 S03): unset,
+/// empty, or whitespace-only values fall back to the default export dir.
+fn consultant_export_dir() -> String {
+    match std::env::var(CONSULTANT_EXPORT_DIR_ENV) {
+        Ok(value) if !value.trim().is_empty() => value,
+        _ => CONSULTANT_EXPORT_DIR_DEFAULT.to_owned(),
+    }
+}
+
 fn edition_path() -> Option<PathBuf> {
-    let dir = std::env::var("CONSULTANT_EXPORT_DIR").unwrap_or_else(|_| "consru_export".to_owned());
+    let dir = consultant_export_dir();
     let p = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
         .join("../..")
         .join(dir)

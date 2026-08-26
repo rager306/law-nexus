@@ -5,9 +5,20 @@ use ln_consultant_parser::multi_edition::{
     process_editions_directory,
 };
 
+const CONSULTANT_EXPORT_DIR_ENV: &str = "CONSULTANT_EXPORT_DIR";
+const CONSULTANT_EXPORT_DIR_DEFAULT: &str = "consru_export";
+
+/// CONSULTANT_EXPORT_DIR with empty-as-unset semantics (M185 S03): unset,
+/// empty, or whitespace-only values fall back to the default export dir.
+fn consultant_export_dir() -> String {
+    match std::env::var(CONSULTANT_EXPORT_DIR_ENV) {
+        Ok(value) if !value.trim().is_empty() => value,
+        _ => CONSULTANT_EXPORT_DIR_DEFAULT.to_owned(),
+    }
+}
+
 fn editions_dir() -> std::path::PathBuf {
-    let root =
-        std::env::var("CONSULTANT_EXPORT_DIR").unwrap_or_else(|_| "consru_export".to_owned());
+    let root = consultant_export_dir();
     std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"))
         .join("../..")
         .join(root)
