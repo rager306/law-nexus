@@ -108,7 +108,10 @@ Governor must never decide:
   temporal-legal-model §11. The covered-by / remains-TL-only map is additive
   prose in that same section, not a catalog field (`tl_gc_map` and TL-GC
   tokens stay out of the YAML). Catalog cases exercise TL shapes; neither
-  list replaces the other.
+  list replaces the other. This bullet is the corpus-catalog companion for
+  the `document-freshness-triggers` `temporal-glossary-change` and
+  `temporal-vocabulary-catalog-change` triggers (`glossary-governance.md`
+  sits in `required_any` of both).
 
 - `EvidenceSpan` now points at the design-only
   `prd/architecture/evidence-anchor-contract.yaml` `[proposed]`
