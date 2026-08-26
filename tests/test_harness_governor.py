@@ -32,6 +32,7 @@ from law_nexus_harness.governor import (
     check_companion_manifest,
     check_document_freshness_triggers,
     check_forward_roadmap_sequence,
+    check_golden_corpus_catalog,
     check_historical_test_debt_visibility,
     check_hostile_negative_suite_coverage,
     check_hostile_proof_chain,
@@ -2091,6 +2092,193 @@ def test_live_governor_passes_companion_manifest() -> None:
         "prd/architecture/reference-binding-contract.yaml",
     ):
         assert rel in finding.observed
+    assert report.error_count == 0
+    assert report.status == "ok"
+
+
+_GOLDEN_CORPUS_FIXTURE_COVERAGE = (
+    ("assertion-bitemporal", 8),
+    ("pending-effects", 6),
+    ("structure-identity", 6),
+    ("source-cst", 5),
+    ("references", 9),
+    ("procurement", 6),
+)
+
+
+def _golden_corpus_catalog_text(
+    *,
+    lifecycle: str = '"[proposed]"',
+    dep_rel: str = "prd/architecture/evidence-anchor-contract.yaml",
+    coverage_count_overrides: dict[str, int] | None = None,
+    id_rewrites: dict[str, str] | None = None,
+    group_rewrites: dict[str, str] | None = None,
+) -> str:
+    """Build a minimal valid golden-corpus-catalog fixture text.
+
+    Mirrors the live catalog's parser-visible shape (bare dash list items,
+    indented case fields) without copying the live tree verbatim. The
+    keyword knobs let single tests break exactly one canon invariant.
+    """
+    overrides = coverage_count_overrides or {}
+    lines = [
+        "schema_version: law-nexus-golden-corpus-catalog/v1",
+        f"lifecycle: {lifecycle}",
+        "authoritative: false",
+        "tiers:",
+        "  - G0",
+        "  - G1",
+        "  - G2",
+        "  - G3",
+        "coverage:",
+    ]
+    for group, count in _GOLDEN_CORPUS_FIXTURE_COVERAGE:
+        lines.append(f"  {group}: {overrides.get(group, count)}")
+    lines.append("cases:")
+    number = 0
+    id_map = id_rewrites or {}
+    group_map = group_rewrites or {}
+    for group, count in _GOLDEN_CORPUS_FIXTURE_COVERAGE:
+        for _ in range(count):
+            number += 1
+            case_id = f"GC-{number:03d}"
+            lines.append("  -")
+            lines.append(f"    id: {id_map.get(case_id, case_id)}")
+            lines.append(f"    group: {group_map.get(case_id, group)}")
+            lines.append(f"    tier: G{number % 4}")
+            lines.append("    deps:")
+            lines.append(f"      - {dep_rel}")
+    return "\n".join(lines) + "\n"
+
+
+def _write_golden_corpus_catalog(root: Path, text: str) -> None:
+    catalog = root / "prd" / "architecture" / "golden-corpus-catalog.yaml"
+    catalog.parent.mkdir(parents=True, exist_ok=True)
+    catalog.write_text(text, encoding="utf-8")
+    dep = root / "prd" / "architecture" / "evidence-anchor-contract.yaml"
+    dep.write_text("schema_version: law-nexus-fixture-contract/v1\n", encoding="utf-8")
+
+
+def test_golden_corpus_catalog_passes_on_valid_fixture(tmp_path: Path) -> None:
+    _write_golden_corpus_catalog(tmp_path, _golden_corpus_catalog_text())
+    findings = check_golden_corpus_catalog(tmp_path)
+    assert len(findings) == 1
+    finding = findings[0]
+    assert finding.check_id == "golden-corpus-catalog"
+    assert finding.status == "pass"
+    assert finding.severity == "ok"
+    assert finding.rule_id == "golden-corpus-catalog.catalog-ok"
+    assert "case_count=40" in finding.observed
+    assert "id_range=GC-001..GC-040" in finding.observed
+    assert "tiers=[G0,G1,G2,G3]" in finding.observed
+    assert (
+        "coverage=[assertion-bitemporal=8,pending-effects=6,structure-identity=6,"
+        "source-cst=5,references=9,procurement=6]" in finding.observed
+    )
+    assert "dep_paths=1" in finding.observed
+    assert "lifecycle [bounded]; process anti-drift; not product readiness" in finding.observed
+
+
+def test_golden_corpus_catalog_warns_on_missing_catalog(tmp_path: Path) -> None:
+    findings = check_golden_corpus_catalog(tmp_path)
+    assert len(findings) == 1
+    finding = findings[0]
+    assert finding.check_id == "golden-corpus-catalog"
+    assert finding.status == "fail"
+    assert finding.severity == "warn"
+    assert finding.rule_id == "golden-corpus-catalog.catalog-missing"
+    assert "present=false case_count=0" in finding.observed
+
+
+def test_golden_corpus_catalog_warns_on_lifecycle_not_proposed(tmp_path: Path) -> None:
+    _write_golden_corpus_catalog(tmp_path, _golden_corpus_catalog_text(lifecycle='"[bounded]"'))
+    findings = check_golden_corpus_catalog(tmp_path)
+    assert len(findings) == 1
+    finding = findings[0]
+    assert finding.status == "fail"
+    assert finding.severity == "warn"
+    assert finding.rule_id == "golden-corpus-catalog.catalog-drift"
+    assert "lifecycle-not-proposed" in finding.observed
+
+
+def test_golden_corpus_catalog_warns_on_duplicate_id(tmp_path: Path) -> None:
+    _write_golden_corpus_catalog(
+        tmp_path, _golden_corpus_catalog_text(id_rewrites={"GC-002": "GC-001"})
+    )
+    findings = check_golden_corpus_catalog(tmp_path)
+    assert len(findings) == 1
+    finding = findings[0]
+    assert finding.status == "fail"
+    assert finding.severity == "warn"
+    assert "duplicate-id=GC-001" in finding.observed
+    assert "id-sequence-drift" in finding.observed
+
+
+def test_golden_corpus_catalog_warns_on_coverage_drift(tmp_path: Path) -> None:
+    # Declared coverage block drifts from the review-26 section 10 canon.
+    _write_golden_corpus_catalog(
+        tmp_path, _golden_corpus_catalog_text(coverage_count_overrides={"assertion-bitemporal": 7})
+    )
+    findings = check_golden_corpus_catalog(tmp_path)
+    assert len(findings) == 1
+    assert findings[0].status == "fail"
+    assert findings[0].severity == "warn"
+    assert "declared-coverage-drift" in findings[0].observed
+    # Actual per-group case counts drift too: GC-001 moves to procurement.
+    _write_golden_corpus_catalog(
+        tmp_path, _golden_corpus_catalog_text(group_rewrites={"GC-001": "procurement"})
+    )
+    findings = check_golden_corpus_catalog(tmp_path)
+    assert len(findings) == 1
+    finding = findings[0]
+    assert finding.status == "fail"
+    assert finding.severity == "warn"
+    assert "coverage-drift=assertion-bitemporal:expected=8:got=7" in finding.observed
+    assert "coverage-drift=procurement:expected=6:got=7" in finding.observed
+
+
+def test_golden_corpus_catalog_warns_on_missing_dep_file(tmp_path: Path) -> None:
+    _write_golden_corpus_catalog(
+        tmp_path,
+        _golden_corpus_catalog_text(dep_rel="prd/architecture/missing-companion.yaml"),
+    )
+    findings = check_golden_corpus_catalog(tmp_path)
+    assert len(findings) == 1
+    finding = findings[0]
+    assert finding.status == "fail"
+    assert finding.severity == "warn"
+    assert "missing-dep=GC-001:prd/architecture/missing-companion.yaml" in finding.observed
+
+
+def test_golden_corpus_catalog_check_spec_is_docs_deterministic_warn() -> None:
+    matches = [item for item in GOVERNOR_CHECK_SPECS if item.check_id == "golden-corpus-catalog"]
+    assert len(matches) == 1
+    spec = matches[0]
+    assert spec.group == "docs"
+    assert spec.kind == "deterministic"
+    assert spec.default_severity == "warn"
+    assert "prd/architecture/golden-corpus-catalog.yaml" in spec.authority_inputs
+    assert "doc/review/review-26-23-08-2026.md" in spec.authority_inputs
+    assert not any("*" in path for path in spec.authority_inputs)
+
+
+def test_live_governor_passes_golden_corpus_catalog() -> None:
+    report = run_governor(ROOT)
+    by_id = {item.check_id: item for item in report.findings}
+    assert "golden-corpus-catalog" in by_id
+    finding = by_id["golden-corpus-catalog"]
+    # Review-26 section 10 canon: forty design-only cases, closed G0-G3 tiers,
+    # coverage 8/6/6/5/9/6 and deps naming the eight companion contracts.
+    assert finding.status == "pass"
+    assert finding.severity == "ok"
+    assert finding.rule_id == "golden-corpus-catalog.catalog-ok"
+    assert "case_count=40" in finding.observed
+    assert "id_range=GC-001..GC-040" in finding.observed
+    assert (
+        "coverage=[assertion-bitemporal=8,pending-effects=6,structure-identity=6,"
+        "source-cst=5,references=9,procurement=6]" in finding.observed
+    )
+    assert "dep_paths=8" in finding.observed
     assert report.error_count == 0
     assert report.status == "ok"
 
