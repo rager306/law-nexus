@@ -1,6 +1,6 @@
 {
   "schema_version": "law-nexus-project-state-roadmap/v2",
-  "generated_at": "2026-08-26T16:43:00Z",
+  "generated_at": "2026-08-26T17:45:00Z",
   "non_authoritative": true,
   "source_of_truth": "prd/ARCHITECTURE.md (living truth oracle) and doc/adr/** (decision/lifecycle authority). This file is a non-authoritative cold-reader projection; local .gsd/** is workflow state only.",
   "completed_milestone_groups": [
@@ -474,10 +474,10 @@
     "goal": "Close the post-M183 honesty/process debt as a docs-only wave: track assessment/19 as the L1-L7 plus cross-act debt map, sync roadmap.json current_milestone to M183/complete (MEM932), remove the TSG-015 18-paper-cases drift (19 TL-GC vs 40 GC counted separately), name the 484-FZ unexecuted edge / R070 / G1-blocker leftover, GitNexus reindex and CHANGELOG. No GC execution, no Rust types, no ConflictResolver, no push."
   },
   "recommended_next": {
-    "title": "After M183 catalog and M184 honesty sync: do not execute G1 until official corpus fixtures exist; 484-FZ C1 edge is acquired but not executed; R070 edition-delta provenance remains open. Human-gated product fork stays G2 corpus vs P2 resolver after G1.",
+    "title": "After M185 census+pin+env-sweep: do not replace Class A in this wave; first functional wave M186+ = durable adapters for CID-A / 484-FZ C1 edge on acquired source; G1 remains blocked without official corpus; R070 open; G2 vs P2 human-gated.",
     "priority": 1,
-    "why": "M183-t5u1dg landed the review-26 section 10 golden-corpus catalog as YAML-as-data (40 GC cases, closed tiers G0-G3, group coverage 8/6/6/5/9/6, D222 pin suite) and the TL-GC01-19 map. M184-0k3xqb is the honesty/process wave: assessment/19 debt map, roadmap.json current_milestone status complete (MEM932), TSG-015 counts 19 TL-GC paper oracles and 40 GC catalog rows separately. Catalog does not execute cases and mints no Rust types. G1 (GC-021/022) is blocked without tracked official artifacts. C1 constructor proof covers 138-FZ and 333-FZ only; 484-FZ edge is not executed. R070 amending-act provenance for edition deltas remains open. TSG-012/007 unclosed. ConflictResolver is out of this wave (ADR-0019 S0). Upstream run-uat defect: open-gsd/gsd-pi#1993; Verify-prose classifier: open-gsd/gsd-pi#1994 (still on v1.16.2).",
-    "plan_reference": "assessment/19-temporal-model-and-cross-act-progress.md + prd/architecture/golden-corpus-catalog.yaml + doc/review/review-26-23-08-2026.md section 10",
+    "why": "M185-wuj4zf landed its honesty front on main as separate commits: S01 pinned the TSG-015 counter with an executable detector in tests/test_temporal_model_contract.py (19 TL-GC + 40 GC counted separately; D279), S02 tracked the stub/fake/hardcode census register (assessment/21-stub-fake-hardcode-census.md; inventory-only), S03 moved CONSULTANT_EXPORT_DIR to one fail-closed config entry (harness corpus_export_dir() + 7 Rust seed helpers; empty-as-unset; D282). Leftover: Class A durable replacements owned by M186+ (25 open CID-A), the narrow 484-FZ amends constructor on the acquired source, G1 (GC-021/022) is blocked without tracked official artifacts, R070 edition-delta provenance remains open; then G2 corpus vs P2 resolver human-gated. TSG-012/007 unclosed. ConflictResolver out of this wave (ADR-0019 S0); no Rust types minted; S04 honesty-only, no new check_id (D272); governor inventory stays 41 specs / live pass_count=67 / warn_count=0 (observed values per MEM1143). Upstream run-uat defect: open-gsd/gsd-pi#1993; Verify-prose classifier: open-gsd/gsd-pi#1994 (still on v1.16.2).",
+    "plan_reference": "assessment/19-temporal-model-and-cross-act-progress.md + assessment/20-standing-execution-directive.md + assessment/21-stub-fake-hardcode-census.md + prd/architecture/golden-corpus-catalog.yaml + doc/review/review-26-23-08-2026.md section 10",
     "slices": "Landed design-only (M183-t5u1dg): prd/architecture/golden-corpus-catalog.yaml (40 cases, G0-G3, group coverage 8/6/6/5/9/6) with D222 pin suite; TL-GC reconciliation map in prd/temporal-legal-model.md section 11; advisory governor check golden-corpus-catalog. Prior P1 companions remain: operation-registry.yaml, reference-binding-contract.yaml, pending-effects-contract.yaml, force-interval-set-contract.yaml, scope-aware-completeness-contract.yaml, merkle-roots-contract.yaml, assertion-lifecycle-contract.yaml, evidence-anchor-contract.yaml.",
     "product_next": "Honesty leftover first (this wave). Then human-gated: official-corpus G1 or the narrow 484-FZ amends constructor — not both and not ConflictResolver. Then G2 references xor P2 Mention/Binding. Applicable and RuVector remain deferred.",
     "non_validation": "GSD completion of M183/M184 is process/registry truth only; not product readiness, legal correctness, case execution, ConflictResolver, ontology runtime validation, or ADR lifecycle promotion."
@@ -673,6 +673,11 @@
       "id": "roadmap-m184-complete-mem932",
       "lifecycle": "proposed",
       "text": "M184-0k3xqb completed in GSD (2026-08-26): docs-only honesty wave closing the post-M183 process debt (assessment/19 tracked debt map, roadmap.json M183/complete sync, TSG-015 counter honesty 19 TL-GC + 40 GC, paired leftover, GitNexus reindex). JSON current_milestone synced from M183 to M184 complete (MEM932). Standing execution directive recorded as assessment/20 (M185 debt+census, M186+ 484-FZ narrow C1 edge direction; G1 stays blocked without official corpus). GSD completion is not product readiness; no Rust types, no case execution, no ConflictResolver, no push."
+    },
+    {
+      "id": "roadmap-sync-20260826-m185-s01s03-front",
+      "lifecycle": "proposed",
+      "text": "Sync (2026-08-26): M185-wuj4zf S01-S03 landed on main as separate commits (S01 TSG-015 executable detector pin, D279; S02 census register assessment/21-stub-fake-hardcode-census.md; S03 CONSULTANT_EXPORT_DIR fail-closed helper + seven Rust seed readers, D282). Leftover: M186+ Class A durable adapters (25 CID-A) + narrow 484-FZ C1 constructor + G1 blocked without official corpus + R070 open + G2-vs-P2 human-gated. Honesty-only wave: no GC execution, no Rust types, no new check_id (D272); current_milestone stays M184-0k3xqb complete while M185 remains active (accepted set: latest completed 184, active 185)."
     }
   ]
 }

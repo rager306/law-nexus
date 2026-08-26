@@ -2,6 +2,25 @@
 
 ## [Unreleased]
 
+### M185-wuj4zf Docs (governor pin TSG-015, stub/fake/hardcode census, env-sweep)
+
+- S01 executable TSG-015 detector in `tests/test_temporal_model_contract.py`:
+  19 TL-GC + 40 GC counted separately; in-memory 18 paper cases red; D279;
+  no new check_id.
+- S02 tracked census `assessment/21-stub-fake-hardcode-census.md`: Class A 25
+  open owner M186+; B accepted-exception/ADR-gated; C zero fake-claims; D two
+  env rows. Inventory-only, no functional replacement.
+- S03 `CONSULTANT_EXPORT_DIR` single config entry — harness
+  `corpus_export_dir()` + 7 Rust seed helpers, fail-closed default
+  `consru_export`, empty-as-unset, `.env.example` consumers = tests + harness
+  (D282). No dotenv, no product CLI wiring, no new keys.
+- S04 honesty sync + session retrospective; leftover M186+ Class A durable
+  adapters (25 CID-A); G1 blocked without official corpus; 484-FZ C1 acquired,
+  not executed; R070 open; G2-vs-P2 human-gated. Explicit non-goals: no GC
+  execution, no Rust types under `[proposed]`, no ConflictResolver, no push.
+  Governor inventory stays 41 specs / live pass_count=67 / warn_count=0
+  (observed values, not a minted literal test).
+
 ### Docs (standing execution directive adopted after M184)
 
 - `assessment/20-standing-execution-directive.md`: user directive recorded —

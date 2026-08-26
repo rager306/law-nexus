@@ -36,11 +36,14 @@ falkordb=historical-only
   m184-validation-battery-20260826.json with four verification classes,
   governor 67/0, pytest 712p/4s). Previous M183-t5u1dg landed the golden-corpus
   catalog (four tiers G0-G3, D222 pin suite, TL-GC01-19 map) design-only.
-  Standing execution directive recorded as assessment/20: M185 debt+census,
-  then M186+ first functional wave (484-FZ narrow C1 edge direction). G1
-  (GC-021/022) is blocked without tracked official corpus fixtures; 484-FZ C1
-  amends edge is acquired but not executed; R070 edition-delta provenance is
-  open; then G2 corpus vs P2 Rust resolver. Do not mint ConflictResolver or
+  Standing execution directive recorded as assessment/20. M185-wuj4zf S01-S03
+  landed on main as separate commits (S01 TSG-015 executable detector pin,
+  D279; S02 census register assessment/21; S03 env-sweep CONSULTANT_EXPORT_DIR
+  fail-closed helper, D282); remaining = M186+ Class A durable adapters (25
+  CID-A) and the 484-FZ narrow C1 constructor on the acquired source, plus the
+  paired gates below. G1 (GC-021/022) is blocked without tracked official
+  corpus fixtures; 484-FZ C1 amends edge is acquired but not executed;
+  R070 edition-delta provenance is open; then G2 corpus vs P2 Rust resolver. Do not mint ConflictResolver or
   catalog enums ahead of their waves. Upstream run-uat persistence defect
   filed as open-gsd/gsd-pi#1993. GSD completion is not product readiness.
 - **GSD dual-truth M167:** **resolved** — M167 complete via authorized skip waivers + validation (D154 option C). Historical note in `gsd-review-bridge.md`. Not Applicable; TSG-005/006 still open.
