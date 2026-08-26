@@ -689,6 +689,82 @@ def test_corpus_grounding_skips_without_corpus(tmp_path: Path, monkeypatch) -> N
     assert "skipped" in findings[0].observed
 
 
+def test_corpus_grounding_honors_export_dir_override(tmp_path: Path, monkeypatch) -> None:
+    arch = tmp_path / "prd" / "architecture"
+    arch.mkdir(parents=True)
+    (arch / "kb-hierarchy-registry.yaml").write_text(
+        "# fixture registry\n"
+        "bindings:\n"
+        '  - {path_needle: law_2013-04-05_44-fz, level: glava, number: "1", cc: cc:44-fz:glava-1}\n'
+        '  - {path_needle: n-44-fz, level: statya, number: "31", cc: cc:44-fz:statya-31}\n',
+        encoding="utf-8",
+    )
+    edition = tmp_path / "alt_export" / "consru_export" / "exports" / "npa" / "law_2013-04-05_44-fz"
+    edition.mkdir(parents=True)
+    (edition / "edition-0118_rev-2025-12-28_from-2026-07-01_6d1ba238.xml").write_text(
+        "<doc/>", encoding="utf-8"
+    )
+    # Relative dir name on purpose: the probe must join <root>/<export_dir>/...
+    # from the env value itself, not an absolute override path.
+    monkeypatch.setenv("CONSULTANT_EXPORT_DIR", "alt_export")
+    from law_nexus_harness.governor import check_corpus_grounding
+
+    findings = check_corpus_grounding(tmp_path)
+    assert findings[0].status == "pass"
+    assert findings[0].severity == "ok"
+    assert "grounded=1" in findings[0].observed
+    assert "ungrounded=1" in findings[0].observed
+    assert "skipped" not in findings[0].observed
+
+
+def test_corpus_grounding_empty_env_uses_default(tmp_path: Path, monkeypatch) -> None:
+    arch = tmp_path / "prd" / "architecture"
+    arch.mkdir(parents=True)
+    (arch / "kb-hierarchy-registry.yaml").write_text(
+        "bindings:\n"
+        '  - {path_needle: n-44-fz, level: statya, number: "31", cc: cc:44-fz:statya-31}\n',
+        encoding="utf-8",
+    )
+    # Empty string must behave exactly like unset (fail-closed default), not
+    # collapse into a broken <root>//consru_export path.
+    monkeypatch.setenv("CONSULTANT_EXPORT_DIR", "")
+    from law_nexus_harness.governor import check_corpus_grounding
+
+    findings = check_corpus_grounding(tmp_path)
+    assert findings[0].status == "pass"
+    assert "skipped" in findings[0].observed
+
+
+def test_corpus_grounding_whitespace_env_uses_default(tmp_path: Path, monkeypatch) -> None:
+    arch = tmp_path / "prd" / "architecture"
+    arch.mkdir(parents=True)
+    (arch / "kb-hierarchy-registry.yaml").write_text(
+        "bindings:\n"
+        '  - {path_needle: n-44-fz, level: statya, number: "31", cc: cc:44-fz:statya-31}\n',
+        encoding="utf-8",
+    )
+    # Whitespace-only values follow the same empty-as-unset contract.
+    monkeypatch.setenv("CONSULTANT_EXPORT_DIR", "   ")
+    from law_nexus_harness.governor import check_corpus_grounding
+
+    findings = check_corpus_grounding(tmp_path)
+    assert findings[0].status == "pass"
+    assert "skipped" in findings[0].observed
+
+
+def test_corpus_export_dir_env_states_contract(monkeypatch) -> None:
+    from law_nexus_harness.governor import corpus_export_dir
+
+    monkeypatch.delenv("CONSULTANT_EXPORT_DIR", raising=False)
+    assert corpus_export_dir() == "consru_export"
+    monkeypatch.setenv("CONSULTANT_EXPORT_DIR", "")
+    assert corpus_export_dir() == "consru_export"
+    monkeypatch.setenv("CONSULTANT_EXPORT_DIR", "   ")
+    assert corpus_export_dir() == "consru_export"
+    monkeypatch.setenv("CONSULTANT_EXPORT_DIR", "alt_export")
+    assert corpus_export_dir() == "alt_export"
+
+
 _VALID_DOCUMENT_GROUPS_YAML = (
     "schema_version: law-nexus-kb-ontology/v1\n"
     "authoritative: false\n"

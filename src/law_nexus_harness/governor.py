@@ -1217,6 +1217,21 @@ _CORPUS_GROUNDING_REGISTRY_REL = Path("prd/architecture/kb-hierarchy-registry.ya
 _CORPUS_GROUNDING_ENV = "CONSULTANT_EXPORT_DIR"
 _CORPUS_GROUNDING_NEEDLE_RE = re.compile(r"path_needle:\s*([^\s,}]+)")
 _CORPUS_GROUNDING_DEFAULT_EXPORT = "consru_export"
+
+
+def corpus_export_dir() -> str:
+    """Resolve the corpus export dir from CONSULTANT_EXPORT_DIR.
+
+    Empty or whitespace-only values count as unset so a malformed env entry
+    cannot degrade the ``<root>/<export_dir>/consru_export`` path join; unset
+    falls back to the fail-closed default ``consru_export``.
+    """
+    raw = os.environ.get(_CORPUS_GROUNDING_ENV)
+    if raw is None or raw.strip() == "":
+        return _CORPUS_GROUNDING_DEFAULT_EXPORT
+    return raw
+
+
 _DOCUMENT_GROUP_VERSION_RE = re.compile(r"^fnv1a64-[0-9a-f]{16}$")
 _DOCUMENT_GROUP_NEEDLE_FIELDS = {"kind", "type", "path"}
 _DOCUMENT_GROUP_SUFFIXES = {".", ")"}
@@ -1972,7 +1987,7 @@ def check_corpus_grounding(root: Path) -> list[GovernorFinding]:
     # they must also ground on real corpus paths (advisory).
     group_needles = _document_groups_path_needles(root)
 
-    export_dir = os.environ.get(_CORPUS_GROUNDING_ENV, _CORPUS_GROUNDING_DEFAULT_EXPORT)
+    export_dir = corpus_export_dir()
     exports_root = root / export_dir / "consru_export" / "exports"
     if not exports_root.is_dir():
         return [
