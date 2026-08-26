@@ -4,6 +4,7 @@
 **Предыдущий в серии:** `assessment/08-known-defects.md` (DOC-01..DOC-10); дисциплина заголовка и disposition protocol унаследованы
 **Census HEAD:** `c46ef0e872ff6f4c84630a97e557ddcc27c1b8e8` (branch `main`, dirty 0)
 **Дата фиксации:** 2026-08-26 (M185-wuj4zf / S02 / T01)
+**Проверка ревизии (T02):** слой L2 измерен на HEAD `834f77184e2b37dd92f7994b0dd14f2aa49c4deb` (dirty 0); `git diff --stat c46ef0e872ff6f4c84630a97e557ddcc27c1b8e8..HEAD -- crates src/law_nexus_harness` пуст — продуктовое дерево между ревизиями идентично, смешения замеров L1 (c46ef0e) и L2 (834f771) нет.
 **Область обследования:** продуктовый Rust `crates/*/src/**/*.rs` (исключая `crates/ln-testkit/**` и любые `**/tests/**`) плюс тонкий harness `src/law_nexus_harness/**` только как источник probes. Vault-каталоги (`python_archive/`, `.lex/`, `Old_project/`, `prd/archive/`, `archive/`) — вне поиска и вне таблиц: vaults не являются product truth.
 Счётчики исследовательской фазы ранних проходов каноном не считаются; все числа ниже воспроизводятся командами против Census HEAD (см. §L1 marker layer).
 
@@ -19,8 +20,8 @@
 Классы находок:
 
 - **A (`bounded-adapter`)** — port-имплементация на продуктовом пути с детерминированно упрощённым поведением, явной границей `[bounded]`/ADR и (при наличии) port-contract тестом;
-- **B (`fail-closed stub`)** — заглушка, безопасно отказывающая без притязаний на семантику (заполняется в T02);
-- **C (`fake-claiming-function`)** — функция, декларирующая больше, чем делает (заполняется в T02);
+- **B (`fail-closed stub`)** — заглушка, безопасно отказывающая без притязаний на семантику (заполнено в T02);
+- **C (`fake-claiming-function`)** — функция, декларирующая больше, чем делает (заполнено в T02: 0 строк, CID-C-ZERO);
 - **D (`hardcode-env-candidate`)** — зашитые настройки/значения, кандидаты на вынос в `.env` с зеркалом в `.env.example` (S03).
 
 Lifecycle-метки CID: `open`, `addressed-in-draft`, `verified-closed`, `accepted-exception`, `superseded`.
@@ -47,7 +48,13 @@ Lifecycle-метки CID: `open`, `addressed-in-draft`, `verified-closed`, `acce
 | todo-macro | `rg -n 'todo!\s*\(' crates -g '**/src/**/*.rs' -g '!ln-testkit/**' -g '!**/tests/**'` | 0 |
 | unimplemented-macro | `rg -n 'unimplemented!\s*\(' crates -g '**/src/**/*.rs' -g '!ln-testkit/**' -g '!**/tests/**'` | 0 |
 
-Четвёртая альтернатива губернатора (`panic!("not implemented"-семейство)`) входит в тот же probe; отдельный замер в этой задаче не был зафиксирован как proof-grade артефакт и подлежит повтору в T02 вместе с layer-L2.
+Четвёртая альтернатива губернатора (`panic!("not implemented"`-семейство), повтор в T02):
+
+| Срез | Команда | Результат |
+|---|---|---|
+| panic-family | `rg -n -i -e 'panic!\("[^"]*(not implemented\|unimplemented\|todo)' crates -g '**/src/**/*.rs' -g '!ln-testkit/**'` | 0 |
+
+Слой L2 (семантика) исполнен в T02: класс C = 0 строк (`CID-C-ZERO`, §Class C); каждое попадание L2-игл разобрано в ±10-строчном окне и либо поднято в класс B, либо снято в §Dropped hits.
 
 Интерпретация: ноль анкерных маркеров подтверждает чистоту продуктового кода на лексическом слое. Это НЕ доказательство отсутствия semantic-equivalent заглушек — за этим слой L2 (семантика, T02) и GitNexus-слой (T03). См. §Residual blind spot (MEM679).
 
@@ -91,11 +98,34 @@ Schema таблицы едина для всех классов и послед�
 
 ## Class B — fail-closed stubs
 
-Заполняется в T02 (слой L2: семантика). Placeholder, пусто.
+Слой L2 ложных заглушек не нашёл: игла присвоений score/similarity/relevance := 0.0/1.0 дала 0 попаданий (§Class C), литеральные константные векторы живут только в комментариях исторических замен (DH-05). Строки ниже — документированные fail-closed границы; номера сняты с диска на HEAD `834f77184e2b37dd92f7994b0dd14f2aa49c4deb` (продуктовое дерево = Census HEAD):
+
+| CID | Class | Path:line | Symbol | Description (short) | Repro (от корня репо) | Owner wave | Lifecycle | Non-claims |
+|---|---|---|---|---|---|---|---|---|
+| CID-B-01 | B | `crates/ln-applicability/src/domain.rs`:336-337,350 | `AbstentionKind::ProtocolUnimplemented` (+ arm `"protocol_unimplemented"`) | Протокол ADR-0023 принят как design-only, положительные решения v0-оценщиком не производятся (докомментарий `ApplicabilityDecision`:355-356 «must not be produced by the v0 evaluator») — домен отдаёт типизированное воздержание вместо фиктивного решения. Паттерн-оракул семейства design-only: `crates/ln-temporal/tests/event_kind_boundary.rs`:19 `both_kinds_are_design_only_not_runtime` | `rg -n 'ProtocolUnimplemented' crates/ln-applicability/src/domain.rs` | ADR-gated (R074) — census типы не чеканит | [proposed]/design-only · open | Нет юридической корректности; Applicable/NotApplicable не выдаются; замена — отдельная ADR-волна, не M186-env |
+| CID-B-02 | B | `crates/ln-product-cli/src/main.rs`:550 (+ JSON-поле `retrieval` inspect-println ~530) | `classify_knowql_retrieval` | Остаток MEM1120 закрыт честностью, НЕ fake: count==0 всегда парен со status `ok`/`unavailable`/`unexpected_result`; non_claims inspect-JSON рестейтят «never a silent zero». Четыре пути закреплены тестами `main.rs`:1378,1385,1393,1399 | `rg -n 'fn classify_knowql_retrieval' crates/ln-product-cli/src/main.rs && cargo test -p ln-product-cli --offline classify` | none | accepted-exception · honesty-present · revisit: появление непарного статуса или варианта `KnowQLResult` без теста | retrieval.count детерминированно-несемантичен (хеш-векторы, CID-A-01); ok-hit ≠ качество сходства |
+| CID-B-03 | B | `crates/ln-product-cli/src/main.rs`:586 | `classify_inspect_assembly` | Та же honesty-схема для шести assembly-счётчиков: `no_edition_day`/`unavailable` отличимы от честного `ok` — «never a silent six-zero collapse»; тесты `main.rs`:1407,1422,1429 | `rg -n 'fn classify_inspect_assembly' crates/ln-product-cli/src/main.rs && cargo test -p ln-product-cli --offline classify` | none | accepted-exception · honesty-present · revisit: изменение `InspectAssemblyCounts`/набора статусов | Счётчики — структурные AST-проекции, не юридическая иерархия/CTV |
+
+### hc-runners disposition
+
+`adapter_for` (`crates/ln-hc01-runner/src/main.rs`:13) подставляет InMemory→`InterruptibleSourceAdapter` канарки сценариям [smoke]; hc13 (`crates/ln-hc13-runner/src/main.rs`:123-125) строит `HostileVendorCapacity` c `bound_id: Some(BoundId::parse("bound:fake"))` как намеренно hostile двойника host-contract сценария (run_hostile_vendor_rejects: capacity-притязание отвергается — Rejected/VendorCapacityRejected). Оба — bounded smoke-драйверы с явной schema-честностью вердикта; **классом C не считаются**, остаются агрегированы в `CID-A-RUNNERS`, детализация тестовой инфраструктуры — §Aggregated (T03).
+
+### Owner-wave итог класса B
+
+W1 по классу B пуста: остаток MEM1120 не пережил чтение функции вместе с её тестами — честность парных статусов доказана, поэтому строки оформлены `accepted-exception · honesty-present` c owner-wave `none`, а не открытым дефектом. Единственная open-строка (CID-B-01) волны не получает: applicability-протокол остаётся ADR-gated (R074); чеканка положительных решений возможна только решением ADR, не через census.
 
 ## Class C — fake-claiming functions
 
-Заполняется в T02 (функции, декларирующие больше, чем делают). Placeholder, пусто.
+Слой L2 исполнен на HEAD `834f771` (продуктовое дерево = Census HEAD `c46ef0e`): три семантические иглы плюс повтор panic-family альтернативы губернатора; каждый hit прочитан в ±10-строчном окне и либо поднят в класс B, либо снят в §Dropped hits. Полные stdout-логи прогонов — `.gsd/exec/<job-id>.stdout` сессии T02:
+
+| # | Игла (что ищем) | Команда (от корня репо) | Совпадений → разбор |
+|---|---|---|---|
+| N1 | присвоение score/similarity/relevance := 0.0/1.0 | `rg -n -e '(score\|similarity\|relevance)[A-Za-z_]*[=:]+= ?-?(0\.0\|1\.0)' crates -g '**/src/**/*.rs' -g '!ln-testkit/**'` | **0** |
+| N2 | литеральные константные векторы `vec![0.0…`/`vec![0.5…` | `rg -n -e 'vec!\[0\.0' -e 'vec!\[0\.5' crates -g '**/src/**/*.rs' -g '!ln-testkit/**'` | 3 — только комментарии замен M163 (`main.rs`:198,217,1315) → DH-05 |
+| N3 | фразы not implemented / design only | `rg -n -i -e 'not implemented' -e 'design only' crates -g '**/src/**/*.rs' -g '!ln-testkit/**'` | 4 — маркеры дизайн-границ `ln-applicability/src/domain.rs`:132,237,267,336 → DH-06; :336 поднято в CID-B-01 |
+| N4 | `panic!("not implemented"`-семейство (повтор губернаторской альтернативы) | `rg -n -i -e 'panic!\("[^"]*(not implemented\|unimplemented\|todo)' crates -g '**/src/**/*.rs' -g '!ln-testkit/**'` | **0** — см. также §L1 marker layer |
+
+**CID-C-ZERO:** класс C = **0 строк**. Ни одна функция продуктового src не молча возвращает константу либо вырожденный алгоритм при имени/доке, обещающих реальную работу: константные возвраты, найденные чтением, являются документированными fail-closed guard'ами (класс B / Dropped hits) или честными bounded-фикциями класса A. Негативный контроль, обязанный попасть в луч и осознанно снятый: `cosine_similarity` zero-norm → `Ok(0.0)` (`crates/ln-storage/src/similarity.rs`:52-53, DH-04) — показательно, что игла N1 его вообще не анкерит: у возврата нет идентификатора score/similarity/relevance. Это эмпирическое подтверждение MEM679 (§Residual blind spot). Ноль — **pass с evidence** (команды выше, разбор всех попаданий, прогон honesty-тестов `cargo test -p ln-product-cli --offline classify`), не skip: L1+L2 исполнены, класс D/env и GitNexus-слой остаются за S03/T03.
 
 ## Class D — hardcode/env candidates
 
@@ -116,10 +146,20 @@ Lexical echoes и добросовестные случаи, сознатель�
 - **DH-01** `crates/ln-product-cli/src/main.rs`:76,198,216,268,1315 — исторические комментарии замен M161/M163 («replaces the prior hardcoded vec![…]», «any act-specific hardcode» guard). Под анкерный паттерн губернатора не попадают; классом D не считаются (решение об env-выносе принимает S03 независимо от этих комментариев).
 - **DH-02** `StubTransport` — три определения, все в тестовых файлах (см. §Aggregated: test-infra-bounded); продуктового кода не касается.
 - **DH-03** Hostile/synthetic двойки внутри продуктовых src (`HostileLabelMutatorLedger`, `HostileMirrorRelabeler`, `HostileVerdictInflator`, `HostileCanarySink`, `InPlaceMutatingHostileStore`, `ErasingMergerHostileStore`, `HostileGapInventorState`, `OpenRelationHostileRegistry`, `HostileDualWriterLedger`, `HostileDuplicateEffectLedger`, `SubstitutingHostileEvidence`, `HonestSyntheticDecoder`, `MaliciousSyntheticDecoder`) — осознанные HC host-contract fixtures («preserved for HC hostile contract tests»); лексически чистые, вне объёма п.7 данной задачи (scope = `struct InMemory*`). Их судьба при смене контрактной стратегии HC рассматривается отдельно, здесь CID не назначается.
+- **DH-04** `crates/ln-storage/src/similarity.rs`:52-53 — `return Ok(0.0)` при zero-norm любой из сторон (guard над константой `ZERO_NORM_EPSILON`:13) — документированный fail-closed отказ вырожденного входа с юнит-pin'ами в соседнем `#[cfg(test)]`, а не фиктивная функция; сам cosine-расчёт ранжирования — живая замена M161 (CID-A-02). Обязательный негативный контроль слоя L2 снят здесь (см. CID-C-ZERO); показательно, что идентификатор-игла N1 этот возврат не видит.
+- **DH-05** `crates/ln-product-cli/src/main.rs`:198,217,1315 — комментарии исторических замен M163 («replaces the prior hardcoded vec![0.5; …]»): живых конструкций `vec![0.5; n]` в src нет — это эхо замен, добирающее DH-01 по результатам L2-иглы N2.
+- **DH-06** `crates/ln-applicability/src/domain.rs`:132,237,267 — фразы «design only» в докомментариях типов NormRule IR (temporal window, defeater, structural marker): честные маркеры дизайн-границ, runtime-поведения не претендуют; четвёртое совпадение той же иглы (:336) поднято в CID-B-01. Совпадений иглы N3 вне этого файла нет.
 
 ## Residual blind spot (MEM679)
 
-Placeholder к заполнению в T02/T03: semantic-equivalent заглушки без лексических маркеров; охват harness-Python; внешние бинарники/библиотеки; зоны, недоступные текущим слоям L1/L2/GitNexus.
+T02 закрыл lexical (L1) и identifier-anchored semantic (L2) слои, но каскады тихих констант вне имён score/similarity/relevance остаются вне луча:
+
+- **semantic-equivalent без якоря имени** — функция, все ветви которой возвращают один литерал при любом входе, без слов stub/fake/design-only рядом (пример-контроль T02: `similarity.rs`:53 `Ok(0.0)` для grep-иглы невидим вовсе);
+- **вырожденные алгоритмы** — формально «настоящая» реализация, деградировавшая до identity/clamp/первого элемента при обещанной статистике;
+- **охват harness-Python** (`src/law_nexus_harness/**`) — вне L2-среза этой задачи;
+- **внешние бинарники/FFI/библиотеки** — значения за границей репозитория недостижимы для grep/GitNexus.
+
+GitNexus-слой (T03) видит типы и call-graph, но не вырожденность значений — это общая граница всех трёх слоёв. Предложение на последующую волну (здесь не исполняется, решение D272): усилить `check_semantic_stub_in_product_code` детекторами degenerate-return («все ветви возвращают один литерал/константный вектор при объявленном score-подобном контракте») и value-independence (результат не зависит от входов) на AST-уровне; новый check_id вводится только governor-волной, census фиксирует потребность.
 
 ## Non-claims (уровень документа)
 
