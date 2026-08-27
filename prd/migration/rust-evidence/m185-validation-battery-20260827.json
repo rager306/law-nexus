@@ -1,0 +1,158 @@
+{
+  "schema_version": "law-nexus/milestone-validation-battery/v1",
+  "milestone": "M185-wuj4zf",
+  "generated_at": "2026-08-27T03:20:00Z",
+  "tested_source_revision": "sha256:e22879b6cfc66b53310d767c3ff264e7aea305ff322401fa8dadedc70e67e9cb",
+  "tested_source_revision_role": "GSD verification-source aggregate snapshot (verification-source-integrity.js) captured on clean tree at git HEAD 2f2e6344c83528844036646ed0c49929f0da4161; this battery file is a post-validation durable carrier in the 9d72884 precedent and was not part of that snapshot",
+  "working_directory": "/root/law-nexus",
+  "environment": {
+    "runner": "pi interactive parent session (validate-milestone)",
+    "python": "uv-managed CPython (uv run)",
+    "cargo": "offline workspace",
+    "git_state": "clean tree at 2f2e634, ahead origin/main, not pushed",
+    "gitnexus": "repo law-nexus, index fresh vs wave commits (parse-cache mtime 2026-08-27T05:34:54+07)"
+  },
+  "non_claims": [
+    "Docs/process+harness wave: no GC-001..040 execution, no Rust product types under [proposed], no ConflictResolver, no push",
+    "Census is inventory-only: Class A stub replacements are owned by M186+, not delivered here",
+    "Battery is process/verification evidence, not product readiness"
+  ],
+  "checks": [
+    {
+      "check_id": "contract-tsg015-pin-pytest",
+      "verification_class": "Contract",
+      "evidence_class": "command",
+      "command": "uv run python -m pytest tests/test_temporal_model_contract.py tests/test_project_state_roadmap_freshness.py -q --tb=no",
+      "exit_code": 0,
+      "observation": "passed",
+      "started_at": "2026-08-27T03:20:59Z",
+      "ended_at": "2026-08-27T03:21:00Z",
+      "duration_ms": 938,
+      "stdout_tail": "11 passed in 0.23s",
+      "source_ref": ".gsd/exec/dbcadf2f-4dc6-4659-bfb2-eacf7c3640dd.stdout"
+    },
+    {
+      "check_id": "contract-env-sweep-pin",
+      "verification_class": "Contract",
+      "evidence_class": "command",
+      "command": "uv run python -m pytest tests/test_harness_governor.py -k 'corpus_grounding or env_example_documents' -q --tb=no; then inventory len(GOVERNOR_CHECK_SPECS)",
+      "exit_code": 0,
+      "observation": "passed",
+      "started_at": "2026-08-27T03:22:17Z",
+      "ended_at": "2026-08-27T03:22:19Z",
+      "duration_ms": 1427,
+      "stdout_tail": "9 passed, 166 deselected in 0.50s; SPEC_COUNT 41",
+      "source_ref": ".gsd/exec/1f5a0bc6-6f8f-4cb5-801c-96cf4b52e8f6.stdout"
+    },
+    {
+      "check_id": "integration-five-surface-sync",
+      "verification_class": "Integration",
+      "evidence_class": "command",
+      "command": "python3 five-surface assert: register TSG-015 row (19 TL-GC paper oracles + 40 GC catalog rows, no in-row '18 paper cases') / temporal-legal-model §11.1 formula / golden-corpus-catalog GC-001..040 / CHANGELOG M185 heading x1 / assessment/21 CID-D verified-closed @50e960e with Class A open / roadmap.json current=M184-0k3xqb complete without M185-M185 group / .env.example CONSULTANT_EXPORT_DIR present",
+      "exit_code": 0,
+      "observation": "passed",
+      "started_at": "2026-08-27T03:22:17Z",
+      "ended_at": "2026-08-27T03:22:17Z",
+      "duration_ms": 112,
+      "stdout_tail": "catalog_uniq_gc 40 first 001 last 040; ERRORS NONE; changelog_heading ### M185-wuj4zf Docs (...)",
+      "source_ref": ".gsd/exec/10af3576-5688-4159-96ae-b8de8f27e0f4.stdout"
+    },
+    {
+      "check_id": "operational-governor",
+      "verification_class": "Operational",
+      "evidence_class": "command",
+      "command": "uv run python -m law_nexus_harness governor",
+      "exit_code": 0,
+      "observation": "passed",
+      "started_at": "2026-08-27T03:16:53Z",
+      "ended_at": "2026-08-27T03:16:57Z",
+      "duration_ms": 4500,
+      "stdout_tail": "schema law-nexus-governor-report/v1; status ok; pass_count 67; warn_count 0; tool_error_count 0",
+      "source_ref": ".gsd/exec/m185-live-governor.json"
+    },
+    {
+      "check_id": "operational-preflight",
+      "verification_class": "Operational",
+      "evidence_class": "command",
+      "command": "uv run python -m law_nexus_harness preflight",
+      "exit_code": 0,
+      "observation": "passed",
+      "started_at": "2026-08-27T03:16:53Z",
+      "ended_at": "2026-08-27T03:16:58Z",
+      "duration_ms": 5500,
+      "stdout_tail": "law-nexus-preflight-report/v1 status ok pass_count 8 error_count 0 warn_count 0; gitnexus-index-freshness pass (metadata matches HEAD and working tree is clean)",
+      "source_ref": ".gsd/exec/m185-live-preflight.json"
+    },
+    {
+      "check_id": "operational-pytest-full",
+      "verification_class": "Operational",
+      "evidence_class": "command",
+      "command": "uv run python -m pytest tests/ -q --tb=no (async_bash bg_d7d6650b due to gsd_exec 30s cap, D287)",
+      "exit_code": 0,
+      "observation": "passed",
+      "started_at": "2026-08-27T03:16:53Z",
+      "ended_at": "2026-08-27T03:18:27Z",
+      "duration_ms": 94000,
+      "stdout_tail": "721 passed, 4 skipped in 92.77s",
+      "source_ref": ".gsd/exec/m185-live-pytest.txt"
+    },
+    {
+      "check_id": "operational-cargo-fmt",
+      "verification_class": "Operational",
+      "evidence_class": "command",
+      "command": "cargo fmt --all --check",
+      "exit_code": 0,
+      "observation": "passed",
+      "started_at": "2026-08-27T03:20:34Z",
+      "ended_at": "2026-08-27T03:20:35Z",
+      "duration_ms": 947,
+      "stdout_tail": "(no formatting differences)",
+      "source_ref": ".gsd/exec/9a866007-840e-41fb-91b9-a8bfb26eb243.stdout"
+    },
+    {
+      "check_id": "operational-cargo-check",
+      "verification_class": "Operational",
+      "evidence_class": "command",
+      "command": "cargo check --workspace --offline",
+      "exit_code": 0,
+      "observation": "passed",
+      "started_at": "2026-08-27T03:20:34Z",
+      "ended_at": "2026-08-27T03:20:35Z",
+      "duration_ms": 271,
+      "stdout_tail": "Finished `dev` profile [unoptimized + debuginfo] target(s), no warnings/errors",
+      "source_ref": ".gsd/exec/bacca164-0d78-4ff5-a5d4-48e1b0d6c052.stdout"
+    },
+    {
+      "check_id": "operational-adr-conformance",
+      "verification_class": "Operational",
+      "evidence_class": "command",
+      "command": "uv run python scripts/verify-adr-conformance.py",
+      "exit_code": 0,
+      "observation": "passed",
+      "started_at": "2026-08-27T03:22:17Z",
+      "ended_at": "2026-08-27T03:22:17Z",
+      "duration_ms": 244,
+      "stdout_tail": "{\"boundary\": \"Repository architecture claims: targeted lifecycle tags and ADR references.\", \"files_scanned\": 25, \"finding_count\": 0, \"missing_adr_refs\": 0, \"status\": \"ok\", \"untagged_claims\": 0}",
+      "source_ref": ".gsd/exec/9dbe5e21-cc61-42eb-b0b2-6eda56d62734.stdout"
+    },
+    {
+      "check_id": "uat-slice-assessments-pass",
+      "verification_class": "UAT",
+      "evidence_class": "command",
+      "command": "python3 loop: parse ^verdict: frontmatter over .gsd/phases/185-wuj4zf-census-m184-governor-pin-census-env-swee/185-01..04-ASSESSMENT.md (artifact-driven UAT verdict carriers; UAT md files are specs)",
+      "exit_code": 0,
+      "observation": "passed",
+      "started_at": "2026-08-27T03:17:16Z",
+      "ended_at": "2026-08-27T03:17:17Z",
+      "duration_ms": 282,
+      "stdout_tail": "185-01..04-ASSESSMENT verdict PASS (4/4); S01 runtime-executable; CHANGELOG M185 headings count 1",
+      "source_ref": ".gsd/exec/d9caea18-d40b-4300-aaeb-c6725c16cdb2.stdout"
+    }
+  ],
+  "summary": {
+    "total": 10,
+    "passed": 10,
+    "failed": 0
+  },
+  "generated_at_final": "2026-08-27T03:55:00Z"
+}
