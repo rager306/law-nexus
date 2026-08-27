@@ -1,0 +1,74 @@
+# Provenance pin: 484-FZ amending act (M186 S01).
+# Auditable SHA surface for downstream amendment work; NOT legal identity,
+# NOT a membership log, NOT an InForce/Applicable claim.
+#
+# Lifecycle: [bounded]
+# Non-authority: this pin records what was observed in the local
+# ConsultantPlus export (gitignored under consru_export/); it never stages
+# or copies the XML into law-source, and it does not promote any claim to
+# validated product behavior (ADR-0015 / D098).
+
+schema_version: law-nexus-c1-provenance/v1
+lifecycle: "[bounded]"
+authoritative: false
+
+canon:
+  act_number: "484-fz"
+  authority: federal
+  relative_path: consru_export/consru_export/exports/npa/law_2024-12-26_484-fz_rev-unknown_1a599b98.xml
+  bytes: 252478
+  sha256: 67f781dbd6a7d03d6035e6a509c983b17fcc519213c493987cf8f71debc1a37d
+  catalog_edition_id: edition-1a599b983cfa2eadf39276e1
+  catalog_document_id: doc-0a4828dd57fb7fb75f9e3505
+  o_title_present: true
+
+twin_pin_not_canon:
+  relative_path: consru_export/consru_export/exports/npa/law_2024-12-26_484-fz_rev-unknown_49a92fbb.xml
+  bytes: 78972
+  sha256: 8fef4fb938c7ab48adf525efd2a39315898ed9e577396662348125bbfa13fce5
+  catalog_edition_id: edition-49a92fbbfa5b957084db4039
+  note: no <o:Title> element; pinned for audit only, never treated as the C1 canon
+
+identity:
+  path_needle: law_2024-12-26_484-fz
+  enactment_date: "2024-12-26"
+  # rev-unknown: no revision date on disk, so edition_day falls back to the
+  # enactment day. This is a filename-grounding decision, NOT the legal
+  # commencement date (R070 stays named-open; see non_claims).
+  edition_date: "2024-12-26"
+  expected_work_id: work:ru:federal:zakon:2024-12-26:484-fz
+  expected_expression_id: expr:ru:federal:zakon:2024-12-26:484-fz:2024-12-26
+
+c1_classification:
+  role: C1_amending_act
+  basis: title+path
+  title_source: "<o:Title> of the canon XML"
+  # Verbatim prefix of the canon <o:Title> (HTML entities decoded):
+  title_excerpt: >-
+    О внесении изменений в Федеральный закон "О контрактной системе в сфере
+    закупок товаров, работ, услуг для обеспечения государственных и
+    муниципальных нужд" и статьи 5 и 8 Федерального закона "О внесении
+    изменений в отдельные законодательные акты Российской Федерации"
+
+process_inventory_44fz_statya:
+  purpose: >-
+    Process inventory only. These 44-FZ ComponentConcepts are already bound
+    elsewhere in this repository (law_2013-04-05_44-fz bindings in
+    kb-hierarchy-registry.yaml); listed here so S02 knows the intended
+    scope without adding duplicate YAML bindings.
+  statya: ["3", "24.2", "25", "31", "34", "37", "42", "43", "51", "72", "73", "93", "95", "96", "99", "103", "106", "111.4"]
+
+cross_act_candidates:
+  # Like 138-FZ: CC identifiers are parsed directly from the source XML;
+  # deliberately NO YAML binding rows added for 484-FZ here.
+  from_cc_candidate: cc:484-fz:statya-1
+  # Recommendation only; final choice owned by M186 S02.
+  to_cc_candidate_for_s02: cc:44-fz:statya-93
+
+non_claims:
+  - "R070 stays named-open: no named-amendment-graph closure is claimed"
+  - "not a legal commencement claim: the in-force date discussed inside the document text is NOT asserted anywhere in this pin"
+  - "not G1 official-corpus admission: the extraction pipeline and this local export remain outside any official corpus surface"
+  - "no XML copies: the source file stays gitignored; nothing is copied into law-source or staged into git"
+  - "not ConflictResolver semantics: no conflict resolution behavior introduced"
+  - "no new enums: vocabulary unchanged per D216"
