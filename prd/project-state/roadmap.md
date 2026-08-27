@@ -27,7 +27,7 @@ falkordb=historical-only
 - **Completed retrieval-honesty band:** M161–M164 `[bounded]` (real cosine ranking in memory, semantic-stub and historical-test-debt probes, deterministic CLI vectors); no live corpus or citation-safe answers.
 - **Completed documentation alignment:** D5 + documentation D6 / EA-05 accepted with findings at `94d58ea`; roadmap-front-sync and TL-G01–12 coverage PASS.
 - **Documentation/process assessment:** EA-10 complete — human D150 `accepted-with-findings` after independent EA-09 report `120d44b`; post-D150 assessments 13–19 record bounded repository-control/parser-protocol/glossary/semantic-presentation remediation and remaining gaps without successor acceptance, lifecycle promotion or product unlock. Glossary governance now inventories all crosswalk rows and controls coding terminology structurally through the tracked living-oracle read pointer; it does not close TSG-001 or define product semantics.
-- **Local GSD workflow marker:** M184-0k3xqb is the latest completed milestone
+- **Local GSD workflow marker:** M185-wuj4zf is the latest completed milestone
   in GSD registry (docs-only honesty wave: tracked assessment/19 debt map of
   L1-L7 plus cross-act; roadmap.json MEM932 sync to M183/complete; TSG-015 no
   longer claims 18 paper cases — 19 TL-GC paper oracles and 40 GC catalog rows

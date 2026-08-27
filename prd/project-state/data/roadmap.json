@@ -1,6 +1,6 @@
 {
   "schema_version": "law-nexus-project-state-roadmap/v2",
-  "generated_at": "2026-08-26T17:45:00Z",
+  "generated_at": "2026-08-27T03:43:01Z",
   "non_authoritative": true,
   "source_of_truth": "prd/ARCHITECTURE.md (living truth oracle) and doc/adr/** (decision/lifecycle authority). This file is a non-authoritative cold-reader projection; local .gsd/** is workflow state only.",
   "completed_milestone_groups": [
@@ -465,13 +465,19 @@
       "theme": "Post-M183 honesty/process debt closure (docs/process)",
       "status": "complete",
       "boundary": "Docs-only honesty wave: tracked assessment/19 debt map (L1-L7, cross-act, P-01..P-07), roadmap.json MEM932 sync to M183/complete, TSG-015 counter honesty (19 TL-GC paper oracles vs 40 GC catalog rows, companion per MEM940), paired 484-FZ/R070/G1/G2-vs-P2 leftover, validation battery artifact m184-validation-battery-20260826.json (4 verification classes, governor 67/0, pytest 712p/4s). No case execution, no Rust types, no lifecycle promotion, not product readiness."
+    },
+    {
+      "range": "M185-M185",
+      "theme": "Governor pin TSG-015, census заглушек/фейков/хардкода, env-sweep (docs/process)",
+      "status": "complete",
+      "boundary": "Process/harness wave: executable TSG-015 pin in tests/test_temporal_model_contract.py (live-positive 19 TL-GC + 40 GC counted separately, three in-memory drift fixtures red; GOVERNOR_CHECK_SPECS stays 41, D272), tracked census assessment/21-stub-fake-hardcode-census.md (Class A CID-A-01..A-24+RUNNERS open owned by M186+, Class B accepted-exception/ADR-gated, Class C zero fake-claims, CID-D-01/02 verified-closed @50e960e), CONSULTANT_EXPORT_DIR swept onto single documented key with fail-closed default and .env.example parity pin (D282/D283), honesty closeout with living oracles, session retrospective in slice DB SUMMARY (D286), long-pytest routed around gsd_exec 30s cap via async_bash (D287). Validation battery artifact prd/migration/rust-evidence/m185-validation-battery-20260827.json committed 4ba95e0 (pass 10/10, classes Contract/Integration/Operational/UAT). Inventory only: no functional fake replacement, no case execution, no Rust types under [proposed], no ConflictResolver, no lifecycle promotion, not product readiness."
     }
   ],
   "current_milestone": {
-    "id": "M184-0k3xqb",
+    "id": "M185-wuj4zf",
     "status": "complete",
-    "title": "Honesty-долг после M183: процессные разрывы темпоральной модели",
-    "goal": "Close the post-M183 honesty/process debt as a docs-only wave: track assessment/19 as the L1-L7 plus cross-act debt map, sync roadmap.json current_milestone to M183/complete (MEM932), remove the TSG-015 18-paper-cases drift (19 TL-GC vs 40 GC counted separately), name the 484-FZ unexecuted edge / R070 / G1-blocker leftover, GitNexus reindex and CHANGELOG. No GC execution, no Rust types, no ConflictResolver, no push."
+    "title": "Техдолг и census после M184: governor pin TSG-015, census заглушек/фейков/хардкода, env-sweep",
+    "goal": "Close post-M184 process/tech debt as an inventory+harness wave: executable TSG-015 counter pin (19 TL-GC paper oracles + 40 GC catalog rows, counted separately, D279/D272), tracked stub/fake/hardcode census assessment/21 (Class A 25 open -> M186+, B accepted-exception, C zero fake-claims, D env rows), CONSULTANT_EXPORT_DIR configuration-only env sweep (single fail-closed key, D282/D283), honesty closeout (CHANGELOG one M185 block, living leftover, CID-D triad verified-closed @50e960e), validation battery artifact m185-validation-battery-20260827.json (4ba95e0). No GC execution, no Rust types under [proposed], no ConflictResolver, no push."
   },
   "recommended_next": {
     "title": "After M185 census+pin+env-sweep: do not replace Class A in this wave; first functional wave M186+ = durable adapters for CID-A / 484-FZ C1 edge on acquired source; G1 remains blocked without official corpus; R070 open; G2 vs P2 human-gated.",
@@ -678,6 +684,11 @@
       "id": "roadmap-sync-20260826-m185-s01s03-front",
       "lifecycle": "proposed",
       "text": "Sync (2026-08-26): M185-wuj4zf S01-S03 landed on main as separate commits (S01 TSG-015 executable detector pin, D279; S02 census register assessment/21-stub-fake-hardcode-census.md; S03 CONSULTANT_EXPORT_DIR fail-closed helper + seven Rust seed readers, D282). Leftover: M186+ Class A durable adapters (25 CID-A) + narrow 484-FZ C1 constructor + G1 blocked without official corpus + R070 open + G2-vs-P2 human-gated. Honesty-only wave: no GC execution, no Rust types, no new check_id (D272); current_milestone stays M184-0k3xqb complete while M185 remains active (accepted set: latest completed 184, active 185)."
+    },
+    {
+      "id": "roadmap-complete-20260827-m185",
+      "lifecycle": "complete",
+      "text": "M185-wuj4zf complete (2026-08-27): validate pass against GSD source snapshot sha256:f8689f69a7b3173817cbfbf3aff9e6824fffd55947786ff022f3a9992dc7a81e (HEAD 4ba95e0 = wave 2f2e634 + battery artifact); battery evidence committed as prd/migration/rust-evidence/m185-validation-battery-20260827.json (10/10 passed, classes Contract/Integration/Operational/UAT). current_milestone advanced to M185/complete per MEM932 — this bump belongs to complete-milestone (MEM1154). Leftover stays M186+: Class A durable replacements (25 CID-A), 484-FZ C1 acquired-not-executed, G1 blocked without official corpus, R070 edition-delta provenance open, G2-vs-P2 human-gated."
     }
   ]
 }
