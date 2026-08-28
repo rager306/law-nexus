@@ -65,6 +65,24 @@ cross_act_candidates:
   # Recommendation only; final choice owned by M186 S02.
   to_cc_candidate_for_s02: cc:44-fz:statya-93
 
+executed_edge:
+  # M186-b55iey S03: the narrow C1 amends constructor was executed as a
+  # documented three-hop battery composition on the canon above (parser
+  # SHA+hyperlink hop, S02 constructor hop, empty timeline = Unknown hop).
+  # Test: crates/ln-consultant-parser/tests/c1_484_evidence_battery.rs
+  evidence_sha256: 67f781dbd6a7d03d6035e6a509c983b17fcc519213c493987cf8f71debc1a37d
+  evidence_bytes: 252478
+  lifecycle: "[bounded]"
+  kind: amends
+  from_cc: cc:484-fz:statya-1
+  to_cc: cc:44-fz:statya-93
+  expression_id: expr:ru:federal:zakon:2024-12-26:484-fz:2024-12-26
+  note: >-
+    S03 battery composition, not R070: this records the constructor
+    composition proof against the pinned canon SHA; no named-amendment
+    graph, no legal commencement, and the target force status stays
+    Unknown (R070 stays named-open).
+
 non_claims:
   - "R070 stays named-open: no named-amendment-graph closure is claimed"
   - "not a legal commencement claim: the in-force date discussed inside the document text is NOT asserted anywhere in this pin"

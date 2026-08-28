@@ -43,7 +43,7 @@
 |---|---|---|
 | M184 | honesty/process-долг после M183 (P-01..P-05 assessment/19) | ✅ complete (validation pass 2026-08-26) |
 | M185 | Техдолг/процессные остатки post-M184 + census: pin TSG-015 счётчика в существующий governor-чек (D272 exercise-not-expand, §8 assessment/19); census заглушек/фиктивных реализаций/багов/хардкода по всему workspace с классификацией и планом волн; env-sweep (вынос настроек в `.env` по возможности, `.env.example` sync); closeout | landed S01–S03 / S04 closeout |
-| M186+ | Первые функциональные волны по census. Приоритет продукта: **484-ФЗ edge как узкий C1 constructor** на реальном acquired-источнике (§7.2 assessment/19) — единственный исполняемый вариант; G1 (GC-021/022) остаётся заблокированным без tracked official corpus | направление |
+| M186+ | Первые функциональные волны по census. **484-ФЗ edge как узкий C1 constructor**: M186-b55iey S03 executed @SHA 67f781db… [bounded] (2026-08-28, battery composition; §7.2 assessment/19); leftover — Class A / G1-blocker / R070; G1 (GC-021/022) остаётся заблокированным без tracked official corpus | направление |
 | Далее | По §7 assessment/19: G2 references xor P2 Mention/Binding resolver; TSG-012 против folded CST; затем ADR-0019 ConflictResolver; Applicable ещё позже | очередь |
 
 Траектория перепроверяется `gsd_reassess_roadmap` после каждого слайса; этот файл

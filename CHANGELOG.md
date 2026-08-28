@@ -2,6 +2,28 @@
 
 ## [Unreleased]
 
+### M186-b55iey Test+Docs (484-FZ C1 amends edge executed @pin SHA; honesty sync)
+
+- S03 evidence battery `crates/ln-consultant-parser/tests/c1_484_evidence_battery.rs`
+  (5 passed): 484-ФЗ → 44-ФЗ ст. 93 `amends` proved as a documented composition
+  of three hops on the pinned canon — skip-capable parser hop (SHA 67f781db…,
+  hyperlink needle ст. 93), S02 constructor hop (from `cc:484-fz:statya-1`,
+  to `cc:44-fz:statya-93`), empty timeline resolves Unknown
+  (`UnknownNotTransition` fail-closed); pitfall guard documents the
+  `derive_edges` inversion on C1 sources. Product src diff: zero lines;
+  `real_cross_act_edges` stays 138/333.
+- Honesty sync of living leftovers to «executed @SHA 67f781db… [bounded]»:
+  pin YAML `c1-484-fz-provenance.yaml` additive `executed_edge` section,
+  assessment/19 C1 row + P-04 closure note, roadmap.md marker, roadmap.json
+  note `roadmap-m186-s03-484-executed` ([proposed]), assessment/20 wave row.
+- R070 stays named-open (edition-delta provenance); G1 (GC-021/022) blocked
+  without tracked official corpus; Class A leftover 25 CID-A. A missing
+  `consru_export` is SKIP, not pass.
+- Non-goals: no `derive_edges` fix, no XML copy into law-source, no
+  ConflictResolver, no new enums (D216), no JSON wave rewrite (S04), no new
+  governor check_id (D272). Historical M185 leftover wording above is kept
+  verbatim — it was true at its time.
+
 ### M185-wuj4zf Docs (governor pin TSG-015, stub/fake/hardcode census, env-sweep)
 
 - S01 executable TSG-015 detector in `tests/test_temporal_model_contract.py`:
