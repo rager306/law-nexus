@@ -133,6 +133,60 @@ fn real_c1_amending_act_title_classifies_as_c1() {
 }
 
 #[test]
+fn real_484fz_canon_title_classifies_as_c1() {
+    // M186 S01: 484-ФЗ canon (1a599b98 carries <o:Title>). The path itself has
+    // no C1 signal; the title marker classifies before any Work event log
+    // (R080). Title excerpt is a verbatim prefix of the tracked pin
+    // c1-484-fz-provenance.yaml title_excerpt.
+    let cat = catalog();
+    match cat.classify_corpus_role(
+        "consru_export/consru_export/exports/npa/law_2024-12-26_484-fz_rev-unknown_1a599b98.xml",
+        "О внесении изменений в Федеральный закон \"О контрактной системе",
+    ) {
+        CorpusRoleOutcome::Bound { role } => assert_eq!(role, "C1_amending_act"),
+        other => panic!("484 canon title must classify as C1, got {other:?}"),
+    }
+}
+
+#[test]
+fn real_484fz_canon_path_only_does_not_classify_c1() {
+    // Q7 negative: the catalog carries no path-borne C1 signal, so the canon
+    // path with an empty title must stay non-C1 (classification is title-only).
+    let cat = catalog();
+    match cat.classify_corpus_role(
+        "consru_export/consru_export/exports/npa/law_2024-12-26_484-fz_rev-unknown_1a599b98.xml",
+        "",
+    ) {
+        CorpusRoleOutcome::Unknown => {}
+        CorpusRoleOutcome::Bound { role } => {
+            assert_ne!(role, "C1_amending_act", "path-only must not be C1")
+        }
+        CorpusRoleOutcome::Conflict { roles } => {
+            assert!(!roles.iter().any(|r| r == "C1_amending_act"))
+        }
+    }
+}
+
+#[test]
+fn real_484fz_titleless_twin_does_not_classify_c1() {
+    // Q7 negative: the 49a92fbb twin has no <o:Title> (pin twin_pin_not_canon);
+    // by path alone it must never pass for the C1 canon.
+    let cat = catalog();
+    match cat.classify_corpus_role(
+        "consru_export/consru_export/exports/npa/law_2024-12-26_484-fz_rev-unknown_49a92fbb.xml",
+        "",
+    ) {
+        CorpusRoleOutcome::Unknown => {}
+        CorpusRoleOutcome::Bound { role } => {
+            assert_ne!(role, "C1_amending_act", "titleless twin must not be C1")
+        }
+        CorpusRoleOutcome::Conflict { roles } => {
+            assert!(!roles.iter().any(|r| r == "C1_amending_act"))
+        }
+    }
+}
+
+#[test]
 fn unknown_role_token_in_signal_fails_catalog_parse() {
     let yaml = r#"
 schema_version: law-nexus-kb-ontology/v1

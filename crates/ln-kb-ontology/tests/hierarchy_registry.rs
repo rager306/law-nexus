@@ -319,3 +319,132 @@ fn edition_day_from_filename_per_edition() {
     assert_ne!(seed_day, latest_day, "per-edition effect day must differ");
     assert!(latest_day > seed_day, "edition 118 is later than edition 1");
 }
+
+// ---------------------------------------------------------------------------
+// 484-FZ amending act: works grounding + provenance pin (M186 S01 T02)
+// ---------------------------------------------------------------------------
+
+/// Real consru_export canon file for the 484-FZ amending act
+/// (skip-capable: None when the local export is absent).
+fn real_484_canon_path() -> Option<std::path::PathBuf> {
+    let dir = consultant_export_dir();
+    let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+        .join("../..")
+        .join(&dir)
+        .join("consru_export/exports/npa/law_2024-12-26_484-fz_rev-unknown_1a599b98.xml");
+    if root.exists() {
+        Some(root)
+    } else {
+        None
+    }
+}
+
+const EXPECTED_484_EXPRESSION_ID: &str = "expr:ru:federal:zakon:2024-12-26:484-fz:2024-12-26";
+const PINNED_CANON_484_SHA256: &str =
+    "67f781dbd6a7d03d6035e6a509c983b17fcc519213c493987cf8f71debc1a37d";
+const PINNED_TWIN_484_SHA256: &str =
+    "8fef4fb938c7ab48adf525efd2a39315898ed9e577396662348125bbfa13fce5";
+
+/// D222-style embedded provenance pin; audited as text (no YAML parser crate).
+const C1_484_PROVENANCE: &str = include_str!("../../../prd/architecture/c1-484-fz-provenance.yaml");
+
+#[test]
+fn real_484_canon_mints_pinned_expression() {
+    use ln_kb_ontology::registry::load_expression_id_for_path;
+    let Some(path) = real_484_canon_path() else {
+        eprintln!("SKIP: consru_export 484 not available");
+        return;
+    };
+    let path = path.to_string_lossy().to_string();
+    let expr = load_expression_id_for_path(&path)
+        .unwrap_or_else(|| panic!("canon 484 must mint, path={path}"));
+    assert_eq!(
+        expr, EXPECTED_484_EXPRESSION_ID,
+        "rev-unknown: edition day falls back to the enactment day"
+    );
+}
+
+#[test]
+fn wrong_enactment_day_484_fails_closed() {
+    use ln_kb_ontology::registry::load_expression_id_for_path;
+    // works: says 484-fz was enacted 2024-12-26; filename claims 2024-12-27.
+    assert!(load_expression_id_for_path(
+        "consru_export/exports/npa/law_2024-12-27_484-fz_rev-unknown_x.xml"
+    )
+    .is_none());
+}
+
+#[test]
+fn unknown_act_number_flat_filename_fails_closed() {
+    use ln_kb_ontology::registry::load_expression_id_for_path;
+    // act 999-fz is not in works: -> None (fail-closed), flat filename form.
+    assert!(load_expression_id_for_path(
+        "consru_export/exports/npa/law_2024-12-26_999-fz_rev-unknown_x.xml"
+    )
+    .is_none());
+}
+
+#[test]
+fn c1_484_provenance_pin_is_auditable() {
+    assert!(
+        C1_484_PROVENANCE.contains(PINNED_CANON_484_SHA256),
+        "canon sha256 pinned"
+    );
+    assert!(
+        C1_484_PROVENANCE.contains(PINNED_TWIN_484_SHA256),
+        "twin sha256 pinned (pin-not-canon)"
+    );
+    assert!(
+        C1_484_PROVENANCE.contains("edition-1a599b983cfa2eadf39276e1"),
+        "canon catalog edition id"
+    );
+    assert!(
+        C1_484_PROVENANCE.contains("doc-0a4828dd57fb7fb75f9e3505"),
+        "canon catalog document id"
+    );
+    assert!(
+        C1_484_PROVENANCE.contains(r#"lifecycle: "[bounded]""#),
+        "lifecycle honesty surface"
+    );
+    assert!(
+        C1_484_PROVENANCE.contains("law_2024-12-26_484-fz"),
+        "registry path needle"
+    );
+    assert!(
+        C1_484_PROVENANCE.contains("R070 stays named-open"),
+        "non-claim: R070 stays named-open"
+    );
+    assert!(
+        C1_484_PROVENANCE
+            .contains("expected_expression_id: expr:ru:federal:zakon:2024-12-26:484-fz:2024-12-26"),
+        "pinned expression id matches the minting contract"
+    );
+}
+
+#[test]
+fn real_484_canon_sha256_matches_pin_when_disk_available() {
+    use std::process::Command;
+    let Some(path) = real_484_canon_path() else {
+        eprintln!("SKIP: consru_export 484 not available");
+        return;
+    };
+    let output = match Command::new("sha256sum").arg(&path).output() {
+        Ok(output) => output,
+        Err(err) => {
+            eprintln!("SKIP: sha256sum not available: {err}");
+            return;
+        }
+    };
+    if !output.status.success() {
+        eprintln!(
+            "SKIP: sha256sum failed: {}",
+            String::from_utf8_lossy(&output.stderr)
+        );
+        return;
+    }
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    assert!(
+        stdout.starts_with(PINNED_CANON_484_SHA256),
+        "canon on disk must match pinned sha256: got {stdout}"
+    );
+}
