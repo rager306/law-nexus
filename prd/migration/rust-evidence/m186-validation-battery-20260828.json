@@ -1,0 +1,160 @@
+{
+  "schema_version": "law-nexus/milestone-validation-battery/v1",
+  "milestone": "M186-b55iey",
+  "generated_at": "2026-08-28T11:41:59Z",
+  "tested_source_revision": "pending-fill-by-validate-unit",
+  "tested_source_revision_role": "Placeholder pending the validate-milestone unit: to be replaced by the GSD verification-source aggregate snapshot (verification-source-integrity.js, sha256:...) captured on a clean tree; this battery file is a durable carrier produced in execute-task S04/T03 before validation (MEM1158: bytes on disk before validate-milestone) and was not part of any snapshot. Live gates in this file ran on git HEAD df31f62 (docs(honesty) P-05 closed-after-reindex) and, for the reindex-window readings, HEAD 8097889; honest docs-only commits (P-05 note, this file) postdate the index-aligned readings and are re-aligned by the task-final reindex.",
+  "working_directory": "/root/law-nexus",
+  "environment": {
+    "runner": "pi interactive parent session (execute-task S04/T03, M186-b55iey)",
+    "python": "uv-managed CPython (uv run)",
+    "cargo": "offline workspace",
+    "git_state": "clean tree at df31f62, ahead origin/main, not pushed; honesty wave in history as 8097889 (tracked T01 set) + df31f62 (P-05 closed-after-reindex note); S01-S03 landed as separate commits 655cd5c...470c6db, not squashed",
+    "gitnexus": "repo law-nexus, reindex #1 exit 0 at HEAD 8097889 (meta lastCommit == HEAD; 12214 nodes / 23954 edges / 495 clusters / 254 flows); preflight gitnexus-index-freshness pass 8/0 measured immediately after; task-final reindex re-aligns lastCommit to the post-battery docs commits"
+  },
+  "non_claims": [
+    "Docs/process wave: no GC-001..040 execution, no Rust product types under [proposed], no ConflictResolver, no new governor check_id (D272 exercise-not-expand), no push",
+    "484-FZ amends edge is executed @SHA 67f781db... [bounded] as S03 battery composition; this is not R070 (edition-delta provenance) closure",
+    "Leftover is honest and untouched: M187+ Class A 25 CID-A durable adapters, G1 (GC-021/022) blocked without tracked official corpus, R070 named-open, G2-vs-P2 human-gated",
+    "current_milestone stays M185-wuj4zf complete in living roadmap (MEM932 roadmap-m186-complete sync owned by the later complete-milestone unit, not S04)",
+    "Battery is process/verification evidence, not product readiness"
+  ],
+  "checks": [
+    {
+      "check_id": "contract-c1484-crossact-pin",
+      "verification_class": "Contract",
+      "evidence_class": "command",
+      "command": "cargo test -p ln-consultant-parser --offline --test c1_484_evidence_battery; cargo test -p ln-kb-ontology --offline --test real_cross_act_edges",
+      "exit_code": 0,
+      "observation": "passed",
+      "started_at": "2026-08-28T11:36:30Z",
+      "ended_at": "2026-08-28T11:36:33Z",
+      "duration_ms": 3000,
+      "stdout_tail": "c1_484_evidence_battery: 5 passed (1 suite, 0.20s); real_cross_act_edges: test result: ok. 10 passed; 0 failed — suite stays green, guarding the S03-tracked 138/333 cross-act aggregate pinned in CHANGELOG M186 (literal aggregate count printed by S03, not by this run)",
+      "source_ref": ".gsd/exec/m186-live-pins.log"
+    },
+    {
+      "check_id": "contract-pagebudget-freshness-pin",
+      "verification_class": "Contract",
+      "evidence_class": "command",
+      "command": "uv run python -m pytest tests/test_architecture_m171_alignment.py tests/test_project_state_roadmap_freshness.py -q --tb=no",
+      "exit_code": 0,
+      "observation": "passed",
+      "started_at": "2026-08-28T11:36:40Z",
+      "ended_at": "2026-08-28T11:36:41Z",
+      "duration_ms": 800,
+      "stdout_tail": "13 passed in 0.19s; ARCHITECTURE.md page budget 325 lines held; roadmap freshness passed while current=M185-wuj4zf",
+      "source_ref": ".gsd/exec/m186-live-opsgates.log"
+    },
+    {
+      "check_id": "integration-five-surface-honesty",
+      "verification_class": "Integration",
+      "evidence_class": "command",
+      "command": "python3 five-surface assert: CHANGELOG ### M186-b55iey headings == 1 with S04-closeout bullet / executed @SHA 67f781db... in CHANGELOG + executed_edge section in prd/architecture/c1-484-fz-provenance.yaml / R070 stays named-open (no closed marker in roadmap.json) / current_milestone M185-wuj4zf complete without M186-M186 group / roadmap.md mirror keeps 'M185-wuj4zf is the latest completed'",
+      "exit_code": 0,
+      "observation": "passed",
+      "started_at": "2026-08-28T11:40:44Z",
+      "ended_at": "2026-08-28T11:40:44Z",
+      "duration_ms": 179,
+      "stdout_tail": "five-surface M186: PASS, ERRORS NONE; changelog_heading_x1 / executed@SHA+pin_executed_edge / R070 named-open / current=M185-wuj4zf complete no M186-M186 / roadmap mirror latest-completed",
+      "source_ref": ".gsd/exec/0d0abb4c-608b-40d4-ba26-3c12a6460d94.stdout"
+    },
+    {
+      "check_id": "operational-governor",
+      "verification_class": "Operational",
+      "evidence_class": "command",
+      "command": "uv run python -m law_nexus_harness governor",
+      "exit_code": 0,
+      "observation": "passed",
+      "started_at": "2026-08-28T11:37:10Z",
+      "ended_at": "2026-08-28T11:37:14Z",
+      "duration_ms": 4427,
+      "stdout_tail": "schema_version law-nexus-governor-report/v1; status ok; pass_count 67; warn_count 0; error_count 0; tool_error_count 0 (observed values per MEM1143, not hard-fail literals)",
+      "source_ref": ".gsd/exec/m186-live-governor.json"
+    },
+    {
+      "check_id": "operational-preflight",
+      "verification_class": "Operational",
+      "evidence_class": "command",
+      "command": "uv run python -m law_nexus_harness preflight",
+      "exit_code": 0,
+      "observation": "passed",
+      "started_at": "2026-08-28T11:37:30Z",
+      "ended_at": "2026-08-28T11:37:36Z",
+      "duration_ms": 6350,
+      "stdout_tail": "law-nexus-preflight-report/v1 status ok pass_count 8 error_count 0 warn_count 0; gitnexus-index-freshness pass (metadata matches HEAD and working tree is clean) — measured immediately after reindex at HEAD 8097889",
+      "source_ref": ".gsd/exec/m186-live-preflight.json"
+    },
+    {
+      "check_id": "operational-pytest-full",
+      "verification_class": "Operational",
+      "evidence_class": "command",
+      "command": "uv run python -m pytest tests/ -q --tb=no (async_bash job due to gsd_exec 30s cap, MEM1049 / D287 pattern)",
+      "exit_code": 0,
+      "observation": "passed",
+      "started_at": "2026-08-28T11:36:35Z",
+      "ended_at": "2026-08-28T11:37:56Z",
+      "duration_ms": 81320,
+      "stdout_tail": "721 passed, 4 skipped in 81.32s",
+      "source_ref": ".gsd/exec/m186-live-pytest.txt"
+    },
+    {
+      "check_id": "operational-cargo-fmt",
+      "verification_class": "Operational",
+      "evidence_class": "command",
+      "command": "cargo fmt --all --check",
+      "exit_code": 0,
+      "observation": "passed",
+      "started_at": "2026-08-28T11:36:38Z",
+      "ended_at": "2026-08-28T11:36:39Z",
+      "duration_ms": 900,
+      "stdout_tail": "(no formatting differences)",
+      "source_ref": ".gsd/exec/m186-live-opsgates.log"
+    },
+    {
+      "check_id": "operational-cargo-check",
+      "verification_class": "Operational",
+      "evidence_class": "command",
+      "command": "cargo check --workspace --offline",
+      "exit_code": 0,
+      "observation": "passed",
+      "started_at": "2026-08-28T11:36:39Z",
+      "ended_at": "2026-08-28T11:36:40Z",
+      "duration_ms": 1000,
+      "stdout_tail": "Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.16s; no warnings/errors",
+      "source_ref": ".gsd/exec/m186-live-opsgates.log"
+    },
+    {
+      "check_id": "operational-adr-conformance",
+      "verification_class": "Operational",
+      "evidence_class": "command",
+      "command": "uv run python scripts/verify-adr-conformance.py",
+      "exit_code": 0,
+      "observation": "passed",
+      "started_at": "2026-08-28T11:36:41Z",
+      "ended_at": "2026-08-28T11:36:41Z",
+      "duration_ms": 300,
+      "stdout_tail": "{\"boundary\": \"Repository architecture claims: targeted lifecycle tags and ADR references.\", \"files_scanned\": 25, \"finding_count\": 0, \"missing_adr_refs\": 0, \"status\": \"ok\", \"untagged_claims\": 0}",
+      "source_ref": ".gsd/exec/m186-live-opsgates.log"
+    },
+    {
+      "check_id": "uat-slice-assessments-pass",
+      "verification_class": "UAT",
+      "evidence_class": "command",
+      "command": "python3 loop: parse ^verdict: frontmatter over .gsd/phases/186-b55iey-484-c1-constructor-amends/186-01..03-ASSESSMENT.md (artifact-driven UAT verdict carriers; S04 has no ASSESSMENT until complete-slice owns it)",
+      "exit_code": 0,
+      "observation": "passed",
+      "started_at": "2026-08-28T11:40:44Z",
+      "ended_at": "2026-08-28T11:40:45Z",
+      "duration_ms": 210,
+      "stdout_tail": "186-01/02/03-ASSESSMENT verdict PASS (3/3)",
+      "source_ref": ".gsd/exec/eedc1755-ad1c-4edf-a500-1b951971614c.stdout"
+    }
+  ],
+  "summary": {
+    "total": 10,
+    "passed": 10,
+    "failed": 0
+  },
+  "generated_at_final": "2026-08-28T11:45:00Z"
+}
