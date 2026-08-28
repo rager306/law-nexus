@@ -39,13 +39,10 @@ falkordb=historical-only
   Standing execution directive recorded as assessment/20. M185-wuj4zf S01-S03
   landed on main as separate commits (S01 TSG-015 executable detector pin,
   D279; S02 census register assessment/21; S03 env-sweep CONSULTANT_EXPORT_DIR
-  fail-closed helper, D282); remaining = M186+ Class A durable adapters (25
-  CID-A), plus the paired gates below; the 484-FZ narrow C1 constructor is
-  executed @pin SHA 67f781db… [bounded] (M186-b55iey S03 evidence-battery
-  composition; R070 stays named-open). G1 (GC-021/022) is blocked without tracked official
-  corpus fixtures; 484-FZ C1 amends edge is executed @pin SHA 67f781db…
-  [bounded] (M186-b55iey S03 battery composition, not R070 closure); R070
-  edition-delta provenance is open; then G2 corpus vs P2 Rust resolver. Do not mint ConflictResolver or
+  fail-closed helper, D282); remaining = M187+ Class A durable adapters (25
+  CID-A) plus G1 blocked / R070 named-open / G2-vs-P2; the 484-FZ narrow C1
+  constructor is executed @pin SHA 67f781db… [bounded] (M186-b55iey S03
+  evidence-battery composition; R070 stays named-open). G1 (GC-021/022) is blocked without tracked official corpus fixtures; 484-FZ C1 amends edge is executed @pin SHA 67f781db… [bounded] (M186-b55iey S03 battery composition, not R070 closure); R070 edition-delta provenance is open; then G2 corpus vs P2 Rust resolver. Do not mint ConflictResolver or
   catalog enums ahead of their waves. Upstream run-uat persistence defect
   filed as open-gsd/gsd-pi#1993. GSD completion is not product readiness.
 - **GSD dual-truth M167:** **resolved** — M167 complete via authorized skip waivers + validation (D154 option C). Historical note in `gsd-review-bridge.md`. Not Applicable; TSG-005/006 still open.

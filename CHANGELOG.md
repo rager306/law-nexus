@@ -19,10 +19,18 @@
 - R070 stays named-open (edition-delta provenance); G1 (GC-021/022) blocked
   without tracked official corpus; Class A leftover 25 CID-A. A missing
   `consru_export` is SKIP, not pass.
+- S04 closeout — session retrospective (сделано/проверено/осталось/приоритет
+  in slice SUMMARY); full battery (governor ok/0, preflight 8/0 after
+  reindex, cargo fmt/check, pytest); GitNexus reindex after tracked commit;
+  leftover M187+ Class A durable adapters (25 CID-A); G1 blocked without
+  official corpus; R070 named-open; G2-vs-P2 human-gated. Explicit: no new
+  check_id (D272); no GC execution; no Rust types under `[proposed]`; no
+  ConflictResolver; no push; living current_milestone pointer stays
+  M185-wuj4zf complete until the later complete-milestone ceremony.
 - Non-goals: no `derive_edges` fix, no XML copy into law-source, no
-  ConflictResolver, no new enums (D216), no JSON wave rewrite (S04), no new
-  governor check_id (D272). Historical M185 leftover wording above is kept
-  verbatim — it was true at its time.
+  ConflictResolver, no new enums (D216), no new governor check_id (D272).
+  Historical M185 leftover wording above is kept verbatim — it was true at
+  its time.
 
 ### M185-wuj4zf Docs (governor pin TSG-015, stub/fake/hardcode census, env-sweep)
 

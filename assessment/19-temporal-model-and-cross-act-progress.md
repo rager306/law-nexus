@@ -78,7 +78,7 @@ YAML `cross_act_edge_kinds`: `amends | implements | specifies | conflicts_with |
 | P-02 | TSG-015 «18 paper cases» vs 40 GC + 19 TL-GC | Холодный читатель думает, что каталог не сел | Honesty-правка register + companion (MEM940) |
 | P-03 | Assessment 19 не существовал | Review жил только в чате | Этот файл |
 | P-04 | 484-ФЗ «acquired; edge not executed» не в DESIGN FRONT leftover | Следующий агент начнёт G1 и забудет C1-хвост | Честный leftover на living surfaces без раздувания ARCHITECTURE за 325 строк. **Закрыт leftover-формулировкой M186-b55iey S03** (2026-08-28): executed @SHA 67f781db… [bounded], honesty sync пяти плоскостей (pin `executed_edge`, эта строка, roadmap.md, roadmap.json note, CHANGELOG M186); R070 остаётся открытым |
-| P-05 | GitNexus reindex после closeout-коммитов не сделан (MEM1135) | Impact/detect_changes на stale index | `node .gitnexus/run.cjs analyze --force --name law-nexus` после tracked-коммита |
+| P-05 | GitNexus reindex после closeout-коммитов не сделан (MEM1135); owned by M186 S04 T03 / reindex after S04 tracked commit | Impact/detect_changes на stale index | `node .gitnexus/run.cjs analyze --force --name law-nexus` после tracked-коммита |
 | P-06 | P1-8 full semantic governor §11 | Отдельный leftover review-26, не каталог | Не в этой волне (D272 exercise-not-expand, если нет нового check_id) |
 | P-07 | Dual Work identity в кристалле | Сознательный dual-canon (MEM1099) | Не «чистить». Не чеканить тип |
 
