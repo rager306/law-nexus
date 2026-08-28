@@ -221,6 +221,10 @@
       "ln-kb-ontology"
     ],
     [
+      "ln-consultant-parser",
+      "ln-temporal"
+    ],
+    [
       "ln-product-cli",
       "ln-consultant-parser"
     ]

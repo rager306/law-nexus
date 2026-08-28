@@ -130,6 +130,7 @@ version = "0.1.0"
 dependencies = [
  "ln-decode",
  "ln-kb-ontology",
+ "ln-temporal",
  "rusqlite",
 ]
 
