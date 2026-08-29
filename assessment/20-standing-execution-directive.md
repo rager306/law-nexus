@@ -44,7 +44,8 @@
 | M184 | honesty/process-долг после M183 (P-01..P-05 assessment/19) | ✅ complete (validation pass 2026-08-26) |
 | M185 | Техдолг/процессные остатки post-M184 + census: pin TSG-015 счётчика в существующий governor-чек (D272 exercise-not-expand, §8 assessment/19); census заглушек/фиктивных реализаций/багов/хардкода по всему workspace с классификацией и планом волн; env-sweep (вынос настроек в `.env` по возможности, `.env.example` sync); closeout | landed S01–S03 / S04 closeout |
 | M186+ | Первые функциональные волны по census. **484-ФЗ edge как узкий C1 constructor**: M186-b55iey S03 executed @SHA 67f781db… [bounded] (2026-08-28, battery composition; §7.2 assessment/19); leftover — Class A / G1-blocker / R070; G1 (GC-021/022) остаётся заблокированным без tracked official corpus | S01–S03 landed / S04 closeout |
-| Далее | По §7 assessment/19: G2 references xor P2 Mention/Binding resolver; TSG-012 против folded CST; затем ADR-0019 ConflictResolver; Applicable ещё позже | очередь |
+| M187–M189 | WALK-I grow_identity (M187-bjmfow, bounded TDD); D-02 force-set member alignment (M188-nc4f6u, closed-bounded D304/D306); M189-yojcdu — синхрон roadmap-проекции с GSD (current/groups → M188; recommended_next честность: WALK-I/D-02 landed, product next = 3-canon log xor C1 overlay) | M187/M188 ✅ landed; M189 в работе |
+| Далее | По §7 assessment/19: G2 references xor P2 Mention/Binding resolver; TSG-012 против folded CST; затем ADR-0019 ConflictResolver; Applicable ещё позже. По temporal-ast-review-control `next_wave_order` после `align_force_status_members` (landed M188): `durable_three_canon_event_log` xor `c1_legislative_overlay` | очередь |
 
 Траектория перепроверяется `gsd_reassess_roadmap` после каждого слайса; этот файл
 — рабочий заказ, не замена living roadmap.

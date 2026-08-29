@@ -2,6 +2,32 @@
 
 ## [Unreleased]
 
+### M189-yojcdu (roadmap projection sync: recommended_next honesty)
+
+- `prd/project-state/data/roadmap.json` + cold-reader `prd/project-state/roadmap.md`
+  synced to GSD M188-nc4f6u complete (S01): `current_milestone` = M188-nc4f6u
+  complete; `completed_milestone_groups` extended with M187 (WALK-I bounded
+  `grow_identity`) and M188 (D-02 force-set member alignment, closed-bounded
+  D304/D306); the markdown GSD marker names M188 complete.
+- `recommended_next` honesty rewrite (S02): WALK-I and D-02 are no longer listed
+  as unfinished next — M187-bjmfow (WALK-I identity growth from the earliest
+  oracle) and M188-nc4f6u (force-set member alignment to the living ADR-0018
+  `written_statuses`) are recorded as landed. Product next is the explicit M190+
+  choice of `durable_three_canon_event_log` or `c1_legislative_overlay` from
+  `prd/architecture/temporal-ast-review-control.yaml` `next_wave_order`, after
+  `align_force_status_members` (landed M188); then effect ledger, crystal
+  checkout sketch, G2-vs-P2 human gate.
+- Forbidden-next boundary kept: SHACL/SPARQL runtime, Applicable product,
+  RuVector as ontology canon, 0118-as-CC-universe remain forbidden; R070 stays
+  named-open; R074 untouched; leftovers unchanged (Class A 25 CID-A durable
+  adapters, G1 blocked without official corpus, G2-vs-P2 human gate).
+- assessment/20 wave table gained an M187–M189 row; `notes` gained a sync
+  entry (`roadmap-sync-20260829-m189-recommended-next-honesty`). No new ADR;
+  the historical ADR-0018 Decision table is not rewritten; no new governor
+  check_id (D272); governor `roadmap-current-tracks-gsd` and
+  `roadmap-range-coverage` stay pass. Projection sync only — not product
+  readiness.
+
 ### M188-nc4f6u (force-set member alignment, D-02 closed-bounded)
 
 - `kb-ontology.yaml` `force_status_values` aligned to the living

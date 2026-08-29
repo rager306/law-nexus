@@ -31,11 +31,14 @@ falkordb=historical-only
   in GSD registry (D-02 NormativeState force-set member alignment,
   closed-bounded per D304/D306). M187-bjmfow landed WALK-I identity growth
   from the earliest oracle as bounded ln-kb-ontology grow_identity;
-  M186-b55iey remains the 484-FZ C1 constructor + S04 honesty wave. Remaining
-  = M189 projection sync, then M190+ durable three-canon event log, C1
-  legislative overlay, effect ledger, crystal checkout sketch, G2-vs-P2 human
-  gate, plus Class A durable adapters (25 CID-A), G1 blocked without official
-  corpus, R070 named-open. Review-control D-02 is closed-bounded: runtime
+  M186-b55iey remains the 484-FZ C1 constructor + S04 honesty wave. Both are
+  landed: WALK-I and D-02 are not unfinished next. M189-yojcdu is the active
+  projection-sync wave; after it, product next M190+ is the explicit choice of
+  durable three-canon event log or C1 legislative overlay (review-control
+  `next_wave_order`; `align_force_status_members` landed with M188), then
+  effect ledger, crystal checkout sketch, G2-vs-P2 human gate, plus Class A
+  durable adapters (25 CID-A), G1 blocked without official corpus, R070
+  named-open. Review-control D-02 is closed-bounded: runtime
   force members equal the living written_statuses; Unknown stays fail-closed;
   Superseded/Transitional stay out of the force set. No new check_id (D272).
   GSD completion is not product readiness.
