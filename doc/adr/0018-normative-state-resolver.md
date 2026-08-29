@@ -151,8 +151,11 @@ versions, not a state of force — with the closed three-set `Replaces` /
 The review-26 `DerivedFrom` is not a member of this closed set: it is the
 identity-continuity sibling on the MC-ID. The historical Decision table
 above and the G0(c) sentence above are retained, not rewritten. The runtime
-`kb-ontology.yaml` `force_status_values` 6-set is a different vocabulary
-(known-lag; a cardinality match is not a member match). The YAML is the
+`kb-ontology.yaml` `force_status_values` written 6-set is aligned (M188,
+D-02 closed-bounded) to these written statuses as snake_case members;
+`Unknown` remains the fail-closed point-query outcome and stays out of the
+written list (a cardinality match is not a member match — the compare is by
+member). The YAML is the
 definition surface; this note is provenance, not a second canon.
 Design-only at lifecycle `[proposed]`; no Rust type is minted.
 

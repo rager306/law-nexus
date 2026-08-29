@@ -4,8 +4,11 @@
 # Non-authority: not an ADR, not TSG closure, not product readiness, not a
 # Rust type source, not a new Governor check_id (D272).
 # Consumed by existing check `kb-ontology-draft` as an honesty overlay:
-# runtime force_status_values vs ADR-0018 written_statuses must keep the
-# fragment "a cardinality match is not a member match" while members differ.
+# runtime force_status_values members are compared to ADR-0018
+# written_statuses; while members differ the fragment "a cardinality match
+# is not a member match" is required on the data surfaces. M188: members
+# align; the fragment stays in honesty_fragments as the unconditional
+# catalog row the check always requires.
 # SHACL/SPARQL stay anti-runtime (D046 / archive-only RDF prior art).
 
 schema_version: law-nexus-temporal-ast-review-control/v1
@@ -33,11 +36,11 @@ force_set_control:
   living_canon_source: prd/architecture/force-interval-set-contract.yaml#written_statuses
   runtime_members:
     - in_force
+    - not_yet_in_force
     - suspended
     - repealed
-    - superseded
-    - transitional
-    - unknown
+    - expired
+    - invalidated
   living_written_members:
     - InForce
     - NotYetInForce
@@ -47,10 +50,13 @@ force_set_control:
     - Invalidated
   rule: >
     Compare members, never list length. A cardinality match is not a member
-    match. Honesty overlay stays until ln-temporal::NormativeState aligns to
-    the living written_statuses (ADR-0018 G0(c) / P0-5a). Unknown is a
-    point-query outcome, not a written interval status. Superseded is a
-    VersionRelation. Transitional moved to ADR-0021.
+    match. M188 alignment landed: runtime force_status_values is the
+    snake_case of the living written_statuses (ADR-0018 G0(c) / P0-5a), so
+    the member-compare observes a match; the fragment stays in
+    honesty_fragments above as the unconditional governor contract and is no
+    longer required on the data surfaces. Unknown remains a point-query
+    outcome, not a written interval status. Superseded is a VersionRelation.
+    Transitional moved to ADR-0021. Not interval algebra.
 
 shacl_sparql_verdict: anti-runtime
 shacl_sparql_rule: >
@@ -62,7 +68,7 @@ shacl_sparql_rule: >
 next_wave_order:
   - walk_i_from_earliest_oracle
   - durable_three_canon_event_log
-  - align_force_status_members
+  - align_force_status_members  # landed M188 (D-02 closed-bounded)
   - c1_legislative_overlay
   - then_crystal_ledger_compiler_checkout
 forbidden_next:
@@ -81,10 +87,10 @@ findings:
     next: bounded grow_identity (WALK-I TDD on synthetic snapshots) landed; not C0; not 118 XML; CLI inspect/replay still use the 0118 registry lookup
   - id: D-02
     class: ontology
-    title: Runtime force 6-set members differ from ADR-0018 living written_statuses
+    title: Runtime force 6-set members differed from ADR-0018 living written_statuses
     surfaces: [prd/architecture/kb-ontology.yaml, prd/architecture/force-interval-set-contract.yaml, crates/ln-temporal/src/domain.rs]
-    status: open-honesty
-    next: align members before interval algebra; keep honesty fragment until then
+    status: closed-bounded
+    next: bounded enum alignment landed (M188 snake_case member match); not interval algebra, not SHACL encoding
   - id: D-03
     class: design-vs-code
     title: Crystal compiler types absent from src (ledger, MicroOperation, checkout)

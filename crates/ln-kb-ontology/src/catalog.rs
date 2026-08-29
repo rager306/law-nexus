@@ -1262,7 +1262,9 @@ mod tests {
         );
         assert!(catalog.is_presence_change_kind("include"));
         assert!(catalog.is_industrial_op_kind("split"));
-        assert!(catalog.is_force_status("unknown"));
+        assert!(catalog.is_force_status("not_yet_in_force"));
+        assert!(!catalog.is_force_status("unknown"));
+        assert!(!catalog.is_force_status("superseded"));
         assert!(catalog
             .corpus_roles
             .iter()

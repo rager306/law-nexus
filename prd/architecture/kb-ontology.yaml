@@ -195,16 +195,27 @@ vocabulary:
     - move
     - split
     - merge
-  # Runtime bounded 6-set (ln-temporal::NormativeState as_str tokens).
-  # Living written interval statuses live in force-interval-set-contract.yaml
-  # (InForce / NotYetInForce / Suspended / Repealed / Expired / Invalidated).
-  # A cardinality match is not a member match (D-02 / D-11 honesty overlay).
+  # Written 6-set, snake_case of the living written_statuses (member-aligned,
+  # M188: D-02 closed-bounded). Unknown is the fail-closed point-query
+  # outcome, never a written interval status; it stays out of this written
+  # list and lives in force_status_as_str_tokens below.
   force_status_values:
     - in_force
+    - not_yet_in_force
     - suspended
     - repealed
-    - superseded
-    - transitional
+    - expired
+    - invalidated
+  # Full ln-temporal::NormativeState as_str token set: the written 6-set plus
+  # the Unknown point-query outcome. closed_vocabularies coverage pins this
+  # list; the D-02 member honesty compare reads force_status_values above.
+  force_status_as_str_tokens:
+    - in_force
+    - not_yet_in_force
+    - suspended
+    - repealed
+    - expired
+    - invalidated
     - unknown
   decode_level_aliases:
     Razdel: razdel
@@ -243,7 +254,7 @@ vocabulary:
     - id: force_status
       rust_path: crates/ln-temporal/src/domain.rs
       rust_enum: NormativeState
-      yaml_list: force_status_values
+      yaml_list: force_status_as_str_tokens
       compare: as_str_tokens_are_list_items
     - id: industrial_ops
       rust_path: crates/ln-temporal/src/domain.rs
@@ -511,5 +522,5 @@ non_claims:
   - InForce does not imply Applicability
   - assembly_fsm and corpus_roles are design inventory, not store types
   - C2hint overview is not a legislative event log
-  - a cardinality match is not a member match for force_status_values vs written_statuses
+  - unknown as a member of written force_status_values (it is the point-query outcome only; member-aligned M188)
   - SHACL/SPARQL/RDF are anti-runtime; not the ontology control plane

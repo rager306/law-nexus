@@ -2,6 +2,26 @@
 
 ## [Unreleased]
 
+### M188-nc4f6u (force-set member alignment, D-02 closed-bounded)
+
+- `kb-ontology.yaml` `force_status_values` aligned to the living
+  `written_statuses` as snake_case members (S01 already landed the living
+  `ln-temporal::NormativeState` enum): `in_force`, `not_yet_in_force`,
+  `suspended`, `repealed`, `expired`, `invalidated`. `unknown` stays out of
+  the written list (fail-closed point-query outcome only) in the new
+  `force_status_as_str_tokens` row that closed-vocabulary coverage pins;
+  the D-02 member honesty compare reads the written list.
+- Review-control D-02 → `closed-bounded`: bounded enum alignment landed;
+  not interval algebra, not SHACL encoding. Honesty fragment stays in
+  `honesty_fragments` (unconditional governor contract) and is no longer
+  required on the data surfaces; stale honesty prose in `kb-ontology.yaml`
+  (catalog comment, non-claim) replaced with the aligned statements.
+  ADR-0018 living-overlay sentence updated; historical Decision table
+  untouched. No new governor check_id (D272).
+- Governor `kb-ontology-draft`: `force_set_honesty=ok` observed as a member
+  match (coverage drift `missing_yaml_items=[expired, invalidated,
+  not_yet_in_force]` resolved).
+
 ### M187-bjmfow (WALK-I grow_identity, bounded TDD)
 
 - Pure `grow_identity` in `ln-kb-ontology`: first appearance of

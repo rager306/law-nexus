@@ -27,7 +27,7 @@ history. Three L2 canons plus force stay uncollapsed.
 | ID | Class | Finding | Status | Honest next |
 |---|---|---|---|---|
 | D-01 | process-logic | 44-ФЗ registry snapshot (edition-0118) treated as the CC universe | open-bounded | `grow_identity` TDD on synthetic snapshots; not C0; not 118 XML; inspect still uses 0118 lookup |
-| D-02 | ontology | Runtime `force_status_values` members ≠ ADR-0018 `written_statuses` | open-honesty | member alignment before interval algebra |
+| D-02 | ontology | Runtime `force_status_values` members differed from ADR-0018 `written_statuses` | closed-bounded | bounded enum alignment landed (M188 member match); not interval algebra |
 | D-03 | design-vs-code | Crystal compiler types absent from `src/` | open | after WALK-I and D-02; do not mint from YAML |
 | D-04 | docs-drift | MC-SEL historical list still names `ForRelationsAfter` as a selector | open-honesty | living overlay only |
 | D-05 | process | `S_ready_bounded` ≠ readiness O-state | documented | keep two FSMs |
@@ -74,7 +74,7 @@ alignment. Archive ACP/git-lex RDF (R066) is not a return path.
 ```text
 WALK-I from earliest oracle
   → durable three-canon event log
-  → align force-status members (D-02)
+  → align force-status members (D-02; landed M188)
   → C1 legislative overlay (P9 macro/micro)
   → only then crystal ledger / compiler / checkout
 forbidden now: SHACL runtime, Applicable product, RuVector as ontology canon,
@@ -93,10 +93,14 @@ M185 until M186 complete-milestone. No new Governor `check_id` (D272).
 - runtime `force_status_values` versus living `written_statuses` compared **by member**, not by length;
 - while members differ, required honesty fragment
   `a cardinality match is not a member match` must appear on the YAML catalog
-  and the force-interval contract.
+  and the force-interval contract;
+- since M188 the runtime members align (snake_case) to the living
+  `written_statuses`, so the member-compare observes a match and the fragment
+  is no longer required on the data surfaces; it stays in `honesty_fragments`
+  as the unconditional catalog row the check always requires.
 
 Missing honesty while members differ → advisory warn on the **existing**
-check. Matching honesty → PASS `observed` records `force_set_honesty=ok`.
+check. Member match → PASS `observed` records `force_set_honesty=ok`.
 Fixture roots without the review-control file skip the overlay.
 
 ## 7. Non-claims
