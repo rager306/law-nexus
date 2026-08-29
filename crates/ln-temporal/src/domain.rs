@@ -1630,6 +1630,528 @@ fn build_node(id: &str, children_of: &[(String, Vec<String>)]) -> StructuralAstN
     }
 }
 
+// ── M190-lo7ucr S01: bounded durable three-canon event log (ADR-0017 §1a–§1c) ──
+// Append-only log holding the three bounded record kinds of the durable
+// three-canon wave: `AmendmentEvent` (n-ary causal node, §1b), `EditionOracle`
+// (checksum, not canon, §1c) and assertion-or-effect records (G0(a) bounded
+// payload). `fold_three_canon_at` is a point projection of canon events with
+// `effect_day <= t`; an empty log folds to Unknown — never InForce (D304),
+// never a membership claim. Point projection only, not interval algebra, not
+// checkout (D228). No operation-registry.yaml or model-crystal.md parsing into
+// types (D216): the crystal ledger/compiler/checkout stay open (D-03) and the
+// G0(a) assertion lifecycle stays design-only data (D222/D233) — no promotion
+// path, transitions or dispositions are implemented here.
+
+id_type!(CanonRecordId, "canon record id");
+
+/// Mandatory evidence class of an amendment event (ADR-0017 §1b).
+///
+/// Precedence `Legislative` > `HypothesizedFromOracleDiff` > `EditorialHint`
+/// is data carried by the record; this bounded slice does not resolve
+/// supersession between evidence classes and an overview hint never upgrades
+/// to legislative here.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub enum EvidenceClass {
+    Legislative,
+    HypothesizedFromOracleDiff,
+    EditorialHint,
+}
+
+impl EvidenceClass {
+    pub fn as_str(self) -> &'static str {
+        match self {
+            Self::Legislative => "legislative",
+            Self::HypothesizedFromOracleDiff => "hypothesized_from_oracle_diff",
+            Self::EditorialHint => "editorial_hint",
+        }
+    }
+
+    pub fn all() -> [EvidenceClass; 3] {
+        [
+            Self::Legislative,
+            Self::HypothesizedFromOracleDiff,
+            Self::EditorialHint,
+        ]
+    }
+}
+
+/// Bounded facet set of one `AmendmentEvent` (ADR-0017 §1b). One event may
+/// carry several facets without merging them into one field.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub enum AmendmentFacetKind {
+    Structural,
+    Industrial,
+    Text,
+    Force,
+}
+
+impl AmendmentFacetKind {
+    pub fn as_str(self) -> &'static str {
+        match self {
+            Self::Structural => "structural",
+            Self::Industrial => "industrial",
+            Self::Text => "text",
+            Self::Force => "force",
+        }
+    }
+
+    pub fn all() -> [AmendmentFacetKind; 4] {
+        [Self::Structural, Self::Industrial, Self::Text, Self::Force]
+    }
+}
+
+/// Fail-closed errors for the bounded three-canon event log.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum ThreeCanonLogError {
+    InvalidId(IdError),
+    OrderingConflict,
+    DuplicateRecordId,
+    EmptyFacets,
+    ForceFacetMismatch,
+    UnknownNotTransition,
+    EmptyDigest,
+}
+
+impl fmt::Display for ThreeCanonLogError {
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::InvalidId(err) => write!(formatter, "{err}"),
+            Self::OrderingConflict => write!(
+                formatter,
+                "record day is earlier than the last appended record (append-only order)"
+            ),
+            Self::DuplicateRecordId => {
+                write!(formatter, "canon record id already present in log")
+            }
+            Self::EmptyFacets => {
+                write!(formatter, "amendment event requires at least one facet")
+            }
+            Self::ForceFacetMismatch => write!(
+                formatter,
+                "force facet requires a written transition target and vice versa"
+            ),
+            Self::UnknownNotTransition => write!(
+                formatter,
+                "Unknown is a fail-closed outcome, not a transition status"
+            ),
+            Self::EmptyDigest => {
+                write!(formatter, "edition oracle requires a non-empty checksum")
+            }
+        }
+    }
+}
+
+impl Error for ThreeCanonLogError {}
+
+impl From<IdError> for ThreeCanonLogError {
+    fn from(value: IdError) -> Self {
+        Self::InvalidId(value)
+    }
+}
+
+/// Bounded `AmendmentEvent` record (ADR-0017 §1b n-ary causal node).
+///
+/// Carries target component, governing effect day, act provenance, a mandatory
+/// evidence class, at least one facet, and — exactly when the Force facet is
+/// present — one written force transition target (a `NormativeState` transition
+/// target, never `Unknown`). Not legal-effect determination and not a crystal
+/// MicroOperation (D216).
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct AmendmentEvent {
+    record_id: CanonRecordId,
+    target: ComponentConceptId,
+    effect_day: i64,
+    provenance: AmendingActId,
+    evidence: EvidenceClass,
+    facets: Vec<AmendmentFacetKind>,
+    force_transition: Option<NormativeState>,
+}
+
+impl AmendmentEvent {
+    pub fn try_new(
+        record_id: CanonRecordId,
+        target: ComponentConceptId,
+        effect_day: i64,
+        provenance: AmendingActId,
+        evidence: EvidenceClass,
+        facets: Vec<AmendmentFacetKind>,
+        force_transition: Option<NormativeState>,
+    ) -> Result<Self, ThreeCanonLogError> {
+        if facets.is_empty() {
+            return Err(ThreeCanonLogError::EmptyFacets);
+        }
+        let has_force = facets.contains(&AmendmentFacetKind::Force);
+        if has_force != force_transition.is_some() {
+            return Err(ThreeCanonLogError::ForceFacetMismatch);
+        }
+        if let Some(status) = force_transition {
+            if !status.is_transition_target() {
+                return Err(ThreeCanonLogError::UnknownNotTransition);
+            }
+        }
+        Ok(Self {
+            record_id,
+            target,
+            effect_day,
+            provenance,
+            evidence,
+            facets,
+            force_transition,
+        })
+    }
+
+    pub fn record_id(&self) -> &CanonRecordId {
+        &self.record_id
+    }
+
+    pub fn target(&self) -> &ComponentConceptId {
+        &self.target
+    }
+
+    pub fn effect_day(&self) -> i64 {
+        self.effect_day
+    }
+
+    pub fn provenance(&self) -> &AmendingActId {
+        &self.provenance
+    }
+
+    pub fn evidence(&self) -> EvidenceClass {
+        self.evidence
+    }
+
+    pub fn facets(&self) -> &[AmendmentFacetKind] {
+        &self.facets
+    }
+
+    pub fn force_transition(&self) -> Option<NormativeState> {
+        self.force_transition
+    }
+}
+
+/// Bounded `EditionOracle` record (ADR-0017 §1c): an observed checksum at a
+/// title day. Held on the log timeline, never projected as a canon event and
+/// never written back as canon; drift is healed by new events, not by the
+/// oracle.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct EditionOracle {
+    record_id: CanonRecordId,
+    target: ComponentConceptId,
+    observed_day: i64,
+    digest: String,
+}
+
+impl EditionOracle {
+    pub fn try_new(
+        record_id: CanonRecordId,
+        target: ComponentConceptId,
+        observed_day: i64,
+        digest: &str,
+    ) -> Result<Self, ThreeCanonLogError> {
+        if digest.is_empty() {
+            return Err(ThreeCanonLogError::EmptyDigest);
+        }
+        Ok(Self {
+            record_id,
+            target,
+            observed_day,
+            digest: digest.to_owned(),
+        })
+    }
+
+    pub fn record_id(&self) -> &CanonRecordId {
+        &self.record_id
+    }
+
+    pub fn target(&self) -> &ComponentConceptId {
+        &self.target
+    }
+
+    pub fn observed_day(&self) -> i64 {
+        self.observed_day
+    }
+
+    pub fn digest(&self) -> &str {
+        &self.digest
+    }
+}
+
+/// Bounded assertion-or-effect payload (G0(a)). An `Assertion` is a ledger
+/// claim candidate only — the promotion path, transitions and dispositions of
+/// the E.2.7 assertion lifecycle stay design-only data (D222/D233). An
+/// `Effect` carries one written force transition (a `NormativeState` transition
+/// target, never `Unknown`).
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum AssertionOrEffectPayload {
+    Assertion,
+    Effect(NormativeState),
+}
+
+/// Bounded assertion-or-effect record (G0(a) payload). Not a
+/// `LegalEventAssertion` runtime entity and not the bitemporal ledger with
+/// `recorded_at` / `asserted_by` — those stay design-only.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct AssertionOrEffect {
+    record_id: CanonRecordId,
+    target: ComponentConceptId,
+    effect_day: i64,
+    evidence: EvidenceClass,
+    payload: AssertionOrEffectPayload,
+}
+
+impl AssertionOrEffect {
+    pub fn try_new(
+        record_id: CanonRecordId,
+        target: ComponentConceptId,
+        effect_day: i64,
+        evidence: EvidenceClass,
+        payload: AssertionOrEffectPayload,
+    ) -> Result<Self, ThreeCanonLogError> {
+        if let AssertionOrEffectPayload::Effect(status) = payload {
+            if !status.is_transition_target() {
+                return Err(ThreeCanonLogError::UnknownNotTransition);
+            }
+        }
+        Ok(Self {
+            record_id,
+            target,
+            effect_day,
+            evidence,
+            payload,
+        })
+    }
+
+    pub fn record_id(&self) -> &CanonRecordId {
+        &self.record_id
+    }
+
+    pub fn target(&self) -> &ComponentConceptId {
+        &self.target
+    }
+
+    pub fn effect_day(&self) -> i64 {
+        self.effect_day
+    }
+
+    pub fn evidence(&self) -> EvidenceClass {
+        self.evidence
+    }
+
+    pub fn payload(&self) -> AssertionOrEffectPayload {
+        self.payload
+    }
+}
+
+/// One record of the bounded three-canon event log (ADR-0017 §1a: the canon
+/// record streams stay distinct; projections may join them, never collapse).
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum ThreeCanonRecord {
+    Amendment(AmendmentEvent),
+    EditionOracle(EditionOracle),
+    AssertionOrEffect(AssertionOrEffect),
+}
+
+impl ThreeCanonRecord {
+    pub fn record_id(&self) -> &CanonRecordId {
+        match self {
+            Self::Amendment(record) => record.record_id(),
+            Self::EditionOracle(record) => record.record_id(),
+            Self::AssertionOrEffect(record) => record.record_id(),
+        }
+    }
+
+    /// Governing day ordinal on the single log timeline (oracle: observed day).
+    pub fn effect_day(&self) -> i64 {
+        match self {
+            Self::Amendment(record) => record.effect_day(),
+            Self::EditionOracle(record) => record.observed_day(),
+            Self::AssertionOrEffect(record) => record.effect_day(),
+        }
+    }
+
+    /// False for `EditionOracle`: a checksum is not a canon event (§1c).
+    pub fn is_canon_event(&self) -> bool {
+        !matches!(self, Self::EditionOracle(_))
+    }
+}
+
+/// Append-only bounded three-canon event log (offline synthetic; not a product
+/// corpus store, not the crystal ledger).
+#[derive(Debug, Clone, PartialEq, Eq, Default)]
+pub struct ThreeCanonEventLog {
+    records: Vec<ThreeCanonRecord>,
+}
+
+impl ThreeCanonEventLog {
+    pub fn empty() -> Self {
+        Self::default()
+    }
+
+    pub fn len(&self) -> usize {
+        self.records.len()
+    }
+
+    pub fn is_empty(&self) -> bool {
+        self.records.is_empty()
+    }
+
+    pub fn records(&self) -> &[ThreeCanonRecord] {
+        &self.records
+    }
+
+    /// Append one record. Fail-closed on duplicate record identity and on a
+    /// day earlier than the last appended record (non-decreasing order; same-
+    /// day ties resolved by append order). Rejected records are not stored.
+    pub fn append(&mut self, record: ThreeCanonRecord) -> Result<(), ThreeCanonLogError> {
+        if self
+            .records
+            .iter()
+            .any(|existing| existing.record_id().as_str() == record.record_id().as_str())
+        {
+            return Err(ThreeCanonLogError::DuplicateRecordId);
+        }
+        if let Some(last) = self.records.last() {
+            if record.effect_day() < last.effect_day() {
+                return Err(ThreeCanonLogError::OrderingConflict);
+            }
+        }
+        self.records.push(record);
+        Ok(())
+    }
+}
+
+/// Point projection of the three-canon log at a governing effect day.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct ThreeCanonProjection {
+    as_of_day: i64,
+    events: Vec<ThreeCanonRecord>,
+    force_status: NormativeState,
+    force_conflict: bool,
+    non_claims: Vec<&'static str>,
+}
+
+impl ThreeCanonProjection {
+    pub fn as_of_day(&self) -> i64 {
+        self.as_of_day
+    }
+
+    /// Canon events with `effect_day <= as_of_day`, in append order.
+    /// `EditionOracle` records never appear here.
+    pub fn events(&self) -> &[ThreeCanonRecord] {
+        &self.events
+    }
+
+    pub fn is_empty(&self) -> bool {
+        self.events.is_empty()
+    }
+
+    /// Point force readout: `Unknown` when no force-bearing canon event exists
+    /// at or before `as_of_day` (in particular for an empty log — D304). Never
+    /// inferred from text, structural membership or oracle checksums.
+    pub fn force_status(&self) -> NormativeState {
+        self.force_status
+    }
+
+    pub fn force_conflict(&self) -> bool {
+        self.force_conflict
+    }
+
+    pub fn non_claims(&self) -> &[&'static str] {
+        &self.non_claims
+    }
+}
+
+const THREE_CANON_NON_CLAIMS: &[&str] = &[
+    "Three-canon log fold is a bounded point projection; not interval algebra, not checkout",
+    "EditionOracle records are checksums, not canon; fold never writes an oracle back as events",
+    "Empty fold does not imply ForceStatus InForce or structural membership",
+    "Evidence-class precedence and assertion supersession are not resolved by this fold",
+    "Not the crystal ledger, not MicroOperation, not the G0(a) assertion-lifecycle engine",
+    "Lifecycle [proposed]; not product readiness or legal validation",
+];
+
+/// Fold the log into the bounded point projection of canon events with
+/// `effect_day <= as_of_day`.
+///
+/// Fail-closed rules:
+/// - no projected canon events (empty log included) → force `Unknown`, no conflict
+/// - force readout follows the latest force-bearing projected events only
+///   (amendment Force facet or assertion-or-effect `Effect`); a bare assertion
+///   claim never drives force
+/// - same max day with distinct force outcomes → `Unknown` + conflict
+pub fn fold_three_canon_at(
+    log: &ThreeCanonEventLog,
+    as_of_day: i64,
+) -> Result<ThreeCanonProjection, ThreeCanonLogError> {
+    // Defense in depth: the append API keeps the timeline ordered; the fold
+    // still refuses to project an unordered sequence (fail-closed, never sorts).
+    let mut previous_day: Option<i64> = None;
+    for record in log.records() {
+        let day = record.effect_day();
+        if let Some(previous) = previous_day {
+            if day < previous {
+                return Err(ThreeCanonLogError::OrderingConflict);
+            }
+        }
+        previous_day = Some(day);
+    }
+
+    let events: Vec<ThreeCanonRecord> = log
+        .records()
+        .iter()
+        .filter(|record| record.is_canon_event() && record.effect_day() <= as_of_day)
+        .cloned()
+        .collect();
+
+    // Point force readout at as_of_day over force-bearing projected events.
+    let mut force_day: Option<i64> = None;
+    let mut force_outcomes: Vec<NormativeState> = Vec::new();
+    for event in &events {
+        let outcome = match event {
+            ThreeCanonRecord::Amendment(record) => record.force_transition(),
+            ThreeCanonRecord::AssertionOrEffect(record) => match record.payload() {
+                AssertionOrEffectPayload::Effect(status) => Some(status),
+                AssertionOrEffectPayload::Assertion => None,
+            },
+            ThreeCanonRecord::EditionOracle(_) => None,
+        };
+        if let Some(status) = outcome {
+            let day = event.effect_day();
+            match force_day {
+                None => {
+                    force_day = Some(day);
+                    force_outcomes.push(status);
+                }
+                Some(latest) if day > latest => {
+                    force_day = Some(day);
+                    force_outcomes.clear();
+                    force_outcomes.push(status);
+                }
+                Some(latest) if day == latest => {
+                    if !force_outcomes.contains(&status) {
+                        force_outcomes.push(status);
+                    }
+                }
+                Some(_) => {}
+            }
+        }
+    }
+
+    let (force_status, force_conflict) = match force_outcomes.len() {
+        0 => (NormativeState::Unknown, false),
+        1 => (force_outcomes[0], false),
+        _ => (NormativeState::Unknown, true),
+    };
+
+    Ok(ThreeCanonProjection {
+        as_of_day,
+        events,
+        force_status,
+        force_conflict,
+        non_claims: THREE_CANON_NON_CLAIMS.to_vec(),
+    })
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
