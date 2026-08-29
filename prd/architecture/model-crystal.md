@@ -194,6 +194,14 @@ At / AfterPublication / OnEvent / OnCondition / ForRelationsAfter /
 RetroactiveTo / Unknown. These are projections of the five-clock roles
 (ADR-0009), **not a sixth clock**.
 
+Living overlay (review-26 P0-4 / D252; citation known-lag, list above not
+rewritten): the living ActivationTrigger 6-set is `At` /
+`AfterPublication` / `OnEvent` / `OnCondition` / `RetroactiveTo` /
+`Unknown`. `ForRelationsAfter` is a TransitionPredicate
+(`RelationsArisingOnOrAfter`) on the TransitionConstraint plane, not a
+selector mode. YAML `prd/architecture/operation-registry.yaml` is the
+definition surface.
+
 ### MC-DAG. Causal order — DAG, not queue
 
 <!-- anchor: adr-0017 G0(b) "Instrument" -->

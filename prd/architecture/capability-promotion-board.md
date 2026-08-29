@@ -98,20 +98,20 @@ the intra-S3 class-matched CTV step (2026-08-20), ceiling unchanged.
 | TSG-001 | S0–S1 partial | vocabulary/glossary surfaces exist; not complete controlled vocabulary | gap register active | complete crosswalk + drift checks |
 | TSG-002 | **S1** | `LegislativeEventKind` design taxonomy | RC11-F07 non-closure | executable events + hostile substitution (S2/S3) |
 | TSG-003 | **S3** | planner + bounded-runtime `apply_industrial_op` + structural event log (offline/hostile) | RC11-F08 non-closure; not corpus | representative amendment fixtures + human scope (S4/S5); still not legal CTV product |
-| TSG-004 | **S3** | force resolver + `join_force_with_membership` (membership context; membership≠InForce) | RC11-F09 non-closure | CTV text edition join + multi-dim provenance + corpus (S4) |
+| TSG-004 | **S3** | force resolver + `join_force_with_membership` (membership context; membership≠InForce) | RC11-F09 non-closure | **align runtime force members to living written_statuses (D-02; cardinality ≠ members)** then CTV text edition join + corpus (S4); not SHACL runtime |
 | TSG-005 | **S1–S2** | NormRule IR + fail-closed validation (M167/F04a); not full rule graph | RC12-F05 + F04a non-closure | provenance graph + promotion tests; **not** product Applicable |
 | TSG-006 | **S1–S2** | abstention kernel + predicate algebra spine; top-level Abstain only | RC12-F05 / F04b non-closure | product CaseFacts + real cases before any Applicable (S3–S5) |
 | TSG-007 | S0 | ADR-0019 `[proposed]` | — | design types + hostile delegation |
 | TSG-008 | S0 | ADR-0020 `[proposed]` | — | coverage taxonomy + ports |
 | TSG-009 | S0 | ADR-0021 `[proposed]` | — | typed transitional vs risk split |
 | TSG-010 | S0 | ADR-0022/0023; F13 deferred | RC11-F13 deferred | after core applicability path |
-| TSG-011 | S0–S1 | five-clock safety ≠ algebra; deferred inventory | RC11-F06 non-closure | correction ledger + rebuild equivalence |
+| TSG-011 | S0–S1 | five-clock safety ≠ algebra; deferred inventory | RC11-F06 non-closure | correction ledger + rebuild equivalence; **not SHACL-star as bitemporal substitute** |
 | TSG-012 | S0 | gap named | — | owner decision + resolver |
-| TSG-013 | **S3** | apply + versioned membership fold → StructuralAst (projection); not CTV text / Expression bind | RC11-F08 non-closure | Expression bind + calendar effect + fixtures (S4) |
+| TSG-013 | **S3** | apply + versioned membership fold → StructuralAst (projection); not CTV text / Expression bind | RC11-F08 non-closure | **WALK-I from earliest oracle (D-01)** then Expression bind + calendar effect + fixtures (S4) |
 | TSG-014 | S0 | partial paper shapes | — | port-tied schemas |
 | TSG-015 | S0 | paper golden catalog | — | executable promotion per case |
 | TSG-016 | S0–S1 | InMemory scoring `[bounded]` | — | real 1024d corpus + metrics |
-| TSG-017 | **S3** (`bounded_runtime`) | M169–M171 packet (§5c journal): real-corpus classify/identify, 12-state `assembly_fsm` on 44-ФЗ edition-0118 drift=0, replay 0080→0081 drift=0, five document_groups anchors | register non-closure stands (S02 current-fact cell); not S4 | representative multi-edition replay + human scope (S4/S5); corpus-wide assembly and `resolve_CTV` product open |
+| TSG-017 | **S3** (`bounded_runtime`) | M169–M171 packet (§5c journal): real-corpus classify/identify, 12-state `assembly_fsm` on 44-ФЗ edition-0118 drift=0, replay 0080→0081 drift=0, five document_groups anchors | register non-closure stands (S02 current-fact cell); not S4 | **WALK-T from edition-0001 with WALK-I identity (not 0118 universe)** then representative multi-edition replay + human scope (S4/S5); corpus-wide assembly and `resolve_CTV` product open; SHACL/SPARQL anti-runtime |
 
 ### Promotion history (append-only)
 

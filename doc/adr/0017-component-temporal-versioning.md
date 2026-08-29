@@ -681,6 +681,16 @@ algebra or written-status interval vocabulary carried by that contract.
   `NotYetInForce`/`OrderingConflict` behavior in the current `ln-temporal` /
   `ln-kb-ontology` bounded spine.
 
+### Term ownership (glossary pointer, 2026-08-28)
+
+Public names for the three orthogonal walks (WALK-T / WALK-S / WALK-I), CST
+versus `StructuralAst`, and the SHACL/SPARQL anti-runtime stop live in
+`prd/temporal-legal-model.md` §3. This ADR owns substance of CTV, membership
+fold, and the compiler formula; it does not mint those glossary cells as
+Rust types. Informal session label CSM is the CST+AST contour, not a third
+tree. Review-control inventory:
+`prd/architecture/temporal-ast-review-control.md` (non-authority).
+
 ## References
 
 - de Martim, H. (2026). *Modeling the Diachronic Evolution of Legal Norms: An

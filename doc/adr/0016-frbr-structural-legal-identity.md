@@ -202,6 +202,11 @@ Design-only at lifecycle `[proposed]`.
   break this ADR and Russian identity (Review 4 §3).
 - A Consultant/Garant file is a **Manifestation** of an Expression, not a
   new Work and not the edition canon.
+- **WALK-I** (glossary, Review 9): ComponentConcept identity grows from the
+  earliest oracle in the Work chain. The latest-edition registry snapshot is
+  not the CC universe. `edition-0001_rev-initial_from-unknown` is earliest
+  local oracle, not proven C0. Glossary first-cell in
+  `prd/temporal-legal-model.md` §3.
 
 - No legal correctness of identity resolution.
 - No claim that ELI URNs are globally resolvable beyond this project.

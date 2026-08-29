@@ -1208,6 +1208,10 @@ _KB_ONTOLOGY_REQUIREMENTS_REL = Path("prd/architecture/kb-ontology-requirements.
 _KB_ONTOLOGY_DRAFT_REL = Path("prd/architecture/kb-ontology-l1-l3-draft.md")
 _KB_ONTOLOGY_CONTRACT_REL = Path("prd/architecture/kb-ontology-projection-contract.json")
 _KB_ONTOLOGY_YAML_REL = Path("prd/architecture/kb-ontology.yaml")
+_REVIEW_CONTROL_REL = Path("prd/architecture/temporal-ast-review-control.yaml")
+_FORCE_INTERVAL_REL = Path("prd/architecture/force-interval-set-contract.yaml")
+_FORCE_SET_HONESTY_FRAGMENT = "a cardinality match is not a member match"
+_REVIEW_CONTROL_FINDING_IDS = tuple(f"D-{i:02d}" for i in range(1, 15))
 _KB_ONTOLOGY_NON_AUTHORITY_FRAGMENTS = (
     "Non-authority",
     "not production graph schema",
@@ -1435,8 +1439,12 @@ def check_kb_ontology_draft(root: Path) -> list[GovernorFinding]:
 
     Validates requirements register + draft + machine contract exist, declare
     non-authority, and keep contract kinds/FSM aligned with kb-ontology.yaml.
-    Required kinds come from YAML, not a hardcoded Python tuple. Does not
-    validate semantic completeness, RuVector readiness, or production schema.
+    Required kinds come from YAML, not a hardcoded Python tuple. When
+    ``temporal-ast-review-control.yaml`` is present, also member-compares
+    runtime ``force_status_values`` to living ``written_statuses`` (a
+    cardinality match is not a member match) and requires the honesty
+    fragment while they differ. Does not validate semantic completeness,
+    RuVector readiness, or production schema. D272: no new check_id.
     """
 
     check_id = "kb-ontology-draft"
@@ -1680,6 +1688,39 @@ def check_kb_ontology_draft(root: Path) -> list[GovernorFinding]:
             )
         ]
 
+    force_honesty_gaps = _kb_force_set_honesty_gaps(
+        root, vocabulary if isinstance(vocabulary, dict) else {}
+    )
+    if force_honesty_gaps:
+        return [
+            GovernorFinding(
+                check_id=check_id,
+                status="fail",
+                severity="warn",
+                message=(
+                    "KB ontology force-status members differ from living "
+                    "written_statuses without honesty overlay"
+                ),
+                observed=f"gaps={force_honesty_gaps}",
+                remediation=(
+                    "Keep fragment 'a cardinality match is not a member match' on "
+                    "kb-ontology.yaml and force-interval-set-contract.yaml while "
+                    "runtime force_status_values members differ from ADR-0018 "
+                    "written_statuses. Do not treat list length as alignment. "
+                    "No new check_id (D272)."
+                ),
+                evidence=[
+                    GovernorEvidence(path=str(_KB_ONTOLOGY_YAML_REL)),
+                    GovernorEvidence(path=str(_FORCE_INTERVAL_REL)),
+                    GovernorEvidence(path=str(_REVIEW_CONTROL_REL)),
+                ],
+            )
+        ]
+
+    review_control_present = (root / _REVIEW_CONTROL_REL).is_file()
+    force_honesty_note = (
+        "force_set_honesty=ok" if review_control_present else "force_set_honesty=skipped"
+    )
     return [
         GovernorFinding(
             check_id=check_id,
@@ -1690,7 +1731,7 @@ def check_kb_ontology_draft(root: Path) -> list[GovernorFinding]:
                 f"kbo_r_count={len(req_ids)}; node_kinds={len(node_kinds)}; "
                 f"forbidden={len(forbidden)}; fsm_state={yaml_current!r} "
                 f"yaml_states={len(yaml_states)}; closed_vocabs={len(coverage_rows)}; "
-                f"prefix_keys={len(prefix_keys)} "
+                f"prefix_keys={len(prefix_keys)}; {force_honesty_note} "
                 f"(lifecycle [proposed]; YAML FSM is source; not production schema)."
             ),
             remediation="none",
@@ -2170,6 +2211,71 @@ def _kb_closed_vocabulary_gaps(
                 gaps.append(f"{row_id}:missing_yaml_items={missing}")
         else:
             gaps.append(f"{row_id}:unknown_compare={compare!r}")
+    return gaps
+
+
+def _normalize_force_token(value: str) -> str:
+    return value.replace("_", "").replace("-", "").lower()
+
+
+def _kb_force_set_honesty_gaps(root: Path, vocabulary: dict[str, Any]) -> list[str]:
+    """Member-compare runtime force tokens vs living written_statuses.
+
+    Absent review-control catalog → skip (fixture roots). Present catalog
+    with member mismatch requires the honesty fragment on both YAML
+    surfaces. Length-only equality is never treated as alignment.
+    """
+    catalog_path = root / _REVIEW_CONTROL_REL
+    if not catalog_path.is_file():
+        return []
+    gaps: list[str] = []
+    try:
+        import yaml
+
+        control = yaml.safe_load(catalog_path.read_text(encoding="utf-8")) or {}
+    except (OSError, yaml.YAMLError) as exc:
+        return [f"review_control:unreadable={exc}"]
+    if not isinstance(control, dict):
+        return ["review_control:not_a_mapping"]
+    if control.get("authoritative") is not False:
+        gaps.append("review_control:authoritative_not_false")
+    if control.get("governor_check_id") != "kb-ontology-draft":
+        gaps.append("review_control:governor_check_id")
+    if str(control.get("d272") or "") != "no-new-check-id":
+        gaps.append("review_control:d272")
+    findings = control.get("findings") or []
+    found_ids = {str(item.get("id")) for item in findings if isinstance(item, dict)}
+    missing_ids = [fid for fid in _REVIEW_CONTROL_FINDING_IDS if fid not in found_ids]
+    if missing_ids:
+        gaps.append(f"review_control:missing_findings={missing_ids}")
+    honesty = control.get("honesty_fragments") or []
+    if _FORCE_SET_HONESTY_FRAGMENT not in honesty:
+        gaps.append("review_control:missing_honesty_fragment")
+
+    runtime_raw = list(vocabulary.get("force_status_values") or [])
+    interval_path = root / _FORCE_INTERVAL_REL
+    yaml_path = root / _KB_ONTOLOGY_YAML_REL
+    yaml_text = yaml_path.read_text(encoding="utf-8") if yaml_path.is_file() else ""
+    interval_text = ""
+    living_raw: list[str] = []
+    if interval_path.is_file():
+        interval_text = interval_path.read_text(encoding="utf-8")
+        try:
+            import yaml
+
+            interval = yaml.safe_load(interval_text) or {}
+        except (OSError, yaml.YAMLError):
+            interval = {}
+        if isinstance(interval, dict):
+            living_raw = list(interval.get("written_statuses") or [])
+    runtime_norm = {_normalize_force_token(str(item)) for item in runtime_raw}
+    living_norm = {_normalize_force_token(str(item)) for item in living_raw}
+    members_differ = bool(runtime_norm) and bool(living_norm) and runtime_norm != living_norm
+    if members_differ:
+        if _FORCE_SET_HONESTY_FRAGMENT not in yaml_text:
+            gaps.append("force_set:yaml_missing_honesty_fragment")
+        if _FORCE_SET_HONESTY_FRAGMENT not in interval_text:
+            gaps.append("force_set:interval_missing_honesty_fragment")
     return gaps
 
 
@@ -5411,13 +5517,16 @@ _ERA_NOISE_SCAN_PATHS: tuple[str, ...] = (
     "prd/parser/README.md",
     "prd/project-state/roadmap.md",
 )
-# Detection keyword set: falkordb|git-lex|acp|pyo3|minimax (historical-only ban).
-_ERA_NOISE_TOKEN_RE = re.compile(r"(?i)\b(falkordb(?:lite)?|git[-_]lex|\bacp\b|pyo3|minimax)\b")
+# Detection keyword set: falkordb|git-lex|acp|pyo3|minimax|shacl|sparql
+# (historical-only / anti-runtime ban).
+_ERA_NOISE_TOKEN_RE = re.compile(
+    r"(?i)\b(falkordb(?:lite)?|git[-_]lex|\bacp\b|pyo3|minimax|shacl|sparql)\b"
+)
 _ERA_NOISE_QUALIFIER_RE = re.compile(
     r"(?i)\b(historical|history|archived|archive-only|prior[- ]art|decommission|"
     r"decommissioned|rejected|superseded|not active|non-claim|non-claims|"
     r"does not|do not|must not|never|forbidden|no production|production-scale "
-    r"claim|replacing|replaced|→|ruvector)\b"
+    r"claim|replacing|replaced|→|ruvector|anti-runtime)\b"
 )
 
 
@@ -6326,12 +6435,14 @@ GOVERNOR_CHECK_SPECS: tuple[CheckSpec, ...] = (
         "docs",
         "deterministic",
         check_kb_ontology_draft,
-        "Keep YAML FSM catalog plus KB ontology L1-L3 draft inventory.",
+        "Keep YAML FSM catalog plus KB ontology L1-L3 draft inventory and force-set member honesty overlay.",
         (
             "prd/architecture/kb-ontology-requirements.md",
             "prd/architecture/kb-ontology-l1-l3-draft.md",
             "prd/architecture/kb-ontology-projection-contract.json",
             "prd/architecture/kb-ontology.yaml",
+            "prd/architecture/temporal-ast-review-control.yaml",
+            "prd/architecture/force-interval-set-contract.yaml",
         ),
         "warn",
     ),

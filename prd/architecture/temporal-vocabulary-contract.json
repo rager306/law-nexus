@@ -36,7 +36,9 @@
       "ProcurementCase",
       "ProcurementRegimeResolution",
       "PracticeCoverageOutcome",
-      "BitemporalCorrectionLedger"
+      "BitemporalCorrectionLedger",
+      "SHACL",
+      "SPARQL"
     ],
     "presentation_cues": [
       "real ",
@@ -70,7 +72,8 @@
       "no active",
       "absent",
       "stop-signal",
-      "if/when"
+      "if/when",
+      "anti-runtime"
     ],
     "interval_fields": [
       "effective_from",
@@ -618,6 +621,54 @@
       "required_fragments": [
         "[proposed]",
         "review-26"
+      ]
+    },
+    {
+      "id": "walk-t",
+      "needle": "| WALK-T |",
+      "required_fragments": [
+        "canonical design term",
+        "[proposed]"
+      ]
+    },
+    {
+      "id": "walk-s",
+      "needle": "| WALK-S |",
+      "required_fragments": [
+        "canonical design term",
+        "[proposed]"
+      ]
+    },
+    {
+      "id": "walk-i",
+      "needle": "| WALK-I |",
+      "required_fragments": [
+        "canonical design term",
+        "[proposed]"
+      ]
+    },
+    {
+      "id": "cst",
+      "needle": "| CST |",
+      "required_fragments": [
+        "canonical design term",
+        "[proposed]"
+      ]
+    },
+    {
+      "id": "structural-ast",
+      "needle": "| `StructuralAst` |",
+      "required_fragments": [
+        "[bounded]",
+        "fold"
+      ]
+    },
+    {
+      "id": "shacl-sparql",
+      "needle": "| SHACL/SPARQL |",
+      "required_fragments": [
+        "anti-runtime",
+        "must not"
       ]
     }
   ],

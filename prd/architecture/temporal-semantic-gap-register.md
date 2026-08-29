@@ -114,6 +114,12 @@ made the five-clock vs algebra boundary explicit in `ln-temporal`:
   process gap: how XML roles become events and how oracles checksum the fold.
 - Current 44-ФЗ disk set (one `ред. от 28.12.2025` + overview) does not close
   TSG-017. C2hint lexical counts are not legislative events.
+- 2026-08-28 review-control (D-01/D-02/D-11, non-closure): latest-edition
+  registry is not the CC universe (WALK-I still unexecuted); runtime
+  `force_status_values` members differ from living `written_statuses` — a
+  cardinality match is not a member match; SHACL/SPARQL stay anti-runtime.
+  Inventory: `prd/architecture/temporal-ast-review-control.md`. Does not
+  close TSG-004/013/017.
 
 
 ### RC12-F05 applicability capability inventory (non-closure)

@@ -2,6 +2,29 @@
 
 ## [Unreleased]
 
+### Docs/Governor (temporal AST review-control, force-set member honesty)
+
+- Review-control inventory `prd/architecture/temporal-ast-review-control.yaml` +
+  companion `.md`: findings D-01..D-14, SHACL/SPARQL anti-runtime verdict,
+  WALK-T/S/I vs CST/`StructuralAst` glossary, next-wave order. Informal
+  session label CSM is the CST+AST contour, not a third tree. Non-authority;
+  D272: no new `check_id`.
+- Existing `kb-ontology-draft` observes runtime `force_status_values` **members**
+  against living `written_statuses` (a cardinality match is not a member
+  match) and requires the honesty fragment while they differ. Fixtures without
+  the catalog skip (`force_set_honesty=skipped`).
+- Glossary §3 + vocabulary catalog 1:1 (72 rows): WALK-T / WALK-S / WALK-I,
+  CST, `StructuralAst` (Rust homonym pin), SHACL/SPARQL anti-runtime.
+  ADR-0016/0017 pointers; MC-SEL living overlay (`ForRelationsAfter` is not a
+  selector). Era-noise tokens include `shacl|sparql` with `anti-runtime`
+  qualifier.
+- Roadmap pointer synced to M186-b55iey complete (GSD last-completed; Active
+  none). Leftover unchanged: M187+ CID-A, G1 blocked, R070 named-open,
+  G2-vs-P2. Product next-wave: WALK-I from earliest oracle, then force-set
+  member alignment; SHACL runtime forbidden.
+- Governor live: 67 pass / 0 warn / 0 error. No Rust product types minted.
+  No push.
+
 ### M186-b55iey Test+Docs (484-FZ C1 amends edge executed @pin SHA; honesty sync)
 
 - S03 evidence battery `crates/ln-consultant-parser/tests/c1_484_evidence_battery.rs`

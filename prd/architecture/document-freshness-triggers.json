@@ -64,6 +64,12 @@
       "review": "Recheck injection/update rules against the live glossary and Governor boundary; governance remains non-authoritative."
     },
     {
+      "id": "temporal-ast-review-control-change",
+      "sources": ["prd/architecture/temporal-ast-review-control.yaml", "prd/architecture/temporal-ast-review-control.md"],
+      "required_any": ["prd/architecture/glossary-governance.md", "prd/temporal-legal-model.md", "prd/architecture/kb-ontology.yaml"],
+      "review": "Recheck D-01..D-14 inventory, force-set honesty fragment, SHACL/SPARQL anti-runtime verdict, and WALK/CST glossary rows. Catalog is non-authoritative; no new check_id (D272)."
+    },
+    {
       "id": "review-case-contract-change",
       "sources": ["prd/architecture/review-case.schema.json", "prd/architecture/review-cases/**/*.json", "src/law_nexus_harness/review_case/**/*.py"],
       "required_any": ["doc/adr/0024-review-case-intake-and-disposition.md", "prd/architecture/review-cases/README.md", "prd/architecture/review-cases/review-11-12-delta-map.md", "tests/test_review_case_schema.py", "tests/test_review_case_delta_fixture.py", "tests/test_review_case_delta_map.py", "tests/test_review_case_pydantic_codec.py", "tests/test_review_case_filesystem_adapters.py", "tests/test_harness_review_case_cli.py", "tests/test_review_case_replay.py", "tests/test_review_case_event_ledger.py", "tests/test_review_case_ledger_application.py", "tests/test_review_case_governor.py"],

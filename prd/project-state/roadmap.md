@@ -27,24 +27,18 @@ falkordb=historical-only
 - **Completed retrieval-honesty band:** M161–M164 `[bounded]` (real cosine ranking in memory, semantic-stub and historical-test-debt probes, deterministic CLI vectors); no live corpus or citation-safe answers.
 - **Completed documentation alignment:** D5 + documentation D6 / EA-05 accepted with findings at `94d58ea`; roadmap-front-sync and TL-G01–12 coverage PASS.
 - **Documentation/process assessment:** EA-10 complete — human D150 `accepted-with-findings` after independent EA-09 report `120d44b`; post-D150 assessments 13–19 record bounded repository-control/parser-protocol/glossary/semantic-presentation remediation and remaining gaps without successor acceptance, lifecycle promotion or product unlock. Glossary governance now inventories all crosswalk rows and controls coding terminology structurally through the tracked living-oracle read pointer; it does not close TSG-001 or define product semantics.
-- **Local GSD workflow marker:** M185-wuj4zf is the latest completed milestone
-  in GSD registry (docs-only honesty wave: tracked assessment/19 debt map of
-  L1-L7 plus cross-act; roadmap.json MEM932 sync to M183/complete; TSG-015 no
-  longer claims 18 paper cases — 19 TL-GC paper oracles and 40 GC catalog rows
-  are counted separately with a MEM940 companion; paired leftover on 484-FZ /
-  R070 / G1 / G2-vs-P2; validation battery artifact
-  m184-validation-battery-20260826.json with four verification classes,
-  governor 67/0, pytest 712p/4s). Previous M183-t5u1dg landed the golden-corpus
-  catalog (four tiers G0-G3, D222 pin suite, TL-GC01-19 map) design-only.
-  Standing execution directive recorded as assessment/20. M185-wuj4zf S01-S03
-  landed on main as separate commits (S01 TSG-015 executable detector pin,
-  D279; S02 census register assessment/21; S03 env-sweep CONSULTANT_EXPORT_DIR
-  fail-closed helper, D282); remaining = M187+ Class A durable adapters (25
-  CID-A) plus G1 blocked / R070 named-open / G2-vs-P2; the 484-FZ narrow C1
-  constructor is executed @pin SHA 67f781db… [bounded] (M186-b55iey S03
-  evidence-battery composition; R070 stays named-open). G1 (GC-021/022) is blocked without tracked official corpus fixtures; 484-FZ C1 amends edge is executed @pin SHA 67f781db… [bounded] (M186-b55iey S03 battery composition, not R070 closure); R070 edition-delta provenance is open; then G2 corpus vs P2 Rust resolver. Do not mint ConflictResolver or
-  catalog enums ahead of their waves. Upstream run-uat persistence defect
-  filed as open-gsd/gsd-pi#1993. GSD completion is not product readiness.
+- **Local GSD workflow marker:** M186-b55iey is the latest completed milestone
+  in GSD registry (484-FZ C1 constructor [bounded] + S04 honesty). M185-wuj4zf
+  remains the prior process/harness wave (TSG-015 pin, census, env-sweep).
+  Remaining = M187+ Class A durable adapters (25 CID-A) plus G1 blocked /
+  R070 named-open / G2-vs-P2. Temporal-AST review-control (D-01..D-14) records
+  WALK-I / force-set member alignment / SHACL anti-runtime as product next-wave;
+  existing `kb-ontology-draft` observes the honesty overlay (D272: no new
+  check_id). G1 (GC-021/022) is blocked without tracked official corpus
+  fixtures; 484-FZ C1 amends edge is executed @pin SHA 67f781db… [bounded]
+  (not R070 closure). Do not mint ConflictResolver, SHACL runtime, or catalog
+  enums ahead of their waves. Upstream run-uat persistence defect filed as
+  open-gsd/gsd-pi#1993. GSD completion is not product readiness.
 - **GSD dual-truth M167:** **resolved** — M167 complete via authorized skip waivers + validation (D154 option C). Historical note in `gsd-review-bridge.md`. Not Applicable; TSG-005/006 still open.
 - **Review governance process contour:** ADR-0024 Review Case intake/disposition/ledger landed; human dispositions recorded for review-11/12 (`actor_id=rager306`). Non-authoritative; no Product/ADR/roadmap promotion.
 - **Applicability kernel:** `ln-applicability` v0 fail-closed abstention-only under ADR-0023 `[proposed]`, with NormRule IR + pure predicate algebra spines; no Applicable/NotApplicable product claim.

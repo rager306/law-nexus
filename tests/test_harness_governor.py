@@ -622,6 +622,7 @@ def test_kb_ontology_draft_pass_when_complete(tmp_path: Path) -> None:
     assert findings[0].status == "pass"
     assert findings[0].severity == "ok"
     assert "kbo_r_count=" in findings[0].observed
+    assert "force_set_honesty=skipped" in findings[0].observed
 
 
 def test_corpus_grounding_pass_when_needle_matches_real_path(tmp_path: Path, monkeypatch) -> None:
@@ -1168,6 +1169,73 @@ def test_kb_ontology_assembly_fsm_non_claim_matches_current_passes(tmp_path: Pat
     catalog = yaml.safe_load((arch / "kb-ontology.yaml").read_text(encoding="utf-8"))
     gaps = _kb_assembly_fsm_gaps(catalog)
     assert not any("stale_state" in g for g in gaps), f"unexpected stale gap: {gaps}"
+
+
+def test_kb_ontology_draft_force_set_honesty_ok_on_live_repo() -> None:
+    from law_nexus_harness.governor import check_kb_ontology_draft
+
+    findings = check_kb_ontology_draft(ROOT)
+    assert findings[0].status == "pass"
+    assert findings[0].severity == "ok"
+    assert "force_set_honesty=ok" in findings[0].observed
+
+
+def test_kb_ontology_draft_force_set_warns_when_honesty_missing(tmp_path: Path) -> None:
+    arch = tmp_path / "prd" / "architecture"
+    arch.mkdir(parents=True)
+    (arch / "kb-ontology-requirements.md").write_text(
+        "# KB\n\n## Non-authority\n\nnot production graph schema; not Applicable.\n\n"
+        "| ID | x |\n|---|---|\n" + "\n".join(f"| KBO-R{i:03d} | r |" for i in range(1, 12)) + "\n",
+        encoding="utf-8",
+    )
+    (arch / "kb-ontology-l1-l3-draft.md").write_text(
+        "# draft\n\nNon-authority: not production graph schema, not Applicable.\n",
+        encoding="utf-8",
+    )
+    (arch / "kb-ontology-projection-contract.json").write_text(
+        """{
+          "schema_version": "law-nexus-kb-ontology-projection/v1",
+          "authoritative": false,
+          "fsm_state": "O2_decode_lift",
+          "node_kinds": [{"kind": "Work"}],
+          "forbidden_node_kinds": ["ApplicableDecision"]
+        }""",
+        encoding="utf-8",
+    )
+    (arch / "kb-ontology.yaml").write_text(
+        "schema_version: law-nexus-kb-ontology/v1\n"
+        "authoritative: false\n"
+        "fsm:\n  current: O2_decode_lift\n  states:\n    O2_decode_lift:\n      name: lift\n"
+        "vocabulary:\n  hierarchy_levels:\n    - statya\n"
+        "  node_kinds:\n    - Work\n"
+        "  forbidden_node_kinds:\n    - ApplicableDecision\n"
+        "  force_status_values:\n    - in_force\n    - superseded\n",
+        encoding="utf-8",
+    )
+    findings_payload = "\n".join(
+        f"  - id: D-{i:02d}\n    class: test\n    title: t\n    surfaces: []\n    status: open\n    next: n"
+        for i in range(1, 15)
+    )
+    (arch / "temporal-ast-review-control.yaml").write_text(
+        "schema_version: law-nexus-temporal-ast-review-control/v1\n"
+        "authoritative: false\n"
+        "governor_check_id: kb-ontology-draft\n"
+        "d272: no-new-check-id\n"
+        "honesty_fragments: []\n"
+        "findings:\n" + findings_payload + "\n",
+        encoding="utf-8",
+    )
+    (arch / "force-interval-set-contract.yaml").write_text(
+        "written_statuses:\n  - InForce\n  - NotYetInForce\n",
+        encoding="utf-8",
+    )
+    from law_nexus_harness.governor import check_kb_ontology_draft
+
+    findings = check_kb_ontology_draft(tmp_path)
+    assert findings[0].status == "fail"
+    assert findings[0].severity == "warn"
+    assert "missing_honesty_fragment" in findings[0].observed
+    assert findings[0].check_id == "kb-ontology-draft"
 
 
 def test_kb_ontology_prefix_key_outside_aliases_is_warned(tmp_path: Path) -> None:
@@ -3762,6 +3830,28 @@ def test_active_surface_era_noise_allows_qualified_token(tmp_path: Path) -> None
     )
     findings = check_active_surface_era_noise(tmp_path)
     assert len(findings) == 1
+    assert findings[0].status == "pass"
+
+
+def test_active_surface_era_noise_detects_unqualified_shacl(tmp_path: Path) -> None:
+    (tmp_path / "prd").mkdir()
+    (tmp_path / "prd" / "ARCHITECTURE.md").write_text(
+        "# A\n\nAdopt SHACL as the ontology control plane.\n",
+        encoding="utf-8",
+    )
+    findings = check_active_surface_era_noise(tmp_path)
+    assert findings[0].status == "fail"
+    assert findings[0].severity == "warn"
+    assert "shacl" in findings[0].observed.lower()
+
+
+def test_active_surface_era_noise_allows_antiruntime_shacl(tmp_path: Path) -> None:
+    (tmp_path / "prd").mkdir()
+    (tmp_path / "prd" / "ARCHITECTURE.md").write_text(
+        "# A\n\nSHACL/SPARQL remain anti-runtime; archive-only RDF prior art.\n",
+        encoding="utf-8",
+    )
+    findings = check_active_surface_era_noise(tmp_path)
     assert findings[0].status == "pass"
 
 

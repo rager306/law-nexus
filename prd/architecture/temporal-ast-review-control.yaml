@@ -1,0 +1,171 @@
+# Temporal AST review-control catalog (2026-08-28)
+#
+# Lifecycle: [proposed]
+# Non-authority: not an ADR, not TSG closure, not product readiness, not a
+# Rust type source, not a new Governor check_id (D272).
+# Consumed by existing check `kb-ontology-draft` as an honesty overlay:
+# runtime force_status_values vs ADR-0018 written_statuses must keep the
+# fragment "a cardinality match is not a member match" while members differ.
+# SHACL/SPARQL stay anti-runtime (D046 / archive-only RDF prior art).
+
+schema_version: law-nexus-temporal-ast-review-control/v1
+lifecycle: "[proposed]"
+authoritative: false
+owner_adr: [ADR-0016, ADR-0017, ADR-0018]
+related_adr: [ADR-0007, ADR-0009, ADR-0013, ADR-0014, ADR-0023]
+governor_check_id: kb-ontology-draft
+d272: no-new-check-id
+reviewed_at: "2026-08-28"
+source_reviews:
+  - doc/review/review-20-08-2026.md
+  - prd/architecture/model-crystal.md
+  - prd/temporal-legal-model.md
+boundary: >
+  Inventory of the 2026-08-28 temporal AST / CST+AST compiler-contour review.
+  Informal session label CSM is not a third tree. Does not close TSG rows,
+  mint Rust types, promote lifecycle, or adopt SHACL/SPARQL as runtime.
+
+honesty_fragments:
+  - a cardinality match is not a member match
+
+force_set_control:
+  runtime_source: prd/architecture/kb-ontology.yaml#vocabulary.force_status_values
+  living_canon_source: prd/architecture/force-interval-set-contract.yaml#written_statuses
+  runtime_members:
+    - in_force
+    - suspended
+    - repealed
+    - superseded
+    - transitional
+    - unknown
+  living_written_members:
+    - InForce
+    - NotYetInForce
+    - Suspended
+    - Repealed
+    - Expired
+    - Invalidated
+  rule: >
+    Compare members, never list length. A cardinality match is not a member
+    match. Honesty overlay stays until ln-temporal::NormativeState aligns to
+    the living written_statuses (ADR-0018 G0(c) / P0-5a). Unknown is a
+    point-query outcome, not a written interval status. Superseded is a
+    VersionRelation. Transitional moved to ADR-0021.
+
+shacl_sparql_verdict: anti-runtime
+shacl_sparql_rule: >
+  SHACL/SPARQL/RDF must not become the product ontology control plane.
+  Archive-only ACP/git-lex prior art (R066). D046 L6 compatibility
+  projection only, after WALK-I and force-set alignment, never as fold
+  or checkout runtime.
+
+next_wave_order:
+  - walk_i_from_earliest_oracle
+  - durable_three_canon_event_log
+  - align_force_status_members
+  - c1_legislative_overlay
+  - then_crystal_ledger_compiler_checkout
+forbidden_next:
+  - shacl_sparql_runtime
+  - applicable_product
+  - ruvector_as_ontology_canon
+  - project_0118_registry_as_cc_universe
+  - collapse_csm_cst_structural_ast
+
+findings:
+  - id: D-01
+    class: process-logic
+    title: Latest registry snapshot treated as CC universe
+    surfaces: [prd/architecture/kb-hierarchy-registry.yaml, doc/review/review-20-08-2026.md]
+    status: open
+    next: WALK-I from earliest oracle (edition-0001), not edition-0118
+  - id: D-02
+    class: ontology
+    title: Runtime force 6-set members differ from ADR-0018 living written_statuses
+    surfaces: [prd/architecture/kb-ontology.yaml, prd/architecture/force-interval-set-contract.yaml, crates/ln-temporal/src/domain.rs]
+    status: open-honesty
+    next: align members before interval algebra; keep honesty fragment until then
+  - id: D-03
+    class: design-vs-code
+    title: Crystal compiler types absent from src (ledger, MicroOperation, checkout)
+    surfaces: [prd/architecture/model-crystal.md, crates/ln-temporal/src/domain.rs]
+    status: open
+    next: after WALK-I and force-set alignment; do not mint from YAML
+  - id: D-04
+    class: docs-drift
+    title: MC-SEL historical list still names ForRelationsAfter as a selector mode
+    surfaces: [prd/architecture/model-crystal.md]
+    status: open-honesty
+    next: living overlay only; do not rewrite the historical seven-name list
+  - id: D-05
+    class: process
+    title: Assembly FSM S_ready_bounded is not readiness O-state
+    surfaces: [prd/architecture/kb-ontology.yaml]
+    status: documented
+    next: keep assembly_fsm off fsm.current
+  - id: D-06
+    class: docs
+    title: Living vs historical plane names (StructuralMembership / EditorialPresence)
+    surfaces: [prd/architecture/model-crystal.md, prd/temporal-legal-model.md]
+    status: documented
+    next: no third name layer
+  - id: D-07
+    class: homonym
+    title: EvidenceSpan design alias vs ln-decode::EvidenceAnchor
+    surfaces: [prd/temporal-legal-model.md, crates/ln-decode/src]
+    status: documented
+    next: keep pinned qualifier
+  - id: D-08
+    class: overclaim
+    title: Coverage percent is not CoverageCertificate / CompleteFor
+    surfaces: [prd/architecture/scope-aware-completeness-contract.yaml]
+    status: documented
+    next: INV-22 remains
+  - id: D-09
+    class: process
+    title: C1 files on disk are not legislative evidence_class events
+    surfaces: [crates/ln-kb-ontology/tests/hierarchy_registry.rs]
+    status: open
+    next: C1 overlay after WALK-I; 484 constructor is not R070
+  - id: D-10
+    class: honesty
+    title: edition-0001 is earliest local oracle, not proven C0
+    surfaces: [doc/review/review-20-08-2026.md]
+    status: documented
+    next: keep from-unknown; Coverage into the past is Unknown
+  - id: D-11
+    class: false-green
+    title: Governor closed-vocab subset check can pass on a wrong six-member set
+    surfaces: [src/law_nexus_harness/governor.py]
+    status: open-honesty
+    next: kb-ontology-draft observes member mismatch; no new check_id
+  - id: D-12
+    class: evidence
+    title: Two golden catalogs (TL-GC 19 vs GC-001..040)
+    surfaces: [prd/temporal-legal-model.md, prd/architecture/golden-corpus-catalog.yaml]
+    status: documented
+    next: TSG-015 counts separately; neither list is legal gold
+  - id: D-13
+    class: architecture
+    title: ln-kb-ontology has no ports/application/adapters hexagon
+    surfaces: [crates/ln-kb-ontology/src]
+    status: open
+    next: before O4 graph-store writes
+  - id: D-14
+    class: dependency
+    title: Parser evidence G1 vs temporal assembly S3
+    surfaces: [prd/ARCHITECTURE.md]
+    status: documented
+    next: S4 multi-edition needs decode quality, not only fold
+
+recursive_verdict: >
+  Recursive design is WALK-T (history = step(state, edition_k)). Runtime
+  recursion today is WALK-S marker nesting plus two named edition pairs.
+  WALK-I is not executed; identity is still projected from the latest
+  snapshot. That is the load-bearing logic gap.
+
+de_martim_control: >
+  de Martim holds ontology by reifying Temporal Versions and events in
+  LRMoo, not by SHACL runtime. law-nexus keeps Work stable (TV is not a
+  new Work). Adopt the reification habit in the local canon; do not
+  replace the kernel with LRMoo identifiers.

@@ -102,6 +102,10 @@ Governor must never decide:
 
 ## 5. Current bounded debt
 
+- Temporal AST review-control inventory (`prd/architecture/temporal-ast-review-control.yaml` + companion `.md`, 2026-08-28) is a `[proposed]` process catalog of findings D-01..D-14, SHACL/SPARQL anti-runtime verdict, and next-wave order. Consumed by existing `kb-ontology-draft` as an honesty overlay (D272: no new `check_id`). Informal session label CSM is not a glossary first-cell. This bullet is the companion for freshness trigger `temporal-ast-review-control-change`.
+- Runtime `kb-ontology.yaml` `force_status_values` members differ from living `written_statuses` (ADR-0018 / force-interval YAML). A cardinality match is not a member match. Honesty fragment must stay on both YAML surfaces until `ln-temporal::NormativeState` aligns.
+- WALK-T / WALK-S / WALK-I, CST, `StructuralAst`, and SHACL/SPARQL anti-runtime rows landed in §3 (2026-08-28). WALK-I is design; identity must not be projected from the latest registry snapshot.
+
 - The golden-corpus catalog row (`Golden corpus catalog`,
   `prd/architecture/golden-corpus-catalog.yaml`, review-26 §10 / M183) is a
   design-only case catalog `[proposed]`; the TL-GC01–19 paper oracles stay in

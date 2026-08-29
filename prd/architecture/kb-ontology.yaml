@@ -195,6 +195,10 @@ vocabulary:
     - move
     - split
     - merge
+  # Runtime bounded 6-set (ln-temporal::NormativeState as_str tokens).
+  # Living written interval statuses live in force-interval-set-contract.yaml
+  # (InForce / NotYetInForce / Suspended / Repealed / Expired / Invalidated).
+  # A cardinality match is not a member match (D-02 / D-11 honesty overlay).
   force_status_values:
     - in_force
     - suspended
@@ -507,3 +511,5 @@ non_claims:
   - InForce does not imply Applicability
   - assembly_fsm and corpus_roles are design inventory, not store types
   - C2hint overview is not a legislative event log
+  - a cardinality match is not a member match for force_status_values vs written_statuses
+  - SHACL/SPARQL/RDF are anti-runtime; not the ontology control plane

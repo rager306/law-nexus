@@ -187,7 +187,7 @@ Proposed semantic reconciliation, glossary and graduation gates are tracked in [
 **Kernel canon, standards compatibility (D046):** the project-local evidence
 kernel (D119 C10/C12/C13) owns substance; LRMoo/CIDOC-CRM/AKML/ELI/LKIF are
 deterministic reversible projections for interoperability. Budget cycle is a
-profile projection over the five clocks (ADR-0009), NOT a sixth clock.
+profile projection over the five clocks (ADR-0009), NOT a sixth clock. SHACL/SPARQL remain **anti-runtime** (archive-only, R066); review-control: [`architecture/temporal-ast-review-control.md`](architecture/temporal-ast-review-control.md).
 
 ## Where we actually are (truth, not optimism)
 
