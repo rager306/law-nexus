@@ -27,18 +27,18 @@ falkordb=historical-only
 - **Completed retrieval-honesty band:** M161–M164 `[bounded]` (real cosine ranking in memory, semantic-stub and historical-test-debt probes, deterministic CLI vectors); no live corpus or citation-safe answers.
 - **Completed documentation alignment:** D5 + documentation D6 / EA-05 accepted with findings at `94d58ea`; roadmap-front-sync and TL-G01–12 coverage PASS.
 - **Documentation/process assessment:** EA-10 complete — human D150 `accepted-with-findings` after independent EA-09 report `120d44b`; post-D150 assessments 13–19 record bounded repository-control/parser-protocol/glossary/semantic-presentation remediation and remaining gaps without successor acceptance, lifecycle promotion or product unlock. Glossary governance now inventories all crosswalk rows and controls coding terminology structurally through the tracked living-oracle read pointer; it does not close TSG-001 or define product semantics.
-- **Local GSD workflow marker:** M186-b55iey is the latest completed milestone
-  in GSD registry (484-FZ C1 constructor [bounded] + S04 honesty). M185-wuj4zf
-  remains the prior process/harness wave (TSG-015 pin, census, env-sweep).
-  Remaining = M187+ Class A durable adapters (25 CID-A) plus G1 blocked /
-  R070 named-open / G2-vs-P2. Temporal-AST review-control (D-01..D-14) records
-  WALK-I / force-set member alignment / SHACL anti-runtime as product next-wave;
-  existing `kb-ontology-draft` observes the honesty overlay (D272: no new
-  check_id). G1 (GC-021/022) is blocked without tracked official corpus
-  fixtures; 484-FZ C1 amends edge is executed @pin SHA 67f781db… [bounded]
-  (not R070 closure). Do not mint ConflictResolver, SHACL runtime, or catalog
-  enums ahead of their waves. Upstream run-uat persistence defect filed as
-  open-gsd/gsd-pi#1993. GSD completion is not product readiness.
+- **Local GSD workflow marker:** M188-nc4f6u is the latest completed milestone
+  in GSD registry (D-02 NormativeState force-set member alignment,
+  closed-bounded per D304/D306). M187-bjmfow landed WALK-I identity growth
+  from the earliest oracle as bounded ln-kb-ontology grow_identity;
+  M186-b55iey remains the 484-FZ C1 constructor + S04 honesty wave. Remaining
+  = M189 projection sync, then M190+ durable three-canon event log, C1
+  legislative overlay, effect ledger, crystal checkout sketch, G2-vs-P2 human
+  gate, plus Class A durable adapters (25 CID-A), G1 blocked without official
+  corpus, R070 named-open. Review-control D-02 is closed-bounded: runtime
+  force members equal the living written_statuses; Unknown stays fail-closed;
+  Superseded/Transitional stay out of the force set. No new check_id (D272).
+  GSD completion is not product readiness.
 - **GSD dual-truth M167:** **resolved** — M167 complete via authorized skip waivers + validation (D154 option C). Historical note in `gsd-review-bridge.md`. Not Applicable; TSG-005/006 still open.
 - **Review governance process contour:** ADR-0024 Review Case intake/disposition/ledger landed; human dispositions recorded for review-11/12 (`actor_id=rager306`). Non-authoritative; no Product/ADR/roadmap promotion.
 - **Applicability kernel:** `ln-applicability` v0 fail-closed abstention-only under ADR-0023 `[proposed]`, with NormRule IR + pure predicate algebra spines; no Applicable/NotApplicable product claim.

@@ -1,6 +1,6 @@
 {
   "schema_version": "law-nexus-project-state-roadmap/v2",
-  "generated_at": "2026-08-28T18:30:00Z",
+  "generated_at": "2026-08-29T10:09:57Z",
   "non_authoritative": true,
   "source_of_truth": "prd/ARCHITECTURE.md (living truth oracle) and doc/adr/** (decision/lifecycle authority). This file is a non-authoritative cold-reader projection; local .gsd/** is workflow state only.",
   "completed_milestone_groups": [
@@ -477,16 +477,28 @@
       "theme": "484-FZ C1 constructor amends-edge plus honesty/session closeout (docs/process + bounded constructor)",
       "status": "complete",
       "boundary": "Narrow C1 constructor proof for 484-FZ amends on the temporal-AST model (skip-capable disk SHA, three-hop battery); S04 honesty leftover plus temporal-AST review-control inventory (D-01..D-14) consumed by existing kb-ontology-draft (D272 no new check_id). Not R070 closure, not G1 official corpus, not SHACL/SPARQL runtime, not product readiness."
+    },
+    {
+      "range": "M187-M187",
+      "theme": "WALK-I identity growth from the earliest oracle (bounded ln-kb-ontology grow_identity)",
+      "status": "complete",
+      "boundary": "Pure grow_identity on the ln-kb-ontology HierarchyMap: first appearance of a marker key mints the ComponentConcept, a repeat reuses it, key conflict is fail-closed; marker without WorkId and level outside mint_levels do not mint; the append-only map is the identity canon. YAML registry 0118 stays checksum/bootstrap, map_hierarchy_marker and inspect/replay untouched, review-control D-01 next points at bounded grow_identity. Not C0, not 118 XML/steps, not SHACL, not Applicable, not R070 closure, not product readiness."
+    },
+    {
+      "range": "M188-M188",
+      "theme": "D-02 NormativeState force-set member alignment (living written_statuses, ADR-0018 G0(c)/P0-5a)",
+      "status": "complete",
+      "boundary": "Runtime ln-temporal::NormativeState and kb-ontology.yaml force_status_values aligned member-by-member to living written_statuses: InForce, NotYetInForce, Suspended, Repealed, Expired, Invalidated; Unknown stays a fail-closed point-query outcome, never a written transition target; Superseded lives in VersionRelation, Transitional in ADR-0021; review-control D-02 updated in place open-honesty to closed-bounded with the unconditional cardinality honesty fragment preserved (D304/D306). Not interval algebra, not SHACL encoding, not Applicable, not 118 XML, not R070/R074 closure; the historical ADR-0018 Decision table is not rewritten (living overlay only). GSD completion is not product readiness."
     }
   ],
   "current_milestone": {
-    "id": "M186-b55iey",
+    "id": "M188-nc4f6u",
     "status": "complete",
-    "title": "484-ФЗ узкий C1 constructor amends-ребро на модели нормативного акта",
-    "goal": "Land the 484-FZ C1 amends constructor on the temporal-AST model (S01–S03 battery composition @SHA 67f781db… [bounded]) plus S04 honesty/session closeout. Not R070 closure, not legislative evidence_class, not SHACL runtime, not Applicable."
+    "title": "D-02 выравнивание членов force-set NormativeState",
+    "goal": "Align runtime ln-temporal::NormativeState and kb-ontology.yaml force_status_values to the living written_statuses of ADR-0018 G0(c)/P0-5a (InForce, NotYetInForce, Suspended, Repealed, Expired, Invalidated; Unknown fail-closed point-query; Superseded in VersionRelation; Transitional in ADR-0021) — D304/D306 closed-bounded. Not interval algebra, not SHACL encoding, not Applicable, not R070/R074 closure."
   },
   "recommended_next": {
-    "title": "After M186-b55iey complete (484-FZ C1 constructor [bounded] + S04 honesty): leftover M187+ = durable adapters for CID-A; G1 remains blocked without official corpus; R070 open; G2 vs P2 human-gated. Product next-wave (orthogonal, no new check_id): WALK-I from earliest oracle, then durable three-canon log, then align force-status members (D-02); SHACL/SPARQL remain anti-runtime.",
+    "title": "After M188-nc4f6u complete (WALK-I bounded grow_identity + D-02 force-set member alignment closed-bounded): product next-wave M190+ = durable three-canon event log, C1 legislative overlay, effect ledger, crystal checkout sketch, G2-vs-P2 human gate; Class A durable adapters for CID-A still open; G1 remains blocked without official corpus; R070 open; SHACL/SPARQL remain anti-runtime.",
     "priority": 1,
     "why": "M186-b55iey completed in GSD (STATE last-completed; Active none). M185-wuj4zf landed its honesty front on main as separate commits: S01 pinned the TSG-015 counter with an executable detector in tests/test_temporal_model_contract.py (19 TL-GC + 40 GC counted separately; D279), S02 tracked the stub/fake/hardcode census register (assessment/21-stub-fake-hardcode-census.md; inventory-only), S03 moved CONSULTANT_EXPORT_DIR to one fail-closed config entry (harness corpus_export_dir() + 7 Rust seed helpers; empty-as-unset; D282). Leftover: Class A durable replacements owned by M186+ (25 open CID-A); the narrow 484-FZ amends constructor was executed in M186-b55iey S03 @SHA 67f781db… [bounded] as a three-hop battery composition (c1_484_evidence_battery 5 passed; composition proof, not R070 closure); G1 (GC-021/022) is blocked without tracked official artifacts; R070 edition-delta provenance remains open; then G2 corpus vs P2 resolver human-gated. TSG-012/007 unclosed. ConflictResolver out of this wave (ADR-0019 S0); no Rust types minted; S04 closeout honesty in flight (no new check_id, D272); leftover after this wave is M187+ Class A / G1 / R070 / G2-vs-P2; governor inventory stays 41 specs / live pass_count=67 / warn_count=0 (observed values per MEM1143). Upstream run-uat defect: open-gsd/gsd-pi#1993; Verify-prose classifier: open-gsd/gsd-pi#1994 (still on v1.16.2) Temporal AST review-control inventory landed 2026-08-28 (prd/architecture/temporal-ast-review-control.yaml, D-01..D-14); existing kb-ontology-draft observes force-set member honesty (cardinality match is not a member match). Product next-wave after process leftover: WALK-I from earliest oracle → durable three-canon event log → align runtime force members to living written_statuses → C1 legislative overlay → only then crystal ledger/compiler/checkout. Forbidden now: SHACL/SPARQL runtime, Applicable product, RuVector as ontology canon, 0118-as-CC-universe. R070 remains named-open; 484 constructor is not R070 closure. D272: no new governor check_id.",
     "plan_reference": "assessment/19-temporal-model-and-cross-act-progress.md + assessment/20-standing-execution-directive.md + assessment/21-stub-fake-hardcode-census.md + prd/architecture/golden-corpus-catalog.yaml + doc/review/review-26-23-08-2026.md section 10 + prd/architecture/temporal-ast-review-control.md",
@@ -715,6 +727,11 @@
       "id": "roadmap-sync-20260828-m186-complete-pointer",
       "lifecycle": "proposed",
       "text": "GSD STATE lists M186-b55iey complete and Active Milestone none; current_milestone pointer moved M185 → M186 to satisfy roadmap-current-tracks-gsd / range-coverage. Product leftover remains M187+ CID-A / G1 blocked / R070 named-open / G2-vs-P2; temporal-AST review-control (WALK-I, force-set members, SHACL anti-runtime) is orthogonal and does not close R070."
+    },
+    {
+      "id": "roadmap-sync-20260829-m188-complete-pointer",
+      "lifecycle": "proposed",
+      "text": "GSD STATE lists M187-bjmfow and M188-nc4f6u complete with Active Milestone M189-yojcdu; current_milestone pointer moved M186 → M188 per MEM932 (max completed GSD sequence, not any completed id) and completed_milestone_groups extended with M187 (WALK-I bounded grow_identity) and M188 (D-02 force-set member alignment closed-bounded, D304/D306). Projection-only sync: no governor.py edits, no new check_id (D272); R070/R074 stay named-open; force enum, grow_identity, SHACL and CID-A untouched; recommended_next why/product_next keep M186-era prose until a later honesty wave. GSD completion is not product readiness."
     }
   ]
 }
