@@ -139,5 +139,10 @@ fn report_does_not_claim_c0_force_or_applicable() {
     assert!(joined.contains("C0") || joined.contains("not proven C0"));
     assert!(joined.contains("118") || joined.contains("not a 118"));
     assert!(joined.to_lowercase().contains("force") || joined.contains("InForce"));
+    // Minting a ComponentConcept binds no component content version: not CTV text.
+    assert!(
+        joined.contains("CTV text"),
+        "non_claims must explicitly deny CTV text, got: {joined}"
+    );
     assert!(joined.contains("Applicable"));
 }
