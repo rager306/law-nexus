@@ -118,6 +118,11 @@ fn same_number_different_path_does_not_reuse() {
     };
     assert_ne!(a.as_str(), b.as_str());
     assert!(!b.as_str().contains('/'), "CC id must not contain slash");
+    assert!(
+        b.as_str().contains("statya-93-punkt-4"),
+        "CC id must encode the path with hyphen, got: {}",
+        b.as_str()
+    );
 }
 
 #[test]

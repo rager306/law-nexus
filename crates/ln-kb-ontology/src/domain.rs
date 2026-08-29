@@ -938,7 +938,7 @@ fn mint_walk_i_component_id(marker: &HierarchyMarker) -> Result<ComponentConcept
         .as_deref()
         .ok_or(WriteSetError::MissingIdentity)?;
     let slug = walk_i_work_slug(work_id)?;
-    let encoded_key = marker.key_path().replace('/', ".");
+    let encoded_key = marker.key_path().replace('/', "-");
     let raw = format!("cc:walk:{slug}:{}-{encoded_key}", marker.level());
     ComponentConceptId::parse(&raw).map_err(|_| WriteSetError::MissingIdentity)
 }
