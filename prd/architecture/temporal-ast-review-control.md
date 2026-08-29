@@ -28,7 +28,7 @@ history. Three L2 canons plus force stay uncollapsed.
 |---|---|---|---|---|
 | D-01 | process-logic | 44-ФЗ registry snapshot (edition-0118) treated as the CC universe | open-bounded | `grow_identity` TDD on synthetic snapshots; not C0; not 118 XML; inspect still uses 0118 lookup |
 | D-02 | ontology | Runtime `force_status_values` members differed from ADR-0018 `written_statuses` | closed-bounded | bounded enum alignment landed (M188 member match); not interval algebra |
-| D-03 | design-vs-code | Crystal compiler types absent from `src/` | open | after WALK-I and D-02; do not mint from YAML |
+| D-03 | design-vs-code | Crystal compiler types absent from `src/` | open-bounded | bounded three-canon event log + point fold landed (M190, `ln-temporal`); ledger/MicroOperation/checkout still absent; do not mint from YAML |
 | D-04 | docs-drift | MC-SEL historical list still names `ForRelationsAfter` as a selector | open-honesty | living overlay only |
 | D-05 | process | `S_ready_bounded` ≠ readiness O-state | documented | keep two FSMs |
 | D-06 | docs | living vs historical plane names | documented | no third name layer |
@@ -73,7 +73,7 @@ alignment. Archive ACP/git-lex RDF (R066) is not a return path.
 
 ```text
 WALK-I from earliest oracle
-  → durable three-canon event log
+  → durable three-canon event log (landed M190, bounded)
   → align force-status members (D-02; landed M188)
   → C1 legislative overlay (P9 macro/micro)
   → only then crystal ledger / compiler / checkout

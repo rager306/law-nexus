@@ -2,6 +2,28 @@
 
 ## [Unreleased]
 
+### M190-lo7ucr (durable three-canon event log, bounded; D-03 honesty)
+
+- `crates/ln-temporal/src/domain.rs` gained the bounded append-only three-canon
+  event log (S01): `AmendmentEvent`, `EditionOracle`, and assertion-or-effect
+  records with point fold `as_of_day` — `AST(t) = fold(events ≤ t)` (D228);
+  empty fold → empty/Unknown (not InForce, not membership); append is
+  fail-closed on unordered events, duplicate/empty identity, oracle without
+  checksum, and Unknown transitions (log preserved). Suite
+  `crates/ln-temporal/tests/three_canon_event_log.rs` (12 tests); full
+  ln-temporal surface 97/97 green. YAML/registry/docs are not parsed into
+  types (D216, scoping note D307).
+- Review-control D-03 → `open-bounded` (S02): the honest next is the landed
+  bounded log, not compiler checkout — ledger / `MicroOperation` / bitemporal
+  checkout types remain absent from `src/`; `next_wave_order` annotates
+  `durable_three_canon_event_log` as landed M190. Living overlay only
+  (`prd/architecture/temporal-ast-review-control.yaml` + `.md`); historical
+  MC-SEL / ADR-0009 seven-name lists are not rewritten. No new governor
+  `check_id` (D272); `kb-ontology-draft` stays pass.
+- Not interval algebra, not SHACL runtime, not crystal-compiler adoption;
+  WALK-I/force/checkout boundaries unchanged (see
+  `prd/architecture/temporal-ast-review-control.yaml` `forbidden_next`).
+
 ### M189-yojcdu (roadmap projection sync: recommended_next honesty)
 
 - `prd/project-state/data/roadmap.json` + cold-reader `prd/project-state/roadmap.md`

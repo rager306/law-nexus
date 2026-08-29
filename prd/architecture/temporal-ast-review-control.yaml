@@ -67,7 +67,7 @@ shacl_sparql_rule: >
 
 next_wave_order:
   - walk_i_from_earliest_oracle
-  - durable_three_canon_event_log
+  - durable_three_canon_event_log  # landed M190 (D-03 open-bounded)
   - align_force_status_members  # landed M188 (D-02 closed-bounded)
   - c1_legislative_overlay
   - then_crystal_ledger_compiler_checkout
@@ -95,8 +95,8 @@ findings:
     class: design-vs-code
     title: Crystal compiler types absent from src (ledger, MicroOperation, checkout)
     surfaces: [prd/architecture/model-crystal.md, crates/ln-temporal/src/domain.rs]
-    status: open
-    next: after WALK-I and force-set alignment; do not mint from YAML
+    status: open-bounded
+    next: bounded append-only three-canon event log + point fold landed in ln-temporal (M190); ledger / MicroOperation / checkout still absent from src; do not mint from YAML
   - id: D-04
     class: docs-drift
     title: MC-SEL historical list still names ForRelationsAfter as a selector mode
