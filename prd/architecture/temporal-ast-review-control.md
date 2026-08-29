@@ -26,7 +26,7 @@ history. Three L2 canons plus force stay uncollapsed.
 
 | ID | Class | Finding | Status | Honest next |
 |---|---|---|---|---|
-| D-01 | process-logic | 44-ФЗ registry snapshot (edition-0118) treated as the CC universe | open | WALK-I from earliest oracle |
+| D-01 | process-logic | 44-ФЗ registry snapshot (edition-0118) treated as the CC universe | open-bounded | `grow_identity` TDD on synthetic snapshots; not C0; not 118 XML; inspect still uses 0118 lookup |
 | D-02 | ontology | Runtime `force_status_values` members ≠ ADR-0018 `written_statuses` | open-honesty | member alignment before interval algebra |
 | D-03 | design-vs-code | Crystal compiler types absent from `src/` | open | after WALK-I and D-02; do not mint from YAML |
 | D-04 | docs-drift | MC-SEL historical list still names `ForRelationsAfter` as a selector | open-honesty | living overlay only |

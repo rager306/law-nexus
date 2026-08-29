@@ -2,6 +2,16 @@
 
 ## [Unreleased]
 
+### M187-bjmfow (WALK-I grow_identity, bounded TDD)
+
+- Pure `grow_identity` in `ln-kb-ontology`: first appearance of
+  `(work, level, key_path)` mints a stable CC; repeat reuses; levels outside
+  `mint_levels` skip; missing `work_id` is fail-closed; same number on another
+  path does not silent-reuse. CC id encodes path with `.` not `/`.
+- Tests `crates/ln-kb-ontology/tests/walk_i_identity.rs` (6 passed). Does not
+  edit `map_hierarchy_marker`. Not C0, not 118-step XML, not force, not
+  Applicable. D-01 next-wave updated to open-bounded. No new governor check_id.
+
 ### Docs/Governor (temporal AST review-control, force-set member honesty)
 
 - Review-control inventory `prd/architecture/temporal-ast-review-control.yaml` +

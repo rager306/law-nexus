@@ -76,9 +76,9 @@ findings:
   - id: D-01
     class: process-logic
     title: Latest registry snapshot treated as CC universe
-    surfaces: [prd/architecture/kb-hierarchy-registry.yaml, doc/review/review-20-08-2026.md]
-    status: open
-    next: WALK-I from earliest oracle (edition-0001), not edition-0118
+    surfaces: [prd/architecture/kb-hierarchy-registry.yaml, doc/review/review-20-08-2026.md, crates/ln-kb-ontology/src/domain.rs]
+    status: open-bounded
+    next: bounded grow_identity (WALK-I TDD on synthetic snapshots) landed; not C0; not 118 XML; CLI inspect/replay still use the 0118 registry lookup
   - id: D-02
     class: ontology
     title: Runtime force 6-set members differ from ADR-0018 living written_statuses

@@ -895,6 +895,102 @@ pub fn map_hierarchy_marker(map: &HierarchyMap, marker: &HierarchyMarker) -> Hie
     }
 }
 
+/// One snapshot in a WALK-I chain: markers already decoded, not an XML file.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct IdentitySnapshot {
+    pub markers: Vec<HierarchyMarker>,
+}
+
+/// Growth of a HierarchyMap from ordered snapshots (WALK-I).
+/// Not C0, not 118-step XML, not force, not CTV text, not Applicable.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct IdentityGrowthReport {
+    pub map: HierarchyMap,
+    pub minted: usize,
+    pub reused: usize,
+    pub skipped: usize,
+}
+
+const WALK_I_NON_CLAIMS: &[&str] = &[
+    "WALK-I grows identity from first appearance; edition-0001 is not proven C0",
+    "Not a 118-step XML replay and not the latest-edition registry as CC universe",
+    "Mint does not imply InForce, CTV text, Expression presence, or Applicable",
+    "map_hierarchy_marker stays a lookup; grow_identity is the only mint path here",
+];
+
+impl IdentityGrowthReport {
+    pub fn non_claims(&self) -> &'static [&'static str] {
+        WALK_I_NON_CLAIMS
+    }
+}
+
+fn walk_i_work_slug(work_id: &str) -> Result<&str, WriteSetError> {
+    work_id
+        .rsplit(':')
+        .next()
+        .filter(|slug| !slug.is_empty())
+        .ok_or(WriteSetError::MissingIdentity)
+}
+
+fn mint_walk_i_component_id(marker: &HierarchyMarker) -> Result<ComponentConceptId, WriteSetError> {
+    let work_id = marker
+        .work_id
+        .as_deref()
+        .ok_or(WriteSetError::MissingIdentity)?;
+    let slug = walk_i_work_slug(work_id)?;
+    let encoded_key = marker.key_path().replace('/', ".");
+    let raw = format!("cc:walk:{slug}:{}-{encoded_key}", marker.level());
+    ComponentConceptId::parse(&raw).map_err(|_| WriteSetError::MissingIdentity)
+}
+
+/// Grow a HierarchyMap from ordered snapshots of one Work (WALK-I).
+///
+/// First appearance of `(work, level, key_path)` mints a stable CC. Repeat
+/// reuses it. Levels outside `mint_levels` are skipped. Missing `work_id`
+/// is fail-closed. Does not rewrite `map_hierarchy_marker`.
+pub fn grow_identity(
+    mut map: HierarchyMap,
+    snapshots: &[IdentitySnapshot],
+    mint_levels: &[&str],
+) -> Result<IdentityGrowthReport, WriteSetError> {
+    let mut minted = 0usize;
+    let mut reused = 0usize;
+    let mut skipped = 0usize;
+    for snapshot in snapshots {
+        for marker in &snapshot.markers {
+            if marker.work_id.as_deref().is_none() {
+                return Err(WriteSetError::MissingIdentity);
+            }
+            if !mint_levels.iter().any(|level| *level == marker.level()) {
+                skipped = skipped.saturating_add(1);
+                continue;
+            }
+            match map_hierarchy_marker(&map, marker) {
+                HierarchyMapOutcome::Bound { .. } => {
+                    reused = reused.saturating_add(1);
+                }
+                HierarchyMapOutcome::Unknown => {
+                    let component = mint_walk_i_component_id(marker)?;
+                    map.register(HierarchyBinding::try_new_with_path(
+                        marker.work_id.as_deref(),
+                        marker.level(),
+                        marker.number(),
+                        marker.path(),
+                        component,
+                    )?)?;
+                    minted = minted.saturating_add(1);
+                }
+            }
+        }
+    }
+    Ok(IdentityGrowthReport {
+        map,
+        minted,
+        reused,
+        skipped,
+    })
+}
+
 // ─── S_admit: conflict quarantine on proposed drafts ───────────────────────────
 // Admitted drafts are still not VersionedMembershipLog writes. Structural checks
 // (cycle, two-parent, self-parent) are graph integrity, not legal hierarchy.
