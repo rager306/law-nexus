@@ -1,6 +1,13 @@
 //! Bounded force-status NormativeState resolver (TSG-004 S2/S3 / ADR-0018).
 //!
 //! Force dimension only. Not CTV join, not applicability, not legal corpus proof.
+//!
+//! Living member set (M188 S01): written statuses `InForce`, `NotYetInForce`,
+//! `Suspended`, `Expired`, `Repealed`, `Invalidated` plus fail-closed outcome
+//! `Unknown`. `Superseded` lives in the version relation, `Transitional` is
+//! F13-T territory; neither is a force status here. The exhaustive match in
+//! [`yaml_token`] fails compilation if a former force member is re-added or a
+//! new member lacks a YAML token (fail-closed guard).
 
 use ln_temporal::domain::{
     resolve_force_status_at, AmendingActId, ComponentConceptId, ForceStatusEvent,
@@ -153,4 +160,99 @@ fn force_resolution_does_not_claim_applicability_or_ctv() {
         .iter()
         .any(|c| c.contains("CTV") || c.contains("text")));
     assert_eq!(result.dimension.as_str(), "force_status");
+}
+
+// ─── M188 S01/T01: living members, vacatio, expire/invalidate ───────────────
+
+/// Compile-time guard: exhaustive over the living member set, no wildcard arm.
+fn yaml_token(state: NormativeState) -> &'static str {
+    match state {
+        NormativeState::InForce => "in_force",
+        NormativeState::NotYetInForce => "not_yet_in_force",
+        NormativeState::Suspended => "suspended",
+        NormativeState::Expired => "expired",
+        NormativeState::Repealed => "repealed",
+        NormativeState::Invalidated => "invalidated",
+        NormativeState::Unknown => "unknown",
+    }
+}
+
+#[test]
+fn as_str_tokens_are_snake_case_yaml_tokens() {
+    let living = [
+        NormativeState::InForce,
+        NormativeState::NotYetInForce,
+        NormativeState::Suspended,
+        NormativeState::Expired,
+        NormativeState::Repealed,
+        NormativeState::Invalidated,
+    ];
+    for state in living {
+        assert_eq!(state.as_str(), yaml_token(state));
+        assert!(
+            state.is_transition_target(),
+            "{} must be writable",
+            state.as_str()
+        );
+    }
+    // Unknown stays the fail-closed outcome, never a transition target.
+    assert_eq!(NormativeState::Unknown.as_str(), "unknown");
+    assert!(!NormativeState::Unknown.is_transition_target());
+}
+
+#[test]
+fn vacatio_not_yet_in_force_is_writable_and_never_yields_in_force() {
+    let mut timeline = ForceStatusTimeline::empty();
+    // Adoption recorded, no Commence event: vacatio durans.
+    timeline
+        .append(event(
+            "cc:art-1",
+            NormativeState::NotYetInForce,
+            10,
+            "act:adopt",
+        ))
+        .expect("NotYetInForce must be a writable transition");
+    for day in [10, 11, 1000] {
+        let result = resolve_force_status_at(&timeline, &cc("cc:art-1"), day).expect("r");
+        assert_eq!(result.status, NormativeState::NotYetInForce);
+        assert_ne!(
+            result.status,
+            NormativeState::InForce,
+            "adoption without Commence never yields InForce"
+        );
+        assert!(!result.conflict);
+    }
+}
+
+#[test]
+fn expire_and_invalidate_are_writable_transitions() {
+    let mut timeline = ForceStatusTimeline::empty();
+    timeline
+        .append(event("cc:art-1", NormativeState::NotYetInForce, 5, "act:a"))
+        .expect("e1");
+    timeline
+        .append(event("cc:art-1", NormativeState::Expired, 10, "act:b"))
+        .expect("expire writable");
+    timeline
+        .append(event("cc:art-1", NormativeState::Invalidated, 20, "act:c"))
+        .expect("invalidate writable");
+
+    assert_eq!(
+        resolve_force_status_at(&timeline, &cc("cc:art-1"), 7)
+            .expect("r")
+            .status,
+        NormativeState::NotYetInForce
+    );
+    assert_eq!(
+        resolve_force_status_at(&timeline, &cc("cc:art-1"), 10)
+            .expect("r")
+            .status,
+        NormativeState::Expired
+    );
+    assert_eq!(
+        resolve_force_status_at(&timeline, &cc("cc:art-1"), 20)
+            .expect("r")
+            .status,
+        NormativeState::Invalidated
+    );
 }

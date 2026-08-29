@@ -472,13 +472,22 @@ pub fn reject_version_relation_as_force() -> NormativeDimensionBoundary {
 
 /// Canonical force/status values (ADR-0018). `Unknown` is fail-closed outcome only,
 /// never a transition target written into the timeline.
+/// Living force-status set (ADR-0018 force dimension; TSG-004 S2/S3).
+///
+/// Members are the writable written statuses plus `Unknown` as the fail-closed
+/// outcome (never a transition target). Vacatio is `NotYetInForce` (adoption
+/// without Commence never yields `InForce`); `Expired`/`Invalidated` are
+/// evidence-gated terminal transitions. `Superseded` lives in the version
+/// relation, `Transitional` is F13-T territory — neither is a force status, and
+/// references to them no longer compile (fail-closed member set).
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum NormativeState {
     InForce,
+    NotYetInForce,
     Suspended,
+    Expired,
     Repealed,
-    Superseded,
-    Transitional,
+    Invalidated,
     Unknown,
 }
 
@@ -486,10 +495,11 @@ impl NormativeState {
     pub fn as_str(self) -> &'static str {
         match self {
             Self::InForce => "in_force",
+            Self::NotYetInForce => "not_yet_in_force",
             Self::Suspended => "suspended",
+            Self::Expired => "expired",
             Self::Repealed => "repealed",
-            Self::Superseded => "superseded",
-            Self::Transitional => "transitional",
+            Self::Invalidated => "invalidated",
             Self::Unknown => "unknown",
         }
     }
