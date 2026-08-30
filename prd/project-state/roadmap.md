@@ -27,21 +27,28 @@ falkordb=historical-only
 - **Completed retrieval-honesty band:** M161–M164 `[bounded]` (real cosine ranking in memory, semantic-stub and historical-test-debt probes, deterministic CLI vectors); no live corpus or citation-safe answers.
 - **Completed documentation alignment:** D5 + documentation D6 / EA-05 accepted with findings at `94d58ea`; roadmap-front-sync and TL-G01–12 coverage PASS.
 - **Documentation/process assessment:** EA-10 complete — human D150 `accepted-with-findings` after independent EA-09 report `120d44b`; post-D150 assessments 13–19 record bounded repository-control/parser-protocol/glossary/semantic-presentation remediation and remaining gaps without successor acceptance, lifecycle promotion or product unlock. Glossary governance now inventories all crosswalk rows and controls coding terminology structurally through the tracked living-oracle read pointer; it does not close TSG-001 or define product semantics.
-- **Local GSD workflow marker:** M188-nc4f6u is the latest completed milestone
-  in GSD registry (D-02 NormativeState force-set member alignment,
-  closed-bounded per D304/D306). M187-bjmfow landed WALK-I identity growth
-  from the earliest oracle as bounded ln-kb-ontology grow_identity;
-  M186-b55iey remains the 484-FZ C1 constructor + S04 honesty wave. Both are
-  landed: WALK-I and D-02 are not unfinished next. M189-yojcdu is the active
-  projection-sync wave; after it, product next M190+ is the explicit choice of
-  durable three-canon event log or C1 legislative overlay (review-control
-  `next_wave_order`; `align_force_status_members` landed with M188), then
-  effect ledger, crystal checkout sketch, G2-vs-P2 human gate, plus Class A
-  durable adapters (25 CID-A), G1 blocked without official corpus, R070
-  named-open. Review-control D-02 is closed-bounded: runtime
-  force members equal the living written_statuses; Unknown stays fail-closed;
-  Superseded/Transitional stay out of the force set. No new check_id (D272).
-  GSD completion is not product readiness.
+- **Local GSD workflow marker:** M191-kgdyqi is the latest completed milestone
+  in GSD registry (C1 legislative overlay admission on the durable three-canon
+  event log, D308). M190-lo7ucr landed the durable three-canon event log as
+  bounded TDD (hand-written ln-temporal types; YAML codegen out of scope per
+  D307); M189-yojcdu was the roadmap/GSD projection-sync wave after M188
+  (D-02 force-set alignment closed-bounded per D304/D306; WALK-I M187-bjmfow
+  and the M186-b55iey C1 constructor wave landed earlier). All are landed:
+  none is unfinished next. M192-79ij5m is the active milestone: the first
+  durable effect ledger on the log path — S01 landed the durable
+  JsonlEffectLedger behind the ln-replay EffectLedgerPort (append-only JSONL
+  per D102, canonical record schema D310, EFFECT_LEDGER_PATH empty-as-unset
+  fail-closed, strict hydration, D311) with the shared ln-testkit port
+  contract covering both adapters; S02 records census honesty (CID-A-23
+  addressed-in-draft against a frozen revision with tracked evidence and
+  preserved non-claims: durable bytes are not R070). Planned next:
+  M193-tyy108 crystal ledger compiler checkout sketch, then M194-p7aqjv
+  G2-corpus-vs-P2 human gate. Class A durable adapters beyond CID-A-23 remain
+  open; G1 blocked without official corpus; R070 named-open. Review-control
+  D-02 stays closed-bounded: runtime force members equal the living
+  written_statuses; Unknown stays fail-closed; Superseded/Transitional stay
+  out of the force set. No new check_id (D272). GSD completion is not product
+  readiness.
 - **GSD dual-truth M167:** **resolved** — M167 complete via authorized skip waivers + validation (D154 option C). Historical note in `gsd-review-bridge.md`. Not Applicable; TSG-005/006 still open.
 - **Review governance process contour:** ADR-0024 Review Case intake/disposition/ledger landed; human dispositions recorded for review-11/12 (`actor_id=rager306`). Non-authoritative; no Product/ADR/roadmap promotion.
 - **Applicability kernel:** `ln-applicability` v0 fail-closed abstention-only under ADR-0023 `[proposed]`, with NormRule IR + pure predicate algebra spines; no Applicable/NotApplicable product claim.

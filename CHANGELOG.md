@@ -2,6 +2,39 @@
 
 ## [Unreleased]
 
+### M192-79ij5m (first durable effect ledger on the log path; census honesty for the one replaced adapter)
+
+- `crates/ln-replay/src/adapters.rs` gained the durable append-only JSONL
+  `EffectLedgerPort` adapter `JsonlEffectLedger` (S01; storage per D102,
+  canonical record format D310/D311): `try_apply` returns `true` only when the
+  record is durably appended and synced — through the infallible port a
+  persistence failure surfaces as `false` plus a typed `EffectLedgerError`
+  (`try_apply_checked`/`take_error`), so an unrecorded effect is never treated
+  as applied; hydration is strict — corrupt, truncated, duplicated, or
+  non-canonical records fail closed with no partial state.
+- `EFFECT_LEDGER_PATH` resolves empty-as-unset fail-closed: unset, empty, and
+  whitespace-only all refuse to guess a ledger path (deliberately unlike the
+  `CONSULTANT_EXPORT_DIR` default pattern); `.env.example` mirrors the key
+  with an empty value (verified by S02, not duplicated).
+- Shared contract suite `crates/ln-testkit/tests/effect_ledger_port_contracts.rs`
+  (8 tests): both `InMemoryEffectLedger` and `JsonlEffectLedger` satisfy the
+  same port contract; durable append survives process reopen with a
+  byte-for-byte canonical-form check; unset/empty env, corrupt ledger file,
+  missing parent directory, and path-as-directory all fail closed; the hostile
+  duplicate ledger still fails the honest contract. `InMemoryEffectLedger`
+  stays the pinned test double — the [smoke] hc14 runner still constructs it
+  (M186+ leftover).
+- Census honesty (S02): `assessment/21-stub-fake-hardcode-census.md` row
+  CID-A-23 moves `open · [bounded]` → `addressed-in-draft` under the
+  disposition protocol — frozen revision (the HEAD that already contains the
+  S01 replacement code, not yet this register edit; the evidence triad closes
+  when the register lands in a tracked commit), tracked evidence (the port
+  contract suite, the `.env.example` mirror, and the register itself),
+  preserved non-claims: durable bytes are not R070 — R070 stays named-open,
+  the other 24 CID-A rows stay open, no governor check_id changes (D272),
+  ledger rotation/compaction and multi-process file locking are not claimed,
+  no official corpus parsed, no push. GSD completion is not product readiness.
+
 ### M191-kgdyqi (C1 legislative overlay on the three-canon log: shape-discriminating fail-closed admission; D-09 honesty)
 
 - `crates/ln-temporal/src/domain.rs` gained the bounded C1 legislative
