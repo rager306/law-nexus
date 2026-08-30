@@ -34,7 +34,7 @@ history. Three L2 canons plus force stay uncollapsed.
 | D-06 | docs | living vs historical plane names | documented | no third name layer |
 | D-07 | homonym | `EvidenceSpan` vs `ln-decode::EvidenceAnchor` | documented | keep pinned qualifier |
 | D-08 | overclaim | coverage % ≠ CoverageCertificate | documented | INV-22 |
-| D-09 | process | C1 files on disk ≠ `legislative` events | open | overlay after WALK-I; 484 ≠ R070 |
+| D-09 | process | C1 files on disk ≠ `legislative` events | open-bounded | bounded C1 overlay landed on the three-canon log (M191, fail-closed admission); overlay, not constructor-as-evidence; 484 ≠ R070 |
 | D-10 | honesty | edition-0001 ≠ proven C0 | documented | Coverage into the past is Unknown |
 | D-11 | false-green | closed-vocab subset can pass on the wrong six members | open-honesty | observe member mismatch in `kb-ontology-draft` |
 | D-12 | evidence | TL-GC 19 vs GC-001..040 | documented | count separately |
@@ -75,7 +75,7 @@ alignment. Archive ACP/git-lex RDF (R066) is not a return path.
 WALK-I from earliest oracle
   → durable three-canon event log (landed M190, bounded)
   → align force-status members (D-02; landed M188)
-  → C1 legislative overlay (P9 macro/micro)
+  → C1 legislative overlay (landed M191, bounded admission; P9 macro/micro still absent)
   → only then crystal ledger / compiler / checkout
 forbidden now: SHACL runtime, Applicable product, RuVector as ontology canon,
   0118-as-CC-universe, CSM as a third tree

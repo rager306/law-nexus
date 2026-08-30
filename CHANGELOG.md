@@ -2,6 +2,32 @@
 
 ## [Unreleased]
 
+### M191-kgdyqi (C1 legislative overlay on the three-canon log: shape-discriminating fail-closed admission; D-09 honesty)
+
+- `crates/ln-temporal/src/domain.rs` gained the bounded C1 legislative
+  overlay (S01): `C1Candidate` discriminating `LegislativeAmendment` from
+  `OverviewHint` — the Consultant change-overview is a hint, never the
+  legislative event (Review 10 / D174) — and
+  `ThreeCanonEventLog::append_c1_candidate`, fail-closing overview-shaped
+  input (`OverviewNotLegislativeEvent`) and empty/whitespace amending-act
+  identity (`MissingAmendingActIdentity`) without touching the log; the
+  declared evidence class is carried as data and never upgraded
+  (D182/D183); substrate checks (facet set, force transition, duplicate
+  record id, append ordering) delegate to the M190 append. Suite
+  `crates/ln-temporal/tests/c1_legislative_overlay.rs` (6 tests, red→green,
+  D308); `C1_OVERLAY_NON_CLAIMS` honesty const; the 484 battery stays
+  bounded (`c1_484_evidence_battery` 5/5); R070 not closed; no official
+  corpus parsed in `ln-temporal`.
+- Review-control D-09 → `open-bounded` (S02): the honest next is the landed
+  bounded overlay on the event log — an overlay, not
+  constructor-as-evidence; C1 files on disk still are not legislative
+  `evidence_class` events and the 484 constructor is not R070 (stays
+  named-open). `next_wave_order` annotates `c1_legislative_overlay` as
+  landed M191; P9 macro/micro operations remain absent from `src/` (D-03
+  open-bounded). Living overlay only
+  (`prd/architecture/temporal-ast-review-control.yaml` + `.md`); no new
+  governor `check_id` (D272); `kb-ontology-draft` stays pass.
+
 ### M190-lo7ucr (durable three-canon event log, bounded; D-03 honesty)
 
 - `crates/ln-temporal/src/domain.rs` gained the bounded append-only three-canon
