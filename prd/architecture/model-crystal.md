@@ -367,6 +367,44 @@ E.2.6, lifecycle `[proposed]`) — a navigation pointer, not a new anchor
 source. MC-CHECKOUT singular `root_hash` is
 `ProjectionRoots.composed_checkout_root`, not a CompletenessReport field.
 
+### MC-CHECKOUT vs the three-canon log (M193 spike, `[proposed]`)
+
+Checkout is a **projection of the three-canon log**, not a second source of
+truth. The formula above (`project(projection_protocol_version, legal_as_of,
+known_as_of, view_mode, scope, assertions, effects)`) names the intended fold
+of the append-only log; it does not mint a store, a compiler, or a
+`MicroOperation` type. YAML companions under MC-CHECKOUT stay design-only
+(`authoritative: false`); pin suites name them as projections, never payload
+(`checkout_projection_stays_a_projection_never_the_payload`,
+`checkout_projection_names_the_sibling_singular_root_hash`).
+
+| Surface | Lifecycle | What it is | What it is not |
+|---|---|---|---|
+| Three-canon event log + `fold_three_canon_at` / `as_of_day` (M190, `ln-temporal`) | `[bounded]` | Canon: `AST(t) = fold(events ≤ t)`; empty fold → empty/Unknown | Checkout runtime; InForce-by-default; YAML-parsed types |
+| C1 overlay (M191) | `[bounded]` | Log overlay of `AmendmentEvent` with provenance | Consultant overview parse; constructor-as-evidence; R070 |
+| `JsonlEffectLedger` (M192, CID-A-23) | `[bounded]` Class A on the log path | Durable `EffectLedgerPort` | Checkout; R070; the other 24 CID-A rows |
+| MC-CHECKOUT `project(...)` / named VIEW set | `[proposed]` sketch | Deterministic fold of the log (INV-04, INV-11) | Second store; YAML codegen; SHACL; interval algebra |
+
+Boundary (fail-closed for this sketch):
+
+1. **Log is canon; checkout is fold.** Rebuilding a checkout from the same
+   ledger cut + source set + protocol version + view policy + request must
+   agree (INV-01 / INV-11). A checkout that cannot name its ledger cut is
+   not a checkout.
+2. **Point fold ≠ bitemporal checkout.** `fold_three_canon_at` is a day-cut
+   precursor. Checkout still requires `legal_as_of` *and* `known_as_of`,
+   `view_mode`, coverage_certificate, excluded_future (INV-04), and typed
+   non-success (INV-10). Do not rename the point fold into checkout.
+3. **Do not mint `MicroOperation` from YAML.** `prd/architecture/operation-registry.yaml`
+   stays design-only (D216/D222). Compiler types stay absent from `src/`
+   (D-03 open-bounded).
+4. **Un-sketch only after M190 and M191 are green.** They are (bounded log +
+   C1 overlay). This spike does not un-sketch: implementation slices still
+   need a human gate. Interval algebra and SHACL stay forbidden next.
+
+GitNexus (repo `law-nexus`): the living fold is `fold_three_canon_at`; no
+checkout runtime symbol exists in `src/`.
+
 ### MC-REF. Reference binding modes
 
 Mention (span + wording in a specific CTV) / Binding (candidate or confirmed
@@ -389,12 +427,34 @@ events on the same day. Semantic-shape oracles, not legal truth.
 
 ---
 
-## Reality boundary (on crystal creation HEAD)
+## Reality boundary (crystal-creation HEAD + M193 honesty overlay)
 
-On HEAD there is **no** ledger, no compiler, no CST, no bitemporal checkout,
-no resolver phases 2–3, no `NotYetInForce` in runtime. Present: oracle-anchored
-assembly `S_ready_bounded` (drift=0), mention phase 1 `[bounded]`, YAML edge
-vocabulary, `amends` constructors, bounded force-timeline in `ln-temporal`.
+On crystal-creation HEAD there was **no** ledger, no compiler, no CST, no
+bitemporal checkout, no resolver phases 2–3, no `NotYetInForce` in runtime.
+Present then: oracle-anchored assembly `S_ready_bounded` (drift=0), mention
+phase 1 `[bounded]`, YAML edge vocabulary, `amends` constructors, bounded
+force-timeline in `ln-temporal`.
+
+Honesty overlay after M190–M192 (lifecycle tags stay `[bounded]` /
+`[proposed]`; this is not product readiness):
+
+- **Log (canon, `[bounded]`)**: append-only three-canon event log + point fold
+  `fold_three_canon_at` / `as_of_day` in `ln-temporal` (M190). Empty fold →
+  empty/Unknown, not InForce. C1 overlay (M191) is a log overlay of
+  `AmendmentEvent` with provenance, not constructor-as-evidence. Durable
+  Class A on the log path: `JsonlEffectLedger` (M192); `InMemoryEffectLedger`
+  stays the test double.
+- **Checkout (projection, `[proposed]` sketch)**: MC-CHECKOUT `project(...)` is
+  a deterministic fold of that log (INV-04 / INV-11). It is not a second
+  store, not a YAML-minted type, not a compiler runtime. `fold_three_canon_at`
+  is a point precursor, not bitemporal checkout.
+- **Still absent from `src/` (D-03 open-bounded)**: crystal ledger types,
+  `MicroOperation` as a runtime type, compiler, CST, bitemporal checkout API.
+  Do not mint those from YAML (D216). Interval algebra and SHACL stay out.
+- Present unchanged: assembly `S_ready_bounded` (not O3 / TSG S6), mention
+  phase 1 `[bounded]`, YAML edge vocabulary `[proposed]`. `NotYetInForce` now
+  exists as a written force-status member (M188); the crystal-creation
+  "no NotYetInForce in runtime" sentence is historical, not current.
 
 <!-- anchor: review §Non-claims "NotYetInForce" -->
 
@@ -408,6 +468,10 @@ vocabulary, `amends` constructors, bounded force-timeline in `ln-temporal`.
 - Mermaid diagrams are shape aids; the algebra lives in the owning ADR
   amendments and in the tables above.
 - The governor check is advisory (`warn`); it never blocks and never promotes.
+- MC-CHECKOUT is a projection of the three-canon log (M190 fold), not a second
+  source of truth. This spike does not mint `MicroOperation` from YAML, does
+  not implement interval algebra or SHACL, does not close R070, and does not
+  un-sketch the compiler.
 
 ## Grounding log
 
@@ -418,6 +482,7 @@ vocabulary, `amends` constructors, bounded force-timeline in `ln-temporal`.
 | v3 | 2026-08-24 | review-26 §3 living overlay (M182 S01): MC-SEPARATION heading + 12 semantic planes; living names StructuralMembership / EditorialPresence; MC-AXES / AXIS-N remain historical aliases; no new anchor source, review-25 digest unchanged | sha256:c438ddfbe67181d439b5ed69a91e0adca833a9b84d26f1f2d85ea848070ea1b8 | 1d16782+ |
 | v4 | 2026-08-24 | review-26 §4 living overlay (M182 S02): MC-ID act-row opaque WorkId / OfficialIdentityClaim as natural key for reconciliation; historical D216 Work = number + date + authority retained; no new anchor source, review-25 digest unchanged | sha256:c438ddfbe67181d439b5ed69a91e0adca833a9b84d26f1f2d85ea848070ea1b8 | 2cf0ce4+ |
 | v5 | 2026-08-24 | review-26 §7 living overlay (M182 S03): MC-CHECKOUT named VIEW set; historical VIEW-Promulgated / PromulgatedTextView retained as checkout-key; known_as_of is a parameter not a view; no new anchor source, review-25 digest unchanged | sha256:c438ddfbe67181d439b5ed69a91e0adca833a9b84d26f1f2d85ea848070ea1b8 | 1fa8279+ |
+| v6 | 2026-08-30 | M193 S01 spike: MC-CHECKOUT is a projection of the three-canon log, not a second source of truth; Reality boundary honesty overlay after M190–M192; no new anchor source, review-25 digest unchanged; D-03 stays open-bounded | sha256:c438ddfbe67181d439b5ed69a91e0adca833a9b84d26f1f2d85ea848070ea1b8 | df0f592+ |
 
 v2 (D216) moved the model-definition anchors from the L0 review to the
 canonical G0 ADR amendments; historical/reality-boundary and non-claim anchors

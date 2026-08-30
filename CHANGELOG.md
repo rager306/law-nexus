@@ -2,6 +2,24 @@
 
 ## [Unreleased]
 
+### M193-tyy108 (crystal checkout sketch: MC-CHECKOUT is a projection of the three-canon log)
+
+- `prd/architecture/model-crystal.md` (S01 spike, `[proposed]`): names the
+  checkout vs log boundary. MC-CHECKOUT `project(...)` is a deterministic
+  fold of the append-only three-canon log (M190 `fold_three_canon_at` /
+  `as_of_day`), not a second source of truth. Point fold is a day-cut
+  precursor, not bitemporal checkout. C1 overlay (M191) and
+  `JsonlEffectLedger` (M192) stay on the log path; they are not checkout.
+- Reality boundary honesty overlay: crystal-creation "no ledger / no
+  NotYetInForce" is historical; log + point fold are `[bounded]`; compiler,
+  CST, `MicroOperation` runtime type, and bitemporal checkout API stay
+  absent from `src/` (D-03 open-bounded). Do not mint those from YAML
+  (D216). Interval algebra and SHACL stay out. R070 stays named-open.
+- Un-sketch of implementation slices still needs a human gate even though
+  M190 and M191 are green. No YAML codegen, no new governor `check_id`
+  (D272), no companion-YAML edits, no Rust types. Grounding log v6; L0
+  digest unchanged.
+
 ### M192-79ij5m (first durable effect ledger on the log path; census honesty for the one replaced adapter)
 
 - `crates/ln-replay/src/adapters.rs` gained the durable append-only JSONL
