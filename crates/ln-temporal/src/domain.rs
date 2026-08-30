@@ -1710,6 +1710,8 @@ pub enum ThreeCanonLogError {
     ForceFacetMismatch,
     UnknownNotTransition,
     EmptyDigest,
+    MissingAmendingActIdentity,
+    OverviewNotLegislativeEvent,
 }
 
 impl fmt::Display for ThreeCanonLogError {
@@ -1737,6 +1739,14 @@ impl fmt::Display for ThreeCanonLogError {
             Self::EmptyDigest => {
                 write!(formatter, "edition oracle requires a non-empty checksum")
             }
+            Self::MissingAmendingActIdentity => write!(
+                formatter,
+                "C1 overlay requires a non-empty amending act identity"
+            ),
+            Self::OverviewNotLegislativeEvent => write!(
+                formatter,
+                "consultant overview shape is a hint, not a legislative event"
+            ),
         }
     }
 }
@@ -2150,6 +2160,102 @@ pub fn fold_three_canon_at(
         force_conflict,
         non_claims: THREE_CANON_NON_CLAIMS.to_vec(),
     })
+}
+
+// ── M191-kgdyqi S01: C1 legislative overlay on the three-canon event log ──
+// Review 10: the C1 amending-act packet is the commit of legal history. The
+// overlay is a bounded admission path onto the append-only log: it
+// discriminates the candidate shape, fail-closes on a missing amending-act
+// identity, and delegates every substrate check (identity charset, facet
+// set, force transition, duplicate record id, append order) to the M190 log.
+// The Consultant change-overview (сводка изменений) is a hint, never a
+// legislative event (D174). Not an overview parse, not official-corpus
+// parsing (no XML, no consru_export reads), not the crystal ledger, not a
+// D172 store-type verdict; synthetic provenance is not read as a legislative
+// fact (D179); ADR-0017 grounding stays [bounded] (D145/D098); the 484-FZ
+// pin is composition evidence, not G1. R070 stays open (named-open).
+
+/// Honesty non-claims of the C1 overlay (bounded; must stay in reports).
+pub const C1_OVERLAY_NON_CLAIMS: &[&str] = &[
+    "C1 overlay admission is a bounded synthetic-log path; not official-corpus parsing",
+    "Overview-shaped input is a hint and never becomes a legislative event (D174)",
+    "Synthetic amending-act provenance is not read as a legislative fact (D179)",
+    "This overlay is not the D172 store-type verdict",
+    "ADR-0017 grounding stays [bounded]; the 484-FZ pin is composition evidence, not G1",
+    "Not the crystal ledger, not MicroOperation, not the G0(a) assertion-lifecycle engine",
+];
+
+/// Shape of a C1 candidate offered to the legislative overlay.
+///
+/// Review 10/D174: the Consultant change-overview (сводка изменений) is a
+/// hint about the amending act, not the legislative event itself. The overlay
+/// rejects overview-shaped candidates fail-closed instead of laundering them
+/// into legislative `AmendmentEvent` records; a declared evidence class is
+/// carried as data and never upgraded (D182/D183 bounds unchanged).
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum C1Candidate {
+    /// Legislative amendment event sourced from the C1 amending act. Carries
+    /// the raw amending-act identity (parsed fail-closed into
+    /// `AmendingActId`) and the declared evidence class of the source.
+    LegislativeAmendment {
+        target: ComponentConceptId,
+        effect_day: i64,
+        amending_act_raw: String,
+        evidence: EvidenceClass,
+        facets: Vec<AmendmentFacetKind>,
+        force_transition: Option<NormativeState>,
+    },
+    /// Consultant overview shape (сводка изменений). Never a legislative
+    /// event; admission is rejected fail-closed.
+    OverviewHint {
+        target: ComponentConceptId,
+        summary: String,
+    },
+}
+
+impl ThreeCanonEventLog {
+    /// C1 overlay admission: append one candidate as a log record.
+    ///
+    /// Fail-closed: overview-shaped candidates are rejected
+    /// (`OverviewNotLegislativeEvent`) and a missing or whitespace-only
+    /// amending-act identity is rejected (`MissingAmendingActIdentity`) —
+    /// both without touching the log. Every other check (identity charset,
+    /// facet set, force transition, duplicate record id, append order) is
+    /// delegated to the substrate `append`.
+    pub fn append_c1_candidate(
+        &mut self,
+        record_id: CanonRecordId,
+        candidate: C1Candidate,
+    ) -> Result<(), ThreeCanonLogError> {
+        let record = match candidate {
+            C1Candidate::OverviewHint { .. } => {
+                return Err(ThreeCanonLogError::OverviewNotLegislativeEvent);
+            }
+            C1Candidate::LegislativeAmendment {
+                target,
+                effect_day,
+                amending_act_raw,
+                evidence,
+                facets,
+                force_transition,
+            } => {
+                if amending_act_raw.trim().is_empty() {
+                    return Err(ThreeCanonLogError::MissingAmendingActIdentity);
+                }
+                let provenance = AmendingActId::parse(&amending_act_raw)?;
+                ThreeCanonRecord::Amendment(AmendmentEvent::try_new(
+                    record_id,
+                    target,
+                    effect_day,
+                    provenance,
+                    evidence,
+                    facets,
+                    force_transition,
+                )?)
+            }
+        };
+        self.append(record)
+    }
 }
 
 #[cfg(test)]
