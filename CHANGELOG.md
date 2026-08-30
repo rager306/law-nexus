@@ -2,6 +2,28 @@
 
 ## [Unreleased]
 
+### M194-p7aqjv (human gate resolved: G2 references corpus selected, P2 Mention/Binding resolver deferred)
+
+- `assessment/20-standing-execution-directive.md` (new §2.1, wave-map row
+  updated): records the G2-vs-P2 fork disposition. Chosen arm: G2 hostile
+  references/identity corpus (GC-026..034 of `golden-corpus-catalog.yaml`) as
+  the next product evidential gate. Deferred arm: P2 Mention/Binding resolver
+  stays design-only `[proposed]` — `reference-binding-contract.yaml` untouched,
+  no Rust types minted (D216), revisit triggers D222/D223/D224/D226/D228/
+  D231/D232/D233 stay armed.
+- Basis is derived from tracked sources, not a new judgment: §7 assessment/19
+  orders G2 first in the fork; eight decision revisit triggers presuppose
+  "P2 after the G2 evidential gate"; resolver acceptance needs the hostile
+  goldens (assessment/16 fixture-theater class). Boundaries kept: no
+  ConflictResolver start (ADR-0019 S0), no G1 official-corpus execution
+  without tracked artifacts + protocol manifest, no readiness claim (R072),
+  loser not promoted (R081), TSG-012 stays active.
+- Auto-mode honesty: the human gate was executed by the agent on the
+  pre-encoded tracked recommendation; a human may re-choose P2 via a separate
+  tracked decision, which amends the directive instead of rewriting history.
+- No product code, no GC case execution, no lifecycle promotion, no new
+  governor check_id (D272). M193 crystal checkout sketch boundary untouched.
+
 ### M193-tyy108 (crystal checkout sketch: MC-CHECKOUT is a projection of the three-canon log)
 
 - `prd/architecture/model-crystal.md` (S01 spike, `[proposed]`): names the

@@ -45,10 +45,57 @@
 | M185 | Техдолг/процессные остатки post-M184 + census: pin TSG-015 счётчика в существующий governor-чек (D272 exercise-not-expand, §8 assessment/19); census заглушек/фиктивных реализаций/багов/хардкода по всему workspace с классификацией и планом волн; env-sweep (вынос настроек в `.env` по возможности, `.env.example` sync); closeout | landed S01–S03 / S04 closeout |
 | M186+ | Первые функциональные волны по census. **484-ФЗ edge как узкий C1 constructor**: M186-b55iey S03 executed @SHA 67f781db… [bounded] (2026-08-28, battery composition; §7.2 assessment/19); leftover — Class A / G1-blocker / R070; G1 (GC-021/022) остаётся заблокированным без tracked official corpus | S01–S03 landed / S04 closeout |
 | M187–M189 | WALK-I grow_identity (M187-bjmfow, bounded TDD); D-02 force-set member alignment (M188-nc4f6u, closed-bounded D304/D306); M189-yojcdu — синхрон roadmap-проекции с GSD (current/groups → M188; recommended_next честность: WALK-I/D-02 landed, product next = 3-canon log xor C1 overlay) | M187/M188 ✅ landed; M189 в работе |
-| Далее | По §7 assessment/19: G2 references xor P2 Mention/Binding resolver; TSG-012 против folded CST; затем ADR-0019 ConflictResolver; Applicable ещё позже. По temporal-ast-review-control `next_wave_order` после `align_force_status_members` (landed M188): `durable_three_canon_event_log` xor `c1_legislative_overlay` | очередь |
+| Далее | Развилка §7 assessment/19 разрешена директивой §2.1 (2026-08-30, M194-p7aqjv human gate): **выбрана G2 references (GC-026..034)**; P2 Mention/Binding resolver остаётся deferred `[proposed]`. Затем TSG-012 против folded CST; затем ADR-0019 ConflictResolver; Applicable ещё позже. Crystal-ветка temporal-ast-review-control: `durable_three_canon_event_log` (landed M190) и `c1_legislative_overlay` (landed M191); checkout sketch = M193-tyy108 | G2 — очередь (§2.1) |
 
 Траектория перепроверяется `gsd_reassess_roadmap` после каждого слайса; этот файл
 — рабочий заказ, не замена living roadmap.
+
+## 2.1 Диспозиция развилки G2 xor P2 (2026-08-30, M194-p7aqjv T01)
+
+Human-гейт M194 исполнен: из двух рук к запуску разрешена **ровно одна** —
+тихий dual-start G2 и P2 запрещён.
+
+| Рука | Диспозиция |
+|---|---|
+| **G2 references corpus** — hostile references/identity кейсы GC-026..034 (`prd/architecture/golden-corpus-catalog.yaml`, deps `reference-binding-contract.yaml`) | ✅ **выбрана** — evidential gate следующей продуктовой волны |
+| **P2 Mention/Binding resolver** — typed `reference_binding.rs` против folded CST | ⏸ **deferred** — остаётся design-only `[proposed]`, без промоции |
+
+**Основание выбора G2 (из трекаемых источников, не новое суждение):**
+
+1. Порядок §7 assessment/19: в развилке G2 назван первым; развилка стоит после
+   landed волны 484-ФЗ edge (M186) и кристальной checkout-sketch ветки (M193).
+2. Revisit-триггеры восьми трекаемых решений (D222/D223/D224/D226/D228/D231/
+   D232/D233) сформулированы как «when P2 *after the G2 evidential gate* mints
+   Rust types»: выбор P2 первым одномоментно инвалидирует премизу всей цепочки
+   решений — ровно тот тихий разворот направления, который гейт существует,
+   чтобы остановить.
+3. D216: чеканка Rust-типов Binding/Semantics под `[proposed]` словарь
+   `reference-binding-contract.yaml` запрещена; промоция словаря — отдельный
+   evidence-gated шаг, а не эта рука (контракт прямо: not a Rust enum, not a
+   resolver).
+4. Evidential honesty: резолвер без G2 hostile-goldens не имеет независимой
+   evidence-поверхности (класс «фикстурный театр», assessment/16 §3.1);
+   корпус-G2 готовит evidence для deferred-руки, а не блокирует её.
+
+**Un-sketch (ровно одна рука):** выбранная рука перестаёт быть абстрактной
+опцией очереди и становится именованной следующей продуктовой волной.
+Deferred-рука P2 остаётся sketched: `reference-binding-contract.yaml`, пины и
+каталог не меняются, lifecycle-статусы не промоутятся, Rust-типы не чеканятся,
+revisit-триггеры D222/D223/D224/D226/D228/D231/D232/D233 остаются вооружёнными.
+
+**Границы (не тронуты этой записью):** ADR-0019 S0 — ConflictResolver запрещён
+до своей волны; G1 (GC-021/022) не исполняется без tracked official corpus +
+protocol manifest; TSG-012 остаётся active («против folded CST» — после
+корпуса); R072 — no readiness claim; R081 — loser не промоутится; исполнение
+кейсов GC-026..034 — отдельная волна с TDD и protocol manifest, эта запись
+кейсы не исполняет.
+
+**Честность записи (авто-режим):** гейт по замыслу — human, но исполнен
+агентом в auto-mode в рамках M194 T01; выбор следует пред-кодированной
+рекомендации трекаемых источников (§7 assessment/19 + цепочка revisit-
+триггеров D222..D233 + D216), а не новому суждению. Human может перевыбрать
+P2 отдельным трекаемым решением — тогда эта запись исправляется явной новой
+директивой, а не задним числом.
 
 ## 3. Постоянные принципы исполнения (для каждой волны)
 
