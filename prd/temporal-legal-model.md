@@ -7,6 +7,7 @@
 **Product boundary:** `prd/PRODUCT.md` + `prd/REQUIREMENTS.md`
 **Non-authority:** `.gsd/**`, roadmaps, assessment artifacts, derived registry, LLM output, Litho, archive and external frameworks
 **Lifecycle ceiling:** five-clock role safety remains `[bounded]`; all ontology layers O1–O7 remain `[proposed]`; ADR-0023 ownership is `[proposed]`, while applicability runtime/product capability remains `[deferred]`
+**Companion recheck:** 2026-08-30 — after `temporal-ast-review-control.md` §5 stale-marker removal and the M194 G2-vs-P2 disposition (D313): D-01..D-14 inventory untouched; force-set honesty fragment present; SHACL/SPARQL anti-runtime verdict unchanged; WALK/CST glossary rows unchanged. No term, ownership or lifecycle change.
 
 ## 1. Purpose and non-claims
 

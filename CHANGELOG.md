@@ -2,6 +2,29 @@
 
 ## [Unreleased]
 
+### Post-queue projection and review-control honesty sync (2026-08-30)
+
+- `prd/project-state/data/roadmap.json` + `prd/project-state/roadmap.md`:
+  `current_milestone` advanced to the latest completed M194-p7aqjv (status
+  complete), `completed_milestone_groups` extended with the M192-M194 band,
+  `recommended_next` rewritten for the drained queue (D313: G2 references
+  corpus GC-026..034 as the next evidential wave; P2 Mention/Binding resolver
+  deferred design-only). Clears the three governor errors
+  `roadmap-current-tracks-gsd` / `roadmap-current-status` /
+  `roadmap-range-coverage`; freshness guard tests 5/5.
+- `prd/architecture/temporal-ast-review-control.md` §5: removed the stale
+  "current_milestone stays M185 until M186 complete-milestone" marker (D309
+  debt) after the milestone queue drained (195/195); records the G2-vs-P2
+  resolution (D313) in place.
+- Companion freshness chain satisfied for trigger
+  `temporal-ast-review-control-change` → `temporal-glossary-change`:
+  `prd/temporal-legal-model.md` header recheck note +
+  `prd/architecture/glossary-governance.md` §5 dated recheck bullet
+  (D-01..D-14 inventory, force-set honesty fragment, SHACL/SPARQL anti-runtime
+  verdict, WALK/CST glossary rows — no term, ownership or lifecycle change).
+- Governor: `status: ok / pass 67 / warn 0 / errors 0` (was
+  `failure / 64 pass / 3 errors`).
+
 ### M194-p7aqjv (human gate resolved: G2 references corpus selected, P2 Mention/Binding resolver deferred)
 
 - `assessment/20-standing-execution-directive.md` (new §2.1, wave-map row

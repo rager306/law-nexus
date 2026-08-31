@@ -81,9 +81,14 @@ forbidden now: SHACL runtime, Applicable product, RuVector as ontology canon,
   0118-as-CC-universe, CSM as a third tree
 ```
 
-Process leftover (CID-A durable adapters, G1 blocked, R070 named-open, G2 vs
-P2 human-gated) remains valid and orthogonal. `current_milestone` stays
-M185 until M186 complete-milestone. No new Governor `check_id` (D272).
+Process leftover (CID-A durable adapters beyond CID-A-23, G1 blocked, R070
+named-open) remains valid and orthogonal; the G2-vs-P2 fork was resolved on
+2026-08-30 by M194-p7aqjv (D313): G2 references corpus (GC-026..034) selected,
+P2 Mention/Binding resolver deferred design-only `[proposed]`. The stale
+`current_milestone` marker ("stays M185 until M186 complete-milestone", D309
+debt) is removed here: the GSD milestone queue drained 2026-08-30 (195/195)
+and the roadmap projection now tracks M194-p7aqjv as latest completed. No new
+Governor `check_id` (D272).
 
 ## 6. Governor consumption (existing check)
 

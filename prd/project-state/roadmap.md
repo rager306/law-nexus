@@ -27,28 +27,24 @@ falkordb=historical-only
 - **Completed retrieval-honesty band:** M161–M164 `[bounded]` (real cosine ranking in memory, semantic-stub and historical-test-debt probes, deterministic CLI vectors); no live corpus or citation-safe answers.
 - **Completed documentation alignment:** D5 + documentation D6 / EA-05 accepted with findings at `94d58ea`; roadmap-front-sync and TL-G01–12 coverage PASS.
 - **Documentation/process assessment:** EA-10 complete — human D150 `accepted-with-findings` after independent EA-09 report `120d44b`; post-D150 assessments 13–19 record bounded repository-control/parser-protocol/glossary/semantic-presentation remediation and remaining gaps without successor acceptance, lifecycle promotion or product unlock. Glossary governance now inventories all crosswalk rows and controls coding terminology structurally through the tracked living-oracle read pointer; it does not close TSG-001 or define product semantics.
-- **Local GSD workflow marker:** M191-kgdyqi is the latest completed milestone
-  in GSD registry (C1 legislative overlay admission on the durable three-canon
-  event log, D308). M190-lo7ucr landed the durable three-canon event log as
-  bounded TDD (hand-written ln-temporal types; YAML codegen out of scope per
-  D307); M189-yojcdu was the roadmap/GSD projection-sync wave after M188
-  (D-02 force-set alignment closed-bounded per D304/D306; WALK-I M187-bjmfow
-  and the M186-b55iey C1 constructor wave landed earlier). All are landed:
-  none is unfinished next. M192-79ij5m is the active milestone: the first
-  durable effect ledger on the log path — S01 landed the durable
-  JsonlEffectLedger behind the ln-replay EffectLedgerPort (append-only JSONL
-  per D102, canonical record schema D310, EFFECT_LEDGER_PATH empty-as-unset
-  fail-closed, strict hydration, D311) with the shared ln-testkit port
-  contract covering both adapters; S02 records census honesty (CID-A-23
-  addressed-in-draft against a frozen revision with tracked evidence and
-  preserved non-claims: durable bytes are not R070). Planned next:
-  M193-tyy108 crystal ledger compiler checkout sketch, then M194-p7aqjv
-  G2-corpus-vs-P2 human gate. Class A durable adapters beyond CID-A-23 remain
-  open; G1 blocked without official corpus; R070 named-open. Review-control
-  D-02 stays closed-bounded: runtime force members equal the living
-  written_statuses; Unknown stays fail-closed; Superseded/Transitional stay
-  out of the force set. No new check_id (D272). GSD completion is not product
-  readiness.
+- **Local GSD workflow marker:** M194-p7aqjv is the latest completed milestone
+  in GSD registry — the milestone queue is drained (195/195). M194 resolved the
+  G2-vs-P2 fork (D313, commit fd62eb3): G2 references corpus (GC-026..034)
+  selected as the next evidential wave; P2 Mention/Binding resolver deferred
+  design-only [proposed] (reference-binding-contract.yaml untouched, R081
+  negative evidence). Earlier in the band: M193-tyy108 proved MC-CHECKOUT is a
+  deterministic fold of the three-canon log, not a second source of truth
+  (D312); M192-79ij5m landed the durable JsonlEffectLedger behind the
+  ln-replay EffectLedgerPort (append-only JSONL per D102, canonical record
+  schema D310, EFFECT_LEDGER_PATH empty-as-unset fail-closed, strict hydration,
+  D311) with the shared ln-testkit port contract covering both adapters, and
+  recorded census honesty (CID-A-23 addressed-in-draft against a frozen
+  revision with tracked evidence and preserved non-claims: durable bytes are
+  not R070). Class A durable adapters beyond CID-A-23 remain open; G1 blocked
+  without official corpus; R070 named-open. Review-control D-02 stays
+  closed-bounded: runtime force members equal the living written_statuses;
+  Unknown stays fail-closed; Superseded/Transitional stay out of the force
+  set. No new check_id (D272). GSD completion is not product readiness.
 - **GSD dual-truth M167:** **resolved** — M167 complete via authorized skip waivers + validation (D154 option C). Historical note in `gsd-review-bridge.md`. Not Applicable; TSG-005/006 still open.
 - **Review governance process contour:** ADR-0024 Review Case intake/disposition/ledger landed; human dispositions recorded for review-11/12 (`actor_id=rager306`). Non-authoritative; no Product/ADR/roadmap promotion.
 - **Applicability kernel:** `ln-applicability` v0 fail-closed abstention-only under ADR-0023 `[proposed]`, with NormRule IR + pure predicate algebra spines; no Applicable/NotApplicable product claim.
@@ -69,8 +65,10 @@ falkordb=historical-only
   `prd/architecture/merkle-roots-contract.yaml` (E.2.6),
   `prd/architecture/assertion-lifecycle-contract.yaml` (E.2.7). P1
   documentation front E.2.1–E.2.7 is design-only closed;
-  product/runtime/resolver not closed; next fork G2 vs P2, human-gated; no
-  runtime, no resolver.
+  product/runtime/resolver not closed; next fork G2 vs P2 resolved by
+  M194-p7aqjv (D313): G2 references corpus (GC-026..034) selected as the next
+  evidential wave, P2 Mention/Binding resolver deferred design-only [proposed];
+  no runtime, no resolver.
 - **Product next remains evidence-gated:** the parser golden-corpus protocol now defines G0–G3, but current evidence reaches only G1 `[bounded]`; G2 requires multi-fixture human-reviewed structural goldens and human-owned thresholds before parser-data readiness. L2 CTV TDD follows that readiness decision; TEI/RuVector still requires real infrastructure/evidence. Documentation does not unlock any of these steps.
 - **M111 result:** final `[bounded]` implementation-neutral semantic baseline for heterogeneous Russian legal evidence.
 - **M112 result:** ADR-0005 topology superseded; ADR-0008 through ADR-0012 authored `[bounded]`; executable ADR/decision/owner drift checks active in pre-commit and CI.
@@ -135,6 +133,7 @@ falkordb=historical-only
 | M181-M181 | Review-26 P0 ядро: адъюдикационная декомпозиция и CoverageCertificate (P0-3 P0-8) (docs/design) | Design-only final P0-core wave: adjudication decomposition (ValidationReceipt/AssertionDispositionEvent with AcceptedForProjection alias/AssertionRelation 6 kinds; D216 five-set retained verbatim); glossary/catalog/governance rows; CoverageCertificate (closure dims, CompleteFor/IncompleteBecause) + INV-22; companion-manifest advisory D261. No Rust types, no lifecycle promotion, not product readiness. |
 | M182-M182 | Review-26 финал: SEPARATION-плоскости WorkId-identity VIEW-набор (S3 S4 S7) (docs/design) | Design-only final review-26 wave: MC-SEPARATION 12 planes (living renames StructuralMembership/EditorialPresence; historical names as alias/quotes; G0(f) anchor untouched); WorkId opaque + OfficialIdentityClaim (additive ADR-0016); CC-path adjudicated as ComponentLocator in DesignationVersion; named 8-view set resolving VIEW-Promulgated ambiguity, known_as_of mandatory; VIEW-CaseApplicable stays ADR-0023. Closes review-26 entirely. No Rust types, no lifecycle promotion, not product readiness. |
 | M183-M183 | G0-G3 golden corpus каталог и сверка TL-GC (review-26 §10) (docs/design) | Design-only catalog of the 40 review-26 section 10 cases (golden-corpus-catalog.yaml, four closed tiers G0-G3, group coverage 8/6/6/5/9/6, D222 pin suite); TL-GC01-19 paper oracles stay in temporal-legal-model §11 with an additive reconciliation map; advisory governor check golden-corpus-catalog. No case execution, no Rust types, no lifecycle promotion, not product readiness. |
+| M184-M194 | Honesty/process debt closure, temporal model spine code and log-path durables, G2-vs-P2 disposition | M184-M185 honesty/process debt and census pinning; M186-M188 C1 constructor, WALK-I identity growth and D-02 force-set alignment; M189 roadmap projection sync; M190-M192 durable three-canon event log, C1 overlay admission and first durable effect ledger (bounded TDD, ln-replay/ln-testkit); M193 checkout-as-fold sketch (D312); M194 G2 references corpus selected, P2 deferred (D313, fd62eb3). Census non-claims preserved (R070 open, ~24 Class A rows open); no product readiness. |
 
 ## M111 semantic baseline
 
