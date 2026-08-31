@@ -1,8 +1,8 @@
 # Dead-code and reuse audit register (DCA)
 
-**Status:** `[bounded]` candidate inventory — **Disposition status: open** (T01 pins the pool; T02 corroborated channels A/B/C and dispositioned every row; T03 executes any Tier-0 removals)
+**Status:** `[bounded]` candidate inventory — **Disposition status: complete** (T01 pins the pool; T02 corroborated channels A/B/C and dispositioned every row; T03 recorded the empty Tier-0 removal set — 0 symbols deleted)
 **Series:** inherits the assessment/21 protocol (frozen revision, tracked evidence, preserved non-claims); bug-dimension precedent assessment/08.
-**Milestone:** M195-mdvctn / S03 / T01 (post-queue debt and process gap closure)
+**Milestone:** M195-mdvctn / S03 / T01–T03 (post-queue debt and process gap closure)
 **Graph snapshot:** GitNexus repo `law-nexus`, re-indexed this task at HEAD `52314d7`, 12,519 nodes / 24,532 edges / 506 clusters / 257 flows. T02 re-ran `analyze --force` to completion at HEAD `d8965cb` (indexed == current, up-to-date) before counting.
 
 ## Methodology
@@ -40,6 +40,7 @@ Vault directories are excluded from the audit entirely — they are not product 
 
 - **T01 pin (historical basis of the pool):** full SHA `52314d750e1143734cf0d59b7912c3f271d8d471` (branch `main`), pinned before any index or graph work (`git rev-parse HEAD`; `git status --porcelain` → **dirty 0**). Pool rows DCA-001…DCA-300 and all raw counts below were generated at this pin.
 - **T02 restamp (current):** HEAD moved to `d8965cb` — T01's own register commit; `git diff 52314d7..d8965cb -- crates src` is **empty**, so product code is identical to the pool basis and the pool carries over unchanged (not regenerated). `node .gitnexus/run.cjs status` flagged stale solely on that doc-only delta, so T02 re-ran `analyze --force` to completion before counting: indexed `d8965cb` == current, up-to-date (16.4 s). Cargo caches were deliberately invalidated for Channel A by mtime touch only; tracked content unchanged, `git status --porcelain` stayed 0 throughout.
+- **T03 restamp (current):** HEAD is now `c0525fb` — T02's own register commit; `git diff d8965cb..c0525fb -- crates src` is **empty** (only this register file changed), so product code is identical to the pool basis and the pool carries over. The GitNexus index remains at `d8965cb` (read-only status check at closure: stale on the doc-only delta); per the plan a refresh is required only before a post-removal recount, and the empty-set path has no recount, so `analyze --force` was deliberately not re-run.
 - The stale snapshot T01 replaced (indexed `c187e4c`, raw pool 1,961) remains a comparator only, never evidence. Research-era numbers are not used for any row.
 
 ## Candidate pool
@@ -53,11 +54,11 @@ Raw zero-inbound counts under `crates/` (fresh index, frozen HEAD):
 | Struct | USES + ACCESSES | **370** | n/a |
 | Enum | USES + ACCESSES | **118** | n/a |
 
-Filtered Function pool (generic names excluded): **1,811** rows. The durable DCA table below is the bounded export: first **300** rows of the `ORDER BY filePath, startLine` ordering (hard `LIMIT 300`), IDs **DCA-001 … DCA-300**. `Vis` = `pub`/`private` as reported by the indexer (`isExported`). Every row enters as `proposed`; nothing is removed by this file.
+Filtered Function pool (generic names excluded): **1,811** rows. The durable DCA table below is the bounded export: first **300** rows of the `ORDER BY filePath, startLine` ordering (hard `LIMIT 300`), IDs **DCA-001 … DCA-300**. `Vis` = `pub`/`private` as reported by the indexer (`isExported`). Every row entered as `proposed` (T01) and is now closed with a final disposition (T02 corroboration, T03 closure); nothing was removed.
 
 Pool shape: 151 rows in `src/`, 149 in `tests/`; 8 of 47 crates own the whole pool — `ln-accelerate` 16, `ln-admission` 16, `ln-applicability` 67, `ln-citation` 10, `ln-closure` 27, `ln-conformance` 11, `ln-consultant-parser` 85, `ln-decode` 68. At least ~51 rows sit directly in `ports.rs`/`adapters.rs` surfaces (Tier-0 criterion 3 → auto-KEEP class `port-contract-surface`), and the `tests/` half is `#[test]`-entry-point false-dead by construction.
 
-| ID | Path:line | Symbol | Crate | Vis | Channels (A rustc / B rg / C graph) | Proposed disposition |
+| ID | Path:line | Symbol | Crate | Vis | Channels (A rustc / B rg / C graph) | Final disposition |
 |---|---|---|---|---|---|---|
 | DCA-001 | crates/ln-accelerate/src/adapters.rs:51 | has_provisional | ln-accelerate | private | A:silent B:o3/d3 C:- | keep:port-contract-surface |
 | DCA-002 | crates/ln-accelerate/src/adapters.rs:54 | provisional_count | ln-accelerate | private | A:silent B:o6/d4 C:- | keep:port-contract-surface |
@@ -374,10 +375,36 @@ T02 corroborated every DCA row across the three named channels (R038: no single-
 
 Result: **remove-candidates = 0** (empty set — a valid closure for this slice). Class tally: `test-fixture` 160 (149 `tests/` rows + 11 inline `#[test]`), `port-contract-surface` 51, `public-api` 83, `lifecycle-bounded` 6 (`parse_id` ×5, `lookup` ×1 — alive per Channel B call-site evidence despite graph zero-inbound).
 
+## Disposition
+
+**Disposition status: complete**
+
+Every DCA-* row (DCA-001 … DCA-300) carries its final disposition in the Candidate pool table above (column `Final disposition`): **300 keep / 0 remove**.
+
+| Final outcome | Rows | Class |
+|---|---|---|
+| keep | 160 | test-fixture (149 `tests/` rows + 11 inline `#[test]`) |
+| keep | 83 | public-api |
+| keep | 51 | port-contract-surface |
+| keep | 6 | lifecycle-bounded (`parse_id` ×5, `lookup` ×1 — alive per Channel B call-site evidence) |
+| **remove** | **0** | empty Tier-0 set (valid closure) |
+
+The row-level table satisfies the assessment/21 closing protocol: frozen revision (`## Frozen HEAD`), tracked multi-channel evidence (`## Corroboration channels`), preserved non-claims (below). The removal outcome is recorded in `## Removals`.
+
 ## Proposed removals
 
 *(Empty set — no row met all six Tier-0 criteria: every private row fails criterion 2 (rustc silent; trait-impl or `cfg(test)` code), and every `pub` row has non-definition rg hits or sits on a hard-KEEP surface (ports/adapters, tests). Nothing is queued for T03 removal; T03 records the empty-set closure.)*
 
+
+## Removals
+
+**Tier-0 set: empty** — zero symbols deleted, zero crates touched; no product, harness, tests, or golden file was edited in T03. The keep-reason histogram in `## Disposition` is the complete removal-side record.
+
+- Removal-path mechanics (per-symbol `gitnexus_impact` gate, TDD covering suites, 15-symbol/3-crate cap, funnel pass, `gitnexus_detect_changes`) are **not applicable** here: there is nothing to delete, so no covering suite had to pass around a deletion and no crate was recompiled for one.
+- Workspace health at closure (empty-set invariant, no edits): `cargo fmt --all --check` PASS; `cargo check --workspace --offline` PASS (Finished, 0 warnings); `scripts/verify-adr-conformance.py` ok, 0 findings.
+- Governor honesty note (not a verify-line item; **no new governor check_id**, D272): `uv run law-nexus-harness governor` → `law-nexus-governor-report/v1`: `status: ok`, `pass_count: 68`, `warn_count: 3` (journal-retry-loops ×2 — known liveness-backstop wedge exits W-c3087f6b / W-7a2cc230; compat-marker-hygiene ×1 — stale projection entries), `error_count: 0`, `tool_error_count: 0` (counts read from the run's stdout record, not from a truncated digest).
+- GitNexus at closure: index `d8965cb`, current `c0525fb`, status stale — doc-only delta (this register); `analyze --force` intentionally not re-run (refresh is required only before a post-removal recount; the empty set has none). No `gitnexus_detect_changes` call: no source change exists to detect.
+- KNOWLEDGE landings: none — the durable rule (zero-inbound is not dead without rustc + rg corroboration; R038 single-channel trap) is already codified in AGENTS.md and this register; `.gsd/KNOWLEDGE.md` deliberately not edited.
 
 ## Reuse candidates
 
@@ -436,6 +463,14 @@ Same-name `Function` query across `crates/` (≥2 distinct files, generic names 
 | 49 | top_level_row | 5 | ln-kb-ontology (5) | intra-crate test helper (pinned set) |
 | 50 | committed_count | 4 | ln-promote (4) | intra-crate port/adapter seam — proposal |
 
+## Reuse seams
+
+Reuse is **documented, not merged** — the `## Reuse candidates` table above is a proposal list, and nothing was consolidated, moved, or refactored in this milestone:
+
+- **`ln-testkit` is the sanctioned reuse home.** Cross-crate test helpers with genuine duplication (`strip_comment`, `consultant_export_dir`, `fixture_path`, `path`) remain ln-testkit candidates; `ln-testkit` already centralizes 25 port-contract suites. Any move is a future planner decision with its own tests.
+- **`ln-hcNN-runner` same-name helpers are intentional-shape.** `render_verdict` / `render_receipt` / `unknown_scenario_exits_2` / per-HC `req`/`rid` repeat by design: every HC runner is a standalone hostile-proof binary; shared shape is not accidental duplication and is not a merge target.
+- **Same-name proposals are not merges.** The 20 `parse_id` domain twins are the hexagonal per-capability pattern; byte-identity was not verified and no candidate was promoted, deleted, or merged here.
+
 ## Disposition protocol (inherited from assessment/21)
 
 Closing (dispositioning) any DCA row requires, simultaneously:
@@ -453,3 +488,6 @@ Removal (Tier-0) additionally requires all six keep-vs-remove criteria: zero inb
 - Zero-inbound-in-graph ≠ dead: trait dispatch, macros/derives, `#[test]` harness entry points, re-exports, and process-gate name references are invisible to CALLS/USES/ACCESSES edges.
 - Counts are pinned to the frozen index (HEAD `52314d7`); any later commit invalidates the numbers until re-derived. Research-era numbers (stale index `c187e4c`) are comparators only.
 - Reuse rows are duplication observations, not refactor approvals; behavior-preserving merges need their own planner decision and tests.
+- T03 closure non-claims: the empty-set closure is **not** R070 (no requirement is closed or updated here), **not** P2/D313 (no `deferred-undefined` item is promoted or resolved), asserts no product/legal-correctness/corpus-completeness improvement, promotes no lifecycle tag, and adds **no new governor check_id** (the governor run recorded in `## Removals` is an honesty note, D272).
+- rustc silence does **not** prove `pub`-in-lib symbols unused: rustc does not dead-code-analyse reachable `pub` items in lib crates, so every `pub` row is kept by class (public-api / port-contract-surface), not by compiler proof.
+- GitNexus counts and the DCA pool are Frozen-HEAD snapshots (pool basis `52314d7`; T02 restamp `d8965cb`; T03 restamp `c0525fb` — doc-only deltas, `crates src` diff empty), not live guarantees for later commits.

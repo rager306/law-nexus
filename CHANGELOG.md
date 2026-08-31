@@ -2,6 +2,21 @@
 
 ## [Unreleased]
 
+### M195-mdvctn S03: dead-code and reuse audit closed, empty Tier-0 set (2026-08-31)
+
+- `assessment/23-dead-code-reuse-audit.md` (new, tracked): bounded GitNexus
+  zero-inbound funnel over `crates/` (raw 1,985 functions / 370 structs /
+  118 enums; bounded DCA export capped at 300 rows across 8 crates), every
+  row corroborated on three channels (rustc `dead_code`, per-symbol `rg`,
+  graph impact spot checks) and dispositioned: **0 removed / 300 kept**
+  (test-fixture 160, public-api 83, port-contract-surface 51,
+  lifecycle-bounded 6). Empty Tier-0 set recorded as the valid closure;
+  no crate, harness, tests, or golden file was edited.
+- Reuse seams documented, not merged: `ln-testkit` remains the sanctioned
+  helper home; `ln-hcNN-runner` same-name helpers are intentional-shape;
+  same-name overlap (e.g. the 20 `parse_id` domain twins) is a proposal
+  list, not a consolidation mandate.
+
 ### M195-mdvctn S02: GSD session-log analysis and durable lessons (2026-08-31)
 
 - `assessment/22-gsd-session-log-analysis.md` (new): deterministic re-census
