@@ -2,6 +2,35 @@
 
 ## [Unreleased]
 
+### M195-mdvctn S01: governor process-gap observability (2026-08-31)
+
+- `src/law_nexus_harness/governor.py`: two new read-only `process` checks.
+  `journal-retry-loops` scans `.gsd/journal/*.jsonl` for liveness-backstop
+  wedge exits, artifact-verification/pre-execution retries (attempt >= 2),
+  orphaned attempts, and orphaned worktrees within a 3-day window anchored to
+  the newest journaled timestamp (never wall clock); emits one warn per
+  in-window wedge plus a permanent pass summary with counters, skips broken
+  JSON lines, and never writes to the journal (signal only, no engine
+  repair). `compat-marker-hygiene` audits `.gsd/.compat.json` read-only:
+  schema==2, 16-hex sha format, non-empty entities, and on-disk existence of
+  every registered relpath; missing/invalid marker degrades to a warn
+  "not assessable" finding instead of a tool error, and the marker
+  (single-writer WAL engine state) is never repaired.
+- `tests/test_harness_governor.py`: TDD fixture suites for both checks
+  (recent/stale/healthy journal, retry and orphan counters, broken-line skip,
+  missing-surface "not assessable", spec-meta without globs; stale path,
+  schema drift, bad sha, empty entities, invalid JSON, missing marker) plus
+  live-wiring tests asserting both check_ids reach the live report with
+  structural observed tokens (`window_days=3`, `wedge_exits=`,
+  `projections=`, `stale=0`) instead of hardcoded live counters, and that
+  warn findings keep `status: ok` / errors 0 (--fail-on-warn stays opt-in).
+- Governor: `status: ok / pass 68 / warn 3 / errors 0` (was
+  `ok / pass 67 / warn 0 / errors 0`). The three warns are the two recent
+  journal wedges (W-7a2cc230 age 0d, W-c3087f6b age 2d) surfaced inside the
+  3-day window and the live compat marker's `empty_entities=2` with
+  `stale=0` (first offender `DECISIONS.md`) — expected process-gap signals
+  this slice adds visibility for, not regressions.
+
 ### Post-queue projection and review-control honesty sync (2026-08-30)
 
 - `prd/project-state/data/roadmap.json` + `prd/project-state/roadmap.md`:

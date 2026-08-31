@@ -14,6 +14,8 @@ from law_nexus_harness.governor import (
     GOVERNOR_CHECK_SPECS,
     GOVERNOR_SCHEMA_VERSION,
     GovernorEvidence,
+    GovernorFinding,
+    GovernorReport,
     _freshness_trigger_gaps,
     check_active_requirement_contradictions,
     check_active_surface_era_noise,
@@ -4357,3 +4359,68 @@ def test_compat_marker_hygiene_check_spec_is_process_deterministic_warn() -> Non
     assert spec.default_severity == "warn"
     assert ".gsd/.compat.json" in spec.authority_inputs
     assert not any("*" in path for path in spec.authority_inputs)
+
+
+def _group_governor_findings_by_check_id(
+    report: GovernorReport,
+) -> dict[str, list[GovernorFinding]]:
+    """Group report findings by check_id without collapsing multi-finding checks.
+
+    journal-retry-loops emits one warn finding per recent wedge next to the
+    always-present pass summary, so a single-finding-per-id map would silently
+    drop either the warn signal or the pass counters.
+    """
+
+    grouped: dict[str, list[GovernorFinding]] = {}
+    for finding in report.findings:
+        grouped.setdefault(finding.check_id, []).append(finding)
+    return grouped
+
+
+def test_live_governor_reports_journal_retry_loops() -> None:
+    report = run_governor(ROOT)
+    grouped = _group_governor_findings_by_check_id(report)
+    assert "journal-retry-loops" in grouped
+    journal_findings = grouped["journal-retry-loops"]
+    # Structural tokens only: live counters drift as journal events land and
+    # wedges age out of the window, so exact numbers stay fixture territory.
+    observed_all = "\n".join(item.observed for item in journal_findings)
+    assert "wedge_exits=" in observed_all
+    assert "retry_events=" in observed_all
+    assert "stale_active=" in observed_all
+    assert "orphaned_worktrees=" in observed_all
+    assert "skipped_lines=" in observed_all
+    assert "window_days=3" in observed_all
+    assert "journal_files=" in observed_all
+    # A recent wedge surfaces as fail+warn findings next to exactly one pass
+    # summary; warn never fails the report and --fail-on-warn stays opt-in.
+    assert {item.status for item in journal_findings} <= {"pass", "fail"}
+    pass_findings = [item for item in journal_findings if item.status == "pass"]
+    assert len(pass_findings) == 1
+    assert pass_findings[0].severity == "ok"
+    for warn_finding in (item for item in journal_findings if item.status == "fail"):
+        assert warn_finding.severity == "warn"
+    assert report.error_count == 0
+    assert report.status == "ok"
+
+
+def test_live_governor_reports_compat_marker_hygiene() -> None:
+    report = run_governor(ROOT)
+    grouped = _group_governor_findings_by_check_id(report)
+    assert "compat-marker-hygiene" in grouped
+    compat_findings = grouped["compat-marker-hygiene"]
+    assert len(compat_findings) == 1
+    finding = compat_findings[0]
+    # Live drift tolerance: the live marker currently carries empty_entities>0
+    # with stale=0 (signal, not a test failure), so the portable live contract
+    # is the observed hygiene tokens plus pass<->ok consistency, not the
+    # pass/ok form itself (fixture tests pin that form).
+    assert finding.status in {"pass", "fail"}
+    assert finding.severity in {"ok", "warn"}
+    assert (finding.status == "pass") == (finding.severity == "ok")
+    assert "stale=0" in finding.observed
+    assert "projections=" in finding.observed
+    assert "projections=0" not in finding.observed
+    assert "empty_entities=" in finding.observed
+    assert report.error_count == 0
+    assert report.status == "ok"
