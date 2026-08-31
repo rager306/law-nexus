@@ -1,9 +1,9 @@
 # Dead-code and reuse audit register (DCA)
 
-**Status:** `[bounded]` candidate inventory — **Disposition status: open** (T01 pins the pool; T02/T03 disposition every row)
+**Status:** `[bounded]` candidate inventory — **Disposition status: open** (T01 pins the pool; T02 corroborated channels A/B/C and dispositioned every row; T03 executes any Tier-0 removals)
 **Series:** inherits the assessment/21 protocol (frozen revision, tracked evidence, preserved non-claims); bug-dimension precedent assessment/08.
 **Milestone:** M195-mdvctn / S03 / T01 (post-queue debt and process gap closure)
-**Graph snapshot:** GitNexus repo `law-nexus`, re-indexed this task at HEAD `52314d7`, 12,519 nodes / 24,532 edges / 506 clusters / 257 flows.
+**Graph snapshot:** GitNexus repo `law-nexus`, re-indexed this task at HEAD `52314d7`, 12,519 nodes / 24,532 edges / 506 clusters / 257 flows. T02 re-ran `analyze --force` to completion at HEAD `d8965cb` (indexed == current, up-to-date) before counting.
 
 ## Methodology
 
@@ -38,10 +38,9 @@ Vault directories are excluded from the audit entirely — they are not product 
 
 ## Frozen HEAD
 
-- **Full SHA:** `52314d750e1143734cf0d59b7912c3f271d8d471` (branch `main`), pinned before any index or graph work (`git rev-parse HEAD`; `git status --porcelain` → **dirty 0**).
-- **Indexed commit after `analyze --force`:** `52314d7` == current commit; `node .gitnexus/run.cjs status` → `Status: up-to-date`; index stats 12,519 nodes / 24,532 edges / 506 clusters / 257 flows.
-- The stale snapshot this task replaces: indexed `c187e4c`, raw pool 1,961. Fresh raw pool is 1,985 (+24 drift) — research-era numbers are not current and were not used for any row.
-- This file is written *after* the pin; pool numbers describe the pinned tree (dirty 0, product code identical to what was indexed). Re-index after the tracked commit of this register (assessment/21 closeout precedent).
+- **T01 pin (historical basis of the pool):** full SHA `52314d750e1143734cf0d59b7912c3f271d8d471` (branch `main`), pinned before any index or graph work (`git rev-parse HEAD`; `git status --porcelain` → **dirty 0**). Pool rows DCA-001…DCA-300 and all raw counts below were generated at this pin.
+- **T02 restamp (current):** HEAD moved to `d8965cb` — T01's own register commit; `git diff 52314d7..d8965cb -- crates src` is **empty**, so product code is identical to the pool basis and the pool carries over unchanged (not regenerated). `node .gitnexus/run.cjs status` flagged stale solely on that doc-only delta, so T02 re-ran `analyze --force` to completion before counting: indexed `d8965cb` == current, up-to-date (16.4 s). Cargo caches were deliberately invalidated for Channel A by mtime touch only; tracked content unchanged, `git status --porcelain` stayed 0 throughout.
+- The stale snapshot T01 replaced (indexed `c187e4c`, raw pool 1,961) remains a comparator only, never evidence. Research-era numbers are not used for any row.
 
 ## Candidate pool
 
@@ -58,310 +57,327 @@ Filtered Function pool (generic names excluded): **1,811** rows. The durable DCA
 
 Pool shape: 151 rows in `src/`, 149 in `tests/`; 8 of 47 crates own the whole pool — `ln-accelerate` 16, `ln-admission` 16, `ln-applicability` 67, `ln-citation` 10, `ln-closure` 27, `ln-conformance` 11, `ln-consultant-parser` 85, `ln-decode` 68. At least ~51 rows sit directly in `ports.rs`/`adapters.rs` surfaces (Tier-0 criterion 3 → auto-KEEP class `port-contract-surface`), and the `tests/` half is `#[test]`-entry-point false-dead by construction.
 
-| ID | Path:line | Symbol | Crate | Vis | Status |
-|---|---|---|---|---|---|
-| DCA-001 | crates/ln-accelerate/src/adapters.rs:51 | has_provisional | ln-accelerate | private | proposed |
-| DCA-002 | crates/ln-accelerate/src/adapters.rs:54 | provisional_count | ln-accelerate | private | proposed |
-| DCA-003 | crates/ln-accelerate/src/adapters.rs:57 | put | ln-accelerate | private | proposed |
-| DCA-004 | crates/ln-accelerate/src/adapters.rs:63 | label_for | ln-accelerate | private | proposed |
-| DCA-005 | crates/ln-accelerate/src/application.rs:54 | provisional_count | ln-accelerate | pub | proposed |
-| DCA-006 | crates/ln-accelerate/src/domain.rs:19 | parse_id | ln-accelerate | private | proposed |
-| DCA-007 | crates/ln-accelerate/src/domain.rs:122 | provisional_outcomes_are_non_authoritative | ln-accelerate | private | proposed |
-| DCA-008 | crates/ln-accelerate/src/ports.rs:5 | has_provisional | ln-accelerate | private | proposed |
-| DCA-009 | crates/ln-accelerate/src/ports.rs:6 | provisional_count | ln-accelerate | private | proposed |
-| DCA-010 | crates/ln-accelerate/src/ports.rs:7 | put | ln-accelerate | private | proposed |
-| DCA-011 | crates/ln-accelerate/src/ports.rs:9 | label_for | ln-accelerate | private | proposed |
-| DCA-012 | crates/ln-accelerate/tests/hc16_accelerate.rs:20 | normal_acceleration_is_provisional_non_authoritative | ln-accelerate | private | proposed |
-| DCA-013 | crates/ln-accelerate/tests/hc16_accelerate.rs:30 | direct_promotion_rejected | ln-accelerate | private | proposed |
-| DCA-014 | crates/ln-accelerate/tests/hc16_accelerate.rs:41 | label_mutation_rejected | ln-accelerate | private | proposed |
-| DCA-015 | crates/ln-accelerate/tests/hc16_accelerate.rs:51 | hostile_label_mutator_cannot_grant_authority | ln-accelerate | private | proposed |
-| DCA-016 | crates/ln-accelerate/tests/hc16_accelerate.rs:60 | app_owned_label_not_mutated_by_hostile_adapter | ln-accelerate | private | proposed |
-| DCA-017 | crates/ln-admission/src/adapters.rs:9 | observe | ln-admission | private | proposed |
-| DCA-018 | crates/ln-admission/src/adapters.rs:61 | observe | ln-admission | private | proposed |
-| DCA-019 | crates/ln-admission/src/domain.rs:19 | parse_id | ln-admission | private | proposed |
-| DCA-020 | crates/ln-admission/src/domain.rs:126 | is_unknown | ln-admission | pub | proposed |
-| DCA-021 | crates/ln-admission/src/domain.rs:217 | rejects_empty_request_id | ln-admission | private | proposed |
-| DCA-022 | crates/ln-admission/src/domain.rs:222 | capacity_unknown_by_default_marker | ln-admission | private | proposed |
-| DCA-023 | crates/ln-admission/src/ports.rs:6 | observe | ln-admission | private | proposed |
-| DCA-024 | crates/ln-admission/tests/hc13_admission.rs:18 | bound_unknown_pauses_with_capacity_unknown | ln-admission | private | proposed |
-| DCA-025 | crates/ln-admission/tests/hc13_admission.rs:32 | saturated_rejects_with_capacity_unknown | ln-admission | private | proposed |
-| DCA-026 | crates/ln-admission/tests/hc13_admission.rs:42 | retry_amplification_rejects | ln-admission | private | proposed |
-| DCA-027 | crates/ln-admission/tests/hc13_admission.rs:54 | measured_local_bound_can_admit | ln-admission | private | proposed |
-| DCA-028 | crates/ln-admission/tests/hc13_admission.rs:72 | legal_delay_and_completeness_claims_are_rejected | ln-admission | private | proposed |
-| DCA-029 | crates/ln-admission/tests/hc13_hostile_admission.rs:17 | hostile_vendor_unknown_cannot_force_admit | ln-admission | private | proposed |
-| DCA-030 | crates/ln-admission/tests/hc13_hostile_admission.rs:31 | hostile_pretend_measured_with_vendor_numbers_still_rejects | ln-admission | private | proposed |
-| DCA-031 | crates/ln-admission/tests/hc13_hostile_admission.rs:46 | hostile_vendor_inferences_are_rejected | ln-admission | private | proposed |
-| DCA-032 | crates/ln-admission/tests/hc13_hostile_admission.rs:74 | hostile_retry_amplification_still_rejects_first | ln-admission | private | proposed |
-| DCA-033 | crates/ln-applicability/src/adapters.rs:17 | predicate_registry_revision | ln-applicability | private | proposed |
-| DCA-034 | crates/ln-applicability/src/adapters.rs:21 | profile_input_revision | ln-applicability | private | proposed |
-| DCA-035 | crates/ln-applicability/src/adapters.rs:25 | case_facts_revision | ln-applicability | private | proposed |
-| DCA-036 | crates/ln-applicability/src/domain.rs:171 | effective_from | ln-applicability | pub | proposed |
-| DCA-037 | crates/ln-applicability/src/domain.rs:175 | effective_to | ln-applicability | pub | proposed |
-| DCA-038 | crates/ln-applicability/src/domain.rs:188 | try_new | ln-applicability | pub | proposed |
-| DCA-039 | crates/ln-applicability/src/domain.rs:199 | id | ln-applicability | pub | proposed |
-| DCA-040 | crates/ln-applicability/src/domain.rs:203 | kind | ln-applicability | pub | proposed |
-| DCA-041 | crates/ln-applicability/src/domain.rs:216 | try_new | ln-applicability | pub | proposed |
-| DCA-042 | crates/ln-applicability/src/domain.rs:227 | id | ln-applicability | pub | proposed |
-| DCA-043 | crates/ln-applicability/src/domain.rs:231 | kind | ln-applicability | pub | proposed |
-| DCA-044 | crates/ln-applicability/src/domain.rs:244 | try_new | ln-applicability | pub | proposed |
-| DCA-045 | crates/ln-applicability/src/domain.rs:255 | id | ln-applicability | pub | proposed |
-| DCA-046 | crates/ln-applicability/src/domain.rs:259 | kind | ln-applicability | pub | proposed |
-| DCA-047 | crates/ln-applicability/src/domain.rs:279 | try_new | ln-applicability | pub | proposed |
-| DCA-048 | crates/ln-applicability/src/domain.rs:300 | id | ln-applicability | pub | proposed |
-| DCA-049 | crates/ln-applicability/src/domain.rs:304 | revision | ln-applicability | pub | proposed |
-| DCA-050 | crates/ln-applicability/src/domain.rs:308 | conditions | ln-applicability | pub | proposed |
-| DCA-051 | crates/ln-applicability/src/domain.rs:312 | exceptions | ln-applicability | pub | proposed |
-| DCA-052 | crates/ln-applicability/src/domain.rs:316 | defeaters | ln-applicability | pub | proposed |
-| DCA-053 | crates/ln-applicability/src/domain.rs:320 | temporal_scope | ln-applicability | pub | proposed |
-| DCA-054 | crates/ln-applicability/src/domain.rs:373 | empty | ln-applicability | pub | proposed |
-| DCA-055 | crates/ln-applicability/src/domain.rs:468 | empty | ln-applicability | pub | proposed |
-| DCA-056 | crates/ln-applicability/src/domain.rs:675 | all | ln-applicability | pub | proposed |
-| DCA-057 | crates/ln-applicability/src/ports.rs:9 | predicate_registry_revision | ln-applicability | private | proposed |
-| DCA-058 | crates/ln-applicability/src/ports.rs:10 | profile_input_revision | ln-applicability | private | proposed |
-| DCA-059 | crates/ln-applicability/src/ports.rs:11 | case_facts_revision | ln-applicability | private | proposed |
-| DCA-060 | crates/ln-applicability/tests/applicability_capability_boundary.rs:8 | seven_capabilities_are_named | ln-applicability | private | proposed |
-| DCA-061 | crates/ln-applicability/tests/applicability_capability_boundary.rs:17 | landed_spines_are_explicit | ln-applicability | private | proposed |
-| DCA-062 | crates/ln-applicability/tests/applicability_capability_boundary.rs:30 | product_capabilities_remain_deferred | ln-applicability | private | proposed |
-| DCA-063 | crates/ln-applicability/tests/applicability_capability_boundary.rs:47 | algebra_satisfied_cannot_mint_applicable | ln-applicability | private | proposed |
-| DCA-064 | crates/ln-applicability/tests/applicability_capability_boundary.rs:61 | norm_rule_ir_is_not_product_runtime_completeness | ln-applicability | private | proposed |
-| DCA-065 | crates/ln-applicability/tests/applicability_contract.rs:22 | empty_prerequisites_abstain_missing_ctv_with_trace | ln-applicability | private | proposed |
-| DCA-066 | crates/ln-applicability/tests/applicability_contract.rs:46 | missing_normative_state_abstains_before_positive_decision | ln-applicability | private | proposed |
-| DCA-067 | crates/ln-applicability/tests/applicability_contract.rs:63 | unresolved_transitional_version_abstains | ln-applicability | private | proposed |
-| DCA-068 | crates/ln-applicability/tests/applicability_contract.rs:80 | missing_provenance_abstains | ln-applicability | private | proposed |
-| DCA-069 | crates/ln-applicability/tests/applicability_contract.rs:97 | complete_prerequisites_still_abstain_protocol_unimplemented | ln-applicability | private | proposed |
-| DCA-070 | crates/ln-applicability/tests/applicability_contract.rs:118 | invalid_rule_id_fails_closed | ln-applicability | private | proposed |
-| DCA-071 | crates/ln-applicability/tests/applicability_contract.rs:124 | applicable_and_not_applicable_constructors_are_not_exposed_as_success_paths | ln-applicability | private | proposed |
-| DCA-072 | crates/ln-applicability/tests/applicability_hostile.rs:9 | hostile_all_flags_true_cannot_mint_applicable | ln-applicability | private | proposed |
-| DCA-073 | crates/ln-applicability/tests/applicability_hostile.rs:30 | first_missing_prerequisite_wins_in_stable_order | ln-applicability | private | proposed |
-| DCA-074 | crates/ln-applicability/tests/norm_rule_ir_contract.rs:18 | condition | ln-applicability | private | proposed |
-| DCA-075 | crates/ln-applicability/tests/norm_rule_ir_contract.rs:23 | valid_norm_rule_ir_requires_conditions_exceptions_defeaters_and_temporal_scope | ln-applicability | private | proposed |
-| DCA-076 | crates/ln-applicability/tests/norm_rule_ir_contract.rs:45 | empty_conditions_fail_closed | ln-applicability | private | proposed |
-| DCA-077 | crates/ln-applicability/tests/norm_rule_ir_contract.rs:53 | inverted_temporal_scope_fails_closed | ln-applicability | private | proposed |
-| DCA-078 | crates/ln-applicability/tests/norm_rule_ir_contract.rs:60 | blank_condition_id_fails_closed | ln-applicability | private | proposed |
-| DCA-079 | crates/ln-applicability/tests/norm_rule_ir_contract.rs:66 | unsupported_condition_kind_fails_closed | ln-applicability | private | proposed |
-| DCA-080 | crates/ln-applicability/tests/norm_rule_ir_contract.rs:72 | open_ended_temporal_scope_is_allowed | ln-applicability | private | proposed |
-| DCA-081 | crates/ln-applicability/tests/norm_rule_ir_contract.rs:87 | invalid_date_shape_fails_closed | ln-applicability | private | proposed |
-| DCA-082 | crates/ln-applicability/tests/norm_rule_ir_hostile.rs:34 | valid_ir_with_complete_prerequisites_still_abstains | ln-applicability | private | proposed |
-| DCA-083 | crates/ln-applicability/tests/norm_rule_ir_hostile.rs:73 | evaluate_with_norm_rule_records_ir_and_still_abstains | ln-applicability | private | proposed |
-| DCA-084 | crates/ln-applicability/tests/norm_rule_ir_hostile.rs:109 | unsupported_exception_kind_fails_closed | ln-applicability | private | proposed |
-| DCA-085 | crates/ln-applicability/tests/norm_rule_ir_hostile.rs:115 | unsupported_defeater_kind_fails_closed | ln-applicability | private | proposed |
-| DCA-086 | crates/ln-applicability/tests/norm_rule_ir_hostile.rs:121 | blank_rule_revision_fails_closed | ln-applicability | private | proposed |
-| DCA-087 | crates/ln-applicability/tests/norm_rule_ir_hostile.rs:127 | ir_cannot_be_built_from_only_exceptions_without_conditions | ln-applicability | private | proposed |
-| DCA-088 | crates/ln-applicability/tests/predicate_algebra_contract.rs:35 | fact_required_satisfied_when_present | ln-applicability | private | proposed |
-| DCA-089 | crates/ln-applicability/tests/predicate_algebra_contract.rs:45 | fact_required_abstains_when_missing | ln-applicability | private | proposed |
-| DCA-090 | crates/ln-applicability/tests/predicate_algebra_contract.rs:55 | fact_forbidden_unsatisfied_when_present | ln-applicability | private | proposed |
-| DCA-091 | crates/ln-applicability/tests/predicate_algebra_contract.rs:65 | compose_all_conditions_satisfied | ln-applicability | private | proposed |
-| DCA-092 | crates/ln-applicability/tests/predicate_algebra_contract.rs:77 | compose_propagates_missing_fact_abstention | ln-applicability | private | proposed |
-| DCA-093 | crates/ln-applicability/tests/predicate_algebra_contract.rs:91 | exception_can_carve_out_unsatisfied_condition | ln-applicability | private | proposed |
-| DCA-094 | crates/ln-applicability/tests/predicate_algebra_contract.rs:109 | defeater_forces_unsatisfied_when_triggered | ln-applicability | private | proposed |
-| DCA-095 | crates/ln-applicability/tests/predicate_algebra_contract.rs:125 | evaluate_with_norm_rule_and_facts_still_never_applicable | ln-applicability | private | proposed |
-| DCA-096 | crates/ln-applicability/tests/predicate_algebra_hostile.rs:11 | empty_fact_set_does_not_panic_and_abstains | ln-applicability | private | proposed |
-| DCA-097 | crates/ln-applicability/tests/predicate_algebra_hostile.rs:29 | invalid_fact_id_fails_closed | ln-applicability | private | proposed |
-| DCA-098 | crates/ln-applicability/tests/predicate_algebra_hostile.rs:35 | missing_prerequisite_wins_before_algebra | ln-applicability | private | proposed |
-| DCA-099 | crates/ln-applicability/tests/predicate_algebra_hostile.rs:71 | satisfied_algebra_cannot_mint_applicable | ln-applicability | private | proposed |
-| DCA-100 | crates/ln-citation/src/adapters.rs:39 | with | ln-citation | pub | proposed |
-| DCA-101 | crates/ln-citation/src/adapters.rs:46 | resolve | ln-citation | private | proposed |
-| DCA-102 | crates/ln-citation/src/domain.rs:17 | parse_id | ln-citation | private | proposed |
-| DCA-103 | crates/ln-citation/src/ports.rs:3 | resolve | ln-citation | private | proposed |
-| DCA-104 | crates/ln-citation/tests/hc18_citation.rs:18 | official_source_resolved | ln-citation | private | proposed |
-| DCA-105 | crates/ln-citation/tests/hc18_citation.rs:31 | missing_source_returns_missing | ln-citation | private | proposed |
-| DCA-106 | crates/ln-citation/tests/hc18_citation.rs:39 | mirror_source_returns_invalid_not_authoritative | ln-citation | private | proposed |
-| DCA-107 | crates/ln-citation/tests/hc18_citation.rs:51 | anchor_invention_rejected | ln-citation | private | proposed |
-| DCA-108 | crates/ln-citation/tests/hc18_citation.rs:61 | mirror_relabel_rejected | ln-citation | private | proposed |
-| DCA-109 | crates/ln-citation/tests/hc18_citation.rs:70 | policy_version_stable | ln-citation | private | proposed |
-| DCA-110 | crates/ln-closure/src/adapters.rs:37 | rule_version | ln-closure | private | proposed |
-| DCA-111 | crates/ln-closure/src/adapters.rs:52 | progress_count | ln-closure | private | proposed |
-| DCA-112 | crates/ln-closure/src/adapters.rs:56 | queue_depth | ln-closure | private | proposed |
-| DCA-113 | crates/ln-closure/src/adapters.rs:76 | rule_version | ln-closure | private | proposed |
-| DCA-114 | crates/ln-closure/src/adapters.rs:80 | registered_nodes | ln-closure | private | proposed |
-| DCA-115 | crates/ln-closure/src/adapters.rs:85 | dependencies_of | ln-closure | private | proposed |
-| DCA-116 | crates/ln-closure/src/adapters.rs:90 | progress_count | ln-closure | private | proposed |
-| DCA-117 | crates/ln-closure/src/adapters.rs:94 | queue_depth | ln-closure | private | proposed |
-| DCA-118 | crates/ln-closure/src/domain.rs:19 | parse_id | ln-closure | private | proposed |
-| DCA-119 | crates/ln-closure/src/domain.rs:108 | is_blocked | ln-closure | pub | proposed |
-| DCA-120 | crates/ln-closure/src/domain.rs:185 | rejects_empty_node_id | ln-closure | private | proposed |
-| DCA-121 | crates/ln-closure/src/domain.rs:190 | complete_is_only_complete_status | ln-closure | private | proposed |
-| DCA-122 | crates/ln-closure/src/ports.rs:6 | rule_version | ln-closure | private | proposed |
-| DCA-123 | crates/ln-closure/src/ports.rs:8 | registered_nodes | ln-closure | private | proposed |
-| DCA-124 | crates/ln-closure/src/ports.rs:10 | dependencies_of | ln-closure | private | proposed |
-| DCA-125 | crates/ln-closure/src/ports.rs:13 | progress_count | ln-closure | private | proposed |
-| DCA-126 | crates/ln-closure/src/ports.rs:16 | queue_depth | ln-closure | private | proposed |
-| DCA-127 | crates/ln-closure/tests/hc11_closure.rs:28 | fully_evidenced_bounded_set_is_complete_and_publication_eligible | ln-closure | private | proposed |
-| DCA-128 | crates/ln-closure/tests/hc11_closure.rs:52 | missing_dependency_is_incomplete_and_blocks_publication | ln-closure | private | proposed |
-| DCA-129 | crates/ln-closure/tests/hc11_closure.rs:73 | unknown_node_blocks_as_unknown | ln-closure | private | proposed |
-| DCA-130 | crates/ln-closure/tests/hc11_closure.rs:92 | unbounded_fanout_blocks_publication | ln-closure | private | proposed |
-| DCA-131 | crates/ln-closure/tests/hc11_closure.rs:117 | rule_version_mismatch_blocks_publication | ln-closure | private | proposed |
-| DCA-132 | crates/ln-closure/tests/hc11_closure.rs:134 | progress_as_complete_claim_is_rejected | ln-closure | private | proposed |
-| DCA-133 | crates/ln-closure/tests/hc11_hostile_closure.rs:27 | hostile_progress_cannot_force_complete_via_claim | ln-closure | private | proposed |
-| DCA-134 | crates/ln-closure/tests/hc11_hostile_closure.rs:55 | hostile_invented_edges_for_unregistered_seed_cannot_force_complete | ln-closure | private | proposed |
-| DCA-135 | crates/ln-closure/tests/hc11_hostile_closure.rs:76 | hostile_invented_empty_missing_target_still_incomplete | ln-closure | private | proposed |
-| DCA-136 | crates/ln-closure/tests/hc11_hostile_closure.rs:98 | hostile_high_progress_does_not_become_completeness_on_honest_complete_path | ln-closure | private | proposed |
-| DCA-137 | crates/ln-conformance/src/adapters.rs:27 | case_verdict | ln-conformance | private | proposed |
-| DCA-138 | crates/ln-conformance/src/adapters.rs:49 | with | ln-conformance | pub | proposed |
-| DCA-139 | crates/ln-conformance/src/adapters.rs:56 | case_verdict | ln-conformance | private | proposed |
-| DCA-140 | crates/ln-conformance/src/adapters.rs:61 | all_case_ids | ln-conformance | private | proposed |
-| DCA-141 | crates/ln-conformance/src/ports.rs:3 | case_verdict | ln-conformance | private | proposed |
-| DCA-142 | crates/ln-conformance/src/ports.rs:4 | all_case_ids | ln-conformance | private | proposed |
-| DCA-143 | crates/ln-conformance/tests/hc20_conformance.rs:5 | all_pass_yields_overall_pass | ln-conformance | private | proposed |
-| DCA-144 | crates/ln-conformance/tests/hc20_conformance.rs:16 | mixed_verdicts_yield_unsupported | ln-conformance | private | proposed |
-| DCA-145 | crates/ln-conformance/tests/hc20_conformance.rs:28 | fail_makes_overall_fail | ln-conformance | private | proposed |
-| DCA-146 | crates/ln-conformance/tests/hc20_conformance.rs:38 | hostile_inflator_cannot_trick_app_logic | ln-conformance | private | proposed |
-| DCA-147 | crates/ln-conformance/tests/hc20_conformance.rs:52 | policy_version_stable | ln-conformance | private | proposed |
-| DCA-148 | crates/ln-consultant-parser/src/catalog.rs:37 | operation | ln-consultant-parser | pub | proposed |
-| DCA-149 | crates/ln-consultant-parser/src/catalog.rs:41 | detail | ln-consultant-parser | pub | proposed |
-| DCA-150 | crates/ln-consultant-parser/src/catalog.rs:106 | lookup | ln-consultant-parser | private | proposed |
-| DCA-151 | crates/ln-consultant-parser/src/catalog_sqlite.rs:44 | is_read_only | ln-consultant-parser | pub | proposed |
-| DCA-152 | crates/ln-consultant-parser/src/classifier.rs:286 | sibling_sections_do_not_leak_into_link_classifiers | ln-consultant-parser | private | proposed |
-| DCA-153 | crates/ln-consultant-parser/src/classifier.rs:295 | sibling_sections_do_not_leak_into_templates | ln-consultant-parser | private | proposed |
-| DCA-154 | crates/ln-consultant-parser/src/document_profile.rs:176 | sibling_section_at_same_indent_is_not_consumed | ln-consultant-parser | private | proposed |
-| DCA-155 | crates/ln-consultant-parser/src/document_profile.rs:185 | missing_section_returns_empty | ln-consultant-parser | private | proposed |
-| DCA-156 | crates/ln-consultant-parser/src/raw_link.rs:16 | is_internal | ln-consultant-parser | pub | proposed |
-| DCA-157 | crates/ln-consultant-parser/src/raw_link.rs:21 | is_external | ln-consultant-parser | pub | proposed |
-| DCA-158 | crates/ln-consultant-parser/src/raw_link.rs:26 | consid | ln-consultant-parser | pub | proposed |
-| DCA-159 | crates/ln-consultant-parser/tests/c1_484_evidence_battery.rs:77 | parser_hop_pinned_canon_yields_statya_93_hyperlink | ln-consultant-parser | private | proposed |
-| DCA-160 | crates/ln-consultant-parser/tests/c1_484_evidence_battery.rs:139 | constructor_hop_484_amends_44fz_statya_93 | ln-consultant-parser | private | proposed |
-| DCA-161 | crates/ln-consultant-parser/tests/c1_484_evidence_battery.rs:173 | timeline_hop_empty_timeline_resolves_unknown_not_in_force | ln-consultant-parser | private | proposed |
-| DCA-162 | crates/ln-consultant-parser/tests/c1_484_evidence_battery.rs:183 | timeline_hop_unknown_is_rejected_as_transition_status | ln-consultant-parser | private | proposed |
-| DCA-163 | crates/ln-consultant-parser/tests/c1_484_evidence_battery.rs:197 | pitfall_guard_derive_edges_on_c1_source_inverts_amends_edge | ln-consultant-parser | private | proposed |
-| DCA-164 | crates/ln-consultant-parser/tests/catalog_sqlite_test.rs:40 | path | ln-consultant-parser | private | proposed |
-| DCA-165 | crates/ln-consultant-parser/tests/catalog_sqlite_test.rs:148 | sqlite_and_in_memory_share_found_missing_and_latest_contract | ln-consultant-parser | private | proposed |
-| DCA-166 | crates/ln-consultant-parser/tests/catalog_sqlite_test.rs:174 | latest_edition_uses_edition_number_then_revision_then_id | ln-consultant-parser | private | proposed |
-| DCA-167 | crates/ln-consultant-parser/tests/catalog_sqlite_test.rs:211 | null_edition_rank_falls_back_to_text_edition_id | ln-consultant-parser | private | proposed |
-| DCA-168 | crates/ln-consultant-parser/tests/catalog_sqlite_test.rs:249 | missing_file_open_fails | ln-consultant-parser | private | proposed |
-| DCA-169 | crates/ln-consultant-parser/tests/catalog_sqlite_test.rs:257 | invalid_database_open_or_query_fails | ln-consultant-parser | private | proposed |
-| DCA-170 | crates/ln-consultant-parser/tests/catalog_sqlite_test.rs:276 | malformed_schema_lookup_fails | ln-consultant-parser | private | proposed |
-| DCA-171 | crates/ln-consultant-parser/tests/catalog_sqlite_test.rs:292 | locator_without_document_is_decode_failure | ln-consultant-parser | private | proposed |
-| DCA-172 | crates/ln-consultant-parser/tests/catalog_sqlite_test.rs:312 | adapter_connection_reports_read_only | ln-consultant-parser | private | proposed |
-| DCA-173 | crates/ln-consultant-parser/tests/catalog_test.rs:8 | in_memory_catalog_lookup | ln-consultant-parser | private | proposed |
-| DCA-174 | crates/ln-consultant-parser/tests/catalog_test.rs:25 | unknown_consid_returns_none | ln-consultant-parser | private | proposed |
-| DCA-175 | crates/ln-consultant-parser/tests/catalog_test.rs:34 | resolve_mixed_consids | ln-consultant-parser | private | proposed |
-| DCA-176 | crates/ln-consultant-parser/tests/catalog_test.rs:49 | coverage_summary_counts | ln-consultant-parser | private | proposed |
-| DCA-177 | crates/ln-consultant-parser/tests/catalog_test.rs:68 | in_memory_shared_contract_found_missing_and_latest | ln-consultant-parser | private | proposed |
-| DCA-178 | crates/ln-consultant-parser/tests/catalog_test.rs:88 | resolve_consids_propagates_adapter_failure | ln-consultant-parser | private | proposed |
-| DCA-179 | crates/ln-consultant-parser/tests/catalog_test.rs:92 | lookup | ln-consultant-parser | private | proposed |
-| DCA-180 | crates/ln-consultant-parser/tests/catalog_test.rs:104 | catalog_error_is_bounded_and_displayable | ln-consultant-parser | private | proposed |
-| DCA-181 | crates/ln-consultant-parser/tests/classifier_recall_test.rs:97 | classifier_recall_on_real_amends_golden_set | ln-consultant-parser | private | proposed |
-| DCA-182 | crates/ln-consultant-parser/tests/classifier_test.rs:15 | amendment_context_classified_as_amends | ln-consultant-parser | private | proposed |
-| DCA-183 | crates/ln-consultant-parser/tests/classifier_test.rs:29 | citation_context_classified_as_cites | ln-consultant-parser | private | proposed |
-| DCA-184 | crates/ln-consultant-parser/tests/classifier_test.rs:41 | implements_context_classified | ln-consultant-parser | private | proposed |
-| DCA-185 | crates/ln-consultant-parser/tests/classifier_test.rs:53 | unknown_context_low_confidence | ln-consultant-parser | private | proposed |
-| DCA-186 | crates/ln-consultant-parser/tests/classifier_test.rs:66 | classify_multiple_links | ln-consultant-parser | private | proposed |
-| DCA-187 | crates/ln-consultant-parser/tests/classifier_test.rs:80 | real_44fz_classification_distribution | ln-consultant-parser | private | proposed |
-| DCA-188 | crates/ln-consultant-parser/tests/document_profile_test.rs:5 | profiles_loaded_from_yaml | ln-consultant-parser | private | proposed |
-| DCA-189 | crates/ln-consultant-parser/tests/document_profile_test.rs:14 | federal_law_detected | ln-consultant-parser | private | proposed |
-| DCA-190 | crates/ln-consultant-parser/tests/document_profile_test.rs:25 | government_resolution_detected | ln-consultant-parser | private | proposed |
-| DCA-191 | crates/ln-consultant-parser/tests/document_profile_test.rs:36 | government_directive_detected | ln-consultant-parser | private | proposed |
-| DCA-192 | crates/ln-consultant-parser/tests/document_profile_test.rs:51 | departmental_act_detected | ln-consultant-parser | private | proposed |
-| DCA-193 | crates/ln-consultant-parser/tests/document_profile_test.rs:62 | court_decision_detected | ln-consultant-parser | private | proposed |
-| DCA-194 | crates/ln-consultant-parser/tests/document_profile_test.rs:73 | default_when_no_match | ln-consultant-parser | private | proposed |
-| DCA-195 | crates/ln-consultant-parser/tests/document_profile_test.rs:81 | boost_applied | ln-consultant-parser | private | proposed |
-| DCA-196 | crates/ln-consultant-parser/tests/document_profile_test.rs:89 | sibling_classifier_templates_do_not_leak_into_profiles | ln-consultant-parser | private | proposed |
-| DCA-197 | crates/ln-consultant-parser/tests/edge_deriver_test.rs:4 | cl | ln-consultant-parser | private | proposed |
-| DCA-198 | crates/ln-consultant-parser/tests/edge_deriver_test.rs:17 | amends_edge_direction_reversed | ln-consultant-parser | private | proposed |
-| DCA-199 | crates/ln-consultant-parser/tests/edge_deriver_test.rs:36 | cites_edge_direction_forward | ln-consultant-parser | private | proposed |
-| DCA-200 | crates/ln-consultant-parser/tests/edge_deriver_test.rs:51 | unknown_links_skipped | ln-consultant-parser | private | proposed |
-| DCA-201 | crates/ln-consultant-parser/tests/edge_deriver_test.rs:62 | real_44fz_edge_derivation | ln-consultant-parser | private | proposed |
-| DCA-202 | crates/ln-consultant-parser/tests/hyperlink_test.rs:23 | extracts_single_internal_link | ln-consultant-parser | private | proposed |
-| DCA-203 | crates/ln-consultant-parser/tests/hyperlink_test.rs:37 | extracts_multiple_links_in_sequence | ln-consultant-parser | private | proposed |
-| DCA-204 | crates/ln-consultant-parser/tests/hyperlink_test.rs:52 | extracts_external_link | ln-consultant-parser | private | proposed |
-| DCA-205 | crates/ln-consultant-parser/tests/hyperlink_test.rs:61 | empty_xml_returns_empty | ln-consultant-parser | private | proposed |
-| DCA-206 | crates/ln-consultant-parser/tests/hyperlink_test.rs:67 | link_with_multiple_text_runs | ln-consultant-parser | private | proposed |
-| DCA-207 | crates/ln-consultant-parser/tests/hyperlink_test.rs:82 | real_44fz_hyperlinks | ln-consultant-parser | private | proposed |
-| DCA-208 | crates/ln-consultant-parser/tests/multi_edition_test.rs:28 | parse_filename_extracts_number_and_date | ln-consultant-parser | private | proposed |
-| DCA-209 | crates/ln-consultant-parser/tests/multi_edition_test.rs:37 | parse_filename_initial | ln-consultant-parser | private | proposed |
-| DCA-210 | crates/ln-consultant-parser/tests/multi_edition_test.rs:45 | real_44fz_first_vs_last_edition | ln-consultant-parser | private | proposed |
-| DCA-211 | crates/ln-consultant-parser/tests/multi_edition_test.rs:110 | process_edition_wrapper_uses_default_profile_path | ln-consultant-parser | private | proposed |
-| DCA-212 | crates/ln-consultant-parser/tests/multi_edition_test.rs:121 | process_edition_for_path_classifies_federal_law_source | ln-consultant-parser | private | proposed |
-| DCA-213 | crates/ln-consultant-parser/tests/multi_edition_test.rs:136 | process_editions_directory_passes_source_path | ln-consultant-parser | private | proposed |
-| DCA-214 | crates/ln-consultant-parser/tests/observation_test.rs:7 | cl | ln-consultant-parser | private | proposed |
-| DCA-215 | crates/ln-consultant-parser/tests/observation_test.rs:18 | unknown_links_collected | ln-consultant-parser | private | proposed |
-| DCA-216 | crates/ln-consultant-parser/tests/observation_test.rs:32 | known_links_not_collected | ln-consultant-parser | private | proposed |
-| DCA-217 | crates/ln-consultant-parser/tests/observation_test.rs:39 | sorted_by_frequency | ln-consultant-parser | private | proposed |
-| DCA-218 | crates/ln-consultant-parser/tests/observation_test.rs:53 | yaml_output_contains_observations | ln-consultant-parser | private | proposed |
-| DCA-219 | crates/ln-consultant-parser/tests/observation_test.rs:63 | real_44fz_observations | ln-consultant-parser | private | proposed |
-| DCA-220 | crates/ln-consultant-parser/tests/scoring_test.rs:16 | and_mode_requires_all_needles | ln-consultant-parser | private | proposed |
-| DCA-221 | crates/ln-consultant-parser/tests/scoring_test.rs:33 | or_mode_proportional_score | ln-consultant-parser | private | proposed |
-| DCA-222 | crates/ln-consultant-parser/tests/scoring_test.rs:57 | best_score_wins | ln-consultant-parser | private | proposed |
-| DCA-223 | crates/ln-consultant-parser/tests/scoring_test.rs:83 | templates_loaded_from_yaml | ln-consultant-parser | private | proposed |
-| DCA-224 | crates/ln-consultant-parser/tests/scoring_test.rs:107 | real_44fz_scored_vs_single | ln-consultant-parser | private | proposed |
-| DCA-225 | crates/ln-consultant-parser/tests/scoring_test.rs:142 | compatibility_wrapper_matches_empty_path_kinds | ln-consultant-parser | private | proposed |
-| DCA-226 | crates/ln-consultant-parser/tests/scoring_test.rs:162 | path_aware_federal_law_boosts_winning_confidence_only | ln-consultant-parser | private | proposed |
-| DCA-227 | crates/ln-consultant-parser/tests/scoring_test.rs:184 | tie_order_follows_yaml_even_after_profile_boost | ln-consultant-parser | private | proposed |
-| DCA-228 | crates/ln-consultant-parser/tests/scoring_test.rs:212 | morph_variant_classifies_v_redaktsii_as_amends | ln-consultant-parser | private | proposed |
-| DCA-229 | crates/ln-consultant-parser/tests/scoring_test.rs:228 | hostile_substring_noise_stays_unknown | ln-consultant-parser | private | proposed |
-| DCA-230 | crates/ln-consultant-parser/tests/temporal_graph_test.rs:12 | full_44fz_temporal_evolution | ln-consultant-parser | private | proposed |
-| DCA-231 | crates/ln-consultant-parser/tests/tracked_pipeline_test.rs:89 | tracked_435fz_pipeline_is_deterministic_and_bounded | ln-consultant-parser | private | proposed |
-| DCA-232 | crates/ln-consultant-parser/tests/tracked_pipeline_test.rs:263 | malformed_consultant_wordml_fails_atomically_in_decode | ln-consultant-parser | private | proposed |
-| DCA-233 | crates/ln-decode/src/adapters.rs:363 | decode | ln-decode | private | proposed |
-| DCA-234 | crates/ln-decode/src/adapters.rs:383 | decode | ln-decode | private | proposed |
-| DCA-235 | crates/ln-decode/src/adapters.rs:425 | record | ln-decode | private | proposed |
-| DCA-236 | crates/ln-decode/src/adapters.rs:428 | events | ln-decode | private | proposed |
-| DCA-237 | crates/ln-decode/src/adapters.rs:439 | parses_basic_wordml_with_namespaces | ln-decode | private | proposed |
-| DCA-238 | crates/ln-decode/src/adapters.rs:462 | skips_non_structural_styles | ln-decode | private | proposed |
-| DCA-239 | crates/ln-decode/src/adapters.rs:478 | handles_empty_document | ln-decode | private | proposed |
-| DCA-240 | crates/ln-decode/src/adapters.rs:491 | skips_bindata_base64_blobs | ln-decode | private | proposed |
-| DCA-241 | crates/ln-decode/src/adapters.rs:507 | style_classification | ln-decode | private | proposed |
-| DCA-242 | crates/ln-decode/src/adapters.rs:516 | handles_multiple_text_runs_in_single_paragraph | ln-decode | private | proposed |
-| DCA-243 | crates/ln-decode/src/adapters/garant_odt_package.rs:22 | bytes | ln-decode | pub | proposed |
-| DCA-244 | crates/ln-decode/src/adapters/garant_odt_package.rs:26 | entry_count | ln-decode | pub | proposed |
-| DCA-245 | crates/ln-decode/src/application.rs:43 | execute | ln-decode | pub | proposed |
-| DCA-246 | crates/ln-decode/src/application.rs:106 | diagnostics | ln-decode | pub | proposed |
-| DCA-247 | crates/ln-decode/src/article_body.rs:21 | level | ln-decode | pub | proposed |
-| DCA-248 | crates/ln-decode/src/article_body.rs:25 | number | ln-decode | pub | proposed |
-| DCA-249 | crates/ln-decode/src/article_body.rs:29 | title | ln-decode | pub | proposed |
-| DCA-250 | crates/ln-decode/src/article_body.rs:35 | body | ln-decode | pub | proposed |
-| DCA-251 | crates/ln-decode/src/article_body.rs:94 | number | ln-decode | pub | proposed |
-| DCA-252 | crates/ln-decode/src/article_body.rs:98 | title | ln-decode | pub | proposed |
-| DCA-253 | crates/ln-decode/src/article_body.rs:104 | text | ln-decode | pub | proposed |
-| DCA-254 | crates/ln-decode/src/deontic.rs:22 | kind | ln-decode | pub | proposed |
-| DCA-255 | crates/ln-decode/src/deontic.rs:26 | text_span | ln-decode | pub | proposed |
-| DCA-256 | crates/ln-decode/src/deontic.rs:33 | negated | ln-decode | pub | proposed |
-| DCA-257 | crates/ln-decode/src/domain.rs:19 | parse_id | ln-decode | private | proposed |
-| DCA-258 | crates/ln-decode/src/domain.rs:81 | is_structural | ln-decode | pub | proposed |
-| DCA-259 | crates/ln-decode/src/domain.rs:240 | phase | ln-decode | pub | proposed |
-| DCA-260 | crates/ln-decode/src/domain.rs:244 | kind | ln-decode | pub | proposed |
-| DCA-261 | crates/ln-decode/src/domain.rs:248 | byte_offset | ln-decode | pub | proposed |
-| DCA-262 | crates/ln-decode/src/domain.rs:273 | try_new | ln-decode | pub | proposed |
-| DCA-263 | crates/ln-decode/src/domain.rs:280 | start | ln-decode | pub | proposed |
-| DCA-264 | crates/ln-decode/src/domain.rs:284 | end | ln-decode | pub | proposed |
-| DCA-265 | crates/ln-decode/src/domain.rs:309 | stream | ln-decode | pub | proposed |
-| DCA-266 | crates/ln-decode/src/domain.rs:313 | span | ln-decode | pub | proposed |
-| DCA-267 | crates/ln-decode/src/domain.rs:330 | try_new | ln-decode | pub | proposed |
-| DCA-268 | crates/ln-decode/src/domain.rs:337 | start | ln-decode | pub | proposed |
-| DCA-269 | crates/ln-decode/src/domain.rs:341 | end | ln-decode | pub | proposed |
-| DCA-270 | crates/ln-decode/src/domain.rs:384 | try_new | ln-decode | pub | proposed |
-| DCA-271 | crates/ln-decode/src/domain.rs:409 | text | ln-decode | pub | proposed |
-| DCA-272 | crates/ln-decode/src/domain.rs:413 | provider_style_id | ln-decode | pub | proposed |
-| DCA-273 | crates/ln-decode/src/domain.rs:417 | style | ln-decode | pub | proposed |
-| DCA-274 | crates/ln-decode/src/domain.rs:421 | source_location | ln-decode | pub | proposed |
-| DCA-275 | crates/ln-decode/src/domain.rs:425 | source_format | ln-decode | pub | proposed |
-| DCA-276 | crates/ln-decode/src/domain.rs:487 | try_new | ln-decode | pub | proposed |
-| DCA-277 | crates/ln-decode/src/domain.rs:515 | level | ln-decode | pub | proposed |
-| DCA-278 | crates/ln-decode/src/domain.rs:519 | number | ln-decode | pub | proposed |
-| DCA-279 | crates/ln-decode/src/domain.rs:523 | title | ln-decode | pub | proposed |
-| DCA-280 | crates/ln-decode/src/domain.rs:527 | text | ln-decode | pub | proposed |
-| DCA-281 | crates/ln-decode/src/domain.rs:531 | marker_span | ln-decode | pub | proposed |
-| DCA-282 | crates/ln-decode/src/domain.rs:551 | rejects_empty_payload_ref | ln-decode | private | proposed |
-| DCA-283 | crates/ln-decode/src/domain.rs:556 | structural_category_is_only_accepted_kind | ln-decode | private | proposed |
-| DCA-284 | crates/ln-decode/src/evaluator.rs:61 | layer | ln-decode | pub | proposed |
-| DCA-285 | crates/ln-decode/src/evaluator.rs:65 | true_positives | ln-decode | pub | proposed |
-| DCA-286 | crates/ln-decode/src/evaluator.rs:69 | false_positives | ln-decode | pub | proposed |
-| DCA-287 | crates/ln-decode/src/evaluator.rs:73 | false_negatives | ln-decode | pub | proposed |
-| DCA-288 | crates/ln-decode/src/evaluator.rs:77 | precision | ln-decode | pub | proposed |
-| DCA-289 | crates/ln-decode/src/evaluator.rs:81 | recall | ln-decode | pub | proposed |
-| DCA-290 | crates/ln-decode/src/evaluator.rs:85 | f1 | ln-decode | pub | proposed |
-| DCA-291 | crates/ln-decode/src/golden.rs:89 | block_index | ln-decode | pub | proposed |
-| DCA-292 | crates/ln-decode/src/golden.rs:98 | span | ln-decode | pub | proposed |
-| DCA-293 | crates/ln-decode/src/golden.rs:146 | try_new | ln-decode | pub | proposed |
-| DCA-294 | crates/ln-decode/src/golden.rs:172 | path | ln-decode | pub | proposed |
-| DCA-295 | crates/ln-decode/src/golden.rs:176 | sha256 | ln-decode | pub | proposed |
-| DCA-296 | crates/ln-decode/src/golden.rs:180 | byte_count | ln-decode | pub | proposed |
-| DCA-297 | crates/ln-decode/src/golden.rs:184 | runtime_fingerprint | ln-decode | pub | proposed |
-| DCA-298 | crates/ln-decode/src/golden.rs:199 | try_new | ln-decode | pub | proposed |
-| DCA-299 | crates/ln-decode/src/golden.rs:234 | source | ln-decode | pub | proposed |
-| DCA-300 | crates/ln-decode/src/golden.rs:238 | provider | ln-decode | pub | proposed |
+| ID | Path:line | Symbol | Crate | Vis | Channels (A rustc / B rg / C graph) | Proposed disposition |
+|---|---|---|---|---|---|---|
+| DCA-001 | crates/ln-accelerate/src/adapters.rs:51 | has_provisional | ln-accelerate | private | A:silent B:o3/d3 C:- | keep:port-contract-surface |
+| DCA-002 | crates/ln-accelerate/src/adapters.rs:54 | provisional_count | ln-accelerate | private | A:silent B:o6/d4 C:- | keep:port-contract-surface |
+| DCA-003 | crates/ln-accelerate/src/adapters.rs:57 | put | ln-accelerate | private | A:silent B:o51/d16 C:- | keep:port-contract-surface |
+| DCA-004 | crates/ln-accelerate/src/adapters.rs:63 | label_for | ln-accelerate | private | A:silent B:o5/d4 C:- | keep:port-contract-surface |
+| DCA-005 | crates/ln-accelerate/src/application.rs:54 | provisional_count | ln-accelerate | pub | A:silent B:o6/d4 C:- | keep:public-api |
+| DCA-006 | crates/ln-accelerate/src/domain.rs:19 | parse_id | ln-accelerate | private | A:silent B:o24/d20 C:- | keep:lifecycle-bounded |
+| DCA-007 | crates/ln-accelerate/src/domain.rs:122 | provisional_outcomes_are_non_authoritative | ln-accelerate | private | A:silent B:o0/d1 C:- | keep:test-fixture |
+| DCA-008 | crates/ln-accelerate/src/ports.rs:5 | has_provisional | ln-accelerate | private | A:silent B:o3/d3 C:- | keep:port-contract-surface |
+| DCA-009 | crates/ln-accelerate/src/ports.rs:6 | provisional_count | ln-accelerate | private | A:silent B:o6/d4 C:- | keep:port-contract-surface |
+| DCA-010 | crates/ln-accelerate/src/ports.rs:7 | put | ln-accelerate | private | A:silent B:o51/d16 C:- | keep:port-contract-surface |
+| DCA-011 | crates/ln-accelerate/src/ports.rs:9 | label_for | ln-accelerate | private | A:silent B:o5/d4 C:- | keep:port-contract-surface |
+| DCA-012 | crates/ln-accelerate/tests/hc16_accelerate.rs:20 | normal_acceleration_is_provisional_non_authoritative | ln-accelerate | private | A:silent B:o0/d1 C:- | keep:test-fixture |
+| DCA-013 | crates/ln-accelerate/tests/hc16_accelerate.rs:30 | direct_promotion_rejected | ln-accelerate | private | A:silent B:o1/d1 C:- | keep:test-fixture |
+| DCA-014 | crates/ln-accelerate/tests/hc16_accelerate.rs:41 | label_mutation_rejected | ln-accelerate | private | A:silent B:o1/d1 C:- | keep:test-fixture |
+| DCA-015 | crates/ln-accelerate/tests/hc16_accelerate.rs:51 | hostile_label_mutator_cannot_grant_authority | ln-accelerate | private | A:silent B:o0/d1 C:- | keep:test-fixture |
+| DCA-016 | crates/ln-accelerate/tests/hc16_accelerate.rs:60 | app_owned_label_not_mutated_by_hostile_adapter | ln-accelerate | private | A:silent B:o0/d1 C:- | keep:test-fixture |
+| DCA-017 | crates/ln-admission/src/adapters.rs:9 | observe | ln-admission | private | A:silent B:o17/d6 C:- | keep:port-contract-surface |
+| DCA-018 | crates/ln-admission/src/adapters.rs:61 | observe | ln-admission | private | A:silent B:o17/d6 C:- | keep:port-contract-surface |
+| DCA-019 | crates/ln-admission/src/domain.rs:19 | parse_id | ln-admission | private | A:silent B:o24/d20 C:- | keep:lifecycle-bounded |
+| DCA-020 | crates/ln-admission/src/domain.rs:126 | is_unknown | ln-admission | pub | A:silent B:o7/d1 C:- | keep:public-api |
+| DCA-021 | crates/ln-admission/src/domain.rs:217 | rejects_empty_request_id | ln-admission | private | A:silent B:o0/d2 C:- | keep:test-fixture |
+| DCA-022 | crates/ln-admission/src/domain.rs:222 | capacity_unknown_by_default_marker | ln-admission | private | A:silent B:o0/d1 C:- | keep:test-fixture |
+| DCA-023 | crates/ln-admission/src/ports.rs:6 | observe | ln-admission | private | A:silent B:o17/d6 C:- | keep:port-contract-surface |
+| DCA-024 | crates/ln-admission/tests/hc13_admission.rs:18 | bound_unknown_pauses_with_capacity_unknown | ln-admission | private | A:silent B:o0/d1 C:- | keep:test-fixture |
+| DCA-025 | crates/ln-admission/tests/hc13_admission.rs:32 | saturated_rejects_with_capacity_unknown | ln-admission | private | A:silent B:o0/d1 C:- | keep:test-fixture |
+| DCA-026 | crates/ln-admission/tests/hc13_admission.rs:42 | retry_amplification_rejects | ln-admission | private | A:silent B:o2/d1 C:- | keep:test-fixture |
+| DCA-027 | crates/ln-admission/tests/hc13_admission.rs:54 | measured_local_bound_can_admit | ln-admission | private | A:silent B:o0/d1 C:- | keep:test-fixture |
+| DCA-028 | crates/ln-admission/tests/hc13_admission.rs:72 | legal_delay_and_completeness_claims_are_rejected | ln-admission | private | A:silent B:o0/d1 C:- | keep:test-fixture |
+| DCA-029 | crates/ln-admission/tests/hc13_hostile_admission.rs:17 | hostile_vendor_unknown_cannot_force_admit | ln-admission | private | A:silent B:o0/d1 C:- | keep:test-fixture |
+| DCA-030 | crates/ln-admission/tests/hc13_hostile_admission.rs:31 | hostile_pretend_measured_with_vendor_numbers_still_rejects | ln-admission | private | A:silent B:o0/d1 C:- | keep:test-fixture |
+| DCA-031 | crates/ln-admission/tests/hc13_hostile_admission.rs:46 | hostile_vendor_inferences_are_rejected | ln-admission | private | A:silent B:o0/d1 C:- | keep:test-fixture |
+| DCA-032 | crates/ln-admission/tests/hc13_hostile_admission.rs:74 | hostile_retry_amplification_still_rejects_first | ln-admission | private | A:silent B:o0/d1 C:- | keep:test-fixture |
+| DCA-033 | crates/ln-applicability/src/adapters.rs:17 | predicate_registry_revision | ln-applicability | private | A:silent B:o13/d2 C:- | keep:port-contract-surface |
+| DCA-034 | crates/ln-applicability/src/adapters.rs:21 | profile_input_revision | ln-applicability | private | A:silent B:o13/d2 C:- | keep:port-contract-surface |
+| DCA-035 | crates/ln-applicability/src/adapters.rs:25 | case_facts_revision | ln-applicability | private | A:silent B:o13/d2 C:- | keep:port-contract-surface |
+| DCA-036 | crates/ln-applicability/src/domain.rs:171 | effective_from | ln-applicability | pub | A:silent B:o13/d1 C:- | keep:public-api |
+| DCA-037 | crates/ln-applicability/src/domain.rs:175 | effective_to | ln-applicability | pub | A:silent B:o12/d1 C:- | keep:public-api |
+| DCA-038 | crates/ln-applicability/src/domain.rs:188 | try_new | ln-applicability | pub | A:silent B:o340/d30 C:- | keep:public-api |
+| DCA-039 | crates/ln-applicability/src/domain.rs:199 | id | ln-applicability | pub | A:silent B:o785/d101 C:- | keep:public-api |
+| DCA-040 | crates/ln-applicability/src/domain.rs:203 | kind | ln-applicability | pub | A:silent B:o805/d14 C:- | keep:public-api |
+| DCA-041 | crates/ln-applicability/src/domain.rs:216 | try_new | ln-applicability | pub | A:silent B:o340/d30 C:- | keep:public-api |
+| DCA-042 | crates/ln-applicability/src/domain.rs:227 | id | ln-applicability | pub | A:silent B:o785/d101 C:- | keep:public-api |
+| DCA-043 | crates/ln-applicability/src/domain.rs:231 | kind | ln-applicability | pub | A:silent B:o805/d14 C:- | keep:public-api |
+| DCA-044 | crates/ln-applicability/src/domain.rs:244 | try_new | ln-applicability | pub | A:silent B:o340/d30 C:- | keep:public-api |
+| DCA-045 | crates/ln-applicability/src/domain.rs:255 | id | ln-applicability | pub | A:silent B:o785/d101 C:- | keep:public-api |
+| DCA-046 | crates/ln-applicability/src/domain.rs:259 | kind | ln-applicability | pub | A:silent B:o805/d14 C:- | keep:public-api |
+| DCA-047 | crates/ln-applicability/src/domain.rs:279 | try_new | ln-applicability | pub | A:silent B:o340/d30 C:- | keep:public-api |
+| DCA-048 | crates/ln-applicability/src/domain.rs:300 | id | ln-applicability | pub | A:silent B:o785/d101 C:- | keep:public-api |
+| DCA-049 | crates/ln-applicability/src/domain.rs:304 | revision | ln-applicability | pub | A:silent B:o26/d2 C:- | keep:public-api |
+| DCA-050 | crates/ln-applicability/src/domain.rs:308 | conditions | ln-applicability | pub | A:silent B:o15/d1 C:- | keep:public-api |
+| DCA-051 | crates/ln-applicability/src/domain.rs:312 | exceptions | ln-applicability | pub | A:silent B:o12/d1 C:- | keep:public-api |
+| DCA-052 | crates/ln-applicability/src/domain.rs:316 | defeaters | ln-applicability | pub | A:silent B:o11/d1 C:- | keep:public-api |
+| DCA-053 | crates/ln-applicability/src/domain.rs:320 | temporal_scope | ln-applicability | pub | A:silent B:o6/d1 C:- | keep:public-api |
+| DCA-054 | crates/ln-applicability/src/domain.rs:373 | empty | ln-applicability | pub | A:silent B:o410/d11 C:- | keep:public-api |
+| DCA-055 | crates/ln-applicability/src/domain.rs:468 | empty | ln-applicability | pub | A:silent B:o410/d11 C:- | keep:public-api |
+| DCA-056 | crates/ln-applicability/src/domain.rs:675 | all | ln-applicability | pub | A:silent B:o165/d9 C:- | keep:public-api |
+| DCA-057 | crates/ln-applicability/src/ports.rs:9 | predicate_registry_revision | ln-applicability | private | A:silent B:o13/d2 C:- | keep:port-contract-surface |
+| DCA-058 | crates/ln-applicability/src/ports.rs:10 | profile_input_revision | ln-applicability | private | A:silent B:o13/d2 C:- | keep:port-contract-surface |
+| DCA-059 | crates/ln-applicability/src/ports.rs:11 | case_facts_revision | ln-applicability | private | A:silent B:o13/d2 C:- | keep:port-contract-surface |
+| DCA-060 | crates/ln-applicability/tests/applicability_capability_boundary.rs:8 | seven_capabilities_are_named | ln-applicability | private | A:silent B:o0/d1 C:- | keep:test-fixture |
+| DCA-061 | crates/ln-applicability/tests/applicability_capability_boundary.rs:17 | landed_spines_are_explicit | ln-applicability | private | A:silent B:o0/d1 C:- | keep:test-fixture |
+| DCA-062 | crates/ln-applicability/tests/applicability_capability_boundary.rs:30 | product_capabilities_remain_deferred | ln-applicability | private | A:silent B:o0/d1 C:- | keep:test-fixture |
+| DCA-063 | crates/ln-applicability/tests/applicability_capability_boundary.rs:47 | algebra_satisfied_cannot_mint_applicable | ln-applicability | private | A:silent B:o0/d1 C:- | keep:test-fixture |
+| DCA-064 | crates/ln-applicability/tests/applicability_capability_boundary.rs:61 | norm_rule_ir_is_not_product_runtime_completeness | ln-applicability | private | A:silent B:o0/d1 C:- | keep:test-fixture |
+| DCA-065 | crates/ln-applicability/tests/applicability_contract.rs:22 | empty_prerequisites_abstain_missing_ctv_with_trace | ln-applicability | private | A:silent B:o0/d1 C:- | keep:test-fixture |
+| DCA-066 | crates/ln-applicability/tests/applicability_contract.rs:46 | missing_normative_state_abstains_before_positive_decision | ln-applicability | private | A:silent B:o0/d1 C:- | keep:test-fixture |
+| DCA-067 | crates/ln-applicability/tests/applicability_contract.rs:63 | unresolved_transitional_version_abstains | ln-applicability | private | A:silent B:o0/d1 C:- | keep:test-fixture |
+| DCA-068 | crates/ln-applicability/tests/applicability_contract.rs:80 | missing_provenance_abstains | ln-applicability | private | A:silent B:o0/d1 C:- | keep:test-fixture |
+| DCA-069 | crates/ln-applicability/tests/applicability_contract.rs:97 | complete_prerequisites_still_abstain_protocol_unimplemented | ln-applicability | private | A:silent B:o0/d1 C:- | keep:test-fixture |
+| DCA-070 | crates/ln-applicability/tests/applicability_contract.rs:118 | invalid_rule_id_fails_closed | ln-applicability | private | A:silent B:o0/d1 C:- | keep:test-fixture |
+| DCA-071 | crates/ln-applicability/tests/applicability_contract.rs:124 | applicable_and_not_applicable_constructors_are_not_exposed_as_success_paths | ln-applicability | private | A:silent B:o0/d1 C:- | keep:test-fixture |
+| DCA-072 | crates/ln-applicability/tests/applicability_hostile.rs:9 | hostile_all_flags_true_cannot_mint_applicable | ln-applicability | private | A:silent B:o0/d1 C:- | keep:test-fixture |
+| DCA-073 | crates/ln-applicability/tests/applicability_hostile.rs:30 | first_missing_prerequisite_wins_in_stable_order | ln-applicability | private | A:silent B:o0/d1 C:- | keep:test-fixture |
+| DCA-074 | crates/ln-applicability/tests/norm_rule_ir_contract.rs:18 | condition | ln-applicability | private | A:silent B:o16/d1 C:- | keep:test-fixture |
+| DCA-075 | crates/ln-applicability/tests/norm_rule_ir_contract.rs:23 | valid_norm_rule_ir_requires_conditions_exceptions_defeaters_and_temporal_scope | ln-applicability | private | A:silent B:o0/d1 C:- | keep:test-fixture |
+| DCA-076 | crates/ln-applicability/tests/norm_rule_ir_contract.rs:45 | empty_conditions_fail_closed | ln-applicability | private | A:silent B:o0/d1 C:- | keep:test-fixture |
+| DCA-077 | crates/ln-applicability/tests/norm_rule_ir_contract.rs:53 | inverted_temporal_scope_fails_closed | ln-applicability | private | A:silent B:o0/d1 C:- | keep:test-fixture |
+| DCA-078 | crates/ln-applicability/tests/norm_rule_ir_contract.rs:60 | blank_condition_id_fails_closed | ln-applicability | private | A:silent B:o0/d1 C:- | keep:test-fixture |
+| DCA-079 | crates/ln-applicability/tests/norm_rule_ir_contract.rs:66 | unsupported_condition_kind_fails_closed | ln-applicability | private | A:silent B:o0/d1 C:- | keep:test-fixture |
+| DCA-080 | crates/ln-applicability/tests/norm_rule_ir_contract.rs:72 | open_ended_temporal_scope_is_allowed | ln-applicability | private | A:silent B:o0/d1 C:- | keep:test-fixture |
+| DCA-081 | crates/ln-applicability/tests/norm_rule_ir_contract.rs:87 | invalid_date_shape_fails_closed | ln-applicability | private | A:silent B:o0/d1 C:- | keep:test-fixture |
+| DCA-082 | crates/ln-applicability/tests/norm_rule_ir_hostile.rs:34 | valid_ir_with_complete_prerequisites_still_abstains | ln-applicability | private | A:silent B:o0/d1 C:- | keep:test-fixture |
+| DCA-083 | crates/ln-applicability/tests/norm_rule_ir_hostile.rs:73 | evaluate_with_norm_rule_records_ir_and_still_abstains | ln-applicability | private | A:silent B:o0/d1 C:- | keep:test-fixture |
+| DCA-084 | crates/ln-applicability/tests/norm_rule_ir_hostile.rs:109 | unsupported_exception_kind_fails_closed | ln-applicability | private | A:silent B:o0/d1 C:- | keep:test-fixture |
+| DCA-085 | crates/ln-applicability/tests/norm_rule_ir_hostile.rs:115 | unsupported_defeater_kind_fails_closed | ln-applicability | private | A:silent B:o0/d1 C:- | keep:test-fixture |
+| DCA-086 | crates/ln-applicability/tests/norm_rule_ir_hostile.rs:121 | blank_rule_revision_fails_closed | ln-applicability | private | A:silent B:o0/d1 C:- | keep:test-fixture |
+| DCA-087 | crates/ln-applicability/tests/norm_rule_ir_hostile.rs:127 | ir_cannot_be_built_from_only_exceptions_without_conditions | ln-applicability | private | A:silent B:o0/d1 C:- | keep:test-fixture |
+| DCA-088 | crates/ln-applicability/tests/predicate_algebra_contract.rs:35 | fact_required_satisfied_when_present | ln-applicability | private | A:silent B:o0/d1 C:- | keep:test-fixture |
+| DCA-089 | crates/ln-applicability/tests/predicate_algebra_contract.rs:45 | fact_required_abstains_when_missing | ln-applicability | private | A:silent B:o0/d1 C:- | keep:test-fixture |
+| DCA-090 | crates/ln-applicability/tests/predicate_algebra_contract.rs:55 | fact_forbidden_unsatisfied_when_present | ln-applicability | private | A:silent B:o0/d1 C:- | keep:test-fixture |
+| DCA-091 | crates/ln-applicability/tests/predicate_algebra_contract.rs:65 | compose_all_conditions_satisfied | ln-applicability | private | A:silent B:o0/d1 C:- | keep:test-fixture |
+| DCA-092 | crates/ln-applicability/tests/predicate_algebra_contract.rs:77 | compose_propagates_missing_fact_abstention | ln-applicability | private | A:silent B:o0/d1 C:- | keep:test-fixture |
+| DCA-093 | crates/ln-applicability/tests/predicate_algebra_contract.rs:91 | exception_can_carve_out_unsatisfied_condition | ln-applicability | private | A:silent B:o0/d1 C:- | keep:test-fixture |
+| DCA-094 | crates/ln-applicability/tests/predicate_algebra_contract.rs:109 | defeater_forces_unsatisfied_when_triggered | ln-applicability | private | A:silent B:o0/d1 C:- | keep:test-fixture |
+| DCA-095 | crates/ln-applicability/tests/predicate_algebra_contract.rs:125 | evaluate_with_norm_rule_and_facts_still_never_applicable | ln-applicability | private | A:silent B:o0/d1 C:- | keep:test-fixture |
+| DCA-096 | crates/ln-applicability/tests/predicate_algebra_hostile.rs:11 | empty_fact_set_does_not_panic_and_abstains | ln-applicability | private | A:silent B:o0/d1 C:- | keep:test-fixture |
+| DCA-097 | crates/ln-applicability/tests/predicate_algebra_hostile.rs:29 | invalid_fact_id_fails_closed | ln-applicability | private | A:silent B:o0/d1 C:- | keep:test-fixture |
+| DCA-098 | crates/ln-applicability/tests/predicate_algebra_hostile.rs:35 | missing_prerequisite_wins_before_algebra | ln-applicability | private | A:silent B:o0/d1 C:- | keep:test-fixture |
+| DCA-099 | crates/ln-applicability/tests/predicate_algebra_hostile.rs:71 | satisfied_algebra_cannot_mint_applicable | ln-applicability | private | A:silent B:o0/d1 C:- | keep:test-fixture |
+| DCA-100 | crates/ln-citation/src/adapters.rs:39 | with | ln-citation | pub | A:silent B:o260/d4 C:- | keep:port-contract-surface |
+| DCA-101 | crates/ln-citation/src/adapters.rs:46 | resolve | ln-citation | private | A:silent B:o95/d5 C:- | keep:port-contract-surface |
+| DCA-102 | crates/ln-citation/src/domain.rs:17 | parse_id | ln-citation | private | A:silent B:o24/d20 C:- | keep:lifecycle-bounded |
+| DCA-103 | crates/ln-citation/src/ports.rs:3 | resolve | ln-citation | private | A:silent B:o95/d5 C:- | keep:port-contract-surface |
+| DCA-104 | crates/ln-citation/tests/hc18_citation.rs:18 | official_source_resolved | ln-citation | private | A:silent B:o0/d1 C:- | keep:test-fixture |
+| DCA-105 | crates/ln-citation/tests/hc18_citation.rs:31 | missing_source_returns_missing | ln-citation | private | A:silent B:o0/d1 C:- | keep:test-fixture |
+| DCA-106 | crates/ln-citation/tests/hc18_citation.rs:39 | mirror_source_returns_invalid_not_authoritative | ln-citation | private | A:silent B:o0/d1 C:- | keep:test-fixture |
+| DCA-107 | crates/ln-citation/tests/hc18_citation.rs:51 | anchor_invention_rejected | ln-citation | private | A:silent B:o1/d1 C:- | keep:test-fixture |
+| DCA-108 | crates/ln-citation/tests/hc18_citation.rs:61 | mirror_relabel_rejected | ln-citation | private | A:silent B:o0/d1 C:- | keep:test-fixture |
+| DCA-109 | crates/ln-citation/tests/hc18_citation.rs:70 | policy_version_stable | ln-citation | private | A:silent B:o0/d3 C:- | keep:test-fixture |
+| DCA-110 | crates/ln-closure/src/adapters.rs:37 | rule_version | ln-closure | private | A:silent B:o29/d3 C:- | keep:port-contract-surface |
+| DCA-111 | crates/ln-closure/src/adapters.rs:52 | progress_count | ln-closure | private | A:silent B:o7/d3 C:- | keep:port-contract-surface |
+| DCA-112 | crates/ln-closure/src/adapters.rs:56 | queue_depth | ln-closure | private | A:silent B:o7/d3 C:- | keep:port-contract-surface |
+| DCA-113 | crates/ln-closure/src/adapters.rs:76 | rule_version | ln-closure | private | A:silent B:o29/d3 C:- | keep:port-contract-surface |
+| DCA-114 | crates/ln-closure/src/adapters.rs:80 | registered_nodes | ln-closure | private | A:silent B:o3/d3 C:- | keep:port-contract-surface |
+| DCA-115 | crates/ln-closure/src/adapters.rs:85 | dependencies_of | ln-closure | private | A:silent B:o6/d3 C:- | keep:port-contract-surface |
+| DCA-116 | crates/ln-closure/src/adapters.rs:90 | progress_count | ln-closure | private | A:silent B:o7/d3 C:- | keep:port-contract-surface |
+| DCA-117 | crates/ln-closure/src/adapters.rs:94 | queue_depth | ln-closure | private | A:silent B:o7/d3 C:- | keep:port-contract-surface |
+| DCA-118 | crates/ln-closure/src/domain.rs:19 | parse_id | ln-closure | private | A:silent B:o24/d20 C:- | keep:lifecycle-bounded |
+| DCA-119 | crates/ln-closure/src/domain.rs:108 | is_blocked | ln-closure | pub | A:silent B:o5/d1 C:- | keep:public-api |
+| DCA-120 | crates/ln-closure/src/domain.rs:185 | rejects_empty_node_id | ln-closure | private | A:silent B:o0/d1 C:- | keep:test-fixture |
+| DCA-121 | crates/ln-closure/src/domain.rs:190 | complete_is_only_complete_status | ln-closure | private | A:silent B:o0/d1 C:- | keep:test-fixture |
+| DCA-122 | crates/ln-closure/src/ports.rs:6 | rule_version | ln-closure | private | A:silent B:o29/d3 C:- | keep:port-contract-surface |
+| DCA-123 | crates/ln-closure/src/ports.rs:8 | registered_nodes | ln-closure | private | A:silent B:o3/d3 C:- | keep:port-contract-surface |
+| DCA-124 | crates/ln-closure/src/ports.rs:10 | dependencies_of | ln-closure | private | A:silent B:o6/d3 C:- | keep:port-contract-surface |
+| DCA-125 | crates/ln-closure/src/ports.rs:13 | progress_count | ln-closure | private | A:silent B:o7/d3 C:- | keep:port-contract-surface |
+| DCA-126 | crates/ln-closure/src/ports.rs:16 | queue_depth | ln-closure | private | A:silent B:o7/d3 C:- | keep:port-contract-surface |
+| DCA-127 | crates/ln-closure/tests/hc11_closure.rs:28 | fully_evidenced_bounded_set_is_complete_and_publication_eligible | ln-closure | private | A:silent B:o0/d1 C:- | keep:test-fixture |
+| DCA-128 | crates/ln-closure/tests/hc11_closure.rs:52 | missing_dependency_is_incomplete_and_blocks_publication | ln-closure | private | A:silent B:o0/d1 C:- | keep:test-fixture |
+| DCA-129 | crates/ln-closure/tests/hc11_closure.rs:73 | unknown_node_blocks_as_unknown | ln-closure | private | A:silent B:o0/d1 C:- | keep:test-fixture |
+| DCA-130 | crates/ln-closure/tests/hc11_closure.rs:92 | unbounded_fanout_blocks_publication | ln-closure | private | A:silent B:o0/d1 C:- | keep:test-fixture |
+| DCA-131 | crates/ln-closure/tests/hc11_closure.rs:117 | rule_version_mismatch_blocks_publication | ln-closure | private | A:silent B:o0/d1 C:- | keep:test-fixture |
+| DCA-132 | crates/ln-closure/tests/hc11_closure.rs:134 | progress_as_complete_claim_is_rejected | ln-closure | private | A:silent B:o0/d1 C:- | keep:test-fixture |
+| DCA-133 | crates/ln-closure/tests/hc11_hostile_closure.rs:27 | hostile_progress_cannot_force_complete_via_claim | ln-closure | private | A:silent B:o0/d1 C:- | keep:test-fixture |
+| DCA-134 | crates/ln-closure/tests/hc11_hostile_closure.rs:55 | hostile_invented_edges_for_unregistered_seed_cannot_force_complete | ln-closure | private | A:silent B:o0/d1 C:- | keep:test-fixture |
+| DCA-135 | crates/ln-closure/tests/hc11_hostile_closure.rs:76 | hostile_invented_empty_missing_target_still_incomplete | ln-closure | private | A:silent B:o0/d1 C:- | keep:test-fixture |
+| DCA-136 | crates/ln-closure/tests/hc11_hostile_closure.rs:98 | hostile_high_progress_does_not_become_completeness_on_honest_complete_path | ln-closure | private | A:silent B:o0/d1 C:- | keep:test-fixture |
+| DCA-137 | crates/ln-conformance/src/adapters.rs:27 | case_verdict | ln-conformance | private | A:silent B:o5/d3 C:- | keep:port-contract-surface |
+| DCA-138 | crates/ln-conformance/src/adapters.rs:49 | with | ln-conformance | pub | A:silent B:o260/d4 C:- | keep:port-contract-surface |
+| DCA-139 | crates/ln-conformance/src/adapters.rs:56 | case_verdict | ln-conformance | private | A:silent B:o5/d3 C:- | keep:port-contract-surface |
+| DCA-140 | crates/ln-conformance/src/adapters.rs:61 | all_case_ids | ln-conformance | private | A:silent B:o3/d3 C:- | keep:port-contract-surface |
+| DCA-141 | crates/ln-conformance/src/ports.rs:3 | case_verdict | ln-conformance | private | A:silent B:o5/d3 C:- | keep:port-contract-surface |
+| DCA-142 | crates/ln-conformance/src/ports.rs:4 | all_case_ids | ln-conformance | private | A:silent B:o3/d3 C:- | keep:port-contract-surface |
+| DCA-143 | crates/ln-conformance/tests/hc20_conformance.rs:5 | all_pass_yields_overall_pass | ln-conformance | private | A:silent B:o0/d1 C:- | keep:test-fixture |
+| DCA-144 | crates/ln-conformance/tests/hc20_conformance.rs:16 | mixed_verdicts_yield_unsupported | ln-conformance | private | A:silent B:o0/d1 C:- | keep:test-fixture |
+| DCA-145 | crates/ln-conformance/tests/hc20_conformance.rs:28 | fail_makes_overall_fail | ln-conformance | private | A:silent B:o0/d1 C:- | keep:test-fixture |
+| DCA-146 | crates/ln-conformance/tests/hc20_conformance.rs:38 | hostile_inflator_cannot_trick_app_logic | ln-conformance | private | A:silent B:o0/d1 C:- | keep:test-fixture |
+| DCA-147 | crates/ln-conformance/tests/hc20_conformance.rs:52 | policy_version_stable | ln-conformance | private | A:silent B:o0/d3 C:- | keep:test-fixture |
+| DCA-148 | crates/ln-consultant-parser/src/catalog.rs:37 | operation | ln-consultant-parser | pub | A:silent B:o305/d2 C:- | keep:public-api |
+| DCA-149 | crates/ln-consultant-parser/src/catalog.rs:41 | detail | ln-consultant-parser | pub | A:silent B:o19/d1 C:- | keep:public-api |
+| DCA-150 | crates/ln-consultant-parser/src/catalog.rs:106 | lookup | ln-consultant-parser | private | A:silent B:o32/d8 C:- | keep:lifecycle-bounded |
+| DCA-151 | crates/ln-consultant-parser/src/catalog_sqlite.rs:44 | is_read_only | ln-consultant-parser | pub | A:silent B:o2/d1 C:- | keep:public-api |
+| DCA-152 | crates/ln-consultant-parser/src/classifier.rs:286 | sibling_sections_do_not_leak_into_link_classifiers | ln-consultant-parser | private | A:silent B:o0/d1 C:- | keep:test-fixture |
+| DCA-153 | crates/ln-consultant-parser/src/classifier.rs:295 | sibling_sections_do_not_leak_into_templates | ln-consultant-parser | private | A:silent B:o0/d1 C:- | keep:test-fixture |
+| DCA-154 | crates/ln-consultant-parser/src/document_profile.rs:176 | sibling_section_at_same_indent_is_not_consumed | ln-consultant-parser | private | A:silent B:o0/d1 C:- | keep:test-fixture |
+| DCA-155 | crates/ln-consultant-parser/src/document_profile.rs:185 | missing_section_returns_empty | ln-consultant-parser | private | A:silent B:o0/d1 C:- | keep:test-fixture |
+| DCA-156 | crates/ln-consultant-parser/src/raw_link.rs:16 | is_internal | ln-consultant-parser | pub | A:silent B:o3/d1 C:- | keep:public-api |
+| DCA-157 | crates/ln-consultant-parser/src/raw_link.rs:21 | is_external | ln-consultant-parser | pub | A:silent B:o2/d1 C:- | keep:public-api |
+| DCA-158 | crates/ln-consultant-parser/src/raw_link.rs:26 | consid | ln-consultant-parser | pub | A:silent B:o38/d1 C:- | keep:public-api |
+| DCA-159 | crates/ln-consultant-parser/tests/c1_484_evidence_battery.rs:77 | parser_hop_pinned_canon_yields_statya_93_hyperlink | ln-consultant-parser | private | A:silent B:o0/d1 C:- | keep:test-fixture |
+| DCA-160 | crates/ln-consultant-parser/tests/c1_484_evidence_battery.rs:139 | constructor_hop_484_amends_44fz_statya_93 | ln-consultant-parser | private | A:silent B:o0/d1 C:- | keep:test-fixture |
+| DCA-161 | crates/ln-consultant-parser/tests/c1_484_evidence_battery.rs:173 | timeline_hop_empty_timeline_resolves_unknown_not_in_force | ln-consultant-parser | private | A:silent B:o0/d1 C:- | keep:test-fixture |
+| DCA-162 | crates/ln-consultant-parser/tests/c1_484_evidence_battery.rs:183 | timeline_hop_unknown_is_rejected_as_transition_status | ln-consultant-parser | private | A:silent B:o0/d1 C:- | keep:test-fixture |
+| DCA-163 | crates/ln-consultant-parser/tests/c1_484_evidence_battery.rs:197 | pitfall_guard_derive_edges_on_c1_source_inverts_amends_edge | ln-consultant-parser | private | A:silent B:o0/d1 C:- | keep:test-fixture |
+| DCA-164 | crates/ln-consultant-parser/tests/catalog_sqlite_test.rs:40 | path | ln-consultant-parser | private | A:silent B:o990/d7 C:- | keep:test-fixture |
+| DCA-165 | crates/ln-consultant-parser/tests/catalog_sqlite_test.rs:148 | sqlite_and_in_memory_share_found_missing_and_latest_contract | ln-consultant-parser | private | A:silent B:o0/d1 C:- | keep:test-fixture |
+| DCA-166 | crates/ln-consultant-parser/tests/catalog_sqlite_test.rs:174 | latest_edition_uses_edition_number_then_revision_then_id | ln-consultant-parser | private | A:silent B:o0/d1 C:- | keep:test-fixture |
+| DCA-167 | crates/ln-consultant-parser/tests/catalog_sqlite_test.rs:211 | null_edition_rank_falls_back_to_text_edition_id | ln-consultant-parser | private | A:silent B:o0/d1 C:- | keep:test-fixture |
+| DCA-168 | crates/ln-consultant-parser/tests/catalog_sqlite_test.rs:249 | missing_file_open_fails | ln-consultant-parser | private | A:silent B:o0/d1 C:- | keep:test-fixture |
+| DCA-169 | crates/ln-consultant-parser/tests/catalog_sqlite_test.rs:257 | invalid_database_open_or_query_fails | ln-consultant-parser | private | A:silent B:o0/d1 C:- | keep:test-fixture |
+| DCA-170 | crates/ln-consultant-parser/tests/catalog_sqlite_test.rs:276 | malformed_schema_lookup_fails | ln-consultant-parser | private | A:silent B:o0/d1 C:- | keep:test-fixture |
+| DCA-171 | crates/ln-consultant-parser/tests/catalog_sqlite_test.rs:292 | locator_without_document_is_decode_failure | ln-consultant-parser | private | A:silent B:o0/d1 C:- | keep:test-fixture |
+| DCA-172 | crates/ln-consultant-parser/tests/catalog_sqlite_test.rs:312 | adapter_connection_reports_read_only | ln-consultant-parser | private | A:silent B:o0/d1 C:- | keep:test-fixture |
+| DCA-173 | crates/ln-consultant-parser/tests/catalog_test.rs:8 | in_memory_catalog_lookup | ln-consultant-parser | private | A:silent B:o0/d1 C:- | keep:test-fixture |
+| DCA-174 | crates/ln-consultant-parser/tests/catalog_test.rs:25 | unknown_consid_returns_none | ln-consultant-parser | private | A:silent B:o0/d1 C:- | keep:test-fixture |
+| DCA-175 | crates/ln-consultant-parser/tests/catalog_test.rs:34 | resolve_mixed_consids | ln-consultant-parser | private | A:silent B:o0/d1 C:- | keep:test-fixture |
+| DCA-176 | crates/ln-consultant-parser/tests/catalog_test.rs:49 | coverage_summary_counts | ln-consultant-parser | private | A:silent B:o0/d1 C:- | keep:test-fixture |
+| DCA-177 | crates/ln-consultant-parser/tests/catalog_test.rs:68 | in_memory_shared_contract_found_missing_and_latest | ln-consultant-parser | private | A:silent B:o0/d1 C:- | keep:test-fixture |
+| DCA-178 | crates/ln-consultant-parser/tests/catalog_test.rs:88 | resolve_consids_propagates_adapter_failure | ln-consultant-parser | private | A:silent B:o0/d1 C:- | keep:test-fixture |
+| DCA-179 | crates/ln-consultant-parser/tests/catalog_test.rs:92 | lookup | ln-consultant-parser | private | A:silent B:o32/d8 C:- | keep:test-fixture |
+| DCA-180 | crates/ln-consultant-parser/tests/catalog_test.rs:104 | catalog_error_is_bounded_and_displayable | ln-consultant-parser | private | A:silent B:o0/d1 C:- | keep:test-fixture |
+| DCA-181 | crates/ln-consultant-parser/tests/classifier_recall_test.rs:97 | classifier_recall_on_real_amends_golden_set | ln-consultant-parser | private | A:silent B:o0/d1 C:- | keep:test-fixture |
+| DCA-182 | crates/ln-consultant-parser/tests/classifier_test.rs:15 | amendment_context_classified_as_amends | ln-consultant-parser | private | A:silent B:o0/d1 C:- | keep:test-fixture |
+| DCA-183 | crates/ln-consultant-parser/tests/classifier_test.rs:29 | citation_context_classified_as_cites | ln-consultant-parser | private | A:silent B:o0/d1 C:- | keep:test-fixture |
+| DCA-184 | crates/ln-consultant-parser/tests/classifier_test.rs:41 | implements_context_classified | ln-consultant-parser | private | A:silent B:o0/d1 C:- | keep:test-fixture |
+| DCA-185 | crates/ln-consultant-parser/tests/classifier_test.rs:53 | unknown_context_low_confidence | ln-consultant-parser | private | A:silent B:o0/d1 C:- | keep:test-fixture |
+| DCA-186 | crates/ln-consultant-parser/tests/classifier_test.rs:66 | classify_multiple_links | ln-consultant-parser | private | A:silent B:o0/d1 C:- | keep:test-fixture |
+| DCA-187 | crates/ln-consultant-parser/tests/classifier_test.rs:80 | real_44fz_classification_distribution | ln-consultant-parser | private | A:silent B:o0/d1 C:- | keep:test-fixture |
+| DCA-188 | crates/ln-consultant-parser/tests/document_profile_test.rs:5 | profiles_loaded_from_yaml | ln-consultant-parser | private | A:silent B:o0/d1 C:- | keep:test-fixture |
+| DCA-189 | crates/ln-consultant-parser/tests/document_profile_test.rs:14 | federal_law_detected | ln-consultant-parser | private | A:silent B:o0/d1 C:- | keep:test-fixture |
+| DCA-190 | crates/ln-consultant-parser/tests/document_profile_test.rs:25 | government_resolution_detected | ln-consultant-parser | private | A:silent B:o0/d1 C:- | keep:test-fixture |
+| DCA-191 | crates/ln-consultant-parser/tests/document_profile_test.rs:36 | government_directive_detected | ln-consultant-parser | private | A:silent B:o0/d1 C:- | keep:test-fixture |
+| DCA-192 | crates/ln-consultant-parser/tests/document_profile_test.rs:51 | departmental_act_detected | ln-consultant-parser | private | A:silent B:o0/d1 C:- | keep:test-fixture |
+| DCA-193 | crates/ln-consultant-parser/tests/document_profile_test.rs:62 | court_decision_detected | ln-consultant-parser | private | A:silent B:o0/d1 C:- | keep:test-fixture |
+| DCA-194 | crates/ln-consultant-parser/tests/document_profile_test.rs:73 | default_when_no_match | ln-consultant-parser | private | A:silent B:o0/d1 C:- | keep:test-fixture |
+| DCA-195 | crates/ln-consultant-parser/tests/document_profile_test.rs:81 | boost_applied | ln-consultant-parser | private | A:silent B:o0/d1 C:- | keep:test-fixture |
+| DCA-196 | crates/ln-consultant-parser/tests/document_profile_test.rs:89 | sibling_classifier_templates_do_not_leak_into_profiles | ln-consultant-parser | private | A:silent B:o0/d1 C:- | keep:test-fixture |
+| DCA-197 | crates/ln-consultant-parser/tests/edge_deriver_test.rs:4 | cl | ln-consultant-parser | private | A:silent B:o15/d2 C:- | keep:test-fixture |
+| DCA-198 | crates/ln-consultant-parser/tests/edge_deriver_test.rs:17 | amends_edge_direction_reversed | ln-consultant-parser | private | A:silent B:o0/d1 C:- | keep:test-fixture |
+| DCA-199 | crates/ln-consultant-parser/tests/edge_deriver_test.rs:36 | cites_edge_direction_forward | ln-consultant-parser | private | A:silent B:o0/d1 C:- | keep:test-fixture |
+| DCA-200 | crates/ln-consultant-parser/tests/edge_deriver_test.rs:51 | unknown_links_skipped | ln-consultant-parser | private | A:silent B:o0/d1 C:- | keep:test-fixture |
+| DCA-201 | crates/ln-consultant-parser/tests/edge_deriver_test.rs:62 | real_44fz_edge_derivation | ln-consultant-parser | private | A:silent B:o0/d1 C:- | keep:test-fixture |
+| DCA-202 | crates/ln-consultant-parser/tests/hyperlink_test.rs:23 | extracts_single_internal_link | ln-consultant-parser | private | A:silent B:o0/d1 C:- | keep:test-fixture |
+| DCA-203 | crates/ln-consultant-parser/tests/hyperlink_test.rs:37 | extracts_multiple_links_in_sequence | ln-consultant-parser | private | A:silent B:o0/d1 C:- | keep:test-fixture |
+| DCA-204 | crates/ln-consultant-parser/tests/hyperlink_test.rs:52 | extracts_external_link | ln-consultant-parser | private | A:silent B:o0/d1 C:- | keep:test-fixture |
+| DCA-205 | crates/ln-consultant-parser/tests/hyperlink_test.rs:61 | empty_xml_returns_empty | ln-consultant-parser | private | A:silent B:o0/d1 C:- | keep:test-fixture |
+| DCA-206 | crates/ln-consultant-parser/tests/hyperlink_test.rs:67 | link_with_multiple_text_runs | ln-consultant-parser | private | A:silent B:o0/d1 C:- | keep:test-fixture |
+| DCA-207 | crates/ln-consultant-parser/tests/hyperlink_test.rs:82 | real_44fz_hyperlinks | ln-consultant-parser | private | A:silent B:o0/d1 C:- | keep:test-fixture |
+| DCA-208 | crates/ln-consultant-parser/tests/multi_edition_test.rs:28 | parse_filename_extracts_number_and_date | ln-consultant-parser | private | A:silent B:o0/d1 C:- | keep:test-fixture |
+| DCA-209 | crates/ln-consultant-parser/tests/multi_edition_test.rs:37 | parse_filename_initial | ln-consultant-parser | private | A:silent B:o0/d1 C:- | keep:test-fixture |
+| DCA-210 | crates/ln-consultant-parser/tests/multi_edition_test.rs:45 | real_44fz_first_vs_last_edition | ln-consultant-parser | private | A:silent B:o0/d1 C:- | keep:test-fixture |
+| DCA-211 | crates/ln-consultant-parser/tests/multi_edition_test.rs:110 | process_edition_wrapper_uses_default_profile_path | ln-consultant-parser | private | A:silent B:o0/d1 C:- | keep:test-fixture |
+| DCA-212 | crates/ln-consultant-parser/tests/multi_edition_test.rs:121 | process_edition_for_path_classifies_federal_law_source | ln-consultant-parser | private | A:silent B:o0/d1 C:- | keep:test-fixture |
+| DCA-213 | crates/ln-consultant-parser/tests/multi_edition_test.rs:136 | process_editions_directory_passes_source_path | ln-consultant-parser | private | A:silent B:o0/d1 C:- | keep:test-fixture |
+| DCA-214 | crates/ln-consultant-parser/tests/observation_test.rs:7 | cl | ln-consultant-parser | private | A:silent B:o15/d2 C:- | keep:test-fixture |
+| DCA-215 | crates/ln-consultant-parser/tests/observation_test.rs:18 | unknown_links_collected | ln-consultant-parser | private | A:silent B:o0/d1 C:- | keep:test-fixture |
+| DCA-216 | crates/ln-consultant-parser/tests/observation_test.rs:32 | known_links_not_collected | ln-consultant-parser | private | A:silent B:o0/d1 C:- | keep:test-fixture |
+| DCA-217 | crates/ln-consultant-parser/tests/observation_test.rs:39 | sorted_by_frequency | ln-consultant-parser | private | A:silent B:o0/d1 C:- | keep:test-fixture |
+| DCA-218 | crates/ln-consultant-parser/tests/observation_test.rs:53 | yaml_output_contains_observations | ln-consultant-parser | private | A:silent B:o0/d1 C:- | keep:test-fixture |
+| DCA-219 | crates/ln-consultant-parser/tests/observation_test.rs:63 | real_44fz_observations | ln-consultant-parser | private | A:silent B:o0/d1 C:- | keep:test-fixture |
+| DCA-220 | crates/ln-consultant-parser/tests/scoring_test.rs:16 | and_mode_requires_all_needles | ln-consultant-parser | private | A:silent B:o0/d1 C:- | keep:test-fixture |
+| DCA-221 | crates/ln-consultant-parser/tests/scoring_test.rs:33 | or_mode_proportional_score | ln-consultant-parser | private | A:silent B:o0/d1 C:- | keep:test-fixture |
+| DCA-222 | crates/ln-consultant-parser/tests/scoring_test.rs:57 | best_score_wins | ln-consultant-parser | private | A:silent B:o0/d1 C:- | keep:test-fixture |
+| DCA-223 | crates/ln-consultant-parser/tests/scoring_test.rs:83 | templates_loaded_from_yaml | ln-consultant-parser | private | A:silent B:o0/d1 C:- | keep:test-fixture |
+| DCA-224 | crates/ln-consultant-parser/tests/scoring_test.rs:107 | real_44fz_scored_vs_single | ln-consultant-parser | private | A:silent B:o0/d1 C:- | keep:test-fixture |
+| DCA-225 | crates/ln-consultant-parser/tests/scoring_test.rs:142 | compatibility_wrapper_matches_empty_path_kinds | ln-consultant-parser | private | A:silent B:o0/d1 C:- | keep:test-fixture |
+| DCA-226 | crates/ln-consultant-parser/tests/scoring_test.rs:162 | path_aware_federal_law_boosts_winning_confidence_only | ln-consultant-parser | private | A:silent B:o0/d1 C:- | keep:test-fixture |
+| DCA-227 | crates/ln-consultant-parser/tests/scoring_test.rs:184 | tie_order_follows_yaml_even_after_profile_boost | ln-consultant-parser | private | A:silent B:o0/d1 C:- | keep:test-fixture |
+| DCA-228 | crates/ln-consultant-parser/tests/scoring_test.rs:212 | morph_variant_classifies_v_redaktsii_as_amends | ln-consultant-parser | private | A:silent B:o0/d1 C:- | keep:test-fixture |
+| DCA-229 | crates/ln-consultant-parser/tests/scoring_test.rs:228 | hostile_substring_noise_stays_unknown | ln-consultant-parser | private | A:silent B:o0/d1 C:- | keep:test-fixture |
+| DCA-230 | crates/ln-consultant-parser/tests/temporal_graph_test.rs:12 | full_44fz_temporal_evolution | ln-consultant-parser | private | A:silent B:o0/d1 C:- | keep:test-fixture |
+| DCA-231 | crates/ln-consultant-parser/tests/tracked_pipeline_test.rs:89 | tracked_435fz_pipeline_is_deterministic_and_bounded | ln-consultant-parser | private | A:silent B:o0/d1 C:- | keep:test-fixture |
+| DCA-232 | crates/ln-consultant-parser/tests/tracked_pipeline_test.rs:263 | malformed_consultant_wordml_fails_atomically_in_decode | ln-consultant-parser | private | A:silent B:o0/d1 C:- | keep:test-fixture |
+| DCA-233 | crates/ln-decode/src/adapters.rs:363 | decode | ln-decode | private | A:silent B:o169/d6 C:- | keep:port-contract-surface |
+| DCA-234 | crates/ln-decode/src/adapters.rs:383 | decode | ln-decode | private | A:silent B:o169/d6 C:- | keep:port-contract-surface |
+| DCA-235 | crates/ln-decode/src/adapters.rs:425 | record | ln-decode | private | A:silent B:o252/d3 C:- | keep:port-contract-surface |
+| DCA-236 | crates/ln-decode/src/adapters.rs:428 | events | ln-decode | private | A:silent B:o278/d10 C:- | keep:port-contract-surface |
+| DCA-237 | crates/ln-decode/src/adapters.rs:439 | parses_basic_wordml_with_namespaces | ln-decode | private | A:silent B:o0/d1 C:- | keep:port-contract-surface |
+| DCA-238 | crates/ln-decode/src/adapters.rs:462 | skips_non_structural_styles | ln-decode | private | A:silent B:o0/d1 C:- | keep:port-contract-surface |
+| DCA-239 | crates/ln-decode/src/adapters.rs:478 | handles_empty_document | ln-decode | private | A:silent B:o0/d1 C:- | keep:port-contract-surface |
+| DCA-240 | crates/ln-decode/src/adapters.rs:491 | skips_bindata_base64_blobs | ln-decode | private | A:silent B:o0/d1 C:- | keep:port-contract-surface |
+| DCA-241 | crates/ln-decode/src/adapters.rs:507 | style_classification | ln-decode | private | A:silent B:o0/d1 C:- | keep:port-contract-surface |
+| DCA-242 | crates/ln-decode/src/adapters.rs:516 | handles_multiple_text_runs_in_single_paragraph | ln-decode | private | A:silent B:o0/d1 C:- | keep:port-contract-surface |
+| DCA-243 | crates/ln-decode/src/adapters/garant_odt_package.rs:22 | bytes | ln-decode | pub | A:silent B:o320/d1 C:- | keep:port-contract-surface |
+| DCA-244 | crates/ln-decode/src/adapters/garant_odt_package.rs:26 | entry_count | ln-decode | pub | A:silent B:o8/d1 C:- | keep:port-contract-surface |
+| DCA-245 | crates/ln-decode/src/application.rs:43 | execute | ln-decode | pub | A:silent B:o50/d7 C:- | keep:public-api |
+| DCA-246 | crates/ln-decode/src/application.rs:106 | diagnostics | ln-decode | pub | A:silent B:o55/d1 C:- | keep:public-api |
+| DCA-247 | crates/ln-decode/src/article_body.rs:21 | level | ln-decode | pub | A:silent B:o338/d4 C:- | keep:public-api |
+| DCA-248 | crates/ln-decode/src/article_body.rs:25 | number | ln-decode | pub | A:silent B:o328/d6 C:- | keep:public-api |
+| DCA-249 | crates/ln-decode/src/article_body.rs:29 | title | ln-decode | pub | A:silent B:o133/d4 C:- | keep:public-api |
+| DCA-250 | crates/ln-decode/src/article_body.rs:35 | body | ln-decode | pub | A:silent B:o226/d1 C:- | keep:public-api |
+| DCA-251 | crates/ln-decode/src/article_body.rs:94 | number | ln-decode | pub | A:silent B:o328/d6 C:- | keep:public-api |
+| DCA-252 | crates/ln-decode/src/article_body.rs:98 | title | ln-decode | pub | A:silent B:o133/d4 C:- | keep:public-api |
+| DCA-253 | crates/ln-decode/src/article_body.rs:104 | text | ln-decode | pub | A:silent B:o1000/d5 C:- | keep:public-api |
+| DCA-254 | crates/ln-decode/src/deontic.rs:22 | kind | ln-decode | pub | A:silent B:o805/d14 C:- | keep:public-api |
+| DCA-255 | crates/ln-decode/src/deontic.rs:26 | text_span | ln-decode | pub | A:silent B:o42/d5 C:- | keep:public-api |
+| DCA-256 | crates/ln-decode/src/deontic.rs:33 | negated | ln-decode | pub | A:silent B:o32/d2 C:- | keep:public-api |
+| DCA-257 | crates/ln-decode/src/domain.rs:19 | parse_id | ln-decode | private | A:silent B:o24/d20 C:- | keep:lifecycle-bounded |
+| DCA-258 | crates/ln-decode/src/domain.rs:81 | is_structural | ln-decode | pub | A:silent B:o11/d2 C:- | keep:public-api |
+| DCA-259 | crates/ln-decode/src/domain.rs:240 | phase | ln-decode | pub | A:silent B:o106/d1 C:- | keep:public-api |
+| DCA-260 | crates/ln-decode/src/domain.rs:244 | kind | ln-decode | pub | A:silent B:o805/d14 C:- | keep:public-api |
+| DCA-261 | crates/ln-decode/src/domain.rs:248 | byte_offset | ln-decode | pub | A:silent B:o42/d1 C:- | keep:public-api |
+| DCA-262 | crates/ln-decode/src/domain.rs:273 | try_new | ln-decode | pub | A:silent B:o340/d30 C:- | keep:public-api |
+| DCA-263 | crates/ln-decode/src/domain.rs:280 | start | ln-decode | pub | A:silent B:o297/d4 C:- | keep:public-api |
+| DCA-264 | crates/ln-decode/src/domain.rs:284 | end | ln-decode | pub | A:silent B:o204/d4 C:- | keep:public-api |
+| DCA-265 | crates/ln-decode/src/domain.rs:309 | stream | ln-decode | pub | A:silent B:o27/d1 C:- | keep:public-api |
+| DCA-266 | crates/ln-decode/src/domain.rs:313 | span | ln-decode | pub | A:silent B:o136/d5 C:- | keep:public-api |
+| DCA-267 | crates/ln-decode/src/domain.rs:330 | try_new | ln-decode | pub | A:silent B:o340/d30 C:- | keep:public-api |
+| DCA-268 | crates/ln-decode/src/domain.rs:337 | start | ln-decode | pub | A:silent B:o297/d4 C:- | keep:public-api |
+| DCA-269 | crates/ln-decode/src/domain.rs:341 | end | ln-decode | pub | A:silent B:o204/d4 C:- | keep:public-api |
+| DCA-270 | crates/ln-decode/src/domain.rs:384 | try_new | ln-decode | pub | A:silent B:o340/d30 C:- | keep:public-api |
+| DCA-271 | crates/ln-decode/src/domain.rs:409 | text | ln-decode | pub | A:silent B:o1000/d5 C:- | keep:public-api |
+| DCA-272 | crates/ln-decode/src/domain.rs:413 | provider_style_id | ln-decode | pub | A:silent B:o23/d1 C:- | keep:public-api |
+| DCA-273 | crates/ln-decode/src/domain.rs:417 | style | ln-decode | pub | A:silent B:o122/d1 C:- | keep:public-api |
+| DCA-274 | crates/ln-decode/src/domain.rs:421 | source_location | ln-decode | pub | A:silent B:o34/d1 C:- | keep:public-api |
+| DCA-275 | crates/ln-decode/src/domain.rs:425 | source_format | ln-decode | pub | A:silent B:o9/d1 C:- | keep:public-api |
+| DCA-276 | crates/ln-decode/src/domain.rs:487 | try_new | ln-decode | pub | A:silent B:o340/d30 C:- | keep:public-api |
+| DCA-277 | crates/ln-decode/src/domain.rs:515 | level | ln-decode | pub | A:silent B:o338/d4 C:- | keep:public-api |
+| DCA-278 | crates/ln-decode/src/domain.rs:519 | number | ln-decode | pub | A:silent B:o328/d6 C:- | keep:public-api |
+| DCA-279 | crates/ln-decode/src/domain.rs:523 | title | ln-decode | pub | A:silent B:o133/d4 C:- | keep:public-api |
+| DCA-280 | crates/ln-decode/src/domain.rs:527 | text | ln-decode | pub | A:silent B:o1000/d5 C:- | keep:public-api |
+| DCA-281 | crates/ln-decode/src/domain.rs:531 | marker_span | ln-decode | pub | A:silent B:o17/d1 C:- | keep:public-api |
+| DCA-282 | crates/ln-decode/src/domain.rs:551 | rejects_empty_payload_ref | ln-decode | private | A:silent B:o0/d1 C:- | keep:test-fixture |
+| DCA-283 | crates/ln-decode/src/domain.rs:556 | structural_category_is_only_accepted_kind | ln-decode | private | A:silent B:o0/d1 C:- | keep:test-fixture |
+| DCA-284 | crates/ln-decode/src/evaluator.rs:61 | layer | ln-decode | pub | A:silent B:o44/d2 C:- | keep:public-api |
+| DCA-285 | crates/ln-decode/src/evaluator.rs:65 | true_positives | ln-decode | pub | A:silent B:o14/d1 C:- | keep:public-api |
+| DCA-286 | crates/ln-decode/src/evaluator.rs:69 | false_positives | ln-decode | pub | A:silent B:o20/d1 C:- | keep:public-api |
+| DCA-287 | crates/ln-decode/src/evaluator.rs:73 | false_negatives | ln-decode | pub | A:silent B:o13/d1 C:- | keep:public-api |
+| DCA-288 | crates/ln-decode/src/evaluator.rs:77 | precision | ln-decode | pub | A:silent B:o23/d1 C:- | keep:public-api |
+| DCA-289 | crates/ln-decode/src/evaluator.rs:81 | recall | ln-decode | pub | A:silent B:o19/d1 C:- | keep:public-api |
+| DCA-290 | crates/ln-decode/src/evaluator.rs:85 | f1 | ln-decode | pub | A:silent B:o9/d1 C:- | keep:public-api |
+| DCA-291 | crates/ln-decode/src/golden.rs:89 | block_index | ln-decode | pub | A:silent B:o40/d1 C:- | keep:public-api |
+| DCA-292 | crates/ln-decode/src/golden.rs:98 | span | ln-decode | pub | A:silent B:o136/d5 C:- | keep:public-api |
+| DCA-293 | crates/ln-decode/src/golden.rs:146 | try_new | ln-decode | pub | A:silent B:o340/d30 C:- | keep:public-api |
+| DCA-294 | crates/ln-decode/src/golden.rs:172 | path | ln-decode | pub | A:silent B:o990/d7 C:- | keep:public-api |
+| DCA-295 | crates/ln-decode/src/golden.rs:176 | sha256 | ln-decode | pub | A:silent B:o30/d1 C:- | keep:public-api |
+| DCA-296 | crates/ln-decode/src/golden.rs:180 | byte_count | ln-decode | pub | A:silent B:o23/d2 C:- | keep:public-api |
+| DCA-297 | crates/ln-decode/src/golden.rs:184 | runtime_fingerprint | ln-decode | pub | A:silent B:o5/d1 C:- | keep:public-api |
+| DCA-298 | crates/ln-decode/src/golden.rs:199 | try_new | ln-decode | pub | A:silent B:o340/d30 C:- | keep:public-api |
+| DCA-299 | crates/ln-decode/src/golden.rs:234 | source | ln-decode | pub | A:silent B:o323/d8 C:- | keep:public-api |
+| DCA-300 | crates/ln-decode/src/golden.rs:238 | provider | ln-decode | pub | A:silent B:o34/d1 C:- | keep:public-api |
 
 *(Export capped at 300 of 1,811 filtered rows; the remainder is regenerable with the same query minus the cap and is deliberately not transcribed.)*
+
+## Corroboration channels
+
+T02 corroborated every DCA row across the three named channels (R038: no single-channel proof). Machine record: `.gsd/exec/m195-s03-t02-census.json` (bookkeeping; this tracked register is the durable distilled copy). Row-cell legend — `A:silent|flagged`: rustc dead_code verdict; `B:o{n}/d{m}`: non-definition vs definition hits of the symbol over `crates/` + `src/` only (vault directories never searched); `C:-`: graph spot check not decision-relevant for the row. Each row's final cell carries its keep-reason class or `remove-candidate`.
+
+- **Channel A — compiler.** `cargo check --workspace --offline` (advisory capture, no `-D warnings`): **zero** `never used|never constructed|never read` warnings workspace-wide. Verified this is not a cache artifact: after mtime invalidation, a forced recompile of `ln-accelerate` (`cargo clean -p` + check, "Checking" line observed) still reported zero warnings, and no suppressive configuration exists (no `[lints]`/`rustflags`/`#![allow(dead_code)]` found in workspace manifests). Consequence: private pool rows are trait-impl methods or `#[cfg(test)]` code — invisible to a non-test check — and `pub` rows are invisible to rustc in lib crates by construction. Tier-0 criterion 2 is therefore unsatisfiable via rustc for every private row; no private row enters removal.
+- **Channel B — occurrences.** Per-symbol `rg -w -F` over `crates/` + `src/`, definition lines separated by `(fn|struct|enum|trait|mod|type|const|static|macro_rules!)` shape. Controls: positive control `try_new` → 370 hits (the channel does detect usage); negative control (absent symbol) → 0 hits. Definition sanity: all 300 rows have a definition line of their symbol inside the registered file (0 failures; every registered anchor is accurate within ≤1 line). Doc/process channels (`scripts/verify-adr-conformance.py`, `scripts/verify-architecture-graph.py`, `src/law_nexus_harness/`, verification-matrix text) were queried for every row that could otherwise have been removed — zero hits; the `doc-referenced`/process-gated keep class is unused this pass.
+- **Inline `#[test]` reclass (T01 known false-positive class).** 11 `src/` rows with zero rg hits are `#[test]`-attributed functions inside `#[cfg(test)]` modules (DCA-007, 021, 022, 120, 121, 152, 153, 154, 155, 282, 283): invoked by attribute, not compiled by a plain `cargo check`, hence rustc-silent and rg-zero by construction. Classed `test-fixture`, not `lifecycle-bounded`.
+- **Channel C — graph.** `gitnexus_impact` upstream (repo `law-nexus`). No row reached proposed-REMOVE status, so the remove-sample is empty by construction; the two generic-looking borderline-keep names were spot-checked instead: `parse_id` → `ambiguous` (20 graph candidates, each `impactedCount: 0`, risk LOW — the graph confirms zero inbound per twin while Channel B shows 24 call-site hits workspace-wide: the single-graph-channel dead verdict would have been false, exactly the R038 case), `lookup` → `ambiguous` (9 candidates, max 7 impacted at risk LOW — load-bearing). Ambiguous/UNKNOWN graph results are fail-closed: they keep, never delete. No HIGH/CRITICAL impact surfaced.
+- **Fail-closed rule.** A row is `remove-candidate` only if all six Tier-0 criteria hold against the fresh index with the channels agreeing; any silence, ambiguity, or cache doubt resolves to `keep` with the recorded class.
+
+Result: **remove-candidates = 0** (empty set — a valid closure for this slice). Class tally: `test-fixture` 160 (149 `tests/` rows + 11 inline `#[test]`), `port-contract-surface` 51, `public-api` 83, `lifecycle-bounded` 6 (`parse_id` ×5, `lookup` ×1 — alive per Channel B call-site evidence despite graph zero-inbound).
+
+## Proposed removals
+
+*(Empty set — no row met all six Tier-0 criteria: every private row fails criterion 2 (rustc silent; trait-impl or `cfg(test)` code), and every `pub` row has non-definition rg hits or sits on a hard-KEEP surface (ports/adapters, tests). Nothing is queued for T03 removal; T03 records the empty-set closure.)*
+
 
 ## Reuse candidates
 
