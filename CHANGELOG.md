@@ -85,6 +85,10 @@
   verdict, WALK/CST glossary rows — no term, ownership or lifecycle change).
 - Governor: `status: ok / pass 67 / warn 0 / errors 0` (was
   `failure / 64 pass / 3 errors`).
+- Roadmap projection re-synced to M195-mdvctn after its completion
+  (current_milestone = latest completed; M192-M195 band extended;
+  recommended_next → D313 wave + owner items): governor
+  `ok / 68 pass / 0 errors` with the two new checks live.
 
 ### M194-p7aqjv (human gate resolved: G2 references corpus selected, P2 Mention/Binding resolver deferred)
 
