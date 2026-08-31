@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import hashlib
 import json
-from datetime import date
+from datetime import UTC, date, datetime, timedelta
 from pathlib import Path
 
 from law_nexus_harness.cli import main
@@ -36,6 +36,7 @@ from law_nexus_harness.governor import (
     check_historical_test_debt_visibility,
     check_hostile_negative_suite_coverage,
     check_hostile_proof_chain,
+    check_journal_retry_loops,
     check_model_crystal_anchors,
     check_port_contract_coverage,
     check_published_trace_contract,
@@ -4009,3 +4010,185 @@ def test_model_crystal_anchors_empty_quote_remediation_names_catalogued_sources(
     assert "catalogued source" in remediation
     assert "G0 ADR amendments" in remediation
     assert "from review-25 (grounding contract)" not in remediation
+
+
+# --- journal-retry-loops (M195-mdvctn S01 T01) -------------------------------
+
+_JOURNAL_WEDGE_RAW_REASON = (
+    "Blocked: liveness backstop tripped: finalize-retry recurred 2x with "
+    "unchanged inputs for execute-task M195-mdvctn/S01/T01 (wedge W-abc12345)"
+)
+
+
+def _journal_event(ts: str, event_type: str, data: dict) -> dict:
+    return {
+        "ts": ts,
+        "flowId": "flow-test",
+        "seq": 1,
+        "eventType": event_type,
+        "data": data,
+    }
+
+
+def _write_journal_file(tmp_path: Path, events: list[dict]) -> None:
+    journal_dir = tmp_path / ".gsd" / "journal"
+    journal_dir.mkdir(parents=True)
+    (journal_dir / "2026-08-30.jsonl").write_text(
+        "".join(json.dumps(event) + "\n" for event in events),
+        encoding="utf-8",
+    )
+
+
+def test_journal_retry_loops_flags_recent_wedge(tmp_path: Path) -> None:
+    base = datetime(2026, 8, 26, 12, 0, 0, tzinfo=UTC)
+    _write_journal_file(
+        tmp_path,
+        [
+            _journal_event(base.isoformat(), "iteration-start", {"iteration": 1}),
+            _journal_event(
+                (base + timedelta(days=2)).isoformat(),
+                "auto-exit",
+                {"reason": "blocked", "rawReason": _JOURNAL_WEDGE_RAW_REASON},
+            ),
+        ],
+    )
+
+    findings = check_journal_retry_loops(tmp_path)
+    failed = [item for item in findings if item.status == "fail"]
+    assert len(failed) == 1
+    assert failed[0].severity == "warn"
+    assert "W-abc12345" in failed[0].observed
+    assert "M195-mdvctn/S01/T01" in failed[0].observed
+    passed = [item for item in findings if item.status == "pass"]
+    assert len(passed) == 1
+    assert "wedge_exits=1" in passed[0].observed
+    assert "recent_wedges=1" in passed[0].observed
+
+
+def test_journal_retry_loops_healthy_journal_is_single_pass(tmp_path: Path) -> None:
+    base = datetime(2026, 8, 30, 12, 0, 0, tzinfo=UTC)
+    _write_journal_file(
+        tmp_path,
+        [
+            _journal_event(base.isoformat(), "unit-start", {"unitId": "M1/S1/T1"}),
+            _journal_event(
+                (base + timedelta(hours=1)).isoformat(),
+                "pre-execution-retry",
+                {"unitId": "M1/S1/T1", "attempt": 1},
+            ),
+            _journal_event((base + timedelta(hours=2)).isoformat(), "terminal", {"ok": True}),
+        ],
+    )
+
+    findings = check_journal_retry_loops(tmp_path)
+    assert len(findings) == 1
+    assert findings[0].status == "pass"
+    assert findings[0].severity == "ok"
+    assert "wedge_exits=0" in findings[0].observed
+    assert "retry_events=0" in findings[0].observed
+    assert "window_days=3" in findings[0].observed
+
+
+def test_journal_retry_loops_stale_wedge_outside_window_stays_pass(
+    tmp_path: Path,
+) -> None:
+    base = datetime(2026, 8, 22, 12, 0, 0, tzinfo=UTC)
+    _write_journal_file(
+        tmp_path,
+        [
+            _journal_event(
+                base.isoformat(),
+                "auto-exit",
+                {"reason": "blocked", "rawReason": _JOURNAL_WEDGE_RAW_REASON},
+            ),
+            _journal_event(
+                (base + timedelta(days=4)).isoformat(),
+                "terminal",
+                {"ok": True},
+            ),
+        ],
+    )
+
+    findings = check_journal_retry_loops(tmp_path)
+    assert len(findings) == 1
+    assert findings[0].status == "pass"
+    assert findings[0].severity == "ok"
+    assert "wedge_exits=1" in findings[0].observed
+    assert "recent_wedges=0" in findings[0].observed
+
+
+def test_journal_retry_loops_counts_retries_and_orphans(tmp_path: Path) -> None:
+    base = datetime(2026, 8, 30, 12, 0, 0, tzinfo=UTC)
+    _write_journal_file(
+        tmp_path,
+        [
+            _journal_event(
+                base.isoformat(),
+                "pre-execution-retry",
+                {"unitId": "M1/S1/T1", "attempt": 2},
+            ),
+            _journal_event(
+                (base + timedelta(minutes=1)).isoformat(),
+                "artifact-verification-retry",
+                {"unitId": "M1/S1/T1", "attempt": 3},
+            ),
+            _journal_event(
+                (base + timedelta(minutes=2)).isoformat(),
+                "orchestrator-guard-block",
+                {
+                    "unitId": "M1/S1/T1",
+                    "reason": "attempt M1/S1/T1 is settled, but executor worker is gone",
+                },
+            ),
+            _journal_event(
+                (base + timedelta(minutes=3)).isoformat(),
+                "worktree-orphaned",
+                {"worktree": "/tmp/x"},
+            ),
+        ],
+    )
+
+    findings = check_journal_retry_loops(tmp_path)
+    assert len(findings) == 1
+    assert findings[0].status == "pass"
+    observed = findings[0].observed
+    assert "retry_events=2" in observed
+    assert "stale_active=1" in observed
+    assert "orphaned_worktrees=1" in observed
+
+
+def test_journal_retry_loops_skips_broken_json_line(tmp_path: Path) -> None:
+    base = datetime(2026, 8, 30, 12, 0, 0, tzinfo=UTC)
+    journal_dir = tmp_path / ".gsd" / "journal"
+    journal_dir.mkdir(parents=True)
+    good = json.dumps(_journal_event(base.isoformat(), "terminal", {"ok": True}))
+    (journal_dir / "2026-08-30.jsonl").write_text(
+        good + "\n{not-json\n" + good + "\n",
+        encoding="utf-8",
+    )
+
+    findings = check_journal_retry_loops(tmp_path)
+    assert len(findings) == 1
+    assert findings[0].status == "pass"
+    assert "skipped_lines=1" in findings[0].observed
+
+
+def test_journal_retry_loops_missing_journal_dir_is_not_assessable(
+    tmp_path: Path,
+) -> None:
+    findings = check_journal_retry_loops(tmp_path)
+    assert len(findings) == 1
+    assert findings[0].status == "fail"
+    assert findings[0].severity == "warn"
+    assert "not assessable" in findings[0].message
+
+
+def test_journal_retry_loops_check_spec_is_process_deterministic_warn() -> None:
+    matches = [item for item in GOVERNOR_CHECK_SPECS if item.check_id == "journal-retry-loops"]
+    assert len(matches) == 1
+    spec = matches[0]
+    assert spec.group == "process"
+    assert spec.kind == "deterministic"
+    assert spec.default_severity == "warn"
+    assert ".gsd/journal/" in spec.authority_inputs
+    assert not any("*" in path for path in spec.authority_inputs)

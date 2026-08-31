@@ -20,7 +20,7 @@ import subprocess
 import sys
 from collections.abc import Callable
 from dataclasses import asdict, dataclass, replace
-from datetime import UTC, date, datetime
+from datetime import UTC, date, datetime, timedelta
 from pathlib import Path
 from typing import Any, Literal, cast
 
@@ -6327,6 +6327,183 @@ def check_model_crystal_anchors(root: Path) -> list[GovernorFinding]:
     return findings
 
 
+_JOURNAL_RETRY_WINDOW_DAYS = 3
+_JOURNAL_RECURRING_BACKSTOP_RE = re.compile(r"liveness backstop tripped: (\S+) recurred")
+_JOURNAL_WEDGE_ID_RE = re.compile(r"wedge (W-[0-9a-f]+)")
+_JOURNAL_WEDGE_UNIT_RE = re.compile(r"with unchanged inputs for (\S+) ([^\s(]+)")
+_JOURNAL_ORPHANED_ATTEMPT_MARKER = "is settled, but executor worker"
+_JOURNAL_RETRY_EVENT_TYPES = frozenset({"artifact-verification-retry", "pre-execution-retry"})
+
+
+def check_journal_retry_loops(root: Path) -> list[GovernorFinding]:
+    """Read-only observability over journal retry/wedge/orphan surfaces (S01).
+
+    Counts liveness-backstop wedge exits, retry events (attempt >= 2),
+    orphaned attempts, and orphaned worktrees across .gsd/journal/*.jsonl,
+    and warns only for wedges whose timestamp falls inside a 3-day window
+    anchored to the newest journaled timestamp (never wall clock). Broken
+    lines are skipped with a counter instead of raising so run_governor
+    never turns journal noise into a tool error. Interactive wedge closure
+    is not journaled, so resolved/unresolved is intentionally not derived
+    (false-positive precedent W-7a2cc230/M193); this check signals, never
+    repairs the engine.
+    """
+
+    check_id = "journal-retry-loops"
+    journal_dir = root / ".gsd" / "journal"
+    if not journal_dir.is_dir():
+        return [
+            GovernorFinding(
+                check_id=check_id,
+                status="fail",
+                severity="warn",
+                message="journal directory missing, retry-loop surface not assessable",
+                observed="missing journal dir",
+                remediation=(
+                    "Point the governor at a checkout whose .gsd/journal/ holds flow jsonl files."
+                ),
+                evidence=[GovernorEvidence(path=".gsd/journal/")],
+            )
+        ]
+
+    journal_files = sorted(journal_dir.glob("*.jsonl"))
+    wedge_exits = 0
+    retry_events = 0
+    stale_active = 0
+    orphaned_worktrees = 0
+    skipped_lines = 0
+    wedges: dict[str, dict[str, Any]] = {}
+    parsed_ts: list[datetime] = []
+
+    for journal_file in journal_files:
+        try:
+            text = journal_file.read_text(encoding="utf-8", errors="replace")
+        except OSError:
+            skipped_lines += 1
+            continue
+        for line in text.splitlines():
+            line = line.strip()
+            if not line:
+                continue
+            try:
+                event = json.loads(line)
+            except json.JSONDecodeError:
+                skipped_lines += 1
+                continue
+            if not isinstance(event, dict):
+                skipped_lines += 1
+                continue
+            when: datetime | None = None
+            ts = event.get("ts")
+            if isinstance(ts, str):
+                try:
+                    when = datetime.fromisoformat(ts.replace("Z", "+00:00"))
+                except ValueError:
+                    when = None
+            if when is None:
+                skipped_lines += 1
+            else:
+                parsed_ts.append(when)
+            data = event.get("data")
+            if isinstance(data, dict):
+                serialized = json.dumps(data, sort_keys=True, default=str)
+            else:
+                serialized = str(data)
+            event_type = event.get("eventType")
+            if event_type == "worktree-orphaned":
+                orphaned_worktrees += 1
+            if event_type in _JOURNAL_RETRY_EVENT_TYPES and isinstance(data, dict):
+                attempt = data.get("attempt")
+                if isinstance(attempt, int) and attempt >= 2:
+                    retry_events += 1
+            if _JOURNAL_ORPHANED_ATTEMPT_MARKER in serialized:
+                stale_active += 1
+            backstop_match = _JOURNAL_RECURRING_BACKSTOP_RE.search(serialized)
+            wedge_id_match = _JOURNAL_WEDGE_ID_RE.search(serialized)
+            if backstop_match is None or wedge_id_match is None:
+                continue
+            wedge_exits += 1
+            wedge_id = wedge_id_match.group(1)
+            unit_match = _JOURNAL_WEDGE_UNIT_RE.search(serialized)
+            unit_id = (
+                unit_match.group(2)
+                if unit_match is not None
+                else (
+                    str(data.get("unitId"))
+                    if isinstance(data, dict) and data.get("unitId") is not None
+                    else "unknown"
+                )
+            )
+            if wedge_id not in wedges or (
+                when is not None
+                and (wedges[wedge_id]["when"] is None or when < wedges[wedge_id]["when"])
+            ):
+                wedges[wedge_id] = {
+                    "when": when,
+                    "unit": unit_id,
+                    "backstop": backstop_match.group(1),
+                }
+
+    anchor = max(parsed_ts) if parsed_ts else None
+    recent = sorted(
+        (
+            (wedge_id, info)
+            for wedge_id, info in wedges.items()
+            if info["when"] is not None
+            and anchor is not None
+            and anchor - info["when"] <= timedelta(days=_JOURNAL_RETRY_WINDOW_DAYS)
+        ),
+        key=lambda item: item[1]["when"],
+    )
+
+    findings: list[GovernorFinding] = []
+    for wedge_id, info in recent:
+        age_days = max((anchor - info["when"]).days, 0) if anchor else 0
+        findings.append(
+            GovernorFinding(
+                check_id=check_id,
+                status="fail",
+                severity="warn",
+                message=(
+                    "journal shows a recent liveness-backstop wedge exit "
+                    f"({info['backstop']} recurred, {wedge_id}); "
+                    "interactive closure is not journaled, signal only"
+                ),
+                observed=(
+                    f"wedge={wedge_id} unit={info['unit']} "
+                    f"backstop={info['backstop']} age_days={age_days}"
+                ),
+                remediation=(
+                    f"Inspect the wedge before resuming: "
+                    f"`/gsd auto --resume-wedge {wedge_id}`; fix the cause, "
+                    "do not mute the signal."
+                ),
+                evidence=[GovernorEvidence(path=".gsd/journal/")],
+            )
+        )
+    findings.append(
+        GovernorFinding(
+            check_id=check_id,
+            status="pass",
+            severity="ok",
+            message=(
+                "journal retry/wedge surfaces scanned read-only "
+                f"across {len(journal_files)} file(s)"
+            ),
+            observed=(
+                f"wedge_exits={wedge_exits} retry_events={retry_events} "
+                f"stale_active={stale_active} "
+                f"orphaned_worktrees={orphaned_worktrees} "
+                f"skipped_lines={skipped_lines} "
+                f"window_days={_JOURNAL_RETRY_WINDOW_DAYS} "
+                f"recent_wedges={len(recent)} journal_files={len(journal_files)}"
+            ),
+            remediation="",
+        )
+    )
+    return findings
+
+
 def _check_spec(
     check_id: str,
     group: str,
@@ -6784,6 +6961,15 @@ GOVERNOR_CHECK_SPECS: tuple[CheckSpec, ...] = (
             "doc/adr/0019-normative-hierarchy-and-conflict.md",
             "prd/temporal-legal-model.md",
         ),
+        "warn",
+    ),
+    _check_spec(
+        "journal-retry-loops",
+        "process",
+        "deterministic",
+        check_journal_retry_loops,
+        "Read-only observability over journal retry loops, liveness-backstop wedge exits, orphaned attempts, and orphaned worktrees within a 3-day window anchored to the newest journaled timestamp; signal only, never engine repair.",
+        (".gsd/journal/",),
         "warn",
     ),
 )
