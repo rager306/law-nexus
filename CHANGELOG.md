@@ -2,6 +2,23 @@
 
 ## [Unreleased]
 
+### M195-mdvctn S02: GSD session-log analysis and durable lessons (2026-08-31)
+
+- `assessment/22-gsd-session-log-analysis.md` (new): deterministic re-census
+  of GSD session logs (journal 11,234 events; doctor-history 193 runs /
+  1,367 issue findings; event-log 4,163 entries; git-action-failures 18;
+  `.gsd/exec/` bookkeeping excluded as non-durable) with methodology, source
+  inventory, a 49-row pattern inventory, per-code date-range corrections
+  (T01 stamped whole-file ranges; T02 recount via `gsd_exec`), and an
+  explicit disposition of every row: 5 accept / 44 decline against
+  AGENTS.md, `.gsd/forensics/`, and existing KNOWLEDGE rules.
+- `.gsd/KNOWLEDGE.md`: +2 Lessons Learned (repair artifact/DB drift only via
+  sanctioned rebuild/doctor paths — 327 `artifact_file_missing` findings are
+  ~90% historical-milestone residue; settle crash-stranded worker/session
+  locks via recovery tooling before new sessions) and +2 Patterns (no `/` in
+  milestone/slice titles; pair newly generated runtime locations with
+  `.gitignore` patterns in the same change). Rules table untouched (8 rows).
+
 ### M195-mdvctn S01: governor process-gap observability (2026-08-31)
 
 - `src/law_nexus_harness/governor.py`: two new read-only `process` checks.
