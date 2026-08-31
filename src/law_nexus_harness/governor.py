@@ -6504,6 +6504,171 @@ def check_journal_retry_loops(root: Path) -> list[GovernorFinding]:
     return findings
 
 
+_COMPAT_MARKER_SCHEMA = 2
+_COMPAT_SHA_RE = re.compile(r"^[0-9a-f]{16}$")
+_COMPAT_PATH_PREVIEW_LIMIT = 5
+
+
+def check_compat_marker_hygiene(root: Path) -> list[GovernorFinding]:
+    """Read-only hygiene over .gsd/.compat.json projection markers (S01).
+
+    The compat marker is engine state maintained by a single-writer WAL, so
+    this check never repairs it: it only audits the schema version,
+    per-projection sha format, non-empty entity lists, and whether each
+    registered relpath still exists on disk under .gsd/. Stale or malformed
+    entries surface as a warn finding with a truncated stale-path preview;
+    a missing or unreadable marker is "not assessable" (corpus-grounding
+    precedent) and must never turn into a tool error or a disk write.
+    """
+
+    check_id = "compat-marker-hygiene"
+    marker_path = root / ".gsd" / ".compat.json"
+    if not marker_path.is_file():
+        return [
+            GovernorFinding(
+                check_id=check_id,
+                status="fail",
+                severity="warn",
+                message="compat marker missing, compat-marker-hygiene not assessable",
+                observed="missing .gsd/.compat.json",
+                remediation=(
+                    "Point the governor at a checkout whose .gsd/.compat.json "
+                    "exists; the engine creates it on its first projection write."
+                ),
+                evidence=[GovernorEvidence(path=".gsd/.compat.json")],
+            )
+        ]
+
+    try:
+        payload = json.loads(marker_path.read_text(encoding="utf-8", errors="replace"))
+    except (OSError, UnicodeDecodeError, json.JSONDecodeError) as exc:
+        return [
+            GovernorFinding(
+                check_id=check_id,
+                status="fail",
+                severity="warn",
+                message="compat marker unreadable, compat-marker-hygiene not assessable",
+                observed=f"invalid JSON: {type(exc).__name__}",
+                remediation=(
+                    "Let the engine's single-writer path regenerate .compat.json; "
+                    "never hand-edit it."
+                ),
+                evidence=[GovernorEvidence(path=".gsd/.compat.json")],
+            )
+        ]
+    if not isinstance(payload, dict):
+        return [
+            GovernorFinding(
+                check_id=check_id,
+                status="fail",
+                severity="warn",
+                message="compat marker payload is not a JSON object",
+                observed=f"top-level type={type(payload).__name__}",
+                remediation=(
+                    "Let the engine's single-writer path regenerate .compat.json; "
+                    "never hand-edit it."
+                ),
+                evidence=[GovernorEvidence(path=".gsd/.compat.json")],
+            )
+        ]
+    schema = payload.get("schema")
+    if schema != _COMPAT_MARKER_SCHEMA:
+        return [
+            GovernorFinding(
+                check_id=check_id,
+                status="fail",
+                severity="warn",
+                message="compat marker schema is not the audited version",
+                observed=(
+                    f"schema={schema!r} expected={_COMPAT_MARKER_SCHEMA}; projections not audited"
+                ),
+                remediation=(
+                    "Update the compat-projection writer before trusting marker "
+                    "hygiene; the governor never migrates engine state."
+                ),
+                evidence=[GovernorEvidence(path=".gsd/.compat.json")],
+            )
+        ]
+    projections = payload.get("projections")
+    if not isinstance(projections, dict):
+        return [
+            GovernorFinding(
+                check_id=check_id,
+                status="fail",
+                severity="warn",
+                message="compat marker projections section is not an object",
+                observed=f"projections type={type(projections).__name__}",
+                remediation=(
+                    "Let the engine's single-writer path regenerate .compat.json; "
+                    "never hand-edit it."
+                ),
+                evidence=[GovernorEvidence(path=".gsd/.compat.json")],
+            )
+        ]
+
+    stale: list[str] = []
+    bad_sha: list[str] = []
+    empty_entities: list[str] = []
+    malformed: list[str] = []
+    for relpath, entry in sorted(projections.items()):
+        if not isinstance(entry, dict):
+            malformed.append(relpath)
+            continue
+        sha = entry.get("sha")
+        if not isinstance(sha, str) or _COMPAT_SHA_RE.fullmatch(sha) is None:
+            bad_sha.append(relpath)
+        entities = entry.get("entities")
+        if not isinstance(entities, list) or not entities:
+            empty_entities.append(relpath)
+        if not (root / ".gsd" / relpath).exists():
+            stale.append(relpath)
+
+    phase_roots = sorted({relpath.split("/", 1)[0] for relpath in projections if relpath})
+    counters = (
+        f"projections={len(projections)} "
+        f"phases={len(phase_roots)} "
+        f"stale={len(stale)} bad_sha={len(bad_sha)} "
+        f"empty_entities={len(empty_entities)} malformed={len(malformed)}"
+    )
+    if not (stale or bad_sha or empty_entities or malformed):
+        return [
+            GovernorFinding(
+                check_id=check_id,
+                status="pass",
+                severity="ok",
+                message=(
+                    f"compat marker hygiene clean read-only across {len(projections)} projection(s)"
+                ),
+                observed=counters,
+                remediation="",
+            )
+        ]
+
+    observed = counters
+    if stale:
+        shown = stale[:_COMPAT_PATH_PREVIEW_LIMIT]
+        extra = len(stale) - len(shown)
+        suffix = f" +{extra} more" if extra > 0 else ""
+        observed = f"{observed} stale_paths=[{';'.join(shown)}{suffix}]"
+    if bad_sha or empty_entities or malformed:
+        first_offender = (bad_sha or empty_entities or malformed)[0]
+        observed = f"{observed} first_offender={first_offender}"
+    return [
+        GovernorFinding(
+            check_id=check_id,
+            status="fail",
+            severity="warn",
+            message="compat marker has stale or malformed projection entries",
+            observed=observed,
+            remediation=(
+                "Regenerate projections through the engine's single-writer path "
+                "so .compat.json matches disk; do not hand-edit .compat.json."
+            ),
+            evidence=[GovernorEvidence(path=".gsd/.compat.json")],
+        )
+    ]
+
+
 def _check_spec(
     check_id: str,
     group: str,
@@ -6970,6 +7135,15 @@ GOVERNOR_CHECK_SPECS: tuple[CheckSpec, ...] = (
         check_journal_retry_loops,
         "Read-only observability over journal retry loops, liveness-backstop wedge exits, orphaned attempts, and orphaned worktrees within a 3-day window anchored to the newest journaled timestamp; signal only, never engine repair.",
         (".gsd/journal/",),
+        "warn",
+    ),
+    _check_spec(
+        "compat-marker-hygiene",
+        "process",
+        "deterministic",
+        check_compat_marker_hygiene,
+        "Read-only stale/schema hygiene over .gsd/.compat.json projection markers: schema version, sha format, non-empty entities, and on-disk existence of every registered relpath; signal only, never engine repair (single-writer WAL state).",
+        (".gsd/.compat.json",),
         "warn",
     ),
 )

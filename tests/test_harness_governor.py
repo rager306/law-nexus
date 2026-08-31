@@ -30,6 +30,7 @@ from law_nexus_harness.governor import (
     check_archive_path_policy,
     check_ci_quality_gate_drift,
     check_companion_manifest,
+    check_compat_marker_hygiene,
     check_document_freshness_triggers,
     check_forward_roadmap_sequence,
     check_golden_corpus_catalog,
@@ -1673,6 +1674,11 @@ def test_live_governor_passes_hostile_negative_suite_coverage() -> None:
         "gsd-planned-inventory-visibility",
         "gsd-code-complete-lag",
         "gsd-review-dual-truth",
+        # S01 process observability probes: warn is their designed signal
+        # (recent journal wedge inside the 3-day window / stale compat
+        # projection entries), not a repo regression.
+        "journal-retry-loops",
+        "compat-marker-hygiene",
     }
     other_warns = [
         f for f in report.findings if f.severity == "warn" and f.check_id not in advisory_warn_ids
@@ -1713,6 +1719,11 @@ def test_live_governor_passes_live_adapter_readiness() -> None:
         "gsd-planned-inventory-visibility",
         "gsd-code-complete-lag",
         "gsd-review-dual-truth",
+        # S01 process observability probes: warn is their designed signal
+        # (recent journal wedge inside the 3-day window / stale compat
+        # projection entries), not a repo regression.
+        "journal-retry-loops",
+        "compat-marker-hygiene",
     }
     other_warns = [
         f for f in report.findings if f.severity == "warn" and f.check_id not in advisory_warn_ids
@@ -4191,4 +4202,158 @@ def test_journal_retry_loops_check_spec_is_process_deterministic_warn() -> None:
     assert spec.kind == "deterministic"
     assert spec.default_severity == "warn"
     assert ".gsd/journal/" in spec.authority_inputs
+    assert not any("*" in path for path in spec.authority_inputs)
+
+
+def _compat_marker_json(projections: dict[str, dict[str, object]], schema: int = 2) -> str:
+    return json.dumps(
+        {
+            "schema": schema,
+            "lastWriter": "gsd-pi",
+            "lastProjectedAt": "2026-08-30T12:00:00.000Z",
+            "projections": projections,
+        },
+        sort_keys=True,
+    )
+
+
+def test_compat_marker_hygiene_healthy_marker_is_single_pass(tmp_path: Path) -> None:
+    gsd_dir = tmp_path / ".gsd"
+    (gsd_dir / "phases" / "m1").mkdir(parents=True)
+    (gsd_dir / "phases" / "m1" / "S01-T01-SUMMARY.md").write_text("ok\n", encoding="utf-8")
+    (gsd_dir / ".compat.json").write_text(
+        _compat_marker_json(
+            {
+                "phases/m1/S01-T01-SUMMARY.md": {
+                    "sha": "0123456789abcdef",
+                    "entities": ["M1", "M1/S01", "M1/S01/T01"],
+                }
+            }
+        ),
+        encoding="utf-8",
+    )
+
+    findings = check_compat_marker_hygiene(tmp_path)
+    assert len(findings) == 1
+    assert findings[0].status == "pass"
+    assert findings[0].severity == "ok"
+    assert "projections=1" in findings[0].observed
+    assert "stale=0" in findings[0].observed
+    assert "bad_sha=0" in findings[0].observed
+    assert "empty_entities=0" in findings[0].observed
+
+
+def test_compat_marker_hygiene_flags_stale_projection_path(tmp_path: Path) -> None:
+    gsd_dir = tmp_path / ".gsd"
+    gsd_dir.mkdir()
+    (gsd_dir / ".compat.json").write_text(
+        _compat_marker_json(
+            {
+                "phases/m1/S01-T01-SUMMARY.md": {
+                    "sha": "0123456789abcdef",
+                    "entities": ["M1/S01/T01"],
+                }
+            }
+        ),
+        encoding="utf-8",
+    )
+
+    findings = check_compat_marker_hygiene(tmp_path)
+    assert len(findings) == 1
+    assert findings[0].status == "fail"
+    assert findings[0].severity == "warn"
+    assert "stale=1" in findings[0].observed
+    assert "phases/m1/S01-T01-SUMMARY.md" in findings[0].observed
+
+
+def test_compat_marker_hygiene_flags_unexpected_schema(tmp_path: Path) -> None:
+    gsd_dir = tmp_path / ".gsd"
+    gsd_dir.mkdir()
+    (gsd_dir / ".compat.json").write_text(
+        _compat_marker_json({}, schema=3),
+        encoding="utf-8",
+    )
+
+    findings = check_compat_marker_hygiene(tmp_path)
+    assert len(findings) == 1
+    assert findings[0].status == "fail"
+    assert findings[0].severity == "warn"
+    assert "schema=3" in findings[0].observed
+    assert "expected=2" in findings[0].observed
+
+
+def test_compat_marker_hygiene_survives_invalid_json(tmp_path: Path) -> None:
+    gsd_dir = tmp_path / ".gsd"
+    gsd_dir.mkdir()
+    (gsd_dir / ".compat.json").write_text("{not-json", encoding="utf-8")
+
+    findings = check_compat_marker_hygiene(tmp_path)
+    assert len(findings) == 1
+    assert findings[0].status == "fail"
+    assert findings[0].severity == "warn"
+
+
+def test_compat_marker_hygiene_missing_marker_is_not_assessable(tmp_path: Path) -> None:
+    findings = check_compat_marker_hygiene(tmp_path)
+    assert len(findings) == 1
+    assert findings[0].status == "fail"
+    assert findings[0].severity == "warn"
+    assert "not assessable" in findings[0].message
+
+
+def test_compat_marker_hygiene_flags_bad_sha_format(tmp_path: Path) -> None:
+    gsd_dir = tmp_path / ".gsd"
+    (gsd_dir / "phases" / "m1").mkdir(parents=True)
+    (gsd_dir / "phases" / "m1" / "S01-T01-SUMMARY.md").write_text("ok\n", encoding="utf-8")
+    (gsd_dir / ".compat.json").write_text(
+        _compat_marker_json(
+            {
+                "phases/m1/S01-T01-SUMMARY.md": {
+                    "sha": "deadbeef",
+                    "entities": ["M1/S01/T01"],
+                }
+            }
+        ),
+        encoding="utf-8",
+    )
+
+    findings = check_compat_marker_hygiene(tmp_path)
+    assert len(findings) == 1
+    assert findings[0].status == "fail"
+    assert findings[0].severity == "warn"
+    assert "bad_sha=1" in findings[0].observed
+    assert "stale=0" in findings[0].observed
+
+
+def test_compat_marker_hygiene_flags_empty_entities(tmp_path: Path) -> None:
+    gsd_dir = tmp_path / ".gsd"
+    (gsd_dir / "phases" / "m1").mkdir(parents=True)
+    (gsd_dir / "phases" / "m1" / "S01-T01-SUMMARY.md").write_text("ok\n", encoding="utf-8")
+    (gsd_dir / ".compat.json").write_text(
+        _compat_marker_json(
+            {
+                "phases/m1/S01-T01-SUMMARY.md": {
+                    "sha": "0123456789abcdef",
+                    "entities": [],
+                }
+            }
+        ),
+        encoding="utf-8",
+    )
+
+    findings = check_compat_marker_hygiene(tmp_path)
+    assert len(findings) == 1
+    assert findings[0].status == "fail"
+    assert findings[0].severity == "warn"
+    assert "empty_entities=1" in findings[0].observed
+
+
+def test_compat_marker_hygiene_check_spec_is_process_deterministic_warn() -> None:
+    matches = [item for item in GOVERNOR_CHECK_SPECS if item.check_id == "compat-marker-hygiene"]
+    assert len(matches) == 1
+    spec = matches[0]
+    assert spec.group == "process"
+    assert spec.kind == "deterministic"
+    assert spec.default_severity == "warn"
+    assert ".gsd/.compat.json" in spec.authority_inputs
     assert not any("*" in path for path in spec.authority_inputs)
