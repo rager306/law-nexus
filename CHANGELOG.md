@@ -2,6 +2,20 @@
 
 ## [Unreleased]
 
+### 44-FZ edition-walk model exercise (2026-08-31)
+
+- `crates/ln-temporal/tests/fz44_edition_walk.rs` (new): owner-requested
+  bounded simulation — edition 0 of 44-FZ (enacting law of 2013-04-05) plus
+  three amending laws folded at governing dates. Proven on the durable
+  three-canon log: per-act amendment provenance, date-gated point folds,
+  InForce → Repealed force transitions, aggregate same-day force conflict
+  surfaces as `Unknown + force_conflict`, one stable Work namespace (R081
+  shape), deterministic folds, and fail-closed admissions (overview hint,
+  missing act identity, out-of-order day, duplicate record id,
+  ForceFacetMismatch on force claims without the Force facet). Not product
+  readiness; R070 stays open; not the D-03 checkout type; not interval
+  algebra (D228).
+
 ### M195-mdvctn S03: dead-code and reuse audit closed, empty Tier-0 set (2026-08-31)
 
 - `assessment/23-dead-code-reuse-audit.md` (new, tracked): bounded GitNexus
