@@ -1713,6 +1713,7 @@ pub enum ThreeCanonLogError {
     EmptyDigest,
     MissingAmendingActIdentity,
     OverviewNotLegislativeEvent,
+    InvertedRange,
 }
 
 impl fmt::Display for ThreeCanonLogError {
@@ -1747,6 +1748,10 @@ impl fmt::Display for ThreeCanonLogError {
             Self::OverviewNotLegislativeEvent => write!(
                 formatter,
                 "consultant overview shape is a hint, not a legislative event"
+            ),
+            Self::InvertedRange => write!(
+                formatter,
+                "edition delta window is inverted: from_day exceeds to_day"
             ),
         }
     }
@@ -2429,5 +2434,233 @@ pub fn checkout_projection_at(
         as_of_day,
         provisions,
         non_claims: CHECKOUT_NON_CLAIMS.to_vec(),
+    })
+}
+
+// ── M196-bwvrj7 S02: edition delta over the half-open window (from, to] ─────
+// D326 window shape: exclusive-from, inclusive-to. The delta line per
+// component concept carries only the window events as evidence, plus the
+// per-target force readouts at both boundaries (latest force-bearing day
+// wins; same-day divergent outcomes fold to Unknown + conflict, R038).
+
+/// Non-claims carried by every edition delta.
+pub const EDITION_DELTA_NON_CLAIMS: &[&str] = &[
+    "Half-open window (from, to] per D326: exclusive-from, inclusive-to",
+    "Derived from the recorded log only; R070 amending-act text evidence stays open",
+    "Not bitemporal checkout, not interval algebra (D228)",
+];
+
+/// One component concept's change line in an edition delta window.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct ProvisionDelta {
+    target: ComponentConceptId,
+    events: Vec<ThreeCanonRecord>,
+    force_from: NormativeState,
+    force_to: NormativeState,
+    force_conflict_from: bool,
+    force_conflict_to: bool,
+}
+
+impl ProvisionDelta {
+    pub fn target(&self) -> &ComponentConceptId {
+        &self.target
+    }
+
+    pub fn events(&self) -> &[ThreeCanonRecord] {
+        &self.events
+    }
+
+    pub fn force_from(&self) -> NormativeState {
+        self.force_from
+    }
+
+    pub fn force_to(&self) -> NormativeState {
+        self.force_to
+    }
+
+    pub fn force_conflict_from(&self) -> bool {
+        self.force_conflict_from
+    }
+
+    pub fn force_conflict_to(&self) -> bool {
+        self.force_conflict_to
+    }
+}
+
+/// Edition delta between two governing dates: the half-open window
+/// `(from, to]` per D326 — exclusive-from, inclusive-to.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct EditionDelta {
+    from_day: i64,
+    to_day: i64,
+    provisions: Vec<ProvisionDelta>,
+    non_claims: Vec<String>,
+}
+
+impl EditionDelta {
+    pub fn from_day(&self) -> i64 {
+        self.from_day
+    }
+
+    pub fn to_day(&self) -> i64 {
+        self.to_day
+    }
+
+    pub fn provisions(&self) -> &[ProvisionDelta] {
+        &self.provisions
+    }
+
+    pub fn non_claims(&self) -> &[String] {
+        &self.non_claims
+    }
+}
+
+/// Latest force-bearing day wins; same-day divergent outcomes fold to
+/// `Unknown` + conflict (the fold's per-target readout semantics).
+fn fold_force_outcomes(events: &[ThreeCanonRecord]) -> (NormativeState, bool) {
+    let mut force_day: Option<i64> = None;
+    let mut outcomes: Vec<NormativeState> = Vec::new();
+    for event in events {
+        if let Some(status) = three_canon_record_force_outcome(event) {
+            let day = event.effect_day();
+            match force_day {
+                None => {
+                    force_day = Some(day);
+                    outcomes.push(status);
+                }
+                Some(latest) if day > latest => {
+                    force_day = Some(day);
+                    outcomes.clear();
+                    outcomes.push(status);
+                }
+                Some(latest) if day == latest => {
+                    if !outcomes.contains(&status) {
+                        outcomes.push(status);
+                    }
+                }
+                Some(_) => {}
+            }
+        }
+    }
+    match outcomes.len() {
+        0 => (NormativeState::Unknown, false),
+        1 => (outcomes[0], false),
+        _ => (NormativeState::Unknown, true),
+    }
+}
+
+/// Edition delta over the half-open window `(from, to]` (D326): canon events
+/// strictly after `from_day` and up to and including `to_day`, grouped per
+/// component concept, each line carrying the window evidence plus the
+/// per-target force readouts at both window boundaries. Inverted windows
+/// (from > to) fail closed as `InvertedRange`; equal dates are a legal
+/// degenerate empty window. Provision lines are sorted by
+/// `target().as_str()`.
+fn three_canon_record_target(record: &ThreeCanonRecord) -> &ComponentConceptId {
+    match record {
+        ThreeCanonRecord::Amendment(event) => event.target(),
+        ThreeCanonRecord::AssertionOrEffect(effect) => effect.target(),
+        ThreeCanonRecord::EditionOracle(oracle) => oracle.target(),
+    }
+}
+
+fn three_canon_record_force_outcome(record: &ThreeCanonRecord) -> Option<NormativeState> {
+    match record {
+        ThreeCanonRecord::Amendment(event) => event.force_transition(),
+        ThreeCanonRecord::AssertionOrEffect(effect) => match effect.payload() {
+            AssertionOrEffectPayload::Effect(status) => Some(status),
+            AssertionOrEffectPayload::Assertion => None,
+        },
+        ThreeCanonRecord::EditionOracle(_) => None,
+    }
+}
+
+pub fn edition_delta(
+    log: &ThreeCanonEventLog,
+    from_day: i64,
+    to_day: i64,
+) -> Result<EditionDelta, ThreeCanonLogError> {
+    if from_day > to_day {
+        return Err(ThreeCanonLogError::InvertedRange);
+    }
+    // Same ordering refusal as the log-wide fold (fail-closed, never sorts).
+    let mut previous_day: Option<i64> = None;
+    for record in log.records() {
+        let day = record.effect_day();
+        if let Some(previous) = previous_day {
+            if day < previous {
+                return Err(ThreeCanonLogError::OrderingConflict);
+            }
+        }
+        previous_day = Some(day);
+    }
+
+    let mut window_targets: Vec<ComponentConceptId> = Vec::new();
+    let mut grouped: Vec<(ComponentConceptId, Vec<ThreeCanonRecord>)> = Vec::new();
+    for record in log.records() {
+        if !record.is_canon_event() {
+            continue;
+        }
+        let day = record.effect_day();
+        if day <= from_day || day > to_day {
+            continue;
+        }
+        let target = three_canon_record_target(record).clone();
+        match grouped.iter_mut().find(|(known, _)| known == &target) {
+            Some((_, events)) => events.push(record.clone()),
+            None => {
+                window_targets.push(target.clone());
+                grouped.push((target, vec![record.clone()]));
+            }
+        }
+    }
+
+    // Boundary readouts come from the pre-window log per target (fail-closed
+    // Unknown when the provision has no force-bearing history before from).
+    let mut provisions: Vec<ProvisionDelta> = window_targets
+        .into_iter()
+        .map(|target| {
+            let window_events = grouped
+                .iter()
+                .find(|(known, _)| known == &target)
+                .map(|(_, events)| events.clone())
+                .unwrap_or_default();
+            let mut pre_from: Vec<ThreeCanonRecord> = Vec::new();
+            let mut up_to: Vec<ThreeCanonRecord> = Vec::new();
+            for record in log.records() {
+                if !record.is_canon_event() || three_canon_record_target(record) != &target {
+                    continue;
+                }
+                let day = record.effect_day();
+                if day <= from_day {
+                    pre_from.push(record.clone());
+                }
+                if day <= to_day {
+                    up_to.push(record.clone());
+                }
+            }
+            let (force_from, force_conflict_from) = fold_force_outcomes(&pre_from);
+            let (force_to, force_conflict_to) = fold_force_outcomes(&up_to);
+            ProvisionDelta {
+                target,
+                events: window_events,
+                force_from,
+                force_to,
+                force_conflict_from,
+                force_conflict_to,
+            }
+        })
+        .collect();
+    // D326 presentation order: the delta reads sorted by target identity.
+    provisions.sort_by(|left, right| left.target().as_str().cmp(right.target().as_str()));
+
+    Ok(EditionDelta {
+        from_day,
+        to_day,
+        provisions,
+        non_claims: EDITION_DELTA_NON_CLAIMS
+            .iter()
+            .map(|s| s.to_string())
+            .collect(),
     })
 }
