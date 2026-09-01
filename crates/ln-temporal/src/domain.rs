@@ -2275,3 +2275,174 @@ mod tests {
         assert!(ResolutionOutcome::SubstituteRejected.is_fail_closed());
     }
 }
+
+// ── M196-bwvrj7 S01: per-provision checkout projection (bounded D-03 step) ──
+// Fold-8 honesty: the log-wide fold refuses to mix same-day divergent force
+// outcomes across different component concepts (Unknown + force_conflict).
+// The per-provision checkout groups the same canon events by component
+// concept so each provision reads its own concrete force without inheriting
+// the cross-concept mix (R038 isolation).
+
+/// Non-claims carried by every checkout projection.
+pub const CHECKOUT_NON_CLAIMS: &[&str] = &[
+    "Bounded per-provision read-model: not the D-03 crystal compiler, no MicroOperation types",
+    "Not bitemporal checkout, not interval algebra (D228)",
+    "Derived from the recorded log only; R070 edition provenance stays open",
+];
+
+/// One component concept's checked-out state at `as_of_day`.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct ProvisionCheckout {
+    target: ComponentConceptId,
+    events: Vec<ThreeCanonRecord>,
+    force_status: NormativeState,
+    force_conflict: bool,
+}
+
+impl ProvisionCheckout {
+    pub fn target(&self) -> &ComponentConceptId {
+        &self.target
+    }
+
+    pub fn events(&self) -> &[ThreeCanonRecord] {
+        &self.events
+    }
+
+    pub fn force_status(&self) -> NormativeState {
+        self.force_status
+    }
+
+    pub fn force_conflict(&self) -> bool {
+        self.force_conflict
+    }
+}
+
+/// Per-provision checkout of the log at `as_of_day`.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct CheckoutProjection {
+    as_of_day: i64,
+    provisions: Vec<ProvisionCheckout>,
+    non_claims: Vec<String>,
+}
+
+impl CheckoutProjection {
+    pub fn as_of_day(&self) -> i64 {
+        self.as_of_day
+    }
+
+    pub fn provisions(&self) -> &[ProvisionCheckout] {
+        &self.provisions
+    }
+
+    pub fn non_claims(&self) -> &[String] {
+        &self.non_claims
+    }
+}
+
+fn three_canon_record_target(record: &ThreeCanonRecord) -> &ComponentConceptId {
+    match record {
+        ThreeCanonRecord::Amendment(event) => event.target(),
+        ThreeCanonRecord::AssertionOrEffect(effect) => effect.target(),
+        ThreeCanonRecord::EditionOracle(oracle) => oracle.target(),
+    }
+}
+
+fn three_canon_record_force_outcome(record: &ThreeCanonRecord) -> Option<NormativeState> {
+    match record {
+        ThreeCanonRecord::Amendment(event) => event.force_transition(),
+        ThreeCanonRecord::AssertionOrEffect(effect) => match effect.payload() {
+            AssertionOrEffectPayload::Effect(status) => Some(status),
+            AssertionOrEffectPayload::Assertion => None,
+        },
+        ThreeCanonRecord::EditionOracle(_) => None,
+    }
+}
+
+/// Per-provision checkout: group canon events effective by `as_of_day` per
+/// component concept and read each provision's force independently. The
+/// log-wide aggregate mix (Unknown + force_conflict across different
+/// concepts) cannot reappear here by construction. Fail-closed on the same
+/// unordered-log input as the log-wide fold (never sorts).
+pub fn checkout_projection_at(
+    log: &ThreeCanonEventLog,
+    as_of_day: i64,
+) -> Result<CheckoutProjection, ThreeCanonLogError> {
+    let mut previous_day: Option<i64> = None;
+    for record in log.records() {
+        let day = record.effect_day();
+        if let Some(previous) = previous_day {
+            if day < previous {
+                return Err(ThreeCanonLogError::OrderingConflict);
+            }
+        }
+        previous_day = Some(day);
+    }
+
+    let mut targets: Vec<ComponentConceptId> = Vec::new();
+    let mut grouped: Vec<(ComponentConceptId, Vec<ThreeCanonRecord>)> = Vec::new();
+    for record in log.records() {
+        if !record.is_canon_event() || record.effect_day() > as_of_day {
+            continue;
+        }
+        let target = three_canon_record_target(record).clone();
+        match grouped.iter_mut().find(|(known, _)| known == &target) {
+            Some((_, events)) => events.push(record.clone()),
+            None => {
+                targets.push(target.clone());
+                grouped.push((target, vec![record.clone()]));
+            }
+        }
+    }
+
+    let provisions = targets
+        .into_iter()
+        .map(|target| {
+            let events = grouped
+                .iter()
+                .find(|(known, _)| known == &target)
+                .map(|(_, events)| events.clone())
+                .unwrap_or_default();
+            let mut force_day: Option<i64> = None;
+            let mut outcomes: Vec<NormativeState> = Vec::new();
+            for event in &events {
+                if let Some(status) = three_canon_record_force_outcome(event) {
+                    let day = event.effect_day();
+                    match force_day {
+                        None => {
+                            force_day = Some(day);
+                            outcomes.push(status);
+                        }
+                        Some(latest) if day > latest => {
+                            force_day = Some(day);
+                            outcomes.clear();
+                            outcomes.push(status);
+                        }
+                        Some(latest) if day == latest => {
+                            if !outcomes.contains(&status) {
+                                outcomes.push(status);
+                            }
+                        }
+                        Some(_) => {}
+                    }
+                }
+            }
+            let (force_status, force_conflict) = match outcomes.len() {
+                0 => (NormativeState::Unknown, false),
+                1 => (outcomes[0], false),
+                _ => (NormativeState::Unknown, true),
+            };
+            ProvisionCheckout {
+                target,
+                events,
+                force_status,
+                force_conflict,
+            }
+        })
+        .collect();
+
+    Ok(CheckoutProjection {
+        as_of_day,
+        provisions,
+        non_claims: CHECKOUT_NON_CLAIMS.iter().map(|s| s.to_string()).collect(),
+    })
+}
