@@ -1,3 +1,4 @@
+use std::collections::HashMap;
 use std::error::Error;
 use std::fmt;
 
@@ -1983,6 +1984,16 @@ impl ThreeCanonRecord {
     pub fn is_canon_event(&self) -> bool {
         !matches!(self, Self::EditionOracle(_))
     }
+
+    /// Component concept this record targets (match-delegate; every variant
+    /// carries exactly one target).
+    pub fn target(&self) -> &ComponentConceptId {
+        match self {
+            Self::Amendment(record) => record.target(),
+            Self::EditionOracle(record) => record.target(),
+            Self::AssertionOrEffect(record) => record.target(),
+        }
+    }
 }
 
 /// Append-only bounded three-canon event log (offline synthetic; not a product
@@ -2113,10 +2124,28 @@ pub fn fold_three_canon_at(
         .cloned()
         .collect();
 
-    // Point force readout at as_of_day over force-bearing projected events.
+    let (force_status, force_conflict) = force_readout(&events);
+
+    Ok(ThreeCanonProjection {
+        as_of_day,
+        events,
+        force_status,
+        force_conflict,
+        non_claims: THREE_CANON_NON_CLAIMS.to_vec(),
+    })
+}
+
+/// Shared force readout over projected canon events (extracted verbatim from
+/// the `fold_three_canon_at` body; single source for the log-wide fold and
+/// the per-provision checkout — never copy-pasted):
+/// - no force-bearing canon event (empty set included) → `Unknown`, no conflict (D304)
+/// - latest force-bearing day wins (amendment Force facet or assertion-or-effect `Effect`;
+///   a bare assertion claim never drives force; an `EditionOracle` never carries force)
+/// - same max force-bearing day with distinct statuses → `Unknown` + conflict
+fn force_readout(events: &[ThreeCanonRecord]) -> (NormativeState, bool) {
     let mut force_day: Option<i64> = None;
     let mut force_outcomes: Vec<NormativeState> = Vec::new();
-    for event in &events {
+    for event in events {
         let outcome = match event {
             ThreeCanonRecord::Amendment(record) => record.force_transition(),
             ThreeCanonRecord::AssertionOrEffect(record) => match record.payload() {
@@ -2146,20 +2175,11 @@ pub fn fold_three_canon_at(
             }
         }
     }
-
-    let (force_status, force_conflict) = match force_outcomes.len() {
+    match force_outcomes.len() {
         0 => (NormativeState::Unknown, false),
         1 => (force_outcomes[0], false),
         _ => (NormativeState::Unknown, true),
-    };
-
-    Ok(ThreeCanonProjection {
-        as_of_day,
-        events,
-        force_status,
-        force_conflict,
-        non_claims: THREE_CANON_NON_CLAIMS.to_vec(),
-    })
+    }
 }
 
 // ── M191-kgdyqi S01: C1 legislative overlay on the three-canon event log ──
@@ -2281,31 +2301,30 @@ mod tests {
 // outcomes across different component concepts (Unknown + force_conflict).
 // The per-provision checkout groups the same canon events by component
 // concept so each provision reads its own concrete force without inheriting
-// the cross-concept mix (R038 isolation).
+// the cross-concept mix (R038 isolation). This is a bounded D-03 grouping
+// step, not the crystal compiler; D-03 stays open-bounded, R070 stays open.
 
-/// Non-claims carried by every checkout projection.
+/// Non-claims carried by every checkout projection (must stay in reports).
 pub const CHECKOUT_NON_CLAIMS: &[&str] = &[
-    "Bounded per-provision read-model: not the D-03 crystal compiler, no MicroOperation types",
-    "Not bitemporal checkout, not interval algebra (D228)",
-    "Derived from the recorded log only; R070 edition provenance stays open",
+    "Point per-target fold of the recorded three-canon log; not bitemporal checkout (no legal_as_of / known_as_of / VIEW)",
+    "Not the crystal compiler, not MicroOperation, not CoverageCertificate (D216/D312)",
+    "Not interval algebra (D228)",
+    "Not R070 amending-act text evidence; edition provenance stays open (D179)",
+    "D-03 remains open-bounded: this is grouping, not the crystal compiler",
 ];
 
 /// One component concept's checked-out state at `as_of_day`.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ProvisionCheckout {
     target: ComponentConceptId,
-    events: Vec<ThreeCanonRecord>,
     force_status: NormativeState,
     force_conflict: bool,
+    events: Vec<ThreeCanonRecord>,
 }
 
 impl ProvisionCheckout {
     pub fn target(&self) -> &ComponentConceptId {
         &self.target
-    }
-
-    pub fn events(&self) -> &[ThreeCanonRecord] {
-        &self.events
     }
 
     pub fn force_status(&self) -> NormativeState {
@@ -2315,14 +2334,23 @@ impl ProvisionCheckout {
     pub fn force_conflict(&self) -> bool {
         self.force_conflict
     }
+
+    /// Canon events of this provision effective by `as_of_day`, in append
+    /// order. `EditionOracle` records never appear here (not canon, §1c).
+    pub fn events(&self) -> &[ThreeCanonRecord] {
+        &self.events
+    }
 }
 
-/// Per-provision checkout of the log at `as_of_day`.
+/// Per-provision checkout of the log at `as_of_day`: a point per-target
+/// fold, not bitemporal checkout. The root carries no aggregate force
+/// readout at all — force lives on the provisions only, so the log-wide
+/// aggregate mix cannot reappear at the root by construction.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct CheckoutProjection {
     as_of_day: i64,
     provisions: Vec<ProvisionCheckout>,
-    non_claims: Vec<String>,
+    non_claims: Vec<&'static str>,
 }
 
 impl CheckoutProjection {
@@ -2330,43 +2358,33 @@ impl CheckoutProjection {
         self.as_of_day
     }
 
+    /// One entry per component concept touched by projected canon events;
+    /// empty when no canon event is effective by `as_of_day` (D304: an
+    /// empty projected set is zero provisions, never an InForce readout).
+    /// Sorted by `target().as_str()` for determinism.
     pub fn provisions(&self) -> &[ProvisionCheckout] {
         &self.provisions
     }
 
-    pub fn non_claims(&self) -> &[String] {
+    pub fn non_claims(&self) -> &[&'static str] {
         &self.non_claims
     }
 }
 
-fn three_canon_record_target(record: &ThreeCanonRecord) -> &ComponentConceptId {
-    match record {
-        ThreeCanonRecord::Amendment(event) => event.target(),
-        ThreeCanonRecord::AssertionOrEffect(effect) => effect.target(),
-        ThreeCanonRecord::EditionOracle(oracle) => oracle.target(),
-    }
-}
-
-fn three_canon_record_force_outcome(record: &ThreeCanonRecord) -> Option<NormativeState> {
-    match record {
-        ThreeCanonRecord::Amendment(event) => event.force_transition(),
-        ThreeCanonRecord::AssertionOrEffect(effect) => match effect.payload() {
-            AssertionOrEffectPayload::Effect(status) => Some(status),
-            AssertionOrEffectPayload::Assertion => None,
-        },
-        ThreeCanonRecord::EditionOracle(_) => None,
-    }
-}
-
 /// Per-provision checkout: group canon events effective by `as_of_day` per
-/// component concept and read each provision's force independently. The
+/// component concept and read each provision's force through the same
+/// `force_readout` the log-wide fold uses (no copy of the readout). The
 /// log-wide aggregate mix (Unknown + force_conflict across different
-/// concepts) cannot reappear here by construction. Fail-closed on the same
-/// unordered-log input as the log-wide fold (never sorts).
+/// concepts) cannot reappear here by construction; a true same-target
+/// same-day conflict stays `Unknown` + force_conflict (R038). Fail-closed
+/// on the same unordered-log input as the fold (never sorts the log).
 pub fn checkout_projection_at(
     log: &ThreeCanonEventLog,
     as_of_day: i64,
 ) -> Result<CheckoutProjection, ThreeCanonLogError> {
+    // Defense in depth: the append API keeps the timeline ordered; the
+    // checkout still refuses to project an unordered sequence (fail-closed,
+    // never sorts the log).
     let mut previous_day: Option<i64> = None;
     for record in log.records() {
         let day = record.effect_day();
@@ -2378,71 +2396,38 @@ pub fn checkout_projection_at(
         previous_day = Some(day);
     }
 
-    let mut targets: Vec<ComponentConceptId> = Vec::new();
-    let mut grouped: Vec<(ComponentConceptId, Vec<ThreeCanonRecord>)> = Vec::new();
+    // Group projected canon events by component concept. `EditionOracle`
+    // records are checksums, not canon; they never enter a provision chain.
+    let mut grouped: HashMap<ComponentConceptId, Vec<ThreeCanonRecord>> = HashMap::new();
     for record in log.records() {
         if !record.is_canon_event() || record.effect_day() > as_of_day {
             continue;
         }
-        let target = three_canon_record_target(record).clone();
-        match grouped.iter_mut().find(|(known, _)| known == &target) {
-            Some((_, events)) => events.push(record.clone()),
-            None => {
-                targets.push(target.clone());
-                grouped.push((target, vec![record.clone()]));
-            }
-        }
+        grouped
+            .entry(record.target().clone())
+            .or_default()
+            .push(record.clone());
     }
 
-    let provisions = targets
+    let mut provisions: Vec<ProvisionCheckout> = grouped
         .into_iter()
-        .map(|target| {
-            let events = grouped
-                .iter()
-                .find(|(known, _)| known == &target)
-                .map(|(_, events)| events.clone())
-                .unwrap_or_default();
-            let mut force_day: Option<i64> = None;
-            let mut outcomes: Vec<NormativeState> = Vec::new();
-            for event in &events {
-                if let Some(status) = three_canon_record_force_outcome(event) {
-                    let day = event.effect_day();
-                    match force_day {
-                        None => {
-                            force_day = Some(day);
-                            outcomes.push(status);
-                        }
-                        Some(latest) if day > latest => {
-                            force_day = Some(day);
-                            outcomes.clear();
-                            outcomes.push(status);
-                        }
-                        Some(latest) if day == latest => {
-                            if !outcomes.contains(&status) {
-                                outcomes.push(status);
-                            }
-                        }
-                        Some(_) => {}
-                    }
-                }
-            }
-            let (force_status, force_conflict) = match outcomes.len() {
-                0 => (NormativeState::Unknown, false),
-                1 => (outcomes[0], false),
-                _ => (NormativeState::Unknown, true),
-            };
+        .map(|(target, events)| {
+            let (force_status, force_conflict) = force_readout(&events);
             ProvisionCheckout {
                 target,
-                events,
                 force_status,
                 force_conflict,
+                events,
             }
         })
         .collect();
+    // Deterministic read model: HashMap order is not observable because the
+    // provisions are sorted by target string (no Ord on the id type).
+    provisions.sort_by(|a, b| a.target.as_str().cmp(b.target.as_str()));
 
     Ok(CheckoutProjection {
         as_of_day,
         provisions,
-        non_claims: CHECKOUT_NON_CLAIMS.iter().map(|s| s.to_string()).collect(),
+        non_claims: CHECKOUT_NON_CLAIMS.to_vec(),
     })
 }
