@@ -17,11 +17,18 @@
 //! red if 93-1 leaks into the demo delta OR a force-only diff drops
 //! statya-5.
 //!
-//! RED BY DESIGN: this suite must not compile until T02 lands
-//! `edition_delta` / `EditionDelta` / `ProvisionDelta` and the
-//! `ThreeCanonLogError::InvertedRange` variant; the unresolved imports
-//! below are the failing proof (content-level verify for this task, not a
-//! cargo-test verify).
+//! T02 landed `edition_delta` / `EditionDelta` / `ProvisionDelta` and the
+//! `ThreeCanonLogError::InvertedRange` variant (the T01 red suite went
+//! green). T03 adds the honesty negatives over the same fixture: empty and
+//! oracle-only logs yield zero provisions (D304: never a synthetic
+//! InForce), the oracle is absent from every window-evidence chain, the
+//! introduction window pins the target-exists-only-at-`to` path (Unknown
+//! at `from`), a text-only touch without force change keeps its line,
+//! the delta compares by value deterministically, the non-claims deny
+//! list names bitemporal checkout / crystal compiler / R070 / D-03, every
+//! delta target stays inside the one `cc:44-fz` Work namespace (R081),
+//! and the Fold 8 aggregate conflict plus the S01 per-provision checkout
+//! stay untouched regressions.
 //!
 //! Bounded honesty: synthetic identities are not the real corpus; R070
 //! (amending-act text provenance) stays open (D179); this is not the
@@ -34,9 +41,9 @@
 
 use ln_temporal::calendar::legal_act_effect_day_to_ordinal;
 use ln_temporal::domain::{
-    edition_delta, AmendmentFacetKind, C1Candidate, CanonRecordId, ComponentConceptId,
-    EditionDelta, EditionOracle, EvidenceClass, NormativeState, ProvisionDelta, ThreeCanonEventLog,
-    ThreeCanonLogError, ThreeCanonRecord,
+    checkout_projection_at, edition_delta, fold_three_canon_at, AmendmentFacetKind, C1Candidate,
+    CanonRecordId, ComponentConceptId, EditionDelta, EditionOracle, EvidenceClass, NormativeState,
+    ProvisionDelta, ThreeCanonEventLog, ThreeCanonLogError, ThreeCanonRecord,
 };
 
 // One stable Work (R081): every component concept lives in this namespace.
@@ -376,5 +383,301 @@ fn equal_from_and_to_yield_empty_provisions() {
     assert!(
         degenerate.provisions().is_empty(),
         "(t, t] is an empty window"
+    );
+}
+
+// ── Honesty negatives: empty/oracle-only, introduction window, keep rule ────
+
+#[test]
+fn empty_or_oracle_only_log_yields_zero_delta_provisions() {
+    // D304 honesty over a valid window: a log with no projected canon
+    // events checks out to zero provisions, so the delta is zero lines —
+    // never a synthetic InForce readout for a target nothing put in force.
+    let empty = ThreeCanonEventLog::empty();
+    assert_eq!(
+        delta(&empty, "2019-01-01", "2021-07-01").provisions().len(),
+        0,
+        "an empty log deltas to zero provisions"
+    );
+
+    // Oracle-only: the edition checksum rides the append-only timeline but
+    // is not a canon event (§1c) — the delta still sees zero provisions.
+    let mut oracle_only = ThreeCanonEventLog::empty();
+    oracle_only
+        .append(oracle("orc:ed0", "2013-04-05"))
+        .expect("edition oracle");
+    assert_eq!(
+        delta(&oracle_only, "2019-01-01", "2021-07-01")
+            .provisions()
+            .len(),
+        0,
+        "an oracle-only log deltas to zero provisions"
+    );
+}
+
+#[test]
+fn oracle_is_absent_from_every_delta_events() {
+    // The combined fixture really carries the edition oracle on the log,
+    // yet no window-evidence chain may contain it: EditionOracle records
+    // are checksums, not canon events (§1c) — the window is canon only.
+    let combined = combined_log();
+    assert!(
+        combined
+            .records()
+            .iter()
+            .any(|record| matches!(record, ThreeCanonRecord::EditionOracle(_))),
+        "the fixture carries the oracle on the log"
+    );
+
+    let demo = delta(&combined, "2019-01-01", "2021-07-01");
+    assert!(!demo.provisions().is_empty(), "the demo window is nonempty");
+    for line in demo.provisions() {
+        let events = line.events();
+        assert!(
+            events
+                .iter()
+                .all(|record| !matches!(record, ThreeCanonRecord::EditionOracle(_))),
+            "oracle leaked into window evidence of {}",
+            line.target().as_str()
+        );
+    }
+}
+
+#[test]
+fn introduction_window_shows_93_1_unknown_to_in_force_and_statya_5_touched() {
+    // The one window that pins the D304 from-side: from 2018-12-31 the
+    // law-2 admission sits inside the window, so statya-93-1 exists only at
+    // `to`. The from-side readout is Unknown — absence is not InForce. Not
+    // in the roadmap demo, but the only pin that the
+    // target-exists-only-at-`to` path reads Unknown at `from` instead of a
+    // synthetic InForce.
+    let combined = combined_log();
+    let introduction = delta(&combined, "2018-12-31", "2019-01-01");
+
+    let targets: Vec<&str> = introduction
+        .provisions()
+        .iter()
+        .map(|line| line.target().as_str())
+        .collect();
+    assert_eq!(
+        targets,
+        vec![STATYA_5, STATYA_93_1],
+        "statya-93 has no window event and stays InForce across this window"
+    );
+
+    let statya_93_1 = provision(&introduction, STATYA_93_1);
+    assert_eq!(
+        statya_93_1.force_from(),
+        NormativeState::Unknown,
+        "D304: the target exists only at `to`, the from side is Unknown"
+    );
+    assert!(
+        !statya_93_1.force_conflict_from(),
+        "absence is not a conflict"
+    );
+    assert_eq!(statya_93_1.force_to(), NormativeState::InForce);
+    assert!(!statya_93_1.force_conflict_to());
+    let records_93_1 = amendment_records(statya_93_1.events());
+    assert!(
+        records_93_1.iter().any(|(id, _)| id == "rec:law2-93-1c"),
+        "rec:law2-93-1c is the introduction evidence"
+    );
+
+    let statya_5 = provision(&introduction, STATYA_5);
+    assert_eq!(statya_5.force_from(), NormativeState::InForce);
+    assert_eq!(statya_5.force_to(), NormativeState::InForce);
+    let records_5_intro = amendment_records(statya_5.events());
+    assert!(
+        records_5_intro.iter().any(|(id, _)| id == "rec:law2-5c"),
+        "the law-2 text touch keeps statya-5 in this window"
+    );
+
+    assert!(
+        introduction
+            .provisions()
+            .iter()
+            .all(|line| line.target().as_str() != STATYA_93),
+        "{STATYA_93} has no window event here: InForce on both cuts, no line"
+    );
+}
+
+#[test]
+fn text_only_touch_without_force_change_stays_in_delta() {
+    // A dedicated small log (not the combined fixture): Force InForce on
+    // the target early, then a later text-only amendment inside the window
+    // with no Force facet. The line must stay in the delta with
+    // force_from == force_to == InForce and nonempty events — a force-only
+    // keep rule (keep only when force_from != force_to) would drop it.
+    const STATYA_10: &str = "cc:44-fz:statya-10";
+    let mut log = ThreeCanonEventLog::empty();
+    admit(
+        &mut log,
+        "ed0-10c",
+        STATYA_10,
+        EDITION0_ACT,
+        "2013-09-01",
+        vec![AmendmentFacetKind::Force],
+        Some(NormativeState::InForce),
+    );
+    admit(
+        &mut log,
+        "law2-10c",
+        STATYA_10,
+        LAW2_ACT,
+        "2019-01-01",
+        vec![AmendmentFacetKind::Text],
+        None,
+    );
+
+    let line_delta = delta(&log, "2016-01-01", "2019-06-01");
+    let targets: Vec<&str> = line_delta
+        .provisions()
+        .iter()
+        .map(|line| line.target().as_str())
+        .collect();
+    assert_eq!(targets, vec![STATYA_10], "exactly the touched target");
+
+    let statya_10 = provision(&line_delta, STATYA_10);
+    assert_eq!(
+        statya_10.force_from(),
+        NormativeState::InForce,
+        "force-only readout at `from` comes from the early admission"
+    );
+    assert_eq!(
+        statya_10.force_to(),
+        NormativeState::InForce,
+        "the text-only touch carries no Force facet"
+    );
+    assert!(!statya_10.force_conflict_from());
+    assert!(!statya_10.force_conflict_to());
+    assert!(
+        !statya_10.events().is_empty(),
+        "the touch is window evidence"
+    );
+    assert_eq!(
+        amendment_records(statya_10.events()),
+        vec![("rec:law2-10c".to_owned(), LAW2_ACT.to_owned())],
+        "the text-only touch is the only window evidence"
+    );
+}
+
+#[test]
+fn delta_is_deterministic_partial_eq() {
+    // The same log and the same window compute an equal delta twice: the
+    // read model is deterministic (HashMap order is never observable) and
+    // EditionDelta compares by value.
+    let combined = combined_log();
+    let first = delta(&combined, "2019-01-01", "2021-07-01");
+    let second = delta(&combined, "2019-01-01", "2021-07-01");
+    assert_eq!(first, second, "same log and window, equal delta");
+
+    let introduction = delta(&combined, "2018-12-31", "2019-01-01");
+    assert_ne!(
+        first, introduction,
+        "a different window is a different delta"
+    );
+}
+
+#[test]
+fn non_claims_are_nonempty_and_deny_bitemporal_compiler_and_r070() {
+    // Match the T02 statics: the delta carries its honesty non-claims —
+    // not bitemporal checkout, not the crystal compiler — and keeps R070
+    // and D-03 named-open instead of claiming them closed.
+    let combined = combined_log();
+    let demo = delta(&combined, "2019-01-01", "2021-07-01");
+    let joined = demo.non_claims().join(" | ");
+    assert!(
+        !demo.non_claims().is_empty(),
+        "the delta carries its non-claims"
+    );
+    assert!(
+        joined.contains("not bitemporal"),
+        "the deny list names the bitemporal-checkout non-claim"
+    );
+    assert!(
+        joined.contains("crystal compiler") || joined.contains("MicroOperation"),
+        "the deny list names the crystal-compiler non-claim"
+    );
+    assert!(
+        joined.contains("R070") || joined.contains("D-03"),
+        "R070 / D-03 stay named-open in the non-claims"
+    );
+}
+
+#[test]
+fn r081_one_work_namespace_on_delta_targets() {
+    // Every delta line targets the one stable Work namespace cc:44-fz
+    // (R081): an amendment never mints a new Work, so no window line —
+    // demo or introduction — may point outside cc:44-fz.
+    let combined = combined_log();
+    for window in [
+        delta(&combined, "2019-01-01", "2021-07-01"),
+        delta(&combined, "2018-12-31", "2019-01-01"),
+    ] {
+        assert!(!window.provisions().is_empty());
+        for line in window.provisions() {
+            let target = line.target().as_str();
+            assert!(
+                target.starts_with(FZ44),
+                "{target} is outside the one cc:44-fz Work namespace"
+            );
+        }
+    }
+}
+
+#[test]
+fn combined_fold_at_2022_still_reports_false_aggregate_conflict() {
+    // Regression pin on the log-wide fold: the delta work must not "fix"
+    // Fold 8. At 2022 the combined aggregate still honestly reports the
+    // same-day divergent force across different concepts (statya-5 InForce
+    // vs statya-93 Repealed) as Unknown + force_conflict.
+    let combined = combined_log();
+    let fold_2022 = fold_three_canon_at(&combined, day("2022-01-01")).expect("fold");
+    assert!(
+        fold_2022.force_conflict(),
+        "Fold 8 stays honestly conflicted"
+    );
+    assert_eq!(fold_2022.force_status(), NormativeState::Unknown);
+}
+
+#[test]
+fn checkout_at_2022_still_reports_per_provision_force() {
+    // S01 regression pin: the point per-target checkout at 2022 still reads
+    // per-provision force — statya-5 InForce, statya-93 Repealed,
+    // statya-93-1 InForce — conflict-free. The projection structurally
+    // carries no aggregate force readout at the root (the only force
+    // surface is per-provision); the delta work must not change that
+    // surface and must not "fix" Fold 8 through the checkout either.
+    let combined = combined_log();
+    let at_2022 = checkout_projection_at(&combined, day("2022-01-01")).expect("checkout");
+    assert_eq!(at_2022.as_of_day(), day("2022-01-01"));
+    assert_eq!(at_2022.provisions().len(), 3, "three component concepts");
+
+    let expected = [
+        (STATYA_5, NormativeState::InForce),
+        (STATYA_93, NormativeState::Repealed),
+        (STATYA_93_1, NormativeState::InForce),
+    ];
+    for (target, expected_status) in expected {
+        let line = at_2022
+            .provisions()
+            .iter()
+            .find(|line| line.target().as_str() == target)
+            .unwrap_or_else(|| panic!("{target} missing"));
+        assert_eq!(line.force_status(), expected_status, "{target}");
+        assert!(!line.force_conflict(), "{target} checks out conflict-free");
+    }
+    let force_of = |target: &str| {
+        at_2022
+            .provisions()
+            .iter()
+            .find(|line| line.target().as_str() == target)
+            .expect("provision")
+            .force_status()
+    };
+    assert_ne!(
+        force_of(STATYA_5),
+        force_of(STATYA_93),
+        "divergent per-provision readouts coexist with no aggregate root force"
     );
 }
