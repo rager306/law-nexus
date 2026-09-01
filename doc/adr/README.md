@@ -67,3 +67,4 @@ named on living surfaces only with an explicit retired/archive qualifier.
 | [ADR-0025](0025-consultant-parser-crate.md) | Consultant parser — separate crate for provider-specific extraction | Accepted | [bounded] |
 | [ADR-0026](0026-ruvector-agent-memory.md) | RuVector as agent memory layer for the meta-parser | Accepted | [proposed] |
 | [ADR-0027](0027-multi-layer-classifier.md) | Multi-layer manifest classifier for document-specific link classification | Accepted | [bounded] |
+| [ADR-0028](0028-typed-lexer-legal-marker-lexicon.md) | Typed lexer and legal-marker lexicon for the NPA document engine (LawRef FSM, clause/list_item modes, act tree) | Proposed | [proposed] |

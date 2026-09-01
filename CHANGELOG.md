@@ -2,6 +2,27 @@
 
 ## [Unreleased]
 
+### NPA engine review, ADR-0028 and morphology audit (2026-08-31/09-01)
+
+- **ADR-0028** (doc/adr/0028-typed-lexer-legal-marker-lexicon.md,
+  `[proposed]`): typed lexer + legal-marker lexicon for the NPA document
+  engine — LawRef FSM, clause/list_item modes, act tree as a bounded
+  extension of the M171 ladder; razdel/mawo not cloned (news-domain
+  split-then-rejoin); SynTagRus CC BY-NC-SA data must not ship; morphology
+  deferred until links/structure stable. Companion README row satisfies the
+  `adr-contract-change` freshness trigger.
+- `assessment/24-npa-engine-review.md`: review record — pravo.gov.ru
+  read-only JSON API verified (PublicBlocks/Categories + RSS/PDF; official
+  texts are not copyrightable; portal availability mediocre → cache/retry);
+  morphology coverage audit (статья ×8, пункт ×10 covered; глава/часть/
+  подпункт/раздел — 0 free-text forms; hierarchy ladder = nominative only);
+  defect list incl. 2,478 `../`-poisoned artifact rows and the coordination
+  finalize wedge; wave plan N0–N5 (fixtures → lexer → LawRef → segmentation
+  → act tree), morphology deferred.
+- Durable lessons captured to GSD memory (MEM1282–1284): tokenizer
+  alphabetic-only + ё-not-normalized; NPA engine architecture decision;
+  headless coordination-claim wedge repair flow.
+
 ### 44-FZ edition-walk model exercise (2026-08-31)
 
 - `crates/ln-temporal/tests/fz44_edition_walk.rs` (new): owner-requested
