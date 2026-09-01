@@ -33,7 +33,7 @@ use ln_temporal::calendar::legal_act_effect_day_to_ordinal;
 use ln_temporal::domain::{
     checkout_projection_at, fold_three_canon_at, AmendmentFacetKind, C1Candidate, CanonRecordId,
     CheckoutProjection, ComponentConceptId, EditionOracle, EvidenceClass, NormativeState,
-    ProvisionCheckout, ThreeCanonEventLog, ThreeCanonRecord,
+    ProvisionCheckout, ThreeCanonEventLog, ThreeCanonLogError, ThreeCanonRecord,
 };
 
 // One stable Work (R081): every component concept lives in this namespace.
@@ -356,4 +356,221 @@ fn law3_statya_93_carries_record_id_and_amending_act_provenance() {
     assert!(amendment_records(statya_5.events())
         .iter()
         .any(|(id, _)| id == "rec:ed0-5c"));
+}
+
+// ── T03 honesty negatives: a green demo cannot hide D304 or oracle leakage ──
+
+#[test]
+fn checkout_before_edition0_has_zero_provisions_not_in_force() {
+    // Before edition 0 is effective (2013-09-01) no provision exists: the
+    // checkout projects zero provisions (the oracle is not a canon event)
+    // and never synthesizes an InForce readout from absence (D304).
+    let combined = combined_log();
+    let before = checkout(&combined, "2013-08-31");
+
+    assert_eq!(before.as_of_day(), day("2013-08-31"));
+    assert!(
+        before.provisions().is_empty(),
+        "no canon event is effective before edition 0"
+    );
+    for target in [STATYA_5, STATYA_93, STATYA_93_1] {
+        assert!(
+            before
+                .provisions()
+                .iter()
+                .all(|p| p.target().as_str() != target),
+            "{target} must be absent before edition 0"
+        );
+    }
+}
+
+#[test]
+fn checkout_at_2019_06_01_introduces_statya_93_1_and_keeps_93_in_force() {
+    // Mid-walk cut: after закон №2 (2019-01-01) but before закон №3
+    // (2021-07-01) all three provisions read InForce with clean per-target
+    // readouts — the repeal has not happened yet, so no conflict, and the
+    // 2022 Repealed on statya-93 must not leak backwards in time.
+    let combined = combined_log();
+    let at_2019 = checkout(&combined, "2019-06-01");
+
+    assert_eq!(at_2019.provisions().len(), 3);
+    for (target, expected) in [
+        (STATYA_93_1, NormativeState::InForce),
+        (STATYA_93, NormativeState::InForce),
+        (STATYA_5, NormativeState::InForce),
+    ] {
+        let provision = provision(&at_2019, target);
+        assert_eq!(provision.force_status(), expected, "{target}");
+        assert!(!provision.force_conflict(), "{target}");
+    }
+}
+
+#[test]
+fn text_only_provision_is_unknown_without_conflict() {
+    // A provision whose only projected events are Text-facet amendments
+    // (no Force facet, no effect payload) stays honestly Unknown: text
+    // edits never drive a force readout, and "no force evidence" is not
+    // InForce (the D304 shape at the provision level).
+    let mut log = ThreeCanonEventLog::empty();
+    admit(
+        &mut log,
+        "law1-16t",
+        "cc:44-fz:statya-16",
+        LAW1_ACT,
+        "2016-01-01",
+        vec![AmendmentFacetKind::Text],
+        None,
+    );
+
+    let at_2016 = checkout(&log, "2016-06-01");
+    let statya_16 = provision(&at_2016, "cc:44-fz:statya-16");
+    assert_eq!(statya_16.force_status(), NormativeState::Unknown);
+    assert!(!statya_16.force_conflict());
+    assert_eq!(
+        statya_16.events().len(),
+        1,
+        "the text-only chain is kept, it just never drives force"
+    );
+}
+
+#[test]
+fn oracle_is_held_on_log_but_absent_from_every_provision_events() {
+    // The edition oracle stays a log-level checksum (§1c): the combined
+    // log holds it, but it never leaks into any provision's canon chain.
+    let combined = combined_log();
+    assert!(
+        combined
+            .records()
+            .iter()
+            .any(|record| matches!(record, ThreeCanonRecord::EditionOracle(_))),
+        "the oracle is held on the log"
+    );
+
+    let at_2022 = checkout(&combined, "2022-01-01");
+    assert!(!at_2022.provisions().is_empty());
+    for provision in at_2022.provisions() {
+        assert!(
+            provision
+                .events()
+                .iter()
+                .all(|record| !matches!(record, ThreeCanonRecord::EditionOracle(_))),
+            "oracle never becomes a provision canon event"
+        );
+    }
+}
+
+#[test]
+fn empty_or_oracle_only_log_yields_zero_provisions() {
+    // D304 at the checkout level: an empty log and an oracle-only log both
+    // project zero provisions — absence of canon events never becomes a
+    // synthetic InForce provision, and the oracle is not a canon event.
+    let empty = ThreeCanonEventLog::empty();
+    assert!(checkout(&empty, "2022-01-01").provisions().is_empty());
+
+    let mut oracle_only = ThreeCanonEventLog::empty();
+    oracle_only
+        .append(oracle("orc:solo", "2013-04-05"))
+        .expect("edition oracle");
+    assert!(checkout(&oracle_only, "2022-01-01").provisions().is_empty());
+}
+
+#[test]
+fn checkout_is_deterministic_partial_eq() {
+    // Deterministic read model: the same log and day produce an equal
+    // projection (provisions are sorted by target string internally), and
+    // a different as-of day is a different projection.
+    let combined = combined_log();
+    let first = checkout(&combined, "2022-01-01");
+    let second = checkout(&combined, "2022-01-01");
+    assert_eq!(first, second);
+    assert_eq!(first.provisions().len(), second.provisions().len());
+    assert_ne!(first, checkout(&combined, "2019-06-01"));
+}
+
+#[test]
+fn unordered_log_returns_ordering_conflict() {
+    // Defense-in-depth honesty: `checkout_projection_at` consumes the same
+    // ordered-loop contract as `fold_three_canon_at` and never sorts. The
+    // public API cannot even represent an unordered log — `append` itself
+    // fails closed with `OrderingConflict` before any projection could see
+    // one. Privacy is not weakened to force the Err path: the same
+    // in-function ordered loop guards `checkout_projection_at` directly if
+    // a raw constructor ever appears.
+    let mut log = ThreeCanonEventLog::empty();
+    admit(
+        &mut log,
+        "ed0-93",
+        STATYA_93,
+        EDITION0_ACT,
+        "2013-09-01",
+        vec![AmendmentFacetKind::Force],
+        Some(NormativeState::InForce),
+    );
+
+    // An earlier-than-last day cannot enter the ordered log...
+    let unordered_attempt = log.append_c1_candidate(
+        rid("rec:early-93"),
+        change(
+            "early-93",
+            STATYA_93,
+            LAW1_ACT,
+            "2013-08-31",
+            vec![AmendmentFacetKind::Force],
+            Some(NormativeState::Repealed),
+        ),
+    );
+    assert!(
+        matches!(unordered_attempt, Err(ThreeCanonLogError::OrderingConflict)),
+        "out-of-order admission is rejected"
+    );
+
+    // ...and the rejected record was not stored: the checkout still sees
+    // exactly one in-order event and keeps the clean readout.
+    let at_2022 = checkout(&log, "2022-01-01");
+    assert_eq!(at_2022.provisions().len(), 1);
+    let statya_93 = provision(&at_2022, STATYA_93);
+    assert_eq!(statya_93.events().len(), 1, "rejection left no residue");
+    assert_eq!(statya_93.force_status(), NormativeState::InForce);
+    assert!(!statya_93.force_conflict());
+}
+
+#[test]
+fn non_claims_are_nonempty_and_deny_bitemporal_compiler_and_r070() {
+    // The checkout's honesty manifest (T02 statics) must survive any
+    // future refactor: it names what the read model is not — not bitemporal
+    // checkout, not the crystal compiler, provenance/bounded-step open.
+    let combined = combined_log();
+    let at_2022 = checkout(&combined, "2022-01-01");
+
+    let claims = at_2022.non_claims();
+    assert!(!claims.is_empty());
+    let joined = claims.join("\n");
+    assert!(
+        joined.contains("not bitemporal checkout"),
+        "denies the bitemporal-checkout reading"
+    );
+    assert!(
+        joined.contains("crystal compiler"),
+        "denies the crystal-compiler claim"
+    );
+    assert!(
+        joined.contains("R070") || joined.contains("D-03"),
+        "keeps the provenance / bounded-step honesty visible"
+    );
+}
+
+#[test]
+fn r081_one_work_namespace_on_provision_targets() {
+    // R081 shape: every projected provision stays inside the single 44-FZ
+    // Work namespace; amendments never mint a new Work per change.
+    let combined = combined_log();
+    let at_2022 = checkout(&combined, "2022-01-01");
+    assert!(!at_2022.provisions().is_empty());
+    for provision in at_2022.provisions() {
+        assert!(
+            provision.target().as_str().starts_with(FZ44),
+            "{} leaves the {FZ44} namespace",
+            provision.target().as_str()
+        );
+    }
 }
