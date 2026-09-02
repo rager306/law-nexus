@@ -11,6 +11,8 @@
 //! Lexemes are never stored: [`NpaToken::lexeme`] slices the source. The S01
 //! sidecar JSON (`fz44_npa_tokens.json`) is the behavioral oracle.
 
+use std::sync::OnceLock;
+
 use crate::domain::TextSpan;
 
 /// Closed token-kind set fixed by the S01 golden vocabulary (nine kinds).
@@ -80,30 +82,106 @@ impl NpaToken {
     }
 }
 
-/// T01 static mirror of the S01 canonical abbreviation table
-/// (`ABBREV_CANONICAL_LEXEMES` in `tests/npa_golden_fixtures.rs`), ordered
-/// longest-first so `пп.` wins over `п.` and `ст.ст.` over `ст.`. The YAML
-/// lexicon (`npa_abbrev_lexicon`, T03) becomes the source of truth later; the
-/// T03 catalog pin guards this mirror against drift.
-const ABBREV_LEXEMES: &[(AbbrevId, &str)] = &[
-    (AbbrevId("stst"), "ст.ст."),
-    (AbbrevId("podp"), "подп."),
-    (AbbrevId("pril"), "прил."),
-    (AbbrevId("prim"), "прим."),
-    (AbbrevId("razd"), "разд."),
-    (AbbrevId("abz"), "абз."),
-    (AbbrevId("izm"), "изм."),
-    (AbbrevId("red"), "ред."),
-    (AbbrevId("utv"), "утв."),
-    (AbbrevId("gl"), "гл."),
-    (AbbrevId("pp"), "пп."),
-    (AbbrevId("sm"), "см."),
-    (AbbrevId("sr"), "ср."),
-    (AbbrevId("st"), "ст."),
-    (AbbrevId("g"), "г."),
-    (AbbrevId("p"), "п."),
-    (AbbrevId("ch"), "ч."),
+/// Closed allowlist of canonical legal-drafting abbreviation ids (the 17-id
+/// S01 canon, D329/D334). Ids only: the lexemes themselves are data and come
+/// from the `npa_abbrev_lexicon` map of the embedded ontology YAML — there is
+/// deliberately no second runtime lexeme table (ADR-0028 decision 2).
+const NPA_ABBREV_IDS: [&str; 17] = [
+    "st", "stst", "ch", "p", "pp", "podp", "abz", "gl", "razd", "pril", "prim", "red", "izm",
+    "utv", "sm", "sr", "g",
 ];
+
+/// Parsed lexicon entry: canonical id plus its lexeme (dot included), sliced
+/// straight out of the embedded YAML.
+type AbbrevEntry = (AbbrevId, &'static str);
+
+/// The YAML lexicon, parsed once on the first [`lex`] call. `lex` stays
+/// infallible: a malformed catalog is a build-data defect, so the parse fails
+/// closed with a precise panic instead of a `Result` on the hot path.
+static ABBREV_LEXICON: OnceLock<Vec<AbbrevEntry>> = OnceLock::new();
+
+fn abbrev_lexicon() -> &'static [AbbrevEntry] {
+    ABBREV_LEXICON.get_or_init(|| {
+        let mut table = parse_abbrev_lexicon(crate::prefix_catalog::EMBEDDED_ONTOLOGY_YAML);
+        // Longest-first so `ст.ст.` wins over `ст.` and `пп.` over `п.`
+        // (stable sort keeps YAML order for equal byte lengths).
+        table.sort_by_key(|entry| std::cmp::Reverse(entry.1.len()));
+        table
+    })
+}
+
+/// Fail-closed parse of the `npa_abbrev_lexicon` sibling map: the heading
+/// must exist, every id must be in the closed S01 allowlist exactly once,
+/// every lexeme must be non-empty, and every canonical id must be present.
+fn parse_abbrev_lexicon(yaml: &'static str) -> Vec<AbbrevEntry> {
+    let entries = yaml_map_scalars(yaml, "npa_abbrev_lexicon:")
+        .expect("kb-ontology.yaml must carry the `npa_abbrev_lexicon:` map");
+    assert!(
+        !entries.is_empty(),
+        "npa_abbrev_lexicon must list the S01 abbreviation scalars"
+    );
+    let mut table: Vec<AbbrevEntry> = Vec::with_capacity(entries.len());
+    let mut seen: Vec<&'static str> = Vec::with_capacity(NPA_ABBREV_IDS.len());
+    for (id, lexeme) in entries {
+        assert!(
+            !seen.contains(&id),
+            "npa_abbrev_lexicon: duplicate id '{id}'"
+        );
+        seen.push(id);
+        assert!(
+            NPA_ABBREV_IDS.contains(&id),
+            "npa_abbrev_lexicon: unknown id '{id}' is outside the S01 canon"
+        );
+        assert!(
+            !lexeme.is_empty(),
+            "npa_abbrev_lexicon: id '{id}' has an empty lexeme"
+        );
+        table.push((AbbrevId(id), lexeme));
+    }
+    for id in NPA_ABBREV_IDS {
+        assert!(
+            seen.contains(&id),
+            "npa_abbrev_lexicon: missing canonical id '{id}'"
+        );
+    }
+    table
+}
+
+/// Hand-rolled scalar reader for one YAML sibling map (the private
+/// `prefix_catalog::map_scalars` pattern, not the module itself): after
+/// `heading`, collect `key: scalar` pairs until the first line whose indent
+/// is <= the heading's own (the next sibling key). Comments are stripped by
+/// the `#` rule; quoted scalars are unquoted. Returns `None` only when the
+/// heading is absent.
+fn yaml_map_scalars<'y>(yaml: &'y str, heading: &str) -> Option<Vec<(&'y str, &'y str)>> {
+    let mut entries = Vec::new();
+    let mut in_map = false;
+    let mut heading_indent = 0usize;
+    for raw in yaml.lines() {
+        let line = raw.split('#').next().unwrap_or(raw);
+        let trimmed = line.trim();
+        if trimmed.is_empty() {
+            continue;
+        }
+        let indent = raw.len() - raw.trim_start().len();
+        if !in_map {
+            if trimmed == heading {
+                in_map = true;
+                heading_indent = indent;
+            }
+            continue;
+        }
+        if indent <= heading_indent {
+            return Some(entries);
+        }
+        let Some((key, value)) = trimmed.split_once(':') else {
+            panic!("npa_abbrev_lexicon: non-scalar line inside the map: '{trimmed}'");
+        };
+        let value = value.trim().trim_matches('"').trim_matches('\'');
+        entries.push((key.trim(), value));
+    }
+    in_map.then_some(entries)
+}
 
 /// Lex `src` into covering tokens (infallible, single left-to-right pass).
 ///
@@ -227,7 +305,7 @@ fn scan_abbrev(src: &str, start: usize) -> Option<(usize, AbbrevId)> {
     if !at_word_start {
         return None;
     }
-    ABBREV_LEXEMES.iter().find_map(|(id, lexeme)| {
+    abbrev_lexicon().iter().find_map(|(id, lexeme)| {
         src[start..]
             .starts_with(lexeme)
             .then(|| (start + lexeme.len(), *id))

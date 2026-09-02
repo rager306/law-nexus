@@ -230,6 +230,30 @@ vocabulary:
     Glava: [Глава, ГЛАВА, глава]
     Statya: [Статья, СТАТЬЯ, статья]
     Paragraph: ["§"]
+  # Legal-drafting abbreviation lexicon (юртехника, ADR-0028 step 1): the
+  # closed S01 id canon consumed by ln_decode::lexer::scan_abbrev. This is
+  # deliberately NOT the razdel-style hierarchy vocabulary (that lives in
+  # decode_level_aliases / decode_marker_prefixes) and NOT SynTagRus
+  # morphology data. No closed_vocabularies row: AbbrevId is a newtype, not
+  # a Rust enum, so there is no governor source-scan surface for it.
+  npa_abbrev_lexicon:
+    st: "ст."
+    stst: "ст.ст."
+    ch: "ч."
+    p: "п."
+    pp: "пп."
+    podp: "подп."
+    abz: "абз."
+    gl: "гл."
+    razd: "разд."
+    pril: "прил."
+    prim: "прим."
+    red: "ред."
+    izm: "изм."
+    utv: "утв."
+    sm: "см."
+    sr: "ср."
+    g: "г."
   decode_numbered_markers:
     Chast: {number_style: digit, suffix: ".", allow_compound: true}
     Punkt: {number_style: digit, suffix: ")", allow_compound: true}

@@ -55,6 +55,34 @@ fn hierarchy_level_tokens_are_unique() {
     }
 }
 
+/// T03 catalog pin: the `npa_abbrev_lexicon` YAML map must carry exactly the
+/// 17-id S01 canon (ADR-0028 legal-drafting lexicon) — an extra id, a missing
+/// id, or a duplicate id all fail. The lexer parses the same map fail-closed.
+#[test]
+fn npa_abbrev_lexicon_ids_are_exactly_the_s01_canon() {
+    let keys = yaml_map_keys(YAML, "npa_abbrev_lexicon:");
+    let mut sorted = keys.clone();
+    sorted.sort();
+    sorted.dedup();
+    assert_eq!(
+        sorted.len(),
+        keys.len(),
+        "npa_abbrev_lexicon must not repeat an id"
+    );
+    let mut expected: Vec<String> = [
+        "st", "stst", "ch", "p", "pp", "podp", "abz", "gl", "razd", "pril", "prim", "red", "izm",
+        "utv", "sm", "sr", "g",
+    ]
+    .into_iter()
+    .map(String::from)
+    .collect();
+    expected.sort();
+    assert_eq!(
+        sorted, expected,
+        "npa_abbrev_lexicon must equal the 17 S01 canon ids exactly (extra or missing fails)"
+    );
+}
+
 fn yaml_map_keys(text: &str, heading: &str) -> Vec<String> {
     let mut keys = Vec::new();
     let mut in_map = false;

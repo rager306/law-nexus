@@ -474,6 +474,84 @@ fn latin_n_stays_word_before_doc_no() {
 }
 
 // ---------------------------------------------------------------------------
+// T03: D329 lexicon ids from the YAML `npa_abbrev_lexicon` map + shape units.
+// All inputs are in-test `&str` (no new synthetic txt; S01 quotas untouched).
+// ---------------------------------------------------------------------------
+
+#[test]
+fn d329_abbrev_ids_resolve_from_the_yaml_lexicon() {
+    // The D329 subset below has zero hits in the tracked 44-ФЗ corpus; each
+    // must still lex from the YAML map as a canonical Abbrev token.
+    for (src, id) in [
+        ("гл.", "gl"),
+        ("разд.", "razd"),
+        ("подп.", "podp"),
+        ("абз.", "abz"),
+        ("прил.", "pril"),
+        ("прим.", "prim"),
+        ("утв.", "utv"),
+        ("ср.", "sr"),
+        ("изм.", "izm"),
+        ("см.", "sm"),
+    ] {
+        let tokens = lex(src);
+        assert_eq!(tokens.len(), 1, "{src} is a single token");
+        assert_eq!(tokens[0].kind, TokenKind::Abbrev, "{src}");
+        assert_eq!(
+            tokens[0].abbrev_id.map(AbbrevId::as_str),
+            Some(id),
+            "{src} must carry the canonical YAML id"
+        );
+        assert_eq!(tokens[0].lexeme(src), src, "{src} keeps its dot inside");
+    }
+}
+
+#[test]
+fn stst_is_one_abbrev_not_two_st_tokens() {
+    let tokens = lex("ст.ст.");
+    assert_eq!(tokens.len(), 1, "ст.ст. must match longest-first");
+    assert_eq!(tokens[0].kind, TokenKind::Abbrev);
+    assert_eq!(tokens[0].abbrev_id.map(AbbrevId::as_str), Some("stst"));
+    assert_eq!(tokens[0].lexeme("ст.ст."), "ст.ст.");
+}
+
+#[test]
+fn three_segment_hier_num_is_one_token() {
+    let src = "2.3.1";
+    let tokens = lex(src);
+    assert_eq!(tokens.len(), 1, "2.3.1 is a single HierNum");
+    assert_eq!(tokens[0].kind, TokenKind::HierNum);
+    assert_eq!(tokens[0].lexeme(src), "2.3.1");
+    assert_eq!((tokens[0].span.start(), tokens[0].span.end()), (0, 5));
+}
+
+#[test]
+fn g_is_always_abbrev_g_not_a_year_or_city() {
+    for src in ["г.", "г. 2028", "г. Москва"] {
+        let tokens = lex(src);
+        assert_eq!(tokens[0].kind, TokenKind::Abbrev, "{src}");
+        assert_eq!(
+            tokens[0].abbrev_id.map(AbbrevId::as_str),
+            Some("g"),
+            "{src}: `г.` never resolves a year or a city"
+        );
+        assert_eq!(tokens[0].lexeme(src), "г.", "{src}");
+    }
+}
+
+#[test]
+fn full_level_words_stay_words_for_s03_morphology() {
+    for src in ["глава", "часть", "подпункт", "раздел"] {
+        let tokens = lex(src);
+        assert_eq!(kinds(&tokens), [TokenKind::Word], "{src} stays a Word");
+        assert!(
+            tokens.iter().all(|token| token.abbrev_id.is_none()),
+            "{src} must not mint an Abbrev id (S03 morphology owns the lexeme)"
+        );
+    }
+}
+
+// ---------------------------------------------------------------------------
 // T02: shared-loader fragment equality (not the full 44 sweep — that is T03).
 // ---------------------------------------------------------------------------
 
