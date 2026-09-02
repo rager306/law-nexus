@@ -16,6 +16,7 @@ pub mod golden;
 pub mod hierarchy;
 pub mod lexer;
 pub mod morphology;
+pub mod npa_sweep;
 pub mod ports;
 pub mod prefix_catalog;
 pub mod references;

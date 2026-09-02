@@ -7,3 +7,7 @@ publish = false
 [dependencies]
 quick-xml = "0.36"
 zip = { version = "=8.6.0", default-features = false, features = ["deflate-flate2-zlib-rs"] }
+
+[[bin]]
+name = "npa-corpus-sweep"
+path = "src/bin/npa-corpus-sweep.rs"
