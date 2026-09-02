@@ -173,11 +173,18 @@ fn chains_four_hierarchical_markers_in_source_order_with_exact_spans() {
 
 #[test]
 fn keeps_yo_and_ye_doublets_distinct_without_folding() {
+    // T02 regression table: every doublet pair (ё/е stems and instrumental
+    // -ой/-ою forms) maps both variants to one kind; spans reproduce the
+    // source slice and nothing folds ё→е (MEM1283: tokenize never folds).
     let cases = [
         ("статьёй", LegalMarkerKind::Statya),
         ("статьей", LegalMarkerKind::Statya),
         ("запрещён", LegalMarkerKind::Zapret),
         ("запрещен", LegalMarkerKind::Zapret),
+        ("главой", LegalMarkerKind::Glava),
+        ("главою", LegalMarkerKind::Glava),
+        ("частью", LegalMarkerKind::Chast),
+        ("частею", LegalMarkerKind::Chast),
     ];
 
     for (form, kind) in cases {
@@ -189,5 +196,59 @@ fn keeps_yo_and_ye_doublets_distinct_without_folding() {
             form,
             "{form}: span oracle mismatch"
         );
+        assert!(!matches[0].negated(), "{form}: unexpected negation");
+    }
+}
+
+#[test]
+fn rejects_stem_overlap_prefix_nouns_and_bogus_yo_whole_tokens() {
+    // Hostile unmatched surface (T02): stem overlap (глав-/част-/раздел-),
+    // prefix nouns (подстатья, пунктуация), a bogus stem ё (частёю must not
+    // fold onto the live form частею), and a whole-token lookalike (воглаве
+    // is never split by the tokenizer) all yield exactly zero markers.
+    for word in [
+        "главный",
+        "главенство",
+        "частный",
+        "частность",
+        "разделение",
+        "разделённый",
+        "разделенный",
+        "подстатья",
+        "пунктуация",
+        "частёю",
+        "воглаве",
+    ] {
+        let matches = find_legal_markers(word);
+        assert!(
+            matches.is_empty(),
+            "{word} must stay unmatched, got {matches:?}"
+        );
+    }
+}
+
+#[test]
+fn finds_four_markers_in_fz44_036_running_text_shape_in_source_order() {
+    // fz44-036 running-text shape, morphology-only surface: unit string, no
+    // fixture XML and no references.rs / extract_reference_mentions here.
+    let text = "подпунктом \"а\" пункта 1 части 2 настоящей статьи";
+
+    let matches = find_legal_markers(text);
+
+    let expected = [
+        (LegalMarkerKind::Podpunkt, "подпунктом"),
+        (LegalMarkerKind::Punkt, "пункта"),
+        (LegalMarkerKind::Chast, "части"),
+        (LegalMarkerKind::Statya, "статьи"),
+    ];
+    assert_eq!(matches.len(), expected.len());
+    for ((kind, slice), item) in expected.iter().zip(matches.iter()) {
+        assert_eq!(item.kind(), *kind, "{slice}: wrong kind or order");
+        assert_eq!(
+            matched_text(text, item.start(), item.end()),
+            *slice,
+            "{slice}: span oracle mismatch"
+        );
+        assert!(!item.negated(), "{slice}: unexpected negation");
     }
 }
