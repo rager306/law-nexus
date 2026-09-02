@@ -14,6 +14,7 @@ pub mod domain;
 pub mod evaluator;
 pub mod golden;
 pub mod hierarchy;
+pub mod lexer;
 pub mod morphology;
 pub mod ports;
 pub mod prefix_catalog;
