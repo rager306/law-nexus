@@ -79,3 +79,115 @@ fn empty_or_unrelated_text_has_no_markers() {
     assert!(find_legal_markers("").is_empty());
     assert!(find_legal_markers("Техническое описание процедуры.").is_empty());
 }
+
+#[test]
+fn classifies_full_inflection_tables_for_free_text_hierarchical_markers() {
+    // 38 forms: Glava x10, Chast x8, Podpunkt x10, Razdel x10 (ADR-0028 §2).
+    let cases: [(&str, LegalMarkerKind); 38] = [
+        // Glava
+        ("глава", LegalMarkerKind::Glava),
+        ("главы", LegalMarkerKind::Glava),
+        ("главе", LegalMarkerKind::Glava),
+        ("главу", LegalMarkerKind::Glava),
+        ("главой", LegalMarkerKind::Glava),
+        ("главою", LegalMarkerKind::Glava),
+        ("главам", LegalMarkerKind::Glava),
+        ("главами", LegalMarkerKind::Glava),
+        ("главах", LegalMarkerKind::Glava),
+        ("глав", LegalMarkerKind::Glava),
+        // Chast
+        ("часть", LegalMarkerKind::Chast),
+        ("части", LegalMarkerKind::Chast),
+        ("частью", LegalMarkerKind::Chast),
+        ("частею", LegalMarkerKind::Chast),
+        ("частей", LegalMarkerKind::Chast),
+        ("частям", LegalMarkerKind::Chast),
+        ("частями", LegalMarkerKind::Chast),
+        ("частях", LegalMarkerKind::Chast),
+        // Podpunkt
+        ("подпункт", LegalMarkerKind::Podpunkt),
+        ("подпункта", LegalMarkerKind::Podpunkt),
+        ("подпункту", LegalMarkerKind::Podpunkt),
+        ("подпунктом", LegalMarkerKind::Podpunkt),
+        ("подпункте", LegalMarkerKind::Podpunkt),
+        ("подпункты", LegalMarkerKind::Podpunkt),
+        ("подпунктов", LegalMarkerKind::Podpunkt),
+        ("подпунктам", LegalMarkerKind::Podpunkt),
+        ("подпунктами", LegalMarkerKind::Podpunkt),
+        ("подпунктах", LegalMarkerKind::Podpunkt),
+        // Razdel
+        ("раздел", LegalMarkerKind::Razdel),
+        ("раздела", LegalMarkerKind::Razdel),
+        ("разделу", LegalMarkerKind::Razdel),
+        ("разделом", LegalMarkerKind::Razdel),
+        ("разделе", LegalMarkerKind::Razdel),
+        ("разделы", LegalMarkerKind::Razdel),
+        ("разделов", LegalMarkerKind::Razdel),
+        ("разделам", LegalMarkerKind::Razdel),
+        ("разделами", LegalMarkerKind::Razdel),
+        ("разделах", LegalMarkerKind::Razdel),
+    ];
+
+    for (form, kind) in cases {
+        let matches = find_legal_markers(form);
+        assert_eq!(matches.len(), 1, "{form}: expected exactly one match");
+        assert_eq!(matches[0].kind(), kind, "{form}: wrong LegalMarkerKind");
+        assert_eq!(
+            matched_text(form, matches[0].start(), matches[0].end()),
+            form,
+            "{form}: span oracle mismatch"
+        );
+        assert!(!matches[0].negated(), "{form}: unexpected negation");
+    }
+}
+
+#[test]
+fn chains_four_hierarchical_markers_in_source_order_with_exact_spans() {
+    let text = "подпунктом части главы раздела";
+
+    let matches = find_legal_markers(text);
+
+    assert_eq!(matches.len(), 4);
+    assert_eq!(matches[0].kind(), LegalMarkerKind::Podpunkt);
+    assert_eq!(matches[1].kind(), LegalMarkerKind::Chast);
+    assert_eq!(matches[2].kind(), LegalMarkerKind::Glava);
+    assert_eq!(matches[3].kind(), LegalMarkerKind::Razdel);
+    assert_eq!(
+        matched_text(text, matches[0].start(), matches[0].end()),
+        "подпунктом"
+    );
+    assert_eq!(
+        matched_text(text, matches[1].start(), matches[1].end()),
+        "части"
+    );
+    assert_eq!(
+        matched_text(text, matches[2].start(), matches[2].end()),
+        "главы"
+    );
+    assert_eq!(
+        matched_text(text, matches[3].start(), matches[3].end()),
+        "раздела"
+    );
+    assert!(matches.iter().all(|item| !item.negated()));
+}
+
+#[test]
+fn keeps_yo_and_ye_doublets_distinct_without_folding() {
+    let cases = [
+        ("статьёй", LegalMarkerKind::Statya),
+        ("статьей", LegalMarkerKind::Statya),
+        ("запрещён", LegalMarkerKind::Zapret),
+        ("запрещен", LegalMarkerKind::Zapret),
+    ];
+
+    for (form, kind) in cases {
+        let matches = find_legal_markers(form);
+        assert_eq!(matches.len(), 1, "{form}: expected exactly one match");
+        assert_eq!(matches[0].kind(), kind, "{form}: wrong LegalMarkerKind");
+        assert_eq!(
+            matched_text(form, matches[0].start(), matches[0].end()),
+            form,
+            "{form}: span oracle mismatch"
+        );
+    }
+}

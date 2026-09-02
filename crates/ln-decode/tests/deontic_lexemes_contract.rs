@@ -65,3 +65,15 @@ fn is_case_insensitive_repeat_deterministic_and_excludes_provider_comments() {
     assert_eq!(first.len(), 2);
     assert!(extract_deontic_lexemes(&comment).is_empty());
 }
+
+#[test]
+fn filters_hierarchical_structural_markers_from_deontic_output() {
+    let text = "Глава 1 и часть 2; орган вправе.";
+    let items = extract_deontic_lexemes(&block(text, ParagraphStyle::BodyText));
+    assert_eq!(items.len(), 1);
+    assert_eq!(items[0].kind(), DeonticLexemeKind::Permission);
+    assert_eq!(
+        &text[items[0].text_span().start()..items[0].text_span().end()],
+        "вправе"
+    );
+}

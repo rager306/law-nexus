@@ -52,7 +52,13 @@ pub fn extract_deontic_lexemes(block: &ParsedBlock) -> Vec<DeonticLexeme> {
                 LegalMarkerKind::Obyazan => DeonticLexemeKind::Obligation,
                 LegalMarkerKind::Vprave => DeonticLexemeKind::Permission,
                 LegalMarkerKind::Zapret => DeonticLexemeKind::Prohibition,
-                LegalMarkerKind::Statya | LegalMarkerKind::Punkt => return None,
+                // Structural hierarchy markers are not deontic.
+                LegalMarkerKind::Statya
+                | LegalMarkerKind::Punkt
+                | LegalMarkerKind::Glava
+                | LegalMarkerKind::Chast
+                | LegalMarkerKind::Podpunkt
+                | LegalMarkerKind::Razdel => return None,
             };
             Some(DeonticLexeme {
                 kind,

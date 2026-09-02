@@ -9,6 +9,10 @@ pub enum LegalMarkerKind {
     Obyazan,
     Vprave,
     Zapret,
+    Glava,
+    Chast,
+    Podpunkt,
+    Razdel,
 }
 
 /// One exact lexical marker occurrence in decoded block text.
@@ -47,6 +51,25 @@ fn classify(word: &str) -> Option<LegalMarkerKind> {
         | "статьях" => Some(LegalMarkerKind::Statya),
         "пункт" | "пункта" | "пункту" | "пунктом" | "пункте" | "пункты" | "пунктов" | "пунктам"
         | "пунктами" | "пунктах" => Some(LegalMarkerKind::Punkt),
+        "глава" | "главы" | "главе" | "главу" | "главой" | "главою" | "главам" | "главами"
+        | "главах" | "глав" => Some(LegalMarkerKind::Glava),
+        "часть" | "части" | "частью" | "частею" | "частей" | "частям" | "частями" | "частях" => {
+            Some(LegalMarkerKind::Chast)
+        }
+        "подпункт"
+        | "подпункта"
+        | "подпункту"
+        | "подпунктом"
+        | "подпункте"
+        | "подпункты"
+        | "подпунктов"
+        | "подпунктам"
+        | "подпунктами"
+        | "подпунктах" => Some(LegalMarkerKind::Podpunkt),
+        "раздел" | "раздела" | "разделу" | "разделом" | "разделе" | "разделы" | "разделов"
+        | "разделам" | "разделами" | "разделах" => {
+            Some(LegalMarkerKind::Razdel)
+        }
         "обязан" | "обязана" | "обязано" | "обязаны" => {
             Some(LegalMarkerKind::Obyazan)
         }
