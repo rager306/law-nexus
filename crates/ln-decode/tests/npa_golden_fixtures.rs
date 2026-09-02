@@ -1024,6 +1024,396 @@ fn golden_fixtures_load_with_covering_span_invariants() {
 }
 
 // ---------------------------------------------------------------------------
+// T02: corpus harvest quotas and named collision locks (fixtures only; the
+// 5.2 MB XML stays undecoded in CI — provenance is the pinned metadata).
+// ---------------------------------------------------------------------------
+
+/// Full-form reference words that must appear as Word tokens in the
+/// fullword-ref bucket (running text, not headings; T02 quota table).
+const FULLWORD_FORMS: [&str; 14] = [
+    "статья",
+    "статьи",
+    "статье",
+    "статью",
+    "статьей",
+    "статей", //
+    "часть",
+    "части",
+    "частью",
+    "частями",
+    "частей", //
+    "пункта",
+    "пунктом",
+    "подпунктом",
+];
+
+/// Punct lexemes that satisfy the misc-punct bucket (quotes / list separators).
+const MISC_PUNCT_LEXEMES: [&str; 5] = ["\"", ";", ":", "«", "»"];
+
+#[test]
+fn t02_corpus_goldens_hold_quota_and_collision_locks() {
+    let fragments = load_golden_fixtures(&fixtures_dir(), &repo_root())
+        .expect("NPA golden fixtures must load fail-closed");
+
+    let corpus: Vec<&LoadedFragment> = fragments
+        .iter()
+        .filter(|fragment| fragment.note_kind != "synthetic")
+        .collect();
+    assert!(
+        corpus.len() >= 40,
+        "T02 quota: >= 40 corpus goldens (got {})",
+        corpus.len()
+    );
+
+    let bucket = |name: &str| -> Vec<&LoadedFragment> {
+        corpus
+            .iter()
+            .copied()
+            .filter(|fragment| fragment.bucket == name)
+            .collect()
+    };
+    let has_abbrev = |fragment: &LoadedFragment, id: &str| {
+        fragment
+            .abbrev_ids
+            .iter()
+            .any(|candidate| candidate.as_deref() == Some(id))
+    };
+
+    // abbrev-hier >= 8: an Abbrev from {st,ch,p,pp} AND a HierNum per fragment.
+    let abbrev_hier = bucket("abbrev-hier");
+    assert!(
+        abbrev_hier.len() >= 8,
+        "abbrev-hier quota: >= 8 (got {})",
+        abbrev_hier.len()
+    );
+    for fragment in &abbrev_hier {
+        assert!(
+            fragment
+                .abbrev_ids
+                .iter()
+                .any(|id| matches!(id.as_deref(), Some("st" | "ch" | "p" | "pp"))),
+            "{} must carry a reference Abbrev",
+            fragment.id
+        );
+        assert!(
+            fragment.kinds.contains(&"HierNum"),
+            "{} must pair the Abbrev with a HierNum",
+            fragment.id
+        );
+    }
+
+    // date-docno >= 6: Date AND DocNo per fragment.
+    let date_docno = bucket("date-docno");
+    assert!(
+        date_docno.len() >= 6,
+        "date-docno quota: >= 6 (got {})",
+        date_docno.len()
+    );
+    for fragment in &date_docno {
+        assert!(
+            fragment.kinds.contains(&"Date") && fragment.kinds.contains(&"DocNo"),
+            "{} must carry both Date and DocNo",
+            fragment.id
+        );
+    }
+
+    // enum-list >= 4: EnumMarker per fragment.
+    let enum_list = bucket("enum-list");
+    assert!(
+        enum_list.len() >= 4,
+        "enum-list quota: >= 4 (got {})",
+        enum_list.len()
+    );
+    for fragment in &enum_list {
+        assert!(
+            fragment.kinds.contains(&"EnumMarker"),
+            "{} must carry an EnumMarker",
+            fragment.id
+        );
+    }
+
+    // heading >= 4: `Глава/Статья N.` = Word + Space + Word(digits) + Punct(".");
+    // both heading words must occur across the bucket.
+    let heading = bucket("heading");
+    assert!(
+        heading.len() >= 4,
+        "heading quota: >= 4 (got {})",
+        heading.len()
+    );
+    let mut have_glava = false;
+    let mut have_statya = false;
+    for fragment in &heading {
+        assert!(
+            fragment.kinds.len() >= 4,
+            "{} too short for a heading",
+            fragment.id
+        );
+        assert_eq!(
+            fragment.kinds[0], "Word",
+            "{} heading must open with a Word",
+            fragment.id
+        );
+        let is_glava = fragment.lexemes[0] == "Глава";
+        let is_statya = fragment.lexemes[0] == "Статья";
+        assert!(
+            is_glava || is_statya,
+            "{} must open with Глава/Статья, got {}",
+            fragment.id,
+            fragment.lexemes[0]
+        );
+        have_glava |= is_glava;
+        have_statya |= is_statya;
+        assert_eq!(fragment.kinds[1], "Space");
+        assert_eq!(
+            fragment.kinds[2], "Word",
+            "{} heading number is an undotted-digit Word, never HierNum",
+            fragment.id
+        );
+        assert!(
+            fragment.lexemes[2].chars().all(|ch| ch.is_ascii_digit()),
+            "{} heading number must be digits",
+            fragment.id
+        );
+        assert_eq!(fragment.kinds[3], "Punct");
+        assert_eq!(
+            fragment.lexemes[3], ".",
+            "{} heading dot stays Punct",
+            fragment.id
+        );
+    }
+    assert!(
+        have_glava && have_statya,
+        "heading bucket needs both Глава and Статья"
+    );
+
+    // fullword-ref >= 6: >= 1 full-form Word token per fragment.
+    let fullword = bucket("fullword-ref");
+    assert!(
+        fullword.len() >= 6,
+        "fullword-ref quota: >= 6 (got {})",
+        fullword.len()
+    );
+    for fragment in &fullword {
+        assert!(
+            fragment
+                .lexemes
+                .iter()
+                .zip(&fragment.kinds)
+                .any(|(lexeme, kind)| *kind == "Word" && FULLWORD_FORMS.contains(&lexeme.as_str())),
+            "{} must carry a full-form reference word",
+            fragment.id
+        );
+    }
+
+    // lawcode >= 2: lone ФЗ and lone ФКЗ across the bucket.
+    let lawcode = bucket("lawcode");
+    assert!(
+        lawcode.len() >= 2,
+        "lawcode quota: >= 2 (got {})",
+        lawcode.len()
+    );
+    assert!(
+        lawcode
+            .iter()
+            .any(|f| f.lexemes.iter().any(|lexeme| lexeme == "ФЗ")),
+        "lawcode bucket must pin a lone ФЗ"
+    );
+    assert!(
+        lawcode
+            .iter()
+            .any(|f| f.lexemes.iter().any(|lexeme| lexeme == "ФКЗ")),
+        "lawcode bucket must pin a lone ФКЗ"
+    );
+
+    // dense-note: >= 3 and <= 5, each pinning `ред.` as Abbrev id=red.
+    let dense_note = bucket("dense-note");
+    assert!(
+        dense_note.len() >= 3,
+        "dense-note quota: >= 3 (got {})",
+        dense_note.len()
+    );
+    assert!(
+        dense_note.len() <= 5,
+        "dense-note quota: <= 5 (got {})",
+        dense_note.len()
+    );
+    for fragment in &dense_note {
+        assert!(
+            has_abbrev(fragment, "red"),
+            "{} must pin `ред.` as Abbrev id=red",
+            fragment.id
+        );
+    }
+
+    // misc-punct >= 3: quotes / `;` / `:` Punct lexemes per fragment.
+    let misc_punct = bucket("misc-punct");
+    assert!(
+        misc_punct.len() >= 3,
+        "misc-punct quota: >= 3 (got {})",
+        misc_punct.len()
+    );
+    for fragment in &misc_punct {
+        assert!(
+            fragment
+                .lexemes
+                .iter()
+                .zip(&fragment.kinds)
+                .any(|(lexeme, kind)| *kind == "Punct"
+                    && MISC_PUNCT_LEXEMES.contains(&lexeme.as_str())),
+            "{} must carry a quote/semicolon/colon Punct",
+            fragment.id
+        );
+    }
+
+    // Every kind from the closed vocab occurs at least once in the corpus.
+    for kind in TOKEN_KINDS {
+        assert!(
+            corpus.iter().any(|fragment| fragment.kinds.contains(&kind)),
+            "kind {kind} must occur at least once in the corpus"
+        );
+    }
+    // The four reference abbrevs each occur (пп. is one token id=pp).
+    for id in ["st", "ch", "p", "pp"] {
+        assert!(
+            corpus.iter().any(|fragment| has_abbrev(fragment, id)),
+            "corpus must pin Abbrev id={id}"
+        );
+    }
+    // Corpus Abbrev ids never come from the D329 forbidden zero set.
+    for fragment in &corpus {
+        for id in &fragment.abbrev_ids {
+            if let Some(id) = id.as_deref() {
+                assert!(
+                    !CORPUS_FORBIDDEN_ABBREV_IDS.contains(&id),
+                    "{}: forbidden corpus Abbrev id {id}",
+                    fragment.id
+                );
+            }
+        }
+    }
+
+    // Lexeme-shape locks T01 deliberately left to the load layer:
+    // >= 1 Abbrev with trailing dot, >= 1 two-part HierNum, >= 1 dd.mm.yyyy
+    // Date, >= 1 -ФЗ/-ФКЗ DocNo, and no date-shaped HierNum anywhere.
+    let mut saw_abbrev_dot = false;
+    let mut saw_two_part_hier = false;
+    let mut saw_date = false;
+    let mut saw_docno = false;
+    for fragment in &corpus {
+        for (kind, lexeme) in fragment.kinds.iter().zip(&fragment.lexemes) {
+            match *kind {
+                "Abbrev" => saw_abbrev_dot |= lexeme.ends_with('.'),
+                "HierNum" => {
+                    saw_two_part_hier |=
+                        is_hier_num_lexeme(lexeme) && lexeme.matches('.').count() == 1;
+                    assert!(
+                        !is_date_lexeme(lexeme),
+                        "{}: date-shaped HierNum lexeme {lexeme} is forbidden",
+                        fragment.id
+                    );
+                }
+                "Date" => saw_date |= is_date_lexeme(lexeme),
+                "DocNo" => saw_docno |= lexeme.contains("-ФЗ") || lexeme.contains("-ФКЗ"),
+                _ => {}
+            }
+        }
+    }
+    assert!(saw_abbrev_dot, "corpus must pin a dotted Abbrev lexeme");
+    assert!(saw_two_part_hier, "corpus must pin a \\d+\\.\\d+ HierNum");
+    assert!(saw_date, "corpus must pin a dd.mm.yyyy Date");
+    assert!(saw_docno, "corpus must pin a -ФЗ/-ФКЗ DocNo");
+
+    // Named corpus collisions (T02 plan item 7):
+    // 1. `п. 9.1` = Abbrev + Space + HierNum (fz44-003).
+    let fz44_003 = corpus
+        .iter()
+        .find(|fragment| fragment.id == "fz44-003")
+        .expect("fz44-003 must exist");
+    assert!(
+        fz44_003
+            .kinds
+            .windows(3)
+            .any(|window| window == ["Abbrev", "Space", "HierNum"]),
+        "fz44-003 must pin Abbrev+Space+HierNum (п. 9.1)"
+    );
+
+    // 2. dotted HierNum directly after an Abbrev (fz44-010: ст. 111.4).
+    let fz44_010 = corpus
+        .iter()
+        .find(|fragment| fragment.id == "fz44-010")
+        .expect("fz44-010 must exist");
+    assert!(
+        has_abbrev(fz44_010, "st") && fz44_010.lexemes.iter().any(|lexeme| lexeme == "111.4"),
+        "fz44-010 must pin Abbrev(st) before the dotted HierNum 111.4"
+    );
+
+    // 3. `пп. "а"` = Abbrev(pp) + Space + Punct + EnumMarker + Punct.
+    let quoted_label = corpus.iter().any(|fragment| {
+        (0..fragment.kinds.len().saturating_sub(4)).any(|index| {
+            fragment.kinds[index] == "Abbrev"
+                && fragment.abbrev_ids[index].as_deref() == Some("pp")
+                && fragment.kinds[index + 1] == "Space"
+                && fragment.kinds[index + 2] == "Punct"
+                && fragment.kinds[index + 3] == "EnumMarker"
+                && fragment.kinds[index + 4] == "Punct"
+        })
+    });
+    assert!(
+        quoted_label,
+        "corpus must pin the quoted subpoint label collision"
+    );
+
+    // 4. `N 44-ФЗ` = Word("N") + Space + DocNo.
+    let n_docno = corpus.iter().any(|fragment| {
+        (0..fragment.kinds.len().saturating_sub(2)).any(|index| {
+            fragment.kinds[index] == "Word"
+                && fragment.lexemes[index] == "N"
+                && fragment.kinds[index + 1] == "Space"
+                && fragment.kinds[index + 2] == "DocNo"
+        })
+    });
+    assert!(n_docno, "corpus must pin Word(N)+Space+DocNo");
+
+    // 5. `01.01.2028` stays Date, never HierNum (fz44-037).
+    let fz44_037 = corpus
+        .iter()
+        .find(|fragment| fragment.id == "fz44-037")
+        .expect("fz44-037 must exist");
+    assert!(
+        fz44_037
+            .lexemes
+            .iter()
+            .zip(&fz44_037.kinds)
+            .any(|(lexeme, kind)| lexeme == "01.01.2028" && *kind == "Date"),
+        "fz44-037 must pin 01.01.2028 as Date"
+    );
+
+    // Frequency caps from the T02 marking contract.
+    let amendment_lists = corpus
+        .iter()
+        .filter(|fragment| {
+            (0..fragment.kinds.len().saturating_sub(1)).any(|index| {
+                fragment.kinds[index] == "DocNo"
+                    && fragment.kinds[index + 1] == "Punct"
+                    && fragment.lexemes[index + 1] == ","
+            })
+        })
+        .count();
+    assert!(
+        amendment_lists <= 5,
+        "amendment-list fragments must stay <= 5 (got {amendment_lists})"
+    );
+    let provider_notes = fragments
+        .iter()
+        .filter(|fragment| fragment.note_kind == "provider_note")
+        .count();
+    assert!(
+        provider_notes <= 5,
+        "provider_note fragments must stay <= 5 (got {provider_notes})"
+    );
+}
+
+// ---------------------------------------------------------------------------
 // Hostile: in-memory manifests must fail the loader closed (goldens untouched).
 // ---------------------------------------------------------------------------
 
