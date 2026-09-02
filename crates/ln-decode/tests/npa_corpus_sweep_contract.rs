@@ -630,3 +630,438 @@ fn t02_bin_smoke_limit_zero() {
     );
     fs::remove_dir_all(&root).ok();
 }
+
+// ---------------------------------------------------------------------------
+// T03: pins over the tracked full-corpus aggregate
+// (`prd/migration/rust-evidence/m198-c1-npa-corpus-sweep.jsonl`). `cargo test`
+// reads only the tracked artifact — the live `consru_export` corpus is never
+// opened by tests. Parsing stays hand-rolled stdlib-only (D328/D353): the
+// renderer has a fixed closed shape, so a small strict reader is enough.
+// ---------------------------------------------------------------------------
+
+/// Repo-relative path of the tracked C1 aggregate, resolved from the crate.
+fn tracked_aggregate_path() -> PathBuf {
+    Path::new(env!("CARGO_MANIFEST_DIR"))
+        .join("../../prd/migration/rust-evidence/m198-c1-npa-corpus-sweep.jsonl")
+}
+
+/// Test-local JSON value: enough for the closed aggregate shape (objects,
+/// arrays, strings, non-negative integers). No serde is added (D328/D353).
+#[derive(Debug, Clone, PartialEq)]
+enum JVal {
+    Str(String),
+    Num(u64),
+    Arr(Vec<JVal>),
+    Obj(Vec<(String, JVal)>),
+}
+
+impl JVal {
+    fn get(&self, key: &str) -> Option<&JVal> {
+        match self {
+            JVal::Obj(pairs) => pairs.iter().find(|(k, _)| k == key).map(|(_, v)| v),
+            _ => None,
+        }
+    }
+
+    fn num(&self, key: &str) -> u64 {
+        match self.get(key) {
+            Some(JVal::Num(n)) => *n,
+            other => panic!("expected integer `{key}`, got {other:?}"),
+        }
+    }
+
+    fn str_val(&self, key: &str) -> &str {
+        match self.get(key) {
+            Some(JVal::Str(s)) => s,
+            other => panic!("expected string `{key}`, got {other:?}"),
+        }
+    }
+
+    fn arr(&self, key: &str) -> &[JVal] {
+        match self.get(key) {
+            Some(JVal::Arr(items)) => items,
+            other => panic!("expected array `{key}`, got {other:?}"),
+        }
+    }
+}
+
+struct JParser<'a> {
+    src: &'a str,
+    bytes: &'a [u8],
+    pos: usize,
+}
+
+impl<'a> JParser<'a> {
+    fn new(src: &'a str) -> Self {
+        JParser {
+            src,
+            bytes: src.as_bytes(),
+            pos: 0,
+        }
+    }
+
+    fn ws(&mut self) {
+        while matches!(self.bytes.get(self.pos), Some(b' ' | b'\t' | b'\r' | b'\n')) {
+            self.pos += 1;
+        }
+    }
+
+    fn peek(&self) -> Option<u8> {
+        self.bytes.get(self.pos).copied()
+    }
+
+    fn expect(&mut self, byte: u8) {
+        assert_eq!(
+            self.peek(),
+            Some(byte),
+            "expected byte {byte:#x} at offset {}",
+            self.pos
+        );
+        self.pos += 1;
+    }
+
+    fn value(&mut self) -> JVal {
+        self.ws();
+        match self.peek() {
+            Some(b'"') => JVal::Str(self.string()),
+            Some(b'{') => self.object(),
+            Some(b'[') => self.array(),
+            Some(b'0'..=b'9') => JVal::Num(self.number()),
+            other => panic!(
+                "unexpected JSON value start {other:?} at offset {}",
+                self.pos
+            ),
+        }
+    }
+
+    fn string(&mut self) -> String {
+        self.expect(b'"');
+        let mut out = String::new();
+        loop {
+            match self.bytes[self.pos] {
+                b'"' => {
+                    self.pos += 1;
+                    return out;
+                }
+                b'\\' => {
+                    self.pos += 1;
+                    match self.bytes[self.pos] {
+                        b'"' => out.push('"'),
+                        b'\\' => out.push('\\'),
+                        b'/' => out.push('/'),
+                        b'n' => out.push('\n'),
+                        b't' => out.push('\t'),
+                        b'r' => out.push('\r'),
+                        b'u' => {
+                            let hex = &self.src[self.pos + 1..self.pos + 5];
+                            let code = u32::from_str_radix(hex, 16).expect("valid \\u escape");
+                            out.push(char::from_u32(code).expect("unicode scalar"));
+                            self.pos += 4;
+                        }
+                        other => panic!("bad escape byte {other:#x}"),
+                    }
+                    self.pos += 1;
+                }
+                _ => {
+                    let ch = self.src[self.pos..].chars().next().expect("utf8 boundary");
+                    out.push(ch);
+                    self.pos += ch.len_utf8();
+                }
+            }
+        }
+    }
+
+    fn number(&mut self) -> u64 {
+        let start = self.pos;
+        while matches!(self.peek(), Some(b'0'..=b'9')) {
+            self.pos += 1;
+        }
+        self.src[start..self.pos].parse().expect("u64 literal")
+    }
+
+    fn array(&mut self) -> JVal {
+        self.expect(b'[');
+        let mut items = Vec::new();
+        self.ws();
+        if self.peek() == Some(b']') {
+            self.pos += 1;
+            return JVal::Arr(items);
+        }
+        loop {
+            items.push(self.value());
+            self.ws();
+            match self.bytes[self.pos] {
+                b',' => self.pos += 1,
+                b']' => {
+                    self.pos += 1;
+                    return JVal::Arr(items);
+                }
+                other => panic!("expected ',' or ']', found byte {other:#x}"),
+            }
+        }
+    }
+
+    fn object(&mut self) -> JVal {
+        self.expect(b'{');
+        let mut pairs = Vec::new();
+        self.ws();
+        if self.peek() == Some(b'}') {
+            self.pos += 1;
+            return JVal::Obj(pairs);
+        }
+        loop {
+            self.ws();
+            let key = self.string();
+            self.ws();
+            self.expect(b':');
+            let value = self.value();
+            pairs.push((key, value));
+            self.ws();
+            match self.bytes[self.pos] {
+                b',' => self.pos += 1,
+                b'}' => {
+                    self.pos += 1;
+                    return JVal::Obj(pairs);
+                }
+                other => panic!("expected ',' or '}}', found byte {other:#x}"),
+            }
+        }
+    }
+}
+
+/// Render order of the eight closed aggregate records.
+const RECORD_KINDS: [&str; 8] = [
+    "header",
+    "totals",
+    "kind_hist",
+    "abbrev_hits",
+    "d329",
+    "shapes",
+    "unknown_tail",
+    "family_split",
+];
+
+/// Parse the aggregate into `(record_kind, object)` pairs, in file order.
+/// Unknown `record_kind` is a parse error (closed schema).
+fn parse_aggregate(text: &str) -> Vec<(&'static str, JVal)> {
+    let mut records = Vec::new();
+    for line in text.lines() {
+        if line.trim().is_empty() {
+            continue;
+        }
+        let mut parser = JParser::new(line);
+        let value = parser.object();
+        parser.ws();
+        assert_eq!(
+            parser.pos,
+            line.len(),
+            "trailing content after a JSON object"
+        );
+        let kind = value.str_val("record_kind").to_owned();
+        let kind = RECORD_KINDS
+            .iter()
+            .find(|known| **known == kind)
+            .copied()
+            .unwrap_or_else(|| panic!("unknown record_kind '{kind}'"));
+        records.push((kind, value));
+    }
+    records
+}
+
+fn record<'a>(records: &'a [(&'static str, JVal)], kind: &str) -> &'a JVal {
+    let (_, value) = records
+        .iter()
+        .find(|(known, _)| *known == kind)
+        .unwrap_or_else(|| panic!("record `{kind}` missing from the aggregate"));
+    value
+}
+
+/// Every string in the artifact, keys included, walked recursively.
+fn collect_strings(value: &JVal, out: &mut Vec<String>) {
+    match value {
+        JVal::Str(s) => out.push(s.clone()),
+        JVal::Num(_) => {}
+        JVal::Arr(items) => {
+            for item in items {
+                collect_strings(item, out);
+            }
+        }
+        JVal::Obj(pairs) => {
+            for (key, item) in pairs {
+                out.push(key.clone());
+                collect_strings(item, out);
+            }
+        }
+    }
+}
+
+/// Load and parse the tracked aggregate; fails loudly if it is absent.
+fn tracked_aggregate() -> (String, Vec<(&'static str, JVal)>) {
+    let path = tracked_aggregate_path();
+    let text = fs::read_to_string(&path)
+        .unwrap_or_else(|err| panic!("tracked aggregate must be readable: {err}"));
+    let records = parse_aggregate(&text);
+    (text, records)
+}
+
+/// T03: the tracked C1 aggregate parses into exactly the eight closed records
+/// in the fixed render order, and the module's closed-key reader accepts the
+/// whole file.
+#[test]
+fn t03_tracked_aggregate_closed_schema_in_fixed_order() {
+    let (text, records) = tracked_aggregate();
+    npa_sweep::validate_jsonl(&text).expect("closed-key reader must accept the tracked artifact");
+    let kinds: Vec<&str> = records.iter().map(|(kind, _)| *kind).collect();
+    assert_eq!(kinds, RECORD_KINDS, "eight records, fixed order");
+}
+
+/// T03: header pins cycle C1 over the bounded consultant-wordml surface.
+#[test]
+fn t03_tracked_header_pins_c1_bounded_and_non_claims() {
+    let (_, records) = tracked_aggregate();
+    let header = record(&records, "header");
+    assert_eq!(header.str_val("schema"), "npa-corpus-sweep/v1");
+    assert_eq!(header.num("schema_version"), 1);
+    assert_eq!(header.str_val("cycle"), "C1");
+    assert_eq!(header.str_val("lifecycle"), "[bounded]");
+    assert_eq!(header.str_val("decoder"), "ConsultantWordMlBlockDecoder");
+    assert_eq!(header.str_val("lexer"), "ln_decode::lexer::lex");
+    assert_eq!(header.str_val("crate"), "ln-decode");
+    let non_claims: Vec<&str> = header
+        .arr("non_claims")
+        .iter()
+        .map(|item| match item {
+            JVal::Str(s) => s.as_str(),
+            other => panic!("non_claims must be strings, got {other:?}"),
+        })
+        .collect();
+    for claim in ["official-publication", "R070", "LawRef", "N2-gate"] {
+        assert!(non_claims.contains(&claim), "non_claims must carry {claim}");
+    }
+}
+
+/// T03: full-corpus pin — 43 785 XML files seen, decode accounting closes,
+/// coverage is integer-consistent (D353), and the four tracked families split
+/// the seen set with no residue.
+#[test]
+fn t03_tracked_totals_pin_full_corpus() {
+    let (_, records) = tracked_aggregate();
+    let totals = record(&records, "totals");
+    let seen = totals.num("files_seen");
+    assert_eq!(seen, 43_785, "planning-time corpus census pinned");
+    assert_eq!(
+        totals.num("files_decoded") + totals.num("files_failed"),
+        seen,
+        "decoded + failed must account for every seen file"
+    );
+    let words = totals.num("word_tokens");
+    assert!(words > 0, "corpus lexes to a non-empty token stream");
+    assert!(totals.num("marker_hits") > 0, "markers exist in the corpus");
+    assert_eq!(
+        totals.num("marker_coverage_ppm"),
+        1_000_000 * totals.num("marker_hits") / words.max(1),
+        "D353 integer-only coverage formula"
+    );
+
+    let split = record(&records, "family_split");
+    let JVal::Obj(families) = split else {
+        panic!("family_split must be an object")
+    };
+    let mut seen_sum = 0;
+    for (family, counts) in families {
+        if family == "record_kind" {
+            continue;
+        }
+        assert!(
+            matches!(family.as_str(), "npa" | "xml" | "courts" | "fas" | "other"),
+            "unexpected family `{family}`"
+        );
+        let family_seen = counts.num("seen");
+        assert_eq!(
+            counts.num("decoded") + counts.num("failed"),
+            family_seen,
+            "`{family}` decode accounting"
+        );
+        seen_sum += family_seen;
+    }
+    for family in ["npa", "xml", "courts", "fas"] {
+        assert!(
+            split.get(family).is_some(),
+            "family `{family}` must be present"
+        );
+    }
+    assert_eq!(seen_sum, seen, "family_split files must sum to files_seen");
+}
+
+/// T03: closed census tables are complete — exactly the 17 abbrev ids and
+/// the 9 D329 keys are present; a zero is a finding, not an absent key.
+#[test]
+fn t03_tracked_census_tables_complete() {
+    let (_, records) = tracked_aggregate();
+    let abbrev = record(&records, "abbrev_hits");
+    let JVal::Obj(abbrev_pairs) = abbrev else {
+        panic!("abbrev_hits must be an object")
+    };
+    let abbrev_count = abbrev_pairs
+        .iter()
+        .filter(|(key, _)| key != "record_kind")
+        .count();
+    assert_eq!(abbrev_count, 17, "exactly the closed 17 abbrev ids");
+    for id in npa_sweep::SWEEP_ABBREV_IDS {
+        assert!(abbrev.get(id).is_some(), "abbrev id `{id}` must be present");
+    }
+    let d329 = record(&records, "d329");
+    let JVal::Obj(d329_pairs) = d329 else {
+        panic!("d329 must be an object")
+    };
+    let d329_count = d329_pairs
+        .iter()
+        .filter(|(key, _)| key != "record_kind")
+        .count();
+    assert_eq!(d329_count, 9, "exactly the 9 D329 keys");
+    for id in npa_sweep::D329_NINE_IDS {
+        assert!(d329.get(id).is_some(), "D329 key `{id}` must be present");
+    }
+    let hist = record(&records, "kind_hist");
+    for kind in KINDS {
+        assert!(
+            hist.get(kind.as_str()).is_some(),
+            "token kind `{}` must be present",
+            kind.as_str()
+        );
+    }
+}
+
+/// T03: the unknown tail stays inside its 50-entry cap and the
+/// abbrev-candidate census is an alias of the same ranked table.
+#[test]
+fn t03_tracked_unknown_tail_capped_and_census_alias() {
+    let (_, records) = tracked_aggregate();
+    let tail = record(&records, "unknown_tail");
+    assert_eq!(tail.num("cap"), 50);
+    let entries = tail.arr("entries");
+    assert!(entries.len() <= 50, "ranked table stays inside the cap");
+    assert_eq!(
+        tail.arr("abbrev_candidate_census"),
+        entries,
+        "census is an alias of the same ranked table"
+    );
+}
+
+/// T03: Q3 privacy pin over the tracked artifact — no string (and no key)
+/// anywhere in the file exceeds the 128-byte identity ceiling, so no raw
+/// paragraph text or source path can hide inside the aggregate.
+#[test]
+fn t03_tracked_strings_stay_bounded() {
+    let (_, records) = tracked_aggregate();
+    for (kind, value) in &records {
+        let mut strings = Vec::new();
+        collect_strings(value, &mut strings);
+        for s in strings {
+            assert!(
+                s.len() <= 128,
+                "{kind}: string `{s}` exceeds the 128-byte identity ceiling"
+            );
+        }
+    }
+}
