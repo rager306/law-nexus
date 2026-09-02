@@ -99,6 +99,28 @@ is deferred until links/structure are stable.
    continued reference); fallback heuristics must be logged, otherwise the
    engine degrades into razdel.
 
+### Research refinements (2026-09-03, prior-art pass)
+
+Prior-art research (`assessment/25-npa-tokenizer-prior-art.md`; eyecite
+JOSS 2021, Waltl 2018, Pinto 2023, Artstein & Poesio 2008, AKN Naming
+Convention, ELI subdivisions spec v2) refines the N2+ waves without
+changing the decision:
+
+- **Approach confirmed**: rule/FSM first for NPA text (formal structure);
+  ML sequence labeling stays a fallback candidate for the corpus-sweep
+  unknown tail (eyecite itself doubles as an ML training-data generator).
+- **LawRef output schema aligns to AKN `eId` semantics** (`art/par/sub/pnt`
+  chain) and keeps the **ELI canonical-vs-user-reference duality**: the
+  text as written is extracted, the resolved anchor is derived. Canonical
+  paths for below-article subdivisions start at the article (ELI 5.4.1).
+- **Resolution layer is a separate N2 stage** after extraction: Russian
+  anaphora ("части 1–3 настоящей статьи", "пунктом 5 того же раздела")
+  resolves against a document-context stack, eyecite-style.
+- **Metrics gates**: sweep cycles run until Δ`marker_coverage` < 0.5 pp with
+  a stable unknown-tail; N2 acceptance requires a dual-annotated gold
+  sample at Krippendorff's alpha >= 0.8 plus span-exact P/R/F1 per
+  TokenKind and eyecite-style resolution accuracy.
+
 ## Consequences
 
 - **Positive**: LawRef spans and the act tree become the admission pipeline
@@ -120,7 +142,10 @@ is deferred until links/structure are stable.
 
 `adr-contract-change` freshness trigger satisfied by the `doc/adr/README.md`
 index row added in the same commit. Review record:
-`assessment/24-npa-engine-review.md`. Related defect candidates for
-open-gsd/gsd-pi (files required before filing): (a) `env_git_remote`
-false-negative (`-h origin HEAD`), (b) compat-marker quarantine blast
+`assessment/24-npa-engine-review.md`; prior-art research record:
+`assessment/25-npa-tokenizer-prior-art.md`. Related gsd-pi defects FILED:
+(a) `env_git_remote` false-negative -> open-gsd/gsd-pi#2129, (b)
+compat-marker quarantine blast radius -> open-gsd/gsd-pi#2130; evidence
+comments added to #2127 (coordination-claim redispatch loop) and #1491
+(pre-commit-hook closeout swallow, reopen requested).
 radius, (c) headless coordination-claim finalize errors.
