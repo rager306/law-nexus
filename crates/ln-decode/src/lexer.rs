@@ -112,6 +112,13 @@ const ABBREV_LEXEMES: &[(AbbrevId, &str)] = &[
 /// * dates (`dd.mm.yyyy`, day 1..=31, month 1..=12) win over hier-numbers;
 /// * a hier-number needs inner digits on both sides of at least one dot, so
 ///   `1.` is never one;
+/// * `EnumMarker` is start-of-input-local (`1.`, `1)`, `10)`, `а)`) plus the
+///   quoted subpoint label `"а"` = `Punct('"') + EnumMarker + Punct('"')` —
+///   a heading `Глава 1.` sits at pos > 0 and stays `Word + Punct`;
+/// * `DocNo` keeps its inner hyphen (`318-ФЗ`, `5-ФКЗ`) and a leading Latin
+///   `N` stays `Word` (D330 rule 10);
+/// * `LawCode` is exact equality on a whole alphabetic run (`ФЗ`, `ФКЗ`),
+///   never a prefix match — `Федеральный` is a Word;
 /// * unknown bytes classify as `Word` / `Punct` / `Space` and are never
 ///   dropped: the concatenation of all lexemes equals `src`.
 pub fn lex(src: &str) -> Vec<NpaToken> {
@@ -122,6 +129,30 @@ pub fn lex(src: &str) -> Vec<NpaToken> {
         let Some(ch) = src[pos..].chars().next() else {
             break;
         };
+        // Quoted subpoint label (D330 rule 6): `п "а"` splits into
+        // `Punct('"') + EnumMarker` here, and the closing quote falls back to
+        // the greedy Punct scan — recognized before Punct could swallow the
+        // letter into the run.
+        if ch == '"' {
+            if let Some(letter_end) = quoted_enum_letter_end(src, pos) {
+                let quote_span = TextSpan::try_new(pos, pos + 1)
+                    .expect("lexer invariant: an ASCII quote is exactly one byte");
+                tokens.push(NpaToken {
+                    kind: TokenKind::Punct,
+                    span: quote_span,
+                    abbrev_id: None,
+                });
+                let letter_span = TextSpan::try_new(pos + 1, letter_end)
+                    .expect("lexer invariant: one cyrillic letter is at least two bytes");
+                tokens.push(NpaToken {
+                    kind: TokenKind::EnumMarker,
+                    span: letter_span,
+                    abbrev_id: None,
+                });
+                pos = letter_end;
+                continue;
+            }
+        }
         let (kind, abbrev_id, end) = if ch.is_whitespace() {
             (
                 TokenKind::Space,
@@ -129,19 +160,27 @@ pub fn lex(src: &str) -> Vec<NpaToken> {
                 scan_while(src, pos, |c| c.is_whitespace()),
             )
         } else if ch.is_alphabetic() {
-            match scan_abbrev(src, pos) {
-                Some((end, id)) => (TokenKind::Abbrev, Some(id), end),
-                None => (
-                    TokenKind::Word,
-                    None,
-                    scan_while(src, pos, |c| c.is_alphabetic()),
-                ),
+            if let Some((end, id)) = scan_abbrev(src, pos) {
+                (TokenKind::Abbrev, Some(id), end)
+            } else if let Some(end) = scan_enum_marker_letter(src, pos) {
+                (TokenKind::EnumMarker, None, end)
+            } else {
+                let end = scan_while(src, pos, |c| c.is_alphabetic());
+                if is_law_code(&src[pos..end]) {
+                    (TokenKind::LawCode, None, end)
+                } else {
+                    (TokenKind::Word, None, end)
+                }
             }
         } else if ch.is_ascii_digit() {
             if let Some(end) = scan_date(src, pos) {
                 (TokenKind::Date, None, end)
             } else if let Some(end) = scan_hier_num(src, pos) {
                 (TokenKind::HierNum, None, end)
+            } else if let Some(end) = scan_doc_no(src, pos) {
+                (TokenKind::DocNo, None, end)
+            } else if let Some(end) = scan_enum_marker_digits(src, pos) {
+                (TokenKind::EnumMarker, None, end)
             } else {
                 (
                     TokenKind::Word,
@@ -251,4 +290,92 @@ fn scan_hier_num(src: &str, start: usize) -> Option<usize> {
         end = Some(pos);
     }
     end
+}
+
+/// Recognizes `digits-ФЗ` / `digits-ФКЗ` as one DocNo token (D330 rule 10):
+/// the hyphen stays inside the token and the suffix must be the whole
+/// following alphabetic run, so a Latin `N` in `N 44-ФЗ` stays a Word and
+/// `44-ФЗх` never mints a DocNo.
+fn scan_doc_no(src: &str, start: usize) -> Option<usize> {
+    let bytes = src.as_bytes();
+    let mut pos = start;
+    while pos < bytes.len() && bytes[pos].is_ascii_digit() {
+        pos += 1;
+    }
+    if pos == start || bytes.get(pos) != Some(&b'-') {
+        return None;
+    }
+    let after_hyphen = pos + 1;
+    for suffix in ["ФЗ", "ФКЗ"] {
+        let end = after_hyphen + suffix.len();
+        if src[after_hyphen..].starts_with(suffix)
+            && !src[end..].chars().next().is_some_and(char::is_alphabetic)
+        {
+            return Some(end);
+        }
+    }
+    None
+}
+
+/// Start-of-input digit marker (`1.`, `1)`, `10)`, `11)`; D330 rule 6): the
+/// marker kind is local to byte 0, so the digits of a heading `Глава 1.` —
+/// sitting at pos > 0 — stay a Word, and `1.` is still never a hier-number.
+fn scan_enum_marker_digits(src: &str, start: usize) -> Option<usize> {
+    if start != 0 {
+        return None;
+    }
+    let bytes = src.as_bytes();
+    let mut pos = start;
+    while pos < bytes.len() && bytes[pos].is_ascii_digit() {
+        pos += 1;
+    }
+    if pos == start {
+        return None;
+    }
+    match bytes.get(pos) {
+        Some(b'.' | b')') => Some(pos + 1),
+        _ => None,
+    }
+}
+
+/// Start-of-input single lowercase cyrillic marker (`а)`; D330 rule 6).
+fn scan_enum_marker_letter(src: &str, start: usize) -> Option<usize> {
+    if start != 0 {
+        return None;
+    }
+    let letter = src.chars().next()?;
+    if !is_lower_cyrillic(letter) {
+        return None;
+    }
+    let after_letter = start + letter.len_utf8();
+    (src.as_bytes().get(after_letter) == Some(&b')')).then_some(after_letter + 1)
+}
+
+/// `LawCode` is exact equality on the whole alphabetic run (D330 rule 10):
+/// `Федеральный` is a Word, never a LawCode prefix match; lowercase `фз` and
+/// `ФЗЫ` stay Words too.
+fn is_law_code(run: &str) -> bool {
+    run == "ФЗ" || run == "ФКЗ"
+}
+
+/// Lowercase cyrillic letters of the Russian alphabet (inclusive of `ё`).
+fn is_lower_cyrillic(ch: char) -> bool {
+    ('а'..='я').contains(&ch) || ch == 'ё'
+}
+
+/// End of the single lowercase cyrillic letter opening a quoted subpoint
+/// label (`п "а"` = Punct + EnumMarker + Punct; D330 rule 6): `src` must
+/// carry `"` + letter at `start` with a closing `"` after exactly one
+/// letter. The closing quote stays for the (greedy) Punct scan, so `а").`
+/// ends in one three-byte Punct token.
+fn quoted_enum_letter_end(src: &str, start: usize) -> Option<usize> {
+    if src.as_bytes().get(start) != Some(&b'"') {
+        return None;
+    }
+    let letter = src[start + 1..].chars().next()?;
+    if !is_lower_cyrillic(letter) {
+        return None;
+    }
+    let after_letter = start + 1 + letter.len_utf8();
+    (src.as_bytes().get(after_letter) == Some(&b'"')).then_some(after_letter)
 }
