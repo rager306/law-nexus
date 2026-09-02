@@ -61,19 +61,33 @@ fn detects_unsupported_deontic_near_misses_case_insensitively() {
 
 #[test]
 fn detects_unsupported_hierarchy_prefixes() {
+    // D347: подпункты/части are morphology-supported (LegalMarkerKind) and
+    // must no longer census as unknown; only параграфа/абзаца stay unsupported.
     let text = "Подпункты части параграфа абзаца не применяются.";
     let forms = collect_unknown_forms_from_text(text);
-    assert_eq!(forms.len(), 4);
+    assert_eq!(forms.len(), 2, "dual-class closed: {forms:?}");
     assert_eq!(forms[0].kind(), UnknownFormKind::UnsupportedHierarchyPrefix);
     assert_eq!(forms[1].kind(), UnknownFormKind::UnsupportedHierarchyPrefix);
-    assert_eq!(forms[2].kind(), UnknownFormKind::UnsupportedHierarchyPrefix);
-    assert_eq!(forms[3].kind(), UnknownFormKind::UnsupportedHierarchyPrefix);
+    assert_eq!(
+        &text[forms[0].span().start()..forms[0].span().end()],
+        "параграфа"
+    );
+    assert_eq!(
+        &text[forms[1].span().start()..forms[1].span().end()],
+        "абзаца"
+    );
 }
 
 #[test]
 fn exact_supported_forms_do_not_emit_unknown_candidates() {
     let text = "Орган обязан и вправе действовать; акт вступает в силу и утрачивает силу.";
     assert!(collect_unknown_forms_from_text(text).is_empty());
+    // D347: the full supported hierarchical marker set must stay census-free.
+    let hierarchy = "глава 1 часть 2 подпункт а раздел 3";
+    assert!(
+        collect_unknown_forms_from_text(hierarchy).is_empty(),
+        "глава/часть/подпункт/раздел are supported, never unknown"
+    );
 }
 
 #[test]
@@ -99,7 +113,9 @@ fn provider_comment_excludes_and_census_is_repeat_deterministic() {
 
 #[test]
 fn ranked_census_counts_sorts_and_excludes_provider_comments() {
-    let text = "абзац подпункт подпункт абзац вступала вступала вступала";
+    // D347: подпункт/часть forms left the unsupported table — параграф
+    // carries the hierarchy-prefix slot instead.
+    let text = "абзац параграф параграф абзац вступала вступала вступала";
     let blocks = vec![
         block(text, ParagraphStyle::BodyText),
         block("абзац абзац абзац", ParagraphStyle::ProviderComment),
@@ -116,13 +132,21 @@ fn ranked_census_counts_sorts_and_excludes_provider_comments() {
     }
     assert_eq!(ranked[0].token(), "вступала");
     assert_eq!(ranked[0].count(), 3);
+    // D347: morphology-supported marker lexemes must stay out of the census.
+    for entry in &ranked {
+        assert!(
+            !matches!(entry.token(), "подпункт" | "часть" | "части"),
+            "supported marker lexemes must stay out of the census: {entry:?}"
+        );
+    }
     // provider-comment text must not contribute
     assert!(ranked.iter().all(|r| r.count() < 4));
 }
 
 #[test]
 fn yaml_patch_candidates_are_deterministic_and_lexeme_only() {
-    let blocks = vec![block("подпунктам абзац абзац", ParagraphStyle::BodyText)];
+    // D347: параграфу carries the unsupported slot instead of подпунктам.
+    let blocks = vec![block("параграфу абзац абзац", ParagraphStyle::BodyText)];
     let ranked = rank_unknown_forms(&blocks);
     let yaml = render_yaml_patch_candidates(&ranked);
     assert!(yaml.contains("# ranked unknown-form candidates"), "{yaml}");
@@ -130,10 +154,12 @@ fn yaml_patch_candidates_are_deterministic_and_lexeme_only() {
         yaml.contains("- {kind: UnsupportedHierarchyPrefix, token: абзац, count: 2}"),
         "{yaml}"
     );
-    assert!(yaml.contains("token: подпунктам, count: 1"), "{yaml}");
+    assert!(yaml.contains("token: параграфу, count: 1"), "{yaml}");
+    // D347: morphology-supported подпунктам must never re-enter the patch.
+    assert!(!yaml.contains("token: подпунктам"), "{yaml}");
     // deterministic across repeated renders
     let rerendered = {
-        let blocks2 = vec![block("подпунктам абзац абзац", ParagraphStyle::BodyText)];
+        let blocks2 = vec![block("параграфу абзац абзац", ParagraphStyle::BodyText)];
         render_yaml_patch_candidates(&rank_unknown_forms(&blocks2))
     };
     assert_eq!(yaml, rerendered);
@@ -206,7 +232,8 @@ fn ranked_census_carries_stable_fingerprint_ids() {
 
 #[test]
 fn applying_full_patch_candidate_drops_census_to_zero() {
-    let text = "вступала абзац вступала подпункт абзац";
+    // D347: параграф replaces подпункт so the pre-apply census stays 5.
+    let text = "вступала абзац вступала параграф абзац";
     let blocks = vec![block(text, ParagraphStyle::BodyText)];
     // collect through the public API before apply
     let collected = collect_unknown_forms_from_text(text);

@@ -94,24 +94,13 @@ const UNSUPPORTED_DEONTIC: &[&str] = &[
     "запрет",
 ];
 
+/// D347: часть/* and подпункт/* are morphology-supported
+/// (`morphology::classify` → `LegalMarkerKind::Chast/Podpunkt`) and must stay
+/// out of this table — a shared form would dual-class as both a legal marker
+/// and an unsupported prefix, making the census lie about supported markers.
+/// Only remove what `classify()` owns: абзац/параграф remain unsupported
+/// (ADR-0028 abbrev territory, e.g. `абз.`, not a morphology kind).
 const UNSUPPORTED_HIERARCHY: &[&str] = &[
-    "подпункт",
-    "подпункта",
-    "подпункту",
-    "подпунктом",
-    "подпункте",
-    "подпункты",
-    "подпунктов",
-    "подпунктам",
-    "подпунктами",
-    "подпунктах",
-    "часть",
-    "части",
-    "частью",
-    "частей",
-    "частям",
-    "частями",
-    "частях",
     "параграф",
     "параграфа",
     "параграфу",
