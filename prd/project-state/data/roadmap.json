@@ -1,6 +1,6 @@
 {
   "schema_version": "law-nexus-project-state-roadmap/v2",
-  "generated_at": "2026-08-31T10:00:19Z",
+  "generated_at": "2026-09-01T10:33:48Z",
   "non_authoritative": true,
   "source_of_truth": "prd/ARCHITECTURE.md (living truth oracle) and doc/adr/** (decision/lifecycle authority). This file is a non-authoritative cold-reader projection; local .gsd/** is workflow state only.",
   "completed_milestone_groups": [
@@ -497,22 +497,22 @@
       "boundary": "M189-yojcdu synced the tracked roadmap projection to GSD state (current M188 complete) with a recommended_next honesty rewrite; M190-lo7ucr landed the durable three-canon event log as bounded TDD with hand-written ln-temporal types (YAML codegen out of scope per D307); M191-kgdyqi added the C1 legislative overlay admission shape (C1Candidate enum plus fail-closed append_c1_candidate rejecting overview-shaped and identity-less input, D308). Bounded runtime and process evidence only: no product readiness, no R070/R074 closure, no G1 official corpus, no lifecycle promotion."
     },
     {
-      "range": "M192-M195",
+      "range": "M192-M196",
       "theme": "First durable effect ledger on the log path (CID-A-23 census honesty), crystal ledger compiler checkout sketch, G2-vs-P2 human gate disposition",
       "status": "complete",
-      "boundary": "M192-79ij5m landed the durable JsonlEffectLedger behind the ln-replay EffectLedgerPort (append-only JSONL per D102, canonical record D310, fail-closed EFFECT_LEDGER_PATH, D311) with shared ln-testkit port contracts and census honesty (CID-A-23 addressed-in-draft against frozen revision 0c16de3f; durable bytes are not R070); M193-tyy108 proved MC-CHECKOUT is a deterministic fold of the three-canon log, not a second source of truth (D312); M194-p7aqjv resolved the G2-vs-P2 fork (D313): G2 references corpus GC-026..034 selected as the next evidential wave, P2 Mention/Binding resolver deferred design-only [proposed] (commit fd62eb3). Not R070 closure, not the P2 resolver, not the remaining Class A durable adapters, not G1. GSD completion is not product readiness. M195-mdvctn closed the post-queue process debt: two new governor checks (journal-retry-loops, compat-marker-hygiene, TDD), session-log census 49 findings dispositioned (5 accepted / 44 declined), GitNexus dead-code audit with an Empty Tier-0 set (300 rows corroborated, 0 removed). Process evidence only; GSD completion is not product readiness."
+      "boundary": "M192-79ij5m landed the durable JsonlEffectLedger behind the ln-replay EffectLedgerPort (append-only JSONL per D102, canonical record D310, fail-closed EFFECT_LEDGER_PATH, D311) with shared ln-testkit port contracts and census honesty (CID-A-23 addressed-in-draft against frozen revision 0c16de3f; durable bytes are not R070); M193-tyy108 proved MC-CHECKOUT is a deterministic fold of the three-canon log, not a second source of truth (D312); M194-p7aqjv resolved the G2-vs-P2 fork (D313): G2 references corpus GC-026..034 selected as the next evidential wave, P2 Mention/Binding resolver deferred design-only [proposed] (commit fd62eb3). Not R070 closure, not the P2 resolver, not the remaining Class A durable adapters, not G1. GSD completion is not product readiness. M195-mdvctn closed the post-queue process debt: two new governor checks (journal-retry-loops, compat-marker-hygiene, TDD), session-log census 49 findings dispositioned (5 accepted / 44 declined), GitNexus dead-code audit with an Empty Tier-0 set (300 rows corroborated, 0 removed). Process evidence only; GSD completion is not product readiness. M196-bwvrj7 added the per-provision checkout projection and the edition delta read-model (TDD, honesty negatives), closing the aggregate-conflict limitation surfaced by the fz44 walk."
     }
   ],
   "current_milestone": {
-    "id": "M195-mdvctn",
+    "id": "M196-bwvrj7",
     "status": "complete",
-    "title": "Post-queue debt and process gap closure",
-    "goal": "Close the remaining post-queue debt in thin slices after the 195/195 drain. S01 (TDD, commits 76e6691/d269044/192b947): two new governor checks — journal-retry-loops (finalize-retry/verification-retry and orphan-settlement observability from the GSD journal) and compat-marker-hygiene (bad-file accumulation, unsafe marker keys). S02 (commits 4f129bc/52314d7): census of GSD session logs — 11,234 journal events and 193 doctor runs mined; 49 findings dispositioned (5 accepted, 44 declined with reasons) in assessment/22-gsd-session-log-analysis.md; durable lessons into KNOWLEDGE.md. S03 (commits d8965cb/c0525fb/ff38d9e): GitNexus dead-code audit reindexed at the fresh HEAD — bounded pool 1,985 raw / 1,811 filtered / 300-row durable table, all 300 rows corroborated across rustc/rg/graph with 0 removal candidates (Empty Tier-0 set recorded). Milestone validated and completed 2026-08-31T08:49:17Z. Not product readiness, not P2 resolver work, not R070 closure."
+    "title": "Temporal model step 2: per-provision checkout and edition delta",
+    "goal": "Additive model step over the fz44 walk: (S01) per-provision CheckoutProjection read-model (per-target force, no false aggregate mix; TDD, commits c726005/5c32d81/e4dc334) and (S02) EditionDelta over the half-open window (from, to] (red suite + implementation, commit 63bc8bf). Both validated; milestone completed. Not product readiness, not the P2 resolver, not R070 closure."
   },
   "recommended_next": {
-    "title": "GSD queue drained again (196/196; current_milestone = latest completed M195-mdvctn). Next product wave per D313 (owner review of fd62eb3 pending): G2 references corpus tier (GC-026..034) of golden-corpus-catalog as the next evidential gate. Standing owner items: push decision (local main ahead of origin), gsd-pi upstream reports (.gsd/forensics/2026-08-30-gsd-health-repair.md), compat-marker stale-entry prune (2 empty-entity entries, warn-level).",
+    "title": "GSD queue drained again (197/197). Next product wave per D313 (owner review of fd62eb3 pending): G2 references corpus tier (GC-026..034). Process follow-ups: ADR-0028 in [proposed] (typed lexer, lexicon) — implementation waves planned after owner go; gsd-pi reports (3 defects); roadmap projection re-sync after each closeout.",
     "priority": 1,
-    "why": "D313 resolved the G2-vs-P2 fork; the debt wave M195-mdvctn added governor observability so future journal retry loops and compat-marker drift surface automatically. G1 remains blocked without official corpus; R070 named-open; census Class A rows open; SHACL/SPARQL remain anti-runtime. GSD completion is not product readiness."
+    "why": "D313 resolved the G2-vs-P2 fork; the model wave M196 added the checkout and edition-delta read-models on the three-canon log. R070 named-open; census Class A rows open; SHACL/SPARQL anti-runtime."
   },
   "downstream_blocked": [
     {

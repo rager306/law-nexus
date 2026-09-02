@@ -1,0 +1,646 @@
+{
+  "schema_version": 1,
+  "lifecycle": "[bounded]",
+  "source": {
+    "path": "law-source/consultant/federalnyi-zakon-ot-05-04-2013-n-44-fz-red-ot-28-12-2025-o-kontraktnoi-sisteme-v-sfere-zakupok-tovarov-rabot-uslug-dlya-obespecheniya-g--f9c8ca4c.xml",
+    "sha256": "c111119c6c3001b5b4fde0e35bffbe382bcb877df2bba9cd54ab0290c92c1b14",
+    "decoder": "ConsultantWordMlBlockDecoder",
+    "non_claims": [
+      "not an official-publication transcript; R070 stays open until pinned to publication.pravo.gov.ru",
+      "not a LawRef, act-tree, or clause segmentation claim (S02+ scope)",
+      "not legal interpretation; byte spans and TokenKind markup only"
+    ]
+  },
+  "fragments": [
+    {
+      "id": "fz44-001",
+      "file": "fz44-001.txt",
+      "source_block_index": 877,
+      "bucket": "abbrev-hier",
+      "note_kind": "enacting",
+      "tokens": [
+        {
+          "kind": "Word",
+          "id": null,
+          "start": 0,
+          "end": 2
+        },
+        {
+          "kind": "Punct",
+          "id": null,
+          "start": 2,
+          "end": 3
+        },
+        {
+          "kind": "Space",
+          "id": null,
+          "start": 3,
+          "end": 4
+        },
+        {
+          "kind": "HierNum",
+          "id": null,
+          "start": 4,
+          "end": 7
+        },
+        {
+          "kind": "Space",
+          "id": null,
+          "start": 7,
+          "end": 8
+        },
+        {
+          "kind": "Abbrev",
+          "id": "st",
+          "start": 8,
+          "end": 13
+        },
+        {
+          "kind": "Space",
+          "id": null,
+          "start": 13,
+          "end": 14
+        },
+        {
+          "kind": "Word",
+          "id": null,
+          "start": 14,
+          "end": 16
+        },
+        {
+          "kind": "Space",
+          "id": null,
+          "start": 16,
+          "end": 17
+        },
+        {
+          "kind": "Punct",
+          "id": null,
+          "start": 17,
+          "end": 18
+        },
+        {
+          "kind": "Word",
+          "id": null,
+          "start": 18,
+          "end": 20
+        },
+        {
+          "kind": "Space",
+          "id": null,
+          "start": 20,
+          "end": 21
+        },
+        {
+          "kind": "Abbrev",
+          "id": "red",
+          "start": 21,
+          "end": 28
+        },
+        {
+          "kind": "Space",
+          "id": null,
+          "start": 28,
+          "end": 29
+        },
+        {
+          "kind": "LawCode",
+          "id": null,
+          "start": 29,
+          "end": 33
+        },
+        {
+          "kind": "Space",
+          "id": null,
+          "start": 33,
+          "end": 34
+        },
+        {
+          "kind": "Word",
+          "id": null,
+          "start": 34,
+          "end": 38
+        },
+        {
+          "kind": "Space",
+          "id": null,
+          "start": 38,
+          "end": 39
+        },
+        {
+          "kind": "Date",
+          "id": null,
+          "start": 39,
+          "end": 49
+        },
+        {
+          "kind": "Space",
+          "id": null,
+          "start": 49,
+          "end": 50
+        },
+        {
+          "kind": "Word",
+          "id": null,
+          "start": 50,
+          "end": 51
+        },
+        {
+          "kind": "Space",
+          "id": null,
+          "start": 51,
+          "end": 52
+        },
+        {
+          "kind": "DocNo",
+          "id": null,
+          "start": 52,
+          "end": 60
+        },
+        {
+          "kind": "Punct",
+          "id": null,
+          "start": 60,
+          "end": 61
+        },
+        {
+          "kind": "Space",
+          "id": null,
+          "start": 61,
+          "end": 62
+        },
+        {
+          "kind": "Word",
+          "id": null,
+          "start": 62,
+          "end": 84
+        },
+        {
+          "kind": "Space",
+          "id": null,
+          "start": 84,
+          "end": 85
+        },
+        {
+          "kind": "Word",
+          "id": null,
+          "start": 85,
+          "end": 87
+        },
+        {
+          "kind": "Space",
+          "id": null,
+          "start": 87,
+          "end": 88
+        },
+        {
+          "kind": "Word",
+          "id": null,
+          "start": 88,
+          "end": 108
+        },
+        {
+          "kind": "Space",
+          "id": null,
+          "start": 108,
+          "end": 109
+        },
+        {
+          "kind": "Word",
+          "id": null,
+          "start": 109,
+          "end": 115
+        },
+        {
+          "kind": "Space",
+          "id": null,
+          "start": 115,
+          "end": 116
+        },
+        {
+          "kind": "Word",
+          "id": null,
+          "start": 116,
+          "end": 142
+        },
+        {
+          "kind": "Space",
+          "id": null,
+          "start": 142,
+          "end": 143
+        },
+        {
+          "kind": "Word",
+          "id": null,
+          "start": 143,
+          "end": 157
+        },
+        {
+          "kind": "Punct",
+          "id": null,
+          "start": 157,
+          "end": 158
+        },
+        {
+          "kind": "Space",
+          "id": null,
+          "start": 158,
+          "end": 159
+        },
+        {
+          "kind": "Word",
+          "id": null,
+          "start": 159,
+          "end": 177
+        },
+        {
+          "kind": "Space",
+          "id": null,
+          "start": 177,
+          "end": 178
+        },
+        {
+          "kind": "Punct",
+          "id": null,
+          "start": 178,
+          "end": 179
+        },
+        {
+          "kind": "Word",
+          "id": null,
+          "start": 179,
+          "end": 201
+        },
+        {
+          "kind": "Punct",
+          "id": null,
+          "start": 201,
+          "end": 202
+        },
+        {
+          "kind": "Space",
+          "id": null,
+          "start": 202,
+          "end": 203
+        },
+        {
+          "kind": "Word",
+          "id": null,
+          "start": 203,
+          "end": 205
+        },
+        {
+          "kind": "Space",
+          "id": null,
+          "start": 205,
+          "end": 206
+        },
+        {
+          "kind": "Word",
+          "id": null,
+          "start": 206,
+          "end": 220
+        },
+        {
+          "kind": "Space",
+          "id": null,
+          "start": 220,
+          "end": 221
+        },
+        {
+          "kind": "Word",
+          "id": null,
+          "start": 221,
+          "end": 239
+        },
+        {
+          "kind": "Space",
+          "id": null,
+          "start": 239,
+          "end": 240
+        },
+        {
+          "kind": "Punct",
+          "id": null,
+          "start": 240,
+          "end": 241
+        },
+        {
+          "kind": "Word",
+          "id": null,
+          "start": 241,
+          "end": 261
+        },
+        {
+          "kind": "Punct",
+          "id": null,
+          "start": 261,
+          "end": 262
+        },
+        {
+          "kind": "Space",
+          "id": null,
+          "start": 262,
+          "end": 263
+        },
+        {
+          "kind": "Word",
+          "id": null,
+          "start": 263,
+          "end": 265
+        },
+        {
+          "kind": "Space",
+          "id": null,
+          "start": 265,
+          "end": 266
+        },
+        {
+          "kind": "Word",
+          "id": null,
+          "start": 266,
+          "end": 272
+        },
+        {
+          "kind": "Space",
+          "id": null,
+          "start": 272,
+          "end": 273
+        },
+        {
+          "kind": "Word",
+          "id": null,
+          "start": 273,
+          "end": 281
+        },
+        {
+          "kind": "Space",
+          "id": null,
+          "start": 281,
+          "end": 282
+        },
+        {
+          "kind": "Word",
+          "id": null,
+          "start": 282,
+          "end": 300
+        },
+        {
+          "kind": "Space",
+          "id": null,
+          "start": 300,
+          "end": 301
+        },
+        {
+          "kind": "Word",
+          "id": null,
+          "start": 301,
+          "end": 303
+        },
+        {
+          "kind": "Space",
+          "id": null,
+          "start": 303,
+          "end": 304
+        },
+        {
+          "kind": "Word",
+          "id": null,
+          "start": 304,
+          "end": 330
+        },
+        {
+          "kind": "Space",
+          "id": null,
+          "start": 330,
+          "end": 331
+        },
+        {
+          "kind": "Word",
+          "id": null,
+          "start": 331,
+          "end": 355
+        },
+        {
+          "kind": "Space",
+          "id": null,
+          "start": 355,
+          "end": 356
+        },
+        {
+          "kind": "Word",
+          "id": null,
+          "start": 356,
+          "end": 362
+        },
+        {
+          "kind": "Space",
+          "id": null,
+          "start": 362,
+          "end": 363
+        },
+        {
+          "kind": "Word",
+          "id": null,
+          "start": 363,
+          "end": 389
+        },
+        {
+          "kind": "Space",
+          "id": null,
+          "start": 389,
+          "end": 390
+        },
+        {
+          "kind": "Word",
+          "id": null,
+          "start": 390,
+          "end": 404
+        },
+        {
+          "kind": "Space",
+          "id": null,
+          "start": 404,
+          "end": 405
+        },
+        {
+          "kind": "Word",
+          "id": null,
+          "start": 405,
+          "end": 423
+        },
+        {
+          "kind": "Space",
+          "id": null,
+          "start": 423,
+          "end": 424
+        },
+        {
+          "kind": "Word",
+          "id": null,
+          "start": 424,
+          "end": 426
+        },
+        {
+          "kind": "Space",
+          "id": null,
+          "start": 426,
+          "end": 427
+        },
+        {
+          "kind": "Date",
+          "id": null,
+          "start": 427,
+          "end": 437
+        },
+        {
+          "kind": "Punct",
+          "id": null,
+          "start": 437,
+          "end": 438
+        }
+      ]
+    },
+    {
+      "id": "fz44-002",
+      "file": "fz44-002.txt",
+      "source_block_index": 31,
+      "bucket": "date-docno",
+      "note_kind": "enacting",
+      "tokens": [
+        {
+          "kind": "Word",
+          "id": null,
+          "start": 0,
+          "end": 4
+        },
+        {
+          "kind": "Space",
+          "id": null,
+          "start": 4,
+          "end": 5
+        },
+        {
+          "kind": "Date",
+          "id": null,
+          "start": 5,
+          "end": 15
+        },
+        {
+          "kind": "Space",
+          "id": null,
+          "start": 15,
+          "end": 16
+        },
+        {
+          "kind": "Word",
+          "id": null,
+          "start": 16,
+          "end": 17
+        },
+        {
+          "kind": "Space",
+          "id": null,
+          "start": 17,
+          "end": 18
+        },
+        {
+          "kind": "DocNo",
+          "id": null,
+          "start": 18,
+          "end": 26
+        },
+        {
+          "kind": "Punct",
+          "id": null,
+          "start": 26,
+          "end": 27
+        },
+        {
+          "kind": "Space",
+          "id": null,
+          "start": 27,
+          "end": 28
+        },
+        {
+          "kind": "Word",
+          "id": null,
+          "start": 28,
+          "end": 32
+        },
+        {
+          "kind": "Space",
+          "id": null,
+          "start": 32,
+          "end": 33
+        },
+        {
+          "kind": "Date",
+          "id": null,
+          "start": 33,
+          "end": 43
+        },
+        {
+          "kind": "Space",
+          "id": null,
+          "start": 43,
+          "end": 44
+        },
+        {
+          "kind": "Word",
+          "id": null,
+          "start": 44,
+          "end": 45
+        },
+        {
+          "kind": "Space",
+          "id": null,
+          "start": 45,
+          "end": 46
+        },
+        {
+          "kind": "DocNo",
+          "id": null,
+          "start": 46,
+          "end": 54
+        },
+        {
+          "kind": "Space",
+          "id": null,
+          "start": 54,
+          "end": 55
+        },
+        {
+          "kind": "Punct",
+          "id": null,
+          "start": 55,
+          "end": 56
+        },
+        {
+          "kind": "Abbrev",
+          "id": "red",
+          "start": 56,
+          "end": 63
+        },
+        {
+          "kind": "Space",
+          "id": null,
+          "start": 63,
+          "end": 64
+        },
+        {
+          "kind": "Date",
+          "id": null,
+          "start": 64,
+          "end": 74
+        },
+        {
+          "kind": "Punct",
+          "id": null,
+          "start": 74,
+          "end": 76
+        }
+      ]
+    }
+  ]
+}

@@ -62,6 +62,7 @@ falkordb=historical-only
 | ADR-0025 | Consultant parser — separate crate for provider-specific extraction (hyperlinks, catalog, cross-act edges) | `[bounded]` |
 | ADR-0026 | RuVector as agent memory layer for the meta-parser (graph + vectors + SONA + GNN) | `[proposed]` |
 | ADR-0027 | Multi-layer manifest classifier for document-specific link classification | `[bounded]` |
+| [ADR-0028](0028-typed-lexer-legal-marker-lexicon.md) | Typed lexer and legal-marker lexicon for the NPA document engine (LawRef FSM, clause/list_item, act tree; morphology deferred) | `[proposed]` |
 
 Index: `doc/adr/README.md`. Do not treat ACP/git-lex/FalkorDB-era docs as
 active ADR substance.
