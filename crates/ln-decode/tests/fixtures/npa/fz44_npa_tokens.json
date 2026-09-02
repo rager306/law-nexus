@@ -8093,6 +8093,246 @@
           "end": 90
         }
       ]
+    },
+    {
+      "id": "syn-001",
+      "file": "syn-001.txt",
+      "source_block_index": 0,
+      "bucket": "synthetic-collision",
+      "note_kind": "synthetic",
+      "tokens": [
+        {
+          "kind": "Word",
+          "id": null,
+          "start": 0,
+          "end": 26
+        },
+        {
+          "kind": "Space",
+          "id": null,
+          "start": 26,
+          "end": 27
+        },
+        {
+          "kind": "Word",
+          "id": null,
+          "start": 27,
+          "end": 43
+        },
+        {
+          "kind": "Punct",
+          "id": null,
+          "start": 43,
+          "end": 44
+        },
+        {
+          "kind": "Space",
+          "id": null,
+          "start": 44,
+          "end": 45
+        },
+        {
+          "kind": "Word",
+          "id": null,
+          "start": 45,
+          "end": 55
+        },
+        {
+          "kind": "Space",
+          "id": null,
+          "start": 55,
+          "end": 56
+        },
+        {
+          "kind": "HierNum",
+          "id": null,
+          "start": 56,
+          "end": 60
+        },
+        {
+          "kind": "Space",
+          "id": null,
+          "start": 60,
+          "end": 61
+        },
+        {
+          "kind": "Word",
+          "id": null,
+          "start": 61,
+          "end": 79
+        },
+        {
+          "kind": "Space",
+          "id": null,
+          "start": 79,
+          "end": 80
+        },
+        {
+          "kind": "Word",
+          "id": null,
+          "start": 80,
+          "end": 84
+        },
+        {
+          "kind": "Space",
+          "id": null,
+          "start": 84,
+          "end": 85
+        },
+        {
+          "kind": "Date",
+          "id": null,
+          "start": 85,
+          "end": 95
+        },
+        {
+          "kind": "Punct",
+          "id": null,
+          "start": 95,
+          "end": 96
+        }
+      ]
+    },
+    {
+      "id": "syn-002",
+      "file": "syn-002.txt",
+      "source_block_index": 0,
+      "bucket": "synthetic-collision",
+      "note_kind": "synthetic",
+      "tokens": [
+        {
+          "kind": "EnumMarker",
+          "id": null,
+          "start": 0,
+          "end": 2
+        },
+        {
+          "kind": "Space",
+          "id": null,
+          "start": 2,
+          "end": 3
+        },
+        {
+          "kind": "Word",
+          "id": null,
+          "start": 3,
+          "end": 19
+        },
+        {
+          "kind": "Space",
+          "id": null,
+          "start": 19,
+          "end": 20
+        },
+        {
+          "kind": "Word",
+          "id": null,
+          "start": 20,
+          "end": 40
+        },
+        {
+          "kind": "Space",
+          "id": null,
+          "start": 40,
+          "end": 41
+        },
+        {
+          "kind": "Word",
+          "id": null,
+          "start": 41,
+          "end": 65
+        },
+        {
+          "kind": "Space",
+          "id": null,
+          "start": 65,
+          "end": 66
+        },
+        {
+          "kind": "Word",
+          "id": null,
+          "start": 66,
+          "end": 70
+        },
+        {
+          "kind": "Space",
+          "id": null,
+          "start": 70,
+          "end": 71
+        },
+        {
+          "kind": "Word",
+          "id": null,
+          "start": 71,
+          "end": 85
+        },
+        {
+          "kind": "Space",
+          "id": null,
+          "start": 85,
+          "end": 86
+        },
+        {
+          "kind": "HierNum",
+          "id": null,
+          "start": 86,
+          "end": 89
+        },
+        {
+          "kind": "Space",
+          "id": null,
+          "start": 89,
+          "end": 90
+        },
+        {
+          "kind": "Word",
+          "id": null,
+          "start": 90,
+          "end": 96
+        },
+        {
+          "kind": "Space",
+          "id": null,
+          "start": 96,
+          "end": 97
+        },
+        {
+          "kind": "Word",
+          "id": null,
+          "start": 97,
+          "end": 111
+        },
+        {
+          "kind": "Space",
+          "id": null,
+          "start": 111,
+          "end": 112
+        },
+        {
+          "kind": "Word",
+          "id": null,
+          "start": 112,
+          "end": 128
+        },
+        {
+          "kind": "Space",
+          "id": null,
+          "start": 128,
+          "end": 129
+        },
+        {
+          "kind": "Word",
+          "id": null,
+          "start": 129,
+          "end": 141
+        },
+        {
+          "kind": "Punct",
+          "id": null,
+          "start": 141,
+          "end": 142
+        }
+      ]
     }
   ]
 }

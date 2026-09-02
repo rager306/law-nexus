@@ -9,8 +9,9 @@
 //!
 //! This is fixture infrastructure only (S01 is a data slice):
 //! - it never calls the private `tokenizer` module (typed lexer is S02);
-//! - it never decodes the 5.2 MB source XML (provenance is pinned by path +
-//!   sha256 + byte length checked against `fs::metadata` only);
+//! - default tests never decode the 5.2 MB source XML (provenance is pinned
+//!   by path + sha256 + byte length checked against `fs::metadata` only; the
+//!   `#[ignore]` harvest audit decodes it only on demand);
 //! - stdlib only — hand-rolled JSON parser (D328; no serde in the workspace).
 //!
 //! D330 marking rules, frozen here so two executors cannot mark `15.1` or
@@ -38,7 +39,11 @@ use std::collections::{BTreeMap, BTreeSet};
 use std::fs;
 use std::path::{Path, PathBuf};
 
-use ln_decode::domain::TextSpan;
+use ln_decode::{
+    adapters::ConsultantWordMlBlockDecoder,
+    domain::{DecodeRequest, FamilyFormat, PayloadRef, TextSpan},
+    ports::BlockDecoderPort,
+};
 
 const SOURCE_RELATIVE_PATH: &str = "law-source/consultant/federalnyi-zakon-ot-05-04-2013-n-44-fz-red-ot-28-12-2025-o-kontraktnoi-sisteme-v-sfere-zakupok-tovarov-rabot-uslug-dlya-obespecheniya-g--f9c8ca4c.xml";
 const SOURCE_SHA256: &str = "c111119c6c3001b5b4fde0e35bffbe382bcb877df2bba9cd54ab0290c92c1b14";
@@ -110,8 +115,13 @@ const CORPUS_BUCKETS: [&str; 8] = [
     "misc-punct",
 ];
 
-/// note_kind vocab for S01; `synthetic` arrives with the T03 collision pair.
-const NOTE_KINDS: [&str; 2] = ["enacting", "provider_note"];
+/// The only bucket a `synthetic` fragment may claim; corpus fragments must
+/// never claim it (otherwise they could escape the >= 40 corpus quota).
+const SYNTHETIC_BUCKET: &str = "synthetic-collision";
+
+/// note_kind vocab for S01; `synthetic` marks the T03 constructed collision
+/// pair (never counted as corpus, never eligible for bucket quotas).
+const NOTE_KINDS: [&str; 3] = ["enacting", "provider_note", "synthetic"];
 
 /// Honesty substrings every manifest must carry (R070 stays open).
 const REQUIRED_NON_CLAIMS: [&str; 3] = ["official-publication", "LawRef", "legal interpretation"];
@@ -622,11 +632,21 @@ fn validate_fragment(
     if !is_safe_fixture_file_name(&file) {
         return Err(format!("{context}: unsafe fixture file name '{file}'"));
     }
-    if !CORPUS_BUCKETS.contains(&bucket.as_str()) {
-        return Err(format!("{context}: unknown bucket '{bucket}'"));
-    }
     if !NOTE_KINDS.contains(&note_kind.as_str()) {
         return Err(format!("{context}: unknown note_kind '{note_kind}'"));
+    }
+    if note_kind == "synthetic" {
+        if bucket != SYNTHETIC_BUCKET {
+            return Err(format!(
+                "{context}: synthetic fragment must use bucket '{SYNTHETIC_BUCKET}', got '{bucket}'"
+            ));
+        }
+    } else if bucket == SYNTHETIC_BUCKET {
+        return Err(format!(
+            "{context}: corpus fragment must not claim the synthetic bucket '{SYNTHETIC_BUCKET}'"
+        ));
+    } else if !CORPUS_BUCKETS.contains(&bucket.as_str()) {
+        return Err(format!("{context}: unknown bucket '{bucket}'"));
     }
 
     let text = files
@@ -1609,5 +1629,185 @@ fn hostile_bijection_violations_fail_closed() {
     assert!(
         error.contains("no .txt fixture"),
         "expected missing-file rejection, got: {error}"
+    );
+}
+
+// ---------------------------------------------------------------------------
+// T03: synthetic collision pair, corpus exclusion, bucket pairing lock.
+// ---------------------------------------------------------------------------
+
+#[test]
+fn t03_synthetic_collision_pair_is_marked_and_excluded_from_corpus() {
+    let fragments = load_golden_fixtures(&fixtures_dir(), &repo_root())
+        .expect("NPA golden fixtures must load fail-closed");
+
+    let corpus = count_corpus_fragments(&fragments);
+    let synthetic: Vec<&LoadedFragment> = fragments
+        .iter()
+        .filter(|fragment| fragment.note_kind == "synthetic")
+        .collect();
+
+    assert!(corpus >= 40, "corpus quota stays >= 40 (got {corpus})");
+    assert_eq!(
+        synthetic.len(),
+        2,
+        "exactly syn-001 and syn-002; no syn-003+ sprawl"
+    );
+    assert_eq!(
+        fragments.len(),
+        corpus + synthetic.len(),
+        "synthetic fragments must be excluded from the corpus count"
+    );
+    for fragment in &synthetic {
+        assert_eq!(
+            fragment.bucket, SYNTHETIC_BUCKET,
+            "{} must carry bucket {SYNTHETIC_BUCKET}",
+            fragment.id
+        );
+        assert_eq!(
+            fragment.source_block_index, 0,
+            "{} is constructed, not a decoded block",
+            fragment.id
+        );
+    }
+
+    // syn-001: one line carrying BOTH a dotted non-date HierNum and a
+    // dd.mm.yyyy Date (D330: Date beats HierNum on dd.mm.yyyy only).
+    let syn_001 = fragments
+        .iter()
+        .find(|fragment| fragment.id == "syn-001")
+        .expect("syn-001 collision fixture");
+    assert!(
+        !syn_001.text.contains('\n'),
+        "syn-001 must hold the collision on one line"
+    );
+    let hier = syn_001
+        .lexemes
+        .iter()
+        .zip(&syn_001.kinds)
+        .find(|(_, kind)| **kind == "HierNum")
+        .map(|(lexeme, _)| lexeme)
+        .expect("syn-001 must pin a dotted HierNum");
+    assert!(
+        is_hier_num_lexeme(hier) && !is_date_lexeme(hier),
+        "syn-001 HierNum {hier} must be a dotted non-date"
+    );
+    let date = syn_001
+        .lexemes
+        .iter()
+        .zip(&syn_001.kinds)
+        .find(|(_, kind)| **kind == "Date")
+        .map(|(lexeme, _)| lexeme)
+        .expect("syn-001 must pin a Date");
+    assert!(
+        is_date_lexeme(date),
+        "syn-001 Date {date} must be dd.mm.yyyy"
+    );
+    assert_ne!(hier, date, "the two collision lexemes must be distinct");
+
+    // syn-002: list-start EnumMarker `1.` (dot inside) plus a separate
+    // in-sentence HierNum `5.1`; no reference Abbrevs smuggled in.
+    let syn_002 = fragments
+        .iter()
+        .find(|fragment| fragment.id == "syn-002")
+        .expect("syn-002 collision fixture");
+    assert_eq!(
+        syn_002.kinds[0], "EnumMarker",
+        "syn-002 must open with the list-start marker"
+    );
+    assert_eq!(syn_002.lexemes[0], "1.", "the dot stays inside the marker");
+    assert!(
+        syn_002
+            .lexemes
+            .iter()
+            .zip(&syn_002.kinds)
+            .any(|(lexeme, kind)| *kind == "HierNum" && lexeme == "5.1"),
+        "syn-002 must pin the in-sentence HierNum 5.1"
+    );
+    assert!(
+        syn_002.abbrev_ids.iter().all(|id| id.is_none()),
+        "synthetic fixtures must not smuggle Abbrev ids"
+    );
+}
+
+#[test]
+fn hostile_synthetic_bucket_pairing_fails_closed() {
+    let fragment_json = |bucket: &str, note_kind: &str| {
+        format!(
+            r#"[{{"id": "hostile-001", "file": "{HOSTILE_FILE}", "source_block_index": 0, "bucket": "{bucket}", "note_kind": "{note_kind}", "tokens": [{{"kind": "Punct", "id": null, "start": 0, "end": 1}}]}}]"#
+        )
+    };
+    let run = |bucket: &str, note_kind: &str| {
+        let mut files = BTreeMap::new();
+        files.insert(HOSTILE_FILE.to_string(), ".".to_string());
+        let manifest = hostile_manifest(&fragment_json(bucket, note_kind));
+        validate_fixture_set(&manifest, &files, None)
+            .expect_err("bucket/note_kind pairing must fail closed")
+    };
+
+    let error = run("abbrev-hier", "synthetic");
+    assert!(
+        error.contains("synthetic fragment must use bucket"),
+        "expected synthetic-bucket rejection, got: {error}"
+    );
+
+    let error = run(SYNTHETIC_BUCKET, "enacting");
+    assert!(
+        error.contains("must not claim the synthetic bucket"),
+        "expected corpus-bucket rejection, got: {error}"
+    );
+}
+
+// ---------------------------------------------------------------------------
+// T03 optional harvest audit (#[ignore]: decodes the 5.2 MB tracked XML —
+// never runs in default CI). Every corpus fragment must be an exact substring
+// of some decoded `ParsedBlock::text()`; synthetic fixtures are exempt.
+// ---------------------------------------------------------------------------
+
+#[test]
+#[ignore = "decodes the 5.2 MB tracked 44-ФЗ XML on demand; not a CI test"]
+fn ignored_harvest_audit_corpus_fragments_are_block_substrings() {
+    let xml = repo_root().join(SOURCE_RELATIVE_PATH);
+    let metadata = fs::metadata(&xml).expect("pinned corpus XML");
+    assert_eq!(
+        metadata.len(),
+        SOURCE_BYTES,
+        "pinned corpus XML length drifted"
+    );
+    let bytes = fs::read(&xml).expect("read pinned corpus XML");
+
+    let request = DecodeRequest::new(
+        PayloadRef::parse("payload:m197-s01-harvest-audit").expect("payload ref"),
+        FamilyFormat::parse("family:consultant-wordml").expect("family format"),
+        &bytes,
+    );
+    let blocks = ConsultantWordMlBlockDecoder
+        .decode_blocks(&request)
+        .expect("pinned corpus must decode");
+    assert!(!blocks.is_empty(), "decoded corpus must emit blocks");
+
+    let fragments = load_golden_fixtures(&fixtures_dir(), &repo_root())
+        .expect("NPA golden fixtures must load fail-closed");
+    let mut audited = 0usize;
+    for fragment in &fragments {
+        if fragment.note_kind == "synthetic" {
+            continue;
+        }
+        assert!(
+            blocks
+                .iter()
+                .any(|block| block.text().contains(&fragment.text)),
+            "{} must be an exact substring of a decoded ParsedBlock",
+            fragment.id
+        );
+        audited += 1;
+    }
+    assert!(
+        audited >= 40,
+        "harvest audit must cover the whole corpus (got {audited})"
+    );
+    eprintln!(
+        "harvest audit: {audited} corpus fragments are block substrings; blocks={}",
+        blocks.len()
     );
 }
