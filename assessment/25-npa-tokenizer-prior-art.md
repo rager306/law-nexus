@@ -244,3 +244,71 @@ standards (AKN, ELI), Russian domain (RuLegalNER, Golev), methodology
 (Artstein, Ding), trade-offs (Waltl, Pinto). Remaining unknowns are
 project-internal (the gold sample and the npa-family split), not
 literature gaps. No further research passes before the improving loop.
+
+## 6. Prior-art addendum: O-RAG (Adamchic, LinkedIn 2026-08-26) — proof-required candidates
+
+Source: Irina Adamchic, "Ontology GraphRAG (O-RAG): Building a Legal Knowledge
+Layer Through Dynamic Schema Retrieval" (LinkedIn, 2026-08-26; self-described
+non-academic experiment on the German Civil Code). Read in full; classification
+follows the project convention: transferable ideas are proof-required
+candidates, not validated architecture (see the Habr Legal RAG precedent).
+
+### 6.1 What the article does
+
+Neo4j LPG with an OntologyLayer (~400 class nodes from LKIF + Akoma Ntoso +
+RICS, bge-m3-embedded, vector-indexed); per text chunk, the top-K ontology
+classes from vector search become the dynamic `allowed_nodes` schema slice
+for an LLM extraction call (LangChain LLMGraphTransformer, Mistral Large 2,
+temp 0), replacing a static full-schema list that degrades above ~50 types.
+2x2 experiment on 309 BGB chunks (language: German vs English-translated;
+granularity: full paragraph vs 3-sentence windows): EN-trigrams wins 87.7%
+of chunks, mean top-3 cosine 0.795 vs 0.700 baseline. Reported effects:
+granularity (+0.076) dominates language (+0.024); max-per-window aggregation
+beats summing (generic concepts stop ranking high); top-3 average preferred
+over top-1 (top-1 tends to generic classes).
+
+### 6.2 Known confound (visible in the article's own comments)
+
+A commenter (Sarvex Jatasra) notes that shrinking the embedded unit raises
+cosine scores by itself: the 0.795-vs-0.700 gap and the 87.7% win rate are
+argmax over the same raw scores, so the comparison may reflect the length
+confound rather than better schema SELECTION. The decisive question — do the
+top-3 SLICES differ, or only their scores? — is unanswered. The author's own
+limitations section concedes: cosine is a proxy for extraction quality; the
+gold-standard human-labelled evaluation is planned but not done; single
+document (BGB), single embedding model (bge-m3); chunks < 150 chars are
+unreliable regardless of strategy.
+
+### 6.3 Transferable candidates for law-nexus (all proof-required)
+
+1. **LLM pre-annotation of the N2 gold sample with a schema slice.** O-RAG's
+   schema-slice pattern could accelerate Layer-2 gold preparation: embed the
+   candidate span + AKN/ELI class definitions (D350 vocabulary is the
+   OntologyLayer analog), let an LLM propose class labels, human verifies.
+   Precondition per D351: the human double-annotation and alpha >= 0.8 gate
+   stay authoritative; the LLM pass is triage only, and its noise must be
+   measured (Ding 2025 latent-noise framework, §5.2 of this assessment).
+2. **Unknown-tail triage at scale.** Today the tail is 50 entries
+   (hand-classifiable); if a future corpus pass grows it to thousands, the
+   embed-and-rank triage pattern becomes economic. Not needed at the
+   current scale — re-evaluate on trigger, not on schedule.
+3. **Chunking guidance for any future RuVector indexing (ADR-0014,
+   [proposed])**: 3-sentence windows + max-aggregation beat whole-paragraph
+   embeddings; length asymmetry between query and index units matters.
+   Relevant only if/when the graph-vector wave starts; do not pull forward.
+4. **AKN-in-ontology confirmation**: the article's OntologyLayer embeds
+   Akoma Ntoso classes — independent confirmation that D350's AKN eId
+   alignment matches industry practice.
+
+### 6.4 Non-transferable for N2
+
+LLMGraphTransformer extraction, Neo4j serving, cosine-as-acceptance-gate,
+and translation preprocessing: the law-nexus product pipeline is
+deterministic (FSM), carries no LLM dependency (ADR-0004/0007), and its
+acceptance gates are span-determinism plus human-annotated alpha — cosine
+proxies are explicitly not acceptance evidence. The article's own
+limitations section supports this boundary.
+
+Verdict: no changes to the N2 plan; two candidate tools recorded
+(LLM pre-annotation triage; tail-scale triage pattern) with explicit
+preconditions. Re-evaluate the second on tail-size trigger only.
