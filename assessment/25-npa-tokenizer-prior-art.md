@@ -148,3 +148,99 @@ claims were adopted without reading the primary text where load-bearing
 (eyecite whitepaper and AKN naming convention were read; Waltl and Pinto
 abstracts only — sufficient for the rule-vs-ML direction, insufficient for
 detailed technique borrowing). No lifecycle statuses changed.
+
+## 5. Post-M198 audit (2026-09-03): implementation vs recommendations, metric tuning
+
+Trigger: N2 gate PASS (D363); owner-directed audit before the N2 wave.
+
+### 5.1 Implementation audit (lexer.rs 506 loc, morphology.rs 111, npa_sweep.rs 1049)
+
+Recommendation-by-recommendation:
+
+- Covering invariant: **implemented** (every `lex()` token consumes >= 1
+  char; pos advances; sidecar loader enforces byte-exact reconstruction).
+- Data-driven lexemes, longest-first, fail-closed parse panic: **implemented**
+  (`NPA_ABBREV_IDS` + embedded-YAML `AbbrevEntry`, `OnceLock`).
+- C2 Unicode fold with fail-closed contour: **implemented** (>= 2 alphabetic
+  chars fold case; 1-letter lexemes lowercase-exact — hostile initials
+  `Ч.`/`П.` stay Word+Punct, protecting the LawRef contour).
+- Precedence as data (eyecite-style): **NOT yet** — precedence is the
+  `lex()` match chain (whitespace → abbrev → enum-letter → lawcode → date →
+  hier → docno → enum-digits → word → punct). Correct behavior today, but
+  N2 must lift it into data (a precedence table) so Date-beats-HierNum etc.
+  remain auditable when the FSM adds capture matchers.
+- Token `groups` (structured capture, eyecite-style): **NOT yet** —
+  `NpaToken` is kind+span+abbrev_id; HierNum segments (15.1 → [15,1]) are
+  re-derivable but not captured. N2 needs a capture layer; do not retrofit
+  `NpaToken` — a LawRef-level struct per D350 is the right home.
+- LawRef schema stub: **absent** (expected; N2 scope).
+- Resolution layer: **absent** (expected; N2 stage 2).
+
+Verdict: no misimplementations found; the open items are exactly the N2
+scope. The C2 fold contour (1-letter exact) is load-bearing for LawRef and
+must be pinned by an N2 contract test (hostile initials must not become
+references).
+
+### 5.2 Metric tuning (Layer-1 corrections; Layer-2/3 unchanged)
+
+- **D353 unit fix**: C1 artifacts carried a ppm field rendered as "240.53%"
+  — inconsistent units across artifacts. D353 (percent of word tokens that
+  are marker-class) is correct; the JSONL field name should be
+  `marker_coverage_pct` going forward (cosmetic, batch with next render
+  change).
+- **Per-family coverage split** (new, required): C1 showed family dilution
+  (fas 30,399 / courts 5,667 / xml 6,803 / npa 916). Corpus-level coverage
+  mixes genres; N2 gates must read **npa-family coverage** as the primary
+  number, corpus-level as secondary (the C2 npa-baseline sweep already
+  implements the split).
+- **Tail-stability index stays** (C3: 50/50 kept, 0/0 moved — gate passed).
+- **Layer-2 (annotation)**: protocol = dual annotation of a stratified
+  sample, Krippendorff alpha >= 0.8 (Artstein); rule-annotated pre-seed is
+  legitimate but requires **noise assessment** (DS-NER latent-noise
+  framework, Ding 2025) before alpha measurement.
+- **Layer-3 (N2) metric set adopted from bundesrecht** (Darji et al. 2026,
+  arXiv:2605.31338 — closest prior art; German statutory references):
+  strict exact-match + micro-IE metrics over annotated references, plus
+  **canonical-deduplication quality** (normalized references grouping
+  surface variants — validates D350's ELI canonical/user duality
+  empirically: bundesrecht shows normalized forms group real citation
+  variants far better than string matching).
+
+### 5.3 Additional pattern research for the Russian-NPA case
+
+New scientific anchors (Consensus, 2026-09-03):
+
+- **bundesrecht** (Darji, Heckelmann, Kratsch, de Melo 2026, arXiv:2605.31338):
+  end-to-end pipeline parse → normalize → resolve → link for German federal
+  statutes. Surface-form challenges map 1:1 onto Russian practice: compact
+  combined references («п. 5 ч. 1 ст. 42» ≈ «§ 823 Abs. 1 BGB»), multiple
+  targets, ranges («пункты 1 - 4.1» ≈ «§§ 1-2»), special abbreviations
+  («i.V.m.» ≈ «в соответствии с»), lower-level units (Buchstabe ≈
+  подпункт/буква). Their levels Absatz/Satz/Nummer/Buchstabe mirror
+  ч./абз./подпункт/подпункт-"а".
+- **RuLegalNER** (Shaheen et al. 2023): Russian legal NER dataset,
+  rule-based expert annotation feeding RuBERT+CRF — precedent for
+  rule-annotated seed + ML evaluation (our approach-A/fallback-B split).
+- **Sukthanker 2018 / Mitkov 2020**: anaphora resolution survey baseline
+  set for the N2 resolution layer (Russian «настоящей статьи» /
+  «того же раздела» are document-scoped anaphora, best handled by
+  document-context stack rather than general coreference models).
+- **Ding 2025 (DS-NER, IEEE TKDE)**: latent-noise framework for
+  rule/distant annotations — required before treating sweep-annotated
+  spans as gold.
+
+Russian-NPA surface patterns to encode in N2 (from C1/C3 tails + drafting
+practice): uppercase single-letter markers `А)` `Б)` (old-GOST enum),
+fullword tails `ст. 5 закона № 33-ФЗ`, date+number requisite blocks
+(`от 27.07.2006 № 149-ФЗ`), quoted labels `подпункт "а" пункта 5`
+(lexer already splits the quote), ranges `пункты 1 - 4.1`, currency `руб.`
+(TokenKind decision: Word is correct; exclusion from tail by lexeme
+allowlist, not by kind).
+
+### 5.4 Additional-research verdict
+
+Sufficient for N2. Coverage: pipeline architecture (eyecite, bundesrecht),
+standards (AKN, ELI), Russian domain (RuLegalNER, Golev), methodology
+(Artstein, Ding), trade-offs (Waltl, Pinto). Remaining unknowns are
+project-internal (the gold sample and the npa-family split), not
+literature gaps. No further research passes before the improving loop.
