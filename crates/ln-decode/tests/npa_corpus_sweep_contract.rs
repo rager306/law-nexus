@@ -1065,3 +1065,61 @@ fn t03_tracked_strings_stay_bounded() {
         }
     }
 }
+
+// ---------------------------------------------------------------------------
+// M198-das7v8 S02/T01: npa-family pre-retune baseline pins
+// (`prd/migration/rust-evidence/m198-c2-npa-family-baseline.jsonl`). Same
+// contour as the C1 t03 pins: the test reads only the tracked JSONL — the
+// live `consru_export` tree is never opened from `cargo test`.
+// ---------------------------------------------------------------------------
+
+/// Repo-relative path of the tracked npa-family baseline, resolved from the
+/// crate next to the C1 aggregate (sibling tracked artifact, same shape).
+fn tracked_npa_baseline_path() -> PathBuf {
+    Path::new(env!("CARGO_MANIFEST_DIR"))
+        .join("../../prd/migration/rust-evidence/m198-c2-npa-family-baseline.jsonl")
+}
+
+/// S02/T01 pins over the pre-retune npa-family baseline: the same binary and
+/// the lowercase-exact lexer of C1, run over the 916-XML npa subtree with
+/// cycle `C2-npa-baseline`. Pins the closed schema in fixed order, npa-only
+/// file accounting, and the D329-nine floors. `d329.podp` is pinned to the
+/// observed lexer value (0 here); a future non-zero reading would be
+/// recorded in this test as a fact, not a failure — the empirical NARROW of
+/// D329 (M198 S02) keeps the operative corpus-goldens rule intact either way.
+#[test]
+fn t04_tracked_npa_family_baseline_pins() {
+    let path = tracked_npa_baseline_path();
+    let text = fs::read_to_string(&path)
+        .unwrap_or_else(|err| panic!("tracked npa-family baseline must be readable: {err}"));
+    npa_sweep::validate_jsonl(&text).expect("closed-key reader must accept the baseline");
+    let records = parse_aggregate(&text);
+    let kinds: Vec<&str> = records.iter().map(|(kind, _)| *kind).collect();
+    assert_eq!(kinds, RECORD_KINDS, "eight records, fixed order");
+
+    let header = record(&records, "header");
+    assert_eq!(header.str_val("schema"), "npa-corpus-sweep/v1");
+    assert_eq!(header.num("schema_version"), 1);
+    assert_eq!(header.str_val("cycle"), "C2-npa-baseline");
+    assert_eq!(header.str_val("lifecycle"), "[bounded]");
+
+    let totals = record(&records, "totals");
+    assert_eq!(totals.num("files_seen"), 916, "npa-only subtree sweep");
+    assert_eq!(totals.num("files_decoded"), 916);
+    assert_eq!(totals.num("files_failed"), 0, "no silent degradation");
+
+    let split = record(&records, "family_split");
+    let npa = split.get("npa").expect("npa family must be present");
+    assert_eq!(npa.num("seen"), 916, "family split agrees with totals");
+
+    let d329 = record(&records, "d329");
+    assert_eq!(d329.num("stst"), 0, "stst stays the only global zero");
+    // Observed pre-retune npa-family value: 0. The research census said
+    // подп.=0 on the npa family; this pin freezes the lexer measurement
+    // behind it.
+    assert_eq!(
+        d329.num("podp"),
+        0,
+        "observed pre-retune npa-family podp (NARROW keeps the rule)"
+    );
+}

@@ -51,7 +51,14 @@ pub(crate) const ABBREV_IDS: [&str; 17] = [
     "utv", "sm", "sr", "g",
 ];
 
-/// D329: zero hits in the tracked 44-ФЗ — corpus goldens must not mint them.
+/// D329-nine: a corpus-goldens rule, not a corpus empiric. Tracked 44-ФЗ
+/// goldens (`note_kind != synthetic`) must never mint tokens under these
+/// ids, so goldens are never calibrated on them (operative KEEP, M198-das7v8
+/// S02/T01: the list itself is frozen — never narrow it, never extend it).
+/// This is NOT a claim that the nine never occur in the full Consultant
+/// export: the C1 sweep (43 785 XML) refuted "nine never occur" (utv 3464,
+/// podp 1352, gl 1195, abz 1574, razd 163, prim 35, pril 33, sr 16; stst is
+/// the only global zero).
 pub(crate) const CORPUS_FORBIDDEN_ABBREV_IDS: [&str; 9] = [
     "gl", "razd", "podp", "abz", "pril", "prim", "stst", "utv", "sr",
 ];
