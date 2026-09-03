@@ -1128,3 +1128,57 @@ fn t04_tracked_npa_family_baseline_pins() {
         "observed pre-retune npa-family podp (NARROW keeps the rule)"
     );
 }
+
+// ---------------------------------------------------------------------------
+// M198-das7v8 S02/T03: C2 full-corpus post-retune pins
+// (`prd/migration/rust-evidence/m198-c2-npa-corpus-sweep.jsonl`). Same
+// contour as the C1 t03 and npa-baseline t04 pins above: the test reads
+// only the tracked JSONL — the live `consru_export` tree is never opened
+// from `cargo test`. Absolute Abbrev counts are deliberately NOT pinned
+// here: they are the C2 measurement result and live in the delta report
+// (`m198-c2-delta.md`), not in the contract.
+// ---------------------------------------------------------------------------
+
+/// Repo-relative path of the tracked C2 full-corpus aggregate, resolved
+/// from the crate as a sibling of the C1 aggregate (separate path — the
+/// C1 [`tracked_aggregate_path`] pin above must keep proving C1 was not
+/// clobbered by the C2 run).
+fn tracked_c2_aggregate_path() -> PathBuf {
+    Path::new(env!("CARGO_MANIFEST_DIR"))
+        .join("../../prd/migration/rust-evidence/m198-c2-npa-corpus-sweep.jsonl")
+}
+
+/// S02/T03 pins over the post-retune C2 full-corpus aggregate: the same
+/// binary and closed schema v1 as C1, now running the T02 stem-ge-2
+/// Unicode-fold matcher. Pins only cycle-stable invariants (schema,
+/// census, decode accounting, the stst zero) so S03 can read the C1/C2
+/// pair without schema drift; the C1 t03 pins must stay green in the
+/// same run.
+#[test]
+fn t05_tracked_c2_full_corpus_pins() {
+    let path = tracked_c2_aggregate_path();
+    let text = fs::read_to_string(&path)
+        .unwrap_or_else(|err| panic!("tracked C2 aggregate must be readable: {err}"));
+    npa_sweep::validate_jsonl(&text).expect("closed-key reader must accept the C2 aggregate");
+    let records = parse_aggregate(&text);
+    let kinds: Vec<&str> = records.iter().map(|(kind, _)| *kind).collect();
+    assert_eq!(kinds, RECORD_KINDS, "eight records, fixed order");
+
+    let header = record(&records, "header");
+    assert_eq!(header.str_val("schema"), "npa-corpus-sweep/v1");
+    assert_eq!(header.num("schema_version"), 1, "schema v1 is frozen");
+    assert_eq!(header.str_val("cycle"), "C2");
+    assert_eq!(header.str_val("lifecycle"), "[bounded]");
+
+    let totals = record(&records, "totals");
+    assert_eq!(totals.num("files_seen"), 43_785, "full-corpus census");
+    assert_eq!(totals.num("files_decoded"), 43_785);
+    assert_eq!(totals.num("files_failed"), 0, "no silent degradation");
+
+    let d329 = record(&records, "d329");
+    assert_eq!(
+        d329.num("stst"),
+        0,
+        "stst stays the only D329 zero after the fold"
+    );
+}
