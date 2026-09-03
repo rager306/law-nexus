@@ -6,11 +6,12 @@
 //! schema — the Layer-2 sample is span/slot evidence, not a TokenKind oracle)
 //! and it must never compile `npa_golden_fixtures.rs` twice (D335).
 //!
-//! T01 pins the schema only: closed constants + `validate_sample_set` + the
-//! on-disk `load_sample_manifest` helper. The 40-document stratified fill
-//! under `tests/fixtures/npa-lawref/` is T02 work; until then that tree does
-//! not exist (an empty tree would break the future bijection). `lawref_seed`
-//! spans are T03.
+//! T01 pinned the schema only: closed constants + `validate_sample_set` + the
+//! on-disk `load_sample_manifest` helper. T02 landed the 40-document
+//! stratified fill under `tests/fixtures/npa-lawref/` (canonical manifest in
+//! `prd/migration/rust-evidence/`, never a fixtures-side copy — one source of
+//! truth) plus the `#[ignore]` harvest runner in the contract test.
+//! `lawref_seed` spans are T03.
 //!
 //! Q3 hygiene: errors name keys, offsets, and file names — never fragment or
 //! block payload text.

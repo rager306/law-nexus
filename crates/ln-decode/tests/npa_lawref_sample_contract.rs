@@ -15,7 +15,8 @@
 
 mod npa_lawref_support;
 
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, BTreeSet};
+use std::fmt::Write as _;
 use std::fs;
 use std::path::{Path, PathBuf};
 
@@ -658,18 +659,97 @@ fn hostile_byte_len_drift_fails_closed() {
     );
 }
 
-#[test]
-fn on_disk_loader_fails_closed_while_fixtures_are_absent() {
-    // T01 deliberately creates no tests/fixtures/npa-lawref/ tree (an empty
-    // tree would break the future bijection); the on-disk loader must fail
-    // closed until T02 lands the manifest + fragments. When T02 fills the
-    // tree, this test is replaced by the real load + bijection contract.
-    let manifest_path = fixture_dir().join("lawref_sample_manifest.json");
-    let error = load_sample_manifest(&manifest_path, &fixture_dir())
-        .expect_err("absent fixtures must fail closed");
+/// On-disk Layer-2 fill contract (T02): the canonical manifest plus the
+/// `tests/fixtures/npa-lawref/` tree load as a set, and the D367 quota fill
+/// is pinned. Replaces `on_disk_loader_fails_closed_while_fixtures_are_absent`
+/// from T01 (the absent-tree case stays covered by the inline hostile path:
+/// an unreadable manifest path and an empty fragments map fail closed).
+fn canonical_manifest_path() -> PathBuf {
+    Path::new(env!("CARGO_MANIFEST_DIR"))
+        .join("../../prd/migration/rust-evidence/m199-s01-gold-sample-manifest.json")
+}
+
+fn assert_d367_fill(loaded: &SampleManifest) {
+    let per_stratum: BTreeMap<(String, String), usize> = loaded
+        .documents
+        .iter()
+        .map(|doc| ((doc.family.clone(), doc.doc_type.clone()), 1usize))
+        .fold(BTreeMap::new(), |mut acc, (key, _)| {
+            *acc.entry(key).or_insert(0) += 1;
+            acc
+        });
+    for (family, doc_type, quota) in D367_QUOTA_TABLE {
+        let got = per_stratum
+            .get(&(family.to_string(), doc_type.to_string()))
+            .copied()
+            .unwrap_or(0);
+        assert_eq!(
+            got, quota,
+            "D367 stratum ({family}, {doc_type}): expected {quota} docs, got {got}"
+        );
+    }
+    assert_eq!(
+        loaded.documents.len(),
+        D367_TOTAL_DOCS,
+        "documents total must equal D367 total"
+    );
+    let fragment_count = loaded.fragments.len();
     assert!(
-        error.contains("read "),
-        "expected read failure, got: {error}"
+        (120..=200).contains(&fragment_count),
+        "fragments must number 120-200, got {fragment_count}"
+    );
+
+    // T02 fill pins (plan Do step 1): pinned draw seed, no double-counted
+    // source, the tracked 44-FZ slot present, no garant-sourced path.
+    assert_eq!(
+        loaded.draw_seed, 20260903,
+        "pinned T02 draw seed 20260903 (stride-and-cut reproducibility anchor)"
+    );
+    let unique_sources: BTreeSet<&str> = loaded
+        .documents
+        .iter()
+        .map(|doc| doc.source_sha256.as_str())
+        .collect();
+    assert_eq!(
+        unique_sources.len(),
+        loaded.documents.len(),
+        "one source sha256 must never be double-counted across strata"
+    );
+    assert!(
+        loaded
+            .documents
+            .iter()
+            .any(|doc| doc.source_path.contains("f9c8ca4c")),
+        "the tracked law-source 44-FZ slot (f9c8ca4c) must be in the sample"
+    );
+    assert!(
+        loaded
+            .documents
+            .iter()
+            .all(|doc| !doc.source_path.to_lowercase().contains("garant")),
+        "no garant-sourced path may enter the npa-lawref sample"
+    );
+}
+
+#[test]
+fn on_disk_canonical_manifest_loads_with_d367_fill() {
+    let manifest_path = canonical_manifest_path();
+    let loaded = load_sample_manifest(&manifest_path, &fixture_dir())
+        .expect("canonical T02 fill must load fail-closed-clean");
+    assert_d367_fill(&loaded);
+
+    // Plan Do step 1: every canonical fragment record carries the
+    // `seed_span` key (null is fine — T03 fills the spans). The loader
+    // tolerates an absent key for the inline T01 templates, so this pin
+    // reads the raw manifest text; the key appears exactly once per
+    // fragment and nowhere else in the closed schema.
+    let manifest_text = fs::read_to_string(&manifest_path)
+        .unwrap_or_else(|err| panic!("read {}: {err}", manifest_path.display()));
+    let key_count = manifest_text.matches("\"seed_span\"").count();
+    assert_eq!(
+        key_count,
+        loaded.fragments.len(),
+        "every canonical fragment must carry the seed_span key (null ok)"
     );
 }
 
@@ -720,4 +800,319 @@ fn src_has_no_lawref_product_type() {
         "no LawRef product type may exist in src/ during S01 (D363: Layer-2 sample before any FSM):\n{}",
         violations.join("\n")
     );
+}
+
+// ---------------------------------------------------------------------------
+// T02 test-only harvest runner (session-only: decodes export XML directly;
+// never runs in default CI). Stride-and-cut over the npa-family clusters,
+// prefilter by lex(), sha256 via external `sha256sum` (stdlib-only).
+// ---------------------------------------------------------------------------
+
+use ln_decode::{
+    adapters::ConsultantWordMlBlockDecoder,
+    domain::{DecodeRequest, FamilyFormat, PayloadRef},
+    lexer::{lex, TokenKind},
+    ports::BlockDecoderPort,
+};
+
+/// D367 npa-family clusters under `consru_export/consru_export/exports/npa/`,
+/// each mapped to the (family, doc_type, quota) cell. Classification is by
+/// path prefix, never by XML title (plan Do step 3).
+/// One stride-and-cut cluster cell: family, doc_type, quota, path matcher.
+type NpaCluster = (&'static str, &'static str, usize, fn(&str) -> bool);
+
+fn npa_clusters() -> Vec<NpaCluster> {
+    vec![
+        ("npa", "law", 8, |name: &str| {
+            name.starts_with("law_") && !name.contains("44-fz")
+        }),
+        // law-44fz is cluster-shaped, not prefix-shaped: the four slots are
+        // the tracked law-source f9c8ca4c.xml plus a stride over the 118
+        // export editions. The stride below therefore runs over the cluster
+        // directory `law_2013-04-05_44-fz/` (not over `name.contains`).
+        ("npa", "law-44fz", 4, |name: &str| {
+            name.contains("44-fz") && !name.contains("edition-")
+        }),
+        ("npa", "order", 6, |name: &str| name.starts_with("order_")),
+        ("npa", "resolution", 4, |name: &str| {
+            name.starts_with("resolution_")
+        }),
+        ("npa", "directive", 3, |name: &str| {
+            name.starts_with("directive_")
+        }),
+        ("npa", "decree-document", 1, |name: &str| {
+            name.starts_with("decree_") || name.starts_with("document_")
+        }),
+    ]
+}
+
+/// Decoded reference-shaped block count for one XML file (shared by the
+/// tracked law-44fz slot and the stride loops). Decode+lex only, no ingest.
+/// Decoded shaped blocks for one XML file: (block index, block text). Decode
+/// + lex only, no ingest. Shared by the count probe and the selection dump.
+fn shaped_records(path: &Path) -> Vec<(usize, String)> {
+    let bytes = fs::read(path).unwrap_or_else(|err| panic!("read {}: {err}", path.display()));
+    let request = DecodeRequest::new(
+        PayloadRef::parse("payload:m199-s01-harvest").expect("payload ref"),
+        FamilyFormat::parse("family:consultant-wordml").expect("family format"),
+        &bytes,
+    );
+    let blocks = ConsultantWordMlBlockDecoder
+        .decode_blocks(&request)
+        .unwrap_or_else(|err| panic!("decode {}: {err:?}", path.display()));
+    blocks
+        .iter()
+        .enumerate()
+        .filter(|(_, block)| block_is_reference_shaped(block.text()))
+        .map(|(index, block)| (index, block.text().to_owned()))
+        .collect()
+}
+
+fn shaped_block_count(path: &Path) -> usize {
+    shaped_records(path).len()
+}
+
+/// Reference-shaped prefilter over a lexed block (selection, not gold):
+/// legal abbrev + HierNum, Date + DocNo, fullword marker + number, or range.
+fn block_is_reference_shaped(block_text: &str) -> bool {
+    let tokens = lex(block_text);
+    let kinds: Vec<TokenKind> = tokens.iter().map(|token| token.kind).collect();
+    let has_abbrev_hier = kinds.windows(3).any(|window| {
+        matches!(window[0], TokenKind::Abbrev)
+            && matches!(window[1], TokenKind::Space)
+            && matches!(window[2], TokenKind::HierNum)
+    });
+    let has_date_docno = kinds.windows(3).any(|window| {
+        matches!(window[0], TokenKind::Date)
+            && matches!(window[1], TokenKind::Space)
+            && matches!(window[2], TokenKind::DocNo)
+    });
+    // Requisite block «от DD.MM.YYYY N <digits>»: the number carries no
+    // `-ФЗ` suffix inside many acts, so Date is followed by a Word(`N`/`№`)
+    // gap and a bare digit run. The tuple below is the token text, needed to
+    // check the middle word.
+    let has_date_n_number = tokens.windows(5).any(|window| {
+        matches!(window[0].kind, TokenKind::Date)
+            && matches!(window[1].kind, TokenKind::Space)
+            && matches!(window[2].kind, TokenKind::Word)
+            && (window[2].lexeme(block_text) == "N" || window[2].lexeme(block_text) == "\u{2116}")
+            && matches!(window[3].kind, TokenKind::Space)
+            && matches!(window[4].kind, TokenKind::Word)
+            && window[4]
+                .lexeme(block_text)
+                .bytes()
+                .all(|b| b.is_ascii_digit())
+    });
+    let has_range = kinds.windows(5).any(|window| {
+        matches!(window[0], TokenKind::HierNum)
+            && matches!(window[1], TokenKind::Space)
+            && matches!(window[2], TokenKind::Punct)
+            && matches!(window[3], TokenKind::Space)
+            && matches!(window[4], TokenKind::HierNum)
+    });
+    has_abbrev_hier || has_date_docno || has_date_n_number || has_range
+}
+
+#[test]
+#[ignore = "session-only T02 harvest: decodes export XML and writes the tracked fill; never runs in default CI"]
+fn harvest_npa_lawref_gold_sample() {
+    let repo_root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
+    let export_root = repo_root.join("consru_export/consru_export/exports");
+    if !export_root.is_dir() {
+        eprintln!("export root absent — harvest skipped, not failed");
+        return;
+    }
+    let npa_root = export_root.join("npa");
+    let mut selected: Vec<(String, String, usize, PathBuf)> = Vec::new();
+    // law-44fz is cluster-shaped (plan Do step 3): one tracked slot plus a
+    // stride over the 118 export editions. Tracked first so the sha256-sum
+    // ordering is deterministic; editions add (quota-1) more reference slots.
+    {
+        let tracked: PathBuf = [
+            repo_root.as_path(),
+            Path::new(
+                "law-source/consultant/federalnyi-zakon-ot-05-04-2013-n-44-fz-red-ot-28-12-2025-o-kontraktnoi-sisteme-v-sfere-zakupok-tovarov-rabot-uslug-dlya-obespecheniya-g--f9c8ca4c.xml",
+            ),
+        ]
+        .iter()
+        .collect();
+        assert!(
+            tracked.is_file(),
+            "tracked law-44fz slot missing: {}",
+            tracked.display()
+        );
+        if shaped_block_count(&tracked) >= 3 {
+            selected.push(("npa".to_owned(), "law-44fz".to_owned(), 4, tracked));
+        }
+        let mut editions: Vec<PathBuf> = fs::read_dir(npa_root.join("law_2013-04-05_44-fz"))
+            .unwrap_or_else(|err| panic!("read 44-fz cluster: {err}"))
+            .flatten()
+            .map(|entry| entry.path())
+            .filter(|path| path.extension().and_then(|ext| ext.to_str()) == Some("xml"))
+            .collect();
+        editions.sort();
+        let mut taken = selected
+            .iter()
+            .filter(|(family, doc_type, _, _)| family == "npa" && doc_type == "law-44fz")
+            .count();
+        let stride = (editions.len() / ((4usize.saturating_sub(taken)) * 8)).max(1);
+        for path in editions.iter().step_by(stride) {
+            if taken >= 4 {
+                break;
+            }
+            if shaped_block_count(path) >= 3 {
+                selected.push(("npa".to_owned(), "law-44fz".to_owned(), 4, path.clone()));
+                taken += 1;
+            }
+        }
+        eprintln!("cluster (npa, law-44fz): quota 4, filled {taken}");
+        assert!(
+            taken >= 4,
+            "D367 stratum (npa, law-44fz) underfilled: {taken} < 4"
+        );
+    }
+    for (family, doc_type, quota, accepts) in npa_clusters()
+        .into_iter()
+        .filter(|(_, doc_type, _, _)| *doc_type != "law-44fz")
+    {
+        let mut entries: Vec<PathBuf> = fs::read_dir(&npa_root)
+            .unwrap_or_else(|err| {
+                panic!("read npa cluster: {err}");
+            })
+            .flatten()
+            .map(|entry| entry.path())
+            .filter(|path| {
+                path.extension().and_then(|ext| ext.to_str()) == Some("xml")
+                    && path
+                        .file_name()
+                        .and_then(|name| name.to_str())
+                        .map(accepts)
+                        .unwrap_or(false)
+            })
+            .collect();
+        entries.sort();
+        // Denser stride (x16 headroom): some families pack reference-shaped
+        // blocks sparsely, and the quota stop condition only fires on filled
+        // slots. Semantics unchanged — quota stop is identical.
+        let stride = (entries.len() / (quota * 16)).max(1);
+        let mut taken = 0usize;
+        for path in entries.iter().step_by(stride) {
+            if taken >= quota {
+                break;
+            }
+            let bytes = fs::read(path).unwrap_or_else(|err| {
+                panic!("read {}: {err}", path.display());
+            });
+            let request = DecodeRequest::new(
+                PayloadRef::parse("payload:m199-s01-harvest").expect("payload ref"),
+                FamilyFormat::parse("family:consultant-wordml").expect("family format"),
+                &bytes,
+            );
+            let blocks = ConsultantWordMlBlockDecoder
+                .decode_blocks(&request)
+                .unwrap_or_else(|err| panic!("decode {}: {err:?}", path.display()));
+            let shaped: Vec<usize> = blocks
+                .iter()
+                .enumerate()
+                .filter(|(_, block)| block_is_reference_shaped(block.text()))
+                .map(|(index, _)| index)
+                .collect();
+            if shaped.len() >= 3 {
+                // 3-5 reference-shaped blocks per document slot.
+                selected.push((family.to_owned(), doc_type.to_owned(), quota, path.clone()));
+                let _ = shaped;
+                taken += 1;
+            }
+        }
+        eprintln!(
+            "cluster ({family}, {doc_type}): quota {quota}, filled {taken} (stride {stride})"
+        );
+        assert!(
+            taken >= quota,
+            "D367 stratum ({family}, {doc_type}) underfilled: {taken} < {quota} — STOP per plan, escalate, do not silently shrink quotas"
+        );
+    }
+    // courts/fas/xml are cluster-untyped in the export tree: one generic
+    // cell each, stride over the family root, same ≥3-shaped stop rule.
+    // Never the full tree decode — walk_xml_files with a capped limit feeds
+    // the stride, not the whole family.
+    for (family, doc_type, quota, limit) in [
+        ("courts", "courts-unspecified", 5usize, 5usize * 16),
+        ("fas", "fas-unspecified", 5usize, 5usize * 16),
+        // xml caps stay two orders below the 6803-file family: the cap is a
+        // pre-decode candidate window, never a full walk.
+        ("xml", "xml-unspecified", 4usize, 4usize * 64),
+    ] {
+        let entries =
+            ln_decode::npa_sweep::walk_xml_files(&export_root.join(family), Some(limit as u64))
+                .unwrap_or_else(|err| panic!("walk {family}: {err}"));
+        let stride = (entries.len() / (quota * 16)).max(1);
+        let mut taken = 0usize;
+        for path in entries.iter().step_by(stride) {
+            if taken >= quota {
+                break;
+            }
+            if shaped_block_count(path) >= 3 {
+                selected.push((family.to_owned(), doc_type.to_owned(), quota, path.clone()));
+                taken += 1;
+            }
+        }
+        eprintln!("cluster ({family}, {doc_type}): quota {quota}, filled {taken} (stride {stride}, capped {limit})");
+        assert!(
+            taken >= quota,
+            "D367 stratum ({family}, {doc_type}) underfilled: {taken} < {quota} — STOP per plan, escalate, do not silently shrink quotas"
+        );
+    }
+    // Optional selection dump for the bash-side manifest writer (env-gated:
+    // default CI never touches it). One JSONL line per (doc, block): text is
+    // emitted ONLY here, never into stderr, and the bash writer copies block
+    // text verbatim into *.txt fixtures (no re-decode, no transformation).
+    if let Ok(out_path) = std::env::var("NPA_LAWREF_HARVEST_OUT") {
+        let mut dumped = 0usize;
+        let mut out = String::new();
+        for (family, doc_type, _quota, path) in &selected {
+            for (block_index, text) in shaped_records(path) {
+                let _ = writeln!(
+                    out,
+                    "{{\"family\":{},\"doc_type\":{},\"path\":{},\"block_index\":{},\"text\":{}}}",
+                    json_string(family),
+                    json_string(doc_type),
+                    json_string(&path.to_string_lossy()),
+                    block_index,
+                    json_string(&text),
+                );
+                dumped += 1;
+            }
+        }
+        fs::write(&out_path, &out)
+            .unwrap_or_else(|err| panic!("write harvest dump {out_path}: {err}"));
+        eprintln!("harvest selection dumped: {dumped} (doc, block) records -> {out_path}");
+    }
+    eprintln!(
+        "harvest selection complete: {} documents; manifest write is bash-side (sha256sum + hand-rolled JSON live in the T02 runner script, not in Rust)",
+        selected.len()
+    );
+    let _ = selected;
+}
+
+/// Minimal JSON string escaper (stdlib-only, D328): quotes, backslash,
+/// control chars; Cyrillic passes through as UTF-8.
+fn json_string(value: &str) -> String {
+    let mut out = String::with_capacity(value.len() + 2);
+    out.push('"');
+    for ch in value.chars() {
+        match ch {
+            '"' => out.push_str("\\\""),
+            '\\' => out.push_str("\\\\"),
+            '\n' => out.push_str("\\n"),
+            '\r' => out.push_str("\\r"),
+            '\t' => out.push_str("\\t"),
+            ch if (ch as u32) < 0x20 => {
+                let _ = write!(out, "\\u{:04x}", ch as u32);
+            }
+            ch => out.push(ch),
+        }
+    }
+    out.push('"');
+    out
 }

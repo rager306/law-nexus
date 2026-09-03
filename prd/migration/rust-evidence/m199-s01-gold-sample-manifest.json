@@ -1,0 +1,2717 @@
+{
+  "schema": "npa-lawref-sample/v1",
+  "schema_version": 1,
+  "lifecycle": "[bounded]",
+  "draw_seed": 20260903,
+  "strata": [
+    {
+      "family": "npa",
+      "doc_type": "law",
+      "quota": 8
+    },
+    {
+      "family": "npa",
+      "doc_type": "law-44fz",
+      "quota": 4
+    },
+    {
+      "family": "npa",
+      "doc_type": "order",
+      "quota": 6
+    },
+    {
+      "family": "npa",
+      "doc_type": "resolution",
+      "quota": 4
+    },
+    {
+      "family": "npa",
+      "doc_type": "directive",
+      "quota": 3
+    },
+    {
+      "family": "npa",
+      "doc_type": "decree-document",
+      "quota": 1
+    },
+    {
+      "family": "courts",
+      "doc_type": "courts-unspecified",
+      "quota": 5
+    },
+    {
+      "family": "fas",
+      "doc_type": "fas-unspecified",
+      "quota": 5
+    },
+    {
+      "family": "xml",
+      "doc_type": "xml-unspecified",
+      "quota": 4
+    }
+  ],
+  "documents": [
+    {
+      "doc_id": "npa-doc-001",
+      "source_path": "consru_export/consru_export/exports/npa/law_2013-12-28_396-fz_rev-2025-03-20_5195aa84.xml",
+      "source_sha256": "a5c0d8ba883b4ce307a583cd85b59be939de591ba0bf935bdbaa32b2c42c6fbf",
+      "byte_count": 668932,
+      "family": "npa",
+      "doc_type": "law",
+      "decoder": "ConsultantWordMlBlockDecoder",
+      "fragment_ids": [
+        "npa-frag-001",
+        "npa-frag-002",
+        "npa-frag-003"
+      ],
+      "non_claims": [
+        "not official-publication provenance (R070 open)",
+        "not LawRef / act-tree / clause segmentation",
+        "not the N2-gate acceptance decision",
+        "not legal interpretation"
+      ]
+    },
+    {
+      "doc_id": "npa-doc-002",
+      "source_path": "consru_export/consru_export/exports/npa/law_2013-12-28_396-fz_rev-2025-03-20_aa072974.xml",
+      "source_sha256": "83ed95a92d03fa9638a2f334f93df6b0f353827bf4e0c4079f2d6cef09aa7686",
+      "byte_count": 359627,
+      "family": "npa",
+      "doc_type": "law",
+      "decoder": "ConsultantWordMlBlockDecoder",
+      "fragment_ids": [
+        "npa-frag-004",
+        "npa-frag-005",
+        "npa-frag-006"
+      ],
+      "non_claims": [
+        "not official-publication provenance (R070 open)",
+        "not LawRef / act-tree / clause segmentation",
+        "not the N2-gate acceptance decision",
+        "not legal interpretation"
+      ]
+    },
+    {
+      "doc_id": "npa-doc-003",
+      "source_path": "consru_export/consru_export/exports/npa/law_2014-11-24_356-fz_rev-2017-12-31_3d04594c.xml",
+      "source_sha256": "853b83dcaaf836fc8bbb425fb296ff7c2ad4cd2ae9992363978a8209caa09e94",
+      "byte_count": 567962,
+      "family": "npa",
+      "doc_type": "law",
+      "decoder": "ConsultantWordMlBlockDecoder",
+      "fragment_ids": [
+        "npa-frag-007",
+        "npa-frag-008",
+        "npa-frag-009",
+        "npa-frag-010",
+        "npa-frag-011"
+      ],
+      "non_claims": [
+        "not official-publication provenance (R070 open)",
+        "not LawRef / act-tree / clause segmentation",
+        "not the N2-gate acceptance decision",
+        "not legal interpretation"
+      ]
+    },
+    {
+      "doc_id": "npa-doc-004",
+      "source_path": "consru_export/consru_export/exports/npa/law_2014-11-24_356-fz_rev-2017-12-31_f3704147.xml",
+      "source_sha256": "d111825cc43eadba338a8802603127b4620eee45aee74b07e04c9d3bc6969cb5",
+      "byte_count": 332803,
+      "family": "npa",
+      "doc_type": "law",
+      "decoder": "ConsultantWordMlBlockDecoder",
+      "fragment_ids": [
+        "npa-frag-012",
+        "npa-frag-013",
+        "npa-frag-014",
+        "npa-frag-015",
+        "npa-frag-016"
+      ],
+      "non_claims": [
+        "not official-publication provenance (R070 open)",
+        "not LawRef / act-tree / clause segmentation",
+        "not the N2-gate acceptance decision",
+        "not legal interpretation"
+      ]
+    },
+    {
+      "doc_id": "npa-doc-005",
+      "source_path": "consru_export/consru_export/exports/npa/law_2015-07-13_220-fz_rev-2025-07-31_75e2d5a2.xml",
+      "source_sha256": "0145d48e503b7c7bc3e8e9ccaf36ac00aa5d6c27b1af1f22ebeb6ade38e9eb73",
+      "byte_count": 790732,
+      "family": "npa",
+      "doc_type": "law",
+      "decoder": "ConsultantWordMlBlockDecoder",
+      "fragment_ids": [
+        "npa-frag-017",
+        "npa-frag-018",
+        "npa-frag-019",
+        "npa-frag-020",
+        "npa-frag-021"
+      ],
+      "non_claims": [
+        "not official-publication provenance (R070 open)",
+        "not LawRef / act-tree / clause segmentation",
+        "not the N2-gate acceptance decision",
+        "not legal interpretation"
+      ]
+    },
+    {
+      "doc_id": "npa-doc-006",
+      "source_path": "consru_export/consru_export/exports/npa/law_2015-07-13_220-fz_rev-2025-07-31_7832fee0.xml",
+      "source_sha256": "cb12268616fce8b8235f3dbf4bdfe07af8dc8365b98a34ceba581e92e80d76ce",
+      "byte_count": 1794604,
+      "family": "npa",
+      "doc_type": "law",
+      "decoder": "ConsultantWordMlBlockDecoder",
+      "fragment_ids": [
+        "npa-frag-022",
+        "npa-frag-023",
+        "npa-frag-024",
+        "npa-frag-025",
+        "npa-frag-026"
+      ],
+      "non_claims": [
+        "not official-publication provenance (R070 open)",
+        "not LawRef / act-tree / clause segmentation",
+        "not the N2-gate acceptance decision",
+        "not legal interpretation"
+      ]
+    },
+    {
+      "doc_id": "npa-doc-007",
+      "source_path": "consru_export/consru_export/exports/npa/law_2019-06-27_151-fz_rev-2024-08-08_2296dc28.xml",
+      "source_sha256": "bbb27af24e2aeb7149b51100d9f26797257cb55ae272d442e042a0e755242879",
+      "byte_count": 1061413,
+      "family": "npa",
+      "doc_type": "law",
+      "decoder": "ConsultantWordMlBlockDecoder",
+      "fragment_ids": [
+        "npa-frag-027",
+        "npa-frag-028",
+        "npa-frag-029",
+        "npa-frag-030",
+        "npa-frag-031"
+      ],
+      "non_claims": [
+        "not official-publication provenance (R070 open)",
+        "not LawRef / act-tree / clause segmentation",
+        "not the N2-gate acceptance decision",
+        "not legal interpretation"
+      ]
+    },
+    {
+      "doc_id": "npa-doc-008",
+      "source_path": "consru_export/consru_export/exports/npa/law_2019-06-27_151-fz_rev-2024-08-08_d7d8dfca.xml",
+      "source_sha256": "c152ad1070cd4cabb176529dbcf7068838c7ce5dfbd2028597fe2b3136c8d5d7",
+      "byte_count": 597405,
+      "family": "npa",
+      "doc_type": "law",
+      "decoder": "ConsultantWordMlBlockDecoder",
+      "fragment_ids": [
+        "npa-frag-032",
+        "npa-frag-033",
+        "npa-frag-034",
+        "npa-frag-035",
+        "npa-frag-036"
+      ],
+      "non_claims": [
+        "not official-publication provenance (R070 open)",
+        "not LawRef / act-tree / clause segmentation",
+        "not the N2-gate acceptance decision",
+        "not legal interpretation"
+      ]
+    },
+    {
+      "doc_id": "npa-doc-009",
+      "source_path": "consru_export/consru_export/exports/npa/law_2013-04-05_44-fz/edition-0005_rev-2014-07-21_from-unknown_29fd4ae7.xml",
+      "source_sha256": "63e4c76f7b04b3cf3c45cb0376399c3415a8c1ec200967be0a2012b36e7a9315",
+      "byte_count": 2814087,
+      "family": "npa",
+      "doc_type": "law-44fz",
+      "decoder": "ConsultantWordMlBlockDecoder",
+      "fragment_ids": [
+        "npa-frag-037",
+        "npa-frag-038",
+        "npa-frag-039"
+      ],
+      "non_claims": [
+        "not official-publication provenance (R070 open)",
+        "not LawRef / act-tree / clause segmentation",
+        "not the N2-gate acceptance decision",
+        "not legal interpretation"
+      ]
+    },
+    {
+      "doc_id": "npa-doc-010",
+      "source_path": "consru_export/consru_export/exports/npa/law_2013-04-05_44-fz/edition-0009_rev-2015-03-08_from-unknown_a8052a5c.xml",
+      "source_sha256": "428c425955f17d7cc77852ffbf4c3c3a5354ec52ef191c24d86b4d2f85af870b",
+      "byte_count": 2991530,
+      "family": "npa",
+      "doc_type": "law-44fz",
+      "decoder": "ConsultantWordMlBlockDecoder",
+      "fragment_ids": [
+        "npa-frag-040",
+        "npa-frag-041",
+        "npa-frag-042"
+      ],
+      "non_claims": [
+        "not official-publication provenance (R070 open)",
+        "not LawRef / act-tree / clause segmentation",
+        "not the N2-gate acceptance decision",
+        "not legal interpretation"
+      ]
+    },
+    {
+      "doc_id": "npa-doc-011",
+      "source_path": "consru_export/consru_export/exports/npa/law_2013-04-05_44-fz/edition-0013_rev-2015-07-13_from-unknown_7d06b511.xml",
+      "source_sha256": "31d6ca25a08735b9599c45600570ab20bbc72ba00e7046f5c7f545d67de68eae",
+      "byte_count": 3041008,
+      "family": "npa",
+      "doc_type": "law-44fz",
+      "decoder": "ConsultantWordMlBlockDecoder",
+      "fragment_ids": [
+        "npa-frag-043",
+        "npa-frag-044",
+        "npa-frag-045"
+      ],
+      "non_claims": [
+        "not official-publication provenance (R070 open)",
+        "not LawRef / act-tree / clause segmentation",
+        "not the N2-gate acceptance decision",
+        "not legal interpretation"
+      ]
+    },
+    {
+      "doc_id": "npa-doc-012",
+      "source_path": "law-source/consultant/federalnyi-zakon-ot-05-04-2013-n-44-fz-red-ot-28-12-2025-o-kontraktnoi-sisteme-v-sfere-zakupok-tovarov-rabot-uslug-dlya-obespecheniya-g--f9c8ca4c.xml",
+      "source_sha256": "c111119c6c3001b5b4fde0e35bffbe382bcb877df2bba9cd54ab0290c92c1b14",
+      "byte_count": 5262136,
+      "family": "npa",
+      "doc_type": "law-44fz",
+      "decoder": "ConsultantWordMlBlockDecoder",
+      "fragment_ids": [
+        "npa-frag-046",
+        "npa-frag-047",
+        "npa-frag-048",
+        "npa-frag-049",
+        "npa-frag-050"
+      ],
+      "non_claims": [
+        "not official-publication provenance (R070 open)",
+        "not LawRef / act-tree / clause segmentation",
+        "not the N2-gate acceptance decision",
+        "not legal interpretation"
+      ]
+    },
+    {
+      "doc_id": "npa-doc-013",
+      "source_path": "consru_export/consru_export/exports/npa/order_2013-10-02_567_rev-unknown_bc2023c7.xml",
+      "source_sha256": "a9c93a503c7be9fdb3879ba4bc108d57821fc2e31532d8f62037a5dbbc4086da",
+      "byte_count": 301658,
+      "family": "npa",
+      "doc_type": "order",
+      "decoder": "ConsultantWordMlBlockDecoder",
+      "fragment_ids": [
+        "npa-frag-051",
+        "npa-frag-052",
+        "npa-frag-053",
+        "npa-frag-054",
+        "npa-frag-055"
+      ],
+      "non_claims": [
+        "not official-publication provenance (R070 open)",
+        "not LawRef / act-tree / clause segmentation",
+        "not the N2-gate acceptance decision",
+        "not legal interpretation"
+      ]
+    },
+    {
+      "doc_id": "npa-doc-014",
+      "source_path": "consru_export/consru_export/exports/npa/order_2014-01-09_1_rev-unknown_7021f63c.xml",
+      "source_sha256": "9933ae8328c3c4fad3d029374ae0da7fcd406b45c9097b0e7b8df333033ca510",
+      "byte_count": 135166,
+      "family": "npa",
+      "doc_type": "order",
+      "decoder": "ConsultantWordMlBlockDecoder",
+      "fragment_ids": [
+        "npa-frag-056",
+        "npa-frag-057",
+        "npa-frag-058",
+        "npa-frag-059"
+      ],
+      "non_claims": [
+        "not official-publication provenance (R070 open)",
+        "not LawRef / act-tree / clause segmentation",
+        "not the N2-gate acceptance decision",
+        "not legal interpretation"
+      ]
+    },
+    {
+      "doc_id": "npa-doc-015",
+      "source_path": "consru_export/consru_export/exports/npa/order_2014-02-14_55_rev-2025-05-28_fc54b9bc.xml",
+      "source_sha256": "059f8d10eebd0f5f65320866a5ca243c795ebe70c64509f7ff98dd630050c378",
+      "byte_count": 116314,
+      "family": "npa",
+      "doc_type": "order",
+      "decoder": "ConsultantWordMlBlockDecoder",
+      "fragment_ids": [
+        "npa-frag-060",
+        "npa-frag-061",
+        "npa-frag-062",
+        "npa-frag-063",
+        "npa-frag-064"
+      ],
+      "non_claims": [
+        "not official-publication provenance (R070 open)",
+        "not LawRef / act-tree / clause segmentation",
+        "not the N2-gate acceptance decision",
+        "not legal interpretation"
+      ]
+    },
+    {
+      "doc_id": "npa-doc-016",
+      "source_path": "consru_export/consru_export/exports/npa/order_2014-03-06_80_rev-2024-02-19_ea2ac116.xml",
+      "source_sha256": "25cec4c2838a231234f4fa24169b342ed7af48e551ac97a0ae660db0656faa67",
+      "byte_count": 183462,
+      "family": "npa",
+      "doc_type": "order",
+      "decoder": "ConsultantWordMlBlockDecoder",
+      "fragment_ids": [
+        "npa-frag-065",
+        "npa-frag-066",
+        "npa-frag-067",
+        "npa-frag-068",
+        "npa-frag-069"
+      ],
+      "non_claims": [
+        "not official-publication provenance (R070 open)",
+        "not LawRef / act-tree / clause segmentation",
+        "not the N2-gate acceptance decision",
+        "not legal interpretation"
+      ]
+    },
+    {
+      "doc_id": "npa-doc-017",
+      "source_path": "consru_export/consru_export/exports/npa/order_2014-03-26_161_rev-2026-04-02_23f2e959.xml",
+      "source_sha256": "479dde5d68c543b100876a22691904775e12706b402c233e492700d1a395090e",
+      "byte_count": 875821,
+      "family": "npa",
+      "doc_type": "order",
+      "decoder": "ConsultantWordMlBlockDecoder",
+      "fragment_ids": [
+        "npa-frag-070",
+        "npa-frag-071",
+        "npa-frag-072",
+        "npa-frag-073",
+        "npa-frag-074"
+      ],
+      "non_claims": [
+        "not official-publication provenance (R070 open)",
+        "not LawRef / act-tree / clause segmentation",
+        "not the N2-gate acceptance decision",
+        "not legal interpretation"
+      ]
+    },
+    {
+      "doc_id": "npa-doc-018",
+      "source_path": "consru_export/consru_export/exports/npa/order_2014-04-23_398_rev-2015-02-13_2ba775ce.xml",
+      "source_sha256": "1e56d30c7030d39bf29fc6bb10b62f0b5e5e7cab8db096c12a24ccb4be7bebca",
+      "byte_count": 144942,
+      "family": "npa",
+      "doc_type": "order",
+      "decoder": "ConsultantWordMlBlockDecoder",
+      "fragment_ids": [
+        "npa-frag-075",
+        "npa-frag-076",
+        "npa-frag-077",
+        "npa-frag-078",
+        "npa-frag-079"
+      ],
+      "non_claims": [
+        "not official-publication provenance (R070 open)",
+        "not LawRef / act-tree / clause segmentation",
+        "not the N2-gate acceptance decision",
+        "not legal interpretation"
+      ]
+    },
+    {
+      "doc_id": "npa-doc-019",
+      "source_path": "consru_export/consru_export/exports/npa/resolution_2007-11-26_812_rev-2017-11-30_a3835720.xml",
+      "source_sha256": "3ffe2e404f85f79d093888dda55b6c2ba70b4023b179b5f1971b6f4d436f6f4c",
+      "byte_count": 158628,
+      "family": "npa",
+      "doc_type": "resolution",
+      "decoder": "ConsultantWordMlBlockDecoder",
+      "fragment_ids": [
+        "npa-frag-080",
+        "npa-frag-081",
+        "npa-frag-082",
+        "npa-frag-083",
+        "npa-frag-084"
+      ],
+      "non_claims": [
+        "not official-publication provenance (R070 open)",
+        "not LawRef / act-tree / clause segmentation",
+        "not the N2-gate acceptance decision",
+        "not legal interpretation"
+      ]
+    },
+    {
+      "doc_id": "npa-doc-020",
+      "source_path": "consru_export/consru_export/exports/npa/resolution_2013-08-26_728_rev-2017-04-14_0061f0c2.xml",
+      "source_sha256": "1fcfb90885b17b2d05ac10e0a9445828140cf8271b34f64213b0ee0220a17c0f",
+      "byte_count": 112131,
+      "family": "npa",
+      "doc_type": "resolution",
+      "decoder": "ConsultantWordMlBlockDecoder",
+      "fragment_ids": [
+        "npa-frag-085",
+        "npa-frag-086",
+        "npa-frag-087",
+        "npa-frag-088",
+        "npa-frag-089"
+      ],
+      "non_claims": [
+        "not official-publication provenance (R070 open)",
+        "not LawRef / act-tree / clause segmentation",
+        "not the N2-gate acceptance decision",
+        "not legal interpretation"
+      ]
+    },
+    {
+      "doc_id": "npa-doc-021",
+      "source_path": "consru_export/consru_export/exports/npa/resolution_2013-09-19_826_rev-2018-09-08_4e4aaea7.xml",
+      "source_sha256": "5c1994762da66e21db4d1516c01de7a4ac94ded062b5de0dc2cf0c46ca950770",
+      "byte_count": 121595,
+      "family": "npa",
+      "doc_type": "resolution",
+      "decoder": "ConsultantWordMlBlockDecoder",
+      "fragment_ids": [
+        "npa-frag-090",
+        "npa-frag-091",
+        "npa-frag-092",
+        "npa-frag-093",
+        "npa-frag-094"
+      ],
+      "non_claims": [
+        "not official-publication provenance (R070 open)",
+        "not LawRef / act-tree / clause segmentation",
+        "not the N2-gate acceptance decision",
+        "not legal interpretation"
+      ]
+    },
+    {
+      "doc_id": "npa-doc-022",
+      "source_path": "consru_export/consru_export/exports/npa/resolution_2013-11-08_1005_rev-2024-12-26_924a4838.xml",
+      "source_sha256": "53f77530082bbb423c3a3cbbcfd1c22ab73275959f63104816c024bf59be88ef",
+      "byte_count": 521080,
+      "family": "npa",
+      "doc_type": "resolution",
+      "decoder": "ConsultantWordMlBlockDecoder",
+      "fragment_ids": [
+        "npa-frag-095",
+        "npa-frag-096",
+        "npa-frag-097",
+        "npa-frag-098",
+        "npa-frag-099"
+      ],
+      "non_claims": [
+        "not official-publication provenance (R070 open)",
+        "not LawRef / act-tree / clause segmentation",
+        "not the N2-gate acceptance decision",
+        "not legal interpretation"
+      ]
+    },
+    {
+      "doc_id": "npa-doc-023",
+      "source_path": "consru_export/consru_export/exports/npa/directive_2013-09-30_1765-r_rev-2015-12-17_1a80d0cd.xml",
+      "source_sha256": "34f71f02d545bca2b5e6f1f5595c622c958f11623271d03f6b7d1a035ab8fc94",
+      "byte_count": 134756,
+      "family": "npa",
+      "doc_type": "directive",
+      "decoder": "ConsultantWordMlBlockDecoder",
+      "fragment_ids": [
+        "npa-frag-100",
+        "npa-frag-101",
+        "npa-frag-102",
+        "npa-frag-103"
+      ],
+      "non_claims": [
+        "not official-publication provenance (R070 open)",
+        "not LawRef / act-tree / clause segmentation",
+        "not the N2-gate acceptance decision",
+        "not legal interpretation"
+      ]
+    },
+    {
+      "doc_id": "npa-doc-024",
+      "source_path": "consru_export/consru_export/exports/npa/directive_2014-03-13_364-r_rev-2017-03-21_8d37fe2d.xml",
+      "source_sha256": "d1a84a7941a23b3dcd4818260d8e93cf491837285911ad5af470e9b6dc130db8",
+      "byte_count": 61152,
+      "family": "npa",
+      "doc_type": "directive",
+      "decoder": "ConsultantWordMlBlockDecoder",
+      "fragment_ids": [
+        "npa-frag-104",
+        "npa-frag-105",
+        "npa-frag-106",
+        "npa-frag-107",
+        "npa-frag-108"
+      ],
+      "non_claims": [
+        "not official-publication provenance (R070 open)",
+        "not LawRef / act-tree / clause segmentation",
+        "not the N2-gate acceptance decision",
+        "not legal interpretation"
+      ]
+    },
+    {
+      "doc_id": "npa-doc-025",
+      "source_path": "consru_export/consru_export/exports/npa/directive_2015-04-28_753-r_rev-2021-05-15_e6384c41.xml",
+      "source_sha256": "d5d9672534d6a0091fdde1c65a94e8cdc9487864577367b258343b2ba78e49b8",
+      "byte_count": 73085,
+      "family": "npa",
+      "doc_type": "directive",
+      "decoder": "ConsultantWordMlBlockDecoder",
+      "fragment_ids": [
+        "npa-frag-109",
+        "npa-frag-110",
+        "npa-frag-111",
+        "npa-frag-112",
+        "npa-frag-113"
+      ],
+      "non_claims": [
+        "not official-publication provenance (R070 open)",
+        "not LawRef / act-tree / clause segmentation",
+        "not the N2-gate acceptance decision",
+        "not legal interpretation"
+      ]
+    },
+    {
+      "doc_id": "npa-doc-026",
+      "source_path": "consru_export/consru_export/exports/npa/decree_2020-09-14_558_rev-2024-07-08_a6d600ea.xml",
+      "source_sha256": "2d44686da494b529ee1e1344a16460528f33a2285dec5f87129eea652b27cc25",
+      "byte_count": 146119,
+      "family": "npa",
+      "doc_type": "decree-document",
+      "decoder": "ConsultantWordMlBlockDecoder",
+      "fragment_ids": [
+        "npa-frag-114",
+        "npa-frag-115",
+        "npa-frag-116",
+        "npa-frag-117",
+        "npa-frag-118"
+      ],
+      "non_claims": [
+        "not official-publication provenance (R070 open)",
+        "not LawRef / act-tree / clause segmentation",
+        "not the N2-gate acceptance decision",
+        "not legal interpretation"
+      ]
+    },
+    {
+      "doc_id": "npa-doc-027",
+      "source_path": "consru_export/consru_export/exports/courts/acn/000166280-edition-84232bdf5e80b4c2d012dbae.xml",
+      "source_sha256": "b4d95e445a01345c30baaef42667d2b6e0010b7a584d6042ec85f77ce63fbf8a",
+      "byte_count": 78195,
+      "family": "courts",
+      "doc_type": "courts-unspecified",
+      "decoder": "ConsultantWordMlBlockDecoder",
+      "fragment_ids": [
+        "npa-frag-119",
+        "npa-frag-120",
+        "npa-frag-121",
+        "npa-frag-122",
+        "npa-frag-123"
+      ],
+      "non_claims": [
+        "not official-publication provenance (R070 open)",
+        "not LawRef / act-tree / clause segmentation",
+        "not the N2-gate acceptance decision",
+        "not legal interpretation"
+      ]
+    },
+    {
+      "doc_id": "npa-doc-028",
+      "source_path": "consru_export/consru_export/exports/courts/acn/000166305-edition-7e6e14131f3fab621a92f158.xml",
+      "source_sha256": "8bd4a4448cfdf192ca6db3d016758e616d77addb326b2ed0a1945fb46332ae35",
+      "byte_count": 99071,
+      "family": "courts",
+      "doc_type": "courts-unspecified",
+      "decoder": "ConsultantWordMlBlockDecoder",
+      "fragment_ids": [
+        "npa-frag-124",
+        "npa-frag-125",
+        "npa-frag-126",
+        "npa-frag-127"
+      ],
+      "non_claims": [
+        "not official-publication provenance (R070 open)",
+        "not LawRef / act-tree / clause segmentation",
+        "not the N2-gate acceptance decision",
+        "not legal interpretation"
+      ]
+    },
+    {
+      "doc_id": "npa-doc-029",
+      "source_path": "consru_export/consru_export/exports/courts/acn/000166335-edition-8efbaf609f51f899874f4bec.xml",
+      "source_sha256": "009ce598a1da5cee5325eac9056004fb7826d3c2f3591f9ac095c1a55b067e4a",
+      "byte_count": 52767,
+      "family": "courts",
+      "doc_type": "courts-unspecified",
+      "decoder": "ConsultantWordMlBlockDecoder",
+      "fragment_ids": [
+        "npa-frag-128",
+        "npa-frag-129",
+        "npa-frag-130"
+      ],
+      "non_claims": [
+        "not official-publication provenance (R070 open)",
+        "not LawRef / act-tree / clause segmentation",
+        "not the N2-gate acceptance decision",
+        "not legal interpretation"
+      ]
+    },
+    {
+      "doc_id": "npa-doc-030",
+      "source_path": "consru_export/consru_export/exports/courts/acn/000166339-edition-c0c8875a6b0619c4af077933.xml",
+      "source_sha256": "897b8e49a34780dee86ac32dfd9f46f5c1ba7b6e441b0ad342984cb60e25b141",
+      "byte_count": 77904,
+      "family": "courts",
+      "doc_type": "courts-unspecified",
+      "decoder": "ConsultantWordMlBlockDecoder",
+      "fragment_ids": [
+        "npa-frag-131",
+        "npa-frag-132",
+        "npa-frag-133",
+        "npa-frag-134",
+        "npa-frag-135"
+      ],
+      "non_claims": [
+        "not official-publication provenance (R070 open)",
+        "not LawRef / act-tree / clause segmentation",
+        "not the N2-gate acceptance decision",
+        "not legal interpretation"
+      ]
+    },
+    {
+      "doc_id": "npa-doc-031",
+      "source_path": "consru_export/consru_export/exports/courts/acn/000166350-edition-2f79e06db707d34dc23a1beb.xml",
+      "source_sha256": "cb6726b8721f1bf5f23c811fd3d84126d85105be745670481143da4888e01efd",
+      "byte_count": 99510,
+      "family": "courts",
+      "doc_type": "courts-unspecified",
+      "decoder": "ConsultantWordMlBlockDecoder",
+      "fragment_ids": [
+        "npa-frag-136",
+        "npa-frag-137",
+        "npa-frag-138",
+        "npa-frag-139",
+        "npa-frag-140"
+      ],
+      "non_claims": [
+        "not official-publication provenance (R070 open)",
+        "not LawRef / act-tree / clause segmentation",
+        "not the N2-gate acceptance decision",
+        "not legal interpretation"
+      ]
+    },
+    {
+      "doc_id": "npa-doc-032",
+      "source_path": "consru_export/consru_export/exports/fas/decision_2025-01-09_04-10-18-1-17-2025_rev-unknown_d9958419.xml",
+      "source_sha256": "365755ae312f2597c25e614f60e0bde0e5f62de42a46d1488e305ae62ba46c43",
+      "byte_count": 76690,
+      "family": "fas",
+      "doc_type": "fas-unspecified",
+      "decoder": "ConsultantWordMlBlockDecoder",
+      "fragment_ids": [
+        "npa-frag-141",
+        "npa-frag-142",
+        "npa-frag-143",
+        "npa-frag-144"
+      ],
+      "non_claims": [
+        "not official-publication provenance (R070 open)",
+        "not LawRef / act-tree / clause segmentation",
+        "not the N2-gate acceptance decision",
+        "not legal interpretation"
+      ]
+    },
+    {
+      "doc_id": "npa-doc-033",
+      "source_path": "consru_export/consru_export/exports/fas/decision_2025-01-09_04-10-18-1-18-2025_rev-unknown_fea10a63.xml",
+      "source_sha256": "5ec112bdac5579acd00ec0b35a52333581bbd96dde2e5d611fb7a84f469e59e9",
+      "byte_count": 74310,
+      "family": "fas",
+      "doc_type": "fas-unspecified",
+      "decoder": "ConsultantWordMlBlockDecoder",
+      "fragment_ids": [
+        "npa-frag-145",
+        "npa-frag-146",
+        "npa-frag-147",
+        "npa-frag-148"
+      ],
+      "non_claims": [
+        "not official-publication provenance (R070 open)",
+        "not LawRef / act-tree / clause segmentation",
+        "not the N2-gate acceptance decision",
+        "not legal interpretation"
+      ]
+    },
+    {
+      "doc_id": "npa-doc-034",
+      "source_path": "consru_export/consru_export/exports/fas/decision_2025-01-10_04-10-18-1-15-2025_rev-unknown_382b6a0f.xml",
+      "source_sha256": "5dff97b4b557c4c4d23edc9bd766b4e759866c927ce5942e071ea4be37f13bf5",
+      "byte_count": 64811,
+      "family": "fas",
+      "doc_type": "fas-unspecified",
+      "decoder": "ConsultantWordMlBlockDecoder",
+      "fragment_ids": [
+        "npa-frag-149",
+        "npa-frag-150",
+        "npa-frag-151",
+        "npa-frag-152",
+        "npa-frag-153"
+      ],
+      "non_claims": [
+        "not official-publication provenance (R070 open)",
+        "not LawRef / act-tree / clause segmentation",
+        "not the N2-gate acceptance decision",
+        "not legal interpretation"
+      ]
+    },
+    {
+      "doc_id": "npa-doc-035",
+      "source_path": "consru_export/consru_export/exports/fas/decision_2025-01-10_04-10-18-1-19-2025_rev-unknown_f29284fb.xml",
+      "source_sha256": "d208bd9de4385042e933d7a706bc1e643d3b80204c6bf33e0582658c17e7f385",
+      "byte_count": 88657,
+      "family": "fas",
+      "doc_type": "fas-unspecified",
+      "decoder": "ConsultantWordMlBlockDecoder",
+      "fragment_ids": [
+        "npa-frag-154",
+        "npa-frag-155",
+        "npa-frag-156",
+        "npa-frag-157",
+        "npa-frag-158"
+      ],
+      "non_claims": [
+        "not official-publication provenance (R070 open)",
+        "not LawRef / act-tree / clause segmentation",
+        "not the N2-gate acceptance decision",
+        "not legal interpretation"
+      ]
+    },
+    {
+      "doc_id": "npa-doc-036",
+      "source_path": "consru_export/consru_export/exports/fas/decision_2025-01-10_04-10-18-1-229-2025_rev-unknown_2d373cef.xml",
+      "source_sha256": "8015b21737a128018900b889d10101c78402e5200baffd51e70d295636c753c5",
+      "byte_count": 40626,
+      "family": "fas",
+      "doc_type": "fas-unspecified",
+      "decoder": "ConsultantWordMlBlockDecoder",
+      "fragment_ids": [
+        "npa-frag-159",
+        "npa-frag-160",
+        "npa-frag-161",
+        "npa-frag-162",
+        "npa-frag-163"
+      ],
+      "non_claims": [
+        "not official-publication provenance (R070 open)",
+        "not LawRef / act-tree / clause segmentation",
+        "not the N2-gate acceptance decision",
+        "not legal interpretation"
+      ]
+    },
+    {
+      "doc_id": "npa-doc-037",
+      "source_path": "consru_export/consru_export/exports/xml/law/126745/edition-d5a1c5fe630fd867d5ce4a7a.xml",
+      "source_sha256": "889c664702d56cb9170f3fc596f097172107c66404ed349a024c5e5d1d1c7e2c",
+      "byte_count": 244911,
+      "family": "xml",
+      "doc_type": "xml-unspecified",
+      "decoder": "ConsultantWordMlBlockDecoder",
+      "fragment_ids": [
+        "npa-frag-164",
+        "npa-frag-165",
+        "npa-frag-166"
+      ],
+      "non_claims": [
+        "not official-publication provenance (R070 open)",
+        "not LawRef / act-tree / clause segmentation",
+        "not the N2-gate acceptance decision",
+        "not legal interpretation"
+      ]
+    },
+    {
+      "doc_id": "npa-doc-038",
+      "source_path": "consru_export/consru_export/exports/xml/law/128108/edition-d96b706737f2465aba639483.xml",
+      "source_sha256": "89ffb2768e79f46ec2a9a6d66358d11bf95e7598f51313a95b16375e65c4ebf8",
+      "byte_count": 49143,
+      "family": "xml",
+      "doc_type": "xml-unspecified",
+      "decoder": "ConsultantWordMlBlockDecoder",
+      "fragment_ids": [
+        "npa-frag-167",
+        "npa-frag-168",
+        "npa-frag-169",
+        "npa-frag-170",
+        "npa-frag-171"
+      ],
+      "non_claims": [
+        "not official-publication provenance (R070 open)",
+        "not LawRef / act-tree / clause segmentation",
+        "not the N2-gate acceptance decision",
+        "not legal interpretation"
+      ]
+    },
+    {
+      "doc_id": "npa-doc-039",
+      "source_path": "consru_export/consru_export/exports/xml/law/132322/edition-5d0b87ec84e72fe84f6535f6.xml",
+      "source_sha256": "88fb21b7a314f9847aba644d29c740f8c121ea8e838dcae739f5f6500d8a9ac8",
+      "byte_count": 215541,
+      "family": "xml",
+      "doc_type": "xml-unspecified",
+      "decoder": "ConsultantWordMlBlockDecoder",
+      "fragment_ids": [
+        "npa-frag-172",
+        "npa-frag-173",
+        "npa-frag-174",
+        "npa-frag-175",
+        "npa-frag-176"
+      ],
+      "non_claims": [
+        "not official-publication provenance (R070 open)",
+        "not LawRef / act-tree / clause segmentation",
+        "not the N2-gate acceptance decision",
+        "not legal interpretation"
+      ]
+    },
+    {
+      "doc_id": "npa-doc-040",
+      "source_path": "consru_export/consru_export/exports/xml/law/135559/edition-38317e622441abfe3524d376.xml",
+      "source_sha256": "3919a37dd9d87558158b14e3b05e5f0f68acd58a74d6ab16baebf43a7797c9ac",
+      "byte_count": 694241,
+      "family": "xml",
+      "doc_type": "xml-unspecified",
+      "decoder": "ConsultantWordMlBlockDecoder",
+      "fragment_ids": [
+        "npa-frag-177",
+        "npa-frag-178",
+        "npa-frag-179",
+        "npa-frag-180"
+      ],
+      "non_claims": [
+        "not official-publication provenance (R070 open)",
+        "not LawRef / act-tree / clause segmentation",
+        "not the N2-gate acceptance decision",
+        "not legal interpretation"
+      ]
+    }
+  ],
+  "fragments": [
+    {
+      "id": "npa-frag-001",
+      "file": "npa-frag-001.txt",
+      "doc_id": "npa-doc-001",
+      "source_block_index": 73,
+      "note_kind": "enacting",
+      "byte_len": 874,
+      "status": "seed",
+      "seed_span": null
+    },
+    {
+      "id": "npa-frag-002",
+      "file": "npa-frag-002.txt",
+      "doc_id": "npa-doc-001",
+      "source_block_index": 77,
+      "note_kind": "enacting",
+      "byte_len": 739,
+      "status": "seed",
+      "seed_span": null
+    },
+    {
+      "id": "npa-frag-003",
+      "file": "npa-frag-003.txt",
+      "doc_id": "npa-doc-001",
+      "source_block_index": 549,
+      "note_kind": "enacting",
+      "byte_len": 90,
+      "status": "seed",
+      "seed_span": null
+    },
+    {
+      "id": "npa-frag-004",
+      "file": "npa-frag-004.txt",
+      "doc_id": "npa-doc-002",
+      "source_block_index": 65,
+      "note_kind": "enacting",
+      "byte_len": 874,
+      "status": "seed",
+      "seed_span": null
+    },
+    {
+      "id": "npa-frag-005",
+      "file": "npa-frag-005.txt",
+      "doc_id": "npa-doc-002",
+      "source_block_index": 69,
+      "note_kind": "enacting",
+      "byte_len": 739,
+      "status": "seed",
+      "seed_span": null
+    },
+    {
+      "id": "npa-frag-006",
+      "file": "npa-frag-006.txt",
+      "doc_id": "npa-doc-002",
+      "source_block_index": 539,
+      "note_kind": "enacting",
+      "byte_len": 90,
+      "status": "seed",
+      "seed_span": null
+    },
+    {
+      "id": "npa-frag-007",
+      "file": "npa-frag-007.txt",
+      "doc_id": "npa-doc-003",
+      "source_block_index": 59,
+      "note_kind": "enacting",
+      "byte_len": 1562,
+      "status": "seed",
+      "seed_span": null
+    },
+    {
+      "id": "npa-frag-008",
+      "file": "npa-frag-008.txt",
+      "doc_id": "npa-doc-003",
+      "source_block_index": 63,
+      "note_kind": "enacting",
+      "byte_len": 811,
+      "status": "seed",
+      "seed_span": null
+    },
+    {
+      "id": "npa-frag-009",
+      "file": "npa-frag-009.txt",
+      "doc_id": "npa-doc-003",
+      "source_block_index": 68,
+      "note_kind": "enacting",
+      "byte_len": 637,
+      "status": "seed",
+      "seed_span": null
+    },
+    {
+      "id": "npa-frag-010",
+      "file": "npa-frag-010.txt",
+      "doc_id": "npa-doc-003",
+      "source_block_index": 69,
+      "note_kind": "enacting",
+      "byte_len": 939,
+      "status": "seed",
+      "seed_span": null
+    },
+    {
+      "id": "npa-frag-011",
+      "file": "npa-frag-011.txt",
+      "doc_id": "npa-doc-003",
+      "source_block_index": 90,
+      "note_kind": "enacting",
+      "byte_len": 443,
+      "status": "seed",
+      "seed_span": null
+    },
+    {
+      "id": "npa-frag-012",
+      "file": "npa-frag-012.txt",
+      "doc_id": "npa-doc-004",
+      "source_block_index": 53,
+      "note_kind": "enacting",
+      "byte_len": 1562,
+      "status": "seed",
+      "seed_span": null
+    },
+    {
+      "id": "npa-frag-013",
+      "file": "npa-frag-013.txt",
+      "doc_id": "npa-doc-004",
+      "source_block_index": 57,
+      "note_kind": "enacting",
+      "byte_len": 811,
+      "status": "seed",
+      "seed_span": null
+    },
+    {
+      "id": "npa-frag-014",
+      "file": "npa-frag-014.txt",
+      "doc_id": "npa-doc-004",
+      "source_block_index": 62,
+      "note_kind": "enacting",
+      "byte_len": 637,
+      "status": "seed",
+      "seed_span": null
+    },
+    {
+      "id": "npa-frag-015",
+      "file": "npa-frag-015.txt",
+      "doc_id": "npa-doc-004",
+      "source_block_index": 63,
+      "note_kind": "enacting",
+      "byte_len": 939,
+      "status": "seed",
+      "seed_span": null
+    },
+    {
+      "id": "npa-frag-016",
+      "file": "npa-frag-016.txt",
+      "doc_id": "npa-doc-004",
+      "source_block_index": 84,
+      "note_kind": "enacting",
+      "byte_len": 443,
+      "status": "seed",
+      "seed_span": null
+    },
+    {
+      "id": "npa-frag-017",
+      "file": "npa-frag-017.txt",
+      "doc_id": "npa-doc-005",
+      "source_block_index": 45,
+      "note_kind": "enacting",
+      "byte_len": 87,
+      "status": "seed",
+      "seed_span": null
+    },
+    {
+      "id": "npa-frag-018",
+      "file": "npa-frag-018.txt",
+      "doc_id": "npa-doc-005",
+      "source_block_index": 49,
+      "note_kind": "enacting",
+      "byte_len": 87,
+      "status": "seed",
+      "seed_span": null
+    },
+    {
+      "id": "npa-frag-019",
+      "file": "npa-frag-019.txt",
+      "doc_id": "npa-doc-005",
+      "source_block_index": 74,
+      "note_kind": "enacting",
+      "byte_len": 88,
+      "status": "seed",
+      "seed_span": null
+    },
+    {
+      "id": "npa-frag-020",
+      "file": "npa-frag-020.txt",
+      "doc_id": "npa-doc-005",
+      "source_block_index": 84,
+      "note_kind": "enacting",
+      "byte_len": 165,
+      "status": "seed",
+      "seed_span": null
+    },
+    {
+      "id": "npa-frag-021",
+      "file": "npa-frag-021.txt",
+      "doc_id": "npa-doc-005",
+      "source_block_index": 86,
+      "note_kind": "enacting",
+      "byte_len": 165,
+      "status": "seed",
+      "seed_span": null
+    },
+    {
+      "id": "npa-frag-022",
+      "file": "npa-frag-022.txt",
+      "doc_id": "npa-doc-006",
+      "source_block_index": 54,
+      "note_kind": "enacting",
+      "byte_len": 87,
+      "status": "seed",
+      "seed_span": null
+    },
+    {
+      "id": "npa-frag-023",
+      "file": "npa-frag-023.txt",
+      "doc_id": "npa-doc-006",
+      "source_block_index": 58,
+      "note_kind": "enacting",
+      "byte_len": 87,
+      "status": "seed",
+      "seed_span": null
+    },
+    {
+      "id": "npa-frag-024",
+      "file": "npa-frag-024.txt",
+      "doc_id": "npa-doc-006",
+      "source_block_index": 87,
+      "note_kind": "enacting",
+      "byte_len": 88,
+      "status": "seed",
+      "seed_span": null
+    },
+    {
+      "id": "npa-frag-025",
+      "file": "npa-frag-025.txt",
+      "doc_id": "npa-doc-006",
+      "source_block_index": 97,
+      "note_kind": "enacting",
+      "byte_len": 165,
+      "status": "seed",
+      "seed_span": null
+    },
+    {
+      "id": "npa-frag-026",
+      "file": "npa-frag-026.txt",
+      "doc_id": "npa-doc-006",
+      "source_block_index": 99,
+      "note_kind": "enacting",
+      "byte_len": 165,
+      "status": "seed",
+      "seed_span": null
+    },
+    {
+      "id": "npa-frag-027",
+      "file": "npa-frag-027.txt",
+      "doc_id": "npa-doc-007",
+      "source_block_index": 22,
+      "note_kind": "enacting",
+      "byte_len": 94,
+      "status": "seed",
+      "seed_span": null
+    },
+    {
+      "id": "npa-frag-028",
+      "file": "npa-frag-028.txt",
+      "doc_id": "npa-doc-007",
+      "source_block_index": 77,
+      "note_kind": "enacting",
+      "byte_len": 128,
+      "status": "seed",
+      "seed_span": null
+    },
+    {
+      "id": "npa-frag-029",
+      "file": "npa-frag-029.txt",
+      "doc_id": "npa-doc-007",
+      "source_block_index": 113,
+      "note_kind": "enacting",
+      "byte_len": 94,
+      "status": "seed",
+      "seed_span": null
+    },
+    {
+      "id": "npa-frag-030",
+      "file": "npa-frag-030.txt",
+      "doc_id": "npa-doc-007",
+      "source_block_index": 119,
+      "note_kind": "enacting",
+      "byte_len": 287,
+      "status": "seed",
+      "seed_span": null
+    },
+    {
+      "id": "npa-frag-031",
+      "file": "npa-frag-031.txt",
+      "doc_id": "npa-doc-007",
+      "source_block_index": 130,
+      "note_kind": "enacting",
+      "byte_len": 1771,
+      "status": "seed",
+      "seed_span": null
+    },
+    {
+      "id": "npa-frag-032",
+      "file": "npa-frag-032.txt",
+      "doc_id": "npa-doc-008",
+      "source_block_index": 70,
+      "note_kind": "enacting",
+      "byte_len": 128,
+      "status": "seed",
+      "seed_span": null
+    },
+    {
+      "id": "npa-frag-033",
+      "file": "npa-frag-033.txt",
+      "doc_id": "npa-doc-008",
+      "source_block_index": 106,
+      "note_kind": "enacting",
+      "byte_len": 94,
+      "status": "seed",
+      "seed_span": null
+    },
+    {
+      "id": "npa-frag-034",
+      "file": "npa-frag-034.txt",
+      "doc_id": "npa-doc-008",
+      "source_block_index": 112,
+      "note_kind": "enacting",
+      "byte_len": 287,
+      "status": "seed",
+      "seed_span": null
+    },
+    {
+      "id": "npa-frag-035",
+      "file": "npa-frag-035.txt",
+      "doc_id": "npa-doc-008",
+      "source_block_index": 123,
+      "note_kind": "enacting",
+      "byte_len": 1771,
+      "status": "seed",
+      "seed_span": null
+    },
+    {
+      "id": "npa-frag-036",
+      "file": "npa-frag-036.txt",
+      "doc_id": "npa-doc-008",
+      "source_block_index": 340,
+      "note_kind": "enacting",
+      "byte_len": 92,
+      "status": "seed",
+      "seed_span": null
+    },
+    {
+      "id": "npa-frag-037",
+      "file": "npa-frag-037.txt",
+      "doc_id": "npa-doc-009",
+      "source_block_index": 29,
+      "note_kind": "enacting",
+      "byte_len": 358,
+      "status": "seed",
+      "seed_span": null
+    },
+    {
+      "id": "npa-frag-038",
+      "file": "npa-frag-038.txt",
+      "doc_id": "npa-doc-009",
+      "source_block_index": 360,
+      "note_kind": "enacting",
+      "byte_len": 87,
+      "status": "seed",
+      "seed_span": null
+    },
+    {
+      "id": "npa-frag-039",
+      "file": "npa-frag-039.txt",
+      "doc_id": "npa-doc-009",
+      "source_block_index": 898,
+      "note_kind": "enacting",
+      "byte_len": 87,
+      "status": "seed",
+      "seed_span": null
+    },
+    {
+      "id": "npa-frag-040",
+      "file": "npa-frag-040.txt",
+      "doc_id": "npa-doc-010",
+      "source_block_index": 32,
+      "note_kind": "enacting",
+      "byte_len": 358,
+      "status": "seed",
+      "seed_span": null
+    },
+    {
+      "id": "npa-frag-041",
+      "file": "npa-frag-041.txt",
+      "doc_id": "npa-doc-010",
+      "source_block_index": 371,
+      "note_kind": "enacting",
+      "byte_len": 87,
+      "status": "seed",
+      "seed_span": null
+    },
+    {
+      "id": "npa-frag-042",
+      "file": "npa-frag-042.txt",
+      "doc_id": "npa-doc-010",
+      "source_block_index": 911,
+      "note_kind": "enacting",
+      "byte_len": 87,
+      "status": "seed",
+      "seed_span": null
+    },
+    {
+      "id": "npa-frag-043",
+      "file": "npa-frag-043.txt",
+      "doc_id": "npa-doc-011",
+      "source_block_index": 33,
+      "note_kind": "enacting",
+      "byte_len": 358,
+      "status": "seed",
+      "seed_span": null
+    },
+    {
+      "id": "npa-frag-044",
+      "file": "npa-frag-044.txt",
+      "doc_id": "npa-doc-011",
+      "source_block_index": 373,
+      "note_kind": "enacting",
+      "byte_len": 87,
+      "status": "seed",
+      "seed_span": null
+    },
+    {
+      "id": "npa-frag-045",
+      "file": "npa-frag-045.txt",
+      "doc_id": "npa-doc-011",
+      "source_block_index": 926,
+      "note_kind": "enacting",
+      "byte_len": 87,
+      "status": "seed",
+      "seed_span": null
+    },
+    {
+      "id": "npa-frag-046",
+      "file": "npa-frag-046.txt",
+      "doc_id": "npa-doc-012",
+      "source_block_index": 59,
+      "note_kind": "enacting",
+      "byte_len": 24,
+      "status": "seed",
+      "seed_span": null
+    },
+    {
+      "id": "npa-frag-047",
+      "file": "npa-frag-047.txt",
+      "doc_id": "npa-doc-012",
+      "source_block_index": 88,
+      "note_kind": "enacting",
+      "byte_len": 87,
+      "status": "seed",
+      "seed_span": null
+    },
+    {
+      "id": "npa-frag-048",
+      "file": "npa-frag-048.txt",
+      "doc_id": "npa-doc-012",
+      "source_block_index": 119,
+      "note_kind": "enacting",
+      "byte_len": 87,
+      "status": "seed",
+      "seed_span": null
+    },
+    {
+      "id": "npa-frag-049",
+      "file": "npa-frag-049.txt",
+      "doc_id": "npa-doc-012",
+      "source_block_index": 126,
+      "note_kind": "enacting",
+      "byte_len": 164,
+      "status": "seed",
+      "seed_span": null
+    },
+    {
+      "id": "npa-frag-050",
+      "file": "npa-frag-050.txt",
+      "doc_id": "npa-doc-012",
+      "source_block_index": 130,
+      "note_kind": "enacting",
+      "byte_len": 220,
+      "status": "seed",
+      "seed_span": null
+    },
+    {
+      "id": "npa-frag-051",
+      "file": "npa-frag-051.txt",
+      "doc_id": "npa-doc-013",
+      "source_block_index": 0,
+      "note_kind": "enacting",
+      "byte_len": 456,
+      "status": "seed",
+      "seed_span": null
+    },
+    {
+      "id": "npa-frag-052",
+      "file": "npa-frag-052.txt",
+      "doc_id": "npa-doc-013",
+      "source_block_index": 180,
+      "note_kind": "enacting",
+      "byte_len": 21,
+      "status": "seed",
+      "seed_span": null
+    },
+    {
+      "id": "npa-frag-053",
+      "file": "npa-frag-053.txt",
+      "doc_id": "npa-doc-013",
+      "source_block_index": 208,
+      "note_kind": "enacting",
+      "byte_len": 21,
+      "status": "seed",
+      "seed_span": null
+    },
+    {
+      "id": "npa-frag-054",
+      "file": "npa-frag-054.txt",
+      "doc_id": "npa-doc-013",
+      "source_block_index": 248,
+      "note_kind": "enacting",
+      "byte_len": 21,
+      "status": "seed",
+      "seed_span": null
+    },
+    {
+      "id": "npa-frag-055",
+      "file": "npa-frag-055.txt",
+      "doc_id": "npa-doc-013",
+      "source_block_index": 288,
+      "note_kind": "enacting",
+      "byte_len": 213,
+      "status": "seed",
+      "seed_span": null
+    },
+    {
+      "id": "npa-frag-056",
+      "file": "npa-frag-056.txt",
+      "doc_id": "npa-doc-014",
+      "source_block_index": 0,
+      "note_kind": "enacting",
+      "byte_len": 223,
+      "status": "seed",
+      "seed_span": null
+    },
+    {
+      "id": "npa-frag-057",
+      "file": "npa-frag-057.txt",
+      "doc_id": "npa-doc-014",
+      "source_block_index": 10,
+      "note_kind": "enacting",
+      "byte_len": 156,
+      "status": "seed",
+      "seed_span": null
+    },
+    {
+      "id": "npa-frag-058",
+      "file": "npa-frag-058.txt",
+      "doc_id": "npa-doc-014",
+      "source_block_index": 38,
+      "note_kind": "enacting",
+      "byte_len": 194,
+      "status": "seed",
+      "seed_span": null
+    },
+    {
+      "id": "npa-frag-059",
+      "file": "npa-frag-059.txt",
+      "doc_id": "npa-doc-014",
+      "source_block_index": 147,
+      "note_kind": "enacting",
+      "byte_len": 213,
+      "status": "seed",
+      "seed_span": null
+    },
+    {
+      "id": "npa-frag-060",
+      "file": "npa-frag-060.txt",
+      "doc_id": "npa-doc-015",
+      "source_block_index": 0,
+      "note_kind": "enacting",
+      "byte_len": 888,
+      "status": "seed",
+      "seed_span": null
+    },
+    {
+      "id": "npa-frag-061",
+      "file": "npa-frag-061.txt",
+      "doc_id": "npa-doc-015",
+      "source_block_index": 13,
+      "note_kind": "enacting",
+      "byte_len": 76,
+      "status": "seed",
+      "seed_span": null
+    },
+    {
+      "id": "npa-frag-062",
+      "file": "npa-frag-062.txt",
+      "doc_id": "npa-doc-015",
+      "source_block_index": 14,
+      "note_kind": "enacting",
+      "byte_len": 66,
+      "status": "seed",
+      "seed_span": null
+    },
+    {
+      "id": "npa-frag-063",
+      "file": "npa-frag-063.txt",
+      "doc_id": "npa-doc-015",
+      "source_block_index": 15,
+      "note_kind": "enacting",
+      "byte_len": 68,
+      "status": "seed",
+      "seed_span": null
+    },
+    {
+      "id": "npa-frag-064",
+      "file": "npa-frag-064.txt",
+      "doc_id": "npa-doc-015",
+      "source_block_index": 16,
+      "note_kind": "enacting",
+      "byte_len": 67,
+      "status": "seed",
+      "seed_span": null
+    },
+    {
+      "id": "npa-frag-065",
+      "file": "npa-frag-065.txt",
+      "doc_id": "npa-doc-016",
+      "source_block_index": 0,
+      "note_kind": "enacting",
+      "byte_len": 206,
+      "status": "seed",
+      "seed_span": null
+    },
+    {
+      "id": "npa-frag-066",
+      "file": "npa-frag-066.txt",
+      "doc_id": "npa-doc-016",
+      "source_block_index": 9,
+      "note_kind": "enacting",
+      "byte_len": 68,
+      "status": "seed",
+      "seed_span": null
+    },
+    {
+      "id": "npa-frag-067",
+      "file": "npa-frag-067.txt",
+      "doc_id": "npa-doc-016",
+      "source_block_index": 10,
+      "note_kind": "enacting",
+      "byte_len": 65,
+      "status": "seed",
+      "seed_span": null
+    },
+    {
+      "id": "npa-frag-068",
+      "file": "npa-frag-068.txt",
+      "doc_id": "npa-doc-016",
+      "source_block_index": 17,
+      "note_kind": "enacting",
+      "byte_len": 71,
+      "status": "seed",
+      "seed_span": null
+    },
+    {
+      "id": "npa-frag-069",
+      "file": "npa-frag-069.txt",
+      "doc_id": "npa-doc-016",
+      "source_block_index": 20,
+      "note_kind": "enacting",
+      "byte_len": 71,
+      "status": "seed",
+      "seed_span": null
+    },
+    {
+      "id": "npa-frag-070",
+      "file": "npa-frag-070.txt",
+      "doc_id": "npa-doc-017",
+      "source_block_index": 0,
+      "note_kind": "enacting",
+      "byte_len": 258,
+      "status": "seed",
+      "seed_span": null
+    },
+    {
+      "id": "npa-frag-071",
+      "file": "npa-frag-071.txt",
+      "doc_id": "npa-doc-017",
+      "source_block_index": 8,
+      "note_kind": "enacting",
+      "byte_len": 99,
+      "status": "seed",
+      "seed_span": null
+    },
+    {
+      "id": "npa-frag-072",
+      "file": "npa-frag-072.txt",
+      "doc_id": "npa-doc-017",
+      "source_block_index": 9,
+      "note_kind": "enacting",
+      "byte_len": 67,
+      "status": "seed",
+      "seed_span": null
+    },
+    {
+      "id": "npa-frag-073",
+      "file": "npa-frag-073.txt",
+      "doc_id": "npa-doc-017",
+      "source_block_index": 10,
+      "note_kind": "enacting",
+      "byte_len": 68,
+      "status": "seed",
+      "seed_span": null
+    },
+    {
+      "id": "npa-frag-074",
+      "file": "npa-frag-074.txt",
+      "doc_id": "npa-doc-017",
+      "source_block_index": 11,
+      "note_kind": "enacting",
+      "byte_len": 68,
+      "status": "seed",
+      "seed_span": null
+    },
+    {
+      "id": "npa-frag-075",
+      "file": "npa-frag-075.txt",
+      "doc_id": "npa-doc-018",
+      "source_block_index": 0,
+      "note_kind": "enacting",
+      "byte_len": 491,
+      "status": "seed",
+      "seed_span": null
+    },
+    {
+      "id": "npa-frag-076",
+      "file": "npa-frag-076.txt",
+      "doc_id": "npa-doc-018",
+      "source_block_index": 11,
+      "note_kind": "enacting",
+      "byte_len": 84,
+      "status": "seed",
+      "seed_span": null
+    },
+    {
+      "id": "npa-frag-077",
+      "file": "npa-frag-077.txt",
+      "doc_id": "npa-doc-018",
+      "source_block_index": 16,
+      "note_kind": "enacting",
+      "byte_len": 84,
+      "status": "seed",
+      "seed_span": null
+    },
+    {
+      "id": "npa-frag-078",
+      "file": "npa-frag-078.txt",
+      "doc_id": "npa-doc-018",
+      "source_block_index": 30,
+      "note_kind": "enacting",
+      "byte_len": 84,
+      "status": "seed",
+      "seed_span": null
+    },
+    {
+      "id": "npa-frag-079",
+      "file": "npa-frag-079.txt",
+      "doc_id": "npa-doc-018",
+      "source_block_index": 76,
+      "note_kind": "enacting",
+      "byte_len": 84,
+      "status": "seed",
+      "seed_span": null
+    },
+    {
+      "id": "npa-frag-080",
+      "file": "npa-frag-080.txt",
+      "doc_id": "npa-doc-019",
+      "source_block_index": 0,
+      "note_kind": "enacting",
+      "byte_len": 1291,
+      "status": "seed",
+      "seed_span": null
+    },
+    {
+      "id": "npa-frag-081",
+      "file": "npa-frag-081.txt",
+      "doc_id": "npa-doc-019",
+      "source_block_index": 20,
+      "note_kind": "enacting",
+      "byte_len": 93,
+      "status": "seed",
+      "seed_span": null
+    },
+    {
+      "id": "npa-frag-082",
+      "file": "npa-frag-082.txt",
+      "doc_id": "npa-doc-019",
+      "source_block_index": 21,
+      "note_kind": "enacting",
+      "byte_len": 23,
+      "status": "seed",
+      "seed_span": null
+    },
+    {
+      "id": "npa-frag-083",
+      "file": "npa-frag-083.txt",
+      "doc_id": "npa-doc-019",
+      "source_block_index": 26,
+      "note_kind": "enacting",
+      "byte_len": 111,
+      "status": "seed",
+      "seed_span": null
+    },
+    {
+      "id": "npa-frag-084",
+      "file": "npa-frag-084.txt",
+      "doc_id": "npa-doc-019",
+      "source_block_index": 43,
+      "note_kind": "enacting",
+      "byte_len": 94,
+      "status": "seed",
+      "seed_span": null
+    },
+    {
+      "id": "npa-frag-085",
+      "file": "npa-frag-085.txt",
+      "doc_id": "npa-doc-020",
+      "source_block_index": 0,
+      "note_kind": "enacting",
+      "byte_len": 543,
+      "status": "seed",
+      "seed_span": null
+    },
+    {
+      "id": "npa-frag-086",
+      "file": "npa-frag-086.txt",
+      "doc_id": "npa-doc-020",
+      "source_block_index": 11,
+      "note_kind": "enacting",
+      "byte_len": 94,
+      "status": "seed",
+      "seed_span": null
+    },
+    {
+      "id": "npa-frag-087",
+      "file": "npa-frag-087.txt",
+      "doc_id": "npa-doc-020",
+      "source_block_index": 12,
+      "note_kind": "enacting",
+      "byte_len": 22,
+      "status": "seed",
+      "seed_span": null
+    },
+    {
+      "id": "npa-frag-088",
+      "file": "npa-frag-088.txt",
+      "doc_id": "npa-doc-020",
+      "source_block_index": 15,
+      "note_kind": "enacting",
+      "byte_len": 93,
+      "status": "seed",
+      "seed_span": null
+    },
+    {
+      "id": "npa-frag-089",
+      "file": "npa-frag-089.txt",
+      "doc_id": "npa-doc-020",
+      "source_block_index": 17,
+      "note_kind": "enacting",
+      "byte_len": 100,
+      "status": "seed",
+      "seed_span": null
+    },
+    {
+      "id": "npa-frag-090",
+      "file": "npa-frag-090.txt",
+      "doc_id": "npa-doc-021",
+      "source_block_index": 0,
+      "note_kind": "enacting",
+      "byte_len": 309,
+      "status": "seed",
+      "seed_span": null
+    },
+    {
+      "id": "npa-frag-091",
+      "file": "npa-frag-091.txt",
+      "doc_id": "npa-doc-021",
+      "source_block_index": 9,
+      "note_kind": "enacting",
+      "byte_len": 94,
+      "status": "seed",
+      "seed_span": null
+    },
+    {
+      "id": "npa-frag-092",
+      "file": "npa-frag-092.txt",
+      "doc_id": "npa-doc-021",
+      "source_block_index": 10,
+      "note_kind": "enacting",
+      "byte_len": 70,
+      "status": "seed",
+      "seed_span": null
+    },
+    {
+      "id": "npa-frag-093",
+      "file": "npa-frag-093.txt",
+      "doc_id": "npa-doc-021",
+      "source_block_index": 28,
+      "note_kind": "enacting",
+      "byte_len": 94,
+      "status": "seed",
+      "seed_span": null
+    },
+    {
+      "id": "npa-frag-094",
+      "file": "npa-frag-094.txt",
+      "doc_id": "npa-doc-021",
+      "source_block_index": 29,
+      "note_kind": "enacting",
+      "byte_len": 70,
+      "status": "seed",
+      "seed_span": null
+    },
+    {
+      "id": "npa-frag-095",
+      "file": "npa-frag-095.txt",
+      "doc_id": "npa-doc-022",
+      "source_block_index": 0,
+      "note_kind": "enacting",
+      "byte_len": 1198,
+      "status": "seed",
+      "seed_span": null
+    },
+    {
+      "id": "npa-frag-096",
+      "file": "npa-frag-096.txt",
+      "doc_id": "npa-doc-022",
+      "source_block_index": 11,
+      "note_kind": "enacting",
+      "byte_len": 94,
+      "status": "seed",
+      "seed_span": null
+    },
+    {
+      "id": "npa-frag-097",
+      "file": "npa-frag-097.txt",
+      "doc_id": "npa-doc-022",
+      "source_block_index": 12,
+      "note_kind": "enacting",
+      "byte_len": 67,
+      "status": "seed",
+      "seed_span": null
+    },
+    {
+      "id": "npa-frag-098",
+      "file": "npa-frag-098.txt",
+      "doc_id": "npa-doc-022",
+      "source_block_index": 13,
+      "note_kind": "enacting",
+      "byte_len": 69,
+      "status": "seed",
+      "seed_span": null
+    },
+    {
+      "id": "npa-frag-099",
+      "file": "npa-frag-099.txt",
+      "doc_id": "npa-doc-022",
+      "source_block_index": 14,
+      "note_kind": "enacting",
+      "byte_len": 71,
+      "status": "seed",
+      "seed_span": null
+    },
+    {
+      "id": "npa-frag-100",
+      "file": "npa-frag-100.txt",
+      "doc_id": "npa-doc-023",
+      "source_block_index": 0,
+      "note_kind": "enacting",
+      "byte_len": 445,
+      "status": "seed",
+      "seed_span": null
+    },
+    {
+      "id": "npa-frag-101",
+      "file": "npa-frag-101.txt",
+      "doc_id": "npa-doc-023",
+      "source_block_index": 6,
+      "note_kind": "enacting",
+      "byte_len": 95,
+      "status": "seed",
+      "seed_span": null
+    },
+    {
+      "id": "npa-frag-102",
+      "file": "npa-frag-102.txt",
+      "doc_id": "npa-doc-023",
+      "source_block_index": 23,
+      "note_kind": "enacting",
+      "byte_len": 95,
+      "status": "seed",
+      "seed_span": null
+    },
+    {
+      "id": "npa-frag-103",
+      "file": "npa-frag-103.txt",
+      "doc_id": "npa-doc-023",
+      "source_block_index": 139,
+      "note_kind": "enacting",
+      "byte_len": 194,
+      "status": "seed",
+      "seed_span": null
+    },
+    {
+      "id": "npa-frag-104",
+      "file": "npa-frag-104.txt",
+      "doc_id": "npa-doc-024",
+      "source_block_index": 4,
+      "note_kind": "enacting",
+      "byte_len": 94,
+      "status": "seed",
+      "seed_span": null
+    },
+    {
+      "id": "npa-frag-105",
+      "file": "npa-frag-105.txt",
+      "doc_id": "npa-doc-024",
+      "source_block_index": 8,
+      "note_kind": "enacting",
+      "byte_len": 94,
+      "status": "seed",
+      "seed_span": null
+    },
+    {
+      "id": "npa-frag-106",
+      "file": "npa-frag-106.txt",
+      "doc_id": "npa-doc-024",
+      "source_block_index": 10,
+      "note_kind": "enacting",
+      "byte_len": 94,
+      "status": "seed",
+      "seed_span": null
+    },
+    {
+      "id": "npa-frag-107",
+      "file": "npa-frag-107.txt",
+      "doc_id": "npa-doc-024",
+      "source_block_index": 12,
+      "note_kind": "enacting",
+      "byte_len": 94,
+      "status": "seed",
+      "seed_span": null
+    },
+    {
+      "id": "npa-frag-108",
+      "file": "npa-frag-108.txt",
+      "doc_id": "npa-doc-024",
+      "source_block_index": 14,
+      "note_kind": "enacting",
+      "byte_len": 94,
+      "status": "seed",
+      "seed_span": null
+    },
+    {
+      "id": "npa-frag-109",
+      "file": "npa-frag-109.txt",
+      "doc_id": "npa-doc-025",
+      "source_block_index": 0,
+      "note_kind": "enacting",
+      "byte_len": 423,
+      "status": "seed",
+      "seed_span": null
+    },
+    {
+      "id": "npa-frag-110",
+      "file": "npa-frag-110.txt",
+      "doc_id": "npa-doc-025",
+      "source_block_index": 6,
+      "note_kind": "enacting",
+      "byte_len": 94,
+      "status": "seed",
+      "seed_span": null
+    },
+    {
+      "id": "npa-frag-111",
+      "file": "npa-frag-111.txt",
+      "doc_id": "npa-doc-025",
+      "source_block_index": 7,
+      "note_kind": "enacting",
+      "byte_len": 78,
+      "status": "seed",
+      "seed_span": null
+    },
+    {
+      "id": "npa-frag-112",
+      "file": "npa-frag-112.txt",
+      "doc_id": "npa-doc-025",
+      "source_block_index": 8,
+      "note_kind": "enacting",
+      "byte_len": 52,
+      "status": "seed",
+      "seed_span": null
+    },
+    {
+      "id": "npa-frag-113",
+      "file": "npa-frag-113.txt",
+      "doc_id": "npa-doc-025",
+      "source_block_index": 11,
+      "note_kind": "enacting",
+      "byte_len": 95,
+      "status": "seed",
+      "seed_span": null
+    },
+    {
+      "id": "npa-frag-114",
+      "file": "npa-frag-114.txt",
+      "doc_id": "npa-doc-026",
+      "source_block_index": 0,
+      "note_kind": "enacting",
+      "byte_len": 510,
+      "status": "seed",
+      "seed_span": null
+    },
+    {
+      "id": "npa-frag-115",
+      "file": "npa-frag-115.txt",
+      "doc_id": "npa-doc-026",
+      "source_block_index": 12,
+      "note_kind": "enacting",
+      "byte_len": 73,
+      "status": "seed",
+      "seed_span": null
+    },
+    {
+      "id": "npa-frag-116",
+      "file": "npa-frag-116.txt",
+      "doc_id": "npa-doc-026",
+      "source_block_index": 13,
+      "note_kind": "enacting",
+      "byte_len": 68,
+      "status": "seed",
+      "seed_span": null
+    },
+    {
+      "id": "npa-frag-117",
+      "file": "npa-frag-117.txt",
+      "doc_id": "npa-doc-026",
+      "source_block_index": 15,
+      "note_kind": "enacting",
+      "byte_len": 71,
+      "status": "seed",
+      "seed_span": null
+    },
+    {
+      "id": "npa-frag-118",
+      "file": "npa-frag-118.txt",
+      "doc_id": "npa-doc-026",
+      "source_block_index": 17,
+      "note_kind": "enacting",
+      "byte_len": 71,
+      "status": "seed",
+      "seed_span": null
+    },
+    {
+      "id": "npa-frag-119",
+      "file": "npa-frag-119.txt",
+      "doc_id": "npa-doc-027",
+      "source_block_index": 25,
+      "note_kind": "provider_note",
+      "byte_len": 2339,
+      "status": "seed",
+      "seed_span": null
+    },
+    {
+      "id": "npa-frag-120",
+      "file": "npa-frag-120.txt",
+      "doc_id": "npa-doc-027",
+      "source_block_index": 27,
+      "note_kind": "provider_note",
+      "byte_len": 864,
+      "status": "seed",
+      "seed_span": null
+    },
+    {
+      "id": "npa-frag-121",
+      "file": "npa-frag-121.txt",
+      "doc_id": "npa-doc-027",
+      "source_block_index": 33,
+      "note_kind": "provider_note",
+      "byte_len": 1110,
+      "status": "seed",
+      "seed_span": null
+    },
+    {
+      "id": "npa-frag-122",
+      "file": "npa-frag-122.txt",
+      "doc_id": "npa-doc-027",
+      "source_block_index": 48,
+      "note_kind": "provider_note",
+      "byte_len": 371,
+      "status": "seed",
+      "seed_span": null
+    },
+    {
+      "id": "npa-frag-123",
+      "file": "npa-frag-123.txt",
+      "doc_id": "npa-doc-027",
+      "source_block_index": 51,
+      "note_kind": "provider_note",
+      "byte_len": 864,
+      "status": "seed",
+      "seed_span": null
+    },
+    {
+      "id": "npa-frag-124",
+      "file": "npa-frag-124.txt",
+      "doc_id": "npa-doc-028",
+      "source_block_index": 10,
+      "note_kind": "provider_note",
+      "byte_len": 245,
+      "status": "seed",
+      "seed_span": null
+    },
+    {
+      "id": "npa-frag-125",
+      "file": "npa-frag-125.txt",
+      "doc_id": "npa-doc-028",
+      "source_block_index": 11,
+      "note_kind": "provider_note",
+      "byte_len": 262,
+      "status": "seed",
+      "seed_span": null
+    },
+    {
+      "id": "npa-frag-126",
+      "file": "npa-frag-126.txt",
+      "doc_id": "npa-doc-028",
+      "source_block_index": 74,
+      "note_kind": "provider_note",
+      "byte_len": 270,
+      "status": "seed",
+      "seed_span": null
+    },
+    {
+      "id": "npa-frag-127",
+      "file": "npa-frag-127.txt",
+      "doc_id": "npa-doc-028",
+      "source_block_index": 75,
+      "note_kind": "provider_note",
+      "byte_len": 1328,
+      "status": "seed",
+      "seed_span": null
+    },
+    {
+      "id": "npa-frag-128",
+      "file": "npa-frag-128.txt",
+      "doc_id": "npa-doc-029",
+      "source_block_index": 43,
+      "note_kind": "provider_note",
+      "byte_len": 848,
+      "status": "seed",
+      "seed_span": null
+    },
+    {
+      "id": "npa-frag-129",
+      "file": "npa-frag-129.txt",
+      "doc_id": "npa-doc-029",
+      "source_block_index": 48,
+      "note_kind": "provider_note",
+      "byte_len": 733,
+      "status": "seed",
+      "seed_span": null
+    },
+    {
+      "id": "npa-frag-130",
+      "file": "npa-frag-130.txt",
+      "doc_id": "npa-doc-029",
+      "source_block_index": 57,
+      "note_kind": "provider_note",
+      "byte_len": 382,
+      "status": "seed",
+      "seed_span": null
+    },
+    {
+      "id": "npa-frag-131",
+      "file": "npa-frag-131.txt",
+      "doc_id": "npa-doc-030",
+      "source_block_index": 8,
+      "note_kind": "provider_note",
+      "byte_len": 1330,
+      "status": "seed",
+      "seed_span": null
+    },
+    {
+      "id": "npa-frag-132",
+      "file": "npa-frag-132.txt",
+      "doc_id": "npa-doc-030",
+      "source_block_index": 37,
+      "note_kind": "provider_note",
+      "byte_len": 2366,
+      "status": "seed",
+      "seed_span": null
+    },
+    {
+      "id": "npa-frag-133",
+      "file": "npa-frag-133.txt",
+      "doc_id": "npa-doc-030",
+      "source_block_index": 40,
+      "note_kind": "provider_note",
+      "byte_len": 528,
+      "status": "seed",
+      "seed_span": null
+    },
+    {
+      "id": "npa-frag-134",
+      "file": "npa-frag-134.txt",
+      "doc_id": "npa-doc-030",
+      "source_block_index": 41,
+      "note_kind": "provider_note",
+      "byte_len": 1106,
+      "status": "seed",
+      "seed_span": null
+    },
+    {
+      "id": "npa-frag-135",
+      "file": "npa-frag-135.txt",
+      "doc_id": "npa-doc-030",
+      "source_block_index": 42,
+      "note_kind": "provider_note",
+      "byte_len": 929,
+      "status": "seed",
+      "seed_span": null
+    },
+    {
+      "id": "npa-frag-136",
+      "file": "npa-frag-136.txt",
+      "doc_id": "npa-doc-031",
+      "source_block_index": 13,
+      "note_kind": "provider_note",
+      "byte_len": 1020,
+      "status": "seed",
+      "seed_span": null
+    },
+    {
+      "id": "npa-frag-137",
+      "file": "npa-frag-137.txt",
+      "doc_id": "npa-doc-031",
+      "source_block_index": 15,
+      "note_kind": "provider_note",
+      "byte_len": 546,
+      "status": "seed",
+      "seed_span": null
+    },
+    {
+      "id": "npa-frag-138",
+      "file": "npa-frag-138.txt",
+      "doc_id": "npa-doc-031",
+      "source_block_index": 17,
+      "note_kind": "provider_note",
+      "byte_len": 616,
+      "status": "seed",
+      "seed_span": null
+    },
+    {
+      "id": "npa-frag-139",
+      "file": "npa-frag-139.txt",
+      "doc_id": "npa-doc-031",
+      "source_block_index": 23,
+      "note_kind": "provider_note",
+      "byte_len": 393,
+      "status": "seed",
+      "seed_span": null
+    },
+    {
+      "id": "npa-frag-140",
+      "file": "npa-frag-140.txt",
+      "doc_id": "npa-doc-031",
+      "source_block_index": 24,
+      "note_kind": "provider_note",
+      "byte_len": 393,
+      "status": "seed",
+      "seed_span": null
+    },
+    {
+      "id": "npa-frag-141",
+      "file": "npa-frag-141.txt",
+      "doc_id": "npa-doc-032",
+      "source_block_index": 13,
+      "note_kind": "provider_note",
+      "byte_len": 1018,
+      "status": "seed",
+      "seed_span": null
+    },
+    {
+      "id": "npa-frag-142",
+      "file": "npa-frag-142.txt",
+      "doc_id": "npa-doc-032",
+      "source_block_index": 15,
+      "note_kind": "provider_note",
+      "byte_len": 944,
+      "status": "seed",
+      "seed_span": null
+    },
+    {
+      "id": "npa-frag-143",
+      "file": "npa-frag-143.txt",
+      "doc_id": "npa-doc-032",
+      "source_block_index": 19,
+      "note_kind": "provider_note",
+      "byte_len": 1527,
+      "status": "seed",
+      "seed_span": null
+    },
+    {
+      "id": "npa-frag-144",
+      "file": "npa-frag-144.txt",
+      "doc_id": "npa-doc-032",
+      "source_block_index": 91,
+      "note_kind": "provider_note",
+      "byte_len": 740,
+      "status": "seed",
+      "seed_span": null
+    },
+    {
+      "id": "npa-frag-145",
+      "file": "npa-frag-145.txt",
+      "doc_id": "npa-doc-033",
+      "source_block_index": 13,
+      "note_kind": "provider_note",
+      "byte_len": 1026,
+      "status": "seed",
+      "seed_span": null
+    },
+    {
+      "id": "npa-frag-146",
+      "file": "npa-frag-146.txt",
+      "doc_id": "npa-doc-033",
+      "source_block_index": 15,
+      "note_kind": "provider_note",
+      "byte_len": 952,
+      "status": "seed",
+      "seed_span": null
+    },
+    {
+      "id": "npa-frag-147",
+      "file": "npa-frag-147.txt",
+      "doc_id": "npa-doc-033",
+      "source_block_index": 19,
+      "note_kind": "provider_note",
+      "byte_len": 1480,
+      "status": "seed",
+      "seed_span": null
+    },
+    {
+      "id": "npa-frag-148",
+      "file": "npa-frag-148.txt",
+      "doc_id": "npa-doc-033",
+      "source_block_index": 89,
+      "note_kind": "provider_note",
+      "byte_len": 748,
+      "status": "seed",
+      "seed_span": null
+    },
+    {
+      "id": "npa-frag-149",
+      "file": "npa-frag-149.txt",
+      "doc_id": "npa-doc-034",
+      "source_block_index": 11,
+      "note_kind": "provider_note",
+      "byte_len": 207,
+      "status": "seed",
+      "seed_span": null
+    },
+    {
+      "id": "npa-frag-150",
+      "file": "npa-frag-150.txt",
+      "doc_id": "npa-doc-034",
+      "source_block_index": 12,
+      "note_kind": "provider_note",
+      "byte_len": 64,
+      "status": "seed",
+      "seed_span": null
+    },
+    {
+      "id": "npa-frag-151",
+      "file": "npa-frag-151.txt",
+      "doc_id": "npa-doc-034",
+      "source_block_index": 13,
+      "note_kind": "provider_note",
+      "byte_len": 755,
+      "status": "seed",
+      "seed_span": null
+    },
+    {
+      "id": "npa-frag-152",
+      "file": "npa-frag-152.txt",
+      "doc_id": "npa-doc-034",
+      "source_block_index": 15,
+      "note_kind": "provider_note",
+      "byte_len": 630,
+      "status": "seed",
+      "seed_span": null
+    },
+    {
+      "id": "npa-frag-153",
+      "file": "npa-frag-153.txt",
+      "doc_id": "npa-doc-034",
+      "source_block_index": 19,
+      "note_kind": "provider_note",
+      "byte_len": 1123,
+      "status": "seed",
+      "seed_span": null
+    },
+    {
+      "id": "npa-frag-154",
+      "file": "npa-frag-154.txt",
+      "doc_id": "npa-doc-035",
+      "source_block_index": 9,
+      "note_kind": "provider_note",
+      "byte_len": 115,
+      "status": "seed",
+      "seed_span": null
+    },
+    {
+      "id": "npa-frag-155",
+      "file": "npa-frag-155.txt",
+      "doc_id": "npa-doc-035",
+      "source_block_index": 11,
+      "note_kind": "provider_note",
+      "byte_len": 1242,
+      "status": "seed",
+      "seed_span": null
+    },
+    {
+      "id": "npa-frag-156",
+      "file": "npa-frag-156.txt",
+      "doc_id": "npa-doc-035",
+      "source_block_index": 13,
+      "note_kind": "provider_note",
+      "byte_len": 1470,
+      "status": "seed",
+      "seed_span": null
+    },
+    {
+      "id": "npa-frag-157",
+      "file": "npa-frag-157.txt",
+      "doc_id": "npa-doc-035",
+      "source_block_index": 16,
+      "note_kind": "provider_note",
+      "byte_len": 973,
+      "status": "seed",
+      "seed_span": null
+    },
+    {
+      "id": "npa-frag-158",
+      "file": "npa-frag-158.txt",
+      "doc_id": "npa-doc-035",
+      "source_block_index": 18,
+      "note_kind": "provider_note",
+      "byte_len": 572,
+      "status": "seed",
+      "seed_span": null
+    },
+    {
+      "id": "npa-frag-159",
+      "file": "npa-frag-159.txt",
+      "doc_id": "npa-doc-036",
+      "source_block_index": 7,
+      "note_kind": "provider_note",
+      "byte_len": 56,
+      "status": "seed",
+      "seed_span": null
+    },
+    {
+      "id": "npa-frag-160",
+      "file": "npa-frag-160.txt",
+      "doc_id": "npa-doc-036",
+      "source_block_index": 8,
+      "note_kind": "provider_note",
+      "byte_len": 58,
+      "status": "seed",
+      "seed_span": null
+    },
+    {
+      "id": "npa-frag-161",
+      "file": "npa-frag-161.txt",
+      "doc_id": "npa-doc-036",
+      "source_block_index": 10,
+      "note_kind": "provider_note",
+      "byte_len": 51,
+      "status": "seed",
+      "seed_span": null
+    },
+    {
+      "id": "npa-frag-162",
+      "file": "npa-frag-162.txt",
+      "doc_id": "npa-doc-036",
+      "source_block_index": 11,
+      "note_kind": "provider_note",
+      "byte_len": 1244,
+      "status": "seed",
+      "seed_span": null
+    },
+    {
+      "id": "npa-frag-163",
+      "file": "npa-frag-163.txt",
+      "doc_id": "npa-doc-036",
+      "source_block_index": 13,
+      "note_kind": "provider_note",
+      "byte_len": 1155,
+      "status": "seed",
+      "seed_span": null
+    },
+    {
+      "id": "npa-frag-164",
+      "file": "npa-frag-164.txt",
+      "doc_id": "npa-doc-037",
+      "source_block_index": 35,
+      "note_kind": "provider_note",
+      "byte_len": 90,
+      "status": "seed",
+      "seed_span": null
+    },
+    {
+      "id": "npa-frag-165",
+      "file": "npa-frag-165.txt",
+      "doc_id": "npa-doc-037",
+      "source_block_index": 111,
+      "note_kind": "provider_note",
+      "byte_len": 88,
+      "status": "seed",
+      "seed_span": null
+    },
+    {
+      "id": "npa-frag-166",
+      "file": "npa-frag-166.txt",
+      "doc_id": "npa-doc-037",
+      "source_block_index": 195,
+      "note_kind": "provider_note",
+      "byte_len": 88,
+      "status": "seed",
+      "seed_span": null
+    },
+    {
+      "id": "npa-frag-167",
+      "file": "npa-frag-167.txt",
+      "doc_id": "npa-doc-038",
+      "source_block_index": 8,
+      "note_kind": "provider_note",
+      "byte_len": 87,
+      "status": "seed",
+      "seed_span": null
+    },
+    {
+      "id": "npa-frag-168",
+      "file": "npa-frag-168.txt",
+      "doc_id": "npa-doc-038",
+      "source_block_index": 11,
+      "note_kind": "provider_note",
+      "byte_len": 81,
+      "status": "seed",
+      "seed_span": null
+    },
+    {
+      "id": "npa-frag-169",
+      "file": "npa-frag-169.txt",
+      "doc_id": "npa-doc-038",
+      "source_block_index": 13,
+      "note_kind": "provider_note",
+      "byte_len": 81,
+      "status": "seed",
+      "seed_span": null
+    },
+    {
+      "id": "npa-frag-170",
+      "file": "npa-frag-170.txt",
+      "doc_id": "npa-doc-038",
+      "source_block_index": 16,
+      "note_kind": "provider_note",
+      "byte_len": 74,
+      "status": "seed",
+      "seed_span": null
+    },
+    {
+      "id": "npa-frag-171",
+      "file": "npa-frag-171.txt",
+      "doc_id": "npa-doc-038",
+      "source_block_index": 32,
+      "note_kind": "provider_note",
+      "byte_len": 74,
+      "status": "seed",
+      "seed_span": null
+    },
+    {
+      "id": "npa-frag-172",
+      "file": "npa-frag-172.txt",
+      "doc_id": "npa-doc-039",
+      "source_block_index": 42,
+      "note_kind": "provider_note",
+      "byte_len": 439,
+      "status": "seed",
+      "seed_span": null
+    },
+    {
+      "id": "npa-frag-173",
+      "file": "npa-frag-173.txt",
+      "doc_id": "npa-doc-039",
+      "source_block_index": 51,
+      "note_kind": "provider_note",
+      "byte_len": 1368,
+      "status": "seed",
+      "seed_span": null
+    },
+    {
+      "id": "npa-frag-174",
+      "file": "npa-frag-174.txt",
+      "doc_id": "npa-doc-039",
+      "source_block_index": 67,
+      "note_kind": "provider_note",
+      "byte_len": 652,
+      "status": "seed",
+      "seed_span": null
+    },
+    {
+      "id": "npa-frag-175",
+      "file": "npa-frag-175.txt",
+      "doc_id": "npa-doc-039",
+      "source_block_index": 68,
+      "note_kind": "provider_note",
+      "byte_len": 463,
+      "status": "seed",
+      "seed_span": null
+    },
+    {
+      "id": "npa-frag-176",
+      "file": "npa-frag-176.txt",
+      "doc_id": "npa-doc-039",
+      "source_block_index": 69,
+      "note_kind": "provider_note",
+      "byte_len": 521,
+      "status": "seed",
+      "seed_span": null
+    },
+    {
+      "id": "npa-frag-177",
+      "file": "npa-frag-177.txt",
+      "doc_id": "npa-doc-040",
+      "source_block_index": 258,
+      "note_kind": "provider_note",
+      "byte_len": 469,
+      "status": "seed",
+      "seed_span": null
+    },
+    {
+      "id": "npa-frag-178",
+      "file": "npa-frag-178.txt",
+      "doc_id": "npa-doc-040",
+      "source_block_index": 306,
+      "note_kind": "provider_note",
+      "byte_len": 709,
+      "status": "seed",
+      "seed_span": null
+    },
+    {
+      "id": "npa-frag-179",
+      "file": "npa-frag-179.txt",
+      "doc_id": "npa-doc-040",
+      "source_block_index": 356,
+      "note_kind": "provider_note",
+      "byte_len": 156,
+      "status": "seed",
+      "seed_span": null
+    },
+    {
+      "id": "npa-frag-180",
+      "file": "npa-frag-180.txt",
+      "doc_id": "npa-doc-040",
+      "source_block_index": 368,
+      "note_kind": "provider_note",
+      "byte_len": 304,
+      "status": "seed",
+      "seed_span": null
+    }
+  ]
+}
