@@ -1356,3 +1356,204 @@ fn layer1_c1_c2_unknown_tail_composition_stable() {
         "the whole capped tail (lexeme, count) must match across C1→C2"
     );
 }
+
+// ---------------------------------------------------------------------------
+// M198-das7v8 S03/T03: C3 convergence pins
+// (`prd/migration/rust-evidence/m198-c3-npa-corpus-sweep.jsonl`). C3 is a
+// Layer-1 convergence gate (D351), not a third calibration wave: the frozen
+// C2 matcher (stem-ge-2 Unicode fold, 1-letter lowercase-exact) re-walks the
+// same 43,785-file corpus with zero retune, so C3 must be numerically equal
+// to C2 everywhere except `header.cycle`. A divergence is the HOLD path:
+// the differing keys go into `m198-c3-convergence.md`, the matcher is never
+// retuned from a test failure, and the slice replans. Same contour as the
+// C1 t03 / C2 t05 pins: the tests read only tracked JSONL — the live
+// `consru_export` tree is never opened from `cargo test`.
+// ---------------------------------------------------------------------------
+
+/// Repo-relative path of the tracked C3 full-corpus aggregate, resolved
+/// from the crate as a sibling of the C1/C2 aggregates. A separate helper —
+/// the C1 [`tracked_aggregate_path`] and C2 [`tracked_c2_aggregate_path`]
+/// pins above must keep proving that those cycles were not clobbered by the
+/// C3 run (substituting C2 here fails the `cycle == "C3"` pin below).
+fn tracked_c3_aggregate_path() -> PathBuf {
+    Path::new(env!("CARGO_MANIFEST_DIR"))
+        .join("../../prd/migration/rust-evidence/m198-c3-npa-corpus-sweep.jsonl")
+}
+
+/// First differing key path between two parsed records, walked in the
+/// renderer's closed key order — the HOLD-case failure dump names the exact
+/// divergent key instead of failing with an opaque whole-record diff.
+fn first_diff_path(a: &JVal, b: &JVal, path: &str) -> Option<String> {
+    match (a, b) {
+        (JVal::Obj(pairs_a), JVal::Obj(pairs_b)) => {
+            let keys_a: Vec<&str> = pairs_a.iter().map(|(k, _)| k.as_str()).collect();
+            let keys_b: Vec<&str> = pairs_b.iter().map(|(k, _)| k.as_str()).collect();
+            if keys_a != keys_b {
+                return Some(format!("{path}: key sets diverge {keys_a:?} vs {keys_b:?}"));
+            }
+            for ((key, value_a), (_, value_b)) in pairs_a.iter().zip(pairs_b.iter()) {
+                if let Some(diff) = first_diff_path(value_a, value_b, &format!("{path}.{key}")) {
+                    return Some(diff);
+                }
+            }
+            None
+        }
+        (JVal::Arr(items_a), JVal::Arr(items_b)) => {
+            if items_a.len() != items_b.len() {
+                return Some(format!(
+                    "{path}: length diverges {} vs {}",
+                    items_a.len(),
+                    items_b.len()
+                ));
+            }
+            for (i, (value_a, value_b)) in items_a.iter().zip(items_b.iter()).enumerate() {
+                if let Some(diff) = first_diff_path(value_a, value_b, &format!("{path}[{i}]")) {
+                    return Some(diff);
+                }
+            }
+            None
+        }
+        (value_a, value_b) if value_a == value_b => None,
+        (value_a, value_b) => Some(format!("{path}: {value_a:?} vs {value_b:?}")),
+    }
+}
+
+/// Negative check on the HOLD dump itself (no tracked artifact touched):
+/// `first_diff_path` must report `None` for identical values, name the key
+/// of a value divergence, and fail on a key-set divergence — so a real
+/// C3≠C2 divergence fails the pins below loudly, never tuned away.
+#[test]
+fn t06_first_diff_path_dumps_divergent_key() {
+    let base = JVal::Obj(vec![
+        ("record_kind".to_owned(), JVal::Str("totals".to_owned())),
+        ("files_failed".to_owned(), JVal::Num(0)),
+    ]);
+    let poisoned = JVal::Obj(vec![
+        ("record_kind".to_owned(), JVal::Str("totals".to_owned())),
+        ("files_failed".to_owned(), JVal::Num(1)),
+    ]);
+    let rogue_key = JVal::Obj(vec![
+        ("record_kind".to_owned(), JVal::Str("totals".to_owned())),
+        ("rogue_key".to_owned(), JVal::Num(1)),
+        ("files_failed".to_owned(), JVal::Num(0)),
+    ]);
+
+    assert_eq!(
+        first_diff_path(&base, &base, "totals"),
+        None,
+        "identical records must not diverge"
+    );
+    assert_eq!(
+        first_diff_path(&base, &poisoned, "totals"),
+        Some("totals.files_failed: Num(0) vs Num(1)".to_owned()),
+        "a value divergence must name the key"
+    );
+    assert!(
+        first_diff_path(&base, &rogue_key, "totals").is_some(),
+        "a key-set divergence must fail"
+    );
+}
+
+/// S03/T03 pins over the tracked C3 full-corpus aggregate: the same binary
+/// and closed schema v1 as C1/C2, cycle `C3`, frozen C2 matcher. Pins the
+/// cycle-stable invariants (schema, full-corpus census, decode accounting,
+/// the stst zero) exactly like the C2 t05 pin, so the Layer-1 gate reads
+/// the C1/C2/C3 triple without schema drift.
+#[test]
+fn t06_tracked_c3_full_corpus_pins() {
+    let path = tracked_c3_aggregate_path();
+    let text = fs::read_to_string(&path)
+        .unwrap_or_else(|err| panic!("tracked C3 aggregate must be readable: {err}"));
+    npa_sweep::validate_jsonl(&text).expect("closed-key reader must accept the C3 aggregate");
+    let records = parse_aggregate(&text);
+    let kinds: Vec<&str> = records.iter().map(|(kind, _)| *kind).collect();
+    assert_eq!(kinds, RECORD_KINDS, "eight records, fixed order");
+
+    let header = record(&records, "header");
+    assert_eq!(header.str_val("schema"), "npa-corpus-sweep/v1");
+    assert_eq!(header.num("schema_version"), 1, "schema v1 is frozen");
+    assert_eq!(header.str_val("cycle"), "C3");
+    assert_eq!(header.str_val("lifecycle"), "[bounded]");
+
+    let totals = record(&records, "totals");
+    assert_eq!(totals.num("files_seen"), 43_785, "full-corpus census");
+    assert_eq!(totals.num("files_decoded"), 43_785);
+    assert_eq!(totals.num("files_failed"), 0, "no silent degradation");
+
+    let d329 = record(&records, "d329");
+    assert_eq!(d329.num("stst"), 0, "stst stays the only D329 zero in C3");
+}
+
+/// S03/T03 Layer-1 convergence pin: C3 must be numerically equal to C2 on
+/// every record — totals, kind_hist, abbrev_hits, d329, shapes,
+/// family_split, and the whole capped unknown tail (cap, ranked
+/// lexeme+count table, census alias) — with `header.cycle` (C3 vs C2) as
+/// the only expected difference. Any divergence fails this test and is the
+/// HOLD path for the N2 Layer-1 gate: dump the differing keys into
+/// `prd/migration/rust-evidence/m198-c3-convergence.md`, never retune the
+/// matcher from a test failure.
+#[test]
+fn t06_tracked_c3_numerically_equal_c2_except_header_cycle() {
+    let (_, c2) = load_tracked_aggregate(&tracked_c2_aggregate_path());
+    let (_, c3) = load_tracked_aggregate(&tracked_c3_aggregate_path());
+
+    // The only sanctioned difference: header.cycle C3 vs C2.
+    let (header_c2, header_c3) = (record(&c2, "header"), record(&c3, "header"));
+    assert_eq!(header_c3.str_val("cycle"), "C3");
+    assert_eq!(header_c2.str_val("cycle"), "C2");
+    let JVal::Obj(header_pairs) = header_c3 else {
+        panic!("header must be an object")
+    };
+    for (key, value_c3) in header_pairs {
+        if key.as_str() == "cycle" {
+            continue;
+        }
+        assert_eq!(
+            header_c2.get(key),
+            Some(value_c3),
+            "header.{key} must be identical across C2→C3"
+        );
+    }
+
+    // Whole-record equality on the six pure-numeric closed shapes, renderer
+    // key order included (schema drift fails here too).
+    for kind in [
+        "totals",
+        "kind_hist",
+        "abbrev_hits",
+        "d329",
+        "shapes",
+        "family_split",
+    ] {
+        let diff = first_diff_path(record(&c2, kind), record(&c3, kind), kind);
+        assert!(
+            diff.is_none(),
+            "Layer-1 HOLD case — C3 diverges from C2: {diff:?}; dump the key into \
+             m198-c3-convergence.md, do not retune the matcher"
+        );
+    }
+
+    // Unknown tail: D352 cap, ranked (lexeme, count) table, census alias.
+    let (tail_c2, tail_c3) = (record(&c2, "unknown_tail"), record(&c3, "unknown_tail"));
+    assert_eq!(tail_c3.num("cap"), 50, "D352 cap unchanged in C3");
+    assert_eq!(
+        tail_cap50_pairs(tail_c3),
+        tail_cap50_pairs(tail_c2),
+        "cap-50 tail (lexeme, count) must match across C2→C3"
+    );
+    assert_eq!(
+        tail_top10_lexemes(tail_c3),
+        tail_top10_lexemes(tail_c2),
+        "top-10 tail lexeme set must match across C2→C3"
+    );
+    assert_eq!(
+        tail_c3.arr("abbrev_candidate_census"),
+        tail_c3.arr("entries"),
+        "census is an alias of the same ranked table in C3"
+    );
+    assert_eq!(
+        tail_c3.arr("abbrev_candidate_census"),
+        tail_c2.arr("abbrev_candidate_census"),
+        "census table must match across C2→C3"
+    );
+}
