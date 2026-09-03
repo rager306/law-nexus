@@ -1182,3 +1182,177 @@ fn t05_tracked_c2_full_corpus_pins() {
         "stst stays the only D329 zero after the fold"
     );
 }
+
+// ---------------------------------------------------------------------------
+// M198-das7v8 S03/T01: Layer-1 convergence gate math over the frozen tracked
+// C1/C2 pair (D351). This pins the gate DEFINITION before the C3 walk — a
+// Layer-1 convergence gate, not a third calibration wave: no retune, no new
+// record_kind, no consru_export access from `cargo test`, and the C3 artifact
+// does not exist yet. The npa-family baseline is not part of the Layer-1 pair.
+// ---------------------------------------------------------------------------
+
+/// D351 Layer-1 drift threshold: 5000 ppm = 0.5 percentage points;
+/// D351 / D353 integer ppm — the gate never uses floats.
+const LAYER1_PPM_HALF_PP: u64 = 5000;
+
+/// Unsigned absolute difference of two integer ppm readings (`|a - b|` as
+/// u64, no float math anywhere in the gate).
+fn ppm_delta(a: u64, b: u64) -> u64 {
+    (a as i64 - b as i64).unsigned_abs()
+}
+
+/// The top-10 unknown-tail lexemes as a sorted set — order in the ranked
+/// table does not matter for the D351 composition predicate.
+fn tail_top10_lexemes(tail: &JVal) -> Vec<&str> {
+    let entries = tail.arr("entries");
+    assert!(
+        entries.len() >= 10,
+        "the ranked tail must hold at least the top-10 entries"
+    );
+    let mut lexemes: Vec<&str> = entries[..10]
+        .iter()
+        .map(|entry| entry.str_val("lexeme"))
+        .collect();
+    lexemes.sort_unstable();
+    lexemes
+}
+
+/// The whole capped tail as sorted `(lexeme, count)` pairs — set AND counts
+/// equality, a strictly stronger composition check than the top-10 set.
+fn tail_cap50_pairs(tail: &JVal) -> Vec<(&str, u64)> {
+    let entries = tail.arr("entries");
+    assert!(
+        entries.len() <= 50,
+        "ranked tail entries stay inside the D352 cap"
+    );
+    let mut pairs: Vec<(&str, u64)> = entries
+        .iter()
+        .map(|entry| (entry.str_val("lexeme"), entry.num("count")))
+        .collect();
+    pairs.sort_unstable();
+    pairs
+}
+
+/// Load a tracked aggregate by path: readable on disk, accepted by the
+/// closed-key reader, parsed in the fixed eight-record order. Fails loudly
+/// (with the path) on any of the three — the gate can never read a missing
+/// or malformed artifact as a PASS.
+fn load_tracked_aggregate(path: &Path) -> (String, Vec<(&'static str, JVal)>) {
+    let text = fs::read_to_string(path).unwrap_or_else(|err| {
+        panic!(
+            "tracked aggregate at {} must be readable: {err}",
+            path.display()
+        )
+    });
+    npa_sweep::validate_jsonl(&text)
+        .unwrap_or_else(|err| panic!("closed-key reader must accept {}: {err}", path.display()));
+    let records = parse_aggregate(&text);
+    (text, records)
+}
+
+/// Layer-1 census pins over the frozen pair: both aggregates readable and
+/// closed-valid (the loader runs `validate_jsonl` on each), headers in their
+/// own cycles over schema v1, the full-corpus census 43 785 / 43 785 / 0 on
+/// both sides (D351 census accounting), and the morphological numerator
+/// (`marker_hits`, byte-identical across C1→C2) with its integer ppm
+/// readings.
+#[test]
+fn layer1_c1_c2_census_and_live_pins() {
+    let (_, c1) = load_tracked_aggregate(&tracked_aggregate_path());
+    let (_, c2) = load_tracked_aggregate(&tracked_c2_aggregate_path());
+
+    for (cycle, records) in [("C1", &c1), ("C2", &c2)] {
+        let kinds: Vec<&str> = records.iter().map(|(kind, _)| *kind).collect();
+        assert_eq!(kinds, RECORD_KINDS, "{cycle} closed records, fixed order");
+
+        let header = record(records, "header");
+        assert_eq!(header.str_val("schema"), "npa-corpus-sweep/v1");
+        assert_eq!(header.num("schema_version"), 1);
+        assert_eq!(header.str_val("cycle"), cycle);
+        assert_eq!(header.str_val("lifecycle"), "[bounded]");
+
+        let totals = record(records, "totals");
+        assert_eq!(totals.num("files_seen"), 43_785, "{cycle} census");
+        assert_eq!(totals.num("files_decoded"), 43_785, "{cycle} decoded");
+        assert_eq!(
+            totals.num("files_failed"),
+            0,
+            "{cycle} no silent degradation"
+        );
+        assert_eq!(
+            totals.num("marker_hits"),
+            2_627_165,
+            "{cycle} morphological numerator"
+        );
+    }
+
+    assert_eq!(
+        record(&c1, "totals").num("marker_coverage_ppm"),
+        24_053,
+        "C1 live ppm"
+    );
+    assert_eq!(
+        record(&c2, "totals").num("marker_coverage_ppm"),
+        24_054,
+        "C2 live ppm"
+    );
+}
+
+/// Layer-1 predicate 1 (D351): adjacent-cycle integer ppm drift stays under
+/// half a percentage point. Live frozen pair: 24 053 → 24 054, Δ = +1 ppm.
+/// Fails separately from the composition test on a ppm regression.
+#[test]
+fn layer1_c1_c2_ppm_delta_under_half_pp() {
+    let (_, c1) = load_tracked_aggregate(&tracked_aggregate_path());
+    let (_, c2) = load_tracked_aggregate(&tracked_c2_aggregate_path());
+    let ppm_c1 = record(&c1, "totals").num("marker_coverage_ppm");
+    let ppm_c2 = record(&c2, "totals").num("marker_coverage_ppm");
+    let delta = ppm_delta(ppm_c2, ppm_c1);
+    assert!(
+        delta < LAYER1_PPM_HALF_PP,
+        "Layer-1 ppm gate violated: |C2 {ppm_c2} - C1 {ppm_c1}| = {delta} ppm, threshold {LAYER1_PPM_HALF_PP}"
+    );
+}
+
+/// Layer-1 predicate 2 (D351): the unknown-tail composition is stable — the
+/// top-10 lexeme set is equal AND the whole capped tail matches as
+/// `(lexeme, count)` pairs (live pair: Jaccard 1.0 with identical counts, so
+/// this is strictly stronger than the top-10 set pin). Fails separately from
+/// the ppm test on a composition regression.
+#[test]
+fn layer1_c1_c2_unknown_tail_composition_stable() {
+    let (_, c1) = load_tracked_aggregate(&tracked_aggregate_path());
+    let (_, c2) = load_tracked_aggregate(&tracked_c2_aggregate_path());
+
+    let top10_c1 = tail_top10_lexemes(record(&c1, "unknown_tail"));
+    let top10_c2 = tail_top10_lexemes(record(&c2, "unknown_tail"));
+    assert_eq!(
+        top10_c1, top10_c2,
+        "top-10 unknown-tail lexeme set must be equal across C1→C2"
+    );
+    // Live frozen-pair pin: the D356 documented leftover (руб / one-letter
+    // initials / закона / года) — a fact, not a C3 work item.
+    assert_eq!(
+        top10_c1,
+        [
+            "А",
+            "В",
+            "К",
+            "М",
+            "Н",
+            "С",
+            "года",
+            "закона",
+            "руб",
+            "рублей"
+        ]
+    );
+
+    assert_eq!(record(&c1, "unknown_tail").num("cap"), 50);
+    assert_eq!(record(&c2, "unknown_tail").num("cap"), 50);
+    assert_eq!(
+        tail_cap50_pairs(record(&c1, "unknown_tail")),
+        tail_cap50_pairs(record(&c2, "unknown_tail")),
+        "the whole capped tail (lexeme, count) must match across C1→C2"
+    );
+}
