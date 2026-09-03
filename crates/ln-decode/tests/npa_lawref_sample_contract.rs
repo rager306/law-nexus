@@ -754,7 +754,9 @@ fn on_disk_canonical_manifest_loads_with_d367_fill() {
 }
 
 // ---------------------------------------------------------------------------
-// S01 boundary: no LawRef product type in src/ (scanner lives in tests/).
+// S02 boundary (T01 inverted the S01 pin): the LawRef capture type exists in
+// src/, is wired as a module, and is still never a TokenKind (token-side
+// classification stays in tests/).
 // ---------------------------------------------------------------------------
 
 fn fixture_dir() -> PathBuf {
@@ -774,8 +776,13 @@ fn collect_rs_files(dir: &Path, out: &mut Vec<PathBuf>) {
     }
 }
 
+/// S02 boundary, same semantics as the capture-suite pin of the same name:
+/// the LawRef product type now EXISTS - as a capture struct in
+/// `src/lawref.rs`, wired into `lib.rs`, still NOT a lexer token kind (the
+/// closed nine-kind set stays closed, `Editorial` stays absent), with no
+/// resolution-time identifiers on the capture surface.
 #[test]
-fn src_has_no_lawref_product_type() {
+fn src_lawref_is_capture_type_not_tokenkind() {
     let src_dir = Path::new(env!("CARGO_MANIFEST_DIR")).join("src");
     let mut files = Vec::new();
     collect_rs_files(&src_dir, &mut files);
@@ -785,8 +792,32 @@ fn src_has_no_lawref_product_type() {
         files.len()
     );
 
+    let lawref_path = src_dir.join("lawref.rs");
+    let lawref_src = fs::read_to_string(&lawref_path)
+        .unwrap_or_else(|err| panic!("read {}: {err}", lawref_path.display()));
+    assert!(
+        lawref_src.contains("pub struct LawRef"),
+        "the LawRef capture type must live in src/lawref.rs"
+    );
+    for pattern in ["enum LawRef", "type LawRef"] {
+        assert!(
+            !lawref_src.contains(pattern),
+            "LawRef must stay a struct, not '{pattern}'"
+        );
+    }
+    for forbidden in ["eId", "canonical_anchor", "resolve_anaphora"] {
+        assert!(
+            !lawref_src.contains(forbidden),
+            "src/lawref.rs must not name '{forbidden}' (capture, not resolution)"
+        );
+    }
+
+    // Single definition site: no other src file may declare the type.
     let mut violations = Vec::new();
     for path in &files {
+        if path == &lawref_path {
+            continue;
+        }
         let text =
             fs::read_to_string(path).unwrap_or_else(|err| panic!("read {}: {err}", path.display()));
         for pattern in ["struct LawRef", "enum LawRef", "type LawRef"] {
@@ -797,9 +828,61 @@ fn src_has_no_lawref_product_type() {
     }
     assert!(
         violations.is_empty(),
-        "no LawRef product type may exist in src/ during S01 (D363: Layer-2 sample before any FSM):\n{}",
+        "LawRef must be defined only in src/lawref.rs:\n{}",
         violations.join("\n")
     );
+
+    // It is a capture type, not a TokenKind: the closed nine-kind set stays
+    // closed and Editorial stays absent (no tenth kind).
+    let lexer_path = src_dir.join("lexer.rs");
+    let lexer_src = fs::read_to_string(&lexer_path)
+        .unwrap_or_else(|err| panic!("read {}: {err}", lexer_path.display()));
+    assert!(
+        !lexer_src.contains("TokenKind::LawRef"),
+        "TokenKind::LawRef must not exist in src/lexer.rs"
+    );
+    let enum_body = token_kind_enum_body(&lexer_src);
+    for kind in [
+        "Word",
+        "Abbrev",
+        "HierNum",
+        "Date",
+        "DocNo",
+        "EnumMarker",
+        "LawCode",
+        "Punct",
+        "Space",
+    ] {
+        assert!(
+            enum_body.contains(kind),
+            "closed kind {kind} must stay in TokenKind"
+        );
+    }
+    assert!(
+        !enum_body.contains("LawRef"),
+        "LawRef must not become a TokenKind variant"
+    );
+    assert!(
+        !enum_body.contains("Editorial"),
+        "Editorial must stay absent from TokenKind (no tenth kind)"
+    );
+}
+
+/// Extracts the body of `pub enum TokenKind` from the lexer source so the
+/// closed-kind pins read the variant list, not the (mentioning) doc comments.
+fn token_kind_enum_body(lexer_src: &str) -> &str {
+    let decl = lexer_src
+        .find("pub enum TokenKind")
+        .expect("src/lexer.rs must declare `pub enum TokenKind`");
+    let body_start = decl
+        + lexer_src[decl..]
+            .find('{')
+            .expect("enum TokenKind body open");
+    let body_end = body_start
+        + lexer_src[body_start..]
+            .find('}')
+            .expect("enum TokenKind body close");
+    &lexer_src[body_start..body_end]
 }
 
 // ---------------------------------------------------------------------------
@@ -1115,4 +1198,296 @@ fn json_string(value: &str) -> String {
     }
     out.push('"');
     out
+}
+
+// ---------------------------------------------------------------------------
+// T03: rule-seed scanner contract (patterns are data; hostile non-promotion;
+// deterministic JSONL; DS-noise report linkage).
+// ---------------------------------------------------------------------------
+
+fn rule_seed_jsonl_path() -> PathBuf {
+    Path::new(env!("CARGO_MANIFEST_DIR"))
+        .join("../../prd/migration/rust-evidence/m199-s01-rule-seed.jsonl")
+}
+
+fn ds_noise_report_path() -> PathBuf {
+    Path::new(env!("CARGO_MANIFEST_DIR"))
+        .join("../../prd/migration/rust-evidence/m199-s01-ds-noise.md")
+}
+
+#[test]
+fn rule_seed_chain_candidates_are_compact_combined() {
+    let spans = seed_spans("ст. 15.1");
+    assert_eq!(spans.len(), 1);
+    assert_eq!(spans[0].pattern_id, "abbrev-hier-chain");
+    assert_eq!(spans[0].kind, "Abbrev");
+    assert_eq!(spans[0].token_kind_seq, "Abbrev,Space,HierNum");
+    assert_eq!(spans[0].slots.marker_chain, ["st"]);
+    assert_eq!(spans[0].slots.hier_nums, ["15.1"]);
+    assert_eq!((spans[0].start, spans[0].end), (0, 10));
+
+    // Compact combined chain: chained markers collapse into ONE candidate.
+    let spans = seed_spans("ч. 2 ст. 15");
+    assert_eq!(
+        spans.len(),
+        1,
+        "chain-in-chain must collapse into one candidate"
+    );
+    assert_eq!(spans[0].slots.marker_chain, ["ch", "st"]);
+    assert_eq!(spans[0].slots.hier_nums, ["2", "15"]);
+}
+
+#[test]
+fn rule_seed_hostile_abbrev_non_promotion() {
+    // Ч. / руб. / Г. must stay Abbrev-free (D356/D359 KEEP: 1-letter exact,
+    // currency outside the lexicon) and must mint zero seed candidates.
+    for hostile in ["Ч. 1.1", "руб.", "Г. Москва"] {
+        assert!(
+            !lex(hostile)
+                .iter()
+                .any(|token| token.kind == TokenKind::Abbrev),
+            "'{hostile}' must lex without an Abbrev token"
+        );
+        assert!(
+            seed_spans(hostile).is_empty(),
+            "'{hostile}' must not mint a seed candidate"
+        );
+    }
+    // The lowercase `ст.` chain still fires after the hostile part, and the
+    // span must start at `ст`, never swallow `Ч. 1.1`.
+    let spans = seed_spans("Ч. 1.1 ст. 33");
+    assert_eq!(spans.len(), 1);
+    assert_eq!(spans[0].pattern_id, "abbrev-hier-chain");
+    assert_eq!((spans[0].start, spans[0].end), (8, 16));
+}
+
+#[test]
+fn rule_seed_pp_single_abbrev_and_date_beats_hier_num() {
+    let tokens = lex("пп. 2");
+    assert_eq!(
+        tokens
+            .iter()
+            .filter(|token| token.kind == TokenKind::Abbrev)
+            .count(),
+        1,
+        "пп. is exactly one Abbrev token"
+    );
+    assert_eq!(tokens[0].abbrev_id.map(|id| id.as_str()), Some("pp"));
+
+    let tokens = lex("ст. 15.10.2024");
+    assert!(tokens.iter().any(|token| token.kind == TokenKind::Date));
+    assert!(!tokens.iter().any(|token| token.kind == TokenKind::HierNum));
+    assert!(
+        seed_spans("ст. 15.10.2024").is_empty(),
+        "Date must beat HierNum: no chain candidate on a date"
+    );
+}
+
+#[test]
+fn rule_seed_range_and_anaphora_stay_unresolved() {
+    let spans = seed_spans("пункты 1.1 - 4.1");
+    assert_eq!(
+        spans.len(),
+        1,
+        "range must stay one candidate, never expanded"
+    );
+    assert_eq!(spans[0].pattern_id, "range_candidate");
+    assert_eq!(
+        spans[0].slots.range,
+        Some(("1.1".to_owned(), "4.1".to_owned()))
+    );
+    assert!(
+        spans[0].slots.hier_nums.is_empty(),
+        "range endpoints are recorded in the range slot, not as hier anchors"
+    );
+
+    let spans = seed_spans("пунктом 5 того же раздела");
+    assert_eq!(
+        spans.len(),
+        1,
+        "anaphora must stay one unresolved candidate"
+    );
+    assert_eq!(spans[0].pattern_id, "anaphora_candidate");
+    assert_eq!(spans[0].slots.anaphora.as_deref(), Some("того же"));
+    assert_eq!(spans[0].kind, "Word");
+}
+
+#[test]
+fn rule_seed_quoted_enum_and_fullword_are_token_honest() {
+    let spans = seed_spans("пп. \"а\" п. 1");
+    let quoted = spans
+        .iter()
+        .find(|span| span.pattern_id == "quoted-enum")
+        .expect("quoted enum candidate");
+    assert_eq!(quoted.slots.quoted_enum.as_deref(), Some("а"));
+    assert_eq!(quoted.slots.marker_chain, ["pp"]);
+    assert_eq!((quoted.start, quoted.end), (0, 10));
+    assert!(
+        spans
+            .iter()
+            .any(|span| span.pattern_id == "abbrev-hier-chain"),
+        "the trailing п. 1 chain still fires"
+    );
+
+    let spans = seed_spans("статьи 15");
+    assert_eq!(spans.len(), 1);
+    assert_eq!(spans[0].pattern_id, "fullword-ref");
+    assert_eq!(
+        spans[0].kind, "Word",
+        "fullword tail stays Word (never retagged Abbrev)"
+    );
+    assert!(spans[0].slots.marker_chain.is_empty());
+    assert_eq!(spans[0].slots.hier_nums, ["15"]);
+    assert!(!lex("статьи 15")
+        .iter()
+        .any(|token| token.kind == TokenKind::Abbrev));
+}
+
+#[test]
+fn rule_seed_jsonl_is_deterministic_and_sidecar_matches() {
+    let manifest = load_sample_manifest(&canonical_manifest_path(), &fixture_dir())
+        .expect("canonical T02 fill must load");
+    let files = load_sample_files(&fixture_dir()).expect("fragment files must load");
+    let records = scan_tracked_fragments(&manifest, &files);
+    assert!(
+        !records.is_empty(),
+        "the seed must produce candidates over the tracked sample"
+    );
+
+    let rendered = render_seed_jsonl(&records);
+    let tracked = fs::read_to_string(rule_seed_jsonl_path())
+        .unwrap_or_else(|err| panic!("read tracked rule-seed JSONL: {err}"));
+    assert_eq!(
+        rendered, tracked,
+        "re-running the scanner must be byte-identical to the tracked JSONL"
+    );
+
+    let parsed_jsonl = parse_seed_jsonl(&tracked, &manifest, &files)
+        .expect("tracked JSONL must parse fail-closed-clean");
+    let seed_text = fs::read_to_string(fixture_dir().join("lawref_seed.json"))
+        .unwrap_or_else(|err| panic!("read lawref_seed.json: {err}"));
+    let parsed_seed = parse_lawref_seed_json(&seed_text, &manifest, &files)
+        .expect("lawref_seed.json must parse fail-closed-clean");
+    assert_eq!(
+        parsed_jsonl.len(),
+        parsed_seed.len(),
+        "same spans in both artifacts"
+    );
+    for (jsonl, sidecar) in parsed_jsonl.iter().zip(parsed_seed.iter()) {
+        assert_eq!(jsonl.fragment_id, sidecar.fragment_id);
+        assert_eq!(
+            (
+                jsonl.span.start,
+                jsonl.span.end,
+                jsonl.span.pattern_id,
+                jsonl.span.kind
+            ),
+            (
+                sidecar.span.start,
+                sidecar.span.end,
+                sidecar.span.pattern_id,
+                sidecar.span.kind
+            )
+        );
+        assert_eq!(jsonl.span.slots, sidecar.span.slots);
+    }
+}
+
+#[test]
+fn ds_noise_report_contract() {
+    let text = fs::read_to_string(ds_noise_report_path())
+        .unwrap_or_else(|err| panic!("read ds-noise report: {err}"));
+    for required in [
+        "annotator_id=seed-reviewer-1",
+        "incomplete",
+        "inaccurate",
+        "do-not-treat-as-gold",
+        "pre-annotation",
+        "no LLM pre-annotation",
+        "npa",
+        "courts",
+        "fas",
+        "xml",
+        "20",
+    ] {
+        assert!(
+            text.contains(required),
+            "ds-noise.md must contain '{required}'"
+        );
+    }
+    // S01 computes no alpha: the report must never bind an alpha symbol to a
+    // number or an equals sign (the alpha gate belongs to S04).
+    for (index, ch) in text.char_indices() {
+        if ch == 'α' {
+            let after = text[index + ch.len_utf8()..].trim_start();
+            assert!(
+                !(after.starts_with('=') || after.starts_with(|c: char| c.is_ascii_digit())),
+                "ds-noise.md must not bind α to a number (S01 computes no alpha)"
+            );
+        }
+    }
+    // The report must cover exactly the deterministic nested subsample.
+    let manifest = load_sample_manifest(&canonical_manifest_path(), &fixture_dir())
+        .expect("canonical T02 fill must load");
+    let subsample = ds_noise_subsample(&manifest);
+    assert_eq!(subsample.len(), 20);
+    let mut per_family: BTreeMap<&str, usize> = BTreeMap::new();
+    for (family, _) in &subsample {
+        *per_family.entry(family.as_str()).or_insert(0) += 1;
+    }
+    for count in per_family.values() {
+        assert!(*count >= 2, "at least 2 fragments per primary family");
+    }
+    assert_eq!(
+        ds_noise_subsample(&manifest),
+        subsample,
+        "subsample must be deterministic"
+    );
+    for (_, id) in &subsample {
+        assert!(
+            text.contains(id.as_str()),
+            "ds-noise.md must list selected fragment {id}"
+        );
+    }
+}
+
+#[test]
+#[ignore = "session-only T03 seed generation: writes the tracked JSONL + lawref_seed.json; never runs in default CI"]
+fn generate_rule_seed_jsonl() {
+    let repo_root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
+    let manifest = load_sample_manifest(&canonical_manifest_path(), &fixture_dir())
+        .expect("canonical T02 fill must load");
+    let files = load_sample_files(&fixture_dir()).expect("fragment files must load");
+    let records = scan_tracked_fragments(&manifest, &files);
+    let mut per_pattern: BTreeMap<&str, usize> = BTreeMap::new();
+    for record in &records {
+        *per_pattern.entry(record.span.pattern_id).or_insert(0) += 1;
+    }
+    for (pattern, count) in &per_pattern {
+        eprintln!("pattern {pattern}: {count} candidate spans");
+    }
+    eprintln!(
+        "total candidate spans: {} over {} fragments",
+        records.len(),
+        manifest.fragments.len()
+    );
+    if std::env::var("NPA_LAWREF_SEED_WRITE").as_deref() == Ok("1") {
+        let jsonl_path = repo_root.join("prd/migration/rust-evidence/m199-s01-rule-seed.jsonl");
+        fs::write(&jsonl_path, render_seed_jsonl(&records))
+            .unwrap_or_else(|err| panic!("write {}: {err}", jsonl_path.display()));
+        let seed_path = fixture_dir().join("lawref_seed.json");
+        fs::write(&seed_path, render_lawref_seed_json(&records))
+            .unwrap_or_else(|err| panic!("write {}: {err}", seed_path.display()));
+        eprintln!(
+            "wrote {} records -> {} and {}",
+            records.len(),
+            jsonl_path.display(),
+            seed_path.display()
+        );
+    } else {
+        eprintln!("dry run — set NPA_LAWREF_SEED_WRITE=1 to write the tracked artifacts");
+    }
+    for (family, id) in ds_noise_subsample(&manifest) {
+        eprintln!("ds-noise subsample: {family} {id}");
+    }
 }

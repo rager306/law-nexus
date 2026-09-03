@@ -258,6 +258,29 @@ vocabulary:
     sm: "см."
     sr: "ср."
     g: "г."
+  # LawRef capture precedence (M199 S02, KBO-R025/R030): pattern ids, frozen
+  # lexer start orders, overlap policy, and matcher allowlists are DATA - this
+  # table is the single canon; product src must not carry a copy of the
+  # allowlists. LawRef is a struct with a closed string pattern_id, so
+  # deliberately no closed_vocabularies row (that form requires a rust_enum
+  # plus yaml_map pair; D216).
+  npa_lawref_precedence:
+    pattern_ids: [abbrev-hier-chain, abbrev-amendment-window, date-docno-window, fullword-ref, quoted-enum, range_candidate, anaphora_candidate]
+    # Layer A documents the frozen lexer first-match start order per branch
+    # (ADR-0028 step 1): capture never rescans digits behind the lexer.
+    digit_start_order: [Date, HierNum, DocNo, EnumMarker]
+    letter_start_order: [Abbrev, EnumMarker, LawCode, Word]
+    # Layer B fixes candidate adjudication: overlaps drop, same-pattern
+    # containment drops the inner span, order is (start, end, pattern_id).
+    overlap_date_docno_inside_amendment: drop
+    overlap_same_pattern_containment: drop
+    sort_key: [start, end, pattern_id]
+    # Matcher allowlists: abbrev ids are closed subsets of npa_abbrev_lexicon.
+    chain_abbrev_ids: [st, stst, ch, p, pp, podp, abz, gl, razd]
+    amendment_abbrev_ids: [red, izm]
+    quoted_marker_abbrev_ids: [p, pp]
+    fullword_tails: [статьи, пункта, закона, года]
+    anaphora_heads: [настоящей, настоящего, настоящая, того]
   decode_numbered_markers:
     Chast: {number_style: digit, suffix: ".", allow_compound: true}
     Punkt: {number_style: digit, suffix: ")", allow_compound: true}
