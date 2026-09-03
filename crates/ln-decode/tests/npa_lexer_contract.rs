@@ -226,6 +226,18 @@ fn lex_is_covering_and_boundary_safe() {
         "a,b).",
         "\u{00a0}x",
         "слово",
+        "глава",
+        "абзац",
+        "редакция",
+        "Абз. 2",
+        "Ст. 33",
+        "Гл. 2",
+        "СТ.СТ.",
+        "П. Иванов",
+        "А.",
+        "руб.",
+        "Г. Москва",
+        "Ч. 1.1 ст. 33",
         syn_001.as_str(),
     ];
     for src in inputs {
@@ -541,7 +553,10 @@ fn g_is_always_abbrev_g_not_a_year_or_city() {
 
 #[test]
 fn full_level_words_stay_words_for_s03_morphology() {
-    for src in ["глава", "часть", "подпункт", "раздел"] {
+    // C2 (M198 S02/T02): in-word prefixes must not fold onto stem-ge-2
+    // lexemes either — `абзац`/`редакция` cut mid-char, never mint abz/red.
+    for src in ["глава", "часть", "подпункт", "раздел", "абзац", "редакция"]
+    {
         let tokens = lex(src);
         assert_eq!(kinds(&tokens), [TokenKind::Word], "{src} stays a Word");
         assert!(
@@ -711,5 +726,133 @@ fn lawcode_fragments_match_s01_sidecar() {
             .iter()
             .any(|token| token.kind == TokenKind::DocNo && token.lexeme(text) == "124-ФЗ"),
         "fz44-038 must pin DocNo 124-ФЗ"
+    );
+}
+
+// ---------------------------------------------------------------------------
+// C2 (M198 S02/T02): stem-ge-2 Unicode fold and new-form contracts. Lexemes
+// with >= 2 alphabetic chars match case-insensitively (Абз./Ст./Гл./СТ.СТ.);
+// one-letter lexemes (ч./п./г.) stay lowercase-exact so hostile initials
+// never mint Abbrevs (Q3 fail-closed).
+// ---------------------------------------------------------------------------
+
+/// Capitalized heading forms fold onto their lowercase canonical lexemes
+/// (the C1 npa finding: heading Абз./Ст./Гл. sat in the unknown tail).
+#[test]
+fn capitalized_stem_ge2_heading_forms_fold_to_abbrevs() {
+    for (src, id, head) in [
+        ("Абз. 2", "abz", "Абз."),
+        ("Ст. 33", "st", "Ст."),
+        ("Гл. 2", "gl", "Гл."),
+    ] {
+        let tokens = lex(src);
+        assert_eq!(
+            kinds(&tokens),
+            [TokenKind::Abbrev, TokenKind::Space, TokenKind::Word],
+            "{src} must lex Abbrev + Space + Word"
+        );
+        assert_eq!(
+            tokens[0].abbrev_id.map(AbbrevId::as_str),
+            Some(id),
+            "{src}: the capitalized form must carry the canonical lowercase id"
+        );
+        assert_eq!(tokens[0].lexeme(src), head, "{src} keeps its dot inside");
+    }
+}
+
+/// `СТ.СТ.` is ONE longest-first `stst` token, never two `st` tokens.
+#[test]
+fn fully_uppercase_stst_is_one_longest_first_abbrev() {
+    let src = "СТ.СТ.";
+    let tokens = lex(src);
+    assert_eq!(tokens.len(), 1, "СТ.СТ. must match stst longest-first");
+    assert_eq!(tokens[0].kind, TokenKind::Abbrev);
+    assert_eq!(tokens[0].abbrev_id.map(AbbrevId::as_str), Some("stst"));
+    assert_eq!(tokens[0].lexeme(src), src);
+}
+
+/// Hostile initials: one-letter lexemes are lowercase-exact, so `П.` and
+/// `А.` stay Word + Punct and never mint the Abbrev `p`.
+#[test]
+fn hostile_capitalized_initials_stay_word_plus_punct() {
+    let src = "П. Иванов";
+    let tokens = lex(src);
+    assert_eq!(
+        kinds(&tokens),
+        [
+            TokenKind::Word,
+            TokenKind::Punct,
+            TokenKind::Space,
+            TokenKind::Word
+        ],
+        "capitalized `П.` must not fold onto the one-letter `п.`"
+    );
+    assert_eq!(tokens[0].lexeme(src), "П");
+    assert!(tokens.iter().all(|token| token.abbrev_id.is_none()));
+
+    let tokens = lex("А.");
+    assert_eq!(kinds(&tokens), [TokenKind::Word, TokenKind::Punct]);
+    assert!(tokens.iter().all(|token| token.abbrev_id.is_none()));
+}
+
+/// `Г. Москва` (capitalized city initial) stays Word + Punct: the 1-letter
+/// `г.` is lowercase-exact even though the fold exists for stem-ge-2.
+#[test]
+fn hostile_capitalized_g_stays_word_not_abbrev_g() {
+    let src = "Г. Москва";
+    let tokens = lex(src);
+    assert_eq!(
+        kinds(&tokens),
+        [
+            TokenKind::Word,
+            TokenKind::Punct,
+            TokenKind::Space,
+            TokenKind::Word
+        ],
+        "`Г.` must not fold onto the lowercase-exact `г.`"
+    );
+    assert_eq!(tokens[0].lexeme(src), "Г");
+    assert!(tokens.iter().all(|token| token.abbrev_id.is_none()));
+}
+
+/// `руб.` is not a lexicon id and must never become one (no C2 lexeme
+/// growth): Word + Punct.
+#[test]
+fn hostile_rub_is_word_plus_punct_never_a_lexicon_id() {
+    let src = "руб.";
+    let tokens = lex(src);
+    assert_eq!(
+        kinds(&tokens),
+        [TokenKind::Word, TokenKind::Punct],
+        "руб. must stay outside the 17-id lexicon"
+    );
+    assert!(tokens.iter().all(|token| token.abbrev_id.is_none()));
+}
+
+/// proof1 sentence across the fold: capitalized `Ч.` stays Word + Punct
+/// while lowercase `ст.` keeps minting Abbrev st.
+#[test]
+fn mixed_hostile_and_abbrev_proof1_sentence() {
+    let src = "Ч. 1.1 ст. 33";
+    let tokens = lex(src);
+    assert_eq!(
+        kinds(&tokens),
+        [
+            TokenKind::Word,
+            TokenKind::Punct,
+            TokenKind::Space,
+            TokenKind::HierNum,
+            TokenKind::Space,
+            TokenKind::Abbrev,
+            TokenKind::Space,
+            TokenKind::Word
+        ],
+        "proof1 mix: `Ч.` Word+Punct, `1.1` HierNum, `ст.` Abbrev st"
+    );
+    assert_eq!(tokens[0].lexeme(src), "Ч");
+    assert_eq!(
+        tokens[5].abbrev_id.map(AbbrevId::as_str),
+        Some("st"),
+        "lowercase `ст.` keeps its canonical id after the fold"
     );
 }

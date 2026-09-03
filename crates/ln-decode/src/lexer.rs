@@ -294,9 +294,22 @@ fn scan_while(src: &str, start: usize, pred: impl Fn(char) -> bool) -> usize {
     end
 }
 
-/// Matches an exact lowercase canonical abbrev lexeme (dot included),
-/// longest-first, only at a word boundary (no preceding alphabetic char), so
-/// capitalized `Ч.` / `П.` and in-word tails fall through to Word + Punct.
+/// Matches a canonical abbrev lexeme (dot included), longest-first, only at
+/// a word boundary (no preceding alphabetic char).
+///
+/// C2 match rule (M198 S02/T02, D329 NARROW follow-up): a lexeme with two
+/// or more alphabetic chars folds Unicode case, so the heading forms
+/// `Абз.` / `Ст.` / `Гл.` and the fully uppercased `СТ.СТ.` fold onto
+/// `абз.` / `ст.` / `гл.` / `ст.ст.`; a one-letter lexeme (`ч.`, `п.`,
+/// `г.`) stays lowercase-exact, so hostile initials `Ч.` / `П.` / `А.` and
+/// `Г. Москва` fall through to Word + Punct instead of minting Abbrevs
+/// (Q3: a global case-fold would poison the unknown-tail histogram and the
+/// future LawRef — 1-letter exact is the fail-closed contour).
+///
+/// The fold consumes exactly the lexeme's byte length and only at a char
+/// boundary, so a different-length casing or a mid-char cut (`глава`,
+/// `абзац`) never matches. `eq_ignore_ascii_case` is deliberately not used:
+/// Cyrillic does not fold under ASCII rules (MEM1325).
 fn scan_abbrev(src: &str, start: usize) -> Option<(usize, AbbrevId)> {
     let at_word_start = src[..start]
         .chars()
@@ -306,10 +319,44 @@ fn scan_abbrev(src: &str, start: usize) -> Option<(usize, AbbrevId)> {
         return None;
     }
     abbrev_lexicon().iter().find_map(|(id, lexeme)| {
-        src[start..]
-            .starts_with(lexeme)
-            .then(|| (start + lexeme.len(), *id))
+        lexeme_matches(src, start, lexeme).then(|| (start + lexeme.len(), *id))
     })
+}
+
+/// One-lexeme prefix matcher behind [`scan_abbrev`]: allocation-free
+/// char-wise Unicode case folding for stem-ge-2 lexemes, exact
+/// `starts_with` for one-letter lexemes.
+fn lexeme_matches(src: &str, start: usize, lexeme: &str) -> bool {
+    if lexeme.chars().filter(|ch| ch.is_alphabetic()).count() < 2 {
+        // One-letter lexemes (`ч.` / `п.` / `г.`): lowercase-exact (Q3).
+        return src[start..].starts_with(lexeme);
+    }
+    let end = start + lexeme.len();
+    if end > src.len() || !src.is_char_boundary(end) {
+        return false;
+    }
+    let mut src_chars = src[start..end].chars();
+    for lex_ch in lexeme.chars() {
+        match src_chars.next() {
+            Some(src_ch) if fold_eq(src_ch, lex_ch) => {}
+            _ => return false,
+        }
+    }
+    src_chars.next().is_none()
+}
+
+/// Allocation-free single-char Unicode lowercase equality (Cyrillic folds
+/// here; ASCII-only helpers would not).
+fn fold_eq(a: char, b: char) -> bool {
+    let mut a = a.to_lowercase();
+    let mut b = b.to_lowercase();
+    loop {
+        match (a.next(), b.next()) {
+            (None, None) => return true,
+            (Some(x), Some(y)) if x == y => continue,
+            _ => return false,
+        }
+    }
 }
 
 /// Recognizes `dd.mm.yyyy` (2-2-4 widths) with day 1..=31 and month 1..=12.

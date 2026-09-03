@@ -66,8 +66,10 @@ fn tail_lexemes(acc: &SweepAcc) -> Vec<String> {
 
 /// Proof 1: `Ч.` is an unknown-tail candidate (not the Abbrev `ch`), `ст.`
 /// is the Abbrev `st` (never a tail entry), `1.1` is one HierNum, and the
-/// D329-nine stays at zero for this draft-only sentence. Capitalized `Гл.`
-/// lands in the tail while lowercase `гл.` is the Abbrev `gl` (D354 ids).
+/// D329-nine stays at zero for this draft-only sentence. C2 (M198 S02/T02):
+/// the stem-ge-2 `Гл.` folds onto the Abbrev `gl` alongside lowercase
+/// `гл.`, while the one-letter `Ч.` stays lowercase-exact and lands in the
+/// tail (D354 ids).
 #[test]
 fn proof1_abbrev_hiernum_and_unknown_tail_discrimination() {
     let mut acc = SweepAcc::new("t01/proof1");
@@ -93,20 +95,23 @@ fn proof1_abbrev_hiernum_and_unknown_tail_discrimination() {
     );
 
     // Same discriminator on the `Гл.` / `гл.` pair, isolated accumulator so
-    // the D329-zero assertion above stays independent.
+    // the D329-zero assertion above stays independent. C2 (M198 S02/T02):
+    // stem-ge-2 lexemes fold Unicode case, so capitalized `Гл.` and
+    // lowercase `гл.` are both the Abbrev `gl` — the heading form leaves
+    // the unknown tail entirely and doubles the gl census.
     let mut acc = SweepAcc::new("t01/proof1-gl");
     acc.ingest_text("Гл. 2 гл. 3");
     let tail = tail_lexemes(&acc);
     assert!(
-        tail.contains(&"Гл".to_string()),
-        "capital `Гл.` must be a tail candidate (no capitalized lexeme exists), got {tail:?}"
+        !tail.iter().any(|lexeme| lexeme == "гл" || lexeme == "Гл"),
+        "neither `Гл.` nor `гл.` may enter the tail after the C2 fold, got {tail:?}"
     );
-    assert!(
-        !tail.iter().any(|lexeme| lexeme == "гл"),
-        "Abbrev `гл.` must never enter the tail, got {tail:?}"
+    assert_eq!(
+        acc.abbrev_hit("gl"),
+        2,
+        "both Гл. and гл. fold to Abbrev gl"
     );
-    assert_eq!(acc.abbrev_hit("gl"), 1);
-    assert_eq!(acc.d329_hit("gl"), 1, "gl is one of the D329-nine");
+    assert_eq!(acc.d329_hit("gl"), 2, "gl is one of the D329-nine");
 }
 
 /// Proof 2: the histogram over the tracked `syn-001.txt` golden equals a

@@ -236,6 +236,10 @@ vocabulary:
   # decode_level_aliases / decode_marker_prefixes) and NOT SynTagRus
   # morphology data. No closed_vocabularies row: AbbrevId is a newtype, not
   # a Rust enum, so there is no governor source-scan surface for it.
+  # C2 matching (M198 S02/T02): lexemes with >= 2 alphabetic chars match
+  # Unicode-case-insensitively (Абз./Ст./Гл./СТ.СТ. fold onto abz/st/gl/
+  # stst); one-letter lexemes (ч./п./г.) stay lowercase-exact. Ids and
+  # quoted scalars unchanged.
   npa_abbrev_lexicon:
     st: "ст."
     stst: "ст.ст."
