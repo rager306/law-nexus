@@ -1,0 +1,40 @@
+{
+  "schema": "npa-lawref-n2-acceptance/v1",
+  "schema_version": 1,
+  "lifecycle": "[bounded]",
+  "layer1_status": "PASS",
+  "layer2_status": "HOLD",
+  "layer3_status": "INCONCLUSIVE",
+  "combined_status": "NOT_PASS",
+  "alpha_sample": null,
+  "alpha_status": "not-computed-no-second-annotator",
+  "alpha_gate": "HOLD",
+  "alpha_formula": "krippendorff-nominal-two-rater-coincidence/v1",
+  "span_prf_vs_seed": {"caption": "T01 skeleton; tables filled by T02. Diagnostic only, vs provenance=rule-seed and never gold: 159/159 record-for-record capture parity is an S02 construction pin, not Layer-2 acceptance."},
+  "resolution_coverage": {"caption": "T01 skeleton; tables filled by T02. Coverage is observable shape, never correctness: no gold canonical anchors exist (R070 windows stay open)."},
+  "dedup_quality": {"caption": "T01 skeleton; tables filled by T02. S03 shipped grouping; S04 measures bundesrecht dedup as a projection, not a second canon."},
+  "resolution_accuracy": null,
+  "ds_noise": {
+    "n_fragments": 20,
+    "verdict": "do-not-treat-as-gold",
+    "incomplete_ppm": 466667,
+    "incomplete_fraction": "21/45",
+    "inaccurate_ppm": 83333,
+    "inaccurate_fraction": "2/24"
+  },
+  "non_claims": [
+    "No official-publication claim: decoded fragments are working copies, not the official publication.",
+    "R070 amendment and date windows stay open and out of scope for every number in this report.",
+    "The 159-record rule-seed is distant supervision: sample ≠ gold, never human annotation.",
+    "No inter-coder agreement is claimed because no second annotator exists; alpha_sample stays JSON null.",
+    "Layer-2 is HOLD: the formula ships toy-pinned, with no accuracy claim beyond the sample.",
+    "The report claims no resolution accuracy: gold canonical anchors do not exist; coverage is not correctness.",
+    "The report flips no ADR-0028 and ships no FSM behavior; the src surface is frozen.",
+    "This report is bounded lifecycle evidence, not legal interpretation.",
+    "Layer-1 PASS is cited from D363 (M198), not remeasured here.",
+    "159/159 is not human F1: record-for-record parity over the seed is a construction property, not recall against human cores.",
+    "M197 TokenKind sidecar P/R/F1 is a lexer regression pin, not this Layer-2 gate."
+  ],
+  "seed_n": 159,
+  "fragment_n": 180
+}
