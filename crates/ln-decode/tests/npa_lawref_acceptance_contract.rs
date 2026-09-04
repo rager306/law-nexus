@@ -26,7 +26,21 @@
 //! 5. the live-recompute pin: the tracked tables must equal a fresh
 //!    computation over the 180 manifest fragments and the tracked S03 dump,
 //!    so any fixture or resolver drift turns the suite red (the MEM236
-//!    `--check` analog).
+//!    `--check` analog);
+//! 6. the T03 markdown half of the report pair
+//!    (`m199-s04-n2-acceptance.md`): verdict table, alpha HOLD, Tables A-D
+//!    with captions intact, DS-noise citation, S02 leftovers 1-5 as known
+//!    limitations, the What-HOLD-does-not-authorize list, and the
+//!    no-fragment-payload surface (fragment_id plus offsets only), all
+//!    pinned by named strings that fail closed; plus the byte-determinism
+//!    round-trip (the tracked JSON must equal a fresh render through the
+//!    same functions the one-shot generator writes);
+//! 7. the R038 review home - review-only over the report pair and the
+//!    frozen surfaces, never over `lawref.rs` and never via a review
+//!    subagent: no α number in either report artifact, the seed JSONL still
+//!    159 lines all `provenance=rule-seed` (combined_status NOT_PASS is
+//!    pinned by the schema-accept test, src/Cargo freezes by the T01 freeze
+//!    pins, ds-noise by the ds-noise pin - all in this same suite).
 //!
 //! Evaluation helpers are private to this suite - never a src module. The
 //! JSON readers are hand-rolled in the S03 `analyze_dump` style (D328), with
@@ -60,6 +74,19 @@ fn acceptance_report_path() -> PathBuf {
 /// that file (the existing sample-contract pin, re-asserted below).
 fn ds_noise_report_path() -> PathBuf {
     evidence_dir().join("m199-s01-ds-noise.md")
+}
+
+/// Repo-root-relative path of the T03 human-readable N2 acceptance report
+/// (the markdown half of the report pair; mirrors the JSON with captions
+/// intact and is pinned by the `markdown_*` / `r038_*` tests below).
+fn acceptance_markdown_path() -> PathBuf {
+    evidence_dir().join("m199-s04-n2-acceptance.md")
+}
+
+/// Tracked S01 rule-seed JSONL. The R038 review pin reads provenance only
+/// (parse, never rewrite); the capture contract owns its content pins.
+fn seed_jsonl_path() -> PathBuf {
+    evidence_dir().join("m199-s01-rule-seed.jsonl")
 }
 
 // ---------------------------------------------------------------------------
@@ -2379,26 +2406,31 @@ fn render_acceptance_report(
     out
 }
 
-/// The one-shot T02 generator: refills the tracked report's three computed
-/// tables from the live computation. Run explicitly with `--ignored`, then
-/// review the diff; the non-ignored suite re-pins the written bytes.
+/// One-shot generator for the tracked N2 acceptance report (the S03
+/// `generate_resolution_demo_dump_writes_tracked_projection` idiom; D328/D335:
+/// no serde, no src support). Renders the whole `npa-lawref-n2-acceptance/v1`
+/// JSON - the T01 HOLD envelope verbatim plus the T02 Tables A-D - from the
+/// same functions the non-ignored suite recomputes. Supersedes the T02
+/// tables-only generator: the default battery reads the tracked file and
+/// never writes. Run explicitly, then review the diff:
+/// `cargo test -p ln-decode --offline --test npa_lawref_acceptance_contract \
+///  generate_n2_acceptance_dump_writes_tracked_projection -- --ignored --nocapture`
 #[test]
-#[ignore = "one-shot T02 generator: run with cargo test -p ln-decode --offline --test npa_lawref_acceptance_contract write_acceptance -- --ignored --nocapture, then review the diff"]
-fn write_acceptance_tables_generator() {
+#[ignore = "one-shot N2 acceptance dump generator: writes the tracked projection; run explicitly with --ignored"]
+fn generate_n2_acceptance_dump_writes_tracked_projection() {
     let sample = load_sample();
-    let span = compute_span_prf(&sample);
-    let coverage = compute_coverage(&sample);
-    let dedup = compute_dedup_quality();
-    let json = render_acceptance_report(&span, &coverage, &dedup);
-    fs::write(acceptance_report_path(), &json).expect("write the tracked N2 acceptance report");
-    let reread = fs::read_to_string(acceptance_report_path())
-        .expect("reread the tracked N2 acceptance report");
+    let json = render_acceptance_report(
+        &compute_span_prf(&sample),
+        &compute_coverage(&sample),
+        &compute_dedup_quality(),
+    );
+    let path = acceptance_report_path();
+    fs::write(&path, &json).unwrap_or_else(|err| panic!("write {}: {err}", path.display()));
+    let reread =
+        fs::read_to_string(&path).unwrap_or_else(|err| panic!("reread {}: {err}", path.display()));
     analyze_acceptance(&reread)
         .expect("the regenerated report must parse against the closed envelope");
-    println!(
-        "rewrote the tracked acceptance report: {}",
-        acceptance_report_path().display()
-    );
+    println!("wrote {} ({} bytes)", path.display(), json.len());
 }
 
 // ---------------------------------------------------------------------------
@@ -2568,5 +2600,245 @@ fn hostile_extra_key_in_the_s03_dump_fails_closed() {
     assert!(
         error.contains("future_hint") && error.contains("extra key"),
         "expected the dump extra-key rejection to name the key, got: {error}"
+    );
+}
+
+// ---------------------------------------------------------------------------
+// (n) T03: markdown report pins, byte-determinism round-trip, and the R038
+//     review home. Review-only over the report pair and the frozen surfaces;
+//     no review over lawref.rs and no review subagent is spawned by this
+//     suite.
+// ---------------------------------------------------------------------------
+
+/// Every substring the T03 markdown report must carry, labeled by the plan
+/// item it pins. A missing entry fails closed naming the pin.
+fn markdown_report_pins() -> Vec<(&'static str, &'static str)> {
+    vec![
+        ("verdict Layer-1 row", "Layer-1 corpus convergence"),
+        ("verdict Layer-1 PASS", "PASS (cited)"),
+        ("verdict Layer-2 HOLD", "Krippendorff α ≥ 0.8"),
+        ("verdict Layer-3", "INCONCLUSIVE vs gold"),
+        ("verdict Layer-3 diagnostic", "DIAGNOSTIC vs seed"),
+        ("combined NOT PASS", "NOT PASS"),
+        ("combined D351", "Combined N2 (D351 Layer-2/3)"),
+        ("operationalization D378", "D378"),
+        ("seed-not-gold D366", "D366"),
+        ("Layer-1 source D363", "D363"),
+        (
+            "alpha formula",
+            "krippendorff-nominal-two-rater-coincidence/v1",
+        ),
+        ("alpha null", "alpha_sample` is JSON null"),
+        ("alpha toy 8/15", "8/15"),
+        ("alpha encoding per-slot", "eight slots of protocol §5"),
+        ("alpha encoding presence", "not_a_reference"),
+        (
+            "table A caption",
+            "Diagnostic span-exact P/R/F1 vs provenance=rule-seed, not gold",
+        ),
+        ("table A overall", "| overall | 159 | 0 | 0 |"),
+        (
+            "table A ppm",
+            "precision_ppm = recall_ppm = f1_ppm = 1000000",
+        ),
+        (
+            "table B caption",
+            "Head-TokenKind diagnostic vs provenance=rule-seed",
+        ),
+        ("table B row", "| Abbrev | 38 | 38 | 0 | 0 |"),
+        ("table C caption", "Layer-3 coverage over the seed sample"),
+        ("table C row", "| range_candidate | 33 | 20 | 20 | 13 |"),
+        ("table C total", "| total | 159 | 86 | 20 | 73 |"),
+        (
+            "table D caption",
+            "Canonical-dedup quality counted over the tracked S03 dump",
+        ),
+        ("table D row", "| 46 | 23 | 23 | 9 |"),
+        ("ds-noise incomplete", "21/45 = 46.7%"),
+        ("ds-noise inaccurate", "2/24 = 8.3%"),
+        ("ds-noise verdict", "do-not-treat-as-gold"),
+        ("leftover 1", "scan_filler_forward(16/4)"),
+        ("leftover 2", "Space-guard"),
+        ("leftover 3", "marker_chain"),
+        ("leftover 4", "того же"),
+        ("leftover 5", "empty `Vec`"),
+        ("hold-unauthorized heading", "What HOLD does not authorize"),
+        ("hold-unauthorized adr", "Flipping ADR-0028"),
+        (
+            "hold-unauthorized requirements",
+            "Closing R070, R035, or R038",
+        ),
+        ("hold-unauthorized 159", "Treating 159/159 as human F1"),
+        (
+            "hold-unauthorized art_ctx",
+            "Treating `art_ctx` as a Work identity",
+        ),
+        ("hold-unauthorized m197", "M197 TokenKind sidecar"),
+        ("hold-unauthorized llm", "LLM pre-annotation"),
+        ("proof ceiling bounded", "Proof ceiling [bounded]"),
+        ("proof ceiling consultant", "Consultant-only"),
+        ("proof ceiling frame", "D367"),
+        ("proof ceiling ndocs", "N_docs = 40"),
+    ]
+}
+
+/// Named-pin violation list so the negative direction is executable too: a
+/// removed pin must come back named, not as a generic failure.
+fn markdown_report_pin_violations(text: &str) -> Vec<String> {
+    markdown_report_pins()
+        .into_iter()
+        .filter(|(_, needle)| !text.contains(needle))
+        .map(|(label, needle)| format!("{label} ('{needle}')"))
+        .collect()
+}
+
+/// T03 string pins: the markdown report must carry the verdict table, the
+/// alpha HOLD, Tables A-D with captions intact, the DS-noise citation, the
+/// S02 leftovers as known limitations, the What-HOLD-does-not-authorize
+/// list, the proof ceiling, and every mandatory non-claims substring the
+/// JSON loader enforces.
+#[test]
+fn markdown_report_holds_verdict_tables_and_non_claims() {
+    let text = fs::read_to_string(acceptance_markdown_path())
+        .expect("the tracked N2 acceptance markdown must be readable");
+    let violations = markdown_report_pin_violations(&text);
+    assert!(
+        violations.is_empty(),
+        "markdown report pins violated: {violations:?}"
+    );
+    for mandatory in MANDATORY_NON_CLAIMS {
+        assert!(
+            text.contains(mandatory),
+            "the markdown must carry the mandatory non-claim '{mandatory}'"
+        );
+    }
+}
+
+/// Q7: a leftover name missing from the markdown fails the pin naming that
+/// leftover (mutation hostile over the same pin list).
+#[test]
+fn hostile_markdown_missing_leftover_name_fails_the_pin() {
+    let text = fs::read_to_string(acceptance_markdown_path())
+        .expect("the tracked N2 acceptance markdown must be readable");
+    let mutated = text.replacen("empty `Vec`", "empty container", 1);
+    assert_ne!(
+        mutated, text,
+        "the hostile mutation must change the markdown"
+    );
+    let violations = markdown_report_pin_violations(&mutated);
+    assert!(
+        violations
+            .iter()
+            .any(|violation| violation.contains("leftover 5")),
+        "expected leftover 5 to be named by the pin violations, got: {violations:?}"
+    );
+}
+
+/// Q3: the markdown carries fragment_id plus offsets only - never block
+/// quotes or fenced blocks that could smuggle fixture text.
+#[test]
+fn markdown_report_carries_no_fragment_payload() {
+    let text = fs::read_to_string(acceptance_markdown_path())
+        .expect("the tracked N2 acceptance markdown must be readable");
+    for (index, line) in text.lines().enumerate() {
+        assert!(
+            !line.trim_start().starts_with('>'),
+            "line {}: block quotes are forbidden in the report (fragment payload surface)",
+            index + 1
+        );
+        assert!(
+            !line.contains("```"),
+            "line {}: fenced code blocks are forbidden in the report (fragment payload surface)",
+            index + 1
+        );
+    }
+}
+
+/// T03 round-trip: the tracked JSON must parse against the closed envelope
+/// AND be byte-identical to a fresh render through the same functions the
+/// one-shot generator writes (determinism: fixture, seed, resolver, or dump
+/// drift reds the suite; a hand-edited report reds it too).
+#[test]
+fn acceptance_json_round_trips_the_generator_bytes() {
+    let tracked = fs::read_to_string(acceptance_report_path())
+        .expect("the tracked N2 acceptance report must be readable");
+    analyze_acceptance(&tracked)
+        .expect("the tracked report must parse against the closed envelope");
+    let sample = load_sample();
+    let span = compute_span_prf(&sample);
+    let coverage = compute_coverage(&sample);
+    let dedup = compute_dedup_quality();
+    let fresh = render_acceptance_report(&span, &coverage, &dedup);
+    let fresh_again = render_acceptance_report(&span, &coverage, &dedup);
+    assert_eq!(fresh, fresh_again, "rendering must be deterministic");
+    assert_eq!(
+        tracked, fresh,
+        "the tracked report must be byte-identical to a fresh render; run the ignored generator \
+         generate_n2_acceptance_dump_writes_tracked_projection and review the diff"
+    );
+}
+
+/// R038 review home, pin 1: no α number anywhere in the two report
+/// artifacts. The JSON `alpha_sample` must literally read null; the markdown
+/// may mention the α ≥ 0.8 threshold but must never bind α to a measured
+/// number ('α =' or 'α <digit>'). combined_status NOT_PASS is pinned on the
+/// same artifact by `acceptance_schema_accepts_null_alpha_sample_with_hold_status`.
+#[test]
+fn r038_review_no_alpha_number_in_either_report_artifact() {
+    let json = fs::read_to_string(acceptance_report_path())
+        .expect("the tracked N2 acceptance report must be readable");
+    analyze_acceptance(&json).expect("the tracked report must parse");
+    let body = object_body(&json).expect("the tracked report must be an object");
+    let members = json_object_members(body).expect("top-level members");
+    let raw_alpha = raw_field(&members, "alpha_sample").expect("alpha_sample member");
+    assert_eq!(
+        raw_alpha.trim(),
+        "null",
+        "the tracked report alpha_sample must literally read null, got '{raw_alpha}'"
+    );
+    let markdown = fs::read_to_string(acceptance_markdown_path())
+        .expect("the tracked N2 acceptance markdown must be readable");
+    for (index, ch) in markdown.char_indices() {
+        if ch == 'α' {
+            let after = markdown[index + ch.len_utf8()..].trim_start();
+            assert!(
+                !(after.starts_with('=') || after.starts_with(|c: char| c.is_ascii_digit())),
+                "the markdown must not bind α to a measured number (the sample stays unmeasured)"
+            );
+        }
+    }
+}
+
+/// R038 review home, pin 2: the seed JSONL is still 159 lines, every one
+/// `provenance=rule-seed` (parse provenance, never rewrite; no
+/// `human-reviewed` label may appear). src/lawref.rs and Cargo.toml freezes
+/// are pinned by `acceptance_freeze_pins_hold`; ds-noise by
+/// `ds_noise_report_still_binds_no_alpha_number` - same suite, same review
+/// home.
+#[test]
+fn r038_review_seed_jsonl_still_159_rule_seed_records() {
+    let text = fs::read_to_string(seed_jsonl_path()).expect("read the tracked rule-seed JSONL");
+    let lines: Vec<&str> = text
+        .lines()
+        .filter(|line| !line.trim().is_empty())
+        .collect();
+    assert_eq!(
+        lines.len(),
+        159,
+        "the seed must stay exactly 159 records (do not rewrite)"
+    );
+    for (index, line) in lines.iter().enumerate() {
+        let provenance = json_string_field(line, "provenance")
+            .unwrap_or_else(|| panic!("seed line {} must carry provenance", index + 1));
+        assert_eq!(
+            provenance,
+            "rule-seed",
+            "seed line {} must stay provenance=rule-seed",
+            index + 1
+        );
+    }
+    assert!(
+        !text.contains("human-reviewed"),
+        "the seed must never carry the human-reviewed label"
     );
 }
