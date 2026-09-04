@@ -1034,59 +1034,63 @@ const DUMP_ENVELOPE_KEYS: [&str; 6] = [
 /// One roadmap demo row: (id, note_kind, user reference, canonical anchor,
 /// dedup key, quoted labels, generation note) — data only, the round-trip
 /// tests recompute every field from the engine.
-type DumpRow = (
-    &'static str,
-    &'static str,
-    &'static str,
-    &'static str,
-    &'static str,
-    &'static [&'static str],
-    &'static str,
-);
+struct DumpRow {
+    id: &'static str,
+    note_kind: &'static str,
+    user_ref: &'static str,
+    anchor: &'static str,
+    dedup_key: &'static str,
+    quoted_labels: &'static [&'static str],
+    note: &'static str,
+}
 
 /// Canonical dedup member: (fragment id, span start, span end) — payload-free
 /// per Q3; the fragment id resolves the text via the tracked txt.
 type DedupMember = (String, usize, usize);
 
+/// Canonical dedup groups keyed by dedup path. Named alias keeps clippy
+/// type_complexity quiet where the nested shape repeats.
+type DedupGroups = Vec<(String, Vec<DedupMember>)>;
+
 /// The four roadmap demo rows the dump carries (generation data only -
 /// the round-trip tests recompute every field from the engine).
 const DUMP_ROWS: [DumpRow; 4] = [
-    (
-        "chain_first_proof",
-        "synthetic",
-        "ч. 1 ст. 42",
-        "art_42/par_1",
-        "art_42/par_1",
-        &[],
-        "ELI 5.4.1 chain reverse (T02 first proof): capture order [ch, st] + [1, 42] mints the outer-first art_42/par_1",
-    ),
-    (
-        "range_over_art_ctx",
-        "synthetic",
-        "части 2.1 - 2.3 настоящей статьи",
-        "art_ctx/par_2.1",
-        "art_ctx/par_2.1..art_ctx/par_2.3",
-        &["art_ctx/par_2.1", "art_ctx/par_2.3"],
-        "roadmap row 'части 1 - 3 настоящей статьи' in its dotted executable form: left-scan head части -> ch -> par, the following art anaphora supplies art_ctx; the bare-integer phrasing never captures range_candidate (see non_claims)",
-    ),
-    (
-        "expanded_pair_not_enum",
-        "synthetic",
-        "пп. 2.1 - 4.1",
-        "pnt_2.1",
-        "pnt_2.1..pnt_4.1",
-        &["pnt_2.1", "pnt_4.1"],
-        "roadmap row 'пп. 1 - 4.1' in its dotted executable form: pp maps to pnt via YAML; exactly two members with the literal '..' dedup key - never the 1..=4.1 enumeration",
-    ),
-    (
-        "live_chain_frag_173",
-        "live",
-        "npa-frag-173@[251,267)",
-        "art_26.2/par_1",
-        "art_26.2/par_1",
-        &[],
-        "live tracked fixture: the ч. 1 ст. 26.2 chain at [251,267); the dump carries fragment_id + offsets, never fragment payload",
-    ),
+    DumpRow {
+        id: "chain_first_proof",
+        note_kind: "synthetic",
+        user_ref: "ч. 1 ст. 42",
+        anchor: "art_42/par_1",
+        dedup_key: "art_42/par_1",
+        quoted_labels: &[],
+        note: "ELI 5.4.1 chain reverse (T02 first proof): capture order [ch, st] + [1, 42] mints the outer-first art_42/par_1",
+    },
+    DumpRow {
+        id: "range_over_art_ctx",
+        note_kind: "synthetic",
+        user_ref: "части 2.1 - 2.3 настоящей статьи",
+        anchor: "art_ctx/par_2.1",
+        dedup_key: "art_ctx/par_2.1..art_ctx/par_2.3",
+        quoted_labels: &["art_ctx/par_2.1", "art_ctx/par_2.3"],
+        note: "roadmap row 'части 1 - 3 настоящей статьи' in its dotted executable form: left-scan head части -> ch -> par, the following art anaphora supplies art_ctx; the bare-integer phrasing never captures range_candidate (see non_claims)",
+    },
+    DumpRow {
+        id: "expanded_pair_not_enum",
+        note_kind: "synthetic",
+        user_ref: "пп. 2.1 - 4.1",
+        anchor: "pnt_2.1",
+        dedup_key: "pnt_2.1..pnt_4.1",
+        quoted_labels: &["pnt_2.1", "pnt_4.1"],
+        note: "roadmap row 'пп. 1 - 4.1' in its dotted executable form: pp maps to pnt via YAML; exactly two members with the literal '..' dedup key - never the 1..=4.1 enumeration",
+    },
+    DumpRow {
+        id: "live_chain_frag_173",
+        note_kind: "live",
+        user_ref: "npa-frag-173@[251,267)",
+        anchor: "art_26.2/par_1",
+        dedup_key: "art_26.2/par_1",
+        quoted_labels: &[],
+        note: "live tracked fixture: the ч. 1 ст. 26.2 chain at [251,267); the dump carries fragment_id + offsets, never fragment payload",
+    },
 ];
 
 /// Skips whitespace and commas, then reads one `(key, raw-value)` member of
@@ -1325,7 +1329,7 @@ struct DumpView {
     lifecycle: String,
     non_claims: Vec<String>,
     roadmap_rows: Vec<RoadmapRow>,
-    dedup_groups: Vec<(String, Vec<DedupMember>)>,
+    dedup_groups: DedupGroups,
 }
 
 /// Closed-envelope parse of the tracked dump; extra keys fail closed.
@@ -1516,7 +1520,7 @@ fn manifest_fragments(manifest: &str) -> Vec<(String, String)> {
 /// fragment plus the three synthetic demos and group the resolved refs by
 /// their canonical dedup key (Q3: members carry fragment_id + offsets,
 /// never payload; Q6: tracked txt only, milliseconds - no corpus).
-fn compute_dedup_groups() -> Vec<(String, Vec<DedupMember>)> {
+fn compute_dedup_groups() -> DedupGroups {
     let manifest = fs::read_to_string(evidence_dir().join("m199-s01-gold-sample-manifest.json"))
         .expect("read the S01 gold sample manifest");
     let fragments = manifest_fragments(&manifest);
@@ -1548,7 +1552,7 @@ fn compute_dedup_groups() -> Vec<(String, Vec<DedupMember>)> {
         }
     }
     members.sort();
-    let mut groups: Vec<(String, Vec<DedupMember>)> = Vec::new();
+    let mut groups: DedupGroups = Vec::new();
     for (key, fragment_id, start, end) in members {
         match groups.last_mut() {
             Some((group_key, list)) if *group_key == key => {
@@ -1576,8 +1580,9 @@ fn render_resolution_dump_json() -> String {
     out.push_str("\n  ],\n");
     let rows: Vec<String> = DUMP_ROWS
         .iter()
-        .map(|(demo, kind, input, anchor, dedup, members, note)| {
-            let member_list = members
+        .map(|row| {
+            let member_list = row
+                .quoted_labels
                 .iter()
                 .map(|member| format!("\"{member}\""))
                 .collect::<Vec<_>>()
@@ -1585,7 +1590,13 @@ fn render_resolution_dump_json() -> String {
             format!(
                 "    {{\"demo\": \"{demo}\", \"kind\": \"{kind}\", \"input\": \"{input}\", \
                  \"anchor\": \"{anchor}\", \"dedup_key\": \"{dedup}\", \"members\": \
-                 [{member_list}], \"note\": \"{note}\"}}"
+                 [{member_list}], \"note\": \"{note}\"}}",
+                demo = row.id,
+                kind = row.note_kind,
+                input = row.user_ref,
+                anchor = row.anchor,
+                dedup = row.dedup_key,
+                note = row.note,
             )
         })
         .collect();
