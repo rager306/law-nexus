@@ -16,6 +16,7 @@
 //! name keys and headings only, never captured source text.
 
 use crate::domain::{ParserDomainError, TextSpan};
+use crate::lexer::{NpaToken, TokenKind};
 
 /// The eight protocol slots of a captured reference (protocol §5 / SLOT_KEYS).
 ///
@@ -83,17 +84,528 @@ impl LawRef {
     }
 }
 
+/// Closed pattern ids of the seven capture matchers (mirrors of the
+/// `PATTERN_ID_CANON` rows below; a pattern id is table data, not an enum).
+const PATTERN_CHAIN: &str = "abbrev-hier-chain";
+const PATTERN_AMENDMENT: &str = "abbrev-amendment-window";
+const PATTERN_DATE_DOCNO: &str = "date-docno-window";
+const PATTERN_FULLWORD: &str = "fullword-ref";
+const PATTERN_QUOTED_ENUM: &str = "quoted-enum";
+const PATTERN_RANGE: &str = "range_candidate";
+const PATTERN_ANAPHORA: &str = "anaphora_candidate";
+
 /// Captures reference candidates over `src` through the frozen covering
 /// lexer ([`crate::lexer::lex`]).
 ///
-/// T01 ships the capture surface: the call consumes the frozen lexer (the
-/// covering token stream is the only text view capture may scan - no regex
-/// over raw text, no digit rescan) and returns no candidates yet. T02
-/// implements the precedence-table matchers; until then the empty result is
-/// the honest stub, not a `todo!` on a library path.
+/// The covering token stream is the only text view capture may scan: no
+/// regex over raw text, no digit rescan (layer A documents the frozen lexer
+/// first-match order; it never reclassifies). Seven matchers fire over every
+/// token index - the same seven pattern ids as the S01 seed, no eighth - and
+/// the YAML layer-B overlap policies adjudicate the fire-all set. Candidates
+/// then order by the frozen `(start, end, pattern_id)` sort key and mint via
+/// the fail-closed [`LawRef::try_new`].
 pub fn capture_lawrefs(src: &str) -> Vec<LawRef> {
-    let _tokens = crate::lexer::lex(src);
-    Vec::new()
+    let tokens = crate::lexer::lex(src);
+    if tokens.is_empty() {
+        return Vec::new();
+    }
+    // Fail-closed library path: the embedded table is pinned green by the
+    // precedence tests, so a parse failure here is a build-data defect that
+    // must degrade to "no candidates", never panic a caller.
+    let Ok(precedence) = LawRefPrecedence::embedded() else {
+        return Vec::new();
+    };
+
+    let mut raw: Vec<RawCapture> = Vec::new();
+    for index in 0..tokens.len() {
+        match_abbrev_hier_chain(&tokens, index, &precedence, src, &mut raw);
+        match_abbrev_amendment_window(&tokens, index, &precedence, src, &mut raw);
+        match_date_docno_window(&tokens, index, src, &mut raw);
+        match_fullword_ref(&tokens, index, &precedence, src, &mut raw);
+        match_quoted_enum(&tokens, index, &precedence, src, &mut raw);
+        match_range_candidate(&tokens, index, src, &mut raw);
+        match_anaphora_candidate(&tokens, index, &precedence, src, &mut raw);
+    }
+
+    apply_overlap_precedence(&mut raw, &precedence);
+
+    raw.sort_by(|left, right| {
+        (left.start, left.end, left.pattern_id).cmp(&(right.start, right.end, right.pattern_id))
+    });
+    raw.into_iter().filter_map(RawCapture::mint).collect()
+}
+
+/// One un-adjudicated capture candidate: the data a `LawRef` is minted from.
+#[derive(Clone)]
+struct RawCapture {
+    start: usize,
+    end: usize,
+    pattern_id: &'static str,
+    token_kind_seq: String,
+    slots: LawRefSlots,
+}
+
+impl RawCapture {
+    /// Bounds a candidate over the inclusive token range `start..=end` and
+    /// records the frozen-lexer kind sequence over it (`TokenKind::as_str`,
+    /// comma-joined).
+    fn new(
+        tokens: &[NpaToken],
+        start_index: usize,
+        end_index: usize,
+        pattern_id: &'static str,
+        slots: LawRefSlots,
+    ) -> Self {
+        Self {
+            start: tokens[start_index].span.start(),
+            end: tokens[end_index].span.end(),
+            pattern_id,
+            token_kind_seq: tokens[start_index..=end_index]
+                .iter()
+                .map(|token| token.kind.as_str())
+                .collect::<Vec<_>>()
+                .join(","),
+            slots,
+        }
+    }
+
+    /// Mints the product capture; [`LawRef::try_new`] fails closed on an
+    /// empty span, which a token-span-bounded candidate cannot produce.
+    fn mint(self) -> Option<LawRef> {
+        LawRef::try_new(
+            self.start,
+            self.end,
+            self.pattern_id.to_owned(),
+            self.token_kind_seq,
+            self.slots,
+        )
+        .ok()
+    }
+}
+
+/// `true` when `tokens[index]` is a Space token (out of range: `false`).
+fn is_space(tokens: &[NpaToken], index: usize) -> bool {
+    tokens
+        .get(index)
+        .is_some_and(|token| token.kind == TokenKind::Space)
+}
+
+/// Layer-A number token: a `HierNum`, or a digit-only `Word` (the C2 lexer
+/// folds a bare `ч. 2` number into a digit `Word` - an undotted `1.` is
+/// never a hier-number, so the fold is lossless for capture purposes).
+fn is_number_token(token: &NpaToken, src: &str) -> bool {
+    match token.kind {
+        TokenKind::HierNum => true,
+        TokenKind::Word => {
+            let lexeme = token.lexeme(src);
+            !lexeme.is_empty() && lexeme.bytes().all(|byte| byte.is_ascii_digit())
+        }
+        _ => false,
+    }
+}
+
+/// The id string when `tokens[index]` is an Abbrev allowlisted by `ids` (the
+/// YAML allowlists are the single canon - no src-side id copy).
+fn allowlisted_abbrev(tokens: &[NpaToken], index: usize, ids: &[String]) -> Option<String> {
+    let token = tokens.get(index)?;
+    if token.kind != TokenKind::Abbrev {
+        return None;
+    }
+    let id = token.abbrev_id?.as_str();
+    ids.iter().find(|entry| entry.as_str() == id).cloned()
+}
+
+/// Forward window scan shared by the window matchers: from `anchor + 1`, the
+/// first token satisfying `pred` wins while every skipped token is a
+/// Space/Word/Punct filler and the token distance stays within
+/// `max_distance` (the YAML gap bounds are filler counts; distance = fillers + 1).
+fn scan_filler_forward(
+    tokens: &[NpaToken],
+    anchor: usize,
+    max_distance: usize,
+    pred: impl Fn(&NpaToken) -> bool,
+) -> Option<usize> {
+    let mut index = anchor + 1;
+    while index < tokens.len() && index - anchor <= max_distance {
+        let token = &tokens[index];
+        if pred(token) {
+            return Some(index);
+        }
+        if !matches!(
+            token.kind,
+            TokenKind::Space | TokenKind::Word | TokenKind::Punct
+        ) {
+            return None;
+        }
+        index += 1;
+    }
+    None
+}
+
+/// `abbrev-hier-chain`: an allowlisted chain abbrev, then Space, then a
+/// number token, then `(Space Abbrev(chain) Space number)*`. Marker ids and
+/// hierarchy numbers are captured as written (`15.1` stays `15.1`).
+fn match_abbrev_hier_chain(
+    tokens: &[NpaToken],
+    index: usize,
+    precedence: &LawRefPrecedence,
+    src: &str,
+    out: &mut Vec<RawCapture>,
+) {
+    let Some(first_marker) = allowlisted_abbrev(tokens, index, &precedence.chain_abbrev_ids) else {
+        return;
+    };
+    if !is_space(tokens, index + 1) {
+        return;
+    }
+    let Some(mut last) = tokens
+        .get(index + 2)
+        .filter(|token| is_number_token(token, src))
+        .map(|_| index + 2)
+    else {
+        return;
+    };
+    let mut markers = vec![first_marker];
+    let mut hier_nums = vec![tokens[last].lexeme(src).to_owned()];
+    while is_space(tokens, last + 1) {
+        let Some(link_marker) = allowlisted_abbrev(tokens, last + 2, &precedence.chain_abbrev_ids)
+        else {
+            break;
+        };
+        if !is_space(tokens, last + 3) {
+            break;
+        }
+        let Some(next) = tokens
+            .get(last + 4)
+            .filter(|token| is_number_token(token, src))
+            .map(|_| last + 4)
+        else {
+            break;
+        };
+        markers.push(link_marker);
+        hier_nums.push(tokens[next].lexeme(src).to_owned());
+        last = next;
+    }
+    let slots = LawRefSlots {
+        marker_chain: markers,
+        hier_nums,
+        ..Default::default()
+    };
+    out.push(RawCapture::new(tokens, index, last, PATTERN_CHAIN, slots));
+}
+
+/// `abbrev-amendment-window`: `ред.`/`изм.` ... Date (filler Space/Word/Punct,
+/// gap < 16) ... DocNo (gap < 4). The full window is required; `date` and
+/// `doc_no` are filled from the window tokens (R070 stays open: the window
+/// is lexical, not provenance).
+fn match_abbrev_amendment_window(
+    tokens: &[NpaToken],
+    index: usize,
+    precedence: &LawRefPrecedence,
+    src: &str,
+    out: &mut Vec<RawCapture>,
+) {
+    if allowlisted_abbrev(tokens, index, &precedence.amendment_abbrev_ids).is_none() {
+        return;
+    }
+    let Some(date_index) =
+        scan_filler_forward(tokens, index, 16, |token| token.kind == TokenKind::Date)
+    else {
+        return;
+    };
+    let Some(doc_no_index) = scan_filler_forward(tokens, date_index, 4, |token| {
+        token.kind == TokenKind::DocNo
+    }) else {
+        return;
+    };
+    let slots = LawRefSlots {
+        date: Some(tokens[date_index].lexeme(src).to_owned()),
+        doc_no: Some(tokens[doc_no_index].lexeme(src).to_owned()),
+        ..Default::default()
+    };
+    out.push(RawCapture::new(
+        tokens,
+        index,
+        doc_no_index,
+        PATTERN_AMENDMENT,
+        slots,
+    ));
+}
+
+/// `date-docno-window`: a Date followed within <= 4 tokens by a DocNo or a
+/// LawCode (Space/Word/Punct fillers). A lone Date is not a capture; the
+/// window fills `date` plus `doc_no`/`law_code` from the trailing token.
+fn match_date_docno_window(
+    tokens: &[NpaToken],
+    index: usize,
+    src: &str,
+    out: &mut Vec<RawCapture>,
+) {
+    if !tokens
+        .get(index)
+        .is_some_and(|token| token.kind == TokenKind::Date)
+    {
+        return;
+    }
+    let Some(hit) = scan_filler_forward(tokens, index, 4, |token| {
+        matches!(token.kind, TokenKind::DocNo | TokenKind::LawCode)
+    }) else {
+        return;
+    };
+    let extra = if tokens[hit].kind == TokenKind::DocNo {
+        (Some(tokens[hit].lexeme(src).to_owned()), None)
+    } else {
+        (None, Some(tokens[hit].lexeme(src).to_owned()))
+    };
+    let slots = LawRefSlots {
+        date: Some(tokens[index].lexeme(src).to_owned()),
+        doc_no: extra.0,
+        law_code: extra.1,
+        ..Default::default()
+    };
+    out.push(RawCapture::new(
+        tokens,
+        index,
+        hit,
+        PATTERN_DATE_DOCNO,
+        slots,
+    ));
+}
+
+/// `fullword-ref`: a fullword tail (`статьи`, `пункта`, ...) then Space then
+/// a DocNo or a number token. Tails stay `Word` tokens - never retagged
+/// Abbrev (the C2 goldens pin that contour).
+fn match_fullword_ref(
+    tokens: &[NpaToken],
+    index: usize,
+    precedence: &LawRefPrecedence,
+    src: &str,
+    out: &mut Vec<RawCapture>,
+) {
+    let Some(token) = tokens.get(index) else {
+        return;
+    };
+    if token.kind != TokenKind::Word
+        || !precedence
+            .fullword_tails
+            .iter()
+            .any(|tail| tail == token.lexeme(src))
+    {
+        return;
+    }
+    if !is_space(tokens, index + 1) {
+        return;
+    }
+    let Some(number_index) = tokens
+        .get(index + 2)
+        .filter(|next| next.kind == TokenKind::DocNo || is_number_token(next, src))
+        .map(|_| index + 2)
+    else {
+        return;
+    };
+    let mut slots = LawRefSlots::default();
+    if tokens[number_index].kind == TokenKind::DocNo {
+        slots.doc_no = Some(tokens[number_index].lexeme(src).to_owned());
+    } else {
+        slots.hier_nums = vec![tokens[number_index].lexeme(src).to_owned()];
+    }
+    out.push(RawCapture::new(
+        tokens,
+        index,
+        number_index,
+        PATTERN_FULLWORD,
+        slots,
+    ));
+}
+
+/// `quoted-enum`: an EnumMarker with an exact-`"` opening Punct behind it and
+/// a closing Punct starting with `"`, three tokens behind an allowlisted
+/// abbrev marker or a `подпункт*` word (`подпункта "а"`). The span covers
+/// the head marker through the closing quote; `quoted_enum` is the letter.
+fn match_quoted_enum(
+    tokens: &[NpaToken],
+    index: usize,
+    precedence: &LawRefPrecedence,
+    src: &str,
+    out: &mut Vec<RawCapture>,
+) {
+    if index < 3 {
+        return;
+    }
+    let Some(marker) = tokens
+        .get(index)
+        .filter(|token| token.kind == TokenKind::EnumMarker)
+    else {
+        return;
+    };
+    let opening_exact_quote =
+        |token: &NpaToken| token.kind == TokenKind::Punct && token.lexeme(src) == "\"";
+    let closing_quoted =
+        |token: &NpaToken| token.kind == TokenKind::Punct && token.lexeme(src).starts_with('"');
+    if !tokens.get(index - 1).is_some_and(opening_exact_quote) {
+        return;
+    }
+    if !tokens.get(index + 1).is_some_and(closing_quoted) {
+        return;
+    }
+    let head = &tokens[index - 3];
+    let head_is_marker = match head.kind {
+        TokenKind::Abbrev => head.abbrev_id.is_some_and(|id| {
+            precedence
+                .quoted_marker_abbrev_ids
+                .iter()
+                .any(|entry| entry == id.as_str())
+        }),
+        TokenKind::Word => head.lexeme(src).starts_with("подпункт"),
+        _ => false,
+    };
+    if !head_is_marker {
+        return;
+    }
+    let slots = LawRefSlots {
+        quoted_enum: Some(marker.lexeme(src).to_owned()),
+        ..Default::default()
+    };
+    out.push(RawCapture::new(
+        tokens,
+        index - 3,
+        index + 1,
+        PATTERN_QUOTED_ENUM,
+        slots,
+    ));
+}
+
+/// `range_candidate`: `HierNum Space Punct(-) Space HierNum`. Endpoints are
+/// captured as written and never expanded (S03 owns enumeration).
+fn match_range_candidate(tokens: &[NpaToken], index: usize, src: &str, out: &mut Vec<RawCapture>) {
+    if !tokens
+        .get(index)
+        .is_some_and(|token| token.kind == TokenKind::HierNum)
+    {
+        return;
+    }
+    if !is_space(tokens, index + 1) {
+        return;
+    }
+    if !tokens
+        .get(index + 2)
+        .is_some_and(|token| token.kind == TokenKind::Punct && token.lexeme(src) == "-")
+    {
+        return;
+    }
+    if !is_space(tokens, index + 3) {
+        return;
+    }
+    if !tokens
+        .get(index + 4)
+        .is_some_and(|token| token.kind == TokenKind::HierNum)
+    {
+        return;
+    }
+    let slots = LawRefSlots {
+        range: Some((
+            tokens[index].lexeme(src).to_owned(),
+            tokens[index + 4].lexeme(src).to_owned(),
+        )),
+        ..Default::default()
+    };
+    out.push(RawCapture::new(
+        tokens,
+        index,
+        index + 4,
+        PATTERN_RANGE,
+        slots,
+    ));
+}
+
+/// `anaphora_candidate`: an anaphora head word, an optional `же`, then a
+/// Word (the resolution target). The span covers head through target word;
+/// the `anaphora` slot carries the joined heads as written and is never
+/// resolved here (S03).
+fn match_anaphora_candidate(
+    tokens: &[NpaToken],
+    index: usize,
+    precedence: &LawRefPrecedence,
+    src: &str,
+    out: &mut Vec<RawCapture>,
+) {
+    let Some(token) = tokens.get(index) else {
+        return;
+    };
+    if token.kind != TokenKind::Word
+        || !precedence
+            .anaphora_heads
+            .iter()
+            .any(|head| head == token.lexeme(src))
+    {
+        return;
+    }
+    let mut heads_end = index;
+    if is_space(tokens, index + 1)
+        && tokens
+            .get(index + 2)
+            .is_some_and(|next| next.kind == TokenKind::Word && next.lexeme(src) == "же")
+    {
+        heads_end = index + 2;
+    }
+    if !is_space(tokens, heads_end + 1) {
+        return;
+    }
+    if !tokens
+        .get(heads_end + 2)
+        .is_some_and(|next| next.kind == TokenKind::Word)
+    {
+        return;
+    }
+    let mut anaphora = tokens[index].lexeme(src).to_owned();
+    if heads_end != index {
+        anaphora.push(' ');
+        anaphora.push_str(tokens[index + 2].lexeme(src));
+    }
+    let slots = LawRefSlots {
+        anaphora: Some(anaphora),
+        ..Default::default()
+    };
+    out.push(RawCapture::new(
+        tokens,
+        index,
+        heads_end + 2,
+        PATTERN_ANAPHORA,
+        slots,
+    ));
+}
+
+/// Layer B (precedence as data): the YAML overlap policies adjudicate the
+/// fire-all set. `drop` removes a `date-docno-window` strictly contained in
+/// an `abbrev-amendment-window`, and a candidate strictly contained in a
+/// wider candidate of the same pattern (the chain re-fire at an inner marker
+/// collapses onto the outer chain).
+fn apply_overlap_precedence(raw: &mut Vec<RawCapture>, precedence: &LawRefPrecedence) {
+    if precedence.overlap_date_docno_inside_amendment == "drop" {
+        let snapshot = raw.clone();
+        raw.retain(|candidate| {
+            candidate.pattern_id != PATTERN_DATE_DOCNO
+                || !snapshot.iter().any(|other| {
+                    other.pattern_id == PATTERN_AMENDMENT && strictly_contained(candidate, other)
+                })
+        });
+    }
+    if precedence.overlap_same_pattern_containment == "drop" {
+        let snapshot = raw.clone();
+        raw.retain(|candidate| {
+            !snapshot.iter().any(|other| {
+                other.pattern_id == candidate.pattern_id && strictly_contained(candidate, other)
+            })
+        });
+    }
+}
+
+/// The YAML containment contour: `other` strictly contains `candidate`
+/// (`(other.start < a.start && a.end <= other.end) ||
+///  (other.start <= a.start && a.end < other.end)`).
+fn strictly_contained(candidate: &RawCapture, other: &RawCapture) -> bool {
+    (other.start < candidate.start && candidate.end <= other.end)
+        || (other.start <= candidate.start && candidate.end < other.end)
 }
 
 // ---------------------------------------------------------------------------

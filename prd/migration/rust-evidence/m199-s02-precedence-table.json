@@ -1,0 +1,25 @@
+{
+  "schema": "npa-lawref-precedence-dump/v1",
+  "schema_version": 1,
+  "lifecycle": "[bounded]",
+  "non_claims": [
+    "R070 open: not official publication provenance; the 180-fragment sample stays pre-annotation",
+    "sample ≠ gold: the S01 sample and its rule-seed are pre-annotation (D366), never gold",
+    "no resolution accuracy: LawRef is capture-only; identity, anchors, and anaphora resolution belong to later steps and no accuracy is claimed",
+    "no alpha: no inter-annotator agreement is computed in S02; the agreement gate belongs to S04",
+    "no ADR-0028 lifecycle flip: kb-ontology.yaml stays [proposed] and this dump stays [bounded]",
+    "Consultant-only: fragments come from the tracked Consultant 44-ФЗ harvest; no other provider and no corpus sweep in S02",
+    "precedence canon: the npa_lawref_precedence YAML table stays the single canon; this dump is an observable demo, not a second canon"
+  ],
+  "pattern_ids": ["abbrev-hier-chain", "abbrev-amendment-window", "date-docno-window", "fullword-ref", "quoted-enum", "range_candidate", "anaphora_candidate"],
+  "digit_start_order": ["Date", "HierNum", "DocNo", "EnumMarker"],
+  "letter_start_order": ["Abbrev", "EnumMarker", "LawCode", "Word"],
+  "overlap_date_docno_inside_amendment": "drop",
+  "overlap_same_pattern_containment": "drop",
+  "sort_key": ["start", "end", "pattern_id"],
+  "chain_abbrev_ids": ["st", "stst", "ch", "p", "pp", "podp", "abz", "gl", "razd"],
+  "amendment_abbrev_ids": ["red", "izm"],
+  "quoted_marker_abbrev_ids": ["p", "pp"],
+  "fullword_tails": ["статьи", "пункта", "закона", "года"],
+  "anaphora_heads": ["настоящей", "настоящего", "настоящая", "того"]
+}
