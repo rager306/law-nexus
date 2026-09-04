@@ -11,14 +11,17 @@
 //! `npa_lawref_resolution` YAML table (resolution as data, KBO-R025
 //! idiom), so src never hardcodes `статьи -> st` or `st -> art`.
 //!
-//! T02 lifts the stub to behavior: the chain reverse (ELI 5.4.1:
+//! T02 lifted the stub to behavior: the chain reverse (ELI 5.4.1:
 //! `ч. 1 ст. 42` -> `art_42/par_1`), the per-src context stack, and
-//! anaphora binding with `art_ctx` as the honest missing-frame token; the
-//! first-proof contract test runs un-ignored. Ranges stay honestly
-//! unresolved here - the next task owns the expanded pair and the
-//! canonical dedup grouping demo. R070 stays open: resolution stays
-//! lexical, not provenance. Errors name keys, headings, and rules - never
-//! captured source text - and the library path never panics.
+//! anaphora binding with `art_ctx` as the honest missing-frame token. T03
+//! adds the range half (`range_policy: expanded_pair`): a range resolves
+//! as the expanded ENDPOINT PAIR of one left-scanned unit - never an
+//! integer enumeration - the false hyphen-split range stays unresolved,
+//! and resolved references group under the canonical dedup key (an anchor
+//! path, or the literal `from..to` range key). R070 stays open:
+//! resolution stays lexical, not provenance. Errors name keys, headings,
+//! and rules - never captured source text - and the library path never
+//! panics.
 
 use crate::lawref::LawRef;
 
@@ -92,9 +95,10 @@ impl CanonicalAnchor {
 ///
 /// `anchor: None` is an honestly unresolved capture - the resolver never
 /// invents an anchor it cannot prove from the table. `members` carries the
-/// expanded-pair range endpoints once ranges resolve (the next task, T03);
-/// `dedup_key` carries the canonical grouping key when written variants of
-/// one reference collapse (T03).
+/// expanded-pair endpoints of a resolved range (exactly two anchors - never
+/// an enumeration); `dedup_key` carries the canonical grouping key under
+/// which written variants of one reference collapse: the anchor path for
+/// single-anchor resolutions, the literal `from..to` key for a range.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ResolvedLawRef {
     /// The untouched S02 capture candidate.
@@ -110,17 +114,19 @@ pub struct ResolvedLawRef {
 /// Resolves captured reference candidates against the embedded
 /// `npa_lawref_resolution` table.
 ///
-/// Capture runs first (the resolver consumes frozen captures; it rescans
-/// text only inside capture spans), the embedded table is loaded once per
-/// call, and captures are walked in the frozen `(start, end, pattern_id)`
-/// capture order so the per-src context stack sees references in source
-/// order. A build-data defect degrades to "no resolutions" - never panics
-/// a caller (same leftover-#5 idiom as capture). Every unresolved outcome
-/// is honest: `anchor = None` for document-level anaphora, unknown heads,
-/// amendment/date windows, and ranges (the next task owns the expanded
-/// pair); `{unit}_ctx` tokens for anaphora whose level has no prior frame
-/// in the same src. The library path never unwinds and `src` is never
-/// logged.
+/// Capture runs first (the resolver consumes frozen captures), the
+/// embedded table is loaded once per call, and captures are walked in the
+/// frozen `(start, end, pattern_id)` capture order so the per-src context
+/// stack sees references in source order. One [`crate::lexer::lex`] of the
+/// whole src backs the range left-scan - the covering token stream stays
+/// the only text view resolution scans. A build-data defect degrades to
+/// "no resolutions" - never panics a caller (same leftover-#5 idiom as
+/// capture). Every unresolved outcome is honest: `anchor = None` for
+/// document-level anaphora, unknown heads, amendment/date windows, false
+/// ranges (equal endpoints continuing a hyphen split), and ranges whose
+/// unit nothing proves; `{unit}_ctx` tokens for anaphora whose level has
+/// no prior frame in the same src. The library path never unwinds and
+/// `src` is never logged.
 pub fn resolve_lawrefs(src: &str) -> Vec<ResolvedLawRef> {
     let captures = crate::lawref::capture_lawrefs(src);
     if captures.is_empty() {
@@ -129,17 +135,24 @@ pub fn resolve_lawrefs(src: &str) -> Vec<ResolvedLawRef> {
     let Ok(resolution) = ResolutionTable::embedded() else {
         return Vec::new();
     };
+    let tokens = crate::lexer::lex(src);
     let mut stack: Vec<Frame> = Vec::new();
     let mut resolved = Vec::with_capacity(captures.len());
-    for capture in captures {
-        let anchor = resolve_capture(&capture, src, &resolution, &mut stack);
-        let dedup_key = anchor.as_ref().map(|anchor| anchor.path.clone());
-        resolved.push(ResolvedLawRef {
+    for (index, capture) in captures.iter().enumerate() {
+        let outcome = resolve_capture(
             capture,
-            anchor,
-            // Expanded-pair range members belong to the next task (T03).
-            members: Vec::new(),
-            dedup_key,
+            index,
+            &captures,
+            src,
+            &tokens,
+            &resolution,
+            &mut stack,
+        );
+        resolved.push(ResolvedLawRef {
+            capture: capture.clone(),
+            anchor: outcome.anchor,
+            members: outcome.members,
+            dedup_key: outcome.dedup_key,
         });
     }
     resolved
@@ -212,27 +225,63 @@ fn ranked_path(frames: &[Frame]) -> Option<String> {
     )
 }
 
+/// What one capture resolved to.
+struct Outcome {
+    anchor: Option<CanonicalAnchor>,
+    members: Vec<CanonicalAnchor>,
+    dedup_key: Option<String>,
+}
+
+impl Outcome {
+    /// Honestly unresolved: no anchor, no members, no dedup key.
+    fn unresolved() -> Self {
+        Self {
+            anchor: None,
+            members: Vec::new(),
+            dedup_key: None,
+        }
+    }
+
+    /// A single-anchor resolution (chain, fullword, anaphora, quoted
+    /// enum): the dedup key is the anchor path itself.
+    fn anchored(anchor: Option<CanonicalAnchor>) -> Self {
+        Self {
+            dedup_key: anchor.as_ref().map(|anchor| anchor.path.clone()),
+            anchor,
+            members: Vec::new(),
+        }
+    }
+}
+
 /// Resolves one capture against the table and the current frame stack,
-/// pushing newly minted frames. Pattern ids mirror the closed
-/// seven-pattern capture canon; the library path never panics and never
-/// logs - every failure degrades to `None`.
+/// pushing newly minted frames. `index`/`captures` back the range
+/// look-ahead and `tokens` backs its left-scan. Pattern ids mirror the
+/// closed seven-pattern capture canon; the library path never panics and
+/// never logs - every failure degrades to an unresolved outcome.
 fn resolve_capture(
     capture: &LawRef,
+    index: usize,
+    captures: &[LawRef],
     src: &str,
+    tokens: &[crate::lexer::NpaToken],
     resolution: &ResolutionTable,
     stack: &mut Vec<Frame>,
-) -> Option<CanonicalAnchor> {
+) -> Outcome {
     match capture.pattern_id.as_str() {
-        "abbrev-hier-chain" => resolve_chain(capture, resolution, stack),
-        "fullword-ref" => resolve_fullword(capture, src, resolution, stack),
-        "anaphora_candidate" => resolve_anaphora(capture, src, resolution, stack),
-        "quoted-enum" => resolve_quoted_enum(capture, src, resolution, stack),
-        // Amendment / date-docno windows stay out of resolution scope
-        // (R070); ranges are the next task's expanded pair.
-        "abbrev-amendment-window" | "date-docno-window" | "range_candidate" => None,
+        "abbrev-hier-chain" => Outcome::anchored(resolve_chain(capture, resolution, stack)),
+        "fullword-ref" => Outcome::anchored(resolve_fullword(capture, src, resolution, stack)),
+        "anaphora_candidate" => {
+            Outcome::anchored(resolve_anaphora(capture, src, resolution, stack))
+        }
+        "quoted-enum" => Outcome::anchored(resolve_quoted_enum(capture, src, resolution, stack)),
+        // Amendment / date-docno windows stay out of resolution scope (R070).
+        "abbrev-amendment-window" | "date-docno-window" => Outcome::unresolved(),
+        "range_candidate" => {
+            resolve_range(capture, index, captures, src, tokens, resolution, stack)
+        }
         // The seven-pattern canon makes this unreachable; a future pattern
         // id fails closed instead of minting an unproven anchor.
-        _ => None,
+        _ => Outcome::unresolved(),
     }
 }
 
@@ -293,6 +342,18 @@ fn resolve_fullword(
     anchor
 }
 
+/// The anaphora level of a capture: `anaphora_target_to_level` on the LAST
+/// Word of the span (`того же раздела` binds `раздела`, not the head).
+fn anaphora_level<'t>(
+    capture: &LawRef,
+    src: &str,
+    resolution: &'t ResolutionTable,
+) -> Option<&'t str> {
+    let text = capture.user_text(src);
+    let target = last_word_of(text)?;
+    table_lookup(&resolution.anaphora_target_to_level, target)
+}
+
 /// Anaphora bind: the level comes from the LAST Word of the anaphora span
 /// (`того же раздела` binds `раздела`, not the head), looked up in
 /// `anaphora_target_to_level`. The `doc` sink (`Кодекса`, `Положения`,
@@ -305,9 +366,7 @@ fn resolve_anaphora(
     resolution: &ResolutionTable,
     stack: &[Frame],
 ) -> Option<CanonicalAnchor> {
-    let text = capture.user_text(src);
-    let target = last_word_of(text)?;
-    let level = table_lookup(&resolution.anaphora_target_to_level, target)?;
+    let level = anaphora_level(capture, src, resolution)?;
     if level == DOC_SINK {
         return None;
     }
@@ -336,6 +395,171 @@ fn resolve_quoted_enum(
     let frame = stack.iter().rev().find(|frame| frame.unit == unit)?;
     let path = format!("{}/sub_{letter}", frame.path());
     CanonicalAnchor::try_new(&path).ok()
+}
+
+// ---------------------------------------------------------------------------
+// T03: ranges as the expanded endpoint pair (`range_policy: expanded_pair`).
+// ---------------------------------------------------------------------------
+
+/// Range resolution: a range is the expanded ENDPOINT PAIR of one unit -
+/// never an integer enumeration, even when the endpoints share a dotted
+/// prefix (`пп. 2.1 - 4.1` mints exactly the two members `pnt_2.1` and
+/// `pnt_4.1`, and the dedup key is the literal `pnt_2.1..pnt_4.1` - no
+/// walk over last segments).
+///
+/// The unit is proven, in order: (1) the reference head left of
+/// `range.start` - an allowlisted Abbrev or an `inflected_tail_to_marker`
+/// Word over the same covering token stream (`статьями 7.29 - 7.32` ->
+/// art, `подпункты 4.1 - 4.3` -> pp -> pnt); (2) the nearest previous
+/// stack frame of a numbered unit; (3) nothing - the range stays honestly
+/// unresolved (fail-closed: no invented unit). Below-art endpoints carry
+/// the article context: the stacked `art_N` frame, or the honest
+/// `art_ctx` token when the same src holds a FOLLOWING article anaphora
+/// and no frame exists (the supply is a look-ahead over the sorted
+/// capture list, never a text right-scan). The false range stays
+/// unresolved: equal endpoints continuing a hyphen split (`16.6 - 16.6`
+/// out of the lexer split of `16.6-2`) prove no range. Units above the
+/// article never mint (same `eid_start_at` contour as chains).
+fn resolve_range(
+    capture: &LawRef,
+    index: usize,
+    captures: &[LawRef],
+    src: &str,
+    tokens: &[crate::lexer::NpaToken],
+    resolution: &ResolutionTable,
+    stack: &[Frame],
+) -> Outcome {
+    let Some((from, to)) = capture.slots.range.as_ref() else {
+        return Outcome::unresolved();
+    };
+    // False range: equal endpoints continuing a hyphen split (`-2` of
+    // `16.6-2`, which capture already froze as `16.6 - 16.6` because the
+    // trailing `-2` is not a second HierNum).
+    if from == to && hyphen_split_continuation(src, capture.span.end()) {
+        return Outcome::unresolved();
+    }
+    // Unit: the left-scan head, else the nearest previous numbered frame.
+    let unit = match range_head_marker(tokens, capture.span.start(), src, resolution)
+        .and_then(|marker| table_lookup(&resolution.marker_to_eid, marker))
+        .map(str::to_owned)
+        .or_else(|| {
+            stack
+                .iter()
+                .rev()
+                .find(|frame| below_art_rank(&frame.unit).is_some())
+                .map(|frame| frame.unit.clone())
+        }) {
+        Some(unit) => unit,
+        None => return Outcome::unresolved(),
+    };
+    // Units above the article never mint: a `гл.`/`разд.` head drops out
+    // instead of minting chp_/sec_ ranges (same eid_start_at contour as
+    // chains).
+    if below_art_rank(&unit).is_none() {
+        return Outcome::unresolved();
+    }
+    // Article prefix for below-art endpoints: the stacked art frame, or
+    // the honest `art_ctx` token when a following art-level anaphora
+    // supplies the current-article context and no frame exists.
+    let prefix = if unit == "art" {
+        None
+    } else {
+        stack
+            .iter()
+            .rev()
+            .find(|frame| frame.unit == "art")
+            .map(Frame::path)
+            .or_else(|| {
+                following_art_anaphora(captures, index, src, resolution)
+                    .then_some("art_ctx".to_owned())
+            })
+    };
+    let endpoint = |num: &str| match &prefix {
+        Some(article) => CanonicalAnchor::try_new(&format!("{article}/{unit}_{num}")),
+        None => CanonicalAnchor::try_new(&format!("{unit}_{num}")),
+    };
+    let (Ok(from_anchor), Ok(to_anchor)) = (endpoint(from), endpoint(to)) else {
+        return Outcome::unresolved();
+    };
+    let dedup_key = format!("{}..{}", from_anchor.path, to_anchor.path);
+    Outcome {
+        anchor: Some(from_anchor.clone()),
+        members: vec![from_anchor, to_anchor],
+        dedup_key: Some(dedup_key),
+    }
+}
+
+/// Left-scans for the reference head of a range over the covering token
+/// stream: from the token opening at `range_start`, walk left across
+/// Space; the FIRST non-Space token decides. An allowlisted Abbrev
+/// contributes its `marker_to_eid` id (`пп.`, `ст.`); a Word contributes
+/// its `inflected_tail_to_marker` row (`статьями`, `подпункты`); a
+/// non-hitting word, a Punct, or the start of input stops the scan with
+/// no head. The governing noun of a Russian reference sits immediately
+/// left of its number, so the scan never reaches across one (fail-closed;
+/// a comma-list member invents no head of the whole list).
+fn range_head_marker<'t>(
+    tokens: &[crate::lexer::NpaToken],
+    range_start: usize,
+    src: &str,
+    resolution: &'t ResolutionTable,
+) -> Option<&'t str> {
+    use crate::lexer::TokenKind;
+    let mut index = tokens
+        .iter()
+        .position(|token| token.span.start() == range_start)?;
+    while index > 0 {
+        index -= 1;
+        match tokens[index].kind {
+            TokenKind::Space => continue,
+            TokenKind::Abbrev => {
+                let id = tokens[index].abbrev_id?.as_str();
+                return resolution
+                    .marker_to_eid
+                    .iter()
+                    .any(|(marker, _)| marker == id)
+                    .then_some(id);
+            }
+            TokenKind::Word => {
+                return table_lookup(
+                    &resolution.inflected_tail_to_marker,
+                    tokens[index].lexeme(src),
+                );
+            }
+            _ => return None,
+        }
+    }
+    None
+}
+
+/// `true` when the source continues a hyphen-split number right after
+/// `end` (`-2` of the lexer split `16.6-2`, which capture already froze
+/// as the endpoint pair `16.6 - 16.6`).
+fn hyphen_split_continuation(src: &str, end: usize) -> bool {
+    src.as_bytes().get(end) == Some(&b'-')
+        && src[end + 1..]
+            .chars()
+            .next()
+            .is_some_and(|ch: char| ch.is_ascii_digit())
+}
+
+/// `true` when a LATER capture of the same src is an anaphora whose level
+/// maps to the article unit - the roadmap `art_ctx` supplier. Ranges
+/// resolve before a following anaphora is walked, so the supply is a
+/// look-ahead over the already-sorted capture list, never a right-scan
+/// of text; doc-level anaphora (`Кодекса`) supplies nothing.
+fn following_art_anaphora(
+    captures: &[LawRef],
+    capture_index: usize,
+    src: &str,
+    resolution: &ResolutionTable,
+) -> bool {
+    captures[capture_index + 1..].iter().any(|capture| {
+        capture.pattern_id == "anaphora_candidate"
+            && anaphora_level(capture, src, resolution).is_some_and(|level| {
+                level != DOC_SINK && table_lookup(&resolution.marker_to_eid, level) == Some("art")
+            })
+    })
 }
 
 /// The marker id of a capture's head token, sliced out of the capture span
