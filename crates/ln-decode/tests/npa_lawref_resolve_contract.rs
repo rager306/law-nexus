@@ -1,20 +1,23 @@
-//! Contract tests for the LawRef resolution layer (M199 S03 T01).
+//! Contract tests for the LawRef resolution layer (M199 S03 T01/T02).
 //!
-//! T01 ships the resolved SURFACE over frozen capture (D350): the
+//! T01 shipped the resolved SURFACE over frozen capture (D350): the
 //! `lawref_resolve` module (never fields on `LawRef`), the
 //! `npa_lawref_resolution` YAML table (resolution as data, KBO-R025
-//! idiom), the fail-closed `CanonicalAnchor`, and the `resolve_lawrefs`
-//! stub that consumes `capture_lawrefs` and mints nothing yet. The first
-//! proof (`ч. 1 ст. 42` -> `art_42/par_1`, ELI 5.4.1 reverse order) stays
-//! `#[ignore]`d (D373 idiom): T02 un-ignores it and implements the chain
-//! reverse, so the default suite is green while minting lives in T02.
+//! idiom), and the fail-closed `CanonicalAnchor`. T02 lifts resolution
+//! to behavior: the chain reverse (ELI 5.4.1: `ч. 1 ст. 42` ->
+//! `art_42/par_1`), the per-src context stack, anaphora binding with
+//! `art_ctx`/`sec_ctx` as the honest missing-frame tokens, the `doc`
+//! sink (never a minted `doc_*`), and the quoted-enum `sub_а` append.
+//! The first proof runs un-ignored; ranges stay honestly unresolved (the
+//! next task owns the expanded pair) and amendment/date windows stay out
+//! of scope (R070).
 //!
 //! Inline fixtures and tracked src/YAML reads only; the corpus
 //! (`consru_export`) is never opened. No `#[path]` include of
 //! `npa_lawref_support` (D335).
 
 use std::fs;
-use std::path::Path;
+use std::path::{Path, PathBuf};
 
 use ln_decode::lawref_resolve::{resolve_lawrefs, CanonicalAnchor, ResolutionTable};
 use ln_decode::prefix_catalog::EMBEDDED_ONTOLOGY_YAML;
@@ -351,11 +354,12 @@ fn freeze_no_parsing_deps_and_no_lawref_tokenkind() {
 }
 
 // ---------------------------------------------------------------------------
-// (f) Stub behavior: empty src and the hostile initial stay empty.
+// (f) Behavior: empty src and the hostile initial stay empty (the resolver
+// only mints what capture proves; a hostile initial captures nothing).
 // ---------------------------------------------------------------------------
 
 #[test]
-fn resolve_stub_returns_empty_for_empty_and_hostile_input() {
+fn resolve_returns_empty_for_empty_and_hostile_input() {
     assert!(
         resolve_lawrefs("").is_empty(),
         "empty source: stub-ok empty resolution"
@@ -367,13 +371,11 @@ fn resolve_stub_returns_empty_for_empty_and_hostile_input() {
 }
 
 // ---------------------------------------------------------------------------
-// First proof - RED by design until T02 (D373 idiom): T02 un-ignores it
-// when resolve_lawrefs implements the abbrev-hier-chain reverse. Default
-// `cargo test --test npa_lawref_resolve_contract` does not run ignored.
+// First proof - green in T02: the abbrev-hier-chain reverse maps
+// `[ch, st] + [1, 42]` to the outer-first `art_42/par_1` (ELI 5.4.1).
 // ---------------------------------------------------------------------------
 
 #[test]
-#[ignore = "RED by design in T01: T02 implements the chain reverse and un-ignores"]
 fn first_proof_chain_reverse_and_hostile_initial() {
     let refs = resolve_lawrefs("ч. 1 ст. 42");
     assert_eq!(
@@ -399,4 +401,251 @@ fn first_proof_chain_reverse_and_hostile_initial() {
             "the hostile initial must never head an anchor"
         );
     }
+}
+
+// ---------------------------------------------------------------------------
+// T02 pins: chain emission, fullword tails, live frag-173, anaphora
+// bind/ctx, the doc sink, the quoted-enum append, out-of-scope
+// pass-through. Inline synthetics are first-class (sample poverty is why)
+// plus one tracked live fixture read.
+// ---------------------------------------------------------------------------
+
+/// Tracked fragment fixture directory.
+fn fixture_dir() -> PathBuf {
+    Path::new(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/npa-lawref")
+}
+
+#[test]
+fn chain_reverse_mints_dotted_relative_and_drops_above_art() {
+    // Dotted numbers stay dotted: `26.2` is one label, never split.
+    let refs = resolve_lawrefs("ст. 26.2");
+    assert_eq!(refs.len(), 1);
+    assert_eq!(
+        refs[0]
+            .anchor
+            .as_ref()
+            .expect("an st chain must mint its art anchor")
+            .path,
+        "art_26.2"
+    );
+    assert_eq!(refs[0].dedup_key.as_deref(), Some("art_26.2"));
+    assert!(refs[0].members.is_empty(), "range pairs belong to T03");
+
+    // A numbered chain that never named an article stays relative and
+    // invents no `art_ctx` (negative pin).
+    let refs = resolve_lawrefs("п. 2.1");
+    assert_eq!(refs.len(), 1);
+    assert_eq!(
+        refs[0]
+            .anchor
+            .as_ref()
+            .expect("a p chain must mint its relative pnt anchor")
+            .path,
+        "pnt_2.1"
+    );
+
+    // Above-art units drop from the minted path (eid_start_at: art) while
+    // their frames still feed the context stack.
+    let refs = resolve_lawrefs("разд. 2");
+    assert_eq!(refs.len(), 1);
+    assert!(
+        refs[0].anchor.is_none() && refs[0].dedup_key.is_none(),
+        "a sec-only chain mints no canonical anchor"
+    );
+}
+
+#[test]
+fn fullword_inflected_tail_maps_through_the_table() {
+    // The head word is left-scanned out of the capture span (never stored):
+    // `статьи` -> st -> art.
+    let refs = resolve_lawrefs("статьи 19.5");
+    assert_eq!(refs.len(), 1);
+    assert_eq!(
+        refs[0]
+            .anchor
+            .as_ref()
+            .expect("a mapped fullword tail must mint its anchor")
+            .path,
+        "art_19.5"
+    );
+
+    // Unknown tails fail closed: `закона` is a doc-level head with no
+    // inflected-tail row, so the numbered fullword stays unresolved.
+    let refs = resolve_lawrefs("закона 5");
+    assert_eq!(refs.len(), 1);
+    assert!(
+        refs[0].anchor.is_none(),
+        "an unmapped fullword tail must not invent an anchor"
+    );
+}
+
+#[test]
+fn live_frag_173_chain_resolves_art_26_2_par_1() {
+    let src = fs::read_to_string(fixture_dir().join("npa-frag-173.txt"))
+        .expect("read the tracked live fixture npa-frag-173.txt");
+    let first = resolve_lawrefs(&src);
+    let second = resolve_lawrefs(&src);
+    assert_eq!(
+        first, second,
+        "resolution over the live fragment must be deterministic"
+    );
+    let hit = first
+        .iter()
+        .find(|resolved| resolved.capture.span.start() == 251 && resolved.capture.span.end() == 267)
+        .expect("frag-173 holds the tracked capture at [251, 267)");
+    assert_eq!(hit.capture.pattern_id, "abbrev-hier-chain");
+    assert_eq!(hit.capture.slots.marker_chain, ["ch", "st"]);
+    assert_eq!(hit.capture.slots.hier_nums, ["1", "26.2"]);
+    assert_eq!(
+        hit.anchor
+            .as_ref()
+            .expect("the live chain must mint its canonical anchor")
+            .path,
+        "art_26.2/par_1",
+        "ELI 5.4.1: outer-first from the article, dotted number intact"
+    );
+}
+
+#[test]
+fn anaphora_binds_nearest_frame_or_emits_honest_ctx_tokens() {
+    // Bound: the nearest previous art frame on the stack.
+    let refs = resolve_lawrefs("ч. 1 ст. 42 согласно настоящей статьи");
+    let chain = refs
+        .iter()
+        .find(|resolved| resolved.capture.pattern_id == "abbrev-hier-chain")
+        .expect("the chain must be captured");
+    assert_eq!(
+        chain.anchor.as_ref().expect("first proof").path,
+        "art_42/par_1"
+    );
+    let anaphora = refs
+        .iter()
+        .find(|resolved| resolved.capture.pattern_id == "anaphora_candidate")
+        .expect("the anaphora must be captured");
+    assert_eq!(
+        anaphora
+            .anchor
+            .as_ref()
+            .expect("a prior art frame exists on the stack")
+            .path,
+        "art_42"
+    );
+
+    // Missing frame: `art_ctx` is the literal unresolved current-article
+    // token (the roadmap art_ctx contract).
+    let refs = resolve_lawrefs("согласно настоящей статьи");
+    let anaphora = refs
+        .iter()
+        .find(|resolved| resolved.capture.pattern_id == "anaphora_candidate")
+        .expect("the anaphora must be captured");
+    assert_eq!(
+        anaphora
+            .anchor
+            .as_ref()
+            .expect("the ctx token is an emitted anchor")
+            .path,
+        "art_ctx"
+    );
+
+    // The target is the LAST Word of the span, not the head: `того же
+    // раздела` binds `раздела` -> razd -> the prior `разд. 2` sec frame.
+    let refs = resolve_lawrefs("разд. 2 пунктом 5 того же раздела");
+    let anaphora = refs
+        .iter()
+        .find(|resolved| resolved.capture.pattern_id == "anaphora_candidate")
+        .expect("the anaphora must be captured");
+    assert_eq!(
+        anaphora
+            .anchor
+            .as_ref()
+            .expect("the prior sec frame exists")
+            .path,
+        "sec_2"
+    );
+
+    // Empty stack at a sec level: `sec_ctx`, never a panic.
+    let refs = resolve_lawrefs("того же раздела");
+    let anaphora = refs
+        .iter()
+        .find(|resolved| resolved.capture.pattern_id == "anaphora_candidate")
+        .expect("the anaphora must be captured");
+    assert_eq!(
+        anaphora
+            .anchor
+            .as_ref()
+            .expect("the ctx token is an emitted anchor")
+            .path,
+        "sec_ctx"
+    );
+}
+
+#[test]
+fn doc_anaphora_and_hostile_inputs_stay_none_without_panicking() {
+    // `doc` is the non-eId sink: `Кодекса` resolves to None, never doc_*.
+    let refs = resolve_lawrefs("настоящего Кодекса");
+    assert_eq!(refs.len(), 1);
+    assert!(refs[0].anchor.is_none());
+    assert!(refs[0].dedup_key.is_none());
+
+    // Hostile empty-stack `того же` (no target word) captures nothing at
+    // all: empty result, no panic.
+    assert!(resolve_lawrefs("того же").is_empty());
+
+    // The C2 hostile initial still never heads an anchor.
+    for resolved in resolve_lawrefs("Ч. 1.1 ст. 33") {
+        assert_ne!(
+            resolved.capture.span.start(),
+            0,
+            "the hostile initial must never head an anchor"
+        );
+    }
+}
+
+#[test]
+fn quoted_enum_appends_sub_letter_to_the_nearest_unit_frame() {
+    // The word head left-scans through the inflected-tail table
+    // (`подпункта` -> pp -> pnt) and appends the letter as written.
+    let refs = resolve_lawrefs("п. 2.1 подпункта \"а\"");
+    let quoted = refs
+        .iter()
+        .find(|resolved| resolved.capture.pattern_id == "quoted-enum")
+        .expect("the quoted enumeration must be captured");
+    assert_eq!(
+        quoted
+            .anchor
+            .as_ref()
+            .expect("the prior pnt frame exists")
+            .path,
+        "pnt_2.1/sub_\u{0430}",
+        "the Cyrillic letter rides the anchor as written"
+    );
+
+    // No prior frame of the head's unit: honestly unresolved, no panic.
+    let refs = resolve_lawrefs("подпункта \"а\"");
+    let quoted = refs
+        .iter()
+        .find(|resolved| resolved.capture.pattern_id == "quoted-enum")
+        .expect("the quoted enumeration must be captured");
+    assert!(
+        quoted.anchor.is_none(),
+        "a quoted enum with no pnt frame must not invent one"
+    );
+}
+
+#[test]
+fn out_of_scope_patterns_pass_through_unresolved() {
+    // Amendment windows stay out of resolution scope (R070).
+    let refs = resolve_lawrefs("в ред. от 01.01.2028 44-ФЗ");
+    let window = refs
+        .iter()
+        .find(|resolved| resolved.capture.pattern_id == "abbrev-amendment-window")
+        .expect("the amendment window must be captured");
+    assert!(window.anchor.is_none() && window.dedup_key.is_none());
+
+    // Ranges stay honestly unresolved: the expanded pair belongs to T03.
+    let refs = resolve_lawrefs("1.1 - 4.1");
+    assert_eq!(refs.len(), 1);
+    assert_eq!(refs[0].capture.pattern_id, "range_candidate");
+    assert!(refs[0].anchor.is_none());
+    assert!(refs[0].members.is_empty() && refs[0].dedup_key.is_none());
 }

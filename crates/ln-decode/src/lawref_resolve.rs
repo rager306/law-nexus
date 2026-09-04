@@ -11,15 +11,14 @@
 //! `npa_lawref_resolution` YAML table (resolution as data, KBO-R025
 //! idiom), so src never hardcodes `статьи -> st` or `st -> art`.
 //!
-//! T01 ships the surface: [`CanonicalAnchor`], [`ResolvedLawRef`], the
-//! parsed [`ResolutionTable`] table view, and the stub resolver that
-//! mints nothing yet. T02 implements the chain reverse (ELI 5.4.1:
-//! `ч. 1 ст. 42` -> `art_42/par_1`), the in-src context stack, ranges as
-//! expanded pairs, and canonical dedup keys; the first-proof contract test
-//! stays `#[ignore]`d until then (D373 idiom). R070 stays open:
-//! resolution stays lexical, not provenance. Errors name keys, headings,
-//! and rules - never captured source text - and the library path never
-//! panics.
+//! T02 lifts the stub to behavior: the chain reverse (ELI 5.4.1:
+//! `ч. 1 ст. 42` -> `art_42/par_1`), the per-src context stack, and
+//! anaphora binding with `art_ctx` as the honest missing-frame token; the
+//! first-proof contract test runs un-ignored. Ranges stay honestly
+//! unresolved here - the next task owns the expanded pair and the
+//! canonical dedup grouping demo. R070 stays open: resolution stays
+//! lexical, not provenance. Errors name keys, headings, and rules - never
+//! captured source text - and the library path never panics.
 
 use crate::lawref::LawRef;
 
@@ -93,9 +92,9 @@ impl CanonicalAnchor {
 ///
 /// `anchor: None` is an honestly unresolved capture - the resolver never
 /// invents an anchor it cannot prove from the table. `members` carries the
-/// expanded-pair range endpoints once ranges resolve (T02); `dedup_key`
-/// carries the canonical grouping key when written variants of one
-/// reference collapse (T03).
+/// expanded-pair range endpoints once ranges resolve (the next task, T03);
+/// `dedup_key` carries the canonical grouping key when written variants of
+/// one reference collapse (T03).
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ResolvedLawRef {
     /// The untouched S02 capture candidate.
@@ -111,22 +110,270 @@ pub struct ResolvedLawRef {
 /// Resolves captured reference candidates against the embedded
 /// `npa_lawref_resolution` table.
 ///
-/// T01 stub: capture runs first (the resolver consumes frozen captures, it
-/// never rescans text), the embedded-table failure idiom is wired (same
-/// leftover-#5 idiom as capture: a build-data defect degrades to "no
-/// resolutions", never panics a caller), and nothing is minted yet - T02
-/// implements the chain reverse, the context stack, ranges, and dedup.
-/// The library path never unwinds and `src` is never logged.
+/// Capture runs first (the resolver consumes frozen captures; it rescans
+/// text only inside capture spans), the embedded table is loaded once per
+/// call, and captures are walked in the frozen `(start, end, pattern_id)`
+/// capture order so the per-src context stack sees references in source
+/// order. A build-data defect degrades to "no resolutions" - never panics
+/// a caller (same leftover-#5 idiom as capture). Every unresolved outcome
+/// is honest: `anchor = None` for document-level anaphora, unknown heads,
+/// amendment/date windows, and ranges (the next task owns the expanded
+/// pair); `{unit}_ctx` tokens for anaphora whose level has no prior frame
+/// in the same src. The library path never unwinds and `src` is never
+/// logged.
 pub fn resolve_lawrefs(src: &str) -> Vec<ResolvedLawRef> {
     let captures = crate::lawref::capture_lawrefs(src);
     if captures.is_empty() {
         return Vec::new();
     }
-    let Ok(_resolution) = ResolutionTable::embedded() else {
+    let Ok(resolution) = ResolutionTable::embedded() else {
         return Vec::new();
     };
-    // T02 mints `ResolvedLawRef` from `captures` + `resolution` here.
-    Vec::new()
+    let mut stack: Vec<Frame> = Vec::new();
+    let mut resolved = Vec::with_capacity(captures.len());
+    for capture in captures {
+        let anchor = resolve_capture(&capture, src, &resolution, &mut stack);
+        let dedup_key = anchor.as_ref().map(|anchor| anchor.path.clone());
+        resolved.push(ResolvedLawRef {
+            capture,
+            anchor,
+            // Expanded-pair range members belong to the next task (T03).
+            members: Vec::new(),
+            dedup_key,
+        });
+    }
+    resolved
+}
+
+// ---------------------------------------------------------------------------
+// T02 resolution engine: chain reverse, per-src context stack, anaphora
+// bind. Private on purpose - the public surface is `resolve_lawrefs` plus
+// the T01 types.
+// ---------------------------------------------------------------------------
+
+/// One context frame on the per-src stack: a minted `(unit, number)` pair
+/// later anaphora binds against (eyecite-style stack update; per call,
+/// never process-global, never a `ParsedBlock`).
+#[derive(Debug, Clone, PartialEq, Eq)]
+struct Frame {
+    unit: String,
+    num: String,
+}
+
+impl Frame {
+    /// The frame's `unit_label` path form (`art_42`).
+    fn path(&self) -> String {
+        format!("{}_{}", self.unit, self.num)
+    }
+}
+
+/// Structural position below the article for chain-path emission (ELI
+/// 5.4.1 order `art > par > pnt > sub > aln`). `chp`/`sec` sit above
+/// `eid_start_at` and return `None`: they drop out of a minted path while
+/// their frames still feed the context stack.
+fn below_art_rank(unit: &str) -> Option<usize> {
+    match unit {
+        "art" => Some(0),
+        "par" => Some(1),
+        "pnt" => Some(2),
+        "sub" => Some(3),
+        "aln" => Some(4),
+        _ => None,
+    }
+}
+
+/// Value of `key` in a table's `(key, value)` rows (table lookups only -
+/// the mappings live in the YAML table, never in src).
+fn table_lookup<'t>(rows: &'t [(String, String)], key: &str) -> Option<&'t str> {
+    rows.iter()
+        .find(|(name, _)| name == key)
+        .map(|(_, value)| value.as_str())
+}
+
+/// Canonical `/`-joined path of the below-art frames in hierarchy order
+/// (stable for equal ranks). `None` when no frame sits below the article:
+/// a chain that never named an article-relative unit cannot mint a path
+/// (its frames are still pushed).
+fn ranked_path(frames: &[Frame]) -> Option<String> {
+    let mut ranked: Vec<&Frame> = frames
+        .iter()
+        .filter(|frame| below_art_rank(&frame.unit).is_some())
+        .collect();
+    if ranked.is_empty() {
+        return None;
+    }
+    ranked.sort_by_key(|frame| below_art_rank(&frame.unit));
+    Some(
+        ranked
+            .iter()
+            .map(|frame| frame.path())
+            .collect::<Vec<_>>()
+            .join("/"),
+    )
+}
+
+/// Resolves one capture against the table and the current frame stack,
+/// pushing newly minted frames. Pattern ids mirror the closed
+/// seven-pattern capture canon; the library path never panics and never
+/// logs - every failure degrades to `None`.
+fn resolve_capture(
+    capture: &LawRef,
+    src: &str,
+    resolution: &ResolutionTable,
+    stack: &mut Vec<Frame>,
+) -> Option<CanonicalAnchor> {
+    match capture.pattern_id.as_str() {
+        "abbrev-hier-chain" => resolve_chain(capture, resolution, stack),
+        "fullword-ref" => resolve_fullword(capture, src, resolution, stack),
+        "anaphora_candidate" => resolve_anaphora(capture, src, resolution, stack),
+        "quoted-enum" => resolve_quoted_enum(capture, src, resolution, stack),
+        // Amendment / date-docno windows stay out of resolution scope
+        // (R070); ranges are the next task's expanded pair.
+        "abbrev-amendment-window" | "date-docno-window" | "range_candidate" => None,
+        // The seven-pattern canon makes this unreachable; a future pattern
+        // id fails closed instead of minting an unproven anchor.
+        _ => None,
+    }
+}
+
+/// Chain reverse (ELI 5.4.1, load-bearing): pairs `(marker[i], num[i])` in
+/// source order - capture writes `ч.` then `ст.` and `1` then `42`, the
+/// canonical path is outer-first starting at the article - maps every
+/// marker through `marker_to_eid`, pushes all minted frames onto the
+/// stack, and mints the path from the below-art frames in hierarchy
+/// order. `[ch, st] + [1, 42]` mints `art_42/par_1`; a lone `разд. 2`
+/// pushes `(sec, 2)` and mints no path (`eid_start_at: art`); dotted
+/// numbers stay dotted and are never split.
+fn resolve_chain(
+    capture: &LawRef,
+    resolution: &ResolutionTable,
+    stack: &mut Vec<Frame>,
+) -> Option<CanonicalAnchor> {
+    let markers = &capture.slots.marker_chain;
+    let nums = &capture.slots.hier_nums;
+    if markers.len() != nums.len() {
+        return None;
+    }
+    let mut frames = Vec::with_capacity(markers.len());
+    for (marker, num) in markers.iter().zip(nums.iter()) {
+        let unit = table_lookup(&resolution.marker_to_eid, marker)?;
+        frames.push(Frame {
+            unit: unit.to_owned(),
+            num: num.clone(),
+        });
+    }
+    let path = ranked_path(&frames);
+    stack.extend(frames);
+    path.and_then(|minted| CanonicalAnchor::try_new(&minted).ok())
+}
+
+/// Fullword resolution: the inflected head (`статьи`, `пункта`) maps
+/// through `inflected_tail_to_marker` then `marker_to_eid` - the head word
+/// is left-scanned out of the capture span, never stored. A numbered
+/// fullword mints one frame; a document-head fullword (`закона 44-ФЗ`,
+/// the `doc_no` slot) stays unresolved.
+fn resolve_fullword(
+    capture: &LawRef,
+    src: &str,
+    resolution: &ResolutionTable,
+    stack: &mut Vec<Frame>,
+) -> Option<CanonicalAnchor> {
+    if capture.slots.doc_no.is_some() || capture.slots.hier_nums.len() != 1 {
+        return None;
+    }
+    let marker = head_marker_id(capture, src, resolution)?;
+    let unit = table_lookup(&resolution.marker_to_eid, marker)?;
+    let frame = Frame {
+        unit: unit.to_owned(),
+        num: capture.slots.hier_nums[0].clone(),
+    };
+    let anchor = ranked_path(std::slice::from_ref(&frame))
+        .and_then(|minted| CanonicalAnchor::try_new(&minted).ok());
+    stack.push(frame);
+    anchor
+}
+
+/// Anaphora bind: the level comes from the LAST Word of the anaphora span
+/// (`того же раздела` binds `раздела`, not the head), looked up in
+/// `anaphora_target_to_level`. The `doc` sink (`Кодекса`, `Положения`,
+/// `закона`, `Федерального`) never mints `doc_*`. A marker level binds
+/// the nearest previous matching frame on the stack or emits the honest
+/// missing-frame token (`art_ctx` / `sec_ctx` / `chp_ctx`).
+fn resolve_anaphora(
+    capture: &LawRef,
+    src: &str,
+    resolution: &ResolutionTable,
+    stack: &[Frame],
+) -> Option<CanonicalAnchor> {
+    let text = capture.user_text(src);
+    let target = last_word_of(text)?;
+    let level = table_lookup(&resolution.anaphora_target_to_level, target)?;
+    if level == DOC_SINK {
+        return None;
+    }
+    let unit = table_lookup(&resolution.marker_to_eid, level)?;
+    match stack.iter().rev().find(|frame| frame.unit == unit) {
+        Some(frame) => CanonicalAnchor::try_new(&frame.path()).ok(),
+        None => CanonicalAnchor::try_new(&format!("{unit}_ctx")).ok(),
+    }
+}
+
+/// Quoted-enum resolution: the letter is the capture's `quoted_enum` slot
+/// as written; the head is left-scanned the same way capture built it
+/// (abbrev id or inflected word - capture is never "fixed" here). The
+/// letter appends to the nearest previous frame of the head's own unit
+/// (`п. 2.1 ... подпункта "а"` -> `pnt_2.1/sub_а`); with no such frame the
+/// capture stays honestly unresolved.
+fn resolve_quoted_enum(
+    capture: &LawRef,
+    src: &str,
+    resolution: &ResolutionTable,
+    stack: &[Frame],
+) -> Option<CanonicalAnchor> {
+    let letter = capture.slots.quoted_enum.as_deref()?;
+    let marker = head_marker_id(capture, src, resolution)?;
+    let unit = table_lookup(&resolution.marker_to_eid, marker)?;
+    let frame = stack.iter().rev().find(|frame| frame.unit == unit)?;
+    let path = format!("{}/sub_{letter}", frame.path());
+    CanonicalAnchor::try_new(&path).ok()
+}
+
+/// The marker id of a capture's head token, sliced out of the capture span
+/// over the frozen lexer (user text is never stored): an Abbrev
+/// contributes its lexicon id, a Word maps through
+/// `inflected_tail_to_marker`. `None` when the span opens with neither.
+fn head_marker_id<'t>(
+    capture: &LawRef,
+    src: &str,
+    resolution: &'t ResolutionTable,
+) -> Option<&'t str> {
+    let text = capture.user_text(src);
+    let token = crate::lexer::lex(text).into_iter().find(|token| {
+        matches!(
+            token.kind,
+            crate::lexer::TokenKind::Word | crate::lexer::TokenKind::Abbrev
+        )
+    })?;
+    match token.kind {
+        crate::lexer::TokenKind::Abbrev => {
+            let id = token.abbrev_id?.as_str();
+            resolution
+                .marker_to_eid
+                .iter()
+                .any(|(marker, _)| marker == id)
+                .then_some(id)
+        }
+        _ => table_lookup(&resolution.inflected_tail_to_marker, token.lexeme(text)),
+    }
+}
+
+/// The last `Word` lexeme of an already-sliced capture span (the anaphora
+/// target sits at the span end: `того же раздела` ends in `раздела`).
+fn last_word_of(text: &str) -> Option<&str> {
+    crate::lexer::lex(text)
+        .into_iter()
+        .rfind(|token| token.kind == crate::lexer::TokenKind::Word)
+        .map(|token| token.lexeme(text))
 }
 
 // ---------------------------------------------------------------------------
