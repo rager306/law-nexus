@@ -281,6 +281,21 @@ vocabulary:
     quoted_marker_abbrev_ids: [p, pp]
     fullword_tails: [статьи, пункта, закона, года]
     anaphora_heads: [настоящей, настоящего, настоящая, того]
+  # LawRef resolution (M199 S03, D350): the resolved half over frozen
+  # capture. This table is the single canon for marker-to-eId mapping,
+  # inflected tails, anaphora level targets, range policy, anchor start
+  # unit, and canonical sort - the resolver in ln_decode::lawref_resolve
+  # consumes it and src never hardcodes the mappings. `doc` is a non-eId
+  # sink value, never an eId unit (doc_* is never minted). No
+  # closed_vocabularies row: eId units are string-table data, not a Rust
+  # enum (D216 needs rust_enum+yaml_map). Lifecycle stays [proposed].
+  npa_lawref_resolution:
+    marker_to_eid: {st: art, stst: art, ch: par, p: pnt, pp: pnt, podp: sub, abz: aln, gl: chp, razd: sec}
+    inflected_tail_to_marker: {статьи: st, статьями: st, части: ch, частями: ch, пункта: p, пунктами: p, пункты: p, подпункты: pp, подпункта: pp}
+    anaphora_target_to_level: {статьи: st, статье: st, статьей: st, раздела: razd, главе: gl, Кодекса: doc, Положения: doc, закона: doc, Федерального: doc}
+    range_policy: expanded_pair
+    eid_start_at: art
+    sort_key: [start, end, path]
   decode_numbered_markers:
     Chast: {number_style: digit, suffix: ".", allow_compound: true}
     Punkt: {number_style: digit, suffix: ")", allow_compound: true}

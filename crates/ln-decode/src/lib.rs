@@ -15,6 +15,7 @@ pub mod evaluator;
 pub mod golden;
 pub mod hierarchy;
 pub mod lawref;
+pub mod lawref_resolve;
 pub mod lexer;
 pub mod morphology;
 pub mod npa_sweep;
