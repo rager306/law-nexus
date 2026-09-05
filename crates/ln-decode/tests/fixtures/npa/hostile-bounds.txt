@@ -1,0 +1,98 @@
+# npa-hostile-bounds/v1 - synthetic hostile construction seeds (M200-8s4kwq S03 T03).
+# Every construction line below is invented test vocabulary, never an excerpt of
+# any legal document (R022). Closed grammar: a seed block starts at a header of
+# the exact shape `# family=F seed=S`; each following non-header, non-empty line
+# is one synthetic block. Unknown family or seed labels must fail the reader
+# closed; the hostile suite pins set equality with the production seed contracts.
+
+# family=coordinating-list seed=comma-heading-interrupt
+пунктом 2 части 1 статьи 14, пунктом 3 статьи 15,
+Раздел II. Общие положения
+и подпунктом 1 статьи 20
+
+# family=coordinating-list seed=mixed-type-chain
+законом от 10.05.2007 N 65-ФЗ, постановлением от 20.06.2008 N 190, приказом от 01.02.2009 N 17
+
+# family=coordinating-list seed=unclosed-parenthesis
+(от 14.04.2017 N 446
+
+# family=coordinating-list seed=repeated-comma-empty-member
+статьи 6, , статьи 7
+
+# family=coordinating-list seed=case-address-metadata
+решение по делу от 05.03.2019 N 112233/19 оставлено в силе
+
+# family=structural-range seed=descending-range
+статьями 7.32 - 7.29 того же Кодекса
+
+# family=structural-range seed=non-comparable-paths
+статьи 5 - пункта 3 приложения
+
+# family=structural-range seed=linguistic-hyphen
+часть первая - переходные положения
+
+# family=structural-range seed=quoted-digit-near-chast
+в части «2» - «4» статьи 9
+
+# family=cross-block-continuation seed=unrelated-ot-date-n
+статьи 3 настоящего Кодекса
+от 14.04.2017 N 446
+
+# family=cross-block-continuation seed=heading-terminates-series
+статьи 3, статьи 4,
+Глава II. Заключительные положения
+и статьи 5
+
+# family=cross-block-continuation seed=two-heads
+закон от 05.05.2014 N 100-ФЗ действует
+закон от 06.06.2015 N 200-ФЗ действует
+
+# family=cross-block-continuation seed=continuation-cycle
+статьи 8 продолжается в блок Б
+статьи 9 продолжается в блок А
+
+# family=cross-block-continuation seed=corrupt-block-order
+статьи 12
+
+# family=alias-recursion seed=alias-cycle
+«Реестр» - перечень, утверждённый актом (далее - «Акт»)
+«Акт» - акт, утверждающий «Реестр» (далее - «Реестр»)
+
+# family=alias-recursion seed=alias-out-of-scope
+Раздел I: «Орган» - уполномоченный орган (далее - «Орган»)
+Раздел II: компетенция «Органа» без объявления в этом разделе
+
+# family=alias-recursion seed=sibling-same-word
+Раздел I: «Орган» - федеральный орган (далее - «Орган»)
+Раздел II: «Орган» - региональный орган (далее - «Орган»)
+
+# family=alias-recursion seed=forward-keyed-lookup
+его полномочия определяются позже
+Раздел V: «полномочия» - исчерпывающий перечень
+
+# family=alias-recursion seed=context-path-budget
+пункта 3 - пункта 2 - пункта 1
+
+# family=requisites-conflict seed=head-filename-conflict
+глава: закон от 01.03.2020 N 111-ФЗ
+файл: document_2020-03-01_222-fz
+
+# family=requisites-conflict seed=head-catalog-conflict
+глава: закон от 01.03.2020 N 111-ФЗ
+каталог: закон от 02.03.2020 N 333-ФЗ
+
+# family=requisites-conflict seed=filename-catalog-conflict
+файл: document_2020-03-01_333-А-fz
+каталог: document_2020-03-01_333-fz
+
+# family=requisites-conflict seed=geo-org-collapse
+глава: закон Республики Карелия от 01.03.2020 N 111-ФЗ
+каталог: закон города Саратова от 01.03.2020 N 111-ФЗ
+
+# family=requisites-conflict seed=missing-temporal-provenance
+глава: закон от 01.03.2020 N 111-ФЗ
+издание: отсутствует
+
+# family=requisites-conflict seed=single-source-visible
+глава: закон от 01.03.2020 N 111-ФЗ
+каталог: отсутствует

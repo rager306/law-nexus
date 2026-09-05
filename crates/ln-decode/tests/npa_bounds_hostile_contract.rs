@@ -1,4 +1,4 @@
-//! S03 T01+T02 hostile contracts (M200-8s4kwq): tracked review `m200-s03-outlier-review/v1`
+//! S03 T01+T02+T03 hostile contracts (M200-8s4kwq): tracked review `m200-s03-outlier-review/v1`
 //! over the accepted S02 `[diagnostic]` JSONL (D388 select-or-defer).
 //! Reader: `npa_support`'s D328 closed parser (exact booleans via raw markers).
 //! Source binding: structured pins + acceptance cross-chain (digests: S02 UAT).
@@ -12,10 +12,13 @@ mod npa_support;
 use std::fs;
 use std::path::PathBuf;
 
+use ln_decode::lawref::{capture_lawrefs, LawRef};
+use ln_decode::lexer::lex;
 use ln_decode::npa_bounds::{
     arbitrate_pair, span_relation, validate_bounds_jsonl, PairDiagnostic, PairOutcome,
     SpanRelation, UNAVAILABLE_METRICS,
 };
+use ln_decode::unknown_forms::collect_unknown_forms_from_text;
 use npa_support::{parse_json, Json};
 
 // Pinned values (accepted S02 evidence chain).
@@ -1087,5 +1090,771 @@ fn t11_arbitration_defaults_bind_observed_distribution() {
         "production span_relation classifier",
     ] {
         assert!(g14.contains(required), "G14 rationale drifted: {required}");
+    }
+}
+
+// ═══ T03: construction-family hostile synthetics (fixture-driven, test-only) ═══
+//
+// Blocking rework F1 (M200 S03): the hostile seed vocabulary is test data. The
+// closed fixture reader, the family/seed/status tables and the refusal
+// contract live here in the integration test - `npa_bounds.rs` stays
+// untouched and no product enum/const/dictionary is minted to mirror the
+// fixture. Executable families run existing production surfaces (`lex`,
+// `capture_lawrefs`, `collect_unknown_forms_from_text`); deferred families
+// record explicit refusal categories only - never a unique answer, never an
+// overlaid runtime. The fixture stays synthetic, count-only and
+// source-independent; unknown family/seed labels fail the reader closed.
+
+const FIXTURE_RELATIVE_PATH: &str = "crates/ln-decode/tests/fixtures/npa/hostile-bounds.txt";
+const CONTEXT_YAML_RELATIVE_PATH: &str = "prd/architecture/npa-document-context.yaml";
+const REQUISITES_YAML_RELATIVE_PATH: &str = "prd/architecture/current-document-requisites.yaml";
+const CYCLE_YAML_RELATIVE_PATH: &str = "prd/architecture/npa-identifying-cycle.yaml";
+
+/// Closed construction families. Executable ones have a production surface to
+/// exercise; deferred ones have none, so only refusal categories are recorded.
+const EXECUTABLE_FAMILIES: [&str; 2] = ["coordinating-list", "structural-range"];
+const DEFERRED_FAMILIES: [&str; 3] = [
+    "cross-block-continuation",
+    "alias-recursion",
+    "requisites-conflict",
+];
+
+/// Closed fixture grammar: family -> expected seed labels (set equality both
+/// ways; an unknown or missing label fails closed).
+#[rustfmt::skip]
+const EXPECTED_FAMILIES: [&str; 5] = [
+    "coordinating-list", "structural-range", "cross-block-continuation",
+    "alias-recursion", "requisites-conflict",
+];
+#[rustfmt::skip]
+const EXPECTED_SEEDS: [&[&str]; 5] = [
+    &["comma-heading-interrupt", "mixed-type-chain", "unclosed-parenthesis",
+      "repeated-comma-empty-member", "case-address-metadata"],
+    &["descending-range", "non-comparable-paths", "linguistic-hyphen",
+      "quoted-digit-near-chast"],
+    &["unrelated-ot-date-n", "heading-terminates-series", "two-heads",
+      "continuation-cycle", "corrupt-block-order"],
+    &["alias-cycle", "alias-out-of-scope", "sibling-same-word",
+      "forward-keyed-lookup", "context-path-budget"],
+    &["head-filename-conflict", "head-catalog-conflict", "filename-catalog-conflict",
+      "geo-org-collapse", "missing-temporal-provenance", "single-source-visible"],
+];
+/// The 25 synthetic seeds carry exactly 42 block lines (count-only scale pin).
+const EXPECTED_SEED_COUNT: usize = 25;
+const EXPECTED_BLOCK_LINE_COUNT: usize = 42;
+
+/// Deferred contract row: (family, seed, recorded status, required diagnostic
+/// or ""). Status vocabulary: `context_result` statuses for context families,
+/// CurrentDocumentRequisites statuses for the requisites family. The settling
+/// statuses (`resolved`, `agreed`) are deliberately unreachable - recording
+/// one would invent a unique answer for a family whose runtime does not exist.
+#[rustfmt::skip]
+const DEFERRED_REFUSALS: [(&str, &str, &str, &str); 16] = [
+    ("cross-block-continuation", "unrelated-ot-date-n", "unavailable", "open_series_without_head"),
+    ("cross-block-continuation", "heading-terminates-series", "conflicting", "cross_block_continuation_ambiguous"),
+    ("cross-block-continuation", "two-heads", "conflicting", "incompatible_series_head"),
+    ("cross-block-continuation", "continuation-cycle", "cycle", ""),
+    ("cross-block-continuation", "corrupt-block-order", "unavailable", "missing_document_structure"),
+    ("alias-recursion", "alias-cycle", "cycle", ""),
+    ("alias-recursion", "alias-out-of-scope", "conflicting", "scoped_alias_ambiguous"),
+    ("alias-recursion", "sibling-same-word", "conflicting", "scoped_alias_ambiguous"),
+    ("alias-recursion", "forward-keyed-lookup", "unavailable", "unresolved_after_document_pass"),
+    ("alias-recursion", "context-path-budget", "limit", "context_query_limit_reached"),
+    ("requisites-conflict", "head-filename-conflict", "conflicting", "head_filename_conflict"),
+    ("requisites-conflict", "head-catalog-conflict", "conflicting", "head_catalog_conflict"),
+    ("requisites-conflict", "filename-catalog-conflict", "conflicting", "filename_catalog_conflict"),
+    ("requisites-conflict", "geo-org-collapse", "conflicting", "org_geo_role_collapse"),
+    ("requisites-conflict", "missing-temporal-provenance", "missing", "required_field_missing"),
+    ("requisites-conflict", "single-source-visible", "single_source", "required_field_missing"),
+];
+
+/// Every deferred family maps to the D388 review gates that must stay
+/// `deferred-undefined` (null proposed value, blocking rationale).
+#[rustfmt::skip]
+const DEFERRED_FAMILY_GATES: [(&str, &str); 5] = [
+    ("cross-block-continuation", "adjacent-block-radius"),
+    ("cross-block-continuation", "max-series-hops"),
+    ("alias-recursion", "max-alias-candidates"),
+    ("alias-recursion", "context-claims-fanout-memo-depth"),
+    ("requisites-conflict", "source-authority-policy"),
+];
+
+/// Raw YAML pins: deferred-undefined bounds stay literals in the tracked
+/// architecture sources, not parsed enums.
+#[rustfmt::skip]
+const CONTEXT_DEFERRED_BOUNDS: [&str; 6] = [
+    "adjacent_block_radius: deferred-undefined",
+    "max_series_hops: deferred-undefined",
+    "max_alias_candidates: deferred-undefined",
+    "max_context_claims_per_field: deferred-undefined",
+    "max_linking_passes: 1",
+    "on_limit: return partial/conflicting with diagnostic; never truncate into a false unique answer",
+];
+#[rustfmt::skip]
+const CONTEXT_REQUIRED_DIAGNOSTICS: [&str; 9] = [
+    "missing_document_structure", "missing_current_requisites", "open_series_without_head",
+    "incompatible_series_head", "cross_block_continuation_ambiguous", "scoped_alias_ambiguous",
+    "inherited_field_conflict", "context_query_limit_reached", "unresolved_after_document_pass",
+];
+#[rustfmt::skip]
+const CONTEXT_NO_WINNER_PINS: [&str; 3] = [
+    "request_kinds: [ancestor_path, adjacent_blocks, open_series_head, scoped_alias, current_document_requisites, explicit_anchor_lookup]",
+    "conflict_rule: retain alternatives; never choose by distance alone",
+    "no_source_rule: unresolved with missing-context diagnostic",
+];
+#[rustfmt::skip]
+const CYCLE_DEFERRED_BOUNDS: [&str; 3] = [
+    "max_members: deferred-undefined",
+    "max_expanded_candidates: deferred-undefined",
+    "on_limit: reject expansion with diagnostic; never truncate silently",
+];
+#[rustfmt::skip]
+const REQUISITES_DIAGNOSTICS: [&str; 10] = [
+    "head_filename_conflict", "head_catalog_conflict", "filename_catalog_conflict",
+    "regional_geo_conflict", "org_geo_role_collapse", "number_normalization_ambiguous",
+    "title_alias_only", "wrong_document_association", "required_field_missing",
+    "source_authority_policy_missing",
+];
+
+/// Corpus-shaped tokens that must never appear in a synthetic fixture line.
+#[rustfmt::skip]
+const CORPUS_MARKERS: [&str; 10] = [
+    ".xml", "xml/", "npa/", "courts/", "fas/", "consru", "edition-", "fnv1a64:",
+    "/root/", "sha256",
+];
+
+/// One parsed fixture seed: family/seed labels plus its synthetic block lines.
+struct FixtureSeed {
+    family: String,
+    seed: String,
+    lines: Vec<String>,
+}
+
+/// Lowercase kebab label (closed fixture label grammar).
+fn is_kebab_label(label: &str) -> bool {
+    !label.is_empty()
+        && !label.starts_with('-')
+        && !label.ends_with('-')
+        && label
+            .bytes()
+            .all(|byte| byte.is_ascii_lowercase() || byte.is_ascii_digit() || byte == b'-')
+}
+
+/// Closed fixture reader: strict `# family=F seed=S` grammar, count-only body
+/// hygiene, fail-closed errors naming family/seed/line. Test-only: the product
+/// never sees this grammar (blocking rework F1).
+fn parse_hostile_fixture(text: &str) -> Result<Vec<FixtureSeed>, String> {
+    const HEADER: &str = "# family=";
+    let mut seeds: Vec<FixtureSeed> = Vec::new();
+    let mut seen_header = false;
+    for (index, raw) in text.lines().enumerate() {
+        let line_no = index + 1;
+        if let Some(rest) = raw.strip_prefix(HEADER) {
+            seen_header = true;
+            let Some((family, seed)) = rest.split_once(" seed=") else {
+                return Err(format!("fixture line {line_no}: header without ' seed='"));
+            };
+            if !is_kebab_label(family) || !is_kebab_label(seed) {
+                return Err(format!(
+                    "fixture line {line_no}: labels must be lowercase kebab: '{family}'/'{seed}'"
+                ));
+            }
+            seeds.push(FixtureSeed {
+                family: family.to_owned(),
+                seed: seed.to_owned(),
+                lines: Vec::new(),
+            });
+        } else if raw.starts_with('#') {
+            if seen_header {
+                return Err(format!(
+                    "fixture line {line_no}: comment after the first seed header"
+                ));
+            }
+        } else if raw.trim().is_empty() {
+            continue; // blank line: seed separator only
+        } else {
+            let Some(last) = seeds.last_mut() else {
+                return Err(format!(
+                    "fixture line {line_no}: body before any seed header"
+                ));
+            };
+            if raw.len() > 240 {
+                return Err(format!(
+                    "{}/{} line {line_no}: body line is not synthetic-scale",
+                    last.family, last.seed
+                ));
+            }
+            for marker in CORPUS_MARKERS {
+                if raw.contains(marker) {
+                    return Err(format!(
+                        "{}/{} line {line_no}: corpus marker '{marker}' in a synthetic fixture",
+                        last.family, last.seed
+                    ));
+                }
+            }
+            last.lines.push(raw.to_owned());
+        }
+    }
+    let empty: Vec<&str> = seeds
+        .iter()
+        .filter(|seed| seed.lines.is_empty())
+        .map(|seed| seed.seed.as_str())
+        .collect();
+    if !empty.is_empty() {
+        return Err(format!("seeds without body lines: {empty:?}"));
+    }
+    Ok(seeds)
+}
+
+/// Fail-closed closed-set equality: every parsed (family, seed) is expected,
+/// every expected (family, seed) is present, labels appear exactly once.
+fn require_closed_sets(seeds: &[FixtureSeed]) -> Result<(), String> {
+    for seed in seeds {
+        let Some(family_index) = EXPECTED_FAMILIES
+            .iter()
+            .position(|family| *family == seed.family)
+        else {
+            return Err(format!("unknown family: '{}'", seed.family));
+        };
+        if !EXPECTED_SEEDS[family_index].contains(&seed.seed.as_str()) {
+            return Err(format!("unknown seed: '{}/{}'", seed.family, seed.seed));
+        }
+        let duplicates = seeds
+            .iter()
+            .filter(|other| other.family == seed.family && other.seed == seed.seed)
+            .count();
+        if duplicates != 1 {
+            return Err(format!(
+                "seed must appear exactly once: '{}/{}' ({duplicates})",
+                seed.family, seed.seed
+            ));
+        }
+    }
+    for (family_index, family) in EXPECTED_FAMILIES.iter().enumerate() {
+        let present: Vec<&str> = seeds
+            .iter()
+            .filter(|seed| &seed.family == family)
+            .map(|seed| seed.seed.as_str())
+            .collect();
+        for seed in EXPECTED_SEEDS[family_index] {
+            if !present.contains(seed) {
+                return Err(format!("missing seed: '{family}/{seed}'"));
+            }
+        }
+        if present.len() != EXPECTED_SEEDS[family_index].len() {
+            return Err(format!("family '{family}' seed count drifted"));
+        }
+    }
+    Ok(())
+}
+
+/// Load pipeline: parse + closed-set equality (the surface tampered fixtures hit).
+fn load_hostile_fixture(text: &str) -> Result<Vec<FixtureSeed>, String> {
+    let seeds = parse_hostile_fixture(text)?;
+    require_closed_sets(&seeds)?;
+    Ok(seeds)
+}
+
+/// Distinct ASCII digit runs inside captured spans (count-only enumeration probe).
+fn digit_groups<'s>(line: &'s str, captures: &[LawRef]) -> std::collections::BTreeSet<&'s str> {
+    let mut groups = std::collections::BTreeSet::new();
+    for capture in captures {
+        let text = capture.user_text(line);
+        let bytes = text.as_bytes();
+        let mut index = 0;
+        while index < bytes.len() {
+            if bytes[index].is_ascii_digit() {
+                let start = index;
+                while index < bytes.len() && bytes[index].is_ascii_digit() {
+                    index += 1;
+                }
+                groups.insert(&text[start..index]);
+            } else {
+                index += 1;
+            }
+        }
+    }
+    groups
+}
+
+/// T03: the fixture itself stays a preserved, synthetic, closed vocabulary and
+/// the reader fails closed on every unknown label, tampering and corpus marker.
+#[test]
+fn t12_hostile_fixture_closed_reader() {
+    let text = read_text(FIXTURE_RELATIVE_PATH);
+    assert_eq!(
+        text.lines().count(),
+        98,
+        "the 98-line synthetic fixture is preserved verbatim"
+    );
+    assert!(
+        text.contains("# npa-hostile-bounds/v1"),
+        "fixture header marker drifted"
+    );
+    assert!(
+        text.contains("invented test vocabulary"),
+        "fixture must declare its synthetic vocabulary (no corpus excerpt)"
+    );
+    for marker in [".xml", "/root/", "consru"] {
+        assert!(
+            !text.contains(marker),
+            "path-like marker '{marker}' must not appear anywhere in the fixture"
+        );
+    }
+
+    let seeds = load_hostile_fixture(&text).expect("closed fixture reader");
+    assert_eq!(seeds.len(), EXPECTED_SEED_COUNT);
+    assert_eq!(
+        seeds.iter().map(|seed| seed.lines.len()).sum::<usize>(),
+        EXPECTED_BLOCK_LINE_COUNT,
+        "count-only scale drifted"
+    );
+    for seed in &seeds {
+        assert!(
+            EXECUTABLE_FAMILIES.contains(&seed.family.as_str())
+                || DEFERRED_FAMILIES.contains(&seed.family.as_str()),
+            "family is neither executable nor deferred: {}",
+            seed.family
+        );
+    }
+
+    // Fail-closed tampering table: (name, mutated fixture, error fragment).
+    let drop_seed = |text: &str, dropped: &str| -> String {
+        let mut out = String::new();
+        let mut skipping = false;
+        for line in text.lines() {
+            if line.starts_with("# family=") {
+                skipping = line.contains(&format!(" seed={dropped}"));
+            }
+            if !skipping {
+                out.push_str(line);
+                out.push('\n');
+            }
+        }
+        out
+    };
+    #[rustfmt::skip]
+    let tampered: [(&str, String, &str); 7] = [
+        ("unknown family", text.replace("family=alias-recursion", "family=alias-bogus"), "unknown family"),
+        ("unknown seed", text.replace("seed=alias-cycle", "seed=alias-bogus"), "unknown seed"),
+        ("missing seed", drop_seed(&text, "two-heads"), "missing seed"),
+        ("corpus marker", format!("{text}файл: npa/document_2001-12-30_195-fz.xml\n"), "corpus marker"),
+        ("uppercase label", text.replace("seed=alias-cycle", "seed=Alias-Cycle"), "lowercase kebab"),
+        ("header without seed", text.replace("# family=alias-recursion seed=alias-cycle", "# family=alias-recursion"), "header without ' seed='"),
+        ("body without header", format!("статьи 3 настоящего Кодекса\n{text}"), "body before any seed header"),
+    ];
+    for (name, mutated, expected) in tampered {
+        let error = load_hostile_fixture(&mutated).err().unwrap_or_else(|| {
+            panic!("{name}: tampered fixture must fail closed");
+        });
+        assert!(
+            error.contains(expected),
+            "{name}: error must name the failure: {error}"
+        );
+    }
+}
+
+/// T03: executable construction families run the real production surfaces over
+/// hostile synthetic lines; ranges never enumerate; blocks are never joined.
+#[test]
+fn t13_executable_families_exercise_production_surfaces() {
+    let text = read_text(FIXTURE_RELATIVE_PATH);
+    let seeds = load_hostile_fixture(&text).expect("closed fixture reader");
+    let mut executable_seeds = 0usize;
+    for seed in &seeds {
+        if !EXECUTABLE_FAMILIES.contains(&seed.family.as_str()) {
+            continue;
+        }
+        executable_seeds += 1;
+        for line in &seed.lines {
+            let ctx = format!("{}/{}", seed.family, seed.seed);
+            // Covering lexer on hostile synthetic text: full coverage, no gaps,
+            // boundary-safe, deterministic (fragment-local by construction).
+            let tokens = lex(line);
+            assert!(!tokens.is_empty(), "{ctx}: lexer returned no tokens");
+            assert_eq!(
+                tokens[0].span.start(),
+                0,
+                "{ctx}: lexer does not start at 0"
+            );
+            assert_eq!(
+                tokens.last().expect("non-empty").span.end(),
+                line.len(),
+                "{ctx}: lexer does not cover the line end"
+            );
+            for pair in tokens.windows(2) {
+                assert_eq!(
+                    pair[0].span.end(),
+                    pair[1].span.start(),
+                    "{ctx}: covering lexer has a gap"
+                );
+            }
+            assert_eq!(tokens, lex(line), "{ctx}: lexer is not deterministic");
+
+            // Fragment-local captures: spans bounded by the line itself; the
+            // suite never concatenates blocks, so no capture can cross blocks.
+            let captures = capture_lawrefs(line);
+            assert_eq!(
+                captures,
+                capture_lawrefs(line),
+                "{ctx}: capture is not deterministic"
+            );
+            for capture in &captures {
+                assert!(
+                    capture.span.start() < capture.span.end(),
+                    "{ctx}: empty capture span"
+                );
+                assert!(
+                    capture.span.end() <= line.len(),
+                    "{ctx}: capture exceeds the line"
+                );
+                assert!(
+                    !capture.user_text(line).is_empty(),
+                    "{ctx}: empty capture text"
+                );
+            }
+
+            // Unsupported-form census stays count-only: kind/span/fingerprint
+            // identity, stable 16-hex fingerprints, bounded spans.
+            let forms = collect_unknown_forms_from_text(line);
+            assert_eq!(
+                forms,
+                collect_unknown_forms_from_text(line),
+                "{ctx}: census is not deterministic"
+            );
+            for form in &forms {
+                assert!(
+                    form.span().start() < form.span().end() && form.span().end() <= line.len(),
+                    "{ctx}: census span out of bounds"
+                );
+                assert_eq!(
+                    form.fingerprint().len(),
+                    16,
+                    "{ctx}: fingerprint is not 16 hex chars"
+                );
+                assert!(
+                    form.fingerprint()
+                        .bytes()
+                        .all(|byte| byte.is_ascii_hexdigit()),
+                    "{ctx}: fingerprint is not hex"
+                );
+            }
+
+            // Construction-family pins (categorical; no numeric bound minted).
+            match seed.seed.as_str() {
+                "comma-heading-interrupt" => {
+                    if line.starts_with("принимая") || line.starts_with("Раздел") {
+                        assert!(
+                            captures.is_empty(),
+                            "{ctx}: heading/introductory line must capture nothing"
+                        );
+                    }
+                    if line.starts_with("статьи 3") {
+                        let ids: Vec<&str> = captures
+                            .iter()
+                            .map(|capture| capture.pattern_id.as_str())
+                            .collect();
+                        assert_eq!(
+                            captures.len(),
+                            2,
+                            "{ctx}: post-heading member keeps exactly its two candidates"
+                        );
+                        assert!(
+                            ids.contains(&"fullword-ref"),
+                            "{ctx}: fullword member candidate drifted"
+                        );
+                        assert!(
+                            ids.contains(&"anaphora_candidate"),
+                            "{ctx}: anaphora candidate drifted"
+                        );
+                    }
+                }
+                "mixed-type-chain" => {
+                    let date_docno = captures
+                        .iter()
+                        .filter(|capture| capture.pattern_id == "date-docno-window")
+                        .count();
+                    assert_eq!(
+                        date_docno,
+                        1,
+                        "{ctx}: only the fully shaped doc-no window binds; lone dates and N-only tails invent nothing"
+                    );
+                }
+                "repeated-comma-empty-member" => {
+                    let fullword = captures
+                        .iter()
+                        .filter(|capture| capture.pattern_id == "fullword-ref")
+                        .count();
+                    assert_eq!(
+                        fullword, 2,
+                        "{ctx}: both real members captured; the empty member invents nothing"
+                    );
+                }
+                "descending-range" => {
+                    let ranges: Vec<_> = captures
+                        .iter()
+                        .filter(|capture| capture.pattern_id == "range_candidate")
+                        .collect();
+                    assert_eq!(
+                        ranges.len(),
+                        1,
+                        "{ctx}: exactly one endpoint-pair range candidate"
+                    );
+                    assert_eq!(
+                        ranges[0]
+                            .slots
+                            .range
+                            .as_ref()
+                            .map(|(a, b)| (a.as_str(), b.as_str())),
+                        Some(("7.32", "7.29")),
+                        "{ctx}: endpoints must stay as written (descending stays descending)"
+                    );
+                    let joined: String = captures
+                        .iter()
+                        .map(|capture| capture.user_text(line))
+                        .collect();
+                    assert!(
+                        !joined.contains("7.30") && !joined.contains("7.31"),
+                        "{ctx}: range capture enumerated intermediate designations"
+                    );
+                }
+                "non-comparable-paths" => {
+                    assert!(
+                        !captures
+                            .iter()
+                            .any(|capture| capture.pattern_id == "range_candidate"),
+                        "{ctx}: cross-level path must not become a range"
+                    );
+                    assert_eq!(
+                        digit_groups(line, &captures),
+                        std::collections::BTreeSet::from(["3", "5"]),
+                        "{ctx}: captured numbers drifted beyond the written endpoints"
+                    );
+                }
+                "linguistic-hyphen" => {
+                    assert!(
+                        !line.bytes().any(|byte| byte.is_ascii_digit()),
+                        "{ctx}: precondition drifted (seed line has no digits)"
+                    );
+                    assert!(
+                        captures.is_empty(),
+                        "{ctx}: linguistic hyphen must not mint a capture"
+                    );
+                }
+                "quoted-digit-near-chast" => {
+                    assert!(
+                        !captures
+                            .iter()
+                            .any(|capture| capture.pattern_id == "range_candidate"),
+                        "{ctx}: quoted digits must not become a HierNum range"
+                    );
+                    assert!(
+                        !digit_groups(line, &captures).contains("3"),
+                        "{ctx}: quoted range enumerated an intermediate value"
+                    );
+                }
+                _ => {}
+            }
+        }
+    }
+    assert_eq!(executable_seeds, 9, "executable fixture seeds drifted");
+}
+
+/// T03: deferred construction families record explicit refusal categories from
+/// the closed YAML vocabularies - never a unique answer, never overlaid
+/// runtime; the D388 review gates for them stay deferred-undefined.
+#[test]
+fn t14_deferred_families_record_refusal_contract() {
+    let text = read_text(FIXTURE_RELATIVE_PATH);
+    let seeds = load_hostile_fixture(&text).expect("closed fixture reader");
+    let context_yaml = read_text(CONTEXT_YAML_RELATIVE_PATH);
+    let requisites_yaml = read_text(REQUISITES_YAML_RELATIVE_PATH);
+    let cycle_yaml = read_text(CYCLE_YAML_RELATIVE_PATH);
+
+    assert!(
+        context_yaml
+            .contains("statuses: [resolved, partial, conflicting, unavailable, cycle, limit]"),
+        "context_result status vocabulary drifted"
+    );
+    assert!(
+        requisites_yaml.contains(
+            "statuses: [agreed, single_source, conflicting, missing, invalid, association_failed]"
+        ),
+        "requisites status vocabulary drifted"
+    );
+    for pin in CONTEXT_DEFERRED_BOUNDS {
+        assert!(
+            context_yaml.contains(pin),
+            "context bounds pin drifted: {pin}"
+        );
+    }
+    for pin in CONTEXT_NO_WINNER_PINS {
+        assert!(
+            context_yaml.contains(pin),
+            "context no-winner pin drifted: {pin}"
+        );
+    }
+    for diagnostic in CONTEXT_REQUIRED_DIAGNOSTICS {
+        assert!(
+            context_yaml.contains(&format!("- {diagnostic}")),
+            "context diagnostic drifted: {diagnostic}"
+        );
+    }
+    for pin in CYCLE_DEFERRED_BOUNDS {
+        assert!(
+            cycle_yaml.contains(pin),
+            "coordinating-frame bounds pin drifted: {pin}"
+        );
+    }
+    for diagnostic in REQUISITES_DIAGNOSTICS {
+        assert!(
+            requisites_yaml.contains(&format!("- {diagnostic}")),
+            "requisites diagnostic drifted: {diagnostic}"
+        );
+    }
+    assert!(
+        requisites_yaml.contains("status: deferred-undefined"),
+        "source authority policy must stay deferred-undefined"
+    );
+    assert!(
+        requisites_yaml.contains("default: no winner; expose conflict"),
+        "requisites no-winner default drifted"
+    );
+    assert!(
+        requisites_yaml.contains(
+            "conflicting has no selected value without a tracked field/source authority policy"
+        ),
+        "requisites conflicting-value rule drifted"
+    );
+
+    // Set equality both ways between deferred fixture seeds and refusal rows.
+    let mut deferred_seeds = 0usize;
+    for seed in &seeds {
+        if !DEFERRED_FAMILIES.contains(&seed.family.as_str()) {
+            continue;
+        }
+        deferred_seeds += 1;
+        let row = DEFERRED_REFUSALS
+            .iter()
+            .find(|(family, label, _, _)| *family == seed.family && *label == seed.seed)
+            .unwrap_or_else(|| {
+                panic!(
+                    "deferred seed without a refusal row: {}/{}",
+                    seed.family, seed.seed
+                )
+            });
+        let (family, _, status, diagnostic) = *row;
+        match family {
+            "requisites-conflict" => {
+                const STATUSES: [&str; 6] = [
+                    "agreed",
+                    "single_source",
+                    "conflicting",
+                    "missing",
+                    "invalid",
+                    "association_failed",
+                ];
+                assert!(
+                    STATUSES.contains(&status),
+                    "{family}/{}: status '{status}' is outside the requisites vocabulary",
+                    seed.seed
+                );
+                assert_ne!(
+                    status, "agreed",
+                    "{family}/{}: a settled answer must not be invented",
+                    seed.seed
+                );
+                assert!(
+                    REQUISITES_DIAGNOSTICS.contains(&diagnostic),
+                    "{family}/{}: diagnostic '{diagnostic}' is outside the closed set",
+                    seed.seed
+                );
+            }
+            _ => {
+                const STATUSES: [&str; 6] = [
+                    "resolved",
+                    "partial",
+                    "conflicting",
+                    "unavailable",
+                    "cycle",
+                    "limit",
+                ];
+                assert!(
+                    STATUSES.contains(&status),
+                    "{family}/{}: status '{status}' is outside the context_result vocabulary",
+                    seed.seed
+                );
+                assert_ne!(
+                    status, "resolved",
+                    "{family}/{}: recording 'resolved' invents a unique answer",
+                    seed.seed
+                );
+                if !diagnostic.is_empty() {
+                    assert!(
+                        CONTEXT_REQUIRED_DIAGNOSTICS.contains(&diagnostic),
+                        "{family}/{}: diagnostic '{diagnostic}' is outside the required set",
+                        seed.seed
+                    );
+                }
+            }
+        }
+    }
+    assert_eq!(deferred_seeds, 16, "deferred fixture seeds drifted");
+    for (family, label, _, _) in DEFERRED_REFUSALS {
+        assert!(
+            DEFERRED_FAMILIES.contains(&family),
+            "refusal row family is not deferred: {family}"
+        );
+        assert!(
+            seeds
+                .iter()
+                .any(|seed| seed.family == family && seed.seed == label),
+            "refusal row without a fixture seed: {family}/{label}"
+        );
+    }
+
+    // D388 reviewability: every deferred-family gate stays deferred-undefined
+    // with a null proposed value and a blocking rationale.
+    let review_text = read_text(REVIEW_RELATIVE_PATH);
+    validate_review(&review_text).expect("closed review schema re-validates");
+    let root = parse_json(&review_text).expect("review parses via the closed parser");
+    let gates = root
+        .get("gate_decisions")
+        .expect("gate_decisions present")
+        .as_arr()
+        .expect("gate rows array");
+    for (family, gate) in DEFERRED_FAMILY_GATES {
+        let row_text = gate_row_slice(&review_text, gate).expect("gate row slice exists");
+        assert!(
+            row_text.contains("\"verdict\": \"deferred-undefined\""),
+            "{family}: gate '{gate}' must stay deferred-undefined"
+        );
+        assert!(
+            row_text.contains("blocking reason"),
+            "{family}: gate '{gate}' rationale must name its blocking reason"
+        );
+        let structured =
+            find_row(gates, "gate_decisions", "gate", gate).expect("structured gate row");
+        assert!(
+            int_or_null(structured, "proposed_value", gate)
+                .expect("proposed_value parses")
+                .is_none(),
+            "{family}: gate '{gate}' must not carry a proposed value"
+        );
+    }
+
+    // The surfaces these families would need stay explicitly unavailable.
+    for metric in [
+        "accepted continues_series hop count",
+        "scoped alias candidate count",
+        "ContextRequest count and fan-out",
+        "memo hit rate and derivation depth",
+        "SemanticFieldClaim count per field",
+        "context sufficient/partial/conflicting/cycle/limit distributions",
+    ] {
+        assert!(
+            UNAVAILABLE_METRICS.contains(&metric),
+            "deferred family surface must stay unavailable-until-runtime: {metric}"
+        );
     }
 }
