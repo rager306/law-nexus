@@ -24,6 +24,7 @@
 
 use std::fmt::Write as _;
 use std::fs;
+use std::io::Write as _;
 use std::path::{Path, PathBuf};
 
 use crate::domain::{fingerprint_bytes, ParsedBlock};
@@ -104,7 +105,7 @@ const LIMITATIONS: [&str; 9] = [
     "malformed/unreadable classification probes a second read of failed files only",
     "cross-block tail proxy distance is fixed to the adjacent block (distance=1)",
     "declared proxy sub-metrics listed in the unavailable record are not implemented in this scaffold",
-    "started_at/ended_at record the CLI invocation window captured immediately before the scan call",
+    "ended_at is captured after the walk completes; periodic --out rewrites during a run carry run_status incomplete",
     "document_content_hash anchors are fingerprinted at render time with a bounded probe read of anchor files",
 ];
 
@@ -489,9 +490,10 @@ pub struct MetricStat {
 }
 
 /// Run metadata the accumulator renders into the header and terminal run
-/// manifest. Deterministic per run: the thin CLI fills the clock window and
-/// the identity fields; library callers inject fixed values for
-/// byte-stable fixture runs.
+/// manifest. Deterministic per run: the thin CLI stamps `started_at`
+/// immediately before the scan and the runner captures `ended_at` after
+/// the walk completes; library callers inject fixed values for byte-stable
+/// fixture runs.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct BoundsRunMeta {
     /// Verbatim header `label` (the run label, e.g. `fixture-gate`).
@@ -581,6 +583,13 @@ impl BoundsAcc {
         }
     }
 
+    /// T01 honesty seam: stamp the terminal `ended_at` after the walk
+    /// completes (the runner calls this when the caller did not inject a
+    /// fixed clock).
+    pub fn set_ended_at(&mut self, ended_at: Option<String>) {
+        self.meta.ended_at = ended_at;
+    }
+
     pub fn files_attempted(&self) -> u64 {
         self.files_attempted
     }
@@ -663,12 +672,26 @@ impl BoundsAcc {
         self.metrics[slot].observe(value, core);
     }
 
+    /// Terminal render: the walk completed, so the run manifest carries the
+    /// explicit `run_status:"complete"` (T01).
+    pub fn render_jsonl(&self) -> String {
+        self.render_jsonl_with("complete")
+    }
+
+    /// T01 interruption diagnostic: the current aggregate with the explicit
+    /// `run_status:"incomplete"` marker and the clock the metadata actually
+    /// holds (production partial rewrites render `ended_at:null` — no
+    /// fabricated completion time). Same closed schema, same fifteen lines.
+    pub fn render_jsonl_incomplete(&self) -> String {
+        self.render_jsonl_with("incomplete")
+    }
+
     /// Render the closed-schema aggregate: fifteen JSON objects, one per
     /// line, in fixed `record_kind` order (header, totals, token kind
     /// histogram, pattern counters, span relations, eight metric records,
     /// unavailable, run manifest). Hand-rolled (D328/D353); no raw sentence
     /// survives as a string value (Q3).
-    pub fn render_jsonl(&self) -> String {
+    fn render_jsonl_with(&self, run_status: &str) -> String {
         let mut out = String::with_capacity(16_384);
         let _ = writeln!(
             out,
@@ -804,7 +827,7 @@ impl BoundsAcc {
             out,
             concat!(
                 "{{\"record_kind\":\"run_manifest\",\"schema_version\":{},",
-                "\"lifecycle\":\"[diagnostic]\",\"started_at\":{},\"ended_at\":{},",
+                "\"run_status\":{},\"lifecycle\":\"[diagnostic]\",\"started_at\":{},\"ended_at\":{},",
                 "\"source_revision\":{},\"scanner_source_hash\":{},",
                 "\"scanner_build_profile\":{},\"rust_toolchain\":{},\"corpus_root\":{},",
                 "\"observed_file_count\":{},\"observed_bytes\":{},\"success_count\":{},",
@@ -814,6 +837,7 @@ impl BoundsAcc {
                 "\"output_artifact\":{},\"limitations\":[{}]}}"
             ),
             BOUNDS_SCHEMA_VERSION,
+            quote(run_status),
             opt_str(self.meta.started_at.as_deref()),
             opt_str(self.meta.ended_at.as_deref()),
             opt_str(self.meta.source_revision.as_deref()),
@@ -1070,6 +1094,12 @@ pub struct BoundsRun {
     /// Counts line or failure note for stderr — counts and paths only,
     /// never payload bytes or block text (Q3).
     pub stderr: String,
+    /// Count-only progress heartbeats captured during the walk
+    /// (`scanned=<n>`; empty when `--progress` was not given).
+    pub progress_lines: Vec<String>,
+    /// Number of periodic atomic partial rewrites of `--out` performed
+    /// before the terminal write (0 without `--progress` or `--out`).
+    pub partial_flushes: u64,
 }
 
 /// Parsed argv of the `npa-bounds-scan` binary — stdlib only, no clap.
@@ -1097,6 +1127,14 @@ pub struct BoundsCli {
     pub ended_at: Option<String>,
     /// Manifest `command` (the joined argv as parsed).
     pub command: String,
+    /// Heartbeat + periodic partial-flush interval (`--progress <n>`, n ≥ 1):
+    /// every n observed files. `None` disables both; a directly constructed
+    /// `Some(0)` also disables (the parser never yields it).
+    pub progress_every: Option<u64>,
+    /// Emit heartbeats to live stderr during the walk. Not parsed from
+    /// argv: the thin binary sets this; library runs capture
+    /// `progress_lines` without touching the real stderr.
+    pub progress_stderr: bool,
 }
 
 impl Default for BoundsCli {
@@ -1111,14 +1149,18 @@ impl Default for BoundsCli {
             started_at: None,
             ended_at: None,
             command: "npa-bounds-scan".to_owned(),
+            progress_every: None,
+            progress_stderr: false,
         }
     }
 }
 
-/// Strict stdlib argv parser: `--root`, `--out`, `--limit`, `--label`,
-/// `--source-revision`, `--rust-toolchain`, each with a following value;
-/// later occurrences override earlier ones. Unknown flags, positionals,
-/// missing values, and non-numeric limits are usage errors.
+/// Strict stdlib argv parser: `--root`, `--out`, `--limit`, `--progress`,
+/// `--label`, `--source-revision`, `--rust-toolchain`, each with a following
+/// value; later occurrences override earlier ones. Unknown flags,
+/// positionals, missing values, and non-numeric `--limit`/`--progress`
+/// values are usage errors (`--progress 0` included — omit the flag to
+/// disable progress).
 pub fn parse_bounds_args<I>(args: I) -> Result<BoundsCli, String>
 where
     I: IntoIterator<Item = String>,
@@ -1144,6 +1186,19 @@ where
                     .map_err(|_| format!("--limit expects a non-negative integer, got '{raw}'"))?;
                 cli.limit = Some(parsed);
             }
+            "--progress" => {
+                let raw = next_value(&mut iter, "--progress")?;
+                let parsed = raw.parse::<u64>().map_err(|_| {
+                    format!("--progress expects a non-negative integer, got '{raw}'")
+                })?;
+                if parsed == 0 {
+                    return Err(
+                        "--progress expects a positive integer (omit the flag to disable)"
+                            .to_owned(),
+                    );
+                }
+                cli.progress_every = Some(parsed);
+            }
             other => return Err(format!("unexpected argument '{other}'")),
         }
     }
@@ -1158,11 +1213,116 @@ fn next_value(iter: &mut impl Iterator<Item = String>, flag: &str) -> Result<Str
         .ok_or_else(|| format!("missing value for {flag}"))
 }
 
+/// RFC3339 UTC timestamp from the system clock, stdlib only. The thin CLI
+/// stamps `started_at` immediately before the scan; the runner stamps
+/// `ended_at` after the walk completes (T01 honesty).
+pub fn rfc3339_now() -> String {
+    let elapsed = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .unwrap_or_default();
+    let secs = elapsed.as_secs();
+    let (days, rest) = (secs / 86_400, secs % 86_400);
+    let (year, month, day) = civil_from_days(days as i64);
+    format!(
+        "{year:04}-{month:02}-{day:02}T{:02}:{:02}:{:02}Z",
+        rest / 3_600,
+        (rest % 3_600) / 60,
+        rest % 60
+    )
+}
+
+/// Days-since-epoch to civil date (Howard Hinnant's algorithm; stdlib only).
+fn civil_from_days(days: i64) -> (i64, u32, u32) {
+    let shifted = days + 719_468;
+    let era = if shifted >= 0 {
+        shifted
+    } else {
+        shifted - 146_096
+    } / 146_097;
+    let day_of_era = (shifted - era * 146_097) as u64;
+    let year_of_era =
+        (day_of_era - day_of_era / 1_460 + day_of_era / 36_524 - day_of_era / 146_096) / 365;
+    let year = year_of_era as i64 + era * 400;
+    let day_of_year = day_of_era - (365 * year_of_era + year_of_era / 4 - year_of_era / 100);
+    let mp = (5 * day_of_year + 2) / 153;
+    let day = (day_of_year - (153 * mp + 2) / 5 + 1) as u32;
+    let month = if mp < 10 { mp + 3 } else { mp - 9 } as u32;
+    (if month <= 2 { year + 1 } else { year }, month, day)
+}
+
+/// Atomic `--out` write (T01): the payload lands at `<out>.tmp` in the same
+/// directory and a single rename replaces the published aggregate, so a
+/// kill mid-write never tears the file — a reader sees either the previous
+/// rewrite or the new one, never a half-written diagnostic.
+fn write_out_atomic(out_path: &Path, payload: &str) -> std::io::Result<()> {
+    let tmp = PathBuf::from(format!("{}.tmp", out_path.display()));
+    let result = fs::write(&tmp, payload).and_then(|()| fs::rename(&tmp, out_path));
+    if result.is_err() {
+        let _ = fs::remove_file(&tmp);
+    }
+    result
+}
+
+/// T01 interruption seam: atomically rewrite `--out` with the current
+/// aggregate and the explicit `run_status:"incomplete"` marker, so an
+/// interrupted run leaves a valid closed-schema diagnostic instead of no
+/// evidence. The terminal write later replaces it with the complete
+/// manifest.
+pub fn write_partial_out(out_path: &Path, acc: &BoundsAcc) -> std::io::Result<()> {
+    write_out_atomic(out_path, &acc.render_jsonl_incomplete())
+}
+
+/// Walk-loop wrapper (T01): forwards every observation to the accumulator
+/// and, every `every` files, records a count-only heartbeat and — when an
+/// `--out` target is configured — atomically rewrites it as an explicit
+/// incomplete diagnostic. Heartbeats never carry paths or payload (Q3).
+struct ProgressObserver<'a> {
+    inner: &'a mut BoundsAcc,
+    every: u64,
+    out_path: Option<&'a Path>,
+    live_stderr: bool,
+    seen: u64,
+    progress_lines: Vec<String>,
+    partial_flushes: u64,
+    flush_error: Option<String>,
+}
+
+impl SweepObserver for ProgressObserver<'_> {
+    fn observe_file(&mut self, path: &Path, terminal: FileTerminal, blocks: &[ParsedBlock]) {
+        self.inner.observe_file(path, terminal, blocks);
+        if self.every == 0 {
+            return;
+        }
+        self.seen += 1;
+        if !self.seen.is_multiple_of(self.every) {
+            return;
+        }
+        self.progress_lines.push(format!("scanned={}", self.seen));
+        if self.live_stderr {
+            let mut stderr = std::io::stderr().lock();
+            let _ = writeln!(stderr, "npa-bounds-scan: scanned={}", self.seen);
+            let _ = stderr.flush();
+        }
+        if let Some(out) = self.out_path {
+            match write_partial_out(out, self.inner) {
+                Ok(()) => self.partial_flushes += 1,
+                Err(err) if self.flush_error.is_none() => {
+                    self.flush_error = Some(format!("cannot open --out {}: {err}", out.display()));
+                }
+                Err(_) => {}
+            }
+        }
+    }
+}
+
 /// Library-level scan runner: exactly what the binary does after argv
 /// parsing. `default_root` is injected so tests never touch the live
 /// `consru_export` corpus; the binary passes
 /// [`crate::npa_sweep::default_sweep_root`]. Drives the production walk +
-/// decode path through [`BoundsAcc`] as the observation sink.
+/// decode path through [`BoundsAcc`] as the observation sink. `ended_at` is
+/// captured after the walk completes unless the caller injected a fixed
+/// clock (T01); `--progress` adds count-only heartbeats and periodic
+/// atomic partial rewrites of `--out`.
 pub fn run_bounds_scan(cli: &BoundsCli, default_root: &Path) -> BoundsRun {
     let explicit = cli.root.is_some();
     let root = cli
@@ -1192,27 +1352,63 @@ pub fn run_bounds_scan(cli: &BoundsCli, default_root: &Path) -> BoundsRun {
                 jsonl: None,
                 to_stdout: false,
                 stderr: format!("root not found: {}", root.display()),
+                progress_lines: Vec::new(),
+                partial_flushes: 0,
             };
         }
         // Skip-mode: a checkout without the export still completes with a
         // closed-schema zeroed aggregate (the corpus_role skip pattern).
-        let acc = BoundsAcc::new(&root, meta);
+        // The zero-file walk completed, so the manifest honestly reports a
+        // real ended_at and run_status complete (T01).
+        let mut acc = BoundsAcc::new(&root, meta);
+        if cli.ended_at.is_none() {
+            acc.set_ended_at(Some(rfc3339_now()));
+        }
         return BoundsRun {
             exit_code: EXIT_OK,
             jsonl: Some(acc.render_jsonl()),
             to_stdout: true,
             stderr: format!("skip: default corpus root absent: {}", root.display()),
+            progress_lines: Vec::new(),
+            partial_flushes: 0,
         };
     }
 
     let mut acc = BoundsAcc::new(&root, meta);
-    if let Err(err) = walk_and_observe(&root, cli.limit, &mut acc) {
+    let mut observer = ProgressObserver {
+        inner: &mut acc,
+        every: cli.progress_every.unwrap_or(0),
+        out_path: cli.out.as_deref().map(Path::new),
+        live_stderr: cli.progress_stderr,
+        seen: 0,
+        progress_lines: Vec::new(),
+        partial_flushes: 0,
+        flush_error: None,
+    };
+    let walk_result = walk_and_observe(&root, cli.limit, &mut observer);
+    let ProgressObserver {
+        inner: acc,
+        progress_lines,
+        partial_flushes,
+        flush_error,
+        ..
+    } = observer;
+
+    if let Err(err) = walk_result {
         return BoundsRun {
             exit_code: EXIT_WALK_FAILED,
             jsonl: None,
             to_stdout: false,
             stderr: format!("walk failed: {err}"),
+            progress_lines,
+            partial_flushes,
         };
+    }
+
+    // T01 honesty: ended_at is captured after the walk completes — not
+    // before the scan call — unless a test injected a fixed clock.
+    if cli.ended_at.is_none() {
+        acc.set_ended_at(Some(rfc3339_now()));
     }
     let stderr = format!(
         concat!(
@@ -1232,21 +1428,41 @@ pub fn run_bounds_scan(cli: &BoundsCli, default_root: &Path) -> BoundsRun {
             jsonl: Some(acc.render_jsonl()),
             to_stdout: true,
             stderr,
+            progress_lines,
+            partial_flushes,
         },
-        Some(out_path) => match fs::write(out_path, acc.render_jsonl()) {
-            Ok(()) => BoundsRun {
-                exit_code: EXIT_OK,
-                jsonl: None,
-                to_stdout: false,
-                stderr,
-            },
-            Err(err) => BoundsRun {
-                exit_code: EXIT_OUT_UNWRITABLE,
-                jsonl: None,
-                to_stdout: false,
-                stderr: format!("cannot open --out {out_path}: {err}"),
-            },
-        },
+        Some(out_path) => {
+            // A failed periodic rewrite means the --out target is unusable:
+            // fail closed with the first error (same exit-3 contract).
+            if let Some(message) = flush_error {
+                return BoundsRun {
+                    exit_code: EXIT_OUT_UNWRITABLE,
+                    jsonl: None,
+                    to_stdout: false,
+                    stderr: message,
+                    progress_lines,
+                    partial_flushes,
+                };
+            }
+            match write_out_atomic(Path::new(out_path), &acc.render_jsonl()) {
+                Ok(()) => BoundsRun {
+                    exit_code: EXIT_OK,
+                    jsonl: None,
+                    to_stdout: false,
+                    stderr,
+                    progress_lines,
+                    partial_flushes,
+                },
+                Err(err) => BoundsRun {
+                    exit_code: EXIT_OUT_UNWRITABLE,
+                    jsonl: None,
+                    to_stdout: false,
+                    stderr: format!("cannot open --out {out_path}: {err}"),
+                    progress_lines,
+                    partial_flushes,
+                },
+            }
+        }
     }
 }
 
@@ -1354,9 +1570,10 @@ const UNAVAILABLE_KEYS: [&str; 4] = [
     "deferred_proxy_submetrics",
     "top_k",
 ];
-const MANIFEST_KEYS: [&str; 20] = [
+const MANIFEST_KEYS: [&str; 21] = [
     "record_kind",
     "schema_version",
+    "run_status",
     "lifecycle",
     "started_at",
     "ended_at",

@@ -742,3 +742,43 @@ fn t03_topk_scaffold_bounded() {
 
     fs::remove_dir_all(&root).ok();
 }
+
+/// T01 (S02): `run_status` closes the manifest honestly — the terminal
+/// render is `complete`, the interruption diagnostic renders `incomplete`
+/// without a fabricated ended_at, and the manifest reader stays closed
+/// against unknown keys.
+#[test]
+fn t01_run_status_complete_and_incomplete_stay_closed() {
+    let root = temp_root("t01-run-status");
+    write_xml(&root, "exports/npa/a.xml", &["ст. 15.1"]);
+
+    // Terminal render: complete, closed, injected clock preserved verbatim.
+    let complete = scan_root(&root).render_jsonl();
+    validate_bounds_jsonl(&complete).expect("terminal render stays closed");
+    assert!(complete.contains("\"run_status\":\"complete\""));
+    assert!(complete.contains("\"ended_at\":\"2026-09-05T00:00:01Z\""));
+
+    // Interruption diagnostic: incomplete, no fabricated clock, closed.
+    let partial_acc = BoundsAcc::new(
+        &root,
+        BoundsRunMeta::new(root.to_string_lossy().into_owned()),
+    );
+    let partial = partial_acc.render_jsonl_incomplete();
+    validate_bounds_jsonl(&partial).expect("incomplete diagnostic stays closed");
+    assert!(partial.contains("\"run_status\":\"incomplete\""));
+    assert!(partial.contains("\"ended_at\":null"));
+    assert!(partial.contains("\"observed_file_count\":0"));
+
+    // The manifest reader still rejects unknown keys (closed schema).
+    let tampered = partial.replace(
+        "\"run_status\":\"incomplete\"",
+        "\"run_status\":\"incomplete\",\"bogus_key\":1",
+    );
+    let err = validate_bounds_jsonl(&tampered).expect_err("unknown manifest key fails closed");
+    assert!(
+        err.contains("bogus_key"),
+        "the failure names the key: {err}"
+    );
+
+    fs::remove_dir_all(&root).ok();
+}

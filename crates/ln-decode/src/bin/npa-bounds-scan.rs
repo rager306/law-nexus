@@ -31,6 +31,11 @@ FLAGS:
                            stdout.
     --limit <n>            Process at most <n> XML files after the
                            deterministic sort; 0 is a valid empty scan.
+    --progress <n>         Every n observed files: print a count-only
+                           `scanned=<n>` heartbeat to stderr and, when --out
+                           is set, atomically rewrite it as an explicit
+                           run_status incomplete diagnostic (a killed run
+                           leaves valid partial evidence). n >= 1.
     --label <label>        Run label for the header record (default:
                            fixture-gate).
     --source-revision <v>  Source revision recorded in the terminal run
@@ -66,10 +71,11 @@ fn main() -> ExitCode {
             return ExitCode::from(npa_bounds::EXIT_USAGE);
         }
     };
-    // The manifest records the CLI invocation window captured immediately
-    // before the scan call (a manifest limitation states this explicitly).
-    cli.started_at = Some(rfc3339_now());
-    cli.ended_at = Some(rfc3339_now());
+    // T01 run-metadata honesty: the thin CLI stamps started_at immediately
+    // before the scan; ended_at is captured by the runner after the walk
+    // completes (tests may inject a fixed clock instead).
+    cli.started_at = Some(npa_bounds::rfc3339_now());
+    cli.progress_stderr = true;
     let run = npa_bounds::run_bounds_scan(&cli, &npa_sweep::default_sweep_root());
     if !run.stderr.is_empty() {
         eprintln!("npa-bounds-scan: {}", run.stderr);
@@ -80,39 +86,4 @@ fn main() -> ExitCode {
         let _ = stdout.flush();
     }
     ExitCode::from(run.exit_code)
-}
-
-/// RFC3339 UTC timestamp from the system clock, stdlib only.
-fn rfc3339_now() -> String {
-    let elapsed = std::time::SystemTime::now()
-        .duration_since(std::time::UNIX_EPOCH)
-        .unwrap_or_default();
-    let secs = elapsed.as_secs();
-    let (days, rest) = (secs / 86_400, secs % 86_400);
-    let (year, month, day) = civil_from_days(days as i64);
-    format!(
-        "{year:04}-{month:02}-{day:02}T{:02}:{:02}:{:02}Z",
-        rest / 3_600,
-        (rest % 3_600) / 60,
-        rest % 60
-    )
-}
-
-/// Days-since-epoch to civil date (Howard Hinnant's algorithm; stdlib only).
-fn civil_from_days(days: i64) -> (i64, u32, u32) {
-    let shifted = days + 719_468;
-    let era = if shifted >= 0 {
-        shifted
-    } else {
-        shifted - 146_096
-    } / 146_097;
-    let day_of_era = (shifted - era * 146_097) as u64;
-    let year_of_era =
-        (day_of_era - day_of_era / 1_460 + day_of_era / 36_524 - day_of_era / 146_096) / 365;
-    let year = year_of_era as i64 + era * 400;
-    let day_of_year = day_of_era - (365 * year_of_era + year_of_era / 4 - year_of_era / 100);
-    let mp = (5 * day_of_year + 2) / 153;
-    let day = (day_of_year - (153 * mp + 2) / 5 + 1) as u32;
-    let month = if mp < 10 { mp + 3 } else { mp - 9 } as u32;
-    (if month <= 2 { year + 1 } else { year }, month, day)
 }
